@@ -45,6 +45,8 @@
 				"formulahendry.auto-close-tag",
 				"skellock.just", // flexible command runner in rust
 				// Nice to have cause I will still edit such files
+				"tombonnike.vscode-status-bar-format-toggle",
+				"rebornix.toggle",
 				"mrmlnc.vscode-duplicate",
 				"qufiwefefwoyn.inline-sql-syntax",
 				"tamasfe.even-better-toml",
