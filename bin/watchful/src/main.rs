@@ -1,3 +1,6 @@
+use std::env
+
 fn main() {
-    println!("Hello, world!");
+    current_dir = env::current_dir();
+    println!("Hello, world in {}!", current_dir);
 }
