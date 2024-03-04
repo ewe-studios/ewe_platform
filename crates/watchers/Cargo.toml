@@ -11,6 +11,20 @@ keywords.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# -- global crate dependencies
+serde.workspace = true
+serde_json.workspace = true
+
+anyhow.workspace = true
+thiserror.workspace = true
+
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+# -- internal dependencies for crate
+notify = { version = "6.1.1", features = [] }
+notify-debouncer-full = { version = "0.3.1", default-features = true }
+
 
 [lints]
 workspace = true

@@ -34,7 +34,6 @@
 			"extensions": [
 				// General extensions
 				"tal7aouy.theme",
-				"vscodevim.vim",
 				"codezombiech.gitignore",
 				"vadimcn.vscode-lldb",
 				"usernamehw.errorlens",
@@ -104,7 +103,7 @@
 				],
 				"terminal": {
 					"integrated": {
-						"fontSize": 13,
+						"fontSize": 16,
 						"lineHeight": 1.5,
 						"cursorBlinking": false,
 						"cursorStyle": "line"
@@ -146,8 +145,8 @@
 					// "lineNumbers": "on",
 					"lineNumbers": "relative",
 					"renderWhitespace": "off",
-					"fontSize": 14,
-					"lineHeight": 22,
+					"fontSize": 16,
+					"lineHeight": 1.5,
 					"letterSpacing": 0,
 					"fontFamily": "Fira Code",
 					"suggestFontSize": 16,

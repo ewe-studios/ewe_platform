@@ -18,12 +18,29 @@ keywords = [
     "change watcher",
 ]
 
+# -- global dev dependencies
+[workspace.dev_dependencies]
+
+# -- global dependencies
 [workspace.dependencies]
-anyhow = { "version" = "1.0.79" }
-serde = { "version" = "1.0.195" }
+
+# -- error wrappings
+anyhow = { "version" = "1.0.80" }
+thiserror = { "version" = "1.0.57" }
+
+# -- serialization crates
+serde = { "version" = "1.0.197", features = ["derive"] }
+serde_json = { "version" = "1.0.114" }
+
+toml = { "version" = "0.8.10" }
+
+# -- tracing crates
+tracing = { version = "0.1.40" }
+tracing-subscriber = { version = "0.3.18" }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
+unused = "allow"       # for experimental dev
 
 [workspace.lints.clippy]
 pedantic = "warn"

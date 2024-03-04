@@ -11,6 +11,15 @@ keywords.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# workspace dependencies
+serde.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+# -- App Libs
+watchers = { path = "../../crates/watchers" }
+
+# -- Others
 
 [lints]
 workspace = true
