@@ -196,6 +196,71 @@ mod tests {
     }
 
     #[test]
+    fn test_config_with_dir_watcher_with_react_commands() {
+        let config_json = r#"
+		{
+            "watchers": [
+                {
+					"dir": "./crates/watchers/src",
+                    "recursive": true,
+                    "debounce": 800,
+                    "after_change": [
+                        {
+                            "command": ["rust", "build"],
+                            "if_failed": "exit",
+                            "alloc": "sequential"
+                        },
+                        {
+                            "command": ["rust", "check"],
+                            "if_failed": "exit",
+                            "alloc": "sequential"
+                        },
+                        {
+                            "command": ["rust", "test"],
+                            "if_failed": "exit",
+                            "alloc": "sequential"
+                        }
+                    ]
+                }
+            ]
+        }
+        "#;
+
+        let expected = Config {
+            watchers: vec![Watcher::Dir(DirWatcher {
+                dir: String::from("./crates/watchers/src"),
+                recursive: true,
+                debounce: 800,
+                after_change: Some(vec![
+                    CommandDescription {
+                        command: vec![String::from("rust"), String::from("build")],
+                        if_failed: Some(CommandExpectation::Exit),
+                        alloc: Some(CommandAllocation::Sequential),
+                    },
+                    CommandDescription {
+                        command: vec![String::from("rust"), String::from("check")],
+                        if_failed: Some(CommandExpectation::Exit),
+                        alloc: Some(CommandAllocation::Sequential),
+                    },
+                    CommandDescription {
+                        command: vec![String::from("rust"), String::from("test")],
+                        if_failed: Some(CommandExpectation::Exit),
+                        alloc: Some(CommandAllocation::Sequential),
+                    },
+                ]),
+            })],
+        };
+
+        let parsed_config = Config::json(config_json).unwrap();
+        assert_eq!(
+            expected,
+            parsed_config,
+            "We expected json like: {}",
+            serde_json::to_string(&expected).unwrap()
+        );
+    }
+
+    #[test]
     fn test_config_with_file_watcher() {
         let config_json = r#"
 		{
