@@ -98,9 +98,6 @@
 						"visible": 1
 					}
 				},
-				"vscode_custom_css.imports": [
-					"${workspaceFolder}/.vscode/custom_theme.css"
-				],
 				"terminal": {
 					"integrated": {
 						"fontSize": 16,

@@ -1,3 +1,9 @@
+extern crate serde;
+
+// #[macro]
+// extern crate serde_derive;
+// extern crate serde_json;
+
 use std::path::Path;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;

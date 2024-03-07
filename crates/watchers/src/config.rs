@@ -4,6 +4,7 @@ use thiserror::Error;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{from_str, json, to_string};
+use serde_with::skip_serializing_none;
 
 pub type Result<T> = anyhow::Result<T, ConfigError>;
 
@@ -17,16 +18,46 @@ pub enum ConfigError {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
+pub enum CommandAllocation {
+    #[serde(rename = "sequential")]
+    Sequential,
+
+    #[serde(rename = "concurrent")]
+    Concurrent,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
+pub enum CommandExpectation {
+    #[serde(rename = "exit")]
+    Exit,
+
+    #[serde(rename = "skip")]
+    Skip,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
+pub struct CommandDescription {
+    pub command: Vec<String>,
+    pub if_failed: Option<CommandExpectation>,
+    pub alloc: Option<CommandAllocation>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct DirWatcher {
     pub dir: String,
     pub recursive: bool,
     pub debounce: i16,
+    pub after_change: Option<Vec<CommandDescription>>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct FileWatcher {
     pub file: String,
     pub debounce: i16,
+    pub after_change: Option<Vec<CommandDescription>>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
@@ -64,7 +95,9 @@ impl Config {
 mod tests {
     use serde_json::{from_str, to_string};
 
-    use crate::config::{ConfigError, DirWatcher};
+    use crate::config::{
+        CommandAllocation, CommandDescription, CommandExpectation, ConfigError, DirWatcher,
+    };
 
     use super::{Config, FileWatcher, Watcher};
 
@@ -144,17 +177,22 @@ mod tests {
         }
         "#;
 
-        let parsed_config = Config::json(config_json).unwrap();
-
         let expected = Config {
             watchers: vec![Watcher::Dir(DirWatcher {
                 dir: String::from("./crates/watchers/src"),
                 recursive: true,
                 debounce: 800,
+                after_change: None,
             })],
         };
 
-        assert_eq!(expected, parsed_config);
+        let parsed_config = Config::json(config_json).unwrap();
+        assert_eq!(
+            expected,
+            parsed_config,
+            "We expected json like: {}",
+            serde_json::to_string(&expected).unwrap()
+        );
     }
 
     #[test]
@@ -170,15 +208,83 @@ mod tests {
         }
         "#;
 
+        let expected = Config {
+            watchers: vec![Watcher::File(FileWatcher {
+                file: String::from("./crates/watchers/src/lib.rs"),
+                debounce: 800,
+                after_change: None,
+            })],
+        };
+
         let parsed_config = Config::json(config_json).unwrap();
+        assert_eq!(
+            expected,
+            parsed_config,
+            "We expected json like: {}",
+            serde_json::to_string(&expected).unwrap()
+        );
+    }
+
+    #[test]
+    fn test_config_with_file_watcher_with_react_commands() {
+        let config_json = r#"
+		{
+            "watchers": [
+                {
+					"file": "./crates/watchers/src/lib.rs",
+                    "debounce": 800,
+                    "after_change": [
+                        {
+                            "command": ["rust", "build"],
+                            "if_failed": "exit",
+                            "alloc": "sequential"
+                        },
+                        {
+                            "command": ["rust", "check"],
+                            "if_failed": "exit",
+                            "alloc": "sequential"
+                        },
+                        {
+                            "command": ["rust", "test"],
+                            "if_failed": "exit",
+                            "alloc": "sequential"
+                        }
+                    ]
+                }
+            ]
+        }
+        "#;
 
         let expected = Config {
             watchers: vec![Watcher::File(FileWatcher {
                 file: String::from("./crates/watchers/src/lib.rs"),
                 debounce: 800,
+                after_change: Some(vec![
+                    CommandDescription {
+                        command: vec![String::from("rust"), String::from("build")],
+                        if_failed: Some(CommandExpectation::Exit),
+                        alloc: Some(CommandAllocation::Sequential),
+                    },
+                    CommandDescription {
+                        command: vec![String::from("rust"), String::from("check")],
+                        if_failed: Some(CommandExpectation::Exit),
+                        alloc: Some(CommandAllocation::Sequential),
+                    },
+                    CommandDescription {
+                        command: vec![String::from("rust"), String::from("test")],
+                        if_failed: Some(CommandExpectation::Exit),
+                        alloc: Some(CommandAllocation::Sequential),
+                    },
+                ]),
             })],
         };
 
-        assert_eq!(expected, parsed_config);
+        let parsed_config = Config::json(config_json).unwrap();
+        assert_eq!(
+            expected,
+            parsed_config,
+            "We expected json like: {}",
+            serde_json::to_string(&expected).unwrap()
+        );
     }
 }
