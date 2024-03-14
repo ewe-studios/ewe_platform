@@ -1,10 +1,24 @@
 # Watchers
 
+[![Build Status](https://github.com/ewe-studio/platform/workflows/CI/badge.svg)](
+https://github.com/crossbeam-rs/crossbeam/actions)
+[![License](https://img.shields.io/badge/license-MIT_OR_Apache--2.0-blue.svg)](
+https://github.com/crossbeam-rs/crossbeam#license)
+[![Cargo](https://img.shields.io/crates/v/crossbeam.svg)](
+https://crates.io/crates/crossbeam)
+[![Documentation](https://docs.rs/crossbeam/badge.svg)](
+https://docs.rs/crossbeam)
+[![Rust 1.61+](https://img.shields.io/badge/rust-1.61+-lightgray.svg)](
+https://www.rust-lang.org)
+[![chat](https://img.shields.io/discord/569610676205781012.svg?logo=discord)](https://discord.com/invite/JXYwgWZ)
+
+![watchers logo](./design/Watchful.png)
+
 Implements the underlying foundational systems that power the [watchful](../../bin/watchful/) binary crate. It's focused on clean code architecture, deep separation of concerns and flexibility to ensure we allow easy change and addition of features as the future flows forward.
 
 ## Architecture
 
-![architecture_image](./architecture.png)
+![architecture_image](./design/architecture.png)
 
 We want to focus the architecture around moving the core side effects:
 
@@ -12,6 +26,8 @@ We want to focus the architecture around moving the core side effects:
 - execution of change commands
 
 to the boundaries of the different parts of the system.
+
+For more on this see my [Philosophy of Engineering](../../README.md#philiosohpy_of_engineering)
 
 This ensures to keep as much of the core as pure and functional as possible without mixing in concerns from the outside that will make things harder to change, maintain and keep simple.
 
