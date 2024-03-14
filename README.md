@@ -33,6 +33,36 @@ Adapters provide a way for these side effects to provide needed interfaces or me
 
 I strongly believe that the underlying core means by which different pieces of the API should communicate must entirely be via channels if possible else should be via channel like structures that make this possible e.g wrapped type that uses a future underneath for some async operations and responds.
 
+```rust
+// Receive only structures
+trait ReceiveChannel<T>{
+    Event = T,
+
+    async closed() -> bool
+    async next(self) -> Event
+}
+```
+
+In the background, Channels will have a send only version held by the generator of the channel which will be used to deliver events
+to the channel.
+
+```rust
+// Send only structures
+trait SendChannel<T>{
+    Event = T,
+
+    close();
+    async send(event: Event);
+}
+```
+
+Hence like rust mspc crate, we would expect creation of a channel to follow symantic:
+
+```rust
+// create sender and receiver handles for a channel of Event type T.
+sender, receiver = channels::create<T>()
+```
+
 This can come in varying formats but it's deeply important to ensure even APIs that abstract these underlying operations do so via channels so that they can easily keep the leakage as low to near imposssible as much as can be done.
 
 We can use [crossbeam](https://github.com/crossbeam-rs/crossbeam) which implements a nicer channel API on top of rust internal [mspc](https://doc.rust-lang.org/std/sync/mpsc/) with more custom features.
