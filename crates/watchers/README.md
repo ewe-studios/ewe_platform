@@ -27,7 +27,7 @@ We want to focus the architecture around moving the core side effects:
 
 to the boundaries of the different parts of the system.
 
-For more on this see my [Philosophy of Engineering](../../README.md#philiosohpy_of_engineering)
+For more on this see my [Philosophy of Engineering](../../README.md#philosophy_of_engineering)
 
 This ensures to keep as much of the core as pure and functional as possible without mixing in concerns from the outside that will make things harder to change, maintain and keep simple.
 

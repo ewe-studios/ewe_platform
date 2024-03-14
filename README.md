@@ -14,7 +14,7 @@ A series of crates providing different functionality and binaries for projects.
 
 - 7/03/2024: Completed json deserialization for Configuration for dir and file watching
 
-## Philosphy of Engineering
+## Philosophy of Engineering
 
 We want to focus the architecture around moving the core side effects (Http, FileSystems, ..etc) to the boundaries of the different parts of the system.
 
