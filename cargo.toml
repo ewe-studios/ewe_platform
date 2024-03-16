@@ -27,6 +27,7 @@ keywords = [
 # -- error wrappings
 anyhow = { "version" = "1.0.80" }
 thiserror = { "version" = "1.0.57" }
+futures = { "verison" = ">=0.3" }
 
 # -- serialization crates
 serde = { "version" = "1.0.197", features = ["derive"] }

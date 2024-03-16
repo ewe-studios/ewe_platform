@@ -1,6 +1,6 @@
 # Watchers
 
-[![Build Status](https://github.com/ewe-studio/platform/worflows/CI/badge.svg)](
+[![Build Status](https://github.com/ewe-studios/platform/blob/master/crates/watchers/design/Watchful.svg)](
 https://github.com/watchers-rs/watchers/actions)
 [![License](https://img.shields.io/badge/license-MIT_OR_Apache--2.0-blue.svg)](
 https://github.com/watchers-rs/watchers#license)

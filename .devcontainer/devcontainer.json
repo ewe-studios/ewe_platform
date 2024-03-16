@@ -33,7 +33,8 @@
 		"vscode": {
 			"extensions": [
 				// General extensions
-				"tal7aouy.theme",
+				"asvetliakov.vscode-neovim",
+				"JulianIaquinandi.nvim-ui-modifier",
 				"codezombiech.gitignore",
 				"vadimcn.vscode-lldb",
 				"usernamehw.errorlens",
@@ -46,11 +47,21 @@
 				"CoenraadS.disableligatures",
 				"ms-vscode.makefile-tools",
 				"octref.vetur",
+				"eamodio.gitlens",
 				"formulahendry.auto-close-tag",
+				// themes
+				"tal7aouy.theme",
+				"GitHub.github-vscode-theme",
+				"whizkydee.material-palenight-theme",
+				"BeardedBear.beardedtheme",
+				"dracula-theme.theme-dracula",
+				"enkia.tokyo-night",
 				// flexible command runner in rust
 				"skellock.just",
 				"SeaQL.firedbg-rust",
 				// Nice to have cause I will still edit such files
+				"ms-kubernetes-tools.vscode-kubernetes-tools",
+				"GoogleCloudTools.cloudcode",
 				"tombonnike.vscode-status-bar-format-toggle",
 				"bierner.markdown-preview-github-styles",
 				"bierner.markdown-mermaid",
@@ -64,16 +75,22 @@
 				"VSpaceCode.whichkey",
 				"drcika.apc-extension",
 				"amodio.toggle-excluded-files",
-				"asvetliakov.vscode-neovim",
 				"mrmlnc.vscode-duplicate",
 				"qufiwefefwoyn.inline-sql-syntax",
 				"tamasfe.even-better-toml",
 				"Chouzz.vscode-better-align",
 				"dbaeumer.vscode-eslint",
+				// extension packs
+				"fnando.linter",
 				// Python specifics extensions
 				"ms-python.python",
 				"samuelcolvin.jinjahtml",
 				"matangover.mypy",
+				"charliermarsh.ruff",
+				"ms-python.flake8",
+				"ms-python.isort",
+				"ms-python.vscode-pylance",
+				"ms-python.pylint",
 				// Rust specifics extensions
 				"charliermarsh.ruff",
 				"serayuzgur.crates",
@@ -89,18 +106,36 @@
 				"eamodio.gitlens"
 			],
 			"settings": {
+				// We can use Geist Mono instead of Fira Code
+				"editor.fontFamily": "Fira Code",
+				"scm.inputFontFamily": "Fira Code",
+				"terminal.integrated.fontFamily": "JetBrainsMono Nerd Font",
+				"chat.editor.fontFamily": "Fira Code",
+				"debug.console.fontFamily": "Fira Code",
+				"editor.codeLensFontFamily": "Fira Code",
+				"notebook.output.fontFamily": "Fira Code",
+				"markdown.preview.fontFamily": "Fira Code",
+				"editor.inlayHints.fontFamily": "Fira Code",
+				// End of Default Settings we prefer grouping ---
+				//
+				"firedbg.showWelcome": false,
 				"diffEditor": {
 					// Show me whitespace in diffs, just in case some slips through, shows up in the GitHub PR, and I look like a dummy.
 					"ignoreTrimWhitespace": false
 				},
 				"explorer": {
+					"compactFolders": false,
 					"openEditors": {
 						"visible": 1
 					}
 				},
+				"window": {
+					"commandCenter": false
+					// "zoomLevel": 0.75,
+				},
 				"terminal": {
 					"integrated": {
-						"fontSize": 16,
+						"fontSize": 14,
 						"lineHeight": 1.5,
 						"cursorBlinking": false,
 						"cursorStyle": "line"
@@ -119,11 +154,15 @@
 					"enableOnDiffView": true
 				},
 				"editor": {
+					"linkedEditing": true,
+					"bracketPairColorization": {
+						"enabled": true
+					},
 					"guides": {
+						"bracketPairs": true,
 						"indentation": false
 					},
 					"multiCursorModifier": "ctrlCmd",
-					"formatOnSave": true,
 					"codeActionsOnSave": {
 						"source": {
 							"fixAll": true,
@@ -131,9 +170,16 @@
 						}
 					},
 					"window": {
-						"title": "${activeEditorMedium}${separator}${rootName} ${dirty}"
+						"title": "${activeEditorMedium}${separator}${rootName} ${dirty}",
+						"titleBar": "custom"
 					},
-					"minimap.enabled": false,
+					"scrollbar": {
+						"vertical": "auto",
+						"horizontal": "auto"
+					},
+					"minimap": {
+						"enabled": false
+					},
 					"codeLens": false,
 					"renderControlCharacters": false,
 					"renderIndentGuides": false,
@@ -143,9 +189,8 @@
 					"lineNumbers": "relative",
 					"renderWhitespace": "off",
 					"fontSize": 16,
-					"lineHeight": 1.5,
+					"lineHeight": 22,
 					"letterSpacing": 0,
-					"fontFamily": "Fira Code",
 					"suggestFontSize": 16,
 					"suggestLineHeight": 28,
 					"fontLigatures": true,
@@ -158,7 +203,8 @@
 					// Give it to me as fast as you have it.
 					"quickSuggestionsDelay": 0,
 					// In sublime I got used to almost exclusively using "cmd+shift+v" (format on paste) - now it will do it by default!
-					"formatOnPaste": true
+					"formatOnPaste": true,
+					"formatOnSave": true
 				},
 				"emmet": {
 					"includeLanguages": {
@@ -170,7 +216,6 @@
 					"fullScreen": false
 				},
 				"search.exclude": {
-					"**/target": true,
 					"**/node_modules": true,
 					"**/bower_components": true,
 					// Hide everything in /public, except "index.php"
@@ -185,17 +230,53 @@
 					"trimTrailingWhitespace": true,
 					"trimFinalNewlines": true,
 					"associations": {
-						// ".php_cs": "php",
-						// ".php_cs.dist": "php",
-						// "*.php": "php",
+						".php_cs": "php",
+						".php_cs.dist": "php",
+						"*.php": "php",
 						"*.python": "python"
+					},
+					"exclude": {
+						"**/.git": false,
+						"**/.svn": false,
+						"**/.hg": false,
+						"**/CVS": false,
+						"**/.DS_Store": false,
+						"**/Thumbs.db": false,
+						"**/node_modules": false,
+						"**/.next": false,
+						"**/.husky": false,
+						"**/drizzle": false,
+						"**/dist": false,
+						"**/.todo.md": false,
+						"**/.vscode": false,
+						"**/.eslintrc.cjs": false,
+						"**/.editorconfig": false,
+						"**/.gitignore": false,
+						"**/.lintstagedrc.mjs": false,
+						"**/.markdownlint.json": false,
+						"**/.markdownlintignore": false,
+						"**/.prettierignore": false,
+						"**/bun.lockb": false,
+						"**/cspell.json": false,
+						"**/package-lock.json": false,
+						"**/pnpm-lock.yaml": false,
+						"**/next-env.d.ts": false,
+						"**/postcss.config.cjs": false,
+						"**/prettier.config.js": false,
+						"**/README.md": false,
+						"**/next.config.js": false,
+						"**/tailwind.config.ts": false,
+						"**/drizzle.config.ts": false,
+						"**/migrate.ts": false,
+						"**/.env.example": false
 					}
 				},
 				"extensions": {
 					"experimental": {
 						"affinity": {
 							// To improve performance
-							"vscodevim.vim": 1
+							// "vscodevim.vim": 1,
+							"asvetliakov.vscode-neovim": 1
 						}
 					}
 				},
@@ -259,6 +340,19 @@
 						"--config=${workspaceFolder}/ruff.toml"
 					]
 				},
+				"python.analysis.autoImportCompletions": true,
+				"isort.check": true,
+				"isort.args": [
+					"--profile",
+					"black"
+				],
+				"python.testing.pytestEnabled": true,
+				"python.linting.pylintEnabled": true,
+				"python.linting.flake8Enabled": true,
+				"python.formatting.provider": "black",
+				"black-formatter.path": [
+					"black"
+				],
 				"[python]": {
 					"testing": {
 						"pytestArgs": [
@@ -271,6 +365,7 @@
 						"provider": "black"
 					},
 					"editor": {
+						"formatOnType": true,
 						"formatOnSave": true,
 						"defaultFormatter": "charliermarsh.ruff",
 						// switch to black formatter if you prefer
@@ -283,13 +378,15 @@
 						}
 					}
 				},
-				"lldb": {
-					"verboseLogging": true
+				"[markdown]": {
+					"files.trimTrailingWhitespace": false
 				},
 				"workbench": {
 					"fontAliasing": "antialiased",
 					"iconTheme": "vscode-icons",
-					"colorTheme": "Theme Mix",
+					// "colorTheme": "Theme Mix",
+					// "colorTheme": "Theme Darker",
+					"colorTheme": "Tokyo Night Storm",
 					"editor": {
 						"showTabs": "none",
 						"activityBar": {
@@ -300,7 +397,11 @@
 					"sideBar": {
 						"location": "right"
 					},
+					"activityBar": {
+						"location": "hidden"
+					},
 					"settings": {
+						"editor": "JSON with Comments",
 						"applyToAllProfiles": [
 							"workbench.sideBar.location",
 							"workbench.editor.showTabs",
@@ -309,7 +410,67 @@
 							"editor.lineNumbers"
 						]
 					}
-				}
+				},
+				// NeoVim
+				"vscode-neovim": {
+					"neovimInitVimPaths": {
+						"darwin": "$HOME/.config/nvim-vscode/init.vim"
+					},
+					"neovimExecutablePaths": {
+						"darwin": "/opt/homebrew/bin/nvim"
+					}
+				},
+				// APC customizations
+				"apc.font.family": "Geist Mono",
+				"apc.monospace.font.family": "Geist Mono",
+				"apc.statusBar": {
+					"position": "editor-bottom",
+					"height": 28,
+					"fontSize": 12
+				},
+				"apc.activityBar": {
+					"position": "bottom",
+					"hideSettings": true,
+					"size": 28
+				},
+				"apc.electron": {
+					"titleBarStyle": "hiddenInset",
+					"trafficLightPosition": {
+						"x": 12,
+						"y": 10
+					}
+				},
+				// Cusom css
+				"apc.stylesheet": {
+					".sidebar > .composite": "height: 12px !important",
+					".title-label": "display: none !important",
+					".title-actions": "display: none !important",
+					".tabs-and-actions-container > .editor-actions": "display: none !important",
+					".titlebar-center": "display: none !important",
+					".titlebar-right": "display: none !important",
+					".inline-tabs-placeholder": "display: none !important"
+				},
+				// Aura theme customisation
+				"workbench.colorCustomizations": {
+					"[Aura Dark]": {
+						"editor.background": "#110f17",
+						"terminal.background": "#110f17",
+						"activityBar.background": "#110f17",
+						"statusBar.background": "#110f17",
+						"editorGroupHeader.tabsBackground": "#110f17",
+						"tab.inactiveBackground": "#110f17"
+					}
+				},
+				"lldb.library": "~/.vsocde/extensions/codelldb/",
+				"extensions.experimental.affinity": {
+					"vscodevim.vim": 1,
+					"asvetliakov.vscode-neovim": 1
+				},
+				"terminal.integrated.enableImages": true,
+				"search.showLineNumbers": true,
+				"csv-preview.lineNumbers": "source",
+				"editor.lineNumbers": "relative",
+				"zenMode.hideLineNumbers": false
 			}
 		}
 	}

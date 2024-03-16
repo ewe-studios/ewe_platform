@@ -34,12 +34,13 @@ Adapters provide a way for these side effects to provide needed interfaces or me
 I strongly believe that the underlying core means by which different pieces of the API should communicate must entirely be via channels if possible else should be via channel like structures that make this possible e.g wrapped type that uses a future underneath for some async operations and responds.
 
 ```rust
+
 // Receive only structures
 trait ReceiveChannel<T>{
     Event = T,
 
-    async closed() -> bool
-    async next(self) -> Event
+   closed() -> bool
+   try_receive(self) -> Result<Event>>
 }
 ```
 
@@ -52,7 +53,7 @@ trait SendChannel<T>{
     Event = T,
 
     close();
-    async send(event: Event);
+    send(event: Event);
 }
 ```
 
@@ -230,7 +231,7 @@ trait BusinessDomain {
     // This channel to respond accordingly.
     //
     // Gernerally it creates a NamedRequest underneath.
-    Do(AppRequest) Channel<Id, AppEvents>
+    Do(AppRequest) Channel<NamedEvents>
 
     // Events indicative of relevant changes within the system
     // that it both listens to and the outside would could listen
@@ -304,21 +305,25 @@ pub struct ConfigServiceManager{
 }
 
 impl ConfigurationService on ConfigServiceManager {
-    pub fn  GetFileConfigFromService(&self, data: NamedRequest, domain: BusinessDoman) {
-        // create a local scope indicating this operation is related to this event.
-        // do something via the platform
-        response = self.context.http().get(self.url, data).await();
-        if !response.ok {
-            let mut reason = None;
-            switch response.statusCode {
-                ...
-                () => reason = Some("unexpected server failure");
+    pub fn GetFileConfigFromService(&self, data: NamedRequest, channel: SendChannel<NamedEvent>) {
+        // use spawn_local 
+        spawn_local({
+            let ctx = channel.clone();
+            async move {
+                response = self.context.http().get(self.url, data).await;
+                if !response.ok {
+                    let mut reason = None;
+                    switch response.statusCode {
+                        ...
+                        () => reason = Some("unexpected server failure");
+                    }
+
+                    data.respond(channel, AppEvent::FailedFileConfigurationRequest(reason));
+                }
+
+                data.respond(channel, AppEvents::SucceededFileConfiguratonRequest(response.text))
             }
-
-            return domain.AppEvents::FailedFileConfigurationRequest(reason);
-        }
-
-        AppEvents::SucceededFileConfiguratonRequest(response.text)
+        })
     }
 }
 
