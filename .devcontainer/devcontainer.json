@@ -421,8 +421,8 @@
 					}
 				},
 				// APC customizations
-				"apc.font.family": "Geist Mono",
-				"apc.monospace.font.family": "Geist Mono",
+				"apc.font.family": "Fira Code",
+				"apc.monospace.font.family": "Fira Code",
 				"apc.statusBar": {
 					"position": "editor-bottom",
 					"height": 28,
@@ -447,7 +447,7 @@
 					".title-actions": "display: none !important",
 					".tabs-and-actions-container > .editor-actions": "display: none !important",
 					".titlebar-center": "display: none !important",
-					".titlebar-right": "display: none !important",
+					// ".titlebar-right": "display: none !important",
 					".inline-tabs-placeholder": "display: none !important"
 				},
 				// Aura theme customisation
@@ -470,7 +470,8 @@
 				"search.showLineNumbers": true,
 				"csv-preview.lineNumbers": "source",
 				"editor.lineNumbers": "relative",
-				"zenMode.hideLineNumbers": false
+				"zenMode.hideLineNumbers": false,
+				"errorLens.statusBarIconsEnabled": true
 			}
 		}
 	}

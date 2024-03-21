@@ -14,6 +14,7 @@ services:
         GIT_USER_NAME: "Alexander Ewetumo"
     environment:
       - "surface=devcontainer"
+      - "RUST_BACKTRACE=1"
     networks:
       - app_network
     volumes:
