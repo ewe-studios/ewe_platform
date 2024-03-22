@@ -39,9 +39,8 @@ I strongly believe that the underlying core means by which different pieces of t
 trait ReceiveChannel<T>{
     Event = T,
 
-   closed() -> bool
-   try_receive(self) -> Result<Event>>
-}
+   // we will let ChannelError:Closed indicate when closed
+   try_receive(self) -> Result<Event>> 
 ```
 
 In the background, Channels will have a send only version held by the generator of the channel which will be used to deliver events
@@ -53,7 +52,7 @@ trait SendChannel<T>{
     Event = T,
 
     close();
-    send(event: Event);
+    try_send(event: Event);
 }
 ```
 
@@ -111,7 +110,7 @@ enum AppEvents {
 }
 
 enum AppRequests {
-    Http(HttpRequest), // == this as a example troubles mean, we do not want such leakage 
+    Http(HttpRequest), // == this as an example troubles me, we do not want such leakage into the domain, yet we need to be able to perform such operations.
     WatchFile(Id, FileWatcher),
     DirWatcher(Id, DirWatcher),
 }
@@ -121,27 +120,43 @@ enum AppData {
     Requests(AppRequests)
 }
 
+// [DEPRECATED]: Go lower for a more refined trait
+//
 // Random name just indicative this is our business domain
 trait BusinessDomain {
-    In() -> Channel<AppEvents>
-    Out() -> Channel<OutEvents>
-    Requests() -> Channel<AppRequests>
+    In() -> ReceiveChannel<AppEvents>
+    Out() -> ReceiveChannel<OutEvents>
+    Requests() -> ReceiveChannel<AppRequests>
 }
 ```
 
-Looking at the code above, everything pleases me except the AppRequests as an example, we see the problem where no matter how when Requests are represented as pure enums with states, they leak cross boundaries into the domain business and if they ever change, then we will be forced to change business logic as well, hence Requests must come as trait bounds that instead are used by the service domain.
+Looking at the code above, everything pleases me except the AppRequests as an example, we see the problem where no matter how when Requests are represented as pure enums with states, e.g the `Http(HttpRequest)` itself is a leak.
 
-Hence things need to switch abit to match the following setup:
+It is leaking cross boundaries details `Http` into the domain business and the question is do we really need this? Does the domain need to be aware of a concept of an `HttpRequest`, should we not instead represent this as an underlying hidden detail that the underlying events do not care about.
+
+We could make a specific domain request type that indicates it might need to use http internally by some use-case operation but it does not necessary need to actually be the `HttpRequest` itself.
+
+That is: we should describe an operation native to the domain and intrinsicially connected to it's use-cases which might use some http underlying platform tooling but never is something someone needs to know from a top-down perspective.
+
+Why you might ask ?
+
+Well if say the definition of `HttpRequest` ever changes, then we will be forced to change business logic as well.
+
+Hence the domain request should be specific and be within actual bounded contexts and contextual wordings to the business of the domain not platform operations.
+
+This allows us indicate what we want the domain to do and not how to do it, we end up building systems around the actual goals of the domain and not end up creating systems that describe how its going to do it by leaking such platform details into the definition.
+
+Hence things need to switch abit to match the following below instead:
 
 ```rust
 
-// These traits should be specifc, they should not be generic
-// when a domain logic needs some side effect from some external layer
-// even if its really just http they should still be specific to the job done.
-// this allows us to be more specialized to the use-case and never become too
-// deeply tied to the actual platform details.
-trait ConfigurationService {
-    GetFileConfigFromService(Address, BusinessDomain) 
+// Custom definition of what a file is, i.e a file path string.
+type File = String;
+
+// Platform implementations then wrap these definition to provide platform
+// features that a use-case may use
+trait FileWatcher {
+    async WatchFile(File, BusinessDomain)
 }
 
 // A unique use-case that defines a specific type of request
@@ -153,12 +168,11 @@ trait GenerateBatchDelegationService {
     GenerateBatchDelegation(BatchDelegationRequest, BusinessDomain)
 }
 
-trait FileWatcher {
-    async WatchFile(File, BusinessDomain)
-}
-
 // Indicative of a request set that is uniquely identified by an Id.
 type NamedRequest struct(RequestId, Vec<AppRequests)
+
+// Custom definition of what a Dir is, i.e a dir path string.
+type Dir = String;
 
 // The different types of unique requests that can be generated
 // and handled later as returned events.
@@ -167,8 +181,8 @@ struct AppRequests {
     WatchDir(Dir),
     ViewModel(),
     
-    // Request become specific and never generic, they define the 
-    // specific use-case operation we want performed. They are never ambiguouse.
+    // Request become contextual using context wordings and never
+    // ambiguous or platform specific.
     BatchDelegation(BatchDelegationRequest),
 }
 
@@ -204,7 +218,7 @@ trait BusinessDomain {
     // not intrinsic to the business domain e.g saving to a persistent db,
     // requesting FileSystem Files, etc. Layers that are relevant but 
     // should be in the boundaries and not internals of the domain.
-    Requests() Channel<NamedRequest>
+    Requests() ReceiveChannel<NamedRequest>
 
     // Respond (The Driving Ports) provides a clear indication that these events 
     // are domain based events that are owned by the BusinessDomain
@@ -225,35 +239,36 @@ trait BusinessDomain {
     // world to interact with the business domain by requesting its do something without
     // encroaching on those internal logic or leaking across boundaries.
     //
-    // It returns a Channel that is tied to the specific request
+    // It returns a ReceiveChannel that is tied to the specific request
     // received and will used that to respond to the requests.
     // This means internally it captures and relevantly uses the 
     // This channel to respond accordingly.
     //
     // Gernerally it creates a NamedRequest underneath.
-    Do(AppRequest) Channel<NamedEvents>
+    Do(AppRequest) ReceiveChannel<NamedEvents>
 
     // Events indicative of relevant changes within the system
     // that it both listens to and the outside would could listen
     // to for historical storage of the total changes the underlying
     // system has undergone.
-    Events() -> Channel<AppEvents>
-    
+    Events() -> ReceiveChannel<AppEvents>
 }
+
 ```
 
 The overall trait describes everything important for such an architecture that meets our goals to be possible:
 
 1. Clear boundaries separation with Driving Ports/Adapters - This is the fact that business domain logic and the relevant use-cases (driving operations, Driving Side of Hexagonal architecture) that might contain side effects are heavily separately from the internal boundaries of the doamin and do not leak into the business domain itself. e.g reading from file system, written to database, etc. This means updates regarding these different operations always returns as NamedEvents indicating of these being operations that are clearly a response to requests.
 
-2. Clear boundaring separation with Driven Ports/Adapters - This are outside operations (e.g from the client or console) that trigger different requests to the business domain to perform specific logic actions on their behalf which will always results in NamedRequests being created with returned NamedEvents represented by the `Channel<Id, AppEvent>` through which the domain responds with.
+2. Clear boundaring separation with Driven Ports/Adapters - This are outside operations (e.g from the client or console) that trigger different requests to the business domain to perform specific logic actions on their behalf which will always results in NamedRequests being created with returned NamedEvents represented by the `ReceiveChannel<Id, AppEvent>` through which the domain responds with.
 
 3. Ability to listen into actual events the domain is generating for those wishing to get the full waterhose of underlying changes the business domain has undergone. This will be useful for when you wish to pipe these state changes into a persistent layer that allows resurrection of the domain to the state it was last before some operation or death.
 
+4. Focus on all core methods outputing `ReceiveChannel`s that ensuring only the functional calls provide a means of delivery requests that respond with actual response `ReceiveChannel`s keeping the `SendChannel`s internal to the domain and is suited to the specific request. This allows implementations to be focused on the job at hand within their local context, keeping readability consistent without the developers jumping between context points of where request gets sent and where its routed and then handled. The code should be clear readily that it sends a requests, it get back a channel and answers that specific request within that context. The reader can just assume routing worked and execution was handled correctly without jumping and loosing local context.
+
 ## Platform Abstraction
 
-To make such an architecture viable across different systems and platforms, we also proprose a conceppt called `PlatformContext` that will be used by the BusinessDomain and relevant use-cases to access, that allows access to underlying platform details which
-can both be serviced by the native rust rumtime or some other runtime if running from e.g WASM.
+To make such an architecture viable across different systems and platforms, we also proprose a concept called `PlatformContext` that will be used by the BusinessDomain and relevant use-cases to access core features like http, date, datetime, etc that abstracts these platform around a set of core traits which allows these to be fed in via dependency injection regardless of the underlying running runtime e.g native Rust, WASM, android/ios linking libraries.
 
 This allows us abstract the core platform provision into systems that are feed into the both the BusinessDomain and other other use-cases, whilst still have the capability to abstract as much underlying operations of these platform context in ways that remove all side-effects from the BusinessDomain.
 
@@ -264,13 +279,13 @@ use serde::Serialize;
 trait Http<T, M implements Serialize> {
     type Event = T;
 
-    get(url) Channel<Event>
-    post(url, data: M) Channel<Event>
+    get(url) ReceiveChannel<Event>
+    post(url, data: M) ReceiveChannel<Event>
 }
 
 trait Date {
-    now() Channel<DateTime>
-    parse_str(date_str: &str) Channel<DateTime>
+    now() ReceiveChannel<DateTime>
+    parse_str(date_str: &str) ReceiveChannel<DateTime>
 }
 
 ```
@@ -286,7 +301,7 @@ struct PlatformContext {
 
 An example of this is the `http()` context provided by the platform that helps to abstract out the core logic of delivery an http requests form the domain, this can be abstract in a way that the actual delivery of the request is done in some thread or by the native platform in a different process so that the side-effects really are as outside of the business or use-case boundaries as much as is possible, making the business domain and use-case side-effect free and easily testable.
 
-One interesting question is if things like `date()` should be async via the `Channel` that are used to across most async operations
+One interesting question is if things like `date()` should be async via the `ReceiveChannel` that are used to across most async operations
 to scaffold these operations and provide a clear way to work with them, while this generally can be sync, as most libraries are, there seems to be some benefit in (though not always) making all Plaform systems async even if not needed to both:
 
 1. Create a consistent API surface
@@ -295,6 +310,15 @@ to scaffold these operations and provide a clear way to work with them, while th
 ## Example BusinessDomain and UseCase
 
 ```rust
+
+// These traits should be specifc, they should not be generic
+// when a domain logic needs some side effect from some external layer
+// even if its really just http they should still be specific to the job done.
+// this allows us to be more specialized to the use-case and never become too
+// deeply tied to the actual platform details.
+trait ConfigurationService {
+    GetFileConfigFromService(Address, BusinessDomain) 
+}
 
 pub type ServiceURL = String;
 

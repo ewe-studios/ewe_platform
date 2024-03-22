@@ -20,15 +20,17 @@ keywords = [
 
 # -- global dev dependencies
 [workspace.dev_dependencies]
+cargo-watch = { version = "8.5.2" }
 
 # -- global dependencies
 [workspace.dependencies]
+# -- async crates
+futures = { verison = "0.3" }
+tokio = { version = "1", features = ["full"] }
 
-# -- error wrappings
+# -- error crates
 anyhow = { version = "1.0.80" }
 thiserror = { version = "1.0.57" }
-futures = { verison = ">=0.3" }
-tokio = { version = "1", features = ["full"] }
 
 # -- serialization crates
 serde = { version = "1.0.197", features = ["derive"] }

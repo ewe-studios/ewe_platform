@@ -1,13 +1,19 @@
 // Crate implementing the Engineering Principles of Channels
 
-use futures::{channel::mpsc, SinkExt};
-use std::{borrow::BorrowMut, sync};
+use futures::{channel::mpsc, stream::FusedStream, SinkExt};
+use std::{
+    borrow::{Borrow, BorrowMut},
+    sync,
+};
 use thiserror::Error;
 
 type Result<T> = anyhow::Result<T, ChannelError>;
 
 #[derive(Error, Debug)]
 pub enum ChannelError {
+    #[error("Channel has being closed or not initialized")]
+    Closed,
+
     #[error("Failed to send message due to: {0}")]
     SendFailed(mpsc::SendError),
 
@@ -31,40 +37,62 @@ enum ChannelMessage<T> {
 }
 
 pub struct SendChannel<T> {
-    src: mpsc::UnboundedSender<T>,
+    src: Option<mpsc::UnboundedSender<T>>,
 }
 
 impl<T> SendChannel<T> {
     fn new(src: mpsc::UnboundedSender<T>) -> Self {
-        Self { src }
+        Self { src: Some(src) }
     }
 
-    fn try_send(&mut self, t: T) -> Result<()> {
-        match self.src.start_send(t) {
-            Ok(()) => Ok(()),
-            Err(err) => Err(ChannelError::SendFailed(err)),
+    pub fn close(&mut self) -> Result<()> {
+        if let Some(channel) = self.src.take() {
+            channel.close_channel();
+            return Ok(());
+        } else {
+            return Err(ChannelError::Closed);
+        }
+    }
+
+    pub fn try_send(&mut self, t: T) -> Result<()> {
+        match &mut self.src {
+            Some(src) => match src.start_send(t) {
+                Ok(()) => Ok(()),
+                Err(err) => Err(ChannelError::SendFailed(err)),
+            },
+            None => Err(ChannelError::Closed),
         }
     }
 }
 
 pub struct ReceiveChannel<T> {
-    src: mpsc::UnboundedReceiver<T>,
+    src: Option<mpsc::UnboundedReceiver<T>>,
 }
 
 impl<T> ReceiveChannel<T> {
     fn new(src: mpsc::UnboundedReceiver<T>) -> Self {
-        Self { src }
+        Self { src: Some(src) }
     }
 
-    fn try_receive(&mut self) -> Result<T> {
-        match self.src.try_next() {
-            Ok(maybe_item) => {
-                if let Some(item) = maybe_item {
-                    return Ok(item);
+    pub fn try_receive(&mut self) -> Result<T> {
+        match &mut self.src {
+            None => Err(ChannelError::Closed),
+            Some(src) => match src.try_next() {
+                Ok(None) => {
+                    // take the contents
+                    _ = self.src.take();
+
+                    // return as closed.
+                    Err(ChannelError::Closed)
                 }
-                return Err(ChannelError::ReceivedNoData);
-            }
-            Err(err) => Err(ChannelError::RecevieFailed((err))),
+                Ok(maybe_item) => {
+                    if let Some(item) = maybe_item {
+                        return Ok(item);
+                    }
+                    return Err(ChannelError::ReceivedNoData);
+                }
+                Err(err) => Err(ChannelError::RecevieFailed((err))),
+            },
         }
     }
 }
@@ -72,8 +100,18 @@ impl<T> ReceiveChannel<T> {
 #[cfg(test)]
 mod tests {
 
-    use crate::create;
+    use crate::{create, ChannelError};
     use std::time::Duration;
+
+    #[test]
+    fn should_be_able_to_close_a_send_channel() {
+        let (mut sender, mut receiver) = create::<String>();
+
+        sender.close();
+
+        let err = receiver.try_receive();
+        assert!(matches!(err, Err(ChannelError::Closed)));
+    }
 
     #[test]
     fn should_be_able_to_create_and_send_string_with_channel() {
