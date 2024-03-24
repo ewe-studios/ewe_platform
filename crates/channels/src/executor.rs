@@ -3,14 +3,11 @@
 use crossbeam::channel;
 use futures::{
     future,
-    stream::FusedStream,
     task::{waker_ref, ArcWake},
     Future,
 };
 use std::{
-    borrow::{Borrow, BorrowMut},
-    process::Output,
-    sync::{self, Arc, RwLock},
+    sync::{self, Arc},
     task::Context,
 };
 use thiserror::Error;

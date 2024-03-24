@@ -1,18 +1,6 @@
 // Crate implementing the Engineering Principles of Channels
 
 use crossbeam::channel;
-use futures::{
-    future,
-    stream::FusedStream,
-    task::{waker_ref, ArcWake},
-    Future,
-};
-use std::{
-    borrow::{Borrow, BorrowMut},
-    process::Output,
-    sync::{self, Arc, RwLock},
-    task::Context,
-};
 use thiserror::Error;
 
 type Result<T> = anyhow::Result<T, ChannelError>;
