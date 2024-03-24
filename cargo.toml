@@ -21,6 +21,7 @@ keywords = [
 # -- global dev dependencies
 [workspace.dev_dependencies]
 cargo-watch = { version = "8.5.2" }
+cargo-machete = { version = "0.6.2" }
 
 # -- global dependencies
 [workspace.dependencies]

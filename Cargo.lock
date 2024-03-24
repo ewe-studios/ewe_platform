@@ -110,8 +110,6 @@ dependencies = [
  "futures",
  "thiserror",
  "tokio",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]
