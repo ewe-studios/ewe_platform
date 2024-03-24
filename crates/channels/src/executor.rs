@@ -57,15 +57,12 @@ pub fn create<E: Send + 'static>() -> (ExecutionService<E>, Executor<E>) {
 
 impl<E: Send + 'static> ExecutionService<E> {
     pub fn serve(&mut self) -> ExecutorResult<()> {
-        print!("Is empty: {}\n", self.receiver.is_empty());
         while !self.receiver.is_empty() {
             let res = self.receiver.try_recv();
-            print!("Not empty: {}\n", self.receiver.is_empty());
             if res.is_err() {
                 return ExecutorResult::Err(ExecutorError::Decommission);
             }
 
-            print!("Execute task: {}\n", self.receiver.is_empty());
             // collect the message, check the receiver has message,
             // if not, put back the task into the channel else
             // call the function accordingly with a spawn
