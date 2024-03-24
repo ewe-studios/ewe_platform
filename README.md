@@ -169,7 +169,7 @@ trait GenerateBatchDelegationService {
 }
 
 // Indicative of a request set that is uniquely identified by an Id.
-type NamedRequest struct(RequestId, Vec<AppRequests)
+type NamedRequest struct(RequestId, Vec<AppRequests>)
 
 // Custom definition of what a Dir is, i.e a dir path string.
 type Dir = String;
@@ -317,7 +317,7 @@ to scaffold these operations and provide a clear way to work with them, while th
 // this allows us to be more specialized to the use-case and never become too
 // deeply tied to the actual platform details.
 trait ConfigurationService {
-    GetFileConfigFromService(Address, BusinessDomain) 
+    GetFileConfigFromService(NamedRequest<Address>, BusinessDomain) 
 }
 
 pub type ServiceURL = String;
@@ -329,10 +329,9 @@ pub struct ConfigServiceManager{
 }
 
 impl ConfigurationService on ConfigServiceManager {
-    pub fn GetFileConfigFromService(&self, data: NamedRequest, channel: SendChannel<NamedEvent>) {
+    pub fn GetFileConfigFromService(&self, data: NamedRequest, domain: BusinessDomain) {
         // use spawn_local 
         spawn_local({
-            let ctx = channel.clone();
             async move {
                 response = self.context.http().get(self.url, data).await;
                 if !response.ok {
@@ -342,10 +341,10 @@ impl ConfigurationService on ConfigServiceManager {
                         () => reason = Some("unexpected server failure");
                     }
 
-                    data.respond(channel, AppEvent::FailedFileConfigurationRequest(reason));
+                    domain.respond(data.to(AppEvent::FailedFileConfigurationRequest(reason)));
                 }
 
-                data.respond(channel, AppEvents::SucceededFileConfiguratonRequest(response.text))
+                domain.respond(data.to(AppEvents::SucceededFileConfiguratonRequest(response.text)))
             }
         })
     }
