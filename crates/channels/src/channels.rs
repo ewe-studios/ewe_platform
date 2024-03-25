@@ -130,6 +130,16 @@ impl<T> ReceiveChannel<T> {
         }
     }
 
+    pub fn block_receive(&mut self) -> Result<T> {
+        match &mut self.src {
+            None => Err(ChannelError::Closed),
+            Some(src) => match src.recv() {
+                Ok(maybe_item) => Ok(maybe_item),
+                Err(err) => Err(ChannelError::Closed),
+            },
+        }
+    }
+
     pub fn try_receive(&mut self) -> Result<T> {
         match &mut self.src {
             None => Err(ChannelError::Closed),

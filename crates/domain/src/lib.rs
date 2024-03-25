@@ -1,7 +1,10 @@
 // trait defintion for the Domain concept
 use serde::Serialize;
 
-use channels::channels::{ReceiveChannel, SendChannel, SendOnlyChannel};
+use channels::{
+    channels::{ReceiveChannel, SendChannel, SendOnlyChannel},
+    executor,
+};
 
 // Id identifies a giving (Request, Vec<Event>) pair
 pub type Id = String;
@@ -135,8 +138,8 @@ pub trait Domain {
     );
 }
 
-// Defines a struct type that contains the channel for a target request
-// via it's id.
+// // Defines a struct type that contains the channel for a target request
+// // via it's id.
 // pub struct OperationsChannel<E, R>(SendChannel<E>, ReceiveChannel<R>);
 
 // // Implements a default domain shell that can be used as the core of
