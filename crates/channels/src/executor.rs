@@ -11,10 +11,33 @@ use std::{
     ops::Deref,
     sync::{self, Arc},
     task::Context,
+    thread,
+    time::Duration,
+    usize,
 };
 use thiserror::Error;
 
-use crate::channels;
+use crate::channels::{self, ReceiveChannel, SendChannel};
+
+// struct TaskWaker<E: Send + 'static> {
+//     task: Arc<Task<E>>,
+//     notify: SendChannel<bool>,
+// }
+
+// impl<E: Send + 'static> ArcWake for TaskWaker<E> {
+//     fn wake_by_ref(arc_self: &Arc<Self>) {
+//         println!("waking up task via waker");
+//         let cloned_task = arc_self.task.clone();
+//         arc_self
+//             .task
+//             .task_sender
+//             .send(cloned_task)
+//             .expect("Failed to resend task into executor channel");
+
+//         let mut channel = arc_self.notify.clone();
+//         channel.try_send(true).expect("failed to send read signal");
+//     }
+// }
 
 struct Task<E: Send + 'static> {
     receiver: sync::Mutex<Option<channels::ReceiveChannel<E>>>,
@@ -27,6 +50,7 @@ struct Task<E: Send + 'static> {
 
 impl<E: Send + 'static> ArcWake for Task<E> {
     fn wake_by_ref(arc_self: &Arc<Self>) {
+        println!("waking up task");
         let cloned_task = arc_self.clone();
         arc_self
             .task_sender
@@ -44,6 +68,7 @@ pub enum ExecutorError {
 pub type ExecutorResult<E> = anyhow::Result<E, ExecutorError>;
 
 pub struct ExecutionService<E: Send + 'static> {
+    sleep_in_millisecond: u64,
     receiver: channel::Receiver<Arc<Task<E>>>,
 }
 
@@ -51,14 +76,22 @@ pub struct Executor<E: Send + 'static> {
     sender: channel::Sender<Arc<Task<E>>>,
 }
 
-pub fn create<E: Send + 'static>() -> (ExecutionService<E>, Executor<E>) {
+pub fn create<E: Send + 'static>(sleep_in_millisecond: u64) -> (ExecutionService<E>, Executor<E>) {
     let (sender, receiver) = channel::unbounded::<Arc<Task<E>>>();
 
-    (ExecutionService { receiver }, Executor { sender })
+    (
+        ExecutionService {
+            sleep_in_millisecond,
+            receiver,
+        },
+        Executor { sender },
+    )
 }
 
 impl<E: Send + 'static> ExecutionService<E> {
     pub fn serve(&mut self) -> ExecutorResult<()> {
+        let pending_tasks = Vec::<ReceiveChannel<bool>>::new();
+
         while !self.receiver.is_empty() {
             let res = self.receiver.try_recv();
             if res.is_err() {
@@ -78,12 +111,25 @@ impl<E: Send + 'static> ExecutionService<E> {
             // Task sometimes should only run when receiver finally has
             // something.
             let mut receiver_slot = task.receiver.lock().unwrap();
-            if let Some(receiver) = receiver_slot.take() {
+
+            let mut has_reciever = false;
+            if let Some(mut receiver) = receiver_slot.take() {
+                has_reciever = true;
+
                 // if receiver is still empty then put back into slot for next run.
                 // once the receiver has data, we simply do not re-add it to indicate the
                 // future is ready for scheduling.
-                if receiver.is_empty().unwrap() {
+                let is_empty = receiver.is_empty();
+                if (is_empty.is_ok() && is_empty.unwrap()) && !receiver.read_atleast_once().unwrap()
+                {
                     *receiver_slot = Some(receiver);
+
+                    // add back task into queue till channel is ready or
+                    // shown to be read e.g channel was read in another thread
+                    // hence received data already.
+                    task.task_sender.send(task.clone());
+
+                    continue;
                 }
             }
 
@@ -101,7 +147,19 @@ impl<E: Send + 'static> ExecutionService<E> {
 
                 if future.as_mut().poll(context).is_pending() {
                     // put back the future since its still pending
-                    *future_container = Some(future)
+                    *future_container = Some(future);
+
+                    task.task_sender.send(task.clone());
+
+                    thread::sleep(Duration::from_millis(self.sleep_in_millisecond));
+
+                    continue;
+                }
+
+                // if it has a receiver we are watching
+                // make it empty
+                if has_reciever {
+                    receiver_slot.take();
                 }
             }
         }
@@ -158,40 +216,16 @@ impl<E: Send + 'static> Executor<E> {
 mod tests {
     use std::{thread, time::Duration};
 
-    use crate::{channels, executor};
-
-    #[tokio::test]
-    async fn can_execute_a_task_with_an_async_runtime() {
-        let (mut sender, mut receiver) = channels::create::<String>();
-
-        let (mut servicer, mut executor) = executor::create();
-
-        let (mut sr, mut rr) = channels::create::<String>();
-
-        tokio::spawn(async move {
-            tokio::time::sleep(Duration::from_millis(100)).await;
-
-            executor.schedule(rr.clone(), async move {
-                sender.try_send(rr.block_receive().unwrap()).unwrap();
-            });
-        })
-        .await;
-
-        // send on first channel
-        sr.try_send(String::from("new text")).unwrap();
-
-        assert!(matches!(servicer.serve(), executor::ExecutorResult::Ok(())));
-
-        // expect to receive from second channel
-        let recv_message = receiver.try_receive().unwrap();
-        assert_eq!(String::from("new text"), recv_message);
-    }
+    use crate::{
+        channels::{self, ChannelError},
+        executor,
+    };
 
     #[test]
     fn can_execute_a_task_without_an_async_runtime() {
         let (mut sender, mut receiver) = channels::create::<String>();
 
-        let (mut servicer, mut executor) = executor::create::<String>();
+        let (mut servicer, mut executor) = executor::create::<String>(100);
 
         let (mut sr, mut rr) = channels::create::<String>();
         executor.schedule(rr.clone(), async move {
@@ -209,10 +243,40 @@ mod tests {
     }
 
     #[test]
+    fn can_execute_a_task_even_if_receiver_was_read_before_execution_service() {
+        let (mut sender, mut receiver) = channels::create::<String>();
+
+        let (mut servicer, mut executor) = executor::create::<String>(100);
+
+        let (mut sr, mut rr) = channels::create::<String>();
+
+        let mut rrs = rr.clone();
+        executor.schedule(rr.clone(), async move {
+            match rrs.try_receive() {
+                Ok(item) => sender.try_send(item),
+                Err(_) => return,
+            };
+        });
+
+        // send on first channel
+        sr.try_send(String::from("new text")).unwrap();
+
+        // empty the receiver
+        _ = rr.try_receive();
+
+        // validate the service works as expected
+        assert!(matches!(servicer.serve(), executor::ExecutorResult::Ok(())));
+
+        // validate receiver was read already
+        assert!(rr.read_atleast_once().unwrap());
+        assert!(!receiver.read_atleast_once().unwrap());
+    }
+
+    #[test]
     fn can_execute_work_without_a_receiver_and_no_async_runtime() {
         let (mut sender, mut receiver) = channels::create::<String>();
 
-        let (mut servicer, mut executor) = executor::create::<String>();
+        let (mut servicer, mut executor) = executor::create::<String>(100);
 
         executor.spawn(async move {
             sender.try_send(String::from("new text")).unwrap();
@@ -225,11 +289,40 @@ mod tests {
         assert_eq!(String::from("new text"), recv_message);
     }
 
-    #[tokio::test]
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn can_execute_a_task_with_an_async_runtime() {
+        let (mut sender, mut receiver) = channels::create::<String>();
+
+        let (mut servicer, mut executor) = executor::create(100);
+
+        let (mut sr, mut rr) = channels::create::<String>();
+
+        tokio::spawn(async move {
+            tokio::time::sleep(Duration::from_millis(100)).await;
+
+            executor.schedule(rr.clone(), async move {
+                println!("Sending received item");
+                sender.try_send(rr.try_receive().unwrap()).unwrap();
+                println!("Sent received item");
+            });
+        })
+        .await;
+
+        // send on first channel
+        sr.try_send(String::from("new text")).unwrap();
+
+        assert!(matches!(servicer.serve(), executor::ExecutorResult::Ok(())));
+
+        // expect to receive from second channel
+        let recv_message = receiver.try_receive().unwrap();
+        assert_eq!(String::from("new text"), recv_message);
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     async fn can_execute_work_without_a_receiver_and_a_async_runtime() {
         let (mut sender, mut receiver) = channels::create::<String>();
 
-        let (mut servicer, mut executor) = executor::create::<String>();
+        let (mut servicer, mut executor) = executor::create::<String>(100);
 
         tokio::spawn(async move {
             tokio::time::sleep(Duration::from_millis(100)).await;
@@ -245,5 +338,56 @@ mod tests {
         // expect to receive from second channel
         let recv_message = receiver.try_receive().unwrap();
         assert_eq!(String::from("new text"), recv_message);
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn can_execution_in_runtime_while_waiting_for_reciever_lead_to_panic() {
+        let (mut sender, mut receiver) = channels::create::<String>();
+
+        let (mut servicer, mut executor) = executor::create(100);
+
+        let (mut sr, mut rr) = channels::create::<String>();
+
+        executor.schedule(rr.clone(), async move {
+            tokio::spawn(async move {
+                tokio::time::sleep(Duration::from_millis(100)).await;
+                sender.try_send(rr.try_receive().unwrap()).unwrap();
+            })
+            .await;
+        });
+
+        // send on first channel
+        sr.try_send(String::from("new text")).unwrap();
+
+        assert!(matches!(servicer.serve(), executor::ExecutorResult::Ok(())));
+
+        // expect to receive from second channel
+        let mut recv_message = receiver.block_receive().unwrap();
+
+        assert_eq!(String::from("new text"), recv_message);
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn can_execute_with_closed_sender_with_runtime_and_no_panic() {
+        let (mut sender, mut receiver) = channels::create::<String>();
+
+        let (mut servicer, mut executor) = executor::create(100);
+
+        let (mut sr, mut rr) = channels::create::<String>();
+
+        executor.schedule(rr.clone(), async move {
+            tokio::spawn(async move {
+                tokio::time::sleep(Duration::from_millis(100)).await;
+                if let Ok(msg) = rr.try_receive() {
+                    sender.try_send(msg).unwrap();
+                }
+            })
+            .await;
+        });
+
+        // send on first channel
+        drop(sr);
+
+        assert!(matches!(servicer.serve(), executor::ExecutorResult::Ok(())));
     }
 }
