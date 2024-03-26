@@ -6,8 +6,8 @@ use futures::Future;
 use serde::Serialize;
 
 use channels::{
-    channels::{ReceiveChannel, SendChannel, SendOnlyChannel},
     executor,
+    mspc::{ReceiveChannel, SendChannel, SendOnlyChannel},
 };
 
 // Id identifies a giving (Request, Vec<Event>) pair

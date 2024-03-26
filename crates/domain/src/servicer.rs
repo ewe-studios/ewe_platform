@@ -2,8 +2,8 @@
 
 use crate::domains::{self, NamedEvent, NamedRequest};
 use channels::{
-    channels::{ReceiveChannel, SendChannel, SendOnlyChannel},
     executor,
+    mspc::{ReceiveChannel, SendChannel, SendOnlyChannel},
 };
 
 struct ChannelGroup<E>(ReceiveChannel<E>, SendChannel<E>);

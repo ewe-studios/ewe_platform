@@ -245,7 +245,7 @@ impl<T> ReceiveChannel<T> {
 #[cfg(test)]
 mod tests {
 
-    use crate::channels::{create, ChannelError};
+    use crate::mspc::{create, ChannelError};
     use std::time::Duration;
 
     #[test]
