@@ -88,78 +88,100 @@ pub fn create<E: Send + 'static>(sleep_in_millisecond: u64) -> (ExecutionService
     )
 }
 
+// default capacity allocated within executioner service.
+const DEFAULT_TASK_PENDING_CAPACITY: usize = 10;
+
 impl<E: Send + 'static> ExecutionService<E> {
     pub fn serve(&mut self) -> ExecutorResult<()> {
-        let pending_tasks = Vec::<ReceiveChannel<bool>>::new();
-
-        while !self.receiver.is_empty() {
-            let res = self.receiver.try_recv();
-            if res.is_err() {
-                return ExecutorResult::Err(ExecutorError::Decommission);
-            }
-
-            // collect the message, check the receiver has message,
-            // if not, put back the task into the channel else
-            // call the function accordingly with a spawn
-
-            let task = res.unwrap();
-
-            // if the task has a receiver channel it is waiting for
-            // and channel is empty then re-add task to sender and
-            // end continuation here.
-            //
-            // Task sometimes should only run when receiver finally has
-            // something.
-            let mut receiver_slot = task.receiver.lock().unwrap();
-
-            let mut has_reciever = false;
-            if let Some(mut receiver) = receiver_slot.take() {
-                has_reciever = true;
-
-                // if receiver is still empty then put back into slot for next run.
-                // once the receiver has data, we simply do not re-add it to indicate the
-                // future is ready for scheduling.
-                let is_empty = receiver.is_empty();
-                if (is_empty.is_ok() && is_empty.unwrap()) && !receiver.read_atleast_once().unwrap()
-                {
-                    *receiver_slot = Some(receiver);
-
-                    // add back task into queue till channel is ready or
-                    // shown to be read e.g channel was read in another thread
-                    // hence received data already.
-                    task.task_sender.send(task.clone());
-
-                    continue;
-                }
-            }
-
-            // get the future in the task container - we use an option here so we can easily
-            // slot back in a future that might not be ready.
-            let mut future_container = task.handler.lock().unwrap();
-
-            // without using Option<> here its impossible to take the
-            // future and do something with it then return it back in if not
-            // ready or completed.
-            if let Some(mut future) = future_container.take() {
-                // create the waker and context
-                let waker = waker_ref(&task);
-                let context = &mut Context::from_waker(&waker);
-
-                if future.as_mut().poll(context).is_pending() {
-                    // put back the future since its still pending
-                    *future_container = Some(future);
-
-                    task.task_sender.send(task.clone());
-
-                    thread::sleep(Duration::from_millis(self.sleep_in_millisecond));
-
-                    continue;
+        let mut pending_tasks = Vec::<Arc<Task<E>>>::with_capacity(DEFAULT_TASK_PENDING_CAPACITY);
+        loop {
+            // if last loop found that tasks were still not finished, then re-queue them.
+            if pending_tasks.len() != 0 {
+                while let Some(task) = pending_tasks.pop() {
+                    task.task_sender
+                        .send(task.clone())
+                        .expect("Failed to resend task into queue")
                 }
 
-                // if it has a receiver we are watching
-                // make it empty
-                if has_reciever {
-                    receiver_slot.take();
+                thread::sleep(Duration::from_millis(self.sleep_in_millisecond));
+            }
+
+            if self.receiver.is_empty() {
+                break;
+            }
+
+            while !self.receiver.is_empty() {
+                let res = self.receiver.try_recv();
+                if res.is_err() {
+                    return ExecutorResult::Err(ExecutorError::Decommission);
+                }
+
+                // collect the message, check the receiver has message,
+                // if not, put back the task into the channel else
+                // call the function accordingly with a spawn
+
+                let task = res.unwrap();
+
+                // if the task has a receiver channel it is waiting for
+                // and channel is empty then re-add task to sender and
+                // end continuation here.
+                //
+                // Task sometimes should only run when receiver finally has
+                // something.
+                let mut receiver_slot = task.receiver.lock().unwrap();
+
+                let mut has_reciever = false;
+                if let Some(mut receiver) = receiver_slot.take() {
+                    has_reciever = true;
+
+                    // if receiver is still empty then put back into slot for next run.
+                    // once the receiver has data, we simply do not re-add it to indicate the
+                    // future is ready for scheduling.
+                    let is_empty = receiver.is_empty();
+                    if (is_empty.is_ok() && is_empty.unwrap())
+                        && !receiver.read_atleast_once().unwrap()
+                    {
+                        *receiver_slot = Some(receiver);
+
+                        // add back task into queue till channel is ready or
+                        // shown to be read e.g channel was read in another thread
+                        // hence received data already.
+                        pending_tasks.push(task.clone());
+
+                        continue;
+                    }
+                }
+
+                // get the future in the task container - we use an option here so we can easily
+                // slot back in a future that might not be ready.
+                let mut future_container = task.handler.lock().unwrap();
+
+                // without using Option<> here its impossible to take the
+                // future and do something with it then return it back in if not
+                // ready or completed.
+                if let Some(mut future) = future_container.take() {
+                    // Note: this will cause potentially double queue'ing of a task, say
+                    // the loop runs to completion and the task was not completed and not pending
+                    // the waker will still queue the task up but since its now considered completed
+                    // it will just skip this portion.
+                    //
+                    // I do not think yet we need to optimize that yet.
+                    let waker = waker_ref(&task);
+                    let context = &mut Context::from_waker(&waker);
+
+                    if future.as_mut().poll(context).is_pending() {
+                        // put back the future since its still pending
+                        *future_container = Some(future);
+
+                        pending_tasks.push(task.clone());
+                        continue;
+                    }
+
+                    // if it has a receiver we are watching
+                    // make it empty
+                    if has_reciever {
+                        receiver_slot.take();
+                    }
                 }
             }
         }
