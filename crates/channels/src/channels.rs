@@ -102,7 +102,7 @@ impl<T> SendChannel<T> {
 }
 
 pub struct ReceiveChannel<T> {
-    cached: Arc<sync::Mutex<Option<T>>>,
+    acached: Arc<atomic::AtomicCell<Option<T>>>,
     read_flag: Arc<atomic::AtomicCell<bool>>,
     src: Option<channel::Receiver<T>>,
 }
@@ -111,7 +111,7 @@ impl<T> Clone for ReceiveChannel<T> {
     fn clone(&self) -> Self {
         Self {
             read_flag: self.read_flag.clone(),
-            cached: self.cached.clone(),
+            acached: self.acached.clone(),
             src: self.src.clone(),
         }
     }
@@ -121,7 +121,7 @@ impl<T> ReceiveChannel<T> {
     fn new(src: channel::Receiver<T>) -> Self {
         Self {
             src: Some(src),
-            cached: Arc::new(sync::Mutex::new(None)),
+            acached: Arc::new(atomic::AtomicCell::new(None)),
             read_flag: Arc::new(atomic::AtomicCell::new(false)),
         }
     }
@@ -198,19 +198,16 @@ impl<T> ReceiveChannel<T> {
     }
 
     fn get_cached_item(&mut self) -> Option<T> {
-        let mut cached_slot = self.cached.lock().unwrap();
-        cached_slot.take()
+        self.acached.take()
     }
 
     fn save_cached_item(&mut self, item: T) {
-        let mut cached_slot = self.cached.lock().unwrap();
-        *cached_slot = Some(item)
+        self.acached.store(Some(item));
     }
 
     fn has_cached_item(&mut self) -> bool {
-        let mut cached_slot = self.cached.lock().unwrap();
-        if let Some(item) = cached_slot.take() {
-            *cached_slot = Some(item);
+        if let Some(item) = self.acached.take() {
+            self.acached.store(Some(item));
             return true;
         }
         return false;

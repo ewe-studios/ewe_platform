@@ -1,5 +1,7 @@
 // trait defintion for the Domain concept from the Principles of Architecture
 
+use std::sync::Arc;
+
 use futures::Future;
 use serde::Serialize;
 
@@ -100,16 +102,15 @@ pub trait DomainShell {
     where
         Self: Sized;
 
-    // Channel for listening to requests generated from the domain to
-    // other interested [`DomainUseCase`] or the outside word that implement
-    // different operations that need to be isolated from the domain
-    // itself but are part of it's operations.
-    fn requests(&self) -> ReceiveChannel<NamedRequest<Self::Requests>>;
+    // Retuns a new unique channel which the caller can use to listen to outgoing
+    // requests from the channel. Providing a broadcast semantic where the listener
+    //
+    fn requests(&self) -> ReceiveChannel<NamedRequest<Arc<Self::Requests>>>;
 
     // listen to provide a receive channel that exists for the lifetime of
     // the domain and allows you listen in, into all events occuring in
     // [`Domain`].
-    fn listen(&self) -> ReceiveChannel<Self::Events>;
+    fn listen(&self) -> ReceiveChannel<Arc<Self::Events>>;
 }
 
 pub trait DomainServicer {
