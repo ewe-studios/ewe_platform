@@ -19,26 +19,6 @@ use thiserror::Error;
 
 use crate::channels::{self, ReceiveChannel, SendChannel};
 
-// struct TaskWaker<E: Send + 'static> {
-//     task: Arc<Task<E>>,
-//     notify: SendChannel<bool>,
-// }
-
-// impl<E: Send + 'static> ArcWake for TaskWaker<E> {
-//     fn wake_by_ref(arc_self: &Arc<Self>) {
-//         println!("waking up task via waker");
-//         let cloned_task = arc_self.task.clone();
-//         arc_self
-//             .task
-//             .task_sender
-//             .send(cloned_task)
-//             .expect("Failed to resend task into executor channel");
-
-//         let mut channel = arc_self.notify.clone();
-//         channel.try_send(true).expect("failed to send read signal");
-//     }
-// }
-
 struct Task<E: Send + 'static> {
     receiver: sync::Mutex<Option<channels::ReceiveChannel<E>>>,
     handler: sync::Mutex<Option<future::BoxFuture<'static, ()>>>,
@@ -50,7 +30,6 @@ struct Task<E: Send + 'static> {
 
 impl<E: Send + 'static> ArcWake for Task<E> {
     fn wake_by_ref(arc_self: &Arc<Self>) {
-        println!("waking up task");
         let cloned_task = arc_self.clone();
         arc_self
             .task_sender
@@ -323,9 +302,7 @@ mod tests {
             tokio::time::sleep(Duration::from_millis(100)).await;
 
             executor.schedule(rr.clone(), async move {
-                println!("Sending received item");
                 sender.try_send(rr.try_receive().unwrap()).unwrap();
-                println!("Sent received item");
             });
         })
         .await;
