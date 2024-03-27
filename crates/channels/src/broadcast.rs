@@ -14,7 +14,17 @@ pub fn create<E: Send + 'static>(initial_subscribers_capacity: usize) -> Broadca
 pub struct Broadcast<E: Send + 'static> {
     message_receiver: mspc::ReceiveChannel<E>,
     message_sender: mspc::SendChannel<E>,
-    subscribers: sync::Mutex<Vec<mspc::SendChannel<sync::Arc<E>>>>,
+    subscribers: sync::Arc<sync::Mutex<Vec<mspc::SendChannel<sync::Arc<E>>>>>,
+}
+
+impl<E: Send + 'static> Clone for Broadcast<E> {
+    fn clone(&self) -> Self {
+        Self {
+            message_receiver: self.message_receiver.clone(),
+            message_sender: self.message_sender.clone(),
+            subscribers: self.subscribers.clone(),
+        }
+    }
 }
 
 impl<E: Send + 'static> Broadcast<E> {
@@ -24,7 +34,9 @@ impl<E: Send + 'static> Broadcast<E> {
         return Self {
             message_sender,
             message_receiver,
-            subscribers: sync::Mutex::new(Vec::with_capacity(initial_subscribers_capacity)),
+            subscribers: sync::Arc::new(sync::Mutex::new(Vec::with_capacity(
+                initial_subscribers_capacity,
+            ))),
         };
     }
 
