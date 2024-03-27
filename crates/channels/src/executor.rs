@@ -7,8 +7,6 @@ use futures::{
     Future,
 };
 use std::{
-    borrow::BorrowMut,
-    ops::Deref,
     sync::{self, Arc},
     task::Context,
     thread,
@@ -17,7 +15,7 @@ use std::{
 };
 use thiserror::Error;
 
-use crate::mspc::{self, ReceiveChannel, SendChannel};
+use crate::mspc;
 
 struct Task<E: Send + 'static> {
     receiver: sync::Mutex<Option<mspc::ReceiveChannel<E>>>,
@@ -215,18 +213,15 @@ impl<E: Send + 'static> Executor<E> {
 
 #[cfg(test)]
 mod tests {
-    use std::{thread, time::Duration};
+    use std::time::Duration;
 
-    use crate::{
-        executor,
-        mspc::{self, ChannelError},
-    };
+    use crate::{executor, mspc};
 
     #[test]
     fn can_execute_a_task_without_an_async_runtime() {
         let (mut sender, mut receiver) = mspc::create::<String>();
 
-        let (mut servicer, mut executor) = executor::create::<String>(100);
+        let (mut servicer, executor) = executor::create::<String>(100);
 
         let (mut sr, mut rr) = mspc::create::<String>();
         executor.schedule(rr.clone(), async move {
@@ -244,10 +239,11 @@ mod tests {
     }
 
     #[test]
+    #[allow(unused_must_use)]
     fn can_execute_a_task_even_if_receiver_was_read_before_execution_service() {
-        let (mut sender, mut receiver) = mspc::create::<String>();
+        let (mut sender, receiver) = mspc::create::<String>();
 
-        let (mut servicer, mut executor) = executor::create::<String>(100);
+        let (mut servicer, executor) = executor::create::<String>(100);
 
         let (mut sr, mut rr) = mspc::create::<String>();
 
@@ -277,7 +273,7 @@ mod tests {
     fn can_execute_work_without_a_receiver_and_no_async_runtime() {
         let (mut sender, mut receiver) = mspc::create::<String>();
 
-        let (mut servicer, mut executor) = executor::create::<String>(100);
+        let (mut servicer, executor) = executor::create::<String>(100);
 
         executor.spawn(async move {
             sender.try_send(String::from("new text")).unwrap();
@@ -294,7 +290,7 @@ mod tests {
     async fn can_execute_a_task_with_an_async_runtime() {
         let (mut sender, mut receiver) = mspc::create::<String>();
 
-        let (mut servicer, mut executor) = executor::create(100);
+        let (mut servicer, executor) = executor::create(100);
 
         let (mut sr, mut rr) = mspc::create::<String>();
 
@@ -305,7 +301,8 @@ mod tests {
                 sender.try_send(rr.try_receive().unwrap()).unwrap();
             });
         })
-        .await;
+        .await
+        .expect("should have completed");
 
         // send on first channel
         sr.try_send(String::from("new text")).unwrap();
@@ -321,7 +318,7 @@ mod tests {
     async fn can_execute_work_without_a_receiver_and_a_async_runtime() {
         let (mut sender, mut receiver) = mspc::create::<String>();
 
-        let (mut servicer, mut executor) = executor::create::<String>(100);
+        let (mut servicer, executor) = executor::create::<String>(100);
 
         tokio::spawn(async move {
             tokio::time::sleep(Duration::from_millis(100)).await;
@@ -330,7 +327,8 @@ mod tests {
                 sender.try_send(String::from("new text")).unwrap();
             });
         })
-        .await;
+        .await
+        .expect("should have completed");
 
         assert!(matches!(servicer.serve(), executor::ExecutorResult::Ok(())));
 
@@ -343,7 +341,7 @@ mod tests {
     async fn can_execution_in_runtime_while_waiting_for_reciever_lead_to_panic() {
         let (mut sender, mut receiver) = mspc::create::<String>();
 
-        let (mut servicer, mut executor) = executor::create(100);
+        let (mut servicer, executor) = executor::create(100);
 
         let (mut sr, mut rr) = mspc::create::<String>();
 
@@ -352,7 +350,8 @@ mod tests {
                 tokio::time::sleep(Duration::from_millis(100)).await;
                 sender.try_send(rr.try_receive().unwrap()).unwrap();
             })
-            .await;
+            .await
+            .expect("should have completed");
         });
 
         // send on first channel
@@ -361,18 +360,18 @@ mod tests {
         assert!(matches!(servicer.serve(), executor::ExecutorResult::Ok(())));
 
         // expect to receive from second channel
-        let mut recv_message = receiver.block_receive().unwrap();
+        let recv_message = receiver.block_receive().unwrap();
 
         assert_eq!(String::from("new text"), recv_message);
     }
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     async fn can_execute_with_closed_sender_with_runtime_and_no_panic() {
-        let (mut sender, mut receiver) = mspc::create::<String>();
+        let (mut sender, receiver) = mspc::create::<String>();
 
-        let (mut servicer, mut executor) = executor::create(100);
+        let (mut servicer, executor) = executor::create(100);
 
-        let (mut sr, mut rr) = mspc::create::<String>();
+        let (sr, mut rr) = mspc::create::<String>();
 
         executor.schedule(rr.clone(), async move {
             tokio::spawn(async move {
@@ -381,11 +380,13 @@ mod tests {
                     sender.try_send(msg).unwrap();
                 }
             })
-            .await;
+            .await
+            .expect("should complete");
         });
 
         // send on first channel
         drop(sr);
+        drop(receiver);
 
         assert!(matches!(servicer.serve(), executor::ExecutorResult::Ok(())));
     }

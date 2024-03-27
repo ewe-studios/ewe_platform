@@ -1,4 +1,4 @@
-extern crate serde;
+
 
 // #[macro]
 // extern crate serde_derive;
@@ -7,7 +7,7 @@ extern crate serde;
 use std::path::Path;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
-use watchers::{self, file_watcher};
+use watchers::{self};
 
 type Result = std::io::Result<()>;
 

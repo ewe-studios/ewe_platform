@@ -1,9 +1,9 @@
 // module implementation details
 
-use notify::{Config, RecommendedWatcher, RecursiveMode, Watcher};
+use notify::{Watcher};
 use notify_debouncer_full::new_debouncer;
 use std::{
-    fmt::{Debug, Display},
+    fmt::{Debug},
     path::{Path, PathBuf},
     time::Duration,
 };

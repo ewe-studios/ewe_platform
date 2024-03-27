@@ -3,33 +3,38 @@
 use std::sync::Arc;
 
 use futures::Future;
-use serde::Serialize;
 
-use channels::{
-    executor,
-    mspc::{ReceiveChannel, SendChannel, SendOnlyChannel},
-};
+use channels::mspc;
 
 // Id identifies a giving (Request, Vec<Event>) pair
-pub type Id = String;
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Id<'a>(pub &'a str);
 
 // NamedRequest represent a target request of a specified
 // type which has an Id to identify the request and
 // any related events that are a response to the request.
-pub struct NamedRequest<T>(Id, T);
+pub struct NamedRequest<'a, T>(Id<'a>, T);
 
-impl<T> NamedRequest<T> {
+impl<'a, T> NamedRequest<'a, T> {
     pub fn to(&self, t: Vec<T>) -> NamedEvent<T> {
-        NamedEvent(self.0.clone(), t)
+        NamedEvent(self.0, t)
+    }
+
+    pub fn id(&self) -> Id {
+        self.0
     }
 }
 
 // NamedEvent are events indicative of a response to a NamedRequest
-pub struct NamedEvent<T>(Id, Vec<T>);
+pub struct NamedEvent<'a, T>(Id<'a>, Vec<T>);
 
-impl<T> NamedEvent<T> {
+impl<'a, T> NamedEvent<'a, T> {
     pub fn from(&self, t: T) -> NamedRequest<T> {
-        NamedRequest(self.0.clone(), t)
+        NamedRequest(self.0, t)
+    }
+
+    pub fn id(&self) -> Id {
+        self.0
     }
 }
 
@@ -51,7 +56,12 @@ pub trait DomainShell {
     type Requests: Send + 'static;
 
     // The platform provider context the domain will use.
-    type Platform: Default;
+    type Platform: Clone;
+
+    // the underlying platform provided by the shell.
+    fn platform(&self) -> Self::Platform
+    where
+        Self: Sized;
 
     // Means of responding to received [`NamedRequest`] from
     // the domain.
@@ -65,7 +75,7 @@ pub trait DomainShell {
     fn do_requests(
         &self,
         req: NamedRequest<Self::Requests>,
-    ) -> ReceiveChannel<NamedEvent<Self::Events>>;
+    ) -> mspc::ReceiveChannel<NamedEvent<Self::Events>>;
 
     // Delivers request to the shell to be sent to all relevant
     // listens to perform work on behalf of the domain.
@@ -77,7 +87,7 @@ pub trait DomainShell {
     fn send_requests(
         &self,
         req: NamedRequest<Self::Requests>,
-    ) -> ReceiveChannel<NamedEvent<Self::Events>>;
+    ) -> mspc::ReceiveChannel<NamedEvent<Self::Events>>;
 
     // schedule a task to execute when the receiver has data
     // usually the future here should really get scheduled
@@ -87,7 +97,7 @@ pub trait DomainShell {
     // depends on the readiness of response on a channel.
     fn schedule(
         &self,
-        receiver: ReceiveChannel<Self::Events>,
+        receiver: mspc::ReceiveChannel<Self::Events>,
         fut: impl Future<Output = ()> + 'static + Send,
     ) where
         Self: Sized;
@@ -105,12 +115,12 @@ pub trait DomainShell {
     // Retuns a new unique channel which the caller can use to listen to outgoing
     // requests from the channel. Providing a broadcast semantic where the listener
     //
-    fn requests(&self) -> ReceiveChannel<NamedRequest<Arc<Self::Requests>>>;
+    fn requests(&self) -> mspc::ReceiveChannel<NamedRequest<Arc<Self::Requests>>>;
 
     // listen to provide a receive channel that exists for the lifetime of
     // the domain and allows you listen in, into all events occuring in
     // [`Domain`].
-    fn listen(&self) -> ReceiveChannel<Arc<Self::Events>>;
+    fn listen(&self) -> mspc::ReceiveChannel<Arc<Self::Events>>;
 }
 
 pub trait DomainServicer {
@@ -121,7 +131,7 @@ pub trait DomainServicer {
     type Requests: Send + 'static;
 
     // The platform provider context the domain will use.
-    type Platform: Default;
+    type Platform: Clone;
 
     fn shell(
         &self,
@@ -152,13 +162,17 @@ pub trait Domain {
     // Enum defining your target request types.
     type Requests: Send + 'static;
 
-    // The domain shell the Domain will recieve
-    type Shell: DomainShell;
-
     // The platform provider context the domain
     // will use to access platform features, usually
     // a struct with a default implement.
     type Platform: Default;
+
+    // The domain shell the Domain will recieve
+    type Shell: DomainShell<
+        Events = Self::Events,
+        Requests = Self::Requests,
+        Platform = Self::Platform,
+    >;
 
     // the domain simply must deliver response to the
     // send channel and has access to the shell if it
@@ -166,15 +180,9 @@ pub trait Domain {
     fn handle_request(
         &self,
         req: NamedRequest<Self::Requests>,
-        chan: &dyn SendOnlyChannel<Self::Events>,
+        chan: &dyn mspc::SendOnlyChannel<Self::Events>,
         shell: &Self::Shell,
-        platform: &Self::Platform,
     );
 
-    fn handle_event(
-        &self,
-        events: NamedEvent<Self::Events>,
-        shell: &Self::Shell,
-        platform: &Self::Platform,
-    );
+    fn handle_event(&self, events: NamedEvent<Self::Events>, shell: &Self::Shell);
 }

@@ -68,7 +68,7 @@ impl<E: Send + 'static> Broadcast<E> {
     }
 
     fn deliver_pending_messages(&mut self) {
-        let mut result = self.subscribers.try_lock();
+        let result = self.subscribers.try_lock();
         if result.is_err() {
             return;
         }
@@ -90,8 +90,6 @@ impl<E: Send + 'static> Broadcast<E> {
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
-
     use crate::broadcast;
 
     #[test]

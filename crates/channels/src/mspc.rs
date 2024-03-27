@@ -1,6 +1,6 @@
 // Crate implementing the Engineering Principles of Channels
 
-use std::sync::{self, Arc};
+use std::sync::Arc;
 
 use crossbeam::{atomic, channel};
 use thiserror::Error;
@@ -27,6 +27,21 @@ pub fn create<T>() -> (SendChannel<T>, ReceiveChannel<T>) {
     let sender = SendChannel::new(tx);
     let receiver = ReceiveChannel::new(rx);
     (sender, receiver)
+}
+
+pub struct ChannelGroup<E>(pub SendChannel<E>, pub ReceiveChannel<E>);
+
+impl<E> Clone for ChannelGroup<E> {
+    fn clone(&self) -> Self {
+        Self(self.0.clone(), self.1.clone())
+    }
+}
+
+impl<E> ChannelGroup<E> {
+    pub fn new() -> Self {
+        let (sender, receiver) = create::<E>();
+        Self(sender, receiver)
+    }
 }
 
 pub trait SendOnlyChannel<T> {
@@ -149,7 +164,7 @@ impl<T> ReceiveChannel<T> {
         self.check_channel();
         match &self.src {
             None => Err(ChannelError::Closed),
-            Some(src) => Ok(false),
+            Some(_) => Ok(false),
         }
     }
 
@@ -222,7 +237,7 @@ impl<T> ReceiveChannel<T> {
                         self.read_flag.store(true);
                         Ok(maybe_item)
                     }
-                    Err(err) => self.close_channel(),
+                    Err(_) => self.close_channel(),
                 },
             };
         }
@@ -252,7 +267,7 @@ mod tests {
     fn should_be_able_to_close_a_send_channel() {
         let (mut sender, mut receiver) = create::<String>();
 
-        sender.close();
+        sender.close().expect("should have closed");
 
         let err = receiver.try_receive();
         assert!(matches!(err, Err(ChannelError::Closed)));
@@ -278,7 +293,8 @@ mod tests {
             sender.try_send(String::from("new text")).unwrap();
             tokio::time::sleep(Duration::from_millis(100)).await;
         })
-        .await;
+        .await
+        .expect("should have completed");
 
         let recv_message = receiver.try_receive().unwrap();
         assert_eq!(String::from("new text"), recv_message);
