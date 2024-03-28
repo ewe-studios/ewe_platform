@@ -1,14 +1,15 @@
 // module implementation details
 
-use notify::{Watcher};
+use notify::Watcher;
 use notify_debouncer_full::new_debouncer;
 use std::{
-    fmt::{Debug},
+    fmt::Debug,
     path::{Path, PathBuf},
     time::Duration,
 };
 use tracing::{error, info};
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct FileWatcher {
     target_location: PathBuf,

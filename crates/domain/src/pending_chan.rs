@@ -27,11 +27,11 @@ pub type PendingChannelResult<E> = std::result::Result<E, PendingChannelError>;
 /// via channels symantic behaviour. Once the response is received, then the channel should
 /// be closed. This means whatever underlying response they carry should clearly know how to
 /// communicate a stream.
-pub struct PendingChannelsRegistry<'a, E> {
-    pending: sync::Arc<sync::Mutex<collections::HashMap<domains::Id<'a>, mspc::ChannelGroup<E>>>>,
+pub struct PendingChannelsRegistry<E> {
+    pending: sync::Arc<sync::Mutex<collections::HashMap<domains::Id, mspc::ChannelGroup<E>>>>,
 }
 
-impl<'a, E> Clone for PendingChannelsRegistry<'a, E> {
+impl<E> Clone for PendingChannelsRegistry<E> {
     fn clone(&self) -> Self {
         Self {
             pending: self.pending.clone(),
@@ -39,19 +39,19 @@ impl<'a, E> Clone for PendingChannelsRegistry<'a, E> {
     }
 }
 
-impl<'a, E> PendingChannelsRegistry<'a, E> {
+impl<E> PendingChannelsRegistry<E> {
     pub fn new() -> Self {
         Self {
             pending: sync::Arc::new(sync::Mutex::new(collections::HashMap::new())),
         }
     }
 
-    pub fn has(&mut self, id: domains::Id<'a>) -> bool {
+    pub fn has(&mut self, id: domains::Id) -> bool {
         let registry = self.pending.lock().unwrap();
         registry.contains_key(&id)
     }
 
-    pub fn retrieve(&mut self, id: domains::Id<'a>) -> Option<mspc::ChannelGroup<E>> {
+    pub fn retrieve(&mut self, id: domains::Id) -> Option<mspc::ChannelGroup<E>> {
         let registry = self.pending.lock().unwrap();
         if let Some(grp) = registry.get(&id) {
             return Some(grp.clone());
@@ -59,7 +59,7 @@ impl<'a, E> PendingChannelsRegistry<'a, E> {
         None
     }
 
-    pub fn register(&mut self, id: domains::Id<'a>) -> mspc::ChannelGroup<E> {
+    pub fn register(&mut self, id: domains::Id) -> mspc::ChannelGroup<E> {
         let group_channel = mspc::ChannelGroup::new();
 
         let mut registry = self.pending.lock().unwrap();
@@ -68,7 +68,7 @@ impl<'a, E> PendingChannelsRegistry<'a, E> {
         group_channel
     }
 
-    pub fn resolve(&mut self, id: domains::Id<'a>, response: E) -> PendingChannelResult<()> {
+    pub fn resolve(&mut self, id: domains::Id, response: E) -> PendingChannelResult<()> {
         let mut registry = self.pending.lock().unwrap();
         if !registry.contains_key(&id) {
             return PendingChannelResult::Err(PendingChannelError::NotFound(id.0.to_string()));
@@ -93,9 +93,9 @@ mod tests {
     fn pending_channels_registry_should_be_able_to_register_request_id() {
         let mut registry = pending_chan::PendingChannelsRegistry::<String>::new();
 
-        let target_id = domains::Id("server_1");
+        let target_id = domains::Id(String::from("server_1"));
 
-        _ = registry.register(target_id);
+        _ = registry.register(target_id.clone());
 
         assert!(registry.has(target_id));
     }
@@ -104,11 +104,11 @@ mod tests {
     fn pending_channels_registry_should_be_able_to_retrieve_channel_grp() {
         let mut registry = pending_chan::PendingChannelsRegistry::<String>::new();
 
-        let target_id = domains::Id("server_1");
+        let target_id = domains::Id(String::from("server_1"));
 
-        _ = registry.register(target_id);
+        _ = registry.register(target_id.clone());
 
-        assert!(registry.has(target_id));
+        assert!(registry.has(target_id.clone()));
 
         assert!(registry.retrieve(target_id).is_some());
     }
@@ -117,14 +117,14 @@ mod tests {
     fn pending_channels_registry_should_be_able_to_resolve_a_pending_grp() {
         let mut registry = pending_chan::PendingChannelsRegistry::<String>::new();
 
-        let target_id = domains::Id("server_1");
+        let target_id = domains::Id(String::from("server_1"));
 
-        _ = registry.register(target_id);
+        _ = registry.register(target_id.clone());
 
-        assert!(registry.has(target_id));
+        assert!(registry.has(target_id.clone()));
 
         assert!(matches!(
-            registry.resolve(target_id, String::from("server_2")),
+            registry.resolve(target_id.clone(), String::from("server_2")),
             pending_chan::PendingChannelResult::Ok(())
         ));
 

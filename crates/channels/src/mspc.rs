@@ -176,7 +176,7 @@ impl<T> ReceiveChannel<T> {
         }
     }
 
-    pub fn closed(&mut self) -> Result<bool> {
+    pub fn is_closed(&mut self) -> Result<bool> {
         match &self.src {
             None => Err(ChannelError::Closed),
             Some(_) => Ok(false),
@@ -237,6 +237,11 @@ impl<T> ReceiveChannel<T> {
         // remove the channel from the underlying slot
         _ = self.src.take();
         Err(ChannelError::Closed)
+    }
+
+    #[cfg(test)]
+    pub fn close(&mut self) {
+        _ = self.src.take();
     }
 }
 

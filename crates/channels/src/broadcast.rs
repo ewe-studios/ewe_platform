@@ -1,20 +1,24 @@
-use crate::mspc;
+use crate::mspc::{self, ChannelError};
 use std::sync;
 
 pub fn create<E: Send + 'static>(initial_subscribers_capacity: usize) -> Broadcast<E> {
     Broadcast::<E>::new(initial_subscribers_capacity)
 }
 
-// Broadcast is multi-produre multi-subscriber multi-cast implements
-// that is an eager deliver-er of messages.
-//
-// It does not try to deliver the same amount of messages to all subscribers
-// subscribed at varying times, if you were subscribed after some messages
-// were sent then do not expect to get those messages.
+/// Broadcast is multi-produre multi-subscriber multi-cast implements
+/// that is an eager deliver-er of messages.
+///
+/// It does not try to deliver the same amount of messages to all subscribers
+/// subscribed at varying times, if you were subscribed after some messages
+/// were sent then do not expect to get those messages.
+///
+// TODO(alex.ewetumo): One thing we do need to test in the wild is how the vec
+// grows for this implementation has for now we do not clean up Option<SendChannel>
+// with where replaced the content with None for closed senders.
 pub struct Broadcast<E: Send + 'static> {
     message_receiver: mspc::ReceiveChannel<E>,
     message_sender: mspc::SendChannel<E>,
-    subscribers: sync::Arc<sync::Mutex<Vec<mspc::SendChannel<sync::Arc<E>>>>>,
+    subscribers: sync::Arc<sync::Mutex<Vec<Option<mspc::SendChannel<sync::Arc<E>>>>>>,
 }
 
 impl<E: Send + 'static> Clone for Broadcast<E> {
@@ -64,25 +68,27 @@ impl<E: Send + 'static> Broadcast<E> {
 
     fn add_subscriber_sender(&mut self, sender: mspc::SendChannel<sync::Arc<E>>) {
         let mut subscribers = self.subscribers.lock().unwrap();
-        subscribers.push(sender)
+        subscribers.push(Some(sender))
     }
 
     fn deliver_pending_messages(&mut self) {
-        let result = self.subscribers.try_lock();
-        if result.is_err() {
-            return;
-        }
-
-        let mut subs = result.unwrap();
+        let mut subs = self.subscribers.try_lock().unwrap();
         if subs.len() == 0 {
             return;
         }
 
         while let Ok(message) = self.message_receiver.try_receive() {
             let message_reference = sync::Arc::new(message);
-            for sub in subs.iter_mut() {
-                sub.try_send(message_reference.clone())
-                    .expect("should be able to send sender pending message")
+            for sub_slot in subs.iter_mut() {
+                if let Some(sub) = sub_slot {
+                    match sub.try_send(message_reference.clone()) {
+                        // if its closed, then continue just remove sender.
+                        Err(ChannelError::Closed) => {
+                            sub_slot.take();
+                        }
+                        _ => continue,
+                    }
+                }
             }
         }
     }
@@ -90,6 +96,7 @@ impl<E: Send + 'static> Broadcast<E> {
 
 #[cfg(test)]
 mod tests {
+
     use crate::broadcast;
 
     #[test]
@@ -163,5 +170,21 @@ mod tests {
         broadcaster.broadcast(String::from("second"));
 
         assert!(!subscriber2.is_empty().unwrap());
+    }
+
+    #[test]
+    fn broadcast_closed_subscriber_still_lets_others_get_message() {
+        let mut broadcaster = broadcast::create::<String>(5);
+
+        let mut subscriber = broadcaster.subscribe();
+        let mut subscriber2 = broadcaster.subscribe();
+
+        subscriber.close();
+
+        broadcaster.broadcast(String::from("first"));
+        broadcaster.broadcast(String::from("second"));
+
+        assert!(!subscriber2.is_empty().unwrap());
+        assert!(matches!(subscriber.is_empty(), Err(_)));
     }
 }

@@ -70,6 +70,9 @@ pub enum ExecutorError {
     #[error("executor is no more usable")]
     Decommission,
 
+    #[error("executor requires retry")]
+    ChannelFull,
+
     #[error("executor has no tasks")]
     NoTasks,
 }
@@ -97,7 +100,11 @@ impl<E: Send + 'static> ExecutionService<E> {
         self.completed_notification.close();
     }
 
-    /// [`ExecutionService`].serve_async attempts to resolve all pending tasks in the
+    pub async fn schedule_serve_async(&mut self) -> ExecutorResult<()> {
+        self.schedule_serve()
+    }
+
+    /// [`ExecutionService`].schedule_serve attempts to resolve all pending tasks in the
     /// queue, wrapping them in a waker ensuring that if they are not readily to be
     /// resolved now then the [`ExecutionService`] will be notified once they are resolved
     /// and ready asynchronously.
@@ -105,7 +112,12 @@ impl<E: Send + 'static> ExecutionService<E> {
     /// This method is more suitable for non-blocking, async environments or environments we
     /// are guaranteed to live-long enough for the tasks to be resolved in the background
     /// and re-queued.
-    pub async fn serve_async(&mut self) -> ExecutorResult<()> {
+    ///
+    /// WARNING: the completion of the future this function returns does not mean all
+    /// the task are completed. It simply means they have being scheduled for completion
+    /// and that completion might take a while, even past when this function's future completes.
+    /// All the async function does is schedule them for completion
+    pub fn schedule_serve(&mut self) -> ExecutorResult<()> {
         if self.receiver.is_empty() {
             return ExecutorResult::Err(ExecutorError::NoTasks);
         }
@@ -117,7 +129,7 @@ impl<E: Send + 'static> ExecutionService<E> {
         return Ok(());
     }
 
-    /// [`ExecutionService`].serve_until_completed blocks the current thread until
+    /// [`ExecutionService`].block_serve blocks the current thread until
     /// all pending tasks in the task channels have fully resolved.
     /// This means all unresolved tasks even if async will
     /// still get re-queued for processing until they all
@@ -131,7 +143,7 @@ impl<E: Send + 'static> ExecutionService<E> {
     /// You also can use the [`ExecutionService`].single_serve method which runs all
     /// execution onces and rely's entirely on the completed futures to notify it when
     /// they are ready and completed via the future waker (see [`Task`]).
-    pub fn serve_until_completed(&mut self) -> ExecutorResult<()> {
+    pub fn block_serve(&mut self) -> ExecutorResult<()> {
         loop {
             if self.receiver.is_empty() {
                 break;
@@ -230,7 +242,8 @@ impl<E: Send + 'static> Executor<E> {
         &self,
         receiver: mspc::ReceiveChannel<E>,
         receiver_fn: impl FnOnce(mspc::Result<E>) -> Fut + 'static + Send,
-    ) where
+    ) -> ExecutorResult<()>
+    where
         Fut: future::Future<Output = ()> + Send,
     {
         let captured_async_fn = async move {
@@ -246,9 +259,11 @@ impl<E: Send + 'static> Executor<E> {
             ready_notification: self.completed_notification.clone(),
         });
 
-        self.sender
-            .try_send(task)
-            .expect("Failed to send tasks into unbounded channel")
+        match self.sender.try_send(task) {
+            Ok(_) => Ok(()),
+            Err(async_channel::TrySendError::Closed(_)) => Err(ExecutorError::Decommission),
+            Err(async_channel::TrySendError::Full(_)) => Err(ExecutorError::ChannelFull),
+        }
     }
 
     // schedules a task for completion without dependence on a channel
@@ -257,7 +272,7 @@ impl<E: Send + 'static> Executor<E> {
     //
     // The focus is on the future itself and it's compeleness.
     //
-    pub fn spawn(&self, fut: impl Future<Output = ()> + 'static + Send) {
+    pub fn spawn(&self, fut: impl Future<Output = ()> + 'static + Send) -> ExecutorResult<()> {
         let box_future = Box::pin(fut);
         let task = Arc::new(Task {
             task_sender: self.sender.clone(),
@@ -265,9 +280,11 @@ impl<E: Send + 'static> Executor<E> {
             ready_notification: self.completed_notification.clone(),
         });
 
-        self.sender
-            .try_send(task)
-            .expect("Failed to send tasks into unbounded channel")
+        match self.sender.try_send(task) {
+            Ok(_) => Ok(()),
+            Err(async_channel::TrySendError::Closed(_)) => Err(ExecutorError::Decommission),
+            Err(async_channel::TrySendError::Full(_)) => Err(ExecutorError::ChannelFull),
+        }
     }
 }
 
@@ -284,18 +301,20 @@ mod tests {
         let (mut servicer, executor) = executor::create::<String>();
 
         let (mut sr, rr) = mspc::create::<String>();
-        executor.schedule(rr.clone(), move |item| async move {
-            sender
-                .async_send(item.unwrap())
-                .await
-                .expect("to have sent message")
-        });
+        executor
+            .schedule(rr.clone(), move |item| async move {
+                sender
+                    .async_send(item.unwrap())
+                    .await
+                    .expect("to have sent message")
+            })
+            .expect("should have scheduled task");
 
         // send on first channel
         sr.try_send(String::from("new text")).unwrap();
 
         assert!(matches!(
-            servicer.serve_until_completed(),
+            servicer.block_serve(),
             executor::ExecutorResult::Ok(())
         ));
 
@@ -310,12 +329,14 @@ mod tests {
 
         let (mut servicer, executor) = executor::create::<String>();
 
-        executor.spawn(async move {
-            sender.try_send(String::from("new text")).unwrap();
-        });
+        executor
+            .spawn(async move {
+                sender.try_send(String::from("new text")).unwrap();
+            })
+            .expect("should have scheduled task");
 
         assert!(matches!(
-            servicer.serve_until_completed(),
+            servicer.block_serve(),
             executor::ExecutorResult::Ok(())
         ));
 
@@ -338,14 +359,16 @@ mod tests {
             threaded_servicer.serve_forever();
         });
 
-        executor.schedule(rr, move |item| async move {
-            thread::sleep(Duration::from_millis(500));
+        executor
+            .schedule(rr, move |item| async move {
+                thread::sleep(Duration::from_millis(500));
 
-            sender
-                .async_send(item.unwrap())
-                .await
-                .expect("should have sent result");
-        });
+                sender
+                    .async_send(item.unwrap())
+                    .await
+                    .expect("should have sent result");
+            })
+            .expect("should have scheduled task");
 
         // send on first channel
         sr.try_send(String::from("new text")).unwrap();
@@ -371,12 +394,14 @@ mod tests {
         tokio::spawn(async move {
             tokio::time::sleep(Duration::from_millis(100)).await;
 
-            executor.schedule(rr, move |item| async move {
-                sender
-                    .async_send(item.unwrap())
-                    .await
-                    .expect("should have sent result");
-            });
+            executor
+                .schedule(rr, move |item| async move {
+                    sender
+                        .async_send(item.unwrap())
+                        .await
+                        .expect("should have sent result");
+                })
+                .expect("should have scheduled task");
         })
         .await
         .expect("should have completed");
@@ -385,7 +410,7 @@ mod tests {
         sr.try_send(String::from("new text")).unwrap();
 
         assert!(matches!(
-            servicer.serve_until_completed(),
+            servicer.block_serve(),
             executor::ExecutorResult::Ok(())
         ));
 
@@ -403,15 +428,17 @@ mod tests {
         tokio::spawn(async move {
             tokio::time::sleep(Duration::from_millis(100)).await;
 
-            executor.spawn(async move {
-                sender.try_send(String::from("new text")).unwrap();
-            });
+            executor
+                .spawn(async move {
+                    sender.try_send(String::from("new text")).unwrap();
+                })
+                .expect("should have scheduled task");
         })
         .await
         .expect("should have completed");
 
         assert!(matches!(
-            servicer.serve_until_completed(),
+            servicer.block_serve(),
             executor::ExecutorResult::Ok(())
         ));
 
@@ -428,23 +455,25 @@ mod tests {
 
         let (mut sr, rr) = mspc::create::<String>();
 
-        executor.schedule(rr.clone(), move |item| async {
-            tokio::spawn(async move {
-                tokio::time::sleep(Duration::from_millis(100)).await;
-                sender
-                    .async_send(item.unwrap())
-                    .await
-                    .expect("should have sent result");
+        executor
+            .schedule(rr.clone(), move |item| async {
+                tokio::spawn(async move {
+                    tokio::time::sleep(Duration::from_millis(100)).await;
+                    sender
+                        .async_send(item.unwrap())
+                        .await
+                        .expect("should have sent result");
+                })
+                .await
+                .expect("should have completed");
             })
-            .await
-            .expect("should have completed");
-        });
+            .expect("should have scheduled task");
 
         // send on first channel
         sr.try_send(String::from("new text")).unwrap();
 
         assert!(matches!(
-            servicer.serve_until_completed(),
+            servicer.block_serve(),
             executor::ExecutorResult::Ok(())
         ));
 
@@ -462,26 +491,28 @@ mod tests {
 
         let (sr, rr) = mspc::create::<String>();
 
-        executor.schedule(rr.clone(), move |item| async {
-            tokio::spawn(async move {
-                tokio::time::sleep(Duration::from_millis(100)).await;
-                if let Ok(value) = item {
-                    sender
-                        .async_send(value)
-                        .await
-                        .expect("should have sent result");
-                }
+        executor
+            .schedule(rr.clone(), move |item| async {
+                tokio::spawn(async move {
+                    tokio::time::sleep(Duration::from_millis(100)).await;
+                    if let Ok(value) = item {
+                        sender
+                            .async_send(value)
+                            .await
+                            .expect("should have sent result");
+                    }
+                })
+                .await
+                .expect("should complete");
             })
-            .await
-            .expect("should complete");
-        });
+            .expect("should have scheduled task");
 
         // send on first channel
         drop(sr);
         drop(receiver);
 
         assert!(matches!(
-            servicer.serve_until_completed(),
+            servicer.block_serve(),
             executor::ExecutorResult::Ok(())
         ));
     }
@@ -494,23 +525,25 @@ mod tests {
 
         let (mut sr, rr) = mspc::create::<String>();
 
-        executor.schedule(rr.clone(), move |item| async {
-            tokio::spawn(async move {
-                tokio::time::sleep(Duration::from_millis(500)).await;
-                sender
-                    .async_send(item.unwrap())
-                    .await
-                    .expect("should have sent result");
+        executor
+            .schedule(rr.clone(), move |item| async {
+                tokio::spawn(async move {
+                    tokio::time::sleep(Duration::from_millis(500)).await;
+                    sender
+                        .async_send(item.unwrap())
+                        .await
+                        .expect("should have sent result");
+                })
+                .await
+                .expect("should have completed");
             })
-            .await
-            .expect("should have completed");
-        });
+            .expect("should have scheduled task");
 
         // send on first channel
         sr.try_send(String::from("new text")).unwrap();
 
         assert!(matches!(
-            servicer.serve_async().await,
+            servicer.schedule_serve(),
             executor::ExecutorResult::Ok(())
         ));
 
