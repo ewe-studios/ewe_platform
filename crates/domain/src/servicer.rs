@@ -4,7 +4,10 @@ use std::sync;
 
 use channels::{executor, mspc};
 
-use crate::domains::{self, NamedEvent, NamedRequest};
+use crate::{
+    domains::{self, NamedEvent, NamedRequest},
+    pending_chan,
+};
 
 pub struct DShell<E: Send + 'static, R: Send + 'static, P: Clone> {
     platform: P,
@@ -13,7 +16,7 @@ pub struct DShell<E: Send + 'static, R: Send + 'static, P: Clone> {
     outgoing_requests: mspc::ChannelGroup<NamedRequest<'static, R>>,
     incoming_events: mspc::ChannelGroup<NamedRequest<'static, E>>,
     outgoing_events: mspc::ChannelGroup<NamedEvent<'static, E>>,
-    // registery:
+    response_registry: pending_chan::PendingChannelsRegistry<'static, NamedEvent<'static, E>>,
 }
 
 impl<E: Send + 'static, R: Send + 'static, P: Clone> domains::DomainShell for DShell<E, R, P> {

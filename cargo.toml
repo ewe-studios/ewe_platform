@@ -28,6 +28,7 @@ cargo-machete = { version = "0.6.2" }
 # -- async crates
 futures = { verison = "0.3" }
 crossbeam = { version = "0.8" }
+async-channel = { version = "2.2" }
 tokio = { version = "1", features = ["full"] }
 
 # -- error crates

@@ -15,6 +15,7 @@ keywords.workspace = true
 tokio.workspace = true
 anyhow.workspace = true
 crossbeam.workspace = true
+async-channel.workspace = true
 futures.workspace = true
 thiserror.workspace = true
 

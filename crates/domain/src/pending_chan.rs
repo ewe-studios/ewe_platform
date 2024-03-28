@@ -101,6 +101,19 @@ mod tests {
     }
 
     #[test]
+    fn pending_channels_registry_should_be_able_to_retrieve_channel_grp() {
+        let mut registry = pending_chan::PendingChannelsRegistry::<String>::new();
+
+        let target_id = domains::Id("server_1");
+
+        _ = registry.register(target_id);
+
+        assert!(registry.has(target_id));
+
+        assert!(registry.retrieve(target_id).is_some());
+    }
+
+    #[test]
     fn pending_channels_registry_should_be_able_to_resolve_a_pending_grp() {
         let mut registry = pending_chan::PendingChannelsRegistry::<String>::new();
 
