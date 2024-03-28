@@ -97,14 +97,15 @@ impl<E: Send + 'static> ExecutionService<E> {
         self.completed_notification.close();
     }
 
-    /// [`ExecutionService`].serve attempts to resolve all pending tasks in the
+    /// [`ExecutionService`].serve_async attempts to resolve all pending tasks in the
     /// queue, wrapping them in a waker ensuring that if they are not readily to be
-    /// resolved then the [`ExecutionService`] will be notified once they are resolved
-    /// and ready.
-    /// This method is more suitable for non-blocking environments or environments we
+    /// resolved now then the [`ExecutionService`] will be notified once they are resolved
+    /// and ready asynchronously.
+    ///
+    /// This method is more suitable for non-blocking, async environments or environments we
     /// are guaranteed to live-long enough for the tasks to be resolved in the background
     /// and re-queued.
-    pub fn serve(&mut self) -> ExecutorResult<()> {
+    pub async fn serve_async(&mut self) -> ExecutorResult<()> {
         if self.receiver.is_empty() {
             return ExecutorResult::Err(ExecutorError::NoTasks);
         }
@@ -483,5 +484,39 @@ mod tests {
             servicer.serve_until_completed(),
             executor::ExecutorResult::Ok(())
         ));
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn can_execute_with_async_serve_with_async_runtime() {
+        let (mut sender, mut receiver) = mspc::create::<String>();
+
+        let (mut servicer, executor) = executor::create();
+
+        let (mut sr, rr) = mspc::create::<String>();
+
+        executor.schedule(rr.clone(), move |item| async {
+            tokio::spawn(async move {
+                tokio::time::sleep(Duration::from_millis(500)).await;
+                sender
+                    .async_send(item.unwrap())
+                    .await
+                    .expect("should have sent result");
+            })
+            .await
+            .expect("should have completed");
+        });
+
+        // send on first channel
+        sr.try_send(String::from("new text")).unwrap();
+
+        assert!(matches!(
+            servicer.serve_async().await,
+            executor::ExecutorResult::Ok(())
+        ));
+
+        // expect to receive from second channel
+        let recv_message = receiver.block_receive().unwrap();
+
+        assert_eq!(String::from("new text"), recv_message);
     }
 }
