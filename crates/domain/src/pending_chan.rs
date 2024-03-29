@@ -2,17 +2,17 @@ use std::{collections, sync};
 
 use thiserror::Error;
 
-use channels::mspc;
+use channels::mspc::{self};
 
-use crate::domains::{self};
+use crate::domains;
 
 #[derive(Error, Debug)]
 pub enum PendingChannelError {
     #[error("Failed to find any pending channels registered with {0}")]
     NotFound(String),
 
-    #[error("Corresponding channel sender for {0} was closed: {1}")]
-    ClosedSender(String, mspc::ChannelError),
+    #[error("Corresponding channel sender for {0} was closed")]
+    ClosedSender(domains::Id),
 }
 
 pub type PendingChannelResult<E> = std::result::Result<E, PendingChannelError>;
@@ -68,25 +68,26 @@ impl<E> PendingChannelsRegistry<E> {
         group_channel
     }
 
-    pub fn resolve(&mut self, id: domains::Id, response: E) -> PendingChannelResult<()> {
+    pub fn resolve(&mut self, id: domains::Id) -> PendingChannelResult<mspc::SendChannel<E>> {
         let mut registry = self.pending.lock().unwrap();
         if !registry.contains_key(&id) {
             return PendingChannelResult::Err(PendingChannelError::NotFound(id.0.to_string()));
         }
 
-        if let Some((_, mut entry)) = registry.remove_entry(&id) {
-            entry
-                .0
-                .try_send(response)
-                .expect("sent response to resolve channel");
+        if let Some((_, entry)) = registry.remove_entry(&id) {
+            if let Some(sender) = entry.0 {
+                return PendingChannelResult::Ok(sender);
+            }
         }
 
-        PendingChannelResult::Ok(())
+        PendingChannelResult::Err(PendingChannelError::ClosedSender(id))
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use channels::mspc;
+
     use crate::{domains, pending_chan};
 
     #[test]
@@ -119,14 +120,18 @@ mod tests {
 
         let target_id = domains::Id(String::from("server_1"));
 
-        _ = registry.register(target_id.clone());
+        let grp = registry.register(target_id.clone());
 
         assert!(registry.has(target_id.clone()));
 
-        assert!(matches!(
-            registry.resolve(target_id.clone(), String::from("server_2")),
-            pending_chan::PendingChannelResult::Ok(())
-        ));
+        let result = registry
+            .resolve(target_id.clone())
+            .unwrap()
+            .block_send(String::from("server_2"));
+
+        assert!(matches!(result, mspc::ChannelResult::Ok(())));
+
+        drop(grp);
 
         assert!(!registry.has(target_id));
     }

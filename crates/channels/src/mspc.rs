@@ -6,7 +6,7 @@ use async_channel;
 use crossbeam::atomic;
 use thiserror::Error;
 
-pub type Result<T> = anyhow::Result<T, ChannelError>;
+pub type ChannelResult<T> = anyhow::Result<T, ChannelError>;
 
 #[derive(Error, Debug)]
 pub enum ChannelError {
@@ -30,7 +30,7 @@ pub fn create<T>() -> (SendChannel<T>, ReceiveChannel<T>) {
     (sender, receiver)
 }
 
-pub struct ChannelGroup<E>(pub SendChannel<E>, pub ReceiveChannel<E>);
+pub struct ChannelGroup<E>(pub Option<SendChannel<E>>, pub Option<ReceiveChannel<E>>);
 
 impl<E> Clone for ChannelGroup<E> {
     fn clone(&self) -> Self {
@@ -41,12 +41,12 @@ impl<E> Clone for ChannelGroup<E> {
 impl<E> ChannelGroup<E> {
     pub fn new() -> Self {
         let (sender, receiver) = create::<E>();
-        Self(sender, receiver)
+        Self(Some(sender), Some(receiver))
     }
 }
 
 pub trait SendOnlyChannel<T> {
-    fn try_send(&mut self, t: T) -> Result<()>;
+    fn try_send(&mut self, t: T) -> ChannelResult<()>;
 }
 
 struct SendOnlyWrapper<T> {
@@ -62,7 +62,7 @@ impl<T> Clone for SendOnlyWrapper<T> {
 }
 
 impl<T> SendOnlyChannel<T> for SendOnlyWrapper<T> {
-    fn try_send(&mut self, t: T) -> Result<()> {
+    fn try_send(&mut self, t: T) -> ChannelResult<()> {
         self.channel.try_send(t)
     }
 }
@@ -90,14 +90,14 @@ impl<T> SendChannel<T> {
         Self { src: Some(src) }
     }
 
-    pub fn pending_message_count(&mut self) -> Result<usize> {
+    pub fn pending_message_count(&mut self) -> ChannelResult<usize> {
         match &mut self.src {
             Some(src) => Ok(src.len()),
             None => Err(ChannelError::Closed),
         }
     }
 
-    pub fn close(&mut self) -> Result<()> {
+    pub fn close(&mut self) -> ChannelResult<()> {
         if let Some(channel) = self.src.take() {
             drop(channel);
             return Ok(());
@@ -106,7 +106,7 @@ impl<T> SendChannel<T> {
         }
     }
 
-    pub async fn async_send(&mut self, t: T) -> Result<()> {
+    pub async fn async_send(&mut self, t: T) -> ChannelResult<()> {
         match &mut self.src {
             Some(src) => match src.send(t).await {
                 Ok(()) => Ok(()),
@@ -119,7 +119,7 @@ impl<T> SendChannel<T> {
     /// [`SendChannel`].block_send() blocks the current thread till data is sent or
     /// an error received. This generally should not be used in WASM or non-blocking
     /// environments.
-    pub fn block_send(&mut self, t: T) -> Result<()> {
+    pub fn block_send(&mut self, t: T) -> ChannelResult<()> {
         match &mut self.src {
             Some(src) => match src.send_blocking(t) {
                 Ok(()) => Ok(()),
@@ -129,7 +129,7 @@ impl<T> SendChannel<T> {
         }
     }
 
-    pub fn try_send(&mut self, t: T) -> Result<()> {
+    pub fn try_send(&mut self, t: T) -> ChannelResult<()> {
         match &mut self.src {
             Some(src) => match src.try_send(t) {
                 Ok(()) => Ok(()),
@@ -165,18 +165,18 @@ impl<T> ReceiveChannel<T> {
     // if the [`RecieveChannel`] was ever read once then this
     // becomes true, its up to the user to decide how they fit
     // this into their logic.
-    pub fn read_atleast_once(&self) -> Result<bool> {
+    pub fn read_atleast_once(&self) -> ChannelResult<bool> {
         return Ok(self.read_flag.load());
     }
 
-    pub fn is_empty(&mut self) -> Result<bool> {
+    pub fn is_empty(&mut self) -> ChannelResult<bool> {
         match &self.src {
             None => Err(ChannelError::Closed),
             Some(src) => Ok(src.is_empty()),
         }
     }
 
-    pub fn is_closed(&mut self) -> Result<bool> {
+    pub fn is_closed(&mut self) -> ChannelResult<bool> {
         match &self.src {
             None => Err(ChannelError::Closed),
             Some(_) => Ok(false),
@@ -186,7 +186,7 @@ impl<T> ReceiveChannel<T> {
     /// [`ReceiveChannel`].block_receive() blocks the current thread till data is received or
     /// an error is seen. This generally should not be used in WASM or non-blocking
     /// environments.
-    pub fn block_receive(&mut self) -> Result<T> {
+    pub fn block_receive(&mut self) -> ChannelResult<T> {
         return match &mut self.src {
             None => Err(ChannelError::Closed),
             Some(src) => match src.recv_blocking() {
@@ -199,7 +199,7 @@ impl<T> ReceiveChannel<T> {
         };
     }
 
-    pub async fn async_receive(&mut self) -> Result<T> {
+    pub async fn async_receive(&mut self) -> ChannelResult<T> {
         match &mut self.src {
             None => Err(ChannelError::Closed),
             Some(src) => match src.recv().await {
@@ -217,7 +217,7 @@ impl<T> ReceiveChannel<T> {
         }
     }
 
-    pub fn try_receive(&mut self) -> Result<T> {
+    pub fn try_receive(&mut self) -> ChannelResult<T> {
         match &mut self.src {
             None => Err(ChannelError::Closed),
             Some(src) => match src.try_recv() {
@@ -233,7 +233,7 @@ impl<T> ReceiveChannel<T> {
         }
     }
 
-    fn close_channel(&mut self) -> Result<T> {
+    fn close_channel(&mut self) -> ChannelResult<T> {
         // remove the channel from the underlying slot
         _ = self.src.take();
         Err(ChannelError::Closed)

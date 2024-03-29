@@ -9,7 +9,7 @@ use thiserror::Error;
 use channels::mspc;
 
 // Id identifies a giving (Request, Vec<Event>) pair
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Id(pub String);
 
 impl Display for Id {
@@ -63,6 +63,12 @@ impl<'a, T: Clone> NamedEvent<T> {
 
 #[derive(Error)]
 pub enum DomainOpsErrors<E: Clone> {
+    #[error("no response channel: {0}")]
+    NotFound(Id),
+
+    #[error("response was closed: {0}")]
+    ClosedChannel(Id),
+
     #[error("no NamedRequests was found matching the event: {0}")]
     NoMatchingRequestForEvent(NamedEvent<E>),
 
@@ -83,11 +89,23 @@ pub enum DomainErrors {
     #[error("Failed to schedule function")]
     FailedScheduling,
 
+    #[error("Request receiver was closed, suspect and needs investigation")]
+    ClosedRequestReceiver,
+
     #[error("Failed to spawn function")]
     FailedSpawning,
 
     #[error("Domain shell is not working anymore")]
     ClosedDomainShell,
+
+    #[error("Request response send_channel was closed unexpectedly")]
+    UnexpectedSenderClosure,
+
+    #[error("Request response send_channel does not exists, needs investigation")]
+    RequestSenderNotFound,
+
+    #[error("System in problematic and unexpected state")]
+    ProblematicState,
 }
 
 pub type DomainResult<R> = result::Result<R, DomainErrors>;
@@ -119,7 +137,10 @@ pub trait DomainShell {
 
     // Means of responding to received [`NamedRequest`] from
     // the domain.
-    fn respond(&mut self, event: NamedEvent<Self::Events>) -> DomainOpsResult<(), Self::Events>;
+    fn respond(
+        &mut self,
+        id: Id,
+    ) -> DomainOpsResult<mspc::SendChannel<NamedEvent<Self::Events>>, Id>;
 
     // perform requests on behalf of the Driving clients that
     // wish to get the domain to perform operations based on it's
@@ -140,7 +161,7 @@ pub trait DomainShell {
     fn schedule<Fut>(
         &self,
         receiver: mspc::ReceiveChannel<NamedEvent<Self::Events>>,
-        receiver_fn: impl FnOnce(mspc::Result<NamedEvent<Self::Events>>) -> Fut + 'static + Send,
+        receiver_fn: impl FnOnce(mspc::ChannelResult<NamedEvent<Self::Events>>) -> Fut + 'static + Send,
     ) -> DomainResult<()>
     where
         Fut: future::Future<Output = ()> + Send,
@@ -207,14 +228,43 @@ pub trait DomainServicer {
         &self,
     ) -> impl DomainShell<Platform = Self::Platform, Events = Self::Events, Requests = Self::Requests>;
 
-    // Service delivers all incoming requests and events to the provided
-    // [`Domain`]. It allows us to provide a separation between the shell and
-    // the domain, but making it possible to send the shell across boundaries and
-    // threads without leaking the domain into those same domains or threads.
+    /// [`DomainServicer`].serve delivers all incoming requests and events to the provided
+    /// [`Domain`]. It ensures all sent requests awaiting handling gets
+    /// handled by the domain and all pending tasks get completed by the
+    /// domain service internal execution system.
+    ///
+    /// It allows us to provide a separation between the shell and
+    /// the domain, but making it possible to send the shell across boundaries and
+    /// threads without leaking the domain into those same domains or threads.
+    ///
+    /// I would generally expect that these method implementation blocks the thread
+    /// till all items have been resolved, providing a great setup for sync systems.
     fn serve(
         &mut self,
-        d: impl Domain<Events = Self::Events, Requests = Self::Requests, Platform = Self::Platform>,
+        d: &impl Domain<Events = Self::Events, Requests = Self::Requests, Platform = Self::Platform>,
     ) -> DomainResult<()>;
+
+    /// [`DomainServicer`].serve_forever does similar behaviours to [`DomainServicer`].serve
+    /// except that it blocks the thread forever in a tight loop allowing continouse operation
+    /// of the servicer to serve all incoming requests for the domain.
+    ///
+    /// You will generally be sending this into a separate thread to run till we've decided to
+    /// stop all operations.
+    fn serve_forever(
+        &mut self,
+        d: &impl Domain<Events = Self::Events, Requests = Self::Requests, Platform = Self::Platform>,
+    ) -> DomainResult<()>;
+
+    /// [`DomainServicer`].serve_forever_async does similar behaviours to [`DomainServicer`].serve
+    /// except that it blocks the thread forever in a tight loop allowing continouse operation
+    /// of the servicer to serve all incoming requests for the domain.
+    ///
+    /// You will generally be sending this into a separate thread to run till we've decided to
+    /// stop all operations.
+    fn serve_forever_async(
+        &mut self,
+        d: &impl Domain<Events = Self::Events, Requests = Self::Requests, Platform = Self::Platform>,
+    ) -> impl future::Future<Output = DomainResult<()>>;
 }
 
 // Implement [`Domain`] on your type to create a business domain unit

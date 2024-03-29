@@ -9,13 +9,14 @@ use futures::{
 use std::{
     sync::{self, Arc},
     task::Context,
-    thread,
-    time::Duration,
     usize,
 };
 use thiserror::Error;
 
 use crate::mspc;
+
+// default capacity allocated within executioner service.
+const DEFAULT_TASK_PENDING_CAPACITY: usize = 10;
 
 struct Task<E: Send + 'static> {
     handler: sync::Mutex<Option<future::BoxFuture<'static, ()>>>,
@@ -29,6 +30,7 @@ struct Task<E: Send + 'static> {
 impl<E: Send + 'static> ArcWake for Task<E> {
     fn wake_by_ref(arc_self: &Arc<Self>) {
         let cloned_task = arc_self.clone();
+        println!("Sending");
         arc_self
             .task_sender
             .try_send(cloned_task)
@@ -36,26 +38,18 @@ impl<E: Send + 'static> ArcWake for Task<E> {
         arc_self
             .ready_notification
             .try_send(())
-            .expect("failed to send resolved notication")
+            .expect("failed to send resolved notication");
+        println!("Sent wake action");
     }
 }
 
-const DEFAULT_EXECUTOR_SERVICE_SLEEP: u64 = 300;
-
 pub fn create<E: Send + 'static>() -> (ExecutionService<E>, Executor<E>) {
-    create_with_sleep_timeout(DEFAULT_EXECUTOR_SERVICE_SLEEP)
-}
-
-pub fn create_with_sleep_timeout<E: Send + 'static>(
-    sleep_in_millisecond: u64,
-) -> (ExecutionService<E>, Executor<E>) {
     let (sender, receiver) = async_channel::unbounded::<Arc<Task<E>>>();
     let (task_completed_sender, task_completed_receiver) = async_channel::unbounded::<()>();
 
     (
         ExecutionService {
             completed_notification: task_completed_receiver,
-            sleep_in_millisecond,
             receiver,
         },
         Executor {
@@ -80,13 +74,9 @@ pub enum ExecutorError {
 pub type ExecutorResult<E> = anyhow::Result<E, ExecutorError>;
 
 pub struct ExecutionService<E: Send + 'static> {
-    sleep_in_millisecond: u64,
     receiver: async_channel::Receiver<Arc<Task<E>>>,
     completed_notification: async_channel::Receiver<()>,
 }
-
-// default capacity allocated within executioner service.
-const DEFAULT_TASK_PENDING_CAPACITY: usize = 10;
 
 impl<E: Send + 'static> Drop for ExecutionService<E> {
     fn drop(&mut self) {
@@ -104,7 +94,7 @@ impl<E: Send + 'static> ExecutionService<E> {
         self.schedule_serve()
     }
 
-    /// [`ExecutionService`].schedule_serve attempts to resolve all pending tasks in the
+    /// [`ExecutionService::schedule_serve`] attempts to resolve all pending tasks in the
     /// queue, wrapping them in a waker ensuring that if they are not readily to be
     /// resolved now then the [`ExecutionService`] will be notified once they are resolved
     /// and ready asynchronously.
@@ -112,6 +102,15 @@ impl<E: Send + 'static> ExecutionService<E> {
     /// This method is more suitable for non-blocking, async environments or environments we
     /// are guaranteed to live-long enough for the tasks to be resolved in the background
     /// and re-queued.
+    ///
+    /// Something to note is that when executed in an environment without an async runtime
+    /// will have the calls to Future.poll() behave like a synchronous system where it simply
+    /// blocks on the current thread till the future is completed, then moving on sequentially.
+    ///
+    /// Whilst under async runtimes like Tokio, async-std, tasks that are not compeleted immediately
+    /// will signal alter via the Waker re-adding the tasks for processing.
+    ///
+    /// To automtically have these re-processed, please use the serve_forever method.
     ///
     /// WARNING: the completion of the future this function returns does not mean all
     /// the task are completed. It simply means they have being scheduled for completion
@@ -129,47 +128,46 @@ impl<E: Send + 'static> ExecutionService<E> {
         return Ok(());
     }
 
-    /// [`ExecutionService`].block_serve blocks the current thread until
-    /// all pending tasks in the task channels have fully resolved.
-    /// This means all unresolved tasks even if async will
-    /// still get re-queued for processing until they all
-    /// completes via checking their respective futures.
+    /// [`ExecutionService::serve_forever`] provides a listening that continously monitors
+    /// for when any tasks signals its ready for resolving, kickstarting
+    /// necessary calls to resolve the tasks.
     ///
-    /// This means this blocks the current thread for how-ever long any of the
-    /// tasks takes to complete and thoughtful consideration should be taken
-    /// e.g sending this into another thread or web worker in the browser
-    /// to ensure the main thread is never blocked.
+    /// Something to note is that when executed in an environment without an async runtime
+    /// will have the calls to Future.poll() behave like a synchronous system where it simply
+    /// blocks on the current thread till the future is completed, then moving on sequentially.
     ///
-    /// You also can use the [`ExecutionService`].single_serve method which runs all
-    /// execution onces and rely's entirely on the completed futures to notify it when
-    /// they are ready and completed via the future waker (see [`Task`]).
-    pub fn block_serve(&mut self) -> ExecutorResult<()> {
+    /// Whilst under async runtimes like Tokio, async-std, tasks that are not compeleted immediately
+    /// will signal alter via the Waker re-adding the tasks for processing.
+    ///
+    /// To automtically have these re-processed, please use the serve_forever method.
+    ///
+    /// WARNING: Always run this method in it's own thread as it blocks forever
+    /// until the underyling execution service is dropped. If executed on
+    /// the main thread then the main thread will be blocked.
+    pub fn serve_forever(&self) {
         loop {
-            if self.receiver.is_empty() {
-                break;
+            if let Err(_) = self.serve_and_capture_pending() {
+                return;
             }
 
-            let pending_tasks_result = self.serve_and_capture_pending();
-            if pending_tasks_result.is_err() {
-                return ExecutorResult::Err(ExecutorError::Decommission);
-            }
-
-            let mut pending_tasks = pending_tasks_result.unwrap();
-            // if last loop found that tasks were still not finished, then re-queue them.
-            if pending_tasks.len() != 0 {
-                while let Some(task) = pending_tasks.pop() {
-                    task.task_sender
-                        .try_send(task.clone())
-                        .expect("Failed to resend task into queue")
+            if let Err(_) = self.completed_notification.recv_blocking() {
+                if self.completed_notification.is_closed() {
+                    return;
                 }
-
-                thread::sleep(Duration::from_millis(self.sleep_in_millisecond));
             }
         }
-
-        return Ok(());
     }
 
+    // This function triggers processing of every tasks within the execution service.
+    //
+    // Something to note is that when executed in an environment without an async runtime
+    // will have the calls to Future.poll() behave like a synchronous system where it simply
+    // blocks on the current thread till the future is completed, then moving on sequentially.
+    //
+    // Whilst under async runtimes like Tokio, async-std, tasks that are not compeleted immediately
+    // will signal alter via the Waker re-adding the tasks for processing.
+    //
+    // To automtically have these re-processed, please use the serve_forever method.
     fn serve_and_capture_pending(&self) -> ExecutorResult<Vec<Arc<Task<E>>>> {
         let mut pending_tasks = Vec::<Arc<Task<E>>>::with_capacity(DEFAULT_TASK_PENDING_CAPACITY);
         while let Ok(task) = self.receiver.try_recv() {
@@ -181,12 +179,6 @@ impl<E: Send + 'static> ExecutionService<E> {
             // future and do something with it then return it back in if not
             // ready or completed.
             if let Some(mut future) = future_container.take() {
-                // Note: this will cause potentially double queue'ing of a task, say
-                // the loop runs to completion and the task was not completed and not pending
-                // the waker will still queue the task up but since its now considered completed
-                // it will just skip this portion.
-                //
-                // I do not think yet we need to optimize that yet.
                 let waker = waker_ref(&task);
                 let context = &mut Context::from_waker(&waker);
 
@@ -201,28 +193,6 @@ impl<E: Send + 'static> ExecutionService<E> {
         }
 
         ExecutorResult::Ok(pending_tasks)
-    }
-
-    /// serve_forever provides a listening that continously monitors
-    /// for when any tasks signals its ready for resolving, kickstarting
-    /// necessary calls to resolve the tasks.
-    ///
-    /// WARNING: Always run this method in it's own thread as it blocks forever
-    /// until the underyling execution service is dropped. If executed on
-    /// the main thread then the main thread will be blocked.
-    pub fn serve_forever(&self) {
-        loop {
-            if let Err(_) = self.serve_and_capture_pending() {
-                return;
-            }
-
-            let res = self.completed_notification.recv_blocking();
-            if res.is_err() {
-                if self.completed_notification.is_closed() {
-                    return;
-                }
-            }
-        }
     }
 }
 
@@ -241,7 +211,7 @@ impl<E: Send + 'static> Executor<E> {
     pub fn schedule<Fut>(
         &self,
         receiver: mspc::ReceiveChannel<E>,
-        receiver_fn: impl FnOnce(mspc::Result<E>) -> Fut + 'static + Send,
+        receiver_fn: impl FnOnce(mspc::ChannelResult<E>) -> Fut + 'static + Send,
     ) -> ExecutorResult<()>
     where
         Fut: future::Future<Output = ()> + Send,
@@ -290,9 +260,56 @@ impl<E: Send + 'static> Executor<E> {
 
 #[cfg(test)]
 mod tests {
-    use std::{sync, thread, time::Duration};
+    use std::{
+        sync,
+        thread::{self},
+        time::Duration,
+    };
 
     use crate::{executor, mspc};
+
+    #[test]
+    fn can_execute_a_task_without_an_async_runtime_with_scheduled_serve() {
+        let (mut sender, mut receiver) = mspc::create::<String>();
+
+        let (mut servicer, executor) = executor::create::<String>();
+
+        let (mut sr, rr) = mspc::create::<String>();
+
+        let mut sender_clone = sender.clone();
+        executor
+            .schedule(rr.clone(), move |item| async move {
+                sender_clone
+                    .async_send(item.unwrap())
+                    .await
+                    .expect("to have sent message")
+            })
+            .expect("should have scheduled task");
+
+        executor
+            .spawn(async move {
+                sender
+                    .async_send(String::from("second"))
+                    .await
+                    .expect("to have sent message")
+            })
+            .expect("should have scheduled task");
+
+        // send on first channel
+        sr.try_send(String::from("new text")).unwrap();
+
+        assert!(matches!(
+            servicer.schedule_serve(),
+            executor::ExecutorResult::Ok(())
+        ));
+
+        // expect to receive from second channel
+        let recv_message = receiver.block_receive().unwrap();
+        assert_eq!(String::from("new text"), recv_message);
+
+        let recv_message = receiver.block_receive().unwrap();
+        assert_eq!(String::from("second"), recv_message);
+    }
 
     #[test]
     fn can_execute_a_task_without_an_async_runtime() {
@@ -314,12 +331,12 @@ mod tests {
         sr.try_send(String::from("new text")).unwrap();
 
         assert!(matches!(
-            servicer.block_serve(),
+            servicer.schedule_serve(),
             executor::ExecutorResult::Ok(())
         ));
 
         // expect to receive from second channel
-        let recv_message = receiver.try_receive().unwrap();
+        let recv_message = receiver.block_receive().unwrap();
         assert_eq!(String::from("new text"), recv_message);
     }
 
@@ -336,7 +353,7 @@ mod tests {
             .expect("should have scheduled task");
 
         assert!(matches!(
-            servicer.block_serve(),
+            servicer.schedule_serve(),
             executor::ExecutorResult::Ok(())
         ));
 
@@ -410,7 +427,7 @@ mod tests {
         sr.try_send(String::from("new text")).unwrap();
 
         assert!(matches!(
-            servicer.block_serve(),
+            servicer.schedule_serve(),
             executor::ExecutorResult::Ok(())
         ));
 
@@ -438,7 +455,7 @@ mod tests {
         .expect("should have completed");
 
         assert!(matches!(
-            servicer.block_serve(),
+            servicer.schedule_serve(),
             executor::ExecutorResult::Ok(())
         ));
 
@@ -473,7 +490,7 @@ mod tests {
         sr.try_send(String::from("new text")).unwrap();
 
         assert!(matches!(
-            servicer.block_serve(),
+            servicer.schedule_serve(),
             executor::ExecutorResult::Ok(())
         ));
 
@@ -512,7 +529,7 @@ mod tests {
         drop(receiver);
 
         assert!(matches!(
-            servicer.block_serve(),
+            servicer.schedule_serve(),
             executor::ExecutorResult::Ok(())
         ));
     }

@@ -1,12 +1,13 @@
 // Module implementing DomainService default implementations and related tests
 
 use channels::{broadcast, executor, mspc};
+use futures::future;
 
 use std::sync;
 
 use crate::{
-    domains::{self, NamedEvent, NamedRequest},
-    pending_chan,
+    domains::{self, DomainErrors, DomainResult, NamedEvent, NamedRequest},
+    pending_chan::{self, PendingChannelError},
 };
 
 pub struct DShell<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> {
@@ -39,9 +40,13 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::Ma
         req: NamedRequest<Self::Requests>,
     ) -> domains::DomainOpsResult<mspc::ReceiveChannel<NamedEvent<Self::Events>>, Self::Requests>
     {
-        let resolution_channel = self.response_registry.register(req.id());
         self.request_broadcast.broadcast(req.clone());
-        Ok(resolution_channel.1.clone())
+
+        let mut resolution_channel = self.response_registry.register(req.id());
+        Ok(resolution_channel
+            .1
+            .take()
+            .expect("should have receiving channel"))
     }
 
     fn send_events(
@@ -72,15 +77,15 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::Do
 
     fn respond(
         &mut self,
-        event: NamedEvent<Self::Events>,
-    ) -> domains::DomainOpsResult<(), Self::Events> {
-        match self.response_registry.resolve(event.id(), event.clone()) {
-            Ok(_) => Ok(()),
+        id: domains::Id,
+    ) -> domains::DomainOpsResult<mspc::SendChannel<NamedEvent<Self::Events>>, domains::Id> {
+        match self.response_registry.resolve(id.clone()) {
+            Ok(sender) => Ok(sender),
             Err(pending_chan::PendingChannelError::NotFound(_)) => {
-                Err(domains::DomainOpsErrors::NoMatchingRequestForEvent(event))
+                Err(domains::DomainOpsErrors::NotFound(id))
             }
-            Err(pending_chan::PendingChannelError::ClosedSender(_, _)) => {
-                Err(domains::DomainOpsErrors::UnableToDeliverEvents(event))
+            Err(pending_chan::PendingChannelError::ClosedSender(_)) => {
+                Err(domains::DomainOpsErrors::ClosedChannel(id))
             }
         }
     }
@@ -91,9 +96,12 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::Do
     ) -> domains::DomainOpsResult<mspc::ReceiveChannel<NamedEvent<Self::Events>>, Self::Requests>
     {
         // create resolution channel group, send the RetreiveChannel to the user.
-        let resolution_channel = self.response_registry.register(req.id());
+        let mut resolution_channel = self.response_registry.register(req.id());
         match self.incoming_request_sender.try_send(req.clone()) {
-            Ok(_) => Ok(resolution_channel.1.clone()),
+            Ok(_) => Ok(resolution_channel
+                .1
+                .take()
+                .expect("should have receiving channel")),
             Err(_) => Err(domains::DomainOpsErrors::UnableToSendRequest(req)),
         }
     }
@@ -101,7 +109,7 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::Do
     fn schedule<Fut>(
         &self,
         receiver: mspc::ReceiveChannel<NamedEvent<Self::Events>>,
-        receiver_fn: impl FnOnce(mspc::Result<NamedEvent<Self::Events>>) -> Fut + 'static + Send,
+        receiver_fn: impl FnOnce(mspc::ChannelResult<NamedEvent<Self::Events>>) -> Fut + 'static + Send,
     ) -> domains::DomainResult<()>
     where
         Fut: futures::prelude::future::Future<Output = ()> + Send,
@@ -177,14 +185,21 @@ pub fn create_servicer<E: Send + Clone + 'static, R: Send + Clone + 'static, P: 
 impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> DServicer<E, R, P> {
     fn process_incoming_request(
         &mut self,
-        domain: impl domains::Domain<Events = E, Requests = R, Platform = P>,
-    ) {
-        while let Ok(request) = self.incoming_request_receiver.try_receive() {
-            if let Some(response_grp) = self.response_registry.retrieve(request.id()) {
-                domain.handle_request(request, response_grp.0.clone(), self.domain_shell.clone());
-                continue;
-            }
-            assert!(false, "failed to find response registry for {}", request);
+        domain: &impl domains::Domain<Events = E, Requests = R, Platform = P>,
+    ) -> DomainResult<()> {
+        match self.incoming_request_receiver.block_receive() {
+            Ok(request) => match self.response_registry.resolve(request.id()) {
+                Ok(sender) => {
+                    domain.handle_request(request, sender, self.domain_shell.clone());
+                    Ok(())
+                }
+                Err(PendingChannelError::ClosedSender(_)) => {
+                    Err(DomainErrors::UnexpectedSenderClosure)
+                }
+                Err(PendingChannelError::NotFound(_)) => Err(DomainErrors::RequestSenderNotFound),
+            },
+            Err(mspc::ChannelError::Closed) => Err(DomainErrors::ClosedRequestReceiver),
+            _ => Ok(()),
         }
     }
 }
@@ -210,16 +225,49 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::Do
 
     fn serve(
         &mut self,
-        domain: impl crate::domains::Domain<
+        domain: &impl crate::domains::Domain<
             Events = Self::Events,
             Requests = Self::Requests,
             Platform = Self::Platform,
         >,
     ) -> domains::DomainResult<()> {
-        self.process_incoming_request(domain);
-        self.execution_service
-            .schedule_serve()
-            .expect("should have kickstart resolve");
+        (match self.process_incoming_request(domain) {
+            Ok(_) => Ok(()),
+            Err(DomainErrors::RequestSenderNotFound) => Err(DomainErrors::ProblematicState),
+            Err(DomainErrors::UnexpectedSenderClosure) => Err(DomainErrors::ProblematicState),
+            _ => Ok(()),
+        })
+        .expect("request processing should have finished with no issues");
+        (match self.execution_service.schedule_serve() {
+            Ok(_) => Ok(()),
+            Err(executor::ExecutorError::Decommission) => Err(DomainErrors::ProblematicState),
+            _ => Ok(()),
+        })
+        .expect("execution service should have ended better");
         Ok(())
+    }
+
+    fn serve_forever(
+        &mut self,
+        d: &impl domains::Domain<
+            Events = Self::Events,
+            Requests = Self::Requests,
+            Platform = Self::Platform,
+        >,
+    ) -> domains::DomainResult<()> {
+        loop {
+            self.serve(d).expect("should not have ended in this state")
+        }
+    }
+
+    fn serve_forever_async(
+        &mut self,
+        d: &impl domains::Domain<
+            Events = Self::Events,
+            Requests = Self::Requests,
+            Platform = Self::Platform,
+        >,
+    ) -> impl future::Future<Output = domains::DomainResult<()>> {
+        async { self.serve_forever(d) }
     }
 }
