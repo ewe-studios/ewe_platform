@@ -270,7 +270,7 @@ pub trait DomainServicer {
 // Implement [`Domain`] on your type to create a business domain unit
 // with specific inputs and outputs via requests and events
 // via central handling function [`Domain.handle`].
-pub trait Domain {
+pub trait Domain: Default {
     // Enum defining your target event types
     type Events: Clone + Send + 'static;
 

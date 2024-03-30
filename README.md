@@ -329,7 +329,7 @@ pub struct ConfigServiceManager{
 }
 
 impl ConfigurationService on ConfigServiceManager {
-    pub fn GetFileConfigFromService(&self, data: NamedRequest, domain: BusinessDomain) {
+    pub fn GetFileConfigFromService(&self, data: NamedRequest, shell: DomainShell) {
         // use spawn_local 
         spawn_local({
             async move {
@@ -341,10 +341,11 @@ impl ConfigurationService on ConfigServiceManager {
                         () => reason = Some("unexpected server failure");
                     }
 
-                    domain.respond(data.to(AppEvent::FailedFileConfigurationRequest(reason)));
+                    shell.respond(data.to(AppEvent::FailedFileConfigurationRequest(reason)));
+                    return;
                 }
 
-                domain.respond(data.to(AppEvents::SucceededFileConfiguratonRequest(response.text)))
+                shell.respond(data.to(AppEvents::SucceededFileConfiguratonRequest(response.text)))
             }
         })
     }
@@ -372,3 +373,9 @@ impl App {
 }
 
 ```
+
+## Usecase & Platforms: Events & Implementation Details
+
+One interesting question arise, if we as we plan split the intent of an operation from it's actual implementation and execution by using requests and events as the separation barrier, how exactly should this all work in an wholesome complete manner?
+
+We want to reduce as much of the moving pieces people need to inherently store in their heads without loosing themselves in too much details being paralized by exactly how something should work!

@@ -261,6 +261,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "channels",
+ "crossbeam",
  "futures",
  "serde",
  "thiserror",

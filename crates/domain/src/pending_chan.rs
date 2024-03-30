@@ -82,6 +82,16 @@ impl<E> PendingChannelsRegistry<E> {
 
         PendingChannelResult::Err(PendingChannelError::ClosedSender(id))
     }
+
+    pub fn clear(&mut self) {
+        let mut registry = self.pending.lock().unwrap();
+        for (_, mut entry) in registry.drain() {
+            if let Some(mut sender) = entry.0.take() {
+                sender.close().expect("close sender");
+            }
+            _ = entry.1.take();
+        }
+    }
 }
 
 #[cfg(test)]
@@ -89,6 +99,23 @@ mod tests {
     use channels::mspc;
 
     use crate::{domains, pending_chan};
+
+    #[test]
+    fn pending_channels_can_clear_all_registered_channels() {
+        let mut registry = pending_chan::PendingChannelsRegistry::<String>::new();
+
+        let target_id = domains::Id(String::from("server_1"));
+
+        let grp = registry.register(target_id.clone());
+
+        assert!(registry.has(target_id.clone()));
+
+        registry.clear();
+
+        assert!(!registry.has(target_id));
+
+        drop(grp)
+    }
 
     #[test]
     fn pending_channels_registry_should_be_able_to_register_request_id() {

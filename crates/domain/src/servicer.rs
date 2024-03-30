@@ -53,7 +53,6 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::Ma
         &mut self,
         event: NamedEvent<Self::Events>,
     ) -> domains::DomainOpsResult<(), Self::Events> {
-        _ = self.response_registry.register(event.id());
         self.event_broadcast.broadcast(event.clone());
         Ok(())
     }
@@ -149,6 +148,7 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::Do
 
 pub struct DServicer<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> {
     domain_shell: DShell<E, R, P>,
+    closer_channel: mspc::ChannelGroup<()>,
     execution_service: executor::ExecutionService<NamedEvent<E>>,
     incoming_request_receiver: mspc::ReceiveChannel<NamedRequest<R>>,
     response_registry: pending_chan::PendingChannelsRegistry<NamedEvent<E>>,
@@ -159,6 +159,7 @@ const DEFAULT_SUBSCRIBER_START_CAPACITY: usize = 10;
 pub fn create_servicer<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone>(
     shell_platform: P,
 ) -> DServicer<E, R, P> {
+    let closer_channel = mspc::ChannelGroup::new();
     let (incoming_request_sender, incoming_request_receiver) = mspc::create();
     let (execution_service, executor) = executor::create();
     let event_broadcast = broadcast::create::<NamedEvent<E>>(DEFAULT_SUBSCRIBER_START_CAPACITY);
@@ -179,6 +180,7 @@ pub fn create_servicer<E: Send + Clone + 'static, R: Send + Clone + 'static, P: 
         execution_service: execution_service,
         incoming_request_receiver,
         response_registry,
+        closer_channel,
     }
 }
 
@@ -201,6 +203,13 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> DServicer<E
             Err(mspc::ChannelError::Closed) => Err(DomainErrors::ClosedRequestReceiver),
             _ => Ok(()),
         }
+    }
+
+    fn close(&mut self) {
+        if let Some(mut sender) = self.closer_channel.0.clone() {
+            sender.block_send(()).expect("should have sent signal")
+        }
+        self.response_registry.clear();
     }
 }
 
@@ -256,7 +265,17 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::Do
         >,
     ) -> domains::DomainResult<()> {
         loop {
-            self.serve(d).expect("should not have ended in this state")
+            (match self.closer_channel.1.clone() {
+                None => Err(DomainErrors::ProblematicState),
+                Some(mut recv) => {
+                    if let Ok(_) = recv.try_receive() {
+                        self.serve(d).expect("should not have ended in this state");
+                        continue;
+                    }
+                    Ok(())
+                }
+            })
+            .expect("should have completed properly");
         }
     }
 
@@ -269,5 +288,73 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::Do
         >,
     ) -> impl future::Future<Output = domains::DomainResult<()>> {
         async { self.serve_forever(d) }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::domains;
+    use crossbeam::atomic;
+
+    #[derive(Default, Clone)]
+    struct Platform {}
+
+    #[derive(Default, Debug, Clone, PartialEq, Eq, Hash)]
+    struct CounterModel {
+        count: usize,
+    }
+
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    enum CounterEvents {
+        Incremented(CounterModel),
+        Decremented(CounterModel),
+    }
+
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    enum CounterRequests {
+        Increment,
+        Decrement,
+    }
+
+    struct CounterApp {
+        state: atomic::AtomicCell<CounterModel>,
+    }
+
+    impl Default for CounterApp {
+        fn default() -> Self {
+            Self {
+                state: atomic::AtomicCell::new(CounterModel { count: 0 }),
+            }
+        }
+    }
+
+    impl domains::Domain for CounterApp {
+        type Events = CounterEvents;
+        type Requests = CounterRequests;
+        type Platform = Platform;
+
+        fn handle_request(
+            &self,
+            _req: domains::NamedRequest<Self::Requests>,
+            _chan: channels::mspc::SendChannel<domains::NamedEvent<Self::Events>>,
+            _shell: impl domains::MasterShell<
+                Events = Self::Events,
+                Requests = Self::Requests,
+                Platform = Self::Platform,
+            >,
+        ) {
+        }
+
+        fn handle_event(
+            &self,
+            _events: domains::NamedEvent<Self::Events>,
+            _shell: impl domains::MasterShell<
+                Events = Self::Events,
+                Requests = Self::Requests,
+                Platform = Self::Platform,
+            >,
+        ) {
+            todo!()
+        }
     }
 }
