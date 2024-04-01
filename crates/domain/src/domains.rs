@@ -158,7 +158,7 @@ pub trait DomainShell {
     where
         Self: Sized;
 
-    /// Means of responding to received [`NamedRequest`] from
+    /// Means of responding by others to received [`NamedRequest`] from
     /// the domain.
     fn respond(
         &mut self,
@@ -212,17 +212,28 @@ pub trait DomainShell {
 
 /// MasterShell exposes core methods that allows
 pub trait MasterShell: DomainShell {
-    /// Delivers events to the shell to be sent to all relevant
-    /// listens be notified of important changes in this domain
-    /// instance.
+    /// Delivers events to only outside listeners and not to the domain
+    /// and to all relevant listeners listento be notified on
+    /// important changes in this domain instance.
     ///
     /// This allows the domain to inform the shell and its subscribers
     /// about it's changes that occur due to request or events received
     /// via [`DomainShell`].respond and [`DomainShell`].send_events.
     ///
     /// Hexagonal Architecture: Driving Side
-    fn send_events(&mut self, event: NamedEvent<Self::Events>)
+    fn send_others(&mut self, event: NamedEvent<Self::Events>)
         -> DomainOpsResult<(), Self::Events>;
+
+    /// Delivers events to the shell to be sent to both the domain
+    /// and to all relevant listeners listening to be notified on
+    /// important changes in this domain instance.
+    ///
+    /// This allows the domain to inform the shell and its subscribers
+    /// about it's changes that occur due to request or events received
+    /// via [`DomainShell`].respond and [`DomainShell`].send_events.
+    ///
+    /// Hexagonal Architecture: Driving Side
+    fn send_all(&mut self, event: NamedEvent<Self::Events>) -> DomainOpsResult<(), Self::Events>;
 
     /// Delivers request to the shell to be sent to all relevant
     /// listens to perform work on behalf of the domain.
@@ -231,7 +242,7 @@ pub trait MasterShell: DomainShell {
     /// need for operations not natively within it's boundaries.
     ///
     /// Hexagonal Architecture: Driving Side
-    fn send_requests(
+    fn send_request(
         &mut self,
         req: NamedRequest<Self::Requests>,
     ) -> DomainOpsResult<mspc::ReceiveChannel<NamedEvent<Self::Events>>, Self::Requests>;

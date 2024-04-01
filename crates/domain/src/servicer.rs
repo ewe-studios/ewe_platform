@@ -1,6 +1,9 @@
 // Module implementing DomainService default implementations and related tests
 
-use channels::{broadcast, executor, mspc};
+use channels::{
+    broadcast, executor,
+    mspc::{self, ChannelError},
+};
 use futures::future;
 use tracing::{error, info};
 
@@ -17,6 +20,7 @@ pub struct DShell<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone
     event_broadcast: broadcast::Broadcast<NamedEvent<E>>,
     request_broadcast: broadcast::Broadcast<NamedRequest<R>>,
     incoming_request_sender: mspc::SendChannel<NamedRequest<R>>,
+    incoming_event_sender: mspc::SendChannel<NamedEvent<E>>,
     response_registry: pending_chan::PendingChannelsRegistry<NamedEvent<E>>,
 }
 
@@ -29,6 +33,7 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> Clone for D
             event_broadcast: self.event_broadcast.clone(),
             response_registry: self.response_registry.clone(),
             incoming_request_sender: self.incoming_request_sender.clone(),
+            incoming_event_sender: self.incoming_event_sender.clone(),
         }
     }
 }
@@ -36,7 +41,7 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> Clone for D
 impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::MasterShell
     for DShell<E, R, P>
 {
-    fn send_requests(
+    fn send_request(
         &mut self,
         req: NamedRequest<Self::Requests>,
     ) -> domains::DomainOpsResult<mspc::ReceiveChannel<NamedEvent<Self::Events>>, Self::Requests>
@@ -50,11 +55,25 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::Ma
             .expect("should have receiving channel"))
     }
 
-    fn send_events(
+    fn send_others(
         &mut self,
         event: NamedEvent<Self::Events>,
     ) -> domains::DomainOpsResult<(), Self::Events> {
         self.event_broadcast.broadcast(event.clone());
+        Ok(())
+    }
+
+    fn send_all(
+        &mut self,
+        event: NamedEvent<Self::Events>,
+    ) -> domains::DomainOpsResult<(), Self::Events> {
+        println!("Sending info!");
+        self.incoming_event_sender
+            .try_send(event.clone())
+            .expect("send event");
+        println!("Sent info!");
+        self.event_broadcast.broadcast(event);
+        println!("broacast info!");
         Ok(())
     }
 }
@@ -152,6 +171,7 @@ pub struct DServicer<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Cl
     closer_channel: mspc::ChannelGroup<()>,
     execution_service: executor::ExecutionService<NamedEvent<E>>,
     incoming_request_receiver: mspc::ReceiveChannel<NamedRequest<R>>,
+    incoming_event_receiver: mspc::ReceiveChannel<NamedEvent<E>>,
     response_registry: pending_chan::PendingChannelsRegistry<NamedEvent<E>>,
 }
 
@@ -162,6 +182,7 @@ pub fn create<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone>(
 ) -> DServicer<E, R, P> {
     let closer_channel = mspc::ChannelGroup::new();
     let (incoming_request_sender, incoming_request_receiver) = mspc::create();
+    let (incoming_event_sender, incoming_event_receiver) = mspc::create();
     let (execution_service, executor) = executor::create();
     let event_broadcast = broadcast::create::<NamedEvent<E>>(DEFAULT_SUBSCRIBER_START_CAPACITY);
     let request_broadcast = broadcast::create::<NamedRequest<R>>(DEFAULT_SUBSCRIBER_START_CAPACITY);
@@ -173,6 +194,7 @@ pub fn create<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone>(
         domain_shell: DShell {
             shell_platform,
             incoming_request_sender,
+            incoming_event_sender,
             executor: executor_arc,
             request_broadcast: request_broadcast.clone(),
             event_broadcast: event_broadcast.clone(),
@@ -180,17 +202,33 @@ pub fn create<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone>(
         },
         execution_service: execution_service,
         incoming_request_receiver,
+        incoming_event_receiver,
         response_registry,
         closer_channel,
     }
 }
 
 impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> DServicer<E, R, P> {
+    fn process_incoming_event(
+        &mut self,
+        domain: &impl domains::Domain<Events = E, Requests = R, Platform = P>,
+    ) -> DomainResult<()> {
+        match self.incoming_event_receiver.try_receive() {
+            Ok(request) => {
+                domain.handle_event(request, self.domain_shell.clone());
+                Ok(())
+            }
+            Err(ChannelError::ReceivedNoData) => Ok(()),
+            Err(ChannelError::ReceiveFailed(_)) => Err(DomainErrors::ClosedRequestReceiver),
+            _ => Ok(()),
+        }
+    }
+
     fn process_incoming_request(
         &mut self,
         domain: &impl domains::Domain<Events = E, Requests = R, Platform = P>,
     ) -> DomainResult<()> {
-        match self.incoming_request_receiver.block_receive() {
+        match self.incoming_request_receiver.try_receive() {
             Ok(request) => match self.response_registry.resolve(request.id()) {
                 Ok(sender) => {
                     domain.handle_request(request, sender, self.domain_shell.clone());
@@ -236,6 +274,13 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::Do
             Platform = Self::Platform,
         >,
     ) -> domains::DomainResult<()> {
+        (match self.process_incoming_event(domain) {
+            Ok(_) => Ok(()),
+            Err(DomainErrors::RequestSenderNotFound) => Err(DomainErrors::ProblematicState),
+            Err(DomainErrors::UnexpectedSenderClosure) => Err(DomainErrors::ProblematicState),
+            _ => Ok(()),
+        })
+        .expect("event processing should have finished with no issues");
         (match self.process_incoming_request(domain) {
             Ok(_) => Ok(()),
             Err(DomainErrors::RequestSenderNotFound) => Err(DomainErrors::ProblematicState),
@@ -347,6 +392,7 @@ mod tests {
         assert!(matches!(result, DomainOpsResult::Ok(_)));
 
         let mut receiver = result.expect("expected a receiver");
+
         let item = receiver.block_receive().expect("should receive value");
 
         let items = item.items();
@@ -356,9 +402,14 @@ mod tests {
             CounterEvents::Decremented(CounterModel::new(-1))
         );
 
+        server.serve(&app).expect("serve domain for next event");
+
         let mut events;
+        let mut requests;
         {
-            events = server.shell().listen().unwrap();
+            let mut shell = server.shell();
+            events = shell.listen().unwrap();
+            requests = shell.requests().unwrap();
         }
 
         let published_event = events.block_receive().expect("got event");
@@ -366,7 +417,13 @@ mod tests {
         assert_eq!(
             published_event.items(),
             vec![CounterEvents::Decremented(CounterModel::new(-1))]
-        )
+        );
+
+        let published_requests = requests.block_receive().expect("got requests");
+        assert_eq!(
+            published_requests.item(),
+            CounterRequests::Render(CounterModel::new(-1))
+        );
     }
 
     #[test]
@@ -386,6 +443,7 @@ mod tests {
         assert!(matches!(result, DomainOpsResult::Ok(_)));
 
         let mut receiver = result.expect("expected a receiver");
+
         let item = receiver.block_receive().expect("should receive value");
 
         let items = item.items();
@@ -395,17 +453,28 @@ mod tests {
             CounterEvents::Incremented(CounterModel::new(1))
         );
 
+        server.serve(&app).expect("serve domain for next event");
+
         let mut events;
+        let mut requests;
+
         {
-            events = server.shell().listen().unwrap();
+            let mut shell = server.shell();
+            events = shell.listen().unwrap();
+            requests = shell.requests().unwrap();
         }
 
         let published_event = events.block_receive().expect("got event");
-
         assert_eq!(
             published_event.items(),
             vec![CounterEvents::Incremented(CounterModel::new(1))]
-        )
+        );
+
+        let published_requests = requests.block_receive().expect("got requests");
+        assert_eq!(
+            published_requests.item(),
+            CounterRequests::Render(CounterModel::new(1))
+        );
     }
 
     #[derive(Default, Clone)]
@@ -432,6 +501,7 @@ mod tests {
     enum CounterRequests {
         Increment,
         Decrement,
+        Render(CounterModel),
     }
 
     #[derive(Clone)]
@@ -475,7 +545,7 @@ mod tests {
                         .expect("should have sent message");
 
                     shell
-                        .send_events(event)
+                        .send_all(event)
                         .expect("should notify interested parties on important change");
                 }
                 CounterRequests::Decrement => {
@@ -491,16 +561,17 @@ mod tests {
                         .expect("should have sent message");
 
                     shell
-                        .send_events(event)
+                        .send_all(event)
                         .expect("should notify interested parties on important change");
                 }
+                CounterRequests::Render(_) => {}
             };
         }
 
         fn handle_event(
             &self,
             events: domains::NamedEvent<Self::Events>,
-            _shell: impl domains::MasterShell<
+            mut shell: impl domains::MasterShell<
                 Events = Self::Events,
                 Requests = Self::Requests,
                 Platform = Self::Platform,
@@ -509,10 +580,22 @@ mod tests {
             for item in events.items() {
                 match item {
                     CounterEvents::Incremented(model) => {
-                        info!("incremented counter to {}", model.count)
+                        info!("incremented counter to {}", model.count);
+                        shell
+                            .send_request(domains::NamedRequest::new(
+                                "render_count",
+                                CounterRequests::Render(model),
+                            ))
+                            .expect("sent request");
                     }
                     CounterEvents::Decremented(model) => {
-                        info!("decremented counter to {}", model.count)
+                        info!("decremented counter to {}", model.count);
+                        shell
+                            .send_request(domains::NamedRequest::new(
+                                "render_count",
+                                CounterRequests::Render(model),
+                            ))
+                            .expect("sent request");
                     }
                 }
             }
