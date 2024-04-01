@@ -18,19 +18,31 @@ impl Display for Id {
     }
 }
 
-// NamedRequest represent a target request of a specified
-// type which has an Id to identify the request and
-// any related events that are a response to the request.
-#[derive(Clone)]
+/// NamedRequest represent a target request of a specified
+/// type which has an Id to identify the request and
+/// any related events that are a response to the request.
+#[derive(Clone, Debug)]
 pub struct NamedRequest<T: Clone>(Id, T);
 
 impl<T: Clone> NamedRequest<T> {
-    pub fn to(&self, t: Vec<T>) -> NamedEvent<T> {
-        NamedEvent(self.0.clone(), t)
+    pub fn new<'a>(id: &'a str, t: T) -> Self {
+        Self(Id(id.to_string()), t)
+    }
+
+    pub fn to_one<V: Clone>(&self, v: V) -> NamedEvent<V> {
+        NamedEvent(self.0.clone(), vec![v])
+    }
+
+    pub fn to<V: Clone>(&self, v: Vec<V>) -> NamedEvent<V> {
+        NamedEvent(self.0.clone(), v)
     }
 
     pub fn id(&self) -> Id {
         self.0.clone()
+    }
+
+    pub fn item(&self) -> T {
+        self.1.clone()
     }
 }
 
@@ -40,9 +52,9 @@ impl<T: Clone> Display for NamedRequest<T> {
     }
 }
 
-// NamedEvent are events indicative of a response to a NamedRequest
+/// NamedEvent are events indicative of a response to a NamedRequest
 #[allow(dead_code)]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct NamedEvent<T: Clone>(Id, Vec<T>);
 
 impl<'a, T: Clone> Display for NamedEvent<T> {
@@ -52,6 +64,10 @@ impl<'a, T: Clone> Display for NamedEvent<T> {
 }
 
 impl<'a, T: Clone> NamedEvent<T> {
+    pub fn new<'b>(id: &'b str, t: Vec<T>) -> Self {
+        Self(Id(id.to_string()), t)
+    }
+
     pub fn from(&self, t: T) -> NamedRequest<T> {
         NamedRequest(self.0.clone(), t)
     }
@@ -59,9 +75,13 @@ impl<'a, T: Clone> NamedEvent<T> {
     pub fn id(&self) -> Id {
         self.0.clone()
     }
+
+    pub fn items(&self) -> Vec<T> {
+        self.1.clone()
+    }
 }
 
-#[derive(Error)]
+#[derive(Error, Debug)]
 pub enum DomainOpsErrors<E: Clone> {
     #[error("no response channel: {0}")]
     NotFound(Id),
@@ -106,6 +126,9 @@ pub enum DomainErrors {
 
     #[error("System in problematic and unexpected state")]
     ProblematicState,
+
+    #[error("System request closing of domain servicer")]
+    CloseRequested,
 }
 
 pub type DomainResult<R> = result::Result<R, DomainErrors>;
@@ -135,29 +158,29 @@ pub trait DomainShell {
     where
         Self: Sized;
 
-    // Means of responding to received [`NamedRequest`] from
-    // the domain.
+    /// Means of responding to received [`NamedRequest`] from
+    /// the domain.
     fn respond(
         &mut self,
         id: Id,
     ) -> DomainOpsResult<mspc::SendChannel<NamedEvent<Self::Events>>, Id>;
 
-    // perform requests on behalf of the Driving clients that
-    // wish to get the domain to perform operations based on it's
-    // internal logic or use-cases.
-    //
-    // Hexagonal Architecture: Driven Side
+    /// perform requests on behalf of the Driving clients that
+    /// wish to get the domain to perform operations based on it's
+    /// internal logic or use-cases.
+    ///
+    /// Hexagonal Architecture: Driven Side
     fn do_requests(
         &mut self,
         req: NamedRequest<Self::Requests>,
     ) -> DomainOpsResult<mspc::ReceiveChannel<NamedEvent<Self::Events>>, Self::Requests>;
 
-    // schedule a task to execute when the receiver has data
-    // usually the future here should really get scheduled
-    // for polling if it's receiver finally received value.
-    //
-    // this allows us create inter-dependent work that
-    // depends on the readiness of response on a channel.
+    /// schedule a task to execute when the receiver has data
+    /// usually the future here should really get scheduled
+    /// for polling if it's receiver finally received value.
+    ///
+    /// This allows us create inter-dependent work that
+    /// depends on the readiness of response on a channel.
     fn schedule<Fut>(
         &self,
         receiver: mspc::ReceiveChannel<NamedEvent<Self::Events>>,
@@ -167,47 +190,47 @@ pub trait DomainShell {
         Fut: future::Future<Output = ()> + Send,
         Self: Sized;
 
-    // schedules a task for completion without dependence on a channel
-    // get data. This is useful for work that is independent of
-    // some underlying response from another work or processes.
-    //
-    // The focus is on the future itself and it's compeleness.
+    /// schedules a task for completion without dependence on a channel
+    /// get data. This is useful for work that is independent of
+    /// some underlying response from another work or processes.
+    ///
+    /// The focus is on the future itself and it's compeleness.
     fn spawn(&self, fut: impl Future<Output = ()> + 'static + Send) -> DomainResult<()>
     where
         Self: Sized;
 
-    // Retuns a new unique channel which the caller can use to listen to outgoing
-    // requests from the channel. Providing a broadcast semantic where the listener
-    //
+    /// Retuns a new unique channel which the caller can use to listen to outgoing
+    /// requests from the channel. Providing a broadcast semantic where the listener
     fn requests(&mut self)
         -> DomainResult<mspc::ReceiveChannel<Arc<NamedRequest<Self::Requests>>>>;
 
-    // listen to provide a receive channel that exists for the lifetime of
-    // the domain and allows you listen in, into all events occuring in
-    // [`Domain`].
+    /// listen to provide a receive channel that exists for the lifetime of
+    /// the domain and allows you listen in, into all events occuring in
+    /// [`Domain`].
     fn listen(&mut self) -> DomainResult<mspc::ReceiveChannel<Arc<NamedEvent<Self::Events>>>>;
 }
 
 /// MasterShell exposes core methods that allows
 pub trait MasterShell: DomainShell {
-    // Delivers events to the shell to be sent to all relevant
-    // listens be notified of changes via events from the domain.
-    //
-    // This allows the domain to inform the shell and its subscribers
-    // about it's changes that occur due to request or events received
-    // via [`DomainShell`].respond and [`DomainShell`].send_events.
-    //
-    // Hexagonal Architecture: Driving Side
+    /// Delivers events to the shell to be sent to all relevant
+    /// listens be notified of important changes in this domain
+    /// instance.
+    ///
+    /// This allows the domain to inform the shell and its subscribers
+    /// about it's changes that occur due to request or events received
+    /// via [`DomainShell`].respond and [`DomainShell`].send_events.
+    ///
+    /// Hexagonal Architecture: Driving Side
     fn send_events(&mut self, event: NamedEvent<Self::Events>)
         -> DomainOpsResult<(), Self::Events>;
 
-    // Delivers request to the shell to be sent to all relevant
-    // listens to perform work on behalf of the domain.
-    //
-    // This allows the domain to inform the shell about it's
-    // need for operations not natively within it's boundaries.
-    //
-    // Hexagonal Architecture: Driving Side
+    /// Delivers request to the shell to be sent to all relevant
+    /// listens to perform work on behalf of the domain.
+    ///
+    /// This allows the domain to inform the shell about it's
+    /// need for operations not natively within it's boundaries.
+    ///
+    /// Hexagonal Architecture: Driving Side
     fn send_requests(
         &mut self,
         req: NamedRequest<Self::Requests>,
@@ -226,7 +249,7 @@ pub trait DomainServicer {
 
     fn shell(
         &self,
-    ) -> impl DomainShell<Platform = Self::Platform, Events = Self::Events, Requests = Self::Requests>;
+    ) -> impl DomainShell<Events = Self::Events, Requests = Self::Requests, Platform = Self::Platform>;
 
     /// [`DomainServicer`].serve delivers all incoming requests and events to the provided
     /// [`Domain`]. It ensures all sent requests awaiting handling gets
@@ -280,7 +303,7 @@ pub trait Domain: Default {
     // The platform provider context the domain
     // will use to access platform features, usually
     // a struct with a default implement.
-    type Platform: Clone;
+    type Platform: Default + Clone;
 
     // the domain simply must deliver response to the
     // send channel and has access to the shell if it

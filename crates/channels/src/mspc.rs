@@ -32,6 +32,13 @@ pub fn create<T>() -> (SendChannel<T>, ReceiveChannel<T>) {
 
 pub struct ChannelGroup<E>(pub Option<SendChannel<E>>, pub Option<ReceiveChannel<E>>);
 
+impl<E> Default for ChannelGroup<E> {
+    fn default() -> Self {
+        let (sender, receiver) = create::<E>();
+        Self(Some(sender), Some(receiver))
+    }
+}
+
 impl<E> Clone for ChannelGroup<E> {
     fn clone(&self) -> Self {
         Self(self.0.clone(), self.1.clone())
@@ -162,6 +169,10 @@ impl<T> ReceiveChannel<T> {
         }
     }
 
+    pub fn drain(&mut self) -> Drain<T> {
+        Drain { receiver: self }
+    }
+
     // if the [`RecieveChannel`] was ever read once then this
     // becomes true, its up to the user to decide how they fit
     // this into their logic.
@@ -242,6 +253,24 @@ impl<T> ReceiveChannel<T> {
     #[cfg(test)]
     pub fn close(&mut self) {
         _ = self.src.take();
+    }
+}
+
+pub struct Drain<'a, T> {
+    receiver: &'a mut ReceiveChannel<T>,
+}
+
+impl<'a, T> Iterator for Drain<'a, T> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.receiver.try_receive() {
+            Ok(item) => Some(item),
+            Err(ChannelError::ReceivedNoData) => None,
+            Err(ChannelError::ReceiveFailed(_)) => None,
+            Err(ChannelError::Closed) => panic!("should not happen, channel was closed"),
+            _ => None,
+        }
     }
 }
 

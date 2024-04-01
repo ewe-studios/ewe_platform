@@ -2,6 +2,7 @@
 
 use channels::{broadcast, executor, mspc};
 use futures::future;
+use tracing::{error, info};
 
 use std::sync;
 
@@ -156,7 +157,7 @@ pub struct DServicer<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Cl
 
 const DEFAULT_SUBSCRIBER_START_CAPACITY: usize = 10;
 
-pub fn create_servicer<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone>(
+pub fn create<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone>(
     shell_platform: P,
 ) -> DServicer<E, R, P> {
     let closer_channel = mspc::ChannelGroup::new();
@@ -205,6 +206,7 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> DServicer<E
         }
     }
 
+    #[allow(dead_code)]
     fn close(&mut self) {
         if let Some(mut sender) = self.closer_channel.0.clone() {
             sender.block_send(()).expect("should have sent signal")
@@ -222,15 +224,19 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::Do
 
     type Platform = P;
 
-    fn shell(
-        &self,
-    ) -> impl crate::domains::DomainShell<
-        Platform = Self::Platform,
-        Events = Self::Events,
-        Requests = Self::Requests,
-    > {
+    fn shell(&self) -> impl domains::DomainShell<Events = E, Requests = R, Platform = P> {
         self.domain_shell.clone()
     }
+
+    // fn shell(
+    //     &self,
+    // ) -> impl crate::domains::DomainShell<
+    //     Platform = Self::Platform,
+    //     Events = Self::Events,
+    //     Requests = Self::Requests,
+    // > {
+    //     self.domain_shell.clone()
+    // }
 
     fn serve(
         &mut self,
@@ -264,18 +270,21 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::Do
             Platform = Self::Platform,
         >,
     ) -> domains::DomainResult<()> {
+        info!("Starting domain servicer listening loop");
         loop {
-            (match self.closer_channel.1.clone() {
-                None => Err(DomainErrors::ProblematicState),
-                Some(mut recv) => {
-                    if let Ok(_) = recv.try_receive() {
-                        self.serve(d).expect("should not have ended in this state");
-                        continue;
-                    }
-                    Ok(())
+            if let Some(mut recv) = self.closer_channel.1.clone() {
+                if let Err(_) = recv.try_receive() {
+                    self.serve(d).expect("should not have ended in this state");
+                    continue;
+                } else {
+                    info!("domain servicer closure requested");
+                    return Err(DomainErrors::CloseRequested);
                 }
-            })
-            .expect("should have completed properly");
+            }
+
+            // generally this should not occur but its good to check
+            error!("closing due to None closer channel in domain servicer");
+            return Err(DomainErrors::ProblematicState);
         }
     }
 
@@ -293,13 +302,61 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::Do
 
 #[cfg(test)]
 mod tests {
-    use crate::domains;
+    use std::thread;
+
+    use crate::{
+        app,
+        domains::{self, DomainErrors, DomainServicer},
+        servicer,
+    };
     use crossbeam::atomic;
+    use std::sync;
+    use tracing::info;
+
+    #[test]
+    fn can_create_service_run_and_close_it() {
+        let counter_app = CounterApp::default();
+        let domain_servicer =
+            sync::Arc::new(sync::Mutex::new(servicer::create(Platform::default())));
+
+        let thread_instance = domain_servicer.clone();
+        let t = thread::spawn(move || {
+            let mut instance = thread_instance.lock().unwrap();
+            match instance.serve_forever(&counter_app) {
+                Ok(_) => println!("Closed servicer!"),
+                Err(DomainErrors::CloseRequested) => println!("Closing servicer!"),
+                _ => panic!("bad ending"),
+            };
+        });
+
+        domain_servicer.lock().unwrap().close();
+
+        _ = t.join().expect("thread should have been closed correctly");
+    }
+
+    #[test]
+    fn can_create_and_close_domain_service_without_starting() {
+        let mut domain_servicer =
+            servicer::create::<CounterEvents, CounterRequests, Platform>(Platform::default());
+        domain_servicer.close();
+    }
+
+    #[test]
+    fn can_create_and_increment_count_directly_via_the_app() {
+        let (_app, server) = app::create::<CounterApp>();
+
+        let mut shell = server.shell();
+
+        let increment_request =
+            domains::NamedRequest::new("increment_count", CounterRequests::Increment);
+
+        let mut receiver = shell.do_request(increment_request);
+    }
 
     #[derive(Default, Clone)]
     struct Platform {}
 
-    #[derive(Default, Debug, Clone, PartialEq, Eq, Hash)]
+    #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, Hash)]
     struct CounterModel {
         count: usize,
     }
@@ -316,14 +373,15 @@ mod tests {
         Decrement,
     }
 
+    #[derive(Clone)]
     struct CounterApp {
-        state: atomic::AtomicCell<CounterModel>,
+        state: sync::Arc<atomic::AtomicCell<CounterModel>>,
     }
 
     impl Default for CounterApp {
         fn default() -> Self {
             Self {
-                state: atomic::AtomicCell::new(CounterModel { count: 0 }),
+                state: sync::Arc::new(atomic::AtomicCell::new(CounterModel { count: 0 })),
             }
         }
     }
@@ -335,26 +393,68 @@ mod tests {
 
         fn handle_request(
             &self,
-            _req: domains::NamedRequest<Self::Requests>,
-            _chan: channels::mspc::SendChannel<domains::NamedEvent<Self::Events>>,
-            _shell: impl domains::MasterShell<
+            req: domains::NamedRequest<Self::Requests>,
+            mut chan: channels::mspc::SendChannel<domains::NamedEvent<Self::Events>>,
+            mut shell: impl domains::MasterShell<
                 Events = Self::Events,
                 Requests = Self::Requests,
                 Platform = Self::Platform,
             >,
         ) {
+            match req.item() {
+                CounterRequests::Increment => {
+                    let current = self.state.load();
+                    let next = CounterModel {
+                        count: current.count + 1,
+                    };
+                    self.state.swap(next.clone());
+
+                    let event = req.to_one(CounterEvents::Incremented(next));
+                    chan.try_send(event.clone())
+                        .expect("should have sent message");
+
+                    shell
+                        .send_events(event)
+                        .expect("should notify interested parties on important change");
+                }
+                CounterRequests::Decrement => {
+                    let current = self.state.load();
+                    let next = CounterModel {
+                        count: current.count - 1,
+                    };
+                    self.state.swap(next.clone());
+
+                    // respond to request with new state via event
+                    let event = req.to_one(CounterEvents::Decremented(next));
+                    chan.try_send(event.clone())
+                        .expect("should have sent message");
+
+                    shell
+                        .send_events(event)
+                        .expect("should notify interested parties on important change");
+                }
+            };
         }
 
         fn handle_event(
             &self,
-            _events: domains::NamedEvent<Self::Events>,
+            events: domains::NamedEvent<Self::Events>,
             _shell: impl domains::MasterShell<
                 Events = Self::Events,
                 Requests = Self::Requests,
                 Platform = Self::Platform,
             >,
         ) {
-            todo!()
+            for item in events.items() {
+                match item {
+                    CounterEvents::Incremented(model) => {
+                        info!("incremented counter to {}", model.count)
+                    }
+                    CounterEvents::Decremented(model) => {
+                        info!("decremented counter to {}", model.count)
+                    }
+                }
+            }
         }
     }
 }

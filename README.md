@@ -379,3 +379,31 @@ impl App {
 One interesting question arise, if we as we plan split the intent of an operation from it's actual implementation and execution by using requests and events as the separation barrier, how exactly should this all work in an wholesome complete manner?
 
 We want to reduce as much of the moving pieces people need to inherently store in their heads without loosing themselves in too much details being paralized by exactly how something should work!
+
+In all honesty, these are abstractions, but these abstractions should be as simple as possible, and work regardless of underlying platform or native details.
+
+In my mind, Platforms are different in that they do not own events of their own but only requests, these means platform exists in the plain of not being within a boundary but are side-effects that are necessary but are not intricately within the functionality of the domain.
+
+```rust
+
+// PlatformErrors are very specifc to each platform else they 
+// always provide specific details that are unique to them.
+enum PlatformError<T> {
+    BadRequest(T),
+    InternalErrors(T)
+    NotImplemented(T),
+}
+
+
+
+trait Platform<Request> {
+    handle(r: Request, channel: SendChannel) PlatformResult<()>
+}
+
+trait PlatformCoordinator {
+    register(k)
+}
+
+
+
+```
