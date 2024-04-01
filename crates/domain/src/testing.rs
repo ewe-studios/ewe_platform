@@ -90,7 +90,7 @@ impl<App: domains::Domain + Clone> domains::DomainShell for ShellTester<App> {
         Ok(self.incoming_response.0.clone().take().unwrap())
     }
 
-    fn do_requests(
+    fn do_request(
         &mut self,
         req: domains::NamedRequest<Self::Requests>,
     ) -> domains::DomainOpsResult<

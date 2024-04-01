@@ -90,7 +90,7 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::Do
         }
     }
 
-    fn do_requests(
+    fn do_request(
         &mut self,
         req: NamedRequest<Self::Requests>,
     ) -> domains::DomainOpsResult<mspc::ReceiveChannel<NamedEvent<Self::Events>>, Self::Requests>
@@ -228,16 +228,6 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::Do
         self.domain_shell.clone()
     }
 
-    // fn shell(
-    //     &self,
-    // ) -> impl crate::domains::DomainShell<
-    //     Platform = Self::Platform,
-    //     Events = Self::Events,
-    //     Requests = Self::Requests,
-    // > {
-    //     self.domain_shell.clone()
-    // }
-
     fn serve(
         &mut self,
         domain: &impl crate::domains::Domain<
@@ -306,7 +296,7 @@ mod tests {
 
     use crate::{
         app,
-        domains::{self, DomainErrors, DomainServicer},
+        domains::{self, DomainErrors, DomainOpsResult, DomainServicer, DomainShell},
         servicer,
     };
     use crossbeam::atomic;
@@ -342,15 +332,80 @@ mod tests {
     }
 
     #[test]
-    fn can_create_and_increment_count_directly_via_the_app() {
-        let (_app, server) = app::create::<CounterApp>();
+    fn can_decrement_count_with_a_decrement_requests() {
+        let (app, mut server) = app::create::<CounterApp>();
 
-        let mut shell = server.shell();
+        let request = domains::NamedRequest::new("decrement_count", CounterRequests::Decrement);
+
+        let result;
+        {
+            result = server.shell().do_request(request)
+        }
+
+        server.serve(&app).expect("serve domain");
+
+        assert!(matches!(result, DomainOpsResult::Ok(_)));
+
+        let mut receiver = result.expect("expected a receiver");
+        let item = receiver.block_receive().expect("should receive value");
+
+        let items = item.items();
+
+        assert_eq!(
+            *items.first().take().unwrap(),
+            CounterEvents::Decremented(CounterModel::new(-1))
+        );
+
+        let mut events;
+        {
+            events = server.shell().listen().unwrap();
+        }
+
+        let published_event = events.block_receive().expect("got event");
+
+        assert_eq!(
+            published_event.items(),
+            vec![CounterEvents::Decremented(CounterModel::new(-1))]
+        )
+    }
+
+    #[test]
+    fn can_increment_count_with_an_increment_request() {
+        let (app, mut server) = app::create::<CounterApp>();
 
         let increment_request =
             domains::NamedRequest::new("increment_count", CounterRequests::Increment);
 
-        let mut receiver = shell.do_request(increment_request);
+        let result;
+        {
+            result = server.shell().do_request(increment_request)
+        }
+
+        server.serve(&app).expect("serve domain");
+
+        assert!(matches!(result, DomainOpsResult::Ok(_)));
+
+        let mut receiver = result.expect("expected a receiver");
+        let item = receiver.block_receive().expect("should receive value");
+
+        let items = item.items();
+
+        assert_eq!(
+            *items.first().take().unwrap(),
+            CounterEvents::Incremented(CounterModel::new(1))
+        );
+
+        let mut events;
+        {
+            events = server.shell().listen().unwrap();
+        }
+
+        let published_event = events.block_receive().expect("got event");
+
+        assert_eq!(
+            published_event.items(),
+            vec![CounterEvents::Incremented(CounterModel::new(1))]
+        )
     }
 
     #[derive(Default, Clone)]
@@ -358,7 +413,13 @@ mod tests {
 
     #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, Hash)]
     struct CounterModel {
-        count: usize,
+        pub count: i16,
+    }
+
+    impl CounterModel {
+        pub fn new(value: i16) -> Self {
+            Self { count: value }
+        }
     }
 
     #[derive(Clone, Debug, PartialEq, Eq)]

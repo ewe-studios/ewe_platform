@@ -170,7 +170,7 @@ pub trait DomainShell {
     /// internal logic or use-cases.
     ///
     /// Hexagonal Architecture: Driven Side
-    fn do_requests(
+    fn do_request(
         &mut self,
         req: NamedRequest<Self::Requests>,
     ) -> DomainOpsResult<mspc::ReceiveChannel<NamedEvent<Self::Events>>, Self::Requests>;
