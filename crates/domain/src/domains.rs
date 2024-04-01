@@ -6,7 +6,7 @@ use std::{fmt::Display, result};
 use futures::{future, Future};
 use thiserror::Error;
 
-use channels::mspc;
+use channels::mspc::{self, ChannelError};
 
 // Id identifies a giving (Request, Vec<Event>) pair
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -393,17 +393,18 @@ pub trait UseCase {
             Platform = Self::Platform,
         >,
     ) {
-        println!("Asking for request");
-        if let Ok(req) = receiver.block_receive() {
-            println!("received request");
-            if !self.is_request(req.clone()) {
-                return;
-            }
+        match receiver.block_receive() {
+            Ok(req) => {
+                if !self.is_request(req.clone()) {
+                    return;
+                }
 
-            let sender = shell.respond(req.id()).expect("get response sender");
-            self.handle_request(req, sender, shell)
+                let sender = shell.respond(req.id()).expect("get response sender");
+                self.handle_request(req, sender, shell)
+            }
+            Err(ChannelError::Closed) => return,
+            _ => return,
         }
-        println!("No request came");
     }
 
     fn serve<Shell>(&mut self, mut shell: Shell)
