@@ -143,7 +143,7 @@ pub type DomainResult<R> = result::Result<R, DomainErrors>;
 // We envision that a Domain would accept a domain shell and use it accordingly.
 //
 // e.g DomainShell().serve(Domain)
-pub trait DomainShell {
+pub trait DomainShell: Clone {
     // Enum defining your target event types
     type Events: Send + Clone + 'static;
 
@@ -330,6 +330,8 @@ pub trait Domain: Default {
         >,
     );
 
+    /// handles events from both the domain's handling of requests
+    /// and other incoming events sent
     fn handle_event(
         &self,
         events: NamedEvent<Self::Events>,
@@ -339,4 +341,87 @@ pub trait Domain: Default {
             Platform = Self::Platform,
         >,
     );
+}
+
+/// UseCases are logic that either fit a specific workflow steps
+/// that do not need to belong to a specific domain or are consiered
+/// external business logic that might work along side a domain but
+/// do not inherently live within that domain.
+///
+/// This can be from underlying lopic accessing local filesystem or
+/// abstraction of some application logic that simple needs to handle
+/// specific requests type from a requesting domain.
+///
+/// They usually hook into a [`DomainShell::requests`] broadcasts
+/// handling the specific request type that are focused on.
+pub trait UseCase {
+    // Enum defining your target event types
+    type Event: Clone + Send + 'static;
+
+    // Enum defining your target request types.
+    type Request: Clone + Send + 'static;
+
+    // The platform provider context the domain
+    // will use to access platform features, usually
+    // a struct with a default implement.
+    type Platform: Default + Clone;
+
+    /// allows the UseCaseManager decide which specific requests matches
+    /// a given use-case.
+    fn is_request(&self, req: Arc<NamedRequest<Self::Request>>) -> bool;
+
+    /// handle_request handles the processing of requests by this use-case
+    /// containing the underlying logic necessary to perform
+    /// it's specific workflow.
+    fn handle_request(
+        &mut self,
+        req: Arc<NamedRequest<Self::Request>>,
+        chan: mspc::SendChannel<NamedEvent<Self::Event>>,
+        shell: impl DomainShell<
+            Events = Self::Event,
+            Requests = Self::Request,
+            Platform = Self::Platform,
+        >,
+    );
+
+    fn serve_receiver(
+        &mut self,
+        mut receiver: mspc::ReceiveChannel<Arc<NamedRequest<Self::Request>>>,
+        mut shell: impl DomainShell<
+            Events = Self::Event,
+            Requests = Self::Request,
+            Platform = Self::Platform,
+        >,
+    ) {
+        println!("Asking for request");
+        if let Ok(req) = receiver.block_receive() {
+            println!("received request");
+            if !self.is_request(req.clone()) {
+                return;
+            }
+
+            let sender = shell.respond(req.id()).expect("get response sender");
+            self.handle_request(req, sender, shell)
+        }
+        println!("No request came");
+    }
+
+    fn serve<Shell>(&mut self, mut shell: Shell)
+    where
+        Shell:
+            DomainShell<Events = Self::Event, Requests = Self::Request, Platform = Self::Platform>,
+    {
+        self.serve_receiver(shell.requests().expect("must get receiver"), shell);
+    }
+
+    fn serve_forever<Shell>(&mut self, mut shell: Shell)
+    where
+        Shell:
+            DomainShell<Events = Self::Event, Requests = Self::Request, Platform = Self::Platform>,
+    {
+        let receiver = shell.requests().expect("must get receiver");
+        loop {
+            self.serve_receiver(receiver.clone(), shell.clone())
+        }
+    }
 }

@@ -67,13 +67,10 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::Ma
         &mut self,
         event: NamedEvent<Self::Events>,
     ) -> domains::DomainOpsResult<(), Self::Events> {
-        println!("Sending info!");
         self.incoming_event_sender
             .try_send(event.clone())
             .expect("send event");
-        println!("Sent info!");
         self.event_broadcast.broadcast(event);
-        println!("broacast info!");
         Ok(())
     }
 }
@@ -341,7 +338,7 @@ mod tests {
 
     use crate::{
         app,
-        domains::{self, DomainErrors, DomainOpsResult, DomainServicer, DomainShell},
+        domains::{self, DomainErrors, DomainOpsResult, DomainServicer, DomainShell, UseCase},
         servicer,
     };
     use crossbeam::atomic;
@@ -477,12 +474,79 @@ mod tests {
         );
     }
 
+    #[test]
+    fn can_use_use_case_implementation_with_an_app() {
+        let (app, mut server) = app::create::<CounterApp>();
+
+        let increment_request =
+            domains::NamedRequest::new("increment_count", CounterRequests::Increment);
+
+        let result;
+        {
+            result = server.shell().do_request(increment_request)
+        }
+
+        server.serve(&app).expect("serve domain");
+
+        assert!(matches!(result, DomainOpsResult::Ok(_)));
+
+        // call because a new data is waiting processing
+        server.serve(&app).expect("serve domain for next event");
+
+        let mut counter_renderer = CounterRender::new();
+
+        {
+            counter_renderer.serve(server.shell());
+        }
+
+        assert!(!counter_renderer.data.is_empty())
+    }
+
     #[derive(Default, Clone)]
     struct Platform {}
 
     #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, Hash)]
     struct CounterModel {
         pub count: i16,
+    }
+
+    struct CounterRender {
+        pub data: Vec<String>,
+    }
+
+    impl CounterRender {
+        pub fn new() -> Self {
+            Self { data: Vec::new() }
+        }
+    }
+
+    impl domains::UseCase for CounterRender {
+        type Platform = Platform;
+        type Event = CounterEvents;
+        type Request = CounterRequests;
+
+        fn is_request(&self, req: sync::Arc<domains::NamedRequest<Self::Request>>) -> bool {
+            match req.item() {
+                CounterRequests::Render(_) => true,
+                _ => false,
+            }
+        }
+
+        fn handle_request(
+            &mut self,
+            req: sync::Arc<domains::NamedRequest<Self::Request>>,
+            mut chan: channels::mspc::SendChannel<domains::NamedEvent<Self::Event>>,
+            _shell: impl DomainShell<
+                Events = Self::Event,
+                Requests = Self::Request,
+                Platform = Self::Platform,
+            >,
+        ) {
+            if let CounterRequests::Render(model) = req.item() {
+                self.data.push(format!("Counter(count: {})", model.count));
+            }
+            chan.close().expect("close channel");
+        }
     }
 
     impl CounterModel {
