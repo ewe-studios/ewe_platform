@@ -30,7 +30,6 @@ struct Task<E: Send + 'static> {
 impl<E: Send + 'static> ArcWake for Task<E> {
     fn wake_by_ref(arc_self: &Arc<Self>) {
         let cloned_task = arc_self.clone();
-        println!("Sending");
         arc_self
             .task_sender
             .try_send(cloned_task)
@@ -74,8 +73,8 @@ pub enum ExecutorError {
 pub type ExecutorResult<E> = anyhow::Result<E, ExecutorError>;
 
 pub struct ExecutionService<E: Send + 'static> {
-    receiver: async_channel::Receiver<Arc<Task<E>>>,
     completed_notification: async_channel::Receiver<()>,
+    receiver: async_channel::Receiver<Arc<Task<E>>>,
 }
 
 impl<E: Send + 'static> Drop for ExecutionService<E> {
@@ -84,10 +83,23 @@ impl<E: Send + 'static> Drop for ExecutionService<E> {
     }
 }
 
+impl<E: Send + 'static> Clone for ExecutionService<E> {
+    fn clone(&self) -> Self {
+        Self {
+            receiver: self.receiver.clone(),
+            completed_notification: self.completed_notification.clone(),
+        }
+    }
+}
+
 impl<E: Send + 'static> ExecutionService<E> {
     pub fn close(&self) {
         self.receiver.close();
         self.completed_notification.close();
+    }
+
+    pub fn task_ready(&self) -> async_channel::Receiver<()> {
+        self.completed_notification.clone()
     }
 
     pub async fn schedule_serve_async(&mut self) -> ExecutorResult<()> {
@@ -126,36 +138,6 @@ impl<E: Send + 'static> ExecutionService<E> {
         }
 
         return Ok(());
-    }
-
-    /// [`ExecutionService::serve_forever`] provides a listening that continously monitors
-    /// for when any tasks signals its ready for resolving, kickstarting
-    /// necessary calls to resolve the tasks.
-    ///
-    /// Something to note is that when executed in an environment without an async runtime
-    /// will have the calls to Future.poll() behave like a synchronous system where it simply
-    /// blocks on the current thread till the future is completed, then moving on sequentially.
-    ///
-    /// Whilst under async runtimes like Tokio, async-std, tasks that are not compeleted immediately
-    /// will signal alter via the Waker re-adding the tasks for processing.
-    ///
-    /// To automtically have these re-processed, please use the serve_forever method.
-    ///
-    /// WARNING: Always run this method in it's own thread as it blocks forever
-    /// until the underyling execution service is dropped. If executed on
-    /// the main thread then the main thread will be blocked.
-    pub fn serve_forever(&self) {
-        loop {
-            if let Err(_) = self.serve_and_capture_pending() {
-                return;
-            }
-
-            if let Err(_) = self.completed_notification.recv_blocking() {
-                if self.completed_notification.is_closed() {
-                    return;
-                }
-            }
-        }
     }
 
     // This function triggers processing of every tasks within the execution service.
@@ -260,11 +242,7 @@ impl<E: Send + 'static> Executor<E> {
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        sync,
-        thread::{self},
-        time::Duration,
-    };
+    use std::time::Duration;
 
     use crate::{executor, mspc};
 
@@ -360,45 +338,6 @@ mod tests {
         // expect to receive from second channel
         let recv_message = receiver.try_receive().unwrap();
         assert_eq!(String::from("new text"), recv_message);
-    }
-
-    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-    async fn can_execute_a_task_with_a_thread_runtime_and_serve_forever() {
-        let (servicer, executor) = executor::create();
-        let (mut sender, mut receiver) = mspc::create::<String>();
-
-        let (mut sr, rr) = mspc::create::<String>();
-
-        let servicer_arc = sync::Arc::new(servicer);
-
-        let threaded_servicer = servicer_arc.clone();
-        let thread_handle = thread::spawn(move || {
-            threaded_servicer.serve_forever();
-        });
-
-        executor
-            .schedule(rr, move |item| async move {
-                thread::sleep(Duration::from_millis(500));
-
-                sender
-                    .async_send(item.unwrap())
-                    .await
-                    .expect("should have sent result");
-            })
-            .expect("should have scheduled task");
-
-        // send on first channel
-        sr.try_send(String::from("new text")).unwrap();
-
-        // expect to receive from second channel
-        let recv_message = receiver.block_receive().unwrap();
-        assert_eq!(String::from("new text"), recv_message);
-
-        servicer_arc.close();
-
-        thread_handle
-            .join()
-            .expect("should have finished successfully");
     }
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]

@@ -6,6 +6,8 @@ use std::{fmt::Display, result};
 use futures::{future, Future};
 use thiserror::Error;
 
+use tracing::{debug, error};
+
 use channels::mspc::{self, ChannelError};
 
 // Id identifies a giving (Request, Vec<Event>) pair
@@ -133,6 +135,16 @@ pub enum DomainErrors {
 
 pub type DomainResult<R> = result::Result<R, DomainErrors>;
 
+/// TaskExecutor defines a trait that other relevant implementations
+/// must implement to be able to work with the CoreExecutor which manages
+/// relevant parties to progress in their underlying processes.
+///
+/// Generally you would see the [`DServicer`], [`UseCaseExecutor`] being
+/// implementing this trate for registration to a CoreExecutor.
+pub trait TaskExecutor {
+    fn run_tasks(&mut self);
+}
+
 // DomainShell provides the underlying boundary that wraps a domain and
 // handles internal plumbing that the Domain uses to both process
 // comunicate with the outside world.
@@ -151,12 +163,10 @@ pub trait DomainShell: Clone {
     type Requests: Send + Clone + 'static;
 
     // The platform provider context the domain will use.
-    type Platform: Clone;
+    type Platform: Clone + 'static;
 
     // the underlying platform provided by the shell.
-    fn platform(&self) -> Self::Platform
-    where
-        Self: Sized;
+    fn platform(&self) -> Self::Platform;
 
     /// Means of responding by others to received [`NamedRequest`] from
     /// the domain.
@@ -187,17 +197,14 @@ pub trait DomainShell: Clone {
         receiver_fn: impl FnOnce(mspc::ChannelResult<NamedEvent<Self::Events>>) -> Fut + 'static + Send,
     ) -> DomainResult<()>
     where
-        Fut: future::Future<Output = ()> + Send,
-        Self: Sized;
+        Fut: future::Future<Output = ()> + Send;
 
     /// schedules a task for completion without dependence on a channel
     /// get data. This is useful for work that is independent of
     /// some underlying response from another work or processes.
     ///
     /// The focus is on the future itself and it's compeleness.
-    fn spawn(&self, fut: impl Future<Output = ()> + 'static + Send) -> DomainResult<()>
-    where
-        Self: Sized;
+    fn spawn(&self, fut: impl Future<Output = ()> + 'static + Send) -> DomainResult<()>;
 
     /// Retuns a new unique channel which the caller can use to listen to outgoing
     /// requests from the channel. Providing a broadcast semantic where the listener
@@ -248,7 +255,7 @@ pub trait MasterShell: DomainShell {
     ) -> DomainOpsResult<mspc::ReceiveChannel<NamedEvent<Self::Events>>, Self::Requests>;
 }
 
-pub trait DomainServicer {
+pub trait DomainShellProvider {
     // Enum defining your target event types
     type Events: Send + Clone + 'static;
 
@@ -256,55 +263,17 @@ pub trait DomainServicer {
     type Requests: Send + Clone + 'static;
 
     // The platform provider context the domain will use.
-    type Platform: Clone;
+    type Platform: Clone + 'static;
 
     fn shell(
         &self,
     ) -> impl DomainShell<Events = Self::Events, Requests = Self::Requests, Platform = Self::Platform>;
-
-    /// [`DomainServicer`].serve delivers all incoming requests and events to the provided
-    /// [`Domain`]. It ensures all sent requests awaiting handling gets
-    /// handled by the domain and all pending tasks get completed by the
-    /// domain service internal execution system.
-    ///
-    /// It allows us to provide a separation between the shell and
-    /// the domain, but making it possible to send the shell across boundaries and
-    /// threads without leaking the domain into those same domains or threads.
-    ///
-    /// I would generally expect that these method implementation blocks the thread
-    /// till all items have been resolved, providing a great setup for sync systems.
-    fn serve(
-        &mut self,
-        d: &impl Domain<Events = Self::Events, Requests = Self::Requests, Platform = Self::Platform>,
-    ) -> DomainResult<()>;
-
-    /// [`DomainServicer`].serve_forever does similar behaviours to [`DomainServicer`].serve
-    /// except that it blocks the thread forever in a tight loop allowing continouse operation
-    /// of the servicer to serve all incoming requests for the domain.
-    ///
-    /// You will generally be sending this into a separate thread to run till we've decided to
-    /// stop all operations.
-    fn serve_forever(
-        &mut self,
-        d: &impl Domain<Events = Self::Events, Requests = Self::Requests, Platform = Self::Platform>,
-    ) -> DomainResult<()>;
-
-    /// [`DomainServicer`].serve_forever_async does similar behaviours to [`DomainServicer`].serve
-    /// except that it blocks the thread forever in a tight loop allowing continouse operation
-    /// of the servicer to serve all incoming requests for the domain.
-    ///
-    /// You will generally be sending this into a separate thread to run till we've decided to
-    /// stop all operations.
-    fn serve_forever_async(
-        &mut self,
-        d: &impl Domain<Events = Self::Events, Requests = Self::Requests, Platform = Self::Platform>,
-    ) -> impl future::Future<Output = DomainResult<()>>;
 }
 
 // Implement [`Domain`] on your type to create a business domain unit
 // with specific inputs and outputs via requests and events
 // via central handling function [`Domain.handle`].
-pub trait Domain: Default {
+pub trait Domain: Clone + Default {
     // Enum defining your target event types
     type Events: Clone + Send + 'static;
 
@@ -314,7 +283,7 @@ pub trait Domain: Default {
     // The platform provider context the domain
     // will use to access platform features, usually
     // a struct with a default implement.
-    type Platform: Default + Clone;
+    type Platform: Default + Clone + 'static;
 
     // the domain simply must deliver response to the
     // send channel and has access to the shell if it
@@ -354,7 +323,7 @@ pub trait Domain: Default {
 ///
 /// They usually hook into a [`DomainShell::requests`] broadcasts
 /// handling the specific request type that are focused on.
-pub trait UseCase {
+pub trait UseCase: Clone {
     // Enum defining your target event types
     type Event: Clone + Send + 'static;
 
@@ -364,7 +333,7 @@ pub trait UseCase {
     // The platform provider context the domain
     // will use to access platform features, usually
     // a struct with a default implement.
-    type Platform: Default + Clone;
+    type Platform: Clone + 'static;
 
     /// allows the UseCaseManager decide which specific requests matches
     /// a given use-case.
@@ -383,46 +352,68 @@ pub trait UseCase {
             Platform = Self::Platform,
         >,
     );
+}
 
-    fn serve_receiver(
-        &mut self,
-        mut receiver: mspc::ReceiveChannel<Arc<NamedRequest<Self::Request>>>,
-        mut shell: impl DomainShell<
-            Events = Self::Event,
-            Requests = Self::Request,
-            Platform = Self::Platform,
-        >,
-    ) {
-        match receiver.block_receive() {
+pub struct UseCaseExecutor<
+    Shell,
+    U,
+    E: Clone + Send + 'static,
+    R: Clone + Send + 'static,
+    P: Clone + 'static,
+> where
+    Shell: DomainShell<Events = E, Requests = R, Platform = P>,
+    U: UseCase<Event = E, Request = R, Platform = P>,
+{
+    use_case: U,
+    shell: Shell,
+    receiver: mspc::ReceiveChannel<Arc<NamedRequest<R>>>,
+}
+
+impl<S, U, E: Clone + Send + 'static, R: Clone + Send + 'static, P: Clone + 'static>
+    UseCaseExecutor<S, U, E, R, P>
+where
+    S: DomainShell<Events = E, Requests = R, Platform = P>,
+    U: UseCase<Event = E, Request = R, Platform = P>,
+{
+    pub fn new(mut shell_provider: S, use_case: U) -> Self {
+        Self {
+            receiver: shell_provider.requests().expect("expected request channel"),
+            shell: shell_provider,
+            use_case,
+        }
+    }
+}
+
+impl<S, U, E: Clone + Send + 'static, R: Clone + Send + 'static, P: Clone + 'static> TaskExecutor
+    for UseCaseExecutor<S, U, E, R, P>
+where
+    S: DomainShell<Events = E, Requests = R, Platform = P>,
+    U: UseCase<Event = E, Request = R, Platform = P>,
+{
+    fn run_tasks(&mut self) {
+        match self.receiver.try_receive() {
             Ok(req) => {
-                if !self.is_request(req.clone()) {
+                if !self.use_case.is_request(req.clone()) {
                     return;
                 }
 
-                let sender = shell.respond(req.id()).expect("get response sender");
-                self.handle_request(req, sender, shell)
+                debug!("UseCase executor received a new task");
+
+                let sender = self.shell.respond(req.id()).expect("get response sender");
+                self.use_case
+                    .handle_request(req, sender, self.shell.clone())
             }
-            Err(ChannelError::Closed) => return,
-            _ => return,
-        }
-    }
-
-    fn serve<Shell>(&mut self, mut shell: Shell)
-    where
-        Shell:
-            DomainShell<Events = Self::Event, Requests = Self::Request, Platform = Self::Platform>,
-    {
-        self.serve_receiver(shell.requests().expect("must get receiver"), shell);
-    }
-
-    fn serve_forever<Shell>(&mut self, mut shell: Shell)
-    where
-        Shell:
-            DomainShell<Events = Self::Event, Requests = Self::Request, Platform = Self::Platform>,
-    {
-        let receiver = shell.requests().expect("must get receiver");
-        loop {
-            self.serve_receiver(receiver.clone(), shell.clone())
+            Err(ChannelError::ReceiveFailed(err)) => {
+                error!("UseCase executor failed with a receive error: {}", err);
+                return;
+            }
+            Err(ChannelError::Closed) => {
+                error!("UseCase executor receiver was closed");
+                return;
+            }
+            _ => {
+                return;
+            }
         }
     }
 }

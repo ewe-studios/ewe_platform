@@ -4,8 +4,6 @@ use channels::{
     broadcast, executor,
     mspc::{self, ChannelError},
 };
-use futures::future;
-use tracing::{error, info};
 
 use std::sync;
 
@@ -14,7 +12,49 @@ use crate::{
     pending_chan::{self, PendingChannelError},
 };
 
-pub struct DShell<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> {
+const DEFAULT_SUBSCRIBER_START_CAPACITY: usize = 10;
+
+pub fn create<
+    App,
+    E: Send + Clone + 'static,
+    R: Send + Clone + 'static,
+    P: Default + Clone + 'static,
+>() -> DServicer<App, E, R, P>
+where
+    App: domains::Domain<Events = E, Requests = R, Platform = P>,
+{
+    let (incoming_request_sender, incoming_request_receiver) = mspc::create();
+    let (incoming_event_sender, incoming_event_receiver) = mspc::create();
+    let (execution_service, executor) = executor::create();
+    let event_broadcast = broadcast::create::<NamedEvent<E>>(DEFAULT_SUBSCRIBER_START_CAPACITY);
+    let request_broadcast = broadcast::create::<NamedRequest<R>>(DEFAULT_SUBSCRIBER_START_CAPACITY);
+    let response_registry = pending_chan::PendingChannelsRegistry::new();
+
+    let executor_arc = sync::Arc::new(executor);
+
+    DServicer {
+        domain_shell: DShell {
+            incoming_request_sender,
+            incoming_event_sender,
+            executor: executor_arc,
+            shell_platform: App::Platform::default(),
+            request_broadcast: request_broadcast.clone(),
+            event_broadcast: event_broadcast.clone(),
+            response_registry: response_registry.clone(),
+        },
+        domain_provider: App::default(),
+        incoming_request_receiver,
+        incoming_event_receiver,
+        response_registry,
+        execution_service,
+    }
+}
+
+pub struct DShell<
+    E: Send + Clone + 'static,
+    R: Send + Clone + 'static,
+    P: Default + Clone + 'static,
+> {
     shell_platform: P,
     executor: sync::Arc<executor::Executor<NamedEvent<E>>>,
     event_broadcast: broadcast::Broadcast<NamedEvent<E>>,
@@ -24,7 +64,9 @@ pub struct DShell<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone
     response_registry: pending_chan::PendingChannelsRegistry<NamedEvent<E>>,
 }
 
-impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> Clone for DShell<E, R, P> {
+impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 'static> Clone
+    for DShell<E, R, P>
+{
     fn clone(&self) -> Self {
         Self {
             executor: self.executor.clone(),
@@ -38,8 +80,8 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> Clone for D
     }
 }
 
-impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::MasterShell
-    for DShell<E, R, P>
+impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 'static>
+    domains::MasterShell for DShell<E, R, P>
 {
     fn send_request(
         &mut self,
@@ -75,8 +117,8 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::Ma
     }
 }
 
-impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::DomainShell
-    for DShell<E, R, P>
+impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 'static>
+    domains::DomainShell for DShell<E, R, P>
 {
     type Events = E;
 
@@ -94,7 +136,10 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::Do
     fn respond(
         &mut self,
         id: domains::Id,
-    ) -> domains::DomainOpsResult<mspc::SendChannel<NamedEvent<Self::Events>>, domains::Id> {
+    ) -> domains::DomainOpsResult<mspc::SendChannel<NamedEvent<Self::Events>>, domains::Id>
+    where
+        Self: Sized,
+    {
         match self.response_registry.resolve(id.clone()) {
             Ok(sender) => Ok(sender),
             Err(pending_chan::PendingChannelError::NotFound(_)) => {
@@ -110,6 +155,8 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::Do
         &mut self,
         req: NamedRequest<Self::Requests>,
     ) -> domains::DomainOpsResult<mspc::ReceiveChannel<NamedEvent<Self::Events>>, Self::Requests>
+    where
+        Self: Sized,
     {
         // create resolution channel group, send the RetreiveChannel to the user.
         let mut resolution_channel = self.response_registry.register(req.id());
@@ -152,67 +199,88 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::Do
 
     fn requests(
         &mut self,
-    ) -> domains::DomainResult<mspc::ReceiveChannel<sync::Arc<NamedRequest<Self::Requests>>>> {
+    ) -> domains::DomainResult<mspc::ReceiveChannel<sync::Arc<NamedRequest<Self::Requests>>>>
+    where
+        Self: Sized,
+    {
         Ok(self.request_broadcast.subscribe())
     }
 
     fn listen(
         &mut self,
-    ) -> domains::DomainResult<mspc::ReceiveChannel<sync::Arc<NamedEvent<Self::Events>>>> {
+    ) -> domains::DomainResult<mspc::ReceiveChannel<sync::Arc<NamedEvent<Self::Events>>>>
+    where
+        Self: Sized,
+    {
         Ok(self.event_broadcast.subscribe())
     }
 }
 
-pub struct DServicer<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> {
+pub struct DServicer<
+    App,
+    E: Send + Clone + 'static,
+    R: Send + Clone + 'static,
+    P: Default + Clone + 'static,
+> where
+    App: domains::Domain<Events = E, Requests = R, Platform = P>,
+{
+    domain_provider: App,
     domain_shell: DShell<E, R, P>,
-    closer_channel: mspc::ChannelGroup<()>,
     execution_service: executor::ExecutionService<NamedEvent<E>>,
     incoming_request_receiver: mspc::ReceiveChannel<NamedRequest<R>>,
     incoming_event_receiver: mspc::ReceiveChannel<NamedEvent<E>>,
     response_registry: pending_chan::PendingChannelsRegistry<NamedEvent<E>>,
 }
 
-const DEFAULT_SUBSCRIBER_START_CAPACITY: usize = 10;
-
-pub fn create<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone>(
-    shell_platform: P,
-) -> DServicer<E, R, P> {
-    let closer_channel = mspc::ChannelGroup::new();
-    let (incoming_request_sender, incoming_request_receiver) = mspc::create();
-    let (incoming_event_sender, incoming_event_receiver) = mspc::create();
-    let (execution_service, executor) = executor::create();
-    let event_broadcast = broadcast::create::<NamedEvent<E>>(DEFAULT_SUBSCRIBER_START_CAPACITY);
-    let request_broadcast = broadcast::create::<NamedRequest<R>>(DEFAULT_SUBSCRIBER_START_CAPACITY);
-    let response_registry = pending_chan::PendingChannelsRegistry::new();
-
-    let executor_arc = sync::Arc::new(executor);
-
-    DServicer {
-        domain_shell: DShell {
-            shell_platform,
-            incoming_request_sender,
-            incoming_event_sender,
-            executor: executor_arc,
-            request_broadcast: request_broadcast.clone(),
-            event_broadcast: event_broadcast.clone(),
-            response_registry: response_registry.clone(),
-        },
-        execution_service: execution_service,
-        incoming_request_receiver,
-        incoming_event_receiver,
-        response_registry,
-        closer_channel,
+pub fn create_shell<
+    App,
+    E: Send + Clone + 'static,
+    R: Send + Clone + 'static,
+    P: Default + Clone + 'static,
+>(
+    _servicer: Box<DServicer<App, E, R, P>>,
+) -> DShell<E, R, P>
+where
+    App: domains::Domain<Events = E, Requests = R, Platform = P>,
+{
+    DShell {
+        incoming_event_sender: _servicer.domain_shell.incoming_event_sender.clone(),
+        incoming_request_sender: _servicer.domain_shell.incoming_request_sender.clone(),
+        executor: _servicer.domain_shell.executor.clone(),
+        shell_platform: _servicer.domain_shell.shell_platform.clone(),
+        request_broadcast: _servicer.domain_shell.request_broadcast.clone(),
+        event_broadcast: _servicer.domain_shell.event_broadcast.clone(),
+        response_registry: _servicer.domain_shell.response_registry.clone(),
     }
 }
 
-impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> DServicer<E, R, P> {
-    fn process_incoming_event(
-        &mut self,
-        domain: &impl domains::Domain<Events = E, Requests = R, Platform = P>,
-    ) -> DomainResult<()> {
+impl<A, E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone + Default + 'static> Clone
+    for DServicer<A, E, R, P>
+where
+    A: domains::Domain<Events = E, Requests = R, Platform = P>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            domain_provider: self.domain_provider.clone(),
+            domain_shell: self.domain_shell.clone(),
+            execution_service: self.execution_service.clone(),
+            incoming_request_receiver: self.incoming_request_receiver.clone(),
+            incoming_event_receiver: self.incoming_event_receiver.clone(),
+            response_registry: self.response_registry.clone(),
+        }
+    }
+}
+
+impl<A, E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone + Default + 'static>
+    DServicer<A, E, R, P>
+where
+    A: domains::Domain<Events = E, Requests = R, Platform = P>,
+{
+    fn process_incoming_event(&mut self) -> DomainResult<()> {
         match self.incoming_event_receiver.try_receive() {
             Ok(request) => {
-                domain.handle_event(request, self.domain_shell.clone());
+                self.domain_provider
+                    .handle_event(request, self.domain_shell.clone());
                 Ok(())
             }
             Err(ChannelError::ReceivedNoData) => Ok(()),
@@ -221,14 +289,12 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> DServicer<E
         }
     }
 
-    fn process_incoming_request(
-        &mut self,
-        domain: &impl domains::Domain<Events = E, Requests = R, Platform = P>,
-    ) -> DomainResult<()> {
+    fn process_incoming_request(&mut self) -> DomainResult<()> {
         match self.incoming_request_receiver.try_receive() {
             Ok(request) => match self.response_registry.resolve(request.id()) {
                 Ok(sender) => {
-                    domain.handle_request(request, sender, self.domain_shell.clone());
+                    self.domain_provider
+                        .handle_request(request, sender, self.domain_shell.clone());
                     Ok(())
                 }
                 Err(PendingChannelError::ClosedSender(_)) => {
@@ -243,15 +309,59 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> DServicer<E
 
     #[allow(dead_code)]
     fn close(&mut self) {
-        if let Some(mut sender) = self.closer_channel.0.clone() {
-            sender.block_send(()).expect("should have sent signal")
-        }
+        self.execution_service.close();
         self.response_registry.clear();
+    }
+
+    pub fn serve(&mut self) -> domains::DomainResult<()> {
+        self.serve_events().expect("served events");
+        self.serve_requests().expect("served requests");
+        Ok(())
+    }
+
+    fn serve_events(&mut self) -> domains::DomainResult<()> {
+        (match self.process_incoming_event() {
+            Ok(_) => Ok(()),
+            Err(DomainErrors::RequestSenderNotFound) => Err(DomainErrors::ProblematicState),
+            Err(DomainErrors::UnexpectedSenderClosure) => Err(DomainErrors::ProblematicState),
+            _ => Ok(()),
+        })
+        .expect("event processing should have finished with no issues");
+
+        (match self.execution_service.schedule_serve() {
+            Ok(_) => Ok(()),
+            Err(executor::ExecutorError::Decommission) => Err(DomainErrors::ProblematicState),
+            _ => Ok(()),
+        })
+        .expect("execution service should have ended better");
+
+        Ok(())
+    }
+
+    fn serve_requests(&mut self) -> domains::DomainResult<()> {
+        (match self.process_incoming_request() {
+            Ok(_) => Ok(()),
+            Err(DomainErrors::RequestSenderNotFound) => Err(DomainErrors::ProblematicState),
+            Err(DomainErrors::UnexpectedSenderClosure) => Err(DomainErrors::ProblematicState),
+            _ => Ok(()),
+        })
+        .expect("request processing should have finished with no issues");
+
+        (match self.execution_service.schedule_serve() {
+            Ok(_) => Ok(()),
+            Err(executor::ExecutorError::Decommission) => Err(DomainErrors::ProblematicState),
+            _ => Ok(()),
+        })
+        .expect("execution service should have ended better");
+
+        Ok(())
     }
 }
 
-impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::DomainServicer
-    for DServicer<E, R, P>
+impl<A, E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 'static>
+    domains::DomainShellProvider for DServicer<A, E, R, P>
+where
+    A: domains::Domain<Events = E, Requests = R, Platform = P>,
 {
     type Events = E;
 
@@ -259,86 +369,33 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone> domains::Do
 
     type Platform = P;
 
-    fn shell(&self) -> impl domains::DomainShell<Events = E, Requests = R, Platform = P> {
+    fn shell(
+        &self,
+    ) -> impl domains::DomainShell<
+        Events = Self::Events,
+        Requests = Self::Requests,
+        Platform = Self::Platform,
+    > {
         self.domain_shell.clone()
     }
+}
 
-    fn serve(
-        &mut self,
-        domain: &impl crate::domains::Domain<
-            Events = Self::Events,
-            Requests = Self::Requests,
-            Platform = Self::Platform,
-        >,
-    ) -> domains::DomainResult<()> {
-        (match self.process_incoming_event(domain) {
-            Ok(_) => Ok(()),
-            Err(DomainErrors::RequestSenderNotFound) => Err(DomainErrors::ProblematicState),
-            Err(DomainErrors::UnexpectedSenderClosure) => Err(DomainErrors::ProblematicState),
-            _ => Ok(()),
-        })
-        .expect("event processing should have finished with no issues");
-        (match self.process_incoming_request(domain) {
-            Ok(_) => Ok(()),
-            Err(DomainErrors::RequestSenderNotFound) => Err(DomainErrors::ProblematicState),
-            Err(DomainErrors::UnexpectedSenderClosure) => Err(DomainErrors::ProblematicState),
-            _ => Ok(()),
-        })
-        .expect("request processing should have finished with no issues");
-        (match self.execution_service.schedule_serve() {
-            Ok(_) => Ok(()),
-            Err(executor::ExecutorError::Decommission) => Err(DomainErrors::ProblematicState),
-            _ => Ok(()),
-        })
-        .expect("execution service should have ended better");
-        Ok(())
-    }
-
-    fn serve_forever(
-        &mut self,
-        d: &impl domains::Domain<
-            Events = Self::Events,
-            Requests = Self::Requests,
-            Platform = Self::Platform,
-        >,
-    ) -> domains::DomainResult<()> {
-        info!("Starting domain servicer listening loop");
-        loop {
-            if let Some(mut recv) = self.closer_channel.1.clone() {
-                if let Err(_) = recv.try_receive() {
-                    self.serve(d).expect("should not have ended in this state");
-                    continue;
-                } else {
-                    info!("domain servicer closure requested");
-                    return Err(DomainErrors::CloseRequested);
-                }
-            }
-
-            // generally this should not occur but its good to check
-            error!("closing due to None closer channel in domain servicer");
-            return Err(DomainErrors::ProblematicState);
-        }
-    }
-
-    fn serve_forever_async(
-        &mut self,
-        d: &impl domains::Domain<
-            Events = Self::Events,
-            Requests = Self::Requests,
-            Platform = Self::Platform,
-        >,
-    ) -> impl future::Future<Output = domains::DomainResult<()>> {
-        async { self.serve_forever(d) }
+impl<A, E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 'static>
+    domains::TaskExecutor for DServicer<A, E, R, P>
+where
+    A: domains::Domain<Events = E, Requests = R, Platform = P>,
+{
+    fn run_tasks(&mut self) {
+        self.serve().expect("execute all tasks with no errors");
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::thread;
 
     use crate::{
         app,
-        domains::{self, DomainErrors, DomainOpsResult, DomainServicer, DomainShell, UseCase},
+        domains::{self, DomainOpsResult, DomainShell},
         servicer,
     };
     use crossbeam::atomic;
@@ -346,45 +403,15 @@ mod tests {
     use tracing::info;
 
     #[test]
-    fn can_create_service_run_and_close_it() {
-        let counter_app = CounterApp::default();
-        let domain_servicer =
-            sync::Arc::new(sync::Mutex::new(servicer::create(Platform::default())));
-
-        let thread_instance = domain_servicer.clone();
-        let t = thread::spawn(move || {
-            let mut instance = thread_instance.lock().unwrap();
-            match instance.serve_forever(&counter_app) {
-                Ok(_) => println!("Closed servicer!"),
-                Err(DomainErrors::CloseRequested) => println!("Closing servicer!"),
-                _ => panic!("bad ending"),
-            };
-        });
-
-        domain_servicer.lock().unwrap().close();
-
-        _ = t.join().expect("thread should have been closed correctly");
-    }
-
-    #[test]
-    fn can_create_and_close_domain_service_without_starting() {
-        let mut domain_servicer =
-            servicer::create::<CounterEvents, CounterRequests, Platform>(Platform::default());
-        domain_servicer.close();
-    }
-
-    #[test]
     fn can_decrement_count_with_a_decrement_requests() {
-        let (app, mut server) = app::create::<CounterApp>();
+        let (mut executor, server) = app::create::<CounterApp>();
+        let mut shell = servicer::create_shell(server);
 
         let request = domains::NamedRequest::new("decrement_count", CounterRequests::Decrement);
 
-        let result;
-        {
-            result = server.shell().do_request(request)
-        }
+        let result = shell.do_request(request);
 
-        server.serve(&app).expect("serve domain");
+        executor.run_all();
 
         assert!(matches!(result, DomainOpsResult::Ok(_)));
 
@@ -399,15 +426,10 @@ mod tests {
             CounterEvents::Decremented(CounterModel::new(-1))
         );
 
-        server.serve(&app).expect("serve domain for next event");
+        executor.run_all();
 
-        let mut events;
-        let mut requests;
-        {
-            let mut shell = server.shell();
-            events = shell.listen().unwrap();
-            requests = shell.requests().unwrap();
-        }
+        let mut events = shell.listen().unwrap();
+        let mut requests = shell.requests().unwrap();
 
         let published_event = events.block_receive().expect("got event");
 
@@ -425,17 +447,18 @@ mod tests {
 
     #[test]
     fn can_increment_count_with_an_increment_request() {
-        let (app, mut server) = app::create::<CounterApp>();
+        let (mut executor, server) = app::create::<CounterApp>();
+        let mut shell = servicer::create_shell(server);
 
         let increment_request =
             domains::NamedRequest::new("increment_count", CounterRequests::Increment);
 
         let result;
         {
-            result = server.shell().do_request(increment_request)
+            result = shell.do_request(increment_request)
         }
 
-        server.serve(&app).expect("serve domain");
+        executor.run_all();
 
         assert!(matches!(result, DomainOpsResult::Ok(_)));
 
@@ -450,16 +473,10 @@ mod tests {
             CounterEvents::Incremented(CounterModel::new(1))
         );
 
-        server.serve(&app).expect("serve domain for next event");
+        executor.run_all();
 
-        let mut events;
-        let mut requests;
-
-        {
-            let mut shell = server.shell();
-            events = shell.listen().unwrap();
-            requests = shell.requests().unwrap();
-        }
+        let mut events = shell.listen().unwrap();
+        let mut requests = shell.requests().unwrap();
 
         let published_event = events.block_receive().expect("got event");
         assert_eq!(
@@ -476,30 +493,31 @@ mod tests {
 
     #[test]
     fn can_use_use_case_implementation_with_an_app() {
-        let (app, mut server) = app::create::<CounterApp>();
+        let (mut executor, server) = app::create::<CounterApp>();
+        let mut shell = servicer::create_shell(server);
 
         let increment_request =
             domains::NamedRequest::new("increment_count", CounterRequests::Increment);
 
-        let result;
-        {
-            result = server.shell().do_request(increment_request)
-        }
+        let result = shell.do_request(increment_request);
 
-        server.serve(&app).expect("serve domain");
+        executor.run_all();
 
         assert!(matches!(result, DomainOpsResult::Ok(_)));
 
         // call because a new data is waiting processing
-        server.serve(&app).expect("serve domain for next event");
+        executor.run_all();
 
-        let mut counter_renderer = CounterRender::new();
+        let count_render = CounterRender::new();
 
-        {
-            counter_renderer.serve(server.shell());
-        }
+        executor.register(Box::new(domains::UseCaseExecutor::new(
+            shell,
+            count_render.clone(),
+        )));
 
-        assert!(!counter_renderer.data.is_empty())
+        executor.run_all();
+
+        assert!(!count_render.data.lock().unwrap().is_empty());
     }
 
     #[derive(Default, Clone)]
@@ -510,13 +528,16 @@ mod tests {
         pub count: i16,
     }
 
+    #[derive(Clone)]
     struct CounterRender {
-        pub data: Vec<String>,
+        pub data: sync::Arc<sync::Mutex<Vec<String>>>,
     }
 
     impl CounterRender {
         pub fn new() -> Self {
-            Self { data: Vec::new() }
+            Self {
+                data: sync::Arc::new(sync::Mutex::new(Vec::new())),
+            }
         }
     }
 
@@ -543,7 +564,10 @@ mod tests {
             >,
         ) {
             if let CounterRequests::Render(model) = req.item() {
-                self.data.push(format!("Counter(count: {})", model.count));
+                self.data
+                    .lock()
+                    .unwrap()
+                    .push(format!("Counter(count: {})", model.count));
             }
             chan.close().expect("close channel");
         }
