@@ -255,21 +255,6 @@ pub trait MasterShell: DomainShell {
     ) -> DomainOpsResult<mspc::ReceiveChannel<NamedEvent<Self::Events>>, Self::Requests>;
 }
 
-pub trait DomainShellProvider {
-    // Enum defining your target event types
-    type Events: Send + Clone + 'static;
-
-    // Enum defining your target request types.
-    type Requests: Send + Clone + 'static;
-
-    // The platform provider context the domain will use.
-    type Platform: Clone + 'static;
-
-    fn shell(
-        &self,
-    ) -> impl DomainShell<Events = Self::Events, Requests = Self::Requests, Platform = Self::Platform>;
-}
-
 // Implement [`Domain`] on your type to create a business domain unit
 // with specific inputs and outputs via requests and events
 // via central handling function [`Domain.handle`].

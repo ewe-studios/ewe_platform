@@ -359,28 +359,6 @@ where
 }
 
 impl<A, E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 'static>
-    domains::DomainShellProvider for DServicer<A, E, R, P>
-where
-    A: domains::Domain<Events = E, Requests = R, Platform = P>,
-{
-    type Events = E;
-
-    type Requests = R;
-
-    type Platform = P;
-
-    fn shell(
-        &self,
-    ) -> impl domains::DomainShell<
-        Events = Self::Events,
-        Requests = Self::Requests,
-        Platform = Self::Platform,
-    > {
-        self.domain_shell.clone()
-    }
-}
-
-impl<A, E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 'static>
     domains::TaskExecutor for DServicer<A, E, R, P>
 where
     A: domains::Domain<Events = E, Requests = R, Platform = P>,
