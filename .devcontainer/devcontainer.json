@@ -22,7 +22,9 @@
 		// "source=${localWorkspaceFolder}/.vscode-server/extensionsCache,target=/home/vscode/.vscode-server/extensionsCache,type=bind,consistency=cached"
 	],
 	// Features to add to the dev container. More info: https://containers.dev/features.
-	"features": {},
+	"features": {
+		"ghcr.io/devcontainers/features/node:1": {}
+	},
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	"forwardPorts": [],
 	// Use 'postCreateCommand' to run commands after the container is created.

@@ -1,0 +1,44 @@
+[package]
+name = "web"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+rust-version.workspace = true
+keywords.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[workspace.dev_dependencies]
+cargo-watch = { version = "8.5.2" }
+cargo-machete = { version = "0.6.2" }
+wasm-bindgen-cli = { version = "0.2.29" }
+
+# -- global dependencies
+[workspace.dependencies]
+# wasm
+js-sys = { version = "0.3.68" }
+web-sys = { version = "0.3.68" }
+wasm-bindgen = { version = "0.2.29" }
+wasm-bindgen-futures = { version = "0.4.41" }
+
+# -- async crates
+futures = { verison = "0.3" }
+tokio = { version = "1", features = ["full"] }
+
+# -- error crates
+anyhow = { version = "1.0.80" }
+thiserror = { version = "1.0.57" }
+
+# -- serialization crates
+serde = { version = "1.0.197", features = ["derive"] }
+serde_json = { version = "1.0.114" }
+serde_with = { version = "3.6.1" }
+
+# -- tracing crates
+tracing = { version = "0.1.40" }
+tracing-subscriber = { version = "0.3.18" }
+
+[lints]
+workspace = true
