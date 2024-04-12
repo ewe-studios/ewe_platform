@@ -10,35 +10,50 @@ keywords.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[workspace.dev_dependencies]
-cargo-watch = { version = "8.5.2" }
-cargo-machete = { version = "0.6.2" }
+[features]
+default = ["console_error_panic_hook"]
+server = ["dep:tokio"]
+
+[dev_dependencies]
+wasm-pack = { version = "0.12.1" }
 wasm-bindgen-cli = { version = "0.2.29" }
+wasm-bindgen-test = { version = "0.3.42" }
 
 # -- global dependencies
-[workspace.dependencies]
+[dependencies]
+serde.workspace = true
+cfg-if.workspace = true
+crossbeam.workspace = true
+anyhow.workspace = true
+futures.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+async-channel.workspace = true
+# -- serialization crates
+serde_json.workspace = true
+serde_with.workspace = true
+
+# tokio
+tokio = { version = "1", features = [
+    "rt",
+], optional = true, default-features = false }
+tokio-test.workspace = true
+
 # wasm
 js-sys = { version = "0.3.68" }
-web-sys = { version = "0.3.68" }
-wasm-bindgen = { version = "0.2.29" }
+web-sys = { version = "0.3.68", features = [
+    "console",
+    "Window",
+    "Document",
+    "Element",
+] }
+wasm-bindgen = { version = "0.2.29", features = ["serde-serialize"] }
+serde-wasm-bindgen = { version = "0.6" }
 wasm-bindgen-futures = { version = "0.4.41" }
 
-# -- async crates
-futures = { verison = "0.3" }
-tokio = { version = "1", features = ["full"] }
-
-# -- error crates
-anyhow = { version = "1.0.80" }
-thiserror = { version = "1.0.57" }
-
-# -- serialization crates
-serde = { version = "1.0.197", features = ["derive"] }
-serde_json = { version = "1.0.114" }
-serde_with = { version = "3.6.1" }
-
-# -- tracing crates
-tracing = { version = "0.1.40" }
-tracing-subscriber = { version = "0.3.18" }
-
-[lints]
-workspace = true
+# The `console_error_panic_hook` crate provides better debugging of panics by
+# logging them with `console.error`. This is great for development, but requires
+# all the `std::fmt` and `std::panicking` infrastructure, so isn't great for
+# code size when deploying.
+console_error_panic_hook = { version = "0.1.7", optional = true }

@@ -1,8 +1,7 @@
 [package]
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 name = "todo"
 version = "0.1.0"
-
-[workspace.package]
 authors = ["EweStudios Consulting Limited"]
 edition = "2021"
 repository = "https://github.com/ewestudios/primal_web"
@@ -10,20 +9,38 @@ license = "Apache-2.0"
 rust-version = "1.75"
 keywords = ["todo", "ewe_platform todo example"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[workspace.dev_dependencies]
+[profile.release]
+# Tell `rustc` to optimize for small code size.
+opt-level = "s"
+lto = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["console_error_panic_hook"]
+
+[dev_dependencies]
 cargo-watch = { version = "8.5.2" }
 cargo-machete = { version = "0.6.2" }
+wasm-pack = { version = "0.12.1" }
 wasm-bindgen-cli = { version = "0.2.29" }
+wasm-bindgen-test = { version = "0.3.42" }
 
 # -- global dependencies
-[workspace.dependencies]
+[dependencies]
 # wasm
 js-sys = { version = "0.3.68" }
 web-sys = { version = "0.3.68" }
 wasm-bindgen = { version = "0.2.29" }
 wasm-bindgen-futures = { version = "0.4.41" }
+
+# The `console_error_panic_hook` crate provides better debugging of panics by
+# logging them with `console.error`. This is great for development, but requires
+# all the `std::fmt` and `std::panicking` infrastructure, so isn't great for
+# code size when deploying.
+console_error_panic_hook = { version = "0.1.7", optional = true }
 
 # -- async crates
 futures = { verison = "0.3" }

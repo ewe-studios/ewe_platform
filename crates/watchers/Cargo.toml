@@ -6,7 +6,13 @@ edition.workspace = true
 repository.workspace = true
 license.workspace = true
 rust-version.workspace = true
-keywords.workspace = true
+keywords = [
+    "watcher",
+    "watchful",
+    "file watcher",
+    "command runner",
+    "change watcher",
+]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

@@ -2,7 +2,7 @@
 # usually this iset to 1
 resolver = "2"
 # set members of your workspace
-members = ["bin/*", "crates/*", "examples/todo"]
+members = ["bin/*", "crates/*"]
 
 [workspace.package]
 authors = ["EweStudios Consulting Limited"]
@@ -10,26 +10,25 @@ edition = "2021"
 repository = "https://github.com/ewestudios/primal_web"
 license = "Apache-2.0"
 rust-version = "1.75"
-keywords = [
-    "watcher",
-    "watchful",
-    "file watcher",
-    "command runner",
-    "change watcher",
-]
+keywords = ["ewe_platform", "ewestudios platform", "ewe"]
 
 # -- global dev dependencies
 [workspace.dev_dependencies]
+tokio-test = { version = "0.4" }
 cargo-watch = { version = "8.5.2" }
 cargo-machete = { version = "0.6.2" }
 
 # -- global dependencies
 [workspace.dependencies]
+# general crates
+cfg-if = { version = "1.0" }
+
 # -- async crates
 futures = { verison = "0.3" }
 crossbeam = { version = "0.8" }
 async-channel = { version = "2.2" }
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "1.36", features = ["full"] }
+tokio-test = { version = "0.4" }
 
 # -- error crates
 anyhow = { version = "1.0.80" }
@@ -40,7 +39,6 @@ toml = { version = "0.8.10" }
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = { version = "1.0.114" }
 serde_with = { version = "3.6.1" }
-
 
 # -- tracing crates
 tracing = { version = "0.1.40" }
