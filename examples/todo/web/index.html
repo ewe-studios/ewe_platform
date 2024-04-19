@@ -4,24 +4,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
     <link href="css/main.css" rel="stylesheet">
-    <link href="css/nobuild.css" rel="stylesheet">
+    <!-- <link href="css/nobuild.old.css" rel="stylesheet"> -->
+    <link href="css/nobuild.new.css" rel="stylesheet">
 </head>
 
 <body>
     <main class="app">
         <header class="header">
             <section class="header_top">
-                <h1 class="header_title">
-                    Todo world!
-                </h1>
+                <h2 class="header_title_mini">Todo</h2>
+                <h1 class="header_title_large">World</h1>
             </section>
             <section class="header_bottom">
-                <input class="header_input" type="text" />
+                <div class="boxinput">
+                    <input class="boxinput__input" type="text" />
+                    <button class="boxinput__submit"><label class="label">+</lable></button>
+                </div>
+                <div class="boxhint">
+                    <label class="hint">You can also create a todo by pressing Enter!</label>
+                </div>
             </section>
         </header>
         <section class="content">
-            <button class="btn">Button</button>
+            <section class="todo">
+                <section class="note">
+                    <label class="text">Wash the kitchen stove</label>
+                </section>
+                <section class="action">
+                    <label class="text"></label>
+                </section>
+            </section>
+            <section class="todo completed">
+                <section class="note">
+                    <label class="text">Wash the kitchen stove</label>
+                </section>
+                <section class="action">
+                    <label class="text"></label>
+                </section>
+            </section>
         </section>
     </main>
 

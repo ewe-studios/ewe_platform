@@ -8,9 +8,33 @@ license.workspace = true
 rust-version.workspace = true
 keywords.workspace = true
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+default = []
+server = ["dep:tokio"]
+web = ["dep:wasm-bindgen", "dep:wasm-bindgen-futures"]
 
+[dev-dependencies]
+tokio-test = { version = "0.4", optional = true }
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
+cfg-if.workspace = true
+anyhow.workspace = true
+futures.workspace = true
+
+# tracing
+tracing.workspace = true
+
+# tokio
+tokio = { version = "1", features = [
+    "rt",
+], optional = true, default-features = false }
+
+# wasm
+wasm-bindgen-futures = { version = "0.4.42", optional = true }
+wasm-bindgen = { version = "0.2.29", features = [
+    "serde-serialize",
+], optional = true }
 
 [lints]
 workspace = true

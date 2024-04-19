@@ -14,10 +14,6 @@ keywords.workspace = true
 default = ["console_error_panic_hook"]
 server = ["dep:tokio"]
 
-[dev_dependencies]
-wasm-pack = { version = "0.12.1" }
-wasm-bindgen-cli = { version = "0.2.29" }
-wasm-bindgen-test = { version = "0.3.42" }
 
 # -- global dependencies
 [dependencies]
@@ -38,7 +34,6 @@ serde_with.workspace = true
 tokio = { version = "1", features = [
     "rt",
 ], optional = true, default-features = false }
-tokio-test.workspace = true
 
 # wasm
 js-sys = { version = "0.3.68" }

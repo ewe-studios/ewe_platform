@@ -55,7 +55,6 @@ impl<T: Clone> Display for NamedRequest<T> {
 }
 
 /// NamedEvent are events indicative of a response to a NamedRequest
-#[allow(dead_code)]
 #[derive(Clone, Debug)]
 pub struct NamedEvent<T: Clone>(Id, Vec<T>);
 

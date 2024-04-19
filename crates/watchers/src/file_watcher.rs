@@ -9,7 +9,6 @@ use std::{
 };
 use tracing::{error, info};
 
-#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct FileWatcher {
     target_location: PathBuf,
