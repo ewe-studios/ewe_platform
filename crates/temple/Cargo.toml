@@ -1,0 +1,29 @@
+[package]
+name = "temple"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+rust-version.workspace = true
+keywords.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+template = { path = "../template", version = "*" }
+
+rand.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+futures.workspace = true
+
+# -- serialization crates
+serde.workspace = true
+serde_json.workspace = true
+serde_with.workspace = true
+
+
+[lints]
+workspace = true

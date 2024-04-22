@@ -19,13 +19,12 @@ server = ["dep:tokio"]
 [dependencies]
 serde.workspace = true
 cfg-if.workspace = true
-crossbeam.workspace = true
 anyhow.workspace = true
 futures.workspace = true
 thiserror.workspace = true
-tracing.workspace = true
-tracing-subscriber.workspace = true
 async-channel.workspace = true
+tracing.workspace = true
+
 # -- serialization crates
 serde_json.workspace = true
 serde_with.workspace = true

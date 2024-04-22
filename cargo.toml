@@ -27,8 +27,10 @@ wasm-bindgen-test = { version = "0.3.42" }
 cfg-if = { version = "1.0" }
 
 # -- async crates
+rand = { version = "0.8.5" }
 futures = { verison = "0.3" }
 crossbeam = { version = "0.8" }
+lazy_static = { version = "1.4.0" }
 async-channel = { version = "2.2" }
 tokio = { version = "1.36", features = ["full"] }
 tokio-test = { version = "0.4" }
@@ -42,6 +44,7 @@ toml = { version = "0.8.10" }
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = { version = "1.0.114" }
 serde_with = { version = "3.6.1" }
+
 
 # -- tracing crates
 tracing = { version = "0.1.40" }
