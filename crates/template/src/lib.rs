@@ -29,8 +29,9 @@
 //! ## Example
 //!
 //! ```
-//! use serde::Serialize;
+//!
 //! use template::tiny::TinyTemplate;
+//! use serde::Serialize;
 //! use std::error::Error;
 //!
 //! #[derive(Serialize)]
@@ -57,6 +58,7 @@
 //! ```
 //!
 //! [Criterion.rs]: https://github.com/bheisler/criterion.rs
+//!
 //!
 
 pub mod compiler;
