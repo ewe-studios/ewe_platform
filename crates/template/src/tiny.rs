@@ -159,12 +159,9 @@ impl<'template> Default for TinyTemplate<'template> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
 
-    #[derive(Serialize)]
-    struct Context {
-        name: String,
-    }
+    use super::*;
+    use serde_json::json;
 
     static TEMPLATE: &'static str = "Hello {name}!";
 
@@ -174,9 +171,9 @@ mod test {
         tt.add_template("hello", TEMPLATE).unwrap();
         tt.set_default_formatter(&format_unescaped);
 
-        let context = Context {
-            name: "<World>".to_string(),
-        };
+        let context = json!({
+            "name": "<World>".to_string(),
+        });
 
         let rendered = tt.render("hello", &context).unwrap();
         assert_eq!(rendered, "Hello <World>!")
