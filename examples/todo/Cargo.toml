@@ -1,13 +1,11 @@
 [package]
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 name = "todo"
 version = "0.1.0"
-authors = ["EweStudios Consulting Limited"]
-edition = "2021"
-repository = "https://github.com/ewestudios/primal_web"
-license = "Apache-2.0"
-rust-version = "1.75"
-keywords = ["todo", "ewe_platform todo example"]
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+rust-version.workspace = true
 
 
 [profile.release]
@@ -21,12 +19,6 @@ crate-type = ["cdylib", "rlib"]
 [features]
 default = ["console_error_panic_hook"]
 
-[dev_dependencies]
-cargo-watch = { version = "8.5.2" }
-cargo-machete = { version = "0.6.2" }
-wasm-pack = { version = "0.12.1" }
-wasm-bindgen-cli = { version = "0.2.29" }
-wasm-bindgen-test = { version = "0.3.42" }
 
 # -- global dependencies
 [dependencies]
@@ -59,9 +51,9 @@ serde_with = { version = "3.6.1" }
 tracing = { version = "0.1.40" }
 tracing-subscriber = { version = "0.3.18" }
 
-[workspace.lints.rust]
+[lints.rust]
 unsafe_code = "forbid"
 unused = "warn"        # for experimental dev
 
-[workspace.lints.clippy]
+[lints.clippy]
 pedantic = "warn"

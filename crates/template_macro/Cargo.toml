@@ -1,0 +1,28 @@
+[package]
+name = "template_macro"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+rust-version.workspace = true
+keywords.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "1.0.20"
+proc-macro2 = "1.0.40"
+syn = { version = "2.0.60", features = ["full"] }
+
+# template dependencies
+template = { path = "../template", version = "*" }
+minijinja = { version = "2.0.0" }
+
+[dev-dependencies]
+trybuild = "1.0.83"
+
+[lints]
+workspace = true

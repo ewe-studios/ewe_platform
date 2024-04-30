@@ -2,7 +2,7 @@
 # usually this iset to 1
 resolver = "2"
 # set members of your workspace
-members = ["bin/*", "crates/*"]
+members = ["bin/*", "crates/*", "examples/todo", "examples/template/*"]
 
 [workspace.package]
 authors = ["EweStudios Consulting Limited"]
@@ -14,6 +14,8 @@ keywords = ["ewe_platform", "ewestudios platform", "ewe"]
 
 # -- global dev dependencies
 [workspace.dev_dependencies]
+trybuild = "1.0.63"
+cargo-expand = { version = "1.0.85" }
 tokio-test = { version = "0.4" }
 cargo-watch = { version = "8.5.2" }
 cargo-machete = { version = "0.6.2" }

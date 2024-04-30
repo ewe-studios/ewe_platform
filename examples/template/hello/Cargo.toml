@@ -1,0 +1,19 @@
+[package]
+name = "hello"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+template = { path = "../../../crates/template", version = "*" }
+template_macro = { path = "../../../crates/template_macro", version = "*" }
+
+[lints]
+workspace = true
