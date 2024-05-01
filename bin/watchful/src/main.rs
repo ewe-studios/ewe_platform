@@ -1,13 +1,11 @@
-
-
 // #[macro]
 // extern crate serde_derive;
 // extern crate serde_json;
 
+use ewe_watchers::{self};
 use std::path::Path;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
-use watchers::{self};
 
 type Result = std::io::Result<()>;
 
@@ -23,7 +21,7 @@ fn main() -> Result {
     // let file_watcher = watchers::FileWatcher::new(target_directory.clone());
     // println!("Hello, world in {:?}!", file_watcher);
 
-    watchers::file_watcher::watch(target_directory.as_path())
+    ewe_watchers::file_watcher::watch(target_directory.as_path())
         .expect("watch function registered directory");
 
     // change some content

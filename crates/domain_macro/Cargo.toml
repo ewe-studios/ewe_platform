@@ -1,5 +1,5 @@
 [package]
-name = "domain_macro"
+name = "ewe-domain-macro"
 version = "0.1.0"
 authors.workspace = true
 edition.workspace = true

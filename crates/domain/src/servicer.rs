@@ -1,6 +1,6 @@
 // Module implementing DomainService default implementations and related tests
 
-use channels::{
+use ewe_channels::{
     broadcast, executor,
     mspc::{self, ChannelError},
 };
@@ -533,7 +533,7 @@ mod tests {
         fn handle_request(
             &mut self,
             req: sync::Arc<domains::NamedRequest<Self::Request>>,
-            mut chan: channels::mspc::SendChannel<domains::NamedEvent<Self::Event>>,
+            mut chan: ewe_channels::mspc::SendChannel<domains::NamedEvent<Self::Event>>,
             _shell: impl DomainShell<
                 Events = Self::Event,
                 Requests = Self::Request,
@@ -590,7 +590,7 @@ mod tests {
         fn handle_request(
             &self,
             req: domains::NamedRequest<Self::Requests>,
-            mut chan: channels::mspc::SendChannel<domains::NamedEvent<Self::Events>>,
+            mut chan: ewe_channels::mspc::SendChannel<domains::NamedEvent<Self::Events>>,
             mut shell: impl domains::MasterShell<
                 Events = Self::Events,
                 Requests = Self::Requests,

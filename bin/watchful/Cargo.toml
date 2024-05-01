@@ -17,7 +17,7 @@ tracing.workspace = true
 tracing-subscriber.workspace = true
 
 # -- App Libs
-watchers = { path = "../../crates/watchers" }
+ewe-watchers = { path = "../../crates/watchers" }
 
 # -- Others
 

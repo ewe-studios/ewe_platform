@@ -137,18 +137,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
-name = "channels"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-channel",
- "crossbeam",
- "futures",
- "thiserror",
- "tokio",
-]
-
-[[package]]
 name = "chrono"
 version = "0.4.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -288,29 +276,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "domain"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "channels",
- "crossbeam",
- "futures",
- "serde",
- "thiserror",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "domain_macro"
-version = "0.1.0"
-dependencies = [
- "quote",
- "syn",
-]
-
-[[package]]
 name = "equivalent"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -335,6 +300,115 @@ checksum = "feedafcaa9b749175d5ac357452a9d41ea2911da598fde46ce1fe02c37751291"
 dependencies = [
  "event-listener",
  "pin-project-lite",
+]
+
+[[package]]
+name = "ewe-channels"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-channel",
+ "crossbeam",
+ "futures",
+ "thiserror",
+ "tokio",
+]
+
+[[package]]
+name = "ewe-domain"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "crossbeam",
+ "ewe-channels",
+ "futures",
+ "serde",
+ "thiserror",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "ewe-domain-macro"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "ewe-html-macro"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+ "trybuild",
+]
+
+[[package]]
+name = "ewe-spawn"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "cfg-if",
+ "futures",
+ "tokio",
+ "tokio-test",
+ "tracing",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+]
+
+[[package]]
+name = "ewe-template-macro"
+version = "0.1.0"
+dependencies = [
+ "ewe-templates",
+ "proc-macro2",
+ "quote",
+ "syn",
+ "trybuild",
+]
+
+[[package]]
+name = "ewe-templates"
+version = "0.1.0"
+dependencies = [
+ "minijinja",
+ "tinytemplate",
+]
+
+[[package]]
+name = "ewe-temple"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "futures",
+ "rand",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "thiserror",
+ "tinytemplate",
+ "tracing",
+]
+
+[[package]]
+name = "ewe-watchers"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "futures",
+ "notify",
+ "notify-debouncer-full",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "thiserror",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -501,10 +575,10 @@ checksum = "290f1a1d9242c78d09ce40a5e87e7554ee637af1351968159f4952f028f75604"
 name = "hello"
 version = "0.1.0"
 dependencies = [
+ "ewe-template-macro",
+ "ewe-templates",
  "serde",
  "serde_json",
- "template_macro",
- "templates",
 ]
 
 [[package]]
@@ -518,16 +592,6 @@ name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
-
-[[package]]
-name = "html_macro"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
- "trybuild",
-]
 
 [[package]]
 name = "iana-time-zone"
@@ -703,10 +767,10 @@ dependencies = [
 name = "multi_template"
 version = "0.1.0"
 dependencies = [
+ "ewe-template-macro",
+ "ewe-templates",
  "serde",
  "serde_json",
- "template_macro",
- "templates",
 ]
 
 [[package]]
@@ -1060,20 +1124,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "spawn"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "cfg-if",
- "futures",
- "tokio",
- "tokio-test",
- "tracing",
- "wasm-bindgen",
- "wasm-bindgen-futures",
-]
-
-[[package]]
 name = "strsim"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1088,40 +1138,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
-]
-
-[[package]]
-name = "template_macro"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
- "templates",
- "trybuild",
-]
-
-[[package]]
-name = "templates"
-version = "0.1.0"
-dependencies = [
- "minijinja",
- "tinytemplate",
-]
-
-[[package]]
-name = "temple"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "futures",
- "rand",
- "serde",
- "serde_json",
- "serde_with",
- "thiserror",
- "tinytemplate",
- "tracing",
 ]
 
 [[package]]
@@ -1480,29 +1496,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af190c94f2773fdb3729c55b007a722abb5384da03bc0986df4c289bf5567e96"
 
 [[package]]
-name = "watchers"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "futures",
- "notify",
- "notify-debouncer-full",
- "serde",
- "serde_json",
- "serde_with",
- "thiserror",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "watchful"
 version = "0.1.0"
 dependencies = [
+ "ewe-watchers",
  "serde",
  "tracing",
  "tracing-subscriber",
- "watchers",
 ]
 
 [[package]]

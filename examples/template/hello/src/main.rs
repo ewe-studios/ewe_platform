@@ -1,5 +1,5 @@
+use ewe_template_macro::template;
 use serde_json::{json, Value};
-use template_macro::template;
 
 fn main() {
     let data: Value = json!({

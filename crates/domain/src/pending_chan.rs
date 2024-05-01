@@ -2,7 +2,7 @@ use std::{collections, sync};
 
 use thiserror::Error;
 
-use channels::mspc::{self};
+use ewe_channels::mspc::{self};
 
 use crate::domains;
 
@@ -96,7 +96,7 @@ impl<E> PendingChannelsRegistry<E> {
 
 #[cfg(test)]
 mod tests {
-    use channels::mspc;
+    use ewe_channels::mspc;
 
     use crate::{domains, pending_chan};
 

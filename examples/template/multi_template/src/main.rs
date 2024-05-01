@@ -1,4 +1,4 @@
-use template_macro::template;
+use ewe_template_macro::template;
 
 fn main() {
     let template = template!(jinja, {

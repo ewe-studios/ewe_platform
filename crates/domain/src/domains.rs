@@ -8,7 +8,7 @@ use thiserror::Error;
 
 use tracing::{debug, error};
 
-use channels::mspc::{self, ChannelError};
+use ewe_channels::mspc::{self, ChannelError};
 
 // Id identifies a giving (Request, Vec<Event>) pair
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

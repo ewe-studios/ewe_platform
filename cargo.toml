@@ -11,11 +11,11 @@ members = [
 ]
 
 [workspace.package]
-authors = ["EweStudios Consulting Limited"]
 edition = "2021"
-repository = "https://github.com/ewestudios/primal_web"
-license = "Apache-2.0"
 rust-version = "1.75"
+license = "Apache-2.0"
+authors = ["EweStudios Consulting Limited"]
+repository = "https://github.com/ewestudios/primal_web"
 keywords = ["ewe_platform", "ewestudios platform", "ewe"]
 
 # -- global dev dependencies
@@ -31,17 +31,20 @@ wasm-bindgen-test = { version = "0.3.42" }
 
 # -- global dependencies
 [workspace.dependencies]
+# internal packages so others can use them
+
+
 # general crates
 cfg-if = { version = "1.0" }
 
 # -- async crates
 rand = { version = "0.8.5" }
-futures = { verison = "0.3" }
 crossbeam = { version = "0.8" }
 lazy_static = { version = "1.4.0" }
 async-channel = { version = "2.2" }
 tokio = { version = "1.36", features = ["full"] }
 tokio-test = { version = "0.4" }
+futures = { verison = "0.3.30" }
 
 # -- error crates
 anyhow = { version = "1.0.80" }

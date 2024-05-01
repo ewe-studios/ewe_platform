@@ -12,8 +12,8 @@ rust-version.workspace = true
 [dependencies]
 serde.workspace = true
 serde_json.workspace = true
-templates = { path = "../../../crates/templates", version = "*" }
-template_macro = { path = "../../../crates/template_macro", version = "*" }
+ewe-templates = { path = "../../../crates/templates", version = "*" }
+ewe-template-macro = { path = "../../../crates/template-macro", version = "*" }
 
 [lints]
 workspace = true
