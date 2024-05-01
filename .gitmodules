@@ -1,3 +1,6 @@
 [submodule "backends/lol-html"]
 	path = backends/lol-html
 	url = git@github.com:rstkit/lol-html.git
+[submodule "backends/TinyTemplate"]
+	path = backends/TinyTemplate
+	url = git@github.com:rstkit/TinyTemplate.git
