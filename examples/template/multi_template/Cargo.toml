@@ -12,8 +12,7 @@ rust-version.workspace = true
 [dependencies]
 serde.workspace = true
 serde_json.workspace = true
-minijinja = { version = "2.0.0" }
-template = { path = "../../../crates/template", version = "*" }
+templates = { path = "../../../crates/templates", version = "*" }
 template_macro = { path = "../../../crates/template_macro", version = "*" }
 
 [lints]

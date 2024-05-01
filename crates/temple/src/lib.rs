@@ -1,7 +1,7 @@
 use anyhow::anyhow;
 use serde_json::{json, Value};
 use std::{fs, io::Write, path, result, str::FromStr};
-use template::tiny::TinyTemplate;
+use tinytemplate::TinyTemplate;
 
 type Result<T> = result::Result<T, anyhow::Error>;
 
@@ -114,7 +114,7 @@ mod tests {
     use crate::{FileContent, FileSystemCommand, Result, Template};
     use serde_json::{json, Value};
     use std::{env, fs, io::Read, path};
-    use template::tiny::TinyTemplate;
+    use tinytemplate::TinyTemplate;
 
     fn random_directory_name<'a>(prefix: &'a str) -> String {
         use rand::distributions::{Alphanumeric, DistString};
