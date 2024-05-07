@@ -1,0 +1,18 @@
+[package]
+name = "ewe-templates"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+rust-version.workspace = true
+keywords.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tinytemplate = { git = "https://github.com/ewe-studios/TinyTemplate.git", branch = "master" }
+minijinja = { version = "2.0.0" }
+
+[lints]
+workspace = true
