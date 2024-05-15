@@ -112,7 +112,11 @@ pub(crate) fn execute_command(mut command: config::CommandDescription) -> ExecRe
 
     let mut commander = process::Command::new(command_binary.clone());
 
-    match commander.args(command_arguments.clone()).output() {
+    match commander
+        .args(command_arguments.clone())
+        .env("LS_COLORS", "rs=0:di=38;5;27:mh=44;38;5;15")
+        .output()
+    {
         Ok(result) => {
             if result.status.success() {
                 return Ok(());
