@@ -1,5 +1,3 @@
-
-
 use thiserror::Error;
 
 use serde::{Deserialize, Serialize};
@@ -10,20 +8,20 @@ pub type Result<T> = anyhow::Result<T, ConfigError>;
 
 #[derive(Error, Debug)]
 pub enum ConfigError {
+    #[error("Configuration file is not found")]
+    FileNotFound,
+
+    #[error("Configuration file could not be read")]
+    FailedReading,
+
+    #[error("Configuration file format not supported")]
+    UnknownFormat,
+
     #[error("Configuration is invalid due to: {0}")]
     BadConfiguration(serde_json::Error),
 
     #[error("Could not serialize configuration due to: {0}")]
     FailedDeserialization(serde_json::Error),
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
-pub enum CommandAllocation {
-    #[serde(rename = "sequential")]
-    Sequential,
-
-    #[serde(rename = "concurrent")]
-    Concurrent,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
@@ -40,7 +38,6 @@ pub enum CommandExpectation {
 pub struct CommandDescription {
     pub command: Vec<String>,
     pub if_failed: Option<CommandExpectation>,
-    pub alloc: Option<CommandAllocation>,
 }
 
 #[skip_serializing_none]
@@ -48,7 +45,7 @@ pub struct CommandDescription {
 pub struct DirWatcher {
     pub dir: String,
     pub recursive: bool,
-    pub debounce: i16,
+    pub debounce: u16,
     pub after_change: Option<Vec<CommandDescription>>,
 }
 
@@ -56,7 +53,7 @@ pub struct DirWatcher {
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct FileWatcher {
     pub file: String,
-    pub debounce: i16,
+    pub debounce: u16,
     pub after_change: Option<Vec<CommandDescription>>,
 }
 
@@ -68,6 +65,29 @@ pub enum Watcher {
 
     #[serde(rename = "dir")]
     Dir(DirWatcher),
+}
+
+impl Watcher {
+    pub fn debounce(&self) -> u16 {
+        match self {
+            Watcher::File(file) => file.debounce,
+            Watcher::Dir(dir) => dir.debounce,
+        }
+    }
+
+    pub fn commands(&self) -> Option<Vec<CommandDescription>> {
+        match self {
+            Watcher::File(file) => file.after_change.clone(),
+            Watcher::Dir(dir) => dir.after_change.clone(),
+        }
+    }
+
+    pub fn path(&self) -> String {
+        match self {
+            Watcher::File(file) => file.file.clone(),
+            Watcher::Dir(dir) => dir.dir.clone(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
@@ -93,11 +113,8 @@ impl Config {
 
 #[cfg(test)]
 mod tests {
-    
 
-    use crate::config::{
-        CommandAllocation, CommandDescription, CommandExpectation, ConfigError, DirWatcher,
-    };
+    use crate::config::{CommandDescription, CommandExpectation, ConfigError, DirWatcher};
 
     use super::{Config, FileWatcher, Watcher};
 
@@ -208,17 +225,14 @@ mod tests {
                         {
                             "command": ["rust", "build"],
                             "if_failed": "exit",
-                            "alloc": "sequential"
                         },
                         {
                             "command": ["rust", "check"],
                             "if_failed": "exit",
-                            "alloc": "sequential"
                         },
                         {
                             "command": ["rust", "test"],
                             "if_failed": "exit",
-                            "alloc": "sequential"
                         }
                     ]
                 }
@@ -235,17 +249,14 @@ mod tests {
                     CommandDescription {
                         command: vec![String::from("rust"), String::from("build")],
                         if_failed: Some(CommandExpectation::Exit),
-                        alloc: Some(CommandAllocation::Sequential),
                     },
                     CommandDescription {
                         command: vec![String::from("rust"), String::from("check")],
                         if_failed: Some(CommandExpectation::Exit),
-                        alloc: Some(CommandAllocation::Sequential),
                     },
                     CommandDescription {
                         command: vec![String::from("rust"), String::from("test")],
                         if_failed: Some(CommandExpectation::Exit),
-                        alloc: Some(CommandAllocation::Sequential),
                     },
                 ]),
             })],
@@ -302,17 +313,14 @@ mod tests {
                         {
                             "command": ["rust", "build"],
                             "if_failed": "exit",
-                            "alloc": "sequential"
                         },
                         {
                             "command": ["rust", "check"],
                             "if_failed": "exit",
-                            "alloc": "sequential"
                         },
                         {
                             "command": ["rust", "test"],
                             "if_failed": "exit",
-                            "alloc": "sequential"
                         }
                     ]
                 }
@@ -328,17 +336,14 @@ mod tests {
                     CommandDescription {
                         command: vec![String::from("rust"), String::from("build")],
                         if_failed: Some(CommandExpectation::Exit),
-                        alloc: Some(CommandAllocation::Sequential),
                     },
                     CommandDescription {
                         command: vec![String::from("rust"), String::from("check")],
                         if_failed: Some(CommandExpectation::Exit),
-                        alloc: Some(CommandAllocation::Sequential),
                     },
                     CommandDescription {
                         command: vec![String::from("rust"), String::from("test")],
                         if_failed: Some(CommandExpectation::Exit),
-                        alloc: Some(CommandAllocation::Sequential),
                     },
                 ]),
             })],

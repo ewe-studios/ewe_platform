@@ -1,0 +1,53 @@
+{
+    "watchers": [
+        {
+            "dir": "./bin",
+            "recursive": true,
+            "debounce": 800,
+            "after_change": [
+                {
+                    "command": [
+                        "cargo",
+                        "check"
+                    ],
+                    "if_failed": "exit"
+                },
+                {
+                    "command": [
+                        "cargo",
+                        "build"
+                    ],
+                    "if_failed": "exit"
+                }
+            ]
+        },
+        {
+            "dir": "./crates",
+            "recursive": true,
+            "debounce": 800,
+            "after_change": [
+                {
+                    "command": [
+                        "cargo",
+                        "check"
+                    ],
+                    "if_failed": "exit"
+                },
+                {
+                    "command": [
+                        "cargo",
+                        "build"
+                    ],
+                    "if_failed": "exit"
+                },
+                {
+                    "command": [
+                        "cargo",
+                        "test"
+                    ],
+                    "if_failed": "exit"
+                }
+            ]
+        }
+    ]
+}

@@ -1,2 +1,3 @@
 pub mod config;
-pub mod file_watcher;
+pub mod handlers;
+pub mod watcher;
