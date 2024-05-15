@@ -15,8 +15,28 @@ use notify_debouncer_full::{new_debouncer, DebounceEventResult};
 
 use crate::config::{self, CommandExpectation};
 
+#[cfg(all(target_os = "macos", not(feature = "macos_kqueue")))]
+pub(crate) type NotifyWatcher = notify_debouncer_full::Debouncer<
+    notify::fsevent::FsEventWatcher,
+    notify_debouncer_full::FileIdMap,
+>;
+
+#[cfg(any(target_os = "linux", target_os = "android"))]
 pub(crate) type NotifyWatcher =
     notify_debouncer_full::Debouncer<notify::INotifyWatcher, notify_debouncer_full::FileIdMap>;
+
+#[cfg(any(
+    target_os = "freebsd",
+    target_os = "openbsd",
+    target_os = "netbsd",
+    target_os = "dragonflybsd",
+    target_os = "ios",
+    all(target_os = "macos", feature = "macos_kqueue")
+))]
+pub(crate) type NotifyWatcher = notify_debouncer_full::Debouncer<
+    notify::kqueue::KqueueWatcher,
+    notify_debouncer_full::FileIdMap,
+>;
 
 pub(crate) struct WatchHandle<T>(pub JoinHandle<T>, pub NotifyWatcher);
 

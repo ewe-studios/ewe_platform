@@ -33,7 +33,7 @@ tracing-subscriber.workspace = true
 # dep = { verison ...}
 #
 notify = { version = "6.1.1", features = [] }
-notify-debouncer-full = { version = "0.3.1", default-features = true }
+notify-debouncer-full = { version = "0.3.1", default-features = false }
 
 
 [lints]
