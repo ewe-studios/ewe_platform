@@ -90,9 +90,9 @@ pub(crate) fn execute_command(mut command: config::CommandDescription) -> ExecRe
         command_arguments.clone()
     );
 
-    let mut commander = process::Command::new(command_binary);
+    let mut commander = process::Command::new(command_binary.clone());
 
-    match commander.args(command_arguments).output() {
+    match commander.args(command_arguments.clone()).output() {
         Ok(result) => {
             if result.status.success() {
                 return Ok(());
@@ -103,9 +103,19 @@ pub(crate) fn execute_command(mut command: config::CommandDescription) -> ExecRe
 
             if command.if_failed == Some(CommandExpectation::Exit) {
                 return Err(anyhow!(
-                    "failed to execute: err({}), output({})",
-                    error_output,
+                    r#"
+    Command: {}, args={:?}
+
+    Output:
+        {}
+
+    Error:
+        {}
+                    "#,
+                    command_binary,
+                    command_arguments,
                     output,
+                    error_output,
                 ));
             }
 
