@@ -131,6 +131,8 @@ pub(crate) fn execute_command(mut command: config::CommandDescription) -> ExecRe
 
     Error:
         {}
+
+    [end]
                     "#,
                     command_binary,
                     command_arguments,
