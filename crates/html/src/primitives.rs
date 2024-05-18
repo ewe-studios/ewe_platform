@@ -1,0 +1,129 @@
+use std::borrow::Cow;
+use std::fmt::{self, Debug};
+use std::ops::Deref;
+use std::{slice, str};
+
+pub trait Align {
+    fn align(&mut self, offset: usize);
+}
+
+impl<T: Align> Align for Vec<T> {
+    #[inline]
+    fn align(&mut self, offset: usize) {
+        for item in self.iter_mut() {
+            item.align(offset);
+        }
+    }
+}
+
+impl<T: Align> Align for Option<T> {
+    #[inline]
+    fn align(&mut self, offset: usize) {
+        if let Some(val) = self {
+            val.align(offset);
+        }
+    }
+}
+
+impl Align for usize {
+    #[inline]
+    fn align(&mut self, offset: usize) {
+        if *self >= offset {
+            *self -= offset;
+        }
+    }
+}
+
+#[derive(Clone, Copy, Default, PartialEq, Eq, Hash)]
+pub struct Range {
+    pub start: usize,
+    pub end: usize,
+}
+
+impl Align for Range {
+    fn align(&mut self, offset: usize) {
+        self.start.align(offset);
+        self.end.align(offset);
+    }
+}
+
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct Bytes<'b>(Cow<'b, [u8]>);
+
+impl<'b> Bytes<'b> {
+    pub fn from_str(text: &'b str) -> Bytes<'b> {
+        let text_bytes = text.as_bytes();
+        Self(Cow::from(text_bytes))
+    }
+
+    pub fn from_string(text: String) -> Bytes<'b> {
+        let text_bytes = text.into_bytes();
+        Self(Cow::from(text_bytes))
+    }
+
+    #[inline]
+    pub fn to_utf8_string(&self) -> String {
+        str::from_utf8(self.0.as_ref())
+            .expect("should be utf8 string")
+            .to_string()
+    }
+
+    #[inline]
+    pub fn to_upper(self) -> Bytes<'b> {
+        Bytes(Cow::from(self.0.to_ascii_uppercase()))
+    }
+
+    #[inline]
+    pub fn to_lower(self) -> Bytes<'b> {
+        Bytes(Cow::from(self.0.to_ascii_lowercase()))
+    }
+
+    #[inline]
+    pub fn into_owned(self) -> Bytes<'static> {
+        Bytes(Cow::Owned(self.0.into_owned()))
+    }
+
+    #[inline]
+    pub fn to_slice(&'b self, range: Range) -> Bytes<'b> {
+        let byte_slice = self.0[range.start..range.end].into();
+        Bytes(Cow::Borrowed(byte_slice))
+    }
+
+    #[inline]
+    pub fn opt_slice(&self, range: Option<Range>) -> Option<Bytes> {
+        range.map(|range| self.to_slice(range))
+    }
+
+    #[inline]
+    pub fn into_iter(&'b self) -> slice::Iter<'b, u8> {
+        self.0.into_iter()
+    }
+}
+
+impl Deref for Bytes<'_> {
+    type Target = [u8];
+
+    fn deref(&self) -> &[u8] {
+        &self.0
+    }
+}
+
+impl<'b> From<Cow<'b, [u8]>> for Bytes<'b> {
+    #[inline]
+    fn from(bytes: Cow<'b, [u8]>) -> Self {
+        Bytes(bytes)
+    }
+}
+
+impl<'b> From<&'b [u8]> for Bytes<'b> {
+    #[inline]
+    fn from(bytes: &'b [u8]) -> Self {
+        Bytes(bytes.into())
+    }
+}
+
+impl Debug for Bytes<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "`{}`", self.to_utf8_string())
+    }
+}
