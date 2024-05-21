@@ -23,16 +23,19 @@ Where simple json/object paths make it very possible to easily and clearly artic
 
 No magic but simple clear description of output that can both be done on the server or client with ease.
 
+### Loading In Web
+
 I forsee a future also where the core elements provided are not enough and people would wish to provide self implemente elements that can provide additional brand focused elements that define what the output should be, a component system that really just derives to core elements or final output elements.
+
+An interesting part is the presence of the `path=` attribute could make a specific new element tag dynamic and thereby be marked as such to help shake down the exact contents that need to be sync'ed down when a change occurs.
 
 So I imagine that on the web, users would be able to load this type of code in two ways:
 
 1. With the engine shell that can load wasm modules that contain relevant component implementations and definition. This allows brands to create brand specific components they can use with lightweight modules. And they can use newer versions of the core components as times is necessary and as they are updated and expanded.
 
 ```html
-
 <head>
-    <script src="https://ewe-platform.io/cdn/v2.0/engine_shell.js"></script>
+    <script src="https://ewe-platform.io/cdn/v2.0/shell.js"></script>
     <script type="text/javascript">
      // I am thinking to let others just load the core wasm
         // components not with the core but as an additional resource
@@ -48,40 +51,193 @@ So I imagine that on the web, users would be able to load this type of code in t
 </head>
 ```
 
-1. With a single bundled javascript file that contains all the both the core module and all necesary core components and methods needed to work.  Which will internally instantiated the wasm embedded within itself usually base64.
+2. With a single bundled javascript file that contains all the both the core module and all necesary core components and methods needed to work.  Which will internally instantiated the wasm embedded within itself usually base64.
 
 ```html
-
 <head>
- <!-- 
-        the engine.js  can be initialized in two ways:
-        
-        1. With the engine shell that can load wasm modules that contain
-        	relevant component implementations and definition. 
-            This allows brands to create brand specific components they can use with lightweight modules. And they can use newer versions of the core components as times is necessary
-            and as they are updated and expanded.
-        
-        2. With a single bundled javascript file that contains all the necessary 
-    -->
-    <script src="https://ewe-platform.io/cdn/v2.0/engine_shell.js"></script>
-    <script type="text/javascript">
-     // I am thinking to let others just load the core wasm
-        // components not with the core but as an additional resource
-        // to possibly allow them upgrade the core components by just
-        // switching versions.
-        engine.loadup("https://ewe-platform.io/cdn/v2.1/core.wasm");
-        
-     // Then brands can just also included, then marked with eweup=true to active and get registered by the WASM system for genereation.
-        // The idea is these two will just link up via WASM capability imports
-        engine.loadup("https://brand.io/cdn/v2.1/brand.wasm");
-    </script>
-
- <!-- 
-        2. With a single bundled javascript file that contains all the both the core module and all necesary core components and methods needed to work.  Which will internally instantiated
-        the wasm embedded within itself usually base64.
-    -->
     <script src="https://ewe-platform.io/cdn/v2.0/engine.js"></script>
-
 </head>
+```
 
+### Core Operations
+
+Taking inspiration from HTMx and Basecamp Hotwire, there are core operations that the shell or core must support out of the box to allow consistent behaviours on both side.
+
+1. Diffing updates - this will look at incoming changed wrapped in a <DiffUpdate/> that the wasm engines knows what it means and where its going.
+
+2. Html Updates - this supports the HTMx update structure that sends down html as is which the underlying engine looking at the incoming html and who triggered can decide where to place the html. For this I am considering moving from just attribute definitions to actual core markup that defines what operation the markup should be but then this is limiting as it means the returned html cant be dynamically placed in a target but the target must be known before hand unless that is done at the point of definition.
+
+HTMx attribute based approach:
+
+```html
+<section id="main"></section>
+
+<section id="menu">
+    <label>Gallery Loader</label>
+    <remote-island from="/gallery/photos" target="section#main" fade_in="0.1ms" insert="before"/>
+</section>
+```
+
+Html tag based approach:
+
+```html
+<section id="main"></section>
+
+<section id="menu">
+    <label>Gallery Loader</label>
+    <remote-island from="/gallery/photos">
+        <insert-after>
+            <target query="section#main" />
+        </insert-after>
+        <before>
+            <animation>
+                <preset>
+                    <height as="0px" />
+                    <width as="0px" />
+                    <visibility as="false" />
+                </preset>
+            <animation>
+        </before>
+        <after>
+            <animation tween="in-out-elliptic">
+                <sequence>
+                    <fade_in duration="0.1ms" />
+                    <height to="200px" />
+                    <width to="400px" />
+                 </sequence>
+                 <after>
+                    <append>
+                        <script id="gallery_handler">
+                           let div_script = document.querySelector("script#gallery_handler");
+                           console.log("Div Script", div_script);
+                           console.log("Div Script parent", div_script.parentNode);
+                        </script>
+                    </append>
+                 </after>
+            <animation>
+        </after>
+    </remote-island>
+</section>
+```
+
+Tags have the concept of Applicators that are expressive, and can be defined serially and understood serially by looking at where they are defined and what operations they will perform.
+
+This allows people to build a combination of applicators that when applied to the target element generates the final outcome.
+
+This means that if we explain above html we can say:
+
+1. <remote-island> loads up a island of content which can either be defined in the page or some http API returning html (standard htmx) that allows us to reuse the islands across the page.
+2. The remote island applies specific operations to the returned content defined in <before/> and <after/> tags that can contain other Applicators that will be applied to the target element before its mounted and after it is mounted. In this case we apply an animation that applies a preset to different styles of the element setting those (height, weight and display) to a set of values that basically hides the element though mounted and then in it's <after/> animates those using a custom tween into fade in and with height and width to specific values that shows the element.
+3. Secondly these means Applicators provide a before and after declarative hook that allows us hook simply apply another set of Applicators to the element.
+4. This also means that each applicator allows only a certain set of applicators described by markup that are allowed within itself, this allows us syntax check and return understandable errors about what is going on and why the result is not as expected.
+
+The nice thing about this is while the overall markup is now more verbose, it is also more clear, nothing is ihidden behind attributes to be remembered and its clear where and what the overall execution is.
+
+### Core Parts
+
+There are two parts to this structure:
+
+1. The Content writers that generate the actual markup that is produced and put into the DOM to generate the expected output. This needs to soely focus on actual final form of what the DOM should look like and will be the passed to the applicators to generate the output that is written to the streams.
+
+The markup will internally generate the final form that generates the final markup as `byte` stream.
+
+The markup would support two forms of rendering:
+
+### Partials
+
+Which indicates to the Applicators you are dealing with a partial (remember the rails days) where a partial template is to be rendered.
+
+This allows the Applicators to generate appropriate output for a partial markup rendering
+
+```rust
+Applicator.generate(Markup::partial(), encoding);
+```
+
+#### HTMX Partials
+
+An interesting benefit of this approach is we can actually replicate the HTMx spec for partials in how we output them using htmx attributes that allows even those who prefere htmx to be able to use the html generation system
+
+```rust
+Applicator.generate(Markup::htmx(), encoding);
+```
+
+### Page
+
+A page is a full html document with all relevant elements within that page, when this mode is used for generating markup then the Applicators know to seek the relevant content they need to use or output to will be within the source markup provided.
+
+This allows you build a full page for the first initial render or for SEO related efforts.
+
+```rust
+Applicator.generate(Markup::page(), encoding);
+```
+
+Which means the markup must support CSS selectors in some level to make it suitable and working.
+
+1. The actual Applicators - the structure describing the markup to be generated and what otherlying applicators to be applied to the generated markup at different levels. Each powering or providing a somewhat compiler of sorts that will generate the final result with all desired interactions and capability we expect.
+
+```rust
+
+Applicators::html("section").children(
+    Applicators::html("label").children(
+        Applicators::text("Gallery Loader"),
+    ),
+    Applicators::RemoteIsland("/gallery/photos").children(
+        Applicators::insert_after(
+            Applicators::target("section#main"),
+        ),
+        Applicators::before().children(
+            Applicators::animation().children(
+                Applicators::animations::preset().children(
+                    Applicators::Styles::Visibility(false),
+                    Applicators::Styles::Width("0px"),
+                    Applicators::Styles::height("0px"),
+                )
+            )
+        ),
+        Applicators::after().children(
+            Applicators::animation()
+            .attrs(Applicator::Attrs::Tween("in-out-elliptic"))
+            .children(
+                Applicators::animations::sequence().children(
+                    Applicators::Styles::FadeIn("0.1ms"),
+                    Applicators::Styles::Width("200px"),
+                    Applicators::Styles::height("200px"),
+                ),
+                Applicators::after().children(
+                    Applicators::append_child().children(
+                        Applicators::html("script")
+                        .attr("id", "gallery_handler")
+                        .children(
+                            Applicators::text(r#"
+                              let div_script = document.querySelector("script#gallery_handler");
+                                 console.log("Div Script", div_script);
+                                 console.log("Div Script parent", div_script.parentNode);
+                            "#)
+                        )
+                    )
+                ),
+            )
+        ),
+        Applicators::after().children(),
+    ),
+)
+```
+
+The key idea here is the `Applicators` generate a result internally possibly a `Markup` which then is parsed to different Applicators to apply specific operation on, which could be an operation that relies on a root `Markup` as in the instance of the `Markup::page()` which provides a working full page DOM for interactions with.
+
+This allows Applicators to tailor their underlying behaviour and implementation to a specific output e.g `Applicator::insert-after` will in the case of a `Markup::page()` look for the parent within the page to apply the insert after operation but in the case of a `Markup::partial()` wrap the output in a `<insert-after query="...">` root markup that the receiver understands what operation to perform on the client side for the result (same also for `Markup::htmx()` which generates html compartible markup).
+
+In my thought process, `Applicators` should have only 1 `after` and `before` Applicators to simplify things, the user should ensure to apply whatever operations they want in those and not litter the place with multiple befores and afters.
+
+To make this more generic and easily extendable, I feel Applicators should match a trait object that will allow extension by other users, something akin to a markup `Blueprint` that focus on 3 things.
+
+1. The data it might use in generate
+2. The markup it generates
+3. The parent markup it applies its result to
+4. The encoding the markup uses to serialize it's result.
+
+```rust
+trait Blueprint {
+    fn apply(&self, data: Option<Data>, root: Markup, encoding: Encoding);
+}
 ```
