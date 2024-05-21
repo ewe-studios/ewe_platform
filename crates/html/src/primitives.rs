@@ -3,6 +3,8 @@ use std::fmt::{self, Debug};
 use std::ops::Deref;
 use std::{slice, str};
 
+use crate::encoding;
+
 pub trait Align {
     fn align(&mut self, offset: usize);
 }
@@ -51,14 +53,13 @@ impl Align for Range {
 pub struct Bytes<'b>(Cow<'b, [u8]>);
 
 impl<'b> Bytes<'b> {
-    pub fn from_str(text: &'b str) -> Bytes<'b> {
-        let text_bytes = text.as_bytes();
-        Self(Cow::from(text_bytes))
+    pub fn from_str(text: &'b str, encoder: Box<dyn encoding::Encoder>) -> Bytes<'b> {
+        Self(encoder.encode(text))
     }
 
-    pub fn from_string(text: String) -> Bytes<'b> {
-        let text_bytes = text.into_bytes();
-        Self(Cow::from(text_bytes))
+    #[inline]
+    pub fn to_string(&self, decoder: Box<dyn encoding::Decoder>) -> String {
+        decoder.decode(self).to_owned()
     }
 
     #[inline]

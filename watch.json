@@ -3,7 +3,7 @@
         {
             "dir": "./bin",
             "recursive": true,
-            "debounce": 800,
+            "debounce": 1000,
             "after_change": [
                 {
                     "command": [

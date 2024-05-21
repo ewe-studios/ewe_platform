@@ -449,16 +449,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ewe-html-macro"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
- "trybuild",
-]
-
-[[package]]
 name = "ewe-spawn"
 version = "0.1.0"
 dependencies = [
@@ -479,6 +469,8 @@ dependencies = [
  "ewe-templates",
  "proc-macro2",
  "quote",
+ "serde",
+ "serde_json",
  "syn",
  "trybuild",
 ]

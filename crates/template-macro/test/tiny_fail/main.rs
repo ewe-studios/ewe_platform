@@ -1,5 +1,5 @@
+use ewe_template_macro::template;
 use minijinja::context;
-use template_macro::template;
 
 fn main() {
     let data = context!(code => 200, name => "Alex", country => "Nigeria");

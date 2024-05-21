@@ -18,6 +18,8 @@ proc-macro2 = "1.0.40"
 syn = { version = "2.0.60", features = ["full"] }
 
 # template dependencies
+serde.workspace = true
+serde_json.workspace = true
 ewe-templates = { path = "../templates" }
 # tinytemplate = { git = "https://github.com/ewe-studios/TinyTemplate.git", branch = "master" }
 # minijinja = { version = "2.0.0" }

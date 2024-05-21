@@ -159,6 +159,8 @@ pub(crate) fn execute_commands(watcher: config::Watcher) -> ExecResult<()> {
             }
         }
     }
+
+    tracing::info!("Done executing!!!");
     Ok(())
 }
 

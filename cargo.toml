@@ -3,6 +3,7 @@
 resolver = "2"
 # set members of your workspace
 members = ["bin/*", "crates/*", "backends/*", "examples/template/*"]
+exclude = ["crates/html_macro"]
 
 [workspace.package]
 edition = "2021"

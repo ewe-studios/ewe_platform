@@ -303,4 +303,5 @@ fn trybuild() {
     tc.compile_fail("test/tiny_fail/main.rs");
 
     tc.pass("test/jinja/main.rs");
+    tc.compile_fail("test/jinja_fail/main.rs");
 }

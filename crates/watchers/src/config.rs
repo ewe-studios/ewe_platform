@@ -224,15 +224,15 @@ mod tests {
                     "after_change": [
                         {
                             "command": ["rust", "build"],
-                            "if_failed": "exit",
+                            "if_failed": "exit"
                         },
                         {
                             "command": ["rust", "check"],
-                            "if_failed": "exit",
+                            "if_failed": "exit"
                         },
                         {
                             "command": ["rust", "test"],
-                            "if_failed": "exit",
+                            "if_failed": "exit"
                         }
                     ]
                 }
@@ -312,15 +312,15 @@ mod tests {
                     "after_change": [
                         {
                             "command": ["rust", "build"],
-                            "if_failed": "exit",
+                            "if_failed": "exit"
                         },
                         {
                             "command": ["rust", "check"],
-                            "if_failed": "exit",
+                            "if_failed": "exit"
                         },
                         {
                             "command": ["rust", "test"],
-                            "if_failed": "exit",
+                            "if_failed": "exit"
                         }
                     ]
                 }
