@@ -57,7 +57,7 @@ tracing-subscriber = { version = "0.3.18" }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
-unused = "warn"        # for experimental dev
+unused = "allow"       # for experimental dev
 
 [workspace.lints.clippy]
 pedantic = "warn"

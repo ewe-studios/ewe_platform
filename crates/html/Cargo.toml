@@ -12,6 +12,8 @@ keywords.workspace = true
 
 [dependencies]
 memchr = "2.7.2"
+thiserror.workspace = true
+anyhow.workspace = true
 
 [lints]
 workspace = true

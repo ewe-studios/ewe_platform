@@ -237,7 +237,7 @@ To make this more generic and easily extendable, I feel Applicators should match
 4. The encoding the markup uses to serialize it's result.
 
 ```rust
-trait Blueprint {
-    fn apply(&self, data: Option<Data>, root: Markup, encoding: Encoding);
+trait Applicator {
+    fn generate(&self, data: Option<Data>, root: Markup, encoding: Encoding);
 }
 ```

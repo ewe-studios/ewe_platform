@@ -47,11 +47,6 @@ impl Align for Range {
     }
 }
 
-pub trait Encoder {
-    fn encode_str<'a>(&self, text: &'a str) -> Cow<'a, [u8]>;
-    fn encode_string(&self, text: String) -> Vec<u8>;
-}
-
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct Bytes<'b>(Cow<'b, [u8]>);
 
