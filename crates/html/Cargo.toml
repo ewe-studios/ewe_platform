@@ -12,8 +12,18 @@ keywords.workspace = true
 
 [dependencies]
 memchr = "2.7.2"
+lazycell.workspace = true
 thiserror.workspace = true
 anyhow.workspace = true
 
+[dev-dependencies]
+syncbox = "0.2"
+
 [lints]
 workspace = true
+
+[features]
+nightly = []
+
+[profile.bench]
+debug = true

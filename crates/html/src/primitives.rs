@@ -53,12 +53,18 @@ impl Align for Range {
 pub struct Bytes<'b>(Cow<'b, [u8]>);
 
 impl<'b> Bytes<'b> {
-    pub fn from_str(text: &'b str, encoder: Box<dyn encoding::Encoder>) -> Bytes<'b> {
+    #[inline]
+    pub fn from_slice(slice: &'b [u8]) -> Bytes<'b> {
+        Bytes(Cow::from(slice))
+    }
+
+    #[inline]
+    pub fn from_str(text: &'b str, encoder: &'static dyn encoding::Encoding) -> Bytes<'b> {
         Self(encoder.encode(text))
     }
 
     #[inline]
-    pub fn to_string(&self, decoder: Box<dyn encoding::Decoder>) -> String {
+    pub fn to_string(&self, decoder: &'static dyn encoding::Encoding) -> String {
         decoder.decode(self).to_owned()
     }
 
@@ -77,6 +83,16 @@ impl<'b> Bytes<'b> {
     #[inline]
     pub fn to_lower(self) -> Bytes<'b> {
         Bytes(Cow::from(self.0.to_ascii_lowercase()))
+    }
+
+    #[inline]
+    pub fn as_upper(&self, encoder: &'static dyn encoding::Encoding) -> String {
+        encoder.decode(self).to_ascii_uppercase()
+    }
+
+    #[inline]
+    pub fn as_lower(&self, encoder: &'static dyn encoding::Encoding) -> String {
+        encoder.decode(self).to_ascii_lowercase()
     }
 
     #[inline]
