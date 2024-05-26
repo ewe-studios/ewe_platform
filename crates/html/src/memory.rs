@@ -553,7 +553,7 @@ impl<T: Resetable> ArenaPool<T> {
         // we can reuse a previous structure then pull that up and send it
         // out as return value to the requester.
         if self.arena.len() > 0 {
-            self.tracker.increase_usage(calculate_size_for::<T>(None));
+            self.tracker.increase_usage(calculate_size_for::<T>(None))?;
 
             let elem = self.arena.drain_last().expect("should have element");
 
@@ -565,13 +565,13 @@ impl<T: Resetable> ArenaPool<T> {
             return Ok(handle);
         }
 
+        self.tracker.increase_usage(calculate_size_for::<T>(None))?;
+
         let elem = (self.generator)();
         let handle = PoolHandle(
             rc::Rc::new(cell::RefCell::new(Some(elem))),
             rc::Rc::new(cell::RefCell::new(self.clone().into())),
         );
-
-        self.tracker.increase_usage(calculate_size_for::<T>(None));
 
         Ok(handle)
     }

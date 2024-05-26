@@ -46,12 +46,14 @@ fn bench_dummy_usize_area_pool_with_deallocate(b: &mut Bencher) {
 struct DummyProfile {
     pub name: String,
     pub address: String,
+    pub weddings: Vec<String>,
 }
 
 impl Resetable for DummyProfile {
     fn reset(&mut self) {
         self.name.clear();
         self.address.clear();
+        self.weddings.clear();
     }
 }
 
@@ -62,6 +64,7 @@ fn bench_dummy_profile_area_pool_with_drop(b: &mut Bencher) {
     let mut pool: ArenaPool<DummyProfile> = ArenaPool::new(limiter, || DummyProfile {
         name: String::from("alex"),
         address: String::from("New York"),
+        weddings: vec![String::from("north"), String::from("south")],
     });
 
     b.iter(|| {
@@ -80,6 +83,7 @@ fn bench_dummy_profile_area_pool_with_deallocate(b: &mut Bencher) {
     let mut pool: ArenaPool<DummyProfile> = ArenaPool::new(limiter, || DummyProfile {
         name: String::from("alex"),
         address: String::from("New York"),
+        weddings: vec![String::from("north"), String::from("south")],
     });
 
     b.iter(|| {
