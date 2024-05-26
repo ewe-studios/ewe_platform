@@ -17,19 +17,6 @@ impl Resetable for Dummy {
 }
 
 #[bench]
-fn bench_dummy_usize_area_pool_with_drop(b: &mut Bencher) {
-    let limiter = MemoryLimiter::create_shared(calculate_size_for::<Dummy>(None) * 8024 * 8024);
-    let mut pool: ArenaPool<Dummy> = ArenaPool::new(limiter, || Dummy(0));
-
-    b.iter(|| {
-        black_box({
-            let data = pool.allocate().expect("received handle");
-            drop(data);
-        })
-    })
-}
-
-#[bench]
 fn bench_dummy_usize_area_pool_with_deallocate(b: &mut Bencher) {
     let limiter = MemoryLimiter::create_shared(calculate_size_for::<Dummy>(None) * 8024 * 8024);
     let mut pool: ArenaPool<Dummy> = ArenaPool::new(limiter, || Dummy(0));
@@ -37,7 +24,7 @@ fn bench_dummy_usize_area_pool_with_deallocate(b: &mut Bencher) {
     b.iter(|| {
         black_box({
             let data = pool.allocate().expect("received handle");
-            data.deallocate();
+            pool.deallocate(data);
         })
     })
 }
@@ -56,24 +43,6 @@ impl Resetable for DummyProfile {
 }
 
 #[bench]
-fn bench_dummy_profile_area_pool_with_drop(b: &mut Bencher) {
-    let limiter =
-        MemoryLimiter::create_shared(calculate_size_for::<DummyProfile>(Some(10)) * 8024 * 8024);
-    let mut pool: ArenaPool<DummyProfile> = ArenaPool::new(limiter, || DummyProfile {
-        name: String::from("alex"),
-        address: String::from("New York"),
-    });
-
-    b.iter(|| {
-        black_box({
-            let data = pool.allocate().expect("received handle");
-            data.element().borrow_mut().clone().unwrap().name = String::from("thunder");
-            drop(data);
-        })
-    })
-}
-
-#[bench]
 fn bench_dummy_profile_area_pool_with_deallocate(b: &mut Bencher) {
     let limiter =
         MemoryLimiter::create_shared(calculate_size_for::<DummyProfile>(Some(10)) * 8024 * 8024);
@@ -84,9 +53,9 @@ fn bench_dummy_profile_area_pool_with_deallocate(b: &mut Bencher) {
 
     b.iter(|| {
         black_box({
-            let data = pool.allocate().expect("received handle");
-            data.element().borrow_mut().clone().unwrap().name = String::from("thunder");
-            data.deallocate();
+            let mut data = pool.allocate().expect("received handle");
+            data.name = String::from("thunder");
+            pool.deallocate(data);
         })
     })
 }
@@ -107,7 +76,7 @@ impl Resetable for DummyProfileWithWedding {
 }
 
 #[bench]
-fn bench_dummy_profile_with_wedding_area_pool_with_drop(b: &mut Bencher) {
+fn bench_dummy_profile_with_wedding_area_pool_with_vec_add(b: &mut Bencher) {
     let limiter = MemoryLimiter::create_shared(
         calculate_size_for::<DummyProfileWithWedding>(None) * 8024 * 8024,
     );
@@ -120,9 +89,10 @@ fn bench_dummy_profile_with_wedding_area_pool_with_drop(b: &mut Bencher) {
 
     b.iter(|| {
         black_box({
-            let data = pool.allocate().expect("received handle");
-            data.element().borrow_mut().clone().unwrap().name = String::from("thunder");
-            drop(data);
+            let mut data = pool.allocate().expect("received handle");
+            data.name = String::from("thunder");
+            data.weddings.push(String::from("west"));
+            pool.deallocate(data);
         })
     })
 }
@@ -141,9 +111,9 @@ fn bench_dummy_profile_with_wedding_area_pool_with_deallocate(b: &mut Bencher) {
 
     b.iter(|| {
         black_box({
-            let data = pool.allocate().expect("received handle");
-            data.element().borrow_mut().clone().unwrap().name = String::from("thunder");
-            data.deallocate();
+            let mut data = pool.allocate().expect("received handle");
+            data.name = String::from("thunder");
+            pool.deallocate(data);
         })
     })
 }

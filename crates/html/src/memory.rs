@@ -472,11 +472,12 @@ impl<T: Resetable> PoolHandle<T> {
     /// back to the pool for re-use.
     #[inline]
     pub fn deallocate(&self) {
-        if let Some(mut pool) = self.1.borrow_mut().take() {
-            if let Some(elem) = self.0.borrow_mut().take() {
-                pool.deallocate_element(elem);
-            }
-        }
+        // if let Some(mut pool) = self.1.borrow_mut().take() {
+        //     if let Some(elem) = self.0.borrow_mut().take() {
+        //         pool.deallocate_element(elem);
+        //     }
+        // }
+        todo!()
     }
 }
 
@@ -523,30 +524,14 @@ impl<T: Resetable> ArenaPool<T> {
     }
 
     #[inline]
-    pub(crate) fn deallocate_element(&mut self, elem: T) {
+    pub fn deallocate(&mut self, elem: T) {
         self.tracker.set_capacity(self.limiter.borrow().capacity());
         self.arena.push(elem);
         self.tracker.decrease_usage(calculate_size_for::<T>(None));
     }
 
     #[inline]
-    pub fn deallocate(&mut self, handle: PoolHandle<T>) {
-        self.tracker.set_capacity(self.limiter.borrow().capacity());
-
-        // if user has done something stupid by say setting the element
-        // container (a `Option` to None, then ignore.
-        if handle.0.borrow().is_none() {
-            return;
-        }
-
-        match handle.0.borrow_mut().take() {
-            None => return,
-            Some(elem) => self.deallocate_element(elem),
-        };
-    }
-
-    #[inline]
-    pub fn allocate(&mut self) -> MemoryResult<PoolHandle<T>> {
+    pub fn allocate(&mut self) -> MemoryResult<T> {
         self.tracker.set_capacity(self.limiter.borrow().capacity());
 
         // if we have items in the arena, meaning
@@ -556,24 +541,13 @@ impl<T: Resetable> ArenaPool<T> {
             self.tracker.increase_usage(calculate_size_for::<T>(None))?;
 
             let elem = self.arena.drain_last().expect("should have element");
-
-            let handle = PoolHandle(
-                rc::Rc::new(cell::RefCell::new(Some(elem))),
-                rc::Rc::new(cell::RefCell::new(self.clone().into())),
-            );
-
-            return Ok(handle);
+            return Ok(elem);
         }
 
         self.tracker.increase_usage(calculate_size_for::<T>(None))?;
 
         let elem = (self.generator)();
-        let handle = PoolHandle(
-            rc::Rc::new(cell::RefCell::new(Some(elem))),
-            rc::Rc::new(cell::RefCell::new(self.clone().into())),
-        );
-
-        Ok(handle)
+        Ok(elem)
     }
 }
 
@@ -599,18 +573,15 @@ mod arena_pool_tests {
 
         assert_eq!(pool.allocated(), 0);
 
-        let my_number_handler = pool.allocate().unwrap();
-        let mut my_number = my_number_handler.element();
+        let mut my_number = pool.allocate().unwrap();
 
         assert_eq!(pool.allocated(), 8);
 
-        *my_number.borrow_mut() = Some(&1);
+        my_number = &1;
 
-        assert_eq!(*my_number.borrow().unwrap(), 1);
+        assert_eq!(*my_number, 1);
 
-        my_number_handler.deallocate();
-
-        assert_eq!(*my_number.borrow(), None);
+        pool.deallocate(my_number);
     }
 
     #[test]
@@ -623,8 +594,7 @@ mod arena_pool_tests {
 
         assert_eq!(pool.allocated(), 0);
 
-        let my_number_handler = pool.allocate().unwrap();
-        let mut my_number = my_number_handler.element();
+        let my_number = pool.allocate().unwrap();
 
         assert_eq!(pool.allocated(), 8);
 
