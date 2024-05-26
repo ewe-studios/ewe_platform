@@ -1,5 +1,5 @@
-use crate::encoding::Encoding;
 use crate::primitives::Bytes;
+use crate::{encoding::Encoding, memory};
 
 use std::{cell, rc};
 
@@ -70,25 +70,21 @@ impl<'a> Attribute<'a> {
     }
 }
 
-pub type ElementHandle<'b> = rc::Rc<lazycell::LazyCell<Node<'b>>>;
-
-pub type AttributeHandle<'b> = rc::Rc<lazycell::LazyCell<Attribute<'b>>>;
-
 pub struct Node<'a> {
     name: Bytes<'a>,
     removed: bool,
-    parent: Option<ElementHandle<'a>>,
-    attributes: Option<Vec<AttributeHandle<'a>>>,
+    parent: Option<memory::ReferencedType<Node<'a>>>,
+    attributes: Option<Vec<memory::ReferencedType<Attribute<'a>>>>,
 
     // after nodes are special in that they are in the order of
     // precedence, where the first item is the most farthest element
     // after this one and the last the closest after this element.
-    after: Option<Vec<ElementHandle<'a>>>,
+    after: Option<memory::ReferencedType<Markup<'a>>>,
 
     // before nodes are special in that they are in the order of
     // precedence, where the first item is the most farthest element
     // before this one and the last the closest before this element.
-    before: Option<Vec<ElementHandle<'a>>>,
+    before: Option<memory::ReferencedType<Markup<'a>>>,
 
     // Content works different, content that is appended as normal
     // follow the order in the `Vec` with the first being the element
@@ -96,7 +92,7 @@ pub struct Node<'a> {
     //
     // Performing a `Node::before_content` must instead of adjusting the
     // `Vec` simply get the first element and uses it's before list.
-    content: Option<Vec<ElementHandle<'a>>>,
+    content: Option<memory::ReferencedType<Markup<'a>>>,
 
     encoding: &'static dyn Encoding,
 }
