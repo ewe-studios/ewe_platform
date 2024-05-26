@@ -445,42 +445,6 @@ pub trait Resetable: Clone {
     fn reset(&mut self);
 }
 
-#[derive(Clone)]
-pub struct PoolHandle<T: Resetable>(
-    ReferencedType<Option<T>>,
-    ReferencedType<Option<ArenaPool<T>>>,
-);
-
-impl<T: Resetable> Drop for PoolHandle<T> {
-    fn drop(&mut self) {
-        self.deallocate();
-    }
-}
-
-impl<T: Resetable> PoolHandle<T> {
-    /// Returns the underlying element controlled by the pool handle.
-    pub fn element(&self) -> ReferencedType<Option<T>> {
-        rc::Rc::clone(&self.0)
-    }
-
-    /// Returns the underlying pool reference.
-    pub fn pool(&self) -> rc::Rc<cell::RefCell<Option<ArenaPool<T>>>> {
-        rc::Rc::clone(&self.1)
-    }
-
-    /// Deallocates given handle and it's internal content
-    /// back to the pool for re-use.
-    #[inline]
-    pub fn deallocate(&self) {
-        // if let Some(mut pool) = self.1.borrow_mut().take() {
-        //     if let Some(elem) = self.0.borrow_mut().take() {
-        //         pool.deallocate_element(elem);
-        //     }
-        // }
-        todo!()
-    }
-}
-
 pub type PoolGenerator<T> = fn() -> T;
 
 /// `ArenaPool` provides a single-threaded object pool which allows us to easily
@@ -497,7 +461,22 @@ pub struct ArenaPool<T: Resetable> {
     generator: PoolGenerator<T>,
 }
 
+pub type SharedArenaPool<T> = rc::Rc<cell::RefCell<ArenaPool<T>>>;
+
 impl<T: Resetable> ArenaPool<T> {
+    pub fn create_shared(
+        limiter: SharedMemoryLimiter,
+        gen: PoolGenerator<T>,
+    ) -> SharedArenaPool<T> {
+        let tracker = MemoryLimiter::non_shared(limiter.borrow().capacity());
+        rc::Rc::new(cell::RefCell::new(Self {
+            tracker,
+            generator: gen,
+            limiter: rc::Rc::clone(&limiter),
+            arena: TypeArena::new(rc::Rc::clone(&limiter)),
+        }))
+    }
+
     pub fn new(limiter: SharedMemoryLimiter, gen: PoolGenerator<T>) -> Self {
         let tracker = MemoryLimiter::non_shared(limiter.borrow().capacity());
         Self {
