@@ -546,7 +546,7 @@ impl<T: Resetable> ArenaPool<T> {
     }
 
     #[inline]
-    pub fn allocate(&mut self) -> Option<PoolHandle<T>> {
+    pub fn allocate(&mut self) -> MemoryResult<PoolHandle<T>> {
         self.tracker.set_capacity(self.limiter.borrow().capacity());
 
         // if we have items in the arena, meaning
@@ -562,7 +562,7 @@ impl<T: Resetable> ArenaPool<T> {
                 rc::Rc::new(cell::RefCell::new(self.clone().into())),
             );
 
-            return Some(handle);
+            return Ok(handle);
         }
 
         let elem = (self.generator)();
@@ -573,7 +573,7 @@ impl<T: Resetable> ArenaPool<T> {
 
         self.tracker.increase_usage(calculate_size_for::<T>(None));
 
-        Some(handle)
+        Ok(handle)
     }
 }
 
@@ -611,5 +611,23 @@ mod arena_pool_tests {
         my_number_handler.deallocate();
 
         assert_eq!(*my_number.borrow(), None);
+    }
+
+    #[test]
+    fn test_arena_pool_limits() {
+        let limiter = MemoryLimiter::create_shared(8);
+        let mut pool: ArenaPool<ResetableU8> = ArenaPool::new(limiter, || {
+            let new_value: ResetableU8 = &0;
+            new_value
+        });
+
+        assert_eq!(pool.allocated(), 0);
+
+        let my_number_handler = pool.allocate().unwrap();
+        let mut my_number = my_number_handler.element();
+
+        assert_eq!(pool.allocated(), 8);
+
+        assert!(matches!(pool.allocate(), MemoryResult::Err(_)));
     }
 }
