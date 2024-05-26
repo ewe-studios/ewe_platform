@@ -58,7 +58,7 @@ impl Resetable for DummyProfile {
 #[bench]
 fn bench_dummy_profile_area_pool_with_drop(b: &mut Bencher) {
     let limiter =
-        MemoryLimiter::create_shared(calculate_size_for::<DummyProfile>(None) * 8024 * 8024);
+        MemoryLimiter::create_shared(calculate_size_for::<DummyProfile>(Some(10)) * 8024 * 8024);
     let mut pool: ArenaPool<DummyProfile> = ArenaPool::new(limiter, || DummyProfile {
         name: String::from("alex"),
         address: String::from("New York"),
@@ -76,7 +76,7 @@ fn bench_dummy_profile_area_pool_with_drop(b: &mut Bencher) {
 #[bench]
 fn bench_dummy_profile_area_pool_with_deallocate(b: &mut Bencher) {
     let limiter =
-        MemoryLimiter::create_shared(calculate_size_for::<DummyProfile>(None) * 8024 * 8024);
+        MemoryLimiter::create_shared(calculate_size_for::<DummyProfile>(Some(10)) * 8024 * 8024);
     let mut pool: ArenaPool<DummyProfile> = ArenaPool::new(limiter, || DummyProfile {
         name: String::from("alex"),
         address: String::from("New York"),
