@@ -1,5 +1,5 @@
 [package]
-name = "html"
+name = "ewe-mem"
 version = "0.1.0"
 edition.workspace = true
 rust-version.workspace = true
@@ -8,15 +8,12 @@ authors.workspace = true
 repository.workspace = true
 keywords.workspace = true
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 memchr = "2.7.2"
 lazy_static.workspace = true
 lazycell.workspace = true
 thiserror.workspace = true
 anyhow.workspace = true
-ewe-mem.workspace = true
 
 [dev-dependencies]
 syncbox = "0.2"

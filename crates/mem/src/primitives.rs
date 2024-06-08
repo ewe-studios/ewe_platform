@@ -59,12 +59,12 @@ impl<'b> Bytes<'b> {
     }
 
     #[inline]
-    pub fn from_str(text: &'b str, encoder: &'static dyn encoding::Encoding) -> Bytes<'b> {
+    pub fn from_str(text: &'b str, encoder: encoding::SharedEncoding) -> Bytes<'b> {
         Self(encoder.encode(text))
     }
 
     #[inline]
-    pub fn to_string(&self, decoder: &'static dyn encoding::Encoding) -> String {
+    pub fn to_string(&self, decoder: encoding::SharedEncoding) -> String {
         decoder.decode(self).to_owned()
     }
 
@@ -86,12 +86,12 @@ impl<'b> Bytes<'b> {
     }
 
     #[inline]
-    pub fn as_upper(&self, encoder: &'static dyn encoding::Encoding) -> String {
+    pub fn as_upper(&self, encoder: encoding::SharedEncoding) -> String {
         encoder.decode(self).to_ascii_uppercase()
     }
 
     #[inline]
-    pub fn as_lower(&self, encoder: &'static dyn encoding::Encoding) -> String {
+    pub fn as_lower(&self, encoder: encoding::SharedEncoding) -> String {
         encoder.decode(self).to_ascii_lowercase()
     }
 

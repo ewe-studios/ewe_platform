@@ -1,5 +1,4 @@
 use std::borrow::Cow;
-use std::cell;
 use std::fmt::{self, Debug};
 use std::mem::size_of;
 use std::ops::{Deref, Index, RangeBounds};
@@ -7,6 +6,7 @@ use std::rc;
 use std::result;
 use std::str;
 use std::vec::Drain;
+use std::{cell, sync};
 
 use thiserror::Error;
 
@@ -441,11 +441,31 @@ mod type_area_tests {
 
 pub type ReferencedType<T> = rc::Rc<cell::RefCell<T>>;
 
-pub trait Resetable: Clone {
+pub trait Resetable {
     fn reset(&mut self);
 }
 
-pub type PoolGenerator<T> = fn() -> T;
+pub trait PoolGenerator<T: Resetable> {
+    fn generate(&self, pool: &mut ArenaPool<T>) -> T;
+}
+
+pub struct FnGenerator<T: Resetable> {
+    handler: Box<dyn Fn(&mut ArenaPool<T>) -> T>,
+}
+
+impl<T: Resetable> FnGenerator<T> {
+    pub fn new(handler: impl Fn(&mut ArenaPool<T>) -> T + 'static) -> Self {
+        Self {
+            handler: Box::new(handler),
+        }
+    }
+}
+
+impl<T: Resetable> PoolGenerator<T> for FnGenerator<T> {
+    fn generate(&self, pool: &mut ArenaPool<T>) -> T {
+        (self.handler)(pool)
+    }
+}
 
 /// `ArenaPool` provides a single-threaded object pool which allows us to easily
 /// generate a trackable and reusable set of objects that can be freely
@@ -458,7 +478,7 @@ pub struct ArenaPool<T: Resetable> {
     arena: TypeArena<T>,
     tracker: MemoryLimiter,
     limiter: SharedMemoryLimiter,
-    generator: PoolGenerator<T>,
+    generator: rc::Rc<dyn PoolGenerator<T>>,
 }
 
 pub type SharedArenaPool<T> = rc::Rc<cell::RefCell<ArenaPool<T>>>;
@@ -466,22 +486,22 @@ pub type SharedArenaPool<T> = rc::Rc<cell::RefCell<ArenaPool<T>>>;
 impl<T: Resetable> ArenaPool<T> {
     pub fn create_shared(
         limiter: SharedMemoryLimiter,
-        gen: PoolGenerator<T>,
+        gen: impl PoolGenerator<T> + 'static,
     ) -> SharedArenaPool<T> {
         let tracker = MemoryLimiter::non_shared(limiter.borrow().capacity());
         rc::Rc::new(cell::RefCell::new(Self {
             tracker,
-            generator: gen,
+            generator: rc::Rc::new(gen),
             limiter: rc::Rc::clone(&limiter),
             arena: TypeArena::new(rc::Rc::clone(&limiter)),
         }))
     }
 
-    pub fn new(limiter: SharedMemoryLimiter, gen: PoolGenerator<T>) -> Self {
+    pub fn new(limiter: SharedMemoryLimiter, gen: impl PoolGenerator<T> + 'static) -> Self {
         let tracker = MemoryLimiter::non_shared(limiter.borrow().capacity());
         Self {
             tracker,
-            generator: gen,
+            generator: rc::Rc::new(gen),
             limiter: rc::Rc::clone(&limiter),
             arena: TypeArena::new(rc::Rc::clone(&limiter)),
         }
@@ -503,8 +523,9 @@ impl<T: Resetable> ArenaPool<T> {
     }
 
     #[inline]
-    pub fn deallocate(&mut self, elem: T) {
+    pub fn deallocate(&mut self, mut elem: T) {
         self.tracker.set_capacity(self.limiter.borrow().capacity());
+        elem.reset();
         self.arena.push(elem);
         self.tracker.decrease_usage(calculate_size_for::<T>(None));
     }
@@ -525,7 +546,8 @@ impl<T: Resetable> ArenaPool<T> {
 
         self.tracker.increase_usage(calculate_size_for::<T>(None))?;
 
-        let elem = (self.generator)();
+        let gen = self.generator.clone();
+        let elem = gen.generate(self);
         Ok(elem)
     }
 }
@@ -545,10 +567,13 @@ mod arena_pool_tests {
     #[test]
     fn test_arena_pool() {
         let limiter = MemoryLimiter::create_shared(800);
-        let mut pool: ArenaPool<ResetableU8> = ArenaPool::new(limiter, || {
-            let new_value: ResetableU8 = &0;
-            new_value
-        });
+        let mut pool: ArenaPool<ResetableU8> = ArenaPool::new(
+            limiter,
+            FnGenerator::new(|_| {
+                let new_value: ResetableU8 = &0;
+                new_value
+            }),
+        );
 
         assert_eq!(pool.allocated(), 0);
 
@@ -566,10 +591,13 @@ mod arena_pool_tests {
     #[test]
     fn test_arena_pool_limits() {
         let limiter = MemoryLimiter::create_shared(8);
-        let mut pool: ArenaPool<ResetableU8> = ArenaPool::new(limiter, || {
-            let new_value: ResetableU8 = &0;
-            new_value
-        });
+        let mut pool: ArenaPool<ResetableU8> = ArenaPool::new(
+            limiter,
+            FnGenerator::new(|_| {
+                let new_value: ResetableU8 = &0;
+                new_value
+            }),
+        );
 
         assert_eq!(pool.allocated(), 0);
 

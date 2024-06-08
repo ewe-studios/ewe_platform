@@ -27,6 +27,17 @@ wasm-bindgen-test = { version = "0.3.42" }
 # -- global dependencies
 [workspace.dependencies]
 # internal packages so others can use them
+ewe-web = { path = "./crates/web" }
+ewe-spawn = { path = "./crates/spawn" }
+ewe-watchers = { path = "./crates/watchers" }
+ewe-temple = { path = "./crates/temple" }
+ewe-templates = { path = "./crates/templates" }
+ewe-templates_macro = { path = "./crates/template-macro" }
+ewe-mem = { path = "./crates/mem" }
+ewe-platform = { path = "./crates/platform" }
+ewe-channels = { path = "./crates/channels" }
+ewe-domain = { path = "./crates/domain" }
+ewe-domain-macro = { path = "./crates/domain-macro" }
 
 
 # general crates

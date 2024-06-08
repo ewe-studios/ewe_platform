@@ -449,6 +449,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "ewe-mem"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "lazy_static",
+ "lazycell",
+ "memchr",
+ "syncbox",
+ "thiserror",
+]
+
+[[package]]
 name = "ewe-spawn"
 version = "0.1.0"
 dependencies = [
@@ -706,6 +718,8 @@ name = "html"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "ewe-mem",
+ "lazy_static",
  "lazycell",
  "memchr",
  "syncbox",
