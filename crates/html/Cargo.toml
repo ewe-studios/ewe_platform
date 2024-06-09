@@ -12,6 +12,9 @@ keywords.workspace = true
 
 [dependencies]
 memchr = "2.7.2"
+phf = { version = "0.11.2", features = ["macros"] }
+strum = { version = "0.26" }
+strum_macros = { version = "0.26" }
 lazy_static.workspace = true
 lazycell.workspace = true
 thiserror.workspace = true
