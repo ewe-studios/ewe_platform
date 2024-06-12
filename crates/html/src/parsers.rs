@@ -9,6 +9,7 @@ use lazy_static::lazy_static;
 use phf::phf_map;
 use std::{any, collections::HashMap, str::FromStr};
 use thiserror::Error;
+use tracing::trace;
 
 use crate::markup::ElementResult;
 
@@ -1615,6 +1616,13 @@ impl SVGTags {
         SVG_TAG_REGEX.get(self)
     }
 
+    pub fn is_self_closing_tag(self) -> bool {
+        match self {
+            SVGTags::Path | SVGTags::Polygon | SVGTags::Rect | SVGTags::Circle => true,
+            _ => false,
+        }
+    }
+
     fn tag_to_str<'b>(self) -> &'b str {
         match self {
             SVGTags::A => "a",
@@ -1822,6 +1830,7 @@ pub enum HTMLTags {
     Var,
     Video,
     Wbr,
+    Keygen,
 }
 
 impl FromStr for HTMLTags {
@@ -1883,6 +1892,7 @@ impl FromStr for HTMLTags {
             "input" => Ok(HTMLTags::Input),
             "ins" => Ok(HTMLTags::Ins),
             "kbd" => Ok(HTMLTags::Kbd),
+            "keygen" => Ok(HTMLTags::Kbd),
             "label" => Ok(HTMLTags::Label),
             "legend" => Ok(HTMLTags::Legend),
             "li" => Ok(HTMLTags::Li),
@@ -2010,6 +2020,7 @@ impl HTMLTags {
             HTMLTags::Input => "input",
             HTMLTags::Ins => "ins",
             HTMLTags::Kbd => "kbd",
+            HTMLTags::Keygen => "keygen",
             HTMLTags::Label => "label",
             HTMLTags::Legend => "legend",
             HTMLTags::Li => "li",
@@ -2083,6 +2094,7 @@ impl HTMLTags {
             | HTMLTags::Img
             | HTMLTags::Link
             | HTMLTags::Meta
+            | HTMLTags::Keygen
             | HTMLTags::Param
             | HTMLTags::Track
             | HTMLTags::Source
@@ -2177,6 +2189,87 @@ impl HTMLTags {
             _ => false,
         }
     }
+
+    pub fn is_block_tag(tag: HTMLTags) -> bool {
+        if HTMLTags::is_table_tag(tag.clone())
+            || HTMLTags::is_d_tag(tag.clone())
+            || HTMLTags::is_header_tag(tag.clone())
+            || HTMLTags::is_f_tag(tag.clone())
+        {
+            return true;
+        }
+        match tag {
+            HTMLTags::Address
+            | HTMLTags::Article
+            | HTMLTags::Aside
+            | HTMLTags::Blockquote
+            | HTMLTags::Br
+            | HTMLTags::Main
+            | HTMLTags::Nav
+            | HTMLTags::P
+            | HTMLTags::Pre
+            | HTMLTags::Section
+            | HTMLTags::Hr
+            | HTMLTags::Ol
+            | HTMLTags::Ul
+            | HTMLTags::Li => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_table_tag(tag: HTMLTags) -> bool {
+        match tag {
+            HTMLTags::Tfoot
+            | HTMLTags::Tbody
+            | HTMLTags::Thead
+            | HTMLTags::Th
+            | HTMLTags::Tr
+            | HTMLTags::Td
+            | HTMLTags::Table => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_block_text_tag(tag: HTMLTags) -> bool {
+        match tag {
+            HTMLTags::Script | HTMLTags::Noscript | HTMLTags::Style | HTMLTags::Pre => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_f_tag(tag: HTMLTags) -> bool {
+        match tag {
+            HTMLTags::Form
+            | HTMLTags::Footer
+            | HTMLTags::Figure
+            | HTMLTags::Figcaption
+            | HTMLTags::Fieldset => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_d_tag(tag: HTMLTags) -> bool {
+        match tag {
+            HTMLTags::Details | HTMLTags::Dialog | HTMLTags::Dd | HTMLTags::Div | HTMLTags::Dt => {
+                true
+            }
+            _ => false,
+        }
+    }
+
+    pub fn is_header_tag(tag: HTMLTags) -> bool {
+        match tag {
+            HTMLTags::H1
+            | HTMLTags::H2
+            | HTMLTags::H3
+            | HTMLTags::H4
+            | HTMLTags::H5
+            | HTMLTags::H6
+            | HTMLTags::Header
+            | HTMLTags::Hgroup => true,
+            _ => false,
+        }
+    }
 }
 
 impl Into<String> for HTMLTags {
@@ -2234,6 +2327,14 @@ impl MarkupTags {
         }
     }
 
+    pub fn is_element_self_closing(me: MarkupTags) -> bool {
+        match me {
+            MarkupTags::SVG(me) => SVGTags::is_self_closing_tag(me),
+            MarkupTags::HTML(me) => HTMLTags::is_self_closing_tag(me),
+            _ => false,
+        }
+    }
+
     pub fn get_regex(&self) -> Option<&lazy_regex::Regex> {
         match self {
             MarkupTags::HTML(html) => html.get_regex(),
@@ -2255,7 +2356,7 @@ impl MarkupTags {
 
     pub fn to_str<'a>(self) -> Result<&'a str, anyhow::Error> {
         match self {
-            MarkupTags::DocType => Ok("!Doctype"),
+            MarkupTags::DocType => Ok("!doctype"),
             MarkupTags::SVG(sg) => Ok(sg.into()),
             MarkupTags::HTML(ht) => Ok(ht.into()),
             _ => Err(anyhow!("Cant get &str representation of {:?}", self)),
@@ -2263,102 +2364,43 @@ impl MarkupTags {
     }
 
     pub fn is_block_tag(tag: MarkupTags) -> bool {
-        if MarkupTags::is_table_tag(tag.clone())
-            || MarkupTags::is_d_tag(tag.clone())
-            || MarkupTags::is_header_tag(tag.clone())
-            || MarkupTags::is_f_tag(tag.clone())
-        {
-            return true;
-        }
         match tag {
-            MarkupTags::HTML(t) => match t {
-                HTMLTags::Address
-                | HTMLTags::Article
-                | HTMLTags::Aside
-                | HTMLTags::Blockquote
-                | HTMLTags::Br
-                | HTMLTags::Main
-                | HTMLTags::Nav
-                | HTMLTags::P
-                | HTMLTags::Pre
-                | HTMLTags::Section
-                | HTMLTags::Hr
-                | HTMLTags::Ol
-                | HTMLTags::Ul
-                | HTMLTags::Li => true,
-                _ => false,
-            },
+            MarkupTags::HTML(t) => HTMLTags::is_block_tag(t),
             _ => false,
         }
     }
 
     pub fn is_table_tag(tag: MarkupTags) -> bool {
         match tag {
-            MarkupTags::HTML(t) => match t {
-                HTMLTags::Tfoot
-                | HTMLTags::Tbody
-                | HTMLTags::Thead
-                | HTMLTags::Th
-                | HTMLTags::Tr
-                | HTMLTags::Td
-                | HTMLTags::Table => true,
-                _ => false,
-            },
+            MarkupTags::HTML(t) => HTMLTags::is_table_tag(t),
             _ => false,
         }
     }
 
     pub fn is_block_text_tag(tag: MarkupTags) -> bool {
         match tag {
-            MarkupTags::HTML(t) => match t {
-                HTMLTags::Script | HTMLTags::Noscript | HTMLTags::Style | HTMLTags::Pre => true,
-                _ => false,
-            },
+            MarkupTags::HTML(t) => HTMLTags::is_block_text_tag(t),
             _ => false,
         }
     }
 
     pub fn is_f_tag(tag: MarkupTags) -> bool {
         match tag {
-            MarkupTags::HTML(t) => match t {
-                HTMLTags::Form
-                | HTMLTags::Footer
-                | HTMLTags::Figure
-                | HTMLTags::Figcaption
-                | HTMLTags::Fieldset => true,
-                _ => false,
-            },
+            MarkupTags::HTML(t) => HTMLTags::is_f_tag(t),
             _ => false,
         }
     }
 
     pub fn is_d_tag(tag: MarkupTags) -> bool {
         match tag {
-            MarkupTags::HTML(t) => match t {
-                HTMLTags::Details
-                | HTMLTags::Dialog
-                | HTMLTags::Dd
-                | HTMLTags::Div
-                | HTMLTags::Dt => true,
-                _ => false,
-            },
+            MarkupTags::HTML(t) => HTMLTags::is_d_tag(t),
             _ => false,
         }
     }
 
     pub fn is_header_tag(tag: MarkupTags) -> bool {
         match tag {
-            MarkupTags::HTML(t) => match t {
-                HTMLTags::H1
-                | HTMLTags::H2
-                | HTMLTags::H3
-                | HTMLTags::H4
-                | HTMLTags::H5
-                | HTMLTags::H6
-                | HTMLTags::Header
-                | HTMLTags::Hgroup => true,
-                _ => false,
-            },
+            MarkupTags::HTML(t) => HTMLTags::is_header_tag(t),
             _ => false,
         }
     }
@@ -2450,6 +2492,14 @@ impl<'a> Accumulator<'a> {
             return Some(res);
         }
         None
+    }
+
+    /// scan returns the whole string slice currently at the points of where
+    /// the main pos (position) cursor and the peek cursor so you can
+    /// pull the string right at the current range.
+    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
+    pub fn scan(&mut self) -> Option<&'a str> {
+        Some(&self.content[self.pos..self.peek_pos])
     }
 
     /// peek_next allows you to increment the peek cursor, moving
@@ -2657,6 +2707,9 @@ pub struct HTMLParser {
 }
 
 static VALID_TAG_NAME_SYMBOLS: &[char] = &['@', '-', '_'];
+static DOC_TYPE_STARTER: &[char] = &['!'];
+static VALID_ATTRIBUTE_STARTER_SYMBOLS: &[char] = &['{', '"'];
+static VALID_ATTRIBUTE_ENDER_SYMBOLS: &[char] = &['}', '"'];
 
 impl Default for HTMLParser {
     fn default() -> Self {
@@ -2681,9 +2734,11 @@ static ATTRIBUTE_PATTERN: Lazy<Regex> =
     lazy_regex!(r#"/(?:^|\s)(id|class)\s*=\s*((?:'[^']*')|(?:"[^"]*")|\S+)"#i); // use with /../gi
 
 static SPACE_STR: &'static str = " ";
+static DOCTYPE_STR: &'static str = "!doctype";
 static TAG_OPEN_BRACKET: &'static str = "<";
 static TAG_CLOSED_BRACKET: &'static str = ">";
 static TAG_CLOSED_SLASH: &'static str = "/";
+static DOC_TYPE_MARKER: &'static str = "!";
 static TAG_NAME_SPACE_END: &'static str = " ";
 
 fn create_range(start: usize, end: usize) -> (usize, usize) {
@@ -2712,11 +2767,6 @@ impl HTMLParser {
                     .chars()
                     .all(char::is_alphanumeric)
             {
-                // peek one step and skip
-                accumulator.peek_next();
-                accumulator.skip();
-
-                //
                 match self.parse_elem(&mut accumulator) {
                     Ok(elem) => stacks.push(elem),
                     Err(err) => return Err(err),
@@ -2736,11 +2786,17 @@ impl HTMLParser {
     }
 
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
-    fn parse_elem<'a>(&self, acc: &'a mut Accumulator) -> ParsingResult<Stack> {
+    fn parse_doc_type<'a>(&self, acc: &'a mut Accumulator) -> ParsingResult<Stack> {
         let mut elem = Stack::empty();
 
+        // we already know we are looking at the starter of a tag '<'
+        acc.peek_next();
+
+        // skip it after collect forward
+        acc.skip();
+
         while let Some(next) = acc.peek_next() {
-            println!("Tag: {:?}", next);
+            tracing::debug!("parse_doc_type: saw chracter: {}", next);
 
             if !self.is_tag_name_data(next) {
                 if next != TAG_NAME_SPACE_END && next != TAG_CLOSED_BRACKET {
@@ -2756,7 +2812,7 @@ impl HTMLParser {
 
                 acc.peek_next();
 
-                println!("Tag Name: {:?}", elem.tag);
+                tracing::debug!("parse_doc_type: generates tagname: {:?}", elem.tag);
 
                 if next == TAG_CLOSED_BRACKET {
                     return Ok(elem);
@@ -2767,7 +2823,49 @@ impl HTMLParser {
                     Err(err) => return Err(err),
                 }
             }
-            println!("Acceptable symbol: {:?}", next);
+        }
+
+        Err(ParsingTagError::FailedParsing)
+    }
+
+    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    fn parse_elem<'a>(&self, acc: &'a mut Accumulator) -> ParsingResult<Stack> {
+        let mut elem = Stack::empty();
+
+        // we already know we are looking at the starter of a tag '<'
+        acc.peek_next();
+
+        // skip it after collect forward
+        acc.skip();
+
+        while let Some(next) = acc.peek_next() {
+            tracing::debug!("parse_elem saw chracter: {}", next);
+
+            if !self.is_tag_name_data(next) {
+                if next != TAG_NAME_SPACE_END && next != TAG_CLOSED_BRACKET {
+                    return Err(ParsingTagError::ExpectingSpaceAfterTagName);
+                }
+
+                acc.unpeek_next();
+
+                match MarkupTags::from_str(acc.take().unwrap()) {
+                    Ok(tag) => elem.tag.replace(tag),
+                    Err(err) => return Err(err),
+                };
+
+                acc.peek_next();
+
+                tracing::debug!("parse_elem generates tagname: {:?}", elem.tag);
+
+                if next == TAG_CLOSED_BRACKET {
+                    return Ok(elem);
+                }
+
+                match self.parse_elem_attribute(&mut elem, acc) {
+                    Ok(_) => continue,
+                    Err(err) => return Err(err),
+                }
+            }
         }
 
         Err(ParsingTagError::FailedParsing)
@@ -2789,6 +2887,57 @@ mod html_parser_test {
     use super::*;
 
     #[test]
+    fn test_basic_html_can_parse_empty_string() {
+        let parser = HTMLParser::default();
+        let content = "<!doctype>";
+
+        let result = parser.parse(content);
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap();
+        assert_eq!(
+            parsed,
+            Stack {
+                tag: Some(MarkupTags::HTML(HTMLTags::DocumentFragmentContainer)),
+                closed: true,
+                start_range: Some(0),
+                end_range: Some(0),
+                attrs: vec![],
+                children: vec![]
+            }
+        )
+    }
+
+    #[test]
+    fn test_basic_html_can_parse_doctype() {
+        let parser = HTMLParser::default();
+        let content = "<!doctype>";
+
+        let result = parser.parse(content);
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap();
+        assert_eq!(
+            parsed,
+            Stack {
+                tag: Some(MarkupTags::HTML(HTMLTags::DocumentFragmentContainer)),
+                closed: true,
+                start_range: Some(0),
+                end_range: Some(0),
+                attrs: vec![],
+                children: vec![Stack {
+                    tag: Some(MarkupTags::DocType),
+                    closed: true,
+                    start_range: None,
+                    end_range: None,
+                    attrs: vec![],
+                    children: vec![]
+                }]
+            }
+        )
+    }
+
+    #[test]
     fn test_basic_html_parsing_single_node() {
         let parser = HTMLParser::default();
         let content = "<div>hello</div>";
@@ -2800,18 +2949,25 @@ mod html_parser_test {
         assert_eq!(
             parsed,
             Stack {
-                tag: Some(MarkupTags::HTML(HTMLTags::Div)),
+                tag: Some(MarkupTags::HTML(HTMLTags::DocumentFragmentContainer)),
                 closed: true,
-                start_range: None,
-                end_range: None,
+                start_range: Some(0),
+                end_range: Some(0),
                 attrs: vec![],
                 children: vec![Stack {
-                    tag: Some(MarkupTags::Text("hello".to_string())),
-                    closed: false,
-                    attrs: vec![],
-                    children: vec![],
+                    tag: Some(MarkupTags::HTML(HTMLTags::Div)),
+                    closed: true,
                     start_range: None,
                     end_range: None,
+                    attrs: vec![],
+                    children: vec![Stack {
+                        tag: Some(MarkupTags::Text("hello".to_string())),
+                        closed: false,
+                        attrs: vec![],
+                        children: vec![],
+                        start_range: None,
+                        end_range: None,
+                    }]
                 }]
             }
         )
