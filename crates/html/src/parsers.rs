@@ -2193,6 +2193,7 @@ impl<'b> Into<&'b str> for HTMLTags {
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum MarkupTags {
+    DocType,
     SVG(SVGTags),
     HTML(HTMLTags),
     Text(String),
@@ -2243,6 +2244,7 @@ impl MarkupTags {
 
     pub fn to_string<'a>(self) -> Result<String, anyhow::Error> {
         match self {
+            MarkupTags::DocType => Ok(String::from("!Doctype")),
             MarkupTags::SVG(sg) => Ok(sg.into()),
             MarkupTags::HTML(ht) => Ok(ht.into()),
             MarkupTags::Comment(text) | MarkupTags::Text(text) | MarkupTags::Component(text) => {
@@ -2253,6 +2255,7 @@ impl MarkupTags {
 
     pub fn to_str<'a>(self) -> Result<&'a str, anyhow::Error> {
         match self {
+            MarkupTags::DocType => Ok("!Doctype"),
             MarkupTags::SVG(sg) => Ok(sg.into()),
             MarkupTags::HTML(ht) => Ok(ht.into()),
             _ => Err(anyhow!("Cant get &str representation of {:?}", self)),
