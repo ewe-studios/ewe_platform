@@ -43,7 +43,9 @@
                 {
                     "command": [
                         "cargo",
-                        "test"
+                        "test",
+                        "--",
+                        "--nocapture"
                     ],
                     "if_failed": "exit"
                 }

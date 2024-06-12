@@ -11,10 +11,14 @@ keywords.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-memchr = "2.7.2"
+regex = { version = "1.10" }
+lazy-regex = { version = "3.1" }
 phf = { version = "0.11.2", features = ["macros"] }
 strum = { version = "0.26" }
 strum_macros = { version = "0.26" }
+
+# workspace level dependencies
+tracing.workspace = true
 lazy_static.workspace = true
 lazycell.workspace = true
 thiserror.workspace = true
