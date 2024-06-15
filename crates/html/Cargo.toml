@@ -27,6 +27,7 @@ ewe-mem.workspace = true
 
 [dev-dependencies]
 syncbox = "0.2"
+tracing-test.workspace = true
 
 [lints]
 workspace = true

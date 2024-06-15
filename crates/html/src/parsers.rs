@@ -11,7 +11,7 @@ use std::{any, collections::HashMap, str::FromStr};
 use thiserror::Error;
 use tracing::trace;
 
-use crate::markup::ElementResult;
+use crate::markup::{ElementResult, Markup};
 
 lazy_static! {
     static ref HTML_TAG_REGEX: HashMap<HTMLTags, regex::Regex> = vec![
@@ -1413,6 +1413,36 @@ pub enum ParsingTagError {
 
     #[error("we expect after tag names will be a space")]
     ExpectingSpaceAfterTagName,
+
+    #[error("Parser expected only one root element left after parsing but found more than 1")]
+    UnexpectedParsingWithUnfinishedTag,
+
+    #[error("Parser encountered tag with unexpected ending, please check your markup: {0}")]
+    TagWithUnexpectedEnding(String),
+
+    #[error("Parser encountered closing tag but never pre-allocated the start tag in stack")]
+    ClosingTagHasZeroElementInStack,
+
+    #[error("Parser encountered markup at top of stack has no markup, our invariants are broken")]
+    StackedMarkupHasNoTag,
+
+    #[error("Parser encountered a closing tag different from top markup in stack nor does not close top markup in rules")]
+    ClosingTagDoesNotMatchTopMarkup,
+
+    #[error("Parser failed to pop top markup in stack into children list of lower markup")]
+    FailedToMoveTopMarkupIntoParentInStack,
+
+    #[error("Attribute value starting with invalid token: {0}")]
+    AttributeValueNotValidStarter(String),
+
+    #[error("Attribute value should generally end with a space after declaration: {0}")]
+    AttributeValueNotValidEnding(String),
+
+    #[error("Invalid HTML content seen, probably not ending proper markup, cant parse: {0}")]
+    InvalidHTMLContent(String),
+
+    #[error("Invalid HTML content ending incorrectly and cant be parsed: {0}")]
+    InvalidHTMLEnd(String),
 }
 
 pub type ParsingResult<T> = std::result::Result<T, ParsingTagError>;
@@ -2532,8 +2562,38 @@ impl<'a> Accumulator<'a> {
             return None;
         }
 
-        self.peek_pos -= by;
+        // unpeek only works when we are higher then current pos cursor.
+        // it should have no effect when have not moved forward
+        if self.peek_pos > self.pos {
+            self.peek_pos -= by;
+        }
+
         Some(&self.content[self.peek_pos..(self.peek_pos + by)])
+    }
+
+    /// vpeek_at allows you to do a non-permant peek cursor adjustment
+    /// by taking the current peek cursor position with an adjustment
+    /// where we add the `from` (peek_cursor + from) to get the new
+    /// position to start from and `to` is added (peek_cursor + from + to)
+    /// the position to end at, if the total is more than the length of the string
+    /// then its adjusted to be the string last index for the slice.
+    ///
+    /// It's a nice way to get to see whats at a given position without changing
+    /// the current location of the peek cursor.
+    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
+    fn vpeek_at(&mut self, from: usize, to: usize) -> Option<&'a str> {
+        let new_peek_pos = self.peek_pos + from;
+        let mut until_pos = if new_peek_pos + to > self.content.len() {
+            self.content.len()
+        } else {
+            new_peek_pos + to
+        };
+
+        if new_peek_pos > self.content.len() {
+            return None;
+        }
+
+        Some(&self.content[new_peek_pos..until_pos])
     }
 
     /// peek_slice allows you to peek forward by an amount
@@ -2562,14 +2622,54 @@ impl<'a> Accumulator<'a> {
     /// take more than available text length then we return None
     /// which can indicate no more text for processing.
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
-    pub fn take_with_amount(&mut self, by: usize) -> Option<&'a str> {
+    pub fn take_with_amount(&mut self, by: usize) -> Option<(&'a str, (usize, usize))> {
         if self.peek_pos + by > self.content.len() {
             return None;
         }
 
-        let res = Some(&self.content[self.pos..(self.peek_pos + by)]);
+        let until_pos = if self.peek_pos + by > self.content.len() {
+            self.content.len()
+        } else {
+            self.peek_pos + by
+        };
+
+        if self.pos >= self.content.len() {
+            return None;
+        }
+
+        let position = (self.pos, until_pos);
+
+        tracing::debug!(
+            "take_with_amount: content len: {} with pos: {}, peek_pos: {}, by: {}, until: {}",
+            self.content.len(),
+            self.pos,
+            self.peek_pos,
+            by,
+            until_pos,
+        );
+
+        let content_slice = &self.content[self.pos..until_pos];
+
+        tracing::debug!(
+            "take_with_amount: sliced worked from: {}, by: {}, till loc: {} with text: '{}'",
+            self.pos,
+            by,
+            until_pos,
+            content_slice,
+        );
+
+        let res = Some((content_slice, position));
         self.pos = self.peek_pos;
         res
+    }
+
+    /// take_positional returns the total string slice from the
+    /// actual accumulators position cursor til the current
+    /// peek cursor position i.e str[position_cursor...peek_cursor].
+    /// Allow you to collect the whole slice of strings that have been
+    /// checked and peeked through.
+    pub fn take_positional(&mut self) -> Option<(&'a str, (usize, usize))> {
+        self.take_with_amount(0)
     }
 
     /// take returns the total string slice from the
@@ -2578,7 +2678,10 @@ impl<'a> Accumulator<'a> {
     /// Allow you to collect the whole slice of strings that have been
     /// checked and peeked through.
     pub fn take(&mut self) -> Option<&'a str> {
-        self.take_with_amount(0)
+        match self.take_with_amount(0) {
+            Some((text, _)) => Some(text),
+            None => None,
+        }
     }
 }
 
@@ -2597,6 +2700,22 @@ mod accumulator_tests {
     fn test_can_use_accumulator_to_peek_two_characters_away() {
         let mut accumulator = Accumulator::new("hello");
         assert_eq!("he", accumulator.peek(2).unwrap());
+    }
+
+    #[test]
+    fn test_can_virtual_peek_ahead_without_changing_peek_cursor() {
+        let mut accumulator = Accumulator::new("hello");
+
+        assert_eq!("h", accumulator.peek_next().unwrap());
+        assert_eq!("e", accumulator.peek_next().unwrap());
+
+        assert_eq!("llo", accumulator.vpeek_at(0, 3).unwrap()); // from peek cursor till 3 ahead
+        assert_eq!("lo", accumulator.vpeek_at(1, 3).unwrap()); // from 1 character ahead of peek cursor
+
+        assert_eq!("l", accumulator.peek_next().unwrap());
+        assert_eq!("l", accumulator.peek_next().unwrap());
+        assert_eq!("o", accumulator.peek_next().unwrap());
+        assert_eq!(None, accumulator.peek_next());
     }
 
     #[test]
@@ -2672,6 +2791,10 @@ impl<'a> Stack<'a> {
         }
     }
 
+    pub fn add_attr(&mut self, name: &'a str, value: &'a str) {
+        self.attrs.push((name, value))
+    }
+
     pub fn empty() -> Self {
         Self {
             tag: None,
@@ -2701,29 +2824,15 @@ pub type Stacks<'a> = Vec<Stack<'a>>;
 
 pub type CheckTag = fn(MarkupTags) -> bool;
 
+pub enum ParserDirective<'a> {
+    Void(Stack<'a>),
+    Open(Stack<'a>),
+    Closed((MarkupTags, (usize, usize))),
+}
+
 pub struct HTMLParser {
     allowed_tag_symbols: &'static [char],
     pub handle_as_block_text: CheckTag,
-}
-
-static VALID_TAG_NAME_SYMBOLS: &[char] = &['@', '-', '_'];
-static DOC_TYPE_STARTER: &[char] = &['!'];
-static VALID_ATTRIBUTE_STARTER_SYMBOLS: &[char] = &['{', '"'];
-static VALID_ATTRIBUTE_ENDER_SYMBOLS: &[char] = &['}', '"'];
-
-impl Default for HTMLParser {
-    fn default() -> Self {
-        Self {
-            allowed_tag_symbols: VALID_TAG_NAME_SYMBOLS,
-            handle_as_block_text: MarkupTags::is_block_text_tag,
-        }
-    }
-}
-
-static FRAME_FLAG_TAG: &'static str = "documentfragmentcontainer";
-
-fn wrap_data_in_framer_tag<'a>(data: &'a str) -> String {
-    format!("<{}>{}</{}>", FRAME_FLAG_TAG, data, FRAME_FLAG_TAG)
 }
 
 // https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
@@ -2733,17 +2842,55 @@ static MARKUP_PATTERN_REGEXP: Lazy<Regex> = lazy_regex!(
 static ATTRIBUTE_PATTERN: Lazy<Regex> =
     lazy_regex!(r#"/(?:^|\s)(id|class)\s*=\s*((?:'[^']*')|(?:"[^"]*")|\S+)"#i); // use with /../gi
 
+static VALID_TAG_NAME_SYMBOLS: &[char] = &['@', '-', '_'];
+static SPACE_CHARS: &[char] = &[' ', '\n', '\t', '\r'];
+static DOC_TYPE_STARTER: &[char] = &['!'];
+static QUOTATIONS: &[char] = &['\'', '"'];
+static VALID_ATTRIBUTE_NAMING_CHARS: &[char] = &['-', '_', ':'];
+static VALID_ATTRIBUTE_VALUE_CHARS: &[char] = &['"', '\''];
+static VALID_ATTRIBUTE_STARTER_SYMBOLS: &[char] = &['{', '"'];
+static VALID_ATTRIBUTE_ENDER_SYMBOLS: &[char] = &['}', '"'];
+
+static FRAME_FLAG_TAG: &'static str = "DocumentFragmentContainer";
+static SINGLE_QUOTE_STR: &'static str = "'";
+static DOUBLE_QUOTE_STR: &'static str = "\"";
 static SPACE_STR: &'static str = " ";
 static DOCTYPE_STR: &'static str = "!doctype";
 static TAG_OPEN_BRACKET: &'static str = "<";
 static TAG_CLOSED_BRACKET: &'static str = ">";
 static TAG_CLOSED_SLASH: &'static str = "/";
-static DOC_TYPE_MARKER: &'static str = "!";
+static ATTRIBUTE_EQUAL_SIGN: &'static str = "=";
+static DOC_TYPE_STARTER_MARKER: &'static str = "!";
 static TAG_NAME_SPACE_END: &'static str = " ";
 
-fn create_range(start: usize, end: usize) -> (usize, usize) {
-    let offset = FRAME_FLAG_TAG.len() + 2;
-    return (start - offset, end - offset);
+///	Returns a new string where the content is wrapped in a DocumentFragmentContainer:
+/// <DocumentFragmentContainer>{content}</DocumentFragmentContainer>.
+///
+/// This is important to allow you when dealing with an html content where
+/// its not just a single root but has siblings and the parser does not handle such
+/// cases where there could be more than 1 root element.
+pub fn wrap_in_document_fragment_container(data: String) -> String {
+    format!("<{}>{}</{}>", FRAME_FLAG_TAG, data, FRAME_FLAG_TAG)
+}
+
+fn begins_with_and_after<'a>(
+    against: &'a str,
+    begin_text: &'a str,
+    other_cb: fn(&'a str) -> bool,
+) -> bool {
+    if &against[0..1] != begin_text {
+        return false;
+    }
+    return other_cb(&against[1..]);
+}
+
+impl Default for HTMLParser {
+    fn default() -> Self {
+        Self {
+            allowed_tag_symbols: VALID_TAG_NAME_SYMBOLS,
+            handle_as_block_text: MarkupTags::is_block_text_tag,
+        }
+    }
 }
 
 impl HTMLParser {
@@ -2755,28 +2902,80 @@ impl HTMLParser {
     }
 
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
-    pub fn parse<'a>(&self, input: &'a str) -> ParsingResult<Stack> {
-        let data = wrap_data_in_framer_tag(input);
-        let mut accumulator = Accumulator::new(data.as_str());
+    pub fn parse<'a>(&self, input: &'a str) -> ParsingResult<Stack<'a>> {
+        let mut accumulator = Accumulator::new(input);
 
         let mut stacks: Vec<Stack> = vec![];
 
         while let Some(next) = accumulator.peek(1) {
-            if "<" == next
-                && (accumulator.peek(2).unwrap()[1..])
-                    .chars()
-                    .all(char::is_alphanumeric)
-            {
-                match self.parse_elem(&mut accumulator) {
-                    Ok(elem) => stacks.push(elem),
-                    Err(err) => return Err(err),
-                }
+            tracing::debug!("parse: reading next token: {:?}", next);
+
+            let mut pop_top_stack = false;
+            match self.parse_element_from_accumulator(&mut accumulator, &mut stacks) {
+                Ok(elem) => match elem {
+                    ParserDirective::Open(elem) => {
+                        stacks.push(elem);
+                        continue;
+                    }
+                    ParserDirective::Closed((tag, (tag_end_start, tag_end_end))) => {
+                        match stacks.last_mut() {
+                            Some(parent) => match parent.tag.clone() {
+                                Some(parent_tag) => {
+                                    if parent_tag != tag {
+                                        if !MarkupTags::is_element_closed_by_closing_tag(
+                                            parent_tag, tag,
+                                        ) {
+                                            return Err(
+                                                ParsingTagError::ClosingTagDoesNotMatchTopMarkup,
+                                            );
+                                        }
+                                    }
+
+                                    parent.closed = true;
+                                    parent.end_range = Some(tag_end_end);
+                                    pop_top_stack = true;
+                                }
+                                None => return Err(ParsingTagError::StackedMarkupHasNoTag),
+                            },
+                            None => return Err(ParsingTagError::ClosingTagHasZeroElementInStack),
+                        }
+                    }
+                    ParserDirective::Void(elem) => {
+                        if stacks.len() == 0 {
+                            stacks.push(elem);
+                        } else {
+                            match stacks.last_mut() {
+                                Some(parent) => parent.children.push(elem),
+                                None => continue,
+                            }
+                        }
+                    }
+                },
+                Err(err) => return Err(err),
             }
 
-            break;
+            if !pop_top_stack || (pop_top_stack && stacks.len() == 1) {
+                continue;
+            }
+
+            match stacks.pop() {
+                Some(previous_elem) => match stacks.last_mut() {
+                    Some(parent) => parent.children.push(previous_elem),
+                    None => return Err(ParsingTagError::FailedToMoveTopMarkupIntoParentInStack),
+                },
+                None => return Err(ParsingTagError::FailedToMoveTopMarkupIntoParentInStack),
+            }
         }
 
-        Err(ParsingTagError::FailedParsing)
+        if stacks.len() == 0 {
+            return Err(ParsingTagError::FailedParsing);
+        }
+
+        if stacks.len() > 1 {
+            return Err(ParsingTagError::UnexpectedParsingWithUnfinishedTag);
+        }
+
+        Ok(stacks.pop().unwrap())
     }
 
     fn is_tag_name_data<'a>(&self, text: &'a str) -> bool {
@@ -2786,42 +2985,190 @@ impl HTMLParser {
     }
 
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
-    fn parse_doc_type<'a>(&self, acc: &'a mut Accumulator) -> ParsingResult<Stack> {
+    fn parse_element_from_accumulator<'c, 'd>(
+        &self,
+        acc: &mut Accumulator<'c>,
+        mut stacks: &mut Vec<Stack>,
+    ) -> ParsingResult<ParserDirective<'d>>
+    where
+        'c: 'd,
+    {
+        while let Some(next) = acc.peek(1) {
+            tracing::debug!(
+                "parse_element_from_accumulator: reading next token: {:?}",
+                next
+            );
+
+            if TAG_OPEN_BRACKET == next
+                && (acc.vpeek_at(1, 2).unwrap())
+                    .chars()
+                    .all(char::is_alphanumeric)
+            {
+                match self.parse_elem(acc, &mut stacks) {
+                    Ok(elem) => return Ok(elem),
+                    Err(err) => return Err(err),
+                }
+            }
+
+            if TAG_OPEN_BRACKET == next
+                && begins_with_and_after(
+                    acc.vpeek_at(1, 2).unwrap(),
+                    DOC_TYPE_STARTER_MARKER,
+                    |t| t.chars().all(char::is_alphabetic),
+                )
+            {
+                match self.parse_doc_type(acc, &mut stacks) {
+                    Ok(elem) => return Ok(elem),
+                    Err(err) => return Err(err),
+                }
+            }
+
+            if TAG_OPEN_BRACKET == next
+                && begins_with_and_after(acc.vpeek_at(1, 2).unwrap(), &TAG_CLOSED_SLASH, |t| {
+                    t.chars().all(char::is_alphabetic)
+                })
+            {
+                match self.parse_closing_tag(acc, &mut stacks) {
+                    Ok(elem) => return Ok(elem),
+                    Err(err) => return Err(err),
+                }
+            }
+
+            if next
+                .chars()
+                .all(|t| t.is_alphanumeric() || t.is_ascii_alphanumeric())
+            {
+                match self.parse_text_block(acc, &mut stacks) {
+                    Ok(elem) => return Ok(elem),
+                    Err(err) => return Err(err),
+                }
+            }
+        }
+
+        Err(ParsingTagError::FailedParsing)
+    }
+
+    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    fn parse_text_block<'c, 'd>(
+        &self,
+        acc: &mut Accumulator<'c>,
+        mut stacks: &mut Vec<Stack>,
+    ) -> ParsingResult<ParserDirective<'d>>
+    where
+        'c: 'd,
+    {
+        let mut elem = Stack::empty();
+
+        while let Some(next) = acc.peek_next() {
+            tracing::debug!("parse_text_block: saw chracter: {}", next);
+
+            if next != TAG_OPEN_BRACKET {
+                continue;
+            }
+
+            // we found the starter for tags, check if
+            // there is space after if so
+            // then it's still a text.
+            match acc.peek(1) {
+                Some(text) => {
+                    if text == SPACE_STR {
+                        continue;
+                    }
+
+                    acc.unpeek_next();
+
+                    let (tag_text, (tag_start, tag_end)) = acc.take_positional().unwrap();
+                    elem.tag.replace(MarkupTags::Text(String::from(tag_text)));
+                    elem.start_range = Some(tag_start);
+                    elem.end_range = Some(tag_end);
+
+                    return Ok(ParserDirective::Void(elem));
+                }
+                None => return Err(ParsingTagError::InvalidHTMLEnd(String::from(acc.content))),
+            }
+        }
+
+        Err(ParsingTagError::FailedParsing)
+    }
+
+    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    fn parse_doc_type<'c, 'd>(
+        &self,
+        acc: &mut Accumulator<'c>,
+        mut stacks: &mut Vec<Stack>,
+    ) -> ParsingResult<ParserDirective<'d>>
+    where
+        'c: 'd,
+    {
         let mut elem = Stack::empty();
 
         // we already know we are looking at the starter of a tag '<'
-        acc.peek_next();
+        acc.peek_next_by(2);
 
-        // skip it after collect forward
-        acc.skip();
+        tracing::debug!(
+            "parse_doc_type: kickstart parser after taking part: {:?}",
+            acc.take()
+        );
+
+        let mut collected_tag = false;
+        let mut collected_attrs = false;
 
         while let Some(next) = acc.peek_next() {
             tracing::debug!("parse_doc_type: saw chracter: {}", next);
 
-            if !self.is_tag_name_data(next) {
-                if next != TAG_NAME_SPACE_END && next != TAG_CLOSED_BRACKET {
-                    return Err(ParsingTagError::ExpectingSpaceAfterTagName);
+            if !next.chars().all(char::is_alphabetic) {
+                if next != TAG_CLOSED_BRACKET && collected_attrs && collected_tag {
+                    return Err(ParsingTagError::TagWithUnexpectedEnding(String::from(
+                        acc.take().unwrap(),
+                    )));
+                }
+
+                if next == TAG_CLOSED_BRACKET && collected_attrs && collected_tag {
+                    tracing::debug!("parse_doc_type: completed doctype: {:?}", acc.peek(1));
+
+                    elem.closed = true;
+                    return Ok(ParserDirective::Void(elem));
                 }
 
                 acc.unpeek_next();
 
-                match MarkupTags::from_str(acc.take().unwrap()) {
-                    Ok(tag) => elem.tag.replace(tag),
-                    Err(err) => return Err(err),
-                };
+                let (tag_text, (tag_start, tag_end)) = acc.take_positional().unwrap();
+                tracing::debug!(
+                    "parse_doc_type: generates tagname with collected: {} ({}..{})",
+                    tag_text,
+                    tag_start,
+                    tag_end
+                );
 
-                acc.peek_next();
+                if !collected_tag {
+                    elem.tag.replace(MarkupTags::DocType);
+                    elem.end_range = Some(tag_end);
+                    elem.start_range = Some(tag_start);
 
-                tracing::debug!("parse_doc_type: generates tagname: {:?}", elem.tag);
+                    tracing::debug!("parse_doc_type: generates tagname: {:?}", elem.tag);
 
-                if next == TAG_CLOSED_BRACKET {
-                    return Ok(elem);
+                    collected_tag = true;
                 }
 
-                match self.parse_elem_attribute(&mut elem, acc) {
-                    Ok(_) => continue,
-                    Err(err) => return Err(err),
+                self.collect_space(acc)?;
+
+                tracing::debug!(
+                    "parse_doc_type: attempt to pull attributes: {:?}",
+                    acc.peek(1)
+                );
+
+                if !collected_attrs {
+                    match self.parse_elem_attribute(acc, &mut elem) {
+                        Ok(_) => self.collect_space(acc)?,
+                        Err(err) => return Err(err),
+                    };
+                    collected_attrs = true;
                 }
+
+                tracing::debug!(
+                    "parse_doc_type: collected attributes if any: {:?}",
+                    acc.peek(1)
+                );
             }
         }
 
@@ -2829,7 +3176,14 @@ impl HTMLParser {
     }
 
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
-    fn parse_elem<'a>(&self, acc: &'a mut Accumulator) -> ParsingResult<Stack> {
+    fn parse_elem<'c, 'd>(
+        &self,
+        acc: &mut Accumulator<'c>,
+        mut stacks: &mut Vec<Stack>,
+    ) -> ParsingResult<ParserDirective<'d>>
+    where
+        'c: 'd,
+    {
         let mut elem = Stack::empty();
 
         // we already know we are looking at the starter of a tag '<'
@@ -2838,33 +3192,63 @@ impl HTMLParser {
         // skip it after collect forward
         acc.skip();
 
+        let mut collected_tag_name = false;
+        let mut collected_attrs = false;
+
         while let Some(next) = acc.peek_next() {
             tracing::debug!("parse_elem saw chracter: {}", next);
 
-            if !self.is_tag_name_data(next) {
-                if next != TAG_NAME_SPACE_END && next != TAG_CLOSED_BRACKET {
-                    return Err(ParsingTagError::ExpectingSpaceAfterTagName);
-                }
+            if self.is_tag_name_data(next) {
+                continue;
+            }
 
+            if next != TAG_CLOSED_BRACKET && next != SPACE_STR {
+                tracing::error!(
+                    "parse_elem: expected either space or '>' indicating end of start tag {:?}",
+                    elem.tag
+                );
+                return Err(ParsingTagError::ExpectingSpaceAfterTagName);
+            }
+
+            if !collected_tag_name {
                 acc.unpeek_next();
 
-                match MarkupTags::from_str(acc.take().unwrap()) {
-                    Ok(tag) => elem.tag.replace(tag),
+                let (tag_text, (tag_start, tag_end)) = acc.take_positional().unwrap();
+                match MarkupTags::from_str(tag_text) {
+                    Ok(tag) => {
+                        elem.start_range = Some(tag_start);
+                        elem.end_range = Some(tag_end);
+                        elem.tag.replace(tag);
+                    }
                     Err(err) => return Err(err),
                 };
 
-                acc.peek_next();
-
                 tracing::debug!("parse_elem generates tagname: {:?}", elem.tag);
 
-                if next == TAG_CLOSED_BRACKET {
-                    return Ok(elem);
-                }
+                acc.peek_next();
 
-                match self.parse_elem_attribute(&mut elem, acc) {
+                collected_tag_name = true;
+            }
+
+            if next == SPACE_STR && !collected_attrs {
+                self.collect_space(acc)?;
+
+                match self.parse_elem_attribute(acc, &mut elem) {
                     Ok(_) => continue,
                     Err(err) => return Err(err),
                 }
+
+                collected_attrs = true;
+
+                self.collect_space(acc)?;
+
+                continue;
+            }
+
+            if next == TAG_CLOSED_BRACKET {
+                acc.take();
+
+                return Ok(ParserDirective::Open(elem));
             }
         }
 
@@ -2872,12 +3256,269 @@ impl HTMLParser {
     }
 
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
-    fn parse_elem_attribute<'a>(
+    fn collect_space(&self, acc: &mut Accumulator) -> ParsingResult<()> {
+        while let Some(next) = acc.peek_next() {
+            tracing::debug!("collect_space: start seen token: {:?}", next);
+
+            if next.chars().any(|t| SPACE_CHARS.contains(&t)) {
+                tracing::debug!("collect_space: consuming token: {:?}", next);
+                continue;
+            }
+
+            tracing::debug!("collect_space: non-space token: {:?}", next);
+
+            // move backwartds
+            acc.unpeek_next();
+
+            // take the space
+            acc.take();
+
+            tracing::debug!(
+                "collect_space: non-space token after consumed: {:?}",
+                acc.peek(1)
+            );
+
+            return Ok(());
+        }
+        Err(ParsingTagError::FailedParsing)
+    }
+
+    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    fn is_valid_attribute_value_token<'a>(&self, token: &'a str) -> bool {
+        token.chars().any(|t| {
+            t.is_alphanumeric()
+                || t.is_ascii_alphanumeric()
+                || VALID_ATTRIBUTE_VALUE_CHARS.contains(&t)
+                || VALID_ATTRIBUTE_NAMING_CHARS.contains(&t)
+        })
+    }
+
+    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    fn dequote_str<'a>(&self, text: &'a str) -> &'a str {
+        let text_len = text.len();
+        if (text.starts_with(SINGLE_QUOTE_STR) || text.starts_with(DOUBLE_QUOTE_STR))
+            && (text.ends_with(SINGLE_QUOTE_STR) || text.ends_with(DOUBLE_QUOTE_STR))
+        {
+            return &text[1..(text_len - 1)];
+        }
+        text
+    }
+
+    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    fn is_valid_attribute_name<'a>(&self, token: &'a str) -> bool {
+        token.chars().any(|t| {
+            t.is_alphanumeric()
+                || t.is_ascii_alphanumeric()
+                || VALID_ATTRIBUTE_NAMING_CHARS.contains(&t)
+        })
+    }
+
+    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    fn collect_attribute_value_alphaneumerics(&self, acc: &mut Accumulator) -> ParsingResult<()> {
+        while let Some(next) = acc.peek_next() {
+            if self.is_valid_attribute_value_token(next) {
+                continue;
+            }
+
+            // move backwartds
+            acc.unpeek_next();
+
+            return Ok(());
+        }
+        Err(ParsingTagError::FailedParsing)
+    }
+
+    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    fn collect_attribute_name_alphaneumerics(&self, acc: &mut Accumulator) -> ParsingResult<()> {
+        while let Some(next) = acc.peek_next() {
+            if self.is_valid_attribute_name(next) {
+                continue;
+            }
+
+            // move backwartds
+            acc.unpeek_next();
+
+            return Ok(());
+        }
+        Err(ParsingTagError::FailedParsing)
+    }
+
+    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    fn collect_alphaneumerics(&self, acc: &mut Accumulator) -> ParsingResult<()> {
+        while let Some(next) = acc.peek_next() {
+            if next.chars().any(char::is_alphanumeric) {
+                continue;
+            }
+
+            // move backwartds
+            acc.unpeek_next();
+
+            return Ok(());
+        }
+        Err(ParsingTagError::FailedParsing)
+    }
+
+    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    fn parse_elem_attribute<'c, 'd>(
         &self,
-        stack: &mut Stack,
-        acc: &'a mut Accumulator,
-    ) -> ParsingResult<()> {
-        todo!()
+        acc: &mut Accumulator<'c>,
+        stack: &mut Stack<'d>,
+    ) -> ParsingResult<()>
+    where
+        'c: 'd,
+    {
+        tracing::debug!("parse_elem_attribute: begin from: {:?}", acc.peek(1));
+        self.collect_space(acc)?;
+
+        while let Some(next) = acc.peek_next() {
+            tracing::debug!("parse_elem_attribute: seen next token: {:?}", next);
+
+            if self.is_valid_attribute_name(next) {
+                continue;
+            }
+
+            // are we dealing with single attributes
+            if next == SPACE_STR || next == ATTRIBUTE_EQUAL_SIGN {
+                tracing::debug!(
+                    "parse_elem_attribute: checking ready value collection: {:?}",
+                    next
+                );
+
+                if next == SPACE_STR {
+                    tracing::debug!("parse_elem_attribute: actually space, so collect valueless attribute: {:?}", next);
+                    acc.unpeek_next();
+
+                    let attribute_name = acc.take().unwrap();
+
+                    stack.add_attr(attribute_name, "");
+
+                    return Ok(());
+                }
+
+                if next == ATTRIBUTE_EQUAL_SIGN {
+                    tracing::debug!("parse_elem_attribute: actually equal sign, so start collecting value: {:?}", next);
+
+                    acc.unpeek_next();
+
+                    let attr_name = acc.take().unwrap();
+
+                    tracing::debug!(
+                        "parse_elem_attribute: collected attribute name: {:?}",
+                        attr_name
+                    );
+
+                    acc.peek_next();
+                    acc.take();
+
+                    if !self.is_valid_attribute_value_token(acc.peek(1).unwrap()) {
+                        return Err(ParsingTagError::AttributeValueNotValidStarter(
+                            String::from(acc.peek(1).unwrap()),
+                        ));
+                    }
+
+                    // collect value
+                    self.collect_attribute_value_alphaneumerics(acc)?;
+
+                    let attr_value = self.dequote_str(acc.take().unwrap());
+
+                    tracing::debug!(
+                        "parse_elem_attribute: collected attribute value: {:?}",
+                        attr_value
+                    );
+
+                    match acc.peek(1) {
+                        Some(token) => {
+                            tracing::debug!(
+                                "parse_elem_attribute: check next token if end of attr value: {:?}",
+                                token
+                            );
+                            if token != SPACE_STR && token != TAG_CLOSED_BRACKET {
+                                return Err(ParsingTagError::AttributeValueNotValidEnding(
+                                    String::from(token),
+                                ));
+                            }
+                        }
+                        None => {
+                            return Err(ParsingTagError::AttributeValueNotValidEnding(
+                                String::from(acc.vpeek_at(0, 5).unwrap()),
+                            ));
+                        }
+                    }
+
+                    stack.attrs.push((attr_name, attr_value));
+
+                    tracing::debug!("parse_elem_attribute: done with no failure");
+
+                    return Ok(());
+                }
+            }
+
+            // move backwartds
+            acc.unpeek_next();
+
+            // take the space
+            acc.take();
+
+            return Ok(());
+        }
+        Err(ParsingTagError::FailedParsing)
+    }
+
+    fn parse_closing_tag<'c, 'd>(
+        &self,
+        acc: &mut Accumulator<'c>,
+        stacks: &[Stack],
+    ) -> ParsingResult<ParserDirective<'d>>
+    where
+        'c: 'd,
+    {
+        // we already know we are looking at the starter of a tag '<'
+        acc.peek_next_by(2);
+
+        tracing::debug!("parse_closing_tag: consuming token: {:?}", acc.take());
+
+        while let Some(next) = acc.peek_next() {
+            tracing::debug!("parse_closing_tag: saw chracter: {}", next);
+
+            if self.is_tag_name_data(next) {
+                continue;
+            }
+
+            // move backwartds
+            if next == SPACE_STR {
+                tracing::debug!("parse_closing_tag: seen space: {:?}", next);
+
+                acc.unpeek_next();
+                self.collect_space(acc)?;
+
+                continue;
+            }
+
+            if next != TAG_CLOSED_BRACKET {
+                tracing::debug!("parse_closing_tag: invalid token: {}", next);
+
+                return Err(ParsingTagError::TagWithUnexpectedEnding(String::from(
+                    acc.take().unwrap(),
+                )));
+            }
+
+            acc.unpeek_next();
+
+            let (tag_text, tag_positioning) = acc.take_positional().unwrap();
+            let closing_tag = MarkupTags::from_str(tag_text)?;
+            tracing::debug!(
+                "parse_closing_tag: found closer for: {:?} with next token: {:?}",
+                closing_tag,
+                acc.peek(1)
+            );
+
+            acc.peek_next();
+
+            tracing::debug!("parse_closing_tag: consume token : {:?}", tag_text);
+
+            return Ok(ParserDirective::Closed((closing_tag, tag_positioning)));
+        }
+        Err(ParsingTagError::FailedParsing)
     }
 }
 
@@ -2885,13 +3526,15 @@ impl HTMLParser {
 mod html_parser_test {
 
     use super::*;
+    use tracing_test::traced_test;
 
+    #[traced_test]
     #[test]
     fn test_basic_html_can_parse_empty_string() {
         let parser = HTMLParser::default();
-        let content = "<!doctype>";
 
-        let result = parser.parse(content);
+        let data = wrap_in_document_fragment_container(String::from(""));
+        let result = parser.parse(data.as_str());
         assert!(matches!(result, ParsingResult::Ok(_)));
 
         let parsed = result.unwrap();
@@ -2900,20 +3543,21 @@ mod html_parser_test {
             Stack {
                 tag: Some(MarkupTags::HTML(HTMLTags::DocumentFragmentContainer)),
                 closed: true,
-                start_range: Some(0),
-                end_range: Some(0),
+                start_range: Some(1),
+                end_range: Some(54),
                 attrs: vec![],
                 children: vec![]
             }
         )
     }
 
+    #[traced_test]
     #[test]
-    fn test_basic_html_can_parse_doctype() {
+    fn test_basic_html_can_parse_doctype_with_double_quoted_attribute() {
         let parser = HTMLParser::default();
-        let content = "<!doctype>";
 
-        let result = parser.parse(content);
+        let data = wrap_in_document_fragment_container(String::from("<!doctype lang=\"en\">"));
+        let result = parser.parse(data.as_str());
         assert!(matches!(result, ParsingResult::Ok(_)));
 
         let parsed = result.unwrap();
@@ -2922,14 +3566,104 @@ mod html_parser_test {
             Stack {
                 tag: Some(MarkupTags::HTML(HTMLTags::DocumentFragmentContainer)),
                 closed: true,
-                start_range: Some(0),
-                end_range: Some(0),
+                start_range: Some(1),
+                end_range: Some(74),
                 attrs: vec![],
                 children: vec![Stack {
                     tag: Some(MarkupTags::DocType),
                     closed: true,
-                    start_range: None,
-                    end_range: None,
+                    start_range: Some(29),
+                    end_range: Some(36),
+                    attrs: vec![("lang", "en")],
+                    children: vec![]
+                }]
+            }
+        )
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_basic_html_can_parse_doctype_with_single_quoted_attribute() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from("<!doctype lang='en'>"));
+        let result = parser.parse(data.as_str());
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap();
+        assert_eq!(
+            parsed,
+            Stack {
+                tag: Some(MarkupTags::HTML(HTMLTags::DocumentFragmentContainer)),
+                closed: true,
+                start_range: Some(1),
+                end_range: Some(74),
+                attrs: vec![],
+                children: vec![Stack {
+                    tag: Some(MarkupTags::DocType),
+                    closed: true,
+                    start_range: Some(29),
+                    end_range: Some(36),
+                    attrs: vec![("lang", "en")],
+                    children: vec![]
+                }]
+            }
+        )
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_basic_html_can_parse_doctype_with_attribute() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from("<!doctype lang=en>"));
+        let result = parser.parse(data.as_str());
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap();
+        assert_eq!(
+            parsed,
+            Stack {
+                tag: Some(MarkupTags::HTML(HTMLTags::DocumentFragmentContainer)),
+                closed: true,
+                start_range: Some(1),
+                end_range: Some(72),
+                attrs: vec![],
+                children: vec![Stack {
+                    tag: Some(MarkupTags::DocType),
+                    closed: true,
+                    end_range: Some(36),
+                    start_range: Some(29),
+                    attrs: vec![("lang", "en")],
+                    children: vec![]
+                }]
+            }
+        )
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_basic_html_can_parse_doctype() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from("<!doctype>"));
+        let result = parser.parse(data.as_str());
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap();
+        assert_eq!(
+            parsed,
+            Stack {
+                tag: Some(MarkupTags::HTML(HTMLTags::DocumentFragmentContainer)),
+                closed: true,
+                start_range: Some(1),
+                end_range: Some(64),
+                attrs: vec![],
+                children: vec![Stack {
+                    tag: Some(MarkupTags::DocType),
+                    closed: true,
+                    start_range: Some(29),
+                    end_range: Some(36),
                     attrs: vec![],
                     children: vec![]
                 }]
@@ -2937,12 +3671,13 @@ mod html_parser_test {
         )
     }
 
+    #[traced_test]
     #[test]
     fn test_basic_html_parsing_single_node() {
         let parser = HTMLParser::default();
-        let content = "<div>hello</div>";
 
-        let result = parser.parse(content);
+        let data = wrap_in_document_fragment_container(String::from("<div>hello</div>"));
+        let result = parser.parse(data.as_str());
         assert!(matches!(result, ParsingResult::Ok(_)));
 
         let parsed = result.unwrap();
@@ -2951,22 +3686,22 @@ mod html_parser_test {
             Stack {
                 tag: Some(MarkupTags::HTML(HTMLTags::DocumentFragmentContainer)),
                 closed: true,
-                start_range: Some(0),
-                end_range: Some(0),
+                start_range: Some(1),
+                end_range: Some(70),
                 attrs: vec![],
                 children: vec![Stack {
                     tag: Some(MarkupTags::HTML(HTMLTags::Div)),
                     closed: true,
-                    start_range: None,
-                    end_range: None,
+                    start_range: Some(28),
+                    end_range: Some(42),
                     attrs: vec![],
                     children: vec![Stack {
                         tag: Some(MarkupTags::Text("hello".to_string())),
                         closed: false,
                         attrs: vec![],
                         children: vec![],
-                        start_range: None,
-                        end_range: None,
+                        start_range: Some(32),
+                        end_range: Some(37),
                     }]
                 }]
             }

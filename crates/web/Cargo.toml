@@ -14,6 +14,14 @@ keywords.workspace = true
 default = ["console_error_panic_hook"]
 server = ["dep:tokio"]
 
+# -- global dev dependencies
+[dev_dependencies]
+tracing-test = { version = "0.2.5" }
+cargo-expand = { version = "1.0.85" }
+tokio-test = { version = "0.4" }
+wasm-pack = { version = "0.12.1" }
+wasm-bindgen-cli = { version = "0.2.29" }
+wasm-bindgen-test = { version = "0.3.42" }
 
 # -- global dependencies
 [dependencies]
