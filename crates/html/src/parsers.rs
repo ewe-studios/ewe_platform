@@ -3034,6 +3034,38 @@ impl HTMLParser {
                 }
             }
 
+            // if we are dealing with weird case of multi starter, its a bad html
+            // lets throw an error so they fix it.
+            if TAG_OPEN_BRACKET == next {
+                tracing::debug!(
+                    "parse_element_from_accumulator: double starter character: {} with block: {:?}",
+                    next,
+                    acc.vpeek_at(1, 1),
+                );
+
+                match acc.vpeek_at(1, 1) {
+                    Some(sample) => {
+                        if sample != TAG_OPEN_BRACKET {
+                            acc.peek_next();
+
+                            let mut elem = Stack::empty();
+                            let (content, (tag_start, tag_end)) = acc.take_positional().unwrap();
+
+                            elem.tag.replace(MarkupTags::Text(String::from(content)));
+                            elem.start_range = Some(tag_start);
+                            elem.end_range = Some(tag_end);
+
+                            return Ok(ParserDirective::Void(elem));
+                        }
+
+                        return Err(ParsingTagError::InvalidHTMLContent(String::from(
+                            acc.vpeek_at(0, acc.len()).unwrap(),
+                        )));
+                    }
+                    None => return Err(ParsingTagError::FailedParsing),
+                }
+            }
+
             if next
                 .chars()
                 .all(|t| t.is_alphanumeric() || t.is_ascii_alphanumeric())
@@ -3673,6 +3705,43 @@ mod html_parser_test {
 
     #[traced_test]
     #[test]
+    fn test_basic_html_parsing_single_node_with_spaced_tag_starter() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from("<div>hello< </div>"));
+        let result = parser.parse(data.as_str());
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap();
+        assert_eq!(
+            parsed,
+            Stack {
+                tag: Some(MarkupTags::HTML(HTMLTags::DocumentFragmentContainer)),
+                closed: true,
+                start_range: Some(1),
+                end_range: Some(72),
+                attrs: vec![],
+                children: vec![Stack {
+                    tag: Some(MarkupTags::HTML(HTMLTags::Div)),
+                    closed: true,
+                    start_range: Some(28),
+                    end_range: Some(44),
+                    attrs: vec![],
+                    children: vec![Stack {
+                        tag: Some(MarkupTags::Text("hello< ".to_string())),
+                        closed: false,
+                        attrs: vec![],
+                        children: vec![],
+                        start_range: Some(32),
+                        end_range: Some(39),
+                    }]
+                }]
+            }
+        )
+    }
+
+    #[traced_test]
+    #[test]
     fn test_basic_html_parsing_single_node() {
         let parser = HTMLParser::default();
 
@@ -3706,5 +3775,19 @@ mod html_parser_test {
                 }]
             }
         )
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_basic_html_parsing_single_node_with_tag_starter_in_text() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from("<div>hello<</div>"));
+        let result = parser.parse(data.as_str());
+
+        assert!(matches!(
+            result,
+            ParsingResult::Err(ParsingTagError::InvalidHTMLContent(_))
+        ));
     }
 }
