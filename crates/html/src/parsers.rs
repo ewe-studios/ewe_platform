@@ -2795,6 +2795,19 @@ impl<'a> Stack<'a> {
         self.attrs.push((name, value))
     }
 
+    pub fn get_tags(&self) -> Vec<MarkupTags> {
+        let mut items = vec![];
+        self.add_tags_to(&mut items);
+        for elem in self.children.iter() {
+            items.extend(elem.get_tags());
+        }
+        return items;
+    }
+
+    pub fn add_tags_to(&self, items: &mut Vec<MarkupTags>) {
+        items.push(self.tag.clone().unwrap());
+    }
+
     pub fn empty() -> Self {
         Self {
             tag: None,
@@ -3789,5 +3802,47 @@ mod html_parser_test {
             result,
             ParsingResult::Err(ParsingTagError::InvalidHTMLContent(_))
         ));
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_basic_html_parsing_single_node_text_with_special_characters() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from("<div>hello:_-</div>"));
+        let result = parser.parse(data.as_str());
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap().get_tags();
+
+        assert_eq!(
+            vec![
+                MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
+                MarkupTags::HTML(HTMLTags::Div),
+                MarkupTags::Text(String::from("hello:_-")),
+            ],
+            parsed
+        )
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_basic_html_parsing_single_node_text_with_svg_elements() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from("<div><circle></circl></div>"));
+        let result = parser.parse(data.as_str());
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap().get_tags();
+
+        assert_eq!(
+            vec![
+                MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
+                MarkupTags::HTML(HTMLTags::Div),
+                MarkupTags::SVG(SVGTags::Circle),
+            ],
+            parsed
+        )
     }
 }
