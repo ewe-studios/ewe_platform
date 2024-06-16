@@ -3103,7 +3103,7 @@ impl HTMLParser {
             // then it's still a text.
             match acc.peek(1) {
                 Some(text) => {
-                    if text == SPACE_STR {
+                    if text.chars().all(|t| SPACE_CHARS.contains(&t)) {
                         continue;
                     }
 
