@@ -1443,6 +1443,12 @@ pub enum ParsingTagError {
 
     #[error("Invalid HTML content ending incorrectly and cant be parsed: {0}")]
     InvalidHTMLEnd(String),
+
+    #[error("invalid state with last child Option being None, not expected")]
+    LastChildWasEmptyShell,
+
+    #[error("still expected stack to still contain a previous elem for operation")]
+    ExpectedUnemptyStack,
 }
 
 pub type ParsingResult<T> = std::result::Result<T, ParsingTagError>;
@@ -2871,6 +2877,7 @@ static SPACE_STR: &'static str = " ";
 static DOCTYPE_STR: &'static str = "!doctype";
 static TAG_OPEN_BRACKET: &'static str = "<";
 static TAG_CLOSED_BRACKET: &'static str = ">";
+static SELF_TAG_CLOSED_BRACKET: &'static str = "/>";
 static TAG_CLOSED_SLASH: &'static str = "/";
 static ATTRIBUTE_EQUAL_SIGN: &'static str = "=";
 static DOC_TYPE_STARTER_MARKER: &'static str = "!";
@@ -2927,33 +2934,92 @@ impl HTMLParser {
             match self.parse_element_from_accumulator(&mut accumulator, &mut stacks) {
                 Ok(elem) => match elem {
                     ParserDirective::Open(elem) => {
+                        tracing::debug!("parse: received opening tag indicator: {:?}", elem.tag);
                         stacks.push(elem);
+
+                        // incomplete logic here on how to deal with previous self closing tag
+                        // let child_tag = elem.tag.clone().unwrap();
+                        // match stacks.last_mut() {
+                        //     Some(parent) => {
+                        //         let parent_tag = parent.tag.clone().unwrap();
+                        //         if MarkupTags::is_element_self_closing(parent_tag) && parent_tag != child_tag {
+                        //             tracing::debug!("parse: not-self closing tag: {:?}", elem.tag);
+                        //             stacks.push(elem);
+                        //             continue;
+                        //         }
+                        //         // if parent_tag != tag {
+                        //         //     if !MarkupTags::is_element_closed_by_opening_tag(
+                        //         //         parent_tag, tag,
+                        //         //     ) {
+                        //         //         return Err(
+                        //         //             ParsingTagError::ClosingTagDoesNotMatchTopMarkup,
+                        //         //         );
+                        //         //     }
+                        //         // }
+                        //         tracing::debug!(
+                        //             "parse: adding {:?} to parent: {:?}",
+                        //             elem.tag,
+                        //             parent.tag
+                        //         );
+                        //         parent.children.push(elem)
+                        //     }
+                        //     None => {
+                        //         tracing::debug!("parse: no parent, pushing to stack: {:?}", elem.tag);
+                        //         stacks.push(elem);
+                        //     }
+                        // };
+
                         continue;
                     }
                     ParserDirective::Closed((tag, (tag_end_start, tag_end_end))) => {
+                        tracing::debug!("parse: received closing tag indicator: {:?}", tag);
+
+                        // do a check if we have a previous self closing element
+                        // that wont be closed by this new closer.
+                        let last_elem = stacks.get(stacks.len() - 1);
+                        match last_elem {
+                            Some(last_elem) => {
+                                let last_elem_tag = last_elem.tag.clone().unwrap();
+                                if last_elem_tag != tag {
+                                    if MarkupTags::is_element_self_closing(last_elem_tag.clone()) {
+                                        tracing::debug!("parse: previous top stack tag {:?} is self closing so can close and continue new closing check for {:?}", last_elem_tag, tag);
+                                        self.pop_last_as_child_of_previous(&mut stacks);
+                                    }
+                                }
+                            }
+                            None => {
+                                return Err(ParsingTagError::UnexpectedParsingWithUnfinishedTag)
+                            }
+                        }
+
+                        // standard closing tag operation for normal behaviour
                         match stacks.last_mut() {
-                            Some(parent) => match parent.tag.clone() {
-                                Some(parent_tag) => {
-                                    if parent_tag != tag {
-                                        if !MarkupTags::is_element_closed_by_closing_tag(
-                                            parent_tag, tag,
-                                        ) {
+                            Some(parent) => {
+                                match parent.tag.clone() {
+                                    Some(parent_tag) => {
+                                        tracing::debug!("parse: reviewing ontop stack tag {:?} and child tag: {:?}", parent_tag, tag);
+                                        if parent_tag != tag
+                                            && !MarkupTags::is_element_closed_by_closing_tag(
+                                                parent_tag, tag,
+                                            )
+                                        {
                                             return Err(
                                                 ParsingTagError::ClosingTagDoesNotMatchTopMarkup,
                                             );
                                         }
-                                    }
 
-                                    parent.closed = true;
-                                    parent.end_range = Some(tag_end_end);
-                                    pop_top_stack = true;
+                                        parent.closed = true;
+                                        parent.end_range = Some(tag_end_end);
+                                        pop_top_stack = true;
+                                    }
+                                    None => return Err(ParsingTagError::StackedMarkupHasNoTag),
                                 }
-                                None => return Err(ParsingTagError::StackedMarkupHasNoTag),
-                            },
+                            }
                             None => return Err(ParsingTagError::ClosingTagHasZeroElementInStack),
                         }
                     }
                     ParserDirective::Void(elem) => {
+                        tracing::debug!("parse: received void tag: {:?}", elem.tag);
                         if stacks.len() == 0 {
                             stacks.push(elem);
                         } else {
@@ -2989,6 +3055,23 @@ impl HTMLParser {
         }
 
         Ok(stacks.pop().unwrap())
+    }
+
+    fn pop_last_as_child_of_previous(&self, mut stacks: &mut Vec<Stack>) -> ParsingResult<()> {
+        if stacks.len() == 0 {
+            return Ok(());
+        }
+
+        match stacks.pop() {
+            Some(last_child) => match stacks.last_mut() {
+                Some(parent) => {
+                    parent.children.push(last_child);
+                    Ok(())
+                }
+                None => Err(ParsingTagError::ExpectedUnemptyStack),
+            },
+            None => Err(ParsingTagError::LastChildWasEmptyShell),
+        }
     }
 
     fn is_tag_name_data<'a>(&self, text: &'a str) -> bool {
@@ -3237,6 +3320,7 @@ impl HTMLParser {
         // skip it after collect forward
         acc.skip();
 
+        let mut is_void_tag = false;
         let mut collected_tag_name = false;
         let mut collected_attrs = false;
 
@@ -3249,9 +3333,46 @@ impl HTMLParser {
 
             if next != TAG_CLOSED_BRACKET && next != SPACE_STR {
                 tracing::error!(
-                    "parse_elem: expected either space or '>' indicating end of start tag {:?}",
-                    elem.tag
+                    "parse_elem: expected either space or '>' indicating end of start tag: current scan {:?}",
+                    acc.scan()
                 );
+
+                acc.unpeek_next();
+
+                // check if its self closing tag
+                tracing::error!(
+                    "parse_elem: kickstart self closing scan logic {:?}",
+                    acc.vpeek_at(0, 2)
+                );
+
+                if acc.vpeek_at(0, 2).unwrap() == SELF_TAG_CLOSED_BRACKET {
+                    tracing::error!("parse_elem: found self closing tag {:?}", acc.scan());
+
+                    let (tag_text, (tag_start, tag_end)) = acc.take_positional().unwrap();
+                    match MarkupTags::from_str(tag_text) {
+                        Ok(tag) => {
+                            is_void_tag = MarkupTags::is_element_self_closing(tag.clone());
+
+                            elem.start_range = Some(tag_start);
+                            elem.end_range = Some(tag_end);
+                            elem.tag.replace(tag);
+                        }
+                        Err(err) => return Err(err),
+                    };
+
+                    tracing::debug!("parse_elem: generates self closing tagname: {:?}", elem.tag);
+
+                    acc.peek_next_by(2);
+
+                    tracing::debug!("parse_elem: collecting closing text: {:?}", acc.scan());
+
+                    acc.take();
+
+                    tracing::debug!("parse_elem: next scan peek: {:?}", acc.peek(1));
+
+                    return Ok(ParserDirective::Void(elem));
+                }
+
                 return Err(ParsingTagError::ExpectingSpaceAfterTagName);
             }
 
@@ -3261,6 +3382,8 @@ impl HTMLParser {
                 let (tag_text, (tag_start, tag_end)) = acc.take_positional().unwrap();
                 match MarkupTags::from_str(tag_text) {
                     Ok(tag) => {
+                        is_void_tag = MarkupTags::is_element_self_closing(tag.clone());
+
                         elem.start_range = Some(tag_start);
                         elem.end_range = Some(tag_end);
                         elem.tag.replace(tag);
@@ -3293,6 +3416,9 @@ impl HTMLParser {
             if next == TAG_CLOSED_BRACKET {
                 acc.take();
 
+                // if is_void_tag {
+                //     return Ok(ParserDirective::Void(elem));
+                // }
                 return Ok(ParserDirective::Open(elem));
             }
         }
@@ -3827,20 +3953,87 @@ mod html_parser_test {
 
     #[traced_test]
     #[test]
-    fn test_basic_html_parsing_single_node_text_with_svg_elements() {
+    fn test_basic_html_parsing_single_node_text_with_multiple_children_with_self_closing_br_and_circle(
+    ) {
         let parser = HTMLParser::default();
 
-        let data = wrap_in_document_fragment_container(String::from("<div><circle></circl></div>"));
+        let data = wrap_in_document_fragment_container(String::from(
+            "<div><circle/></div><div><br/></div>",
+        ));
         let result = parser.parse(data.as_str());
+
+        tracing::info!("Result: {:?}", result);
+
         assert!(matches!(result, ParsingResult::Ok(_)));
 
         let parsed = result.unwrap().get_tags();
+        tracing::info!("ParsedTags: {:?}", parsed);
 
         assert_eq!(
             vec![
                 MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
                 MarkupTags::HTML(HTMLTags::Div),
                 MarkupTags::SVG(SVGTags::Circle),
+                MarkupTags::HTML(HTMLTags::Div),
+                MarkupTags::HTML(HTMLTags::Br),
+            ],
+            parsed
+        )
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_basic_html_parsing_single_node_text_with_multiple_children_with_self_closing_br() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            "<div><circle></circle></div><div><br/></div>",
+        ));
+        let result = parser.parse(data.as_str());
+
+        tracing::info!("Result: {:?}", result);
+
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap().get_tags();
+        tracing::info!("ParsedTags: {:?}", parsed);
+
+        assert_eq!(
+            vec![
+                MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
+                MarkupTags::HTML(HTMLTags::Div),
+                MarkupTags::SVG(SVGTags::Circle),
+                MarkupTags::HTML(HTMLTags::Div),
+                MarkupTags::HTML(HTMLTags::Br),
+            ],
+            parsed
+        )
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_basic_html_parsing_single_node_text_with_multiple_children() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            "<div><circle></circle></div><div><br></div>",
+        ));
+        let result = parser.parse(data.as_str());
+
+        tracing::info!("Result: {:?}", result);
+
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap().get_tags();
+        tracing::info!("ParsedTags: {:?}", parsed);
+
+        assert_eq!(
+            vec![
+                MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
+                MarkupTags::HTML(HTMLTags::Div),
+                MarkupTags::SVG(SVGTags::Circle),
+                MarkupTags::HTML(HTMLTags::Div),
+                MarkupTags::HTML(HTMLTags::Br),
             ],
             parsed
         )
