@@ -3320,7 +3320,6 @@ impl HTMLParser {
         // skip it after collect forward
         acc.skip();
 
-        let mut is_void_tag = false;
         let mut collected_tag_name = false;
         let mut collected_attrs = false;
 
@@ -3351,8 +3350,6 @@ impl HTMLParser {
                     let (tag_text, (tag_start, tag_end)) = acc.take_positional().unwrap();
                     match MarkupTags::from_str(tag_text) {
                         Ok(tag) => {
-                            is_void_tag = MarkupTags::is_element_self_closing(tag.clone());
-
                             elem.start_range = Some(tag_start);
                             elem.end_range = Some(tag_end);
                             elem.tag.replace(tag);
@@ -3416,9 +3413,6 @@ impl HTMLParser {
             if next == TAG_CLOSED_BRACKET {
                 acc.take();
 
-                // if is_void_tag {
-                //     return Ok(ParserDirective::Void(elem));
-                // }
                 return Ok(ParserDirective::Open(elem));
             }
         }
