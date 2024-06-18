@@ -4055,12 +4055,9 @@ mod html_parser_test {
         ));
         let result = parser.parse(data.as_str());
 
-        tracing::info!("Result: {:?}", result);
-
         assert!(matches!(result, ParsingResult::Ok(_)));
 
         let parsed = result.unwrap().get_tags();
-        tracing::info!("ParsedTags: {:?}", parsed);
 
         assert_eq!(
             vec![
@@ -4084,12 +4081,9 @@ mod html_parser_test {
         ));
         let result = parser.parse(data.as_str());
 
-        tracing::info!("Result: {:?}", result);
-
         assert!(matches!(result, ParsingResult::Ok(_)));
 
         let parsed = result.unwrap().get_tags();
-        tracing::info!("ParsedTags: {:?}", parsed);
 
         assert_eq!(
             vec![
@@ -4148,12 +4142,9 @@ mod html_parser_test {
         ));
         let result = parser.parse(data.as_str());
 
-        tracing::info!("Result: {:?}", result);
-
         assert!(matches!(result, ParsingResult::Ok(_)));
 
         let parsed = result.unwrap().get_tags();
-        tracing::info!("ParsedTags: {:?}", parsed);
 
         assert_eq!(
             vec![
