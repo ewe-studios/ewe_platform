@@ -1866,6 +1866,7 @@ pub enum HTMLTags {
     Var,
     Video,
     Wbr,
+    Xml,
     Keygen,
 }
 
@@ -1990,6 +1991,7 @@ impl FromStr for HTMLTags {
             "var" => Ok(HTMLTags::Var),
             "video" => Ok(HTMLTags::Video),
             "wbr" => Ok(HTMLTags::Wbr),
+            "xml" => Ok(HTMLTags::Xml),
             _ => Err(ParsingTagError::UnknownTag),
         }
     }
@@ -2118,6 +2120,7 @@ impl HTMLTags {
             HTMLTags::Var => "var",
             HTMLTags::Video => "video",
             HTMLTags::Wbr => "wbr",
+            HTMLTags::Xml => "xml",
         }
     }
 
@@ -2531,6 +2534,13 @@ impl<'a> Accumulator<'a> {
     }
 
     /// scan returns the whole string slice currently at the points of where
+    /// the main pos (position) cursor till the end.
+    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
+    pub fn scan_remaining(&mut self) -> Option<&'a str> {
+        Some(&self.content[self.pos..])
+    }
+
+    /// scan returns the whole string slice currently at the points of where
     /// the main pos (position) cursor and the peek cursor so you can
     /// pull the string right at the current range.
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
@@ -2575,6 +2585,31 @@ impl<'a> Accumulator<'a> {
         }
 
         Some(&self.content[self.peek_pos..(self.peek_pos + by)])
+    }
+
+    /// ppeek_at allows you to do a non-permant position cursor adjustment
+    /// by taking the current position cursor index with an adjustment
+    /// where we add the `from` (pos + from) to get the new
+    /// position to start from and `to` is added (pos + from + to)
+    /// the position to end at, if the total is more than the length of the string
+    /// then its adjusted to be the string last index for the slice.
+    ///
+    /// It's a nice way to get to see whats at a given position without changing
+    /// the current location of the peek cursor.
+    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
+    fn ppeek_at(&mut self, from: usize, to: usize) -> Option<&'a str> {
+        let new_peek_pos = self.pos + from;
+        let mut until_pos = if new_peek_pos + to > self.content.len() {
+            self.content.len()
+        } else {
+            new_peek_pos + to
+        };
+
+        if new_peek_pos > self.content.len() {
+            return None;
+        }
+
+        Some(&self.content[new_peek_pos..until_pos])
     }
 
     /// vpeek_at allows you to do a non-permant peek cursor adjustment
@@ -2873,16 +2908,25 @@ static VALID_ATTRIBUTE_VALUE_CHARS: &[char] = &['"', '\''];
 static VALID_ATTRIBUTE_STARTER_SYMBOLS: &[char] = &['{', '"'];
 static VALID_ATTRIBUTE_ENDER_SYMBOLS: &[char] = &['}', '"'];
 
+static VALID_ATTRIBUTE_STARTER_SYMBOLS_STR: &[&str] = &["{", "(", "[", "\"", "'"];
+
 static FRAME_FLAG_TAG: &'static str = "DocumentFragmentContainer";
 static SINGLE_QUOTE_STR: &'static str = "'";
 static DOUBLE_QUOTE_STR: &'static str = "\"";
 static SPACE_STR: &'static str = " ";
+static COMMENT_DASHER: &'static str = "-";
+static COMMENT_STARTER: &'static str = "<!--";
+static COMMENT_ENDER: &'static str = "-->";
+static QUESTION_MARK: &'static str = "?";
+static XML_STARTER: &'static str = "<?";
+static XML_ENDER: &'static str = "?>";
 static DOCTYPE_STR: &'static str = "!doctype";
 static TAG_OPEN_BRACKET: &'static str = "<";
 static TAG_CLOSED_BRACKET: &'static str = ">";
 static NORMAL_TAG_CLOSED_BRACKET: &'static str = "</";
 static SELF_TAG_CLOSED_BRACKET: &'static str = "/>";
-static TAG_CLOSED_SLASH: &'static str = "/";
+static FORWARD_SLASH: &'static str = "/";
+static BACKWARD_SLASH: &'static str = "\\";
 static ATTRIBUTE_EQUAL_SIGN: &'static str = "=";
 static DOC_TYPE_STARTER_MARKER: &'static str = "!";
 static TAG_NAME_SPACE_END: &'static str = " ";
@@ -3128,6 +3172,30 @@ impl HTMLParser {
                 next
             );
 
+            let comment_scan = acc.vpeek_at(0, 4).unwrap();
+            if TAG_OPEN_BRACKET == next && comment_scan == COMMENT_STARTER {
+                tracing::debug!(
+                    "parse_element_from_accumulator: checking comment scan: {:?}",
+                    comment_scan
+                );
+                match self.parse_comment(acc, &mut stacks) {
+                    Ok(elem) => return Ok(elem),
+                    Err(err) => return Err(err),
+                }
+            }
+
+            let xml_starter_scan = acc.vpeek_at(0, 2).unwrap();
+            tracing::debug!(
+                "parse_element_from_accumulator: xml token scan: {:?}",
+                xml_starter_scan
+            );
+            if TAG_OPEN_BRACKET == next && xml_starter_scan == XML_STARTER {
+                match self.parse_xml_elem(acc, &mut stacks) {
+                    Ok(elem) => return Ok(elem),
+                    Err(err) => return Err(err),
+                }
+            }
+
             if TAG_OPEN_BRACKET == next
                 && (acc.vpeek_at(1, 2).unwrap())
                     .chars()
@@ -3153,7 +3221,7 @@ impl HTMLParser {
             }
 
             if TAG_OPEN_BRACKET == next
-                && begins_with_and_after(acc.vpeek_at(1, 2).unwrap(), &TAG_CLOSED_SLASH, |t| {
+                && begins_with_and_after(acc.vpeek_at(1, 2).unwrap(), &FORWARD_SLASH, |t| {
                     t.chars().all(char::is_alphabetic)
                 })
             {
@@ -3203,6 +3271,47 @@ impl HTMLParser {
                     Ok(elem) => return Ok(elem),
                     Err(err) => return Err(err),
                 }
+            }
+        }
+
+        Err(ParsingTagError::FailedParsing)
+    }
+
+    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    fn parse_comment<'c, 'd>(
+        &self,
+        acc: &mut Accumulator<'c>,
+        mut stacks: &mut Vec<Stack>,
+    ) -> ParsingResult<ParserDirective<'d>>
+    where
+        'c: 'd,
+    {
+        let mut elem = Stack::empty();
+
+        while let Some(next) = acc.peek_next() {
+            tracing::debug!("parse_comment: saw chracter: {}", next);
+
+            let comment_ender_scan = acc.vpeek_at(0, 3).unwrap();
+            tracing::debug!(
+                "parse_comment: commend ender scan: '{}'",
+                comment_ender_scan
+            );
+
+            if comment_ender_scan == COMMENT_ENDER {
+                tracing::debug!(
+                    "parse_comment: seen comment dashsher: {}",
+                    comment_ender_scan
+                );
+
+                acc.peek_next_by(comment_ender_scan.len());
+
+                let (tag_text, (tag_start, tag_end)) = acc.take_positional().unwrap();
+                elem.tag
+                    .replace(MarkupTags::Comment(String::from(tag_text)));
+                elem.start_range = Some(tag_start);
+                elem.end_range = Some(tag_end);
+
+                return Ok(ParserDirective::Void(elem));
             }
         }
 
@@ -3405,6 +3514,85 @@ impl HTMLParser {
     }
 
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    fn parse_xml_elem<'c, 'd>(
+        &self,
+        acc: &mut Accumulator<'c>,
+        mut stacks: &mut Vec<Stack>,
+    ) -> ParsingResult<ParserDirective<'d>>
+    where
+        'c: 'd,
+    {
+        let mut elem = Stack::empty();
+
+        // we already know we are looking at the starter of a tag '<'
+        acc.peek_next();
+        acc.peek_next();
+
+        // skip it after collect forward
+        acc.skip();
+
+        let mut collected_tag_name = false;
+        let mut collected_attrs = false;
+
+        while let Some(next) = acc.peek_next() {
+            tracing::debug!("parse_xml_elem: saw chracter: {}", next);
+
+            if self.is_tag_name_data(next) {
+                continue;
+            }
+
+            if next == QUESTION_MARK && acc.peek(1).unwrap() == TAG_CLOSED_BRACKET {
+                tracing::debug!("parse_xml_elem: collect tag name: {:?}", next);
+
+                acc.peek_next();
+                acc.take();
+
+                return Ok(ParserDirective::Void(elem));
+            }
+
+            if !collected_tag_name {
+                tracing::debug!("parse_xml_elem: collect tag name: {:?}", next);
+                acc.unpeek_next();
+
+                let (tag_text, (tag_start, tag_end)) = acc.take_positional().unwrap();
+                match MarkupTags::from_str(tag_text) {
+                    Ok(tag) => {
+                        elem.start_range = Some(tag_start);
+                        elem.end_range = Some(tag_end);
+                        elem.tag.replace(tag);
+                    }
+                    Err(err) => return Err(err),
+                };
+
+                tracing::debug!("parse_xml_elem: generates tagname: {:?}", elem.tag);
+
+                acc.peek_next();
+
+                collected_tag_name = true;
+            }
+
+            if next == SPACE_STR && !collected_attrs {
+                tracing::debug!("parse_xml_elem: collect attributes: {:?}", elem.tag);
+
+                self.collect_space(acc)?;
+
+                match self.parse_elem_attribute(acc, &mut elem) {
+                    Ok(_) => continue,
+                    Err(err) => return Err(err),
+                }
+
+                collected_attrs = true;
+
+                self.collect_space(acc)?;
+
+                continue;
+            }
+        }
+
+        Err(ParsingTagError::FailedParsing)
+    }
+
+    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
     fn parse_elem<'c, 'd>(
         &self,
         acc: &mut Accumulator<'c>,
@@ -3425,7 +3613,7 @@ impl HTMLParser {
         let mut collected_attrs = false;
 
         while let Some(next) = acc.peek_next() {
-            tracing::debug!("parse_elem saw chracter: {}", next);
+            tracing::debug!("parse_elem: saw chracter: {}", next);
 
             if self.is_tag_name_data(next) {
                 continue;
@@ -3448,15 +3636,17 @@ impl HTMLParser {
                 if acc.vpeek_at(0, 2).unwrap() == SELF_TAG_CLOSED_BRACKET {
                     tracing::error!("parse_elem: found self closing tag {:?}", acc.scan());
 
-                    let (tag_text, (tag_start, tag_end)) = acc.take_positional().unwrap();
-                    match MarkupTags::from_str(tag_text) {
-                        Ok(tag) => {
-                            elem.start_range = Some(tag_start);
-                            elem.end_range = Some(tag_end);
-                            elem.tag.replace(tag);
-                        }
-                        Err(err) => return Err(err),
-                    };
+                    if !collected_tag_name {
+                        let (tag_text, (tag_start, tag_end)) = acc.take_positional().unwrap();
+                        match MarkupTags::from_str(tag_text) {
+                            Ok(tag) => {
+                                elem.start_range = Some(tag_start);
+                                elem.end_range = Some(tag_end);
+                                elem.tag.replace(tag);
+                            }
+                            Err(err) => return Err(err),
+                        };
+                    }
 
                     tracing::debug!("parse_elem: generates self closing tagname: {:?}", elem.tag);
 
@@ -3549,6 +3739,7 @@ impl HTMLParser {
 
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
     fn is_valid_attribute_value_token<'a>(&self, token: &'a str) -> bool {
+        tracing::info!("Checking if valid attribute value token: {:?}", token);
         token.chars().any(|t| {
             t.is_alphanumeric()
                 || t.is_ascii_alphanumeric()
@@ -3579,15 +3770,34 @@ impl HTMLParser {
 
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
     fn collect_attribute_value_alphaneumerics(&self, acc: &mut Accumulator) -> ParsingResult<()> {
+        let starter = acc.peek(1).unwrap();
+
+        let is_alphaneumerics_starter = starter.chars().all(char::is_alphanumeric);
+        let is_indent_starter = VALID_ATTRIBUTE_STARTER_SYMBOLS_STR.contains(&starter);
+
         while let Some(next) = acc.peek_next() {
-            if self.is_valid_attribute_value_token(next) {
-                continue;
+            if is_alphaneumerics_starter && next == TAG_CLOSED_BRACKET {
+                // move backwartds
+                acc.unpeek_next();
+
+                return Ok(());
             }
 
-            // move backwartds
-            acc.unpeek_next();
+            if is_alphaneumerics_starter && next.chars().all(char::is_whitespace) {
+                // move backwartds
+                acc.unpeek_next();
 
-            return Ok(());
+                return Ok(());
+            }
+
+            // if we did not just escape the same starting character - then its means it's the end of
+            // the attribute.
+            if is_indent_starter && next != BACKWARD_SLASH && acc.peek(1).unwrap() == starter {
+                // move forward one sep
+                acc.peek_next();
+
+                return Ok(());
+            }
         }
         Err(ParsingTagError::FailedParsing)
     }
@@ -3674,11 +3884,23 @@ impl HTMLParser {
                     acc.peek_next();
                     acc.take();
 
+                    tracing::debug!(
+                        "parse_elem_attribute: going to next scan: {:?} -> {:?}",
+                        acc.peek(1),
+                        acc.scan()
+                    );
+
                     if !self.is_valid_attribute_value_token(acc.peek(1).unwrap()) {
                         return Err(ParsingTagError::AttributeValueNotValidStarter(
                             String::from(acc.peek(1).unwrap()),
                         ));
                     }
+
+                    tracing::debug!(
+                        "parse_elem_attribute: after validating to next scan: {:?} -> {:?}",
+                        acc.peek(1),
+                        acc.peek(2)
+                    );
 
                     // collect value
                     self.collect_attribute_value_alphaneumerics(acc)?;
@@ -3882,6 +4104,9 @@ mod html_parser_test {
 
         let data = wrap_in_document_fragment_container(String::from("<!doctype lang=en>"));
         let result = parser.parse(data.as_str());
+
+        tracing::info!("Result: {:?}", result);
+
         assert!(matches!(result, ParsingResult::Ok(_)));
 
         let parsed = result.unwrap();
@@ -4152,6 +4377,195 @@ mod html_parser_test {
                 MarkupTags::HTML(HTMLTags::Div),
                 MarkupTags::HTML(HTMLTags::Script),
                 MarkupTags::Text(String::from("\n                \tlet some_var = window.get('alex');\n                    let elem = (<section>alex</section>)\n                ")),
+            ],
+            parsed
+        )
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_basic_html_parsing_can_parse_comments_with_extended_ender() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            r#"<div>
+                <!-- This is a comment--->
+            </div>
+            "#,
+        ));
+        let result = parser.parse(data.as_str());
+
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap().get_tags();
+
+        assert_eq!(
+            vec![
+                MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
+                MarkupTags::HTML(HTMLTags::Div),
+                MarkupTags::Comment(String::from("<!-- This is a comment--->")),
+            ],
+            parsed
+        )
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_basic_html_parsing_can_parse_comments_with_character() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            r#"<div>
+                <!-- This is a comment-->
+            </div>
+            "#,
+        ));
+        let result = parser.parse(data.as_str());
+
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap().get_tags();
+
+        assert_eq!(
+            vec![
+                MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
+                MarkupTags::HTML(HTMLTags::Div),
+                MarkupTags::Comment(String::from("<!-- This is a comment-->")),
+            ],
+            parsed
+        )
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_basic_html_parsing_can_parse_comments() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            r#"<div>
+                <!-- This is a comment -->
+            </div>
+            "#,
+        ));
+        let result = parser.parse(data.as_str());
+
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap().get_tags();
+
+        assert_eq!(
+            vec![
+                MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
+                MarkupTags::HTML(HTMLTags::Div),
+                MarkupTags::Comment(String::from("<!-- This is a comment -->")),
+            ],
+            parsed
+        )
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_basic_html_parsing_can_parse_multiline_comments() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            r#"<div>
+                <!--
+                    This is a comment
+                -->
+            </div>
+            "#,
+        ));
+        let result = parser.parse(data.as_str());
+
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap().get_tags();
+
+        assert_eq!(
+            vec![
+                MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
+                MarkupTags::HTML(HTMLTags::Div),
+                MarkupTags::Comment(String::from(
+                    "<!--\n                    This is a comment\n                -->"
+                ))
+            ],
+            parsed
+        )
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_basic_html_parsing_with_section_tag_self_closing() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            r#"
+                <section />
+            "#,
+        ));
+        let result = parser.parse(data.as_str());
+
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap().get_tags();
+
+        assert_eq!(
+            vec![
+                MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
+                MarkupTags::HTML(HTMLTags::Section),
+            ],
+            parsed
+        )
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_basic_html_parsing_with_div_tag_self_closing() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            r#"
+                <div />
+            "#,
+        ));
+        let result = parser.parse(data.as_str());
+
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap().get_tags();
+
+        assert_eq!(
+            vec![
+                MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
+                MarkupTags::HTML(HTMLTags::Div),
+            ],
+            parsed
+        )
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_basic_html_parsing_can_parse_xml_starter() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            r#"
+            <?xml version="1.0" ?>
+            "#,
+        ));
+        let result = parser.parse(data.as_str());
+
+        tracing::info!("Result: {:?}", result);
+
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap().get_tags();
+
+        assert_eq!(
+            vec![
+                MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
+                MarkupTags::HTML(HTMLTags::Xml),
             ],
             parsed
         )
