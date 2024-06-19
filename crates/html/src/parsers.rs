@@ -2343,7 +2343,7 @@ impl FromStr for MarkupTags {
         if let Ok(tag) = SVGTags::from_str(s) {
             return Ok(MarkupTags::SVG(tag));
         }
-        Ok(MarkupTags::Text(s.to_owned()))
+        Ok(MarkupTags::Component(s.to_owned()))
     }
 }
 
@@ -3151,10 +3151,10 @@ impl HTMLParser {
         }
     }
 
-    fn is_tag_name_data<'a>(&self, text: &'a str) -> bool {
-        let is_aphanum = text.chars().any(char::is_alphanumeric);
+    fn is_valid_tag_name_token<'a>(&self, text: &'a str) -> bool {
+        let is_alphanum = text.chars().any(char::is_alphanumeric);
         let is_allowed_symbol = text.chars().any(|t| self.allowed_tag_symbols.contains(&t));
-        is_aphanum || (is_allowed_symbol && is_aphanum)
+        is_alphanum || is_allowed_symbol
     }
 
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
@@ -3537,7 +3537,7 @@ impl HTMLParser {
         while let Some(next) = acc.peek_next() {
             tracing::debug!("parse_xml_elem: saw chracter: {}", next);
 
-            if self.is_tag_name_data(next) {
+            if self.is_valid_tag_name_token(next) {
                 continue;
             }
 
@@ -3615,7 +3615,7 @@ impl HTMLParser {
         while let Some(next) = acc.peek_next() {
             tracing::debug!("parse_elem: saw chracter: {}", next);
 
-            if self.is_tag_name_data(next) {
+            if self.is_valid_tag_name_token(next) {
                 continue;
             }
 
@@ -3966,7 +3966,7 @@ impl HTMLParser {
         while let Some(next) = acc.peek_next() {
             tracing::debug!("parse_closing_tag: saw chracter: {}", next);
 
-            if self.is_tag_name_data(next) {
+            if self.is_valid_tag_name_token(next) {
                 continue;
             }
 
@@ -4489,6 +4489,31 @@ mod html_parser_test {
                 MarkupTags::Comment(String::from(
                     "<!--\n                    This is a comment\n                -->"
                 ))
+            ],
+            parsed
+        )
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_basic_html_parsing_with_section_tag_with_at_sign_self_closing() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            r#"
+                <sec@tion />
+            "#,
+        ));
+        let result = parser.parse(data.as_str());
+
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap().get_tags();
+
+        assert_eq!(
+            vec![
+                MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
+                MarkupTags::Component(String::from("sec@tion")),
             ],
             parsed
         )
