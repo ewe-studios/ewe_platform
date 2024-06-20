@@ -1656,15 +1656,42 @@ impl SVGTags {
         SVG_TAG_REGEX.get(self)
     }
 
+    pub fn is_svg_element_closed_by_closing_tag(me: SVGTags, other: SVGTags) -> bool {
+        match me {
+            _ => false,
+        }
+    }
+
+    pub fn is_svg_element_closed_by_opening_tag(me: SVGTags, other: SVGTags) -> bool {
+        match me {
+            SVGTags::Animate => match other {
+                SVGTags::Animate => true,
+                _ => true,
+            },
+            _ => false,
+        }
+    }
+
     pub fn is_self_closing_tag(self) -> bool {
         match self {
-            SVGTags::Path | SVGTags::Polygon | SVGTags::Rect | SVGTags::Circle => true,
+            SVGTags::Path
+            | SVGTags::Polygon
+            | SVGTags::Rect
+            | SVGTags::Circle
+            | SVGTags::Animate
+            | SVGTags::Animatemotion
+            | SVGTags::Animatetransform => true,
             _ => false,
         }
     }
 
     pub fn is_auto_closed(tag: SVGTags) -> bool {
         match tag {
+            // SVGTags::Path
+            // | SVGTags::Polygon
+            // | SVGTags::Rect
+            // | SVGTags::Circle
+            // | SVGTags::Animate => true,
             _ => false,
         }
     }
@@ -2377,6 +2404,9 @@ impl MarkupTags {
             (MarkupTags::HTML(me), MarkupTags::HTML(other)) => {
                 HTMLTags::is_html_element_closed_by_opening_tag(me, other)
             }
+            (MarkupTags::SVG(me), MarkupTags::SVG(other)) => {
+                SVGTags::is_svg_element_closed_by_opening_tag(me, other)
+            }
             _ => false,
         }
     }
@@ -2385,6 +2415,9 @@ impl MarkupTags {
         match (me, other) {
             (MarkupTags::HTML(me), MarkupTags::HTML(other)) => {
                 HTMLTags::is_html_element_closed_by_closing_tag(me, other)
+            }
+            (MarkupTags::SVG(me), MarkupTags::SVG(other)) => {
+                SVGTags::is_svg_element_closed_by_closing_tag(me, other)
             }
             _ => false,
         }
@@ -3016,6 +3049,10 @@ impl HTMLParser {
             // extraction and append as a child to the top element in the stack
             // which should be the owner until we see the end tag
             if text_block_tag.is_some() {
+                tracing::debug!(
+                    "parse: reading next token with pending text block: {:?}",
+                    next
+                );
                 match self.parse_element_text_block(
                     text_block_tag.clone().unwrap(),
                     &mut accumulator,
@@ -3229,11 +3266,11 @@ impl HTMLParser {
             }
 
             let xml_starter_scan = acc.vpeek_at(0, 2).unwrap();
-            tracing::debug!(
-                "parse_element_from_accumulator: xml token scan: {:?}",
-                xml_starter_scan
-            );
             if TAG_OPEN_BRACKET == next && xml_starter_scan == XML_STARTER {
+                tracing::debug!(
+                    "parse_element_from_accumulator: xml token scan activated: {:?}",
+                    xml_starter_scan
+                );
                 match self.parse_xml_elem(acc, &mut stacks) {
                     Ok(elem) => return Ok(elem),
                     Err(err) => return Err(err),
@@ -3241,10 +3278,14 @@ impl HTMLParser {
             }
 
             if TAG_OPEN_BRACKET == next
-                && (acc.vpeek_at(1, 2).unwrap())
+                && (acc.vpeek_at(1, 1).unwrap())
                     .chars()
                     .all(char::is_alphanumeric)
             {
+                tracing::debug!(
+                    "parse_element_from_accumulator: elem token scan activated: {:?}",
+                    xml_starter_scan
+                );
                 match self.parse_elem(acc, &mut stacks) {
                     Ok(elem) => return Ok(elem),
                     Err(err) => return Err(err),
@@ -3258,6 +3299,10 @@ impl HTMLParser {
                     |t| t.chars().all(char::is_alphabetic),
                 )
             {
+                tracing::debug!(
+                    "parse_element_from_accumulator: doctype token scan activated: {:?}",
+                    xml_starter_scan
+                );
                 match self.parse_doc_type(acc, &mut stacks) {
                     Ok(elem) => return Ok(elem),
                     Err(err) => return Err(err),
@@ -3269,6 +3314,10 @@ impl HTMLParser {
                     t.chars().all(char::is_alphabetic)
                 })
             {
+                tracing::debug!(
+                    "parse_element_from_accumulator: tag closer token scan activated: {:?}",
+                    xml_starter_scan
+                );
                 match self.parse_closing_tag(acc, &mut stacks) {
                     Ok(elem) => return Ok(elem),
                     Err(err) => return Err(err),
@@ -4867,6 +4916,81 @@ mod html_parser_test {
 
     #[traced_test]
     #[test]
+    fn test_html_attribute_variation_with_double_curly_bracket() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            "<div jail={{some of other vaulue}}>hello</div>",
+        ));
+        let result = parser.parse(data.as_str());
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap();
+        let div = parsed.children.get(0).unwrap();
+
+        assert_eq!(
+            *div.attrs.get(0).unwrap(),
+            ("jail", "{{some of other vaulue}}")
+        );
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_html_attribute_variation_with_curly_bracket() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            "<div jail={some of other vaulue}>hello</div>",
+        ));
+        let result = parser.parse(data.as_str());
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap();
+        let div = parsed.children.get(0).unwrap();
+
+        assert_eq!(
+            *div.attrs.get(0).unwrap(),
+            ("jail", "{some of other vaulue}")
+        );
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_can_parse_complex_svg_data() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            r#"
+        <svg width="600" height="600">
+            <rect id="rec" x="300" y="100" width="300" height="100" style="fill:lime">
+            <animate attributeName="x" attributeType="XML" begin="0s" dur="6s" fill="freeze" from="300" to="0" />
+            <animate attributeName="y" attributeType="XML" begin="0s" dur="6s" fill="freeze" from="100" to="0" />
+            <animate attributeName="width" attributeType="XML" begin="0s" dur="6s" fill="freeze" from="300" to="800" />
+            <animate attributeName="height" attributeType="XML" begin="0s" dur="6s" fill="freeze" from="100" to="300" />
+            <animate attributeName="fill" attributeType="CSS" from="lime" to="red" begin="2s" dur="4s" fill="freeze" />
+            </rect>
+            <g transform="translate(100,100)">
+            <text id="TextElement" x="0" y="0" style="font-family:Verdana;font-size:24; visibility:hidden"> It's SVG!
+                <set attributeName="visibility" attributeType="CSS" to="visible" begin="1s" dur="5s" fill="freeze" />
+                <animateMotion path="M 0 0 L 100 100" begin="1s" dur="5s" fill="freeze" />
+                <animate attributeName="fill" attributeType="CSS" from="red" to="blue" begin="1s" dur="5s" fill="freeze" />
+                <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="-30" to="0" begin="1s" dur="5s" fill="freeze" />
+                <animateTransform attributeName="transform" attributeType="XML" type="scale" from="1" to="3" additive="sum" begin="1s" dur="5s" fill="freeze" />
+            </text>
+            </g>
+            Sorry, your browser does not support inline SVG.
+        </svg>
+            "#,
+        ));
+        let result = parser.parse(data.as_str());
+
+        tracing::info!("Result: {:?}", result);
+
+        assert!(matches!(result, ParsingResult::Ok(_)));
+    }
+
+    #[traced_test]
+    #[test]
     fn test_can_parse_simple_website() {
         let parser = HTMLParser::default();
 
@@ -4904,45 +5028,5 @@ mod html_parser_test {
         tracing::info!("Result: {:?}", result);
 
         assert!(matches!(result, ParsingResult::Ok(_)));
-    }
-
-    #[traced_test]
-    #[test]
-    fn test_html_attribute_variation_with_double_curly_bracket() {
-        let parser = HTMLParser::default();
-
-        let data = wrap_in_document_fragment_container(String::from(
-            "<div jail={{some of other vaulue}}>hello</div>",
-        ));
-        let result = parser.parse(data.as_str());
-        assert!(matches!(result, ParsingResult::Ok(_)));
-
-        let parsed = result.unwrap();
-        let div = parsed.children.get(0).unwrap();
-
-        assert_eq!(
-            *div.attrs.get(0).unwrap(),
-            ("jail", "{{some of other vaulue}}")
-        );
-    }
-
-    #[traced_test]
-    #[test]
-    fn test_html_attribute_variation_with_curly_bracket() {
-        let parser = HTMLParser::default();
-
-        let data = wrap_in_document_fragment_container(String::from(
-            "<div jail={some of other vaulue}>hello</div>",
-        ));
-        let result = parser.parse(data.as_str());
-        assert!(matches!(result, ParsingResult::Ok(_)));
-
-        let parsed = result.unwrap();
-        let div = parsed.children.get(0).unwrap();
-
-        assert_eq!(
-            *div.attrs.get(0).unwrap(),
-            ("jail", "{some of other vaulue}")
-        );
     }
 }
