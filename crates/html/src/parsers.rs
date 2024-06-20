@@ -1401,6 +1401,10 @@ lazy_static! {
     ]
     .into_iter()
     .collect();
+    static ref ATTRIBUTE_PAIRS: HashMap<&'static str, &'static str> =
+        vec![("{", "}"), ("(", ")"), ("[", "]"), ("'", "'"), ("\"", "\""),]
+            .into_iter()
+            .collect();
 }
 
 #[derive(Debug, Error, PartialEq, Eq)]
@@ -1659,6 +1663,12 @@ impl SVGTags {
         }
     }
 
+    pub fn is_auto_closed(tag: SVGTags) -> bool {
+        match tag {
+            _ => false,
+        }
+    }
+
     fn tag_to_str<'b>(self) -> &'b str {
         match self {
             SVGTags::A => "a",
@@ -1796,6 +1806,7 @@ pub enum HTMLTags {
     H4,
     H5,
     H6,
+    Head,
     Header,
     Hgroup,
     Hr,
@@ -1920,6 +1931,7 @@ impl FromStr for HTMLTags {
             "h4" => Ok(HTMLTags::H4),
             "h5" => Ok(HTMLTags::H5),
             "h6" => Ok(HTMLTags::H6),
+            "head" => Ok(HTMLTags::Head),
             "header" => Ok(HTMLTags::Header),
             "hgroup" => Ok(HTMLTags::Hgroup),
             "hr" => Ok(HTMLTags::Hr),
@@ -2049,6 +2061,7 @@ impl HTMLTags {
             HTMLTags::H4 => "h4",
             HTMLTags::H5 => "h5",
             HTMLTags::H6 => "h6",
+            HTMLTags::Head => "head",
             HTMLTags::Header => "header",
             HTMLTags::Hgroup => "hgroup",
             HTMLTags::Hr => "hr",
@@ -2181,6 +2194,10 @@ impl HTMLTags {
 
     pub fn is_html_element_closed_by_opening_tag(me: HTMLTags, other: HTMLTags) -> bool {
         match me {
+            HTMLTags::Meta => match other {
+                HTMLTags::Meta => true,
+                _ => true,
+            },
             HTMLTags::Li => match other {
                 HTMLTags::Li => true,
                 _ => false,
@@ -2225,6 +2242,13 @@ impl HTMLTags {
                 HTMLTags::H6 => true,
                 _ => false,
             },
+            _ => false,
+        }
+    }
+
+    pub fn is_auto_closed(tag: HTMLTags) -> bool {
+        match tag {
+            HTMLTags::Meta | HTMLTags::Link => true,
             _ => false,
         }
     }
@@ -2370,6 +2394,14 @@ impl MarkupTags {
         match me {
             MarkupTags::SVG(me) => SVGTags::is_self_closing_tag(me),
             MarkupTags::HTML(me) => HTMLTags::is_self_closing_tag(me),
+            _ => false,
+        }
+    }
+
+    pub fn is_element_auto_closed(me: MarkupTags) -> bool {
+        match me {
+            MarkupTags::SVG(me) => SVGTags::is_auto_closed(me),
+            MarkupTags::HTML(me) => HTMLTags::is_auto_closed(me),
             _ => false,
         }
     }
@@ -2904,12 +2936,13 @@ static SPACE_CHARS: &[char] = &[' ', '\n', '\t', '\r'];
 static DOC_TYPE_STARTER: &[char] = &['!'];
 static QUOTATIONS: &[char] = &['\'', '"'];
 static VALID_ATTRIBUTE_NAMING_CHARS: &[char] = &['-', '_', ':'];
-static VALID_ATTRIBUTE_VALUE_CHARS: &[char] = &['"', '\''];
+static VALID_ATTRIBUTE_VALUE_CHARS: &[char] = &['"', '\'', '{', '(', '['];
 static VALID_ATTRIBUTE_STARTER_SYMBOLS: &[char] = &['{', '"'];
 static VALID_ATTRIBUTE_ENDER_SYMBOLS: &[char] = &['}', '"'];
 
 static VALID_ATTRIBUTE_STARTER_SYMBOLS_STR: &[&str] = &["{", "(", "[", "\"", "'"];
 
+static EMPTY_STRING: &'static str = "";
 static FRAME_FLAG_TAG: &'static str = "DocumentFragmentContainer";
 static SINGLE_QUOTE_STR: &'static str = "'";
 static DOUBLE_QUOTE_STR: &'static str = "\"";
@@ -3033,19 +3066,30 @@ impl HTMLParser {
 
                         // do a check if we have a previous self closing element
                         // that wont be closed by this new closer.
-                        let last_elem = stacks.get(stacks.len() - 1);
-                        match last_elem {
-                            Some(last_elem) => {
-                                let last_elem_tag = last_elem.tag.clone().unwrap();
-                                if last_elem_tag != tag {
-                                    if MarkupTags::is_element_self_closing(last_elem_tag.clone()) {
+                        loop {
+                            let last_elem = stacks.get(stacks.len() - 1);
+                            tracing::debug!(
+                                "parse: previous top stack tag {:?} with current: {:?}",
+                                last_elem,
+                                tag
+                            );
+                            match last_elem {
+                                Some(last_elem) => {
+                                    let last_elem_tag = last_elem.tag.clone().unwrap();
+                                    if last_elem_tag != tag
+                                        && MarkupTags::is_element_self_closing(
+                                            last_elem_tag.clone(),
+                                        )
+                                    {
                                         tracing::debug!("parse: previous top stack tag {:?} is self closing so can close and continue new closing check for {:?}", last_elem_tag, tag);
                                         self.pop_last_as_child_of_previous(&mut stacks);
+                                        continue;
                                     }
+                                    break;
                                 }
-                            }
-                            None => {
-                                return Err(ParsingTagError::UnexpectedParsingWithUnfinishedTag)
+                                None => {
+                                    return Err(ParsingTagError::UnexpectedParsingWithUnfinishedTag)
+                                }
                             }
                         }
 
@@ -3702,6 +3746,10 @@ impl HTMLParser {
             if next == TAG_CLOSED_BRACKET {
                 acc.take();
 
+                if MarkupTags::is_element_auto_closed(elem.tag.clone().unwrap()) {
+                    return Ok(ParserDirective::Void(elem));
+                }
+
                 return Ok(ParserDirective::Open(elem));
             }
         }
@@ -3751,6 +3799,7 @@ impl HTMLParser {
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
     fn dequote_str<'a>(&self, text: &'a str) -> &'a str {
         let text_len = text.len();
+        tracing::info!("dequote: text: {:?} with len: {}", text, text_len);
         if (text.starts_with(SINGLE_QUOTE_STR) || text.starts_with(DOUBLE_QUOTE_STR))
             && (text.ends_with(SINGLE_QUOTE_STR) || text.ends_with(DOUBLE_QUOTE_STR))
         {
@@ -3771,12 +3820,37 @@ impl HTMLParser {
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
     fn collect_attribute_value_alphaneumerics(&self, acc: &mut Accumulator) -> ParsingResult<()> {
         let starter = acc.peek(1).unwrap();
+        tracing::info!(
+            "collect_attribute_value_alphaneumerics: value starter {:?}",
+            starter
+        );
+
+        acc.peek_next();
 
         let is_alphaneumerics_starter = starter.chars().all(char::is_alphanumeric);
         let is_indent_starter = VALID_ATTRIBUTE_STARTER_SYMBOLS_STR.contains(&starter);
 
+        let starter_closer = ATTRIBUTE_PAIRS
+            .get(starter)
+            .or(Some(&EMPTY_STRING))
+            .unwrap();
+
         while let Some(next) = acc.peek_next() {
+            tracing::info!(
+                "collect_attribute_value_alphaneumerics: scanning token {:?}: starter={:?}, closer={:?}, is_alpha={:?}, is_char={:?}",
+                next,
+                starter,
+                starter_closer,
+                is_alphaneumerics_starter,
+                is_indent_starter,
+            );
+
             if is_alphaneumerics_starter && next == TAG_CLOSED_BRACKET {
+                tracing::info!(
+                    "collect_attribute_value_alphaneumerics: found close bracket {:?}",
+                    next
+                );
+
                 // move backwartds
                 acc.unpeek_next();
 
@@ -3784,17 +3858,41 @@ impl HTMLParser {
             }
 
             if is_alphaneumerics_starter && next.chars().all(char::is_whitespace) {
+                tracing::info!(
+                    "collect_attribute_value_alphaneumerics: is alphaneumerics and ends with a whitespace {:?}",
+                    next
+                );
+
                 // move backwartds
                 acc.unpeek_next();
 
                 return Ok(());
             }
 
+            // if we are dealing with a multiple ender token, just scan in and collect
+            let double_next_token = acc.peek(1).unwrap();
+            if is_indent_starter && next == *starter_closer && double_next_token == *starter_closer
+            {
+                tracing::info!(
+                    "collect_attribute_value_alphaneumerics: token {:?} and next {:?} is closer",
+                    next,
+                    double_next_token,
+                );
+
+                continue;
+            }
+
             // if we did not just escape the same starting character - then its means it's the end of
             // the attribute.
-            if is_indent_starter && next != BACKWARD_SLASH && acc.peek(1).unwrap() == starter {
-                // move forward one sep
-                acc.peek_next();
+            if is_indent_starter && next == *starter_closer && double_next_token != *starter_closer
+            {
+                tracing::info!(
+                    "collect_attribute_value_alphaneumerics: seen starter ender token {:?}, next: {:?} (starter: {:?}, closer={:?})",
+                    next,
+                    double_next_token,
+                    starter,
+                    starter_closer,
+                );
 
                 return Ok(());
             }
@@ -3852,19 +3950,26 @@ impl HTMLParser {
             }
 
             // are we dealing with single attributes
-            if next == SPACE_STR || next == ATTRIBUTE_EQUAL_SIGN {
+            if next == SPACE_STR || next == ATTRIBUTE_EQUAL_SIGN || next == TAG_CLOSED_BRACKET {
                 tracing::debug!(
                     "parse_elem_attribute: checking ready value collection: {:?}",
                     next
                 );
 
-                if next == SPACE_STR {
-                    tracing::debug!("parse_elem_attribute: actually space, so collect valueless attribute: {:?}", next);
+                if next == SPACE_STR || next == TAG_CLOSED_BRACKET {
+                    tracing::debug!("parse_elem_attribute: actually space or < (tag closer), so collect valueless attribute: {:?}", acc.scan());
                     acc.unpeek_next();
 
                     let attribute_name = acc.take().unwrap();
 
-                    stack.add_attr(attribute_name, "");
+                    tracing::debug!(
+                        "parse_elem_attribute: collected attribute name: {:?}",
+                        attribute_name
+                    );
+
+                    if attribute_name.len() != 0 {
+                        stack.add_attr(attribute_name, "");
+                    }
 
                     return Ok(());
                 }
@@ -4039,7 +4144,7 @@ mod html_parser_test {
 
     #[traced_test]
     #[test]
-    fn test_basic_html_can_parse_doctype_with_double_quoted_attribute() {
+    fn test_basic_html_can_parse_with_double_quoted_attribute() {
         let parser = HTMLParser::default();
 
         let data = wrap_in_document_fragment_container(String::from("<!doctype lang=\"en\">"));
@@ -4069,7 +4174,7 @@ mod html_parser_test {
 
     #[traced_test]
     #[test]
-    fn test_basic_html_can_parse_doctype_with_single_quoted_attribute() {
+    fn test_basic_html_can_parse_single_quoted_attribute() {
         let parser = HTMLParser::default();
 
         let data = wrap_in_document_fragment_container(String::from("<!doctype lang='en'>"));
@@ -4099,7 +4204,7 @@ mod html_parser_test {
 
     #[traced_test]
     #[test]
-    fn test_basic_html_can_parse_doctype_with_attribute() {
+    fn test_basic_html_can_parse_alphaneumeric_only_attribute() {
         let parser = HTMLParser::default();
 
         let data = wrap_in_document_fragment_container(String::from("<!doctype lang=en>"));
@@ -4290,6 +4395,133 @@ mod html_parser_test {
                 MarkupTags::HTML(HTMLTags::Div),
                 MarkupTags::SVG(SVGTags::Circle),
                 MarkupTags::HTML(HTMLTags::Div),
+                MarkupTags::HTML(HTMLTags::Br),
+            ],
+            parsed
+        )
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_invalid_html_parsing_multiple_breakpoint_tags_with_sibling_with_bad_closer() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            r#"
+            <div>
+                <circle/>
+            </div>
+            <div>
+            <br>
+            <br>
+            </section>
+            </div>
+            "#,
+        ));
+        let result = parser.parse(data.as_str());
+
+        assert!(matches!(result, ParsingResult::Err(_)));
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_basic_html_parsing_multiple_breakpoint_tags_with_sibling_with_no_closing() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            r#"
+            <div>
+                <circle/>
+            </div>
+            <br>
+            <br>
+            <div>
+            </div>
+            "#,
+        ));
+        let result = parser.parse(data.as_str());
+
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap().get_tags();
+
+        assert_eq!(
+            vec![
+                MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
+                MarkupTags::HTML(HTMLTags::Div),
+                MarkupTags::SVG(SVGTags::Circle),
+                MarkupTags::HTML(HTMLTags::Br),
+                MarkupTags::HTML(HTMLTags::Br),
+                MarkupTags::HTML(HTMLTags::Div),
+            ],
+            parsed
+        )
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_basic_html_parsing_multiple_breakpoint_tags_as_children() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            r#"
+            <div>
+            <circle/>
+            </div>
+            <div>
+            <br>
+            <br>
+            </div>
+            "#,
+        ));
+        let result = parser.parse(data.as_str());
+
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap().get_tags();
+
+        assert_eq!(
+            vec![
+                MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
+                MarkupTags::HTML(HTMLTags::Div),
+                MarkupTags::SVG(SVGTags::Circle),
+                MarkupTags::HTML(HTMLTags::Div),
+                MarkupTags::HTML(HTMLTags::Br),
+                MarkupTags::HTML(HTMLTags::Br),
+            ],
+            parsed
+        )
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_basic_html_parsing_single_node_text_multiple_breakpoint_tags() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            r#"
+            <div>
+            <circle/>
+            </div>
+            <div>
+            <br/>
+            <br/>
+            </div>
+            "#,
+        ));
+        let result = parser.parse(data.as_str());
+
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap().get_tags();
+
+        assert_eq!(
+            vec![
+                MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
+                MarkupTags::HTML(HTMLTags::Div),
+                MarkupTags::SVG(SVGTags::Circle),
+                MarkupTags::HTML(HTMLTags::Div),
+                MarkupTags::HTML(HTMLTags::Br),
                 MarkupTags::HTML(HTMLTags::Br),
             ],
             parsed
@@ -4594,5 +4826,123 @@ mod html_parser_test {
             ],
             parsed
         )
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_basic_html_parsing_style_tag() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            r#"
+            	<style type="text/css">
+                	body {
+                    	background: black;
+                    }
+
+                    h1 {
+                    	color: white;
+                        background-color: #43433;
+                    }
+                </style>
+            "#,
+        ));
+        let result = parser.parse(data.as_str());
+
+        tracing::info!("Result: {:?}", result);
+
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap().get_tags();
+
+        assert_eq!(
+            vec![
+                MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
+                MarkupTags::HTML(HTMLTags::Style),
+                MarkupTags::Text(String::from("\n                \tbody {\n                    \tbackground: black;\n                    }\n\n                    h1 {\n                    \tcolor: white;\n                        background-color: #43433;\n                    }\n                ")),
+            ],
+            parsed
+        )
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_can_parse_simple_website() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            r#"
+            <!DOCTYPE html>
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Document</title>
+                    <style>
+                        body {
+                            background: black;
+                        }
+
+                        h1 {
+                            color: white;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>Hello world</h1>
+                    <!-- There should be more text here -->
+                    <script>
+                        const title = document.querySelector("h1")
+                        title.innerText = "Hello from script"
+                    </script>
+                </body>
+            </html>
+            "#,
+        ));
+        let result = parser.parse(data.as_str());
+
+        tracing::info!("Result: {:?}", result);
+
+        assert!(matches!(result, ParsingResult::Ok(_)));
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_html_attribute_variation_with_double_curly_bracket() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            "<div jail={{some of other vaulue}}>hello</div>",
+        ));
+        let result = parser.parse(data.as_str());
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap();
+        let div = parsed.children.get(0).unwrap();
+
+        assert_eq!(
+            *div.attrs.get(0).unwrap(),
+            ("jail", "{{some of other vaulue}}")
+        );
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_html_attribute_variation_with_curly_bracket() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            "<div jail={some of other vaulue}>hello</div>",
+        ));
+        let result = parser.parse(data.as_str());
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap();
+        let div = parsed.children.get(0).unwrap();
+
+        assert_eq!(
+            *div.attrs.get(0).unwrap(),
+            ("jail", "{some of other vaulue}")
+        );
     }
 }
