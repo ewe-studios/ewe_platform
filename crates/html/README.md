@@ -6,6 +6,46 @@ My goal for this crate is to create a solid foundation that other crates can use
 
 It's the underlying structure that is generated when the html_macro is used and the overall goal is that this structure should be expressable both via markup text and in code.
 
+
+## Parser 
+
+A custom html parser with minilistic handling for html documents, fragments is implemented within this package, the performance is prety good.
+
+```bash
+ Running benches/cwikipedia.rs 
+Benchmarking wikipedia_blackbox: Warming up for 3.0000 s
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 9.0s, enable flat sampling, or reduce sample count to 50.
+wikipedia_blackbox      time:   [1.6226 ms 1.6627 ms 1.7189 ms]
+                        change: [+0.0353% +1.4231% +3.1775%] (p = 0.07 > 0.05)
+                        No change in performance detected.
+Found 10 outliers among 100 measurements (10.00%)
+  5 (5.00%) high mild
+  5 (5.00%) high severe
+
+Benchmarking wikipedia_no_blackbox: Warming up for 3.0000 s
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 8.5s, enable flat sampling, or reduce sample count to 50.
+wikipedia_no_blackbox   time:   [1.6416 ms 1.6579 ms 1.6826 ms]
+                        change: [-0.5037% +0.4643% +1.6166%] (p = 0.43 > 0.05)
+                        No change in performance detected.
+Found 8 outliers among 100 measurements (8.00%)
+  7 (7.00%) high mild
+  1 (1.00%) high severe
+
+html_svg                time:   [31.450 µs 31.521 µs 31.595 µs]
+Found 8 outliers among 100 measurements (8.00%)
+  3 (3.00%) high mild
+  5 (5.00%) high severe
+
+     Running benches/wikipedia.rs (target/release/deps/wikipedia-e2cdf26d1abd639f)
+
+running 3 tests
+test html_parser             ... bench:   1,630,915.20 ns/iter (+/- 108,961.20)
+test html_parser_no_blackbox ... bench:   1,632,752.70 ns/iter (+/- 106,748.54)
+test html_parser_with_svg    ... bench:      31,331.69 ns/iter (+/- 3,019.95)
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 3 measured; 0 filtered out; finished in 2.23s
+```
+
 ## Design
 
 In this html structure, there are no string templates, just core html structures that could define specific capability and behaviour without complicated expressions of text replacement without a loss in simplicity and completedness.
