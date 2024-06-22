@@ -2699,6 +2699,13 @@ impl<'a> Accumulator<'a> {
             return None;
         }
 
+        tracing::info!(
+            "Check if we are out of char boundary: start: {}:{}, end: {}:{}",
+            new_peek_pos,
+            self.content.is_char_boundary(new_peek_pos),
+            until_pos,
+            self.content.is_char_boundary(until_pos)
+        );
         Some(&self.content[new_peek_pos..until_pos])
     }
 
@@ -4044,6 +4051,10 @@ impl HTMLParser {
                         acc.scan()
                     );
 
+                    if acc.peek(1).unwrap() == BACKWARD_SLASH {
+                        acc.peek_next();
+                    }
+
                     if !self.is_valid_attribute_value_token(acc.peek(1).unwrap()) {
                         return Err(ParsingTagError::AttributeValueNotValidStarter(
                             String::from(acc.peek(1).unwrap()),
@@ -4956,11 +4967,34 @@ mod html_parser_test {
 
     #[traced_test]
     #[test]
-    fn test_can_parse_complex_svg_data() {
+    fn test_html_can_handle_non_english_characters() {
         let parser = HTMLParser::default();
 
         let data = wrap_in_document_fragment_container(String::from(
             r#"
+                     <html lang=\"sv\">
+                        <head>
+                            <title>Här kan man va</title>
+                        </head>
+                        <body>
+                            <h1>Tjena världen!</h1>
+                            <p>Tänkte bara informera om att Sverige är bättre än Finland i ishockey.</p>
+                        </body>
+                    </html>
+            "#,
+        ));
+        let result = parser.parse(data.as_str());
+        assert!(matches!(result, ParsingResult::Ok(_)));
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_can_parse_different_samples_that_should_be_valid() {
+        let parser = HTMLParser::default();
+
+        let test_cases = vec![
+            wrap_in_document_fragment_container(String::from(
+                r#"
         <svg width="600" height="600">
             <rect id="rec" x="300" y="100" width="300" height="100" style="fill:lime">
             <animate attributeName="x" attributeType="XML" begin="0s" dur="6s" fill="freeze" from="300" to="0" />
@@ -4981,21 +5015,9 @@ mod html_parser_test {
             Sorry, your browser does not support inline SVG.
         </svg>
             "#,
-        ));
-        let result = parser.parse(data.as_str());
-
-        tracing::info!("Result: {:?}", result);
-
-        assert!(matches!(result, ParsingResult::Ok(_)));
-    }
-
-    #[traced_test]
-    #[test]
-    fn test_can_parse_simple_website() {
-        let parser = HTMLParser::default();
-
-        let data = wrap_in_document_fragment_container(String::from(
-            r#"
+            )),
+            wrap_in_document_fragment_container(String::from(
+                r#"
             <!DOCTYPE html>
             <html lang="en">
                 <head>
@@ -5022,11 +5044,26 @@ mod html_parser_test {
                 </body>
             </html>
             "#,
-        ));
-        let result = parser.parse(data.as_str());
+            )),
+            wrap_in_document_fragment_container(String::from(
+                r#"
+                     <html lang=\"sv\">
+                        <head>
+                            <title>Här kan man va</title>
+                        </head>
+                        <body>
+                            <h1>Tjena världen!</h1>
+                            <p>Tänkte bara informera om att Sverige är bättre än Finland i ishockey.</p>
+                        </body>
+                    </html>
+            "#,
+            )),
+        ];
 
-        tracing::info!("Result: {:?}", result);
-
-        assert!(matches!(result, ParsingResult::Ok(_)));
+        for test_case in test_cases {
+            let result = parser.parse(test_case.as_str());
+            tracing::info!("Result: {:?}", result);
+            assert!(matches!(result, ParsingResult::Ok(_)));
+        }
     }
 }
