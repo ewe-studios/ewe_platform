@@ -3678,11 +3678,101 @@ mod html_parser_test {
                     </html>
             "#,
             )),
+            wrap_in_document_fragment_container(String::from(
+                r#"
+                <HTML>
+                    <head>
+                        <title>title</title>
+                    </head>
+                    <body>
+                        <ul>
+                            <li></li>
+                            <li></li>
+                            <li></li>
+                        </ul>
+                    </body>
+                </hTML>
+            "#,
+            )),
+            wrap_in_document_fragment_container(String::from(
+                r#"
+                    <div class='1'>
+                        <div class='1'>
+                            <div class='1'>
+                                <div class='1'>
+                                    <div class='1'>
+                                        <div class='1'>
+                                            <div class='1'>
+                                                <div class='1'>
+                                                    <!--this is deep-->
+                                                    hello world
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            "#,
+            )),
+            wrap_in_document_fragment_container(String::from(
+                r#"
+                    <script>
+                        const person_creator = ({ name, symtoms }) => {
+                            let person = {}
+                            person.name = name
+                            person.symtoms = {}
+                            for (symtom of symtoms) {
+                                person.symtoms[symtom] = true
+                            }
+                            return person
+                        }
+
+                        const main = () => {
+                            let name = 'mathias'
+                            let symtoms = ['Dunning-Kruger', 'ACDC', 'Slacker']
+
+                            setTimeout(() => {
+                                let person = person_creator({ name, symtoms })
+                                if (person.symtoms.hasOwnProperty('Dunning-Kruger')) {
+                                    console.log('yeah buddy, that\'s right')
+                                }
+                            }, 1337)
+                        }
+
+                        main()
+                    </script>
+            "#,
+            )),
+            wrap_in_document_fragment_container(String::from(
+                r#"
+                  <!-- comment -->
+                    <!-- comment -->
+                    <!DOCTYPE html>
+                    <!-- comment -->
+                    <!-- comment -->
+                    <html>
+                    <!-- comment -->
+                    </html>
+                    <!-- comment -->
+                    <!-- comment -->
+            "#,
+            )),
+            wrap_in_document_fragment_container(String::from(
+                r#"
+				hello<!--world?--><div/>
+            "#,
+            )),
+            wrap_in_document_fragment_container(String::from(
+                r#"
+				hello<!--world?--><div/>
+            "#,
+            )),
         ];
 
         for test_case in test_cases {
             let result = parser.parse(test_case.as_str());
-            tracing::debug!("Result: {:?}", result);
             assert!(matches!(result, ParsingResult::Ok(_)));
         }
     }
