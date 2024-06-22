@@ -16,35 +16,47 @@ For a Wikipedia page of 1MB we have a worstcase performance of 16ms which is sti
 Running benches/cwikipedia.rs (target/release/deps/cwikipedia-5a74ab1b46ae91c6)
 Benchmarking wikipedia_small: Warming up for 3.0000 s
 
-wikipedia_small         time:   [1.5813 ms 1.5862 ms 1.5920 ms]
-                        change: [-3.9514% -2.8745% -2.0488%] (p = 0.00 < 0.05)
-                        Performance has improved.
-Found 9 outliers among 100 measurements (9.00%)
-  3 (3.00%) high mild
-  6 (6.00%) high severe
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 8.2s, enable flat sampling, or reduce sample count to 50.
 
-wikipedia_big           time:   [15.010 ms 15.567 ms 16.289 ms]
-                        change: [-5.5135% +0.1522% +6.0519%] (p = 0.96 > 0.05)
+wikipedia_small         time:   [1.6427 ms 1.7432 ms 1.9038 ms]
+                        change: [-6.0237% -0.6533% +5.7525%] (p = 0.84 > 0.05)
                         No change in performance detected.
-Found 12 outliers among 100 measurements (12.00%)
-  4 (4.00%) high mild
+Found 15 outliers among 100 measurements (15.00%)
+  7 (7.00%) high mild
   8 (8.00%) high severe
 
-html_svg                time:   [30.880 µs 31.259 µs 31.955 µs]
-                        change: [-7.4179% -1.5744% +6.6780%] (p = 0.77 > 0.05)
-                        No change in performance detected.
+wikipedia_big           time:   [14.746 ms 14.793 ms 14.851 ms]
+                        change: [-18.891% -15.756% -12.738%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 8 outliers among 100 measurements (8.00%)
+  3 (3.00%) high mild
+  5 (5.00%) high severe
+
+Benchmarking scraping_course: Warming up for 3.0000 s
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 5.4s, enable flat sampling, or reduce sample count to 60.
+scraping_course         time:   [1.0653 ms 1.0833 ms 1.1125 ms]
+                        change: [-19.062% -13.324% -6.0751%] (p = 0.00 < 0.05)
+                        Performance has improved.
 Found 11 outliers among 100 measurements (11.00%)
   4 (4.00%) high mild
   7 (7.00%) high severe
 
+html_svg                time:   [30.917 µs 32.195 µs 34.766 µs]
+                        change: [-0.6299% +1.5083% +5.4940%] (p = 0.52 > 0.05)
+                        No change in performance detected.
+Found 11 outliers among 100 measurements (11.00%)
+  2 (2.00%) high mild
+  9 (9.00%) high severe
+
      Running benches/wikipedia.rs (target/release/deps/wikipedia-e2cdf26d1abd639f)
 
-running 3 tests
-test basic_svg_page  ... bench:      30,977.07 ns/iter (+/- 1,681.57)
-test wikipedia_big   ... bench:  15,119,370.20 ns/iter (+/- 844,333.81)
-test wikipedia_small ... bench:   1,588,980.10 ns/iter (+/- 48,890.25)
+running 4 tests
+test basic_svg_page       ... bench:      30,655.36 ns/iter (+/- 966.09)
+test scraping_course_page ... bench:   1,057,756.70 ns/iter (+/- 4,039.07)
+test wikipedia_big        ... bench:  14,556,532.50 ns/iter (+/- 534,594.89)
+test wikipedia_small      ... bench:   1,576,857.70 ns/iter (+/- 18,745.62)
 
-test result: ok. 0 passed; 0 failed; 0 ignored; 3 measured; 0 filtered out; finished in 7.46ss
+test result: ok. 0 passed; 0 failed; 0 ignored; 4 measured; 0 filtered out; finished in 7.41s
 ```
 
 ## Design
