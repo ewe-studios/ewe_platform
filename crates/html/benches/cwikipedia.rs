@@ -6,8 +6,24 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 static HTML: &'static str = include_str!("./wikipedia-2020-12-21.html");
 static HTML_BIG: &'static str = include_str!("./wikipedia_on_wikipedia.html");
+static HTML_SMALLEST: &'static str = include_str!("./scraping_course.html");
 
 use ewe_html::parsers::{wrap_in_document_fragment_container, HTMLParser};
+
+fn scraping_course(c: &mut Criterion) {
+    c.bench_function("scraping_course", |b| {
+        b.iter(|| {
+            black_box({
+                let parser = HTMLParser::default();
+                parser
+                    .parse(&wrap_in_document_fragment_container(
+                        HTML_SMALLEST.to_string(),
+                    ))
+                    .unwrap();
+            });
+        });
+    });
+}
 
 fn wikipedia_small(c: &mut Criterion) {
     c.bench_function("wikipedia_small", |b| {
@@ -68,5 +84,11 @@ fn basic_svg_page(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, wikipedia_small, wikipedia_big, basic_svg_page);
+criterion_group!(
+    benches,
+    wikipedia_small,
+    wikipedia_big,
+    scraping_course,
+    basic_svg_page
+);
 criterion_main!(benches);

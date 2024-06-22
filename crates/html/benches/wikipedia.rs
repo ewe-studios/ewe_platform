@@ -6,6 +6,7 @@ use self::test::{black_box, Bencher};
 
 static HTML: &'static str = include_str!("./wikipedia-2020-12-21.html");
 static HTML_BIG: &'static str = include_str!("./wikipedia_on_wikipedia.html");
+static HTML_SMALLEST: &'static str = include_str!("./scraping_course.html");
 
 use ewe_html::parsers::{wrap_in_document_fragment_container, HTMLParser};
 
@@ -28,6 +29,20 @@ fn wikipedia_big(b: &mut Bencher) {
             let parser = HTMLParser::default();
             parser
                 .parse(&wrap_in_document_fragment_container(HTML_BIG.to_string()))
+                .unwrap();
+        })
+    })
+}
+
+#[bench]
+fn scraping_course_page(b: &mut Bencher) {
+    b.iter(|| {
+        black_box({
+            let parser = HTMLParser::default();
+            parser
+                .parse(&wrap_in_document_fragment_container(
+                    HTML_SMALLEST.to_string(),
+                ))
                 .unwrap();
         })
     })
