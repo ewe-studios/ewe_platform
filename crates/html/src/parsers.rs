@@ -2825,8 +2825,6 @@ impl HTMLParser {
 
             acc.unpeek_next();
 
-            let scan = acc.ppeek_at(0, 10).unwrap();
-
             let (mut tag_text, tag_positioning) = acc.take_positional().unwrap();
 
             // TODO(alex.ewetumo): Not sure why this occurs, it never occurs during

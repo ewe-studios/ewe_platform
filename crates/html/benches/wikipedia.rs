@@ -21,6 +21,16 @@ fn html_parser(b: &mut Bencher) {
 }
 
 #[bench]
+fn html_parser_no_blackbox(b: &mut Bencher) {
+    b.iter(|| {
+        let parser = HTMLParser::default();
+        parser
+            .parse(&wrap_in_document_fragment_container(HTML.to_string()))
+            .unwrap();
+    })
+}
+
+#[bench]
 fn html_parser_with_svg(b: &mut Bencher) {
     b.iter(|| {
         black_box({
