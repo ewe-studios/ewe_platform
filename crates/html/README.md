@@ -11,38 +11,38 @@ It's the underlying structure that is generated when the html_macro is used and 
 A custom html parser with minilistic handling for html documents, fragments is implemented within this package, the performance is prety good.
 
 ```bash
-Running benches/cwikipedia.rs 
-Benchmarking wikipedia_blackbox: Warming up for 3.0000 s
-Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 9.0s, enable flat sampling, or reduce sample count to 50.
-wikipedia_blackbox      time:   [1.6226 ms 1.6627 ms 1.7189 ms]
-                        change: [+0.0353% +1.4231% +3.1775%] (p = 0.07 > 0.05)
+Running benches/cwikipedia.rs (target/release/deps/cwikipedia-5a74ab1b46ae91c6)
+Benchmarking wikipedia_small: Warming up for 3.0000 s
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 8.5s, enable flat sampling, or reduce sample count to 50.
+wikipedia_small         time:   [1.5939 ms 1.6059 ms 1.6222 ms]
+                        change: [-38.582% -22.034% -8.4891%] (p = 0.04 < 0.05)
+                        Performance has improved.
+Found 9 outliers among 100 measurements (9.00%)
+  3 (3.00%) high mild
+  6 (6.00%) high severe
+
+wikipedia_big           time:   [15.446 ms 16.096 ms 16.933 ms]
+                        change: [-3.5960% +2.7005% +9.2374%] (p = 0.44 > 0.05)
                         No change in performance detected.
 Found 10 outliers among 100 measurements (10.00%)
-  5 (5.00%) high mild
-  5 (5.00%) high severe
+  6 (6.00%) high mild
+  4 (4.00%) high severe
 
-Benchmarking wikipedia_no_blackbox: Warming up for 3.0000 s
-Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 8.5s, enable flat sampling, or reduce sample count to 50.
-wikipedia_no_blackbox   time:   [1.6416 ms 1.6579 ms 1.6826 ms]
-                        change: [-0.5037% +0.4643% +1.6166%] (p = 0.43 > 0.05)
+html_svg                time:   [31.015 µs 31.115 µs 31.229 µs]
+                        change: [-13.012% -5.3290% -0.4313%] (p = 0.18 > 0.05)
                         No change in performance detected.
-Found 8 outliers among 100 measurements (8.00%)
-  7 (7.00%) high mild
-  1 (1.00%) high severe
-
-html_svg                time:   [31.450 µs 31.521 µs 31.595 µs]
-Found 8 outliers among 100 measurements (8.00%)
-  3 (3.00%) high mild
-  5 (5.00%) high severe
+Found 11 outliers among 100 measurements (11.00%)
+  8 (8.00%) high mild
+  3 (3.00%) high severe
 
      Running benches/wikipedia.rs (target/release/deps/wikipedia-e2cdf26d1abd639f)
 
 running 3 tests
-test html_parser             ... bench:   1,630,915.20 ns/iter (+/- 108,961.20)
-test html_parser_no_blackbox ... bench:   1,632,752.70 ns/iter (+/- 106,748.54)
-test html_parser_with_svg    ... bench:      31,331.69 ns/iter (+/- 3,019.95)
+test basic_svg_page  ... bench:      31,267.17 ns/iter (+/- 4,619.23)
+test wikipedia_big   ... bench:  15,628,116.40 ns/iter (+/- 630,032.94)
+test wikipedia_small ... bench:   1,639,379.95 ns/iter (+/- 80,538.45)
 
-test result: ok. 0 passed; 0 failed; 0 ignored; 3 measured; 0 filtered out; finished in 2.23s
+test result: ok. 0 passed; 0 failed; 0 ignored; 3 measured; 0 filtered out; finished in 7.05s
 ```
 
 ## Design
@@ -61,6 +61,8 @@ What we want is simple markup that fully describes the end result that will be d
 ```
 
 These means the underlying rendering system (Browser or Otherwise) bears the needed responsibility to take that repesentation and apply the result to it's representation.
+
+Any non-standard elements are automatically classified as components 
 
 My hope is such structure:
 

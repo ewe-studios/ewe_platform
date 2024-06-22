@@ -2754,6 +2754,7 @@ impl HTMLParser {
                             );
                             if !token.chars().all(char::is_whitespace)
                                 && token != TAG_CLOSED_BRACKET
+                                && token != FORWARD_SLASH
                             {
                                 return Err(ParsingTagError::AttributeValueNotValidEnding(
                                     String::from(token),
@@ -2877,8 +2878,6 @@ mod html_parser_test {
 
     use super::*;
     use tracing_test::traced_test;
-
-    static HTML: &'static str = include_str!("../benches/wikipedia-2020-12-21.html");
 
     #[traced_test]
     #[test]
@@ -3859,12 +3858,26 @@ mod html_parser_test {
         }
     }
 
+    static HTML: &'static str = include_str!("../benches/wikipedia-2020-12-21.html");
+
     #[traced_test]
     #[test]
     fn test_html_can_handle_wikipedia_page() {
         let parser = HTMLParser::default();
 
         let data = wrap_in_document_fragment_container(String::from(HTML.to_string()));
+        let result = parser.parse(data.as_str());
+        assert!(matches!(result, ParsingResult::Ok(_)));
+    }
+
+    static HTML_BIG: &'static str = include_str!("../benches/wikipedia_on_wikipedia.html");
+
+    #[traced_test]
+    #[test]
+    fn test_html_can_handle_big_wikipedia_page() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(HTML_BIG.to_string()));
         let result = parser.parse(data.as_str());
         assert!(matches!(result, ParsingResult::Ok(_)));
     }

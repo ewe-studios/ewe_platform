@@ -10,7 +10,7 @@ static HTML_BIG: &'static str = include_str!("./wikipedia_on_wikipedia.html");
 use ewe_html::parsers::{wrap_in_document_fragment_container, HTMLParser};
 
 fn wikipedia_small(c: &mut Criterion) {
-    c.bench_function("wikipedia_blackbox", |b| {
+    c.bench_function("wikipedia_small", |b| {
         b.iter(|| {
             black_box({
                 let parser = HTMLParser::default();
@@ -23,7 +23,7 @@ fn wikipedia_small(c: &mut Criterion) {
 }
 
 fn wikipedia_big(c: &mut Criterion) {
-    c.bench_function("wikipedia_blackbox", |b| {
+    c.bench_function("wikipedia_big", |b| {
         b.iter(|| {
             black_box({
                 let parser = HTMLParser::default();
@@ -68,10 +68,5 @@ fn basic_svg_page(c: &mut Criterion) {
     });
 }
 
-criterion_group!(
-    benches,
-    wikipedia_small,
-    wikipedia_small_no_blackbox,
-    wikipedia_small_with_svg
-);
+criterion_group!(benches, wikipedia_small, wikipedia_big, basic_svg_page);
 criterion_main!(benches);
