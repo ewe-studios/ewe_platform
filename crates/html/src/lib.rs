@@ -1,5 +1,3 @@
-#![cfg_attr(feature = "nightly", feature(test))]
-
 extern crate lazy_regex;
 extern crate lazy_static;
 
@@ -8,7 +6,3 @@ extern crate tracing;
 
 pub mod markup;
 pub mod parsers;
-
-#[cfg(test)]
-#[cfg(feature = "nightly")]
-mod bench;

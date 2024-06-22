@@ -950,6 +950,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "ewe-html"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "ewe-mem",
+ "lazy-regex",
+ "lazy_static",
+ "lazycell",
+ "phf",
+ "regex",
+ "strum",
+ "strum_macros",
+ "syncbox",
+ "thiserror",
+ "tracing",
+ "tracing-test",
+]
+
+[[package]]
+name = "ewe-html-macro"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.60",
+ "trybuild",
+]
+
+[[package]]
 name = "ewe-mem"
 version = "0.1.0"
 dependencies = [
@@ -1356,25 +1385,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e3d1354bf6b7235cb4a0576c2619fd4ed18183f689b12b006a0ee7329eeff9a5"
 dependencies = [
  "windows-sys 0.52.0",
-]
-
-[[package]]
-name = "html"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "ewe-mem",
- "lazy-regex",
- "lazy_static",
- "lazycell",
- "phf",
- "regex",
- "strum",
- "strum_macros",
- "syncbox",
- "thiserror",
- "tracing",
- "tracing-test",
 ]
 
 [[package]]
