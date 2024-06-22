@@ -1798,11 +1798,11 @@ impl HTMLParser {
                             Some(parent) => {
                                 match parent.tag.clone() {
                                     Some(parent_tag) => {
+                                        let ptag = parent_tag.clone();
+                                        let ctag = parent_tag.clone();
+
                                         tracing::debug!("parse: reviewing ontop stack tag {:?} and child tag: {:?}", parent_tag, tag);
-                                        let msg = String::from(format!(
-                                            "last: {:?} - tag: {:?}",
-                                            parent_tag, tag
-                                        ));
+
                                         if parent_tag != tag
                                             && !MarkupTags::is_element_closed_by_closing_tag(
                                                 parent_tag, tag,
@@ -1810,7 +1810,10 @@ impl HTMLParser {
                                         {
                                             return Err(
                                                 ParsingTagError::ClosingTagDoesNotMatchTopMarkup(
-                                                    msg,
+                                                    String::from(format!(
+                                                        "last: {:?} - tag: {:?}",
+                                                        ptag, ctag
+                                                    )),
                                                 ),
                                             );
                                         }
