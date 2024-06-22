@@ -12,6 +12,8 @@ A custom html parser with minilistic handling for html documents, fragments is i
 
 For a Wikipedia page of 1MB we have a worstcase performance of 16ms which is still pretty good. See the data in [./benches](./benches/) directory.
 
+The `scraping_course` benchmark was taking from [zenrows rust-html-parser](https://www.zenrows.com/blog/rust-html-parser#benchmark)
+
 ```bash
 Running benches/cwikipedia.rs (target/release/deps/cwikipedia-5a74ab1b46ae91c6)
 Benchmarking wikipedia_small: Warming up for 3.0000 s
