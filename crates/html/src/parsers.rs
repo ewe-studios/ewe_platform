@@ -3881,4 +3881,16 @@ mod html_parser_test {
         let result = parser.parse(data.as_str());
         assert!(matches!(result, ParsingResult::Ok(_)));
     }
+
+    static HTML_SMALLEST: &'static str = include_str!("../benches/scraping_course.html");
+
+    #[traced_test]
+    #[test]
+    fn test_html_can_handle_smallest_wikipedia_page() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(HTML_SMALLEST.to_string()));
+        let result = parser.parse(data.as_str());
+        assert!(matches!(result, ParsingResult::Ok(_)));
+    }
 }
