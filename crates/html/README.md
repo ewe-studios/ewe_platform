@@ -13,36 +13,36 @@ A custom html parser with minilistic handling for html documents, fragments is i
 ```bash
 Running benches/cwikipedia.rs (target/release/deps/cwikipedia-5a74ab1b46ae91c6)
 Benchmarking wikipedia_small: Warming up for 3.0000 s
-Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 8.5s, enable flat sampling, or reduce sample count to 50.
-wikipedia_small         time:   [1.5939 ms 1.6059 ms 1.6222 ms]
-                        change: [-38.582% -22.034% -8.4891%] (p = 0.04 < 0.05)
+
+wikipedia_small         time:   [1.5813 ms 1.5862 ms 1.5920 ms]
+                        change: [-3.9514% -2.8745% -2.0488%] (p = 0.00 < 0.05)
                         Performance has improved.
 Found 9 outliers among 100 measurements (9.00%)
   3 (3.00%) high mild
   6 (6.00%) high severe
 
-wikipedia_big           time:   [15.446 ms 16.096 ms 16.933 ms]
-                        change: [-3.5960% +2.7005% +9.2374%] (p = 0.44 > 0.05)
+wikipedia_big           time:   [15.010 ms 15.567 ms 16.289 ms]
+                        change: [-5.5135% +0.1522% +6.0519%] (p = 0.96 > 0.05)
                         No change in performance detected.
-Found 10 outliers among 100 measurements (10.00%)
-  6 (6.00%) high mild
-  4 (4.00%) high severe
+Found 12 outliers among 100 measurements (12.00%)
+  4 (4.00%) high mild
+  8 (8.00%) high severe
 
-html_svg                time:   [31.015 µs 31.115 µs 31.229 µs]
-                        change: [-13.012% -5.3290% -0.4313%] (p = 0.18 > 0.05)
+html_svg                time:   [30.880 µs 31.259 µs 31.955 µs]
+                        change: [-7.4179% -1.5744% +6.6780%] (p = 0.77 > 0.05)
                         No change in performance detected.
 Found 11 outliers among 100 measurements (11.00%)
-  8 (8.00%) high mild
-  3 (3.00%) high severe
+  4 (4.00%) high mild
+  7 (7.00%) high severe
 
      Running benches/wikipedia.rs (target/release/deps/wikipedia-e2cdf26d1abd639f)
 
 running 3 tests
-test basic_svg_page  ... bench:      31,267.17 ns/iter (+/- 4,619.23)
-test wikipedia_big   ... bench:  15,628,116.40 ns/iter (+/- 630,032.94)
-test wikipedia_small ... bench:   1,639,379.95 ns/iter (+/- 80,538.45)
+test basic_svg_page  ... bench:      30,977.07 ns/iter (+/- 1,681.57)
+test wikipedia_big   ... bench:  15,119,370.20 ns/iter (+/- 844,333.81)
+test wikipedia_small ... bench:   1,588,980.10 ns/iter (+/- 48,890.25)
 
-test result: ok. 0 passed; 0 failed; 0 ignored; 3 measured; 0 filtered out; finished in 7.05s
+test result: ok. 0 passed; 0 failed; 0 ignored; 3 measured; 0 filtered out; finished in 7.46ss
 ```
 
 ## Design
