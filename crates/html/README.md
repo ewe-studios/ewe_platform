@@ -12,7 +12,7 @@ It's the underlying structure that is generated when the html_macro is used and 
 A custom html parser with minilistic handling for html documents, fragments is implemented within this package, the performance is prety good.
 
 ```bash
- Running benches/cwikipedia.rs 
+Running benches/cwikipedia.rs 
 Benchmarking wikipedia_blackbox: Warming up for 3.0000 s
 Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 9.0s, enable flat sampling, or reduce sample count to 50.
 wikipedia_blackbox      time:   [1.6226 ms 1.6627 ms 1.7189 ms]
