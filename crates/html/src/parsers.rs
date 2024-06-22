@@ -43,8 +43,8 @@ pub enum ParsingTagError {
     #[error("Parser encountered markup at top of stack has no markup, our invariants are broken")]
     StackedMarkupHasNoTag,
 
-    #[error("Parser encountered a closing tag different from top markup in stack nor does not close top markup in rules")]
-    ClosingTagDoesNotMatchTopMarkup,
+    #[error("Parser encountered a closing tag different from top markup in stack nor does not close top markup in rules: {0}")]
+    ClosingTagDoesNotMatchTopMarkup(String),
 
     #[error("Parser failed to pop top markup in stack into children list of lower markup")]
     FailedToMoveTopMarkupIntoParentInStack,
@@ -1127,12 +1127,14 @@ impl<'a> Accumulator<'a> {
     }
 
     /// Returns the total length of the string being accumulated on.
+    #[inline]
     pub fn len(&self) -> usize {
         self.content.len()
     }
 
     /// peek_rem_len returns the remaining count of strings
     /// left from the current peeks's cursor.
+    #[inline]
     pub fn peek_rem_len(&self) -> usize {
         (&self.content[self.peek_pos..]).len()
     }
@@ -1140,18 +1142,21 @@ impl<'a> Accumulator<'a> {
     /// rem_len returns the remaining count of strings
     /// left from the current position's cursor
     /// regardless of where the peek cursor is at.
+    #[inline]
     pub fn rem_len(&self) -> usize {
         (&self.content[self.pos..]).len()
     }
 
     /// resets resets the location of the cursors for both read and peek to 0.
     /// Basically moving them to the start position.
+    #[inline]
     pub fn reset(&mut self) {
         self.reset_to(0)
     }
 
     /// reset_to lets you reset the position of the cursor for both
     /// position and peek to the to value.
+    #[inline]
     pub fn reset_to(&mut self, to: usize) {
         self.pos = to;
         self.peek_pos = to;
@@ -1159,12 +1164,14 @@ impl<'a> Accumulator<'a> {
 
     /// skip will skip all the contents of the accumulator up to
     /// the current position of the peek cursor.
+    #[inline]
     pub fn skip(&mut self) {
         self.pos = self.peek_pos
     }
 
     /// peek pulls the next token at the current peek position
     /// cursor which will
+    #[inline]
     pub fn peek(&mut self, by: usize) -> Option<&'a str> {
         self.peek_slice(by)
     }
@@ -1173,6 +1180,7 @@ impl<'a> Accumulator<'a> {
     /// the peek cursor forward by a mount of step and returns the next
     /// token string.
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
+    #[inline]
     pub fn peek_next_by(&mut self, by: usize) -> Option<&'a str> {
         if let Some(res) = self.peek_slice(by) {
             self.peek_pos = self.ensure_character_boundary_index(self.peek_pos + by);
@@ -1184,6 +1192,7 @@ impl<'a> Accumulator<'a> {
     /// scan returns the whole string slice currently at the points of where
     /// the main pos (position) cursor till the end.
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
+    #[inline]
     pub fn scan_remaining(&mut self) -> Option<&'a str> {
         Some(&self.content[self.pos..])
     }
@@ -1192,6 +1201,7 @@ impl<'a> Accumulator<'a> {
     /// the main pos (position) cursor and the peek cursor so you can
     /// pull the string right at the current range.
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
+    #[inline]
     pub fn scan(&mut self) -> Option<&'a str> {
         Some(&self.content[self.pos..self.peek_pos])
     }
@@ -1200,6 +1210,7 @@ impl<'a> Accumulator<'a> {
     /// the peek cursor forward by a step and returns the next
     /// token string.
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
+    #[inline]
     pub fn peek_next(&mut self) -> Option<&'a str> {
         if let Some(res) = self.peek_slice(1) {
             self.peek_pos = self.ensure_character_boundary_index(self.peek_pos + 1);
@@ -1211,6 +1222,7 @@ impl<'a> Accumulator<'a> {
     /// unpeek_next reverses the last forward move of the peek
     /// cursor by -1.
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
+    #[inline]
     pub fn unpeek_next(&mut self) -> Option<&'a str> {
         if let Some(res) = self.unpeek_slice(1) {
             return Some(res);
@@ -1221,6 +1233,7 @@ impl<'a> Accumulator<'a> {
     /// unpeek_slice lets you reverse the peek cursor position
     /// by a certain amount to reverse the forward movement.
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
+    #[inline]
     fn unpeek_slice(&mut self, by: usize) -> Option<&'a str> {
         if self.peek_pos == 0 {
             return None;
@@ -1246,6 +1259,7 @@ impl<'a> Accumulator<'a> {
     /// It's a nice way to get to see whats at a given position without changing
     /// the current location of the peek cursor.
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
+    #[inline]
     fn ppeek_at(&mut self, from: usize, to: usize) -> Option<&'a str> {
         let new_peek_pos = self.ensure_character_boundary_index(self.pos + from);
         let mut until_pos = if new_peek_pos + to > self.content.len() {
@@ -1273,6 +1287,7 @@ impl<'a> Accumulator<'a> {
     /// It's a nice way to get to see whats at a given position without changing
     /// the current location of the peek cursor.
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
+    #[inline]
     fn vpeek_at(&mut self, from: usize, to: usize) -> Option<&'a str> {
         let mut new_peek_pos = self.peek_pos + from;
         let mut until_pos = if new_peek_pos + to > self.content.len() {
@@ -1299,6 +1314,7 @@ impl<'a> Accumulator<'a> {
         Some(&self.content[new_peek_pos..until_pos])
     }
 
+    #[inline]
     fn inverse_ensure_character_boundary_index(&self, current_index: usize) -> usize {
         let mut next_index = current_index;
         // ensure we are always at the char boundary
@@ -1312,6 +1328,7 @@ impl<'a> Accumulator<'a> {
         return next_index;
     }
 
+    #[inline]
     fn ensure_character_boundary_index(&self, current_index: usize) -> usize {
         let mut next_index = current_index;
         // ensure we are always at the char boundary
@@ -1332,6 +1349,7 @@ impl<'a> Accumulator<'a> {
     /// take more than available text length then we return None
     /// which can indicate no more text for processing.
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
+    #[inline]
     fn peek_slice(&mut self, by: usize) -> Option<&'a str> {
         if self.peek_pos + by > self.content.len() {
             return None;
@@ -1353,6 +1371,7 @@ impl<'a> Accumulator<'a> {
     /// take more than available text length then we return None
     /// which can indicate no more text for processing.
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
+    #[inline]
     pub fn take_with_amount(&mut self, by: usize) -> Option<(&'a str, (usize, usize))> {
         if self.peek_pos + by > self.content.len() {
             return None;
@@ -1368,8 +1387,20 @@ impl<'a> Accumulator<'a> {
             return None;
         }
 
+        let org_positional = self.pos;
+        let org_until = until_pos;
+
         let from = self.ensure_character_boundary_index(self.pos);
         until_pos = self.ensure_character_boundary_index(until_pos);
+
+        tracing::debug!(
+            "take_with_amount: possibly shift in positions: org:({}, {}) then end in final:({},{})",
+            org_positional,
+            org_until,
+            from,
+            until_pos,
+        );
+
         let position = (from, until_pos);
 
         tracing::debug!(
@@ -1401,6 +1432,7 @@ impl<'a> Accumulator<'a> {
     /// peek cursor position i.e str[position_cursor...peek_cursor].
     /// Allow you to collect the whole slice of strings that have been
     /// checked and peeked through.
+    #[inline]
     pub fn take_positional(&mut self) -> Option<(&'a str, (usize, usize))> {
         self.take_with_amount(0)
     }
@@ -1410,6 +1442,7 @@ impl<'a> Accumulator<'a> {
     /// peek cursor position i.e str[position_cursor...peek_cursor].
     /// Allow you to collect the whole slice of strings that have been
     /// checked and peeked through.
+    #[inline]
     pub fn take(&mut self) -> Option<&'a str> {
         match self.take_with_amount(0) {
             Some((text, _)) => Some(text),
@@ -1766,13 +1799,19 @@ impl HTMLParser {
                                 match parent.tag.clone() {
                                     Some(parent_tag) => {
                                         tracing::debug!("parse: reviewing ontop stack tag {:?} and child tag: {:?}", parent_tag, tag);
+                                        let msg = String::from(format!(
+                                            "last: {:?} - tag: {:?}",
+                                            parent_tag, tag
+                                        ));
                                         if parent_tag != tag
                                             && !MarkupTags::is_element_closed_by_closing_tag(
                                                 parent_tag, tag,
                                             )
                                         {
                                             return Err(
-                                                ParsingTagError::ClosingTagDoesNotMatchTopMarkup,
+                                                ParsingTagError::ClosingTagDoesNotMatchTopMarkup(
+                                                    msg,
+                                                ),
                                             );
                                         }
 
@@ -2275,7 +2314,9 @@ impl HTMLParser {
                 tracing::debug!("parse_xml_elem: collect tag name: {:?}", next);
                 acc.unpeek_next();
 
+                let scan = acc.vpeek_at(0, 10).unwrap();
                 let (tag_text, (tag_start, tag_end)) = acc.take_positional().unwrap();
+
                 match MarkupTags::from_str(tag_text) {
                     Ok(tag) => {
                         elem.start_range = Some(tag_start);
@@ -2359,6 +2400,7 @@ impl HTMLParser {
 
                     if !collected_tag_name {
                         let (tag_text, (tag_start, tag_end)) = acc.take_positional().unwrap();
+
                         match MarkupTags::from_str(tag_text) {
                             Ok(tag) => {
                                 elem.start_range = Some(tag_start);
@@ -2750,7 +2792,9 @@ impl HTMLParser {
         'c: 'd,
     {
         // we already know we are looking at the starter of a tag '<'
-        acc.peek_next_by(2);
+        // acc.peek_next_by(2);
+        acc.peek_next();
+        acc.peek_next();
 
         tracing::debug!("parse_closing_tag: consuming token: {:?}", acc.take());
 
@@ -2781,7 +2825,35 @@ impl HTMLParser {
 
             acc.unpeek_next();
 
-            let (tag_text, tag_positioning) = acc.take_positional().unwrap();
+            let scan = acc.ppeek_at(0, 10).unwrap();
+
+            let (mut tag_text, tag_positioning) = acc.take_positional().unwrap();
+
+            // TODO(alex.ewetumo): Not sure why this occurs, it never occurs during
+            // tests but only during benchmarks like the actual skipping does not work
+            // I had to specific trigger till i found all weird edge cases.
+            //
+            // It still can not reproduce this at all in actual code run in tests even with
+            // the same sample file, something is definitely weird and off here.
+            if tag_text.starts_with("</")
+                || tag_text.starts_with("></")
+                || tag_text.starts_with("/")
+            {
+                if tag_text.starts_with("/") {
+                    tag_text = &tag_text[1..];
+                } else if tag_text.starts_with("></") {
+                    tag_text = &tag_text[3..];
+                } else {
+                    tag_text = &tag_text[2..];
+                }
+
+                tracing::debug!(
+                    "parse_closing_tag: BUG!!!: found bad bug with (</, ></, /): {:?} arond area: {:?}",
+                    tag_text,
+                    acc.scan()
+                );
+            }
+
             let closing_tag = MarkupTags::from_str(tag_text)?;
             tracing::debug!(
                 "parse_closing_tag: found closer for: {:?} with next token: {:?}",
@@ -2804,6 +2876,8 @@ mod html_parser_test {
 
     use super::*;
     use tracing_test::traced_test;
+
+    static HTML: &'static str = include_str!("../benches/wikipedia-2020-12-21.html");
 
     #[traced_test]
     #[test]
@@ -3784,4 +3858,13 @@ mod html_parser_test {
         }
     }
 
+    #[traced_test]
+    #[test]
+    fn test_html_can_handle_wikipedia_page() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(HTML.to_string()));
+        let result = parser.parse(data.as_str());
+        assert!(matches!(result, ParsingResult::Ok(_)));
+    }
 }

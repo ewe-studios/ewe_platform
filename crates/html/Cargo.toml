@@ -34,7 +34,6 @@ workspace = true
 
 [features]
 
-
 [[bench]]
 name = "wikipedia"
 debug = true
