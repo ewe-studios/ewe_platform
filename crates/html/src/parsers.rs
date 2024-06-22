@@ -1836,6 +1836,7 @@ pub enum HTMLTags {
     Head,
     Header,
     Hgroup,
+    Html,
     Hr,
     I,
     Iframe,
@@ -1959,6 +1960,7 @@ impl FromStr for HTMLTags {
             "h5" => Ok(HTMLTags::H5),
             "h6" => Ok(HTMLTags::H6),
             "head" => Ok(HTMLTags::Head),
+            "html" => Ok(HTMLTags::Html),
             "header" => Ok(HTMLTags::Header),
             "hgroup" => Ok(HTMLTags::Hgroup),
             "hr" => Ok(HTMLTags::Hr),
@@ -2089,6 +2091,7 @@ impl HTMLTags {
             HTMLTags::H5 => "h5",
             HTMLTags::H6 => "h6",
             HTMLTags::Head => "head",
+            HTMLTags::Html => "html",
             HTMLTags::Header => "header",
             HTMLTags::Hgroup => "hgroup",
             HTMLTags::Hr => "hr",
@@ -2544,23 +2547,6 @@ impl<'a> Accumulator<'a> {
         (&self.content[self.pos..]).len()
     }
 
-    /// raw_peek lets you pull the amoune of str tokens
-    /// by the provided `by` size from the actual cursor
-    /// not the peek cursor which allows you to
-    /// ignore the peek cursor position to check
-    /// potential data that the peek cursor may
-    /// be hind the position of the peek cursor.
-    ///
-    /// If we've exhausted the total string slice left or are trying to
-    /// take more than available text length then we return None
-    /// which can indicate no more text for processing.
-    pub fn raw_peek(&mut self, by: usize) -> Option<&'a str> {
-        if self.pos + by > self.content.len() {
-            return None;
-        }
-        Some(&self.content[self.pos..(self.pos + by)])
-    }
-
     /// resets resets the location of the cursors for both read and peek to 0.
     /// Basically moving them to the start position.
     pub fn reset(&mut self) {
@@ -2592,7 +2578,7 @@ impl<'a> Accumulator<'a> {
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
     pub fn peek_next_by(&mut self, by: usize) -> Option<&'a str> {
         if let Some(res) = self.peek_slice(by) {
-            self.peek_pos += by;
+            self.peek_pos = self.ensure_character_boundary_index(self.peek_pos + by);
             return Some(res);
         }
         None
@@ -2619,7 +2605,7 @@ impl<'a> Accumulator<'a> {
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
     pub fn peek_next(&mut self) -> Option<&'a str> {
         if let Some(res) = self.peek_slice(1) {
-            self.peek_pos += 1;
+            self.peek_pos = self.ensure_character_boundary_index(self.peek_pos + 1);
             return Some(res);
         }
         None
@@ -2646,10 +2632,11 @@ impl<'a> Accumulator<'a> {
         // unpeek only works when we are higher then current pos cursor.
         // it should have no effect when have not moved forward
         if self.peek_pos > self.pos {
-            self.peek_pos -= by;
+            self.peek_pos = self.inverse_ensure_character_boundary_index(self.peek_pos - 1);
         }
 
-        Some(&self.content[self.peek_pos..(self.peek_pos + by)])
+        let new_peek_pos = self.ensure_character_boundary_index(self.peek_pos + by);
+        Some(&self.content[self.peek_pos..new_peek_pos])
     }
 
     /// ppeek_at allows you to do a non-permant position cursor adjustment
@@ -2663,7 +2650,7 @@ impl<'a> Accumulator<'a> {
     /// the current location of the peek cursor.
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
     fn ppeek_at(&mut self, from: usize, to: usize) -> Option<&'a str> {
-        let new_peek_pos = self.pos + from;
+        let new_peek_pos = self.ensure_character_boundary_index(self.pos + from);
         let mut until_pos = if new_peek_pos + to > self.content.len() {
             self.content.len()
         } else {
@@ -2673,6 +2660,8 @@ impl<'a> Accumulator<'a> {
         if new_peek_pos > self.content.len() {
             return None;
         }
+
+        until_pos = self.ensure_character_boundary_index(until_pos);
 
         Some(&self.content[new_peek_pos..until_pos])
     }
@@ -2699,7 +2688,10 @@ impl<'a> Accumulator<'a> {
             return None;
         }
 
-        tracing::info!(
+        // ensure we are always at the char boundary
+        until_pos = self.ensure_character_boundary_index(until_pos);
+
+        tracing::debug!(
             "Check if we are out of char boundary: start: {}:{}, end: {}:{}",
             new_peek_pos,
             self.content.is_char_boundary(new_peek_pos),
@@ -2707,6 +2699,32 @@ impl<'a> Accumulator<'a> {
             self.content.is_char_boundary(until_pos)
         );
         Some(&self.content[new_peek_pos..until_pos])
+    }
+
+    fn inverse_ensure_character_boundary_index(&self, current_index: usize) -> usize {
+        let mut next_index = current_index;
+        // ensure we are always at the char boundary
+        loop {
+            if !self.content.is_char_boundary(next_index) {
+                next_index -= 1;
+                continue;
+            }
+            break;
+        }
+        return next_index;
+    }
+
+    fn ensure_character_boundary_index(&self, current_index: usize) -> usize {
+        let mut next_index = current_index;
+        // ensure we are always at the char boundary
+        loop {
+            if !self.content.is_char_boundary(next_index) {
+                next_index += 1;
+                continue;
+            }
+            break;
+        }
+        return next_index;
     }
 
     /// peek_slice allows you to peek forward by an amount
@@ -2720,7 +2738,9 @@ impl<'a> Accumulator<'a> {
         if self.peek_pos + by > self.content.len() {
             return None;
         }
-        Some(&self.content[self.peek_pos..(self.peek_pos + by)])
+        let mut from = self.ensure_character_boundary_index(self.peek_pos);
+        let mut until_pos = self.ensure_character_boundary_index(self.peek_pos + by);
+        Some(&self.content[from..until_pos])
     }
 
     /// take returns the total string slice from the
@@ -2740,7 +2760,7 @@ impl<'a> Accumulator<'a> {
             return None;
         }
 
-        let until_pos = if self.peek_pos + by > self.content.len() {
+        let mut until_pos = if self.peek_pos + by > self.content.len() {
             self.content.len()
         } else {
             self.peek_pos + by
@@ -2750,7 +2770,9 @@ impl<'a> Accumulator<'a> {
             return None;
         }
 
-        let position = (self.pos, until_pos);
+        let from = self.ensure_character_boundary_index(self.pos);
+        until_pos = self.ensure_character_boundary_index(until_pos);
+        let position = (from, until_pos);
 
         tracing::debug!(
             "take_with_amount: content len: {} with pos: {}, peek_pos: {}, by: {}, until: {}",
@@ -2761,7 +2783,7 @@ impl<'a> Accumulator<'a> {
             until_pos,
         );
 
-        let content_slice = &self.content[self.pos..until_pos];
+        let content_slice = &self.content[from..until_pos];
 
         tracing::debug!(
             "take_with_amount: sliced worked from: {}, by: {}, till loc: {} with text: '{}'",
@@ -3843,7 +3865,7 @@ impl HTMLParser {
 
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
     fn is_valid_attribute_value_token<'a>(&self, token: &'a str) -> bool {
-        tracing::info!("Checking if valid attribute value token: {:?}", token);
+        tracing::debug!("Checking if valid attribute value token: {:?}", token);
         token.chars().any(|t| {
             t.is_alphanumeric()
                 || t.is_ascii_alphanumeric()
@@ -3855,7 +3877,7 @@ impl HTMLParser {
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
     fn dequote_str<'a>(&self, text: &'a str) -> &'a str {
         let text_len = text.len();
-        tracing::info!("dequote: text: {:?} with len: {}", text, text_len);
+        tracing::debug!("dequote: text: {:?} with len: {}", text, text_len);
         if (text.starts_with(SINGLE_QUOTE_STR) || text.starts_with(DOUBLE_QUOTE_STR))
             && (text.ends_with(SINGLE_QUOTE_STR) || text.ends_with(DOUBLE_QUOTE_STR))
         {
@@ -3876,7 +3898,7 @@ impl HTMLParser {
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
     fn collect_attribute_value_alphaneumerics(&self, acc: &mut Accumulator) -> ParsingResult<()> {
         let starter = acc.peek(1).unwrap();
-        tracing::info!(
+        tracing::debug!(
             "collect_attribute_value_alphaneumerics: value starter {:?}",
             starter
         );
@@ -3892,7 +3914,7 @@ impl HTMLParser {
             .unwrap();
 
         while let Some(next) = acc.peek_next() {
-            tracing::info!(
+            tracing::debug!(
                 "collect_attribute_value_alphaneumerics: scanning token {:?}: starter={:?}, closer={:?}, is_alpha={:?}, is_char={:?}",
                 next,
                 starter,
@@ -3902,7 +3924,7 @@ impl HTMLParser {
             );
 
             if is_alphaneumerics_starter && next == TAG_CLOSED_BRACKET {
-                tracing::info!(
+                tracing::debug!(
                     "collect_attribute_value_alphaneumerics: found close bracket {:?}",
                     next
                 );
@@ -3914,7 +3936,7 @@ impl HTMLParser {
             }
 
             if is_alphaneumerics_starter && next.chars().all(char::is_whitespace) {
-                tracing::info!(
+                tracing::debug!(
                     "collect_attribute_value_alphaneumerics: is alphaneumerics and ends with a whitespace {:?}",
                     next
                 );
@@ -3929,7 +3951,7 @@ impl HTMLParser {
             let double_next_token = acc.peek(1).unwrap();
             if is_indent_starter && next == *starter_closer && double_next_token == *starter_closer
             {
-                tracing::info!(
+                tracing::debug!(
                     "collect_attribute_value_alphaneumerics: token {:?} and next {:?} is closer",
                     next,
                     double_next_token,
@@ -3942,7 +3964,7 @@ impl HTMLParser {
             // the attribute.
             if is_indent_starter && next == *starter_closer && double_next_token != *starter_closer
             {
-                tracing::info!(
+                tracing::debug!(
                     "collect_attribute_value_alphaneumerics: seen starter ender token {:?}, next: {:?} (starter: {:?}, closer={:?})",
                     next,
                     double_next_token,
@@ -4270,7 +4292,7 @@ mod html_parser_test {
         let data = wrap_in_document_fragment_container(String::from("<!doctype lang=en>"));
         let result = parser.parse(data.as_str());
 
-        tracing::info!("Result: {:?}", result);
+        tracing::debug!("Result: {:?}", result);
 
         assert!(matches!(result, ParsingResult::Ok(_)));
 
@@ -4624,12 +4646,12 @@ mod html_parser_test {
         ));
         let result = parser.parse(data.as_str());
 
-        tracing::info!("Result: {:?}", result);
+        tracing::debug!("Result: {:?}", result);
 
         assert!(matches!(result, ParsingResult::Ok(_)));
 
         let parsed = result.unwrap().get_tags();
-        tracing::info!("ParsedTags: {:?}", parsed);
+        tracing::debug!("ParsedTags: {:?}", parsed);
 
         assert_eq!(
             vec![
@@ -4873,7 +4895,7 @@ mod html_parser_test {
         ));
         let result = parser.parse(data.as_str());
 
-        tracing::info!("Result: {:?}", result);
+        tracing::debug!("Result: {:?}", result);
 
         assert!(matches!(result, ParsingResult::Ok(_)));
 
@@ -4909,7 +4931,7 @@ mod html_parser_test {
         ));
         let result = parser.parse(data.as_str());
 
-        tracing::info!("Result: {:?}", result);
+        tracing::debug!("Result: {:?}", result);
 
         assert!(matches!(result, ParsingResult::Ok(_)));
 
@@ -4977,6 +4999,7 @@ mod html_parser_test {
                             <title>Här kan man va</title>
                         </head>
                         <body>
+                        	<boäk näme=20 age="äry" flag={ämu}>Hi</boäk>
                             <h1>Tjena världen!</h1>
                             <p>Tänkte bara informera om att Sverige är bättre än Finland i ishockey.</p>
                         </body>
@@ -5062,7 +5085,7 @@ mod html_parser_test {
 
         for test_case in test_cases {
             let result = parser.parse(test_case.as_str());
-            tracing::info!("Result: {:?}", result);
+            tracing::debug!("Result: {:?}", result);
             assert!(matches!(result, ParsingResult::Ok(_)));
         }
     }
