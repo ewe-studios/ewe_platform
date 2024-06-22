@@ -5,10 +5,11 @@ extern crate test;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 static HTML: &'static str = include_str!("./wikipedia-2020-12-21.html");
+static HTML_BIG: &'static str = include_str!("./wikipedia_on_wikipedia.html");
 
 use ewe_html::parsers::{wrap_in_document_fragment_container, HTMLParser};
 
-fn html_parser(c: &mut Criterion) {
+fn wikipedia_small(c: &mut Criterion) {
     c.bench_function("wikipedia_blackbox", |b| {
         b.iter(|| {
             black_box({
@@ -21,18 +22,20 @@ fn html_parser(c: &mut Criterion) {
     });
 }
 
-fn html_parser_no_blackbox(c: &mut Criterion) {
-    c.bench_function("wikipedia_no_blackbox", |b| {
+fn wikipedia_big(c: &mut Criterion) {
+    c.bench_function("wikipedia_blackbox", |b| {
         b.iter(|| {
-            let parser = HTMLParser::default();
-            parser
-                .parse(&wrap_in_document_fragment_container(HTML.to_string()))
-                .unwrap();
+            black_box({
+                let parser = HTMLParser::default();
+                parser
+                    .parse(&wrap_in_document_fragment_container(HTML_BIG.to_string()))
+                    .unwrap();
+            });
         });
     });
 }
 
-fn html_parser_with_svg(c: &mut Criterion) {
+fn basic_svg_page(c: &mut Criterion) {
     c.bench_function("html_svg", |b| {
         b.iter(|| {
             let parser = HTMLParser::default();
@@ -67,8 +70,8 @@ fn html_parser_with_svg(c: &mut Criterion) {
 
 criterion_group!(
     benches,
-    html_parser,
-    html_parser_no_blackbox,
-    html_parser_with_svg
+    wikipedia_small,
+    wikipedia_small_no_blackbox,
+    wikipedia_small_with_svg
 );
 criterion_main!(benches);

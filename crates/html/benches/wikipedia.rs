@@ -5,11 +5,12 @@ extern crate test;
 use self::test::{black_box, Bencher};
 
 static HTML: &'static str = include_str!("./wikipedia-2020-12-21.html");
+static HTML_BIG: &'static str = include_str!("./wikipedia_on_wikipedia.html");
 
 use ewe_html::parsers::{wrap_in_document_fragment_container, HTMLParser};
 
 #[bench]
-fn html_parser(b: &mut Bencher) {
+fn wikipedia_small(b: &mut Bencher) {
     b.iter(|| {
         black_box({
             let parser = HTMLParser::default();
@@ -21,17 +22,19 @@ fn html_parser(b: &mut Bencher) {
 }
 
 #[bench]
-fn html_parser_no_blackbox(b: &mut Bencher) {
+fn wikipedia_big(b: &mut Bencher) {
     b.iter(|| {
-        let parser = HTMLParser::default();
-        parser
-            .parse(&wrap_in_document_fragment_container(HTML.to_string()))
-            .unwrap();
+        black_box({
+            let parser = HTMLParser::default();
+            parser
+                .parse(&wrap_in_document_fragment_container(HTML_BIG.to_string()))
+                .unwrap();
+        })
     })
 }
 
 #[bench]
-fn html_parser_with_svg(b: &mut Bencher) {
+fn basic_svg_page(b: &mut Bencher) {
     b.iter(|| {
         black_box({
             let parser = HTMLParser::default();

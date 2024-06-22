@@ -6,8 +6,7 @@ My goal for this crate is to create a solid foundation that other crates can use
 
 It's the underlying structure that is generated when the html_macro is used and the overall goal is that this structure should be expressable both via markup text and in code.
 
-
-## Parser 
+## Parser
 
 A custom html parser with minilistic handling for html documents, fragments is implemented within this package, the performance is prety good.
 
@@ -48,7 +47,20 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 3 measured; 0 filtered out; fini
 
 ## Design
 
-In this html structure, there are no string templates, just core html structures that could define specific capability and behaviour without complicated expressions of text replacement without a loss in simplicity and completedness.
+In this html structure, there are no string templates, just core html structures that could define specific capability and behaviour without complicated expressions of text replacement with the clarity that there is no virtual DOM but rather a representation of what we want displayed.
+
+This means in general both in browser and on server should work the same with the same set of primitive and singular code.
+
+What we want is simple markup that fully describes the end result that will be displayed on the page and these when on the browser through specific always present field e.g `id` or `data-hash-id` will allow clear identification of which specific node will have operations applied to.
+
+```html
+<section id="menu" data-hash-id="#a43nn3">
+    <label id="menu-title" data-hash-id="#a43nn3">Gallery Loader</label>
+    <remote-island from="/gallery/photos" target="section#main" fade_in="0.1ms" insert="before"/>
+</section>
+```
+
+These means the underlying rendering system (Browser or Otherwise) bears the needed responsibility to take that repesentation and apply the result to it's representation.
 
 My hope is such structure:
 
@@ -167,9 +179,12 @@ This allows people to build a combination of applicators that when applied to th
 This means that if we explain above html we can say:
 
 1. <remote-island> loads up a island of content which can either be defined in the page or some http API returning html (standard htmx) that allows us to reuse the islands across the page.
-2. The remote island applies specific operations to the returned content defined in <before/> and <after/> tags that can contain other Applicators that will be applied to the target element before its mounted and after it is mounted. In this case we apply an animation that applies a preset to different styles of the element setting those (height, weight and display) to a set of values that basically hides the element though mounted and then in it's <after/> animates those using a custom tween into fade in and with height and width to specific values that shows the element.
-3. Secondly these means Applicators provide a before and after declarative hook that allows us hook simply apply another set of Applicators to the element.
-4. This also means that each applicator allows only a certain set of applicators described by markup that are allowed within itself, this allows us syntax check and return understandable errors about what is going on and why the result is not as expected.
+
+3. The remote island applies specific operations to the returned content defined in <before/> and <after/> tags that can contain other Applicators that will be applied to the target element before its mounted and after it is mounted. In this case we apply an animation that applies a preset to different styles of the element setting those (height, weight and display) to a set of values that basically hides the element though mounted and then in it's <after/> animates those using a custom tween into fade in and with height and width to specific values that shows the element.
+
+4. Secondly these means Applicators provide a before and after declarative hook that allows us hook simply apply another set of Applicators to the element.
+
+5. This also means that each applicator allows only a certain set of applicators described by markup that are allowed within itself, this allows us syntax check and return understandable errors about what is going on and why the result is not as expected.
 
 The nice thing about this is while the overall markup is now more verbose, it is also more clear, nothing is ihidden behind attributes to be remembered and its clear where and what the overall execution is.
 
