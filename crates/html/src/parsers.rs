@@ -34,6 +34,9 @@ pub enum ParsingTagError {
     #[error("failed parsing text tag")]
     FailedParsing,
 
+    #[error("Parser cound not parse content, stopped at: {0}")]
+    FailedContentParsing(String),
+
     #[error("we expect after tag names will be a space")]
     ExpectingSpaceAfterTagName,
 
@@ -1716,7 +1719,20 @@ impl HTMLParser {
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
     pub fn parse<'a>(&self, input: &'a str) -> ParsingResult<Stack<'a>> {
         let mut accumulator = Accumulator::new(input);
+        match self._parse(&mut accumulator) {
+            Ok(t) => Ok(t),
+            Err(err) => Err(ParsingTagError::FailedContentParsing(String::from(
+                format!(
+                    "Error({:?}): {:?}",
+                    err,
+                    accumulator.ppeek_at(0, 20).unwrap()
+                ),
+            ))),
+        }
+    }
 
+    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    fn _parse<'a>(&self, accumulator: &mut Accumulator<'a>) -> ParsingResult<Stack<'a>> {
         let mut stacks: Vec<Stack> = vec![];
         let mut text_block_tag: Option<MarkupTags> = None;
 
@@ -1733,7 +1749,7 @@ impl HTMLParser {
                 );
                 match self.parse_element_text_block(
                     text_block_tag.clone().unwrap(),
-                    &mut accumulator,
+                    accumulator,
                     &mut stacks,
                 ) {
                     Ok(directive) => match directive {
@@ -1763,7 +1779,7 @@ impl HTMLParser {
             }
 
             let mut pop_top_stack = false;
-            match self.parse_element_from_accumulator(&mut accumulator, &mut stacks) {
+            match self.parse_element_from_accumulator(accumulator, &mut stacks) {
                 Ok(elem) => match elem {
                     ParserDirective::Open(elem) => {
                         tracing::debug!("parse: received opening tag indicator: {:?}", elem.tag);
@@ -3256,7 +3272,7 @@ mod html_parser_test {
 
         assert!(matches!(
             result,
-            ParsingResult::Err(ParsingTagError::InvalidHTMLContent(_))
+            ParsingResult::Err(ParsingTagError::FailedContentParsing(_))
         ));
     }
 
@@ -4300,5 +4316,26 @@ mod html_parser_test {
             ],
             tags
         )
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_html_text_with_multiple_code_block_in_body_with_bad_closer() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            r#"
+            <div>
+             {{
+                some of other vaulue
+             }}
+           	 {{{
+             some rust value
+             }} }
+             </div>
+            "#,
+        ));
+        let result = parser.parse(data.as_str());
+        assert!(matches!(result, ParsingResult::Err(_)));
     }
 }

@@ -290,7 +290,7 @@ Taking some inspiration from the idea of `Suspense` in react/solidjs, we can als
 </island>
 ```
 
-#### Island Templates 
+#### Island Templates
 
 When client side, `island-template` are a way to instead define the island in one place (either at the top or bottom of the body element) - they are processed but never rendered and are invisible to the user but exists in the DOM to allow you define reusable blocks of renderable content based on it's `as` attribute which can be refered to from `RemoteIsland`.
 
@@ -563,30 +563,48 @@ impl Counter {
     }
 }
 
-enum CounterIncrement{}
-enum CounterDecrement{}
+enum CounterRequest{
+    Increment,
+    Decrement
+}
 
 #[island]
-#[router("/counter/increment", Request<CounterIncrement>)]
-#[router("/counter/increment", Request<CounterDecrement>)]
+#[router("/counter/increment", Request<CounterRequest>)]
+#[router("/counter/decrement", Request<CounterRequest>)]
 fn counter_island(
     router: Router, 
+    request: Request<CounterRequest>
     data: Data<CounterState>>, 
     content: Option<Fragment>, 
     root: DOM,
 ) {
     let instance_id = format!("counter-{}", data.id);
     let counter = match data.state {
-        Some(last_state) => Counter::increment(last_state),
+        Some(last_state) => Counter::new(last_state),
         None => CounterState::new(0),
+    };
+    
+    counter = match request.data() {
+        CounterRequest::Increment => counter.increment(),
+        CounterRequest::Decrement => counter.decrement(),
     };
 
     return html!{
         <swap-out target_id={{instance_id.clone()}}>
-            <div id={{instance_id.clone()}} with-data={{data.to_json(initial)}}>
+            <div id={{instance_id.clone()}} with_data={{data.to_json(initial)}}>
                 <span-for text=initial.value />
-                <link_for router={{router.clone()}} data_at={{instance_id}} route="/counter/increment" with_content="+"/>
-                <link_for router={{router.clone()}} data_at={{instance_id}} route="/counter/decrement" with_content="-"/>
+                <link_for 
+                    router={{router.clone()}} 
+                    data_on={{instance_id}} 
+                    route="/counter/increment" 
+                    with_content="+"
+                />
+                <link_for 
+                    router={{router.clone()}} 
+                    data_on={{instance_id}} 
+                    route="/counter/decrement" 
+                    with_content="-"
+                />
             </div>
         </swap-out>
     }
