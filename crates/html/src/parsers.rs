@@ -13,10 +13,17 @@ use tracing::trace;
 use crate::markup::{ElementResult, Markup};
 
 lazy_static! {
-    static ref ATTRIBUTE_PAIRS: HashMap<&'static str, &'static str> =
-        vec![("{", "}"), ("(", ")"), ("[", "]"), ("'", "'"), ("\"", "\""),]
-            .into_iter()
-            .collect();
+    static ref ATTRIBUTE_PAIRS: HashMap<&'static str, &'static str> = vec![
+        ("{", "}"),
+        ("(", ")"),
+        ("[", "]"),
+        ("'", "'"),
+        ("\"", "\""),
+        ("{{", "}}"),
+        ("{{{", "}}}")
+    ]
+    .into_iter()
+    .collect();
 }
 
 #[derive(Debug, Error, PartialEq, Eq)]
@@ -1622,7 +1629,7 @@ pub enum ParserDirective<'a> {
 
 pub struct HTMLParser {
     allowed_tag_symbols: &'static [char],
-    pub handle_as_block_text: CheckTag,
+    check_is_block_text_tag: CheckTag,
 }
 
 static TAG_OPEN_BRACKET_CHAR: char = '<';
@@ -1639,6 +1646,8 @@ static VALID_ATTRIBUTE_STARTER_SYMBOLS: &[char] = &['{', '"'];
 static VALID_ATTRIBUTE_ENDER_SYMBOLS: &[char] = &['}', '"'];
 
 static VALID_ATTRIBUTE_STARTER_SYMBOLS_STR: &[&str] = &["{", "(", "[", "\"", "'"];
+
+static CODE_STARTER_BLOCKS: &[&str] = &["{{", "{{{"];
 
 static EMPTY_STRING: &'static str = "";
 static FRAME_FLAG_TAG: &'static str = "DocumentFragmentContainer";
@@ -1688,18 +1697,19 @@ fn begins_with_and_after<'a>(
 
 impl Default for HTMLParser {
     fn default() -> Self {
-        Self {
-            allowed_tag_symbols: VALID_TAG_NAME_SYMBOLS,
-            handle_as_block_text: MarkupTags::is_block_text_tag,
-        }
+        Self::new(VALID_TAG_NAME_SYMBOLS, MarkupTags::is_block_text_tag)
     }
 }
 
 impl HTMLParser {
+    pub fn with_custom_block_text_tags(handle_as_block_text: CheckTag) -> Self {
+        Self::new(VALID_TAG_NAME_SYMBOLS, handle_as_block_text)
+    }
+
     pub fn new(allowed_tag_symbols: &'static [char], handle_as_block_text: CheckTag) -> Self {
         Self {
             allowed_tag_symbols,
-            handle_as_block_text,
+            check_is_block_text_tag: handle_as_block_text,
         }
     }
 
@@ -1759,7 +1769,9 @@ impl HTMLParser {
                         tracing::debug!("parse: received opening tag indicator: {:?}", elem.tag);
 
                         let tag = elem.tag.clone().unwrap();
-                        if MarkupTags::is_block_text_tag(tag.clone()) {
+                        if MarkupTags::is_block_text_tag(tag.clone())
+                            || (self.check_is_block_text_tag)(tag.clone())
+                        {
                             text_block_tag.replace(tag);
                         }
 
@@ -2034,6 +2046,35 @@ impl HTMLParser {
                 }
             }
 
+            let code_block_text = acc.ppeek_at(0, 2).or(Some("")).unwrap();
+            let rust_code_block_text = acc.ppeek_at(0, 3).or(Some("")).unwrap();
+            tracing::debug!(
+                "parse_element_from_accumulator: code block checking: {} with code: {:?}, rust_code: {:?}",
+                next,
+                code_block_text,
+                rust_code_block_text,
+            );
+
+            if TEXT_BLOCK_STARTER == next
+                && (code_block_text == CODE_BLOCK_STARTER
+                    || rust_code_block_text == RUST_BLOCK_STARTER)
+            {
+                if rust_code_block_text == RUST_BLOCK_STARTER {
+                    tracing::debug!("parse_element_from_accumulator: start rust code block");
+                    match self.parse_code_block(rust_code_block_text, acc, &mut stacks) {
+                        Ok(elem) => return Ok(elem),
+                        Err(err) => return Err(err),
+                    }
+                }
+                if code_block_text == CODE_BLOCK_STARTER {
+                    tracing::debug!("parse_element_from_accumulator: start non-rust code block");
+                    match self.parse_code_block(code_block_text, acc, &mut stacks) {
+                        Ok(elem) => return Ok(elem),
+                        Err(err) => return Err(err),
+                    }
+                }
+            }
+
             match self.parse_text_block(acc, &mut stacks) {
                 Ok(elem) => return Ok(elem),
                 Err(err) => return Err(err),
@@ -2079,6 +2120,93 @@ impl HTMLParser {
 
                 return Ok(ParserDirective::Void(elem));
             }
+        }
+
+        Err(ParsingTagError::FailedParsing)
+    }
+
+    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    fn parse_code_block<'c, 'd>(
+        &self,
+        block_starter: &'c str,
+        acc: &mut Accumulator<'c>,
+        mut stacks: &mut Vec<Stack>,
+    ) -> ParsingResult<ParserDirective<'d>>
+    where
+        'c: 'd,
+    {
+        let mut elem = Stack::empty();
+
+        let blocker_closer_text = ATTRIBUTE_PAIRS.get(block_starter).unwrap();
+
+        tracing::debug!(
+            "parse_code_block({:?}, closer: {:?}): to scan next token: {:?}",
+            block_starter,
+            blocker_closer_text,
+            acc.peek(1)
+        );
+
+        while let Some(next) = acc.peek_next() {
+            tracing::debug!(
+                "parse_code_block({:?}, closer: {:?}): next token: {:?}",
+                block_starter,
+                blocker_closer_text,
+                next
+            );
+
+            let code_closer_sample = acc.vpeek_at(0, 2).unwrap();
+            let rust_code_closer_sample = acc.vpeek_at(0, 3).unwrap();
+
+            let is_code_block = code_closer_sample == *blocker_closer_text;
+            let is_rust_block = rust_code_closer_sample == *blocker_closer_text;
+
+            if !is_code_block && !is_rust_block {
+                tracing::debug!(
+                    "parse_code_block({:?}, closer: {:?}): is not closing tage - token: {:?} ({:?}, {:?})",
+                    block_starter,
+                    blocker_closer_text,
+                    next,
+                    code_closer_sample,
+                    rust_code_closer_sample,
+                );
+                continue;
+            }
+
+            tracing::debug!(
+                "parse_code_block({:?}, closer: {:?}): saw ending token - token: {:?} ({:?}, {:?})",
+                block_starter,
+                blocker_closer_text,
+                next,
+                code_closer_sample,
+                rust_code_closer_sample,
+            );
+
+            tracing::debug!(
+                "parse_code_block({:?}, closer: {:?}): finishing code exraction: is_rust: {:?}, is_code: {:?}",
+                block_starter,
+                blocker_closer_text,
+                is_rust_block,
+                is_code_block,
+            );
+
+            if is_rust_block {
+                acc.peek_next_by(3);
+            } else {
+                acc.peek_next_by(2);
+            }
+
+            let (tag_text, (tag_start, tag_end)) = acc.take_positional().unwrap();
+            let code_tag = if is_rust_block {
+                MarkupTags::Rust(String::from(tag_text))
+            } else {
+                MarkupTags::Code(String::from(tag_text))
+            };
+
+            elem.tag.replace(code_tag);
+            elem.start_range = Some(tag_start);
+            elem.end_range = Some(tag_end);
+
+            return Ok(ParserDirective::Void(elem));
         }
 
         Err(ParsingTagError::FailedParsing)
@@ -3940,6 +4068,53 @@ mod html_parser_test {
 
     #[traced_test]
     #[test]
+    fn test_html_attribute_with_rust_with_other_attributes_and_multiline_code_block() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            r#"
+            <div jail={{
+                some of other vaulue
+            }} name={name} rust={{{
+             some rust value
+             }}} addr="supply">hello</div>
+            "#,
+        ));
+        let result = parser.parse(data.as_str());
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap();
+        let div = parsed.children.get(0).unwrap();
+
+        assert_eq!(
+            *div.attrs.get(0).unwrap(),
+            (
+                "jail",
+                AttrValue::Code("{{\n                some of other vaulue\n            }}")
+            )
+        );
+
+        assert_eq!(
+            *div.attrs.get(1).unwrap(),
+            ("name", AttrValue::Block("{name}"))
+        );
+
+        assert_eq!(
+            *div.attrs.get(2).unwrap(),
+            (
+                "rust",
+                AttrValue::Rust("{{{\n             some rust value\n             }}}")
+            )
+        );
+
+        assert_eq!(
+            *div.attrs.get(3).unwrap(),
+            ("addr", AttrValue::Text("supply"))
+        );
+    }
+
+    #[traced_test]
+    #[test]
     fn test_html_attribute_with_rust_multiline_code_block() {
         let parser = HTMLParser::default();
 
@@ -3977,6 +4152,39 @@ mod html_parser_test {
 
     #[traced_test]
     #[test]
+    fn test_html_can_customize_what_is_block_text_tag() {
+        let parser = HTMLParser::with_custom_block_text_tags(|tag| tag.to_str().unwrap() == "div");
+
+        let data = wrap_in_document_fragment_container(String::from(
+            r#"
+            <div>
+            	<section></section>
+             </div>
+            "#,
+        ));
+        let result = parser.parse(data.as_str());
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap();
+
+        let div = parsed.children.get(0).unwrap();
+
+        let tags = parsed.get_tags();
+
+        assert_eq!(
+            vec![
+                MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
+                MarkupTags::HTML(HTMLTags::Div),
+                MarkupTags::Text(String::from(
+                    "\n            \t<section></section>\n             "
+                )),
+            ],
+            tags
+        )
+    }
+
+    #[traced_test]
+    #[test]
     fn test_html_text_with_code_block_in_body_and_as_attribute() {
         let parser = HTMLParser::default();
 
@@ -4000,7 +4208,10 @@ mod html_parser_test {
 
         assert_eq!(
             *div.attrs.get(0).unwrap(),
-            ("jail", AttrValue::Code("{{some of other vaulue}}"))
+            (
+                "jail",
+                AttrValue::Code("{{\n                some of other vaulue\n            }}")
+            )
         );
 
         let tags = parsed.get_tags();
@@ -4009,7 +4220,9 @@ mod html_parser_test {
             vec![
                 MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
                 MarkupTags::HTML(HTMLTags::Div),
-                MarkupTags::Code(String::from("")),
+                MarkupTags::Code(String::from(
+                    "{{\n                some of other vaulue\n             }}"
+                )),
             ],
             tags
         )
@@ -4041,7 +4254,9 @@ mod html_parser_test {
             vec![
                 MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
                 MarkupTags::HTML(HTMLTags::Div),
-                MarkupTags::Code(String::from("")),
+                MarkupTags::Code(String::from(
+                    "{{\n                some of other vaulue\n             }}"
+                )),
             ],
             tags
         )
@@ -4076,8 +4291,12 @@ mod html_parser_test {
             vec![
                 MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
                 MarkupTags::HTML(HTMLTags::Div),
-                MarkupTags::Code(String::from("")),
-                MarkupTags::Code(String::from("")),
+                MarkupTags::Code(String::from(
+                    "{{\n                some of other vaulue\n             }}"
+                )),
+                MarkupTags::Rust(String::from(
+                    "{{{\n             some rust value\n             }}}"
+                )),
             ],
             tags
         )
