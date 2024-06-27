@@ -1,5 +1,4 @@
-// Module implements the parser has defined in: https://github.com/taoqf/node-html-parser
-
+/// Module implements custom html parser with reasonable speed for parsing html pages, data, templates and blocks.
 use core::str::Chars;
 use std::{cell, rc};
 
@@ -990,6 +989,8 @@ pub enum MarkupTags {
     Text(String),
     Comment(String),
     Component(String),
+    Code(String),
+    Rust(String),
 }
 
 impl FromStr for MarkupTags {
@@ -1052,9 +1053,11 @@ impl MarkupTags {
             MarkupTags::DocType => Ok(String::from("!Doctype")),
             MarkupTags::SVG(sg) => Ok(sg.into()),
             MarkupTags::HTML(ht) => Ok(ht.into()),
-            MarkupTags::Comment(text) | MarkupTags::Text(text) | MarkupTags::Component(text) => {
-                Ok(text.clone())
-            }
+            MarkupTags::Comment(text)
+            | MarkupTags::Code(text)
+            | MarkupTags::Rust(text)
+            | MarkupTags::Text(text)
+            | MarkupTags::Component(text) => Ok(text.clone()),
         }
     }
 
@@ -1535,12 +1538,20 @@ mod accumulator_tests {
     }
 }
 
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+pub enum AttrValue<'a> {
+    Text(&'a str),  // Every other type
+    Block(&'a str), // any content within 1 block { }
+    Code(&'a str),  // any content within 2 block {{ }}
+    Rust(&'a str),  // any content within 3 block {{{ }}}
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Stack<'a> {
     tag: Option<MarkupTags>,
     closed: bool,
     children: Vec<Stack<'a>>,
-    attrs: Vec<(&'a str, &'a str)>,
+    attrs: Vec<(&'a str, AttrValue<'a>)>,
     start_range: Option<usize>,
     end_range: Option<usize>,
 }
@@ -1557,7 +1568,7 @@ impl<'a> Stack<'a> {
         }
     }
 
-    pub fn add_attr(&mut self, name: &'a str, value: &'a str) {
+    pub fn add_attr(&mut self, name: &'a str, value: AttrValue<'a>) {
         self.attrs.push((name, value))
     }
 
@@ -1614,15 +1625,6 @@ pub struct HTMLParser {
     pub handle_as_block_text: CheckTag,
 }
 
-// https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
-static MARKUP_PATTERN_REGEXP: Lazy<Regex> = lazy_regex!(
-    r#"<!--[\s\S]*?-->|<(\/?)([a-zA-Z][-.:0-9_a-zA-Z]*)((?:\s+[^>]*?(?:(?:'[^']*')|(?:"[^"]*"))?)*)\s*(\/?)>"#
-);
-
-// use with ".."/g"
-static ATTRIBUTE_PATTERN: Lazy<Regex> =
-    lazy_regex!(r#"/(?:^|\s)(id|class)\s*=\s*((?:'[^']*')|(?:"[^"]*")|\S+)"#i); // use with /../gi
-
 static TAG_OPEN_BRACKET_CHAR: char = '<';
 static TAG_CLOSED_BRACKET_CHAR: char = '>';
 
@@ -1640,6 +1642,9 @@ static VALID_ATTRIBUTE_STARTER_SYMBOLS_STR: &[&str] = &["{", "(", "[", "\"", "'"
 
 static EMPTY_STRING: &'static str = "";
 static FRAME_FLAG_TAG: &'static str = "DocumentFragmentContainer";
+static TEXT_BLOCK_STARTER: &'static str = "{";
+static CODE_BLOCK_STARTER: &'static str = "{{";
+static RUST_BLOCK_STARTER: &'static str = "{{{";
 static SINGLE_QUOTE_STR: &'static str = "'";
 static DOUBLE_QUOTE_STR: &'static str = "\"";
 static SPACE_STR: &'static str = " ";
@@ -2693,7 +2698,7 @@ impl HTMLParser {
                     );
 
                     if attribute_name.len() != 0 {
-                        stack.add_attr(attribute_name, "");
+                        stack.add_attr(attribute_name, AttrValue::Text(""));
                     }
 
                     return Ok(());
@@ -2739,7 +2744,21 @@ impl HTMLParser {
                     // collect value
                     self.collect_attribute_value_alphaneumerics(acc)?;
 
-                    let attr_value = self.dequote_str(acc.take().unwrap());
+                    let attr_value_text = acc.take().unwrap();
+
+                    let attr_value = if attr_value_text.starts_with(SINGLE_QUOTE_STR)
+                        || attr_value_text.starts_with(DOUBLE_QUOTE_STR)
+                    {
+                        AttrValue::Text(self.dequote_str(attr_value_text))
+                    } else if attr_value_text.starts_with(RUST_BLOCK_STARTER) {
+                        AttrValue::Rust(attr_value_text)
+                    } else if attr_value_text.starts_with(CODE_BLOCK_STARTER) {
+                        AttrValue::Code(attr_value_text)
+                    } else if attr_value_text.starts_with(TEXT_BLOCK_STARTER) {
+                        AttrValue::Block(attr_value_text)
+                    } else {
+                        AttrValue::Text(attr_value_text)
+                    };
 
                     tracing::debug!(
                         "parse_elem_attribute: collected attribute value: {:?}",
@@ -2925,7 +2944,7 @@ mod html_parser_test {
                     closed: true,
                     start_range: Some(29),
                     end_range: Some(36),
-                    attrs: vec![("lang", "en")],
+                    attrs: vec![("lang", AttrValue::Text("en"))],
                     children: vec![]
                 }]
             }
@@ -2955,7 +2974,7 @@ mod html_parser_test {
                     closed: true,
                     start_range: Some(29),
                     end_range: Some(36),
-                    attrs: vec![("lang", "en")],
+                    attrs: vec![("lang", AttrValue::Text("en"))],
                     children: vec![]
                 }]
             }
@@ -2988,7 +3007,7 @@ mod html_parser_test {
                     closed: true,
                     end_range: Some(36),
                     start_range: Some(29),
-                    attrs: vec![("lang", "en")],
+                    attrs: vec![("lang", AttrValue::Text("en"))],
                     children: vec![]
                 }]
             }
@@ -3641,7 +3660,7 @@ mod html_parser_test {
 
         assert_eq!(
             *div.attrs.get(0).unwrap(),
-            ("jail", "{{some of other vaulue}}")
+            ("jail", AttrValue::Code("{{some of other vaulue}}"))
         );
     }
 
@@ -3661,7 +3680,7 @@ mod html_parser_test {
 
         assert_eq!(
             *div.attrs.get(0).unwrap(),
-            ("jail", "{some of other vaulue}")
+            ("jail", AttrValue::Block("{some of other vaulue}"))
         );
     }
 
@@ -3892,5 +3911,175 @@ mod html_parser_test {
         let data = wrap_in_document_fragment_container(String::from(HTML_SMALLEST.to_string()));
         let result = parser.parse(data.as_str());
         assert!(matches!(result, ParsingResult::Ok(_)));
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_html_attribute_with_rust_code_block() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            "<div jail={{some of other vaulue}} rust={{{some rust value}}}>hello</div>",
+        ));
+        let result = parser.parse(data.as_str());
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap();
+        let div = parsed.children.get(0).unwrap();
+
+        assert_eq!(
+            *div.attrs.get(0).unwrap(),
+            ("jail", AttrValue::Code("{{some of other vaulue}}"))
+        );
+
+        assert_eq!(
+            *div.attrs.get(1).unwrap(),
+            ("rust", AttrValue::Rust("{{{some rust value}}}"))
+        );
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_html_attribute_with_rust_multiline_code_block() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            r#"
+            <div jail={{
+                some of other vaulue
+            }} rust={{{
+             some rust value
+             }}}>hello</div>
+            "#,
+        ));
+        let result = parser.parse(data.as_str());
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap();
+        let div = parsed.children.get(0).unwrap();
+
+        assert_eq!(
+            *div.attrs.get(0).unwrap(),
+            (
+                "jail",
+                AttrValue::Code("{{\n                some of other vaulue\n            }}")
+            )
+        );
+
+        assert_eq!(
+            *div.attrs.get(1).unwrap(),
+            (
+                "rust",
+                AttrValue::Rust("{{{\n             some rust value\n             }}}")
+            )
+        );
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_html_text_with_code_block_in_body_and_as_attribute() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            r#"
+            <div jail={{
+                some of other vaulue
+            }}>
+             {{
+                some of other vaulue
+             }}
+             </div>
+            "#,
+        ));
+        let result = parser.parse(data.as_str());
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap();
+
+        let div = parsed.children.get(0).unwrap();
+
+        assert_eq!(
+            *div.attrs.get(0).unwrap(),
+            ("jail", AttrValue::Code("{{some of other vaulue}}"))
+        );
+
+        let tags = parsed.get_tags();
+
+        assert_eq!(
+            vec![
+                MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
+                MarkupTags::HTML(HTMLTags::Div),
+                MarkupTags::Code(String::from("")),
+            ],
+            tags
+        )
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_html_text_with_code_block_in_body() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            r#"
+            <div>
+             {{
+                some of other vaulue
+             }}
+             </div>
+            "#,
+        ));
+        let result = parser.parse(data.as_str());
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap();
+        let div = parsed.children.get(0).unwrap();
+
+        let tags = parsed.get_tags();
+
+        assert_eq!(
+            vec![
+                MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
+                MarkupTags::HTML(HTMLTags::Div),
+                MarkupTags::Code(String::from("")),
+            ],
+            tags
+        )
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_html_text_with_multiple_code_block_in_body() {
+        let parser = HTMLParser::default();
+
+        let data = wrap_in_document_fragment_container(String::from(
+            r#"
+            <div>
+             {{
+                some of other vaulue
+             }}
+           	 {{{
+             some rust value
+             }}}
+             </div>
+            "#,
+        ));
+        let result = parser.parse(data.as_str());
+        assert!(matches!(result, ParsingResult::Ok(_)));
+
+        let parsed = result.unwrap();
+        let div = parsed.children.get(0).unwrap();
+
+        let tags = parsed.get_tags();
+
+        assert_eq!(
+            vec![
+                MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
+                MarkupTags::HTML(HTMLTags::Div),
+                MarkupTags::Code(String::from("")),
+                MarkupTags::Code(String::from("")),
+            ],
+            tags
+        )
     }
 }
