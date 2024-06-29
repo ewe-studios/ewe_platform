@@ -24,6 +24,7 @@ lazycell.workspace = true
 thiserror.workspace = true
 anyhow.workspace = true
 ewe-mem.workspace = true
+ewe-logs.workspace = true
 
 [dev-dependencies]
 syncbox = "0.2"

@@ -3,7 +3,6 @@
 resolver = "2"
 # set members of your workspace
 members = ["bin/*", "crates/*", "backends/*", "examples/template/*"]
-exclude = ["crates/html_macro"]
 
 [workspace.package]
 edition = "2021"
@@ -18,6 +17,7 @@ keywords = ["ewe_platform", "ewestudios platform", "ewe"]
 [workspace.dependencies]
 # internal packages so others can use them
 ewe-web = { path = "./crates/web" }
+ewe-logs = { path = "./crates/logs" }
 ewe-spawn = { path = "./crates/spawn" }
 ewe-watchers = { path = "./crates/watchers" }
 ewe-temple = { path = "./crates/temple" }

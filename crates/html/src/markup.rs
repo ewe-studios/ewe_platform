@@ -200,7 +200,15 @@ impl<'a> memory::PoolGenerator<Node<'a>> for NodeGenerator<'a> {
 }
 
 #[derive(Clone)]
-pub enum Markup<'a> {
+pub enum IslandAddr<'a> {
+    Local(&'a str),
+    Remote(&'a str),
+}
+
+pub trait Island {}
+
+#[derive(Clone)]
+pub enum Fragment<'a> {
     // HTML represents the standard html tag that can have children (containng other markup).
     HTML(Option<Node<'a>>),
 
@@ -208,17 +216,22 @@ pub enum Markup<'a> {
     NoChildHTML(Option<Node<'a>>),
 
     Island {
-        children: Option<Vec<Option<Markup<'a>>>>,
+        node: Option<Node<'a>>,
     },
 
-    LocalIsland {
+    IslandTemplate {
         alias: &'a str,
-        attributes: Option<Vec<Option<Attribute<'a>>>>,
+        node: Option<Node<'a>>,
     },
 
     RemoteIsland {
-        endpoint: &'a str,
-        attributes: Option<Vec<Option<Attribute<'a>>>>,
+        addr: IslandAddr<'a>,
+        node: Option<Node<'a>>,
+    },
+
+    Operational {
+        name: &'a str,
+        node: Option<Node<'a>>,
     },
 
     Component {
@@ -271,7 +284,7 @@ fn deallocate_attributes<'a>(
 
 #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip_all))]
 fn deallocate_markup_list<'a>(
-    mut list: Option<Vec<Option<Markup<'a>>>>,
+    mut list: Option<Vec<Option<Fragment<'a>>>>,
     node_pool: NodePool<'a>,
     attribute_pool: AttributePool<'a>,
 ) -> ElementResult<()> {
@@ -292,54 +305,71 @@ fn deallocate_markup_list<'a>(
 
 #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip_all))]
 fn deallocate_markup<'a>(
-    mut markup: Option<Markup<'a>>,
+    mut markup: Option<Fragment<'a>>,
     node_pool: NodePool<'a>,
     attribute_pool: AttributePool<'a>,
 ) -> ElementResult<()> {
     match markup.take() {
         None => Ok(()),
         Some(mut node) => match node {
-            Markup::NoChildHTML(mut container) => match container.take() {
+            Fragment::NoChildHTML(mut container) => match container.take() {
                 None => Ok(()),
                 Some(node) => {
                     node_pool.borrow_mut().deallocate(node);
                     Ok(())
                 }
             },
-            Markup::HTML(mut container) => match container.take() {
+            Fragment::HTML(mut container) => match container.take() {
                 None => Ok(()),
                 Some(node) => {
                     node_pool.borrow_mut().deallocate(node);
                     Ok(())
                 }
             },
-            Markup::RemoteIsland {
-                endpoint,
-                mut attributes,
-            } => deallocate_attributes(attributes.take(), attribute_pool.clone()),
-            Markup::LocalIsland {
-                alias,
-                mut attributes,
-            } => deallocate_attributes(attributes.take(), attribute_pool.clone()),
-            Markup::Component { name, mut node } => match node.take() {
+            Fragment::Operational { name, mut node } => match node.take() {
+                None => Ok(()),
+                Some(node) => {
+                    node_pool.borrow_mut().deallocate(node);
+                    Ok(())
+                }
+            },
+            Fragment::RemoteIsland { addr, mut node } => match node.take() {
+                Some(node) => {
+                    node_pool.borrow_mut().deallocate(node);
+                    Ok(())
+                }
+                None => Ok(()),
+            },
+            Fragment::IslandTemplate { alias, mut node } => match node.take() {
+                Some(node) => {
+                    node_pool.borrow_mut().deallocate(node);
+                    Ok(())
+                }
+                None => Ok(()),
+            },
+            Fragment::Component { name, mut node } => match node.take() {
                 None => Ok(()),
                 Some(item) => {
                     node_pool.borrow_mut().deallocate(item);
                     Ok(())
                 }
             },
-            Markup::Island { mut children } => {
-                deallocate_markup_list(children.take(), node_pool.clone(), attribute_pool.clone())
-            }
+            Fragment::Island { mut node } => match node.take() {
+                None => Ok(()),
+                Some(item) => {
+                    node_pool.borrow_mut().deallocate(item);
+                    Ok(())
+                }
+            },
         },
     }
 }
 
-impl<'a> Markup<'a> {
+impl<'a> Fragment<'a> {
     pub fn after_node_size(&self) -> ElementResult<usize> {
         match self {
             _ => Err(ElementError::NotUsable),
-            Markup::NoChildHTML(container) | Markup::HTML(container) => match container {
+            Fragment::NoChildHTML(container) | Fragment::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(n) => Ok(n.after_node_size()),
             },
@@ -349,7 +379,7 @@ impl<'a> Markup<'a> {
     pub fn before_node_size(&self) -> ElementResult<usize> {
         match self {
             _ => Err(ElementError::NotUsable),
-            Markup::NoChildHTML(container) | Markup::HTML(container) => match container {
+            Fragment::NoChildHTML(container) | Fragment::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(n) => Ok(n.before_node_size()),
             },
@@ -359,7 +389,7 @@ impl<'a> Markup<'a> {
     pub fn children_size(&self) -> ElementResult<usize> {
         match self {
             _ => Err(ElementError::NotUsable),
-            Markup::NoChildHTML(container) | Markup::HTML(container) => match container {
+            Fragment::NoChildHTML(container) | Fragment::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(n) => Ok(n.children_size()),
             },
@@ -369,21 +399,21 @@ impl<'a> Markup<'a> {
     pub fn get_node_mut(&mut self, index: usize) -> ElementResult<&Option<Node<'a>>> {
         match self {
             _ => Err(ElementError::NotUsable),
-            Markup::NoChildHTML(container) | Markup::HTML(container) => Ok(container),
+            Fragment::NoChildHTML(container) | Fragment::HTML(container) => Ok(container),
         }
     }
 
     pub fn get_node(&self, index: usize) -> ElementResult<&Option<Node<'a>>> {
         match self {
             _ => Err(ElementError::NotUsable),
-            Markup::NoChildHTML(container) | Markup::HTML(container) => Ok(container),
+            Fragment::NoChildHTML(container) | Fragment::HTML(container) => Ok(container),
         }
     }
 
-    pub fn get_before(&mut self, index: usize) -> ElementResult<Option<&Option<Markup<'a>>>> {
+    pub fn get_before(&mut self, index: usize) -> ElementResult<Option<&Option<Fragment<'a>>>> {
         match self {
             _ => Err(ElementError::NotUsable),
-            Markup::NoChildHTML(container) | Markup::HTML(container) => match container {
+            Fragment::NoChildHTML(container) | Fragment::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(node) => Ok(node.get_before(index)),
             },
@@ -393,10 +423,10 @@ impl<'a> Markup<'a> {
     pub fn get_before_mut(
         &'a mut self,
         index: usize,
-    ) -> ElementResult<Option<&'a mut Option<Markup<'a>>>> {
+    ) -> ElementResult<Option<&'a mut Option<Fragment<'a>>>> {
         match self {
             _ => Err(ElementError::NotUsable),
-            Markup::NoChildHTML(container) | Markup::HTML(container) => match container {
+            Fragment::NoChildHTML(container) | Fragment::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(node) => Ok(node.get_before_mut(index)),
             },
@@ -405,7 +435,7 @@ impl<'a> Markup<'a> {
 
     pub fn name(&mut self, name: &'a str) -> ElementResult<()> {
         match self {
-            Markup::NoChildHTML(container) | Markup::HTML(container) => match container {
+            Fragment::NoChildHTML(container) | Fragment::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(node) => Ok(node.name(name)),
             },
@@ -413,9 +443,9 @@ impl<'a> Markup<'a> {
         }
     }
 
-    pub fn add_before(&mut self, elem: Markup<'a>) -> ElementResult<usize> {
+    pub fn add_before(&mut self, elem: Fragment<'a>) -> ElementResult<usize> {
         match self {
-            Markup::NoChildHTML(container) | Markup::HTML(container) => match container {
+            Fragment::NoChildHTML(container) | Fragment::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(node) => Ok(node.add_before(elem)),
             },
@@ -423,9 +453,9 @@ impl<'a> Markup<'a> {
         }
     }
 
-    pub fn get_after(&mut self, index: usize) -> ElementResult<Option<&Option<Markup<'a>>>> {
+    pub fn get_after(&mut self, index: usize) -> ElementResult<Option<&Option<Fragment<'a>>>> {
         match self {
-            Markup::NoChildHTML(container) | Markup::HTML(container) => match container {
+            Fragment::NoChildHTML(container) | Fragment::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(node) => Ok(node.get_after(index)),
             },
@@ -436,9 +466,9 @@ impl<'a> Markup<'a> {
     pub fn get_after_mut(
         &'a mut self,
         index: usize,
-    ) -> ElementResult<Option<&'a mut Option<Markup<'a>>>> {
+    ) -> ElementResult<Option<&'a mut Option<Fragment<'a>>>> {
         match self {
-            Markup::NoChildHTML(container) | Markup::HTML(container) => match container {
+            Fragment::NoChildHTML(container) | Fragment::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(node) => Ok(node.get_after_mut(index)),
             },
@@ -446,11 +476,11 @@ impl<'a> Markup<'a> {
         }
     }
 
-    pub fn add_after(&mut self, elem: Markup<'a>) -> ElementResult<usize> {
+    pub fn add_after(&mut self, elem: Fragment<'a>) -> ElementResult<usize> {
         match self {
-            Markup::NoChildHTML(container)
-            | Markup::NoChildHTML(container)
-            | Markup::HTML(container) => match container {
+            Fragment::NoChildHTML(container)
+            | Fragment::NoChildHTML(container)
+            | Fragment::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(node) => Ok(node.add_after(elem)),
             },
@@ -458,9 +488,9 @@ impl<'a> Markup<'a> {
         }
     }
 
-    pub fn get_child(&mut self, index: usize) -> ElementResult<Option<&Option<Markup<'a>>>> {
+    pub fn get_child(&mut self, index: usize) -> ElementResult<Option<&Option<Fragment<'a>>>> {
         match self {
-            Markup::HTML(container) => match container {
+            Fragment::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(node) => Ok(node.get_child(index)),
             },
@@ -471,9 +501,9 @@ impl<'a> Markup<'a> {
     pub fn get_child_mut(
         &'a mut self,
         index: usize,
-    ) -> ElementResult<Option<&'a mut Option<Markup<'a>>>> {
+    ) -> ElementResult<Option<&'a mut Option<Fragment<'a>>>> {
         match self {
-            Markup::HTML(container) => match container {
+            Fragment::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(node) => Ok(node.get_child_mut(index)),
             },
@@ -481,9 +511,9 @@ impl<'a> Markup<'a> {
         }
     }
 
-    pub fn add_child(&mut self, elem: Markup<'a>) -> ElementResult<usize> {
+    pub fn add_child(&mut self, elem: Fragment<'a>) -> ElementResult<usize> {
         match self {
-            Markup::HTML(container) => match container {
+            Fragment::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(node) => Ok(node.add_child(elem)),
             },
@@ -502,12 +532,12 @@ pub struct Node<'a> {
     // after nodes are special in that they are in the order of
     // precedence, where the first item is the most farthest element
     // after this `Node` and the last the closest after this element.
-    after: Vec<Option<Markup<'a>>>,
+    after: Vec<Option<Fragment<'a>>>,
 
     // before nodes are special in that they are in the order of
     // precedence, where the first item is the most farthest element
     // before this `Node` and the last the closest before this element.
-    before: Vec<Option<Markup<'a>>>,
+    before: Vec<Option<Fragment<'a>>>,
 
     // Content works different, content that is appended as normal
     // follow the order in the `Vec` with the first being the element
@@ -515,11 +545,13 @@ pub struct Node<'a> {
     //
     // Performing a `Node::before_content` must instead of adjusting the
     // `Vec` simply get the first element and uses it's before list.
-    content: Vec<Option<Markup<'a>>>,
+    content: Vec<Option<Fragment<'a>>>,
 
     // internal private fields that should never change.
     encoding: encoding::SharedEncoding,
+
     attribute_pool: AttributePool<'a>,
+
     node_pool: NodePool<'a>,
 }
 
@@ -541,22 +573,22 @@ impl<'a> Node<'a> {
         }
     }
 
-    pub fn no_child(name: &'a str, node_pool: NodePool<'a>) -> ElementResult<Markup<'a>> {
+    pub fn no_child(name: &'a str, node_pool: NodePool<'a>) -> ElementResult<Fragment<'a>> {
         let mut node = node_pool
             .borrow_mut()
             .allocate()
             .expect("generate new node");
         node.name(name);
-        Ok(Markup::NoChildHTML(Some(node)))
+        Ok(Fragment::NoChildHTML(Some(node)))
     }
 
-    pub fn with_children(name: &'a str, node_pool: NodePool<'a>) -> ElementResult<Markup<'a>> {
+    pub fn with_children(name: &'a str, node_pool: NodePool<'a>) -> ElementResult<Fragment<'a>> {
         let mut node = node_pool
             .borrow_mut()
             .allocate()
             .expect("generate new node");
         node.name(name);
-        Ok(Markup::HTML(Some(node)))
+        Ok(Fragment::HTML(Some(node)))
     }
 
     pub fn after_node_size(&self) -> usize {
@@ -592,9 +624,9 @@ impl<'a> Node<'a> {
             .attributes
             .iter_mut()
             .find(|attr_container| {
-                println!("Checking attribute in list");
+                ewe_logs::debug!("Checking attribute in list");
                 if let Some(attr) = attr_container {
-                    println!(
+                    ewe_logs::debug!(
                         "Matching: {:?} against {:?}",
                         attr.name_bytes().unwrap(),
                         encoded_str
@@ -663,43 +695,43 @@ impl<'a> Node<'a> {
         )
     }
 
-    pub fn get_before(&mut self, index: usize) -> Option<&Option<Markup<'a>>> {
+    pub fn get_before(&mut self, index: usize) -> Option<&Option<Fragment<'a>>> {
         self.before.get(index)
     }
 
-    pub fn get_before_mut(&'a mut self, index: usize) -> Option<&'a mut Option<Markup<'a>>> {
+    pub fn get_before_mut(&'a mut self, index: usize) -> Option<&'a mut Option<Fragment<'a>>> {
         self.before.get_mut(index)
     }
 
-    pub fn add_before(&mut self, elem: Markup<'a>) -> usize {
+    pub fn add_before(&mut self, elem: Fragment<'a>) -> usize {
         let index = self.before.len();
         self.before.push(Some(elem));
         index
     }
 
-    pub fn get_after(&mut self, index: usize) -> Option<&Option<Markup<'a>>> {
+    pub fn get_after(&mut self, index: usize) -> Option<&Option<Fragment<'a>>> {
         self.after.get(index)
     }
 
-    pub fn get_after_mut(&'a mut self, index: usize) -> Option<&'a mut Option<Markup<'a>>> {
+    pub fn get_after_mut(&'a mut self, index: usize) -> Option<&'a mut Option<Fragment<'a>>> {
         self.after.get_mut(index)
     }
 
-    pub fn add_after(&mut self, elem: Markup<'a>) -> usize {
+    pub fn add_after(&mut self, elem: Fragment<'a>) -> usize {
         let index = self.after.len();
         self.after.push(Some(elem));
         index
     }
 
-    pub fn get_child(&mut self, index: usize) -> Option<&Option<Markup<'a>>> {
+    pub fn get_child(&mut self, index: usize) -> Option<&Option<Fragment<'a>>> {
         self.content.get(index)
     }
 
-    pub fn get_child_mut(&'a mut self, index: usize) -> Option<&'a mut Option<Markup<'a>>> {
+    pub fn get_child_mut(&'a mut self, index: usize) -> Option<&'a mut Option<Fragment<'a>>> {
         self.content.get_mut(index)
     }
 
-    pub fn add_child(&mut self, elem: Markup<'a>) -> usize {
+    pub fn add_child(&mut self, elem: Fragment<'a>) -> usize {
         let next_index = self.content.len();
         self.content.push(Some(elem));
         next_index
@@ -782,7 +814,7 @@ mod markup_tests {
         let mut node = node_allocator.borrow_mut().allocate().unwrap();
         node.name("div");
 
-        let mut child = Markup::HTML(Some(node_allocator.borrow_mut().allocate().unwrap()));
+        let mut child = Fragment::HTML(Some(node_allocator.borrow_mut().allocate().unwrap()));
         child.name("section").expect("should set name");
 
         assert_eq!(node.add_child(child), 0);
@@ -819,7 +851,7 @@ mod markup_tests {
         let mut child = node_allocator.borrow_mut().allocate().unwrap();
         child.name("section");
 
-        assert_eq!(node.add_child(Markup::NoChildHTML(Some(child))), 0);
+        assert_eq!(node.add_child(Fragment::NoChildHTML(Some(child))), 0);
 
         assert_eq!(node.children_size(), 1);
         assert_eq!(node.before_node_size(), 0);
@@ -855,7 +887,7 @@ mod markup_tests {
         let mut child = node_allocator.borrow_mut().allocate().unwrap();
         child.name("section");
 
-        assert_eq!(node.add_after(Markup::NoChildHTML(Some(child))), 0);
+        assert_eq!(node.add_after(Fragment::NoChildHTML(Some(child))), 0);
 
         assert_eq!(node.children_size(), 0);
         assert_eq!(node.before_node_size(), 0);
@@ -885,7 +917,7 @@ mod markup_tests {
         let mut child = node_allocator.borrow_mut().allocate().unwrap();
         child.name("section");
 
-        assert_eq!(node.add_before(Markup::NoChildHTML(Some(child))), 0);
+        assert_eq!(node.add_before(Fragment::NoChildHTML(Some(child))), 0);
 
         assert_eq!(node.children_size(), 0);
         assert_eq!(node.before_node_size(), 1);
@@ -915,7 +947,7 @@ mod markup_tests {
         let mut child = node_allocator.borrow_mut().allocate().unwrap();
         child.name("section");
 
-        assert_eq!(node.add_child(Markup::NoChildHTML(Some(child))), 0);
+        assert_eq!(node.add_child(Fragment::NoChildHTML(Some(child))), 0);
 
         assert_eq!(node.children_size(), 1);
         assert_eq!(node.before_node_size(), 0);

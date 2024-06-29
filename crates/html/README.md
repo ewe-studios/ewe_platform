@@ -331,12 +331,12 @@ In my mind, using a rust trait we could define components as a concept I call an
 ```rust
 
 trait Island {
-    fn generate(&self, 
+    fn render(&self, 
         router: Router, 
+        request: Request<RequestType>
         data: Option<Data>, 
         content: Option<Fragment>, 
-        parent: DOM
-    );
+    ) -> Result<Fragment, Error>;
 }
 ```
 
@@ -519,7 +519,7 @@ We can use a counter as a great way to explore this: if we have a dom structure 
 and the content generated from this could be something like from a mental mode perspective:
 
 ```html
-<div id="counter-app-1" with-data="{value: 0, hash: ..}">
+<div id="counter-app-1" with-data="{data: { value: 0}, hash: ..}">
     <span-for path="$.data.value"/>
     <span text="+" class="plus-button">
         <a href="/Counter/increment/" routable data-at="#counter-app-1"></a>
@@ -544,19 +544,19 @@ We can introduce a Router that works both client and server side that can regist
 
 ```rust
 
-struct Counter {
+struct CounterValue {
     value: usize
 }
 
 impl Counter {
 
-    pub fn decrement(state: CounterState) -> CounterState {
+    pub fn decrement(state: CounterValue) -> CounterValue {
         let mut clone = state.clone();
         clone.value -= 1;
         clone
     }
 
-    pub fn increment(state: CounterState) -> CounterState {
+    pub fn increment(state: CounterValue) -> CounterValue {
         let mut clone = state.clone();
         clone.value += 1;
         clone
@@ -571,31 +571,38 @@ enum CounterRequest{
 #[island]
 #[router("/counter/increment", Request<CounterRequest>)]
 #[router("/counter/decrement", Request<CounterRequest>)]
-fn counter_island(
+async fn counter(
     router: Router, 
     request: Request<CounterRequest>
-    data: Data<CounterState>>, 
+    data: Data<CounterValue>>, 
     content: Option<Fragment>, 
     root: DOM,
-) {
+) -> Result<Fragment, Error> {
     let instance_id = format!("counter-{}", data.id);
     let counter = match data.state {
         Some(last_state) => Counter::new(last_state),
-        None => CounterState::new(0),
+        None => CounterValue::new(0),
     };
     
     counter = match request.data() {
         CounterRequest::Increment => counter.increment(),
         CounterRequest::Decrement => counter.decrement(),
     };
+    
+    // I imagine we could use the router this way to get another island
+    let clock_fragment = router.get_island("/fragements/clock").await.unwrap();
+    
+    // but we can also just get data from a json API endpoint
+    let user_data = router.get("/v1/users/1").await.unwrap();
 
     return html!{
-        <swap-out target_id={{instance_id.clone()}}>
+        <swap-out target_id={{{instance_id.clone()}}}>
             <div id={{instance_id.clone()}} with_data={{data.to_json(initial)}}>
-                <span-for text=initial.value />
+                <label>user:</label><span_for text={{{user_data.name}}} />
+                <label>count:</label><span_for text={{{counter.value}}} />
                 <link_for 
-                    router={{router.clone()}} 
-                    data_on={{instance_id}} 
+                    router={{{router.clone()}}}
+                    data_on={{instance_id}}} 
                     route="/counter/increment" 
                     with_content="+"
                 />
@@ -605,6 +612,8 @@ fn counter_island(
                     route="/counter/decrement" 
                     with_content="-"
                 />
+                <children_for with={{{clock_fragment}}} />
+                <children_for with={{{content}}} />
             </div>
         </swap-out>
     }
