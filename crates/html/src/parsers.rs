@@ -8,6 +8,7 @@ use lazy_static::lazy_static;
 use phf::phf_map;
 use std::{any, collections::HashMap, str::FromStr};
 use thiserror::Error;
+use tracing;
 
 use crate::markup::ElementResult;
 
@@ -1191,7 +1192,7 @@ impl<'a> Accumulator<'a> {
     /// peek_next allows you to increment the peek cursor, moving
     /// the peek cursor forward by a mount of step and returns the next
     /// token string.
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace"))]
     #[inline]
     pub fn peek_next_by(&mut self, by: usize) -> Option<&'a str> {
         if let Some(res) = self.peek_slice(by) {
@@ -1203,7 +1204,7 @@ impl<'a> Accumulator<'a> {
 
     /// scan returns the whole string slice currently at the points of where
     /// the main pos (position) cursor till the end.
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace"))]
     #[inline]
     pub fn scan_remaining(&mut self) -> Option<&'a str> {
         Some(&self.content[self.pos..])
@@ -1212,7 +1213,7 @@ impl<'a> Accumulator<'a> {
     /// scan returns the whole string slice currently at the points of where
     /// the main pos (position) cursor and the peek cursor so you can
     /// pull the string right at the current range.
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace"))]
     #[inline]
     pub fn scan(&mut self) -> Option<&'a str> {
         Some(&self.content[self.pos..self.peek_pos])
@@ -1221,7 +1222,7 @@ impl<'a> Accumulator<'a> {
     /// peek_next allows you to increment the peek cursor, moving
     /// the peek cursor forward by a step and returns the next
     /// token string.
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace"))]
     #[inline]
     pub fn peek_next(&mut self) -> Option<&'a str> {
         if let Some(res) = self.peek_slice(1) {
@@ -1233,7 +1234,7 @@ impl<'a> Accumulator<'a> {
 
     /// unpeek_next reverses the last forward move of the peek
     /// cursor by -1.
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace"))]
     #[inline]
     pub fn unpeek_next(&mut self) -> Option<&'a str> {
         if let Some(res) = self.unpeek_slice(1) {
@@ -1244,7 +1245,7 @@ impl<'a> Accumulator<'a> {
 
     /// unpeek_slice lets you reverse the peek cursor position
     /// by a certain amount to reverse the forward movement.
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace"))]
     #[inline]
     fn unpeek_slice(&mut self, by: usize) -> Option<&'a str> {
         if self.peek_pos == 0 {
@@ -1270,7 +1271,7 @@ impl<'a> Accumulator<'a> {
     ///
     /// It's a nice way to get to see whats at a given position without changing
     /// the current location of the peek cursor.
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace"))]
     #[inline]
     fn ppeek_at(&mut self, from: usize, to: usize) -> Option<&'a str> {
         let new_peek_pos = self.ensure_character_boundary_index(self.pos + from);
@@ -1298,7 +1299,7 @@ impl<'a> Accumulator<'a> {
     ///
     /// It's a nice way to get to see whats at a given position without changing
     /// the current location of the peek cursor.
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace"))]
     #[inline]
     fn vpeek_at(&mut self, from: usize, to: usize) -> Option<&'a str> {
         let mut new_peek_pos = self.peek_pos + from;
@@ -1360,7 +1361,7 @@ impl<'a> Accumulator<'a> {
     /// If we've exhausted the total string slice left or are trying to
     /// take more than available text length then we return None
     /// which can indicate no more text for processing.
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace"))]
     #[inline]
     fn peek_slice(&mut self, by: usize) -> Option<&'a str> {
         if self.peek_pos + by > self.content.len() {
@@ -1382,7 +1383,7 @@ impl<'a> Accumulator<'a> {
     /// If we've exhausted the total string slice left or are trying to
     /// take more than available text length then we return None
     /// which can indicate no more text for processing.
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace"))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace"))]
     #[inline]
     pub fn take_with_amount(&mut self, by: usize) -> Option<(&'a str, (usize, usize))> {
         if self.peek_pos + by > self.content.len() {
@@ -1715,7 +1716,7 @@ impl HTMLParser {
         }
     }
 
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
     pub fn parse<'a>(&self, input: &'a str) -> ParsingResult<Stack<'a>> {
         let mut accumulator = Accumulator::new(input);
         match self._parse(&mut accumulator) {
@@ -1730,7 +1731,7 @@ impl HTMLParser {
         }
     }
 
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
     fn _parse<'a>(&self, accumulator: &mut Accumulator<'a>) -> ParsingResult<Stack<'a>> {
         let mut stacks: Vec<Stack> = vec![];
         let mut text_block_tag: Option<MarkupTags> = None;
@@ -1942,7 +1943,7 @@ impl HTMLParser {
         is_alphanum || is_allowed_symbol
     }
 
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
     fn parse_element_from_accumulator<'c, 'd>(
         &self,
         acc: &mut Accumulator<'c>,
@@ -2099,7 +2100,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
     fn parse_comment<'c, 'd>(
         &self,
         acc: &mut Accumulator<'c>,
@@ -2140,7 +2141,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
     fn parse_code_block<'c, 'd>(
         &self,
         block_starter: &'c str,
@@ -2227,7 +2228,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
     fn parse_text_block<'c, 'd>(
         &self,
         acc: &mut Accumulator<'c>,
@@ -2272,7 +2273,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
     fn parse_element_text_block<'c, 'd>(
         &self,
         tag: MarkupTags,
@@ -2340,7 +2341,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
     fn parse_doc_type<'c, 'd>(
         &self,
         acc: &mut Accumulator<'c>,
@@ -2354,10 +2355,7 @@ impl HTMLParser {
         // we already know we are looking at the starter of a tag '<'
         acc.peek_next_by(2);
 
-        ewe_logs::debug!(
-            "parse_doc_type: kickstart parser after taking part: {:?}",
-            acc.take()
-        );
+        acc.take();
 
         let mut collected_tag = false;
         let mut collected_attrs = false;
@@ -2424,7 +2422,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
     fn parse_xml_elem<'c, 'd>(
         &self,
         acc: &mut Accumulator<'c>,
@@ -2505,7 +2503,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
     fn parse_elem<'c, 'd>(
         &self,
         acc: &mut Accumulator<'c>,
@@ -2627,7 +2625,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
     fn collect_space(&self, acc: &mut Accumulator) -> ParsingResult<()> {
         while let Some(next) = acc.peek_next() {
             ewe_logs::debug!("collect_space: start seen token: {:?}", next);
@@ -2655,7 +2653,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
     fn is_valid_attribute_value_token<'a>(&self, token: &'a str) -> bool {
         ewe_logs::debug!("Checking if valid attribute value token: {:?}", token);
         token.chars().any(|t| {
@@ -2666,7 +2664,7 @@ impl HTMLParser {
         })
     }
 
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
     fn dequote_str<'a>(&self, text: &'a str) -> &'a str {
         let text_len = text.len();
         ewe_logs::debug!("dequote: text: {:?} with len: {}", text, text_len);
@@ -2678,7 +2676,7 @@ impl HTMLParser {
         text
     }
 
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
     fn is_valid_attribute_name<'a>(&self, token: &'a str) -> bool {
         token.chars().any(|t| {
             t.is_alphanumeric()
@@ -2687,7 +2685,7 @@ impl HTMLParser {
         })
     }
 
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
     fn collect_attribute_value_alphaneumerics(&self, acc: &mut Accumulator) -> ParsingResult<()> {
         let starter = acc.peek(1).unwrap();
         ewe_logs::debug!(
@@ -2770,7 +2768,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
     fn collect_attribute_name_alphaneumerics(&self, acc: &mut Accumulator) -> ParsingResult<()> {
         while let Some(next) = acc.peek_next() {
             if self.is_valid_attribute_name(next) {
@@ -2785,7 +2783,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
     fn collect_alphaneumerics(&self, acc: &mut Accumulator) -> ParsingResult<()> {
         while let Some(next) = acc.peek_next() {
             if next.chars().any(char::is_alphanumeric) {
@@ -2800,7 +2798,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
     fn parse_elem_attribute<'c, 'd>(
         &self,
         acc: &mut Accumulator<'c>,
@@ -3085,7 +3083,7 @@ mod html_parser_test {
                 children: vec![Stack {
                     tag: Some(MarkupTags::DocType),
                     closed: true,
-                    start_range: Some(27),
+                    start_range: Some(29),
                     end_range: Some(36),
                     attrs: vec![("lang", AttrValue::Text("en"))],
                     children: vec![]
@@ -3115,7 +3113,7 @@ mod html_parser_test {
                 children: vec![Stack {
                     tag: Some(MarkupTags::DocType),
                     closed: true,
-                    start_range: Some(27),
+                    start_range: Some(29),
                     end_range: Some(36),
                     attrs: vec![("lang", AttrValue::Text("en"))],
                     children: vec![]
@@ -3149,7 +3147,7 @@ mod html_parser_test {
                     tag: Some(MarkupTags::DocType),
                     closed: true,
                     end_range: Some(36),
-                    start_range: Some(27),
+                    start_range: Some(29),
                     attrs: vec![("lang", AttrValue::Text("en"))],
                     children: vec![]
                 }]
@@ -3178,7 +3176,7 @@ mod html_parser_test {
                 children: vec![Stack {
                     tag: Some(MarkupTags::DocType),
                     closed: true,
-                    start_range: Some(27),
+                    start_range: Some(29),
                     end_range: Some(36),
                     attrs: vec![],
                     children: vec![]

@@ -36,6 +36,7 @@ tracing-test.workspace = true
 workspace = true
 
 [features]
+debug_trace = ["ewe-logs/debug_trace"]
 
 [[bench]]
 name = "wikipedia"

@@ -17,7 +17,7 @@ keywords = ["ewe_platform", "ewestudios platform", "ewe"]
 [workspace.dependencies]
 # internal packages so others can use them
 ewe-web = { path = "./crates/web" }
-ewe-logs = { path = "./crates/logs" }
+ewe-logs = { path = "./crates/logs", default-features = false }
 ewe-spawn = { path = "./crates/spawn" }
 ewe-watchers = { path = "./crates/watchers" }
 ewe-temple = { path = "./crates/temple" }

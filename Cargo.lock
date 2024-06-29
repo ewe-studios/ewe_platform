@@ -580,6 +580,7 @@ name = "ewe-logs"
 version = "0.1.0"
 dependencies = [
  "tracing",
+ "tracing-test",
 ]
 
 [[package]]
