@@ -57,6 +57,9 @@ pub enum ElementError {
 
     #[error("not usable for operation")]
     NotUsable,
+
+    #[error("unable to render not due to : {0}")]
+    CantRender(String),
 }
 
 type AttributePool<'a> = memory::SharedArenaPool<Attribute<'a>>;
@@ -173,7 +176,7 @@ impl<'a> Attribute<'a> {
     }
 }
 
-type NodePool<'a> = memory::SharedArenaPool<Node<'a>>;
+type FragmentPool<'a> = memory::SharedArenaPool<Fragment<'a>>;
 
 pub struct NodeGenerator<'a> {
     encoding: encoding::SharedEncoding,
@@ -189,9 +192,9 @@ impl<'a> NodeGenerator<'a> {
     }
 }
 
-impl<'a> memory::PoolGenerator<Node<'a>> for NodeGenerator<'a> {
-    fn generate(&self, pool: &mut memory::ArenaPool<Node<'a>>) -> Node<'a> {
-        Node::empty(
+impl<'a> memory::PoolGenerator<Fragment<'a>> for NodeGenerator<'a> {
+    fn generate(&self, pool: &mut memory::ArenaPool<Fragment<'a>>) -> Fragment<'a> {
+        Fragment::empty(
             rc::Rc::clone(&self.encoding),
             rc::Rc::clone(&self.attributes),
             rc::Rc::new(cell::RefCell::new(pool.clone())),
@@ -200,50 +203,22 @@ impl<'a> memory::PoolGenerator<Node<'a>> for NodeGenerator<'a> {
 }
 
 #[derive(Clone)]
-pub enum IslandAddr<'a> {
-    Local(&'a str),
-    Remote(&'a str),
-}
-
-pub trait Island {}
-
-#[derive(Clone)]
-pub enum Fragment<'a> {
+pub enum FragmentDef<'a> {
     // HTML represents the standard html tag that can have children (containng other markup).
-    HTML(Option<Node<'a>>),
+    HTML(Option<Fragment<'a>>),
 
     // Self closing HTML tags that do not have children
-    NoChildHTML(Option<Node<'a>>),
+    NoChildHTML(Option<Fragment<'a>>),
 
-    Island {
-        node: Option<Node<'a>>,
-    },
-
-    IslandTemplate {
-        alias: &'a str,
-        node: Option<Node<'a>>,
-    },
-
-    RemoteIsland {
-        addr: IslandAddr<'a>,
-        node: Option<Node<'a>>,
-    },
-
-    Operational {
-        name: &'a str,
-        node: Option<Node<'a>>,
-    },
-
-    Component {
-        name: &'a str,
-        node: Option<Node<'a>>,
-    },
+    // Components are the definition of interactive, operation or content
+    // generating fragments
+    Component(&'a dyn Island<'a>),
 }
 
 #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip_all))]
 fn deallocate_nodes<'a>(
-    mut list: Option<Vec<Option<Node<'a>>>>,
-    node_pool: NodePool<'a>,
+    mut list: Option<Vec<Option<Fragment<'a>>>>,
+    node_pool: FragmentPool<'a>,
 ) -> ElementResult<()> {
     match list.take() {
         None => Ok(()),
@@ -284,8 +259,8 @@ fn deallocate_attributes<'a>(
 
 #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip_all))]
 fn deallocate_markup_list<'a>(
-    mut list: Option<Vec<Option<Fragment<'a>>>>,
-    node_pool: NodePool<'a>,
+    mut list: Option<Vec<Option<FragmentDef<'a>>>>,
+    node_pool: FragmentPool<'a>,
     attribute_pool: AttributePool<'a>,
 ) -> ElementResult<()> {
     match list.take() {
@@ -305,71 +280,37 @@ fn deallocate_markup_list<'a>(
 
 #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip_all))]
 fn deallocate_markup<'a>(
-    mut markup: Option<Fragment<'a>>,
-    node_pool: NodePool<'a>,
+    mut markup: Option<FragmentDef<'a>>,
+    node_pool: FragmentPool<'a>,
     attribute_pool: AttributePool<'a>,
 ) -> ElementResult<()> {
     match markup.take() {
         None => Ok(()),
         Some(mut node) => match node {
-            Fragment::NoChildHTML(mut container) => match container.take() {
+            FragmentDef::NoChildHTML(mut container) => match container.take() {
                 None => Ok(()),
                 Some(node) => {
                     node_pool.borrow_mut().deallocate(node);
                     Ok(())
                 }
             },
-            Fragment::HTML(mut container) => match container.take() {
+            FragmentDef::HTML(mut container) => match container.take() {
                 None => Ok(()),
                 Some(node) => {
                     node_pool.borrow_mut().deallocate(node);
                     Ok(())
                 }
             },
-            Fragment::Operational { name, mut node } => match node.take() {
-                None => Ok(()),
-                Some(node) => {
-                    node_pool.borrow_mut().deallocate(node);
-                    Ok(())
-                }
-            },
-            Fragment::RemoteIsland { addr, mut node } => match node.take() {
-                Some(node) => {
-                    node_pool.borrow_mut().deallocate(node);
-                    Ok(())
-                }
-                None => Ok(()),
-            },
-            Fragment::IslandTemplate { alias, mut node } => match node.take() {
-                Some(node) => {
-                    node_pool.borrow_mut().deallocate(node);
-                    Ok(())
-                }
-                None => Ok(()),
-            },
-            Fragment::Component { name, mut node } => match node.take() {
-                None => Ok(()),
-                Some(item) => {
-                    node_pool.borrow_mut().deallocate(item);
-                    Ok(())
-                }
-            },
-            Fragment::Island { mut node } => match node.take() {
-                None => Ok(()),
-                Some(item) => {
-                    node_pool.borrow_mut().deallocate(item);
-                    Ok(())
-                }
-            },
+            FragmentDef::Component(t) => Ok(()),
         },
     }
 }
 
-impl<'a> Fragment<'a> {
+impl<'a> FragmentDef<'a> {
     pub fn after_node_size(&self) -> ElementResult<usize> {
         match self {
             _ => Err(ElementError::NotUsable),
-            Fragment::NoChildHTML(container) | Fragment::HTML(container) => match container {
+            FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(n) => Ok(n.after_node_size()),
             },
@@ -379,7 +320,7 @@ impl<'a> Fragment<'a> {
     pub fn before_node_size(&self) -> ElementResult<usize> {
         match self {
             _ => Err(ElementError::NotUsable),
-            Fragment::NoChildHTML(container) | Fragment::HTML(container) => match container {
+            FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(n) => Ok(n.before_node_size()),
             },
@@ -389,31 +330,31 @@ impl<'a> Fragment<'a> {
     pub fn children_size(&self) -> ElementResult<usize> {
         match self {
             _ => Err(ElementError::NotUsable),
-            Fragment::NoChildHTML(container) | Fragment::HTML(container) => match container {
+            FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(n) => Ok(n.children_size()),
             },
         }
     }
 
-    pub fn get_node_mut(&mut self, index: usize) -> ElementResult<&Option<Node<'a>>> {
+    pub fn get_node_mut(&mut self, index: usize) -> ElementResult<&Option<Fragment<'a>>> {
         match self {
             _ => Err(ElementError::NotUsable),
-            Fragment::NoChildHTML(container) | Fragment::HTML(container) => Ok(container),
+            FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => Ok(container),
         }
     }
 
-    pub fn get_node(&self, index: usize) -> ElementResult<&Option<Node<'a>>> {
+    pub fn get_node(&self, index: usize) -> ElementResult<&Option<Fragment<'a>>> {
         match self {
             _ => Err(ElementError::NotUsable),
-            Fragment::NoChildHTML(container) | Fragment::HTML(container) => Ok(container),
+            FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => Ok(container),
         }
     }
 
-    pub fn get_before(&mut self, index: usize) -> ElementResult<Option<&Option<Fragment<'a>>>> {
+    pub fn get_before(&mut self, index: usize) -> ElementResult<Option<&Option<FragmentDef<'a>>>> {
         match self {
             _ => Err(ElementError::NotUsable),
-            Fragment::NoChildHTML(container) | Fragment::HTML(container) => match container {
+            FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(node) => Ok(node.get_before(index)),
             },
@@ -423,10 +364,10 @@ impl<'a> Fragment<'a> {
     pub fn get_before_mut(
         &'a mut self,
         index: usize,
-    ) -> ElementResult<Option<&'a mut Option<Fragment<'a>>>> {
+    ) -> ElementResult<Option<&'a mut Option<FragmentDef<'a>>>> {
         match self {
             _ => Err(ElementError::NotUsable),
-            Fragment::NoChildHTML(container) | Fragment::HTML(container) => match container {
+            FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(node) => Ok(node.get_before_mut(index)),
             },
@@ -435,7 +376,7 @@ impl<'a> Fragment<'a> {
 
     pub fn name(&mut self, name: &'a str) -> ElementResult<()> {
         match self {
-            Fragment::NoChildHTML(container) | Fragment::HTML(container) => match container {
+            FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(node) => Ok(node.name(name)),
             },
@@ -443,9 +384,9 @@ impl<'a> Fragment<'a> {
         }
     }
 
-    pub fn add_before(&mut self, elem: Fragment<'a>) -> ElementResult<usize> {
+    pub fn add_before(&mut self, elem: FragmentDef<'a>) -> ElementResult<usize> {
         match self {
-            Fragment::NoChildHTML(container) | Fragment::HTML(container) => match container {
+            FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(node) => Ok(node.add_before(elem)),
             },
@@ -453,9 +394,9 @@ impl<'a> Fragment<'a> {
         }
     }
 
-    pub fn get_after(&mut self, index: usize) -> ElementResult<Option<&Option<Fragment<'a>>>> {
+    pub fn get_after(&mut self, index: usize) -> ElementResult<Option<&Option<FragmentDef<'a>>>> {
         match self {
-            Fragment::NoChildHTML(container) | Fragment::HTML(container) => match container {
+            FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(node) => Ok(node.get_after(index)),
             },
@@ -466,9 +407,9 @@ impl<'a> Fragment<'a> {
     pub fn get_after_mut(
         &'a mut self,
         index: usize,
-    ) -> ElementResult<Option<&'a mut Option<Fragment<'a>>>> {
+    ) -> ElementResult<Option<&'a mut Option<FragmentDef<'a>>>> {
         match self {
-            Fragment::NoChildHTML(container) | Fragment::HTML(container) => match container {
+            FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(node) => Ok(node.get_after_mut(index)),
             },
@@ -476,11 +417,11 @@ impl<'a> Fragment<'a> {
         }
     }
 
-    pub fn add_after(&mut self, elem: Fragment<'a>) -> ElementResult<usize> {
+    pub fn add_after(&mut self, elem: FragmentDef<'a>) -> ElementResult<usize> {
         match self {
-            Fragment::NoChildHTML(container)
-            | Fragment::NoChildHTML(container)
-            | Fragment::HTML(container) => match container {
+            FragmentDef::NoChildHTML(container)
+            | FragmentDef::NoChildHTML(container)
+            | FragmentDef::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(node) => Ok(node.add_after(elem)),
             },
@@ -488,9 +429,9 @@ impl<'a> Fragment<'a> {
         }
     }
 
-    pub fn get_child(&mut self, index: usize) -> ElementResult<Option<&Option<Fragment<'a>>>> {
+    pub fn get_child(&mut self, index: usize) -> ElementResult<Option<&Option<FragmentDef<'a>>>> {
         match self {
-            Fragment::HTML(container) => match container {
+            FragmentDef::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(node) => Ok(node.get_child(index)),
             },
@@ -501,9 +442,9 @@ impl<'a> Fragment<'a> {
     pub fn get_child_mut(
         &'a mut self,
         index: usize,
-    ) -> ElementResult<Option<&'a mut Option<Fragment<'a>>>> {
+    ) -> ElementResult<Option<&'a mut Option<FragmentDef<'a>>>> {
         match self {
-            Fragment::HTML(container) => match container {
+            FragmentDef::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(node) => Ok(node.get_child_mut(index)),
             },
@@ -511,9 +452,9 @@ impl<'a> Fragment<'a> {
         }
     }
 
-    pub fn add_child(&mut self, elem: Fragment<'a>) -> ElementResult<usize> {
+    pub fn add_child(&mut self, elem: FragmentDef<'a>) -> ElementResult<usize> {
         match self {
-            Fragment::HTML(container) => match container {
+            FragmentDef::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(node) => Ok(node.add_child(elem)),
             },
@@ -523,7 +464,7 @@ impl<'a> Fragment<'a> {
 }
 
 #[derive(Clone)]
-pub struct Node<'a> {
+pub struct Fragment<'a> {
     name: Option<Bytes<'a>>,
 
     // the attributes related to the node.
@@ -532,12 +473,12 @@ pub struct Node<'a> {
     // after nodes are special in that they are in the order of
     // precedence, where the first item is the most farthest element
     // after this `Node` and the last the closest after this element.
-    after: Vec<Option<Fragment<'a>>>,
+    after: Vec<Option<FragmentDef<'a>>>,
 
     // before nodes are special in that they are in the order of
     // precedence, where the first item is the most farthest element
     // before this `Node` and the last the closest before this element.
-    before: Vec<Option<Fragment<'a>>>,
+    before: Vec<Option<FragmentDef<'a>>>,
 
     // Content works different, content that is appended as normal
     // follow the order in the `Vec` with the first being the element
@@ -545,21 +486,21 @@ pub struct Node<'a> {
     //
     // Performing a `Node::before_content` must instead of adjusting the
     // `Vec` simply get the first element and uses it's before list.
-    content: Vec<Option<Fragment<'a>>>,
+    content: Vec<Option<FragmentDef<'a>>>,
 
     // internal private fields that should never change.
     encoding: encoding::SharedEncoding,
 
     attribute_pool: AttributePool<'a>,
 
-    node_pool: NodePool<'a>,
+    node_pool: FragmentPool<'a>,
 }
 
-impl<'a> Node<'a> {
+impl<'a> Fragment<'a> {
     pub fn empty(
         encoding: encoding::SharedEncoding,
         attribute_pool: AttributePool<'a>,
-        node_pool: NodePool<'a>,
+        node_pool: FragmentPool<'a>,
     ) -> Self {
         Self {
             attribute_pool,
@@ -573,22 +514,46 @@ impl<'a> Node<'a> {
         }
     }
 
-    pub fn no_child(name: &'a str, node_pool: NodePool<'a>) -> ElementResult<Fragment<'a>> {
-        let mut node = node_pool
-            .borrow_mut()
-            .allocate()
-            .expect("generate new node");
-        node.name(name);
-        Ok(Fragment::NoChildHTML(Some(node)))
+    pub fn render_into(&mut self) -> ElementResult<Self> {
+        let fragment_attributes = self.attributes.clone();
+        match self.node_pool.borrow_mut().allocate() {
+            Ok(mut fragment) => {
+                fragment.attributes = fragment_attributes;
+
+                for before_element in self.before.iter() {
+                    match before_element {
+                        Some(item) => {}
+                        None => continue,
+                    }
+                }
+
+                Ok(fragment)
+            }
+            Err(err) => Err(ElementError::CantRender(String::from(
+                "memory limit exceeded",
+            ))),
+        }
     }
 
-    pub fn with_children(name: &'a str, node_pool: NodePool<'a>) -> ElementResult<Fragment<'a>> {
+    pub fn no_child(name: &'a str, node_pool: FragmentPool<'a>) -> ElementResult<FragmentDef<'a>> {
         let mut node = node_pool
             .borrow_mut()
             .allocate()
             .expect("generate new node");
         node.name(name);
-        Ok(Fragment::HTML(Some(node)))
+        Ok(FragmentDef::NoChildHTML(Some(node)))
+    }
+
+    pub fn with_children(
+        name: &'a str,
+        node_pool: FragmentPool<'a>,
+    ) -> ElementResult<FragmentDef<'a>> {
+        let mut node = node_pool
+            .borrow_mut()
+            .allocate()
+            .expect("generate new node");
+        node.name(name);
+        Ok(FragmentDef::HTML(Some(node)))
     }
 
     pub fn after_node_size(&self) -> usize {
@@ -695,50 +660,50 @@ impl<'a> Node<'a> {
         )
     }
 
-    pub fn get_before(&mut self, index: usize) -> Option<&Option<Fragment<'a>>> {
+    pub fn get_before(&mut self, index: usize) -> Option<&Option<FragmentDef<'a>>> {
         self.before.get(index)
     }
 
-    pub fn get_before_mut(&'a mut self, index: usize) -> Option<&'a mut Option<Fragment<'a>>> {
+    pub fn get_before_mut(&'a mut self, index: usize) -> Option<&'a mut Option<FragmentDef<'a>>> {
         self.before.get_mut(index)
     }
 
-    pub fn add_before(&mut self, elem: Fragment<'a>) -> usize {
+    pub fn add_before(&mut self, elem: FragmentDef<'a>) -> usize {
         let index = self.before.len();
         self.before.push(Some(elem));
         index
     }
 
-    pub fn get_after(&mut self, index: usize) -> Option<&Option<Fragment<'a>>> {
+    pub fn get_after(&mut self, index: usize) -> Option<&Option<FragmentDef<'a>>> {
         self.after.get(index)
     }
 
-    pub fn get_after_mut(&'a mut self, index: usize) -> Option<&'a mut Option<Fragment<'a>>> {
+    pub fn get_after_mut(&'a mut self, index: usize) -> Option<&'a mut Option<FragmentDef<'a>>> {
         self.after.get_mut(index)
     }
 
-    pub fn add_after(&mut self, elem: Fragment<'a>) -> usize {
+    pub fn add_after(&mut self, elem: FragmentDef<'a>) -> usize {
         let index = self.after.len();
         self.after.push(Some(elem));
         index
     }
 
-    pub fn get_child(&mut self, index: usize) -> Option<&Option<Fragment<'a>>> {
+    pub fn get_child(&mut self, index: usize) -> Option<&Option<FragmentDef<'a>>> {
         self.content.get(index)
     }
 
-    pub fn get_child_mut(&'a mut self, index: usize) -> Option<&'a mut Option<Fragment<'a>>> {
+    pub fn get_child_mut(&'a mut self, index: usize) -> Option<&'a mut Option<FragmentDef<'a>>> {
         self.content.get_mut(index)
     }
 
-    pub fn add_child(&mut self, elem: Fragment<'a>) -> usize {
+    pub fn add_child(&mut self, elem: FragmentDef<'a>) -> usize {
         let next_index = self.content.len();
         self.content.push(Some(elem));
         next_index
     }
 }
 
-impl<'a> memory::Resetable for Node<'a> {
+impl<'a> memory::Resetable for Fragment<'a> {
     #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip_all))]
     fn reset(&mut self) {
         self.name.take();
@@ -786,6 +751,65 @@ impl<'a> memory::Resetable for Node<'a> {
     }
 }
 
+#[derive(Error, Debug)]
+pub enum IslandError {
+    #[error("Could not locate location of target insertion point: {0}")]
+    CantFindSlotPoint(String),
+
+    #[error("Fragment failed to complete successfully due to: {0}")]
+    FragmentFailed(String),
+}
+
+/// Islands are the fundamental means to define unique components and the underlying content
+/// they generate. It takes a root into which it pushes the core result into.
+pub trait Island<'a> {
+    /// render_into renders the given fragment as a content of the root.   fn render_into(&self, root: Fragment<'a>) -> Result<(), IslandError>;
+    fn render_into(&self, root: Fragment<'a>) -> Result<(), IslandError>;
+
+    /// render_before renders given fragment as a before content of the root.   fn render_into(&self, root: Fragment<'a>) -> Result<(), IslandError>;
+    fn render_before(&self, root: Fragment<'a>) -> Result<(), IslandError>;
+
+    /// render_after renders the given fragment as a after content of the root.   fn render_into(&self, root: Fragment<'a>) -> Result<(), IslandError>;
+    fn render_after(&self, root: Fragment<'a>) -> Result<(), IslandError>;
+}
+
+impl<'a> Island<'a> for Fragment<'a> {
+    fn render_into(&self, root: Fragment<'a>) -> Result<(), IslandError> {
+        todo!()
+    }
+
+    fn render_before(&self, root: Fragment<'a>) -> Result<(), IslandError> {
+        todo!()
+    }
+
+    fn render_after(&self, root: Fragment<'a>) -> Result<(), IslandError> {
+        todo!()
+    }
+}
+
+#[derive(Clone)]
+pub enum IslandAddr<'a> {
+    Local(&'a str),
+    Remote(&'a str),
+}
+
+/// FragementRef provides a type indicating to the Island what type of fragment
+/// its dealing with, this is useful as a metadata to how an island might what to
+/// deal with the parent.
+///
+/// An Example: A <swap-out/> operation island
+///
+/// If its parent is a Page for instance, an operation Island like `swap-out` will
+/// probably dig deep into the page and look for it's target location to slot the relevant
+/// data into location
+///
+/// But if its a Partial will simply append the content with its operation wrapper as is to
+/// allow the client decide how to handle the swap operation.
+pub enum FragmentRef<'a> {
+    Page(Fragment<'a>),
+    Partial(Fragment<'a>),
+}
+
 #[cfg(test)]
 mod markup_tests {
 
@@ -806,7 +830,7 @@ mod markup_tests {
             memory::FnGenerator::new(|_| Attribute::empty(encoding::UTF8Encoding::shared())),
         );
 
-        let node_allocator: NodePool = memory::ArenaPool::create_shared(
+        let node_allocator: FragmentPool = memory::ArenaPool::create_shared(
             memory_limit,
             NodeGenerator::new(shared_encoding.clone(), attribute_pool.clone()),
         );
@@ -814,7 +838,7 @@ mod markup_tests {
         let mut node = node_allocator.borrow_mut().allocate().unwrap();
         node.name("div");
 
-        let mut child = Fragment::HTML(Some(node_allocator.borrow_mut().allocate().unwrap()));
+        let mut child = FragmentDef::HTML(Some(node_allocator.borrow_mut().allocate().unwrap()));
         child.name("section").expect("should set name");
 
         assert_eq!(node.add_child(child), 0);
@@ -840,7 +864,7 @@ mod markup_tests {
             memory::FnGenerator::new(|_| Attribute::empty(encoding::UTF8Encoding::shared())),
         );
 
-        let node_allocator: NodePool = memory::ArenaPool::create_shared(
+        let node_allocator: FragmentPool = memory::ArenaPool::create_shared(
             memory_limit,
             NodeGenerator::new(shared_encoding.clone(), attribute_pool.clone()),
         );
@@ -851,7 +875,7 @@ mod markup_tests {
         let mut child = node_allocator.borrow_mut().allocate().unwrap();
         child.name("section");
 
-        assert_eq!(node.add_child(Fragment::NoChildHTML(Some(child))), 0);
+        assert_eq!(node.add_child(FragmentDef::NoChildHTML(Some(child))), 0);
 
         assert_eq!(node.children_size(), 1);
         assert_eq!(node.before_node_size(), 0);
@@ -876,7 +900,7 @@ mod markup_tests {
             memory::FnGenerator::new(|_| Attribute::empty(encoding::UTF8Encoding::shared())),
         );
 
-        let node_allocator: NodePool = memory::ArenaPool::create_shared(
+        let node_allocator: FragmentPool = memory::ArenaPool::create_shared(
             memory_limit,
             NodeGenerator::new(shared_encoding.clone(), attribute_pool.clone()),
         );
@@ -887,7 +911,7 @@ mod markup_tests {
         let mut child = node_allocator.borrow_mut().allocate().unwrap();
         child.name("section");
 
-        assert_eq!(node.add_after(Fragment::NoChildHTML(Some(child))), 0);
+        assert_eq!(node.add_after(FragmentDef::NoChildHTML(Some(child))), 0);
 
         assert_eq!(node.children_size(), 0);
         assert_eq!(node.before_node_size(), 0);
@@ -906,7 +930,7 @@ mod markup_tests {
             memory::FnGenerator::new(|_| Attribute::empty(encoding::UTF8Encoding::shared())),
         );
 
-        let node_allocator: NodePool = memory::ArenaPool::create_shared(
+        let node_allocator: FragmentPool = memory::ArenaPool::create_shared(
             memory_limit,
             NodeGenerator::new(shared_encoding.clone(), attribute_pool.clone()),
         );
@@ -917,7 +941,7 @@ mod markup_tests {
         let mut child = node_allocator.borrow_mut().allocate().unwrap();
         child.name("section");
 
-        assert_eq!(node.add_before(Fragment::NoChildHTML(Some(child))), 0);
+        assert_eq!(node.add_before(FragmentDef::NoChildHTML(Some(child))), 0);
 
         assert_eq!(node.children_size(), 0);
         assert_eq!(node.before_node_size(), 1);
@@ -936,7 +960,7 @@ mod markup_tests {
             memory::FnGenerator::new(|_| Attribute::empty(encoding::UTF8Encoding::shared())),
         );
 
-        let node_allocator: NodePool = memory::ArenaPool::create_shared(
+        let node_allocator: FragmentPool = memory::ArenaPool::create_shared(
             memory_limit,
             NodeGenerator::new(shared_encoding.clone(), attribute_pool.clone()),
         );
@@ -947,7 +971,7 @@ mod markup_tests {
         let mut child = node_allocator.borrow_mut().allocate().unwrap();
         child.name("section");
 
-        assert_eq!(node.add_child(Fragment::NoChildHTML(Some(child))), 0);
+        assert_eq!(node.add_child(FragmentDef::NoChildHTML(Some(child))), 0);
 
         assert_eq!(node.children_size(), 1);
         assert_eq!(node.before_node_size(), 0);
@@ -966,7 +990,7 @@ mod markup_tests {
             memory::FnGenerator::new(|_| Attribute::empty(encoding::UTF8Encoding::shared())),
         );
 
-        let node_allocator: NodePool = memory::ArenaPool::create_shared(
+        let node_allocator: FragmentPool = memory::ArenaPool::create_shared(
             memory_limit,
             NodeGenerator::new(shared_encoding.clone(), attribute_pool.clone()),
         );

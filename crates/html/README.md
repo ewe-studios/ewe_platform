@@ -414,6 +414,20 @@ We support this by following HTMX principles, the imaginery menu links triggers 
 
 This can be rendered `before`, `insert-into`, `after`, `swap-out` and `swap-parent` directives each being self explanatory.
 
+```html
+<append target="body">
+    <ul>
+        <li routable api="/v1/gallery/models">
+            Models
+        </li>
+    </ul>
+</append>
+```
+
+To simplify these operation components, they can only use either a (`body`, `head`) selector or `tag#id` selector as their target, this seems limiting but it's really great has it simplifies the things we need to support.
+
+At the extreme we will support spaced combination of invocation that specifically indicate the path to walk to reach a giving target node e.g `div#bud div#menu section#items` which will be space separated markers.
+
 ###### Supported Operational Elements
 
 - `<before></before>`: Informs the router to place the content before the intended target (defined in it's attribute.
@@ -563,14 +577,32 @@ impl Counter {
     }
 }
 
-enum CounterRequest{
+enum CounterRequest {
+    #[route("/counter/increment")]
     Increment,
+    
+    #[route("/counter/decrement")] // a possible alternative to the `FromRoute` trait??
     Decrement
 }
 
+/// FromRoute is required by the Router to correctly map the
+/// request type for a giving route and should be implemented by 
+/// request enum.
+impl FromRoute CounterRequest {
+    fn from<'a>(route: &'a str) -> Result<Self, anyhow::Error> {
+        match route {
+          "/counter/increment" => Ok(CounterRequest::Increment),
+          "/counter/decrement" => Ok(CounterRequest::Increment),
+          _ => Err(anyhow::Err("unknown route"))
+        }
+    }
+}
+
 #[island]
-#[router("/counter/increment", Request<CounterRequest>)]
-#[router("/counter/decrement", Request<CounterRequest>)]
+#[router(
+    ("/counter/increment", Request<CounterRequest>),
+    ("/counter/decrement", Request<CounterRequest>),
+)]
 async fn counter(
     router: Router, 
     request: Request<CounterRequest>
@@ -601,13 +633,11 @@ async fn counter(
                 <label>user:</label><span_for text={{{user_data.name}}} />
                 <label>count:</label><span_for text={{{counter.value}}} />
                 <link_for 
-                    router={{{router.clone()}}}
                     data_on={{instance_id}}} 
                     route="/counter/increment" 
                     with_content="+"
                 />
                 <link_for 
-                    router={{router.clone()}} 
                     data_on={{instance_id}} 
                     route="/counter/decrement" 
                     with_content="-"
