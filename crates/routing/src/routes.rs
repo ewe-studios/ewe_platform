@@ -446,7 +446,14 @@ mod parse_route_segment_tests {
         assert!(matches!(result, RouteResult::Ok(_)));
         assert_eq!(
             result.unwrap(),
-            vec!["v1", "users", ":id::numbers", ":cam::(\\w+)", "(\\d+)", "*"]
+            vec![
+                "v1",
+                "users",
+                ":id::numbers",
+                ":cam_id::(\\w+)",
+                "(\\d+)",
+                "*"
+            ]
         );
     }
 }
