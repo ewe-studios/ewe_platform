@@ -439,6 +439,16 @@ mod parse_route_segment_tests {
         assert!(matches!(result, RouteResult::Ok(_)));
         assert_eq!(result.unwrap(), vec!["v1", "users", ":id"]);
     }
+
+    #[test]
+    fn test_parsing_route_segments_with_special_segments() {
+        let result = parse_route_into_segments("/v1/users/:id::numbers/:cam_id::(\\w+)/(\\d+)/*");
+        assert!(matches!(result, RouteResult::Ok(_)));
+        assert_eq!(
+            result.unwrap(),
+            vec!["v1", "users", ":id::numbers", ":cam::(\\w+)", "(\\d+)", "*"]
+        );
+    }
 }
 
 impl<'a, R: Send + 'static, S: Send + 'static> RouteSegment<'a, R, S> {
