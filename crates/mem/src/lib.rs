@@ -1,8 +1,6 @@
 #![cfg_attr(feature = "nightly", feature(test))]
 
-extern crate lazy_static;
-extern crate lazycell;
-
+pub mod accumulator;
 pub mod encoding;
 pub mod memory;
 pub mod primitives;

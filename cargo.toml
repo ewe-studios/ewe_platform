@@ -3,6 +3,7 @@
 resolver = "2"
 # set members of your workspace
 members = ["bin/*", "crates/*", "backends/*", "examples/template/*"]
+exclude = ["crates/html-macro"]
 
 [workspace.package]
 edition = "2021"
@@ -58,8 +59,8 @@ serde_with = { version = "3.6.1" }
 
 # -- tracing crates
 tracing = { version = "0.1.40" }
-tracing-test = { version = "0.2.5" }
 tracing-subscriber = { version = "0.3.18" }
+tracing-test = { version = "0.2.5" }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

@@ -566,16 +566,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ewe-html-macro"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
- "trybuild",
-]
-
-[[package]]
 name = "ewe-logs"
 version = "0.1.0"
 dependencies = [
@@ -588,11 +578,11 @@ name = "ewe-mem"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "lazy_static",
- "lazycell",
+ "ewe-logs",
  "memchr",
  "syncbox",
  "thiserror",
+ "tracing",
 ]
 
 [[package]]
@@ -1500,7 +1490,10 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "ewe-logs",
+ "ewe-mem",
  "http",
+ "lazy-regex",
+ "regex",
  "serde",
  "serde_json",
  "thiserror",
