@@ -22,5 +22,12 @@ thiserror.workspace = true
 ewe-logs.workspace = true
 ewe-mem.workspace = true
 
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+tracing-test.workspace = true
+
 [lints]
 workspace = true
+
+[features]
+debug_trace = ["ewe-logs/debug_trace"]

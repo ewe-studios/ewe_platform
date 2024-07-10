@@ -6,18 +6,64 @@ use std::{
 
 use ewe_mem::accumulator::Accumulator;
 
-use thiserror::Error;
-
 use crate::requests::Request;
 use crate::response::Response;
+use lazy_regex::{lazy_regex, Lazy, Regex};
+use thiserror::Error;
 
-/// FastValidationType defines a set of faster restricted route segment validation types
+static REGEX_ONLY_CAPTURE_ROUTES: Lazy<Regex> = lazy_regex!(r#"^\(.+\)$"#);
+static PARAM_REGEX_CAPTURE_ROUTES: Lazy<Regex> = lazy_regex!(r#"::\(.+\)"#);
+static PARAM_ROUTE_STARTER: Lazy<Regex> = lazy_regex!(r#"^:(\w+|\d+)"#);
+
+#[derive(Clone, Debug, Error)]
+pub enum RouteOp {
+    #[error("no matching route found for path: {0}")]
+    NoMatchingRoute(String),
+
+    #[error("segment was empty/None or invalid")]
+    InvalidSegment,
+
+    #[error("invalid route regex: {0}")]
+    InvalidRouteRegex(regex::Error),
+
+    #[error("invalid param fast validation matcher: {0}")]
+    InvalidParamRestraintMatcher(String),
+
+    #[error("attempting to route SegmentType::Index segments in this way is incorrect, use setIndex instead")]
+    CantHandleIndexRoute,
+}
+
+impl From<regex::Error> for RouteOp {
+    fn from(value: regex::Error) -> Self {
+        RouteOp::InvalidRouteRegex(value)
+    }
+}
+
+type RouteResult<T> = Result<T, RouteOp>;
+
+/// ParamStaticValidation defines a set of faster restricted route segment validation types
 /// a route can support that with improved performance compared to a regex.
 #[derive(Clone, PartialEq, Debug)]
-pub enum FastValidationType {
+pub enum ParamStaticValidation {
     Numbers,
     Letters,
     Alphaneumeric,
+}
+
+impl FromStr for ParamStaticValidation {
+    type Err = RouteOp;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "numbers" | "Numbers" | "NUMBERS" => Ok(ParamStaticValidation::Numbers),
+            "letter" | "letters" | "LETTERS" => Ok(ParamStaticValidation::Letters),
+            "alpha" | "Alpha" | "ALPHA" => Ok(ParamStaticValidation::Alphaneumeric),
+            "alphaneumeric" | "Alphaneumeric" | "ALPHANEUMERIC" => {
+                Ok(ParamStaticValidation::Alphaneumeric)
+            }
+            _ => Err(RouteOp::InvalidParamRestraintMatcher(String::from(s))),
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -53,12 +99,12 @@ pub enum SegmentType<'a> {
     /// ```
     /// use crate::routing::routes::*;
     ///
-    /// let route_type = SegmentType::Restricted("user_id", FastValidationType::Letters);
-    /// let route_type = SegmentType::Restricted("user_id", FastValidationType::Numbers);
-    /// let route_type = SegmentType::Restricted("user_id", FastValidationType::Alphaneumeric);
+    /// let route_type = SegmentType::Restricted("user_id", ParamStaticValidation::Letters);
+    /// let route_type = SegmentType::Restricted("user_id", ParamStaticValidation::Numbers);
+    /// let route_type = SegmentType::Restricted("user_id", ParamStaticValidation::Alphaneumeric);
     /// ```
     ///
-    Restricted(&'a str, FastValidationType),
+    Restricted(&'a str, ParamStaticValidation),
 
     /// ParamRegx is a path which like a Regex path uses a regex for
     /// route segment validation but with the route segment having
@@ -123,6 +169,50 @@ pub enum SegmentType<'a> {
     Index,
 }
 
+impl<'a> TryFrom<&'a str> for SegmentType<'a> {
+    type Error = RouteOp;
+
+    fn try_from(text: &'a str) -> Result<Self, Self::Error> {
+        if REGEX_ONLY_CAPTURE_ROUTES.is_match(text) {
+            return Ok(SegmentType::Regex(Regex::new(text)?));
+        }
+
+        // if we are not dealing with parametric routes treat as static.
+        if !PARAM_ROUTE_STARTER.is_match(text) {
+            if text == "/*" || text == "*" {
+                return Ok(SegmentType::AnyPath);
+            }
+            if text == "/" {
+                return Ok(SegmentType::Index);
+            }
+
+            return Ok(SegmentType::Static(text));
+        }
+
+        if !text.contains("::") {
+            return Ok(SegmentType::Param(&text[1..]));
+        }
+
+        // we are dealing with parametric routes, so extract the first part.
+        let parts: Vec<&str> = text.split("::").collect();
+
+        let (first_part, second_part) = (parts[0], parts[2]);
+
+        // its definitely a regex based parameteter route
+        if PARAM_REGEX_CAPTURE_ROUTES.is_match(text) {
+            return Ok(SegmentType::ParamRegex(
+                &first_part[1..],
+                Regex::new(second_part)?,
+            ));
+        }
+
+        return Ok(SegmentType::Restricted(
+            &first_part[1..],
+            ParamStaticValidation::from_str(second_part)?,
+        ));
+    }
+}
+
 impl<'a> fmt::Debug for SegmentType<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -181,17 +271,6 @@ pub trait Servicer<RR, RS>: Send + 'static {
         Self: Sized;
 }
 
-#[derive(Clone, Debug, Error)]
-pub enum RouteOp {
-    #[error("no matching route found for path: {0}")]
-    NoMatchingRoute(String),
-
-    #[error("segment was empty/None or invalid")]
-    InvalidSegment,
-}
-
-type RouteResult<T> = Result<T, RouteOp>;
-
 /// RouteMethod defines all possible route servers a route-segment might
 /// will have allow you to define per HTTP method and a custom method
 /// what `Servicer` should handle the incoming request.
@@ -213,7 +292,7 @@ pub struct RouteMethod<R: Send + 'static, S: Send + 'static> {
 }
 
 impl<R: Send + 'static, S: Send + 'static> RouteMethod<R, S> {
-    pub fn none() -> Self {
+    pub fn empty() -> Self {
         Self {
             get: None,
             put: None,
@@ -334,9 +413,12 @@ impl<R: Send + 'static, S: Send + 'static> RouteMethod<R, S> {
 /// This means each route segment gets broken down and nested appropriately allowing
 /// relevant drill down into the relevant subparts to match the route.
 ///
+/// You will not be dierctly interacting with a `RouteSegment` directly and mostly
+/// will only interact with the Router which encapsulates usage of the `RouteSegment`
+/// internally.
 pub struct RouteSegment<'a, R: Send + 'static, S: Send + 'static> {
     segment: SegmentType<'a>,
-    dynamic: Vec<RouteSegment<'a, R, S>>,
+    dynamic_routes: Vec<RouteSegment<'a, R, S>>,
     static_routes: HashMap<&'a str, RouteSegment<'a, R, S>>,
     method: RouteMethod<R, S>,
 }
@@ -345,7 +427,8 @@ impl<'a, R: Send + 'static, S: Send + 'static> fmt::Debug for RouteSegment<'a, R
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("RouteSegment")
             .field("segment", &self.segment)
-            .field("routes", &self.dynamic)
+            .field("dynamic_routes", &self.dynamic_routes)
+            .field("static_fields", &self.static_routes)
             .finish()
     }
 }
@@ -354,7 +437,7 @@ impl<'a, R: Send + 'static, S: Send + 'static> Eq for RouteSegment<'a, R, S> {}
 
 impl<'a, R: Send + 'static, S: Send + 'static> PartialEq for RouteSegment<'a, R, S> {
     fn eq(&self, other: &Self) -> bool {
-        self.segment == other.segment && self.dynamic == other.dynamic
+        self.segment == other.segment && self.dynamic_routes == other.dynamic_routes
     }
 }
 
@@ -456,24 +539,88 @@ mod parse_route_segment_tests {
             ]
         );
     }
+
+    #[test]
+    fn test_parsing_with_shorter_segments() {
+        let result = parse_route_into_segments("/v1/users/:id/pages");
+        assert!(matches!(result, RouteResult::Ok(_)));
+        assert_eq!(result.unwrap(), vec!["v1", "users", ":id", "pages"]);
+    }
 }
 
 impl<'a, R: Send + 'static, S: Send + 'static> RouteSegment<'a, R, S> {
-    pub fn parse_route(route: &'a str) -> RouteResult<Self> {
-        let segments = parse_route_into_segments(route);
-        todo!()
+    /// Generates a route RouteSegment with all the relevant sub-routes/sub-segments added into the
+    /// root segments in nested version where the last item in this segments get the RouteMethod.
+    pub fn parse_route<E>(route: &'a str, method: RouteMethod<R, S>) -> RouteResult<Self> {
+        let segments = parse_route_into_segments(route)?;
+        ewe_logs::debug!(
+            "parse_route: String Segments: {:?} from {}",
+            segments,
+            route
+        );
+
+        let route_segments_result: Result<Vec<RouteSegment<'a, R, S>>, RouteOp> = segments
+            .iter()
+            .map(|t| Self::parse_first_as_segment(*t))
+            .collect();
+
+        let mut route_segments: Vec<RouteSegment<'a, R, S>> = route_segments_result?;
+        ewe_logs::debug!("parse_route: Route Segments: {:?}", route_segments);
+
+        let mut method_container = Some(method);
+        let mut last_leaf: Option<RouteSegment<'a, R, S>> = None;
+
+        while !route_segments.is_empty() {
+            match route_segments.pop() {
+                Some(mut leaf) => match last_leaf.take() {
+                    Some(last_leave) => {
+                        ewe_logs::debug!(
+                            "parse_route: Add segment: {:?} into {:?}",
+                            last_leave,
+                            leaf,
+                        );
+                        leaf.add_route(last_leave);
+                        last_leaf.replace(leaf);
+                        ewe_logs::debug!("parse_route: With new last leaf {:?}", last_leaf);
+                        continue;
+                    }
+                    None => {
+                        if let Some(m) = method_container.take() {
+                            leaf.method.take(m);
+                        }
+                        ewe_logs::debug!(
+                            "parse_route: Set as last leave: {:?} into {:?}",
+                            leaf,
+                            last_leaf
+                        );
+                        last_leaf.replace(leaf);
+                        continue;
+                    }
+                },
+                None => return Err(RouteOp::InvalidSegment),
+            }
+        }
+
+        match last_leaf {
+            Some(root) => {
+                ewe_logs::debug!("parse_route: returned root: {:?}", root);
+                return Ok(root);
+            }
+            _ => Err(RouteOp::InvalidSegment),
+        }
     }
 
-    pub fn parse_sub_routes(&mut self, sub_routes: Vec<&'a str>) -> Self {
-        todo!()
+    fn parse_first_as_segment(route_text: &'a str) -> RouteResult<Self> {
+        let segment_type = SegmentType::try_from(route_text)?;
+        Ok(Self::with_segment(segment_type))
     }
 
     pub fn with_segment(segment: SegmentType<'a>) -> Self {
         Self {
             segment,
-            dynamic: Vec::new(),
+            dynamic_routes: Vec::new(),
             static_routes: HashMap::new(),
-            method: RouteMethod::none(),
+            method: RouteMethod::empty(),
         }
     }
 
@@ -483,7 +630,7 @@ impl<'a, R: Send + 'static, S: Send + 'static> RouteSegment<'a, R, S> {
     {
         Self {
             segment,
-            dynamic: Vec::new(),
+            dynamic_routes: Vec::new(),
             static_routes: HashMap::new(),
             method: RouteMethod::custom(method, server),
         }
@@ -495,7 +642,7 @@ impl<'a, R: Send + 'static, S: Send + 'static> RouteSegment<'a, R, S> {
     {
         Self {
             segment,
-            dynamic: Vec::new(),
+            dynamic_routes: Vec::new(),
             static_routes: HashMap::new(),
             method: RouteMethod::delete(server),
         }
@@ -507,7 +654,7 @@ impl<'a, R: Send + 'static, S: Send + 'static> RouteSegment<'a, R, S> {
     {
         Self {
             segment,
-            dynamic: Vec::new(),
+            dynamic_routes: Vec::new(),
             static_routes: HashMap::new(),
             method: RouteMethod::put(server),
         }
@@ -519,9 +666,18 @@ impl<'a, R: Send + 'static, S: Send + 'static> RouteSegment<'a, R, S> {
     {
         Self {
             segment,
-            dynamic: Vec::new(),
+            dynamic_routes: Vec::new(),
             static_routes: HashMap::new(),
             method: RouteMethod::post(server),
+        }
+    }
+
+    pub fn empty(segment: SegmentType<'a>) -> Self {
+        Self {
+            segment,
+            dynamic_routes: Vec::new(),
+            static_routes: HashMap::new(),
+            method: RouteMethod::empty(),
         }
     }
 
@@ -531,25 +687,25 @@ impl<'a, R: Send + 'static, S: Send + 'static> RouteSegment<'a, R, S> {
     {
         Self {
             segment,
-            dynamic: Vec::new(),
+            dynamic_routes: Vec::new(),
             static_routes: HashMap::new(),
             method: RouteMethod::get(server),
         }
     }
 
     pub fn iter_mut(&mut self) -> IterMut<RouteSegment<'a, R, S>> {
-        self.dynamic.iter_mut()
+        self.dynamic_routes.iter_mut()
     }
 
     pub fn iter(&self) -> Iter<RouteSegment<'a, R, S>> {
-        self.dynamic.iter()
+        self.dynamic_routes.iter()
     }
 
     /// take_routes consumes the RouteSegments routes therby moving
     /// it out of the route segments and returns all the routes
     /// as a Vec for whatever requirements you want.
     pub fn route_segments(self) -> Vec<SegmentType<'a>> {
-        self.dynamic
+        self.dynamic_routes
             .iter()
             .map(|item| item.segment.clone())
             .collect()
@@ -584,12 +740,92 @@ impl<'a, R: Send + 'static, S: Send + 'static> RouteSegment<'a, R, S> {
         match &segment.segment {
             SegmentType::Index => self.method.take(segment.method),
             SegmentType::Static(route) => {
-                self.static_routes.entry(route).and_modify(|f| *f = segment);
+                ewe_logs::debug!("Adding static route: {} with value: {:?}", route, segment);
+                self.static_routes.entry(route).or_insert(segment);
+                ewe_logs::debug!("Static routes: {:?}", self.static_routes);
             }
             _ => {
-                self.dynamic.push(segment);
-                self.dynamic.sort_by(sort_segments);
-                self.dynamic.reverse();
+                self.dynamic_routes.push(segment);
+                self.dynamic_routes.sort_by(sort_segments);
+                self.dynamic_routes.reverse();
+            }
+        }
+    }
+
+    pub fn get_segment_route_mut(
+        &mut self,
+        segment: SegmentType<'a>,
+    ) -> RouteResult<Option<&mut RouteSegment<'a, R, S>>> {
+        match segment {
+            SegmentType::Index => Ok(Some(self)),
+            SegmentType::Static(text) => {
+                if !self.static_routes.contains_key(text) {
+                    return Err(RouteOp::InvalidSegment);
+                }
+                return Ok(self.static_routes.get_mut(text));
+            }
+            _ => {
+                for (index, subroute) in self.dynamic_routes.iter().enumerate() {
+                    if subroute.segment == segment {
+                        return Ok(self.dynamic_routes.get_mut(index));
+                    }
+                }
+                return Err(RouteOp::InvalidSegment);
+            }
+        }
+    }
+
+    /// Looping through the routeSegments retrieves the segment that matches this given route either from
+    /// the static list or the dynamic lists. It only checks at the level of this segment.
+    pub fn get_segment_route(
+        &self,
+        segment: SegmentType<'a>,
+    ) -> RouteResult<Option<&RouteSegment<'a, R, S>>> {
+        match segment {
+            SegmentType::Index => Ok(Some(self)),
+            SegmentType::Static(text) => {
+                if !self.static_routes.contains_key(text) {
+                    return Err(RouteOp::InvalidSegment);
+                }
+                return Ok(self.static_routes.get(text));
+            }
+            _ => {
+                for (index, subroute) in self.dynamic_routes.iter().enumerate() {
+                    if subroute.segment == segment {
+                        return Ok(self.dynamic_routes.get(index));
+                    }
+                }
+                return Err(RouteOp::InvalidSegment);
+            }
+        }
+    }
+
+    /// Looping through the routeSegments retrieves the segment that matches this given route either from
+    /// the static list or the dynamic lists. It only checks at the level of this segment. If not found
+    /// will add the segment as an empty route.
+    pub fn add_or_get_segment_route(
+        &mut self,
+        mut segment: SegmentType<'a>,
+    ) -> RouteResult<Option<&mut RouteSegment<'a, R, S>>> {
+        match segment {
+            SegmentType::Index => Err(RouteOp::CantHandleIndexRoute),
+            SegmentType::Static(text) => {
+                if !self.static_routes.contains_key(text) {
+                    self.add_route(RouteSegment::empty(segment));
+                }
+                return Ok(self.static_routes.get_mut(text));
+            }
+            _ => {
+                for (index, subroute) in self.dynamic_routes.iter().enumerate() {
+                    if subroute.segment == segment {
+                        return Ok(self.dynamic_routes.get_mut(index));
+                    }
+                }
+
+                // we know its going to be a dynamic route, so lets capture its position
+                let next_index = self.dynamic_routes.len();
+                self.add_route(RouteSegment::empty(segment));
+                Ok(self.dynamic_routes.get_mut(next_index))
             }
         }
     }
@@ -597,11 +833,26 @@ impl<'a, R: Send + 'static, S: Send + 'static> RouteSegment<'a, R, S> {
 
 #[cfg(test)]
 mod route_segment_tests {
+
     use super::*;
+
     use regex::Regex;
+    use tracing_test::traced_test;
 
     struct MyRequest {}
     struct MyResponse {}
+
+    struct Server {}
+
+    impl Servicer<MyRequest, MyResponse> for Server {
+        fn serve<FT>(&self, req: Request<MyRequest>) -> FT
+        where
+            FT: Future<Output = Response<MyResponse>> + Send + 'static,
+            Self: Sized,
+        {
+            todo!()
+        }
+    }
 
     #[test]
     fn test_route_segment_sourting_rules() {
@@ -632,9 +883,28 @@ mod route_segment_tests {
         let gen_id = SegmentType::ParamRegex("gen_id", Regex::new(r"serve_(\w+)").unwrap());
         root.add_route(RouteSegment::with_segment(gen_id.clone()));
 
-        let gid = SegmentType::Restricted("gid", FastValidationType::Numbers);
+        let gid = SegmentType::Restricted("gid", ParamStaticValidation::Numbers);
         root.add_route(RouteSegment::with_segment(gid.clone()));
 
         assert_eq!(root.route_segments(), vec![gid, gen_id, user_id, anyroute],);
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_route_parsing() {
+        let new_path: RouteResult<RouteSegment<MyRequest, MyResponse>> =
+            RouteSegment::parse_route::<Server>(
+                "/v1/users/:id/pages",
+                RouteMethod::get::<Server>(Server {}),
+            );
+
+        assert!(matches!(new_path, RouteResult::Ok(_)));
+
+        let route = new_path.unwrap();
+        assert_eq!(route.segment, SegmentType::Static("v1"));
+        assert!(matches!(
+            route.get_segment_route(SegmentType::Static("users")),
+            RouteResult::Ok(_)
+        ));
     }
 }
