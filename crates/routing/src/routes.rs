@@ -780,19 +780,25 @@ impl<'a, R: Send + 'static, S: Send + 'static> RouteSegment<'a, R, S> {
     pub fn get_segment_route(
         &self,
         segment: SegmentType<'a>,
-    ) -> RouteResult<Option<&RouteSegment<'a, R, S>>> {
+    ) -> RouteResult<&RouteSegment<'a, R, S>> {
         match segment {
-            SegmentType::Index => Ok(Some(self)),
+            SegmentType::Index => Ok(self),
             SegmentType::Static(text) => {
                 if !self.static_routes.contains_key(text) {
                     return Err(RouteOp::InvalidSegment);
                 }
-                return Ok(self.static_routes.get(text));
+                match self.static_routes.get(text) {
+                    Some(item) => Ok(item),
+                    None => Err(RouteOp::InvalidSegment),
+                }
             }
             _ => {
                 for (index, subroute) in self.dynamic_routes.iter().enumerate() {
                     if subroute.segment == segment {
-                        return Ok(self.dynamic_routes.get(index));
+                        return match self.dynamic_routes.get(index) {
+                            Some(item) => Ok(item),
+                            None => Err(RouteOp::InvalidSegment),
+                        };
                     }
                 }
                 return Err(RouteOp::InvalidSegment);
@@ -806,26 +812,35 @@ impl<'a, R: Send + 'static, S: Send + 'static> RouteSegment<'a, R, S> {
     pub fn add_or_get_segment_route(
         &mut self,
         mut segment: SegmentType<'a>,
-    ) -> RouteResult<Option<&mut RouteSegment<'a, R, S>>> {
+    ) -> RouteResult<&mut RouteSegment<'a, R, S>> {
         match segment {
             SegmentType::Index => Err(RouteOp::CantHandleIndexRoute),
             SegmentType::Static(text) => {
                 if !self.static_routes.contains_key(text) {
                     self.add_route(RouteSegment::empty(segment));
                 }
-                return Ok(self.static_routes.get_mut(text));
+                match self.static_routes.get_mut(text) {
+                    Some(item) => Ok(item),
+                    None => Err(RouteOp::InvalidSegment),
+                }
             }
             _ => {
                 for (index, subroute) in self.dynamic_routes.iter().enumerate() {
                     if subroute.segment == segment {
-                        return Ok(self.dynamic_routes.get_mut(index));
+                        return match self.dynamic_routes.get_mut(index) {
+                            Some(item) => Ok(item),
+                            None => Err(RouteOp::InvalidSegment),
+                        };
                     }
                 }
 
                 // we know its going to be a dynamic route, so lets capture its position
                 let next_index = self.dynamic_routes.len();
                 self.add_route(RouteSegment::empty(segment));
-                Ok(self.dynamic_routes.get_mut(next_index))
+                match self.dynamic_routes.get_mut(next_index) {
+                    Some(item) => Ok(item),
+                    None => Err(RouteOp::InvalidSegment),
+                }
             }
         }
     }
@@ -891,7 +906,37 @@ mod route_segment_tests {
 
     #[traced_test]
     #[test]
-    fn test_route_parsing() {
+    fn test_route_parsing_can_set_method_for_a_route() {
+        let new_path: RouteResult<RouteSegment<MyRequest, MyResponse>> =
+            RouteSegment::parse_route::<Server>(
+                "/v1/users/:id/pages",
+                RouteMethod::get::<Server>(Server {}),
+            );
+
+        assert!(matches!(new_path, RouteResult::Ok(_)));
+
+        let route = new_path.unwrap();
+        assert_eq!(route.segment, SegmentType::Static("v1"));
+
+        assert!(matches!(
+            route.get_segment_route(SegmentType::Static("users")),
+            RouteResult::Ok(_)
+        ));
+
+        assert!(matches!(
+            route
+                .get_segment_route(SegmentType::Static("users"))
+                .unwrap()
+                .get_segment_route(SegmentType::Param("id"))
+                .unwrap()
+                .get_segment_route(SegmentType::Static("pages")),
+            RouteResult::Ok(_)
+        ));
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_route_parsing_can_set_multiple_method_for_a_route() {
         let new_path: RouteResult<RouteSegment<MyRequest, MyResponse>> =
             RouteSegment::parse_route::<Server>(
                 "/v1/users/:id/pages",
