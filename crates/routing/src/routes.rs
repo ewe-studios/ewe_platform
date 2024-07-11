@@ -32,6 +32,15 @@ pub enum RouteOp {
 
     #[error("attempting to route SegmentType::Index segments in this way is incorrect, use setIndex instead")]
     CantHandleIndexRoute,
+
+    #[error("the root route segment does not match the root")]
+    InvalidRootRoute,
+
+    #[error("matching against route pattern {0} with {1} failed matching")]
+    DidNotMatchExpected(String, String),
+
+    #[error("unexpected behaviour found no segment")]
+    PanicSegmentNotFound,
 }
 
 impl From<regex::Error> for RouteOp {
@@ -49,6 +58,7 @@ pub enum ParamStaticValidation {
     Numbers,
     Letters,
     Alphaneumeric,
+    ASCII,
 }
 
 impl FromStr for ParamStaticValidation {
@@ -56,6 +66,7 @@ impl FromStr for ParamStaticValidation {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            "ascii" | "ASCII" => Ok(ParamStaticValidation::ASCII),
             "numbers" | "Numbers" | "NUMBERS" => Ok(ParamStaticValidation::Numbers),
             "letter" | "letters" | "LETTERS" => Ok(ParamStaticValidation::Letters),
             "alpha" | "Alpha" | "ALPHA" => Ok(ParamStaticValidation::Alphaneumeric),
@@ -261,6 +272,94 @@ impl<'a> SegmentType<'a> {
             SegmentType::AnyPath => 1,
         }
     }
+
+    pub fn as_string(&self) -> String {
+        String::from(format!("{:?}", self))
+    }
+
+    pub fn match_value_from(
+        &self,
+        other: &SegmentType<'a>,
+    ) -> RouteResult<Option<(String, String)>> {
+        match (self, other) {
+            (SegmentType::Index, SegmentType::Index) => Ok(None),
+            (SegmentType::Index, SegmentType::Static("/")) => Ok(None),
+            (SegmentType::AnyPath, SegmentType::Static(_)) => Ok(None),
+            (SegmentType::AnyPath, SegmentType::Param(_)) => Ok(None),
+            (SegmentType::AnyPath, SegmentType::ParamRegex(_, _)) => Ok(None),
+            (SegmentType::AnyPath, SegmentType::Regex(_)) => Ok(None),
+            (SegmentType::AnyPath, SegmentType::Restricted(_, _)) => Ok(None),
+            (SegmentType::AnyPath, SegmentType::AnyPath) => Ok(None),
+            (SegmentType::Static(left), SegmentType::Static(right)) => {
+                if *left != *right {
+                    return Err(RouteOp::NoMatchingRoute(other.as_string()));
+                }
+                Ok(None)
+            }
+            (SegmentType::Regex(matcher), SegmentType::Static(right)) => {
+                if !matcher.is_match(*right) {
+                    return Err(RouteOp::DidNotMatchExpected(
+                        self.as_string(),
+                        other.as_string(),
+                    ));
+                }
+                return Ok(None);
+            }
+            (SegmentType::ParamRegex(param, matcher), SegmentType::Static(right)) => {
+                if !matcher.is_match(*right) {
+                    return Err(RouteOp::DidNotMatchExpected(
+                        self.as_string(),
+                        other.as_string(),
+                    ));
+                }
+                return Ok(Some((String::from(*param), String::from(*right))));
+            }
+            (SegmentType::Param(left), SegmentType::Static(right)) => {
+                return Ok(Some((String::from(*left), String::from(*right))));
+            }
+            (SegmentType::Restricted(key, restriction), SegmentType::Static(right)) => {
+                match *restriction {
+                    ParamStaticValidation::ASCII => {
+                        if right.is_ascii() {
+                            return Ok(Some((String::from(*key), String::from(*right))));
+                        }
+                        return Err(RouteOp::DidNotMatchExpected(
+                            self.as_string(),
+                            other.as_string(),
+                        ));
+                    }
+                    ParamStaticValidation::Letters => {
+                        if right.chars().all(char::is_alphabetic) {
+                            return Ok(Some((String::from(*key), String::from(*right))));
+                        }
+                        return Err(RouteOp::DidNotMatchExpected(
+                            self.as_string(),
+                            other.as_string(),
+                        ));
+                    }
+                    ParamStaticValidation::Numbers => {
+                        if right.chars().all(char::is_numeric) {
+                            return Ok(Some((String::from(*key), String::from(*right))));
+                        }
+                        return Err(RouteOp::DidNotMatchExpected(
+                            self.as_string(),
+                            other.as_string(),
+                        ));
+                    }
+                    ParamStaticValidation::Alphaneumeric => {
+                        if right.chars().all(char::is_alphanumeric) {
+                            return Ok(Some((String::from(*key), String::from(*right))));
+                        }
+                        return Err(RouteOp::DidNotMatchExpected(
+                            self.as_string(),
+                            other.as_string(),
+                        ));
+                    }
+                }
+            }
+            _ => Err(RouteOp::NoMatchingRoute(other.as_string())),
+        }
+    }
 }
 
 // // /// Servicer defines the expectation for the type of trait and functions
@@ -342,6 +441,7 @@ impl TryFrom<http::Method> for Method {
 /// RouteMethod defines all possible route servers a route-segment might
 /// will have allow you to define per HTTP method and a custom method
 /// what `Servicer` should handle the incoming request.
+#[derive(Clone)]
 pub struct RouteMethod<R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<R, S>>
 {
     /// GET HTTP method servicer.
@@ -655,6 +755,7 @@ impl<R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<R, S
 /// You will not be dierctly interacting with a `RouteSegment` directly and mostly
 /// will only interact with the Router which encapsulates usage of the `RouteSegment`
 /// internally.
+#[derive(Clone)]
 pub struct RouteSegment<
     'a,
     R: Send + Clone + 'static,
@@ -806,9 +907,87 @@ mod parse_route_segment_tests {
     }
 }
 
+type Params = HashMap<String, String>;
+
 impl<'a, R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<R, S>>
     RouteSegment<'a, R, S, Server>
 {
+    pub fn pull_routes(
+        root: &RouteSegment<'a, R, S, Server>,
+        route: &'a str,
+    ) -> RouteResult<(Self, Params)> {
+        let segments = parse_route_into_segments(route)?;
+
+        let route_segments_result: Result<Vec<SegmentType<'a>>, RouteOp> =
+            segments.iter().map(|t| SegmentType::try_from(*t)).collect();
+
+        let route_segment_patterns = route_segments_result?;
+        RouteSegment::pull_routes_from(root, route_segment_patterns, HashMap::new())
+    }
+
+    pub fn pull_routes_from(
+        root: &RouteSegment<'a, R, S, Server>,
+        mut route_patterns: Vec<SegmentType<'a>>,
+        mut params: Params,
+    ) -> RouteResult<(Self, Params)> {
+        ewe_logs::debug!(
+            "pull_routes_from: path segments: \n\t{:?} against \n\t{:?}\n",
+            route_patterns,
+            root,
+        );
+
+        // slice of root, since its confirmed
+        let next_segment_type = match route_patterns.get(0) {
+            Some(next_segment) => Ok(next_segment.clone()),
+            None => Err(RouteOp::PanicSegmentNotFound),
+        }?;
+
+        ewe_logs::debug!(
+            "pull_routes_from: matching root: \n\t{:?} against \n\t{:?} going to {:?}\n",
+            route_patterns[0],
+            root.segment,
+            next_segment_type,
+        );
+
+        let remaining_segments = route_patterns.split_off(1);
+
+        if remaining_segments.len() > 0 {
+            return match root.validate_against_self(next_segment_type, &mut params) {
+                Ok(owner) => {
+                    ewe_logs::debug!(
+                        "pull_routes_from: going to next: \n\t{:?} in root \n\t{:?} params: {:?}\n",
+                        remaining_segments[0],
+                        owner,
+                        params,
+                    );
+
+                    let next_segment_route = root
+                        .get_matching_segment_route(remaining_segments[0].clone(), &mut params)?;
+
+                    return RouteSegment::pull_routes_from(
+                        next_segment_route,
+                        remaining_segments,
+                        params,
+                    );
+                }
+                Err(err) => {
+                    ewe_logs::debug!(
+                    "pull_routes_from: not matching root: \n\t{:?} against \n\t{:?} with error {:?} \n",
+                        route_patterns[0],
+                        root.segment,
+                        err,
+                    );
+                    return Err(RouteOp::InvalidRootRoute);
+                }
+            };
+        }
+
+        match root.validate_against_self(next_segment_type, &mut params) {
+            Ok(target) => return Ok((target.clone(), params)),
+            Err(err) => Err(err),
+        }
+    }
+
     /// Generates a route RouteSegment with all the relevant sub-routes/sub-segments added into the
     /// root segments in nested version where the last item in this segments get the RouteMethod.
     pub fn parse_route(route: &'a str, method: RouteMethod<R, S, Server>) -> RouteResult<Self> {
@@ -886,50 +1065,6 @@ impl<'a, R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<
         }
     }
 
-    pub fn custom(method: String, segment: SegmentType<'a>, server: Server) -> Self {
-        Self {
-            segment,
-            dynamic_routes: Vec::new(),
-            static_routes: HashMap::new(),
-            method: RouteMethod::custom(method, server),
-            _req: PhantomData::default(),
-            _res: PhantomData::default(),
-        }
-    }
-
-    pub fn delete(segment: SegmentType<'a>, server: Server) -> Self {
-        Self {
-            segment,
-            dynamic_routes: Vec::new(),
-            static_routes: HashMap::new(),
-            method: RouteMethod::delete(server),
-            _req: PhantomData::default(),
-            _res: PhantomData::default(),
-        }
-    }
-
-    pub fn put(segment: SegmentType<'a>, server: Server) -> Self {
-        Self {
-            segment,
-            dynamic_routes: Vec::new(),
-            static_routes: HashMap::new(),
-            method: RouteMethod::put(server),
-            _req: PhantomData::default(),
-            _res: PhantomData::default(),
-        }
-    }
-
-    pub fn post(segment: SegmentType<'a>, server: Server) -> Self {
-        Self {
-            segment,
-            dynamic_routes: Vec::new(),
-            static_routes: HashMap::new(),
-            method: RouteMethod::post(server),
-            _req: PhantomData::default(),
-            _res: PhantomData::default(),
-        }
-    }
-
     pub fn empty(segment: SegmentType<'a>) -> Self {
         Self {
             segment,
@@ -941,6 +1076,103 @@ impl<'a, R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<
         }
     }
 
+    /// Creates a RouteSegment with a server for the HTTP Method Custom method header.
+    pub fn custom(method: String, segment: SegmentType<'a>, server: Server) -> Self {
+        Self {
+            segment,
+            dynamic_routes: Vec::new(),
+            static_routes: HashMap::new(),
+            method: RouteMethod::custom(method, server),
+            _req: PhantomData::default(),
+            _res: PhantomData::default(),
+        }
+    }
+
+    /// Creates a RouteSegment with a server for the HTTP Method Connect.
+    pub fn connect(segment: SegmentType<'a>, server: Server) -> Self {
+        Self {
+            segment,
+            dynamic_routes: Vec::new(),
+            static_routes: HashMap::new(),
+            method: RouteMethod::connect(server),
+            _req: PhantomData::default(),
+            _res: PhantomData::default(),
+        }
+    }
+
+    /// Creates a RouteSegment with a server for the HTTP Method HEAD.
+    pub fn head(segment: SegmentType<'a>, server: Server) -> Self {
+        Self {
+            segment,
+            dynamic_routes: Vec::new(),
+            static_routes: HashMap::new(),
+            method: RouteMethod::head(server),
+            _req: PhantomData::default(),
+            _res: PhantomData::default(),
+        }
+    }
+
+    /// Creates a RouteSegment with a server for the HTTP Method Option header.
+    pub fn options(segment: SegmentType<'a>, server: Server) -> Self {
+        Self {
+            segment,
+            dynamic_routes: Vec::new(),
+            static_routes: HashMap::new(),
+            method: RouteMethod::options(server),
+            _req: PhantomData::default(),
+            _res: PhantomData::default(),
+        }
+    }
+
+    /// Creates a RouteSegment with a server for the HTTP Method PATCH header.
+    pub fn patch(segment: SegmentType<'a>, server: Server) -> Self {
+        Self {
+            segment,
+            dynamic_routes: Vec::new(),
+            static_routes: HashMap::new(),
+            method: RouteMethod::patch(server),
+            _req: PhantomData::default(),
+            _res: PhantomData::default(),
+        }
+    }
+
+    /// Creates a RouteSegment with a server for the HTTP Method DELETE header.
+    pub fn delete(segment: SegmentType<'a>, server: Server) -> Self {
+        Self {
+            segment,
+            dynamic_routes: Vec::new(),
+            static_routes: HashMap::new(),
+            method: RouteMethod::delete(server),
+            _req: PhantomData::default(),
+            _res: PhantomData::default(),
+        }
+    }
+
+    /// Creates a RouteSegment with a server for the HTTP Method PUT header.
+    pub fn put(segment: SegmentType<'a>, server: Server) -> Self {
+        Self {
+            segment,
+            dynamic_routes: Vec::new(),
+            static_routes: HashMap::new(),
+            method: RouteMethod::put(server),
+            _req: PhantomData::default(),
+            _res: PhantomData::default(),
+        }
+    }
+
+    /// Creates a RouteSegment with a server for the HTTP Method POST header.
+    pub fn post(segment: SegmentType<'a>, server: Server) -> Self {
+        Self {
+            segment,
+            dynamic_routes: Vec::new(),
+            static_routes: HashMap::new(),
+            method: RouteMethod::post(server),
+            _req: PhantomData::default(),
+            _res: PhantomData::default(),
+        }
+    }
+
+    /// Creates a RouteSegment with a server for the HTTP Method GET header.
     pub fn get(segment: SegmentType<'a>, server: Server) -> Self {
         Self {
             segment,
@@ -1031,6 +1263,93 @@ impl<'a, R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<
                 }
                 return Err(RouteOp::InvalidSegment);
             }
+        }
+    }
+
+    // matches the given RoueSegments against the provided
+    // route returning a HashMap of all extracted parameters
+    // matched if no path failed matching.
+    pub fn match_route(&self, route: &'a str) -> RouteResult<(Self, Params)> {
+        Self::pull_routes(self, route)
+    }
+
+    pub fn validate_against_self(
+        &self,
+        segment: SegmentType<'a>,
+        mut params: &mut Params,
+    ) -> RouteResult<&RouteSegment<'a, R, S, Server>> {
+        ewe_logs::debug!(
+            "get_matching_segment_route: matching segment: \n\t{:?} against \n\t{:?} with gathered params: {:?}\n",
+            segment,
+            self,
+            params
+        );
+        match self.segment.match_value_from(&segment)? {
+            Some((key, value)) => {
+                params.entry(key).or_insert(value);
+                Ok(self)
+            }
+            None => Ok(self),
+        }
+    }
+
+    /// Looping through the routeSegments retrieves the segment that matches this given route either from
+    /// the static list or the dynamic lists. It only checks at the level of this segment.
+    pub fn get_matching_segment_route(
+        &self,
+        segment: SegmentType<'a>,
+        mut params: &mut Params,
+    ) -> RouteResult<&RouteSegment<'a, R, S, Server>> {
+        ewe_logs::debug!(
+            "get_matching_segment_route: matching segment: \n\t{:?} against \n\t{:?} with gathered params: {:?}\n",
+            segment,
+            self,
+            params
+        );
+        match &self.segment {
+            SegmentType::Index => Ok(self),
+            SegmentType::AnyPath => Ok(self),
+            _ => match &segment {
+                SegmentType::Static(text) => {
+                    if self.static_routes.contains_key(text) {
+                        ewe_logs::debug!(
+                            "get_matching_segment_route: matching static route: \n\t{:?} with params: {:?}\n",
+                            segment,
+                            params
+                        );
+                        return match self.static_routes.get(text) {
+                            Some(item) => Ok(item),
+                            None => Err(RouteOp::InvalidSegment),
+                        };
+                    }
+
+                    ewe_logs::debug!(
+                        "get_matching_segment_route: matching dynamic route: \n\t{:?} with params: {:?}\n",
+                        segment,
+                        params
+                    );
+                    for (index, subroute) in self.dynamic_routes.iter().enumerate() {
+                        ewe_logs::debug!(
+                            "get_matching_segment_route: dynamic route({}, {:?}): \n\t{:?} with params: {:?}\n",
+                            index,
+                            subroute.segment,
+                            segment,
+                            params
+                        );
+                        match subroute.segment.match_value_from(&segment) {
+                            Ok(Some((match_key, match_value))) => {
+                                params.entry(match_key).or_insert(match_value);
+                                return Ok(subroute);
+                            }
+                            Ok(None) => return Ok(subroute),
+                            Err(err) => continue,
+                        };
+                    }
+
+                    return Err(RouteOp::InvalidSegment);
+                }
+                _ => Err(RouteOp::InvalidSegment),
+            },
         }
     }
 
@@ -1208,5 +1527,58 @@ mod route_segment_tests {
             route.get_segment_route(SegmentType::Static("users")),
             RouteResult::Ok(_)
         ));
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_route_can_match_route_route_with_any_path() {
+        let new_route_result: RouteResult<RouteSegment<MyRequest, MyResponse, MyServer>> =
+            RouteSegment::parse_route("/v1/users/:id/pages/*", RouteMethod::get(MyServer {}));
+
+        assert!(matches!(new_route_result, RouteResult::Ok(_)));
+
+        let route = new_route_result.unwrap();
+        let (segment, params) = route
+            .match_route("/v1/users/1/pages/2")
+            .expect("should have matched");
+
+        assert_eq!(String::from("1"), *params.get("id").unwrap());
+        assert_eq!(None, params.get("page_id"));
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_route_can_match_route_with_multiple_params() {
+        let new_route_result: RouteResult<RouteSegment<MyRequest, MyResponse, MyServer>> =
+            RouteSegment::parse_route(
+                "/v1/users/:id/pages/:page_id",
+                RouteMethod::get(MyServer {}),
+            );
+
+        assert!(matches!(new_route_result, RouteResult::Ok(_)));
+
+        let route = new_route_result.unwrap();
+        let (segment, params) = route
+            .match_route("/v1/users/1/pages/2")
+            .expect("should have matched");
+
+        assert_eq!(String::from("1"), *params.get("id").unwrap());
+        assert_eq!(String::from("2"), *params.get("page_id").unwrap());
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_route_can_match_expected_route_static_text() {
+        let new_route_result: RouteResult<RouteSegment<MyRequest, MyResponse, MyServer>> =
+            RouteSegment::parse_route("/v1/users/:id/pages", RouteMethod::get(MyServer {}));
+
+        assert!(matches!(new_route_result, RouteResult::Ok(_)));
+
+        let route = new_route_result.unwrap();
+        let (segment, params) = route
+            .match_route("/v1/users/1/pages")
+            .expect("should have matched");
+
+        assert_eq!(String::from("1"), *params.get("id").unwrap());
     }
 }
