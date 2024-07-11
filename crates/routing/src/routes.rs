@@ -290,6 +290,7 @@ impl<'a> SegmentType<'a> {
             (SegmentType::AnyPath, SegmentType::Regex(_)) => Ok(None),
             (SegmentType::AnyPath, SegmentType::Restricted(_, _)) => Ok(None),
             (SegmentType::AnyPath, SegmentType::AnyPath) => Ok(None),
+            (SegmentType::Static(_), SegmentType::Index) => Ok(None),
             (SegmentType::Static(left), SegmentType::Static(right)) => {
                 if *left != *right {
                     return Err(RouteOp::NoMatchingRoute(other.as_string()));
@@ -1279,7 +1280,7 @@ impl<'a, R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<
         mut params: &mut Params,
     ) -> RouteResult<&RouteSegment<'a, R, S, Server>> {
         ewe_logs::debug!(
-            "get_matching_segment_route: matching segment: \n\t{:?} against \n\t{:?} with gathered params: {:?}\n",
+            "validate_against_self: matching segment: \n\t{:?} \n\t against \n\t{:?} with gathered params: {:?}\n",
             segment,
             self,
             params
@@ -1301,8 +1302,9 @@ impl<'a, R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<
         mut params: &mut Params,
     ) -> RouteResult<&RouteSegment<'a, R, S, Server>> {
         ewe_logs::debug!(
-            "get_matching_segment_route: matching segment: \n\t{:?} against \n\t{:?} with gathered params: {:?}\n",
+            "get_matching_segment_route: matching segment: \n\t{:?} \n\t against \n\t({:?}, {:?}) with gathered params: {:?}\n",
             segment,
+            self.segment,
             self,
             params
         );
@@ -1310,6 +1312,7 @@ impl<'a, R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<
             SegmentType::Index => Ok(self),
             SegmentType::AnyPath => Ok(self),
             _ => match &segment {
+                SegmentType::Index => Ok(self),
                 SegmentType::Static(text) => {
                     if self.static_routes.contains_key(text) {
                         ewe_logs::debug!(
@@ -1527,6 +1530,31 @@ mod route_segment_tests {
             route.get_segment_route(SegmentType::Static("users")),
             RouteResult::Ok(_)
         ));
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_route_can_match_route_index() {
+        let new_route_result: RouteResult<RouteSegment<MyRequest, MyResponse, MyServer>> =
+            RouteSegment::parse_route("/", RouteMethod::get(MyServer {}));
+
+        assert!(matches!(new_route_result, RouteResult::Ok(_)));
+
+        let route = new_route_result.unwrap();
+        assert!(matches!(route.match_route("/"), RouteResult::Ok(_)));
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_route_can_match_route_index_of_a_page() {
+        let new_route_result: RouteResult<RouteSegment<MyRequest, MyResponse, MyServer>> =
+            RouteSegment::parse_route("/v1/", RouteMethod::get(MyServer {}));
+
+        assert!(matches!(new_route_result, RouteResult::Ok(_)));
+
+        let route = new_route_result.unwrap();
+        assert!(matches!(route.match_route("/v1"), RouteResult::Ok(_)));
+        assert!(matches!(route.match_route("/v1/"), RouteResult::Ok(_)));
     }
 
     #[traced_test]
