@@ -80,6 +80,11 @@ impl FromStr for ParamStaticValidation {
 
 #[derive(Clone)]
 pub enum SegmentType<'a> {
+    /// Root segment is a route segment that itself is not a route
+    /// but defines the root of all sub-routes. Most routes will start with this
+    /// and have it host all routes tree.
+    Root,
+
     /// Static is a path which is a static string and the path
     /// must specifically match the text. It is the strongest
     /// segment type and has the highest Segment power.
@@ -239,6 +244,7 @@ impl<'a> fmt::Debug for SegmentType<'a> {
             Self::Param(arg0) => f.debug_tuple("Param").field(arg0).finish(),
             Self::AnyPath => write!(f, "AnyPath"),
             Self::Index => write!(f, "Index"),
+            Self::Root => write!(f, "Root(*)"),
         }
     }
 }
@@ -270,6 +276,7 @@ impl<'a> SegmentType<'a> {
             SegmentType::Regex(_) => 3,
             SegmentType::Param(_) => 2,
             SegmentType::AnyPath => 1,
+            SegmentType::Root => 0,
         }
     }
 
@@ -282,6 +289,7 @@ impl<'a> SegmentType<'a> {
         other: &SegmentType<'a>,
     ) -> RouteResult<Option<(String, String)>> {
         match (self, other) {
+            (SegmentType::Root, _) => Ok(None),
             (SegmentType::Index, SegmentType::Index) => Ok(None),
             (SegmentType::Index, SegmentType::Static("/")) => Ok(None),
             (SegmentType::AnyPath, SegmentType::Static(_)) => Ok(None),
@@ -950,7 +958,10 @@ impl<'a, R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<
             next_segment_type,
         );
 
-        let remaining_segments = route_patterns.split_off(1);
+        let remaining_segments = match &root.segment {
+            SegmentType::Root => route_patterns.split_off(0),
+            _ => route_patterns.split_off(1),
+        };
 
         if remaining_segments.len() > 0 {
             return match root.validate_against_self(next_segment_type, &mut params) {
@@ -1055,7 +1066,11 @@ impl<'a, R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<
         Ok(Self::with_segment(segment_type))
     }
 
-    pub fn with_segment(segment: SegmentType<'a>) -> Self {
+    pub(crate) fn root() -> Self {
+        Self::with_segment(SegmentType::Root)
+    }
+
+    pub(crate) fn with_segment(segment: SegmentType<'a>) -> Self {
         Self {
             segment,
             dynamic_routes: Vec::new(),
@@ -1066,7 +1081,7 @@ impl<'a, R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<
         }
     }
 
-    pub fn empty(segment: SegmentType<'a>) -> Self {
+    pub(crate) fn empty(segment: SegmentType<'a>) -> Self {
         Self {
             segment,
             dynamic_routes: Vec::new(),
@@ -1230,6 +1245,7 @@ impl<'a, R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<
     ///
     pub fn add_route(&mut self, mut segment: RouteSegment<'a, R, S, Server>) {
         match &segment.segment {
+            SegmentType::Root => panic!("should never add root segment as a subroute"),
             SegmentType::Index => self.method.take(segment.method),
             SegmentType::Static(route) => {
                 ewe_logs::debug!("Adding static route: {} with value: {:?}", route, segment);
@@ -1514,6 +1530,25 @@ mod route_segment_tests {
                 .get_segment_route(SegmentType::Static("pages")),
             RouteResult::Ok(_)
         ));
+    }
+
+    #[traced_test]
+    #[test]
+    fn test_route_parsing_when_we_use_a_segment_with_root() {
+        let new_path: RouteResult<RouteSegment<MyRequest, MyResponse, MyServer>> =
+            RouteSegment::parse_route("/v1/users/:id/pages", RouteMethod::get(MyServer {}));
+
+        assert!(matches!(new_path, RouteResult::Ok(_)));
+
+        let mut root: RouteSegment<MyRequest, MyResponse, MyServer> = RouteSegment::root();
+        root.add_route(new_path.unwrap());
+
+        let (segment, params) = root
+            .match_route("/v1/users/1/pages")
+            .expect("should have matched");
+
+        assert_eq!(String::from("1"), *params.get("id").unwrap());
+        assert_eq!(None, params.get("page_id"));
     }
 
     #[traced_test]
