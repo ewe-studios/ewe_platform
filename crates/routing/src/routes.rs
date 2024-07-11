@@ -1,5 +1,6 @@
 use core::fmt;
 use std::cmp::Ordering;
+use std::marker::PhantomData;
 use std::{
     collections::HashMap, fmt::Debug, future::Future, slice::Iter, slice::IterMut, str::FromStr,
 };
@@ -262,36 +263,124 @@ impl<'a> SegmentType<'a> {
     }
 }
 
+// // /// Servicer defines the expectation for the type of trait and functions
+// // /// which will be used to handle requests.
+// type Servicer<R: Send + Clone + 'static, S: Send + Clone + 'static> =
+//     dyn FnMut(Request<R>) -> dyn Future<Output = Response<S>>;
+
+// type BoxServicer<R: Send + Clone + 'static, S: Send + Clone + 'static> = Box<Servicer<R, S>>;
+
 /// Servicer defines the expectation for the type of trait and functions
 /// which will be used to handle requests.
-pub trait Servicer<RR, RS>: Send + 'static {
-    fn serve<FT>(&self, req: Request<RR>) -> FT
+pub trait Servicer<R: Send + Clone + 'static, S: Send + Clone + 'static>:
+    Send + Clone + 'static
+{
+    fn serve<FT>(&self, req: Request<R>) -> FT
     where
-        FT: Future<Output = Response<RS>> + Send + 'static,
-        Self: Sized;
+        FT: Future<Output = Response<S>> + Send + 'static;
+}
+
+#[derive(Error, Debug, Clone)]
+pub enum MethodError {
+    #[error("unknown http method: {0}")]
+    Unknown(String),
+
+    #[error("unknown http::Method: {0}")]
+    UnknownMethod(http::Method),
+}
+
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub enum Method {
+    OPTIONS,
+    GET,
+    POST,
+    PUT,
+    DELETE,
+    HEAD,
+    TRACE,
+    CONNECT,
+    PATCH,
+    CUSTOM(String),
+}
+
+impl Method {
+    fn into_http_method(self) -> Result<http::Method, http::method::InvalidMethod> {
+        match self {
+            Method::CONNECT => Ok(http::Method::CONNECT),
+            Method::PUT => Ok(http::Method::PUT),
+            Method::GET => Ok(http::Method::GET),
+            Method::POST => Ok(http::Method::POST),
+            Method::HEAD => Ok(http::Method::HEAD),
+            Method::PATCH => Ok(http::Method::PATCH),
+            Method::TRACE => Ok(http::Method::TRACE),
+            Method::DELETE => Ok(http::Method::DELETE),
+            Method::OPTIONS => Ok(http::Method::OPTIONS),
+            Method::CUSTOM(name) => http::Method::from_bytes(name.as_bytes()),
+        }
+    }
+}
+
+impl TryFrom<http::Method> for Method {
+    type Error = MethodError;
+
+    fn try_from(value: http::Method) -> Result<Self, Self::Error> {
+        match value {
+            http::Method::CONNECT => Ok(Method::CONNECT),
+            http::Method::PUT => Ok(Method::PUT),
+            http::Method::GET => Ok(Method::GET),
+            http::Method::POST => Ok(Method::POST),
+            http::Method::HEAD => Ok(Method::HEAD),
+            http::Method::PATCH => Ok(Method::PATCH),
+            http::Method::TRACE => Ok(Method::TRACE),
+            http::Method::DELETE => Ok(Method::DELETE),
+            http::Method::OPTIONS => Ok(Method::OPTIONS),
+            _ => Err(MethodError::UnknownMethod(value)),
+        }
+    }
 }
 
 /// RouteMethod defines all possible route servers a route-segment might
 /// will have allow you to define per HTTP method and a custom method
 /// what `Servicer` should handle the incoming request.
-pub struct RouteMethod<R: Send + 'static, S: Send + 'static> {
+pub struct RouteMethod<R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<R, S>>
+{
     /// GET HTTP method servicer.
-    get: Option<Box<dyn Servicer<R, S>>>,
+    get: Option<Server>,
+
+    /// PATCH HTTP method servicer.
+    patch: Option<Server>,
+
+    /// HEAD HTTP method servicer.
+    head: Option<Server>,
+
+    /// TRACE HTTP method servicer.
+    trace: Option<Server>,
+
+    /// CONNECT HTTP method servicer.
+    connect: Option<Server>,
+
+    /// OPTIONS HTTP method servicer.
+    options: Option<Server>,
 
     /// PUT HTTP method servicer.
-    put: Option<Box<dyn Servicer<R, S>>>,
+    put: Option<Server>,
 
     /// POST HTTP method servicer.
-    post: Option<Box<dyn Servicer<R, S>>>,
+    post: Option<Server>,
 
     /// DELETE HTTP method servicer.
-    delete: Option<Box<dyn Servicer<R, S>>>,
+    delete: Option<Server>,
 
     /// Custom HTTP method that we could come up with.
-    custom: Option<(String, Box<dyn Servicer<R, S>>)>,
+    custom: Option<(String, Option<Server>)>,
+
+    _request: PhantomData<R>,
+    _response: PhantomData<S>,
 }
 
-impl<R: Send + 'static, S: Send + 'static> RouteMethod<R, S> {
+impl<R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<R, S>>
+    RouteMethod<R, S, Server>
+{
     pub fn empty() -> Self {
         Self {
             get: None,
@@ -299,71 +388,206 @@ impl<R: Send + 'static, S: Send + 'static> RouteMethod<R, S> {
             post: None,
             delete: None,
             custom: None,
+            patch: None,
+            trace: None,
+            connect: None,
+            head: None,
+            options: None,
+            _request: PhantomData::default(),
+            _response: PhantomData::default(),
         }
     }
 
-    pub fn get<E>(server: E) -> Self
-    where
-        E: Servicer<R, S>,
-    {
+    pub fn connect(server: Server) -> Self {
         Self {
-            get: Some(Box::new(server)),
+            connect: Some(server),
             put: None,
             post: None,
             delete: None,
             custom: None,
+            patch: None,
+            options: None,
+            head: None,
+            trace: None,
+            get: None,
+            _request: PhantomData::default(),
+            _response: PhantomData::default(),
         }
     }
 
-    pub fn custom<E>(method: String, server: E) -> Self
-    where
-        E: Servicer<R, S>,
-    {
+    pub fn head(server: Server) -> Self {
         Self {
-            custom: Some((method, Box::new(server))),
+            head: Some(server),
+            put: None,
+            post: None,
+            delete: None,
+            custom: None,
+            patch: None,
+            options: None,
+            connect: None,
+            trace: None,
+            get: None,
+            _request: PhantomData::default(),
+            _response: PhantomData::default(),
+        }
+    }
+
+    pub fn trace(server: Server) -> Self {
+        Self {
+            trace: Some(server),
+            put: None,
+            post: None,
+            delete: None,
+            custom: None,
+            patch: None,
+            options: None,
+            connect: None,
+            head: None,
+            get: None,
+            _request: PhantomData::default(),
+            _response: PhantomData::default(),
+        }
+    }
+
+    pub fn options(server: Server) -> Self {
+        Self {
+            options: Some(server),
+            put: None,
+            post: None,
+            delete: None,
+            custom: None,
+            patch: None,
+            trace: None,
+            connect: None,
+            head: None,
+            get: None,
+            _request: PhantomData::default(),
+            _response: PhantomData::default(),
+        }
+    }
+
+    pub fn patch(server: Server) -> Self {
+        Self {
+            patch: Some(server),
+            put: None,
+            post: None,
+            delete: None,
+            custom: None,
+            options: None,
+            trace: None,
+            connect: None,
+            head: None,
+            get: None,
+            _request: PhantomData::default(),
+            _response: PhantomData::default(),
+        }
+    }
+
+    pub fn get(server: Server) -> Self {
+        Self {
+            get: Some(server),
+            put: None,
+            post: None,
+            delete: None,
+            custom: None,
+            patch: None,
+            trace: None,
+            connect: None,
+            head: None,
+            options: None,
+            _request: PhantomData::default(),
+            _response: PhantomData::default(),
+        }
+    }
+
+    pub fn custom(method: String, server: Server) -> Self {
+        Self {
+            custom: Some((method, Some(server))),
             get: None,
             delete: None,
             put: None,
             post: None,
+            patch: None,
+            trace: None,
+            connect: None,
+            head: None,
+            options: None,
+            _request: PhantomData::default(),
+            _response: PhantomData::default(),
         }
     }
 
-    pub fn post<E>(server: E) -> Self
-    where
-        E: Servicer<R, S>,
-    {
+    pub fn post(server: Server) -> Self {
         Self {
-            post: Some(Box::new(server)),
+            post: Some(server),
             get: None,
             delete: None,
             put: None,
             custom: None,
+            patch: None,
+            trace: None,
+            connect: None,
+            head: None,
+            options: None,
+            _request: PhantomData::default(),
+            _response: PhantomData::default(),
         }
     }
 
-    pub fn delete<E>(server: E) -> Self
-    where
-        E: Servicer<R, S>,
-    {
+    pub fn delete(server: Server) -> Self {
         Self {
-            delete: Some(Box::new(server)),
+            delete: Some(server),
             get: None,
             post: None,
             put: None,
             custom: None,
+            patch: None,
+            trace: None,
+            connect: None,
+            head: None,
+            options: None,
+            _request: PhantomData::default(),
+            _response: PhantomData::default(),
         }
     }
 
-    pub fn put<E>(server: E) -> Self
-    where
-        E: Servicer<R, S>,
-    {
+    pub fn put(server: Server) -> Self {
         Self {
-            put: Some(Box::new(server)),
+            put: Some(server),
             get: None,
             post: None,
             delete: None,
             custom: None,
+            patch: None,
+            trace: None,
+            connect: None,
+            head: None,
+            options: None,
+            _request: PhantomData::default(),
+            _response: PhantomData::default(),
+        }
+    }
+
+    pub fn get_method(&self, method: Method) -> Result<&Option<Server>, MethodError> {
+        match method {
+            Method::CONNECT => Ok(&self.connect),
+            Method::PUT => Ok(&self.put),
+            Method::GET => Ok(&self.get),
+            Method::POST => Ok(&self.post),
+            Method::HEAD => Ok(&self.head),
+            Method::PATCH => Ok(&self.patch),
+            Method::TRACE => Ok(&self.trace),
+            Method::DELETE => Ok(&self.delete),
+            Method::OPTIONS => Ok(&self.options),
+            Method::CUSTOM(wanted) => match &self.custom {
+                Some((actual, container)) => {
+                    if *actual == wanted {
+                        return Ok(&container);
+                    }
+                    return Err(MethodError::Unknown(wanted));
+                }
+                None => Err(MethodError::Unknown(wanted)),
+            },
         }
     }
 
@@ -375,7 +599,7 @@ impl<R: Send + 'static, S: Send + 'static> RouteMethod<R, S> {
     /// in all relevant http methods they will be replaced
     /// as far as the `other` has those methods filled.
     ///
-    pub fn take(&mut self, other: RouteMethod<R, S>) {
+    pub fn take(&mut self, other: RouteMethod<R, S, Server>) {
         if other.custom.is_some() {
             self.custom = other.custom;
         }
@@ -390,6 +614,21 @@ impl<R: Send + 'static, S: Send + 'static> RouteMethod<R, S> {
         }
         if other.post.is_some() {
             self.post = other.post;
+        }
+        if other.patch.is_some() {
+            self.patch = other.patch;
+        }
+        if other.trace.is_some() {
+            self.trace = other.trace;
+        }
+        if other.connect.is_some() {
+            self.connect = other.connect;
+        }
+        if other.head.is_some() {
+            self.head = other.head;
+        }
+        if other.options.is_some() {
+            self.options = other.options;
         }
     }
 }
@@ -416,14 +655,23 @@ impl<R: Send + 'static, S: Send + 'static> RouteMethod<R, S> {
 /// You will not be dierctly interacting with a `RouteSegment` directly and mostly
 /// will only interact with the Router which encapsulates usage of the `RouteSegment`
 /// internally.
-pub struct RouteSegment<'a, R: Send + 'static, S: Send + 'static> {
+pub struct RouteSegment<
+    'a,
+    R: Send + Clone + 'static,
+    S: Send + Clone + 'static,
+    Server: Servicer<R, S>,
+> {
     segment: SegmentType<'a>,
-    dynamic_routes: Vec<RouteSegment<'a, R, S>>,
-    static_routes: HashMap<&'a str, RouteSegment<'a, R, S>>,
-    method: RouteMethod<R, S>,
+    dynamic_routes: Vec<RouteSegment<'a, R, S, Server>>,
+    static_routes: HashMap<&'a str, RouteSegment<'a, R, S, Server>>,
+    method: RouteMethod<R, S, Server>,
+    _req: PhantomData<R>,
+    _res: PhantomData<S>,
 }
 
-impl<'a, R: Send + 'static, S: Send + 'static> fmt::Debug for RouteSegment<'a, R, S> {
+impl<'a, R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<R, S>> fmt::Debug
+    for RouteSegment<'a, R, S, Server>
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("RouteSegment")
             .field("segment", &self.segment)
@@ -433,9 +681,14 @@ impl<'a, R: Send + 'static, S: Send + 'static> fmt::Debug for RouteSegment<'a, R
     }
 }
 
-impl<'a, R: Send + 'static, S: Send + 'static> Eq for RouteSegment<'a, R, S> {}
+impl<'a, R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<R, S>> Eq
+    for RouteSegment<'a, R, S, Server>
+{
+}
 
-impl<'a, R: Send + 'static, S: Send + 'static> PartialEq for RouteSegment<'a, R, S> {
+impl<'a, R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<R, S>> PartialEq
+    for RouteSegment<'a, R, S, Server>
+{
     fn eq(&self, other: &Self) -> bool {
         self.segment == other.segment && self.dynamic_routes == other.dynamic_routes
     }
@@ -443,9 +696,14 @@ impl<'a, R: Send + 'static, S: Send + 'static> PartialEq for RouteSegment<'a, R,
 
 /// sort_segment is a simplistic algorithmn that takes a giving two RouteSegment returning
 ///	`Ordering` indicators for how they should be ordered.
-fn sort_segments<'a, R: Send + 'static, S: Send + 'static>(
-    left: &RouteSegment<'a, R, S>,
-    right: &RouteSegment<'a, R, S>,
+fn sort_segments<
+    'a,
+    R: Send + Clone + 'static,
+    S: Send + Clone + 'static,
+    Server: Servicer<R, S>,
+>(
+    left: &RouteSegment<'a, R, S, Server>,
+    right: &RouteSegment<'a, R, S, Server>,
 ) -> Ordering {
     if left.segment.priority() > right.segment.priority() {
         return Ordering::Greater;
@@ -548,10 +806,12 @@ mod parse_route_segment_tests {
     }
 }
 
-impl<'a, R: Send + 'static, S: Send + 'static> RouteSegment<'a, R, S> {
+impl<'a, R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<R, S>>
+    RouteSegment<'a, R, S, Server>
+{
     /// Generates a route RouteSegment with all the relevant sub-routes/sub-segments added into the
     /// root segments in nested version where the last item in this segments get the RouteMethod.
-    pub fn parse_route<E>(route: &'a str, method: RouteMethod<R, S>) -> RouteResult<Self> {
+    pub fn parse_route(route: &'a str, method: RouteMethod<R, S, Server>) -> RouteResult<Self> {
         let segments = parse_route_into_segments(route)?;
         ewe_logs::debug!(
             "parse_route: String Segments: {:?} from {}",
@@ -559,16 +819,16 @@ impl<'a, R: Send + 'static, S: Send + 'static> RouteSegment<'a, R, S> {
             route
         );
 
-        let route_segments_result: Result<Vec<RouteSegment<'a, R, S>>, RouteOp> = segments
+        let route_segments_result: Result<Vec<RouteSegment<'a, R, S, Server>>, RouteOp> = segments
             .iter()
             .map(|t| Self::parse_first_as_segment(*t))
             .collect();
 
-        let mut route_segments: Vec<RouteSegment<'a, R, S>> = route_segments_result?;
+        let mut route_segments: Vec<RouteSegment<'a, R, S, Server>> = route_segments_result?;
         ewe_logs::debug!("parse_route: Route Segments: {:?}", route_segments);
 
         let mut method_container = Some(method);
-        let mut last_leaf: Option<RouteSegment<'a, R, S>> = None;
+        let mut last_leaf: Option<RouteSegment<'a, R, S, Server>> = None;
 
         while !route_segments.is_empty() {
             match route_segments.pop() {
@@ -621,54 +881,52 @@ impl<'a, R: Send + 'static, S: Send + 'static> RouteSegment<'a, R, S> {
             dynamic_routes: Vec::new(),
             static_routes: HashMap::new(),
             method: RouteMethod::empty(),
+            _req: PhantomData::default(),
+            _res: PhantomData::default(),
         }
     }
 
-    pub fn custom<E>(method: String, segment: SegmentType<'a>, server: E) -> Self
-    where
-        E: Servicer<R, S>,
-    {
+    pub fn custom(method: String, segment: SegmentType<'a>, server: Server) -> Self {
         Self {
             segment,
             dynamic_routes: Vec::new(),
             static_routes: HashMap::new(),
             method: RouteMethod::custom(method, server),
+            _req: PhantomData::default(),
+            _res: PhantomData::default(),
         }
     }
 
-    pub fn delete<E>(segment: SegmentType<'a>, server: E) -> Self
-    where
-        E: Servicer<R, S>,
-    {
+    pub fn delete(segment: SegmentType<'a>, server: Server) -> Self {
         Self {
             segment,
             dynamic_routes: Vec::new(),
             static_routes: HashMap::new(),
             method: RouteMethod::delete(server),
+            _req: PhantomData::default(),
+            _res: PhantomData::default(),
         }
     }
 
-    pub fn put<E>(segment: SegmentType<'a>, server: E) -> Self
-    where
-        E: Servicer<R, S>,
-    {
+    pub fn put(segment: SegmentType<'a>, server: Server) -> Self {
         Self {
             segment,
             dynamic_routes: Vec::new(),
             static_routes: HashMap::new(),
             method: RouteMethod::put(server),
+            _req: PhantomData::default(),
+            _res: PhantomData::default(),
         }
     }
 
-    pub fn post<E>(segment: SegmentType<'a>, server: E) -> Self
-    where
-        E: Servicer<R, S>,
-    {
+    pub fn post(segment: SegmentType<'a>, server: Server) -> Self {
         Self {
             segment,
             dynamic_routes: Vec::new(),
             static_routes: HashMap::new(),
             method: RouteMethod::post(server),
+            _req: PhantomData::default(),
+            _res: PhantomData::default(),
         }
     }
 
@@ -678,26 +936,27 @@ impl<'a, R: Send + 'static, S: Send + 'static> RouteSegment<'a, R, S> {
             dynamic_routes: Vec::new(),
             static_routes: HashMap::new(),
             method: RouteMethod::empty(),
+            _req: PhantomData::default(),
+            _res: PhantomData::default(),
         }
     }
 
-    pub fn get<E>(segment: SegmentType<'a>, server: E) -> Self
-    where
-        E: Servicer<R, S>,
-    {
+    pub fn get(segment: SegmentType<'a>, server: Server) -> Self {
         Self {
             segment,
             dynamic_routes: Vec::new(),
             static_routes: HashMap::new(),
             method: RouteMethod::get(server),
+            _req: PhantomData::default(),
+            _res: PhantomData::default(),
         }
     }
 
-    pub fn iter_mut(&mut self) -> IterMut<RouteSegment<'a, R, S>> {
+    pub fn iter_mut(&mut self) -> IterMut<RouteSegment<'a, R, S, Server>> {
         self.dynamic_routes.iter_mut()
     }
 
-    pub fn iter(&self) -> Iter<RouteSegment<'a, R, S>> {
+    pub fn iter(&self) -> Iter<RouteSegment<'a, R, S, Server>> {
         self.dynamic_routes.iter()
     }
 
@@ -736,7 +995,7 @@ impl<'a, R: Send + 'static, S: Send + 'static> RouteSegment<'a, R, S> {
     /// `Servicer` used as the service for this segment itself. Which allows you to
     /// set/unset the index route handler of a given Segment.
     ///
-    pub fn add_route(&mut self, mut segment: RouteSegment<'a, R, S>) {
+    pub fn add_route(&mut self, mut segment: RouteSegment<'a, R, S, Server>) {
         match &segment.segment {
             SegmentType::Index => self.method.take(segment.method),
             SegmentType::Static(route) => {
@@ -755,7 +1014,7 @@ impl<'a, R: Send + 'static, S: Send + 'static> RouteSegment<'a, R, S> {
     pub fn get_segment_route_mut(
         &mut self,
         segment: SegmentType<'a>,
-    ) -> RouteResult<Option<&mut RouteSegment<'a, R, S>>> {
+    ) -> RouteResult<Option<&mut RouteSegment<'a, R, S, Server>>> {
         match segment {
             SegmentType::Index => Ok(Some(self)),
             SegmentType::Static(text) => {
@@ -780,7 +1039,7 @@ impl<'a, R: Send + 'static, S: Send + 'static> RouteSegment<'a, R, S> {
     pub fn get_segment_route(
         &self,
         segment: SegmentType<'a>,
-    ) -> RouteResult<&RouteSegment<'a, R, S>> {
+    ) -> RouteResult<&RouteSegment<'a, R, S, Server>> {
         match segment {
             SegmentType::Index => Ok(self),
             SegmentType::Static(text) => {
@@ -812,7 +1071,7 @@ impl<'a, R: Send + 'static, S: Send + 'static> RouteSegment<'a, R, S> {
     pub fn add_or_get_segment_route(
         &mut self,
         mut segment: SegmentType<'a>,
-    ) -> RouteResult<&mut RouteSegment<'a, R, S>> {
+    ) -> RouteResult<&mut RouteSegment<'a, R, S, Server>> {
         match segment {
             SegmentType::Index => Err(RouteOp::CantHandleIndexRoute),
             SegmentType::Static(text) => {
@@ -854,12 +1113,16 @@ mod route_segment_tests {
     use regex::Regex;
     use tracing_test::traced_test;
 
+    #[derive(Clone)]
     struct MyRequest {}
+
+    #[derive(Clone)]
     struct MyResponse {}
 
-    struct Server {}
+    #[derive(Clone)]
+    struct MyServer {}
 
-    impl Servicer<MyRequest, MyResponse> for Server {
+    impl Servicer<MyRequest, MyResponse> for MyServer {
         fn serve<FT>(&self, req: Request<MyRequest>) -> FT
         where
             FT: Future<Output = Response<MyResponse>> + Send + 'static,
@@ -871,7 +1134,7 @@ mod route_segment_tests {
 
     #[test]
     fn test_route_segment_sourting_rules() {
-        let mut root: RouteSegment<MyRequest, MyResponse> =
+        let mut root: RouteSegment<MyRequest, MyResponse, MyServer> =
             RouteSegment::with_segment(SegmentType::Static("v1"));
 
         // static routes
@@ -907,11 +1170,8 @@ mod route_segment_tests {
     #[traced_test]
     #[test]
     fn test_route_parsing_can_set_method_for_a_route() {
-        let new_path: RouteResult<RouteSegment<MyRequest, MyResponse>> =
-            RouteSegment::parse_route::<Server>(
-                "/v1/users/:id/pages",
-                RouteMethod::get::<Server>(Server {}),
-            );
+        let new_path: RouteResult<RouteSegment<MyRequest, MyResponse, MyServer>> =
+            RouteSegment::parse_route("/v1/users/:id/pages", RouteMethod::get(MyServer {}));
 
         assert!(matches!(new_path, RouteResult::Ok(_)));
 
@@ -937,11 +1197,8 @@ mod route_segment_tests {
     #[traced_test]
     #[test]
     fn test_route_parsing_can_set_multiple_method_for_a_route() {
-        let new_path: RouteResult<RouteSegment<MyRequest, MyResponse>> =
-            RouteSegment::parse_route::<Server>(
-                "/v1/users/:id/pages",
-                RouteMethod::get::<Server>(Server {}),
-            );
+        let new_path: RouteResult<RouteSegment<MyRequest, MyResponse, MyServer>> =
+            RouteSegment::parse_route("/v1/users/:id/pages", RouteMethod::get(MyServer {}));
 
         assert!(matches!(new_path, RouteResult::Ok(_)));
 
