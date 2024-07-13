@@ -371,21 +371,19 @@ impl<'a> SegmentType<'a> {
     }
 }
 
-// // /// Servicer defines the expectation for the type of trait and functions
-// // /// which will be used to handle requests.
-// type Servicer<R: Send + Clone + 'static, S: Send + Clone + 'static> =
-//     dyn FnMut(Request<R>) -> dyn Future<Output = Response<S>>;
-
-// type BoxServicer<R: Send + Clone + 'static, S: Send + Clone + 'static> = Box<Servicer<R, S>>;
+// ServicerResult defines a specific result type;
+pub type ServicerResult<S, E> = Result<Response<S>, E>;
 
 /// Servicer defines the expectation for the type of trait and functions
 /// which will be used to handle requests.
-pub trait Servicer<R: Send + Clone + 'static, S: Send + Clone + 'static>:
-    Send + Clone + 'static
-{
-    fn serve<FT>(&self, req: Request<R>) -> FT
-    where
-        FT: Future<Output = Response<S>> + Send + 'static;
+pub trait Servicer<R: Send + Clone, S: Send + Clone>: Send + Clone {
+    /// The Error produced by this service.
+    type Error;
+
+    /// The Future that completes this servicer.
+    type Future: Future<Output = ServicerResult<S, Self::Error>>;
+
+    fn serve<F>(&self, req: Request<R>) -> Self::Future;
 }
 
 #[derive(Error, Debug, Clone)]
@@ -451,8 +449,7 @@ impl TryFrom<http::Method> for Method {
 /// will have allow you to define per HTTP method and a custom method
 /// what `Servicer` should handle the incoming request.
 #[derive(Clone)]
-pub struct RouteMethod<R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<R, S>>
-{
+pub struct RouteMethod<R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> {
     /// GET HTTP method servicer.
     get: Option<Server>,
 
@@ -487,9 +484,7 @@ pub struct RouteMethod<R: Send + Clone + 'static, S: Send + Clone + 'static, Ser
     _response: PhantomData<S>,
 }
 
-impl<R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<R, S>>
-    RouteMethod<R, S, Server>
-{
+impl<R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteMethod<R, S, Server> {
     pub fn empty() -> Self {
         Self {
             get: None,
@@ -765,12 +760,7 @@ impl<R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<R, S
 /// will only interact with the Router which encapsulates usage of the `RouteSegment`
 /// internally.
 #[derive(Clone)]
-pub struct RouteSegment<
-    'a,
-    R: Send + Clone + 'static,
-    S: Send + Clone + 'static,
-    Server: Servicer<R, S>,
-> {
+pub struct RouteSegment<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> {
     segment: SegmentType<'a>,
     dynamic_routes: Vec<RouteSegment<'a, R, S, Server>>,
     static_routes: HashMap<&'a str, RouteSegment<'a, R, S, Server>>,
@@ -779,7 +769,7 @@ pub struct RouteSegment<
     _res: PhantomData<S>,
 }
 
-impl<'a, R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<R, S>> fmt::Debug
+impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> fmt::Debug
     for RouteSegment<'a, R, S, Server>
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -791,12 +781,12 @@ impl<'a, R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<
     }
 }
 
-impl<'a, R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<R, S>> Eq
+impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> Eq
     for RouteSegment<'a, R, S, Server>
 {
 }
 
-impl<'a, R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<R, S>> PartialEq
+impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> PartialEq
     for RouteSegment<'a, R, S, Server>
 {
     fn eq(&self, other: &Self) -> bool {
@@ -806,12 +796,7 @@ impl<'a, R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<
 
 /// sort_segment is a simplistic algorithmn that takes a giving two RouteSegment returning
 ///	`Ordering` indicators for how they should be ordered.
-fn sort_segments<
-    'a,
-    R: Send + Clone + 'static,
-    S: Send + Clone + 'static,
-    Server: Servicer<R, S>,
->(
+fn sort_segments<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>>(
     left: &RouteSegment<'a, R, S, Server>,
     right: &RouteSegment<'a, R, S, Server>,
 ) -> Ordering {
@@ -918,9 +903,7 @@ mod parse_route_segment_tests {
 
 type Params = HashMap<String, String>;
 
-impl<'a, R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<R, S>>
-    RouteSegment<'a, R, S, Server>
-{
+impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<'a, R, S, Server> {
     pub fn pull_routes(
         root: &RouteSegment<'a, R, S, Server>,
         route: &'a str,
@@ -1447,6 +1430,7 @@ impl<'a, R: Send + Clone + 'static, S: Send + Clone + 'static, Server: Servicer<
 mod route_segment_tests {
 
     use super::*;
+    use crate::response;
 
     use regex::Regex;
     use tracing_test::traced_test;
@@ -1461,11 +1445,12 @@ mod route_segment_tests {
     struct MyServer {}
 
     impl Servicer<MyRequest, MyResponse> for MyServer {
-        fn serve<FT>(&self, req: Request<MyRequest>) -> FT
-        where
-            FT: Future<Output = Response<MyResponse>> + Send + 'static,
-            Self: Sized,
-        {
+        type Error = ();
+
+        type Future =
+            std::pin::Pin<Box<dyn Future<Output = ServicerResult<MyResponse, Self::Error>>>>;
+
+        fn serve<F>(&self, req: Request<MyRequest>) -> Self::Future {
             todo!()
         }
     }

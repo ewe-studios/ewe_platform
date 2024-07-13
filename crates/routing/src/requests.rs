@@ -312,9 +312,11 @@ impl<T> TryFrom<LightRequest<T>> for Request<T> {
     }
 }
 
+#[derive(Debug)]
 pub enum TryFromRequestError {
     NonASCIIHeaderValue(ToStrError),
     InfallibleError(Infallible),
+    ImpossibleConversion,
 }
 
 impl From<ToStrError> for TryFromRequestError {

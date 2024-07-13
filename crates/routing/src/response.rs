@@ -128,9 +128,13 @@ impl<T> Response<T> {
         Self { head, body: t }
     }
 
-    #[inline]
     pub fn from_head(head: ResponseHead) -> Self {
         Self { head, body: None }
+    }
+
+    #[inline]
+    pub fn into_parts(self) -> (ResponseHead, Option<T>) {
+        (self.head, self.body)
     }
 
     /// and_then will consume the request generating a new
@@ -347,5 +351,30 @@ impl<T> TryFrom<http::Response<T>> for Response<T> {
             head: head.into(),
             body: Some(body),
         })
+    }
+}
+
+impl<T> Into<http::Response<T>> for Response<T> {
+    fn into(self) -> http::Response<T> {
+        let (mut head, body) = self.into_parts();
+        let mut builder = http::Response::builder().status(head.status);
+        builder.headers_mut().replace(head.headers_mut());
+        builder.extensions_mut().replace(head.extensions_mut());
+
+        builder.body(body.unwrap()).unwrap()
+    }
+}
+
+pub struct ResponseResult<T, E>(pub Result<Response<T>, E>);
+
+impl<T, E> Into<Result<http::Response<T>, E>> for ResponseResult<T, E> {
+    fn into(self) -> Result<http::Response<T>, E> {
+        match self.0 {
+            Ok(response) => {
+                let http_response: http::response::Response<T> = response.into();
+                Ok(http_response)
+            }
+            Err(err) => Err(err),
+        }
     }
 }
