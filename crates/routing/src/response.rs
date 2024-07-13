@@ -19,7 +19,7 @@ use http::{
 pub use http::{Extensions, HeaderMap, Method, Uri, Version};
 use thiserror::Error;
 
-use crate::{field_method, field_method_as_mut};
+use crate::{field_method, field_method_as_mut, set_field_method_as_mut};
 
 pub struct ResponseHead {
     /// The response statis.
@@ -202,9 +202,11 @@ impl<T> Response<T> {
 
     field_method!(head, ResponseHead);
     field_method_as_mut!(head_mut, head, ResponseHead);
+    set_field_method_as_mut!(set_head, head, ResponseHead);
 
     field_method!(body, Option<T>);
     field_method_as_mut!(body_mut, body, Option<T>);
+    set_field_method_as_mut!(set_body, body, Option<T>);
 }
 
 pub enum TryFromLightResponseError {

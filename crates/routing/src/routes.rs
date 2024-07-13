@@ -7,8 +7,9 @@ use std::{
 
 use ewe_mem::accumulator::Accumulator;
 
-use crate::requests::Request;
+use crate::requests::{Method, MethodError, Params, Request};
 use crate::response::Response;
+use crate::{field_method, field_method_as_mut, set_field_method_as_mut};
 use lazy_regex::{lazy_regex, Lazy, Regex};
 use thiserror::Error;
 
@@ -23,6 +24,9 @@ pub enum RouteOp {
 
     #[error("segment was empty/None or invalid")]
     InvalidSegment,
+
+    #[error("segment has no server for method: {0}")]
+    NoMethodServer(MethodError),
 
     #[error("invalid route regex: {0}")]
     InvalidRouteRegex(regex::Error),
@@ -383,66 +387,7 @@ pub trait Servicer<R: Send + Clone, S: Send + Clone>: Send + Clone {
     /// The Future that completes this servicer.
     type Future: Future<Output = ServicerResult<S, Self::Error>>;
 
-    fn serve<F>(&self, req: Request<R>) -> Self::Future;
-}
-
-#[derive(Error, Debug, Clone)]
-pub enum MethodError {
-    #[error("unknown http method: {0}")]
-    Unknown(String),
-
-    #[error("unknown http::Method: {0}")]
-    UnknownMethod(http::Method),
-}
-
-#[derive(Clone, PartialEq, Eq, Hash)]
-pub enum Method {
-    OPTIONS,
-    GET,
-    POST,
-    PUT,
-    DELETE,
-    HEAD,
-    TRACE,
-    CONNECT,
-    PATCH,
-    CUSTOM(String),
-}
-
-impl Method {
-    fn into_http_method(self) -> Result<http::Method, http::method::InvalidMethod> {
-        match self {
-            Method::CONNECT => Ok(http::Method::CONNECT),
-            Method::PUT => Ok(http::Method::PUT),
-            Method::GET => Ok(http::Method::GET),
-            Method::POST => Ok(http::Method::POST),
-            Method::HEAD => Ok(http::Method::HEAD),
-            Method::PATCH => Ok(http::Method::PATCH),
-            Method::TRACE => Ok(http::Method::TRACE),
-            Method::DELETE => Ok(http::Method::DELETE),
-            Method::OPTIONS => Ok(http::Method::OPTIONS),
-            Method::CUSTOM(name) => http::Method::from_bytes(name.as_bytes()),
-        }
-    }
-}
-
-impl TryFrom<http::Method> for Method {
-    type Error = MethodError;
-
-    fn try_from(value: http::Method) -> Result<Self, Self::Error> {
-        match value {
-            http::Method::CONNECT => Ok(Method::CONNECT),
-            http::Method::PUT => Ok(Method::PUT),
-            http::Method::GET => Ok(Method::GET),
-            http::Method::POST => Ok(Method::POST),
-            http::Method::HEAD => Ok(Method::HEAD),
-            http::Method::PATCH => Ok(Method::PATCH),
-            http::Method::TRACE => Ok(Method::TRACE),
-            http::Method::DELETE => Ok(Method::DELETE),
-            http::Method::OPTIONS => Ok(Method::OPTIONS),
-            _ => Err(MethodError::UnknownMethod(value)),
-        }
-    }
+    fn serve(&self, req: Request<R>) -> Self::Future;
 }
 
 /// RouteMethod defines all possible route servers a route-segment might
@@ -478,7 +423,7 @@ pub struct RouteMethod<R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>>
     delete: Option<Server>,
 
     /// Custom HTTP method that we could come up with.
-    custom: Option<(String, Option<Server>)>,
+    custom: Option<(String, Server)>,
 
     _request: PhantomData<R>,
     _response: PhantomData<S>,
@@ -606,7 +551,7 @@ impl<R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteMethod<R, S,
 
     pub fn custom(method: String, server: Server) -> Self {
         Self {
-            custom: Some((method, Some(server))),
+            custom: Some((method, server)),
             get: None,
             delete: None,
             put: None,
@@ -672,21 +617,48 @@ impl<R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteMethod<R, S,
         }
     }
 
-    pub fn get_method(&self, method: Method) -> Result<&Option<Server>, MethodError> {
+    pub fn get_method(&self, method: Method) -> Result<Server, MethodError> {
         match method {
-            Method::CONNECT => Ok(&self.connect),
-            Method::PUT => Ok(&self.put),
-            Method::GET => Ok(&self.get),
-            Method::POST => Ok(&self.post),
-            Method::HEAD => Ok(&self.head),
-            Method::PATCH => Ok(&self.patch),
-            Method::TRACE => Ok(&self.trace),
-            Method::DELETE => Ok(&self.delete),
-            Method::OPTIONS => Ok(&self.options),
+            Method::CONNECT => match &self.connect {
+                Some(server) => Ok(server.clone()),
+                None => Err(MethodError::NoServer),
+            },
+            Method::PUT => match &self.put {
+                Some(server) => Ok(server.clone()),
+                None => Err(MethodError::NoServer),
+            },
+            Method::GET => match &self.get {
+                Some(server) => Ok(server.clone()),
+                None => Err(MethodError::NoServer),
+            },
+            Method::POST => match &self.post {
+                Some(server) => Ok(server.clone()),
+                None => Err(MethodError::NoServer),
+            },
+            Method::HEAD => match &self.head {
+                Some(server) => Ok(server.clone()),
+                None => Err(MethodError::NoServer),
+            },
+            Method::PATCH => match &self.patch {
+                Some(server) => Ok(server.clone()),
+                None => Err(MethodError::NoServer),
+            },
+            Method::TRACE => match &self.trace {
+                Some(server) => Ok(server.clone()),
+                None => Err(MethodError::NoServer),
+            },
+            Method::DELETE => match &self.delete {
+                Some(server) => Ok(server.clone()),
+                None => Err(MethodError::NoServer),
+            },
+            Method::OPTIONS => match &self.options {
+                Some(server) => Ok(server.clone()),
+                None => Err(MethodError::NoServer),
+            },
             Method::CUSTOM(wanted) => match &self.custom {
                 Some((actual, container)) => {
                     if *actual == wanted {
-                        return Ok(&container);
+                        return Ok(container.clone());
                     }
                     return Err(MethodError::Unknown(wanted));
                 }
@@ -901,10 +873,10 @@ mod parse_route_segment_tests {
     }
 }
 
-type Params = HashMap<String, String>;
-
 impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<'a, R, S, Server> {
-    pub fn pull_routes(
+    /// match_routes allows matching a specific route string  against a `RouteSegment`
+    /// returning the segment that owns the final part and the collected route parametes.
+    pub fn match_routes(
         root: &RouteSegment<'a, R, S, Server>,
         route: &'a str,
     ) -> RouteResult<(Self, Params)> {
@@ -914,10 +886,13 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
             segments.iter().map(|t| SegmentType::try_from(*t)).collect();
 
         let route_segment_patterns = route_segments_result?;
-        RouteSegment::pull_routes_from(root, route_segment_patterns, HashMap::new())
+        RouteSegment::match_routes_from(root, route_segment_patterns, HashMap::new())
     }
 
-    pub fn pull_routes_from(
+    /// match_routes_from allows providing a specific route string transformed
+    /// into SegmentType which you can use to match against a RouteSegment
+    /// returning the segment that owns the final part and the collected route parametes.
+    pub fn match_routes_from(
         root: &RouteSegment<'a, R, S, Server>,
         mut route_patterns: Vec<SegmentType<'a>>,
         mut params: Params,
@@ -959,7 +934,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
                     let next_segment_route = root
                         .get_matching_segment_route(remaining_segments[0].clone(), &mut params)?;
 
-                    return RouteSegment::pull_routes_from(
+                    return RouteSegment::match_routes_from(
                         next_segment_route,
                         remaining_segments,
                         params,
@@ -1183,6 +1158,10 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
         }
     }
 
+    field_method!(method, RouteMethod<R, S, Server>);
+    field_method_as_mut!(method_mut, method, RouteMethod<R, S, Server>);
+    set_field_method_as_mut!(set_method, method, RouteMethod<R, S, Server>);
+
     pub fn iter_mut(&mut self) -> IterMut<RouteSegment<'a, R, S, Server>> {
         self.dynamic_routes.iter_mut()
     }
@@ -1269,8 +1248,19 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
     // matches the given RoueSegments against the provided
     // route returning a HashMap of all extracted parameters
     // matched if no path failed matching.
-    pub fn match_route(&self, route: &'a str) -> RouteResult<(Self, Params)> {
-        Self::pull_routes(self, route)
+    pub fn get_route(&self, route: &'a str) -> RouteResult<(Self, Params)> {
+        Self::match_routes(self, route)
+    }
+
+    // match_route returns the clone of the Server and matched Params for a route segments.
+    pub fn match_route(&self, method: Method, route: &'a str) -> RouteResult<(Server, Params)> {
+        match Self::match_routes(self, route) {
+            Ok((route, params)) => match route.method().get_method(method) {
+                Ok(server) => Ok((server.clone(), params)),
+                Err(err) => Err(RouteOp::NoMethodServer(err)),
+            },
+            Err(err) => Err(err),
+        }
     }
 
     pub fn validate_against_self(
@@ -1450,7 +1440,7 @@ mod route_segment_tests {
         type Future =
             std::pin::Pin<Box<dyn Future<Output = ServicerResult<MyResponse, Self::Error>>>>;
 
-        fn serve<F>(&self, req: Request<MyRequest>) -> Self::Future {
+        fn serve(&self, req: Request<MyRequest>) -> Self::Future {
             todo!()
         }
     }
@@ -1529,7 +1519,7 @@ mod route_segment_tests {
         root.add_route(new_path.unwrap());
 
         let (segment, params) = root
-            .match_route("/v1/users/1/pages")
+            .get_route("/v1/users/1/pages")
             .expect("should have matched");
 
         assert_eq!(String::from("1"), *params.get("id").unwrap());
@@ -1561,7 +1551,7 @@ mod route_segment_tests {
         assert!(matches!(new_route_result, RouteResult::Ok(_)));
 
         let route = new_route_result.unwrap();
-        assert!(matches!(route.match_route("/"), RouteResult::Ok(_)));
+        assert!(matches!(route.get_route("/"), RouteResult::Ok(_)));
     }
 
     #[traced_test]
@@ -1573,8 +1563,8 @@ mod route_segment_tests {
         assert!(matches!(new_route_result, RouteResult::Ok(_)));
 
         let route = new_route_result.unwrap();
-        assert!(matches!(route.match_route("/v1"), RouteResult::Ok(_)));
-        assert!(matches!(route.match_route("/v1/"), RouteResult::Ok(_)));
+        assert!(matches!(route.get_route("/v1"), RouteResult::Ok(_)));
+        assert!(matches!(route.get_route("/v1/"), RouteResult::Ok(_)));
     }
 
     #[traced_test]
@@ -1587,7 +1577,7 @@ mod route_segment_tests {
 
         let route = new_route_result.unwrap();
         let (segment, params) = route
-            .match_route("/v1/users/1/pages/2")
+            .get_route("/v1/users/1/pages/2")
             .expect("should have matched");
 
         assert_eq!(String::from("1"), *params.get("id").unwrap());
@@ -1607,7 +1597,7 @@ mod route_segment_tests {
 
         let route = new_route_result.unwrap();
         let (segment, params) = route
-            .match_route("/v1/users/1/pages/2")
+            .get_route("/v1/users/1/pages/2")
             .expect("should have matched");
 
         assert_eq!(String::from("1"), *params.get("id").unwrap());
@@ -1624,7 +1614,7 @@ mod route_segment_tests {
 
         let route = new_route_result.unwrap();
         let (segment, params) = route
-            .match_route("/v1/users/1/pages")
+            .get_route("/v1/users/1/pages")
             .expect("should have matched");
 
         assert_eq!(String::from("1"), *params.get("id").unwrap());

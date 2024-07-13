@@ -17,3 +17,13 @@ macro_rules! field_method_as_mut {
         }
     };
 }
+
+#[macro_export]
+macro_rules! set_field_method_as_mut {
+    ($method_name:ident, $field_name:ident, $type_name:ty) => {
+        #[inline]
+        pub fn $method_name(&mut self, value: $type_name) {
+            self.$field_name = value;
+        }
+    };
+}
