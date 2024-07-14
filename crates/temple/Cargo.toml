@@ -12,18 +12,21 @@ keywords.workspace = true
 
 [dependencies]
 tinytemplate = { git = "https://github.com/ewe-studios/TinyTemplate.git", branch = "master" }
+rand = { version = "0.8.5" }
 
-rand.workspace = true
-anyhow.workspace = true
-thiserror.workspace = true
-tracing.workspace = true
-futures.workspace = true
+# -- error crates
+anyhow = { version = "1.0.80" }
+thiserror = { version = "1.0.57" }
 
-# -- serialization crates
-serde.workspace = true
-serde_json.workspace = true
-serde_with.workspace = true
+tracing = { version = "0.1.40" }
+futures = { version = "0.3" }
 
+serde = { version = "1.0.197", features = ["derive"] }
+serde_json = { version = "1.0.114" }
+serde_with = { version = "3.6.1" }
+
+[dev-dependencies]
+tracing-test = { version = "0.2.5" }
 
 [lints]
 workspace = true

@@ -11,26 +11,25 @@ keywords.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+ewe-mem.workspace = true
+ewe-logs.workspace = true
+
 regex = { version = "1.10" }
 lazy-regex = { version = "3.1" }
 phf = { version = "0.11.2", features = ["macros"] }
 strum = { version = "0.26" }
 strum_macros = { version = "0.26" }
+lazy_static = { version = "1.4.0" }
+lazycell = { version = "1.3.0" }
+tracing = { version = "0.1.40" }
+tracing-subscriber = { version = "0.3.18" }
+anyhow = { version = "1.0.80" }
+thiserror = { version = "1.0.57" }
 
-# workspace level dependencies
-tracing.workspace = true
-lazy_static.workspace = true
-lazycell.workspace = true
-thiserror.workspace = true
-anyhow.workspace = true
-ewe-mem.workspace = true
-ewe-logs.workspace = true
 
 [dev-dependencies]
-syncbox = "0.2"
+tracing-test = { version = "0.2.5" }
 criterion = { version = "0.5", features = ["html_reports"] }
-tracing-test.workspace = true
-
 
 [lints]
 workspace = true

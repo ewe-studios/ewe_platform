@@ -9,10 +9,10 @@ repository.workspace = true
 keywords.workspace = true
 
 [dependencies]
-tracing.workspace = true
+tracing = { version = "0.1.40" }
 
 [dev-dependencies]
-tracing-test.workspace = true
+tracing-test = { version = "0.2.5" }
 
 [lints]
 workspace = true

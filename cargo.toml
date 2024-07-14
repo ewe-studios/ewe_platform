@@ -25,42 +25,13 @@ ewe-temple = { path = "./crates/temple" }
 ewe-templates = { path = "./crates/templates" }
 ewe-templates-macro = { path = "./crates/template-macro" }
 ewe-mem = { path = "./crates/mem" }
+ewe-routing = { path = "./crates/routing" }
 ewe-html = { path = "./crates/html" }
 ewe-html-macro = { path = "./crates/html-macro" }
 ewe-platform = { path = "./crates/platform" }
 ewe-channels = { path = "./crates/channels" }
 ewe-domain = { path = "./crates/domain" }
 ewe-domain-macro = { path = "./crates/domain-macro" }
-
-
-# general crates
-cfg-if = { version = "1.0" }
-
-# -- async crates
-futures = { version = "0.3" }
-rand = { version = "0.8.5" }
-crossbeam = { version = "0.8" }
-lazy_static = { version = "1.4.0" }
-lazycell = { version = "1.3.0" }
-async-channel = { version = "2.2" }
-tokio = { version = "1.36", features = ["full"] }
-tokio-test = { version = "0.4" }
-
-# -- error crates
-anyhow = { version = "1.0.80" }
-thiserror = { version = "1.0.57" }
-
-# -- serialization crates
-toml = { version = "0.8.10" }
-serde = { version = "1.0.197", features = ["derive"] }
-serde_json = { version = "1.0.114" }
-serde_with = { version = "3.6.1" }
-
-
-# -- tracing crates
-tracing = { version = "0.1.40" }
-tracing-subscriber = { version = "0.3.18" }
-tracing-test = { version = "0.2.5" }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

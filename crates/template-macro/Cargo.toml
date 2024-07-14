@@ -1,5 +1,5 @@
 [package]
-name = "ewe-template-macro"
+name = "ewe-templates-macro"
 version = "0.1.0"
 authors.workspace = true
 edition.workspace = true
@@ -13,16 +13,16 @@ keywords.workspace = true
 proc-macro = true
 
 [dependencies]
+ewe-templates = { path = "../templates" }
+
 quote = "1.0.20"
 proc-macro2 = "1.0.40"
 syn = { version = "2.0.60", features = ["full"] }
 
 # template dependencies
-serde.workspace = true
-serde_json.workspace = true
-ewe-templates = { path = "../templates" }
-# tinytemplate = { git = "https://github.com/ewe-studios/TinyTemplate.git", branch = "master" }
-# minijinja = { version = "2.0.0" }
+serde = { version = "1.0.197", features = ["derive"] }
+serde_json = { version = "1.0.114" }
+serde_with = { version = "3.6.1" }
 
 [dev-dependencies]
 trybuild = "1.0.83"

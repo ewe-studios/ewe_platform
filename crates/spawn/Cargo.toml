@@ -18,12 +18,13 @@ tokio-test = { version = "0.4" }
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-cfg-if.workspace = true
-anyhow.workspace = true
-futures.workspace = true
+cfg-if = { version = "1.0" }
+anyhow = { version = "1.0.80" }
+thiserror = { version = "1.0.57" }
+futures = { version = "0.3" }
 
 # tracing
-tracing.workspace = true
+tracing = { version = "0.1.40" }
 
 # tokio
 tokio = { version = "1", features = [

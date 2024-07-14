@@ -25,17 +25,21 @@ server = ["dep:tokio"]
 
 # -- global dependencies
 [dependencies]
-serde.workspace = true
-cfg-if.workspace = true
-anyhow.workspace = true
-futures.workspace = true
-thiserror.workspace = true
-async-channel.workspace = true
-tracing.workspace = true
+cfg-if = { version = "1.0" }
 
-# -- serialization crates
-serde_json.workspace = true
-serde_with.workspace = true
+serde = { version = "1.0.197", features = ["derive"] }
+serde_json = { version = "1.0.114" }
+serde_with = { version = "3.6.1" }
+
+# -- tracing crates
+tracing = { version = "0.1.40" }
+tracing-subscriber = { version = "0.3.18" }
+
+# -- error crates
+anyhow = { version = "1.0.80" }
+thiserror = { version = "1.0.57" }
+futures = { version = "0.3" }
+async-channel = { version = "2.2" }
 
 # tokio
 tokio = { version = "1", features = [
@@ -59,3 +63,7 @@ wasm-bindgen-futures = { version = "0.4.41" }
 # all the `std::fmt` and `std::panicking` infrastructure, so isn't great for
 # code size when deploying.
 console_error_panic_hook = { version = "0.1.7", optional = true }
+
+[dev-dependencies]
+tracing-test = { version = "0.2.5" }
+tokio-test = { version = "0.4" }

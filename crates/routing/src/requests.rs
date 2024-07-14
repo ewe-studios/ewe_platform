@@ -12,11 +12,10 @@ use ewe_mem::accumulator::Accumulator;
 use http::{
     header::{InvalidHeaderName, InvalidHeaderValue, ToStrError},
     method::InvalidMethod,
-    status::InvalidStatusCode,
     uri::InvalidUri,
-    HeaderValue, StatusCode,
+    HeaderValue,
 };
-/// Implementation of routing and request/response primitives.
+
 pub use http::{Extensions, HeaderMap, Uri, Version};
 use thiserror::Error;
 
@@ -139,25 +138,57 @@ pub struct RequestHead {
     version: Version,
 
     /// The [target](https://datatracker.ietf.org/doc/html/rfc7230#section-5.3) of the request.
-    target: Uri,
+    url: Uri,
 
     /// Extensions related to the underlying http request.
     extensions: Extensions,
 
     /// The route for the giving request being
-    route_path: RouteURL,
+    route_path: Option<RouteURL>,
 }
 
 impl RequestHead {
-    pub fn new(method: Method, version: Version, url: Uri, route_url: RouteURL) -> Self {
+    pub fn new(method: Method, version: Version, url: Uri, route_path: Option<RouteURL>) -> Self {
         Self {
-            target: url,
-            route_path: route_url,
+            url,
             headers: HeaderMap::new(),
             extensions: Extensions::new(),
+            route_path,
             method,
             version,
         }
+    }
+
+    pub fn get(url: Uri) -> Self {
+        Self::new(Method::GET, Version::HTTP_11, url, None)
+    }
+
+    pub fn post(url: Uri) -> Self {
+        Self::new(Method::POST, Version::HTTP_11, url, None)
+    }
+
+    pub fn put(url: Uri) -> Self {
+        Self::new(Method::PUT, Version::HTTP_11, url, None)
+    }
+
+    pub fn delete(url: Uri) -> Self {
+        Self::new(Method::DELETE, Version::HTTP_11, url, None)
+    }
+
+    pub fn options(url: Uri) -> Self {
+        Self::new(Method::OPTIONS, Version::HTTP_11, url, None)
+    }
+
+    pub fn connect(url: Uri) -> Self {
+        Self::new(Method::CONNECT, Version::HTTP_11, url, None)
+    }
+
+    pub fn patch(url: Uri) -> Self {
+        Self::new(Method::PATCH, Version::HTTP_11, url, None)
+    }
+
+    pub fn custom(method_name: String, url: Uri) -> Self {
+        Self::new(Method::CUSTOM(method_name), Version::HTTP_11, url, None)
     }
 
     /// and_then will consume the request head generating a returned
@@ -165,17 +196,15 @@ impl RequestHead {
     ///
     /// # Example:
     ///
-    /// ```no
-    /// # use routing::RequestHead;
+    /// ```
+    /// # use ewe_routing::requests::{RequestHead, Method, Version, Uri, RouteURL};
     ///
     /// let head = RequestHead::new(
-    /// 		http::http::Method::GET, Version::HTTP_2,
-    /// 		Uri::from("/head/1"),
-    /// 		RouteURL("/head/:id"),
-    /// ).and_then(|h| {
-    /// 	h.route_path = RouteURL("/head/:id/10");
-    /// 	h
-    /// });
+    /// 		Method::GET,
+    /// 		Version::HTTP_11,
+    /// 		Uri::from_static("/head/1"),
+    /// 		Some(String::from("/head/:id")),
+    /// );
     /// ```
     ///
     pub fn add_then<F>(self, f: F) -> RequestHead
@@ -197,17 +226,17 @@ impl RequestHead {
     field_method_as_mut!(headers_mut, headers, HeaderMap);
     set_field_method_as_mut!(set_headers, headers, HeaderMap);
 
-    field_method!(route_path, RouteURL);
-    field_method_as_mut!(route_path_mut, route_path, RouteURL);
-    set_field_method_as_mut!(set_route_path, route_path, RouteURL);
+    field_method!(route_path, Option<RouteURL>);
+    field_method_as_mut!(route_path_mut, route_path, Option<RouteURL>);
+    set_field_method_as_mut!(set_route_path, route_path, Option<RouteURL>);
 
     field_method!(extensions, Extensions);
     field_method_as_mut!(extensions_mut, extensions, Extensions);
     set_field_method_as_mut!(set_extensions, extensions, Extensions);
 
-    field_method!(target, Uri);
-    field_method_as_mut!(target_mut, target, Uri);
-    set_field_method_as_mut!(set_target, target, Uri);
+    field_method!(url, Uri);
+    field_method_as_mut!(url_mut, url, Uri);
+    set_field_method_as_mut!(set_url, url, Uri);
 
     field_method!(method, Method);
     field_method_as_mut!(method_mut, method, Method);
@@ -224,7 +253,7 @@ impl fmt::Debug for RequestHead {
             .field("headers", &self.headers)
             .field("method", &self.method)
             .field("version", &self.version)
-            .field("target", &self.target)
+            .field("target", &self.url)
             .field("extensions", &self.extensions)
             .field("route_path", &self.route_path)
             .finish()
@@ -242,8 +271,8 @@ impl From<http::request::Parts> for RequestHead {
             method: value.method.try_into().expect("should map into method"),
             headers: value.headers,
             version: value.version,
-            target: value.uri.clone(),
-            route_path: original_route,
+            url: value.uri.clone(),
+            route_path: Some(original_route),
             extensions: value.extensions.clone(),
         }
     }
@@ -266,6 +295,12 @@ impl<T: fmt::Debug> fmt::Debug for Request<T> {
             .field("head", &self.head)
             .field("body", &self.body)
             .finish()
+    }
+}
+
+impl Request<()> {
+    pub fn nobody(head: RequestHead) -> Self {
+        Request::with(None, head, Params::new())
     }
 }
 
@@ -379,12 +414,12 @@ impl<T> Request<T> {
 
     #[inline]
     pub fn url(&self) -> &Uri {
-        &self.head.target
+        &self.head.url
     }
 
     #[inline]
     pub fn path(&self) -> String {
-        String::from(self.head.target.path())
+        String::from(self.head.url.path())
     }
 
     #[inline]
@@ -484,8 +519,9 @@ impl<T> TryFrom<LightRequest<T>> for Request<T> {
             method.try_into().expect("should convert into method"),
             Version::HTTP_10,
             uri,
-            url,
+            Some(url),
         );
+
         for (key, value) in value.headers.iter() {
             head.headers.insert(
                 http::HeaderName::from_str(key.as_ref())?,
@@ -540,7 +576,7 @@ impl<T> TryFrom<Request<T>> for LightRequest<T> {
 
         Ok(Self {
             method: value.head.method.to_string(),
-            url: value.head.target.to_string(),
+            url: value.head.url.to_string(),
             body: value.body,
             headers,
         })

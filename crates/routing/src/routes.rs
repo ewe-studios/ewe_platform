@@ -4,6 +4,7 @@ use std::marker::PhantomData;
 use std::{
     collections::HashMap, fmt::Debug, future::Future, slice::Iter, slice::IterMut, str::FromStr,
 };
+use std::{pin, sync};
 
 use ewe_mem::accumulator::Accumulator;
 
@@ -98,7 +99,7 @@ pub enum SegmentType<'a> {
     /// Example:
     ///
     /// ```
-    /// use crate::routing::routes::*;
+    /// use ewe_routing::routes::*;
     ///
     /// let route_type = SegmentType::Static("users");
     /// ```
@@ -118,7 +119,7 @@ pub enum SegmentType<'a> {
     /// Example:
     ///
     /// ```
-    /// use crate::routing::routes::*;
+    /// use ewe_routing::routes::*;
     ///
     /// let route_type = SegmentType::Restricted("user_id", ParamStaticValidation::Letters);
     /// let route_type = SegmentType::Restricted("user_id", ParamStaticValidation::Numbers);
@@ -135,7 +136,7 @@ pub enum SegmentType<'a> {
     ///
     /// ```
     /// use regex;
-    /// use crate::routing::routes::*;
+    /// use ewe_routing::routes::*;
     ///
     /// let route_type = SegmentType::ParamRegex("user_id", regex::Regex::new(r"([a-zA-Z]{0,4})").expect("compiles"));
     /// ```
@@ -149,7 +150,7 @@ pub enum SegmentType<'a> {
     ///
     /// ```
     /// use regex;
-    /// use crate::routing::routes::*;
+    /// use ewe_routing::routes::*;
     ///
     /// let route_type = SegmentType::Regex(regex::Regex::new(r"([a-zA-Z]{0,4})").expect("compiles"));
     /// ```
@@ -162,7 +163,7 @@ pub enum SegmentType<'a> {
     /// Example:
     ///
     /// ```
-    /// use crate::routing::routes::*;
+    /// use ewe_routing::routes::*;
     ///
     /// let route_type = SegmentType::Param(":user_id");
     /// ```
@@ -179,7 +180,7 @@ pub enum SegmentType<'a> {
     /// Example:
     ///
     /// ```
-    /// use crate::routing::routes::*;
+    /// use ewe_routing::routes::*;
     ///
     /// let route_type = SegmentType::AnyPath;
     /// ```
@@ -390,6 +391,94 @@ pub trait Servicer<R: Send + Clone, S: Send + Clone>: Send + Clone {
     fn serve(&self, req: Request<R>) -> Self::Future;
 }
 
+pub type ResponseFuture<S, E> = pin::Pin<Box<dyn Future<Output = Result<Response<S>, E>>>>;
+
+pub type HandlerFunc<R, S, E> = fn(Request<R>) -> ResponseFuture<S, E>;
+
+#[derive(Clone)]
+struct ServicerFunc<R: Send + Clone + 'static, S: Send + Clone + 'static, E: Clone + Send + 'static>
+{
+    inner: sync::Arc<sync::Mutex<HandlerFunc<R, S, E>>>,
+    _r: PhantomData<R>,
+    _s: PhantomData<S>,
+    _e: PhantomData<E>,
+}
+
+impl<R: Send + Clone + 'static, S: Send + Clone + 'static, E: Clone + Send + 'static>
+    ServicerFunc<R, S, E>
+{
+    pub fn new(f: HandlerFunc<R, S, E>) -> Self {
+        ServicerFunc {
+            inner: sync::Arc::new(sync::Mutex::new(f)),
+            _r: PhantomData::default(),
+            _s: PhantomData::default(),
+            _e: PhantomData::default(),
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct ServicerHandler<
+    R: Send + Clone + 'static,
+    S: Send + Clone + 'static,
+    E: Send + Clone + 'static,
+>(ServicerFunc<R, S, E>);
+
+impl<R: Send + Clone + 'static, S: Send + Clone + 'static, E: Clone + Send + 'static> Servicer<R, S>
+    for ServicerHandler<R, S, E>
+{
+    type Error = E;
+
+    type Future = std::pin::Pin<Box<dyn Future<Output = Result<Response<S>, Self::Error>>>>;
+
+    fn serve(&self, req: Request<R>) -> Self::Future {
+        let mut callable = self.0.inner.lock().unwrap();
+        let future_result = (callable)(req);
+        future_result
+    }
+}
+
+/// create_servicer_func generates a Servicer from a function which implements the
+/// and returns the necessary future containing the returned result and response.
+pub fn create_servicer_func<R: Send + Clone, S: Send + Clone, E: Send + Clone>(
+    handle: HandlerFunc<R, S, E>,
+) -> ServicerHandler<R, S, E> {
+    ServicerHandler(ServicerFunc::new(handle))
+}
+
+#[cfg(test)]
+mod servier_func_tests {
+    use http::{StatusCode, Version};
+    use tower::Service;
+
+    use crate::{response::ResponseHead, router::RouterErrors};
+
+    use super::*;
+
+    #[derive(Clone)]
+    struct MyRequest {}
+
+    #[derive(Clone)]
+    struct MyResponse {}
+
+    #[test]
+    fn can_create_servicer_fn() {
+        let handler: ServicerHandler<MyRequest, MyResponse, RouterErrors> =
+            create_servicer_func(|req| {
+                Box::pin(async {
+                    Ok(Response::from(
+                        Some(MyResponse {}),
+                        ResponseHead::basic(
+                            StatusCode::from_u16(200).expect("valid status code"),
+                            Version::HTTP_11,
+                        ),
+                    ))
+                })
+            });
+        assert!(matches!(handler, ServicerHandler(_)))
+    }
+}
+
 /// RouteMethod defines all possible route servers a route-segment might
 /// will have allow you to define per HTTP method and a custom method
 /// what `Servicer` should handle the incoming request.
@@ -445,6 +534,16 @@ impl<R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteMethod<R, S,
             _request: PhantomData::default(),
             _response: PhantomData::default(),
         }
+    }
+
+    /// and_then will consume the request generating a new
+    /// request instance with whatever changes the underlying function
+    /// generates.
+    pub fn add_then<F>(self, f: F) -> Self
+    where
+        F: FnOnce(Self) -> Self,
+    {
+        f(self)
     }
 
     pub fn connect(server: Server) -> Self {
@@ -616,6 +715,33 @@ impl<R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteMethod<R, S,
             _response: PhantomData::default(),
         }
     }
+
+    field_method_as_mut!(get_mut, get, Option<Server>);
+    set_field_method_as_mut!(set_get, get, Option<Server>);
+
+    field_method_as_mut!(get_put, put, Option<Server>);
+    set_field_method_as_mut!(set_put, put, Option<Server>);
+
+    field_method_as_mut!(get_post, post, Option<Server>);
+    set_field_method_as_mut!(set_post, post, Option<Server>);
+
+    field_method_as_mut!(get_custom, custom, Option<(String, Server)>);
+    set_field_method_as_mut!(set_custom, custom, Option<(String, Server)>);
+
+    field_method_as_mut!(get_tace, trace, Option<Server>);
+    set_field_method_as_mut!(set_trace, trace, Option<Server>);
+
+    field_method_as_mut!(get_patch, patch, Option<Server>);
+    set_field_method_as_mut!(set_patch, patch, Option<Server>);
+
+    field_method_as_mut!(get_options, options, Option<Server>);
+    set_field_method_as_mut!(set_options, options, Option<Server>);
+
+    field_method_as_mut!(get_connect, connect, Option<Server>);
+    set_field_method_as_mut!(set_connect, connect, Option<Server>);
+
+    field_method_as_mut!(get_delete, delete, Option<Server>);
+    set_field_method_as_mut!(set_delete, delete, Option<Server>);
 
     pub fn get_method(&self, method: Method) -> Result<Server, MethodError> {
         match method {

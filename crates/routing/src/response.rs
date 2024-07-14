@@ -13,14 +13,16 @@ use http::{
     method::InvalidMethod,
     status::InvalidStatusCode,
     uri::InvalidUri,
-    HeaderValue, StatusCode,
+    HeaderValue,
 };
-/// Implementation of routing and request/response primitives.
-pub use http::{Extensions, HeaderMap, Method, Uri, Version};
+
 use thiserror::Error;
+
+pub use http::{Extensions, HeaderMap, Method, StatusCode, Uri, Version};
 
 use crate::{field_method, field_method_as_mut, set_field_method_as_mut};
 
+#[derive(Clone)]
 pub struct ResponseHead {
     /// The response statis.
     pub status: StatusCode,
@@ -45,6 +47,28 @@ impl ResponseHead {
         Self {
             headers,
             extensions,
+            status,
+            version,
+        }
+    }
+
+    /// standard returns a Response head with version set to HTTP_11 and headers
+    /// and extensions instantiated to empty objects.
+    pub fn standard(status: StatusCode) -> Self {
+        Self {
+            headers: HeaderMap::new(),
+            extensions: Extensions::new(),
+            version: Version::HTTP_11,
+            status,
+        }
+    }
+
+    /// basic returns a ResponseHead with Headers and Extensions instantied to
+    /// empty objects.
+    pub fn basic(status: StatusCode, version: Version) -> Self {
+        Self {
+            headers: HeaderMap::new(),
+            extensions: Extensions::new(),
             status,
             version,
         }
@@ -102,6 +126,7 @@ pub struct LightResponse<T> {
     pub body: Option<T>,
 }
 
+#[derive(Clone)]
 pub struct Response<T> {
     head: ResponseHead,
     body: Option<T>,

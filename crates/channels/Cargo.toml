@@ -10,17 +10,19 @@ keywords.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies]
-# global workspace dependencies
-tokio.workspace = true
-anyhow.workspace = true
-crossbeam.workspace = true
-async-channel.workspace = true
-futures.workspace = true
-thiserror.workspace = true
+[dev-dependencies]
+tokio-test = { version = "0.4" }
+tracing-test = { version = "0.2.5" }
 
-# local package dependencies
-# dep = { verison ...}
+
+[dependencies]
+tracing = { version = "0.1.40" }
+tokio = { version = "1.36", features = ["full"] }
+async-channel = { version = "2.2" }
+futures = { version = "0.3" }
+crossbeam = { version = "0.8" }
+anyhow = { version = "1.0.80" }
+thiserror = { version = "1.0.57" }
 
 
 [lints]

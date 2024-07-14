@@ -1,7 +1,10 @@
 use crate::{
-    requests::{self, Method, MethodError, Params},
-    response,
-    routes::{RouteMethod, RouteOp, RouteSegment, Servicer, ServicerResult},
+    requests::{self, Method, MethodError, Params, Request, Uri},
+    response::{self, Response, ResponseHead, StatusCode},
+    routes::{
+        create_servicer_func, ResponseFuture, RouteMethod, RouteOp, RouteSegment, Servicer,
+        ServicerHandler, ServicerResult,
+    },
 };
 
 use std::{error, future::Future, marker::PhantomData, pin::Pin, task::Poll};
@@ -124,11 +127,146 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> Router<'a, R,
     }
 
     fn route(
-        &self,
+        &mut self,
         route: &'a str,
         method: RouteMethod<R, S, Server>,
     ) -> RouterResult<RouterErrors> {
-        // self.root.
-        todo!()
+        match RouteSegment::parse_route(route, method) {
+            Ok(segment) => {
+                self.root.add_route(segment);
+                Ok(())
+            }
+            Err(err) => Err(err.into()),
+        }
+    }
+}
+
+pub fn bad_request_handler<R, S>(req: Request<R>) -> ResponseFuture<S, RouterErrors> {
+    Box::pin(async {
+        Ok(Response::from(
+            None,
+            ResponseHead::standard(StatusCode::NOT_IMPLEMENTED),
+        ))
+    })
+}
+
+pub fn default_fallback_method<R: Clone + Send, S: Clone + Send>(
+) -> RouteMethod<R, S, ServicerHandler<R, S, RouterErrors>> {
+    let method: RouteMethod<R, S, ServicerHandler<R, S, RouterErrors>> = RouteMethod::empty()
+        .add_then(|mut method| {
+            method.set_get(Some(create_servicer_func(bad_request_handler)));
+            method.set_post(Some(create_servicer_func(bad_request_handler)));
+            method.set_put(Some(create_servicer_func(bad_request_handler)));
+            method.set_patch(Some(create_servicer_func(bad_request_handler)));
+            method.set_delete(Some(create_servicer_func(bad_request_handler)));
+            method.set_connect(Some(create_servicer_func(bad_request_handler)));
+            method.set_trace(Some(create_servicer_func(bad_request_handler)));
+            method.set_options(Some(create_servicer_func(bad_request_handler)));
+            method
+        });
+    method
+}
+
+#[cfg(test)]
+mod tests {
+    use core::fmt;
+
+    use requests::RequestHead;
+
+    use super::*;
+
+    #[derive(Clone, PartialEq, Eq)]
+    enum MyRequests {
+        Hello(String),
+    }
+
+    impl fmt::Debug for MyRequests {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            match self {
+                Self::Hello(arg0) => f.debug_tuple("Hello").field(arg0).finish(),
+            }
+        }
+    }
+
+    #[derive(Clone, PartialEq, Eq)]
+    enum MyResponse {
+        World(String),
+    }
+
+    impl fmt::Debug for MyResponse {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            match self {
+                Self::World(arg0) => f.debug_tuple("World").field(arg0).finish(),
+            }
+        }
+    }
+
+    fn hello_request(req: Request<MyRequests>) -> ResponseFuture<MyResponse, RouterErrors> {
+        Box::pin(async move {
+            let (_head, mut body) = req.into_parts();
+            if let Some(message) = body.take() {
+                let MyRequests::Hello(content) = message;
+                return Ok(Response::from(
+                    Some(MyResponse::World(String::from(format!(
+                        "{} World!",
+                        content,
+                    )))),
+                    ResponseHead::standard(StatusCode::NOT_IMPLEMENTED),
+                ));
+            }
+            return Err(RouterErrors::IntervalError);
+        })
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn can_get_hello_route() {
+        let fallback = default_fallback_method::<MyRequests, MyResponse>();
+
+        let hello_server = create_servicer_func(hello_request);
+
+        let mut router = Router::new(fallback);
+        router.route("/hello", RouteMethod::get(hello_server));
+
+        let hello_endpoint = Uri::from_static("/hello");
+        let req = Request::from(
+            Some(MyRequests::Hello(String::from("Alex"))),
+            RequestHead::get(hello_endpoint),
+        );
+
+        let response_result = router.serve(req).await;
+
+        assert!(matches!(response_result, Result::Ok(_)));
+
+        let mut response = response_result.unwrap();
+
+        let response_body = response.body_mut().take().unwrap();
+        assert_eq!(
+            response_body,
+            MyResponse::World(String::from("Alex World!"))
+        );
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn fallback_handles_unknown_route() {
+        let fallback = default_fallback_method::<MyRequests, MyResponse>();
+
+        let mut router = Router::new(fallback);
+
+        let hello_server = create_servicer_func(hello_request);
+        router.route("/hello", RouteMethod::get(hello_server));
+
+        let hello_endpoint = Uri::from_static("/world");
+        let req = Request::from(
+            Some(MyRequests::Hello(String::from("Alex"))),
+            RequestHead::get(hello_endpoint),
+        );
+
+        let response_result = router.serve(req).await;
+
+        assert!(matches!(response_result, Result::Ok(_)));
+
+        let (head, body) = response_result.unwrap().into_parts();
+        assert!(matches!(body, Option::None));
+        assert_eq!(head.status, StatusCode::NOT_IMPLEMENTED);
     }
 }

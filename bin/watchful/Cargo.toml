@@ -11,14 +11,22 @@ keywords.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# workspace dependencies
-serde.workspace = true
-anyhow.workspace = true
-tracing.workspace = true
-tracing-subscriber.workspace = true
+# -- Workspace Libs
+ewe-watchers.workspace = true
 
-# -- App Libs
-ewe-watchers = { path = "../../crates/watchers" }
+# -- error crates
+anyhow = { version = "1.0.80" }
+thiserror = { version = "1.0.57" }
+
+# -- tracing crates
+tracing = { version = "0.1.40" }
+tracing-subscriber = { version = "0.3.18" }
+
+toml = { version = "0.8.10" }
+serde = { version = "1.0.197", features = ["derive"] }
+serde_json = { version = "1.0.114" }
+serde_with = { version = "3.6.1" }
+
 
 # -- Others
 ctrlc = "3.4.4"

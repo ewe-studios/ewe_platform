@@ -9,14 +9,14 @@ repository.workspace = true
 keywords.workspace = true
 
 [dependencies]
-memchr = "2.7.2"
-thiserror.workspace = true
-anyhow.workspace = true
-tracing.workspace = true
 ewe-logs.workspace = true
+memchr = "2.7.2"
+tracing = { version = "0.1.40" }
+anyhow = { version = "1.0.80" }
+thiserror = { version = "1.0.57" }
 
 [dev-dependencies]
-syncbox = "0.2"
+tracing-test = { version = "0.2.5" }
 
 [lints]
 workspace = true

@@ -519,6 +519,9 @@ dependencies = [
  "futures",
  "thiserror",
  "tokio",
+ "tokio-test",
+ "tracing",
+ "tracing-test",
 ]
 
 [[package]]
@@ -526,14 +529,16 @@ name = "ewe-domain"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-channel",
  "crossbeam",
  "ewe-channels",
  "futures",
- "serde",
  "thiserror",
  "tokio",
+ "tokio-test",
  "tracing",
  "tracing-subscriber",
+ "tracing-test",
 ]
 
 [[package]]
@@ -559,9 +564,9 @@ dependencies = [
  "regex",
  "strum",
  "strum_macros",
- "syncbox",
  "thiserror",
  "tracing",
+ "tracing-subscriber",
  "tracing-test",
 ]
 
@@ -580,9 +585,32 @@ dependencies = [
  "anyhow",
  "ewe-logs",
  "memchr",
- "syncbox",
  "thiserror",
  "tracing",
+ "tracing-test",
+]
+
+[[package]]
+name = "ewe-routing"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "criterion",
+ "ewe-logs",
+ "ewe-mem",
+ "http",
+ "lazy-regex",
+ "lazy_static",
+ "regex",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "thiserror",
+ "tokio",
+ "tokio-test",
+ "tower",
+ "tracing",
+ "tracing-test",
 ]
 
 [[package]]
@@ -592,6 +620,7 @@ dependencies = [
  "anyhow",
  "cfg-if",
  "futures",
+ "thiserror",
  "tokio",
  "tokio-test",
  "tracing",
@@ -600,7 +629,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "ewe-template-macro"
+name = "ewe-templates"
+version = "0.1.0"
+dependencies = [
+ "minijinja",
+ "tinytemplate 1.2.1 (git+https://github.com/ewe-studios/TinyTemplate.git?branch=master)",
+]
+
+[[package]]
+name = "ewe-templates-macro"
 version = "0.1.0"
 dependencies = [
  "ewe-templates",
@@ -608,16 +645,9 @@ dependencies = [
  "quote",
  "serde",
  "serde_json",
+ "serde_with",
  "syn",
  "trybuild",
-]
-
-[[package]]
-name = "ewe-templates"
-version = "0.1.0"
-dependencies = [
- "minijinja",
- "tinytemplate 1.2.1 (git+https://github.com/ewe-studios/TinyTemplate.git?branch=master)",
 ]
 
 [[package]]
@@ -633,6 +663,7 @@ dependencies = [
  "thiserror",
  "tinytemplate 1.2.1 (git+https://github.com/ewe-studios/TinyTemplate.git?branch=master)",
  "tracing",
+ "tracing-test",
 ]
 
 [[package]]
@@ -646,8 +677,10 @@ dependencies = [
  "serde_json",
  "serde_with",
  "thiserror",
+ "toml",
  "tracing",
  "tracing-subscriber",
+ "tracing-test",
 ]
 
 [[package]]
@@ -666,7 +699,10 @@ dependencies = [
  "serde_with",
  "thiserror",
  "tokio",
+ "tokio-test",
  "tracing",
+ "tracing-subscriber",
+ "tracing-test",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -805,7 +841,7 @@ checksum = "94b22e06ecb0110981051723910cbf0b5f5e09a2062dd7663334ee79a9d1286c"
 dependencies = [
  "cfg-if",
  "libc",
- "wasi 0.11.0+wasi-snapshot-preview1",
+ "wasi",
 ]
 
 [[package]]
@@ -852,10 +888,11 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 name = "hello"
 version = "0.1.0"
 dependencies = [
- "ewe-template-macro",
  "ewe-templates",
+ "ewe-templates-macro",
  "serde",
  "serde_json",
+ "serde_with",
 ]
 
 [[package]]
@@ -1066,15 +1103,6 @@ dependencies = [
 
 [[package]]
 name = "log"
-version = "0.3.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e19e8d5c34a3e0e2223db8e060f9e8264aeeb5c5fc64a4ee9965c062211c024b"
-dependencies = [
- "log 0.4.20",
-]
-
-[[package]]
-name = "log"
 version = "0.4.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5e6163cb8c49088c2c36f57875e58ccd8c87c7427f7fbd50ea6710b2f3f2e8f"
@@ -1119,8 +1147,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f3d0b296e374a4e6f3c7b0a1f5a51d748a0d34c85e7dc48fc3fa9a87657fe09"
 dependencies = [
  "libc",
- "log 0.4.20",
- "wasi 0.11.0+wasi-snapshot-preview1",
+ "log",
+ "wasi",
  "windows-sys 0.48.0",
 ]
 
@@ -1128,10 +1156,11 @@ dependencies = [
 name = "multi_template"
 version = "0.1.0"
 dependencies = [
- "ewe-template-macro",
  "ewe-templates",
+ "ewe-templates-macro",
  "serde",
  "serde_json",
+ "serde_with",
 ]
 
 [[package]]
@@ -1159,7 +1188,7 @@ dependencies = [
  "inotify",
  "kqueue",
  "libc",
- "log 0.4.20",
+ "log",
  "mio",
  "walkdir",
  "windows-sys 0.48.0",
@@ -1172,7 +1201,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "49f5dab59c348b9b50cf7f261960a20e389feb2713636399cd9082cd4b536154"
 dependencies = [
  "file-id",
- "log 0.4.20",
+ "log",
  "notify",
  "parking_lot",
  "walkdir",
@@ -1485,25 +1514,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a66a03ae7c801facd77a29370b4faec201768915ac14a721ba36f20bc9c209b"
 
 [[package]]
-name = "routing"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "criterion",
- "ewe-logs",
- "ewe-mem",
- "http",
- "lazy-regex",
- "regex",
- "serde",
- "serde_json",
- "thiserror",
- "tower",
- "tracing",
- "tracing-test",
-]
-
-[[package]]
 name = "rustc-demangle"
 version = "0.1.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1602,7 +1612,7 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "serde_with_macros",
- "time 0.3.34",
+ "time",
 ]
 
 [[package]]
@@ -1709,16 +1719,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "syncbox"
-version = "0.2.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05bc2b72659ac27a2d0e7c4166c8596578197c4c41f767deab12c81f523b85c7"
-dependencies = [
- "log 0.3.9",
- "time 0.1.45",
-]
-
-[[package]]
 name = "termcolor"
 version = "1.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1755,17 +1755,6 @@ checksum = "8b9ef9bad013ada3808854ceac7b46812a6465ba368859a37e2100283d2d719c"
 dependencies = [
  "cfg-if",
  "once_cell",
-]
-
-[[package]]
-name = "time"
-version = "0.1.45"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b797afad3f312d1c66a56d11d0316f916356d11bd158fbc6ca6389ff6bf805a"
-dependencies = [
- "libc",
- "wasi 0.10.0+wasi-snapshot-preview1",
- "winapi",
 ]
 
 [[package]]
@@ -1935,7 +1924,7 @@ version = "0.1.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c3523ab5a71916ccf420eebdf5521fcef02141234bbc0b8a49f2fdc4544364ef"
 dependencies = [
- "log 0.4.20",
+ "log",
  "pin-project-lite",
  "tracing-attributes",
  "tracing-core",
@@ -1968,7 +1957,7 @@ version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ee855f1f400bd0e5c02d150ae5de3840039a3f54b025156404e34c23c03f47c3"
 dependencies = [
- "log 0.4.20",
+ "log",
  "once_cell",
  "tracing-core",
 ]
@@ -2057,12 +2046,6 @@ dependencies = [
 
 [[package]]
 name = "wasi"
-version = "0.10.0+wasi-snapshot-preview1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1a143597ca7c7793eff794def352d41792a93c481eb1042423ff7ff72ba2c31f"
-
-[[package]]
-name = "wasi"
 version = "0.11.0+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c8d87e72b64a3b4db28d11ce29237c246188f4f51057d65a7eab63b7987e423"
@@ -2086,7 +2069,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "614d787b966d3989fa7bb98a654e369c762374fd3213d212cfc0251257e747da"
 dependencies = [
  "bumpalo",
- "log 0.4.20",
+ "log",
  "once_cell",
  "proc-macro2",
  "quote",
@@ -2144,6 +2127,10 @@ dependencies = [
  "ctrlc",
  "ewe-watchers",
  "serde",
+ "serde_json",
+ "serde_with",
+ "thiserror",
+ "toml",
  "tracing",
  "tracing-subscriber",
 ]
