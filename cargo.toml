@@ -20,6 +20,7 @@ keywords = ["ewe_platform", "ewestudios platform", "ewe"]
 ewe-web = { path = "./crates/web" }
 ewe-logs = { path = "./crates/logs", default-features = false }
 ewe-spawn = { path = "./crates/spawn" }
+ewe-async-utils = { path = "./crates/async-utils" }
 ewe-watchers = { path = "./crates/watchers" }
 ewe-temple = { path = "./crates/temple" }
 ewe-templates = { path = "./crates/templates" }

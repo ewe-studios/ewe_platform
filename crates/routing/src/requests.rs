@@ -1,12 +1,10 @@
 use core::fmt;
-use std::any::TypeId;
-use std::cmp::Ordering;
-use std::hash::Hash;
 use std::{
-    collections::HashMap, convert::Infallible, fmt::Debug, future::Future, ops::Deref, slice::Iter,
-    slice::IterMut, str::FromStr,
+    any::TypeId, cmp::Ordering, collections::HashMap, convert::Infallible, fmt::Debug,
+    future::Future, hash::Hash, ops::Deref, slice::Iter, slice::IterMut, str::FromStr,
 };
 
+use axum::body;
 use ewe_mem::accumulator::Accumulator;
 
 use http::{
@@ -16,10 +14,16 @@ use http::{
     HeaderValue,
 };
 
+use axum::extract::FromRequest;
+
 pub use http::{Extensions, HeaderMap, Uri, Version};
 use thiserror::Error;
 
-use crate::{field_method, field_method_as_mut, set_field_method_as_mut};
+use crate::{
+    field_method, field_method_as_mut,
+    router::{RouterErrors, RouterResult},
+    set_field_method_as_mut,
+};
 
 pub type RouteURL = String;
 
@@ -283,13 +287,14 @@ impl From<http::request::Parts> for RequestHead {
 pub type Params = HashMap<String, String>;
 
 #[derive(Clone)]
-pub struct Request<T> {
+pub struct Request<T, S = ()> {
     pub head: RequestHead,
     pub body: Option<T>,
     pub params: Params,
+    pub state: S,
 }
 
-impl<T: fmt::Debug> fmt::Debug for Request<T> {
+impl<T: fmt::Debug, S> fmt::Debug for Request<T, S> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Request")
             .field("head", &self.head)
@@ -304,12 +309,22 @@ impl Request<()> {
     }
 }
 
-impl<T> Request<T> {
+impl<T, S: Default> Request<T, S> {
     pub fn new(t: T, head: RequestHead) -> Self {
         Self {
             head,
+            state: S::default(),
             body: Some(t),
             params: HashMap::default(),
+        }
+    }
+
+    pub fn with_state(t: Option<T>, state: S, head: RequestHead, params: Params) -> Self {
+        Self {
+            head,
+            state,
+            params,
+            body: t,
         }
     }
 
@@ -318,6 +333,7 @@ impl<T> Request<T> {
             head,
             params,
             body: t,
+            state: S::default(),
         }
     }
 
@@ -325,6 +341,7 @@ impl<T> Request<T> {
         Self {
             head,
             body: t,
+            state: S::default(),
             params: HashMap::default(),
         }
     }
@@ -334,6 +351,7 @@ impl<T> Request<T> {
         Self {
             head,
             body: None,
+            state: S::default(),
             params: HashMap::default(),
         }
     }
@@ -351,13 +369,14 @@ impl<T> Request<T> {
     /// Consumes the request creating a new request which has the body
     /// mapped to the new type using the provided function.
     ///
-    pub fn map_self<F>(self, f: F) -> Request<T>
+    pub fn map_self<F>(self, f: F) -> Request<T, S>
     where
-        F: FnOnce(Request<T>) -> Request<T>,
+        F: FnOnce(Request<T, S>) -> Request<T, S>,
     {
         f(Request {
             head: self.head,
             body: self.body,
+            state: self.state,
             params: self.params,
         })
     }
@@ -365,20 +384,21 @@ impl<T> Request<T> {
     /// Consumes the request creating a new request which has the body
     /// mapped to the new type using the provided function.
     ///
-    pub fn map<F, U>(self, f: F) -> Request<U>
+    pub fn map<F, U>(self, f: F) -> Request<U, S>
     where
         F: FnOnce(Option<T>) -> Option<U>,
     {
         Request {
             head: self.head,
             body: f(self.body),
+            state: self.state,
             params: self.params,
         }
     }
 
     /// map_params consumes this request setting the `Params` to the new
     /// value, returning a new requesting using that `Params`.
-    pub fn map_params(self, p: Params) -> Request<T> {
+    pub fn map_params(self, p: Params) -> Request<T, S> {
         self.map_self(|mut req| {
             req.params = p;
             req
@@ -436,6 +456,9 @@ impl<T> Request<T> {
     pub fn version(&self) -> Version {
         self.head.version
     }
+
+    field_method!(state, S);
+    field_method_as_mut!(state_mut, state, S);
 
     field_method!(params, Params);
     field_method_as_mut!(param_mut, params, Params);
@@ -499,7 +522,7 @@ impl From<InvalidMethod> for TryFromLightRequestError {
     }
 }
 
-impl<T> TryFrom<LightRequest<T>> for Request<T> {
+impl<T, S: Default> TryFrom<LightRequest<T>> for Request<T, S> {
     type Error = TryFromLightRequestError;
 
     /// This implementation of is unique in that it skips any headers that
@@ -551,7 +574,7 @@ impl From<Infallible> for TryFromRequestError {
     }
 }
 
-impl<T> TryFrom<Request<T>> for LightRequest<T> {
+impl<T, S> TryFrom<Request<T, S>> for LightRequest<T> {
     type Error = TryFromRequestError;
 
     /// This implementation of is unique in that it skips any headers that
@@ -560,7 +583,7 @@ impl<T> TryFrom<Request<T>> for LightRequest<T> {
     ///
     /// Secondly the underlying body of the Request is also consumed by this
     /// returned LightRequest.
-    fn try_from(value: Request<T>) -> Result<Self, Self::Error> {
+    fn try_from(value: Request<T, S>) -> Result<Self, Self::Error> {
         let mut headers = HashMap::new();
 
         for (keyc, value) in value.head.headers {
@@ -583,14 +606,111 @@ impl<T> TryFrom<Request<T>> for LightRequest<T> {
     }
 }
 
-impl<T> TryFrom<http::Request<T>> for Request<T> {
+pub struct TypedHttpRequest<T>(pub http::Request<T>);
+
+impl<T> From<http::Request<T>> for TypedHttpRequest<T> {
+    fn from(value: http::Request<T>) -> Self {
+        Self(value)
+    }
+}
+
+impl<T, S: Default> TryFrom<TypedHttpRequest<T>> for Request<T, S> {
     type Error = TryFromRequestError;
 
-    fn try_from(value: http::Request<T>) -> Result<Self, Self::Error> {
-        let (head, body) = value.into_parts();
+    fn try_from(value: TypedHttpRequest<T>) -> Result<Self, Self::Error> {
+        let (head, body) = value.0.into_parts();
         Ok(Self {
+            state: S::default(),
             head: head.into(),
             body: Some(body),
+            params: HashMap::default(),
+        })
+    }
+}
+
+#[derive(Debug, Clone, Error)]
+pub enum TryFromBodyRequestError {
+    #[error("failed to convert body into type instance")]
+    FailedConversion,
+
+    #[error("Infallible error that should not occur, occured")]
+    Infallible(Infallible),
+}
+
+pub trait FromBody<T> {
+    fn from_body(body: axum::body::Body) -> std::result::Result<T, TryFromBodyRequestError>;
+}
+
+/// Wrapper type that allows us implement for handling http::Request types directly
+/// having access to the `axum::body::Body` of a request.
+/// This allows us convert a http::Request<axum::Body::Body>
+/// into a Request object of type `T`.
+pub struct BodyHttpRequest(pub http::Request<axum::body::Body>);
+
+impl From<http::Request<axum::body::Body>> for BodyHttpRequest {
+    fn from(value: http::Request<axum::body::Body>) -> Self {
+        Self(value)
+    }
+}
+
+impl<T, S> TryFrom<BodyHttpRequest> for Request<T, S>
+where
+    T: FromBody<T>,
+    S: Default,
+{
+    type Error = TryFromBodyRequestError;
+
+    fn try_from(value: BodyHttpRequest) -> Result<Self, Self::Error> {
+        let (head, body) = value.0.into_parts();
+        let transmuted_body = T::from_body(body)?;
+
+        Ok(Self {
+            state: S::default(),
+            head: head.into(),
+            body: Some(transmuted_body),
+            params: HashMap::default(),
+        })
+    }
+}
+
+pub trait IntoBody<T, E> {
+    fn into_body(body: T) -> std::result::Result<body::Body, E>;
+}
+
+pub trait IntoBytes<T, E> {
+    fn into_bytes(body: T) -> std::result::Result<bytes::Bytes, E>;
+}
+
+pub trait FromBytes<T> {
+    fn from_body(body: bytes::Bytes) -> std::result::Result<T, TryFromBodyRequestError>;
+}
+
+/// Wrapper type that allows us implement for handling http::Request types directly
+/// having access to the Bytes. This allows us convert a http::Request<axum::Body::Body>
+/// into a Request object of type `T`.
+pub struct BytesHttpRequest(pub http::Request<bytes::Bytes>);
+
+impl From<http::Request<bytes::Bytes>> for BytesHttpRequest {
+    fn from(value: http::Request<bytes::Bytes>) -> Self {
+        Self(value)
+    }
+}
+
+impl<T, S> TryFrom<BytesHttpRequest> for Request<T, S>
+where
+    T: FromBytes<T>,
+    S: Default,
+{
+    type Error = TryFromBodyRequestError;
+
+    fn try_from(value: BytesHttpRequest) -> Result<Self, Self::Error> {
+        let (head, body) = value.0.into_parts();
+        let transmuted_body = T::from_body(body)?;
+
+        Ok(Self {
+            state: S::default(),
+            head: head.into(),
+            body: Some(transmuted_body),
             params: HashMap::default(),
         })
     }

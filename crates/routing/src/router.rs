@@ -1,5 +1,8 @@
 use crate::{
-    requests::{self, Method, MethodError, Params, Request, Uri},
+    requests::{
+        self, BodyHttpRequest, BytesHttpRequest, FromBody, FromBytes, IntoBody, IntoBytes, Method,
+        MethodError, Params, Request, RequestHead, TryFromBodyRequestError, TypedHttpRequest, Uri,
+    },
     response::{self, Response, ResponseHead, StatusCode},
     routes::{
         create_servicer_func, ResponseFuture, RouteMethod, RouteOp, RouteSegment, Servicer,
@@ -7,7 +10,8 @@ use crate::{
     },
 };
 
-use std::{error, future::Future, marker::PhantomData, pin::Pin, task::Poll};
+use axum::body;
+use std::{convert::Infallible, error, future::Future, marker::PhantomData, pin::Pin, task::Poll};
 use thiserror::Error;
 use tower::Service;
 
@@ -32,6 +36,15 @@ pub enum RouterErrors {
     #[error("Route has no server for http Method: {0}")]
     MethodHasNoServer(Method),
 
+    #[error("Route failed read body: body bigger than {0}")]
+    BodyBytesLengthLimitError(usize),
+
+    #[error("Route failed to convert body: {0}")]
+    BodyConversionError(TryFromBodyRequestError),
+
+    #[error("Infallible error: {0}")]
+    Infallible(Infallible),
+
     #[error("Internal error, please investigate")]
     IntervalError,
 }
@@ -48,12 +61,125 @@ pub struct Router<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> 
     root: RouteSegment<'a, R, S, Server>,
 }
 
-impl<
-        'a: 'static,
-        R: Send + Clone + 'a,
-        S: Send + Clone + 'a,
-        Server: Servicer<R, S, Error = RouterErrors> + 'a,
-    > tower::Service<http::Request<R>> for Router<'a, R, S, Server>
+/// RouterService wraps a Router instance and transforms into a tower::Service for the
+/// attachment to an axum Router, it expects the usize defining the max body size the
+/// service can take.
+#[derive(Clone)]
+pub struct RouterService<'a, R, S, Server>(usize, &'a Router<'a, R, S, Server>)
+where
+    R: Send + Clone,
+    S: Send + Clone,
+    Server: Servicer<R, S>;
+
+impl<'a: 'static, R, S, Server> RouterService<'a, R, S, Server>
+where
+    R: FromBytes<R> + Send + Clone + 'a,
+    S: IntoBody<S, Infallible> + Send + Clone + 'a,
+    Server: Servicer<R, S, Error = RouterErrors> + 'a,
+{
+    pub fn new(max_body_bytes: usize, router: &'a Router<'a, R, S, Server>) -> Self {
+        Self(max_body_bytes, router)
+    }
+}
+
+impl<'a: 'static, R, S, Server> tower::Service<http::Request<axum::body::Body>>
+    for RouterService<'a, R, S, Server>
+where
+    R: FromBytes<R> + Send + Clone + 'a,
+    S: IntoBody<S, Infallible> + Default + Send + Clone + 'a,
+    Server: Servicer<R, S, Error = RouterErrors> + 'a,
+{
+    type Error = Infallible;
+    type Response = http::Response<body::Body>;
+    type Future = std::pin::Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>>>>;
+
+    fn poll_ready(
+        &mut self,
+        cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), Self::Error>> {
+        Poll::Ready(Ok(()))
+    }
+
+    fn call(&mut self, req: http::Request<axum::body::Body>) -> Self::Future {
+        let body_limit = self.0;
+        let server = self.1.clone();
+
+        Box::pin(async move {
+            let (head, body) = req.into_parts();
+            match axum::body::to_bytes(body, body_limit).await {
+                Ok(body_bytes) => match R::from_body(body_bytes) {
+                    Ok(transmuted_body) => {
+                        let request_head: RequestHead = head.into();
+                        let request = Request::from(Some(transmuted_body), request_head);
+
+                        match server.serve(request).await {
+                            Ok(response) => {
+                                let (mut res_head, res_body) = response.into_parts();
+                                match res_body {
+                                    Some(content) => {
+                                        let mut response_builder = http::response::Builder::new()
+                                            .status(res_head.status)
+                                            .version(res_head.version);
+
+                                        response_builder
+                                            .headers_mut()
+                                            .replace(res_head.headers_mut());
+
+                                        response_builder
+                                            .extensions_mut()
+                                            .replace(res_head.extensions_mut());
+
+                                        let converted_body = S::into_body(content).unwrap();
+
+                                        Ok(response_builder.body(converted_body).unwrap())
+                                    }
+                                    None => {
+                                        let mut response_builder = http::response::Builder::new()
+                                            .status(res_head.status)
+                                            .version(res_head.version);
+
+                                        response_builder
+                                            .headers_mut()
+                                            .replace(res_head.headers_mut());
+
+                                        response_builder
+                                            .extensions_mut()
+                                            .replace(res_head.extensions_mut());
+
+                                        let converted_body = S::into_body(S::default()).unwrap();
+
+                                        Ok(response_builder.body(converted_body).unwrap())
+                                    }
+                                }
+                            }
+                            Err(bad_err) => response::ResponseResult(Ok(Response::from_head(
+                                ResponseHead::standard(StatusCode::BAD_REQUEST),
+                            )))
+                            .into(),
+                        }
+                    }
+                    Err(err) => response::ResponseResult(Ok(Response::from_head(
+                        ResponseHead::standard(StatusCode::BAD_REQUEST),
+                    )))
+                    .into(),
+                },
+                Err(err) => {
+                    ewe_logs::error!("Failed to read body bytes: {:?}", err);
+                    response::ResponseResult(Ok(Response::from_head(ResponseHead::standard(
+                        StatusCode::BAD_REQUEST,
+                    ))))
+                    .into()
+                }
+            }
+        })
+    }
+}
+
+impl<'a: 'static, R, S, Server> tower::Service<BodyHttpRequest> for Router<'a, R, S, Server>
+where
+    R: FromBody<R> + Send + Clone + 'a,
+    S: Send + Clone + 'a,
+    Server: Servicer<R, S, Error = RouterErrors> + 'a,
 {
     type Error = RouterErrors;
     type Response = http::Response<S>;
@@ -66,22 +192,48 @@ impl<
         Poll::Ready(Ok(()))
     }
 
-    fn call(&mut self, req: http::Request<R>) -> Self::Future {
-        let request: requests::Request<R> = req.try_into().unwrap();
+    fn call(&mut self, req: BodyHttpRequest) -> Self::Future {
         let clone_self = self.clone();
         Box::pin(async move {
+            let request: requests::Request<R> = req.try_into().expect("should unwrap");
             let result = clone_self.serve(request).await;
             response::ResponseResult(result).into()
         })
     }
 }
 
-impl<
-        'b: 'static,
-        R: Send + Clone + 'b,
-        S: Send + Clone + 'b,
-        Server: Servicer<R, S, Error = RouterErrors> + 'b,
-    > Servicer<R, S> for Router<'b, R, S, Server>
+impl<'a: 'static, R, S, Server> tower::Service<TypedHttpRequest<R>> for Router<'a, R, S, Server>
+where
+    R: Send + Clone + 'a,
+    S: Send + Clone + 'a,
+    Server: Servicer<R, S, Error = RouterErrors> + 'a,
+{
+    type Error = RouterErrors;
+    type Response = http::Response<S>;
+    type Future = std::pin::Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>>>>;
+
+    fn poll_ready(
+        &mut self,
+        cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), Self::Error>> {
+        Poll::Ready(Ok(()))
+    }
+
+    fn call(&mut self, req: TypedHttpRequest<R>) -> Self::Future {
+        let clone_self = self.clone();
+        Box::pin(async move {
+            let request: requests::Request<R> = req.try_into().expect("should unwrap");
+            let result = clone_self.serve(request).await;
+            response::ResponseResult(result).into()
+        })
+    }
+}
+
+impl<'b: 'static, R, S, Server> Servicer<R, S> for Router<'b, R, S, Server>
+where
+    R: Send + Clone + 'b,
+    S: Send + Clone + 'b,
+    Server: Servicer<R, S, Error = RouterErrors> + 'b,
 {
     type Error = RouterErrors;
 
@@ -169,15 +321,25 @@ pub fn default_fallback_method<R: Clone + Send, S: Clone + Send>(
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use core::fmt;
-
-    use requests::RequestHead;
+    use requests::{FromBytes, IntoBody, IntoBytes, RequestHead, TryFromBodyRequestError};
 
     use super::*;
 
     #[derive(Clone, PartialEq, Eq)]
     enum MyRequests {
         Hello(String),
+    }
+
+    impl FromBytes<MyRequests> for MyRequests {
+        fn from_body(
+            body: bytes::Bytes,
+        ) -> std::result::Result<MyRequests, requests::TryFromBodyRequestError> {
+            let content = String::from_utf8(body.to_vec())
+                .map_err(|_| TryFromBodyRequestError::FailedConversion)?;
+            Ok(MyRequests::Hello(String::from(content)))
+        }
     }
 
     impl fmt::Debug for MyRequests {
@@ -191,6 +353,18 @@ mod tests {
     #[derive(Clone, PartialEq, Eq)]
     enum MyResponse {
         World(String),
+    }
+
+    impl Default for MyResponse {
+        fn default() -> Self {
+            MyResponse::World(String::from(""))
+        }
+    }
+
+    impl IntoBody<MyResponse, Infallible> for MyResponse {
+        fn into_body(body: MyResponse) -> std::result::Result<body::Body, Infallible> {
+            todo!()
+        }
     }
 
     impl fmt::Debug for MyResponse {
@@ -249,7 +423,6 @@ mod tests {
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     async fn fallback_handles_unknown_route() {
         let fallback = default_fallback_method::<MyRequests, MyResponse>();
-
         let mut router = Router::new(fallback);
 
         let hello_server = create_servicer_func(hello_request);
@@ -268,5 +441,17 @@ mod tests {
         let (head, body) = response_result.unwrap().into_parts();
         assert!(matches!(body, Option::None));
         assert_eq!(head.status, StatusCode::NOT_IMPLEMENTED);
+    }
+
+    async fn can_use_router_with_axum_router() {
+        let fallback = default_fallback_method::<MyRequests, MyResponse>();
+        let mut our_router = Router::new(fallback);
+        let our_router_service = RouterService::new(1024, &our_router);
+
+        let axum_router: axum::Router<_> =
+            axum::Router::new().route_service::<RouterService<'static, MyRequests, MyResponse, _>>(
+                "/*",
+                our_router_service,
+            );
     }
 }
