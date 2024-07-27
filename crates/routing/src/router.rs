@@ -15,7 +15,8 @@ use std::{convert::Infallible, error, future::Future, marker::PhantomData, pin::
 use thiserror::Error;
 use tower::Service;
 
-pub type ServerFuture<S, E> = std::pin::Pin<Box<dyn Future<Output = ServicerResult<S, E>>>>;
+pub type ServerFuture<'a, S, E> =
+    std::pin::Pin<Box<dyn Future<Output = ServicerResult<S, E>> + Send + 'a>>;
 
 pub type RouterResult<E> = std::result::Result<(), E>;
 
@@ -65,7 +66,7 @@ pub struct Router<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> 
 /// attachment to an axum Router, it expects the usize defining the max body size the
 /// service can take.
 #[derive(Clone)]
-pub struct RouterService<'a, R, S, Server>(usize, &'a Router<'a, R, S, Server>)
+pub struct RouterService<'a, R, S, Server>(usize, Router<'a, R, S, Server>)
 where
     R: Send + Clone,
     S: Send + Clone,
@@ -77,7 +78,7 @@ where
     S: IntoBody<S, Infallible> + Send + Clone + 'a,
     Server: Servicer<R, S, Error = RouterErrors> + 'a,
 {
-    pub fn new(max_body_bytes: usize, router: &'a Router<'a, R, S, Server>) -> Self {
+    pub fn new(max_body_bytes: usize, router: Router<'a, R, S, Server>) -> Self {
         Self(max_body_bytes, router)
     }
 }
@@ -87,11 +88,12 @@ impl<'a: 'static, R, S, Server> tower::Service<http::Request<axum::body::Body>>
 where
     R: FromBytes<R> + Send + Clone + 'a,
     S: IntoBody<S, Infallible> + Default + Send + Clone + 'a,
-    Server: Servicer<R, S, Error = RouterErrors> + 'a,
+    Server: Servicer<R, S, Error = RouterErrors> + Send + 'a,
 {
     type Error = Infallible;
     type Response = http::Response<body::Body>;
-    type Future = std::pin::Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>>>>;
+    type Future =
+        std::pin::Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send + 'a>>;
 
     fn poll_ready(
         &mut self,
@@ -101,6 +103,8 @@ where
     }
 
     fn call(&mut self, req: http::Request<axum::body::Body>) -> Self::Future {
+        ewe_logs::debug!("RouterService received requests");
+
         let body_limit = self.0;
         let server = self.1.clone();
 
@@ -152,16 +156,22 @@ where
                                     }
                                 }
                             }
-                            Err(bad_err) => response::ResponseResult(Ok(Response::from_head(
-                                ResponseHead::standard(StatusCode::BAD_REQUEST),
-                            )))
-                            .into(),
+                            Err(bad_err) => {
+                                ewe_logs::debug!("Bad request received: {:?}", bad_err);
+                                response::ResponseResult(Ok(Response::from_head(
+                                    ResponseHead::standard(StatusCode::BAD_REQUEST),
+                                )))
+                                .into()
+                            }
                         }
                     }
-                    Err(err) => response::ResponseResult(Ok(Response::from_head(
-                        ResponseHead::standard(StatusCode::BAD_REQUEST),
-                    )))
-                    .into(),
+                    Err(err) => {
+                        ewe_logs::debug!("TryFromBodyRequestError occured");
+                        response::ResponseResult(Ok(Response::from_head(ResponseHead::standard(
+                            StatusCode::BAD_REQUEST,
+                        ))))
+                        .into()
+                    }
                 },
                 Err(err) => {
                     ewe_logs::error!("Failed to read body bytes: {:?}", err);
@@ -237,9 +247,12 @@ where
 {
     type Error = RouterErrors;
 
-    type Future = ServerFuture<S, Self::Error>;
+    type Future = ServerFuture<'b, S, Self::Error>;
 
-    fn serve(&self, req: requests::Request<R>) -> Self::Future {
+    fn serve(&self, req: requests::Request<R>) -> Self::Future
+    where
+        <Server as Servicer<R, S>>::Future: Send,
+    {
         let route = req.path();
         let (head, body) = req.into_parts();
         let method = head.clone_method();
@@ -294,6 +307,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> Router<'a, R,
 }
 
 pub fn bad_request_handler<R, S>(req: Request<R>) -> ResponseFuture<S, RouterErrors> {
+    ewe_logs::debug!("Fallback handler reeceived requests");
     Box::pin(async {
         Ok(Response::from(
             None,
@@ -320,14 +334,17 @@ pub fn default_fallback_method<R: Clone + Send, S: Clone + Send>(
 }
 
 #[cfg(test)]
-mod tests {
+mod router_tests {
     use super::*;
+    use body::HttpBody;
     use core::fmt;
     use requests::{FromBytes, IntoBody, IntoBytes, RequestHead, TryFromBodyRequestError};
+    use serde::{Deserialize, Serialize};
+    use tower::ServiceExt;
 
     use super::*;
 
-    #[derive(Clone, PartialEq, Eq)]
+    #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
     enum MyRequests {
         Hello(String),
     }
@@ -350,7 +367,7 @@ mod tests {
         }
     }
 
-    #[derive(Clone, PartialEq, Eq)]
+    #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
     enum MyResponse {
         World(String),
     }
@@ -363,7 +380,9 @@ mod tests {
 
     impl IntoBody<MyResponse, Infallible> for MyResponse {
         fn into_body(body: MyResponse) -> std::result::Result<body::Body, Infallible> {
-            todo!()
+            Ok(axum::body::Body::from(
+                serde_json::to_string(&body).unwrap(),
+            ))
         }
     }
 
@@ -385,7 +404,7 @@ mod tests {
                         "{} World!",
                         content,
                     )))),
-                    ResponseHead::standard(StatusCode::NOT_IMPLEMENTED),
+                    ResponseHead::standard(StatusCode::OK),
                 ));
             }
             return Err(RouterErrors::IntervalError);
@@ -443,15 +462,38 @@ mod tests {
         assert_eq!(head.status, StatusCode::NOT_IMPLEMENTED);
     }
 
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     async fn can_use_router_with_axum_router() {
         let fallback = default_fallback_method::<MyRequests, MyResponse>();
         let mut our_router = Router::new(fallback);
-        let our_router_service = RouterService::new(1024, &our_router);
 
-        let axum_router: axum::Router<_> =
-            axum::Router::new().route_service::<RouterService<'static, MyRequests, MyResponse, _>>(
-                "/*",
-                our_router_service,
-            );
+        let hello_server = create_servicer_func(hello_request);
+        our_router.route("/*", RouteMethod::get(hello_server));
+
+        let our_router_service = RouterService::new(1024, our_router);
+        let mut axum_router: axum::Router =
+            axum::Router::new().route_service("/", our_router_service);
+
+        let serialized = serde_json::to_string(&MyRequests::Hello(String::from("Alex"))).unwrap();
+
+        let req = http::Request::builder()
+            .uri("/")
+            .body(axum::body::Body::from(serialized))
+            .unwrap();
+
+        // let response = axum_router.ready().await.unwrap().call(req).await;
+        let response = axum_router.call(req).await.unwrap();
+
+        println!("Got response with: {:?}", response);
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let response_body = axum::body::to_bytes(response.into_body(), 1024)
+            .await
+            .unwrap();
+
+        let my_response: MyResponse = serde_json::from_slice(&response_body).unwrap();
+
+        println!("Finished with: {:?}", my_response);
     }
 }

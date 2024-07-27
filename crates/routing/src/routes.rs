@@ -386,12 +386,13 @@ pub trait Servicer<R: Send + Clone, S: Send + Clone>: Send + Clone {
     type Error;
 
     /// The Future that completes this servicer.
-    type Future: Future<Output = ServicerResult<S, Self::Error>>;
+    type Future: Future<Output = ServicerResult<S, Self::Error>> + Send + 'static;
 
     fn serve(&self, req: Request<R>) -> Self::Future;
 }
 
-pub type ResponseFuture<S, E> = pin::Pin<Box<dyn Future<Output = Result<Response<S>, E>>>>;
+pub type ResponseFuture<S, E> =
+    pin::Pin<Box<dyn Future<Output = Result<Response<S>, E>> + Send + 'static>>;
 
 pub type HandlerFunc<R, S, E> = fn(Request<R>) -> ResponseFuture<S, E>;
 
@@ -429,7 +430,8 @@ impl<R: Send + Clone + 'static, S: Send + Clone + 'static, E: Clone + Send + 'st
 {
     type Error = E;
 
-    type Future = std::pin::Pin<Box<dyn Future<Output = Result<Response<S>, Self::Error>>>>;
+    type Future =
+        std::pin::Pin<Box<dyn Future<Output = Result<Response<S>, Self::Error>> + Send + 'static>>;
 
     fn serve(&self, req: Request<R>) -> Self::Future {
         let mut callable = self.0.inner.lock().unwrap();
@@ -1563,8 +1565,9 @@ mod route_segment_tests {
     impl Servicer<MyRequest, MyResponse> for MyServer {
         type Error = ();
 
-        type Future =
-            std::pin::Pin<Box<dyn Future<Output = ServicerResult<MyResponse, Self::Error>>>>;
+        type Future = std::pin::Pin<
+            Box<dyn Future<Output = ServicerResult<MyResponse, Self::Error>> + Send + 'static>,
+        >;
 
         fn serve(&self, req: Request<MyRequest>) -> Self::Future {
             todo!()
