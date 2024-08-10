@@ -1,5 +1,5 @@
 #[allow(unused_macros)]
-#[cfg(all(target_arch = "wasm"))]
+#[cfg(all(target_arch = "wasm32", target_arch = "wasm64"))]
 pub mod logging {
 
     macro_rules! warn {
@@ -21,7 +21,7 @@ pub mod logging {
     }
 }
 
-#[cfg(all(not(target_arch = "wasm")))]
+#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
 #[allow(unused_macros)]
 pub mod logging {
 

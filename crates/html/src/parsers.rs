@@ -1292,7 +1292,7 @@ impl HTMLParser {
         }
     }
 
-    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(feature="debug_trace", tracing::instrument(level = "trace", skip(self)))]
     pub fn parse<'a>(&self, input: &'a str) -> ParsingResult<Stack<'a>> {
         let mut accumulator = Accumulator::new(input);
         match self._parse(&mut accumulator) {
@@ -1307,7 +1307,7 @@ impl HTMLParser {
         }
     }
 
-    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(feature="debug_trace", tracing::instrument(level = "trace", skip(self)))]
     fn _parse<'a>(&self, accumulator: &mut Accumulator<'a>) -> ParsingResult<Stack<'a>> {
         let mut stacks: Vec<Stack> = vec![];
         let mut text_block_tag: Option<MarkupTags> = None;
@@ -1519,7 +1519,7 @@ impl HTMLParser {
         is_alphanum || is_allowed_symbol
     }
 
-    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(feature="debug_trace", tracing::instrument(level = "trace", skip(self)))]
     fn parse_element_from_accumulator<'c, 'd>(
         &self,
         acc: &mut Accumulator<'c>,
@@ -1676,7 +1676,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
-    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(feature="debug_trace", tracing::instrument(level = "trace", skip(self)))]
     fn parse_comment<'c, 'd>(
         &self,
         acc: &mut Accumulator<'c>,
@@ -1717,7 +1717,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
-    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(feature="debug_trace", tracing::instrument(level = "trace", skip(self)))]
     fn parse_code_block<'c, 'd>(
         &self,
         block_starter: &'c str,
@@ -1804,7 +1804,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
-    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(feature="debug_trace", tracing::instrument(level = "trace", skip(self)))]
     fn parse_text_block<'c, 'd>(
         &self,
         acc: &mut Accumulator<'c>,
@@ -1849,7 +1849,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
-    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(feature="debug_trace", tracing::instrument(level = "trace", skip(self)))]
     fn parse_element_text_block<'c, 'd>(
         &self,
         tag: MarkupTags,
@@ -1917,7 +1917,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
-    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(feature="debug_trace", tracing::instrument(level = "trace", skip(self)))]
     fn parse_doc_type<'c, 'd>(
         &self,
         acc: &mut Accumulator<'c>,
@@ -1998,7 +1998,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
-    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(feature="debug_trace", tracing::instrument(level = "trace", skip(self)))]
     fn parse_xml_elem<'c, 'd>(
         &self,
         acc: &mut Accumulator<'c>,
@@ -2079,7 +2079,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
-    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(feature="debug_trace", tracing::instrument(level = "trace", skip(self)))]
     fn parse_elem<'c, 'd>(
         &self,
         acc: &mut Accumulator<'c>,
@@ -2201,7 +2201,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
-    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(feature="debug_trace", tracing::instrument(level = "trace", skip(self)))]
     fn collect_space(&self, acc: &mut Accumulator) -> ParsingResult<()> {
         while let Some(next) = acc.peek_next() {
             ewe_logs::debug!("collect_space: start seen token: {:?}", next);
@@ -2229,7 +2229,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
-    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(feature="debug_trace", tracing::instrument(level = "trace", skip(self)))]
     fn is_valid_attribute_value_token<'a>(&self, token: &'a str) -> bool {
         ewe_logs::debug!("Checking if valid attribute value token: {:?}", token);
         token.chars().any(|t| {
@@ -2240,7 +2240,7 @@ impl HTMLParser {
         })
     }
 
-    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(feature="debug_trace", tracing::instrument(level = "trace", skip(self)))]
     fn dequote_str<'a>(&self, text: &'a str) -> &'a str {
         let text_len = text.len();
         ewe_logs::debug!("dequote: text: {:?} with len: {}", text, text_len);
@@ -2252,7 +2252,7 @@ impl HTMLParser {
         text
     }
 
-    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(feature="debug_trace", tracing::instrument(level = "trace", skip(self)))]
     fn is_valid_attribute_name<'a>(&self, token: &'a str) -> bool {
         token.chars().any(|t| {
             t.is_alphanumeric()
@@ -2261,7 +2261,7 @@ impl HTMLParser {
         })
     }
 
-    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(feature="debug_trace", tracing::instrument(level = "trace", skip(self)))]
     fn collect_attribute_value_alphaneumerics(&self, acc: &mut Accumulator) -> ParsingResult<()> {
         let starter = acc.peek(1).unwrap();
         ewe_logs::debug!(
@@ -2344,7 +2344,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
-    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(feature="debug_trace", tracing::instrument(level = "trace", skip(self)))]
     fn collect_attribute_name_alphaneumerics(&self, acc: &mut Accumulator) -> ParsingResult<()> {
         while let Some(next) = acc.peek_next() {
             if self.is_valid_attribute_name(next) {
@@ -2359,7 +2359,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
-    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(feature="debug_trace", tracing::instrument(level = "trace", skip(self)))]
     fn collect_alphaneumerics(&self, acc: &mut Accumulator) -> ParsingResult<()> {
         while let Some(next) = acc.peek_next() {
             if next.chars().any(char::is_alphanumeric) {
@@ -2374,7 +2374,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
-    #[cfg_attr(any(debug_trace), tracing::instrument(level = "trace", skip(self)))]
+    #[cfg_attr(feature="debug_trace", tracing::instrument(level = "trace", skip(self)))]
     fn parse_elem_attribute<'c, 'd>(
         &self,
         acc: &mut Accumulator<'c>,

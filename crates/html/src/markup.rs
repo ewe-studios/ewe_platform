@@ -215,7 +215,7 @@ pub enum FragmentDef<'a> {
     Component(&'a dyn Island<'a>),
 }
 
-#[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip_all))]
+#[cfg_attr(feature="debug_trace", debug_trace::instrument(level = "trace", skip_all))]
 fn deallocate_nodes<'a>(
     mut list: Option<Vec<Option<Fragment<'a>>>>,
     node_pool: FragmentPool<'a>,
@@ -236,7 +236,7 @@ fn deallocate_nodes<'a>(
     }
 }
 
-#[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip_all))]
+#[cfg_attr(feature="debug_trace", debug_trace::instrument(level = "trace", skip_all))]
 fn deallocate_attributes<'a>(
     mut attributes: Option<Vec<Option<Attribute<'a>>>>,
     attribute_pool: AttributePool<'a>,
@@ -257,7 +257,7 @@ fn deallocate_attributes<'a>(
     }
 }
 
-#[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip_all))]
+#[cfg_attr(feature="debug_trace", debug_trace::instrument(level = "trace", skip_all))]
 fn deallocate_markup_list<'a>(
     mut list: Option<Vec<Option<FragmentDef<'a>>>>,
     node_pool: FragmentPool<'a>,
@@ -278,7 +278,7 @@ fn deallocate_markup_list<'a>(
     }
 }
 
-#[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip_all))]
+#[cfg_attr(feature="debug_trace", debug_trace::instrument(level = "trace", skip_all))]
 fn deallocate_markup<'a>(
     mut markup: Option<FragmentDef<'a>>,
     node_pool: FragmentPool<'a>,
@@ -603,7 +603,7 @@ impl<'a> Fragment<'a> {
             .is_some();
     }
 
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip_all))]
+    #[cfg_attr(feature="debug_trace", debug_trace::instrument(level = "trace", skip_all))]
     pub fn attr_value(&mut self, name: &'a str) -> Option<Bytes<'a>> {
         let encoded_str = Bytes::from_str(name, self.encoding.clone());
         return match self.attributes.iter_mut().find(|attr_container| {
@@ -622,7 +622,7 @@ impl<'a> Fragment<'a> {
         };
     }
 
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip_all))]
+    #[cfg_attr(feature="debug_trace", debug_trace::instrument(level = "trace", skip_all))]
     pub fn update_attribute(&mut self, name: Bytes<'a>, value: Bytes<'a>) {
         let find_attr = self.attributes.iter_mut().find(|attr_container| {
             if let Some(attr) = attr_container {
@@ -646,7 +646,7 @@ impl<'a> Fragment<'a> {
         };
     }
 
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip_all))]
+    #[cfg_attr(feature="debug_trace", debug_trace::instrument(level = "trace", skip_all))]
     pub fn remove_child_at(&mut self, index: usize) -> ElementResult<()> {
         let child_size = self.content.len();
         if index >= child_size {
@@ -704,7 +704,7 @@ impl<'a> Fragment<'a> {
 }
 
 impl<'a> memory::Resetable for Fragment<'a> {
-    #[cfg_attr(any(debug_trace), debug_trace::instrument(level = "trace", skip_all))]
+    #[cfg_attr(feature="debug_trace", debug_trace::instrument(level = "trace", skip_all))]
     fn reset(&mut self) {
         self.name.take();
 

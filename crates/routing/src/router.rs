@@ -342,6 +342,8 @@ mod router_tests {
     use serde::{Deserialize, Serialize};
     use tower::ServiceExt;
 
+    use tracing_test::traced_test;
+
     use super::*;
 
     #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -355,7 +357,10 @@ mod router_tests {
         ) -> std::result::Result<MyRequests, requests::TryFromBodyRequestError> {
             let content = String::from_utf8(body.to_vec())
                 .map_err(|_| TryFromBodyRequestError::FailedConversion)?;
-            Ok(MyRequests::Hello(String::from(content)))
+            ewe_logs::debug!("Request from bytes: {}", content);
+            let data: MyRequests = serde_json::from_slice(content.as_bytes()).unwrap();
+
+            Ok(data)
         }
     }
 
@@ -411,6 +416,7 @@ mod router_tests {
         })
     }
 
+    #[traced_test]
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     async fn can_get_hello_route() {
         let fallback = default_fallback_method::<MyRequests, MyResponse>();
@@ -439,6 +445,7 @@ mod router_tests {
         );
     }
 
+    #[traced_test]
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     async fn fallback_handles_unknown_route() {
         let fallback = default_fallback_method::<MyRequests, MyResponse>();
@@ -462,6 +469,65 @@ mod router_tests {
         assert_eq!(head.status, StatusCode::NOT_IMPLEMENTED);
     }
 
+    #[traced_test]
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn can_get_index_route_using_blanket_routing() {
+        let fallback = default_fallback_method::<MyRequests, MyResponse>();
+
+        let hello_server = create_servicer_func(hello_request);
+
+        let mut router = Router::new(fallback);
+        router.route("/*", RouteMethod::get(hello_server));
+
+        let hello_endpoint = Uri::from_static("/");
+        let req = Request::from(
+            Some(MyRequests::Hello(String::from("Alex"))),
+            RequestHead::get(hello_endpoint),
+        );
+
+        let response_result = router.serve(req).await;
+
+        assert!(matches!(response_result, Result::Ok(_)));
+
+        let mut response = response_result.unwrap();
+
+        let response_body = response.body_mut().take().unwrap();
+        assert_eq!(
+            response_body,
+            MyResponse::World(String::from("Alex World!"))
+        );
+    }
+
+    #[traced_test]
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn can_get_hello_route_using_blanket_routing() {
+        let fallback = default_fallback_method::<MyRequests, MyResponse>();
+
+        let hello_server = create_servicer_func(hello_request);
+
+        let mut router = Router::new(fallback);
+        router.route("/*", RouteMethod::get(hello_server));
+
+        let hello_endpoint = Uri::from_static("/hello");
+        let req = Request::from(
+            Some(MyRequests::Hello(String::from("Alex"))),
+            RequestHead::get(hello_endpoint),
+        );
+
+        let response_result = router.serve(req).await;
+
+        assert!(matches!(response_result, Result::Ok(_)));
+
+        let mut response = response_result.unwrap();
+
+        let response_body = response.body_mut().take().unwrap();
+        assert_eq!(
+            response_body,
+            MyResponse::World(String::from("Alex World!"))
+        );
+    }
+
+    #[traced_test]
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     async fn can_use_router_with_axum_router() {
         let fallback = default_fallback_method::<MyRequests, MyResponse>();
@@ -484,8 +550,6 @@ mod router_tests {
         // let response = axum_router.ready().await.unwrap().call(req).await;
         let response = axum_router.call(req).await.unwrap();
 
-        println!("Got response with: {:?}", response);
-
         assert_eq!(response.status(), StatusCode::OK);
 
         let response_body = axum::body::to_bytes(response.into_body(), 1024)
@@ -494,6 +558,6 @@ mod router_tests {
 
         let my_response: MyResponse = serde_json::from_slice(&response_body).unwrap();
 
-        println!("Finished with: {:?}", my_response);
+        assert_eq!(my_response, MyResponse::World(String::from("Alex World!")));
     }
 }

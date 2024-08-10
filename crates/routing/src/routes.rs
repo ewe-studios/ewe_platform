@@ -296,6 +296,7 @@ impl<'a> SegmentType<'a> {
         match (self, other) {
             (SegmentType::Root, _) => Ok(None),
             (SegmentType::Index, SegmentType::Index) => Ok(None),
+            (SegmentType::AnyPath, SegmentType::Index) => Ok(None),
             (SegmentType::Index, SegmentType::Static("/")) => Ok(None),
             (SegmentType::AnyPath, SegmentType::Static(_)) => Ok(None),
             (SegmentType::AnyPath, SegmentType::Param(_)) => Ok(None),
@@ -961,7 +962,9 @@ fn parse_route_into_segments<'a>(route: &'a str) -> RouteResult<Vec<&'a str>> {
 #[cfg(test)]
 mod parse_route_segment_tests {
     use super::*;
+    use tracing_test::traced_test;
 
+    #[traced_test]
     #[test]
     fn test_parsing_route_segments_with_ending_slash() {
         let result = parse_route_into_segments("/v1/users/:id/");
@@ -969,6 +972,7 @@ mod parse_route_segment_tests {
         assert_eq!(result.unwrap(), vec!["v1", "users", ":id", "/"]);
     }
 
+    #[traced_test]
     #[test]
     fn test_parsing_route_segments_with_no_ending_slash() {
         let result = parse_route_into_segments("/v1/users/:id");
@@ -976,6 +980,7 @@ mod parse_route_segment_tests {
         assert_eq!(result.unwrap(), vec!["v1", "users", ":id"]);
     }
 
+    #[traced_test]
     #[test]
     fn test_parsing_route_segments_with_special_segments() {
         let result = parse_route_into_segments("/v1/users/:id::numbers/:cam_id::(\\w+)/(\\d+)/*");
@@ -993,6 +998,7 @@ mod parse_route_segment_tests {
         );
     }
 
+    #[traced_test]
     #[test]
     fn test_parsing_with_shorter_segments() {
         let result = parse_route_into_segments("/v1/users/:id/pages");
@@ -1044,10 +1050,19 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
             next_segment_type,
         );
 
+        ewe_logs::debug!(
+            "RouteSegments: Root: {:?} and routes: {:?}",
+            root,
+            route_patterns,
+        );
+
         let remaining_segments = match &root.segment {
             SegmentType::Root => route_patterns.split_off(0),
             _ => route_patterns.split_off(1),
         };
+
+        // TODO: Optimization if the segment is a Anypath then just
+        // get the last segment and skip till the end
 
         if remaining_segments.len() > 0 {
             return match root.validate_against_self(next_segment_type, &mut params) {
@@ -1061,6 +1076,12 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
 
                     let next_segment_route = root
                         .get_matching_segment_route(remaining_segments[0].clone(), &mut params)?;
+
+                    ewe_logs::debug!(
+                        "NextSegment: Root: next_route: {:?} and routes: {:?}",
+                        next_segment_route,
+                        remaining_segments,
+                    );
 
                     return RouteSegment::match_routes_from(
                         next_segment_route,
@@ -1429,7 +1450,13 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
             SegmentType::Index => Ok(self),
             SegmentType::AnyPath => Ok(self),
             _ => match &segment {
-                SegmentType::Index => Ok(self),
+                SegmentType::Index => {
+                    if self.segment != SegmentType::Root {
+                        return Ok(self);
+                    }
+
+                    return self.match_against_dynamic_routes(segment, params);
+                }
                 SegmentType::Static(text) => {
                     if self.static_routes.contains_key(text) {
                         ewe_logs::debug!(
@@ -1448,29 +1475,52 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
                         segment,
                         params
                     );
-                    for (index, subroute) in self.dynamic_routes.iter().enumerate() {
-                        ewe_logs::debug!(
-                            "get_matching_segment_route: dynamic route({}, {:?}): \n\t{:?} with params: {:?}\n",
-                            index,
-                            subroute.segment,
-                            segment,
-                            params
-                        );
-                        match subroute.segment.match_value_from(&segment) {
-                            Ok(Some((match_key, match_value))) => {
-                                params.entry(match_key).or_insert(match_value);
-                                return Ok(subroute);
-                            }
-                            Ok(None) => return Ok(subroute),
-                            Err(err) => continue,
-                        };
-                    }
 
-                    return Err(RouteOp::InvalidSegment);
+                    return self.match_against_dynamic_routes(segment, params);
                 }
                 _ => Err(RouteOp::InvalidSegment),
             },
         }
+    }
+
+    pub fn match_against_dynamic_routes(
+        &self,
+        segment: SegmentType<'a>,
+        mut params: &mut Params,
+    ) -> RouteResult<&RouteSegment<'a, R, S, Server>> {
+        ewe_logs::debug!(
+            "match_against_dynamic_routes: matching segment: \n\t{:?} \n\t against \n\t({:?}, {:?}) with gathered params: {:?}\n",
+            segment,
+            self.segment,
+            self,
+            params
+        );
+
+        for (index, subroute) in self.dynamic_routes.iter().enumerate() {
+            ewe_logs::debug!(
+                "get_matching_segment_route: dynamic route({}, {:?}): \n\t{:?} with params: {:?}\n",
+                index,
+                subroute.segment,
+                segment,
+                params
+            );
+
+            // if we are any path then return - short circute the loop.
+            if subroute.segment == SegmentType::AnyPath {
+                return Ok(subroute);
+            }
+
+            match subroute.segment.match_value_from(&segment) {
+                Ok(Some((match_key, match_value))) => {
+                    params.entry(match_key).or_insert(match_value);
+                    return Ok(subroute);
+                }
+                Ok(None) => return Ok(subroute),
+                Err(err) => continue,
+            };
+        }
+
+        return Err(RouteOp::InvalidSegment);
     }
 
     /// Looping through the routeSegments retrieves the segment that matches this given route either from
