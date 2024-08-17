@@ -1,12 +1,10 @@
-use std::borrow::Cow;
-use std::fmt::{self, Debug};
+use std::cell;
+use std::fmt::Debug;
 use std::mem::size_of;
 use std::ops::{Deref, Index, RangeBounds};
 use std::rc;
 use std::result;
-use std::str;
 use std::vec::Drain;
-use std::{cell, sync};
 
 use thiserror::Error;
 
@@ -526,7 +524,7 @@ impl<T: Resetable> ArenaPool<T> {
     pub fn deallocate(&mut self, mut elem: T) {
         self.tracker.set_capacity(self.limiter.borrow().capacity());
         elem.reset();
-        self.arena.push(elem);
+        self.arena.push(elem).expect("should push in element");
         self.tracker.decrease_usage(calculate_size_for::<T>(None));
     }
 
@@ -601,7 +599,7 @@ mod arena_pool_tests {
 
         assert_eq!(pool.allocated(), 0);
 
-        let my_number = pool.allocate().unwrap();
+        _ = pool.allocate().unwrap();
 
         assert_eq!(pool.allocated(), 8);
 

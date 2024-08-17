@@ -1,7 +1,7 @@
 use crate::{
     requests::{
-        self, BodyHttpRequest, BytesHttpRequest, FromBody, FromBytes, IntoBody, IntoBytes, Method,
-        MethodError, Params, Request, RequestHead, TryFromBodyRequestError, TypedHttpRequest, Uri,
+        self, BodyHttpRequest, FromBody, FromBytes, IntoBody, Method, MethodError, Request,
+        RequestHead, TryFromBodyRequestError, TypedHttpRequest,
     },
     response::{self, Response, ResponseHead, StatusCode},
     routes::{
@@ -11,9 +11,8 @@ use crate::{
 };
 
 use axum::body;
-use std::{convert::Infallible, error, future::Future, marker::PhantomData, pin::Pin, task::Poll};
+use std::{convert::Infallible, future::Future, task::Poll};
 use thiserror::Error;
-use tower::Service;
 
 pub type ServerFuture<'a, S, E> =
     std::pin::Pin<Box<dyn Future<Output = ServicerResult<S, E>> + Send + 'a>>;
@@ -97,7 +96,7 @@ where
 
     fn poll_ready(
         &mut self,
-        cx: &mut std::task::Context<'_>,
+        _cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Result<(), Self::Error>> {
         Poll::Ready(Ok(()))
     }
@@ -165,7 +164,7 @@ where
                             }
                         }
                     }
-                    Err(err) => {
+                    Err(_err) => {
                         ewe_logs::debug!("TryFromBodyRequestError occured");
                         response::ResponseResult(Ok(Response::from_head(ResponseHead::standard(
                             StatusCode::BAD_REQUEST,
@@ -197,7 +196,7 @@ where
 
     fn poll_ready(
         &mut self,
-        cx: &mut std::task::Context<'_>,
+        _cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Result<(), Self::Error>> {
         Poll::Ready(Ok(()))
     }
@@ -224,7 +223,7 @@ where
 
     fn poll_ready(
         &mut self,
-        cx: &mut std::task::Context<'_>,
+        _cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Result<(), Self::Error>> {
         Poll::Ready(Ok(()))
     }
@@ -306,7 +305,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> Router<'a, R,
     }
 }
 
-pub fn bad_request_handler<R, S>(req: Request<R>) -> ResponseFuture<S, RouterErrors> {
+pub fn bad_request_handler<R, S>(_req: Request<R>) -> ResponseFuture<S, RouterErrors> {
     ewe_logs::debug!("Fallback handler reeceived requests");
     Box::pin(async {
         Ok(Response::from(
@@ -336,15 +335,13 @@ pub fn default_fallback_method<R: Clone + Send, S: Clone + Send>(
 #[cfg(test)]
 mod router_tests {
     use super::*;
-    use body::HttpBody;
     use core::fmt;
-    use requests::{FromBytes, IntoBody, IntoBytes, RequestHead, TryFromBodyRequestError};
+    use http::Uri;
+    use requests::{FromBytes, IntoBody, RequestHead, TryFromBodyRequestError};
     use serde::{Deserialize, Serialize};
-    use tower::ServiceExt;
 
+    use tower::Service;
     use tracing_test::traced_test;
-
-    use super::*;
 
     #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
     enum MyRequests {
@@ -424,7 +421,10 @@ mod router_tests {
         let hello_server = create_servicer_func(hello_request);
 
         let mut router = Router::new(fallback);
-        router.route("/hello", RouteMethod::get(hello_server));
+        assert!(matches!(
+            router.route("/hello", RouteMethod::get(hello_server)),
+            RouterResult::Ok(_)
+        ));
 
         let hello_endpoint = Uri::from_static("/hello");
         let req = Request::from(
@@ -452,7 +452,10 @@ mod router_tests {
         let mut router = Router::new(fallback);
 
         let hello_server = create_servicer_func(hello_request);
-        router.route("/hello", RouteMethod::get(hello_server));
+        assert!(matches!(
+            router.route("/hello", RouteMethod::get(hello_server)),
+            RouterResult::Ok(_)
+        ));
 
         let hello_endpoint = Uri::from_static("/world");
         let req = Request::from(
@@ -477,7 +480,10 @@ mod router_tests {
         let hello_server = create_servicer_func(hello_request);
 
         let mut router = Router::new(fallback);
-        router.route("/*", RouteMethod::get(hello_server));
+        assert!(matches!(
+            router.route("/*", RouteMethod::get(hello_server)),
+            RouterResult::Ok(_)
+        ));
 
         let hello_endpoint = Uri::from_static("/");
         let req = Request::from(
@@ -506,7 +512,10 @@ mod router_tests {
         let hello_server = create_servicer_func(hello_request);
 
         let mut router = Router::new(fallback);
-        router.route("/*", RouteMethod::get(hello_server));
+        assert!(matches!(
+            router.route("/*", RouteMethod::get(hello_server)),
+            RouterResult::Ok(_)
+        ));
 
         let hello_endpoint = Uri::from_static("/hello");
         let req = Request::from(
@@ -534,7 +543,10 @@ mod router_tests {
         let mut our_router = Router::new(fallback);
 
         let hello_server = create_servicer_func(hello_request);
-        our_router.route("/*", RouteMethod::get(hello_server));
+        assert!(matches!(
+            our_router.route("/*", RouteMethod::get(hello_server)),
+            RouterResult::Ok(_)
+        ));
 
         let our_router_service = RouterService::new(1024, our_router);
         let mut axum_router: axum::Router =

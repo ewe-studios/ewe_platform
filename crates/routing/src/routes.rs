@@ -435,7 +435,7 @@ impl<R: Send + Clone + 'static, S: Send + Clone + 'static, E: Clone + Send + 'st
         std::pin::Pin<Box<dyn Future<Output = Result<Response<S>, Self::Error>> + Send + 'static>>;
 
     fn serve(&self, req: Request<R>) -> Self::Future {
-        let mut callable = self.0.inner.lock().unwrap();
+        let callable = self.0.inner.lock().unwrap();
         let future_result = (callable)(req);
         future_result
     }
@@ -452,7 +452,6 @@ pub fn create_servicer_func<R: Send + Clone, S: Send + Clone, E: Send + Clone>(
 #[cfg(test)]
 mod servier_func_tests {
     use http::{StatusCode, Version};
-    use tower::Service;
 
     use crate::{response::ResponseHead, router::RouterErrors};
 
@@ -467,7 +466,7 @@ mod servier_func_tests {
     #[test]
     fn can_create_servicer_fn() {
         let handler: ServicerHandler<MyRequest, MyResponse, RouterErrors> =
-            create_servicer_func(|req| {
+            create_servicer_func(|_req| {
                 Box::pin(async {
                     Ok(Response::from(
                         Some(MyResponse {}),
@@ -1083,11 +1082,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
                         remaining_segments,
                     );
 
-                    return RouteSegment::match_routes_from(
-                        next_segment_route,
-                        remaining_segments,
-                        params,
-                    );
+                    RouteSegment::match_routes_from(next_segment_route, remaining_segments, params)
                 }
                 Err(err) => {
                     ewe_logs::debug!(
@@ -1096,7 +1091,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
                         root.segment,
                         err,
                     );
-                    return Err(RouteOp::InvalidRootRoute);
+                    Err(RouteOp::InvalidRootRoute)
                 }
             };
         }
@@ -1173,6 +1168,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
         Ok(Self::with_segment(segment_type))
     }
 
+    #[allow(unused)]
     pub(crate) fn root() -> Self {
         Self::with_segment(SegmentType::Root)
     }
@@ -1354,7 +1350,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
     /// `Servicer` used as the service for this segment itself. Which allows you to
     /// set/unset the index route handler of a given Segment.
     ///
-    pub fn add_route(&mut self, mut segment: RouteSegment<'a, R, S, Server>) {
+    pub fn add_route(&mut self, segment: RouteSegment<'a, R, S, Server>) {
         match &segment.segment {
             SegmentType::Root => panic!("should never add root segment as a subroute"),
             SegmentType::Index => self.method.take(segment.method),
@@ -1415,7 +1411,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
     pub fn validate_against_self(
         &self,
         segment: SegmentType<'a>,
-        mut params: &mut Params,
+        params: &mut Params,
     ) -> RouteResult<&RouteSegment<'a, R, S, Server>> {
         ewe_logs::debug!(
             "validate_against_self: matching segment: \n\t{:?} \n\t against \n\t{:?} with gathered params: {:?}\n",
@@ -1437,7 +1433,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
     pub fn get_matching_segment_route(
         &self,
         segment: SegmentType<'a>,
-        mut params: &mut Params,
+        params: &mut Params,
     ) -> RouteResult<&RouteSegment<'a, R, S, Server>> {
         ewe_logs::debug!(
             "get_matching_segment_route: matching segment: \n\t{:?} \n\t against \n\t({:?}, {:?}) with gathered params: {:?}\n",
@@ -1486,7 +1482,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
     pub fn match_against_dynamic_routes(
         &self,
         segment: SegmentType<'a>,
-        mut params: &mut Params,
+        params: &mut Params,
     ) -> RouteResult<&RouteSegment<'a, R, S, Server>> {
         ewe_logs::debug!(
             "match_against_dynamic_routes: matching segment: \n\t{:?} \n\t against \n\t({:?}, {:?}) with gathered params: {:?}\n",
@@ -1516,7 +1512,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
                     return Ok(subroute);
                 }
                 Ok(None) => return Ok(subroute),
-                Err(err) => continue,
+                Err(_err) => continue,
             };
         }
 
@@ -1559,7 +1555,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
     /// will add the segment as an empty route.
     pub fn add_or_get_segment_route(
         &mut self,
-        mut segment: SegmentType<'a>,
+        segment: SegmentType<'a>,
     ) -> RouteResult<&mut RouteSegment<'a, R, S, Server>> {
         match segment {
             SegmentType::Index => Err(RouteOp::CantHandleIndexRoute),
@@ -1598,7 +1594,6 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
 mod route_segment_tests {
 
     use super::*;
-    use crate::response;
 
     use regex::Regex;
     use tracing_test::traced_test;
@@ -1619,7 +1614,7 @@ mod route_segment_tests {
             Box<dyn Future<Output = ServicerResult<MyResponse, Self::Error>> + Send + 'static>,
         >;
 
-        fn serve(&self, req: Request<MyRequest>) -> Self::Future {
+        fn serve(&self, _req: Request<MyRequest>) -> Self::Future {
             todo!()
         }
     }
@@ -1697,7 +1692,7 @@ mod route_segment_tests {
         let mut root: RouteSegment<MyRequest, MyResponse, MyServer> = RouteSegment::root();
         root.add_route(new_path.unwrap());
 
-        let (segment, params) = root
+        let (_segment, params) = root
             .get_route("/v1/users/1/pages")
             .expect("should have matched");
 
@@ -1755,7 +1750,7 @@ mod route_segment_tests {
         assert!(matches!(new_route_result, RouteResult::Ok(_)));
 
         let route = new_route_result.unwrap();
-        let (segment, params) = route
+        let (_segment, params) = route
             .get_route("/v1/users/1/pages/2")
             .expect("should have matched");
 
@@ -1775,7 +1770,7 @@ mod route_segment_tests {
         assert!(matches!(new_route_result, RouteResult::Ok(_)));
 
         let route = new_route_result.unwrap();
-        let (segment, params) = route
+        let (_segment, params) = route
             .get_route("/v1/users/1/pages/2")
             .expect("should have matched");
 
@@ -1792,7 +1787,7 @@ mod route_segment_tests {
         assert!(matches!(new_route_result, RouteResult::Ok(_)));
 
         let route = new_route_result.unwrap();
-        let (segment, params) = route
+        let (_segment, params) = route
             .get_route("/v1/users/1/pages")
             .expect("should have matched");
 

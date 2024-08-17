@@ -9,7 +9,13 @@ repository.workspace = true
 keywords.workspace = true
 
 [dependencies]
+# workspace packages
+ewe-logs.workspace = true
+
 # -- axum and tower
+axum = { version = "0.7.5", default-features = true }
+tokio = { version = "1.36" }
+tower = { version = "0.5.0" }
 
 # -- serve# -- serve
 serde = { version = "1.0.197", features = ["derive"] }

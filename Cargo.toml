@@ -19,6 +19,7 @@ keywords = ["ewe_platform", "ewestudios platform", "ewe"]
 # internal packages so others can use them
 ewe-web = { path = "./crates/web" }
 ewe-logs = { path = "./crates/logs" }
+ewe-devserver = { path = "./crates/devserver" }
 ewe-spawn = { path = "./crates/spawn" }
 ewe-async-utils = { path = "./crates/async-utils" }
 ewe-watchers = { path = "./crates/watchers" }
@@ -34,9 +35,13 @@ ewe-channels = { path = "./crates/channels" }
 ewe-domain = { path = "./crates/domain" }
 ewe-domain-macro = { path = "./crates/domain-macro" }
 
-[workspace.lints.rust]
-unsafe_code = "forbid"
-unused = "allow"       # for experimental dev
 
 [workspace.lints.clippy]
 pedantic = "warn"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+module_name_repetitions = "allow"
+blocks_in_conditions = "allow"
+must_use_candidate = "allow"
+no-effect-underscore-binding = "allow"
+items-after-statements = "allow"
