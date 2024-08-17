@@ -1,17 +1,11 @@
-/// Module implements custom html parser with reasonable speed for parsing html pages, data, templates and blocks.
-use core::str::Chars;
-use std::{cell, rc};
 
 use anyhow::anyhow;
 use ewe_mem::accumulator::Accumulator;
-use lazy_regex::{lazy_regex, regex, regex_captures, Lazy, Regex, RegexBuilder};
 use lazy_static::lazy_static;
-use phf::phf_map;
-use std::{any, collections::HashMap, str::FromStr};
+use std::{collections::HashMap, str::FromStr};
 use thiserror::Error;
 use tracing;
 
-use crate::markup::ElementResult;
 
 lazy_static! {
     static ref ATTRIBUTE_PAIRS: HashMap<&'static str, &'static str> = vec![
@@ -1479,7 +1473,7 @@ impl HTMLParser {
     fn add_as_child_to_last<'a>(
         &self,
         child: Stack<'a>,
-        mut stacks: &mut Vec<Stack<'a>>,
+        stacks: &mut Vec<Stack<'a>>,
     ) -> ParsingResult<()> {
         if stacks.len() == 0 {
             return Ok(());
@@ -1496,7 +1490,7 @@ impl HTMLParser {
         }
     }
 
-    fn pop_last_as_child_of_previous(&self, mut stacks: &mut Vec<Stack>) -> ParsingResult<()> {
+    fn pop_last_as_child_of_previous(&self, stacks: &mut Vec<Stack>) -> ParsingResult<()> {
         if stacks.len() == 0 {
             return Ok(());
         }
@@ -1680,7 +1674,7 @@ impl HTMLParser {
     fn parse_comment<'c, 'd>(
         &self,
         acc: &mut Accumulator<'c>,
-        mut stacks: &mut Vec<Stack>,
+        stacks: &mut Vec<Stack>,
     ) -> ParsingResult<ParserDirective<'d>>
     where
         'c: 'd,
@@ -1722,7 +1716,7 @@ impl HTMLParser {
         &self,
         block_starter: &'c str,
         acc: &mut Accumulator<'c>,
-        mut stacks: &mut Vec<Stack>,
+        stacks: &mut Vec<Stack>,
     ) -> ParsingResult<ParserDirective<'d>>
     where
         'c: 'd,
@@ -1808,7 +1802,7 @@ impl HTMLParser {
     fn parse_text_block<'c, 'd>(
         &self,
         acc: &mut Accumulator<'c>,
-        mut stacks: &mut Vec<Stack>,
+        stacks: &mut Vec<Stack>,
     ) -> ParsingResult<ParserDirective<'d>>
     where
         'c: 'd,
@@ -1854,7 +1848,7 @@ impl HTMLParser {
         &self,
         tag: MarkupTags,
         acc: &mut Accumulator<'c>,
-        mut stacks: &mut Vec<Stack>,
+        stacks: &mut Vec<Stack>,
     ) -> ParsingResult<ParserDirective<'d>>
     where
         'c: 'd,
@@ -1921,7 +1915,7 @@ impl HTMLParser {
     fn parse_doc_type<'c, 'd>(
         &self,
         acc: &mut Accumulator<'c>,
-        mut stacks: &mut Vec<Stack>,
+        stacks: &mut Vec<Stack>,
     ) -> ParsingResult<ParserDirective<'d>>
     where
         'c: 'd,
@@ -2002,7 +1996,7 @@ impl HTMLParser {
     fn parse_xml_elem<'c, 'd>(
         &self,
         acc: &mut Accumulator<'c>,
-        mut stacks: &mut Vec<Stack>,
+        stacks: &mut Vec<Stack>,
     ) -> ParsingResult<ParserDirective<'d>>
     where
         'c: 'd,
@@ -2017,7 +2011,7 @@ impl HTMLParser {
         acc.skip();
 
         let mut collected_tag_name = false;
-        let mut collected_attrs = false;
+        let collected_attrs = false;
 
         while let Some(next) = acc.peek_next() {
             ewe_logs::debug!("parse_xml_elem: saw chracter: {}", next);
@@ -2083,7 +2077,7 @@ impl HTMLParser {
     fn parse_elem<'c, 'd>(
         &self,
         acc: &mut Accumulator<'c>,
-        mut stacks: &mut Vec<Stack>,
+        stacks: &mut Vec<Stack>,
     ) -> ParsingResult<ParserDirective<'d>>
     where
         'c: 'd,
@@ -2097,7 +2091,7 @@ impl HTMLParser {
         acc.skip();
 
         let mut collected_tag_name = false;
-        let mut collected_attrs = false;
+        let collected_attrs = false;
 
         while let Some(next) = acc.peek_next() {
             ewe_logs::debug!("parse_elem: saw chracter: {}", next);

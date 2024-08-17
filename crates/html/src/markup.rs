@@ -1,18 +1,11 @@
 use ewe_mem::{
-    encoding::{self, Encoding, SharedEncoding},
-    memory::{self, Resetable},
+    encoding::{self},
+    memory::{self},
     primitives::Bytes,
 };
 
-use anyhow::anyhow;
 use thiserror::Error;
 
-use std::collections::HashMap;
-use std::hash::Hash;
-use std::marker::PhantomData;
-use std::ops::{Deref, DerefMut};
-use std::ptr::NonNull;
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::{cell, rc};
 
 pub type ElementResult<T> = std::result::Result<T, ElementError>;
@@ -286,7 +279,7 @@ fn deallocate_markup<'a>(
 ) -> ElementResult<()> {
     match markup.take() {
         None => Ok(()),
-        Some(mut node) => match node {
+        Some(node) => match node {
             FragmentDef::NoChildHTML(mut container) => match container.take() {
                 None => Ok(()),
                 Some(node) => {
@@ -613,7 +606,7 @@ impl<'a> Fragment<'a> {
             false
         }) {
             Some(attr_container) => {
-                if let Some(mut attr) = attr_container.clone() {
+                if let Some(attr) = attr_container.clone() {
                     return attr.value.clone();
                 }
                 None
