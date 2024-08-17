@@ -15,7 +15,9 @@ ewe-logs.workspace = true
 # -- axum and tower
 axum = { version = "0.7.5", default-features = true }
 tokio = { version = "1.36" }
-tower = { version = "0.5.0" }
+bytes = { version = "1.6.1" }
+http = { version = "1.1.0" }
+tower = { version = "0.4.13" }
 
 # -- serve# -- serve
 serde = { version = "1.0.197", features = ["derive"] }
