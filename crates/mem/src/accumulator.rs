@@ -1,10 +1,4 @@
-/// Module implements custom html parser with reasonable speed for parsing html pages, data, templates and blocks.
-use core::str::Chars;
-use std::{cell, rc};
 
-use anyhow::anyhow;
-use std::{any, collections::HashMap, str::FromStr};
-use thiserror::Error;
 use tracing;
 
 #[derive(Clone, Debug)]
@@ -256,8 +250,8 @@ impl<'a> Accumulator<'a> {
         if self.peek_pos + by > self.content.len() {
             return None;
         }
-        let mut from = self.ensure_character_boundary_index(self.peek_pos);
-        let mut until_pos = self.ensure_character_boundary_index(self.peek_pos + by);
+        let from = self.ensure_character_boundary_index(self.peek_pos);
+        let until_pos = self.ensure_character_boundary_index(self.peek_pos + by);
         Some(&self.content[from..until_pos])
     }
 

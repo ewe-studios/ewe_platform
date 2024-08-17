@@ -1,6 +1,5 @@
 use std::borrow::Cow;
-use std::ops::Deref;
-use std::{cell, rc, str};
+use std::{rc, str};
 
 pub trait Encoder {
     fn encode<'a>(&self, text: &'a str) -> Cow<'a, [u8]>;
