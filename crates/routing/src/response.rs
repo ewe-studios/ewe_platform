@@ -1,22 +1,12 @@
 use core::fmt;
-use std::any::TypeId;
-use std::cmp::Ordering;
-use std::{
-    collections::HashMap, convert::Infallible, fmt::Debug, future::Future, ops::Deref, slice::Iter,
-    slice::IterMut, str::FromStr,
-};
-
-use ewe_mem::accumulator::Accumulator;
+use std::{collections::HashMap, convert::Infallible, fmt::Debug, str::FromStr};
 
 use http::{
     header::{InvalidHeaderName, InvalidHeaderValue, ToStrError},
     method::InvalidMethod,
     status::InvalidStatusCode,
     uri::InvalidUri,
-    HeaderValue,
 };
-
-use thiserror::Error;
 
 pub use http::{Extensions, HeaderMap, Method, StatusCode, Uri, Version};
 

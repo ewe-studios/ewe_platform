@@ -38,5 +38,8 @@ notify-debouncer-full = { version = "0.3.1", default-features = false }
 tracing-test = { version = "0.2.5" }
 
 
+[features]
+macos_kqueue = ["notify/macos_kqueue"]
+
 [lints]
 workspace = true

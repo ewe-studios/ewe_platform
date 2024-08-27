@@ -1,29 +1,18 @@
 use core::fmt;
-use std::{
-    any::TypeId, cmp::Ordering, collections::HashMap, convert::Infallible, fmt::Debug,
-    future::Future, hash::Hash, ops::Deref, slice::Iter, slice::IterMut, str::FromStr,
-};
+use std::{collections::HashMap, convert::Infallible, fmt::Debug, ops::Deref, str::FromStr};
 
 use axum::body;
-use ewe_mem::accumulator::Accumulator;
 
 use http::{
     header::{InvalidHeaderName, InvalidHeaderValue, ToStrError},
     method::InvalidMethod,
     uri::InvalidUri,
-    HeaderValue,
 };
-
-use axum::extract::FromRequest;
 
 pub use http::{Extensions, HeaderMap, Uri, Version};
 use thiserror::Error;
 
-use crate::{
-    field_method, field_method_as_mut,
-    router::{RouterErrors, RouterResult},
-    set_field_method_as_mut,
-};
+use crate::{field_method, field_method_as_mut, set_field_method_as_mut};
 
 pub type RouteURL = String;
 

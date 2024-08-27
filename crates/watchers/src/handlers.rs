@@ -29,7 +29,7 @@ pub(crate) type NotifyWatcher =
     target_os = "freebsd",
     target_os = "openbsd",
     target_os = "netbsd",
-    target_os = "dragonflybsd",
+    target_os = "dragonfly",
     target_os = "ios",
     all(target_os = "macos", feature = "macos_kqueue")
 ))]

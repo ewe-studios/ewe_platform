@@ -584,6 +584,8 @@ mod arena_pool_tests {
         assert_eq!(*my_number, 1);
 
         pool.deallocate(my_number);
+
+        _ = my_number;
     }
 
     #[test]

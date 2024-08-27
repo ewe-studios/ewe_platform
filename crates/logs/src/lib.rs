@@ -1,12 +1,10 @@
 /// Crate to abstract out tracing so it never shows up in release builds using macros
 /// See similar: https://doc.rust-lang.org/src/std/macros.rs.html#138-145.
-///
-use tracing;
 
 #[macro_export]
 macro_rules! info {
     ($($t:tt)*) => {
-        if cfg!(feature="debug_trace") {
+        if cfg!(feature="log_info") {
             tracing::info!($($t)*);
         } else {
 			// do nothing;
@@ -17,7 +15,7 @@ macro_rules! info {
 #[macro_export]
 macro_rules! warn {
     ($($t:tt)*) => {
-        if cfg!(feature="debug_trace") {
+        if cfg!(feature="log_warnings") {
             tracing::warn!($($t)*);
         } else {
 			// do nothing;
@@ -28,7 +26,7 @@ macro_rules! warn {
 #[macro_export]
 macro_rules! debug {
     ($($t:tt)*) => {
-        if cfg!(feature="debug_trace") {
+        if cfg!(feature="log_debug") {
             tracing::debug!($($t)*);
         } else {
 			// do nothing;
@@ -39,7 +37,7 @@ macro_rules! debug {
 #[macro_export]
 macro_rules! error {
     ($($t:tt)*) => {
-        if cfg!(feature="debug_trace") {
+        if cfg!(feature="log_errors") {
             tracing::error!($($t)*);
         } else {
 			// do nothing;

@@ -2007,7 +2007,7 @@ impl HTMLParser {
     fn parse_xml_elem<'c, 'd>(
         &self,
         acc: &mut Accumulator<'c>,
-        stacks: &mut Vec<Stack>,
+        _stacks: &mut Vec<Stack>,
     ) -> ParsingResult<ParserDirective<'d>>
     where
         'c: 'd,
@@ -2022,7 +2022,6 @@ impl HTMLParser {
         acc.skip();
 
         let mut collected_tag_name = false;
-        let mut collected_attrs = false;
 
         while let Some(next) = acc.peek_next() {
             ewe_logs::debug!("parse_xml_elem: saw chracter: {}", next);
@@ -2044,7 +2043,6 @@ impl HTMLParser {
                 ewe_logs::debug!("parse_xml_elem: collect tag name: {:?}", next);
                 acc.unpeek_next();
 
-                let scan = acc.vpeek_at(0, 10).unwrap();
                 let (tag_text, (tag_start, tag_end)) = acc.take_positional().unwrap();
 
                 match MarkupTags::from_str(tag_text) {
@@ -2099,7 +2097,6 @@ impl HTMLParser {
         acc.skip();
 
         let mut collected_tag_name = false;
-        let mut collected_attrs = false;
 
         while let Some(next) = acc.peek_next() {
             ewe_logs::debug!("parse_elem: saw chracter: {}", next);
@@ -2174,15 +2171,6 @@ impl HTMLParser {
                 collected_tag_name = true;
             }
 
-            if next.chars().all(char::is_whitespace) {
-                self.collect_space(acc)?;
-
-                match self.parse_elem_attribute(acc, &mut elem) {
-                    Ok(_) => continue,
-                    Err(err) => return Err(err),
-                }
-            }
-
             if next == TAG_CLOSED_BRACKET {
                 acc.take();
 
@@ -2192,6 +2180,16 @@ impl HTMLParser {
 
                 return Ok(ParserDirective::Open(elem));
             }
+
+            if next.chars().all(char::is_whitespace) {
+                self.collect_space(acc)?;
+
+                match self.parse_elem_attribute(acc, &mut elem) {
+                    Ok(_) => continue,
+                    Err(err) => return Err(err),
+                }
+            }
+
         }
 
         Err(ParsingTagError::FailedParsing)
@@ -3779,7 +3777,7 @@ mod html_parser_test {
 
         let parsed = result.unwrap();
 
-        let div = parsed.children.get(0).unwrap();
+        let _ = parsed.children.get(0).unwrap();
 
         let tags = parsed.get_tags();
 
@@ -3858,7 +3856,7 @@ mod html_parser_test {
         assert!(matches!(result, ParsingResult::Ok(_)));
 
         let parsed = result.unwrap();
-        let div = parsed.children.get(0).unwrap();
+        let _ = parsed.children.get(0).unwrap();
 
         let tags = parsed.get_tags();
 
@@ -3895,7 +3893,7 @@ mod html_parser_test {
         assert!(matches!(result, ParsingResult::Ok(_)));
 
         let parsed = result.unwrap();
-        let div = parsed.children.get(0).unwrap();
+        let _ = parsed.children.get(0).unwrap();
 
         let tags = parsed.get_tags();
 

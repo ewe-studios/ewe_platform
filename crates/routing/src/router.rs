@@ -283,6 +283,7 @@ where
 }
 
 impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> Router<'a, R, S, Server> {
+    #[allow(unused)]
     fn new(fallback: RouteMethod<R, S, Server>) -> Self {
         Router {
             fallback,
@@ -290,6 +291,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> Router<'a, R,
         }
     }
 
+    #[allow(unused)]
     fn route(
         &mut self,
         route: &'a str,

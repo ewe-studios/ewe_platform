@@ -307,6 +307,7 @@ where
         }
     }
 
+    #[allow(unused)]
     fn close(&mut self) {
         self.execution_service.close();
         self.response_registry.clear();
