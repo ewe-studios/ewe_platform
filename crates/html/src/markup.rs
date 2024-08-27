@@ -208,7 +208,11 @@ pub enum FragmentDef<'a> {
     Component(&'a dyn Island<'a>),
 }
 
-#[cfg_attr(feature="debug_trace", debug_trace::instrument(level = "trace", skip_all))]
+#[allow(unused)]
+#[cfg_attr(
+    feature = "debug_trace",
+    debug_trace::instrument(level = "trace", skip_all)
+)]
 fn deallocate_nodes<'a>(
     mut list: Option<Vec<Option<Fragment<'a>>>>,
     node_pool: FragmentPool<'a>,
@@ -229,7 +233,11 @@ fn deallocate_nodes<'a>(
     }
 }
 
-#[cfg_attr(feature="debug_trace", debug_trace::instrument(level = "trace", skip_all))]
+#[allow(unused)]
+#[cfg_attr(
+    feature = "debug_trace",
+    debug_trace::instrument(level = "trace", skip_all)
+)]
 fn deallocate_attributes<'a>(
     mut attributes: Option<Vec<Option<Attribute<'a>>>>,
     attribute_pool: AttributePool<'a>,
@@ -250,7 +258,11 @@ fn deallocate_attributes<'a>(
     }
 }
 
-#[cfg_attr(feature="debug_trace", debug_trace::instrument(level = "trace", skip_all))]
+#[allow(unused)]
+#[cfg_attr(
+    feature = "debug_trace",
+    debug_trace::instrument(level = "trace", skip_all)
+)]
 fn deallocate_markup_list<'a>(
     mut list: Option<Vec<Option<FragmentDef<'a>>>>,
     node_pool: FragmentPool<'a>,
@@ -271,11 +283,14 @@ fn deallocate_markup_list<'a>(
     }
 }
 
-#[cfg_attr(feature="debug_trace", debug_trace::instrument(level = "trace", skip_all))]
+#[cfg_attr(
+    feature = "debug_trace",
+    debug_trace::instrument(level = "trace", skip_all)
+)]
 fn deallocate_markup<'a>(
     mut markup: Option<FragmentDef<'a>>,
     node_pool: FragmentPool<'a>,
-    attribute_pool: AttributePool<'a>,
+    _attribute_pool: AttributePool<'a>,
 ) -> ElementResult<()> {
     match markup.take() {
         None => Ok(()),
@@ -294,7 +309,7 @@ fn deallocate_markup<'a>(
                     Ok(())
                 }
             },
-            FragmentDef::Component(t) => Ok(()),
+            FragmentDef::Component(_t) => Ok(()),
         },
     }
 }
@@ -302,55 +317,55 @@ fn deallocate_markup<'a>(
 impl<'a> FragmentDef<'a> {
     pub fn after_node_size(&self) -> ElementResult<usize> {
         match self {
-            _ => Err(ElementError::NotUsable),
             FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(n) => Ok(n.after_node_size()),
             },
+            _ => Err(ElementError::NotUsable),
         }
     }
 
     pub fn before_node_size(&self) -> ElementResult<usize> {
         match self {
-            _ => Err(ElementError::NotUsable),
             FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(n) => Ok(n.before_node_size()),
             },
+            _ => Err(ElementError::NotUsable),
         }
     }
 
     pub fn children_size(&self) -> ElementResult<usize> {
         match self {
-            _ => Err(ElementError::NotUsable),
             FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(n) => Ok(n.children_size()),
             },
+            _ => Err(ElementError::NotUsable),
         }
     }
 
-    pub fn get_node_mut(&mut self, index: usize) -> ElementResult<&Option<Fragment<'a>>> {
+    pub fn get_node_mut(&mut self, _index: usize) -> ElementResult<&Option<Fragment<'a>>> {
         match self {
-            _ => Err(ElementError::NotUsable),
             FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => Ok(container),
+            _ => Err(ElementError::NotUsable),
         }
     }
 
-    pub fn get_node(&self, index: usize) -> ElementResult<&Option<Fragment<'a>>> {
+    pub fn get_node(&self, _index: usize) -> ElementResult<&Option<Fragment<'a>>> {
         match self {
-            _ => Err(ElementError::NotUsable),
             FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => Ok(container),
+            _ => Err(ElementError::NotUsable),
         }
     }
 
     pub fn get_before(&mut self, index: usize) -> ElementResult<Option<&Option<FragmentDef<'a>>>> {
         match self {
-            _ => Err(ElementError::NotUsable),
             FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(node) => Ok(node.get_before(index)),
             },
+            _ => Err(ElementError::NotUsable),
         }
     }
 
@@ -359,11 +374,11 @@ impl<'a> FragmentDef<'a> {
         index: usize,
     ) -> ElementResult<Option<&'a mut Option<FragmentDef<'a>>>> {
         match self {
-            _ => Err(ElementError::NotUsable),
             FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(node) => Ok(node.get_before_mut(index)),
             },
+            _ => Err(ElementError::NotUsable),
         }
     }
 
@@ -515,14 +530,14 @@ impl<'a> Fragment<'a> {
 
                 for before_element in self.before.iter() {
                     match before_element {
-                        Some(item) => {}
+                        Some(_item) => {}
                         None => continue,
                     }
                 }
 
                 Ok(fragment)
             }
-            Err(err) => Err(ElementError::CantRender(String::from(
+            Err(_err) => Err(ElementError::CantRender(String::from(
                 "memory limit exceeded",
             ))),
         }
@@ -561,6 +576,7 @@ impl<'a> Fragment<'a> {
         self.content.len()
     }
 
+    #[allow(unused)]
     pub(crate) fn next_child_index(&self) -> usize {
         self.content.len()
     }
@@ -596,7 +612,10 @@ impl<'a> Fragment<'a> {
             .is_some();
     }
 
-    #[cfg_attr(feature="debug_trace", debug_trace::instrument(level = "trace", skip_all))]
+    #[cfg_attr(
+        feature = "debug_trace",
+        debug_trace::instrument(level = "trace", skip_all)
+    )]
     pub fn attr_value(&mut self, name: &'a str) -> Option<Bytes<'a>> {
         let encoded_str = Bytes::from_str(name, self.encoding.clone());
         return match self.attributes.iter_mut().find(|attr_container| {
@@ -615,7 +634,10 @@ impl<'a> Fragment<'a> {
         };
     }
 
-    #[cfg_attr(feature="debug_trace", debug_trace::instrument(level = "trace", skip_all))]
+    #[cfg_attr(
+        feature = "debug_trace",
+        debug_trace::instrument(level = "trace", skip_all)
+    )]
     pub fn update_attribute(&mut self, name: Bytes<'a>, value: Bytes<'a>) {
         let find_attr = self.attributes.iter_mut().find(|attr_container| {
             if let Some(attr) = attr_container {
@@ -639,7 +661,10 @@ impl<'a> Fragment<'a> {
         };
     }
 
-    #[cfg_attr(feature="debug_trace", debug_trace::instrument(level = "trace", skip_all))]
+    #[cfg_attr(
+        feature = "debug_trace",
+        debug_trace::instrument(level = "trace", skip_all)
+    )]
     pub fn remove_child_at(&mut self, index: usize) -> ElementResult<()> {
         let child_size = self.content.len();
         if index >= child_size {
@@ -697,7 +722,10 @@ impl<'a> Fragment<'a> {
 }
 
 impl<'a> memory::Resetable for Fragment<'a> {
-    #[cfg_attr(feature="debug_trace", debug_trace::instrument(level = "trace", skip_all))]
+    #[cfg_attr(
+        feature = "debug_trace",
+        debug_trace::instrument(level = "trace", skip_all)
+    )]
     fn reset(&mut self) {
         self.name.take();
 
@@ -767,15 +795,15 @@ pub trait Island<'a> {
 }
 
 impl<'a> Island<'a> for Fragment<'a> {
-    fn render_into(&self, root: Fragment<'a>) -> Result<(), IslandError> {
+    fn render_into(&self, _root: Fragment<'a>) -> Result<(), IslandError> {
         todo!()
     }
 
-    fn render_before(&self, root: Fragment<'a>) -> Result<(), IslandError> {
+    fn render_before(&self, _root: Fragment<'a>) -> Result<(), IslandError> {
         todo!()
     }
 
-    fn render_after(&self, root: Fragment<'a>) -> Result<(), IslandError> {
+    fn render_after(&self, _root: Fragment<'a>) -> Result<(), IslandError> {
         todo!()
     }
 }
