@@ -1,7 +1,7 @@
 use core::fmt;
 use crossbeam::channel;
 use std::net::SocketAddr;
-use std::{sync, thread};
+use std::sync;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::oneshot;
 
@@ -190,9 +190,10 @@ impl ProxyRemote {
         tokio::select! {
 
             res = async {
-                tracing::info!("selecting from listener channel");
                 let source_addr_str = self.source.to_string();
                 let source_listener = net::TcpListener::bind(source_addr_str).await?;
+                ewe_logs::info!("Creating TCPListener for {}", source_listener.local_addr().expect("listener should have local address"));
+
                 loop {
                     let (client, client_addr) = source_listener.accept().await?;
 

@@ -1,12 +1,12 @@
 // Implements the core functionality to manage and serve a local
 // ewe platform web application for local development.
 
-mod bin_app;
+mod cargo_ops;
 mod operators;
 mod tcp_proxy;
 
 pub mod types;
 
-pub use bin_app::*;
+pub use cargo_ops::*;
 pub use operators::*;
 pub use tcp_proxy::*;
