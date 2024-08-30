@@ -2,8 +2,8 @@
 # usually this iset to 1
 resolver = "2"
 # set members of your workspace
-members = ["bin/*", "crates/*", "backends/*", "examples/template/*"]
-exclude = ["crates/html-macro"]
+members = ["bin/*", "crates/*", "backends/*", "examples/web/*", "examples/template/*"]
+exclude = ["crates/html-macro", "examples/todo"]
 
 [workspace.package]
 edition = "2021"
@@ -16,9 +16,11 @@ keywords = ["ewe_platform", "ewestudios platform", "ewe"]
 
 # -- global dependencies
 [workspace.dependencies]
-# internal packages so others can use them
+
+# -- internal packages so others can use them
 ewe-web = { path = "./crates/web" }
 ewe-logs = { path = "./crates/logs" }
+ewe-watch-utils = { path = "./crates/watch_utils" }
 ewe-devserver = { path = "./crates/devserver" }
 ewe-spawn = { path = "./crates/spawn" }
 ewe-async-utils = { path = "./crates/async-utils" }
@@ -34,6 +36,11 @@ ewe-platform = { path = "./crates/platform" }
 ewe-channels = { path = "./crates/channels" }
 ewe-domain = { path = "./crates/domain" }
 ewe-domain-macro = { path = "./crates/domain-macro" }
+
+# -- workspace wide packages
+derive_more = { version = "1.0.0", features = ["full"] }
+tracing = { version = "0.1.40" }
+anyhow = { version = "1.0.80" }
 
 
 [workspace.lints.clippy]

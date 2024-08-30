@@ -1,13 +1,14 @@
 use core::fmt;
+use crossbeam::channel;
 use std::net::SocketAddr;
+use std::{sync, thread};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::sync::oneshot;
 
-use tokio::{
-    net::{self},
-    sync::broadcast,
-};
+use tokio::{net, sync::broadcast};
 
-use crate::types::Result;
+use crate::types::{self, Result};
+use crate::Operator;
 
 const DEFAULT_BUF_SIZE: usize = 1024;
 
@@ -17,12 +18,16 @@ pub struct ProxyRemoteConfig {
     pub port: usize,
 }
 
+// -- Constructors
+
 impl ProxyRemoteConfig {
     #[must_use]
     pub fn new(addr: String, port: usize) -> Self {
         Self { addr, port }
     }
 }
+
+// -- Debug Display
 
 impl fmt::Display for ProxyRemoteConfig {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -136,6 +141,8 @@ async fn stream_client(
     Ok(())
 }
 
+// -- Constructors
+
 impl ProxyRemote {
     #[must_use]
     pub fn new(source: ProxyRemoteConfig, destination: ProxyRemoteConfig) -> Self {
@@ -145,30 +152,70 @@ impl ProxyRemote {
         }
     }
 
-    pub async fn stream(&self) -> Result<()> {
-        let source_addr_str = self.source.to_string();
-        let source_listener = net::TcpListener::bind(source_addr_str).await?;
+    #[must_use]
+    pub fn shared(source: ProxyRemoteConfig, destination: ProxyRemoteConfig) -> sync::Arc<Self> {
+        sync::Arc::new(Self::new(source, destination))
+    }
+}
 
+// -- Operator trait implementation
+
+impl Operator for sync::Arc<ProxyRemote> {
+    fn run(
+        &self,
+        signal: channel::Receiver<()>,
+    ) -> tokio::task::JoinHandle<std::result::Result<(), types::BoxedError>> {
+        let handler = self.clone();
+        tokio::spawn(async move { handler.stream(signal).await })
+    }
+}
+
+// -- Implementation details
+
+impl ProxyRemote {
+    pub async fn stream(&self, sig: channel::Receiver<()>) -> Result<()> {
         ewe_logs::info!(
             "Streaming data from {} to {}",
             self.source,
             self.destination
         );
 
-        loop {
-            let (client, client_addr) = source_listener.accept().await?;
+        let (kill_sender, kill_receiver) = oneshot::channel::<()>();
 
-            let remote_config = self.destination.clone();
-            tokio::spawn(async move {
-                match stream_client(client, client_addr.clone(), remote_config.clone()).await {
-                    Ok(_) => ewe_logs::info!("Finished serving client: {}", client_addr.clone()),
-                    Err(err) => ewe_logs::error!(
-                        "Failed to serve client: {} - {:?}",
-                        client_addr.clone(),
-                        err,
-                    ),
+        let kill_thread = tokio::task::spawn_blocking(move || {
+            _ = sig.recv().expect("should receive kill signal");
+            kill_sender.send(()).expect("should send kill signal");
+        });
+
+        tokio::select! {
+
+            res = async {
+                tracing::info!("selecting from listener channel");
+                let source_addr_str = self.source.to_string();
+                let source_listener = net::TcpListener::bind(source_addr_str).await?;
+                loop {
+                    let (client, client_addr) = source_listener.accept().await?;
+
+                    let remote_config = self.destination.clone();
+                    tokio::spawn(async move {
+                        match stream_client(client, client_addr.clone(), remote_config.clone()).await {
+                            Ok(_) => ewe_logs::info!("Finished serving client: {}", client_addr.clone()),
+                            Err(err) => ewe_logs::error!(
+                                "Failed to serve client: {} - {:?}",
+                                client_addr.clone(),
+                                err,
+                            ),
+                        }
+                    });
                 }
-            });
+            } => {
+                res
+            }
+
+            _ = kill_receiver => {
+                kill_thread.await.expect("should have died correctly");
+                Ok(())
+            }
         }
     }
 }

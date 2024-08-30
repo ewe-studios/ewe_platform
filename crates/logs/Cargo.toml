@@ -18,9 +18,10 @@ tracing-test = { version = "0.2.5" }
 workspace = true
 
 [features]
-log_info = []
+default = ["standard"]
+debug_trace = ["standard", "log_debug"]
+standard = ["log_info", "log_errors", "log_warnings"]
 log_warnings = []
 log_errors = []
 log_debug = []
-standard = ["log_info", "log_errors", "log_warnings"]
-debug_trace = ["log_info", "log_warnings", "log_errors", "log_debug"]
+log_info = []

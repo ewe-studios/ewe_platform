@@ -384,6 +384,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "convert_case"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec182b0ca2f35d8fc196cf3404988fd8b8c739a4d270ff118a398feb0cbec1ca"
+dependencies = [
+ "unicode-segmentation",
+]
+
+[[package]]
 name = "core-foundation-sys"
 version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -543,6 +552,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "derive_more"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4a9b99b9cbbe49445b21764dc0625032a89b145a2642e67603e1c936f5458d05"
+dependencies = [
+ "derive_more-impl",
+]
+
+[[package]]
+name = "derive_more-impl"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb7330aeadfbe296029522e6c40f315320aba36fc43a5b3632f3795348f3bd22"
+dependencies = [
+ "convert_case",
+ "proc-macro2",
+ "quote",
+ "syn",
+ "unicode-xid",
+]
+
+[[package]]
 name = "either"
 version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -604,12 +635,13 @@ dependencies = [
  "anyhow",
  "axum",
  "bytes",
+ "crossbeam",
+ "derive_more",
  "ewe-logs",
  "http",
  "serde",
  "serde_json",
  "serde_with",
- "thiserror",
  "tokio",
  "tower",
  "tracing",
@@ -757,6 +789,19 @@ dependencies = [
  "serde_with",
  "thiserror",
  "tinytemplate 1.2.1 (git+https://github.com/ewe-studios/TinyTemplate.git?branch=master)",
+ "tracing",
+ "tracing-test",
+]
+
+[[package]]
+name = "ewe-watch-utils"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "ewe-logs",
+ "notify",
+ "notify-debouncer-full",
+ "thiserror",
  "tracing",
  "tracing-test",
 ]
@@ -1269,6 +1314,7 @@ name = "local"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "crossbeam",
  "ewe-devserver",
  "ewe-logs",
  "serde",
@@ -2289,6 +2335,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b"
 
 [[package]]
+name = "unicode-segmentation"
+version = "1.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d4c87d22b6e3f4a18d4d40ef354e97c90fcb14dd91d7dc0aa9d8a1172ebf7202"
+
+[[package]]
+name = "unicode-xid"
+version = "0.2.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "229730647fbc343e3a80e463c1db7f78f3855d3f3739bee0dda773c9a037c90a"
+
+[[package]]
 name = "utf8parse"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2409,6 +2467,26 @@ checksum = "77afa9a11836342370f4817622a2f0f418b134426d91a82dfb48f532d2ec13ef"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "wello"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "crossbeam",
+ "ewe-devserver",
+ "ewe-logs",
+ "http",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "thiserror",
+ "tokio",
+ "tower",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
