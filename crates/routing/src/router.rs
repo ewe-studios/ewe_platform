@@ -155,8 +155,8 @@ where
                                     }
                                 }
                             }
-                            Err(bad_err) => {
-                                ewe_logs::debug!("Bad request received: {:?}", bad_err);
+                            Err(_bad_err) => {
+                                ewe_logs::debug!("Bad request received: {:?}", _bad_err);
                                 response::ResponseResult(Ok(Response::from_head(
                                     ResponseHead::standard(StatusCode::BAD_REQUEST),
                                 )))

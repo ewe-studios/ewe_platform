@@ -1,13 +1,12 @@
 use derive_more::From;
 use std::result;
-use tokio::task::JoinHandle;
 
 use crossbeam::channel;
 
-use crate::types::BoxedError;
+use crate::types::{BoxedError, JoinHandle};
 
 pub trait Operator {
-    fn run(&self, signal: channel::Receiver<()>) -> JoinHandle<result::Result<(), BoxedError>>;
+    fn run(&self, signal: channel::Receiver<()>) -> JoinHandle<()>;
 }
 
 #[derive(Debug, From)]
@@ -50,9 +49,11 @@ impl OperationsManager {
     }
 
     pub async fn run(&self, sig: channel::Receiver<()>) -> result::Result<(), BoxedError> {
-        for handle in self.operators.iter() {
-            let joiner = handle.run(sig.clone());
-            match joiner.await {
+        let operations =
+            futures::future::join_all(self.operators.iter().map(|t| t.run(sig.clone())));
+        let result_list = operations.await;
+        for result in result_list {
+            match result {
                 Ok(_) => continue,
                 Err(err) => {
                     ewe_logs::error!("Failed to complete operator: {:?}", err);

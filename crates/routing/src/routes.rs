@@ -1065,7 +1065,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
 
         if remaining_segments.len() > 0 {
             return match root.validate_against_self(next_segment_type, &mut params) {
-                Ok(owner) => {
+                Ok(_) => {
                     ewe_logs::debug!(
                         "pull_routes_from: going to next: \n\t{:?} in root \n\t{:?} params: {:?}\n",
                         remaining_segments[0],
@@ -1084,12 +1084,12 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
 
                     RouteSegment::match_routes_from(next_segment_route, remaining_segments, params)
                 }
-                Err(err) => {
+                Err(_err) => {
                     ewe_logs::debug!(
                     "pull_routes_from: not matching root: \n\t{:?} against \n\t{:?} with error {:?} \n",
                         route_patterns[0],
                         root.segment,
-                        err,
+                        _err,
                     );
                     Err(RouteOp::InvalidRootRoute)
                 }
@@ -1492,7 +1492,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
             params
         );
 
-        for (index, subroute) in self.dynamic_routes.iter().enumerate() {
+        for (_index, subroute) in self.dynamic_routes.iter().enumerate() {
             ewe_logs::debug!(
                 "get_matching_segment_route: dynamic route({}, {:?}): \n\t{:?} with params: {:?}\n",
                 index,

@@ -1,16 +1,33 @@
 use core::fmt;
 use crossbeam::channel;
 use std::net::SocketAddr;
-use std::sync;
+use std::{sync, time};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::oneshot;
 
 use tokio::{net, sync::broadcast};
 
-use crate::types::{self, Result};
+use crate::types::{JoinHandle, Result};
 use crate::Operator;
 
 const DEFAULT_BUF_SIZE: usize = 1024;
+
+// -- Errors
+
+#[derive(Debug, derive_more::From)]
+pub enum ProxyError {
+    FailedProxyConnection,
+    ConnectionDrop,
+    StreamingFailed,
+}
+
+impl std::error::Error for ProxyError {}
+
+impl core::fmt::Display for ProxyError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
 
 #[derive(Debug, Default, Clone)]
 pub struct ProxyRemoteConfig {
@@ -161,10 +178,7 @@ impl ProxyRemote {
 // -- Operator trait implementation
 
 impl Operator for sync::Arc<ProxyRemote> {
-    fn run(
-        &self,
-        signal: channel::Receiver<()>,
-    ) -> tokio::task::JoinHandle<std::result::Result<(), types::BoxedError>> {
+    fn run(&self, signal: channel::Receiver<()>) -> JoinHandle<()> {
         let handler = self.clone();
         tokio::spawn(async move { handler.stream(signal).await })
     }
@@ -218,5 +232,67 @@ impl ProxyRemote {
                 Ok(())
             }
         }
+    }
+}
+
+pub struct StreamTCPApp {
+    wait_for_binary_secs: time::Duration,
+    source_config: ProxyRemoteConfig,
+    destination_config: ProxyRemoteConfig,
+}
+
+// -- Constructor
+
+impl StreamTCPApp {
+    pub fn shared(
+        wait_for_binary_secs: time::Duration,
+        source: ProxyRemoteConfig,
+        destination: ProxyRemoteConfig,
+    ) -> sync::Arc<Self> {
+        sync::Arc::new(Self {
+            wait_for_binary_secs,
+            source_config: source,
+            destination_config: destination,
+        })
+    }
+}
+
+// -- Binary starter
+impl StreamTCPApp {
+    fn run_proxy(&self, sig: channel::Receiver<()>) -> JoinHandle<()> {
+        let proxy_server =
+            ProxyRemote::shared(self.source_config.clone(), self.destination_config.clone());
+        proxy_server.run(sig)
+    }
+}
+
+// -- Operator implementation
+
+impl Operator for sync::Arc<StreamTCPApp> {
+    fn run(&self, signal: channel::Receiver<()>) -> JoinHandle<()> {
+        let wait_for = self.wait_for_binary_secs.clone();
+        let source = self.source_config.clone();
+        let destination = self.destination_config.clone();
+
+        let handler = self.clone();
+
+        tokio::spawn(async move {
+            tokio::time::sleep(wait_for).await;
+            let proxy_handler = handler.run_proxy(signal);
+
+            ewe_logs::info!(
+                "Booting up proxy server for source={:?} through destination={:?}",
+                source,
+                destination
+            );
+
+            match proxy_handler.await? {
+                Ok(_) => Ok(()),
+                Err(err) => {
+                    ewe_logs::error!("Failed to properly end tcp proxy: {:?}", err);
+                    Err(Box::new(ProxyError::FailedProxyConnection).into())
+                }
+            }
+        })
     }
 }

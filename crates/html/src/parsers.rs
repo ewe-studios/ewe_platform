@@ -1470,7 +1470,6 @@ impl HTMLParser {
             return Ok(());
         }
 
-
         match stacks.last_mut() {
             Some(parent) => {
                 parent.children.push(child);
@@ -1677,8 +1676,8 @@ impl HTMLParser {
     {
         let mut elem = Stack::empty();
 
-        while let Some(next) = acc.peek_next() {
-            ewe_logs::debug!("parse_comment: saw chracter: {}", next);
+        while let Some(_next) = acc.peek_next() {
+            ewe_logs::debug!("parse_comment: saw chracter: {}", _next);
 
             let comment_ender_scan = acc.vpeek_at(0, 3).unwrap();
             ewe_logs::debug!(
@@ -1731,12 +1730,12 @@ impl HTMLParser {
             acc.peek(1)
         );
 
-        while let Some(next) = acc.peek_next() {
+        while let Some(_next) = acc.peek_next() {
             ewe_logs::debug!(
                 "parse_code_block({:?}, closer: {:?}): next token: {:?}",
                 block_starter,
                 blocker_closer_text,
-                next
+                _next
             );
 
             let code_closer_sample = acc.vpeek_at(0, 2).unwrap();
@@ -1957,10 +1956,10 @@ impl HTMLParser {
 
                 acc.unpeek_next();
 
-                let (tag_text, (tag_start, tag_end)) = acc.take_positional().unwrap();
+                let (_tag_text, (tag_start, tag_end)) = acc.take_positional().unwrap();
                 ewe_logs::debug!(
                     "parse_doc_type: generates tagname with collected: {} ({}..{})",
-                    tag_text,
+                    _tag_text,
                     tag_start,
                     tag_end
                 );
@@ -2061,7 +2060,7 @@ impl HTMLParser {
                 collected_tag_name = true;
             }
 
-            if next.chars().all(char::is_whitespace)  {
+            if next.chars().all(char::is_whitespace) {
                 ewe_logs::debug!("parse_xml_elem: collect attributes: {:?}", elem.tag);
 
                 self.collect_space(acc)?;
@@ -2189,7 +2188,6 @@ impl HTMLParser {
                     Err(err) => return Err(err),
                 }
             }
-
         }
 
         Err(ParsingTagError::FailedParsing)
