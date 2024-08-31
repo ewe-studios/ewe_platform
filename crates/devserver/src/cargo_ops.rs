@@ -68,22 +68,23 @@ impl operators::Operator for sync::Arc<CargoShellBuilder> {
 // builders
 impl CargoShellBuilder {
     pub async fn build(&self) -> CargoShellResult<()> {
-        self.run_checks()?;
-        self.run_build()?;
+        self.run_checks().await?;
+        self.run_build().await?;
         Ok(())
     }
 
-    fn run_build(&self) -> CargoShellResult<()> {
+    async fn run_build(&self) -> CargoShellResult<()> {
         ewe_logs::info!(
             "Building project binary with cargo (project={}, binary={})",
             self.project_dir,
             self.binary_name,
         );
-        let mut command = process::Command::new("cargo");
+        let mut command = tokio::process::Command::new("cargo");
         match command
             .current_dir(self.project_dir.clone())
             .args(["build", "--bin", self.binary_name.as_str()])
             .output()
+            .await
         {
             Ok(result) => {
                 ewe_logs::info!(
@@ -114,12 +115,13 @@ impl CargoShellBuilder {
         }
     }
 
-    fn run_checks(&self) -> CargoShellResult<()> {
-        let mut command = process::Command::new("cargo");
+    async fn run_checks(&self) -> CargoShellResult<()> {
+        let mut command = tokio::process::Command::new("cargo");
         match command
             .current_dir(self.project_dir.clone())
             .args(["check"])
             .output()
+            .await
         {
             Ok(result) => {
                 ewe_logs::info!(
