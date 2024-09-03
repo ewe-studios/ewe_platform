@@ -1,8 +1,9 @@
-use core::fmt;
 use crossbeam::channel;
+use derive_more::From;
 use std::net::SocketAddr;
 use std::{sync, time};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::TcpStream;
 use tokio::sync::oneshot;
 
 use tokio::{net, sync::broadcast};
@@ -14,11 +15,12 @@ const DEFAULT_BUF_SIZE: usize = 1024;
 
 // -- Errors
 
-#[derive(Debug, derive_more::From)]
+#[derive(Debug, From)]
 pub enum ProxyError {
     FailedProxyConnection,
     ConnectionDrop,
     StreamingFailed,
+    TunnelNotSupported(ProxyType),
 }
 
 impl std::error::Error for ProxyError {}
@@ -29,7 +31,7 @@ impl core::fmt::Display for ProxyError {
     }
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, From)]
 pub struct ProxyRemoteConfig {
     pub addr: String,
     pub port: usize,
@@ -46,16 +48,62 @@ impl ProxyRemoteConfig {
 
 // -- Debug Display
 
-impl fmt::Display for ProxyRemoteConfig {
+impl core::fmt::Display for ProxyRemoteConfig {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}:{}", self.addr, self.port)
     }
 }
 
-#[derive(Debug, Default, Clone)]
-pub struct ProxyRemote {
-    pub source: ProxyRemoteConfig,
-    pub destination: ProxyRemoteConfig,
+// -- Proxy Types
+
+#[derive(Debug, Clone)]
+pub enum ProxyType {
+    Tunnel {
+        source: ProxyRemoteConfig,
+        destination: ProxyRemoteConfig,
+    },
+
+    Http1 {
+        source: ProxyRemoteConfig,
+        destination: ProxyRemoteConfig,
+    },
+
+    Http2 {
+        source: ProxyRemoteConfig,
+        destination: ProxyRemoteConfig,
+    },
+
+    Http3 {
+        source: ProxyRemoteConfig,
+        destination: ProxyRemoteConfig,
+    },
+}
+
+impl core::fmt::Display for ProxyType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
+
+impl ProxyType {
+    async fn tunnel_connection(self, connection: (TcpStream, SocketAddr)) -> Result<()> {
+        match self {
+            ProxyType::Tunnel {
+                source,
+                destination,
+            } => {
+                let (client, client_addr) = connection;
+                stream_client(client, client_addr.clone(), destination).await?;
+                ewe_logs::info!(
+                    "Finished serving client: {} from {}",
+                    client_addr.clone(),
+                    source,
+                );
+                Ok(())
+            }
+            _ => Err(Box::new(ProxyError::TunnelNotSupported(self)).into()),
+        }
+    }
 }
 
 async fn stream_writes<R, W>(
@@ -158,20 +206,20 @@ async fn stream_client(
     Ok(())
 }
 
+#[derive(Debug, Clone)]
+pub struct ProxyRemote(ProxyType);
+
 // -- Constructors
 
 impl ProxyRemote {
     #[must_use]
-    pub fn new(source: ProxyRemoteConfig, destination: ProxyRemoteConfig) -> Self {
-        Self {
-            source,
-            destination,
-        }
+    pub fn new(proxy_type: ProxyType) -> Self {
+        Self(proxy_type)
     }
 
     #[must_use]
-    pub fn shared(source: ProxyRemoteConfig, destination: ProxyRemoteConfig) -> sync::Arc<Self> {
-        sync::Arc::new(Self::new(source, destination))
+    pub fn shared(proxy_type: ProxyType) -> sync::Arc<Self> {
+        sync::Arc::new(Self::new(proxy_type))
     }
 }
 
@@ -188,11 +236,7 @@ impl Operator for sync::Arc<ProxyRemote> {
 
 impl ProxyRemote {
     pub async fn stream(&self, sig: channel::Receiver<()>) -> Result<()> {
-        ewe_logs::info!(
-            "Streaming data from {} to {}",
-            self.source,
-            self.destination
-        );
+        ewe_logs::info!("Streaming for proxy: {}", self.0,);
 
         let (kill_sender, kill_receiver) = oneshot::channel::<()>();
 
@@ -204,25 +248,42 @@ impl ProxyRemote {
         tokio::select! {
 
             res = async {
-                let source_addr_str = self.source.to_string();
-                let source_listener = net::TcpListener::bind(source_addr_str).await?;
-                ewe_logs::info!("Creating TCPListener for {}", source_listener.local_addr().expect("listener should have local address"));
 
-                loop {
-                    let (client, client_addr) = source_listener.accept().await?;
+                match &self.0 {
+                    ProxyType::Tunnel{source, destination} => {
+                        ewe_logs::info!("Creating TCPListener for {} (addr_str: {}) to {}", source, source.to_string(), destination);
+                        let source_listener = net::TcpListener::bind(source.to_string()).await?;
 
-                    let remote_config = self.destination.clone();
-                    tokio::spawn(async move {
-                        match stream_client(client, client_addr.clone(), remote_config.clone()).await {
-                            Ok(_) => ewe_logs::info!("Finished serving client: {}", client_addr.clone()),
-                            Err(err) => ewe_logs::error!(
-                                "Failed to serve client: {} - {:?}",
-                                client_addr.clone(),
-                                err,
-                            ),
+                        loop {
+                            let proxy_elem = self.0.clone();
+                            match source_listener.accept().await {
+                                Ok(connection) => {
+                                    tokio::spawn(async move {
+                                        if let Err(err) = proxy_elem.clone().tunnel_connection(connection).await {
+                                            ewe_logs::error!(
+                                                "Failed to serve proxy request: {}  - {:?}",
+                                                proxy_elem.clone(),
+                                                err,
+                                            );
+                                        }
+                                    });
+                                    continue;
+                                },
+                                Err(err) => {
+                                    ewe_logs::error!(
+                                        "Failed to get new client connection {:?}",
+                                        err,
+                                    );
+                                    break;
+                                }
+                            };
+
                         }
-                    });
+                        Ok(())
+                    },
+                    _ => Err(Box::new(ProxyError::TunnelNotSupported(self.0.clone())).into())
                 }
+
             } => {
                 res
             }
@@ -260,8 +321,10 @@ impl StreamTCPApp {
 // -- Binary starter
 impl StreamTCPApp {
     fn run_proxy(&self, sig: channel::Receiver<()>) -> JoinHandle<()> {
-        let proxy_server =
-            ProxyRemote::shared(self.source_config.clone(), self.destination_config.clone());
+        let proxy_server = ProxyRemote::shared(ProxyType::Tunnel {
+            source: self.source_config.clone(),
+            destination: self.destination_config.clone(),
+        });
         proxy_server.run(sig)
     }
 }
