@@ -2,11 +2,14 @@
 // ewe platform web application for local development.
 
 mod cargo_ops;
+mod errors;
 mod operators;
-mod tcp_proxy;
+mod proxy;
+mod streams;
 
 pub mod types;
 
 pub use cargo_ops::*;
+pub use errors::*;
 pub use operators::*;
-pub use tcp_proxy::*;
+pub use proxy::*;
