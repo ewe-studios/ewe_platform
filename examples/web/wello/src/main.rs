@@ -3,7 +3,7 @@ use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
 async fn handler() -> Html<&'static str> {
-    Html("<h1>Wello World</h1>")
+    Html("<h1>Wello Jorld</h1>")
 }
 
 #[tokio::main(flavor = "multi_thread", worker_threads = 10)]
