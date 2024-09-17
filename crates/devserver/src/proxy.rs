@@ -1,9 +1,9 @@
-use crossbeam::channel;
 use derive_more::From;
 use hyper_util::rt;
 use std::net::SocketAddr;
 use std::{sync, time};
 use tokio::net::TcpStream;
+use tokio::sync::broadcast;
 use tokio::sync::oneshot;
 
 use tokio::net;
@@ -103,7 +103,7 @@ impl ProxyRemote {
 // -- Operator trait implementation
 
 impl Operator for sync::Arc<ProxyRemote> {
-    fn run(&self, signal: channel::Receiver<()>) -> JoinHandle<()> {
+    fn run(&self, signal: broadcast::Receiver<()>) -> JoinHandle<()> {
         let handler = self.clone();
         tokio::spawn(async move { handler.stream(signal).await })
     }
@@ -112,13 +112,13 @@ impl Operator for sync::Arc<ProxyRemote> {
 // -- Implementation details
 
 impl ProxyRemote {
-    pub async fn stream(&self, sig: channel::Receiver<()>) -> Result<()> {
+    pub async fn stream(&self, mut sig: broadcast::Receiver<()>) -> Result<()> {
         ewe_logs::info!("Streaming for proxy: {}", self.0,);
 
         let (kill_sender, kill_receiver) = oneshot::channel::<()>();
 
         let kill_thread = tokio::task::spawn_blocking(move || {
-            _ = sig.recv().expect("should receive kill signal");
+            _ = sig.blocking_recv().expect("should receive kill signal");
             kill_sender.send(()).expect("should send kill signal");
         });
 
@@ -222,7 +222,7 @@ impl StreamTCPApp {
 
 // -- Binary starter
 impl StreamTCPApp {
-    fn run_proxy(&self, sig: channel::Receiver<()>) -> JoinHandle<()> {
+    fn run_proxy(&self, sig: broadcast::Receiver<()>) -> JoinHandle<()> {
         let proxy_server = ProxyRemote::shared(self.proxy_type.clone());
         proxy_server.run(sig)
     }
@@ -231,7 +231,7 @@ impl StreamTCPApp {
 // -- Operator implementation
 
 impl Operator for sync::Arc<StreamTCPApp> {
-    fn run(&self, signal: channel::Receiver<()>) -> JoinHandle<()> {
+    fn run(&self, signal: broadcast::Receiver<()>) -> JoinHandle<()> {
         let wait_for = self.wait_for_binary_secs.clone();
 
         let pt = self.proxy_type.clone();

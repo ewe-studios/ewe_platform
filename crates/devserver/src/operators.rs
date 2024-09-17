@@ -1,12 +1,11 @@
 use derive_more::From;
 use std::sync;
-
-use crossbeam::channel;
+use tokio::sync::broadcast;
 
 use crate::types::JoinHandle;
 
 pub trait Operator {
-    fn run(&self, signal: channel::Receiver<()>) -> JoinHandle<()>;
+    fn run(&self, cancel_signal: broadcast::Receiver<()>) -> JoinHandle<()>;
 }
 
 #[derive(Debug, From)]
@@ -35,12 +34,12 @@ impl SequentialOps {
 }
 
 impl Operator for SequentialOps {
-    fn run(&self, signal: channel::Receiver<()>) -> JoinHandle<()> {
+    fn run(&self, signal: broadcast::Receiver<()>) -> JoinHandle<()> {
         let jobs = self.operators.clone();
 
         tokio::spawn(async move {
             for job in jobs.iter() {
-                match job.run(signal.clone()).await {
+                match job.run(signal.resubscribe()).await {
                     Ok(_) => continue,
                     Err(err) => {
                         ewe_logs::error!("Failed to complete operator: {:?}", err);
@@ -67,9 +66,9 @@ impl ParrellelOps {
 }
 
 impl Operator for ParrellelOps {
-    fn run(&self, signal: channel::Receiver<()>) -> JoinHandle<()> {
+    fn run(&self, signal: broadcast::Receiver<()>) -> JoinHandle<()> {
         let operations =
-            futures::future::join_all(self.operators.iter().map(|t| t.run(signal.clone())));
+            futures::future::join_all(self.operators.iter().map(|t| t.run(signal.resubscribe())));
         tokio::spawn(async move {
             let result_list = operations.await;
             for result in result_list {

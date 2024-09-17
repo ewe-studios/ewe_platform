@@ -12,9 +12,6 @@ use notify_debouncer_full::{new_debouncer, DebounceEventResult};
 
 pub type Result<T> = std::result::Result<T, anyhow::Error>;
 
-pub type ChangeHandler =
-    fn(target: String, when: Instant, kind: EventKind, paths: Vec<PathBuf>) -> Result<()>;
-
 #[cfg(all(target_os = "macos", not(feature = "macos_kqueue")))]
 pub type NotifyWatcher = notify_debouncer_full::Debouncer<
     notify::fsevent::FsEventWatcher,
@@ -42,11 +39,12 @@ pub struct WatchHandle<T>(pub JoinHandle<T>, pub NotifyWatcher);
 
 pub fn create_notify_watcher(
     target_path: String,
-    debounce: u64,
+    debounce_millis: u64,
     be_recursive: bool,
     sender: std::sync::mpsc::Sender<DebounceEventResult>,
 ) -> Result<NotifyWatcher> {
-    let mut watcher: NotifyWatcher = new_debouncer(Duration::from_millis(debounce), None, sender)?;
+    let mut watcher: NotifyWatcher =
+        new_debouncer(Duration::from_millis(debounce_millis), None, sender)?;
 
     let watcher_path = Path::new(&target_path);
 
@@ -63,14 +61,14 @@ pub fn create_notify_watcher(
 }
 
 pub fn watch_path(
-    debounce: u64,
+    debounce_millis: u64,
     target_path: String,
     be_recursive: bool,
-    handler: ChangeHandler,
+    handler: impl Fn(String, Instant, EventKind, Vec<PathBuf>) -> Result<()> + Send + Sync + 'static,
 ) -> Result<WatchHandle<()>> {
     let (tx, rx) = std::sync::mpsc::channel();
 
-    let watcher = create_notify_watcher(target_path.clone(), debounce, be_recursive, tx)?;
+    let watcher = create_notify_watcher(target_path.clone(), debounce_millis, be_recursive, tx)?;
 
     // listen for change events
     let join_handler = thread::spawn(move || {

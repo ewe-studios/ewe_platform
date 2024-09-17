@@ -7,12 +7,12 @@ use crate::{
     operators::{self, Operator},
     types::JoinHandle,
 };
-use crossbeam::channel;
 use derive_more::From;
 use std::{
     process::{self, Stdio},
     sync,
 };
+use tokio::sync::broadcast;
 
 #[derive(Debug, From)]
 pub enum CargoShellError {
@@ -37,31 +37,75 @@ type CargoShellResult<T> = types::Result<T>;
 ///
 /// It specifically runs the relevant shell commands, validate the binary
 /// was produced and run giving binary with a target command you provide.
-#[derive(Clone)]
 pub struct CargoShellBuilder {
     pub project_dir: String,
     pub binary_name: String,
+    pub build_notifier: broadcast::Sender<()>,
+    // because we want to re-subscribe as many times as we need
+    pub file_notifications: broadcast::Sender<()>,
 }
 
 // constructors
 impl CargoShellBuilder {
-    pub fn shared<S>(project_dir: S, binary_name: S) -> sync::Arc<Self>
+    pub fn shared<S>(
+        project_dir: S,
+        binary_name: S,
+        build_notifier: broadcast::Sender<()>,
+        file_notifications: broadcast::Sender<()>,
+    ) -> sync::Arc<Self>
     where
         S: Into<String>,
     {
         sync::Arc::new(Self {
             project_dir: project_dir.into(),
             binary_name: binary_name.into(),
+            file_notifications,
+            build_notifier,
         })
+    }
+}
+
+impl Clone for CargoShellBuilder {
+    fn clone(&self) -> Self {
+        Self {
+            project_dir: self.project_dir.clone(),
+            binary_name: self.binary_name.clone(),
+            build_notifier: self.build_notifier.clone(),
+            file_notifications: self.file_notifications.clone(),
+        }
     }
 }
 
 // -- Operator implementations
 
 impl operators::Operator for sync::Arc<CargoShellBuilder> {
-    fn run(&self, _signal: channel::Receiver<()>) -> JoinHandle<()> {
+    fn run(&self, mut signal: broadcast::Receiver<()>) -> JoinHandle<()> {
         let handle = self.clone();
-        tokio::spawn(async move { handle.build().await })
+        let mut recver = self.file_notifications.subscribe();
+        tokio::spawn(async move {
+            loop {
+                tokio::select! {
+                    _ = recver.recv() => {
+                        ewe_logs::info!("Received rebuilding signal for binary!");
+                        match handle.build().await {
+                            Ok(_) => {
+                                ewe_logs::info!("Finished rebuilding binary!");
+                                continue;
+                            },
+                            Err(err) => {
+                                return Err(err);
+                            }
+                        }
+                    },
+                    _ = signal.recv() => {
+                        ewe_logs::info!("Cancel signal received, shutting down!");
+                        break;
+                    }
+                }
+            }
+
+            Ok(())
+        })
     }
 }
 
@@ -70,6 +114,7 @@ impl CargoShellBuilder {
     pub async fn build(&self) -> CargoShellResult<()> {
         self.run_checks().await?;
         self.run_build().await?;
+        self.build_notifier.send(())?;
         Ok(())
     }
 
@@ -157,18 +202,32 @@ pub struct CargoBinaryApp {
     binary_path: String,
     project_directory: String,
     binary_arguments: Option<Vec<&'static str>>,
+    // using the sender so we can create as many subscriber/receivers as needed.
+    build_notifications: broadcast::Sender<()>,
+}
+
+impl Clone for CargoBinaryApp {
+    fn clone(&self) -> Self {
+        Self {
+            binary_path: self.binary_path.clone(),
+            project_directory: self.project_directory.clone(),
+            binary_arguments: self.binary_arguments.clone(),
+            build_notifications: self.build_notifications.clone(),
+        }
+    }
 }
 
 // -- Constructor
-
 impl CargoBinaryApp {
     pub fn shared(
         binary_path: String,
         project_directory: String,
         binary_args: Option<Vec<&'static str>>,
+        build_notifications: broadcast::Sender<()>,
     ) -> sync::Arc<Self> {
         sync::Arc::new(Self {
             project_directory,
+            build_notifications,
             binary_path: binary_path.into(),
             binary_arguments: binary_args,
         })
@@ -178,12 +237,40 @@ impl CargoBinaryApp {
 // -- Operator implementation
 
 impl Operator for sync::Arc<CargoBinaryApp> {
-    fn run(&self, signal: channel::Receiver<()>) -> JoinHandle<()> {
-        let mut binary_runner = self.run_binary().expect("should have started binary");
+    fn run(&self, mut signal: broadcast::Receiver<()>) -> JoinHandle<()> {
+        let handle = self.clone();
 
-        tokio::task::spawn_blocking(move || {
-            _ = signal.recv().expect("should receive kill signal");
-            binary_runner.kill().expect("should have being killed");
+        let mut recver = self.build_notifications.subscribe();
+        tokio::spawn(async move {
+            let mut binary_handle: Option<process::Child> = None;
+
+            loop {
+                tokio::select! {
+                    _ = recver.recv() => {
+                        if let Some(mut binary) = binary_handle {
+                            ewe_logs::info!("Killing current version of binary");
+                            binary.kill().expect("kill binary and re-starts");
+                        }
+
+                        ewe_logs::info!("Restarting latest version of binary");
+                        binary_handle = Some(handle.run_binary().expect("re-run binary"));
+
+                        ewe_logs::info!("Restart done!");
+                        continue;
+                    },
+                    _ = signal.recv() => {
+                        ewe_logs::info!("Cancel signal received, shutting down!");
+                        if let Some(mut binary) = binary_handle {
+                            match binary.kill() {
+                                Ok(_) => break,
+                                Err(err) => return Err(Box::new(err).into()),
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+
             Ok(())
         })
     }

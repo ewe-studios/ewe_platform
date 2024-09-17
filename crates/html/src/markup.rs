@@ -427,8 +427,7 @@ impl<'a> FragmentDef<'a> {
 
     pub fn add_after(&mut self, elem: FragmentDef<'a>) -> ElementResult<usize> {
         match self {
-            FragmentDef::NoChildHTML(container)
-            | FragmentDef::HTML(container) => match container {
+            FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
                 Some(node) => Ok(node.add_after(elem)),
             },
@@ -832,9 +831,6 @@ pub enum FragmentRef<'a> {
 
 #[cfg(test)]
 mod markup_tests {
-
-    use lazy_static::lazy_static;
-    use std::sync::{Arc, Mutex};
 
     use ewe_mem::{encoding, memory::Resetable};
 
