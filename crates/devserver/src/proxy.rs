@@ -115,13 +115,6 @@ impl ProxyRemote {
     pub async fn stream(&self, mut sig: broadcast::Receiver<()>) -> Result<()> {
         ewe_logs::info!("Streaming for proxy: {}", self.0,);
 
-        let (kill_sender, kill_receiver) = oneshot::channel::<()>();
-
-        let kill_thread = tokio::task::spawn_blocking(move || {
-            _ = sig.blocking_recv().expect("should receive kill signal");
-            kill_sender.send(()).expect("should send kill signal");
-        });
-
         tokio::select! {
 
             res = async {
@@ -196,7 +189,7 @@ impl ProxyRemote {
                 res
             }
 
-            _ = kill_receiver => {
+            _ = sig.recv() => {
                 kill_thread.await.expect("should have died correctly");
                 Ok(())
             }
