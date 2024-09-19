@@ -1,9 +1,28 @@
-use axum::{response::Html, routing::get, Router};
+use core::str;
+
+use axum::{
+    response::{Html, IntoResponse, Response},
+    routing::get,
+    Router,
+};
+use http::StatusCode;
+use rust_embed::Embed;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
-async fn handler() -> Html<&'static str> {
-    Html("<h1>Wello Jorld</h1>")
+#[derive(Embed)]
+#[folder = "public/"]
+#[prefix = "static/"]
+struct Assets;
+
+async fn handler() -> Response {
+    match Assets::get("static/index.html") {
+        Some(html_data) => {
+            let content = String::from_utf8(html_data.data.to_vec()).expect("should generate str");
+            Html(content).into_response()
+        }
+        None => (StatusCode::NOT_FOUND, "404 NOT FOUND").into_response(),
+    }
 }
 
 #[tokio::main(flavor = "multi_thread", worker_threads = 10)]

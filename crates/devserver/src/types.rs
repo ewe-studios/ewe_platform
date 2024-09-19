@@ -6,7 +6,7 @@ use std::future::Future;
 use std::net::SocketAddr;
 use std::{pin, result};
 
-use http_body_util::combinators::BoxBody;
+use axum::body;
 
 use derive_more::From;
 
@@ -63,7 +63,7 @@ impl Tunnel {
 }
 
 pub type HyperRequest = hyper::Request<hyper::body::Incoming>;
-pub type HyperResponse = hyper::Response<BoxBody<bytes::Bytes, hyper::Error>>;
+pub type HyperResponse = hyper::Response<body::Body>;
 pub type HyperResponseResult = result::Result<HyperResponse, hyper::Error>;
 pub type HyperFuture = dyn Future<Output = HyperResponseResult> + Sync + Send + 'static;
 

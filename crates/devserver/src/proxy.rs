@@ -4,7 +4,6 @@ use std::net::SocketAddr;
 use std::{sync, time};
 use tokio::net::TcpStream;
 use tokio::sync::broadcast;
-use tokio::sync::oneshot;
 
 use tokio::net;
 
@@ -190,7 +189,6 @@ impl ProxyRemote {
             }
 
             _ = sig.recv() => {
-                kill_thread.await.expect("should have died correctly");
                 Ok(())
             }
         }

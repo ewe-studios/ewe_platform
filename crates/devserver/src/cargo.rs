@@ -202,6 +202,9 @@ pub struct CargoBinaryApp {
     binary_path: String,
     project_directory: String,
     binary_arguments: Option<Vec<&'static str>>,
+    // we actually use the send to send notification that the app
+    // is now running again.
+    running_notifications: broadcast::Sender<()>,
     // using the sender so we can create as many subscriber/receivers as needed.
     build_notifications: broadcast::Sender<()>,
 }
@@ -213,6 +216,7 @@ impl Clone for CargoBinaryApp {
             project_directory: self.project_directory.clone(),
             binary_arguments: self.binary_arguments.clone(),
             build_notifications: self.build_notifications.clone(),
+            running_notifications: self.build_notifications.clone(),
         }
     }
 }
@@ -224,10 +228,12 @@ impl CargoBinaryApp {
         project_directory: String,
         binary_args: Option<Vec<&'static str>>,
         build_notifications: broadcast::Sender<()>,
+        running_notifications: broadcast::Sender<()>,
     ) -> sync::Arc<Self> {
         sync::Arc::new(Self {
             project_directory,
             build_notifications,
+            running_notifications,
             binary_path: binary_path.into(),
             binary_arguments: binary_args,
         })
@@ -240,13 +246,15 @@ impl Operator for sync::Arc<CargoBinaryApp> {
     fn run(&self, mut signal: broadcast::Receiver<()>) -> JoinHandle<()> {
         let handle = self.clone();
 
-        let mut recver = self.build_notifications.subscribe();
+        let run_sender = self.running_notifications.clone();
+        let mut build_notifier = self.build_notifications.subscribe();
+
         tokio::spawn(async move {
             let mut binary_handle: Option<process::Child> = None;
 
             loop {
                 tokio::select! {
-                    _ = recver.recv() => {
+                    _ = build_notifier.recv() => {
                         if let Some(mut binary) = binary_handle {
                             ewe_logs::info!("Killing current version of binary");
                             binary.kill().expect("kill binary and re-starts");
@@ -256,6 +264,9 @@ impl Operator for sync::Arc<CargoBinaryApp> {
                         binary_handle = Some(handle.run_binary().expect("re-run binary"));
 
                         ewe_logs::info!("Restart done!");
+                        if let Err(_) = run_sender.send(()) {
+                            ewe_logs::warn!("No one is listening for re-running messages");
+                        }
                         continue;
                     },
                     _ = signal.recv() => {

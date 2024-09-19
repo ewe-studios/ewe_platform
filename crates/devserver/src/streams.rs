@@ -1,6 +1,6 @@
-use bytes;
+use axum::body;
 use http::StatusCode;
-use http_body_util::{combinators::BoxBody, BodyExt, Empty, Full};
+use http_body_util::BodyExt;
 use hyper::client;
 use hyper::server;
 use hyper::service;
@@ -14,6 +14,9 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 use tokio::{net, sync::broadcast};
 
+use crate::empty;
+use crate::full;
+use crate::host_addr;
 use crate::types::Http1;
 use crate::types::Result;
 use crate::types::Tunnel;
@@ -196,7 +199,8 @@ impl service::Service<crate::types::HyperRequest> for Http1Service {
 
                                 match request_sender.send_request(req).await {
                                     Ok(destination_response) => {
-                                        let resp = destination_response.map(|b| b.boxed());
+                                        let resp = destination_response
+                                            .map(|b| body::Body::new(b.boxed()));
                                         Ok(resp)
                                     }
                                     Err(err) => {
@@ -206,7 +210,7 @@ impl service::Service<crate::types::HyperRequest> for Http1Service {
                                         );
                                         Ok(hyper::Response::builder()
                                             .status(StatusCode::INTERNAL_SERVER_ERROR)
-                                            .body(empty())
+                                            .body(body::Body::new(empty()))
                                             .unwrap())
                                     }
                                 }
@@ -215,7 +219,7 @@ impl service::Service<crate::types::HyperRequest> for Http1Service {
                                 ewe_logs::error!("Failed to build proxy request sender: {:?}", err);
                                 Ok(hyper::Response::builder()
                                     .status(StatusCode::INTERNAL_SERVER_ERROR)
-                                    .body(empty())
+                                    .body(body::Body::new(empty()))
                                     .unwrap())
                             }
                         }
@@ -228,7 +232,7 @@ impl service::Service<crate::types::HyperRequest> for Http1Service {
                         );
                         Ok(hyper::Response::builder()
                             .status(StatusCode::INTERNAL_SERVER_ERROR)
-                            .body(empty())
+                            .body(body::Body::new(empty()))
                             .unwrap())
                     }
                 };
@@ -261,7 +265,7 @@ impl service::Service<crate::types::HyperRequest> for Http1Service {
                                 ewe_logs::error!("Failed to stream bi-directional CONNECT request to: {} due to {}", socket_addr, failed_err)
                             }
                         });
-                        Ok(hyper::Response::new(empty()))
+                        Ok(hyper::Response::new(body::Body::new(empty())))
                     }
                     Err(err) => {
                         ewe_logs::error!(
@@ -271,35 +275,23 @@ impl service::Service<crate::types::HyperRequest> for Http1Service {
                         );
                         Ok(hyper::Response::builder()
                             .status(StatusCode::INTERNAL_SERVER_ERROR)
-                            .body(full("Failed to successfully upgrade connection!"))
+                            .body(body::Body::new(full(
+                                "Failed to successfully upgrade connection!",
+                            )))
                             .unwrap())
                     }
                 },
                 None => Ok(hyper::Response::builder()
                     .status(StatusCode::BAD_REQUEST)
-                    .body(full("CONNECT must alwayas come with a socket address!"))
+                    .body(body::Body::new(full(
+                        "CONNECT must alwayas come with a socket address!",
+                    )))
                     .unwrap()),
             }
         };
 
         Box::pin(stream_operation)
     }
-}
-
-fn host_addr(uri: &http::Uri) -> Option<String> {
-    uri.authority().and_then(|auth| Some(auth.to_string()))
-}
-
-fn empty() -> BoxBody<bytes::Bytes, hyper::Error> {
-    Empty::<bytes::Bytes>::new()
-        .map_err(|never| match never {})
-        .boxed()
-}
-
-fn full<T: Into<bytes::Bytes>>(chunk: T) -> BoxBody<bytes::Bytes, hyper::Error> {
-    Full::new(chunk.into())
-        .map_err(|never| match never {})
-        .boxed()
 }
 
 // Create a TCP connection to host:port, build a tunnel between the connection and
