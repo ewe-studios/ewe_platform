@@ -25,11 +25,9 @@ pub static RELOADER_SCRIPT_ENDPOINT: &'static str = "/static/sse/reloader.js";
 pub static RELOADER_SSE_ENDPOINT: &'static str = "/static/sse/reload";
 
 pub fn sse_endpoint_script(
-    addr: SocketAddr,
+    _addr: SocketAddr,
     _request: crate::types::HyperRequest,
 ) -> pin::Pin<Box<crate::types::HyperFuture>> {
-    ewe_logs::info!("Received request for SSE endpoint script from {}", addr);
-
     Box::pin(async move {
         let body = body::Body::new(crate::full(bytes::Bytes::from(RELOADER_SCRIPT_BYTES)));
         Ok(hyper::Response::builder()
@@ -41,11 +39,10 @@ pub fn sse_endpoint_script(
 }
 
 fn sse_endpoint_reloader(
-    addr: SocketAddr,
+    _addr: SocketAddr,
     _request: crate::types::HyperRequest,
     running_notification: broadcast::Receiver<()>,
 ) -> pin::Pin<Box<crate::types::HyperFuture>> {
-    ewe_logs::info!("Seeing request for addr: {}", addr);
     Box::pin(async move {
         let running_stream = BroadcastStream::new(running_notification);
         Ok(Sse::new(
@@ -53,7 +50,7 @@ fn sse_endpoint_reloader(
             // else you will have type inference compiler errors
             running_stream.map(|_| -> Result<Event, crate::types::BoxedError> {
                 Ok(Event::default()
-                    .data("ready\n")
+                    .data("ready")
                     .comment("indicates we should reload page")
                     .event("reload"))
             }),

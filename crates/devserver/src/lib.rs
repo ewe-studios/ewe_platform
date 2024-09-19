@@ -2,6 +2,7 @@
 // ewe platform web application for local development.
 
 mod body;
+mod builders;
 mod cargo;
 mod errors;
 mod operators;
@@ -13,6 +14,7 @@ pub mod assets;
 pub mod types;
 
 pub use body::*;
+pub use builders::*;
 pub use cargo::*;
 pub use errors::*;
 pub use operators::*;

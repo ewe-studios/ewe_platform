@@ -32,6 +32,8 @@ tower = { version = "0.4.13" }
 h2 = { version = "0.4" }
 h3 = { version = "0.0.6" }
 
+# -- utils
+lazy_static = { version = "1.4.0" }
 
 # -- serve# -- serve
 serde = { version = "1.0.197", features = ["derive"] }
