@@ -18,6 +18,7 @@ derive_more.workspace = true
 
 # -- axum and tower
 axum = { version = "0.7.5" }
+async-trait = { version = "0.1.82"}
 crossbeam = { version = "0.8" }
 futures = { version = "0.3" }
 tokio-stream = { version = "0.1.16", features = ["sync"]}

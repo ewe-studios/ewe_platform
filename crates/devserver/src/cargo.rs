@@ -6,6 +6,7 @@ use crate::types::{self, BoxedError};
 use crate::{
     operators::{self, Operator},
     types::JoinHandle,
+    ProjectDefinition, SenderExt,
 };
 use derive_more::From;
 use std::{
@@ -38,27 +39,20 @@ type CargoShellResult<T> = types::Result<T>;
 /// It specifically runs the relevant shell commands, validate the binary
 /// was produced and run giving binary with a target command you provide.
 pub struct CargoShellBuilder {
-    pub project_dir: String,
-    pub binary_name: String,
+    pub project: ProjectDefinition,
     pub build_notifier: broadcast::Sender<()>,
-    // because we want to re-subscribe as many times as we need
     pub file_notifications: broadcast::Sender<()>,
 }
 
 // constructors
 impl CargoShellBuilder {
-    pub fn shared<S>(
-        project_dir: S,
-        binary_name: S,
+    pub fn shared(
+        project: ProjectDefinition,
         build_notifier: broadcast::Sender<()>,
         file_notifications: broadcast::Sender<()>,
-    ) -> sync::Arc<Self>
-    where
-        S: Into<String>,
-    {
+    ) -> sync::Arc<Self> {
         sync::Arc::new(Self {
-            project_dir: project_dir.into(),
-            binary_name: binary_name.into(),
+            project,
             file_notifications,
             build_notifier,
         })
@@ -68,8 +62,7 @@ impl CargoShellBuilder {
 impl Clone for CargoShellBuilder {
     fn clone(&self) -> Self {
         Self {
-            project_dir: self.project_dir.clone(),
-            binary_name: self.binary_name.clone(),
+            project: self.project.clone(),
             build_notifier: self.build_notifier.clone(),
             file_notifications: self.file_notifications.clone(),
         }
@@ -120,28 +113,32 @@ impl CargoShellBuilder {
 
     async fn run_build(&self) -> CargoShellResult<()> {
         ewe_logs::info!(
-            "Building project binary with cargo (project={}, binary={})",
-            self.project_dir,
-            self.binary_name,
+            "Building project binary with cargo (project={}, binary={:?})",
+            self.project.crate_name,
+            self.project.run_arguments,
         );
-        let mut command = tokio::process::Command::new("cargo");
+
+        let mut binary_and_arguments = self.project.build_arguments.clone();
+        let binary_arguments = binary_and_arguments.split_off(1);
+
+        let mut command = tokio::process::Command::new(binary_and_arguments.pop().unwrap());
         match command
-            .current_dir(self.project_dir.clone())
-            .args(["build", "--bin", self.binary_name.as_str()])
+            .current_dir(self.project.workspace_root.clone())
+            .args(binary_arguments)
             .output()
             .await
         {
             Ok(result) => {
                 ewe_logs::info!(
-                    "Running command `cargo build` (project={}, binary={})",
-                    self.project_dir,
-                    self.binary_name,
+                    "Running command `cargo build` (project={}, binary={:?})",
+                    self.project.crate_name,
+                    self.project.run_arguments,
                 );
                 if !result.status.success() {
                     ewe_logs::error!(
-                        "Running command `cargo build` returned error (project={}, binary={})\n\t{:?}",
-                        self.project_dir,
-                        self.binary_name,
+                        "Running command `cargo build` returned error (project={}, binary={:?})\n\t{:?}",
+                        self.project.crate_name,
+                        self.project.run_arguments,
                         String::from_utf8(result.stderr).expect("should correct decode error"),
                     );
                     return Err(Box::new(CargoShellError::CargoCheckFailed));
@@ -150,9 +147,9 @@ impl CargoShellBuilder {
             }
             Err(err) => {
                 ewe_logs::error!(
-                    "Failed command execution: `cargo build` (project={}, binary={}): {:?}",
-                    self.project_dir,
-                    self.binary_name,
+                    "Failed command execution: `cargo build` (project={}, binary={:?}): {:?}",
+                    self.project.crate_name,
+                    self.project.run_arguments,
                     err,
                 );
                 Err(Box::new(CargoShellError::ShellError(Box::new(err))))
@@ -163,22 +160,22 @@ impl CargoShellBuilder {
     async fn run_checks(&self) -> CargoShellResult<()> {
         let mut command = tokio::process::Command::new("cargo");
         match command
-            .current_dir(self.project_dir.clone())
+            .current_dir(self.project.workspace_root.clone())
             .args(["check"])
             .output()
             .await
         {
             Ok(result) => {
                 ewe_logs::info!(
-                    "Running command `cargo check` (project={}, binary={})",
-                    self.project_dir,
-                    self.binary_name,
+                    "Running command `cargo check` (project={}, binary={:?})",
+                    self.project.crate_name,
+                    self.project.run_arguments,
                 );
                 if !result.status.success() {
                     ewe_logs::error!(
-                        "Running command `cargo check` returned error (project={}, binary={})\n\t{:?}",
-                        self.project_dir,
-                        self.binary_name,
+                        "Running command `cargo check` returned error (project={}, binary={:?})\n\t{:?}",
+                        self.project.crate_name,
+                        self.project.run_arguments,
                         String::from_utf8(result.stderr).expect("should correct decode error"),
                     );
                     return Err(Box::new(CargoShellError::CargoCheckFailed));
@@ -187,9 +184,9 @@ impl CargoShellBuilder {
             }
             Err(err) => {
                 ewe_logs::error!(
-                    "Failed command execution: `cargo check` (project={}, binary={}): {:?}",
-                    self.project_dir,
-                    self.binary_name,
+                    "Failed command execution: `cargo check` (project={}, binary={:?}): {:?}",
+                    self.project.crate_name,
+                    self.project.run_arguments,
                     err,
                 );
                 Err(Box::new(CargoShellError::ShellError(Box::new(err))))
@@ -198,10 +195,8 @@ impl CargoShellBuilder {
     }
 }
 
-pub struct CargoBinaryApp {
-    binary_path: String,
-    project_directory: String,
-    binary_arguments: Option<Vec<&'static str>>,
+pub struct BinaryApp {
+    project: ProjectDefinition,
     // we actually use the send to send notification that the app
     // is now running again.
     running_notifications: broadcast::Sender<()>,
@@ -209,12 +204,10 @@ pub struct CargoBinaryApp {
     build_notifications: broadcast::Sender<()>,
 }
 
-impl Clone for CargoBinaryApp {
+impl Clone for BinaryApp {
     fn clone(&self) -> Self {
         Self {
-            binary_path: self.binary_path.clone(),
-            project_directory: self.project_directory.clone(),
-            binary_arguments: self.binary_arguments.clone(),
+            project: self.project.clone(),
             build_notifications: self.build_notifications.clone(),
             running_notifications: self.build_notifications.clone(),
         }
@@ -222,32 +215,30 @@ impl Clone for CargoBinaryApp {
 }
 
 // -- Constructor
-impl CargoBinaryApp {
+impl BinaryApp {
     pub fn shared(
-        binary_path: String,
-        project_directory: String,
-        binary_args: Option<Vec<&'static str>>,
+        project: ProjectDefinition,
         build_notifications: broadcast::Sender<()>,
         running_notifications: broadcast::Sender<()>,
     ) -> sync::Arc<Self> {
         sync::Arc::new(Self {
-            project_directory,
+            project,
             build_notifications,
             running_notifications,
-            binary_path: binary_path.into(),
-            binary_arguments: binary_args,
         })
     }
 }
 
 // -- Operator implementation
 
-impl Operator for sync::Arc<CargoBinaryApp> {
+impl Operator for sync::Arc<BinaryApp> {
     fn run(&self, mut signal: broadcast::Receiver<()>) -> JoinHandle<()> {
         let handle = self.clone();
 
         let run_sender = self.running_notifications.clone();
         let mut build_notifier = self.build_notifications.subscribe();
+
+        let wait_before_reload = self.project.wait_before_reload.clone();
 
         tokio::spawn(async move {
             let mut binary_handle: Option<process::Child> = None;
@@ -264,7 +255,7 @@ impl Operator for sync::Arc<CargoBinaryApp> {
                         binary_handle = Some(handle.run_binary().expect("re-run binary"));
 
                         ewe_logs::info!("Restart done!");
-                        if let Err(_) = run_sender.send(()) {
+                        if let Err(_) = run_sender.send_in((), wait_before_reload.clone()).await {
                             ewe_logs::warn!("No one is listening for re-running messages");
                         }
                         continue;
@@ -288,23 +279,17 @@ impl Operator for sync::Arc<CargoBinaryApp> {
 }
 
 // -- Binary starter
-impl CargoBinaryApp {
+impl BinaryApp {
     fn run_binary(&self) -> types::Result<process::Child> {
-        ewe_logs::info!(
-            "Running binary from package directory={}",
-            self.project_directory
-        );
+        ewe_logs::info!("Running binary from project={}", self.project);
 
-        let mut command = process::Command::new(self.binary_path.clone());
+        let mut binary_and_arguments = self.project.run_arguments.clone();
+        let run_arguments = binary_and_arguments.split_off(1);
 
-        let mut args = vec![];
-        if let Some(mut bin_args) = self.binary_arguments.clone() {
-            args.append(&mut bin_args);
-        }
-
+        let mut command = process::Command::new(binary_and_arguments.pop().unwrap());
         match command
-            .current_dir(self.project_directory.clone())
-            .args(args)
+            .current_dir(self.project.workspace_root.clone())
+            .args(run_arguments)
             .stdin(Stdio::null())
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
@@ -312,17 +297,17 @@ impl CargoBinaryApp {
         {
             Ok(child) => {
                 ewe_logs::info!(
-                    "Running command `cargo run` (binary={}, args={:?})",
-                    self.binary_path,
-                    self.binary_arguments,
+                    "Running command `cargo run` (binary={:?}, args={:?})",
+                    self.project.crate_name,
+                    self.project.run_arguments,
                 );
                 Ok(child)
             }
             Err(err) => {
                 ewe_logs::error!(
-                    "Running command `cargo check` returned error (binary={}, args={:?})\n\t{:?}",
-                    self.binary_path,
-                    self.binary_arguments,
+                    "Running command `cargo check` returned error (binary={:?}, args={:?})\n\t{:?}",
+                    self.project.crate_name,
+                    self.project.run_arguments,
                     err,
                 );
                 Err(Box::new(CargoShellError::ShellError(Box::new(err))))

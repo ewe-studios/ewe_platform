@@ -8,7 +8,7 @@ use std::{pin, result};
 
 use axum::body;
 
-use derive_more::From;
+use derive_more::{Debug, From};
 
 pub type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
@@ -70,18 +70,21 @@ pub type HyperFuture = dyn Future<Output = HyperResponseResult> + Sync + Send + 
 pub type HyperFunc =
     dyn Fn(SocketAddr, HyperRequest) -> pin::Pin<Box<HyperFuture>> + Send + Sync + 'static;
 
-#[derive(Clone, From)]
+pub type HyperFuncMap = HashMap<String, std::sync::Arc<HyperFunc>>;
+
+#[derive(Debug, Clone, From)]
 pub struct Http1 {
     pub source: ProxyRemoteConfig,
     pub destination: ProxyRemoteConfig,
-    pub routes: Option<HashMap<String, std::sync::Arc<HyperFunc>>>,
+    #[debug(skip)]
+    pub routes: Option<HyperFuncMap>,
 }
 
 impl Http1 {
     pub fn new(
         source: ProxyRemoteConfig,
         destination: ProxyRemoteConfig,
-        routes: Option<HashMap<String, std::sync::Arc<HyperFunc>>>,
+        routes: Option<HyperFuncMap>,
     ) -> Self {
         Self {
             source,
@@ -89,15 +92,19 @@ impl Http1 {
             routes,
         }
     }
-}
 
-impl derive_more::Debug for Http1 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Http1(source: {:?}, destination: {:?})",
-            self.source, self.destination
-        )
+    pub fn and_routes(&mut self, mutator: impl Fn(&mut HyperFuncMap)) {
+        self.routes = match self.routes.clone() {
+            Some(mut route_map) => {
+                mutator(&mut route_map);
+                Some(route_map)
+            }
+            None => {
+                let mut new_routes = HashMap::new();
+                mutator(&mut new_routes);
+                Some(new_routes)
+            }
+        };
     }
 }
 
@@ -111,18 +118,19 @@ impl core::fmt::Display for Http1 {
     }
 }
 
-#[derive(Clone, From)]
+#[derive(Debug, Clone, From)]
 pub struct Http2 {
     pub source: ProxyRemoteConfig,
     pub destination: ProxyRemoteConfig,
-    pub routes: Option<HashMap<String, std::sync::Arc<HyperFunc>>>,
+    #[debug(skip)]
+    pub routes: Option<HyperFuncMap>,
 }
 
 impl Http2 {
     pub fn new(
         source: ProxyRemoteConfig,
         destination: ProxyRemoteConfig,
-        routes: Option<HashMap<String, std::sync::Arc<HyperFunc>>>,
+        routes: Option<HyperFuncMap>,
     ) -> Self {
         Self {
             source,
@@ -130,15 +138,19 @@ impl Http2 {
             routes,
         }
     }
-}
 
-impl derive_more::Debug for Http2 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Http2(source: {:?}, destination: {:?})",
-            self.source, self.destination
-        )
+    pub fn and_routes(&mut self, mutator: impl Fn(&mut HyperFuncMap)) {
+        self.routes = match self.routes.clone() {
+            Some(mut route_map) => {
+                mutator(&mut route_map);
+                Some(route_map)
+            }
+            None => {
+                let mut new_routes = HashMap::new();
+                mutator(&mut new_routes);
+                Some(new_routes)
+            }
+        };
     }
 }
 
@@ -152,18 +164,20 @@ impl core::fmt::Display for Http2 {
     }
 }
 
-#[derive(Clone, From)]
+#[derive(Debug, Clone, From)]
 pub struct Http3 {
     pub source: ProxyRemoteConfig,
     pub destination: ProxyRemoteConfig,
-    pub routes: Option<HashMap<String, std::sync::Arc<HyperFunc>>>,
+
+    #[debug(skip)]
+    pub routes: Option<HyperFuncMap>,
 }
 
 impl Http3 {
     pub fn new(
         source: ProxyRemoteConfig,
         destination: ProxyRemoteConfig,
-        routes: Option<HashMap<String, std::sync::Arc<HyperFunc>>>,
+        routes: Option<HyperFuncMap>,
     ) -> Self {
         Self {
             source,
@@ -171,15 +185,19 @@ impl Http3 {
             routes,
         }
     }
-}
 
-impl derive_more::Debug for Http3 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Http3(source: {:?}, destination: {:?})",
-            self.source, self.destination
-        )
+    pub fn and_routes(&mut self, mutator: impl Fn(&mut HyperFuncMap)) {
+        self.routes = match self.routes.clone() {
+            Some(mut route_map) => {
+                mutator(&mut route_map);
+                Some(route_map)
+            }
+            None => {
+                let mut new_routes = HashMap::new();
+                mutator(&mut new_routes);
+                Some(new_routes)
+            }
+        };
     }
 }
 

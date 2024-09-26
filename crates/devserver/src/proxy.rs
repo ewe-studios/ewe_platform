@@ -8,7 +8,7 @@ use tokio::sync::broadcast;
 use tokio::net;
 
 use crate::streams;
-use crate::types::{Http1, Http2, Http3, JoinHandle, Result, Tunnel};
+use crate::types::{Http1, Http2, Http3, HyperFuncMap, JoinHandle, Result, Tunnel};
 use crate::Operator;
 
 // -- Errors
@@ -44,6 +44,21 @@ impl core::fmt::Display for ProxyType {
         write!(f, "{self:?}")
     }
 }
+
+// -- Mutation methods
+
+impl ProxyType {
+    pub fn and_routes(&mut self, mutator: impl Fn(&mut HyperFuncMap)) {
+        match self {
+            Self::Tunnel(_) => panic!("Tunnel() do not have routes"),
+            Self::Http1(http1) => http1.and_routes(mutator),
+            Self::Http2(http2) => http2.and_routes(mutator),
+            Self::Http3(http3) => http3.and_routes(mutator),
+        }
+    }
+}
+
+// -- Streaming implementations
 
 impl ProxyType {
     async fn tunnel_connection(self, connection: (TcpStream, SocketAddr)) -> Result<()> {
