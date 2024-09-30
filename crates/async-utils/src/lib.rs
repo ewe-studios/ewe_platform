@@ -22,7 +22,7 @@
 //! # Examples
 //!
 //! ```
-//! use async_convert::{async_trait, TryFrom};
+//! use ewe_async_utils::{async_trait, TryFrom};
 //!
 //! struct GreaterThanZero(i32);
 //!

@@ -1,4 +1,4 @@
-use ewe_template_macro::template;
+use ewe_templates_macro::template;
 use serde_json::{json, Value};
 
 fn main() {

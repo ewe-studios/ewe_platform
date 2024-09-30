@@ -1,6 +1,6 @@
 // region -- JsonError
 
-pub type JsonResult<T> = core::result::Result<T, JsonError>
+pub type JsonResult<T> = core::result::Result<T, JsonError>;
 
 #[derive(Debug, derive_more::From)]
 pub enum JsonError {
