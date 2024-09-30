@@ -2,7 +2,14 @@
 # usually this iset to 1
 resolver = "2"
 # set members of your workspace
-members = ["bin/*", "crates/*", "backends/*", "examples/web/*", "examples/template/*"]
+members = [
+    "bin/*",
+    "crates/*",
+    "backends/*",
+    "examples/web/*",
+    "examples/template/*",
+    "examples/pkg_templates/*",
+]
 exclude = ["crates/html-macro", "examples/todo"]
 
 [workspace.package]

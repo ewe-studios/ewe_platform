@@ -616,6 +616,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "dev"
+version = "0.1.0"
+dependencies = [
+ "ewe-devserver",
+ "ewe-logs",
+ "ewe-watch-utils",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "digest"
 version = "0.10.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"

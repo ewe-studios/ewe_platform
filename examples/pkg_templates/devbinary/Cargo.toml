@@ -1,0 +1,28 @@
+[package]
+name = "dev"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.78"
+license =  "MIT OR Apache-2.0"
+description = "Dev server for your project which builts in great defaults"
+keywords = [
+    "local-server",
+    "dev-sever",
+]
+
+[dependencies]
+ewe-logs = { workspace = true,  features = ["standard"]}
+ewe-watch-utils = { workspace = true }
+ewe-devserver = { workspace = true  }
+
+# -- tokio, axum and tower
+tokio = { version = "1.36", features = ["full"] }
+
+# -- tracing crates
+tracing = { version = "0.1.40" }
+tracing-subscriber = { version = "0.3.18" }
+
+[lints]
+
+[lints.rust]
+unsafe_code = "forbid"
