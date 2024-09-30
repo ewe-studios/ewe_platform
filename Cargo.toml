@@ -37,6 +37,9 @@ ewe-channels = { path = "./crates/channels" }
 ewe-domain = { path = "./crates/domain" }
 ewe-domain-macro = { path = "./crates/domain-macro" }
 
+# -- non project bound crates
+serde-ext = { path = "./backend/serde_ext" }
+
 # -- workspace wide packages
 derive_more = { version = "1.0.0", features = ["full"] }
 tracing = { version = "0.1.40" }

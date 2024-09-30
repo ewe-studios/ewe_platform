@@ -1,8 +1,4 @@
 # Backends
 
-These are external repositories or forks that have value in how we use them  within the project.
-
-## Projects
-
-- [TinyTemplate](https://github.com/rstkit/TinyTemplate)
-- [lol-html](https://gthub.comr/rstkit/lol-html)
+These are support crates that are exported from the ewe-platform crate but do not directly
+depend on the internal crates
