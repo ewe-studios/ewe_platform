@@ -217,3 +217,27 @@ impl JsonValueExt for Value {
         Ok(content)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::JsonValueExt;
+    use serde_json::json;
+
+    type Result<T> = core::result::Result<T, Box<dyn std::error::Error>>; // For tests.
+
+    #[test]
+    fn test_value_insert_ok() -> Result<()> {
+        // -- Setup & Fixtures
+        let mut value = json!({"tokens": 3});
+        let fx_node_value = "hello";
+
+        // -- Exec
+        value.json_insert("/happy/word", fx_node_value)?;
+
+        // -- Check
+        let actual_value: String = value.json_get("/happy/word")?;
+        assert_eq!(actual_value.as_str(), fx_node_value);
+
+        Ok(())
+    }
+}
