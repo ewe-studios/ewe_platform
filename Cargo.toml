@@ -8,9 +8,8 @@ members = [
     "backends/*",
     "examples/web/*",
     "examples/template/*",
-    "examples/pkg_templates/*",
 ]
-exclude = ["crates/html-macro", "examples/todo"]
+exclude = ["crates/html-macro","templates/*", "examples/todo"]
 
 [workspace.package]
 edition = "2021"

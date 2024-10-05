@@ -1,0 +1,42 @@
+[package]
+name = "http-app"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+license = "Apache-2.0"
+authors = ["EweStudios Consulting Limited"]
+repository = "https://github.com/<USER>/{{project_name}}"
+keywords = ["ewe_platform", "ewestudios platform", "ewe"]
+
+[dependencies]
+ewe-logs = { version = "0.1", features = ["standard"] }
+ewe-watch-utils = { version = "0.1" }
+ewe-devserver = { version = "0.1"  }
+
+axum = { version = "0.7.5" }
+tokio = { version = "1.36", features = ["full"], default-features = true }
+
+# -- http and hyper
+bytes = { version = "1.6.1" }
+http = { version = "1.1" }
+http-body = { version = "1.0" }
+hyper = { version = "1.4.1", features = ["full"]}
+hyper-util = { version = "0.1.7"}
+http-body-util = { version = "0.1.2" }
+
+# -- serve# -- serve
+serde = { version = "1.0.197", features = ["derive"] }
+serde_json = { version = "1.0.114" }
+serde_with = { version = "3.6.1" }
+
+# -- error crates
+anyhow = { version = "1.0.80" }
+thiserror = { version = "1.0.57" }
+
+# -- tracing crates
+tracing = { version = "0.1.40" }
+tracing-subscriber = { version = "0.3.18" }
+
+
+[lints]
+workspace = true

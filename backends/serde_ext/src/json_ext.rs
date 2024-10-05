@@ -63,7 +63,7 @@ impl AsType<'_> for i64 {
 }
 
 pub trait JsonValueExt {
-    fn json_new_object() -> Value;
+    fn json_new() -> Value;
 
     /// Returns an owned type `T` for a given name or pointer path.
     /// - `name_or_pointer`: Can be a direct name or a pointer path (path starting with `/`),
@@ -93,7 +93,7 @@ pub trait JsonValueExt {
 }
 
 impl JsonValueExt for Value {
-    fn json_new_object() -> Value {
+    fn json_new() -> Value {
         Value::Object(Map::new())
     }
 
