@@ -16,7 +16,7 @@ edition = "2021"
 rust-version = "1.75"
 license = "Apache-2.0"
 authors = ["EweStudios Consulting Limited"]
-repository = "https://github.com/ewestudios/ewe_platform"
+repository = "https://github.com/ewe-studios/ewe_platform"
 keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 
 
