@@ -836,8 +836,8 @@ name = "ewe-temple"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "futures",
  "rand",
+ "rust-embed",
  "serde",
  "serde_json",
  "serde_with",

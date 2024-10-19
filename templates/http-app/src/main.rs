@@ -20,7 +20,7 @@ async fn main() {
 
     let binary_name = String::from("wello");
 
-    let project_directory = String::from("/home/darkvoid/Labs/ewestudios/ewe_platform");
+    let project_directory = String::from("{{PROJECT_DIRECTORY}}");
     let demo_directory = String::from(format!(
         "{}/examples/web/{}",
         &project_directory, binary_name,

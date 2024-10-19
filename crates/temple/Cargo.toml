@@ -11,6 +11,11 @@ keywords.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+
+# files embedding
+rust-embed = { version = "8.5"}
+
+# -- template crates
 tinytemplate = { git = "https://github.com/ewe-studios/TinyTemplate.git", branch = "master" }
 rand = { version = "0.8.5" }
 
@@ -18,9 +23,10 @@ rand = { version = "0.8.5" }
 anyhow = { version = "1.0.80" }
 thiserror = { version = "1.0.57" }
 
+# -- tracing
 tracing = { version = "0.1.40" }
-futures = { version = "0.3" }
 
+# -- serde
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = { version = "1.0.114" }
 serde_with = { version = "3.6.1" }
