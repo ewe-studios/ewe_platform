@@ -856,6 +856,7 @@ dependencies = [
  "serde_json",
  "serde_with",
  "strings_ext",
+ "toml",
  "tracing",
  "tracing-test",
 ]

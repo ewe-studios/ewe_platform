@@ -20,6 +20,7 @@ strings_ext = { workspace = true }
 
 # rust package parsing
 cargo_toml = { version = "0.20.5" }
+toml = { version = "0.8.19" }
 
 # files embedding
 rust-embed = { version = "8.5"}

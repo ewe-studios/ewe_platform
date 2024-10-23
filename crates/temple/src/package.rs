@@ -4,7 +4,7 @@
 
 use core::str;
 use ewe_templates::minijinja;
-use std::{collections::HashMap, marker::PhantomData, path::PathBuf, sync};
+use std::{collections::HashMap, io::Write, marker::PhantomData, path::PathBuf, sync};
 use strings_ext::{IntoStr, IntoString};
 
 use crate::{error::BoxedError, FileContent, FileSystemCommand};
@@ -315,6 +315,28 @@ impl PackageConfigurator for RustProjectConfigurator {
     }
 
     fn finalize(&self) -> std::result::Result<(), BoxedError> {
+        if let Some(manifest) = &self.manifest {
+            let mut updated_manifest = manifest.clone();
+            if let Some(mut workspace) = updated_manifest.workspace.clone() {
+                if !workspace
+                    .members
+                    .contains(&self.package_config.package_name)
+                {
+                    workspace
+                        .members
+                        .push(self.package_config.package_name.clone());
+                }
+
+                updated_manifest.workspace = Some(workspace);
+
+                if let Some(rust_config) = &self.rust_config {
+                    let serilized_manifest = toml::to_string(&updated_manifest)?;
+                    let mut cargo_file =
+                        std::fs::File::create(rust_config.workspace_cargo.clone())?;
+                    cargo_file.write_all(serilized_manifest.as_bytes())?;
+                }
+            }
+        }
         Ok(())
     }
 }
