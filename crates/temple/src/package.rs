@@ -370,13 +370,6 @@ impl PackageGenerator {
                 .parent()
                 .expect("should have parent directory");
 
-            ewe_logs::debug!(
-                "Rewriting template path `{:?}` to `{:?}` (dir: {:?}",
-                template_file,
-                rewritten_template_file_name,
-                rewritten_template_dir,
-            );
-
             let template_file_name =
                 String::from(template_file_path.file_name().unwrap().to_str().unwrap());
 
@@ -385,6 +378,13 @@ impl PackageGenerator {
             if template_file_name.starts_with("_") {
                 continue;
             }
+
+            ewe_logs::debug!(
+                "Rewriting template path `{:?}` to `{:?}` (dir: {:?}",
+                template_file,
+                rewritten_template_file_name,
+                rewritten_template_dir,
+            );
 
             packager.add(FileSystemCommand::DirPath(
                 PathBuf::from(rewritten_template_dir),
