@@ -7,7 +7,7 @@ use ewe_templates::minijinja;
 use std::{collections::HashMap, marker::PhantomData, path::PathBuf, sync};
 use strings_ext::{IntoStr, IntoString};
 
-use crate::{FileContent, FileSystemCommand};
+use crate::{error::BoxedError, FileContent, FileSystemCommand};
 
 pub struct Directorate<T: rust_embed::RustEmbed> {
     pub _data: PhantomData<T>,
@@ -220,6 +220,7 @@ impl PackageConfig {
 pub trait PackageConfigurator {
     fn config(&self) -> PackageConfig;
     fn params(&self) -> HashMap<String, String>;
+    fn finalize(&self) -> std::result::Result<(), BoxedError>;
 }
 
 impl PackageConfigurator for PackageConfig {
@@ -229,6 +230,10 @@ impl PackageConfigurator for PackageConfig {
 
     fn params(&self) -> HashMap<String, String> {
         self.params.clone()
+    }
+
+    fn finalize(&self) -> std::result::Result<(), BoxedError> {
+        Ok(())
     }
 }
 
@@ -308,6 +313,10 @@ impl PackageConfigurator for RustProjectConfigurator {
     fn params(&self) -> HashMap<String, String> {
         self.package_config.params.clone()
     }
+
+    fn finalize(&self) -> std::result::Result<(), BoxedError> {
+        Ok(())
+    }
 }
 
 pub struct PackageGenerator {
@@ -317,6 +326,7 @@ pub struct PackageGenerator {
 pub type PackageGenResult<T> = core::result::Result<T, PackageGenError>;
 
 pub enum PackageGenError {
+    FinalizationFailed(crate::error::BoxedError),
     Failed(crate::error::BoxedError),
     NoTemplateFound,
 }
@@ -398,7 +408,11 @@ impl PackageGenerator {
 
         packager
             .run(configurator.params())
-            .map_err(|err| PackageGenError::Failed(err.into()))
+            .map_err(|err| PackageGenError::Failed(err.into()))?;
+
+        configurator
+            .finalize()
+            .map_err(|err| PackageGenError::FinalizationFailed(err))
     }
 }
 
@@ -415,6 +429,39 @@ mod package_generator_tests {
     #[derive(rust_embed::Embed, Default)]
     #[folder = "templates/"]
     struct TemplateDefinitions;
+
+    #[test]
+    #[traced_test]
+    fn package_generator_can_create_package_for_standard() {
+        let template_directories = Box::new(Directorate::<TemplateDefinitions>::default());
+        let packager = PackageGenerator::new(template_directories);
+
+        let current_dir = std::env::current_dir().expect("should have gotten directory");
+
+        let output_directory = current_dir.join("output_directory");
+        let project_directory = output_directory.join("standard_project");
+        let project_cargo_file = project_directory.join("Cargo.toml");
+
+        let mut params: HashMap<String, String> = HashMap::new();
+        params.entry(String::from("PROJECT_DIRECTORY")).or_insert(
+            project_directory
+                .into_string()
+                .expect("should convert into string"),
+        );
+
+        let rust_config = RustConfig::new(project_cargo_file);
+        let package_config = PackageConfig::new(
+            project_directory,
+            params,
+            "CustomRustProject",
+            "retro_project",
+        );
+
+        let rust_configurator = RustProjectConfigurator::new(package_config, Some(rust_config))
+            .expect("should generate rust configurator");
+
+        assert!(matches!(packager.create(rust_configurator), Ok(())));
+    }
 
     #[test]
     #[traced_test]
