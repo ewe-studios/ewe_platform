@@ -13,6 +13,7 @@ struct Delay<T: Default + 'static> {
 }
 
 impl<T: Default + 'static> Delay<T> {
+    #[allow(dead_code)]
     pub fn new(d: Instant) -> Self {
         Self {
             when: d,
@@ -20,6 +21,7 @@ impl<T: Default + 'static> Delay<T> {
         }
     }
 
+    #[allow(dead_code)]
     pub fn from(d: Duration) -> Self {
         Self {
             when: Instant::now() + d,

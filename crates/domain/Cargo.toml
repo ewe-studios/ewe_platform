@@ -1,5 +1,5 @@
 [package]
-name = "ewe-domain"
+name = "ewe_domain"
 version = "0.1.0"
 authors.workspace = true
 edition.workspace = true
@@ -13,7 +13,7 @@ keywords.workspace = true
 [dependencies]
 
 # crate besed dependencies
-ewe-channels.workspace = true
+ewe_channels.workspace = true
 
 # other dependencies
 tracing = { version = "0.1.40" }

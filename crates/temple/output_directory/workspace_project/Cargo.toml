@@ -1,0 +1,29 @@
+[workspace]
+# usually this iset to 1
+resolver = "2"
+# set members of your workspace
+members = []
+exclude = []
+
+[workspace.package]
+edition = "2021"
+rust-version = "1.75"
+license = "Apache-2.0"
+authors = ["EweStudios Consulting Limited"]
+repository = "https://github.com/ewe-studios/ewe_platform"
+keywords = ["workspace_project"]
+
+
+# -- global dependencies
+[workspace.dependencies]
+
+
+[workspace.lints.clippy]
+pedantic = "warn"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+module_name_repetitions = "allow"
+blocks_in_conditions = "allow"
+must_use_candidate = "allow"
+no-effect-underscore-binding = "allow"
+items-after-statements = "allow"

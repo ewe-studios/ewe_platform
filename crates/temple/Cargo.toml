@@ -1,5 +1,5 @@
 [package]
-name = "ewe-temple"
+name = "ewe_temple"
 version = "0.1.0"
 authors.workspace = true
 edition.workspace = true
@@ -11,6 +11,14 @@ keywords.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+
+# internal package dependencies
+ewe_logs = { workspace = true }
+strings_ext = { workspace = true }
+
+
+# rust package parsing
+cargo_toml = { version = "0.20.5" }
 
 # files embedding
 rust-embed = { version = "8.5"}
@@ -33,6 +41,9 @@ serde_with = { version = "3.6.1" }
 
 [dev-dependencies]
 tracing-test = { version = "0.2.5" }
+
+[features]
+debug_trace = ["ewe_logs/debug_trace"]
 
 [lints]
 workspace = true

@@ -1,0 +1,22 @@
+[package]
+name = "workspace_project"
+edition = "2021"
+rust-version = "1.75"
+license = "Apache-2.0"
+authors = ["EweStudios Consulting Limited"]
+repository = "https://github.com/ewe-studios/ewe_platform"
+keywords = ["output_test"]
+
+# -- global dependencies
+[dependencies]
+
+
+[lints.clippy]
+pedantic = "warn"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+module_name_repetitions = "allow"
+blocks_in_conditions = "allow"
+must_use_candidate = "allow"
+no-effect-underscore-binding = "allow"
+items-after-statements = "allow"

@@ -102,7 +102,7 @@ There was something simple in simply being able to include a small runtime in yo
 
 ```html
 <head>
-    <script src="https://ewe-platform.io/cdn/v2.0/ewe-platform.js"></script>
+    <script src="https://ewe_platform.io/cdn/v2.0/ewe-platform.js"></script>
 
 </head>
 ```
@@ -226,10 +226,10 @@ Where each has a purpose and behaves to generate the final html output with what
 ```html
 <island on-demand=yes signature="0x34343">
     <api-endpoint api="/v1/latest-feature-set">
-        <FeatureBox 
-                title={data("title")} 
-                description={data("description")} 
-                points={data("features", "summaries", "points")} 
+        <FeatureBox
+                title={data("title")}
+                description={data("description")}
+                points={data("features", "summaries", "points")}
         />
     </api-endpoint>
 </island>
@@ -242,7 +242,7 @@ Naturally such requests would have been pre-identified, called when first seen a
 ```html
 <island on-demand=yes signature="0x343p43">
     <api-endpoint api="/v1/latest-feature-set">
-        <FeatureBox 
+        <FeatureBox
             title="$.title"
             description="$.description"
         />
@@ -255,7 +255,7 @@ Naturally such requests would have been pre-identified, called when first seen a
     <fetch-data endpoint="/api/v1/latest-feature-set" as="$.feature_set" />
 
     <with-data from="$.feature_set">
-        <FeatureBox 
+        <FeatureBox
             title="$.title"
             description="$.description"
         />
@@ -282,7 +282,7 @@ Taking some inspiration from the idea of `Suspense` in react/solidjs, we can als
     <failed-signature>Failed to verify signature of island or its content</error-signature>
 
     <api-endpoint api="/v1/latest-feature-set">
-        <FeatureBox 
+        <FeatureBox
             title="$.title"
             description="$.description"
         />
@@ -331,11 +331,11 @@ In my mind, using a rust trait we could define components as a concept I call an
 ```rust
 
 trait Island {
-    fn render(&self, 
-        router: Router, 
+    fn render(&self,
+        router: Router,
         request: Request<RequestType>
-        data: Option<Data>, 
-        content: Option<Fragment>, 
+        data: Option<Data>,
+        content: Option<Fragment>,
     ) -> Result<Fragment, Error>;
 }
 ```
@@ -580,13 +580,13 @@ impl Counter {
 enum CounterRequest {
     #[route("/counter/increment")]
     Increment,
-    
+
     #[route("/counter/decrement")] // a possible alternative to the `FromRoute` trait??
     Decrement
 }
 
 /// FromRoute is required by the Router to correctly map the
-/// request type for a giving route and should be implemented by 
+/// request type for a giving route and should be implemented by
 /// request enum.
 impl FromRoute CounterRequest {
     fn from<'a>(route: &'a str) -> Result<Self, anyhow::Error> {
@@ -604,10 +604,10 @@ impl FromRoute CounterRequest {
     ("/counter/decrement", Request<CounterRequest>),
 )]
 async fn counter(
-    router: Router, 
+    router: Router,
     request: Request<CounterRequest>
-    data: Data<CounterValue>>, 
-    content: Option<Fragment>, 
+    data: Data<CounterValue>>,
+    content: Option<Fragment>,
     root: DOM,
 ) -> Result<Fragment, Error> {
     let instance_id = format!("counter-{}", data.id);
@@ -615,15 +615,15 @@ async fn counter(
         Some(last_state) => Counter::new(last_state),
         None => CounterValue::new(0),
     };
-    
+
     counter = match request.data() {
         CounterRequest::Increment => counter.increment(),
         CounterRequest::Decrement => counter.decrement(),
     };
-    
+
     // I imagine we could use the router this way to get another island
     let clock_fragment = router.get_island("/fragements/clock").await.unwrap();
-    
+
     // but we can also just get data from a json API endpoint
     let user_data = router.get("/v1/users/1").await.unwrap();
 
@@ -632,14 +632,14 @@ async fn counter(
             <div id={{instance_id.clone()}} with_data={{data.to_json(initial)}}>
                 <label>user:</label><span_for text={{{user_data.name}}} />
                 <label>count:</label><span_for text={{{counter.value}}} />
-                <link_for 
-                    data_on={{instance_id}}} 
-                    route="/counter/increment" 
+                <link_for
+                    data_on={{instance_id}}}
+                    route="/counter/increment"
                     with_content="+"
                 />
-                <link_for 
-                    data_on={{instance_id}} 
-                    route="/counter/decrement" 
+                <link_for
+                    data_on={{instance_id}}
+                    route="/counter/decrement"
                     with_content="-"
                 />
                 <children_for with={{{clock_fragment}}} />

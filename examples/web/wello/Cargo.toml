@@ -10,8 +10,8 @@ keywords.workspace = true
 
 [dependencies]
 # dev-server
-ewe-logs = { workspace = true, features = ["standard"] }
-ewe-devserver.workspace = true
+ewe_logs = { workspace = true, features = ["standard"] }
+ewe_devserver.workspace = true
 
 # directory embedding
 rust-embed = "8.5.0"
@@ -37,7 +37,7 @@ tracing = { version = "0.1.40" }
 tracing-subscriber = { version = "0.3.18" }
 
 [features]
-default = ["ewe-logs/standard"]
+default = ["ewe_logs/standard"]
 
 [lints]
 workspace = true

@@ -1,5 +1,5 @@
 [package]
-name = "ewe_async_utils"
+name = "strings_ext"
 version = "0.1.0"
 edition.workspace = true
 rust-version.workspace = true
@@ -9,7 +9,7 @@ repository.workspace = true
 keywords.workspace = true
 
 [dependencies]
-async-trait = { version = "0.1.81" }
+derive_more = { version = "1.0.0", features = ["from", "debug", "error"] }
 
 [lints]
 workspace = true

@@ -9,9 +9,9 @@ repository = "https://github.com/<USER>/{{project_name}}"
 keywords = ["ewe_platform", "ewestudios platform", "ewe"]
 
 [dependencies]
-ewe-logs = { version = "0.1", features = ["standard"] }
-ewe-watch-utils = { version = "0.1" }
-ewe-devserver = { version = "0.1"  }
+ewe_logs = { version = "0.1", features = ["standard"] }
+ewe_watch_utils = { version = "0.1" }
+ewe_devserver = { version = "0.1"  }
 
 axum = { version = "0.7.5" }
 tokio = { version = "1.36", features = ["full"], default-features = true }

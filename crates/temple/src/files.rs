@@ -3,7 +3,7 @@ use serde_json::{json, Value};
 use std::{fs, io::Write, path, result, str::FromStr};
 use tinytemplate::TinyTemplate;
 
-type Result<T> = result::Result<T, anyhow::Error>;
+type FileResult<T> = result::Result<T, anyhow::Error>;
 
 pub enum FileContent<'a> {
     Text(String),
@@ -11,7 +11,7 @@ pub enum FileContent<'a> {
 }
 
 impl<'a> FileContent<'a> {
-    pub fn exec(&self, dest: path::PathBuf, mut value: Option<&Value>) -> Result<()> {
+    pub fn exec(&self, dest: path::PathBuf, mut value: Option<&Value>) -> FileResult<()> {
         match self {
             FileContent::Text(content) => {
                 let mut file = fs::File::create(dest.as_path())?;
@@ -50,7 +50,7 @@ pub enum FileSystemCommand {
 }
 
 impl Commander for FileSystemCommand {
-    fn exec(&self, dest: path::PathBuf, value: &Value) -> Result<()> {
+    fn exec(&self, dest: path::PathBuf, value: &Value) -> FileResult<()> {
         match self {
             FileSystemCommand::Dir(dir, commands) => {
                 let mut target_path = dest.clone();
@@ -78,7 +78,7 @@ impl Commander for FileSystemCommand {
 }
 
 pub trait Commander {
-    fn exec(&self, dest: path::PathBuf, value: &Value) -> Result<()>;
+    fn exec(&self, dest: path::PathBuf, value: &Value) -> FileResult<()>;
 }
 
 pub struct Template {
@@ -98,7 +98,7 @@ impl Template {
         self.commands.push(command);
     }
 
-    pub fn run(&mut self, value: &Value) -> Result<()> {
+    pub fn run(&mut self, value: &Value) -> FileResult<()> {
         for command in self.commands.iter() {
             if let Err(err) = command.exec(self.dest.clone(), value) {
                 return Err(err);
@@ -110,7 +110,7 @@ impl Template {
 
 #[cfg(test)]
 mod tests {
-    use super::{FileContent, FileSystemCommand, Result, Template};
+    use super::{FileContent, FileResult, FileSystemCommand, Template};
     use serde_json::{json, Value};
     use std::{env, fs, io::Read, path};
     use tinytemplate::TinyTemplate;
@@ -129,7 +129,7 @@ mod tests {
         fs::remove_dir_all(target).expect("should have deleted directory");
     }
 
-    fn create_template() -> Result<TinyTemplate<'static>> {
+    fn create_template() -> FileResult<TinyTemplate<'static>> {
         let mut tt = TinyTemplate::new();
 
         tt.add_template("world", "{country} wonderworld!")?;
@@ -162,7 +162,7 @@ mod tests {
             "country": "Nigeria",
         });
 
-        assert!(matches!(tml.run(&data), Result::Ok(())));
+        assert!(matches!(tml.run(&data), FileResult::Ok(())));
 
         let mut expected_path = target.clone();
         expected_path.push("weeds");

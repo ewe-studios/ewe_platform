@@ -1,5 +1,5 @@
 [package]
-name = "ewe-devserver"
+name = "ewe_devserver"
 version = "0.1.0"
 edition.workspace = true
 rust-version.workspace = true
@@ -10,8 +10,8 @@ keywords.workspace = true
 
 [dependencies]
 # workspace packages
-ewe-logs = { workspace = true, features = ["standard"]}
-ewe-watch-utils = { workspace = true, default-features = true }
+ewe_logs = { workspace = true, features = ["standard"]}
+ewe_watch_utils = { workspace = true, default-features = true }
 tracing.workspace = true
 anyhow.workspace = true
 derive_more.workspace = true

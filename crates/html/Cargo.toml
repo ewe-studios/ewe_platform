@@ -1,5 +1,5 @@
 [package]
-name = "ewe-html"
+name = "ewe_html"
 version = "0.1.0"
 edition.workspace = true
 rust-version.workspace = true
@@ -11,8 +11,8 @@ keywords.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ewe-mem.workspace = true
-ewe-logs.workspace = true
+ewe_mem.workspace = true
+ewe_logs.workspace = true
 
 regex = { version = "1.10" }
 lazy-regex = { version = "3.1" }
@@ -35,7 +35,7 @@ criterion = { version = "0.5", features = ["html_reports"] }
 workspace = true
 
 [features]
-debug_trace = ["ewe-logs/debug_trace"]
+debug_trace = ["ewe_logs/debug_trace"]
 
 [[bench]]
 name = "wikipedia"

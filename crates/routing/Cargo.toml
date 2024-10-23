@@ -1,5 +1,5 @@
 [package]
-name = "ewe-routing"
+name = "ewe_routing"
 version = "0.1.0"
 edition.workspace = true
 rust-version.workspace = true
@@ -9,9 +9,9 @@ repository.workspace = true
 keywords.workspace = true
 
 [dependencies]
-ewe-logs.workspace = true
-ewe-async-utils.workspace = true
-ewe-mem.workspace = true
+ewe_logs.workspace = true
+ewe_async_utils.workspace = true
+ewe_mem.workspace = true
 
 axum = { version = "0.7.5", default-features = false }
 tokio = { version = "1.36", features = ["rt", "macros"] }
@@ -39,4 +39,4 @@ tracing-test = { version = "0.2.5" }
 workspace = true
 
 [features]
-debug_trace = ["ewe-logs/debug_trace"]
+debug_trace = ["ewe_logs/debug_trace"]

@@ -1,5 +1,5 @@
 [package]
-name = "ewe-watch-utils"
+name = "ewe_watch_utils"
 version = "0.1.0"
 edition.workspace = true
 rust-version.workspace = true
@@ -9,7 +9,7 @@ repository.workspace = true
 keywords.workspace = true
 
 [dependencies]
-ewe-logs.workspace = true
+ewe_logs.workspace = true
 tracing.workspace = true
 anyhow.workspace = true
 

@@ -1,5 +1,5 @@
 [package]
-name = "ewe-templates-macro"
+name = "ewe_templates_macro"
 version = "0.1.0"
 authors.workspace = true
 edition.workspace = true
@@ -13,7 +13,7 @@ keywords.workspace = true
 proc-macro = true
 
 [dependencies]
-ewe-templates = { path = "../templates" }
+ewe_templates = { path = "../templates" }
 
 quote = "1.0.20"
 proc-macro2 = "1.0.40"

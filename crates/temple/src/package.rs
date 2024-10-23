@@ -2,7 +2,7 @@
 // all the necessary templates, files and directories required to be generated
 // for a project.
 
-use std::marker::PhantomData;
+use std::{collections::HashMap, marker::PhantomData, path::PathBuf};
 
 pub struct Directorate<T: rust_embed::RustEmbed> {
     pub _data: PhantomData<T>,
@@ -42,6 +42,12 @@ pub trait PackageDirectorate {
 
     /// Returns all top-level directories within package.
     fn root_directories(&self) -> Vec<String>;
+}
+
+impl<T: rust_embed::Embed + 'static> Into<Box<dyn PackageDirectorate>> for Directorate<T> {
+    fn into(self) -> Box<dyn PackageDirectorate> {
+        Box::new(self)
+    }
 }
 
 impl<T: rust_embed::Embed> PackageDirectorate for Directorate<T> {
@@ -88,7 +94,7 @@ impl<T: rust_embed::Embed> PackageDirectorate for Directorate<T> {
 }
 
 #[cfg(test)]
-mod tests {
+mod directorate_tests {
 
     use super::*;
 
@@ -130,12 +136,186 @@ mod tests {
     }
 }
 
+/// PackageConfig defines underlying default configuration that
+/// the PackageGenerator will use in it's underlying behavior of
+/// outputing the final package out.
+///
+/// It might also be wrapped by Higher Level `PackageConfigurator`s tha
+/// might do custom things like `RustPackageConfigurator`.
+#[derive(Clone, Debug)]
+pub struct PackageConfig {
+    pub params: HashMap<String, String>,
+    pub output_directory: PathBuf,
+    pub template_name: String,
+}
+
+impl PackageConfig {
+    pub fn new<S>(
+        output_directory: PathBuf,
+        template_name: S,
+        params: HashMap<String, String>,
+    ) -> Self
+    where
+        S: Into<String>,
+    {
+        Self {
+            template_name: template_name.into(),
+            output_directory,
+            params,
+        }
+    }
+}
+
+/// PackageConfigurator defines the underlying expectation the
+/// PackageGenerator expects when it receives a target configuration
+/// like the target output directory, custom parameters to apply to
+/// generated files in cases of templates and what target template name
+/// representing the Project template to be used in pacakge generation.
+pub trait PackageConfigurator {
+    fn config(&self) -> PackageConfig;
+    fn params(&self) -> HashMap<String, String>;
+}
+
+impl PackageConfigurator for PackageConfig {
+    fn config(&self) -> PackageConfig {
+        self.clone()
+    }
+
+    fn params(&self) -> HashMap<String, String> {
+        self.params.clone()
+    }
+}
+
+pub struct RustConfig {
+    workspace_cargo: PathBuf,
+}
+
+impl RustConfig {
+    #[allow(dead_code)]
+    pub fn new(workspace_cargo: PathBuf) -> Self {
+        Self { workspace_cargo }
+    }
+}
+
+pub struct RustProjectConfigurator {
+    pub package_config: PackageConfig,
+    pub rust_config: Option<RustConfig>,
+    pub manifest: Option<cargo_toml::Manifest>,
+}
+
+impl RustProjectConfigurator {
+    /// Generates a new `RustProjectConfigurator` which generates relevant metadata information
+    /// about the rust workspace environment available to it if present via the `rust_config`
+    /// parameter.
+    ///
+    /// This allows us take into account the fact we will be generating a new project
+    /// template in an existing rust workspace project, else assume we are generating a
+    /// standalone rust project when we replicate the relevant template into the
+    /// codebase.
+    pub fn new(package_config: PackageConfig, rust_config: Option<RustConfig>) -> Self {
+        let projector = Self {
+            package_config,
+            rust_config,
+            manifest: None,
+        };
+        projector.init()
+    }
+
+    fn init(mut self) -> Self {
+        self
+    }
+}
+
+impl PackageConfigurator for RustProjectConfigurator {
+    fn config(&self) -> PackageConfig {
+        self.package_config.clone()
+    }
+
+    fn params(&self) -> HashMap<String, String> {
+        self.package_config.params.clone()
+    }
+}
+
 pub struct PackageGenerator {
     pub templates: Box<dyn PackageDirectorate>,
+}
+
+pub type PackageGenResult<T> = core::result::Result<T, PackageGenError>;
+
+pub enum PackageGenError {
+    Failed(crate::error::BoxedError),
+    NoTemplateFound,
 }
 
 impl PackageGenerator {
     pub fn new(templates: Box<dyn PackageDirectorate>) -> Self {
         Self { templates }
+    }
+
+    /// create will begin to setup the underlying specified project
+    /// defined in the provided configurator.
+    #[allow(dead_code)]
+    fn create<S>(&self, configurator: S) -> PackageGenResult<()>
+    where
+        S: PackageConfigurator,
+    {
+        let config = configurator.config();
+        let _params = configurator.params();
+
+        let template_files = self.templates.files_for(config.template_name.as_str());
+        ewe_logs::debug!(
+            "Project Template: {} with files: {}",
+            config.template_name,
+            template_files,
+        );
+
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod package_generator_tests {
+
+    use std::collections::HashMap;
+    use strings_ext::IntoString;
+
+    use tracing_test::traced_test;
+
+    use super::*;
+
+    #[derive(rust_embed::Embed, Default)]
+    #[folder = "test_directory/"]
+    struct TemplateDefinitions;
+
+    #[test]
+    #[traced_test]
+    fn package_generator_can_create_package_for_workspace() {
+        let template_directories = Box::new(Directorate::<TemplateDefinitions>::default());
+        let mut packager = PackageGenerator::new(template_directories);
+
+        let current_dir = std::env::current_dir().expect("should have gotten directory");
+
+        let output_directory = current_dir.join("output_directory");
+        let project_directory = output_directory.join("workspace_project");
+        let project_cargo_file = project_directory.join("Cargo.toml");
+
+        let mut params: HashMap<String, String> = HashMap::new();
+        params.entry(String::from("PROJECT_DIRECTORY")).or_insert(
+            project_directory
+                .into_string()
+                .expect("should convert into string"),
+        );
+
+        let rust_config = RustConfig::new(project_cargo_file);
+        let package_config = PackageConfig::new(project_directory, "CustomRustProject", params);
+        let rust_configurator = RustProjectConfigurator::new(package_config, Some(rust_config));
+
+        // Setup the type of configurator we want to process the project
+        // Configurators have the core parts the package expects
+        // 1. Path to create the project Into
+        // 2. Template of a project to supply to the configurator
+        // 3. Outside parameters the configurator can agument into its own
+        // 4. Optional arguments that can be owned by the configurator for personal use.
+        assert!(matches!(packager.create(rust_configurator), Ok(())));
     }
 }

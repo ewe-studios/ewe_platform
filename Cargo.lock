@@ -275,6 +275,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8318a53db07bb3f8dca91a600466bdb3f2eaadeedfdbcf02e1accbad9271ba50"
 
 [[package]]
+name = "cargo_toml"
+version = "0.20.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "88da5a13c620b4ca0078845707ea9c3faf11edbc3ffd8497d11d686211cd1ac0"
+dependencies = [
+ "serde",
+ "toml",
+]
+
+[[package]]
 name = "cast"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -650,14 +660,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "ewe-async-utils"
+name = "ewe_async_utils"
 version = "0.1.0"
 dependencies = [
  "async-trait",
 ]
 
 [[package]]
-name = "ewe-channels"
+name = "ewe_channels"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -672,7 +682,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ewe-devserver"
+name = "ewe_devserver"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -681,8 +691,8 @@ dependencies = [
  "bytes",
  "crossbeam",
  "derive_more",
- "ewe-logs",
- "ewe-watch-utils",
+ "ewe_logs",
+ "ewe_watch_utils",
  "futures",
  "h2",
  "h3",
@@ -702,13 +712,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "ewe-domain"
+name = "ewe_domain"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-channel",
  "crossbeam",
- "ewe-channels",
+ "ewe_channels",
  "futures",
  "thiserror",
  "tokio",
@@ -719,7 +729,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ewe-domain-macro"
+name = "ewe_domain-macro"
 version = "0.1.0"
 dependencies = [
  "quote",
@@ -727,13 +737,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "ewe-html"
+name = "ewe_html"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "criterion",
- "ewe-logs",
- "ewe-mem",
+ "ewe_logs",
+ "ewe_mem",
  "lazy-regex",
  "lazy_static",
  "lazycell",
@@ -748,7 +758,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ewe-logs"
+name = "ewe_logs"
 version = "0.1.1"
 dependencies = [
  "tracing",
@@ -756,11 +766,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "ewe-mem"
+name = "ewe_mem"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "ewe-logs",
+ "ewe_logs",
  "memchr",
  "thiserror",
  "tracing",
@@ -768,7 +778,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ewe-routing"
+name = "ewe_routing"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -776,9 +786,9 @@ dependencies = [
  "axum",
  "bytes",
  "criterion",
- "ewe-async-utils",
- "ewe-logs",
- "ewe-mem",
+ "ewe_async_utils",
+ "ewe_logs",
+ "ewe_mem",
  "http",
  "lazy-regex",
  "lazy_static",
@@ -795,7 +805,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ewe-spawn"
+name = "ewe_spawn"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -810,7 +820,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ewe-templates"
+name = "ewe_templates"
 version = "0.1.0"
 dependencies = [
  "minijinja",
@@ -818,10 +828,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "ewe-templates-macro"
+name = "ewe_templates_macro"
 version = "0.1.0"
 dependencies = [
- "ewe-templates",
+ "ewe_templates",
  "proc-macro2",
  "quote",
  "serde",
@@ -832,15 +842,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "ewe-temple"
+name = "ewe_temple"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "cargo_toml",
+ "ewe_logs",
  "rand",
  "rust-embed",
  "serde",
  "serde_json",
  "serde_with",
+ "strings_ext",
  "thiserror",
  "tinytemplate 1.2.1 (git+https://github.com/ewe-studios/TinyTemplate.git?branch=master)",
  "tracing",
@@ -848,11 +861,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "ewe-watch-utils"
+name = "ewe_watch_utils"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "ewe-logs",
+ "ewe_logs",
  "notify",
  "notify-debouncer-full",
  "thiserror",
@@ -861,7 +874,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ewe-watchers"
+name = "ewe_watchers"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -878,7 +891,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ewe-web"
+name = "ewe_web"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -1140,8 +1153,8 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 name = "hello"
 version = "0.1.0"
 dependencies = [
- "ewe-templates",
- "ewe-templates-macro",
+ "ewe_templates",
+ "ewe_templates_macro",
  "serde",
  "serde_json",
  "serde_with",
@@ -1449,9 +1462,9 @@ dependencies = [
  "axum",
  "bytes",
  "crossbeam",
- "ewe-devserver",
- "ewe-logs",
- "ewe-watch-utils",
+ "ewe_devserver",
+ "ewe_logs",
+ "ewe_watch_utils",
  "http",
  "http-body",
  "http-body-util",
@@ -1555,8 +1568,8 @@ dependencies = [
 name = "multi_template"
 version = "0.1.0"
 dependencies = [
- "ewe-templates",
- "ewe-templates-macro",
+ "ewe_templates",
+ "ewe_templates_macro",
  "serde",
  "serde_json",
  "serde_with",
@@ -2182,6 +2195,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "strings_ext"
+version = "0.1.0"
+dependencies = [
+ "derive_more",
+]
+
+[[package]]
 name = "strsim"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2703,8 +2723,8 @@ dependencies = [
  "anyhow",
  "axum",
  "crossbeam",
- "ewe-devserver",
- "ewe-logs",
+ "ewe_devserver",
+ "ewe_logs",
  "http",
  "rust-embed",
  "serde",

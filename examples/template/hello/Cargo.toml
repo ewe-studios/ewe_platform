@@ -12,8 +12,8 @@ rust-version.workspace = true
 [dependencies]
 
 # internal crates
-ewe-templates.workspace = true
-ewe-templates-macro.workspace = true
+ewe_templates.workspace = true
+ewe_templates_macro.workspace = true
 
 # serde and serialization/deserialization
 serde = { version = "1.0.197", features = ["derive"] }
