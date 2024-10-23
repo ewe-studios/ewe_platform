@@ -446,12 +446,6 @@ mod package_generator_tests {
         let rust_configurator = RustProjectConfigurator::new(package_config, Some(rust_config))
             .expect("should generate rust configurator");
 
-        // Setup the type of configurator we want to process the project
-        // Configurators have the core parts the package expects
-        // 1. Path to create the project Into
-        // 2. Template of a project to supply to the configurator
-        // 3. Outside parameters the configurator can agument into its own
-        // 4. Optional arguments that can be owned by the configurator for personal use.
         assert!(matches!(packager.create(rust_configurator), Ok(())));
     }
 }
