@@ -2,7 +2,12 @@
 // all the necessary templates, files and directories required to be generated
 // for a project.
 
-use std::{collections::HashMap, marker::PhantomData, path::PathBuf};
+use core::str;
+use ewe_templates::minijinja;
+use std::{collections::HashMap, marker::PhantomData, path::PathBuf, sync};
+use strings_ext::{IntoStr, IntoString};
+
+use crate::{FileContent, FileSystemCommand};
 
 pub struct Directorate<T: rust_embed::RustEmbed> {
     pub _data: PhantomData<T>,
@@ -40,8 +45,15 @@ pub trait PackageDirectorate {
     /// Returns all filenames for giving root directory.
     fn files_for(&self, directory: &str) -> Vec<String>;
 
+    /// Returns all filenames for giving root directory as a jinja
+    /// Environment object which can be rendered out from.
+    fn jinja_for<'a>(&self, directory: &str) -> minijinja::Environment<'a>;
+
     /// Returns all top-level directories within package.
     fn root_directories(&self) -> Vec<String>;
+
+    /// list_all returns all the files within the package directorate as a Vec<String>.
+    fn list_all(&self) -> Vec<String>;
 }
 
 impl<T: rust_embed::Embed + 'static> Into<Box<dyn PackageDirectorate>> for Directorate<T> {
@@ -77,6 +89,10 @@ impl<T: rust_embed::Embed> PackageDirectorate for Directorate<T> {
         dirs
     }
 
+    fn list_all(&self) -> Vec<String> {
+        T::iter().map(|t| String::from(t)).collect()
+    }
+
     fn files_for(&self, directory: &str) -> Vec<String> {
         let target_dir = if directory.ends_with("/") {
             directory
@@ -91,6 +107,33 @@ impl<T: rust_embed::Embed> PackageDirectorate for Directorate<T> {
 
         files
     }
+
+    fn jinja_for<'a>(&self, directory: &str) -> minijinja::Environment<'a> {
+        let target_dir = if directory.ends_with("/") {
+            directory
+        } else {
+            &format!("{}/", directory)
+        };
+
+        let mut jinja_env = minijinja::Environment::new();
+
+        for relevant_path in T::iter().filter(|t| t.starts_with(target_dir)).into_iter() {
+            let relevant_file = T::get(&relevant_path).unwrap();
+            let relevant_file_data = relevant_file.data.into_str().expect("should be string");
+            jinja_env
+                .add_template_owned(
+                    relevant_path
+                        .into_string()
+                        .expect("should turn into String"),
+                    relevant_file_data
+                        .into_string()
+                        .expect("convert into String"),
+                )
+                .expect("should store template");
+        }
+
+        jinja_env
+    }
 }
 
 #[cfg(test)]
@@ -99,7 +142,7 @@ mod directorate_tests {
     use super::*;
 
     #[derive(rust_embed::Embed, Default)]
-    #[folder = "test_directory/"]
+    #[folder = "templates/test_directory/"]
     struct Directory;
 
     #[test]
@@ -147,19 +190,22 @@ pub struct PackageConfig {
     pub params: HashMap<String, String>,
     pub output_directory: PathBuf,
     pub template_name: String,
+    pub package_name: String,
 }
 
 impl PackageConfig {
     pub fn new<S>(
         output_directory: PathBuf,
-        template_name: S,
         params: HashMap<String, String>,
+        template_name: S,
+        package_name: S,
     ) -> Self
     where
         S: Into<String>,
     {
         Self {
             template_name: template_name.into(),
+            package_name: package_name.into(),
             output_directory,
             params,
         }
@@ -203,6 +249,22 @@ pub struct RustProjectConfigurator {
     pub manifest: Option<cargo_toml::Manifest>,
 }
 
+pub type RustProjectConfiguratorResult<T> = core::result::Result<T, RustProjectConfiguratorError>;
+
+#[derive(Debug, derive_more::From)]
+pub enum RustProjectConfiguratorError {
+    BadRustWorkspace,
+    BadRustProject,
+}
+
+impl core::error::Error for RustProjectConfiguratorError {}
+
+impl core::fmt::Display for RustProjectConfiguratorError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 impl RustProjectConfigurator {
     /// Generates a new `RustProjectConfigurator` which generates relevant metadata information
     /// about the rust workspace environment available to it if present via the `rust_config`
@@ -212,17 +274,29 @@ impl RustProjectConfigurator {
     /// template in an existing rust workspace project, else assume we are generating a
     /// standalone rust project when we replicate the relevant template into the
     /// codebase.
-    pub fn new(package_config: PackageConfig, rust_config: Option<RustConfig>) -> Self {
-        let projector = Self {
+    pub fn new(
+        package_config: PackageConfig,
+        rust_config: Option<RustConfig>,
+    ) -> RustProjectConfiguratorResult<Self> {
+        Self {
             package_config,
             rust_config,
             manifest: None,
-        };
-        projector.init()
+        }
+        .init()
     }
 
-    fn init(mut self) -> Self {
-        self
+    fn init(mut self) -> RustProjectConfiguratorResult<Self> {
+        if let Some(rust_config) = &self.rust_config {
+            let manifest = cargo_toml::Manifest::from_path(rust_config.workspace_cargo.clone())
+                .map_err(|err| {
+                    ewe_logs::error!("Failed to get cargo_toml::Manifest due to: {:?}", err);
+                    RustProjectConfiguratorError::BadRustWorkspace
+                })?;
+
+            self.manifest = Some(manifest);
+        }
+        Ok(self)
     }
 }
 
@@ -260,16 +334,71 @@ impl PackageGenerator {
         S: PackageConfigurator,
     {
         let config = configurator.config();
-        let _params = configurator.params();
 
         let template_files = self.templates.files_for(config.template_name.as_str());
         ewe_logs::debug!(
-            "Project Template: {} with files: {}",
+            "Project Template: `{}` with files: `{:?}` where all=`{:?}`",
             config.template_name,
             template_files,
+            self.templates.list_all(),
         );
 
-        Ok(())
+        let file_templates =
+            sync::Arc::new(self.templates.jinja_for(config.template_name.as_str()));
+
+        let mut packager = crate::Templater::from(config.output_directory.clone());
+        for template_file in template_files.iter() {
+            let template_file_path = PathBuf::from(template_file.as_str());
+            if template_file_path.is_dir() || template_file_path.ends_with("/") {
+                continue;
+            }
+
+            let rewritten_template_file_name = config
+                .output_directory
+                .join(config.package_name.as_str())
+                .join(
+                    template_file_path
+                        .as_path()
+                        .strip_prefix(config.template_name.as_str())
+                        .expect(
+                            format!("expected valid starting as `{}`", config.template_name)
+                                .as_str(),
+                        ),
+                );
+
+            let rewritten_template_dir = rewritten_template_file_name
+                .parent()
+                .expect("should have parent directory");
+
+            ewe_logs::debug!(
+                "Rewriting template path `{:?}` to `{:?}` (dir: {:?}",
+                template_file,
+                rewritten_template_file_name,
+                rewritten_template_dir,
+            );
+
+            let template_file_name =
+                String::from(template_file_path.file_name().unwrap().to_str().unwrap());
+
+            // if name starts with underscore(_) then we assume this is only a partial
+            // to be reused in another file and skip adding
+            if template_file_name.starts_with("_") {
+                continue;
+            }
+
+            packager.add(FileSystemCommand::DirPath(
+                PathBuf::from(rewritten_template_dir),
+                vec![FileSystemCommand::File(
+                    template_file_name,
+                    FileContent::Jinja(template_file.clone(), file_templates.clone()),
+                )
+                .into()],
+            ));
+        }
+
+        packager
+            .run(configurator.params())
+            .map_err(|err| PackageGenError::Failed(err.into()))
     }
 }
 
@@ -284,14 +413,14 @@ mod package_generator_tests {
     use super::*;
 
     #[derive(rust_embed::Embed, Default)]
-    #[folder = "test_directory/"]
+    #[folder = "templates/"]
     struct TemplateDefinitions;
 
     #[test]
     #[traced_test]
     fn package_generator_can_create_package_for_workspace() {
         let template_directories = Box::new(Directorate::<TemplateDefinitions>::default());
-        let mut packager = PackageGenerator::new(template_directories);
+        let packager = PackageGenerator::new(template_directories);
 
         let current_dir = std::env::current_dir().expect("should have gotten directory");
 
@@ -307,8 +436,15 @@ mod package_generator_tests {
         );
 
         let rust_config = RustConfig::new(project_cargo_file);
-        let package_config = PackageConfig::new(project_directory, "CustomRustProject", params);
-        let rust_configurator = RustProjectConfigurator::new(package_config, Some(rust_config));
+        let package_config = PackageConfig::new(
+            project_directory,
+            params,
+            "CustomRustProject",
+            "retro_project",
+        );
+
+        let rust_configurator = RustProjectConfigurator::new(package_config, Some(rust_config))
+            .expect("should generate rust configurator");
 
         // Setup the type of configurator we want to process the project
         // Configurators have the core parts the package expects

@@ -12,7 +12,7 @@ keywords.workspace = true
 
 [dependencies]
 tinytemplate = { git = "https://github.com/ewe-studios/TinyTemplate.git", branch = "master" }
-minijinja = { version = "2.0.0" }
+minijinja = { version = "2.0.0", features = ["loader"]}
 
 [lints]
 workspace = true

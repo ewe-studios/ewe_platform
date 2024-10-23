@@ -1,0 +1,1 @@
+"Parial name is {{name}}"
