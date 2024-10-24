@@ -636,6 +636,9 @@ impl PackageGenerator {
 #[cfg(test)]
 mod package_generator_tests {
 
+    use std::fs;
+    use std::path;
+
     use strings_ext::IntoString;
 
     use tracing_test::traced_test;
@@ -645,6 +648,14 @@ mod package_generator_tests {
     #[derive(rust_embed::Embed, Default)]
     #[folder = "templates/"]
     struct TemplateDefinitions;
+
+    fn list_dir(target_path: &path::Path) -> Vec<String> {
+        fs::read_dir(target_path)
+            .expect("directory should exists")
+            .into_iter()
+            .map(|entry| entry.unwrap().path().into_string().unwrap())
+            .collect()
+    }
 
     #[test]
     #[traced_test]
@@ -669,7 +680,7 @@ mod package_generator_tests {
 
         let rust_config = RustConfig::new(project_cargo_file);
         let package_config = PackageConfig::new(
-            project_directory,
+            project_directory.clone(),
             params,
             "CustomRustProject",
             "retro_project",
@@ -679,6 +690,8 @@ mod package_generator_tests {
             .expect("should generate rust configurator");
 
         assert!(matches!(packager.create(rust_configurator), Ok(())));
+
+        assert_eq!(list_dir(&project_directory), vec![])
     }
 
     #[test]
