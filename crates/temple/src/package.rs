@@ -4,7 +4,7 @@
 
 use core::str;
 use ewe_templates::minijinja;
-use std::{collections::HashMap, io::Write, marker::PhantomData, path::PathBuf, sync};
+use std::{io::Write, marker::PhantomData, path::PathBuf, sync};
 use strings_ext::{IntoStr, IntoString};
 
 use crate::{error::BoxedError, FileContent, FileSystemCommand};
@@ -187,7 +187,7 @@ mod directorate_tests {
 /// might do custom things like `RustPackageConfigurator`.
 #[derive(Clone, Debug)]
 pub struct PackageConfig {
-    pub params: HashMap<String, String>,
+    pub params: serde_json::Map<String, serde_json::Value>,
     pub output_directory: PathBuf,
     pub template_name: String,
     pub package_name: String,
@@ -196,7 +196,7 @@ pub struct PackageConfig {
 impl PackageConfig {
     pub fn new<S>(
         output_directory: PathBuf,
-        params: HashMap<String, String>,
+        params: serde_json::Map<String, serde_json::Value>,
         template_name: S,
         package_name: S,
     ) -> Self
@@ -204,10 +204,10 @@ impl PackageConfig {
         S: Into<String>,
     {
         Self {
+            params,
             template_name: template_name.into(),
             package_name: package_name.into(),
             output_directory,
-            params,
         }
     }
 }
@@ -219,7 +219,7 @@ impl PackageConfig {
 /// representing the Project template to be used in pacakge generation.
 pub trait PackageConfigurator {
     fn config(&self) -> PackageConfig;
-    fn params(&self) -> HashMap<String, String>;
+    fn params(&self) -> serde_json::Map<String, serde_json::Value>;
     fn finalize(&self) -> std::result::Result<(), BoxedError>;
 }
 
@@ -228,7 +228,7 @@ impl PackageConfigurator for PackageConfig {
         self.clone()
     }
 
-    fn params(&self) -> HashMap<String, String> {
+    fn params(&self) -> serde_json::Map<String, serde_json::Value> {
         self.params.clone()
     }
 
@@ -310,8 +310,203 @@ impl PackageConfigurator for RustProjectConfigurator {
         self.package_config.clone()
     }
 
-    fn params(&self) -> HashMap<String, String> {
-        self.package_config.params.clone()
+    /// params returns a modified `serde_json::Map` where standard
+    /// package information are added into the dictionary which are
+    /// accessible in the supported template langauge (minijinja):
+    ///
+    /// When a workspace:
+    ///
+    /// - IS_WORKSPACE=true
+    /// - PACKAGE_NAME (name of package being generated)
+    /// - TEMPLATE_NAME (name of template used)
+    /// - ROOT_PACKAGE_LICENSE_FILE
+    /// - ROOT_PACKAGE_EDITION
+    /// - ROOT_PACKAGE_REPOSITORY
+    /// - ROOT_PACKAGE_VERSION
+    /// - ROOT_PACKAGE_RUST_VERSION
+    /// - ROOT_PACKAGE_RUST_LICENSE
+    /// - ROOT_PACKAGE_RUST_DESCRIPTION
+    /// - ROOT_PACKAGE_RUST_AUTHORS
+    /// - ROOT_PACKAGE_RUST_KEYWORDS
+    ///
+    /// When not a workspace:
+    ///
+    /// - IS_WORKSPACE=false
+    /// - PACKAGE_NAME (name of package being generated)
+    /// - TEMPLATE_NAME (name of template used)
+    /// - ROOT_PACKAGE_NAME
+    /// - ROOT_PACKAGE_LICENSE_FILE
+    /// - ROOT_PACKAGE_EDITION
+    /// - ROOT_PACKAGE_REPOSITORY
+    /// - ROOT_PACKAGE_VERSION
+    /// - ROOT_PACKAGE_RUST_VERSION
+    /// - ROOT_PACKAGE_RUST_LICENSE
+    /// - ROOT_PACKAGE_RUST_DESCRIPTION
+    /// - ROOT_PACKAGE_RUST_AUTHORS
+    /// - ROOT_PACKAGE_RUST_KEYWORDS
+    ///
+    fn params(&self) -> serde_json::Map<String, serde_json::Value> {
+        let mut params = self.package_config.params.clone();
+
+        let output_directory_name = String::from(
+            self.package_config
+                .output_directory
+                .file_name()
+                .clone()
+                .unwrap()
+                .to_str()
+                .unwrap(),
+        );
+
+        params
+            .entry("TEMPLATE_NAME")
+            .or_insert(self.package_config.template_name.clone().into());
+
+        params
+            .entry("PACKAGE_NAME")
+            .or_insert(self.package_config.package_name.clone().into());
+
+        params.entry("PACKAGE_DIRECTORY").or_insert(
+            self.package_config
+                .output_directory
+                .as_path()
+                .join(self.package_config.package_name.clone())
+                .into_string()
+                .unwrap()
+                .into(),
+        );
+
+        if let Some(manifest) = &self.manifest {
+            // when its not a workspace
+            if let Some(package) = &manifest.package {
+                params.entry("IS_WORKSPACE").or_insert(false.into());
+
+                params
+                    .entry("PACKAGE_DIRECTORY_NAME")
+                    .or_insert(output_directory_name.clone().into());
+
+                params
+                    .entry("ROOT_PACKAGE_DOCUMENTATION")
+                    .or_insert(package.documentation().unwrap_or("").into());
+
+                params
+                    .entry("ROOT_PACKAGE_NAME")
+                    .or_insert(package.name().into());
+
+                params
+                    .entry("ROOT_PACKAGE_LICENSE_FILE")
+                    .or_insert(package.license().unwrap_or("").into());
+
+                params
+                    .entry("ROOT_PACKAGE_EDITION")
+                    .or_insert(format!("{:?}", package.edition()).into());
+
+                params
+                    .entry("ROOT_PACKAGE_REPOSITORY")
+                    .or_insert(package.repository().unwrap_or("").into());
+
+                params
+                    .entry("ROOT_PACKAGE_VERSION")
+                    .or_insert(package.version().into());
+
+                params
+                    .entry("ROOT_PACKAGE_RUST_VERSION")
+                    .or_insert(package.rust_version().unwrap_or("").into());
+
+                params
+                    .entry("ROOT_PACKAGE_LICENSE")
+                    .or_insert(package.license().unwrap_or("").into());
+
+                params
+                    .entry("ROOT_PACKAGE_DESCRIPTIONS")
+                    .or_insert(package.description().unwrap_or("").into());
+
+                params
+                    .entry("ROOT_PACKAGE_AUTHORS")
+                    .or_insert(package.authors().into());
+
+                params
+                    .entry("ROOT_PACKAGE_KEYWORDS")
+                    .or_insert(package.keywords().into());
+            }
+
+            // when its a workspace
+            if let Some(workspace) = &manifest.workspace {
+                if let Some(package) = &workspace.package {
+                    params.entry("IS_WORKSPACE").or_insert(true.into());
+
+                    println!("Package name: {}", output_directory_name);
+
+                    params
+                        .entry("ROOT_PACKAGE_NAME")
+                        .or_insert(output_directory_name.clone().into());
+
+                    params.entry("ROOT_PACKAGE_DOCUMENTATION").or_insert(
+                        package
+                            .documentation
+                            .clone()
+                            .unwrap_or(String::from(""))
+                            .into(),
+                    );
+                    params.entry("ROOT_PACKAGE_LICENSE_FILE").or_insert(
+                        package
+                            .license_file
+                            .clone()
+                            .unwrap_or(PathBuf::new())
+                            .into_string()
+                            .unwrap()
+                            .into(),
+                    );
+                    if let Some(edition) = package.edition {
+                        params
+                            .entry("ROOT_PACKAGE_EDITION")
+                            .or_insert(format!("{:?}", edition).into());
+                    }
+                    params.entry("ROOT_PACKAGE_REPOSITORY").or_insert(
+                        package
+                            .repository
+                            .clone()
+                            .unwrap_or("".into_string().unwrap())
+                            .into(),
+                    );
+                    params.entry("ROOT_PACKAGE_VERSION").or_insert(
+                        package
+                            .rust_version
+                            .clone()
+                            .unwrap_or("".into_string().unwrap())
+                            .into(),
+                    );
+                    params.entry("ROOT_PACKAGE_RUST_VERSION").or_insert(
+                        package
+                            .rust_version
+                            .clone()
+                            .unwrap_or("".into_string().unwrap())
+                            .into(),
+                    );
+                    params.entry("ROOT_PACKAGE_LICENSE").or_insert(
+                        package
+                            .license
+                            .clone()
+                            .unwrap_or("".into_string().unwrap())
+                            .into(),
+                    );
+                    params.entry("ROOT_PACKAGE_DESCRIPTIONS").or_insert(
+                        package
+                            .description
+                            .clone()
+                            .unwrap_or("".into_string().unwrap())
+                            .into(),
+                    );
+                    params
+                        .entry("ROOT_PACKAGE_AUTHORS")
+                        .or_insert(package.authors.clone().unwrap_or(vec![]).into());
+                    params
+                        .entry("ROOT_PACKAGE_KEYWORDS")
+                        .or_insert(package.keywords.clone().unwrap_or(vec![]).into());
+                }
+            }
+        }
+        params
     }
 
     fn finalize(&self) -> std::result::Result<(), BoxedError> {
@@ -441,7 +636,6 @@ impl PackageGenerator {
 #[cfg(test)]
 mod package_generator_tests {
 
-    use std::collections::HashMap;
     use strings_ext::IntoString;
 
     use tracing_test::traced_test;
@@ -464,12 +658,14 @@ mod package_generator_tests {
         let project_directory = output_directory.join("standard_project");
         let project_cargo_file = project_directory.join("Cargo.toml");
 
-        let mut params: HashMap<String, String> = HashMap::new();
-        params.entry(String::from("PROJECT_DIRECTORY")).or_insert(
-            project_directory
-                .into_string()
-                .expect("should convert into string"),
-        );
+        let mut params: serde_json::Map<String, serde_json::Value> = serde_json::Map::new();
+        params
+            .entry(String::from("PROJECT_DIRECTORY"))
+            .or_insert(serde_json::Value::from(
+                project_directory
+                    .into_string()
+                    .expect("should convert into string"),
+            ));
 
         let rust_config = RustConfig::new(project_cargo_file);
         let package_config = PackageConfig::new(
@@ -497,12 +693,14 @@ mod package_generator_tests {
         let project_directory = output_directory.join("workspace_project");
         let project_cargo_file = project_directory.join("Cargo.toml");
 
-        let mut params: HashMap<String, String> = HashMap::new();
-        params.entry(String::from("PROJECT_DIRECTORY")).or_insert(
-            project_directory
-                .into_string()
-                .expect("should convert into string"),
-        );
+        let mut params: serde_json::Map<String, serde_json::Value> = serde_json::Map::new();
+        params
+            .entry(String::from("PROJECT_DIRECTORY"))
+            .or_insert(serde_json::Value::from(
+                project_directory
+                    .into_string()
+                    .expect("should convert into string"),
+            ));
 
         let rust_config = RustConfig::new(project_cargo_file);
         let package_config = PackageConfig::new(
@@ -516,5 +714,31 @@ mod package_generator_tests {
             .expect("should generate rust configurator");
 
         assert!(matches!(packager.create(rust_configurator), Ok(())));
+    }
+
+    #[test]
+    #[traced_test]
+    fn package_generator_can_create_non_rust_package_from_template() {
+        let template_directories = Box::new(Directorate::<TemplateDefinitions>::default());
+        let packager = PackageGenerator::new(template_directories);
+
+        let current_dir = std::env::current_dir().expect("should have gotten directory");
+
+        let output_directory = current_dir.join("output_directory");
+        let project_directory = output_directory.join("static_pages");
+
+        let mut params: serde_json::Map<String, serde_json::Value> = serde_json::Map::new();
+        params
+            .entry(String::from("PROJECT_DIRECTORY"))
+            .or_insert(serde_json::Value::from(
+                project_directory
+                    .into_string()
+                    .expect("should convert into string"),
+            ));
+
+        let package_config =
+            PackageConfig::new(project_directory, params, "SimpleHTMLPage", "retro_project");
+
+        assert!(matches!(packager.create(package_config), Ok(())));
     }
 }

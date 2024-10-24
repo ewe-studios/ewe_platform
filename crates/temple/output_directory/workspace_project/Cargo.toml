@@ -1,29 +1,21 @@
 [workspace]
-# usually this iset to 1
+members = ["retro_project"]
 resolver = "2"
-# set members of your workspace
-members = []
-exclude = []
 
 [workspace.package]
-edition = "2021"
-rust-version = "1.75"
-license = "Apache-2.0"
 authors = ["EweStudios Consulting Limited"]
-repository = "https://github.com/ewe-studios/ewe_platform"
+edition = "2021"
 keywords = ["workspace_project"]
-
-
-# -- global dependencies
-[workspace.dependencies]
-
+license = "Apache-2.0"
+repository = "https://github.com/ewe-studios/ewe_platform"
+rust-version = "1.75"
 
 [workspace.lints.clippy]
-pedantic = "warn"
+blocks_in_conditions = "allow"
+items-after-statements = "allow"
 missing_errors_doc = "allow"
 missing_panics_doc = "allow"
 module_name_repetitions = "allow"
-blocks_in_conditions = "allow"
 must_use_candidate = "allow"
 no-effect-underscore-binding = "allow"
-items-after-statements = "allow"
+pedantic = "warn"
