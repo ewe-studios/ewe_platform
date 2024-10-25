@@ -640,6 +640,7 @@ mod package_generator_tests {
     use std::path;
 
     use strings_ext::IntoString;
+    use vec_ext::VecExt;
 
     use tracing_test::traced_test;
 
@@ -653,7 +654,21 @@ mod package_generator_tests {
         fs::read_dir(target_path)
             .expect("directory should exists")
             .into_iter()
-            .map(|entry| entry.unwrap().path().into_string().unwrap())
+            .map(|entry| entry.unwrap())
+            .flat_map(|entry| {
+                if entry.file_type().unwrap().is_dir() {
+                    return list_dir(&entry.path());
+                }
+
+                vec![entry.path().into_string().unwrap()]
+            })
+            .collect()
+    }
+
+    fn shorten_path(target: Vec<String>, path: String) -> Vec<String> {
+        target
+            .iter()
+            .map(|value| value.replace(path.as_str(), "").replacen("/", "", 1))
             .collect()
     }
 
@@ -691,7 +706,19 @@ mod package_generator_tests {
 
         assert!(matches!(packager.create(rust_configurator), Ok(())));
 
-        assert_eq!(list_dir(&project_directory), vec![])
+        assert_eq!(
+            shorten_path(
+                list_dir(&project_directory),
+                project_directory.into_string().unwrap()
+            ),
+            vec![
+                "Cargo.toml",
+                ".gitignore",
+                "retro_project/lib.rs",
+                "retro_project/page.rs",
+            ]
+            .to_vec_string()
+        );
     }
 
     #[test]
@@ -717,7 +744,7 @@ mod package_generator_tests {
 
         let rust_config = RustConfig::new(project_cargo_file);
         let package_config = PackageConfig::new(
-            project_directory,
+            project_directory.clone(),
             params,
             "CustomRustProject",
             "retro_project",
@@ -727,6 +754,20 @@ mod package_generator_tests {
             .expect("should generate rust configurator");
 
         assert!(matches!(packager.create(rust_configurator), Ok(())));
+
+        assert_eq!(
+            shorten_path(
+                list_dir(&project_directory),
+                project_directory.into_string().unwrap()
+            ),
+            vec![
+                "Cargo.toml",
+                ".gitignore",
+                "retro_project/lib.rs",
+                "retro_project/page.rs",
+            ]
+            .to_vec_string()
+        );
     }
 
     #[test]
@@ -749,9 +790,21 @@ mod package_generator_tests {
                     .expect("should convert into string"),
             ));
 
-        let package_config =
-            PackageConfig::new(project_directory, params, "SimpleHTMLPage", "retro_project");
+        let package_config = PackageConfig::new(
+            project_directory.clone(),
+            params,
+            "SimpleHTMLPage",
+            "retro_project",
+        );
 
         assert!(matches!(packager.create(package_config), Ok(())));
+
+        assert_eq!(
+            shorten_path(
+                list_dir(&project_directory),
+                project_directory.clone().into_string().unwrap()
+            ),
+            vec!["retro_project/index.html"].to_vec_string()
+        );
     }
 }

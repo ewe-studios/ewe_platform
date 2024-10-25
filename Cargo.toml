@@ -19,46 +19,44 @@ authors = ["EweStudios Consulting Limited"]
 repository = "https://github.com/ewe-studios/ewe_platform"
 keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 
-
-# -- global dependencies
 [workspace.dependencies]
 
-# -- internal packages so others can use them
-ewe_web = { path = "./crates/web" }
-ewe_logs = { path = "./crates/logs" }
-ewe_watch_utils = { path = "./crates/watch_utils" }
-ewe_devserver = { path = "./crates/devserver" }
-ewe_spawn = { path = "./crates/spawn" }
-ewe_async_utils = { path = "./crates/async-utils" }
-ewe_watchers = { path = "./crates/watchers" }
-ewe_temple = { path = "./crates/temple" }
-ewe_templates = { path = "./crates/templates" }
-ewe_templates_macro = { path = "./crates/template-macro" }
-ewe_mem = { path = "./crates/mem" }
-ewe_routing = { path = "./crates/routing" }
-ewe_html = { path = "./crates/html" }
-ewe_html-macro = { path = "./crates/html-macro" }
-ewe_platform = { path = "./crates/platform" }
-ewe_channels = { path = "./crates/channels" }
-ewe_domain = { path = "./crates/domain" }
-ewe_domain_macro = { path = "./crates/domain-macro" }
-
-# -- non project bound crates
+# -- non 'ewe` namespaced crates
+vec_ext = { path = "./backends/vec_ext" }
 serde_ext = { path = "./backends/serde_ext" }
 strings_ext = { path = "./backends/strings_ext" }
 
-# -- workspace wide packages
-derive_more = { version = "1.0.0", features = ["full"] }
-tracing = { version = "0.1.40" }
-anyhow = { version = "1.0.80" }
+# -- internal packages so others can use them
+ewe_web = { path = "./crates/web" }
+ewe_mem = { path = "./crates/mem" }
+ewe_logs = { path = "./crates/logs" }
+ewe_html = { path = "./crates/html" }
+ewe_spawn = { path = "./crates/spawn" }
+ewe_temple = { path = "./crates/temple" }
+ewe_domain = { path = "./crates/domain" }
+ewe_routing = { path = "./crates/routing" }
+ewe_platform = { path = "./crates/platform" }
+ewe_channels = { path = "./crates/channels" }
+ewe_watchers = { path = "./crates/watchers" }
+ewe_devserver = { path = "./crates/devserver" }
+ewe_templates = { path = "./crates/templates" }
+ewe_html-macro = { path = "./crates/html-macro" }
+ewe_watch_utils = { path = "./crates/watch_utils" }
+ewe_async_utils = { path = "./crates/async-utils" }
+ewe_domain_macro = { path = "./crates/domain-macro" }
+ewe_templates_macro = { path = "./crates/template-macro" }
 
+# -- workspace wide packages
+anyhow = { version = "1.0.80" }
+tracing = { version = "0.1.40" }
+derive_more = { version = "1.0.0", features = ["full"] }
 
 [workspace.lints.clippy]
 pedantic = "warn"
 missing_errors_doc = "allow"
 missing_panics_doc = "allow"
-module_name_repetitions = "allow"
-blocks_in_conditions = "allow"
 must_use_candidate = "allow"
-no-effect-underscore-binding = "allow"
+blocks_in_conditions = "allow"
+module_name_repetitions = "allow"
 items-after-statements = "allow"
+no-effect-underscore-binding = "allow"

@@ -16,6 +16,9 @@ keywords.workspace = true
 derive_more.workspace = true
 ewe_logs = { workspace = true }
 ewe_templates = { workspace = true }
+
+# backend dependencies
+vec_ext = { workspace = true }
 strings_ext = { workspace = true }
 
 # rust package parsing
