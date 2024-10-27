@@ -223,6 +223,39 @@ pub trait PackageConfigurator {
     fn finalize(&self) -> std::result::Result<(), BoxedError>;
 }
 
+impl PackageConfigurator for Box<dyn PackageConfigurator> {
+    fn config(&self) -> PackageConfig {
+        // We do NOT want to do this!
+        // self.look()
+
+        // That would recursively call *this* function!
+        // We need to call `<dyn Trait as Trait>::look`.
+
+        // Any of the below forms work, it depends on
+        // how explicit you want to be.
+
+        // Very explicit
+        // <dyn Trait as Trait>::look(&**self)
+
+        // Yay auto-deref for function parameters
+        // <dyn Trait>::look(self)
+
+        // Very succinct and a "makes sense once you've
+        // seen it enough times" form.  The first deref
+        // is for the reference (`&Self`) and the second
+        // deref is for the `Box<_>`.
+        (**self).config()
+    }
+
+    fn params(&self) -> serde_json::Map<String, serde_json::Value> {
+        (**self).params()
+    }
+
+    fn finalize(&self) -> std::result::Result<(), BoxedError> {
+        (**self).finalize()
+    }
+}
+
 impl PackageConfigurator for PackageConfig {
     fn config(&self) -> PackageConfig {
         self.clone()
@@ -542,10 +575,18 @@ pub struct PackageGenerator {
 
 pub type PackageGenResult<T> = core::result::Result<T, PackageGenError>;
 
+#[derive(Debug, derive_more::From)]
 pub enum PackageGenError {
-    FinalizationFailed(crate::error::BoxedError),
     Failed(crate::error::BoxedError),
     NoTemplateFound,
+}
+
+impl std::error::Error for PackageGenError {}
+
+impl core::fmt::Display for PackageGenError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
 }
 
 impl PackageGenerator {
@@ -555,11 +596,7 @@ impl PackageGenerator {
 
     /// create will begin to setup the underlying specified project
     /// defined in the provided configurator.
-    #[allow(dead_code)]
-    fn create<S>(&self, configurator: S) -> PackageGenResult<()>
-    where
-        S: PackageConfigurator,
-    {
+    pub fn create<S: PackageConfigurator>(&self, configurator: S) -> PackageGenResult<()> {
         let config = configurator.config();
 
         let template_files = self.templates.files_for(config.template_name.as_str());
@@ -629,7 +666,7 @@ impl PackageGenerator {
 
         configurator
             .finalize()
-            .map_err(|err| PackageGenError::FinalizationFailed(err))
+            .map_err(|err| PackageGenError::Failed(err))
     }
 }
 

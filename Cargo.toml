@@ -19,6 +19,7 @@ authors = ["EweStudios Consulting Limited"]
 repository = "https://github.com/ewe-studios/ewe_platform"
 keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 
+
 [workspace.dependencies]
 
 # -- non 'ewe` namespaced crates
