@@ -1,9 +1,7 @@
 # Binaries
 Within this directories are different binaries the platform project provides for differnt needs and usecases.
 
-## Binaries
-
-### [generate](./generate)
+## [Generate](./generate)
 
 Create a new projects from ready made templates and geared towards making
 setup super quick and easy.
