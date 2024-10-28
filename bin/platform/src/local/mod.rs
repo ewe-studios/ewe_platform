@@ -127,7 +127,7 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
 
     let (_cancel_sender, cancel_receiver) = broadcast::channel::<()>(1);
 
-    // TODO: implement signal interrupt listener to send signal with _cancel_sender
+    // TODO: implement signal handling
 
     let waiter = dev_service
         .start(cancel_receiver)
