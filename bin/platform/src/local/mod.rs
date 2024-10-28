@@ -17,30 +17,30 @@ pub fn register(command: clap::Command) -> clap::Command {
             .arg(
                 clap::Arg::new("source_addr")
                     .long("source_addr")
-                    .required(true)
                     .action(clap::ArgAction::Set)
-                    .value_parser(clap::value_parser!(String)),
+                    .value_parser(clap::value_parser!(String))
+                    .default_value("0.0.0.0"),
             )
             .arg(
                 clap::Arg::new("source_port")
                     .long("source_port")
-                    .required(true)
                     .action(clap::ArgAction::Set)
-                    .value_parser(clap::value_parser!(usize)),
+                    .value_parser(clap::value_parser!(usize))
+                    .default_value("3000"),
             )
             .arg(
                 clap::Arg::new("destination_addr")
                     .long("destination_addr")
-                    .required(true)
                     .action(clap::ArgAction::Set)
-                    .value_parser(clap::value_parser!(String)),
+                    .value_parser(clap::value_parser!(String))
+                    .default_value("0.0.0.0"),
             )
             .arg(
                 clap::Arg::new("destination_port")
                     .long("destination_port")
-                    .required(true)
                     .action(clap::ArgAction::Set)
-                    .value_parser(clap::value_parser!(usize)),
+                    .value_parser(clap::value_parser!(usize))
+                    .default_value("3600"),
             )
             .arg(
                 clap::Arg::new("project_directory")
@@ -59,7 +59,6 @@ pub fn register(command: clap::Command) -> clap::Command {
             .arg(
                 clap::Arg::new("binary_name")
                     .long("binary_name")
-                    .required(true)
                     .action(clap::ArgAction::Set)
                     .value_parser(clap::value_parser!(String)),
             )
@@ -76,9 +75,13 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
         .get_one::<String>("project_directory")
         .expect("should have project_directory address");
 
-    let binary_name = args
-        .get_one::<String>("binary_name")
-        .expect("should have binary_name address");
+    let binary_name_ref = args.get_one::<String>("binary_name");
+
+    let binary_name = if binary_name_ref.is_none() {
+        project_name.clone().to_owned()
+    } else {
+        binary_name_ref.unwrap().to_owned()
+    };
 
     let source_addr = args
         .get_one::<String>("source_addr")
