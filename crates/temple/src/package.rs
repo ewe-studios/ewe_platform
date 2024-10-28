@@ -43,11 +43,11 @@ pub trait PackageDirectorate {
     fn files(&self) -> StringIterator;
 
     /// Returns all filenames for giving root directory.
-    fn files_for(&self, directory: &str) -> Vec<String>;
+    fn files_for(&self, directory: &str) -> Option<Vec<String>>;
 
     /// Returns all filenames for giving root directory as a jinja
     /// Environment object which can be rendered out from.
-    fn jinja_for<'a>(&self, directory: &str) -> minijinja::Environment<'a>;
+    fn jinja_for<'a>(&self, directory: &str) -> Option<minijinja::Environment<'a>>;
 
     /// Returns all top-level directories within package.
     fn root_directories(&self) -> Vec<String>;
@@ -93,7 +93,7 @@ impl<T: rust_embed::Embed> PackageDirectorate for Directorate<T> {
         T::iter().map(|t| String::from(t)).collect()
     }
 
-    fn files_for(&self, directory: &str) -> Vec<String> {
+    fn files_for(&self, directory: &str) -> Option<Vec<String>> {
         let target_dir = if directory.ends_with("/") {
             directory
         } else {
@@ -105,10 +105,14 @@ impl<T: rust_embed::Embed> PackageDirectorate for Directorate<T> {
             .map(|t| String::from(t))
             .collect();
 
-        files
+        if files.is_empty() {
+            return None;
+        }
+
+        Some(files)
     }
 
-    fn jinja_for<'a>(&self, directory: &str) -> minijinja::Environment<'a> {
+    fn jinja_for<'a>(&self, directory: &str) -> Option<minijinja::Environment<'a>> {
         let target_dir = if directory.ends_with("/") {
             directory
         } else {
@@ -117,7 +121,14 @@ impl<T: rust_embed::Embed> PackageDirectorate for Directorate<T> {
 
         let mut jinja_env = minijinja::Environment::new();
 
-        for relevant_path in T::iter().filter(|t| t.starts_with(target_dir)).into_iter() {
+        let items: Vec<std::borrow::Cow<'_, str>> =
+            T::iter().filter(|t| t.starts_with(target_dir)).collect();
+
+        if items.is_empty() {
+            return None;
+        }
+
+        for relevant_path in items.into_iter() {
             let relevant_file = T::get(&relevant_path).unwrap();
             let relevant_file_data = relevant_file.data.into_str().expect("should be string");
             jinja_env
@@ -132,7 +143,7 @@ impl<T: rust_embed::Embed> PackageDirectorate for Directorate<T> {
                 .expect("should store template");
         }
 
-        jinja_env
+        Some(jinja_env)
     }
 }
 
@@ -161,9 +172,9 @@ mod directorate_tests {
     #[test]
     fn validate_can_read_only_files_for_top_directory() {
         let generator = Directorate::<Directory>::default();
-        let files: Vec<String> = generator.files_for("schema");
+        let files: Option<Vec<String>> = generator.files_for("schema");
         assert_eq!(
-            files,
+            files.unwrap(),
             vec! {"schema/partials/partial_1.sql", "schema/schema.sql"}
         );
     }
@@ -218,12 +229,19 @@ impl PackageConfig {
 /// generated files in cases of templates and what target template name
 /// representing the Project template to be used in pacakge generation.
 pub trait PackageConfigurator {
+    /// Returns the target directory where the output is written
+    /// i.e the actual end project directory (output_directory / package_name).
+    fn directory(&self) -> std::path::PathBuf;
     fn config(&self) -> PackageConfig;
     fn params(&self) -> serde_json::Map<String, serde_json::Value>;
     fn finalize(&self) -> std::result::Result<(), BoxedError>;
 }
 
 impl PackageConfigurator for Box<dyn PackageConfigurator> {
+    fn directory(&self) -> std::path::PathBuf {
+        (**self).directory()
+    }
+
     fn config(&self) -> PackageConfig {
         // We do NOT want to do this!
         // self.look()
@@ -257,6 +275,10 @@ impl PackageConfigurator for Box<dyn PackageConfigurator> {
 }
 
 impl PackageConfigurator for PackageConfig {
+    fn directory(&self) -> std::path::PathBuf {
+        self.output_directory.join(self.package_name.clone())
+    }
+
     fn config(&self) -> PackageConfig {
         self.clone()
     }
@@ -291,6 +313,9 @@ pub type RustProjectConfiguratorResult<T> = core::result::Result<T, RustProjectC
 
 #[derive(Debug, derive_more::From)]
 pub enum RustProjectConfiguratorError {
+    BadCargoManifest(std::path::PathBuf),
+    #[from(ignore)]
+    NoCargoFile(std::path::PathBuf),
     BadRustWorkspace,
     BadRustProject,
 }
@@ -341,6 +366,10 @@ impl RustProjectConfigurator {
 impl PackageConfigurator for RustProjectConfigurator {
     fn config(&self) -> PackageConfig {
         self.package_config.clone()
+    }
+
+    fn directory(&self) -> std::path::PathBuf {
+        self.package_config.directory()
     }
 
     /// params returns a modified `serde_json::Map` where standard
@@ -401,9 +430,7 @@ impl PackageConfigurator for RustProjectConfigurator {
 
         params.entry("PACKAGE_DIRECTORY").or_insert(
             self.package_config
-                .output_directory
-                .as_path()
-                .join(self.package_config.package_name.clone())
+                .directory()
                 .into_string()
                 .unwrap()
                 .into(),
@@ -543,6 +570,7 @@ impl PackageConfigurator for RustProjectConfigurator {
     }
 
     fn finalize(&self) -> std::result::Result<(), BoxedError> {
+        // update cargo workspace manifest
         if let Some(manifest) = &self.manifest {
             let mut updated_manifest = manifest.clone();
             if let Some(mut workspace) = updated_manifest.workspace.clone() {
@@ -565,7 +593,44 @@ impl PackageConfigurator for RustProjectConfigurator {
                 }
             }
         }
-        Ok(())
+
+        // update projects
+        let project_directory = self.directory();
+        let project_cargo_file = project_directory.join("Cargo.toml");
+        if !project_cargo_file.exists() {
+            return Err(Box::new(RustProjectConfiguratorError::NoCargoFile(
+                project_cargo_file,
+            )));
+        }
+
+        match cargo_toml::Manifest::from_path(project_cargo_file.clone()).map_err(|err| {
+            ewe_logs::error!("Failed to get cargo_toml::Manifest due to: {:?}", err);
+            RustProjectConfiguratorError::BadCargoManifest(project_cargo_file.clone())
+        }) {
+            Ok(manifest) => {
+                let mut cloned_manifest = manifest.clone();
+
+                let mut manifest_package = cloned_manifest.package().clone();
+
+                // if the name is correct then do nothing
+                if manifest_package.name == self.package_config.package_name {
+                    return Ok(());
+                }
+
+                manifest_package.name = self.package_config.package_name.clone();
+
+                cloned_manifest.package = Some(manifest_package);
+
+                let serilized_manifest = toml::to_string(&cloned_manifest)?;
+                let mut cargo_file = std::fs::File::create(project_cargo_file.clone())?;
+
+                match cargo_file.write_all(serilized_manifest.as_bytes()) {
+                    Ok(_) => Ok(()),
+                    Err(err) => Err(Box::new(err)),
+                }
+            }
+            Err(err) => Err(Box::new(err)),
+        }
     }
 }
 
@@ -578,7 +643,7 @@ pub type PackageGenResult<T> = core::result::Result<T, PackageGenError>;
 #[derive(Debug, derive_more::From)]
 pub enum PackageGenError {
     Failed(crate::error::BoxedError),
-    NoTemplateFound,
+    NoTemplateFound(String),
 }
 
 impl std::error::Error for PackageGenError {}
@@ -599,7 +664,22 @@ impl PackageGenerator {
     pub fn create<S: PackageConfigurator>(&self, configurator: S) -> PackageGenResult<()> {
         let config = configurator.config();
 
-        let template_files = self.templates.files_for(config.template_name.as_str());
+        let template_files_container = self.templates.files_for(config.template_name.as_str());
+
+        ewe_logs::debug!(
+            "Project Template: `{}` with files: `{:?}`",
+            config.template_name,
+            template_files_container,
+        );
+
+        if template_files_container.is_none() {
+            return Err(PackageGenError::NoTemplateFound(
+                config.template_name.clone(),
+            ));
+        }
+
+        let template_files = template_files_container.unwrap();
+
         ewe_logs::debug!(
             "Project Template: `{}` with files: `{:?}` where all=`{:?}`",
             config.template_name,
@@ -607,8 +687,14 @@ impl PackageGenerator {
             self.templates.list_all(),
         );
 
-        let file_templates =
-            sync::Arc::new(self.templates.jinja_for(config.template_name.as_str()));
+        let jinja_environment = self.templates.jinja_for(config.template_name.as_str());
+        if jinja_environment.is_none() {
+            return Err(PackageGenError::NoTemplateFound(
+                config.template_name.clone(),
+            ));
+        }
+
+        let file_templates = sync::Arc::new(jinja_environment.unwrap());
 
         let mut packager = crate::Templater::from(config.output_directory.clone());
         for template_file in template_files.iter() {

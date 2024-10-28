@@ -58,6 +58,8 @@ thiserror = { version = "1.0.57" }
 # -- tracing crates
 tracing-subscriber = { version = "0.3.18", features = ["fmt"]}
 
+[features]
+debug_trace = ["ewe_logs/debug_trace"]
 
 [lints]
 workspace = true

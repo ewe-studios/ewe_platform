@@ -45,6 +45,7 @@ impl LanguageSupport {
         &self,
         template_name: String,
         project_name: String,
+        github_namespace: Option<String>,
         root_directory: std::path::PathBuf,
         new_project_directory: std::path::PathBuf,
         workspace_cargo_file: Option<std::path::PathBuf>,
@@ -52,6 +53,10 @@ impl LanguageSupport {
         match self {
             LanguageSupport::Plain | LanguageSupport::SimpleHTML => {
                 let mut params: serde_json::Map<String, serde_json::Value> = serde_json::Map::new();
+
+                params
+                    .entry(String::from("GITHUB_NAMESPACE"))
+                    .or_insert(serde_json::Value::from(github_namespace.clone()));
 
                 params
                     .entry(String::from("PROJECT_NAME"))
@@ -86,6 +91,10 @@ impl LanguageSupport {
                 params
                     .entry(String::from("PROJECT_NAME"))
                     .or_insert(serde_json::Value::from(project_name.clone()));
+
+                params
+                    .entry(String::from("GITHUB_NAMESPACE"))
+                    .or_insert(serde_json::Value::from(github_namespace.clone()));
 
                 params
                     .entry(String::from("TEMPLATE_NAME"))
@@ -144,6 +153,13 @@ pub fn register(command: clap::Command) -> clap::Command {
                     .value_parser(clap::value_parser!(String)),
             )
             .arg(
+                clap::Arg::new("github_url")
+                    .long("github_url")
+                    .help("path to your github namespace")
+                    .action(clap::ArgAction::Set)
+                    .value_parser(clap::value_parser!(String)).default_value("https://github.com/<USER>"),
+            )
+            .arg(
                 clap::Arg::new("output")
                     .short('o')
                     .long("output_directory")
@@ -183,6 +199,10 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
         .get_one::<String>("project_name")
         .expect("should have project_name");
 
+    let github_namespace = args
+        .get_one::<String>("github_url")
+        .map_or(None, |val| Some(val.clone()));
+
     let output_directory = args
         .get_one::<std::path::PathBuf>("output")
         .unwrap_or(&current_dir);
@@ -205,11 +225,10 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
     let template_directorate = Box::new(Directorate::<ProjectTemplates>::default());
     let packager = PackageGenerator::new(template_directorate);
 
-    println!("Arguments: project_name={project_name} --output={output_directory:?} -- template={template_name} lang={selected_language:?}");
-
     let package_configurator = selected_language.generate_package_config(
         template_name.clone(),
         project_name.clone(),
+        github_namespace.clone(),
         output_directory.clone(),
         project_output_directory.clone(),
         root_project_cargo_file.clone(),
