@@ -4,7 +4,7 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 use serde_json::{json, Map, Value};
 
-use crate::{JsonError, JsonResult};
+use super::{JsonError, JsonResult};
 
 ///  Extension trait that allows us define a conversion of a JSON value to
 /// more native rust types.
