@@ -10,9 +10,9 @@ rust-version.workspace = true
 keywords = [
     "watcher",
     "watchful",
-    "file watcher",
-    "command runner",
-    "change watcher",
+    "filewatcher",
+    "commandrunner",
+    "changewatcher",
 ]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
