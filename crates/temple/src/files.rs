@@ -69,7 +69,7 @@ impl<'a> FileSystemCommand<'a> {
         match self {
             FileSystemCommand::DirPath(dir, commands) => {
                 if !dir.exists() {
-                    ewe_logs::info!("Creating directory: {:?}", dir);
+                    ewe_trace::info!("Creating directory: {:?}", dir);
                 }
 
                 let mut builder = fs::DirBuilder::new();
@@ -86,7 +86,7 @@ impl<'a> FileSystemCommand<'a> {
                 target_path.push(dir);
 
                 if !target_path.exists() {
-                    ewe_logs::info!("Creating directory: {:?}", target_path);
+                    ewe_trace::info!("Creating directory: {:?}", target_path);
                 }
 
                 let mut builder = fs::DirBuilder::new();
@@ -102,14 +102,14 @@ impl<'a> FileSystemCommand<'a> {
                 let mut target_path = dest.clone();
                 target_path.push(file_name);
 
-                ewe_logs::info!("Creating file: {:?}", target_path);
+                ewe_trace::info!("Creating file: {:?}", target_path);
 
                 content.run(target_path, Some(value))?;
 
                 Ok(())
             }
             FileSystemCommand::FilePath(file_name, content) => {
-                ewe_logs::info!("Creating file: {:?}", file_name);
+                ewe_trace::info!("Creating file: {:?}", file_name);
                 content.run(file_name.clone(), Some(value))?;
                 Ok(())
             }

@@ -105,7 +105,7 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
 
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
-    ewe_logs::info!("Starting local binary");
+    ewe_trace::info!("Starting local binary");
 
     let destination = ProxyRemoteConfig::new(source_addr.clone(), source_port.clone());
     let source = ProxyRemoteConfig::new(destination_addr.clone(), destination_port.clone());

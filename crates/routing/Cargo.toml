@@ -9,7 +9,7 @@ repository.workspace = true
 keywords.workspace = true
 
 [dependencies]
-ewe_logs.workspace = true
+ewe_trace.workspace = true
 ewe_async_utils.workspace = true
 ewe_mem.workspace = true
 
@@ -39,4 +39,4 @@ tracing-test = { version = "0.2.5" }
 workspace = true
 
 [features]
-debug_trace = ["ewe_logs/debug_trace"]
+debug_trace = ["ewe_trace/debug_trace"]

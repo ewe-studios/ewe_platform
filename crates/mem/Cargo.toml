@@ -9,7 +9,7 @@ repository.workspace = true
 keywords.workspace = true
 
 [dependencies]
-ewe_logs.workspace = true
+ewe_trace.workspace = true
 memchr = "2.7.2"
 tracing = { version = "0.1.40" }
 anyhow = { version = "1.0.80" }
@@ -24,7 +24,7 @@ workspace = true
 [features]
 nightly = []
 default = []
-debug_trace = ["ewe_logs/debug_trace"]
+debug_trace = ["ewe_trace/debug_trace"]
 
 [profile.bench]
 debug = true

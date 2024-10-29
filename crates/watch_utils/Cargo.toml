@@ -9,7 +9,7 @@ repository.workspace = true
 keywords.workspace = true
 
 [dependencies]
-ewe_logs.workspace = true
+ewe_trace.workspace = true
 tracing.workspace = true
 anyhow.workspace = true
 

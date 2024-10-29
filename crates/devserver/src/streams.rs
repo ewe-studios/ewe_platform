@@ -67,7 +67,7 @@ where
                 copied += bytes_read;
             }
             Err(e) => {
-                ewe_logs::error!("Failed to write data to destination: {:?}", e)
+                ewe_trace::error!("Failed to write data to destination: {:?}", e)
             }
         }
     }
@@ -83,7 +83,7 @@ pub async fn stream_tunnel(
     tunnel: Tunnel,
 ) -> Result<()> {
     let destination_config = tunnel.destination;
-    ewe_logs::info!(
+    ewe_trace::info!(
         "Starting streaming between client addr {} and destination {} ",
         source_addr,
         destination_config
@@ -108,19 +108,19 @@ pub async fn stream_tunnel(
 
     match source_to_destination {
         Ok(copied) => {
-            ewe_logs::info!("Copied total bytes: {} from source to destination", copied);
+            ewe_trace::info!("Copied total bytes: {} from source to destination", copied);
         }
         Err(err) => {
-            ewe_logs::error!("Failed in data transmission to destination: {:?}", err);
+            ewe_trace::error!("Failed in data transmission to destination: {:?}", err);
         }
     };
 
     match destination_to_source {
         Ok(copied) => {
-            ewe_logs::info!("Copied total bytes: {} from destination to source", copied);
+            ewe_trace::info!("Copied total bytes: {} from destination to source", copied);
         }
         Err(err) => {
-            ewe_logs::error!("Failed in data transmission to source: {:?}", err);
+            ewe_trace::error!("Failed in data transmission to source: {:?}", err);
         }
     };
 
@@ -144,11 +144,11 @@ pub async fn stream_http1(
         .await
     {
         Ok(_) => {
-            ewe_logs::info!("Finished serving http1 request");
+            ewe_trace::info!("Finished serving http1 request");
             Ok(())
         }
         Err(err) => {
-            ewe_logs::error!("Failed to stream http1 connection correctly");
+            ewe_trace::error!("Failed to stream http1 connection correctly");
             Err(Box::new(StreamError::FailedStreaming(Box::new(err))).into())
         }
     }
@@ -189,7 +189,7 @@ impl service::Service<crate::types::HyperRequest> for Http1Service {
                             Ok((mut request_sender, sender_conn_handle)) => {
                                 let _ = tokio::spawn(async move {
                                     if let Err(err) = sender_conn_handle.await {
-                                        ewe_logs::error!(
+                                        ewe_trace::error!(
                                             "Connection to destination failed: {} due to error {}",
                                             destination_addr,
                                             err,
@@ -204,7 +204,7 @@ impl service::Service<crate::types::HyperRequest> for Http1Service {
                                         Ok(resp)
                                     }
                                     Err(err) => {
-                                        ewe_logs::error!(
+                                        ewe_trace::error!(
                                             "Request proxy response not received: {:?}",
                                             err
                                         );
@@ -216,7 +216,7 @@ impl service::Service<crate::types::HyperRequest> for Http1Service {
                                 }
                             }
                             Err(err) => {
-                                ewe_logs::error!("Failed to build proxy request sender: {:?}", err);
+                                ewe_trace::error!("Failed to build proxy request sender: {:?}", err);
                                 Ok(hyper::Response::builder()
                                     .status(StatusCode::INTERNAL_SERVER_ERROR)
                                     .body(body::Body::new(empty()))
@@ -225,7 +225,7 @@ impl service::Service<crate::types::HyperRequest> for Http1Service {
                         }
                     }
                     Err(err) => {
-                        ewe_logs::error!(
+                        ewe_trace::error!(
                             "Failed to connect to proxy destination {} due to: {:?}",
                             destination_addr,
                             err
@@ -262,13 +262,13 @@ impl service::Service<crate::types::HyperRequest> for Http1Service {
                             )
                             .await
                             {
-                                ewe_logs::error!("Failed to stream bi-directional CONNECT request to: {} due to {}", socket_addr, failed_err)
+                                ewe_trace::error!("Failed to stream bi-directional CONNECT request to: {} due to {}", socket_addr, failed_err)
                             }
                         });
                         Ok(hyper::Response::new(body::Body::new(empty())))
                     }
                     Err(err) => {
-                        ewe_logs::error!(
+                        ewe_trace::error!(
                             "Failed to upgrade connection for socket addr: {} due to {}",
                             socket_addr,
                             err
@@ -310,7 +310,7 @@ async fn stream_http_bidrectional(
         tokio::io::copy_bidirectional(&mut upgraded, &mut server).await?;
 
     // Print message when done
-    ewe_logs::info!(
+    ewe_trace::info!(
         "Finished {} client wrote {} bytes and received {} bytes",
         protocol,
         from_client,

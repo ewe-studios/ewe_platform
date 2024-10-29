@@ -30,7 +30,7 @@ strings_ext = { path = "./backends/strings_ext" }
 # -- internal packages so others can use them
 ewe_web = { path = "./crates/web" }
 ewe_mem = { path = "./crates/mem" }
-ewe_logs = { path = "./crates/logs" }
+ewe_trace = { path = "./crates/trace" }
 ewe_html = { path = "./crates/html" }
 ewe_spawn = { path = "./crates/spawn" }
 ewe_temple = { path = "./crates/temple" }

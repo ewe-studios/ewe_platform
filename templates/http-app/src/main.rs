@@ -16,7 +16,7 @@ async fn main() {
 
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
-    ewe_logs::info!("Starting local binary");
+    ewe_trace::info!("Starting local binary");
 
     let binary_name = String::from("wello");
 

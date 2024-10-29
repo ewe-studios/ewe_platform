@@ -596,9 +596,9 @@ impl<'a> Fragment<'a> {
             .attributes
             .iter_mut()
             .find(|attr_container| {
-                ewe_logs::debug!("Checking attribute in list");
+                ewe_trace::debug!("Checking attribute in list");
                 if let Some(attr) = attr_container {
-                    ewe_logs::debug!(
+                    ewe_trace::debug!(
                         "Matching: {:?} against {:?}",
                         attr.name_bytes().unwrap(),
                         encoded_str

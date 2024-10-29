@@ -84,7 +84,7 @@ pub fn watch_path(
                                     event.kind,
                                     event.paths.clone(),
                                 ) {
-                                    ewe_logs::error!("Failed execution of update: {}", failed);
+                                    ewe_trace::error!("Failed execution of update: {}", failed);
                                 }
                             }
                             _ => continue,

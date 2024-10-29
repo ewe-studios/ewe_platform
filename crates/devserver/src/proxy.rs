@@ -66,7 +66,7 @@ impl ProxyType {
             ProxyType::Tunnel(t) => {
                 let (client, client_addr) = connection;
                 streams::stream_tunnel(client, client_addr.clone(), t.clone()).await?;
-                ewe_logs::info!(
+                ewe_trace::info!(
                     "Finished serving::tunnel client: {} from {} to {}",
                     client_addr.clone(),
                     t.source,
@@ -84,7 +84,7 @@ impl ProxyType {
                 let (client, client_addr) = connection;
                 streams::stream_http1(rt::TokioIo::new(client), client_addr.clone(), t.clone())
                     .await?;
-                ewe_logs::info!(
+                ewe_trace::info!(
                     "Finished serving::http1 client: {} from {} to {}",
                     client_addr.clone(),
                     t.source,
@@ -127,7 +127,7 @@ impl Operator for sync::Arc<ProxyRemote> {
 
 impl ProxyRemote {
     pub async fn stream(&self, mut sig: broadcast::Receiver<()>) -> Result<()> {
-        ewe_logs::info!("Streaming for proxy: {}", self.0,);
+        ewe_trace::info!("Streaming for proxy: {}", self.0,);
 
         tokio::select! {
 
@@ -135,7 +135,7 @@ impl ProxyRemote {
 
                 match &self.0 {
                     ProxyType::Http1(t) => {
-                        ewe_logs::info!("Creating TCPListener for {} (addr_str: {}, protocol: Http1) to {}", t.source, t.source.to_string(), t.destination);
+                        ewe_trace::info!("Creating TCPListener for {} (addr_str: {}, protocol: Http1) to {}", t.source, t.source.to_string(), t.destination);
                         let source_listener = net::TcpListener::bind(t.source.to_string()).await?;
 
                         loop {
@@ -144,7 +144,7 @@ impl ProxyRemote {
                                 Ok(connection) => {
                                     tokio::spawn(async move {
                                         if let Err(err) = proxy_elem.clone().stream_http1(connection).await {
-                                            ewe_logs::error!(
+                                            ewe_trace::error!(
                                                 "Failed to serve http1 request: {}  - {:?}",
                                                 proxy_elem.clone(),
                                                 err,
@@ -154,7 +154,7 @@ impl ProxyRemote {
                                     continue;
                                 },
                                 Err(err) => {
-                                    ewe_logs::error!(
+                                    ewe_trace::error!(
                                         "Failed to get new client connection {:?}",
                                         err,
                                     );
@@ -166,7 +166,7 @@ impl ProxyRemote {
                         Ok(())
                     },
                     ProxyType::Tunnel(t) => {
-                        ewe_logs::info!("Creating TCPListener for {} (addr_str: {}, protocol: tunnel) to {}", t.source, t.source.to_string(), t.destination);
+                        ewe_trace::info!("Creating TCPListener for {} (addr_str: {}, protocol: tunnel) to {}", t.source, t.source.to_string(), t.destination);
                         let source_listener = net::TcpListener::bind(t.source.to_string()).await?;
 
                         loop {
@@ -175,7 +175,7 @@ impl ProxyRemote {
                                 Ok(connection) => {
                                     tokio::spawn(async move {
                                         if let Err(err) = proxy_elem.clone().tunnel_connection(connection).await {
-                                            ewe_logs::error!(
+                                            ewe_trace::error!(
                                                 "Failed to serve tcp tunnel request: {}  - {:?}",
                                                 proxy_elem.clone(),
                                                 err,
@@ -185,7 +185,7 @@ impl ProxyRemote {
                                     continue;
                                 },
                                 Err(err) => {
-                                    ewe_logs::error!(
+                                    ewe_trace::error!(
                                         "Failed to get new client connection {:?}",
                                         err,
                                     );
@@ -247,12 +247,12 @@ impl Operator for sync::Arc<StreamTCPApp> {
             tokio::time::sleep(wait_for).await;
             let proxy_handler = handler.run_proxy(signal);
 
-            ewe_logs::info!("Booting up proxy server proxy_type={:?}", pt);
+            ewe_trace::info!("Booting up proxy server proxy_type={:?}", pt);
 
             match proxy_handler.await? {
                 Ok(_) => Ok(()),
                 Err(err) => {
-                    ewe_logs::error!("Failed to properly end tcp proxy: {:?}", err);
+                    ewe_trace::error!("Failed to properly end tcp proxy: {:?}", err);
                     Err(Box::new(ProxyError::FailedProxyConnection).into())
                 }
             }

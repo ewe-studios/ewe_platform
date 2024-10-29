@@ -39,7 +39,7 @@ async fn main() {
         .await
         .unwrap();
 
-    ewe_logs::info!("Listening on {}", listener.local_addr().unwrap());
+    ewe_trace::info!("Listening on {}", listener.local_addr().unwrap());
 
     axum::serve(listener, app).await.unwrap();
 }

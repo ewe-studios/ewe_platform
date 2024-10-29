@@ -102,7 +102,7 @@ where
     }
 
     fn call(&mut self, req: http::Request<axum::body::Body>) -> Self::Future {
-        ewe_logs::debug!("RouterService received requests");
+        ewe_trace::debug!("RouterService received requests");
 
         let body_limit = self.0;
         let server = self.1.clone();
@@ -156,7 +156,7 @@ where
                                 }
                             }
                             Err(_bad_err) => {
-                                ewe_logs::debug!("Bad request received: {:?}", _bad_err);
+                                ewe_trace::debug!("Bad request received: {:?}", _bad_err);
                                 response::ResponseResult(Ok(Response::from_head(
                                     ResponseHead::standard(StatusCode::BAD_REQUEST),
                                 )))
@@ -165,7 +165,7 @@ where
                         }
                     }
                     Err(_err) => {
-                        ewe_logs::debug!("TryFromBodyRequestError occured");
+                        ewe_trace::debug!("TryFromBodyRequestError occured");
                         response::ResponseResult(Ok(Response::from_head(ResponseHead::standard(
                             StatusCode::BAD_REQUEST,
                         ))))
@@ -173,7 +173,7 @@ where
                     }
                 },
                 Err(err) => {
-                    ewe_logs::error!("Failed to read body bytes: {:?}", err);
+                    ewe_trace::error!("Failed to read body bytes: {:?}", err);
                     response::ResponseResult(Ok(Response::from_head(ResponseHead::standard(
                         StatusCode::BAD_REQUEST,
                     ))))
@@ -308,7 +308,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> Router<'a, R,
 }
 
 pub fn bad_request_handler<R, S>(_req: Request<R>) -> ResponseFuture<S, RouterErrors> {
-    ewe_logs::debug!("Fallback handler reeceived requests");
+    ewe_trace::debug!("Fallback handler reeceived requests");
     Box::pin(async {
         Ok(Response::from(
             None,
@@ -356,7 +356,7 @@ mod router_tests {
         ) -> std::result::Result<MyRequests, requests::TryFromBodyRequestError> {
             let content = String::from_utf8(body.to_vec())
                 .map_err(|_| TryFromBodyRequestError::FailedConversion)?;
-            ewe_logs::debug!("Request from bytes: {}", content);
+            ewe_trace::debug!("Request from bytes: {}", content);
             let data: MyRequests = serde_json::from_slice(content.as_bytes()).unwrap();
 
             Ok(data)

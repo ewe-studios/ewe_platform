@@ -79,10 +79,10 @@ impl operators::Operator for sync::Arc<CargoShellBuilder> {
             loop {
                 tokio::select! {
                     _ = recver.recv() => {
-                        ewe_logs::info!("Received rebuilding signal for binary!");
+                        ewe_trace::info!("Received rebuilding signal for binary!");
                         match handle.build().await {
                             Ok(_) => {
-                                ewe_logs::info!("Finished rebuilding binary!");
+                                ewe_trace::info!("Finished rebuilding binary!");
                                 continue;
                             },
                             Err(err) => {
@@ -91,7 +91,7 @@ impl operators::Operator for sync::Arc<CargoShellBuilder> {
                         }
                     },
                     _ = signal.recv() => {
-                        ewe_logs::info!("Cancel signal received, shutting down!");
+                        ewe_trace::info!("Cancel signal received, shutting down!");
                         break;
                     }
                 }
@@ -112,7 +112,7 @@ impl CargoShellBuilder {
     }
 
     async fn run_build(&self) -> CargoShellResult<()> {
-        ewe_logs::info!(
+        ewe_trace::info!(
             "Building project binary with cargo (project={}, binary={:?})",
             self.project.crate_name,
             self.project.run_arguments,
@@ -129,13 +129,13 @@ impl CargoShellBuilder {
             .await
         {
             Ok(result) => {
-                ewe_logs::info!(
+                ewe_trace::info!(
                     "Running command `cargo build` (project={}, binary={:?})",
                     self.project.crate_name,
                     self.project.run_arguments,
                 );
                 if !result.status.success() {
-                    ewe_logs::error!(
+                    ewe_trace::error!(
                         "Running command `cargo build` returned error (project={}, binary={:?})\n\t{:?}",
                         self.project.crate_name,
                         self.project.run_arguments,
@@ -146,7 +146,7 @@ impl CargoShellBuilder {
                 Ok(())
             }
             Err(err) => {
-                ewe_logs::error!(
+                ewe_trace::error!(
                     "Failed command execution: `cargo build` (project={}, binary={:?}): {:?}",
                     self.project.crate_name,
                     self.project.run_arguments,
@@ -166,13 +166,13 @@ impl CargoShellBuilder {
             .await
         {
             Ok(result) => {
-                ewe_logs::info!(
+                ewe_trace::info!(
                     "Running command `cargo check` (project={}, binary={:?})",
                     self.project.crate_name,
                     self.project.run_arguments,
                 );
                 if !result.status.success() {
-                    ewe_logs::error!(
+                    ewe_trace::error!(
                         "Running command `cargo check` returned error (project={}, binary={:?})\n\t{:?}",
                         self.project.crate_name,
                         self.project.run_arguments,
@@ -183,7 +183,7 @@ impl CargoShellBuilder {
                 Ok(())
             }
             Err(err) => {
-                ewe_logs::error!(
+                ewe_trace::error!(
                     "Failed command execution: `cargo check` (project={}, binary={:?}): {:?}",
                     self.project.crate_name,
                     self.project.run_arguments,
@@ -247,21 +247,21 @@ impl Operator for sync::Arc<BinaryApp> {
                 tokio::select! {
                     _ = build_notifier.recv() => {
                         if let Some(mut binary) = binary_handle {
-                            ewe_logs::info!("Killing current version of binary");
+                            ewe_trace::info!("Killing current version of binary");
                             binary.kill().expect("kill binary and re-starts");
                         }
 
-                        ewe_logs::info!("Restarting latest version of binary");
+                        ewe_trace::info!("Restarting latest version of binary");
                         binary_handle = Some(handle.run_binary().expect("re-run binary"));
 
-                        ewe_logs::info!("Restart done!");
+                        ewe_trace::info!("Restart done!");
                         if let Err(_) = run_sender.send_in((), wait_before_reload.clone()).await {
-                            ewe_logs::warn!("No one is listening for re-running messages");
+                            ewe_trace::warn!("No one is listening for re-running messages");
                         }
                         continue;
                     },
                     _ = signal.recv() => {
-                        ewe_logs::info!("Cancel signal received, shutting down!");
+                        ewe_trace::info!("Cancel signal received, shutting down!");
                         if let Some(mut binary) = binary_handle {
                             match binary.kill() {
                                 Ok(_) => break,
@@ -281,7 +281,7 @@ impl Operator for sync::Arc<BinaryApp> {
 // -- Binary starter
 impl BinaryApp {
     fn run_binary(&self) -> types::Result<process::Child> {
-        ewe_logs::info!("Running binary from project={}", self.project);
+        ewe_trace::info!("Running binary from project={}", self.project);
 
         let mut binary_and_arguments = self.project.run_arguments.clone();
         let run_arguments = binary_and_arguments.split_off(1);
@@ -296,7 +296,7 @@ impl BinaryApp {
             .spawn()
         {
             Ok(child) => {
-                ewe_logs::info!(
+                ewe_trace::info!(
                     "Running command `cargo run` (binary={:?}, args={:?})",
                     self.project.crate_name,
                     self.project.run_arguments,
@@ -304,7 +304,7 @@ impl BinaryApp {
                 Ok(child)
             }
             Err(err) => {
-                ewe_logs::error!(
+                ewe_trace::error!(
                     "Running command `cargo check` returned error (binary={:?}, args={:?})\n\t{:?}",
                     self.project.crate_name,
                     self.project.run_arguments,

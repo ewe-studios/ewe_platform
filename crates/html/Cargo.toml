@@ -12,7 +12,7 @@ keywords.workspace = true
 
 [dependencies]
 ewe_mem.workspace = true
-ewe_logs.workspace = true
+ewe_trace.workspace = true
 
 regex = { version = "1.10" }
 lazy-regex = { version = "3.1" }
@@ -35,7 +35,7 @@ criterion = { version = "0.5", features = ["html_reports"] }
 workspace = true
 
 [features]
-debug_trace = ["ewe_logs/debug_trace"]
+debug_trace = ["ewe_trace/debug_trace"]
 
 [[bench]]
 name = "wikipedia"

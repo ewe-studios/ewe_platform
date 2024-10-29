@@ -42,7 +42,7 @@ impl Operator for SequentialOps {
                 match job.run(signal.resubscribe()).await {
                     Ok(_) => continue,
                     Err(err) => {
-                        ewe_logs::error!("Failed to complete operator: {:?}", err);
+                        ewe_trace::error!("Failed to complete operator: {:?}", err);
                         return Err(Box::new(OperationsError::FailedOperatorWait).into());
                     }
                 }
@@ -75,7 +75,7 @@ impl Operator for ParrellelOps {
                 match result {
                     Ok(_) => continue,
                     Err(err) => {
-                        ewe_logs::error!("Failed to complete operator: {:?}", err);
+                        ewe_trace::error!("Failed to complete operator: {:?}", err);
                         return Err(Box::new(OperationsError::FailedOperatorWait).into());
                     }
                 }

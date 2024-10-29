@@ -1030,7 +1030,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
         mut route_patterns: Vec<SegmentType<'a>>,
         mut params: Params,
     ) -> RouteResult<(Self, Params)> {
-        ewe_logs::debug!(
+        ewe_trace::debug!(
             "pull_routes_from: path segments: \n\t{:?} against \n\t{:?}\n",
             route_patterns,
             root,
@@ -1042,14 +1042,14 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
             None => Err(RouteOp::PanicSegmentNotFound),
         }?;
 
-        ewe_logs::debug!(
+        ewe_trace::debug!(
             "pull_routes_from: matching root: \n\t{:?} against \n\t{:?} going to {:?}\n",
             route_patterns[0],
             root.segment,
             next_segment_type,
         );
 
-        ewe_logs::debug!(
+        ewe_trace::debug!(
             "RouteSegments: Root: {:?} and routes: {:?}",
             root,
             route_patterns,
@@ -1066,7 +1066,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
         if remaining_segments.len() > 0 {
             return match root.validate_against_self(next_segment_type, &mut params) {
                 Ok(_) => {
-                    ewe_logs::debug!(
+                    ewe_trace::debug!(
                         "pull_routes_from: going to next: \n\t{:?} in root \n\t{:?} params: {:?}\n",
                         remaining_segments[0],
                         owner,
@@ -1076,7 +1076,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
                     let next_segment_route = root
                         .get_matching_segment_route(remaining_segments[0].clone(), &mut params)?;
 
-                    ewe_logs::debug!(
+                    ewe_trace::debug!(
                         "NextSegment: Root: next_route: {:?} and routes: {:?}",
                         next_segment_route,
                         remaining_segments,
@@ -1085,7 +1085,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
                     RouteSegment::match_routes_from(next_segment_route, remaining_segments, params)
                 }
                 Err(_err) => {
-                    ewe_logs::debug!(
+                    ewe_trace::debug!(
                     "pull_routes_from: not matching root: \n\t{:?} against \n\t{:?} with error {:?} \n",
                         route_patterns[0],
                         root.segment,
@@ -1106,7 +1106,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
     /// root segments in nested version where the last item in this segments get the RouteMethod.
     pub fn parse_route(route: &'a str, method: RouteMethod<R, S, Server>) -> RouteResult<Self> {
         let segments = parse_route_into_segments(route)?;
-        ewe_logs::debug!(
+        ewe_trace::debug!(
             "parse_route: String Segments: {:?} from {}",
             segments,
             route
@@ -1118,7 +1118,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
             .collect();
 
         let mut route_segments: Vec<RouteSegment<'a, R, S, Server>> = route_segments_result?;
-        ewe_logs::debug!("parse_route: Route Segments: {:?}", route_segments);
+        ewe_trace::debug!("parse_route: Route Segments: {:?}", route_segments);
 
         let mut method_container = Some(method);
         let mut last_leaf: Option<RouteSegment<'a, R, S, Server>> = None;
@@ -1127,21 +1127,21 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
             match route_segments.pop() {
                 Some(mut leaf) => match last_leaf.take() {
                     Some(last_leave) => {
-                        ewe_logs::debug!(
+                        ewe_trace::debug!(
                             "parse_route: Add segment: {:?} into {:?}",
                             last_leave,
                             leaf,
                         );
                         leaf.add_route(last_leave);
                         last_leaf.replace(leaf);
-                        ewe_logs::debug!("parse_route: With new last leaf {:?}", last_leaf);
+                        ewe_trace::debug!("parse_route: With new last leaf {:?}", last_leaf);
                         continue;
                     }
                     None => {
                         if let Some(m) = method_container.take() {
                             leaf.method.take(m);
                         }
-                        ewe_logs::debug!(
+                        ewe_trace::debug!(
                             "parse_route: Set as last leave: {:?} into {:?}",
                             leaf,
                             last_leaf
@@ -1156,7 +1156,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
 
         match last_leaf {
             Some(root) => {
-                ewe_logs::debug!("parse_route: returned root: {:?}", root);
+                ewe_trace::debug!("parse_route: returned root: {:?}", root);
                 return Ok(root);
             }
             _ => Err(RouteOp::InvalidSegment),
@@ -1355,9 +1355,9 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
             SegmentType::Root => panic!("should never add root segment as a subroute"),
             SegmentType::Index => self.method.take(segment.method),
             SegmentType::Static(route) => {
-                ewe_logs::debug!("Adding static route: {} with value: {:?}", route, segment);
+                ewe_trace::debug!("Adding static route: {} with value: {:?}", route, segment);
                 self.static_routes.entry(route).or_insert(segment);
-                ewe_logs::debug!("Static routes: {:?}", self.static_routes);
+                ewe_trace::debug!("Static routes: {:?}", self.static_routes);
             }
             _ => {
                 self.dynamic_routes.push(segment);
@@ -1413,7 +1413,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
         segment: SegmentType<'a>,
         params: &mut Params,
     ) -> RouteResult<&RouteSegment<'a, R, S, Server>> {
-        ewe_logs::debug!(
+        ewe_trace::debug!(
             "validate_against_self: matching segment: \n\t{:?} \n\t against \n\t{:?} with gathered params: {:?}\n",
             segment,
             self,
@@ -1435,7 +1435,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
         segment: SegmentType<'a>,
         params: &mut Params,
     ) -> RouteResult<&RouteSegment<'a, R, S, Server>> {
-        ewe_logs::debug!(
+        ewe_trace::debug!(
             "get_matching_segment_route: matching segment: \n\t{:?} \n\t against \n\t({:?}, {:?}) with gathered params: {:?}\n",
             segment,
             self.segment,
@@ -1455,7 +1455,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
                 }
                 SegmentType::Static(text) => {
                     if self.static_routes.contains_key(text) {
-                        ewe_logs::debug!(
+                        ewe_trace::debug!(
                             "get_matching_segment_route: matching static route: \n\t{:?} with params: {:?}\n",
                             segment,
                             params
@@ -1466,7 +1466,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
                         };
                     }
 
-                    ewe_logs::debug!(
+                    ewe_trace::debug!(
                         "get_matching_segment_route: matching dynamic route: \n\t{:?} with params: {:?}\n",
                         segment,
                         params
@@ -1484,7 +1484,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
         segment: SegmentType<'a>,
         params: &mut Params,
     ) -> RouteResult<&RouteSegment<'a, R, S, Server>> {
-        ewe_logs::debug!(
+        ewe_trace::debug!(
             "match_against_dynamic_routes: matching segment: \n\t{:?} \n\t against \n\t({:?}, {:?}) with gathered params: {:?}\n",
             segment,
             self.segment,
@@ -1493,7 +1493,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
         );
 
         for (_index, subroute) in self.dynamic_routes.iter().enumerate() {
-            ewe_logs::debug!(
+            ewe_trace::debug!(
                 "get_matching_segment_route: dynamic route({}, {:?}): \n\t{:?} with params: {:?}\n",
                 index,
                 subroute.segment,

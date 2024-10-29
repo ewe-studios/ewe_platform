@@ -10,7 +10,7 @@ keywords.workspace = true
 
 [dependencies]
 # dev-server
-ewe_logs = { workspace = true, features = ["standard"] }
+ewe_trace = { workspace = true, features = ["standard"] }
 ewe_devserver.workspace = true
 
 # directory embedding
@@ -36,7 +36,7 @@ tracing = { version = "0.1.40" }
 tracing-subscriber = { version = "0.3.18" }
 
 [features]
-default = ["ewe_logs/standard"]
+default = ["ewe_trace/standard"]
 
 [lints]
 workspace = true

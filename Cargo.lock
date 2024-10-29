@@ -709,7 +709,7 @@ dependencies = [
  "bytes",
  "crossbeam",
  "derive_more",
- "ewe_logs",
+ "ewe_trace",
  "ewe_watch_utils",
  "futures",
  "h2",
@@ -760,8 +760,8 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "criterion",
- "ewe_logs",
  "ewe_mem",
+ "ewe_trace",
  "lazy-regex",
  "lazy_static",
  "lazycell",
@@ -776,19 +776,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "ewe_logs"
-version = "0.0.1"
-dependencies = [
- "tracing",
- "tracing-test",
-]
-
-[[package]]
 name = "ewe_mem"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "ewe_logs",
+ "ewe_trace",
  "memchr",
  "thiserror",
  "tracing",
@@ -806,8 +798,8 @@ dependencies = [
  "crossbeam",
  "derive_more",
  "ewe_devserver",
- "ewe_logs",
  "ewe_temple",
+ "ewe_trace",
  "ewe_watch_utils",
  "ewe_watchers",
  "http",
@@ -837,8 +829,8 @@ dependencies = [
  "bytes",
  "criterion",
  "ewe_async_utils",
- "ewe_logs",
  "ewe_mem",
+ "ewe_trace",
  "http",
  "lazy-regex",
  "lazy_static",
@@ -898,8 +890,8 @@ dependencies = [
  "anyhow",
  "cargo_toml",
  "derive_more",
- "ewe_logs",
  "ewe_templates",
+ "ewe_trace",
  "rand",
  "rust-embed",
  "serde",
@@ -913,11 +905,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "ewe_trace"
+version = "0.0.1"
+dependencies = [
+ "tracing",
+ "tracing-test",
+]
+
+[[package]]
 name = "ewe_watch_utils"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "ewe_logs",
+ "ewe_trace",
  "notify",
  "notify-debouncer-full",
  "thiserror",
@@ -2813,7 +2813,7 @@ dependencies = [
  "anyhow",
  "axum",
  "ewe_devserver",
- "ewe_logs",
+ "ewe_trace",
  "http",
  "rust-embed",
  "serde",

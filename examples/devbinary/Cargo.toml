@@ -11,7 +11,7 @@ keywords = [
 ]
 
 [dependencies]
-ewe_logs = { workspace = true,  features = ["standard"]}
+ewe_trace = { workspace = true,  features = ["standard"]}
 ewe_watch_utils = { workspace = true }
 ewe_devserver = { workspace = true  }
 

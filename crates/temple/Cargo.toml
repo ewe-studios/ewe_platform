@@ -14,7 +14,7 @@ keywords.workspace = true
 
 # internal package dependencies
 derive_more.workspace = true
-ewe_logs = { workspace = true }
+ewe_trace = { workspace = true }
 ewe_templates = { workspace = true }
 
 # backend dependencies
@@ -46,7 +46,7 @@ serde_with = { version = "3.6.1" }
 tracing-test = { version = "0.2.5" }
 
 [features]
-debug_trace = ["ewe_logs/debug_trace"]
+debug_trace = ["ewe_trace/debug_trace"]
 
 [lints]
 workspace = true

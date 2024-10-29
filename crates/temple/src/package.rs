@@ -353,7 +353,7 @@ impl RustProjectConfigurator {
         if let Some(rust_config) = &self.rust_config {
             let manifest = cargo_toml::Manifest::from_path(rust_config.workspace_cargo.clone())
                 .map_err(|err| {
-                    ewe_logs::error!("Failed to get cargo_toml::Manifest due to: {:?}", err);
+                    ewe_trace::error!("Failed to get cargo_toml::Manifest due to: {:?}", err);
                     RustProjectConfiguratorError::BadRustWorkspace
                 })?;
 
@@ -604,7 +604,7 @@ impl PackageConfigurator for RustProjectConfigurator {
         }
 
         match cargo_toml::Manifest::from_path(project_cargo_file.clone()).map_err(|err| {
-            ewe_logs::error!("Failed to get cargo_toml::Manifest due to: {:?}", err);
+            ewe_trace::error!("Failed to get cargo_toml::Manifest due to: {:?}", err);
             RustProjectConfiguratorError::BadCargoManifest(project_cargo_file.clone())
         }) {
             Ok(manifest) => {
@@ -666,7 +666,7 @@ impl PackageGenerator {
 
         let template_files_container = self.templates.files_for(config.template_name.as_str());
 
-        ewe_logs::debug!(
+        ewe_trace::debug!(
             "Project Template: `{}` with files: `{:?}`",
             config.template_name,
             template_files_container,
@@ -680,7 +680,7 @@ impl PackageGenerator {
 
         let template_files = template_files_container.unwrap();
 
-        ewe_logs::debug!(
+        ewe_trace::debug!(
             "Project Template: `{}` with files: `{:?}` where all=`{:?}`",
             config.template_name,
             template_files,
@@ -729,7 +729,7 @@ impl PackageGenerator {
                 continue;
             }
 
-            ewe_logs::debug!(
+            ewe_trace::debug!(
                 "Rewriting template path `{:?}` to `{:?}` (dir: {:?}",
                 template_file,
                 rewritten_template_file_name,

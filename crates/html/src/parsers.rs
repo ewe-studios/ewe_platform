@@ -1297,13 +1297,13 @@ impl HTMLParser {
         let mut text_block_tag: Option<MarkupTags> = None;
 
         while let Some(next) = accumulator.peek(1) {
-            ewe_logs::debug!("parse: reading next token: {:?}", next);
+            ewe_trace::debug!("parse: reading next token: {:?}", next);
 
             // if we are in a text block tag mode then run the text block tag
             // extraction and append as a child to the top element in the stack
             // which should be the owner until we see the end tag
             if text_block_tag.is_some() {
-                ewe_logs::debug!(
+                ewe_trace::debug!(
                     "parse: reading next token with pending text block: {:?}",
                     next
                 );
@@ -1342,7 +1342,7 @@ impl HTMLParser {
             match self.parse_element_from_accumulator(accumulator, &mut stacks) {
                 Ok(elem) => match elem {
                     ParserDirective::Open(elem) => {
-                        ewe_logs::debug!("parse: received opening tag indicator: {:?}", elem.tag);
+                        ewe_trace::debug!("parse: received opening tag indicator: {:?}", elem.tag);
 
                         let tag = elem.tag.clone().unwrap();
                         if MarkupTags::is_block_text_tag(tag.clone())
@@ -1355,13 +1355,13 @@ impl HTMLParser {
                         continue;
                     }
                     ParserDirective::Closed((tag, (_tag_end_start, tag_end_end))) => {
-                        ewe_logs::debug!("parse: received closing tag indicator: {:?}", tag);
+                        ewe_trace::debug!("parse: received closing tag indicator: {:?}", tag);
 
                         // do a check if we have a previous self closing element
                         // that wont be closed by this new closer.
                         loop {
                             let last_elem = stacks.get(stacks.len() - 1);
-                            ewe_logs::debug!(
+                            ewe_trace::debug!(
                                 "parse: previous top stack tag {:?} with current: {:?}",
                                 last_elem,
                                 tag
@@ -1374,7 +1374,7 @@ impl HTMLParser {
                                             last_elem_tag.clone(),
                                         )
                                     {
-                                        ewe_logs::debug!("parse: previous top stack tag {:?} is self closing so can close and continue new closing check for {:?}", last_elem_tag, tag);
+                                        ewe_trace::debug!("parse: previous top stack tag {:?} is self closing so can close and continue new closing check for {:?}", last_elem_tag, tag);
                                         self.pop_last_as_child_of_previous(&mut stacks)
                                             .expect("should pop");
                                         continue;
@@ -1395,7 +1395,7 @@ impl HTMLParser {
                                         let ptag = parent_tag.clone();
                                         let ctag = parent_tag.clone();
 
-                                        ewe_logs::debug!("parse: reviewing ontop stack tag {:?} and child tag: {:?}", parent_tag, tag);
+                                        ewe_trace::debug!("parse: reviewing ontop stack tag {:?} and child tag: {:?}", parent_tag, tag);
 
                                         if parent_tag != tag
                                             && !MarkupTags::is_element_closed_by_closing_tag(
@@ -1423,7 +1423,7 @@ impl HTMLParser {
                         }
                     }
                     ParserDirective::Void(elem) => {
-                        ewe_logs::debug!("parse: received void tag: {:?}", elem.tag);
+                        ewe_trace::debug!("parse: received void tag: {:?}", elem.tag);
                         if stacks.len() == 0 {
                             stacks.push(elem);
                         } else {
@@ -1515,7 +1515,7 @@ impl HTMLParser {
         'c: 'd,
     {
         while let Some(next) = acc.peek(1) {
-            ewe_logs::debug!(
+            ewe_trace::debug!(
                 "parse_element_from_accumulator: reading next token: {:?}: {:?}",
                 next,
                 acc.vpeek_at(1, 5),
@@ -1523,7 +1523,7 @@ impl HTMLParser {
 
             let comment_scan = acc.vpeek_at(0, 4).unwrap();
             if TAG_OPEN_BRACKET == next && comment_scan == COMMENT_STARTER {
-                ewe_logs::debug!(
+                ewe_trace::debug!(
                     "parse_element_from_accumulator: checking comment scan: {:?}",
                     comment_scan
                 );
@@ -1535,7 +1535,7 @@ impl HTMLParser {
 
             let xml_starter_scan = acc.vpeek_at(0, 2).unwrap();
             if TAG_OPEN_BRACKET == next && xml_starter_scan == XML_STARTER {
-                ewe_logs::debug!(
+                ewe_trace::debug!(
                     "parse_element_from_accumulator: xml token scan activated: {:?}",
                     xml_starter_scan
                 );
@@ -1550,7 +1550,7 @@ impl HTMLParser {
                     .chars()
                     .all(char::is_alphanumeric)
             {
-                ewe_logs::debug!(
+                ewe_trace::debug!(
                     "parse_element_from_accumulator: elem token scan activated: {:?}",
                     xml_starter_scan
                 );
@@ -1567,7 +1567,7 @@ impl HTMLParser {
                     |t| t.chars().all(char::is_alphabetic),
                 )
             {
-                ewe_logs::debug!(
+                ewe_trace::debug!(
                     "parse_element_from_accumulator: doctype token scan activated: {:?}",
                     xml_starter_scan
                 );
@@ -1582,7 +1582,7 @@ impl HTMLParser {
                     t.chars().all(char::is_alphabetic)
                 })
             {
-                ewe_logs::debug!(
+                ewe_trace::debug!(
                     "parse_element_from_accumulator: tag closer token scan activated: {:?}",
                     xml_starter_scan
                 );
@@ -1595,7 +1595,7 @@ impl HTMLParser {
             // if we are dealing with weird case of multi starter, its a bad html
             // lets throw an error so they fix it.
             if TAG_OPEN_BRACKET == next {
-                ewe_logs::debug!(
+                ewe_trace::debug!(
                     "parse_element_from_accumulator: double starter character: {} with block: {:?}",
                     next,
                     acc.vpeek_at(1, 1),
@@ -1626,7 +1626,7 @@ impl HTMLParser {
 
             let code_block_text = acc.ppeek_at(0, 2).or(Some("")).unwrap();
             let rust_code_block_text = acc.ppeek_at(0, 3).or(Some("")).unwrap();
-            ewe_logs::debug!(
+            ewe_trace::debug!(
                 "parse_element_from_accumulator: code block checking: {} with code: {:?}, rust_code: {:?}",
                 next,
                 code_block_text,
@@ -1638,14 +1638,14 @@ impl HTMLParser {
                     || rust_code_block_text == RUST_BLOCK_STARTER)
             {
                 if rust_code_block_text == RUST_BLOCK_STARTER {
-                    ewe_logs::debug!("parse_element_from_accumulator: start rust code block");
+                    ewe_trace::debug!("parse_element_from_accumulator: start rust code block");
                     match self.parse_code_block(rust_code_block_text, acc, &mut stacks) {
                         Ok(elem) => return Ok(elem),
                         Err(err) => return Err(err),
                     }
                 }
                 if code_block_text == CODE_BLOCK_STARTER {
-                    ewe_logs::debug!("parse_element_from_accumulator: start non-rust code block");
+                    ewe_trace::debug!("parse_element_from_accumulator: start non-rust code block");
                     match self.parse_code_block(code_block_text, acc, &mut stacks) {
                         Ok(elem) => return Ok(elem),
                         Err(err) => return Err(err),
@@ -1677,16 +1677,16 @@ impl HTMLParser {
         let mut elem = Stack::empty();
 
         while let Some(_next) = acc.peek_next() {
-            ewe_logs::debug!("parse_comment: saw chracter: {}", _next);
+            ewe_trace::debug!("parse_comment: saw chracter: {}", _next);
 
             let comment_ender_scan = acc.vpeek_at(0, 3).unwrap();
-            ewe_logs::debug!(
+            ewe_trace::debug!(
                 "parse_comment: commend ender scan: '{}'",
                 comment_ender_scan
             );
 
             if comment_ender_scan == COMMENT_ENDER {
-                ewe_logs::debug!(
+                ewe_trace::debug!(
                     "parse_comment: seen comment dashsher: {}",
                     comment_ender_scan
                 );
@@ -1723,7 +1723,7 @@ impl HTMLParser {
 
         let blocker_closer_text = ATTRIBUTE_PAIRS.get(block_starter).unwrap();
 
-        ewe_logs::debug!(
+        ewe_trace::debug!(
             "parse_code_block({:?}, closer: {:?}): to scan next token: {:?}",
             block_starter,
             blocker_closer_text,
@@ -1731,7 +1731,7 @@ impl HTMLParser {
         );
 
         while let Some(_next) = acc.peek_next() {
-            ewe_logs::debug!(
+            ewe_trace::debug!(
                 "parse_code_block({:?}, closer: {:?}): next token: {:?}",
                 block_starter,
                 blocker_closer_text,
@@ -1745,7 +1745,7 @@ impl HTMLParser {
             let is_rust_block = rust_code_closer_sample == *blocker_closer_text;
 
             if !is_code_block && !is_rust_block {
-                ewe_logs::debug!(
+                ewe_trace::debug!(
                     "parse_code_block({:?}, closer: {:?}): is not closing tage - token: {:?} ({:?}, {:?})",
                     block_starter,
                     blocker_closer_text,
@@ -1756,7 +1756,7 @@ impl HTMLParser {
                 continue;
             }
 
-            ewe_logs::debug!(
+            ewe_trace::debug!(
                 "parse_code_block({:?}, closer: {:?}): saw ending token - token: {:?} ({:?}, {:?})",
                 block_starter,
                 blocker_closer_text,
@@ -1765,7 +1765,7 @@ impl HTMLParser {
                 rust_code_closer_sample,
             );
 
-            ewe_logs::debug!(
+            ewe_trace::debug!(
                 "parse_code_block({:?}, closer: {:?}): finishing code exraction: is_rust: {:?}, is_code: {:?}",
                 block_starter,
                 blocker_closer_text,
@@ -1810,10 +1810,10 @@ impl HTMLParser {
     {
         let mut elem = Stack::empty();
 
-        ewe_logs::debug!("parse_text_block: to scan next token: {:?}", acc.peek(1));
+        ewe_trace::debug!("parse_text_block: to scan next token: {:?}", acc.peek(1));
 
         while let Some(next) = acc.peek_next() {
-            ewe_logs::debug!("parse_text_block: saw chracter: {}", next);
+            ewe_trace::debug!("parse_text_block: saw chracter: {}", next);
 
             if next != TAG_OPEN_BRACKET {
                 continue;
@@ -1861,7 +1861,7 @@ impl HTMLParser {
 
         let tag_name = tag.to_str().unwrap();
 
-        ewe_logs::debug!("parse_element_text_block: begin with tag: {}", tag_name);
+        ewe_trace::debug!("parse_element_text_block: begin with tag: {}", tag_name);
 
         let mut tag_name_with_closer = String::new();
         tag_name_with_closer.push_str(NORMAL_TAG_CLOSED_BRACKET);
@@ -1870,7 +1870,7 @@ impl HTMLParser {
 
         tag_name_with_closer = tag_name_with_closer.to_lowercase();
 
-        ewe_logs::debug!(
+        ewe_trace::debug!(
             "parse_element_text_block: crafted closing tag: {}",
             tag_name_with_closer
         );
@@ -1878,7 +1878,7 @@ impl HTMLParser {
         let tag_name_with_closer_len = tag_name_with_closer.len(); // tag_name> we want the length of this
 
         while let Some(next) = acc.peek_next() {
-            ewe_logs::debug!("parse_element_text_block: saw chracter: {}", next);
+            ewe_trace::debug!("parse_element_text_block: saw chracter: {}", next);
 
             if next != TAG_OPEN_BRACKET {
                 continue;
@@ -1888,14 +1888,14 @@ impl HTMLParser {
                 acc.unpeek_next();
 
                 let tag_closing = acc.vpeek_at(0, tag_name_with_closer_len).unwrap();
-                ewe_logs::debug!(
+                ewe_trace::debug!(
                     "parse_element_text_block: checking if closing tag: '{}' against expected closer '{}'",
                     tag_closing,
                     tag_name_with_closer
                 );
 
                 if tag_closing.to_lowercase() == tag_name_with_closer {
-                    ewe_logs::debug!(
+                    ewe_trace::debug!(
                         "parse_element_text_block: seen closing tag : {}",
                         tag_closing
                     );
@@ -1938,7 +1938,7 @@ impl HTMLParser {
         let mut collected_attrs = false;
 
         while let Some(next) = acc.peek_next() {
-            ewe_logs::debug!("parse_doc_type: saw chracter: {}", next);
+            ewe_trace::debug!("parse_doc_type: saw chracter: {}", next);
 
             if !next.chars().all(char::is_alphabetic) {
                 if next != TAG_CLOSED_BRACKET && collected_attrs && collected_tag {
@@ -1948,7 +1948,7 @@ impl HTMLParser {
                 }
 
                 if next == TAG_CLOSED_BRACKET && collected_attrs && collected_tag {
-                    ewe_logs::debug!("parse_doc_type: completed doctype: {:?}", acc.peek(1));
+                    ewe_trace::debug!("parse_doc_type: completed doctype: {:?}", acc.peek(1));
 
                     elem.closed = true;
                     return Ok(ParserDirective::Void(elem));
@@ -1957,7 +1957,7 @@ impl HTMLParser {
                 acc.unpeek_next();
 
                 let (_tag_text, (tag_start, tag_end)) = acc.take_positional().unwrap();
-                ewe_logs::debug!(
+                ewe_trace::debug!(
                     "parse_doc_type: generates tagname with collected: {} ({}..{})",
                     _tag_text,
                     tag_start,
@@ -1969,14 +1969,14 @@ impl HTMLParser {
                     elem.end_range = Some(tag_end);
                     elem.start_range = Some(tag_start);
 
-                    ewe_logs::debug!("parse_doc_type: generates tagname: {:?}", elem.tag);
+                    ewe_trace::debug!("parse_doc_type: generates tagname: {:?}", elem.tag);
 
                     collected_tag = true;
                 }
 
                 self.collect_space(acc)?;
 
-                ewe_logs::debug!(
+                ewe_trace::debug!(
                     "parse_doc_type: attempt to pull attributes: {:?}",
                     acc.peek(1)
                 );
@@ -1989,7 +1989,7 @@ impl HTMLParser {
                     collected_attrs = true;
                 }
 
-                ewe_logs::debug!(
+                ewe_trace::debug!(
                     "parse_doc_type: collected attributes if any: {:?}",
                     acc.peek(1)
                 );
@@ -2023,14 +2023,14 @@ impl HTMLParser {
         let mut collected_tag_name = false;
 
         while let Some(next) = acc.peek_next() {
-            ewe_logs::debug!("parse_xml_elem: saw chracter: {}", next);
+            ewe_trace::debug!("parse_xml_elem: saw chracter: {}", next);
 
             if self.is_valid_tag_name_token(next) {
                 continue;
             }
 
             if next == QUESTION_MARK && acc.peek(1).unwrap() == TAG_CLOSED_BRACKET {
-                ewe_logs::debug!("parse_xml_elem: collect tag name: {:?}", next);
+                ewe_trace::debug!("parse_xml_elem: collect tag name: {:?}", next);
 
                 acc.peek_next();
                 acc.take();
@@ -2039,7 +2039,7 @@ impl HTMLParser {
             }
 
             if !collected_tag_name {
-                ewe_logs::debug!("parse_xml_elem: collect tag name: {:?}", next);
+                ewe_trace::debug!("parse_xml_elem: collect tag name: {:?}", next);
                 acc.unpeek_next();
 
                 let (tag_text, (tag_start, tag_end)) = acc.take_positional().unwrap();
@@ -2053,7 +2053,7 @@ impl HTMLParser {
                     Err(err) => return Err(err),
                 };
 
-                ewe_logs::debug!("parse_xml_elem: generates tagname: {:?}", elem.tag);
+                ewe_trace::debug!("parse_xml_elem: generates tagname: {:?}", elem.tag);
 
                 acc.peek_next();
 
@@ -2061,7 +2061,7 @@ impl HTMLParser {
             }
 
             if next.chars().all(char::is_whitespace) {
-                ewe_logs::debug!("parse_xml_elem: collect attributes: {:?}", elem.tag);
+                ewe_trace::debug!("parse_xml_elem: collect attributes: {:?}", elem.tag);
 
                 self.collect_space(acc)?;
 
@@ -2098,14 +2098,14 @@ impl HTMLParser {
         let mut collected_tag_name = false;
 
         while let Some(next) = acc.peek_next() {
-            ewe_logs::debug!("parse_elem: saw chracter: {}", next);
+            ewe_trace::debug!("parse_elem: saw chracter: {}", next);
 
             if self.is_valid_tag_name_token(next) {
                 continue;
             }
 
             if next != TAG_CLOSED_BRACKET && !next.chars().all(char::is_whitespace) {
-                ewe_logs::error!(
+                ewe_trace::error!(
                     "parse_elem: expected either space or '>' indicating end of start tag: current scan {:?}",
                     acc.scan()
                 );
@@ -2113,13 +2113,13 @@ impl HTMLParser {
                 acc.unpeek_next();
 
                 // check if its self closing tag
-                ewe_logs::error!(
+                ewe_trace::error!(
                     "parse_elem: kickstart self closing scan logic {:?}",
                     acc.vpeek_at(0, 2)
                 );
 
                 if acc.vpeek_at(0, 2).unwrap() == SELF_TAG_CLOSED_BRACKET {
-                    ewe_logs::error!("parse_elem: found self closing tag {:?}", acc.scan());
+                    ewe_trace::error!("parse_elem: found self closing tag {:?}", acc.scan());
 
                     if !collected_tag_name {
                         let (tag_text, (tag_start, tag_end)) = acc.take_positional().unwrap();
@@ -2134,15 +2134,15 @@ impl HTMLParser {
                         };
                     }
 
-                    ewe_logs::debug!("parse_elem: generates self closing tagname: {:?}", elem.tag);
+                    ewe_trace::debug!("parse_elem: generates self closing tagname: {:?}", elem.tag);
 
                     acc.peek_next_by(2);
 
-                    ewe_logs::debug!("parse_elem: collecting closing text: {:?}", acc.scan());
+                    ewe_trace::debug!("parse_elem: collecting closing text: {:?}", acc.scan());
 
                     acc.take();
 
-                    ewe_logs::debug!("parse_elem: next scan peek: {:?}", acc.peek(1));
+                    ewe_trace::debug!("parse_elem: next scan peek: {:?}", acc.peek(1));
 
                     return Ok(ParserDirective::Void(elem));
                 }
@@ -2163,7 +2163,7 @@ impl HTMLParser {
                     Err(err) => return Err(err),
                 };
 
-                ewe_logs::debug!("parse_elem generates tagname: {:?}", elem.tag);
+                ewe_trace::debug!("parse_elem generates tagname: {:?}", elem.tag);
 
                 acc.peek_next();
 
@@ -2199,14 +2199,14 @@ impl HTMLParser {
     )]
     fn collect_space(&self, acc: &mut Accumulator) -> ParsingResult<()> {
         while let Some(next) = acc.peek_next() {
-            ewe_logs::debug!("collect_space: start seen token: {:?}", next);
+            ewe_trace::debug!("collect_space: start seen token: {:?}", next);
 
             if next.chars().any(|t| SPACE_CHARS.contains(&t)) {
-                ewe_logs::debug!("collect_space: consuming token: {:?}", next);
+                ewe_trace::debug!("collect_space: consuming token: {:?}", next);
                 continue;
             }
 
-            ewe_logs::debug!("collect_space: non-space token: {:?}", next);
+            ewe_trace::debug!("collect_space: non-space token: {:?}", next);
 
             // move backwartds
             acc.unpeek_next();
@@ -2214,7 +2214,7 @@ impl HTMLParser {
             // take the space
             acc.take();
 
-            ewe_logs::debug!(
+            ewe_trace::debug!(
                 "collect_space: non-space token after consumed: {:?}",
                 acc.peek(1)
             );
@@ -2229,7 +2229,7 @@ impl HTMLParser {
         tracing::instrument(level = "trace", skip(self))
     )]
     fn is_valid_attribute_value_token<'a>(&self, token: &'a str) -> bool {
-        ewe_logs::debug!("Checking if valid attribute value token: {:?}", token);
+        ewe_trace::debug!("Checking if valid attribute value token: {:?}", token);
         token.chars().any(|t| {
             t.is_alphanumeric()
                 || t.is_ascii_alphanumeric()
@@ -2244,7 +2244,7 @@ impl HTMLParser {
     )]
     fn dequote_str<'a>(&self, text: &'a str) -> &'a str {
         let text_len = text.len();
-        ewe_logs::debug!("dequote: text: {:?} with len: {}", text, text_len);
+        ewe_trace::debug!("dequote: text: {:?} with len: {}", text, text_len);
         if (text.starts_with(SINGLE_QUOTE_STR) || text.starts_with(DOUBLE_QUOTE_STR))
             && (text.ends_with(SINGLE_QUOTE_STR) || text.ends_with(DOUBLE_QUOTE_STR))
         {
@@ -2271,7 +2271,7 @@ impl HTMLParser {
     )]
     fn collect_attribute_value_alphaneumerics(&self, acc: &mut Accumulator) -> ParsingResult<()> {
         let starter = acc.peek(1).unwrap();
-        ewe_logs::debug!(
+        ewe_trace::debug!(
             "collect_attribute_value_alphaneumerics: value starter {:?}",
             starter
         );
@@ -2287,7 +2287,7 @@ impl HTMLParser {
             .unwrap();
 
         while let Some(next) = acc.peek_next() {
-            ewe_logs::debug!(
+            ewe_trace::debug!(
                 "collect_attribute_value_alphaneumerics: scanning token {:?}: starter={:?}, closer={:?}, is_alpha={:?}, is_char={:?}",
                 next,
                 starter,
@@ -2297,7 +2297,7 @@ impl HTMLParser {
             );
 
             if is_alphaneumerics_starter && next == TAG_CLOSED_BRACKET {
-                ewe_logs::debug!(
+                ewe_trace::debug!(
                     "collect_attribute_value_alphaneumerics: found close bracket {:?}",
                     next
                 );
@@ -2309,7 +2309,7 @@ impl HTMLParser {
             }
 
             if is_alphaneumerics_starter && next.chars().all(char::is_whitespace) {
-                ewe_logs::debug!(
+                ewe_trace::debug!(
                     "collect_attribute_value_alphaneumerics: is alphaneumerics and ends with a whitespace {:?}",
                     next
                 );
@@ -2324,7 +2324,7 @@ impl HTMLParser {
             let double_next_token = acc.peek(1).unwrap();
             if is_indent_starter && next == *starter_closer && double_next_token == *starter_closer
             {
-                ewe_logs::debug!(
+                ewe_trace::debug!(
                     "collect_attribute_value_alphaneumerics: token {:?} and next {:?} is closer",
                     next,
                     double_next_token,
@@ -2337,7 +2337,7 @@ impl HTMLParser {
             // the attribute.
             if is_indent_starter && next == *starter_closer && double_next_token != *starter_closer
             {
-                ewe_logs::debug!(
+                ewe_trace::debug!(
                     "collect_attribute_value_alphaneumerics: seen starter ender token {:?}, next: {:?} (starter: {:?}, closer={:?})",
                     next,
                     double_next_token,
@@ -2401,11 +2401,11 @@ impl HTMLParser {
     where
         'c: 'd,
     {
-        ewe_logs::debug!("parse_elem_attribute: begin from: {:?}", acc.peek(1));
+        ewe_trace::debug!("parse_elem_attribute: begin from: {:?}", acc.peek(1));
         self.collect_space(acc)?;
 
         while let Some(next) = acc.peek_next() {
-            ewe_logs::debug!("parse_elem_attribute: seen next token: {:?}", next);
+            ewe_trace::debug!("parse_elem_attribute: seen next token: {:?}", next);
 
             if self.is_valid_attribute_name(next) {
                 continue;
@@ -2416,18 +2416,18 @@ impl HTMLParser {
                 || next == ATTRIBUTE_EQUAL_SIGN
                 || next == TAG_CLOSED_BRACKET
             {
-                ewe_logs::debug!(
+                ewe_trace::debug!(
                     "parse_elem_attribute: checking ready value collection: {:?}",
                     next
                 );
 
                 if next.chars().all(char::is_whitespace) || next == TAG_CLOSED_BRACKET {
-                    ewe_logs::debug!("parse_elem_attribute: actually space or < (tag closer), so collect valueless attribute: {:?}", acc.scan());
+                    ewe_trace::debug!("parse_elem_attribute: actually space or < (tag closer), so collect valueless attribute: {:?}", acc.scan());
                     acc.unpeek_next();
 
                     let attribute_name = acc.take().unwrap();
 
-                    ewe_logs::debug!(
+                    ewe_trace::debug!(
                         "parse_elem_attribute: collected attribute name: {:?}",
                         attribute_name
                     );
@@ -2440,13 +2440,13 @@ impl HTMLParser {
                 }
 
                 if next == ATTRIBUTE_EQUAL_SIGN {
-                    ewe_logs::debug!("parse_elem_attribute: actually equal sign, so start collecting value: {:?}", next);
+                    ewe_trace::debug!("parse_elem_attribute: actually equal sign, so start collecting value: {:?}", next);
 
                     acc.unpeek_next();
 
                     let attr_name = acc.take().unwrap();
 
-                    ewe_logs::debug!(
+                    ewe_trace::debug!(
                         "parse_elem_attribute: collected attribute name: {:?}",
                         attr_name
                     );
@@ -2454,7 +2454,7 @@ impl HTMLParser {
                     acc.peek_next();
                     acc.take();
 
-                    ewe_logs::debug!(
+                    ewe_trace::debug!(
                         "parse_elem_attribute: going to next scan: {:?} -> {:?}",
                         acc.peek(1),
                         acc.scan()
@@ -2470,7 +2470,7 @@ impl HTMLParser {
                         ));
                     }
 
-                    ewe_logs::debug!(
+                    ewe_trace::debug!(
                         "parse_elem_attribute: after validating to next scan: {:?} -> {:?}",
                         acc.peek(1),
                         acc.peek(2)
@@ -2495,14 +2495,14 @@ impl HTMLParser {
                         AttrValue::Text(attr_value_text)
                     };
 
-                    ewe_logs::debug!(
+                    ewe_trace::debug!(
                         "parse_elem_attribute: collected attribute value: {:?}",
                         attr_value
                     );
 
                     match acc.peek(1) {
                         Some(token) => {
-                            ewe_logs::debug!(
+                            ewe_trace::debug!(
                                 "parse_elem_attribute: check next token if end of attr value: {:?}",
                                 token
                             );
@@ -2524,7 +2524,7 @@ impl HTMLParser {
 
                     stack.attrs.push((attr_name, attr_value));
 
-                    ewe_logs::debug!("parse_elem_attribute: done with no failure");
+                    ewe_trace::debug!("parse_elem_attribute: done with no failure");
 
                     return Ok(());
                 }
@@ -2554,10 +2554,10 @@ impl HTMLParser {
         acc.peek_next();
         acc.peek_next();
 
-        ewe_logs::debug!("parse_closing_tag: consuming token: {:?}", acc.take());
+        ewe_trace::debug!("parse_closing_tag: consuming token: {:?}", acc.take());
 
         while let Some(next) = acc.peek_next() {
-            ewe_logs::debug!("parse_closing_tag: saw chracter: {}", next);
+            ewe_trace::debug!("parse_closing_tag: saw chracter: {}", next);
 
             if self.is_valid_tag_name_token(next) {
                 continue;
@@ -2565,7 +2565,7 @@ impl HTMLParser {
 
             // move backwartds
             if next.chars().all(char::is_whitespace) {
-                ewe_logs::debug!("parse_closing_tag: seen space: {:?}", next);
+                ewe_trace::debug!("parse_closing_tag: seen space: {:?}", next);
 
                 acc.unpeek_next();
                 self.collect_space(acc)?;
@@ -2574,7 +2574,7 @@ impl HTMLParser {
             }
 
             if next != TAG_CLOSED_BRACKET {
-                ewe_logs::debug!("parse_closing_tag: invalid token: {}", next);
+                ewe_trace::debug!("parse_closing_tag: invalid token: {}", next);
 
                 return Err(ParsingTagError::TagWithUnexpectedEnding(String::from(
                     acc.take().unwrap(),
@@ -2603,7 +2603,7 @@ impl HTMLParser {
                     tag_text = &tag_text[2..];
                 }
 
-                ewe_logs::debug!(
+                ewe_trace::debug!(
                     "parse_closing_tag: BUG!!!: found bad bug with (</, ></, /): {:?} arond area: {:?}",
                     tag_text,
                     acc.scan()
@@ -2611,7 +2611,7 @@ impl HTMLParser {
             }
 
             let closing_tag = MarkupTags::from_str(tag_text)?;
-            ewe_logs::debug!(
+            ewe_trace::debug!(
                 "parse_closing_tag: found closer for: {:?} with next token: {:?}",
                 closing_tag,
                 acc.peek(1)
@@ -2619,7 +2619,7 @@ impl HTMLParser {
 
             acc.peek_next();
 
-            ewe_logs::debug!("parse_closing_tag: consume token : {:?}", tag_text);
+            ewe_trace::debug!("parse_closing_tag: consume token : {:?}", tag_text);
 
             return Ok(ParserDirective::Closed((closing_tag, tag_positioning)));
         }
@@ -2724,7 +2724,7 @@ mod html_parser_test {
         let data = wrap_in_document_fragment_container(String::from("<!doctype lang=en>"));
         let result = parser.parse(data.as_str());
 
-        ewe_logs::debug!("Result: {:?}", result);
+        ewe_trace::debug!("Result: {:?}", result);
 
         assert!(matches!(result, ParsingResult::Ok(_)));
 
@@ -3078,12 +3078,12 @@ mod html_parser_test {
         ));
         let result = parser.parse(data.as_str());
 
-        ewe_logs::debug!("Result: {:?}", result);
+        ewe_trace::debug!("Result: {:?}", result);
 
         assert!(matches!(result, ParsingResult::Ok(_)));
 
         let parsed = result.unwrap().get_tags();
-        ewe_logs::debug!("ParsedTags: {:?}", parsed);
+        ewe_trace::debug!("ParsedTags: {:?}", parsed);
 
         assert_eq!(
             vec![
@@ -3327,7 +3327,7 @@ mod html_parser_test {
         ));
         let result = parser.parse(data.as_str());
 
-        ewe_logs::debug!("Result: {:?}", result);
+        ewe_trace::debug!("Result: {:?}", result);
 
         assert!(matches!(result, ParsingResult::Ok(_)));
 
@@ -3363,7 +3363,7 @@ mod html_parser_test {
         ));
         let result = parser.parse(data.as_str());
 
-        ewe_logs::debug!("Result: {:?}", result);
+        ewe_trace::debug!("Result: {:?}", result);
 
         assert!(matches!(result, ParsingResult::Ok(_)));
 

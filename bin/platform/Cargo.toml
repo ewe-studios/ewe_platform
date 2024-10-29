@@ -19,7 +19,7 @@ ewe_temple = { workspace = true }
 ewe_watch_utils = { workspace = true }
 ewe_watchers = { workspace = true }
 ewe_devserver = { workspace = true  }
-ewe_logs = { workspace = true,  features = ["standard"]}
+ewe_trace = { workspace = true,  features = ["standard"]}
 strings_ext = { workspace = true }
 
 # base crates
@@ -59,7 +59,7 @@ thiserror = { version = "1.0.57" }
 tracing-subscriber = { version = "0.3.18", features = ["fmt"]}
 
 [features]
-debug_trace = ["ewe_logs/debug_trace"]
+debug_trace = ["ewe_trace/debug_trace"]
 
 [lints]
 workspace = true

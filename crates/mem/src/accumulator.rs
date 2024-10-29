@@ -197,7 +197,7 @@ impl<'a> Accumulator<'a> {
         new_peek_pos = self.ensure_character_boundary_index(new_peek_pos);
         until_pos = self.ensure_character_boundary_index(until_pos);
 
-        ewe_logs::debug!(
+        ewe_trace::debug!(
             "Check if we are out of char boundary: start: {}:{}, end: {}:{}",
             new_peek_pos,
             self.content.is_char_boundary(new_peek_pos),
@@ -283,7 +283,7 @@ impl<'a> Accumulator<'a> {
         let from = self.ensure_character_boundary_index(self.pos);
         until_pos = self.ensure_character_boundary_index(until_pos);
 
-        ewe_logs::debug!(
+        ewe_trace::debug!(
             "take_with_amount: possibly shift in positions: org:({}, {}) then end in final:({},{})",
             org_positional,
             org_until,
@@ -293,7 +293,7 @@ impl<'a> Accumulator<'a> {
 
         let position = (from, until_pos);
 
-        ewe_logs::debug!(
+        ewe_trace::debug!(
             "take_with_amount: content len: {} with pos: {}, peek_pos: {}, by: {}, until: {}",
             self.content.len(),
             self.pos,
@@ -304,7 +304,7 @@ impl<'a> Accumulator<'a> {
 
         let content_slice = &self.content[from..until_pos];
 
-        ewe_logs::debug!(
+        ewe_trace::debug!(
             "take_with_amount: sliced worked from: {}, by: {}, till loc: {} with text: '{}'",
             self.pos,
             by,
