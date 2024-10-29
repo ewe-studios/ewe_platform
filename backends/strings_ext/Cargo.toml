@@ -1,6 +1,7 @@
 [package]
 name = "strings_ext"
 version = "0.0.1"
+description = "The string crate for serde"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true

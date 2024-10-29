@@ -1,6 +1,7 @@
 [package]
 name = "ewe_channels"
 version = "0.0.1"
+description = "The channels wrapper for implementing channels in ewe_domain crate"
 authors.workspace = true
 edition.workspace = true
 repository.workspace = true

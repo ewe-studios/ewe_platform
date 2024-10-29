@@ -1,6 +1,7 @@
 [package]
 name = "ewe_temple"
 version = "0.0.1"
+description = "File generation and templating stack for the ewe_platform package"
 authors.workspace = true
 edition.workspace = true
 repository.workspace = true

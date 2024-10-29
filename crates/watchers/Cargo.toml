@@ -1,6 +1,7 @@
 [package]
 name = "ewe_watchers"
 version = "0.0.1"
+description = "The core watchers for directly listening to file changes"
 authors.workspace = true
 edition.workspace = true
 repository.workspace = true

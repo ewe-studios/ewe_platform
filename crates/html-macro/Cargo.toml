@@ -1,6 +1,7 @@
 [package]
 name = "ewe_html_macro"
 version = "0.0.1"
+description = "Macro package for the ewe_html crate"
 edition.workspace = true
 repository.workspace = true
 license.workspace = true

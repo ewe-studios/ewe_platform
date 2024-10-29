@@ -1,6 +1,7 @@
 [package]
 name = "ewe_spawn"
 version = "0.0.1"
+description = "Utilities for spawing or sending functions into background threads for web and non-web environment"
 authors.workspace = true
 edition.workspace = true
 repository.workspace = true

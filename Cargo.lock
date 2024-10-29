@@ -747,7 +747,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ewe_domain-macro"
+name = "ewe_domain_macro"
 version = "0.0.1"
 dependencies = [
  "quote",

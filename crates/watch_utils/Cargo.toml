@@ -1,6 +1,7 @@
 [package]
 name = "ewe_watch_utils"
 version = "0.0.1"
+description = "Implements utilities for directory watching"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true

@@ -1,6 +1,7 @@
 [package]
 name = "vec_ext"
 version = "0.0.1"
+description = "The vec extension crate for serde"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true

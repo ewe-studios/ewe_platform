@@ -1,6 +1,7 @@
 [package]
 name = "ewe_routing"
 version = "0.0.1"
+description = "Routing framework wrapping axum routers and internal packages for web and non-web platform"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true

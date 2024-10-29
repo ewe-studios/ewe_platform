@@ -1,6 +1,7 @@
 [package]
 name = "ewe_templates"
 version = "0.0.1"
+description = "Wrapper package for minijinja and tinytemplate, made to allow auto-inclusion of these pacakges without direct cargo import markings"
 authors.workspace = true
 edition.workspace = true
 repository.workspace = true

@@ -1,5 +1,6 @@
 [package]
 name = "ewe_web"
+description = "Implements browser based capabilities, utilities and structures for the web"
 version = "0.0.1"
 authors.workspace = true
 edition.workspace = true

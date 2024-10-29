@@ -1,6 +1,7 @@
 [package]
 name = "ewe_templates_macro"
 version = "0.0.1"
+description = "Macros for the ewe_template package to easily create tinytemplate or minijinja template"
 authors.workspace = true
 edition.workspace = true
 repository.workspace = true

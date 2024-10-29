@@ -1,6 +1,7 @@
 [package]
 name = "ewe_domain"
 version = "0.0.1"
+description = "The capabaility crate for the ewe_platform crate"
 authors.workspace = true
 edition.workspace = true
 repository.workspace = true
