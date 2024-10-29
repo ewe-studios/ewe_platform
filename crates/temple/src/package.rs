@@ -827,7 +827,9 @@ mod package_generator_tests {
         let rust_configurator = RustProjectConfigurator::new(package_config, Some(rust_config))
             .expect("should generate rust configurator");
 
-        assert!(matches!(packager.create(rust_configurator), Ok(())));
+        let result = packager.create(rust_configurator);
+        ewe_trace::debug!("Result: {:?}", result);
+        assert!(matches!(result, Ok(())));
 
         assert_eq!(
             shorten_path(
@@ -837,8 +839,9 @@ mod package_generator_tests {
             vec![
                 "Cargo.toml",
                 ".gitignore",
-                "retro_project/lib.rs",
-                "retro_project/page.rs",
+                "retro_project/src/lib.rs",
+                "retro_project/src/page.rs",
+                "retro_project/Cargo.toml",
             ]
             .to_vec_string()
         );
@@ -876,7 +879,9 @@ mod package_generator_tests {
         let rust_configurator = RustProjectConfigurator::new(package_config, Some(rust_config))
             .expect("should generate rust configurator");
 
-        assert!(matches!(packager.create(rust_configurator), Ok(())));
+        let result = packager.create(rust_configurator);
+        ewe_trace::debug!("Result: {:?}", result);
+        assert!(matches!(result, Ok(())));
 
         assert_eq!(
             shorten_path(
@@ -886,8 +891,9 @@ mod package_generator_tests {
             vec![
                 "Cargo.toml",
                 ".gitignore",
-                "retro_project/lib.rs",
-                "retro_project/page.rs",
+                "retro_project/src/lib.rs",
+                "retro_project/src/page.rs",
+                "retro_project/Cargo.toml",
             ]
             .to_vec_string()
         );
