@@ -23,29 +23,29 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 [workspace.dependencies]
 
 # -- non 'ewe` namespaced crates
-vec_ext = { path = "./backends/vec_ext" }
-serde_ext = { path = "./backends/serde_ext" }
-strings_ext = { path = "./backends/strings_ext" }
+vec_ext = { path = "./backends/vec_ext", version = "0.0.1" }
+serde_ext = { path = "./backends/serde_ext", version = "0.0.1" }
+strings_ext = { path = "./backends/strings_ext", version = "0.0.1" }
 
 # -- internal packages so others can use them
-ewe_web = { path = "./crates/web" }
-ewe_mem = { path = "./crates/mem" }
-ewe_trace = { path = "./crates/trace" }
-ewe_html = { path = "./crates/html" }
-ewe_spawn = { path = "./crates/spawn" }
-ewe_temple = { path = "./crates/temple" }
-ewe_domain = { path = "./crates/domain" }
-ewe_routing = { path = "./crates/routing" }
-ewe_platform = { path = "./crates/platform" }
-ewe_channels = { path = "./crates/channels" }
-ewe_watchers = { path = "./crates/watchers" }
-ewe_devserver = { path = "./crates/devserver" }
-ewe_templates = { path = "./crates/templates" }
-ewe_html-macro = { path = "./crates/html-macro" }
-ewe_watch_utils = { path = "./crates/watch_utils" }
-ewe_async_utils = { path = "./crates/async-utils" }
-ewe_domain_macro = { path = "./crates/domain-macro" }
-ewe_templates_macro = { path = "./crates/template-macro" }
+ewe_web = { path = "./crates/web", version = "0.0.1"}
+ewe_mem = { path = "./crates/mem", version = "0.0.1" }
+ewe_trace = { path = "./crates/trace" , version = "0.0.1"}
+ewe_html = { path = "./crates/html", version = "0.0.1" }
+ewe_spawn = { path = "./crates/spawn", version = "0.0.1" }
+ewe_temple = { path = "./crates/temple", version = "0.0.1" }
+ewe_domain = { path = "./crates/domain", version = "0.0.1" }
+ewe_routing = { path = "./crates/routing", version = "0.0.1" }
+ewe_platform = { path = "./crates/platform", version = "0.0.1" }
+ewe_channels = { path = "./crates/channels", version = "0.0.1" }
+ewe_watchers = { path = "./crates/watchers", version = "0.0.1" }
+ewe_devserver = { path = "./crates/devserver", version = "0.0.1" }
+ewe_templates = { path = "./crates/templates", version = "0.0.1" }
+ewe_html-macro = { path = "./crates/html-macro", version = "0.0.1" }
+ewe_watch_utils = { path = "./crates/watch_utils", version = "0.0.1" }
+ewe_async_utils = { path = "./crates/async-utils", version = "0.0.1" }
+ewe_domain_macro = { path = "./crates/domain-macro", version = "0.0.1" }
+ewe_templates_macro = { path = "./crates/template-macro", version = "0.0.1" }
 
 # -- workspace wide packages
 anyhow = { version = "1.0.80" }
