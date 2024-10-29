@@ -23,9 +23,7 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 [workspace.dependencies]
 
 # -- non 'ewe` namespaced crates
-vec_ext = { path = "./backends/vec_ext", version = "0.0.1" }
-serde_ext = { path = "./backends/serde_ext", version = "0.0.1" }
-strings_ext = { path = "./backends/strings_ext", version = "0.0.1" }
+foundations_ext = { path = "./backends/foundations_ext", version = "0.0.1" }
 
 # -- internal packages so others can use them
 ewe_web = { path = "./crates/web", version = "0.0.1"}

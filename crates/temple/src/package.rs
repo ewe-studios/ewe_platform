@@ -4,8 +4,8 @@
 
 use core::str;
 use ewe_templates::minijinja;
+use foundations_ext::strings_ext::{IntoStr, IntoString};
 use std::{io::Write, marker::PhantomData, path::PathBuf, sync};
-use strings_ext::{IntoStr, IntoString};
 
 use crate::{error::BoxedError, FileContent, FileSystemCommand};
 

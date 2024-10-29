@@ -802,6 +802,7 @@ dependencies = [
  "ewe_trace",
  "ewe_watch_utils",
  "ewe_watchers",
+ "foundations_ext",
  "http",
  "http-body",
  "http-body-util",
@@ -812,7 +813,6 @@ dependencies = [
  "serde_json",
  "serde_with",
  "signal-hook",
- "strings_ext",
  "thiserror",
  "tokio",
  "tracing",
@@ -892,16 +892,15 @@ dependencies = [
  "derive_more",
  "ewe_templates",
  "ewe_trace",
+ "foundations_ext",
  "rand",
  "rust-embed",
  "serde",
  "serde_json",
  "serde_with",
- "strings_ext",
  "toml",
  "tracing",
  "tracing-test",
- "vec_ext",
 ]
 
 [[package]]
@@ -1011,7 +1010,15 @@ dependencies = [
 
 [[package]]
 name = "foundations_ext"
-version = "0.1.0"
+version = "0.0.1"
+dependencies = [
+ "async-trait",
+ "derive_more",
+ "serde",
+ "serde_json",
+ "serde_yml",
+ "tokio",
+]
 
 [[package]]
 name = "fsevent-sys"
@@ -2094,16 +2101,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "serde_ext"
-version = "0.0.1"
-dependencies = [
- "derive_more",
- "serde",
- "serde_json",
- "serde_yml",
-]
-
-[[package]]
 name = "serde_json"
 version = "1.0.128"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2274,13 +2271,6 @@ checksum = "ce305eb0b4296696835b71df73eb912e0f1ffd2556a501fcede6e0c50349191c"
 dependencies = [
  "libc",
  "windows-sys 0.52.0",
-]
-
-[[package]]
-name = "strings_ext"
-version = "0.0.1"
-dependencies = [
- "derive_more",
 ]
 
 [[package]]
@@ -2488,14 +2478,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tokio_ext"
-version = "0.0.1"
-dependencies = [
- "async-trait",
- "tokio",
-]
-
-[[package]]
 name = "toml"
 version = "0.8.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2695,10 +2677,6 @@ name = "valuable"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "830b7e5d4d90034032940e4ace0d9a9a057e7a45cd94e6c007832e39edb82f6d"
-
-[[package]]
-name = "vec_ext"
-version = "0.0.1"
 
 [[package]]
 name = "version_check"
