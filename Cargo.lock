@@ -777,7 +777,7 @@ dependencies = [
 
 [[package]]
 name = "ewe_logs"
-version = "0.1.2"
+version = "0.0.1"
 dependencies = [
  "tracing",
  "tracing-test",

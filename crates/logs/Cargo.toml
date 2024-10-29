@@ -1,6 +1,6 @@
 [package]
 name = "ewe_logs"
-version = "0.1.2"
+version = "0.0.1"
 description = "Logging package macros that call tracing crate underneath, used in the eweplatform crate"
 edition.workspace = true
 rust-version.workspace = true
