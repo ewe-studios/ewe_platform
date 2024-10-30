@@ -34,8 +34,11 @@ where
 
 fn main() {
     // Request the output directory
-    let out = env::var("PROFILE").unwrap();
-    let out = PathBuf::from(format!("target/{}/{}", out, COPY_DIR));
+    let current_directory = std::env::current_dir().unwrap();
+    let profile = env::var("PROFILE").unwrap();
+    let out = PathBuf::from(format!("target/{}/{}", profile, COPY_DIR));
+
+    println!("Profile: {current_directory:?} and {profile} and {out:?}");
 
     // If it is already in the output directory, delete it and start over
     if out.exists() {

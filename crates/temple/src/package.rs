@@ -762,8 +762,8 @@ mod package_generator_tests {
     use std::fs;
     use std::path;
 
-    use strings_ext::IntoString;
-    use vec_ext::VecExt;
+    use foundations_ext::strings_ext::IntoString;
+    use foundations_ext::vec_ext::VecExt;
 
     use tracing_test::traced_test;
 
