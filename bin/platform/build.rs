@@ -3,8 +3,6 @@ use std::{
     path::{Path, PathBuf},
 };
 
-const COPY_DIR: &'static str = "./templates";
-
 /// A helper function for recursively copying a directory.
 fn copy_dir<P, Q>(from: P, to: Q)
 where
@@ -34,20 +32,25 @@ where
 
 fn main() {
     // Request the output directory
-    let current_directory = std::env::current_dir().unwrap();
-    let profile = env::var("PROFILE").unwrap();
-    let out = PathBuf::from(format!("target/{}/{}", profile, COPY_DIR));
 
-    println!("Profile: {current_directory:?} and {profile} and {out:?}");
+    let template_dir = "templates";
+    let out_directory = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let output_directory = out_directory.join(template_dir);
+
+    let package_directory = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
+    let source_directory =
+        package_directory.join(format!("../../../bin/platform/{}", template_dir));
 
     // If it is already in the output directory, delete it and start over
-    if out.exists() {
-        fs::remove_dir_all(&out).unwrap();
+    if output_directory.exists() {
+        fs::remove_dir_all(&output_directory).unwrap();
     }
 
     // Create the out directory
-    fs::create_dir(&out).unwrap();
+    fs::create_dir(&output_directory).unwrap();
 
     // Copy the directory
-    copy_dir(COPY_DIR, &out);
+    copy_dir(source_directory, &output_directory);
+
+    panic!("yo");
 }

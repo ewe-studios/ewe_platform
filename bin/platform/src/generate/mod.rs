@@ -10,7 +10,7 @@ use tracing_subscriber::FmtSubscriber;
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
 #[derive(rust_embed::Embed, Default)]
-#[folder = "$CARGO_MANIFEST_DIR/templates/"]
+#[folder = "$OUT_DIR/templates/"]
 struct ProjectTemplates;
 
 /// Provides a means of generating custom configurator for the underlying project.
