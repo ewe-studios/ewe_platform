@@ -38,7 +38,7 @@ ewe_mem = { path = "./crates/mem", version = "0.0.1" }
 ewe_trace = { path = "./crates/trace" , version = "0.0.1"}
 ewe_html = { path = "./crates/html", version = "0.0.1" }
 ewe_spawn = { path = "./crates/spawn", version = "0.0.1" }
-ewe_temple = { path = "./crates/temple", version = "0.0.1" }
+ewe_temple = { path = "./crates/temple", version = "0.0.2" }
 ewe_domain = { path = "./crates/domain", version = "0.0.1" }
 ewe_routing = { path = "./crates/routing", version = "0.0.1" }
 ewe_platform = { path = "./crates/platform", version = "0.0.1" }
