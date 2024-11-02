@@ -293,12 +293,12 @@ impl PackageConfigurator for PackageConfig {
 }
 
 pub struct RustConfig {
-    workspace_cargo: PathBuf,
+    workspace_cargo: Option<PathBuf>,
     retain_lib_section: bool,
 }
 
 impl RustConfig {
-    pub fn new(workspace_cargo: PathBuf, retain_lib_section: bool) -> Self {
+    pub fn new(workspace_cargo: Option<PathBuf>, retain_lib_section: bool) -> Self {
         Self {
             workspace_cargo,
             retain_lib_section,
@@ -306,7 +306,7 @@ impl RustConfig {
     }
 
     #[allow(dead_code)]
-    pub fn standard(workspace_cargo: PathBuf) -> Self {
+    pub fn standard(workspace_cargo: Option<PathBuf>) -> Self {
         Self::new(workspace_cargo, false)
     }
 }
@@ -359,13 +359,15 @@ impl RustProjectConfigurator {
 
     fn init(mut self) -> RustProjectConfiguratorResult<Self> {
         if let Some(rust_config) = &self.rust_config {
-            let manifest = cargo_toml::Manifest::from_path(rust_config.workspace_cargo.clone())
-                .map_err(|err| {
-                    ewe_trace::error!("Failed to get cargo_toml::Manifest due to: {:?}", err);
-                    RustProjectConfiguratorError::BadRustWorkspace
-                })?;
+            if let Some(workspace_cargo) = &rust_config.workspace_cargo {
+                let manifest =
+                    cargo_toml::Manifest::from_path(workspace_cargo.clone()).map_err(|err| {
+                        ewe_trace::error!("Failed to get cargo_toml::Manifest due to: {:?}", err);
+                        RustProjectConfiguratorError::BadRustWorkspace
+                    })?;
 
-            self.manifest = Some(manifest);
+                self.manifest = Some(manifest);
+            }
         }
         Ok(self)
     }
@@ -595,9 +597,10 @@ impl PackageConfigurator for RustProjectConfigurator {
 
                 if let Some(rust_config) = &self.rust_config {
                     let serilized_manifest = toml::to_string(&updated_manifest)?;
-                    let mut cargo_file =
-                        std::fs::File::create(rust_config.workspace_cargo.clone())?;
-                    cargo_file.write_all(serilized_manifest.as_bytes())?;
+                    if let Some(workspace_cargo) = &rust_config.workspace_cargo {
+                        let mut cargo_file = std::fs::File::create(workspace_cargo.clone())?;
+                        cargo_file.write_all(serilized_manifest.as_bytes())?;
+                    }
                 }
             }
         }
@@ -835,7 +838,7 @@ mod package_generator_tests {
                     .expect("should convert into string"),
             ));
 
-        let rust_config = RustConfig::new(project_cargo_file, false);
+        let rust_config = RustConfig::new(Some(project_cargo_file), false);
         let package_config = PackageConfig::new(
             project_directory.clone(),
             params,
@@ -887,7 +890,7 @@ mod package_generator_tests {
                     .expect("should convert into string"),
             ));
 
-        let rust_config = RustConfig::new(project_cargo_file, false);
+        let rust_config = RustConfig::new(Some(project_cargo_file), false);
         let package_config = PackageConfig::new(
             project_directory.clone(),
             params,

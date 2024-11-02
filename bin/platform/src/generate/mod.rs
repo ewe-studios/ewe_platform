@@ -117,10 +117,7 @@ impl LanguageSupport {
                     PackageConfig::new(root_directory, params, template_name, project_name);
 
                 let rust_config: Option<RustConfig> = if workspace_cargo_file.is_some() {
-                    Some(RustConfig::new(
-                        workspace_cargo_file.unwrap(),
-                        retain_lib_section,
-                    ))
+                    Some(RustConfig::new(workspace_cargo_file, retain_lib_section))
                 } else {
                     Some(RustConfig::new(None, retain_lib_section))
                 };
