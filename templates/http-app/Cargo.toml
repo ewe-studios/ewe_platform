@@ -19,6 +19,7 @@ required-features = []
 
 [[bin]]
 name = "dev"
+path = "./bin/dev"
 test = false
 bench = false
 
@@ -44,4 +45,3 @@ tracing = { version = "0.1.40" }
 tracing-subscriber = { version = "0.3.18" }
 
 [lints]
-workspace = true

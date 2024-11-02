@@ -9,7 +9,14 @@ members = [
     "examples/web/*",
     "examples/template/*",
 ]
-exclude = ["crates/html-macro","templates/*", "examples/todo", "crates/temple/output_directory"]
+exclude = [
+    "crates/html-macro",
+    "templates/*",
+    "templates/http-app",
+    "templates/static-html-app",
+    "examples/todo",
+    "crates/temple/output_directory"
+]
 
 [workspace.package]
 edition = "2021"

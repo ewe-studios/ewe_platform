@@ -42,7 +42,7 @@ fn main() {
     let package_directory = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
     println!("PACKAGE_DIRECTORY: {package_directory:?}");
 
-    let source_directory = package_directory.join(format!("../../{}", template_dir));
+    let source_directory = package_directory.join(format!("../../../{}", template_dir));
     println!("SOURCE_DIRECTORY: {source_directory:?}");
 
     // If it is already in the output directory, delete it and start over
