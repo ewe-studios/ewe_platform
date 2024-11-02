@@ -45,6 +45,7 @@ impl LanguageSupport {
         &self,
         template_name: String,
         project_name: String,
+        retain_lib_section: bool,
         github_namespace: Option<String>,
         root_directory: std::path::PathBuf,
         new_project_directory: std::path::PathBuf,
@@ -116,9 +117,12 @@ impl LanguageSupport {
                     PackageConfig::new(root_directory, params, template_name, project_name);
 
                 let rust_config: Option<RustConfig> = if workspace_cargo_file.is_some() {
-                    Some(RustConfig::new(workspace_cargo_file.unwrap()))
+                    Some(RustConfig::new(
+                        workspace_cargo_file.unwrap(),
+                        retain_lib_section,
+                    ))
                 } else {
-                    None
+                    Some(RustConfig::new(None, retain_lib_section))
                 };
 
                 Ok(Box::new(RustProjectConfigurator::new(
@@ -176,6 +180,13 @@ pub fn register(command: clap::Command) -> clap::Command {
                     .value_parser(clap::value_parser!(std::path::PathBuf)),
             )
             .arg(
+                clap::Arg::new("retain_lib_section")
+                    .long("retain_lib_section")
+                    .help("Optional configuration to indicate you do not want to wipe the [lib] section in your new Cargo.toml file after replicating template")
+                    .action(clap::ArgAction::Set)
+                    .value_parser(clap::value_parser!(bool)),
+            )
+            .arg(
                 clap::Arg::new("lang")
                     .short('l')
                     .long("language")
@@ -194,6 +205,10 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
     let template_name = args
         .get_one::<String>("template_name")
         .expect("should have template_name");
+
+    let retain_lib_section = args
+        .get_one::<bool>("retain_lib_section")
+        .unwrap_or(Some(false));
 
     let project_name = args
         .get_one::<String>("project_name")
@@ -228,6 +243,7 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
     let package_configurator = selected_language.generate_package_config(
         template_name.clone(),
         project_name.clone(),
+        retain_lib_section.clone(),
         github_namespace.clone(),
         output_directory.clone(),
         project_output_directory.clone(),

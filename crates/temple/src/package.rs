@@ -294,12 +294,20 @@ impl PackageConfigurator for PackageConfig {
 
 pub struct RustConfig {
     workspace_cargo: PathBuf,
+    retain_lib_section: bool,
 }
 
 impl RustConfig {
+    pub fn new(workspace_cargo: PathBuf, retain_lib_section: bool) -> Self {
+        Self {
+            workspace_cargo,
+            retain_lib_section,
+        }
+    }
+
     #[allow(dead_code)]
-    pub fn new(workspace_cargo: PathBuf) -> Self {
-        Self { workspace_cargo }
+    pub fn standard(workspace_cargo: PathBuf) -> Self {
+        Self::new(workspace_cargo, false)
     }
 }
 
@@ -621,6 +629,17 @@ impl PackageConfigurator for RustProjectConfigurator {
 
                 cloned_manifest.package = Some(manifest_package);
 
+                // this will remove any [lib] configuration setup
+                // this works when you do not care but if you do then might be wise to
+                // consider an alternative approach .eg update the name correctly but you need to
+                // be careful here, hence why i just set it to None and let rust figure that out
+                // itself.
+                if let Some(rust_config) = &self.rust_config {
+                    if !rust_config.retain_lib_section {
+                        cloned_manifest.lib = None;
+                    }
+                }
+
                 let serilized_manifest = toml::to_string(&cloned_manifest)?;
                 let mut cargo_file = std::fs::File::create(project_cargo_file.clone())?;
 
@@ -816,7 +835,7 @@ mod package_generator_tests {
                     .expect("should convert into string"),
             ));
 
-        let rust_config = RustConfig::new(project_cargo_file);
+        let rust_config = RustConfig::new(project_cargo_file, false);
         let package_config = PackageConfig::new(
             project_directory.clone(),
             params,
@@ -868,7 +887,7 @@ mod package_generator_tests {
                     .expect("should convert into string"),
             ));
 
-        let rust_config = RustConfig::new(project_cargo_file);
+        let rust_config = RustConfig::new(project_cargo_file, false);
         let package_config = PackageConfig::new(
             project_directory.clone(),
             params,
