@@ -34,6 +34,9 @@ fn main() {
     // Request the output directory
 
     let template_dir = "templates";
+    let profile_name = env::var("PROFILE").unwrap();
+    println!("PROFILE_NAME: {profile_name:?}");
+
     let out_directory = PathBuf::from(env::var("OUT_DIR").unwrap());
     println!("OUT_DIR: {out_directory:?}");
 
@@ -42,7 +45,13 @@ fn main() {
     let package_directory = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
     println!("PACKAGE_DIRECTORY: {package_directory:?}");
 
-    let source_directory = package_directory.join(format!("../../../{}", template_dir));
+    let templates_directory = if profile_name == "debug" {
+        format!("../../{}", template_dir)
+    } else {
+        format!("../../../{}", template_dir)
+    };
+
+    let source_directory = package_directory.join(templates_directory);
     println!("SOURCE_DIRECTORY: {source_directory:?}");
 
     // If it is already in the output directory, delete it and start over
