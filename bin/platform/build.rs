@@ -51,6 +51,4 @@ fn main() {
 
     // Copy the directory
     copy_dir(source_directory, &output_directory);
-
-    panic!("yo");
 }
