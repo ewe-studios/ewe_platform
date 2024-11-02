@@ -34,8 +34,8 @@ fn main() {
     // Request the output directory
 
     let template_dir = "templates";
-    let profile_name = env::var("PROFILE").unwrap();
-    println!("PROFILE_NAME: {profile_name:?}");
+    let cargo_build_flag = env::var("CARGO_BUILD").unwrap_or(String::from("false"));
+    println!("CARGO_BUILD_FLAG: {cargo_build_flag:?}");
 
     let out_directory = PathBuf::from(env::var("OUT_DIR").unwrap());
     println!("OUT_DIR: {out_directory:?}");
@@ -45,7 +45,7 @@ fn main() {
     let package_directory = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
     println!("PACKAGE_DIRECTORY: {package_directory:?}");
 
-    let templates_directory = if profile_name == "debug" {
+    let templates_directory = if cargo_build_flag == "true" {
         format!("../../{}", template_dir)
     } else {
         format!("../../../{}", template_dir)
