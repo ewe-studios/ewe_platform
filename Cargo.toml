@@ -37,7 +37,7 @@ ewe_routing = { path = "./crates/routing", version = "0.0.1" }
 ewe_platform = { path = "./crates/platform", version = "0.0.1" }
 ewe_channels = { path = "./crates/channels", version = "0.0.1" }
 ewe_watchers = { path = "./crates/watchers", version = "0.0.1" }
-ewe_devserver = { path = "./crates/devserver", version = "0.0.1" }
+ewe_devserver = { path = "./crates/devserver", version = "0.0.2" }
 ewe_templates = { path = "./crates/templates", version = "0.0.1" }
 ewe_html_macro = { path = "./crates/html-macro", version = "0.0.1" }
 ewe_watch_utils = { path = "./crates/watch_utils", version = "0.0.1" }
