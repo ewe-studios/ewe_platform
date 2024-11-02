@@ -8,10 +8,9 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 keywords = [
-    "local-server",
-    "dev-sever",
-    "local file server",
-    "eweplatform local server",
+    "ewe-platform",
+    "ewe-platform-cli",
+    "ewe-platform-binary",
 ]
 
 [dependencies]
