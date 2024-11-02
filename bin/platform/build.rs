@@ -33,25 +33,18 @@ where
 fn main() {
     // Request the output directory
 
-    let template_dir = "templates";
-    let cargo_build_flag = env::var("CARGO_BUILD").unwrap_or(String::from("false"));
-    println!("CARGO_BUILD_FLAG: {cargo_build_flag:?}");
+    let template_dir = env::var("TEMPLATES_DIR").unwrap();
+    println!("TEMPLATE_DIR: {template_dir:?}");
 
     let out_directory = PathBuf::from(env::var("OUT_DIR").unwrap());
     println!("OUT_DIR: {out_directory:?}");
 
-    let output_directory = out_directory.join(template_dir);
+    let output_directory = out_directory.join("templates");
 
     let package_directory = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
     println!("PACKAGE_DIRECTORY: {package_directory:?}");
 
-    let templates_directory = if cargo_build_flag == "true" {
-        format!("../../{}", template_dir)
-    } else {
-        format!("../../../{}", template_dir)
-    };
-
-    let source_directory = package_directory.join(templates_directory);
+    let source_directory = package_directory.join(template_dir);
     println!("SOURCE_DIRECTORY: {source_directory:?}");
 
     // If it is already in the output directory, delete it and start over
