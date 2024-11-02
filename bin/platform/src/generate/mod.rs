@@ -206,9 +206,7 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
         .get_one::<String>("template_name")
         .expect("should have template_name");
 
-    let retain_lib_section = args
-        .get_one::<bool>("retain_lib_section")
-        .unwrap_or(Some(false));
+    let retain_lib_section = args.get_one::<bool>("retain_lib_section").unwrap_or(&false);
 
     let project_name = args
         .get_one::<String>("project_name")
