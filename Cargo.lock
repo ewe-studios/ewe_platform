@@ -625,7 +625,7 @@ dependencies = [
 
 [[package]]
 name = "directorate"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "rust-embed",
 ]
