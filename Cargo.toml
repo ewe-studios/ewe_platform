@@ -31,7 +31,7 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 
 # -- non 'ewe` namespaced crates
 foundations_ext = { path = "./backends/foundations_ext", version = "0.0.1" }
-directorate = { path = "./backends/directorate", version = "0.0.1" }
+directorate = { path = "./backends/directorate", version = "0.0.2" }
 
 # -- internal packages so others can use them
 ewe_web = { path = "./crates/web", version = "0.0.1"}
