@@ -624,6 +624,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "directorate"
+version = "0.0.1"
+dependencies = [
+ "rust-embed",
+]
+
+[[package]]
 name = "dirs"
 version = "5.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

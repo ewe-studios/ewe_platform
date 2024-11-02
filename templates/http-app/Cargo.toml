@@ -19,13 +19,11 @@ required-features = []
 
 [[bin]]
 name = "dev"
-path = "./bin/dev/main.rs"
 test = false
 bench = false
 
 [[bin]]
 name = "app"
-path = "./bin/app/main.rs"
 test = false
 bench = false
 
