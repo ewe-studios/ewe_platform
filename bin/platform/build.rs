@@ -38,8 +38,7 @@ fn main() {
     let output_directory = out_directory.join(template_dir);
 
     let package_directory = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
-    let source_directory =
-        package_directory.join(format!("../../../bin/platform/{}", template_dir));
+    let source_directory = package_directory.join(format!("../../../{}", template_dir));
 
     // If it is already in the output directory, delete it and start over
     if output_directory.exists() {
