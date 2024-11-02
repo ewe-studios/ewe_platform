@@ -1,5 +1,6 @@
 [package]
 name = "directorate"
+description = "A object wrapper of rust_embed that lets you treat your embeded data as a ownerable object type"
 version = "0.0.1"
 edition.workspace = true
 rust-version.workspace = true
