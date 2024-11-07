@@ -39,7 +39,7 @@ value.d_walk(|tree, key| {
 - TOML
 
 ```rust
-use serde_json::json;
+use toml::toml;
 use foundations_ext::serde_ext::DynamicValueExt;
 use foundations_ext::serde_ext::TomlValueExt;
 
