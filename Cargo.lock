@@ -707,6 +707,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "ewe_config"
+version = "0.1.0"
+dependencies = [
+ "derive_more",
+ "serde",
+ "serde_with",
+ "toml",
+]
+
+[[package]]
 name = "ewe_devserver"
 version = "0.0.2"
 dependencies = [
@@ -1025,6 +1035,8 @@ dependencies = [
  "serde_json",
  "serde_yml",
  "tokio",
+ "toml",
+ "toml_datetime",
 ]
 
 [[package]]

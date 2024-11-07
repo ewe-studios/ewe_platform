@@ -1,34 +1,35 @@
 // region -- JsonError
 
-pub type JsonResult<T> = core::result::Result<T, JsonError>;
+pub type Result<T> = core::result::Result<T, ValueError>;
 
 #[derive(Debug, derive_more::From)]
-pub enum JsonError {
+pub enum ValueError {
+    #[from(ignore)]
     Custom(String),
 
+    #[from(ignore)]
     PropertyNotFound(String),
 
     // -- AsType errors
+    #[from(ignore)]
     ValueNotType(&'static str),
 
     // ToType errors
+    #[from(ignore)]
     NotConvertibleToType(&'static str),
-
-    #[from]
-    SerdeJSON(serde_json::Error),
 }
 
 // --- region: Custom methods
 
-impl JsonError {
-    pub(crate) fn custom<T>(val: T) -> Self
+impl ValueError {
+    pub fn custom<T>(val: T) -> Self
     where
         T: std::fmt::Display,
     {
         Self::Custom(val.to_string())
     }
 
-    pub(crate) fn into_custom<T>(val: T) -> Self
+    pub fn into_custom<T>(val: T) -> Self
     where
         T: Into<String>,
     {
@@ -40,9 +41,9 @@ impl JsonError {
 
 // --- region: Error & Display boilerplate
 
-impl std::error::Error for JsonError {}
+impl std::error::Error for ValueError {}
 
-impl core::fmt::Display for JsonError {
+impl core::fmt::Display for ValueError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{self:?}")
     }

@@ -12,8 +12,10 @@ keywords.workspace = true
 [dependencies]
 derive_more = { version = "1.0.0", features = ["from", "debug", "error"] }
 serde = { version = "1", features = ["derive"]}
+toml_datetime = { version = "0.6.8" }
 serde_json = { version = "1" }
 serde_yml = { version = "0.0.12" }
+toml = { version = "0.8.19" }
 
 async-trait = { version = "0.1.82"}
 tokio = { version = "1.36", features= ["sync", "time"] }

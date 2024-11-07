@@ -4,140 +4,219 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 use serde_json::{json, Map, Value};
 
-use super::{JsonError, JsonResult};
+use super::{AsType, DynamicValueExt, PointerValueExt, ValueError, ValueResult};
 
-///  Extension trait that allows us define a conversion of a JSON value to
-/// more native rust types.
-///
-/// It's implemented for bool, u32/64, f64, i32/64 and str
-pub trait AsType<'a>: Sized {
-    fn from_json(value: &'a Value) -> Result<Self, JsonError>;
-}
+// -- Implement AsType
 
-impl<'a> AsType<'a> for &'a str {
-    fn from_json(value: &'a Value) -> Result<Self, JsonError> {
-        value.as_str().ok_or(JsonError::ValueNotType("str"))
+impl AsType<'_, Value> for String {
+    fn from_value(value: &Value) -> ValueResult<Self, ValueError> {
+        Ok(String::from(
+            value.as_str().ok_or(ValueError::ValueNotType("str"))?,
+        ))
     }
 }
 
-impl AsType<'_> for bool {
-    fn from_json(value: &Value) -> Result<Self, JsonError> {
-        value.as_bool().ok_or(JsonError::ValueNotType("bool"))
+impl<'a> AsType<'a, Value> for &'a str {
+    fn from_value(value: &'a Value) -> ValueResult<Self, ValueError> {
+        value.as_str().ok_or(ValueError::ValueNotType("str"))
     }
 }
 
-impl AsType<'_> for f64 {
-    fn from_json(value: &Value) -> Result<Self, JsonError> {
-        value.as_f64().ok_or(JsonError::ValueNotType("f64"))
+impl AsType<'_, Value> for bool {
+    fn from_value(value: &Value) -> ValueResult<Self, ValueError> {
+        value.as_bool().ok_or(ValueError::ValueNotType("bool"))
     }
 }
 
-impl AsType<'_> for u64 {
-    fn from_json(value: &Value) -> Result<Self, JsonError> {
-        value.as_u64().ok_or(JsonError::ValueNotType("u64"))
+impl AsType<'_, Value> for f64 {
+    fn from_value(value: &Value) -> ValueResult<Self, ValueError> {
+        value.as_f64().ok_or(ValueError::ValueNotType("f64"))
     }
 }
 
-impl AsType<'_> for u32 {
-    fn from_json(value: &Value) -> Result<Self, JsonError> {
+impl AsType<'_, Value> for u64 {
+    fn from_value(value: &Value) -> ValueResult<Self, ValueError> {
+        value.as_u64().ok_or(ValueError::ValueNotType("u64"))
+    }
+}
+
+impl AsType<'_, Value> for u32 {
+    fn from_value(value: &Value) -> ValueResult<Self, ValueError> {
         value
             .as_u64()
             .and_then(|v| u32::try_from(v).ok())
-            .ok_or(JsonError::ValueNotType("u32"))
+            .ok_or(ValueError::ValueNotType("u32"))
     }
 }
 
-impl AsType<'_> for i32 {
-    fn from_json(value: &Value) -> Result<Self, JsonError> {
+impl AsType<'_, Value> for i32 {
+    fn from_value(value: &Value) -> ValueResult<Self, ValueError> {
         value
             .as_i64()
             .and_then(|v| i32::try_from(v).ok())
-            .ok_or(JsonError::ValueNotType("i32"))
+            .ok_or(ValueError::ValueNotType("i32"))
     }
 }
 
-impl AsType<'_> for i64 {
-    fn from_json(value: &Value) -> Result<Self, JsonError> {
-        value.as_i64().ok_or(JsonError::ValueNotType("i64"))
+impl AsType<'_, Value> for i64 {
+    fn from_value(value: &Value) -> ValueResult<Self, ValueError> {
+        value.as_i64().ok_or(ValueError::ValueNotType("i64"))
     }
 }
 
-pub trait JsonValueExt {
-    fn json_new() -> Value;
+// -- Error and Result
 
-    /// Returns an owned type `T` for a given name or pointer path.
-    /// - `name_or_pointer`: Can be a direct name or a pointer path (path starting with `/`),
-    fn json_get<T: DeserializeOwned>(&self, name_or_pointer: &str) -> JsonResult<T>;
+#[derive(Debug, derive_more::From)]
+pub enum JsonError {
+    #[from(ignore)]
+    Value(ValueError),
 
-    /// Returns an reference of type `T` (or value for copy type) for a given name or pointer path.
-    /// - `name_or_pointer`: Can be a direct name or a pointer path (path starting with `/`),
-    fn json_get_as<'a, T: AsType<'a>>(&'a self, name_or_pointer: &str) -> JsonResult<T>;
+    #[from]
+    SerdeJSON(serde_json::Error),
+}
 
-    /// Returns an owned type `T` for a given name or pointer path replacing with `Null`.
-    /// - `name_or_pointer`: Can be a direct name or a pointer path (path starting with `/`),
-    fn json_take<T: DeserializeOwned>(&mut self, name_or_pointer: &str) -> JsonResult<T>;
+// --- region: Custom methods
 
-    /// Inserts a new value of type `T` at the specified name or pointer path.
-    /// It creates a missing `Value::Object` entries as needed.
-    fn json_insert<T: Serialize>(&mut self, name_or_pointer: &str, value: T) -> JsonResult<()>;
+impl JsonError {
+    pub fn value<V: Into<ValueError>>(val: V) -> Self {
+        Self::Value(val.into())
+    }
+
+    pub fn custom<T>(val: T) -> Self
+    where
+        T: std::fmt::Display,
+    {
+        Self::Value(ValueError::Custom(val.to_string()))
+    }
+
+    pub fn into_custom<T>(val: T) -> Self
+    where
+        T: Into<String>,
+    {
+        Self::Value(ValueError::Custom(val.into()))
+    }
+}
+
+impl From<ValueError> for JsonError {
+    fn from(value: ValueError) -> Self {
+        Self::Value(value)
+    }
+}
+
+// --- end region: Custom methods
+
+// --- region: Error & Display boilerplate
+
+impl std::error::Error for JsonError {}
+
+impl core::fmt::Display for JsonError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
+
+// --- end region: Error & Display boilerplate
+
+// --- end region: JsonError
+//
+pub trait JsonValueExt: DynamicValueExt {
+    // type Item;
+    // type Error;
 
     /// Walks through all properties in the JSON value tree and calls the callback function
     /// on each key.
     /// It creates a missing `Value::Object` entries as needed.
-    fn json_walk<F>(&mut self, callback: F) -> bool
+    fn d_walk<F>(&mut self, callback: F) -> bool
     where
         F: FnMut(&mut Map<String, Value>, &str) -> bool;
-
-    /// Returns a pretty-printed string representation of the JSON value.
-    fn json_pretty(&self) -> JsonResult<String>;
 }
 
-impl JsonValueExt for Value {
-    fn json_new() -> Value {
+impl PointerValueExt for Value {
+    type Item = Value;
+    type Error = JsonError;
+
+    fn get_path(&self, name_or_pointer: &str) -> ValueResult<&Self::Item, Self::Error> {
+        if name_or_pointer.starts_with("/") {
+            return self
+                .pointer(name_or_pointer)
+                .ok_or_else(|| ValueError::PropertyNotFound(name_or_pointer.to_string()).into());
+        }
+        self.get(name_or_pointer)
+            .ok_or_else(|| ValueError::PropertyNotFound(name_or_pointer.to_string()).into())
+    }
+
+    fn take_path(&mut self, name_or_pointer: &str) -> ValueResult<Self::Item, Self::Error> {
+        if name_or_pointer.starts_with("/") {
+            return self
+                .pointer_mut(name_or_pointer)
+                .map(Value::take)
+                .ok_or_else(|| ValueError::PropertyNotFound(name_or_pointer.to_string()).into());
+        }
+        self.get_mut(name_or_pointer)
+            .map(Value::take)
+            .ok_or_else(|| ValueError::PropertyNotFound(name_or_pointer.to_string()).into())
+    }
+}
+
+impl DynamicValueExt for Value {
+    type Item = Value;
+    type Error = JsonError;
+
+    fn d_new() -> Value {
         Value::Object(Map::new())
     }
 
-    fn json_get<T: DeserializeOwned>(&self, name_or_pointer: &str) -> JsonResult<T> {
+    fn d_get<T: DeserializeOwned>(&self, name_or_pointer: &str) -> ValueResult<T, Self::Error> {
         let value = if name_or_pointer.starts_with('/') {
             self.pointer(name_or_pointer)
-                .ok_or_else(|| JsonError::PropertyNotFound(name_or_pointer.to_string()))?
+                .ok_or_else(|| ValueError::PropertyNotFound(name_or_pointer.to_string()))?
         } else {
             self.get(name_or_pointer)
-                .ok_or_else(|| JsonError::PropertyNotFound(name_or_pointer.to_string()))?
+                .ok_or_else(|| ValueError::PropertyNotFound(name_or_pointer.to_string()))?
         };
 
         let value: T = serde_json::from_value(value.clone())?;
         Ok(value)
     }
 
-    fn json_get_as<'a, T: AsType<'a>>(&'a self, name_or_pointer: &str) -> JsonResult<T> {
+    fn d_get_as<'a, V: AsType<'a, Self::Item>>(
+        &'a self,
+        name_or_pointer: &str,
+    ) -> ValueResult<V, Self::Error> {
         let value = if name_or_pointer.starts_with('/') {
             self.pointer(name_or_pointer)
-                .ok_or_else(|| JsonError::PropertyNotFound(name_or_pointer.to_string()))?
+                .ok_or_else(|| ValueError::PropertyNotFound(name_or_pointer.to_string()))?
         } else {
             self.get(name_or_pointer)
-                .ok_or_else(|| JsonError::PropertyNotFound(name_or_pointer.to_string()))?
+                .ok_or_else(|| ValueError::PropertyNotFound(name_or_pointer.to_string()))?
         };
 
-        T::from_json(value)
+        V::from_value(value).map_err(|err| err.into())
     }
 
-    fn json_take<T: DeserializeOwned>(&mut self, name_or_pointer: &str) -> JsonResult<T> {
+    fn d_take<T: DeserializeOwned>(
+        &mut self,
+        name_or_pointer: &str,
+    ) -> ValueResult<T, Self::Error> {
         let value = if name_or_pointer.starts_with('/') {
             self.pointer_mut(name_or_pointer)
                 .map(Value::take)
-                .ok_or_else(|| JsonError::PropertyNotFound(name_or_pointer.to_string()))?
+                .ok_or_else(|| ValueError::PropertyNotFound(name_or_pointer.to_string()))?
         } else {
             self.get_mut(name_or_pointer)
                 .map(Value::take)
-                .ok_or_else(|| JsonError::PropertyNotFound(name_or_pointer.to_string()))?
+                .ok_or_else(|| ValueError::PropertyNotFound(name_or_pointer.to_string()))?
         };
 
         let value: T = serde_json::from_value(value)?;
         Ok(value)
     }
 
-    fn json_insert<T: Serialize>(&mut self, name_or_pointer: &str, value: T) -> JsonResult<()> {
+    fn d_insert<T: Serialize>(
+        &mut self,
+        name_or_pointer: &str,
+        value: T,
+    ) -> ValueResult<(), Self::Error> {
         let new_value = serde_json::to_value(value)?;
 
         if !name_or_pointer.starts_with('/') {
@@ -177,7 +256,14 @@ impl JsonValueExt for Value {
         }
     }
 
-    fn json_walk<F>(&mut self, mut callback: F) -> bool
+    fn d_pretty(&self) -> ValueResult<String, Self::Error> {
+        let content = serde_json::to_string_pretty(self)?;
+        Ok(content)
+    }
+}
+
+impl JsonValueExt for Value {
+    fn d_walk<F>(&mut self, mut callback: F) -> bool
     where
         F: FnMut(&mut Map<String, Value>, &str) -> bool,
     {
@@ -211,16 +297,11 @@ impl JsonValueExt for Value {
         }
         true
     }
-
-    fn json_pretty(&self) -> JsonResult<String> {
-        let content = serde_json::to_string_pretty(self)?;
-        Ok(content)
-    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::JsonValueExt;
+    use super::DynamicValueExt;
     use serde_json::json;
 
     type Result<T> = core::result::Result<T, Box<dyn std::error::Error>>; // For tests.
@@ -232,12 +313,29 @@ mod tests {
         let fx_node_value = "hello";
 
         // -- Exec
-        value.json_insert("/happy/word", fx_node_value)?;
+        value.d_insert("/happy/word", fx_node_value)?;
 
         // -- Check
-        let actual_value: String = value.json_get("/happy/word")?;
+        let actual_value: String = value.d_get("/happy/word")?;
+        dbg!(&actual_value);
+
         assert_eq!(actual_value.as_str(), fx_node_value);
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_value_can_take() -> Result<()> {
+        // -- Setup & Fixtures
+        let mut value = json!({"tokens": 3, "hello": {"word": "hello"}});
+
+        // -- Exec
+        let content: String = value.d_take("/hello/word")?;
+        assert_eq!(&content, "hello");
+
+        // Should
+        assert!(matches!(value.d_get::<String>("hello"), Err(_)));
+        assert!(matches!(value.d_get::<String>("hello/word"), Err(_)));
         Ok(())
     }
 }
