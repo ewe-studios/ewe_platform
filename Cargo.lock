@@ -1027,7 +1027,7 @@ dependencies = [
 
 [[package]]
 name = "foundations_ext"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "async-trait",
  "derive_more",
