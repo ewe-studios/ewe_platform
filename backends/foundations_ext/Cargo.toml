@@ -1,7 +1,7 @@
 [package]
 name = "foundations_ext"
 description = "Foundation extensions published from the ewe_platform but usable by all"
-version = "0.0.1"
+version = "0.0.2"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true

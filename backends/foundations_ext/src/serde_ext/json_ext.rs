@@ -302,9 +302,23 @@ impl JsonValueExt for Value {
 #[cfg(test)]
 mod tests {
     use super::DynamicValueExt;
+    use crate::serde_ext::JsonValueExt;
     use serde_json::json;
 
     type Result<T> = core::result::Result<T, Box<dyn std::error::Error>>; // For tests.
+
+    #[test]
+    fn test_value_can_walk() -> Result<()> {
+        // -- Setup & Fixtures
+        let mut value = json!({"tokens": 3, "hello": {"word": "hello"}});
+
+        // -- Exec
+        assert!(value.d_walk(|tree, key| {
+            assert!(tree.contains_key(key));
+            true
+        }));
+        Ok(())
+    }
 
     #[test]
     fn test_value_insert_ok() -> Result<()> {
