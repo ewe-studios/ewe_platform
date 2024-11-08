@@ -685,6 +685,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "ewe-ai"
+version = "0.1.0"
+
+[[package]]
 name = "ewe_async_utils"
 version = "0.0.1"
 dependencies = [
