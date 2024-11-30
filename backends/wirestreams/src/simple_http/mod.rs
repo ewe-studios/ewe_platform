@@ -1440,14 +1440,14 @@ pub fn default_response(_: SimpleIncomingRequest) -> SimpleResponse<()> {
 }
 
 #[derive(Clone)]
-pub enum SimpleResponseBodyBuilder {
+pub enum SimpleActionResponseBuilder {
     Empty(SimpleResponseFunc<()>),
     String(SimpleResponseFunc<String>),
     Bytes(SimpleResponseFunc<Vec<u8>>),
     Stream(SimpleResponseFunc<ClonableVecIterator<BoxedError>>),
 }
 
-impl SimpleResponseBodyBuilder {
+impl SimpleActionResponseBuilder {
     pub fn no_content() -> Self {
         Self::Empty(Box::new(default_response))
     }
@@ -1483,7 +1483,7 @@ impl SimpleResponseBodyBuilder {
 pub struct ServiceAction {
     pub route: SimpleUrl,
     pub headers: SimpleHeaders,
-    pub body: SimpleResponseBodyBuilder,
+    pub body: SimpleActionResponseBuilder,
 }
 
 impl Clone for ServiceAction {
@@ -1506,7 +1506,7 @@ impl ServiceAction {
 pub struct ServiceActionBuilder {
     route: Option<SimpleUrl>,
     headers: Option<SimpleHeaders>,
-    body: Option<SimpleResponseBodyBuilder>,
+    body: Option<SimpleActionResponseBuilder>,
 }
 
 impl ServiceActionBuilder {
@@ -1515,7 +1515,7 @@ impl ServiceActionBuilder {
         self
     }
 
-    pub fn with_body(mut self, body: SimpleResponseBodyBuilder) -> Self {
+    pub fn with_body(mut self, body: SimpleActionResponseBuilder) -> Self {
         self.body = Some(body);
         self
     }
@@ -1538,7 +1538,7 @@ impl ServiceActionBuilder {
 
         let body = match self.body {
             Some(inner) => inner,
-            None => SimpleResponseBodyBuilder::no_content(),
+            None => SimpleActionResponseBuilder::no_content(),
         };
 
         Ok(ServiceAction {
