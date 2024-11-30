@@ -663,12 +663,12 @@ pub struct SimpleOutgoingResponse {
 }
 
 impl SimpleOutgoingResponse {
-    pub fn builder() -> SimpleResponseBodyBuilder {
-        SimpleResponseBodyBuilder::default()
+    pub fn builder() -> SimpleOutgoingResponseBuilder {
+        SimpleOutgoingResponseBuilder::default()
     }
 
     pub fn empty() -> SimpleOutgoingResponse {
-        SimpleResponseBodyBuilder::default()
+        SimpleOutgoingResponseBuilder::default()
             .with_status(Status::OK)
             .add_header(SimpleHeader::CONTENT_LENGTH, "0")
             .build()
@@ -677,7 +677,7 @@ impl SimpleOutgoingResponse {
 }
 
 #[derive(Clone, Default)]
-pub struct SimpleResponseBodyBuilder {
+pub struct SimpleOutgoingResponseBuilder {
     status: Option<Status>,
     headers: Option<SimpleHeaders>,
     body: Option<SimpleBody>,
@@ -698,7 +698,7 @@ impl core::fmt::Display for SimpleResponseError {
     }
 }
 
-impl SimpleResponseBodyBuilder {
+impl SimpleOutgoingResponseBuilder {
     pub fn with_status(mut self, status: Status) -> Self {
         self.status = Some(status);
         self
@@ -1398,6 +1398,88 @@ impl core::fmt::Display for SimpleHttpError {
         write!(f, "{self:?}")
     }
 }
+
+pub struct SimpleResponse<T>(Status, SimpleHeaders, T);
+
+impl SimpleResponse<()> {
+    pub fn no_body(status: Status, headers: SimpleHeaders) -> Self {
+        Self(status, headers, ())
+    }
+}
+
+impl<T> SimpleResponse<T> {
+    pub fn new(status: Status, headers: SimpleHeaders, body: T) -> Self {
+        Self(status, headers, body)
+    }
+
+    pub fn get_status(&self) -> Status {
+        self.0.clone()
+    }
+
+    pub fn get_headers_ref(&self) -> &SimpleHeaders {
+        &self.1
+    }
+
+    pub fn get_headers_mut(&mut self) -> &mut SimpleHeaders {
+        &mut self.1
+    }
+
+    pub fn get_body_ref(&self) -> &T {
+        &self.2
+    }
+
+    pub fn get_body_mut(&mut self) -> &mut T {
+        &mut self.2
+    }
+}
+
+pub type SimpleResponseFunc<T> = Box<dyn ClonableFnMut<SimpleIncomingRequest, SimpleResponse<T>>>;
+
+pub fn default_response(_: SimpleIncomingRequest) -> SimpleResponse<()> {
+    return SimpleResponse::no_body(Status::OK, BTreeMap::new());
+}
+
+#[derive(Clone)]
+pub enum SimpleResponseBodyBuilder {
+    Empty(SimpleResponseFunc<()>),
+    String(SimpleResponseFunc<String>),
+    Bytes(SimpleResponseFunc<Vec<u8>>),
+    Stream(SimpleResponseFunc<ClonableVecIterator<BoxedError>>),
+}
+
+impl SimpleResponseBodyBuilder {
+    pub fn no_content() -> Self {
+        Self::Empty(Box::new(default_response))
+    }
+
+    pub fn empty(
+        func: impl Fn(SimpleIncomingRequest) -> SimpleResponse<()> + Send + Clone + 'static,
+    ) -> Self {
+        Self::Empty(Box::new(func))
+    }
+
+    pub fn string(
+        func: impl Fn(SimpleIncomingRequest) -> SimpleResponse<String> + Send + Clone + 'static,
+    ) -> Self {
+        Self::String(Box::new(func))
+    }
+
+    pub fn bytes(
+        func: impl Fn(SimpleIncomingRequest) -> SimpleResponse<Vec<u8>> + Send + Clone + 'static,
+    ) -> Self {
+        Self::Bytes(Box::new(func))
+    }
+
+    pub fn stream(
+        func: impl Fn(SimpleIncomingRequest) -> SimpleResponse<ClonableVecIterator<BoxedError>>
+            + Clone
+            + Send
+            + 'static,
+    ) -> Self {
+        Self::Stream(Box::new(func))
+    }
+}
+
 pub struct ServiceAction {
     pub route: SimpleUrl,
     pub headers: SimpleHeaders,
@@ -1424,7 +1506,7 @@ impl ServiceAction {
 pub struct ServiceActionBuilder {
     route: Option<SimpleUrl>,
     headers: Option<SimpleHeaders>,
-    body: Option<SimpleBody>,
+    body: Option<SimpleResponseBodyBuilder>,
 }
 
 impl ServiceActionBuilder {
@@ -1433,7 +1515,7 @@ impl ServiceActionBuilder {
         self
     }
 
-    pub fn with_body(mut self, body: SimpleBody) -> Self {
+    pub fn with_body(mut self, body: SimpleResponseBodyBuilder) -> Self {
         self.body = Some(body);
         self
     }
@@ -1456,7 +1538,7 @@ impl ServiceActionBuilder {
 
         let body = match self.body {
             Some(inner) => inner,
-            None => SimpleBody::None,
+            None => SimpleResponseBodyBuilder::no_content(),
         };
 
         Ok(ServiceAction {
