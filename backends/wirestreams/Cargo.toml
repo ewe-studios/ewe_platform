@@ -1,0 +1,29 @@
+[package]
+name = "wirestream"
+version = "0.1.0"
+description = "A foundation crate for all things http communications for the ewe_platform project. Usable as a separate crate. Built to not require async."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+keywords = ["wirestream", "wire communication", "http-wire-streams"]
+
+[dependencies]
+# --- workspace deps
+anyhow.workspace = true
+derive_more.workspace = true
+clonables.workspace = true
+
+# --- crate deps
+url = "1.7.0"
+regex = "1.11.1"
+native-tls-crate = { package = "native-tls", version = "0.2.12", optional = true }
+
+[features]
+default = ["native-tls"]
+native-tls = ["native-tls-crate"]
+native-tls-vendored = ["native-tls", "native-tls-crate/vendored"]
+
+[lints]
+workspace = true
