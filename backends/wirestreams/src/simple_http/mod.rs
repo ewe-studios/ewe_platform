@@ -1161,7 +1161,7 @@ impl Iterator for Http11ResponseIterator {
                 self.0 = Http11ResState::Headers(response.clone());
 
                 // generate HTTP 1.1 intro
-                let http_intro_string = format!("HTTP/1.1 {}\r\n", response.status);
+                let http_intro_string = format!("HTTP/1.1 {}\r\n", response.description());
 
                 Some(Ok(http_intro_string.into_bytes()))
             }
