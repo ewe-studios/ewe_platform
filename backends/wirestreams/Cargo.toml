@@ -14,6 +14,7 @@ keywords = ["wirestream", "wire communication", "http-wire-streams"]
 anyhow.workspace = true
 derive_more.workspace = true
 clonables.workspace = true
+foundations_ext.workspace = true
 
 # --- crate deps
 url = "1.7.0"

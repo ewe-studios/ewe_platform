@@ -3285,6 +3285,7 @@ dependencies = [
  "anyhow",
  "clonables",
  "derive_more",
+ "foundations_ext",
  "native-tls",
  "regex",
  "url",

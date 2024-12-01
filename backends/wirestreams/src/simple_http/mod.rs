@@ -3,6 +3,7 @@ use clonables::{
     WrappedIterator,
 };
 use derive_more::From;
+use foundations_ext::strings_ext::{IntoString, IntoStringError};
 use regex::Regex;
 use std::{
     collections::BTreeMap,
@@ -431,6 +432,7 @@ impl SimpleMethod {
 ///
 /// Can be converted to its numeral equivalent.
 #[derive(Debug, Clone)]
+#[repr(u64)]
 pub enum Status {
     Continue = 100,
     SwitchingProtocols = 101,
@@ -485,71 +487,76 @@ pub enum Status {
     HttpVersionNotSupported = 505,
     InsufficientStorage = 507,
     NetworkAuthenticationRequired = 511,
+    Custom(usize, &'static str),
 }
 
 impl core::fmt::Display for Status {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self)
+        match self {
+            Self::Custom(code, _) => write!(f, "{}", code),
+            _ => write!(f, "{}", self),
+        }
     }
 }
 
 impl Status {
     /// Returns status' full description
-    pub fn description(&self) -> &'static str {
+    pub fn status_line(&self) -> String {
         match self {
-            Status::Continue => "100 Continue",
-            Status::SwitchingProtocols => "101 Switching Protocols",
-            Status::Processing => "102 Processing",
-            Status::OK => "200 Ok",
-            Status::Created => "201 Created",
-            Status::Accepted => "202 Accepted",
-            Status::NonAuthoritativeInformation => "203 Non Authoritative Information",
-            Status::NoContent => "204 No Content",
-            Status::ResetContent => "205 Reset Content",
-            Status::PartialContent => "206 Partial Content",
-            Status::MultiStatus => "207 Multi Status",
-            Status::MultipleChoices => "300 Multiple Choices",
-            Status::MovedPermanently => "301 Moved Permanently",
-            Status::Found => "302 Found",
-            Status::SeeOther => "303 See Other",
-            Status::NotModified => "304 Not Modified",
-            Status::UseProxy => "305 Use Proxy",
-            Status::TemporaryRedirect => "307 Temporary Redirect",
-            Status::PermanentRedirect => "308 Permanent Redirect",
-            Status::BadRequest => "400 Bad Request",
-            Status::Unauthorized => "401 Unauthorized",
-            Status::PaymentRequired => "402 Payment Required",
-            Status::Forbidden => "403 Forbidden",
-            Status::NotFound => "404 Not Found",
-            Status::MethodNotAllowed => "405 Method Not Allowed",
-            Status::NotAcceptable => "406 Not Acceptable",
-            Status::ProxyAuthenticationRequired => "407 Proxy Authentication Required",
-            Status::RequestTimeout => "408 Request Timeout",
-            Status::Conflict => "409 Conflict",
-            Status::Gone => "410 Gone",
-            Status::LengthRequired => "411 Length Required",
-            Status::PreconditionFailed => "412 Precondition Failed",
-            Status::PayloadTooLarge => "413 Payload Too Large",
-            Status::UriTooLong => "414 URI Too Long",
-            Status::UnsupportedMediaType => "415 Unsupported Media Type",
-            Status::RangeNotSatisfiable => "416 Range Not Satisfiable",
-            Status::ExpectationFailed => "417 Expectation Failed",
-            Status::ImATeapot => "418 I'm A Teapot",
-            Status::UnprocessableEntity => "422 Unprocessable Entity",
-            Status::Locked => "423 Locked",
-            Status::FailedDependency => "424 Failed Dependency",
-            Status::UpgradeRequired => "426 Upgrade Required",
-            Status::PreconditionRequired => "428 Precondition Required",
-            Status::TooManyRequests => "429 Too Many Requests",
-            Status::RequestHeaderFieldsTooLarge => "431 Request Header Fields Too Large",
-            Status::InternalServerError => "500 Internal Server Error",
-            Status::NotImplemented => "501 Not Implemented",
-            Status::BadGateway => "502 Bad Gateway",
-            Status::ServiceUnavailable => "503 Service Unavailable",
-            Status::GatewayTimeout => "504 Gateway Timeout",
-            Status::HttpVersionNotSupported => "505 Http Version Not Supported",
-            Status::InsufficientStorage => "507 Insufficient Storage",
-            Status::NetworkAuthenticationRequired => "511 Network Authentication Required",
+            Status::Continue => "100 Continue".into(),
+            Status::SwitchingProtocols => "101 Switching Protocols".into(),
+            Status::Processing => "102 Processing".into(),
+            Status::OK => "200 Ok".into(),
+            Status::Created => "201 Created".into(),
+            Status::Accepted => "202 Accepted".into(),
+            Status::NonAuthoritativeInformation => "203 Non Authoritative Information".into(),
+            Status::NoContent => "204 No Content".into(),
+            Status::ResetContent => "205 Reset Content".into(),
+            Status::PartialContent => "206 Partial Content".into(),
+            Status::MultiStatus => "207 Multi Status".into(),
+            Status::MultipleChoices => "300 Multiple Choices".into(),
+            Status::MovedPermanently => "301 Moved Permanently".into(),
+            Status::Found => "302 Found".into(),
+            Status::SeeOther => "303 See Other".into(),
+            Status::NotModified => "304 Not Modified".into(),
+            Status::UseProxy => "305 Use Proxy".into(),
+            Status::TemporaryRedirect => "307 Temporary Redirect".into(),
+            Status::PermanentRedirect => "308 Permanent Redirect".into(),
+            Status::BadRequest => "400 Bad Request".into(),
+            Status::Unauthorized => "401 Unauthorized".into(),
+            Status::PaymentRequired => "402 Payment Required".into(),
+            Status::Forbidden => "403 Forbidden".into(),
+            Status::NotFound => "404 Not Found".into(),
+            Status::MethodNotAllowed => "405 Method Not Allowed".into(),
+            Status::NotAcceptable => "406 Not Acceptable".into(),
+            Status::ProxyAuthenticationRequired => "407 Proxy Authentication Required".into(),
+            Status::RequestTimeout => "408 Request Timeout".into(),
+            Status::Conflict => "409 Conflict".into(),
+            Status::Gone => "410 Gone".into(),
+            Status::LengthRequired => "411 Length Required".into(),
+            Status::PreconditionFailed => "412 Precondition Failed".into(),
+            Status::PayloadTooLarge => "413 Payload Too Large".into(),
+            Status::UriTooLong => "414 URI Too Long".into(),
+            Status::UnsupportedMediaType => "415 Unsupported Media Type".into(),
+            Status::RangeNotSatisfiable => "416 Range Not Satisfiable".into(),
+            Status::ExpectationFailed => "417 Expectation Failed".into(),
+            Status::ImATeapot => "418 I'm A Teapot".into(),
+            Status::UnprocessableEntity => "422 Unprocessable Entity".into(),
+            Status::Locked => "423 Locked".into(),
+            Status::FailedDependency => "424 Failed Dependency".into(),
+            Status::UpgradeRequired => "426 Upgrade Required".into(),
+            Status::PreconditionRequired => "428 Precondition Required".into(),
+            Status::TooManyRequests => "429 Too Many Requests".into(),
+            Status::RequestHeaderFieldsTooLarge => "431 Request Header Fields Too Large".into(),
+            Status::InternalServerError => "500 Internal Server Error".into(),
+            Status::NotImplemented => "501 Not Implemented".into(),
+            Status::BadGateway => "502 Bad Gateway".into(),
+            Status::ServiceUnavailable => "503 Service Unavailable".into(),
+            Status::GatewayTimeout => "504 Gateway Timeout".into(),
+            Status::HttpVersionNotSupported => "505 Http Version Not Supported".into(),
+            Status::InsufficientStorage => "507 Insufficient Storage".into(),
+            Status::NetworkAuthenticationRequired => "511 Network Authentication Required".into(),
+            Self::Custom(code, description) => format!("{} {}", code, description),
         }
     }
 }
@@ -569,6 +576,7 @@ static QUERY_REPLACER: &'static str = r"(?P<$p>[^//|/?]+)";
 static CAPTURE_PARAM_STR: &'static str = r"\{(?P<p>([A-z|0-9|_])+)\}";
 static CAPTURE_QUERY_KEY_VALUE: &'static str = r"((?P<qk>[^&]+)=(?P<qv>[^&]+))*";
 
+#[allow(unused)]
 impl SimpleUrl {
     pub(crate) fn new(
         request_url: String,
@@ -688,6 +696,7 @@ pub type SimpleResponseResult<T> = std::result::Result<T, SimpleResponseError>;
 #[derive(From, Debug)]
 pub enum SimpleResponseError {
     StatusIsRequired,
+    StringConversion(IntoStringError),
 }
 
 impl std::error::Error for SimpleResponseError {}
@@ -703,8 +712,24 @@ impl SimpleOutgoingResponseBuilder {
         self.status = Some(status);
         self
     }
+
     pub fn with_body(mut self, body: SimpleBody) -> Self {
         self.body = Some(body);
+        self
+    }
+
+    pub fn with_body_stream(mut self, body: ClonableVecIterator<BoxedError>) -> Self {
+        self.body = Some(SimpleBody::Stream(Some(body)));
+        self
+    }
+
+    pub fn with_body_bytes<S: Into<Vec<u8>>>(mut self, body: S) -> Self {
+        self.body = Some(SimpleBody::Bytes(body.into()));
+        self
+    }
+
+    pub fn with_body_string<S: Into<String>>(mut self, body: S) -> Self {
+        self.body = Some(SimpleBody::Text(body.into()));
         self
     }
 
@@ -730,7 +755,7 @@ impl SimpleOutgoingResponseBuilder {
             None => return Err(SimpleResponseError::StatusIsRequired),
         };
 
-        let headers = match self.headers {
+        let mut headers = match self.headers {
             Some(inner) => inner,
             None => BTreeMap::new(),
         };
@@ -738,6 +763,31 @@ impl SimpleOutgoingResponseBuilder {
         let body = match self.body {
             Some(inner) => inner,
             None => SimpleBody::None,
+        };
+
+        let _ = match &body {
+            SimpleBody::None => {
+                headers.insert(SimpleHeader::CONTENT_LENGTH, String::from("0"));
+            }
+            SimpleBody::Bytes(inner) => {
+                headers.insert(
+                    SimpleHeader::CONTENT_LENGTH,
+                    inner
+                        .len()
+                        .into_string()
+                        .map_err(SimpleResponseError::StringConversion)?,
+                );
+            }
+            SimpleBody::Text(inner) => {
+                headers.insert(
+                    SimpleHeader::CONTENT_LENGTH,
+                    inner
+                        .len()
+                        .into_string()
+                        .map_err(SimpleResponseError::StringConversion)?,
+                );
+            }
+            _ => {}
         };
 
         Ok(SimpleOutgoingResponse {
@@ -753,6 +803,7 @@ pub type SimpleRequestResult<T> = std::result::Result<T, SimpleRequestError>;
 #[derive(From, Debug)]
 pub enum SimpleRequestError {
     NoURLProvided,
+    StringConversion(IntoStringError),
 }
 
 impl std::error::Error for SimpleRequestError {}
@@ -796,6 +847,21 @@ impl SimpleIncomingRequestBuilder {
         self
     }
 
+    pub fn with_body_stream(mut self, body: ClonableVecIterator<BoxedError>) -> Self {
+        self.body = Some(SimpleBody::Stream(Some(body)));
+        self
+    }
+
+    pub fn with_body_bytes<S: Into<Vec<u8>>>(mut self, body: S) -> Self {
+        self.body = Some(SimpleBody::Bytes(body.into()));
+        self
+    }
+
+    pub fn with_body_string<S: Into<String>>(mut self, body: S) -> Self {
+        self.body = Some(SimpleBody::Text(body.into()));
+        self
+    }
+
     pub fn with_headers(mut self, headers: SimpleHeaders) -> Self {
         self.headers = Some(headers);
         self
@@ -823,7 +889,7 @@ impl SimpleIncomingRequestBuilder {
             None => return Err(SimpleRequestError::NoURLProvided),
         };
 
-        let headers = match self.headers {
+        let mut headers = match self.headers {
             Some(inner) => inner,
             None => BTreeMap::new(),
         };
@@ -836,6 +902,31 @@ impl SimpleIncomingRequestBuilder {
         let body = match self.body {
             Some(inner) => inner,
             None => SimpleBody::None,
+        };
+
+        let _ = match &body {
+            SimpleBody::None => {
+                headers.insert(SimpleHeader::CONTENT_LENGTH, String::from("0"));
+            }
+            SimpleBody::Bytes(inner) => {
+                headers.insert(
+                    SimpleHeader::CONTENT_LENGTH,
+                    inner
+                        .len()
+                        .into_string()
+                        .map_err(SimpleRequestError::StringConversion)?,
+                );
+            }
+            SimpleBody::Text(inner) => {
+                headers.insert(
+                    SimpleHeader::CONTENT_LENGTH,
+                    inner
+                        .len()
+                        .into_string()
+                        .map_err(SimpleRequestError::StringConversion)?,
+                );
+            }
+            _ => {}
         };
 
         Ok(SimpleIncomingRequest {
@@ -1006,17 +1097,15 @@ impl Iterator for Http11RequestIterator {
 
                 let mut encoded_headers: Vec<String> = borrowed_headers
                     .into_iter()
-                    .map(|(key, value)| format!("{}: {}", key, value))
+                    .map(|(key, value)| format!("{}: {}\r\n", key, value))
                     .collect();
 
                 // add CLRF for ending header
                 encoded_headers.push("\r\n".into());
 
-                // // add CLRF indicating headers are done
-                // encoded_headers.push("\r\n".into());
-
-                // join all intermediate with CLRF (last element does not get it hence why we do it above)
-                Some(Ok(encoded_headers.join("\r\n").into_bytes()))
+                // join all intermediate with CLRF (last
+                // element does not get it hence why we do it above)
+                Some(Ok(encoded_headers.join("").into_bytes()))
             }
             Http11ReqState::Body(mut request) => {
                 if request.body.is_none() {
@@ -1031,21 +1120,17 @@ impl Iterator for Http11RequestIterator {
                     SimpleBody::None => {
                         // tell the iterator we want it to end
                         self.0 = Http11ReqState::End;
-                        Some(Ok(b"\r\n".to_vec()))
+                        Some(Ok(b"".to_vec()))
                     }
                     SimpleBody::Text(inner) => {
                         // tell the iterator we want it to end
                         self.0 = Http11ReqState::End;
-                        Some(Ok(format!("{}\r\n", inner).into_bytes()))
+                        Some(Ok(inner.into_bytes()))
                     }
                     SimpleBody::Bytes(inner) => {
                         // tell the iterator we want it to end
                         self.0 = Http11ReqState::End;
-
-                        let mut cloned = inner.clone();
-                        cloned.extend(b"\r\n");
-
-                        Some(Ok(cloned.to_vec()))
+                        Some(Ok(inner.to_vec()))
                     }
                     SimpleBody::Stream(mut streamer_container) => {
                         match streamer_container.take() {
@@ -1065,7 +1150,7 @@ impl Iterator for Http11RequestIterator {
                                     None => {
                                         // tell the iterator we want it to end
                                         self.0 = Http11ReqState::End;
-                                        Some(Ok(b"\r\n".to_vec()))
+                                        Some(Ok(b"".to_vec()))
                                     }
                                 }
                             }
@@ -1083,7 +1168,6 @@ impl Iterator for Http11RequestIterator {
                     Some(collected) => match collected {
                         Ok(inner) => {
                             self.0 = Http11ReqState::BodyStreaming(request.clone_box());
-
                             Some(Ok(inner))
                         }
                         Err(err) => {
@@ -1095,7 +1179,7 @@ impl Iterator for Http11RequestIterator {
                     None => {
                         // tell the iterator we want it to end
                         self.0 = Http11ReqState::End;
-                        Some(Ok(b"\r\n".to_vec()))
+                        Some(Ok(b"".to_vec()))
                     }
                 }
             }
@@ -1161,7 +1245,7 @@ impl Iterator for Http11ResponseIterator {
                 self.0 = Http11ResState::Headers(response.clone());
 
                 // generate HTTP 1.1 intro
-                let http_intro_string = format!("HTTP/1.1 {}\r\n", response.status.description());
+                let http_intro_string = format!("HTTP/1.1 {}\r\n", response.status.status_line());
 
                 Some(Ok(http_intro_string.into_bytes()))
             }
@@ -1181,17 +1265,15 @@ impl Iterator for Http11ResponseIterator {
 
                 let mut encoded_headers: Vec<String> = borrowed_headers
                     .into_iter()
-                    .map(|(key, value)| format!("{}: {}", key, value))
+                    .map(|(key, value)| format!("{}: {}\r\n", key, value))
                     .collect();
 
                 // add CLRF for ending header
                 encoded_headers.push("\r\n".into());
 
-                // // add CLRF indicating headers are done
-                // encoded_headers.push("\r\n".into());
-
-                // join all intermediate with CLRF (last element does not get it hence why we do it above)
-                Some(Ok(encoded_headers.join("\r\n").into_bytes()))
+                // join all intermediate with CLRF (last element
+                // does not get it hence why we do it above)
+                Some(Ok(encoded_headers.join("").into_bytes()))
             }
             Http11ResState::Body(mut response) => {
                 if response.body.is_none() {
@@ -1206,21 +1288,17 @@ impl Iterator for Http11ResponseIterator {
                     SimpleBody::None => {
                         // tell the iterator we want it to end
                         self.0 = Http11ResState::End;
-                        Some(Ok(b"\r\n".to_vec()))
+                        Some(Ok(b"".to_vec()))
                     }
                     SimpleBody::Text(inner) => {
                         // tell the iterator we want it to end
                         self.0 = Http11ResState::End;
-                        Some(Ok(format!("{}\r\n", inner).into_bytes()))
+                        Some(Ok(inner.into_bytes()))
                     }
                     SimpleBody::Bytes(inner) => {
                         // tell the iterator we want it to end
                         self.0 = Http11ResState::End;
-
-                        let mut cloned = inner.clone();
-                        cloned.extend(b"\r\n");
-
-                        Some(Ok(cloned.to_vec()))
+                        Some(Ok(inner.to_vec()))
                     }
                     SimpleBody::Stream(mut streamer_container) => {
                         match streamer_container.take() {
@@ -1240,14 +1318,14 @@ impl Iterator for Http11ResponseIterator {
                                     None => {
                                         // tell the iterator we want it to end
                                         self.0 = Http11ResState::End;
-                                        Some(Ok(b"\r\n".to_vec()))
+                                        Some(Ok(b"".to_vec()))
                                     }
                                 }
                             }
                             None => {
                                 // tell the iterator we want it to end
                                 self.0 = Http11ResState::End;
-                                Some(Ok(b"\r\n".to_vec()))
+                                Some(Ok(b"".to_vec()))
                             }
                         }
                     }
@@ -1270,7 +1348,7 @@ impl Iterator for Http11ResponseIterator {
                     None => {
                         // tell the iterator we want it to end
                         self.0 = Http11ResState::End;
-                        Some(Ok(b"\r\n".to_vec()))
+                        Some(Ok(b"".to_vec()))
                     }
                 }
             }
@@ -1325,13 +1403,50 @@ mod simple_incoming_tests {
                 .with_method(SimpleMethod::GET)
                 .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
                 .add_header(SimpleHeader::HOST, "localhost:8000")
+                .with_body_string("Hello")
                 .build()
                 .unwrap(),
         );
 
         assert_eq!(
             request.http_render_string().unwrap(),
-            "GET / HTTP/1.1\r\nCONTENT-TYPE: application/json\r\nHOST: localhost:8000\r\n\r\n\r\n"
+            "GET / HTTP/1.1\r\nCONTENT-LENGTH: 5\r\nCONTENT-TYPE: application/json\r\nHOST: localhost:8000\r\n\r\nHello"
+        );
+    }
+
+    #[test]
+    fn should_convert_to_get_response() {
+        let request = Http11::response(
+            SimpleOutgoingResponse::builder()
+                .with_status(Status::OK)
+                .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
+                .add_header(SimpleHeader::HOST, "localhost:8000")
+                .with_body_string("Hello")
+                .build()
+                .unwrap(),
+        );
+
+        assert_eq!(
+            request.http_render_string().unwrap(),
+            "HTTP/1.1 200 Ok\r\nCONTENT-LENGTH: 5\r\nCONTENT-TYPE: application/json\r\nHOST: localhost:8000\r\n\r\nHello"
+        );
+    }
+
+    #[test]
+    fn should_convert_to_get_response_with_custom_status() {
+        let request = Http11::response(
+            SimpleOutgoingResponse::builder()
+                .with_status(Status::Custom(666, "Custom status"))
+                .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
+                .add_header(SimpleHeader::HOST, "localhost:8000")
+                .with_body_string("Hello")
+                .build()
+                .unwrap(),
+        );
+
+        assert_eq!(
+            request.http_render_string().unwrap(),
+            "HTTP/1.1 666 Custom status\r\nCONTENT-LENGTH: 5\r\nCONTENT-TYPE: application/json\r\nHOST: localhost:8000\r\n\r\nHello"
         );
     }
 
