@@ -28,6 +28,60 @@ impl<'a> IntoString<'a> for borrow::Cow<'a, str> {
     }
 }
 
+impl<'a> IntoString<'a> for i8 {
+    fn into_string(&self) -> IntoStringResult {
+        Ok(String::from(format!("{}", self)))
+    }
+}
+
+impl<'a> IntoString<'a> for i16 {
+    fn into_string(&self) -> IntoStringResult {
+        Ok(String::from(format!("{}", self)))
+    }
+}
+
+impl<'a> IntoString<'a> for i32 {
+    fn into_string(&self) -> IntoStringResult {
+        Ok(String::from(format!("{}", self)))
+    }
+}
+
+impl<'a> IntoString<'a> for i64 {
+    fn into_string(&self) -> IntoStringResult {
+        Ok(String::from(format!("{}", self)))
+    }
+}
+
+impl<'a> IntoString<'a> for u8 {
+    fn into_string(&self) -> IntoStringResult {
+        Ok(String::from(format!("{}", self)))
+    }
+}
+
+impl<'a> IntoString<'a> for u16 {
+    fn into_string(&self) -> IntoStringResult {
+        Ok(String::from(format!("{}", self)))
+    }
+}
+
+impl<'a> IntoString<'a> for u32 {
+    fn into_string(&self) -> IntoStringResult {
+        Ok(String::from(format!("{}", self)))
+    }
+}
+
+impl<'a> IntoString<'a> for u64 {
+    fn into_string(&self) -> IntoStringResult {
+        Ok(String::from(format!("{}", self)))
+    }
+}
+
+impl<'a> IntoString<'a> for usize {
+    fn into_string(&self) -> IntoStringResult {
+        Ok(String::from(format!("{}", self)))
+    }
+}
+
 impl<'a> IntoString<'a> for Vec<u8> {
     fn into_string(&self) -> IntoStringResult {
         Ok(String::from(
