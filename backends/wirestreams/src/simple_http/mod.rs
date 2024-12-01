@@ -307,7 +307,7 @@ impl FromStr for SimpleHeader {
 impl core::fmt::Display for SimpleHeader {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Custom(inner) => write!(f, "{}", inner),
+            Self::Custom(inner) => write!(f, "{}", inner.to_uppercase()),
             Self::ACCEPT => write!(f, "ACCEPT"),
             Self::ACCEPT_CHARSET => write!(f, "ACCEPT-CHARSET"),
             Self::ACCEPT_ENCODING => write!(f, "ACCEPT-ENCODING"),
@@ -1394,6 +1394,26 @@ impl RenderHttp for Http11 {
 #[cfg(test)]
 mod simple_incoming_tests {
     use super::*;
+
+    #[test]
+    fn should_convert_to_get_request_with_custom_header() {
+        let request = Http11::request(
+            SimpleIncomingRequest::builder()
+                .with_url("/")
+                .with_method(SimpleMethod::GET)
+                .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
+                .add_header(SimpleHeader::HOST, "localhost:8000")
+                .add_header(SimpleHeader::Custom("X-VILLA".into()), "YES")
+                .with_body_string("Hello")
+                .build()
+                .unwrap(),
+        );
+
+        assert_eq!(
+            request.http_render_string().unwrap(),
+            "GET / HTTP/1.1\r\nCONTENT-LENGTH: 5\r\nCONTENT-TYPE: application/json\r\nHOST: localhost:8000\r\nX-VILLA: YES\r\n\r\nHello"
+        );
+    }
 
     #[test]
     fn should_convert_to_get_request() {
