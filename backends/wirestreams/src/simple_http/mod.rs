@@ -565,6 +565,7 @@ impl Status {
 #[derive(Clone, Debug)]
 pub struct SimpleUrl {
     pub url: String,
+    pub url_only: bool,
     pub matcher: Option<regex::Regex>,
     pub params: Option<Vec<String>>,
     pub queries: Option<BTreeMap<String, String>>,
@@ -579,12 +580,14 @@ static CAPTURE_QUERY_KEY_VALUE: &'static str = r"((?P<qk>[^&]+)=(?P<qv>[^&]+))*"
 #[allow(unused)]
 impl SimpleUrl {
     pub(crate) fn new(
+        url_only: bool,
         request_url: String,
         matcher: regex::Regex,
         params: Vec<String>,
         query: BTreeMap<String, String>,
     ) -> SimpleUrl {
         Self {
+            url_only,
             url: request_url,
             queries: Some(query),
             params: Some(params),
@@ -599,6 +602,7 @@ impl SimpleUrl {
     pub fn url_only<S: Into<String>>(request_url: S) -> SimpleUrl {
         Self {
             url: request_url.into(),
+            url_only: true,
             matcher: None,
             queries: None,
             params: None,
@@ -626,6 +630,7 @@ impl SimpleUrl {
         SimpleUrl {
             params,
             queries,
+            url_only: false,
             url: request_url_str,
             matcher: Some(matcher),
         }
@@ -663,8 +668,12 @@ impl SimpleUrl {
                         (false, None)
                     }
                 }
-                None => (false, None),
+                None => (self.url == target, None),
             };
+
+        if self.url_only {
+            return (matched_uri_regex, None);
+        }
 
         if matched_uri_regex {
             return (self.match_queries(target), params);
@@ -695,8 +704,12 @@ impl SimpleUrl {
     pub fn matches_url(&self, target: &str) -> bool {
         let matched_uri_regex = match &self.matcher {
             Some(inner) => inner.is_match(target),
-            None => false,
+            None => self.url == target,
         };
+
+        if self.url_only {
+            return matched_uri_regex;
+        }
 
         if !matched_uri_regex {
             return false;
@@ -888,6 +901,16 @@ mod simple_url_tests {
         assert_eq!(resource_url.params, None);
         assert_eq!(resource_url.queries, None);
         assert!(matches!(resource_url.matcher, None));
+        assert!(resource_url.matches_url("/v1/service/endpoint?userId=123&hello=abc"));
+        assert!(!resource_url.matches_url("/v1/service/endpoint?userId=123&hello=alex"));
+        assert!(matches!(
+            resource_url.extract_matched_url("/v1/service/endpoint?userId=123&hello=abc"),
+            (true, None)
+        ));
+        assert!(matches!(
+            resource_url.extract_matched_url("/v1/service/endpoint?userId=123&hello=alx"),
+            (false, None)
+        ));
     }
 }
 
