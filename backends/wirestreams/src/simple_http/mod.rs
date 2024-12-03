@@ -611,6 +611,13 @@ impl SimpleUrl {
     ///
     /// This is the method to use when constructing your ServiceAction
     /// has it lets you match against specific paths, queries and parameters.
+    ///
+    /// A unique thing to note is the query part of a url (?key=value&..)
+    /// will be extracted and matched against the url when checking
+    /// both `SimpleURL::match_url` and `SimpleURL::extract_matched_url`
+    /// this means the matched URL must match the queries as well except in
+    /// the cases where the value part of your query `key={value}` is a `*`
+    /// which allows you to match any with the condition the key is present.
     pub fn url_with_query<S: Into<String>>(request_url: S) -> SimpleUrl {
         let request_url_str = request_url.into();
         let params = Self::capture_url_params(&request_url_str);
@@ -788,6 +795,31 @@ impl SimpleUrl {
 #[cfg(test)]
 mod simple_url_tests {
     use super::*;
+
+    #[test]
+    fn test_parsed_url_with_multi_params_extracted() {
+        let content = "/v1/service/endpoint/{user_id}/{message}";
+
+        let params: Vec<String> = vec!["user_id".into(), "message".into()];
+
+        let resource_url = SimpleUrl::url_with_query(content);
+
+        assert_eq!(resource_url.url, content);
+        assert_eq!(resource_url.queries, None);
+        assert_eq!(resource_url.params, Some(params));
+        assert!(matches!(resource_url.matcher, Some(_)));
+
+        let (matched, params) = resource_url.extract_matched_url("/v1/service/endpoint/123/hello");
+
+        assert!(matched);
+        assert!(matches!(params, Some(_)));
+
+        let mut expected_params: BTreeMap<String, String> = BTreeMap::new();
+        expected_params.insert("user_id".into(), "123".into());
+        expected_params.insert("message".into(), "hello".into());
+
+        assert_eq!(params.unwrap(), expected_params);
+    }
 
     #[test]
     fn test_parsed_url_with_params_extracted() {
