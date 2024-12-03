@@ -3,7 +3,7 @@ use clonables::{
     WrappedIterator,
 };
 use derive_more::From;
-use foundations_ext::strings_ext::{IntoString, IntoStringError};
+use foundations_ext::strings_ext::{TryIntoString, TryIntoStringError};
 use regex::Regex;
 use std::{
     collections::BTreeMap,
@@ -661,6 +661,11 @@ impl SimpleUrl {
     }
 }
 
+#[cfg(test)]
+mod simple_url_tests {
+    fn test_unparsed_url() {}
+}
+
 pub type SimpleHeaders = BTreeMap<SimpleHeader, String>;
 
 #[derive(Clone)]
@@ -696,7 +701,7 @@ pub type SimpleResponseResult<T> = std::result::Result<T, SimpleResponseError>;
 #[derive(From, Debug)]
 pub enum SimpleResponseError {
     StatusIsRequired,
-    StringConversion(IntoStringError),
+    StringConversion(TryIntoStringError),
 }
 
 impl std::error::Error for SimpleResponseError {}
@@ -774,7 +779,7 @@ impl SimpleOutgoingResponseBuilder {
                     SimpleHeader::CONTENT_LENGTH,
                     inner
                         .len()
-                        .into_string()
+                        .try_into_string()
                         .map_err(SimpleResponseError::StringConversion)?,
                 );
             }
@@ -783,7 +788,7 @@ impl SimpleOutgoingResponseBuilder {
                     SimpleHeader::CONTENT_LENGTH,
                     inner
                         .len()
-                        .into_string()
+                        .try_into_string()
                         .map_err(SimpleResponseError::StringConversion)?,
                 );
             }
@@ -803,7 +808,7 @@ pub type SimpleRequestResult<T> = std::result::Result<T, SimpleRequestError>;
 #[derive(From, Debug)]
 pub enum SimpleRequestError {
     NoURLProvided,
-    StringConversion(IntoStringError),
+    StringConversion(TryIntoStringError),
 }
 
 impl std::error::Error for SimpleRequestError {}
@@ -913,7 +918,7 @@ impl SimpleIncomingRequestBuilder {
                     SimpleHeader::CONTENT_LENGTH,
                     inner
                         .len()
-                        .into_string()
+                        .try_into_string()
                         .map_err(SimpleRequestError::StringConversion)?,
                 );
             }
@@ -922,7 +927,7 @@ impl SimpleIncomingRequestBuilder {
                     SimpleHeader::CONTENT_LENGTH,
                     inner
                         .len()
-                        .into_string()
+                        .try_into_string()
                         .map_err(SimpleRequestError::StringConversion)?,
                 );
             }
@@ -1469,54 +1474,6 @@ mod simple_incoming_tests {
             "HTTP/1.1 666 Custom status\r\nCONTENT-LENGTH: 5\r\nCONTENT-TYPE: application/json\r\nHOST: localhost:8000\r\n\r\nHello"
         );
     }
-
-    // #[test]
-    // fn should_convert_to_response_with_body() {
-    //     let resource = Resource::new("/");
-    //     resource.status(Status::Accepted).body("hello!");
-
-    //     assert_eq!(resource.build_response("/"), "HTTP/1.1 202 Accepted\r\n\r\nhello!");
-    // }
-
-    // #[test]
-    // fn should_allows_custom_status() {
-    //     let resource = Resource::new("/");
-    //     resource.custom_status(666, "The Number Of The Beast").body("hello!");
-
-    //     assert_eq!(resource.build_response("/"), "HTTP/1.1 666 The Number Of The Beast\r\n\r\nhello!");
-    // }
-
-    // #[test]
-    // fn should_overwrite_custom_status_with_status() {
-    //     let resource = Resource::new("/");
-    //     resource.custom_status(666, "The Number Of The Beast").status(Status::Forbidden).body("hello!");
-
-    //     assert_eq!(resource.build_response("/"), "HTTP/1.1 403 Forbidden\r\n\r\nhello!");
-    // }
-
-    // #[test]
-    // fn should_add_headers() {
-    //     let resource = Resource::new("/");
-    //     resource
-    //         .header("Content-Type", "application/json")
-    //         .body("hello!");
-
-    //     assert_eq!(resource.build_response("/"), "HTTP/1.1 200 Ok\r\nContent-Type: application/json\r\n\r\nhello!");
-    // }
-
-    // #[test]
-    // fn should_append_headers() {
-    //     let resource = Resource::new("/");
-    //     resource
-    //         .header("Content-Type", "application/json")
-    //         .header("Connection", "Keep-Alive")
-    //         .body("hello!");
-
-    //     let response = resource.build_response("/");
-
-    //     assert!(response.contains("Content-Type: application/json\r\n"));
-    //     assert!(response.contains("Connection: Keep-Alive\r\n"));
-    // }
 }
 
 pub type SimpleHttpResult<T> = std::result::Result<T, SimpleHttpError>;
