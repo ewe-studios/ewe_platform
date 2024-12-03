@@ -4,7 +4,7 @@
 
 use core::str;
 use ewe_templates::minijinja;
-use foundations_ext::strings_ext::{IntoStr, IntoString};
+use foundations_ext::strings_ext::{TryIntoStr, TryIntoString};
 use std::{io::Write, marker::PhantomData, path::PathBuf, sync};
 
 use crate::{error::BoxedError, FileContent, FileSystemCommand};
@@ -130,14 +130,14 @@ impl<T: rust_embed::Embed> PackageDirectorate for Directorate<T> {
 
         for relevant_path in items.into_iter() {
             let relevant_file = T::get(&relevant_path).unwrap();
-            let relevant_file_data = relevant_file.data.into_str().expect("should be string");
+            let relevant_file_data = relevant_file.data.try_into_str().expect("should be string");
             jinja_env
                 .add_template_owned(
                     relevant_path
-                        .into_string()
+                        .try_into_string()
                         .expect("should turn into String"),
                     relevant_file_data
-                        .into_string()
+                        .try_into_string()
                         .expect("convert into String"),
                 )
                 .expect("should store template");
@@ -441,7 +441,7 @@ impl PackageConfigurator for RustProjectConfigurator {
         params.entry("PACKAGE_DIRECTORY").or_insert(
             self.package_config
                 .directory()
-                .into_string()
+                .try_into_string()
                 .unwrap()
                 .into(),
         );
@@ -523,7 +523,7 @@ impl PackageConfigurator for RustProjectConfigurator {
                             .license_file
                             .clone()
                             .unwrap_or(PathBuf::new())
-                            .into_string()
+                            .try_into_string()
                             .unwrap()
                             .into(),
                     );
@@ -536,35 +536,35 @@ impl PackageConfigurator for RustProjectConfigurator {
                         package
                             .repository
                             .clone()
-                            .unwrap_or("".into_string().unwrap())
+                            .unwrap_or("".try_into_string().unwrap())
                             .into(),
                     );
                     params.entry("ROOT_PACKAGE_VERSION").or_insert(
                         package
                             .rust_version
                             .clone()
-                            .unwrap_or("".into_string().unwrap())
+                            .unwrap_or("".try_into_string().unwrap())
                             .into(),
                     );
                     params.entry("ROOT_PACKAGE_RUST_VERSION").or_insert(
                         package
                             .rust_version
                             .clone()
-                            .unwrap_or("".into_string().unwrap())
+                            .unwrap_or("".try_into_string().unwrap())
                             .into(),
                     );
                     params.entry("ROOT_PACKAGE_LICENSE").or_insert(
                         package
                             .license
                             .clone()
-                            .unwrap_or("".into_string().unwrap())
+                            .unwrap_or("".try_into_string().unwrap())
                             .into(),
                     );
                     params.entry("ROOT_PACKAGE_DESCRIPTIONS").or_insert(
                         package
                             .description
                             .clone()
-                            .unwrap_or("".into_string().unwrap())
+                            .unwrap_or("".try_into_string().unwrap())
                             .into(),
                     );
                     params
@@ -784,7 +784,7 @@ mod package_generator_tests {
     use std::fs;
     use std::path;
 
-    use foundations_ext::strings_ext::IntoString;
+    use foundations_ext::strings_ext::TryIntoString;
     use foundations_ext::vec_ext::VecExt;
 
     use tracing_test::traced_test;
@@ -805,7 +805,7 @@ mod package_generator_tests {
                     return list_dir(&entry.path());
                 }
 
-                vec![entry.path().into_string().unwrap()]
+                vec![entry.path().try_into_string().unwrap()]
             })
             .collect()
     }
@@ -834,7 +834,7 @@ mod package_generator_tests {
             .entry(String::from("PROJECT_DIRECTORY"))
             .or_insert(serde_json::Value::from(
                 project_directory
-                    .into_string()
+                    .try_into_string()
                     .expect("should convert into string"),
             ));
 
@@ -856,7 +856,7 @@ mod package_generator_tests {
         assert_eq!(
             shorten_path(
                 list_dir(&project_directory),
-                project_directory.into_string().unwrap()
+                project_directory.try_into_string().unwrap()
             ),
             vec![
                 "Cargo.toml",
@@ -886,7 +886,7 @@ mod package_generator_tests {
             .entry(String::from("PROJECT_DIRECTORY"))
             .or_insert(serde_json::Value::from(
                 project_directory
-                    .into_string()
+                    .try_into_string()
                     .expect("should convert into string"),
             ));
 
@@ -908,7 +908,7 @@ mod package_generator_tests {
         assert_eq!(
             shorten_path(
                 list_dir(&project_directory),
-                project_directory.into_string().unwrap()
+                project_directory.try_into_string().unwrap()
             ),
             vec![
                 "Cargo.toml",
@@ -937,7 +937,7 @@ mod package_generator_tests {
             .entry(String::from("PROJECT_DIRECTORY"))
             .or_insert(serde_json::Value::from(
                 project_directory
-                    .into_string()
+                    .try_into_string()
                     .expect("should convert into string"),
             ));
 
@@ -953,7 +953,7 @@ mod package_generator_tests {
         assert_eq!(
             shorten_path(
                 list_dir(&project_directory),
-                project_directory.clone().into_string().unwrap()
+                project_directory.clone().try_into_string().unwrap()
             ),
             vec!["retro_project/index.html"].to_vec_string()
         );

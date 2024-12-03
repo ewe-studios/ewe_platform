@@ -3,7 +3,7 @@ use ewe_temple::{
     Directorate, PackageConfig, PackageConfigurator, PackageGenerator, RustConfig,
     RustProjectConfigurator,
 };
-use foundations_ext::strings_ext::IntoString;
+use foundations_ext::strings_ext::TryIntoString;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
@@ -70,13 +70,18 @@ impl LanguageSupport {
                 params
                     .entry(String::from("ROOT_PROJECT_DIRECTORY"))
                     .or_insert(serde_json::Value::from(
-                        root_directory.clone().into_string().expect("can be string"),
+                        root_directory
+                            .clone()
+                            .try_into_string()
+                            .expect("can be string"),
                     ));
 
                 params
                     .entry(String::from("PROJECT_DIRECTORY"))
                     .or_insert(serde_json::Value::from(
-                        new_project_directory.into_string().expect("can be string"),
+                        new_project_directory
+                            .try_into_string()
+                            .expect("can be string"),
                     ));
 
                 Ok(Box::new(PackageConfig::new(
@@ -104,13 +109,18 @@ impl LanguageSupport {
                 params
                     .entry(String::from("ROOT_PROJECT_DIRECTORY"))
                     .or_insert(serde_json::Value::from(
-                        root_directory.clone().into_string().expect("can be string"),
+                        root_directory
+                            .clone()
+                            .try_into_string()
+                            .expect("can be string"),
                     ));
 
                 params
                     .entry(String::from("PROJECT_DIRECTORY"))
                     .or_insert(serde_json::Value::from(
-                        new_project_directory.into_string().expect("can be string"),
+                        new_project_directory
+                            .try_into_string()
+                            .expect("can be string"),
                     ));
 
                 let package_config =
