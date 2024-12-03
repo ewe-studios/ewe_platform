@@ -562,12 +562,12 @@ impl Status {
 }
 
 /// ActUrl represents a url string and query parameters hashmap
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct SimpleUrl {
     pub url: String,
     pub matcher: Option<regex::Regex>,
     pub params: Option<Vec<String>>,
-    pub query: Option<BTreeMap<String, String>>,
+    pub queries: Option<BTreeMap<String, String>>,
 }
 
 static CAPTURE_QUERY: &'static str = r"\?.*";
@@ -586,7 +586,7 @@ impl SimpleUrl {
     ) -> SimpleUrl {
         Self {
             url: request_url,
-            query: Some(query),
+            queries: Some(query),
             params: Some(params),
             matcher: Some(matcher),
         }
@@ -596,11 +596,11 @@ impl SimpleUrl {
     /// will not have queries or parameters to be extracted.
     /// Generally you will use this on the server side when representing
     /// a request with no queries or parameters.
-    pub fn url_only(request_url: String) -> SimpleUrl {
+    pub fn url_only<S: Into<String>>(request_url: S) -> SimpleUrl {
         Self {
-            url: request_url,
+            url: request_url.into(),
             matcher: None,
-            query: None,
+            queries: None,
             params: None,
         }
     }
@@ -611,26 +611,144 @@ impl SimpleUrl {
     ///
     /// This is the method to use when constructing your ServiceAction
     /// has it lets you match against specific paths, queries and parameters.
-    pub fn url_with_query(request_url: String) -> SimpleUrl {
-        let params = Self::capture_url_params(&request_url);
-        let matcher = Self::capture_path_pattern(&request_url);
-        let queries = Self::capture_query_hashmap(&request_url);
+    pub fn url_with_query<S: Into<String>>(request_url: S) -> SimpleUrl {
+        let request_url_str = request_url.into();
+        let params = Self::capture_url_params(&request_url_str);
+        let matcher = Self::capture_path_pattern(&request_url_str);
+        let queries = Self::capture_query_hashmap(&request_url_str);
         SimpleUrl {
-            url: request_url,
-            query: Some(queries),
-            params: Some(params),
+            params,
+            queries,
+            url: request_url_str,
             matcher: Some(matcher),
         }
     }
 
-    pub fn capture_url_params(url: &str) -> Vec<String> {
+    pub fn extract_matched_url(&self, target: &str) -> (bool, Option<BTreeMap<String, String>>) {
+        let (matched_uri_regex, params): (bool, Option<BTreeMap<String, String>>) =
+            match &self.matcher {
+                Some(inner) => {
+                    if inner.is_match(target) {
+                        let extracted_params: Vec<String> = inner
+                            .captures_iter(target)
+                            .flat_map(|cap| {
+                                let mut captures: Vec<String> = Vec::new();
+
+                                // since the 0 index is always the full string
+                                // then start capture from index 1.
+                                for index in (1..cap.len()) {
+                                    if let Some(item) = cap.get(index) {
+                                        captures.push(String::from(item.as_str()));
+                                        continue;
+                                    }
+                                    break;
+                                }
+
+                                captures
+                            })
+                            .collect();
+
+                        match self.merge_params(extracted_params) {
+                            Some(params) => (true, Some(params)),
+                            None => (false, None),
+                        }
+                    } else {
+                        (false, None)
+                    }
+                }
+                None => (false, None),
+            };
+
+        if matched_uri_regex {
+            return (self.match_queries(target), params);
+        }
+
+        return (false, params);
+    }
+
+    fn merge_params(&self, extracted: Vec<String>) -> Option<BTreeMap<String, String>> {
+        match &self.params {
+            Some(inner) => {
+                if inner.len() != extracted.len() {
+                    return None;
+                }
+
+                let mut items: BTreeMap<String, String> = BTreeMap::new();
+                for index in (0..inner.len()) {
+                    let key = inner[index].clone();
+                    let value = extracted[index].clone();
+                    items.insert(key, value);
+                }
+                Some(items)
+            }
+            None => None,
+        }
+    }
+
+    pub fn matches_url(&self, target: &str) -> bool {
+        let matched_uri_regex = match &self.matcher {
+            Some(inner) => inner.is_match(target),
+            None => false,
+        };
+
+        if !matched_uri_regex {
+            return false;
+        }
+
+        self.match_queries(target)
+    }
+
+    pub(crate) fn match_queries(&self, target: &str) -> bool {
+        let target_queries = Self::capture_query_hashmap(target);
+
+        if self.queries.is_none() && target_queries.is_none() {
+            return true;
+        }
+        if self.queries.is_none() && target_queries.is_some() {
+            return false;
+        }
+        if self.queries.is_some() && target_queries.is_none() {
+            return false;
+        }
+
+        match &self.queries {
+            Some(inner) => match target_queries {
+                Some(extracted_queries) => {
+                    let mut found = true;
+                    for (expected_key, expected_value) in inner.iter() {
+                        if let Some(value) = extracted_queries.get(expected_key) {
+                            if expected_value != value && expected_value != "*" {
+                                found = false;
+                                break;
+                            }
+                            continue;
+                        }
+
+                        found = false;
+                        break;
+                    }
+                    found
+                }
+                None => false,
+            },
+            None => false,
+        }
+    }
+
+    pub fn capture_url_params(url: &str) -> Option<Vec<String>> {
         let re = Regex::new(CAPTURE_PARAM_STR).unwrap();
-        re.captures_iter(url)
+        let params: Vec<String> = re
+            .captures_iter(url)
             .filter_map(|cap| match cap.name("p") {
                 Some(p) => Some(String::from(p.as_str())),
                 None => None,
             })
-            .collect()
+            .collect();
+
+        if params.is_empty() {
+            return None;
+        }
+        Some(params)
     }
 
     pub fn capture_path_pattern(url: &str) -> regex::Regex {
@@ -641,12 +759,13 @@ impl SimpleUrl {
         Regex::new(&pattern).unwrap()
     }
 
-    pub fn capture_query_hashmap(url: &str) -> BTreeMap<String, String> {
+    pub fn capture_query_hashmap(url: &str) -> Option<BTreeMap<String, String>> {
         let re = Regex::new(CAPTURE_QUERY_KEY_VALUE).unwrap();
         let path_regex = Regex::new(CAPTURE_PATH).unwrap();
         let only_query_parameters = path_regex.replace(url, "");
 
-        re.captures_iter(&only_query_parameters)
+        let queries: BTreeMap<String, String> = re
+            .captures_iter(&only_query_parameters)
             .filter_map(|cap| {
                 if let Some(query_key) = cap.name("qk") {
                     let query_value = match cap.name("qv") {
@@ -657,13 +776,86 @@ impl SimpleUrl {
                 }
                 None
             })
-            .collect()
+            .collect();
+
+        if queries.is_empty() {
+            return None;
+        }
+        Some(queries)
     }
 }
 
 #[cfg(test)]
 mod simple_url_tests {
-    fn test_unparsed_url() {}
+    use super::*;
+
+    #[test]
+    fn test_parsed_url_with_params_extracted() {
+        let content = "/v1/service/endpoint/{user_id}/message";
+
+        let params: Vec<String> = vec!["user_id".into()];
+
+        let resource_url = SimpleUrl::url_with_query(content);
+
+        assert_eq!(resource_url.url, content);
+        assert_eq!(resource_url.queries, None);
+        assert_eq!(resource_url.params, Some(params));
+        assert!(matches!(resource_url.matcher, Some(_)));
+
+        let (matched, params) =
+            resource_url.extract_matched_url("/v1/service/endpoint/123/message");
+
+        assert!(matched);
+        assert!(matches!(params, Some(_)));
+
+        let mut expected_params: BTreeMap<String, String> = BTreeMap::new();
+        expected_params.insert("user_id".into(), "123".into());
+
+        assert_eq!(params.unwrap(), expected_params);
+    }
+
+    #[test]
+    fn test_parsed_url_with_params() {
+        let content = "/v1/service/endpoint/{user_id}/message";
+
+        let params: Vec<String> = vec!["user_id".into()];
+
+        let resource_url = SimpleUrl::url_with_query(content);
+
+        assert_eq!(resource_url.url, content);
+        assert_eq!(resource_url.queries, None);
+        assert_eq!(resource_url.params, Some(params));
+        assert!(matches!(resource_url.matcher, Some(_)));
+
+        assert!(resource_url.matches_url("/v1/service/endpoint/123/message"));
+    }
+
+    #[test]
+    fn test_parsed_url_with_queries() {
+        let content = "/v1/service/endpoint?userId=123&hello=abc";
+        let mut queries: BTreeMap<String, String> = BTreeMap::new();
+        queries.insert("userId".into(), "123".into());
+        queries.insert("hello".into(), "abc".into());
+
+        let resource_url = SimpleUrl::url_with_query(content);
+        assert_eq!(resource_url.url, content);
+        assert_eq!(resource_url.params, None);
+        assert_eq!(resource_url.queries, Some(queries));
+        assert!(matches!(resource_url.matcher, Some(_)));
+        assert!(resource_url.matches_url("/v1/service/endpoint?userId=123&hello=abc"));
+        assert!(!resource_url.matches_url("/v1/service/endpoint?userId=567&hello=abc"));
+        assert!(!resource_url.matches_url("/v1/service/endpoint?userId=123&hello=bda"));
+    }
+
+    #[test]
+    fn test_unparsed_url() {
+        let content = "/v1/service/endpoint?userId=123&hello=abc";
+        let resource_url = SimpleUrl::url_only(content);
+        assert_eq!(resource_url.url, content);
+        assert_eq!(resource_url.params, None);
+        assert_eq!(resource_url.queries, None);
+        assert!(matches!(resource_url.matcher, None));
+    }
 }
 
 pub type SimpleHeaders = BTreeMap<SimpleHeader, String>;
