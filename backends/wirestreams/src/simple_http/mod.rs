@@ -860,6 +860,7 @@ mod simple_url_tests {
         assert!(matches!(resource_url.matcher, Some(_)));
 
         assert!(resource_url.matches_url("/v1/service/endpoint/123/message"));
+        assert!(!resource_url.matches_url("/v1/service/endpoint/123/hello"));
     }
 
     #[test]
