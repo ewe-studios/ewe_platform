@@ -32,6 +32,10 @@ pub struct TestServer {
 
 impl TestServer {
     pub fn serve(&mut self) {
+        if let Some(_) = &self.listener {
+            return;
+        }
+
         let port = self.port;
         let address = self.address.clone();
         let actions = self.actions.clone();
@@ -52,16 +56,17 @@ impl TestServer {
                     break;
                 }
 
-                Self::serve_connection(&stream, actions.clone(), tx.clone());
+                Self::serve_connection(stream, actions.clone(), tx.clone());
             }
         }));
     }
 
     fn serve_connection(
-        stream: &TcpStream,
+        stream: TcpStream,
         actions: Vec<ServiceAction>,
         sender: mpsc::Sender<SimpleIncomingRequest>,
     ) {
+        // let request_reader =
         todo!()
     }
 }
