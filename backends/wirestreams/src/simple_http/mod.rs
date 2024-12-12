@@ -1,13 +1,13 @@
-use clonables::{
-    ClonableFnMut, ClonableStringIterator, ClonableVecIterator, WrappedClonableFnMut,
-    WrappedIterator,
-};
+use clonables::{ClonableFnMut, ClonableStringIterator, ClonableVecIterator, WrappedIterator};
 use derive_more::From;
 use foundations_ext::strings_ext::{TryIntoString, TryIntoStringError};
 use regex::Regex;
 use std::{
+    cell,
     collections::BTreeMap,
     convert::Infallible,
+    io::{self, BufRead},
+    net::TcpStream,
     str::FromStr,
     string::{FromUtf16Error, FromUtf8Error},
 };
@@ -60,6 +60,7 @@ impl core::fmt::Display for RenderHttpError {
 
 /// RenderHttp lets types implement the ability to be rendered into
 /// http protocol which makes it easily for more structured types.
+#[allow(unused)]
 trait RenderHttp: Send {
     type Error: From<FromUtf8Error> + From<BoxedError> + Send + 'static;
 
@@ -120,7 +121,7 @@ trait RenderHttp: Send {
 
 /// HTTP Headers
 #[allow(non_camel_case_types)]
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum SimpleHeader {
     ACCEPT,
     ACCEPT_CHARSET,
@@ -212,95 +213,101 @@ impl SimpleHeader {
     }
 }
 
+impl From<String> for SimpleHeader {
+    fn from(value: String) -> Self {
+        let upper = value.to_uppercase();
+        match upper.as_str() {
+            "ACCEPT" => Self::ACCEPT,
+            "ACCEPT-CHARSET" => Self::ACCEPT_CHARSET,
+            "ACCEPT-ENCODING" => Self::ACCEPT_ENCODING,
+            "ACCEPT-LANGUAGE" => Self::ACCEPT_LANGUAGE,
+            "ACCEPT-RANGES" => Self::ACCEPT_RANGES,
+            "ACCESS-CONTROL-ALLOW-CREDENTIALS" => Self::ACCESS_CONTROL_ALLOW_CREDENTIALS,
+            "ACCESS-CONTROL-ALLOW-HEADERS" => Self::ACCESS_CONTROL_ALLOW_HEADERS,
+            "ACCESS-CONTROL-ALLOW-METHODS" => Self::ACCESS_CONTROL_ALLOW_METHODS,
+            "ACCESS-CONTROL-ALLOW-ORIGIN" => Self::ACCESS_CONTROL_ALLOW_ORIGIN,
+            "ACCESS-CONTROL-EXPOSE-HEADERS" => Self::ACCESS_CONTROL_EXPOSE_HEADERS,
+            "ACCESS-CONTROL-MAX-AGE" => Self::ACCESS_CONTROL_MAX_AGE,
+            "ACCESS-CONTROL-REQUEST-HEADERS" => Self::ACCESS_CONTROL_REQUEST_HEADERS,
+            "ACCESS-CONTROL-REQUEST-METHOD" => Self::ACCESS_CONTROL_REQUEST_METHOD,
+            "AGE" => Self::AGE,
+            "ALLOW" => Self::ALLOW,
+            "ALT-SVC" => Self::ALT_SVC,
+            "AUTHORIZATION" => Self::AUTHORIZATION,
+            "CACHE-CONTROL" => Self::CACHE_CONTROL,
+            "CACHE-STATUS" => Self::CACHE_STATUS,
+            "CDN-CACHE-CONTROL" => Self::CDN_CACHE_CONTROL,
+            "CONNECTION" => Self::CONNECTION,
+            "CONTENT-DISPOSITION" => Self::CONTENT_DISPOSITION,
+            "CONTENT-ENCODING" => Self::CONTENT_ENCODING,
+            "CONTENT-LANGUAGE" => Self::CONTENT_LANGUAGE,
+            "CONTENT-LENGTH" => Self::CONTENT_LENGTH,
+            "CONTENT-LOCATION" => Self::CONTENT_LOCATION,
+            "CONTENT-RANGE" => Self::CONTENT_RANGE,
+            "CONTENT-SECURITY-POLICY" => Self::CONTENT_SECURITY_POLICY,
+            "CONTENT-SECURITY-POLICY-REPORT-ONLY" => Self::CONTENT_SECURITY_POLICY_REPORT_ONLY,
+            "CONTENT-TYPE" => Self::CONTENT_TYPE,
+            "COOKIE" => Self::COOKIE,
+            "DNT" => Self::DNT,
+            "DATE" => Self::DATE,
+            "ETAG" => Self::ETAG,
+            "EXPECT" => Self::EXPECT,
+            "EXPIRES" => Self::EXPIRES,
+            "FORWARDED" => Self::FORWARDED,
+            "FROM" => Self::FROM,
+            "HOST" => Self::HOST,
+            "IF-MATCH" => Self::IF_MATCH,
+            "IF-MODIFIED-SINCE" => Self::IF_MODIFIED_SINCE,
+            "IF-NONE-MATCH" => Self::IF_NONE_MATCH,
+            "IF-RANGE" => Self::IF_RANGE,
+            "IF-UNMODIFIED-SINCE" => Self::IF_UNMODIFIED_SINCE,
+            "LAST-MODIFIED" => Self::LAST_MODIFIED,
+            "LINK" => Self::LINK,
+            "LOCATION" => Self::LOCATION,
+            "MAX-FORWARDS" => Self::MAX_FORWARDS,
+            "ORIGIN" => Self::ORIGIN,
+            "PRAGMA" => Self::PRAGMA,
+            "PROXY-AUTHENTICATE" => Self::PROXY_AUTHENTICATE,
+            "PROXY-AUTHORIZATION" => Self::PROXY_AUTHORIZATION,
+            "PUBLIC-KEY-PINS" => Self::PUBLIC_KEY_PINS,
+            "PUBLIC-KEY-PINS-REPORT-ONLY" => Self::PUBLIC_KEY_PINS_REPORT_ONLY,
+            "RANGE" => Self::RANGE,
+            "REFERER" => Self::REFERER,
+            "REFERRER-POLICY" => Self::REFERRER_POLICY,
+            "REFRESH" => Self::REFRESH,
+            "RETRY-AFTER" => Self::RETRY_AFTER,
+            "SEC-WEBSOCKET-ACCEPT" => Self::SEC_WEBSOCKET_ACCEPT,
+            "SEC-WEBSOCKET-EXTENSIONS" => Self::SEC_WEBSOCKET_EXTENSIONS,
+            "SEC-WEBSOCKET-KEY" => Self::SEC_WEBSOCKET_KEY,
+            "SEC-WEBSOCKET-PROTOCOL" => Self::SEC_WEBSOCKET_PROTOCOL,
+            "SEC-WEBSOCKET-VERSION" => Self::SEC_WEBSOCKET_VERSION,
+            "SERVER" => Self::SERVER,
+            "SET-COOKIE" => Self::SET_COOKIE,
+            "STRICT-TRANSPORT-SECURITY" => Self::STRICT_TRANSPORT_SECURITY,
+            "TE" => Self::TE,
+            "TRAILER" => Self::TRAILER,
+            "TRANSFER-ENCODING" => Self::TRANSFER_ENCODING,
+            "UPGRADE" => Self::UPGRADE,
+            "UPGRADE-INSECURE-REQUESTS" => Self::UPGRADE_INSECURE_REQUESTS,
+            "USER-AGENT" => Self::USER_AGENT,
+            "VARY" => Self::VARY,
+            "VIA" => Self::VIA,
+            "WARNING" => Self::WARNING,
+            "WWW-AUTHENTICATE" => Self::WWW_AUTHENTICATE,
+            "X-CONTENT-TYPE-OPTIONS" => Self::X_CONTENT_TYPE_OPTIONS,
+            "X-DNS-PREFETCH-CONTROL" => Self::X_DNS_PREFETCH_CONTROL,
+            "X-FRAME-OPTIONS" => Self::X_FRAME_OPTIONS,
+            "X-XSS-PROTECTION" => Self::X_XSS_PROTECTION,
+            _ => Self::Custom(upper),
+        }
+    }
+}
+
 impl FromStr for SimpleHeader {
     type Err = Infallible;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let upper = s.to_uppercase();
-        match upper.as_str() {
-            "ACCEPT" => Ok(Self::ACCEPT),
-            "ACCEPT-CHARSET" => Ok(Self::ACCEPT_CHARSET),
-            "ACCEPT-ENCODING" => Ok(Self::ACCEPT_ENCODING),
-            "ACCEPT-LANGUAGE" => Ok(Self::ACCEPT_LANGUAGE),
-            "ACCEPT-RANGES" => Ok(Self::ACCEPT_RANGES),
-            "ACCESS-CONTROL-ALLOW-CREDENTIALS" => Ok(Self::ACCESS_CONTROL_ALLOW_CREDENTIALS),
-            "ACCESS-CONTROL-ALLOW-HEADERS" => Ok(Self::ACCESS_CONTROL_ALLOW_HEADERS),
-            "ACCESS-CONTROL-ALLOW-METHODS" => Ok(Self::ACCESS_CONTROL_ALLOW_METHODS),
-            "ACCESS-CONTROL-ALLOW-ORIGIN" => Ok(Self::ACCESS_CONTROL_ALLOW_ORIGIN),
-            "ACCESS-CONTROL-EXPOSE-HEADERS" => Ok(Self::ACCESS_CONTROL_EXPOSE_HEADERS),
-            "ACCESS-CONTROL-MAX-AGE" => Ok(Self::ACCESS_CONTROL_MAX_AGE),
-            "ACCESS-CONTROL-REQUEST-HEADERS" => Ok(Self::ACCESS_CONTROL_REQUEST_HEADERS),
-            "ACCESS-CONTROL-REQUEST-METHOD" => Ok(Self::ACCESS_CONTROL_REQUEST_METHOD),
-            "AGE" => Ok(Self::AGE),
-            "ALLOW" => Ok(Self::ALLOW),
-            "ALT-SVC" => Ok(Self::ALT_SVC),
-            "AUTHORIZATION" => Ok(Self::AUTHORIZATION),
-            "CACHE-CONTROL" => Ok(Self::CACHE_CONTROL),
-            "CACHE-STATUS" => Ok(Self::CACHE_STATUS),
-            "CDN-CACHE-CONTROL" => Ok(Self::CDN_CACHE_CONTROL),
-            "CONNECTION" => Ok(Self::CONNECTION),
-            "CONTENT-DISPOSITION" => Ok(Self::CONTENT_DISPOSITION),
-            "CONTENT-ENCODING" => Ok(Self::CONTENT_ENCODING),
-            "CONTENT-LANGUAGE" => Ok(Self::CONTENT_LANGUAGE),
-            "CONTENT-LENGTH" => Ok(Self::CONTENT_LENGTH),
-            "CONTENT-LOCATION" => Ok(Self::CONTENT_LOCATION),
-            "CONTENT-RANGE" => Ok(Self::CONTENT_RANGE),
-            "CONTENT-SECURITY-POLICY" => Ok(Self::CONTENT_SECURITY_POLICY),
-            "CONTENT-SECURITY-POLICY-REPORT-ONLY" => Ok(Self::CONTENT_SECURITY_POLICY_REPORT_ONLY),
-            "CONTENT-TYPE" => Ok(Self::CONTENT_TYPE),
-            "COOKIE" => Ok(Self::COOKIE),
-            "DNT" => Ok(Self::DNT),
-            "DATE" => Ok(Self::DATE),
-            "ETAG" => Ok(Self::ETAG),
-            "EXPECT" => Ok(Self::EXPECT),
-            "EXPIRES" => Ok(Self::EXPIRES),
-            "FORWARDED" => Ok(Self::FORWARDED),
-            "FROM" => Ok(Self::FROM),
-            "HOST" => Ok(Self::HOST),
-            "IF-MATCH" => Ok(Self::IF_MATCH),
-            "IF-MODIFIED-SINCE" => Ok(Self::IF_MODIFIED_SINCE),
-            "IF-NONE-MATCH" => Ok(Self::IF_NONE_MATCH),
-            "IF-RANGE" => Ok(Self::IF_RANGE),
-            "IF-UNMODIFIED-SINCE" => Ok(Self::IF_UNMODIFIED_SINCE),
-            "LAST-MODIFIED" => Ok(Self::LAST_MODIFIED),
-            "LINK" => Ok(Self::LINK),
-            "LOCATION" => Ok(Self::LOCATION),
-            "MAX-FORWARDS" => Ok(Self::MAX_FORWARDS),
-            "ORIGIN" => Ok(Self::ORIGIN),
-            "PRAGMA" => Ok(Self::PRAGMA),
-            "PROXY-AUTHENTICATE" => Ok(Self::PROXY_AUTHENTICATE),
-            "PROXY-AUTHORIZATION" => Ok(Self::PROXY_AUTHORIZATION),
-            "PUBLIC-KEY-PINS" => Ok(Self::PUBLIC_KEY_PINS),
-            "PUBLIC-KEY-PINS-REPORT-ONLY" => Ok(Self::PUBLIC_KEY_PINS_REPORT_ONLY),
-            "RANGE" => Ok(Self::RANGE),
-            "REFERER" => Ok(Self::REFERER),
-            "REFERRER-POLICY" => Ok(Self::REFERRER_POLICY),
-            "REFRESH" => Ok(Self::REFRESH),
-            "RETRY-AFTER" => Ok(Self::RETRY_AFTER),
-            "SEC-WEBSOCKET-ACCEPT" => Ok(Self::SEC_WEBSOCKET_ACCEPT),
-            "SEC-WEBSOCKET-EXTENSIONS" => Ok(Self::SEC_WEBSOCKET_EXTENSIONS),
-            "SEC-WEBSOCKET-KEY" => Ok(Self::SEC_WEBSOCKET_KEY),
-            "SEC-WEBSOCKET-PROTOCOL" => Ok(Self::SEC_WEBSOCKET_PROTOCOL),
-            "SEC-WEBSOCKET-VERSION" => Ok(Self::SEC_WEBSOCKET_VERSION),
-            "SERVER" => Ok(Self::SERVER),
-            "SET-COOKIE" => Ok(Self::SET_COOKIE),
-            "STRICT-TRANSPORT-SECURITY" => Ok(Self::STRICT_TRANSPORT_SECURITY),
-            "TE" => Ok(Self::TE),
-            "TRAILER" => Ok(Self::TRAILER),
-            "TRANSFER-ENCODING" => Ok(Self::TRANSFER_ENCODING),
-            "UPGRADE" => Ok(Self::UPGRADE),
-            "UPGRADE-INSECURE-REQUESTS" => Ok(Self::UPGRADE_INSECURE_REQUESTS),
-            "USER-AGENT" => Ok(Self::USER_AGENT),
-            "VARY" => Ok(Self::VARY),
-            "VIA" => Ok(Self::VIA),
-            "WARNING" => Ok(Self::WARNING),
-            "WWW-AUTHENTICATE" => Ok(Self::WWW_AUTHENTICATE),
-            "X-CONTENT-TYPE-OPTIONS" => Ok(Self::X_CONTENT_TYPE_OPTIONS),
-            "X-DNS-PREFETCH-CONTROL" => Ok(Self::X_DNS_PREFETCH_CONTROL),
-            "X-FRAME-OPTIONS" => Ok(Self::X_FRAME_OPTIONS),
-            "X-XSS-PROTECTION" => Ok(Self::X_XSS_PROTECTION),
-            _ => Ok(Self::Custom(upper)),
-        }
+        Ok(Self::from(String::from(s)))
     }
 }
 
@@ -403,6 +410,7 @@ pub enum SimpleMethod {
     PUT,
     DELETE,
     PATCH,
+    Custom(String),
 }
 
 impl core::fmt::Display for SimpleMethod {
@@ -411,14 +419,41 @@ impl core::fmt::Display for SimpleMethod {
     }
 }
 
+impl From<&str> for SimpleMethod {
+    fn from(value: &str) -> Self {
+        match value {
+            "GET" => Self::GET,
+            "POST" => Self::POST,
+            "PUT" => Self::PUT,
+            "DELETE" => Self::DELETE,
+            "PATCH" => Self::PATCH,
+            _ => Self::Custom(value.into()),
+        }
+    }
+}
+
+impl From<String> for SimpleMethod {
+    fn from(value: String) -> Self {
+        match value.to_uppercase().as_str() {
+            "GET" => Self::GET,
+            "POST" => Self::POST,
+            "PUT" => Self::PUT,
+            "DELETE" => Self::DELETE,
+            "PATCH" => Self::PATCH,
+            _ => Self::Custom(value),
+        }
+    }
+}
+
 impl SimpleMethod {
-    fn value(&self) -> &'static str {
+    fn value(&self) -> String {
         match self {
-            SimpleMethod::GET => "GET",
-            SimpleMethod::POST => "POST",
-            SimpleMethod::PUT => "PUT",
-            SimpleMethod::DELETE => "DELETE",
-            SimpleMethod::PATCH => "PATCH",
+            SimpleMethod::GET => "GET".into(),
+            SimpleMethod::POST => "POST".into(),
+            SimpleMethod::PUT => "PUT".into(),
+            SimpleMethod::DELETE => "DELETE".into(),
+            SimpleMethod::PATCH => "PATCH".into(),
+            SimpleMethod::Custom(inner) => inner.clone(),
         }
     }
 
@@ -660,9 +695,14 @@ impl SimpleUrl {
                             })
                             .collect();
 
-                        match self.merge_params(extracted_params) {
-                            Some(params) => (true, Some(params)),
-                            None => (false, None),
+                        dbg!(&extracted_params);
+                        if self.params.is_none() {
+                            (true, None)
+                        } else {
+                            match self.merge_params(extracted_params) {
+                                Some(params) => (true, Some(params)),
+                                None => (false, None),
+                            }
                         }
                     } else {
                         (false, None)
@@ -808,6 +848,16 @@ impl SimpleUrl {
 #[cfg(test)]
 mod simple_url_tests {
     use super::*;
+
+    #[test]
+    fn test_parsed_url_without_any_special_elements() {
+        let content = "/v1/service/endpoint";
+        let resource_url = SimpleUrl::url_with_query(content);
+        let (matched, params) = resource_url.extract_matched_url("/v1/service/endpoint");
+
+        assert!(matched);
+        assert!(matches!(params, None));
+    }
 
     #[test]
     fn test_parsed_url_with_multi_params_extracted() {
@@ -1203,7 +1253,6 @@ pub enum Http11RenderError {
     Failed(BoxedError),
 
     HeadersRequired,
-    FailedThreadAcquire,
     InvalidSituationUsedIterator,
 }
 
@@ -1820,16 +1869,214 @@ impl SimpleActionResponseBuilder {
     }
 }
 
+#[derive(From, Debug)]
+pub enum HttpReaderError {
+    #[from(ignore)]
+    InvalidLine(String),
+
+    #[from(ignore)]
+    UnknownLine(String),
+
+    ExpectedSizedBodyViaContentLength,
+
+    ReadFailed,
+
+    LineReadFailed(BoxedError),
+    InvalidContentSizeValue(Box<std::num::ParseIntError>),
+}
+
+impl std::error::Error for HttpReaderError {}
+
+impl core::fmt::Display for HttpReaderError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
+
+pub enum IncomingRequestParts {
+    Intro(SimpleMethod, SimpleUrl),
+    Headers(SimpleHeaders),
+    Body(ClonableVecIterator<BoxedError>),
+}
+
+impl core::fmt::Display for IncomingRequestParts {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Intro(method, url) => write!(f, "Intro({:?}, {:?})", method, url),
+            Self::Headers(headers) => write!(f, "Headers({:?})", headers),
+            Self::Body(_) => write!(f, "Body(_)"),
+        }
+    }
+}
+
+impl Clone for IncomingRequestParts {
+    fn clone(&self) -> Self {
+        match self {
+            Self::Intro(method, url) => Self::Intro(method.clone(), url.clone()),
+            Self::Headers(headers) => Self::Headers(headers.clone()),
+            Self::Body(body) => Self::Body(body.clone_box()),
+        }
+    }
+}
+
+pub type SharedTCPStream = std::rc::Rc<cell::RefCell<io::BufReader<TcpStream>>>;
+
+pub type BodySize = u64;
+pub type TransferEncodng = String;
+
+#[derive(Clone, Debug)]
+pub enum Body {
+    LimitedBody(BodySize, SimpleHeaders),
+    ChunkedBody(TransferEncodng, SimpleHeaders),
+}
+
+#[derive(Clone, Debug)]
+pub enum HttpReadState {
+    Intro,
+    Headers,
+    Body(Body),
+    Finished,
+}
+
+#[derive(Clone)]
+pub struct HttpReader<F: Fn(Body, SharedTCPStream) -> ClonableVecIterator<BoxedError>> {
+    reader: SharedTCPStream,
+    state: HttpReadState,
+    bodies: F,
+}
+
+impl<F> HttpReader<F>
+where
+    F: Fn(Body, SharedTCPStream) -> ClonableVecIterator<BoxedError>,
+{
+    pub fn new(reader: io::BufReader<TcpStream>, bodies: F) -> Self {
+        Self {
+            bodies,
+            state: HttpReadState::Intro,
+            reader: std::rc::Rc::new(cell::RefCell::new(reader)),
+        }
+    }
+}
+
+impl<F> Iterator for HttpReader<F>
+where
+    F: Fn(Body, SharedTCPStream) -> ClonableVecIterator<BoxedError>,
+{
+    type Item = BoxedResult<IncomingRequestParts, HttpReaderError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match &self.state {
+            HttpReadState::Intro => {
+                let mut line = String::new();
+                let mut borrowed_reader = self.reader.borrow_mut();
+                let line_read_result = borrowed_reader
+                    .read_line(&mut line)
+                    .map_err(|err| HttpReaderError::LineReadFailed(Box::new(err)));
+
+                if line_read_result.is_err() {
+                    self.state = HttpReadState::Finished;
+                    return Some(Err(line_read_result.unwrap_err()));
+                }
+
+                let intro_parts: Vec<&str> = line.split_whitespace().collect();
+
+                // if the lines is more than two then this is not
+                // allowed or wanted, so fail immediately.
+                if intro_parts.len() > 2 {
+                    self.state = HttpReadState::Finished;
+                    return Some(Err(HttpReaderError::InvalidLine(line.clone())));
+                }
+
+                self.state = HttpReadState::Headers;
+
+                Some(Ok(IncomingRequestParts::Intro(
+                    SimpleMethod::from(intro_parts[0].to_string()),
+                    SimpleUrl::url_with_query(intro_parts[1].to_string()),
+                )))
+            }
+            HttpReadState::Headers => {
+                let mut headers: SimpleHeaders = BTreeMap::new();
+
+                let mut line = String::new();
+                let mut borrowed_reader = self.reader.borrow_mut();
+
+                loop {
+                    let line_read_result = borrowed_reader
+                        .read_line(&mut line)
+                        .map_err(|err| HttpReaderError::LineReadFailed(Box::new(err)));
+
+                    if line_read_result.is_err() {
+                        self.state = HttpReadState::Finished;
+                        return Some(Err(line_read_result.unwrap_err()));
+                    }
+
+                    if line == "" {
+                        break;
+                    }
+
+                    let line_parts: Vec<&str> = line.splitn(2, ':').collect();
+                    headers.insert(
+                        SimpleHeader::from(line_parts[0].to_string()),
+                        line_parts[1].to_string(),
+                    );
+                }
+
+                // if its a chunked body then send and move state to chunked body state
+                let transfer_encoding = headers.get(&SimpleHeader::TRANSFER_ENCODING);
+                if transfer_encoding.is_some() {
+                    self.state = HttpReadState::Body(Body::ChunkedBody(
+                        transfer_encoding.unwrap().clone(),
+                        headers.clone(),
+                    ));
+                    return Some(Ok(IncomingRequestParts::Headers(headers)));
+                }
+
+                // Since it does not have a TRANSFER_ENCODING header then it must have a CONTENT_LENGTH
+                // header.
+                match headers.get(&SimpleHeader::CONTENT_LENGTH) {
+                    Some(content_size_str) => match content_size_str.parse::<u64>() {
+                        Ok(value) => {
+                            self.state =
+                                HttpReadState::Body(Body::LimitedBody(value, headers.clone()));
+                            Some(Ok(IncomingRequestParts::Headers(headers)))
+                        }
+                        Err(err) => {
+                            self.state = HttpReadState::Finished;
+                            Some(Err(HttpReaderError::InvalidContentSizeValue(Box::new(err))))
+                        }
+                    },
+                    None => {
+                        self.state = HttpReadState::Finished;
+                        Some(Err(HttpReaderError::ExpectedSizedBodyViaContentLength))
+                    }
+                }
+            }
+            HttpReadState::Body(body) => {
+                let cloned_stream = self.reader.clone();
+                let generated_body_iterator = (self.bodies)(body.clone(), cloned_stream);
+
+                // once we've gotten a body iterator and gives it to the user
+                // the next state is finished.
+                self.state = HttpReadState::Finished;
+                Some(Ok(IncomingRequestParts::Body(generated_body_iterator)))
+            }
+            HttpReadState::Finished => return None,
+        }
+    }
+}
+
 pub struct ServiceAction {
     pub route: SimpleUrl,
-    pub headers: SimpleHeaders,
+    pub method: SimpleMethod,
     pub body: SimpleActionResponseBuilder,
+    pub headers: Option<SimpleHeaders>,
 }
 
 impl Clone for ServiceAction {
     fn clone(&self) -> Self {
         Self {
             body: self.body.clone(),
+            method: self.method.clone(),
             route: self.route.clone(),
             headers: self.headers.clone(),
         }
@@ -1840,10 +2087,39 @@ impl ServiceAction {
     pub fn builder() -> ServiceActionBuilder {
         ServiceActionBuilder::default()
     }
+
+    pub fn extract_match(
+        &self,
+        url: &str,
+        method: SimpleMethod,
+        headers: Option<SimpleHeaders>,
+    ) -> (bool, Option<BTreeMap<String, String>>) {
+        if self.method != method {
+            return (false, None);
+        }
+
+        let (matched_url, extracted_params) = self.route.extract_matched_url(&url);
+        if !matched_url {
+            return (false, None);
+        }
+
+        match (&self.headers, headers) {
+            (Some(inner), Some(expected)) => {
+                if inner == &expected {
+                    return (matched_url, extracted_params);
+                }
+                return (false, None);
+            }
+            (Some(_), None) => (false, None),
+            (None, Some(_)) => (matched_url, extracted_params),
+            (None, None) => (matched_url, extracted_params),
+        }
+    }
 }
 
 #[derive(Default)]
 pub struct ServiceActionBuilder {
+    method: Option<SimpleMethod>,
     route: Option<SimpleUrl>,
     headers: Option<SimpleHeaders>,
     body: Option<SimpleActionResponseBuilder>,
@@ -1851,6 +2127,22 @@ pub struct ServiceActionBuilder {
 
 impl ServiceActionBuilder {
     pub fn with_headers(mut self, headers: BTreeMap<SimpleHeader, String>) -> Self {
+        self.headers = Some(headers);
+        self
+    }
+
+    pub fn with_method(mut self, method: SimpleMethod) -> Self {
+        self.method = Some(method);
+        self
+    }
+
+    pub fn add_header<H: Into<SimpleHeader>, S: Into<String>>(mut self, key: H, value: S) -> Self {
+        let mut headers = match self.headers {
+            Some(inner) => inner,
+            None => BTreeMap::new(),
+        };
+
+        headers.insert(key.into(), value.into());
         self.headers = Some(headers);
         self
     }
@@ -1871,9 +2163,9 @@ impl ServiceActionBuilder {
             None => return Err(SimpleHttpError::NoRouteProvided),
         };
 
-        let headers = match self.headers {
+        let method = match self.method {
             Some(inner) => inner,
-            None => BTreeMap::new(),
+            None => SimpleMethod::GET,
         };
 
         let body = match self.body {
@@ -1882,9 +2174,49 @@ impl ServiceActionBuilder {
         };
 
         Ok(ServiceAction {
-            headers,
+            headers: self.headers,
+            method,
             route,
             body,
         })
+    }
+}
+
+#[cfg(test)]
+mod service_action_test {
+    use super::*;
+
+    #[test]
+    fn test_service_action_match_url_with_headers() {
+        let resource = ServiceAction::builder()
+            .with_route("/service/endpoint/v1")
+            .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
+            .with_method(SimpleMethod::GET)
+            .build()
+            .expect("should generate service action");
+
+        let mut headers = SimpleHeaders::new();
+        let _ = headers.insert(SimpleHeader::CONTENT_TYPE, "application/json".into());
+
+        let (matched_url, params) =
+            resource.extract_match("/service/endpoint/v1", SimpleMethod::GET, Some(headers));
+
+        assert!(matched_url);
+        assert!(matches!(params, None));
+    }
+
+    #[test]
+    fn test_service_action_match_url_only() {
+        let resource = ServiceAction::builder()
+            .with_route("/service/endpoint/v1")
+            .with_method(SimpleMethod::GET)
+            .build()
+            .expect("should generate service action");
+
+        let (matched_url, params) =
+            resource.extract_match("/service/endpoint/v1", SimpleMethod::GET, None);
+
+        assert!(matched_url);
+        assert!(matches!(params, None));
     }
 }
