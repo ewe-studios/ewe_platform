@@ -6,7 +6,7 @@ use std::{
     cell,
     collections::BTreeMap,
     convert::Infallible,
-    io::{self, BufRead},
+    io::{self, BufRead, Read},
     net::TcpStream,
     str::FromStr,
     string::{FromUtf16Error, FromUtf8Error},
@@ -14,7 +14,7 @@ use std::{
 
 pub type BoxedError = Box<dyn std::error::Error + Send>;
 
-pub type BoxedResult<T, E> = std::result::Result<T, E>;
+pub type Result<T, E> = std::result::Result<T, E>;
 
 pub enum SimpleBody {
     None,
@@ -66,7 +66,7 @@ trait RenderHttp: Send {
 
     fn http_render(
         &self,
-    ) -> std::result::Result<WrappedIterator<BoxedResult<Vec<u8>, Self::Error>>, Self::Error>;
+    ) -> std::result::Result<WrappedIterator<Result<Vec<u8>, Self::Error>>, Self::Error>;
 
     /// http_render_encoded_string attempts to render the results of calling
     /// `RenderHttp::http_render()` as a custom encoded strings.
@@ -75,10 +75,7 @@ trait RenderHttp: Send {
         encoder: E,
     ) -> std::result::Result<ClonableStringIterator<Self::Error>, Self::Error>
     where
-        E: Fn(BoxedResult<Vec<u8>, Self::Error>) -> BoxedResult<String, Self::Error>
-            + Send
-            + Clone
-            + 'static,
+        E: Fn(Result<Vec<u8>, Self::Error>) -> Result<String, Self::Error> + Send + Clone + 'static,
     {
         let render_bytes = self.http_render()?;
         let transformed = render_bytes.map(encoder);
@@ -741,6 +738,23 @@ impl SimpleUrl {
         }
     }
 
+    pub fn matches_other(&self, target: &SimpleUrl) -> bool {
+        let matched_uri_regex = match &self.matcher {
+            Some(inner) => inner.is_match(&target.url),
+            None => self.url == target.url,
+        };
+
+        if self.url_only {
+            return matched_uri_regex;
+        }
+
+        if !matched_uri_regex {
+            return false;
+        }
+
+        self.match_queries_tree(&target.queries)
+    }
+
     pub fn matches_url(&self, target: &str) -> bool {
         let matched_uri_regex = match &self.matcher {
             Some(inner) => inner.is_match(target),
@@ -760,7 +774,13 @@ impl SimpleUrl {
 
     pub(crate) fn match_queries(&self, target: &str) -> bool {
         let target_queries = Self::capture_query_hashmap(target);
+        self.match_queries_tree(&target_queries)
+    }
 
+    pub(crate) fn match_queries_tree(
+        &self,
+        target_queries: &Option<BTreeMap<String, String>>,
+    ) -> bool {
         if self.queries.is_none() && target_queries.is_none() {
             return true;
         }
@@ -1369,7 +1389,7 @@ impl Clone for Http11RequestIterator {
 }
 
 impl Iterator for Http11RequestIterator {
-    type Item = BoxedResult<Vec<u8>, Http11RenderError>;
+    type Item = Result<Vec<u8>, Http11RenderError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.0.clone() {
@@ -1538,7 +1558,7 @@ impl Clone for Http11ResponseIterator {
 ///   Hello world!
 ///
 impl Iterator for Http11ResponseIterator {
-    type Item = BoxedResult<Vec<u8>, Http11RenderError>;
+    type Item = Result<Vec<u8>, Http11RenderError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.0.clone() {
@@ -1681,7 +1701,7 @@ impl RenderHttp for Http11 {
 
     fn http_render(
         &self,
-    ) -> std::result::Result<WrappedIterator<BoxedResult<Vec<u8>, Self::Error>>, Self::Error> {
+    ) -> std::result::Result<WrappedIterator<Result<Vec<u8>, Self::Error>>, Self::Error> {
         match self {
             Http11::Request(request) => Ok(WrappedIterator::new(Box::new(Http11RequestIterator(
                 Http11ReqState::Intro(request.clone()),
@@ -1877,11 +1897,17 @@ pub enum HttpReaderError {
     #[from(ignore)]
     UnknownLine(String),
 
+    #[from(ignore)]
+    BodyBuildFailed(BoxedError),
+
+    InvalidChunkSize,
+
     ExpectedSizedBodyViaContentLength,
 
     ReadFailed,
 
     LineReadFailed(BoxedError),
+
     InvalidContentSizeValue(Box<std::num::ParseIntError>),
 }
 
@@ -1896,7 +1922,8 @@ impl core::fmt::Display for HttpReaderError {
 pub enum IncomingRequestParts {
     Intro(SimpleMethod, SimpleUrl),
     Headers(SimpleHeaders),
-    Body(ClonableVecIterator<BoxedError>),
+    Body(SimpleBody),
+    NoBody,
 }
 
 impl core::fmt::Display for IncomingRequestParts {
@@ -1905,6 +1932,7 @@ impl core::fmt::Display for IncomingRequestParts {
             Self::Intro(method, url) => write!(f, "Intro({:?}, {:?})", method, url),
             Self::Headers(headers) => write!(f, "Headers({:?})", headers),
             Self::Body(_) => write!(f, "Body(_)"),
+            Self::NoBody => write!(f, "NoBody"),
         }
     }
 }
@@ -1914,7 +1942,8 @@ impl Clone for IncomingRequestParts {
         match self {
             Self::Intro(method, url) => Self::Intro(method.clone(), url.clone()),
             Self::Headers(headers) => Self::Headers(headers.clone()),
-            Self::Body(body) => Self::Body(body.clone_box()),
+            Self::Body(body) => Self::Body(body.clone()),
+            Self::NoBody => Self::NoBody,
         }
     }
 }
@@ -1930,6 +1959,17 @@ pub enum Body {
     ChunkedBody(TransferEncodng, SimpleHeaders),
 }
 
+pub trait BodyExtractor {
+    /// extract will attempt to extract the relevant Body of a TcpStream shared
+    /// stream by doing whatever internal logic is required to extract the necessary
+    /// tcp body content required.
+    ///
+    /// This allows custom implementation of Tcp/Http body extractors.
+    ///
+    /// See sample implementation in `SimpleHttpBody`.
+    fn extract(&self, body: Body, stream: SharedTCPStream) -> Result<SimpleBody, BoxedError>;
+}
+
 #[derive(Clone, Debug)]
 pub enum HttpReadState {
     Intro,
@@ -1939,7 +1979,7 @@ pub enum HttpReadState {
 }
 
 #[derive(Clone)]
-pub struct HttpReader<F: Fn(Body, SharedTCPStream) -> ClonableVecIterator<BoxedError>> {
+pub struct HttpReader<F: BodyExtractor> {
     reader: SharedTCPStream,
     state: HttpReadState,
     bodies: F,
@@ -1947,7 +1987,7 @@ pub struct HttpReader<F: Fn(Body, SharedTCPStream) -> ClonableVecIterator<BoxedE
 
 impl<F> HttpReader<F>
 where
-    F: Fn(Body, SharedTCPStream) -> ClonableVecIterator<BoxedError>,
+    F: BodyExtractor,
 {
     pub fn new(reader: io::BufReader<TcpStream>, bodies: F) -> Self {
         Self {
@@ -1960,9 +2000,9 @@ where
 
 impl<F> Iterator for HttpReader<F>
 where
-    F: Fn(Body, SharedTCPStream) -> ClonableVecIterator<BoxedError>,
+    F: BodyExtractor,
 {
-    type Item = BoxedResult<IncomingRequestParts, HttpReaderError>;
+    type Item = Result<IncomingRequestParts, HttpReaderError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         match &self.state {
@@ -2031,7 +2071,8 @@ where
                     return Some(Ok(IncomingRequestParts::Headers(headers)));
                 }
 
-                // Since it does not have a TRANSFER_ENCODING header then it must have a CONTENT_LENGTH
+                // Since it does not have a TRANSFER_ENCODING header then it
+                // must have a CONTENT_LENGTH
                 // header.
                 match headers.get(&SimpleHeader::CONTENT_LENGTH) {
                     Some(content_size_str) => match content_size_str.parse::<u64>() {
@@ -2047,21 +2088,295 @@ where
                     },
                     None => {
                         self.state = HttpReadState::Finished;
-                        Some(Err(HttpReaderError::ExpectedSizedBodyViaContentLength))
+                        Some(Ok(IncomingRequestParts::NoBody))
                     }
                 }
             }
             HttpReadState::Body(body) => {
                 let cloned_stream = self.reader.clone();
-                let generated_body_iterator = (self.bodies)(body.clone(), cloned_stream);
-
-                // once we've gotten a body iterator and gives it to the user
-                // the next state is finished.
-                self.state = HttpReadState::Finished;
-                Some(Ok(IncomingRequestParts::Body(generated_body_iterator)))
+                match self.bodies.extract(body.clone(), cloned_stream) {
+                    Ok(generated_body_iterator) => {
+                        // once we've gotten a body iterator and gives it to the user
+                        // the next state is finished.
+                        self.state = HttpReadState::Finished;
+                        Some(Ok(IncomingRequestParts::Body(generated_body_iterator)))
+                    }
+                    Err(err) => {
+                        self.state = HttpReadState::Finished;
+                        Some(Err(HttpReaderError::BodyBuildFailed(err)))
+                    }
+                }
             }
             HttpReadState::Finished => return None,
         }
+    }
+}
+
+#[derive(Default)]
+pub struct SimpleHttpBody {}
+
+impl BodyExtractor for SimpleHttpBody {
+    fn extract(&self, body: Body, stream: SharedTCPStream) -> Result<SimpleBody, BoxedError> {
+        match body {
+            Body::LimitedBody(content_length, _) => {
+                let mut body_content = Vec::with_capacity(content_length as usize);
+                match stream.borrow_mut().read_exact(&mut body_content) {
+                    Ok(_) => Ok(SimpleBody::Bytes(body_content)),
+                    Err(err) => Err(Box::new(err)),
+                }
+            }
+            Body::ChunkedBody(_transfer_encoding, _) => todo!(),
+        }
+    }
+}
+
+pub type ChunkSize = u64;
+pub type StartIndexForRemaining = usize;
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum ChunkState {
+    Invalid,
+    Partial,
+    Complete(ChunkSize, StartIndexForRemaining),
+}
+
+impl SimpleHttpBody {
+    /// Parse a buffer of bytes as a chunk size.
+    ///
+    /// The return value, if complete and successful, includes the index of the
+    /// buffer that parsing stopped at, and the size of the following chunk.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use wirestream::simple_http::{SimpleHttpBody, ChunkState};
+    ///
+    /// let buf = b"4\r\nRust\r\n0\r\n\r\n";
+    /// assert!(matches!(SimpleHttpBody::parse_chunk_size(buf),
+    ///            Ok(ChunkState::Complete(4, 3))));
+    /// ```
+    pub fn parse_chunk_size(buf: &[u8]) -> Result<ChunkState, HttpReaderError> {
+        const RADIX: u64 = 16;
+        let mut bytes = crate::ioutils::Bytes::new(buf);
+        let mut size = 0;
+        let mut in_chunk_size = true;
+        let mut in_ext = false;
+        let mut count = 0;
+        loop {
+            let b = if let Some(b) = bytes.next() {
+                b
+            } else {
+                return Ok(ChunkState::Partial);
+            };
+
+            match b {
+                b'0'..=b'9' if in_chunk_size => {
+                    if count > 15 {
+                        return Err(HttpReaderError::InvalidChunkSize);
+                    }
+                    count += 1;
+                    if cfg!(debug_assertions) && size > (u64::MAX / RADIX) {
+                        // actually unreachable!(), because count stops the loop at 15 digits before
+                        // we can reach u64::MAX / RADIX == 0xfffffffffffffff, which requires 15 hex
+                        // digits. This stops mirai reporting a false alarm regarding the `size *=
+                        // RADIX` multiplication below.
+                        return Err(HttpReaderError::InvalidChunkSize);
+                    }
+                    size *= RADIX;
+                    size += (b - b'0') as u64;
+                }
+                b'a'..=b'f' if in_chunk_size => {
+                    if count > 15 {
+                        return Err(HttpReaderError::InvalidChunkSize);
+                    }
+                    count += 1;
+                    if cfg!(debug_assertions) && size > (u64::MAX / RADIX) {
+                        return Err(HttpReaderError::InvalidChunkSize);
+                    }
+                    size *= RADIX;
+                    size += (b + 10 - b'a') as u64;
+                }
+                b'A'..=b'F' if in_chunk_size => {
+                    if count > 15 {
+                        return Err(HttpReaderError::InvalidChunkSize);
+                    }
+                    count += 1;
+                    if cfg!(debug_assertions) && size > (u64::MAX / RADIX) {
+                        return Err(HttpReaderError::InvalidChunkSize);
+                    }
+                    size *= RADIX;
+                    size += (b + 10 - b'A') as u64;
+                }
+                b'\r' => match if let Some(b) = bytes.next() {
+                    b
+                } else {
+                    return Ok(ChunkState::Partial);
+                } {
+                    b'\n' => break,
+                    _ => return Err(HttpReaderError::InvalidChunkSize),
+                },
+                // If we weren't in the extension yet, the ";" signals its start
+                b';' if !in_ext => {
+                    in_ext = true;
+                    in_chunk_size = false;
+                }
+                // "Linear white space" is ignored between the chunk size and the
+                // extension separator token (";") due to the "implied *LWS rule".
+                b'\t' | b' ' if !in_ext && !in_chunk_size => {}
+                // LWS can follow the chunk size, but no more digits can come
+                b'\t' | b' ' if in_chunk_size => in_chunk_size = false,
+                // We allow any arbitrary octet once we are in the extension, since
+                // they all get ignored anyway. According to the HTTP spec, valid
+                // extensions would have a more strict syntax:
+                //     (token ["=" (token | quoted-string)])
+                // but we gain nothing by rejecting an otherwise valid chunk size.
+                _ if in_ext => {}
+                // Finally, if we aren't in the extension and we're reading any
+                // other octet, the chunk size line is invalid!
+                _ => return Err(HttpReaderError::InvalidChunkSize),
+            }
+        }
+        Ok(ChunkState::Complete(size, bytes.pos()))
+    }
+}
+
+#[cfg(test)]
+mod test_simple_http_body {
+    use super::*;
+
+    #[test]
+    fn test_simple_http_body_parse_chunk_size() {
+        assert!(matches!(
+            SimpleHttpBody::parse_chunk_size(b"0\r\n"),
+            Ok(ChunkState::Complete(0, 3))
+        ));
+        assert!(matches!(
+            SimpleHttpBody::parse_chunk_size(b"12\r\nchunk"),
+            Ok(ChunkState::Complete(18, 4))
+        ));
+        assert!(matches!(
+            SimpleHttpBody::parse_chunk_size(b"3086d\r\n"),
+            Ok(ChunkState::Complete(198765, 7))
+        ));
+        assert!(matches!(
+            SimpleHttpBody::parse_chunk_size(b"3735AB1;foo bar*\r\n"),
+            Ok(ChunkState::Complete(57891505, 18))
+        ));
+        assert!(matches!(
+            SimpleHttpBody::parse_chunk_size(b"3735ab1 ; baz \r\n"),
+            Ok(ChunkState::Complete(57891505, 16))
+        ));
+        assert!(matches!(
+            SimpleHttpBody::parse_chunk_size(b"ffffffffffffffff\r\n"),
+            Ok(ChunkState::Complete(u64::MAX, 18))
+        ));
+        assert!(matches!(
+            SimpleHttpBody::parse_chunk_size(b"77a65\r"),
+            Ok(ChunkState::Partial)
+        ));
+        assert!(matches!(
+            SimpleHttpBody::parse_chunk_size(b"ab"),
+            Ok(ChunkState::Partial)
+        ));
+        assert!(matches!(
+            SimpleHttpBody::parse_chunk_size(b"567f8a\rfoo"),
+            Err(HttpReaderError::InvalidChunkSize)
+        ));
+        assert!(matches!(
+            SimpleHttpBody::parse_chunk_size(b"567f8a\rfoo"),
+            Err(HttpReaderError::InvalidChunkSize)
+        ));
+        assert!(matches!(
+            SimpleHttpBody::parse_chunk_size(b"567xf8a\r\n"),
+            Err(HttpReaderError::InvalidChunkSize)
+        ));
+        assert!(matches!(
+            SimpleHttpBody::parse_chunk_size(b"1ffffffffffffffff\r\n"),
+            Err(HttpReaderError::InvalidChunkSize)
+        ));
+        assert!(matches!(
+            SimpleHttpBody::parse_chunk_size(b"Affffffffffffffff\r\n"),
+            Err(HttpReaderError::InvalidChunkSize)
+        ));
+        assert!(matches!(
+            SimpleHttpBody::parse_chunk_size(b"fffffffffffffffff\r\n"),
+            Err(HttpReaderError::InvalidChunkSize)
+        ));
+    }
+}
+
+impl HttpReader<SimpleHttpBody> {
+    pub fn simple_stream(reader: io::BufReader<TcpStream>) -> HttpReader<SimpleHttpBody> {
+        HttpReader::<SimpleHttpBody>::new(reader, SimpleHttpBody::default())
+    }
+}
+
+pub struct ServiceActionList(Vec<ServiceAction>);
+
+impl ServiceActionList {
+    pub fn get_one_matching2(
+        &self,
+        url: &SimpleUrl,
+        method: SimpleMethod,
+    ) -> Option<ServiceAction> {
+        for endpoint in self.0.iter() {
+            if endpoint.match_head2(url, method.clone()) {
+                return Some(endpoint.clone());
+            }
+        }
+
+        None
+    }
+
+    pub fn get_matching2(
+        &self,
+        url: &SimpleUrl,
+        method: SimpleMethod,
+    ) -> Option<Vec<ServiceAction>> {
+        let mut matches = Vec::new();
+
+        for endpoint in self.0.iter() {
+            if !endpoint.match_head2(url, method.clone()) {
+                continue;
+            }
+            matches.push(endpoint.clone());
+        }
+
+        if matches.len() == 0 {
+            return None;
+        }
+
+        Some(matches)
+    }
+
+    pub fn get_one_matching(&self, url: &str, method: SimpleMethod) -> Option<ServiceAction> {
+        for endpoint in self.0.iter() {
+            if endpoint.match_head(url, method.clone()) {
+                return Some(endpoint.clone());
+            }
+        }
+        None
+    }
+
+    pub fn get_matching(&self, url: &str, method: SimpleMethod) -> Option<Vec<ServiceAction>> {
+        let mut matches = Vec::new();
+
+        for endpoint in self.0.iter() {
+            if !endpoint.match_head(url, method.clone()) {
+                continue;
+            }
+            matches.push(endpoint.clone());
+        }
+
+        if matches.len() == 0 {
+            return None;
+        }
+
+        Some(matches)
+    }
+
+    pub fn new(actions: Vec<ServiceAction>) -> Self {
+        Self(actions)
     }
 }
 
@@ -2086,6 +2401,22 @@ impl Clone for ServiceAction {
 impl ServiceAction {
     pub fn builder() -> ServiceActionBuilder {
         ServiceActionBuilder::default()
+    }
+
+    pub fn match_head2(&self, url: &SimpleUrl, method: SimpleMethod) -> bool {
+        if self.method != method {
+            return false;
+        }
+
+        return self.route.matches_other(&url);
+    }
+
+    pub fn match_head(&self, url: &str, method: SimpleMethod) -> bool {
+        if self.method != method {
+            return false;
+        }
+
+        return self.route.matches_url(&url);
     }
 
     pub fn extract_match(
