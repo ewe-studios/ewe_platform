@@ -88,7 +88,6 @@ impl TestServer {
                     ),
                     IncomingRequestParts::Headers(_) => break,
                     IncomingRequestParts::Body(_) => break,
-                    IncomingRequestParts::NoBody => break,
                 };
 
             // if
