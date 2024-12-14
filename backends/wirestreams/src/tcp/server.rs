@@ -1,11 +1,14 @@
 use derive_more::From;
 use std::{
+    io::BufReader,
     net::{TcpListener, TcpStream},
     sync::mpsc,
     thread::{self, JoinHandle},
 };
 
-use crate::simple_http::{ServiceAction, SimpleIncomingRequest};
+use crate::simple_http::{
+    self, IncomingRequestParts, ServiceAction, ServiceActionList, SimpleIncomingRequest,
+};
 
 pub type TestServerResult<T> = std::result::Result<T, TestServerError>;
 
@@ -62,11 +65,34 @@ impl TestServer {
     }
 
     fn serve_connection(
-        stream: TcpStream,
+        read_stream: TcpStream,
         actions: Vec<ServiceAction>,
         sender: mpsc::Sender<SimpleIncomingRequest>,
     ) {
-        // let request_reader =
-        todo!()
+        let action_list = ServiceActionList::new(actions);
+
+        let mut write_stream = read_stream
+            .try_clone()
+            .expect("should be able to clone connection");
+
+        let mut reader = BufReader::new(read_stream);
+        let mut request_reader = simple_http::HttpReader::simple_stream(reader);
+
+        for incoming_request_result in request_reader {
+            // attempt to pull request_head
+            let (head, resources): (IncomingRequestParts, Option<Vec<ServiceAction>>) =
+                match incoming_request_result.expect("should be a valid request") {
+                    IncomingRequestParts::Intro(method, url) => (
+                        IncomingRequestParts::Intro(method.clone(), url.clone()),
+                        action_list.get_matching2(&url, method.clone()),
+                    ),
+                    IncomingRequestParts::Headers(_) => break,
+                    IncomingRequestParts::Body(_) => break,
+                    IncomingRequestParts::NoBody => break,
+                };
+
+            // if
+            todo!()
+        }
     }
 }
