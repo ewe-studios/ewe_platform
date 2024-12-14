@@ -27,6 +27,38 @@ pub enum ChunkedData {
     End(Option<Trailer>),
 }
 
+impl ChunkedData {
+    pub fn into_bytes(&mut self) -> Vec<u8> {
+        match self {
+            ChunkedData::Data((data, extensions)) => {
+                let hexa_octect = format!("{:x}", data.len());
+                let extension_string: Vec<String> = extensions
+                    .into_iter()
+                    .map(|(key, value)| {
+                        if value == "" {
+                            format!("; {}", key)
+                        } else {
+                            format!("; {}=\"{}\"", key, value)
+                        }
+                    })
+                    .collect();
+
+                let mut chunk_data: Vec<u8> = Vec::new();
+                chunk_data.append(
+                    &mut format!("{} {}", hexa_octect, extension_string.join("")).into_bytes(),
+                );
+
+                chunk_data.append(data);
+                chunk_data
+            }
+            ChunkedData::End(optional_trailer) => match optional_trailer {
+                Some(trailer) => trailer.clone().into_bytes(),
+                None => b"\r\n".to_vec(),
+            },
+        }
+    }
+}
+
 pub type ChunkedClonableVecIterator<E> = ClonableBoxIterator<ChunkedData, E>;
 
 pub enum SimpleBody {
@@ -1377,7 +1409,11 @@ pub enum Http11ReqState {
     ///
     /// Once done it moves state to the `Http11ReqState::BodyStream`
     ///  or `Http11ReqState::End` variant.
-    BodyStreaming(ClonableVecIterator<BoxedError>),
+    BodyStreaming(Option<ClonableVecIterator<BoxedError>>),
+
+    /// ChunkedBodyStreaming like BodyStreaming is meant to support
+    /// handling of a chunked body parts where
+    ChunkedBodyStreaming(Option<ChunkedClonableVecIterator<BoxedError>>),
 
     /// The final state of the rendering which once read ends the iterator.
     End,
@@ -1389,7 +1425,14 @@ impl Clone for Http11ReqState {
             Self::Intro(inner) => Self::Intro(inner.clone()),
             Self::Headers(inner) => Self::Headers(inner.clone()),
             Self::Body(inner) => Self::Body(inner.clone()),
-            Self::BodyStreaming(inner) => Self::BodyStreaming(inner.clone_box()),
+            Self::BodyStreaming(inner) => match inner {
+                Some(inner2) => Self::BodyStreaming(Some(inner2.clone_box())),
+                None => Self::BodyStreaming(None),
+            },
+            Self::ChunkedBodyStreaming(inner) => match inner {
+                Some(inner2) => Self::ChunkedBodyStreaming(Some(inner2.clone_box())),
+                None => Self::ChunkedBodyStreaming(None),
+            },
             Self::End => Self::End,
         }
     }
@@ -1472,27 +1515,24 @@ impl Iterator for Http11RequestIterator {
                         self.0 = Http11ReqState::End;
                         Some(Ok(inner.to_vec()))
                     }
+                    SimpleBody::ChunkedStream(mut streamer_container) => {
+                        match streamer_container.take() {
+                            Some(inner) => {
+                                self.0 = Http11ReqState::ChunkedBodyStreaming(Some(inner));
+                                Some(Ok(b"".to_vec()))
+                            }
+                            None => {
+                                // tell the iterator we want it to end
+                                self.0 = Http11ReqState::End;
+                                Some(Ok(b"\r\n".to_vec()))
+                            }
+                        }
+                    }
                     SimpleBody::Stream(mut streamer_container) => {
                         match streamer_container.take() {
-                            Some(mut inner) => {
-                                let collected_container = inner.next();
-                                self.0 = Http11ReqState::BodyStreaming(inner.clone_box());
-
-                                match collected_container {
-                                    Some(collected) => match collected {
-                                        Ok(inner) => Some(Ok(inner)),
-                                        Err(err) => {
-                                            // tell the iterator we want it to end
-                                            self.0 = Http11ReqState::End;
-                                            Some(Err(err.into()))
-                                        }
-                                    },
-                                    None => {
-                                        // tell the iterator we want it to end
-                                        self.0 = Http11ReqState::End;
-                                        Some(Ok(b"".to_vec()))
-                                    }
-                                }
+                            Some(inner) => {
+                                self.0 = Http11ReqState::BodyStreaming(Some(inner));
+                                Some(Ok(b"".to_vec()))
                             }
                             None => {
                                 // tell the iterator we want it to end
@@ -1503,19 +1543,58 @@ impl Iterator for Http11RequestIterator {
                     }
                 }
             }
-            Http11ReqState::BodyStreaming(mut request) => {
-                match request.next() {
-                    Some(collected) => match collected {
-                        Ok(inner) => {
-                            self.0 = Http11ReqState::BodyStreaming(request.clone_box());
-                            Some(Ok(inner))
+            Http11ReqState::ChunkedBodyStreaming(container) => {
+                match container {
+                    Some(mut body_iterator) => {
+                        match body_iterator.next() {
+                            Some(collected) => match collected {
+                                Ok(mut inner) => {
+                                    self.0 =
+                                        Http11ReqState::ChunkedBodyStreaming(Some(body_iterator));
+                                    Some(Ok(inner.into_bytes()))
+                                }
+                                Err(err) => {
+                                    // tell the iterator we want it to end
+                                    self.0 = Http11ReqState::End;
+                                    Some(Err(err.into()))
+                                }
+                            },
+                            None => {
+                                // tell the iterator we want it to end
+                                self.0 = Http11ReqState::End;
+                                Some(Ok(b"".to_vec()))
+                            }
                         }
-                        Err(err) => {
-                            // tell the iterator we want it to end
-                            self.0 = Http11ReqState::End;
-                            Some(Err(err.into()))
+                    }
+                    None => {
+                        // tell the iterator we want it to end
+                        self.0 = Http11ReqState::End;
+                        Some(Ok(b"".to_vec()))
+                    }
+                }
+            }
+            Http11ReqState::BodyStreaming(container) => {
+                match container {
+                    Some(mut body_iterator) => {
+                        match body_iterator.next() {
+                            Some(collected) => match collected {
+                                Ok(inner) => {
+                                    self.0 = Http11ReqState::BodyStreaming(Some(body_iterator));
+                                    Some(Ok(inner))
+                                }
+                                Err(err) => {
+                                    // tell the iterator we want it to end
+                                    self.0 = Http11ReqState::End;
+                                    Some(Err(err.into()))
+                                }
+                            },
+                            None => {
+                                // tell the iterator we want it to end
+                                self.0 = Http11ReqState::End;
+                                Some(Ok(b"".to_vec()))
+                            }
                         }
-                    },
+                    }
                     None => {
                         // tell the iterator we want it to end
                         self.0 = Http11ReqState::End;
@@ -1681,45 +1760,13 @@ impl Iterator for Http11ResponseIterator {
                     Some(mut actual_iterator) => {
                         match actual_iterator.next() {
                             Some(collected) => {
-                                self.0 =
-                                    Http11ResState::ChunkedBodyStreaming(Some(actual_iterator));
-
                                 match collected {
-                                    Ok(chunked_type) => match chunked_type {
-                                        ChunkedData::Data((mut data, extensions)) => {
-                                            let hexa_octect = format!("{:x}", data.len());
-                                            let extension_string: Vec<String> = extensions
-                                                .into_iter()
-                                                .map(|(key, value)| {
-                                                    if value == "" {
-                                                        format!("; {}", key)
-                                                    } else {
-                                                        format!("; {}=\"{}\"", key, value)
-                                                    }
-                                                })
-                                                .collect();
-
-                                            let mut chunk_data: Vec<u8> = Vec::new();
-                                            chunk_data.append(
-                                                &mut format!(
-                                                    "{} {}",
-                                                    hexa_octect,
-                                                    extension_string.join("")
-                                                )
-                                                .into_bytes(),
-                                            );
-
-                                            chunk_data.append(&mut data);
-
-                                            Some(Ok(chunk_data))
-                                        }
-                                        ChunkedData::End(optional_trailer) => {
-                                            match optional_trailer {
-                                                Some(trailer) => Some(Ok(trailer.into_bytes())),
-                                                None => Some(Ok(b"\r\n".to_vec())),
-                                            }
-                                        }
-                                    },
+                                    Ok(mut chunked) => {
+                                        self.0 = Http11ResState::ChunkedBodyStreaming(Some(
+                                            actual_iterator,
+                                        ));
+                                        Some(Ok(chunked.into_bytes()))
+                                    }
                                     Err(err) => {
                                         // tell the iterator we want it to end
                                         self.0 = Http11ResState::End;
