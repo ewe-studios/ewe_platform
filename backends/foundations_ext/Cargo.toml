@@ -7,7 +7,7 @@ rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-keywords.workspace = true
+keywords = ["foundations_ext"]
 
 [dependencies]
 derive_more = { version = "1.0.0", features = ["from", "debug", "error"] }

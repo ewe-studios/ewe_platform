@@ -19,9 +19,11 @@ foundations_ext.workspace = true
 # --- crate deps
 url = "1.7.0"
 regex = "1.11.1"
+tracing = { version = "0.1.40" }
 native-tls-crate = { package = "native-tls", version = "0.2.12", optional = true }
 
 [features]
+debug_trace = []
 default = ["native-tls"]
 native-tls = ["native-tls-crate"]
 native-tls-vendored = ["native-tls", "native-tls-crate/vendored"]

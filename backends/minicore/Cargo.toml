@@ -1,16 +1,15 @@
 [package]
-name = "ewe_mem"
+name = "minicore"
 version = "0.0.1"
-description = "Low-level memory management utilities that implement a poor man allocator wrappers"
+description = "Low-level memory utilities for the ewe-platform crates"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-keywords.workspace = true
+keywords = ["minicore", "minicore-eweplatform"]
 
 [dependencies]
-ewe_trace.workspace = true
 memchr = "2.7.2"
 tracing = { version = "0.1.40" }
 anyhow = { version = "1.0.80" }
