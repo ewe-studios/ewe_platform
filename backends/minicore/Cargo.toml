@@ -24,7 +24,7 @@ workspace = true
 [features]
 nightly = []
 default = []
-debug_trace = ["ewe_trace/debug_trace"]
+debug_trace = []
 
 [profile.bench]
 debug = true
