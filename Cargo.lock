@@ -3288,6 +3288,7 @@ dependencies = [
  "foundations_ext",
  "native-tls",
  "regex",
+ "tracing",
  "url",
 ]
 

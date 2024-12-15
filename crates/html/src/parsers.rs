@@ -1,6 +1,6 @@
 use anyhow::anyhow;
-use ewe_mem::accumulator::Accumulator;
 use lazy_static::lazy_static;
+use minicore::mem::accumulator::Accumulator;
 use std::{collections::HashMap, str::FromStr};
 use thiserror::Error;
 use tracing;

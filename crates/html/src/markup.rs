@@ -1,4 +1,4 @@
-use ewe_mem::{
+use minicore::mem::{
     encoding::{self},
     memory::{self},
     primitives::Bytes,
@@ -832,7 +832,7 @@ pub enum FragmentRef<'a> {
 #[cfg(test)]
 mod markup_tests {
 
-    use ewe_mem::{encoding, memory::Resetable};
+    use minicore::mem::{encoding, memory::Resetable};
 
     use super::*;
 
