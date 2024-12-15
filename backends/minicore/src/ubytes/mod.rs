@@ -269,7 +269,7 @@ impl<'a> BytesPointer<'a> {
     #[inline]
     pub fn peek_next_by(&mut self, by: usize) -> Option<&'a [u8]> {
         if let Some(res) = self.peek_slice(by) {
-            self.peek_pos = self.ensure_character_boundary_index(self.peek_pos + by);
+            self.peek_pos = self.peek_pos + by;
             return Some(res);
         }
         None
@@ -299,7 +299,7 @@ impl<'a> BytesPointer<'a> {
     #[inline]
     pub fn peek_next(&mut self) -> Option<&'a [u8]> {
         if let Some(res) = self.peek_slice(1) {
-            self.peek_pos = self.ensure_character_boundary_index(self.peek_pos + 1);
+            self.peek_pos = self.peek_pos + 1;
             return Some(res);
         }
         None
@@ -328,10 +328,10 @@ impl<'a> BytesPointer<'a> {
         // unpeek only works when we are higher then current pos cursor.
         // it should have no effect when have not moved forward
         if self.peek_pos > self.pos {
-            self.peek_pos = self.inverse_ensure_character_boundary_index(self.peek_pos - 1);
+            self.peek_pos = self.peek_pos - 1;
         }
 
-        let new_peek_pos = self.ensure_character_boundary_index(self.peek_pos + by);
+        let new_peek_pos = self.peek_pos + by;
         Some(&self.content[self.peek_pos..new_peek_pos])
     }
 
@@ -347,8 +347,8 @@ impl<'a> BytesPointer<'a> {
     #[cfg_attr(feature = "debug_trace", tracing::instrument(level = "trace"))]
     #[inline]
     pub fn ppeek_at(&mut self, from: usize, to: usize) -> Option<&'a [u8]> {
-        let new_peek_pos = self.ensure_character_boundary_index(self.pos + from);
-        let mut until_pos = if new_peek_pos + to > self.content.len() {
+        let new_peek_pos = self.pos + from;
+        let until_pos = if new_peek_pos + to > self.content.len() {
             self.content.len()
         } else {
             new_peek_pos + to
@@ -357,8 +357,6 @@ impl<'a> BytesPointer<'a> {
         if new_peek_pos > self.content.len() {
             return None;
         }
-
-        until_pos = self.ensure_character_boundary_index(until_pos);
 
         Some(&self.content[new_peek_pos..until_pos])
     }
@@ -375,8 +373,8 @@ impl<'a> BytesPointer<'a> {
     #[cfg_attr(feature = "debug_trace", tracing::instrument(level = "trace"))]
     #[inline]
     pub fn vpeek_at(&mut self, from: usize, to: usize) -> Option<&'a [u8]> {
-        let mut new_peek_pos = self.peek_pos + from;
-        let mut until_pos = if new_peek_pos + to > self.content.len() {
+        let new_peek_pos = self.peek_pos + from;
+        let until_pos = if new_peek_pos + to > self.content.len() {
             self.content.len()
         } else {
             new_peek_pos + to
@@ -386,17 +384,6 @@ impl<'a> BytesPointer<'a> {
             return None;
         }
 
-        // ensure we are always at the char boundary
-        new_peek_pos = self.ensure_character_boundary_index(new_peek_pos);
-        until_pos = self.ensure_character_boundary_index(until_pos);
-
-        tracing::debug!(
-            "Check if we are out of char boundary: start: {}:{}, end: {}:{}",
-            new_peek_pos,
-            self.content.is_char_boundary(new_peek_pos),
-            until_pos,
-            self.content.is_char_boundary(until_pos)
-        );
         Some(&self.content[new_peek_pos..until_pos])
     }
 

@@ -805,11 +805,11 @@ version = "0.0.1"
 dependencies = [
  "anyhow",
  "criterion",
- "ewe_mem",
  "ewe_trace",
  "lazy-regex",
  "lazy_static",
  "lazycell",
+ "minicore",
  "phf",
  "regex",
  "strum",
@@ -817,18 +817,6 @@ dependencies = [
  "thiserror",
  "tracing",
  "tracing-subscriber",
- "tracing-test",
-]
-
-[[package]]
-name = "ewe_mem"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "ewe_trace",
- "memchr",
- "thiserror",
- "tracing",
  "tracing-test",
 ]
 
@@ -874,11 +862,11 @@ dependencies = [
  "bytes",
  "criterion",
  "ewe_async_utils",
- "ewe_mem",
  "ewe_trace",
  "http",
  "lazy-regex",
  "lazy_static",
+ "minicore",
  "regex",
  "serde",
  "serde_json",
@@ -1650,6 +1638,17 @@ name = "mime"
 version = "0.3.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6877bb514081ee2a7ff5ef9de3281f14a4dd4bceac4c09388074a6b5df8a139a"
+
+[[package]]
+name = "minicore"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "memchr",
+ "thiserror",
+ "tracing",
+ "tracing-test",
+]
 
 [[package]]
 name = "minijinja"
@@ -3286,6 +3285,7 @@ dependencies = [
  "clonables",
  "derive_more",
  "foundations_ext",
+ "minicore",
  "native-tls",
  "regex",
  "tracing",

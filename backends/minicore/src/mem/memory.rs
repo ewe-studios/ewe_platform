@@ -575,17 +575,17 @@ mod arena_pool_tests {
 
         assert_eq!(pool.allocated(), 0);
 
-        let mut my_number = pool.allocate().unwrap();
+        let mut _my_number = pool.allocate().unwrap();
 
         assert_eq!(pool.allocated(), 8);
 
-        my_number = &1;
+        _my_number = &1;
 
-        assert_eq!(*my_number, 1);
+        assert_eq!(*_my_number, 1);
 
-        pool.deallocate(my_number);
+        pool.deallocate(_my_number);
 
-        _ = my_number;
+        _ = _my_number;
     }
 
     #[test]

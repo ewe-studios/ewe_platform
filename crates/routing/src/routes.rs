@@ -6,7 +6,7 @@ use std::{
 };
 use std::{pin, sync};
 
-use ewe_mem::accumulator::Accumulator;
+use minicore::mem::accumulator::Accumulator;
 
 use crate::requests::{Method, MethodError, Params, Request};
 use crate::response::Response;

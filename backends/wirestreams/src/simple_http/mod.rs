@@ -2301,7 +2301,7 @@ impl SimpleHttpBody {
     /// ```
     pub fn parse_chunk_size(buf: &[u8]) -> Result<ChunkState, HttpReaderError> {
         const RADIX: u64 = 16;
-        let mut bytes = crate::ioutils::Bytes::new(buf);
+        let mut bytes = minicore::ubytes::Bytes::new(buf);
         let mut size = 0;
         let mut in_chunk_size = true;
         let mut in_ext = false;
