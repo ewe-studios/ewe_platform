@@ -6,7 +6,7 @@ use std::{
 };
 use std::{pin, sync};
 
-use minicore::mem::accumulator::Accumulator;
+use minicore::mem::accumulator::StringPointer;
 
 use crate::requests::{Method, MethodError, Params, Request};
 use crate::response::Response;
@@ -925,7 +925,7 @@ fn parse_route_into_segments<'a>(route: &'a str) -> RouteResult<Vec<&'a str>> {
         route
     };
 
-    let mut acc = Accumulator::new(target_route);
+    let mut acc = StringPointer::new(target_route);
 
     while let Some(next) = acc.peek_next() {
         if next.chars().all(|t| t == SLASH) {
