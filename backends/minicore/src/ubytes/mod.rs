@@ -494,7 +494,7 @@ impl<'a> BytesPointer<'a> {
 }
 
 #[cfg(test)]
-mod accumulator_tests {
+mod bytes_pointer_tests {
     use super::*;
 
     #[test]
