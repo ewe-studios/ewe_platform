@@ -2300,6 +2300,7 @@ impl SimpleHttpBody {
     ///            Ok(ChunkState::Complete(4, 3))));
     /// ```
     pub fn parse_chunk_size(buf: &[u8]) -> Result<ChunkState, HttpReaderError> {
+        const MAX_ALLOWED_CHUNK_SIZE_DIGITS: u64 = 15;
         const RADIX: u64 = 16;
         let mut bytes = minicore::ubytes::Bytes::new(buf);
         let mut size = 0;
@@ -2315,7 +2316,7 @@ impl SimpleHttpBody {
 
             match b {
                 b'0'..=b'9' if in_chunk_size => {
-                    if count > 15 {
+                    if count > MAX_ALLOWED_CHUNK_SIZE_DIGITS {
                         return Err(HttpReaderError::InvalidChunkSize);
                     }
                     count += 1;
@@ -2330,7 +2331,7 @@ impl SimpleHttpBody {
                     size += (b - b'0') as u64;
                 }
                 b'a'..=b'f' if in_chunk_size => {
-                    if count > 15 {
+                    if count > MAX_ALLOWED_CHUNK_SIZE_DIGITS {
                         return Err(HttpReaderError::InvalidChunkSize);
                     }
                     count += 1;
@@ -2341,7 +2342,7 @@ impl SimpleHttpBody {
                     size += (b + 10 - b'a') as u64;
                 }
                 b'A'..=b'F' if in_chunk_size => {
-                    if count > 15 {
+                    if count > MAX_ALLOWED_CHUNK_SIZE_DIGITS {
                         return Err(HttpReaderError::InvalidChunkSize);
                     }
                     count += 1;
@@ -2392,17 +2393,33 @@ impl Clone for SimpleHttpChunkIterator {
     }
 }
 
-impl Iterator for SimpleHttpChunkIterator {
-    type Item = Result<Vec<u8>, BoxedError>;
+impl SimpleHttpChunkIterator {
+    pub fn new(transfer_encoding: String, headers: SimpleHeaders, stream: SharedTCPStream) -> Self {
+        Self(transfer_encoding, headers, stream)
+    }
 
-    fn next(&mut self) -> Option<Self::Item> {
+    fn parse_content_chunk(&self) -> Result<ChunkedData, BoxedError> {
         todo!()
     }
 }
 
-impl SimpleHttpChunkIterator {
-    pub fn new(transfer_encoding: String, headers: SimpleHeaders, stream: SharedTCPStream) -> Self {
-        Self(transfer_encoding, headers, stream)
+impl Iterator for SimpleHttpChunkIterator {
+    type Item = Result<ChunkedData, BoxedError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.2.try_lock() {
+            Ok(mut reader_lock) => {
+                let mut header_list: [u8; 512] = [0; 512];
+
+                let reader = reader_lock.get_mut();
+                if let Err(err) = reader.peek(&mut header_list) {
+                    return Some(Err(Box::new(err)));
+                }
+
+                todo!()
+            }
+            Err(_) => return Some(Err(Box::new(HttpReaderError::GuardedResourceAccess))),
+        }
     }
 }
 
@@ -2425,7 +2442,7 @@ impl BodyExtractor for SimpleHttpBody {
                     Err(err) => Err(Box::new(err)),
                 }
             }
-            Body::ChunkedBody(transfer_encoding, headers) => Ok(SimpleBody::Stream(Some(
+            Body::ChunkedBody(transfer_encoding, headers) => Ok(SimpleBody::ChunkedStream(Some(
                 Box::new(SimpleHttpChunkIterator(transfer_encoding, headers, stream)),
             ))),
         }

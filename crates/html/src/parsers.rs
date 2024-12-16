@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 use lazy_static::lazy_static;
-use minicore::mem::accumulator::Accumulator;
+use minicore::mem::accumulator::StringPointer;
 use std::{collections::HashMap, str::FromStr};
 use thiserror::Error;
 use tracing;
@@ -1275,7 +1275,7 @@ impl HTMLParser {
         tracing::instrument(level = "trace", skip(self))
     )]
     pub fn parse<'a>(&self, input: &'a str) -> ParsingResult<Stack<'a>> {
-        let mut accumulator = Accumulator::new(input);
+        let mut accumulator = StringPointer::new(input);
         match self._parse(&mut accumulator) {
             Ok(t) => Ok(t),
             Err(err) => Err(ParsingTagError::FailedContentParsing(String::from(
@@ -1292,7 +1292,7 @@ impl HTMLParser {
         feature = "debug_trace",
         tracing::instrument(level = "trace", skip(self))
     )]
-    fn _parse<'a>(&self, accumulator: &mut Accumulator<'a>) -> ParsingResult<Stack<'a>> {
+    fn _parse<'a>(&self, accumulator: &mut StringPointer<'a>) -> ParsingResult<Stack<'a>> {
         let mut stacks: Vec<Stack> = vec![];
         let mut text_block_tag: Option<MarkupTags> = None;
 
@@ -1508,7 +1508,7 @@ impl HTMLParser {
     )]
     fn parse_element_from_accumulator<'c, 'd>(
         &self,
-        acc: &mut Accumulator<'c>,
+        acc: &mut StringPointer<'c>,
         mut stacks: &mut Vec<Stack>,
     ) -> ParsingResult<ParserDirective<'d>>
     where
@@ -1668,7 +1668,7 @@ impl HTMLParser {
     )]
     fn parse_comment<'c, 'd>(
         &self,
-        acc: &mut Accumulator<'c>,
+        acc: &mut StringPointer<'c>,
         _stacks: &mut Vec<Stack>,
     ) -> ParsingResult<ParserDirective<'d>>
     where
@@ -1713,7 +1713,7 @@ impl HTMLParser {
     fn parse_code_block<'c, 'd>(
         &self,
         block_starter: &'c str,
-        acc: &mut Accumulator<'c>,
+        acc: &mut StringPointer<'c>,
         _stacks: &mut Vec<Stack>,
     ) -> ParsingResult<ParserDirective<'d>>
     where
@@ -1802,7 +1802,7 @@ impl HTMLParser {
     )]
     fn parse_text_block<'c, 'd>(
         &self,
-        acc: &mut Accumulator<'c>,
+        acc: &mut StringPointer<'c>,
         _stacks: &mut Vec<Stack>,
     ) -> ParsingResult<ParserDirective<'d>>
     where
@@ -1851,7 +1851,7 @@ impl HTMLParser {
     fn parse_element_text_block<'c, 'd>(
         &self,
         tag: MarkupTags,
-        acc: &mut Accumulator<'c>,
+        acc: &mut StringPointer<'c>,
         _stacks: &mut Vec<Stack>,
     ) -> ParsingResult<ParserDirective<'d>>
     where
@@ -1921,7 +1921,7 @@ impl HTMLParser {
     )]
     fn parse_doc_type<'c, 'd>(
         &self,
-        acc: &mut Accumulator<'c>,
+        acc: &mut StringPointer<'c>,
         _stacks: &mut Vec<Stack>,
     ) -> ParsingResult<ParserDirective<'d>>
     where
@@ -2005,7 +2005,7 @@ impl HTMLParser {
     )]
     fn parse_xml_elem<'c, 'd>(
         &self,
-        acc: &mut Accumulator<'c>,
+        acc: &mut StringPointer<'c>,
         _stacks: &mut Vec<Stack>,
     ) -> ParsingResult<ParserDirective<'d>>
     where
@@ -2081,7 +2081,7 @@ impl HTMLParser {
     )]
     fn parse_elem<'c, 'd>(
         &self,
-        acc: &mut Accumulator<'c>,
+        acc: &mut StringPointer<'c>,
         _stacks: &mut Vec<Stack>,
     ) -> ParsingResult<ParserDirective<'d>>
     where
@@ -2197,7 +2197,7 @@ impl HTMLParser {
         feature = "debug_trace",
         tracing::instrument(level = "trace", skip(self))
     )]
-    fn collect_space(&self, acc: &mut Accumulator) -> ParsingResult<()> {
+    fn collect_space(&self, acc: &mut StringPointer) -> ParsingResult<()> {
         while let Some(next) = acc.peek_next() {
             ewe_trace::debug!("collect_space: start seen token: {:?}", next);
 
@@ -2269,7 +2269,7 @@ impl HTMLParser {
         feature = "debug_trace",
         tracing::instrument(level = "trace", skip(self))
     )]
-    fn collect_attribute_value_alphaneumerics(&self, acc: &mut Accumulator) -> ParsingResult<()> {
+    fn collect_attribute_value_alphaneumerics(&self, acc: &mut StringPointer) -> ParsingResult<()> {
         let starter = acc.peek(1).unwrap();
         ewe_trace::debug!(
             "collect_attribute_value_alphaneumerics: value starter {:?}",
@@ -2356,7 +2356,7 @@ impl HTMLParser {
         feature = "debug_trace",
         tracing::instrument(level = "trace", skip(self))
     )]
-    fn collect_attribute_name_alphaneumerics(&self, acc: &mut Accumulator) -> ParsingResult<()> {
+    fn collect_attribute_name_alphaneumerics(&self, acc: &mut StringPointer) -> ParsingResult<()> {
         while let Some(next) = acc.peek_next() {
             if self.is_valid_attribute_name(next) {
                 continue;
@@ -2375,7 +2375,7 @@ impl HTMLParser {
         feature = "debug_trace",
         tracing::instrument(level = "trace", skip(self))
     )]
-    fn collect_alphaneumerics(&self, acc: &mut Accumulator) -> ParsingResult<()> {
+    fn collect_alphaneumerics(&self, acc: &mut StringPointer) -> ParsingResult<()> {
         while let Some(next) = acc.peek_next() {
             if next.chars().any(char::is_alphanumeric) {
                 continue;
@@ -2395,7 +2395,7 @@ impl HTMLParser {
     )]
     fn parse_elem_attribute<'c, 'd>(
         &self,
-        acc: &mut Accumulator<'c>,
+        acc: &mut StringPointer<'c>,
         stack: &mut Stack<'d>,
     ) -> ParsingResult<()>
     where
@@ -2543,7 +2543,7 @@ impl HTMLParser {
 
     fn parse_closing_tag<'c, 'd>(
         &self,
-        acc: &mut Accumulator<'c>,
+        acc: &mut StringPointer<'c>,
         _stacks: &[Stack],
     ) -> ParsingResult<ParserDirective<'d>>
     where

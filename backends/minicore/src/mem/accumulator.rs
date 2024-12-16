@@ -1,11 +1,11 @@
 #[derive(Clone, Debug)]
-pub struct Accumulator<'a> {
+pub struct StringPointer<'a> {
     content: &'a str,
     pos: usize,
     peek_pos: usize,
 }
 
-impl<'a> Accumulator<'a> {
+impl<'a> StringPointer<'a> {
     pub fn new(content: &'a str) -> Self {
         Self {
             content,
@@ -349,20 +349,20 @@ mod accumulator_tests {
 
     #[test]
     fn test_can_use_accumulator_to_peek_next_character() {
-        let mut accumulator = Accumulator::new("hello");
+        let mut accumulator = StringPointer::new("hello");
         assert_eq!("h", accumulator.peek(1).unwrap());
         assert_eq!("h", accumulator.peek(1).unwrap());
     }
 
     #[test]
     fn test_can_use_accumulator_to_peek_two_characters_away() {
-        let mut accumulator = Accumulator::new("hello");
+        let mut accumulator = StringPointer::new("hello");
         assert_eq!("he", accumulator.peek(2).unwrap());
     }
 
     #[test]
     fn test_can_virtual_peek_ahead_without_changing_peek_cursor() {
-        let mut accumulator = Accumulator::new("hello");
+        let mut accumulator = StringPointer::new("hello");
 
         assert_eq!("h", accumulator.peek_next().unwrap());
         assert_eq!("e", accumulator.peek_next().unwrap());
@@ -378,7 +378,7 @@ mod accumulator_tests {
 
     #[test]
     fn test_can_peek_next_to_accumulate_more_seen_text() {
-        let mut accumulator = Accumulator::new("hello");
+        let mut accumulator = StringPointer::new("hello");
 
         assert_eq!("h", accumulator.peek_next().unwrap());
         assert_eq!("e", accumulator.peek_next().unwrap());
@@ -391,7 +391,7 @@ mod accumulator_tests {
 
     #[test]
     fn test_can_peek_next_and_take_text_then_continue_peeking() {
-        let mut accumulator = Accumulator::new("hello");
+        let mut accumulator = StringPointer::new("hello");
 
         assert_eq!(5, accumulator.len());
 
