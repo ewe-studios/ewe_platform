@@ -4,6 +4,7 @@ use clonables::{
 };
 use derive_more::From;
 use foundations_ext::strings_ext::{TryIntoString, TryIntoStringError};
+use minicore::ubytes::BytesPointer;
 use regex::Regex;
 use std::{
     collections::{BTreeMap, HashMap},
@@ -52,8 +53,14 @@ impl ChunkedData {
                 chunk_data
             }
             ChunkedData::End(optional_trailer) => match optional_trailer {
-                Some(trailer) => trailer.clone().into_bytes(),
-                None => b"\r\n".to_vec(),
+                Some(trailer) => {
+                    let mut ending: Vec<u8> = Vec::new();
+                    ending.extend("0\r\n".as_bytes());
+                    ending.extend(trailer.as_bytes());
+                    ending.extend("\r\n".as_bytes());
+                    ending.to_vec()
+                }
+                None => b"0\r\n\r\n".to_vec(),
             },
         }
     }
@@ -2273,115 +2280,470 @@ where
 pub struct SimpleHttpBody {}
 
 pub type ChunkSize = u64;
-pub type StartIndexForRemaining = usize;
+pub type ChunkSizeOctet = String;
+pub type ChunkExtensions = Vec<(String, Option<String>)>;
+
+#[derive(From, Debug)]
+pub enum ChunkStateError {
+    ParseFailed,
+    InvalidByte(u8),
+    ChunkSizeNotFound,
+    InvalidOctectBytes(FromUtf8Error),
+    InvalidChunkEnding,
+    ExtensionWithNoValue,
+}
+
+impl std::error::Error for ChunkStateError {}
+
+impl core::fmt::Display for ChunkStateError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ChunkState {
-    Invalid,
-    Partial,
-    Complete(ChunkSize, StartIndexForRemaining),
+    Chunk(ChunkSize, ChunkSizeOctet, Option<ChunkExtensions>),
+    LastChunk,
+    Trailer(String),
 }
 
-impl SimpleHttpBody {
-    /// Parse a buffer of bytes as a chunk size.
-    ///
-    /// The return value, if complete and successful, includes the index of the
-    /// buffer that parsing stopped at, and the size of the following chunk.
+impl ChunkState {
+    pub fn new(chunk_size_octect: String, chunk_extension: Option<ChunkExtensions>) -> Self {
+        Self::try_new(chunk_size_octect, chunk_extension).expect("should parse octect string")
+    }
+
+    pub fn try_new(
+        chunk_size_octect: String,
+        chunk_extension: Option<ChunkExtensions>,
+    ) -> Result<Self, ChunkStateError> {
+        match Self::parse_chunk_octect(chunk_size_octect.as_bytes()) {
+            Ok(size) => Ok(Self::Chunk(size, chunk_size_octect, chunk_extension)),
+            Err(err) => Err(err),
+        }
+    }
+
+    pub fn parse_http_trailer_chunk(chunk_text: &[u8]) -> Result<Option<Self>, ChunkStateError> {
+        use minicore::ubytes;
+        let mut data_pointer = ubytes::BytesPointer::new(chunk_text);
+        Self::parse_http_trailer_from_pointer(&mut data_pointer)
+    }
+
+    pub fn parse_http_trailer_from_pointer(
+        acc: &mut BytesPointer,
+    ) -> Result<Option<Self>, ChunkStateError> {
+        // eat all the space
+        if let Err(err) = Self::eat_space(acc) {
+            return Err(err);
+        }
+
+        while let Some(b) = acc.peek_next() {
+            match b {
+                b"\r" => {
+                    acc.unpeek_next();
+                    break;
+                }
+                _ => continue,
+            }
+        }
+
+        match acc.take() {
+            Some(value) => match String::from_utf8(value.to_vec()) {
+                Ok(converted_string) => Ok(Some(ChunkState::Trailer(converted_string))),
+                Err(err) => return Err(ChunkStateError::InvalidOctectBytes(err)),
+            },
+            None => Ok(None),
+        }
+    }
+
+    pub fn parse_http_chunk(chunk_text: &[u8]) -> Result<Self, ChunkStateError> {
+        use minicore::ubytes;
+        let mut data_pointer = ubytes::BytesPointer::new(chunk_text);
+        Self::parse_http_chunk_from_pointer(&mut data_pointer)
+    }
+
+    pub fn parse_http_chunk_from_pointer(
+        data_pointer: &mut BytesPointer,
+    ) -> Result<Self, ChunkStateError> {
+        let mut chunk_size_octect: Option<&[u8]> = None;
+
+        // eat up any space (except CRLF)
+        Self::eat_space(data_pointer)?;
+
+        // fetch chunk_size_octect
+        while let Some(content) = data_pointer.peek_next() {
+            let b = content[0];
+            match b {
+                b'0'..=b'9' => continue,
+                b'a'..=b'f' => continue,
+                b'A'..=b'F' => continue,
+                b' ' | b'\r' | b';' => {
+                    data_pointer.unpeek_next();
+                    chunk_size_octect = data_pointer.take();
+                    break;
+                }
+                _ => return Err(ChunkStateError::InvalidByte(b)),
+            }
+        }
+
+        if chunk_size_octect.is_none() {
+            return Err(ChunkStateError::ChunkSizeNotFound);
+        }
+
+        let (chunk_size, chunk_string): (u64, String) = match &chunk_size_octect {
+            Some(value) => match Self::parse_chunk_octect(value) {
+                Ok(converted) => match String::from_utf8(value.to_vec()) {
+                    Ok(converted_string) => (converted, converted_string),
+                    Err(err) => return Err(ChunkStateError::InvalidOctectBytes(err)),
+                },
+                Err(err) => return Err(err),
+            },
+            None => return Err(ChunkStateError::ChunkSizeNotFound),
+        };
+
+        // eat up any space (except CRLF)
+        Self::eat_space(data_pointer)?;
+
+        // do we have an extension marker
+        let mut extensions: ChunkExtensions = Vec::new();
+        while data_pointer.peek(1) == Some(b";") {
+            match Self::parse_http_chunk_extension(data_pointer) {
+                Ok(extension) => extensions.push(extension),
+                Err(err) => return Err(err),
+            }
+        }
+
+        // eat up any space (except CRLF)
+        Self::eat_space(data_pointer)?;
+
+        // once we hit a CRLF then it means we have no extensions,
+        // so we return just the size and its string representation.
+        if data_pointer.peek(2) != Some(b"\r\n") {
+            return Err(ChunkStateError::InvalidChunkEnding);
+        }
+
+        _ = data_pointer.peek_next_by(2);
+        data_pointer.skip();
+
+        if chunk_size == 0 {
+            return Ok(Self::LastChunk);
+        }
+
+        if extensions.is_empty() {
+            return Ok(Self::Chunk(chunk_size, chunk_string, None));
+        }
+
+        return Ok(Self::Chunk(chunk_size, chunk_string, Some(extensions)));
+    }
+
+    pub(crate) fn parse_http_chunk_extension(
+        acc: &mut BytesPointer,
+    ) -> Result<(String, Option<String>), ChunkStateError> {
+        // skip first extension starter
+        if acc.peek(1) == Some(b";") {
+            acc.peek_next();
+            acc.skip();
+        }
+
+        // eat all the space
+        if let Err(err) = Self::eat_space(acc) {
+            return Err(err);
+        }
+
+        while let Some(b) = acc.peek_next() {
+            match b {
+                b" " | b"=" | b"\r" => {
+                    acc.unpeek_next();
+                    break;
+                }
+                _ => continue,
+            }
+        }
+
+        let extension_key = acc.take();
+
+        // eat all the space
+        if let Err(err) = Self::eat_space(acc) {
+            return Err(err);
+        }
+
+        // skip first extension starter
+        if acc.peek(1) != Some(b"=") {
+            return match extension_key {
+                Some(key) => match String::from_utf8(key.to_vec()) {
+                    Ok(converted_string) => Ok((converted_string, None)),
+                    Err(err) => Err(ChunkStateError::InvalidOctectBytes(err)),
+                },
+                None => Err(ChunkStateError::ParseFailed),
+            };
+        }
+
+        // eat the "=" (equal sign)
+        acc.peek_next();
+        acc.skip();
+
+        // eat all the space
+        if let Err(err) = Self::eat_space(acc) {
+            return Err(err);
+        }
+
+        let is_quoted = if acc.peek(1) == Some(b"\"") {
+            true
+        } else {
+            false
+        };
+
+        // move pointer forward for quoted value
+        if is_quoted {
+            acc.peek_next();
+            acc.skip()
+        }
+
+        while let Some(b) = acc.peek_next() {
+            if is_quoted {
+                match b {
+                    b"\"" => {
+                        acc.unpeek_next();
+                        break;
+                    }
+                    _ => continue,
+                }
+            }
+
+            match b {
+                b" " | b"\r" => {
+                    acc.unpeek_next();
+                    break;
+                }
+                _ => continue,
+            }
+        }
+
+        let extension_value = acc.take();
+
+        if is_quoted {
+            acc.peek_next();
+            acc.skip()
+        }
+
+        match (extension_key, extension_value) {
+            (Some(key), Some(value)) => {
+                match (
+                    String::from_utf8(key.to_vec()),
+                    String::from_utf8(value.to_vec()),
+                ) {
+                    (Ok(key_string), Ok(value_string)) => Ok((key_string, Some(value_string))),
+                    (Ok(_), Err(err)) => Err(ChunkStateError::InvalidOctectBytes(err)),
+                    (Err(err), Ok(_)) => Err(ChunkStateError::InvalidOctectBytes(err)),
+                    (Err(err), Err(_)) => Err(ChunkStateError::InvalidOctectBytes(err)),
+                }
+            }
+            (Some(key), None) => match String::from_utf8(key.to_vec()) {
+                Ok(converted_string) => Ok((converted_string, None)),
+                Err(err) => Err(ChunkStateError::InvalidOctectBytes(err)),
+            },
+            (None, Some(_)) => Err(ChunkStateError::ExtensionWithNoValue),
+            (None, None) => Err(ChunkStateError::ParseFailed),
+        }
+    }
+
+    fn eat_space(acc: &mut BytesPointer) -> Result<(), ChunkStateError> {
+        while let Some(b) = acc.peek_next() {
+            if b[0] == b' ' {
+                continue;
+            }
+
+            // move backwards
+            acc.unpeek_next();
+
+            // take the space
+            acc.take();
+
+            return Ok(());
+        }
+        Err(ChunkStateError::ParseFailed)
+    }
+
+    /// Parse a buffer of bytes that should contain a hex string of the size of chunk.
     ///
     /// This is taking from the [httpparse](https://github.com/seanmonstar/httparse) crate.
     ///
-    /// # Example
+    /// It uses math trics by using the positional int value of a byte from the characters in
+    /// a hexadecimal (octet) number.
     ///
-    /// ```
-    /// use wirestream::simple_http::{SimpleHttpBody, ChunkState};
+    /// For each byte we review, the underlying algothmn is as follows:
     ///
-    /// let buf = b"4\r\nRust\r\n0\r\n\r\n";
-    /// assert!(matches!(SimpleHttpBody::parse_chunk_size(buf),
-    ///            Ok(ChunkState::Complete(4, 3))));
-    /// ```
-    pub fn parse_chunk_size(buf: &[u8]) -> Result<ChunkState, HttpReaderError> {
-        const MAX_ALLOWED_CHUNK_SIZE_DIGITS: u64 = 15;
+    /// 1. If its a 0-9 unicode byte, for each iteration, we take the previous size (default: 0)
+    ///    then take the position of the first hex code `0` then we use the formula:
+    ///    => size = (size * 16) + (b::int - byte(0)::int)
+    ///    We then do the above formula for every number we see.
+    /// 2. If its a alphabet (a-f) or (A-F), we also take the previous size (default: 0)
+    ///    then take the position of the first hex code `0` then we use the formula:
+    ///
+    ///    => size = ((size * 16) + 10) + (b::int - byte('a')::int)
+    ///
+    ///    OR
+    ///
+    ///    => size = ((size * 16) + 10) + (b::int - byte('A')::int)
+    ///
+    /// This formulas ensure we can correctly map our hexadecimal octect string into
+    /// the relevant value in numbers.
+    ///
+    pub fn parse_chunk_octect(chunk_size_octect: &[u8]) -> Result<u64, ChunkStateError> {
         const RADIX: u64 = 16;
-        let mut bytes = minicore::ubytes::Bytes::new(buf);
-        let mut size = 0;
-        let mut in_chunk_size = true;
-        let mut in_ext = false;
-        let mut count = 0;
-        loop {
-            let b = if let Some(b) = bytes.next() {
-                b
-            } else {
-                return Ok(ChunkState::Partial);
-            };
+        let mut size: u64 = 0;
 
+        use minicore::ubytes;
+        let mut data_pointer = ubytes::BytesPointer::new(chunk_size_octect);
+        while let Some(content) = data_pointer.peek_next() {
+            let b = content[0];
             match b {
-                b'0'..=b'9' if in_chunk_size => {
-                    if count > MAX_ALLOWED_CHUNK_SIZE_DIGITS {
-                        return Err(HttpReaderError::InvalidChunkSize);
-                    }
-                    count += 1;
-                    if cfg!(debug_assertions) && size > (u64::MAX / RADIX) {
-                        // actually unreachable!(), because count stops the loop at 15 digits before
-                        // we can reach u64::MAX / RADIX == 0xfffffffffffffff, which requires 15 hex
-                        // digits. This stops mirai reporting a false alarm regarding the `size *=
-                        // RADIX` multiplication below.
-                        return Err(HttpReaderError::InvalidChunkSize);
-                    }
+                b'0'..=b'9' => {
                     size *= RADIX;
                     size += (b - b'0') as u64;
                 }
-                b'a'..=b'f' if in_chunk_size => {
-                    if count > MAX_ALLOWED_CHUNK_SIZE_DIGITS {
-                        return Err(HttpReaderError::InvalidChunkSize);
-                    }
-                    count += 1;
-                    if cfg!(debug_assertions) && size > (u64::MAX / RADIX) {
-                        return Err(HttpReaderError::InvalidChunkSize);
-                    }
+                b'a'..=b'f' => {
                     size *= RADIX;
                     size += (b + 10 - b'a') as u64;
                 }
-                b'A'..=b'F' if in_chunk_size => {
-                    if count > MAX_ALLOWED_CHUNK_SIZE_DIGITS {
-                        return Err(HttpReaderError::InvalidChunkSize);
-                    }
-                    count += 1;
-                    if cfg!(debug_assertions) && size > (u64::MAX / RADIX) {
-                        return Err(HttpReaderError::InvalidChunkSize);
-                    }
+                b'A'..=b'F' => {
                     size *= RADIX;
                     size += (b + 10 - b'A') as u64;
                 }
-                b'\r' => match if let Some(b) = bytes.next() {
-                    b
-                } else {
-                    return Ok(ChunkState::Partial);
-                } {
-                    b'\n' => break,
-                    _ => return Err(HttpReaderError::InvalidChunkSize),
-                },
-                // If we weren't in the extension yet, the ";" signals its start
-                b';' if !in_ext => {
-                    in_ext = true;
-                    in_chunk_size = false;
-                }
-                // "Linear white space" is ignored between the chunk size and the
-                // extension separator token (";") due to the "implied *LWS rule".
-                b'\t' | b' ' if !in_ext && !in_chunk_size => {}
-                // LWS can follow the chunk size, but no more digits can come
-                b'\t' | b' ' if in_chunk_size => in_chunk_size = false,
-                // We allow any arbitrary octet once we are in the extension, since
-                // they all get ignored anyway. According to the HTTP spec, valid
-                // extensions would have a more strict syntax:
-                //     (token ["=" (token | quoted-string)])
-                // but we gain nothing by rejecting an otherwise valid chunk size.
-                _ if in_ext => {}
-                // Finally, if we aren't in the extension and we're reading any
-                // other octet, the chunk size line is invalid!
-                _ => return Err(HttpReaderError::InvalidChunkSize),
+                _ => return Err(ChunkStateError::InvalidByte(b)),
             }
         }
-        Ok(ChunkState::Complete(size, bytes.pos()))
+
+        return Ok(size);
+    }
+}
+
+#[cfg(test)]
+mod test_chunk_parser {
+    use super::*;
+
+    struct ChunkSample {
+        content: &'static [&'static str],
+        expected: Vec<ChunkState>,
+    }
+
+    struct TrailerSample {
+        content: &'static [&'static str],
+        expected: Vec<Option<ChunkState>>,
+    }
+
+    #[test]
+    fn test_chunk_state_parse_http_trailers() {
+        let test_cases: Vec<TrailerSample> = vec![TrailerSample {
+            expected: vec![
+                Some(ChunkState::Trailer("Farm: FarmValue".into())),
+                Some(ChunkState::Trailer("Farm:FarmValue".into())),
+                None,
+            ],
+            content: &["Farm: FarmValue\r\n", "Farm:FarmValue\r\n", "\r\n"][..],
+        }];
+
+        for sample in test_cases {
+            let chunks: Result<Vec<Option<ChunkState>>, ChunkStateError> = sample
+                .content
+                .into_iter()
+                .map(|t| ChunkState::parse_http_trailer_chunk(t.as_bytes()))
+                .collect();
+
+            assert!(matches!(chunks, Ok(_)));
+            assert_eq!(chunks.unwrap(), sample.expected);
+        }
+    }
+
+    #[test]
+    fn test_chunk_state_parse_http_chunk_code() {
+        let test_cases: Vec<ChunkSample> = vec![
+            ChunkSample {
+                expected: vec![
+                    ChunkState::Chunk(7, "7".into(), None),
+                    ChunkState::Chunk(17, "11".into(), None),
+                    ChunkState::LastChunk,
+                ],
+                content: &["7\r\nMozilla\r\n", "11\r\nDeveloper Network\r\n", "0\r\n"][..],
+            },
+            ChunkSample {
+                expected: vec![
+                    ChunkState::Chunk(
+                        5,
+                        "5".into(),
+                        Some(vec![
+                            ("comment".into(), Some("first chunk".into())),
+                            ("day".into(), Some("1".into())),
+                        ]),
+                    ),
+                    ChunkState::Chunk(
+                        5,
+                        "5".into(),
+                        Some(vec![
+                            ("comment".into(), Some("first chunk".into())),
+                            ("age".into(), Some("1".into())),
+                        ]),
+                    ),
+                    ChunkState::Chunk(
+                        5,
+                        "5".into(),
+                        Some(vec![("comment".into(), Some("first chunk".into()))]),
+                    ),
+                    ChunkState::Chunk(
+                        5,
+                        "5".into(),
+                        Some(vec![("comment".into(), Some("second chunk".into()))]),
+                    ),
+                    ChunkState::Chunk(
+                        5,
+                        "5".into(),
+                        Some(vec![("name".into(), Some("second".into()))]),
+                    ),
+                    ChunkState::Chunk(5, "5".into(), Some(vec![("ranger".into(), None)])),
+                    ChunkState::LastChunk,
+                ],
+                content: &[
+                    "5; comment=\"first chunk\";day=1\r\nhello",
+                    "5; comment=\"first chunk\"; age=1\r\nhello",
+                    "5; comment=\"first chunk\"\r\nhello",
+                    "5; comment=\"second chunk\"\r\nworld",
+                    "5; name=second\r\nworld",
+                    "5; ranger\r\nworld",
+                    "0\r\n",
+                ][..],
+            },
+        ];
+
+        for sample in test_cases {
+            let chunks: Result<Vec<ChunkState>, ChunkStateError> = sample
+                .content
+                .into_iter()
+                .map(|t| ChunkState::parse_http_chunk(t.as_bytes()))
+                .collect();
+
+            assert!(matches!(chunks, Ok(_)));
+            assert_eq!(chunks.unwrap(), sample.expected);
+        }
+    }
+
+    #[test]
+    fn test_chunk_state_octect_string_parsing() {
+        assert!(matches!(
+            ChunkState::try_new("0".into(), None),
+            Ok(ChunkState::Chunk(0, _, _))
+        ));
+        assert!(matches!(
+            ChunkState::try_new("12".into(), None),
+            Ok(ChunkState::Chunk(18, _, _))
+        ));
+        assert!(matches!(
+            ChunkState::try_new("35".into(), None),
+            Ok(ChunkState::Chunk(53, _, _))
+        ));
+        assert!(matches!(
+            ChunkState::try_new("3086d".into(), None),
+            Ok(ChunkState::Chunk(198765, _, _))
+        ));
     }
 }
 
@@ -2397,10 +2759,6 @@ impl SimpleHttpChunkIterator {
     pub fn new(transfer_encoding: String, headers: SimpleHeaders, stream: SharedTCPStream) -> Self {
         Self(transfer_encoding, headers, stream)
     }
-
-    fn parse_content_chunk(&self) -> Result<ChunkedData, BoxedError> {
-        todo!()
-    }
 }
 
 impl Iterator for SimpleHttpChunkIterator {
@@ -2409,14 +2767,55 @@ impl Iterator for SimpleHttpChunkIterator {
     fn next(&mut self) -> Option<Self::Item> {
         match self.2.try_lock() {
             Ok(mut reader_lock) => {
-                let mut header_list: [u8; 512] = [0; 512];
+                use minicore::ubytes;
+
+                let mut header_list: [u8; 128] = [0; 128];
 
                 let reader = reader_lock.get_mut();
-                if let Err(err) = reader.peek(&mut header_list) {
-                    return Some(Err(Box::new(err)));
+                let header_slice: &[u8] = match reader.peek(&mut header_list) {
+                    Ok(written) => {
+                        if written == 0 {
+                            return Some(Err(Box::new(HttpReaderError::ReadFailed)));
+                        }
+
+                        &header_list[0..written]
+                    }
+                    Err(err) => return Some(Err(Box::new(err))),
+                };
+
+                let mut head_pointer = ubytes::BytesPointer::new(&header_list[..]);
+
+                // check if we have CLRF(\r\n) starting the slice
+                let mut skipped_crlf = false;
+                if head_pointer.peek(2) == Some(b"\r\n") {
+                    _ = head_pointer.peek_next_by(2);
+                    head_pointer.skip();
+                    skipped_crlf = true;
+
+                    if let Err(err) = match head_pointer.peek(1) {
+                        Some(data) => match data[0] {
+                            b'1'..=b'9' => Ok(()),
+                            b'a'..=b'f' => Ok(()),
+                            b'A'..=b'F' => Ok(()),
+                            _ => Err(HttpReaderError::InvalidLine(String::from(
+                                "expected non-spacing bytes",
+                            ))),
+                        },
+                        None => Err(HttpReaderError::InvalidLine(String::from(
+                            "bytes is expected character",
+                        ))),
+                    } {
+                        return Some(Err(Box::new(err)));
+                    }
                 }
 
+                // match SimpleHttpBody::parse_chunk_size(head_pointer.scan_remaining().unwrap()) {
+                //     Ok(state) => {
+                // let actual_content = Vec::with_capacity(adjust_start_by + )
                 todo!()
+                //     }
+                //     Err(err) => Some(Err(Box::new(err))),
+                // }
             }
             Err(_) => return Some(Err(Box::new(HttpReaderError::GuardedResourceAccess))),
         }
@@ -2446,71 +2845,6 @@ impl BodyExtractor for SimpleHttpBody {
                 Box::new(SimpleHttpChunkIterator(transfer_encoding, headers, stream)),
             ))),
         }
-    }
-}
-
-#[cfg(test)]
-mod test_simple_http_body {
-    use super::*;
-
-    #[test]
-    fn test_simple_http_body_parse_chunk_size() {
-        assert!(matches!(
-            SimpleHttpBody::parse_chunk_size(b"0\r\n"),
-            Ok(ChunkState::Complete(0, 3))
-        ));
-        assert!(matches!(
-            SimpleHttpBody::parse_chunk_size(b"12\r\nchunk"),
-            Ok(ChunkState::Complete(18, 4))
-        ));
-        assert!(matches!(
-            SimpleHttpBody::parse_chunk_size(b"3086d\r\n"),
-            Ok(ChunkState::Complete(198765, 7))
-        ));
-        assert!(matches!(
-            SimpleHttpBody::parse_chunk_size(b"3735AB1;foo bar*\r\n"),
-            Ok(ChunkState::Complete(57891505, 18))
-        ));
-        assert!(matches!(
-            SimpleHttpBody::parse_chunk_size(b"3735ab1 ; baz \r\n"),
-            Ok(ChunkState::Complete(57891505, 16))
-        ));
-        assert!(matches!(
-            SimpleHttpBody::parse_chunk_size(b"ffffffffffffffff\r\n"),
-            Ok(ChunkState::Complete(u64::MAX, 18))
-        ));
-        assert!(matches!(
-            SimpleHttpBody::parse_chunk_size(b"77a65\r"),
-            Ok(ChunkState::Partial)
-        ));
-        assert!(matches!(
-            SimpleHttpBody::parse_chunk_size(b"ab"),
-            Ok(ChunkState::Partial)
-        ));
-        assert!(matches!(
-            SimpleHttpBody::parse_chunk_size(b"567f8a\rfoo"),
-            Err(HttpReaderError::InvalidChunkSize)
-        ));
-        assert!(matches!(
-            SimpleHttpBody::parse_chunk_size(b"567f8a\rfoo"),
-            Err(HttpReaderError::InvalidChunkSize)
-        ));
-        assert!(matches!(
-            SimpleHttpBody::parse_chunk_size(b"567xf8a\r\n"),
-            Err(HttpReaderError::InvalidChunkSize)
-        ));
-        assert!(matches!(
-            SimpleHttpBody::parse_chunk_size(b"1ffffffffffffffff\r\n"),
-            Err(HttpReaderError::InvalidChunkSize)
-        ));
-        assert!(matches!(
-            SimpleHttpBody::parse_chunk_size(b"Affffffffffffffff\r\n"),
-            Err(HttpReaderError::InvalidChunkSize)
-        ));
-        assert!(matches!(
-            SimpleHttpBody::parse_chunk_size(b"fffffffffffffffff\r\n"),
-            Err(HttpReaderError::InvalidChunkSize)
-        ));
     }
 }
 
