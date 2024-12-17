@@ -263,36 +263,6 @@ impl<'a> BytesPointer<'a> {
     }
 
     /// peek_next allows you to increment the peek cursor, moving
-    /// the peek cursor forward by a mount of step and returns the next
-    /// token string.
-    #[cfg_attr(feature = "debug_trace", tracing::instrument(level = "trace"))]
-    #[inline]
-    pub fn peek_next_by(&mut self, by: usize) -> Option<&'a [u8]> {
-        if let Some(res) = self.peek_slice(by) {
-            self.peek_pos = self.peek_pos + by;
-            return Some(res);
-        }
-        None
-    }
-
-    /// scan returns the whole string slice currently at the points of where
-    /// the main pos (position) cursor till the end.
-    #[cfg_attr(feature = "debug_trace", tracing::instrument(level = "trace"))]
-    #[inline]
-    pub fn scan_remaining(&mut self) -> Option<&'a [u8]> {
-        Some(&self.content[self.pos..])
-    }
-
-    /// scan returns the whole string slice currently at the points of where
-    /// the main pos (position) cursor and the peek cursor so you can
-    /// pull the string right at the current range.
-    #[cfg_attr(feature = "debug_trace", tracing::instrument(level = "trace"))]
-    #[inline]
-    pub fn scan(&mut self) -> Option<&'a [u8]> {
-        Some(&self.content[self.pos..self.peek_pos])
-    }
-
-    /// peek_next allows you to increment the peek cursor, moving
     /// the peek cursor forward by a step and returns the next
     /// token string.
     #[cfg_attr(feature = "debug_trace", tracing::instrument(level = "trace"))]
@@ -300,6 +270,19 @@ impl<'a> BytesPointer<'a> {
     pub fn peek_next(&mut self) -> Option<&'a [u8]> {
         if let Some(res) = self.peek_slice(1) {
             self.peek_pos = self.peek_pos + 1;
+            return Some(res);
+        }
+        None
+    }
+
+    /// peek_next allows you to increment the peek cursor, moving
+    /// the peek cursor forward by a mount of step and returns the next
+    /// token string.
+    #[cfg_attr(feature = "debug_trace", tracing::instrument(level = "trace"))]
+    #[inline]
+    pub fn peek_next_by(&mut self, by: usize) -> Option<&'a [u8]> {
+        if let Some(res) = self.peek_slice(by) {
+            self.peek_pos = self.peek_pos + by;
             return Some(res);
         }
         None
@@ -333,6 +316,23 @@ impl<'a> BytesPointer<'a> {
 
         let new_peek_pos = self.peek_pos + by;
         Some(&self.content[self.peek_pos..new_peek_pos])
+    }
+
+    /// scan returns the whole string slice currently at the points of where
+    /// the main pos (position) cursor till the end.
+    #[cfg_attr(feature = "debug_trace", tracing::instrument(level = "trace"))]
+    #[inline]
+    pub fn scan_remaining(&mut self) -> Option<&'a [u8]> {
+        Some(&self.content[self.pos..])
+    }
+
+    /// scan returns the whole string slice currently at the points of where
+    /// the main pos (position) cursor and the peek cursor so you can
+    /// pull the string right at the current range.
+    #[cfg_attr(feature = "debug_trace", tracing::instrument(level = "trace"))]
+    #[inline]
+    pub fn scan(&mut self) -> Option<&'a [u8]> {
+        Some(&self.content[self.pos..self.peek_pos])
     }
 
     /// ppeek_at allows you to do a non-permant position cursor adjustment
