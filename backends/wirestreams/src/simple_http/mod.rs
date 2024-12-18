@@ -2058,19 +2058,16 @@ pub enum HttpReaderError {
     #[from(ignore)]
     BodyBuildFailed(BoxedError),
 
-    InvalidChunkSize,
-
-    ExpectedSizedBodyViaContentLength,
-
-    ReadFailed,
-
     LineReadFailed(BoxedError),
 
     InvalidContentSizeValue(Box<std::num::ParseIntError>),
 
+    ExpectedSizedBodyViaContentLength,
     GuardedResourceAccess,
     SeeTrailerBeforeLastChunk,
     InvalidTailerWithNoValue,
+    InvalidChunkSize,
+    ReadFailed,
 }
 
 impl std::error::Error for HttpReaderError {}
@@ -2283,9 +2280,6 @@ where
         }
     }
 }
-
-#[derive(Default)]
-pub struct SimpleHttpBody {}
 
 pub type ChunkSize = u64;
 pub type ChunkSizeOctet = String;
@@ -2941,6 +2935,9 @@ impl Iterator for SimpleHttpChunkIterator {
         }
     }
 }
+
+#[derive(Default)]
+pub struct SimpleHttpBody {}
 
 impl BodyExtractor for SimpleHttpBody {
     fn extract(&self, body: Body, stream: SharedTCPStream) -> Result<SimpleBody, BoxedError> {
