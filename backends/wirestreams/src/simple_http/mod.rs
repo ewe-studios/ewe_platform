@@ -42,7 +42,7 @@ impl ChunkedData {
                                 if value.is_none() {
                                     format!("; {}", key)
                                 } else {
-                                    format!("; {}=\"{}\"", key, value.unwrap())
+                                    format!("; {}=\"{}\"", key, value.clone().unwrap())
                                 }
                             })
                             .collect(),
