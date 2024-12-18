@@ -2301,6 +2301,59 @@ impl core::fmt::Display for ChunkStateError {
     }
 }
 
+// ChunkState provides a series of parsing functions that help process the Chunked Transfer Coding
+// specification for Http 1.1.
+//
+// See https://datatracker.ietf.org/doc/html/rfc7230#section-4.1:
+//
+//  4.1.  Chunked Transfer Coding
+//
+//   The chunked transfer coding wraps the payload body in order to
+//    transfer it as a series of chunks, each with its own size indicator,
+//    followed by an OPTIONAL trailer containing header fields.  Chunked
+//    enables content streams of unknown size to be transferred as a
+//    sequence of length-delimited buffers, which enables the sender to
+//    retain connection persistence and the recipient to know when it has
+//    received the entire message.
+//
+//      chunked-body   = *chunk
+//                       last-chunk
+//                       trailer-part
+//                       CRLF
+//
+//      chunk          = chunk-size [ chunk-ext ] CRLF
+//                       chunk-data CRLF
+//      chunk-size     = 1*HEXDIG
+//      last-chunk     = 1*("0") [ chunk-ext ] CRLF
+//
+//      chunk-data     = 1*OCTET ; a sequence of chunk-size octets
+//
+//    The chunk-size field is a string of hex digits indicating the size of
+//    the chunk-data in octets.  The chunked transfer coding is complete
+//    when a chunk with a chunk-size of zero is received, possibly followed
+//    by a trailer, and finally terminated by an empty line.
+//
+//    A recipient MUST be able to parse and decode the chunked transfer
+//    coding.
+//
+// 4.1.1.  Chunk Extensions
+//
+//    The chunked encoding allows each chunk to include zero or more chunk
+//    extensions, immediately following the chunk-size, for the sake of
+//    supplying per-chunk metadata (such as a signature or hash),
+//    mid-message control information, or randomization of message body
+//    size.
+//
+//      chunk-ext      = *( ";" chunk-ext-name [ "=" chunk-ext-val ] )
+//
+//      chunk-ext-name = token
+//      chunk-ext-val  = token / quoted-string
+//
+//    The chunked encoding is specific to each connection and is likely to
+//    be removed or recoded by each recipient (including intermediaries)
+//    before any higher-level application would have a chance to inspect
+//    the extensions.  Hence, use of chunk extensions is generally limited
+//
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ChunkState {
     Chunk(ChunkSize, ChunkSizeOctet, Option<ChunkExtensions>),
@@ -2349,7 +2402,11 @@ impl ChunkState {
 
         match acc.take() {
             Some(value) => match String::from_utf8(value.to_vec()) {
-                Ok(converted_string) => Ok(Some(ChunkState::Trailer(converted_string))),
+                Ok(converted_string) => Ok(if converted_string.len() == 0 {
+                    None
+                } else {
+                    Some(ChunkState::Trailer(converted_string))
+                }),
                 Err(err) => return Err(ChunkStateError::InvalidOctectBytes(err)),
             },
             None => Ok(None),
@@ -2362,6 +2419,54 @@ impl ChunkState {
         Self::parse_http_chunk_from_pointer(&mut data_pointer)
     }
 
+    pub fn get_http_chunk_header_length(chunk_text: &[u8]) -> Result<usize, ChunkStateError> {
+        use minicore::ubytes;
+        let mut data_pointer = ubytes::BytesPointer::new(chunk_text);
+        Self::get_http_chunk_header_length_from_pointer(&mut data_pointer)
+    }
+
+    /// get_http_chunk_header_length_with_pointer lets you count the amount of bytes of chunked transfer
+    /// body chunk just right till the last CRLF before the actual data it refers to.
+    /// This allows you easily know how far to read out from a stream reader so you know how much
+    /// data to skip to get to the actual data of the chunk.
+    pub fn get_http_chunk_header_length_from_pointer(
+        data_pointer: &mut BytesPointer,
+    ) -> Result<usize, ChunkStateError> {
+        let mut total_bytes = 0;
+
+        // are we starting out with a CRLF, if so, count and skip it
+        if data_pointer.peek(2) != Some(b"\r\n") {
+            data_pointer.peek_next_by(2);
+            data_pointer.skip();
+
+            total_bytes += 2;
+        }
+
+        // fetch chunk_size_octect
+        while let Some(content) = data_pointer.peek_next() {
+            match content {
+                b"\r" => {
+                    data_pointer.unpeek_next();
+                    break;
+                }
+                _ => {
+                    total_bytes += 1;
+                    continue;
+                }
+            }
+        }
+
+        if data_pointer.peek(2) != Some(b"\r\n") {
+            return Err(ChunkStateError::InvalidChunkEnding);
+        }
+
+        // skip past CRLF
+        data_pointer.peek_next_by(2);
+        total_bytes += 2;
+
+        Ok(total_bytes)
+    }
+
     pub fn parse_http_chunk_from_pointer(
         data_pointer: &mut BytesPointer,
     ) -> Result<Self, ChunkStateError> {
@@ -2369,6 +2474,12 @@ impl ChunkState {
 
         // eat up any space (except CRLF)
         Self::eat_space(data_pointer)?;
+
+        // are we starting out with a CRLF, if so, skip it
+        if data_pointer.peek(2) == Some(b"\r\n") {
+            data_pointer.peek_next_by(2);
+            data_pointer.skip();
+        }
 
         // fetch chunk_size_octect
         while let Some(content) = data_pointer.peek_next() {
@@ -2783,32 +2894,18 @@ impl Iterator for SimpleHttpChunkIterator {
                     Err(err) => return Some(Err(Box::new(err))),
                 };
 
-                let mut head_pointer = ubytes::BytesPointer::new(&header_list[..]);
+                let total_bytes_before_body =
+                    match ChunkState::get_http_chunk_header_length_from_pointer(
+                        &mut ubytes::BytesPointer::new(&header_slice),
+                    ) {
+                        Ok(inner) => inner,
+                        Err(err) => return Some(Err(Box::new(err))),
+                    };
 
-                // check if we have CLRF(\r\n) starting the slice
-                let mut skipped_crlf = false;
-                if head_pointer.peek(2) == Some(b"\r\n") {
-                    _ = head_pointer.peek_next_by(2);
-                    head_pointer.skip();
-                    skipped_crlf = true;
-
-                    if let Err(err) = match head_pointer.peek(1) {
-                        Some(data) => match data[0] {
-                            b'1'..=b'9' => Ok(()),
-                            b'a'..=b'f' => Ok(()),
-                            b'A'..=b'F' => Ok(()),
-                            _ => Err(HttpReaderError::InvalidLine(String::from(
-                                "expected non-spacing bytes",
-                            ))),
-                        },
-                        None => Err(HttpReaderError::InvalidLine(String::from(
-                            "bytes is expected character",
-                        ))),
-                    } {
-                        return Some(Err(Box::new(err)));
-                    }
-                }
-
+                let mut head_pointer = ubytes::BytesPointer::new(&header_slice);
+                // match ChunkState::parse_http_chunk_from_pointer(&head_pointer) {
+                //     Ok()
+                // }
                 // match SimpleHttpBody::parse_chunk_size(head_pointer.scan_remaining().unwrap()) {
                 //     Ok(state) => {
                 // let actual_content = Vec::with_capacity(adjust_start_by + )
