@@ -3082,7 +3082,7 @@ mod test_http_reader {
     }
 
     #[test]
-    fn test_can_read_http_body_simple_string() {
+    fn test_can_read_http_post_request() {
         let listener = t!(TcpListener::bind("127.0.0.1:7888"));
 
         let message = "\
@@ -3146,6 +3146,115 @@ Hello world!";
             ])),
             IncomingRequestParts::Body(SimpleBody::Bytes(vec![
                 72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33,
+            ])),
+        ];
+
+        assert_eq!(request_parts, expected_parts);
+        req_thread.join().expect("should be closed");
+    }
+
+    #[test]
+    fn test_can_read_http_body_from_reqwest_http_message() {
+        let listener = t!(TcpListener::bind("127.0.0.1:7889"));
+
+        let message = "POST /form HTTP/1.1\r\ncontent-type: application/x-www-form-urlencoded\r\ncontent-length: 24\r\naccept: */*\r\nhost: 127.0.0.1:7889\r\n\r\nhello=world&sean=monstar";
+
+        let req_thread = thread::spawn(move || {
+            let mut client = t!(TcpStream::connect("localhost:7889"));
+            t!(client.write(message.as_bytes()))
+        });
+
+        let (client_stream, _) = t!(listener.accept());
+        let reader = BufReader::new(client_stream);
+        let request_reader = super::HttpReader::simple_stream(reader);
+
+        let request_parts = request_reader
+            .into_iter()
+            .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+            .expect("should generate output");
+
+        dbg!(&request_parts);
+
+        let expected_parts: Vec<IncomingRequestParts> = vec![
+            IncomingRequestParts::Intro(
+                SimpleMethod::POST,
+                SimpleUrl {
+                    url: "/form".into(),
+                    url_only: false,
+                    matcher: Some(t!(Regex::new("/form"))),
+                    params: None,
+                    queries: None,
+                },
+                "HTTP/1.1".into(),
+            ),
+            IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([
+                (SimpleHeader::ACCEPT, "*/*".into()),
+                (SimpleHeader::CONTENT_LENGTH, "24".into()),
+                (
+                    SimpleHeader::CONTENT_TYPE,
+                    "application/x-www-form-urlencoded".into(),
+                ),
+                (SimpleHeader::HOST, "127.0.0.1:7889".into()),
+            ])),
+            IncomingRequestParts::Body(SimpleBody::Bytes(vec![
+                104, 101, 108, 108, 111, 61, 119, 111, 114, 108, 100, 38, 115, 101, 97, 110, 61,
+                109, 111, 110, 115, 116, 97, 114,
+            ])),
+        ];
+
+        assert_eq!(request_parts, expected_parts);
+        req_thread.join().expect("should be closed");
+    }
+
+    #[test]
+    fn test_can_read_http_body_from_reqwest_client() {
+        let listener = t!(TcpListener::bind("127.0.0.1:7887"));
+
+        let req_thread = thread::spawn(move || {
+            use reqwest;
+
+            let form = &[("hello", "world"), ("sean", "monstar")];
+            let _ = reqwest::blocking::Client::new()
+                .post("http://127.0.0.1:7887/form")
+                .form(form)
+                .send();
+        });
+
+        let (client_stream, _) = t!(listener.accept());
+        let reader = BufReader::new(client_stream);
+        let request_reader = super::HttpReader::simple_stream(reader);
+
+        let request_parts = request_reader
+            .into_iter()
+            .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+            .expect("should generate output");
+
+        dbg!(&request_parts);
+
+        let expected_parts: Vec<IncomingRequestParts> = vec![
+            IncomingRequestParts::Intro(
+                SimpleMethod::POST,
+                SimpleUrl {
+                    url: "/form".into(),
+                    url_only: false,
+                    matcher: Some(t!(Regex::new("/form"))),
+                    params: None,
+                    queries: None,
+                },
+                "HTTP/1.1".into(),
+            ),
+            IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([
+                (SimpleHeader::ACCEPT, "*/*".into()),
+                (SimpleHeader::CONTENT_LENGTH, "24".into()),
+                (
+                    SimpleHeader::CONTENT_TYPE,
+                    "application/x-www-form-urlencoded".into(),
+                ),
+                (SimpleHeader::HOST, "127.0.0.1:7887".into()),
+            ])),
+            IncomingRequestParts::Body(SimpleBody::Bytes(vec![
+                104, 101, 108, 108, 111, 61, 119, 111, 114, 108, 100, 38, 115, 101, 97, 110, 61,
+                109, 111, 110, 115, 116, 97, 114,
             ])),
         ];
 
