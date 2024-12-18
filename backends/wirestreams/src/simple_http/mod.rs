@@ -7,7 +7,7 @@ use foundations_ext::strings_ext::{TryIntoString, TryIntoStringError};
 use minicore::ubytes::BytesPointer;
 use regex::Regex;
 use std::{
-    collections::{BTreeMap, HashMap},
+    collections::BTreeMap,
     convert::Infallible,
     io::{self, BufRead, Read},
     net::TcpStream,
@@ -20,48 +20,53 @@ pub type BoxedError = Box<dyn std::error::Error + Send>;
 pub type Result<T, E> = std::result::Result<T, E>;
 
 pub type Trailer = String;
-pub type Extensions = HashMap<String, String>;
+pub type Extensions = Vec<(String, Option<String>)>;
 
 #[derive(Clone, Debug)]
 pub enum ChunkedData {
-    Data((Vec<u8>, Extensions)),
-    End(Option<Trailer>),
+    Data(Vec<u8>, Option<Extensions>),
+    DataEnded,
+    Trailer(String, String),
 }
 
 impl ChunkedData {
     pub fn into_bytes(&mut self) -> Vec<u8> {
         match self {
-            ChunkedData::Data((data, extensions)) => {
+            ChunkedData::Data(data, exts) => {
                 let hexa_octect = format!("{:x}", data.len());
-                let extension_string: Vec<String> = extensions
-                    .into_iter()
-                    .map(|(key, value)| {
-                        if value == "" {
-                            format!("; {}", key)
-                        } else {
-                            format!("; {}=\"{}\"", key, value)
-                        }
-                    })
-                    .collect();
+                let extension_string: Option<Vec<String>> = match exts {
+                    Some(extensions) => Some(
+                        extensions
+                            .into_iter()
+                            .map(|(key, value)| {
+                                if value.is_none() {
+                                    format!("; {}", key)
+                                } else {
+                                    format!("; {}=\"{}\"", key, value.unwrap())
+                                }
+                            })
+                            .collect(),
+                    ),
+                    None => None,
+                };
 
                 let mut chunk_data: Vec<u8> = Vec::new();
-                chunk_data.append(
-                    &mut format!("{} {}", hexa_octect, extension_string.join("")).into_bytes(),
-                );
+                if extension_string.is_some() {
+                    chunk_data.append(
+                        &mut format!("{} {}", hexa_octect, extension_string.unwrap().join(""))
+                            .into_bytes(),
+                    );
+                } else {
+                    chunk_data.append(&mut format!("{}", hexa_octect).into_bytes());
+                }
 
                 chunk_data.append(data);
                 chunk_data
             }
-            ChunkedData::End(optional_trailer) => match optional_trailer {
-                Some(trailer) => {
-                    let mut ending: Vec<u8> = Vec::new();
-                    ending.extend("0\r\n".as_bytes());
-                    ending.extend(trailer.as_bytes());
-                    ending.extend("\r\n".as_bytes());
-                    ending.to_vec()
-                }
-                None => b"0\r\n\r\n".to_vec(),
-            },
+            ChunkedData::DataEnded => b"0\r\n".to_vec(),
+            ChunkedData::Trailer(trailer_key, trailer_value) => {
+                format!("{}:{}\r\n", trailer_key, trailer_value).into_bytes()
+            }
         }
     }
 }
@@ -2064,6 +2069,8 @@ pub enum HttpReaderError {
     InvalidContentSizeValue(Box<std::num::ParseIntError>),
 
     GuardedResourceAccess,
+    SeeTrailerBeforeLastChunk,
+    InvalidTailerWithNoValue,
 }
 
 impl std::error::Error for HttpReaderError {}
@@ -2100,7 +2107,8 @@ impl Clone for IncomingRequestParts {
     }
 }
 
-pub type SharedTCPStream = std::sync::Arc<std::sync::Mutex<io::BufReader<TcpStream>>>;
+pub type SharedBufferedStream<T> = std::sync::Arc<std::sync::Mutex<io::BufReader<T>>>;
+pub type SharedTCPStream = SharedBufferedStream<TcpStream>;
 
 pub type BodySize = u64;
 pub type TransferEncodng = String;
@@ -2281,7 +2289,6 @@ pub struct SimpleHttpBody {}
 
 pub type ChunkSize = u64;
 pub type ChunkSizeOctet = String;
-pub type ChunkExtensions = Vec<(String, Option<String>)>;
 
 #[derive(From, Debug)]
 pub enum ChunkStateError {
@@ -2356,19 +2363,19 @@ impl core::fmt::Display for ChunkStateError {
 //
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ChunkState {
-    Chunk(ChunkSize, ChunkSizeOctet, Option<ChunkExtensions>),
+    Chunk(ChunkSize, ChunkSizeOctet, Option<Extensions>),
     LastChunk,
     Trailer(String),
 }
 
 impl ChunkState {
-    pub fn new(chunk_size_octect: String, chunk_extension: Option<ChunkExtensions>) -> Self {
+    pub fn new(chunk_size_octect: String, chunk_extension: Option<Extensions>) -> Self {
         Self::try_new(chunk_size_octect, chunk_extension).expect("should parse octect string")
     }
 
     pub fn try_new(
         chunk_size_octect: String,
-        chunk_extension: Option<ChunkExtensions>,
+        chunk_extension: Option<Extensions>,
     ) -> Result<Self, ChunkStateError> {
         match Self::parse_chunk_octect(chunk_size_octect.as_bytes()) {
             Ok(size) => Ok(Self::Chunk(size, chunk_size_octect, chunk_extension)),
@@ -2516,7 +2523,7 @@ impl ChunkState {
         Self::eat_space(data_pointer)?;
 
         // do we have an extension marker
-        let mut extensions: ChunkExtensions = Vec::new();
+        let mut extensions: Extensions = Vec::new();
         while data_pointer.peek(1) == Some(b";") {
             match Self::parse_http_chunk_extension(data_pointer) {
                 Ok(extension) => extensions.push(extension),
@@ -2903,16 +2910,32 @@ impl Iterator for SimpleHttpChunkIterator {
                     };
 
                 let mut head_pointer = ubytes::BytesPointer::new(&header_slice);
-                // match ChunkState::parse_http_chunk_from_pointer(&head_pointer) {
-                //     Ok()
-                // }
-                // match SimpleHttpBody::parse_chunk_size(head_pointer.scan_remaining().unwrap()) {
-                //     Ok(state) => {
-                // let actual_content = Vec::with_capacity(adjust_start_by + )
-                todo!()
-                //     }
-                //     Err(err) => Some(Err(Box::new(err))),
-                // }
+                match ChunkState::parse_http_chunk_from_pointer(&mut head_pointer) {
+                    Ok(chunk) => match chunk {
+                        ChunkState::Chunk(size, _, opt_exts) => {
+                            let size_to_read = (total_bytes_before_body as u64) + size;
+                            let mut read_buffer = Vec::with_capacity(size_to_read as usize);
+
+                            if let Err(err) = reader.read_exact(&mut read_buffer) {
+                                return Some(Err(Box::new(err)));
+                            }
+
+                            let chunk_data: &[u8] =
+                                &read_buffer[total_bytes_before_body..read_buffer.len()];
+
+                            Some(Ok(ChunkedData::Data(Vec::from(chunk_data), opt_exts)))
+                        }
+                        ChunkState::LastChunk => Some(Ok(ChunkedData::DataEnded)),
+                        ChunkState::Trailer(mut inner) => match inner.find(":") {
+                            Some(index) => {
+                                let (key, value) = inner.split_at_mut(index);
+                                Some(Ok(ChunkedData::Trailer(key.into(), value.into())))
+                            }
+                            None => Some(Err(Box::new(HttpReaderError::InvalidTailerWithNoValue))),
+                        },
+                    },
+                    Err(err) => Some(Err(Box::new(err))),
+                }
             }
             Err(_) => return Some(Err(Box::new(HttpReaderError::GuardedResourceAccess))),
         }
