@@ -82,8 +82,8 @@ impl TestServer {
             // attempt to pull request_head
             let (head, resources): (IncomingRequestParts, Option<Vec<ServiceAction>>) =
                 match incoming_request_result.expect("should be a valid request") {
-                    IncomingRequestParts::Intro(method, url) => (
-                        IncomingRequestParts::Intro(method.clone(), url.clone()),
+                    IncomingRequestParts::Intro(method, url, proto) => (
+                        IncomingRequestParts::Intro(method.clone(), url.clone(), proto.clone()),
                         action_list.get_matching2(&url, method.clone()),
                     ),
                     IncomingRequestParts::Headers(_) => break,

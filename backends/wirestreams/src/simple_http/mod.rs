@@ -81,6 +81,78 @@ pub enum SimpleBody {
     ChunkedStream(Option<ChunkedClonableVecIterator<BoxedError>>),
 }
 
+impl Eq for SimpleBody {}
+
+// PartialEq is implemented but threads the `Self::Stream` and `Self::ChunkedStream`
+// differently in that we do not compare the contents but rather compare that both have
+// value of same type (i.e both have provided iterators).
+impl PartialEq for SimpleBody {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::None, Self::None) => true,
+            (Self::Text(me), Self::Text(other)) => me == other,
+            (Self::Bytes(me), Self::Bytes(other)) => me == other,
+            (Self::Stream(me), Self::Stream(other)) => match (me, other) {
+                (Some(_this), Some(_that)) => true,
+                _ => false,
+            },
+            (Self::ChunkedStream(me), Self::ChunkedStream(other)) => match (me, other) {
+                (Some(_this), Some(_that)) => true,
+                _ => false,
+            },
+            _ => false,
+        }
+    }
+}
+
+impl core::fmt::Debug for SimpleBody {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        #[allow(dead_code)]
+        #[derive(Debug)]
+        enum SimpleBodyRepr<'a> {
+            None,
+            Text(&'a str),
+            Bytes(&'a [u8]),
+            Stream(Option<()>),
+            ChunkedStream(Option<()>),
+        }
+
+        let repr = match self {
+            Self::None => SimpleBodyRepr::None,
+            Self::Text(inner) => SimpleBodyRepr::Text(&inner),
+            Self::Bytes(inner) => SimpleBodyRepr::Bytes(&inner),
+            Self::Stream(inner) => SimpleBodyRepr::Stream(match inner {
+                Some(_) => Some(()),
+                None => None,
+            }),
+            Self::ChunkedStream(inner) => SimpleBodyRepr::ChunkedStream(match inner {
+                Some(_) => Some(()),
+                None => None,
+            }),
+        };
+
+        repr.fmt(f)
+    }
+}
+
+impl core::fmt::Display for SimpleBody {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::None => write!(f, "None"),
+            Self::Text(inner) => write!(f, "Text({})", inner),
+            Self::Bytes(inner) => write!(f, "Bytes({:?})", inner),
+            Self::Stream(inner) => match inner {
+                Some(_) => write!(f, "Stream(ClonableIterator<T>)"),
+                None => write!(f, "Stream(None)"),
+            },
+            Self::ChunkedStream(inner) => match inner {
+                Some(_) => write!(f, "ChunkedStream(ClonableIterator<T>)"),
+                None => write!(f, "ChunkedStream(None)"),
+            },
+        }
+    }
+}
+
 impl Clone for SimpleBody {
     fn clone(&self) -> Self {
         match self {
@@ -462,7 +534,7 @@ impl core::fmt::Display for SimpleHeader {
 }
 
 /// HTTP methods
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum SimpleMethod {
     GET,
     POST,
@@ -665,6 +737,14 @@ pub struct SimpleUrl {
     pub queries: Option<BTreeMap<String, String>>,
 }
 
+impl Eq for SimpleUrl {}
+
+impl PartialEq for SimpleUrl {
+    fn eq(&self, other: &Self) -> bool {
+        self.url == other.url
+    }
+}
+
 static CAPTURE_QUERY: &'static str = r"\?.*";
 static CAPTURE_PATH: &'static str = r".*\?";
 static QUERY_REPLACER: &'static str = r"(?P<$p>[^//|/?]+)";
@@ -754,7 +834,6 @@ impl SimpleUrl {
                             })
                             .collect();
 
-                        dbg!(&extracted_params);
                         if self.params.is_none() {
                             (true, None)
                         } else {
@@ -1199,7 +1278,7 @@ impl core::fmt::Display for SimpleRequestError {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct SimpleIncomingRequest {
     pub request_url: String,
     pub body: Option<SimpleBody>,
@@ -2078,8 +2157,11 @@ impl core::fmt::Display for HttpReaderError {
     }
 }
 
+pub type Protocol = String;
+
+#[derive(Debug, PartialEq, Eq)]
 pub enum IncomingRequestParts {
-    Intro(SimpleMethod, SimpleUrl),
+    Intro(SimpleMethod, SimpleUrl, Protocol),
     Headers(SimpleHeaders),
     Body(SimpleBody),
 }
@@ -2087,7 +2169,9 @@ pub enum IncomingRequestParts {
 impl core::fmt::Display for IncomingRequestParts {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Intro(method, url) => write!(f, "Intro({:?}, {:?})", method, url),
+            Self::Intro(method, url, proto) => {
+                write!(f, "Intro({:?}, {:?}, {})", method, url, proto)
+            }
             Self::Headers(headers) => write!(f, "Headers({:?})", headers),
             Self::Body(_) => write!(f, "Body(_)"),
         }
@@ -2097,7 +2181,9 @@ impl core::fmt::Display for IncomingRequestParts {
 impl Clone for IncomingRequestParts {
     fn clone(&self) -> Self {
         match self {
-            Self::Intro(method, url) => Self::Intro(method.clone(), url.clone()),
+            Self::Intro(method, url, proto) => {
+                Self::Intro(method.clone(), url.clone(), proto.clone())
+            }
             Self::Headers(headers) => Self::Headers(headers.clone()),
             Self::Body(body) => Self::Body(body.clone()),
         }
@@ -2184,7 +2270,7 @@ where
 
                 // if the lines is more than two then this is not
                 // allowed or wanted, so fail immediately.
-                if intro_parts.len() > 2 {
+                if intro_parts.len() != 3 {
                     self.state = HttpReadState::Finished;
                     return Some(Err(HttpReaderError::InvalidLine(line.clone())));
                 }
@@ -2194,12 +2280,14 @@ where
                 Some(Ok(IncomingRequestParts::Intro(
                     SimpleMethod::from(intro_parts[0].to_string()),
                     SimpleUrl::url_with_query(intro_parts[1].to_string()),
+                    intro_parts[2].to_string(),
                 )))
             }
             HttpReadState::Headers => {
                 let mut headers: SimpleHeaders = BTreeMap::new();
 
                 let mut line = String::new();
+
                 let mut borrowed_reader = match self.reader.try_lock() {
                     Ok(borrowed_reader) => borrowed_reader,
                     Err(_) => return Some(Err(HttpReaderError::GuardedResourceAccess)),
@@ -2215,15 +2303,18 @@ where
                         return Some(Err(line_read_result.unwrap_err()));
                     }
 
-                    if line == "" {
+                    if line.trim() == "" {
                         break;
                     }
 
                     let line_parts: Vec<&str> = line.splitn(2, ':').collect();
+
                     headers.insert(
                         SimpleHeader::from(line_parts[0].to_string()),
-                        line_parts[1].to_string(),
+                        line_parts[1].trim().to_string(),
                     );
+
+                    line.clear();
                 }
 
                 // if its a chunked body then send and move state to chunked body state
@@ -2264,11 +2355,11 @@ where
             HttpReadState::Body(body) => {
                 let cloned_stream = self.reader.clone();
                 match self.bodies.extract(body.clone(), cloned_stream) {
-                    Ok(generated_body_iterator) => {
+                    Ok(generated_body) => {
                         // once we've gotten a body iterator and gives it to the user
                         // the next state is finished.
                         self.state = HttpReadState::Finished;
-                        Some(Ok(IncomingRequestParts::Body(generated_body_iterator)))
+                        Some(Ok(IncomingRequestParts::Body(generated_body)))
                     }
                     Err(err) => {
                         self.state = HttpReadState::Finished;
@@ -2937,7 +3028,7 @@ impl Iterator for SimpleHttpChunkIterator {
 }
 
 #[derive(Default)]
-pub struct SimpleHttpBody {}
+pub struct SimpleHttpBody;
 
 impl BodyExtractor for SimpleHttpBody {
     fn extract(&self, body: Body, stream: SharedTCPStream) -> Result<SimpleBody, BoxedError> {
@@ -2947,12 +3038,12 @@ impl BodyExtractor for SimpleHttpBody {
                     return Ok(SimpleBody::None);
                 }
 
-                let mut body_content = Vec::with_capacity(content_length as usize);
                 let mut borrowed_stream = match stream.try_lock() {
                     Ok(borrowed_reader) => borrowed_reader,
                     Err(_) => return Err(Box::new(HttpReaderError::GuardedResourceAccess)),
                 };
 
+                let mut body_content = vec![0; content_length as usize];
                 match borrowed_stream.read_exact(&mut body_content) {
                     Ok(_) => Ok(SimpleBody::Bytes(body_content)),
                     Err(err) => Err(Box::new(err)),
@@ -2968,6 +3059,98 @@ impl BodyExtractor for SimpleHttpBody {
 impl HttpReader<SimpleHttpBody> {
     pub fn simple_stream(reader: io::BufReader<TcpStream>) -> HttpReader<SimpleHttpBody> {
         HttpReader::<SimpleHttpBody>::new(reader, SimpleHttpBody::default())
+    }
+}
+
+#[cfg(test)]
+mod test_http_reader {
+    use io::{BufReader, Write};
+
+    use super::*;
+    use std::{
+        net::{TcpListener, TcpStream},
+        thread,
+    };
+
+    macro_rules! t {
+        ($e:expr) => {
+            match $e {
+                Ok(t) => t,
+                Err(e) => panic!("received error for `{}`: {}", stringify!($e), e),
+            }
+        };
+    }
+
+    #[test]
+    fn test_can_read_http_body_simple_string() {
+        let listener = t!(TcpListener::bind("127.0.0.1:7888"));
+
+        let message = "\
+POST /users HTTP/1.1\r
+Date: Sun, 10 Oct 2010 23:26:07 GMT\r
+Server: Apache/2.2.8 (Ubuntu) mod_ssl/2.2.8 OpenSSL/0.9.8g\r
+Last-Modified: Sun, 26 Sep 2010 22:04:35 GMT
+ETag: \"45b6-834-49130cc1182c0\"\r
+Accept-Ranges: bytes\r
+Content-Length: 12\r
+Connection: close\r
+Content-Type: text/html\r
+\r
+Hello world!";
+
+        dbg!(&message);
+
+        let req_thread = thread::spawn(move || {
+            let mut client = t!(TcpStream::connect("localhost:7888"));
+            t!(client.write(message.as_bytes()))
+        });
+
+        let (client_stream, _) = t!(listener.accept());
+        let reader = BufReader::new(client_stream);
+        let request_reader = super::HttpReader::simple_stream(reader);
+
+        let request_parts = request_reader
+            .into_iter()
+            .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+            .expect("should generate output");
+
+        dbg!(&request_parts);
+
+        let expected_parts: Vec<IncomingRequestParts> = vec![
+            IncomingRequestParts::Intro(
+                SimpleMethod::POST,
+                SimpleUrl {
+                    url: "/users".into(),
+                    url_only: false,
+                    matcher: Some(t!(Regex::new("/users"))),
+                    params: None,
+                    queries: None,
+                },
+                "HTTP/1.1".into(),
+            ),
+            IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([
+                (SimpleHeader::ACCEPT_RANGES, "bytes".into()),
+                (SimpleHeader::CONNECTION, "close".into()),
+                (SimpleHeader::CONTENT_LENGTH, "12".into()),
+                (SimpleHeader::CONTENT_TYPE, "text/html".into()),
+                (SimpleHeader::DATE, "Sun, 10 Oct 2010 23:26:07 GMT".into()),
+                (SimpleHeader::ETAG, "\"45b6-834-49130cc1182c0\"".into()),
+                (
+                    SimpleHeader::LAST_MODIFIED,
+                    "Sun, 26 Sep 2010 22:04:35 GMT".into(),
+                ),
+                (
+                    SimpleHeader::SERVER,
+                    "Apache/2.2.8 (Ubuntu) mod_ssl/2.2.8 OpenSSL/0.9.8g".into(),
+                ),
+            ])),
+            IncomingRequestParts::Body(SimpleBody::Bytes(vec![
+                72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33,
+            ])),
+        ];
+
+        assert_eq!(request_parts, expected_parts);
+        req_thread.join().expect("should be closed");
     }
 }
 
