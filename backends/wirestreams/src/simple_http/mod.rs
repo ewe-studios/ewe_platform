@@ -1,6 +1,6 @@
 use clonables::{
-    ClonableBoxIterator, ClonableFnMut, ClonableStringIterator, ClonableVecIterator,
-    WrappedIterator,
+    CanCloneIterator, ClonableBoxIterator, ClonableFnMut, ClonableStringIterator,
+    ClonableVecIterator,
 };
 use derive_more::From;
 use foundations_ext::strings_ext::{TryIntoString, TryIntoStringError};
@@ -200,7 +200,7 @@ trait RenderHttp: Send {
 
     fn http_render(
         &self,
-    ) -> std::result::Result<WrappedIterator<Result<Vec<u8>, Self::Error>>, Self::Error>;
+    ) -> std::result::Result<CanCloneIterator<Result<Vec<u8>, Self::Error>>, Self::Error>;
 
     /// http_render_encoded_string attempts to render the results of calling
     /// `RenderHttp::http_render()` as a custom encoded strings.
@@ -1938,12 +1938,12 @@ impl RenderHttp for Http11 {
 
     fn http_render(
         &self,
-    ) -> std::result::Result<WrappedIterator<Result<Vec<u8>, Self::Error>>, Self::Error> {
+    ) -> std::result::Result<CanCloneIterator<Result<Vec<u8>, Self::Error>>, Self::Error> {
         match self {
-            Http11::Request(request) => Ok(WrappedIterator::new(Box::new(Http11RequestIterator(
+            Http11::Request(request) => Ok(CanCloneIterator::new(Box::new(Http11RequestIterator(
                 Http11ReqState::Intro(request.clone()),
             )))),
-            Http11::Response(response) => Ok(WrappedIterator::new(Box::new(
+            Http11::Response(response) => Ok(CanCloneIterator::new(Box::new(
                 Http11ResponseIterator(Http11ResState::Intro(response.clone())),
             ))),
         }
