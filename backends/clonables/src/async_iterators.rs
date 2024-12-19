@@ -14,7 +14,7 @@ pub enum TaskStatus<P, D> {
 /// but always return a wrapped `TaskStatus` which you can use to indicate the readiness
 /// or pending state with some value status you wish to pass along to the
 /// caller.
-pub trait AsyncIterator<P, D>: Iterator<Item = TaskStatus<P, D>> {}
+pub trait AsyncIterator<P, D>: Iterator<Item = TaskStatus<P, D>> + Send {}
 
 /// Notifable is a type that can be notified when the AsyncIterator is ready.
 pub trait Notifiable<T> {
@@ -46,7 +46,7 @@ pub trait ClonableAsyncIterator<P, D>: AsyncIterator<P, D> {
 
 impl<T, P, D> ClonableAsyncIterator<P, D> for T
 where
-    T: AsyncIterator<P, D> + Clone + 'static,
+    T: AsyncIterator<P, D> + Clone + Send + 'static,
 {
     fn clone_box(&self) -> Box<dyn ClonableAsyncIterator<P, D, Item = TaskStatus<P, D>>> {
         Box::new(self.clone())
