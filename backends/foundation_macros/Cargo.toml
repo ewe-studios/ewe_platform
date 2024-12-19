@@ -7,7 +7,7 @@ rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-keywords = ["foundations_macros", "ewe-platform macros"]
+keywords = ["foundations_macros", "ewe-platform-macros"]
 
 [dependencies]
 
