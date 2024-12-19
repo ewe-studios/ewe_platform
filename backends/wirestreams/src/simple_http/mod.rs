@@ -2163,7 +2163,7 @@ pub type Protocol = String;
 pub enum IncomingRequestParts {
     Intro(SimpleMethod, SimpleUrl, Protocol),
     Headers(SimpleHeaders),
-    Body(SimpleBody),
+    Body(Option<SimpleBody>),
 }
 
 impl core::fmt::Display for IncomingRequestParts {
@@ -2350,7 +2350,7 @@ where
             }
             HttpReadState::NoBody => {
                 self.state = HttpReadState::Finished;
-                Some(Ok(IncomingRequestParts::Body(SimpleBody::None)))
+                Some(Ok(IncomingRequestParts::Body(Some(SimpleBody::None))))
             }
             HttpReadState::Body(body) => {
                 let cloned_stream = self.reader.clone();
@@ -2359,7 +2359,7 @@ where
                         // once we've gotten a body iterator and gives it to the user
                         // the next state is finished.
                         self.state = HttpReadState::Finished;
-                        Some(Ok(IncomingRequestParts::Body(generated_body)))
+                        Some(Ok(IncomingRequestParts::Body(Some(generated_body))))
                     }
                     Err(err) => {
                         self.state = HttpReadState::Finished;
@@ -3144,9 +3144,9 @@ Hello world!";
                     "Apache/2.2.8 (Ubuntu) mod_ssl/2.2.8 OpenSSL/0.9.8g".into(),
                 ),
             ])),
-            IncomingRequestParts::Body(SimpleBody::Bytes(vec![
+            IncomingRequestParts::Body(Some(SimpleBody::Bytes(vec![
                 72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33,
-            ])),
+            ]))),
         ];
 
         assert_eq!(request_parts, expected_parts);
@@ -3196,10 +3196,10 @@ Hello world!";
                 ),
                 (SimpleHeader::HOST, "127.0.0.1:7889".into()),
             ])),
-            IncomingRequestParts::Body(SimpleBody::Bytes(vec![
+            IncomingRequestParts::Body(Some(SimpleBody::Bytes(vec![
                 104, 101, 108, 108, 111, 61, 119, 111, 114, 108, 100, 38, 115, 101, 97, 110, 61,
                 109, 111, 110, 115, 116, 97, 114,
-            ])),
+            ]))),
         ];
 
         assert_eq!(request_parts, expected_parts);
@@ -3252,10 +3252,10 @@ Hello world!";
                 ),
                 (SimpleHeader::HOST, "127.0.0.1:7887".into()),
             ])),
-            IncomingRequestParts::Body(SimpleBody::Bytes(vec![
+            IncomingRequestParts::Body(Some(SimpleBody::Bytes(vec![
                 104, 101, 108, 108, 111, 61, 119, 111, 114, 108, 100, 38, 115, 101, 97, 110, 61,
                 109, 111, 110, 115, 116, 97, 114,
-            ])),
+            ]))),
         ];
 
         assert_eq!(request_parts, expected_parts);

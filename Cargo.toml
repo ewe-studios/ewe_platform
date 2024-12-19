@@ -31,6 +31,7 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 
 # -- non 'ewe` namespaced crates
 foundations_ext = { path = "./backends/foundations_ext", version = "0.0.5" }
+foundations_macros = { path = "./backends/foundations_macros", version = "0.0.1" }
 directorate = { path = "./backends/directorate", version = "0.0.4" }
 clonables = { path = "./backends/clonables", version = "0.0.1" }
 minicore = { path = "./backends/minicore", version = "0.0.1" }
