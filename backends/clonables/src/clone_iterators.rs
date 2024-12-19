@@ -24,13 +24,13 @@ pub type ClonableByteIterator<'a, E> = ClonableBoxIterator<&'a [u8], E>;
 /// be Send and Clonable this allows you to have a implementing type that can
 /// safely be cloned and wholely send across a thread into another without having
 /// to juggle the usual complainst of requiring the type to also be sync.
-pub trait ClonableIterator: Iterator {
+pub trait ClonableIterator: Iterator + Send {
     fn clone_box(&self) -> Box<dyn ClonableIterator<Item = Self::Item>>;
 }
 
 impl<T, I> ClonableIterator for T
 where
-    T: Iterator<Item = I> + Clone + 'static,
+    T: Iterator<Item = I> + Clone + Send + 'static,
 {
     fn clone_box(&self) -> Box<dyn ClonableIterator<Item = I>> {
         Box::new(self.clone())
