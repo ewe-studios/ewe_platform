@@ -1077,6 +1077,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_macros"
+version = "0.0.1"
+
+[[package]]
 name = "foundations_ext"
 version = "0.0.5"
 dependencies = [
