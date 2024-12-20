@@ -76,7 +76,7 @@ impl TestServer {
             .try_clone()
             .expect("should be able to clone connection");
 
-        let request_reader = simple_http::HttpReader::simple_stream(BufReader::new(
+        let request_reader = simple_http::HttpReader::simple_tcp_stream(BufReader::new(
             WrappedTcpStream::new(read_stream),
         ));
         for incoming_request_result in request_reader {

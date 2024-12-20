@@ -3102,7 +3102,7 @@ impl BodyExtractor for SimpleHttpBody {
 }
 
 impl HttpReader<SimpleHttpBody, WrappedTcpStream> {
-    pub fn simple_stream(
+    pub fn simple_tcp_stream(
         reader: io::BufReader<WrappedTcpStream>,
     ) -> HttpReader<SimpleHttpBody, WrappedTcpStream> {
         HttpReader::<SimpleHttpBody, WrappedTcpStream>::new(reader, SimpleHttpBody::default())
@@ -3154,7 +3154,7 @@ Hello world!";
 
         let (client_stream, _) = t!(listener.accept());
         let reader = BufReader::new(WrappedTcpStream::new(client_stream));
-        let request_reader = super::HttpReader::simple_stream(reader);
+        let request_reader = super::HttpReader::simple_tcp_stream(reader);
 
         let request_parts = request_reader
             .into_iter()
@@ -3213,7 +3213,7 @@ Hello world!";
 
         let (client_stream, _) = t!(listener.accept());
         let reader = BufReader::new(WrappedTcpStream::new(client_stream));
-        let request_reader = super::HttpReader::simple_stream(reader);
+        let request_reader = super::HttpReader::simple_tcp_stream(reader);
 
         let request_parts = request_reader
             .into_iter()
@@ -3269,7 +3269,7 @@ Hello world!";
 
         let (client_stream, _) = t!(listener.accept());
         let reader = BufReader::new(WrappedTcpStream::new(client_stream));
-        let request_reader = super::HttpReader::simple_stream(reader);
+        let request_reader = super::HttpReader::simple_tcp_stream(reader);
 
         let request_parts = request_reader
             .into_iter()
