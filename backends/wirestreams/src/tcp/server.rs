@@ -8,6 +8,7 @@ use std::{
 
 use crate::simple_http::{
     self, IncomingRequestParts, ServiceAction, ServiceActionList, SimpleIncomingRequest,
+    WrappedTcpStream,
 };
 
 pub type TestServerResult<T> = std::result::Result<T, TestServerError>;
@@ -75,23 +76,25 @@ impl TestServer {
             .try_clone()
             .expect("should be able to clone connection");
 
-        let mut reader = BufReader::new(read_stream);
-        let mut request_reader = simple_http::HttpReader::simple_stream(reader);
-
+        let request_reader = simple_http::HttpReader::simple_stream(BufReader::new(
+            WrappedTcpStream::new(read_stream),
+        ));
         for incoming_request_result in request_reader {
             // attempt to pull request_head
-            let (head, resources): (IncomingRequestParts, Option<Vec<ServiceAction>>) =
-                match incoming_request_result.expect("should be a valid request") {
-                    IncomingRequestParts::Intro(method, url, proto) => (
-                        IncomingRequestParts::Intro(method.clone(), url.clone(), proto.clone()),
-                        action_list.get_matching2(&url, method.clone()),
-                    ),
-                    IncomingRequestParts::Headers(_) => break,
-                    IncomingRequestParts::Body(_) => break,
-                };
 
-            // if
-            todo!()
+            if let Ok(IncomingRequestParts::Intro(method, url, proto)) = incoming_request_result {};
+            // let (head, resources): (IncomingRequestParts, Option<Vec<ServiceAction>>) =
+            //     match incoming_request_result.expect("should be a valid request") {
+            //         IncomingRequestParts::Intro(method, url, proto) => (
+            //             IncomingRequestParts::Intro(method.clone(), url.clone(), proto.clone()),
+            //             action_list.get_matching2(&url, method.clone()),
+            //         ),
+            //         IncomingRequestParts::Headers(_) => break,
+            //         IncomingRequestParts::Body(_) => break,
+            //     };
+
+            // if we get here then something is totally wrong, kill the contention
+            break;
         }
     }
 }

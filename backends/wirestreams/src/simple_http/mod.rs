@@ -2191,7 +2191,38 @@ impl Clone for IncomingRequestParts {
 }
 
 pub type SharedBufferedStream<T> = std::sync::Arc<std::sync::Mutex<io::BufReader<T>>>;
-pub type SharedTCPStream = SharedBufferedStream<TcpStream>;
+
+pub trait Stream: Read + Send {
+    fn peek(&self, buf: &mut [u8]) -> io::Result<usize>;
+}
+
+pub struct WrappedTcpStream(TcpStream);
+
+impl WrappedTcpStream {
+    pub fn new(stream: TcpStream) -> Self {
+        Self(stream)
+    }
+
+    pub fn get_inner(&self) -> &TcpStream {
+        &self.0
+    }
+
+    pub fn get_mut(&mut self) -> &mut TcpStream {
+        &mut self.0
+    }
+}
+
+impl Read for WrappedTcpStream {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        self.0.read(buf)
+    }
+}
+
+impl Stream for WrappedTcpStream {
+    fn peek(&self, buf: &mut [u8]) -> io::Result<usize> {
+        self.0.peek(buf)
+    }
+}
 
 pub type BodySize = u64;
 pub type TransferEncodng = String;
@@ -2210,7 +2241,11 @@ pub trait BodyExtractor {
     /// This allows custom implementation of Tcp/Http body extractors.
     ///
     /// See sample implementation in `SimpleHttpBody`.
-    fn extract(&self, body: Body, stream: SharedTCPStream) -> Result<SimpleBody, BoxedError>;
+    fn extract<T: Stream + 'static>(
+        &self,
+        body: Body,
+        stream: SharedBufferedStream<T>,
+    ) -> Result<SimpleBody, BoxedError>;
 }
 
 #[derive(Clone, Debug)]
@@ -2223,17 +2258,18 @@ pub enum HttpReadState {
 }
 
 #[derive(Clone)]
-pub struct HttpReader<F: BodyExtractor> {
-    reader: SharedTCPStream,
+pub struct HttpReader<F: BodyExtractor, T: Stream + 'static> {
+    reader: SharedBufferedStream<T>,
     state: HttpReadState,
     bodies: F,
 }
 
-impl<F> HttpReader<F>
+impl<F, T> HttpReader<F, T>
 where
     F: BodyExtractor,
+    T: Stream + 'static,
 {
-    pub fn new(reader: io::BufReader<TcpStream>, bodies: F) -> Self {
+    pub fn new(reader: io::BufReader<T>, bodies: F) -> Self {
         Self {
             bodies,
             state: HttpReadState::Intro,
@@ -2242,9 +2278,10 @@ where
     }
 }
 
-impl<F> Iterator for HttpReader<F>
+impl<F, T> Iterator for HttpReader<F, T>
 where
     F: BodyExtractor,
+    T: Stream + 'static,
 {
     type Item = Result<IncomingRequestParts, HttpReaderError>;
 
@@ -2950,21 +2987,25 @@ mod test_chunk_parser {
     }
 }
 
-pub struct SimpleHttpChunkIterator(String, SimpleHeaders, SharedTCPStream);
+pub struct SimpleHttpChunkIterator<T: Stream>(String, SimpleHeaders, SharedBufferedStream<T>);
 
-impl Clone for SimpleHttpChunkIterator {
+impl<T: Stream> Clone for SimpleHttpChunkIterator<T> {
     fn clone(&self) -> Self {
         Self(self.0.clone(), self.1.clone(), self.2.clone())
     }
 }
 
-impl SimpleHttpChunkIterator {
-    pub fn new(transfer_encoding: String, headers: SimpleHeaders, stream: SharedTCPStream) -> Self {
+impl<T: Stream> SimpleHttpChunkIterator<T> {
+    pub fn new(
+        transfer_encoding: String,
+        headers: SimpleHeaders,
+        stream: SharedBufferedStream<T>,
+    ) -> Self {
         Self(transfer_encoding, headers, stream)
     }
 }
 
-impl Iterator for SimpleHttpChunkIterator {
+impl<T: Stream> Iterator for SimpleHttpChunkIterator<T> {
     type Item = Result<ChunkedData, BoxedError>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -3031,7 +3072,11 @@ impl Iterator for SimpleHttpChunkIterator {
 pub struct SimpleHttpBody;
 
 impl BodyExtractor for SimpleHttpBody {
-    fn extract(&self, body: Body, stream: SharedTCPStream) -> Result<SimpleBody, BoxedError> {
+    fn extract<T: Stream + 'static>(
+        &self,
+        body: Body,
+        stream: SharedBufferedStream<T>,
+    ) -> Result<SimpleBody, BoxedError> {
         match body {
             Body::LimitedBody(content_length, _) => {
                 if content_length == 0 {
@@ -3056,9 +3101,11 @@ impl BodyExtractor for SimpleHttpBody {
     }
 }
 
-impl HttpReader<SimpleHttpBody> {
-    pub fn simple_stream(reader: io::BufReader<TcpStream>) -> HttpReader<SimpleHttpBody> {
-        HttpReader::<SimpleHttpBody>::new(reader, SimpleHttpBody::default())
+impl HttpReader<SimpleHttpBody, WrappedTcpStream> {
+    pub fn simple_stream(
+        reader: io::BufReader<WrappedTcpStream>,
+    ) -> HttpReader<SimpleHttpBody, WrappedTcpStream> {
+        HttpReader::<SimpleHttpBody, WrappedTcpStream>::new(reader, SimpleHttpBody::default())
     }
 }
 
@@ -3106,7 +3153,7 @@ Hello world!";
         });
 
         let (client_stream, _) = t!(listener.accept());
-        let reader = BufReader::new(client_stream);
+        let reader = BufReader::new(WrappedTcpStream::new(client_stream));
         let request_reader = super::HttpReader::simple_stream(reader);
 
         let request_parts = request_reader
@@ -3165,7 +3212,7 @@ Hello world!";
         });
 
         let (client_stream, _) = t!(listener.accept());
-        let reader = BufReader::new(client_stream);
+        let reader = BufReader::new(WrappedTcpStream::new(client_stream));
         let request_reader = super::HttpReader::simple_stream(reader);
 
         let request_parts = request_reader
@@ -3221,7 +3268,7 @@ Hello world!";
         });
 
         let (client_stream, _) = t!(listener.accept());
-        let reader = BufReader::new(client_stream);
+        let reader = BufReader::new(WrappedTcpStream::new(client_stream));
         let request_reader = super::HttpReader::simple_stream(reader);
 
         let request_parts = request_reader
