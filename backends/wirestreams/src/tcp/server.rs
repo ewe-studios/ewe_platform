@@ -1,14 +1,14 @@
 use derive_more::From;
 use std::{
-    io::BufReader,
+    io::{BufReader, Write},
     net::{TcpListener, TcpStream},
     sync::mpsc,
     thread::{self, JoinHandle},
 };
 
 use crate::simple_http::{
-    self, IncomingRequestParts, ServiceAction, ServiceActionList, SimpleIncomingRequest,
-    WrappedTcpStream,
+    self, Http11, IncomingRequestParts, RenderHttp, ServiceAction, ServiceActionList, SimpleHeader,
+    SimpleIncomingRequest, SimpleOutgoingResponse, Status, WrappedTcpStream,
 };
 
 pub type TestServerResult<T> = std::result::Result<T, TestServerError>;
@@ -76,25 +76,55 @@ impl TestServer {
             .try_clone()
             .expect("should be able to clone connection");
 
-        let request_reader = simple_http::HttpReader::simple_tcp_stream(BufReader::new(
+        let mut request_reader = simple_http::HttpReader::simple_tcp_stream(BufReader::new(
             WrappedTcpStream::new(read_stream),
         ));
-        for incoming_request_result in request_reader {
-            // attempt to pull request_head
 
-            if let Ok(IncomingRequestParts::Intro(method, url, proto)) = incoming_request_result {};
-            // let (head, resources): (IncomingRequestParts, Option<Vec<ServiceAction>>) =
-            //     match incoming_request_result.expect("should be a valid request") {
-            //         IncomingRequestParts::Intro(method, url, proto) => (
-            //             IncomingRequestParts::Intro(method.clone(), url.clone(), proto.clone()),
-            //             action_list.get_matching2(&url, method.clone()),
-            //         ),
-            //         IncomingRequestParts::Headers(_) => break,
-            //         IncomingRequestParts::Body(_) => break,
-            //     };
+        loop {
+            // fetch the intro portion and validate we have resources for processing request
+            // if not, just break and return an error
+            if let Some(Ok(IncomingRequestParts::Intro(method, url, proto))) = request_reader.next()
+            {
+                if let Some(resource) = action_list.get_one_matching2(&url, method.clone()) {
+                    if let Some(Ok(IncomingRequestParts::Headers(headers))) = request_reader.next()
+                    {
+                        if let Some(Ok(IncomingRequestParts::Body(body))) = request_reader.next() {
+                            if let Ok(request) = SimpleIncomingRequest::builder()
+                                .with_headers(headers)
+                                .with_some_body(body)
+                                .with_url(url)
+                                .with_proto(proto)
+                                .with_method(method)
+                                .build()
+                            {
+                                continue;
+                            }
+                        }
+                    }
+                }
+            };
 
-            // if we get here then something is totally wrong, kill the contention
+            // if we ever get here, just break.
             break;
+        }
+
+        let response = Http11::response(
+            SimpleOutgoingResponse::builder()
+                .with_status(Status::BadRequest)
+                .build()
+                .unwrap(),
+        );
+
+        if let Ok(renderer) = response.http_render() {
+            for part in renderer {
+                match part {
+                    Ok(data) => match write_stream.write(&data) {
+                        Ok(_) => continue,
+                        Err(_) => return,
+                    },
+                    Err(_) => return,
+                }
+            }
         }
     }
 }

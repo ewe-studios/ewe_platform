@@ -22,6 +22,20 @@ pub type Result<T, E> = std::result::Result<T, E>;
 pub type Trailer = String;
 pub type Extensions = Vec<(String, Option<String>)>;
 
+#[derive(From, Debug)]
+pub enum StringHandlingError {
+    Unknown,
+    Failed,
+}
+
+impl std::error::Error for StringHandlingError {}
+
+impl core::fmt::Display for StringHandlingError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
+
 #[derive(Clone, Debug)]
 pub enum ChunkedData {
     Data(Vec<u8>, Option<Extensions>),
@@ -195,7 +209,7 @@ impl core::fmt::Display for RenderHttpError {
 /// RenderHttp lets types implement the ability to be rendered into
 /// http protocol which makes it easily for more structured types.
 #[allow(unused)]
-trait RenderHttp: Send {
+pub trait RenderHttp: Send {
     type Error: From<FromUtf8Error> + From<BoxedError> + Send + 'static;
 
     fn http_render(
@@ -249,6 +263,49 @@ trait RenderHttp: Send {
 }
 
 // -- HTTP Artefacts
+
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Proto {
+    HTTP11,
+    HTTP20,
+    HTTP30,
+}
+
+impl From<String> for Proto {
+    fn from(value: String) -> Self {
+        Self::from_str(&value).expect("should match protocols")
+    }
+}
+
+impl From<&str> for Proto {
+    fn from(value: &str) -> Self {
+        Self::from_str(&value).expect("should match protocols")
+    }
+}
+
+impl FromStr for Proto {
+    type Err = StringHandlingError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let upper = s.to_uppercase();
+        match upper.as_str() {
+            "HTTP/1.1" | "HTTP 1.1" | "HTTP11" | "HTTP_11" => Ok(Self::HTTP11),
+            "HTTP/2.0" | "HTTP 2.0" | "HTTP20" | "HTTP_20" => Ok(Self::HTTP20),
+            "HTTP/3.0" | "HTTP 3.0" | "HTTP30" | "HTTP_30" => Ok(Self::HTTP30),
+            _ => Err(StringHandlingError::Unknown),
+        }
+    }
+}
+
+impl core::fmt::Display for Proto {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::HTTP11 => write!(f, "HTTP/1.1"),
+            Self::HTTP20 => write!(f, "HTTP/2.0"),
+            Self::HTTP30 => write!(f, "HTTP/3.0"),
+        }
+    }
+}
 
 /// HTTP Headers
 #[allow(non_camel_case_types)]
@@ -1129,6 +1186,7 @@ pub type SimpleHeaders = BTreeMap<SimpleHeader, String>;
 
 #[derive(Clone)]
 pub struct SimpleOutgoingResponse {
+    pub proto: Proto,
     pub status: Status,
     pub headers: SimpleHeaders,
     pub body: Option<SimpleBody>,
@@ -1150,6 +1208,7 @@ impl SimpleOutgoingResponse {
 
 #[derive(Clone, Default)]
 pub struct SimpleOutgoingResponseBuilder {
+    proto: Option<Proto>,
     status: Option<Status>,
     headers: Option<SimpleHeaders>,
     body: Option<SimpleBody>,
@@ -1172,6 +1231,10 @@ impl core::fmt::Display for SimpleResponseError {
 }
 
 impl SimpleOutgoingResponseBuilder {
+    pub fn with_proto(mut self, proto: Proto) -> Self {
+        self.proto = Some(proto);
+        self
+    }
     pub fn with_status(mut self, status: Status) -> Self {
         self.status = Some(status);
         self
@@ -1224,6 +1287,11 @@ impl SimpleOutgoingResponseBuilder {
             None => BTreeMap::new(),
         };
 
+        let proto = match self.proto {
+            Some(inner) => inner,
+            None => Proto::HTTP11,
+        };
+
         let body = match self.body {
             Some(inner) => inner,
             None => SimpleBody::None,
@@ -1256,6 +1324,7 @@ impl SimpleOutgoingResponseBuilder {
 
         Ok(SimpleOutgoingResponse {
             body: Some(body),
+            proto,
             status,
             headers,
         })
@@ -1280,7 +1349,8 @@ impl core::fmt::Display for SimpleRequestError {
 
 #[derive(Clone, Debug)]
 pub struct SimpleIncomingRequest {
-    pub request_url: String,
+    pub proto: Proto,
+    pub request_url: SimpleUrl,
     pub body: Option<SimpleBody>,
     pub headers: SimpleHeaders,
     pub method: SimpleMethod,
@@ -1294,15 +1364,36 @@ impl SimpleIncomingRequest {
 
 #[derive(Default)]
 pub struct SimpleIncomingRequestBuilder {
-    url: Option<String>,
+    proto: Option<Proto>,
+    url: Option<SimpleUrl>,
     body: Option<SimpleBody>,
     method: Option<SimpleMethod>,
     headers: Option<SimpleHeaders>,
 }
 
 impl SimpleIncomingRequestBuilder {
-    pub fn with_url<S: Into<String>>(mut self, url: S) -> Self {
-        self.url = Some(url.into());
+    pub fn with_plain_url<S: Into<String>>(mut self, url: S) -> Self {
+        self.url = Some(SimpleUrl::url_only(url.into()));
+        self
+    }
+
+    pub fn with_parsed_url<S: Into<String>>(mut self, url: S) -> Self {
+        self.url = Some(SimpleUrl::url_with_query(url.into()));
+        self
+    }
+
+    pub fn with_url(mut self, url: SimpleUrl) -> Self {
+        self.url = Some(url);
+        self
+    }
+
+    pub fn with_some_body(mut self, body: Option<SimpleBody>) -> Self {
+        self.body = body;
+        self
+    }
+
+    pub fn with_proto(mut self, proto: Proto) -> Self {
+        self.proto = Some(proto);
         self
     }
 
@@ -1358,6 +1449,11 @@ impl SimpleIncomingRequestBuilder {
             None => BTreeMap::new(),
         };
 
+        let proto = match self.proto {
+            Some(inner) => inner,
+            None => Proto::HTTP11,
+        };
+
         let method = match self.method {
             Some(inner) => inner,
             None => SimpleMethod::GET,
@@ -1395,6 +1491,7 @@ impl SimpleIncomingRequestBuilder {
 
         Ok(SimpleIncomingRequest {
             body: Some(body),
+            proto,
             request_url,
             method,
             headers,
@@ -1550,8 +1647,10 @@ impl Iterator for Http11RequestIterator {
                 self.0 = Http11ReqState::Headers(request.clone());
 
                 // generate HTTP 1.1 intro
-                let http_intro_string =
-                    format!("{} {} HTTP/1.1\r\n", request.method, request.request_url);
+                let http_intro_string = format!(
+                    "{} {} HTTP/1.1\r\n",
+                    request.method, request.request_url.url
+                );
 
                 Some(Ok(http_intro_string.into_bytes()))
             }
@@ -1958,7 +2057,7 @@ mod simple_incoming_tests {
     fn should_convert_to_get_request_with_custom_header() {
         let request = Http11::request(
             SimpleIncomingRequest::builder()
-                .with_url("/")
+                .with_plain_url("/")
                 .with_method(SimpleMethod::GET)
                 .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
                 .add_header(SimpleHeader::HOST, "localhost:8000")
@@ -1978,7 +2077,7 @@ mod simple_incoming_tests {
     fn should_convert_to_get_request() {
         let request = Http11::request(
             SimpleIncomingRequest::builder()
-                .with_url("/")
+                .with_plain_url("/")
                 .with_method(SimpleMethod::GET)
                 .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
                 .add_header(SimpleHeader::HOST, "localhost:8000")
@@ -2079,53 +2178,6 @@ impl<T> SimpleResponse<T> {
     }
 }
 
-pub type SimpleResponseFunc<T> = Box<dyn ClonableFnMut<SimpleIncomingRequest, SimpleResponse<T>>>;
-
-pub fn default_response(_: SimpleIncomingRequest) -> SimpleResponse<()> {
-    return SimpleResponse::no_body(Status::OK, BTreeMap::new());
-}
-
-#[derive(Clone)]
-pub enum SimpleActionResponseBuilder {
-    Empty(SimpleResponseFunc<()>),
-    String(SimpleResponseFunc<String>),
-    Bytes(SimpleResponseFunc<Vec<u8>>),
-    Stream(SimpleResponseFunc<ClonableVecIterator<BoxedError>>),
-}
-
-impl SimpleActionResponseBuilder {
-    pub fn no_content() -> Self {
-        Self::Empty(Box::new(default_response))
-    }
-
-    pub fn empty(
-        func: impl Fn(SimpleIncomingRequest) -> SimpleResponse<()> + Send + Clone + 'static,
-    ) -> Self {
-        Self::Empty(Box::new(func))
-    }
-
-    pub fn string(
-        func: impl Fn(SimpleIncomingRequest) -> SimpleResponse<String> + Send + Clone + 'static,
-    ) -> Self {
-        Self::String(Box::new(func))
-    }
-
-    pub fn bytes(
-        func: impl Fn(SimpleIncomingRequest) -> SimpleResponse<Vec<u8>> + Send + Clone + 'static,
-    ) -> Self {
-        Self::Bytes(Box::new(func))
-    }
-
-    pub fn stream(
-        func: impl Fn(SimpleIncomingRequest) -> SimpleResponse<ClonableVecIterator<BoxedError>>
-            + Clone
-            + Send
-            + 'static,
-    ) -> Self {
-        Self::Stream(Box::new(func))
-    }
-}
-
 #[derive(From, Debug)]
 pub enum HttpReaderError {
     #[from(ignore)]
@@ -2161,7 +2213,7 @@ pub type Protocol = String;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum IncomingRequestParts {
-    Intro(SimpleMethod, SimpleUrl, Protocol),
+    Intro(SimpleMethod, SimpleUrl, Proto),
     Headers(SimpleHeaders),
     Body(Option<SimpleBody>),
 }
@@ -2314,11 +2366,14 @@ where
 
                 self.state = HttpReadState::Headers;
 
-                Some(Ok(IncomingRequestParts::Intro(
-                    SimpleMethod::from(intro_parts[0].to_string()),
-                    SimpleUrl::url_with_query(intro_parts[1].to_string()),
-                    intro_parts[2].to_string(),
-                )))
+                match Proto::from_str(intro_parts[2]) {
+                    Ok(proto) => Some(Ok(IncomingRequestParts::Intro(
+                        SimpleMethod::from(intro_parts[0].to_string()),
+                        SimpleUrl::url_with_query(intro_parts[1].to_string()),
+                        proto,
+                    ))),
+                    Err(err) => Some(Err(HttpReaderError::BodyBuildFailed(Box::new(err)))),
+                }
             }
             HttpReadState::Headers => {
                 let mut headers: SimpleHeaders = BTreeMap::new();
@@ -3310,6 +3365,15 @@ Hello world!";
     }
 }
 
+pub type SimpleResponseFunc = Box<dyn ClonableFnMut<SimpleIncomingRequest, SimpleOutgoingResponse>>;
+
+pub fn default_response(_: SimpleIncomingRequest) -> SimpleOutgoingResponse {
+    SimpleOutgoingResponse::builder()
+        .with_status(Status::OK)
+        .build()
+        .expect("generate response")
+}
+
 pub struct ServiceActionList(Vec<ServiceAction>);
 
 impl ServiceActionList {
@@ -3382,7 +3446,7 @@ impl ServiceActionList {
 pub struct ServiceAction {
     pub route: SimpleUrl,
     pub method: SimpleMethod,
-    pub body: SimpleActionResponseBuilder,
+    pub body: SimpleResponseFunc,
     pub headers: Option<SimpleHeaders>,
 }
 
@@ -3452,7 +3516,7 @@ pub struct ServiceActionBuilder {
     method: Option<SimpleMethod>,
     route: Option<SimpleUrl>,
     headers: Option<SimpleHeaders>,
-    body: Option<SimpleActionResponseBuilder>,
+    body: Option<SimpleResponseFunc>,
 }
 
 impl ServiceActionBuilder {
@@ -3477,7 +3541,7 @@ impl ServiceActionBuilder {
         self
     }
 
-    pub fn with_body(mut self, body: SimpleActionResponseBuilder) -> Self {
+    pub fn with_body(mut self, body: Box<SimpleResponseFunc>) -> Self {
         self.body = Some(body);
         self
     }
@@ -3500,7 +3564,7 @@ impl ServiceActionBuilder {
 
         let body = match self.body {
             Some(inner) => inner,
-            None => SimpleActionResponseBuilder::no_content(),
+            None => Box::new(default_response),
         };
 
         Ok(ServiceAction {
