@@ -1,8 +1,6 @@
 use derive_more::derive::From;
 use serde::de::DeserializeOwned;
 
-type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
-
 #[derive(Debug, From)]
 pub enum ConfigError {
     #[from(ignore)]

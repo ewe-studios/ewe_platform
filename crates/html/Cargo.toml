@@ -12,7 +12,7 @@ keywords.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-minicore.workspace = true
+foundation_core.workspace = true
 ewe_trace.workspace = true
 
 regex = { version = "1.10" }

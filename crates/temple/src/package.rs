@@ -4,7 +4,7 @@
 
 use core::str;
 use ewe_templates::minijinja;
-use foundations_ext::strings_ext::{TryIntoStr, TryIntoString};
+use foundation_core::extensions::strings_ext::{TryIntoStr, TryIntoString};
 use std::{io::Write, marker::PhantomData, path::PathBuf, sync};
 
 use crate::{error::BoxedError, FileContent, FileSystemCommand};

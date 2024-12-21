@@ -3365,13 +3365,14 @@ Hello world!";
     }
 }
 
-pub type SimpleResponseFunc = Box<dyn ClonableFnMut<SimpleIncomingRequest, SimpleOutgoingResponse>>;
+pub type SimpleResponseFunc =
+    Box<dyn ClonableFnMut<SimpleIncomingRequest, Result<SimpleOutgoingResponse, BoxedError>>>;
 
-pub fn default_response(_: SimpleIncomingRequest) -> SimpleOutgoingResponse {
+pub fn default_response(_: SimpleIncomingRequest) -> Result<SimpleOutgoingResponse, BoxedError> {
     SimpleOutgoingResponse::builder()
-        .with_status(Status::OK)
+        .with_status(Status::NoContent)
         .build()
-        .expect("generate response")
+        .map_err(|err| Box::new(err) as BoxedError)
 }
 
 pub struct ServiceActionList(Vec<ServiceAction>);
@@ -3541,8 +3542,12 @@ impl ServiceActionBuilder {
         self
     }
 
-    pub fn with_body(mut self, body: Box<SimpleResponseFunc>) -> Self {
-        self.body = Some(body);
+    pub fn with_body(
+        mut self,
+        body: impl ClonableFnMut<SimpleIncomingRequest, Result<SimpleOutgoingResponse, BoxedError>>
+            + 'static,
+    ) -> Self {
+        self.body = Some(Box::new(body));
         self
     }
 

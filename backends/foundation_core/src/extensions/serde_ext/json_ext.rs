@@ -302,7 +302,7 @@ impl JsonValueExt for Value {
 #[cfg(test)]
 mod tests {
     use super::DynamicValueExt;
-    use crate::serde_ext::JsonValueExt;
+    use super::JsonValueExt;
     use serde_json::json;
 
     type Result<T> = core::result::Result<T, Box<dyn std::error::Error>>; // For tests.
