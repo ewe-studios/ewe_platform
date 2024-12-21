@@ -1,4 +1,4 @@
-use minicore::mem::{
+use foundation_core::io::mem::{
     encoding::{self},
     memory::{self},
     primitives::Bytes,
@@ -832,7 +832,7 @@ pub enum FragmentRef<'a> {
 #[cfg(test)]
 mod markup_tests {
 
-    use minicore::mem::{encoding, memory::Resetable};
+    use foundation_core::io::mem::{encoding, memory::Resetable};
 
     use super::*;
 

@@ -12,7 +12,7 @@ keywords.workspace = true
 [dependencies]
 ewe_trace.workspace = true
 ewe_async_utils.workspace = true
-minicore.workspace = true
+foundation_core.workspace = true
 
 axum = { version = "0.7.5", default-features = false }
 tokio = { version = "1.36", features = ["rt", "macros"] }

@@ -1,5 +1,6 @@
 // Provides wrappers for rust_embed asset managemer.
 
+use rust_embed;
 use std::marker::PhantomData;
 
 pub type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;

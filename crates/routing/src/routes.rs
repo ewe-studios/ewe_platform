@@ -6,7 +6,7 @@ use std::{
 };
 use std::{pin, sync};
 
-use minicore::mem::accumulator::StringPointer;
+use foundation_core::io::mem::accumulator::StringPointer;
 
 use crate::requests::{Method, MethodError, Params, Request};
 use crate::response::Response;

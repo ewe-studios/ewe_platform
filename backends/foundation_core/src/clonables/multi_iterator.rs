@@ -1,5 +1,3 @@
-use crate::Drain;
-
 /// Multi provides a state enum that can specify if the
 /// underlying returned content is a list or not. This lets us
 /// to be able to define an iterator that can represent both

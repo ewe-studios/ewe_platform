@@ -1,6 +1,6 @@
 use anyhow::anyhow;
+use foundation_core::io::mem::accumulator::StringPointer;
 use lazy_static::lazy_static;
-use minicore::mem::accumulator::StringPointer;
 use std::{collections::HashMap, str::FromStr};
 use thiserror::Error;
 use tracing;

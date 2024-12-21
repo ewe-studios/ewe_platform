@@ -386,10 +386,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1462739cb27611015575c0c11df5df7601141071f07518d56fcc1be504cbec97"
 
 [[package]]
-name = "clonables"
-version = "0.0.2"
-
-[[package]]
 name = "colorchoice"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -638,13 +634,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "directorate"
-version = "0.0.4"
-dependencies = [
- "rust-embed",
-]
-
-[[package]]
 name = "dirs"
 version = "5.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -826,10 +815,10 @@ dependencies = [
  "anyhow",
  "criterion",
  "ewe_trace",
+ "foundation_core",
  "lazy-regex",
  "lazy_static",
  "lazycell",
- "minicore",
  "phf",
  "regex",
  "strum",
@@ -855,7 +844,7 @@ dependencies = [
  "ewe_trace",
  "ewe_watch_utils",
  "ewe_watchers",
- "foundations_ext",
+ "foundation_core",
  "http",
  "http-body",
  "http-body-util",
@@ -883,10 +872,10 @@ dependencies = [
  "criterion",
  "ewe_async_utils",
  "ewe_trace",
+ "foundation_core",
  "http",
  "lazy-regex",
  "lazy_static",
- "minicore",
  "regex",
  "serde",
  "serde_json",
@@ -945,7 +934,7 @@ dependencies = [
  "derive_more",
  "ewe_templates",
  "ewe_trace",
- "foundations_ext",
+ "foundation_core",
  "rand",
  "rust-embed",
  "serde",
@@ -1077,21 +1066,27 @@ dependencies = [
 ]
 
 [[package]]
-name = "foundation_macros"
+name = "foundation_core"
 version = "0.0.1"
-
-[[package]]
-name = "foundations_ext"
-version = "0.0.5"
 dependencies = [
+ "anyhow",
  "async-trait",
  "derive_more",
+ "memchr",
+ "native-tls",
+ "regex",
+ "reqwest",
+ "rust-embed",
  "serde",
  "serde_json",
  "serde_yml",
+ "thiserror",
  "tokio",
  "toml",
  "toml_datetime",
+ "tracing",
+ "tracing-test",
+ "url 1.7.2",
 ]
 
 [[package]]
@@ -1851,17 +1846,6 @@ name = "mime"
 version = "0.3.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6877bb514081ee2a7ff5ef9de3281f14a4dd4bceac4c09388074a6b5df8a139a"
-
-[[package]]
-name = "minicore"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "memchr",
- "thiserror",
- "tracing",
- "tracing-test",
-]
 
 [[package]]
 name = "minijinja"
@@ -3728,22 +3712,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68a9bda4691f099d435ad181000724da8e5899daa10713c2d432552b9ccd3a6f"
 dependencies = [
  "memchr",
-]
-
-[[package]]
-name = "wirestream"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clonables",
- "derive_more",
- "foundations_ext",
- "minicore",
- "native-tls",
- "regex",
- "reqwest",
- "tracing",
- "url 1.7.2",
 ]
 
 [[package]]

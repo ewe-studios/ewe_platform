@@ -19,7 +19,7 @@ ewe_trace = { workspace = true }
 ewe_templates = { workspace = true }
 
 # backend dependencies
-foundations_ext = { workspace = true }
+foundation_core = { workspace = true }
 
 # rust package parsing
 cargo_toml = { version = "0.20.5" }

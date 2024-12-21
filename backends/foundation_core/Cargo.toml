@@ -1,0 +1,44 @@
+[package]
+name = "foundation_core"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "central crate for all foundation crates for the ewe-platform project"
+keywords = ["foundations_core", "ewe-platform-foundation-core"]
+
+[dependencies]
+derive_more = { version = "1.0.0", features = ["from", "debug", "error"] }
+serde = { version = "1", features = ["derive"]}
+toml_datetime = { version = "0.6.8" }
+serde_json = { version = "1" }
+serde_yml = { version = "0.0.12" }
+toml = { version = "0.8.19" }
+rust-embed = "8.5.0"
+
+async-trait = { version = "0.1.82"}
+tokio = { version = "1.36", features= ["sync", "time"] }
+memchr = "2.7.2"
+tracing = { version = "0.1.40" }
+anyhow = { version = "1.0.80" }
+thiserror = { version = "1.0.57" }
+
+url = "1.7.0"
+regex = "1.11.1"
+native-tls-crate = { package = "native-tls", version = "0.2.12", optional = true }
+
+[dev-dependencies]
+tracing-test = { version = "0.2.5" }
+reqwest = {version ="0.12.9", features = ["blocking"]}
+
+[features]
+debug_trace = []
+nightly = []
+default = ["native-tls"]
+native-tls = ["native-tls-crate"]
+native-tls-vendored = ["native-tls", "native-tls-crate/vendored"]
+
+[lints]
+workspace = true

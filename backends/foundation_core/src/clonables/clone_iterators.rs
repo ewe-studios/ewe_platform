@@ -1,4 +1,4 @@
-use crate::{types::AnyResult, Drain};
+use super::types::AnyResult;
 
 /// ClonableBoxIterator is a type definition for an Iterator that can safely be
 /// sent across threads safely and easily. Requring the underlying generic

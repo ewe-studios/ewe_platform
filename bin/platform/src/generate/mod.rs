@@ -3,7 +3,7 @@ use ewe_temple::{
     Directorate, PackageConfig, PackageConfigurator, PackageGenerator, RustConfig,
     RustProjectConfigurator,
 };
-use foundations_ext::strings_ext::TryIntoString;
+use foundation_core::extensions::strings_ext::TryIntoString;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 

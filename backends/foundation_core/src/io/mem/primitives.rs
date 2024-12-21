@@ -3,7 +3,7 @@ use std::fmt::{self, Debug};
 use std::ops::Deref;
 use std::{slice, str};
 
-use crate::mem::encoding;
+use super::encoding;
 
 pub trait Align {
     fn align(&mut self, offset: usize);
