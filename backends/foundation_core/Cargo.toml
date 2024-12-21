@@ -7,7 +7,7 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 description = "central crate for all foundation crates for the ewe-platform project"
-keywords = ["foundations_core", "ewe-platform-foundation-core"]
+keywords = ["foundations_core", "ewe-platform-core"]
 
 [dependencies]
 derive_more = { version = "1.0.0", features = ["from", "debug", "error"] }
