@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use foundation_core::io::mem::accumulator::StringPointer;
+use foundation_core::io::mem::stringpointer::StringPointer;
 use lazy_static::lazy_static;
 use std::{collections::HashMap, str::FromStr};
 use thiserror::Error;
