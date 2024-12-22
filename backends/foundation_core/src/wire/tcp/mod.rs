@@ -1,8 +1,3 @@
-extern crate url;
-
-#[cfg(all(feature = "native-tls", not(target_arch = "wasm32")))]
-extern crate native_tls_crate as native_tls;
-
 mod error;
 pub use error::*;
 

@@ -1,4 +1,6 @@
-use super::native_tls::{Identity, TlsConnector, TlsStream};
+use crate::io::ioutils;
+
+use crate::native_tls::{Identity, TlsConnector, TlsStream};
 use core::net;
 use std::{
     collections::HashMap,
@@ -280,7 +282,7 @@ pub struct Http1Stream<T: Clone> {
     addr: super::DataStreamAddr,
     endpoint: super::Endpoint<T>,
     headers: Option<HashMap<String, String>>,
-    stream: minicore::ioutils::BufferedStream<ProtocolStream<T>>,
+    stream: ioutils::BufferedStream<ProtocolStream<T>>,
 }
 
 // -- constructors
@@ -289,7 +291,7 @@ impl<T: Clone> Http1Stream<T> {
     pub fn new(stream: ProtocolStream<T>) -> Self {
         let stream_endpoint = stream.endpoint();
         let stream_addr = stream.get_stream_ref().addrs();
-        let buffered_stream = minicore::ioutils::buffered_stream(stream);
+        let buffered_stream = ioutils::buffered_stream(stream);
 
         Self {
             headers: None,

@@ -1,11 +1,12 @@
-use clonables::{
-    CanCloneIterator, ClonableBoxIterator, ClonableFnMut, ClonableStringIterator,
-    ClonableVecIterator,
+use crate::clonables::{
+    CanCloneIterator, ClonableBoxIterator, ClonableFn, ClonableStringIterator, ClonableVecIterator,
 };
+use crate::extensions::result_ext::BoxedError;
+use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
+use crate::io::ubytes::{self, BytesPointer};
 use derive_more::From;
-use foundations_ext::strings_ext::{TryIntoString, TryIntoStringError};
-use minicore::ubytes::BytesPointer;
 use regex::Regex;
+use std::sync::Arc;
 use std::{
     collections::BTreeMap,
     convert::Infallible,
@@ -14,8 +15,6 @@ use std::{
     str::FromStr,
     string::{FromUtf16Error, FromUtf8Error},
 };
-
-pub type BoxedError = Box<dyn std::error::Error + Send>;
 
 pub type Result<T, E> = std::result::Result<T, E>;
 
@@ -2054,6 +2053,22 @@ mod simple_incoming_tests {
     use super::*;
 
     #[test]
+    fn should_be_able_to_clone_request() {
+        let request_1 = SimpleIncomingRequest::builder()
+            .with_plain_url("/")
+            .with_method(SimpleMethod::GET)
+            .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
+            .add_header(SimpleHeader::HOST, "localhost:8000")
+            .add_header(SimpleHeader::Custom("X-VILLA".into()), "YES")
+            .with_body_string("Hello")
+            .build()
+            .unwrap();
+
+        let request_2 = request_1.clone();
+        _ = request_2
+    }
+
+    #[test]
     fn should_convert_to_get_request_with_custom_header() {
         let request = Http11::request(
             SimpleIncomingRequest::builder()
@@ -2090,6 +2105,20 @@ mod simple_incoming_tests {
             request.http_render_string().unwrap(),
             "GET / HTTP/1.1\r\nCONTENT-LENGTH: 5\r\nCONTENT-TYPE: application/json\r\nHOST: localhost:8000\r\n\r\nHello"
         );
+    }
+
+    #[test]
+    fn should_be_able_to_clone_response() {
+        let response_1 = SimpleOutgoingResponse::builder()
+            .with_status(Status::OK)
+            .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
+            .add_header(SimpleHeader::HOST, "localhost:8000")
+            .with_body_string("Hello")
+            .build()
+            .unwrap();
+
+        let response_2 = response_1.clone();
+        _ = response_2;
     }
 
     #[test]
@@ -2134,6 +2163,7 @@ pub type SimpleHttpResult<T> = std::result::Result<T, SimpleHttpError>;
 #[derive(From, Debug)]
 pub enum SimpleHttpError {
     NoRouteProvided,
+    NoBodyProvided,
 }
 
 impl std::error::Error for SimpleHttpError {}
@@ -2561,7 +2591,6 @@ impl ChunkState {
     }
 
     pub fn parse_http_trailer_chunk(chunk_text: &[u8]) -> Result<Option<Self>, ChunkStateError> {
-        use minicore::ubytes;
         let mut data_pointer = ubytes::BytesPointer::new(chunk_text);
         Self::parse_http_trailer_from_pointer(&mut data_pointer)
     }
@@ -2598,13 +2627,11 @@ impl ChunkState {
     }
 
     pub fn parse_http_chunk(chunk_text: &[u8]) -> Result<Self, ChunkStateError> {
-        use minicore::ubytes;
         let mut data_pointer = ubytes::BytesPointer::new(chunk_text);
         Self::parse_http_chunk_from_pointer(&mut data_pointer)
     }
 
     pub fn get_http_chunk_header_length(chunk_text: &[u8]) -> Result<usize, ChunkStateError> {
-        use minicore::ubytes;
         let mut data_pointer = ubytes::BytesPointer::new(chunk_text);
         Self::get_http_chunk_header_length_from_pointer(&mut data_pointer)
     }
@@ -2888,7 +2915,6 @@ impl ChunkState {
         const RADIX: u64 = 16;
         let mut size: u64 = 0;
 
-        use minicore::ubytes;
         let mut data_pointer = ubytes::BytesPointer::new(chunk_size_octect);
         while let Some(content) = data_pointer.peek_next() {
             let b = content[0];
@@ -3066,8 +3092,6 @@ impl<T: Stream> Iterator for SimpleHttpChunkIterator<T> {
     fn next(&mut self) -> Option<Self::Item> {
         match self.2.try_lock() {
             Ok(mut reader_lock) => {
-                use minicore::ubytes;
-
                 let mut header_list: [u8; 128] = [0; 128];
 
                 let reader = reader_lock.get_mut();
@@ -3365,14 +3389,58 @@ Hello world!";
     }
 }
 
-pub type SimpleResponseFunc =
-    Box<dyn ClonableFnMut<SimpleIncomingRequest, Result<SimpleOutgoingResponse, BoxedError>>>;
+pub trait SimpleServer {
+    fn handle(&self, req: SimpleIncomingRequest) -> Result<SimpleOutgoingResponse, BoxedError>;
+}
 
-pub fn default_response(_: SimpleIncomingRequest) -> Result<SimpleOutgoingResponse, BoxedError> {
-    SimpleOutgoingResponse::builder()
-        .with_status(Status::NoContent)
-        .build()
-        .map_err(|err| Box::new(err) as BoxedError)
+pub trait ClonableSimpleServer: SimpleServer + Send {
+    fn clone_box(&self) -> Box<dyn ClonableSimpleServer>;
+}
+
+impl<F> ClonableSimpleServer for F
+where
+    F: 'static + Clone + Send + SimpleServer,
+{
+    fn clone_box(&self) -> Box<dyn ClonableSimpleServer> {
+        Box::new(self.clone())
+    }
+}
+
+pub type SimpleFunc = Box<
+    dyn ClonableFn<SimpleIncomingRequest, Result<SimpleOutgoingResponse, BoxedError>>
+        + Send
+        + 'static,
+>;
+
+pub struct FuncSimpleServer {
+    handler: SimpleFunc,
+}
+
+impl FuncSimpleServer {
+    pub fn new<F>(f: F) -> Self
+    where
+        F: ClonableFn<SimpleIncomingRequest, Result<SimpleOutgoingResponse, BoxedError>>
+            + Send
+            + 'static,
+    {
+        Self {
+            handler: Box::new(f),
+        }
+    }
+}
+
+impl Clone for FuncSimpleServer {
+    fn clone(&self) -> Self {
+        Self {
+            handler: self.handler.clone_box(),
+        }
+    }
+}
+
+impl SimpleServer for FuncSimpleServer {
+    fn handle(&self, req: SimpleIncomingRequest) -> Result<SimpleOutgoingResponse, BoxedError> {
+        (self.handler)(req)
+    }
 }
 
 pub struct ServiceActionList(Vec<ServiceAction>);
@@ -3444,17 +3512,39 @@ impl ServiceActionList {
     }
 }
 
+#[derive(Clone, Default)]
+pub struct DefaultSimpleServer {}
+
+impl SimpleServer for DefaultSimpleServer {
+    fn handle(&self, _: SimpleIncomingRequest) -> Result<SimpleOutgoingResponse, BoxedError> {
+        SimpleOutgoingResponse::builder()
+            .with_status(Status::NoContent)
+            .build()
+            .map_err(|err| Box::new(err) as BoxedError)
+    }
+}
+
 pub struct ServiceAction {
     pub route: SimpleUrl,
     pub method: SimpleMethod,
-    pub body: SimpleResponseFunc,
     pub headers: Option<SimpleHeaders>,
+    pub body: Box<dyn ClonableSimpleServer + 'static>,
+}
+
+impl std::fmt::Debug for ServiceAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ServiceAction")
+            .field("method", &self.method)
+            .field("headers", &self.headers)
+            .field("Body", &"Body(ClonableSimpleServer)")
+            .finish()
+    }
 }
 
 impl Clone for ServiceAction {
     fn clone(&self) -> Self {
         Self {
-            body: self.body.clone(),
+            body: self.body.clone_box(),
             method: self.method.clone(),
             route: self.route.clone(),
             headers: self.headers.clone(),
@@ -3464,7 +3554,7 @@ impl Clone for ServiceAction {
 
 impl ServiceAction {
     pub fn builder() -> ServiceActionBuilder {
-        ServiceActionBuilder::default()
+        ServiceActionBuilder::new()
     }
 
     pub fn match_head2(&self, url: &SimpleUrl, method: SimpleMethod) -> bool {
@@ -3512,15 +3602,23 @@ impl ServiceAction {
     }
 }
 
-#[derive(Default)]
 pub struct ServiceActionBuilder {
     method: Option<SimpleMethod>,
     route: Option<SimpleUrl>,
     headers: Option<SimpleHeaders>,
-    body: Option<SimpleResponseFunc>,
+    body: Option<Box<dyn ClonableSimpleServer + Send + 'static>>,
 }
 
 impl ServiceActionBuilder {
+    pub fn new() -> Self {
+        Self {
+            method: None,
+            route: None,
+            headers: None,
+            body: None,
+        }
+    }
+
     pub fn with_headers(mut self, headers: BTreeMap<SimpleHeader, String>) -> Self {
         self.headers = Some(headers);
         self
@@ -3531,7 +3629,7 @@ impl ServiceActionBuilder {
         self
     }
 
-    pub fn add_header<H: Into<SimpleHeader>, S: Into<String>>(mut self, key: H, value: S) -> Self {
+    pub fn add_header<H: Into<SimpleHeader>, J: Into<String>>(mut self, key: H, value: J) -> Self {
         let mut headers = match self.headers {
             Some(inner) => inner,
             None => BTreeMap::new(),
@@ -3542,16 +3640,12 @@ impl ServiceActionBuilder {
         self
     }
 
-    pub fn with_body(
-        mut self,
-        body: impl ClonableFnMut<SimpleIncomingRequest, Result<SimpleOutgoingResponse, BoxedError>>
-            + 'static,
-    ) -> Self {
+    pub fn with_body(mut self, body: impl ClonableSimpleServer + Send + 'static) -> Self {
         self.body = Some(Box::new(body));
         self
     }
 
-    pub fn with_route<S: Into<String>>(mut self, route: S) -> Self {
+    pub fn with_route<I: Into<String>>(mut self, route: I) -> Self {
         self.route = Some(SimpleUrl::url_with_query(route.into()));
         self
     }
@@ -3569,7 +3663,7 @@ impl ServiceActionBuilder {
 
         let body = match self.body {
             Some(inner) => inner,
-            None => Box::new(default_response),
+            None => return Err(SimpleHttpError::NoBodyProvided),
         };
 
         Ok(ServiceAction {
@@ -3583,7 +3677,42 @@ impl ServiceActionBuilder {
 
 #[cfg(test)]
 mod service_action_test {
+    use crate::extensions::result_ext::BoxedResult;
+
     use super::*;
+
+    #[test]
+    fn test_service_action_with_function_simple_server_can_clone() {
+        let resource = ServiceAction::builder()
+            .with_route("/service/endpoint/v1")
+            .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
+            .with_method(SimpleMethod::GET)
+            .with_body(FuncSimpleServer::new(|_req| {
+                SimpleOutgoingResponse::builder()
+                    .with_status(Status::BadRequest)
+                    .build()
+                    .map_err(|err| err.into_boxed_error())
+            }))
+            .build()
+            .expect("should generate service action");
+
+        let cloned_resource = resource.clone();
+        _ = cloned_resource;
+    }
+
+    #[test]
+    fn test_service_action_can_clone() {
+        let resource = ServiceAction::builder()
+            .with_route("/service/endpoint/v1")
+            .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
+            .with_method(SimpleMethod::GET)
+            .with_body(DefaultSimpleServer::default())
+            .build()
+            .expect("should generate service action");
+
+        let cloned_resource = resource.clone();
+        _ = cloned_resource;
+    }
 
     #[test]
     fn test_service_action_match_url_with_headers() {
@@ -3591,6 +3720,7 @@ mod service_action_test {
             .with_route("/service/endpoint/v1")
             .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
             .with_method(SimpleMethod::GET)
+            .with_body(DefaultSimpleServer::default())
             .build()
             .expect("should generate service action");
 
@@ -3609,6 +3739,7 @@ mod service_action_test {
         let resource = ServiceAction::builder()
             .with_route("/service/endpoint/v1")
             .with_method(SimpleMethod::GET)
+            .with_body(DefaultSimpleServer::default())
             .build()
             .expect("should generate service action");
 
