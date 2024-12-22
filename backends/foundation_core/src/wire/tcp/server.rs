@@ -142,17 +142,10 @@ impl TestServer {
                     break;
                 }
 
-                let target_resource = action_list.get_one_matching2(&url, method.clone());
-                tracing::info!("Received new http request for proto: {:?}", target_resource);
-
                 let resource =
                     if let Some(resource) = action_list.get_one_matching2(&url, method.clone()) {
                         resource
                     } else {
-                        tracing::info!(
-                            "Failed to find matching resource for URL: {:?}",
-                            url.clone()
-                        );
                         break;
                     };
 
