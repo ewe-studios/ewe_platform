@@ -6,7 +6,6 @@ use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
 use crate::io::ubytes::{self, BytesPointer};
 use derive_more::From;
 use regex::Regex;
-use std::sync::Arc;
 use std::{
     collections::BTreeMap,
     convert::Infallible,
