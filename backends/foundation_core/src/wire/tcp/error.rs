@@ -2,9 +2,6 @@ use derive_more::From;
 
 use std::io;
 
-#[allow(unused)]
-pub(crate) type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
-
 pub type TlsResult<T> = std::result::Result<T, TlsError>;
 
 #[derive(From, Debug)]
