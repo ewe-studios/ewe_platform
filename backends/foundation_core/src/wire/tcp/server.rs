@@ -125,9 +125,7 @@ impl TestServer {
                     {
                         (method, url, proto)
                     } else {
-                        tracing::error!(
-                            "Failed to receive IncomingRequestParts::Intro(_, _, _) requests"
-                        );
+                        tracing::error!("Failed to receive a IncomingRequestParts::Intro(_, _, _)");
                         return;
                     };
 
