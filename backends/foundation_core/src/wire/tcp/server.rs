@@ -56,31 +56,46 @@ impl TestServer {
             .map(|_| ())
     }
 
-    pub fn serve(&self) -> (JoinHandle<()>, mpsc::Receiver<SimpleIncomingRequest>) {
+    pub fn serve(
+        &self,
+    ) -> (
+        JoinHandle<Result<(), BoxedError>>,
+        mpsc::Receiver<SimpleIncomingRequest>,
+        mpsc::Receiver<JoinHandle<()>>,
+    ) {
         let port = self.port;
         let address = self.address.clone();
         let actions = self.actions.clone();
 
         let (tx, rx) = mpsc::channel::<SimpleIncomingRequest>();
+        let (workers_tx, workers_rx) = mpsc::channel::<JoinHandle<()>>();
+
+        let listener =
+            TcpListener::bind(format!("{}:{}", address, port)).expect("create tcp listener");
 
         (
             thread::spawn(move || {
-                let listener = TcpListener::bind(format!("{}:{}", address, port))
-                    .expect("create tcp listener");
                 for stream_result in listener.incoming() {
-                    let stream = stream_result.unwrap();
+                    match stream_result {
+                        Ok(stream) => {
+                            let mut buffer = [0; 512];
+                            stream.peek(&mut buffer).unwrap();
 
-                    let mut buffer = [0; 512];
-                    stream.peek(&mut buffer).unwrap();
+                            if buffer.starts_with(b"CLOSE") {
+                                break;
+                            }
 
-                    if buffer.starts_with(b"CLOSE") {
-                        break;
+                            workers_tx
+                                .send(Self::serve_connection(stream, actions.clone(), tx.clone()))
+                                .expect("should save worker handler");
+                        }
+                        Err(err) => return Err(err.into_boxed_error()),
                     }
-
-                    Self::serve_connection(stream, actions.clone(), tx.clone());
                 }
+                Ok(())
             }),
             rx,
+            workers_rx,
         )
     }
 
@@ -88,111 +103,133 @@ impl TestServer {
         read_stream: TcpStream,
         actions: Vec<ServiceAction>,
         sender: mpsc::Sender<SimpleIncomingRequest>,
-    ) {
+    ) -> JoinHandle<()> {
         let action_list = ServiceActionList::new(actions);
 
-        let mut write_stream = read_stream
-            .try_clone()
-            .expect("should be able to clone connection");
+        thread::spawn(move || {
+            let mut write_stream = read_stream
+                .try_clone()
+                .expect("should be able to clone connection");
 
-        let mut request_reader = simple_http::HttpReader::simple_tcp_stream(BufReader::new(
-            WrappedTcpStream::new(read_stream),
-        ));
+            let mut request_reader = simple_http::HttpReader::simple_tcp_stream(BufReader::new(
+                WrappedTcpStream::new(read_stream),
+            ));
 
-        loop {
-            // fetch the intro portion and validate we have resources for processing request
-            // if not, just break and return an error
+            loop {
+                // fetch the intro portion and validate we have resources for processing request
+                // if not, just break and return an error
 
-            let item = request_reader.next();
-            tracing::info!("Request received: {:?}", &item);
-            if let Some(Ok(IncomingRequestParts::Intro(method, url, proto))) = item {
-                tracing::info!("Received new http request for proto: {}", proto);
+                let (method, url, proto) =
+                    if let Some(Ok(IncomingRequestParts::Intro(method, url, proto))) =
+                        request_reader.next()
+                    {
+                        (method, url, proto)
+                    } else {
+                        tracing::error!(
+                            "Failed to receive IncomingRequestParts::Intro(_, _, _) requests"
+                        );
+                        return;
+                    };
+
+                tracing::info!(
+                    "Received new http request for proto: method: {:?}, url: {:?}, proto: {:?}",
+                    method,
+                    url,
+                    proto,
+                );
+
                 if proto != Proto::HTTP11 {
                     break;
                 }
 
-                let target_url = url.clone();
                 let target_resource = action_list.get_one_matching2(&url, method.clone());
-                tracing::info!(
-                    "Checking match servicer for URL: {:?} -> {:?}",
-                    &target_url,
-                    target_resource
-                );
-                if let Some(resource) = action_list.get_one_matching2(&url, method.clone()) {
-                    if let Some(Ok(IncomingRequestParts::Headers(headers))) = request_reader.next()
-                    {
-                        if let Some(Ok(IncomingRequestParts::Body(body))) = request_reader.next() {
-                            if let Ok(request) = SimpleIncomingRequest::builder()
-                                .with_headers(headers)
-                                .with_url(url)
-                                .with_proto(proto.clone())
-                                .with_method(method)
-                                .build()
-                            {
-                                let mut cloned_request = request.clone();
-                                cloned_request.body = body;
+                tracing::info!("Received new http request for proto: {:?}", target_resource);
 
-                                sender.send(request).expect("should sent request");
+                let resource =
+                    if let Some(resource) = action_list.get_one_matching2(&url, method.clone()) {
+                        resource
+                    } else {
+                        tracing::info!(
+                            "Failed to find matching resource for URL: {:?}",
+                            url.clone()
+                        );
+                        break;
+                    };
 
-                                let outgoing_response =
-                                    match resource.body.clone_box().handle(cloned_request) {
-                                        Ok(outgoing) => outgoing,
-                                        Err(err) => Self::internal_server_error_response(err),
-                                    };
+                let headers = if let Some(Ok(IncomingRequestParts::Headers(headers))) =
+                    request_reader.next()
+                {
+                    headers
+                } else {
+                    break;
+                };
 
-                                let response = Http11::response(outgoing_response);
-                                match response.http_render() {
-                                    Ok(renderer) => {
-                                        for part in renderer {
-                                            match part {
-                                                Ok(data) => match write_stream.write(&data) {
-                                                    Ok(_) => continue,
-                                                    Err(_) => return,
-                                                },
-                                                Err(_) => return,
-                                            }
-                                        }
+                let body = if let Some(Ok(IncomingRequestParts::Body(body))) = request_reader.next()
+                {
+                    body
+                } else {
+                    break;
+                };
 
-                                        tracing::info!("Finished responding to http request");
-                                    }
-                                    Err(_) => {
-                                        return;
-                                    }
+                if let Ok(request) = SimpleIncomingRequest::builder()
+                    .with_headers(headers)
+                    .with_url(url)
+                    .with_proto(proto.clone())
+                    .with_method(method)
+                    .build()
+                {
+                    let mut cloned_request = request.clone();
+                    cloned_request.body = body;
+
+                    sender.send(request).expect("should sent request");
+
+                    let outgoing_response = match resource.body.clone_box().handle(cloned_request) {
+                        Ok(outgoing) => outgoing,
+                        Err(err) => Self::internal_server_error_response(err),
+                    };
+
+                    let response = Http11::response(outgoing_response);
+                    match response.http_render() {
+                        Ok(renderer) => {
+                            for part in renderer {
+                                match part {
+                                    Ok(data) => match write_stream.write(&data) {
+                                        Ok(_) => continue,
+                                        Err(_) => return,
+                                    },
+                                    Err(_) => return,
                                 }
                             }
+                        }
+                        Err(_) => {
+                            return;
                         }
                     }
                 }
 
-                tracing::info!(
-                    "Failed to find matching resource for URL: {:?}",
-                    &target_url
-                );
-            };
+                // if we ever get here, just break.
+                tracing::info!("Request processing finished");
+            }
 
-            // if we ever get here, just break.
-            tracing::warn!("Request processing failed for client");
-            break;
-        }
+            let response = Http11::response(
+                SimpleOutgoingResponse::builder()
+                    .with_status(Status::BadRequest)
+                    .build()
+                    .unwrap(),
+            );
 
-        let response = Http11::response(
-            SimpleOutgoingResponse::builder()
-                .with_status(Status::BadRequest)
-                .build()
-                .unwrap(),
-        );
-
-        if let Ok(renderer) = response.http_render() {
-            for part in renderer {
-                match part {
-                    Ok(data) => match write_stream.write(&data) {
-                        Ok(_) => return,
+            if let Ok(renderer) = response.http_render() {
+                for part in renderer {
+                    match part {
+                        Ok(data) => match write_stream.write(&data) {
+                            Ok(_) => return,
+                            Err(_) => return,
+                        },
                         Err(_) => return,
-                    },
-                    Err(_) => return,
+                    }
                 }
             }
-        }
+        })
     }
 
     fn internal_server_error_response(
@@ -217,7 +254,7 @@ mod test_server_tests {
 
     use crate::{
         extensions::result_ext::BoxedResult,
-        wire::simple_http::{FuncSimpleServer, SimpleBody, Status},
+        wire::simple_http::{FuncSimpleServer, SimpleBody, SimpleIncomingRequest, Status},
     };
 
     use super::{
@@ -240,24 +277,35 @@ mod test_server_tests {
         let resource = ServiceAction::builder()
             .with_route("/service/endpoint/v1")
             .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
-            .with_method(SimpleMethod::GET)
-            .with_body(FuncSimpleServer::new(|req| {
-                if let Some(SimpleBody::Text(body)) = req.body {
-                    return SimpleOutgoingResponse::builder()
-                        .with_body_string(format!(r#"{{"name": "alex", "body": {} }}"#, body))
-                        .build()
-                        .map_err(|err| err.into_boxed_error());
+            .with_method(SimpleMethod::POST)
+            .with_body(FuncSimpleServer::new(|req| match req.body {
+                Some(SimpleBody::Bytes(body)) => {
+                    return match String::from_utf8(body.to_vec()) {
+                        Ok(content) => SimpleOutgoingResponse::builder()
+                            .with_status(Status::OK)
+                            .with_body_bytes(
+                                format!(r#"{{"name": "alex", "body": {} }}"#, content).into_bytes(),
+                            )
+                            .build()
+                            .map_err(|err| err.into_boxed_error()),
+                        Err(err) => Err(err.into_boxed_error()),
+                    }
                 }
-                SimpleOutgoingResponse::builder()
+                Some(SimpleBody::Text(body)) => SimpleOutgoingResponse::builder()
+                    .with_status(Status::OK)
+                    .with_body_string(format!(r#"{{"name": "alex", "body": {} }}"#, body))
+                    .build()
+                    .map_err(|err| err.into_boxed_error()),
+                _ => SimpleOutgoingResponse::builder()
                     .with_status(Status::BadRequest)
                     .build()
-                    .map_err(|err| err.into_boxed_error())
+                    .map_err(|err| err.into_boxed_error()),
             }))
             .build()
             .expect("should generate service action");
 
-        let test_server = TestServer::new(8899, "127.0.0.1".into(), vec![resource]);
-        let (handler, requests) = test_server.serve();
+        let test_server = TestServer::new(8889, "127.0.0.1".into(), vec![resource]);
+        let (handler, requests, workers) = test_server.serve();
 
         let message = "\
 POST /service/endpoint/v1 HTTP/1.1\r
@@ -268,18 +316,40 @@ ETag: \"45b6-834-49130cc1182c0\"\r
 Accept-Ranges: bytes\r
 Content-Length: 12\r
 Connection: close\r
-Content-Type: text/plain\r
+Content-Type: application/json\r
 \r
 Hello world!";
 
-        let mut client = t!(TcpStream::connect("127.0.0.1:8899"));
+        let mut client = t!(TcpStream::connect("127.0.0.1:8889"));
         t!(client.write(message.as_bytes()));
 
         let mut response = String::new();
         t!(client.read_to_string(&mut response));
 
-        assert_eq!(response, "HTTP/1.1 200 Ok");
+        assert_eq!(response, "HTTP/1.1 200 Ok\r\nCONTENT-LENGTH: 39\r\n\r\n{\"name\": \"alex\", \"body\": Hello world! }");
 
-        handler.join().expect("should work");
+        test_server.close().expect("should close server");
+
+        match handler.join() {
+            Ok(result) => match result {
+                Ok(_) => {
+                    for worker_handler in workers.into_iter() {
+                        worker_handler.join().expect("should have closed");
+                    }
+                    tracing::info!("Cleaned up workers");
+                }
+                Err(err) => {
+                    tracing::error!("Failed in serving requests: {:?}", err);
+                    panic!("Server failed");
+                }
+            },
+            Err(err) => {
+                tracing::error!("Failed in serving requests: {:?}", err);
+                panic!("Server failed");
+            }
+        };
+
+        let sent_requests: Vec<SimpleIncomingRequest> = requests.iter().collect();
+        assert_eq!(sent_requests.len(), 1);
     }
 }
