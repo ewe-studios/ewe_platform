@@ -1,19 +1,15 @@
-use crate::io::ioutils;
+use crate::io::ioutils::{BufferedReader, PeekError, PeekableReadStream};
 
 use crate::native_tls::{Identity, TlsConnector, TlsStream};
+use crate::wire::simple_http::{self};
 use core::net;
-use std::{
-    collections::HashMap,
-    io::{BufRead, Write},
-    net::TcpStream,
-    time,
-};
+use std::{net::TcpStream, time};
 
 use super::error;
 
 pub enum RawStream {
     AsPlain(TcpStream, super::DataStreamAddr),
-    AsTls(TlsStream<TcpStream>, super::DataStreamAddr),
+    AsTls(BufferedReader<TlsStream<TcpStream>>, super::DataStreamAddr),
 }
 
 // --- Constructors
@@ -80,7 +76,9 @@ impl RawStream {
     pub fn set_read_timeout(&self, duration: Option<time::Duration>) -> error::TlsResult<()> {
         let work = match self {
             RawStream::AsPlain(inner, _) => inner.set_read_timeout(duration),
-            RawStream::AsTls(inner, _) => inner.get_ref().set_read_timeout(duration),
+            RawStream::AsTls(inner, _) => {
+                inner.get_inner_ref().get_ref().set_read_timeout(duration)
+            }
         };
 
         match work {
@@ -93,7 +91,7 @@ impl RawStream {
     pub fn clone_plain(&self) -> error::TlsResult<TcpStream> {
         let work = match self {
             RawStream::AsPlain(inner, _) => inner.try_clone(),
-            RawStream::AsTls(inner, _) => inner.get_ref().try_clone(),
+            RawStream::AsTls(inner, _) => inner.get_inner_ref().get_ref().try_clone(),
         };
 
         match work {
@@ -123,6 +121,21 @@ impl RawStream {
         match self {
             RawStream::AsPlain(inner, addr) => addr.local_addr(),
             RawStream::AsTls(inner, addr) => addr.local_addr(),
+        }
+    }
+}
+
+impl PeekableReadStream for RawStream {
+    fn peek(&mut self, buf: &mut [u8]) -> simple_http::Result<usize, PeekError> {
+        match self {
+            RawStream::AsPlain(inner, _addr) => match inner.peek(buf) {
+                Ok(count) => Ok(count),
+                Err(err) => Err(PeekError::IOError(err)),
+            },
+            RawStream::AsTls(inner, _addr) => match inner.peek(buf) {
+                Ok(count) => Ok(count),
+                Err(err) => Err(err),
+            },
         }
     }
 }
@@ -188,159 +201,3 @@ impl RawStream {
         Ok(stream)
     }
 }
-
-// -- Protocol constructors
-
-pub struct ProtocolStream<T: Clone>(RawStream, super::Endpoint<T>);
-
-impl<T: Clone> std::io::Read for ProtocolStream<T> {
-    #[inline]
-    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        self.0.read(buf)
-    }
-}
-
-impl<T: Clone> std::io::Write for ProtocolStream<T> {
-    #[inline]
-    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        self.0.write(buf)
-    }
-
-    #[inline]
-    fn flush(&mut self) -> std::io::Result<()> {
-        self.0.flush()
-    }
-}
-
-#[allow(unused)]
-impl<T: Clone> ProtocolStream<T> {
-    pub fn endpoint(&self) -> super::Endpoint<T> {
-        self.1.clone()
-    }
-
-    // get_mut_stream_ref returns a reference to the internal stream.
-    pub fn get_stream_ref(&self) -> &RawStream {
-        &self.0
-    }
-
-    // get_mut_stream_ref returns a mutable reference to the internal stream.
-    pub fn get_mut_stream_ref(&mut self) -> &mut RawStream {
-        &mut self.0
-    }
-}
-
-#[allow(unused)]
-impl ProtocolStream<()> {
-    pub fn http1<S>(
-        endpoint: super::Endpoint<()>,
-        request: S,
-    ) -> super::DataStreamResult<Http1Stream<()>>
-    where
-        S: Into<String>,
-    {
-        Self::with_http1(endpoint, request)
-    }
-
-    pub fn http2<S>(endpoint: super::Endpoint<()>, request: S) -> super::DataStreamResult<Self>
-    where
-        S: Into<String>,
-    {
-        Self::with_http2(endpoint, request)
-    }
-}
-
-#[allow(unused)]
-impl<T: Clone> ProtocolStream<T> {
-    /// creates a http1 wrapped TcpStream stream from the provided endpoint
-    /// allowing you to communicate across the HTTP 1 protocol.
-    pub fn with_http1<S>(
-        endpoint: super::Endpoint<T>,
-        request: S,
-    ) -> super::DataStreamResult<Http1Stream<T>>
-    where
-        S: Into<String>,
-    {
-        let stream = RawStream::from_endpoint::<T>(endpoint.clone())?;
-        let mut http1_stream = Http1Stream::new(Self(stream, endpoint));
-        http1_stream.with_request(request.into());
-        http1_stream.fetch_headers()?;
-
-        return Ok(http1_stream);
-    }
-
-    /// creates a http2 wrapped TcpStream stream from the provided endpoint
-    /// allowing you to communicate across the HTTP 2 protocol.
-    pub fn with_http2<S>(endpoint: super::Endpoint<T>, request: S) -> super::DataStreamResult<Self>
-    where
-        S: Into<String>,
-    {
-        unimplemented!()
-    }
-}
-
-pub struct Http1Stream<T: Clone> {
-    addr: super::DataStreamAddr,
-    endpoint: super::Endpoint<T>,
-    headers: Option<HashMap<String, String>>,
-    stream: ioutils::BufferedStream<ProtocolStream<T>>,
-}
-
-// -- constructors
-
-impl<T: Clone> Http1Stream<T> {
-    pub fn new(stream: ProtocolStream<T>) -> Self {
-        let stream_endpoint = stream.endpoint();
-        let stream_addr = stream.get_stream_ref().addrs();
-        let buffered_stream = ioutils::buffered_stream(stream);
-
-        Self {
-            headers: None,
-            addr: stream_addr,
-            stream: buffered_stream,
-            endpoint: stream_endpoint,
-        }
-    }
-}
-
-// -- Function parks
-impl<T: Clone> Http1Stream<T> {
-    pub(crate) fn read_till_line(&mut self) -> super::DataStreamResult<String> {
-        let mut status_line = String::new();
-        loop {
-            self.stream.read_line(&mut status_line)?;
-            if status_line == "" {
-                continue;
-            }
-            return Ok(status_line);
-        }
-    }
-
-    pub(crate) fn fetch_status(&mut self) -> super::DataStreamResult<()> {
-        // let status_line = self.read_till_line()?;
-
-        // // pull
-        // let protocol_part = &status_line[..9].trim_end();
-        // Ok(())
-        todo!()
-    }
-
-    pub(crate) fn fetch_headers(&mut self) -> super::DataStreamResult<()> {
-        Ok(())
-    }
-
-    /// with_request consumes the stream setting up the stream the
-    /// starting communication to the underlying stream for your use.
-    ///
-    /// You can only really call this
-    pub fn with_request(&mut self, request: String) -> super::DataStreamResult<()> {
-        let request_as_bytes = request.as_bytes();
-        self.stream.write(request_as_bytes)?;
-        self.stream.flush()?;
-        Ok(())
-    }
-}
-
-// impl super::DataStream for ConnectedTcpStream {
-//     type Headers = HashMap<String, String>;
-//     type Body
-// }

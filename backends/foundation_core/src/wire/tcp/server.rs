@@ -10,7 +10,7 @@ use crate::{
     extensions::result_ext::{BoxedError, BoxedResult},
     wire::simple_http::{
         self, Http11, IncomingRequestParts, Proto, RenderHttp, ServiceAction, ServiceActionList,
-        SimpleIncomingRequest, SimpleOutgoingResponse, SimpleServer, Status, WrappedTcpStream,
+        SimpleIncomingRequest, SimpleOutgoingResponse, Status, WrappedTcpStream,
     },
 };
 
@@ -155,6 +155,12 @@ impl TestServer {
                     break;
                 };
 
+                if let Some(resource_headers) = &resource.headers {
+                    if !simple_http::is_sub_set_of_other_header(resource_headers, &headers) {
+                        break;
+                    }
+                }
+
                 let body = if let Some(Ok(IncomingRequestParts::Body(body))) = request_reader.next()
                 {
                     body
@@ -264,7 +270,7 @@ mod test_server_tests {
 
     #[test]
     #[traced_test]
-    fn test_can_use_test_server() {
+    fn test_can_use_test_server_has_matching_resource() {
         let resource = ServiceAction::builder()
             .with_route("/service/endpoint/v1")
             .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
@@ -342,5 +348,86 @@ Hello world!";
 
         let sent_requests: Vec<SimpleIncomingRequest> = requests.iter().collect();
         assert_eq!(sent_requests.len(), 1);
+    }
+
+    #[test]
+    #[traced_test]
+    fn test_can_use_test_server_no_matching_resource() {
+        let resource = ServiceAction::builder()
+            .with_route("/service/endpoint/v1")
+            .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
+            .with_method(SimpleMethod::POST)
+            .with_body(FuncSimpleServer::new(|req| match req.body {
+                Some(SimpleBody::Bytes(body)) => {
+                    return match String::from_utf8(body.to_vec()) {
+                        Ok(content) => SimpleOutgoingResponse::builder()
+                            .with_status(Status::OK)
+                            .with_body_bytes(
+                                format!(r#"{{"name": "alex", "body": {} }}"#, content).into_bytes(),
+                            )
+                            .build()
+                            .map_err(|err| err.into_boxed_error()),
+                        Err(err) => Err(err.into_boxed_error()),
+                    }
+                }
+                Some(SimpleBody::Text(body)) => SimpleOutgoingResponse::builder()
+                    .with_status(Status::OK)
+                    .with_body_string(format!(r#"{{"name": "alex", "body": {} }}"#, body))
+                    .build()
+                    .map_err(|err| err.into_boxed_error()),
+                _ => SimpleOutgoingResponse::builder()
+                    .with_status(Status::BadRequest)
+                    .build()
+                    .map_err(|err| err.into_boxed_error()),
+            }))
+            .build()
+            .expect("should generate service action");
+
+        let test_server = TestServer::new(9889, "127.0.0.1".into(), vec![resource]);
+        let (handler, requests, workers) = test_server.serve();
+
+        let message = "\
+POST /service/endpoint/v1 HTTP/1.1\r
+Date: Sun, 10 Oct 2010 23:26:07 GMT\r
+Server: Apache/2.2.8 (Ubuntu) mod_ssl/2.2.8 OpenSSL/0.9.8g\r
+Last-Modified: Sun, 26 Sep 2010 22:04:35 GMT
+ETag: \"45b6-834-49130cc1182c0\"\r
+Accept-Ranges: bytes\r
+Content-Length: 12\r
+Connection: close\r
+Content-Type: text/plain\r
+\r
+Hello buster!";
+
+        let mut client = t!(TcpStream::connect("127.0.0.1:9889"));
+        t!(client.write(message.as_bytes()));
+
+        let mut response = String::new();
+        t!(client.read_to_string(&mut response));
+
+        assert_eq!(response, "HTTP/1.1 400 Bad Request\r\n");
+        test_server.close().expect("should close server");
+
+        match handler.join() {
+            Ok(result) => match result {
+                Ok(_) => {
+                    for worker_handler in workers.into_iter() {
+                        worker_handler.join().expect("should have closed");
+                    }
+                    tracing::info!("Cleaned up workers");
+                }
+                Err(err) => {
+                    tracing::error!("Failed in serving requests: {:?}", err);
+                    panic!("Server failed");
+                }
+            },
+            Err(err) => {
+                tracing::error!("Failed in serving requests: {:?}", err);
+                panic!("Server failed");
+            }
+        };
+
+        let sent_requests: Vec<SimpleIncomingRequest> = requests.iter().collect();
+        assert_eq!(sent_requests.len(), 0);
     }
 }

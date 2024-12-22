@@ -1,5 +1,7 @@
 use std::io::{BufRead, BufReader, BufWriter, IoSlice, IoSliceMut, Read, Result, Write};
 
+use derive_more::derive::From;
+
 // -- Reader
 
 pub struct BufferedReader<T: ?Sized> {
@@ -19,6 +21,28 @@ impl<T: Read> BufferedReader<T> {
         Self {
             inner: BufReader::new(inner),
         }
+    }
+}
+
+impl<T: Read> BufferedReader<T> {
+    pub fn get_ref(&self) -> &BufReader<T> {
+        &self.inner
+    }
+
+    pub fn get_mut(&mut self) -> &mut BufReader<T> {
+        &mut self.inner
+    }
+
+    pub fn get_inner_ref(&self) -> &T {
+        self.inner.get_ref()
+    }
+
+    pub fn get_inner_mut(&mut self) -> &mut T {
+        self.inner.get_mut()
+    }
+
+    pub fn capacity(&mut self) -> usize {
+        self.inner.capacity()
     }
 }
 
@@ -96,6 +120,24 @@ impl<T: Write> BufferedWriter<T> {
     }
 }
 
+impl<T: Write> BufferedWriter<T> {
+    pub fn get_ref(&self) -> &BufWriter<T> {
+        &self.inner
+    }
+
+    pub fn get_mut(&mut self) -> &mut BufWriter<T> {
+        &mut self.inner
+    }
+
+    pub fn get_inner_ref(&self) -> &T {
+        self.inner.get_ref()
+    }
+
+    pub fn get_inner_mut(&mut self) -> &mut T {
+        self.inner.get_mut()
+    }
+}
+
 // -- Implement Write for Size? for both BufRead & Read
 
 impl<T: Write + ?Sized> Write for BufferedWriter<T> {
@@ -163,4 +205,56 @@ pub fn buffered_stream_with_capacity<T: Write + Read>(
     inner: T,
 ) -> BufferedStream<T> {
     BufferedWriter::with_capacity(capacity, BufferedReader::with_capacity(capacity, inner))
+}
+
+#[derive(From, Debug)]
+pub enum PeekError {
+    BiggerThanCapacity {
+        requested: usize,
+        buffer_capacity: usize,
+    },
+    IOError(std::io::Error),
+}
+
+impl std::error::Error for PeekError {}
+
+impl core::fmt::Display for PeekError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
+
+pub trait PeekableReadStream: Read {
+    fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError>;
+}
+
+impl<T: Read> PeekableReadStream for BufferedReader<T> {
+    fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError> {
+        if buf.len() > self.inner.capacity() {
+            return Err(PeekError::BiggerThanCapacity {
+                requested: buf.len(),
+                buffer_capacity: self.inner.capacity(),
+            });
+        }
+
+        let mut last_len = 0;
+        while self.inner.buffer().len() < buf.len() {
+            self.inner.fill_buf();
+            let current_len = self.inner.buffer().len();
+            if last_len == current_len {
+                break;
+            }
+            last_len = current_len;
+        }
+
+        let buffer = self.inner.buffer();
+        buf.copy_from_slice(&buffer[0..buf.len()]);
+        Ok(buf.len())
+    }
+}
+
+impl<T: Write + Read> PeekableReadStream for BufferedWriter<T> {
+    fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError> {
+        todo!()
+    }
 }
