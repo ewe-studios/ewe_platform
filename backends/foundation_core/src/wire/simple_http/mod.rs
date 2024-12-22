@@ -3,6 +3,7 @@ use crate::clonables::{
 };
 use crate::extensions::result_ext::BoxedError;
 use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
+use crate::io::ioutils::PeekableReadStream;
 use crate::io::ubytes::{self, BytesPointer};
 use derive_more::From;
 use regex::Regex;
@@ -303,6 +304,26 @@ impl core::fmt::Display for Proto {
             Self::HTTP30 => write!(f, "HTTP/3.0"),
         }
     }
+}
+
+pub type SimpleHeaders = BTreeMap<SimpleHeader, String>;
+
+/// is_sub_set_of_other_header returns True if the `SimpleHeaders` is a subset of the
+/// other headers in `other`.
+pub fn is_sub_set_of_other_header(this: &SimpleHeaders, other: &SimpleHeaders) -> bool {
+    for (key, value) in this.iter() {
+        match other.get(key) {
+            Some(other_value) => {
+                if value != other_value {
+                    return false;
+                } else {
+                    continue;
+                }
+            }
+            None => return false,
+        }
+    }
+    true
 }
 
 /// HTTP Headers
@@ -1179,8 +1200,6 @@ mod simple_url_tests {
         ));
     }
 }
-
-pub type SimpleHeaders = BTreeMap<SimpleHeader, String>;
 
 #[derive(Clone)]
 pub struct SimpleOutgoingResponse {
@@ -2273,10 +2292,6 @@ impl Clone for IncomingRequestParts {
 
 pub type SharedBufferedStream<T> = std::sync::Arc<std::sync::Mutex<io::BufReader<T>>>;
 
-pub trait Stream: Read + Send {
-    fn peek(&self, buf: &mut [u8]) -> io::Result<usize>;
-}
-
 pub struct WrappedTcpStream(TcpStream);
 
 impl WrappedTcpStream {
@@ -2299,9 +2314,15 @@ impl Read for WrappedTcpStream {
     }
 }
 
-impl Stream for WrappedTcpStream {
-    fn peek(&self, buf: &mut [u8]) -> io::Result<usize> {
-        self.0.peek(buf)
+impl PeekableReadStream for WrappedTcpStream {
+    fn peek(
+        &mut self,
+        buf: &mut [u8],
+    ) -> std::result::Result<usize, crate::io::ioutils::PeekError> {
+        match self.0.peek(buf) {
+            Ok(count) => Ok(count),
+            Err(err) => Err(crate::io::ioutils::PeekError::IOError(err)),
+        }
     }
 }
 
@@ -2322,7 +2343,7 @@ pub trait BodyExtractor {
     /// This allows custom implementation of Tcp/Http body extractors.
     ///
     /// See sample implementation in `SimpleHttpBody`.
-    fn extract<T: Stream + 'static>(
+    fn extract<T: PeekableReadStream + Send + 'static>(
         &self,
         body: Body,
         stream: SharedBufferedStream<T>,
@@ -2339,7 +2360,7 @@ pub enum HttpReadState {
 }
 
 #[derive(Clone)]
-pub struct HttpReader<F: BodyExtractor, T: Stream + 'static> {
+pub struct HttpReader<F: BodyExtractor, T: PeekableReadStream + Send + 'static> {
     reader: SharedBufferedStream<T>,
     state: HttpReadState,
     bodies: F,
@@ -2348,7 +2369,7 @@ pub struct HttpReader<F: BodyExtractor, T: Stream + 'static> {
 impl<F, T> HttpReader<F, T>
 where
     F: BodyExtractor,
-    T: Stream + 'static,
+    T: PeekableReadStream + Send + 'static,
 {
     pub fn new(reader: io::BufReader<T>, bodies: F) -> Self {
         Self {
@@ -2362,7 +2383,7 @@ where
 impl<F, T> Iterator for HttpReader<F, T>
 where
     F: BodyExtractor,
-    T: Stream + 'static,
+    T: PeekableReadStream + Send + 'static,
 {
     type Item = Result<IncomingRequestParts, HttpReaderError>;
 
@@ -3067,15 +3088,19 @@ mod test_chunk_parser {
     }
 }
 
-pub struct SimpleHttpChunkIterator<T: Stream>(String, SimpleHeaders, SharedBufferedStream<T>);
+pub struct SimpleHttpChunkIterator<T: PeekableReadStream + Send>(
+    String,
+    SimpleHeaders,
+    SharedBufferedStream<T>,
+);
 
-impl<T: Stream> Clone for SimpleHttpChunkIterator<T> {
+impl<T: PeekableReadStream + Send> Clone for SimpleHttpChunkIterator<T> {
     fn clone(&self) -> Self {
         Self(self.0.clone(), self.1.clone(), self.2.clone())
     }
 }
 
-impl<T: Stream> SimpleHttpChunkIterator<T> {
+impl<T: PeekableReadStream + Send> SimpleHttpChunkIterator<T> {
     pub fn new(
         transfer_encoding: String,
         headers: SimpleHeaders,
@@ -3085,7 +3110,7 @@ impl<T: Stream> SimpleHttpChunkIterator<T> {
     }
 }
 
-impl<T: Stream> Iterator for SimpleHttpChunkIterator<T> {
+impl<T: PeekableReadStream + Send> Iterator for SimpleHttpChunkIterator<T> {
     type Item = Result<ChunkedData, BoxedError>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -3150,7 +3175,7 @@ impl<T: Stream> Iterator for SimpleHttpChunkIterator<T> {
 pub struct SimpleHttpBody;
 
 impl BodyExtractor for SimpleHttpBody {
-    fn extract<T: Stream + 'static>(
+    fn extract<T: PeekableReadStream + Send + 'static>(
         &self,
         body: Body,
         stream: SharedBufferedStream<T>,
