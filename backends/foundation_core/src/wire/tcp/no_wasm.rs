@@ -29,7 +29,7 @@ impl RawStream {
             .map_err(|_| error::TlsError::Handshake)?;
 
         Ok(Self::AsTls(
-            stream,
+            BufferedReader::new(stream),
             super::DataStreamAddr::new(local_addr, peer_addr),
         ))
     }
