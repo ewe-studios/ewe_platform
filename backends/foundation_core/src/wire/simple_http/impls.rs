@@ -3359,7 +3359,7 @@ impl BodyExtractor for SimpleHttpBody {
                     Err(err) => Err(Box::new(err)),
                 }
             }
-            Body::ChunkedBody(transfer_encoding, headers, max_size) => {
+            Body::ChunkedBody(transfer_encoding, headers, _max_size) => {
                 Ok(SimpleBody::ChunkedStream(Some(Box::new(
                     SimpleHttpChunkIterator(transfer_encoding, headers, stream),
                 ))))
