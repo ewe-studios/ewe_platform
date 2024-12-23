@@ -3,7 +3,7 @@ use crate::clonables::{
 };
 use crate::extensions::result_ext::BoxedError;
 use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
-use crate::io::ioutils::PeekableReadStream;
+use crate::io::ioutils::{self, PeekableReadStream};
 use crate::io::ubytes::{self, BytesPointer};
 use derive_more::From;
 use regex::Regex;
@@ -2304,7 +2304,7 @@ impl Clone for IncomingRequestParts {
     }
 }
 
-pub type SharedBufferedStream<T> = std::sync::Arc<std::sync::Mutex<io::BufReader<T>>>;
+pub type SharedBufferedStream<T> = std::sync::Arc<std::sync::Mutex<ioutils::BufferedReader<T>>>;
 
 pub struct WrappedTcpStream(TcpStream);
 
@@ -2388,7 +2388,7 @@ where
     F: BodyExtractor,
     T: PeekableReadStream + Send + 'static,
 {
-    pub fn new(reader: io::BufReader<T>, bodies: F) -> Self {
+    pub fn new(reader: ioutils::BufferedReader<T>, bodies: F) -> Self {
         Self {
             bodies,
             max_body_length: None,
@@ -2399,7 +2399,11 @@ where
         }
     }
 
-    pub fn limited_body(reader: io::BufReader<T>, bodies: F, max_body_length: usize) -> Self {
+    pub fn limited_body(
+        reader: ioutils::BufferedReader<T>,
+        bodies: F,
+        max_body_length: usize,
+    ) -> Self {
         Self {
             bodies,
             max_header_key_length: None,
@@ -2411,7 +2415,7 @@ where
     }
 
     pub fn limited_headers(
-        reader: io::BufReader<T>,
+        reader: ioutils::BufferedReader<T>,
         bodies: F,
         max_header_key_length: usize,
         max_header_value_length: usize,
@@ -2427,7 +2431,7 @@ where
     }
 
     pub fn limited(
-        reader: io::BufReader<T>,
+        reader: ioutils::BufferedReader<T>,
         bodies: F,
         max_body_length: usize,
         max_header_key_length: usize,
@@ -3277,10 +3281,9 @@ impl<T: PeekableReadStream + Send> Iterator for SimpleHttpChunkIterator<T> {
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.2.try_lock() {
-            Ok(mut reader_lock) => {
+            Ok(mut reader) => {
                 let mut header_list: [u8; 128] = [0; 128];
 
-                let reader = reader_lock.get_mut();
                 let header_slice: &[u8] = match reader.peek(&mut header_list) {
                     Ok(written) => {
                         if written == 0 {
@@ -3370,7 +3373,7 @@ impl BodyExtractor for SimpleHttpBody {
 
 impl HttpReader<SimpleHttpBody, WrappedTcpStream> {
     pub fn simple_tcp_stream(
-        reader: io::BufReader<WrappedTcpStream>,
+        reader: ioutils::BufferedReader<WrappedTcpStream>,
     ) -> HttpReader<SimpleHttpBody, WrappedTcpStream> {
         HttpReader::<SimpleHttpBody, WrappedTcpStream>::new(reader, SimpleHttpBody::default())
     }
@@ -3378,7 +3381,7 @@ impl HttpReader<SimpleHttpBody, WrappedTcpStream> {
 
 #[cfg(test)]
 mod test_http_reader {
-    use io::{BufReader, Write};
+    use io::Write;
 
     use super::*;
     use std::{
@@ -3420,7 +3423,7 @@ Hello world!";
         });
 
         let (client_stream, _) = t!(listener.accept());
-        let reader = BufReader::new(WrappedTcpStream::new(client_stream));
+        let reader = ioutils::BufferedReader::new(WrappedTcpStream::new(client_stream));
         let request_reader = super::HttpReader::simple_tcp_stream(reader);
 
         let request_parts = request_reader
@@ -3479,7 +3482,7 @@ Hello world!";
         });
 
         let (client_stream, _) = t!(listener.accept());
-        let reader = BufReader::new(WrappedTcpStream::new(client_stream));
+        let reader = ioutils::BufferedReader::new(WrappedTcpStream::new(client_stream));
         let request_reader = super::HttpReader::simple_tcp_stream(reader);
 
         let request_parts = request_reader
@@ -3535,7 +3538,7 @@ Hello world!";
         });
 
         let (client_stream, _) = t!(listener.accept());
-        let reader = BufReader::new(WrappedTcpStream::new(client_stream));
+        let reader = ioutils::BufferedReader::new(WrappedTcpStream::new(client_stream));
         let request_reader = super::HttpReader::simple_tcp_stream(reader);
 
         let request_parts = request_reader

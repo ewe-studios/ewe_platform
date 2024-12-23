@@ -201,3 +201,10 @@ impl RawStream {
         Ok(stream)
     }
 }
+
+pub fn create_simple_http_reader<T: simple_http::BodyExtractor>(
+    stream: RawStream,
+    extractor: T,
+) -> simple_http::HttpReader<T, RawStream> {
+    simple_http::HttpReader::new(crate::io::ioutils::BufferedReader::new(stream), extractor)
+}
