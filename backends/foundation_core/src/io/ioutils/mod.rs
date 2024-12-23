@@ -239,7 +239,7 @@ impl<T: Read> PeekableReadStream for BufferedReader<T> {
 
         let mut last_len = 0;
         while self.inner.buffer().len() < buf.len() {
-            self.inner.fill_buf();
+            self.inner.fill_buf()?;
             let current_len = self.inner.buffer().len();
             if last_len == current_len {
                 break;
@@ -253,8 +253,27 @@ impl<T: Read> PeekableReadStream for BufferedReader<T> {
     }
 }
 
-impl<T: Write + Read> PeekableReadStream for BufferedWriter<T> {
+impl<T: Write + BufRead> PeekableReadStream for BufferedWriter<T> {
     fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError> {
-        todo!()
+        if buf.len() > self.inner.capacity() {
+            return Err(PeekError::BiggerThanCapacity {
+                requested: buf.len(),
+                buffer_capacity: self.inner.capacity(),
+            });
+        }
+
+        let mut last_len = 0;
+        while self.inner.buffer().len() < buf.len() {
+            self.inner.get_mut().fill_buf()?;
+            let current_len = self.inner.buffer().len();
+            if last_len == current_len {
+                break;
+            }
+            last_len = current_len;
+        }
+
+        let buffer = self.inner.buffer();
+        buf.copy_from_slice(&buffer[0..buf.len()]);
+        Ok(buf.len())
     }
 }
