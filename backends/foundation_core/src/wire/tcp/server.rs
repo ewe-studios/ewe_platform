@@ -1,6 +1,6 @@
 use derive_more::From;
 use std::{
-    io::{BufReader, Write},
+    io::Write,
     net::{TcpListener, TcpStream},
     sync::mpsc,
     thread::{self, JoinHandle},
@@ -8,6 +8,7 @@ use std::{
 
 use crate::{
     extensions::result_ext::{BoxedError, BoxedResult},
+    io::ioutils,
     wire::simple_http::{
         self, Http11, IncomingRequestParts, Proto, RenderHttp, ServiceAction, ServiceActionList,
         SimpleIncomingRequest, SimpleOutgoingResponse, Status, WrappedTcpStream,
@@ -111,9 +112,9 @@ impl TestServer {
                 .try_clone()
                 .expect("should be able to clone connection");
 
-            let mut request_reader = simple_http::HttpReader::simple_tcp_stream(BufReader::new(
-                WrappedTcpStream::new(read_stream),
-            ));
+            let mut request_reader = simple_http::HttpReader::simple_tcp_stream(
+                ioutils::BufferedReader::new(WrappedTcpStream::new(read_stream)),
+            );
 
             loop {
                 // fetch the intro portion and validate we have resources for processing request
