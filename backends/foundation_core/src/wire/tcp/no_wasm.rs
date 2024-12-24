@@ -1,8 +1,9 @@
-use crate::io::ioutils::{BufferedReader, PeekError, PeekableReadStream};
+use crate::io::ioutils::{self, BufferedReader, PeekError, PeekableReadStream};
 
 use crate::native_tls::{Identity, TlsConnector, TlsStream};
 use crate::wire::simple_http::{self};
 use core::net;
+use std::cell;
 use std::{net::TcpStream, time};
 
 use super::error;
@@ -207,4 +208,78 @@ pub fn create_simple_http_reader<T: simple_http::BodyExtractor>(
     extractor: T,
 ) -> simple_http::HttpReader<T, RawStream> {
     simple_http::HttpReader::new(crate::io::ioutils::BufferedReader::new(stream), extractor)
+}
+
+pub type SharedReadWriteStream<T> = std::sync::Arc<
+    std::sync::Mutex<cell::RefCell<ioutils::BufferedReader<ioutils::BufferedWriter<T>>>>,
+>;
+
+pub type SharedWriteStream<T> =
+    std::sync::Arc<std::sync::Mutex<cell::RefCell<ioutils::BufferedWriter<T>>>>;
+
+pub type SharedReadStream<T> =
+    std::sync::Arc<std::sync::Mutex<cell::RefCell<ioutils::BufferedReader<T>>>>;
+
+/// Attempts is a state identifying the overall expectation for
+/// when a reconnection attempt should re-occur. It is Most
+/// useful to allow the ConnectionStateIterator to be able to
+/// securely handle retries.
+#[derive(Clone, Debug)]
+pub struct ReconnectionState {
+    next_wait: Option<time::Duration>,
+    total_allowed: usize,
+    current: usize,
+}
+
+/// ReconnectionDecider defines an retry mechanism that allows
+/// a central system to decide the next reconnection attempt parameters
+/// regarding how long to wait before attempt and state info on the current
+/// attempts and when such attempt to stop by returning None.
+pub trait ReconnectionDecider {
+    fn decide(&self, state: ReconnectionState) -> Option<ReconnectionState>;
+}
+
+pub trait ClonableReconnectionDecider: ReconnectionDecider {
+    fn clone_box(&self) -> Box<dyn ClonableReconnectionDecider>;
+}
+
+impl<T> ClonableReconnectionDecider for T
+where
+    T: ReconnectionDecider + Clone + 'static,
+{
+    fn clone_box(&self) -> Box<dyn ClonableReconnectionDecider> {
+        Box::new(self.clone())
+    }
+}
+
+/// Representing the different state a connection goes through
+/// where it can move from established to exhuasted.
+#[derive(Clone, Debug)]
+pub enum ConnectionState<T: Clone> {
+    Todo(super::Endpoint<T>),
+    Reconnect(super::Endpoint<T>, ReconnectionState),
+    Established(super::Endpoint<T>),
+    Exhausted(super::Endpoint<T>),
+}
+
+pub struct ReconnectingStream<T: Clone> {
+    decider: Box<dyn ClonableReconnectionDecider>,
+    state: ConnectionState<T>,
+}
+
+impl<T: Clone> Clone for ReconnectingStream<T> {
+    fn clone(&self) -> Self {
+        Self {
+            decider: self.decider.clone_box(),
+            state: self.state.clone(),
+        }
+    }
+}
+
+impl<T: Clone> Iterator for ReconnectingStream<T> {
+    type Item = RawStream;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        todo!()
+    }
 }

@@ -1,6 +1,6 @@
 /// Endpoint represents a target endpoint to be connected
 /// to communication.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Endpoint<I: Clone> {
     Plain(url::Url),
     Encrypted(url::Url),
