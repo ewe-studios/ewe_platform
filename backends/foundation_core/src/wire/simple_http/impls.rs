@@ -185,7 +185,7 @@ impl Iterator for ChunkedDataLimitIterator {
                         ChunkedData::DataEnded => 0,
                         ChunkedData::Trailer(_, _) => 0,
                     };
-                    let _ = self.collected.fetch_add(chunked_size, Ordering::Acquire);
+                    let _ = self.collected.fetch_add(chunked_size, Ordering::SeqCst);
                     Some(Ok(data))
                 }
                 Err(err) => Some(Err(err)),
