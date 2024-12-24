@@ -295,6 +295,14 @@ impl core::fmt::Display for SimpleBody {
                 Some(_) => write!(f, "Stream(ClonableIterator<T>)"),
                 None => write!(f, "Stream(None)"),
             },
+            Self::LimitedChunkedStream(inner) => match inner {
+                Some(item) => write!(
+                    f,
+                    "LimitedChunkedStream({}, ClonableIterator<T>)",
+                    item.limit
+                ),
+                None => write!(f, "LimitedChunkedStream(0, None)"),
+            },
             Self::ChunkedStream(inner) => match inner {
                 Some(_) => write!(f, "ChunkedStream(ClonableIterator<T>)"),
                 None => write!(f, "ChunkedStream(None)"),
