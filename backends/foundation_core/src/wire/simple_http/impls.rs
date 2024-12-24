@@ -7,6 +7,7 @@ use crate::io::ioutils::{self, PeekableReadStream};
 use crate::io::ubytes::{self, BytesPointer};
 use derive_more::From;
 use regex::Regex;
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::{
     collections::BTreeMap,
     convert::Infallible,
@@ -20,6 +21,54 @@ pub type Result<T, E> = std::result::Result<T, E>;
 
 pub type Trailer = String;
 pub type Extensions = Vec<(String, Option<String>)>;
+
+#[derive(From, Debug)]
+pub enum HttpReaderError {
+    #[from(ignore)]
+    InvalidLine(String),
+
+    #[from(ignore)]
+    UnknownLine(String),
+
+    #[from(ignore)]
+    BodyBuildFailed(BoxedError),
+
+    #[from(ignore)]
+    LineReadFailed(BoxedError),
+
+    #[from(ignore)]
+    InvalidContentSizeValue(Box<std::num::ParseIntError>),
+
+    ExpectedSizedBodyViaContentLength,
+    GuardedResourceAccess,
+    SeeTrailerBeforeLastChunk,
+    InvalidTailerWithNoValue,
+    InvalidChunkSize,
+    ReadFailed,
+    InvalidHeaderKey,
+    InvalidHeaderValueStarter,
+    InvalidHeaderValueEnder,
+    InvalidHeaderValue,
+    HeaderValueContainsEncodedCRLF,
+    HeaderKeyContainsEncodedCRLF,
+    #[from(ignore)]
+    HeaderKeyGreaterThanLimit(usize),
+    #[from(ignore)]
+    HeaderValueGreaterThanLimit(usize),
+    BodyContentSizeIsGreaterThanLimit(usize),
+    InvalidHeaderLine,
+
+    #[from(ignore)]
+    LimitReached(usize),
+}
+
+impl std::error::Error for HttpReaderError {}
+
+impl core::fmt::Display for HttpReaderError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
 
 #[derive(From, Debug)]
 pub enum StringHandlingError {
@@ -86,12 +135,83 @@ impl ChunkedData {
 
 pub type ChunkedClonableVecIterator<E> = ClonableBoxIterator<ChunkedData, E>;
 
+pub struct ChunkedDataLimitIterator {
+    limit: BodySizeLimit,
+    parent: ChunkedClonableVecIterator<BoxedError>,
+    collected: AtomicUsize,
+    exhausted: AtomicBool,
+}
+
+impl ChunkedDataLimitIterator {
+    pub fn new(limit: BodySizeLimit, parent: ChunkedClonableVecIterator<BoxedError>) -> Self {
+        Self {
+            limit,
+            parent,
+            collected: AtomicUsize::new(0),
+            exhausted: AtomicBool::new(true),
+        }
+    }
+}
+
+impl Clone for ChunkedDataLimitIterator {
+    fn clone(&self) -> Self {
+        Self {
+            limit: self.limit.clone(),
+            parent: self.parent.clone_box(),
+            exhausted: AtomicBool::new(self.exhausted.load(Ordering::SeqCst)),
+            collected: AtomicUsize::new(self.collected.load(Ordering::SeqCst)),
+        }
+    }
+}
+
+impl Iterator for ChunkedDataLimitIterator {
+    type Item = Result<ChunkedData, BoxedError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.exhausted.load(Ordering::SeqCst) {
+            return None;
+        }
+
+        if self.collected.load(Ordering::Relaxed) > self.limit {
+            self.exhausted.store(true, Ordering::Relaxed);
+            return Some(Err(Box::new(HttpReaderError::LimitReached(self.limit))));
+        }
+
+        match self.parent.next() {
+            Some(chunked_result) => match chunked_result {
+                Ok(data) => {
+                    let chunked_size: usize = match &data {
+                        ChunkedData::Data(content, _) => content.len(),
+                        ChunkedData::DataEnded => 0,
+                        ChunkedData::Trailer(_, _) => 0,
+                    };
+                    let _ = self.collected.fetch_add(chunked_size, Ordering::Acquire);
+                    Some(Ok(data))
+                }
+                Err(err) => Some(Err(err)),
+            },
+            None => None,
+        }
+    }
+}
+
+pub type BodySize = u64;
+pub type BodySizeLimit = usize;
+pub type TransferEncodng = String;
+
+#[derive(Clone, Debug)]
+pub enum Body {
+    LimitedBody(BodySize, SimpleHeaders),
+    ChunkedBody(TransferEncodng, SimpleHeaders, Option<BodySizeLimit>),
+}
+
 pub enum SimpleBody {
     None,
     Text(String),
     Bytes(Vec<u8>),
     Stream(Option<ClonableVecIterator<BoxedError>>),
     ChunkedStream(Option<ChunkedClonableVecIterator<BoxedError>>),
+    LimitedChunkedStream(Option<ChunkedDataLimitIterator>),
 }
 
 impl Eq for SimpleBody {}
@@ -113,6 +233,12 @@ impl PartialEq for SimpleBody {
                 (Some(_this), Some(_that)) => true,
                 _ => false,
             },
+            (Self::LimitedChunkedStream(me), Self::LimitedChunkedStream(other)) => {
+                match (me, other) {
+                    (Some(_this), Some(_that)) => true,
+                    _ => false,
+                }
+            }
             _ => false,
         }
     }
@@ -128,6 +254,7 @@ impl core::fmt::Debug for SimpleBody {
             Bytes(&'a [u8]),
             Stream(Option<()>),
             ChunkedStream(Option<()>),
+            LimitedChunkedStream(usize, Option<()>),
         }
 
         let repr = match self {
@@ -142,6 +269,16 @@ impl core::fmt::Debug for SimpleBody {
                 Some(_) => Some(()),
                 None => None,
             }),
+            Self::LimitedChunkedStream(inner) => SimpleBodyRepr::LimitedChunkedStream(
+                match inner {
+                    Some(item) => item.limit,
+                    None => 0,
+                },
+                match inner {
+                    Some(_) => Some(()),
+                    None => None,
+                },
+            ),
         };
 
         repr.fmt(f)
@@ -169,6 +306,10 @@ impl core::fmt::Display for SimpleBody {
 impl Clone for SimpleBody {
     fn clone(&self) -> Self {
         match self {
+            Self::LimitedChunkedStream(inner) => match inner {
+                Some(item) => Self::LimitedChunkedStream(Some(item.clone())),
+                None => Self::Stream(None),
+            },
             Self::ChunkedStream(inner) => match inner {
                 Some(item) => Self::ChunkedStream(Some(item.clone_box())),
                 None => Self::Stream(None),
@@ -1620,6 +1761,9 @@ pub enum Http11ReqState {
     /// handling of a chunked body parts where
     ChunkedBodyStreaming(Option<ChunkedClonableVecIterator<BoxedError>>),
 
+    /// Limited ChunkedBodyStreaming that caps chunked data to a specific size.
+    LimitedChunkedBodyStreaming(Option<ChunkedDataLimitIterator>),
+
     /// The final state of the rendering which once read ends the iterator.
     End,
 }
@@ -1633,6 +1777,10 @@ impl Clone for Http11ReqState {
             Self::BodyStreaming(inner) => match inner {
                 Some(inner2) => Self::BodyStreaming(Some(inner2.clone_box())),
                 None => Self::BodyStreaming(None),
+            },
+            Self::LimitedChunkedBodyStreaming(inner) => match inner {
+                Some(inner2) => Self::LimitedChunkedBodyStreaming(Some(inner2.clone())),
+                None => Self::ChunkedBodyStreaming(None),
             },
             Self::ChunkedBodyStreaming(inner) => match inner {
                 Some(inner2) => Self::ChunkedBodyStreaming(Some(inner2.clone_box())),
@@ -1722,6 +1870,19 @@ impl Iterator for Http11RequestIterator {
                         self.0 = Http11ReqState::End;
                         Some(Ok(inner.to_vec()))
                     }
+                    SimpleBody::LimitedChunkedStream(mut streamer_container) => {
+                        match streamer_container.take() {
+                            Some(inner) => {
+                                self.0 = Http11ReqState::LimitedChunkedBodyStreaming(Some(inner));
+                                Some(Ok(b"".to_vec()))
+                            }
+                            None => {
+                                // tell the iterator we want it to end
+                                self.0 = Http11ReqState::End;
+                                Some(Ok(b"\r\n".to_vec()))
+                            }
+                        }
+                    }
                     SimpleBody::ChunkedStream(mut streamer_container) => {
                         match streamer_container.take() {
                             Some(inner) => {
@@ -1747,6 +1908,37 @@ impl Iterator for Http11RequestIterator {
                                 Some(Ok(b"\r\n".to_vec()))
                             }
                         }
+                    }
+                }
+            }
+            Http11ReqState::LimitedChunkedBodyStreaming(container) => {
+                match container {
+                    Some(mut body_iterator) => {
+                        match body_iterator.next() {
+                            Some(collected) => match collected {
+                                Ok(mut inner) => {
+                                    self.0 = Http11ReqState::LimitedChunkedBodyStreaming(Some(
+                                        body_iterator,
+                                    ));
+                                    Some(Ok(inner.into_bytes()))
+                                }
+                                Err(err) => {
+                                    // tell the iterator we want it to end
+                                    self.0 = Http11ReqState::End;
+                                    Some(Err(err.into()))
+                                }
+                            },
+                            None => {
+                                // tell the iterator we want it to end
+                                self.0 = Http11ReqState::End;
+                                Some(Ok(b"".to_vec()))
+                            }
+                        }
+                    }
+                    None => {
+                        // tell the iterator we want it to end
+                        self.0 = Http11ReqState::End;
+                        Some(Ok(b"".to_vec()))
                     }
                 }
             }
@@ -1823,6 +2015,7 @@ pub enum Http11ResState {
     Headers(SimpleOutgoingResponse),
     Body(SimpleOutgoingResponse),
     BodyStreaming(Option<ClonableVecIterator<BoxedError>>),
+    LimitedChunkedBodyStreaming(Option<ChunkedDataLimitIterator>),
     ChunkedBodyStreaming(Option<ChunkedClonableVecIterator<BoxedError>>),
     End,
 }
@@ -1836,6 +2029,10 @@ impl Clone for Http11ResState {
             Self::BodyStreaming(inner) => match inner {
                 Some(inner2) => Self::BodyStreaming(Some(inner2.clone_box())),
                 None => Self::BodyStreaming(None),
+            },
+            Self::LimitedChunkedBodyStreaming(inner) => match inner {
+                Some(inner2) => Self::LimitedChunkedBodyStreaming(Some(inner2.clone())),
+                None => Self::ChunkedBodyStreaming(None),
             },
             Self::ChunkedBodyStreaming(inner) => match inner {
                 Some(inner2) => Self::ChunkedBodyStreaming(Some(inner2.clone_box())),
@@ -1934,6 +2131,19 @@ impl Iterator for Http11ResponseIterator {
                         self.0 = Http11ResState::End;
                         Some(Ok(inner.to_vec()))
                     }
+                    SimpleBody::LimitedChunkedStream(mut streamer_container) => {
+                        match streamer_container.take() {
+                            Some(inner) => {
+                                self.0 = Http11ResState::LimitedChunkedBodyStreaming(Some(inner));
+                                Some(Ok(b"".to_vec()))
+                            }
+                            None => {
+                                // tell the iterator we want it to end
+                                self.0 = Http11ResState::End;
+                                Some(Ok(b"".to_vec()))
+                            }
+                        }
+                    }
                     SimpleBody::ChunkedStream(mut streamer_container) => {
                         match streamer_container.take() {
                             Some(inner) => {
@@ -1959,6 +2169,39 @@ impl Iterator for Http11ResponseIterator {
                                 Some(Ok(b"".to_vec()))
                             }
                         }
+                    }
+                }
+            }
+            Http11ResState::LimitedChunkedBodyStreaming(mut response) => {
+                match response.take() {
+                    Some(mut actual_iterator) => {
+                        match actual_iterator.next() {
+                            Some(collected) => {
+                                match collected {
+                                    Ok(mut chunked) => {
+                                        self.0 = Http11ResState::LimitedChunkedBodyStreaming(Some(
+                                            actual_iterator,
+                                        ));
+                                        Some(Ok(chunked.into_bytes()))
+                                    }
+                                    Err(err) => {
+                                        // tell the iterator we want it to end
+                                        self.0 = Http11ResState::End;
+                                        Some(Err(err.into()))
+                                    }
+                                }
+                            }
+                            None => {
+                                // tell the iterator we want it to end
+                                self.0 = Http11ResState::End;
+                                Some(Ok(b"".to_vec()))
+                            }
+                        }
+                    }
+                    None => {
+                        // tell the iterator we want it to end
+                        self.0 = Http11ResState::End;
+                        Some(Ok(b"".to_vec()))
                     }
                 }
             }
@@ -2226,51 +2469,6 @@ impl<T> SimpleResponse<T> {
     }
 }
 
-#[derive(From, Debug)]
-pub enum HttpReaderError {
-    #[from(ignore)]
-    InvalidLine(String),
-
-    #[from(ignore)]
-    UnknownLine(String),
-
-    #[from(ignore)]
-    BodyBuildFailed(BoxedError),
-
-    #[from(ignore)]
-    LineReadFailed(BoxedError),
-
-    #[from(ignore)]
-    InvalidContentSizeValue(Box<std::num::ParseIntError>),
-
-    ExpectedSizedBodyViaContentLength,
-    GuardedResourceAccess,
-    SeeTrailerBeforeLastChunk,
-    InvalidTailerWithNoValue,
-    InvalidChunkSize,
-    ReadFailed,
-    InvalidHeaderKey,
-    InvalidHeaderValueStarter,
-    InvalidHeaderValueEnder,
-    InvalidHeaderValue,
-    HeaderValueContainsEncodedCRLF,
-    HeaderKeyContainsEncodedCRLF,
-    #[from(ignore)]
-    HeaderKeyGreaterThanLimit(usize),
-    #[from(ignore)]
-    HeaderValueGreaterThanLimit(usize),
-    BodyContentSizeIsGreaterThanLimit(usize),
-    InvalidHeaderLine,
-}
-
-impl std::error::Error for HttpReaderError {}
-
-impl core::fmt::Display for HttpReaderError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{self:?}")
-    }
-}
-
 pub type Protocol = String;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -2338,15 +2536,6 @@ impl PeekableReadStream for WrappedTcpStream {
             Err(err) => Err(crate::io::ioutils::PeekError::IOError(err)),
         }
     }
-}
-
-pub type BodySize = u64;
-pub type TransferEncodng = String;
-
-#[derive(Clone, Debug)]
-pub enum Body {
-    LimitedBody(BodySize, SimpleHeaders),
-    ChunkedBody(TransferEncodng, SimpleHeaders, Option<usize>),
 }
 
 pub trait BodyExtractor {
@@ -3362,10 +3551,18 @@ impl BodyExtractor for SimpleHttpBody {
                     Err(err) => Err(Box::new(err)),
                 }
             }
-            Body::ChunkedBody(transfer_encoding, headers, _max_size) => {
-                Ok(SimpleBody::ChunkedStream(Some(Box::new(
-                    SimpleHttpChunkIterator(transfer_encoding, headers, stream),
-                ))))
+            Body::ChunkedBody(transfer_encoding, headers, opt_max_size) => {
+                let chunked_iterator =
+                    Box::new(SimpleHttpChunkIterator(transfer_encoding, headers, stream));
+                if opt_max_size.is_some() {
+                    return Ok(SimpleBody::LimitedChunkedStream(Some(
+                        ChunkedDataLimitIterator::new(
+                            opt_max_size.clone().unwrap(),
+                            chunked_iterator,
+                        ),
+                    )));
+                }
+                Ok(SimpleBody::ChunkedStream(Some(chunked_iterator)))
             }
         }
     }
@@ -3383,24 +3580,17 @@ impl HttpReader<SimpleHttpBody, WrappedTcpStream> {
 mod test_http_reader {
     use io::Write;
 
+    use crate::panic_if_failed;
+
     use super::*;
     use std::{
         net::{TcpListener, TcpStream},
         thread,
     };
 
-    macro_rules! t {
-        ($e:expr) => {
-            match $e {
-                Ok(t) => t,
-                Err(e) => panic!("received error for `{}`: {}", stringify!($e), e),
-            }
-        };
-    }
-
     #[test]
     fn test_can_read_http_post_request() {
-        let listener = t!(TcpListener::bind("127.0.0.1:7888"));
+        let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:7888"));
 
         let message = "\
 POST /users HTTP/1.1\r
@@ -3418,11 +3608,11 @@ Hello world!";
         dbg!(&message);
 
         let req_thread = thread::spawn(move || {
-            let mut client = t!(TcpStream::connect("localhost:7888"));
-            t!(client.write(message.as_bytes()))
+            let mut client = panic_if_failed!(TcpStream::connect("localhost:7888"));
+            panic_if_failed!(client.write(message.as_bytes()))
         });
 
-        let (client_stream, _) = t!(listener.accept());
+        let (client_stream, _) = panic_if_failed!(listener.accept());
         let reader = ioutils::BufferedReader::new(WrappedTcpStream::new(client_stream));
         let request_reader = super::HttpReader::simple_tcp_stream(reader);
 
@@ -3439,7 +3629,7 @@ Hello world!";
                 SimpleUrl {
                     url: "/users".into(),
                     url_only: false,
-                    matcher: Some(t!(Regex::new("/users"))),
+                    matcher: Some(panic_if_failed!(Regex::new("/users"))),
                     params: None,
                     queries: None,
                 },
@@ -3472,16 +3662,16 @@ Hello world!";
 
     #[test]
     fn test_can_read_http_body_from_reqwest_http_message() {
-        let listener = t!(TcpListener::bind("127.0.0.1:7889"));
+        let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:7889"));
 
         let message = "POST /form HTTP/1.1\r\ncontent-type: application/x-www-form-urlencoded\r\ncontent-length: 24\r\naccept: */*\r\nhost: 127.0.0.1:7889\r\n\r\nhello=world&sean=monstar";
 
         let req_thread = thread::spawn(move || {
-            let mut client = t!(TcpStream::connect("localhost:7889"));
-            t!(client.write(message.as_bytes()))
+            let mut client = panic_if_failed!(TcpStream::connect("localhost:7889"));
+            panic_if_failed!(client.write(message.as_bytes()))
         });
 
-        let (client_stream, _) = t!(listener.accept());
+        let (client_stream, _) = panic_if_failed!(listener.accept());
         let reader = ioutils::BufferedReader::new(WrappedTcpStream::new(client_stream));
         let request_reader = super::HttpReader::simple_tcp_stream(reader);
 
@@ -3498,7 +3688,7 @@ Hello world!";
                 SimpleUrl {
                     url: "/form".into(),
                     url_only: false,
-                    matcher: Some(t!(Regex::new("/form"))),
+                    matcher: Some(panic_if_failed!(Regex::new("/form"))),
                     params: None,
                     queries: None,
                 },
@@ -3525,7 +3715,7 @@ Hello world!";
 
     #[test]
     fn test_can_read_http_body_from_reqwest_client() {
-        let listener = t!(TcpListener::bind("127.0.0.1:7887"));
+        let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:7887"));
 
         let req_thread = thread::spawn(move || {
             use reqwest;
@@ -3537,7 +3727,7 @@ Hello world!";
                 .send();
         });
 
-        let (client_stream, _) = t!(listener.accept());
+        let (client_stream, _) = panic_if_failed!(listener.accept());
         let reader = ioutils::BufferedReader::new(WrappedTcpStream::new(client_stream));
         let request_reader = super::HttpReader::simple_tcp_stream(reader);
 
@@ -3554,7 +3744,7 @@ Hello world!";
                 SimpleUrl {
                     url: "/form".into(),
                     url_only: false,
-                    matcher: Some(t!(Regex::new("/form"))),
+                    matcher: Some(panic_if_failed!(Regex::new("/form"))),
                     params: None,
                     queries: None,
                 },
