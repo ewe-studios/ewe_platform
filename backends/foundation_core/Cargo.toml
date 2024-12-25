@@ -17,8 +17,9 @@ serde_json = { version = "1" }
 serde_yml = { version = "0.0.12" }
 toml = { version = "0.8.19" }
 rust-embed = "8.5.0"
+fastrand = "2.3.0"
 
-async-trait = { version = "0.1.82"}
+async-trait = { version = "0.1.82"  }
 tokio = { version = "1.36", features= ["sync", "time"] }
 memchr = "2.7.2"
 tracing = { version = "0.1.40" }
