@@ -1,6 +1,6 @@
 use derive_more::From;
 
-use std::io;
+use std::{io, net::AddrParseError};
 
 pub type TlsResult<T> = std::result::Result<T, TlsError>;
 
@@ -52,6 +52,9 @@ pub enum DataStreamError {
 
     #[from(ignore)]
     TLS(TlsError),
+
+    #[from(ignore)]
+    SocketAddrError(AddrParseError),
 }
 
 impl Eq for DataStreamError {}
@@ -61,10 +64,19 @@ impl PartialEq for DataStreamError {
         match (self, other) {
             (Self::TLS(m1), Self::TLS(m2)) => m1 == m2,
             (Self::IO(m1), Self::IO(m2)) => m1.kind() == m2.kind(),
+            (Self::SocketAddrError(m1), Self::SocketAddrError(m2)) => {
+                m1.to_string() == m2.to_string()
+            }
             (Self::ConnectionFailed, Self::ConnectionFailed) => true,
             (Self::ReconnectionError, Self::ReconnectionError) => true,
             _ => false,
         }
+    }
+}
+
+impl From<AddrParseError> for DataStreamError {
+    fn from(value: AddrParseError) -> Self {
+        Self::SocketAddrError(value)
     }
 }
 
