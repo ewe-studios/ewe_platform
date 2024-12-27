@@ -1,6 +1,6 @@
 use derive_more::derive::From;
 
-use crate::io::ioutils::{self, BufferedReader, PeekError, PeekableReadStream};
+use crate::io::ioutils::{BufferedReader, PeekError, PeekableReadStream};
 use crate::retries::{
     ClonableReconnectionDecider, ExponentialBackoffDecider, RetryDecider, RetryState,
 };
@@ -9,7 +9,7 @@ use crate::valtron::{self, DelayedIterator};
 use crate::native_tls::{Identity, TlsConnector, TlsStream};
 use crate::wire::simple_http::{self};
 use core::net;
-use std::cell;
+use std::net::SocketAddr;
 use std::time::Duration;
 use std::{net::TcpStream, time};
 
@@ -196,18 +196,23 @@ impl std::io::Write for RawStream {
 // -- Basic constructors
 
 impl RawStream {
-    /// from_endpoint creates a naked RawStream which is not mapped to a specific
+    /// from_endpoint_timeout creates a naked RawStream which is not mapped to a specific
     /// protocol version and simply is a TCPStream connected to the relevant Endpoint
     /// upgrade to TLS if required.
     ///
     /// How you take the returned RawStream is up to you but this allows you more control
     /// on how exactly the request starts.
-    pub fn from_endpoint<T: Clone>(endpoint: super::Endpoint<T>) -> super::DataStreamResult<Self> {
+    pub fn from_endpoint_timeout<T: Clone>(
+        endpoint: super::Endpoint<T>,
+        timeout: time::Duration,
+    ) -> super::DataStreamResult<Self> {
         let host = endpoint.host();
+
+        let host_socket_addr: SocketAddr = host.parse()?;
 
         #[cfg(feature = "native-tls")]
         let stream = {
-            let plain_stream = TcpStream::connect(host.as_str())?;
+            let plain_stream = TcpStream::connect_timeout(&host_socket_addr, timeout)?;
             let encrypted_stream = if endpoint.scheme() == "https" {
                 RawStream::try_wrap_tls(plain_stream, &endpoint.host())?
             } else {
@@ -218,11 +223,20 @@ impl RawStream {
 
         #[cfg(not(feature = "native-tls"))]
         let mut stream = {
-            let plain_stream = TcpStream::connect(host.as_str())?;
+            let plain_stream = TcpStream::connect_timeout(&host_socket_addr, timeout)?;
             RawStream::wrap_plain(plain_stream)
         };
 
         Ok(stream)
+    }
+    /// from_endpoint creates a naked RawStream which is not mapped to a specific
+    /// protocol version and simply is a TCPStream connected to the relevant Endpoint
+    /// upgrade to TLS if required.
+    ///
+    /// How you take the returned RawStream is up to you but this allows you more control
+    /// on how exactly the request starts.
+    pub fn from_endpoint<T: Clone>(endpoint: super::Endpoint<T>) -> super::DataStreamResult<Self> {
+        Self::from_endpoint_timeout(endpoint, Duration::from_micros(0))
     }
 }
 
@@ -232,16 +246,6 @@ pub fn create_simple_http_reader<T: simple_http::BodyExtractor>(
 ) -> simple_http::HttpReader<T, RawStream> {
     simple_http::HttpReader::new(crate::io::ioutils::BufferedReader::new(stream), extractor)
 }
-
-pub type SharedReadWriteStream<T> = std::sync::Arc<
-    std::sync::Mutex<cell::RefCell<ioutils::BufferedReader<ioutils::BufferedWriter<T>>>>,
->;
-
-pub type SharedWriteStream<T> =
-    std::sync::Arc<std::sync::Mutex<cell::RefCell<ioutils::BufferedWriter<T>>>>;
-
-pub type SharedReadStream<T> =
-    std::sync::Arc<std::sync::Mutex<cell::RefCell<ioutils::BufferedReader<T>>>>;
 
 /// Representing the different state a connection goes through
 /// where it can move from established to exhuasted.
@@ -262,14 +266,30 @@ const DEFAULT_MAX_RETRIES: u32 = 10;
 pub struct ReconnectingStream<T: Clone> {
     max_retries: u32,
     state: ConnectionState<T>,
+    connection_timeout: time::Duration,
     decider: Box<dyn ClonableReconnectionDecider>,
 }
 
 impl<T: Clone> ReconnectingStream<T> {
     pub fn from_endpoint(endpoint: super::Endpoint<T>) -> Self {
+        static CONNECTION_TIMEOUT: time::Duration = time::Duration::from_millis(100);
+
         Self::new(
             DEFAULT_MAX_RETRIES,
             endpoint,
+            CONNECTION_TIMEOUT,
+            ExponentialBackoffDecider::default(),
+        )
+    }
+
+    pub fn with_connection_timeout(
+        endpoint: super::Endpoint<T>,
+        connection_timeout: time::Duration,
+    ) -> Self {
+        Self::new(
+            DEFAULT_MAX_RETRIES,
+            endpoint,
+            connection_timeout,
             ExponentialBackoffDecider::default(),
         )
     }
@@ -277,12 +297,14 @@ impl<T: Clone> ReconnectingStream<T> {
     pub fn with_duration(
         max_retries: u32,
         endpoint: super::Endpoint<T>,
+        connection_timeout: time::Duration,
         min_duration: time::Duration,
         max_duration: impl Into<Option<time::Duration>>,
     ) -> Self {
         Self::new(
             max_retries,
             endpoint,
+            connection_timeout,
             ExponentialBackoffDecider::from_duration(min_duration, max_duration),
         )
     }
@@ -290,10 +312,12 @@ impl<T: Clone> ReconnectingStream<T> {
     pub fn new(
         max_retries: u32,
         endpoint: super::Endpoint<T>,
+        connection_timeout: time::Duration,
         decider: impl RetryDecider + Clone + 'static,
     ) -> Self {
         Self {
             max_retries,
+            connection_timeout,
             decider: Box::new(decider),
             state: ConnectionState::Todo(endpoint),
         }
@@ -306,6 +330,7 @@ impl<T: Clone> Clone for ReconnectingStream<T> {
             max_retries: self.max_retries.clone(),
             decider: self.decider.clone_box(),
             state: self.state.clone(),
+            connection_timeout: self.connection_timeout.clone(),
         }
     }
 }
@@ -377,7 +402,10 @@ impl<T: Clone> Iterator for ReconnectingStream<T> {
                     wait: None,
                 });
 
-                match RawStream::from_endpoint(endpoint.clone()) {
+                match RawStream::from_endpoint_timeout(
+                    endpoint.clone(),
+                    self.connection_timeout.clone(),
+                ) {
                     Ok(connected_stream) => {
                         self.state = ConnectionState::Established(endpoint.clone());
                         Some(Ok(ReconnectionStatus::Ready(connected_stream)))
@@ -493,6 +521,7 @@ mod test_reconnection_stream {
         let stream = ReconnectingStream::new(
             2,
             endpoint,
+            Duration::from_millis(50),
             SameBackoffDecider::new(Duration::from_millis(200)),
         );
 
