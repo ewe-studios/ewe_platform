@@ -3,7 +3,8 @@ use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
 use crate::io::ioutils::{self, PeekableReadStream};
 use crate::io::ubytes::{self, BytesPointer};
 use crate::valtron::{
-    CanCloneIterator, ClonableBoxIterator, ClonableFn, ClonableStringIterator, ClonableVecIterator,
+    CanCloneSendIterator, ClonableFn, ClonableSendBoxIterator, ClonableSendVecIterator,
+    ClonableStringIterator,
 };
 use derive_more::From;
 use regex::Regex;
@@ -133,7 +134,7 @@ impl ChunkedData {
     }
 }
 
-pub type ChunkedClonableVecIterator<E> = ClonableBoxIterator<ChunkedData, E>;
+pub type ChunkedClonableVecIterator<E> = ClonableSendBoxIterator<ChunkedData, E>;
 
 pub struct ChunkedDataLimitIterator {
     limit: BodySizeLimit,
@@ -157,7 +158,7 @@ impl Clone for ChunkedDataLimitIterator {
     fn clone(&self) -> Self {
         Self {
             limit: self.limit.clone(),
-            parent: self.parent.clone_box(),
+            parent: self.parent.clone_box_send(),
             exhausted: AtomicBool::new(self.exhausted.load(Ordering::SeqCst)),
             collected: AtomicUsize::new(self.collected.load(Ordering::SeqCst)),
         }
@@ -209,7 +210,7 @@ pub enum SimpleBody {
     None,
     Text(String),
     Bytes(Vec<u8>),
-    Stream(Option<ClonableVecIterator<BoxedError>>),
+    Stream(Option<ClonableSendVecIterator<BoxedError>>),
     ChunkedStream(Option<ChunkedClonableVecIterator<BoxedError>>),
     LimitedChunkedStream(Option<ChunkedDataLimitIterator>),
 }
@@ -319,11 +320,11 @@ impl Clone for SimpleBody {
                 None => Self::Stream(None),
             },
             Self::ChunkedStream(inner) => match inner {
-                Some(item) => Self::ChunkedStream(Some(item.clone_box())),
+                Some(item) => Self::ChunkedStream(Some(item.clone_box_send())),
                 None => Self::Stream(None),
             },
             Self::Stream(inner) => match inner {
-                Some(item) => Self::Stream(Some(item.clone_box())),
+                Some(item) => Self::Stream(Some(item.clone_box_send())),
                 None => Self::Stream(None),
             },
             Self::Text(inner) => Self::Text(inner.clone()),
@@ -362,7 +363,7 @@ pub trait RenderHttp: Send {
 
     fn http_render(
         &self,
-    ) -> std::result::Result<CanCloneIterator<Result<Vec<u8>, Self::Error>>, Self::Error>;
+    ) -> std::result::Result<CanCloneSendIterator<Result<Vec<u8>, Self::Error>>, Self::Error>;
 
     /// http_render_encoded_string attempts to render the results of calling
     /// `RenderHttp::http_render()` as a custom encoded strings.
@@ -1411,7 +1412,7 @@ impl SimpleOutgoingResponseBuilder {
         self
     }
 
-    pub fn with_body_stream(mut self, body: ClonableVecIterator<BoxedError>) -> Self {
+    pub fn with_body_stream(mut self, body: ClonableSendVecIterator<BoxedError>) -> Self {
         self.body = Some(SimpleBody::Stream(Some(body)));
         self
     }
@@ -1568,7 +1569,7 @@ impl SimpleIncomingRequestBuilder {
         self
     }
 
-    pub fn with_body_stream(mut self, body: ClonableVecIterator<BoxedError>) -> Self {
+    pub fn with_body_stream(mut self, body: ClonableSendVecIterator<BoxedError>) -> Self {
         self.body = Some(SimpleBody::Stream(Some(body)));
         self
     }
@@ -1763,7 +1764,7 @@ pub enum Http11ReqState {
     ///
     /// Once done it moves state to the `Http11ReqState::BodyStream`
     ///  or `Http11ReqState::End` variant.
-    BodyStreaming(Option<ClonableVecIterator<BoxedError>>),
+    BodyStreaming(Option<ClonableSendVecIterator<BoxedError>>),
 
     /// ChunkedBodyStreaming like BodyStreaming is meant to support
     /// handling of a chunked body parts where
@@ -1783,7 +1784,7 @@ impl Clone for Http11ReqState {
             Self::Headers(inner) => Self::Headers(inner.clone()),
             Self::Body(inner) => Self::Body(inner.clone()),
             Self::BodyStreaming(inner) => match inner {
-                Some(inner2) => Self::BodyStreaming(Some(inner2.clone_box())),
+                Some(inner2) => Self::BodyStreaming(Some(inner2.clone_box_send())),
                 None => Self::BodyStreaming(None),
             },
             Self::LimitedChunkedBodyStreaming(inner) => match inner {
@@ -1791,7 +1792,7 @@ impl Clone for Http11ReqState {
                 None => Self::ChunkedBodyStreaming(None),
             },
             Self::ChunkedBodyStreaming(inner) => match inner {
-                Some(inner2) => Self::ChunkedBodyStreaming(Some(inner2.clone_box())),
+                Some(inner2) => Self::ChunkedBodyStreaming(Some(inner2.clone_box_send())),
                 None => Self::ChunkedBodyStreaming(None),
             },
             Self::End => Self::End,
@@ -2022,7 +2023,7 @@ pub enum Http11ResState {
     Intro(SimpleOutgoingResponse),
     Headers(SimpleOutgoingResponse),
     Body(SimpleOutgoingResponse),
-    BodyStreaming(Option<ClonableVecIterator<BoxedError>>),
+    BodyStreaming(Option<ClonableSendVecIterator<BoxedError>>),
     LimitedChunkedBodyStreaming(Option<ChunkedDataLimitIterator>),
     ChunkedBodyStreaming(Option<ChunkedClonableVecIterator<BoxedError>>),
     End,
@@ -2035,7 +2036,7 @@ impl Clone for Http11ResState {
             Self::Headers(inner) => Self::Headers(inner.clone()),
             Self::Body(inner) => Self::Body(inner.clone()),
             Self::BodyStreaming(inner) => match inner {
-                Some(inner2) => Self::BodyStreaming(Some(inner2.clone_box())),
+                Some(inner2) => Self::BodyStreaming(Some(inner2.clone_box_send())),
                 None => Self::BodyStreaming(None),
             },
             Self::LimitedChunkedBodyStreaming(inner) => match inner {
@@ -2043,7 +2044,7 @@ impl Clone for Http11ResState {
                 None => Self::ChunkedBodyStreaming(None),
             },
             Self::ChunkedBodyStreaming(inner) => match inner {
-                Some(inner2) => Self::ChunkedBodyStreaming(Some(inner2.clone_box())),
+                Some(inner2) => Self::ChunkedBodyStreaming(Some(inner2.clone_box_send())),
                 None => Self::ChunkedBodyStreaming(None),
             },
             Self::End => Self::End,
@@ -2253,7 +2254,7 @@ impl Iterator for Http11ResponseIterator {
                             Some(collected) => match collected {
                                 Ok(inner) => {
                                     self.0 = Http11ResState::BodyStreaming(Some(
-                                        actual_iterator.clone_box(),
+                                        actual_iterator.clone_box_send(),
                                     ));
 
                                     Some(Ok(inner))
@@ -2305,12 +2306,12 @@ impl RenderHttp for Http11 {
 
     fn http_render(
         &self,
-    ) -> std::result::Result<CanCloneIterator<Result<Vec<u8>, Self::Error>>, Self::Error> {
+    ) -> std::result::Result<CanCloneSendIterator<Result<Vec<u8>, Self::Error>>, Self::Error> {
         match self {
-            Http11::Request(request) => Ok(CanCloneIterator::new(Box::new(Http11RequestIterator(
-                Http11ReqState::Intro(request.clone()),
-            )))),
-            Http11::Response(response) => Ok(CanCloneIterator::new(Box::new(
+            Http11::Request(request) => Ok(CanCloneSendIterator::new(Box::new(
+                Http11RequestIterator(Http11ReqState::Intro(request.clone())),
+            ))),
+            Http11::Response(response) => Ok(CanCloneSendIterator::new(Box::new(
                 Http11ResponseIterator(Http11ResState::Intro(response.clone())),
             ))),
         }
