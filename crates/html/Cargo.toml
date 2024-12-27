@@ -40,6 +40,7 @@ debug_trace = ["ewe_trace/debug_trace"]
 
 [[bench]]
 name = "wikipedia"
+harness = false
 
 [[bench]]
 name = "cwikipedia"
