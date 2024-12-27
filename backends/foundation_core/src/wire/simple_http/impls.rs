@@ -3599,7 +3599,7 @@ mod test_http_reader {
 
     #[test]
     fn test_can_read_http_post_request() {
-        let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:7888"));
+        let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:4888"));
 
         let message = "\
 POST /users HTTP/1.1\r
@@ -3617,7 +3617,7 @@ Hello world!";
         dbg!(&message);
 
         let req_thread = thread::spawn(move || {
-            let mut client = panic_if_failed!(TcpStream::connect("localhost:7888"));
+            let mut client = panic_if_failed!(TcpStream::connect("localhost:4888"));
             panic_if_failed!(client.write(message.as_bytes()))
         });
 
@@ -3671,12 +3671,12 @@ Hello world!";
 
     #[test]
     fn test_can_read_http_body_from_reqwest_http_message() {
-        let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:7889"));
+        let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:5889"));
 
         let message = "POST /form HTTP/1.1\r\ncontent-type: application/x-www-form-urlencoded\r\ncontent-length: 24\r\naccept: */*\r\nhost: 127.0.0.1:7889\r\n\r\nhello=world&sean=monstar";
 
         let req_thread = thread::spawn(move || {
-            let mut client = panic_if_failed!(TcpStream::connect("localhost:7889"));
+            let mut client = panic_if_failed!(TcpStream::connect("localhost:5889"));
             panic_if_failed!(client.write(message.as_bytes()))
         });
 
