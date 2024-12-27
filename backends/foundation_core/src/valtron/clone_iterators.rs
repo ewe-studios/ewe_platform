@@ -25,7 +25,7 @@ pub type ClonableByteIterator<'a, E> = ClonableBoxIterator<&'a [u8], E>;
 /// safely be cloned and wholely send across a thread into another without having
 /// to juggle the usual complainst of requiring the type to also be sync.
 pub trait ClonableIterator: Iterator {
-    fn clone_box(&self) -> Box<dyn ClonableIterator<Item = Self::Item>>;
+    fn clone_box_iterator(&self) -> Box<dyn ClonableIterator<Item = Self::Item>>;
 }
 
 /// ClonableSendBoxIterator is a type definition for an Iterator that can safely be
@@ -37,7 +37,7 @@ pub type ClonableSendBoxIterator<T, E> = Box<dyn ClonableSendIterator<Item = Any
 
 /// ClonableIterator that can be Send
 pub trait ClonableSendIterator: Iterator + Send {
-    fn clone_box_send(&self) -> Box<dyn ClonableSendIterator<Item = Self::Item>>;
+    fn clone_box_send_iterator(&self) -> Box<dyn ClonableSendIterator<Item = Self::Item>>;
 }
 
 // Nice pre-defined types, feel free to define yours
@@ -57,7 +57,7 @@ impl<T, I> ClonableIterator for T
 where
     T: Iterator<Item = I> + Clone + 'static,
 {
-    fn clone_box(&self) -> Box<dyn ClonableIterator<Item = I>> {
+    fn clone_box_iterator(&self) -> Box<dyn ClonableIterator<Item = I>> {
         Box::new(self.clone())
     }
 }
@@ -66,14 +66,14 @@ impl<T, I> ClonableSendIterator for T
 where
     T: Iterator<Item = I> + Clone + Send + 'static,
 {
-    fn clone_box_send(&self) -> Box<dyn ClonableSendIterator<Item = I>> {
+    fn clone_box_send_iterator(&self) -> Box<dyn ClonableSendIterator<Item = I>> {
         Box::new(self.clone())
     }
 }
 
 impl<T: 'static> Clone for Box<dyn ClonableIterator<Item = T>> {
     fn clone(&self) -> Self {
-        self.clone_box()
+        self.clone_box_iterator()
     }
 }
 
@@ -90,7 +90,7 @@ impl<T> CanCloneIterator<T> {
 
 impl<T: 'static> Clone for CanCloneIterator<T> {
     fn clone(&self) -> Self {
-        Self(self.0.clone_box())
+        Self(self.0.clone_box_iterator())
     }
 }
 
@@ -112,7 +112,7 @@ impl<T> CanCloneSendIterator<T> {
 
 impl<T: 'static> Clone for CanCloneSendIterator<T> {
     fn clone(&self) -> Self {
-        Self(self.0.clone_box_send())
+        Self(self.0.clone_box_send_iterator())
     }
 }
 
