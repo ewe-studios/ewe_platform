@@ -158,7 +158,7 @@ impl Clone for ChunkedDataLimitIterator {
     fn clone(&self) -> Self {
         Self {
             limit: self.limit.clone(),
-            parent: self.parent.clone_box_send(),
+            parent: self.parent.clone_box_send_iterator(),
             exhausted: AtomicBool::new(self.exhausted.load(Ordering::SeqCst)),
             collected: AtomicUsize::new(self.collected.load(Ordering::SeqCst)),
         }
@@ -320,11 +320,11 @@ impl Clone for SimpleBody {
                 None => Self::Stream(None),
             },
             Self::ChunkedStream(inner) => match inner {
-                Some(item) => Self::ChunkedStream(Some(item.clone_box_send())),
+                Some(item) => Self::ChunkedStream(Some(item.clone_box_send_iterator())),
                 None => Self::Stream(None),
             },
             Self::Stream(inner) => match inner {
-                Some(item) => Self::Stream(Some(item.clone_box_send())),
+                Some(item) => Self::Stream(Some(item.clone_box_send_iterator())),
                 None => Self::Stream(None),
             },
             Self::Text(inner) => Self::Text(inner.clone()),
@@ -1784,7 +1784,7 @@ impl Clone for Http11ReqState {
             Self::Headers(inner) => Self::Headers(inner.clone()),
             Self::Body(inner) => Self::Body(inner.clone()),
             Self::BodyStreaming(inner) => match inner {
-                Some(inner2) => Self::BodyStreaming(Some(inner2.clone_box_send())),
+                Some(inner2) => Self::BodyStreaming(Some(inner2.clone_box_send_iterator())),
                 None => Self::BodyStreaming(None),
             },
             Self::LimitedChunkedBodyStreaming(inner) => match inner {
@@ -1792,7 +1792,7 @@ impl Clone for Http11ReqState {
                 None => Self::ChunkedBodyStreaming(None),
             },
             Self::ChunkedBodyStreaming(inner) => match inner {
-                Some(inner2) => Self::ChunkedBodyStreaming(Some(inner2.clone_box_send())),
+                Some(inner2) => Self::ChunkedBodyStreaming(Some(inner2.clone_box_send_iterator())),
                 None => Self::ChunkedBodyStreaming(None),
             },
             Self::End => Self::End,
@@ -2036,7 +2036,7 @@ impl Clone for Http11ResState {
             Self::Headers(inner) => Self::Headers(inner.clone()),
             Self::Body(inner) => Self::Body(inner.clone()),
             Self::BodyStreaming(inner) => match inner {
-                Some(inner2) => Self::BodyStreaming(Some(inner2.clone_box_send())),
+                Some(inner2) => Self::BodyStreaming(Some(inner2.clone_box_send_iterator())),
                 None => Self::BodyStreaming(None),
             },
             Self::LimitedChunkedBodyStreaming(inner) => match inner {
@@ -2044,7 +2044,7 @@ impl Clone for Http11ResState {
                 None => Self::ChunkedBodyStreaming(None),
             },
             Self::ChunkedBodyStreaming(inner) => match inner {
-                Some(inner2) => Self::ChunkedBodyStreaming(Some(inner2.clone_box_send())),
+                Some(inner2) => Self::ChunkedBodyStreaming(Some(inner2.clone_box_send_iterator())),
                 None => Self::ChunkedBodyStreaming(None),
             },
             Self::End => Self::End,
@@ -2254,7 +2254,7 @@ impl Iterator for Http11ResponseIterator {
                             Some(collected) => match collected {
                                 Ok(inner) => {
                                     self.0 = Http11ResState::BodyStreaming(Some(
-                                        actual_iterator.clone_box_send(),
+                                        actual_iterator.clone_box_send_iterator(),
                                     ));
 
                                     Some(Ok(inner))

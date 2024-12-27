@@ -55,6 +55,7 @@ ewe_templates_macro = { path = "./crates/template-macro", version = "0.0.1" }
 toml = { version = "0.8.19" }
 anyhow = { version = "1.0.80" }
 tracing = { version = "0.1.40" }
+concurrent-queue = { version = "2.5.0"}
 derive_more = { version = "1.0.0", features = ["full"] }
 
 [workspace.lints.clippy]
