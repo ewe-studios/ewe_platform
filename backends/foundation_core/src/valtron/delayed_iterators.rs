@@ -26,6 +26,9 @@ pub enum Delayed<T> {
     ///
     /// This allows more communication about an operation still awaiting completion.
     Pending(std::time::Instant, std::time::Duration, std::time::Duration),
+
+    /// Ready is the final state where we consider the delay
+    /// finished/ended with relevant result.
     Done(T),
 }
 
@@ -108,6 +111,7 @@ impl<T> Iterator for DelayedAsIterator<T> {
 /// It will keep responding with a `Delayed::Pending` till the time marked
 /// for sleeping to end which indicates to the caller to perform whatever
 /// task they were waiting for.
+#[derive(Clone, Debug)]
 pub struct SleepIterator<T>(std::time::Instant, std::time::Duration, Option<T>);
 
 impl<T> SleepIterator<T> {
@@ -151,6 +155,14 @@ mod test_sleep_iterator {
     };
 
     use super::SleepIterator;
+
+    #[test]
+    fn zero_duration_sleep_iterator_finishes_immediately() {
+        let now = Instant::now();
+        let wait = Duration::from_secs(0);
+        let mut sleeper = SleepIterator::new(now, wait, ());
+        assert_eq!(sleeper.next(), Some(Delayed::Done(())));
+    }
 
     #[test]
     fn can_sleep_thread_and_get_final() {

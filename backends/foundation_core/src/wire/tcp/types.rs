@@ -1,3 +1,18 @@
+use derive_more::derive::From;
+
+#[derive(From, Debug)]
+pub enum EndpointError {
+    ParseUrlFailed(url::ParseError),
+}
+
+impl std::error::Error for EndpointError {}
+
+impl core::fmt::Display for EndpointError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
+
 /// Endpoint represents a target endpoint to be connected
 /// to communication.
 #[derive(Clone, Debug)]
@@ -15,8 +30,26 @@ impl Endpoint<()> {
     }
 
     #[inline]
+    pub fn plain_string<S: Into<String>>(target: S) -> std::result::Result<Self, EndpointError> {
+        match url::Url::parse(&target.into()) {
+            Ok(url) => Ok(Endpoint::Plain(url)),
+            Err(err) => Err(EndpointError::ParseUrlFailed(err)),
+        }
+    }
+
+    #[inline]
     pub fn encrypted(target: url::Url) -> Self {
         Endpoint::Encrypted(target)
+    }
+
+    #[inline]
+    pub fn encrypted_string<S: Into<String>>(
+        target: S,
+    ) -> std::result::Result<Self, EndpointError> {
+        match url::Url::parse(&target.into()) {
+            Ok(url) => Ok(Endpoint::Encrypted(url)),
+            Err(err) => Err(EndpointError::ParseUrlFailed(err)),
+        }
     }
 }
 

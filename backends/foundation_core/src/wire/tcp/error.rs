@@ -13,6 +13,19 @@ pub enum TlsError {
     IO(io::Error),
 }
 
+impl Eq for TlsError {}
+
+impl PartialEq for TlsError {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::IO(m1), Self::IO(m2)) => m1.kind() == m2.kind(),
+            (Self::Handshake, Self::Handshake) => true,
+            (Self::ConnectorCreation, Self::ConnectorCreation) => true,
+            _ => false,
+        }
+    }
+}
+
 impl From<io::Error> for TlsError {
     fn from(value: io::Error) -> Self {
         TlsError::IO(value)
@@ -39,6 +52,20 @@ pub enum DataStreamError {
 
     #[from(ignore)]
     TLS(TlsError),
+}
+
+impl Eq for DataStreamError {}
+
+impl PartialEq for DataStreamError {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::TLS(m1), Self::TLS(m2)) => m1 == m2,
+            (Self::IO(m1), Self::IO(m2)) => m1.kind() == m2.kind(),
+            (Self::ConnectionFailed, Self::ConnectionFailed) => true,
+            (Self::ReconnectionError, Self::ReconnectionError) => true,
+            _ => false,
+        }
+    }
 }
 
 impl From<TlsError> for DataStreamError {

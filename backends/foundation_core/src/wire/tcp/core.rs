@@ -1,4 +1,4 @@
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct DataStreamAddr(core::net::SocketAddr, core::net::SocketAddr);
 
 // --- Constructors
