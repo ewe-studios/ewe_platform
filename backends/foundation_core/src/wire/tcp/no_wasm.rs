@@ -272,7 +272,7 @@ pub struct ReconnectingStream<T: Clone> {
 
 impl<T: Clone> ReconnectingStream<T> {
     pub fn from_endpoint(endpoint: super::Endpoint<T>) -> Self {
-        static CONNECTION_TIMEOUT: time::Duration = time::Duration::from_millis(100);
+        static CONNECTION_TIMEOUT: time::Duration = time::Duration::from_millis(600);
 
         Self::new(
             DEFAULT_MAX_RETRIES,
@@ -410,22 +410,26 @@ impl<T: Clone> Iterator for ReconnectingStream<T> {
                         self.state = ConnectionState::Established(endpoint.clone());
                         Some(Ok(ReconnectionStatus::Ready(connected_stream)))
                     }
-                    Err(connection_error) => match reconnection_state_option {
-                        Some(rstate) => {
-                            let duration = match rstate.wait.clone() {
-                                Some(duration) => duration,
-                                None => Duration::from_secs(0),
-                            };
+                    Err(connection_error) => {
+                        println!("Failed to connect: {:?}", connection_error);
+                        match reconnection_state_option {
+                            Some(rstate) => {
+                                let duration = match rstate.wait.clone() {
+                                    Some(duration) => duration,
+                                    None => Duration::from_secs(0),
+                                };
 
-                            let sleeper = valtron::SleepIterator::until(duration, endpoint.clone());
-                            self.state = ConnectionState::Reconnect(rstate, Some(sleeper));
-                            Some(Ok(ReconnectionStatus::Waiting(duration)))
+                                let sleeper =
+                                    valtron::SleepIterator::until(duration, endpoint.clone());
+                                self.state = ConnectionState::Reconnect(rstate, Some(sleeper));
+                                Some(Ok(ReconnectionStatus::Waiting(duration)))
+                            }
+                            None => {
+                                self.state = ConnectionState::Exhausted(endpoint.clone());
+                                Some(Err(ReconnectionError::Failed(connection_error)))
+                            }
                         }
-                        None => {
-                            self.state = ConnectionState::Exhausted(endpoint.clone());
-                            Some(Err(ReconnectionError::Failed(connection_error)))
-                        }
-                    },
+                    }
                 }
             }
             ConnectionState::Redo(endpoint, last_state) => {
@@ -510,10 +514,43 @@ impl<T: Clone> Iterator for ReconnectingStream<T> {
 
 #[cfg(test)]
 mod test_reconnection_stream {
+
     use crate::{panic_if_failed, retries::SameBackoffDecider, wire::tcp::Endpoint};
-    use std::result::Result;
+    use std::{net::TcpListener, result::Result, thread};
+    use tracing;
 
     use super::*;
+
+    #[test]
+    fn successfully_connects_on_first_try() {
+        let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:3799"));
+        let threader = thread::spawn(move || loop {
+            match listener.accept() {
+                Ok((_, _)) => loop {
+                    tracing::debug!("Received client, ending");
+                    return;
+                },
+                Err(_) => {
+                    return;
+                }
+            }
+        });
+
+        let endpoint = panic_if_failed!(Endpoint::plain_string("http://127.0.0.1:3799"));
+        let mut stream = ReconnectingStream::new(
+            2,
+            endpoint,
+            Duration::from_millis(500),
+            SameBackoffDecider::new(Duration::from_millis(200)),
+        );
+
+        let collected: Option<Result<ReconnectionStatus, ReconnectionError>> = stream.next();
+        dbg!(&collected);
+
+        assert!(matches!(collected, Some(Ok(ReconnectionStatus::Ready(_)))));
+
+        threader.join().expect("closed");
+    }
 
     #[test]
     fn fails_reconnection_after_max_retries() {
