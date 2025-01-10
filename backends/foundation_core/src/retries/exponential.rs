@@ -1,4 +1,4 @@
-use std::time;
+use std::{cell, time};
 
 use super::{RetryDecider, RetryState, DEFAULT_MIN_DURATION};
 
@@ -8,7 +8,7 @@ pub struct ExponentialBackoffDecider {
     pub jitter: f32,
     pub min_duration: time::Duration,
     pub max_duration: time::Duration,
-    pub rng: fastrand::Rng,
+    pub rng: cell::RefCell<fastrand::Rng>,
 }
 
 const DEFAULT_JITTER: f32 = 0.6;
@@ -35,7 +35,7 @@ impl ExponentialBackoffDecider {
             factor,
             jitter,
             min_duration,
-            rng: fastrand::Rng::new(),
+            rng: cell::RefCell::new(fastrand::Rng::new()),
             max_duration: max_duration.into().unwrap_or(time::Duration::MAX),
         }
     }
@@ -49,7 +49,7 @@ impl ExponentialBackoffDecider {
 }
 
 impl RetryDecider for ExponentialBackoffDecider {
-    fn decide(&mut self, state: RetryState) -> Option<RetryState> {
+    fn decide(&self, state: RetryState) -> Option<RetryState> {
         let last_attempt = state.attempt.clone();
         if last_attempt >= state.total_allowed {
             return None;
@@ -58,19 +58,19 @@ impl RetryDecider for ExponentialBackoffDecider {
         let next_attempt = last_attempt.saturating_add(1);
 
         // create exponential duraton
-        let exponent = self.factor.saturating_pow(next_attempt);
-        let duration = self.min_duration.saturating_mul(exponent);
+        let exponent = self.factor.saturating_pow(next_attempt as u32);
+        let duration = self.min_duration.saturating_mul(exponent as u32);
 
         // Apply jitter - use multiples of 100 to prevent rely on floats.
         let jitter_factor = (self.jitter * 100f32) as u32;
-        let random = self.rng.u32(0..jitter_factor * 2);
+        let random = self.rng.borrow_mut().u32(0..jitter_factor * 2);
 
         let mut duration = duration.saturating_mul(100);
         if random < jitter_factor {
-            let jitter = duration.saturating_mul(random) / 100;
+            let jitter = duration.saturating_mul(random as u32) / 100;
             duration = duration.saturating_sub(jitter)
         } else {
-            let jitter = duration.saturating_mul(random / 2) / 100;
+            let jitter = duration.saturating_mul((random as u32) / 2) / 100;
             duration = duration.saturating_add(jitter)
         }
 
@@ -95,7 +95,7 @@ mod exponential_retry_test {
 
     #[test]
     fn can_generate_exponential_backoff() {
-        let mut decider = ExponentialBackoffDecider::default();
+        let decider = ExponentialBackoffDecider::default();
 
         let base = RetryState {
             total_allowed: 2,

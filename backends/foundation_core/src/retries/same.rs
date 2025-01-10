@@ -18,7 +18,7 @@ impl SameBackoffDecider {
 }
 
 impl RetryDecider for SameBackoffDecider {
-    fn decide(&mut self, state: RetryState) -> Option<RetryState> {
+    fn decide(&self, state: RetryState) -> Option<RetryState> {
         let last_attempt = state.attempt.clone();
         if last_attempt >= state.total_allowed {
             return None;

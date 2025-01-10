@@ -32,6 +32,63 @@ pub enum Delayed<T> {
     Done(T),
 }
 
+pub mod resolvers {
+    use super::*;
+
+    /// `DelayedTaskResolver` are types implementing this trait to
+    /// perform final resolution of a task when the task emits
+    /// the relevant `Delayed::Ready` enum state.
+    ///
+    /// Unlike `DelayedMapper` these implementing types do
+    /// not care about the varying states of a `DelayedTaskIterator`
+    /// but about the final state of the task when it signals
+    /// it's readiness via the `Delayed::Ready` state.
+    pub trait DelayedReadyResolver<D> {
+        fn handle(&self, item: Delayed<D>);
+    }
+
+    pub struct DelayedFnReady<F>(F);
+
+    impl<F> DelayedFnReady<F> {
+        pub fn new(f: F) -> Self {
+            Self(f)
+        }
+    }
+
+    impl<F, D> DelayedReadyResolver<D> for DelayedFnReady<F>
+    where
+        F: Fn(Delayed<D>),
+    {
+        fn handle(&self, item: Delayed<D>) {
+            self.0(item)
+        }
+    }
+
+    /// `DelayedMapper` are types implementing this trait to
+    /// perform unique operations on the underlying `Delayed`
+    /// receivedossibly generating a new `Delayed`.
+    pub trait DelayedMapper<D> {
+        fn map(&mut self, item: Option<Delayed<D>>) -> Option<Delayed<D>>;
+    }
+
+    pub struct DelayedFnMapper<F>(F);
+
+    impl<F> DelayedFnMapper<F> {
+        pub fn new(f: F) -> Self {
+            Self(f)
+        }
+    }
+
+    impl<F, D> DelayedMapper<D> for DelayedFnMapper<F>
+    where
+        F: FnMut(Option<Delayed<D>>) -> Option<Delayed<D>>,
+    {
+        fn map(&mut self, item: Option<Delayed<D>>) -> Option<Delayed<D>> {
+            self.0(item)
+        }
+    }
+}
+
 /// AsDelayedIterator represents a blanket iterator that always returns
 /// a Delayed value which indicate when some operation will finish
 /// where each call communicates the 3 key information:

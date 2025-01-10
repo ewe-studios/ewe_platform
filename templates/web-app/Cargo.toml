@@ -1,0 +1,46 @@
+[package]
+name = "http-app"
+version = "0.0.1"
+edition = "2021"
+rust-version = "1.75"
+license = "Apache-2.0"
+authors = ["EweStudios Consulting Limited"]
+repository = "{{GITHUB_NAMESPACE}}/{{PROJECT_NAME}}"
+keywords = ["http-app"]
+
+[lib]
+path = "./src/lib.rs"
+test = true
+doctest = true
+bench = false
+doc = true
+crate-type = ['lib']
+required-features = []
+
+[[bin]]
+name = "dev"
+test = false
+bench = false
+
+[[bin]]
+name = "app"
+test = false
+bench = false
+
+[dependencies]
+
+# -- ewe platform dependencies
+ewe_devserver = { version = "0.0.1"}
+ewe_watch_utils = { version = "0.0.1" }
+foundation_core = { version = "0.0.2" }
+ewe_trace = { version = "0.0.1",  features = ["standard"]}
+
+# -- tokio & axum
+axum = { version = "0.7.5" }
+tokio = { version = "1.36", features = ["full"], default-features = true }
+
+# -- tracing crates
+tracing = { version = "0.1.40" }
+tracing-subscriber = { version = "0.3.18" }
+
+[lints]
