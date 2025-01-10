@@ -1,7 +1,7 @@
 /// TaskStatus represents the current state of a computation to be
 /// completed and deliverd from the iterator.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub enum TaskStatus<P, D> {
+pub enum TaskStatus<D, P = ()> {
     /// Pending is a state indicative of the status
     /// of still awaiting the readiness of some operations
     /// this can be the an underlying process waiting for
@@ -24,10 +24,67 @@ pub enum TaskStatus<P, D> {
     Ready(D),
 }
 
+pub mod resolvers {
+    use super::*;
+
+    /// `TaskResolver` are types implementing this trait to
+    /// perform final resolution of a task when the task emits
+    /// the relevant `TaskStatus::Ready` enum state.
+    ///
+    /// Unlike `TaskStatusMapper` these implementing types do
+    /// not care about the varying states of a `TaskIterator`
+    /// but about the final state of the task when it signals
+    /// it's readiness via the `TaskStatus::Ready` state.
+    pub trait TaskReadyResolver<D, P> {
+        fn handle(&self, item: TaskStatus<D, P>);
+    }
+
+    pub struct FnReady<F>(F);
+
+    impl<F> FnReady<F> {
+        pub fn new(f: F) -> Self {
+            Self(f)
+        }
+    }
+
+    impl<F, D, P> TaskReadyResolver<D, P> for FnReady<F>
+    where
+        F: Fn(TaskStatus<D, P>),
+    {
+        fn handle(&self, item: TaskStatus<D, P>) {
+            self.0(item)
+        }
+    }
+
+    /// `TaskStatusMapper` are types implementing this trait to
+    /// perform unique operations on the underlying `TaskStatus`
+    /// received, possibly generating a new `TaskStatus`.
+    pub trait TaskStatusMapper<D, P> {
+        fn map(&mut self, item: Option<TaskStatus<D, P>>) -> Option<TaskStatus<D, P>>;
+    }
+
+    pub struct FnMapper<F>(F);
+
+    impl<F> FnMapper<F> {
+        pub fn new(f: F) -> Self {
+            Self(f)
+        }
+    }
+
+    impl<F, D, P> TaskStatusMapper<D, P> for FnMapper<F>
+    where
+        F: FnMut(Option<TaskStatus<D, P>>) -> Option<TaskStatus<D, P>>,
+    {
+        fn map(&mut self, item: Option<TaskStatus<D, P>>) -> Option<TaskStatus<D, P>> {
+            self.0(item)
+        }
+    }
+}
+
 /// AsTaskIterator represents a type for an iterator with
 /// the underlying output of the iterator to be `TaskStatus`
 /// and it's relevant semantics.
-pub trait AsTaskIterator<P, D>: Iterator<Item = TaskStatus<P, D>> {}
+pub trait AsTaskIterator<D, P>: Iterator<Item = TaskStatus<D, P>> {}
 
 /// TaskIterator is an iterator engineered around the concept of asynchronouse
 /// task that have 3 states: PENDING, INIT (Initializing) and READY.
@@ -49,13 +106,13 @@ pub trait TaskIterator {
     type Done;
 
     /// Advances the iterator and returns the next value.
-    fn next(&mut self) -> Option<TaskStatus<Self::Pending, Self::Done>>;
+    fn next(&mut self) -> Option<TaskStatus<Self::Done, Self::Pending>>;
 
     /// into_iter consumes the implementation and wraps
     /// it in an iterator type that emits
     /// `TaskStatus<TaskIterator::Pending ,TaskIterator::Done>`
     /// match the behavior desired for an iterator.
-    fn into_iter(self) -> impl Iterator<Item = TaskStatus<Self::Pending, Self::Done>>
+    fn into_iter(self) -> impl Iterator<Item = TaskStatus<Self::Done, Self::Pending>>
     where
         Self: Sized + 'static,
     {
@@ -63,24 +120,50 @@ pub trait TaskIterator {
     }
 }
 
-pub struct TaskAsIterator<P, D>(Box<dyn TaskIterator<Pending = P, Done = D>>);
+pub struct TaskAsIterator<D, P>(Box<dyn TaskIterator<Done = D, Pending = P>>);
 
-impl<P, D> TaskAsIterator<P, D> {
-    pub fn from_impl(t: impl TaskIterator<Pending = P, Done = D> + 'static) -> Self {
+impl<D, P> TaskAsIterator<D, P> {
+    pub fn from_impl(t: impl TaskIterator<Done = D, Pending = P> + 'static) -> Self {
         Self(Box::new(t))
     }
 
-    pub fn new(t: Box<dyn TaskIterator<Pending = P, Done = D>>) -> Self {
+    pub fn new(t: Box<dyn TaskIterator<Done = D, Pending = P>>) -> Self {
         Self(t)
     }
 }
 
-impl<P, D> AsTaskIterator<P, D> for TaskAsIterator<P, D> {}
+impl<D, P> AsTaskIterator<D, P> for TaskAsIterator<D, P> {}
 
-impl<P, D> Iterator for TaskAsIterator<P, D> {
-    type Item = TaskStatus<P, D>;
+impl<D, P> Iterator for TaskAsIterator<D, P> {
+    type Item = TaskStatus<D, P>;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.0.next()
+    }
+}
+
+#[cfg(test)]
+mod test_task_iterator {
+    use super::*;
+
+    #[test]
+    fn vec_iterator_is_task_iterator() {
+        let tasks: Vec<TaskStatus<(), ()>> = vec![
+            TaskStatus::Pending(()),
+            TaskStatus::Init,
+            TaskStatus::Ready(()),
+        ];
+
+        let task_iterator = Box::new(tasks.into_iter());
+
+        let collected_tasks: Vec<TaskStatus<(), ()>> = task_iterator.collect();
+        assert_eq!(
+            collected_tasks,
+            vec![
+                TaskStatus::Pending(()),
+                TaskStatus::Init,
+                TaskStatus::Ready(()),
+            ]
+        );
     }
 }

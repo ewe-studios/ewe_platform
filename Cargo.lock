@@ -1069,8 +1069,8 @@ dependencies = [
 name = "foundation_core"
 version = "0.0.2"
 dependencies = [
- "anyhow",
  "async-trait",
+ "concurrent-queue",
  "derive_more",
  "fastrand",
  "memchr",

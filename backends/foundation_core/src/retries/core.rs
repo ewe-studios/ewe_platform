@@ -14,6 +14,14 @@ pub struct RetryState {
 }
 
 impl RetryState {
+    pub fn new(attempt: u32, total_allowed: u32, wait: Option<time::Duration>) -> Self {
+        Self {
+            wait,
+            total_allowed,
+            attempt,
+        }
+    }
+
     pub fn can_retry(&self) -> bool {
         self.attempt == self.total_allowed
     }
@@ -24,7 +32,7 @@ impl RetryState {
 /// regarding how long to wait before attempt and state info on the current
 /// attempts and when such attempt to stop by returning None.
 pub trait RetryDecider {
-    fn decide(&mut self, state: RetryState) -> Option<RetryState>;
+    fn decide(&self, state: RetryState) -> Option<RetryState>;
 }
 
 pub trait ClonableReconnectionDecider: RetryDecider {

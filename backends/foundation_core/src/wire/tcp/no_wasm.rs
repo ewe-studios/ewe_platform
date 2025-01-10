@@ -4,7 +4,8 @@ use crate::io::ioutils::{BufferedReader, PeekError, PeekableReadStream};
 use crate::retries::{
     ClonableReconnectionDecider, ExponentialBackoffDecider, RetryDecider, RetryState,
 };
-use crate::valtron::{self, DelayedIterator};
+use crate::valtron::delayed_iterators::Delayed;
+use crate::valtron::delayed_iterators::{DelayedIterator, SleepIterator};
 
 use crate::native_tls::{Identity, TlsConnector, TlsStream};
 use crate::wire::simple_http::{self};
@@ -253,10 +254,7 @@ pub fn create_simple_http_reader<T: simple_http::BodyExtractor>(
 pub enum ConnectionState<T: Clone> {
     Todo(super::Endpoint<T>),
     Redo(super::Endpoint<T>, RetryState),
-    Reconnect(
-        RetryState,
-        Option<valtron::SleepIterator<super::Endpoint<T>>>,
-    ),
+    Reconnect(RetryState, Option<SleepIterator<super::Endpoint<T>>>),
     Established(super::Endpoint<T>),
     Exhausted(super::Endpoint<T>),
 }
@@ -419,8 +417,7 @@ impl<T: Clone> Iterator for ReconnectingStream<T> {
                                     None => Duration::from_secs(0),
                                 };
 
-                                let sleeper =
-                                    valtron::SleepIterator::until(duration, endpoint.clone());
+                                let sleeper = SleepIterator::until(duration, endpoint.clone());
                                 self.state = ConnectionState::Reconnect(rstate, Some(sleeper));
                                 Some(Ok(ReconnectionStatus::Waiting(duration)))
                             }
@@ -449,7 +446,7 @@ impl<T: Clone> Iterator for ReconnectingStream<T> {
                                 None => Duration::from_secs(0),
                             };
 
-                            let sleeper = valtron::SleepIterator::until(duration, endpoint.clone());
+                            let sleeper = SleepIterator::until(duration, endpoint.clone());
                             self.state = ConnectionState::Reconnect(rstate, Some(sleeper));
                             Some(Ok(ReconnectionStatus::Waiting(duration)))
                         }
@@ -476,7 +473,7 @@ impl<T: Clone> Iterator for ReconnectingStream<T> {
                             None => Duration::from_secs(0),
                         };
 
-                        let sleeper = valtron::SleepIterator::until(duration, endpoint.clone());
+                        let sleeper = SleepIterator::until(duration, endpoint.clone());
                         self.state = ConnectionState::Reconnect(rstate, Some(sleeper));
                         Some(Ok(ReconnectionStatus::Waiting(duration)))
                     }
@@ -490,12 +487,12 @@ impl<T: Clone> Iterator for ReconnectingStream<T> {
                 match sleeper_container.take() {
                     Some(mut sleeper) => match sleeper.next() {
                         Some(delayed_state) => match delayed_state {
-                            valtron::Delayed::Pending(_, _, remaining_dur) => {
+                            Delayed::Pending(_, _, remaining_dur) => {
                                 self.state =
                                     ConnectionState::Reconnect(rstate.clone(), Some(sleeper));
                                 Some(Ok(ReconnectionStatus::Waiting(remaining_dur)))
                             }
-                            valtron::Delayed::Done(endpoint) => {
+                            Delayed::Done(endpoint) => {
                                 self.state = ConnectionState::Redo(endpoint, rstate.clone());
                                 Some(Ok(ReconnectionStatus::NoMoreWaiting))
                             }

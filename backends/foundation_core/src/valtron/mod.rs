@@ -1,17 +1,18 @@
 mod clonable_fn;
 mod clone_iterators;
-mod delayed_iterators;
 mod drain;
-mod multi_iterator;
+mod executors;
 mod notifiers;
-mod task_iterator;
 mod types;
+
+// modules exported as is
+pub mod delayed_iterators;
+pub mod multi_iterator;
+pub mod task_iterator;
 
 pub use clonable_fn::*;
 pub use clone_iterators::*;
-pub use delayed_iterators::*;
 pub use drain::*;
-pub use multi_iterator::*;
+pub use executors::*;
 pub use notifiers::*;
-pub use task_iterator::*;
 pub use types::*;
