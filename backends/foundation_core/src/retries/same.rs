@@ -43,7 +43,7 @@ mod same_retry_test {
 
     #[test]
     fn can_generate_exponential_backoff() {
-        let mut decider = SameBackoffDecider::default();
+        let decider = SameBackoffDecider::default();
 
         let base = RetryState {
             total_allowed: 2,

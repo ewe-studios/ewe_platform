@@ -163,6 +163,20 @@ impl<T> EntryList<T> {
     }
 
     /// for_each loop through all active entries.
+    pub fn map_with<V>(&self, tn: impl Fn(&T) -> Option<V>) -> Vec<V>  {
+        self.items.iter().map(|(_gen, value)| -> Option<V> {
+            if value.is_none() {
+                return None;
+            }
+
+            match value {
+                Some(item) => tn(item),
+                None => None
+            }
+        }).filter(|item| item.is_some()).map(|item| item.unwrap()).collect()
+    }
+
+    /// for_each loop through all active entries.
     pub fn for_each(&self, tn: impl Fn(Option<&T>)) {
         self.items.iter().for_each(|(_gen, value)| {
             if value.is_none() {

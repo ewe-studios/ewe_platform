@@ -2,7 +2,7 @@
 // Wakeable primitive can be notified after some expired duration
 // registered with.
 
-use std::{sync::Arc, time};
+use std::time;
 
 use super::{Entry, EntryList};
 
@@ -11,7 +11,7 @@ pub trait Waker {
 }
 
 pub struct Wakeable<T: Waker> {
-    pub handle: Arc<T>,
+    pub handle: T,
     pub from: time::Instant,
     pub how_long: time::Duration,
 }
@@ -23,11 +23,19 @@ impl<T: Waker> Waker for Wakeable<T> {
 }
 
 impl<T: Waker> Wakeable<T> {
-    pub fn new(handle: Arc<T>, from: time::Instant, how_long: time::Duration) -> Self {
+    pub fn new(handle: T, from: time::Instant, how_long: time::Duration) -> Self {
         Self {
             handle,
             from,
             how_long,
+        }
+    }
+
+    pub fn remaining(&self) -> Option<time::Duration> {
+        let now = std::time::Instant::now();
+        match self.from.checked_add(self.how_long) {
+            Some(when_ready) => when_ready.checked_duration_since(now),
+            None => None,
         }
     }
 
@@ -65,6 +73,14 @@ impl<T: Waker> Sleepers<T> {
     /// Inserts a new Wakeable.
     pub fn insert(&mut self, wakeable: Wakeable<T>) -> Entry {
         self.sleepers.insert(wakeable)
+    }
+
+    /// Returns the maximum duration of time as of now.
+    pub fn max_duration(&self) -> Option<time::Duration> {
+        match self.sleepers.map_with(|item| item.remaining()).iter().max() {
+            Some(item) => Some(item.clone()),
+            None => None,
+        }
     }
 
     /// Update an existing Wakeable returning the old handle used.
