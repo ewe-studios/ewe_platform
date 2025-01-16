@@ -1075,6 +1075,8 @@ dependencies = [
  "fastrand",
  "memchr",
  "native-tls",
+ "rand",
+ "rand_chacha",
  "regex",
  "reqwest",
  "rust-embed",

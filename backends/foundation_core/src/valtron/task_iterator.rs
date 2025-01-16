@@ -79,6 +79,178 @@ pub mod resolvers {
             self.0(item)
         }
     }
+
+    /// OnceCache implements a TaskStatus iterator that wraps
+    /// a provided iterator and provides a onetime read semantic
+    /// on the iterator, where it ends its operation once the first
+    /// value the iterator is received and returns None from then on.
+    ///
+    /// It captures the value that allows you to retrieve it via it's
+    /// [`OnceCache::take`] method.
+    ///
+    /// if you prefer an iterator that becomes re-usable again after the
+    /// value is taking look at the [`UntilTake`] iterator.
+    ///
+    /// Usually yo use these types of iterator in instances where you control ownership
+    /// of them and can retrieve them after whatever runs them (calling their next)
+    /// consider it finished.
+    pub struct OnceCache<D, P, T: Iterator<Item = TaskStatus<D, P>>> {
+        iter: T,
+        used: Option<()>,
+        cache: Option<TaskStatus<D, P>>,
+    }
+
+    impl<D, P, T> OnceCache<D, P, T>
+    where
+        T: Iterator<Item = TaskStatus<D, P>>,
+    {
+        pub fn new(item: T) -> Self {
+            Self {
+                iter: item,
+                cache: None,
+                used: None,
+            }
+        }
+
+        pub fn take(&mut self) -> Option<TaskStatus<D, P>> {
+            self.cache.take()
+        }
+    }
+
+    impl<D, P, T> Iterator for OnceCache<D, P, T>
+    where
+        T: Iterator<Item = TaskStatus<D, P>>,
+    {
+        type Item = TaskStatus<D, P>;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            if self.used.is_some() {
+                return None;
+            }
+
+            match self.iter.next() {
+                Some(elem) => match elem {
+                    TaskStatus::Pending(dur) => Some(TaskStatus::Pending(dur)),
+                    TaskStatus::Init => Some(TaskStatus::Init),
+                    TaskStatus::Ready(item) => {
+                        self.cache = Some(TaskStatus::Ready(item));
+                        self.used = Some(());
+                        return None;
+                    }
+                },
+                None => None,
+            }
+        }
+    }
+
+    /// UntilTake implements an iterator that becomes temporarily finished/done
+    /// by always returning `None` until it's cached value is taken.
+    ///
+    /// This allows you to allocate the iterator for only one cycle, get it
+    /// back and re-add it for another cycle later.
+    ///
+    /// To be clear, the iterator never returns the actual value in next
+    /// you can use it to cache said value and only have a call to `UntilTake::take`
+    /// will it ever allow progress.
+    ///
+    /// Usually yo use these types of iterator in instances where you control ownership
+    /// of them and can retrieve them after whatever runs them (calling their next)
+    /// consider it finished for one that inverts this behaviour i.e yielding the
+    /// next value then being unusable till it's reset for reuse, see `UntilReset`.
+    pub struct UntilTake<D, P, T: Iterator<Item = TaskStatus<D, P>>> {
+        iter: T,
+        next: Option<TaskStatus<D, P>>,
+    }
+
+    impl<D, P, T> UntilTake<D, P, T>
+    where
+        T: Iterator<Item = TaskStatus<D, P>>,
+    {
+        pub fn new(item: T) -> Self {
+            Self {
+                iter: item,
+                next: None,
+            }
+        }
+
+        pub fn take(&mut self) -> Option<TaskStatus<D, P>> {
+            self.next.take()
+        }
+    }
+
+    impl<D, P, T> Iterator for UntilTake<D, P, T>
+    where
+        T: Iterator<Item = TaskStatus<D, P>>,
+    {
+        type Item = TaskStatus<D, P>;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            if self.next.is_some() {
+                return None;
+            }
+
+            match self.iter.next() {
+                Some(elem) => match elem {
+                    TaskStatus::Pending(dur) => Some(TaskStatus::Pending(dur)),
+                    TaskStatus::Init => Some(TaskStatus::Init),
+                    TaskStatus::Ready(item) => {
+                        self.next = Some(TaskStatus::Ready(item));
+                        return None;
+                    }
+                },
+                None => None,
+            }
+        }
+    }
+
+    /// UntilUnblocked implements an iterator that yields the first received
+    /// value from a owned iterator after which it becomes blocked until
+    /// you call `UntilUnblocked::reset` method to be reusable again.
+    pub struct UntilUnblocked<D, P, T: Iterator<Item = TaskStatus<D, P>>> {
+        iter: T,
+        blocked: Option<()>,
+    }
+
+    impl<D, P, T> UntilUnblocked<D, P, T>
+    where
+        T: Iterator<Item = TaskStatus<D, P>>,
+    {
+        pub fn new(item: T) -> Self {
+            Self {
+                iter: item,
+                blocked: None,
+            }
+        }
+
+        pub fn reset(&mut self) {
+            self.blocked.take();
+        }
+    }
+
+    impl<D, P, T> Iterator for UntilUnblocked<D, P, T>
+    where
+        T: Iterator<Item = TaskStatus<D, P>>,
+    {
+        type Item = TaskStatus<D, P>;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            if self.blocked.is_some() {
+                return None;
+            }
+
+            match self.iter.next() {
+                Some(elem) => match elem {
+                    TaskStatus::Pending(dur) => Some(TaskStatus::Pending(dur)),
+                    TaskStatus::Init => Some(TaskStatus::Init),
+                    TaskStatus::Ready(item) => {
+                        self.blocked = Some(());
+                        return Some(TaskStatus::Ready(item));
+                    }
+                },
+                None => None,
+            }
+        }
+    }
 }
 
 /// AsTaskIterator represents a type for an iterator with

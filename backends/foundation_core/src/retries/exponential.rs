@@ -15,6 +15,9 @@ const DEFAULT_JITTER: f32 = 0.6;
 const DEFAULT_FACTOR: u32 = 3;
 
 impl Default for ExponentialBackoffDecider {
+    /// Returns a `ExponentialBackoffDecider` which uses the default `DEFAULT_FACTOR`
+    /// and `DEFAULT_JITTER` and `DEFAULT_MIN_DURATION` values the diferent arguments
+    /// required for creating an exponential backoff retry decider.
     fn default() -> Self {
         Self::new(DEFAULT_FACTOR, DEFAULT_JITTER, DEFAULT_MIN_DURATION, None)
     }
