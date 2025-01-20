@@ -31,6 +31,10 @@ impl<T: Waker> Wakeable<T> {
         }
     }
 
+    pub fn from_now(handle: T, how_long: time::Duration) -> Self {
+        Self::new(handle, time::Instant::now(), how_long)
+    }
+
     pub fn remaining(&self) -> Option<time::Duration> {
         let now = std::time::Instant::now();
         match self.from.checked_add(self.how_long) {
@@ -75,7 +79,19 @@ impl<T: Waker> Sleepers<T> {
         self.sleepers.insert(wakeable)
     }
 
-    /// Returns the maximum duration of time as of now.
+    /// Returns the minimum duration of time of all entries in the
+    /// sleeper, providing you the minimum time when one of the task is
+    /// guranteed to be ready for progress.
+    pub fn min_duration(&self) -> Option<time::Duration> {
+        match self.sleepers.map_with(|item| item.remaining()).iter().max() {
+            Some(item) => Some(item.clone()),
+            None => None,
+        }
+    }
+
+    /// Returns the maximum duration of time of all entries in the
+    /// sleeper, providing you the maximum time to potentially wait
+    /// for all tasks to be ready.
     pub fn max_duration(&self) -> Option<time::Duration> {
         match self.sleepers.map_with(|item| item.remaining()).iter().max() {
             Some(item) => Some(item.clone()),

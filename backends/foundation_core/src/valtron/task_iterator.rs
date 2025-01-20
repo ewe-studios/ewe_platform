@@ -1,7 +1,13 @@
+use std::time;
+
 /// TaskStatus represents the current state of a computation to be
 /// completed and deliverd from the iterator.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum TaskStatus<D, P = ()> {
+    /// Allows a task status to communicate a delay
+    /// to continued operation.
+    Delayed(time::Duration),
+
     /// Pending is a state indicative of the status
     /// of still awaiting the readiness of some operations
     /// this can be the an underlying process waiting for
@@ -130,6 +136,7 @@ pub mod resolvers {
 
             match self.iter.next() {
                 Some(elem) => match elem {
+                    TaskStatus::Delayed(dur) => Some(TaskStatus::Delayed(dur)),
                     TaskStatus::Pending(dur) => Some(TaskStatus::Pending(dur)),
                     TaskStatus::Init => Some(TaskStatus::Init),
                     TaskStatus::Ready(item) => {
@@ -191,6 +198,7 @@ pub mod resolvers {
 
             match self.iter.next() {
                 Some(elem) => match elem {
+                    TaskStatus::Delayed(dur) => Some(TaskStatus::Delayed(dur)),
                     TaskStatus::Pending(dur) => Some(TaskStatus::Pending(dur)),
                     TaskStatus::Init => Some(TaskStatus::Init),
                     TaskStatus::Ready(item) => {
@@ -240,6 +248,7 @@ pub mod resolvers {
 
             match self.iter.next() {
                 Some(elem) => match elem {
+                    TaskStatus::Delayed(dur) => Some(TaskStatus::Delayed(dur)),
                     TaskStatus::Pending(dur) => Some(TaskStatus::Pending(dur)),
                     TaskStatus::Init => Some(TaskStatus::Init),
                     TaskStatus::Ready(item) => {
@@ -316,11 +325,14 @@ impl<D, P> Iterator for TaskAsIterator<D, P> {
 
 #[cfg(test)]
 mod test_task_iterator {
+    use tokio::time;
+
     use super::*;
 
     #[test]
     fn vec_iterator_is_task_iterator() {
         let tasks: Vec<TaskStatus<(), ()>> = vec![
+            TaskStatus::Delayed(time::Duration::from_secs(1)),
             TaskStatus::Pending(()),
             TaskStatus::Init,
             TaskStatus::Ready(()),
@@ -332,6 +344,7 @@ mod test_task_iterator {
         assert_eq!(
             collected_tasks,
             vec![
+                TaskStatus::Delayed(time::Duration::from_secs(1)),
                 TaskStatus::Pending(()),
                 TaskStatus::Init,
                 TaskStatus::Ready(()),

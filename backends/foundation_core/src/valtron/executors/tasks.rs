@@ -16,6 +16,11 @@ pub enum State {
     /// polls for progress.
     Pending(Option<time::Duration>),
 
+    /// Reschedule indicates we want to rechedule the underlying
+    /// task leaving the performance of that to the underlying
+    /// process that receives this.
+    Reschedule,
+
     /// Progressed simply indicates the underlying iterator
     /// has progressed in it's state. This lets the executor
     /// perform whatever tracking/progress logic it needs to do
@@ -73,6 +78,7 @@ impl<D, P> Iterator for SimpleScheduledTask<D, P> {
                 }
                 match previous_response {
                     Some(value) => match value {
+                        task_iterator::TaskStatus::Delayed(dur) => State::Pending(Some(dur)),
                         task_iterator::TaskStatus::Pending(_) => State::Pending(None),
                         task_iterator::TaskStatus::Init => State::Pending(None),
                         task_iterator::TaskStatus::Ready(content) => {
