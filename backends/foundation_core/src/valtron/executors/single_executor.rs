@@ -548,6 +548,19 @@ pub trait ProcessController {
     fn yield_for(&self, dur: time::Duration);
 }
 
+pub trait CloneProcessController: ProcessController {
+    fn clone_process_controller(&self) -> Box<dyn CloneProcessController>;
+}
+
+impl<F> CloneProcessController for F
+where
+    F: ProcessController + Clone + 'static,
+{
+    fn clone_process_controller(&self) -> Box<dyn CloneProcessController> {
+        Box::new(self.clone())
+    }
+}
+
 #[derive(Default, Clone)]
 pub struct ThreadYield;
 
@@ -572,10 +585,19 @@ impl ProcessController for ThreadYield {
 /// shared through an Arc.
 pub struct LocalThreadExecutor<T: Iterator<Item = State>> {
     state: ReferencedExecutorState<T>,
-    yielder: Box<dyn ProcessController>,
+    yielder: Box<dyn CloneProcessController>,
 }
 
 // --- constructors
+
+impl<T: Iterator<Item = State>> Clone for LocalThreadExecutor<T> {
+    fn clone(&self) -> Self {
+        LocalThreadExecutor {
+            state: self.state.clone(),
+            yielder: self.yielder.clone_process_controller(),
+        }
+    }
+}
 
 impl<T: Iterator<Item = State>> LocalThreadExecutor<T> {
     pub fn new(
@@ -583,7 +605,7 @@ impl<T: Iterator<Item = State>> LocalThreadExecutor<T> {
         rng: ChaCha8Rng,
         idler: IdleMan,
         priority: PriorityOrder,
-        yielder: Box<dyn ProcessController>,
+        yielder: Box<dyn CloneProcessController>,
     ) -> Self {
         Self {
             yielder,
@@ -657,5 +679,16 @@ impl<T: Iterator<Item = State>> LocalThreadExecutor<T> {
 
             self.yielder.yield_process();
         }
+    }
+}
+
+#[cfg(test)]
+mod test_local_thread_executor {
+    use super::*;
+
+    fn should_be_able_to_take_global_task() {
+        let global: ConcurrentQueue<BoxedStateIterator> = ConcurrentQueue::bounded(10);
+
+        todo!()
     }
 }
