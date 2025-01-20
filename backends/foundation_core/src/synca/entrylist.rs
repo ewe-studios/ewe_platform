@@ -33,19 +33,26 @@ impl<T> EntryList<T> {
 // --- methods
 
 impl<T> EntryList<T> {
-    /// active_slots returns how many slots have actually still have value.
-    /// Basically does a match of
+    /// active_slots returns how many slots have value and are in use.
+    ///
+    /// Basically does a calculation using:
     /// `EntryList::allocated_slots()` - `EntryList::active_slots()`.
+    ///
+    /// Returning the difference indicative of which slots do have value
+    /// actively in use and not just empty and available for re-allocation.
+    #[inline]
     pub fn active_slots(&self) -> usize {
-        self.items.len() - self.free_entrys.len()
+        self.allocated_slots() - self.open_slots()
     }
 
-    /// open_slots returns how many slots have being allocated overall.
+    /// allocated_slots returns how many slots have being allocated overall.
+    #[inline]
     pub fn allocated_slots(&self) -> usize {
         self.items.len()
     }
 
     /// open_slots returns how many free entries are now available.
+    #[inline]
     pub fn open_slots(&self) -> usize {
         self.free_entrys.len()
     }
@@ -57,6 +64,7 @@ impl<T> EntryList<T> {
     /// This is useful in those cases where all you really wish to do is
     /// update the underlying value without loosing your key like you would
     /// a regular map.
+    #[inline]
     pub fn get_mut(&mut self, entry: &Entry) -> Option<&mut T> {
         if let Some((gen, value)) = self.items.get_mut(entry.id) {
             if *gen == entry.gen {
@@ -70,6 +78,7 @@ impl<T> EntryList<T> {
 
     /// get a reference to the relevant value within the
     /// list for the giving `Entry` if its still valid.
+    #[inline]
     pub fn get(&self, entry: &Entry) -> Option<&T> {
         if let Some((gen, value)) = self.items.get(entry.id) {
             if *gen == entry.gen {
@@ -83,6 +92,7 @@ impl<T> EntryList<T> {
 
     /// not_valid returns bool (True/False) indicating if the entry
     /// reference is still valid.
+    #[inline]
     pub fn not_valid(&mut self, entry: &Entry) -> bool {
         if let Some((gen, value)) = self.items.get_mut(entry.id) {
             if *gen != entry.gen {
@@ -100,6 +110,7 @@ impl<T> EntryList<T> {
 
     /// has returns bool (True/False) indicating if the entry
     /// exists and is still valid.
+    #[inline]
     pub fn has(&mut self, entry: &Entry) -> bool {
         if let Some((gen, value)) = self.items.get_mut(entry.id) {
             if *gen == entry.gen {
@@ -115,6 +126,7 @@ impl<T> EntryList<T> {
     /// freeing the entry for re-use if not already.
     ///
     /// The old value is dropped if it indeed is valid/has-value.
+    #[inline]
     pub fn vacate(&mut self, entry: &Entry) {
         if let Some((gen, value)) = self.items.get_mut(entry.id) {
             if *gen == entry.gen {
@@ -129,6 +141,7 @@ impl<T> EntryList<T> {
     /// take collects the value pointed to by the relevant
     /// `Entry` pointer if its still valid and then invalidates
     /// the pointer.
+    #[inline]
     pub fn take(&mut self, entry: &Entry) -> Option<T> {
         if let Some((gen, value)) = self.items.get_mut(entry.id) {
             if *gen == entry.gen {
@@ -144,6 +157,7 @@ impl<T> EntryList<T> {
     /// update lets you change the underlying data for a giving reference
     /// without invalidating the reference for that object
     /// and returning old value.
+    #[inline]
     pub fn update(&mut self, entry: &Entry, item: T) -> Option<T> {
         if let Some((gen, value)) = self.items.get_mut(entry.id) {
             if *gen == entry.gen {
@@ -163,20 +177,27 @@ impl<T> EntryList<T> {
     }
 
     /// for_each loop through all active entries.
-    pub fn map_with<V>(&self, tn: impl Fn(&T) -> Option<V>) -> Vec<V>  {
-        self.items.iter().map(|(_gen, value)| -> Option<V> {
-            if value.is_none() {
-                return None;
-            }
+    #[inline]
+    pub fn map_with<V>(&self, tn: impl Fn(&T) -> Option<V>) -> Vec<V> {
+        self.items
+            .iter()
+            .map(|(_gen, value)| -> Option<V> {
+                if value.is_none() {
+                    return None;
+                }
 
-            match value {
-                Some(item) => tn(item),
-                None => None
-            }
-        }).filter(|item| item.is_some()).map(|item| item.unwrap()).collect()
+                match value {
+                    Some(item) => tn(item),
+                    None => None,
+                }
+            })
+            .filter(|item| item.is_some())
+            .map(|item| item.unwrap())
+            .collect()
     }
 
     /// for_each loop through all active entries.
+    #[inline]
     pub fn for_each(&self, tn: impl Fn(Option<&T>)) {
         self.items.iter().for_each(|(_gen, value)| {
             if value.is_none() {
@@ -194,6 +215,7 @@ impl<T> EntryList<T> {
     /// This becomes heavly useful when you wish to take a series of underlying
     /// values that match a condition and vacate the underlying entries to be available
     /// for reuse.
+    #[inline]
     pub fn select_take(&mut self, tn: impl Fn(&T) -> bool) -> Vec<T> {
         self.items
             .iter_mut()
@@ -212,6 +234,7 @@ impl<T> EntryList<T> {
     /// replace lets you change the underlying data for a giving reference
     /// invalidating the previous reference for that object
     /// and returning the new reference and old value.
+    #[inline]
     pub fn replace(&mut self, entry: &Entry, item: T) -> Option<(Entry, T)> {
         if let Some((gen, value)) = self.items.get_mut(entry.id) {
             if *gen == entry.gen {
@@ -242,6 +265,7 @@ impl<T> EntryList<T> {
 
     /// inserts a new value into the list receiving the relevant
     /// `Entry` handle for the item.
+    #[inline]
     pub fn insert(&mut self, item: T) -> Entry {
         let entry = match self.free_entrys.pop() {
             Some(mut inner) => {
