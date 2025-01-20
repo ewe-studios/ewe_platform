@@ -594,6 +594,34 @@ impl<T: Iterator<Item = State>> LocalThreadExecutor<T> {
         }
     }
 
+    pub fn always_from_bottom<R: rand::Rng>(
+        tasks: sync::Arc<ConcurrentQueue<T>>,
+        rng: &mut R,
+        idler: IdleMan,
+    ) -> Self {
+        Self::new(
+            tasks,
+            ChaCha8Rng::seed_from_u64(rng.next_u64()),
+            idler,
+            PriorityOrder::Bottom,
+            Box::new(ThreadYield::default()),
+        )
+    }
+
+    pub fn always_from_top<R: rand::Rng>(
+        tasks: sync::Arc<ConcurrentQueue<T>>,
+        rng: &mut R,
+        idler: IdleMan,
+    ) -> Self {
+        Self::new(
+            tasks,
+            ChaCha8Rng::seed_from_u64(rng.next_u64()),
+            idler,
+            PriorityOrder::Top,
+            Box::new(ThreadYield::default()),
+        )
+    }
+
     pub fn from_rng<R: rand::Rng>(
         tasks: sync::Arc<ConcurrentQueue<T>>,
         rng: &mut R,
