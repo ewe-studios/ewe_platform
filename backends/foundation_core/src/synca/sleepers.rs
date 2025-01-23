@@ -2,7 +2,7 @@
 // Wakeable primitive can be notified after some expired duration
 // registered with.
 
-use std::time;
+use std::{cell, time};
 
 use super::{Entry, EntryList};
 
@@ -10,7 +10,7 @@ pub trait Waker {
     fn wake(&self);
 }
 
-pub struct Wakeable<T: Waker> {
+pub struct Wakeable<T> {
     pub handle: T,
     pub from: time::Instant,
     pub how_long: time::Duration,
@@ -22,7 +22,7 @@ impl<T: Waker> Waker for Wakeable<T> {
     }
 }
 
-impl<T: Waker> Wakeable<T> {
+impl<T> Wakeable<T> {
     pub fn new(handle: T, from: time::Instant, how_long: time::Duration) -> Self {
         Self {
             handle,
@@ -43,10 +43,6 @@ impl<T: Waker> Wakeable<T> {
         }
     }
 
-    pub fn wake(&self) {
-        self.handle.wake();
-    }
-
     pub fn is_ready(&self) -> bool {
         self.try_is_ready().expect("should have result")
     }
@@ -63,27 +59,60 @@ impl<T: Waker> Wakeable<T> {
     }
 }
 
-pub struct Sleepers<T: Waker> {
+pub struct Sleepers<T> {
     /// the list of wakers pending to be processed.
-    sleepers: EntryList<Wakeable<T>>,
+    sleepers: cell::RefCell<EntryList<Wakeable<T>>>,
 }
 
-impl<T: Waker> Sleepers<T> {
+impl<T: Waker> Waker for Sleepers<T> {
+    fn wake(&self) {
+        for sleeper in self
+            .sleepers
+            .borrow_mut()
+            .select_take(|item| match item.try_is_ready() {
+                Some(inner) => inner,
+                None => true,
+            })
+            .iter()
+        {
+            sleeper.wake();
+        }
+    }
+}
+
+impl<T> Sleepers<T> {
+    pub fn get_matured(&self) -> Vec<Wakeable<T>> {
+        self.sleepers
+            .borrow_mut()
+            .select_take(|item| match item.try_is_ready() {
+                Some(inner) => inner,
+                None => true,
+            })
+    }
+}
+
+impl<T> Sleepers<T> {
     pub fn new() -> Self {
         Self {
-            sleepers: EntryList::new(),
+            sleepers: cell::RefCell::new(EntryList::new()),
         }
     }
     /// Inserts a new Wakeable.
-    pub fn insert(&mut self, wakeable: Wakeable<T>) -> Entry {
-        self.sleepers.insert(wakeable)
+    pub fn insert(&self, wakeable: Wakeable<T>) -> Entry {
+        self.sleepers.borrow_mut().insert(wakeable)
     }
 
     /// Returns the minimum duration of time of all entries in the
     /// sleeper, providing you the minimum time when one of the task is
     /// guranteed to be ready for progress.
     pub fn min_duration(&self) -> Option<time::Duration> {
-        match self.sleepers.map_with(|item| item.remaining()).iter().max() {
+        match self
+            .sleepers
+            .borrow()
+            .map_with(|item| item.remaining())
+            .iter()
+            .max()
+        {
             Some(item) => Some(item.clone()),
             None => None,
         }
@@ -93,37 +122,31 @@ impl<T: Waker> Sleepers<T> {
     /// sleeper, providing you the maximum time to potentially wait
     /// for all tasks to be ready.
     pub fn max_duration(&self) -> Option<time::Duration> {
-        match self.sleepers.map_with(|item| item.remaining()).iter().max() {
+        match self
+            .sleepers
+            .borrow()
+            .map_with(|item| item.remaining())
+            .iter()
+            .max()
+        {
             Some(item) => Some(item.clone()),
             None => None,
         }
     }
 
     /// Update an existing Wakeable returning the old handle used.
-    pub fn update(&mut self, handle: &Entry, wakeable: Wakeable<T>) -> Option<Wakeable<T>> {
-        self.sleepers.update(handle, wakeable)
+    pub fn update(&self, handle: &Entry, wakeable: Wakeable<T>) -> Option<Wakeable<T>> {
+        self.sleepers.borrow_mut().update(handle, wakeable)
     }
 
     /// Removes a previously inserted sleeping ticker.
     ///
     /// Returns `true` if the ticker was notified.
-    pub fn remove(&mut self, handle: &Entry) -> Option<Wakeable<T>> {
-        self.sleepers.take(handle)
+    pub fn remove(&self, handle: &Entry) -> Option<Wakeable<T>> {
+        self.sleepers.borrow_mut().take(handle)
     }
 
-    /// notify_ready will go through all sleepers to see who is ready
-    /// to be woken having expired it's sleeping time (considered ready)
-    /// to be a woken up.
-    pub fn notify_ready(&mut self) {
-        for sleeper in self
-            .sleepers
-            .select_take(|item| match item.try_is_ready() {
-                Some(inner) => inner,
-                None => true,
-            })
-            .iter()
-        {
-            sleeper.wake();
-        }
+    pub(crate) fn has_pending_tasks(&self) -> bool {
+        self.sleepers.borrow().active_slots() > 0
     }
 }
