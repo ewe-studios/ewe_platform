@@ -5,7 +5,7 @@ use std::{
 };
 
 use crate::{
-    synca::{Entry, EntryList, IdleMan, Sleepers, Wakeable, Waker},
+    synca::{Entry, EntryList, IdleMan, Sleepers, Wakeable},
     valtron::AnyResult,
 };
 use derive_more::derive::From;
@@ -182,21 +182,6 @@ pub enum ScheduleOutcome {
     LocalTaskRunning,
 }
 
-impl<T: Iterator<Item = State> + Send> ExecutorState<T> {
-    /// Delivers a task (Iterator) type to the global execution queue
-    /// and in such a case you do not have an handle to the task as we
-    /// no more have control as to where it gets allocated.
-    pub fn distribute(&mut self, task: T) -> AnyResult<(), ExecutorError> {
-        match self.global_tasks.push(task) {
-            Ok(_) => Ok(()),
-            Err(err) => match err {
-                PushError::Full(_) => Err(ExecutorError::QueueFull),
-                PushError::Closed(_) => Err(ExecutorError::QueueClosed),
-            },
-        }
-    }
-}
-
 /// ProgressIndicator communicates the potential status of
 /// an ExecutorState and whether it can make progress in it's
 /// work, this allows the manager of the executor to smartly
@@ -215,6 +200,11 @@ pub enum ProgressIndicator {
 }
 
 impl<T: Iterator<Item = State>> ExecutorState<T> {
+    /// Returns a borrowed immutable
+    pub fn get_rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
+        self.rng.clone()
+    }
+
     /// Returns the list of other task dependent on this giving tasks
     /// and their dependents in order.
     #[inline]
@@ -316,6 +306,21 @@ impl<T: Iterator<Item = State>> ExecutorState<T> {
         let task_entry = self.local_tasks.insert(task);
         self.processing.push_back(task_entry.clone());
         Ok(task_entry)
+    }
+}
+
+impl<T: Iterator<Item = State> + Send> ExecutorState<T> {
+    /// Delivers a task (Iterator) type to the global execution queue
+    /// and in such a case you do not have an handle to the task as we
+    /// no more have control as to where it gets allocated.
+    pub fn distribute(&mut self, task: T) -> AnyResult<(), ExecutorError> {
+        match self.global_tasks.push(task) {
+            Ok(_) => Ok(()),
+            Err(err) => match err {
+                PushError::Full(_) => Err(ExecutorError::QueueFull),
+                PushError::Closed(_) => Err(ExecutorError::QueueClosed),
+            },
+        }
     }
 }
 
@@ -430,6 +435,12 @@ impl<T: Iterator<Item = State>> ReferencedExecutorState<T> {
 }
 
 impl<T: Iterator<Item = State>> ReferencedExecutorState<T> {
+    #[inline]
+    pub(crate) fn get_rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
+        let handle = self.0.borrow();
+        handle.get_rng()
+    }
+
     #[inline]
     pub(crate) fn request_global_task(&self) -> ProgressIndicator {
         let mut handle = self.0.borrow_mut();
@@ -727,6 +738,11 @@ impl<T: Iterator<Item = State>> LocalThreadExecutor<T> {
 // --- implementations
 
 impl<T: Iterator<Item = State>> LocalThreadExecutor<T> {
+    #[inline]
+    pub fn get_rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
+        self.state.get_rng()
+    }
+
     pub fn make_progress(&self) -> ProgressIndicator {
         self.state.schedule_and_do_work()
     }
