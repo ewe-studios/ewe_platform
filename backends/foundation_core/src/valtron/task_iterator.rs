@@ -30,19 +30,110 @@ pub enum TaskStatus<D, P = ()> {
     Ready(D),
 }
 
+/// AsTaskIterator represents a type for an iterator with
+/// the underlying output of the iterator to be `TaskStatus`
+/// and it's relevant semantics.
+pub type AsTaskIterator<D, P> = dyn Iterator<Item = TaskStatus<D, P>>;
+pub type BoxedTaskIterator<D, P> = Box<dyn Iterator<Item = TaskStatus<D, P>>>;
+
+/// TaskIterator is an iterator engineered around the concept of asynchronouse
+/// task that have 3 states: PENDING, INIT (Initializing) and READY.
+///
+/// This follows the Iterators in that when the iterator returns None then it's
+/// finished, else we can assume its always producing results that might be in any of
+/// those states both for either a singular result or multiple elements.
+///
+/// This means this can keep producing elements as and the caller simply takes the
+/// `TaskStatus::Done` state results (if they only care about the final value)
+/// else use the other state for whatever is sensible.
+///
+/// One thing to note is, the same restrictions apply with these iterators, you do
+/// not want to block the thread where this is executed or other processes and its always
+/// adviced to finish early by moving long processes into other threads that allow you
+/// noify once next is called to notify if the task is done or still pending.
+pub trait TaskIterator {
+    type Pending;
+    type Done;
+
+    /// Advances the iterator and returns the next value.
+    fn next(&mut self) -> Option<TaskStatus<Self::Done, Self::Pending>>;
+
+    /// into_iter consumes the implementation and wraps
+    /// it in an iterator type that emits
+    /// `TaskStatus<TaskIterator::Pending ,TaskIterator::Done>`
+    /// match the behavior desired for an iterator.
+    fn into_iter(self) -> impl Iterator<Item = TaskStatus<Self::Done, Self::Pending>>
+    where
+        Self: Sized + 'static,
+    {
+        TaskAsIterator(Box::new(self))
+    }
+}
+
+pub struct TaskAsIterator<D, P>(Box<dyn TaskIterator<Done = D, Pending = P>>);
+
+impl<D, P> TaskAsIterator<D, P> {
+    pub fn from_impl(t: impl TaskIterator<Done = D, Pending = P> + 'static) -> Self {
+        Self(Box::new(t))
+    }
+
+    pub fn new(t: Box<dyn TaskIterator<Done = D, Pending = P>>) -> Self {
+        Self(t)
+    }
+}
+
+impl<D, P> Iterator for TaskAsIterator<D, P> {
+    type Item = TaskStatus<D, P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next()
+    }
+}
+
+pub type BoxedTaskReadyResolver<D, P> = Box<dyn TaskReadyResolver<D, P>>;
+
+/// `TaskResolver` are types implementing this trait to
+/// perform final resolution of a task when the task emits
+/// the relevant `TaskStatus::Ready` enum state.
+///
+/// Unlike `TaskStatusMapper` these implementing types do
+/// not care about the varying states of a `TaskIterator`
+/// but about the final state of the task when it signals
+/// it's readiness via the `TaskStatus::Ready` state.
+pub trait TaskReadyResolver<D, P> {
+    fn handle(&self, item: TaskStatus<D, P>);
+}
+
+impl<F, D, P> TaskReadyResolver<D, P> for F
+where
+    F: Fn(TaskStatus<D, P>),
+{
+    fn handle(&self, item: TaskStatus<D, P>) {
+        (self)(item)
+    }
+}
+
 pub mod resolvers {
+    use std::cell;
+
     use super::*;
 
-    /// `TaskResolver` are types implementing this trait to
-    /// perform final resolution of a task when the task emits
-    /// the relevant `TaskStatus::Ready` enum state.
-    ///
-    /// Unlike `TaskStatusMapper` these implementing types do
-    /// not care about the varying states of a `TaskIterator`
-    /// but about the final state of the task when it signals
-    /// it's readiness via the `TaskStatus::Ready` state.
-    pub trait TaskReadyResolver<D, P> {
-        fn handle(&self, item: TaskStatus<D, P>);
+    pub struct FnMutReady<F>(cell::RefCell<F>);
+
+    impl<F> FnMutReady<F> {
+        pub fn new(f: F) -> Self {
+            Self(cell::RefCell::new(f))
+        }
+    }
+
+    impl<F, D, P> TaskReadyResolver<D, P> for FnMutReady<F>
+    where
+        F: FnMut(TaskStatus<D, P>),
+    {
+        fn handle(&self, item: TaskStatus<D, P>) {
+            let mut mut_fn = self.0.borrow_mut();
+            (mut_fn)(item)
+        }
     }
 
     pub struct FnReady<F>(F);
@@ -78,6 +169,26 @@ pub mod resolvers {
     }
 
     impl<F, D, P> TaskStatusMapper<D, P> for FnMapper<F>
+    where
+        F: FnMut(TaskStatus<D, P>) -> Option<TaskStatus<D, P>>,
+    {
+        fn map(&mut self, item: Option<TaskStatus<D, P>>) -> Option<TaskStatus<D, P>> {
+            match item {
+                None => None,
+                Some(item) => self.0(item),
+            }
+        }
+    }
+
+    pub struct FnOptionMapper<F>(F);
+
+    impl<F> FnOptionMapper<F> {
+        pub fn new(f: F) -> Self {
+            Self(f)
+        }
+    }
+
+    impl<F, D, P> TaskStatusMapper<D, P> for FnOptionMapper<F>
     where
         F: FnMut(Option<TaskStatus<D, P>>) -> Option<TaskStatus<D, P>>,
     {
@@ -259,67 +370,6 @@ pub mod resolvers {
                 None => None,
             }
         }
-    }
-}
-
-/// AsTaskIterator represents a type for an iterator with
-/// the underlying output of the iterator to be `TaskStatus`
-/// and it's relevant semantics.
-pub trait AsTaskIterator<D, P>: Iterator<Item = TaskStatus<D, P>> {}
-
-/// TaskIterator is an iterator engineered around the concept of asynchronouse
-/// task that have 3 states: PENDING, INIT (Initializing) and READY.
-///
-/// This follows the Iterators in that when the iterator returns None then it's
-/// finished, else we can assume its always producing results that might be in any of
-/// those states both for either a singular result or multiple elements.
-///
-/// This means this can keep producing elements as and the caller simply takes the
-/// `TaskStatus::Done` state results (if they only care about the final value)
-/// else use the other state for whatever is sensible.
-///
-/// One thing to note is, the same restrictions apply with these iterators, you do
-/// not want to block the thread where this is executed or other processes and its always
-/// adviced to finish early by moving long processes into other threads that allow you
-/// noify once next is called to notify if the task is done or still pending.
-pub trait TaskIterator {
-    type Pending;
-    type Done;
-
-    /// Advances the iterator and returns the next value.
-    fn next(&mut self) -> Option<TaskStatus<Self::Done, Self::Pending>>;
-
-    /// into_iter consumes the implementation and wraps
-    /// it in an iterator type that emits
-    /// `TaskStatus<TaskIterator::Pending ,TaskIterator::Done>`
-    /// match the behavior desired for an iterator.
-    fn into_iter(self) -> impl Iterator<Item = TaskStatus<Self::Done, Self::Pending>>
-    where
-        Self: Sized + 'static,
-    {
-        TaskAsIterator(Box::new(self))
-    }
-}
-
-pub struct TaskAsIterator<D, P>(Box<dyn TaskIterator<Done = D, Pending = P>>);
-
-impl<D, P> TaskAsIterator<D, P> {
-    pub fn from_impl(t: impl TaskIterator<Done = D, Pending = P> + 'static) -> Self {
-        Self(Box::new(t))
-    }
-
-    pub fn new(t: Box<dyn TaskIterator<Done = D, Pending = P>>) -> Self {
-        Self(t)
-    }
-}
-
-impl<D, P> AsTaskIterator<D, P> for TaskAsIterator<D, P> {}
-
-impl<D, P> Iterator for TaskAsIterator<D, P> {
-    type Item = TaskStatus<D, P>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.0.next()
     }
 }
 

@@ -1,6 +1,5 @@
 use std::{
-    borrow::Borrow,
-    cell::{self, RefCell},
+    cell,
     collections::{HashMap, VecDeque},
     rc, sync, thread, time,
 };
@@ -35,27 +34,10 @@ pub trait Executor {
     fn block_on(&self);
 }
 
-pub(crate) struct SingleWaker<T: Iterator<Item = State>> {
-    task: Entry,
-    executor: ReferencedExecutorState<T>,
-}
-
-impl<T: Iterator<Item = State>> SingleWaker<T> {
-    pub fn new(task: Entry, executor: ReferencedExecutorState<T>) -> Self {
-        Self { task, executor }
-    }
-}
-
-impl<T: Iterator<Item = State>> Waker for SingleWaker<T> {
-    fn wake(&self) {
-        let mut executor = self.executor.borrow_mut();
-        executor.wake_up(self.task.clone());
-    }
-}
-
 pub type BoxedStateIterator = Box<dyn Iterator<Item = State>>;
 
 /// PriorityOrder defines how wake up tasks should placed once woken up.
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PriorityOrder {
     Top,
     Bottom,
@@ -113,7 +95,7 @@ pub struct ExecutorState<T: Iterator<Item = State>> {
     /// Each executor may treat these differently in that they may process
     /// one task at a time until completion or concurrently process
     /// multiple tasks at a time with alotted time slot between them.
-    pub(crate) sleepers: Sleepers<SingleWaker<T>>,
+    pub(crate) sleepers: Sleepers<Entry>,
 
     /// sleepy provides a managed indicator of how many times we've been idle
     /// and recommends how much sleep should the executor take next.
@@ -184,6 +166,7 @@ impl core::fmt::Display for ExecutorError {
 
 /// ScheduleOutcome communicates the outcome of an attempt to
 /// schedule a task from the global queue.
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ScheduleOutcome {
     /// Indicates we successfully acquired a global task
     /// from the global queue.
@@ -218,6 +201,7 @@ impl<T: Iterator<Item = State> + Send> ExecutorState<T> {
 /// an ExecutorState and whether it can make progress in it's
 /// work, this allows the manager of the executor to smartly
 /// manage the overall management of the executor.
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ProgressIndicator {
     /// Indicates no work is available for progression.
     NoWork,
@@ -369,13 +353,20 @@ impl<T: Iterator<Item = State>> ExecutorState<T> {
     /// the processing queue.
     #[inline]
     pub fn wakeup_ready_sleepers(&mut self) {
-        self.sleepers.notify_ready();
+        for matured in self.sleepers.get_matured() {
+            self.wake_up(matured.handle.clone())
+        }
+    }
+
+    #[inline]
+    pub(crate) fn has_sleeping_tasks(&self) -> bool {
+        self.sleepers.has_pending_tasks()
     }
 
     /// Returns True/False indicative if the executor has any local
     /// task still processing
     #[inline]
-    pub fn has_local_tasks(&mut self) -> bool {
+    pub fn has_local_tasks(&self) -> bool {
         self.local_tasks.active_slots() > 0
     }
 
@@ -415,12 +406,21 @@ impl<T: Iterator<Item = State>> From<rc::Rc<cell::RefCell<ExecutorState<T>>>>
 
 impl<T: Iterator<Item = State>> Clone for ReferencedExecutorState<T> {
     fn clone(&self) -> Self {
-        ReferencedExecutorState(self.0.clone())
+        ReferencedExecutorState(rc::Rc::clone(&self.0))
     }
 }
 
+#[allow(unused)]
 impl<T: Iterator<Item = State>> ReferencedExecutorState<T> {
-    fn borrow(&self) -> &rc::Rc<cell::RefCell<ExecutorState<T>>> {
+    fn get_ref(&self) -> &rc::Rc<cell::RefCell<ExecutorState<T>>> {
+        &self.0
+    }
+
+    fn get_ref_mut(&mut self) -> &mut rc::Rc<cell::RefCell<ExecutorState<T>>> {
+        &mut self.0
+    }
+
+    fn borrow(&self) -> cell::Ref<'_, ExecutorState<T>> {
         self.0.borrow()
     }
 
@@ -431,38 +431,76 @@ impl<T: Iterator<Item = State>> ReferencedExecutorState<T> {
 
 impl<T: Iterator<Item = State>> ReferencedExecutorState<T> {
     #[inline]
+    pub(crate) fn request_global_task(&self) -> ProgressIndicator {
+        let mut handle = self.0.borrow_mut();
+        if handle.has_local_tasks() {
+            return ProgressIndicator::CanProgress;
+        }
+
+        match handle.schedule_next() {
+            ScheduleOutcome::GlobalTaskAcquired => {
+                tracing::debug!("Succesfully acquired new tasks for processing");
+                ProgressIndicator::CanProgress
+            }
+            ScheduleOutcome::NoTaskRunningOrAcquired => {
+                tracing::debug!("No new tasks, no need to perform work");
+                if handle.has_sleeping_tasks() {
+                    return ProgressIndicator::CanProgress;
+                }
+                return ProgressIndicator::NoWork;
+            }
+            ScheduleOutcome::LocalTaskRunning => {
+                tracing::debug!("Invalid state reached, no local task should have been in queue");
+                unreachable!("No local task should be running at this point")
+            }
+        }
+    }
+
+    #[inline]
+    pub(crate) fn request_sleeping_tasks_wake(&self) {
+        let mut handle = self.0.borrow_mut();
+        handle.wakeup_ready_sleepers();
+    }
+
+    #[inline]
     pub fn schedule_and_do_work(&self) -> ProgressIndicator {
-        let mut mutable_ref = self.0.borrow_mut();
-        if !mutable_ref.has_local_tasks() {
-            match mutable_ref.schedule_next() {
-                ScheduleOutcome::GlobalTaskAcquired => {
-                    tracing::debug!("Succesfully acquired new tasks for processing");
-                }
-                ScheduleOutcome::LocalTaskRunning => {
-                    tracing::debug!(
-                        "Invalid state reached, no local task should have been in queue"
-                    );
-                    unreachable!("No local task should be running at this point")
-                }
-                ScheduleOutcome::NoTaskRunningOrAcquired => {
-                    tracing::debug!("No new tasks, no need to perform work");
-                    return ProgressIndicator::NoWork;
-                }
+        match self.request_global_task() {
+            ProgressIndicator::CanProgress => {
+                tracing::debug!(
+                    "Attempt to get global task shows we can progress, call do_work next"
+                );
+            }
+            ProgressIndicator::NoWork => {
+                return ProgressIndicator::NoWork;
+            }
+            ProgressIndicator::SpinWait(_) => {
+                unreachable!("Requesting global task should never spin wait")
             }
         }
 
+        self.request_sleeping_tasks_wake();
+
         match self.do_work() {
             ProgressIndicator::CanProgress => {
-                todo!()
+                tracing::debug!("Received CanProgress indicator from task");
+                // TODO: I feel like I am missing something here
+                ProgressIndicator::CanProgress
             }
-            ProgressIndicator::NoWork => match mutable_ref.sleepers.min_duration() {
-                None => match mutable_ref.idler.increment() {
-                    Some(next_dur) => ProgressIndicator::SpinWait(next_dur),
-                    None => ProgressIndicator::NoWork,
-                },
-                Some(duration) => ProgressIndicator::SpinWait(duration),
-            },
-            ProgressIndicator::SpinWait(duration) => ProgressIndicator::SpinWait(duration),
+            ProgressIndicator::NoWork => {
+                tracing::debug!("Received NoWork indicator from task");
+                let mut state = self.0.borrow_mut();
+                match state.sleepers.min_duration() {
+                    None => match state.idler.increment() {
+                        Some(next_dur) => ProgressIndicator::SpinWait(next_dur),
+                        None => ProgressIndicator::NoWork,
+                    },
+                    Some(duration) => ProgressIndicator::SpinWait(duration),
+                }
+            }
+            ProgressIndicator::SpinWait(duration) => {
+                tracing::debug!("Received SpinWait({:?}) indicator from task", &duration);
+                ProgressIndicator::SpinWait(duration)
+            }
         }
     }
 
@@ -471,73 +509,112 @@ impl<T: Iterator<Item = State>> ReferencedExecutorState<T> {
     /// work to begin.
     #[inline]
     pub fn do_work(&self) -> ProgressIndicator {
-        let mut mutable_ref = self.0.borrow_mut();
-        // check if any sleeper has ripened up to
-        // readiness.
-        mutable_ref.wakeup_ready_sleepers();
+        let mut handle = self.0.borrow_mut();
 
         // if after wake up, no task still enters
         // the processing queue then no work is available
-        if mutable_ref.processing.is_empty() {
+        if handle.processing.is_empty() {
+            tracing::debug!("Task queue is empty: {:?}", handle.processing.is_empty());
+            if handle.has_sleeping_tasks() {
+                return ProgressIndicator::CanProgress;
+            }
             return ProgressIndicator::NoWork;
         }
 
-        let top_entry = mutable_ref.processing.pop_front().unwrap();
-        if mutable_ref.is_packed(&top_entry) {
+        let top_entry = handle.processing.pop_front().unwrap();
+        let remaining_tasks = handle.processing.len();
+
+        if handle.is_packed(&top_entry) {
             return ProgressIndicator::CanProgress;
         }
 
-        match mutable_ref.local_tasks.get_mut(&top_entry) {
-            Some(iter) => match iter.next() {
-                Some(state) => match state {
-                    State::Done => {
-                        // task is done
-                        ProgressIndicator::CanProgress
-                    }
-                    State::Progressed => {
-                        mutable_ref.processing.push_front(top_entry);
-                        ProgressIndicator::CanProgress
-                    }
-                    State::Pending(duration) => {
-                        // if we have a duration then we check if
-                        // we have other tasks pending, and if so
-                        // we indicate we can make progress else we
-                        // tell the executor to pause us for that duration
-                        // till the task is ready.
-                        //
-                        // The task that wants to sleep gets removed from
-                        // the processing queue and gets registered with the
-                        // sleepers (which monitors task that are sleeping).
-                        match duration {
-                            Some(inner) => {
-                                // pack this entry and it's dependents into our packed registry.
-                                mutable_ref.pack_task_and_dependents(top_entry.clone());
-
-                                // I do not think I need to use the sleeper entry.
-                                let _ = mutable_ref.sleepers.insert(Wakeable::from_now(
-                                    SingleWaker::new(top_entry.clone(), self.clone()),
-                                    inner,
-                                ));
-
-                                if mutable_ref.processing.len() > 0 {
-                                    return ProgressIndicator::CanProgress;
+        match handle.local_tasks.get_mut(&top_entry) {
+            Some(iter) => {
+                match iter.next() {
+                    Some(state) => {
+                        tracing::debug!("Task delivered state: {:?}", &state);
+                        match state {
+                            State::Done => {
+                                tracing::debug!(
+                                    "Task as finished with State::Done (rem_tasks: {})",
+                                    remaining_tasks
+                                );
+                                // Task Iterator is really done
+                                if remaining_tasks == 0 {
+                                    ProgressIndicator::NoWork
+                                } else {
+                                    ProgressIndicator::CanProgress
                                 }
-
-                                ProgressIndicator::SpinWait(inner)
                             }
-                            None => ProgressIndicator::CanProgress,
+                            State::Progressed => {
+                                tracing::debug!("Task is progressing with State::Progressed");
+                                handle.processing.push_front(top_entry);
+                                ProgressIndicator::CanProgress
+                            }
+                            State::Pending(duration) => {
+                                tracing::debug!(
+                                    "Task indicates it is in pending state: State::Pending({:?})",
+                                    &duration
+                                );
+                                // if we have a duration then we check if
+                                // we have other tasks pending, and if so
+                                // we indicate we can make progress else we
+                                // tell the executor to pause us for that duration
+                                // till the task is ready.
+                                //
+                                // The task that wants to sleep gets removed from
+                                // the processing queue and gets registered with the
+                                // sleepers (which monitors task that are sleeping).
+                                let final_state = match duration {
+                                    Some(inner) => {
+                                        tracing::debug!("Task provided duration: {:?}", &inner);
+
+                                        // pack this entry and it's dependents into our packed registry.
+                                        handle.pack_task_and_dependents(top_entry.clone());
+
+                                        // I do not think I need to use the sleeper entry.
+                                        let _ = handle
+                                            .sleepers
+                                            .insert(Wakeable::from_now(top_entry.clone(), inner));
+
+                                        if handle.processing.len() > 0 {
+                                            return ProgressIndicator::CanProgress;
+                                        }
+
+                                        ProgressIndicator::SpinWait(inner)
+                                    }
+                                    None => {
+                                        handle.processing.push_front(top_entry);
+                                        ProgressIndicator::CanProgress
+                                    }
+                                };
+
+                                tracing::debug!("Sending out state: {:?}", &final_state);
+                                final_state
+                            }
+                            State::Reschedule => {
+                                tracing::debug!(
+                                    "Task is wishes to reschedule with State::Reschedule"
+                                );
+                                handle.processing.push_back(top_entry.clone());
+                                ProgressIndicator::CanProgress
+                            }
                         }
                     }
-                    State::Reschedule => {
-                        mutable_ref.processing.push_back(top_entry.clone());
-                        ProgressIndicator::CanProgress
+                    None => {
+                        tracing::debug!(
+                            "Task returned None (has finished) (rem_tasks: {})",
+                            remaining_tasks
+                        );
+                        // Task Iterator is really done
+                        if remaining_tasks == 0 {
+                            ProgressIndicator::NoWork
+                        } else {
+                            ProgressIndicator::CanProgress
+                        }
                     }
-                },
-                None => {
-                    // Task Iterator is really done
-                    ProgressIndicator::CanProgress
                 }
-            },
+            }
             None => unreachable!("An entry must always have a task attached"),
         }
     }
@@ -616,67 +693,59 @@ impl<T: Iterator<Item = State>> LocalThreadExecutor<T> {
         }
     }
 
-    pub fn always_from_bottom<R: rand::Rng>(
+    /// creates a new local executor which uses the provided
+    /// seed for ChaCha8Rng generator.
+    pub fn from_seed(
+        seed: u64,
         tasks: sync::Arc<ConcurrentQueue<T>>,
-        rng: &mut R,
         idler: IdleMan,
+        priority: PriorityOrder,
+        yielder: Box<dyn CloneProcessController>,
     ) -> Self {
         Self::new(
             tasks,
-            ChaCha8Rng::seed_from_u64(rng.next_u64()),
+            ChaCha8Rng::seed_from_u64(seed),
             idler,
-            PriorityOrder::Bottom,
-            Box::new(ThreadYield::default()),
+            priority,
+            yielder,
         )
     }
 
-    pub fn always_from_top<R: rand::Rng>(
-        tasks: sync::Arc<ConcurrentQueue<T>>,
-        rng: &mut R,
-        idler: IdleMan,
-    ) -> Self {
-        Self::new(
-            tasks,
-            ChaCha8Rng::seed_from_u64(rng.next_u64()),
-            idler,
-            PriorityOrder::Top,
-            Box::new(ThreadYield::default()),
-        )
-    }
-
+    /// Allows supplying a custom Rng generator for creating the initial
+    /// ChaCha8Rng seed.
     pub fn from_rng<R: rand::Rng>(
         tasks: sync::Arc<ConcurrentQueue<T>>,
         rng: &mut R,
         idler: IdleMan,
         priority: PriorityOrder,
+        yielder: Box<dyn CloneProcessController>,
     ) -> Self {
-        Self::new(
-            tasks,
-            ChaCha8Rng::seed_from_u64(rng.next_u64()),
-            idler,
-            priority,
-            Box::new(ThreadYield::default()),
-        )
+        Self::from_seed(rng.next_u64(), tasks, idler, priority, yielder)
     }
 }
 
 // --- implementations
 
 impl<T: Iterator<Item = State>> LocalThreadExecutor<T> {
-    fn block_on(&self) {
+    pub fn make_progress(&self) -> ProgressIndicator {
+        self.state.schedule_and_do_work()
+    }
+
+    pub fn block_on(&self) {
         loop {
             for _ in 0..200 {
-                match self.state.schedule_and_do_work() {
+                match self.make_progress() {
                     ProgressIndicator::CanProgress => continue,
                     ProgressIndicator::NoWork => {
                         self.yielder.yield_process();
+                        continue;
                     }
                     ProgressIndicator::SpinWait(duration) => {
                         self.yielder.yield_for(duration);
+                        continue;
                     }
                 }
             }
-
             self.yielder.yield_process();
         }
     }
@@ -684,11 +753,149 @@ impl<T: Iterator<Item = State>> LocalThreadExecutor<T> {
 
 #[cfg(test)]
 mod test_local_thread_executor {
-    use super::*;
+    use crate::{
+        panic_if_failed,
+        retries::ExponentialBackoffDecider,
+        synca::SleepyMan,
+        valtron::{
+            task_iterator::{TaskIterator, TaskStatus},
+            SimpleScheduledTask,
+        },
+    };
 
-    fn should_be_able_to_take_global_task() {
+    use super::*;
+    use cell::*;
+    use rand::prelude::*;
+    use rc::Rc;
+    use sync::Arc;
+    use tracing_test::traced_test;
+
+    #[derive(Default, Clone)]
+    struct NoYielder;
+
+    impl ProcessController for NoYielder {
+        fn yield_process(&self) {
+            return;
+        }
+
+        fn yield_for(&self, _: time::Duration) {
+            return;
+        }
+    }
+
+    struct Counter(usize, usize);
+
+    impl TaskIterator for Counter {
+        type Done = usize;
+        type Pending = time::Duration;
+
+        fn next(
+            &mut self,
+        ) -> Option<crate::valtron::task_iterator::TaskStatus<Self::Done, Self::Pending>> {
+            let old_count = self.0;
+            let new_count = old_count + 1;
+            self.0 = new_count;
+
+            if new_count == self.1 {
+                return None;
+            }
+
+            if new_count % 3 == 0 {
+                return Some(TaskStatus::Delayed(time::Duration::from_millis(5)));
+            }
+
+            Some(TaskStatus::Ready(new_count))
+        }
+    }
+
+    #[test]
+    #[traced_test]
+    fn scenario_one_task_a_runs_to_completion() {
         let global: ConcurrentQueue<BoxedStateIterator> = ConcurrentQueue::bounded(10);
 
-        todo!()
+        let counts: Rc<RefCell<Vec<TaskStatus<usize, time::Duration>>>> =
+            Rc::new(RefCell::new(Vec::new()));
+
+        let count_clone = Rc::clone(&counts);
+        panic_if_failed!(global.push(Box::new(SimpleScheduledTask::on_next_mut(
+            Counter(0, 3),
+            move |next| count_clone.borrow_mut().push(next)
+        ))));
+
+        let seed = rand::thread_rng().next_u64();
+
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            Arc::new(global),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            Box::new(NoYielder::default()),
+        );
+
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(executor.make_progress(), ProgressIndicator::NoWork);
+
+        let count_list: Vec<TaskStatus<usize, time::Duration>> = counts.clone().take();
+        assert_eq!(
+            count_list,
+            vec![TaskStatus::Ready(1), TaskStatus::Ready(2),]
+        );
+    }
+
+    #[test]
+    #[traced_test]
+    fn scenario_2_task_a_goes_to_sleep_as_only_task_in_queue() {
+        let global: ConcurrentQueue<BoxedStateIterator> = ConcurrentQueue::bounded(10);
+
+        let counts: Rc<RefCell<Vec<TaskStatus<usize, time::Duration>>>> =
+            Rc::new(RefCell::new(Vec::new()));
+
+        let count_clone = Rc::clone(&counts);
+        panic_if_failed!(global.push(Box::new(SimpleScheduledTask::on_next_mut(
+            Counter(10, 20),
+            move |next| count_clone.borrow_mut().push(next)
+        ))));
+
+        let seed = rand::thread_rng().next_u64();
+
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            Arc::new(global),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            Box::new(NoYielder::default()),
+        );
+
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+
+        assert_eq!(
+            executor.make_progress(),
+            ProgressIndicator::SpinWait(time::Duration::from_millis(5))
+        );
+
+        // wait for 5ms and validate we made progress
+        thread::sleep(time::Duration::from_millis(5));
+
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+
+        let count_list: Vec<TaskStatus<usize, time::Duration>> = counts.clone().take();
+        assert_eq!(
+            count_list,
+            vec![
+                TaskStatus::Ready(11),
+                TaskStatus::Ready(13),
+                TaskStatus::Ready(14),
+            ]
+        );
     }
 }

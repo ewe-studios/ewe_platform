@@ -6,6 +6,7 @@ use std::time;
 
 use crate::valtron::{delayed_iterators, task_iterator};
 
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum State {
     /// Pending indicates the the underlying process to be
     /// still waiting progress to it's next state with
@@ -33,15 +34,33 @@ pub enum State {
 }
 
 pub struct SimpleScheduledTask<D, P = ()> {
-    pub task: Box<dyn task_iterator::AsTaskIterator<D, P>>,
-    pub resolver: Box<dyn task_iterator::resolvers::TaskReadyResolver<D, P>>,
+    pub task: task_iterator::BoxedTaskIterator<D, P>,
+    pub resolver: task_iterator::BoxedTaskReadyResolver<D, P>,
     pub local_mappers: Vec<Box<dyn task_iterator::resolvers::TaskStatusMapper<D, P>>>,
 }
 
 impl<D, P> SimpleScheduledTask<D, P> {
+    pub fn on_next_mut<F, T>(t: T, f: F) -> Self
+    where
+        T: task_iterator::TaskIterator<Pending = P, Done = D> + 'static,
+        F: FnMut(task_iterator::TaskStatus<D, P>) + 'static,
+    {
+        let wrapper = task_iterator::resolvers::FnMutReady::new(f);
+        SimpleScheduledTask::new(Box::new(t.into_iter()), Box::new(wrapper), Vec::new())
+    }
+
+    pub fn on_next<F, T>(t: T, f: F) -> Self
+    where
+        T: task_iterator::TaskIterator<Pending = P, Done = D> + 'static,
+        F: Fn(task_iterator::TaskStatus<D, P>) + 'static,
+    {
+        let wrapper = task_iterator::resolvers::FnReady::new(f);
+        SimpleScheduledTask::new(Box::new(t.into_iter()), Box::new(wrapper), Vec::new())
+    }
+
     pub fn new(
-        iter: Box<dyn task_iterator::AsTaskIterator<D, P>>,
-        resolver: Box<dyn task_iterator::resolvers::TaskReadyResolver<D, P>>,
+        iter: task_iterator::BoxedTaskIterator<D, P>,
+        resolver: Box<dyn task_iterator::TaskReadyResolver<D, P>>,
         mappers: Vec<Box<dyn task_iterator::resolvers::TaskStatusMapper<D, P>>>,
     ) -> Self {
         Self {
@@ -52,17 +71,18 @@ impl<D, P> SimpleScheduledTask<D, P> {
     }
 
     pub fn with_iter(
-        iter: Box<dyn task_iterator::AsTaskIterator<D, P>>,
-        resolver: Box<dyn task_iterator::resolvers::TaskReadyResolver<D, P>>,
+        iter: task_iterator::BoxedTaskIterator<D, P>,
+        resolver: Box<dyn task_iterator::TaskReadyResolver<D, P>>,
     ) -> Self {
         Self::new(iter, resolver, Vec::new())
     }
 
     pub fn add_mapper(
-        &mut self,
+        mut self,
         mapper: Box<dyn task_iterator::resolvers::TaskStatusMapper<D, P>>,
-    ) {
+    ) -> Self {
         self.local_mappers.push(mapper);
+        self
     }
 }
 
@@ -96,15 +116,24 @@ impl<D, P> Iterator for SimpleScheduledTask<D, P> {
 }
 
 pub struct SimpleDelayedTask<D> {
-    pub task: Box<dyn delayed_iterators::AsDelayedIterator<D>>,
-    pub resolver: Box<dyn delayed_iterators::resolvers::DelayedReadyResolver<D>>,
+    pub task: delayed_iterators::BoxedDelayedIterator<D>,
+    pub resolver: Box<dyn delayed_iterators::DelayedReadyResolver<D>>,
     pub local_mappers: Vec<Box<dyn delayed_iterators::resolvers::DelayedMapper<D>>>,
 }
 
 impl<D> SimpleDelayedTask<D> {
+    pub fn on_next<F, T>(t: T, f: F) -> Self
+    where
+        T: delayed_iterators::DelayedIterator<Item = D> + 'static,
+        F: Fn(delayed_iterators::Delayed<D>) + 'static,
+    {
+        let wrapper = delayed_iterators::resolvers::DelayedFnReady::new(f);
+        Self::new(Box::new(t.into_iter()), Box::new(wrapper), Vec::new())
+    }
+
     pub fn new(
-        iter: Box<dyn delayed_iterators::AsDelayedIterator<D>>,
-        resolver: Box<dyn delayed_iterators::resolvers::DelayedReadyResolver<D>>,
+        iter: delayed_iterators::BoxedDelayedIterator<D>,
+        resolver: Box<dyn delayed_iterators::DelayedReadyResolver<D>>,
         mappers: Vec<Box<dyn delayed_iterators::resolvers::DelayedMapper<D>>>,
     ) -> Self {
         Self {
@@ -115,14 +144,18 @@ impl<D> SimpleDelayedTask<D> {
     }
 
     pub fn with_iter(
-        iter: Box<dyn delayed_iterators::AsDelayedIterator<D>>,
-        resolver: Box<dyn delayed_iterators::resolvers::DelayedReadyResolver<D>>,
+        iter: delayed_iterators::BoxedDelayedIterator<D>,
+        resolver: Box<dyn delayed_iterators::DelayedReadyResolver<D>>,
     ) -> Self {
         Self::new(iter, resolver, Vec::new())
     }
 
-    pub fn add_mapper(&mut self, mapper: Box<dyn delayed_iterators::resolvers::DelayedMapper<D>>) {
+    pub fn add_mapper(
+        mut self,
+        mapper: Box<dyn delayed_iterators::resolvers::DelayedMapper<D>>,
+    ) -> Self {
         self.local_mappers.push(mapper);
+        self
     }
 }
 
