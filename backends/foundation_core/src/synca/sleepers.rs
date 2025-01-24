@@ -159,6 +159,10 @@ impl<T: Waiter> Sleepers<T> {
         self.sleepers.borrow().active_slots() > 0
     }
 
+    pub(crate) fn count(&self) -> usize {
+        self.sleepers.borrow().active_slots()
+    }
+
     /// Returns the list of
     pub fn get_matured(&self) -> Vec<T> {
         self.sleepers
