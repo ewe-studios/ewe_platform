@@ -394,6 +394,11 @@ impl<T: Iterator<Item = State>> ExecutorState<T> {
     }
 
     #[inline]
+    pub(crate) fn number_of_sleepers(&self) -> usize {
+        self.sleepers.count()
+    }
+
+    #[inline]
     pub(crate) fn has_sleeping_tasks(&self) -> bool {
         self.sleepers.has_pending_tasks()
     }
@@ -405,6 +410,34 @@ impl<T: Iterator<Item = State>> ExecutorState<T> {
         self.local_tasks.active_slots() > 0
     }
 
+    /// Returns if there is any local task is active
+    /// which means:
+    ///
+    /// 1. Not sleeping
+    /// 2. In local task queue
+    ///
+    pub fn has_active_tasks(&self) -> bool {
+        self.total_active_tasks() > 0
+    }
+
+    /// Returns true/false if processing queue has task.
+    pub fn has_inflight_task(&self) -> bool {
+        self.processing.len() > 0
+    }
+
+    /// Returns the total remaining tasks that are
+    /// active and not sleeping.
+    pub fn total_active_tasks(&self) -> usize {
+        let local_task_count = self.local_tasks.active_slots();
+        let sleeping_task_count = self.sleepers.count();
+        tracing::debug!(
+            "Local TaskCount={} and Sleeping TaskCount={}",
+            local_task_count,
+            sleeping_task_count,
+        );
+        local_task_count - sleeping_task_count
+    }
+
     /// schedule_next will attempt to pull a new task from the
     /// global queue if no task is pending on the local queue
     /// and if so returns true to indicate success else a false
@@ -412,7 +445,7 @@ impl<T: Iterator<Item = State>> ExecutorState<T> {
     /// as the local queue had a task or no task was found.
     #[inline]
     pub fn schedule_next(&mut self) -> ScheduleOutcome {
-        if self.local_tasks.active_slots() > 0 || self.processing.len() > 0 {
+        if self.local_tasks.active_slots() > 0 && self.processing.len() > 0 {
             return ScheduleOutcome::LocalTaskRunning;
         }
 
@@ -472,9 +505,27 @@ impl<T: Iterator<Item = State>> ReferencedExecutorState<T> {
     }
 
     #[inline]
+    pub(crate) fn number_of_sleepers(&self) -> usize {
+        self.0.borrow().number_of_sleepers()
+    }
+
+    #[inline]
+    pub(crate) fn do_global_acuire(&self) -> ScheduleOutcome {
+        let mut handle = self.0.borrow_mut();
+        handle.schedule_next()
+    }
+
+    /// Returns true/false if processing queue has task.
+    pub fn has_inflight_task(&self) -> bool {
+        let handle = self.0.borrow();
+        handle.has_inflight_task()
+    }
+
+    #[inline]
     pub(crate) fn request_global_task(&self) -> ProgressIndicator {
         let mut handle = self.0.borrow_mut();
-        if handle.has_local_tasks() {
+        if handle.has_active_tasks() {
+            tracing::debug!("Still have active tasks");
             return ProgressIndicator::CanProgress;
         }
 
@@ -484,10 +535,14 @@ impl<T: Iterator<Item = State>> ReferencedExecutorState<T> {
                 ProgressIndicator::CanProgress
             }
             ScheduleOutcome::NoTaskRunningOrAcquired => {
-                tracing::debug!("No new tasks, no need to perform work");
                 if handle.has_sleeping_tasks() {
+                    tracing::debug!(
+                        "No new tasks, but we have sleeping tasks, so we can make progress"
+                    );
                     return ProgressIndicator::CanProgress;
                 }
+
+                tracing::debug!("No new tasks, no need to perform work");
                 return ProgressIndicator::NoWork;
             }
             ScheduleOutcome::LocalTaskRunning => {
@@ -537,7 +592,30 @@ impl<T: Iterator<Item = State>> ReferencedExecutorState<T> {
             }
             ProgressIndicator::SpinWait(duration) => {
                 tracing::debug!("Received SpinWait({:?}) indicator from task", &duration);
-                ProgressIndicator::SpinWait(duration)
+
+                if self.has_inflight_task() {
+                    return ProgressIndicator::CanProgress;
+                }
+
+                // if the current task indicates it wants to spin wait,
+                // attempt to get global task else return
+                // duration as is.
+                match self.do_global_acuire() {
+                    ScheduleOutcome::GlobalTaskAcquired => {
+                        tracing::debug!(
+                            "Global task indicate we can make progress, possible acquired task"
+                        );
+                        ProgressIndicator::CanProgress
+                    }
+                    ScheduleOutcome::NoTaskRunningOrAcquired => {
+                        tracing::debug!("No new task from global queue");
+                        ProgressIndicator::SpinWait(duration)
+                    }
+                    ScheduleOutcome::LocalTaskRunning => {
+                        tracing::debug!("Unexpected state with local task available");
+                        unreachable!("global task never spinWaits")
+                    }
+                }
             }
         }
     }
@@ -714,6 +792,8 @@ impl<T: Iterator<Item = State>> Clone for LocalThreadExecutor<T> {
     }
 }
 
+// -- Constructors
+
 impl<T: Iterator<Item = State>> LocalThreadExecutor<T> {
     pub fn new(
         tasks: sync::Arc<ConcurrentQueue<T>>,
@@ -792,6 +872,10 @@ impl<T: Iterator<Item = State>> LocalThreadExecutor<T> {
             self.yielder.yield_process();
         }
     }
+
+    pub(crate) fn number_of_sleepers(&self) -> usize {
+        self.state.borrow().number_of_sleepers()
+    }
 }
 
 #[cfg(test)]
@@ -826,7 +910,7 @@ mod test_local_thread_executor {
         }
     }
 
-    struct Counter(usize, usize);
+    struct Counter(&'static str, usize, usize, usize);
 
     impl TaskIterator for Counter {
         type Done = usize;
@@ -835,21 +919,60 @@ mod test_local_thread_executor {
         fn next(
             &mut self,
         ) -> Option<crate::valtron::task_iterator::TaskStatus<Self::Done, Self::Pending>> {
-            let old_count = self.0;
+            let old_count = self.1;
             let new_count = old_count + 1;
-            self.0 = new_count;
+            self.1 = new_count;
 
-            if new_count == self.1 {
+            tracing::debug!(
+                "Counter({}) has current count {} from old count {}",
+                self.0,
+                new_count,
+                old_count,
+            );
+
+            if new_count == self.2 {
                 return None;
             }
 
-            if new_count % 3 == 0 {
+            if new_count == self.3 {
                 return Some(TaskStatus::Delayed(time::Duration::from_millis(5)));
             }
 
             Some(TaskStatus::Ready(new_count))
         }
     }
+
+    // struct DaemonCounter(&'static str, usize, usize, usize);
+
+    // impl TaskIterator for DaemonCounter {
+    //     type Done = usize;
+    //     type Pending = time::Duration;
+
+    //     fn next(
+    //         &mut self,
+    //     ) -> Option<crate::valtron::task_iterator::TaskStatus<Self::Done, Self::Pending>> {
+    //         let old_count = self.1;
+    //         let new_count = old_count + 1;
+    //         self.1 = new_count;
+
+    //         tracing::debug!(
+    //             "Counter({}) has current count {} from old count {}",
+    //             self.0,
+    //             new_count,
+    //             old_count,
+    //         );
+
+    //         if new_count == self.2 {
+    //             return None;
+    //         }
+
+    //         if new_count == self.3 {
+    //             return Some(TaskStatus::Delayed(time::Duration::from_millis(5)));
+    //         }
+
+    //         Some(TaskStatus::Ready(new_count))
+    //     }
+    // }
 
     #[test]
     #[traced_test]
@@ -861,7 +984,7 @@ mod test_local_thread_executor {
 
         let count_clone = Rc::clone(&counts);
         panic_if_failed!(global.push(Box::new(SimpleScheduledTask::on_next_mut(
-            Counter(0, 3),
+            Counter("Counter1", 0, 3, 3),
             move |next| count_clone.borrow_mut().push(next)
         ))));
 
@@ -900,7 +1023,7 @@ mod test_local_thread_executor {
 
         let count_clone = Rc::clone(&counts);
         panic_if_failed!(global.push(Box::new(SimpleScheduledTask::on_next_mut(
-            Counter(10, 20),
+            Counter("Counter1", 10, 20, 12),
             move |next| count_clone.borrow_mut().push(next)
         ))));
 
@@ -919,21 +1042,26 @@ mod test_local_thread_executor {
         );
 
         assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(counts.borrow().clone(), vec![TaskStatus::Ready(11),]);
 
         assert_eq!(
             executor.make_progress(),
             ProgressIndicator::SpinWait(time::Duration::from_millis(5))
         );
+        assert_eq!(counts.borrow().clone(), vec![TaskStatus::Ready(11),]);
 
         // wait for 5ms and validate we made progress
         thread::sleep(time::Duration::from_millis(5));
 
         assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![TaskStatus::Ready(11), TaskStatus::Ready(13),]
+        );
         assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
 
-        let count_list: Vec<TaskStatus<usize, time::Duration>> = counts.clone().take();
         assert_eq!(
-            count_list,
+            counts.borrow().clone(),
             vec![
                 TaskStatus::Ready(11),
                 TaskStatus::Ready(13),
@@ -947,13 +1075,142 @@ mod test_local_thread_executor {
     fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks() {
         let global: ConcurrentQueue<BoxedStateIterator> = ConcurrentQueue::bounded(10);
 
-        let counts: Rc<RefCell<Vec<TaskStatus<usize, time::Duration>>>> =
+        let counts: Rc<RefCell<Vec<(&'static str, TaskStatus<usize, time::Duration>)>>> =
             Rc::new(RefCell::new(Vec::new()));
 
         let count_clone = Rc::clone(&counts);
         panic_if_failed!(global.push(Box::new(SimpleScheduledTask::on_next_mut(
-            Counter(0, 4),
-            move |next| count_clone.borrow_mut().push(next)
+            Counter("Counter1", 0, 4, 2),
+            move |next| count_clone.borrow_mut().push(("Counter1", next))
+        ))));
+
+        let count_clone2 = Rc::clone(&counts);
+        panic_if_failed!(global.push(Box::new(SimpleScheduledTask::on_next_mut(
+            Counter("Counter2", 0, 20, 10),
+            move |next| count_clone2.borrow_mut().push(("Counter2", next))
+        ))));
+
+        let seed = rand::thread_rng().next_u64();
+
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            Arc::new(global),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Top,
+            Box::new(NoYielder::default()),
+        );
+
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![("Counter1", TaskStatus::Ready(1)),]
+        );
+
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![("Counter1", TaskStatus::Ready(1)),]
+        );
+
+        assert_eq!(executor.number_of_sleepers(), 1);
+
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+            ]
+        );
+
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+            ]
+        );
+
+        // wait for 5ms and validate we made progress
+        tracing::debug!("Sleeping thread for 5ms");
+        thread::sleep(time::Duration::from_millis(5));
+        tracing::debug!("Finished sleeping thread for 5ms");
+
+        // Counter1 is brought back in as priority
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+                ("Counter1", TaskStatus::Ready(3)),
+            ]
+        );
+
+        // Counter1 finishes and removed from queue, so count is same.
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+                ("Counter1", TaskStatus::Ready(3)),
+            ]
+        );
+
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+                ("Counter1", TaskStatus::Ready(3)),
+                ("Counter2", TaskStatus::Ready(3)),
+            ]
+        );
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+                ("Counter1", TaskStatus::Ready(3)),
+                ("Counter2", TaskStatus::Ready(3)),
+                ("Counter2", TaskStatus::Ready(4)),
+            ]
+        );
+    }
+
+    #[test]
+    #[traced_test]
+    fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks() {
+        let global: ConcurrentQueue<BoxedStateIterator> = ConcurrentQueue::bounded(10);
+
+        let counts: Rc<RefCell<Vec<(&'static str, TaskStatus<usize, time::Duration>)>>> =
+            Rc::new(RefCell::new(Vec::new()));
+
+        let count_clone = Rc::clone(&counts);
+        panic_if_failed!(global.push(Box::new(SimpleScheduledTask::on_next_mut(
+            Counter("Counter1", 0, 4, 2),
+            move |next| count_clone.borrow_mut().push(("Counter1", next))
+        ))));
+
+        let count_clone2 = Rc::clone(&counts);
+        panic_if_failed!(global.push(Box::new(SimpleScheduledTask::on_next_mut(
+            Counter("Counter2", 0, 5, 10),
+            move |next| count_clone2.borrow_mut().push(("Counter2", next))
         ))));
 
         let seed = rand::thread_rng().next_u64();
@@ -969,11 +1226,111 @@ mod test_local_thread_executor {
             PriorityOrder::Bottom,
             Box::new(NoYielder::default()),
         );
-    }
 
-    #[test]
-    #[traced_test]
-    fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks() {}
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![("Counter1", TaskStatus::Ready(1)),]
+        );
+
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![("Counter1", TaskStatus::Ready(1)),]
+        );
+
+        assert_eq!(executor.number_of_sleepers(), 1);
+
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+            ]
+        );
+
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+            ]
+        );
+
+        // wait for 5ms and validate we made progress
+        tracing::debug!("Sleeping thread for 5ms");
+        thread::sleep(time::Duration::from_millis(5));
+        tracing::debug!("Finished sleeping thread for 5ms");
+
+        // Counter1 is brought back in as priority
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+                ("Counter2", TaskStatus::Ready(3)),
+            ]
+        );
+
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+                ("Counter2", TaskStatus::Ready(3)),
+                ("Counter2", TaskStatus::Ready(4)),
+            ]
+        );
+
+        // Counter2 triggers Done signal
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+                ("Counter2", TaskStatus::Ready(3)),
+                ("Counter2", TaskStatus::Ready(4)),
+            ]
+        );
+
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+                ("Counter2", TaskStatus::Ready(3)),
+                ("Counter2", TaskStatus::Ready(4)),
+                ("Counter1", TaskStatus::Ready(3)),
+            ]
+        );
+
+        assert_eq!(executor.make_progress(), ProgressIndicator::NoWork);
+
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+                ("Counter2", TaskStatus::Ready(3)),
+                ("Counter2", TaskStatus::Ready(4)),
+                ("Counter1", TaskStatus::Ready(3)),
+            ]
+        );
+    }
 
     #[test]
     #[traced_test]
