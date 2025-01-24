@@ -16,6 +16,26 @@ pub struct Wakeable<T> {
     pub how_long: time::Duration,
 }
 
+pub trait Timeable {
+    fn remaining_duration(&self) -> Option<time::Duration>;
+}
+
+impl<T: Waker> Timeable for Wakeable<T> {
+    fn remaining_duration(&self) -> Option<time::Duration> {
+        self.remaining()
+    }
+}
+
+pub trait Waiter {
+    fn is_ready(&self) -> bool;
+}
+
+impl<T> Waiter for Wakeable<T> {
+    fn is_ready(&self) -> bool {
+        self.try_is_ready().expect("should have result")
+    }
+}
+
 impl<T: Waker> Waker for Wakeable<T> {
     fn wake(&self) {
         self.handle.wake()
@@ -43,10 +63,6 @@ impl<T> Wakeable<T> {
         }
     }
 
-    pub fn is_ready(&self) -> bool {
-        self.try_is_ready().expect("should have result")
-    }
-
     pub fn try_is_ready(&self) -> Option<bool> {
         let now = std::time::Instant::now();
         match self.from.checked_add(self.how_long) {
@@ -59,57 +75,25 @@ impl<T> Wakeable<T> {
     }
 }
 
-pub struct Sleepers<T> {
+pub struct Sleepers<T: Waiter> {
     /// the list of wakers pending to be processed.
-    sleepers: cell::RefCell<EntryList<Wakeable<T>>>,
+    sleepers: cell::RefCell<EntryList<T>>,
 }
 
-impl<T: Waker> Waker for Sleepers<T> {
-    fn wake(&self) {
-        for sleeper in self
-            .sleepers
-            .borrow_mut()
-            .select_take(|item| match item.try_is_ready() {
-                Some(inner) => inner,
-                None => true,
-            })
-            .iter()
-        {
-            sleeper.wake();
-        }
-    }
+pub trait Timing {
+    fn min_duration(&self) -> Option<time::Duration>;
+    fn max_duration(&self) -> Option<time::Duration>;
 }
 
-impl<T> Sleepers<T> {
-    pub fn get_matured(&self) -> Vec<Wakeable<T>> {
-        self.sleepers
-            .borrow_mut()
-            .select_take(|item| match item.try_is_ready() {
-                Some(inner) => inner,
-                None => true,
-            })
-    }
-}
-
-impl<T> Sleepers<T> {
-    pub fn new() -> Self {
-        Self {
-            sleepers: cell::RefCell::new(EntryList::new()),
-        }
-    }
-    /// Inserts a new Wakeable.
-    pub fn insert(&self, wakeable: Wakeable<T>) -> Entry {
-        self.sleepers.borrow_mut().insert(wakeable)
-    }
-
+impl<T: Timeable + Waiter> Timing for Sleepers<T> {
     /// Returns the minimum duration of time of all entries in the
     /// sleeper, providing you the minimum time when one of the task is
     /// guranteed to be ready for progress.
-    pub fn min_duration(&self) -> Option<time::Duration> {
+    fn min_duration(&self) -> Option<time::Duration> {
         match self
             .sleepers
             .borrow()
-            .map_with(|item| item.remaining())
+            .map_with(|item| item.remaining_duration())
             .iter()
             .max()
         {
@@ -121,11 +105,11 @@ impl<T> Sleepers<T> {
     /// Returns the maximum duration of time of all entries in the
     /// sleeper, providing you the maximum time to potentially wait
     /// for all tasks to be ready.
-    pub fn max_duration(&self) -> Option<time::Duration> {
+    fn max_duration(&self) -> Option<time::Duration> {
         match self
             .sleepers
             .borrow()
-            .map_with(|item| item.remaining())
+            .map_with(|item| item.remaining_duration())
             .iter()
             .max()
         {
@@ -133,20 +117,52 @@ impl<T> Sleepers<T> {
             None => None,
         }
     }
+}
+
+impl<T: Waker + Waiter> Waker for Sleepers<T> {
+    fn wake(&self) {
+        for sleeper in self
+            .sleepers
+            .borrow_mut()
+            .select_take(|item| item.is_ready())
+            .iter()
+        {
+            sleeper.wake();
+        }
+    }
+}
+
+impl<T: Waiter> Sleepers<T> {
+    pub fn new() -> Self {
+        Self {
+            sleepers: cell::RefCell::new(EntryList::new()),
+        }
+    }
+    /// Inserts a new Wakeable.
+    pub fn insert(&self, wakeable: T) -> Entry {
+        self.sleepers.borrow_mut().insert(wakeable)
+    }
 
     /// Update an existing Wakeable returning the old handle used.
-    pub fn update(&self, handle: &Entry, wakeable: Wakeable<T>) -> Option<Wakeable<T>> {
+    pub fn update(&self, handle: &Entry, wakeable: T) -> Option<T> {
         self.sleepers.borrow_mut().update(handle, wakeable)
     }
 
     /// Removes a previously inserted sleeping ticker.
     ///
     /// Returns `true` if the ticker was notified.
-    pub fn remove(&self, handle: &Entry) -> Option<Wakeable<T>> {
+    pub fn remove(&self, handle: &Entry) -> Option<T> {
         self.sleepers.borrow_mut().take(handle)
     }
 
     pub(crate) fn has_pending_tasks(&self) -> bool {
         self.sleepers.borrow().active_slots() > 0
+    }
+
+    /// Returns the list of
+    pub fn get_matured(&self) -> Vec<T> {
+        self.sleepers
+            .borrow_mut()
+            .select_take(|item| item.is_ready())
     }
 }

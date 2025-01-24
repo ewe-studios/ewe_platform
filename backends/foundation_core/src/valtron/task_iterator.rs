@@ -22,7 +22,7 @@ pub enum TaskStatus<D, P = ()> {
     /// may not immediately move into a ready state e.g reconnect
     /// to some remote endpoint or to trigger some actual underlying
     /// processes that get us into a ready state with
-    /// the relevant result.
+    /// the relevant result .
     Init,
 
     /// Ready is the final state where we consider the task
