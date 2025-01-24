@@ -1,11 +1,16 @@
 use std::{
     cell,
     collections::{HashMap, VecDeque},
-    rc, sync, thread, time,
+    rc,
+    sync::{
+        self,
+        atomic::{self, AtomicBool},
+    },
+    thread, time,
 };
 
 use crate::{
-    synca::{Entry, EntryList, IdleMan, Sleepers, Wakeable},
+    synca::{Entry, EntryList, IdleMan, Sleepers, Waiter, Wakeable},
     valtron::AnyResult,
 };
 use derive_more::derive::From;
@@ -41,6 +46,28 @@ pub type BoxedStateIterator = Box<dyn Iterator<Item = State>>;
 pub enum PriorityOrder {
     Top,
     Bottom,
+}
+
+/// `Sleepable` defines specific holders that help
+/// indicate the readiness of a task via it's entry.
+pub enum Sleepable {
+    /// Timable are tasks that can sleep via duration and
+    /// will communicate their readiness using when a duration
+    /// and time is expired/over.
+    Timable(Wakeable<Entry>),
+
+    /// Flag represents a task that connect a task with a `AtomicBool`
+    /// signal will communicate when a giving task is ready.
+    Atomic(sync::Arc<AtomicBool>, Entry),
+}
+
+impl Waiter for Sleepable {
+    fn is_ready(&self) -> bool {
+        match self {
+            Sleepable::Timable(inner) => inner.is_ready(),
+            Sleepable::Atomic(inner, _) => inner.load(atomic::Ordering::SeqCst),
+        }
+    }
 }
 
 /// Underlying stats shared by all executors.
@@ -95,7 +122,7 @@ pub struct ExecutorState<T: Iterator<Item = State>> {
     /// Each executor may treat these differently in that they may process
     /// one task at a time until completion or concurrently process
     /// multiple tasks at a time with alotted time slot between them.
-    pub(crate) sleepers: Sleepers<Entry>,
+    pub(crate) sleepers: Sleepers<Sleepable>,
 
     /// sleepy provides a managed indicator of how many times we've been idle
     /// and recommends how much sleep should the executor take next.
@@ -359,7 +386,10 @@ impl<T: Iterator<Item = State>> ExecutorState<T> {
     #[inline]
     pub fn wakeup_ready_sleepers(&mut self) {
         for matured in self.sleepers.get_matured() {
-            self.wake_up(matured.handle.clone())
+            match matured {
+                Sleepable::Timable(wakeable) => self.wake_up(wakeable.handle.clone()),
+                Sleepable::Atomic(_, entry) => self.wake_up(entry.clone()),
+            }
         }
     }
 
@@ -500,12 +530,9 @@ impl<T: Iterator<Item = State>> ReferencedExecutorState<T> {
             ProgressIndicator::NoWork => {
                 tracing::debug!("Received NoWork indicator from task");
                 let mut state = self.0.borrow_mut();
-                match state.sleepers.min_duration() {
-                    None => match state.idler.increment() {
-                        Some(next_dur) => ProgressIndicator::SpinWait(next_dur),
-                        None => ProgressIndicator::NoWork,
-                    },
-                    Some(duration) => ProgressIndicator::SpinWait(duration),
+                match state.idler.increment() {
+                    Some(next_dur) => ProgressIndicator::SpinWait(next_dur),
+                    None => ProgressIndicator::NoWork,
                 }
             }
             ProgressIndicator::SpinWait(duration) => {
@@ -584,9 +611,9 @@ impl<T: Iterator<Item = State>> ReferencedExecutorState<T> {
                                         handle.pack_task_and_dependents(top_entry.clone());
 
                                         // I do not think I need to use the sleeper entry.
-                                        let _ = handle
-                                            .sleepers
-                                            .insert(Wakeable::from_now(top_entry.clone(), inner));
+                                        let _ = handle.sleepers.insert(Sleepable::Timable(
+                                            Wakeable::from_now(top_entry.clone(), inner),
+                                        ));
 
                                         if handle.processing.len() > 0 {
                                             return ProgressIndicator::CanProgress;
@@ -914,4 +941,41 @@ mod test_local_thread_executor {
             ]
         );
     }
+
+    #[test]
+    #[traced_test]
+    fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks() {
+        let global: ConcurrentQueue<BoxedStateIterator> = ConcurrentQueue::bounded(10);
+
+        let counts: Rc<RefCell<Vec<TaskStatus<usize, time::Duration>>>> =
+            Rc::new(RefCell::new(Vec::new()));
+
+        let count_clone = Rc::clone(&counts);
+        panic_if_failed!(global.push(Box::new(SimpleScheduledTask::on_next_mut(
+            Counter(0, 4),
+            move |next| count_clone.borrow_mut().push(next)
+        ))));
+
+        let seed = rand::thread_rng().next_u64();
+
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            Arc::new(global),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            Box::new(NoYielder::default()),
+        );
+    }
+
+    #[test]
+    #[traced_test]
+    fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks() {}
+
+    #[test]
+    #[traced_test]
+    fn scenario_5_task_spaws_task_b_that_spawns_task_c_that_goes_to_sleep() {}
 }
