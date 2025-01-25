@@ -11,33 +11,13 @@ use std::{
 
 use crate::{
     synca::{Entry, EntryList, IdleMan, Sleepers, Waiter, Wakeable},
-    valtron::AnyResult,
+    valtron::{AnyResult, State},
 };
 use derive_more::derive::From;
 use rand::SeedableRng;
 use rand_chacha::ChaCha8Rng;
 
-use super::State;
 use concurrent_queue::{ConcurrentQueue, PushError};
-
-/// Executor is the backbone of the valtron execution model
-/// they can be spawned within threads or be the singular owner
-/// of a thread which the user/caller create to manage execution within the
-/// thread.
-pub trait Executor {
-    /// `block` starts the Executor, blocking the thread where it
-    /// it started until it receives the binary gets killed
-    /// a kill signal.
-    ///
-    /// block never sleeps, it may cause a yielding of the thread via
-    /// `thread::yield` to allow the processor handle other tasks when
-    /// it has no pending work but it only ever really sleeps with
-    /// an ever expanding exponential duration with a max cap
-    /// unless some underlying work flows in.
-    ///
-    /// And when we say sleep
-    fn block_on(&self);
-}
 
 pub type BoxedStateIterator = Box<dyn Iterator<Item = State>>;
 
