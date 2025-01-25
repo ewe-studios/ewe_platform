@@ -1,5 +1,7 @@
 use std::time;
 
+use super::{ExecutionEngine, ExecutionIterator};
+
 /// TaskStatus represents the current state of a computation to be
 /// completed and deliverd from the iterator.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -90,7 +92,7 @@ impl<D, P> Iterator for TaskAsIterator<D, P> {
     }
 }
 
-pub type BoxedTaskReadyResolver<D, P> = Box<dyn TaskReadyResolver<D, P>>;
+pub type BoxedTaskReadyResolver<D, P, E, X> = Box<dyn TaskReadyResolver<D, P, E, X>>;
 
 /// `TaskResolver` are types implementing this trait to
 /// perform final resolution of a task when the task emits
@@ -100,16 +102,18 @@ pub type BoxedTaskReadyResolver<D, P> = Box<dyn TaskReadyResolver<D, P>>;
 /// not care about the varying states of a `TaskIterator`
 /// but about the final state of the task when it signals
 /// it's readiness via the `TaskStatus::Ready` state.
-pub trait TaskReadyResolver<D, P> {
-    fn handle(&self, item: TaskStatus<D, P>);
+pub trait TaskReadyResolver<D, P, E: ExecutionIterator, X: ExecutionEngine<E>> {
+    fn handle(&self, item: TaskStatus<D, P>, engine: X);
 }
 
-impl<F, D, P> TaskReadyResolver<D, P> for F
+impl<F, D, P, E, X> TaskReadyResolver<D, P, E, X> for F
 where
-    F: Fn(TaskStatus<D, P>),
+    E: ExecutionIterator,
+    X: ExecutionEngine<E>,
+    F: Fn(TaskStatus<D, P>, X),
 {
-    fn handle(&self, item: TaskStatus<D, P>) {
-        (self)(item)
+    fn handle(&self, item: TaskStatus<D, P>, engine: X) {
+        (self)(item, engine)
     }
 }
 
@@ -126,13 +130,15 @@ pub mod resolvers {
         }
     }
 
-    impl<F, D, P> TaskReadyResolver<D, P> for FnMutReady<F>
+    impl<F, D, P, E, X> TaskReadyResolver<D, P, E, X> for FnMutReady<F>
     where
-        F: FnMut(TaskStatus<D, P>),
+        E: ExecutionIterator,
+        X: ExecutionEngine<E>,
+        F: FnMut(TaskStatus<D, P>, X),
     {
-        fn handle(&self, item: TaskStatus<D, P>) {
+        fn handle(&self, item: TaskStatus<D, P>, engine: X) {
             let mut mut_fn = self.0.borrow_mut();
-            (mut_fn)(item)
+            (mut_fn)(item, engine)
         }
     }
 
@@ -144,12 +150,14 @@ pub mod resolvers {
         }
     }
 
-    impl<F, D, P> TaskReadyResolver<D, P> for FnReady<F>
+    impl<F, D, P, E, X> TaskReadyResolver<D, P, E, X> for FnReady<F>
     where
-        F: Fn(TaskStatus<D, P>),
+        E: ExecutionIterator,
+        X: ExecutionEngine<E>,
+        F: Fn(TaskStatus<D, P>, X),
     {
-        fn handle(&self, item: TaskStatus<D, P>) {
-            self.0(item)
+        fn handle(&self, item: TaskStatus<D, P>, engine: X) {
+            self.0(item, engine)
         }
     }
 
