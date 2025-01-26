@@ -2,18 +2,21 @@
 // via a ConcurrentQueue that allows different threads in the pool to pull task off the thread at their
 // own respective pace.
 
+use std::marker::PhantomData;
+
 use crate::valtron::{
     task_iterator, BoxedTaskReadyResolver, ExecutionEngine, ExecutionIterator, FnMutReady, FnReady,
     State, TaskStatusMapper,
 };
 
-pub struct SimpleScheduledTask<D, P = ()> {
+pub struct SimpleScheduledTask<M: ExecutionEngine, D, P = ()> {
     pub task: task_iterator::BoxedTaskIterator<D, P>,
     pub resolver: BoxedTaskReadyResolver<D, P>,
     pub local_mappers: Vec<Box<dyn TaskStatusMapper<D, P>>>,
+    _engine: PhantomData<M>,
 }
 
-impl<D, P> SimpleScheduledTask<D, P> {
+impl<M: ExecutionEngine, D, P> SimpleScheduledTask<M, D, P> {
     pub fn on_next_mut<F, T>(t: T, f: F) -> Self
     where
         T: task_iterator::TaskIterator<Pending = P, Done = D> + 'static,
@@ -41,6 +44,7 @@ impl<D, P> SimpleScheduledTask<D, P> {
             resolver,
             task: iter,
             local_mappers: mappers,
+            _engine: PhantomData::default(),
         }
     }
 
@@ -57,11 +61,13 @@ impl<D, P> SimpleScheduledTask<D, P> {
     }
 }
 
-impl<M, D, P> ExecutionIterator<M> for SimpleScheduledTask<D, P>
+impl<M, D, P> ExecutionIterator for SimpleScheduledTask<M, D, P>
 where
     M: ExecutionEngine + Into<Box<M>> + 'static,
 {
-    fn next(&mut self, executor: M) -> Option<State> {
+    type Executor = M;
+
+    fn next(&mut self, executor: Self::Executor) -> Option<State> {
         Some(match self.task.next() {
             Some(inner) => {
                 let mut previous_response = Some(inner);
