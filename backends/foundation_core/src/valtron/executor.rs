@@ -1,4 +1,4 @@
-use std::{cell, time};
+use std::{cell, marker::PhantomData, time};
 
 use super::task_iterator::TaskStatus;
 
@@ -63,6 +63,83 @@ pub trait ExecutionEngine {
 }
 
 pub type BoxedExecutionIterator<M> = Box<dyn ExecutionIterator<Executor = M>>;
+
+/// TaskSpawner represents a underlying type that can
+/// spawn some other task by using the provided executor.
+pub trait ExecutionAction {
+    fn apply(&self, executor: Box<dyn ExecutionEngine>);
+}
+
+pub trait ClonableExecutionAction: ExecutionAction {
+    fn clone_execution_action(&self) -> Box<Self>;
+}
+
+#[derive(Default, Clone, Debug)]
+pub struct NoAction;
+
+impl ExecutionAction for NoAction {
+    fn apply(&self, _: Box<dyn ExecutionEngine>) {
+        // do nothing
+    }
+}
+
+impl<F> ExecutionAction for F
+where
+    F: Fn(Box<dyn ExecutionEngine>),
+{
+    fn apply(&self, executor: Box<dyn ExecutionEngine>) {
+        (self)(executor)
+    }
+}
+
+impl<F> ClonableExecutionAction for F
+where
+    F: ExecutionAction + Clone + 'static,
+{
+    fn clone_execution_action(&self) -> Box<Self> {
+        Box::new(self.clone())
+    }
+}
+
+pub struct FnClonableAction<F: Clone>(F);
+
+impl<F: Clone> FnClonableAction<F> {
+    pub fn new(f: F) -> Self {
+        Self(f)
+    }
+}
+
+impl<F> ExecutionAction for FnClonableAction<F>
+where
+    F: Fn(Box<dyn ExecutionEngine>) + Clone + 'static,
+{
+    fn apply(&self, executor: Box<dyn ExecutionEngine>) {
+        (self.0)(executor)
+    }
+}
+
+impl<F: Clone> Clone for FnClonableAction<F> {
+    fn clone(&self) -> Self {
+        FnClonableAction(self.0.clone())
+    }
+}
+
+pub struct FnAction<F>(F);
+
+impl<F> FnAction<F> {
+    pub fn new(f: F) -> Self {
+        Self(f)
+    }
+}
+
+impl<F> ExecutionAction for FnAction<F>
+where
+    F: Fn(Box<dyn ExecutionEngine>),
+{
+    fn apply(&self, executor: Box<dyn ExecutionEngine>) {
+        (self.0)(executor)
+    }
+}
 
 /// ExecutionIterator is a type of Iterator that
 /// uniquely always just returns the State of
@@ -222,6 +299,7 @@ where
 
         match self.iter.next() {
             Some(elem) => match elem {
+                TaskStatus::Spawn(inner) => Some(TaskStatus::Spawn(inner)),
                 TaskStatus::Delayed(dur) => Some(TaskStatus::Delayed(dur)),
                 TaskStatus::Pending(dur) => Some(TaskStatus::Pending(dur)),
                 TaskStatus::Init => Some(TaskStatus::Init),
@@ -285,6 +363,7 @@ where
         match self.iter.next() {
             Some(elem) => match elem {
                 TaskStatus::Delayed(dur) => Some(TaskStatus::Delayed(dur)),
+                TaskStatus::Spawn(inner) => Some(TaskStatus::Spawn(inner)),
                 TaskStatus::Pending(dur) => Some(TaskStatus::Pending(dur)),
                 TaskStatus::Init => Some(TaskStatus::Init),
                 TaskStatus::Ready(item) => {
@@ -335,6 +414,7 @@ where
         match self.iter.next() {
             Some(elem) => match elem {
                 TaskStatus::Delayed(dur) => Some(TaskStatus::Delayed(dur)),
+                TaskStatus::Spawn(inner) => Some(TaskStatus::Spawn(inner)),
                 TaskStatus::Pending(dur) => Some(TaskStatus::Pending(dur)),
                 TaskStatus::Init => Some(TaskStatus::Init),
                 TaskStatus::Ready(item) => {
