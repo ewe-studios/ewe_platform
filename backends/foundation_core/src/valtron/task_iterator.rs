@@ -1,14 +1,20 @@
 use std::time;
 
-use super::ExecutionIterator;
+use super::NoAction;
 
-/// TaskStatus represents the current state of a computation to be
 /// completed and deliverd from the iterator.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub enum TaskStatus<D, P = ()> {
+#[derive(Clone, Eq)]
+pub enum TaskStatus<D, P, S = NoAction> {
     /// Allows a task status to communicate a delay
     /// to continued operation.
     Delayed(time::Duration),
+
+    /// Allows you from within an executor
+    /// spawn a new task that either will take
+    /// priority on the same thread or be handled
+    /// by an open thread from the global task queue
+    /// when there is any available to process work
+    Spawn(S),
 
     /// Pending is a state indicative of the status
     /// of still awaiting the readiness of some operations
@@ -30,6 +36,42 @@ pub enum TaskStatus<D, P = ()> {
     /// Ready is the final state where we consider the task
     /// has finished/ended with relevant result.
     Ready(D),
+}
+
+impl<D: PartialEq, P: PartialEq, S> PartialEq for TaskStatus<D, P, S> {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (TaskStatus::Delayed(me), TaskStatus::Delayed(them)) => me == them,
+            (TaskStatus::Pending(me), TaskStatus::Pending(them)) => me == them,
+            (TaskStatus::Ready(me), TaskStatus::Ready(them)) => me == them,
+            (TaskStatus::Spawn(_), TaskStatus::Spawn(_)) => true,
+            (TaskStatus::Init, TaskStatus::Init) => true,
+            _ => false,
+        }
+    }
+}
+
+impl<D: core::fmt::Debug, P: core::fmt::Debug, S> core::fmt::Debug for TaskStatus<D, P, S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        #[derive(Debug)]
+        enum TStatus<D, P> {
+            Delay(time::Duration),
+            Pending(P),
+            Ready(D),
+            Init,
+            Spawn,
+        }
+
+        let debug_item = match self {
+            TaskStatus::Delayed(duration) => TStatus::Delay(duration.clone()),
+            TaskStatus::Pending(inner) => TStatus::Pending(inner.clone()),
+            TaskStatus::Ready(inner) => TStatus::Ready(inner.clone()),
+            TaskStatus::Spawn(_) => TStatus::Spawn,
+            TaskStatus::Init => TStatus::Init,
+        };
+
+        write!(f, "{:?}", debug_item)
+    }
 }
 
 /// AsTaskIterator represents a type for an iterator with

@@ -5,8 +5,8 @@
 use std::marker::PhantomData;
 
 use crate::valtron::{
-    task_iterator, BoxedTaskReadyResolver, ExecutionEngine, ExecutionIterator, FnMutReady, FnReady,
-    State, TaskStatusMapper,
+    task_iterator, BoxedTaskReadyResolver, ExecutionAction, ExecutionEngine, ExecutionIterator,
+    FnMutReady, FnReady, State, TaskStatusMapper,
 };
 
 pub struct SimpleScheduledTask<M: ExecutionEngine, D, P = ()> {
@@ -17,6 +17,19 @@ pub struct SimpleScheduledTask<M: ExecutionEngine, D, P = ()> {
 }
 
 impl<M: ExecutionEngine, D, P> SimpleScheduledTask<M, D, P> {
+    pub fn new(
+        iter: task_iterator::BoxedTaskIterator<D, P>,
+        resolver: BoxedTaskReadyResolver<D, P>,
+        mappers: Vec<Box<dyn TaskStatusMapper<D, P>>>,
+    ) -> Self {
+        Self {
+            resolver,
+            task: iter,
+            local_mappers: mappers,
+            _engine: PhantomData::default(),
+        }
+    }
+
     pub fn on_next_mut<F, T>(t: T, f: F) -> Self
     where
         T: task_iterator::TaskIterator<Pending = P, Done = D> + 'static,
@@ -33,19 +46,6 @@ impl<M: ExecutionEngine, D, P> SimpleScheduledTask<M, D, P> {
     {
         let wrapper = FnReady::new(f);
         SimpleScheduledTask::new(Box::new(t.into_iter()), Box::new(wrapper), Vec::new())
-    }
-
-    pub fn new(
-        iter: task_iterator::BoxedTaskIterator<D, P>,
-        resolver: BoxedTaskReadyResolver<D, P>,
-        mappers: Vec<Box<dyn TaskStatusMapper<D, P>>>,
-    ) -> Self {
-        Self {
-            resolver,
-            task: iter,
-            local_mappers: mappers,
-            _engine: PhantomData::default(),
-        }
     }
 
     pub fn with_iter(
@@ -79,6 +79,10 @@ where
                         task_iterator::TaskStatus::Delayed(dur) => State::Pending(Some(dur)),
                         task_iterator::TaskStatus::Pending(_) => State::Pending(None),
                         task_iterator::TaskStatus::Init => State::Pending(None),
+                        task_iterator::TaskStatus::Spawn(action) => {
+                            action.apply(executor.into());
+                            State::Progressed
+                        }
                         task_iterator::TaskStatus::Ready(content) => {
                             self.resolver
                                 .handle(task_iterator::TaskStatus::Ready(content), executor.into());

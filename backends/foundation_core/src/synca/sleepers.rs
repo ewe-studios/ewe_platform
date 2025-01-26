@@ -32,7 +32,10 @@ pub trait Waiter {
 
 impl<T> Waiter for Wakeable<T> {
     fn is_ready(&self) -> bool {
-        self.try_is_ready().expect("should have result")
+        match self.try_is_ready() {
+            Some(inner) => inner,
+            None => false,
+        }
     }
 }
 
