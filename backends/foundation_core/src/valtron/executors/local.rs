@@ -1026,7 +1026,6 @@ mod test_local_thread_executor {
         );
 
         let count_clone = Rc::clone(&counts);
-
         panic_if_failed!(global.push(EngineExecutionIterator::new(
             executor.clone_state(),
             Box::new(SimpleScheduledTask::on_next_mut(
@@ -1047,324 +1046,342 @@ mod test_local_thread_executor {
         );
     }
 
-    // #[test]
-    // #[traced_test]
-    // fn scenario_2_task_a_goes_to_sleep_as_only_task_in_queue() {
-    //     let global: ConcurrentQueue<BoxedStateIterator> = ConcurrentQueue::bounded(10);
+    #[test]
+    #[traced_test]
+    fn scenario_2_task_a_goes_to_sleep_as_only_task_in_queue() {
+        let global: Arc<ConcurrentQueue<EngineExecutionIterator>> =
+            Arc::new(ConcurrentQueue::bounded(10));
 
-    //     let counts: Rc<RefCell<Vec<TaskStatus<usize, time::Duration>>>> =
-    //         Rc::new(RefCell::new(Vec::new()));
+        let counts: Rc<RefCell<Vec<TaskStatus<usize, time::Duration>>>> =
+            Rc::new(RefCell::new(Vec::new()));
 
-    //     let count_clone = Rc::clone(&counts);
-    //     panic_if_failed!(global.push(Box::new(SimpleScheduledTask::on_next_mut(
-    //         Counter("Counter1", 10, 20, 12),
-    //         move |next| count_clone.borrow_mut().push(next)
-    //     ))));
+        let seed = rand::thread_rng().next_u64();
 
-    //     let seed = rand::thread_rng().next_u64();
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            global.clone(),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            Box::new(NoYielder::default()),
+        );
 
-    //     let executor = LocalThreadExecutor::from_seed(
-    //         seed,
-    //         Arc::new(global),
-    //         IdleMan::new(
-    //             3,
-    //             None,
-    //             SleepyMan::new(3, ExponentialBackoffDecider::default()),
-    //         ),
-    //         PriorityOrder::Bottom,
-    //         Box::new(NoYielder::default()),
-    //     );
+        let count_clone = Rc::clone(&counts);
+        panic_if_failed!(global.push(EngineExecutionIterator::new(
+            executor.clone_state(),
+            Box::new(SimpleScheduledTask::on_next_mut(
+                Counter("Counter1", 10, 20, 12),
+                move |next, _engine| { count_clone.borrow_mut().push(next) }
+            ))
+        )));
 
-    //     assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
-    //     assert_eq!(counts.borrow().clone(), vec![TaskStatus::Ready(11),]);
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(counts.borrow().clone(), vec![TaskStatus::Ready(11),]);
 
-    //     assert_eq!(
-    //         executor.make_progress(),
-    //         ProgressIndicator::SpinWait(time::Duration::from_millis(5))
-    //     );
-    //     assert_eq!(counts.borrow().clone(), vec![TaskStatus::Ready(11),]);
+        assert_eq!(
+            executor.make_progress(),
+            ProgressIndicator::SpinWait(time::Duration::from_millis(5))
+        );
+        assert_eq!(counts.borrow().clone(), vec![TaskStatus::Ready(11),]);
 
-    //     // wait for 5ms and validate we made progress
-    //     thread::sleep(time::Duration::from_millis(5));
+        // wait for 5ms and validate we made progress
+        thread::sleep(time::Duration::from_millis(5));
 
-    //     assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
-    //     assert_eq!(
-    //         counts.borrow().clone(),
-    //         vec![TaskStatus::Ready(11), TaskStatus::Ready(13),]
-    //     );
-    //     assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![TaskStatus::Ready(11), TaskStatus::Ready(13),]
+        );
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
 
-    //     assert_eq!(
-    //         counts.borrow().clone(),
-    //         vec![
-    //             TaskStatus::Ready(11),
-    //             TaskStatus::Ready(13),
-    //             TaskStatus::Ready(14),
-    //         ]
-    //     );
-    // }
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                TaskStatus::Ready(11),
+                TaskStatus::Ready(13),
+                TaskStatus::Ready(14),
+            ]
+        );
+    }
 
-    // #[test]
-    // #[traced_test]
-    // fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks() {
-    //     let global: ConcurrentQueue<BoxedStateIterator> = ConcurrentQueue::bounded(10);
+    #[test]
+    #[traced_test]
+    fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks() {
+        let global: Arc<ConcurrentQueue<EngineExecutionIterator>> =
+            Arc::new(ConcurrentQueue::bounded(10));
 
-    //     let counts: Rc<RefCell<Vec<(&'static str, TaskStatus<usize, time::Duration>)>>> =
-    //         Rc::new(RefCell::new(Vec::new()));
+        let counts: Rc<RefCell<Vec<(&'static str, TaskStatus<usize, time::Duration>)>>> =
+            Rc::new(RefCell::new(Vec::new()));
 
-    //     let count_clone = Rc::clone(&counts);
-    //     panic_if_failed!(global.push(Box::new(SimpleScheduledTask::on_next_mut(
-    //         Counter("Counter1", 0, 4, 2),
-    //         move |next| count_clone.borrow_mut().push(("Counter1", next))
-    //     ))));
+        let seed = rand::thread_rng().next_u64();
 
-    //     let count_clone2 = Rc::clone(&counts);
-    //     panic_if_failed!(global.push(Box::new(SimpleScheduledTask::on_next_mut(
-    //         Counter("Counter2", 0, 20, 10),
-    //         move |next| count_clone2.borrow_mut().push(("Counter2", next))
-    //     ))));
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            global.clone(),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Top,
+            Box::new(NoYielder::default()),
+        );
 
-    //     let seed = rand::thread_rng().next_u64();
+        let count_clone = Rc::clone(&counts);
+        panic_if_failed!(global.push(EngineExecutionIterator::new(
+            executor.clone_state(),
+            Box::new(SimpleScheduledTask::on_next_mut(
+                Counter("Counter1", 0, 4, 2),
+                move |next, _| count_clone.borrow_mut().push(("Counter1", next))
+            ))
+        )));
 
-    //     let executor = LocalThreadExecutor::from_seed(
-    //         seed,
-    //         Arc::new(global),
-    //         IdleMan::new(
-    //             3,
-    //             None,
-    //             SleepyMan::new(3, ExponentialBackoffDecider::default()),
-    //         ),
-    //         PriorityOrder::Top,
-    //         Box::new(NoYielder::default()),
-    //     );
+        let count_clone2 = Rc::clone(&counts);
+        panic_if_failed!(global.push(EngineExecutionIterator::new(
+            executor.clone_state(),
+            Box::new(SimpleScheduledTask::on_next_mut(
+                Counter("Counter2", 0, 20, 10),
+                move |next, _| count_clone2.borrow_mut().push(("Counter2", next))
+            ))
+        )));
 
-    //     assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
 
-    //     assert_eq!(
-    //         counts.borrow().clone(),
-    //         vec![("Counter1", TaskStatus::Ready(1)),]
-    //     );
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![("Counter1", TaskStatus::Ready(1)),]
+        );
 
-    //     assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
 
-    //     assert_eq!(
-    //         counts.borrow().clone(),
-    //         vec![("Counter1", TaskStatus::Ready(1)),]
-    //     );
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![("Counter1", TaskStatus::Ready(1)),]
+        );
 
-    //     assert_eq!(executor.number_of_sleepers(), 1);
+        assert_eq!(executor.number_of_sleepers(), 1);
 
-    //     assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
-    //     assert_eq!(
-    //         counts.borrow().clone(),
-    //         vec![
-    //             ("Counter1", TaskStatus::Ready(1)),
-    //             ("Counter2", TaskStatus::Ready(1)),
-    //         ]
-    //     );
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+            ]
+        );
 
-    //     assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
-    //     assert_eq!(
-    //         counts.borrow().clone(),
-    //         vec![
-    //             ("Counter1", TaskStatus::Ready(1)),
-    //             ("Counter2", TaskStatus::Ready(1)),
-    //             ("Counter2", TaskStatus::Ready(2)),
-    //         ]
-    //     );
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+            ]
+        );
 
-    //     // wait for 5ms and validate we made progress
-    //     tracing::debug!("Sleeping thread for 5ms");
-    //     thread::sleep(time::Duration::from_millis(5));
-    //     tracing::debug!("Finished sleeping thread for 5ms");
+        // wait for 5ms and validate we made progress
+        tracing::debug!("Sleeping thread for 5ms");
+        thread::sleep(time::Duration::from_millis(5));
+        tracing::debug!("Finished sleeping thread for 5ms");
 
-    //     // Counter1 is brought back in as priority
-    //     assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
-    //     assert_eq!(
-    //         counts.borrow().clone(),
-    //         vec![
-    //             ("Counter1", TaskStatus::Ready(1)),
-    //             ("Counter2", TaskStatus::Ready(1)),
-    //             ("Counter2", TaskStatus::Ready(2)),
-    //             ("Counter1", TaskStatus::Ready(3)),
-    //         ]
-    //     );
+        // Counter1 is brought back in as priority
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+                ("Counter1", TaskStatus::Ready(3)),
+            ]
+        );
 
-    //     // Counter1 finishes and removed from queue, so count is same.
-    //     assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
-    //     assert_eq!(
-    //         counts.borrow().clone(),
-    //         vec![
-    //             ("Counter1", TaskStatus::Ready(1)),
-    //             ("Counter2", TaskStatus::Ready(1)),
-    //             ("Counter2", TaskStatus::Ready(2)),
-    //             ("Counter1", TaskStatus::Ready(3)),
-    //         ]
-    //     );
+        // Counter1 finishes and removed from queue, so count is same.
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+                ("Counter1", TaskStatus::Ready(3)),
+            ]
+        );
 
-    //     assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
-    //     assert_eq!(
-    //         counts.borrow().clone(),
-    //         vec![
-    //             ("Counter1", TaskStatus::Ready(1)),
-    //             ("Counter2", TaskStatus::Ready(1)),
-    //             ("Counter2", TaskStatus::Ready(2)),
-    //             ("Counter1", TaskStatus::Ready(3)),
-    //             ("Counter2", TaskStatus::Ready(3)),
-    //         ]
-    //     );
-    //     assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
-    //     assert_eq!(
-    //         counts.borrow().clone(),
-    //         vec![
-    //             ("Counter1", TaskStatus::Ready(1)),
-    //             ("Counter2", TaskStatus::Ready(1)),
-    //             ("Counter2", TaskStatus::Ready(2)),
-    //             ("Counter1", TaskStatus::Ready(3)),
-    //             ("Counter2", TaskStatus::Ready(3)),
-    //             ("Counter2", TaskStatus::Ready(4)),
-    //         ]
-    //     );
-    // }
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+                ("Counter1", TaskStatus::Ready(3)),
+                ("Counter2", TaskStatus::Ready(3)),
+            ]
+        );
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+                ("Counter1", TaskStatus::Ready(3)),
+                ("Counter2", TaskStatus::Ready(3)),
+                ("Counter2", TaskStatus::Ready(4)),
+            ]
+        );
+    }
 
-    // #[test]
-    // #[traced_test]
-    // fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks() {
-    //     let global: ConcurrentQueue<BoxedStateIterator> = ConcurrentQueue::bounded(10);
+    #[test]
+    #[traced_test]
+    fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks() {
+        let global: Arc<ConcurrentQueue<EngineExecutionIterator>> =
+            Arc::new(ConcurrentQueue::bounded(10));
 
-    //     let counts: Rc<RefCell<Vec<(&'static str, TaskStatus<usize, time::Duration>)>>> =
-    //         Rc::new(RefCell::new(Vec::new()));
+        let counts: Rc<RefCell<Vec<(&'static str, TaskStatus<usize, time::Duration>)>>> =
+            Rc::new(RefCell::new(Vec::new()));
 
-    //     let count_clone = Rc::clone(&counts);
-    //     panic_if_failed!(global.push(Box::new(SimpleScheduledTask::on_next_mut(
-    //         Counter("Counter1", 0, 4, 2),
-    //         move |next| count_clone.borrow_mut().push(("Counter1", next))
-    //     ))));
+        let seed = rand::thread_rng().next_u64();
 
-    //     let count_clone2 = Rc::clone(&counts);
-    //     panic_if_failed!(global.push(Box::new(SimpleScheduledTask::on_next_mut(
-    //         Counter("Counter2", 0, 5, 10),
-    //         move |next| count_clone2.borrow_mut().push(("Counter2", next))
-    //     ))));
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            global.clone(),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            Box::new(NoYielder::default()),
+        );
 
-    //     let seed = rand::thread_rng().next_u64();
+        let count_clone = Rc::clone(&counts);
+        panic_if_failed!(global.push(EngineExecutionIterator::new(
+            executor.clone_state(),
+            Box::new(SimpleScheduledTask::on_next_mut(
+                Counter("Counter1", 0, 4, 2),
+                move |next, _| count_clone.borrow_mut().push(("Counter1", next))
+            ))
+        )));
 
-    //     let executor = LocalThreadExecutor::from_seed(
-    //         seed,
-    //         Arc::new(global),
-    //         IdleMan::new(
-    //             3,
-    //             None,
-    //             SleepyMan::new(3, ExponentialBackoffDecider::default()),
-    //         ),
-    //         PriorityOrder::Bottom,
-    //         Box::new(NoYielder::default()),
-    //     );
+        let count_clone2 = Rc::clone(&counts);
+        panic_if_failed!(global.push(EngineExecutionIterator::new(
+            executor.clone_state(),
+            Box::new(SimpleScheduledTask::on_next_mut(
+                Counter("Counter2", 0, 5, 10),
+                move |next, _| count_clone2.borrow_mut().push(("Counter2", next))
+            ))
+        )));
 
-    //     assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
 
-    //     assert_eq!(
-    //         counts.borrow().clone(),
-    //         vec![("Counter1", TaskStatus::Ready(1)),]
-    //     );
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![("Counter1", TaskStatus::Ready(1)),]
+        );
 
-    //     assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
 
-    //     assert_eq!(
-    //         counts.borrow().clone(),
-    //         vec![("Counter1", TaskStatus::Ready(1)),]
-    //     );
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![("Counter1", TaskStatus::Ready(1)),]
+        );
 
-    //     assert_eq!(executor.number_of_sleepers(), 1);
+        assert_eq!(executor.number_of_sleepers(), 1);
 
-    //     assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
-    //     assert_eq!(
-    //         counts.borrow().clone(),
-    //         vec![
-    //             ("Counter1", TaskStatus::Ready(1)),
-    //             ("Counter2", TaskStatus::Ready(1)),
-    //         ]
-    //     );
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+            ]
+        );
 
-    //     assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
-    //     assert_eq!(
-    //         counts.borrow().clone(),
-    //         vec![
-    //             ("Counter1", TaskStatus::Ready(1)),
-    //             ("Counter2", TaskStatus::Ready(1)),
-    //             ("Counter2", TaskStatus::Ready(2)),
-    //         ]
-    //     );
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+            ]
+        );
 
-    //     // wait for 5ms and validate we made progress
-    //     tracing::debug!("Sleeping thread for 5ms");
-    //     thread::sleep(time::Duration::from_millis(5));
-    //     tracing::debug!("Finished sleeping thread for 5ms");
+        // wait for 5ms and validate we made progress
+        tracing::debug!("Sleeping thread for 5ms");
+        thread::sleep(time::Duration::from_millis(5));
+        tracing::debug!("Finished sleeping thread for 5ms");
 
-    //     // Counter1 is brought back in as priority
-    //     assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
-    //     assert_eq!(
-    //         counts.borrow().clone(),
-    //         vec![
-    //             ("Counter1", TaskStatus::Ready(1)),
-    //             ("Counter2", TaskStatus::Ready(1)),
-    //             ("Counter2", TaskStatus::Ready(2)),
-    //             ("Counter2", TaskStatus::Ready(3)),
-    //         ]
-    //     );
+        // Counter1 is brought back in as priority
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+                ("Counter2", TaskStatus::Ready(3)),
+            ]
+        );
 
-    //     assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
-    //     assert_eq!(
-    //         counts.borrow().clone(),
-    //         vec![
-    //             ("Counter1", TaskStatus::Ready(1)),
-    //             ("Counter2", TaskStatus::Ready(1)),
-    //             ("Counter2", TaskStatus::Ready(2)),
-    //             ("Counter2", TaskStatus::Ready(3)),
-    //             ("Counter2", TaskStatus::Ready(4)),
-    //         ]
-    //     );
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+                ("Counter2", TaskStatus::Ready(3)),
+                ("Counter2", TaskStatus::Ready(4)),
+            ]
+        );
 
-    //     // Counter2 triggers Done signal
-    //     assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
-    //     assert_eq!(
-    //         counts.borrow().clone(),
-    //         vec![
-    //             ("Counter1", TaskStatus::Ready(1)),
-    //             ("Counter2", TaskStatus::Ready(1)),
-    //             ("Counter2", TaskStatus::Ready(2)),
-    //             ("Counter2", TaskStatus::Ready(3)),
-    //             ("Counter2", TaskStatus::Ready(4)),
-    //         ]
-    //     );
+        // Counter2 triggers Done signal
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+                ("Counter2", TaskStatus::Ready(3)),
+                ("Counter2", TaskStatus::Ready(4)),
+            ]
+        );
 
-    //     assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
-    //     assert_eq!(
-    //         counts.borrow().clone(),
-    //         vec![
-    //             ("Counter1", TaskStatus::Ready(1)),
-    //             ("Counter2", TaskStatus::Ready(1)),
-    //             ("Counter2", TaskStatus::Ready(2)),
-    //             ("Counter2", TaskStatus::Ready(3)),
-    //             ("Counter2", TaskStatus::Ready(4)),
-    //             ("Counter1", TaskStatus::Ready(3)),
-    //         ]
-    //     );
+        assert_eq!(executor.make_progress(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+                ("Counter2", TaskStatus::Ready(3)),
+                ("Counter2", TaskStatus::Ready(4)),
+                ("Counter1", TaskStatus::Ready(3)),
+            ]
+        );
 
-    //     assert_eq!(executor.make_progress(), ProgressIndicator::NoWork);
+        assert_eq!(executor.make_progress(), ProgressIndicator::NoWork);
 
-    //     assert_eq!(
-    //         counts.borrow().clone(),
-    //         vec![
-    //             ("Counter1", TaskStatus::Ready(1)),
-    //             ("Counter2", TaskStatus::Ready(1)),
-    //             ("Counter2", TaskStatus::Ready(2)),
-    //             ("Counter2", TaskStatus::Ready(3)),
-    //             ("Counter2", TaskStatus::Ready(4)),
-    //             ("Counter1", TaskStatus::Ready(3)),
-    //         ]
-    //     );
-    // }
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+                ("Counter2", TaskStatus::Ready(3)),
+                ("Counter2", TaskStatus::Ready(4)),
+                ("Counter1", TaskStatus::Ready(3)),
+            ]
+        );
+    }
 
     #[test]
     #[traced_test]
