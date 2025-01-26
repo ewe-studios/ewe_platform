@@ -41,7 +41,7 @@ pub trait ExecutionEngine {
     /// execution queue which pauses all processing task till that
     /// point till the new task is done or goes to sleep (dependent on
     /// the internals of the ExecutionEngine).
-    fn lift(&self, task: impl ExecutionIterator<Self>)
+    fn lift(&self, task: impl ExecutionIterator<Executor = Self>)
     where
         Self: Sized;
 
@@ -49,7 +49,7 @@ pub trait ExecutionEngine {
     /// execution queue which pauses all processing task till that
     /// point till the new task is done or goes to sleep (dependent on
     /// the internals of the ExecutionEngine).
-    fn schedule(&self, task: impl ExecutionIterator<Self>)
+    fn schedule(&self, task: impl ExecutionIterator<Executor = Self>)
     where
         Self: Sized;
 
@@ -57,12 +57,12 @@ pub trait ExecutionEngine {
     /// which then lets the giving task to be sent of to the same or another
     /// executor in another thread for processing, which requires the type to be
     /// `Send` safe.
-    fn broadcast(&self, task: impl ExecutionIterator<Self>)
+    fn broadcast(&self, task: impl ExecutionIterator<Executor = Self>)
     where
         Self: Sized;
 }
 
-pub type BoxedExecutionIterator<M> = Box<dyn ExecutionIterator<M>>;
+pub type BoxedExecutionIterator<M> = Box<dyn ExecutionIterator<Executor = M>>;
 
 /// ExecutionIterator is a type of Iterator that
 /// uniquely always just returns the State of
@@ -73,8 +73,10 @@ pub type BoxedExecutionIterator<M> = Box<dyn ExecutionIterator<M>>;
 /// It provides a clean way for an execution engine to
 /// progressively generate progress for task only based on
 /// the underlying state information it returns.
-pub trait ExecutionIterator<M> {
-    fn next(&mut self, executor: M) -> Option<State>;
+pub trait ExecutionIterator {
+    type Executor: ExecutionEngine;
+
+    fn next(&mut self, executor: Self::Executor) -> Option<State>;
 }
 
 pub type BoxedTaskReadyResolver<D, P> = Box<dyn TaskReadyResolver<D, P>>;

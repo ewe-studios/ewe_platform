@@ -716,13 +716,13 @@ impl ReferencedExecutorState {
 
 pub(crate) struct EngineExecutionIterator {
     engine: ReferencedExecutorState,
-    iter: Box<dyn ExecutionIterator<ReferencedExecutorState>>,
+    iter: Box<dyn ExecutionIterator<Executor = ReferencedExecutorState>>,
 }
 
 impl EngineExecutionIterator {
     pub fn new(
         engine: ReferencedExecutorState,
-        iter: Box<dyn ExecutionIterator<ReferencedExecutorState>>,
+        iter: Box<dyn ExecutionIterator<Executor = ReferencedExecutorState>>,
     ) -> Self {
         Self { engine, iter }
     }
@@ -737,21 +737,21 @@ impl Iterator for EngineExecutionIterator {
 }
 
 impl ExecutionEngine for ReferencedExecutorState {
-    fn lift(&self, task: impl ExecutionIterator<Self>)
+    fn lift(&self, task: impl ExecutionIterator<Executor = Self>)
     where
         Self: Sized,
     {
         todo!()
     }
 
-    fn schedule(&self, task: impl ExecutionIterator<Self>)
+    fn schedule(&self, task: impl ExecutionIterator<Executor = Self>)
     where
         Self: Sized,
     {
         todo!()
     }
 
-    fn broadcast(&self, task: impl ExecutionIterator<Self>)
+    fn broadcast(&self, task: impl ExecutionIterator<Executor = Self>)
     where
         Self: Sized,
     {
