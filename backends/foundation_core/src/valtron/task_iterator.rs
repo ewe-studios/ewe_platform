@@ -53,9 +53,10 @@ impl<D: PartialEq, P: PartialEq, S> PartialEq for TaskStatus<D, P, S> {
 
 impl<D: core::fmt::Debug, P: core::fmt::Debug, S> core::fmt::Debug for TaskStatus<D, P, S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        #[allow(unused)]
         #[derive(Debug)]
         enum TStatus<D, P> {
-            Delay(time::Duration),
+            Delayed(time::Duration),
             Pending(P),
             Ready(D),
             Init,
@@ -63,9 +64,9 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug, S> core::fmt::Debug for TaskStatu
         }
 
         let debug_item = match self {
-            TaskStatus::Delayed(duration) => TStatus::Delay(duration.clone()),
-            TaskStatus::Pending(inner) => TStatus::Pending(inner.clone()),
-            TaskStatus::Ready(inner) => TStatus::Ready(inner.clone()),
+            TaskStatus::Delayed(duration) => TStatus::Delayed(duration.clone()),
+            TaskStatus::Pending(inner) => TStatus::Pending(inner),
+            TaskStatus::Ready(inner) => TStatus::Ready(inner),
             TaskStatus::Spawn(_) => TStatus::Spawn,
             TaskStatus::Init => TStatus::Init,
         };
