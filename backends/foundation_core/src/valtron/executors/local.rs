@@ -11,7 +11,7 @@ use std::{
 
 use crate::{
     synca::{Entry, EntryList, IdleMan, Sleepers, Waiter, Wakeable},
-    valtron::{AnyResult, ExecutionEngine, ExecutionIterator, State},
+    valtron::{AnyResult, ExecutionEngine, ExecutionIterator, NonSendGenericResult, State},
 };
 use derive_more::derive::From;
 use rand::SeedableRng;
@@ -636,7 +636,7 @@ impl<T: ExecutionIterator> ReferencedExecutorState<T> {
 
         match handle.local_tasks.get_mut(&top_entry) {
             Some(iter) => {
-                match iter.next(engine) {
+                match iter.next(top_entry.clone(), engine) {
                     Some(state) => {
                         tracing::debug!("Task delivered state: {:?}", &state);
                         match state {
@@ -741,32 +741,58 @@ impl LocalExecutorEngine {
 }
 
 impl ExecutionEngine for LocalExecutorEngine {
-    fn lift(&self, task: impl ExecutionIterator<Executor = Self>)
+    fn lift(
+        &self,
+        task: impl ExecutionIterator<Executor = Self> + 'static,
+    ) -> NonSendGenericResult<()>
+    where
+        Self: Sized,
+    {
+        let entry = self.inner.borrow_mut().lift(Box::new(task), None)?;
+        tracing::debug!("lift: new task into Executor with entry: {:?}", entry);
+        Ok(())
+    }
+
+    fn schedule(
+        &self,
+        task: impl ExecutionIterator<Executor = Self> + 'static,
+    ) -> NonSendGenericResult<()>
+    where
+        Self: Sized,
+    {
+        let entry = self.inner.borrow_mut().schedule(Box::new(task));
+        tracing::debug!("schedule: new task into Executor with entry: {:?}", entry);
+        Ok(())
+    }
+
+    fn broadcast(
+        &self,
+        task: impl ExecutionIterator<Executor = Self> + 'static,
+    ) -> NonSendGenericResult<()>
     where
         Self: Sized,
     {
         todo!()
     }
 
-    fn schedule(&self, task: impl ExecutionIterator<Executor = Self>)
+    fn lift_from(
+        &self,
+        parent: Entry,
+        task: impl ExecutionIterator<Executor = Self> + 'static,
+    ) -> NonSendGenericResult<()>
     where
         Self: Sized,
     {
-        todo!()
-    }
-
-    fn broadcast(&self, task: impl ExecutionIterator<Executor = Self>)
-    where
-        Self: Sized,
-    {
-        todo!()
-    }
-
-    fn lift_from(&self, parent: Entry, task: impl ExecutionIterator<Executor = Self>)
-    where
-        Self: Sized,
-    {
-        todo!()
+        let entry = self
+            .inner
+            .borrow_mut()
+            .lift(Box::new(task), Some(parent.clone()))?;
+        tracing::debug!(
+            "lift: new task into Executor with entry: {:?} from parent: {:?}",
+            entry,
+            parent
+        );
+        Ok(())
     }
 }
 

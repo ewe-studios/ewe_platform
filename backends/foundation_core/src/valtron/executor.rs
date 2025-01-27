@@ -2,7 +2,7 @@ use std::{cell, marker::PhantomData, time};
 
 use crate::synca::Entry;
 
-use super::task_iterator::TaskStatus;
+use super::{task_iterator::TaskStatus, GenericResult, NonSendGenericResult};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum State {
@@ -46,7 +46,7 @@ pub type BoxedSendStateIterator = Box<dyn Iterator<Item = State> + Send>;
 pub trait ExecutionIterator {
     type Executor: ExecutionEngine;
 
-    fn next(&mut self, executor: Self::Executor) -> Option<State>;
+    fn next(&mut self, entry: Entry, executor: Self::Executor) -> Option<State>;
 }
 
 impl<'a, M, Executor> ExecutionIterator for &'a mut M
@@ -56,8 +56,8 @@ where
 {
     type Executor = M::Executor;
 
-    fn next(&mut self, executor: Self::Executor) -> Option<State> {
-        (**self).next(executor)
+    fn next(&mut self, entry: Entry, executor: Self::Executor) -> Option<State> {
+        (**self).next(entry, executor)
     }
 }
 
@@ -68,8 +68,8 @@ where
 {
     type Executor = M::Executor;
 
-    fn next(&mut self, executor: Self::Executor) -> Option<State> {
-        (**self).next(executor)
+    fn next(&mut self, entry: Entry, executor: Self::Executor) -> Option<State> {
+        (**self).next(entry, executor)
     }
 }
 
@@ -83,7 +83,11 @@ pub trait ExecutionEngine {
     /// key which then pauses all processing task till that
     /// point till the new task is done and connects both the task
     /// and the parents as dependents.
-    fn lift_from(&self, parent: Entry, task: impl ExecutionIterator<Executor = Self>)
+    fn lift_from(
+        &self,
+        parent: Entry,
+        task: impl ExecutionIterator<Executor = Self> + 'static,
+    ) -> NonSendGenericResult<()>
     where
         Self: Sized;
 
@@ -91,7 +95,10 @@ pub trait ExecutionEngine {
     /// execution queue which pauses all processing task till that
     /// point till the new task is done or goes to sleep (dependent on
     /// the internals of the ExecutionEngine).
-    fn lift(&self, task: impl ExecutionIterator<Executor = Self>)
+    fn lift(
+        &self,
+        task: impl ExecutionIterator<Executor = Self> + 'static,
+    ) -> NonSendGenericResult<()>
     where
         Self: Sized;
 
@@ -99,7 +106,10 @@ pub trait ExecutionEngine {
     /// execution queue which pauses all processing task till that
     /// point till the new task is done or goes to sleep (dependent on
     /// the internals of the ExecutionEngine).
-    fn schedule(&self, task: impl ExecutionIterator<Executor = Self>)
+    fn schedule(
+        &self,
+        task: impl ExecutionIterator<Executor = Self> + 'static,
+    ) -> NonSendGenericResult<()>
     where
         Self: Sized;
 
@@ -107,7 +117,10 @@ pub trait ExecutionEngine {
     /// which then lets the giving task to be sent of to the same or another
     /// executor in another thread for processing, which requires the type to be
     /// `Send` safe.
-    fn broadcast(&self, task: impl ExecutionIterator<Executor = Self>)
+    fn broadcast(
+        &self,
+        task: impl ExecutionIterator<Executor = Self> + 'static,
+    ) -> NonSendGenericResult<()>
     where
         Self: Sized;
 }
