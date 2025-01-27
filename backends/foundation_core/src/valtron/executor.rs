@@ -1,5 +1,7 @@
 use std::{cell, marker::PhantomData, time};
 
+use crate::synca::Entry;
+
 use super::task_iterator::TaskStatus;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -32,11 +34,59 @@ pub enum State {
 pub type BoxedStateIterator = Box<dyn Iterator<Item = State>>;
 pub type BoxedSendStateIterator = Box<dyn Iterator<Item = State> + Send>;
 
+/// ExecutionIterator is a type of Iterator that
+/// uniquely always just returns the State of
+/// it's internal procecesses and never
+/// an actual value of the internal calculation
+/// it performs.
+///
+/// It provides a clean way for an execution engine to
+/// progressively generate progress for task only based on
+/// the underlying state information it returns.
+pub trait ExecutionIterator {
+    type Executor: ExecutionEngine;
+
+    fn next(&mut self, executor: Self::Executor) -> Option<State>;
+}
+
+impl<'a, M, Executor> ExecutionIterator for &'a mut M
+where
+    Executor: ExecutionEngine,
+    M: ExecutionIterator<Executor = Executor>,
+{
+    type Executor = M::Executor;
+
+    fn next(&mut self, executor: Self::Executor) -> Option<State> {
+        (**self).next(executor)
+    }
+}
+
+impl<M, Executor> ExecutionIterator for Box<M>
+where
+    Executor: ExecutionEngine,
+    M: ExecutionIterator<Executor = Executor> + ?Sized,
+{
+    type Executor = M::Executor;
+
+    fn next(&mut self, executor: Self::Executor) -> Option<State> {
+        (**self).next(executor)
+    }
+}
+
 /// ExecutorEngine is the backbone of the valtron execution model
 /// they can be spawned within threads or be the singular owner
 /// of a thread which the user/caller create to manage execution within the
 /// thread.
 pub trait ExecutionEngine {
+    /// lift_from prioritizes an incoming task to the top of the local
+    /// execution queue from a parent identifed by the parent's `Entry`
+    /// key which then pauses all processing task till that
+    /// point till the new task is done and connects both the task
+    /// and the parents as dependents.
+    fn lift_from(&self, parent: Entry, task: impl ExecutionIterator<Executor = Self>)
+    where
+        Self: Sized;
+
     /// lift prioritizes an incoming task to the top of the local
     /// execution queue which pauses all processing task till that
     /// point till the new task is done or goes to sleep (dependent on
@@ -101,11 +151,17 @@ where
     }
 }
 
-pub struct FnClonableAction<F: Clone>(F);
+pub struct FnClonableAction<F: Fn(Box<dyn ExecutionEngine>) + Clone>(F);
 
-impl<F: Clone> FnClonableAction<F> {
+impl<F: Fn(Box<dyn ExecutionEngine>) + Clone> FnClonableAction<F> {
     pub fn new(f: F) -> Self {
         Self(f)
+    }
+}
+
+impl<F: Fn(Box<dyn ExecutionEngine>) + Clone> Clone for FnClonableAction<F> {
+    fn clone(&self) -> Self {
+        FnClonableAction(self.0.clone())
     }
 }
 
@@ -118,42 +174,16 @@ where
     }
 }
 
-impl<F: Clone> Clone for FnClonableAction<F> {
-    fn clone(&self) -> Self {
-        FnClonableAction(self.0.clone())
+#[cfg(test)]
+mod test_execution_action {
+    use super::*;
+
+    #[test]
+    fn can_clone_fn_clonable_action() {
+        let action = FnClonableAction::new(|_exec| {});
+        let action2 = action.clone();
+        _ = action2;
     }
-}
-
-pub struct FnAction<F>(F);
-
-impl<F> FnAction<F> {
-    pub fn new(f: F) -> Self {
-        Self(f)
-    }
-}
-
-impl<F> ExecutionAction for FnAction<F>
-where
-    F: Fn(Box<dyn ExecutionEngine>),
-{
-    fn apply(&self, executor: Box<dyn ExecutionEngine>) {
-        (self.0)(executor)
-    }
-}
-
-/// ExecutionIterator is a type of Iterator that
-/// uniquely always just returns the State of
-/// it's internal procecesses and never
-/// an actual value of the internal calculation
-/// it performs.
-///
-/// It provides a clean way for an execution engine to
-/// progressively generate progress for task only based on
-/// the underlying state information it returns.
-pub trait ExecutionIterator {
-    type Executor: ExecutionEngine;
-
-    fn next(&mut self, executor: Self::Executor) -> Option<State>;
 }
 
 pub type BoxedTaskReadyResolver<D, P> = Box<dyn TaskReadyResolver<D, P>>;
