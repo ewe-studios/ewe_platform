@@ -11,15 +11,14 @@ use std::{
 
 use crate::{
     synca::{Entry, EntryList, IdleMan, Sleepers, Waiter, Wakeable},
-    valtron::{AnyResult, ExecutionEngine, ExecutionIterator, NonSendGenericResult, State},
+    valtron::{AnyResult, ExecutionEngine, ExecutionIterator, State},
 };
-use derive_more::derive::From;
 use rand::SeedableRng;
 use rand_chacha::ChaCha8Rng;
 
 use concurrent_queue::{ConcurrentQueue, PushError};
 
-use super::CloneProcessController;
+use super::{CloneProcessController, ExecutorError};
 
 /// PriorityOrder defines how wake up tasks should placed once woken up.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -135,41 +134,6 @@ impl<T: ExecutionIterator> ExecutorState<T> {
 }
 
 // --- implementations
-
-#[derive(Clone, Debug, From)]
-pub enum ExecutorError {
-    /// Executor failed to lift a new task as priority.
-    FailedToLift,
-
-    /// Executor cant schedule new task as provided.
-    FailedToSchedule,
-
-    /// Indicates a task has already lifted another
-    /// task as priority and cant lift another since by
-    /// definition it should not at all be able to do so
-    /// since its not being executed at such periods of time.
-    AlreadyLiftedTask,
-
-    /// Is issued when a task not currently being processed by the executor
-    /// attempts to lift a task as priority, only currently executing tasks
-    /// can do that.
-    ParentMustBeExecutingToLift,
-
-    /// Issued when queue is closed and we are unable to deliver tasks anymore.
-    QueueClosed,
-
-    /// Issued when the queue is a bounded queue and execution of new tasks is
-    /// impossible.
-    QueueFull,
-}
-
-impl std::error::Error for ExecutorError {}
-
-impl core::fmt::Display for ExecutorError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{self:?}")
-    }
-}
 
 /// ScheduleOutcome communicates the outcome of an attempt to
 /// schedule a task from the global queue.
@@ -429,13 +393,11 @@ impl<T: ExecutionIterator> ExecutorState<T> {
         self.processing.push_back(task_entry.clone());
         Ok(task_entry)
     }
-}
 
-impl<T: ExecutionIterator + Send> ExecutorState<T> {
     /// Delivers a task (Iterator) type to the global execution queue
     /// and in such a case you do not have an handle to the task as we
     /// no more have control as to where it gets allocated.
-    pub fn distribute(&mut self, task: T) -> AnyResult<(), ExecutorError> {
+    pub fn broadcast(&mut self, task: T) -> AnyResult<(), ExecutorError> {
         match self.global_tasks.push(task) {
             Ok(_) => Ok(()),
             Err(err) => match err {
@@ -640,6 +602,9 @@ impl<T: ExecutionIterator> ReferencedExecutorState<T> {
                     Some(state) => {
                         tracing::debug!("Task delivered state: {:?}", &state);
                         match state {
+                            State::SpawnFailed => {
+                                unreachable!("Executor should never fail to spawn a task");
+                            }
                             State::Done => {
                                 tracing::debug!(
                                     "Task as finished with State::Done (rem_tasks: {})",
@@ -728,10 +693,83 @@ impl<T: ExecutionIterator> ReferencedExecutorState<T> {
 
 // --- LocalExecutor for ExecutionIterator::Executor
 
+pub type BoxedCloneSendLocalExecutorIterator =
+    Box<dyn ExecutionIterator<Executor = LocalExecutorEngine> + Send>;
+
 pub type BoxedLocalExecutorIterator = Box<dyn ExecutionIterator<Executor = LocalExecutorEngine>>;
+
+// pub enum SpawnAction {
+//     NoAction,
+
+//     Schedule(BoxedLocalExecutorIterator),
+
+//     /// Broadcast
+//     Broadcast(BoxedCloneSendLocalExecutorIterator),
+
+//     /// Lift allows you to spawn a task that is spawned
+//     /// to be the priority task handled by the local
+//     /// execution queue of the task that spawns the giving
+//     /// action, if the Second value of Entry(reppresenting)
+//     /// the current task key is supplied, then both
+//     /// task are tied together creating a shared
+//     /// dependency graph for both tasks.
+//     Lift(BoxedLocalExecutorIterator, Option<Entry>),
+// }
+
+// impl ExecutionAction for SpawnAction {
+//     fn apply(&self, key: Entry, executor: Box<dyn ExecutionEngine>) -> GenericResult<()> {
+//         match self {
+//             SpawnAction::NoAction => Ok(()),
+//             SpawnAction::Schedule(task) => {
+//                 // whats happening
+//                 executor.schedule(task)
+//             }
+//             SpawnAction::Broadcast(execution_iterator) => todo!(),
+//             SpawnAction::Lift(execution_iterator, entry) => todo!(),
+//         }
+//     }
+// }
+
+// impl Default for SpawnAction {
+//     fn default() -> Self {
+//         Self::NoAction
+//     }
+// }
+
+// impl core::fmt::Debug for SpawnAction {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         match self {
+//             SpawnAction::NoAction => f.write_str("SpawnAction::NoAction"),
+//             SpawnAction::Schedule(_) => f.write_str("SpawnAction::Schedule(_)"),
+//             SpawnAction::Broadcast(_) => f.write_str("SpawnAction::Broadcast(_)"),
+//             SpawnAction::Lift(_, entry) => write!(f, "SpawnAction::Lift(_, {:?})", entry),
+//         }
+//     }
+// }
+
+// impl Clone for SpawnAction {
+//     fn clone(&self) -> Self {
+//         match self {
+//             SpawnAction::NoAction => SpawnAction::NoAction,
+//             SpawnAction::Schedule(inner) => SpawnAction::Schedule(inner.clone_execution_action()),
+//             SpawnAction::Broadcast(inner) => SpawnAction::Broadcast(inner.clone_execution_action()),
+//             SpawnAction::Lift(inner, entry) => {
+//                 SpawnAction::Lift(inner.clone_execution_action(), entry.clone())
+//             }
+//         }
+//     }
+// }
 
 pub struct LocalExecutorEngine {
     inner: rc::Rc<cell::RefCell<ExecutorState<BoxedLocalExecutorIterator>>>,
+}
+
+impl Clone for LocalExecutorEngine {
+    fn clone(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+        }
+    }
 }
 
 impl LocalExecutorEngine {
@@ -741,57 +779,37 @@ impl LocalExecutorEngine {
 }
 
 impl ExecutionEngine for LocalExecutorEngine {
+    type Executor = LocalExecutorEngine;
+
     fn lift(
         &self,
-        task: impl ExecutionIterator<Executor = Self> + 'static,
-    ) -> NonSendGenericResult<()>
-    where
-        Self: Sized,
-    {
-        let entry = self.inner.borrow_mut().lift(Box::new(task), None)?;
-        tracing::debug!("lift: new task into Executor with entry: {:?}", entry);
+        task: Box<dyn ExecutionIterator<Executor = Self::Executor>>,
+        parent: Option<Entry>,
+    ) -> AnyResult<(), ExecutorError> {
+        let entry = self.inner.borrow_mut().lift(task, parent.clone())?;
+        tracing::debug!(
+            "lift: new task with entry: {:?} from parent: {:?}",
+            entry,
+            parent
+        );
         Ok(())
     }
 
     fn schedule(
         &self,
-        task: impl ExecutionIterator<Executor = Self> + 'static,
-    ) -> NonSendGenericResult<()>
-    where
-        Self: Sized,
-    {
-        let entry = self.inner.borrow_mut().schedule(Box::new(task));
+        task: Box<dyn ExecutionIterator<Executor = Self::Executor>>,
+    ) -> AnyResult<(), ExecutorError> {
+        let entry = self.inner.borrow_mut().schedule(task)?;
         tracing::debug!("schedule: new task into Executor with entry: {:?}", entry);
         Ok(())
     }
 
     fn broadcast(
         &self,
-        task: impl ExecutionIterator<Executor = Self> + 'static,
-    ) -> NonSendGenericResult<()>
-    where
-        Self: Sized,
-    {
-        todo!()
-    }
-
-    fn lift_from(
-        &self,
-        parent: Entry,
-        task: impl ExecutionIterator<Executor = Self> + 'static,
-    ) -> NonSendGenericResult<()>
-    where
-        Self: Sized,
-    {
-        let entry = self
-            .inner
-            .borrow_mut()
-            .lift(Box::new(task), Some(parent.clone()))?;
-        tracing::debug!(
-            "lift: new task into Executor with entry: {:?} from parent: {:?}",
-            entry,
-            parent
-        );
+        task: Box<dyn ExecutionIterator<Executor = Self::Executor> + Send>,
+    ) -> AnyResult<(), ExecutorError> {
+        self.inner.borrow_mut().broadcast(task)?;
+        tracing::debug!("broadcast: new task into Executor");
         Ok(())
     }
 }
@@ -931,10 +949,7 @@ mod test_local_thread_executor {
         panic_if_failed,
         retries::ExponentialBackoffDecider,
         synca::SleepyMan,
-        valtron::{
-            task_iterator::{TaskIterator, TaskStatus},
-            ProcessController, SimpleScheduledTask,
-        },
+        valtron::{ProcessController, SimpleScheduledTask, TaskIterator, TaskStatus},
     };
 
     use super::*;
@@ -963,9 +978,7 @@ mod test_local_thread_executor {
         type Done = usize;
         type Pending = time::Duration;
 
-        fn next(
-            &mut self,
-        ) -> Option<crate::valtron::task_iterator::TaskStatus<Self::Done, Self::Pending>> {
+        fn next(&mut self) -> Option<TaskStatus<Self::Done, Self::Pending>> {
             let old_count = self.1;
             let new_count = old_count + 1;
             self.1 = new_count;
