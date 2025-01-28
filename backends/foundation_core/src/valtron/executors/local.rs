@@ -11,17 +11,14 @@ use std::{
 
 use crate::{
     synca::{Entry, EntryList, IdleMan, Sleepers, Waiter, Wakeable},
-    valtron::{AnyResult, ExecutionEngine, ExecutionIterator, GenericResult, State},
+    valtron::{AnyResult, ExecutionEngine, ExecutionIterator, State},
 };
 use rand::SeedableRng;
 use rand_chacha::ChaCha8Rng;
 
 use concurrent_queue::{ConcurrentQueue, PushError};
 
-use super::{
-    BoxedCloneLocalExecutorIterator, BoxedLocalExecutionIterator, ClonableExecutionIterator,
-    CloneProcessController, ExecutionAction, ExecutorError, IntoRawExecutionIterator,
-};
+use super::{BoxedLocalExecutionIterator, CloneProcessController, ExecutorError};
 
 /// PriorityOrder defines how wake up tasks should placed once woken up.
 #[derive(Clone, Debug, Eq, PartialEq)]
