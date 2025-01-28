@@ -7,7 +7,7 @@ use crate::{
     valtron::{AnyResult, GenericResult},
 };
 
-use super::task_iterator::TaskStatus;
+use super::{task_iterator::TaskStatus, LocalExecutorEngine};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum State {
@@ -57,6 +57,70 @@ pub trait ExecutionIterator {
     type Executor: ExecutionEngine;
 
     fn next(&mut self, entry: Entry, executor: Self::Executor) -> Option<State>;
+}
+
+pub type BoxedLocalExecutionIterator = Box<dyn ExecutionIterator<Executor = LocalExecutorEngine>>;
+
+pub type BoxedCloneSendLocalExecutorIterator =
+    Box<dyn ClonableExecutionIterator<Executor = LocalExecutorEngine> + Send>;
+
+pub type BoxedCloneLocalExecutorIterator =
+    Box<dyn ClonableExecutionIterator<Executor = LocalExecutorEngine>>;
+
+pub trait ClonableExecutionIterator: ExecutionIterator {
+    fn clone_execution_iterator(
+        &self,
+    ) -> Box<dyn ClonableExecutionIterator<Executor = Self::Executor>>;
+}
+
+pub trait IntoRawExecutionIterator: ClonableExecutionIterator {
+    fn into_execution_iterator(self) -> Box<dyn ExecutionIterator<Executor = Self::Executor>>;
+}
+
+impl<M, Executor> IntoRawExecutionIterator for M
+where
+    Executor: ExecutionEngine,
+    M: ClonableExecutionIterator<Executor = Executor> + 'static,
+{
+    fn into_execution_iterator(self) -> Box<dyn ExecutionIterator<Executor = Self::Executor>> {
+        Box::new(self)
+    }
+}
+
+impl<M, Executor> ClonableExecutionIterator for M
+where
+    Executor: ExecutionEngine,
+    M: ExecutionIterator<Executor = Executor> + Clone + 'static,
+{
+    fn clone_execution_iterator(
+        &self,
+    ) -> Box<dyn ClonableExecutionIterator<Executor = Self::Executor>> {
+        Box::new(self.clone())
+    }
+}
+
+pub struct CanCloneExecutionIterator<E: ExecutionEngine>(
+    Box<dyn ClonableExecutionIterator<Executor = E>>,
+);
+
+impl CanCloneExecutionIterator<LocalExecutorEngine> {
+    pub fn new(elem: Box<dyn ClonableExecutionIterator<Executor = LocalExecutorEngine>>) -> Self {
+        Self(elem)
+    }
+}
+
+impl<E: ExecutionEngine> Clone for CanCloneExecutionIterator<E> {
+    fn clone(&self) -> Self {
+        Self(self.0.clone_execution_iterator())
+    }
+}
+
+impl<E: ExecutionEngine> ExecutionIterator for CanCloneExecutionIterator<E> {
+    type Executor = E;
+
+    fn next(&mut self, entry: Entry, executor: Self::Executor) -> Option<State> {
+        self.0.next(entry, executor)
+    }
 }
 
 impl<'a, M, Executor> ExecutionIterator for &'a mut M
@@ -153,7 +217,7 @@ pub trait ExecutionEngine {
     /// `Send` safe.
     fn broadcast(
         &self,
-        task: Box<dyn ExecutionIterator<Executor = Self::Executor> + Send>,
+        task: Box<dyn ExecutionIterator<Executor = Self::Executor>>,
     ) -> AnyResult<(), ExecutorError>;
 }
 
@@ -164,8 +228,10 @@ pub type BoxedExecutionIterator<M> = Box<dyn ExecutionIterator<Executor = M>>;
 pub trait ExecutionAction {
     type Engine: ExecutionEngine;
 
-    fn apply(&self, key: Entry, executor: Self::Engine) -> GenericResult<()>;
+    fn apply(self, key: Entry, executor: Self::Engine) -> GenericResult<()>;
 }
+
+pub type NoSpawner = NoAction<LocalExecutorEngine>;
 
 #[derive(Default, Clone, Debug)]
 pub struct NoAction<E: ExecutionEngine + Clone>(PhantomData<E>);
@@ -173,13 +239,13 @@ pub struct NoAction<E: ExecutionEngine + Clone>(PhantomData<E>);
 impl<E: ExecutionEngine + Clone> ExecutionAction for NoAction<E> {
     type Engine = E;
 
-    fn apply(&self, _entry: Entry, _engine: Self::Engine) -> GenericResult<()> {
+    fn apply(self, _entry: Entry, _engine: Self::Engine) -> GenericResult<()> {
         // do nothing
         Ok(())
     }
 }
 
-pub type BoxedTaskReadyResolver<E, D, P> = Box<dyn TaskReadyResolver<E, D, P>>;
+pub type BoxedTaskReadyResolver<E, S, D, P> = Box<dyn TaskReadyResolver<E, S, D, P>>;
 
 /// `TaskResolver` are types implementing this trait to
 /// perform final resolution of a task when the task emits
@@ -189,41 +255,47 @@ pub type BoxedTaskReadyResolver<E, D, P> = Box<dyn TaskReadyResolver<E, D, P>>;
 /// not care about the varying states of a `TaskIterator`
 /// but about the final state of the task when it signals
 /// it's readiness via the `TaskStatus::Ready` state.
-pub trait TaskReadyResolver<E, D, P> {
-    fn handle(&self, item: TaskStatus<D, P>, engine: E);
+pub trait TaskReadyResolver<E, S: ExecutionAction, D, P> {
+    fn handle(&self, item: TaskStatus<D, P, S>, engine: E);
 }
 
-pub struct FnMutReady<F, E>(cell::RefCell<F>, PhantomData<E>);
+pub struct FnMutReady<F, E, S>(cell::RefCell<F>, PhantomData<E>, PhantomData<S>);
 
-impl<F, E> FnMutReady<F, E> {
+impl<F, E, S> FnMutReady<F, E, S> {
     pub fn new(f: F) -> Self {
-        Self(cell::RefCell::new(f), PhantomData::default())
+        Self(
+            cell::RefCell::new(f),
+            PhantomData::default(),
+            PhantomData::default(),
+        )
     }
 }
 
-impl<F, E, D, P> TaskReadyResolver<E, D, P> for FnMutReady<F, E>
+impl<F, S, E, D, P> TaskReadyResolver<E, S, D, P> for FnMutReady<F, E, S>
 where
-    F: FnMut(TaskStatus<D, P>, E),
+    S: ExecutionAction,
+    F: FnMut(TaskStatus<D, P, S>, E),
 {
-    fn handle(&self, item: TaskStatus<D, P>, engine: E) {
+    fn handle(&self, item: TaskStatus<D, P, S>, engine: E) {
         let mut mut_fn = self.0.borrow_mut();
         (mut_fn)(item, engine)
     }
 }
 
-pub struct FnReady<F, E>(F, PhantomData<E>);
+pub struct FnReady<F, E, S>(F, PhantomData<E>, PhantomData<S>);
 
-impl<F, E> FnReady<F, E> {
+impl<F, E, S> FnReady<F, E, S> {
     pub fn new(f: F) -> Self {
-        Self(f, PhantomData::default())
+        Self(f, PhantomData::default(), PhantomData::default())
     }
 }
 
-impl<F, E, D, P> TaskReadyResolver<E, D, P> for FnReady<F, E>
+impl<F, S, E, D, P> TaskReadyResolver<E, S, D, P> for FnReady<F, E, S>
 where
-    F: Fn(TaskStatus<D, P>, E),
+    S: ExecutionAction,
+    F: Fn(TaskStatus<D, P, S>, E),
 {
-    fn handle(&self, item: TaskStatus<D, P>, engine: E) {
+    fn handle(&self, item: TaskStatus<D, P, S>, engine: E) {
         self.0(item, engine)
     }
 }
@@ -231,23 +303,24 @@ where
 /// `TaskStatusMapper` are types implementing this trait to
 /// perform unique operations on the underlying `TaskStatus`
 /// received, possibly generating a new `TaskStatus`.
-pub trait TaskStatusMapper<D, P> {
-    fn map(&mut self, item: Option<TaskStatus<D, P>>) -> Option<TaskStatus<D, P>>;
+pub trait TaskStatusMapper<D, P, S: ExecutionAction> {
+    fn map(&mut self, item: Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>>;
 }
 
-pub struct FnMapper<F>(F);
+pub struct FnMapper<F, S>(F, PhantomData<S>);
 
-impl<F> FnMapper<F> {
+impl<F, S> FnMapper<F, S> {
     pub fn new(f: F) -> Self {
-        Self(f)
+        Self(f, PhantomData::default())
     }
 }
 
-impl<F, D, P> TaskStatusMapper<D, P> for FnMapper<F>
+impl<F, S, D, P> TaskStatusMapper<D, P, S> for FnMapper<F, S>
 where
-    F: FnMut(TaskStatus<D, P>) -> Option<TaskStatus<D, P>>,
+    S: ExecutionAction,
+    F: FnMut(TaskStatus<D, P, S>) -> Option<TaskStatus<D, P, S>>,
 {
-    fn map(&mut self, item: Option<TaskStatus<D, P>>) -> Option<TaskStatus<D, P>> {
+    fn map(&mut self, item: Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>> {
         match item {
             None => None,
             Some(item) => self.0(item),
@@ -255,19 +328,20 @@ where
     }
 }
 
-pub struct FnOptionMapper<F>(F);
+pub struct FnOptionMapper<F, S>(F, PhantomData<S>);
 
-impl<F> FnOptionMapper<F> {
+impl<F, S> FnOptionMapper<F, S> {
     pub fn new(f: F) -> Self {
-        Self(f)
+        Self(f, PhantomData::default())
     }
 }
 
-impl<F, D, P> TaskStatusMapper<D, P> for FnOptionMapper<F>
+impl<F, S, D, P> TaskStatusMapper<D, P, S> for FnOptionMapper<F, S>
 where
-    F: FnMut(Option<TaskStatus<D, P>>) -> Option<TaskStatus<D, P>>,
+    S: ExecutionAction,
+    F: FnMut(Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>>,
 {
-    fn map(&mut self, item: Option<TaskStatus<D, P>>) -> Option<TaskStatus<D, P>> {
+    fn map(&mut self, item: Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>> {
         self.0(item)
     }
 }
@@ -286,15 +360,16 @@ where
 /// Usually yo use these types of iterator in instances where you control ownership
 /// of them and can retrieve them after whatever runs them (calling their next)
 /// consider it finished.
-pub struct OnceCache<D, P, T: Iterator<Item = TaskStatus<D, P>>> {
+pub struct OnceCache<D, P, S: ExecutionAction, T: Iterator<Item = TaskStatus<D, P, S>>> {
     iter: T,
     used: Option<()>,
-    cache: Option<TaskStatus<D, P>>,
+    cache: Option<TaskStatus<D, P, S>>,
 }
 
-impl<D, P, T> OnceCache<D, P, T>
+impl<D, P, S, T> OnceCache<D, P, S, T>
 where
-    T: Iterator<Item = TaskStatus<D, P>>,
+    S: ExecutionAction,
+    T: Iterator<Item = TaskStatus<D, P, S>>,
 {
     pub fn new(item: T) -> Self {
         Self {
@@ -304,16 +379,17 @@ where
         }
     }
 
-    pub fn take(&mut self) -> Option<TaskStatus<D, P>> {
+    pub fn take(&mut self) -> Option<TaskStatus<D, P, S>> {
         self.cache.take()
     }
 }
 
-impl<D, P, T> Iterator for OnceCache<D, P, T>
+impl<D, P, S, T> Iterator for OnceCache<D, P, S, T>
 where
-    T: Iterator<Item = TaskStatus<D, P>>,
+    S: ExecutionAction,
+    T: Iterator<Item = TaskStatus<D, P, S>>,
 {
-    type Item = TaskStatus<D, P>;
+    type Item = TaskStatus<D, P, S>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.used.is_some() {
@@ -351,14 +427,15 @@ where
 /// of them and can retrieve them after whatever runs them (calling their next)
 /// consider it finished for one that inverts this behaviour i.e yielding the
 /// next value then being unusable till it's reset for reuse, see `UntilReset`.
-pub struct UntilTake<D, P, T: Iterator<Item = TaskStatus<D, P>>> {
+pub struct UntilTake<D, P, S: ExecutionAction, T: Iterator<Item = TaskStatus<D, P, S>>> {
     iter: T,
-    next: Option<TaskStatus<D, P>>,
+    next: Option<TaskStatus<D, P, S>>,
 }
 
-impl<D, P, T> UntilTake<D, P, T>
+impl<D, P, S, T> UntilTake<D, P, S, T>
 where
-    T: Iterator<Item = TaskStatus<D, P>>,
+    S: ExecutionAction,
+    T: Iterator<Item = TaskStatus<D, P, S>>,
 {
     pub fn new(item: T) -> Self {
         Self {
@@ -367,16 +444,17 @@ where
         }
     }
 
-    pub fn take(&mut self) -> Option<TaskStatus<D, P>> {
+    pub fn take(&mut self) -> Option<TaskStatus<D, P, S>> {
         self.next.take()
     }
 }
 
-impl<D, P, T> Iterator for UntilTake<D, P, T>
+impl<D, P, S, T> Iterator for UntilTake<D, P, S, T>
 where
-    T: Iterator<Item = TaskStatus<D, P>>,
+    S: ExecutionAction,
+    T: Iterator<Item = TaskStatus<D, P, S>>,
 {
-    type Item = TaskStatus<D, P>;
+    type Item = TaskStatus<D, P, S>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.next.is_some() {
@@ -402,14 +480,15 @@ where
 /// UntilUnblocked implements an iterator that yields the first received
 /// value from a owned iterator after which it becomes blocked until
 /// you call `UntilUnblocked::reset` method to be reusable again.
-pub struct UntilUnblocked<D, P, T: Iterator<Item = TaskStatus<D, P>>> {
+pub struct UntilUnblocked<D, P, S: ExecutionAction, T: Iterator<Item = TaskStatus<D, P, S>>> {
     iter: T,
     blocked: Option<()>,
 }
 
-impl<D, P, T> UntilUnblocked<D, P, T>
+impl<D, P, S, T> UntilUnblocked<D, P, S, T>
 where
-    T: Iterator<Item = TaskStatus<D, P>>,
+    S: ExecutionAction,
+    T: Iterator<Item = TaskStatus<D, P, S>>,
 {
     pub fn new(item: T) -> Self {
         Self {
@@ -423,11 +502,12 @@ where
     }
 }
 
-impl<D, P, T> Iterator for UntilUnblocked<D, P, T>
+impl<D, P, S, T> Iterator for UntilUnblocked<D, P, S, T>
 where
-    T: Iterator<Item = TaskStatus<D, P>>,
+    S: ExecutionAction,
+    T: Iterator<Item = TaskStatus<D, P, S>>,
 {
-    type Item = TaskStatus<D, P>;
+    type Item = TaskStatus<D, P, S>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.blocked.is_some() {

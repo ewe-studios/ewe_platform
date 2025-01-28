@@ -1,10 +1,10 @@
 use std::time;
 
-use super::{LocalExecutorEngine, NoAction};
+use super::ExecutionAction;
 
 /// completed and deliverd from the iterator.
 #[derive(Clone, Eq)]
-pub enum TaskStatus<D, P, S = NoAction<LocalExecutorEngine>> {
+pub enum TaskStatus<D, P, S: ExecutionAction> {
     /// Allows a task status to communicate a delay
     /// to continued operation.
     Delayed(time::Duration),
@@ -38,7 +38,7 @@ pub enum TaskStatus<D, P, S = NoAction<LocalExecutorEngine>> {
     Ready(D),
 }
 
-impl<D: PartialEq, P: PartialEq, S> PartialEq for TaskStatus<D, P, S> {
+impl<D: PartialEq, P: PartialEq, S: ExecutionAction> PartialEq for TaskStatus<D, P, S> {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (TaskStatus::Delayed(me), TaskStatus::Delayed(them)) => me == them,
@@ -51,7 +51,9 @@ impl<D: PartialEq, P: PartialEq, S> PartialEq for TaskStatus<D, P, S> {
     }
 }
 
-impl<D: core::fmt::Debug, P: core::fmt::Debug, S> core::fmt::Debug for TaskStatus<D, P, S> {
+impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::Debug
+    for TaskStatus<D, P, S>
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         #[allow(unused)]
         #[derive(Debug)]
@@ -78,8 +80,8 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug, S> core::fmt::Debug for TaskStatu
 /// AsTaskIterator represents a type for an iterator with
 /// the underlying output of the iterator to be `TaskStatus`
 /// and it's relevant semantics.
-pub type AsTaskIterator<D, P> = dyn Iterator<Item = TaskStatus<D, P>>;
-pub type BoxedTaskIterator<D, P> = Box<dyn Iterator<Item = TaskStatus<D, P>>>;
+pub type AsTaskIterator<D, P, S> = dyn Iterator<Item = TaskStatus<D, P, S>>;
+pub type BoxedTaskIterator<D, P, S> = Box<dyn Iterator<Item = TaskStatus<D, P, S>>>;
 
 /// TaskIterator is an iterator engineered around the concept of asynchronouse
 /// task that have 3 states: PENDING, INIT (Initializing) and READY.
@@ -99,15 +101,16 @@ pub type BoxedTaskIterator<D, P> = Box<dyn Iterator<Item = TaskStatus<D, P>>>;
 pub trait TaskIterator {
     type Pending;
     type Done;
+    type Spawner: ExecutionAction;
 
     /// Advances the iterator and returns the next value.
-    fn next(&mut self) -> Option<TaskStatus<Self::Done, Self::Pending>>;
+    fn next(&mut self) -> Option<TaskStatus<Self::Done, Self::Pending, Self::Spawner>>;
 
     /// into_iter consumes the implementation and wraps
     /// it in an iterator type that emits
     /// `TaskStatus<TaskIterator::Pending ,TaskIterator::Done>`
     /// match the behavior desired for an iterator.
-    fn into_iter(self) -> impl Iterator<Item = TaskStatus<Self::Done, Self::Pending>>
+    fn into_iter(self) -> impl Iterator<Item = TaskStatus<Self::Done, Self::Pending, Self::Spawner>>
     where
         Self: Sized + 'static,
     {
@@ -115,20 +118,20 @@ pub trait TaskIterator {
     }
 }
 
-pub struct TaskAsIterator<D, P>(Box<dyn TaskIterator<Done = D, Pending = P>>);
+pub struct TaskAsIterator<D, P, S>(Box<dyn TaskIterator<Done = D, Pending = P, Spawner = S>>);
 
-impl<D, P> TaskAsIterator<D, P> {
-    pub fn from_impl(t: impl TaskIterator<Done = D, Pending = P> + 'static) -> Self {
+impl<D, P, S> TaskAsIterator<D, P, S> {
+    pub fn from_impl(t: impl TaskIterator<Done = D, Pending = P, Spawner = S> + 'static) -> Self {
         Self(Box::new(t))
     }
 
-    pub fn new(t: Box<dyn TaskIterator<Done = D, Pending = P>>) -> Self {
+    pub fn new(t: Box<dyn TaskIterator<Done = D, Pending = P, Spawner = S>>) -> Self {
         Self(t)
     }
 }
 
-impl<D, P> Iterator for TaskAsIterator<D, P> {
-    type Item = TaskStatus<D, P>;
+impl<D, P, S: ExecutionAction> Iterator for TaskAsIterator<D, P, S> {
+    type Item = TaskStatus<D, P, S>;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.0.next()
@@ -139,11 +142,13 @@ impl<D, P> Iterator for TaskAsIterator<D, P> {
 mod test_task_iterator {
     use tokio::time;
 
+    use crate::valtron::{LocalExecutorEngine, NoAction};
+
     use super::*;
 
     #[test]
     fn vec_iterator_is_task_iterator() {
-        let tasks: Vec<TaskStatus<(), ()>> = vec![
+        let tasks: Vec<TaskStatus<(), (), NoAction<LocalExecutorEngine>>> = vec![
             TaskStatus::Delayed(time::Duration::from_secs(1)),
             TaskStatus::Pending(()),
             TaskStatus::Init,
@@ -152,7 +157,8 @@ mod test_task_iterator {
 
         let task_iterator = Box::new(tasks.into_iter());
 
-        let collected_tasks: Vec<TaskStatus<(), ()>> = task_iterator.collect();
+        let collected_tasks: Vec<TaskStatus<(), (), NoAction<LocalExecutorEngine>>> =
+            task_iterator.collect();
         assert_eq!(
             collected_tasks,
             vec![

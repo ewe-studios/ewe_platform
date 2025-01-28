@@ -11,14 +11,17 @@ use std::{
 
 use crate::{
     synca::{Entry, EntryList, IdleMan, Sleepers, Waiter, Wakeable},
-    valtron::{AnyResult, ExecutionEngine, ExecutionIterator, State},
+    valtron::{AnyResult, ExecutionEngine, ExecutionIterator, GenericResult, State},
 };
 use rand::SeedableRng;
 use rand_chacha::ChaCha8Rng;
 
 use concurrent_queue::{ConcurrentQueue, PushError};
 
-use super::{CloneProcessController, ExecutorError};
+use super::{
+    BoxedCloneLocalExecutorIterator, BoxedLocalExecutionIterator, ClonableExecutionIterator,
+    CloneProcessController, ExecutionAction, ExecutorError, IntoRawExecutionIterator,
+};
 
 /// PriorityOrder defines how wake up tasks should placed once woken up.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -693,75 +696,8 @@ impl<T: ExecutionIterator> ReferencedExecutorState<T> {
 
 // --- LocalExecutor for ExecutionIterator::Executor
 
-pub type BoxedCloneSendLocalExecutorIterator =
-    Box<dyn ExecutionIterator<Executor = LocalExecutorEngine> + Send>;
-
-pub type BoxedLocalExecutorIterator = Box<dyn ExecutionIterator<Executor = LocalExecutorEngine>>;
-
-// pub enum SpawnAction {
-//     NoAction,
-
-//     Schedule(BoxedLocalExecutorIterator),
-
-//     /// Broadcast
-//     Broadcast(BoxedCloneSendLocalExecutorIterator),
-
-//     /// Lift allows you to spawn a task that is spawned
-//     /// to be the priority task handled by the local
-//     /// execution queue of the task that spawns the giving
-//     /// action, if the Second value of Entry(reppresenting)
-//     /// the current task key is supplied, then both
-//     /// task are tied together creating a shared
-//     /// dependency graph for both tasks.
-//     Lift(BoxedLocalExecutorIterator, Option<Entry>),
-// }
-
-// impl ExecutionAction for SpawnAction {
-//     fn apply(&self, key: Entry, executor: Box<dyn ExecutionEngine>) -> GenericResult<()> {
-//         match self {
-//             SpawnAction::NoAction => Ok(()),
-//             SpawnAction::Schedule(task) => {
-//                 // whats happening
-//                 executor.schedule(task)
-//             }
-//             SpawnAction::Broadcast(execution_iterator) => todo!(),
-//             SpawnAction::Lift(execution_iterator, entry) => todo!(),
-//         }
-//     }
-// }
-
-// impl Default for SpawnAction {
-//     fn default() -> Self {
-//         Self::NoAction
-//     }
-// }
-
-// impl core::fmt::Debug for SpawnAction {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         match self {
-//             SpawnAction::NoAction => f.write_str("SpawnAction::NoAction"),
-//             SpawnAction::Schedule(_) => f.write_str("SpawnAction::Schedule(_)"),
-//             SpawnAction::Broadcast(_) => f.write_str("SpawnAction::Broadcast(_)"),
-//             SpawnAction::Lift(_, entry) => write!(f, "SpawnAction::Lift(_, {:?})", entry),
-//         }
-//     }
-// }
-
-// impl Clone for SpawnAction {
-//     fn clone(&self) -> Self {
-//         match self {
-//             SpawnAction::NoAction => SpawnAction::NoAction,
-//             SpawnAction::Schedule(inner) => SpawnAction::Schedule(inner.clone_execution_action()),
-//             SpawnAction::Broadcast(inner) => SpawnAction::Broadcast(inner.clone_execution_action()),
-//             SpawnAction::Lift(inner, entry) => {
-//                 SpawnAction::Lift(inner.clone_execution_action(), entry.clone())
-//             }
-//         }
-//     }
-// }
-
 pub struct LocalExecutorEngine {
-    inner: rc::Rc<cell::RefCell<ExecutorState<BoxedLocalExecutorIterator>>>,
+    inner: rc::Rc<cell::RefCell<ExecutorState<BoxedLocalExecutionIterator>>>,
 }
 
 impl Clone for LocalExecutorEngine {
@@ -773,7 +709,7 @@ impl Clone for LocalExecutorEngine {
 }
 
 impl LocalExecutorEngine {
-    pub fn new(inner: rc::Rc<cell::RefCell<ExecutorState<BoxedLocalExecutorIterator>>>) -> Self {
+    pub fn new(inner: rc::Rc<cell::RefCell<ExecutorState<BoxedLocalExecutionIterator>>>) -> Self {
         Self { inner }
     }
 }
@@ -806,7 +742,7 @@ impl ExecutionEngine for LocalExecutorEngine {
 
     fn broadcast(
         &self,
-        task: Box<dyn ExecutionIterator<Executor = Self::Executor> + Send>,
+        task: Box<dyn ExecutionIterator<Executor = Self::Executor>>,
     ) -> AnyResult<(), ExecutorError> {
         self.inner.borrow_mut().broadcast(task)?;
         tracing::debug!("broadcast: new task into Executor");
@@ -814,7 +750,7 @@ impl ExecutionEngine for LocalExecutorEngine {
     }
 }
 
-impl ReferencedExecutorState<BoxedLocalExecutorIterator> {
+impl ReferencedExecutorState<BoxedLocalExecutionIterator> {
     pub fn local_executor_engine(&self) -> LocalExecutorEngine {
         LocalExecutorEngine::new(self.inner.clone())
     }
@@ -832,7 +768,7 @@ impl ReferencedExecutorState<BoxedLocalExecutorIterator> {
 /// send them over to another thread but can potentially be
 /// shared through an Arc.
 pub struct LocalThreadExecutor {
-    state: ReferencedExecutorState<BoxedLocalExecutorIterator>,
+    state: ReferencedExecutorState<BoxedLocalExecutionIterator>,
     yielder: Box<dyn CloneProcessController>,
 }
 
@@ -852,7 +788,7 @@ impl Clone for LocalThreadExecutor {
 #[allow(unused)]
 impl LocalThreadExecutor {
     pub fn new(
-        tasks: sync::Arc<ConcurrentQueue<BoxedLocalExecutorIterator>>,
+        tasks: sync::Arc<ConcurrentQueue<BoxedLocalExecutionIterator>>,
         rng: ChaCha8Rng,
         idler: IdleMan,
         priority: PriorityOrder,
@@ -871,7 +807,7 @@ impl LocalThreadExecutor {
     /// seed for ChaCha8Rng generator.
     pub fn from_seed(
         seed: u64,
-        tasks: sync::Arc<ConcurrentQueue<BoxedLocalExecutorIterator>>,
+        tasks: sync::Arc<ConcurrentQueue<BoxedLocalExecutionIterator>>,
         idler: IdleMan,
         priority: PriorityOrder,
         yielder: Box<dyn CloneProcessController>,
@@ -888,7 +824,7 @@ impl LocalThreadExecutor {
     /// Allows supplying a custom Rng generator for creating the initial
     /// ChaCha8Rng seed.
     pub fn from_rng<R: rand::Rng>(
-        tasks: sync::Arc<ConcurrentQueue<BoxedLocalExecutorIterator>>,
+        tasks: sync::Arc<ConcurrentQueue<BoxedLocalExecutionIterator>>,
         rng: &mut R,
         idler: IdleMan,
         priority: PriorityOrder,
@@ -943,13 +879,13 @@ impl LocalThreadExecutor {
 
 #[cfg(test)]
 mod test_local_thread_executor {
-    use std::thread;
+    use std::{sync::atomic::Ordering, thread};
 
     use crate::{
         panic_if_failed,
         retries::ExponentialBackoffDecider,
         synca::SleepyMan,
-        valtron::{ProcessController, SimpleScheduledTask, TaskIterator, TaskStatus},
+        valtron::{NoSpawner, ProcessController, SimpleScheduledTask, TaskIterator, TaskStatus},
     };
 
     use super::*;
@@ -976,9 +912,10 @@ mod test_local_thread_executor {
 
     impl TaskIterator for Counter {
         type Done = usize;
+        type Spawner = NoSpawner;
         type Pending = time::Duration;
 
-        fn next(&mut self) -> Option<TaskStatus<Self::Done, Self::Pending>> {
+        fn next(&mut self) -> Option<TaskStatus<Self::Done, Self::Pending, Self::Spawner>> {
             let old_count = self.1;
             let new_count = old_count + 1;
             self.1 = new_count;
@@ -1002,45 +939,31 @@ mod test_local_thread_executor {
         }
     }
 
-    // struct DaemonCounter(&'static str, usize, usize, usize);
+    struct DaemonCounter(Rc<AtomicBool>);
 
-    // impl TaskIterator for DaemonCounter {
-    //     type Done = usize;
-    //     type Pending = time::Duration;
+    impl TaskIterator for DaemonCounter {
+        type Done = ();
+        type Spawner = NoSpawner;
+        type Pending = ();
 
-    //     fn next(
-    //         &mut self,
-    //     ) -> Option<crate::valtron::task_iterator::TaskStatus<Self::Done, Self::Pending>> {
-    //         let old_count = self.1;
-    //         let new_count = old_count + 1;
-    //         self.1 = new_count;
+        fn next(&mut self) -> Option<TaskStatus<Self::Done, Self::Pending, Self::Spawner>> {
+            let current = self.0.load(Ordering::SeqCst);
+            if current {
+                return Some(TaskStatus::Pending(()));
+            }
 
-    //         tracing::debug!(
-    //             "Counter({}) has current count {} from old count {}",
-    //             self.0,
-    //             new_count,
-    //             old_count,
-    //         );
-
-    //         if new_count == self.2 {
-    //             return None;
-    //         }
-
-    //         if new_count == self.3 {
-    //             return Some(TaskStatus::Delayed(time::Duration::from_millis(5)));
-    //         }
-
-    //         Some(TaskStatus::Ready(new_count))
-    //     }
-    // }
+            // Some(TaskStatus::Spawn())
+            todo!()
+        }
+    }
 
     #[test]
     #[traced_test]
     fn scenario_one_task_a_runs_to_completion() {
-        let global: Arc<ConcurrentQueue<BoxedLocalExecutorIterator>> =
+        let global: Arc<ConcurrentQueue<BoxedLocalExecutionIterator>> =
             Arc::new(ConcurrentQueue::bounded(10));
 
-        let counts: Rc<RefCell<Vec<TaskStatus<usize, time::Duration>>>> =
+        let counts: Rc<RefCell<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
             Rc::new(RefCell::new(Vec::new()));
 
         let seed = rand::thread_rng().next_u64();
@@ -1068,7 +991,7 @@ mod test_local_thread_executor {
         assert_eq!(executor.run_once(), ProgressIndicator::NoWork);
         assert_eq!(executor.number_of_sleepers(), 0);
 
-        let count_list: Vec<TaskStatus<usize, time::Duration>> = counts.clone().take();
+        let count_list = counts.clone().take();
         assert_eq!(
             count_list,
             vec![TaskStatus::Ready(1), TaskStatus::Ready(2),]
@@ -1078,10 +1001,10 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_2_task_a_goes_to_sleep_as_only_task_in_queue() {
-        let global: Arc<ConcurrentQueue<BoxedLocalExecutorIterator>> =
+        let global: Arc<ConcurrentQueue<BoxedLocalExecutionIterator>> =
             Arc::new(ConcurrentQueue::bounded(10));
 
-        let counts: Rc<RefCell<Vec<TaskStatus<usize, time::Duration>>>> =
+        let counts: Rc<RefCell<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
             Rc::new(RefCell::new(Vec::new()));
 
         let seed = rand::thread_rng().next_u64();
@@ -1136,10 +1059,10 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks() {
-        let global: Arc<ConcurrentQueue<BoxedLocalExecutorIterator>> =
+        let global: Arc<ConcurrentQueue<BoxedLocalExecutionIterator>> =
             Arc::new(ConcurrentQueue::bounded(10));
 
-        let counts: Rc<RefCell<Vec<(&'static str, TaskStatus<usize, time::Duration>)>>> =
+        let counts: Rc<RefCell<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
             Rc::new(RefCell::new(Vec::new()));
 
         let seed = rand::thread_rng().next_u64();
@@ -1260,10 +1183,10 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks() {
-        let global: Arc<ConcurrentQueue<BoxedLocalExecutorIterator>> =
+        let global: Arc<ConcurrentQueue<BoxedLocalExecutionIterator>> =
             Arc::new(ConcurrentQueue::bounded(10));
 
-        let counts: Rc<RefCell<Vec<(&'static str, TaskStatus<usize, time::Duration>)>>> =
+        let counts: Rc<RefCell<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
             Rc::new(RefCell::new(Vec::new()));
 
         let seed = rand::thread_rng().next_u64();
