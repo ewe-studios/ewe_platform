@@ -1,8 +1,13 @@
 use std::{cell, marker::PhantomData, time};
 
-use crate::synca::Entry;
+use derive_more::derive::From;
 
-use super::{task_iterator::TaskStatus, GenericResult, NonSendGenericResult};
+use crate::{
+    synca::Entry,
+    valtron::{AnyResult, GenericResult},
+};
+
+use super::task_iterator::TaskStatus;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum State {
@@ -14,6 +19,11 @@ pub enum State {
     /// that allows the executor to be smarter about how it
     /// polls for progress.
     Pending(Option<time::Duration>),
+
+    /// The state is sent out when there was an attempt to spawn
+    /// a task from another and that failed which is not a desired
+    /// or wanted state to be in ever.
+    SpawnFailed,
 
     /// Reschedule indicates we want to rechedule the underlying
     /// task leaving the performance of that to the underlying
@@ -73,34 +83,60 @@ where
     }
 }
 
+#[derive(Clone, Debug, From)]
+pub enum ExecutorError {
+    /// Executor failed to lift a new task as priority.
+    FailedToLift,
+
+    /// Executor cant schedule new task as provided.
+    FailedToSchedule,
+
+    /// Indicates a task has already lifted another
+    /// task as priority and cant lift another since by
+    /// definition it should not at all be able to do so
+    /// since its not being executed at such periods of time.
+    AlreadyLiftedTask,
+
+    /// Is issued when a task not currently being processed by the executor
+    /// attempts to lift a task as priority, only currently executing tasks
+    /// can do that.
+    ParentMustBeExecutingToLift,
+
+    /// Issued when queue is closed and we are unable to deliver tasks anymore.
+    QueueClosed,
+
+    /// Issued when the queue is a bounded queue and execution of new tasks is
+    /// impossible.
+    QueueFull,
+}
+
+impl std::error::Error for ExecutorError {}
+
+impl core::fmt::Display for ExecutorError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
+
 /// ExecutorEngine is the backbone of the valtron execution model
 /// they can be spawned within threads or be the singular owner
 /// of a thread which the user/caller create to manage execution within the
 /// thread.
 pub trait ExecutionEngine {
-    /// lift_from prioritizes an incoming task to the top of the local
-    /// execution queue from a parent identifed by the parent's `Entry`
-    /// key which then pauses all processing task till that
-    /// point till the new task is done and connects both the task
-    /// and the parents as dependents.
-    fn lift_from(
-        &self,
-        parent: Entry,
-        task: impl ExecutionIterator<Executor = Self> + 'static,
-    ) -> NonSendGenericResult<()>
-    where
-        Self: Sized;
+    type Executor;
 
     /// lift prioritizes an incoming task to the top of the local
     /// execution queue which pauses all processing task till that
     /// point till the new task is done or goes to sleep (dependent on
     /// the internals of the ExecutionEngine).
+    ///
+    /// If `parent` is provided then a dependency connection is made
+    /// with the relevant parent's identified by the `Entry` key.
     fn lift(
         &self,
-        task: impl ExecutionIterator<Executor = Self> + 'static,
-    ) -> NonSendGenericResult<()>
-    where
-        Self: Sized;
+        task: Box<dyn ExecutionIterator<Executor = Self::Executor>>,
+        parent: Option<Entry>,
+    ) -> AnyResult<(), ExecutorError>;
 
     /// lift adds provided incoming task to the bottom of the local
     /// execution queue which pauses all processing task till that
@@ -108,10 +144,8 @@ pub trait ExecutionEngine {
     /// the internals of the ExecutionEngine).
     fn schedule(
         &self,
-        task: impl ExecutionIterator<Executor = Self> + 'static,
-    ) -> NonSendGenericResult<()>
-    where
-        Self: Sized;
+        task: Box<dyn ExecutionIterator<Executor = Self::Executor>>,
+    ) -> AnyResult<(), ExecutorError>;
 
     /// broadcast allows you to deliver a task to the global execution queue
     /// which then lets the giving task to be sent of to the same or another
@@ -119,10 +153,8 @@ pub trait ExecutionEngine {
     /// `Send` safe.
     fn broadcast(
         &self,
-        task: impl ExecutionIterator<Executor = Self> + 'static,
-    ) -> NonSendGenericResult<()>
-    where
-        Self: Sized;
+        task: Box<dyn ExecutionIterator<Executor = Self::Executor> + Send>,
+    ) -> AnyResult<(), ExecutorError>;
 }
 
 pub type BoxedExecutionIterator<M> = Box<dyn ExecutionIterator<Executor = M>>;
@@ -130,76 +162,24 @@ pub type BoxedExecutionIterator<M> = Box<dyn ExecutionIterator<Executor = M>>;
 /// TaskSpawner represents a underlying type that can
 /// spawn some other task by using the provided executor.
 pub trait ExecutionAction {
-    fn apply(&self, executor: Box<dyn ExecutionEngine>);
-}
+    type Engine: ExecutionEngine;
 
-pub trait ClonableExecutionAction: ExecutionAction {
-    fn clone_execution_action(&self) -> Box<Self>;
+    fn apply(&self, key: Entry, executor: Self::Engine) -> GenericResult<()>;
 }
 
 #[derive(Default, Clone, Debug)]
-pub struct NoAction;
+pub struct NoAction<E: ExecutionEngine + Clone>(PhantomData<E>);
 
-impl ExecutionAction for NoAction {
-    fn apply(&self, _: Box<dyn ExecutionEngine>) {
+impl<E: ExecutionEngine + Clone> ExecutionAction for NoAction<E> {
+    type Engine = E;
+
+    fn apply(&self, _entry: Entry, _engine: Self::Engine) -> GenericResult<()> {
         // do nothing
+        Ok(())
     }
 }
 
-impl<F> ExecutionAction for F
-where
-    F: Fn(Box<dyn ExecutionEngine>),
-{
-    fn apply(&self, executor: Box<dyn ExecutionEngine>) {
-        (self)(executor)
-    }
-}
-
-impl<F> ClonableExecutionAction for F
-where
-    F: ExecutionAction + Clone + 'static,
-{
-    fn clone_execution_action(&self) -> Box<Self> {
-        Box::new(self.clone())
-    }
-}
-
-pub struct FnClonableAction<F: Fn(Box<dyn ExecutionEngine>) + Clone>(F);
-
-impl<F: Fn(Box<dyn ExecutionEngine>) + Clone> FnClonableAction<F> {
-    pub fn new(f: F) -> Self {
-        Self(f)
-    }
-}
-
-impl<F: Fn(Box<dyn ExecutionEngine>) + Clone> Clone for FnClonableAction<F> {
-    fn clone(&self) -> Self {
-        FnClonableAction(self.0.clone())
-    }
-}
-
-impl<F> ExecutionAction for FnClonableAction<F>
-where
-    F: Fn(Box<dyn ExecutionEngine>) + Clone + 'static,
-{
-    fn apply(&self, executor: Box<dyn ExecutionEngine>) {
-        (self.0)(executor)
-    }
-}
-
-#[cfg(test)]
-mod test_execution_action {
-    use super::*;
-
-    #[test]
-    fn can_clone_fn_clonable_action() {
-        let action = FnClonableAction::new(|_exec| {});
-        let action2 = action.clone();
-        _ = action2;
-    }
-}
-
-pub type BoxedTaskReadyResolver<D, P> = Box<dyn TaskReadyResolver<D, P>>;
+pub type BoxedTaskReadyResolver<E, D, P> = Box<dyn TaskReadyResolver<E, D, P>>;
 
 /// `TaskResolver` are types implementing this trait to
 /// perform final resolution of a task when the task emits
@@ -209,41 +189,41 @@ pub type BoxedTaskReadyResolver<D, P> = Box<dyn TaskReadyResolver<D, P>>;
 /// not care about the varying states of a `TaskIterator`
 /// but about the final state of the task when it signals
 /// it's readiness via the `TaskStatus::Ready` state.
-pub trait TaskReadyResolver<D, P> {
-    fn handle(&self, item: TaskStatus<D, P>, engine: Box<dyn ExecutionEngine>);
+pub trait TaskReadyResolver<E, D, P> {
+    fn handle(&self, item: TaskStatus<D, P>, engine: E);
 }
 
-pub struct FnMutReady<F>(cell::RefCell<F>);
+pub struct FnMutReady<F, E>(cell::RefCell<F>, PhantomData<E>);
 
-impl<F> FnMutReady<F> {
+impl<F, E> FnMutReady<F, E> {
     pub fn new(f: F) -> Self {
-        Self(cell::RefCell::new(f))
+        Self(cell::RefCell::new(f), PhantomData::default())
     }
 }
 
-impl<F, D, P> TaskReadyResolver<D, P> for FnMutReady<F>
+impl<F, E, D, P> TaskReadyResolver<E, D, P> for FnMutReady<F, E>
 where
-    F: FnMut(TaskStatus<D, P>, Box<dyn ExecutionEngine>),
+    F: FnMut(TaskStatus<D, P>, E),
 {
-    fn handle(&self, item: TaskStatus<D, P>, engine: Box<dyn ExecutionEngine>) {
+    fn handle(&self, item: TaskStatus<D, P>, engine: E) {
         let mut mut_fn = self.0.borrow_mut();
         (mut_fn)(item, engine)
     }
 }
 
-pub struct FnReady<F>(F);
+pub struct FnReady<F, E>(F, PhantomData<E>);
 
-impl<F> FnReady<F> {
+impl<F, E> FnReady<F, E> {
     pub fn new(f: F) -> Self {
-        Self(f)
+        Self(f, PhantomData::default())
     }
 }
 
-impl<F, D, P> TaskReadyResolver<D, P> for FnReady<F>
+impl<F, E, D, P> TaskReadyResolver<E, D, P> for FnReady<F, E>
 where
-    F: Fn(TaskStatus<D, P>, Box<dyn ExecutionEngine>),
+    F: Fn(TaskStatus<D, P>, E),
 {
-    fn handle(&self, item: TaskStatus<D, P>, engine: Box<dyn ExecutionEngine>) {
+    fn handle(&self, item: TaskStatus<D, P>, engine: E) {
         self.0(item, engine)
     }
 }

@@ -4,22 +4,23 @@
 
 use std::marker::PhantomData;
 
-use crate::valtron::{
-    task_iterator, BoxedTaskReadyResolver, ExecutionAction, ExecutionEngine, ExecutionIterator,
-    FnMutReady, FnReady, State, TaskStatusMapper,
+use super::{
+    BoxedTaskIterator, BoxedTaskReadyResolver, ExecutionAction, ExecutionEngine, ExecutionIterator,
+    FnMutReady, FnReady, LocalExecutorEngine, State, TaskIterator, TaskStatus, TaskStatusMapper,
 };
+use crate::synca::Entry;
 
-pub struct SimpleScheduledTask<M: ExecutionEngine, D, P = ()> {
-    pub task: task_iterator::BoxedTaskIterator<D, P>,
-    pub resolver: BoxedTaskReadyResolver<D, P>,
+pub struct SimpleScheduledTask<M, D, P = ()> {
+    pub task: BoxedTaskIterator<D, P>,
+    pub resolver: BoxedTaskReadyResolver<M, D, P>,
     pub local_mappers: Vec<Box<dyn TaskStatusMapper<D, P>>>,
     _engine: PhantomData<M>,
 }
 
-impl<M: ExecutionEngine, D, P> SimpleScheduledTask<M, D, P> {
+impl<M, D, P> SimpleScheduledTask<M, D, P> {
     pub fn new(
-        iter: task_iterator::BoxedTaskIterator<D, P>,
-        resolver: BoxedTaskReadyResolver<D, P>,
+        iter: BoxedTaskIterator<D, P>,
+        resolver: BoxedTaskReadyResolver<M, D, P>,
         mappers: Vec<Box<dyn TaskStatusMapper<D, P>>>,
     ) -> Self {
         Self {
@@ -32,8 +33,9 @@ impl<M: ExecutionEngine, D, P> SimpleScheduledTask<M, D, P> {
 
     pub fn on_next_mut<F, T>(t: T, f: F) -> Self
     where
-        T: task_iterator::TaskIterator<Pending = P, Done = D> + 'static,
-        F: FnMut(task_iterator::TaskStatus<D, P>, Box<dyn ExecutionEngine>) + 'static,
+        M: ExecutionEngine<Executor = LocalExecutorEngine> + 'static,
+        T: TaskIterator<Pending = P, Done = D> + 'static,
+        F: FnMut(TaskStatus<D, P>, M) + 'static,
     {
         let wrapper = FnMutReady::new(f);
         SimpleScheduledTask::new(Box::new(t.into_iter()), Box::new(wrapper), Vec::new())
@@ -41,16 +43,17 @@ impl<M: ExecutionEngine, D, P> SimpleScheduledTask<M, D, P> {
 
     pub fn on_next<F, T>(t: T, f: F) -> Self
     where
-        T: task_iterator::TaskIterator<Pending = P, Done = D> + 'static,
-        F: Fn(task_iterator::TaskStatus<D, P>, Box<dyn ExecutionEngine>) + 'static,
+        M: ExecutionEngine<Executor = LocalExecutorEngine> + 'static,
+        T: TaskIterator<Pending = P, Done = D> + 'static,
+        F: Fn(TaskStatus<D, P>, M) + 'static,
     {
         let wrapper = FnReady::new(f);
         SimpleScheduledTask::new(Box::new(t.into_iter()), Box::new(wrapper), Vec::new())
     }
 
     pub fn with_iter(
-        iter: task_iterator::BoxedTaskIterator<D, P>,
-        resolver: BoxedTaskReadyResolver<D, P>,
+        iter: BoxedTaskIterator<D, P>,
+        resolver: BoxedTaskReadyResolver<M, D, P>,
     ) -> Self {
         Self::new(iter, resolver, Vec::new())
     }
@@ -61,13 +64,10 @@ impl<M: ExecutionEngine, D, P> SimpleScheduledTask<M, D, P> {
     }
 }
 
-impl<M, D, P> ExecutionIterator for SimpleScheduledTask<M, D, P>
-where
-    M: ExecutionEngine + Into<Box<M>> + 'static,
-{
-    type Executor = M;
+impl<D, P> ExecutionIterator for SimpleScheduledTask<LocalExecutorEngine, D, P> {
+    type Executor = LocalExecutorEngine;
 
-    fn next(&mut self, executor: Self::Executor) -> Option<State> {
+    fn next(&mut self, entry: Entry, executor: Self::Executor) -> Option<State> {
         Some(match self.task.next() {
             Some(inner) => {
                 let mut previous_response = Some(inner);
@@ -76,16 +76,18 @@ where
                 }
                 match previous_response {
                     Some(value) => match value {
-                        task_iterator::TaskStatus::Delayed(dur) => State::Pending(Some(dur)),
-                        task_iterator::TaskStatus::Pending(_) => State::Pending(None),
-                        task_iterator::TaskStatus::Init => State::Pending(None),
-                        task_iterator::TaskStatus::Spawn(action) => {
-                            action.apply(executor.into());
-                            State::Progressed
-                        }
-                        task_iterator::TaskStatus::Ready(content) => {
-                            self.resolver
-                                .handle(task_iterator::TaskStatus::Ready(content), executor.into());
+                        TaskStatus::Delayed(dur) => State::Pending(Some(dur)),
+                        TaskStatus::Pending(_) => State::Pending(None),
+                        TaskStatus::Init => State::Pending(None),
+                        TaskStatus::Spawn(action) => match action.apply(entry, executor) {
+                            Ok(_) => State::Progressed,
+                            Err(err) => {
+                                tracing::error!("Failed to apply ExectionAction: {:?}", err);
+                                State::SpawnFailed
+                            }
+                        },
+                        TaskStatus::Ready(content) => {
+                            self.resolver.handle(TaskStatus::Ready(content), executor);
                             State::Progressed
                         }
                     },

@@ -1,10 +1,10 @@
 use std::time;
 
-use super::NoAction;
+use super::{LocalExecutorEngine, NoAction};
 
 /// completed and deliverd from the iterator.
 #[derive(Clone, Eq)]
-pub enum TaskStatus<D, P, S = NoAction> {
+pub enum TaskStatus<D, P, S = NoAction<LocalExecutorEngine>> {
     /// Allows a task status to communicate a delay
     /// to continued operation.
     Delayed(time::Duration),
