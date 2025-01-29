@@ -5,8 +5,9 @@
 use std::marker::PhantomData;
 
 use super::{
-    BoxedTaskReadyResolver, ExecutionAction, ExecutionEngine, ExecutionIterator, FnMutReady,
-    FnReady, LocalExecutorEngine, State, TaskIterator, TaskStatus, TaskStatusMapper,
+    BoxedExecutionIterator, BoxedTaskReadyResolver, ExecutionAction, ExecutionEngine,
+    ExecutionIterator, FnMutReady, FnReady, LocalExecutorEngine, State, TaskIterator, TaskStatus,
+    TaskStatusMapper,
 };
 use crate::synca::Entry;
 
@@ -59,19 +60,32 @@ where
         OnNext::new(t, Box::new(wrapper), Vec::new())
     }
 
-    pub fn add_mapper(mut self, mapper: Box<dyn TaskStatusMapper<D, P, S>>) -> Self {
+    pub fn add_mapper(mut self, mapper: Box<dyn TaskStatusMapper<Done, Pending, Action>>) -> Self {
         self.local_mappers.push(mapper);
         self
     }
 }
 
-impl<Task, Done, Pending, Action> ExecutionIterator
-    for OnNext<LocalExecutorEngine, Action, Task, Done, Pending>
+impl<Engine, Action, Task, Done: 'static, Pending: 'static> Into<BoxedExecutionIterator<Engine>>
+    for OnNext<Engine, Action, Task, Done, Pending>
 where
-    Action: ExecutionAction<Engine = LocalExecutorEngine>,
+    Engine: ExecutionEngine + 'static,
+    Action: ExecutionAction<Engine = Engine> + 'static,
+    Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + 'static,
+{
+    fn into(self) -> BoxedExecutionIterator<Engine> {
+        Box::new(self)
+    }
+}
+
+impl<Engine, Task, Done, Pending, Action> ExecutionIterator
+    for OnNext<Engine, Action, Task, Done, Pending>
+where
+    Engine: ExecutionEngine,
+    Action: ExecutionAction<Engine = Engine>,
     Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action>,
 {
-    type Executor = LocalExecutorEngine;
+    type Executor = Engine;
 
     fn next(&mut self, entry: Entry, executor: Self::Executor) -> Option<State> {
         Some(match self.task.next() {
