@@ -7,7 +7,7 @@ use crate::{
     valtron::{AnyResult, GenericResult},
 };
 
-use super::{task::TaskStatus, LocalExecutorEngine, TaskIterator};
+use super::{task::TaskStatus, DoNext, LocalExecutorEngine, OnNext, TaskIterator};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum State {
@@ -186,6 +186,13 @@ pub enum ExecutorError {
     /// Issued when the queue is a bounded queue and execution of new tasks is
     /// impossible.
     QueueFull,
+
+    /// We failed to create the relevant executor task.
+    FailedToCreate,
+
+    /// A given executor has no provided task in the case of a TaskIterator
+    /// based ExecutorIterator.
+    TaskRequired,
 }
 
 impl std::error::Error for ExecutorError {}
@@ -196,46 +203,192 @@ impl core::fmt::Display for ExecutorError {
     }
 }
 
-// pub struct ExecutionTaskIteratorBuilder<
-//     Engine: ExecutionEngine,
-//     Task: TaskIterator,
-//     Action: ExecutionAction,
-//     Mappers: TaskStatusMapper,
-// > {
-//     engine: Engine,
-//     task: Option<Task>,
-//     action: Option<Action>,
-//     mappers: Option<Vec<Mappers>>,
-// }
+pub struct ExecutionTaskIteratorBuilder<
+    Done,
+    Pending,
+    Engine: ExecutionEngine,
+    Action: ExecutionAction<Executor = Engine>,
+    Mapper: TaskStatusMapper<Done, Pending, Action>,
+    Resolver: TaskReadyResolver<Engine, Action, Done, Pending>,
+    Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action>,
+> {
+    engine: Engine,
+    task: Option<Task>,
+    parent: Option<Entry>,
+    resolver: Option<Resolver>,
+    mappers: Option<Vec<Mapper>>,
+    _marker: PhantomData<(Done, Pending, Action)>,
+}
 
-/// ExecutorEngine is the backbone of the valtron execution model
-/// they can be spawned within threads or be the singular owner
-/// of a thread which the user/caller create to manage execution within the
-/// thread.
-pub trait TaskStatusExecutionEngine {
-    type Executor;
-    type Task: TaskIterator;
+impl<
+        Done: 'static,
+        Pending: 'static,
+        Engine: ExecutionEngine<Executor = Engine> + 'static,
+        Action: ExecutionAction<Executor = Engine> + 'static,
+        Mapper: TaskStatusMapper<Done, Pending, Action> + 'static,
+        Resolver: TaskReadyResolver<Engine, Action, Done, Pending> + 'static,
+        Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + 'static,
+    > ExecutionTaskIteratorBuilder<Done, Pending, Engine, Action, Mapper, Resolver, Task>
+{
+    pub fn new(engine: Engine) -> Self {
+        Self {
+            engine,
+            task: None,
+            parent: None,
+            mappers: None,
+            resolver: None,
+            _marker: PhantomData::default(),
+        }
+    }
 
-    /// lift prioritizes an incoming task to the top of the local
-    /// execution queue which pauses all processing task till that
-    /// point till the new task is done or goes to sleep (dependent on
-    /// the internals of the ExecutionEngine).
-    ///
-    /// If `parent` is provided then a dependency connection is made
-    /// with the relevant parent's identified by the `Entry` key.
-    fn lift(&self, task: Self::Task, parent: Option<Entry>) -> AnyResult<(), ExecutorError>;
+    pub fn with_mappers(mut self, mapper: Mapper) -> Self {
+        let mut mappers = if self.mappers.is_some() {
+            self.mappers.take().unwrap()
+        } else {
+            Vec::new()
+        };
 
-    /// lift adds provided incoming task to the bottom of the local
-    /// execution queue which pauses all processing task till that
-    /// point till the new task is done or goes to sleep (dependent on
-    /// the internals of the ExecutionEngine).
-    fn schedule(&self, task: Self::Task) -> AnyResult<(), ExecutorError>;
+        mappers.push(mapper);
+        self.mappers = Some(mappers);
+        self
+    }
 
-    /// broadcast allows you to deliver a task to the global execution queue
-    /// which then lets the giving task to be sent of to the same or another
-    /// executor in another thread for processing, which requires the type to be
-    /// `Send` safe.
-    fn broadcast(&self, task: Self::Task) -> AnyResult<(), ExecutorError>;
+    pub fn with_parent(mut self, parent: Entry) -> Self {
+        self.parent = Some(parent);
+        self
+    }
+
+    pub fn with_task(mut self, task: Task) -> Self {
+        self.task = Some(task);
+        self
+    }
+
+    pub fn with_resolver(mut self, resolver: Resolver) -> Self {
+        self.resolver = Some(resolver);
+        self
+    }
+
+    pub fn lift(self) -> AnyResult<(), ExecutorError> {
+        let parent = self.parent;
+        match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (Some(resolver), Some(mappers)) => {
+                    let task_iter = OnNext::new(task, resolver, mappers);
+                    self.engine.lift(Box::new(task_iter), parent)
+                }
+                (Some(resolver), None) => {
+                    let task_iter = OnNext::new(task, resolver, Vec::<Mapper>::new());
+                    self.engine.lift(Box::new(task_iter), parent)
+                }
+                (None, None) => {
+                    let task_iter = DoNext::new(task);
+                    self.engine.lift(Box::new(task_iter), parent)
+                }
+                (None, Some(_)) => Err(ExecutorError::FailedToCreate),
+            },
+            None => Err(ExecutorError::TaskRequired),
+        }
+    }
+
+    pub fn schedule(self) -> AnyResult<(), ExecutorError> {
+        match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (Some(resolver), Some(mappers)) => {
+                    let task_iter = OnNext::new(task, resolver, mappers);
+                    self.engine.schedule(Box::new(task_iter))
+                }
+                (Some(resolver), None) => {
+                    let task_iter = OnNext::new(task, resolver, Vec::<Mapper>::new());
+                    self.engine.schedule(Box::new(task_iter))
+                }
+                (None, None) => {
+                    let task_iter = DoNext::new(task);
+                    self.engine.schedule(Box::new(task_iter))
+                }
+                (None, Some(_)) => Err(ExecutorError::FailedToCreate),
+            },
+            None => Err(ExecutorError::TaskRequired),
+        }
+    }
+
+    pub fn broadcast(self) -> AnyResult<(), ExecutorError> {
+        match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (Some(resolver), Some(mappers)) => {
+                    let task_iter = OnNext::new(task, resolver, mappers);
+                    self.engine.broadcast(Box::new(task_iter))
+                }
+                (Some(resolver), None) => {
+                    let task_iter = OnNext::new(task, resolver, Vec::<Mapper>::new());
+                    self.engine.broadcast(Box::new(task_iter))
+                }
+                (None, None) => {
+                    let task_iter = DoNext::new(task);
+                    self.engine.broadcast(Box::new(task_iter))
+                }
+                (None, Some(_)) => Err(ExecutorError::FailedToCreate),
+            },
+            None => Err(ExecutorError::TaskRequired),
+        }
+    }
+}
+
+impl<
+        F,
+        Done: 'static,
+        Pending: 'static,
+        Engine: ExecutionEngine<Executor = Engine> + 'static,
+        Action: ExecutionAction<Executor = Engine> + 'static,
+        Mapper: TaskStatusMapper<Done, Pending, Action> + 'static,
+        Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + 'static,
+    >
+    ExecutionTaskIteratorBuilder<
+        Done,
+        Pending,
+        Engine,
+        Action,
+        Mapper,
+        FnMutReady<F, Engine, Action>,
+        Task,
+    >
+where
+    F: FnMut(TaskStatus<Done, Pending, Action>, Engine) + 'static,
+{
+    pub fn on_next_mut(self, action: F) -> Self
+    where
+        F: Fn(TaskStatus<Done, Pending, Action>, Engine) + 'static,
+    {
+        self.with_resolver(FnMutReady::new(action))
+    }
+}
+
+impl<
+        F,
+        Done: 'static,
+        Pending: 'static,
+        Engine: ExecutionEngine<Executor = Engine> + 'static,
+        Action: ExecutionAction<Executor = Engine> + 'static,
+        Mapper: TaskStatusMapper<Done, Pending, Action> + 'static,
+        Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + 'static,
+    >
+    ExecutionTaskIteratorBuilder<
+        Done,
+        Pending,
+        Engine,
+        Action,
+        Mapper,
+        FnReady<F, Engine, Action>,
+        Task,
+    >
+where
+    F: Fn(TaskStatus<Done, Pending, Action>, Engine) + 'static,
+{
+    pub fn on_next(self, action: F) -> Self
+    where
+        F: Fn(TaskStatus<Done, Pending, Action>, Engine) + 'static,
+    {
+        self.with_resolver(FnReady::new(action))
+    }
 }
 
 /// ExecutorEngine is the backbone of the valtron execution model
@@ -282,9 +435,9 @@ pub type BoxedExecutionIterator<M> = Box<dyn ExecutionIterator<Executor = M>>;
 /// TaskSpawner represents a underlying type that can
 /// spawn some other task by using the provided executor.
 pub trait ExecutionAction {
-    type Engine: ExecutionEngine;
+    type Executor: ExecutionEngine;
 
-    fn apply(self, key: Entry, executor: Self::Engine) -> GenericResult<()>;
+    fn apply(self, key: Entry, executor: Self::Executor) -> GenericResult<()>;
 }
 
 pub type NoSpawner = NoAction<LocalExecutorEngine>;
@@ -293,9 +446,9 @@ pub type NoSpawner = NoAction<LocalExecutorEngine>;
 pub struct NoAction<E: ExecutionEngine + Clone>(PhantomData<E>);
 
 impl<E: ExecutionEngine + Clone> ExecutionAction for NoAction<E> {
-    type Engine = E;
+    type Executor = E;
 
-    fn apply(self, _entry: Entry, _engine: Self::Engine) -> GenericResult<()> {
+    fn apply(self, _entry: Entry, _engine: Self::Executor) -> GenericResult<()> {
         // do nothing
         Ok(())
     }

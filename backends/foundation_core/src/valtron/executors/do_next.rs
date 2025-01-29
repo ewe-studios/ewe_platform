@@ -41,7 +41,7 @@ impl<Engine, Action, Task, Done: 'static, Pending: 'static> Into<BoxedExecutionI
     for DoNext<Engine, Action, Task, Done, Pending>
 where
     Engine: ExecutionEngine + 'static,
-    Action: ExecutionAction<Engine = Engine> + 'static,
+    Action: ExecutionAction<Executor = Engine> + 'static,
     Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + 'static,
 {
     fn into(self) -> BoxedExecutionIterator<Engine> {
@@ -53,7 +53,7 @@ impl<Engine, Task, Done, Pending, Action> ExecutionIterator
     for DoNext<Engine, Action, Task, Done, Pending>
 where
     Engine: ExecutionEngine,
-    Action: ExecutionAction<Engine = Engine>,
+    Action: ExecutionAction<Executor = Engine>,
     Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action>,
 {
     type Executor = Engine;

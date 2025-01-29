@@ -107,7 +107,7 @@ where
     Engine: ExecutionEngine + 'static,
     Mapper: TaskStatusMapper<Done, Pending, Action> + 'static,
     Resolver: TaskReadyResolver<Engine, Action, Done, Pending> + 'static,
-    Action: ExecutionAction<Engine = Engine> + 'static,
+    Action: ExecutionAction<Executor = Engine> + 'static,
     Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + 'static,
 {
     fn into(self) -> BoxedExecutionIterator<Engine> {
@@ -121,7 +121,7 @@ where
     Engine: ExecutionEngine,
     Mapper: TaskStatusMapper<Done, Pending, Action>,
     Resolver: TaskReadyResolver<Engine, Action, Done, Pending>,
-    Action: ExecutionAction<Engine = Engine>,
+    Action: ExecutionAction<Executor = Engine>,
     Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action>,
 {
     type Executor = Engine;
