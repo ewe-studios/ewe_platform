@@ -5,35 +5,35 @@
 use std::marker::PhantomData;
 
 use super::{
-    BoxedExecutionIterator, BoxedTaskReadyResolver, ExecutionAction, ExecutionEngine,
-    ExecutionIterator, FnMutReady, FnReady, LocalExecutorEngine, State, TaskIterator, TaskStatus,
-    TaskStatusMapper,
+    BoxedExecutionIterator, ExecutionAction, ExecutionEngine, ExecutionIterator, FnMapper,
+    FnMutReady, FnReady, State, TaskIterator, TaskReadyResolver, TaskStatus, TaskStatusMapper,
 };
 use crate::synca::Entry;
 
-pub struct OnNext<Engine, Action, Task, Done, Pending>
+pub struct OnNext<Engine, Action, Resolver, Mapper, Task, Done, Pending>
 where
     Engine: ExecutionEngine,
     Action: ExecutionAction,
+    Mapper: TaskStatusMapper<Done, Pending, Action>,
+    Resolver: TaskReadyResolver<Engine, Action, Done, Pending>,
     Task: TaskIterator,
 {
     pub task: Task,
-    pub resolver: BoxedTaskReadyResolver<Engine, Action, Done, Pending>,
-    pub local_mappers: Vec<Box<dyn TaskStatusMapper<Done, Pending, Action>>>,
-    _engine: PhantomData<Engine>,
+    pub resolver: Resolver,
+    pub local_mappers: Vec<Mapper>,
+    _engine: PhantomData<(Engine, Action, Pending, Done)>,
 }
 
-impl<Engine, Action, Task, Done, Pending> OnNext<Engine, Action, Task, Done, Pending>
+impl<Engine, Action, Resolver, Mapper, Task, Done, Pending>
+    OnNext<Engine, Action, Resolver, Mapper, Task, Done, Pending>
 where
     Engine: ExecutionEngine,
-    Action: ExecutionAction + 'static,
+    Action: ExecutionAction,
+    Mapper: TaskStatusMapper<Done, Pending, Action>,
+    Resolver: TaskReadyResolver<Engine, Action, Done, Pending>,
     Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action>,
 {
-    pub fn new(
-        iter: Task,
-        resolver: BoxedTaskReadyResolver<Engine, Action, Done, Pending>,
-        mappers: Vec<Box<dyn TaskStatusMapper<Done, Pending, Action>>>,
-    ) -> Self {
+    pub fn new(iter: Task, resolver: Resolver, mappers: Vec<Mapper>) -> Self {
         Self {
             resolver,
             task: iter,
@@ -42,34 +42,71 @@ where
         }
     }
 
-    pub fn on_next_mut<F>(t: Task, f: F) -> Self
-    where
-        Engine: ExecutionEngine<Executor = LocalExecutorEngine> + 'static,
-        F: FnMut(TaskStatus<Done, Pending, Action>, Engine) + 'static,
-    {
-        let wrapper = FnMutReady::new(f);
-        OnNext::new(t, Box::new(wrapper), Vec::new())
-    }
-
-    pub fn on_next<F>(t: Task, f: F) -> Self
-    where
-        Engine: ExecutionEngine<Executor = LocalExecutorEngine> + 'static,
-        F: Fn(TaskStatus<Done, Pending, Action>, Engine) + 'static,
-    {
-        let wrapper = FnReady::new(f);
-        OnNext::new(t, Box::new(wrapper), Vec::new())
-    }
-
-    pub fn add_mapper(mut self, mapper: Box<dyn TaskStatusMapper<Done, Pending, Action>>) -> Self {
+    pub fn add_mapper(mut self, mapper: Mapper) -> Self {
         self.local_mappers.push(mapper);
         self
     }
 }
 
-impl<Engine, Action, Task, Done: 'static, Pending: 'static> Into<BoxedExecutionIterator<Engine>>
-    for OnNext<Engine, Action, Task, Done, Pending>
+impl<F, Engine, Action, Task, Done, Pending>
+    OnNext<
+        Engine,
+        Action,
+        FnReady<F, Engine, Action>,
+        Box<dyn TaskStatusMapper<Done, Pending, Action>>,
+        Task,
+        Done,
+        Pending,
+    >
+where
+    Engine: ExecutionEngine,
+    Action: ExecutionAction + 'static,
+    Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action>,
+    F: Fn(TaskStatus<Done, Pending, Action>, Engine) + 'static,
+{
+    pub fn on_next(
+        t: Task,
+        f: F,
+        mappers: Option<Vec<Box<dyn TaskStatusMapper<Done, Pending, Action>>>>,
+    ) -> Self {
+        let wrapper = FnReady::new(f);
+        OnNext::new(t, wrapper, mappers.unwrap_or(Vec::new()))
+    }
+}
+
+impl<F, Engine, Action, Task, Done, Pending>
+    OnNext<
+        Engine,
+        Action,
+        FnMutReady<F, Engine, Action>,
+        Box<dyn TaskStatusMapper<Done, Pending, Action>>,
+        Task,
+        Done,
+        Pending,
+    >
+where
+    Engine: ExecutionEngine,
+    Action: ExecutionAction + 'static,
+    Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action>,
+    F: FnMut(TaskStatus<Done, Pending, Action>, Engine) + 'static,
+{
+    pub fn on_next_mut(
+        t: Task,
+        f: F,
+        mappers: Option<Vec<Box<dyn TaskStatusMapper<Done, Pending, Action>>>>,
+    ) -> Self {
+        let wrapper = FnMutReady::new(f);
+        OnNext::new(t, wrapper, mappers.unwrap_or(Vec::new()))
+    }
+}
+
+impl<Engine, Action, Resolver, Mapper, Task, Done: 'static, Pending: 'static>
+    Into<BoxedExecutionIterator<Engine>>
+    for OnNext<Engine, Action, Resolver, Mapper, Task, Done, Pending>
 where
     Engine: ExecutionEngine + 'static,
+    Mapper: TaskStatusMapper<Done, Pending, Action> + 'static,
+    Resolver: TaskReadyResolver<Engine, Action, Done, Pending> + 'static,
     Action: ExecutionAction<Engine = Engine> + 'static,
     Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + 'static,
 {
@@ -78,10 +115,12 @@ where
     }
 }
 
-impl<Engine, Task, Done, Pending, Action> ExecutionIterator
-    for OnNext<Engine, Action, Task, Done, Pending>
+impl<Engine, Task, Resolver, Mapper, Done, Pending, Action> ExecutionIterator
+    for OnNext<Engine, Action, Resolver, Mapper, Task, Done, Pending>
 where
     Engine: ExecutionEngine,
+    Mapper: TaskStatusMapper<Done, Pending, Action>,
+    Resolver: TaskReadyResolver<Engine, Action, Done, Pending>,
     Action: ExecutionAction<Engine = Engine>,
     Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action>,
 {

@@ -988,10 +988,13 @@ mod test_local_thread_executor {
         );
 
         let count_clone = Rc::clone(&counts);
-        panic_if_failed!(global.push(Box::new(OnNext::on_next_mut(
+        let on_next = OnNext::on_next(
             Counter("Counter1", 0, 3, 3),
-            move |next, _engine| { count_clone.borrow_mut().push(next) }
-        ))));
+            move |next, _engine| count_clone.borrow_mut().push(next),
+            None,
+        );
+
+        panic_if_failed!(global.push(on_next.into()));
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
@@ -1029,9 +1032,10 @@ mod test_local_thread_executor {
         );
 
         let count_clone = Rc::clone(&counts);
-        panic_if_failed!(global.push(Box::new(OnNext::on_next_mut(
+        panic_if_failed!(global.push(Box::new(OnNext::on_next(
             Counter("Counter1", 10, 20, 12),
-            move |next, _engine| { count_clone.borrow_mut().push(next) }
+            move |next, _engine| { count_clone.borrow_mut().push(next) },
+            None,
         ))));
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
@@ -1087,16 +1091,19 @@ mod test_local_thread_executor {
         );
 
         let count_clone = Rc::clone(&counts);
-        panic_if_failed!(global.push(Box::new(OnNext::on_next_mut(
+        panic_if_failed!(global.push(Box::new(OnNext::on_next(
             Counter("Counter1", 0, 4, 2),
-            move |next, _| count_clone.borrow_mut().push(("Counter1", next))
+            move |next, _| count_clone.borrow_mut().push(("Counter1", next)),
+            None,
         ))));
 
         let count_clone2 = Rc::clone(&counts);
         panic_if_failed!(global.push(
-            OnNext::on_next_mut(Counter("Counter2", 0, 20, 10), move |next, _| count_clone2
-                .borrow_mut()
-                .push(("Counter2", next)))
+            OnNext::on_next(
+                Counter("Counter2", 0, 20, 10),
+                move |next, _| count_clone2.borrow_mut().push(("Counter2", next)),
+                None,
+            )
             .into()
         ));
 
@@ -1213,16 +1220,22 @@ mod test_local_thread_executor {
         );
 
         let count_clone = Rc::clone(&counts);
-        panic_if_failed!(global.push(Box::new(OnNext::on_next_mut(
-            Counter("Counter1", 0, 4, 2),
-            move |next, _| count_clone.borrow_mut().push(("Counter1", next))
-        ))));
+        panic_if_failed!(global.push(
+            OnNext::on_next(
+                Counter("Counter1", 0, 4, 2),
+                move |next, _| count_clone.borrow_mut().push(("Counter1", next)),
+                None
+            )
+            .into()
+        ));
 
         let count_clone2 = Rc::clone(&counts);
         panic_if_failed!(global.push(
-            OnNext::on_next_mut(Counter("Counter2", 0, 5, 10), move |next, _| count_clone2
-                .borrow_mut()
-                .push(("Counter2", next)))
+            OnNext::on_next(
+                Counter("Counter2", 0, 5, 10),
+                move |next, _| count_clone2.borrow_mut().push(("Counter2", next)),
+                None
+            )
             .into()
         ));
 
