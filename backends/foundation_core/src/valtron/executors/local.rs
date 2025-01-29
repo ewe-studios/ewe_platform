@@ -18,7 +18,10 @@ use rand_chacha::ChaCha8Rng;
 
 use concurrent_queue::{ConcurrentQueue, PushError};
 
-use super::{BoxedLocalExecutionIterator, CloneProcessController, ExecutorError};
+use super::{
+    BoxedLocalExecutionIterator, CloneProcessController, ExecutionAction,
+    ExecutionTaskIteratorBuilder, ExecutorError, TaskIterator, TaskReadyResolver, TaskStatusMapper,
+};
 
 /// PriorityOrder defines how wake up tasks should placed once woken up.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -711,6 +714,28 @@ impl LocalExecutorEngine {
     }
 }
 
+impl LocalExecutorEngine {
+    pub fn task<Task, Action, Resolver>(
+        &self,
+    ) -> ExecutionTaskIteratorBuilder<
+        Task::Done,
+        Task::Pending,
+        LocalExecutorEngine,
+        Task::Spawner,
+        Box<dyn TaskStatusMapper<Task::Done, Task::Pending, Task::Spawner>>,
+        Resolver,
+        Task,
+    >
+    where
+        Task: TaskIterator<Spawner = Action> + 'static,
+        Action: ExecutionAction<Executor = LocalExecutorEngine> + 'static,
+        Resolver: TaskReadyResolver<LocalExecutorEngine, Task::Spawner, Task::Done, Task::Pending>
+            + 'static,
+    {
+        ExecutionTaskIteratorBuilder::new(self.clone())
+    }
+}
+
 impl ExecutionEngine for LocalExecutorEngine {
     type Executor = LocalExecutorEngine;
 
@@ -828,6 +853,15 @@ impl LocalThreadExecutor {
         yielder: Box<dyn CloneProcessController>,
     ) -> Self {
         Self::from_seed(rng.next_u64(), tasks, idler, priority, yielder)
+    }
+}
+
+// -- LocalExecutor builder
+
+#[allow(unused)]
+impl LocalThreadExecutor {
+    pub(crate) fn local_executor_engine(&self) -> LocalExecutorEngine {
+        self.state.local_executor_engine()
     }
 }
 
@@ -995,6 +1029,50 @@ mod test_local_thread_executor {
         );
 
         panic_if_failed!(global.push(on_next.into()));
+
+        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert_eq!(executor.run_once(), ProgressIndicator::NoWork);
+        assert_eq!(executor.number_of_sleepers(), 0);
+
+        let count_list = counts.clone().take();
+        assert_eq!(
+            count_list,
+            vec![TaskStatus::Ready(1), TaskStatus::Ready(2),]
+        );
+    }
+
+    #[test]
+    #[traced_test]
+    fn scenario_one_can_use_local_executor_builder_to_queue_task() {
+        let global: Arc<ConcurrentQueue<BoxedLocalExecutionIterator>> =
+            Arc::new(ConcurrentQueue::bounded(10));
+
+        let counts: Rc<RefCell<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
+            Rc::new(RefCell::new(Vec::new()));
+
+        let seed = rand::thread_rng().next_u64();
+
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            global.clone(),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            Box::new(NoYielder::default()),
+        );
+
+        let executor_engine = executor.local_executor_engine();
+
+        let count_clone = Rc::clone(&counts);
+        panic_if_failed!(executor_engine
+            .task()
+            .with_task(Counter("Counter1", 0, 3, 3))
+            .on_next(move |next, _| count_clone.borrow_mut().push(next))
+            .broadcast());
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
