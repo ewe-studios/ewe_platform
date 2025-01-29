@@ -5,8 +5,8 @@
 use std::marker::PhantomData;
 
 use super::{
-    BoxedExecutionIterator, ExecutionAction, ExecutionEngine, ExecutionIterator, FnMapper,
-    FnMutReady, FnReady, State, TaskIterator, TaskReadyResolver, TaskStatus, TaskStatusMapper,
+    BoxedExecutionIterator, ExecutionAction, ExecutionEngine, ExecutionIterator, FnMutReady,
+    FnReady, State, TaskIterator, TaskReadyResolver, TaskStatus, TaskStatusMapper,
 };
 use crate::synca::Entry;
 
