@@ -7,7 +7,7 @@ use crate::{
     valtron::{AnyResult, GenericResult},
 };
 
-use super::{task::TaskStatus, LocalExecutorEngine};
+use super::{task::TaskStatus, LocalExecutorEngine, TaskIterator};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum State {
@@ -196,6 +196,48 @@ impl core::fmt::Display for ExecutorError {
     }
 }
 
+// pub struct ExecutionTaskIteratorBuilder<
+//     Engine: ExecutionEngine,
+//     Task: TaskIterator,
+//     Action: ExecutionAction,
+//     Mappers: TaskStatusMapper,
+// > {
+//     engine: Engine,
+//     task: Option<Task>,
+//     action: Option<Action>,
+//     mappers: Option<Vec<Mappers>>,
+// }
+
+/// ExecutorEngine is the backbone of the valtron execution model
+/// they can be spawned within threads or be the singular owner
+/// of a thread which the user/caller create to manage execution within the
+/// thread.
+pub trait TaskStatusExecutionEngine {
+    type Executor;
+    type Task: TaskIterator;
+
+    /// lift prioritizes an incoming task to the top of the local
+    /// execution queue which pauses all processing task till that
+    /// point till the new task is done or goes to sleep (dependent on
+    /// the internals of the ExecutionEngine).
+    ///
+    /// If `parent` is provided then a dependency connection is made
+    /// with the relevant parent's identified by the `Entry` key.
+    fn lift(&self, task: Self::Task, parent: Option<Entry>) -> AnyResult<(), ExecutorError>;
+
+    /// lift adds provided incoming task to the bottom of the local
+    /// execution queue which pauses all processing task till that
+    /// point till the new task is done or goes to sleep (dependent on
+    /// the internals of the ExecutionEngine).
+    fn schedule(&self, task: Self::Task) -> AnyResult<(), ExecutorError>;
+
+    /// broadcast allows you to deliver a task to the global execution queue
+    /// which then lets the giving task to be sent of to the same or another
+    /// executor in another thread for processing, which requires the type to be
+    /// `Send` safe.
+    fn broadcast(&self, task: Self::Task) -> AnyResult<(), ExecutorError>;
+}
+
 /// ExecutorEngine is the backbone of the valtron execution model
 /// they can be spawned within threads or be the singular owner
 /// of a thread which the user/caller create to manage execution within the
@@ -273,15 +315,11 @@ pub trait TaskReadyResolver<E, S: ExecutionAction, D, P> {
     fn handle(&self, item: TaskStatus<D, P, S>, engine: E);
 }
 
-pub struct FnMutReady<F, E, S>(cell::RefCell<F>, PhantomData<E>, PhantomData<S>);
+pub struct FnMutReady<F, E, S>(cell::RefCell<F>, PhantomData<(E, S)>);
 
 impl<F, E, S> FnMutReady<F, E, S> {
     pub fn new(f: F) -> Self {
-        Self(
-            cell::RefCell::new(f),
-            PhantomData::default(),
-            PhantomData::default(),
-        )
+        Self(cell::RefCell::new(f), PhantomData::default())
     }
 }
 
@@ -296,11 +334,11 @@ where
     }
 }
 
-pub struct FnReady<F, E, S>(F, PhantomData<E>, PhantomData<S>);
+pub struct FnReady<F, E, S>(F, PhantomData<(E, S)>);
 
 impl<F, E, S> FnReady<F, E, S> {
     pub fn new(f: F) -> Self {
-        Self(f, PhantomData::default(), PhantomData::default())
+        Self(f, PhantomData::default())
     }
 }
 
@@ -319,6 +357,26 @@ where
 /// received, possibly generating a new `TaskStatus`.
 pub trait TaskStatusMapper<D, P, S: ExecutionAction> {
     fn map(&mut self, item: Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>>;
+}
+
+impl<'a, F, S, D, P> TaskStatusMapper<D, P, S> for &'a mut F
+where
+    S: ExecutionAction,
+    F: TaskStatusMapper<D, P, S>,
+{
+    fn map(&mut self, item: Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>> {
+        (**self).map(item)
+    }
+}
+
+impl<F, S, D, P> TaskStatusMapper<D, P, S> for Box<F>
+where
+    S: ExecutionAction,
+    F: TaskStatusMapper<D, P, S> + ?Sized,
+{
+    fn map(&mut self, item: Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>> {
+        (**self).map(item)
+    }
 }
 
 pub struct FnMapper<F, S>(F, PhantomData<S>);

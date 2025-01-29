@@ -3,7 +3,7 @@ use std::time;
 use super::ExecutionAction;
 
 /// completed and deliverd from the iterator.
-#[derive(Clone, Eq)]
+#[derive(Clone)]
 pub enum TaskStatus<D, P, S: ExecutionAction> {
     /// Allows a task status to communicate a delay
     /// to continued operation.
@@ -37,6 +37,8 @@ pub enum TaskStatus<D, P, S: ExecutionAction> {
     /// has finished/ended with relevant result.
     Ready(D),
 }
+
+impl<D: PartialEq, P: PartialEq, S: ExecutionAction> Eq for TaskStatus<D, P, S> {}
 
 impl<D: PartialEq, P: PartialEq, S: ExecutionAction> PartialEq for TaskStatus<D, P, S> {
     fn eq(&self, other: &Self) -> bool {
@@ -81,6 +83,8 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::De
 /// the underlying output of the iterator to be `TaskStatus`
 /// and it's relevant semantics.
 pub type AsTaskIterator<D, P, S> = dyn Iterator<Item = TaskStatus<D, P, S>>;
+
+/// BoxedTaskIterator provides a Boxed (heap-allocated) Iterator based on a TaskIterator.
 pub type BoxedTaskIterator<D, P, S> = Box<dyn Iterator<Item = TaskStatus<D, P, S>>>;
 
 /// TaskIterator is an iterator engineered around the concept of asynchronouse
