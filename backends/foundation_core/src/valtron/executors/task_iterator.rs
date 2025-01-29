@@ -99,8 +99,21 @@ pub type BoxedTaskIterator<D, P, S> = Box<dyn Iterator<Item = TaskStatus<D, P, S
 /// adviced to finish early by moving long processes into other threads that allow you
 /// noify once next is called to notify if the task is done or still pending.
 pub trait TaskIterator {
+    /// The type to indicate pending operation, either can be a `time::Duration`
+    /// to communicate time to completion or some other type you wish
+    /// to allow communication of the state of things before the `Done` signal
+    /// is received.
     type Pending;
+
+    /// The type that indicates when a single or partial sequence
+    /// is what can be considered a intermediate and final result is.
+    ///
+    /// In the case of a stream this is the type you wish to produce every single
+    /// time that is actual data.
     type Done;
+
+    /// The type responsible for orchestrating spawn actions
+    /// against the local execution engine.
     type Spawner: ExecutionAction;
 
     /// Advances the iterator and returns the next value.

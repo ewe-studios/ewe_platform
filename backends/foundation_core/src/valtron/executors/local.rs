@@ -876,13 +876,18 @@ impl LocalThreadExecutor {
 
 #[cfg(test)]
 mod test_local_thread_executor {
-    use std::{sync::atomic::Ordering, thread};
+    use std::{
+        sync::atomic::{AtomicUsize, Ordering},
+        thread,
+    };
 
     use crate::{
         panic_if_failed,
         retries::ExponentialBackoffDecider,
         synca::SleepyMan,
-        valtron::{NoSpawner, ProcessController, SimpleScheduledTask, TaskIterator, TaskStatus},
+        valtron::{
+            ExecutionAction, NoSpawner, OnNext, ProcessController, TaskIterator, TaskStatus,
+        },
     };
 
     use super::*;
@@ -902,6 +907,29 @@ mod test_local_thread_executor {
 
         fn yield_for(&self, _: time::Duration) {
             return;
+        }
+    }
+
+    struct SimpleCounter(&'static str, usize);
+
+    impl TaskIterator for SimpleCounter {
+        type Done = usize;
+        type Spawner = NoSpawner;
+        type Pending = ();
+
+        fn next(&mut self) -> Option<TaskStatus<Self::Done, Self::Pending, Self::Spawner>> {
+            let old_count = self.1;
+            let new_count = old_count + 1;
+            self.1 = new_count;
+
+            tracing::debug!(
+                "Counter({}) has current count {} from old count {}",
+                self.0,
+                new_count,
+                old_count,
+            );
+
+            Some(TaskStatus::Ready(new_count))
         }
     }
 
@@ -936,24 +964,6 @@ mod test_local_thread_executor {
         }
     }
 
-    struct DaemonCounter(Rc<AtomicBool>);
-
-    impl TaskIterator for DaemonCounter {
-        type Done = ();
-        type Spawner = NoSpawner;
-        type Pending = ();
-
-        fn next(&mut self) -> Option<TaskStatus<Self::Done, Self::Pending, Self::Spawner>> {
-            let current = self.0.load(Ordering::SeqCst);
-            if current {
-                return Some(TaskStatus::Pending(()));
-            }
-
-            // Some(TaskStatus::Spawn())
-            todo!()
-        }
-    }
-
     #[test]
     #[traced_test]
     fn scenario_one_task_a_runs_to_completion() {
@@ -978,7 +988,7 @@ mod test_local_thread_executor {
         );
 
         let count_clone = Rc::clone(&counts);
-        panic_if_failed!(global.push(Box::new(SimpleScheduledTask::on_next_mut(
+        panic_if_failed!(global.push(Box::new(OnNext::on_next_mut(
             Counter("Counter1", 0, 3, 3),
             move |next, _engine| { count_clone.borrow_mut().push(next) }
         ))));
@@ -1019,7 +1029,7 @@ mod test_local_thread_executor {
         );
 
         let count_clone = Rc::clone(&counts);
-        panic_if_failed!(global.push(Box::new(SimpleScheduledTask::on_next_mut(
+        panic_if_failed!(global.push(Box::new(OnNext::on_next_mut(
             Counter("Counter1", 10, 20, 12),
             move |next, _engine| { count_clone.borrow_mut().push(next) }
         ))));
@@ -1077,13 +1087,13 @@ mod test_local_thread_executor {
         );
 
         let count_clone = Rc::clone(&counts);
-        panic_if_failed!(global.push(Box::new(SimpleScheduledTask::on_next_mut(
+        panic_if_failed!(global.push(Box::new(OnNext::on_next_mut(
             Counter("Counter1", 0, 4, 2),
             move |next, _| count_clone.borrow_mut().push(("Counter1", next))
         ))));
 
         let count_clone2 = Rc::clone(&counts);
-        panic_if_failed!(global.push(Box::new(SimpleScheduledTask::on_next_mut(
+        panic_if_failed!(global.push(Box::new(OnNext::on_next_mut(
             Counter("Counter2", 0, 20, 10),
             move |next, _| count_clone2.borrow_mut().push(("Counter2", next))
         ))));
@@ -1201,13 +1211,13 @@ mod test_local_thread_executor {
         );
 
         let count_clone = Rc::clone(&counts);
-        panic_if_failed!(global.push(Box::new(SimpleScheduledTask::on_next_mut(
+        panic_if_failed!(global.push(Box::new(OnNext::on_next_mut(
             Counter("Counter1", 0, 4, 2),
             move |next, _| count_clone.borrow_mut().push(("Counter1", next))
         ))));
 
         let count_clone2 = Rc::clone(&counts);
-        panic_if_failed!(global.push(Box::new(SimpleScheduledTask::on_next_mut(
+        panic_if_failed!(global.push(Box::new(OnNext::on_next_mut(
             Counter("Counter2", 0, 5, 10),
             move |next, _| count_clone2.borrow_mut().push(("Counter2", next))
         ))));
@@ -1315,6 +1325,51 @@ mod test_local_thread_executor {
                 ("Counter1", TaskStatus::Ready(3)),
             ]
         );
+    }
+
+    #[derive(Clone)]
+    enum DaemonSpawner {
+        NoSpawning,
+        InThread,
+        OutofThread,
+    }
+
+    impl Default for DaemonSpawner {
+        fn default() -> Self {
+            Self::NoSpawning
+        }
+    }
+
+    impl ExecutionAction for DaemonSpawner {
+        type Engine = LocalExecutorEngine;
+
+        fn apply(self, key: Entry, executor: Self::Engine) -> crate::valtron::GenericResult<()> {
+            match self {
+                DaemonSpawner::NoSpawning => Ok(()),
+                DaemonSpawner::InThread => executor,
+                DaemonSpawner::OutofThread => todo!(),
+            }
+        }
+    }
+
+    struct DaemonCounter(Rc<AtomicUsize>);
+    impl TaskIterator for DaemonCounter {
+        type Done = ();
+        type Pending = ();
+        type Spawner = DaemonSpawner;
+
+        fn next(&mut self) -> Option<TaskStatus<Self::Done, Self::Pending, Self::Spawner>> {
+            let current = self.0.load(Ordering::SeqCst);
+            if current == 0 {
+                return Some(TaskStatus::Pending(()));
+            }
+
+            if current == 1 {
+                return Some(TaskStatus::Spawn(DaemonSpawner::InThread));
+            }
+
+            Some(TaskStatus::Spawn(DaemonSpawner::OutofThread))
+        }
     }
 
     #[test]
