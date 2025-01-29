@@ -315,6 +315,28 @@ pub trait TaskReadyResolver<E, S: ExecutionAction, D, P> {
     fn handle(&self, item: TaskStatus<D, P, S>, engine: E);
 }
 
+impl<'a, F, E, S, D, P> TaskReadyResolver<E, S, D, P> for &'a mut F
+where
+    E: ExecutionEngine,
+    S: ExecutionAction,
+    F: TaskReadyResolver<E, S, D, P>,
+{
+    fn handle(&self, item: TaskStatus<D, P, S>, engine: E) {
+        (**self).handle(item, engine)
+    }
+}
+
+impl<F, E, S, D, P> TaskReadyResolver<E, S, D, P> for Box<F>
+where
+    E: ExecutionEngine,
+    S: ExecutionAction,
+    F: TaskReadyResolver<E, S, D, P> + ?Sized,
+{
+    fn handle(&self, item: TaskStatus<D, P, S>, engine: E) {
+        (**self).handle(item, engine)
+    }
+}
+
 pub struct FnMutReady<F, E, S>(cell::RefCell<F>, PhantomData<(E, S)>);
 
 impl<F, E, S> FnMutReady<F, E, S> {
@@ -379,19 +401,20 @@ where
     }
 }
 
-pub struct FnMapper<F, S>(F, PhantomData<S>);
+pub struct FnMapper<D, P, S: ExecutionAction>(
+    Box<dyn FnMut(TaskStatus<D, P, S>) -> Option<TaskStatus<D, P, S>>>,
+);
 
-impl<F, S> FnMapper<F, S> {
-    pub fn new(f: F) -> Self {
-        Self(f, PhantomData::default())
+impl<D, P, S: ExecutionAction> FnMapper<D, P, S> {
+    pub fn new<F>(f: F) -> Self
+    where
+        F: FnMut(TaskStatus<D, P, S>) -> Option<TaskStatus<D, P, S>> + 'static,
+    {
+        Self(Box::new(f))
     }
 }
 
-impl<F, S, D, P> TaskStatusMapper<D, P, S> for FnMapper<F, S>
-where
-    S: ExecutionAction,
-    F: FnMut(TaskStatus<D, P, S>) -> Option<TaskStatus<D, P, S>>,
-{
+impl<D, P, S: ExecutionAction> TaskStatusMapper<D, P, S> for FnMapper<D, P, S> {
     fn map(&mut self, item: Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>> {
         match item {
             None => None,
@@ -400,21 +423,42 @@ where
     }
 }
 
-pub struct FnOptionMapper<F, S>(F, PhantomData<S>);
+pub struct FnOptionMapper<D, P, S: ExecutionAction>(
+    Box<dyn FnMut(Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>>>,
+);
 
-impl<F, S> FnOptionMapper<F, S> {
-    pub fn new(f: F) -> Self {
-        Self(f, PhantomData::default())
+impl<D, P, S: ExecutionAction> FnOptionMapper<D, P, S> {
+    pub fn new<F>(f: F) -> Self
+    where
+        F: FnMut(Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>> + 'static,
+    {
+        Self(Box::new(f))
     }
 }
 
-impl<F, S, D, P> TaskStatusMapper<D, P, S> for FnOptionMapper<F, S>
-where
-    S: ExecutionAction,
-    F: FnMut(Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>>,
-{
+impl<D, P, S: ExecutionAction> TaskStatusMapper<D, P, S> for FnOptionMapper<D, P, S> {
     fn map(&mut self, item: Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>> {
         self.0(item)
+    }
+}
+
+#[cfg(test)]
+mod test_fn_mapper {
+    use crate::valtron::TaskStatus;
+
+    use super::{FnMapper, NoSpawner, TaskStatusMapper};
+
+    #[test]
+    fn test_can_create_fn_mapper_for_trait() {
+        let mut mapper = FnMapper::new(Box::new(|item: TaskStatus<usize, usize, NoSpawner>| {
+            Some(item)
+        }));
+
+        let instance = TaskStatus::Pending(1);
+        assert_eq!(mapper.map(Some(instance.clone())), Some(instance));
+
+        // validate we can meet expected trait type
+        let _: Box<dyn TaskStatusMapper<usize, usize, NoSpawner>> = Box::new(mapper);
     }
 }
 
