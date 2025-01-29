@@ -7,7 +7,7 @@ use crate::{
     valtron::{AnyResult, GenericResult},
 };
 
-use super::{task_iterator::TaskStatus, LocalExecutorEngine};
+use super::{task::TaskStatus, LocalExecutorEngine};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum State {
@@ -57,6 +57,20 @@ pub trait ExecutionIterator {
     type Executor: ExecutionEngine;
 
     fn next(&mut self, entry: Entry, executor: Self::Executor) -> Option<State>;
+}
+
+pub trait IntoBoxedExecutionIterator<Executor> {
+    fn into_box_execution_iterator(self) -> Box<dyn ExecutionIterator<Executor = Executor>>;
+}
+
+impl<F, M> IntoBoxedExecutionIterator<M> for F
+where
+    M: ExecutionEngine,
+    F: ExecutionIterator<Executor = M> + 'static,
+{
+    fn into_box_execution_iterator(self) -> Box<dyn ExecutionIterator<Executor = M>> {
+        Box::new(self)
+    }
 }
 
 pub type BoxedLocalExecutionIterator = Box<dyn ExecutionIterator<Executor = LocalExecutorEngine>>;

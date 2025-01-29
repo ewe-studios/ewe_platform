@@ -1093,10 +1093,12 @@ mod test_local_thread_executor {
         ))));
 
         let count_clone2 = Rc::clone(&counts);
-        panic_if_failed!(global.push(Box::new(OnNext::on_next_mut(
-            Counter("Counter2", 0, 20, 10),
-            move |next, _| count_clone2.borrow_mut().push(("Counter2", next))
-        ))));
+        panic_if_failed!(global.push(
+            OnNext::on_next_mut(Counter("Counter2", 0, 20, 10), move |next, _| count_clone2
+                .borrow_mut()
+                .push(("Counter2", next)))
+            .into()
+        ));
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
 
@@ -1217,10 +1219,12 @@ mod test_local_thread_executor {
         ))));
 
         let count_clone2 = Rc::clone(&counts);
-        panic_if_failed!(global.push(Box::new(OnNext::on_next_mut(
-            Counter("Counter2", 0, 5, 10),
-            move |next, _| count_clone2.borrow_mut().push(("Counter2", next))
-        ))));
+        panic_if_failed!(global.push(
+            OnNext::on_next_mut(Counter("Counter2", 0, 5, 10), move |next, _| count_clone2
+                .borrow_mut()
+                .push(("Counter2", next)))
+            .into()
+        ));
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
 
@@ -1344,11 +1348,12 @@ mod test_local_thread_executor {
         type Engine = LocalExecutorEngine;
 
         fn apply(self, key: Entry, executor: Self::Engine) -> crate::valtron::GenericResult<()> {
-            match self {
-                DaemonSpawner::NoSpawning => Ok(()),
-                DaemonSpawner::InThread => executor,
-                DaemonSpawner::OutofThread => todo!(),
-            }
+            // match self {
+            //     DaemonSpawner::NoSpawning => Ok(()),
+            //     DaemonSpawner::InThread => executor,
+            //     DaemonSpawner::OutofThread => todo!(),
+            // }
+            todo!()
         }
     }
 
