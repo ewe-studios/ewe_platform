@@ -1358,9 +1358,9 @@ mod test_local_thread_executor {
     }
 
     impl ExecutionAction for DaemonSpawner {
-        type Engine = LocalExecutorEngine;
+        type Executor = LocalExecutorEngine;
 
-        fn apply(self, key: Entry, executor: Self::Engine) -> crate::valtron::GenericResult<()> {
+        fn apply(self, key: Entry, executor: Self::Executor) -> crate::valtron::GenericResult<()> {
             // match self {
             //     DaemonSpawner::NoSpawning => Ok(()),
             //     DaemonSpawner::InThread => executor,
