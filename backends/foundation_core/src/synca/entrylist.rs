@@ -49,7 +49,7 @@ impl<T> EntryList<T> {
 
     /// Returns total entries currently parked.
     #[inline]
-    pub fn packed_slots(&self) -> usize {
+    pub fn parked_slots(&self) -> usize {
         self.packed_entrys.len()
     }
 
@@ -157,7 +157,7 @@ impl<T> EntryList<T> {
     /// This allows us support situations where we need to maintain that entry
     /// but cant afford to invalid the entry due to dependency chains built on it.
     #[inline]
-    pub fn pack(&mut self, entry: &Entry) -> Option<T> {
+    pub fn park(&mut self, entry: &Entry) -> Option<T> {
         if let Some((gen, value)) = self.items.get_mut(entry.id) {
             if *gen == entry.gen {
                 if let Some(con) = value.take() {
@@ -173,7 +173,7 @@ impl<T> EntryList<T> {
     /// back into the packed entry, if the entry was truly
     /// packaed then true is returned to validate that
     /// the entry was indeed found and updated.
-    pub fn unpack(&mut self, entry: &Entry, item: T) -> bool {
+    pub fn unpark(&mut self, entry: &Entry, item: T) -> bool {
         match self.find_packed(entry) {
             Some(index) => {
                 self.packed_entrys.remove(index);
@@ -423,19 +423,19 @@ mod test_entry_list {
         assert_eq!(Some(&1), list.get(&entry));
         assert_eq!(Some(&mut 1), list.get_mut(&entry));
 
-        assert_eq!(Some(1), list.pack(&entry));
+        assert_eq!(Some(1), list.park(&entry));
 
         assert_eq!(1, list.allocated_slots());
         assert_eq!(0, list.open_slots());
-        assert_eq!(1, list.packed_slots());
+        assert_eq!(1, list.parked_slots());
         assert_eq!(1, list.active_slots());
 
-        assert_eq!(true, list.unpack(&entry, 2));
+        assert_eq!(true, list.unpark(&entry, 2));
         assert_eq!(Some(&2), list.get(&entry));
 
         assert_eq!(1, list.allocated_slots());
         assert_eq!(0, list.open_slots());
-        assert_eq!(0, list.packed_slots());
+        assert_eq!(0, list.parked_slots());
         assert_eq!(1, list.active_slots());
     }
 
