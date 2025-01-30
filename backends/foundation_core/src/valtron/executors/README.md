@@ -99,14 +99,13 @@ In such a scenario an executing task can indicate it wishes to go to sleep for s
 5. When Task A sleep expires, executor schedules Task A to bottom of queue to wait its turn again.
 
 
-#### Scenario 5:  Task A spawns Task B which then Spawns Task C that wants to go to sleep
+#### Scenario 5:  Task A spawns Task B which then wants to go to sleep
 In such a scenario an executing spawns a task as priority that spawns another task as priority which spawns a final one that wishes to sleep.
 
 1. Task A gets scheduled by executor and can make progress
 2. Task A spawns Task B as priority
-2. Task B spawns Task C as priority
-2. Task C wants to sleep for some duration of time
-3. Executor removes Task C to Task A due to task graph (Task A -> (depends) Task B -> (depends) Task C) from queue and puts Task C to sleep (register sleep waker) and moves Task A and B from queue till Task C returns from sleep.
+2. Task B wants to sleep for some duration of time
+3. Executor removes Task B to Task A due to task graph (Task A -> (depends) Task B) from queue and puts Task B to sleep (register sleep waker) and moves Task A from queue till Task B returns from sleep.
 4. Executor goes on to execute other tasks and depending on state of PriorityOrder will either add Task C to Task A back to end of queue or start of queue.
 
 ##### Dev Notes
