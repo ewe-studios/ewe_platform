@@ -17,6 +17,7 @@ impl Entry {
 pub struct EntryList<T> {
     items: Vec<(usize, Option<T>)>,
     free_entrys: Vec<Entry>,
+    packed_entrys: Vec<Entry>,
 }
 
 // --- constructors
@@ -26,6 +27,7 @@ impl<T> EntryList<T> {
         Self {
             items: Vec::new(),
             free_entrys: Vec::new(),
+            packed_entrys: Vec::new(),
         }
     }
 }
@@ -43,6 +45,12 @@ impl<T> EntryList<T> {
     #[inline]
     pub fn active_slots(&self) -> usize {
         self.allocated_slots() - self.open_slots()
+    }
+
+    /// Returns total entries currently parked.
+    #[inline]
+    pub fn packed_slots(&self) -> usize {
+        self.packed_entrys.len()
     }
 
     /// allocated_slots returns how many slots have being allocated overall.
@@ -136,6 +144,72 @@ impl<T> EntryList<T> {
                 }
             }
         }
+    }
+
+    /// pack collects the value pointed to by the relevant
+    /// `Entry` pointer if its still valid but does not invalidate
+    /// the pointer.
+    /// You can think of this as a temporary borrow where we want
+    /// to borrow that given entry, use it for some undefined period of
+    /// time and be guaranteed that slot will not be usable till it's unpacked
+    /// bascially, you own that entry till its unpacked.
+    ///
+    /// This allows us support situations where we need to maintain that entry
+    /// but cant afford to invalid the entry due to dependency chains built on it.
+    #[inline]
+    pub fn pack(&mut self, entry: &Entry) -> Option<T> {
+        if let Some((gen, value)) = self.items.get_mut(entry.id) {
+            if *gen == entry.gen {
+                if let Some(con) = value.take() {
+                    self.packed_entrys.push(entry.clone());
+                    return Some(con);
+                }
+            }
+        }
+        None
+    }
+
+    /// unpack helps you to re-allocate the provided value
+    /// back into the packed entry, if the entry was truly
+    /// packaed then true is returned to validate that
+    /// the entry was indeed found and updated.
+    pub fn unpack(&mut self, entry: &Entry, item: T) -> bool {
+        match self.find_packed(entry) {
+            Some(index) => {
+                self.packed_entrys.remove(index);
+                let _ = self.update_packed(entry, item);
+                true
+            }
+            None => false,
+        }
+    }
+
+    pub(crate) fn find_packed(&self, entry: &Entry) -> Option<usize> {
+        for (index, item) in self.packed_entrys.iter().enumerate() {
+            if item == entry {
+                return Some(index);
+            }
+        }
+        None
+    }
+
+    #[inline]
+    pub(crate) fn update_packed(&mut self, entry: &Entry, item: T) -> Option<T> {
+        if let Some((gen, value)) = self.items.get_mut(entry.id) {
+            if *gen == entry.gen {
+                if value.is_none() {
+                    // collect old value
+                    let previous_value = value.take();
+
+                    // replace value
+                    *value = Some(item);
+
+                    // Return new Entry and Old value.
+                    return previous_value;
+                }
+            }
+        }
+        None
     }
 
     /// take collects the value pointed to by the relevant
@@ -338,6 +412,31 @@ mod test_entry_list {
         assert_eq!(2, list.allocated_slots());
         assert_eq!(2, list.open_slots());
         assert_eq!(0, list.active_slots());
+    }
+
+    #[test]
+    fn entry_list_can_park_entry() {
+        let mut list: EntryList<usize> = EntryList::new();
+        let entry = list.insert(1);
+        assert_eq!(entry, Entry { id: 0, gen: 0 });
+
+        assert_eq!(Some(&1), list.get(&entry));
+        assert_eq!(Some(&mut 1), list.get_mut(&entry));
+
+        assert_eq!(Some(1), list.pack(&entry));
+
+        assert_eq!(1, list.allocated_slots());
+        assert_eq!(0, list.open_slots());
+        assert_eq!(1, list.packed_slots());
+        assert_eq!(1, list.active_slots());
+
+        assert_eq!(true, list.unpack(&entry, 2));
+        assert_eq!(Some(&2), list.get(&entry));
+
+        assert_eq!(1, list.allocated_slots());
+        assert_eq!(0, list.open_slots());
+        assert_eq!(0, list.packed_slots());
+        assert_eq!(1, list.active_slots());
     }
 
     #[test]

@@ -2,7 +2,7 @@
 // Wakeable primitive can be notified after some expired duration
 // registered with.
 
-use std::{cell, time};
+use std::{cell, rc, time};
 
 use super::{Entry, EntryList};
 
@@ -80,7 +80,7 @@ impl<T> Wakeable<T> {
 
 pub struct Sleepers<T: Waiter> {
     /// the list of wakers pending to be processed.
-    sleepers: cell::RefCell<EntryList<T>>,
+    sleepers: rc::Rc<cell::RefCell<EntryList<T>>>,
 }
 
 pub trait Timing {
@@ -135,12 +135,21 @@ impl<T: Waker + Waiter> Waker for Sleepers<T> {
     }
 }
 
+impl<T: Waiter> Clone for Sleepers<T> {
+    fn clone(&self) -> Self {
+        Self {
+            sleepers: self.sleepers.clone(),
+        }
+    }
+}
+
 impl<T: Waiter> Sleepers<T> {
     pub fn new() -> Self {
         Self {
-            sleepers: cell::RefCell::new(EntryList::new()),
+            sleepers: rc::Rc::new(cell::RefCell::new(EntryList::new())),
         }
     }
+
     /// Inserts a new Wakeable.
     pub fn insert(&self, wakeable: T) -> Entry {
         self.sleepers.borrow_mut().insert(wakeable)

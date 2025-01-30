@@ -69,15 +69,15 @@ pub struct ExecutorState<T: ExecutionIterator> {
     /// This allows us keep the overall execution of any async
     /// iterator within the same thread and keep a one thread
     /// execution.
-    pub(crate) local_tasks: EntryList<T>,
+    pub(crate) local_tasks: rc::Rc<cell::RefCell<EntryList<T>>>,
 
     /// task_graph provides dependency mapping of a Task (Key) lifted
     /// by another Task (Value) allowing us to go from lifted task
     /// to it's tree of dependents.
-    pub(crate) task_graph: HashMap<Entry, Entry>,
+    pub(crate) task_graph: rc::Rc<cell::RefCell<HashMap<Entry, Entry>>>,
 
     /// map used to identify that a task was packed.
-    pub(crate) packed_tasks: HashMap<Entry, bool>,
+    pub(crate) packed_tasks: rc::Rc<cell::RefCell<HashMap<Entry, bool>>>,
 
     /// the queue used for performing perioritization, usually
     /// the global task taking will first be stored in the local
@@ -87,7 +87,7 @@ pub struct ExecutorState<T: ExecutionIterator> {
     /// the entries in this queue is empty, this ensures
     /// we can consistently complete every received tasks
     /// till it finishes.
-    pub(crate) processing: VecDeque<Entry>,
+    pub(crate) processing: rc::Rc<cell::RefCell<VecDeque<Entry>>>,
 
     /// this provives consistent and repeatable random number generation
     /// this is exposed by the executor to it's callers via scopes
@@ -108,7 +108,7 @@ pub struct ExecutorState<T: ExecutionIterator> {
 
     /// sleepy provides a managed indicator of how many times we've been idle
     /// and recommends how much sleep should the executor take next.
-    pub(crate) idler: IdleMan,
+    pub(crate) idler: rc::Rc<cell::RefCell<IdleMan>>,
 }
 
 // --- constructors
@@ -123,15 +123,17 @@ impl<T: ExecutionIterator> ExecutorState<T> {
         idler: IdleMan,
     ) -> Self {
         Self {
-            idler,
             priority,
             global_tasks,
             sleepers: Sleepers::new(),
-            task_graph: HashMap::new(),
-            packed_tasks: HashMap::new(),
-            local_tasks: EntryList::new(),
             rng: rc::Rc::new(cell::RefCell::new(rng)),
-            processing: VecDeque::with_capacity(DEQUEUE_CAPACITY),
+            idler: rc::Rc::new(cell::RefCell::new(idler)),
+            task_graph: rc::Rc::new(cell::RefCell::new(HashMap::new())),
+            packed_tasks: rc::Rc::new(cell::RefCell::new(HashMap::new())),
+            local_tasks: rc::Rc::new(cell::RefCell::new(EntryList::new())),
+            processing: rc::Rc::new(cell::RefCell::new(VecDeque::with_capacity(
+                DEQUEUE_CAPACITY,
+            ))),
         }
     }
 }
@@ -175,6 +177,22 @@ pub enum ProgressIndicator {
 
 // --- Task Dependences, Rng and Helper methods
 
+impl<T: ExecutionIterator> Clone for ExecutorState<T> {
+    fn clone(&self) -> Self {
+        Self {
+            rng: self.rng.clone(),
+            idler: self.idler.clone(),
+            sleepers: self.sleepers.clone(),
+            priority: self.priority.clone(),
+            global_tasks: self.global_tasks.clone(),
+            local_tasks: self.local_tasks.clone(),
+            task_graph: self.task_graph.clone(),
+            packed_tasks: self.packed_tasks.clone(),
+            processing: self.processing.clone(),
+        }
+    }
+}
+
 impl<T: ExecutionIterator> ExecutorState<T> {
     /// Returns a borrowed immutable
     pub fn get_rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
@@ -191,7 +209,7 @@ impl<T: ExecutionIterator> ExecutorState<T> {
 
         while previous.is_some() {
             let key = previous.clone().unwrap();
-            match self.task_graph.get(&key) {
+            match self.task_graph.borrow().get(&key) {
                 Some(dep) => {
                     deps.push(dep.clone());
                     previous = Some(dep.clone());
@@ -207,8 +225,8 @@ impl<T: ExecutionIterator> ExecutorState<T> {
     /// Returns true/false indicative if the provided task entry
     /// is considerd packed.
     #[inline]
-    pub fn is_packed(&mut self, target: &Entry) -> bool {
-        match self.packed_tasks.get(target) {
+    pub fn is_packed(&self, target: &Entry) -> bool {
+        match self.packed_tasks.borrow().get(target) {
             Some(value) => value.clone(),
             None => false,
         }
@@ -216,45 +234,45 @@ impl<T: ExecutionIterator> ExecutorState<T> {
 
     /// De-registers this task and it's dependents from the packed hashmap.
     #[inline]
-    pub fn unpack_task_and_dependents(&mut self, target: Entry) {
-        self.packed_tasks.remove(&target);
+    pub fn unpack_task_and_dependents(&self, target: Entry) {
+        self.packed_tasks.borrow_mut().remove(&target);
         for dependent in self.get_task_dependents(target).into_iter() {
-            self.packed_tasks.remove(&dependent);
+            self.packed_tasks.borrow_mut().remove(&dependent);
         }
     }
 
     /// Register this task and its dependents in the packed hashmap.
     #[inline]
-    pub fn pack_task_and_dependents(&mut self, target: Entry) {
-        self.packed_tasks.insert(target.clone(), true);
+    pub fn pack_task_and_dependents(&self, target: Entry) {
+        self.packed_tasks.borrow_mut().insert(target.clone(), true);
         for dependent in self.get_task_dependents(target).into_iter() {
-            self.packed_tasks.insert(dependent, true);
+            self.packed_tasks.borrow_mut().insert(dependent, true);
         }
     }
 
     /// wake_up adds the entry into the list of wakers
     /// that should be woken up by the executor.
     #[inline]
-    pub fn wake_up(&mut self, target: Entry) {
+    pub fn wake_up(&self, target: Entry) {
         // get all the list of dependents and add back into queue.
         let deps = self.get_task_dependents(target.clone());
 
         // remove packed registry
-        self.packed_tasks.remove(&target);
+        self.packed_tasks.borrow_mut().remove(&target);
 
         match self.priority {
             PriorityOrder::Top => {
                 for dependent in deps.into_iter().rev() {
-                    self.packed_tasks.remove(&dependent);
-                    self.processing.push_front(dependent.clone());
+                    self.packed_tasks.borrow_mut().remove(&dependent);
+                    self.processing.borrow_mut().push_front(dependent.clone());
                 }
-                self.processing.push_front(target.clone());
+                self.processing.borrow_mut().push_front(target.clone());
             }
             PriorityOrder::Bottom => {
-                self.processing.push_back(target.clone());
+                self.processing.borrow_mut().push_back(target.clone());
                 for dependent in deps.into_iter() {
-                    self.packed_tasks.remove(&dependent);
-                    self.processing.push_back(dependent.clone());
+                    self.packed_tasks.borrow_mut().remove(&dependent);
+                    self.processing.borrow_mut().push_back(dependent.clone());
                 }
             }
         }
@@ -264,7 +282,7 @@ impl<T: ExecutionIterator> ExecutorState<T> {
     /// matured to the age of being woken up and placed back into
     /// the processing queue.
     #[inline]
-    pub fn wakeup_ready_sleepers(&mut self) {
+    pub fn wakeup_ready_sleepers(&self) {
         for matured in self.sleepers.get_matured() {
             match matured {
                 Sleepable::Timable(wakeable) => self.wake_up(wakeable.handle.clone()),
@@ -287,7 +305,7 @@ impl<T: ExecutionIterator> ExecutorState<T> {
     /// task still processing
     #[inline]
     pub fn has_local_tasks(&self) -> bool {
-        self.local_tasks.active_slots() > 0
+        self.local_tasks.borrow().active_slots() > 0
     }
 
     /// Returns if there is any local task is active
@@ -302,13 +320,13 @@ impl<T: ExecutionIterator> ExecutorState<T> {
 
     /// Returns true/false if processing queue has task.
     pub fn has_inflight_task(&self) -> bool {
-        self.processing.len() > 0
+        self.processing.borrow().len() > 0
     }
 
     /// Returns the total remaining tasks that are
     /// active and not sleeping.
     pub fn total_active_tasks(&self) -> usize {
-        let local_task_count = self.local_tasks.active_slots();
+        let local_task_count = self.local_tasks.borrow().active_slots();
         let sleeping_task_count = self.sleepers.count();
         tracing::debug!(
             "Local TaskCount={} and Sleeping TaskCount={}",
@@ -324,177 +342,35 @@ impl<T: ExecutionIterator> ExecutorState<T> {
     /// to indicate no task was taking from the global queue
     /// as the local queue had a task or no task was found.
     #[inline]
-    pub fn schedule_next(&mut self) -> ScheduleOutcome {
-        if self.local_tasks.active_slots() > 0 && self.processing.len() > 0 {
+    pub fn schedule_next(&self) -> ScheduleOutcome {
+        if self.local_tasks.borrow().active_slots() > 0 && self.processing.borrow().len() > 0 {
             return ScheduleOutcome::LocalTaskRunning;
         }
 
         match self.global_tasks.pop() {
             Ok(task) => {
-                let task_entry = self.local_tasks.insert(task);
-                self.processing.push_front(task_entry.clone());
+                let task_entry = self.local_tasks.borrow_mut().insert(task);
+                self.processing.borrow_mut().push_front(task_entry.clone());
                 ScheduleOutcome::GlobalTaskAcquired
             }
             Err(_) => ScheduleOutcome::NoTaskRunningOrAcquired,
         }
     }
-}
-
-// --- End of: Task Dependences, Rng and Helper methods
-
-// --- Task spawn methods: Lift, Schedule & Broadcast
-
-impl<T: ExecutionIterator> ExecutorState<T> {
-    /// lift defers from the `ExecutorState::schedule` method
-    /// where instead when adding the task into the local queue
-    /// but also lifts the task as the highest priorty task
-    /// to be processed.
-    ///
-    /// This means the currently processed task that might have
-    /// called `ExecutorState::lift` since the executor will only
-    /// ever execute a singular task each time (even if it concurrently)
-    /// processes them (based on their operating semantics).
-    ///
-    /// But even if its from outside a task, understand the new task
-    /// will take priorty till it's done.
-    #[inline]
-    pub fn lift(&mut self, task: T, parent: Option<Entry>) -> AnyResult<Entry, ExecutorError> {
-        // if there is a parent then you need to be
-        // the top of the executing set.
-        if let Some(parent_handle) = &parent {
-            if let Some(current_handle) = self.processing.get(0) {
-                if !current_handle.eq(parent_handle) {
-                    return Err(ExecutorError::ParentMustBeExecutingToLift);
-                }
-            }
-        }
-
-        let task_entry = self.local_tasks.insert(task);
-        self.processing.push_front(task_entry.clone());
-
-        // create dependent graph map.
-        if let Some(parent_handle) = &parent {
-            self.task_graph
-                .insert(task_entry.clone(), parent_handle.clone());
-        }
-
-        Ok(task_entry)
-    }
-
-    /// schedule appends the provided task into the
-    /// end of the local task queue which then gets
-    /// processed accordingly when its turns comes up
-    /// once all previous tasks and it's sub-tasks have
-    /// been resolved.
-    ///
-    /// Scheduled tasks do not create relationships at all
-    /// any task can schedule new task to the executor
-    /// and it never affects its execution or priority.
-    #[inline]
-    pub fn schedule(&mut self, task: T) -> AnyResult<Entry, ExecutorError> {
-        let task_entry = self.local_tasks.insert(task);
-        self.processing.push_back(task_entry.clone());
-        Ok(task_entry)
-    }
-
-    /// Delivers a task (Iterator) type to the global execution queue
-    /// and in such a case you do not have an handle to the task as we
-    /// no more have control as to where it gets allocated.
-    pub fn broadcast(&mut self, task: T) -> AnyResult<(), ExecutorError> {
-        match self.global_tasks.push(task) {
-            Ok(_) => Ok(()),
-            Err(err) => match err {
-                PushError::Full(_) => Err(ExecutorError::QueueFull),
-                PushError::Closed(_) => Err(ExecutorError::QueueClosed),
-            },
-        }
-    }
-}
-
-// --- End of: Task spawn methods: Lift, Schedule & Broadcast
-
-pub struct ReferencedExecutorState<T: ExecutionIterator> {
-    inner: rc::Rc<cell::RefCell<ExecutorState<T>>>,
-}
-
-impl<T: ExecutionIterator> From<rc::Rc<cell::RefCell<ExecutorState<T>>>>
-    for ReferencedExecutorState<T>
-{
-    fn from(value: rc::Rc<cell::RefCell<ExecutorState<T>>>) -> Self {
-        ReferencedExecutorState { inner: value }
-    }
-}
-
-impl<T: ExecutionIterator> Clone for ReferencedExecutorState<T> {
-    fn clone(&self) -> Self {
-        ReferencedExecutorState {
-            inner: rc::Rc::clone(&self.inner),
-        }
-    }
-}
-
-#[allow(unused)]
-impl<T: ExecutionIterator> ReferencedExecutorState<T> {
-    pub(crate) fn clone_state(&self) -> rc::Rc<cell::RefCell<ExecutorState<T>>> {
-        self.inner.clone()
-    }
-
-    fn get_ref(&self) -> &rc::Rc<cell::RefCell<ExecutorState<T>>> {
-        &self.inner
-    }
-
-    fn get_ref_mut(&mut self) -> &mut rc::Rc<cell::RefCell<ExecutorState<T>>> {
-        &mut self.inner
-    }
-
-    fn borrow(&self) -> cell::Ref<'_, ExecutorState<T>> {
-        self.inner.borrow()
-    }
-
-    fn borrow_mut(&self) -> cell::RefMut<'_, ExecutorState<T>> {
-        self.inner.borrow_mut()
-    }
-}
-
-impl<T: ExecutionIterator> ReferencedExecutorState<T> {
-    #[inline]
-    pub(crate) fn get_rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
-        let handle = self.borrow();
-        handle.get_rng()
-    }
 
     #[inline]
-    pub(crate) fn number_of_sleepers(&self) -> usize {
-        self.borrow().number_of_sleepers()
-    }
-
-    #[inline]
-    pub(crate) fn do_global_acuire(&self) -> ScheduleOutcome {
-        let mut handle = self.borrow_mut();
-        handle.schedule_next()
-    }
-
-    /// Returns true/false if processing queue has task.
-    pub fn has_inflight_task(&self) -> bool {
-        let handle = self.borrow();
-        handle.has_inflight_task()
-    }
-
-    #[inline]
-    pub(crate) fn request_global_task(&self) -> ProgressIndicator {
-        let mut handle = self.borrow_mut();
-        if handle.has_active_tasks() {
+    pub fn request_global_task(&self) -> ProgressIndicator {
+        if self.has_active_tasks() {
             tracing::debug!("Still have active tasks");
             return ProgressIndicator::CanProgress;
         }
 
-        match handle.schedule_next() {
+        match self.schedule_next() {
             ScheduleOutcome::GlobalTaskAcquired => {
                 tracing::debug!("Succesfully acquired new tasks for processing");
                 ProgressIndicator::CanProgress
             }
             ScheduleOutcome::NoTaskRunningOrAcquired => {
-                if handle.has_sleeping_tasks() {
+                if self.has_sleeping_tasks() {
                     tracing::debug!(
                         "No new tasks, but we have sleeping tasks, so we can make progress"
                     );
@@ -509,12 +385,6 @@ impl<T: ExecutionIterator> ReferencedExecutorState<T> {
                 unreachable!("No local task should be running at this point")
             }
         }
-    }
-
-    #[inline]
-    pub(crate) fn request_sleeping_tasks_wake(&self) {
-        let mut handle = self.borrow_mut();
-        handle.wakeup_ready_sleepers();
     }
 
     #[inline]
@@ -533,7 +403,7 @@ impl<T: ExecutionIterator> ReferencedExecutorState<T> {
             }
         }
 
-        self.request_sleeping_tasks_wake();
+        self.wakeup_ready_sleepers();
 
         match self.do_work(engine) {
             ProgressIndicator::CanProgress => {
@@ -543,8 +413,7 @@ impl<T: ExecutionIterator> ReferencedExecutorState<T> {
             }
             ProgressIndicator::NoWork => {
                 tracing::debug!("Received NoWork indicator from task");
-                let mut state = self.borrow_mut();
-                match state.idler.increment() {
+                match self.idler.borrow_mut().increment() {
                     Some(next_dur) => ProgressIndicator::SpinWait(next_dur),
                     None => ProgressIndicator::NoWork,
                 }
@@ -559,7 +428,7 @@ impl<T: ExecutionIterator> ReferencedExecutorState<T> {
                 // if the current task indicates it wants to spin wait,
                 // attempt to get global task else return
                 // duration as is.
-                match self.do_global_acuire() {
+                match self.schedule_next() {
                     ScheduleOutcome::GlobalTaskAcquired => {
                         tracing::debug!(
                             "Global task indicate we can make progress, possible acquired task"
@@ -579,32 +448,47 @@ impl<T: ExecutionIterator> ReferencedExecutorState<T> {
         }
     }
 
+    pub fn check_processing_queue(&self) -> Option<ProgressIndicator> {
+        let has_sleeping_tasks = self.has_sleeping_tasks();
+        let handle = self.processing.borrow_mut();
+        // if after wake up, no task still enters
+        // the processing queue then no work is available
+        if handle.is_empty() {
+            tracing::debug!("Task queue is empty: {:?}", handle.is_empty());
+            if has_sleeping_tasks {
+                return Some(ProgressIndicator::CanProgress);
+            }
+            return Some(ProgressIndicator::NoWork);
+        }
+        None
+    }
+
     /// do_work attempts to call the current iterator to progress
     /// executing the next operation internally till it's ready for
     /// work to begin.
     #[inline]
     pub fn do_work(&self, engine: T::Executor) -> ProgressIndicator {
-        let mut handle = self.borrow_mut();
-
         // if after wake up, no task still enters
         // the processing queue then no work is available
-        if handle.processing.is_empty() {
-            tracing::debug!("Task queue is empty: {:?}", handle.processing.is_empty());
-            if handle.has_sleeping_tasks() {
-                return ProgressIndicator::CanProgress;
-            }
-            return ProgressIndicator::NoWork;
+        match self.check_processing_queue() {
+            Some(inner) => match inner {
+                ProgressIndicator::NoWork => return ProgressIndicator::NoWork,
+                ProgressIndicator::CanProgress => return ProgressIndicator::CanProgress,
+                _ => unreachable!("check_processing_queue should never reach here"),
+            },
+            None => {}
         }
 
-        let top_entry = handle.processing.pop_front().unwrap();
-        let remaining_tasks = handle.processing.len();
+        let top_entry = self.processing.borrow_mut().pop_front().unwrap();
+        let remaining_tasks = self.processing.borrow().len();
 
-        if handle.is_packed(&top_entry) {
+        if self.is_packed(&top_entry) {
             return ProgressIndicator::CanProgress;
         }
 
-        match handle.local_tasks.get_mut(&top_entry) {
-            Some(iter) => {
+        let iter_container = self.local_tasks.borrow_mut().pack(&top_entry);
+        match iter_container {
+            Some(mut iter) => {
                 match iter.next(top_entry.clone(), engine) {
                     Some(state) => {
                         tracing::debug!("Task delivered state: {:?}", &state);
@@ -617,6 +501,7 @@ impl<T: ExecutionIterator> ReferencedExecutorState<T> {
                                     "Task as finished with State::Done (rem_tasks: {})",
                                     remaining_tasks
                                 );
+
                                 // Task Iterator is really done
                                 if remaining_tasks == 0 {
                                     ProgressIndicator::NoWork
@@ -626,7 +511,11 @@ impl<T: ExecutionIterator> ReferencedExecutorState<T> {
                             }
                             State::Progressed => {
                                 tracing::debug!("Task is progressing with State::Progressed");
-                                handle.processing.push_front(top_entry);
+                                // unpack the entry in the task list
+                                self.local_tasks.borrow_mut().unpack(&top_entry, iter);
+
+                                // push entry back into processing mut
+                                self.processing.borrow_mut().push_front(top_entry);
                                 ProgressIndicator::CanProgress
                             }
                             State::Pending(duration) => {
@@ -647,22 +536,29 @@ impl<T: ExecutionIterator> ReferencedExecutorState<T> {
                                     Some(inner) => {
                                         tracing::debug!("Task provided duration: {:?}", &inner);
 
+                                        // unpack the entry in the task list
+                                        self.local_tasks.borrow_mut().unpack(&top_entry, iter);
+
                                         // pack this entry and it's dependents into our packed registry.
-                                        handle.pack_task_and_dependents(top_entry.clone());
+                                        self.pack_task_and_dependents(top_entry.clone());
 
                                         // I do not think I need to use the sleeper entry.
-                                        let _ = handle.sleepers.insert(Sleepable::Timable(
+                                        let _ = self.sleepers.insert(Sleepable::Timable(
                                             Wakeable::from_now(top_entry.clone(), inner),
                                         ));
 
-                                        if handle.processing.len() > 0 {
+                                        if self.processing.borrow().len() > 0 {
                                             return ProgressIndicator::CanProgress;
                                         }
 
                                         ProgressIndicator::SpinWait(inner)
                                     }
                                     None => {
-                                        handle.processing.push_front(top_entry);
+                                        // unpack the entry in the task list
+                                        self.local_tasks.borrow_mut().unpack(&top_entry, iter);
+
+                                        // push back to top
+                                        self.processing.borrow_mut().push_front(top_entry);
                                         ProgressIndicator::CanProgress
                                     }
                                 };
@@ -674,7 +570,13 @@ impl<T: ExecutionIterator> ReferencedExecutorState<T> {
                                 tracing::debug!(
                                     "Task is wishes to reschedule with State::Reschedule"
                                 );
-                                handle.processing.push_back(top_entry.clone());
+
+                                // unpack the entry in the task list
+                                self.local_tasks.borrow_mut().unpack(&top_entry, iter);
+
+                                // add back task into queue
+                                self.processing.borrow_mut().push_back(top_entry.clone());
+
                                 ProgressIndicator::CanProgress
                             }
                         }
@@ -698,10 +600,143 @@ impl<T: ExecutionIterator> ReferencedExecutorState<T> {
     }
 }
 
+// --- End of: Task Dependences, Rng and Helper methods
+
+// --- Task spawn methods: Lift, Schedule & Broadcast
+
+impl<T: ExecutionIterator> ExecutorState<T> {
+    /// lift defers from the `ExecutorState::schedule` method
+    /// where instead when adding the task into the local queue
+    /// but also lifts the task as the highest priorty task
+    /// to be processed.
+    ///
+    /// This means the currently processed task that might have
+    /// called `ExecutorState::lift` since the executor will only
+    /// ever execute a singular task each time (even if it concurrently)
+    /// processes them (based on their operating semantics).
+    ///
+    /// But even if its from outside a task, understand the new task
+    /// will take priorty till it's done.
+    #[inline]
+    pub fn lift(&self, task: T, parent: Option<Entry>) -> AnyResult<Entry, ExecutorError> {
+        // if there is a parent then you need to be
+        // the top of the executing set.
+        if let Some(parent_handle) = &parent {
+            if let Some(current_handle) = self.processing.borrow().get(0) {
+                if !current_handle.eq(parent_handle) {
+                    return Err(ExecutorError::ParentMustBeExecutingToLift);
+                }
+            }
+        }
+
+        let task_entry = self.local_tasks.borrow_mut().insert(task);
+        self.processing.borrow_mut().push_front(task_entry.clone());
+
+        // create dependent graph map.
+        if let Some(parent_handle) = &parent {
+            self.task_graph
+                .borrow_mut()
+                .insert(task_entry.clone(), parent_handle.clone());
+        }
+
+        Ok(task_entry)
+    }
+
+    /// schedule appends the provided task into the
+    /// end of the local task queue which then gets
+    /// processed accordingly when its turns comes up
+    /// once all previous tasks and it's sub-tasks have
+    /// been resolved.
+    ///
+    /// Scheduled tasks do not create relationships at all
+    /// any task can schedule new task to the executor
+    /// and it never affects its execution or priority.
+    #[inline]
+    pub fn schedule(&self, task: T) -> AnyResult<Entry, ExecutorError> {
+        let task_entry = self.local_tasks.borrow_mut().insert(task);
+        self.processing.borrow_mut().push_back(task_entry.clone());
+        Ok(task_entry)
+    }
+
+    /// Delivers a task (Iterator) type to the global execution queue
+    /// and in such a case you do not have an handle to the task as we
+    /// no more have control as to where it gets allocated.
+    pub fn broadcast(&self, task: T) -> AnyResult<(), ExecutorError> {
+        match self.global_tasks.push(task) {
+            Ok(_) => Ok(()),
+            Err(err) => match err {
+                PushError::Full(_) => Err(ExecutorError::QueueFull),
+                PushError::Closed(_) => Err(ExecutorError::QueueClosed),
+            },
+        }
+    }
+}
+
+// --- End of: Task spawn methods: Lift, Schedule & Broadcast
+
+pub struct ReferencedExecutorState<T: ExecutionIterator> {
+    inner: rc::Rc<ExecutorState<T>>,
+}
+
+impl<T: ExecutionIterator> From<rc::Rc<ExecutorState<T>>> for ReferencedExecutorState<T> {
+    fn from(value: rc::Rc<ExecutorState<T>>) -> Self {
+        ReferencedExecutorState { inner: value }
+    }
+}
+
+impl<T: ExecutionIterator> Clone for ReferencedExecutorState<T> {
+    fn clone(&self) -> Self {
+        ReferencedExecutorState {
+            inner: rc::Rc::clone(&self.inner),
+        }
+    }
+}
+
+#[allow(unused)]
+impl<T: ExecutionIterator> ReferencedExecutorState<T> {
+    pub(crate) fn clone_state(&self) -> rc::Rc<ExecutorState<T>> {
+        self.inner.clone()
+    }
+
+    fn get_ref(&self) -> &rc::Rc<ExecutorState<T>> {
+        &self.inner
+    }
+
+    fn get_ref_mut(&mut self) -> &mut rc::Rc<ExecutorState<T>> {
+        &mut self.inner
+    }
+}
+
+impl<T: ExecutionIterator> ReferencedExecutorState<T> {
+    #[inline]
+    pub(crate) fn get_rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
+        self.inner.get_rng()
+    }
+
+    #[inline]
+    pub(crate) fn number_of_sleepers(&self) -> usize {
+        self.inner.number_of_sleepers()
+    }
+
+    #[inline]
+    pub(crate) fn do_global_acuire(&self) -> ScheduleOutcome {
+        self.inner.schedule_next()
+    }
+
+    /// Returns true/false if processing queue has task.
+    pub fn has_inflight_task(&self) -> bool {
+        self.inner.has_inflight_task()
+    }
+
+    pub fn schedule_and_do_work(&self, engine: T::Executor) -> ProgressIndicator {
+        self.inner.schedule_and_do_work(engine)
+    }
+}
+
 // --- LocalExecutor for ExecutionIterator::Executor
 
 pub struct LocalExecutorEngine {
-    inner: rc::Rc<cell::RefCell<ExecutorState<BoxedLocalExecutionIterator>>>,
+    inner: rc::Rc<ExecutorState<BoxedLocalExecutionIterator>>,
 }
 
 impl Clone for LocalExecutorEngine {
@@ -713,7 +748,7 @@ impl Clone for LocalExecutorEngine {
 }
 
 impl LocalExecutorEngine {
-    pub fn new(inner: rc::Rc<cell::RefCell<ExecutorState<BoxedLocalExecutionIterator>>>) -> Self {
+    pub fn new(inner: rc::Rc<ExecutorState<BoxedLocalExecutionIterator>>) -> Self {
         Self { inner }
     }
 }
@@ -770,7 +805,7 @@ impl ExecutionEngine for LocalExecutorEngine {
         task: Box<dyn ExecutionIterator<Executor = Self::Executor>>,
         parent: Option<Entry>,
     ) -> AnyResult<(), ExecutorError> {
-        let entry = self.inner.borrow_mut().lift(task, parent.clone())?;
+        let entry = self.inner.lift(task, parent.clone())?;
         tracing::debug!(
             "lift: new task with entry: {:?} from parent: {:?}",
             entry,
@@ -783,7 +818,7 @@ impl ExecutionEngine for LocalExecutorEngine {
         &self,
         task: Box<dyn ExecutionIterator<Executor = Self::Executor>>,
     ) -> AnyResult<(), ExecutorError> {
-        let entry = self.inner.borrow_mut().schedule(task)?;
+        let entry = self.inner.schedule(task)?;
         tracing::debug!("schedule: new task into Executor with entry: {:?}", entry);
         Ok(())
     }
@@ -792,7 +827,7 @@ impl ExecutionEngine for LocalExecutorEngine {
         &self,
         task: Box<dyn ExecutionIterator<Executor = Self::Executor>>,
     ) -> AnyResult<(), ExecutorError> {
-        self.inner.borrow_mut().broadcast(task)?;
+        self.inner.broadcast(task)?;
         tracing::debug!("broadcast: new task into Executor");
         Ok(())
     }
@@ -844,10 +879,7 @@ impl LocalThreadExecutor {
     ) -> Self {
         Self {
             yielder,
-            state: rc::Rc::new(cell::RefCell::new(ExecutorState::new(
-                tasks, priority, rng, idler,
-            )))
-            .into(),
+            state: rc::Rc::new(ExecutorState::new(tasks, priority, rng, idler)).into(),
         }
     }
 
@@ -1555,5 +1587,56 @@ mod test_local_thread_executor {
 
     #[test]
     #[traced_test]
-    fn scenario_5_task_spaws_task_b_that_spawns_task_c_that_goes_to_sleep() {}
+    fn scenario_5_task_spaws_task_b_that_spawns_task_c_that_goes_to_sleep() {
+        let global: Arc<ConcurrentQueue<BoxedLocalExecutionIterator>> =
+            Arc::new(ConcurrentQueue::bounded(10));
+
+        let counts: Rc<RefCell<Vec<(&'static str, TaskStatus<(), (), DaemonSpawner>)>>> =
+            Rc::new(RefCell::new(Vec::new()));
+
+        let seed = rand::thread_rng().next_u64();
+
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            global.clone(),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            Box::new(NoYielder::default()),
+        );
+
+        let gen_state = rc::Rc::new(AtomicUsize::new(0));
+
+        let count_clone = counts.clone();
+        panic_if_failed!(executor
+            .typed_task()
+            .with_task(DaemonCounter(gen_state.clone()))
+            .on_next(move |next, _| count_clone.borrow_mut().push(("DaemonCounter", next)))
+            .broadcast());
+
+        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+
+        assert_eq!(counts.borrow().clone(), vec![]);
+
+        gen_state.store(1, Ordering::SeqCst);
+
+        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![("DaemonCounter", TaskStatus::Ready(())),]
+        );
+
+        assert_eq!(executor.number_of_sleepers(), 0);
+
+        gen_state.store(2, Ordering::SeqCst);
+
+        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            counts.borrow().clone(),
+            vec![("DaemonCounter", TaskStatus::Ready(())),]
+        );
+    }
 }
