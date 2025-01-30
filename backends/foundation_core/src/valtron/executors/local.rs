@@ -435,6 +435,10 @@ impl<T: ExecutionIterator> Clone for ReferencedExecutorState<T> {
 
 #[allow(unused)]
 impl<T: ExecutionIterator> ReferencedExecutorState<T> {
+    pub(crate) fn clone_state(&self) -> rc::Rc<cell::RefCell<ExecutorState<T>>> {
+        self.inner.clone()
+    }
+
     fn get_ref(&self) -> &rc::Rc<cell::RefCell<ExecutorState<T>>> {
         &self.inner
     }
@@ -734,6 +738,26 @@ impl LocalExecutorEngine {
     {
         ExecutionTaskIteratorBuilder::new(self.clone())
     }
+
+    /// task2 allows you to create a task builder with less restrictive type
+    /// requirements for the builder, specifically resolvers are Boxed.
+    pub fn task2<Task, Action>(
+        &self,
+    ) -> ExecutionTaskIteratorBuilder<
+        Task::Done,
+        Task::Pending,
+        LocalExecutorEngine,
+        Task::Spawner,
+        Box<dyn TaskStatusMapper<Task::Done, Task::Pending, Task::Spawner>>,
+        Box<dyn TaskReadyResolver<LocalExecutorEngine, Task::Spawner, Task::Done, Task::Pending>>,
+        Task,
+    >
+    where
+        Task: TaskIterator<Spawner = Action> + 'static,
+        Action: ExecutionAction<Executor = LocalExecutorEngine> + 'static,
+    {
+        ExecutionTaskIteratorBuilder::new(self.clone())
+    }
 }
 
 impl ExecutionEngine for LocalExecutorEngine {
@@ -862,6 +886,46 @@ impl LocalThreadExecutor {
 impl LocalThreadExecutor {
     pub(crate) fn local_executor_engine(&self) -> LocalExecutorEngine {
         self.state.local_executor_engine()
+    }
+
+    pub fn task<Task, Action, Resolver>(
+        &self,
+    ) -> ExecutionTaskIteratorBuilder<
+        Task::Done,
+        Task::Pending,
+        LocalExecutorEngine,
+        Task::Spawner,
+        Box<dyn TaskStatusMapper<Task::Done, Task::Pending, Task::Spawner>>,
+        Resolver,
+        Task,
+    >
+    where
+        Task: TaskIterator<Spawner = Action> + 'static,
+        Action: ExecutionAction<Executor = LocalExecutorEngine> + 'static,
+        Resolver: TaskReadyResolver<LocalExecutorEngine, Task::Spawner, Task::Done, Task::Pending>
+            + 'static,
+    {
+        ExecutionTaskIteratorBuilder::new(LocalExecutorEngine::new(self.state.clone_state()))
+    }
+
+    /// task2 allows you to create a task builder with less restrictive type
+    /// requirements for the builder, specifically resolvers are Boxed.
+    pub fn task2<Task, Action>(
+        &self,
+    ) -> ExecutionTaskIteratorBuilder<
+        Task::Done,
+        Task::Pending,
+        LocalExecutorEngine,
+        Task::Spawner,
+        Box<dyn TaskStatusMapper<Task::Done, Task::Pending, Task::Spawner>>,
+        Box<dyn TaskReadyResolver<LocalExecutorEngine, Task::Spawner, Task::Done, Task::Pending>>,
+        Task,
+    >
+    where
+        Task: TaskIterator<Spawner = Action> + 'static,
+        Action: ExecutionAction<Executor = LocalExecutorEngine> + 'static,
+    {
+        ExecutionTaskIteratorBuilder::new(LocalExecutorEngine::new(self.state.clone_state()))
     }
 }
 
@@ -1065,10 +1129,8 @@ mod test_local_thread_executor {
             Box::new(NoYielder::default()),
         );
 
-        let executor_engine = executor.local_executor_engine();
-
         let count_clone = Rc::clone(&counts);
-        panic_if_failed!(executor_engine
+        panic_if_failed!(executor
             .task()
             .with_task(Counter("Counter1", 0, 3, 3))
             .on_next(move |next, _| count_clone.borrow_mut().push(next))
@@ -1439,12 +1501,31 @@ mod test_local_thread_executor {
         type Executor = LocalExecutorEngine;
 
         fn apply(self, key: Entry, executor: Self::Executor) -> crate::valtron::GenericResult<()> {
-            // match self {
-            //     DaemonSpawner::NoSpawning => Ok(()),
-            //     DaemonSpawner::InThread => executor,
-            //     DaemonSpawner::OutofThread => todo!(),
-            // }
-            todo!()
+            match self {
+                DaemonSpawner::NoSpawning => Ok(()),
+                DaemonSpawner::InThread => {
+                    match executor
+                        .task2()
+                        .with_parent(key.clone())
+                        .with_task(SimpleCounter("SubTask1", 0))
+                        .schedule()
+                    {
+                        Ok(_) => Ok(()),
+                        Err(err) => Err(Box::new(err)),
+                    }
+                }
+                DaemonSpawner::OutofThread => {
+                    match executor
+                        .task2()
+                        .with_parent(key.clone())
+                        .with_task(SimpleCounter("SubTask2", 0))
+                        .broadcast()
+                    {
+                        Ok(_) => Ok(()),
+                        Err(err) => Err(Box::new(err)),
+                    }
+                }
+            }
         }
     }
 

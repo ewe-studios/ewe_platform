@@ -1,3 +1,4 @@
+mod collect_next;
 mod concurrent;
 mod controller;
 mod do_next;
@@ -7,6 +8,7 @@ mod local;
 mod on_next;
 mod task;
 
+pub use collect_next::*;
 pub use concurrent::*;
 pub use controller::*;
 pub use do_next::*;
