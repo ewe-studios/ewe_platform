@@ -486,7 +486,7 @@ impl<T: ExecutionIterator> ExecutorState<T> {
             return ProgressIndicator::CanProgress;
         }
 
-        let iter_container = self.local_tasks.borrow_mut().pack(&top_entry);
+        let iter_container = self.local_tasks.borrow_mut().park(&top_entry);
         match iter_container {
             Some(mut iter) => {
                 match iter.next(top_entry.clone(), engine) {
@@ -512,7 +512,7 @@ impl<T: ExecutionIterator> ExecutorState<T> {
                             State::Progressed => {
                                 tracing::debug!("Task is progressing with State::Progressed");
                                 // unpack the entry in the task list
-                                self.local_tasks.borrow_mut().unpack(&top_entry, iter);
+                                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
 
                                 // push entry back into processing mut
                                 self.processing.borrow_mut().push_front(top_entry);
@@ -537,7 +537,7 @@ impl<T: ExecutionIterator> ExecutorState<T> {
                                         tracing::debug!("Task provided duration: {:?}", &inner);
 
                                         // unpack the entry in the task list
-                                        self.local_tasks.borrow_mut().unpack(&top_entry, iter);
+                                        self.local_tasks.borrow_mut().unpark(&top_entry, iter);
 
                                         // pack this entry and it's dependents into our packed registry.
                                         self.pack_task_and_dependents(top_entry.clone());
@@ -555,7 +555,7 @@ impl<T: ExecutionIterator> ExecutorState<T> {
                                     }
                                     None => {
                                         // unpack the entry in the task list
-                                        self.local_tasks.borrow_mut().unpack(&top_entry, iter);
+                                        self.local_tasks.borrow_mut().unpark(&top_entry, iter);
 
                                         // push back to top
                                         self.processing.borrow_mut().push_front(top_entry);
@@ -572,7 +572,7 @@ impl<T: ExecutionIterator> ExecutorState<T> {
                                 );
 
                                 // unpack the entry in the task list
-                                self.local_tasks.borrow_mut().unpack(&top_entry, iter);
+                                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
 
                                 // add back task into queue
                                 self.processing.borrow_mut().push_back(top_entry.clone());
