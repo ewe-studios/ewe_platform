@@ -468,6 +468,47 @@ pub trait TaskReadyResolver<E, S: ExecutionAction, D, P> {
     fn handle(&self, item: TaskStatus<D, P, S>, engine: E);
 }
 
+pub type NoResolver<Action, Done, Pending> =
+    NoResolving<LocalExecutorEngine, Action, Done, Pending>;
+
+pub type NoResolverAndSpawner<Done, Pending> =
+    NoResolving<LocalExecutorEngine, NoSpawner, Done, Pending>;
+
+pub struct NoResolving<Engine: ExecutionEngine, Action: ExecutionAction, Done, Pending>(
+    PhantomData<(Engine, Action, Done, Pending)>,
+);
+
+impl<Engine, Action, Done, Pending> NoResolving<Engine, Action, Done, Pending>
+where
+    Engine: ExecutionEngine,
+    Action: ExecutionAction,
+{
+    pub fn new() -> Self {
+        Self(PhantomData::default())
+    }
+}
+
+impl<Engine, Action, Done, Pending> Default for NoResolving<Engine, Action, Done, Pending>
+where
+    Engine: ExecutionEngine,
+    Action: ExecutionAction,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<Engine, Action, Done, Pending> TaskReadyResolver<Engine, Action, Done, Pending>
+    for NoResolving<Engine, Action, Done, Pending>
+where
+    Engine: ExecutionEngine,
+    Action: ExecutionAction,
+{
+    fn handle(&self, _item: TaskStatus<Done, Pending, Action>, _engine: Engine) {
+        // do nothing
+    }
+}
+
 impl<'a, F, E, S, D, P> TaskReadyResolver<E, S, D, P> for &'a mut F
 where
     E: ExecutionEngine,
