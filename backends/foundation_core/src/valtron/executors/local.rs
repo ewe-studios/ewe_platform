@@ -53,7 +53,7 @@ impl Waiter for Sleepable {
 }
 
 #[derive(PartialEq, Eq)]
-enum SpawnType {
+pub(crate) enum SpawnType {
     Lifted,
     LiftedWithParent,
     Broadcast,
@@ -769,7 +769,7 @@ impl<T: ExecutionIterator> ExecutorState<T> {
     pub fn broadcast(&self, task: T) -> AnyResult<(), ExecutorError> {
         match self.global_tasks.push(task) {
             Ok(_) => {
-                self.spawn_op.borrow_mut().replace(SpawnType::Scheduled);
+                self.spawn_op.borrow_mut().replace(SpawnType::Broadcast);
                 Ok(())
             }
             Err(err) => match err {
@@ -832,11 +832,6 @@ impl<T: ExecutionIterator> ReferencedExecutorState<T> {
     #[inline]
     pub(crate) fn number_of_sleepers(&self) -> usize {
         self.inner.number_of_sleepers()
-    }
-
-    #[inline]
-    pub(crate) fn do_global_acuire(&self) -> ScheduleOutcome {
-        self.inner.schedule_next()
     }
 
     /// Returns true/false if processing queue has task.
