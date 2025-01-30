@@ -719,7 +719,9 @@ impl LocalExecutorEngine {
 }
 
 impl LocalExecutorEngine {
-    pub fn task<Task, Action, Resolver>(
+    /// typed_task allows you to create a task builder but requiring specific
+    /// definitions for your `Task`, `Action` and `Resolver` types.
+    pub fn typed_task<Task, Action, Resolver>(
         &self,
     ) -> ExecutionTaskIteratorBuilder<
         Task::Done,
@@ -739,9 +741,9 @@ impl LocalExecutorEngine {
         ExecutionTaskIteratorBuilder::new(self.clone())
     }
 
-    /// task2 allows you to create a task builder with less restrictive type
+    /// any_task allows you to create a task builder with less restrictive type
     /// requirements for the builder, specifically resolvers are Boxed.
-    pub fn task2<Task, Action>(
+    pub fn any_task<Task, Action>(
         &self,
     ) -> ExecutionTaskIteratorBuilder<
         Task::Done,
@@ -888,7 +890,9 @@ impl LocalThreadExecutor {
         self.state.local_executor_engine()
     }
 
-    pub fn task<Task, Action, Resolver>(
+    /// typed_task allows you to create a task builder but requiring specific
+    /// definitions for your `Task`, `Action` and `Resolver` types.
+    pub fn typed_task<Task, Action, Resolver>(
         &self,
     ) -> ExecutionTaskIteratorBuilder<
         Task::Done,
@@ -908,9 +912,9 @@ impl LocalThreadExecutor {
         ExecutionTaskIteratorBuilder::new(LocalExecutorEngine::new(self.state.clone_state()))
     }
 
-    /// task2 allows you to create a task builder with less restrictive type
+    /// any_task allows you to create a task builder with less restrictive type
     /// requirements for the builder, specifically resolvers are Boxed.
-    pub fn task2<Task, Action>(
+    pub fn any_task<Task, Action>(
         &self,
     ) -> ExecutionTaskIteratorBuilder<
         Task::Done,
@@ -1131,7 +1135,7 @@ mod test_local_thread_executor {
 
         let count_clone = Rc::clone(&counts);
         panic_if_failed!(executor
-            .task()
+            .typed_task()
             .with_task(Counter("Counter1", 0, 3, 3))
             .on_next(move |next, _| count_clone.borrow_mut().push(next))
             .broadcast());
@@ -1505,7 +1509,7 @@ mod test_local_thread_executor {
                 DaemonSpawner::NoSpawning => Ok(()),
                 DaemonSpawner::InThread => {
                     match executor
-                        .task2()
+                        .any_task()
                         .with_parent(key.clone())
                         .with_task(SimpleCounter("SubTask1", 0))
                         .schedule()
@@ -1516,7 +1520,7 @@ mod test_local_thread_executor {
                 }
                 DaemonSpawner::OutofThread => {
                     match executor
-                        .task2()
+                        .any_task()
                         .with_parent(key.clone())
                         .with_task(SimpleCounter("SubTask2", 0))
                         .broadcast()
