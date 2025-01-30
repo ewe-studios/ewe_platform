@@ -65,7 +65,7 @@ where
                 TaskStatus::Pending(_) => State::Pending(None),
                 TaskStatus::Init => State::Pending(None),
                 TaskStatus::Spawn(action) => match action.apply(entry, executor) {
-                    Ok(_) => State::Progressed,
+                    Ok(_) => State::SpawnFinished,
                     Err(err) => {
                         tracing::error!("Failed to apply ExectionAction: {:?}", err);
                         State::SpawnFailed

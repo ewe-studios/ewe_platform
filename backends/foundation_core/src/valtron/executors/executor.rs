@@ -25,6 +25,9 @@ pub enum State {
     /// or wanted state to be in ever.
     SpawnFailed,
 
+    /// The state indicating a spawn action succeeded.
+    SpawnFinished,
+
     /// Reschedule indicates we want to rechedule the underlying
     /// task leaving the performance of that to the underlying
     /// process that receives this.
