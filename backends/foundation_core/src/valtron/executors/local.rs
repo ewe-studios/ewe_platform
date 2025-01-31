@@ -20,7 +20,8 @@ use concurrent_queue::{ConcurrentQueue, PushError};
 
 use super::{
     BoxedLocalExecutionIterator, CloneProcessController, ExecutionAction,
-    ExecutionTaskIteratorBuilder, ExecutorError, TaskIterator, TaskReadyResolver, TaskStatusMapper,
+    ExecutionTaskIteratorBuilder, ExecutorError, ProcessController, TaskIterator,
+    TaskReadyResolver, TaskStatusMapper,
 };
 
 /// PriorityOrder defines how wake up tasks should placed once woken up.
@@ -961,18 +962,18 @@ impl ReferencedExecutorState<BoxedLocalExecutionIterator> {
 /// `SameThreadExecutor` are not Send (!Send) so you cant
 /// send them over to another thread but can potentially be
 /// shared through an Arc.
-pub struct LocalThreadExecutor {
+pub struct LocalThreadExecutor<T: ProcessController> {
     state: ReferencedExecutorState<BoxedLocalExecutionIterator>,
-    yielder: Box<dyn CloneProcessController>,
+    yielder: rc::Rc<T>,
 }
 
 // --- constructors
 
-impl Clone for LocalThreadExecutor {
+impl<T: ProcessController> Clone for LocalThreadExecutor<T> {
     fn clone(&self) -> Self {
         LocalThreadExecutor {
             state: self.state.clone(),
-            yielder: self.yielder.clone_process_controller(),
+            yielder: self.yielder.clone(),
         }
     }
 }
@@ -980,16 +981,16 @@ impl Clone for LocalThreadExecutor {
 // -- Constructors
 
 #[allow(unused)]
-impl LocalThreadExecutor {
+impl<T: ProcessController> LocalThreadExecutor<T> {
     pub fn new(
         tasks: sync::Arc<ConcurrentQueue<BoxedLocalExecutionIterator>>,
         rng: ChaCha8Rng,
         idler: IdleMan,
         priority: PriorityOrder,
-        yielder: Box<dyn CloneProcessController>,
+        yielder: T,
     ) -> Self {
         Self {
-            yielder,
+            yielder: rc::Rc::new(yielder),
             state: rc::Rc::new(ExecutorState::new(tasks, priority, rng, idler)).into(),
         }
     }
@@ -1001,7 +1002,7 @@ impl LocalThreadExecutor {
         tasks: sync::Arc<ConcurrentQueue<BoxedLocalExecutionIterator>>,
         idler: IdleMan,
         priority: PriorityOrder,
-        yielder: Box<dyn CloneProcessController>,
+        yielder: T,
     ) -> Self {
         Self::new(
             tasks,
@@ -1019,7 +1020,7 @@ impl LocalThreadExecutor {
         rng: &mut R,
         idler: IdleMan,
         priority: PriorityOrder,
-        yielder: Box<dyn CloneProcessController>,
+        yielder: T,
     ) -> Self {
         Self::from_seed(rng.next_u64(), tasks, idler, priority, yielder)
     }
@@ -1028,7 +1029,7 @@ impl LocalThreadExecutor {
 // -- LocalExecutor builder
 
 #[allow(unused)]
-impl LocalThreadExecutor {
+impl<T: ProcessController> LocalThreadExecutor<T> {
     pub(crate) fn local_executor_engine(&self) -> LocalExecutorEngine {
         self.state.local_executor_engine()
     }
@@ -1079,7 +1080,7 @@ impl LocalThreadExecutor {
 // --- LocalExecutor run once
 
 #[allow(unused)]
-impl LocalThreadExecutor {
+impl<T: ProcessController> LocalThreadExecutor<T> {
     #[inline]
     pub fn get_rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
         self.state.get_rng()
@@ -1214,7 +1215,7 @@ mod test_local_thread_executor {
                 SleepyMan::new(3, ExponentialBackoffDecider::default()),
             ),
             PriorityOrder::Bottom,
-            Box::new(NoYielder::default()),
+            NoYielder::default(),
         );
 
         let count_clone = Rc::clone(&counts);
@@ -1258,7 +1259,7 @@ mod test_local_thread_executor {
                 SleepyMan::new(3, ExponentialBackoffDecider::default()),
             ),
             PriorityOrder::Bottom,
-            Box::new(NoYielder::default()),
+            NoYielder::default(),
         );
 
         let count_clone = Rc::clone(&counts);
@@ -1300,7 +1301,7 @@ mod test_local_thread_executor {
                 SleepyMan::new(3, ExponentialBackoffDecider::default()),
             ),
             PriorityOrder::Bottom,
-            Box::new(NoYielder::default()),
+            NoYielder::default(),
         );
 
         let count_clone = Rc::clone(&counts);
@@ -1359,7 +1360,7 @@ mod test_local_thread_executor {
                 SleepyMan::new(3, ExponentialBackoffDecider::default()),
             ),
             PriorityOrder::Top,
-            Box::new(NoYielder::default()),
+            NoYielder::default(),
         );
 
         let count_clone = Rc::clone(&counts);
@@ -1488,7 +1489,7 @@ mod test_local_thread_executor {
                 SleepyMan::new(3, ExponentialBackoffDecider::default()),
             ),
             PriorityOrder::Bottom,
-            Box::new(NoYielder::default()),
+            NoYielder::default(),
         );
 
         let count_clone = Rc::clone(&counts);
@@ -1752,7 +1753,7 @@ mod test_local_thread_executor {
                 SleepyMan::new(3, ExponentialBackoffDecider::default()),
             ),
             PriorityOrder::Bottom,
-            Box::new(NoYielder::default()),
+            NoYielder::default(),
         );
 
         let gen_state = rc::Rc::new(AtomicUsize::new(0));
@@ -1833,7 +1834,7 @@ mod test_local_thread_executor {
                 SleepyMan::new(3, ExponentialBackoffDecider::default()),
             ),
             PriorityOrder::Bottom,
-            Box::new(NoYielder::default()),
+            NoYielder::default(),
         );
 
         let gen_state = rc::Rc::new(AtomicUsize::new(0));
