@@ -18,6 +18,8 @@ serde_json = { version = "1" }
 serde_yml = { version = "0.0.12" }
 toml = { version = "0.8.19" }
 rust-embed = "8.5.0"
+flume = { version="0.11" }
+wasm_sync = { version="0.1.2", optional=true}
 fastrand = "2.3.0"
 rand = "0.8.5"
 rand_chacha = "0.3.1"
@@ -42,6 +44,12 @@ nightly = []
 default = ["native-tls"]
 native-tls = ["native-tls-crate"]
 native-tls-vendored = ["native-tls", "native-tls-crate/vendored"]
+
+# This feature switches to a spin-lock implementation on the browser's
+# main thread to avoid the forbidden `atomics.wait`.
+#
+# Only useful on the `wasm32-unknown-unknown` target.
+web_spin_lock = ["dep:wasm_sync"]
 
 [lints]
 workspace = true

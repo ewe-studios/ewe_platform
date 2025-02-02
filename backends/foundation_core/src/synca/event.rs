@@ -1,6 +1,10 @@
 // Implements an Lock notification primitive usable in threads.
 
+#[cfg(not(feature = "web_spin_lock"))]
 use std::sync::{Condvar, Mutex};
+
+#[cfg(feature = "web_spin_lock")]
+use wasm_sync::{CondVar, Mutex};
 
 use super::Waker;
 
