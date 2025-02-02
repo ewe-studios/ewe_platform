@@ -10,7 +10,7 @@ use std::{
 };
 
 use crate::{
-    synca::{Entry, EntryList, IdleMan, Sleepers, Waiter, Wakeable},
+    synca::{DurationWaker, Entry, EntryList, IdleMan, Sleepers, Waiter},
     valtron::{AnyResult, ExecutionEngine, ExecutionIterator, State},
 };
 use rand::SeedableRng;
@@ -19,9 +19,8 @@ use rand_chacha::ChaCha8Rng;
 use concurrent_queue::{ConcurrentQueue, PushError};
 
 use super::{
-    BoxedLocalExecutionIterator, CloneProcessController, ExecutionAction,
-    ExecutionTaskIteratorBuilder, ExecutorError, ProcessController, TaskIterator,
-    TaskReadyResolver, TaskStatusMapper,
+    BoxedLocalExecutionIterator, ExecutionAction, ExecutionTaskIteratorBuilder, ExecutorError,
+    ProcessController, TaskIterator, TaskReadyResolver, TaskStatusMapper,
 };
 
 /// PriorityOrder defines how wake up tasks should placed once woken up.
@@ -37,7 +36,7 @@ pub enum Sleepable {
     /// Timable are tasks that can sleep via duration and
     /// will communicate their readiness using when a duration
     /// and time is expired/over.
-    Timable(Wakeable<Entry>),
+    Timable(DurationWaker<Entry>),
 
     /// Flag represents a task that connect a task with a `AtomicBool`
     /// signal will communicate when a giving task is ready.
@@ -629,7 +628,7 @@ impl<T: ExecutionIterator> ExecutorState<T> {
 
                                         // I do not think I need to use the sleeper entry.
                                         let _ = self.sleepers.insert(Sleepable::Timable(
-                                            Wakeable::from_now(top_entry.clone(), inner),
+                                            DurationWaker::from_now(top_entry.clone(), inner),
                                         ));
 
                                         if self.processing.borrow().len() > 0 {

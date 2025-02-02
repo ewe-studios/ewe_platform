@@ -10,17 +10,105 @@ pub trait Waker {
     fn wake(&self);
 }
 
-pub struct Wakeable<T> {
+pub struct DurationWaker<T> {
     pub handle: T,
     pub from: time::Instant,
     pub how_long: time::Duration,
+}
+
+pub struct DurationStore<T> {
+    store: rc::Rc<cell::RefCell<EntryList<DurationWaker<T>>>>,
+}
+
+impl<T> Clone for DurationStore<T> {
+    fn clone(&self) -> Self {
+        Self {
+            store: self.store.clone(),
+        }
+    }
+}
+
+// --- constructors
+
+impl<T> DurationStore<T> {
+    pub fn new() -> Self {
+        Self {
+            store: rc::Rc::new(cell::RefCell::new(EntryList::new())),
+        }
+    }
+}
+
+// --- core implementation methods
+
+impl<T> DurationStore<T> {
+    /// Inserts a new Wakeable.
+    pub fn insert(&self, wakeable: DurationWaker<T>) -> Entry {
+        self.store.borrow_mut().insert(wakeable)
+    }
+
+    /// Update an existing Wakeable returning the old handle used.
+    pub fn update(&self, handle: &Entry, wakeable: DurationWaker<T>) -> Option<DurationWaker<T>> {
+        self.store.borrow_mut().update(handle, wakeable)
+    }
+
+    /// Removes a previously inserted sleeping ticker.
+    ///
+    /// Returns `true` if the ticker was notified.
+    pub fn remove(&self, handle: &Entry) -> Option<DurationWaker<T>> {
+        self.store.borrow_mut().take(handle)
+    }
+
+    pub(crate) fn has_pending_tasks(&self) -> bool {
+        self.store.borrow().active_slots() > 0
+    }
+
+    pub(crate) fn count(&self) -> usize {
+        self.store.borrow().active_slots()
+    }
+
+    /// Returns the list of
+    pub fn get_matured(&self) -> Vec<DurationWaker<T>> {
+        self.store.borrow_mut().select_take(|item| item.is_ready())
+    }
+
+    /// Returns the minimum duration of time of all entries in the
+    /// sleeper, providing you the minimum time when one of the task is
+    /// guranteed to be ready for progress.
+    fn min_duration(&self) -> Option<time::Duration> {
+        match self
+            .store
+            .borrow()
+            .map_with(|item| item.remaining())
+            .iter()
+            .max()
+        {
+            Some(item) => Some(item.clone()),
+            None => None,
+        }
+    }
+
+    /// Returns the maximum duration of time of all entries in the
+    /// sleeper, providing you the maximum time to potentially wait
+    /// for all tasks to be ready.
+    fn max_duration(&self) -> Option<time::Duration> {
+        match self
+            .store
+            .borrow()
+            .map_with(|item| item.remaining())
+            .iter()
+            .max()
+        {
+            Some(item) => Some(item.clone()),
+            None => None,
+        }
+    }
 }
 
 pub trait Timeable {
     fn remaining_duration(&self) -> Option<time::Duration>;
 }
 
-impl<T: Waker> Timeable for Wakeable<T> {
+impl<T: Waker> Timeable for DurationWaker<T> {
     fn remaining_duration(&self) -> Option<time::Duration> {
         self.remaining()
     }
@@ -30,7 +118,7 @@ pub trait Waiter {
     fn is_ready(&self) -> bool;
 }
 
-impl<T> Waiter for Wakeable<T> {
+impl<T> Waiter for DurationWaker<T> {
     fn is_ready(&self) -> bool {
         match self.try_is_ready() {
             Some(inner) => inner,
@@ -39,13 +127,13 @@ impl<T> Waiter for Wakeable<T> {
     }
 }
 
-impl<T: Waker> Waker for Wakeable<T> {
+impl<T: Waker> Waker for DurationWaker<T> {
     fn wake(&self) {
         self.handle.wake()
     }
 }
 
-impl<T> Wakeable<T> {
+impl<T> DurationWaker<T> {
     pub fn new(handle: T, from: time::Instant, how_long: time::Duration) -> Self {
         Self {
             handle,

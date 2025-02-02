@@ -92,7 +92,7 @@ impl ActivitySignal {
     }
 
     #[inline]
-    pub fn become_idle(&self) -> bool {
+    pub fn become_paused(&self) -> bool {
         self.state
             .compare_exchange(SLEEPING, SET, Ordering::SeqCst, Ordering::Relaxed)
             .is_ok()
@@ -110,9 +110,9 @@ impl ActivitySignal {
         self.state.load(Ordering::Acquire) == SLEEPING
     }
 
-    /// `probe_idle` returns true/false if owner is now idle.
+    /// `probe_paused` returns true/false if owner is now idle.
     #[inline]
-    pub fn probe_idle(&self) -> bool {
+    pub fn probe_paused(&self) -> bool {
         self.state.load(Ordering::Acquire) == SET
     }
 }
