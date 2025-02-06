@@ -1,11 +1,18 @@
-use std::{cell, marker::PhantomData, time};
+use std::{cell, marker::PhantomData, rc, sync::Arc, time};
 
 use derive_more::derive::From;
+use rand_chacha::ChaCha8Rng;
 
 use crate::{
     synca::Entry,
     valtron::{AnyResult, GenericResult},
 };
+
+#[cfg(not(feature = "web_spin_lock"))]
+use std::sync::Mutex;
+
+#[cfg(feature = "web_spin_lock")]
+use wasm_sync::Mutex;
 
 use super::{task::TaskStatus, DoNext, OnNext, SharedTaskQueue, TaskIterator};
 
@@ -432,6 +439,10 @@ pub trait ExecutionEngine {
 
     /// shared_queue returns access to the global queue.
     fn shared_queue(&self) -> SharedTaskQueue;
+
+    /// rng returns a shared thread-safe ChaCha8Rng random generation
+    /// managed by the executor.
+    fn rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>>;
 }
 
 /// TaskSpawner represents a underlying type that can
