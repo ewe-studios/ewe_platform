@@ -62,6 +62,38 @@ impl LockSignal {
         };
     }
 
+    pub fn probe(&self) -> LockState {
+        let current_state_guard = self.lock.lock().unwrap();
+        let current_state = current_state_guard.clone();
+        drop(current_state_guard);
+        current_state
+    }
+
+    pub fn probe_locked(&self) -> bool {
+        let current_state = self.lock.lock().unwrap();
+        let is_locked = *current_state == LockState::Locked;
+        drop(current_state);
+        is_locked
+    }
+
+    pub fn try_lock(&self) -> bool {
+        let mut current_state = self.lock.lock().unwrap();
+        if *current_state == LockState::Locked {
+            return false;
+        }
+        *current_state = LockState::Locked;
+        drop(current_state);
+        return true;
+    }
+
+    pub fn lock(&self) {
+        let mut current_state = self.lock.lock().unwrap();
+        if *current_state != LockState::Locked {
+            *current_state = LockState::Locked;
+        }
+        drop(current_state);
+    }
+
     pub fn signal_one(&self) {
         self.signal(NotifyDirective::One);
     }
@@ -89,5 +121,43 @@ impl LockSignal {
             // wait for the event to be signaled.
             current_state = self.event.wait(current_state).unwrap();
         }
+    }
+}
+
+#[cfg(test)]
+mod test_lock_signals {
+    use std::{
+        sync::{mpsc, Arc},
+        thread,
+        time::Duration,
+    };
+
+    use crate::synca::LockState;
+
+    use super::LockSignal;
+
+    #[test]
+    fn can_lock_signal() {
+        let latch = Arc::new(LockSignal::new());
+
+        let (sender, reciever) = mpsc::channel::<()>();
+
+        let latch_clone = latch.clone();
+        let handler = thread::spawn(move || loop {
+            latch_clone.try_lock();
+            sender.send(()).expect("should send");
+            latch_clone.wait();
+            break;
+        });
+
+        thread::sleep(Duration::from_millis(100));
+
+        let _ = reciever.recv();
+        assert_eq!(LockState::Locked, latch.probe());
+
+        latch.signal_all();
+        handler.join().expect("should safely join");
+
+        assert_eq!(LockState::Free, latch.probe());
     }
 }

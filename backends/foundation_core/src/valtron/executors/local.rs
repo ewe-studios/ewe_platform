@@ -18,9 +18,16 @@ use rand_chacha::ChaCha8Rng;
 
 use concurrent_queue::{ConcurrentQueue, PushError};
 
+#[cfg(not(feature = "web_spin_lock"))]
+use std::sync::Mutex;
+
+#[cfg(feature = "web_spin_lock")]
+use wasm_sync::Mutex;
+
 use super::{
-    BoxedLocalExecutionIterator, ExecutionAction, ExecutionTaskIteratorBuilder, ExecutorError,
-    ProcessController, TaskIterator, TaskReadyResolver, TaskStatusMapper,
+    BoxedExecutionEngine, BoxedExecutionIterator, BoxedSendExecutionIterator, ExecutionAction,
+    ExecutionTaskIteratorBuilder, ExecutorError, ProcessController, SharedTaskQueue, TaskIterator,
+    TaskReadyResolver, TaskStatusMapper,
 };
 
 /// PriorityOrder defines how wake up tasks should placed once woken up.
@@ -61,14 +68,14 @@ pub(crate) enum SpawnType {
 }
 
 /// Underlying stats shared by all executors.
-pub struct ExecutorState<T: ExecutionIterator> {
+pub struct ExecutorState {
     /// what priority should waking task be placed.
     pub(crate) priority: PriorityOrder,
 
     /// global_tasks are the shared tasks coming from the main thread
     /// they generally will always come in fifo order and will be processed
     /// in the order received.
-    pub(crate) global_tasks: sync::Arc<ConcurrentQueue<T>>,
+    pub(crate) global_tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
 
     /// indicates to us which if any spawn operation occurred.
     pub(crate) spawn_op: rc::Rc<cell::RefCell<Option<SpawnType>>>,
@@ -84,7 +91,7 @@ pub struct ExecutorState<T: ExecutionIterator> {
     /// This allows us keep the overall execution of any async
     /// iterator within the same thread and keep a one thread
     /// execution.
-    pub(crate) local_tasks: rc::Rc<cell::RefCell<EntryList<T>>>,
+    pub(crate) local_tasks: rc::Rc<cell::RefCell<EntryList<BoxedExecutionIterator>>>,
 
     /// task_graph provides dependency mapping of a Task (Key) lifted
     /// by another Task (Value) allowing us to go from lifted task
@@ -130,9 +137,9 @@ pub struct ExecutorState<T: ExecutionIterator> {
 
 static DEQUEUE_CAPACITY: usize = 10;
 
-impl<T: ExecutionIterator> ExecutorState<T> {
+impl ExecutorState {
     pub fn new(
-        global_tasks: sync::Arc<ConcurrentQueue<T>>,
+        global_tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
         priority: PriorityOrder,
         rng: ChaCha8Rng,
         idler: IdleMan,
@@ -194,7 +201,7 @@ pub enum ProgressIndicator {
 
 // --- Task Dependences, Rng and Helper methods
 
-impl<T: ExecutionIterator> Clone for ExecutorState<T> {
+impl Clone for ExecutorState {
     fn clone(&self) -> Self {
         Self {
             rng: self.rng.clone(),
@@ -212,7 +219,7 @@ impl<T: ExecutionIterator> Clone for ExecutorState<T> {
     }
 }
 
-impl<T: ExecutionIterator> ExecutorState<T> {
+impl ExecutorState {
     /// Returns a borrowed immutable
     pub fn get_rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
         self.rng.clone()
@@ -431,7 +438,7 @@ impl<T: ExecutionIterator> ExecutorState<T> {
     }
 
     #[inline]
-    pub fn schedule_and_do_work(&self, engine: T::Executor) -> ProgressIndicator {
+    pub fn schedule_and_do_work(&self, engine: BoxedExecutionEngine) -> ProgressIndicator {
         match self.request_global_task() {
             ProgressIndicator::CanProgress => {
                 tracing::debug!(
@@ -517,7 +524,7 @@ impl<T: ExecutionIterator> ExecutorState<T> {
     /// executing the next operation internally till it's ready for
     /// work to begin.
     #[inline]
-    pub fn do_work(&self, engine: T::Executor) -> ProgressIndicator {
+    pub fn do_work(&self, engine: BoxedExecutionEngine) -> ProgressIndicator {
         // if after wake up, no task still enters
         // the processing queue then no work is available
         match self.check_processing_queue() {
@@ -688,7 +695,7 @@ impl<T: ExecutionIterator> ExecutorState<T> {
 
 // --- Task spawn methods: Lift, Schedule & Broadcast
 
-impl<T: ExecutionIterator> ExecutorState<T> {
+impl ExecutorState {
     /// lift defers from the `ExecutorState::schedule` method
     /// where instead when adding the task into the local queue
     /// but also lifts the task as the highest priorty task
@@ -702,7 +709,11 @@ impl<T: ExecutionIterator> ExecutorState<T> {
     /// But even if its from outside a task, understand the new task
     /// will take priorty till it's done.
     #[inline]
-    pub fn lift(&self, task: T, parent: Option<Entry>) -> AnyResult<Entry, ExecutorError> {
+    pub fn lift(
+        &self,
+        task: BoxedExecutionIterator,
+        parent: Option<Entry>,
+    ) -> AnyResult<Entry, ExecutorError> {
         // if there is a parent then you need to be
         // the top of the executing set.
         if let Some(parent_handle) = &parent {
@@ -756,17 +767,19 @@ impl<T: ExecutionIterator> ExecutorState<T> {
     /// any task can schedule new task to the executor
     /// and it never affects its execution or priority.
     #[inline]
-    pub fn schedule(&self, task: T) -> AnyResult<Entry, ExecutorError> {
+    pub fn schedule(&self, task: BoxedExecutionIterator) -> AnyResult<Entry, ExecutorError> {
         let task_entry = self.local_tasks.borrow_mut().insert(task);
         self.processing.borrow_mut().push_back(task_entry.clone());
         self.spawn_op.borrow_mut().replace(SpawnType::Scheduled);
         Ok(task_entry)
     }
+}
 
+impl ExecutorState {
     /// Delivers a task (Iterator) type to the global execution queue
     /// and in such a case you do not have an handle to the task as we
     /// no more have control as to where it gets allocated.
-    pub fn broadcast(&self, task: T) -> AnyResult<(), ExecutorError> {
+    pub fn broadcast(&self, task: BoxedSendExecutionIterator) -> AnyResult<(), ExecutorError> {
         match self.global_tasks.push(task) {
             Ok(_) => {
                 self.spawn_op.borrow_mut().replace(SpawnType::Broadcast);
@@ -782,17 +795,17 @@ impl<T: ExecutionIterator> ExecutorState<T> {
 
 // --- End of: Task spawn methods: Lift, Schedule & Broadcast
 
-pub struct ReferencedExecutorState<T: ExecutionIterator> {
-    inner: rc::Rc<ExecutorState<T>>,
+pub struct ReferencedExecutorState {
+    inner: rc::Rc<ExecutorState>,
 }
 
-impl<T: ExecutionIterator> From<rc::Rc<ExecutorState<T>>> for ReferencedExecutorState<T> {
-    fn from(value: rc::Rc<ExecutorState<T>>) -> Self {
+impl From<rc::Rc<ExecutorState>> for ReferencedExecutorState {
+    fn from(value: rc::Rc<ExecutorState>) -> Self {
         ReferencedExecutorState { inner: value }
     }
 }
 
-impl<T: ExecutionIterator> Clone for ReferencedExecutorState<T> {
+impl Clone for ReferencedExecutorState {
     fn clone(&self) -> Self {
         ReferencedExecutorState {
             inner: rc::Rc::clone(&self.inner),
@@ -801,16 +814,20 @@ impl<T: ExecutionIterator> Clone for ReferencedExecutorState<T> {
 }
 
 #[allow(unused)]
-impl<T: ExecutionIterator> ReferencedExecutorState<T> {
-    pub(crate) fn clone_state(&self) -> rc::Rc<ExecutorState<T>> {
+impl ReferencedExecutorState {
+    pub(crate) fn clone_queue(&self) -> SharedTaskQueue {
+        self.inner.global_tasks.clone()
+    }
+
+    pub(crate) fn clone_state(&self) -> rc::Rc<ExecutorState> {
         self.inner.clone()
     }
 
-    fn get_ref(&self) -> &rc::Rc<ExecutorState<T>> {
+    fn get_ref(&self) -> &rc::Rc<ExecutorState> {
         &self.inner
     }
 
-    fn get_ref_mut(&mut self) -> &mut rc::Rc<ExecutorState<T>> {
+    fn get_ref_mut(&mut self) -> &mut rc::Rc<ExecutorState> {
         &mut self.inner
     }
 
@@ -823,7 +840,7 @@ impl<T: ExecutionIterator> ReferencedExecutorState<T> {
     }
 }
 
-impl<T: ExecutionIterator> ReferencedExecutorState<T> {
+impl ReferencedExecutorState {
     #[inline]
     pub(crate) fn get_rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
         self.inner.get_rng()
@@ -839,18 +856,18 @@ impl<T: ExecutionIterator> ReferencedExecutorState<T> {
         self.inner.has_inflight_task()
     }
 
-    pub fn schedule_and_do_work(&self, engine: T::Executor) -> ProgressIndicator {
+    pub fn schedule_and_do_work(&self, engine: BoxedExecutionEngine) -> ProgressIndicator {
         self.inner.schedule_and_do_work(engine)
     }
 }
 
 // --- LocalExecutor for ExecutionIterator::Executor
 
-pub struct LocalExecutorEngine {
-    inner: rc::Rc<ExecutorState<BoxedLocalExecutionIterator>>,
+pub struct LocalExecutionEngine {
+    inner: rc::Rc<ExecutorState>,
 }
 
-impl Clone for LocalExecutorEngine {
+impl Clone for LocalExecutionEngine {
     fn clone(&self) -> Self {
         Self {
             inner: self.inner.clone(),
@@ -858,62 +875,60 @@ impl Clone for LocalExecutorEngine {
     }
 }
 
-impl LocalExecutorEngine {
-    pub fn new(inner: rc::Rc<ExecutorState<BoxedLocalExecutionIterator>>) -> Self {
+impl LocalExecutionEngine {
+    pub fn new(inner: rc::Rc<ExecutorState>) -> Self {
         Self { inner }
     }
 }
 
-impl LocalExecutorEngine {
-    /// typed_task allows you to create a task builder but requiring specific
-    /// definitions for your `Task`, `Action` and `Resolver` types.
-    pub fn typed_task<Task, Action, Resolver>(
+impl<'a> ExecutionEngine for Box<&'a LocalExecutionEngine> {
+    fn lift(
         &self,
-    ) -> ExecutionTaskIteratorBuilder<
-        Task::Done,
-        Task::Pending,
-        LocalExecutorEngine,
-        Task::Spawner,
-        Box<dyn TaskStatusMapper<Task::Done, Task::Pending, Task::Spawner>>,
-        Resolver,
-        Task,
-    >
-    where
-        Task: TaskIterator<Spawner = Action> + 'static,
-        Action: ExecutionAction<Executor = LocalExecutorEngine> + 'static,
-        Resolver: TaskReadyResolver<LocalExecutorEngine, Task::Spawner, Task::Done, Task::Pending>
-            + 'static,
-    {
-        ExecutionTaskIteratorBuilder::new(self.clone())
+        task: BoxedExecutionIterator,
+        parent: Option<Entry>,
+    ) -> AnyResult<(), ExecutorError> {
+        (**self).lift(task, parent)
     }
 
-    /// any_task allows you to create a task builder with less restrictive type
-    /// requirements for the builder, specifically resolvers are Boxed.
-    pub fn any_task<Task, Action>(
-        &self,
-    ) -> ExecutionTaskIteratorBuilder<
-        Task::Done,
-        Task::Pending,
-        LocalExecutorEngine,
-        Task::Spawner,
-        Box<dyn TaskStatusMapper<Task::Done, Task::Pending, Task::Spawner>>,
-        Box<dyn TaskReadyResolver<LocalExecutorEngine, Task::Spawner, Task::Done, Task::Pending>>,
-        Task,
-    >
-    where
-        Task: TaskIterator<Spawner = Action> + 'static,
-        Action: ExecutionAction<Executor = LocalExecutorEngine> + 'static,
-    {
-        ExecutionTaskIteratorBuilder::new(self.clone())
+    fn schedule(&self, task: BoxedExecutionIterator) -> AnyResult<(), ExecutorError> {
+        (**self).schedule(task)
+    }
+
+    fn broadcast(&self, task: BoxedSendExecutionIterator) -> AnyResult<(), ExecutorError> {
+        (**self).broadcast(task)
+    }
+
+    fn shared_queue(&self) -> SharedTaskQueue {
+        (**self).shared_queue()
     }
 }
 
-impl ExecutionEngine for LocalExecutorEngine {
-    type Executor = LocalExecutorEngine;
-
+impl ExecutionEngine for Box<LocalExecutionEngine> {
     fn lift(
         &self,
-        task: Box<dyn ExecutionIterator<Executor = Self::Executor>>,
+        task: BoxedExecutionIterator,
+        parent: Option<Entry>,
+    ) -> AnyResult<(), ExecutorError> {
+        (**self).lift(task, parent)
+    }
+
+    fn schedule(&self, task: BoxedExecutionIterator) -> AnyResult<(), ExecutorError> {
+        (**self).schedule(task)
+    }
+
+    fn broadcast(&self, task: BoxedSendExecutionIterator) -> AnyResult<(), ExecutorError> {
+        (**self).broadcast(task)
+    }
+
+    fn shared_queue(&self) -> SharedTaskQueue {
+        (**self).shared_queue()
+    }
+}
+
+impl ExecutionEngine for LocalExecutionEngine {
+    fn lift(
+        &self,
+        task: BoxedExecutionIterator,
         parent: Option<Entry>,
     ) -> AnyResult<(), ExecutorError> {
         let entry = self.inner.lift(task, parent.clone())?;
@@ -925,28 +940,33 @@ impl ExecutionEngine for LocalExecutorEngine {
         Ok(())
     }
 
-    fn schedule(
-        &self,
-        task: Box<dyn ExecutionIterator<Executor = Self::Executor>>,
-    ) -> AnyResult<(), ExecutorError> {
+    fn schedule(&self, task: BoxedExecutionIterator) -> AnyResult<(), ExecutorError> {
         let entry = self.inner.schedule(task)?;
         tracing::debug!("schedule: new task into Executor with entry: {:?}", entry);
         Ok(())
     }
 
-    fn broadcast(
-        &self,
-        task: Box<dyn ExecutionIterator<Executor = Self::Executor>>,
-    ) -> AnyResult<(), ExecutorError> {
+    fn broadcast(&self, task: Box<dyn ExecutionIterator + Send>) -> AnyResult<(), ExecutorError> {
         self.inner.broadcast(task)?;
         tracing::debug!("broadcast: new task into Executor");
         Ok(())
     }
+
+    /// shared_queue returns access to the global queue.
+    fn shared_queue(&self) -> SharedTaskQueue {
+        self.inner.global_tasks.clone()
+    }
 }
 
-impl ReferencedExecutorState<BoxedLocalExecutionIterator> {
-    pub fn local_executor_engine(&self) -> LocalExecutorEngine {
-        LocalExecutorEngine::new(self.inner.clone())
+impl ReferencedExecutorState {
+    #[inline]
+    pub fn local_engine(&self) -> LocalExecutionEngine {
+        LocalExecutionEngine::new(self.inner.clone())
+    }
+
+    #[inline]
+    pub fn boxed_engine(&self) -> BoxedExecutionEngine {
+        Box::new(self.local_engine())
     }
 }
 
@@ -961,14 +981,14 @@ impl ReferencedExecutorState<BoxedLocalExecutionIterator> {
 /// `SameThreadExecutor` are not Send (!Send) so you cant
 /// send them over to another thread but can potentially be
 /// shared through an Arc.
-pub struct LocalThreadExecutor<T: ProcessController> {
-    state: ReferencedExecutorState<BoxedLocalExecutionIterator>,
-    yielder: rc::Rc<T>,
+pub struct LocalThreadExecutor<T: ProcessController + Clone> {
+    state: ReferencedExecutorState,
+    yielder: T,
 }
 
 // --- constructors
 
-impl<T: ProcessController> Clone for LocalThreadExecutor<T> {
+impl<T: ProcessController + Clone> Clone for LocalThreadExecutor<T> {
     fn clone(&self) -> Self {
         LocalThreadExecutor {
             state: self.state.clone(),
@@ -980,16 +1000,16 @@ impl<T: ProcessController> Clone for LocalThreadExecutor<T> {
 // -- Constructors
 
 #[allow(unused)]
-impl<T: ProcessController> LocalThreadExecutor<T> {
+impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     pub fn new(
-        tasks: sync::Arc<ConcurrentQueue<BoxedLocalExecutionIterator>>,
+        tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
         rng: ChaCha8Rng,
         idler: IdleMan,
         priority: PriorityOrder,
         yielder: T,
     ) -> Self {
         Self {
-            yielder: rc::Rc::new(yielder),
+            yielder,
             state: rc::Rc::new(ExecutorState::new(tasks, priority, rng, idler)).into(),
         }
     }
@@ -998,7 +1018,7 @@ impl<T: ProcessController> LocalThreadExecutor<T> {
     /// seed for ChaCha8Rng generator.
     pub fn from_seed(
         seed: u64,
-        tasks: sync::Arc<ConcurrentQueue<BoxedLocalExecutionIterator>>,
+        tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
         idler: IdleMan,
         priority: PriorityOrder,
         yielder: T,
@@ -1015,7 +1035,7 @@ impl<T: ProcessController> LocalThreadExecutor<T> {
     /// Allows supplying a custom Rng generator for creating the initial
     /// ChaCha8Rng seed.
     pub fn from_rng<R: rand::Rng>(
-        tasks: sync::Arc<ConcurrentQueue<BoxedLocalExecutionIterator>>,
+        tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
         rng: &mut R,
         idler: IdleMan,
         priority: PriorityOrder,
@@ -1028,58 +1048,22 @@ impl<T: ProcessController> LocalThreadExecutor<T> {
 // -- LocalExecutor builder
 
 #[allow(unused)]
-impl<T: ProcessController> LocalThreadExecutor<T> {
-    pub(crate) fn local_executor_engine(&self) -> LocalExecutorEngine {
-        self.state.local_executor_engine()
+impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
+    #[inline]
+    pub fn local_engine(&self) -> LocalExecutionEngine {
+        self.state.local_engine()
     }
 
-    /// typed_task allows you to create a task builder but requiring specific
-    /// definitions for your `Task`, `Action` and `Resolver` types.
-    pub fn typed_task<Task, Action, Resolver>(
-        &self,
-    ) -> ExecutionTaskIteratorBuilder<
-        Task::Done,
-        Task::Pending,
-        LocalExecutorEngine,
-        Task::Spawner,
-        Box<dyn TaskStatusMapper<Task::Done, Task::Pending, Task::Spawner>>,
-        Resolver,
-        Task,
-    >
-    where
-        Task: TaskIterator<Spawner = Action> + 'static,
-        Action: ExecutionAction<Executor = LocalExecutorEngine> + 'static,
-        Resolver: TaskReadyResolver<LocalExecutorEngine, Task::Spawner, Task::Done, Task::Pending>
-            + 'static,
-    {
-        ExecutionTaskIteratorBuilder::new(LocalExecutorEngine::new(self.state.clone_state()))
-    }
-
-    /// any_task allows you to create a task builder with less restrictive type
-    /// requirements for the builder, specifically resolvers are Boxed.
-    pub fn any_task<Task, Action>(
-        &self,
-    ) -> ExecutionTaskIteratorBuilder<
-        Task::Done,
-        Task::Pending,
-        LocalExecutorEngine,
-        Task::Spawner,
-        Box<dyn TaskStatusMapper<Task::Done, Task::Pending, Task::Spawner>>,
-        Box<dyn TaskReadyResolver<LocalExecutorEngine, Task::Spawner, Task::Done, Task::Pending>>,
-        Task,
-    >
-    where
-        Task: TaskIterator<Spawner = Action> + 'static,
-        Action: ExecutionAction<Executor = LocalExecutorEngine> + 'static,
-    {
-        ExecutionTaskIteratorBuilder::new(LocalExecutorEngine::new(self.state.clone_state()))
+    #[inline]
+    pub fn boxed_engine(&self) -> BoxedExecutionEngine {
+        self.state.boxed_engine()
     }
 }
 
 // --- LocalExecutor run once
 
 #[allow(unused)]
-impl<T: ProcessController> LocalThreadExecutor<T> {
+impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     #[inline]
     pub fn get_rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
         self.state.get_rng()
@@ -1087,10 +1071,10 @@ impl<T: ProcessController> LocalThreadExecutor<T> {
 
     pub fn run_once(&self) -> ProgressIndicator {
         tracing::debug!("Creating local executor from state");
-        let local_executor = self.state.local_executor_engine();
+        let local_executor = self.state.local_engine();
 
         tracing::debug!("run: ReferencedExecutorState::schedule_and_do_work with local executor");
-        self.state.schedule_and_do_work(local_executor)
+        self.state.schedule_and_do_work(Box::new(local_executor))
     }
 
     pub fn block_on(&self) {
@@ -1125,7 +1109,99 @@ impl<T: ProcessController> LocalThreadExecutor<T> {
     }
 }
 
-// --- LocalExecutor run once
+// --- Access Methods run once
+
+/// typed_task allows you to create a task builder but requiring specific
+/// definitions for your `Task`, `Action` and `Resolver` types.
+pub fn typed_task<Task, Action, Resolver>(
+    engine: BoxedExecutionEngine,
+) -> ExecutionTaskIteratorBuilder<
+    Task::Done,
+    Task::Pending,
+    Task::Spawner,
+    Box<dyn TaskStatusMapper<Task::Done, Task::Pending, Task::Spawner> + 'static>,
+    Resolver,
+    Task,
+>
+where
+    Task::Done: Send,
+    Task::Pending: Send,
+    Action: ExecutionAction + Send + 'static,
+    Task: TaskIterator<Spawner = Action> + Send + 'static,
+    Resolver: TaskReadyResolver<Task::Spawner, Task::Done, Task::Pending> + 'static,
+{
+    let queue = engine.shared_queue();
+    ExecutionTaskIteratorBuilder::new(engine, queue)
+}
+
+/// any_task allows you to create a task builder with less restrictive type
+/// requirements for the builder, specifically resolvers are Boxed.
+pub fn any_task<Task, Action>(
+    engine: BoxedExecutionEngine,
+) -> ExecutionTaskIteratorBuilder<
+    Task::Done,
+    Task::Pending,
+    Task::Spawner,
+    Box<dyn TaskStatusMapper<Task::Done, Task::Pending, Task::Spawner> + 'static>,
+    Box<dyn TaskReadyResolver<Task::Spawner, Task::Done, Task::Pending> + 'static>,
+    Task,
+>
+where
+    Task::Done: Send,
+    Task::Pending: Send,
+    Task: TaskIterator<Spawner = Action> + Send + 'static,
+    Action: ExecutionAction + Send + 'static,
+{
+    let queue = engine.shared_queue();
+    ExecutionTaskIteratorBuilder::new(engine, queue)
+}
+
+/// send_any_task will unlike [`any_task`] deliver the provided
+/// task to the global queue instead of the local queue via the provided
+/// `ExecutionEngine`.
+pub fn send_any_task<Task, Action>(
+    engine: BoxedExecutionEngine,
+) -> ExecutionTaskIteratorBuilder<
+    Task::Done,
+    Task::Pending,
+    Task::Spawner,
+    Box<dyn TaskStatusMapper<Task::Done, Task::Pending, Task::Spawner> + Send + 'static>,
+    Box<dyn TaskReadyResolver<Task::Spawner, Task::Done, Task::Pending> + Send + 'static>,
+    Task,
+>
+where
+    Task::Done: Send,
+    Task::Pending: Send,
+    Action: ExecutionAction + Send + 'static,
+    Task: TaskIterator<Spawner = Action> + Send + 'static,
+{
+    let queue = engine.shared_queue();
+    ExecutionTaskIteratorBuilder::new(engine, queue)
+}
+
+/// send_typed_task will unlike [`type_task`] deliver the provided
+/// typed task to the global queue instead of the local queue via the provided
+/// `ExecutionEngine`.
+pub fn send_typed_task<Task, Action, Resolver>(
+    engine: BoxedExecutionEngine,
+) -> ExecutionTaskIteratorBuilder<
+    Task::Done,
+    Task::Pending,
+    Task::Spawner,
+    Box<dyn TaskStatusMapper<Task::Done, Task::Pending, Task::Spawner> + Send + 'static>,
+    Resolver,
+    Task,
+>
+where
+    Task::Done: Send + 'static,
+    Task::Pending: Send + 'static,
+    Task: TaskIterator<Spawner = Action> + Send + 'static,
+    Action: ExecutionAction + Send + 'static,
+    Resolver: TaskReadyResolver<Task::Spawner, Task::Done, Task::Pending> + Send + 'static,
+{
+    let queue = engine.shared_queue();
+    ExecutionTaskIteratorBuilder::new(engine, queue)
+}
 
 #[cfg(test)]
 mod test_local_thread_executor {
@@ -1197,11 +1273,11 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_one_task_a_runs_to_completion() {
-        let global: Arc<ConcurrentQueue<BoxedLocalExecutionIterator>> =
+        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
             Arc::new(ConcurrentQueue::bounded(10));
 
-        let counts: Rc<RefCell<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
-            Rc::new(RefCell::new(Vec::new()));
+        let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
+            Arc::new(Mutex::new(Vec::new()));
 
         let seed = rand::thread_rng().next_u64();
 
@@ -1217,10 +1293,10 @@ mod test_local_thread_executor {
             NoYielder::default(),
         );
 
-        let count_clone = Rc::clone(&counts);
+        let count_clone = Arc::clone(&counts);
         let on_next = OnNext::on_next(
             Counter("Counter1", 0, 3, 3),
-            move |next, _engine| count_clone.borrow_mut().push(next),
+            move |next, _engine| count_clone.lock().unwrap().push(next),
             None,
         );
 
@@ -1231,7 +1307,7 @@ mod test_local_thread_executor {
         assert_eq!(executor.run_once(), ProgressIndicator::NoWork);
         assert_eq!(executor.number_of_sleepers(), 0);
 
-        let count_list = counts.clone().take();
+        let count_list = counts.lock().unwrap().clone();
         assert_eq!(
             count_list,
             vec![TaskStatus::Ready(1), TaskStatus::Ready(2),]
@@ -1241,11 +1317,11 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_one_can_use_local_executor_builder_to_queue_task() {
-        let global: Arc<ConcurrentQueue<BoxedLocalExecutionIterator>> =
+        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
             Arc::new(ConcurrentQueue::bounded(10));
 
-        let counts: Rc<RefCell<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
-            Rc::new(RefCell::new(Vec::new()));
+        let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
+            Arc::new(Mutex::new(Vec::new()));
 
         let seed = rand::thread_rng().next_u64();
 
@@ -1261,11 +1337,10 @@ mod test_local_thread_executor {
             NoYielder::default(),
         );
 
-        let count_clone = Rc::clone(&counts);
-        panic_if_failed!(executor
-            .typed_task()
+        let count_clone = Arc::clone(&counts);
+        panic_if_failed!(send_typed_task(executor.boxed_engine())
             .with_task(Counter("Counter1", 0, 3, 3))
-            .on_next(move |next, _| count_clone.borrow_mut().push(next))
+            .on_next(move |next, _| count_clone.lock().unwrap().push(next))
             .broadcast());
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
@@ -1273,7 +1348,7 @@ mod test_local_thread_executor {
         assert_eq!(executor.run_once(), ProgressIndicator::NoWork);
         assert_eq!(executor.number_of_sleepers(), 0);
 
-        let count_list = counts.clone().take();
+        let count_list = counts.lock().unwrap().clone();
         assert_eq!(
             count_list,
             vec![TaskStatus::Ready(1), TaskStatus::Ready(2),]
@@ -1283,11 +1358,11 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_2_task_a_goes_to_sleep_as_only_task_in_queue() {
-        let global: Arc<ConcurrentQueue<BoxedLocalExecutionIterator>> =
+        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
             Arc::new(ConcurrentQueue::bounded(10));
 
-        let counts: Rc<RefCell<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
-            Rc::new(RefCell::new(Vec::new()));
+        let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
+            Arc::new(Mutex::new(Vec::new()));
 
         let seed = rand::thread_rng().next_u64();
 
@@ -1303,34 +1378,34 @@ mod test_local_thread_executor {
             NoYielder::default(),
         );
 
-        let count_clone = Rc::clone(&counts);
+        let count_clone = Arc::clone(&counts);
         panic_if_failed!(global.push(Box::new(OnNext::on_next(
             Counter("Counter1", 10, 20, 12),
-            move |next, _engine| { count_clone.borrow_mut().push(next) },
+            move |next, _engine| { count_clone.lock().unwrap().push(next) },
             None,
         ))));
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
-        assert_eq!(counts.borrow().clone(), vec![TaskStatus::Ready(11),]);
+        assert_eq!(counts.lock().unwrap().clone(), vec![TaskStatus::Ready(11),]);
 
         assert_eq!(
             executor.run_once(),
             ProgressIndicator::SpinWait(time::Duration::from_millis(5))
         );
-        assert_eq!(counts.borrow().clone(), vec![TaskStatus::Ready(11),]);
+        assert_eq!(counts.lock().unwrap().clone(), vec![TaskStatus::Ready(11),]);
 
         // wait for 5ms and validate we made progress
         thread::sleep(time::Duration::from_millis(5));
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![TaskStatus::Ready(11), TaskStatus::Ready(13),]
         );
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
 
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![
                 TaskStatus::Ready(11),
                 TaskStatus::Ready(13),
@@ -1342,11 +1417,11 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks() {
-        let global: Arc<ConcurrentQueue<BoxedLocalExecutionIterator>> =
+        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
             Arc::new(ConcurrentQueue::bounded(10));
 
-        let counts: Rc<RefCell<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
-            Rc::new(RefCell::new(Vec::new()));
+        let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
+            Arc::new(Mutex::new(Vec::new()));
 
         let seed = rand::thread_rng().next_u64();
 
@@ -1362,18 +1437,18 @@ mod test_local_thread_executor {
             NoYielder::default(),
         );
 
-        let count_clone = Rc::clone(&counts);
+        let count_clone = Arc::clone(&counts);
         panic_if_failed!(global.push(Box::new(OnNext::on_next(
             Counter("Counter1", 0, 4, 2),
-            move |next, _| count_clone.borrow_mut().push(("Counter1", next)),
+            move |next, _| count_clone.lock().unwrap().push(("Counter1", next)),
             None,
         ))));
 
-        let count_clone2 = Rc::clone(&counts);
+        let count_clone2 = Arc::clone(&counts);
         panic_if_failed!(global.push(
             OnNext::on_next(
                 Counter("Counter2", 0, 20, 10),
-                move |next, _| count_clone2.borrow_mut().push(("Counter2", next)),
+                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next)),
                 None,
             )
             .into()
@@ -1382,14 +1457,14 @@ mod test_local_thread_executor {
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
 
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![("Counter1", TaskStatus::Ready(1)),]
         );
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
 
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![("Counter1", TaskStatus::Ready(1)),]
         );
 
@@ -1397,7 +1472,7 @@ mod test_local_thread_executor {
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![
                 ("Counter1", TaskStatus::Ready(1)),
                 ("Counter2", TaskStatus::Ready(1)),
@@ -1406,7 +1481,7 @@ mod test_local_thread_executor {
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![
                 ("Counter1", TaskStatus::Ready(1)),
                 ("Counter2", TaskStatus::Ready(1)),
@@ -1422,7 +1497,7 @@ mod test_local_thread_executor {
         // Counter1 is brought back in as priority
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![
                 ("Counter1", TaskStatus::Ready(1)),
                 ("Counter2", TaskStatus::Ready(1)),
@@ -1434,7 +1509,7 @@ mod test_local_thread_executor {
         // Counter1 finishes and removed from queue, so count is same.
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![
                 ("Counter1", TaskStatus::Ready(1)),
                 ("Counter2", TaskStatus::Ready(1)),
@@ -1445,7 +1520,7 @@ mod test_local_thread_executor {
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![
                 ("Counter1", TaskStatus::Ready(1)),
                 ("Counter2", TaskStatus::Ready(1)),
@@ -1456,7 +1531,7 @@ mod test_local_thread_executor {
         );
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![
                 ("Counter1", TaskStatus::Ready(1)),
                 ("Counter2", TaskStatus::Ready(1)),
@@ -1471,11 +1546,11 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks() {
-        let global: Arc<ConcurrentQueue<BoxedLocalExecutionIterator>> =
+        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
             Arc::new(ConcurrentQueue::bounded(10));
 
-        let counts: Rc<RefCell<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
-            Rc::new(RefCell::new(Vec::new()));
+        let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
+            Arc::new(Mutex::new(Vec::new()));
 
         let seed = rand::thread_rng().next_u64();
 
@@ -1491,21 +1566,21 @@ mod test_local_thread_executor {
             NoYielder::default(),
         );
 
-        let count_clone = Rc::clone(&counts);
+        let count_clone = Arc::clone(&counts);
         panic_if_failed!(global.push(
             OnNext::on_next(
                 Counter("Counter1", 0, 4, 2),
-                move |next, _| count_clone.borrow_mut().push(("Counter1", next)),
+                move |next, _| count_clone.lock().unwrap().push(("Counter1", next)),
                 None
             )
             .into()
         ));
 
-        let count_clone2 = Rc::clone(&counts);
+        let count_clone2 = Arc::clone(&counts);
         panic_if_failed!(global.push(
             OnNext::on_next(
                 Counter("Counter2", 0, 5, 10),
-                move |next, _| count_clone2.borrow_mut().push(("Counter2", next)),
+                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next)),
                 None
             )
             .into()
@@ -1514,14 +1589,14 @@ mod test_local_thread_executor {
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
 
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![("Counter1", TaskStatus::Ready(1)),]
         );
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
 
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![("Counter1", TaskStatus::Ready(1)),]
         );
 
@@ -1529,7 +1604,7 @@ mod test_local_thread_executor {
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![
                 ("Counter1", TaskStatus::Ready(1)),
                 ("Counter2", TaskStatus::Ready(1)),
@@ -1538,7 +1613,7 @@ mod test_local_thread_executor {
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![
                 ("Counter1", TaskStatus::Ready(1)),
                 ("Counter2", TaskStatus::Ready(1)),
@@ -1554,7 +1629,7 @@ mod test_local_thread_executor {
         // Counter1 is brought back in as priority
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![
                 ("Counter1", TaskStatus::Ready(1)),
                 ("Counter2", TaskStatus::Ready(1)),
@@ -1565,7 +1640,7 @@ mod test_local_thread_executor {
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![
                 ("Counter1", TaskStatus::Ready(1)),
                 ("Counter2", TaskStatus::Ready(1)),
@@ -1578,7 +1653,7 @@ mod test_local_thread_executor {
         // Counter2 triggers Done signal
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![
                 ("Counter1", TaskStatus::Ready(1)),
                 ("Counter2", TaskStatus::Ready(1)),
@@ -1590,7 +1665,7 @@ mod test_local_thread_executor {
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![
                 ("Counter1", TaskStatus::Ready(1)),
                 ("Counter2", TaskStatus::Ready(1)),
@@ -1604,7 +1679,7 @@ mod test_local_thread_executor {
         assert_eq!(executor.run_once(), ProgressIndicator::NoWork);
 
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![
                 ("Counter1", TaskStatus::Ready(1)),
                 ("Counter2", TaskStatus::Ready(1)),
@@ -1631,14 +1706,15 @@ mod test_local_thread_executor {
     }
 
     impl ExecutionAction for DaemonSpawner {
-        type Executor = LocalExecutorEngine;
-
-        fn apply(self, key: Entry, executor: Self::Executor) -> crate::valtron::GenericResult<()> {
+        fn apply(
+            self,
+            key: Entry,
+            executor: BoxedExecutionEngine,
+        ) -> crate::valtron::GenericResult<()> {
             match self {
                 DaemonSpawner::NoSpawning => Ok(()),
                 DaemonSpawner::TopOfThread => {
-                    match executor
-                        .any_task()
+                    match any_task(executor)
                         .with_parent(key.clone())
                         .with_task(SimpleCounter("SubTask1", 0, 5))
                         .lift()
@@ -1648,8 +1724,7 @@ mod test_local_thread_executor {
                     }
                 }
                 DaemonSpawner::InThread => {
-                    match executor
-                        .any_task()
+                    match any_task(executor)
                         .with_task(SimpleCounter("SubTask1", 0, 5))
                         .schedule()
                     {
@@ -1658,8 +1733,7 @@ mod test_local_thread_executor {
                     }
                 }
                 DaemonSpawner::OutofThread => {
-                    match executor
-                        .any_task()
+                    match send_any_task(executor)
                         .with_task(SimpleCounter("SubTask2", 0, 5))
                         .broadcast()
                     {
@@ -1671,7 +1745,7 @@ mod test_local_thread_executor {
         }
     }
 
-    struct DaemonCounter(Rc<AtomicUsize>);
+    struct DaemonCounter(Arc<AtomicUsize>);
     impl TaskIterator for DaemonCounter {
         type Done = ();
         type Pending = ();
@@ -1735,11 +1809,11 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn scenario_5_task_can_spawn_task_via_actions() {
-        let global: Arc<ConcurrentQueue<BoxedLocalExecutionIterator>> =
+        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
             Arc::new(ConcurrentQueue::bounded(10));
 
-        let counts: Rc<RefCell<Vec<(&'static str, TaskStatus<(), (), DaemonSpawner>)>>> =
-            Rc::new(RefCell::new(Vec::new()));
+        let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<(), (), DaemonSpawner>)>>> =
+            Arc::new(Mutex::new(Vec::new()));
 
         let seed = rand::thread_rng().next_u64();
 
@@ -1755,18 +1829,17 @@ mod test_local_thread_executor {
             NoYielder::default(),
         );
 
-        let gen_state = rc::Rc::new(AtomicUsize::new(0));
+        let gen_state = Arc::new(AtomicUsize::new(0));
 
         let count_clone = counts.clone();
-        panic_if_failed!(executor
-            .typed_task()
+        panic_if_failed!(send_typed_task(executor.boxed_engine())
             .with_task(DaemonCounter(gen_state.clone()))
-            .on_next(move |next, _| count_clone.borrow_mut().push(("DaemonCounter", next)))
+            .on_next(move |next, _| count_clone.lock().unwrap().push(("DaemonCounter", next)))
             .broadcast());
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
 
-        assert_eq!(counts.borrow().clone(), vec![]);
+        assert_eq!(counts.lock().unwrap().clone(), vec![]);
 
         assert_eq!(executor.number_of_sleepers(), 0);
         assert_eq!(executor.number_of_local_tasks(), 1);
@@ -1775,7 +1848,7 @@ mod test_local_thread_executor {
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![("DaemonCounter", TaskStatus::Ready(())),]
         );
 
@@ -1786,7 +1859,7 @@ mod test_local_thread_executor {
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![("DaemonCounter", TaskStatus::Ready(())),]
         );
 
@@ -1795,7 +1868,7 @@ mod test_local_thread_executor {
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![("DaemonCounter", TaskStatus::Ready(())),]
         );
 
@@ -1816,11 +1889,11 @@ mod test_local_thread_executor {
     #[traced_test]
     fn scenario_5_task_a_spawns_task_b_that_that_goes_to_sleep_but_also_ties_task_a_to_its_readiness(
     ) {
-        let global: Arc<ConcurrentQueue<BoxedLocalExecutionIterator>> =
+        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
             Arc::new(ConcurrentQueue::bounded(10));
 
-        let counts: Rc<RefCell<Vec<(&'static str, TaskStatus<(), (), DaemonSpawner>)>>> =
-            Rc::new(RefCell::new(Vec::new()));
+        let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<(), (), DaemonSpawner>)>>> =
+            Arc::new(Mutex::new(Vec::new()));
 
         let seed = rand::thread_rng().next_u64();
 
@@ -1836,18 +1909,17 @@ mod test_local_thread_executor {
             NoYielder::default(),
         );
 
-        let gen_state = rc::Rc::new(AtomicUsize::new(0));
+        let gen_state = Arc::new(AtomicUsize::new(0));
 
         let count_clone = counts.clone();
-        panic_if_failed!(executor
-            .typed_task()
+        panic_if_failed!(send_typed_task(executor.boxed_engine())
             .with_task(DaemonCounter(gen_state.clone()))
-            .on_next(move |next, _| count_clone.borrow_mut().push(("DaemonCounter", next)))
+            .on_next(move |next, _| count_clone.lock().unwrap().push(("DaemonCounter", next)))
             .broadcast());
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
 
-        assert_eq!(counts.borrow().clone(), vec![]);
+        assert_eq!(counts.lock().unwrap().clone(), vec![]);
 
         assert_eq!(executor.number_of_sleepers(), 0);
         assert_eq!(executor.number_of_local_tasks(), 1);
@@ -1856,7 +1928,7 @@ mod test_local_thread_executor {
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![("DaemonCounter", TaskStatus::Ready(())),]
         );
 
@@ -1867,7 +1939,7 @@ mod test_local_thread_executor {
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![("DaemonCounter", TaskStatus::Ready(())),]
         );
 
@@ -1876,7 +1948,7 @@ mod test_local_thread_executor {
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![("DaemonCounter", TaskStatus::Ready(())),]
         );
 
@@ -1884,7 +1956,7 @@ mod test_local_thread_executor {
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![("DaemonCounter", TaskStatus::Ready(())),]
         );
 
@@ -1899,7 +1971,7 @@ mod test_local_thread_executor {
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
 
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![("DaemonCounter", TaskStatus::Ready(())),]
         );
 
@@ -1932,7 +2004,7 @@ mod test_local_thread_executor {
 
         tracing::debug!("Task A is now ready to continue");
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![
                 ("DaemonCounter", TaskStatus::Ready(())),
                 ("DaemonCounter", TaskStatus::Ready(())),
@@ -1952,7 +2024,7 @@ mod test_local_thread_executor {
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
         tracing::debug!("Task A emits another state");
         assert_eq!(
-            counts.borrow().clone(),
+            counts.lock().unwrap().clone(),
             vec![
                 ("DaemonCounter", TaskStatus::Ready(())),
                 ("DaemonCounter", TaskStatus::Ready(())),
