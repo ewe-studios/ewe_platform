@@ -10,7 +10,7 @@ use std::{
 };
 
 use crate::{
-    synca::{DurationWaker, Entry, EntryList, IdleMan, Sleepers, Waiter},
+    synca::{DurationWaker, Entry, EntryList, IdleMan, RunOnDrop, Sleepers, Waiter},
     valtron::{AnyResult, ExecutionEngine, ExecutionIterator, State},
 };
 use rand::SeedableRng;
@@ -459,6 +459,11 @@ impl ExecutorState {
         }
 
         self.wakeup_ready_sleepers();
+
+        // reset the spawn_ops to None
+        RunOnDrop::new(|| {
+            self.spawn_op.borrow_mut().take();
+        });
 
         match self.do_work(engine) {
             ProgressIndicator::CanProgress => {
