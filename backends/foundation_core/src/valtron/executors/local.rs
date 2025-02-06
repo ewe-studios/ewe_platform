@@ -18,6 +18,7 @@ use rand_chacha::ChaCha8Rng;
 
 use concurrent_queue::{ConcurrentQueue, PushError};
 
+#[allow(unused)]
 #[cfg(not(feature = "web_spin_lock"))]
 use std::sync::Mutex;
 
@@ -924,6 +925,10 @@ impl<'a> ExecutionEngine for Box<&'a LocalExecutionEngine> {
     fn shared_queue(&self) -> SharedTaskQueue {
         (**self).shared_queue()
     }
+
+    fn rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
+        (**self).rng()
+    }
 }
 
 impl ExecutionEngine for Box<LocalExecutionEngine> {
@@ -945,6 +950,10 @@ impl ExecutionEngine for Box<LocalExecutionEngine> {
 
     fn shared_queue(&self) -> SharedTaskQueue {
         (**self).shared_queue()
+    }
+
+    fn rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
+        (**self).rng()
     }
 }
 
@@ -978,6 +987,11 @@ impl ExecutionEngine for LocalExecutionEngine {
     /// shared_queue returns access to the global queue.
     fn shared_queue(&self) -> SharedTaskQueue {
         self.inner.global_tasks.clone()
+    }
+
+    /// rng returns the local executor random number generator.
+    fn rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
+        self.inner.get_rng()
     }
 }
 

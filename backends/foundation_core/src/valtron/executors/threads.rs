@@ -12,7 +12,7 @@ use std::{
 use concurrent_queue::{ConcurrentQueue, PushError};
 use flume;
 use rand::{RngCore, SeedableRng};
-use rand_chacha::{ChaCha8Core, ChaCha8Rng};
+use rand_chacha::ChaCha8Rng;
 use std::str::FromStr;
 
 use crate::{
@@ -29,6 +29,7 @@ use super::{
     PriorityOrder, ProcessController, TaskIterator, TaskReadyResolver, TaskStatusMapper,
 };
 
+#[allow(unused)]
 #[cfg(not(feature = "web_spin_lock"))]
 use std::sync::{Condvar, Mutex, RwLock};
 
@@ -359,29 +360,32 @@ impl ThreadPool {
         match b.spawn(move || {
             tracing::info!("Starting LocalExecutionEngine for {}", &thread_name);
 
-            // create LocalExecutionEngine here and
-            // let it handle everything going forward.
-            let thread_executor = LocalThreadExecutor::from_seed(
-                thread_ref.seed.clone(),
-                thread_ref.tasks.clone(),
-                IdleMan::new(
-                    MAX_ROUNDS_IDLE_COUNT,
-                    None,
-                    SleepyMan::new(
-                        MAX_ROUNDS_WHEN_SLEEPING_ENDS,
-                        ExponentialBackoffDecider::new(
-                            BACK_OFF_THREAD_FACTOR,
-                            BACK_OFF_JITER,
-                            BACK_OFF_MIN_DURATION,
-                            Some(BACK_OFF_MAX_DURATION),
+            panic::catch_unwind(|| {
+                // create LocalExecutionEngine here and
+                // let it handle everything going forward.
+                let thread_executor = LocalThreadExecutor::from_seed(
+                    thread_ref.seed.clone(),
+                    thread_ref.tasks.clone(),
+                    IdleMan::new(
+                        MAX_ROUNDS_IDLE_COUNT,
+                        None,
+                        SleepyMan::new(
+                            MAX_ROUNDS_WHEN_SLEEPING_ENDS,
+                            ExponentialBackoffDecider::new(
+                                BACK_OFF_THREAD_FACTOR,
+                                BACK_OFF_JITER,
+                                BACK_OFF_MIN_DURATION,
+                                Some(BACK_OFF_MAX_DURATION),
+                            ),
                         ),
                     ),
-                ),
-                priority,
-                thread_ref.process.clone(),
-            );
+                    priority,
+                    thread_ref.process.clone(),
+                );
 
-            // panic::catch_unwind(|| thread_executor.block_on()).ok();
+                thread_executor.block_on();
+            })
+            .ok();
             todo!()
         }) {
             Ok(handler) => {
