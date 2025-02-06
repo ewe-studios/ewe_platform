@@ -1,8 +1,8 @@
 use std::marker::PhantomData;
 
 use super::{
-    BoxedExecutionIterator, ExecutionAction, ExecutionEngine, ExecutionIterator, State,
-    TaskIterator, TaskStatus,
+    BoxedExecutionEngine, BoxedExecutionIterator, BoxedSendExecutionIterator, ExecutionAction,
+    ExecutionIterator, State, TaskIterator, TaskStatus,
 };
 use crate::synca::Entry;
 
@@ -13,19 +13,17 @@ use crate::synca::Entry;
 ///
 /// The `DoNext` is focused around just driving the underlying process/operation
 /// your iterator performs.
-pub struct DoNext<Engine, Action, Task, Done, Pending>
+pub struct DoNext<Action, Task, Done, Pending>
 where
-    Engine: ExecutionEngine,
     Action: ExecutionAction,
     Task: TaskIterator,
 {
     pub task: Task,
-    _marker: PhantomData<(Engine, Action, Done, Pending)>,
+    _marker: PhantomData<(Action, Done, Pending)>,
 }
 
-impl<Engine, Action, Task, Done, Pending> DoNext<Engine, Action, Task, Done, Pending>
+impl<Action, Task, Done, Pending> DoNext<Action, Task, Done, Pending>
 where
-    Engine: ExecutionEngine,
     Action: ExecutionAction + 'static,
     Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action>,
 {
@@ -37,28 +35,34 @@ where
     }
 }
 
-impl<Engine, Action, Task, Done: 'static, Pending: 'static> Into<BoxedExecutionIterator<Engine>>
-    for DoNext<Engine, Action, Task, Done, Pending>
+impl<Action, Task, Done: 'static, Pending: 'static> Into<BoxedExecutionIterator>
+    for DoNext<Action, Task, Done, Pending>
 where
-    Engine: ExecutionEngine + 'static,
-    Action: ExecutionAction<Executor = Engine> + 'static,
+    Action: ExecutionAction + 'static,
     Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + 'static,
 {
-    fn into(self) -> BoxedExecutionIterator<Engine> {
+    fn into(self) -> BoxedExecutionIterator {
         Box::new(self)
     }
 }
 
-impl<Engine, Task, Done, Pending, Action> ExecutionIterator
-    for DoNext<Engine, Action, Task, Done, Pending>
+impl<'a: 'static, Action, Task, Done: Send + 'a, Pending: Send + 'a>
+    Into<BoxedSendExecutionIterator> for DoNext<Action, Task, Done, Pending>
 where
-    Engine: ExecutionEngine,
-    Action: ExecutionAction<Executor = Engine>,
+    Action: ExecutionAction + Send + 'a,
+    Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'a,
+{
+    fn into(self) -> BoxedSendExecutionIterator {
+        Box::new(self)
+    }
+}
+
+impl<Task, Done, Pending, Action> ExecutionIterator for DoNext<Action, Task, Done, Pending>
+where
+    Action: ExecutionAction,
     Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action>,
 {
-    type Executor = Engine;
-
-    fn next(&mut self, entry: Entry, executor: Self::Executor) -> Option<State> {
+    fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
         Some(match self.task.next() {
             Some(inner) => match inner {
                 TaskStatus::Delayed(dur) => State::Pending(Some(dur)),

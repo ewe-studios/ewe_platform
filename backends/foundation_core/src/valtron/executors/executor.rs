@@ -1,5 +1,6 @@
 use std::{cell, marker::PhantomData, time};
 
+use concurrent_queue::PushError;
 use derive_more::derive::From;
 
 use crate::{
@@ -7,7 +8,7 @@ use crate::{
     valtron::{AnyResult, GenericResult},
 };
 
-use super::{task::TaskStatus, DoNext, LocalExecutorEngine, OnNext, TaskIterator};
+use super::{task::TaskStatus, DoNext, OnNext, SharedTaskQueue, TaskIterator};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum State {
@@ -47,6 +48,8 @@ pub enum State {
 pub type BoxedStateIterator = Box<dyn Iterator<Item = State>>;
 pub type BoxedSendStateIterator = Box<dyn Iterator<Item = State> + Send>;
 
+pub type BoxedExecutionEngine = Box<dyn ExecutionEngine>;
+
 /// ExecutionIterator is a type of Iterator that
 /// uniquely always just returns the State of
 /// it's internal procecesses and never
@@ -57,110 +60,99 @@ pub type BoxedSendStateIterator = Box<dyn Iterator<Item = State> + Send>;
 /// progressively generate progress for task only based on
 /// the underlying state information it returns.
 pub trait ExecutionIterator {
-    type Executor: ExecutionEngine;
-
-    fn next(&mut self, entry: Entry, executor: Self::Executor) -> Option<State>;
+    fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine) -> Option<State>;
 }
 
-pub trait IntoBoxedExecutionIterator<Executor> {
-    fn into_box_execution_iterator(self) -> Box<dyn ExecutionIterator<Executor = Executor>>;
+pub trait IntoBoxedExecutionIterator {
+    fn into_box_execution_iterator(self) -> Box<dyn ExecutionIterator>;
 }
 
-impl<F, M> IntoBoxedExecutionIterator<M> for F
+pub trait IntoBoxedSendExecutionIterator {
+    fn into_box_send_execution_iterator(self) -> Box<dyn ExecutionIterator + Send + 'static>;
+}
+
+impl<F> IntoBoxedSendExecutionIterator for F
 where
-    M: ExecutionEngine,
-    F: ExecutionIterator<Executor = M> + 'static,
+    F: ExecutionIterator + Send + 'static,
 {
-    fn into_box_execution_iterator(self) -> Box<dyn ExecutionIterator<Executor = M>> {
+    fn into_box_send_execution_iterator(self) -> Box<dyn ExecutionIterator + Send + 'static> {
         Box::new(self)
     }
 }
 
-pub type BoxedLocalExecutionIterator = Box<dyn ExecutionIterator<Executor = LocalExecutorEngine>>;
+impl<F> IntoBoxedExecutionIterator for F
+where
+    F: ExecutionIterator + 'static,
+{
+    fn into_box_execution_iterator(self) -> Box<dyn ExecutionIterator> {
+        Box::new(self)
+    }
+}
 
-pub type BoxedCloneSendLocalExecutorIterator =
-    Box<dyn ClonableExecutionIterator<Executor = LocalExecutorEngine> + Send>;
-
-pub type BoxedCloneLocalExecutorIterator =
-    Box<dyn ClonableExecutionIterator<Executor = LocalExecutorEngine>>;
+pub type BoxedExecutionIterator = Box<dyn ExecutionIterator + 'static>;
+pub type BoxedSendExecutionIterator = Box<dyn ExecutionIterator + Send + 'static>;
 
 pub trait ClonableExecutionIterator: ExecutionIterator {
-    fn clone_execution_iterator(
-        &self,
-    ) -> Box<dyn ClonableExecutionIterator<Executor = Self::Executor>>;
+    fn clone_execution_iterator(&self) -> Box<dyn ClonableExecutionIterator>;
 }
 
 pub trait IntoRawExecutionIterator: ClonableExecutionIterator {
-    fn into_execution_iterator(self) -> Box<dyn ExecutionIterator<Executor = Self::Executor>>;
+    fn into_execution_iterator(self) -> Box<dyn ExecutionIterator + Send + 'static>;
 }
 
-impl<M, Executor> IntoRawExecutionIterator for M
+impl<M> IntoRawExecutionIterator for M
 where
-    Executor: ExecutionEngine,
-    M: ClonableExecutionIterator<Executor = Executor> + 'static,
+    M: ClonableExecutionIterator + Send + 'static,
 {
-    fn into_execution_iterator(self) -> Box<dyn ExecutionIterator<Executor = Self::Executor>> {
+    fn into_execution_iterator(self) -> Box<dyn ExecutionIterator + Send + 'static> {
         Box::new(self)
     }
 }
 
-impl<M, Executor> ClonableExecutionIterator for M
+impl<M> ClonableExecutionIterator for M
 where
-    Executor: ExecutionEngine,
-    M: ExecutionIterator<Executor = Executor> + Clone + 'static,
+    M: ExecutionIterator + Clone + 'static,
 {
-    fn clone_execution_iterator(
-        &self,
-    ) -> Box<dyn ClonableExecutionIterator<Executor = Self::Executor>> {
+    fn clone_execution_iterator(&self) -> Box<dyn ClonableExecutionIterator> {
         Box::new(self.clone())
     }
 }
 
-pub struct CanCloneExecutionIterator<E: ExecutionEngine>(
-    Box<dyn ClonableExecutionIterator<Executor = E>>,
-);
+pub struct CanCloneExecutionIterator(Box<dyn ClonableExecutionIterator>);
 
-impl CanCloneExecutionIterator<LocalExecutorEngine> {
-    pub fn new(elem: Box<dyn ClonableExecutionIterator<Executor = LocalExecutorEngine>>) -> Self {
+impl CanCloneExecutionIterator {
+    pub fn new(elem: Box<dyn ClonableExecutionIterator>) -> Self {
         Self(elem)
     }
 }
 
-impl<E: ExecutionEngine> Clone for CanCloneExecutionIterator<E> {
+impl Clone for CanCloneExecutionIterator {
     fn clone(&self) -> Self {
         Self(self.0.clone_execution_iterator())
     }
 }
 
-impl<E: ExecutionEngine> ExecutionIterator for CanCloneExecutionIterator<E> {
-    type Executor = E;
-
-    fn next(&mut self, entry: Entry, executor: Self::Executor) -> Option<State> {
-        self.0.next(entry, executor)
+impl ExecutionIterator for CanCloneExecutionIterator {
+    fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine) -> Option<State> {
+        self.0.next(entry, engine)
     }
 }
 
-impl<'a, M, Executor> ExecutionIterator for &'a mut M
+impl<'a, M> ExecutionIterator for &'a mut M
 where
-    Executor: ExecutionEngine,
-    M: ExecutionIterator<Executor = Executor>,
+    M: ExecutionIterator,
 {
-    type Executor = M::Executor;
-
-    fn next(&mut self, entry: Entry, executor: Self::Executor) -> Option<State> {
-        (**self).next(entry, executor)
+    fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine) -> Option<State> {
+        (**self).next(entry, engine)
     }
 }
 
-impl<M, Executor> ExecutionIterator for Box<M>
+impl<M> ExecutionIterator for Box<M>
 where
-    Executor: ExecutionEngine,
-    M: ExecutionIterator<Executor = Executor> + ?Sized,
+    M: ExecutionIterator + ?Sized,
 {
-    type Executor = M::Executor;
-
-    fn next(&mut self, entry: Entry, executor: Self::Executor) -> Option<State> {
-        (**self).next(entry, executor)
+    fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine) -> Option<State> {
+        (**self).next(entry, engine)
     }
 }
 
@@ -209,13 +201,13 @@ impl core::fmt::Display for ExecutorError {
 pub struct ExecutionTaskIteratorBuilder<
     Done,
     Pending,
-    Engine: ExecutionEngine,
-    Action: ExecutionAction<Executor = Engine>,
+    Action: ExecutionAction,
     Mapper: TaskStatusMapper<Done, Pending, Action>,
-    Resolver: TaskReadyResolver<Engine, Action, Done, Pending>,
+    Resolver: TaskReadyResolver<Action, Done, Pending>,
     Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action>,
 > {
-    engine: Engine,
+    engine: BoxedExecutionEngine,
+    tasks: SharedTaskQueue,
     task: Option<Task>,
     parent: Option<Entry>,
     resolver: Option<Resolver>,
@@ -226,16 +218,16 @@ pub struct ExecutionTaskIteratorBuilder<
 impl<
         Done: 'static,
         Pending: 'static,
-        Engine: ExecutionEngine<Executor = Engine> + 'static,
-        Action: ExecutionAction<Executor = Engine> + 'static,
+        Action: ExecutionAction + 'static,
         Mapper: TaskStatusMapper<Done, Pending, Action> + 'static,
-        Resolver: TaskReadyResolver<Engine, Action, Done, Pending> + 'static,
+        Resolver: TaskReadyResolver<Action, Done, Pending> + 'static,
         Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + 'static,
-    > ExecutionTaskIteratorBuilder<Done, Pending, Engine, Action, Mapper, Resolver, Task>
+    > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, Resolver, Task>
 {
-    pub fn new(engine: Engine) -> Self {
+    pub fn new(engine: BoxedExecutionEngine, tasks: SharedTaskQueue) -> Self {
         Self {
             engine,
+            tasks,
             task: None,
             parent: None,
             mappers: None,
@@ -277,7 +269,7 @@ impl<
             Some(task) => match (self.resolver, self.mappers) {
                 (Some(resolver), Some(mappers)) => {
                     let task_iter = OnNext::new(task, resolver, mappers);
-                    self.engine.lift(Box::new(task_iter), parent)
+                    self.engine.lift(task_iter.into(), parent)
                 }
                 (Some(resolver), None) => {
                     let task_iter = OnNext::new(task, resolver, Vec::<Mapper>::new());
@@ -313,25 +305,36 @@ impl<
             None => Err(ExecutorError::TaskRequired),
         }
     }
+}
 
+impl<
+        Done: Send + 'static,
+        Pending: Send + 'static,
+        Action: ExecutionAction + Send + 'static,
+        Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
+        Resolver: TaskReadyResolver<Action, Done, Pending> + Send + 'static,
+        Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'static,
+    > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, Resolver, Task>
+{
     pub fn broadcast(self) -> AnyResult<(), ExecutorError> {
-        match self.task {
+        let task: AnyResult<BoxedSendExecutionIterator, ExecutorError> = match self.task {
             Some(task) => match (self.resolver, self.mappers) {
-                (Some(resolver), Some(mappers)) => {
-                    let task_iter = OnNext::new(task, resolver, mappers);
-                    self.engine.broadcast(Box::new(task_iter))
-                }
+                (Some(resolver), Some(mappers)) => Ok(OnNext::new(task, resolver, mappers).into()),
                 (Some(resolver), None) => {
-                    let task_iter = OnNext::new(task, resolver, Vec::<Mapper>::new());
-                    self.engine.broadcast(Box::new(task_iter))
+                    Ok(OnNext::new(task, resolver, Vec::<Mapper>::new()).into())
                 }
-                (None, None) => {
-                    let task_iter = DoNext::new(task);
-                    self.engine.broadcast(Box::new(task_iter))
-                }
+                (None, None) => Ok(DoNext::new(task).into()),
                 (None, Some(_)) => Err(ExecutorError::FailedToCreate),
             },
             None => Err(ExecutorError::TaskRequired),
+        };
+
+        match self.tasks.push(task?) {
+            Ok(_) => Ok(()),
+            Err(err) => match err {
+                PushError::Full(_) => Err(ExecutorError::QueueFull),
+                PushError::Closed(_) => Err(ExecutorError::QueueClosed),
+            },
         }
     }
 }
@@ -340,26 +343,16 @@ impl<
         F,
         Done: 'static,
         Pending: 'static,
-        Engine: ExecutionEngine<Executor = Engine> + 'static,
-        Action: ExecutionAction<Executor = Engine> + 'static,
+        Action: ExecutionAction + Send + 'static,
         Mapper: TaskStatusMapper<Done, Pending, Action> + 'static,
         Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + 'static,
-    >
-    ExecutionTaskIteratorBuilder<
-        Done,
-        Pending,
-        Engine,
-        Action,
-        Mapper,
-        FnMutReady<F, Engine, Action>,
-        Task,
-    >
+    > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, FnMutReady<F, Action>, Task>
 where
-    F: FnMut(TaskStatus<Done, Pending, Action>, Engine) + 'static,
+    F: FnMut(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + 'static,
 {
     pub fn on_next_mut(self, action: F) -> Self
     where
-        F: Fn(TaskStatus<Done, Pending, Action>, Engine) + 'static,
+        F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + 'static,
     {
         self.with_resolver(FnMutReady::new(action))
     }
@@ -369,28 +362,50 @@ impl<
         F,
         Done: 'static,
         Pending: 'static,
-        Engine: ExecutionEngine<Executor = Engine> + 'static,
-        Action: ExecutionAction<Executor = Engine> + 'static,
+        Action: ExecutionAction + 'static,
         Mapper: TaskStatusMapper<Done, Pending, Action> + 'static,
         Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + 'static,
-    >
-    ExecutionTaskIteratorBuilder<
-        Done,
-        Pending,
-        Engine,
-        Action,
-        Mapper,
-        FnReady<F, Engine, Action>,
-        Task,
-    >
+    > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, FnReady<F, Action>, Task>
 where
-    F: Fn(TaskStatus<Done, Pending, Action>, Engine) + 'static,
+    F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + 'static,
 {
-    pub fn on_next(self, action: F) -> Self
-    where
-        F: Fn(TaskStatus<Done, Pending, Action>, Engine) + 'static,
-    {
+    pub fn on_next(self, action: F) -> Self {
         self.with_resolver(FnReady::new(action))
+    }
+}
+
+impl<
+        F,
+        Done: Send + 'static,
+        Pending: Send + 'static,
+        Action: ExecutionAction + Send + 'static,
+        Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
+        Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'static,
+    > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, FnReady<F, Action>, Task>
+where
+    F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
+{
+    pub fn on_send_next(self, action: F) -> Self {
+        self.with_resolver(FnReady::new(action))
+    }
+}
+
+impl<
+        F,
+        Done: Send + 'static,
+        Pending: Send + 'static,
+        Action: ExecutionAction + Send + 'static,
+        Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
+        Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'static,
+    > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, FnMutReady<F, Action>, Task>
+where
+    F: FnMut(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
+{
+    pub fn on_send_next_mut(self, action: F) -> Self
+    where
+        F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + 'static,
+    {
+        self.with_resolver(FnMutReady::new(action))
     }
 }
 
@@ -399,8 +414,6 @@ where
 /// of a thread which the user/caller create to manage execution within the
 /// thread.
 pub trait ExecutionEngine {
-    type Executor;
-
     /// lift prioritizes an incoming task to the top of the local
     /// execution queue which pauses all processing task till that
     /// point till the new task is done or goes to sleep (dependent on
@@ -410,7 +423,7 @@ pub trait ExecutionEngine {
     /// with the relevant parent's identified by the `Entry` key.
     fn lift(
         &self,
-        task: Box<dyn ExecutionIterator<Executor = Self::Executor>>,
+        task: BoxedExecutionIterator,
         parent: Option<Entry>,
     ) -> AnyResult<(), ExecutorError>;
 
@@ -418,46 +431,37 @@ pub trait ExecutionEngine {
     /// execution queue which pauses all processing task till that
     /// point till the new task is done or goes to sleep (dependent on
     /// the internals of the ExecutionEngine).
-    fn schedule(
-        &self,
-        task: Box<dyn ExecutionIterator<Executor = Self::Executor>>,
-    ) -> AnyResult<(), ExecutorError>;
+    fn schedule(&self, task: BoxedExecutionIterator) -> AnyResult<(), ExecutorError>;
 
     /// broadcast allows you to deliver a task to the global execution queue
     /// which then lets the giving task to be sent of to the same or another
     /// executor in another thread for processing, which requires the type to be
     /// `Send` safe.
-    fn broadcast(
-        &self,
-        task: Box<dyn ExecutionIterator<Executor = Self::Executor>>,
-    ) -> AnyResult<(), ExecutorError>;
-}
+    fn broadcast(&self, task: BoxedSendExecutionIterator) -> AnyResult<(), ExecutorError>;
 
-pub type BoxedExecutionIterator<M> = Box<dyn ExecutionIterator<Executor = M>>;
+    /// shared_queue returns access to the global queue.
+    fn shared_queue(&self) -> SharedTaskQueue;
+}
 
 /// TaskSpawner represents a underlying type that can
 /// spawn some other task by using the provided executor.
 pub trait ExecutionAction {
-    type Executor: ExecutionEngine;
-
-    fn apply(self, key: Entry, executor: Self::Executor) -> GenericResult<()>;
+    fn apply(self, key: Entry, engine: BoxedExecutionEngine) -> GenericResult<()>;
 }
 
-pub type NoSpawner = NoAction<LocalExecutorEngine>;
+pub type NoSpawner = NoAction;
 
 #[derive(Default, Clone, Debug)]
-pub struct NoAction<E: ExecutionEngine + Clone>(PhantomData<E>);
+pub struct NoAction;
 
-impl<E: ExecutionEngine + Clone> ExecutionAction for NoAction<E> {
-    type Executor = E;
-
-    fn apply(self, _entry: Entry, _engine: Self::Executor) -> GenericResult<()> {
+impl ExecutionAction for NoAction {
+    fn apply(self, _entry: Entry, _engine: BoxedExecutionEngine) -> GenericResult<()> {
         // do nothing
         Ok(())
     }
 }
 
-pub type BoxedTaskReadyResolver<E, S, D, P> = Box<dyn TaskReadyResolver<E, S, D, P>>;
+pub type BoxedTaskReadyResolver<S, D, P> = Box<dyn TaskReadyResolver<S, D, P>>;
 
 /// `TaskResolver` are types implementing this trait to
 /// perform final resolution of a task when the task emits
@@ -467,23 +471,20 @@ pub type BoxedTaskReadyResolver<E, S, D, P> = Box<dyn TaskReadyResolver<E, S, D,
 /// not care about the varying states of a `TaskIterator`
 /// but about the final state of the task when it signals
 /// it's readiness via the `TaskStatus::Ready` state.
-pub trait TaskReadyResolver<E, S: ExecutionAction, D, P> {
-    fn handle(&self, item: TaskStatus<D, P, S>, engine: E);
+pub trait TaskReadyResolver<S: ExecutionAction, D, P> {
+    fn handle(&self, item: TaskStatus<D, P, S>, engine: BoxedExecutionEngine);
 }
 
-pub type NoResolver<Action, Done, Pending> =
-    NoResolving<LocalExecutorEngine, Action, Done, Pending>;
+pub type NoResolver<Action, Done, Pending> = NoResolving<Action, Done, Pending>;
 
-pub type NoResolverAndSpawner<Done, Pending> =
-    NoResolving<LocalExecutorEngine, NoSpawner, Done, Pending>;
+pub type NoResolverAndSpawner<Done, Pending> = NoResolving<NoSpawner, Done, Pending>;
 
-pub struct NoResolving<Engine: ExecutionEngine, Action: ExecutionAction, Done, Pending>(
-    PhantomData<(Engine, Action, Done, Pending)>,
+pub struct NoResolving<Action: ExecutionAction, Done, Pending>(
+    PhantomData<(Action, Done, Pending)>,
 );
 
-impl<Engine, Action, Done, Pending> NoResolving<Engine, Action, Done, Pending>
+impl<Action, Done, Pending> NoResolving<Action, Done, Pending>
 where
-    Engine: ExecutionEngine,
     Action: ExecutionAction,
 {
     pub fn new() -> Self {
@@ -491,9 +492,8 @@ where
     }
 }
 
-impl<Engine, Action, Done, Pending> Default for NoResolving<Engine, Action, Done, Pending>
+impl<Action, Done, Pending> Default for NoResolving<Action, Done, Pending>
 where
-    Engine: ExecutionEngine,
     Action: ExecutionAction,
 {
     fn default() -> Self {
@@ -501,72 +501,69 @@ where
     }
 }
 
-impl<Engine, Action, Done, Pending> TaskReadyResolver<Engine, Action, Done, Pending>
-    for NoResolving<Engine, Action, Done, Pending>
+impl<Action, Done, Pending> TaskReadyResolver<Action, Done, Pending>
+    for NoResolving<Action, Done, Pending>
 where
-    Engine: ExecutionEngine,
     Action: ExecutionAction,
 {
-    fn handle(&self, _item: TaskStatus<Done, Pending, Action>, _engine: Engine) {
+    fn handle(&self, _item: TaskStatus<Done, Pending, Action>, _engine: BoxedExecutionEngine) {
         // do nothing
     }
 }
 
-impl<'a, F, E, S, D, P> TaskReadyResolver<E, S, D, P> for &'a mut F
+impl<'a, F, S, D, P> TaskReadyResolver<S, D, P> for &'a mut F
 where
-    E: ExecutionEngine,
     S: ExecutionAction,
-    F: TaskReadyResolver<E, S, D, P>,
+    F: TaskReadyResolver<S, D, P>,
 {
-    fn handle(&self, item: TaskStatus<D, P, S>, engine: E) {
+    fn handle(&self, item: TaskStatus<D, P, S>, engine: BoxedExecutionEngine) {
         (**self).handle(item, engine)
     }
 }
 
-impl<F, E, S, D, P> TaskReadyResolver<E, S, D, P> for Box<F>
+impl<F, S, D, P> TaskReadyResolver<S, D, P> for Box<F>
 where
-    E: ExecutionEngine,
     S: ExecutionAction,
-    F: TaskReadyResolver<E, S, D, P> + ?Sized,
+    F: TaskReadyResolver<S, D, P> + ?Sized,
 {
-    fn handle(&self, item: TaskStatus<D, P, S>, engine: E) {
+    fn handle(&self, item: TaskStatus<D, P, S>, engine: BoxedExecutionEngine) {
         (**self).handle(item, engine)
     }
 }
 
-pub struct FnMutReady<F, E, S>(cell::RefCell<F>, PhantomData<(E, S)>);
+pub struct FnMutReady<F, S>(cell::RefCell<F>, PhantomData<S>);
 
-impl<F, E, S> FnMutReady<F, E, S> {
+impl<F, S> FnMutReady<F, S> {
     pub fn new(f: F) -> Self {
         Self(cell::RefCell::new(f), PhantomData::default())
     }
 }
 
-impl<F, S, E, D, P> TaskReadyResolver<E, S, D, P> for FnMutReady<F, E, S>
+impl<F, S, D, P> TaskReadyResolver<S, D, P> for FnMutReady<F, S>
 where
     S: ExecutionAction,
-    F: FnMut(TaskStatus<D, P, S>, E),
+    F: FnMut(TaskStatus<D, P, S>, BoxedExecutionEngine),
 {
-    fn handle(&self, item: TaskStatus<D, P, S>, engine: E) {
+    fn handle(&self, item: TaskStatus<D, P, S>, engine: BoxedExecutionEngine) {
         let mut mut_fn = self.0.borrow_mut();
         (mut_fn)(item, engine)
     }
 }
 
-pub struct FnReady<F, E, S>(F, PhantomData<(E, S)>);
+pub struct FnReady<F, S>(F, PhantomData<S>);
 
-impl<F, E, S> FnReady<F, E, S> {
+impl<F, S> FnReady<F, S> {
     pub fn new(f: F) -> Self {
         Self(f, PhantomData::default())
     }
 }
 
-impl<F, S, E, D, P> TaskReadyResolver<E, S, D, P> for FnReady<F, E, S>
+impl<F, S, D, P> TaskReadyResolver<S, D, P> for FnReady<F, S>
 where
     S: ExecutionAction,
-    F: Fn(TaskStatus<D, P, S>, E),
+    F: Fn(TaskStatus<D, P, S>, BoxedExecutionEngine),
 {
-    fn handle(&self, item: TaskStatus<D, P, S>, engine: E) {
+    fn handle(&self, item: TaskStatus<D, P, S>, engine: BoxedExecutionEngine) {
         self.0(item, engine)
     }
 }

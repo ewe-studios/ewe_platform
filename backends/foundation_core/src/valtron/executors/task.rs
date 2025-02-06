@@ -159,13 +159,13 @@ impl<D, P, S: ExecutionAction> Iterator for TaskAsIterator<D, P, S> {
 mod test_task_iterator {
     use tokio::time;
 
-    use crate::valtron::{LocalExecutorEngine, NoAction};
+    use crate::valtron::NoAction;
 
     use super::*;
 
     #[test]
     fn vec_iterator_is_task_iterator() {
-        let tasks: Vec<TaskStatus<(), (), NoAction<LocalExecutorEngine>>> = vec![
+        let tasks: Vec<TaskStatus<(), (), NoAction>> = vec![
             TaskStatus::Delayed(time::Duration::from_secs(1)),
             TaskStatus::Pending(()),
             TaskStatus::Init,
@@ -174,8 +174,7 @@ mod test_task_iterator {
 
         let task_iterator = Box::new(tasks.into_iter());
 
-        let collected_tasks: Vec<TaskStatus<(), (), NoAction<LocalExecutorEngine>>> =
-            task_iterator.collect();
+        let collected_tasks: Vec<TaskStatus<(), (), NoAction>> = task_iterator.collect();
         assert_eq!(
             collected_tasks,
             vec![
