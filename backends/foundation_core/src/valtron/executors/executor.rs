@@ -1,6 +1,5 @@
 use std::{cell, marker::PhantomData, time};
 
-use concurrent_queue::PushError;
 use derive_more::derive::From;
 
 use crate::{
@@ -207,7 +206,6 @@ pub struct ExecutionTaskIteratorBuilder<
     Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action>,
 > {
     engine: BoxedExecutionEngine,
-    tasks: SharedTaskQueue,
     task: Option<Task>,
     parent: Option<Entry>,
     resolver: Option<Resolver>,
@@ -224,10 +222,9 @@ impl<
         Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + 'static,
     > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, Resolver, Task>
 {
-    pub fn new(engine: BoxedExecutionEngine, tasks: SharedTaskQueue) -> Self {
+    pub fn new(engine: BoxedExecutionEngine) -> Self {
         Self {
             engine,
-            tasks,
             task: None,
             parent: None,
             mappers: None,
@@ -329,13 +326,7 @@ impl<
             None => Err(ExecutorError::TaskRequired),
         };
 
-        match self.tasks.push(task?) {
-            Ok(_) => Ok(()),
-            Err(err) => match err {
-                PushError::Full(_) => Err(ExecutorError::QueueFull),
-                PushError::Closed(_) => Err(ExecutorError::QueueClosed),
-            },
-        }
+        self.engine.broadcast(task?)
     }
 }
 

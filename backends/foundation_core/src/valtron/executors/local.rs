@@ -59,7 +59,7 @@ impl Waiter for Sleepable {
     }
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub(crate) enum SpawnType {
     Lifted,
     LiftedWithParent,
@@ -369,6 +369,15 @@ impl ExecutorState {
         self.processing.borrow().len() > 0
     }
 
+    /// Returns totla
+    pub fn total_inprocess_tasks(&self) -> usize {
+        self.number_of_inprocess()
+    }
+
+    pub fn total_sleeping_tasks(&self) -> usize {
+        self.sleepers.count()
+    }
+
     /// Returns the total remaining tasks that are
     /// active and not sleeping.
     pub fn total_active_tasks(&self) -> usize {
@@ -377,7 +386,7 @@ impl ExecutorState {
         let in_process_task_count = self.number_of_inprocess();
         let active_task_count = local_task_count - sleeping_task_count;
         tracing::debug!(
-            "Local TaskCount={} and Sleeping TaskCount={}, InProcessTasks={}, ActiveTasks={}",
+            "Local TaskCount={} and SleepingTaskCount={}, InProcessTasks={}, ActiveTasks={}",
             local_task_count,
             sleeping_task_count,
             in_process_task_count,
@@ -440,11 +449,7 @@ impl ExecutorState {
     #[inline]
     pub fn schedule_and_do_work(&self, engine: BoxedExecutionEngine) -> ProgressIndicator {
         match self.request_global_task() {
-            ProgressIndicator::CanProgress => {
-                tracing::debug!(
-                    "Attempt to get global task shows we can progress, call do_work next"
-                );
-            }
+            ProgressIndicator::CanProgress => {}
             ProgressIndicator::NoWork => {
                 return ProgressIndicator::NoWork;
             }
@@ -556,10 +561,17 @@ impl ExecutorState {
                                 unreachable!("Executor should never fail to spawn a task");
                             }
                             State::SpawnFinished => {
+                                let active_tasks = self.total_active_tasks();
+                                let sleeping_tasks = self.total_active_tasks();
+                                let in_process_tasks = self.total_inprocess_tasks();
+
                                 tracing::debug!(
-                                    "Spawned new task successfully over current {:?} (rem_tasks: {})",
+                                    "Spawned new task successfully over current {:?} (rem_tasks: {}, active_tasks: {}, sleeping_tasks: {}, in_process_tasks: {})",
                                     &top_entry,
                                     remaining_tasks,
+                                    active_tasks,
+                                    sleeping_tasks,
+                                    in_process_tasks,
                                 );
 
                                 // unpack the entry in the task list
@@ -567,8 +579,14 @@ impl ExecutorState {
 
                                 // unless we just lifted with a parent then add entry back.
                                 if let Some(op) = self.spawn_op.borrow().as_ref() {
+                                    tracing::info!("Spawned process with op: {:?}", op);
                                     if op != &SpawnType::LiftedWithParent {
                                         // push entry back into processing mut
+                                        tracing::info!(
+                                            "Adding task {:?} back into top of queue: {:?}",
+                                            top_entry,
+                                            op
+                                        );
                                         self.processing.borrow_mut().push_front(top_entry);
                                     }
                                 }
@@ -1130,8 +1148,7 @@ where
     Task: TaskIterator<Spawner = Action> + Send + 'static,
     Resolver: TaskReadyResolver<Task::Spawner, Task::Done, Task::Pending> + 'static,
 {
-    let queue = engine.shared_queue();
-    ExecutionTaskIteratorBuilder::new(engine, queue)
+    ExecutionTaskIteratorBuilder::new(engine)
 }
 
 /// any_task allows you to create a task builder with less restrictive type
@@ -1152,8 +1169,7 @@ where
     Task: TaskIterator<Spawner = Action> + Send + 'static,
     Action: ExecutionAction + Send + 'static,
 {
-    let queue = engine.shared_queue();
-    ExecutionTaskIteratorBuilder::new(engine, queue)
+    ExecutionTaskIteratorBuilder::new(engine)
 }
 
 /// send_any_task will unlike [`any_task`] deliver the provided
@@ -1175,8 +1191,7 @@ where
     Action: ExecutionAction + Send + 'static,
     Task: TaskIterator<Spawner = Action> + Send + 'static,
 {
-    let queue = engine.shared_queue();
-    ExecutionTaskIteratorBuilder::new(engine, queue)
+    ExecutionTaskIteratorBuilder::new(engine)
 }
 
 /// send_typed_task will unlike [`type_task`] deliver the provided
@@ -1199,8 +1214,7 @@ where
     Action: ExecutionAction + Send + 'static,
     Resolver: TaskReadyResolver<Task::Spawner, Task::Done, Task::Pending> + Send + 'static,
 {
-    let queue = engine.shared_queue();
-    ExecutionTaskIteratorBuilder::new(engine, queue)
+    ExecutionTaskIteratorBuilder::new(engine)
 }
 
 #[cfg(test)]
@@ -1220,9 +1234,7 @@ mod test_local_thread_executor {
     };
 
     use super::*;
-    use cell::*;
     use rand::prelude::*;
-    use rc::Rc;
     use sync::Arc;
     use tracing_test::traced_test;
 
@@ -1714,6 +1726,7 @@ mod test_local_thread_executor {
             match self {
                 DaemonSpawner::NoSpawning => Ok(()),
                 DaemonSpawner::TopOfThread => {
+                    tracing::debug!("Spawning task as TopOfThread");
                     match any_task(executor)
                         .with_parent(key.clone())
                         .with_task(SimpleCounter("SubTask1", 0, 5))
@@ -1724,6 +1737,7 @@ mod test_local_thread_executor {
                     }
                 }
                 DaemonSpawner::InThread => {
+                    tracing::debug!("Spawning task as InThread");
                     match any_task(executor)
                         .with_task(SimpleCounter("SubTask1", 0, 5))
                         .schedule()
@@ -1733,6 +1747,7 @@ mod test_local_thread_executor {
                     }
                 }
                 DaemonSpawner::OutofThread => {
+                    tracing::debug!("Spawning task as OutOfThread");
                     match send_any_task(executor)
                         .with_task(SimpleCounter("SubTask2", 0, 5))
                         .broadcast()
