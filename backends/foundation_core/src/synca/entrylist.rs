@@ -1,3 +1,10 @@
+use std::sync::Arc;
+#[cfg(not(feature = "web_spin_lock"))]
+use std::sync::RwLock;
+
+#[cfg(feature = "web_spin_lock")]
+use wasm_sync::RwLock;
+
 /// Entry based list using generation markers to identify
 /// used list items in an efficient list.
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
@@ -363,6 +370,181 @@ impl<T> EntryList<T> {
         }
 
         entry
+    }
+}
+
+pub struct ThreadSafeEntry<T>(Arc<RwLock<EntryList<T>>>);
+
+impl<T> ThreadSafeEntry<T> {
+    pub fn new() -> Self {
+        Self(Arc::new(RwLock::new(EntryList::new())))
+    }
+
+    pub fn from(list: EntryList<T>) -> Self {
+        Self(Arc::new(RwLock::new(list)))
+    }
+}
+
+impl<T> Clone for ThreadSafeEntry<T> {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
+
+#[allow(unused)]
+impl<T> ThreadSafeEntry<T> {
+    #[inline]
+    pub fn active_slots(&self) -> usize {
+        self.0.read().unwrap().active_slots()
+    }
+
+    /// Returns total entries currently parked.
+    #[inline]
+    pub fn parked_slots(&self) -> usize {
+        self.0.read().unwrap().parked_slots()
+    }
+
+    /// allocated_slots returns how many slots have being allocated overall.
+    #[inline]
+    pub fn allocated_slots(&self) -> usize {
+        self.0.read().unwrap().allocated_slots()
+    }
+
+    /// open_slots returns how many free entries are now available.
+    #[inline]
+    pub fn open_slots(&self) -> usize {
+        self.0.read().unwrap().open_slots()
+    }
+
+    /// get_mut lets you perform an in-place value replacement without
+    /// invalidating the `Entry` handle you have
+    /// pointing to the given value it points to.
+    ///
+    /// This is useful in those cases where all you really wish to do is
+    /// update the underlying value without loosing your key like you would
+    /// a regular map.
+    #[inline]
+    pub fn get_mut<Func: FnOnce(Option<&mut T>)>(&self, entry: &Entry, fnc: Func) {
+        let mut handle = self.0.write().unwrap();
+        fnc(handle.get_mut(entry));
+    }
+
+    /// get a reference to the relevant value within the
+    /// list for the giving `Entry` if its still valid.
+    #[inline]
+    pub fn get<Func: FnOnce(Option<&T>)>(&self, entry: &Entry, fnc: Func) {
+        let handle = self.0.read().unwrap();
+        fnc(handle.get(entry));
+    }
+
+    /// not_valid returns bool (True/False) indicating if the entry
+    /// reference is still valid.
+    #[inline]
+    pub fn not_valid(&self, entry: &Entry) -> bool {
+        self.0.write().unwrap().not_valid(entry)
+    }
+
+    /// has returns bool (True/False) indicating if the entry
+    /// exists and is still valid.
+    #[inline]
+    pub fn has(&self, entry: &Entry) -> bool {
+        self.0.write().unwrap().has(entry)
+    }
+
+    /// vacate eats the value at that location in the list
+    /// freeing the entry for re-use if not already.
+    ///
+    /// The old value is dropped if it indeed is valid/has-value.
+    #[inline]
+    pub fn vacate(&self, entry: &Entry) {
+        self.0.write().unwrap().vacate(entry)
+    }
+
+    /// pack collects the value pointed to by the relevant
+    /// `Entry` pointer if its still valid but does not invalidate
+    /// the pointer.
+    /// You can think of this as a temporary borrow where we want
+    /// to borrow that given entry, use it for some undefined period of
+    /// time and be guaranteed that slot will not be usable till it's unpacked
+    /// bascially, you own that entry till its unpacked.
+    ///
+    /// This allows us support situations where we need to maintain that entry
+    /// but cant afford to invalid the entry due to dependency chains built on it.
+    #[inline]
+    pub fn park(&self, entry: &Entry) -> Option<T> {
+        self.0.write().unwrap().park(entry)
+    }
+
+    /// unpack helps you to re-allocate the provided value
+    /// back into the packed entry, if the entry was truly
+    /// packaed then true is returned to validate that
+    /// the entry was indeed found and updated.
+    pub fn unpark(&self, entry: &Entry, item: T) -> bool {
+        self.0.write().unwrap().unpark(entry, item)
+    }
+
+    pub(crate) fn find_packed(&self, entry: &Entry) -> Option<usize> {
+        self.0.write().unwrap().find_packed(entry)
+    }
+
+    #[inline]
+    pub(crate) fn update_packed(&self, entry: &Entry, item: T) -> Option<T> {
+        self.0.write().unwrap().update_packed(entry, item)
+    }
+
+    /// take collects the value pointed to by the relevant
+    /// `Entry` pointer if its still valid and then invalidates
+    /// the pointer.
+    #[inline]
+    pub fn take(&self, entry: &Entry) -> Option<T> {
+        self.0.write().unwrap().take(entry)
+    }
+
+    /// update lets you change the underlying data for a giving reference
+    /// without invalidating the reference for that object
+    /// and returning old value.
+    #[inline]
+    pub fn update(&self, entry: &Entry, item: T) -> Option<T> {
+        self.0.write().unwrap().update(entry, item)
+    }
+
+    /// for_each loop through all active entries.
+    #[inline]
+    pub fn map_with<V>(&self, tn: impl Fn(&T) -> Option<V>) -> Vec<V> {
+        self.0.read().unwrap().map_with(tn)
+    }
+
+    /// for_each loop through all active entries.
+    #[inline]
+    pub fn for_each(&self, tn: impl Fn(Option<&T>)) {
+        self.0.read().unwrap().for_each(tn)
+    }
+
+    /// select_take loop through all active entries, using the provided
+    /// function as a filter and takes the relevant matching values
+    /// out of the list returned as an `Vec<T>`.
+    ///
+    /// This becomes heavly useful when you wish to take a series of underlying
+    /// values that match a condition and vacate the underlying entries to be available
+    /// for reuse.
+    #[inline]
+    pub fn select_take(&self, tn: impl Fn(&T) -> bool) -> Vec<T> {
+        self.0.write().unwrap().select_take(tn)
+    }
+
+    /// replace lets you change the underlying data for a giving reference
+    /// invalidating the previous reference for that object
+    /// and returning the new reference and old value.
+    #[inline]
+    pub fn replace(&self, entry: &Entry, item: T) -> Option<(Entry, T)> {
+        self.0.write().unwrap().replace(entry, item)
+    }
+
+    /// inserts a new value into the list receiving the relevant
+    /// `Entry` handle for the item.
+    #[inline]
+    pub fn insert(&self, item: T) -> Entry {
+        self.0.write().unwrap().insert(item)
     }
 }
 
