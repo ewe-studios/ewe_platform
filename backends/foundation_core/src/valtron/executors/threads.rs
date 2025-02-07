@@ -3,6 +3,7 @@ use std::{
     collections::HashMap,
     env,
     marker::PhantomData,
+    ops::Index,
     panic,
     sync::{
         self,
@@ -22,13 +23,14 @@ use std::str::FromStr;
 
 use crate::{
     retries::ExponentialBackoffDecider,
-    synca::{DurationStore, Entry, EntryList, IdleMan, LockSignal, OnSignal, RunOnDrop, SleepyMan},
+    synca::{Entry, EntryList, IdleMan, LockSignal, OnSignal, RunOnDrop, SleepyMan},
     valtron::{AnyResult, BoxedError, LocalThreadExecutor},
 };
 
 use super::{
-    BoxedPanicHandler, BoxedSendExecutionIterator, DoNext, ExecutionAction, ExecutionIterator,
-    ExecutorError, OnNext, PriorityOrder, ProcessController, TaskIterator, TaskReadyResolver,
+    BoxedExecutionEngine, BoxedExecutionIterator, BoxedPanicHandler, BoxedSendExecutionIterator,
+    DoNext, ExecutionAction, ExecutionIterator, ExecutorError, FnMutReady, FnReady, OnNext,
+    PriorityOrder, ProcessController, TaskIterator, TaskReadyResolver, TaskStatus,
     TaskStatusMapper,
 };
 
@@ -105,11 +107,11 @@ impl ProcessController for ThreadYielder {
         }
 
         self.sender
-            .send(ThreadActivity::Parked(self.thread_id.clone()))
+            .send(ThreadActivity::Blocked(self.thread_id.clone()))
             .expect("should sent event");
         self.latch.wait();
         self.sender
-            .send(ThreadActivity::Unparked(self.thread_id.clone()))
+            .send(ThreadActivity::Unblocked(self.thread_id.clone()))
             .expect("should sent event");
     }
 
@@ -305,23 +307,12 @@ impl ThreadRef {
 
 pub struct ThreadPoolRegistryInner {
     threads: EntryList<ThreadRef>,
-    sleepers: DurationStore<ThreadId>,
-    idlers: DurationStore<ThreadId>,
-    latch: Arc<LockSignal>,
-    notifications: flume::Sender<ThreadActivity>,
 }
 
 impl ThreadPoolRegistryInner {
-    pub(crate) fn new(
-        notifications: flume::Sender<ThreadActivity>,
-        latch: Arc<LockSignal>,
-    ) -> SharedThreadRegistry {
+    pub(crate) fn new() -> SharedThreadRegistry {
         SharedThreadRegistry::new(sync::Arc::new(RwLock::new(ThreadPoolRegistryInner {
-            latch: latch.clone(),
             threads: EntryList::new(),
-            sleepers: DurationStore::new(),
-            idlers: DurationStore::new(),
-            notifications: notifications.clone(),
         })))
     }
 }
@@ -333,8 +324,8 @@ const MAX_ROUNDS_WHEN_SLEEPING_ENDS: u32 = 32;
 
 const BACK_OFF_JITER: f32 = 0.65;
 const BACK_OFF_THREAD_FACTOR: u32 = 6;
-const BACK_OFF_MIN_DURATION: time::Duration = time::Duration::from_millis(120); // 120ms
-const BACK_OFF_MAX_DURATION: time::Duration = time::Duration::from_secs(300); // 5mins
+const BACK_OFF_MIN_DURATION: time::Duration = time::Duration::from_millis(1); // 2ms
+const BACK_OFF_MAX_DURATION: time::Duration = time::Duration::from_millis(300); // 300ms
 
 // --- ThreadPool
 
@@ -345,11 +336,13 @@ pub struct ThreadPool {
     tasks: SharedTaskQueue,
     priority: PriorityOrder,
     op_read_time: time::Duration,
+    parked_threads: Mutex<Vec<ThreadId>>,
+    blocked_threads: Mutex<Vec<ThreadId>>,
     registry: SharedThreadRegistry,
     thread_stack_size: Option<usize>,
     global_kill_signal: sync::Arc<OnSignal>,
     activity_sender: flume::Sender<ThreadActivity>,
-    notifications: flume::Receiver<ThreadActivity>,
+    activity_receiver: flume::Receiver<ThreadActivity>,
 
     // atomics
     live_threads: Arc<AtomicUsize>,
@@ -381,16 +374,18 @@ impl ThreadPool {
             num_threads,
             op_read_time,
             thread_stack_size,
-            notifications: receiver,
+            activity_receiver: receiver,
             latch: thread_latch.clone(),
             activity_sender: sender.clone(),
+            parked_threads: Mutex::new(Vec::new()),
+            blocked_threads: Mutex::new(Vec::new()),
             thread_map: RwLock::new(HashMap::new()),
+            registry: ThreadPoolRegistryInner::new(),
             thread_handles: RwLock::new(HashMap::new()),
             live_threads: Arc::new(AtomicUsize::new(0)),
             idle_threads: Arc::new(AtomicUsize::new(0)),
             global_kill_signal: sync::Arc::new(OnSignal::new()),
             rng: Mutex::new(ChaCha8Rng::seed_from_u64(seed_for_rng)),
-            registry: ThreadPoolRegistryInner::new(sender, thread_latch.clone()),
         }
     }
 }
@@ -570,7 +565,7 @@ impl ThreadPool {
     >(
         &self,
     ) -> ThreadPoolTaskBuilder<Done, Pending, Action, Mapper, Resolver, Task> {
-        ThreadPoolTaskBuilder::new(self.tasks.clone())
+        ThreadPoolTaskBuilder::new(self.tasks.clone(), self.latch.clone())
     }
 }
 
@@ -583,7 +578,7 @@ impl ThreadPool {
         });
 
         'mainloop: while !self.global_kill_signal.probe() {
-            let thread_activity = match self.notifications.recv_timeout(self.op_read_time) {
+            let thread_activity = match self.activity_receiver.recv_timeout(self.op_read_time) {
                 Ok(activity) => activity,
                 Err(err) => match err {
                     flume::RecvTimeoutError::Timeout => continue 'mainloop,
@@ -603,16 +598,36 @@ impl ThreadPool {
                 ThreadActivity::Parked(thread_id) => {
                     tracing::info!("Thread executor with id: {:?} has been parked", thread_id);
                     self.idle_threads.fetch_add(1, atomic::Ordering::SeqCst);
+                    self.parked_threads.lock().unwrap().push(thread_id.clone());
                 }
                 ThreadActivity::Unparked(thread_id) => {
                     tracing::info!("Thread executor with id: {:?} has been unparked", thread_id);
                     self.idle_threads.fetch_sub(1, atomic::Ordering::SeqCst);
+                    if let Some(index) = self
+                        .parked_threads
+                        .lock()
+                        .unwrap()
+                        .iter()
+                        .position(|item| *item == thread_id)
+                    {
+                        self.parked_threads.lock().unwrap().remove(index);
+                    }
                 }
                 ThreadActivity::Blocked(thread_id) => {
                     tracing::debug!("Thread executor with id: {:?} is blocked", thread_id);
+                    self.blocked_threads.lock().unwrap().push(thread_id.clone());
                 }
                 ThreadActivity::Unblocked(thread_id) => {
                     tracing::debug!("Thread executor with id: {:?} is unblocked", thread_id);
+                    if let Some(index) = self
+                        .blocked_threads
+                        .lock()
+                        .unwrap()
+                        .iter()
+                        .position(|item| *item == thread_id)
+                    {
+                        self.blocked_threads.lock().unwrap().remove(index);
+                    }
                 }
                 ThreadActivity::Paniced(thread_id, ctx) => {
                     tracing::debug!(
@@ -662,6 +677,7 @@ pub struct ThreadPoolTaskBuilder<
     Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'static,
 > {
     tasks: SharedTaskQueue,
+    latch: Arc<LockSignal>,
     task: Option<Task>,
     resolver: Option<Resolver>,
     mappers: Option<Vec<Mapper>>,
@@ -669,53 +685,37 @@ pub struct ThreadPoolTaskBuilder<
     _marker: PhantomData<(Done, Pending, Action)>,
 }
 
-// impl<
-//         F,
-//         Done: Send + 'static,
-//         Pending: Send + 'static,
-//         Action: ExecutionAction<Executor = LocalExecutionEngine> + Send + 'static,
-//         Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
-//         Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'static,
-//     >
-//     ThreadPoolTaskBuilder<
-//         Done,
-//         Pending,
-//         Action,
-//         Mapper,
-//         FnReady<F, LocalExecution Action>,
-//         Task,
-//     >
-// where
-//     F: Fn(TaskStatus<Done, Pending, Action>, LocalExecutionEngine) + Send + 'static,
-// {
-//     pub fn on_next(self, action: F) -> Self {
-//         self.with_resolver(FnReady::new(action))
-//     }
-// }
+impl<
+        F,
+        Done: Send + 'static,
+        Pending: Send + 'static,
+        Action: ExecutionAction + Send + 'static,
+        Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
+        Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'static,
+    > ThreadPoolTaskBuilder<Done, Pending, Action, Mapper, FnReady<F, Action>, Task>
+where
+    F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
+{
+    pub fn on_next(self, action: F) -> Self {
+        self.with_resolver(FnReady::new(action))
+    }
+}
 
-// impl<
-//         F,
-//         Done: Send + 'static,
-//         Pending: Send + 'static,
-//         Action: ExecutionAction<Executor = LocalExecutionEngine> + Send + 'static,
-//         Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
-//         Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'static,
-//     >
-//     ThreadPoolTaskBuilder<
-//         Done,
-//         Pending,
-//         Action,
-//         Mapper,
-//         FnMutReady<F, LocalExecution Action>,
-//         Task,
-//     >
-// where
-//     F: FnMut(TaskStatus<Done, Pending, Action>, LocalExecutionEngine) + Send + 'static,
-// {
-//     pub fn on_next_mut(self, action: F) -> Self {
-//         self.with_resolver(FnMutReady::new(action))
-//     }
-// }
+impl<
+        F,
+        Done: Send + 'static,
+        Pending: Send + 'static,
+        Action: ExecutionAction + Send + 'static,
+        Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
+        Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'static,
+    > ThreadPoolTaskBuilder<Done, Pending, Action, Mapper, FnMutReady<F, Action>, Task>
+where
+    F: FnMut(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
+{
+    pub fn on_next_mut(self, action: F) -> Self {
+        self.with_resolver(FnMutReady::new(action))
+    }
+}
 
 impl<
         Done: Send + 'static,
@@ -726,9 +726,10 @@ impl<
         Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'static,
     > ThreadPoolTaskBuilder<Done, Pending, Action, Mapper, Resolver, Task>
 {
-    pub fn new(tasks: SharedTaskQueue) -> Self {
+    pub(crate) fn new(tasks: SharedTaskQueue, latch: Arc<LockSignal>) -> Self {
         Self {
             tasks,
+            latch,
             task: None,
             mappers: None,
             resolver: None,
@@ -768,41 +769,47 @@ impl<
     }
 
     pub fn schedule(self) -> AnyResult<(), ExecutorError> {
-        match self.task {
+        let task: BoxedSendExecutionIterator = match self.task {
             Some(task) => match (self.resolver, self.mappers) {
                 (Some(resolver), Some(mappers)) => {
-                    let task_iter = OnNext::new(task, resolver, mappers);
-                    match self.tasks.push(task_iter.into()) {
-                        Ok(_) => Ok(()),
-                        Err(err) => match err {
-                            PushError::Full(_) => Err(ExecutorError::QueueFull),
-                            PushError::Closed(_) => Err(ExecutorError::QueueClosed),
-                        },
+                    let mut task_iter = OnNext::new(task, resolver, mappers);
+                    if let Some(panic_handler) = self.panic_handler {
+                        task_iter = task_iter.with_panic_handler(panic_handler);
                     }
+                    Box::new(task_iter)
                 }
                 (Some(resolver), None) => {
-                    let task_iter = OnNext::new(task, resolver, Vec::<Mapper>::new());
-                    match self.tasks.push(task_iter.into()) {
-                        Ok(_) => Ok(()),
-                        Err(err) => match err {
-                            PushError::Full(_) => Err(ExecutorError::QueueFull),
-                            PushError::Closed(_) => Err(ExecutorError::QueueClosed),
-                        },
+                    let mut task_iter = OnNext::new(task, resolver, Vec::<Mapper>::new());
+                    if let Some(panic_handler) = self.panic_handler {
+                        task_iter = task_iter.with_panic_handler(panic_handler);
                     }
+                    Box::new(task_iter)
                 }
                 (None, None) => {
-                    let task_iter = DoNext::new(task);
-                    match self.tasks.push(task_iter.into()) {
-                        Ok(_) => Ok(()),
-                        Err(err) => match err {
-                            PushError::Full(_) => Err(ExecutorError::QueueFull),
-                            PushError::Closed(_) => Err(ExecutorError::QueueClosed),
-                        },
+                    let mut task_iter = DoNext::new(task);
+                    if let Some(panic_handler) = self.panic_handler {
+                        task_iter = task_iter.with_panic_handler(panic_handler);
                     }
+                    Box::new(task_iter)
                 }
-                (None, Some(_)) => Err(ExecutorError::FailedToCreate),
+                (None, Some(_)) => return Err(ExecutorError::FailedToCreate),
             },
-            None => Err(ExecutorError::TaskRequired),
+            None => return Err(ExecutorError::TaskRequired),
+        };
+
+        match self.tasks.push(task) {
+            Ok(_) => {
+                if self.tasks.len() == 1 {
+                    self.latch.signal_one();
+                } else if self.tasks.len() > 1 {
+                    self.latch.signal_all();
+                }
+                Ok(())
+            }
+            Err(err) => match err {
+                PushError::Full(_) => Err(ExecutorError::QueueFull),
+                PushError::Closed(_) => Err(ExecutorError::QueueClosed),
+            },
         }
     }
 }
