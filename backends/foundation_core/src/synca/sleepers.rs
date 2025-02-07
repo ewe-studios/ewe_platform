@@ -2,7 +2,13 @@
 // Wakeable primitive can be notified after some expired duration
 // registered with.
 
-use std::{cell, rc, time};
+use std::{sync::Arc, time};
+
+#[cfg(not(feature = "web_spin_lock"))]
+use std::sync::RwLock;
+
+#[cfg(feature = "web_spin_lock")]
+use wasm_sync::RwLock;
 
 use super::{Entry, EntryList};
 
@@ -17,7 +23,7 @@ pub struct DurationWaker<T> {
 }
 
 pub struct DurationStore<T> {
-    store: rc::Rc<cell::RefCell<EntryList<DurationWaker<T>>>>,
+    store: Arc<RwLock<EntryList<DurationWaker<T>>>>,
 }
 
 impl<T> Clone for DurationStore<T> {
@@ -33,42 +39,46 @@ impl<T> Clone for DurationStore<T> {
 impl<T> DurationStore<T> {
     pub fn new() -> Self {
         Self {
-            store: rc::Rc::new(cell::RefCell::new(EntryList::new())),
+            store: Arc::new(RwLock::new(EntryList::new())),
         }
     }
 }
 
 // --- core implementation methods
 
+#[allow(unused)]
 impl<T> DurationStore<T> {
     /// Inserts a new Wakeable.
     pub fn insert(&self, wakeable: DurationWaker<T>) -> Entry {
-        self.store.borrow_mut().insert(wakeable)
+        self.store.write().unwrap().insert(wakeable)
     }
 
     /// Update an existing Wakeable returning the old handle used.
     pub fn update(&self, handle: &Entry, wakeable: DurationWaker<T>) -> Option<DurationWaker<T>> {
-        self.store.borrow_mut().update(handle, wakeable)
+        self.store.write().unwrap().update(handle, wakeable)
     }
 
     /// Removes a previously inserted sleeping ticker.
     ///
     /// Returns `true` if the ticker was notified.
     pub fn remove(&self, handle: &Entry) -> Option<DurationWaker<T>> {
-        self.store.borrow_mut().take(handle)
+        self.store.write().unwrap().take(handle)
     }
 
     pub(crate) fn has_pending_tasks(&self) -> bool {
-        self.store.borrow().active_slots() > 0
+        self.store.read().unwrap().active_slots() > 0
     }
 
     pub(crate) fn count(&self) -> usize {
-        self.store.borrow().active_slots()
+        self.store.read().unwrap().active_slots()
     }
 
     /// Returns the list of
     pub fn get_matured(&self) -> Vec<DurationWaker<T>> {
-        self.store.borrow_mut().select_take(|item| item.is_ready())
+        self.store
+            .write()
+            .unwrap()
+            .select_take(|item| item.is_ready())
     }
 
     /// Returns the minimum duration of time of all entries in the
@@ -77,7 +87,8 @@ impl<T> DurationStore<T> {
     fn min_duration(&self) -> Option<time::Duration> {
         match self
             .store
-            .borrow()
+            .read()
+            .unwrap()
             .map_with(|item| item.remaining())
             .iter()
             .max()
@@ -93,7 +104,8 @@ impl<T> DurationStore<T> {
     fn max_duration(&self) -> Option<time::Duration> {
         match self
             .store
-            .borrow()
+            .read()
+            .unwrap()
             .map_with(|item| item.remaining())
             .iter()
             .max()
@@ -168,7 +180,7 @@ impl<T> DurationWaker<T> {
 
 pub struct Sleepers<T: Waiter> {
     /// the list of wakers pending to be processed.
-    sleepers: rc::Rc<cell::RefCell<EntryList<T>>>,
+    sleepers: Arc<RwLock<EntryList<T>>>,
 }
 
 pub trait Timing {
@@ -183,7 +195,8 @@ impl<T: Timeable + Waiter> Timing for Sleepers<T> {
     fn min_duration(&self) -> Option<time::Duration> {
         match self
             .sleepers
-            .borrow()
+            .read()
+            .unwrap()
             .map_with(|item| item.remaining_duration())
             .iter()
             .max()
@@ -199,7 +212,8 @@ impl<T: Timeable + Waiter> Timing for Sleepers<T> {
     fn max_duration(&self) -> Option<time::Duration> {
         match self
             .sleepers
-            .borrow()
+            .read()
+            .unwrap()
             .map_with(|item| item.remaining_duration())
             .iter()
             .max()
@@ -214,7 +228,8 @@ impl<T: Waker + Waiter> Waker for Sleepers<T> {
     fn wake(&self) {
         for sleeper in self
             .sleepers
-            .borrow_mut()
+            .write()
+            .unwrap()
             .select_take(|item| item.is_ready())
             .iter()
         {
@@ -234,39 +249,40 @@ impl<T: Waiter> Clone for Sleepers<T> {
 impl<T: Waiter> Sleepers<T> {
     pub fn new() -> Self {
         Self {
-            sleepers: rc::Rc::new(cell::RefCell::new(EntryList::new())),
+            sleepers: Arc::new(RwLock::new(EntryList::new())),
         }
     }
 
     /// Inserts a new Wakeable.
     pub fn insert(&self, wakeable: T) -> Entry {
-        self.sleepers.borrow_mut().insert(wakeable)
+        self.sleepers.write().unwrap().insert(wakeable)
     }
 
     /// Update an existing Wakeable returning the old handle used.
     pub fn update(&self, handle: &Entry, wakeable: T) -> Option<T> {
-        self.sleepers.borrow_mut().update(handle, wakeable)
+        self.sleepers.write().unwrap().update(handle, wakeable)
     }
 
     /// Removes a previously inserted sleeping ticker.
     ///
     /// Returns `true` if the ticker was notified.
     pub fn remove(&self, handle: &Entry) -> Option<T> {
-        self.sleepers.borrow_mut().take(handle)
+        self.sleepers.write().unwrap().take(handle)
     }
 
     pub(crate) fn has_pending_tasks(&self) -> bool {
-        self.sleepers.borrow().active_slots() > 0
+        self.sleepers.read().unwrap().active_slots() > 0
     }
 
     pub(crate) fn count(&self) -> usize {
-        self.sleepers.borrow().active_slots()
+        self.sleepers.read().unwrap().active_slots()
     }
 
     /// Returns the list of
     pub fn get_matured(&self) -> Vec<T> {
         self.sleepers
-            .borrow_mut()
+            .write()
+            .unwrap()
             .select_take(|item| item.is_ready())
     }
 }

@@ -3,6 +3,12 @@
 /// The only way to avoid it is to call std::mem::forget on the
 pub struct AbortIfPanic;
 
+impl Default for AbortIfPanic {
+    fn default() -> Self {
+        Self
+    }
+}
+
 impl Drop for AbortIfPanic {
     fn drop(&mut self) {
         tracing::debug!("detected unexpected panic; aborting");

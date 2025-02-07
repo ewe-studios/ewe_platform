@@ -1,6 +1,12 @@
-use std::time;
+use std::{any::Any, time};
 
 use super::ExecutionAction;
+
+/// The type for a panic handling closure. Note that this same closure
+/// may be invoked multiple times in parallel.
+pub type PanicHandler = dyn Fn(Box<dyn Any + Send>) + Send + Sync;
+
+pub type BoxedPanicHandler = Box<PanicHandler>;
 
 /// completed and deliverd from the iterator.
 #[derive(Clone)]

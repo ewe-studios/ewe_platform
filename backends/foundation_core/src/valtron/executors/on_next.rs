@@ -2,14 +2,20 @@
 // via a ConcurrentQueue that allows different threads in the pool to pull task off the thread at their
 // own respective pace.
 
-use std::marker::PhantomData;
+use std::{any::Any, marker::PhantomData};
 
 use super::{
-    BoxedExecutionEngine, BoxedExecutionIterator, BoxedSendExecutionIterator, ExecutionAction,
-    ExecutionIterator, FnMutReady, FnReady, State, TaskIterator, TaskReadyResolver, TaskStatus,
-    TaskStatusMapper,
+    BoxedExecutionEngine, BoxedExecutionIterator, BoxedPanicHandler, BoxedSendExecutionIterator,
+    ExecutionAction, ExecutionIterator, FnMutReady, FnReady, State, TaskIterator,
+    TaskReadyResolver, TaskStatus, TaskStatusMapper,
 };
-use crate::synca::Entry;
+use crate::synca::{AbortIfPanic, Entry};
+
+#[cfg(not(feature = "web_spin_lock"))]
+use std::sync::Mutex;
+
+#[cfg(feature = "web_spin_lock")]
+use wasm_sync::Mutex;
 
 pub struct OnNext<Action, Resolver, Mapper, Task, Done, Pending>
 where
@@ -18,9 +24,10 @@ where
     Resolver: TaskReadyResolver<Action, Done, Pending>,
     Task: TaskIterator,
 {
-    pub task: Task,
-    pub resolver: Resolver,
-    pub local_mappers: Vec<Mapper>,
+    task: Mutex<Task>,
+    resolver: Resolver,
+    local_mappers: Vec<Mapper>,
+    panic_handler: Option<BoxedPanicHandler>,
     _types: PhantomData<(Action, Pending, Done)>,
 }
 
@@ -35,10 +42,19 @@ where
     pub fn new(iter: Task, resolver: Resolver, mappers: Vec<Mapper>) -> Self {
         Self {
             resolver,
-            task: iter,
+            panic_handler: None,
+            task: Mutex::new(iter),
             local_mappers: mappers,
             _types: PhantomData::default(),
         }
+    }
+
+    pub fn with_panic_handler<T>(mut self, handler: T) -> Self
+    where
+        T: Fn(Box<dyn Any + Send>) + Send + Sync + 'static,
+    {
+        self.panic_handler = Some(Box::new(handler));
+        self
     }
 
     pub fn add_mapper(mut self, mapper: Mapper) -> Self {
@@ -138,7 +154,22 @@ where
     Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action>,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
-        Some(match self.task.next() {
+        let task_response = match std::panic::catch_unwind(|| self.task.lock().unwrap().next()) {
+            Ok(inner) => inner,
+            Err(panic_error) => {
+                // Guard ensures we can handle panic safely, if guard
+                // gets dropped then `PanicHandler` paniced as well, so
+                // we must abort immediately.
+                let abort_guard = AbortIfPanic::default();
+                if let Some(panic_handler) = &self.panic_handler {
+                    (panic_handler)(panic_error);
+                    std::mem::drop(abort_guard);
+                }
+                return Some(State::Paniced);
+            }
+        };
+
+        Some(match task_response {
             Some(inner) => {
                 let mut previous_response = Some(inner);
                 for mapper in &mut self.local_mappers {

@@ -4,12 +4,17 @@ use std::{
     env,
     marker::PhantomData,
     panic,
-    sync::{self, Arc},
-    thread,
+    sync::{
+        self,
+        atomic::{self, AtomicUsize},
+        Arc,
+    },
+    thread::{self, JoinHandle},
     time::{self, Instant},
 };
 
 use concurrent_queue::{ConcurrentQueue, PushError};
+use derive_more::derive::From;
 use flume;
 use rand::{RngCore, SeedableRng};
 use rand_chacha::ChaCha8Rng;
@@ -17,24 +22,21 @@ use std::str::FromStr;
 
 use crate::{
     retries::ExponentialBackoffDecider,
-    synca::{
-        ActivitySignal, DurationStore, Entry, EntryList, IdleMan, LockSignal, OnSignal, RunOnDrop,
-        SleepyMan,
-    },
+    synca::{DurationStore, Entry, EntryList, IdleMan, LockSignal, OnSignal, RunOnDrop, SleepyMan},
     valtron::{AnyResult, BoxedError, LocalThreadExecutor},
 };
 
 use super::{
-    BoxedSendExecutionIterator, DoNext, ExecutionAction, ExecutionIterator, ExecutorError, OnNext,
-    PriorityOrder, ProcessController, TaskIterator, TaskReadyResolver, TaskStatusMapper,
+    BoxedPanicHandler, BoxedSendExecutionIterator, DoNext, ExecutionAction, ExecutionIterator,
+    ExecutorError, OnNext, PriorityOrder, ProcessController, TaskIterator, TaskReadyResolver,
+    TaskStatusMapper,
 };
 
-#[allow(unused)]
 #[cfg(not(feature = "web_spin_lock"))]
-use std::sync::{Condvar, Mutex, RwLock};
+use std::sync::{Mutex, RwLock};
 
 #[cfg(feature = "web_spin_lock")]
-use wasm_sync::{CondVar, Mutex, RwLock};
+use wasm_sync::{Mutex, RwLock};
 
 /// Number of bits used for the thread counters.
 #[cfg(target_pointer_width = "64")]
@@ -65,18 +67,32 @@ pub(crate) fn get_num_threads() -> usize {
 }
 
 pub struct ThreadYielder {
+    thread_id: ThreadId,
     latch: Arc<LockSignal>,
+    sender: flume::Sender<ThreadActivity>,
 }
 
 impl ThreadYielder {
-    pub fn new(latch: Arc<LockSignal>) -> Self {
-        Self { latch }
+    pub fn new(
+        thread_id: ThreadId,
+        latch: Arc<LockSignal>,
+        sender: flume::Sender<ThreadActivity>,
+    ) -> Self {
+        Self {
+            thread_id,
+            latch,
+            sender,
+        }
     }
 }
 
 impl Clone for ThreadYielder {
     fn clone(&self) -> Self {
-        Self::new(self.latch.clone())
+        Self::new(
+            self.thread_id.clone(),
+            self.latch.clone(),
+            self.sender.clone(),
+        )
     }
 }
 
@@ -88,7 +104,13 @@ impl ProcessController for ThreadYielder {
             tracing::debug!("Thread is alerady locked");
         }
 
+        self.sender
+            .send(ThreadActivity::Parked(self.thread_id.clone()))
+            .expect("should sent event");
         self.latch.wait();
+        self.sender
+            .send(ThreadActivity::Unparked(self.thread_id.clone()))
+            .expect("should sent event");
     }
 
     fn yield_for(&self, dur: std::time::Duration) {
@@ -101,6 +123,10 @@ impl ProcessController for ThreadYielder {
 
         let mut remaining_timeout = dur.clone();
         loop {
+            self.sender
+                .send(ThreadActivity::Parked(self.thread_id.clone()))
+                .expect("should sent event");
+
             std::thread::park_timeout(remaining_timeout);
 
             // check the state and see if we've crossed that threshold.
@@ -110,10 +136,14 @@ impl ProcessController for ThreadYielder {
             }
             remaining_timeout = remaining_timeout - elapsed;
         }
+
+        self.sender
+            .send(ThreadActivity::Unparked(self.thread_id.clone()))
+            .expect("should sent event");
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct ThreadId(Entry);
 
 impl ThreadId {
@@ -135,11 +165,32 @@ impl ThreadId {
 }
 
 pub enum ThreadActivity {
+    /// Indicates when a Thread with an executor has started
     Started(ThreadId),
+
+    /// Indicates when a Thread with an executor has stopped
     Stopped(ThreadId),
-    Idle(ThreadId),
-    Sleepy(ThreadId),
-    Sleeping(ThreadId),
+
+    /// Indicates when a Thread with an executor has
+    /// blocked the thread with a CondVar waiting for
+    /// signal to become awake.
+    Blocked(ThreadId),
+
+    /// Indicates when a Thread with an executor has
+    /// bcome unblocked and now is awake to process
+    /// pending tasks.
+    Unblocked(ThreadId),
+
+    /// Parked indicates when a thread has parked
+    /// it's self for some duration.
+    Parked(ThreadId),
+
+    /// Unparked indicates when a thread has awoken
+    /// from it's parked state.
+    Unparked(ThreadId),
+
+    /// Indicates when a thread executor panics
+    /// killing the thread.
     Paniced(ThreadId, Box<dyn Any + Send>),
 }
 
@@ -176,7 +227,12 @@ impl SharedThreadRegistry {
         }
     }
 
-    pub fn register_thread(&self, thread: ThreadRef) -> ThreadId {
+    pub fn register_thread(
+        &self,
+        thread: ThreadRef,
+        latch: Arc<LockSignal>,
+        sender: flume::Sender<ThreadActivity>,
+    ) -> ThreadId {
         let mut registry = self.0.write().unwrap();
 
         // insert thread and get thread key.
@@ -186,8 +242,11 @@ impl SharedThreadRegistry {
         // entry and in the same lock.
         match registry.threads.get_mut(&entry) {
             Some(mutable_thread_ref) => {
-                mutable_thread_ref.registry_id = Some(ThreadId(entry.clone()));
-                ThreadId::new(entry)
+                let thread_id = ThreadId(entry.clone());
+                mutable_thread_ref.registry_id = Some(thread_id.clone());
+                mutable_thread_ref.process =
+                    Some(ThreadYielder::new(thread_id.clone(), latch, sender));
+                thread_id
             }
             None => unreachable!("Thread must be registered at the entry key"),
         }
@@ -199,7 +258,7 @@ pub type SharedActivityQueue = sync::Arc<ConcurrentQueue<ThreadActivity>>;
 pub type SharedThreadYielder = sync::Arc<ThreadYielder>;
 
 #[derive(Clone)]
-pub(crate) struct ThreadRef {
+pub struct ThreadRef {
     /// seed for the giving thread ref
     pub seed: u64,
 
@@ -213,10 +272,6 @@ pub(crate) struct ThreadRef {
     /// the register this thread is related to.
     pub register: SharedThreadRegistry,
 
-    /// activity helps indicate the current
-    /// state of the giving thread.
-    pub activity: sync::Arc<ActivitySignal>,
-
     /// signal used for communicating death to the thread.
     pub kill_signal: sync::Arc<OnSignal>,
 
@@ -225,14 +280,13 @@ pub(crate) struct ThreadRef {
     pub global_kill_signal: sync::Arc<OnSignal>,
 
     /// process manager for controlling process yielding.
-    pub process: ThreadYielder,
+    pub process: Option<ThreadYielder>,
 }
 
 impl ThreadRef {
     pub fn new(
         seed: u64,
         queue: SharedTaskQueue,
-        process: ThreadYielder,
         registry_id: Option<ThreadId>,
         register: SharedThreadRegistry,
         global_kill_signal: sync::Arc<OnSignal>,
@@ -240,21 +294,20 @@ impl ThreadRef {
         Self {
             seed,
             tasks: queue,
-            process,
             register,
             registry_id,
             global_kill_signal,
+            process: None,
             kill_signal: sync::Arc::new(OnSignal::new()),
-            activity: sync::Arc::new(ActivitySignal::new()),
         }
     }
 }
 
-pub(crate) struct ThreadPoolRegistryInner {
+pub struct ThreadPoolRegistryInner {
     threads: EntryList<ThreadRef>,
-    sleepers: DurationStore<Entry>,
+    sleepers: DurationStore<ThreadId>,
+    idlers: DurationStore<ThreadId>,
     latch: Arc<LockSignal>,
-    process: SharedThreadYielder,
     notifications: flume::Sender<ThreadActivity>,
 }
 
@@ -264,11 +317,11 @@ impl ThreadPoolRegistryInner {
         latch: Arc<LockSignal>,
     ) -> SharedThreadRegistry {
         SharedThreadRegistry::new(sync::Arc::new(RwLock::new(ThreadPoolRegistryInner {
-            notifications,
             latch: latch.clone(),
             threads: EntryList::new(),
             sleepers: DurationStore::new(),
-            process: Arc::new(ThreadYielder::new(latch)),
+            idlers: DurationStore::new(),
+            notifications: notifications.clone(),
         })))
     }
 }
@@ -286,17 +339,25 @@ const BACK_OFF_MAX_DURATION: time::Duration = time::Duration::from_secs(300); //
 // --- ThreadPool
 
 pub struct ThreadPool {
-    rng: ChaCha8Rng,
-    seed_for_rng: u64,
+    rng: Mutex<ChaCha8Rng>,
     num_threads: usize,
     latch: Arc<LockSignal>,
     tasks: SharedTaskQueue,
+    priority: PriorityOrder,
     op_read_time: time::Duration,
     registry: SharedThreadRegistry,
     thread_stack_size: Option<usize>,
-    thread_map: HashMap<ThreadId, ThreadRef>,
     global_kill_signal: sync::Arc<OnSignal>,
+    activity_sender: flume::Sender<ThreadActivity>,
     notifications: flume::Receiver<ThreadActivity>,
+
+    // atomics
+    live_threads: Arc<AtomicUsize>,
+    idle_threads: Arc<AtomicUsize>,
+
+    // thread mapings.
+    thread_map: RwLock<HashMap<ThreadId, ThreadRef>>,
+    thread_handles: RwLock<HashMap<ThreadId, JoinHandle<ThreadExecutionResult<()>>>>,
 }
 
 // -- constructor
@@ -305,6 +366,7 @@ impl ThreadPool {
     pub fn new(
         seed_for_rng: u64,
         num_threads: usize,
+        priority: PriorityOrder,
         op_read_time: time::Duration,
         thread_stack_size: Option<usize>,
     ) -> Self {
@@ -315,16 +377,44 @@ impl ThreadPool {
         let (sender, receiver) = flume::unbounded::<ThreadActivity>();
         Self {
             tasks,
+            priority,
             num_threads,
-            seed_for_rng,
             op_read_time,
             thread_stack_size,
             notifications: receiver,
-            thread_map: HashMap::new(),
             latch: thread_latch.clone(),
-            rng: ChaCha8Rng::seed_from_u64(seed_for_rng),
+            activity_sender: sender.clone(),
+            thread_map: RwLock::new(HashMap::new()),
+            thread_handles: RwLock::new(HashMap::new()),
+            live_threads: Arc::new(AtomicUsize::new(0)),
+            idle_threads: Arc::new(AtomicUsize::new(0)),
             global_kill_signal: sync::Arc::new(OnSignal::new()),
+            rng: Mutex::new(ChaCha8Rng::seed_from_u64(seed_for_rng)),
             registry: ThreadPoolRegistryInner::new(sender, thread_latch.clone()),
+        }
+    }
+}
+
+// -- ThreadExecutionError
+
+pub type ThreadExecutionResult<T> = AnyResult<T, ThreadExecutionError>;
+
+#[derive(From, Debug)]
+pub enum ThreadExecutionError {
+    #[from(ignore)]
+    FailedStart(BoxedError),
+
+    #[from(ignore)]
+    Paniced(Box<dyn Any + Send>),
+}
+
+impl core::error::Error for ThreadExecutionError {}
+
+impl core::fmt::Display for ThreadExecutionError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Paniced(_) => write!(f, "ThreadExecutionError(_)"),
+            _ => write!(f, "{:?}", self),
         }
     }
 }
@@ -332,40 +422,81 @@ impl ThreadPool {
 // -- surface entry methods
 
 impl ThreadPool {
+    /// will kill the thread pool and await all threads
+    /// handle to compeletely finish.
+    pub fn kill(&mut self) {
+        self.global_kill_signal.turn_on();
+        self.await_threads();
+    }
+
+    /// pulls all relevant threads `JoinHandle`
+    /// joining them all till they all have finished and exited.
+    pub(crate) fn await_threads(&mut self) {
+        let thread_keys: Vec<ThreadId> = self
+            .thread_handles
+            .read()
+            .unwrap()
+            .iter()
+            .map(|(key, _)| key.clone())
+            .collect();
+
+        let mut handles = self.thread_handles.write().unwrap();
+        for thread_id in thread_keys {
+            match handles.remove(&thread_id) {
+                None => continue,
+                Some(thread_handle) => {
+                    thread_handle
+                        .join()
+                        .expect("should return result")
+                        .expect("finished");
+                    continue;
+                }
+            };
+        }
+    }
+
     /// `create_thread_executor` creates a new thread into the thread pool spawning
     /// a LocalThreadExecutor into a owned thread that is managed by the executor.
-    pub(crate) fn create_thread_executor(
-        &mut self,
-        priority: PriorityOrder,
-    ) -> AnyResult<(), BoxedError> {
+    pub(crate) fn create_thread_executor(&self) -> ThreadExecutionResult<ThreadRef> {
         let thread_name = format!("valtron_thread_{}", self.registry.executor_count() + 1);
         let mut b = thread::Builder::new().name(thread_name.clone());
         if let Some(thread_stack_size) = self.thread_stack_size.clone() {
             b = b.stack_size(thread_stack_size);
         }
 
-        let thread_entry = self.registry.register_thread(ThreadRef {
-            registry_id: None,
-            tasks: self.tasks.clone(),
-            seed: self.rng.next_u64(),
-            register: self.registry.clone(),
-            kill_signal: sync::Arc::new(OnSignal::new()),
-            activity: sync::Arc::new(ActivitySignal::new()),
-            process: ThreadYielder::new(self.latch.clone()),
-            global_kill_signal: self.global_kill_signal.clone(),
-        });
+        let thread_seed = self.rng.lock().unwrap().next_u64();
+        let thread_id = self.registry.register_thread(
+            ThreadRef {
+                process: None,
+                registry_id: None,
+                seed: thread_seed,
+                tasks: self.tasks.clone(),
+                register: self.registry.clone(),
+                kill_signal: sync::Arc::new(OnSignal::new()),
+                global_kill_signal: self.global_kill_signal.clone(),
+            },
+            self.latch.clone(),
+            self.activity_sender.clone(),
+        );
 
-        let thread_ref = self.registry.get_thread(thread_entry.clone());
+        let thread_ref = self.registry.get_thread(thread_id.clone());
 
+        let priority = self.priority.clone();
+        let seed_clone = thread_ref.seed.clone();
+        let task_clone = thread_ref.tasks.clone();
+        let process_clone = thread_ref.process.clone().unwrap();
+
+        let sender_id = thread_id.clone();
+        let sender = self.activity_sender.clone();
         match b.spawn(move || {
             tracing::info!("Starting LocalExecutionEngine for {}", &thread_name);
 
-            panic::catch_unwind(|| {
+            match panic::catch_unwind(|| {
                 // create LocalExecutionEngine here and
                 // let it handle everything going forward.
                 let thread_executor = LocalThreadExecutor::from_seed(
-                    thread_ref.seed.clone(),
-                    thread_ref.tasks.clone(),
+                    seed_clone,
+                    task_clone,
                     IdleMan::new(
                         MAX_ROUNDS_IDLE_COUNT,
                         None,
@@ -380,18 +511,34 @@ impl ThreadPool {
                         ),
                     ),
                     priority,
-                    thread_ref.process.clone(),
+                    process_clone,
                 );
 
                 thread_executor.block_on();
-            })
-            .ok();
-            todo!()
+            }) {
+                Ok(_) => Ok(()),
+                Err(err) => {
+                    sender
+                        .send(ThreadActivity::Paniced(sender_id, err))
+                        .expect("should sent event");
+                    Ok(())
+                }
+            }
         }) {
             Ok(handler) => {
-                todo!()
+                self.thread_handles
+                    .write()
+                    .unwrap()
+                    .insert(thread_id.clone(), handler);
+
+                self.thread_map
+                    .write()
+                    .unwrap()
+                    .insert(thread_id.clone(), thread_ref.clone());
+
+                Ok(thread_ref.clone())
             }
-            Err(err) => Err(Box::new(err)),
+            Err(err) => Err(ThreadExecutionError::FailedStart(Box::new(err))),
         }
     }
 
@@ -427,6 +574,85 @@ impl ThreadPool {
     }
 }
 
+// -- core methods
+
+impl ThreadPool {
+    pub fn run_until(&self) {
+        let _ = RunOnDrop::new(|| {
+            tracing::debug!("ThreadPool::run has stopped running");
+        });
+
+        'mainloop: while !self.global_kill_signal.probe() {
+            let thread_activity = match self.notifications.recv_timeout(self.op_read_time) {
+                Ok(activity) => activity,
+                Err(err) => match err {
+                    flume::RecvTimeoutError::Timeout => continue 'mainloop,
+                    flume::RecvTimeoutError::Disconnected => break 'mainloop,
+                },
+            };
+
+            match thread_activity {
+                ThreadActivity::Started(thread_id) => {
+                    tracing::debug!("Thread executor with id: {:?} started", thread_id);
+                    self.live_threads.fetch_add(1, atomic::Ordering::SeqCst);
+                }
+                ThreadActivity::Stopped(thread_id) => {
+                    tracing::debug!("Thread executor with id: {:?} stopped", thread_id);
+                    self.live_threads.fetch_sub(1, atomic::Ordering::SeqCst);
+                }
+                ThreadActivity::Parked(thread_id) => {
+                    tracing::info!("Thread executor with id: {:?} has been parked", thread_id);
+                    self.idle_threads.fetch_add(1, atomic::Ordering::SeqCst);
+                }
+                ThreadActivity::Unparked(thread_id) => {
+                    tracing::info!("Thread executor with id: {:?} has been unparked", thread_id);
+                    self.idle_threads.fetch_sub(1, atomic::Ordering::SeqCst);
+                }
+                ThreadActivity::Blocked(thread_id) => {
+                    tracing::debug!("Thread executor with id: {:?} is blocked", thread_id);
+                }
+                ThreadActivity::Unblocked(thread_id) => {
+                    tracing::debug!("Thread executor with id: {:?} is unblocked", thread_id);
+                }
+                ThreadActivity::Paniced(thread_id, ctx) => {
+                    tracing::debug!(
+                        "Thread executor with id: {:?} panic'ed {:?}",
+                        thread_id,
+                        ctx
+                    );
+
+                    // remove thread's registered handler and ThreadRef.
+                    if let Some(thread_ref) = self.thread_map.write().unwrap().remove(&thread_id) {
+                        std::mem::drop(thread_ref);
+                    }
+
+                    if let Some(thread_handler) =
+                        self.thread_handles.write().unwrap().remove(&thread_id)
+                    {
+                        let thread_result = thread_handler.join();
+                        tracing::debug!("Panic'ed thread returned result: {:?}", &thread_result);
+                        std::mem::drop(thread_result);
+                    }
+
+                    let prev_thread_num = self.live_threads.fetch_sub(1, atomic::Ordering::SeqCst);
+
+                    // spawn new thread for
+                    if prev_thread_num - 1 < self.num_threads {
+                        self.create_thread_executor()
+                            .expect("should create new executor");
+
+                        tracing::debug!(
+                            "Thread {:?} died but generated new thread to replace it due to {:?}",
+                            thread_id,
+                            ctx
+                        );
+                    }
+                }
+            }
+        }
+    }
+}
+
 pub struct ThreadPoolTaskBuilder<
     Done,
     Pending,
@@ -439,6 +665,7 @@ pub struct ThreadPoolTaskBuilder<
     task: Option<Task>,
     resolver: Option<Resolver>,
     mappers: Option<Vec<Mapper>>,
+    panic_handler: Option<BoxedPanicHandler>,
     _marker: PhantomData<(Done, Pending, Action)>,
 }
 
@@ -505,6 +732,7 @@ impl<
             task: None,
             mappers: None,
             resolver: None,
+            panic_handler: None,
             _marker: PhantomData::default(),
         }
     }
@@ -523,6 +751,14 @@ impl<
 
     pub fn with_task(mut self, task: Task) -> Self {
         self.task = Some(task);
+        self
+    }
+
+    pub fn with_panic_handler<T>(mut self, handler: T) -> Self
+    where
+        T: Fn(Box<dyn Any + Send>) + Send + Sync + 'static,
+    {
+        self.panic_handler = Some(Box::new(handler));
         self
     }
 
@@ -567,54 +803,6 @@ impl<
                 (None, Some(_)) => Err(ExecutorError::FailedToCreate),
             },
             None => Err(ExecutorError::TaskRequired),
-        }
-    }
-}
-
-// -- core methods
-
-impl ThreadPool {
-    pub fn run_until(&self) {
-        let _ = RunOnDrop::new(|| {
-            tracing::debug!("ThreadPool::run has stopped running");
-        });
-
-        'mainloop: while !self.global_kill_signal.probe() {
-            let thread_activity = match self.notifications.recv_timeout(self.op_read_time) {
-                Ok(activity) => activity,
-                Err(err) => match err {
-                    flume::RecvTimeoutError::Timeout => continue 'mainloop,
-                    flume::RecvTimeoutError::Disconnected => break 'mainloop,
-                },
-            };
-
-            match thread_activity {
-                ThreadActivity::Started(thread_id) => {
-                    tracing::debug!("Thread executor with id: {:?} started", thread_id);
-                }
-                ThreadActivity::Stopped(thread_id) => {
-                    tracing::debug!("Thread executor with id: {:?} stopped", thread_id);
-                }
-                ThreadActivity::Idle(thread_id) => {
-                    tracing::debug!(
-                        "Thread executor with id: {:?} became idle with no task",
-                        thread_id
-                    );
-                }
-                ThreadActivity::Sleepy(thread_id) => {
-                    tracing::debug!("Thread executor with id: {:?} is feeling sleepy", thread_id);
-                }
-                ThreadActivity::Sleeping(thread_id) => {
-                    tracing::debug!("Thread executor with id: {:?} started sleeping", thread_id);
-                }
-                ThreadActivity::Paniced(thread_id, ctx) => {
-                    tracing::debug!(
-                        "Thread executor with id: {:?} panic'ed {:?}",
-                        thread_id,
-                        ctx
-                    );
-                }
-            }
         }
     }
 }

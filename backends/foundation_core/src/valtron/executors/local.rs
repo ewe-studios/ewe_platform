@@ -531,6 +531,19 @@ impl ExecutorState {
         None
     }
 
+    // fn execute_task(
+    //     &self,
+    //     key: Entry,
+    //     iter: BoxedExecutionIterator,
+    //     engine: BoxedExecutionEngine,
+    // ) -> Option<State> {
+    //     let iter_exec = Mutex::new(iter);
+    //     match std::panic::catch_unwind(|| iter_exec.lock().unwrap().next(key, engine)) {
+    //         Ok(_) => todo!(),
+    //         Err(_) => todo!(),
+    //     }
+    // }
+
     /// do_work attempts to call the current iterator to progress
     /// executing the next operation internally till it's ready for
     /// work to begin.
@@ -565,6 +578,25 @@ impl ExecutorState {
                         match state {
                             State::SpawnFailed => {
                                 unreachable!("Executor should never fail to spawn a task");
+                            }
+                            State::Paniced => {
+                                tracing::debug!(
+                                    "Task just paniced and communicated that with State::Paniced, will remove immediately"
+                                );
+
+                                // unpack the entry in the task list
+                                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+                                self.local_tasks.borrow_mut().take(&top_entry);
+
+                                // no need to push entry since it must have
+                                tracing::debug!("Task is removed from queue due to panic");
+
+                                // Task Iterator is really done
+                                if remaining_tasks == 0 {
+                                    ProgressIndicator::NoWork
+                                } else {
+                                    ProgressIndicator::CanProgress
+                                }
                             }
                             State::SpawnFinished => {
                                 let active_tasks = self.total_active_tasks();
