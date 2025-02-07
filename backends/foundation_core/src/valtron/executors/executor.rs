@@ -1,4 +1,4 @@
-use std::{cell, marker::PhantomData, rc, sync::Arc, time};
+use std::{any::Any, cell, marker::PhantomData, rc, time};
 
 use derive_more::derive::From;
 use rand_chacha::ChaCha8Rng;
@@ -8,13 +8,14 @@ use crate::{
     valtron::{AnyResult, GenericResult},
 };
 
+#[allow(unused)]
 #[cfg(not(feature = "web_spin_lock"))]
 use std::sync::Mutex;
 
 #[cfg(feature = "web_spin_lock")]
 use wasm_sync::Mutex;
 
-use super::{task::TaskStatus, DoNext, OnNext, SharedTaskQueue, TaskIterator};
+use super::{task::TaskStatus, BoxedPanicHandler, DoNext, OnNext, SharedTaskQueue, TaskIterator};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum State {
@@ -26,6 +27,9 @@ pub enum State {
     /// that allows the executor to be smarter about how it
     /// polls for progress.
     Pending(Option<time::Duration>),
+
+    /// The state indicating a underlying task paniced.
+    Paniced,
 
     /// The state is sent out when there was an attempt to spawn
     /// a task from another and that failed which is not a desired
@@ -217,6 +221,7 @@ pub struct ExecutionTaskIteratorBuilder<
     parent: Option<Entry>,
     resolver: Option<Resolver>,
     mappers: Option<Vec<Mapper>>,
+    panic_handler: Option<BoxedPanicHandler>,
     _marker: PhantomData<(Done, Pending, Action)>,
 }
 
@@ -236,6 +241,7 @@ impl<
             parent: None,
             mappers: None,
             resolver: None,
+            panic_handler: None,
             _marker: PhantomData::default(),
         }
     }
@@ -249,6 +255,14 @@ impl<
 
         mappers.push(mapper);
         self.mappers = Some(mappers);
+        self
+    }
+
+    pub fn with_panic_handler<T>(mut self, handler: T) -> Self
+    where
+        T: Fn(Box<dyn Any + Send>) + Send + Sync + 'static,
+    {
+        self.panic_handler = Some(Box::new(handler));
         self
     }
 

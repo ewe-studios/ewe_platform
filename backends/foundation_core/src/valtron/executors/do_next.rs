@@ -1,10 +1,17 @@
-use std::marker::PhantomData;
+use std::{any::Any, marker::PhantomData};
 
 use super::{
-    BoxedExecutionEngine, BoxedExecutionIterator, BoxedSendExecutionIterator, ExecutionAction,
-    ExecutionIterator, State, TaskIterator, TaskStatus,
+    BoxedExecutionEngine, BoxedExecutionIterator, BoxedPanicHandler, BoxedSendExecutionIterator,
+    ExecutionAction, ExecutionIterator, State, TaskIterator, TaskStatus,
 };
-use crate::synca::Entry;
+
+#[cfg(not(feature = "web_spin_lock"))]
+use std::sync::Mutex;
+
+#[cfg(feature = "web_spin_lock")]
+use wasm_sync::Mutex;
+
+use crate::synca::{AbortIfPanic, Entry};
 
 /// DoNext provides an implementer of `ExecutionIterator` which is focused on
 /// making progress for your `TaskIterator` which focuses on making progress in
@@ -18,7 +25,11 @@ where
     Action: ExecutionAction,
     Task: TaskIterator,
 {
-    pub task: Task,
+    // we wrap it in a Mutex to trade of some performance
+    // cost due to OS level calls Mutex uses to get a
+    // task that is `UnwindSafe`
+    task: Mutex<Task>,
+    panic_handler: Option<BoxedPanicHandler>,
     _marker: PhantomData<(Action, Done, Pending)>,
 }
 
@@ -29,9 +40,18 @@ where
 {
     pub fn new(iter: Task) -> Self {
         Self {
-            task: iter,
+            panic_handler: None,
+            task: Mutex::new(iter),
             _marker: PhantomData::default(),
         }
+    }
+
+    pub fn with_panic_handler<T>(mut self, handler: T) -> Self
+    where
+        T: Fn(Box<dyn Any + Send>) + Send + Sync + 'static,
+    {
+        self.panic_handler = Some(Box::new(handler));
+        self
     }
 }
 
@@ -63,7 +83,22 @@ where
     Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action>,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
-        Some(match self.task.next() {
+        let task_response = match std::panic::catch_unwind(|| self.task.lock().unwrap().next()) {
+            Ok(inner) => inner,
+            Err(panic_error) => {
+                // Guard ensures we can handle panic safely, if guard
+                // gets dropped then `PanicHandler` paniced as well, so
+                // we must abort immediately.
+                let abort_guard = AbortIfPanic::default();
+                if let Some(panic_handler) = &self.panic_handler {
+                    (panic_handler)(panic_error);
+                    std::mem::drop(abort_guard);
+                }
+                return Some(State::Paniced);
+            }
+        };
+
+        Some(match task_response {
             Some(inner) => match inner {
                 TaskStatus::Delayed(dur) => State::Pending(Some(dur)),
                 TaskStatus::Pending(_) => State::Pending(None),
