@@ -3,7 +3,6 @@ use std::{
     collections::HashMap,
     env,
     marker::PhantomData,
-    ops::Index,
     panic,
     sync::{
         self,
@@ -28,10 +27,9 @@ use crate::{
 };
 
 use super::{
-    BoxedExecutionEngine, BoxedExecutionIterator, BoxedPanicHandler, BoxedSendExecutionIterator,
-    DoNext, ExecutionAction, ExecutionIterator, ExecutorError, FnMutReady, FnReady, OnNext,
-    PriorityOrder, ProcessController, TaskIterator, TaskReadyResolver, TaskStatus,
-    TaskStatusMapper,
+    BoxedExecutionEngine, BoxedPanicHandler, BoxedSendExecutionIterator, DoNext, ExecutionAction,
+    ExecutionIterator, ExecutorError, FnMutReady, FnReady, OnNext, PriorityOrder,
+    ProcessController, TaskIterator, TaskReadyResolver, TaskStatus, TaskStatusMapper,
 };
 
 #[cfg(not(feature = "web_spin_lock"))]
@@ -194,6 +192,7 @@ pub enum ThreadActivity {
     /// Indicates when a thread executor panics
     /// killing the thread.
     Paniced(ThreadId, Box<dyn Any + Send>),
+    BroadcastedTask,
 }
 
 impl core::fmt::Debug for ThreadActivity {
@@ -317,16 +316,6 @@ impl ThreadPoolRegistryInner {
     }
 }
 
-// --- Constants
-
-const MAX_ROUNDS_IDLE_COUNT: u32 = 64;
-const MAX_ROUNDS_WHEN_SLEEPING_ENDS: u32 = 32;
-
-const BACK_OFF_JITER: f32 = 0.65;
-const BACK_OFF_THREAD_FACTOR: u32 = 6;
-const BACK_OFF_MIN_DURATION: time::Duration = time::Duration::from_millis(1); // 2ms
-const BACK_OFF_MAX_DURATION: time::Duration = time::Duration::from_millis(300); // 300ms
-
 // --- ThreadPool
 
 pub struct ThreadPool {
@@ -344,6 +333,14 @@ pub struct ThreadPool {
     activity_sender: flume::Sender<ThreadActivity>,
     activity_receiver: flume::Receiver<ThreadActivity>,
 
+    // thread config values
+    thread_max_idle_count: u32,
+    thread_max_sleep_before_end: u32,
+    thread_back_off_factor: u32,
+    thread_back_off_jitter: f32,
+    thread_back_min_duration: time::Duration,
+    thread_back_max_duration: time::Duration,
+
     // atomics
     live_threads: Arc<AtomicUsize>,
     idle_threads: Arc<AtomicUsize>,
@@ -353,27 +350,93 @@ pub struct ThreadPool {
     thread_handles: RwLock<HashMap<ThreadId, JoinHandle<ThreadExecutionResult<()>>>>,
 }
 
+// -- Default
+
+// --- Constants
+
+const MAX_ROUNDS_IDLE_COUNT: u32 = 64;
+const MAX_ROUNDS_WHEN_SLEEPING_ENDS: u32 = 32;
+
+/// DEFAULT_OP_READ_TIME defaults how long we wait for a message from
+/// the activity queue.
+const DEFAULT_OP_READ_TIME: time::Duration = time::Duration::from_millis(100); // 100ms
+
+const BACK_OFF_JITER: f32 = 0.75;
+const BACK_OFF_THREAD_FACTOR: u32 = 6;
+const BACK_OFF_MIN_DURATION: time::Duration = time::Duration::from_millis(1); // 2ms
+const BACK_OFF_MAX_DURATION: time::Duration = time::Duration::from_millis(1000); // 1sec
+
 // -- constructor
 
 impl ThreadPool {
+    /// standard generates a threadPool which uses the default values (see Constants section)
+    /// set out in this modules for all required configuration
+    /// which provide what we considered sensible defaults
+    pub fn standard<R: rand::Rng>(rng: &mut R) -> Self {
+        Self::with_seed(rng.next_u64())
+    }
+
+    pub fn with_seed(seed_from_rng: u64) -> Self {
+        let num_threads = get_num_threads();
+        Self::new(
+            seed_from_rng,
+            num_threads,
+            PriorityOrder::Top,
+            DEFAULT_OP_READ_TIME,
+            None,
+            MAX_ROUNDS_IDLE_COUNT,
+            MAX_ROUNDS_WHEN_SLEEPING_ENDS,
+            BACK_OFF_THREAD_FACTOR,
+            BACK_OFF_JITER,
+            BACK_OFF_MIN_DURATION,
+            BACK_OFF_MAX_DURATION,
+        )
+    }
+
+    /// [`new`] creates a new ThreadPool for you which you can use
+    /// for concurrent execution of `LocalExecutorEngine` executors
+    /// within the total number of threads you provided via `num_threads`
+    /// the threads are spawned and ready to take on work.
     pub fn new(
         seed_for_rng: u64,
         num_threads: usize,
         priority: PriorityOrder,
         op_read_time: time::Duration,
         thread_stack_size: Option<usize>,
+        thread_max_idle_count: u32,
+        thread_max_sleep_before_end: u32,
+        thread_back_off_factor: u32,
+        thread_back_off_jitter: f32,
+        thread_back_min_duration: time::Duration,
+        thread_back_max_duration: time::Duration,
     ) -> Self {
+        if num_threads < 2 {
+            panic!("Unable to create ThreadPool with 1 thread only, please specify >= 2");
+        }
+
+        if num_threads > THREADS_MAX {
+            panic!(
+                "Unable to create ThreadPool with thread numbers of {}, must no go past {}",
+                num_threads, THREADS_MAX
+            );
+        }
         let thread_latch = Arc::new(LockSignal::new());
         let tasks: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
             Arc::new(ConcurrentQueue::unbounded());
 
         let (sender, receiver) = flume::unbounded::<ThreadActivity>();
-        Self {
+        let thread_pool = Self {
             tasks,
             priority,
             num_threads,
             op_read_time,
             thread_stack_size,
+            thread_max_idle_count,
+            thread_max_sleep_before_end,
+            thread_back_off_factor,
+            thread_back_off_jitter,
+            thread_back_min_duration,
+            thread_back_max_duration,
             activity_receiver: receiver,
             latch: thread_latch.clone(),
             activity_sender: sender.clone(),
@@ -386,7 +449,16 @@ impl ThreadPool {
             idle_threads: Arc::new(AtomicUsize::new(0)),
             global_kill_signal: sync::Arc::new(OnSignal::new()),
             rng: Mutex::new(ChaCha8Rng::seed_from_u64(seed_for_rng)),
+        };
+
+        // spawn the number of threads requested.
+        for index in 1..num_threads {
+            let _ = thread_pool
+                .create_thread_executor()
+                .expect(&format!("should successfully create thread for {}", index));
         }
+
+        thread_pool
     }
 }
 
@@ -483,6 +555,14 @@ impl ThreadPool {
 
         let sender_id = thread_id.clone();
         let sender = self.activity_sender.clone();
+
+        let thread_max_idle_count = self.thread_max_idle_count.clone();
+        let thread_max_sleep_before_end = self.thread_max_sleep_before_end.clone();
+        let thread_back_off_factor = self.thread_back_off_factor.clone();
+        let thread_back_off_jitter = self.thread_back_off_jitter.clone();
+        let thread_back_min_duration = self.thread_back_min_duration.clone();
+        let thread_back_max_duration = self.thread_back_max_duration.clone();
+
         match b.spawn(move || {
             tracing::info!("Starting LocalExecutionEngine for {}", &thread_name);
 
@@ -493,20 +573,21 @@ impl ThreadPool {
                     seed_clone,
                     task_clone,
                     IdleMan::new(
-                        MAX_ROUNDS_IDLE_COUNT,
+                        thread_max_idle_count,
                         None,
                         SleepyMan::new(
-                            MAX_ROUNDS_WHEN_SLEEPING_ENDS,
+                            thread_max_sleep_before_end,
                             ExponentialBackoffDecider::new(
-                                BACK_OFF_THREAD_FACTOR,
-                                BACK_OFF_JITER,
-                                BACK_OFF_MIN_DURATION,
-                                Some(BACK_OFF_MAX_DURATION),
+                                thread_back_off_factor,
+                                thread_back_off_jitter,
+                                thread_back_min_duration,
+                                Some(thread_back_max_duration),
                             ),
                         ),
                     ),
                     priority,
                     process_clone,
+                    Some(sender.clone()),
                 );
 
                 thread_executor.block_on();
@@ -587,6 +668,16 @@ impl ThreadPool {
             };
 
             match thread_activity {
+                ThreadActivity::BroadcastedTask => {
+                    tracing::debug!("A thread broadcasted a new message to the global queue",);
+
+                    // wakeup any sleeping threads based on account.
+                    if self.tasks.len() == 1 {
+                        self.latch.signal_one();
+                    } else if self.tasks.len() > 1 {
+                        self.latch.signal_all();
+                    }
+                }
                 ThreadActivity::Started(thread_id) => {
                     tracing::debug!("Thread executor with id: {:?} started", thread_id);
                     self.live_threads.fetch_add(1, atomic::Ordering::SeqCst);

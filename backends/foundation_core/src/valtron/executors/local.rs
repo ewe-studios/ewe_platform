@@ -28,7 +28,7 @@ use wasm_sync::Mutex;
 use super::{
     BoxedExecutionEngine, BoxedExecutionIterator, BoxedSendExecutionIterator, ExecutionAction,
     ExecutionTaskIteratorBuilder, ExecutorError, ProcessController, SharedTaskQueue, TaskIterator,
-    TaskReadyResolver, TaskStatusMapper,
+    TaskReadyResolver, TaskStatusMapper, ThreadActivity,
 };
 
 /// PriorityOrder defines how wake up tasks should placed once woken up.
@@ -853,11 +853,15 @@ impl ExecutorState {
 
 pub struct ReferencedExecutorState {
     inner: rc::Rc<ExecutorState>,
+    activities: Option<flume::Sender<ThreadActivity>>,
 }
 
 impl From<rc::Rc<ExecutorState>> for ReferencedExecutorState {
     fn from(value: rc::Rc<ExecutorState>) -> Self {
-        ReferencedExecutorState { inner: value }
+        ReferencedExecutorState {
+            inner: value,
+            activities: None,
+        }
     }
 }
 
@@ -865,18 +869,30 @@ impl Clone for ReferencedExecutorState {
     fn clone(&self) -> Self {
         ReferencedExecutorState {
             inner: rc::Rc::clone(&self.inner),
+            activities: self.activities.clone(),
         }
     }
 }
 
 #[allow(unused)]
 impl ReferencedExecutorState {
+    pub fn new(
+        inner: rc::Rc<ExecutorState>,
+        activities: Option<flume::Sender<ThreadActivity>>,
+    ) -> Self {
+        Self { inner, activities }
+    }
+
     pub(crate) fn clone_queue(&self) -> SharedTaskQueue {
         self.inner.global_tasks.clone()
     }
 
     pub(crate) fn clone_state(&self) -> rc::Rc<ExecutorState> {
         self.inner.clone()
+    }
+
+    fn use_activities(&mut self, activities: flume::Sender<ThreadActivity>) {
+        self.activities = Some(activities)
     }
 
     fn get_ref(&self) -> &rc::Rc<ExecutorState> {
@@ -921,19 +937,29 @@ impl ReferencedExecutorState {
 
 pub struct LocalExecutionEngine {
     inner: rc::Rc<ExecutorState>,
+    activities: Option<flume::Sender<ThreadActivity>>,
 }
 
 impl Clone for LocalExecutionEngine {
     fn clone(&self) -> Self {
         Self {
             inner: self.inner.clone(),
+            activities: self.activities.clone(),
         }
     }
 }
 
 impl LocalExecutionEngine {
-    pub fn new(inner: rc::Rc<ExecutorState>) -> Self {
-        Self { inner }
+    pub fn new(
+        inner: rc::Rc<ExecutorState>,
+        activities: Option<flume::Sender<ThreadActivity>>,
+    ) -> Self {
+        Self { inner, activities }
+    }
+
+    #[allow(unused)]
+    fn use_activities(&mut self, activities: flume::Sender<ThreadActivity>) {
+        self.activities = Some(activities)
     }
 }
 
@@ -1013,6 +1039,11 @@ impl ExecutionEngine for LocalExecutionEngine {
     fn broadcast(&self, task: Box<dyn ExecutionIterator + Send>) -> AnyResult<(), ExecutorError> {
         self.inner.broadcast(task)?;
         tracing::debug!("broadcast: new task into Executor");
+        if let Some(sender) = &self.activities {
+            if let Err(err) = sender.send(ThreadActivity::BroadcastedTask) {
+                return Err(ExecutorError::FailedToSendThreadActivity(Box::new(err)));
+            }
+        }
         Ok(())
     }
 
@@ -1030,7 +1061,7 @@ impl ExecutionEngine for LocalExecutionEngine {
 impl ReferencedExecutorState {
     #[inline]
     pub fn local_engine(&self) -> LocalExecutionEngine {
-        LocalExecutionEngine::new(self.inner.clone())
+        LocalExecutionEngine::new(self.inner.clone(), self.activities.clone())
     }
 
     #[inline]
@@ -1076,10 +1107,14 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         idler: IdleMan,
         priority: PriorityOrder,
         yielder: T,
+        activities: Option<flume::Sender<ThreadActivity>>,
     ) -> Self {
         Self {
             yielder,
-            state: rc::Rc::new(ExecutorState::new(tasks, priority, rng, idler)).into(),
+            state: ReferencedExecutorState::new(
+                rc::Rc::new(ExecutorState::new(tasks, priority, rng, idler)),
+                activities,
+            ),
         }
     }
 
@@ -1091,6 +1126,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         idler: IdleMan,
         priority: PriorityOrder,
         yielder: T,
+        activities: Option<flume::Sender<ThreadActivity>>,
     ) -> Self {
         Self::new(
             tasks,
@@ -1098,6 +1134,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             idler,
             priority,
             yielder,
+            activities,
         )
     }
 
@@ -1109,8 +1146,9 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         idler: IdleMan,
         priority: PriorityOrder,
         yielder: T,
+        activities: Option<flume::Sender<ThreadActivity>>,
     ) -> Self {
-        Self::from_seed(rng.next_u64(), tasks, idler, priority, yielder)
+        Self::from_seed(rng.next_u64(), tasks, idler, priority, yielder, activities)
     }
 }
 
@@ -1354,6 +1392,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Bottom,
             NoYielder::default(),
+            None,
         );
 
         let count_clone = Arc::clone(&counts);
@@ -1398,6 +1437,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Bottom,
             NoYielder::default(),
+            None,
         );
 
         let count_clone = Arc::clone(&counts);
@@ -1439,6 +1479,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Bottom,
             NoYielder::default(),
+            None,
         );
 
         let count_clone = Arc::clone(&counts);
@@ -1498,6 +1539,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Top,
             NoYielder::default(),
+            None,
         );
 
         let count_clone = Arc::clone(&counts);
@@ -1627,6 +1669,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Bottom,
             NoYielder::default(),
+            None,
         );
 
         let count_clone = Arc::clone(&counts);
@@ -1893,6 +1936,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Bottom,
             NoYielder::default(),
+            None,
         );
 
         let gen_state = Arc::new(AtomicUsize::new(0));
@@ -1973,6 +2017,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Bottom,
             NoYielder::default(),
+            None,
         );
 
         let gen_state = Arc::new(AtomicUsize::new(0));

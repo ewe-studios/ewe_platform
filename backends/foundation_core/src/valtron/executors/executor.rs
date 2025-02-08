@@ -5,7 +5,7 @@ use rand_chacha::ChaCha8Rng;
 
 use crate::{
     synca::Entry,
-    valtron::{AnyResult, GenericResult},
+    valtron::{AnyResult, BoxedError, GenericResult},
 };
 
 #[allow(unused)]
@@ -166,7 +166,7 @@ where
     }
 }
 
-#[derive(Clone, Debug, From)]
+#[derive(Debug, From)]
 pub enum ExecutorError {
     /// Executor failed to lift a new task as priority.
     FailedToLift,
@@ -198,6 +198,9 @@ pub enum ExecutorError {
     /// A given executor has no provided task in the case of a TaskIterator
     /// based ExecutorIterator.
     TaskRequired,
+
+    #[from(ignore)]
+    FailedToSendThreadActivity(BoxedError),
 }
 
 impl std::error::Error for ExecutorError {}
