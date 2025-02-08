@@ -369,13 +369,16 @@ const BACK_OFF_MAX_DURATION: time::Duration = time::Duration::from_millis(1000);
 // -- constructor
 
 impl ThreadPool {
-    /// standard generates a threadPool which uses the default values (see Constants section)
-    /// set out in this modules for all required configuration
-    /// which provide what we considered sensible defaults
-    pub fn standard<R: rand::Rng>(rng: &mut R) -> Self {
+    /// with_rng allows you to provide a custom Random number generator
+    /// that can be used to generate as the initial seed the
+    /// ThreadPool uses for it's local execution threads.
+    pub fn with_rng<R: rand::Rng>(rng: &mut R) -> Self {
         Self::with_seed(rng.next_u64())
     }
 
+    /// with_seed generates a threadPool which uses the default values (see Constants section)
+    /// set out in this modules for all required configuration
+    /// which provide what we considered sensible defaults
     pub fn with_seed(seed_from_rng: u64) -> Self {
         let num_threads = get_num_threads();
         Self::new(
