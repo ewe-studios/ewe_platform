@@ -409,15 +409,26 @@ impl ThreadPool {
     /// with_rng allows you to provide a custom Random number generator
     /// that can be used to generate as the initial seed the
     /// ThreadPool uses for it's local execution threads.
+    ///
+    /// We use the default to max threads allowed per process via `get_num_threads()`.
     pub fn with_rng<R: rand::Rng>(rng: &mut R) -> Self {
-        Self::with_seed(rng.next_u64())
+        let num_threads = get_num_threads();
+        Self::with_seed_and_threads(rng.next_u64(), num_threads)
     }
 
-    /// with_seed generates a threadPool which uses the default values (see Constants section)
-    /// set out in this modules for all required configuration
-    /// which provide what we considered sensible defaults
+    /// [`ThreadPool::with_seed`] generates a `ThreadPool` using
+    /// the provided seed and the default MAX threads allowed
+    /// per Process using `get_num_threads()`.
     pub fn with_seed(seed_from_rng: u64) -> Self {
         let num_threads = get_num_threads();
+        Self::with_seed_and_threads(seed_from_rng, num_threads)
+    }
+
+    /// [`ThreadPool::with_seed_and_threads`] generates a
+    /// threadPool which uses the default values (see Constants section)
+    /// set out in this modules for all required configuration
+    /// which provide what we considered sensible defaults
+    pub fn with_seed_and_threads(seed_from_rng: u64, num_threads: usize) -> Self {
         Self::new(
             seed_from_rng,
             num_threads,
