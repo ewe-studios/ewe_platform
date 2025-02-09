@@ -70,7 +70,17 @@ pub(crate) enum SpawnType {
     Scheduled,
 }
 
-/// Underlying stats shared by all executors.
+/// Underlying state of an executor.
+/// It is the inner structure used by a `LocalExecutorEngine` to manage
+/// all relevant tasks it takes on.
+///
+/// It's important to note that if a task panic, so will the ExecutorState
+/// which can't be restored and all tasks owned will be lost, so its important
+/// you always handle panic in the actual task itself by using either the `DoNext`,
+/// `CollectNext` and `OnNext` and if you implement your own ExectionIterator to
+/// ensure to follow the pattern demonstrated in those implementations to correctly
+/// handle panic from tasks even at the trade of some runtime cost from Mutex which
+/// allow you use [`std::panic::catch_unwind`].
 pub struct ExecutorState {
     /// what priority should waking task be placed.
     pub(crate) priority: PriorityOrder,
