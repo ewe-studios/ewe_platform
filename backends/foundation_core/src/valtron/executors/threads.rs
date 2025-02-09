@@ -48,6 +48,93 @@ const THREADS_BITS: usize = 8;
 /// Max value for the thread counters.
 const THREADS_MAX: usize = (1 << THREADS_BITS) - 1;
 
+/// [get_allocatable_thread_count] ensures we allocate enough of threads as requested
+/// less 1 as the 1 thread will be used for waiting for kill signal and the remaining
+/// for task execution in situations where on 2 threads can be created apart from the current
+/// process.
+pub(crate) fn get_allocatable_thread_count() -> usize {
+    let max_threads = get_max_threads();
+    let desired_threads = get_num_threads();
+
+    if desired_threads > max_threads {
+        panic!(
+            "Desired thread count cant be greater than maximum allowed threads {}",
+            max_threads
+        );
+    }
+
+    if desired_threads == 0 {
+        panic!("Desired thread count cant be zero");
+    }
+
+    if max_threads < 2 {
+        panic!("Available thread cant be less than 2 we use 1 thread for the service kill signal, and 1 for tasks");
+    }
+
+    if desired_threads < 2 {
+        panic!("Requested thread cant be less than 2 we use 1 thread for the service kill signal, and 1 for tasks");
+    }
+
+    // return size of threads with us keeping 2 for our purposes.
+    if desired_threads == max_threads {
+        return max_threads - 1;
+    }
+
+    let rem_threads = max_threads - desired_threads;
+    tracing::debug!(
+        "Remaining threads {} from desired: {} and max: {}",
+        rem_threads,
+        desired_threads,
+        max_threads
+    );
+
+    return desired_threads;
+}
+
+#[cfg(test)]
+mod test_allocatable_threads {
+    use tracing_test::traced_test;
+
+    use super::*;
+
+    #[test]
+    #[traced_test]
+    fn get_allocatable_thread_count_as_far_as_1_remains() {
+        let max_threads = get_max_threads();
+        assert!(max_threads > 3);
+
+        env::remove_var("VALTRON_NUM_THREADS");
+        env::set_var("VALTRON_NUM_THREADS", format!("{}", max_threads - 2));
+
+        assert_eq!(get_allocatable_thread_count(), max_threads - 2);
+
+        env::set_var("VALTRON_NUM_THREADS", format!("{}", max_threads - 3));
+        assert_eq!(get_allocatable_thread_count(), max_threads - 3);
+
+        env::set_var("VALTRON_NUM_THREADS", format!("{}", max_threads - 1));
+        assert_eq!(get_allocatable_thread_count(), max_threads - 1);
+    }
+}
+
+/// [get_max_threads] returns the max threads allowed
+/// in the current system.
+pub(crate) fn get_max_threads() -> usize {
+    match std::thread::available_parallelism()
+        .ok()
+        .and_then(|s| Some(s.get()))
+    {
+        Some(system_value) => {
+            tracing::debug!("thread::available_parallelism() reported: {}", system_value);
+            system_value
+        }
+        None => 1,
+    }
+}
+
+/// [get_num_threads] will attempt to fetch the desired thread we want
+/// from the either the environment variable `VALTRON_NUM_THREADS`
+/// or gets the maximum allowed thread from the platform
+/// via [std::thread::available_parallelism];
 pub(crate) fn get_num_threads() -> usize {
     let thread_num = match env::var("VALTRON_NUM_THREADS")
         .ok()
@@ -57,18 +144,7 @@ pub(crate) fn get_num_threads() -> usize {
             tracing::debug!("Retreived thread_number from VALTRON_NUM_THREADS");
             x
         }
-        _ => {
-            match thread::available_parallelism()
-                .ok()
-                .and_then(|s| Some(s.get()))
-            {
-                Some(system_value) => {
-                    tracing::debug!("thread::available_parallelism() reported: {}", system_value);
-                    system_value
-                }
-                None => 1,
-            }
-        }
+        _ => get_max_threads(),
     };
 
     tracing::debug!("Reporting Thread available for use: {}", thread_num);

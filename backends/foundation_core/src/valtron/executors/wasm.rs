@@ -1,1 +1,48 @@
-#![cfg(target_arch = "wasm32")]
+#![cfg(any(target_arch = "wasm32", feature = "nothread_runtime"))]
+
+/// `spawn` provides a builder which specifically allows you to build out
+/// the underlying tasks to be scheduled into the global queue.
+///
+/// It expects you infer the type of `Task` and `Action` from the
+/// type implementing `TaskIterator`.
+pub fn spawn<Task, Action>() -> ThreadPoolTaskBuilder<
+    Task::Done,
+    Task::Pending,
+    Task::Spawner,
+    Box<dyn TaskStatusMapper<Task::Done, Task::Pending, Task::Spawner> + Send + 'static>,
+    Box<dyn TaskReadyResolver<Task::Spawner, Task::Done, Task::Pending> + Send + 'static>,
+    Task,
+>
+where
+    Task::Done: Send + 'static,
+    Task::Pending: Send + 'static,
+    Task: TaskIterator<Spawner = Action> + Send + 'static,
+    Action: ExecutionAction + Send + 'static,
+{
+    todo!()
+}
+
+/// `spawn2` provides a builder which specifically allows you to build out
+/// the underlying tasks to be scheduled into the global queue.
+///
+/// It expects you to provide types for both Mapper and Resolver.
+pub fn spawn2<Task, Action, Mapper, Resolver>(
+) -> ThreadPoolTaskBuilder<Task::Done, Task::Pending, Action, Mapper, Resolver, Task>
+where
+    Task::Done: Send + 'static,
+    Task::Pending: Send + 'static,
+    Task: TaskIterator<Spawner = Action> + Send + 'static,
+    Action: ExecutionAction + Send + 'static,
+    Mapper: TaskStatusMapper<Task::Done, Task::Pending, Action> + Send + 'static,
+    Resolver: TaskReadyResolver<Action, Task::Done, Task::Pending> + Send + 'static,
+{
+    todo!()
+}
+
+fn nothread_pool() -> &'static ThreadPool {
+    static GLOBAL_THREAD_POOL: OnceCell<ThreadPool> = OnceCell::new();
+
+    GLOBAL_THREAD_POOL.get_or_init(|| {
+        todo!();
+    });
+}
