@@ -5,12 +5,13 @@ use std::{
     sync::{
         self,
         atomic::{self, AtomicBool},
+        Arc,
     },
     time,
 };
 
 use crate::{
-    synca::{DurationWaker, Entry, EntryList, IdleMan, RunOnDrop, Sleepers, Waiter},
+    synca::{DurationWaker, Entry, EntryList, IdleMan, OnSignal, RunOnDrop, Sleepers, Waiter},
     valtron::{AnyResult, ExecutionEngine, ExecutionIterator, State},
 };
 use rand::SeedableRng;
@@ -1083,6 +1084,7 @@ impl ReferencedExecutorState {
 /// send them over to another thread but can potentially be
 /// shared through an Arc.
 pub struct LocalThreadExecutor<T: ProcessController + Clone> {
+    kill_signal: Option<Arc<OnSignal>>,
     state: ReferencedExecutorState,
     yielder: T,
 }
@@ -1094,6 +1096,7 @@ impl<T: ProcessController + Clone> Clone for LocalThreadExecutor<T> {
         LocalThreadExecutor {
             state: self.state.clone(),
             yielder: self.yielder.clone(),
+            kill_signal: self.kill_signal.clone(),
         }
     }
 }
@@ -1108,10 +1111,12 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         idler: IdleMan,
         priority: PriorityOrder,
         yielder: T,
+        kill_signal: Option<Arc<OnSignal>>,
         activities: Option<flume::Sender<ThreadActivity>>,
     ) -> Self {
         Self {
             yielder,
+            kill_signal,
             state: ReferencedExecutorState::new(
                 rc::Rc::new(ExecutorState::new(tasks, priority, rng, idler)),
                 activities,
@@ -1127,6 +1132,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         idler: IdleMan,
         priority: PriorityOrder,
         yielder: T,
+        kill_signal: Option<Arc<OnSignal>>,
         activities: Option<flume::Sender<ThreadActivity>>,
     ) -> Self {
         Self::new(
@@ -1135,6 +1141,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             idler,
             priority,
             yielder,
+            kill_signal,
             activities,
         )
     }
@@ -1147,9 +1154,18 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         idler: IdleMan,
         priority: PriorityOrder,
         yielder: T,
+        kill_signal: Option<Arc<OnSignal>>,
         activities: Option<flume::Sender<ThreadActivity>>,
     ) -> Self {
-        Self::from_seed(rng.next_u64(), tasks, idler, priority, yielder, activities)
+        Self::from_seed(
+            rng.next_u64(),
+            tasks,
+            idler,
+            priority,
+            yielder,
+            kill_signal,
+            activities,
+        )
     }
 }
 
@@ -1166,18 +1182,51 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     pub fn boxed_engine(&self) -> BoxedExecutionEngine {
         self.state.boxed_engine()
     }
+
+    #[inline]
+    pub(crate) fn number_of_sleepers(&self) -> usize {
+        self.state.number_of_sleepers()
+    }
+
+    #[inline]
+    pub(crate) fn number_of_local_tasks(&self) -> usize {
+        self.state.number_of_local_tasks()
+    }
+
+    #[inline]
+    pub(crate) fn number_of_inprocess(&self) -> usize {
+        self.state.number_of_inprocess()
+    }
 }
 
-// --- LocalExecutor run once
+// --- LocalExecutor rng and run methods
 
 #[allow(unused)]
 impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
+    /// [`get_rng`] returns the `LocalThreadExecutor` random number
+    /// generator that allows you generate predictable and repeatable
+    /// random numbers consistently where such a property is very useful
+    /// e.g When doing [DST](https://docs.tigerbeetle.com/about/vopr/).
     #[inline]
     pub fn get_rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
         self.state.get_rng()
     }
 
+    /// [`run_once`] provides a fine-grained control at what you can
+    /// think of as a single tick of progress by the executor.
+    /// It will ask the executor to make one singular move in work time
+    /// allowing the top task to make progress, this is super useful when
+    /// you an an environment where fine-grained control is super important
+    /// and you do not care about the `ProcessController` or wish to call
+    /// and handle that portion yourself unlike in [`block_on`].
+    ///
+    /// [`block_on`] and [`block_until_finished`] call [`run_once`] internally
+    /// as well.
+    #[inline]
     pub fn run_once(&self) -> ProgressIndicator {
+        let span = tracing::trace_span!("LocalThreadExecutor::run_once");
+        let _enter = span.enter();
+
         tracing::debug!("Creating local executor from state");
         let local_executor = self.state.local_engine();
 
@@ -1185,8 +1234,58 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         self.state.schedule_and_do_work(Box::new(local_executor))
     }
 
-    pub fn block_on(&self) {
+    /// [`block_until_finished`] defers from [`block_on`] in that it will
+    /// continue to execute the executor till the task is ideally finished
+    /// and no more work remains in this task.
+    ///
+    /// This exists for environments like WebAssembly where spawning multiple
+    /// threads do not exists but still need a way to make progress for tasks ]
+    /// added till they are completed.
+    ///
+    /// More so, this provides fine grained control to the user to decide at what
+    /// point in time they will call the executor to begin progressing on tasks
+    /// which allows them to add one or more tasks into the queue before triggering
+    /// processing via [`block_until_finished`].
+    #[inline]
+    pub fn block_until_finished(&self) {
+        let span = tracing::trace_span!("LocalThreadExecutor::block_until_finished");
+        let _enter = span.enter();
+
         loop {
+            for _ in 0..200 {
+                match self.run_once() {
+                    ProgressIndicator::NoWork => {
+                        break;
+                    }
+                    ProgressIndicator::SpinWait(duration) => {
+                        self.yielder.yield_for(duration);
+                        continue;
+                    }
+                    ProgressIndicator::CanProgress => continue,
+                }
+            }
+            self.yielder.yield_process();
+        }
+    }
+
+    /// block_on usually should in a separate thread where it will block
+    /// the thread until either a panic occurs or the kill signal is sent
+    /// to the thread.
+    #[inline]
+    pub fn block_on(&self) {
+        let span = tracing::trace_span!("LocalThreadExecutor::kill");
+        let _enter = span.enter();
+
+        /// require kill_signal to be provided.
+        let kill_signal = self.kill_signal
+            .clone()
+            .expect("Calling LocalThreadExecutor::block_on requires kill_signal to be provided for termination");
+
+        loop {
+            if kill_signal.probe() {
+                break;
+            }
+
             for _ in 0..200 {
                 match self.run_once() {
                     ProgressIndicator::CanProgress => continue,
@@ -1202,18 +1301,6 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             }
             self.yielder.yield_process();
         }
-    }
-
-    pub(crate) fn number_of_sleepers(&self) -> usize {
-        self.state.number_of_sleepers()
-    }
-
-    pub(crate) fn number_of_local_tasks(&self) -> usize {
-        self.state.number_of_local_tasks()
-    }
-
-    pub(crate) fn number_of_inprocess(&self) -> usize {
-        self.state.number_of_inprocess()
     }
 }
 
@@ -1312,6 +1399,7 @@ mod test_local_thread_executor {
     use std::{
         sync::atomic::{AtomicUsize, Ordering},
         thread,
+        time::Duration,
     };
 
     use crate::{
@@ -1374,6 +1462,55 @@ mod test_local_thread_executor {
 
     #[test]
     #[traced_test]
+    fn scenario_0_can_kill_local_executor_via_kill_signal() {
+        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+            Arc::new(ConcurrentQueue::bounded(10));
+
+        let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
+            Arc::new(Mutex::new(Vec::new()));
+
+        let seed = rand::thread_rng().next_u64();
+        let kill_signal = Arc::new(OnSignal::new());
+
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            global.clone(),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            NoYielder::default(),
+            Some(kill_signal.clone()),
+            None,
+        );
+
+        let count_clone = Arc::clone(&counts);
+        panic_if_failed!(send_typed_task(executor.boxed_engine())
+            .with_task(Counter("Counter1", 0, 3, 3))
+            .on_next(move |next, _| count_clone.lock().unwrap().push(next))
+            .broadcast());
+
+        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+
+        let thread_handle = thread::spawn(move || {
+            tracing::debug!("Starting sleep timer for 100ms to kill executor");
+            thread::sleep(Duration::from_millis(100));
+            tracing::debug!("Trigger kill signal");
+            kill_signal.turn_on();
+            tracing::debug!("Executor kill signal sent");
+        });
+
+        tracing::debug!("Blocking main thread with block_on()");
+        executor.block_on();
+        tracing::debug!("Thread released from block_on()");
+
+        thread_handle.join().expect("should end correctly");
+    }
+
+    #[test]
+    #[traced_test]
     fn scenario_one_task_a_runs_to_completion() {
         let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
             Arc::new(ConcurrentQueue::bounded(10));
@@ -1393,6 +1530,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Bottom,
             NoYielder::default(),
+            None,
             None,
         );
 
@@ -1439,6 +1577,7 @@ mod test_local_thread_executor {
             PriorityOrder::Bottom,
             NoYielder::default(),
             None,
+            None,
         );
 
         let count_clone = Arc::clone(&counts);
@@ -1480,6 +1619,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Bottom,
             NoYielder::default(),
+            None,
             None,
         );
 
@@ -1540,6 +1680,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Top,
             NoYielder::default(),
+            None,
             None,
         );
 
@@ -1670,6 +1811,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Bottom,
             NoYielder::default(),
+            None,
             None,
         );
 
@@ -1938,6 +2080,7 @@ mod test_local_thread_executor {
             PriorityOrder::Bottom,
             NoYielder::default(),
             None,
+            None,
         );
 
         let gen_state = Arc::new(AtomicUsize::new(0));
@@ -2018,6 +2161,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Bottom,
             NoYielder::default(),
+            None,
             None,
         );
 

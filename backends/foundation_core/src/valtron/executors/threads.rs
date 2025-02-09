@@ -309,9 +309,6 @@ pub struct ThreadRef {
     /// the register this thread is related to.
     pub register: SharedThreadRegistry,
 
-    /// signal used for communicating death to the thread.
-    pub kill_signal: sync::Arc<OnSignal>,
-
     /// global signal used for communicating death
     /// to all threads.
     pub global_kill_signal: sync::Arc<OnSignal>,
@@ -335,7 +332,6 @@ impl ThreadRef {
             registry_id,
             global_kill_signal,
             process: None,
-            kill_signal: sync::Arc::new(OnSignal::new()),
         }
     }
 }
@@ -556,6 +552,8 @@ impl ThreadPool {
     /// Usually I would see you calling this method in a secondary thread listening
     /// for the kill (KILL, SIGUP, ...etc) signal from a CLI process.
     pub fn kill(&self) {
+        let span = tracing::trace_span!("ThreadPool::kill");
+        let _enter = span.enter();
         self.global_kill_signal.turn_on();
         self.kill_latch.lock_and_wait();
     }
@@ -563,6 +561,9 @@ impl ThreadPool {
     /// pulls all relevant threads `JoinHandle`
     /// joining them all till they all have finished and exited.
     pub(crate) fn await_threads(&self) {
+        let span = tracing::trace_span!("ThreadPool::await_threads");
+        let _enter = span.enter();
+
         let thread_keys: Vec<ThreadId> = self
             .thread_handles
             .read()
@@ -589,6 +590,9 @@ impl ThreadPool {
     /// `create_thread_executor` creates a new thread into the thread pool spawning
     /// a LocalThreadExecutor into a owned thread that is managed by the executor.
     pub(crate) fn create_thread_executor(&self) -> ThreadExecutionResult<ThreadRef> {
+        let span = tracing::trace_span!("ThreadPool::create_thread_executor");
+        let _enter = span.enter();
+
         let thread_name = format!("valtron_thread_{}", self.registry.executor_count() + 1);
         let mut b = thread::Builder::new().name(thread_name.clone());
         if let Some(thread_stack_size) = self.thread_stack_size.clone() {
@@ -603,7 +607,6 @@ impl ThreadPool {
                 seed: thread_seed,
                 tasks: self.tasks.clone(),
                 register: self.registry.clone(),
-                kill_signal: sync::Arc::new(OnSignal::new()),
                 global_kill_signal: self.global_kill_signal.clone(),
             },
             self.latch.clone(),
@@ -616,6 +619,7 @@ impl ThreadPool {
         let seed_clone = thread_ref.seed.clone();
         let task_clone = thread_ref.tasks.clone();
         let process_clone = thread_ref.process.clone().unwrap();
+        let thread_kill_signal = thread_ref.global_kill_signal.clone();
 
         let sender_id = thread_id.clone();
         let sender = self.activity_sender.clone();
@@ -628,6 +632,9 @@ impl ThreadPool {
         let thread_back_max_duration = self.thread_back_max_duration.clone();
 
         match b.spawn(move || {
+            let span =
+                tracing::trace_span!("ThreadPool::create_thread_executor.local_executor.thread");
+            let _enter = span.enter();
             tracing::info!("Starting LocalExecutionEngine for {}", &thread_name);
 
             match panic::catch_unwind(|| {
@@ -651,6 +658,7 @@ impl ThreadPool {
                     ),
                     priority,
                     process_clone,
+                    Some(thread_kill_signal),
                     Some(sender.clone()),
                 );
 
@@ -689,6 +697,8 @@ impl ThreadPool {
         &self,
         task: T,
     ) -> AnyResult<(), ExecutorError> {
+        let span = tracing::trace_span!("ThreadPool::schedule");
+        let _enter = span.enter();
         match self.tasks.push(Box::new(task)) {
             Ok(_) => {
                 if self.tasks.len() == 1 {
@@ -704,19 +714,50 @@ impl ThreadPool {
             },
         }
     }
+}
 
-    /// `task` provides a builder which specifically allows you to build out
+// -- spawn methods
+
+impl ThreadPool {
+    /// `spawn2` provides a builder which specifically allows you to build out
     /// the underlying tasks to be scheduled into the global queue.
-    pub fn task<
-        Done: Send + 'static,
-        Pending: Send + 'static,
-        Action: ExecutionAction + Send + 'static,
-        Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
-        Resolver: TaskReadyResolver<Action, Done, Pending> + Send + 'static,
-        Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'static,
-    >(
+    ///
+    /// It expects you to provide types for both Mapper and Resolver.
+    pub fn spawn2<Task, Action, Mapper, Resolver>(
         &self,
-    ) -> ThreadPoolTaskBuilder<Done, Pending, Action, Mapper, Resolver, Task> {
+    ) -> ThreadPoolTaskBuilder<Task::Done, Task::Pending, Action, Mapper, Resolver, Task>
+    where
+        Task::Done: Send + 'static,
+        Task::Pending: Send + 'static,
+        Task: TaskIterator<Spawner = Action> + Send + 'static,
+        Action: ExecutionAction + Send + 'static,
+        Mapper: TaskStatusMapper<Task::Done, Task::Pending, Action> + Send + 'static,
+        Resolver: TaskReadyResolver<Action, Task::Done, Task::Pending> + Send + 'static,
+    {
+        ThreadPoolTaskBuilder::new(self.tasks.clone(), self.latch.clone())
+    }
+
+    /// `spawn` provides a builder which specifically allows you to build out
+    /// the underlying tasks to be scheduled into the global queue.
+    ///
+    /// It expects you infer the type of `Task` and `Action` from the
+    /// type implementing `TaskIterator`.
+    pub fn spawn<Task, Action>(
+        &self,
+    ) -> ThreadPoolTaskBuilder<
+        Task::Done,
+        Task::Pending,
+        Task::Spawner,
+        Box<dyn TaskStatusMapper<Task::Done, Task::Pending, Task::Spawner> + Send + 'static>,
+        Box<dyn TaskReadyResolver<Task::Spawner, Task::Done, Task::Pending> + Send + 'static>,
+        Task,
+    >
+    where
+        Task::Done: Send + 'static,
+        Task::Pending: Send + 'static,
+        Task: TaskIterator<Spawner = Action> + Send + 'static,
+        Action: ExecutionAction + Send + 'static,
+    {
         ThreadPoolTaskBuilder::new(self.tasks.clone(), self.latch.clone())
     }
 }
@@ -735,13 +776,15 @@ impl ThreadPool {
     /// till `run_until` signals the CondVar to wake up the blocked thread when `Self::kill`
     /// is ever called.
     pub fn run_until(&self) {
+        let span = tracing::trace_span!("ThreadPool::run_until");
+        let _enter = span.enter();
         self.block_until();
         self.await_threads();
         self.kill_latch.signal_all();
     }
 
     pub(crate) fn block_until(&self) {
-        let span = tracing::trace_span!("ThreadPool::run_until");
+        let span = tracing::trace_span!("ThreadPool::block_until");
         let _enter = span.enter();
 
         let _ = RunOnDrop::new(|| {
@@ -867,38 +910,6 @@ pub struct ThreadPoolTaskBuilder<
 }
 
 impl<
-        F,
-        Done: Send + 'static,
-        Pending: Send + 'static,
-        Action: ExecutionAction + Send + 'static,
-        Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
-        Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'static,
-    > ThreadPoolTaskBuilder<Done, Pending, Action, Mapper, FnReady<F, Action>, Task>
-where
-    F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
-{
-    pub fn on_next(self, action: F) -> Self {
-        self.with_resolver(FnReady::new(action))
-    }
-}
-
-impl<
-        F,
-        Done: Send + 'static,
-        Pending: Send + 'static,
-        Action: ExecutionAction + Send + 'static,
-        Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
-        Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'static,
-    > ThreadPoolTaskBuilder<Done, Pending, Action, Mapper, FnMutReady<F, Action>, Task>
-where
-    F: FnMut(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
-{
-    pub fn on_next_mut(self, action: F) -> Self {
-        self.with_resolver(FnMutReady::new(action))
-    }
-}
-
-impl<
         Done: Send + 'static,
         Pending: Send + 'static,
         Action: ExecutionAction + Send + 'static,
@@ -992,5 +1003,37 @@ impl<
                 PushError::Closed(_) => Err(ExecutorError::QueueClosed),
             },
         }
+    }
+}
+
+impl<
+        F,
+        Done: Send + 'static,
+        Pending: Send + 'static,
+        Action: ExecutionAction + Send + 'static,
+        Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
+        Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'static,
+    > ThreadPoolTaskBuilder<Done, Pending, Action, Mapper, FnReady<F, Action>, Task>
+where
+    F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
+{
+    pub fn on_next(self, action: F) -> Self {
+        self.with_resolver(FnReady::new(action))
+    }
+}
+
+impl<
+        F,
+        Done: Send + 'static,
+        Pending: Send + 'static,
+        Action: ExecutionAction + Send + 'static,
+        Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
+        Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'static,
+    > ThreadPoolTaskBuilder<Done, Pending, Action, Mapper, FnMutReady<F, Action>, Task>
+where
+    F: FnMut(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
+{
+    pub fn on_next_mut(self, action: F) -> Self {
+        self.with_resolver(FnMutReady::new(action))
     }
 }
