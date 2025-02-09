@@ -19,10 +19,11 @@ use rand_chacha::ChaCha8Rng;
 use concurrent_queue::{ConcurrentQueue, PushError};
 
 #[allow(unused)]
-#[cfg(not(feature = "web_spin_lock"))]
+#[cfg(not(target_arch = "wasm32"))]
 use std::sync::Mutex;
 
-#[cfg(feature = "web_spin_lock")]
+#[allow(unused)]
+#[cfg(target_arch = "wasm32")]
 use wasm_sync::Mutex;
 
 use super::{

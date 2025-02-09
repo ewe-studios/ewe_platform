@@ -11,10 +11,10 @@ use super::{
 };
 use crate::synca::{AbortIfPanic, Entry};
 
-#[cfg(not(feature = "web_spin_lock"))]
+#[cfg(not(target_arch = "wasm32"))]
 use std::sync::Mutex;
 
-#[cfg(feature = "web_spin_lock")]
+#[cfg(target_arch = "wasm32")]
 use wasm_sync::Mutex;
 
 pub struct OnNext<Action, Resolver, Mapper, Task, Done, Pending>

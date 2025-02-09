@@ -163,7 +163,7 @@ impl<D, P, S: ExecutionAction> Iterator for TaskAsIterator<D, P, S> {
 
 #[cfg(test)]
 mod test_task_iterator {
-    use tokio::time;
+    use std::time;
 
     use crate::valtron::NoAction;
 

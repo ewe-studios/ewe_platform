@@ -1,3 +1,5 @@
+#![cfg(feature = "tokio_runtime")]
+
 use std::{result, time};
 
 use async_trait::async_trait;
