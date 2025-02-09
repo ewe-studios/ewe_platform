@@ -1,9 +1,9 @@
 // Implements an Lock notification primitive usable in threads.
 
-#[cfg(not(feature = "web_spin_lock"))]
+#[cfg(not(feature = "wasm_runtime"))]
 use std::sync::{Condvar, Mutex};
 
-#[cfg(feature = "web_spin_lock")]
+#[cfg(feature = "wasm_runtime")]
 use wasm_sync::{CondVar, Mutex};
 
 use super::Waker;
@@ -76,6 +76,17 @@ impl LockSignal {
         is_locked
     }
 
+    /// Attempts to put the latch in a locked state thereby
+    /// allowing to block the current thread readying
+    /// you to call [`Self::wait`] after.
+    ///
+    /// But the latch might already be in a lock state
+    /// and if so, its a no-op and in such cases we return
+    /// false to communicate `LockSignal` is already locked
+    /// but to be clear this does not mean an error, it just
+    /// means somethign else locked this `LockSignal` and you
+    /// are free to call `LockSignal::wait()` as well to wait
+    /// for wakeup signal.
     pub fn try_lock(&self) -> bool {
         let mut current_state = self.lock.lock().unwrap();
         if *current_state == LockState::Locked {
@@ -86,6 +97,9 @@ impl LockSignal {
         return true;
     }
 
+    /// lock will just perform a lock operation on the
+    /// `LockSignal` and internally handle when the lock is
+    /// locked as a no-op operation.
     pub fn lock(&self) {
         let mut current_state = self.lock.lock().unwrap();
         if *current_state != LockState::Locked {
@@ -102,6 +116,18 @@ impl LockSignal {
         self.signal(NotifyDirective::All);
     }
 
+    /// [`lock_and_wait`] will lock the `LockSignal` and
+    /// block the current thread till it gets a notification
+    /// to wakeup.
+    pub fn lock_and_wait(&self) {
+        if self.try_lock() {
+            tracing::debug!("LockSignal was locked");
+        }
+        self.wait();
+    }
+
+    /// wait blocks the current thread till the signal
+    /// is received from the `CondVar`.
     pub fn wait(&self) {
         let mut current_state = self.lock.lock().unwrap();
 

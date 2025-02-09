@@ -8,13 +8,6 @@ use crate::{
     valtron::{AnyResult, BoxedError, GenericResult},
 };
 
-#[allow(unused)]
-#[cfg(not(feature = "web_spin_lock"))]
-use std::sync::Mutex;
-
-#[cfg(feature = "web_spin_lock")]
-use wasm_sync::Mutex;
-
 use super::{task::TaskStatus, BoxedPanicHandler, DoNext, OnNext, SharedTaskQueue, TaskIterator};
 
 #[derive(Clone, Debug, PartialEq, Eq)]

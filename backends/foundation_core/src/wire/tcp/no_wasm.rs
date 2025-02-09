@@ -1,13 +1,17 @@
+#![cfg(not(target_arch = "wasm32"))]
+
 use derive_more::derive::From;
 
-use crate::io::ioutils::{BufferedReader, PeekError, PeekableReadStream};
+use crate::io::ioutils::{PeekError, PeekableReadStream};
 use crate::retries::{
     ClonableReconnectionDecider, ExponentialBackoffDecider, RetryDecider, RetryState,
 };
 use crate::valtron::delayed_iterators::Delayed;
 use crate::valtron::delayed_iterators::{DelayedIterator, SleepIterator};
 
+#[cfg(feature = "native-tls")]
 use crate::native_tls::{Identity, TlsConnector, TlsStream};
+
 use crate::wire::simple_http::{self};
 use core::net;
 use std::net::SocketAddr;
@@ -18,6 +22,8 @@ use super::error;
 
 pub enum RawStream {
     AsPlain(TcpStream, super::DataStreamAddr),
+
+    #[cfg(feature = "native-tls")]
     AsTls(BufferedReader<TlsStream<TcpStream>>, super::DataStreamAddr),
 }
 
@@ -25,6 +31,7 @@ pub enum RawStream {
 
 #[allow(unused)]
 impl RawStream {
+    #[cfg(feature = "native-tls")]
     pub fn try_wrap_tls_with_connector<'a>(
         plain: TcpStream,
         connector: &'a TlsConnector,
@@ -43,6 +50,7 @@ impl RawStream {
         ))
     }
 
+    #[cfg(feature = "native-tls")]
     pub fn try_wrap_tls_with_identity(
         plain: TcpStream,
         identity: Identity,
@@ -56,6 +64,7 @@ impl RawStream {
         Self::try_wrap_tls_with_connector(plain, &connector, sni)
     }
 
+    #[cfg(feature = "native-tls")]
     pub fn try_wrap_tls(plain: TcpStream, sni: &str) -> error::TlsResult<Self> {
         let connector = TlsConnector::new().map_err(|_| error::TlsError::ConnectorCreation)?;
         Self::try_wrap_tls_with_connector(plain, &connector, sni)
@@ -85,6 +94,7 @@ impl RawStream {
     pub fn set_read_timeout(&self, duration: Option<time::Duration>) -> error::TlsResult<()> {
         let work = match self {
             RawStream::AsPlain(inner, _) => inner.set_read_timeout(duration),
+            #[cfg(feature = "native-tls")]
             RawStream::AsTls(inner, _) => {
                 inner.get_inner_ref().get_ref().set_read_timeout(duration)
             }
@@ -100,6 +110,7 @@ impl RawStream {
     pub fn clone_plain(&self) -> error::TlsResult<TcpStream> {
         let work = match self {
             RawStream::AsPlain(inner, _) => inner.try_clone(),
+            #[cfg(feature = "native-tls")]
             RawStream::AsTls(inner, _) => inner.get_inner_ref().get_ref().try_clone(),
         };
 
@@ -112,8 +123,9 @@ impl RawStream {
     #[inline]
     pub fn addrs(&self) -> super::DataStreamAddr {
         match self {
-            RawStream::AsTls(inner, addr) => addr.clone(),
             RawStream::AsPlain(inner, addr) => addr.clone(),
+            #[cfg(feature = "native-tls")]
+            RawStream::AsTls(inner, addr) => addr.clone(),
         }
     }
 
@@ -121,6 +133,7 @@ impl RawStream {
     pub fn peer_addr(&self) -> net::SocketAddr {
         match self {
             RawStream::AsPlain(inner, addr) => addr.peer_addr(),
+            #[cfg(feature = "native-tls")]
             RawStream::AsTls(inner, addr) => addr.peer_addr(),
         }
     }
@@ -129,6 +142,7 @@ impl RawStream {
     pub fn local_addr(&self) -> net::SocketAddr {
         match self {
             RawStream::AsPlain(inner, addr) => addr.local_addr(),
+            #[cfg(feature = "native-tls")]
             RawStream::AsTls(inner, addr) => addr.local_addr(),
         }
     }
@@ -142,6 +156,7 @@ impl core::fmt::Debug for RawStream {
                 .field(&"_")
                 .field(addr)
                 .finish(),
+            #[cfg(feature = "native-tls")]
             Self::AsTls(_, addr) => f
                 .debug_tuple("RawStream::TLS")
                 .field(&"_")
@@ -158,6 +173,7 @@ impl PeekableReadStream for RawStream {
                 Ok(count) => Ok(count),
                 Err(err) => Err(PeekError::IOError(err)),
             },
+            #[cfg(feature = "native-tls")]
             RawStream::AsTls(inner, _addr) => match inner.peek(buf) {
                 Ok(count) => Ok(count),
                 Err(err) => Err(err),
@@ -170,8 +186,9 @@ impl std::io::Read for RawStream {
     #[inline]
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         match self {
-            RawStream::AsTls(inner, _) => inner.read(buf),
             RawStream::AsPlain(inner, _) => inner.read(buf),
+            #[cfg(feature = "native-tls")]
+            RawStream::AsTls(inner, _) => inner.read(buf),
         }
     }
 }
@@ -180,16 +197,18 @@ impl std::io::Write for RawStream {
     #[inline]
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         match self {
-            RawStream::AsTls(inner, _) => inner.write(buf),
             RawStream::AsPlain(inner, _) => inner.write(buf),
+            #[cfg(feature = "native-tls")]
+            RawStream::AsTls(inner, _) => inner.write(buf),
         }
     }
 
     #[inline]
     fn flush(&mut self) -> std::io::Result<()> {
         match self {
-            RawStream::AsTls(inner, _) => inner.flush(),
             RawStream::AsPlain(inner, _) => inner.flush(),
+            #[cfg(feature = "native-tls")]
+            RawStream::AsTls(inner, _) => inner.flush(),
         }
     }
 }

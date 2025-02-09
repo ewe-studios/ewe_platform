@@ -32,10 +32,10 @@ use super::{
     ProcessController, TaskIterator, TaskReadyResolver, TaskStatus, TaskStatusMapper,
 };
 
-#[cfg(not(feature = "web_spin_lock"))]
+#[cfg(not(target_arch = "wasm32"))]
 use std::sync::{Mutex, RwLock};
 
-#[cfg(feature = "web_spin_lock")]
+#[cfg(target_arch = "wasm32")]
 use wasm_sync::{Mutex, RwLock};
 
 /// Number of bits used for the thread counters.
@@ -49,20 +49,56 @@ const THREADS_BITS: usize = 8;
 const THREADS_MAX: usize = (1 << THREADS_BITS) - 1;
 
 pub(crate) fn get_num_threads() -> usize {
-    match env::var("VALTRON_NUM_THREADS")
+    let thread_num = match env::var("VALTRON_NUM_THREADS")
         .ok()
         .and_then(|s| usize::from_str(&s).ok())
     {
-        Some(x @ 1..) => return x,
+        Some(x @ 1..) => {
+            tracing::debug!("Retreived thread_number from VALTRON_NUM_THREADS");
+            x
+        }
         _ => {
             match thread::available_parallelism()
                 .ok()
                 .and_then(|s| Some(s.get()))
             {
-                Some(system_value) => system_value,
+                Some(system_value) => {
+                    tracing::debug!("thread::available_parallelism() reported: {}", system_value);
+                    system_value
+                }
                 None => 1,
             }
         }
+    };
+
+    tracing::debug!("Reporting Thread available for use: {}", thread_num);
+
+    thread_num
+}
+
+#[cfg(test)]
+mod test_get_num_threads {
+    use std::env;
+
+    use tracing_test::traced_test;
+
+    use crate::valtron::get_num_threads;
+
+    #[test]
+    #[traced_test]
+    fn test_get_num_threads_when_env_is_not_set() {
+        env::remove_var("VALTRON_NUM_THREADS");
+        let thread_num = get_num_threads();
+        dbg!(&thread_num);
+        assert_ne!(thread_num, 0);
+    }
+
+    #[test]
+    #[traced_test]
+    fn test_get_num_threads_when_env_is_set() {
+        env::set_var("VALTRON_NUM_THREADS", "2");
+        assert_eq!(get_num_threads(), 2);
+        env::remove_var("VALTRON_NUM_THREADS");
     }
 }
 
@@ -322,6 +358,7 @@ pub struct ThreadPool {
     rng: Mutex<ChaCha8Rng>,
     num_threads: usize,
     latch: Arc<LockSignal>,
+    kill_latch: Arc<LockSignal>,
     tasks: SharedTaskQueue,
     priority: PriorityOrder,
     op_read_time: time::Duration,
@@ -424,6 +461,7 @@ impl ThreadPool {
             );
         }
         let thread_latch = Arc::new(LockSignal::new());
+        let kill_latch = Arc::new(LockSignal::new());
         let tasks: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
             Arc::new(ConcurrentQueue::unbounded());
 
@@ -431,6 +469,7 @@ impl ThreadPool {
         let thread_pool = Self {
             tasks,
             priority,
+            kill_latch,
             num_threads,
             op_read_time,
             thread_stack_size,
@@ -492,16 +531,27 @@ impl core::fmt::Display for ThreadExecutionError {
 // -- surface entry methods
 
 impl ThreadPool {
-    /// will kill the thread pool and await all threads
-    /// handle to compeletely finish.
-    pub fn kill(&mut self) {
+    /// [`kill`] will deliver the kill signal to
+    /// all running `LocalExecutorEngine` running in
+    /// all the threads, then block the current thread with
+    /// a `CondVar` awaiting the signal from `Self::run_until()` that
+    /// both the execution process and all threads have fully been
+    /// stopped and cleaned up at which point a signal is sent to awake
+    /// the thread where [`Self::kill`].
+    ///
+    /// Its very important to not call both [`Self::kill`] and [`Self::run_until`]
+    /// in the same thread as that will lead to a deadlock.
+    ///
+    /// Usually I would see you calling this method in a secondary thread listening
+    /// for the kill (KILL, SIGUP, ...etc) signal from a CLI process.
+    pub fn kill(&self) {
         self.global_kill_signal.turn_on();
-        self.await_threads();
+        self.kill_latch.lock_and_wait();
     }
 
     /// pulls all relevant threads `JoinHandle`
     /// joining them all till they all have finished and exited.
-    pub(crate) fn await_threads(&mut self) {
+    pub(crate) fn await_threads(&self) {
         let thread_keys: Vec<ThreadId> = self
             .thread_handles
             .read()
@@ -629,7 +679,14 @@ impl ThreadPool {
         task: T,
     ) -> AnyResult<(), ExecutorError> {
         match self.tasks.push(Box::new(task)) {
-            Ok(_) => Ok(()),
+            Ok(_) => {
+                if self.tasks.len() == 1 {
+                    self.latch.signal_one();
+                } else if self.tasks.len() > 1 {
+                    self.latch.signal_all();
+                }
+                Ok(())
+            }
             Err(err) => match err {
                 PushError::Full(_) => Err(ExecutorError::QueueFull),
                 PushError::Closed(_) => Err(ExecutorError::QueueClosed),
@@ -656,7 +713,26 @@ impl ThreadPool {
 // -- core methods
 
 impl ThreadPool {
+    /// [`run_until`] will block the current thread
+    /// and starts listening to both kill signal from the
+    /// process via `Self::kill` and handle management operations
+    /// from notifications sent by the execution threads when threads
+    /// become idle, get killed, are parked, ..etc.
+    ///
+    /// CAUTION: You must be careful not to call `Self::run_until` and `Self::kill`
+    /// in the same thread as a `CondVar` is used and will block the current thread
+    /// till `run_until` signals the CondVar to wake up the blocked thread when `Self::kill`
+    /// is ever called.
     pub fn run_until(&self) {
+        self.block_until();
+        self.await_threads();
+        self.kill_latch.signal_all();
+    }
+
+    pub(crate) fn block_until(&self) {
+        let span = tracing::trace_span!("ThreadPool::run_until");
+        let _enter = span.enter();
+
         let _ = RunOnDrop::new(|| {
             tracing::debug!("ThreadPool::run has stopped running");
         });

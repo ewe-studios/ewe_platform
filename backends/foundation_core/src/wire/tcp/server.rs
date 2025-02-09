@@ -1,3 +1,5 @@
+#![cfg(not(target_arch = "wasm32"))]
+
 use derive_more::From;
 use std::{
     io::Write,

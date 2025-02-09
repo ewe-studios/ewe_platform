@@ -1,8 +1,8 @@
 use std::sync::Arc;
-#[cfg(not(feature = "web_spin_lock"))]
+#[cfg(not(feature = "wasm_runtime"))]
 use std::sync::RwLock;
 
-#[cfg(feature = "web_spin_lock")]
+#[cfg(feature = "wasm_runtime")]
 use wasm_sync::RwLock;
 
 /// Entry based list using generation markers to identify
