@@ -18,6 +18,7 @@ impl OnSignal {
         }
     }
 
+    /// `turn_off` flip the state from SET to UNSET.
     #[inline]
     pub fn turn_off(&self) -> bool {
         self.state
@@ -25,6 +26,7 @@ impl OnSignal {
             .is_ok()
     }
 
+    /// turn_on flip the state from UNSET to SET.
     #[inline]
     pub fn turn_on(&self) -> bool {
         self.state
@@ -32,6 +34,7 @@ impl OnSignal {
             .is_ok()
     }
 
+    /// probe returns true when the state is SET else false.
     #[inline]
     pub fn probe(&self) -> bool {
         self.state.load(Ordering::Acquire) == SET
