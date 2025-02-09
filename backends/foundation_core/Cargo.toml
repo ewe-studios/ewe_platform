@@ -50,12 +50,13 @@ nightly = []
 native-tls = ["native-tls-crate"]
 native-tls-vendored = ["native-tls", "native-tls-crate/vendored"]
 
-# This feature switches to a spin-lock implementation on the browser's
-# main thread to avoid the forbidden `atomics.wait`.
+# This feature switches the no threading runtime where you have
+# specified control over when the Executor actually executes tasks
+# allowing your calls to spawn to also call execution for submitted tasks.
 #
-# This feature enables wasm capabiities and code areas.
-# Only useful on the `wasm32-unknown-unknown` target.
-wasm_runtime=[]
+# This feature enables usesful for WebAssembly and like environments
+# where multi-threading is not supported (for the moment).
+nothread_runtime=[]
 
 # This feature help enable tokio
 tokio_runtime=["dep:tokio"]
