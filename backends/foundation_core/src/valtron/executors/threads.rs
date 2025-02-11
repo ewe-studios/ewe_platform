@@ -27,8 +27,8 @@ use crate::{
 };
 
 use super::{
-    BoxedExecutionEngine, BoxedPanicHandler, BoxedSendExecutionIterator, DoNext, ExecutionAction,
-    ExecutionIterator, ExecutorError, FnMutReady, FnReady, OnNext, PriorityOrder,
+    constants::*, BoxedExecutionEngine, BoxedPanicHandler, BoxedSendExecutionIterator, DoNext,
+    ExecutionAction, ExecutionIterator, ExecutorError, FnMutReady, FnReady, OnNext, PriorityOrder,
     ProcessController, TaskIterator, TaskReadyResolver, TaskStatus, TaskStatusMapper,
 };
 
@@ -460,20 +460,6 @@ pub struct ThreadPool {
 }
 
 // -- Default
-
-// --- Constants
-
-const MAX_ROUNDS_IDLE_COUNT: u32 = 64;
-const MAX_ROUNDS_WHEN_SLEEPING_ENDS: u32 = 32;
-
-/// DEFAULT_OP_READ_TIME defaults how long we wait for a message from
-/// the activity queue.
-const DEFAULT_OP_READ_TIME: time::Duration = time::Duration::from_millis(100); // 100ms
-
-const BACK_OFF_JITER: f32 = 0.75;
-const BACK_OFF_THREAD_FACTOR: u32 = 6;
-const BACK_OFF_MIN_DURATION: time::Duration = time::Duration::from_millis(1); // 2ms
-const BACK_OFF_MAX_DURATION: time::Duration = time::Duration::from_millis(1000); // 1sec
 
 // -- constructor
 

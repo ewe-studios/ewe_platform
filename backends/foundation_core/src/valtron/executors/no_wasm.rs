@@ -1,6 +1,10 @@
 #![cfg(all(not(target_arch = "wasm32"), not(feature = "nothread_runtime")))]
 
+#[cfg(not(target_arch = "wasm32"))]
 use std::sync::OnceLock;
+
+#[cfg(target_arch = "wasm32")]
+use wasm_sync::OnceLock;
 
 use crate::valtron::get_allocatable_thread_count;
 
@@ -12,7 +16,7 @@ use super::{
 static CANCELATION_REGISTRATION: OnceLock<Option<()>> = OnceLock::new();
 static GLOBAL_THREAD_POOL: OnceLock<ThreadPool> = OnceLock::new();
 
-fn thread_pool(pool_seed: u64) -> &'static ThreadPool {
+pub fn thread_pool(pool_seed: u64) -> &'static ThreadPool {
     // register thread pool
     let thread_pool = GLOBAL_THREAD_POOL.get_or_init(|| {
         let thread_num = get_allocatable_thread_count();
@@ -72,7 +76,7 @@ where
 {
     match GLOBAL_THREAD_POOL.get() {
         Some(pool) => pool.spawn(),
-        None => panic!("Thread pool not initialized"),
+        None => panic!("Thread pool not initialized, ensure to call block_on first"),
     }
 }
 
@@ -92,6 +96,6 @@ where
 {
     match GLOBAL_THREAD_POOL.get() {
         Some(pool) => pool.spawn2(),
-        None => panic!("Thread pool not initialized"),
+        None => panic!("Thread pool not initialized, ensure to call block_on first"),
     }
 }
