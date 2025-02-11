@@ -1,4 +1,4 @@
-// #![cfg(any(target_arch = "wasm32", feature = "nothread_runtime"))]
+#![cfg(any(target_arch = "wasm32", feature = "nothread_runtime"))]
 
 use std::cell::OnceCell;
 use std::sync::Arc;
