@@ -8,8 +8,8 @@ use crate::{
 
 use super::{
     constants::*, BoxedSendExecutionIterator, ExecutionAction, ExecutionTaskIteratorBuilder,
-    LocalThreadExecutor, PriorityOrder, ProcessController, TaskIterator, TaskReadyResolver,
-    TaskStatusMapper,
+    LocalThreadExecutor, PriorityOrder, ProcessController, ProgressIndicator, TaskIterator,
+    TaskReadyResolver, TaskStatusMapper,
 };
 use concurrent_queue::ConcurrentQueue;
 
@@ -68,6 +68,21 @@ pub fn initialize(seed_for_rng: u64) {
     });
 }
 
+/// run_once calls the LocalExecution queue and processes
+/// the next pending message by moving it forward just once.
+///
+/// I rearly see you using this, but there might be situations
+/// where more fine-grained control on how much work you wish
+/// to do matters and you do not want a [run_until_complete]
+/// where the underlying point of stopping is not controlled
+/// by you.
+pub fn run_once() -> ProgressIndicator {
+    GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| match pool.get() {
+        Some(pool) => pool.run_once(),
+        None => panic!("Thread pool not initialized, ensure to call initialize() first"),
+    })
+}
+
 /// run_until_complete calls the LocalExecution queue and processes
 /// all pending messages till they are completed.
 pub fn run_until_complete() {
@@ -83,15 +98,15 @@ pub fn run_until_complete() {
 /// It expects you infer the type of `Task` and `Action` from the
 /// type implementing `TaskIterator`.
 pub fn spawn<Task, Action>() -> ExecutionTaskIteratorBuilder<
-    Task::Done,
+    Task::Ready,
     Task::Pending,
     Task::Spawner,
-    Box<dyn TaskStatusMapper<Task::Done, Task::Pending, Task::Spawner> + 'static>,
-    Box<dyn TaskReadyResolver<Task::Spawner, Task::Done, Task::Pending> + 'static>,
+    Box<dyn TaskStatusMapper<Task::Ready, Task::Pending, Task::Spawner> + 'static>,
+    Box<dyn TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + 'static>,
     Task,
 >
 where
-    Task::Done: 'static,
+    Task::Ready: 'static,
     Task::Pending: 'static,
     Task: TaskIterator<Spawner = Action> + 'static,
     Action: ExecutionAction + 'static,
@@ -107,14 +122,14 @@ where
 ///
 /// It expects you to provide types for both Mapper and Resolver.
 pub fn spawn2<Task, Action, Mapper, Resolver>(
-) -> ExecutionTaskIteratorBuilder<Task::Done, Task::Pending, Action, Mapper, Resolver, Task>
+) -> ExecutionTaskIteratorBuilder<Task::Ready, Task::Pending, Action, Mapper, Resolver, Task>
 where
-    Task::Done: 'static,
+    Task::Ready: 'static,
     Task::Pending: 'static,
     Task: TaskIterator<Spawner = Action> + 'static,
     Action: ExecutionAction + 'static,
-    Mapper: TaskStatusMapper<Task::Done, Task::Pending, Action> + 'static,
-    Resolver: TaskReadyResolver<Action, Task::Done, Task::Pending> + 'static,
+    Mapper: TaskStatusMapper<Task::Ready, Task::Pending, Action> + 'static,
+    Resolver: TaskReadyResolver<Action, Task::Ready, Task::Pending> + 'static,
 {
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| match pool.get() {
         Some(pool) => ExecutionTaskIteratorBuilder::new(pool.boxed_engine()),
@@ -145,13 +160,13 @@ mod single_threaded_tests {
     impl TaskIterator for Counter {
         type Pending = ();
 
-        type Done = usize;
+        type Ready = usize;
 
         type Spawner = NoSpawner;
 
         fn next(
             &mut self,
-        ) -> Option<crate::valtron::TaskStatus<Self::Done, Self::Pending, Self::Spawner>> {
+        ) -> Option<crate::valtron::TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             let item_size = self.1.borrow().len();
 
             if item_size == self.0 {

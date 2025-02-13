@@ -210,7 +210,7 @@ pub struct ExecutionTaskIteratorBuilder<
     Action: ExecutionAction,
     Mapper: TaskStatusMapper<Done, Pending, Action>,
     Resolver: TaskReadyResolver<Action, Done, Pending>,
-    Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
 > {
     engine: BoxedExecutionEngine,
     task: Option<Task>,
@@ -227,7 +227,7 @@ impl<
         Action: ExecutionAction + 'static,
         Mapper: TaskStatusMapper<Done, Pending, Action> + 'static,
         Resolver: TaskReadyResolver<Action, Done, Pending> + 'static,
-        Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + 'static,
+        Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
     > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, Resolver, Task>
 {
     pub fn new(engine: BoxedExecutionEngine) -> Self {
@@ -327,7 +327,7 @@ impl<
         Action: ExecutionAction + Send + 'static,
         Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
         Resolver: TaskReadyResolver<Action, Done, Pending> + Send + 'static,
-        Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'static,
+        Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
     > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, Resolver, Task>
 {
     pub fn broadcast(self) -> AnyResult<(), ExecutorError> {
@@ -353,7 +353,7 @@ impl<
         Pending: 'static,
         Action: ExecutionAction + Send + 'static,
         Mapper: TaskStatusMapper<Done, Pending, Action> + 'static,
-        Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + 'static,
+        Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
     > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, FnMutReady<F, Action>, Task>
 where
     F: FnMut(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + 'static,
@@ -372,7 +372,7 @@ impl<
         Pending: 'static,
         Action: ExecutionAction + 'static,
         Mapper: TaskStatusMapper<Done, Pending, Action> + 'static,
-        Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + 'static,
+        Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
     > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, FnReady<F, Action>, Task>
 where
     F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + 'static,
@@ -388,7 +388,7 @@ impl<
         Pending: Send + 'static,
         Action: ExecutionAction + Send + 'static,
         Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
-        Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'static,
+        Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
     > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, FnReady<F, Action>, Task>
 where
     F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
@@ -404,7 +404,7 @@ impl<
         Pending: Send + 'static,
         Action: ExecutionAction + Send + 'static,
         Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
-        Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'static,
+        Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
     > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, FnMutReady<F, Action>, Task>
 where
     F: FnMut(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,

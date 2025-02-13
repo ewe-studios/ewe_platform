@@ -838,14 +838,14 @@ impl ThreadPool {
     /// It expects you to provide types for both Mapper and Resolver.
     pub fn spawn2<Task, Action, Mapper, Resolver>(
         &self,
-    ) -> ThreadPoolTaskBuilder<Task::Done, Task::Pending, Action, Mapper, Resolver, Task>
+    ) -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Action, Mapper, Resolver, Task>
     where
-        Task::Done: Send + 'static,
+        Task::Ready: Send + 'static,
         Task::Pending: Send + 'static,
         Task: TaskIterator<Spawner = Action> + Send + 'static,
         Action: ExecutionAction + Send + 'static,
-        Mapper: TaskStatusMapper<Task::Done, Task::Pending, Action> + Send + 'static,
-        Resolver: TaskReadyResolver<Action, Task::Done, Task::Pending> + Send + 'static,
+        Mapper: TaskStatusMapper<Task::Ready, Task::Pending, Action> + Send + 'static,
+        Resolver: TaskReadyResolver<Action, Task::Ready, Task::Pending> + Send + 'static,
     {
         ThreadPoolTaskBuilder::new(self.tasks.clone(), self.latch.clone())
     }
@@ -858,15 +858,15 @@ impl ThreadPool {
     pub fn spawn<Task, Action>(
         &self,
     ) -> ThreadPoolTaskBuilder<
-        Task::Done,
+        Task::Ready,
         Task::Pending,
         Task::Spawner,
-        Box<dyn TaskStatusMapper<Task::Done, Task::Pending, Task::Spawner> + Send + 'static>,
-        Box<dyn TaskReadyResolver<Task::Spawner, Task::Done, Task::Pending> + Send + 'static>,
+        Box<dyn TaskStatusMapper<Task::Ready, Task::Pending, Task::Spawner> + Send + 'static>,
+        Box<dyn TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + Send + 'static>,
         Task,
     >
     where
-        Task::Done: Send + 'static,
+        Task::Ready: Send + 'static,
         Task::Pending: Send + 'static,
         Task: TaskIterator<Spawner = Action> + Send + 'static,
         Action: ExecutionAction + Send + 'static,
@@ -1141,7 +1141,7 @@ pub struct ThreadPoolTaskBuilder<
     Action: ExecutionAction + Send + 'static,
     Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
     Resolver: TaskReadyResolver<Action, Done, Pending> + Send + 'static,
-    Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
 > {
     tasks: SharedTaskQueue,
     latch: Arc<LockSignal>,
@@ -1158,7 +1158,7 @@ impl<
         Action: ExecutionAction + Send + 'static,
         Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
         Resolver: TaskReadyResolver<Action, Done, Pending> + Send + 'static,
-        Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'static,
+        Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
     > ThreadPoolTaskBuilder<Done, Pending, Action, Mapper, Resolver, Task>
 {
     pub(crate) fn new(tasks: SharedTaskQueue, latch: Arc<LockSignal>) -> Self {
@@ -1255,7 +1255,7 @@ impl<
         Pending: Send + 'static,
         Action: ExecutionAction + Send + 'static,
         Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
-        Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'static,
+        Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
     > ThreadPoolTaskBuilder<Done, Pending, Action, Mapper, FnReady<F, Action>, Task>
 where
     F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
@@ -1271,7 +1271,7 @@ impl<
         Pending: Send + 'static,
         Action: ExecutionAction + Send + 'static,
         Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
-        Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'static,
+        Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
     > ThreadPoolTaskBuilder<Done, Pending, Action, Mapper, FnMutReady<F, Action>, Task>
 where
     F: FnMut(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
