@@ -1,8 +1,9 @@
 use std::sync::Arc;
-#[cfg(not(feature = "wasm_runtime"))]
+
+#[cfg(not(target_arch = "wasm32"))]
 use std::sync::RwLock;
 
-#[cfg(feature = "wasm_runtime")]
+#[cfg(target_arch = "wasm32")]
 use wasm_sync::RwLock;
 
 /// Entry based list using generation markers to identify
