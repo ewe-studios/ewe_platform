@@ -124,5 +124,87 @@ where
 
 #[cfg(test)]
 mod single_threaded_tests {
-    use std::{sync::Mutex, thread};
+    use std::{cell::RefCell, rc::Rc};
+
+    use rand::RngCore;
+    use tracing_test::traced_test;
+
+    use crate::valtron::{
+        single::{initialize, run_until_complete, spawn},
+        FnReady, NoSpawner, TaskIterator,
+    };
+
+    struct Counter(usize, Rc<RefCell<Vec<usize>>>);
+
+    impl Counter {
+        pub fn new(val: usize, list: Rc<RefCell<Vec<usize>>>) -> Self {
+            Self(val, list)
+        }
+    }
+
+    impl TaskIterator for Counter {
+        type Pending = ();
+
+        type Done = usize;
+
+        type Spawner = NoSpawner;
+
+        fn next(
+            &mut self,
+        ) -> Option<crate::valtron::TaskStatus<Self::Done, Self::Pending, Self::Spawner>> {
+            let item_size = self.1.borrow().len();
+
+            if item_size == self.0 {
+                return None;
+            }
+
+            self.1.borrow_mut().push(item_size);
+
+            Some(crate::valtron::TaskStatus::Ready(self.1.borrow().len()))
+        }
+    }
+
+    #[test]
+    #[traced_test]
+    fn can_queue_task_only() {
+        let seed = rand::thread_rng().next_u64();
+
+        let shared_list = Rc::new(RefCell::new(Vec::new()));
+        let counter = Counter::new(5, shared_list.clone());
+
+        initialize(seed);
+
+        spawn()
+            .with_task(counter)
+            .with_resolver(Box::new(FnReady::new(|item, _| {
+                tracing::info!("Received next: {:?}", item)
+            })))
+            .schedule()
+            .expect("should deliver task");
+
+        assert_eq!(shared_list.borrow().len(), 0);
+    }
+
+    #[test]
+    #[traced_test]
+    fn can_queue_and_complete_task() {
+        let seed = rand::thread_rng().next_u64();
+
+        let shared_list = Rc::new(RefCell::new(Vec::new()));
+        let counter = Counter::new(5, shared_list.clone());
+
+        initialize(seed);
+
+        spawn()
+            .with_task(counter)
+            .with_resolver(Box::new(FnReady::new(|item, _| {
+                tracing::info!("Received next: {:?}", item)
+            })))
+            .schedule()
+            .expect("should deliver task");
+
+        run_until_complete();
+
+        assert_eq!(shared_list.borrow().clone(), vec![0, 1, 2, 3, 4]);
+    }
 }

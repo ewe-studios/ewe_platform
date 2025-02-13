@@ -9,7 +9,7 @@ use super::{
     ExecutionAction, ExecutionIterator, FnMutReady, FnReady, State, TaskIterator,
     TaskReadyResolver, TaskStatus, TaskStatusMapper,
 };
-use crate::synca::{AbortIfPanic, Entry};
+use crate::synca::Entry;
 
 #[cfg(not(target_arch = "wasm32"))]
 use std::sync::Mutex;
@@ -157,13 +157,8 @@ where
         let task_response = match std::panic::catch_unwind(|| self.task.lock().unwrap().next()) {
             Ok(inner) => inner,
             Err(panic_error) => {
-                // Guard ensures we can handle panic safely, if guard
-                // gets dropped then `PanicHandler` paniced as well, so
-                // we must abort immediately.
-                // let abort_guard = AbortIfPanic::default();
                 if let Some(panic_handler) = &self.panic_handler {
                     (panic_handler)(panic_error);
-                    // std::mem::drop(abort_guard);
                 }
                 return Some(State::Paniced);
             }

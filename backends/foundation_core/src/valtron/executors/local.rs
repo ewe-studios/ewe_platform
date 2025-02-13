@@ -1515,11 +1515,11 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         let span = tracing::trace_span!("LocalThreadExecutor::block_until_finished");
         let _enter = span.enter();
 
-        loop {
+        'main_loop: loop {
             for _ in 0..200 {
                 match self.run_once() {
                     ProgressIndicator::NoWork => {
-                        break;
+                        break 'main_loop;
                     }
                     ProgressIndicator::SpinWait(duration) => {
                         self.yielder.yield_for(duration);
