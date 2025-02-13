@@ -133,14 +133,17 @@ impl LockSignal {
 
         // if its in the free state then no wait is required;
         if *current_state == LockState::Free {
+            tracing::debug!("Lock is free");
             return;
         }
 
         // wait till its back in the locked state
+        tracing::debug!("Will loop till lock is free");
         loop {
             if *current_state == LockState::Released {
                 // set back to free state
                 *current_state = LockState::Free;
+                tracing::debug!("Lock is now free");
                 return;
             }
 
