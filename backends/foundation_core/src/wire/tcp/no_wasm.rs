@@ -242,7 +242,7 @@ impl RawStream {
         };
 
         #[cfg(not(feature = "native-tls"))]
-        let mut stream = {
+        let stream = {
             let plain_stream = TcpStream::connect_timeout(&host_socket_addr, timeout)?;
             RawStream::wrap_plain(plain_stream)
         };
