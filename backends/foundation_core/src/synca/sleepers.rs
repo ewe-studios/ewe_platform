@@ -4,10 +4,10 @@
 
 use std::{sync::Arc, time};
 
-#[cfg(not(feature = "wasm_runtime"))]
+#[cfg(not(target_arch = "wasm32"))]
 use std::sync::RwLock;
 
-#[cfg(feature = "wasm_runtime")]
+#[cfg(target_arch = "wasm32")]
 use wasm_sync::RwLock;
 
 use super::{Entry, EntryList};
