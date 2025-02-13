@@ -1547,17 +1547,32 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 
         loop {
             if kill_signal.probe() {
-                break;
+                tracing::debug!("Received signal to stop and die");
+                return;
             }
 
             for _ in 0..200 {
+                if kill_signal.probe() {
+                    tracing::debug!("Received signal to stop and die");
+                    return;
+                }
+
                 match self.run_once() {
                     ProgressIndicator::CanProgress => continue,
                     ProgressIndicator::NoWork => {
+                        if kill_signal.probe() {
+                            tracing::debug!("Received signal to stop and die");
+                            return;
+                        }
                         self.yielder.yield_process();
                         continue;
                     }
                     ProgressIndicator::SpinWait(duration) => {
+                        if kill_signal.probe() {
+                            tracing::debug!("Received signal to stop and die");
+                            return;
+                        }
+
                         self.yielder.yield_for(duration);
                         continue;
                     }
