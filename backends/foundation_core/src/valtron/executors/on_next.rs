@@ -37,7 +37,7 @@ where
     Action: ExecutionAction,
     Mapper: TaskStatusMapper<Done, Pending, Action>,
     Resolver: TaskReadyResolver<Action, Done, Pending>,
-    Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
 {
     pub fn new(iter: Task, resolver: Resolver, mappers: Vec<Mapper>) -> Self {
         Self {
@@ -76,7 +76,7 @@ where
     Done: Send,
     Pending: Send,
     Action: ExecutionAction + Send + 'static,
-    Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
     F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
 {
     pub fn on_next(
@@ -102,7 +102,7 @@ where
     Done: Send,
     Pending: Send,
     Action: ExecutionAction + Send + 'static,
-    Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
     F: FnMut(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
 {
     pub fn on_next_mut(
@@ -123,7 +123,7 @@ where
     Action: ExecutionAction + 'static,
     Mapper: TaskStatusMapper<Done, Pending, Action> + 'static,
     Resolver: TaskReadyResolver<Action, Done, Pending> + 'static,
-    Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
 {
     fn into(self) -> BoxedExecutionIterator {
         Box::new(self)
@@ -138,7 +138,7 @@ where
     Action: ExecutionAction + Send + 'a,
     Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'a,
     Resolver: TaskReadyResolver<Action, Done, Pending> + Send + 'a,
-    Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'a,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'a,
 {
     fn into(self) -> BoxedSendExecutionIterator {
         Box::new(self)
@@ -151,7 +151,7 @@ where
     Mapper: TaskStatusMapper<Done, Pending, Action>,
     Resolver: TaskReadyResolver<Action, Done, Pending>,
     Action: ExecutionAction,
-    Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
         let task_response = match std::panic::catch_unwind(|| self.task.lock().unwrap().next()) {

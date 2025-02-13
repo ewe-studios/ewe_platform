@@ -33,7 +33,7 @@ where
 impl<'a, Action, Task, Done, Pending> CollectNext<'a, Action, Task, Done, Pending>
 where
     Action: ExecutionAction + 'a,
-    Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
 {
     pub fn new(iter: Task, list: &'a mut Vec<TaskStatus<Done, Pending, Action>>) -> Self {
         Self {
@@ -57,7 +57,7 @@ impl<'a: 'static, Action, Task, Done: Send + 'a, Pending: Send + 'a>
     Into<BoxedSendExecutionIterator> for CollectNext<'a, Action, Task, Done, Pending>
 where
     Action: ExecutionAction + Send + 'a,
-    Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + Send + 'a,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'a,
 {
     fn into(self) -> BoxedSendExecutionIterator {
         Box::new(self)
@@ -68,7 +68,7 @@ impl<'a: 'static, Action, Task, Done: 'a, Pending: 'a> Into<BoxedExecutionIterat
     for CollectNext<'a, Action, Task, Done, Pending>
 where
     Action: ExecutionAction + 'a,
-    Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action> + 'a,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'a,
 {
     fn into(self) -> BoxedExecutionIterator {
         Box::new(self)
@@ -79,7 +79,7 @@ impl<'a, Task, Done, Pending, Action> ExecutionIterator
     for CollectNext<'a, Action, Task, Done, Pending>
 where
     Action: ExecutionAction,
-    Task: TaskIterator<Pending = Pending, Done = Done, Spawner = Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
         let task_response = match std::panic::catch_unwind(|| self.task.lock().unwrap().next()) {

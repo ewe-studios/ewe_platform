@@ -1590,19 +1590,19 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 pub fn typed_task<Task, Action, Resolver>(
     engine: BoxedExecutionEngine,
 ) -> ExecutionTaskIteratorBuilder<
-    Task::Done,
+    Task::Ready,
     Task::Pending,
     Task::Spawner,
-    Box<dyn TaskStatusMapper<Task::Done, Task::Pending, Task::Spawner> + 'static>,
+    Box<dyn TaskStatusMapper<Task::Ready, Task::Pending, Task::Spawner> + 'static>,
     Resolver,
     Task,
 >
 where
-    Task::Done: Send,
+    Task::Ready: Send,
     Task::Pending: Send,
     Action: ExecutionAction + Send + 'static,
     Task: TaskIterator<Spawner = Action> + Send + 'static,
-    Resolver: TaskReadyResolver<Task::Spawner, Task::Done, Task::Pending> + 'static,
+    Resolver: TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + 'static,
 {
     ExecutionTaskIteratorBuilder::new(engine)
 }
@@ -1612,15 +1612,15 @@ where
 pub fn any_task<Task, Action>(
     engine: BoxedExecutionEngine,
 ) -> ExecutionTaskIteratorBuilder<
-    Task::Done,
+    Task::Ready,
     Task::Pending,
     Task::Spawner,
-    Box<dyn TaskStatusMapper<Task::Done, Task::Pending, Task::Spawner> + 'static>,
-    Box<dyn TaskReadyResolver<Task::Spawner, Task::Done, Task::Pending> + 'static>,
+    Box<dyn TaskStatusMapper<Task::Ready, Task::Pending, Task::Spawner> + 'static>,
+    Box<dyn TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + 'static>,
     Task,
 >
 where
-    Task::Done: Send,
+    Task::Ready: Send,
     Task::Pending: Send,
     Task: TaskIterator<Spawner = Action> + Send + 'static,
     Action: ExecutionAction + Send + 'static,
@@ -1634,15 +1634,15 @@ where
 pub fn send_any_task<Task, Action>(
     engine: BoxedExecutionEngine,
 ) -> ExecutionTaskIteratorBuilder<
-    Task::Done,
+    Task::Ready,
     Task::Pending,
     Task::Spawner,
-    Box<dyn TaskStatusMapper<Task::Done, Task::Pending, Task::Spawner> + Send + 'static>,
-    Box<dyn TaskReadyResolver<Task::Spawner, Task::Done, Task::Pending> + Send + 'static>,
+    Box<dyn TaskStatusMapper<Task::Ready, Task::Pending, Task::Spawner> + Send + 'static>,
+    Box<dyn TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + Send + 'static>,
     Task,
 >
 where
-    Task::Done: Send,
+    Task::Ready: Send,
     Task::Pending: Send,
     Action: ExecutionAction + Send + 'static,
     Task: TaskIterator<Spawner = Action> + Send + 'static,
@@ -1656,19 +1656,19 @@ where
 pub fn send_typed_task<Task, Action, Resolver>(
     engine: BoxedExecutionEngine,
 ) -> ExecutionTaskIteratorBuilder<
-    Task::Done,
+    Task::Ready,
     Task::Pending,
     Task::Spawner,
-    Box<dyn TaskStatusMapper<Task::Done, Task::Pending, Task::Spawner> + Send + 'static>,
+    Box<dyn TaskStatusMapper<Task::Ready, Task::Pending, Task::Spawner> + Send + 'static>,
     Resolver,
     Task,
 >
 where
-    Task::Done: Send + 'static,
+    Task::Ready: Send + 'static,
     Task::Pending: Send + 'static,
     Task: TaskIterator<Spawner = Action> + Send + 'static,
     Action: ExecutionAction + Send + 'static,
-    Resolver: TaskReadyResolver<Task::Spawner, Task::Done, Task::Pending> + Send + 'static,
+    Resolver: TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + Send + 'static,
 {
     ExecutionTaskIteratorBuilder::new(engine)
 }
@@ -1711,11 +1711,11 @@ mod test_local_thread_executor {
     struct Counter(&'static str, usize, usize, usize);
 
     impl TaskIterator for Counter {
-        type Done = usize;
+        type Ready = usize;
         type Spawner = NoSpawner;
         type Pending = time::Duration;
 
-        fn next(&mut self) -> Option<TaskStatus<Self::Done, Self::Pending, Self::Spawner>> {
+        fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             let old_count = self.1;
             let new_count = old_count + 1;
             self.1 = new_count;
@@ -2278,11 +2278,11 @@ mod test_local_thread_executor {
 
     struct DaemonCounter(Arc<AtomicUsize>);
     impl TaskIterator for DaemonCounter {
-        type Done = ();
+        type Ready = ();
         type Pending = ();
         type Spawner = DaemonSpawner;
 
-        fn next(&mut self) -> Option<TaskStatus<Self::Done, Self::Pending, Self::Spawner>> {
+        fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             let current = self.0.load(Ordering::SeqCst);
             if current == 0 {
                 return Some(TaskStatus::Pending(()));
@@ -2307,11 +2307,11 @@ mod test_local_thread_executor {
     struct SimpleCounter(&'static str, usize, usize);
 
     impl TaskIterator for SimpleCounter {
-        type Done = usize;
+        type Ready = usize;
         type Pending = ();
         type Spawner = NoSpawner;
 
-        fn next(&mut self) -> Option<TaskStatus<Self::Done, Self::Pending, Self::Spawner>> {
+        fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             let old_count = self.1;
             let new_count = old_count + 1;
             self.1 = new_count;

@@ -120,20 +120,23 @@ pub trait TaskIterator {
     ///
     /// In the case of a stream this is the type you wish to produce every single
     /// time that is actual data.
-    type Done;
+    type Ready;
 
-    /// The type responsible for orchestrating spawn actions
-    /// against the local execution engine.
+    /// Spawner provides us a way to declare a type that
+    /// if returned is provided an handle to the executor
+    /// to spawn sub-tasks that are related to this task.
     type Spawner: ExecutionAction;
 
     /// Advances the iterator and returns the next value.
-    fn next(&mut self) -> Option<TaskStatus<Self::Done, Self::Pending, Self::Spawner>>;
+    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>>;
 
     /// into_iter consumes the implementation and wraps
     /// it in an iterator type that emits
     /// `TaskStatus<TaskIterator::Pending ,TaskIterator::Done>`
     /// match the behavior desired for an iterator.
-    fn into_iter(self) -> impl Iterator<Item = TaskStatus<Self::Done, Self::Pending, Self::Spawner>>
+    fn into_iter(
+        self,
+    ) -> impl Iterator<Item = TaskStatus<Self::Ready, Self::Pending, Self::Spawner>>
     where
         Self: Sized + 'static,
     {
@@ -141,14 +144,14 @@ pub trait TaskIterator {
     }
 }
 
-pub struct TaskAsIterator<D, P, S>(Box<dyn TaskIterator<Done = D, Pending = P, Spawner = S>>);
+pub struct TaskAsIterator<D, P, S>(Box<dyn TaskIterator<Ready = D, Pending = P, Spawner = S>>);
 
 impl<D, P, S> TaskAsIterator<D, P, S> {
-    pub fn from_impl(t: impl TaskIterator<Done = D, Pending = P, Spawner = S> + 'static) -> Self {
+    pub fn from_impl(t: impl TaskIterator<Ready = D, Pending = P, Spawner = S> + 'static) -> Self {
         Self(Box::new(t))
     }
 
-    pub fn new(t: Box<dyn TaskIterator<Done = D, Pending = P, Spawner = S>>) -> Self {
+    pub fn new(t: Box<dyn TaskIterator<Ready = D, Pending = P, Spawner = S>>) -> Self {
         Self(t)
     }
 }
