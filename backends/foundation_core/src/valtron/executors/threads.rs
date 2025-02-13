@@ -6,7 +6,7 @@ use std::{
     panic,
     sync::{
         self,
-        atomic::{self, AtomicUsize},
+        atomic::{self, AtomicUsize, Ordering},
         Arc,
     },
     thread::{self, JoinHandle},
@@ -15,14 +15,13 @@ use std::{
 
 use concurrent_queue::{ConcurrentQueue, PushError};
 use derive_more::derive::From;
-use flume;
 use rand::{RngCore, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 use std::str::FromStr;
 
 use crate::{
     retries::ExponentialBackoffDecider,
-    synca::{Entry, EntryList, IdleMan, LockSignal, OnSignal, RunOnDrop, SleepyMan},
+    synca::{mpp, Entry, EntryList, IdleMan, LockSignal, OnSignal, RunOnDrop, SleepyMan},
     valtron::{AnyResult, BoxedError, LocalThreadExecutor},
 };
 
@@ -181,14 +180,14 @@ mod test_get_num_threads {
 pub struct ThreadYielder {
     thread_id: ThreadId,
     latch: Arc<LockSignal>,
-    sender: flume::Sender<ThreadActivity>,
+    sender: mpp::Sender<ThreadActivity>,
 }
 
 impl ThreadYielder {
     pub fn new(
         thread_id: ThreadId,
         latch: Arc<LockSignal>,
-        sender: flume::Sender<ThreadActivity>,
+        sender: mpp::Sender<ThreadActivity>,
     ) -> Self {
         Self {
             thread_id,
@@ -362,7 +361,7 @@ impl SharedThreadRegistry {
         name: String,
         thread: ThreadRef,
         latch: Arc<LockSignal>,
-        sender: flume::Sender<ThreadActivity>,
+        sender: mpp::Sender<ThreadActivity>,
     ) -> ThreadId {
         let mut registry = self.0.write().unwrap();
 
@@ -462,8 +461,8 @@ pub struct ThreadPool {
     registry: SharedThreadRegistry,
     thread_stack_size: Option<usize>,
     global_kill_signal: sync::Arc<OnSignal>,
-    activity_sender: flume::Sender<ThreadActivity>,
-    activity_receiver: flume::Receiver<ThreadActivity>,
+    activity_sender: mpp::Sender<ThreadActivity>,
+    activity_receiver: mpp::Receiver<ThreadActivity>,
 
     // thread config values
     thread_max_idle_count: u32,
@@ -557,7 +556,7 @@ impl ThreadPool {
         let tasks: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
             Arc::new(ConcurrentQueue::unbounded());
 
-        let (sender, receiver) = flume::unbounded::<ThreadActivity>();
+        let (sender, receiver) = mpp::unbounded::<ThreadActivity>();
         let thread_pool = Self {
             tasks,
             priority,
@@ -644,6 +643,13 @@ impl ThreadPool {
         tracing::debug!("Signal all blocked thread");
         self.latch.signal_all();
         tracing::debug!("Wait for kill latch to awake");
+
+        let remaining_threads = self.live_threads.load(Ordering::SeqCst);
+        let blocked_threads = self.blocked_threads.lock().unwrap().len();
+        if remaining_threads == 0 && blocked_threads == 0 {
+            tracing::debug!("No more live threads or blocked threads, so can die");
+            return;
+        }
         self.kill_latch.lock_and_wait();
     }
 
@@ -761,19 +767,18 @@ impl ThreadPool {
                 sender
                     .send(ThreadActivity::Stopped(sender_id.clone()))
                     .expect("should sent event");
+
                 tracing::debug!(
-                    "Thread executor has stopped: {:?} with name: {}",
-                    sender_id,
-                    thread_name
+                    "Thread executor has died: {:?} and sent stopped activity",
+                    sender_id
                 );
             }) {
                 Ok(_) => Ok(()),
                 Err(err) => {
-                    tracing::debug!(
-                        "Thread executor has panic: {:?} with name: {:?}",
-                        sender_id,
-                        err
-                    );
+                    tracing::debug!("Thread executor has panic: {:?}: {:?}", sender_id, err);
+                    sender
+                        .send(ThreadActivity::Stopped(sender_id.clone()))
+                        .expect("should sent event");
                     sender
                         .send(ThreadActivity::Paniced(sender_id, err))
                         .expect("should sent event");
@@ -894,6 +899,92 @@ impl ThreadPool {
         self.kill_latch.signal_all();
     }
 
+    fn block_until(&self) {
+        let span = tracing::trace_span!("ThreadPool::block_until");
+        let _enter = span.enter();
+
+        let _dropper = RunOnDrop::new(|| {
+            tracing::debug!("ThreadPool::block_until has reached dropper");
+            self.latch.signal_all();
+            tracing::debug!("ThreadPool::block_until sent signal_all via latch");
+        });
+
+        while !self.global_kill_signal.probe() {
+            tracing::debug!("ThreadPool::block_until - Checking thread activity");
+            self.listen_for_normal_activity();
+        }
+
+        self.listen_for_death_activity();
+        self.listen_for_stopped_activity();
+        tracing::debug!("ThreadPool::block_until - finished");
+    }
+
+    fn add_thread_id_from_packed_list(&self, thread_id: ThreadId) {
+        let mut thread_list = self.parked_threads.lock().unwrap();
+        thread_list.push(thread_id);
+    }
+
+    fn remove_thread_id_from_packed_list(&self, thread_id: ThreadId) {
+        let mut thread_list = self.parked_threads.lock().unwrap();
+        if let Some(index) = thread_list.iter().position(|item| *item == thread_id) {
+            thread_list.remove(index);
+        }
+    }
+
+    fn add_thread_id_from_blocked_list(&self, thread_id: ThreadId) {
+        let mut thread_list = self.blocked_threads.lock().unwrap();
+        thread_list.push(thread_id);
+    }
+
+    fn remove_thread_id_from_blocked_list(&self, thread_id: ThreadId) {
+        let mut thread_list = self.blocked_threads.lock().unwrap();
+        if let Some(index) = thread_list.iter().position(|item| *item == thread_id) {
+            thread_list.remove(index);
+        }
+    }
+
+    fn listen_for_stopped_activity(&self) {
+        let mut remaining_threads = self.live_threads.load(Ordering::SeqCst);
+
+        tracing::debug!(
+            "ThreadPool::listen_for_stopped_activity - remaining threads: {}",
+            remaining_threads,
+        );
+        while remaining_threads > 0 {
+            tracing::debug!(
+                "ThreadPool::listen_for_stopped_activity - with unstopped: {} with map: {:?}",
+                remaining_threads,
+                self.blocked_threads.lock().unwrap().clone(),
+            );
+
+            let thread_activity = match self.activity_receiver.recv_timeout(self.op_read_time) {
+                Ok(activity) => activity,
+                Err(err) => match err {
+                    mpp::ReceiverError::Empty => continue,
+                    mpp::ReceiverError::Timeout => {
+                        tracing::debug!("ThreadPool::listen_for_stopped_activity - Timeout");
+                        remaining_threads = self.live_threads.load(Ordering::SeqCst);
+                        continue;
+                    }
+                    mpp::ReceiverError::Closed(_) => return,
+                },
+            };
+
+            match thread_activity {
+                ThreadActivity::Stopped(thread_id) => {
+                    let remaining_live = self.live_threads.fetch_sub(1, atomic::Ordering::SeqCst);
+                    tracing::debug!(
+                        "ThreadPool::listen_for_stopped_activity: Thread executor with id: {:?} stopped with remaining: {}",
+                        thread_id,
+                        remaining_live
+                    );
+                }
+                _ => continue,
+            }
+        }
+        tracing::debug!("ThreadPool::listen_for_stopped_activity - finished");
+    }
+
     fn listen_for_death_activity(&self) {
         let mut blocked_threads = self.blocked_threads.lock().unwrap().len();
 
@@ -912,50 +1003,30 @@ impl ThreadPool {
             let thread_activity = match self.activity_receiver.recv_timeout(self.op_read_time) {
                 Ok(activity) => activity,
                 Err(err) => match err {
-                    flume::RecvTimeoutError::Timeout => {
+                    mpp::ReceiverError::Empty => continue,
+                    mpp::ReceiverError::Timeout => {
                         tracing::debug!("ThreadPool::listen_for_death_activity - Timeout");
+                        blocked_threads = self.blocked_threads.lock().unwrap().len();
                         continue;
                     }
-                    flume::RecvTimeoutError::Disconnected => return,
+                    mpp::ReceiverError::Closed(_) => return,
                 },
             };
 
-            // tracing::debug!(
-            //     "ThreadPool::listen_for_death_activity - received activity: {:?}",
-            //     thread_activity
-            // );
-
             match thread_activity {
-                ThreadActivity::Stopped(thread_id) => {
-                    tracing::debug!("ThreadPool::listen_for_death_activity - Received stop-signal for Thread executor with id: {:?}", thread_id);
-                    // blocked_threads -= 1;
-                    tracing::debug!(
-                        "ThreadPool::listen_for_death_activity - remaining {}",
-                        blocked_threads
-                    );
-                    if let Some(index) = self
-                        .blocked_threads
-                        .lock()
-                        .unwrap()
-                        .iter()
-                        .position(|item| *item == thread_id)
-                    {
-                        self.blocked_threads.lock().unwrap().remove(index);
-                    }
-                }
                 ThreadActivity::Unblocked(thread_id) => {
-                    tracing::debug!("ThreadPool::listen_for_death_activity -Thread executor with id: {:?} is unblocked", thread_id);
-                    if let Some(index) = self
-                        .blocked_threads
-                        .lock()
-                        .unwrap()
-                        .iter()
-                        .position(|item| *item == thread_id)
-                    {
-                        self.blocked_threads.lock().unwrap().remove(index);
-                        tracing::debug!("ThreadPool::listen_for_death_activity -Thread executor with id: {:?} is deregistered", thread_id);
-                    }
+                    tracing::debug!("ThreadPool::listen_for_death_activity -Thread executor:  {:?} is unblocked", thread_id);
+                    self.remove_thread_id_from_blocked_list(thread_id.clone());
+                    tracing::debug!("ThreadPool::listen_for_death_activity -Thread executor with id: {:?} is deregistered", thread_id);
                     blocked_threads -= 1;
+                }
+                ThreadActivity::Stopped(thread_id) => {
+                    let remaining_live = self.live_threads.fetch_sub(1, atomic::Ordering::SeqCst);
+                    tracing::debug!(
+                        "Thread executor with id: {:?} stopped with remaining: {}",
+                        thread_id,
+                        remaining_live
+                    );
                 }
                 _ => continue,
             }
@@ -963,20 +1034,13 @@ impl ThreadPool {
         tracing::debug!("ThreadPool::listen_for_death_activity - finished");
     }
 
-    // fn unblock_threads_for_death(&self) {
-    //     let blocked_threads = self.blocked_threads.lock().unwrap().clone();
-    //     for thread_id in blocked_threads {
-    //         let thread_ref = self.threads.get(&thread_id).unwrap();
-    //         thread_ref.unblock();
-    //     }
-    // }
-
     fn listen_for_normal_activity(&self) -> Option<()> {
         let thread_activity = match self.activity_receiver.recv_timeout(self.op_read_time) {
             Ok(activity) => activity,
             Err(err) => match err {
-                flume::RecvTimeoutError::Timeout => return Some(()),
-                flume::RecvTimeoutError::Disconnected => return None,
+                mpp::ReceiverError::Empty => return Some(()),
+                mpp::ReceiverError::Timeout => return Some(()),
+                mpp::ReceiverError::Closed(_) => return None,
             },
         };
 
@@ -997,39 +1061,26 @@ impl ThreadPool {
                 self.live_threads.fetch_add(1, atomic::Ordering::SeqCst);
             }
             ThreadActivity::Stopped(thread_id) => {
-                tracing::debug!("Thread executor with id: {:?} stopped", thread_id);
-                self.live_threads.fetch_sub(1, atomic::Ordering::SeqCst);
-                if let Some(index) = self
-                    .blocked_threads
-                    .lock()
-                    .unwrap()
-                    .iter()
-                    .position(|item| *item == thread_id)
-                {
-                    self.blocked_threads.lock().unwrap().remove(index);
-                }
+                let remaining_live = self.live_threads.fetch_sub(1, atomic::Ordering::SeqCst);
+                tracing::debug!(
+                    "Thread executor with id: {:?} stopped with remaining: {}",
+                    thread_id,
+                    remaining_live
+                );
             }
             ThreadActivity::Parked(thread_id) => {
                 tracing::info!("Thread executor with id: {:?} has been parked", thread_id);
                 self.idle_threads.fetch_add(1, atomic::Ordering::SeqCst);
-                self.parked_threads.lock().unwrap().push(thread_id.clone());
+                self.add_thread_id_from_packed_list(thread_id);
             }
             ThreadActivity::Unparked(thread_id) => {
                 tracing::info!("Thread executor with id: {:?} has been unparked", thread_id);
                 self.idle_threads.fetch_sub(1, atomic::Ordering::SeqCst);
-                if let Some(index) = self
-                    .parked_threads
-                    .lock()
-                    .unwrap()
-                    .iter()
-                    .position(|item| *item == thread_id)
-                {
-                    self.parked_threads.lock().unwrap().remove(index);
-                }
+                self.remove_thread_id_from_packed_list(thread_id);
             }
             ThreadActivity::Blocked(thread_id) => {
                 tracing::debug!("Thread executor with id: {:?} is blocked", thread_id);
-                self.blocked_threads.lock().unwrap().push(thread_id.clone());
+                self.add_thread_id_from_blocked_list(thread_id.clone());
 
                 if self.global_kill_signal.probe() {
                     tracing::debug!("Should kill signal was set, signal wakeup via latch");
@@ -1040,15 +1091,7 @@ impl ThreadPool {
             }
             ThreadActivity::Unblocked(thread_id) => {
                 tracing::debug!("Thread executor with id: {:?} is unblocked", thread_id);
-                if let Some(index) = self
-                    .blocked_threads
-                    .lock()
-                    .unwrap()
-                    .iter()
-                    .position(|item| *item == thread_id)
-                {
-                    self.blocked_threads.lock().unwrap().remove(index);
-                }
+                self.remove_thread_id_from_blocked_list(thread_id);
             }
             ThreadActivity::Paniced(thread_id, ctx) => {
                 tracing::debug!(
@@ -1056,6 +1099,9 @@ impl ThreadPool {
                     thread_id,
                     ctx
                 );
+
+                self.remove_thread_id_from_packed_list(thread_id.clone());
+                self.remove_thread_id_from_blocked_list(thread_id.clone());
 
                 // remove thread's registered handler and ThreadRef.
                 if let Some(thread_ref) = self.thread_map.write().unwrap().remove(&thread_id) {
@@ -1086,25 +1132,6 @@ impl ThreadPool {
             }
         }
         Some(())
-    }
-
-    fn block_until(&self) {
-        let span = tracing::trace_span!("ThreadPool::block_until");
-        let _enter = span.enter();
-
-        let _dropper = RunOnDrop::new(|| {
-            tracing::debug!("ThreadPool::block_until has reached dropper");
-            self.latch.signal_all();
-            tracing::debug!("ThreadPool::block_until sent signal_all via latch");
-        });
-
-        'mainloop: while !self.global_kill_signal.probe() {
-            tracing::debug!("ThreadPool::block_until - Checking thread activity");
-            self.listen_for_normal_activity();
-        }
-
-        // self.unblock_threads_for_death();
-        self.listen_for_death_activity();
     }
 }
 

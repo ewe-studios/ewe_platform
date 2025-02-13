@@ -1,5 +1,3 @@
-#![cfg(any(target_arch = "wasm32", feature = "nothread_runtime"))]
-
 use std::cell::OnceCell;
 use std::sync::Arc;
 
@@ -122,4 +120,9 @@ where
         Some(pool) => ExecutionTaskIteratorBuilder::new(pool.boxed_engine()),
         None => panic!("Thread pool not initialized, ensure to call initialize() first"),
     })
+}
+
+#[cfg(test)]
+mod single_threaded_tests {
+    use std::{sync::Mutex, thread};
 }

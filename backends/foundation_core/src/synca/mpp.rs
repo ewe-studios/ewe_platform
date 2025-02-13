@@ -87,7 +87,7 @@ impl<T> Receiver<T> {
     /// recv_timeout attempts to read value from the channel within the specified duration.
     /// It internally uses [thread::park_timeout] to block the current thread
     /// for a given duration until a value is received or the timeout is reached.
-    fn recv_timeout(&self, dur: std::time::Duration) -> Result<T, ReceiverError> {
+    pub fn recv_timeout(&self, dur: std::time::Duration) -> Result<T, ReceiverError> {
         let started = Instant::now();
 
         let mut remaining_timeout = dur.clone();
