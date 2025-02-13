@@ -160,10 +160,10 @@ where
                 // Guard ensures we can handle panic safely, if guard
                 // gets dropped then `PanicHandler` paniced as well, so
                 // we must abort immediately.
-                let abort_guard = AbortIfPanic::default();
+                // let abort_guard = AbortIfPanic::default();
                 if let Some(panic_handler) = &self.panic_handler {
                     (panic_handler)(panic_error);
-                    std::mem::drop(abort_guard);
+                    // std::mem::drop(abort_guard);
                 }
                 return Some(State::Paniced);
             }

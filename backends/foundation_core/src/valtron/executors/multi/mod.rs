@@ -1,5 +1,3 @@
-#![cfg(all(not(target_arch = "wasm32"), not(feature = "nothread_runtime")))]
-
 #[cfg(not(target_arch = "wasm32"))]
 use std::sync::OnceLock;
 
@@ -109,27 +107,28 @@ where
 }
 
 #[cfg(test)]
-mod no_wasm_tests {
-    use flume;
-    use std::{sync::Mutex, thread};
+mod multi_threaded_tests {
+    use core::time;
+    use std::{
+        sync::{Arc, Mutex},
+        thread,
+    };
 
     use rand::RngCore;
     use tracing_test::traced_test;
 
-    use crate::valtron::{block_on, get_pool, FnReady, NoSpawner, TaskIterator};
+    use super::{block_on, get_pool};
+    use crate::{
+        synca::mpp,
+        valtron::{FnReady, NoSpawner, TaskIterator},
+    };
 
-    struct Counter(usize, Mutex<Vec<usize>>, flume::Sender<()>);
-
-    impl Counter {
-        pub fn new(val: usize) -> (Self, flume::Receiver<()>) {
-            let (sender, receiver) = flume::bounded(10);
-            (Counter(val, Mutex::new(vec![0]), sender), receiver)
-        }
-    }
+    struct Counter(usize, Arc<Mutex<Vec<usize>>>, mpp::Sender<()>);
 
     impl Counter {
-        pub fn into_inner(self) -> Vec<usize> {
-            self.1.into_inner().expect("get list")
+        pub fn new(val: usize, list: Arc<Mutex<Vec<usize>>>) -> (Self, mpp::Receiver<()>) {
+            let (sender, receiver) = mpp::bounded(10);
+            (Counter(val, list, sender), receiver)
         }
     }
 
@@ -156,16 +155,64 @@ mod no_wasm_tests {
         }
     }
 
+    #[derive(Default)]
+    struct PanicCounter;
+
+    impl TaskIterator for PanicCounter {
+        type Pending = ();
+
+        type Done = usize;
+
+        type Spawner = NoSpawner;
+
+        fn next(
+            &mut self,
+        ) -> Option<crate::valtron::TaskStatus<Self::Done, Self::Pending, Self::Spawner>> {
+            panic!("Bad stuff");
+        }
+    }
+
+    #[test]
+    #[traced_test]
+    fn can_finish_even_when_task_panics() {
+        let seed = rand::thread_rng().next_u64();
+
+        let handler_kill = thread::spawn(move || {
+            tracing::debug!("Waiting for kill signal");
+            thread::sleep(time::Duration::from_millis(600));
+            tracing::debug!("Got kill signal");
+            get_pool().kill();
+            tracing::debug!("Closing thread");
+        });
+
+        block_on(seed, |pool| {
+            pool.spawn()
+                .with_task(PanicCounter::default())
+                .with_resolver(Box::new(FnReady::new(|item, _| {
+                    tracing::info!("Received next: {:?}", item)
+                })))
+                .schedule()
+                .expect("should deliver task");
+        });
+
+        tracing::info!("Wait for thread to die");
+        handler_kill.join().expect("should finish");
+        tracing::info!("Wait for thread to die");
+    }
+
     #[test]
     #[traced_test]
     fn can_queue_and_complete_task() {
         let seed = rand::thread_rng().next_u64();
 
-        let (counter, receiver) = Counter::new(5);
+        let shared_list = Arc::new(Mutex::new(vec![]));
+        let (counter, receiver) = Counter::new(5, shared_list.clone());
 
         let handler_kill = thread::spawn(move || {
             tracing::debug!("Waiting for kill signal");
-            receiver.recv().expect("receive signal");
+            receiver
+                .recv_timeout(time::Duration::from_millis(300))
+                .expect("receive signal");
             tracing::debug!("Got kill signal");
             get_pool().kill();
             tracing::debug!("Closing thread");
@@ -182,5 +229,7 @@ mod no_wasm_tests {
         });
 
         handler_kill.join().expect("should finish");
+
+        assert_eq!(shared_list.lock().unwrap().clone(), vec![0, 1, 2, 3, 4]);
     }
 }
