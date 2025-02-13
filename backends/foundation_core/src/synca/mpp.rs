@@ -3,7 +3,6 @@ use std::{sync::Arc, time::Instant};
 use concurrent_queue::{ConcurrentQueue, ForcePushError, PopError, PushError, TryIter};
 use derive_more::derive::From;
 
-#[derive(Clone)]
 pub struct Receiver<T> {
     chan: Arc<ConcurrentQueue<T>>,
 }
@@ -29,6 +28,14 @@ impl core::fmt::Display for ReceiverError {
             ReceiverError::Closed(err) => write!(f, "ReceiverError::Closed({})", err),
             ReceiverError::Timeout => write!(f, "ReceiverError::Timeout"),
             ReceiverError::Empty => write!(f, "ReceiverError::Empty"),
+        }
+    }
+}
+
+impl<T> Clone for Receiver<T> {
+    fn clone(&self) -> Self {
+        Self {
+            chan: self.chan.clone(),
         }
     }
 }
@@ -106,7 +113,6 @@ impl<T> Receiver<T> {
     }
 }
 
-#[derive(Clone)]
 pub struct Sender<T> {
     chan: Arc<ConcurrentQueue<T>>,
 }
@@ -124,6 +130,14 @@ impl<T: core::fmt::Debug> core::fmt::Display for SenderError<T> {
         match self {
             SenderError::SendError(err) => write!(f, "SenderError::SendError({:?})", err),
             SenderError::ForceSendError(err) => write!(f, "SenderError::ForceSendError({:?})", err),
+        }
+    }
+}
+
+impl<T> Clone for Sender<T> {
+    fn clone(&self) -> Self {
+        Sender {
+            chan: self.chan.clone(),
         }
     }
 }

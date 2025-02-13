@@ -11,7 +11,7 @@ use std::{
 };
 
 use crate::{
-    synca::{DurationWaker, Entry, EntryList, IdleMan, OnSignal, RunOnDrop, Sleepers, Waiter},
+    synca::{mpp, DurationWaker, Entry, EntryList, IdleMan, OnSignal, RunOnDrop, Sleepers, Waiter},
     valtron::{AnyResult, ExecutionEngine, ExecutionIterator, State},
 };
 use rand::SeedableRng;
@@ -865,7 +865,7 @@ impl ExecutorState {
 
 pub struct ReferencedExecutorState {
     inner: rc::Rc<ExecutorState>,
-    activities: Option<flume::Sender<ThreadActivity>>,
+    activities: Option<mpp::Sender<ThreadActivity>>,
 }
 
 impl From<rc::Rc<ExecutorState>> for ReferencedExecutorState {
@@ -890,7 +890,7 @@ impl Clone for ReferencedExecutorState {
 impl ReferencedExecutorState {
     pub fn new(
         inner: rc::Rc<ExecutorState>,
-        activities: Option<flume::Sender<ThreadActivity>>,
+        activities: Option<mpp::Sender<ThreadActivity>>,
     ) -> Self {
         Self { inner, activities }
     }
@@ -903,7 +903,7 @@ impl ReferencedExecutorState {
         self.inner.clone()
     }
 
-    fn use_activities(&mut self, activities: flume::Sender<ThreadActivity>) {
+    fn use_activities(&mut self, activities: mpp::Sender<ThreadActivity>) {
         self.activities = Some(activities)
     }
 
@@ -949,7 +949,7 @@ impl ReferencedExecutorState {
 
 pub struct LocalExecutionEngine {
     inner: rc::Rc<ExecutorState>,
-    activities: Option<flume::Sender<ThreadActivity>>,
+    activities: Option<mpp::Sender<ThreadActivity>>,
 }
 
 impl Clone for LocalExecutionEngine {
@@ -964,13 +964,13 @@ impl Clone for LocalExecutionEngine {
 impl LocalExecutionEngine {
     pub fn new(
         inner: rc::Rc<ExecutorState>,
-        activities: Option<flume::Sender<ThreadActivity>>,
+        activities: Option<mpp::Sender<ThreadActivity>>,
     ) -> Self {
         Self { inner, activities }
     }
 
     #[allow(unused)]
-    fn use_activities(&mut self, activities: flume::Sender<ThreadActivity>) {
+    fn use_activities(&mut self, activities: mpp::Sender<ThreadActivity>) {
         self.activities = Some(activities)
     }
 }
@@ -1376,7 +1376,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         priority: PriorityOrder,
         yielder: T,
         kill_signal: Option<Arc<OnSignal>>,
-        activities: Option<flume::Sender<ThreadActivity>>,
+        activities: Option<mpp::Sender<ThreadActivity>>,
     ) -> Self {
         Self {
             yielder,
@@ -1397,7 +1397,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         priority: PriorityOrder,
         yielder: T,
         kill_signal: Option<Arc<OnSignal>>,
-        activities: Option<flume::Sender<ThreadActivity>>,
+        activities: Option<mpp::Sender<ThreadActivity>>,
     ) -> Self {
         Self::new(
             tasks,
@@ -1419,7 +1419,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         priority: PriorityOrder,
         yielder: T,
         kill_signal: Option<Arc<OnSignal>>,
-        activities: Option<flume::Sender<ThreadActivity>>,
+        activities: Option<mpp::Sender<ThreadActivity>>,
     ) -> Self {
         Self::from_seed(
             rng.next_u64(),
