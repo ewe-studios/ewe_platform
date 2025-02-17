@@ -873,6 +873,7 @@ dependencies = [
  "signal-hook",
  "thiserror",
  "tokio",
+ "tower",
  "tracing",
  "tracing-subscriber",
 ]
