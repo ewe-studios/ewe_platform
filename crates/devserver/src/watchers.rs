@@ -18,7 +18,7 @@ impl core::fmt::Display for DirectoryWatcherError {
 }
 
 pub struct DirectoryWatcher {
-    pub directory: String,
+    pub directories: Vec<String>,
     pub file_change_sender: broadcast::Sender<()>,
 }
 
@@ -27,12 +27,12 @@ pub struct DirectoryWatcher {
 impl Operator for DirectoryWatcher {
     fn run(&self, mut cancel_signal: broadcast::Receiver<()>) -> crate::types::JoinHandle<()> {
         let sender_copy = self.file_change_sender.clone();
-        let watch_callback = move |_, _, _, _| {
+        let watch_callback = move |_, _, _| {
             sender_copy.send(()).expect("should deliver notification");
             Ok(())
         };
 
-        let watcher_handler = watch_path(300, self.directory.clone(), true, watch_callback)
+        let watcher_handler = watch_path(300, self.directories.clone(), true, watch_callback)
             .expect("should create watcher");
 
         let _ = tokio::spawn(async move {
@@ -55,10 +55,10 @@ impl Operator for DirectoryWatcher {
 impl DirectoryWatcher {
     pub fn new<S>(directory: S, file_change_sender: broadcast::Sender<()>) -> Self
     where
-        S: Into<String>,
+        S: Into<Vec<String>>,
     {
         Self {
-            directory: directory.into(),
+            directories: directory.into(),
             file_change_sender,
         }
     }

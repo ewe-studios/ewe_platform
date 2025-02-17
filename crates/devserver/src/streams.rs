@@ -79,13 +79,13 @@ where
 /// described by the `ProxyRemoteConfig` for the destination.
 pub async fn stream_tunnel(
     mut source: net::TcpStream,
-    source_addr: SocketAddr,
+    service_addr: SocketAddr,
     tunnel: Tunnel,
 ) -> Result<()> {
     let destination_config = tunnel.destination;
     ewe_trace::info!(
         "Starting streaming between client addr {} and destination {} ",
-        source_addr,
+        service_addr,
         destination_config
     );
 
@@ -131,10 +131,10 @@ pub async fn stream_tunnel(
 /// on the type of request going through.
 pub async fn stream_http1(
     source_stream: rt::TokioIo<tokio::net::TcpStream>,
-    source_addr: SocketAddr,
+    service_addr: SocketAddr,
     directive: crate::types::Http1,
 ) -> Result<()> {
-    let handler = Http1Service(source_addr, directive);
+    let handler = Http1Service(service_addr, directive);
 
     match server::conn::http1::Builder::new()
         .preserve_header_case(true)
@@ -173,10 +173,10 @@ impl service::Service<crate::types::HyperRequest> for Http1Service {
             }
         }
 
-        let destination_addr = self.1.destination.to_string();
+        let proxy_addr = self.1.destination.to_string();
         let stream_operation = async move {
             if req.method() != hyper::Method::CONNECT {
-                return match net::TcpStream::connect(destination_addr.clone()).await {
+                return match net::TcpStream::connect(proxy_addr.clone()).await {
                     Ok(destination_conn) => {
                         let destination_stream = rt::TokioIo::new(destination_conn);
 
@@ -191,7 +191,7 @@ impl service::Service<crate::types::HyperRequest> for Http1Service {
                                     if let Err(err) = sender_conn_handle.await {
                                         ewe_trace::error!(
                                             "Connection to destination failed: {} due to error {}",
-                                            destination_addr,
+                                            proxy_addr,
                                             err,
                                         );
                                     }
@@ -216,7 +216,10 @@ impl service::Service<crate::types::HyperRequest> for Http1Service {
                                 }
                             }
                             Err(err) => {
-                                ewe_trace::error!("Failed to build proxy request sender: {:?}", err);
+                                ewe_trace::error!(
+                                    "Failed to build proxy request sender: {:?}",
+                                    err
+                                );
                                 Ok(hyper::Response::builder()
                                     .status(StatusCode::INTERNAL_SERVER_ERROR)
                                     .body(body::Body::new(empty()))
@@ -227,7 +230,7 @@ impl service::Service<crate::types::HyperRequest> for Http1Service {
                     Err(err) => {
                         ewe_trace::error!(
                             "Failed to connect to proxy destination {} due to: {:?}",
-                            destination_addr,
+                            proxy_addr,
                             err
                         );
                         Ok(hyper::Response::builder()

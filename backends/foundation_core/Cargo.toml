@@ -11,8 +11,8 @@ keywords = ["foundations_core", "ewe-platform-core"]
 
 [dependencies]
 derive_more = { version = "1.0.0", features = ["from", "debug", "error"] }
-serde = { version = "1", features = ["derive"]}
-concurrent-queue = { version = "2.5.0"}
+serde = { version = "1", features = ["derive"] }
+concurrent-queue = { version = "2.5.0" }
 toml_datetime = { version = "0.6.8" }
 serde_json = { version = "1" }
 serde_yml = { version = "0.0.12" }
@@ -22,9 +22,9 @@ fastrand = "2.3.0"
 rand = "0.8.5"
 rand_chacha = "0.3.1"
 
-async-trait = { version = "0.1.82"  }
+async-trait = { version = "0.1.82" }
 memchr = "2.7.2"
-wasm_sync = { version="0.1.2" }
+wasm_sync = { version = "0.1.2" }
 tracing = { version = "0.1.40" }
 thiserror = { version = "1.0.57" }
 
@@ -35,11 +35,11 @@ native-tls-crate = { package = "native-tls", version = "0.2.12", optional = true
 
 # optional deps
 # -- tokio, axum and tower
-tokio = { version = "1.36", features= ["sync", "time"], optional=true }
+tokio = { version = "1.36", features = ["sync", "time"], optional = true }
 
 [dev-dependencies]
 tracing-test = { version = "0.2.5" }
-reqwest = {version ="0.12.9", features = ["blocking"]}
+reqwest = { version = "0.12.9", features = ["blocking"] }
 
 [features]
 debug_trace = []
@@ -55,10 +55,10 @@ native-tls-vendored = ["native-tls", "native-tls-crate/vendored"]
 #
 # This feature enables usesful for WebAssembly and like environments
 # where multi-threading is not supported (for the moment).
-nothread_runtime=[]
+nothread_runtime = []
 
 # This feature help enable tokio
-tokio_runtime=["dep:tokio"]
+tokio_runtime = ["dep:tokio"]
 
 default = []
 

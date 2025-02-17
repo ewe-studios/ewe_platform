@@ -1,2 +1,3 @@
 [env]
-TEMPLATES_DIR = { value ="templates", relative = true, force = true }
+TEMPLATES_DIR = { value = "templates", relative = true, force = true }
+EWE_PLATFORM_DIR = { value = ".", relative = true, force = true }

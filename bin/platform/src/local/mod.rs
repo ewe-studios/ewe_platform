@@ -15,29 +15,29 @@ pub fn register(command: clap::Command) -> clap::Command {
         clap::Command::new("local")
             .about("runs a local dev proxy server that builds and reloads your project")
             .arg(
-                clap::Arg::new("source_addr")
-                    .long("source_addr")
+                clap::Arg::new("service_addr")
+                    .long("service_addr")
                     .action(clap::ArgAction::Set)
                     .value_parser(clap::value_parser!(String))
                     .default_value("0.0.0.0"),
             )
             .arg(
-                clap::Arg::new("source_port")
-                    .long("source_port")
+                clap::Arg::new("service_port")
+                    .long("service_port")
                     .action(clap::ArgAction::Set)
                     .value_parser(clap::value_parser!(usize))
                     .default_value("3000"),
             )
             .arg(
-                clap::Arg::new("destination_addr")
-                    .long("destination_addr")
+                clap::Arg::new("proxy_addr")
+                    .long("proxy_addr")
                     .action(clap::ArgAction::Set)
                     .value_parser(clap::value_parser!(String))
                     .default_value("0.0.0.0"),
             )
             .arg(
-                clap::Arg::new("destination_port")
-                    .long("destination_port")
+                clap::Arg::new("proxy_port")
+                    .long("proxy_port")
                     .action(clap::ArgAction::Set)
                     .value_parser(clap::value_parser!(usize))
                     .default_value("3600"),
@@ -83,20 +83,20 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
         binary_name_ref.unwrap().to_owned()
     };
 
-    let source_addr = args
-        .get_one::<String>("source_addr")
+    let service_addr = args
+        .get_one::<String>("service_addr")
         .expect("should have source address");
 
-    let source_port = args
-        .get_one::<usize>("source_port")
+    let service_port = args
+        .get_one::<usize>("service_port")
         .expect("should have source port");
 
-    let destination_addr = args
-        .get_one::<String>("destination_addr")
+    let proxy_addr = args
+        .get_one::<String>("proxy_addr")
         .expect("should have destination address");
 
-    let destination_port = args
-        .get_one::<usize>("destination_port")
+    let proxy_port = args
+        .get_one::<usize>("proxy_port")
         .expect("should have destination port");
 
     let subscriber = FmtSubscriber::builder()
@@ -107,8 +107,8 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
 
     ewe_trace::info!("Starting local binary");
 
-    let destination = ProxyRemoteConfig::new(source_addr.clone(), source_port.clone());
-    let source = ProxyRemoteConfig::new(destination_addr.clone(), destination_port.clone());
+    let destination = ProxyRemoteConfig::new(service_addr.clone(), service_port.clone());
+    let source = ProxyRemoteConfig::new(proxy_addr.clone(), proxy_port.clone());
 
     let tunnel_config = ProxyType::Http1(Http1::new(source, destination, Some(HashMap::new())));
 
@@ -116,7 +116,7 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
         proxy: tunnel_config,
         crate_name: project_name.clone(),
         workspace_root: project_directory.clone(),
-        watch_directory: project_directory.clone(),
+        watch_directories: vec![project_directory.clone()],
         wait_before_reload: time::Duration::from_millis(300), // magic number that works
         target_directory: String::from(format!("{}/target", project_directory.clone())),
         run_arguments: vec!["cargo", "run", "--bin", binary_name.as_str()].to_vec_string(),
