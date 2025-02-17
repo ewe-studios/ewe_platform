@@ -15,7 +15,7 @@ exclude = [
     "templates/http-app",
     "templates/static-html-app",
     "examples/todo",
-    "crates/temple/output_directory"
+    "crates/temple/output_directory",
 ]
 
 [workspace.package]
@@ -33,8 +33,8 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 foundation_core = { path = "./backends/foundation_core", version = "0.0.2" }
 
 # -- internal packages so others can use them
-ewe_web = { path = "./crates/web", version = "0.0.1"}
-ewe_trace = { path = "./crates/trace" , version = "0.0.1"}
+ewe_web = { path = "./crates/web", version = "0.0.1" }
+ewe_trace = { path = "./crates/trace", version = "0.0.1" }
 ewe_html = { path = "./crates/html", version = "0.0.1" }
 ewe_spawn = { path = "./crates/spawn", version = "0.0.1" }
 ewe_temple = { path = "./crates/temple", version = "0.0.2" }
@@ -55,7 +55,7 @@ ewe_templates_macro = { path = "./crates/template-macro", version = "0.0.1" }
 toml = { version = "0.8.19" }
 anyhow = { version = "1.0.80" }
 tracing = { version = "0.1.40" }
-concurrent-queue = { version = "2.5.0"}
+concurrent-queue = { version = "2.5.0" }
 derive_more = { version = "1.0.0", features = ["full"] }
 
 [workspace.lints.clippy]

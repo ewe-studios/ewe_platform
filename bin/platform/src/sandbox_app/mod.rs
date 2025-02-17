@@ -42,29 +42,29 @@ pub fn register(command: clap::Command) -> clap::Command {
         clap::Command::new("sandbox_app")
             .about("runs a local server for running our sandbox applications and demos")
             .arg(
-                clap::Arg::new("source_addr")
-                    .long("source_addr")
+                clap::Arg::new("service_addr")
+                    .long("service_addr")
                     .action(clap::ArgAction::Set)
                     .value_parser(clap::value_parser!(String))
                     .default_value("0.0.0.0"),
             )
             .arg(
-                clap::Arg::new("source_port")
-                    .long("source_port")
+                clap::Arg::new("service_port")
+                    .long("service_port")
                     .action(clap::ArgAction::Set)
                     .value_parser(clap::value_parser!(usize))
-                    .default_value("3050"),
+                    .default_value("3080"),
             ),
     )
 }
 
 pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
-    let source_addr = args
-        .get_one::<String>("source_addr")
+    let service_addr = args
+        .get_one::<String>("service_addr")
         .expect("should have source address");
 
-    let source_port = args
-        .get_one::<usize>("source_port")
+    let service_port = args
+        .get_one::<usize>("service_port")
         .expect("should have source port");
 
     let subscriber = FmtSubscriber::builder()
@@ -75,7 +75,7 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
 
     let app = Router::new().route("/", get(handler));
 
-    let listener = tokio::net::TcpListener::bind(format!("{}:{}", source_addr, source_port))
+    let listener = tokio::net::TcpListener::bind(format!("{}:{}", service_addr, service_port))
         .await
         .unwrap();
 

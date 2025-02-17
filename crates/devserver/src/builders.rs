@@ -52,7 +52,7 @@ impl HttpDevService {
         });
 
         let project_directory_watcher = DirectoryWatcher::new(
-            self.project.watch_directory.clone(),
+            self.project.watch_directories.clone(),
             self.package_changes.clone(),
         );
 

@@ -7,19 +7,15 @@ rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-keywords = [
-    "ewe-platform",
-    "ewe-platform-cli",
-    "ewe-platform-binary",
-]
+keywords = ["ewe-platform", "ewe-platform-cli", "ewe-platform-binary"]
 
 [dependencies]
 # -- workspace dependency
 ewe_temple = { workspace = true }
 ewe_watch_utils = { workspace = true }
 ewe_watchers = { workspace = true }
-ewe_devserver = { workspace = true  }
-ewe_trace = { workspace = true,  features = ["standard"]}
+ewe_devserver = { workspace = true }
+ewe_trace = { workspace = true, features = ["standard"] }
 foundation_core = { workspace = true }
 
 # base crates
@@ -27,9 +23,10 @@ derive_more.workspace = true
 tracing = { workspace = true }
 
 # asset embedding
-rust-embed = { version = "8.5", features = ["interpolate-folder-path"]}
+rust-embed = { version = "8.5", features = ["interpolate-folder-path"] }
 
 # cli
+ctrlc = { version = "3.4" }
 clap = { version = "4.5.20", features = ["derive"] }
 signal-hook = { version = "0.3.17" }
 
@@ -43,8 +40,8 @@ tokio = { version = "1.36", features = ["full"], default-features = true }
 bytes = { version = "1.6.1" }
 http = { version = "1.1" }
 http-body = { version = "1.0" }
-hyper = { version = "1.4.1", features = ["full"]}
-hyper-util = { version = "0.1.7"}
+hyper = { version = "1.4.1", features = ["full"] }
+hyper-util = { version = "0.1.7" }
 http-body-util = { version = "0.1.2" }
 
 # -- serve# -- serve
@@ -57,7 +54,7 @@ anyhow = { version = "1.0.80" }
 thiserror = { version = "1.0.57" }
 
 # -- tracing crates
-tracing-subscriber = { version = "0.3.18", features = ["fmt"]}
+tracing-subscriber = { version = "0.3.18", features = ["fmt"] }
 
 [features]
 debug_trace = ["ewe_trace/debug_trace"]

@@ -854,6 +854,7 @@ dependencies = [
  "bytes",
  "clap",
  "crossbeam",
+ "ctrlc",
  "derive_more",
  "ewe_devserver",
  "ewe_temple",

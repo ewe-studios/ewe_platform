@@ -11,10 +11,10 @@ use crate::{types::HyperFuncMap, ProxyType};
 #[derive(Clone, Debug, From)]
 pub struct ProjectDefinition {
     pub proxy: ProxyType,
-    pub watch_directory: String,
     pub target_directory: String,
     pub workspace_root: String,
     pub crate_name: String,
+    pub watch_directories: Vec<String>,
     pub build_arguments: Vec<String>,
     pub run_arguments: Vec<String>,
     pub wait_before_reload: time::Duration,

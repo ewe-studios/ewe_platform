@@ -38,15 +38,23 @@ pub type NotifyWatcher = notify_debouncer_full::Debouncer<
 pub struct WatchHandle<T>(pub JoinHandle<T>, pub NotifyWatcher);
 
 pub fn create_notify_watcher(
-    target_path: String,
     debounce_millis: u64,
-    be_recursive: bool,
     sender: std::sync::mpsc::Sender<DebounceEventResult>,
 ) -> Result<NotifyWatcher> {
-    let mut watcher: NotifyWatcher =
+    let watcher: NotifyWatcher =
         new_debouncer(Duration::from_millis(debounce_millis), None, sender)?;
+    Ok(watcher)
+}
 
-    let watcher_path = Path::new(&target_path);
+pub fn watch_path(
+    debounce_millis: u64,
+    target_paths: Vec<String>,
+    be_recursive: bool,
+    handler: impl Fn(Instant, EventKind, Vec<PathBuf>) -> Result<()> + Send + Sync + 'static,
+) -> Result<WatchHandle<()>> {
+    let (tx, rx) = std::sync::mpsc::channel();
+
+    let mut watcher = create_notify_watcher(debounce_millis, tx)?;
 
     let r_mode = if be_recursive {
         notify::RecursiveMode::Recursive
@@ -55,20 +63,11 @@ pub fn create_notify_watcher(
     };
 
     // watch target path
-    watcher.watcher().watch(watcher_path.as_ref(), r_mode)?;
-
-    Ok(watcher)
-}
-
-pub fn watch_path(
-    debounce_millis: u64,
-    target_path: String,
-    be_recursive: bool,
-    handler: impl Fn(String, Instant, EventKind, Vec<PathBuf>) -> Result<()> + Send + Sync + 'static,
-) -> Result<WatchHandle<()>> {
-    let (tx, rx) = std::sync::mpsc::channel();
-
-    let watcher = create_notify_watcher(target_path.clone(), debounce_millis, be_recursive, tx)?;
+    for watcher_path in target_paths {
+        watcher
+            .watcher()
+            .watch(Path::new(&watcher_path).as_ref(), r_mode)?;
+    }
 
     // listen for change events
     let join_handler = thread::spawn(move || {
@@ -78,12 +77,9 @@ pub fn watch_path(
                     for event in events {
                         match event.kind {
                             EventKind::Create(_) | EventKind::Remove(_) | EventKind::Modify(_) => {
-                                if let Err(failed) = handler(
-                                    target_path.clone(),
-                                    event.time,
-                                    event.kind,
-                                    event.paths.clone(),
-                                ) {
+                                if let Err(failed) =
+                                    handler(event.time, event.kind, event.paths.clone())
+                                {
                                     ewe_trace::error!("Failed execution of update: {}", failed);
                                 }
                             }
