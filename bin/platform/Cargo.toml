@@ -34,8 +34,9 @@ clap = { version = "4.5.20", features = ["derive"] }
 signal-hook = { version = "0.3.17" }
 
 # -- tokio, axum and tower
+tower = { version = "0.4.13" }
 crossbeam = { version = "0.8" }
-axum = { version = "0.7.5" }
+axum = { version = "0.7.5", default-features = true }
 tokio = { version = "1.36", features = ["full"], default-features = true }
 
 # -- http and hyper

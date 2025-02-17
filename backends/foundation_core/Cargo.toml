@@ -34,8 +34,8 @@ ctrlc = { version = "3.4" }
 native-tls-crate = { package = "native-tls", version = "0.2.12", optional = true }
 
 # optional deps
+# -- tokio, axum and tower
 tokio = { version = "1.36", features= ["sync", "time"], optional=true }
-
 
 [dev-dependencies]
 tracing-test = { version = "0.2.5" }
