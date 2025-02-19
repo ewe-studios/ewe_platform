@@ -1,4 +1,6 @@
+use rust_embed::Embed;
+
 #[derive(Embed)]
-#[folder = "packages/"]
+#[folder = "src/megatron/jsdom/packages/"]
 #[prefix = "packages/"]
 pub struct Packages;

@@ -7,6 +7,7 @@ pub mod directorate;
 pub mod extensions;
 pub mod io;
 pub mod macros;
+pub mod megatron;
 pub mod retries;
 pub mod synca;
 pub mod valtron;

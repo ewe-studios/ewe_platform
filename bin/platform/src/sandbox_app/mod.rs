@@ -1,7 +1,8 @@
 use core::str;
-use core::time;
+use std::str::pattern::Pattern;
 
 use axum::{
+    extract::Request,
     response::{Html, IntoResponse, Response},
     routing::get,
     Router,
@@ -11,14 +12,7 @@ use rust_embed::Embed;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
-use ewe_devserver::{
-    types::{Http1, ProxyRemoteConfig},
-    HttpDevService, ProjectDefinition, ProxyType, VecStringExt,
-};
-use std::collections::HashMap;
-use tokio::sync::broadcast;
-
-// use crate::jsdom::Packages;
+use foundation_core::megatron::jsdom::Packages;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
@@ -27,8 +21,46 @@ type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 #[prefix = "public/"]
 struct Public;
 
-async fn handler() -> Response {
+async fn index_handler() -> Response {
     match Public::get("public/index.html") {
+        Some(html_data) => {
+            let content = String::from_utf8(html_data.data.to_vec()).expect("should generate str");
+            Html(content).into_response()
+        }
+        None => (StatusCode::NOT_FOUND, "404 NOT FOUND").into_response(),
+    }
+}
+
+async fn megatron_handler(req: Request) -> Response {
+    let request_path = req.uri().path();
+    tracing::info!(
+        "[MegatronHandler] Received request for path: {}",
+        request_path
+    );
+    match Packages::get(
+        request_path
+            .strip_prefix("/")
+            .unwrap_or_else(|| request_path.clone()),
+    ) {
+        Some(html_data) => {
+            let content = String::from_utf8(html_data.data.to_vec()).expect("should generate str");
+            Html(content).into_response()
+        }
+        None => (StatusCode::NOT_FOUND, "404 NOT FOUND").into_response(),
+    }
+}
+
+async fn public_handler(req: Request) -> Response {
+    let request_path = req.uri().path();
+    tracing::info!(
+        "[PublicHandler] Received request for path: {}",
+        request_path
+    );
+    match Public::get(
+        request_path
+            .strip_prefix("/")
+            .unwrap_or_else(|| request_path.clone()),
+    ) {
         Some(html_data) => {
             let content = String::from_utf8(html_data.data.to_vec()).expect("should generate str");
             Html(content).into_response()
@@ -61,19 +93,23 @@ pub fn register(command: clap::Command) -> clap::Command {
 pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
     let service_addr = args
         .get_one::<String>("service_addr")
-        .expect("should have source address");
+        .expect("should have service address");
 
     let service_port = args
         .get_one::<usize>("service_port")
-        .expect("should have source port");
+        .expect("should have service port");
 
     let subscriber = FmtSubscriber::builder()
         .with_max_level(Level::TRACE)
         .finish();
 
-    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+    tracing::subscriber::set_global_default(subscriber)
+        .expect("setting default trace subscriber failed");
 
-    let app = Router::new().route("/", get(handler));
+    let app = Router::new()
+        .route("/", get(index_handler))
+        .route("/public/*path", get(public_handler))
+        .route("/megatron/*rest", get(megatron_handler));
 
     let listener = tokio::net::TcpListener::bind(format!("{}:{}", service_addr, service_port))
         .await
