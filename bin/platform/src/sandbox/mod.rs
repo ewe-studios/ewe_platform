@@ -65,11 +65,11 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
 
     let service_addr = args
         .get_one::<String>("service_addr")
-        .expect("should have source address");
+        .expect("should have service address");
 
     let service_port = args
         .get_one::<usize>("service_port")
-        .expect("should have source port");
+        .expect("should have service port");
 
     let proxy_addr = args
         .get_one::<String>("proxy_addr")
