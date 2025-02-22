@@ -1,0 +1,122 @@
+let SessionLoad = 1
+let s:so_save = &g:so | let s:siso_save = &g:siso | setg so=0 siso=0 | setl so=-1 siso=-1
+let v:this_session=expand("<sfile>:p")
+silent only
+silent tabonly
+cd ~/Labs/ewestudios/ewe_platform
+if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
+  let s:wipebuf = bufnr('%')
+endif
+let s:shortmess_save = &shortmess
+if &shortmess =~ 'A'
+  set shortmess=aoOA
+else
+  set shortmess=aoO
+endif
+badd +75 ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox/mod.rs
+badd +36 ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox_app/mod.rs
+argglobal
+%argdel
+edit ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox_app/mod.rs
+let s:save_splitbelow = &splitbelow
+let s:save_splitright = &splitright
+set splitbelow splitright
+wincmd _ | wincmd |
+vsplit
+1wincmd h
+wincmd w
+let &splitbelow = s:save_splitbelow
+let &splitright = s:save_splitright
+wincmd t
+let s:save_winminheight = &winminheight
+let s:save_winminwidth = &winminwidth
+set winminheight=0
+set winheight=1
+set winminwidth=0
+set winwidth=1
+wincmd =
+argglobal
+balt ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox/mod.rs
+setlocal fdm=expr
+setlocal fde=v:lua.require'lazyvim.util'.ui.foldexpr()
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=99
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+34
+normal! zo
+36
+normal! zo
+41
+normal! zo
+41
+normal! zo
+41
+normal! zo
+42
+normal! zo
+let s:l = 36 - ((18 * winheight(0) + 39) / 78)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 36
+normal! 017|
+wincmd w
+argglobal
+if bufexists(fnamemodify("~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox/mod.rs", ":p")) | buffer ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox/mod.rs | else | edit ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox/mod.rs | endif
+if &buftype ==# 'terminal'
+  silent file ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox/mod.rs
+endif
+setlocal fdm=expr
+setlocal fde=v:lua.require'lazyvim.util'.ui.foldexpr()
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=99
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+14
+normal! zo
+15
+normal! zo
+16
+normal! zo
+43
+normal! zo
+43
+normal! zo
+43
+normal! zo
+43
+normal! zo
+53
+normal! zo
+let s:l = 75 - ((65 * winheight(0) + 39) / 78)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 75
+normal! 034|
+wincmd w
+wincmd =
+tabnext 1
+if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
+  silent exe 'bwipe ' . s:wipebuf
+endif
+unlet! s:wipebuf
+set winheight=1 winwidth=20
+let &shortmess = s:shortmess_save
+let &winminheight = s:save_winminheight
+let &winminwidth = s:save_winminwidth
+let s:sx = expand("<sfile>:p:r")."x.vim"
+if filereadable(s:sx)
+  exe "source " . fnameescape(s:sx)
+endif
+let &g:so = s:so_save | let &g:siso = s:siso_save
+set hlsearch
+nohlsearch
+doautoall SessionLoadPost
+unlet SessionLoad
+" vim: set ft=vim :
