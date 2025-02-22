@@ -1,5 +1,4 @@
 use core::str;
-use std::str::pattern::Pattern;
 
 use axum::{
     extract::Request,
@@ -12,7 +11,7 @@ use rust_embed::Embed;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
-use foundation_core::megatron::jsdom::Packages;
+use foundation_core::megatron::jsdom::package_request_handler;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
@@ -37,13 +36,10 @@ async fn megatron_handler(req: Request) -> Response {
         "[MegatronHandler] Received request for path: {}",
         request_path
     );
-    match Packages::get(
-        request_path
-            .strip_prefix("/")
-            .unwrap_or_else(|| request_path.clone()),
-    ) {
-        Some(html_data) => {
-            let content = String::from_utf8(html_data.data.to_vec()).expect("should generate str");
+    match package_request_handler("megatron".into(), request_path) {
+        Some(file_content) => {
+            let content =
+                String::from_utf8(file_content.data.to_vec()).expect("should generate str");
             Html(content).into_response()
         }
         None => (StatusCode::NOT_FOUND, "404 NOT FOUND").into_response(),
@@ -59,7 +55,7 @@ async fn public_handler(req: Request) -> Response {
     match Public::get(
         request_path
             .strip_prefix("/")
-            .unwrap_or_else(|| request_path.clone()),
+            .unwrap_or_else(|| request_path),
     ) {
         Some(html_data) => {
             let content = String::from_utf8(html_data.data.to_vec()).expect("should generate str");
