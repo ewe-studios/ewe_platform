@@ -13,7 +13,7 @@ pub struct Packages;
 /// will serve static files from the [Packages] directory providing
 /// a way to use the underlying files from within it as part of
 /// your routes.
-/// It expects you to provide the name prefix the route wiill be coming
+/// It expects you to provide the name prefix the route will be coming
 /// with as that determines how we will swap that name to `packages/`.
 ///
 /// i.e if the path incoming is /public/packer.js then the
