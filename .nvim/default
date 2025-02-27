@@ -13,12 +13,17 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +76 ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/packages/arena.js
 badd +1 backends/foundation_core/src/megatron/jsdom/packages/packer.js
-badd +40 ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/mod.rs
+badd +41 backends/foundation_core/src/megatron/jsdom/mod.rs
+badd +104 backends/foundation_core/src/megatron/jsdom/packages/runtime.js
+badd +1 backends/foundation_core/src/megatron/mod.rs
+badd +1 ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox_app/public/index.html
+badd +11 ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/packages/index.html
+badd +1 ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox_app/public/index.js
+badd +30 ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox_app/mod.rs
 argglobal
 %argdel
-edit ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/mod.rs
+edit ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox_app/mod.rs
 let s:save_splitbelow = &splitbelow
 let s:save_splitright = &splitright
 set splitbelow splitright
@@ -37,7 +42,7 @@ set winminwidth=0
 set winwidth=1
 wincmd =
 argglobal
-balt ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/packages/arena.js
+balt ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox_app/public/index.js
 setlocal fdm=expr
 setlocal fde=nvim_treesitter#foldexpr()
 setlocal fmr={{{,}}}
@@ -46,18 +51,29 @@ setlocal fdl=99
 setlocal fml=1
 setlocal fdn=20
 setlocal fen
-let s:l = 40 - ((39 * winheight(0) + 36) / 72)
+23
+normal! zo
+24
+normal! zo
+25
+normal! zo
+30
+normal! zo
+31
+normal! zo
+let s:l = 30 - ((29 * winheight(0) + 36) / 72)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 40
-normal! 05|
+keepjumps 30
+normal! 09|
 wincmd w
 argglobal
-if bufexists(fnamemodify("~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/packages/arena.js", ":p")) | buffer ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/packages/arena.js | else | edit ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/packages/arena.js | endif
+if bufexists(fnamemodify("~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/packages/index.html", ":p")) | buffer ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/packages/index.html | else | edit ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/packages/index.html | endif
 if &buftype ==# 'terminal'
-  silent file ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/packages/arena.js
+  silent file ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/packages/index.html
 endif
+balt backends/foundation_core/src/megatron/jsdom/mod.rs
 setlocal fdm=expr
 setlocal fde=nvim_treesitter#foldexpr()
 setlocal fmr={{{,}}}
@@ -66,20 +82,14 @@ setlocal fdl=99
 setlocal fml=1
 setlocal fdn=20
 setlocal fen
-6
+1
 normal! zo
-42
-normal! zo
-52
-normal! zo
-53
-normal! zo
-let s:l = 77 - ((64 * winheight(0) + 36) / 72)
+let s:l = 11 - ((10 * winheight(0) + 36) / 72)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 77
-normal! 04|
+keepjumps 11
+normal! 055|
 wincmd w
 wincmd =
 tabnext 1

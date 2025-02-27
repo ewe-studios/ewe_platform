@@ -21,12 +21,21 @@ type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 struct Public;
 
 async fn index_handler() -> Response {
-    match Public::get("public/index.html") {
-        Some(html_data) => {
-            let content = String::from_utf8(html_data.data.to_vec()).expect("should generate str");
+    match package_request_handler("megatron".into(), "index.html") {
+        Some(file_content) => {
+            let content =
+                String::from_utf8(file_content.data.to_vec()).expect("should generate str");
             Html(content).into_response()
         }
-        None => (StatusCode::NOT_FOUND, "404 NOT FOUND").into_response(),
+        None => {
+            match Public::get("public/index.html") {
+                Some(html_data) => {
+                    let content = String::from_utf8(html_data.data.to_vec()).expect("should generate str");
+                    Html(content).into_response()
+                }
+                None => (StatusCode::NOT_FOUND, "404 NOT FOUND").into_response(),
+            }
+        }
     }
 }
 
