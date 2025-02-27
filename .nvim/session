@@ -13,11 +13,12 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +75 ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox/mod.rs
-badd +36 ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox_app/mod.rs
+badd +76 ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/packages/arena.js
+badd +1 backends/foundation_core/src/megatron/jsdom/packages/packer.js
+badd +40 ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/mod.rs
 argglobal
 %argdel
-edit ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox_app/mod.rs
+edit ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/mod.rs
 let s:save_splitbelow = &splitbelow
 let s:save_splitright = &splitright
 set splitbelow splitright
@@ -36,69 +37,49 @@ set winminwidth=0
 set winwidth=1
 wincmd =
 argglobal
-balt ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox/mod.rs
+balt ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/packages/arena.js
 setlocal fdm=expr
-setlocal fde=v:lua.require'lazyvim.util'.ui.foldexpr()
+setlocal fde=nvim_treesitter#foldexpr()
 setlocal fmr={{{,}}}
 setlocal fdi=#
 setlocal fdl=99
 setlocal fml=1
 setlocal fdn=20
 setlocal fen
-34
-normal! zo
-36
-normal! zo
-41
-normal! zo
-41
-normal! zo
-41
+let s:l = 40 - ((39 * winheight(0) + 36) / 72)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 40
+normal! 05|
+wincmd w
+argglobal
+if bufexists(fnamemodify("~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/packages/arena.js", ":p")) | buffer ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/packages/arena.js | else | edit ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/packages/arena.js | endif
+if &buftype ==# 'terminal'
+  silent file ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/packages/arena.js
+endif
+setlocal fdm=expr
+setlocal fde=nvim_treesitter#foldexpr()
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=99
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+6
 normal! zo
 42
 normal! zo
-let s:l = 36 - ((18 * winheight(0) + 39) / 78)
-if s:l < 1 | let s:l = 1 | endif
-keepjumps exe s:l
-normal! zt
-keepjumps 36
-normal! 017|
-wincmd w
-argglobal
-if bufexists(fnamemodify("~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox/mod.rs", ":p")) | buffer ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox/mod.rs | else | edit ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox/mod.rs | endif
-if &buftype ==# 'terminal'
-  silent file ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox/mod.rs
-endif
-setlocal fdm=expr
-setlocal fde=v:lua.require'lazyvim.util'.ui.foldexpr()
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=99
-setlocal fml=1
-setlocal fdn=20
-setlocal fen
-14
-normal! zo
-15
-normal! zo
-16
-normal! zo
-43
-normal! zo
-43
-normal! zo
-43
-normal! zo
-43
+52
 normal! zo
 53
 normal! zo
-let s:l = 75 - ((65 * winheight(0) + 39) / 78)
+let s:l = 77 - ((64 * winheight(0) + 36) / 72)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 75
-normal! 034|
+keepjumps 77
+normal! 04|
 wincmd w
 wincmd =
 tabnext 1

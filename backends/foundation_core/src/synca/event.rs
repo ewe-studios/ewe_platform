@@ -84,7 +84,7 @@ impl LockSignal {
     /// and if so, its a no-op and in such cases we return
     /// false to communicate `LockSignal` is already locked
     /// but to be clear this does not mean an error, it just
-    /// means somethign else locked this `LockSignal` and you
+    /// means something else locked this `LockSignal` and you
     /// are free to call `LockSignal::wait()` as well to wait
     /// for wakeup signal.
     pub fn try_lock(&self) -> bool {

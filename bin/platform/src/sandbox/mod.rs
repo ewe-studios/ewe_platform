@@ -51,7 +51,6 @@ pub fn register(command: clap::Command) -> clap::Command {
 }
 
 pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
-    //let current_directory = std::env::current_dir()?;
     let project_directory = std::env::var("EWE_PLATFORM_DIR")?;
     let backends_directory = format!("{}/backends", project_directory.clone());
     let crates_directory = format!("{}/crates", project_directory.clone());
@@ -120,7 +119,6 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
 
     let (cancel_sender, cancel_receiver) = broadcast::channel::<()>(1);
 
-    // TODO: implement signal handling
     ctrlc::set_handler(move || {
         cancel_sender.send(()).expect("should send signal");
     })
