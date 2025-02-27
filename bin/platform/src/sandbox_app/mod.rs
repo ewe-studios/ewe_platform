@@ -105,7 +105,7 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
     let app = Router::new()
         .route("/", get(index_handler))
         .route("/public/*path", get(public_handler))
-        .route("/megatron/*rest", get(megatron_handler));
+        .route("/megatron/*path", get(megatron_handler));
 
     let listener = tokio::net::TcpListener::bind(format!("{}:{}", service_addr, service_port))
         .await
