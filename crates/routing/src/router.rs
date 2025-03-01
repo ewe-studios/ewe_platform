@@ -61,7 +61,7 @@ pub struct Router<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> 
     root: RouteSegment<'a, R, S, Server>,
 }
 
-/// RouterService wraps a Router instance and transforms into a tower::Service for the
+/// `RouterService` wraps a Router instance and transforms into a `tower::Service` for the
 /// attachment to an axum Router, it expects the usize defining the max body size the
 /// service can take.
 #[derive(Clone)]
@@ -118,41 +118,38 @@ where
                         match server.serve(request).await {
                             Ok(response) => {
                                 let (mut res_head, res_body) = response.into_parts();
-                                match res_body {
-                                    Some(content) => {
-                                        let mut response_builder = http::response::Builder::new()
-                                            .status(res_head.status)
-                                            .version(res_head.version);
+                                if let Some(content) = res_body {
+                                    let mut response_builder = http::response::Builder::new()
+                                        .status(res_head.status)
+                                        .version(res_head.version);
 
-                                        response_builder
-                                            .headers_mut()
-                                            .replace(res_head.headers_mut());
+                                    response_builder
+                                        .headers_mut()
+                                        .replace(res_head.headers_mut());
 
-                                        response_builder
-                                            .extensions_mut()
-                                            .replace(res_head.extensions_mut());
+                                    response_builder
+                                        .extensions_mut()
+                                        .replace(res_head.extensions_mut());
 
-                                        let converted_body = S::into_body(content).unwrap();
+                                    let converted_body = S::into_body(content).unwrap();
 
-                                        Ok(response_builder.body(converted_body).unwrap())
-                                    }
-                                    None => {
-                                        let mut response_builder = http::response::Builder::new()
-                                            .status(res_head.status)
-                                            .version(res_head.version);
+                                    Ok(response_builder.body(converted_body).unwrap())
+                                } else {
+                                    let mut response_builder = http::response::Builder::new()
+                                        .status(res_head.status)
+                                        .version(res_head.version);
 
-                                        response_builder
-                                            .headers_mut()
-                                            .replace(res_head.headers_mut());
+                                    response_builder
+                                        .headers_mut()
+                                        .replace(res_head.headers_mut());
 
-                                        response_builder
-                                            .extensions_mut()
-                                            .replace(res_head.extensions_mut());
+                                    response_builder
+                                        .extensions_mut()
+                                        .replace(res_head.extensions_mut());
 
-                                        let converted_body = S::into_body(S::default()).unwrap();
+                                    let converted_body = S::into_body(S::default()).unwrap();
 
-                                        Ok(response_builder.body(converted_body).unwrap())
-                                    }
+                                    Ok(response_builder.body(converted_body).unwrap())
                                 }
                             }
                             Err(_bad_err) => {
@@ -259,7 +256,7 @@ where
         let get_route_result = self
             .root
             .match_route(method.clone(), &route)
-            .map_err(|e| RouterErrors::RouteError(e));
+            .map_err(RouterErrors::RouteError);
 
         let fallback_route_result = self
             .fallback
@@ -378,7 +375,7 @@ mod router_tests {
 
     impl Default for MyResponse {
         fn default() -> Self {
-            MyResponse::World(String::from(""))
+            MyResponse::World(String::new())
         }
     }
 
@@ -404,14 +401,13 @@ mod router_tests {
             if let Some(message) = body.take() {
                 let MyRequests::Hello(content) = message;
                 return Ok(Response::from(
-                    Some(MyResponse::World(String::from(format!(
-                        "{} World!",
-                        content,
-                    )))),
+                    Some(MyResponse::World(format!(
+                        "{content} World!",
+                    ))),
                     ResponseHead::standard(StatusCode::OK),
                 ));
             }
-            return Err(RouterErrors::IntervalError);
+            Err(RouterErrors::IntervalError)
         })
     }
 
@@ -425,7 +421,7 @@ mod router_tests {
         let mut router = Router::new(fallback);
         assert!(matches!(
             router.route("/hello", RouteMethod::get(hello_server)),
-            RouterResult::Ok(_)
+            RouterResult::Ok(())
         ));
 
         let hello_endpoint = Uri::from_static("/hello");
@@ -456,7 +452,7 @@ mod router_tests {
         let hello_server = create_servicer_func(hello_request);
         assert!(matches!(
             router.route("/hello", RouteMethod::get(hello_server)),
-            RouterResult::Ok(_)
+            RouterResult::Ok(())
         ));
 
         let hello_endpoint = Uri::from_static("/world");
@@ -484,7 +480,7 @@ mod router_tests {
         let mut router = Router::new(fallback);
         assert!(matches!(
             router.route("/*", RouteMethod::get(hello_server)),
-            RouterResult::Ok(_)
+            RouterResult::Ok(())
         ));
 
         let hello_endpoint = Uri::from_static("/");
@@ -516,7 +512,7 @@ mod router_tests {
         let mut router = Router::new(fallback);
         assert!(matches!(
             router.route("/*", RouteMethod::get(hello_server)),
-            RouterResult::Ok(_)
+            RouterResult::Ok(())
         ));
 
         let hello_endpoint = Uri::from_static("/hello");
@@ -547,7 +543,7 @@ mod router_tests {
         let hello_server = create_servicer_func(hello_request);
         assert!(matches!(
             our_router.route("/*", RouteMethod::get(hello_server)),
-            RouterResult::Ok(_)
+            RouterResult::Ok(())
         ));
 
         let our_router_service = RouterService::new(1024, our_router);

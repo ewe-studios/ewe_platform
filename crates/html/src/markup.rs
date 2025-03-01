@@ -65,7 +65,7 @@ pub struct Attribute<'a> {
     encoding: encoding::SharedEncoding,
 }
 
-impl<'a> memory::Resetable for Attribute<'a> {
+impl memory::Resetable for Attribute<'_> {
     fn reset(&mut self) {
         self.name.take();
         self.value.take();
@@ -220,7 +220,7 @@ fn deallocate_nodes<'a>(
     match list.take() {
         None => Ok(()),
         Some(mut nodes) => {
-            for container in nodes.iter_mut() {
+            for container in &mut nodes {
                 match container.take() {
                     None => continue,
                     Some(node) => {
@@ -245,7 +245,7 @@ fn deallocate_attributes<'a>(
     match attributes.take() {
         None => Ok(()),
         Some(mut attrs) => {
-            for container in attrs.iter_mut() {
+            for container in &mut attrs {
                 match container.take() {
                     None => continue,
                     Some(attr) => {
@@ -271,11 +271,11 @@ fn deallocate_markup_list<'a>(
     match list.take() {
         None => Ok(()),
         Some(mut nodes) => {
-            for container in nodes.iter_mut() {
+            for container in &mut nodes {
                 match deallocate_markup(container.take(), node_pool.clone(), attribute_pool.clone())
                 {
                     Err(err) => return Err(err),
-                    Ok(_) => continue,
+                    Ok(()) => continue,
                 }
             }
             Ok(())
@@ -386,7 +386,10 @@ impl<'a> FragmentDef<'a> {
         match self {
             FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
                 None => Err(ElementError::NotUsable),
-                Some(node) => Ok(node.name(name)),
+                Some(node) => {
+                    node.name(name);
+                    Ok(())
+                },
             },
             _ => Err(ElementError::NotUsable),
         }
@@ -526,7 +529,7 @@ impl<'a> Fragment<'a> {
             Ok(mut fragment) => {
                 fragment.attributes = fragment_attributes;
 
-                for before_element in self.before.iter() {
+                for before_element in &self.before {
                     match before_element {
                         Some(_item) => {}
                         None => continue,
@@ -587,12 +590,12 @@ impl<'a> Fragment<'a> {
         self.update_attribute(
             Bytes::from_str(name, self.encoding.clone()),
             Bytes::from_str(value, self.encoding.clone()),
-        )
+        );
     }
 
     pub fn has_attr(&mut self, name: &'a str) -> bool {
         let encoded_str = Bytes::from_str(name, self.encoding.clone());
-        return self
+        self
             .attributes
             .iter_mut()
             .find(|attr_container| {
@@ -607,7 +610,7 @@ impl<'a> Fragment<'a> {
                 }
                 false
             })
-            .is_some();
+            .is_some()
     }
 
     #[cfg_attr(
@@ -616,7 +619,7 @@ impl<'a> Fragment<'a> {
     )]
     pub fn attr_value(&mut self, name: &'a str) -> Option<Bytes<'a>> {
         let encoded_str = Bytes::from_str(name, self.encoding.clone());
-        return match self.attributes.iter_mut().find(|attr_container| {
+        match self.attributes.iter_mut().find(|attr_container| {
             if let Some(attr) = attr_container {
                 return attr.name_bytes().unwrap() == encoded_str;
             }
@@ -629,7 +632,7 @@ impl<'a> Fragment<'a> {
                 None
             }
             None => None,
-        };
+        }
     }
 
     #[cfg_attr(
@@ -719,7 +722,7 @@ impl<'a> Fragment<'a> {
     }
 }
 
-impl<'a> memory::Resetable for Fragment<'a> {
+impl memory::Resetable for Fragment<'_> {
     #[cfg_attr(
         feature = "debug_trace",
         debug_trace::instrument(level = "trace", skip_all)
@@ -727,7 +730,7 @@ impl<'a> memory::Resetable for Fragment<'a> {
     fn reset(&mut self) {
         self.name.take();
 
-        for attribute in self.attributes.iter_mut() {
+        for attribute in &mut self.attributes {
             if let Some(attr) = attribute.take() {
                 self.attribute_pool.borrow_mut().deallocate(attr);
             }
@@ -735,7 +738,7 @@ impl<'a> memory::Resetable for Fragment<'a> {
 
         self.attributes.clear();
 
-        for elem in self.content.iter_mut() {
+        for elem in &mut self.content {
             deallocate_markup(
                 elem.take(),
                 self.node_pool.clone(),
@@ -746,7 +749,7 @@ impl<'a> memory::Resetable for Fragment<'a> {
 
         self.content.clear();
 
-        for elem in self.before.iter_mut() {
+        for elem in &mut self.before {
             deallocate_markup(
                 elem.take(),
                 self.node_pool.clone(),
@@ -757,7 +760,7 @@ impl<'a> memory::Resetable for Fragment<'a> {
 
         self.before.clear();
 
-        for elem in self.after.iter_mut() {
+        for elem in &mut self.after {
             deallocate_markup(
                 elem.take(),
                 self.node_pool.clone(),
@@ -782,13 +785,13 @@ pub enum IslandError {
 /// Islands are the fundamental means to define unique components and the underlying content
 /// they generate. It takes a root into which it pushes the core result into.
 pub trait Island<'a> {
-    /// render_into renders the given fragment as a content of the root.   fn render_into(&self, root: Fragment<'a>) -> Result<(), IslandError>;
+    /// `render_into` renders the given fragment as a content of the root.   fn `render_into(&self`, root: Fragment<'a>) -> Result<(), `IslandError`>;
     fn render_into(&self, root: Fragment<'a>) -> Result<(), IslandError>;
 
-    /// render_before renders given fragment as a before content of the root.   fn render_into(&self, root: Fragment<'a>) -> Result<(), IslandError>;
+    /// `render_before` renders given fragment as a before content of the root.   fn `render_into(&self`, root: Fragment<'a>) -> Result<(), `IslandError`>;
     fn render_before(&self, root: Fragment<'a>) -> Result<(), IslandError>;
 
-    /// render_after renders the given fragment as a after content of the root.   fn render_into(&self, root: Fragment<'a>) -> Result<(), IslandError>;
+    /// `render_after` renders the given fragment as a after content of the root.   fn `render_into(&self`, root: Fragment<'a>) -> Result<(), `IslandError`>;
     fn render_after(&self, root: Fragment<'a>) -> Result<(), IslandError>;
 }
 
@@ -812,7 +815,7 @@ pub enum IslandAddr<'a> {
     Remote(&'a str),
 }
 
-/// FragementRef provides a type indicating to the Island what type of fragment
+/// `FragementRef` provides a type indicating to the Island what type of fragment
 /// its dealing with, this is useful as a metadata to how an island might what to
 /// deal with the parent.
 ///
@@ -897,7 +900,7 @@ mod markup_tests {
         assert_eq!(node.before_node_size(), 0);
         assert_eq!(node.after_node_size(), 0);
 
-        assert!(matches!(node.remove_child_at(0), ElementResult::Ok(_)));
+        assert!(matches!(node.remove_child_at(0), ElementResult::Ok(())));
 
         assert_eq!(node.children_size(), 0);
         assert_eq!(node.before_node_size(), 0);
@@ -1022,11 +1025,11 @@ mod markup_tests {
         node.add_attribute("width", "400px");
         node.add_attribute("height", "400px");
 
-        assert_eq!(node.has_attr("width"), true);
-        assert_eq!(node.has_attr("height"), true);
+        assert!(node.has_attr("width"));
+        assert!(node.has_attr("height"));
 
-        assert!(matches!(node.attr_value("width"), Some(_)));
-        assert!(matches!(node.attr_value("height"), Some(_)));
+        assert!(node.attr_value("width").is_some());
+        assert!(node.attr_value("height").is_some());
 
         assert_eq!(
             node.attr_value("width").unwrap(),

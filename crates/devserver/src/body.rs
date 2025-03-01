@@ -1,7 +1,7 @@
 use http_body_util::{combinators::BoxBody, BodyExt, Empty, Full};
 
 pub(crate) fn host_addr(uri: &http::Uri) -> Option<String> {
-    uri.authority().and_then(|auth| Some(auth.to_string()))
+    uri.authority().map(std::string::ToString::to_string)
 }
 
 pub fn empty() -> BoxBody<bytes::Bytes, hyper::Error> {

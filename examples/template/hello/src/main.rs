@@ -9,9 +9,9 @@ fn main() {
     });
 
     let template = template!(tiny, {
-         [hello, r#"
+         [hello, r"
             hello from template {}
-        "#],
+        "],
     });
 
     print!("Content: {:?}", template.render("hello", &data));

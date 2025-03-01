@@ -17,7 +17,7 @@ pub enum PendingChannelError {
 
 pub type PendingChannelResult<E> = std::result::Result<E, PendingChannelError>;
 
-/// PendingChannelsRegistry provide a way to register a target channel
+/// `PendingChannelsRegistry` provide a way to register a target channel
 /// which is to carry provides a temporary storage of a [`ChannelGroup`]
 /// to which is both provided to the caller but also stored in a key-value
 /// hashmap that stores the relevant [`ChannelGroup`] to a giving target [`domains::Id`]
@@ -36,6 +36,12 @@ impl<E> Clone for PendingChannelsRegistry<E> {
         Self {
             pending: self.pending.clone(),
         }
+    }
+}
+
+impl<E> Default for PendingChannelsRegistry<E> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -114,7 +120,7 @@ mod tests {
 
         assert!(!registry.has(target_id));
 
-        drop(grp)
+        drop(grp);
     }
 
     #[test]

@@ -34,7 +34,7 @@ impl core::fmt::Display for ConfigError {
 
 pub type ConfigResult<T> = std::result::Result<T, ConfigError>;
 
-/// value_from_path returns the regular `toml::Value` object which implements the
+/// `value_from_path` returns the regular `toml::Value` object which implements the
 /// `serde::DeserializeOwned` trait which allows you to directly manipulate the value object
 /// instead of a defined type.
 pub fn value_from_path<V: Into<std::path::PathBuf>>(target: V) -> ConfigResult<toml::Value> {

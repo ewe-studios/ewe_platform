@@ -1,5 +1,4 @@
 use cfg_if::cfg_if;
-use futures;
 
 use std::future::Future;
 use std::marker::PhantomData;
@@ -17,7 +16,7 @@ impl<T: Default + 'static> Delay<T> {
     pub fn new(d: Instant) -> Self {
         Self {
             when: d,
-            phantom: PhantomData::default(),
+            phantom: PhantomData,
         }
     }
 
@@ -25,7 +24,7 @@ impl<T: Default + 'static> Delay<T> {
     pub fn from(d: Duration) -> Self {
         Self {
             when: Instant::now() + d,
-            phantom: PhantomData::default(),
+            phantom: PhantomData,
         }
     }
 }
@@ -78,7 +77,7 @@ where
                 future.await;
             })
         } else {
-            futures::executor::block_on(future)
+            futures::executor::block_on(future);
         }
     }
 }
@@ -89,20 +88,17 @@ mod tests {
 
     use crate::{spawn_local, Delay};
 
-    struct Empty;
+    #[derive(Default)]
+struct Empty;
 
-    impl Default for Empty {
-        fn default() -> Self {
-            Self {}
-        }
-    }
+    
 
     #[test]
     fn test_spawn_local_using_from() {
         spawn_local(async move {
             let current = Instant::now();
             Delay::<Empty>::from(Duration::from_millis(10)).await;
-            println!("Finished After: {:?}", Instant::now() - current);
+            println!("Finished After: {:?}", current.elapsed());
         });
     }
 
@@ -111,7 +107,7 @@ mod tests {
         spawn_local(async move {
             let current = Instant::now();
             Delay::<Empty>::new(Instant::now() + Duration::from_millis(10)).await;
-            println!("Finished After: {:?}", Instant::now() - current);
+            println!("Finished After: {:?}", current.elapsed());
         });
     }
 }

@@ -1,4 +1,4 @@
-/// VecStringExt implements convenient methods to extract a Vec<String> from
+/// `VecStringExt` implements convenient methods to extract a Vec<String> from
 /// any Vec<&str> type.
 pub trait VecStringExt {
     fn to_vec_string(self) -> Vec<String>;

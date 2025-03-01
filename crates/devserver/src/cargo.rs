@@ -32,7 +32,7 @@ impl core::fmt::Display for CargoShellError {
 
 type CargoShellResult<T> = types::Result<T>;
 
-/// CargoShellApp implements a cargo project builder and compiler that
+/// `CargoShellApp` implements a cargo project builder and compiler that
 /// runs shell commands to easily check, build and run a rust project
 /// via cargo shell commands.
 ///
@@ -51,11 +51,7 @@ impl CargoShellBuilder {
         build_notifier: broadcast::Sender<()>,
         file_notifications: broadcast::Sender<()>,
     ) -> sync::Arc<Self> {
-        sync::Arc::new(Self {
-            project,
-            file_notifications,
-            build_notifier,
-        })
+        sync::Arc::new(Self { project, build_notifier, file_notifications })
     }
 }
 
@@ -81,7 +77,7 @@ impl operators::Operator for sync::Arc<CargoShellBuilder> {
                     _ = recver.recv() => {
                         ewe_trace::info!("Received rebuilding signal for binary!");
                         match handle.build().await {
-                            Ok(_) => {
+                            Ok(()) => {
                                 ewe_trace::info!("Finished rebuilding binary!");
                                 continue;
                             },
@@ -221,11 +217,7 @@ impl BinaryApp {
         build_notifications: broadcast::Sender<()>,
         running_notifications: broadcast::Sender<()>,
     ) -> sync::Arc<Self> {
-        sync::Arc::new(Self {
-            project,
-            build_notifications,
-            running_notifications,
-        })
+        sync::Arc::new(Self { project, running_notifications, build_notifications })
     }
 }
 
@@ -238,7 +230,7 @@ impl Operator for sync::Arc<BinaryApp> {
         let run_sender = self.running_notifications.clone();
         let mut build_notifier = self.build_notifications.subscribe();
 
-        let wait_before_reload = self.project.wait_before_reload.clone();
+        let wait_before_reload = self.project.wait_before_reload;
 
         tokio::spawn(async move {
             let mut binary_handle: Option<process::Child> = None;
@@ -255,7 +247,7 @@ impl Operator for sync::Arc<BinaryApp> {
                         binary_handle = Some(handle.run_binary().expect("re-run binary"));
 
                         ewe_trace::info!("Restart done!");
-                        if let Err(_) = run_sender.send_in((), wait_before_reload.clone()).await {
+                        if let Err(_) = run_sender.send_in((), wait_before_reload).await {
                             ewe_trace::warn!("No one is listening for re-running messages");
                         }
                         continue;
@@ -264,7 +256,7 @@ impl Operator for sync::Arc<BinaryApp> {
                         ewe_trace::info!("Cancel signal received, shutting down!");
                         if let Some(mut binary) = binary_handle {
                             match binary.kill() {
-                                Ok(_) => break,
+                                Ok(()) => break,
                                 Err(err) => return Err(Box::new(err).into()),
                             }
                         }

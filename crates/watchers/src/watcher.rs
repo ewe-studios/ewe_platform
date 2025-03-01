@@ -15,6 +15,12 @@ pub struct Watchers {
     watchers: Vec<Option<crate::handlers::WatchHandle<()>>>,
 }
 
+impl Default for Watchers {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Watchers {
     pub fn new() -> Self {
         Self {
@@ -30,7 +36,7 @@ impl Watchers {
     }
 
     fn close_watchers(&mut self) {
-        for watcher in self.watchers.iter_mut() {
+        for watcher in &mut self.watchers {
             let crate::handlers::WatchHandle(join_handler, watcher) = watcher.take().unwrap();
             watcher.stop();
             join_handler.join().expect("finished watcher handler");
@@ -40,7 +46,7 @@ impl Watchers {
 
     fn start_watchers(&mut self) {
         if let Some(config) = self.config.take() {
-            for watcher in config.watchers.iter() {
+            for watcher in &config.watchers {
                 self.watchers.push(Some(
                     crate::handlers::watch_path(
                         watcher.clone(),
@@ -51,7 +57,7 @@ impl Watchers {
                                 changed,
                             );
                             match crate::handlers::execute_commands(watcher_config.clone()) {
-                                Ok(_) => Ok(()),
+                                Ok(()) => Ok(()),
                                 Err(err) => {
                                     tracing::error!(
                                         "Failed to execute watchers command: {:?}",

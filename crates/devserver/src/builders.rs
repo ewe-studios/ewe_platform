@@ -23,12 +23,7 @@ impl HttpDevService {
         let (package_started, _) = broadcast::channel::<()>(2);
         let (package_built, _) = broadcast::channel::<()>(2);
 
-        Self {
-            project,
-            package_built,
-            package_changes,
-            package_started,
-        }
+        Self { project, package_changes, package_built, package_started }
     }
 }
 

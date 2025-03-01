@@ -6,7 +6,7 @@ use derive_more::{Debug, From};
 
 use crate::{types::HyperFuncMap, ProxyType};
 
-/// ProjectDefinition defines the underlying project location, directory path and target crate
+/// `ProjectDefinition` defines the underlying project location, directory path and target crate
 /// we want executed in our behalf for the dev service.
 #[derive(Clone, Debug, From)]
 pub struct ProjectDefinition {

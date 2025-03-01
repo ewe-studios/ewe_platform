@@ -20,14 +20,14 @@ impl Display for Id {
     }
 }
 
-/// NamedRequest represent a target request of a specified
+/// `NamedRequest` represent a target request of a specified
 /// type which has an Id to identify the request and
 /// any related events that are a response to the request.
 #[derive(Clone, Debug)]
 pub struct NamedRequest<T: Clone>(Id, T);
 
 impl<T: Clone> NamedRequest<T> {
-    pub fn new<'a>(id: &'a str, t: T) -> Self {
+    pub fn new(id: &str, t: T) -> Self {
         Self(Id(id.to_string()), t)
     }
 
@@ -54,7 +54,7 @@ impl<T: Clone> Display for NamedRequest<T> {
     }
 }
 
-/// NamedEvent are events indicative of a response to a NamedRequest
+/// `NamedEvent` are events indicative of a response to a `NamedRequest`
 #[derive(Clone, Debug)]
 pub struct NamedEvent<T: Clone>(Id, Vec<T>);
 
@@ -65,7 +65,7 @@ impl<'a, T: Clone> Display for NamedEvent<T> {
 }
 
 impl<'a, T: Clone> NamedEvent<T> {
-    pub fn new<'b>(id: &'b str, t: Vec<T>) -> Self {
+    pub fn new(id: &str, t: Vec<T>) -> Self {
         Self(Id(id.to_string()), t)
     }
 
@@ -134,12 +134,12 @@ pub enum DomainErrors {
 
 pub type DomainResult<R> = result::Result<R, DomainErrors>;
 
-/// TaskExecutor defines a trait that other relevant implementations
-/// must implement to be able to work with the CoreExecutor which manages
+/// `TaskExecutor` defines a trait that other relevant implementations
+/// must implement to be able to work with the `CoreExecutor` which manages
 /// relevant parties to progress in their underlying processes.
 ///
 /// Generally you would see the [`DServicer`], [`UseCaseExecutor`] being
-/// implementing this trate for registration to a CoreExecutor.
+/// implementing this trate for registration to a `CoreExecutor`.
 pub trait TaskExecutor {
     fn run_tasks(&mut self);
 }
@@ -216,7 +216,7 @@ pub trait DomainShell: Clone {
     fn listen(&mut self) -> DomainResult<mspc::ReceiveChannel<Arc<NamedEvent<Self::Events>>>>;
 }
 
-/// MasterShell exposes core methods that allows
+/// `MasterShell` exposes core methods that allows
 pub trait MasterShell: DomainShell {
     /// Delivers events to only outside listeners and not to the domain
     /// and to all relevant listeners listento be notified on
@@ -224,7 +224,7 @@ pub trait MasterShell: DomainShell {
     ///
     /// This allows the domain to inform the shell and its subscribers
     /// about it's changes that occur due to request or events received
-    /// via [`DomainShell`].respond and [`DomainShell`].send_events.
+    /// via [`DomainShell`].respond and [`DomainShell`].`send_events`.
     ///
     /// Hexagonal Architecture: Driving Side
     fn send_others(&mut self, event: NamedEvent<Self::Events>)
@@ -236,7 +236,7 @@ pub trait MasterShell: DomainShell {
     ///
     /// This allows the domain to inform the shell and its subscribers
     /// about it's changes that occur due to request or events received
-    /// via [`DomainShell`].respond and [`DomainShell`].send_events.
+    /// via [`DomainShell`].respond and [`DomainShell`].`send_events`.
     ///
     /// Hexagonal Architecture: Driving Side
     fn send_all(&mut self, event: NamedEvent<Self::Events>) -> DomainOpsResult<(), Self::Events>;
@@ -296,7 +296,7 @@ pub trait Domain: Clone + Default {
     );
 }
 
-/// UseCases are logic that either fit a specific workflow steps
+/// `UseCases` are logic that either fit a specific workflow steps
 /// that do not need to belong to a specific domain or are consiered
 /// external business logic that might work along side a domain but
 /// do not inherently live within that domain.
@@ -319,11 +319,11 @@ pub trait UseCase: Clone {
     // a struct with a default implement.
     type Platform: Clone + 'static;
 
-    /// allows the UseCaseManager decide which specific requests matches
+    /// allows the `UseCaseManager` decide which specific requests matches
     /// a given use-case.
     fn is_request(&self, req: Arc<NamedRequest<Self::Request>>) -> bool;
 
-    /// handle_request handles the processing of requests by this use-case
+    /// `handle_request` handles the processing of requests by this use-case
     /// containing the underlying logic necessary to perform
     /// it's specific workflow.
     fn handle_request(
@@ -385,18 +385,15 @@ where
 
                 let sender = self.shell.respond(req.id()).expect("get response sender");
                 self.use_case
-                    .handle_request(req, sender, self.shell.clone())
+                    .handle_request(req, sender, self.shell.clone());
             }
             Err(ChannelError::ReceiveFailed(err)) => {
                 error!("UseCase executor failed with a receive error: {}", err);
-                return;
             }
             Err(ChannelError::Closed) => {
                 error!("UseCase executor receiver was closed");
-                return;
             }
             _ => {
-                return;
             }
         }
     }

@@ -63,11 +63,11 @@ where
         }
 
         match writer.write_all(&buf[0..bytes_read]).await {
-            Ok(_) => {
+            Ok(()) => {
                 copied += bytes_read;
             }
             Err(e) => {
-                ewe_trace::error!("Failed to write data to destination: {:?}", e)
+                ewe_trace::error!("Failed to write data to destination: {:?}", e);
             }
         }
     }
@@ -143,7 +143,7 @@ pub async fn stream_http1(
         .with_upgrades()
         .await
     {
-        Ok(_) => {
+        Ok(()) => {
             ewe_trace::info!("Finished serving http1 request");
             Ok(())
         }
@@ -154,7 +154,7 @@ pub async fn stream_http1(
     }
 }
 
-/// Http1Service implements the necessary underlying logic
+/// `Http1Service` implements the necessary underlying logic
 /// to stream a HTTP1 Protocol connection to desired destination.
 struct Http1Service(SocketAddr, Http1);
 
@@ -169,7 +169,7 @@ impl service::Service<crate::types::HyperRequest> for Http1Service {
         let req_path = req.uri().path();
         if let Some(static_routes) = &self.1.routes {
             if let Some(handler) = static_routes.get(req_path) {
-                return handler(self.0.clone(), req);
+                return handler(self.0, req);
             }
         }
 
@@ -265,7 +265,7 @@ impl service::Service<crate::types::HyperRequest> for Http1Service {
                             )
                             .await
                             {
-                                ewe_trace::error!("Failed to stream bi-directional CONNECT request to: {} due to {}", socket_addr, failed_err)
+                                ewe_trace::error!("Failed to stream bi-directional CONNECT request to: {} due to {}", socket_addr, failed_err);
                             }
                         });
                         Ok(hyper::Response::new(body::Body::new(empty())))

@@ -2,7 +2,7 @@ use std::sync;
 
 use crate::domains;
 
-/// CoreExecutor provides a core structure for handling and managing
+/// `CoreExecutor` provides a core structure for handling and managing
 /// execution of all types implementing [`domains::TaskExecutor`].
 ///
 /// This allows us implement [`domains::TaskExecutor`] on all core

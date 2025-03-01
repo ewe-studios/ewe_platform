@@ -9,5 +9,5 @@ fn main() {
             about the template {}
         "#],
     });
-    print!("Content: {:?}", template);
+    print!("Content: {template:?}");
 }
