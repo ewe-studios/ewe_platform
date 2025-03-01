@@ -139,3 +139,4 @@ dist
 .yarn/install-state.gz
 .pnp.*
 .bacon-locations
+bacon-ls.log
