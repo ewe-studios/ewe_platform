@@ -161,7 +161,7 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 
         // create resolution channel group, send the RetreiveChannel to the user.
         let mut resolution_channel = self.response_registry.register(req.id());
         match self.incoming_request_sender.try_send(req.clone()) {
-            Ok(_) => Ok(resolution_channel
+            Ok(()) => Ok(resolution_channel
                 .1
                 .take()
                 .expect("should have receiving channel")),
@@ -179,7 +179,7 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 
         Self: Sized,
     {
         match self.executor.schedule(receiver, receiver_fn) {
-            Ok(_) => Ok(()),
+            Ok(()) => Ok(()),
             Err(_) => Err(domains::DomainErrors::FailedScheduling),
         }
     }
@@ -192,7 +192,7 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 
         Self: Sized,
     {
         match self.executor.spawn(fut) {
-            Ok(_) => Ok(()),
+            Ok(()) => Ok(()),
             Err(_) => Err(domains::DomainErrors::FailedScheduling),
         }
     }
@@ -321,7 +321,7 @@ where
 
     fn serve_events(&mut self) -> domains::DomainResult<()> {
         (match self.process_incoming_event() {
-            Ok(_) => Ok(()),
+            Ok(()) => Ok(()),
             Err(DomainErrors::RequestSenderNotFound) => Err(DomainErrors::ProblematicState),
             Err(DomainErrors::UnexpectedSenderClosure) => Err(DomainErrors::ProblematicState),
             _ => Ok(()),
@@ -329,7 +329,7 @@ where
         .expect("event processing should have finished with no issues");
 
         (match self.execution_service.schedule_serve() {
-            Ok(_) => Ok(()),
+            Ok(()) => Ok(()),
             Err(executor::ExecutorError::Decommission) => Err(DomainErrors::ProblematicState),
             _ => Ok(()),
         })
@@ -340,7 +340,7 @@ where
 
     fn serve_requests(&mut self) -> domains::DomainResult<()> {
         (match self.process_incoming_request() {
-            Ok(_) => Ok(()),
+            Ok(()) => Ok(()),
             Err(DomainErrors::RequestSenderNotFound) => Err(DomainErrors::ProblematicState),
             Err(DomainErrors::UnexpectedSenderClosure) => Err(DomainErrors::ProblematicState),
             _ => Ok(()),
@@ -348,7 +348,7 @@ where
         .expect("request processing should have finished with no issues");
 
         (match self.execution_service.schedule_serve() {
-            Ok(_) => Ok(()),
+            Ok(()) => Ok(()),
             Err(executor::ExecutorError::Decommission) => Err(DomainErrors::ProblematicState),
             _ => Ok(()),
         })
@@ -433,7 +433,7 @@ mod tests {
 
         let result;
         {
-            result = shell.do_request(increment_request)
+            result = shell.do_request(increment_request);
         }
 
         executor.run_all();
@@ -604,7 +604,7 @@ mod tests {
                     let next = CounterModel {
                         count: current.count + 1,
                     };
-                    self.state.swap(next.clone());
+                    self.state.swap(next);
 
                     let event = req.to_one(CounterEvents::Incremented(next));
                     chan.try_send(event.clone())
@@ -619,7 +619,7 @@ mod tests {
                     let next = CounterModel {
                         count: current.count - 1,
                     };
-                    self.state.swap(next.clone());
+                    self.state.swap(next);
 
                     // respond to request with new state via event
                     let event = req.to_one(CounterEvents::Decremented(next));

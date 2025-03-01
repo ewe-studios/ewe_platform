@@ -116,13 +116,13 @@ impl<E: Send + 'static> ExecutionService<E> {
     /// and re-queued.
     ///
     /// Something to note is that when executed in an environment without an async runtime
-    /// will have the calls to Future.poll() behave like a synchronous system where it simply
+    /// will have the calls to `Future.poll()` behave like a synchronous system where it simply
     /// blocks on the current thread till the future is completed, then moving on sequentially.
     ///
     /// Whilst under async runtimes like Tokio, async-std, tasks that are not compeleted immediately
     /// will signal alter via the Waker re-adding the tasks for processing.
     ///
-    /// To automtically have these re-processed, please use the serve_forever method.
+    /// To automtically have these re-processed, please use the `serve_forever` method.
     ///
     /// WARNING: the completion of the future this function returns does not mean all
     /// the task are completed. It simply means they have being scheduled for completion
@@ -133,11 +133,11 @@ impl<E: Send + 'static> ExecutionService<E> {
             return ExecutorResult::Err(ExecutorError::NoTasks);
         }
 
-        if let Err(_) = self.serve_and_capture_pending() {
+        if self.serve_and_capture_pending().is_err() {
             return ExecutorResult::Err(ExecutorError::Decommission);
         }
 
-        return Ok(());
+        Ok(())
     }
 
     // This function triggers processing of every tasks within the execution service.
@@ -201,7 +201,7 @@ impl<E: Send + 'static> Executor<E> {
         let captured_async_fn = async move {
             let mut mutable_receiver = receiver.clone();
             let received = mutable_receiver.async_receive().await;
-            receiver_fn(received).await
+            receiver_fn(received).await;
         };
 
         let box_future = Box::pin(captured_async_fn);
@@ -212,7 +212,7 @@ impl<E: Send + 'static> Executor<E> {
         });
 
         match self.sender.try_send(task) {
-            Ok(_) => Ok(()),
+            Ok(()) => Ok(()),
             Err(async_channel::TrySendError::Closed(_)) => Err(ExecutorError::Decommission),
             Err(async_channel::TrySendError::Full(_)) => Err(ExecutorError::ChannelFull),
         }
@@ -233,7 +233,7 @@ impl<E: Send + 'static> Executor<E> {
         });
 
         match self.sender.try_send(task) {
-            Ok(_) => Ok(()),
+            Ok(()) => Ok(()),
             Err(async_channel::TrySendError::Closed(_)) => Err(ExecutorError::Decommission),
             Err(async_channel::TrySendError::Full(_)) => Err(ExecutorError::ChannelFull),
         }
@@ -260,7 +260,7 @@ mod tests {
                 sender_clone
                     .async_send(item.unwrap())
                     .await
-                    .expect("to have sent message")
+                    .expect("to have sent message");
             })
             .expect("should have scheduled task");
 
@@ -269,7 +269,7 @@ mod tests {
                 sender
                     .async_send(String::from("second"))
                     .await
-                    .expect("to have sent message")
+                    .expect("to have sent message");
             })
             .expect("should have scheduled task");
 
@@ -301,7 +301,7 @@ mod tests {
                 sender
                     .async_send(item.unwrap())
                     .await
-                    .expect("to have sent message")
+                    .expect("to have sent message");
             })
             .expect("should have scheduled task");
 

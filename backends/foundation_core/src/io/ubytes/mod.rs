@@ -422,7 +422,7 @@ impl<'a> BytesPointer<'a> {
             return None;
         }
 
-        let mut until_pos = if self.peek_pos + by > self.content.len() {
+        let until_pos = if self.peek_pos + by > self.content.len() {
             self.content.len()
         } else {
             self.peek_pos + by
@@ -433,8 +433,6 @@ impl<'a> BytesPointer<'a> {
         }
 
         let from = self.pos;
-        until_pos = until_pos;
-
         tracing::debug!(
             "take_with_amount: possibly shift in positions: org:({}, {}) then end in final:({},{})",
             self.content.len(),

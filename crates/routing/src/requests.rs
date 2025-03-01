@@ -1,5 +1,5 @@
 use core::fmt;
-use std::{collections::HashMap, convert::Infallible, fmt::Debug, ops::Deref, str::FromStr};
+use std::{collections::HashMap, convert::Infallible, fmt::Debug, str::FromStr};
 
 use axum::body;
 
@@ -93,9 +93,9 @@ impl Method {
     }
 }
 
-impl Into<http::Method> for Method {
-    fn into(self) -> http::Method {
-        self.into_http_method()
+impl From<Method> for http::Method {
+    fn from(val: Method) -> Self {
+        val.into_http_method()
             .expect("should convert into http method")
     }
 }
@@ -184,8 +184,8 @@ impl RequestHead {
         Self::new(Method::CUSTOM(method_name), Version::HTTP_11, url, None)
     }
 
-    /// and_then will consume the request head generating a returned
-    /// RequetHead modified to the underlying desire and needs of the function provided.
+    /// `and_then` will consume the request head generating a returned
+    /// `RequetHead` modified to the underlying desire and needs of the function provided.
     ///
     /// # Example:
     ///
@@ -256,7 +256,7 @@ impl fmt::Debug for RequestHead {
 impl From<http::request::Parts> for RequestHead {
     fn from(value: http::request::Parts) -> Self {
         let original_route = match value.extensions.get::<RouteURL>() {
-            Some(content) => String::from(content.deref()),
+            Some(content) => String::from(&**content),
             None => String::from(value.uri.path()),
         };
 
@@ -345,7 +345,7 @@ impl<T, S: Default> Request<T, S> {
         }
     }
 
-    /// and_then will consume the request generating a new
+    /// `and_then` will consume the request generating a new
     /// request instance with whatever changes the underlying function
     /// generates.
     pub fn add_then<F>(self, f: F) -> Self
@@ -385,7 +385,7 @@ impl<T, S: Default> Request<T, S> {
         }
     }
 
-    /// map_params consumes this request setting the `Params` to the new
+    /// `map_params` consumes this request setting the `Params` to the new
     /// value, returning a new requesting using that `Params`.
     pub fn map_params(self, p: Params) -> Request<T, S> {
         self.map_self(|mut req| {
@@ -459,7 +459,7 @@ impl<T, S: Default> Request<T, S> {
     field_method_as_mut!(body_mut, body, Option<T>);
 }
 
-/// LightRequest is a definition of request that allows these elements to be passed over
+/// `LightRequest` is a definition of request that allows these elements to be passed over
 /// to WASM or any other light weight runtime environment that do not require the larger
 /// content of a Request object that has more larger details.
 pub struct LightRequest<T> {
@@ -519,7 +519,7 @@ impl<T, S: Default> TryFrom<LightRequest<T>> for Request<T, S> {
     /// does some underlying logic to deal with non-ASCII character heders.
     ///
     /// Secondly the underlying body of the Request is also consumed by this
-    /// returned LightRequest.
+    /// returned `LightRequest`.
     ///
     /// WARNING: Be warned this method will panic if the method or url are invalid.
     fn try_from(value: LightRequest<T>) -> Result<Self, TryFromLightRequestError> {
@@ -534,13 +534,13 @@ impl<T, S: Default> TryFrom<LightRequest<T>> for Request<T, S> {
             Some(url),
         );
 
-        for (key, value) in value.headers.iter() {
+        for (key, value) in &value.headers {
             head.headers.insert(
                 http::HeaderName::from_str(key.as_ref())?,
                 http::HeaderValue::from_str(value.as_ref())?,
             );
         }
-        return Ok(Request::from(value.body, head));
+        Ok(Request::from(value.body, head))
     }
 }
 
@@ -571,7 +571,7 @@ impl<T, S> TryFrom<Request<T, S>> for LightRequest<T> {
     /// does some underlying logic to deal with non-ASCII character heders.
     ///
     /// Secondly the underlying body of the Request is also consumed by this
-    /// returned LightRequest.
+    /// returned `LightRequest`.
     fn try_from(value: Request<T, S>) -> Result<Self, Self::Error> {
         let mut headers = HashMap::new();
 
@@ -630,9 +630,9 @@ pub trait FromBody<T> {
     fn from_body(body: axum::body::Body) -> std::result::Result<T, TryFromBodyRequestError>;
 }
 
-/// Wrapper type that allows us implement for handling http::Request types directly
+/// Wrapper type that allows us implement for handling `http::Request` types directly
 /// having access to the `axum::body::Body` of a request.
-/// This allows us convert a http::Request<axum::Body::Body>
+/// This allows us convert a `http::Request`<axum::Body::Body>
 /// into a Request object of type `T`.
 pub struct BodyHttpRequest(pub http::Request<axum::body::Body>);
 
@@ -674,8 +674,8 @@ pub trait FromBytes<T> {
     fn from_body(body: bytes::Bytes) -> std::result::Result<T, TryFromBodyRequestError>;
 }
 
-/// Wrapper type that allows us implement for handling http::Request types directly
-/// having access to the Bytes. This allows us convert a http::Request<axum::Body::Body>
+/// Wrapper type that allows us implement for handling `http::Request` types directly
+/// having access to the Bytes. This allows us convert a `http::Request`<axum::Body::Body>
 /// into a Request object of type `T`.
 pub struct BytesHttpRequest(pub http::Request<bytes::Bytes>);
 

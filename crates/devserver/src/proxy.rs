@@ -65,7 +65,7 @@ impl ProxyType {
         match self {
             ProxyType::Tunnel(t) => {
                 let (client, client_addr) = connection;
-                streams::stream_tunnel(client, client_addr.clone(), t.clone()).await?;
+                streams::stream_tunnel(client, client_addr, t.clone()).await?;
                 ewe_trace::info!(
                     "Finished serving::tunnel client: {} from {} to {}",
                     client_addr.clone(),
@@ -82,7 +82,7 @@ impl ProxyType {
         match self {
             ProxyType::Http1(t) => {
                 let (client, client_addr) = connection;
-                streams::stream_http1(rt::TokioIo::new(client), client_addr.clone(), t.clone())
+                streams::stream_http1(rt::TokioIo::new(client), client_addr, t.clone())
                     .await?;
                 ewe_trace::info!(
                     "Finished serving::http1 client: {} from {} to {}",
@@ -238,7 +238,7 @@ impl StreamTCPApp {
 
 impl Operator for sync::Arc<StreamTCPApp> {
     fn run(&self, signal: broadcast::Receiver<()>) -> JoinHandle<()> {
-        let wait_for = self.wait_for_binary_secs.clone();
+        let wait_for = self.wait_for_binary_secs;
 
         let pt = self.proxy_type.clone();
         let handler = self.clone();
@@ -250,7 +250,7 @@ impl Operator for sync::Arc<StreamTCPApp> {
             ewe_trace::info!("Booting up proxy server proxy_type={:?}", pt);
 
             match proxy_handler.await? {
-                Ok(_) => Ok(()),
+                Ok(()) => Ok(()),
                 Err(err) => {
                     ewe_trace::error!("Failed to properly end tcp proxy: {:?}", err);
                     Err(Box::new(ProxyError::FailedProxyConnection).into())

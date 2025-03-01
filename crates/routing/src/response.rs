@@ -34,15 +34,10 @@ impl ResponseHead {
         headers: HeaderMap,
         extensions: Extensions,
     ) -> Self {
-        Self {
-            headers,
-            extensions,
-            status,
-            version,
-        }
+        Self { status, version, headers, extensions }
     }
 
-    /// standard returns a Response head with version set to HTTP_11 and headers
+    /// standard returns a Response head with version set to `HTTP_11` and headers
     /// and extensions instantiated to empty objects.
     pub fn standard(status: StatusCode) -> Self {
         Self {
@@ -53,7 +48,7 @@ impl ResponseHead {
         }
     }
 
-    /// basic returns a ResponseHead with Headers and Extensions instantied to
+    /// basic returns a `ResponseHead` with Headers and Extensions instantied to
     /// empty objects.
     pub fn basic(status: StatusCode, version: Version) -> Self {
         Self {
@@ -106,7 +101,7 @@ impl From<http::response::Parts> for ResponseHead {
     }
 }
 
-/// LightRequest is a definition of request that allows these elements to be passed over
+/// `LightRequest` is a definition of request that allows these elements to be passed over
 /// to WASM or any other light weight runtime environment that do not require the larger
 /// content of a Request object that has more larger details.
 pub struct LightResponse<T> {
@@ -152,7 +147,7 @@ impl<T> Response<T> {
         (self.head, self.body)
     }
 
-    /// and_then will consume the request generating a new
+    /// `and_then` will consume the request generating a new
     /// request instance with whatever changes the underlying function
     /// generates.
     pub fn add_then<F>(self, f: F) -> Self
@@ -262,7 +257,7 @@ impl From<InvalidMethod> for TryFromLightResponseError {
     }
 }
 
-fn get_version<'a>(text: &'a str) -> Version {
+fn get_version(text: &str) -> Version {
     match text {
         "HTTP/0.9" => Version::HTTP_09,
         "HTTP/1.0" => Version::HTTP_10,
@@ -292,7 +287,7 @@ impl<T> TryFrom<LightResponse<T>> for Response<T> {
     /// does some underlying logic to deal with non-ASCII character heders.
     ///
     /// Secondly the underlying body of the Response is also consumed by this
-    /// returned LightResponse.
+    /// returned `LightResponse`.
     ///
     /// WARNING: Be warned this method will panic if the method or url are invalid.
     fn try_from(value: LightResponse<T>) -> Result<Self, TryFromLightResponseError> {
@@ -300,13 +295,13 @@ impl<T> TryFrom<LightResponse<T>> for Response<T> {
         let version = get_version(&value.version);
 
         let mut head = ResponseHead::new(status, version, HeaderMap::new(), Extensions::new());
-        for (key, value) in value.headers.iter() {
+        for (key, value) in &value.headers {
             head.headers.insert(
                 http::HeaderName::from_str(key.as_ref())?,
                 http::HeaderValue::from_str(value.as_ref())?,
             );
         }
-        return Ok(Response::from(value.body, head));
+        Ok(Response::from(value.body, head))
     }
 }
 
@@ -335,7 +330,7 @@ impl<T> TryFrom<Response<T>> for LightResponse<T> {
     /// does some underlying logic to deal with non-ASCII character heders.
     ///
     /// Secondly the underlying body of the Response is also consumed by this
-    /// returned LightResponse.
+    /// returned `LightResponse`.
     fn try_from(value: Response<T>) -> Result<Self, Self::Error> {
         let mut headers = HashMap::new();
 
@@ -371,9 +366,9 @@ impl<T> TryFrom<http::Response<T>> for Response<T> {
     }
 }
 
-impl<T> Into<http::Response<T>> for Response<T> {
-    fn into(self) -> http::Response<T> {
-        let (mut head, body) = self.into_parts();
+impl<T> From<Response<T>> for http::Response<T> {
+    fn from(val: Response<T>) -> Self {
+        let (mut head, body) = val.into_parts();
         let mut builder = http::Response::builder().status(head.status);
         builder.headers_mut().replace(head.headers_mut());
         builder.extensions_mut().replace(head.extensions_mut());
@@ -384,9 +379,9 @@ impl<T> Into<http::Response<T>> for Response<T> {
 
 pub struct ResponseResult<T, E>(pub Result<Response<T>, E>);
 
-impl<T, E> Into<Result<http::Response<T>, E>> for ResponseResult<T, E> {
-    fn into(self) -> Result<http::Response<T>, E> {
-        match self.0 {
+impl<T, E> From<ResponseResult<T, E>> for Result<http::Response<T>, E> {
+    fn from(val: ResponseResult<T, E>) -> Self {
+        match val.0 {
             Ok(response) => {
                 let http_response: http::response::Response<T> = response.into();
                 Ok(http_response)

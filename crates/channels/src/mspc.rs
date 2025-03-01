@@ -107,9 +107,9 @@ impl<T> SendChannel<T> {
     pub fn close(&mut self) -> ChannelResult<()> {
         if let Some(channel) = self.src.take() {
             drop(channel);
-            return Ok(());
+            Ok(())
         } else {
-            return Err(ChannelError::Closed);
+            Err(ChannelError::Closed)
         }
     }
 
@@ -123,7 +123,7 @@ impl<T> SendChannel<T> {
         }
     }
 
-    /// [`SendChannel`].block_send() blocks the current thread till data is sent or
+    /// [`SendChannel`].`block_send()` blocks the current thread till data is sent or
     /// an error received. This generally should not be used in WASM or non-blocking
     /// environments.
     pub fn block_send(&mut self, t: T) -> ChannelResult<()> {
@@ -177,7 +177,7 @@ impl<T> ReceiveChannel<T> {
     // becomes true, its up to the user to decide how they fit
     // this into their logic.
     pub fn read_atleast_once(&self) -> ChannelResult<bool> {
-        return Ok(self.read_flag.load());
+        Ok(self.read_flag.load())
     }
 
     pub fn is_empty(&mut self) -> ChannelResult<bool> {
@@ -194,11 +194,11 @@ impl<T> ReceiveChannel<T> {
         }
     }
 
-    /// [`ReceiveChannel`].block_receive() blocks the current thread till data is received or
+    /// [`ReceiveChannel`].`block_receive()` blocks the current thread till data is received or
     /// an error is seen. This generally should not be used in WASM or non-blocking
     /// environments.
     pub fn block_receive(&mut self) -> ChannelResult<T> {
-        return match &mut self.src {
+        match &mut self.src {
             None => Err(ChannelError::Closed),
             Some(src) => match src.recv_blocking() {
                 Ok(maybe_item) => {
@@ -207,23 +207,20 @@ impl<T> ReceiveChannel<T> {
                 }
                 Err(_) => self.close_channel(),
             },
-        };
+        }
     }
 
     pub async fn async_receive(&mut self) -> ChannelResult<T> {
         match &mut self.src {
             None => Err(ChannelError::Closed),
-            Some(src) => match src.recv().await {
-                Ok(maybe_item) => {
-                    self.read_flag.store(true);
-                    Ok(maybe_item)
+            Some(src) => if let Ok(maybe_item) = src.recv().await {
+                self.read_flag.store(true);
+                Ok(maybe_item)
+            } else {
+                if src.is_closed() {
+                    return self.close_channel();
                 }
-                Err(_) => {
-                    if src.is_closed() {
-                        return self.close_channel();
-                    }
-                    Err(ChannelError::ReceivedNoData)
-                }
+                Err(ChannelError::ReceivedNoData)
             },
         }
     }
@@ -260,7 +257,7 @@ pub struct Drain<'a, T> {
     receiver: &'a mut ReceiveChannel<T>,
 }
 
-impl<'a, T> Iterator for Drain<'a, T> {
+impl<T> Iterator for Drain<'_, T> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {

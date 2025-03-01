@@ -49,7 +49,7 @@ pub struct Tunnel {
 
 impl core::fmt::Display for Tunnel {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
 
@@ -94,16 +94,13 @@ impl Http1 {
     }
 
     pub fn and_routes(&mut self, mutator: impl Fn(&mut HyperFuncMap)) {
-        self.routes = match self.routes.clone() {
-            Some(mut route_map) => {
-                mutator(&mut route_map);
-                Some(route_map)
-            }
-            None => {
-                let mut new_routes = HashMap::new();
-                mutator(&mut new_routes);
-                Some(new_routes)
-            }
+        self.routes = if let Some(mut route_map) = self.routes.clone() {
+            mutator(&mut route_map);
+            Some(route_map)
+        } else {
+            let mut new_routes = HashMap::new();
+            mutator(&mut new_routes);
+            Some(new_routes)
         };
     }
 }
@@ -140,16 +137,13 @@ impl Http2 {
     }
 
     pub fn and_routes(&mut self, mutator: impl Fn(&mut HyperFuncMap)) {
-        self.routes = match self.routes.clone() {
-            Some(mut route_map) => {
-                mutator(&mut route_map);
-                Some(route_map)
-            }
-            None => {
-                let mut new_routes = HashMap::new();
-                mutator(&mut new_routes);
-                Some(new_routes)
-            }
+        self.routes = if let Some(mut route_map) = self.routes.clone() {
+            mutator(&mut route_map);
+            Some(route_map)
+        } else {
+            let mut new_routes = HashMap::new();
+            mutator(&mut new_routes);
+            Some(new_routes)
         };
     }
 }
@@ -187,16 +181,13 @@ impl Http3 {
     }
 
     pub fn and_routes(&mut self, mutator: impl Fn(&mut HyperFuncMap)) {
-        self.routes = match self.routes.clone() {
-            Some(mut route_map) => {
-                mutator(&mut route_map);
-                Some(route_map)
-            }
-            None => {
-                let mut new_routes = HashMap::new();
-                mutator(&mut new_routes);
-                Some(new_routes)
-            }
+        self.routes = if let Some(mut route_map) = self.routes.clone() {
+            mutator(&mut route_map);
+            Some(route_map)
+        } else {
+            let mut new_routes = HashMap::new();
+            mutator(&mut new_routes);
+            Some(new_routes)
         };
     }
 }

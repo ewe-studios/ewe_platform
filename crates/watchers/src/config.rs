@@ -120,8 +120,7 @@ mod tests {
 
     #[test]
     fn test_watcher_config_parsing_should_fail_if_configuration_is_invalid() {
-        let candidates = vec![
-            r#"
+        let candidates = [r#"
 		{
             "watchers": [
                 {
@@ -166,8 +165,7 @@ mod tests {
                 }
             ]
         }
-        "#,
-        ];
+        "#];
 
         let results: Vec<Result<Config, ConfigError>> = candidates
             .iter()

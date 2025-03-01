@@ -1,8 +1,8 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
-static HTML: &'static str = include_str!("./wikipedia-2020-12-21.html");
-static HTML_BIG: &'static str = include_str!("./wikipedia_on_wikipedia.html");
-static HTML_SMALLEST: &'static str = include_str!("./scraping_course.html");
+static HTML: &str = include_str!("./wikipedia-2020-12-21.html");
+static HTML_BIG: &str = include_str!("./wikipedia_on_wikipedia.html");
+static HTML_SMALLEST: &str = include_str!("./scraping_course.html");
 
 use ewe_html::parsers::{wrap_in_document_fragment_container, HTMLParser};
 

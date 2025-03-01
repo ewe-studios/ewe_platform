@@ -12,17 +12,17 @@ use axum::{
 };
 
 /// The static embedded reloading script for SSE dev server that the
-/// RELOADER_SCRIPT_ENDPOINT should load up when the endpoint gets hit
+/// `RELOADER_SCRIPT_ENDPOINT` should load up when the endpoint gets hit
 /// on whatever html page is relevant.
-pub static RELOADER_SCRIPT_BYTES: &'static [u8] = include_bytes!("./reloader.js");
+pub static RELOADER_SCRIPT_BYTES: &[u8] = include_bytes!("./reloader.js");
 
-/// RELOADER_SCRIPT_ENDPOINT is the relevant script path to be used in our html
+/// `RELOADER_SCRIPT_ENDPOINT` is the relevant script path to be used in our html
 /// to define where the reloading script can be found.
-pub static RELOADER_SCRIPT_ENDPOINT: &'static str = "/static/sse/reloader.js";
+pub static RELOADER_SCRIPT_ENDPOINT: &str = "/static/sse/reloader.js";
 
-/// RELOADER_SSE_ENDPOINT is the relevant endpoint we should use when
+/// `RELOADER_SSE_ENDPOINT` is the relevant endpoint we should use when
 /// setting up the http route to be used to connect to our SSE endpoint.
-pub static RELOADER_SSE_ENDPOINT: &'static str = "/static/sse/reload";
+pub static RELOADER_SSE_ENDPOINT: &str = "/static/sse/reload";
 
 pub fn sse_endpoint_script(
     _addr: SocketAddr,
@@ -64,7 +64,7 @@ fn sse_endpoint_reloader(
     })
 }
 
-/// create_sse_endpoint_handler takes a `broadcast::Sender<()>`
+/// `create_sse_endpoint_handler` takes a `broadcast::Sender<()>`
 /// which might suprise you till you figure out that the following rules
 /// are involved:
 /// 1. You are defining a Fn(addr, request) which can be called multiple times.

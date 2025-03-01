@@ -35,13 +35,13 @@ impl<E: Send + 'static> Broadcast<E> {
     pub(crate) fn new(initial_subscribers_capacity: usize) -> Self {
         let (message_sender, message_receiver) = mspc::create::<E>();
 
-        return Self {
+        Self {
             message_sender,
             message_receiver,
             subscribers: sync::Arc::new(sync::Mutex::new(Vec::with_capacity(
                 initial_subscribers_capacity,
             ))),
-        };
+        }
     }
 
     pub fn has_pending_messages(&mut self) -> bool {
@@ -68,7 +68,7 @@ impl<E: Send + 'static> Broadcast<E> {
 
     fn add_subscriber_sender(&mut self, sender: mspc::SendChannel<sync::Arc<E>>) {
         let mut subscribers = self.subscribers.lock().unwrap();
-        subscribers.push(Some(sender))
+        subscribers.push(Some(sender));
     }
 
     fn deliver_pending_messages(&mut self) {
@@ -106,7 +106,7 @@ mod tests {
         broadcaster.broadcast(String::from("first"));
         broadcaster.broadcast(String::from("second"));
 
-        assert!(broadcaster.has_pending_messages())
+        assert!(broadcaster.has_pending_messages());
     }
 
     #[test]
@@ -185,6 +185,6 @@ mod tests {
         broadcaster.broadcast(String::from("second"));
 
         assert!(!subscriber2.is_empty().unwrap());
-        assert!(matches!(subscriber.is_empty(), Err(_)));
+        assert!(subscriber.is_empty().is_err());
     }
 }

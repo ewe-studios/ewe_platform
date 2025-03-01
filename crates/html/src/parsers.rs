@@ -254,23 +254,21 @@ impl FromStr for SVGTags {
     }
 }
 
-impl Into<String> for SVGTags {
-    fn into(self) -> String {
-        String::from(self.tag_to_str())
+impl From<SVGTags> for String {
+    fn from(val: SVGTags) -> Self {
+        String::from(val.tag_to_str())
     }
 }
 
-impl<'b> Into<&'b str> for SVGTags {
-    fn into(self) -> &'b str {
-        self.tag_to_str()
+impl From<SVGTags> for &str {
+    fn from(val: SVGTags) -> Self {
+        val.tag_to_str()
     }
 }
 
 impl SVGTags {
     pub fn is_svg_element_closed_by_closing_tag(me: SVGTags, _other: SVGTags) -> bool {
-        match me {
-            _ => false,
-        }
+        false
     }
 
     pub fn is_svg_element_closed_by_opening_tag(me: SVGTags, other: SVGTags) -> bool {
@@ -297,14 +295,7 @@ impl SVGTags {
     }
 
     pub fn is_auto_closed(tag: SVGTags) -> bool {
-        match tag {
-            // SVGTags::Path
-            // | SVGTags::Polygon
-            // | SVGTags::Rect
-            // | SVGTags::Circle
-            // | SVGTags::Animate => true,
-            _ => false,
-        }
+        false
     }
 
     fn tag_to_str<'b>(self) -> &'b str {
@@ -972,15 +963,15 @@ impl HTMLTags {
     }
 }
 
-impl Into<String> for HTMLTags {
-    fn into(self) -> String {
-        String::from(self.tag_to_str())
+impl From<HTMLTags> for String {
+    fn from(val: HTMLTags) -> Self {
+        String::from(val.tag_to_str())
     }
 }
 
-impl<'b> Into<&'b str> for HTMLTags {
-    fn into(self) -> &'b str {
-        self.tag_to_str()
+impl From<HTMLTags> for &str {
+    fn from(val: HTMLTags) -> Self {
+        val.tag_to_str()
     }
 }
 
@@ -1147,16 +1138,16 @@ impl<'a> Stack<'a> {
     }
 
     pub fn add_attr(&mut self, name: &'a str, value: AttrValue<'a>) {
-        self.attrs.push((name, value))
+        self.attrs.push((name, value));
     }
 
     pub fn get_tags(&self) -> Vec<MarkupTags> {
         let mut items = vec![];
         self.add_tags_to(&mut items);
-        for elem in self.children.iter() {
+        for elem in &self.children {
             items.extend(elem.get_tags());
         }
-        return items;
+        items
     }
 
     pub fn add_tags_to(&self, items: &mut Vec<MarkupTags>) {
@@ -1175,7 +1166,7 @@ impl<'a> Stack<'a> {
     }
 }
 
-impl<'a> Default for Stack<'a> {
+impl Default for Stack<'_> {
     fn default() -> Self {
         Self {
             tag: Some(MarkupTags::HTML(HTMLTags::DocumentFragmentContainer)),
@@ -1211,34 +1202,34 @@ static VALID_ATTRIBUTE_NAMING_CHARS: &[char] = &['-', '_', ':'];
 static VALID_ATTRIBUTE_VALUE_CHARS: &[char] = &['"', '\'', '{', '(', '['];
 static VALID_ATTRIBUTE_STARTER_SYMBOLS_STR: &[&str] = &["{", "(", "[", "\"", "'"];
 
-static EMPTY_STRING: &'static str = "";
-static FRAME_FLAG_TAG: &'static str = "DocumentFragmentContainer";
-static TEXT_BLOCK_STARTER: &'static str = "{";
-static CODE_BLOCK_STARTER: &'static str = "{{";
-static RUST_BLOCK_STARTER: &'static str = "{{{";
-static SINGLE_QUOTE_STR: &'static str = "'";
-static DOUBLE_QUOTE_STR: &'static str = "\"";
-static COMMENT_STARTER: &'static str = "<!--";
-static COMMENT_ENDER: &'static str = "-->";
-static QUESTION_MARK: &'static str = "?";
-static XML_STARTER: &'static str = "<?";
-static TAG_OPEN_BRACKET: &'static str = "<";
-static TAG_CLOSED_BRACKET: &'static str = ">";
-static NORMAL_TAG_CLOSED_BRACKET: &'static str = "</";
-static SELF_TAG_CLOSED_BRACKET: &'static str = "/>";
-static FORWARD_SLASH: &'static str = "/";
-static BACKWARD_SLASH: &'static str = "\\";
-static ATTRIBUTE_EQUAL_SIGN: &'static str = "=";
-static DOC_TYPE_STARTER_MARKER: &'static str = "!";
+static EMPTY_STRING: &str = "";
+static FRAME_FLAG_TAG: &str = "DocumentFragmentContainer";
+static TEXT_BLOCK_STARTER: &str = "{";
+static CODE_BLOCK_STARTER: &str = "{{";
+static RUST_BLOCK_STARTER: &str = "{{{";
+static SINGLE_QUOTE_STR: &str = "'";
+static DOUBLE_QUOTE_STR: &str = "\"";
+static COMMENT_STARTER: &str = "<!--";
+static COMMENT_ENDER: &str = "-->";
+static QUESTION_MARK: &str = "?";
+static XML_STARTER: &str = "<?";
+static TAG_OPEN_BRACKET: &str = "<";
+static TAG_CLOSED_BRACKET: &str = ">";
+static NORMAL_TAG_CLOSED_BRACKET: &str = "</";
+static SELF_TAG_CLOSED_BRACKET: &str = "/>";
+static FORWARD_SLASH: &str = "/";
+static BACKWARD_SLASH: &str = "\\";
+static ATTRIBUTE_EQUAL_SIGN: &str = "=";
+static DOC_TYPE_STARTER_MARKER: &str = "!";
 
-///	Returns a new string where the content is wrapped in a DocumentFragmentContainer:
+///	Returns a new string where the content is wrapped in a `DocumentFragmentContainer`:
 /// <DocumentFragmentContainer>{content}</DocumentFragmentContainer>.
 ///
 /// This is important to allow you when dealing with an html content where
 /// its not just a single root but has siblings and the parser does not handle such
 /// cases where there could be more than 1 root element.
 pub fn wrap_in_document_fragment_container(data: String) -> String {
-    format!("<{}>{}</{}>", FRAME_FLAG_TAG, data, FRAME_FLAG_TAG)
+    format!("<{FRAME_FLAG_TAG}>{data}</{FRAME_FLAG_TAG}>")
 }
 
 fn begins_with_and_after<'a>(
@@ -1249,7 +1240,7 @@ fn begins_with_and_after<'a>(
     if &against[0..1] != begin_text {
         return false;
     }
-    return other_cb(&against[1..]);
+    other_cb(&against[1..])
 }
 
 impl Default for HTMLParser {
@@ -1278,13 +1269,11 @@ impl HTMLParser {
         let mut accumulator = StringPointer::new(input);
         match self._parse(&mut accumulator) {
             Ok(t) => Ok(t),
-            Err(err) => Err(ParsingTagError::FailedContentParsing(String::from(
-                format!(
+            Err(err) => Err(ParsingTagError::FailedContentParsing(format!(
                     "Error({:?}): {:?}",
                     err,
                     accumulator.ppeek_at(0, 20).unwrap()
-                ),
-            ))),
+                ))),
         }
     }
 
@@ -1360,7 +1349,7 @@ impl HTMLParser {
                         // do a check if we have a previous self closing element
                         // that wont be closed by this new closer.
                         loop {
-                            let last_elem = stacks.get(stacks.len() - 1);
+                            let last_elem = stacks.last();
                             ewe_trace::debug!(
                                 "parse: previous top stack tag {:?} with current: {:?}",
                                 last_elem,
@@ -1404,10 +1393,9 @@ impl HTMLParser {
                                         {
                                             return Err(
                                                 ParsingTagError::ClosingTagDoesNotMatchTopMarkup(
-                                                    String::from(format!(
-                                                        "last: {:?} - tag: {:?}",
-                                                        ptag, ctag
-                                                    )),
+                                                    format!(
+                                                        "last: {ptag:?} - tag: {ctag:?}"
+                                                    ),
                                                 ),
                                             );
                                         }
@@ -1424,7 +1412,7 @@ impl HTMLParser {
                     }
                     ParserDirective::Void(elem) => {
                         ewe_trace::debug!("parse: received void tag: {:?}", elem.tag);
-                        if stacks.len() == 0 {
+                        if stacks.is_empty() {
                             stacks.push(elem);
                         } else {
                             match stacks.last_mut() {
@@ -1450,7 +1438,7 @@ impl HTMLParser {
             }
         }
 
-        if stacks.len() == 0 {
+        if stacks.is_empty() {
             return Err(ParsingTagError::FailedParsing);
         }
 
@@ -1466,7 +1454,7 @@ impl HTMLParser {
         child: Stack<'a>,
         stacks: &mut Vec<Stack<'a>>,
     ) -> ParsingResult<()> {
-        if stacks.len() == 0 {
+        if stacks.is_empty() {
             return Ok(());
         }
 
@@ -1480,7 +1468,7 @@ impl HTMLParser {
     }
 
     fn pop_last_as_child_of_previous(&self, stacks: &mut Vec<Stack>) -> ParsingResult<()> {
-        if stacks.len() == 0 {
+        if stacks.is_empty() {
             return Ok(());
         }
 
@@ -1496,7 +1484,7 @@ impl HTMLParser {
         }
     }
 
-    fn is_valid_tag_name_token<'a>(&self, text: &'a str) -> bool {
+    fn is_valid_tag_name_token(&self, text: &str) -> bool {
         let is_alphanum = text.chars().any(char::is_alphanumeric);
         let is_allowed_symbol = text.chars().any(|t| self.allowed_tag_symbols.contains(&t));
         is_alphanum || is_allowed_symbol
@@ -1509,7 +1497,7 @@ impl HTMLParser {
     fn parse_element_from_accumulator<'c, 'd>(
         &self,
         acc: &mut StringPointer<'c>,
-        mut stacks: &mut Vec<Stack>,
+        stacks: &mut Vec<Stack>,
     ) -> ParsingResult<ParserDirective<'d>>
     where
         'c: 'd,
@@ -1527,7 +1515,7 @@ impl HTMLParser {
                     "parse_element_from_accumulator: checking comment scan: {:?}",
                     comment_scan
                 );
-                match self.parse_comment(acc, &mut stacks) {
+                match self.parse_comment(acc, stacks) {
                     Ok(elem) => return Ok(elem),
                     Err(err) => return Err(err),
                 }
@@ -1539,7 +1527,7 @@ impl HTMLParser {
                     "parse_element_from_accumulator: xml token scan activated: {:?}",
                     xml_starter_scan
                 );
-                match self.parse_xml_elem(acc, &mut stacks) {
+                match self.parse_xml_elem(acc, stacks) {
                     Ok(elem) => return Ok(elem),
                     Err(err) => return Err(err),
                 }
@@ -1554,7 +1542,7 @@ impl HTMLParser {
                     "parse_element_from_accumulator: elem token scan activated: {:?}",
                     xml_starter_scan
                 );
-                match self.parse_elem(acc, &mut stacks) {
+                match self.parse_elem(acc, stacks) {
                     Ok(elem) => return Ok(elem),
                     Err(err) => return Err(err),
                 }
@@ -1571,14 +1559,14 @@ impl HTMLParser {
                     "parse_element_from_accumulator: doctype token scan activated: {:?}",
                     xml_starter_scan
                 );
-                match self.parse_doc_type(acc, &mut stacks) {
+                match self.parse_doc_type(acc, stacks) {
                     Ok(elem) => return Ok(elem),
                     Err(err) => return Err(err),
                 }
             }
 
             if TAG_OPEN_BRACKET == next
-                && begins_with_and_after(acc.vpeek_at(1, 2).unwrap(), &FORWARD_SLASH, |t| {
+                && begins_with_and_after(acc.vpeek_at(1, 2).unwrap(), FORWARD_SLASH, |t| {
                     t.chars().all(char::is_alphabetic)
                 })
             {
@@ -1586,7 +1574,7 @@ impl HTMLParser {
                     "parse_element_from_accumulator: tag closer token scan activated: {:?}",
                     xml_starter_scan
                 );
-                match self.parse_closing_tag(acc, &mut stacks) {
+                match self.parse_closing_tag(acc, stacks) {
                     Ok(elem) => return Ok(elem),
                     Err(err) => return Err(err),
                 }
@@ -1624,8 +1612,8 @@ impl HTMLParser {
                 }
             }
 
-            let code_block_text = acc.ppeek_at(0, 2).or(Some("")).unwrap();
-            let rust_code_block_text = acc.ppeek_at(0, 3).or(Some("")).unwrap();
+            let code_block_text = acc.ppeek_at(0, 2).unwrap_or("");
+            let rust_code_block_text = acc.ppeek_at(0, 3).unwrap_or("");
             ewe_trace::debug!(
                 "parse_element_from_accumulator: code block checking: {} with code: {:?}, rust_code: {:?}",
                 next,
@@ -1639,21 +1627,21 @@ impl HTMLParser {
             {
                 if rust_code_block_text == RUST_BLOCK_STARTER {
                     ewe_trace::debug!("parse_element_from_accumulator: start rust code block");
-                    match self.parse_code_block(rust_code_block_text, acc, &mut stacks) {
+                    match self.parse_code_block(rust_code_block_text, acc, stacks) {
                         Ok(elem) => return Ok(elem),
                         Err(err) => return Err(err),
                     }
                 }
                 if code_block_text == CODE_BLOCK_STARTER {
                     ewe_trace::debug!("parse_element_from_accumulator: start non-rust code block");
-                    match self.parse_code_block(code_block_text, acc, &mut stacks) {
+                    match self.parse_code_block(code_block_text, acc, stacks) {
                         Ok(elem) => return Ok(elem),
                         Err(err) => return Err(err),
                     }
                 }
             }
 
-            match self.parse_text_block(acc, &mut stacks) {
+            match self.parse_text_block(acc, stacks) {
                 Ok(elem) => return Ok(elem),
                 Err(err) => return Err(err),
             }
@@ -1983,7 +1971,7 @@ impl HTMLParser {
 
                 if !collected_attrs {
                     match self.parse_elem_attribute(acc, &mut elem) {
-                        Ok(_) => self.collect_space(acc)?,
+                        Ok(()) => self.collect_space(acc)?,
                         Err(err) => return Err(err),
                     };
                     collected_attrs = true;
@@ -2066,7 +2054,7 @@ impl HTMLParser {
                 self.collect_space(acc)?;
 
                 match self.parse_elem_attribute(acc, &mut elem) {
-                    Ok(_) => continue,
+                    Ok(()) => continue,
                     Err(err) => return Err(err),
                 };
             }
@@ -2184,7 +2172,7 @@ impl HTMLParser {
                 self.collect_space(acc)?;
 
                 match self.parse_elem_attribute(acc, &mut elem) {
-                    Ok(_) => continue,
+                    Ok(()) => continue,
                     Err(err) => return Err(err),
                 }
             }
@@ -2228,7 +2216,7 @@ impl HTMLParser {
         feature = "debug_trace",
         tracing::instrument(level = "trace", skip(self))
     )]
-    fn is_valid_attribute_value_token<'a>(&self, token: &'a str) -> bool {
+    fn is_valid_attribute_value_token(&self, token: &str) -> bool {
         ewe_trace::debug!("Checking if valid attribute value token: {:?}", token);
         token.chars().any(|t| {
             t.is_alphanumeric()
@@ -2257,7 +2245,7 @@ impl HTMLParser {
         feature = "debug_trace",
         tracing::instrument(level = "trace", skip(self))
     )]
-    fn is_valid_attribute_name<'a>(&self, token: &'a str) -> bool {
+    fn is_valid_attribute_name(&self, token: &str) -> bool {
         token.chars().any(|t| {
             t.is_alphanumeric()
                 || t.is_ascii_alphanumeric()
@@ -2283,8 +2271,7 @@ impl HTMLParser {
 
         let starter_closer = ATTRIBUTE_PAIRS
             .get(starter)
-            .or(Some(&EMPTY_STRING))
-            .unwrap();
+            .unwrap_or(&EMPTY_STRING);
 
         while let Some(next) = acc.peek_next() {
             ewe_trace::debug!(
@@ -2432,7 +2419,7 @@ impl HTMLParser {
                         attribute_name
                     );
 
-                    if attribute_name.len() != 0 {
+                    if !attribute_name.is_empty() {
                         stack.add_attr(attribute_name, AttrValue::Text(""));
                     }
 
@@ -2593,9 +2580,9 @@ impl HTMLParser {
             // the same sample file, something is definitely weird and off here.
             if tag_text.starts_with("</")
                 || tag_text.starts_with("></")
-                || tag_text.starts_with("/")
+                || tag_text.starts_with('/')
             {
-                if tag_text.starts_with("/") {
+                if tag_text.starts_with('/') {
                     tag_text = &tag_text[1..];
                 } else if tag_text.starts_with("></") {
                     tag_text = &tag_text[3..];
@@ -2638,7 +2625,7 @@ mod html_parser_test {
     fn test_basic_html_can_parse_empty_string() {
         let parser = HTMLParser::default();
 
-        let data = wrap_in_document_fragment_container(String::from(""));
+        let data = wrap_in_document_fragment_container(String::new());
         let result = parser.parse(data.as_str());
         assert!(matches!(result, ParsingResult::Ok(_)));
 
@@ -2653,7 +2640,7 @@ mod html_parser_test {
                 attrs: vec![],
                 children: vec![]
             }
-        )
+        );
     }
 
     #[traced_test]
@@ -2683,7 +2670,7 @@ mod html_parser_test {
                     children: vec![]
                 }]
             }
-        )
+        );
     }
 
     #[traced_test]
@@ -2713,7 +2700,7 @@ mod html_parser_test {
                     children: vec![]
                 }]
             }
-        )
+        );
     }
 
     #[traced_test]
@@ -2746,7 +2733,7 @@ mod html_parser_test {
                     children: vec![]
                 }]
             }
-        )
+        );
     }
 
     #[traced_test]
@@ -2776,7 +2763,7 @@ mod html_parser_test {
                     children: vec![]
                 }]
             }
-        )
+        );
     }
 
     #[traced_test]
@@ -2813,7 +2800,7 @@ mod html_parser_test {
                     }]
                 }]
             }
-        )
+        );
     }
 
     #[traced_test]
@@ -2850,7 +2837,7 @@ mod html_parser_test {
                     }]
                 }]
             }
-        )
+        );
     }
 
     #[traced_test]
@@ -2885,7 +2872,7 @@ mod html_parser_test {
                 MarkupTags::Text(String::from("hello:_-")),
             ],
             parsed
-        )
+        );
     }
 
     #[traced_test]
@@ -2912,7 +2899,7 @@ mod html_parser_test {
                 MarkupTags::HTML(HTMLTags::Br),
             ],
             parsed
-        )
+        );
     }
 
     #[traced_test]
@@ -2921,7 +2908,7 @@ mod html_parser_test {
         let parser = HTMLParser::default();
 
         let data = wrap_in_document_fragment_container(String::from(
-            r#"
+            r"
             <div>
                 <circle/>
             </div>
@@ -2930,7 +2917,7 @@ mod html_parser_test {
             <br>
             </section>
             </div>
-            "#,
+            ",
         ));
         let result = parser.parse(data.as_str());
 
@@ -2943,7 +2930,7 @@ mod html_parser_test {
         let parser = HTMLParser::default();
 
         let data = wrap_in_document_fragment_container(String::from(
-            r#"
+            r"
             <div>
                 <circle/>
             </div>
@@ -2951,7 +2938,7 @@ mod html_parser_test {
             <br>
             <div>
             </div>
-            "#,
+            ",
         ));
         let result = parser.parse(data.as_str());
 
@@ -2969,7 +2956,7 @@ mod html_parser_test {
                 MarkupTags::HTML(HTMLTags::Div),
             ],
             parsed
-        )
+        );
     }
 
     #[traced_test]
@@ -2978,7 +2965,7 @@ mod html_parser_test {
         let parser = HTMLParser::default();
 
         let data = wrap_in_document_fragment_container(String::from(
-            r#"
+            r"
             <div>
             <circle/>
             </div>
@@ -2986,7 +2973,7 @@ mod html_parser_test {
             <br>
             <br>
             </div>
-            "#,
+            ",
         ));
         let result = parser.parse(data.as_str());
 
@@ -3004,7 +2991,7 @@ mod html_parser_test {
                 MarkupTags::HTML(HTMLTags::Br),
             ],
             parsed
-        )
+        );
     }
 
     #[traced_test]
@@ -3013,7 +3000,7 @@ mod html_parser_test {
         let parser = HTMLParser::default();
 
         let data = wrap_in_document_fragment_container(String::from(
-            r#"
+            r"
             <div>
             <circle/>
             </div>
@@ -3021,7 +3008,7 @@ mod html_parser_test {
             <br/>
             <br/>
             </div>
-            "#,
+            ",
         ));
         let result = parser.parse(data.as_str());
 
@@ -3039,7 +3026,7 @@ mod html_parser_test {
                 MarkupTags::HTML(HTMLTags::Br),
             ],
             parsed
-        )
+        );
     }
 
     #[traced_test]
@@ -3065,7 +3052,7 @@ mod html_parser_test {
                 MarkupTags::HTML(HTMLTags::Br),
             ],
             parsed
-        )
+        );
     }
 
     #[traced_test]
@@ -3094,7 +3081,7 @@ mod html_parser_test {
                 MarkupTags::HTML(HTMLTags::Br),
             ],
             parsed
-        )
+        );
     }
 
     #[traced_test]
@@ -3103,13 +3090,13 @@ mod html_parser_test {
         let parser = HTMLParser::default();
 
         let data = wrap_in_document_fragment_container(String::from(
-            r#"<div>
+            r"<div>
                 <script>
                 	let some_var = window.get('alex');
                     let elem = (<section>alex</section>)
                 </script>
             </div>
-            "#,
+            ",
         ));
         let result = parser.parse(data.as_str());
 
@@ -3125,7 +3112,7 @@ mod html_parser_test {
                 MarkupTags::Text(String::from("\n                \tlet some_var = window.get('alex');\n                    let elem = (<section>alex</section>)\n                ")),
             ],
             parsed
-        )
+        );
     }
 
     #[traced_test]
@@ -3134,10 +3121,10 @@ mod html_parser_test {
         let parser = HTMLParser::default();
 
         let data = wrap_in_document_fragment_container(String::from(
-            r#"<div>
+            r"<div>
                 <!-- This is a comment--->
             </div>
-            "#,
+            ",
         ));
         let result = parser.parse(data.as_str());
 
@@ -3152,7 +3139,7 @@ mod html_parser_test {
                 MarkupTags::Comment(String::from("<!-- This is a comment--->")),
             ],
             parsed
-        )
+        );
     }
 
     #[traced_test]
@@ -3161,10 +3148,10 @@ mod html_parser_test {
         let parser = HTMLParser::default();
 
         let data = wrap_in_document_fragment_container(String::from(
-            r#"<div>
+            r"<div>
                 <!-- This is a comment-->
             </div>
-            "#,
+            ",
         ));
         let result = parser.parse(data.as_str());
 
@@ -3179,7 +3166,7 @@ mod html_parser_test {
                 MarkupTags::Comment(String::from("<!-- This is a comment-->")),
             ],
             parsed
-        )
+        );
     }
 
     #[traced_test]
@@ -3188,10 +3175,10 @@ mod html_parser_test {
         let parser = HTMLParser::default();
 
         let data = wrap_in_document_fragment_container(String::from(
-            r#"<div>
+            r"<div>
                 <!-- This is a comment -->
             </div>
-            "#,
+            ",
         ));
         let result = parser.parse(data.as_str());
 
@@ -3206,7 +3193,7 @@ mod html_parser_test {
                 MarkupTags::Comment(String::from("<!-- This is a comment -->")),
             ],
             parsed
-        )
+        );
     }
 
     #[traced_test]
@@ -3215,12 +3202,12 @@ mod html_parser_test {
         let parser = HTMLParser::default();
 
         let data = wrap_in_document_fragment_container(String::from(
-            r#"<div>
+            r"<div>
                 <!--
                     This is a comment
                 -->
             </div>
-            "#,
+            ",
         ));
         let result = parser.parse(data.as_str());
 
@@ -3237,7 +3224,7 @@ mod html_parser_test {
                 ))
             ],
             parsed
-        )
+        );
     }
 
     #[traced_test]
@@ -3246,9 +3233,9 @@ mod html_parser_test {
         let parser = HTMLParser::default();
 
         let data = wrap_in_document_fragment_container(String::from(
-            r#"
+            r"
                 <sec@tion />
-            "#,
+            ",
         ));
         let result = parser.parse(data.as_str());
 
@@ -3262,7 +3249,7 @@ mod html_parser_test {
                 MarkupTags::Component(String::from("sec@tion")),
             ],
             parsed
-        )
+        );
     }
 
     #[traced_test]
@@ -3271,9 +3258,9 @@ mod html_parser_test {
         let parser = HTMLParser::default();
 
         let data = wrap_in_document_fragment_container(String::from(
-            r#"
+            r"
                 <section />
-            "#,
+            ",
         ));
         let result = parser.parse(data.as_str());
 
@@ -3287,7 +3274,7 @@ mod html_parser_test {
                 MarkupTags::HTML(HTMLTags::Section),
             ],
             parsed
-        )
+        );
     }
 
     #[traced_test]
@@ -3296,9 +3283,9 @@ mod html_parser_test {
         let parser = HTMLParser::default();
 
         let data = wrap_in_document_fragment_container(String::from(
-            r#"
+            r"
                 <div />
-            "#,
+            ",
         ));
         let result = parser.parse(data.as_str());
 
@@ -3312,7 +3299,7 @@ mod html_parser_test {
                 MarkupTags::HTML(HTMLTags::Div),
             ],
             parsed
-        )
+        );
     }
 
     #[traced_test]
@@ -3339,7 +3326,7 @@ mod html_parser_test {
                 MarkupTags::HTML(HTMLTags::Xml),
             ],
             parsed
-        )
+        );
     }
 
     #[traced_test]
@@ -3376,7 +3363,7 @@ mod html_parser_test {
                 MarkupTags::Text(String::from("\n                \tbody {\n                    \tbackground: black;\n                    }\n\n                    h1 {\n                    \tcolor: white;\n                        background-color: #43433;\n                    }\n                ")),
             ],
             parsed
-        )
+        );
     }
 
     #[traced_test]
@@ -3391,10 +3378,10 @@ mod html_parser_test {
         assert!(matches!(result, ParsingResult::Ok(_)));
 
         let parsed = result.unwrap();
-        let div = parsed.children.get(0).unwrap();
+        let div = parsed.children.first().unwrap();
 
         assert_eq!(
-            *div.attrs.get(0).unwrap(),
+            *div.attrs.first().unwrap(),
             ("jail", AttrValue::Code("{{some of other vaulue}}"))
         );
     }
@@ -3411,10 +3398,10 @@ mod html_parser_test {
         assert!(matches!(result, ParsingResult::Ok(_)));
 
         let parsed = result.unwrap();
-        let div = parsed.children.get(0).unwrap();
+        let div = parsed.children.first().unwrap();
 
         assert_eq!(
-            *div.attrs.get(0).unwrap(),
+            *div.attrs.first().unwrap(),
             ("jail", AttrValue::Block("{some of other vaulue}"))
         );
     }
@@ -3514,7 +3501,7 @@ mod html_parser_test {
             "#,
             )),
             wrap_in_document_fragment_container(String::from(
-                r#"
+                r"
                 <HTML>
                     <head>
                         <title>title</title>
@@ -3527,10 +3514,10 @@ mod html_parser_test {
                         </ul>
                     </body>
                 </hTML>
-            "#,
+            ",
             )),
             wrap_in_document_fragment_container(String::from(
-                r#"
+                r"
                     <div class='1'>
                         <div class='1'>
                             <div class='1'>
@@ -3549,10 +3536,10 @@ mod html_parser_test {
                             </div>
                         </div>
                     </div>
-            "#,
+            ",
             )),
             wrap_in_document_fragment_container(String::from(
-                r#"
+                r"
                     <script>
                         const person_creator = ({ name, symtoms }) => {
                             let person = {}
@@ -3578,10 +3565,10 @@ mod html_parser_test {
 
                         main()
                     </script>
-            "#,
+            ",
             )),
             wrap_in_document_fragment_container(String::from(
-                r#"
+                r"
                   <!-- comment -->
                     <!-- comment -->
                     <!DOCTYPE html>
@@ -3592,17 +3579,17 @@ mod html_parser_test {
                     </html>
                     <!-- comment -->
                     <!-- comment -->
-            "#,
+            ",
             )),
             wrap_in_document_fragment_container(String::from(
-                r#"
+                r"
 				hello<!--world?--><div/>
-            "#,
+            ",
             )),
             wrap_in_document_fragment_container(String::from(
-                r#"
+                r"
 				hello<!--world?--><div/>
-            "#,
+            ",
             )),
         ];
 
@@ -3612,38 +3599,38 @@ mod html_parser_test {
         }
     }
 
-    static HTML: &'static str = include_str!("../benches/wikipedia-2020-12-21.html");
+    static HTML: &str = include_str!("../benches/wikipedia-2020-12-21.html");
 
     #[traced_test]
     #[test]
     fn test_html_can_handle_wikipedia_page() {
         let parser = HTMLParser::default();
 
-        let data = wrap_in_document_fragment_container(String::from(HTML.to_string()));
+        let data = wrap_in_document_fragment_container(HTML.to_string());
         let result = parser.parse(data.as_str());
         assert!(matches!(result, ParsingResult::Ok(_)));
     }
 
-    static HTML_BIG: &'static str = include_str!("../benches/wikipedia_on_wikipedia.html");
+    static HTML_BIG: &str = include_str!("../benches/wikipedia_on_wikipedia.html");
 
     #[traced_test]
     #[test]
     fn test_html_can_handle_big_wikipedia_page() {
         let parser = HTMLParser::default();
 
-        let data = wrap_in_document_fragment_container(String::from(HTML_BIG.to_string()));
+        let data = wrap_in_document_fragment_container(HTML_BIG.to_string());
         let result = parser.parse(data.as_str());
         assert!(matches!(result, ParsingResult::Ok(_)));
     }
 
-    static HTML_SMALLEST: &'static str = include_str!("../benches/scraping_course.html");
+    static HTML_SMALLEST: &str = include_str!("../benches/scraping_course.html");
 
     #[traced_test]
     #[test]
     fn test_html_can_handle_smallest_wikipedia_page() {
         let parser = HTMLParser::default();
 
-        let data = wrap_in_document_fragment_container(String::from(HTML_SMALLEST.to_string()));
+        let data = wrap_in_document_fragment_container(HTML_SMALLEST.to_string());
         let result = parser.parse(data.as_str());
         assert!(matches!(result, ParsingResult::Ok(_)));
     }
@@ -3660,10 +3647,10 @@ mod html_parser_test {
         assert!(matches!(result, ParsingResult::Ok(_)));
 
         let parsed = result.unwrap();
-        let div = parsed.children.get(0).unwrap();
+        let div = parsed.children.first().unwrap();
 
         assert_eq!(
-            *div.attrs.get(0).unwrap(),
+            *div.attrs.first().unwrap(),
             ("jail", AttrValue::Code("{{some of other vaulue}}"))
         );
 
@@ -3691,10 +3678,10 @@ mod html_parser_test {
         assert!(matches!(result, ParsingResult::Ok(_)));
 
         let parsed = result.unwrap();
-        let div = parsed.children.get(0).unwrap();
+        let div = parsed.children.first().unwrap();
 
         assert_eq!(
-            *div.attrs.get(0).unwrap(),
+            *div.attrs.first().unwrap(),
             (
                 "jail",
                 AttrValue::Code("{{\n                some of other vaulue\n            }}")
@@ -3726,23 +3713,23 @@ mod html_parser_test {
         let parser = HTMLParser::default();
 
         let data = wrap_in_document_fragment_container(String::from(
-            r#"
+            r"
             <div jail={{
                 some of other vaulue
             }} rust={{{
              some rust value
              }}}>hello</div>
-            "#,
+            ",
         ));
         let result = parser.parse(data.as_str());
-        println!("Results: {:?}", result);
+        println!("Results: {result:?}");
         assert!(matches!(result, ParsingResult::Ok(_)));
 
         let parsed = result.unwrap();
-        let div = parsed.children.get(0).unwrap();
+        let div = parsed.children.first().unwrap();
 
         assert_eq!(
-            *div.attrs.get(0).unwrap(),
+            *div.attrs.first().unwrap(),
             (
                 "jail",
                 AttrValue::Code("{{\n                some of other vaulue\n            }}")
@@ -3764,18 +3751,18 @@ mod html_parser_test {
         let parser = HTMLParser::with_custom_block_text_tags(|tag| tag.to_str().unwrap() == "div");
 
         let data = wrap_in_document_fragment_container(String::from(
-            r#"
+            r"
             <div>
             	<section></section>
              </div>
-            "#,
+            ",
         ));
         let result = parser.parse(data.as_str());
         assert!(matches!(result, ParsingResult::Ok(_)));
 
         let parsed = result.unwrap();
 
-        let _ = parsed.children.get(0).unwrap();
+        let _ = parsed.children.first().unwrap();
 
         let tags = parsed.get_tags();
 
@@ -3788,7 +3775,7 @@ mod html_parser_test {
                 )),
             ],
             tags
-        )
+        );
     }
 
     #[traced_test]
@@ -3797,7 +3784,7 @@ mod html_parser_test {
         let parser = HTMLParser::default();
 
         let data = wrap_in_document_fragment_container(String::from(
-            r#"
+            r"
             <div jail={{
                 some of other vaulue
             }}>
@@ -3805,17 +3792,17 @@ mod html_parser_test {
                 some of other vaulue
              }}
              </div>
-            "#,
+            ",
         ));
         let result = parser.parse(data.as_str());
         assert!(matches!(result, ParsingResult::Ok(_)));
 
         let parsed = result.unwrap();
 
-        let div = parsed.children.get(0).unwrap();
+        let div = parsed.children.first().unwrap();
 
         assert_eq!(
-            *div.attrs.get(0).unwrap(),
+            *div.attrs.first().unwrap(),
             (
                 "jail",
                 AttrValue::Code("{{\n                some of other vaulue\n            }}")
@@ -3833,7 +3820,7 @@ mod html_parser_test {
                 )),
             ],
             tags
-        )
+        );
     }
 
     #[traced_test]
@@ -3842,19 +3829,19 @@ mod html_parser_test {
         let parser = HTMLParser::default();
 
         let data = wrap_in_document_fragment_container(String::from(
-            r#"
+            r"
             <div>
              {{
                 some of other vaulue
              }}
              </div>
-            "#,
+            ",
         ));
         let result = parser.parse(data.as_str());
         assert!(matches!(result, ParsingResult::Ok(_)));
 
         let parsed = result.unwrap();
-        let _ = parsed.children.get(0).unwrap();
+        let _ = parsed.children.first().unwrap();
 
         let tags = parsed.get_tags();
 
@@ -3867,7 +3854,7 @@ mod html_parser_test {
                 )),
             ],
             tags
-        )
+        );
     }
 
     #[traced_test]
@@ -3876,7 +3863,7 @@ mod html_parser_test {
         let parser = HTMLParser::default();
 
         let data = wrap_in_document_fragment_container(String::from(
-            r#"
+            r"
             <div>
              {{
                 some of other vaulue
@@ -3885,13 +3872,13 @@ mod html_parser_test {
              some rust value
              }}}
              </div>
-            "#,
+            ",
         ));
         let result = parser.parse(data.as_str());
         assert!(matches!(result, ParsingResult::Ok(_)));
 
         let parsed = result.unwrap();
-        let _ = parsed.children.get(0).unwrap();
+        let _ = parsed.children.first().unwrap();
 
         let tags = parsed.get_tags();
 
@@ -3907,7 +3894,7 @@ mod html_parser_test {
                 )),
             ],
             tags
-        )
+        );
     }
 
     #[traced_test]
@@ -3916,7 +3903,7 @@ mod html_parser_test {
         let parser = HTMLParser::default();
 
         let data = wrap_in_document_fragment_container(String::from(
-            r#"
+            r"
             <div>
              {{
                 some of other vaulue
@@ -3925,7 +3912,7 @@ mod html_parser_test {
              some rust value
              }} }
              </div>
-            "#,
+            ",
         ));
         let result = parser.parse(data.as_str());
         assert!(matches!(result, ParsingResult::Err(_)));

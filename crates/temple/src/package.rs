@@ -18,7 +18,7 @@ pub struct Directorate<T: rust_embed::RustEmbed> {
 impl<T: rust_embed::Embed + Default> Default for Directorate<T> {
     fn default() -> Self {
         Self {
-            _data: PhantomData::default(),
+            _data: PhantomData,
         }
     }
 }
@@ -52,13 +52,13 @@ pub trait PackageDirectorate {
     /// Returns all top-level directories within package.
     fn root_directories(&self) -> Vec<String>;
 
-    /// list_all returns all the files within the package directorate as a Vec<String>.
+    /// `list_all` returns all the files within the package directorate as a Vec<String>.
     fn list_all(&self) -> Vec<String>;
 }
 
-impl<T: rust_embed::Embed + 'static> Into<Box<dyn PackageDirectorate>> for Directorate<T> {
-    fn into(self) -> Box<dyn PackageDirectorate> {
-        Box::new(self)
+impl<T: rust_embed::Embed + 'static> From<Directorate<T>> for Box<dyn PackageDirectorate> {
+    fn from(val: Directorate<T>) -> Self {
+        Box::new(val)
     }
 }
 
@@ -73,13 +73,8 @@ impl<T: rust_embed::Embed> PackageDirectorate for Directorate<T> {
 
     fn root_directories(&self) -> Vec<String> {
         let mut dirs: Vec<String> = T::iter()
-            .filter(|t| t.contains("/"))
-            .map(|t| match t.split_once("/") {
-                None => None,
-                Some((directory, _)) => Some(String::from(directory)),
-            })
-            .filter(|t| t.is_some())
-            .map(|t| t.unwrap())
+            .filter(|t| t.contains('/'))
+            .filter_map(|t| t.split_once('/').map(|(directory, _)| String::from(directory)))
             .collect();
 
         // sort and de-dup
@@ -90,19 +85,19 @@ impl<T: rust_embed::Embed> PackageDirectorate for Directorate<T> {
     }
 
     fn list_all(&self) -> Vec<String> {
-        T::iter().map(|t| String::from(t)).collect()
+        T::iter().map(String::from).collect()
     }
 
     fn files_for(&self, directory: &str) -> Option<Vec<String>> {
-        let target_dir = if directory.ends_with("/") {
+        let target_dir = if directory.ends_with('/') {
             directory
         } else {
-            &format!("{}/", directory)
+            &format!("{directory}/")
         };
 
         let files: Vec<String> = T::iter()
             .filter(|t| t.starts_with(target_dir))
-            .map(|t| String::from(t))
+            .map(String::from)
             .collect();
 
         if files.is_empty() {
@@ -113,10 +108,10 @@ impl<T: rust_embed::Embed> PackageDirectorate for Directorate<T> {
     }
 
     fn jinja_for<'a>(&self, directory: &str) -> Option<minijinja::Environment<'a>> {
-        let target_dir = if directory.ends_with("/") {
+        let target_dir = if directory.ends_with('/') {
             directory
         } else {
-            &format!("{}/", directory)
+            &format!("{directory}/")
         };
 
         let mut jinja_env = minijinja::Environment::new();
@@ -128,7 +123,7 @@ impl<T: rust_embed::Embed> PackageDirectorate for Directorate<T> {
             return None;
         }
 
-        for relevant_path in items.into_iter() {
+        for relevant_path in items {
             let relevant_file = T::get(&relevant_path).unwrap();
             let relevant_file_data = relevant_file.data.try_into_str().expect("should be string");
             jinja_env
@@ -159,7 +154,7 @@ mod directorate_tests {
     #[test]
     fn validate_can_create_directorate_generator_safely() {
         let generator = Directorate::<Directory>::default();
-        assert!(matches!(generator.get_file("README.md"), Some(_)));
+        assert!(generator.get_file("README.md").is_some());
     }
 
     #[test]
@@ -182,7 +177,7 @@ mod directorate_tests {
     #[test]
     fn validate_can_read_all_directories() {
         let generator = Directorate::<Directory>::default();
-        let files: Vec<String> = generator.files().map(|t| String::from(t)).collect();
+        let files: Vec<String> = generator.files().map(String::from).collect();
         assert_eq!(
             files,
             vec! {"README.md", "docs/runner.sh", "elem.js", "schema/partials/partial_1.sql", "schema/schema.sql"}
@@ -190,8 +185,8 @@ mod directorate_tests {
     }
 }
 
-/// PackageConfig defines underlying default configuration that
-/// the PackageGenerator will use in it's underlying behavior of
+/// `PackageConfig` defines underlying default configuration that
+/// the `PackageGenerator` will use in it's underlying behavior of
 /// outputing the final package out.
 ///
 /// It might also be wrapped by Higher Level `PackageConfigurator`s tha
@@ -223,14 +218,14 @@ impl PackageConfig {
     }
 }
 
-/// PackageConfigurator defines the underlying expectation the
-/// PackageGenerator expects when it receives a target configuration
+/// `PackageConfigurator` defines the underlying expectation the
+/// `PackageGenerator` expects when it receives a target configuration
 /// like the target output directory, custom parameters to apply to
 /// generated files in cases of templates and what target template name
 /// representing the Project template to be used in pacakge generation.
 pub trait PackageConfigurator {
     /// Returns the target directory where the output is written
-    /// i.e the actual end project directory (output_directory / package_name).
+    /// i.e the actual end project directory (`output_directory` / `package_name`).
     fn directory(&self) -> std::path::PathBuf;
     fn config(&self) -> PackageConfig;
     fn params(&self) -> serde_json::Map<String, serde_json::Value>;
@@ -332,7 +327,7 @@ impl core::error::Error for RustProjectConfiguratorError {}
 
 impl core::fmt::Display for RustProjectConfiguratorError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
 
@@ -388,34 +383,34 @@ impl PackageConfigurator for RustProjectConfigurator {
     ///
     /// When a workspace:
     ///
-    /// - IS_WORKSPACE=true
-    /// - PACKAGE_NAME (name of package being generated)
-    /// - TEMPLATE_NAME (name of template used)
-    /// - ROOT_PACKAGE_LICENSE_FILE
-    /// - ROOT_PACKAGE_EDITION
-    /// - ROOT_PACKAGE_REPOSITORY
-    /// - ROOT_PACKAGE_VERSION
-    /// - ROOT_PACKAGE_RUST_VERSION
-    /// - ROOT_PACKAGE_RUST_LICENSE
-    /// - ROOT_PACKAGE_RUST_DESCRIPTION
-    /// - ROOT_PACKAGE_RUST_AUTHORS
-    /// - ROOT_PACKAGE_RUST_KEYWORDS
+    /// - `IS_WORKSPACE=true`
+    /// - `PACKAGE_NAME` (name of package being generated)
+    /// - `TEMPLATE_NAME` (name of template used)
+    /// - `ROOT_PACKAGE_LICENSE_FILE`
+    /// - `ROOT_PACKAGE_EDITION`
+    /// - `ROOT_PACKAGE_REPOSITORY`
+    /// - `ROOT_PACKAGE_VERSION`
+    /// - `ROOT_PACKAGE_RUST_VERSION`
+    /// - `ROOT_PACKAGE_RUST_LICENSE`
+    /// - `ROOT_PACKAGE_RUST_DESCRIPTION`
+    /// - `ROOT_PACKAGE_RUST_AUTHORS`
+    /// - `ROOT_PACKAGE_RUST_KEYWORDS`
     ///
     /// When not a workspace:
     ///
-    /// - IS_WORKSPACE=false
-    /// - PACKAGE_NAME (name of package being generated)
-    /// - TEMPLATE_NAME (name of template used)
-    /// - ROOT_PACKAGE_NAME
-    /// - ROOT_PACKAGE_LICENSE_FILE
-    /// - ROOT_PACKAGE_EDITION
-    /// - ROOT_PACKAGE_REPOSITORY
-    /// - ROOT_PACKAGE_VERSION
-    /// - ROOT_PACKAGE_RUST_VERSION
-    /// - ROOT_PACKAGE_RUST_LICENSE
-    /// - ROOT_PACKAGE_RUST_DESCRIPTION
-    /// - ROOT_PACKAGE_RUST_AUTHORS
-    /// - ROOT_PACKAGE_RUST_KEYWORDS
+    /// - `IS_WORKSPACE=false`
+    /// - `PACKAGE_NAME` (name of package being generated)
+    /// - `TEMPLATE_NAME` (name of template used)
+    /// - `ROOT_PACKAGE_NAME`
+    /// - `ROOT_PACKAGE_LICENSE_FILE`
+    /// - `ROOT_PACKAGE_EDITION`
+    /// - `ROOT_PACKAGE_REPOSITORY`
+    /// - `ROOT_PACKAGE_VERSION`
+    /// - `ROOT_PACKAGE_RUST_VERSION`
+    /// - `ROOT_PACKAGE_RUST_LICENSE`
+    /// - `ROOT_PACKAGE_RUST_DESCRIPTION`
+    /// - `ROOT_PACKAGE_RUST_AUTHORS`
+    /// - `ROOT_PACKAGE_RUST_KEYWORDS`
     ///
     fn params(&self) -> serde_json::Map<String, serde_json::Value> {
         let mut params = self.package_config.params.clone();
@@ -424,7 +419,6 @@ impl PackageConfigurator for RustProjectConfigurator {
             self.package_config
                 .output_directory
                 .file_name()
-                .clone()
                 .unwrap()
                 .to_str()
                 .unwrap(),
@@ -505,7 +499,7 @@ impl PackageConfigurator for RustProjectConfigurator {
                 if let Some(package) = &workspace.package {
                     params.entry("IS_WORKSPACE").or_insert(true.into());
 
-                    println!("Package name: {}", output_directory_name);
+                    println!("Package name: {output_directory_name}");
 
                     params
                         .entry("ROOT_PACKAGE_NAME")
@@ -515,7 +509,7 @@ impl PackageConfigurator for RustProjectConfigurator {
                         package
                             .documentation
                             .clone()
-                            .unwrap_or(String::from(""))
+                            .unwrap_or(String::new())
                             .into(),
                     );
                     params.entry("ROOT_PACKAGE_LICENSE_FILE").or_insert(
@@ -530,7 +524,7 @@ impl PackageConfigurator for RustProjectConfigurator {
                     if let Some(edition) = package.edition {
                         params
                             .entry("ROOT_PACKAGE_EDITION")
-                            .or_insert(format!("{:?}", edition).into());
+                            .or_insert(format!("{edition:?}").into());
                     }
                     params.entry("ROOT_PACKAGE_REPOSITORY").or_insert(
                         package
@@ -647,7 +641,7 @@ impl PackageConfigurator for RustProjectConfigurator {
                 let mut cargo_file = std::fs::File::create(project_cargo_file.clone())?;
 
                 match cargo_file.write_all(serilized_manifest.as_bytes()) {
-                    Ok(_) => Ok(()),
+                    Ok(()) => Ok(()),
                     Err(err) => Err(Box::new(err)),
                 }
             }
@@ -719,7 +713,7 @@ impl PackageGenerator {
         let file_templates = sync::Arc::new(jinja_environment.unwrap());
 
         let mut packager = crate::Templater::from(config.output_directory.clone());
-        for template_file in template_files.iter() {
+        for template_file in &template_files {
             let template_file_path = PathBuf::from(template_file.as_str());
             if template_file_path.is_dir() || template_file_path.ends_with("/") {
                 continue;
@@ -732,10 +726,7 @@ impl PackageGenerator {
                     template_file_path
                         .as_path()
                         .strip_prefix(config.template_name.as_str())
-                        .expect(
-                            format!("expected valid starting as `{}`", config.template_name)
-                                .as_str(),
-                        ),
+                        .unwrap_or_else(|_| panic!("expected valid starting as `{}`", config.template_name)),
                 );
 
             let rewritten_template_dir = rewritten_template_file_name
@@ -747,7 +738,7 @@ impl PackageGenerator {
 
             // if name starts with underscore(_) then we assume this is only a partial
             // to be reused in another file and skip adding
-            if template_file_name.starts_with("_") {
+            if template_file_name.starts_with('_') {
                 continue;
             }
 
@@ -763,8 +754,7 @@ impl PackageGenerator {
                 vec![FileSystemCommand::File(
                     template_file_name,
                     FileContent::Jinja(template_file.clone(), file_templates.clone()),
-                )
-                .into()],
+                )],
             ));
         }
 
@@ -774,7 +764,7 @@ impl PackageGenerator {
 
         configurator
             .finalize()
-            .map_err(|err| PackageGenError::Failed(err))
+            .map_err(PackageGenError::Failed)
     }
 }
 
@@ -798,7 +788,6 @@ mod package_generator_tests {
     fn list_dir(target_path: &path::Path) -> Vec<String> {
         fs::read_dir(target_path)
             .expect("directory should exists")
-            .into_iter()
             .map(|entry| entry.unwrap())
             .flat_map(|entry| {
                 if entry.file_type().unwrap().is_dir() {
@@ -813,7 +802,7 @@ mod package_generator_tests {
     fn shorten_path(target: Vec<String>, path: String) -> Vec<String> {
         target
             .iter()
-            .map(|value| value.replace(path.as_str(), "").replacen("/", "", 1))
+            .map(|value| value.replace(path.as_str(), "").replacen('/', "", 1))
             .collect()
     }
 

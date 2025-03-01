@@ -18,7 +18,7 @@ pub enum FileContent<'a> {
     Jinja(String, Arc<minijinja::Environment<'a>>),
 }
 
-impl<'a> FileContent<'a> {
+impl FileContent<'_> {
     pub fn run<S: Serialize>(&self, dest: path::PathBuf, value: Option<S>) -> FileResult<()> {
         match self {
             FileContent::Text(content) => {
@@ -64,7 +64,7 @@ pub enum FileSystemCommand<'a> {
     FilePath(PathBuf, FileContent<'a>),
 }
 
-impl<'a> FileSystemCommand<'a> {
+impl FileSystemCommand<'_> {
     fn exec<S: Serialize + Clone>(&self, dest: path::PathBuf, value: S) -> FileResult<()> {
         match self {
             FileSystemCommand::DirPath(dir, commands) => {
@@ -145,10 +145,8 @@ impl<'a> Templater<'a> {
     }
 
     pub fn run<S: Serialize>(&mut self, value: S) -> FileResult<()> {
-        for command in self.commands.iter() {
-            if let Err(err) = command.exec(self.dest.clone(), &value) {
-                return Err(err);
-            }
+        for command in &self.commands {
+            command.exec(self.dest.clone(), &value)?;
         }
         Ok(())
     }
@@ -161,14 +159,14 @@ mod tests {
     use serde_json::{json, Value};
     use std::{env, fs, io::Read, path, sync};
 
-    fn random_directory_name<'a>(prefix: &'a str) -> String {
+    fn random_directory_name(prefix: &str) -> String {
         use rand::distributions::{Alphanumeric, DistString};
 
-        return format!(
+        format!(
             "{}_{}",
             prefix,
             Alphanumeric.sample_string(&mut rand::thread_rng(), 16)
-        );
+        )
     }
 
     fn clean_up_directory(target: path::PathBuf) {
@@ -181,7 +179,7 @@ mod tests {
         tt.add_template("world", "{{country}} wonderworld!")?;
         tt.add_template("hello", "Welcome to hello {{name}}!")?;
 
-        tt.add_template("index", r#"{% include 'hello' %} {% include 'world' %}"#)?;
+        tt.add_template("index", r"{% include 'hello' %} {% include 'world' %}")?;
 
         Ok(tt)
     }
@@ -194,7 +192,7 @@ mod tests {
 
         tt.add_template(
             "index",
-            r#"{{ call hello with @root }} {{ call world with @root }}"#,
+            r"{{ call hello with @root }} {{ call world with @root }}",
         )?;
 
         Ok(tt)
@@ -207,7 +205,7 @@ mod tests {
         let mut target = tmp_dir.clone();
         target.push("temple");
 
-        let mut tml = Templater::new(&target.to_str().unwrap());
+        let mut tml = Templater::new(target.to_str().unwrap());
         tml.add(FileSystemCommand::Dir(String::from("weeds"), vec![]));
 
         let data: Value = json!({
@@ -234,7 +232,7 @@ mod tests {
         let mut target = tmp_dir.clone();
         target.push(random_directory_name("temple"));
 
-        let mut tml = Templater::new(&target.to_str().unwrap());
+        let mut tml = Templater::new(target.to_str().unwrap());
 
         let templ = sync::Arc::new(create_jinja_template().expect("created sample template"));
 
@@ -243,8 +241,7 @@ mod tests {
             vec![FileSystemCommand::File(
                 String::from("index.md"),
                 FileContent::Jinja(String::from("index"), templ),
-            )
-            .into()],
+            )],
         ));
 
         let data: Value = json!({
@@ -289,7 +286,7 @@ mod tests {
         let mut target = tmp_dir.clone();
         target.push(random_directory_name("temple"));
 
-        let mut tml = Templater::new(&target.to_str().unwrap());
+        let mut tml = Templater::new(target.to_str().unwrap());
 
         let templ = create_tiny_template().expect("created sample template");
 
@@ -298,8 +295,7 @@ mod tests {
             vec![FileSystemCommand::File(
                 String::from("index.md"),
                 FileContent::Tiny(String::from("index"), templ),
-            )
-            .into()],
+            )],
         ));
 
         let data: Value = json!({

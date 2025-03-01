@@ -67,7 +67,7 @@ pub(crate) fn watch_path(
 
     let target_path = config.path();
     let watcher_path = Path::new(&target_path);
-    let watcher = create_notify_watcher(&watcher_path, config.debounce().into(), tx)?;
+    let watcher = create_notify_watcher(watcher_path, config.debounce().into(), tx)?;
 
     // listen for change events
     let join_handler = thread::spawn(move || {
@@ -127,7 +127,7 @@ pub(crate) fn execute_command(mut command: config::CommandDescription) -> ExecRe
 
             if command.if_failed == Some(CommandExpectation::Exit) {
                 return Err(anyhow!(
-                    r#"
+                    r"
     Command: {}, args={:?}
 
     Output:
@@ -137,7 +137,7 @@ pub(crate) fn execute_command(mut command: config::CommandDescription) -> ExecRe
         {}
 
     [end]
-                    "#,
+                    ",
                     command_binary,
                     command_arguments,
                     output,
@@ -154,9 +154,7 @@ pub(crate) fn execute_command(mut command: config::CommandDescription) -> ExecRe
 pub(crate) fn execute_commands(watcher: config::Watcher) -> ExecResult<()> {
     if let Some(watcher_commands) = watcher.commands() {
         for command in watcher_commands {
-            if let Err(err) = execute_command(command) {
-                return Err(err);
-            }
+            execute_command(command)?;
         }
     }
 
