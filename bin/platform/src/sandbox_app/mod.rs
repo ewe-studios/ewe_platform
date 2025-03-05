@@ -21,15 +21,16 @@ type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 struct Public;
 
 async fn index_handler() -> Response {
-    match package_request_handler("megatron".into(), "index.html") {
+    match package_request_handler("megatron".into(), "packages/index.html") {
         Some(file_content) => {
+            tracing::info!("Pulling from package provider: index: /index.html");
             let content =
                 String::from_utf8(file_content.data.to_vec()).expect("should generate str");
             Html(content).into_response()
         }
-        s,
         None => match Public::get("public/index.html") {
             Some(html_data) => {
+                tracing::info!("Falling back to public index: public/index.html");
                 let content =
                     String::from_utf8(html_data.data.to_vec()).expect("should generate str");
                 Html(content).into_response()

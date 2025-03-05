@@ -1,3 +1,3 @@
 // starter script
 
-console.log("Started code");
+console.log("Standexrted code");
