@@ -8,20 +8,22 @@
 /// One interesting question is what does a delay mean:
 ///
 /// 1. In one sense this can be the delay result of a one time operation
-/// upon which completio we get our result from the `Delayed::Done` option at
+/// upon which completion we get our result from the `Delayed::Done` option at
 /// which point we can expect no further results.
-/// 2. But in another sense can also represent a re-occuring operation that will be
-/// delayed a specific period of time upon which after completionm, may or may not repeat.
+/// 2. But in another sense can also represent a re-occurring operation that will be
+/// delayed a specific period of time upon which after completion, may or may not repeat.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Delayed<T> {
-    /// Pending represents to the reciever two important information:
+    /// Pending represents to the receiver two important information:
     ///
     /// 1. The actual time instant when the delay began (think) of this
     /// as the actual beginning when we start to count time (start of time)
     /// for the delayed output
+    ///
     /// 2. The total duration upon which we will be delayed from the start of
     /// time.
-    /// 3. The remaining duration left ontil the delay is finished
+    ///
+    /// 3. The remaining duration left until the delay is finished
     /// (this is more of a bonus).
     ///
     /// This allows more communication about an operation still awaiting completion.
@@ -56,10 +58,10 @@ pub type BoxedDelayedReadyResolver<D> = Box<dyn DelayedReadyResolver<D>>;
 /// DelayedIterators can be thought of as two forms:
 ///
 /// 1. In one sense this can be the delay result of a one time operation
-/// upon which completio we get our result from the `Delayed::Done` option at
+/// upon which completion we get our result from the `Delayed::Done` option at
 /// which point we can expect no further results.
 ///
-/// 2. But in another sense can also represent a re-occuring operation that will be
+/// 2. But in another sense can also represent a re-occurring operation that will be
 /// delayed a specific period of time upon which after completionm, may or may not repeat.
 ///
 /// Each response from the iterator is either a `Delayed::Pending` marking
@@ -78,7 +80,7 @@ pub trait DelayedIterator {
     fn next(&mut self) -> Option<Delayed<Self::Item>>;
 
     /// into_iter consumes the implementation and wraps
-    /// it in an iterator type that emits `Multi<MutliIterator::Item>`
+    /// it in an iterator type that emits `Multi<MultiIterator::Item>`
     /// match the behavior desired for an iterator.
     fn into_iter(self) -> impl Iterator<Item = Delayed<Self::Item>>
     where

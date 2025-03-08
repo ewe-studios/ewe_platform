@@ -5,7 +5,7 @@ use core::str;
 use crate::extensions::strings_ext::IntoString;
 
 #[derive(Embed)]
-#[folder = "src/megatron/jsdom/packages/"]
+#[folder = "src/megatron/jsrum/packages/"]
 #[prefix = "packages/"]
 pub struct Packages;
 

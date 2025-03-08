@@ -160,7 +160,7 @@ where
                 if let Some(panic_handler) = &self.panic_handler {
                     (panic_handler)(panic_error);
                 }
-                return Some(State::Paniced);
+                return Some(State::Panicked);
             }
         };
 

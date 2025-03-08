@@ -11,7 +11,7 @@ use rust_embed::Embed;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
-use foundation_core::megatron::jsdom::package_request_handler;
+use foundation_core::megatron::jsrum::package_request_handler;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 

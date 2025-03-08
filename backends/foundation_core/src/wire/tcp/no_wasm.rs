@@ -1,8 +1,9 @@
 #![cfg(not(target_arch = "wasm32"))]
+#![allow(clippy::missing_errors_doc)]
 
 use derive_more::derive::From;
 
-use crate::io::ioutils::{PeekError, PeekableReadStream};
+use crate::io::ioutils::{BufferedReader, PeekError, PeekableReadStream};
 use crate::retries::{
     ClonableReconnectionDecider, ExponentialBackoffDecider, RetryDecider, RetryState,
 };
@@ -31,6 +32,7 @@ pub enum RawStream {
 
 #[allow(unused)]
 impl RawStream {
+    /// Returns a fallible TLS connection from the provided `TcpStream` and connector.
     #[cfg(feature = "native-tls")]
     pub fn try_wrap_tls_with_connector<'a>(
         plain: TcpStream,
@@ -408,6 +410,7 @@ impl PartialEq for ReconnectionStatus {
 impl<T: Clone> Iterator for ReconnectingStream<T> {
     type Item = Result<ReconnectionStatus, ReconnectionError>;
 
+    #[allow(clippy::too_many_lines)]
     fn next(&mut self) -> Option<Self::Item> {
         match &mut self.state {
             ConnectionState::Todo(endpoint) => {
@@ -431,10 +434,8 @@ impl<T: Clone> Iterator for ReconnectingStream<T> {
                         println!("Failed to connect: {:?}", connection_error);
                         match reconnection_state_option {
                             Some(rstate) => {
-                                let duration = match rstate.wait.clone() {
-                                    Some(duration) => duration,
-                                    None => Duration::from_secs(0),
-                                };
+                                let duration =
+                                    rstate.wait.clone().unwrap_or(Duration::from_secs(0));
 
                                 let sleeper = SleepIterator::until(duration, endpoint.clone());
                                 self.state = ConnectionState::Reconnect(rstate, Some(sleeper));
@@ -540,16 +541,9 @@ mod test_reconnection_stream {
     #[test]
     fn successfully_connects_on_first_try() {
         let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:3799"));
-        let threader = thread::spawn(move || loop {
-            match listener.accept() {
-                Ok((_, _)) => loop {
-                    tracing::debug!("Received client, ending");
-                    return;
-                },
-                Err(_) => {
-                    return;
-                }
-            }
+        let threader = thread::spawn(move || {
+            listener.accept();
+            tracing::debug!("Received client, ending");
         });
 
         let endpoint = panic_if_failed!(Endpoint::plain_string("http://127.0.0.1:3799"));

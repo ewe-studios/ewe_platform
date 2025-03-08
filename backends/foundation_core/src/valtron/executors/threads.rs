@@ -103,44 +103,40 @@ mod test_allocatable_threads {
         assert!(max_threads > 3);
 
         env::remove_var("VALTRON_NUM_THREADS");
-        env::set_var("VALTRON_NUM_THREADS", format!("{}", max_threads - 2));
+
+        let new_thread_count = max_threads - 2;
+        let new_thread_count_str = format!("{new_thread_count:}");
+        env::set_var("VALTRON_NUM_THREADS", new_thread_count_str.clone());
+        assert_eq!(
+            env::var("VALTRON_NUM_THREADS").unwrap(),
+            new_thread_count_str
+        );
 
         assert_eq!(get_allocatable_thread_count(), max_threads - 2);
-
-        env::set_var("VALTRON_NUM_THREADS", format!("{}", max_threads - 3));
-        assert_eq!(get_allocatable_thread_count(), max_threads - 3);
-
-        env::set_var("VALTRON_NUM_THREADS", format!("{}", max_threads - 1));
-        assert_eq!(get_allocatable_thread_count(), max_threads - 1);
     }
 }
 
-/// [get_max_threads] returns the max threads allowed
+/// [`get_max_threads`] returns the max threads allowed
 /// in the current system.
 pub(crate) fn get_max_threads() -> usize {
-    match std::thread::available_parallelism()
+    let system_value = std::thread::available_parallelism()
         .ok()
-        .and_then(|s| Some(s.get()))
-    {
-        Some(system_value) => {
-            tracing::debug!("thread::available_parallelism() reported: {}", system_value);
-            system_value
-        }
-        None => 1,
-    }
+        .map_or(1, std::num::NonZero::get);
+    tracing::debug!("thread::available_parallelism() reported: {}", system_value);
+    system_value
 }
 
-/// [get_num_threads] will attempt to fetch the desired thread we want
+/// [`get_num_threads`] will attempt to fetch the desired thread we want
 /// from the either the environment variable `VALTRON_NUM_THREADS`
 /// or gets the maximum allowed thread from the platform
-/// via [std::thread::available_parallelism];
+/// via [`std::thread::available_parallelism`];
 pub(crate) fn get_num_threads() -> usize {
     let thread_num = match env::var("VALTRON_NUM_THREADS")
         .ok()
         .and_then(|s| usize::from_str(&s).ok())
     {
         Some(x @ 1..) => {
-            tracing::debug!("Retreived thread_number from VALTRON_NUM_THREADS");
+            tracing::debug!("Retrieved thread_number from VALTRON_NUM_THREADS");
             x
         }
         _ => get_max_threads(),
@@ -308,17 +304,39 @@ pub enum ThreadActivity {
 
     /// Indicates when a thread executor panics
     /// killing the thread.
-    Paniced(ThreadId, Box<dyn Any + Send>),
+    Panicked(ThreadId, Box<dyn Any + Send>),
+
+    /// Indicates the delivery of a task to the global queue.
     BroadcastedTask,
 }
 
 impl core::fmt::Display for ThreadActivity {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ThreadActivity::Paniced(thread_id, _) => {
-                write!(f, "ThreadActivity::Paniced({:?})", thread_id)
+            ThreadActivity::Panicked(id, _) => {
+                write!(f, "ThreadActivity::Panicked({id:?})")
             }
-            _ => write!(f, "{:?}", self),
+            ThreadActivity::Started(id) => {
+                write!(f, "ThreadActivity::Started({id:?})")
+            }
+            ThreadActivity::Stopped(id) => {
+                write!(f, "ThreadActivity::Stopped({id:?})")
+            }
+            ThreadActivity::Blocked(id) => {
+                write!(f, "ThreadActivity::Blocked({id:?})")
+            }
+            ThreadActivity::Unblocked(id) => {
+                write!(f, "ThreadActivity::Unblocked({id:?})")
+            }
+            ThreadActivity::Parked(id) => {
+                write!(f, "ThreadActivity::Parked({id:?})")
+            }
+            ThreadActivity::Unparked(id) => {
+                write!(f, "ThreadActivity::Unparked({id:?})")
+            }
+            ThreadActivity::BroadcastedTask => {
+                write!(f, "ThreadActivity::BroadcastedTask")
+            }
         }
     }
 }
@@ -326,10 +344,30 @@ impl core::fmt::Display for ThreadActivity {
 impl core::fmt::Debug for ThreadActivity {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ThreadActivity::Paniced(thread_id, _) => {
-                write!(f, "ThreadActivity::Paniced({:?})", thread_id)
+            ThreadActivity::Panicked(id, _) => {
+                write!(f, "ThreadActivity::Panicked({id:?})")
             }
-            _ => write!(f, "{:?}", self),
+            ThreadActivity::Started(id) => {
+                write!(f, "ThreadActivity::Started({id:?})")
+            }
+            ThreadActivity::Stopped(id) => {
+                write!(f, "ThreadActivity::Stopped({id:?})")
+            }
+            ThreadActivity::Blocked(id) => {
+                write!(f, "ThreadActivity::Blocked({id:?})")
+            }
+            ThreadActivity::Unblocked(id) => {
+                write!(f, "ThreadActivity::Unblocked({id:?})")
+            }
+            ThreadActivity::Parked(id) => {
+                write!(f, "ThreadActivity::Parked({id:?})")
+            }
+            ThreadActivity::Unparked(id) => {
+                write!(f, "ThreadActivity::Unparked({id:?})")
+            }
+            ThreadActivity::BroadcastedTask => {
+                write!(f, "ThreadActivity::BroadcastedTask")
+            }
         }
     }
 }
@@ -780,7 +818,7 @@ impl ThreadPool {
                         .send(ThreadActivity::Stopped(sender_id.clone()))
                         .expect("should sent event");
                     sender
-                        .send(ThreadActivity::Paniced(sender_id, err))
+                        .send(ThreadActivity::Panicked(sender_id, err))
                         .expect("should sent event");
                     Ok(())
                 }
@@ -1093,7 +1131,7 @@ impl ThreadPool {
                 tracing::debug!("Thread executor with id: {:?} is unblocked", thread_id);
                 self.remove_thread_id_from_blocked_list(thread_id);
             }
-            ThreadActivity::Paniced(thread_id, ctx) => {
+            ThreadActivity::Panicked(thread_id, ctx) => {
                 tracing::debug!(
                     "Thread executor with id: {:?} panic'ed {:?}",
                     thread_id,

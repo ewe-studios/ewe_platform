@@ -77,7 +77,7 @@ pub(crate) enum SpawnType {
 /// It's important to note that if a task panic, so will the ExecutorState
 /// which can't be restored and all tasks owned will be lost, so its important
 /// you always handle panic in the actual task itself by using either the `DoNext`,
-/// `CollectNext` and `OnNext` and if you implement your own ExectionIterator to
+/// `CollectNext` and `OnNext` and if you implement your own ExecutionIterator to
 /// ensure to follow the pattern demonstrated in those implementations to correctly
 /// handle panic from tasks even at the trade of some runtime cost from Mutex which
 /// allow you use [`std::panic::catch_unwind`].
@@ -591,9 +591,9 @@ impl ExecutorState {
                             State::SpawnFailed => {
                                 unreachable!("Executor should never fail to spawn a task");
                             }
-                            State::Paniced => {
+                            State::Panicked => {
                                 tracing::debug!(
-                                    "Task just paniced and communicated that with State::Paniced, will remove immediately"
+                                    "Task just panicked and communicated that with State::Panicked, will remove immediately"
                                 );
 
                                 // unpack the entry in the task list

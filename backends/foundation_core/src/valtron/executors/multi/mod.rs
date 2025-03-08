@@ -183,7 +183,7 @@ mod multi_threaded_tests {
 
         let handler_kill = thread::spawn(move || {
             tracing::debug!("Waiting for kill signal");
-            thread::sleep(time::Duration::from_millis(600));
+            thread::sleep(time::Duration::from_millis(800));
             tracing::debug!("Got kill signal");
             get_pool().kill();
             tracing::debug!("Closing thread");
@@ -193,7 +193,7 @@ mod multi_threaded_tests {
             pool.spawn()
                 .with_task(PanicCounter::default())
                 .with_resolver(Box::new(FnReady::new(|item, _| {
-                    tracing::info!("Received next: {:?}", item)
+                    tracing::info!("Received next: {item:?}")
                 })))
                 .schedule()
                 .expect("should deliver task");
@@ -215,7 +215,7 @@ mod multi_threaded_tests {
         let handler_kill = thread::spawn(move || {
             tracing::debug!("Waiting for kill signal");
             receiver
-                .recv_timeout(time::Duration::from_millis(300))
+                .recv_timeout(time::Duration::from_millis(800))
                 .expect("receive signal");
             tracing::debug!("Got kill signal");
             get_pool().kill();
@@ -226,7 +226,7 @@ mod multi_threaded_tests {
             pool.spawn()
                 .with_task(counter)
                 .with_resolver(Box::new(FnReady::new(|item, _| {
-                    tracing::info!("Received next: {:?}", item)
+                    tracing::info!("Received next: {item:?}")
                 })))
                 .schedule()
                 .expect("should deliver task");

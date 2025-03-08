@@ -75,7 +75,7 @@ where
         } else if #[cfg(feature ="server")] {
             tokio::task::spawn_local(async move {
                 future.await;
-            })
+            });
         } else {
             futures::executor::block_on(future);
         }
@@ -89,9 +89,7 @@ mod tests {
     use crate::{spawn_local, Delay};
 
     #[derive(Default)]
-struct Empty;
-
-    
+    struct Empty;
 
     #[test]
     fn test_spawn_local_using_from() {
