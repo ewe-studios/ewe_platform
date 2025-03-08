@@ -1270,10 +1270,10 @@ impl HTMLParser {
         match self._parse(&mut accumulator) {
             Ok(t) => Ok(t),
             Err(err) => Err(ParsingTagError::FailedContentParsing(format!(
-                    "Error({:?}): {:?}",
-                    err,
-                    accumulator.ppeek_at(0, 20).unwrap()
-                ))),
+                "Error({:?}): {:?}",
+                err,
+                accumulator.ppeek_at(0, 20).unwrap()
+            ))),
         }
     }
 
@@ -1393,9 +1393,7 @@ impl HTMLParser {
                                         {
                                             return Err(
                                                 ParsingTagError::ClosingTagDoesNotMatchTopMarkup(
-                                                    format!(
-                                                        "last: {ptag:?} - tag: {ctag:?}"
-                                                    ),
+                                                    format!("last: {ptag:?} - tag: {ctag:?}"),
                                                 ),
                                             );
                                         }
@@ -1502,149 +1500,148 @@ impl HTMLParser {
     where
         'c: 'd,
     {
-        while let Some(next) = acc.peek(1) {
+        let Some(next) = acc.peek(1) else {
+            return Err(ParsingTagError::FailedParsing);
+        };
+
+        ewe_trace::debug!(
+            "parse_element_from_accumulator: reading next token: {:?}: {:?}",
+            next,
+            acc.vpeek_at(1, 5),
+        );
+
+        let comment_scan = acc.vpeek_at(0, 4).unwrap();
+        if TAG_OPEN_BRACKET == next && comment_scan == COMMENT_STARTER {
             ewe_trace::debug!(
-                "parse_element_from_accumulator: reading next token: {:?}: {:?}",
-                next,
-                acc.vpeek_at(1, 5),
+                "parse_element_from_accumulator: checking comment scan: {:?}",
+                comment_scan
             );
-
-            let comment_scan = acc.vpeek_at(0, 4).unwrap();
-            if TAG_OPEN_BRACKET == next && comment_scan == COMMENT_STARTER {
-                ewe_trace::debug!(
-                    "parse_element_from_accumulator: checking comment scan: {:?}",
-                    comment_scan
-                );
-                match self.parse_comment(acc, stacks) {
-                    Ok(elem) => return Ok(elem),
-                    Err(err) => return Err(err),
-                }
-            }
-
-            let xml_starter_scan = acc.vpeek_at(0, 2).unwrap();
-            if TAG_OPEN_BRACKET == next && xml_starter_scan == XML_STARTER {
-                ewe_trace::debug!(
-                    "parse_element_from_accumulator: xml token scan activated: {:?}",
-                    xml_starter_scan
-                );
-                match self.parse_xml_elem(acc, stacks) {
-                    Ok(elem) => return Ok(elem),
-                    Err(err) => return Err(err),
-                }
-            }
-
-            if TAG_OPEN_BRACKET == next
-                && (acc.vpeek_at(1, 1).unwrap())
-                    .chars()
-                    .all(char::is_alphanumeric)
-            {
-                ewe_trace::debug!(
-                    "parse_element_from_accumulator: elem token scan activated: {:?}",
-                    xml_starter_scan
-                );
-                match self.parse_elem(acc, stacks) {
-                    Ok(elem) => return Ok(elem),
-                    Err(err) => return Err(err),
-                }
-            }
-
-            if TAG_OPEN_BRACKET == next
-                && begins_with_and_after(
-                    acc.vpeek_at(1, 2).unwrap(),
-                    DOC_TYPE_STARTER_MARKER,
-                    |t| t.chars().all(char::is_alphabetic),
-                )
-            {
-                ewe_trace::debug!(
-                    "parse_element_from_accumulator: doctype token scan activated: {:?}",
-                    xml_starter_scan
-                );
-                match self.parse_doc_type(acc, stacks) {
-                    Ok(elem) => return Ok(elem),
-                    Err(err) => return Err(err),
-                }
-            }
-
-            if TAG_OPEN_BRACKET == next
-                && begins_with_and_after(acc.vpeek_at(1, 2).unwrap(), FORWARD_SLASH, |t| {
-                    t.chars().all(char::is_alphabetic)
-                })
-            {
-                ewe_trace::debug!(
-                    "parse_element_from_accumulator: tag closer token scan activated: {:?}",
-                    xml_starter_scan
-                );
-                match self.parse_closing_tag(acc, stacks) {
-                    Ok(elem) => return Ok(elem),
-                    Err(err) => return Err(err),
-                }
-            }
-
-            // if we are dealing with weird case of multi starter, its a bad html
-            // lets throw an error so they fix it.
-            if TAG_OPEN_BRACKET == next {
-                ewe_trace::debug!(
-                    "parse_element_from_accumulator: double starter character: {} with block: {:?}",
-                    next,
-                    acc.vpeek_at(1, 1),
-                );
-
-                match acc.vpeek_at(1, 1) {
-                    Some(sample) => {
-                        if sample != TAG_OPEN_BRACKET {
-                            acc.peek_next();
-
-                            let mut elem = Stack::empty();
-                            let (content, (tag_start, tag_end)) = acc.take_positional().unwrap();
-
-                            elem.tag.replace(MarkupTags::Text(String::from(content)));
-                            elem.start_range = Some(tag_start);
-                            elem.end_range = Some(tag_end);
-
-                            return Ok(ParserDirective::Void(elem));
-                        }
-
-                        return Err(ParsingTagError::InvalidHTMLContent(String::from(
-                            acc.vpeek_at(0, acc.len()).unwrap(),
-                        )));
-                    }
-                    None => return Err(ParsingTagError::FailedParsing),
-                }
-            }
-
-            let code_block_text = acc.ppeek_at(0, 2).unwrap_or("");
-            let rust_code_block_text = acc.ppeek_at(0, 3).unwrap_or("");
-            ewe_trace::debug!(
-                "parse_element_from_accumulator: code block checking: {} with code: {:?}, rust_code: {:?}",
-                next,
-                code_block_text,
-                rust_code_block_text,
-            );
-
-            if TEXT_BLOCK_STARTER == next
-                && (code_block_text == CODE_BLOCK_STARTER
-                    || rust_code_block_text == RUST_BLOCK_STARTER)
-            {
-                if rust_code_block_text == RUST_BLOCK_STARTER {
-                    ewe_trace::debug!("parse_element_from_accumulator: start rust code block");
-                    match self.parse_code_block(rust_code_block_text, acc, stacks) {
-                        Ok(elem) => return Ok(elem),
-                        Err(err) => return Err(err),
-                    }
-                }
-                if code_block_text == CODE_BLOCK_STARTER {
-                    ewe_trace::debug!("parse_element_from_accumulator: start non-rust code block");
-                    match self.parse_code_block(code_block_text, acc, stacks) {
-                        Ok(elem) => return Ok(elem),
-                        Err(err) => return Err(err),
-                    }
-                }
-            }
-
-            match self.parse_text_block(acc, stacks) {
+            match self.parse_comment(acc, stacks) {
                 Ok(elem) => return Ok(elem),
                 Err(err) => return Err(err),
             }
+        }
+
+        let xml_starter_scan = acc.vpeek_at(0, 2).unwrap();
+        if TAG_OPEN_BRACKET == next && xml_starter_scan == XML_STARTER {
+            ewe_trace::debug!(
+                "parse_element_from_accumulator: xml token scan activated: {:?}",
+                xml_starter_scan
+            );
+            match self.parse_xml_elem(acc, stacks) {
+                Ok(elem) => return Ok(elem),
+                Err(err) => return Err(err),
+            }
+        }
+
+        if TAG_OPEN_BRACKET == next
+            && (acc.vpeek_at(1, 1).unwrap())
+                .chars()
+                .all(char::is_alphanumeric)
+        {
+            ewe_trace::debug!(
+                "parse_element_from_accumulator: elem token scan activated: {:?}",
+                xml_starter_scan
+            );
+            match self.parse_elem(acc, stacks) {
+                Ok(elem) => return Ok(elem),
+                Err(err) => return Err(err),
+            }
+        }
+
+        if TAG_OPEN_BRACKET == next
+            && begins_with_and_after(acc.vpeek_at(1, 2).unwrap(), DOC_TYPE_STARTER_MARKER, |t| {
+                t.chars().all(char::is_alphabetic)
+            })
+        {
+            ewe_trace::debug!(
+                "parse_element_from_accumulator: doctype token scan activated: {:?}",
+                xml_starter_scan
+            );
+            match self.parse_doc_type(acc, stacks) {
+                Ok(elem) => return Ok(elem),
+                Err(err) => return Err(err),
+            }
+        }
+
+        if TAG_OPEN_BRACKET == next
+            && begins_with_and_after(acc.vpeek_at(1, 2).unwrap(), FORWARD_SLASH, |t| {
+                t.chars().all(char::is_alphabetic)
+            })
+        {
+            ewe_trace::debug!(
+                "parse_element_from_accumulator: tag closer token scan activated: {:?}",
+                xml_starter_scan
+            );
+            match self.parse_closing_tag(acc, stacks) {
+                Ok(elem) => return Ok(elem),
+                Err(err) => return Err(err),
+            }
+        }
+
+        // if we are dealing with weird case of multi starter, its a bad html
+        // lets throw an error so they fix it.
+        if TAG_OPEN_BRACKET == next {
+            ewe_trace::debug!(
+                "parse_element_from_accumulator: double starter character: {} with block: {:?}",
+                next,
+                acc.vpeek_at(1, 1),
+            );
+
+            match acc.vpeek_at(1, 1) {
+                Some(sample) => {
+                    if sample != TAG_OPEN_BRACKET {
+                        acc.peek_next();
+
+                        let mut elem = Stack::empty();
+                        let (content, (tag_start, tag_end)) = acc.take_positional().unwrap();
+
+                        elem.tag.replace(MarkupTags::Text(String::from(content)));
+                        elem.start_range = Some(tag_start);
+                        elem.end_range = Some(tag_end);
+
+                        return Ok(ParserDirective::Void(elem));
+                    }
+
+                    return Err(ParsingTagError::InvalidHTMLContent(String::from(
+                        acc.vpeek_at(0, acc.len()).unwrap(),
+                    )));
+                }
+                None => return Err(ParsingTagError::FailedParsing),
+            }
+        }
+
+        let code_block_text = acc.ppeek_at(0, 2).unwrap_or("");
+        let rust_code_block_text = acc.ppeek_at(0, 3).unwrap_or("");
+        ewe_trace::debug!(
+            "parse_element_from_accumulator: code block checking: {} with code: {:?}, rust_code: {:?}",
+            next,
+            code_block_text,
+            rust_code_block_text,
+        );
+
+        if TEXT_BLOCK_STARTER == next
+            && (code_block_text == CODE_BLOCK_STARTER || rust_code_block_text == RUST_BLOCK_STARTER)
+        {
+            if rust_code_block_text == RUST_BLOCK_STARTER {
+                ewe_trace::debug!("parse_element_from_accumulator: start rust code block");
+                match self.parse_code_block(rust_code_block_text, acc, stacks) {
+                    Ok(elem) => return Ok(elem),
+                    Err(err) => return Err(err),
+                }
+            }
+            if code_block_text == CODE_BLOCK_STARTER {
+                ewe_trace::debug!("parse_element_from_accumulator: start non-rust code block");
+                match self.parse_code_block(code_block_text, acc, stacks) {
+                    Ok(elem) => return Ok(elem),
+                    Err(err) => return Err(err),
+                }
+            }
+        }
+
+        match self.parse_text_block(acc, stacks) {
+            Ok(elem) => return Ok(elem),
+            Err(err) => return Err(err),
         }
 
         Err(ParsingTagError::FailedParsing)
@@ -1694,6 +1691,7 @@ impl HTMLParser {
         Err(ParsingTagError::FailedParsing)
     }
 
+    #[allow(clippy::used_underscore_binding)]
     #[cfg_attr(
         feature = "debug_trace",
         tracing::instrument(level = "trace", skip(self))
@@ -1734,10 +1732,10 @@ impl HTMLParser {
 
             if !is_code_block && !is_rust_block {
                 ewe_trace::debug!(
-                    "parse_code_block({:?}, closer: {:?}): is not closing tage - token: {:?} ({:?}, {:?})",
+                    "parse_code_block({:?}, closer: {:?}): is not closing tag - token: {:?} ({:?}, {:?})",
                     block_starter,
                     blocker_closer_text,
-                    next,
+                    _next,
                     code_closer_sample,
                     rust_code_closer_sample,
                 );
@@ -1748,7 +1746,7 @@ impl HTMLParser {
                 "parse_code_block({:?}, closer: {:?}): saw ending token - token: {:?} ({:?}, {:?})",
                 block_starter,
                 blocker_closer_text,
-                next,
+                _next,
                 code_closer_sample,
                 rust_code_closer_sample,
             );
@@ -2269,9 +2267,7 @@ impl HTMLParser {
         let is_alphaneumerics_starter = starter.chars().all(char::is_alphanumeric);
         let is_indent_starter = VALID_ATTRIBUTE_STARTER_SYMBOLS_STR.contains(&starter);
 
-        let starter_closer = ATTRIBUTE_PAIRS
-            .get(starter)
-            .unwrap_or(&EMPTY_STRING);
+        let starter_closer = ATTRIBUTE_PAIRS.get(starter).unwrap_or(&EMPTY_STRING);
 
         while let Some(next) = acc.peek_next() {
             ewe_trace::debug!(

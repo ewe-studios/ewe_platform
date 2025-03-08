@@ -122,15 +122,12 @@ impl TestServer {
                 // fetch the intro portion and validate we have resources for processing request
                 // if not, just break and return an error
 
-                let (method, url, proto) =
-                    if let Some(Ok(IncomingRequestParts::Intro(method, url, proto))) =
-                        request_reader.next()
-                    {
-                        (method, url, proto)
-                    } else {
-                        tracing::error!("Failed to receive a IncomingRequestParts::Intro(_, _, _)");
-                        return;
-                    };
+                let Some(Ok(IncomingRequestParts::Intro(method, url, proto))) =
+                    request_reader.next()
+                else {
+                    tracing::error!("Failed to receive a IncomingRequestParts::Intro(_, _, _)");
+                    return;
+                };
 
                 tracing::info!(
                     "Received new http request for proto: method: {:?}, url: {:?}, proto: {:?}",
@@ -143,18 +140,11 @@ impl TestServer {
                     break;
                 }
 
-                let resource =
-                    if let Some(resource) = action_list.get_one_matching2(&url, method.clone()) {
-                        resource
-                    } else {
-                        break;
-                    };
+                let Some(resource) = action_list.get_one_matching2(&url, method.clone()) else {
+                    break;
+                };
 
-                let headers = if let Some(Ok(IncomingRequestParts::Headers(headers))) =
-                    request_reader.next()
-                {
-                    headers
-                } else {
+                let Some(Ok(IncomingRequestParts::Headers(headers))) = request_reader.next() else {
                     break;
                 };
 
@@ -164,10 +154,7 @@ impl TestServer {
                     }
                 }
 
-                let body = if let Some(Ok(IncomingRequestParts::Body(body))) = request_reader.next()
-                {
-                    body
-                } else {
+                let Some(Ok(IncomingRequestParts::Body(body))) = request_reader.next() else {
                     break;
                 };
 
@@ -220,13 +207,12 @@ impl TestServer {
 
             if let Ok(renderer) = response.http_render() {
                 for part in renderer {
-                    match part {
-                        Ok(data) => match write_stream.write(&data) {
-                            Ok(_) => return,
-                            Err(_) => return,
-                        },
-                        Err(_) => return,
+                    if let Ok(data) = part {
+                        if write_stream.write_all(&data).is_ok() {
+                            continue;
+                        }
                     }
+                    return;
                 }
             }
         })
@@ -408,7 +394,10 @@ Hello buster!";
         let mut response = String::new();
         t!(client.read_to_string(&mut response));
 
-        assert_eq!(response, "HTTP/1.1 400 Bad Request\r\n");
+        assert_eq!(
+            response,
+            "HTTP/1.1 400 Bad Request\r\nCONTENT-LENGTH: 0\r\n\r\n"
+        );
         test_server.close().expect("should close server");
 
         match handler.join() {

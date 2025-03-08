@@ -65,7 +65,7 @@ pub struct Attribute<'a> {
     encoding: encoding::SharedEncoding,
 }
 
-impl memory::Resetable for Attribute<'_> {
+impl memory::Resettable for Attribute<'_> {
     fn reset(&mut self) {
         self.name.take();
         self.value.take();
@@ -211,7 +211,7 @@ pub enum FragmentDef<'a> {
 #[allow(unused)]
 #[cfg_attr(
     feature = "debug_trace",
-    debug_trace::instrument(level = "trace", skip_all)
+    tracing::instrument(level = "trace", skip_all)
 )]
 fn deallocate_nodes<'a>(
     mut list: Option<Vec<Option<Fragment<'a>>>>,
@@ -236,7 +236,7 @@ fn deallocate_nodes<'a>(
 #[allow(unused)]
 #[cfg_attr(
     feature = "debug_trace",
-    debug_trace::instrument(level = "trace", skip_all)
+    tracing::instrument(level = "trace", skip_all)
 )]
 fn deallocate_attributes<'a>(
     mut attributes: Option<Vec<Option<Attribute<'a>>>>,
@@ -261,7 +261,7 @@ fn deallocate_attributes<'a>(
 #[allow(unused)]
 #[cfg_attr(
     feature = "debug_trace",
-    debug_trace::instrument(level = "trace", skip_all)
+    tracing::instrument(level = "trace", skip_all)
 )]
 fn deallocate_markup_list<'a>(
     mut list: Option<Vec<Option<FragmentDef<'a>>>>,
@@ -285,7 +285,7 @@ fn deallocate_markup_list<'a>(
 
 #[cfg_attr(
     feature = "debug_trace",
-    debug_trace::instrument(level = "trace", skip_all)
+    tracing::instrument(level = "trace", skip_all)
 )]
 fn deallocate_markup<'a>(
     mut markup: Option<FragmentDef<'a>>,
@@ -389,7 +389,7 @@ impl<'a> FragmentDef<'a> {
                 Some(node) => {
                     node.name(name);
                     Ok(())
-                },
+                }
             },
             _ => Err(ElementError::NotUsable),
         }
@@ -595,8 +595,7 @@ impl<'a> Fragment<'a> {
 
     pub fn has_attr(&mut self, name: &'a str) -> bool {
         let encoded_str = Bytes::from_str(name, self.encoding.clone());
-        self
-            .attributes
+        self.attributes
             .iter_mut()
             .find(|attr_container| {
                 ewe_trace::debug!("Checking attribute in list");
@@ -615,7 +614,7 @@ impl<'a> Fragment<'a> {
 
     #[cfg_attr(
         feature = "debug_trace",
-        debug_trace::instrument(level = "trace", skip_all)
+        tracing::instrument(level = "trace", skip_all)
     )]
     pub fn attr_value(&mut self, name: &'a str) -> Option<Bytes<'a>> {
         let encoded_str = Bytes::from_str(name, self.encoding.clone());
@@ -637,7 +636,7 @@ impl<'a> Fragment<'a> {
 
     #[cfg_attr(
         feature = "debug_trace",
-        debug_trace::instrument(level = "trace", skip_all)
+        tracing::instrument(level = "trace", skip_all)
     )]
     pub fn update_attribute(&mut self, name: Bytes<'a>, value: Bytes<'a>) {
         let find_attr = self.attributes.iter_mut().find(|attr_container| {
@@ -664,7 +663,7 @@ impl<'a> Fragment<'a> {
 
     #[cfg_attr(
         feature = "debug_trace",
-        debug_trace::instrument(level = "trace", skip_all)
+        tracing::instrument(level = "trace", skip_all)
     )]
     pub fn remove_child_at(&mut self, index: usize) -> ElementResult<()> {
         let child_size = self.content.len();
@@ -722,10 +721,10 @@ impl<'a> Fragment<'a> {
     }
 }
 
-impl memory::Resetable for Fragment<'_> {
+impl memory::Resettable for Fragment<'_> {
     #[cfg_attr(
         feature = "debug_trace",
-        debug_trace::instrument(level = "trace", skip_all)
+        tracing::instrument(level = "trace", skip_all)
     )]
     fn reset(&mut self) {
         self.name.take();
@@ -835,7 +834,7 @@ pub enum FragmentRef<'a> {
 #[cfg(test)]
 mod markup_tests {
 
-    use foundation_core::io::mem::{encoding, memory::Resetable};
+    use foundation_core::io::mem::{encoding, memory::Resettable};
 
     use super::*;
 

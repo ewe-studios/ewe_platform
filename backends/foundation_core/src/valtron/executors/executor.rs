@@ -21,8 +21,8 @@ pub enum State {
     /// polls for progress.
     Pending(Option<time::Duration>),
 
-    /// The state indicating a underlying task paniced.
-    Paniced,
+    /// The state indicating a underlying task Panicked.
+    Panicked,
 
     /// The state is sent out when there was an attempt to spawn
     /// a task from another and that failed which is not a desired
@@ -32,7 +32,7 @@ pub enum State {
     /// The state indicating a spawn action succeeded.
     SpawnFinished,
 
-    /// Reschedule indicates we want to rechedule the underlying
+    /// Reschedule indicates we want to reschedule the underlying
     /// task leaving the performance of that to the underlying
     /// process that receives this.
     Reschedule,
@@ -95,36 +95,36 @@ where
 pub type BoxedExecutionIterator = Box<dyn ExecutionIterator + 'static>;
 pub type BoxedSendExecutionIterator = Box<dyn ExecutionIterator + Send + 'static>;
 
-pub trait ClonableExecutionIterator: ExecutionIterator {
-    fn clone_execution_iterator(&self) -> Box<dyn ClonableExecutionIterator>;
+pub trait CloneableExecutionIterator: ExecutionIterator {
+    fn clone_execution_iterator(&self) -> Box<dyn CloneableExecutionIterator>;
 }
 
-pub trait IntoRawExecutionIterator: ClonableExecutionIterator {
+pub trait IntoRawExecutionIterator: CloneableExecutionIterator {
     fn into_execution_iterator(self) -> Box<dyn ExecutionIterator + Send + 'static>;
 }
 
 impl<M> IntoRawExecutionIterator for M
 where
-    M: ClonableExecutionIterator + Send + 'static,
+    M: CloneableExecutionIterator + Send + 'static,
 {
     fn into_execution_iterator(self) -> Box<dyn ExecutionIterator + Send + 'static> {
         Box::new(self)
     }
 }
 
-impl<M> ClonableExecutionIterator for M
+impl<M> CloneableExecutionIterator for M
 where
     M: ExecutionIterator + Clone + 'static,
 {
-    fn clone_execution_iterator(&self) -> Box<dyn ClonableExecutionIterator> {
+    fn clone_execution_iterator(&self) -> Box<dyn CloneableExecutionIterator> {
         Box::new(self.clone())
     }
 }
 
-pub struct CanCloneExecutionIterator(Box<dyn ClonableExecutionIterator>);
+pub struct CanCloneExecutionIterator(Box<dyn CloneableExecutionIterator>);
 
 impl CanCloneExecutionIterator {
-    pub fn new(elem: Box<dyn ClonableExecutionIterator>) -> Self {
+    pub fn new(elem: Box<dyn CloneableExecutionIterator>) -> Self {
         Self(elem)
     }
 }

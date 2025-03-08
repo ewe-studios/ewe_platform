@@ -3,19 +3,19 @@
 resolver = "2"
 # set members of your workspace
 members = [
-    "bin/*",
-    "crates/*",
-    "backends/*",
-    "examples/web/*",
-    "examples/template/*",
+  "bin/*",
+  "crates/*",
+  "backends/*",
+  "examples/web/*",
+  "examples/template/*",
 ]
 exclude = [
-    "crates/html-macro",
-    "templates/*",
-    "templates/http-app",
-    "templates/static-html-app",
-    "examples/todo",
-    "crates/temple/output_directory",
+  "crates/html-macro",
+  "templates/*",
+  "templates/http-app",
+  "templates/static-html-app",
+  "examples/todo",
+  "crates/temple/output_directory",
 ]
 
 [workspace.package]
@@ -31,6 +31,8 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 
 # -- non 'ewe` namespaced crates
 foundation_core = { path = "./backends/foundation_core", version = "0.0.2" }
+foundation_nostd = { path = "./backends/foundation_nostd", version = "0.0.1" }
+foundation_jsnostd = { path = "./backends/foundation_jsnostd", version = "0.0.1" }
 
 # -- internal packages so others can use them
 ewe_web = { path = "./crates/web", version = "0.0.1" }
@@ -60,10 +62,3 @@ derive_more = { version = "1.0.0", features = ["full"] }
 
 [workspace.lints.clippy]
 pedantic = "warn"
-missing_errors_doc = "allow"
-missing_panics_doc = "allow"
-must_use_candidate = "allow"
-blocks_in_conditions = "allow"
-module_name_repetitions = "allow"
-items-after-statements = "allow"
-no-effect-underscore-binding = "allow"

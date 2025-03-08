@@ -169,19 +169,18 @@ mod test_lock_signals {
     fn can_lock_signal() {
         let latch = Arc::new(LockSignal::new());
 
-        let (sender, reciever) = mpsc::channel::<()>();
+        let (sender, receiver) = mpsc::channel::<()>();
 
         let latch_clone = latch.clone();
-        let handler = thread::spawn(move || loop {
+        let handler = thread::spawn(move || {
             latch_clone.try_lock();
             sender.send(()).expect("should send");
             latch_clone.wait();
-            break;
         });
 
         thread::sleep(Duration::from_millis(100));
 
-        let _ = reciever.recv();
+        let _ = receiver.recv();
         assert_eq!(LockState::Locked, latch.probe());
 
         latch.signal_all();

@@ -1,0 +1,15 @@
+[package]
+name = "foundation_jsnostd"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Implements the nostd interface runtime for WASM and JS interoperability"
+keywords = ["foundation js_notstd", "foundation_jsnostd"]
+
+[dependencies]
+
+[lints]
+workspace = true

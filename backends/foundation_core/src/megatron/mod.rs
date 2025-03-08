@@ -1,1 +1,1 @@
-pub mod jsdom;
+pub mod jsrum;

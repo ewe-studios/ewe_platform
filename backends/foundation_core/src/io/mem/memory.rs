@@ -222,7 +222,7 @@ mod arena_tests {
 
         let err = arena.append(&[11]).unwrap_err();
 
-        assert_eq!(err, MemoryErrors::MemoryLimitExceededError)
+        assert_eq!(err, MemoryErrors::MemoryLimitExceededError);
     }
 }
 
@@ -233,10 +233,10 @@ pub fn calculate_size_for<T>(by_multiple: Option<usize>) -> usize {
     size_of::<T>()
 }
 
-/// `TypeArena` provides a pre-allocated memory that can grow
+/// `TypeArena<T>` provides a pre-allocated memory that can grow
 /// and store a specific element of a given type.
-/// It grows with usage and continously keeps the memory
-/// available for the lifetime of the `TArena`.
+/// It grows with usage and continuously keeps the memory
+/// available for the lifetime of the [`T`].
 #[derive(Debug, Clone)]
 pub struct TypeArena<T> {
     limiter: SharedMemoryLimiter,
@@ -439,19 +439,21 @@ mod type_area_tests {
 
 pub type ReferencedType<T> = rc::Rc<cell::RefCell<T>>;
 
-pub trait Resetable {
+pub type GeneratorFunc<T> = dyn Fn(&mut ArenaPool<T>) -> T;
+
+pub trait Resettable {
     fn reset(&mut self);
 }
 
-pub trait PoolGenerator<T: Resetable> {
+pub trait PoolGenerator<T: Resettable> {
     fn generate(&self, pool: &mut ArenaPool<T>) -> T;
 }
 
-pub struct FnGenerator<T: Resetable> {
-    handler: Box<dyn Fn(&mut ArenaPool<T>) -> T>,
+pub struct FnGenerator<T: Resettable> {
+    handler: Box<GeneratorFunc<T>>,
 }
 
-impl<T: Resetable> FnGenerator<T> {
+impl<T: Resettable> FnGenerator<T> {
     pub fn new(handler: impl Fn(&mut ArenaPool<T>) -> T + 'static) -> Self {
         Self {
             handler: Box::new(handler),
@@ -459,7 +461,7 @@ impl<T: Resetable> FnGenerator<T> {
     }
 }
 
-impl<T: Resetable> PoolGenerator<T> for FnGenerator<T> {
+impl<T: Resettable> PoolGenerator<T> for FnGenerator<T> {
     fn generate(&self, pool: &mut ArenaPool<T>) -> T {
         (self.handler)(pool)
     }
@@ -468,11 +470,11 @@ impl<T: Resetable> PoolGenerator<T> for FnGenerator<T> {
 /// `ArenaPool` provides a single-threaded object pool which allows us to easily
 /// generate a trackable and reusable set of objects that can be freely
 /// allocated based on the underlying memory limits as dictated by the
-/// SharedMemory.
+/// `SharedMemoryLimiter`.
 ///
 /// This is not thread-safe.
 #[derive(Clone)]
-pub struct ArenaPool<T: Resetable> {
+pub struct ArenaPool<T: Resettable> {
     arena: TypeArena<T>,
     tracker: MemoryLimiter,
     limiter: SharedMemoryLimiter,
@@ -481,7 +483,7 @@ pub struct ArenaPool<T: Resetable> {
 
 pub type SharedArenaPool<T> = rc::Rc<cell::RefCell<ArenaPool<T>>>;
 
-impl<T: Resetable> ArenaPool<T> {
+impl<T: Resettable> ArenaPool<T> {
     pub fn create_shared(
         limiter: SharedMemoryLimiter,
         gen: impl PoolGenerator<T> + 'static,
@@ -556,7 +558,7 @@ mod arena_pool_tests {
 
     type ResetableU8<'a> = &'a u8;
 
-    impl<'a> Resetable for ResetableU8<'a> {
+    impl<'a> Resettable for ResetableU8<'a> {
         fn reset(&mut self) {
             *self = &0;
         }

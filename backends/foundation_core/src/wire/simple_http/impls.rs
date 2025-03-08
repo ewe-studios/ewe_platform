@@ -882,11 +882,12 @@ pub enum Status {
     Custom(usize, &'static str),
 }
 
+#[allow(clippy::recursive_format_impl)]
 impl core::fmt::Display for Status {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Custom(code, _) => write!(f, "{}", code),
-            _ => write!(f, "{}", self),
+            Self::Custom(code, _) => write!(f, "{code:}"),
+            _ => write!(f, "{self:}"),
         }
     }
 }

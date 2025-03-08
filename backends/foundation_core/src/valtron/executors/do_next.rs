@@ -89,7 +89,7 @@ where
                 if let Some(panic_handler) = &self.panic_handler {
                     (panic_handler)(panic_error);
                 }
-                return Some(State::Paniced);
+                return Some(State::Panicked);
             }
         };
 
@@ -101,7 +101,7 @@ where
                 TaskStatus::Spawn(action) => match action.apply(entry, executor) {
                     Ok(_) => State::SpawnFinished,
                     Err(err) => {
-                        tracing::error!("Failed to apply ExectionAction: {:?}", err);
+                        tracing::error!("Failed to apply ExecutionAction: {:?}", err);
                         State::SpawnFailed
                     }
                 },
