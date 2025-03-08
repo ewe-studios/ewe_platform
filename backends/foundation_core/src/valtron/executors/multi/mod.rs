@@ -22,8 +22,7 @@ pub fn thread_pool(pool_seed: u64, user_thread_num: Option<usize>) -> &'static T
             Some(num) => num,
         };
 
-        let thread_pool = ThreadPool::with_seed_and_threads(pool_seed, thread_num);
-        thread_pool
+        ThreadPool::with_seed_and_threads(pool_seed, thread_num)
     });
 
     // register cancellation handler
@@ -61,7 +60,9 @@ where
     F: FnOnce(&ThreadPool),
 {
     let pool = thread_pool(seed_from_rng, thread_num);
+    tracing::debug!("Executing ThreadPool with block_on function");
     setup(pool);
+    tracing::debug!("Initialize and call ThreadPool::run_until");
     pool.run_until();
 }
 
@@ -70,6 +71,10 @@ where
 ///
 /// It expects you infer the type of `Task` and `Action` from the
 /// type implementing `TaskIterator`.
+///
+/// ## Panics
+/// The following function will panic if the thread pool has not being initialized
+/// via call to [`thread_pool`] to setup global thread pool instance.
 pub fn spawn<Task, Action>() -> ThreadPoolTaskBuilder<
     Task::Ready,
     Task::Pending,
@@ -94,6 +99,10 @@ where
 /// the underlying tasks to be scheduled into the global queue.
 ///
 /// It expects you to provide types for both Mapper and Resolver.
+///
+/// ## Panics
+/// The following function will panic if the thread pool has not being initialized
+/// via call to [`thread_pool`] to setup global thread pool instance.
 pub fn spawn2<Task, Action, Mapper, Resolver>(
 ) -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Action, Mapper, Resolver, Task>
 where
@@ -146,10 +155,12 @@ mod multi_threaded_tests {
         fn next(
             &mut self,
         ) -> Option<crate::valtron::TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+            tracing::debug!("Counter Task is running");
             let mut items = self.1.lock().unwrap();
             let item_size = items.len();
 
             if item_size == self.0 {
+                tracing::debug!("Sending signal with sender");
                 self.2.send(()).expect("send signal");
                 return None;
             }
@@ -172,6 +183,7 @@ mod multi_threaded_tests {
         fn next(
             &mut self,
         ) -> Option<crate::valtron::TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+            tracing::debug!("PanicCounter Task is running");
             panic!("Bad stuff");
         }
     }
@@ -183,21 +195,27 @@ mod multi_threaded_tests {
 
         let handler_kill = thread::spawn(move || {
             tracing::debug!("Waiting for kill signal");
-            thread::sleep(time::Duration::from_millis(800));
+            thread::sleep(time::Duration::from_secs(5));
             tracing::debug!("Got kill signal");
             get_pool().kill();
             tracing::debug!("Closing thread");
         });
 
+        let (task_sent_sender, task_sent_receiver) = mpp::bounded(1);
         block_on(seed, None, |pool| {
             pool.spawn()
                 .with_task(PanicCounter::default())
                 .with_resolver(Box::new(FnReady::new(|item, _| {
-                    tracing::info!("Received next: {item:?}")
+                    tracing::info!("Received next: {item:?}");
                 })))
                 .schedule()
                 .expect("should deliver task");
+            task_sent_sender.send(()).expect("deliver message");
         });
+
+        task_sent_receiver
+            .recv_timeout(time::Duration::from_secs(2))
+            .expect("should have spawned task");
 
         tracing::info!("Wait for thread to die");
         handler_kill.join().expect("should finish");
@@ -215,22 +233,30 @@ mod multi_threaded_tests {
         let handler_kill = thread::spawn(move || {
             tracing::debug!("Waiting for kill signal");
             receiver
-                .recv_timeout(time::Duration::from_millis(800))
+                .recv_timeout(time::Duration::from_secs(2))
                 .expect("receive signal");
             tracing::debug!("Got kill signal");
             get_pool().kill();
             tracing::debug!("Closing thread");
         });
 
+        let (task_sent_sender, task_sent_receiver) = mpp::bounded(1);
         block_on(seed, None, |pool| {
+            tracing::debug!("Spawning new task into pool");
             pool.spawn()
                 .with_task(counter)
                 .with_resolver(Box::new(FnReady::new(|item, _| {
-                    tracing::info!("Received next: {item:?}")
+                    tracing::info!("Received next: {item:?}");
                 })))
                 .schedule()
                 .expect("should deliver task");
+            tracing::debug!("Task spawned");
+            task_sent_sender.send(()).expect("deliver message");
         });
+
+        task_sent_receiver
+            .recv_timeout(time::Duration::from_secs(2))
+            .expect("should have spawned task");
 
         handler_kill.join().expect("should finish");
 

@@ -53,7 +53,9 @@ const THREADS_MAX: usize = (1 << THREADS_BITS) - 1;
 /// process.
 pub(crate) fn get_allocatable_thread_count() -> usize {
     let max_threads = get_max_threads();
+    tracing::debug!("Max available threads: {max_threads:}");
     let desired_threads = get_num_threads();
+    tracing::debug!("Desired thread count: {desired_threads:}");
 
     if desired_threads > max_threads {
         panic!(
@@ -105,6 +107,8 @@ mod test_allocatable_threads {
         env::remove_var("VALTRON_NUM_THREADS");
 
         let new_thread_count = max_threads - 2;
+        tracing::debug!("Setting thread count to: {new_thread_count:}");
+
         let new_thread_count_str = format!("{new_thread_count:}");
         env::set_var("VALTRON_NUM_THREADS", new_thread_count_str.clone());
         assert_eq!(
@@ -135,8 +139,8 @@ pub(crate) fn get_num_threads() -> usize {
         .ok()
         .and_then(|s| usize::from_str(&s).ok())
     {
-        Some(x @ 1..) => {
-            tracing::debug!("Retrieved thread_number from VALTRON_NUM_THREADS");
+        Some(x) => {
+            tracing::debug!("Retrieved thread_number: {x:} from VALTRON_NUM_THREADS");
             x
         }
         _ => get_max_threads(),
@@ -167,6 +171,7 @@ mod test_get_num_threads {
     #[test]
     #[traced_test]
     fn test_get_num_threads_when_env_is_set() {
+        env::remove_var("VALTRON_NUM_THREADS");
         env::set_var("VALTRON_NUM_THREADS", "2");
         assert_eq!(get_num_threads(), 2);
         env::remove_var("VALTRON_NUM_THREADS");
@@ -720,6 +725,7 @@ impl ThreadPool {
         }
     }
 
+    #[allow(clippy::too_many_lines)]
     /// `create_thread_executor` creates a new thread into the thread pool spawning
     /// a LocalThreadExecutor into a owned thread that is managed by the executor.
     pub(crate) fn create_thread_executor(&self) -> ThreadExecutionResult<ThreadRef> {
@@ -1084,15 +1090,14 @@ impl ThreadPool {
 
         tracing::debug!("ThreadPool::block_until - received thread activity");
         match thread_activity {
+            ThreadActivity::BroadcastedTask if self.tasks.len() == 1 => {
+                self.latch.signal_one();
+            }
+            ThreadActivity::BroadcastedTask if self.tasks.len() > 1 => {
+                self.latch.signal_all();
+            }
             ThreadActivity::BroadcastedTask => {
-                tracing::debug!("A thread broadcasted a new message to the global queue",);
-
-                // wakeup any sleeping threads based on account.
-                if self.tasks.len() == 1 {
-                    self.latch.signal_one();
-                } else if self.tasks.len() > 1 {
-                    self.latch.signal_all();
-                }
+                tracing::debug!("Broadcast task to global queue");
             }
             ThreadActivity::Started(thread_id) => {
                 tracing::debug!("Thread executor with id: {:?} started", thread_id);
@@ -1211,6 +1216,7 @@ impl<
         }
     }
 
+    #[allow(clippy::return_self_not_must_use)]
     pub fn with_mappers(mut self, mapper: Mapper) -> Self {
         let mut mappers = if self.mappers.is_some() {
             self.mappers.take().unwrap()
@@ -1223,11 +1229,13 @@ impl<
         self
     }
 
+    #[must_use]
     pub fn with_task(mut self, task: Task) -> Self {
         self.task = Some(task);
         self
     }
 
+    #[allow(clippy::return_self_not_must_use)]
     pub fn with_panic_handler<T>(mut self, handler: T) -> Self
     where
         T: Fn(Box<dyn Any + Send>) + Send + Sync + 'static,
@@ -1236,11 +1244,13 @@ impl<
         self
     }
 
+    #[allow(clippy::return_self_not_must_use)]
     pub fn with_resolver(mut self, resolver: Resolver) -> Self {
         self.resolver = Some(resolver);
         self
     }
 
+    #[must_use]
     pub fn schedule(self) -> AnyResult<(), ExecutorError> {
         let task: BoxedSendExecutionIterator = match self.task {
             Some(task) => match (self.resolver, self.mappers) {

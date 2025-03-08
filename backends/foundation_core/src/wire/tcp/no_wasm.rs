@@ -542,7 +542,7 @@ mod test_reconnection_stream {
     fn successfully_connects_on_first_try() {
         let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:3799"));
         let threader = thread::spawn(move || {
-            listener.accept();
+            let _ = listener.accept();
             tracing::debug!("Received client, ending");
         });
 
