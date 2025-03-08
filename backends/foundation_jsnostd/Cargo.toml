@@ -10,6 +10,7 @@ description = "Implements the nostd interface runtime for WASM and JS interopera
 keywords = ["foundation js_notstd", "foundation_jsnostd"]
 
 [dependencies]
+foundation_nostd = { workspace = true }
 
 [lints]
 workspace = true
