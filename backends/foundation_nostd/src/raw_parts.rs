@@ -1,5 +1,3 @@
-#![no_std]
-
 // Not original code: copied from https://github.com/artichoke/raw-parts (see MIT license)
 
 extern crate alloc;

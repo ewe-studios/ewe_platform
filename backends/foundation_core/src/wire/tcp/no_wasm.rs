@@ -3,7 +3,7 @@
 
 use derive_more::derive::From;
 
-use crate::io::ioutils::{BufferedReader, PeekError, PeekableReadStream};
+use crate::io::ioutils::{PeekError, PeekableReadStream};
 use crate::retries::{
     ClonableReconnectionDecider, ExponentialBackoffDecider, RetryDecider, RetryState,
 };
@@ -13,6 +13,7 @@ use crate::valtron::delayed_iterators::{DelayedIterator, SleepIterator};
 #[cfg(feature = "native-tls")]
 use crate::native_tls::{Identity, TlsConnector, TlsStream};
 
+use crate::io::ioutils::BufferedReader;
 use crate::wire::simple_http::{self};
 use core::net;
 use std::net::SocketAddr;
