@@ -267,7 +267,7 @@ impl From<SVGTags> for &str {
 }
 
 impl SVGTags {
-    pub fn is_svg_element_closed_by_closing_tag(me: SVGTags, _other: SVGTags) -> bool {
+    pub fn is_svg_element_closed_by_closing_tag(_me: SVGTags, _other: SVGTags) -> bool {
         false
     }
 
@@ -294,7 +294,7 @@ impl SVGTags {
         }
     }
 
-    pub fn is_auto_closed(tag: SVGTags) -> bool {
+    pub fn is_auto_closed(_tag: SVGTags) -> bool {
         false
     }
 
@@ -1643,8 +1643,6 @@ impl HTMLParser {
             Ok(elem) => return Ok(elem),
             Err(err) => return Err(err),
         }
-
-        Err(ParsingTagError::FailedParsing)
     }
 
     #[cfg_attr(
