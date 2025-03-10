@@ -1,4 +1,3 @@
-mod rom;
+mod jsrom;
 
-
-pub use rom::*;
+pub use jsrom::*;
