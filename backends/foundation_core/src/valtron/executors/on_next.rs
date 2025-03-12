@@ -1,6 +1,7 @@
 // Implements Vultron executors based on a multi-threaded model of thread pools that can communicate
 // via a ConcurrentQueue that allows different threads in the pool to pull task off the thread at their
 // own respective pace.
+#![allow(clippy::return_self_not_must_use)]
 
 use std::{any::Any, marker::PhantomData};
 
