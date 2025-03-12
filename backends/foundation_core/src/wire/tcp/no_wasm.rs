@@ -3,6 +3,9 @@
 
 use derive_more::derive::From;
 
+#[cfg(feature = "native-tls")]
+use crate::io::ioutils::BufferedReader;
+
 use crate::io::ioutils::{PeekError, PeekableReadStream};
 use crate::retries::{
     ClonableReconnectionDecider, ExponentialBackoffDecider, RetryDecider, RetryState,
@@ -13,7 +16,6 @@ use crate::valtron::delayed_iterators::{DelayedIterator, SleepIterator};
 #[cfg(feature = "native-tls")]
 use crate::native_tls::{Identity, TlsConnector, TlsStream};
 
-use crate::io::ioutils::BufferedReader;
 use crate::wire::simple_http::{self};
 use core::net;
 use std::net::SocketAddr;
@@ -236,12 +238,11 @@ impl RawStream {
         #[cfg(feature = "native-tls")]
         let stream = {
             let plain_stream = TcpStream::connect_timeout(&host_socket_addr, timeout)?;
-            let encrypted_stream = if endpoint.scheme() == "https" {
+            if endpoint.scheme() == "https" {
                 RawStream::try_wrap_tls(plain_stream, &endpoint.host())?
             } else {
                 RawStream::wrap_plain(plain_stream)
-            };
-            encrypted_stream
+            }
         };
 
         #[cfg(not(feature = "native-tls"))]

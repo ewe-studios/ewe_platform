@@ -1,3 +1,5 @@
+#![allow(clippy::return_self_not_must_use)]
+
 use std::{any::Any, marker::PhantomData};
 
 use super::{

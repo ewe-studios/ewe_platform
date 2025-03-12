@@ -1,3 +1,6 @@
+#![allow(clippy::too_many_lines)]
+#![allow(clippy::return_self_not_must_use)]
+
 use std::{
     cell,
     collections::{HashMap, VecDeque},

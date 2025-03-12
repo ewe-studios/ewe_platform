@@ -1,4 +1,7 @@
-use foundation_nostd::raw_parts::RawParts;
+#![allow(clippy::no_mangle_with_rust_abi)]
+#![allow(clippy::missing_doc_code_examples)]
+#![allow(clippy::missing_panics_doc)]
+
 use foundation_nostd::spin::Mutex;
 
 static ALLOCATIONS: Mutex<Vec<Option<Vec<u8>>>> = Mutex::new(Vec::new());
@@ -31,4 +34,24 @@ pub fn allocation_length(allocation_id: usize) -> f64 {
         .expect("Allocation should be initialized");
     let vec = allocation.as_ref().unwrap();
     vec.len() as f64
+}
+
+#[no_mangle]
+pub fn clear_allocation(allocation_id: usize) {
+    let mut allocations = ALLOCATIONS.lock();
+    allocations[allocation_id] = None;
+}
+
+pub fn extract_vec_from_memory(allocation_id: usize) -> Vec<u8> {
+    let mut allocations = ALLOCATIONS.lock();
+    let allocation = allocations.get(allocation_id).expect("should be allocated");
+    let vec = allocation.as_ref().unwrap();
+    vec.clone()
+}
+
+pub fn extract_string_from_memory(allocation_id: usize) -> String {
+    let mut allocations = ALLOCATIONS.lock();
+    let allocation = allocations.get(allocation_id).expect("should be allocated");
+    let vec = allocation.as_ref().unwrap();
+    String::from_utf8(vec.clone()).unwrap()
 }
