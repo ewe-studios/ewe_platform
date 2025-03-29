@@ -28,14 +28,19 @@ impl Operator for DirectoryWatcher {
     fn run(&self, mut cancel_signal: broadcast::Receiver<()>) -> crate::types::JoinHandle<()> {
         let sender_copy = self.file_change_sender.clone();
         let watch_callback = move |_, _, _| {
-            sender_copy.send(()).expect("should deliver notification");
+            match sender_copy.send(()) {
+                Ok(_) => {}
+                Err(err) => {
+                    tracing::error!("Failed to deliver notification: {err:?}");
+                }
+            };
             Ok(())
         };
 
         let watcher_handler = watch_path(300, self.directories.clone(), true, watch_callback)
             .expect("should create watcher");
 
-        let _ = tokio::spawn(async move {
+        tokio::spawn(async move {
             let _ = cancel_signal.recv().await;
             watcher_handler.1.stop();
         });

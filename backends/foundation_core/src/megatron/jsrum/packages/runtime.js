@@ -196,12 +196,14 @@ const MemoryOperations = function (getWasmInstanceFunc) {
   }
 
   const get_memory = function () {
-    return getWasmInstanceFunc().exports.memory.buffer;
+    return getWasmInstanceFunc().instance.exports.memory.buffer;
   }
 
   const read_uint8_buffer = function (start_pointer, len) {
     const memory = get_memory();
-    return new Uint8Array(memory.slice(start_pointer, len))
+    const slice = memory.slice(start_pointer, start_pointer + len);
+    console.debug("Slice: ", slice);
+    return new Uint8Array(slice);
   }
 
   const write_int8_buffer = function (uint8_buffer) {
@@ -242,8 +244,8 @@ const UTFCodec = function (get_memory_function, allocate_memory_function) {
 
   const readUTF8FromMemory = function (start, len) {
     const memory = get_memory_function();
-    const data_slice = memory.subarray(start, start + len);
-    return utf8_decoder(data_slice);
+    const data_slice = memory.slice(start, start + len);
+    return utf8_decoder.decode(data_slice);
   };
 
   const writeUTF8FromMemory = function (text) {
@@ -274,26 +276,31 @@ const UTFCodec = function (get_memory_function, allocate_memory_function) {
 const FlatbufferCodec = function (get_memory_function) { };
 
 
+// exposes the core runtime functions for interoperating with WASM & Web.
 const WASMRuntime = function () {
-  // exposes the core runtime functions for interoperating with WASM & Web.
-
-  const environment = {};
-
   const runtime = {
     heap: ARENA,
-    utf_codec,
-    memory_ops,
-    environment,
-    read_parameters,
     module: null,
   };
 
   runtime.get_wasm_module = function () {
+    console.debug("Sending out module: ", runtime, runtime.module);
     return runtime.module;
   }
 
   const memory_ops = MemoryOperations(runtime.get_wasm_module);
+  runtime.memory_ops = memory_ops;
+
   const utf_codec = UTFCodec(memory_ops.get_memory, memory_ops.allocate_memory);
+  runtime.utf_codec = utf_codec;
+
+  // 32 bits is 4 bytes (as 1 byte = 8 bits), so each memory location 
+  // is 32 bits in Javascript, so when moving index we move by 32 bits each.
+  const MOVE_INDEX_BY_32BITS = 4;
+
+  // Javascript is 32 bit memory, 4 bit makes 32bit, to move 64bits then 
+  // its 4 bytes x 2 = 8 bytes.
+  const MOVE_INDEX_BY_64BIT = 8;
 
   const parameters_readers = {
     // 0 - means we want `undefined`
@@ -308,26 +315,26 @@ const WASMRuntime = function () {
     },
     // 2 means we want to read a float64;
     2: function (index, read_values_list, parameter_buffer) {
-      const view = new DataView(parameters.buffer).getFloat64(index, true);
+      const view = new DataView(parameter_buffer.buffer).getFloat64(index, true);
       read_values_list.push(view);
-      return [8, false];
+      return [MOVE_INDEX_BY_64BIT, false];
     },
     // 3 means we want to read a BigInt64;
     3: function (index, read_values_list, parameter_buffer) {
-      const view = new DataView(parameters.buffer).getBigInt64(index, true);
+      const view = new DataView(parameter_buffer.buffer).getBigInt64(index, true);
       read_values_list.push(view);
-      return [8, false];
+      return [MOVE_INDEX_BY_64BIT, false];
     },
     // 4 = string (followed by 32-bit start and size of string in wasm memory) 
     // 4 means we want to read a int32 memory size where we have 4 bytes for start, 4 bytes for length which 
     // indicate the memory range we need to read;
     4: function (index, read_values_list, parameter_buffer) {
       let start_index = index;
-      const start = new DataView(parameters.buffer).getInt32(index, true);
-      start_index += 4;
+      const start = new DataView(parameter_buffer.buffer).getInt32(start_index, true);
+      start_index += MOVE_INDEX_BY_32BITS;
 
-      const length = new DataView(parameters.buffer).getInt32(index, true);
-      start_index += 4;
+      const length = new DataView(parameter_buffer.buffer).getInt32(start_index, true);
+      start_index += MOVE_INDEX_BY_32BITS;
 
       const data = utf_codec.read_utf8(start, length);
       read_values_list.push(data);
@@ -335,18 +342,18 @@ const WASMRuntime = function () {
     },
     // 5 = extern ref
     5: function (index, read_values_list, parameter_buffer) {
-      const handle_uid = new DataView(parameters.buffer).getBigInt64(index, true);
+      const handle_uid = new DataView(parameter_buffer.buffer).getBigInt64(index, true);
       read_values_list.push(ARENA.get(handle_uid));
-      return [8, false];
+      return [MOVE_INDEX_BY_64BIT, false];
     },
     // 6 = array of Float64 from wasm memory (followed by 32-bit start and size of string in memory)
     6: function (index, read_values_list, parameter_buffer) {
       let start_index = index;
-      const start = new DataView(parameters.buffer).getInt32(index, true);
-      start_index += 4;
+      const start = new DataView(parameter_buffer.buffer).getInt32(start_index, true);
+      start_index += MOVE_INDEX_BY_32BITS;
 
-      const length = new DataView(parameters.buffer).getInt32(index, true);
-      start_index += 4;
+      const length = new DataView(parameter_buffer.buffer).getInt32(start_index, true);
+      start_index += MOVE_INDEX_BY_32BITS;
 
       const memory = memory_ops.get_memory();
       const slice = memory.buffer.slice(start, start + length * 4);
@@ -368,14 +375,14 @@ const WASMRuntime = function () {
     // 9 = array of Float64 from wasm memory (followed by 32-bit start and size of string in memory)
     9: function (index, read_values_list, parameter_buffer) {
       let start_index = index;
-      const start = new DataView(parameters.buffer).getInt32(index, true);
-      start_index += 4;
+      const start = new DataView(parameter_buffer).getInt32(start_index, true);
+      start_index += MOVE_INDEX_BY_32BITS;
 
-      const length = new DataView(parameters.buffer).getInt32(index, true);
-      start_index += 4;
+      const length = new DataView(parameter_buffer).getInt32(start_index, true);
+      start_index += MOVE_INDEX_BY_32BITS;
 
       const memory = memory_ops.get_memory();
-      const slice = memory.buffer.slice(start, start + len * 4);
+      const slice = memory.buffer.slice(start, start + length * 4);
       const array = new Float64Array(slice);
 
       read_values_list.push(array);
@@ -384,14 +391,14 @@ const WASMRuntime = function () {
     // 10 = array of Uint32 from wasm memory (followed by 32-bit start and size of string in memory)
     10: function (index, read_values_list, parameter_buffer) {
       let start_index = index;
-      const start = new DataView(parameters.buffer).getInt32(index, true);
-      start_index += 4;
+      const start = new DataView(parameter_buffer).getInt32(start_index, true);
+      start_index += MOVE_INDEX_BY_32BITS;
 
-      const length = new DataView(parameters.buffer).getInt32(index, true);
-      start_index += 4;
+      const length = new DataView(parameter_buffer).getInt32(start_index, true);
+      start_index += MOVE_INDEX_BY_32BITS;
 
       const memory = memory_ops.get_memory();
-      const slice = memory.buffer.slice(start, start + len * 4);
+      const slice = memory.buffer.slice(start, start + length * 4);
       const array = new Uint32Array(slice);
 
       read_values_list.push(array);
@@ -405,6 +412,7 @@ const WASMRuntime = function () {
     const converted_values = [];
 
     const parameters = memory_ops.buffer.read(start, length);
+    console.debug("read_params: ", parameters, start, length);
 
     let index = 0;
     while (index < parameters.length) {
@@ -414,14 +422,19 @@ const WASMRuntime = function () {
       if (type_id in parameters_readers) {
         const reader_func = parameters_readers[type_id];
         const [move_index_by, should_break] = reader_func(index, converted_values, parameters);
+        console.debug("Read: ", converted_values);
         index += move_index_by;
+        console.debug("Move index by: ", move_index_by);
         if (should_break) break;
         continue;
       }
 
       throw new Error(`unknown parameter type ${type_id}`)
     }
+
+    return converted_values;
   };
+  runtime.read_parameters = read_parameters;
 
 
 
@@ -435,38 +448,71 @@ const WASMRuntime = function () {
     }
   ];
 
+  runtime.run_wasm = function () {
+    if (!runtime.module) throw new Error("No wasm module attached");
+    if (!runtime.module.instance.exports.main) throw new Error("wasm module has no exported main");
+    return runtime.module.instance.exports.main();
+  };
+
+  const environment = {
+    data: {},
+    refs: {},
+    funcs: {}
+  };
+
+  runtime.environment = environment;
+
   environment.abort = function () {
     throw new Error("WasmInstance calls abort");
   }
 
-  environment.drop_external_reference = function (uid) {
+  environment.refs.drop_external_reference = function (uid) {
     return runtime.heap.destroy(uid);
   };
 
+  const ALLOWED_UTF8_INDICATOR = [8, 16];
 
   // register a function on the javascript side for execution via a handle id.
-  environment.js_register_function = function (start, length, utf_indicator) {
+  environment.funcs.js_register_function = function (start, length, utf_indicator) {
+    console.debug("Register function: ", start, length, " UTF8: ", utf_indicator)
     let function_body = null;
+
+    if (ALLOWED_UTF8_INDICATOR.indexOf(utf_indicator) === -1) {
+      throw new Error("Unsupported UTF indicator (only 8 or 16)");
+    }
 
     if (utf_indicator === 16) {
       function_body = utf_codec.read_utf16(start, length);
-    } else {
+    }
+
+    if (utf_indicator === 8) {
       function_body = utf_codec.read_utf8(start, length);
     }
 
+    if (!function_body) throw new Error("Function body must be supplied");
+
     const id = runtime.functions.length;
-    runtime.functions.push(Function(`"use strict"; return(${function_body})`)());
+    const registered_func = Function(`"use strict"; return(${function_body})`)();
+    runtime.functions.push(registered_func);
     return id;
   };
 
-  environment.js_invoke_function = function (handle, parameter_start, parameter_length) {
+
+  environment.funcs.js_invoke_function = function (handle, parameter_start, parameter_length) {
+    console.debug("FuncHandle: ", handle, parameter_start, parameter_length);
     // read parameters and invoke function via handle.
     const parameters = read_parameters(parameter_start, parameter_length);
-    const func = functions[handle];
+    console.debug("FuncHandleReadParameters: ", handle, parameters);
+
+    if (!parameters && parameter_length > 0) throw new Error("No parameters returned though we expect some");
+    console.debug("FuncHandleReadParameters: ", handle, parameters);
+
+    const func = runtime.functions[handle];
+    console.debug("FuncHandleFunc: ", handle, func);
     return func.call(runtime, ...parameters);
   };
 
-  environment.js_invoke_function_and_return_object = function (handle, parameter_start, parameter_length) {
+  environment.funcs.js_invoke_function_and_return_object = function (handle, parameter_start, parameter_length) {
     // read parameters and invoke function via handle.
     const parameters = read_parameters(parameter_start, parameter_length);
     const func = functions[handle];
@@ -477,7 +523,7 @@ const WASMRuntime = function () {
     return runtime.heap.create(result);
   };
 
-  environment.js_invoke_function_and_return_bool = function (handle, parameter_start, parameter_length) {
+  environment.funcs.js_invoke_function_and_return_bool = function (handle, parameter_start, parameter_length) {
     // read parameters and invoke function via handle.
     const parameters = read_parameters(parameter_start, parameter_length);
     const func = functions[handle];
@@ -485,14 +531,14 @@ const WASMRuntime = function () {
     return result ? 1 : 0;
   };
 
-  environment.js_invoke_function_and_return_bigint = function (handle, parameter_start, parameter_length) {
+  environment.funcs.js_invoke_function_and_return_bigint = function (handle, parameter_start, parameter_length) {
     // read parameters and invoke function via handle.
     const parameters = read_parameters(parameter_start, parameter_length);
     const func = functions[handle];
     return func.call(runtime, ...parameters);
   };
 
-  environment.js_invoke_function_and_return_string = function (handle, parameter_start, parameter_length) {
+  environment.funcs.js_invoke_function_and_return_string = function (handle, parameter_start, parameter_length) {
     // read parameters and invoke function via handle.
     const parameters = read_parameters(parameter_start, parameter_length);
     const func = functions[handle];
@@ -503,11 +549,6 @@ const WASMRuntime = function () {
     return memory_ops.array_buffer.write(result);
   };
 
-  runtime.run_wasm = function () {
-    if (!runtime.module) throw new Error("No wasm module attached");
-    if (!runtime.module.instance.exports.main) throw new Error("wasm module has no exported main");
-    return runtime.module.instance.exports.main();
-  };
 
   return [environment, runtime];
 };
@@ -518,53 +559,120 @@ const WASMLoader = (function () {
     return await fetch(wasmURL);
   };
 
-  const loadWASMBytes = async function (wasm_bytes, compileOptions) {
+  const configCompiledOptions = function (compileOptions) {
+    const merged_compiled_options = {
+      "builtins": [
+        "js-strings",
+      ],
+      "importedStringConstants": "imported_strings",
+    };
+
+    if (compileOptions) {
+      if ("builtins" in compileOptions) merged_compiled_options.builtins = compileOptions.builtins;
+      if ("importedStringConstants" in compileOptions) merged_compiled_options.importedStringConstants = compileOptions.importedStringConstants;
+    }
+
+    return merged_compiled_options;
+  }
+
+  const loadWASM = async function (streaming, wasm_source, compileOptions, memory) {
     const [env, runtime] = WASMRuntime();
-    const module = await WebAssembly.instantiate(wasm_bytes, {
-      env,
-    }, compileOptions)
+    const compiled_options = configCompiledOptions(compileOptions);
+
+    if (!memory) {
+      memory = new WebAssembly.Memory({ initial: 10, maximum: 200 });
+    }
+
+    let module;
+    if (streaming) {
+      module = await WebAssembly.instantiateStreaming(wasm_source, {
+        funcs: env.funcs,
+        data: env.data,
+        refs: env.refs,
+        js: { mem: memory },
+      }, compiled_options);
+    } else {
+      module = await WebAssembly.instantiate(wasm_source, {
+        funcs: env.funcs,
+        data: env.data,
+        refs: env.refs,
+      }, compiled_options);
+    }
+
+    module.compiled_options = compiled_options;
 
     // we must set the module else things fail
     runtime.module = module;
     return [env, runtime];
   };
 
-  const loadWASMResponse = async function (wasm_source, compileOptions) {
-    const [env, runtime] = WASMRuntime();
-    const module = await WebAssembly.instantiateStreaming(wasm_source, {
-      env,
-    }, compileOptions)
+  const loadWASMBytes = async function (wasm_bytes, compileOptions) {
+    return loadWASM(false, wasm_bytes, compileOptions)
+  };
 
-    // we must set the module else things fail
-    runtime.module = module;
-    return [env, runtime];
+  const loadWASMResponse = async function (wasm_source, compileOptions) {
+    return loadWASM(true, wasm_source, compileOptions)
   };
 
   const loadWASMURL = async function (wasmURL) {
     const wasm_response = await loadURL(wasmURL);
     return await loadWASMResponse(wasm_response);
-  }
+  };
 
-  // will load wasm source data from script marked with `application/wasm`
-  // and execute relevant main.
-  const loadWASMScripts = function () {
+  const getWASMScripts = function () {
+    const instantiated = [];
+
     const wasmScripts = document.querySelectorAll(
       "script[type='application/wasm']"
     );
+
     for (let i = 0; i < wasmScripts.length; i++) {
-      const src = (wasmScripts[i]).src;
-      if (src) {
-        let [_, runtime] = (src);
-        runtime.run_wasm();
+      const script = wasmScripts[i];
+      const src = script.src;
+      instantiated.push({ url: src, script });
+    };
+
+    return instantiated;
+  };
+
+  // loadWASMScripts will load all script marked 
+  // with type=`application/wasm`
+  // and execute main function.
+  const loadWASMScripts = async function () {
+    const instantiated = [];
+
+    let scripts = getWASMScripts();
+    for (let index in scripts) {
+      let script = scripts[index];
+      if (script.url) {
+        let instance = await loadWASMURL(script.url);
+        instantiated.push(instance);
       } else {
-        console.error("Script tag must have 'src' property.");
+        console.error("Properly must have 'url' property.", script);
       }
-    }
+    };
+
+    return instantiated;
+  }
+
+
+  // runWASMScripts will load all script marked 
+  // with type=`application/wasm`
+  // and execute main function.
+  const runWASMScripts = async function () {
+    const instances = await loadWASMScripts();
+    instances.forEach(([env, runtime]) => {
+      runtime.run_wasm();
+    });
+    return instances;
   }
 
   return {
+    loadWASM,
     loadWASMURL,
     loadWASMBytes,
+    getWASMScripts,
+    runWASMScripts,
     loadWASMScripts,
   };
 }());

@@ -29,13 +29,10 @@ pub fn package_request_handler<'a>(
     );
     let request_path = req_url.into_string();
 
-    match Packages::get(
+    Packages::get(
         request_path
             .replace(&incoming_prefix_name, "packages")
             .strip_prefix("/")
             .unwrap_or_else(|| &req_url),
-    ) {
-        Some(html_data) => Some(html_data),
-        None => None,
-    }
+    )
 }

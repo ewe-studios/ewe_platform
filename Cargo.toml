@@ -6,8 +6,10 @@ members = [
   "bin/*",
   "crates/*",
   "backends/*",
+  "demos/*",
   "examples/web/*",
   "examples/template/*",
+  "demos/intro",
 ]
 exclude = [
   "crates/html-macro",
@@ -16,6 +18,8 @@ exclude = [
   "templates/static-html-app",
   "examples/todo",
   "crates/temple/output_directory",
+  "backends/docs",
+  "backends/docs/*",
 ]
 
 [workspace.package]
@@ -33,6 +37,7 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 foundation_core = { path = "./backends/foundation_core", version = "0.0.2" }
 foundation_nostd = { path = "./backends/foundation_nostd", version = "0.0.1" }
 foundation_jsnostd = { path = "./backends/foundation_jsnostd", version = "0.0.1" }
+foundation_jsmacros = { path = "./backends/foundation_jsmacros", version = "0.0.1" }
 
 # -- internal packages so others can use them
 ewe_web = { path = "./crates/web", version = "0.0.1" }
@@ -62,3 +67,8 @@ derive_more = { version = "1.0.0", features = ["full"] }
 
 [workspace.lints.clippy]
 pedantic = "warn"
+
+[workspace.profile.release]
+lto = true # link time optimizations
+# Enable to remove debug info from wasm files
+# strip = "debuginfo"

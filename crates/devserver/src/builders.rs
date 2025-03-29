@@ -1,3 +1,6 @@
+#![allow(clippy::missing_panics_doc)]
+#![allow(clippy::too_many_lines)]
+
 use tokio::sync::broadcast;
 
 use crate::{
@@ -23,7 +26,12 @@ impl HttpDevService {
         let (package_started, _) = broadcast::channel::<()>(2);
         let (package_built, _) = broadcast::channel::<()>(2);
 
-        Self { project, package_changes, package_built, package_started }
+        Self {
+            project,
+            package_changes,
+            package_built,
+            package_started,
+        }
     }
 }
 

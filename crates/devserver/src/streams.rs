@@ -160,6 +160,7 @@ struct Http1Service(SocketAddr, Http1);
 
 type HttpFuture<R, E> = dyn Future<Output = result::Result<R, E>> + Sync + Send + 'static;
 
+#[allow(clippy::too_many_lines)]
 impl service::Service<crate::types::HyperRequest> for Http1Service {
     type Error = hyper::Error;
     type Response = crate::types::HyperResponse;
