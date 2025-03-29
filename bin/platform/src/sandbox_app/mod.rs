@@ -1,6 +1,7 @@
 use core::str;
 
 use axum::{
+    body,
     extract::Request,
     response::{Html, IntoResponse, Response},
     routing::get,
@@ -48,9 +49,27 @@ async fn megatron_handler(req: Request) -> Response {
     );
     match package_request_handler("megatron".into(), request_path) {
         Some(file_content) => {
-            let content =
-                String::from_utf8(file_content.data.to_vec()).expect("should generate str");
-            Html(content).into_response()
+            let file_data = file_content.data.to_vec();
+            if request_path.ends_with(".js") || request_path.ends_with(".css") {
+                if let Ok(content) = String::from_utf8(file_data.clone()) {
+                    return content.into_response();
+                }
+            }
+            if request_path.ends_with(".html") {
+                if let Ok(content) = String::from_utf8(file_data.clone()) {
+                    return Html(content).into_response();
+                }
+            }
+            if request_path.ends_with(".wasm") {
+                if let Ok(response) = Response::builder()
+                    .status(StatusCode::OK)
+                    .header("CONTENT-TYPE", "application/wasm")
+                    .body(body::Body::from(file_data.clone()))
+                {
+                    return response;
+                }
+            }
+            file_data.into_response()
         }
         None => (StatusCode::NOT_FOUND, "404 NOT FOUND").into_response(),
     }

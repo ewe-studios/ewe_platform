@@ -54,6 +54,7 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
     let project_directory = std::env::var("EWE_PLATFORM_DIR")?;
     let backends_directory = format!("{}/backends", project_directory.clone());
     let crates_directory = format!("{}/crates", project_directory.clone());
+    let demos_directory = format!("{}/demos", project_directory.clone());
     let binary_directory = format!("{}/bin", project_directory.clone());
     let templates_directory = format!("{}/templates", project_directory.clone());
     let examples_directory = format!("{}/examples", project_directory.clone());
@@ -97,6 +98,7 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
         workspace_root: project_directory.clone(),
         watch_directories: vec![
             backends_directory,
+            demos_directory,
             binary_directory,
             crates_directory,
             templates_directory,
