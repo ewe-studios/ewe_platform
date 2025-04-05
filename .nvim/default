@@ -15,10 +15,10 @@ else
 endif
 badd +1 backends/foundation_core/src/megatron/mod.rs
 badd +6 ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox_app/mod.rs
-badd +269 backends/foundation_core/src/megatron/jsrum/packages/runtime.js
-badd +4 backends/foundation_jsnostd/src/jsrom.rs
+badd +289 backends/foundation_core/src/megatron/jsrum/packages/runtime.js
+badd +36 backends/foundation_jsnostd/src/jsrom.rs
 badd +2 backends/foundation_jsnostd/src/lib.rs
-badd +291 backends/foundation_jsnostd/src/ops.rs
+badd +566 backends/foundation_jsnostd/src/ops.rs
 badd +1 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsmacros/src/lib.rs
 badd +1 ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsrum/mod.rs
 badd +1 ~/Labs/ewestudios/ewe_platform/backends/foundation_nostd/src/lib.rs
@@ -50,44 +50,44 @@ set winwidth=1
 wincmd =
 argglobal
 balt ~/Labs/ewestudios/ewe_platform/backends/foundation_jsmacros/src/lib.rs
-setlocal fdm=expr
-setlocal fde=nvim_treesitter#foldexpr()
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=99
-setlocal fml=1
-setlocal fdn=20
-setlocal fen
-190
+setlocal foldmethod=expr
+setlocal foldexpr=nvim_treesitter#foldexpr()
+setlocal foldmarker={{{,}}}
+setlocal foldignore=#
+setlocal foldlevel=99
+setlocal foldminlines=1
+setlocal foldnestmax=20
+setlocal foldenable
+257
 normal! zo
-253
+263
 normal! zo
-259
+271
 normal! zo
-269
+281
 normal! zo
-278
+289
 normal! zo
-278
-normal! zo
-285
-normal! zo
-294
-normal! zo
-302
+297
 normal! zo
 314
 normal! zo
 316
 normal! zo
-338
+408
 normal! zo
-let s:l = 291 - ((58 * winheight(0) + 36) / 72)
+437
+normal! zo
+438
+normal! zo
+408
+normal! zc
+let s:l = 566 - ((181 * winheight(0) + 21) / 42)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 291
-normal! 058|
+keepjumps 566
+normal! 0
 wincmd w
 argglobal
 if bufexists(fnamemodify("backends/foundation_jsnostd/src/jsrom.rs", ":p")) | buffer backends/foundation_jsnostd/src/jsrom.rs | else | edit backends/foundation_jsnostd/src/jsrom.rs | endif
@@ -95,22 +95,20 @@ if &buftype ==# 'terminal'
   silent file backends/foundation_jsnostd/src/jsrom.rs
 endif
 balt backends/foundation_core/src/megatron/jsrum/packages/runtime.js
-setlocal fdm=expr
-setlocal fde=nvim_treesitter#foldexpr()
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=99
-setlocal fml=1
-setlocal fdn=20
-setlocal fen
-32
-normal! zo
-let s:l = 68 - ((67 * winheight(0) + 36) / 72)
+setlocal foldmethod=expr
+setlocal foldexpr=nvim_treesitter#foldexpr()
+setlocal foldmarker={{{,}}}
+setlocal foldignore=#
+setlocal foldlevel=99
+setlocal foldminlines=1
+setlocal foldnestmax=20
+setlocal foldenable
+let s:l = 36 - ((35 * winheight(0) + 21) / 42)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 68
-normal! 0
+keepjumps 36
+normal! 052|
 wincmd w
 argglobal
 if bufexists(fnamemodify("backends/foundation_core/src/megatron/jsrum/packages/runtime.js", ":p")) | buffer backends/foundation_core/src/megatron/jsrum/packages/runtime.js | else | edit backends/foundation_core/src/megatron/jsrum/packages/runtime.js | endif
@@ -118,21 +116,22 @@ if &buftype ==# 'terminal'
   silent file backends/foundation_core/src/megatron/jsrum/packages/runtime.js
 endif
 balt backends/foundation_jsnostd/src/jsrom.rs
-setlocal fdm=expr
-setlocal fde=nvim_treesitter#foldexpr()
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=99
-setlocal fml=1
-setlocal fdn=20
-setlocal fen
-let s:l = 269 - ((35 * winheight(0) + 36) / 72)
+setlocal foldmethod=expr
+setlocal foldexpr=nvim_treesitter#foldexpr()
+setlocal foldmarker={{{,}}}
+setlocal foldignore=#
+setlocal foldlevel=99
+setlocal foldminlines=1
+setlocal foldnestmax=20
+setlocal foldenable
+let s:l = 289 - ((51 * winheight(0) + 21) / 42)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 269
-normal! 01|
+keepjumps 289
+normal! 03|
 wincmd w
+2wincmd w
 wincmd =
 tabnext 1
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'

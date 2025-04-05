@@ -435,7 +435,7 @@ impl MemoryAllocations {
     /// [`get`] returns the related [`MemoryAllocation`] object that is related to a
     /// giving [`MemoryId`] to be used.
     pub fn get(&mut self, memory_id: MemoryId) -> MemoryAllocationResult<MemoryAllocation> {
-        if let Some((generation_id, ref allocation)) = self.allocs.get(memory_id.0) {
+        if let Some((generation_id, ref allocation)) = self.allocs.get(memory_id.0 as usize) {
             if *generation_id == memory_id.1 {
                 return Ok(allocation.clone());
             }
