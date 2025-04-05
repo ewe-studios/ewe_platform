@@ -238,19 +238,19 @@ pub fn create_shell<
     R: Send + Clone + 'static,
     P: Default + Clone + 'static,
 >(
-    _servicer: Box<DServicer<App, E, R, P>>,
+    servicer: DServicer<App, E, R, P>,
 ) -> DShell<E, R, P>
 where
     App: domains::Domain<Events = E, Requests = R, Platform = P>,
 {
     DShell {
-        incoming_event_sender: _servicer.domain_shell.incoming_event_sender.clone(),
-        incoming_request_sender: _servicer.domain_shell.incoming_request_sender.clone(),
-        executor: _servicer.domain_shell.executor.clone(),
-        shell_platform: _servicer.domain_shell.shell_platform.clone(),
-        request_broadcast: _servicer.domain_shell.request_broadcast.clone(),
-        event_broadcast: _servicer.domain_shell.event_broadcast.clone(),
-        response_registry: _servicer.domain_shell.response_registry.clone(),
+        incoming_event_sender: servicer.domain_shell.incoming_event_sender.clone(),
+        incoming_request_sender: servicer.domain_shell.incoming_request_sender.clone(),
+        executor: servicer.domain_shell.executor.clone(),
+        shell_platform: servicer.domain_shell.shell_platform.clone(),
+        request_broadcast: servicer.domain_shell.request_broadcast.clone(),
+        event_broadcast: servicer.domain_shell.event_broadcast.clone(),
+        response_registry: servicer.domain_shell.response_registry.clone(),
     }
 }
 
@@ -525,10 +525,10 @@ mod tests {
         type Request = CounterRequests;
 
         fn is_request(&self, req: sync::Arc<domains::NamedRequest<Self::Request>>) -> bool {
-            match req.item() {
-                CounterRequests::Render(_) => true,
-                _ => false,
+            if let CounterRequests::Render(_) = req.item() {
+                return true;
             }
+            false
         }
 
         fn handle_request(

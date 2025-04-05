@@ -19,9 +19,9 @@ pub struct Packages;
 /// i.e if the path incoming is /public/packer.js then the
 /// path will become /packages/packer.js to match the expected
 /// embedded path.
-pub fn package_request_handler<'a>(
+pub fn package_request_handler(
     incoming_prefix_name: String,
-    req_url: &'a str,
+    req_url: &str,
 ) -> Option<EmbeddedFile> {
     tracing::info!(
         "[PackageRequestHandler] Received request for path: {}",
@@ -33,6 +33,6 @@ pub fn package_request_handler<'a>(
         request_path
             .replace(&incoming_prefix_name, "packages")
             .strip_prefix("/")
-            .unwrap_or_else(|| &req_url),
+            .unwrap_or(req_url),
     )
 }

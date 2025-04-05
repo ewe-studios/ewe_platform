@@ -9,7 +9,6 @@ use futures::{
 use std::{
     sync::{self, Arc},
     task::Context,
-    usize,
 };
 use thiserror::Error;
 
@@ -37,7 +36,7 @@ impl<E: Send + 'static> ArcWake for Task<E> {
         arc_self
             .ready_notification
             .try_send(())
-            .expect("failed to send resolved notication");
+            .expect("failed to send resolved notification");
         println!("Sent wake action");
     }
 }

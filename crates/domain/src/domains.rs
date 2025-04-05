@@ -1,4 +1,4 @@
-// trait defintion for the Domain concept from the Principles of Architecture
+#![allow(clippy::extra_unused_lifetimes)]
 
 use std::sync::Arc;
 use std::{fmt::Display, result};
@@ -393,8 +393,7 @@ where
             Err(ChannelError::Closed) => {
                 error!("UseCase executor receiver was closed");
             }
-            _ => {
-            }
+            _ => {}
         }
     }
 }

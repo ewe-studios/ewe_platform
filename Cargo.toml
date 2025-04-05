@@ -63,10 +63,10 @@ toml = { version = "0.8.19" }
 anyhow = { version = "1.0.80" }
 tracing = { version = "0.1.40" }
 concurrent-queue = { version = "2.5.0" }
-derive_more = { version = "1.0.0", features = ["full"] }
+derive_more = { version = ">=2.0", features = ["full"] }
 
 [workspace.lints.clippy]
-pedantic = "warn"
+dead_code = "allow"
 
 [workspace.profile.release]
 lto = true # link time optimizations

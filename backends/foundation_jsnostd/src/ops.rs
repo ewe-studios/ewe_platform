@@ -1,15 +1,12 @@
+#![allow(dead_code)]
 #![allow(clippy::items_after_test_module)]
-#![allow(clippy::missing_doc_code_examples)]
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::missing_panics_doc)]
 
-use alloc::collections::BTreeMap;
 use alloc::rc::Rc;
 use alloc::string::{FromUtf16Error, FromUtf8Error, String};
 use alloc::vec::Vec;
-use core::error::Error;
-use core::ptr;
-use foundation_nostd::{raw_parts::RawParts, spin::Mutex};
+use foundation_nostd::spin::Mutex;
 
 /// OpIndex defines the different operations that is
 /// representable and performable through the underlying
@@ -67,12 +64,12 @@ impl ExternalPointer {
         self.0
     }
 
-    fn borrow<'a>(&'a self) -> &'a u64 {
+    fn borrow(&self) -> &u64 {
         &self.0
     }
 
     fn clone_inner(&self) -> u64 {
-        self.0.clone()
+        self.0
     }
 }
 
@@ -161,13 +158,12 @@ pub type FuncHandle = u64;
 /// without any form of deserialization efforts
 /// as this will effectively be represented in binary
 pub enum FuncCall {
-    NoReturnFunc(FuncHandle, CallParams),
-    I64ReturnFunc(FuncHandle, CallParams),
-    I32ReturnFunc(FuncHandle, CallParams),
-    u64ReturnFunc(FuncHandle, CallParams),
-    U64ReturnFunc(FuncHandle, CallParams),
-    StringReturnFunc(FuncHandle, CallParams),
-    ObjectReturnFunc(FuncHandle, CallParams),
+    No(FuncHandle, CallParams),
+    I64(FuncHandle, CallParams),
+    I32(FuncHandle, CallParams),
+    U64(FuncHandle, CallParams),
+    String(FuncHandle, CallParams),
+    Object(FuncHandle, CallParams),
 }
 
 define_index!(1, FuncCall);
@@ -178,7 +174,7 @@ mod test_func_call {
 
     #[test]
     fn can_get_func_call() {
-        let handler = FuncCall::NoReturnFunc(0, CallParams::new(&0, 10));
+        let handler = FuncCall::No(0, CallParams::new(&0, 10));
         assert_eq!(handler.op_index(), 1);
     }
 }
@@ -380,7 +376,7 @@ const BIT_SIZE: usize = 32;
 const BIT_MASK: u64 = 0xFFFFFFFF;
 
 /// [`MemoryId`] represents a key to a allocation '
-/// which has a unqiue generation to denote it's ownership
+/// which has a unique generation to denote it's ownership
 /// if the generation differs from the current generation of
 /// a given index then that means ownership was already lost and
 /// hence cant be used.

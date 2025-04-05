@@ -1,4 +1,8 @@
 // Provides wrappers for rust_embed asset managemer.
+//
+
+#![allow(clippy::default_constructed_unit_structs)]
+#![allow(clippy::from_over_into)]
 
 use rust_embed;
 use std::marker::PhantomData;
@@ -13,9 +17,7 @@ pub struct Directorate<T: rust_embed::RustEmbed> {
 
 impl<T: rust_embed::Embed + Default> Default for Directorate<T> {
     fn default() -> Self {
-        Self {
-            _data: PhantomData::default(),
-        }
+        Self { _data: PhantomData }
     }
 }
 
@@ -56,12 +58,10 @@ impl<T: rust_embed::Embed> PackageDirectorate for Directorate<T> {
     fn top_directories(&self) -> Vec<String> {
         let mut dirs: Vec<String> = T::iter()
             .filter(|t| t.contains("/"))
-            .map(|t| match t.split_once("/") {
-                None => None,
-                Some((directory, _)) => Some(String::from(directory)),
+            .filter_map(|t| {
+                t.split_once("/")
+                    .map(|(directory, _)| String::from(directory))
             })
-            .filter(|t| t.is_some())
-            .map(|t| t.unwrap())
             .collect();
 
         // sort and de-dup
@@ -72,7 +72,7 @@ impl<T: rust_embed::Embed> PackageDirectorate for Directorate<T> {
     }
 
     fn as_vec(&self) -> Vec<String> {
-        T::iter().map(|t| String::from(t)).collect()
+        T::iter().map(String::from).collect()
     }
 
     fn files_for(&self, directory: &str) -> Option<Vec<String>> {
@@ -84,7 +84,7 @@ impl<T: rust_embed::Embed> PackageDirectorate for Directorate<T> {
 
         let files: Vec<String> = T::iter()
             .filter(|t| t.starts_with(target_dir))
-            .map(|t| String::from(t))
+            .map(String::from)
             .collect();
 
         if files.is_empty() {

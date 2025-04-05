@@ -221,7 +221,7 @@ impl PointerValueExt for Value {
             }
         }
 
-        return Err(TomlError::custom("invalid path"));
+        Err(TomlError::custom("invalid path"))
     }
 
     fn take_path(&mut self, name_or_pointer: &str) -> ValueResult<Self::Item, Self::Error> {
@@ -270,7 +270,7 @@ impl PointerValueExt for Value {
             }
         }
 
-        return Err(TomlError::custom("invalid path"));
+        Err(TomlError::custom("invalid path"))
     }
 }
 

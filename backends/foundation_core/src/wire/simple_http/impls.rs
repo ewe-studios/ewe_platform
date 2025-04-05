@@ -972,11 +972,11 @@ impl PartialEq for SimpleUrl {
     }
 }
 
-static CAPTURE_QUERY: &'static str = r"\?.*";
-static CAPTURE_PATH: &'static str = r".*\?";
-static QUERY_REPLACER: &'static str = r"(?P<$p>[^//|/?]+)";
-static CAPTURE_PARAM_STR: &'static str = r"\{(?P<p>([A-z|0-9|_])+)\}";
-static CAPTURE_QUERY_KEY_VALUE: &'static str = r"((?P<qk>[^&]+)=(?P<qv>[^&]+))*";
+static CAPTURE_QUERY: &str = r"\?.*";
+static CAPTURE_PATH: &str = r".*\?";
+static QUERY_REPLACER: &str = r"(?P<$p>[^//|/?]+)";
+static CAPTURE_PARAM_STR: &str = r"\{(?P<p>([A-z|0-9|_])+)\}";
+static CAPTURE_QUERY_KEY_VALUE: &str = r"((?P<qk>[^&]+)=(?P<qv>[^&]+))*";
 
 #[allow(unused)]
 impl SimpleUrl {
@@ -3320,7 +3320,7 @@ impl ChunkState {
             }
         }
 
-        return Ok(size);
+        Ok(size)
     }
 }
 

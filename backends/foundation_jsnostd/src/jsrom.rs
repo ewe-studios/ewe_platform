@@ -99,7 +99,7 @@ pub mod js_abi {
             // as utf-8 or utf-18 encoded byte (based on third argument)
             // from the start pointer in memory to the specified
             // length to be registered in the shared
-            // function registery.
+            // function registry.
             pub fn js_register_function(start: f64, len: f64, encoding: u8) -> f64;
 
             // invokes a Javascript function across the WASM/RUST ABI
@@ -270,7 +270,7 @@ impl JSFunction {
     }
 
     /// [`invoke`] invokes a javascript function registered at the given handle
-    /// defined by the `JSFnction.handler` which then receives the set of parameters
+    /// defined by the [`JSFunction::handler`] which then receives the set of parameters
     /// supplied to be invoked with.
     ///
     /// The `js_abi` will handle necessary conversion and execution of the function

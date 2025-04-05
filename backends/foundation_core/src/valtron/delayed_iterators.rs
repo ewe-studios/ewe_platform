@@ -8,10 +8,11 @@
 /// One interesting question is what does a delay mean:
 ///
 /// 1. In one sense this can be the delay result of a one time operation
-/// upon which completion we get our result from the `Delayed::Done` option at
-/// which point we can expect no further results.
+///    upon which completion we get our result from the `Delayed::Done` option at
+///    which point we can expect no further results.
 /// 2. But in another sense can also represent a re-occurring operation that will be
-/// delayed a specific period of time upon which after completion, may or may not repeat.
+///    delayed a specific period of time upon which after completion, may or may not repeat.
+///
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Delayed<T> {
     /// Pending represents to the receiver two important information:

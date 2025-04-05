@@ -13,6 +13,7 @@ pub type SharedEncoding = rc::Rc<dyn Encoding>;
 
 pub trait Encoding: Encoder + Decoder {}
 
+#[derive(Default)]
 pub struct UTF8Encoding;
 
 impl UTF8Encoding {
@@ -26,12 +27,6 @@ impl UTF8Encoding {
 }
 
 impl Encoding for UTF8Encoding {}
-
-impl Default for UTF8Encoding {
-    fn default() -> Self {
-        Self {}
-    }
-}
 
 impl Encoder for UTF8Encoding {
     fn encode<'a>(&self, text: &'a str) -> Cow<'a, [u8]> {

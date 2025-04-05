@@ -84,7 +84,7 @@ async fn public_handler(req: Request) -> Response {
     match Public::get(
         request_path
             .strip_prefix("/")
-            .unwrap_or_else(|| request_path),
+            .unwrap_or(request_path),
     ) {
         Some(html_data) => {
             let content = String::from_utf8(html_data.data.to_vec()).expect("should generate str");
@@ -144,7 +144,7 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
 
     axum::serve(listener, app)
         .await
-        .map_err(|err| Box::new(err))?;
+        .map_err(Box::new)?;
 
     Ok(())
 }

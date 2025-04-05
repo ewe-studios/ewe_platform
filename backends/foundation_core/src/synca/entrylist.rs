@@ -24,8 +24,8 @@ impl Entry {
 #[derive(Debug, Clone)]
 pub struct EntryList<T> {
     items: Vec<(usize, Option<T>)>,
-    free_entrys: Vec<Entry>,
-    packed_entrys: Vec<Entry>,
+    free_entries: Vec<Entry>,
+    packed_entries: Vec<Entry>,
 }
 
 // --- constructors
@@ -34,8 +34,8 @@ impl<T> EntryList<T> {
     pub fn new() -> Self {
         Self {
             items: Vec::new(),
-            free_entrys: Vec::new(),
-            packed_entrys: Vec::new(),
+            free_entries: Vec::new(),
+            packed_entries: Vec::new(),
         }
     }
 }
@@ -58,7 +58,7 @@ impl<T> EntryList<T> {
     /// Returns total entries currently parked.
     #[inline]
     pub fn parked_slots(&self) -> usize {
-        self.packed_entrys.len()
+        self.packed_entries.len()
     }
 
     /// allocated_slots returns how many slots have being allocated overall.
@@ -70,7 +70,7 @@ impl<T> EntryList<T> {
     /// open_slots returns how many free entries are now available.
     #[inline]
     pub fn open_slots(&self) -> usize {
-        self.free_entrys.len()
+        self.free_entries.len()
     }
 
     /// get_mut lets you perform an in-place value replacement without
@@ -83,10 +83,8 @@ impl<T> EntryList<T> {
     #[inline]
     pub fn get_mut(&mut self, entry: &Entry) -> Option<&mut T> {
         if let Some((gen, value)) = self.items.get_mut(entry.id) {
-            if *gen == entry.gen {
-                if let Some(_) = &value {
-                    return value.as_mut();
-                }
+            if *gen == entry.gen && value.is_some() {
+                return value.as_mut();
             }
         }
         None
@@ -97,10 +95,8 @@ impl<T> EntryList<T> {
     #[inline]
     pub fn get(&self, entry: &Entry) -> Option<&T> {
         if let Some((gen, value)) = self.items.get(entry.id) {
-            if *gen == entry.gen {
-                if value.is_some() {
-                    return value.as_ref();
-                }
+            if *gen == entry.gen && value.is_some() {
+                return value.as_ref();
             }
         }
         None
@@ -115,10 +111,8 @@ impl<T> EntryList<T> {
                 return true;
             }
 
-            if *gen == entry.gen {
-                if value.is_none() {
-                    return true;
-                }
+            if *gen == entry.gen && value.is_none() {
+                return true;
             }
         }
         false
@@ -129,10 +123,8 @@ impl<T> EntryList<T> {
     #[inline]
     pub fn has(&mut self, entry: &Entry) -> bool {
         if let Some((gen, value)) = self.items.get_mut(entry.id) {
-            if *gen == entry.gen {
-                if value.is_some() {
-                    return true;
-                }
+            if *gen == entry.gen && value.is_some() {
+                return true;
             }
         }
         false
@@ -147,7 +139,7 @@ impl<T> EntryList<T> {
         if let Some((gen, value)) = self.items.get_mut(entry.id) {
             if *gen == entry.gen {
                 if let Some(con) = value.take() {
-                    self.free_entrys.push(entry.clone());
+                    self.free_entries.push(entry.clone());
                     drop(con);
                 }
             }
@@ -169,7 +161,7 @@ impl<T> EntryList<T> {
         if let Some((gen, value)) = self.items.get_mut(entry.id) {
             if *gen == entry.gen {
                 if let Some(con) = value.take() {
-                    self.packed_entrys.push(entry.clone());
+                    self.packed_entries.push(entry.clone());
                     return Some(con);
                 }
             }
@@ -184,7 +176,7 @@ impl<T> EntryList<T> {
     pub fn unpark(&mut self, entry: &Entry, item: T) -> bool {
         match self.find_packed(entry) {
             Some(index) => {
-                self.packed_entrys.remove(index);
+                self.packed_entries.remove(index);
                 let _ = self.update_packed(entry, item);
                 true
             }
@@ -193,7 +185,7 @@ impl<T> EntryList<T> {
     }
 
     pub(crate) fn find_packed(&self, entry: &Entry) -> Option<usize> {
-        for (index, item) in self.packed_entrys.iter().enumerate() {
+        for (index, item) in self.packed_entries.iter().enumerate() {
             if item == entry {
                 return Some(index);
             }
@@ -204,17 +196,15 @@ impl<T> EntryList<T> {
     #[inline]
     pub(crate) fn update_packed(&mut self, entry: &Entry, item: T) -> Option<T> {
         if let Some((gen, value)) = self.items.get_mut(entry.id) {
-            if *gen == entry.gen {
-                if value.is_none() {
-                    // collect old value
-                    let previous_value = value.take();
+            if *gen == entry.gen && value.is_none() {
+                // collect old value
+                let previous_value = value.take();
 
-                    // replace value
-                    *value = Some(item);
+                // replace value
+                *value = Some(item);
 
-                    // Return new Entry and Old value.
-                    return previous_value;
-                }
+                // Return new Entry and Old value.
+                return previous_value;
             }
         }
         None
@@ -228,7 +218,7 @@ impl<T> EntryList<T> {
         if let Some((gen, value)) = self.items.get_mut(entry.id) {
             if *gen == entry.gen {
                 if let Some(con) = value.take() {
-                    self.free_entrys.push(entry.clone());
+                    self.free_entries.push(entry.clone());
                     return Some(con);
                 }
             }
@@ -242,17 +232,15 @@ impl<T> EntryList<T> {
     #[inline]
     pub fn update(&mut self, entry: &Entry, item: T) -> Option<T> {
         if let Some((gen, value)) = self.items.get_mut(entry.id) {
-            if *gen == entry.gen {
-                if value.is_some() {
-                    // collect old value
-                    let previous_value = value.take();
+            if *gen == entry.gen && value.is_some() {
+                // collect old value
+                let previous_value = value.take();
 
-                    // replace value
-                    *value = Some(item);
+                // replace value
+                *value = Some(item);
 
-                    // Return new Entry and Old value.
-                    return previous_value;
-                }
+                // Return new Entry and Old value.
+                return previous_value;
             }
         }
         None
@@ -307,7 +295,7 @@ impl<T> EntryList<T> {
                 None => false,
             })
             .map(|(index, (gen, value))| {
-                self.free_entrys.push(Entry::new(index, *gen));
+                self.free_entries.push(Entry::new(index, *gen));
                 value.take().unwrap()
             })
             .collect()
@@ -349,7 +337,7 @@ impl<T> EntryList<T> {
     /// `Entry` handle for the item.
     #[inline]
     pub fn insert(&mut self, item: T) -> Entry {
-        let entry = match self.free_entrys.pop() {
+        let entry = match self.free_entries.pop() {
             Some(mut inner) => {
                 inner.gen += 1;
                 inner

@@ -1,9 +1,13 @@
+// #![allow(clippy::)]
+
 use crate::mspc::{self, ChannelError};
 use std::sync;
 
 pub fn create<E: Send + 'static>(initial_subscribers_capacity: usize) -> Broadcast<E> {
     Broadcast::<E>::new(initial_subscribers_capacity)
 }
+
+pub type Subscribers<E> = sync::Arc<sync::Mutex<Vec<Option<mspc::SendChannel<sync::Arc<E>>>>>>;
 
 /// Broadcast is multi-produre multi-subscriber multi-cast implements
 /// that is an eager deliver-er of messages.
@@ -18,7 +22,7 @@ pub fn create<E: Send + 'static>(initial_subscribers_capacity: usize) -> Broadca
 pub struct Broadcast<E: Send + 'static> {
     message_receiver: mspc::ReceiveChannel<E>,
     message_sender: mspc::SendChannel<E>,
-    subscribers: sync::Arc<sync::Mutex<Vec<Option<mspc::SendChannel<sync::Arc<E>>>>>>,
+    subscribers: Subscribers<E>,
 }
 
 impl<E: Send + 'static> Clone for Broadcast<E> {
