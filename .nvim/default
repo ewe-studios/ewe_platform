@@ -13,23 +13,30 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +1 backends/foundation_core/src/megatron/jsdom/packages/packer.js
-badd +41 backends/foundation_core/src/megatron/jsdom/mod.rs
-badd +104 backends/foundation_core/src/megatron/jsdom/packages/runtime.js
 badd +1 backends/foundation_core/src/megatron/mod.rs
-badd +1 ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox_app/public/index.html
-badd +11 ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/packages/index.html
-badd +1 ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox_app/public/index.js
-badd +30 ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox_app/mod.rs
+badd +6 ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox_app/mod.rs
+badd +269 backends/foundation_core/src/megatron/jsrum/packages/runtime.js
+badd +4 backends/foundation_jsnostd/src/jsrom.rs
+badd +2 backends/foundation_jsnostd/src/lib.rs
+badd +291 backends/foundation_jsnostd/src/ops.rs
+badd +1 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsmacros/src/lib.rs
+badd +1 ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsrum/mod.rs
+badd +1 ~/Labs/ewestudios/ewe_platform/backends/foundation_nostd/src/lib.rs
+badd +3 ~/Labs/ewestudios/ewe_platform/backends/foundation_nostd/src/raw_parts.rs
+badd +16 ~/Labs/ewestudios/ewe_platform/backends/foundation_nostd/Cargo.toml
+badd +1 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/Cargo.toml
 argglobal
 %argdel
-edit ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox_app/mod.rs
+edit backends/foundation_jsnostd/src/ops.rs
 let s:save_splitbelow = &splitbelow
 let s:save_splitright = &splitright
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
-1wincmd h
+wincmd _ | wincmd |
+vsplit
+2wincmd h
+wincmd w
 wincmd w
 let &splitbelow = s:save_splitbelow
 let &splitright = s:save_splitright
@@ -42,7 +49,7 @@ set winminwidth=0
 set winwidth=1
 wincmd =
 argglobal
-balt ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox_app/public/index.js
+balt ~/Labs/ewestudios/ewe_platform/backends/foundation_jsmacros/src/lib.rs
 setlocal fdm=expr
 setlocal fde=nvim_treesitter#foldexpr()
 setlocal fmr={{{,}}}
@@ -51,29 +58,43 @@ setlocal fdl=99
 setlocal fml=1
 setlocal fdn=20
 setlocal fen
-23
+190
 normal! zo
-24
+253
 normal! zo
-25
+259
 normal! zo
-30
+269
 normal! zo
-31
+278
 normal! zo
-let s:l = 30 - ((29 * winheight(0) + 36) / 72)
+278
+normal! zo
+285
+normal! zo
+294
+normal! zo
+302
+normal! zo
+314
+normal! zo
+316
+normal! zo
+338
+normal! zo
+let s:l = 291 - ((58 * winheight(0) + 36) / 72)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 30
-normal! 09|
+keepjumps 291
+normal! 058|
 wincmd w
 argglobal
-if bufexists(fnamemodify("~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/packages/index.html", ":p")) | buffer ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/packages/index.html | else | edit ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/packages/index.html | endif
+if bufexists(fnamemodify("backends/foundation_jsnostd/src/jsrom.rs", ":p")) | buffer backends/foundation_jsnostd/src/jsrom.rs | else | edit backends/foundation_jsnostd/src/jsrom.rs | endif
 if &buftype ==# 'terminal'
-  silent file ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsdom/packages/index.html
+  silent file backends/foundation_jsnostd/src/jsrom.rs
 endif
-balt backends/foundation_core/src/megatron/jsdom/mod.rs
+balt backends/foundation_core/src/megatron/jsrum/packages/runtime.js
 setlocal fdm=expr
 setlocal fde=nvim_treesitter#foldexpr()
 setlocal fmr={{{,}}}
@@ -82,14 +103,35 @@ setlocal fdl=99
 setlocal fml=1
 setlocal fdn=20
 setlocal fen
-1
+32
 normal! zo
-let s:l = 11 - ((10 * winheight(0) + 36) / 72)
+let s:l = 68 - ((67 * winheight(0) + 36) / 72)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 11
-normal! 055|
+keepjumps 68
+normal! 0
+wincmd w
+argglobal
+if bufexists(fnamemodify("backends/foundation_core/src/megatron/jsrum/packages/runtime.js", ":p")) | buffer backends/foundation_core/src/megatron/jsrum/packages/runtime.js | else | edit backends/foundation_core/src/megatron/jsrum/packages/runtime.js | endif
+if &buftype ==# 'terminal'
+  silent file backends/foundation_core/src/megatron/jsrum/packages/runtime.js
+endif
+balt backends/foundation_jsnostd/src/jsrom.rs
+setlocal fdm=expr
+setlocal fde=nvim_treesitter#foldexpr()
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=99
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+let s:l = 269 - ((35 * winheight(0) + 36) / 72)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 269
+normal! 01|
 wincmd w
 wincmd =
 tabnext 1

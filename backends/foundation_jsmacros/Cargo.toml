@@ -13,7 +13,7 @@ keywords = ["jsmacros", "fouundations_js_macros"]
 proc-macro = true
 
 [dependencies]
-sync = ">=0.1"
+syn = ">=2.0"
 quote = ">=1.0"
 
 [lints]

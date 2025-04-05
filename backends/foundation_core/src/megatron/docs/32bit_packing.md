@@ -268,6 +268,301 @@ Hex Formatting: `.toString(16)` converts to hex, and `.padStart(8, '0')` ensures
 
 JavaScript’s bitwise operations automatically truncate to 32 bits, so we don’t need extra masking for the final 32-bit result. This makes it a clean fit for simulating a 32-bit register!
 
+## BitPacking in Rust
+
+Let’s implement the 32-bit packing of two 16-bit numbers in Rust, using the context from our previous discussion. We’ll pack two 16-bit unsigned numbers (A and B) into a 32-bit register, with A in the upper 16 bits and B in the lower 16 bits, just like in the earlier examples (e.g., A = 0x0AAF, B = 0xF00F, resulting in 0x0AAFF00F). Then we’ll unpack them back. Rust’s strong typing and bitwise operators make this straightforward, and I’ll show how to handle it safely.
+Packing and Unpacking in Rust
+
+```rust
+// Function to pack two 16-bit numbers into a 32-bit number
+fn pack_16bit_to_32bit(num1: u16, num2: u16) -> u32 {
+    // Shift num1 to upper 16 bits and combine with num2
+    ((num1 as u32) << 16) | (num2 as u32)
+}
+
+// Function to unpack a 32-bit number back into two 16-bit numbers
+fn unpack_32bit_to_16bit(packed: u32) -> (u16, u16) {
+    // Extract upper 16 bits (num1)
+    let num1 = (packed >> 16) as u16;
+    // Extract lower 16 bits (num2)
+    let num2 = (packed & 0xFFFF) as u16;
+    (num1, num2)
+}
+
+fn main() {
+    // Example values
+    let a: u16 = 0x0AAF; // 2735 in decimal
+    let b: u16 = 0xF00F; // 61455 in decimal
+
+    // Pack them
+    let packed = pack_16bit_to_32bit(a, b);
+
+    // Print the packed result
+    println!("Packed value (hex): 0x{:08X}", packed);
+    println!("Packed value (decimal): {}", packed);
+
+    // Unpack them
+    let (unpacked_a, unpacked_b) = unpack_32bit_to_16bit(packed);
+
+    // Print the unpacked results
+    println!("Unpacked num1 (hex): 0x{:04X}, decimal: {}", unpacked_a, unpacked_a);
+    println!("Unpacked num2 (hex): 0x{:04X}, decimal: {}", unpacked_b, unpacked_b);
+}
+```
+
+### Output
+
+When you run this (e.g., with cargo run in a Rust project), you’ll get:
+
+```rust
+Packed value (hex): 0x0AAFF00F
+Packed value (decimal): 179564559
+Unpacked num1 (hex): 0x0AAF, decimal: 2735
+Unpacked num2 (hex): 0xF00F, decimal: 61455
+```
+
+### Explanation
+
+1. Types:
+
+- u16 is Rust’s unsigned 16-bit integer type (0 to 65,535), perfect for our 16-bit numbers.
+- u32 is the unsigned 32-bit integer type, our target "register."
+- We cast u16 to u32 with as to perform 32-bit operations without overflow.
+
+2. Packing:
+
+- (num1 as u32) << 16: Shifts num1 (e.g., 0x0AAF) left by 16 bits, placing it in the upper half (0x0AAF0000).
+- | (num2 as u32): ORs it with num2 (e.g., 0xF00F), which fits in the lower 16 bits, giving 0x0AAFF00F.
+- No explicit masking is needed for inputs since u16 is already 16 bits.
+
+3. Unpacking:
+
+- packed >> 16: Shifts the upper 16 bits down to the lower position.
+  as u16: Casts it back to 16 bits, giving us num1.
+- packed & 0xFFFF: Masks the lower 16 bits (like we discussed earlier), then casts to u16 for num2.
+- Rust’s & 0xFFFF ensures only the bottom 16 bits remain, zeroing the upper bits.
+
+3. Formatting:
+
+- {:08X} prints a 32-bit hex value with 8 digits, padding with zeros.
+- {:04X} prints a 16-bit hex value with 4 digits.
+
+### Rust-Specific Notes
+
+- Safety: Rust’s type system ensures we don’t accidentally overflow or misinterpret bits. Casting to u32 before shifting avoids truncation issues.
+- No Extra Masking for Inputs: Since num1 and num2 are u16, they’re already 16-bit, unlike Python or JavaScript where we masked with 0xFFFF to enforce it.
+- Unsigned Shift: Rust’s >> is arithmetic (sign-extending for signed types), but since we’re using u32 (unsigned), it behaves like a logical shift. For consistency with earlier examples, it works perfectly here.
+
+This matches the behavior from the Python and JavaScript examples, just with Rust’s cleaner type safety and syntax! Want to tweak it (e.g., signed numbers or different packing order)? Let me know!
+
+### 32Bit and 64Bit Masking in Rust
+
+In Rust, creating a mask for 32-bit and 64-bit numbers involves defining a value with specific bits set to 1 where you want to preserve the original number’s bits, and 0 where you want to clear them, as we discussed earlier with bit masking. The mask’s size depends on the integer type (u32 for 32-bit, u64 for 64-bit) and the number of bits you want to keep. I’ll show you how to write masks for common scenarios—masking the lower 16 bits, 32 bits, or other portions—and explain how to use them, tying this back to our earlier 32-bit packing context.
+
+#### Masks for 32-bit Numbers (u32)
+
+For a 32-bit number, the type is u32, and masks are typically written in hexadecimal for readability. Here are some examples:
+
+1. Mask for Lower 16 Bits (like 0xFFFF in earlier examples):
+
+```rust
+let mask: u32 = 0xFFFF; // 00000000 00000000 11111111 11111111
+```
+
+This keeps the bottom 16 bits (bits 15–0) and zeros the top 16 (bits 31–16).
+Example: 0xDEADBEEF & 0xFFFF = 0xBEEF.
+
+2. Mask for All 32 Bits (no masking, keeps everything):
+
+```rust
+let mask: u32 = 0xFFFFFFFF; // 11111111 11111111 11111111 11111111
+```
+
+This preserves all 32 bits—useful as a max value or identity mask.
+
+3. Mask for Upper 16 Bits:
+
+```rust
+let mask: u32 = 0xFFFF0000; // 11111111 11111111 00000000 00000000
+```
+
+- Keeps bits 31–16, zeros bits 15–0.
+- Example: `0xDEADBEEF & 0xFFFF0000 = 0xDEAD0000`.
+
+#### Masks for 64-bit Numbers (u64)
+
+For a 64-bit number, the type is u64, and masks need to cover 64 bits. Rust requires a u64 literal to be explicitly typed or suffixed (e.g., 0xFFFFu64) if the context doesn’t infer it.
+
+1. Mask for Lower 16 Bits:
+
+```rust
+let mask: u64 = 0xFFFF; // 00000000 00000000 00000000 00000000 00000000 00000000 11111111 11111111
+```
+
+- Keeps bits 15–0, zeros bits 63–16.
+- Example: 0xDEADBEEF12345678 & 0xFFFF = 0x5678.
+
+2. Mask for Lower 32 Bits:
+
+```rust
+let mask: u64 = 0xFFFFFFFF; // 00000000 00000000 00000000 00000000 11111111 11111111 11111111 11111111
+```
+
+- Keeps bits 31–0, zeros bits 63–32.
+- Example: 0xDEADBEEF12345678 & 0xFFFFFFFF = 0x12345678.
+
+3. Mask for All 64 Bits:
+
+```rust
+let mask: u64 = 0xFFFFFFFFFFFFFFFF; // 64 ones
+```
+
+- Keeps all 64 bits.
+
+4. Mask for Upper 32 Bits:
+
+```rust
+let mask: u64 = 0xFFFFFFFF00000000; // 11111111 11111111 11111111 11111111 00000000 00000000 00000000 00000000
+```
+
+- Keeps bits 63–32, zeros bits 31–0.
+- Example: 0xDEADBEEF12345678 & 0xFFFFFFFF00000000 = 0xDEADBEEF00000000.
+
+#### Example in Context (Packing with Masks)
+
+Let’s adapt our earlier 32-bit packing example to explicitly use masks, then extend it to 64-bit packing:
+
+##### 32-bit Packing with Masks
+
+```rust
+fn pack_16bit_to_32bit(num1: u16, num2: u16) -> u32 {
+    let mask_16bit: u32 = 0xFFFF; // Mask for 16 bits
+    let shifted_num1 = ((num1 as u32) & mask_16bit) << 16; // Upper 16 bits
+    let masked_num2 = (num2 as u32) & mask_16bit; // Lower 16 bits
+    shifted_num1 | masked_num2
+}
+
+fn main() {
+    let a: u16 = 0x0AAF;
+    let b: u16 = 0xF00F;
+    let packed = pack_16bit_to_32bit(a, b);
+    println!("Packed: 0x{:08X}", packed); // 0x0AAFF00F
+}
+```
+
+- Here, mask_16bit ensures each input is treated as 16-bit, though u16 already guarantees this. It’s more explicit and mirrors our masking discussion.
+
+##### 64-bit Packing (Two 32-bit Numbers)
+
+Now, packing two 32-bit numbers into a 64-bit number:
+
+```rust
+fn pack_32bit_to_64bit(num1: u32, num2: u32) -> u64 {
+    let mask_32bit: u64 = 0xFFFFFFFF; // Mask for 32 bits
+    let shifted_num1 = ((num1 as u64) & mask_32bit) << 32; // Upper 32 bits
+    let masked_num2 = (num2 as u64) & mask_32bit; // Lower 32 bits
+    shifted_num1 | masked_num2
+}
+
+fn main() {
+    let a: u32 = 0xDEADBEEF;
+    let b: u32 = 0x12345678;
+    let packed = pack_32bit_to_64bit(a, b);
+    println!("Packed: 0x{:016X}", packed); // 0xDEADBEEF12345678
+}
+```
+
+##### 64bit Unpacking
+
+```rust
+// Pack two 32-bit numbers into a 64-bit number
+fn pack_32bit_to_64bit(num1: u32, num2: u32) -> u64 {
+    let mask_32bit: u64 = 0xFFFFFFFF; // Mask for 32 bits
+    let shifted_num1 = ((num1 as u64) & mask_32bit) << 32; // Upper 32 bits
+    let masked_num2 = (num2 as u64) & mask_32bit; // Lower 32 bits
+    shifted_num1 | masked_num2
+}
+
+// Unpack a 64-bit number into two 32-bit numbers
+fn unpack_64bit_to_32bit(packed: u64) -> (u32, u32) {
+    let mask_32bit: u64 = 0xFFFFFFFF; // Mask for 32 bits
+    // Extract upper 32 bits (num1)
+    let num1 = ((packed >> 32) & mask_32bit) as u32;
+    // Extract lower 32 bits (num2)
+    let num2 = (packed & mask_32bit) as u32;
+    (num1, num2)
+}
+
+fn main() {
+    // Example values
+    let a: u32 = 0xDEADBEEF; // Upper 32 bits
+    let b: u32 = 0x12345678; // Lower 32 bits
+
+    // Pack them
+    let packed = pack_32bit_to_64bit(a, b);
+    println!("Packed value (hex): 0x{:016X}", packed);
+    println!("Packed value (decimal): {}", packed);
+
+    // Unpack them
+    let (unpacked_a, unpacked_b) = unpack_64bit_to_32bit(packed);
+    println!("Unpacked num1 (hex): 0x{:08X}, decimal: {}", unpacked_a, unpacked_a);
+    println!("Unpacked num2 (hex): 0x{:08X}, decimal: {}", unpacked_b, unpacked_b);
+}
+```
+
+Output
+
+```rust
+Packed value (hex): 0xDEADBEEF12345678
+Packed value (decimal): 16045690983580674360
+Unpacked num1 (hex): 0xDEADBEEF, decimal: 3735928559
+Unpacked num2 (hex): 0x12345678, decimal: 305419896
+```
+
+###### Explanation
+
+1. Unpacking Function:
+
+- packed >> 32: Shifts the upper 32 bits (bits 63–32) down to bits 31–0.
+
+- & mask_32bit: Ensures only the lower 32 bits of the shifted result are kept (though u64 >> 32 already zeros the upper bits in this case, the mask makes it explicit).
+
+- as u32: Casts the result to a 32-bit unsigned integer, giving num1 (e.g., 0xDEADBEEF).
+
+- packed & mask_32bit: Masks the lower 32 bits (bits 31–0), zeroing bits 63–32, then casts to u32 for num2 (e.g., 0x12345678).
+
+2. Mask Usage:
+
+- mask_32bit: `u64 = 0xFFFFFFFF` is 32 ones `(11111111 11111111 11111111 11111111)`, which, in a 64-bit context, is `00000000 00000000 00000000 00000000 11111111 11111111 11111111 11111111`.
+
+- It isolates 32-bit chunks from the 64-bit number.
+
+3. Type Safety:
+
+- Rust requires explicit casting (as u32) to convert the 64-bit intermediate results back to 32-bit, ensuring no accidental overflow or truncation.
+
+4. Formatting:
+
+- {:016X} pads the 64-bit hex output to 16 digits.
+
+- {:08X} pads the 32-bit hex outputs to 8 digits.
+
+###### Verification
+
+- Packing 0xDEADBEEF and 0x12345678 yields 0xDEADBEEF12345678.
+
+- Unpacking 0xDEADBEEF12345678 returns 0xDEADBEEF and 0x12345678, matching the originals.
+
+This pairs perfectly with the 32-bit packing/unpacking we did earlier, just scaled up to 64 bits. You can tweak the mask or shift amounts if you want to pack/unpack different bit ranges (e.g., two 16-bit numbers in a 64-bit space). Let me know if you’d like that variation!
+
+##### Key Points in Rust
+
+- Type Suffixes: For u64 literals, Rust infers the type from context (e.g., in let mask: u64 = 0xFFFF), but you can use 0xFFFFu64 if needed.
+- Mask Size: Match the mask to the target type (u32 or u64) and the bits you want to keep.
+- Casting: Use as to widen numbers (e.g., u16 to u32, u32 to u64) before shifting or masking to avoid truncation.
+
+These masks let you control exactly which bits you manipulate, whether you’re packing, unpacking, or isolating parts of a number! Need a specific mask for a different bit range? Just let me know!
+
 ## How Bit Masking Works
 
 Bit masking is a technique in computer programming that uses bitwise operations to isolate, manipulate, or clear specific bits in a number. It’s like putting a filter over a binary value to focus only on the parts you care about, while ignoring or zeroing out the rest. Let’s break it down, then tackle your specific questions about & 0xFFFF and how it applies to 32-bit and 64-bit numbers.

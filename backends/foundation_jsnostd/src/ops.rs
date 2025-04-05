@@ -3,7 +3,13 @@
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::missing_panics_doc)]
 
-use std::error::Error;
+use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
+use alloc::string::{FromUtf16Error, FromUtf8Error, String};
+use alloc::vec::Vec;
+use core::error::Error;
+use core::ptr;
+use foundation_nostd::{raw_parts::RawParts, spin::Mutex};
 
 /// OpIndex defines the different operations that is
 /// representable and performable through the underlying
@@ -12,7 +18,7 @@ use std::error::Error;
 /// 32 bit number.
 ///
 /// This allows us squeeze varying facts about a desired
-/// operation to be performed into a single u32 (32 bits)
+/// operation to be performed into a single u64 (32 bits)
 /// or in the future (u64) 64 bit number.
 pub trait OpIndex {
     fn op_index(&self) -> u8;
@@ -39,11 +45,11 @@ pub trait Batchable {
 // indicative of the starting pointer and length for which it
 // relates to.
 #[allow(unused)]
-pub struct CallParams(pub *const u8, pub u32);
+pub struct CallParams(pub *const u8, pub u64);
 
 impl CallParams {
     #[must_use]
-    pub fn new(addr: *const u8, length: u32) -> Self {
+    pub fn new(addr: *const u8, length: u64) -> Self {
         Self(addr, length)
     }
 }
@@ -144,9 +150,9 @@ impl<'a> From<&'a [u32]> for Params<'a> {
 }
 
 /// [`FuncHandle`] defines a type alias providing more
-/// context that this is used to represent the locaiton
+/// context that this is used to represent the location
 /// of a runtime function across WASM boundary.
-pub type FuncHandle = u32;
+pub type FuncHandle = u64;
 
 /// FuncCall defines the different function calls
 /// we can possible make which should be supported
@@ -158,7 +164,7 @@ pub enum FuncCall {
     NoReturnFunc(FuncHandle, CallParams),
     I64ReturnFunc(FuncHandle, CallParams),
     I32ReturnFunc(FuncHandle, CallParams),
-    U32ReturnFunc(FuncHandle, CallParams),
+    u64ReturnFunc(FuncHandle, CallParams),
     U64ReturnFunc(FuncHandle, CallParams),
     StringReturnFunc(FuncHandle, CallParams),
     ObjectReturnFunc(FuncHandle, CallParams),
@@ -183,6 +189,19 @@ mod test_func_call {
 /// length from that index location.
 pub struct StrLocation(pub *const u8, pub u8, pub u8);
 
+impl StrLocation {
+    /// new returns a representation pointing to a specific
+    /// string within a specific memory location where a specific string
+    /// slice is located within that memory location.
+    ///
+    /// Allows us combine multiple string within a single memory
+    /// location but still be able to represent each specifically
+    /// within this singular memory.
+    pub fn new(pointer: *const u8, from: u8, length: u8) -> Self {
+        Self(pointer, from, length)
+    }
+}
+
 /// [`BatchEncodable`] defines a trait which allows you implement
 /// conversion an underlying binary representation of a Batch
 /// operation.
@@ -197,13 +216,351 @@ pub trait BatchEncodable {
     fn op(&self, data: &[u8]);
 }
 
+/// [`Op`] is an enum representing different operations that can be  
+/// performed. It also helps avoid heap allocation by
+/// attempting to use Traits to represent these different
+/// operations.
+pub enum Ops {
+    Func(FuncCall),
+}
+
+/// A list of different Operations to be applied.
+pub struct Operations(Vec<Ops>);
+
+/// Batch represents an encoded operation that is
+/// encoded as a series of ops byte each representing
+/// the desired operations and a vector of bytes for the
+/// potential batch string that might need to be converted
+/// over the boundaries.
 pub struct Batch {
     pub text: Vec<u8>,
     pub ops: Vec<u8>,
 }
 
-pub enum Ops {
-    Func(FuncCall),
+pub struct MemoryAllocation {
+    memory: Rc<Mutex<Option<Vec<u8>>>>,
 }
 
-pub struct Operations(Vec<Ops>);
+pub type MemoryAllocationResult<T> = core::result::Result<T, MemoryAllocationError>;
+
+#[derive(Debug)]
+pub enum MemoryAllocationError {
+    NotValidUTF8(FromUtf8Error),
+    NotValidUTF16(FromUtf16Error),
+    NoMemoryAllocation,
+    NoMoreAllocationSlots,
+    InvalidAllocationId,
+}
+
+impl core::error::Error for MemoryAllocationError {}
+
+impl core::fmt::Display for MemoryAllocationError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+impl Clone for MemoryAllocation {
+    fn clone(&self) -> Self {
+        Self {
+            memory: self.memory.clone(),
+        }
+    }
+}
+
+impl MemoryAllocation {
+    pub fn new(mem: Vec<u8>) -> Self {
+        Self {
+            memory: Rc::new(Mutex::new(Some(mem))),
+        }
+    }
+
+    /// [`get_pointer`] returns the address of the memory
+    /// location if it is still valid else throws a panic
+    /// as we want this to always be safe.
+    pub fn get_pointer(&self) -> MemoryAllocationResult<*const u8> {
+        let memory = self.memory.lock();
+        match memory.as_ref() {
+            Some(mem) => Ok(mem.as_ptr()),
+            None => Err(MemoryAllocationError::NoMemoryAllocation),
+        }
+    }
+
+    pub fn capacity(&self) -> MemoryAllocationResult<u64> {
+        let memory = self.memory.lock();
+        match memory.as_ref() {
+            Some(mem) => Ok(mem.capacity() as u64),
+            None => Err(MemoryAllocationError::NoMemoryAllocation),
+        }
+    }
+
+    pub fn len(&self) -> MemoryAllocationResult<u64> {
+        let memory = self.memory.lock();
+        match memory.as_ref() {
+            Some(mem) => Ok(mem.len() as u64),
+            None => Err(MemoryAllocationError::NoMemoryAllocation),
+        }
+    }
+
+    pub fn reset(&mut self) {
+        let mut memory = self.memory.lock();
+        if let Some(mem) = memory.as_mut() {
+            mem.clear();
+            return;
+        }
+        memory.replace(Vec::new());
+    }
+
+    pub fn reset_to(&mut self, new_capacity: usize) {
+        let mut memory = self.memory.lock();
+        if let Some(mem) = memory.as_mut() {
+            mem.clear();
+            if mem.capacity() < new_capacity {
+                let reservation = new_capacity - mem.capacity();
+                mem.reserve(reservation);
+            }
+            return;
+        }
+        memory.replace(Vec::new());
+    }
+
+    pub fn clear(&mut self) -> MemoryAllocationResult<()> {
+        let mut memory = self.memory.lock();
+        if let Some(mem) = memory.as_mut() {
+            mem.clear();
+            return Ok(());
+        };
+        Err(MemoryAllocationError::NoMemoryAllocation)
+    }
+
+    pub fn is_valid_memory(&self) -> bool {
+        let memory = self.memory.lock();
+        memory.as_ref().is_some()
+    }
+
+    pub fn clone_memory(&self) -> MemoryAllocationResult<Vec<u8>> {
+        let memory = self.memory.lock();
+        match memory.as_ref() {
+            Some(mem) => Ok(mem.clone()),
+            None => Err(MemoryAllocationError::NoMemoryAllocation),
+        }
+    }
+
+    pub fn vec_from_memory(&self) -> MemoryAllocationResult<Vec<u8>> {
+        self.clone_memory()
+    }
+
+    pub fn string_from_memory(&self) -> MemoryAllocationResult<String> {
+        let mut memory = self.memory.lock();
+        if let Some(mem) = memory.as_mut() {
+            return match String::from_utf8(mem.clone()) {
+                Ok(content) => Ok(content),
+                Err(err) => Err(MemoryAllocationError::NotValidUTF8(err)),
+            };
+        };
+        Err(MemoryAllocationError::NoMemoryAllocation)
+    }
+
+    /// [`take`] allows you to both de-allocate the
+    /// giving memory allocation and own the underlying
+    /// memory slice either for dropping or usage.
+    pub fn take(&mut self) -> Option<Vec<u8>> {
+        let mut memory = self.memory.lock();
+        memory.take()
+    }
+}
+
+/// [`BIT_SIZE`] represent the shifting we want to do
+/// to shift 32 bit numbers into 64bit numbers.
+const BIT_SIZE: usize = 32;
+
+/// [`BIT_MASK`] representing the needing masking
+/// to be used in bitpacking two 32bit numbers into
+/// a 64 bit number.
+const BIT_MASK: u64 = 0xFFFFFFFF;
+
+/// [`MemoryId`] represents a key to a allocation '
+/// which has a unqiue generation to denote it's ownership
+/// if the generation differs from the current generation of
+/// a given index then that means ownership was already lost and
+/// hence cant be used.
+///
+/// First Elem - is the index
+/// Second Elem - is the generation
+///
+#[derive(Clone, Eq, PartialEq, PartialOrd, Ord)]
+pub struct MemoryId(pub u32, pub u32);
+
+impl MemoryId {
+    /// [`as_u64`] packs the index and generation represented
+    /// by the MemoryId into a singular u64 number allowing
+    /// memory savings and improved cross over sharing.
+    pub fn as_u64(&self) -> u64 {
+        todo!()
+    }
+}
+
+pub struct MemoryAllocations {
+    allocs: Vec<(u32, MemoryAllocation)>,
+    free: Vec<usize>,
+}
+
+impl MemoryAllocations {
+    pub const fn new() -> Self {
+        Self {
+            allocs: Vec::new(),
+            free: Vec::new(),
+        }
+    }
+
+    /// [`deallocate`] releases the owned memory allocation as
+    /// free for re-use by another desiring party. This means
+    /// the giving memory location is forever free for usage.
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn deallocate(&mut self, memory_id: MemoryId) -> MemoryAllocationResult<()> {
+        // if its already in there, just ignore
+        if self.free.contains(&(memory_id.0 as usize)) {
+            return Ok(());
+        }
+
+        let potential_location = memory_id.0 as usize;
+        if self.allocs.len() >= potential_location {
+            return Err(MemoryAllocationError::InvalidAllocationId);
+        }
+
+        self.free.push(potential_location);
+        Ok(())
+    }
+
+    /// [`get`] returns the related [`MemoryAllocation`] object that is related to a
+    /// giving [`MemoryId`] to be used.
+    pub fn get(&mut self, memory_id: MemoryId) -> MemoryAllocationResult<MemoryAllocation> {
+        if let Some((generation_id, ref allocation)) = self.allocs.get(memory_id.0) {
+            if *generation_id == memory_id.1 {
+                return Ok(allocation.clone());
+            }
+        }
+        Err(MemoryAllocationError::InvalidAllocationId)
+    }
+
+    /// [`allocate`] attempts to allocate a memory location with the
+    /// desired capacity returning the pointer and ownership via the
+    /// returned [`MemoryId`].
+    ///
+    /// The receiver of the [`MemoryId`] will forever own that allocation
+    /// until the [`Self::deallocate`] method is called to free the
+    /// allocation.
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn allocate(&mut self, desired_capacity: u64) -> MemoryAllocationResult<MemoryId> {
+        match self.get_ideal_allocation(desired_capacity)? {
+            None => {
+                let next_index = self.allocs.len();
+                if u32::try_from(next_index).is_ok() {
+                    return Err(MemoryAllocationError::NoMoreAllocationSlots);
+                }
+
+                let next_index_u32 = next_index as u32;
+
+                let allocation =
+                    MemoryAllocation::new(Vec::with_capacity(desired_capacity as usize));
+                self.allocs.push((0, allocation));
+
+                Ok(MemoryId(next_index_u32, 0))
+            }
+            Some(index) => {
+                let (ref mut generation_id, ref mut allocation) =
+                    self.allocs.get_mut(index).unwrap();
+                allocation.reset_to(desired_capacity as usize);
+                *generation_id += 1;
+
+                Ok(MemoryId(index as u32, *generation_id))
+            }
+        }
+    }
+
+    #[allow(clippy::cast_possible_truncation)]
+    fn get_ideal_allocation(
+        &mut self,
+        desired_capacity_u: u64,
+    ) -> MemoryAllocationResult<Option<usize>> {
+        let desired_capacity = desired_capacity_u as usize;
+        let mut potential_candidate_index: Option<(usize, usize, usize)> = None;
+        for (free_index, memory_index) in self.free.iter().enumerate() {
+            if let Some((_, ref allocation)) = self.allocs.get(*memory_index) {
+                let memory_capacity = allocation.capacity()? as usize;
+
+                match &potential_candidate_index {
+                    None => {
+                        // if the capacity diff is less than 100 and more than
+                        // desired then we can reuse this immediately.
+                        if memory_capacity > desired_capacity {
+                            let diff = memory_capacity - desired_capacity;
+                            if diff < 100 {
+                                potential_candidate_index =
+                                    Some((*memory_index, memory_capacity, free_index));
+                                break;
+                            }
+                            potential_candidate_index =
+                                Some((*memory_index, memory_capacity, free_index));
+                            continue;
+                        }
+
+                        let diff = desired_capacity - memory_capacity;
+
+                        // if the difference is just between 10 or 100
+                        // then this is a potential location we can use with some
+                        // expansion, so we will
+                        if diff < 100 {
+                            potential_candidate_index =
+                                Some((*memory_index, memory_capacity, free_index));
+                            continue;
+                        }
+
+                        potential_candidate_index =
+                            Some((*memory_index, memory_capacity, free_index));
+                        break;
+                    }
+                    Some((_, index_size, _)) => {
+                        // if index (candidate) is already bigger than desired capacity
+                        // but less than current capacity, then this is ideal since we we
+                        // do not wish to use larger memory if not required
+                        if *index_size > desired_capacity && *index_size < memory_capacity {
+                            continue;
+                        }
+
+                        // if the capacity is less than current selected and
+                        // even less than desired, just skip it.
+                        if memory_capacity < *index_size && memory_capacity < desired_capacity {
+                            continue;
+                        }
+
+                        // if the new candidate is larger than the previous but
+                        // still less than recent, then swap potential candidate with
+                        // this index
+                        if memory_capacity > *index_size && memory_capacity < desired_capacity {
+                            potential_candidate_index =
+                                Some((*memory_index, memory_capacity, free_index));
+                            continue;
+                        }
+
+                        // if we found a capacity bigger than desired but less than current
+                        // candidate then swap them, we want to use as close a match as possible.
+                        if *index_size > desired_capacity && *index_size > memory_capacity {
+                            potential_candidate_index =
+                                Some((*memory_index, memory_capacity, free_index));
+                            continue;
+                        }
+                    }
+                };
+            }
+        }
+
+        if let Some((index, _, free_index)) = potential_candidate_index {
+            // remove the index from the free list.
+            _ = self.free.remove(free_index);
+            return Ok(Some(index));
+        }
+
+        Ok(None)
+    }
+}
