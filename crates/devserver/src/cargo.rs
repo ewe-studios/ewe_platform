@@ -247,7 +247,7 @@ impl Operator for sync::Arc<BinaryApp> {
                         binary_handle = Some(handle.run_binary().expect("re-run binary"));
 
                         ewe_trace::info!("Restart done!");
-                        if let Err(_) = run_sender.send_in((), wait_before_reload).await {
+                        if run_sender.send_in((), wait_before_reload).await.is_err() {
                             ewe_trace::warn!("No one is listening for re-running messages");
                         }
                         continue;

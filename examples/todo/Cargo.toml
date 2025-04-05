@@ -56,4 +56,3 @@ unsafe_code = "forbid"
 unused = "warn"        # for experimental dev
 
 [lints.clippy]
-pedantic = "warn"

@@ -188,7 +188,7 @@ impl service::Service<crate::types::HyperRequest> for Http1Service {
                             .await
                         {
                             Ok((mut request_sender, sender_conn_handle)) => {
-                                let _ = tokio::spawn(async move {
+                                _ = tokio::spawn(async move {
                                     if let Err(err) = sender_conn_handle.await {
                                         ewe_trace::error!(
                                             "Connection to destination failed: {} due to error {}",
@@ -258,8 +258,8 @@ impl service::Service<crate::types::HyperRequest> for Http1Service {
             match host_addr(req.uri()) {
                 Some(socket_addr) => match hyper::upgrade::on(req).await {
                     Ok(upgraded) => {
-                        let _ = tokio::task::spawn(async move {
-                            if let Err(failed_err) = stream_http_bidrectional(
+                        tokio::task::spawn(async move {
+                            if let Err(failed_err) = stream_http_bidirectional(
                                 String::from("HTTP1"),
                                 upgraded,
                                 socket_addr.clone(),
@@ -300,7 +300,7 @@ impl service::Service<crate::types::HyperRequest> for Http1Service {
 
 // Create a TCP connection to host:port, build a tunnel between the connection and
 // the upgraded connection
-async fn stream_http_bidrectional(
+async fn stream_http_bidirectional(
     protocol: String,
     upgraded: upgrade::Upgraded,
     addr: String,

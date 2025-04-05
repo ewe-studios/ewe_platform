@@ -1,3 +1,6 @@
+#![allow(clippy::wrong_self_convention)]
+#![allow(clippy::needless_lifetimes)]
+
 use core::str;
 use std::borrow;
 
@@ -37,61 +40,61 @@ where
 
 impl<'a> TryIntoString<'a> for borrow::Cow<'a, str> {
     fn try_into_string(&'a self) -> IntoStringResult {
-        Ok(String::from(self.to_owned()))
+        Ok(String::from(self.clone()))
     }
 }
 
 impl<'a> TryIntoString<'a> for i8 {
     fn try_into_string(&self) -> IntoStringResult {
-        Ok(String::from(format!("{}", self)))
+        Ok(format!("{}", self))
     }
 }
 
 impl<'a> TryIntoString<'a> for i16 {
     fn try_into_string(&self) -> IntoStringResult {
-        Ok(String::from(format!("{}", self)))
+        Ok(format!("{}", self))
     }
 }
 
 impl<'a> TryIntoString<'a> for i32 {
     fn try_into_string(&self) -> IntoStringResult {
-        Ok(String::from(format!("{}", self)))
+        Ok(format!("{}", self))
     }
 }
 
 impl<'a> TryIntoString<'a> for i64 {
     fn try_into_string(&self) -> IntoStringResult {
-        Ok(String::from(format!("{}", self)))
+        Ok(format!("{}", self))
     }
 }
 
 impl<'a> TryIntoString<'a> for u8 {
     fn try_into_string(&self) -> IntoStringResult {
-        Ok(String::from(format!("{}", self)))
+        Ok(format!("{}", self))
     }
 }
 
 impl<'a> TryIntoString<'a> for u16 {
     fn try_into_string(&self) -> IntoStringResult {
-        Ok(String::from(format!("{}", self)))
+        Ok(format!("{}", self))
     }
 }
 
 impl<'a> TryIntoString<'a> for u32 {
     fn try_into_string(&self) -> IntoStringResult {
-        Ok(String::from(format!("{}", self)))
+        Ok(format!("{}", self))
     }
 }
 
 impl<'a> TryIntoString<'a> for u64 {
     fn try_into_string(&self) -> IntoStringResult {
-        Ok(String::from(format!("{}", self)))
+        Ok(format!("{}", self))
     }
 }
 
 impl<'a> TryIntoString<'a> for usize {
     fn try_into_string(&self) -> IntoStringResult {
-        Ok(String::from(format!("{}", self)))
+        Ok(format!("{}", self))
     }
 }
 
@@ -178,7 +181,7 @@ where
     fn try_into_str(&'a self) -> TryIntoStrResult<'a> {
         let to_string = self
             .try_into_string()
-            .map_err(|err| TryIntoStrError::FailedFromString(err))?;
+            .map_err(TryIntoStrError::FailedFromString)?;
         Ok(borrow::Cow::Owned(to_string))
     }
 }

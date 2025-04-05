@@ -18,15 +18,15 @@ impl Drop for AbortIfPanic {
 
 /// RunOnDrop implements a type that runs a function when
 /// it gets dropped, providing a similar convention to go's defer.
-pub struct RunOnDrop<F: FnOnce() -> ()>(Option<F>);
+pub struct RunOnDrop<F: FnOnce()>(Option<F>);
 
-impl<F: FnOnce() -> ()> RunOnDrop<F> {
+impl<F: FnOnce()> RunOnDrop<F> {
     pub fn new(f: F) -> Self {
         Self(Some(f))
     }
 }
 
-impl<F: FnOnce() -> ()> Drop for RunOnDrop<F> {
+impl<F: FnOnce()> Drop for RunOnDrop<F> {
     fn drop(&mut self) {
         if let Some(cb) = self.0.take() {
             cb();

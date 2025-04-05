@@ -1751,7 +1751,7 @@ mod test_local_thread_executor {
         let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
             Arc::new(Mutex::new(Vec::new()));
 
-        let seed = rand::thread_rng().next_u64();
+        let seed = rand::rng().next_u64();
         let kill_signal = Arc::new(OnSignal::new());
 
         let executor = LocalThreadExecutor::from_seed(
@@ -1800,7 +1800,7 @@ mod test_local_thread_executor {
         let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
             Arc::new(Mutex::new(Vec::new()));
 
-        let seed = rand::thread_rng().next_u64();
+        let seed = rand::rng().next_u64();
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
@@ -1846,7 +1846,7 @@ mod test_local_thread_executor {
         let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
             Arc::new(Mutex::new(Vec::new()));
 
-        let seed = rand::thread_rng().next_u64();
+        let seed = rand::rng().next_u64();
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
@@ -1889,7 +1889,7 @@ mod test_local_thread_executor {
         let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
             Arc::new(Mutex::new(Vec::new()));
 
-        let seed = rand::thread_rng().next_u64();
+        let seed = rand::rng().next_u64();
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
@@ -1950,7 +1950,7 @@ mod test_local_thread_executor {
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
             Arc::new(Mutex::new(Vec::new()));
 
-        let seed = rand::thread_rng().next_u64();
+        let seed = rand::rng().next_u64();
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
@@ -2081,7 +2081,7 @@ mod test_local_thread_executor {
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
             Arc::new(Mutex::new(Vec::new()));
 
-        let seed = rand::thread_rng().next_u64();
+        let seed = rand::rng().next_u64();
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
@@ -2349,7 +2349,7 @@ mod test_local_thread_executor {
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<(), (), DaemonSpawner>)>>> =
             Arc::new(Mutex::new(Vec::new()));
 
-        let seed = rand::thread_rng().next_u64();
+        let seed = rand::rng().next_u64();
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
@@ -2431,7 +2431,7 @@ mod test_local_thread_executor {
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<(), (), DaemonSpawner>)>>> =
             Arc::new(Mutex::new(Vec::new()));
 
-        let seed = rand::thread_rng().next_u64();
+        let seed = rand::rng().next_u64();
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
