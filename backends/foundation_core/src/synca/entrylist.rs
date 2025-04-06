@@ -40,6 +40,12 @@ impl<T> EntryList<T> {
     }
 }
 
+impl<T> Default for EntryList<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 // --- methods
 
 impl<T> EntryList<T> {
@@ -251,7 +257,7 @@ impl<T> EntryList<T> {
     pub fn map_with<V>(&self, tn: impl Fn(&T) -> Option<V>) -> Vec<V> {
         self.items
             .iter()
-            .map(|(_gen, value)| -> Option<V> {
+            .filter_map(|(_gen, value)| -> Option<V> {
                 if value.is_none() {
                     return None;
                 }
@@ -261,8 +267,6 @@ impl<T> EntryList<T> {
                     None => None,
                 }
             })
-            .filter(|item| item.is_some())
-            .map(|item| item.unwrap())
             .collect()
     }
 
@@ -342,14 +346,10 @@ impl<T> EntryList<T> {
                 inner.gen += 1;
                 inner
             }
-            None => {
-                let inner = Entry {
-                    id: self.items.len(),
-                    gen: 0,
-                };
-
-                inner
-            }
+            None => Entry {
+                id: self.items.len(),
+                gen: 0,
+            },
         };
 
         if self.items.len() == entry.id {
@@ -363,6 +363,12 @@ impl<T> EntryList<T> {
 }
 
 pub struct ThreadSafeEntry<T>(Arc<RwLock<EntryList<T>>>);
+
+impl<T> Default for ThreadSafeEntry<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl<T> ThreadSafeEntry<T> {
     pub fn new() -> Self {

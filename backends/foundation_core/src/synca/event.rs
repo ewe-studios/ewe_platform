@@ -43,6 +43,12 @@ impl Waker for LockSignal {
     }
 }
 
+impl Default for LockSignal {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl LockSignal {
     pub fn new() -> Self {
         Self {
@@ -94,7 +100,7 @@ impl LockSignal {
         }
         *current_state = LockState::Locked;
         drop(current_state);
-        return true;
+        true
     }
 
     /// lock will just perform a lock operation on the

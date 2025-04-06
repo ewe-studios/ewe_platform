@@ -182,7 +182,7 @@ mod single_threaded_tests {
     #[test]
     #[traced_test]
     fn can_queue_task_only() {
-        let seed = rand::thread_rng().next_u64();
+        let seed = rand::rng().next_u64();
 
         let shared_list = Rc::new(RefCell::new(Vec::new()));
         let counter = Counter::new(5, shared_list.clone());
@@ -203,7 +203,7 @@ mod single_threaded_tests {
     #[test]
     #[traced_test]
     fn can_queue_and_complete_task() {
-        let seed = rand::thread_rng().next_u64();
+        let seed = rand::rng().next_u64();
 
         let shared_list = Rc::new(RefCell::new(Vec::new()));
         let counter = Counter::new(5, shared_list.clone());

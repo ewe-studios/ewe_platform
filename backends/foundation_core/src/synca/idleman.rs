@@ -116,7 +116,7 @@ impl IdleMan {
         if current_count >= self.max_idle {
             return match self.sleepy.next_sleep() {
                 SleepyState::Ongoing(retry_state) => match retry_state.wait {
-                    None => self.base_sleep.clone(),
+                    None => self.base_sleep,
                     Some(inner) => Some(inner),
                 },
                 SleepyState::Expired => {
@@ -131,7 +131,7 @@ impl IdleMan {
         }
 
         self.counter.fetch_add(1, Ordering::SeqCst);
-        return self.base_sleep.clone();
+        self.base_sleep.clone()
     }
 
     /// count returns the current count number of the idle counter.
@@ -143,15 +143,14 @@ impl IdleMan {
     /// reached the maximum allowed amount and returns true
     /// else returns false.
     pub fn try_reset(&self) -> bool {
-        match self.counter.compare_exchange(
-            self.max_idle,
-            0,
-            atomic::Ordering::SeqCst,
-            atomic::Ordering::Acquire,
-        ) {
-            Ok(_) => true,
-            Err(_) => false,
-        }
+        self.counter
+            .compare_exchange(
+                self.max_idle,
+                0,
+                atomic::Ordering::SeqCst,
+                atomic::Ordering::Acquire,
+            )
+            .is_ok()
     }
 }
 

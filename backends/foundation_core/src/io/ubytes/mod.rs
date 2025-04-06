@@ -209,7 +209,12 @@ impl<'a> BytesPointer<'a> {
 
     #[inline]
     pub fn content(&self) -> &'a [u8] {
-        &self.content[..]
+        self.content
+    }
+
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.content.is_empty()
     }
 
     /// Returns the total length of the string being accumulated on.
@@ -222,7 +227,7 @@ impl<'a> BytesPointer<'a> {
     /// left from the current peeks's cursor.
     #[inline]
     pub fn peek_rem_len(&self) -> usize {
-        (&self.content[self.peek_pos..]).len()
+        (self.content[self.peek_pos..]).len()
     }
 
     /// rem_len returns the remaining count of strings
@@ -230,7 +235,7 @@ impl<'a> BytesPointer<'a> {
     /// regardless of where the peek cursor is at.
     #[inline]
     pub fn rem_len(&self) -> usize {
-        (&self.content[self.pos..]).len()
+        (self.content[self.pos..]).len()
     }
 
     /// resets resets the location of the cursors for both read and peek to 0.
@@ -269,7 +274,7 @@ impl<'a> BytesPointer<'a> {
     #[inline]
     pub fn peek_next(&mut self) -> Option<&'a [u8]> {
         if let Some(res) = self.peek_slice(1) {
-            self.peek_pos = self.peek_pos + 1;
+            self.peek_pos += 1;
             return Some(res);
         }
         None
@@ -282,7 +287,7 @@ impl<'a> BytesPointer<'a> {
     #[inline]
     pub fn peek_next_by(&mut self, by: usize) -> Option<&'a [u8]> {
         if let Some(res) = self.peek_slice(by) {
-            self.peek_pos = self.peek_pos + by;
+            self.peek_pos += by;
             return Some(res);
         }
         None
@@ -311,7 +316,7 @@ impl<'a> BytesPointer<'a> {
         // unpeek only works when we are higher then current pos cursor.
         // it should have no effect when have not moved forward
         if self.peek_pos > self.pos {
-            self.peek_pos = self.peek_pos - 1;
+            self.peek_pos -= 1;
         }
 
         let new_peek_pos = self.peek_pos + by;

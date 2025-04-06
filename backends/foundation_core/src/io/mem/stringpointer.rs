@@ -16,7 +16,12 @@ impl<'a> StringPointer<'a> {
 
     #[inline]
     pub fn content(&self) -> &'a str {
-        &self.content[..]
+        self.content
+    }
+
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.content.is_empty()
     }
 
     /// Returns the total length of the string being accumulated on.
@@ -29,15 +34,15 @@ impl<'a> StringPointer<'a> {
     /// left from the current peeks's cursor.
     #[inline]
     pub fn peek_rem_len(&self) -> usize {
-        (&self.content[self.peek_pos..]).len()
+        (self.content[self.peek_pos..]).len()
     }
 
-    /// rem_len returns the remaining count of strings
+    /// [`rem_len`] returns the remaining count of strings
     /// left from the current position's cursor
     /// regardless of where the peek cursor is at.
     #[inline]
     pub fn rem_len(&self) -> usize {
-        (&self.content[self.pos..]).len()
+        (self.content[self.pos..]).len()
     }
 
     /// resets resets the location of the cursors for both read and peek to 0.
@@ -218,7 +223,7 @@ impl<'a> StringPointer<'a> {
             }
             break;
         }
-        return next_index;
+        next_index
     }
 
     #[inline]
@@ -232,7 +237,7 @@ impl<'a> StringPointer<'a> {
             }
             break;
         }
-        return next_index;
+        next_index
     }
 
     /// peek_slice allows you to peek forward by an amount
