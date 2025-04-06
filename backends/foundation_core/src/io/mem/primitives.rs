@@ -113,7 +113,7 @@ impl<'b> Bytes<'b> {
 
     #[inline]
     pub fn into_iter(&'b self) -> slice::Iter<'b, u8> {
-        self.0.into_iter()
+        self.0.iter()
     }
 }
 

@@ -53,7 +53,7 @@ impl ExponentialBackoffDecider {
 
 impl RetryDecider for ExponentialBackoffDecider {
     fn decide(&self, state: RetryState) -> Option<RetryState> {
-        let last_attempt = state.attempt.clone();
+        let last_attempt = state.attempt;
         if last_attempt >= state.total_allowed {
             return None;
         }
@@ -61,8 +61,8 @@ impl RetryDecider for ExponentialBackoffDecider {
         let next_attempt = last_attempt.saturating_add(1);
 
         // create exponential duraton
-        let exponent = self.factor.saturating_pow(next_attempt as u32);
-        let duration = self.min_duration.saturating_mul(exponent as u32);
+        let exponent = self.factor.saturating_pow(next_attempt);
+        let duration = self.min_duration.saturating_mul(exponent);
 
         // Apply jitter - use multiples of 100 to prevent rely on floats.
         let jitter_factor = (self.jitter * 100f32) as u32;
@@ -70,10 +70,10 @@ impl RetryDecider for ExponentialBackoffDecider {
 
         let mut duration = duration.saturating_mul(100);
         if random < jitter_factor {
-            let jitter = duration.saturating_mul(random as u32) / 100;
+            let jitter = duration.saturating_mul(random) / 100;
             duration = duration.saturating_sub(jitter)
         } else {
-            let jitter = duration.saturating_mul((random as u32) / 2) / 100;
+            let jitter = duration.saturating_mul(random / 2) / 100;
             duration = duration.saturating_add(jitter)
         }
 
@@ -107,17 +107,17 @@ mod exponential_retry_test {
         };
 
         let reconnection_state = decider.decide(base.clone()).expect("should get returned");
-        assert!(matches!(reconnection_state.wait, Some(_)));
+        assert!(reconnection_state.wait.is_some());
         assert_eq!(reconnection_state.attempt, 1);
 
         let reconnection_state2 = decider
             .decide(reconnection_state.clone())
             .expect("should get returned");
-        assert!(matches!(reconnection_state2.wait, Some(_)));
+        assert!(reconnection_state2.wait.is_some());
         assert_eq!(reconnection_state2.attempt, 2);
 
         let reconnection_state3 = decider.decide(reconnection_state2.clone());
         dbg!(&reconnection_state3);
-        assert!(matches!(reconnection_state3, None));
+        assert!(reconnection_state3.is_none());
     }
 }

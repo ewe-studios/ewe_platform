@@ -294,6 +294,11 @@ impl<T> TypeArena<T> {
     }
 
     #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.data.is_empty()
+    }
+
+    #[inline]
     pub fn len(&self) -> usize {
         self.data.len()
     }
@@ -537,7 +542,7 @@ impl<T: Resettable> ArenaPool<T> {
         // if we have items in the arena, meaning
         // we can reuse a previous structure then pull that up and send it
         // out as return value to the requester.
-        if self.arena.len() > 0 {
+        if !self.arena.is_empty() {
             self.tracker.increase_usage(calculate_size_for::<T>(None))?;
 
             let elem = self.arena.drain_last().expect("should have element");

@@ -191,7 +191,7 @@ mod multi_threaded_tests {
     #[test]
     #[traced_test]
     fn can_finish_even_when_task_panics() {
-        let seed = rand::thread_rng().next_u64();
+        let seed = rand::rng().next_u64();
 
         let handler_kill = thread::spawn(move || {
             tracing::debug!("Waiting for kill signal");
@@ -225,7 +225,7 @@ mod multi_threaded_tests {
     #[test]
     #[traced_test]
     fn can_queue_and_complete_task() {
-        let seed = rand::thread_rng().next_u64();
+        let seed = rand::rng().next_u64();
 
         let shared_list = Arc::new(Mutex::new(vec![]));
         let (counter, receiver) = Counter::new(5, shared_list.clone());
