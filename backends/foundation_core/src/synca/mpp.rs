@@ -90,7 +90,7 @@ impl<T> Receiver<T> {
     pub fn recv_timeout(&self, dur: std::time::Duration) -> Result<T, ReceiverError> {
         let started = Instant::now();
 
-        let mut remaining_timeout = dur.clone();
+        let mut remaining_timeout = dur;
         loop {
             // if not parking then
             match self.chan.pop() {
@@ -102,7 +102,7 @@ impl<T> Receiver<T> {
                         if elapsed >= remaining_timeout {
                             return Err(ReceiverError::Timeout);
                         }
-                        remaining_timeout = remaining_timeout - elapsed;
+                        remaining_timeout -= elapsed;
                     }
                     PopError::Closed => return Err(ReceiverError::Closed(err)),
                 },

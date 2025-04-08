@@ -8,7 +8,7 @@ pub type PanicHandler = dyn Fn(Box<dyn Any + Send>) + Send + Sync;
 
 pub type BoxedPanicHandler = Box<PanicHandler>;
 
-/// completed and deliverd from the iterator.
+/// completed and delivered from the iterator.
 #[derive(Clone)]
 pub enum TaskStatus<D, P, S: ExecutionAction> {
     /// Allows a task status to communicate a delay
@@ -74,7 +74,7 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::De
         }
 
         let debug_item = match self {
-            TaskStatus::Delayed(duration) => TStatus::Delayed(duration.clone()),
+            TaskStatus::Delayed(duration) => TStatus::Delayed(*duration),
             TaskStatus::Pending(inner) => TStatus::Pending(inner),
             TaskStatus::Ready(inner) => TStatus::Ready(inner),
             TaskStatus::Spawn(_) => TStatus::Spawn,

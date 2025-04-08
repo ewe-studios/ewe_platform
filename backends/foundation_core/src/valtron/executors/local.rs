@@ -1,4 +1,5 @@
 #![allow(clippy::too_many_lines)]
+#![allow(clippy::type_complexity)]
 #![allow(clippy::return_self_not_must_use)]
 
 use std::{
@@ -273,13 +274,10 @@ impl ExecutorState {
     }
 
     /// Returns true/false indicative if the provided task entry
-    /// is considerd packed.
+    /// is considered packed.
     #[inline]
     pub fn is_packed(&self, target: &Entry) -> bool {
-        match self.packed_tasks.borrow().get(target) {
-            Some(value) => value.clone(),
-            None => false,
-        }
+        *self.packed_tasks.borrow().get(target).unwrap_or(&false)
     }
 
     /// De-registers this task and it's dependents from the packed hashmap.
@@ -441,7 +439,7 @@ impl ExecutorState {
 
         match self.schedule_next() {
             ScheduleOutcome::GlobalTaskAcquired => {
-                tracing::debug!("Succesfully acquired new tasks for processing");
+                tracing::debug!("Successfully acquired new tasks for processing");
                 ProgressIndicator::CanProgress
             }
             ScheduleOutcome::NoTaskRunningOrAcquired => {
@@ -453,7 +451,7 @@ impl ExecutorState {
                 }
 
                 tracing::debug!("No new tasks, no need to perform work");
-                return ProgressIndicator::NoWork;
+                ProgressIndicator::NoWork
             }
             ScheduleOutcome::LocalTaskRunning => {
                 tracing::debug!("Invalid state reached, no local task should have been in queue");
@@ -566,13 +564,12 @@ impl ExecutorState {
     pub fn do_work(&self, engine: BoxedExecutionEngine) -> ProgressIndicator {
         // if after wake up, no task still enters
         // the processing queue then no work is available
-        match self.check_processing_queue() {
-            Some(inner) => match inner {
+        if let Some(inner) = self.check_processing_queue() {
+            match inner {
                 ProgressIndicator::NoWork => return ProgressIndicator::NoWork,
                 ProgressIndicator::CanProgress => return ProgressIndicator::CanProgress,
                 _ => unreachable!("check_processing_queue should never reach here"),
-            },
-            None => {}
+            }
         }
 
         let top_entry = self.processing.borrow_mut().pop_front().unwrap();
@@ -978,6 +975,7 @@ impl LocalExecutionEngine {
     }
 }
 
+#[allow(clippy::needless_lifetimes)]
 impl<'a> ExecutionEngine for Box<&'a LocalExecutionEngine> {
     fn lift(
         &self,
@@ -1103,11 +1101,11 @@ impl ReferencedExecutorState {
 /// Generally Tasks are Iterators with callbacks that allow tasks to supply their result when the `Iter::next()` is
 /// called, which means each result is delivered as received to the callback for processing, but generally you can also
 /// do blocking calls like `collect()` that indicate to the executor you are looking to collecting all the result at
-/// surface points (enty and exit calls).
+/// surface points (entry and exit calls).
 ///
 /// Since all Tasks are really Iterators, most times your implementations will really work at the Iterator level,
 /// where you implement iterators or have functions wrapped as iterators from other iterators which means
-/// generally asynchronous, strema like behaviour is backed into your implementation by design.
+/// generally asynchronous, stream like behaviour is backed into your implementation by design.
 ///
 ///  This does not mean a task can trigger another, in the concept of the executors describe below,
 /// Task A can generate a
@@ -1121,11 +1119,11 @@ impl ReferencedExecutorState {
 ///  1. Take the provided task and allocate it to the top of the executing queue
 ///  2. Take the current task and move it below the newly lifted task
 ///  3. Create a direct connection from Task A to Task B to directly correlate that a task that was paused
-/// or asleep with
-/// a direct upward dependency should also be moved into sleep till the task it lifted is done.
+///     or asleep with a direct upward dependency should also be moved into sleep till
+///     the task it lifted is done.
 ///
 ///  Generally the iron clad rule is a task can never lift up more than one task because its evidently
-/// indicating to the executor it wants to priortize the lifted task above itself,
+/// indicating to the executor it wants to prioritize the lifted task above itself,
 /// given it the remaining execution slot till that task completes.
 ///
 ///
@@ -1153,7 +1151,7 @@ impl ReferencedExecutorState {
 /// can't keep a reference to any local values in that thread else must copy them.
 ///
 /// But local tasks cant wait for such tasks to finish to continue execution in anyway, its no different
-/// from `Schedule` with the difference being explicity knowing this task will likely
+/// from `Schedule` with the difference being explicitly knowing this task will likely
 /// not execute in the same thread (depending on what
 /// executor is running).
 ///
@@ -1175,26 +1173,26 @@ impl ReferencedExecutorState {
 /// One core things we must note here is no task should ever block the queue else there will be a deadlock and no work
 /// can be done.
 ///
-/// *I see benefit for this type of executor in enviroments like WebAssembly.*
+/// *I see benefit for this type of executor in environments like WebAssembly.*
 ///
-/// Outline below are different scenarious their related expectations for
+/// Outline below are different scenarios their related expectations for
 /// how this executor should behave in implemented:
 ///
 /// #### Scenario Concepts (You will meet)
 ///
 /// Below are concepts you will meet and should keep in mind as you reason about these scenarios:
 ///
-/// - PriorityOrder: means the executor will ensure to maintain existing priority of a task even if it goes to sleep,
-/// when the sleep period has expired no matter if another task is executing that task will be demoted for the previous
-/// task to become priority.
+/// - [`PriorityOrder`]: means the executor will ensure to maintain existing priority of a task even if it goes to sleep,
+///     when the sleep period has expired no matter if another task is executing that task will be demoted for the previous
+///     task to become priority.
 ///
-/// - Task Graph: internally the executor should keep a graph (HashMap really) that maps Task to it's Dependents (the
-/// lifter) in this case, this allows us to do the following:
-///  1. Task A lifts Task B so we store in Map: {B: Vec[A]}
-///  2. Task B lifts Task C so we store in Map: {C: Vec[B], B: Vec[A]}
-///  3. With Above we can identify the dependency tree by going Task C -> Task B -> Task A to
-/// understand the relationship graph and understand which tasks we need to move out of
-/// processing since Task C is now sleeping for some period of time.
+/// - Task Graph: internally the executor should keep a graph (HashMap really) that maps Task to it's
+///     Dependents (the lifter) in this case, this allows us to do the following:
+///     1. Task A lifts Task B so we store in Map: {B: Vec[A]}
+///     2. Task B lifts Task C so we store in Map: {C: Vec[B], B: Vec[A]}
+///     3. With Above we can identify the dependency tree by going Task C -> Task B -> Task A to
+///        understand the relationship graph and understand which tasks we need to move out of
+///        processing since Task C is now sleeping for some period of time.
 ///
 /// #### Scenario 1: Task A to Completion
 /// A scenario where a task can execute to completion.
@@ -1211,22 +1209,22 @@ impl ReferencedExecutorState {
 /// 3. Executor removes Task A from queue and puts it to sleep (register sleep waker)
 /// 4. Executor pulls new task from global queue and queues it for execution and progress (with: CoExecutionAllowed).
 /// 5. When Task A sleep expires, executor lift Task A as priority with no dependency
-/// and continues executing Task A ///(with: PriorityOrder).
+///    and continues executing Task A ///(with: PriorityOrder).
 ///
 /// #### Scenario 3: Task A Goes to Sleep (PriorityOrder: On)
 /// In such a scenario an executing task can indicate it wishes to go to sleep for some period of time with other tasks
 /// taking it place to utilize resources better.
 ///
 /// - PriorityOrder: means the executor will ensure to maintain existing priority of a task even if it goes to sleep,
-/// when the sleep period has expired no matter if another task is executing that task will be demoted for the previous
-/// task to become priority.
+///     when the sleep period has expired no matter if another task is executing that task will be demoted for the previous
+///     task to become priority.
 ///
 /// 1. Task A gets scheduled by executor and can make progress
 /// 2. Task A wants to sleep for some duration of time
 /// 3. Executor removes Task A from queue and puts it to sleep (register sleep waker)
 /// 4. Executor pulls new task from global queue and queues it for execution and progress (with: CoExecutionAllowed).
 /// 5. When Task A sleep expires, executor lift Task A as priority with no dependency and
-/// continues executing Task A ///(with: PriorityOrder).
+///    continues executing Task A ///(with: PriorityOrder).
 ///
 /// #### Scenario 4:  Task A Goes to Sleep (PriorityOrder: Off)
 /// In such a scenario an executing task can indicate it wishes to go to sleep for some period of time with other tasks
@@ -1246,9 +1244,9 @@ impl ReferencedExecutorState {
 /// 2. Task A spawns Task B as priority
 /// 2. Task B wants to sleep for some duration of time
 /// 3. Executor removes Task B to Task A due to task graph (Task A -> (depends) Task B) from queue
-/// and puts Task B to sleep (register sleep waker) and moves Task A from queue till Task B returns from sleep.
+///    and puts Task B to sleep (register sleep waker) and moves Task A from queue till Task B returns from sleep.
 /// 4. Executor goes on to execute other tasks and depending on state of PriorityOrder will either add Task C to Task A
-/// back to end of queue or start of queue.
+///    back to end of queue or start of queue.
 ///
 /// ##### Dev Notes
 /// I am skeptical if this really is of value but for now it will be supported.

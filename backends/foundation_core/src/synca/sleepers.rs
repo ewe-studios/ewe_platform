@@ -36,6 +36,12 @@ impl<T> Clone for DurationStore<T> {
 
 // --- constructors
 
+impl<T> Default for DurationStore<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T> DurationStore<T> {
     pub fn new() -> Self {
         Self {
@@ -83,36 +89,28 @@ impl<T> DurationStore<T> {
 
     /// Returns the minimum duration of time of all entries in the
     /// sleeper, providing you the minimum time when one of the task is
-    /// guranteed to be ready for progress.
+    /// guaranteed to be ready for progress.
     fn min_duration(&self) -> Option<time::Duration> {
-        match self
-            .store
+        self.store
             .read()
             .unwrap()
             .map_with(|item| item.remaining())
             .iter()
             .max()
-        {
-            Some(item) => Some(item.clone()),
-            None => None,
-        }
+            .copied()
     }
 
     /// Returns the maximum duration of time of all entries in the
     /// sleeper, providing you the maximum time to potentially wait
     /// for all tasks to be ready.
     fn max_duration(&self) -> Option<time::Duration> {
-        match self
-            .store
+        self.store
             .read()
             .unwrap()
             .map_with(|item| item.remaining())
             .iter()
             .max()
-        {
-            Some(item) => Some(item.clone()),
-            None => None,
-        }
+            .copied()
     }
 }
 
@@ -132,10 +130,7 @@ pub trait Waiter {
 
 impl<T> Waiter for DurationWaker<T> {
     fn is_ready(&self) -> bool {
-        match self.try_is_ready() {
-            Some(inner) => inner,
-            None => false,
-        }
+        self.try_is_ready().unwrap_or(false)
     }
 }
 
@@ -168,13 +163,9 @@ impl<T> DurationWaker<T> {
 
     pub fn try_is_ready(&self) -> Option<bool> {
         let now = std::time::Instant::now();
-        match self.from.checked_add(self.how_long) {
-            Some(when_ready) => Some(match when_ready.checked_duration_since(now) {
-                Some(_) => false,
-                None => true,
-            }),
-            None => None,
-        }
+        self.from
+            .checked_add(self.how_long)
+            .map(|when_ready| when_ready.checked_duration_since(now).is_none())
     }
 }
 
@@ -191,36 +182,28 @@ pub trait Timing {
 impl<T: Timeable + Waiter> Timing for Sleepers<T> {
     /// Returns the minimum duration of time of all entries in the
     /// sleeper, providing you the minimum time when one of the task is
-    /// guranteed to be ready for progress.
+    /// guaranteed to be ready for progress.
     fn min_duration(&self) -> Option<time::Duration> {
-        match self
-            .sleepers
+        self.sleepers
             .read()
             .unwrap()
             .map_with(|item| item.remaining_duration())
             .iter()
             .max()
-        {
-            Some(item) => Some(item.clone()),
-            None => None,
-        }
+            .copied()
     }
 
     /// Returns the maximum duration of time of all entries in the
     /// sleeper, providing you the maximum time to potentially wait
     /// for all tasks to be ready.
     fn max_duration(&self) -> Option<time::Duration> {
-        match self
-            .sleepers
+        self.sleepers
             .read()
             .unwrap()
             .map_with(|item| item.remaining_duration())
             .iter()
             .max()
-        {
-            Some(item) => Some(item.clone()),
-            None => None,
-        }
+            .copied()
     }
 }
 
@@ -243,6 +226,12 @@ impl<T: Waiter> Clone for Sleepers<T> {
         Self {
             sleepers: self.sleepers.clone(),
         }
+    }
+}
+
+impl<T: Waiter> Default for Sleepers<T> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

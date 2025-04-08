@@ -1,3 +1,6 @@
+#![allow(clippy::type_complexity)]
+#![allow(clippy::items_after_test_module)]
+
 use std::{any::Any, cell, marker::PhantomData, rc, time};
 
 use derive_more::derive::From;
@@ -12,9 +15,9 @@ use super::{task::TaskStatus, BoxedPanicHandler, DoNext, OnNext, SharedTaskQueue
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum State {
-    /// Pending indicates the the underlying process to be
+    /// Pending indicates the underlying process to be
     /// still waiting progress to it's next state with
-    /// a comunicated indicator of how long possibly that
+    /// a communicated indicator of how long possibly that
     /// state might be. Its an optional value that the
     /// underlying process could communicate to the executor
     /// that allows the executor to be smarter about how it
@@ -53,9 +56,9 @@ pub type BoxedSendStateIterator = Box<dyn Iterator<Item = State> + Send>;
 
 pub type BoxedExecutionEngine = Box<dyn ExecutionEngine>;
 
-/// ExecutionIterator is a type of Iterator that
+/// [`ExecutionIterator`] is a type of Iterator that
 /// uniquely always just returns the State of
-/// it's internal procecesses and never
+/// it's internal processes and never
 /// an actual value of the internal calculation
 /// it performs.
 ///
@@ -141,6 +144,7 @@ impl ExecutionIterator for CanCloneExecutionIterator {
     }
 }
 
+#[allow(clippy::needless_lifetimes)]
 impl<'a, M> ExecutionIterator for &'a mut M
 where
     M: ExecutionIterator,
@@ -238,7 +242,7 @@ impl<
             mappers: None,
             resolver: None,
             panic_handler: None,
-            _marker: PhantomData::default(),
+            _marker: PhantomData,
         }
     }
 
@@ -500,7 +504,7 @@ where
     Action: ExecutionAction,
 {
     pub fn new() -> Self {
-        Self(PhantomData::default())
+        Self(PhantomData)
     }
 }
 
@@ -523,6 +527,7 @@ where
     }
 }
 
+#[allow(clippy::needless_lifetimes)]
 impl<'a, F, S, D, P> TaskReadyResolver<S, D, P> for &'a mut F
 where
     S: ExecutionAction,
@@ -547,7 +552,7 @@ pub struct FnMutReady<F, S>(cell::RefCell<F>, PhantomData<S>);
 
 impl<F, S> FnMutReady<F, S> {
     pub fn new(f: F) -> Self {
-        Self(cell::RefCell::new(f), PhantomData::default())
+        Self(cell::RefCell::new(f), PhantomData)
     }
 }
 
@@ -566,7 +571,7 @@ pub struct FnReady<F, S>(F, PhantomData<S>);
 
 impl<F, S> FnReady<F, S> {
     pub fn new(f: F) -> Self {
-        Self(f, PhantomData::default())
+        Self(f, PhantomData)
     }
 }
 
@@ -587,6 +592,8 @@ pub trait TaskStatusMapper<D, P, S: ExecutionAction> {
     fn map(&mut self, item: Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>>;
 }
 
+#[allow(clippy::extra_unused_lifetimes)]
+#[allow(clippy::needless_lifetimes)]
 impl<'a, F, S, D, P> TaskStatusMapper<D, P, S> for &'a mut F
 where
     S: ExecutionAction,
@@ -727,7 +734,7 @@ where
                 TaskStatus::Ready(item) => {
                     self.cache = Some(TaskStatus::Ready(item));
                     self.used = Some(());
-                    return None;
+                    None
                 }
             },
             None => None,
@@ -791,7 +798,7 @@ where
                 TaskStatus::Init => Some(TaskStatus::Init),
                 TaskStatus::Ready(item) => {
                     self.next = Some(TaskStatus::Ready(item));
-                    return None;
+                    None
                 }
             },
             None => None,
@@ -844,7 +851,7 @@ where
                 TaskStatus::Init => Some(TaskStatus::Init),
                 TaskStatus::Ready(item) => {
                     self.blocked = Some(());
-                    return Some(TaskStatus::Ready(item));
+                    Some(TaskStatus::Ready(item))
                 }
             },
             None => None,

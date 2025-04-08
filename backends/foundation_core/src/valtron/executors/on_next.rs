@@ -2,6 +2,8 @@
 // via a ConcurrentQueue that allows different threads in the pool to pull task off the thread at their
 // own respective pace.
 #![allow(clippy::return_self_not_must_use)]
+#![allow(clippy::type_complexity)]
+#![allow(clippy::extra_unused_lifetimes)]
 
 use std::{any::Any, marker::PhantomData};
 
@@ -46,7 +48,7 @@ where
             panic_handler: None,
             task: Mutex::new(iter),
             local_mappers: mappers,
-            _types: PhantomData::default(),
+            _types: PhantomData,
         }
     }
 
@@ -64,6 +66,7 @@ where
     }
 }
 
+#[allow(clippy::self_named_constructors)]
 impl<F, Action, Task, Done, Pending>
     OnNext<
         Action,
@@ -86,7 +89,7 @@ where
         mappers: Option<Vec<Box<dyn TaskStatusMapper<Done, Pending, Action> + Send>>>,
     ) -> Self {
         let wrapper = FnReady::new(f);
-        OnNext::new(t, wrapper, mappers.unwrap_or(Vec::new()))
+        OnNext::new(t, wrapper, mappers.unwrap_or_default())
     }
 }
 
@@ -112,10 +115,11 @@ where
         mappers: Option<Vec<Box<dyn TaskStatusMapper<Done, Pending, Action> + Send>>>,
     ) -> Self {
         let wrapper = FnMutReady::new(f);
-        OnNext::new(t, wrapper, mappers.unwrap_or(Vec::new()))
+        OnNext::new(t, wrapper, mappers.unwrap_or_default())
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl<Action, Resolver, Mapper, Task, Done, Pending> Into<BoxedExecutionIterator>
     for OnNext<Action, Resolver, Mapper, Task, Done, Pending>
 where
@@ -131,6 +135,8 @@ where
     }
 }
 
+#[allow(clippy::needless_lifetimes)]
+#[allow(clippy::from_over_into)]
 impl<'a: 'static, Action, Resolver, Mapper, Task, Done: Send + 'a, Pending: Send + 'a>
     Into<BoxedSendExecutionIterator> for OnNext<Action, Resolver, Mapper, Task, Done, Pending>
 where

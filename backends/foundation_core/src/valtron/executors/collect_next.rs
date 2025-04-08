@@ -14,7 +14,7 @@ use std::sync::Mutex;
 #[cfg(target_arch = "wasm32")]
 use wasm_sync::Mutex;
 
-/// CollectNext provides an implementer of `ExecutionIterator` which is focused on
+/// [`CollectNext`] provides an implementer of `ExecutionIterator` which is focused on
 /// making progress for your `TaskIterator` which focuses on making progress in
 /// an async manner with out and most importantly not using the results the
 /// `TaskIterator` pushes out.
@@ -42,7 +42,7 @@ where
             list,
             panic_handler: None,
             task: Mutex::new(iter),
-            _marker: PhantomData::default(),
+            _marker: PhantomData,
         }
     }
 
@@ -55,6 +55,7 @@ where
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl<'a: 'static, Action, Task, Done: Send + 'a, Pending: Send + 'a>
     Into<BoxedSendExecutionIterator> for CollectNext<'a, Action, Task, Done, Pending>
 where
@@ -66,6 +67,7 @@ where
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl<'a: 'static, Action, Task, Done: 'a, Pending: 'a> Into<BoxedExecutionIterator>
     for CollectNext<'a, Action, Task, Done, Pending>
 where
@@ -77,6 +79,7 @@ where
     }
 }
 
+#[allow(clippy::needless_lifetimes)]
 impl<'a, Task, Done, Pending, Action> ExecutionIterator
     for CollectNext<'a, Action, Task, Done, Pending>
 where
