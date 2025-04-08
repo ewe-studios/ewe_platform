@@ -14,12 +14,12 @@ pub enum SleepyState {
     Expired,
 }
 
-/// Idleman provides a sleep management module
+/// [`SleepyMan`] provides a sleep management module
 /// that allows you query for the next sleep duration
 /// to a maximum value since both duration wise and
 /// sleep count.
 ///
-/// This allows us continously request the next sleeping
+/// This allows us continuously request the next sleeping
 /// duration until a maximum count of sleep as been given
 /// at which point no more sleep duration will be provided.
 ///
@@ -68,7 +68,7 @@ impl SleepyMan {
     }
 }
 
-/// IdleMan provides an idle counter whoes job is pretty simple
+/// [`IdleMan`] provides an idle counter whose job is pretty simple
 /// when giving a max idle count, each time the counter is incremented
 /// you are returned a potential sleep duration that you should consider
 /// sleeping for since you are idle.
@@ -131,7 +131,7 @@ impl IdleMan {
         }
 
         self.counter.fetch_add(1, Ordering::SeqCst);
-        self.base_sleep.clone()
+        self.base_sleep
     }
 
     /// count returns the current count number of the idle counter.
@@ -174,17 +174,17 @@ mod test_idleman {
         let sl = SleepyMan::new(3, ExponentialBackoffDecider::default());
         let mut idle = IdleMan::new(3, None, sl);
 
-        assert_eq!(idle.increment(), None);
-        assert_eq!(idle.increment(), None);
-        assert_eq!(idle.increment(), None);
-        assert_eq!(idle.increment(), None);
+        assert!(idle.increment().is_none());
+        assert!(idle.increment().is_none());
+        assert!(idle.increment().is_none());
+        assert!(idle.increment().is_none());
 
-        assert!(matches!(idle.increment(), Some(_)));
-        assert!(matches!(idle.increment(), Some(_)));
-        assert!(matches!(idle.increment(), Some(_)));
+        assert!(idle.increment().is_some());
+        assert!(idle.increment().is_some());
+        assert!(idle.increment().is_some());
 
         // end of random sleep
-        assert!(matches!(idle.increment(), None));
+        assert!(idle.increment().is_none());
     }
 
     #[test]
@@ -198,18 +198,18 @@ mod test_idleman {
         assert_eq!(idle.increment(), dfs);
         assert_eq!(idle.increment(), dfs);
 
-        assert!(matches!(idle.increment(), Some(_)));
-        assert!(matches!(idle.increment(), Some(_)));
-        assert!(matches!(idle.increment(), Some(_)));
+        assert!(idle.increment().is_some());
+        assert!(idle.increment().is_some());
+        assert!(idle.increment().is_some());
 
         assert_eq!(idle.increment(), dfs);
         assert_eq!(idle.increment(), dfs);
         assert_eq!(idle.increment(), dfs);
         assert_eq!(idle.increment(), dfs);
 
-        assert!(matches!(idle.increment(), Some(_)));
-        assert!(matches!(idle.increment(), Some(_)));
-        assert!(matches!(idle.increment(), Some(_)));
-        assert!(matches!(idle.increment(), Some(_)));
+        assert!(idle.increment().is_some());
+        assert!(idle.increment().is_some());
+        assert!(idle.increment().is_some());
+        assert!(idle.increment().is_some());
     }
 }

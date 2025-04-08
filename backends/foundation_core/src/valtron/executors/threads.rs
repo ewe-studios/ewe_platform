@@ -89,7 +89,7 @@ pub(crate) fn get_allocatable_thread_count() -> usize {
         max_threads
     );
 
-    return desired_threads;
+    desired_threads
 }
 
 #[cfg(test)]

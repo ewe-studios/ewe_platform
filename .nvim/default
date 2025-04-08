@@ -18,7 +18,7 @@ badd +6 ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox_app/mod.rs
 badd +262 backends/foundation_core/src/megatron/jsrum/packages/runtime.js
 badd +49 backends/foundation_jsnostd/src/jsrom.rs
 badd +2 backends/foundation_jsnostd/src/lib.rs
-badd +562 backends/foundation_jsnostd/src/ops.rs
+badd +1 backends/foundation_jsnostd/src/ops.rs
 badd +1 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsmacros/src/lib.rs
 badd +1 ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsrum/mod.rs
 badd +1 ~/Labs/ewestudios/ewe_platform/backends/foundation_nostd/src/lib.rs
@@ -26,7 +26,6 @@ badd +3 ~/Labs/ewestudios/ewe_platform/backends/foundation_nostd/src/raw_parts.r
 badd +16 ~/Labs/ewestudios/ewe_platform/backends/foundation_nostd/Cargo.toml
 badd +1 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/Cargo.toml
 badd +232 ~/Labs/ewestudios/ewe_platform/crates/devserver/src/cargo.rs
-badd +1 \[0m\[0m\[1m\[38;5;12m-->\ \[0m\[0mbackends/foundation_core/src/directorate/mod.rs
 badd +76 backends/foundation_core/src/directorate/mod.rs
 badd +248 backends/foundation_core/src/extensions/serde_ext/toml_ext.rs
 badd +52 backends/foundation_core/src/extensions/strings_ext/mod.rs
@@ -101,7 +100,6 @@ if bufexists(fnamemodify("backends/foundation_core/src/io/mem/encoding.rs", ":p"
 if &buftype ==# 'terminal'
   silent file backends/foundation_core/src/io/mem/encoding.rs
 endif
-balt backends/foundation_core/src/extensions/strings_ext/mod.rs
 setlocal foldmethod=expr
 setlocal foldexpr=nvim_treesitter#foldexpr()
 setlocal foldmarker={{{,}}}

@@ -115,7 +115,7 @@ pub enum TomlError {
     FailedSerialization(toml::ser::Error),
 }
 
-// -- From<T> and Into<TomlErro>
+// -- From<T> and Into<TomlError>
 
 impl From<toml::ser::Error> for TomlError {
     fn from(value: toml::ser::Error) -> Self {
@@ -444,8 +444,8 @@ mod tests {
         assert_eq!(&content, "hello");
 
         // Should
-        assert!(matches!(value.d_get::<String>("hello"), Err(_)));
-        assert!(matches!(value.d_get::<String>("hello/word"), Err(_)));
+        assert!(value.d_get::<String>("hello").is_err());
+        assert!(value.d_get::<String>("hello/word").is_err());
         Ok(())
     }
 

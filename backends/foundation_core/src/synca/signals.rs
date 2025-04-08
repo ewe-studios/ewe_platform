@@ -11,6 +11,12 @@ pub struct OnSignal {
     state: AtomicUsize,
 }
 
+impl Default for OnSignal {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl OnSignal {
     pub fn new() -> Self {
         Self {
@@ -61,6 +67,12 @@ const SLEEPING: usize = 3;
 #[derive(Debug)]
 pub struct ActivitySignal {
     state: AtomicUsize,
+}
+
+impl Default for ActivitySignal {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ActivitySignal {

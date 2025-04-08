@@ -42,7 +42,7 @@ where
         Self {
             panic_handler: None,
             task: Mutex::new(iter),
-            _marker: PhantomData::default(),
+            _marker: PhantomData,
         }
     }
 
@@ -55,6 +55,7 @@ where
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl<Action, Task, Done: 'static, Pending: 'static> Into<BoxedExecutionIterator>
     for DoNext<Action, Task, Done, Pending>
 where
@@ -66,6 +67,8 @@ where
     }
 }
 
+#[allow(clippy::extra_unused_lifetimes)]
+#[allow(clippy::from_over_into)]
 impl<'a: 'static, Action, Task, Done: Send + 'a, Pending: Send + 'a>
     Into<BoxedSendExecutionIterator> for DoNext<Action, Task, Done, Pending>
 where
@@ -77,6 +80,7 @@ where
     }
 }
 
+#[allow(clippy::needless_lifetimes)]
 impl<Task, Done, Pending, Action> ExecutionIterator for DoNext<Action, Task, Done, Pending>
 where
     Action: ExecutionAction,

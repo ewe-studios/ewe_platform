@@ -107,7 +107,7 @@ mod directorate_tests {
     #[test]
     fn validate_can_create_directorate_generator_safely() {
         let generator = Directorate::<Directory>::default();
-        assert!(matches!(generator.get_file("README.md"), Some(_)));
+        assert!(generator.get_file("README.md").is_some());
     }
 
     #[test]
@@ -130,7 +130,7 @@ mod directorate_tests {
     #[test]
     fn validate_can_read_all_directories() {
         let generator = Directorate::<Directory>::default();
-        let files: Vec<String> = generator.files().map(|t| String::from(t)).collect();
+        let files: Vec<String> = generator.files().map(String::from).collect();
         assert_eq!(
             files,
             vec! {"README.md", "docs/runner.sh", "elem.js", "schema/partials/partial_1.sql", "schema/schema.sql"}

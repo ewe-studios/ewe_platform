@@ -193,10 +193,10 @@ impl RequestHead {
     /// # use ewe_routing::requests::{RequestHead, Method, Version, Uri, RouteURL};
     ///
     /// let head = RequestHead::new(
-    /// 		Method::GET,
-    /// 		Version::HTTP_11,
-    /// 		Uri::from_static("/head/1"),
-    /// 		Some(String::from("/head/:id")),
+    ///         Method::GET,
+    ///         Version::HTTP_11,
+    ///         Uri::from_static("/head/1"),
+    ///         Some(String::from("/head/:id")),
     /// );
     /// ```
     ///
@@ -401,11 +401,11 @@ impl<T, S: Default> Request<T, S> {
     /// ```no
     /// # use routing::{Request, RequestHead, Uri};
     /// let request = Request::from_head(
-    /// 	RequestHead::new(
-    /// 		http::http::Method::GET, Version::HTTP_2,
-    /// 		Uri::from("/head/1"),
-    /// 		RouteURL("/head/:id"),
-    /// 	)
+    ///     RequestHead::new(
+    ///         http::http::Method::GET, Version::HTTP_2,
+    ///         Uri::from("/head/1"),
+    ///         RouteURL("/head/:id"),
+    ///     )
     /// )
     /// let body = request.into_body();
     /// assert_eq(body, None);
@@ -568,7 +568,7 @@ impl<T, S> TryFrom<Request<T, S>> for LightRequest<T> {
 
     /// This implementation of is unique in that it skips any headers that
     /// to not mappable to a String for as the `HeaderMap` type actually
-    /// does some underlying logic to deal with non-ASCII character heders.
+    /// does some underlying logic to deal with non-ASCII character headers.
     ///
     /// Secondly the underlying body of the Request is also consumed by this
     /// returned `LightRequest`.
@@ -579,7 +579,7 @@ impl<T, S> TryFrom<Request<T, S>> for LightRequest<T> {
             match keyc {
                 Some(key) => {
                     let key_name = key.to_string();
-                    let value_string = String::try_from(value.to_str()?)?;
+                    let value_string: String = value.to_str()?.to_owned();
                     headers.entry(key_name).and_modify(|e| *e = value_string);
                 }
                 None => continue,
