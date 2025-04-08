@@ -1,3 +1,6 @@
+#![allow(clippy::new_ret_no_self)]
+#![allow(clippy::type_complexity)]
+
 use std::{
     any::Any,
     collections::HashMap,
@@ -211,7 +214,7 @@ impl Clone for ThreadYielder {
 impl ProcessController for ThreadYielder {
     fn yield_process(&self) {
         if self.latch.try_lock() {
-            tracing::debug!("Thread succesfully locked thread");
+            tracing::debug!("Thread successfully locked thread");
         } else {
             tracing::debug!("Thread is already locked");
         }
@@ -235,7 +238,7 @@ impl ProcessController for ThreadYielder {
         // specifically loop till we've reached beyond duration
         let started = Instant::now();
 
-        let mut remaining_timeout = dur.clone();
+        let mut remaining_timeout = dur;
         loop {
             self.sender
                 .send(ThreadActivity::Parked(self.thread_id.clone()))
@@ -248,7 +251,7 @@ impl ProcessController for ThreadYielder {
             if elapsed >= remaining_timeout {
                 break;
             }
-            remaining_timeout = remaining_timeout - elapsed;
+            remaining_timeout -= remaining_timeout;
         }
 
         self.sender
@@ -571,6 +574,7 @@ impl ThreadPool {
     /// for concurrent execution of `LocalExecutorEngine` executors
     /// within the total number of threads you provided via `num_threads`
     /// the threads are spawned and ready to take on work.
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         seed_for_rng: u64,
         num_threads: usize,
@@ -631,7 +635,7 @@ impl ThreadPool {
         for index in 1..num_threads {
             let _ = thread_pool
                 .create_thread_executor()
-                .expect(&format!("should successfully create thread for {}", index));
+                .unwrap_or_else(|_| panic!("should successfully create thread for {}", index));
         }
 
         thread_pool
@@ -726,15 +730,15 @@ impl ThreadPool {
     }
 
     #[allow(clippy::too_many_lines)]
-    /// `create_thread_executor` creates a new thread into the thread pool spawning
-    /// a LocalThreadExecutor into a owned thread that is managed by the executor.
+    /// [`create_thread_executor`] creates a new thread into the thread pool spawning
+    /// a [`LocalThreadExecutor`] into a owned thread that is managed by the executor.
     pub(crate) fn create_thread_executor(&self) -> ThreadExecutionResult<ThreadRef> {
         let span = tracing::trace_span!("ThreadPool::create_thread_executor");
         let _enter = span.enter();
 
         let thread_name = format!("valtron_thread_{}", self.registry.executor_count() + 1);
         let mut b = thread::Builder::new().name(thread_name.clone());
-        if let Some(thread_stack_size) = self.thread_stack_size.clone() {
+        if let Some(thread_stack_size) = self.thread_stack_size {
             b = b.stack_size(thread_stack_size);
         }
 
@@ -757,7 +761,7 @@ impl ThreadPool {
         let thread_ref = self.registry.get_thread(thread_id.clone());
 
         let priority = self.priority.clone();
-        let seed_clone = thread_ref.seed.clone();
+        let seed_clone = thread_ref.seed;
         let task_clone = thread_ref.tasks.clone();
         let process_clone = thread_ref.process.clone().unwrap();
         let thread_kill_signal = thread_ref.global_kill_signal.clone();
@@ -765,12 +769,12 @@ impl ThreadPool {
         let sender_id = thread_id.clone();
         let sender = self.activity_sender.clone();
 
-        let thread_max_idle_count = self.thread_max_idle_count.clone();
-        let thread_max_sleep_before_end = self.thread_max_sleep_before_end.clone();
-        let thread_back_off_factor = self.thread_back_off_factor.clone();
-        let thread_back_off_jitter = self.thread_back_off_jitter.clone();
-        let thread_back_min_duration = self.thread_back_min_duration.clone();
-        let thread_back_max_duration = self.thread_back_max_duration.clone();
+        let thread_max_idle_count = self.thread_max_idle_count;
+        let thread_max_sleep_before_end = self.thread_max_sleep_before_end;
+        let thread_back_off_factor = self.thread_back_off_factor;
+        let thread_back_off_jitter = self.thread_back_off_jitter;
+        let thread_back_min_duration = self.thread_back_min_duration;
+        let thread_back_max_duration = self.thread_back_max_duration;
 
         match b.spawn(move || {
             let span =
@@ -858,11 +862,10 @@ impl ThreadPool {
         let _enter = span.enter();
         match self.tasks.push(Box::new(task)) {
             Ok(_) => {
-                if self.tasks.len() == 1 {
-                    self.latch.signal_one();
-                } else if self.tasks.len() > 1 {
-                    self.latch.signal_all();
-                }
+                match self.tasks.len() {
+                    1 => self.latch.signal_one(),
+                    _ => self.latch.signal_all(),
+                };
                 Ok(())
             }
             Err(err) => match err {
@@ -1250,7 +1253,6 @@ impl<
         self
     }
 
-    #[must_use]
     pub fn schedule(self) -> AnyResult<(), ExecutorError> {
         let task: BoxedSendExecutionIterator = match self.task {
             Some(task) => match (self.resolver, self.mappers) {
@@ -1282,11 +1284,10 @@ impl<
 
         match self.tasks.push(task) {
             Ok(_) => {
-                if self.tasks.len() == 1 {
-                    self.latch.signal_one();
-                } else if self.tasks.len() > 1 {
-                    self.latch.signal_all();
-                }
+                match self.tasks.len() {
+                    1 => self.latch.signal_one(),
+                    _ => self.latch.signal_all(),
+                };
                 Ok(())
             }
             Err(err) => match err {
