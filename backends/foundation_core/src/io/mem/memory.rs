@@ -561,9 +561,9 @@ impl<T: Resettable> ArenaPool<T> {
 mod arena_pool_tests {
     use super::*;
 
-    type ResetableU8<'a> = &'a u8;
+    type ResettableU8 = &'static u8;
 
-    impl<'a> Resettable for ResetableU8<'a> {
+    impl Resettable for ResettableU8 {
         fn reset(&mut self) {
             *self = &0;
         }
@@ -572,10 +572,10 @@ mod arena_pool_tests {
     #[test]
     fn test_arena_pool() {
         let limiter = MemoryLimiter::create_shared(800);
-        let mut pool: ArenaPool<ResetableU8> = ArenaPool::new(
+        let mut pool: ArenaPool<ResettableU8> = ArenaPool::new(
             limiter,
             FnGenerator::new(|_| {
-                let new_value: ResetableU8 = &0;
+                let new_value: ResettableU8 = &0;
                 new_value
             }),
         );
@@ -598,10 +598,10 @@ mod arena_pool_tests {
     #[test]
     fn test_arena_pool_limits() {
         let limiter = MemoryLimiter::create_shared(8);
-        let mut pool: ArenaPool<ResetableU8> = ArenaPool::new(
+        let mut pool: ArenaPool<ResettableU8> = ArenaPool::new(
             limiter,
             FnGenerator::new(|_| {
-                let new_value: ResetableU8 = &0;
+                let new_value: ResettableU8 = &0;
                 new_value
             }),
         );
