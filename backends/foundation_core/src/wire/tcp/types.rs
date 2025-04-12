@@ -77,11 +77,11 @@ impl<T: Clone> Endpoint<T> {
 
     #[inline]
     pub fn host(&self) -> String {
-        return match self {
-            Self::Plain(inner) => self.get_host_from(&inner),
-            Self::Encrypted(inner) => self.get_host_from(&inner),
-            Self::EncryptedWithIdentity(inner, _) => self.get_host_from(&inner),
-        };
+        match self {
+            Self::Plain(inner) => self.get_host_from(inner),
+            Self::Encrypted(inner) => self.get_host_from(inner),
+            Self::EncryptedWithIdentity(inner, _) => self.get_host_from(inner),
+        }
     }
 
     #[inline]
@@ -100,46 +100,46 @@ impl<T: Clone> Endpoint<T> {
 
     #[inline]
     pub fn scheme(&self) -> &str {
-        return match self {
+        match self {
             Self::Plain(inner) => inner.scheme(),
             Self::Encrypted(inner) => inner.scheme(),
             Self::EncryptedWithIdentity(inner, _) => inner.scheme(),
-        };
-    }
-
-    #[inline]
-    pub fn query(&self) -> Option<String> {
-        return match self {
-            Self::Plain(inner) => self.get_query_params(&inner),
-            Self::Encrypted(inner) => self.get_query_params(&inner),
-            Self::EncryptedWithIdentity(inner, _) => self.get_query_params(&inner),
-        };
-    }
-
-    #[inline]
-    pub(crate) fn get_query_params(&self, endpoint_url: &url::Url) -> Option<String> {
-        match endpoint_url.query() {
-            Some(query) => Some(String::from(query)),
-            None => None,
         }
     }
 
     #[inline]
+    pub fn query(&self) -> Option<String> {
+        match self {
+            Self::Plain(inner) => self.get_query_params(inner),
+            Self::Encrypted(inner) => self.get_query_params(inner),
+            Self::EncryptedWithIdentity(inner, _) => self.get_query_params(inner),
+        }
+    }
+
+    #[inline]
+    pub(crate) fn get_query_params(&self, endpoint_url: &url::Url) -> Option<String> {
+        endpoint_url
+            .query()
+            .map(|q| Some(String::from(q)))
+            .unwrap_or(None)
+    }
+
+    #[inline]
     pub fn path_and_query(&self) -> String {
-        return match self {
-            Self::Plain(inner) => self.get_path_with_query_params(&inner),
-            Self::Encrypted(inner) => self.get_path_with_query_params(&inner),
-            Self::EncryptedWithIdentity(inner, _) => self.get_path_with_query_params(&inner),
-        };
+        match self {
+            Self::Plain(inner) => self.get_path_with_query_params(inner),
+            Self::Encrypted(inner) => self.get_path_with_query_params(inner),
+            Self::EncryptedWithIdentity(inner, _) => self.get_path_with_query_params(inner),
+        }
     }
 
     #[inline]
     pub fn path(&self) -> String {
-        return match self {
+        match self {
             Self::Plain(inner) => String::from(inner.path()),
             Self::Encrypted(inner) => String::from(inner.path()),
             Self::EncryptedWithIdentity(inner, _) => String::from(inner.path()),
-        };
+        }
     }
 
     #[inline]

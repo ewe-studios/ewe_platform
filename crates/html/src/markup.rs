@@ -439,36 +439,27 @@ impl<'a> FragmentDef<'a> {
     }
 
     pub fn get_child(&mut self, index: usize) -> ElementResult<Option<&Option<FragmentDef<'a>>>> {
-        match self {
-            FragmentDef::HTML(container) => match container {
-                None => Err(ElementError::NotUsable),
-                Some(node) => Ok(node.get_child(index)),
-            },
-            _ => Err(ElementError::NotUsable),
+        if let FragmentDef::HTML(Some(node)) = self {
+            return Ok(node.get_child(index));
         }
+        Err(ElementError::NotUsable)
     }
 
     pub fn get_child_mut(
         &'a mut self,
         index: usize,
     ) -> ElementResult<Option<&'a mut Option<FragmentDef<'a>>>> {
-        match self {
-            FragmentDef::HTML(container) => match container {
-                None => Err(ElementError::NotUsable),
-                Some(node) => Ok(node.get_child_mut(index)),
-            },
-            _ => Err(ElementError::NotUsable),
+        if let FragmentDef::HTML(Some(node)) = self {
+            return Ok(node.get_child_mut(index));
         }
+        Err(ElementError::NotUsable)
     }
 
     pub fn add_child(&mut self, elem: FragmentDef<'a>) -> ElementResult<usize> {
-        match self {
-            FragmentDef::HTML(container) => match container {
-                None => Err(ElementError::NotUsable),
-                Some(node) => Ok(node.add_child(elem)),
-            },
-            _ => Err(ElementError::NotUsable),
+        if let FragmentDef::HTML(Some(node)) = self {
+            return Ok(node.add_child(elem));
         }
+        Err(ElementError::NotUsable)
     }
 }
 
@@ -595,21 +586,18 @@ impl<'a> Fragment<'a> {
 
     pub fn has_attr(&mut self, name: &'a str) -> bool {
         let encoded_str = Bytes::from_str(name, self.encoding.clone());
-        self.attributes
-            .iter_mut()
-            .find(|attr_container| {
-                ewe_trace::debug!("Checking attribute in list");
-                if let Some(attr) = attr_container {
-                    ewe_trace::debug!(
-                        "Matching: {:?} against {:?}",
-                        attr.name_bytes().unwrap(),
-                        encoded_str
-                    );
-                    return attr.name_bytes().unwrap() == encoded_str;
-                }
-                false
-            })
-            .is_some()
+        self.attributes.iter_mut().any(|attr_container| {
+            ewe_trace::debug!("Checking attribute in list");
+            if let Some(attr) = attr_container {
+                ewe_trace::debug!(
+                    "Matching: {:?} against {:?}",
+                    attr.name_bytes().unwrap(),
+                    encoded_str
+                );
+                return attr.name_bytes().unwrap() == encoded_str;
+            }
+            false
+        })
     }
 
     #[cfg_attr(

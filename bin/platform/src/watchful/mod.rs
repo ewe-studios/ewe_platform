@@ -1,8 +1,6 @@
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
-use ewe_watchers;
-
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
 pub fn register(command: clap::Command) -> clap::Command {

@@ -1,3 +1,5 @@
+#![allow(clippy::type_complexity)]
+
 use std::cell::OnceCell;
 use std::sync::Arc;
 
@@ -30,10 +32,11 @@ impl ProcessController for NoThreadController {
 }
 
 thread_local! {
+    #[allow(clippy::missing_const_for_thread_local)]
     static GLOBAL_LOCAL_EXECUTOR_ENGINE: OnceCell<LocalThreadExecutor<NoThreadController>> = OnceCell::new();
 }
 
-/// [initialize] initializes the local single-threaded
+/// [`initialize`] initializes the local single-threaded
 /// execution engine, and is required to call this as your
 /// first call when using this in WebAssembly or SingleThreaded
 /// environment.
@@ -42,7 +45,7 @@ pub fn initialize(seed_for_rng: u64) {
         let _ = pool.get_or_init(|| {
             let tasks: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
                 Arc::new(ConcurrentQueue::unbounded());
-            let executor = LocalThreadExecutor::from_seed(
+            LocalThreadExecutor::from_seed(
                 seed_for_rng,
                 tasks,
                 IdleMan::new(
@@ -59,11 +62,10 @@ pub fn initialize(seed_for_rng: u64) {
                     ),
                 ),
                 PriorityOrder::Top,
-                NoThreadController::default(),
+                NoThreadController,
                 None,
                 None,
-            );
-            executor
+            )
         });
     });
 }

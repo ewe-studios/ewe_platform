@@ -77,10 +77,10 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
 
     let binary_name_ref = args.get_one::<String>("binary_name");
 
-    let binary_name = if binary_name_ref.is_none() {
-        project_name.clone().to_owned()
+    let binary_name = if let Some(bin_name) = binary_name_ref {
+        bin_name.clone()
     } else {
-        binary_name_ref.unwrap().to_owned()
+        project_name.clone().to_owned()
     };
 
     let service_addr = args
@@ -107,8 +107,8 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
 
     ewe_trace::info!("Starting local binary");
 
-    let destination = ProxyRemoteConfig::new(service_addr.clone(), service_port.clone());
-    let source = ProxyRemoteConfig::new(proxy_addr.clone(), proxy_port.clone());
+    let destination = ProxyRemoteConfig::new(service_addr.clone(), *service_port);
+    let source = ProxyRemoteConfig::new(proxy_addr.clone(), *proxy_port);
 
     let tunnel_config = ProxyType::Http1(Http1::new(source, destination, Some(HashMap::new())));
 
@@ -118,7 +118,7 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
         workspace_root: project_directory.clone(),
         watch_directories: vec![project_directory.clone()],
         wait_before_reload: time::Duration::from_millis(300), // magic number that works
-        target_directory: String::from(format!("{}/target", project_directory.clone())),
+        target_directory: format!("{}/target", project_directory.clone()),
         run_arguments: vec!["cargo", "run", "--bin", binary_name.as_str()].to_vec_string(),
         build_arguments: vec!["cargo", "build", "--bin", binary_name.as_str()].to_vec_string(),
     };

@@ -1,3 +1,5 @@
+#![allow(clippy::type_complexity)]
+
 #[cfg(not(target_arch = "wasm32"))]
 use std::sync::OnceLock;
 
@@ -66,7 +68,7 @@ where
     pool.run_until();
 }
 
-/// `spawn` provides a builder which specifically allows you to build out
+/// [`spawn`] provides a builder which specifically allows you to build out
 /// the underlying tasks to be scheduled into the global queue.
 ///
 /// It expects you infer the type of `Task` and `Action` from the
@@ -95,7 +97,7 @@ where
     }
 }
 
-/// `spawn2` provides a builder which specifically allows you to build out
+/// [`spawn2`] provides a builder which specifically allows you to build out
 /// the underlying tasks to be scheduled into the global queue.
 ///
 /// It expects you to provide types for both Mapper and Resolver.
@@ -204,7 +206,7 @@ mod multi_threaded_tests {
         let (task_sent_sender, task_sent_receiver) = mpp::bounded(1);
         block_on(seed, None, |pool| {
             pool.spawn()
-                .with_task(PanicCounter::default())
+                .with_task(PanicCounter)
                 .with_resolver(Box::new(FnReady::new(|item, _| {
                     tracing::info!("Received next: {item:?}");
                 })))

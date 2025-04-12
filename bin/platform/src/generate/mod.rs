@@ -41,6 +41,7 @@ enum LanguageSupport {
 }
 
 impl LanguageSupport {
+    #[allow(clippy::too_many_arguments)]
     pub fn generate_package_config(
         &self,
         template_name: String,
@@ -219,17 +220,13 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
         .get_one::<String>("project_name")
         .expect("should have project_name");
 
-    let github_namespace = args
-        .get_one::<String>("github_url")
-        .map_or(None, |val| Some(val.clone()));
+    let github_namespace = args.get_one::<String>("github_url").cloned();
 
     let output_directory = args
         .get_one::<std::path::PathBuf>("output")
         .unwrap_or(&current_dir);
 
-    let root_project_cargo_file = args
-        .get_one::<std::path::PathBuf>("cargo_file")
-        .map_or(None, |val| Some(val.clone()));
+    let root_project_cargo_file = args.get_one::<std::path::PathBuf>("cargo_file").cloned();
 
     let selected_language = args
         .get_one::<LanguageSupport>("lang")
@@ -248,7 +245,7 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
     let package_configurator = selected_language.generate_package_config(
         template_name.clone(),
         project_name.clone(),
-        retain_lib_section.clone(),
+        *retain_lib_section,
         github_namespace.clone(),
         output_directory.clone(),
         project_output_directory.clone(),

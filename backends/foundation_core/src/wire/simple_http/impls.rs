@@ -1,3 +1,5 @@
+#![allow(clippy::type_complexity)]
+
 use crate::extensions::result_ext::BoxedError;
 use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
 use crate::io::ioutils::{self, PeekableReadStream};
@@ -96,31 +98,28 @@ impl ChunkedData {
     pub fn into_bytes(&mut self) -> Vec<u8> {
         match self {
             ChunkedData::Data(data, exts) => {
-                let hexa_octect = format!("{:x}", data.len());
-                let extension_string: Option<Vec<String>> = match exts {
-                    Some(extensions) => Some(
-                        extensions
-                            .into_iter()
-                            .map(|(key, value)| {
-                                if value.is_none() {
-                                    format!("; {}", key)
-                                } else {
-                                    format!("; {}=\"{}\"", key, value.clone().unwrap())
-                                }
-                            })
-                            .collect(),
-                    ),
-                    None => None,
-                };
+                let hexa_octet = format!("{:x}", data.len());
+                let extension_string: Option<Vec<String>> = exts.as_mut().map(|extensions| {
+                    extensions
+                        .iter_mut()
+                        .map(|(key, value)| {
+                            if value.is_none() {
+                                format!("; {}", key)
+                            } else {
+                                format!("; {}=\"{}\"", key, value.clone().unwrap())
+                            }
+                        })
+                        .collect()
+                });
 
                 let mut chunk_data: Vec<u8> = Vec::new();
                 if extension_string.is_some() {
                     chunk_data.append(
-                        &mut format!("{} {}", hexa_octect, extension_string.unwrap().join(""))
+                        &mut format!("{} {}", hexa_octet, extension_string.unwrap().join(""))
                             .into_bytes(),
                     );
                 } else {
-                    chunk_data.append(&mut format!("{}", hexa_octect).into_bytes());
+                    chunk_data.extend(hexa_octet.to_string().into_bytes());
                 }
 
                 chunk_data.append(data);
@@ -157,7 +156,7 @@ impl ChunkedDataLimitIterator {
 impl Clone for ChunkedDataLimitIterator {
     fn clone(&self) -> Self {
         Self {
-            limit: self.limit.clone(),
+            limit: self.limit,
             parent: self.parent.clone_box_send_iterator(),
             exhausted: AtomicBool::new(self.exhausted.load(Ordering::SeqCst)),
             collected: AtomicUsize::new(self.collected.load(Ordering::SeqCst)),
@@ -220,6 +219,7 @@ impl Eq for SimpleBody {}
 // PartialEq is implemented but threads the `Self::Stream` and `Self::ChunkedStream`
 // differently in that we do not compare the contents but rather compare that both have
 // value of same type (i.e both have provided iterators).
+#[allow(clippy::match_like_matches_macro)]
 impl PartialEq for SimpleBody {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
@@ -260,8 +260,8 @@ impl core::fmt::Debug for SimpleBody {
 
         let repr = match self {
             Self::None => SimpleBodyRepr::None,
-            Self::Text(inner) => SimpleBodyRepr::Text(&inner),
-            Self::Bytes(inner) => SimpleBodyRepr::Bytes(&inner),
+            Self::Text(inner) => SimpleBodyRepr::Text(inner),
+            Self::Bytes(inner) => SimpleBodyRepr::Bytes(inner),
             Self::Stream(inner) => SimpleBodyRepr::Stream(match inner {
                 Some(_) => Some(()),
                 None => None,
@@ -389,7 +389,7 @@ pub trait RenderHttp: Send {
                 Ok(inner) => Ok(inner),
                 Err(err) => Err(err.into()),
             },
-            Err(err) => Err(err.into()),
+            Err(err) => Err(err),
         })
     }
 
@@ -428,7 +428,7 @@ impl From<String> for Proto {
 
 impl From<&str> for Proto {
     fn from(value: &str) -> Self {
-        Self::from_str(&value).expect("should match protocols")
+        Self::from_str(value).expect("should match protocols")
     }
 }
 
@@ -1084,7 +1084,7 @@ impl SimpleUrl {
             return (self.match_queries(target), params);
         }
 
-        return (false, params);
+        (false, params)
     }
 
     fn merge_params(&self, extracted: Vec<String>) -> Option<BTreeMap<String, String>> {
@@ -1187,10 +1187,7 @@ impl SimpleUrl {
         let re = Regex::new(CAPTURE_PARAM_STR).unwrap();
         let params: Vec<String> = re
             .captures_iter(url)
-            .filter_map(|cap| match cap.name("p") {
-                Some(p) => Some(String::from(p.as_str())),
-                None => None,
-            })
+            .filter_map(|cap| cap.name("p").map(|p| String::from(p.as_str())))
             .collect();
 
         if params.is_empty() {
@@ -1244,7 +1241,7 @@ mod simple_url_tests {
         let (matched, params) = resource_url.extract_matched_url("/v1/service/endpoint");
 
         assert!(matched);
-        assert!(matches!(params, None));
+        assert!(params.is_none());
     }
 
     #[test]
@@ -1258,12 +1255,12 @@ mod simple_url_tests {
         assert_eq!(resource_url.url, content);
         assert_eq!(resource_url.queries, None);
         assert_eq!(resource_url.params, Some(params));
-        assert!(matches!(resource_url.matcher, Some(_)));
+        assert!(resource_url.matcher.is_some());
 
         let (matched, params) = resource_url.extract_matched_url("/v1/service/endpoint/123/hello");
 
         assert!(matched);
-        assert!(matches!(params, Some(_)));
+        assert!(params.is_some());
 
         let mut expected_params: BTreeMap<String, String> = BTreeMap::new();
         expected_params.insert("user_id".into(), "123".into());
@@ -1283,13 +1280,13 @@ mod simple_url_tests {
         assert_eq!(resource_url.url, content);
         assert_eq!(resource_url.queries, None);
         assert_eq!(resource_url.params, Some(params));
-        assert!(matches!(resource_url.matcher, Some(_)));
+        assert!(resource_url.matcher.is_some());
 
         let (matched, params) =
             resource_url.extract_matched_url("/v1/service/endpoint/123/message");
 
         assert!(matched);
-        assert!(matches!(params, Some(_)));
+        assert!(params.is_some());
 
         let mut expected_params: BTreeMap<String, String> = BTreeMap::new();
         expected_params.insert("user_id".into(), "123".into());
@@ -1308,7 +1305,7 @@ mod simple_url_tests {
         assert_eq!(resource_url.url, content);
         assert_eq!(resource_url.queries, None);
         assert_eq!(resource_url.params, Some(params));
-        assert!(matches!(resource_url.matcher, Some(_)));
+        assert!(resource_url.matcher.is_some());
 
         assert!(resource_url.matches_url("/v1/service/endpoint/123/message"));
         assert!(!resource_url.matches_url("/v1/service/endpoint/123/hello"));
@@ -1325,7 +1322,7 @@ mod simple_url_tests {
         assert_eq!(resource_url.url, content);
         assert_eq!(resource_url.params, None);
         assert_eq!(resource_url.queries, Some(queries));
-        assert!(matches!(resource_url.matcher, Some(_)));
+        assert!(resource_url.matcher.is_some());
         assert!(resource_url.matches_url("/v1/service/endpoint?userId=123&hello=abc"));
         assert!(!resource_url.matches_url("/v1/service/endpoint?userId=567&hello=abc"));
         assert!(!resource_url.matches_url("/v1/service/endpoint?userId=123&hello=bda"));
@@ -1338,7 +1335,7 @@ mod simple_url_tests {
         assert_eq!(resource_url.url, content);
         assert_eq!(resource_url.params, None);
         assert_eq!(resource_url.queries, None);
-        assert!(matches!(resource_url.matcher, None));
+        assert!(resource_url.matcher.is_none());
         assert!(resource_url.matches_url("/v1/service/endpoint?userId=123&hello=abc"));
         assert!(!resource_url.matches_url("/v1/service/endpoint?userId=123&hello=alex"));
         assert!(matches!(
@@ -1434,10 +1431,7 @@ impl SimpleOutgoingResponseBuilder {
     }
 
     pub fn add_header<H: Into<SimpleHeader>, S: Into<String>>(mut self, key: H, value: S) -> Self {
-        let mut headers = match self.headers {
-            Some(inner) => inner,
-            None => BTreeMap::new(),
-        };
+        let mut headers = self.headers.unwrap_or_default();
 
         headers.insert(key.into(), value.into());
         self.headers = Some(headers);
@@ -1450,22 +1444,11 @@ impl SimpleOutgoingResponseBuilder {
             None => return Err(SimpleResponseError::StatusIsRequired),
         };
 
-        let mut headers = match self.headers {
-            Some(inner) => inner,
-            None => BTreeMap::new(),
-        };
+        let mut headers = self.headers.unwrap_or_default();
+        let proto = self.proto.unwrap_or(Proto::HTTP11);
+        let body = self.body.unwrap_or(SimpleBody::None);
 
-        let proto = match self.proto {
-            Some(inner) => inner,
-            None => Proto::HTTP11,
-        };
-
-        let body = match self.body {
-            Some(inner) => inner,
-            None => SimpleBody::None,
-        };
-
-        let _ = match &body {
+        match &body {
             SimpleBody::None => {
                 headers.insert(SimpleHeader::CONTENT_LENGTH, String::from("0"));
             }
@@ -1591,11 +1574,7 @@ impl SimpleIncomingRequestBuilder {
     }
 
     pub fn add_header<H: Into<SimpleHeader>, S: Into<String>>(mut self, key: H, value: S) -> Self {
-        let mut headers = match self.headers {
-            Some(inner) => inner,
-            None => BTreeMap::new(),
-        };
-
+        let mut headers = self.headers.unwrap_or_default();
         headers.insert(key.into(), value.into());
         self.headers = Some(headers);
         self
@@ -1612,27 +1591,12 @@ impl SimpleIncomingRequestBuilder {
             None => return Err(SimpleRequestError::NoURLProvided),
         };
 
-        let mut headers = match self.headers {
-            Some(inner) => inner,
-            None => BTreeMap::new(),
-        };
+        let mut headers = self.headers.unwrap_or_default();
+        let proto = self.proto.unwrap_or(Proto::HTTP11);
+        let method = self.method.unwrap_or(SimpleMethod::GET);
+        let body = self.body.unwrap_or(SimpleBody::None);
 
-        let proto = match self.proto {
-            Some(inner) => inner,
-            None => Proto::HTTP11,
-        };
-
-        let method = match self.method {
-            Some(inner) => inner,
-            None => SimpleMethod::GET,
-        };
-
-        let body = match self.body {
-            Some(inner) => inner,
-            None => SimpleBody::None,
-        };
-
-        let _ = match &body {
+        match &body {
             SimpleBody::None => {
                 headers.insert(SimpleHeader::CONTENT_LENGTH, String::from("0"));
             }
@@ -1684,19 +1648,19 @@ pub enum Http11RenderError {
 
 impl From<BoxedError> for Http11RenderError {
     fn from(value: BoxedError) -> Self {
-        value.into()
+        Self::Failed(value)
     }
 }
 
 impl From<FromUtf8Error> for Http11RenderError {
     fn from(value: FromUtf8Error) -> Self {
-        value.into()
+        Self::UTF8Encoding(value)
     }
 }
 
 impl From<FromUtf16Error> for Http11RenderError {
     fn from(value: FromUtf16Error) -> Self {
-        value.into()
+        Self::UTF16Encoding(value)
     }
 }
 
@@ -1708,7 +1672,7 @@ impl core::fmt::Display for Http11RenderError {
     }
 }
 
-/// Http11ReqState is an interesting pattern I am playing with
+/// [`Http11ReqState`] is an interesting pattern I am playing with
 /// where instead of forcing async where I want chunked process instead
 /// we can use rust typed state pattern where we define an enum of a singular
 /// type with it's multiple iterations where each defines a possible state
@@ -1719,7 +1683,7 @@ impl core::fmt::Display for Http11RenderError {
 ///
 /// The benefit is that now I can represent different states of the rendering
 /// of a HTTP 1.1 Request object via enum's options/variants where the iterator
-/// `Http11RequestIterator` can swap out the state and use this to decide
+/// [`Http11RequestIterator`] can swap out the state and use this to decide
 /// it's internal state with just use of the Iterator.
 /// The idea is this pattern will work regardless of whether sync or async
 /// because you can wrap the iterator in an async iterator if you want which is nice
@@ -1801,7 +1765,7 @@ impl Clone for Http11ReqState {
     }
 }
 
-/// `Http11RequestIterator` represents the rendering of a `HTTP`
+/// [`Http11RequestIterator`] represents the rendering of a `HTTP`
 /// request via an Iterator pattern that supports both sync and async
 /// contexts.
 pub struct Http11RequestIterator(Http11ReqState);
@@ -1844,7 +1808,7 @@ impl Iterator for Http11RequestIterator {
                 let borrowed_headers = &request.headers;
 
                 let mut encoded_headers: Vec<String> = borrowed_headers
-                    .into_iter()
+                    .iter()
                     .map(|(key, value)| format!("{}: {}\r\n", key, value))
                     .collect();
 
@@ -2013,7 +1977,7 @@ impl Iterator for Http11RequestIterator {
             }
 
             // Ends the iterator
-            Http11ReqState::End => return None,
+            Http11ReqState::End => None,
         }
     }
 }
@@ -2105,7 +2069,7 @@ impl Iterator for Http11ResponseIterator {
                 let borrowed_headers = &response.headers;
 
                 let mut encoded_headers: Vec<String> = borrowed_headers
-                    .into_iter()
+                    .iter()
                     .map(|(key, value)| format!("{}: {}\r\n", key, value))
                     .collect();
 
@@ -2282,7 +2246,7 @@ impl Iterator for Http11ResponseIterator {
             }
 
             // Ends the iterator
-            Http11ResState::End => return None,
+            Http11ResState::End => None,
         }
     }
 }
@@ -2717,7 +2681,7 @@ where
                         return Some(Err(line_read_result.unwrap_err()));
                     }
 
-                    if line.trim() == "" {
+                    if line.trim().is_empty() {
                         break;
                     }
 
@@ -2737,7 +2701,7 @@ where
 
                     last_header = Some(header_key.clone());
 
-                    let max_header_key_length: usize = match self.max_header_key_length.clone() {
+                    let max_header_key_length: usize = match self.max_header_key_length {
                         Some(max_value) => max_value,
                         None => MAX_HEADER_NAME_LEN,
                     };
@@ -2761,13 +2725,13 @@ where
                         return Some(Err(HttpReaderError::HeaderKeyContainsEncodedCRLF));
                     }
                     for space_char in SPACE_CHARS {
-                        if header_key.contains(space_char.clone()) {
+                        if header_key.contains(*space_char) {
                             self.state = HttpReadState::Finished;
                             return Some(Err(HttpReaderError::InvalidHeaderKey));
                         }
                     }
 
-                    if let Some(max_value) = self.max_header_value_length.clone() {
+                    if let Some(max_value) = self.max_header_value_length {
                         if header_value.len() > max_value {
                             self.state = HttpReadState::Finished;
                             return Some(Err(HttpReaderError::HeaderValueGreaterThanLimit(
@@ -2776,7 +2740,7 @@ where
                         }
                     }
 
-                    if header_value == "" {
+                    if header_value.is_empty() {
                         self.state = HttpReadState::Finished;
                         return Some(Err(HttpReaderError::InvalidHeaderValue));
                     }
@@ -2819,7 +2783,7 @@ where
                     self.state = HttpReadState::Body(Body::ChunkedBody(
                         transfer_encoding.unwrap().clone(),
                         headers.clone(),
-                        self.max_body_length.clone(),
+                        self.max_body_length,
                     ));
                     return Some(Ok(IncomingRequestParts::Headers(headers)));
                 }
@@ -2830,7 +2794,7 @@ where
                 match headers.get(&SimpleHeader::CONTENT_LENGTH) {
                     Some(content_size_str) => match content_size_str.parse::<u64>() {
                         Ok(value) => {
-                            if let Some(max_value) = self.max_body_length.clone() {
+                            if let Some(max_value) = self.max_body_length {
                                 if value > (max_value as u64) {
                                     return Some(Err(
                                         HttpReaderError::BodyContentSizeIsGreaterThanLimit(
@@ -2874,7 +2838,7 @@ where
                     }
                 }
             }
-            HttpReadState::Finished => return None,
+            HttpReadState::Finished => None,
         }
     }
 }
@@ -2887,7 +2851,7 @@ pub enum ChunkStateError {
     ParseFailed,
     InvalidByte(u8),
     ChunkSizeNotFound,
-    InvalidOctectBytes(FromUtf8Error),
+    InvalidOctetBytes(FromUtf8Error),
     InvalidChunkEnding,
     ExtensionWithNoValue,
 }
@@ -2961,16 +2925,16 @@ pub enum ChunkState {
 }
 
 impl ChunkState {
-    pub fn new(chunk_size_octect: String, chunk_extension: Option<Extensions>) -> Self {
-        Self::try_new(chunk_size_octect, chunk_extension).expect("should parse octect string")
+    pub fn new(chunk_size_octet: String, chunk_extension: Option<Extensions>) -> Self {
+        Self::try_new(chunk_size_octet, chunk_extension).expect("should parse octet string")
     }
 
     pub fn try_new(
-        chunk_size_octect: String,
+        chunk_size_octet: String,
         chunk_extension: Option<Extensions>,
     ) -> Result<Self, ChunkStateError> {
-        match Self::parse_chunk_octect(chunk_size_octect.as_bytes()) {
-            Ok(size) => Ok(Self::Chunk(size, chunk_size_octect, chunk_extension)),
+        match Self::parse_chunk_octet(chunk_size_octet.as_bytes()) {
+            Ok(size) => Ok(Self::Chunk(size, chunk_size_octet, chunk_extension)),
             Err(err) => Err(err),
         }
     }
@@ -2984,9 +2948,7 @@ impl ChunkState {
         acc: &mut BytesPointer,
     ) -> Result<Option<Self>, ChunkStateError> {
         // eat all the space
-        if let Err(err) = Self::eat_space(acc) {
-            return Err(err);
-        }
+        Self::eat_space(acc)?;
 
         while let Some(b) = acc.peek_next() {
             match b {
@@ -3000,12 +2962,12 @@ impl ChunkState {
 
         match acc.take() {
             Some(value) => match String::from_utf8(value.to_vec()) {
-                Ok(converted_string) => Ok(if converted_string.len() == 0 {
+                Ok(converted_string) => Ok(if converted_string.is_empty() {
                     None
                 } else {
                     Some(ChunkState::Trailer(converted_string))
                 }),
-                Err(err) => return Err(ChunkStateError::InvalidOctectBytes(err)),
+                Err(err) => Err(ChunkStateError::InvalidOctetBytes(err)),
             },
             None => Ok(None),
         }
@@ -3038,7 +3000,7 @@ impl ChunkState {
             total_bytes += 2;
         }
 
-        // fetch chunk_size_octect
+        // fetch chunk_size_octet
         while let Some(content) = data_pointer.peek_next() {
             match content {
                 b"\r" => {
@@ -3066,7 +3028,7 @@ impl ChunkState {
     pub fn parse_http_chunk_from_pointer(
         data_pointer: &mut BytesPointer,
     ) -> Result<Self, ChunkStateError> {
-        let mut chunk_size_octect: Option<&[u8]> = None;
+        let mut chunk_size_octet: Option<&[u8]> = None;
 
         // eat up any space (except CRLF)
         Self::eat_space(data_pointer)?;
@@ -3077,7 +3039,7 @@ impl ChunkState {
             data_pointer.skip();
         }
 
-        // fetch chunk_size_octect
+        // fetch chunk_size_octet
         while let Some(content) = data_pointer.peek_next() {
             let b = content[0];
             match b {
@@ -3086,22 +3048,22 @@ impl ChunkState {
                 b'A'..=b'F' => continue,
                 b' ' | b'\r' | b';' => {
                     data_pointer.unpeek_next();
-                    chunk_size_octect = data_pointer.take();
+                    chunk_size_octet = data_pointer.take();
                     break;
                 }
                 _ => return Err(ChunkStateError::InvalidByte(b)),
             }
         }
 
-        if chunk_size_octect.is_none() {
+        if chunk_size_octet.is_none() {
             return Err(ChunkStateError::ChunkSizeNotFound);
         }
 
-        let (chunk_size, chunk_string): (u64, String) = match &chunk_size_octect {
-            Some(value) => match Self::parse_chunk_octect(value) {
+        let (chunk_size, chunk_string): (u64, String) = match &chunk_size_octet {
+            Some(value) => match Self::parse_chunk_octet(value) {
                 Ok(converted) => match String::from_utf8(value.to_vec()) {
                     Ok(converted_string) => (converted, converted_string),
-                    Err(err) => return Err(ChunkStateError::InvalidOctectBytes(err)),
+                    Err(err) => return Err(ChunkStateError::InvalidOctetBytes(err)),
                 },
                 Err(err) => return Err(err),
             },
@@ -3140,7 +3102,7 @@ impl ChunkState {
             return Ok(Self::Chunk(chunk_size, chunk_string, None));
         }
 
-        return Ok(Self::Chunk(chunk_size, chunk_string, Some(extensions)));
+        Ok(Self::Chunk(chunk_size, chunk_string, Some(extensions)))
     }
 
     pub(crate) fn parse_http_chunk_extension(
@@ -3153,9 +3115,7 @@ impl ChunkState {
         }
 
         // eat all the space
-        if let Err(err) = Self::eat_space(acc) {
-            return Err(err);
-        }
+        Self::eat_space(acc)?;
 
         while let Some(b) = acc.peek_next() {
             match b {
@@ -3170,16 +3130,14 @@ impl ChunkState {
         let extension_key = acc.take();
 
         // eat all the space
-        if let Err(err) = Self::eat_space(acc) {
-            return Err(err);
-        }
+        Self::eat_space(acc)?;
 
         // skip first extension starter
         if acc.peek(1) != Some(b"=") {
             return match extension_key {
                 Some(key) => match String::from_utf8(key.to_vec()) {
                     Ok(converted_string) => Ok((converted_string, None)),
-                    Err(err) => Err(ChunkStateError::InvalidOctectBytes(err)),
+                    Err(err) => Err(ChunkStateError::InvalidOctetBytes(err)),
                 },
                 None => Err(ChunkStateError::ParseFailed),
             };
@@ -3190,15 +3148,9 @@ impl ChunkState {
         acc.skip();
 
         // eat all the space
-        if let Err(err) = Self::eat_space(acc) {
-            return Err(err);
-        }
+        Self::eat_space(acc)?;
 
-        let is_quoted = if acc.peek(1) == Some(b"\"") {
-            true
-        } else {
-            false
-        };
+        let is_quoted = acc.peek(1) == Some(b"\"");
 
         // move pointer forward for quoted value
         if is_quoted {
@@ -3240,14 +3192,14 @@ impl ChunkState {
                     String::from_utf8(value.to_vec()),
                 ) {
                     (Ok(key_string), Ok(value_string)) => Ok((key_string, Some(value_string))),
-                    (Ok(_), Err(err)) => Err(ChunkStateError::InvalidOctectBytes(err)),
-                    (Err(err), Ok(_)) => Err(ChunkStateError::InvalidOctectBytes(err)),
-                    (Err(err), Err(_)) => Err(ChunkStateError::InvalidOctectBytes(err)),
+                    (Ok(_), Err(err)) => Err(ChunkStateError::InvalidOctetBytes(err)),
+                    (Err(err), Ok(_)) => Err(ChunkStateError::InvalidOctetBytes(err)),
+                    (Err(err), Err(_)) => Err(ChunkStateError::InvalidOctetBytes(err)),
                 }
             }
             (Some(key), None) => match String::from_utf8(key.to_vec()) {
                 Ok(converted_string) => Ok((converted_string, None)),
-                Err(err) => Err(ChunkStateError::InvalidOctectBytes(err)),
+                Err(err) => Err(ChunkStateError::InvalidOctetBytes(err)),
             },
             (None, Some(_)) => Err(ChunkStateError::ExtensionWithNoValue),
             (None, None) => Err(ChunkStateError::ParseFailed),
@@ -3293,14 +3245,14 @@ impl ChunkState {
     ///
     ///    => size = ((size * 16) + 10) + (b::int - byte('A')::int)
     ///
-    /// This formulas ensure we can correctly map our hexadecimal octect string into
+    /// This formulas ensure we can correctly map our hexadecimal octet string into
     /// the relevant value in numbers.
     ///
-    pub fn parse_chunk_octect(chunk_size_octect: &[u8]) -> Result<u64, ChunkStateError> {
+    pub fn parse_chunk_octet(chunk_size_octet: &[u8]) -> Result<u64, ChunkStateError> {
         const RADIX: u64 = 16;
         let mut size: u64 = 0;
 
-        let mut data_pointer = ubytes::BytesPointer::new(chunk_size_octect);
+        let mut data_pointer = ubytes::BytesPointer::new(chunk_size_octet);
         while let Some(content) = data_pointer.peek_next() {
             let b = content[0];
             match b {
@@ -3352,11 +3304,11 @@ mod test_chunk_parser {
         for sample in test_cases {
             let chunks: Result<Vec<Option<ChunkState>>, ChunkStateError> = sample
                 .content
-                .into_iter()
+                .iter()
                 .map(|t| ChunkState::parse_http_trailer_chunk(t.as_bytes()))
                 .collect();
 
-            assert!(matches!(chunks, Ok(_)));
+            assert!(chunks.is_ok());
             assert_eq!(chunks.unwrap(), sample.expected);
         }
     }
@@ -3423,17 +3375,17 @@ mod test_chunk_parser {
         for sample in test_cases {
             let chunks: Result<Vec<ChunkState>, ChunkStateError> = sample
                 .content
-                .into_iter()
+                .iter()
                 .map(|t| ChunkState::parse_http_chunk(t.as_bytes()))
                 .collect();
 
-            assert!(matches!(chunks, Ok(_)));
+            assert!(chunks.is_ok());
             assert_eq!(chunks.unwrap(), sample.expected);
         }
     }
 
     #[test]
-    fn test_chunk_state_octect_string_parsing() {
+    fn test_chunk_state_octet_string_parsing() {
         assert!(matches!(
             ChunkState::try_new("0".into(), None),
             Ok(ChunkState::Chunk(0, _, _))
@@ -3496,13 +3448,13 @@ impl<T: PeekableReadStream + Send> Iterator for SimpleHttpChunkIterator<T> {
 
                 let total_bytes_before_body =
                     match ChunkState::get_http_chunk_header_length_from_pointer(
-                        &mut ubytes::BytesPointer::new(&header_slice),
+                        &mut ubytes::BytesPointer::new(header_slice),
                     ) {
                         Ok(inner) => inner,
                         Err(err) => return Some(Err(Box::new(err))),
                     };
 
-                let mut head_pointer = ubytes::BytesPointer::new(&header_slice);
+                let mut head_pointer = ubytes::BytesPointer::new(header_slice);
                 match ChunkState::parse_http_chunk_from_pointer(&mut head_pointer) {
                     Ok(chunk) => match chunk {
                         ChunkState::Chunk(size, _, opt_exts) => {
@@ -3530,7 +3482,7 @@ impl<T: PeekableReadStream + Send> Iterator for SimpleHttpChunkIterator<T> {
                     Err(err) => Some(Err(Box::new(err))),
                 }
             }
-            Err(_) => return Some(Err(Box::new(HttpReaderError::GuardedResourceAccess))),
+            Err(_) => Some(Err(Box::new(HttpReaderError::GuardedResourceAccess))),
         }
     }
 }
@@ -3564,12 +3516,9 @@ impl BodyExtractor for SimpleHttpBody {
             Body::ChunkedBody(transfer_encoding, headers, opt_max_size) => {
                 let chunked_iterator =
                     Box::new(SimpleHttpChunkIterator(transfer_encoding, headers, stream));
-                if opt_max_size.is_some() {
+                if let Some(max_value) = opt_max_size {
                     return Ok(SimpleBody::LimitedChunkedStream(Some(
-                        ChunkedDataLimitIterator::new(
-                            opt_max_size.clone().unwrap(),
-                            chunked_iterator,
-                        ),
+                        ChunkedDataLimitIterator::new(max_value, chunked_iterator),
                     )));
                 }
                 Ok(SimpleBody::ChunkedStream(Some(chunked_iterator)))
@@ -3582,7 +3531,7 @@ impl HttpReader<SimpleHttpBody, WrappedTcpStream> {
     pub fn simple_tcp_stream(
         reader: ioutils::BufferedReader<WrappedTcpStream>,
     ) -> HttpReader<SimpleHttpBody, WrappedTcpStream> {
-        HttpReader::<SimpleHttpBody, WrappedTcpStream>::new(reader, SimpleHttpBody::default())
+        HttpReader::<SimpleHttpBody, WrappedTcpStream>::new(reader, SimpleHttpBody)
     }
 }
 
@@ -3865,7 +3814,7 @@ impl ServiceActionList {
             matches.push(endpoint.clone());
         }
 
-        if matches.len() == 0 {
+        if matches.is_empty() {
             return None;
         }
 
@@ -3891,7 +3840,7 @@ impl ServiceActionList {
             matches.push(endpoint.clone());
         }
 
-        if matches.len() == 0 {
+        if matches.is_empty() {
             return None;
         }
 
@@ -3953,7 +3902,7 @@ impl ServiceAction {
             return false;
         }
 
-        return self.route.matches_other(&url);
+        self.route.matches_other(url)
     }
 
     pub fn match_head(&self, url: &str, method: SimpleMethod) -> bool {
@@ -3961,7 +3910,7 @@ impl ServiceAction {
             return false;
         }
 
-        return self.route.matches_url(&url);
+        self.route.matches_url(url)
     }
 
     pub fn extract_match(
@@ -3974,7 +3923,7 @@ impl ServiceAction {
             return (false, None);
         }
 
-        let (matched_url, extracted_params) = self.route.extract_matched_url(&url);
+        let (matched_url, extracted_params) = self.route.extract_matched_url(url);
         if !matched_url {
             return (false, None);
         }
@@ -3984,7 +3933,7 @@ impl ServiceAction {
                 if inner == &expected {
                     return (matched_url, extracted_params);
                 }
-                return (false, None);
+                (false, None)
             }
             (Some(_), None) => (false, None),
             (None, Some(_)) => (matched_url, extracted_params),
@@ -3998,6 +3947,12 @@ pub struct ServiceActionBuilder {
     route: Option<SimpleUrl>,
     headers: Option<SimpleHeaders>,
     body: Option<Box<dyn ClonableSimpleServer + Send + 'static>>,
+}
+
+impl Default for ServiceActionBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ServiceActionBuilder {
@@ -4021,17 +3976,13 @@ impl ServiceActionBuilder {
     }
 
     pub fn add_header<H: Into<SimpleHeader>, J: Into<String>>(mut self, key: H, value: J) -> Self {
-        let mut headers = match self.headers {
-            Some(inner) => inner,
-            None => BTreeMap::new(),
-        };
-
+        let mut headers = self.headers.unwrap_or_default();
         headers.insert(key.into(), value.into());
         self.headers = Some(headers);
         self
     }
 
-    pub fn with_body(mut self, body: impl ClonableSimpleServer + Send + 'static) -> Self {
+    pub fn with_body(mut self, body: impl ClonableSimpleServer + 'static) -> Self {
         self.body = Some(Box::new(body));
         self
     }
@@ -4122,7 +4073,7 @@ mod service_action_test {
             resource.extract_match("/service/endpoint/v1", SimpleMethod::GET, Some(headers));
 
         assert!(matched_url);
-        assert!(matches!(params, None));
+        assert!(params.is_none());
     }
 
     #[test]
@@ -4138,6 +4089,6 @@ mod service_action_test {
             resource.extract_match("/service/endpoint/v1", SimpleMethod::GET, None);
 
         assert!(matched_url);
-        assert!(matches!(params, None));
+        assert!(params.is_none());
     }
 }

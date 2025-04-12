@@ -1215,7 +1215,7 @@ impl<
             mappers: None,
             resolver: None,
             panic_handler: None,
-            _marker: PhantomData::default(),
+            _marker: PhantomData,
         }
     }
 

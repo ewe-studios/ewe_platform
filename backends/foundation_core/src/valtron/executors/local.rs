@@ -1700,13 +1700,9 @@ mod test_local_thread_executor {
     struct NoYielder;
 
     impl ProcessController for NoYielder {
-        fn yield_process(&self) {
-            return;
-        }
+        fn yield_process(&self) {}
 
-        fn yield_for(&self, _: time::Duration) {
-            return;
-        }
+        fn yield_for(&self, _: time::Duration) {}
     }
 
     struct Counter(&'static str, usize, usize, usize);
@@ -1761,7 +1757,7 @@ mod test_local_thread_executor {
                 SleepyMan::new(3, ExponentialBackoffDecider::default()),
             ),
             PriorityOrder::Bottom,
-            NoYielder::default(),
+            NoYielder,
             Some(kill_signal.clone()),
             None,
         );
@@ -1809,7 +1805,7 @@ mod test_local_thread_executor {
                 SleepyMan::new(3, ExponentialBackoffDecider::default()),
             ),
             PriorityOrder::Bottom,
-            NoYielder::default(),
+            NoYielder,
             None,
             None,
         );
@@ -1855,7 +1851,7 @@ mod test_local_thread_executor {
                 SleepyMan::new(3, ExponentialBackoffDecider::default()),
             ),
             PriorityOrder::Bottom,
-            NoYielder::default(),
+            NoYielder,
             None,
             None,
         );
@@ -1898,7 +1894,7 @@ mod test_local_thread_executor {
                 SleepyMan::new(3, ExponentialBackoffDecider::default()),
             ),
             PriorityOrder::Bottom,
-            NoYielder::default(),
+            NoYielder,
             None,
             None,
         );
@@ -1959,7 +1955,7 @@ mod test_local_thread_executor {
                 SleepyMan::new(3, ExponentialBackoffDecider::default()),
             ),
             PriorityOrder::Top,
-            NoYielder::default(),
+            NoYielder,
             None,
             None,
         );
@@ -2090,7 +2086,7 @@ mod test_local_thread_executor {
                 SleepyMan::new(3, ExponentialBackoffDecider::default()),
             ),
             PriorityOrder::Bottom,
-            NoYielder::default(),
+            NoYielder,
             None,
             None,
         );
@@ -2358,7 +2354,7 @@ mod test_local_thread_executor {
                 SleepyMan::new(3, ExponentialBackoffDecider::default()),
             ),
             PriorityOrder::Bottom,
-            NoYielder::default(),
+            NoYielder,
             None,
             None,
         );
@@ -2440,7 +2436,7 @@ mod test_local_thread_executor {
                 SleepyMan::new(3, ExponentialBackoffDecider::default()),
             ),
             PriorityOrder::Bottom,
-            NoYielder::default(),
+            NoYielder,
             None,
             None,
         );

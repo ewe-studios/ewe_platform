@@ -861,16 +861,16 @@ impl<R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteMethod<R, S,
 /// a section with sub-sections.
 ///
 /// This means a routes like:
-/// -	/v1/apples/:id/seeds
-/// -	/v1/oranges/:id/seeds
+/// -   /v1/apples/:id/seeds
+/// -   /v1/oranges/:id/seeds
 ///
 /// Becomes a a segment of:
 ///
 /// RouteSegment(v1) ->
-/// 	`SubSegments` -> [
-/// 		RouteSegment(apples, [RouteSegment(:id, [RouteSegment(seeds)])]),
-/// 		RouteSegment(oranges, [RouteSegment(:id, [RouteSegment(seeds)])]),
-/// 	]
+///     `SubSegments` -> [
+///             RouteSegment(apples, [RouteSegment(:id, [RouteSegment(seeds)])]),
+///             RouteSegment(oranges, [RouteSegment(:id, [RouteSegment(seeds)])]),
+///     ]
 ///
 /// This means each route segment gets broken down and nested appropriately allowing
 /// relevant drill down into the relevant subparts to match the route.
@@ -914,7 +914,7 @@ impl<R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> PartialEq
 }
 
 /// `sort_segment` is a simplistic algorithmn that takes a giving two `RouteSegment` returning
-///	`Ordering` indicators for how they should be ordered.
+///     `Ordering` indicators for how they should be ordered.
 fn sort_segments<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>>(
     left: &RouteSegment<'a, R, S, Server>,
     right: &RouteSegment<'a, R, S, Server>,
@@ -938,8 +938,8 @@ static SLASH: char = '/';
 fn parse_route_into_segments(route: &str) -> RouteResult<Vec<&str>> {
     let mut segments = Vec::with_capacity(5);
 
-    let target_route = if route.starts_with('/') {
-        &route[1..]
+    let target_route = if let Some(stripped) = route.strip_prefix('/') {
+        stripped
     } else {
         route
     };
@@ -1360,7 +1360,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
     /// 1. The highest priority segments are sorted in descending order.
     ///
     /// 2. Similiar routes segments with the same priority will be sorted in alphabetic order
-    ///		in ascending order.
+    ///         in ascending order.
     ///
     /// One thing to note is that the `SegmentType::Index` is treated specially in that
     /// it won't appear in your route sub-segments but instead will have it's relevant

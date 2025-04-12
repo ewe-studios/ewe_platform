@@ -14,12 +14,12 @@ impl DataStreamAddr {
 impl DataStreamAddr {
     #[inline]
     pub fn peer_addr(&self) -> core::net::SocketAddr {
-        self.1.clone()
+        self.1
     }
 
     #[inline]
     pub fn local_addr(&self) -> core::net::SocketAddr {
-        self.0.clone()
+        self.0
     }
 }
 
