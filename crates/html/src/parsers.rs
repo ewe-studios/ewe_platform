@@ -1,3 +1,5 @@
+#![allow(clippy::match_like_matches_macro)]
+
 use anyhow::anyhow;
 use foundation_core::io::mem::stringpointer::StringPointer;
 use lazy_static::lazy_static;
@@ -282,16 +284,16 @@ impl SVGTags {
     }
 
     pub fn is_self_closing_tag(self) -> bool {
-        match self {
+        matches!(
+            self,
             SVGTags::Path
-            | SVGTags::Polygon
-            | SVGTags::Rect
-            | SVGTags::Circle
-            | SVGTags::Animate
-            | SVGTags::Animatemotion
-            | SVGTags::Animatetransform => true,
-            _ => false,
-        }
+                | SVGTags::Polygon
+                | SVGTags::Rect
+                | SVGTags::Circle
+                | SVGTags::Animate
+                | SVGTags::Animatemotion
+                | SVGTags::Animatetransform
+        )
     }
 
     pub fn is_auto_closed(_tag: SVGTags) -> bool {
@@ -766,56 +768,35 @@ impl HTMLTags {
     }
 
     pub fn is_self_closing_tag(self) -> bool {
-        match self {
+        matches!(
+            self,
             HTMLTags::Area
-            | HTMLTags::Base
-            | HTMLTags::Embed
-            | HTMLTags::Hr
-            | HTMLTags::Img
-            | HTMLTags::Link
-            | HTMLTags::Meta
-            | HTMLTags::Keygen
-            | HTMLTags::Param
-            | HTMLTags::Track
-            | HTMLTags::Source
-            | HTMLTags::Input
-            | HTMLTags::Col
-            | HTMLTags::Wbr
-            | HTMLTags::Br => true,
-            _ => false,
-        }
+                | HTMLTags::Base
+                | HTMLTags::Embed
+                | HTMLTags::Hr
+                | HTMLTags::Img
+                | HTMLTags::Link
+                | HTMLTags::Meta
+                | HTMLTags::Keygen
+                | HTMLTags::Param
+                | HTMLTags::Track
+                | HTMLTags::Source
+                | HTMLTags::Input
+                | HTMLTags::Col
+                | HTMLTags::Wbr
+                | HTMLTags::Br
+        )
     }
 
     pub fn is_html_element_closed_by_closing_tag(me: HTMLTags, other: HTMLTags) -> bool {
         match me {
-            HTMLTags::Li => match other {
-                HTMLTags::Li | HTMLTags::Ol | HTMLTags::Ul => true,
-                _ => false,
-            },
-            HTMLTags::A => match other {
-                HTMLTags::Div => true,
-                _ => false,
-            },
-            HTMLTags::B => match other {
-                HTMLTags::Div => true,
-                _ => false,
-            },
-            HTMLTags::I => match other {
-                HTMLTags::Div => true,
-                _ => false,
-            },
-            HTMLTags::P => match other {
-                HTMLTags::Div => true,
-                _ => false,
-            },
-            HTMLTags::Td => match other {
-                HTMLTags::Table | HTMLTags::Tr => true,
-                _ => false,
-            },
-            HTMLTags::Th => match other {
-                HTMLTags::Table | HTMLTags::Tr => true,
-                _ => false,
-            },
+            HTMLTags::Li => matches!(other, HTMLTags::Li | HTMLTags::Ol | HTMLTags::Ul),
+            HTMLTags::A => matches!(other, HTMLTags::Div,),
+            HTMLTags::B => matches!(other, HTMLTags::Div),
+            HTMLTags::I => matches!(other, HTMLTags::Div),
+            HTMLTags::P => matches!(other, HTMLTags::Div),
+            HTMLTags::Td => matches!(other, HTMLTags::Table | HTMLTags::Tr),
+            HTMLTags::Th => matches!(other, HTMLTags::Table | HTMLTags::Tr),
             _ => false,
         }
     }
@@ -1042,7 +1023,7 @@ impl MarkupTags {
         }
     }
 
-    pub fn to_string<'a>(self) -> Result<String, anyhow::Error> {
+    pub fn to_string(self) -> Result<String, anyhow::Error> {
         match self {
             MarkupTags::DocType => Ok(String::from("!Doctype")),
             MarkupTags::SVG(sg) => Ok(sg.into()),
@@ -1222,7 +1203,8 @@ static BACKWARD_SLASH: &str = "\\";
 static ATTRIBUTE_EQUAL_SIGN: &str = "=";
 static DOC_TYPE_STARTER_MARKER: &str = "!";
 
-///	Returns a new string where the content is wrapped in a `DocumentFragmentContainer`:
+/// [`wrap_in_document_fragment_container`] returns a new string where
+/// the content is wrapped in a `DocumentFragmentContainer`:
 /// <DocumentFragmentContainer>{content}</DocumentFragmentContainer>.
 ///
 /// This is important to allow you when dealing with an html content where
@@ -1423,7 +1405,7 @@ impl HTMLParser {
                 Err(err) => return Err(err),
             }
 
-            if !pop_top_stack || (pop_top_stack && stacks.len() == 1) {
+            if !pop_top_stack || stacks.len() == 1 {
                 continue;
             }
 
@@ -1660,7 +1642,7 @@ impl HTMLParser {
         let mut elem = Stack::empty();
 
         while let Some(_next) = acc.peek_next() {
-            ewe_trace::debug!("parse_comment: saw chracter: {}", _next);
+            ewe_trace::debug!("parse_comment: saw character: {}", _next);
 
             let comment_ender_scan = acc.vpeek_at(0, 3).unwrap();
             ewe_trace::debug!(
@@ -1797,7 +1779,7 @@ impl HTMLParser {
         ewe_trace::debug!("parse_text_block: to scan next token: {:?}", acc.peek(1));
 
         while let Some(next) = acc.peek_next() {
-            ewe_trace::debug!("parse_text_block: saw chracter: {}", next);
+            ewe_trace::debug!("parse_text_block: saw character: {}", next);
 
             if next != TAG_OPEN_BRACKET {
                 continue;
@@ -1862,7 +1844,7 @@ impl HTMLParser {
         let tag_name_with_closer_len = tag_name_with_closer.len(); // tag_name> we want the length of this
 
         while let Some(next) = acc.peek_next() {
-            ewe_trace::debug!("parse_element_text_block: saw chracter: {}", next);
+            ewe_trace::debug!("parse_element_text_block: saw character: {}", next);
 
             if next != TAG_OPEN_BRACKET {
                 continue;
@@ -1922,7 +1904,7 @@ impl HTMLParser {
         let mut collected_attrs = false;
 
         while let Some(next) = acc.peek_next() {
-            ewe_trace::debug!("parse_doc_type: saw chracter: {}", next);
+            ewe_trace::debug!("parse_doc_type: saw character: {}", next);
 
             if !next.chars().all(char::is_alphabetic) {
                 if next != TAG_CLOSED_BRACKET && collected_attrs && collected_tag {
@@ -2007,7 +1989,7 @@ impl HTMLParser {
         let mut collected_tag_name = false;
 
         while let Some(next) = acc.peek_next() {
-            ewe_trace::debug!("parse_xml_elem: saw chracter: {}", next);
+            ewe_trace::debug!("parse_xml_elem: saw character: {}", next);
 
             if self.is_valid_tag_name_token(next) {
                 continue;
@@ -2082,7 +2064,7 @@ impl HTMLParser {
         let mut collected_tag_name = false;
 
         while let Some(next) = acc.peek_next() {
-            ewe_trace::debug!("parse_elem: saw chracter: {}", next);
+            ewe_trace::debug!("parse_elem: saw character: {}", next);
 
             if self.is_valid_tag_name_token(next) {
                 continue;
@@ -2192,7 +2174,7 @@ impl HTMLParser {
 
             ewe_trace::debug!("collect_space: non-space token: {:?}", next);
 
-            // move backwartds
+            // move backwards
             acc.unpeek_next();
 
             // take the space
@@ -2283,7 +2265,7 @@ impl HTMLParser {
                     next
                 );
 
-                // move backwartds
+                // move backwards
                 acc.unpeek_next();
 
                 return Ok(());
@@ -2295,7 +2277,7 @@ impl HTMLParser {
                     next
                 );
 
-                // move backwartds
+                // move backwards
                 acc.unpeek_next();
 
                 return Ok(());
@@ -2343,7 +2325,7 @@ impl HTMLParser {
                 continue;
             }
 
-            // move backwartds
+            // move backwards
             acc.unpeek_next();
 
             return Ok(());
@@ -2362,7 +2344,7 @@ impl HTMLParser {
                 continue;
             }
 
-            // move backwartds
+            // move backwards
             acc.unpeek_next();
 
             return Ok(());
@@ -2511,7 +2493,7 @@ impl HTMLParser {
                 }
             }
 
-            // move backwartds
+            // move backwards
             acc.unpeek_next();
 
             // take the space
@@ -2538,13 +2520,13 @@ impl HTMLParser {
         ewe_trace::debug!("parse_closing_tag: consuming token: {:?}", acc.take());
 
         while let Some(next) = acc.peek_next() {
-            ewe_trace::debug!("parse_closing_tag: saw chracter: {}", next);
+            ewe_trace::debug!("parse_closing_tag: saw character: {}", next);
 
             if self.is_valid_tag_name_token(next) {
                 continue;
             }
 
-            // move backwartds
+            // move backwards
             if next.chars().all(char::is_whitespace) {
                 ewe_trace::debug!("parse_closing_tag: seen space: {:?}", next);
 
@@ -3086,7 +3068,7 @@ mod html_parser_test {
         let data = wrap_in_document_fragment_container(String::from(
             r"<div>
                 <script>
-                	let some_var = window.get('alex');
+                  let some_var = window.get('alex');
                     let elem = (<section>alex</section>)
                 </script>
             </div>
@@ -3330,13 +3312,13 @@ mod html_parser_test {
 
         let data = wrap_in_document_fragment_container(String::from(
             r#"
-            	<style type="text/css">
-                	body {
-                    	background: black;
+              <style type="text/css">
+                  body {
+                      background: black;
                     }
 
                     h1 {
-                    	color: white;
+                      color: white;
                         background-color: #43433;
                     }
                 </style>
@@ -3412,7 +3394,7 @@ mod html_parser_test {
                             <title>Här kan man va</title>
                         </head>
                         <body>
-                        	<boäk näme=20 age="äry" flag={ämu}>Hi</boäk>
+                          <boäk näme=20 age="äry" flag={ämu}>Hi</boäk>
                             <h1>Tjena världen!</h1>
                             <p>Tänkte bara informera om att Sverige är bättre än Finland i ishockey.</p>
                         </body>
@@ -3577,12 +3559,12 @@ mod html_parser_test {
             )),
             wrap_in_document_fragment_container(String::from(
                 r"
-				hello<!--world?--><div/>
+        hello<!--world?--><div/>
             ",
             )),
             wrap_in_document_fragment_container(String::from(
                 r"
-				hello<!--world?--><div/>
+        hello<!--world?--><div/>
             ",
             )),
         ];
@@ -3747,7 +3729,7 @@ mod html_parser_test {
         let data = wrap_in_document_fragment_container(String::from(
             r"
             <div>
-            	<section></section>
+              <section></section>
              </div>
             ",
         ));
@@ -3862,7 +3844,7 @@ mod html_parser_test {
              {{
                 some of other vaulue
              }}
-           	 {{{
+             {{{
              some rust value
              }}}
              </div>
@@ -3902,7 +3884,7 @@ mod html_parser_test {
              {{
                 some of other vaulue
              }}
-           	 {{{
+             {{{
              some rust value
              }} }
              </div>

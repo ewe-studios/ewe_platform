@@ -18,14 +18,13 @@ pub enum Delayed<T> {
     /// Pending represents to the receiver two important information:
     ///
     /// 1. The actual time instant when the delay began (think) of this
-    /// as the actual beginning when we start to count time (start of time)
-    /// for the delayed output
+    ///    as the actual beginning when we start to count time (start of time)
+    ///    for the delayed output
     ///
-    /// 2. The total duration upon which we will be delayed from the start of
-    /// time.
+    /// 2. The total duration upon which we will be delayed from the start of time.
     ///
     /// 3. The remaining duration left until the delay is finished
-    /// (this is more of a bonus).
+    ///    (this is more of a bonus).
     ///
     /// This allows more communication about an operation still awaiting completion.
     Pending(std::time::Instant, std::time::Duration, std::time::Duration),
@@ -59,11 +58,12 @@ pub type BoxedDelayedReadyResolver<D> = Box<dyn DelayedReadyResolver<D>>;
 /// DelayedIterators can be thought of as two forms:
 ///
 /// 1. In one sense this can be the delay result of a one time operation
-/// upon which completion we get our result from the `Delayed::Done` option at
-/// which point we can expect no further results.
+///    upon which completion we get our result from the `Delayed::Done` option at
+///    which point we can expect no further results.
 ///
 /// 2. But in another sense can also represent a re-occurring operation that will be
-/// delayed a specific period of time upon which after completionm, may or may not repeat.
+///    delayed a specific period of time upon which after completion, may or
+///    may not repeat.
 ///
 /// Each response from the iterator is either a `Delayed::Pending` marking
 /// an operation as still delayed and to be completed. It provides the following pieces:
@@ -137,14 +137,12 @@ impl<T> DelayedIterator for SleepIterator<T> {
     type Item = T;
 
     fn next(&mut self) -> Option<Delayed<Self::Item>> {
-        if self.2.is_none() {
-            return None;
-        }
+        self.2.as_ref()?;
 
         let now = std::time::Instant::now();
         let result = match self.0.checked_add(self.1) {
             Some(completed_at) => match completed_at.checked_duration_since(now) {
-                Some(diff) => Delayed::Pending(self.0.clone(), self.1.clone(), diff),
+                Some(diff) => Delayed::Pending(self.0, self.1, diff),
                 None => Delayed::Done(self.2.take().expect("item should not be taken yet")),
             },
             None => Delayed::Done(self.2.take().expect("item should not be taken yet")),

@@ -37,9 +37,9 @@ pub enum RawStream {
 impl RawStream {
     /// Returns a fallible TLS connection from the provided `TcpStream` and connector.
     #[cfg(feature = "native-tls")]
-    pub fn try_wrap_tls_with_connector<'a>(
+    pub fn try_wrap_tls_with_connector(
         plain: TcpStream,
-        connector: &'a TlsConnector,
+        connector: &TlsConnector,
         sni: &str,
     ) -> error::TlsResult<Self> {
         let local_addr = plain.local_addr()?;
@@ -348,10 +348,10 @@ impl<T: Clone> ReconnectingStream<T> {
 impl<T: Clone> Clone for ReconnectingStream<T> {
     fn clone(&self) -> Self {
         Self {
-            max_retries: self.max_retries.clone(),
-            decider: self.decider.clone_box(),
             state: self.state.clone(),
-            connection_timeout: self.connection_timeout.clone(),
+            max_retries: self.max_retries,
+            decider: self.decider.clone_box(),
+            connection_timeout: self.connection_timeout,
         }
     }
 }
@@ -371,13 +371,13 @@ pub enum ReconnectionError {
 
 impl PartialEq for ReconnectionError {
     fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Self::UnexpectedRetryState, Self::UnexpectedRetryState) => true,
-            (Self::NoMoreRetries, Self::NoMoreRetries) => true,
-            (Self::CanRetry(_), Self::CanRetry(_)) => true,
-            (Self::Failed(_), Self::Failed(_)) => true,
-            _ => false,
-        }
+        matches!(
+            (self, other),
+            (Self::UnexpectedRetryState, Self::UnexpectedRetryState)
+                | (Self::NoMoreRetries, Self::NoMoreRetries)
+                | (Self::CanRetry(_), Self::CanRetry(_))
+                | (Self::Failed(_), Self::Failed(_))
+        )
     }
 }
 
@@ -424,10 +424,7 @@ impl<T: Clone> Iterator for ReconnectingStream<T> {
                     wait: None,
                 });
 
-                match RawStream::from_endpoint_timeout(
-                    endpoint.clone(),
-                    self.connection_timeout.clone(),
-                ) {
+                match RawStream::from_endpoint_timeout(endpoint.clone(), self.connection_timeout) {
                     Ok(connected_stream) => {
                         self.state = ConnectionState::Established(endpoint.clone());
                         Some(Ok(ReconnectionStatus::Ready(connected_stream)))
@@ -436,8 +433,7 @@ impl<T: Clone> Iterator for ReconnectingStream<T> {
                         println!("Failed to connect: {:?}", connection_error);
                         match reconnection_state_option {
                             Some(rstate) => {
-                                let duration =
-                                    rstate.wait.clone().unwrap_or(Duration::from_secs(0));
+                                let duration = rstate.wait.unwrap_or(Duration::from_secs(0));
 
                                 let sleeper = SleepIterator::until(duration, endpoint.clone());
                                 self.state = ConnectionState::Reconnect(rstate, Some(sleeper));
@@ -463,10 +459,7 @@ impl<T: Clone> Iterator for ReconnectingStream<T> {
                     }
                     Err(connection_error) => match reconnection_state_option {
                         Some(rstate) => {
-                            let duration = match rstate.wait.clone() {
-                                Some(duration) => duration,
-                                None => Duration::from_secs(0),
-                            };
+                            let duration = rstate.wait.unwrap_or(Duration::from_secs(0));
 
                             let sleeper = SleepIterator::until(duration, endpoint.clone());
                             self.state = ConnectionState::Reconnect(rstate, Some(sleeper));
@@ -490,7 +483,7 @@ impl<T: Clone> Iterator for ReconnectingStream<T> {
 
                 match reconnection_state {
                     Some(rstate) => {
-                        let duration = match rstate.wait.clone() {
+                        let duration = match rstate.wait {
                             Some(duration) => duration,
                             None => Duration::from_secs(0),
                         };
@@ -581,7 +574,7 @@ mod test_reconnection_stream {
                         if duration == &Duration::from_millis(200) {
                             return true;
                         }
-                        return false;
+                        false
                     }
                     _ => true,
                 },

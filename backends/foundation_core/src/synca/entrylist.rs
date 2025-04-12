@@ -607,7 +607,7 @@ mod test_entry_list {
         assert_eq!(1, list.parked_slots());
         assert_eq!(1, list.active_slots());
 
-        assert_eq!(true, list.unpark(&entry, 2));
+        assert!(list.unpark(&entry, 2));
         assert_eq!(Some(&2), list.get(&entry));
 
         assert_eq!(1, list.allocated_slots());

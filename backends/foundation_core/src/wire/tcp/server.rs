@@ -1,3 +1,4 @@
+#![allow(clippy::type_complexity)]
 #![cfg(not(target_arch = "wasm32"))]
 
 use derive_more::From;
@@ -265,18 +266,16 @@ mod test_server_tests {
             .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
             .with_method(SimpleMethod::POST)
             .with_body(FuncSimpleServer::new(|req| match req.body {
-                Some(SimpleBody::Bytes(body)) => {
-                    return match String::from_utf8(body.to_vec()) {
-                        Ok(content) => SimpleOutgoingResponse::builder()
-                            .with_status(Status::OK)
-                            .with_body_bytes(
-                                format!(r#"{{"name": "alex", "body": {} }}"#, content).into_bytes(),
-                            )
-                            .build()
-                            .map_err(|err| err.into_boxed_error()),
-                        Err(err) => Err(err.into_boxed_error()),
-                    }
-                }
+                Some(SimpleBody::Bytes(body)) => match String::from_utf8(body.to_vec()) {
+                    Ok(content) => SimpleOutgoingResponse::builder()
+                        .with_status(Status::OK)
+                        .with_body_bytes(
+                            format!(r#"{{"name": "alex", "body": {} }}"#, content).into_bytes(),
+                        )
+                        .build()
+                        .map_err(|err| err.into_boxed_error()),
+                    Err(err) => Err(err.into_boxed_error()),
+                },
                 Some(SimpleBody::Text(body)) => SimpleOutgoingResponse::builder()
                     .with_status(Status::OK)
                     .with_body_string(format!(r#"{{"name": "alex", "body": {} }}"#, body))
@@ -347,18 +346,16 @@ Hello world!";
             .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
             .with_method(SimpleMethod::POST)
             .with_body(FuncSimpleServer::new(|req| match req.body {
-                Some(SimpleBody::Bytes(body)) => {
-                    return match String::from_utf8(body.to_vec()) {
-                        Ok(content) => SimpleOutgoingResponse::builder()
-                            .with_status(Status::OK)
-                            .with_body_bytes(
-                                format!(r#"{{"name": "alex", "body": {} }}"#, content).into_bytes(),
-                            )
-                            .build()
-                            .map_err(|err| err.into_boxed_error()),
-                        Err(err) => Err(err.into_boxed_error()),
-                    }
-                }
+                Some(SimpleBody::Bytes(body)) => match String::from_utf8(body.to_vec()) {
+                    Ok(content) => SimpleOutgoingResponse::builder()
+                        .with_status(Status::OK)
+                        .with_body_bytes(
+                            format!(r#"{{"name": "alex", "body": {} }}"#, content).into_bytes(),
+                        )
+                        .build()
+                        .map_err(|err| err.into_boxed_error()),
+                    Err(err) => Err(err.into_boxed_error()),
+                },
                 Some(SimpleBody::Text(body)) => SimpleOutgoingResponse::builder()
                     .with_status(Status::OK)
                     .with_body_string(format!(r#"{{"name": "alex", "body": {} }}"#, body))

@@ -69,6 +69,6 @@ mod same_retry_test {
         assert_eq!(reconnection_state2.attempt, 2);
 
         let reconnection_state3 = decider.decide(reconnection_state2.clone());
-        assert!(matches!(reconnection_state3, None));
+        assert!(reconnection_state3.is_none());
     }
 }

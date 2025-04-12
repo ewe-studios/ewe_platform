@@ -34,7 +34,12 @@ impl ResponseHead {
         headers: HeaderMap,
         extensions: Extensions,
     ) -> Self {
-        Self { status, version, headers, extensions }
+        Self {
+            status,
+            version,
+            headers,
+            extensions,
+        }
     }
 
     /// standard returns a Response head with version set to `HTTP_11` and headers
@@ -177,9 +182,9 @@ impl<T> Response<T> {
     /// ```no
     /// # use routing::{Response, Response, Uri};
     /// let request = Response::from_head(
-    /// 	ResponseHead::new(
-    /// 		...
-    /// 	)
+    ///         ResponseHead::new(
+    ///                 ...
+    ///         )
     /// )
     /// let body = request.into_body();
     /// assert_eq(body, None);
@@ -338,7 +343,7 @@ impl<T> TryFrom<Response<T>> for LightResponse<T> {
             match keyc {
                 Some(key) => {
                     let key_name = key.to_string();
-                    let value_string = String::try_from(value.to_str()?)?;
+                    let value_string: String = From::from(value.to_str()?);
                     headers.entry(key_name).and_modify(|e| *e = value_string);
                 }
                 None => continue,

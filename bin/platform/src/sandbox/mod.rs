@@ -1,5 +1,4 @@
 use core::time;
-use ctrlc;
 use ewe_devserver::{
     types::{Http1, ProxyRemoteConfig},
     HttpDevService, ProjectDefinition, ProxyType, VecStringExt,
@@ -87,8 +86,8 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
 
     ewe_trace::info!("Starting local binary");
 
-    let source = ProxyRemoteConfig::new(service_addr.clone(), service_port.clone());
-    let destination = ProxyRemoteConfig::new(proxy_addr.clone(), proxy_port.clone());
+    let source = ProxyRemoteConfig::new(service_addr.clone(), *service_port);
+    let destination = ProxyRemoteConfig::new(proxy_addr.clone(), *proxy_port);
 
     let tunnel_config = ProxyType::Http1(Http1::new(source, destination, Some(HashMap::new())));
 
@@ -105,7 +104,7 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
             examples_directory,
         ],
         wait_before_reload: time::Duration::from_millis(300), // magic number that works
-        target_directory: String::from(format!("{}/target", project_directory.clone())),
+        target_directory: format!("{}/target", project_directory.clone()),
         build_arguments: vec!["cargo", "build", "--bin", binary_name.as_str()].to_vec_string(),
         run_arguments: vec![
             "cargo",
