@@ -620,7 +620,7 @@ mod memory_allocation_tests {
     use alloc::vec;
 
     #[test]
-    fn can_get_allocator_id() {
+    fn can_allocator_memory() {
         let mut allocator = MemoryAllocations::new();
 
         let mem1 = allocator.allocate(20).expect("should allocate memory");
@@ -628,6 +628,18 @@ mod memory_allocation_tests {
         assert_eq!(0, mem1.generation());
 
         assert_eq!(0, mem1.as_u64());
+    }
+
+    #[test]
+    fn can_get_allocator_id() {
+        let mut allocator = MemoryAllocations::new();
+
+        let mem1 = allocator.allocate(20).expect("should allocate memory");
+        assert_eq!(0, mem1.index());
+        assert_eq!(0, mem1.generation());
+        assert_eq!(0, mem1.as_u64());
+
+        _ = allocator.get(mem1).expect("should find allocation");
     }
 
     #[test]
