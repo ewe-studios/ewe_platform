@@ -271,6 +271,16 @@ impl MemoryAllocation {
         }
     }
 
+    pub fn apply<F>(&self, f: F)
+    where
+        F: FnOnce(&mut Vec<u8>),
+    {
+        let mut locked_mem = self.memory.lock();
+        if let Some(mem) = locked_mem.as_mut() {
+            f(mem)
+        }
+    }
+
     /// [`get_pointer`] returns the address of the memory
     /// location if it is still valid else throws a panic
     /// as we want this to always be safe.
@@ -307,6 +317,7 @@ impl MemoryAllocation {
         memory.replace(Vec::new());
     }
 
+    #[allow(clippy::slow_vector_initialization)]
     pub fn reset_to(&mut self, new_capacity: usize) {
         let mut memory = self.memory.lock();
         if let Some(mem) = memory.as_mut() {
@@ -317,7 +328,10 @@ impl MemoryAllocation {
             }
             return;
         }
-        memory.replace(Vec::new());
+
+        let mut new_mem: Vec<u8> = Vec::with_capacity(new_capacity);
+        new_mem.resize(new_capacity, 0);
+        memory.replace(new_mem);
     }
 
     pub fn clear(&mut self) -> MemoryAllocationResult<()> {
@@ -368,7 +382,7 @@ impl MemoryAllocation {
 
 /// [`BIT_SIZE`] represent the shifting we want to do
 /// to shift 32 bit numbers into 64bit numbers.
-const BIT_SIZE: usize = 32;
+const BIT_SIZE: u64 = 32;
 
 /// [`BIT_MASK`] representing the needing masking
 /// to be used in bitpacking two 32bit numbers into
@@ -385,14 +399,34 @@ const BIT_MASK: u64 = 0xFFFFFFFF;
 /// Second Elem - is the generation
 ///
 #[derive(Clone, Eq, PartialEq, PartialOrd, Ord)]
-pub struct MemoryId(pub u32, pub u32);
+pub struct MemoryId(pub(crate) u32, pub(crate) u32);
 
 impl MemoryId {
+    /// [`from_u64`] implements conversion of a 64bit unsighed int
+    /// into a Memory by the assuming that the First 32bit represent
+    /// the index (LSB) and the last 32 bit (MSB) represent the
+    /// generation number.
+    pub fn from_u64(memory_id: u64) -> Self {
+        let index = ((memory_id >> BIT_SIZE) & BIT_MASK) as u32; // upper bit
+        let generation = (memory_id & BIT_MASK) as u32; // lower bit
+        Self(index, generation)
+    }
+
     /// [`as_u64`] packs the index and generation represented
-    /// by the MemoryId into a singular u64 number allowing
+    /// by the [`MemoryId`] into a singular u64 number allowing
     /// memory savings and improved cross over sharing.
     pub fn as_u64(&self) -> u64 {
-        todo!()
+        let msb_bit = ((self.0 as u64) & BIT_MASK) << BIT_SIZE; // Upper 32 bits at the MSB
+        let lsb_bit = (self.1 as u64) & BIT_MASK; // Lower 32 bits at the LSB
+        msb_bit | lsb_bit
+    }
+
+    pub fn index(&self) -> u32 {
+        self.0
+    }
+
+    pub fn generation(&self) -> u32 {
+        self.1
     }
 }
 
@@ -409,6 +443,22 @@ impl MemoryAllocations {
         }
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.allocs.is_empty() && self.free.is_empty()
+    }
+
+    pub fn is_allocations_empty(&self) -> bool {
+        self.allocs.is_empty()
+    }
+
+    pub fn total_free(&self) -> u64 {
+        self.free.len() as u64
+    }
+
+    pub fn total_allocated(&self) -> u64 {
+        self.allocs.len() as u64
+    }
+
     /// [`deallocate`] releases the owned memory allocation as
     /// free for re-use by another desiring party. This means
     /// the giving memory location is forever free for usage.
@@ -419,8 +469,9 @@ impl MemoryAllocations {
             return Ok(());
         }
 
+        let total_allocations = self.allocs.len();
         let potential_location = memory_id.0 as usize;
-        if self.allocs.len() >= potential_location {
+        if potential_location >= total_allocations {
             return Err(MemoryAllocationError::InvalidAllocationId);
         }
 
@@ -431,9 +482,11 @@ impl MemoryAllocations {
     /// [`get`] returns the related [`MemoryAllocation`] object that is related to a
     /// giving [`MemoryId`] to be used.
     pub fn get(&mut self, memory_id: MemoryId) -> MemoryAllocationResult<MemoryAllocation> {
-        if let Some((generation_id, ref allocation)) = self.allocs.get(memory_id.0 as usize) {
-            if *generation_id == memory_id.1 {
-                return Ok(allocation.clone());
+        if !self.free.contains(&(memory_id.0 as usize)) {
+            if let Some((generation_id, ref allocation)) = self.allocs.get(memory_id.0 as usize) {
+                if *generation_id == memory_id.1 {
+                    return Ok(allocation.clone());
+                }
             }
         }
         Err(MemoryAllocationError::InvalidAllocationId)
@@ -451,7 +504,7 @@ impl MemoryAllocations {
         match self.get_ideal_allocation(desired_capacity)? {
             None => {
                 let next_index = self.allocs.len();
-                if u32::try_from(next_index).is_ok() {
+                if u32::try_from(next_index).is_err() {
                     return Err(MemoryAllocationError::NoMoreAllocationSlots);
                 }
 
@@ -558,5 +611,70 @@ impl MemoryAllocations {
         }
 
         Ok(None)
+    }
+}
+
+#[cfg(test)]
+mod memory_allocation_tests {
+    use super::*;
+    use alloc::vec;
+
+    #[test]
+    fn can_get_allocator_id() {
+        let mut allocator = MemoryAllocations::new();
+
+        let mem1 = allocator.allocate(20).expect("should allocate memory");
+        assert_eq!(0, mem1.index());
+        assert_eq!(0, mem1.generation());
+
+        assert_eq!(0, mem1.as_u64());
+    }
+
+    #[test]
+    fn can_dispose_of_an_allocation() {
+        let mut allocator = MemoryAllocations::new();
+
+        let mem1 = allocator.allocate(20).expect("should allocate memory");
+        assert_eq!(0, mem1.index());
+        assert_eq!(0, mem1.generation());
+        assert_eq!(0, mem1.as_u64());
+
+        allocator
+            .deallocate(mem1.clone())
+            .expect("should dispose allocation");
+
+        assert!(
+            allocator.get(mem1).is_err(),
+            "should fail to get allocation"
+        );
+    }
+
+    #[test]
+    fn can_use_allocator() {
+        let mut allocator = MemoryAllocations::new();
+
+        let mem1 = allocator.allocate(20).expect("should allocate memory");
+        assert_eq!(0, mem1.index());
+
+        let mem2 = allocator.allocate(30).expect("should allocate memory");
+        assert_eq!(1, mem2.index());
+    }
+
+    #[test]
+    fn can_use_allocated_memory() {
+        let mut allocator = MemoryAllocations::new();
+
+        let id = allocator.allocate(20).expect("should allocate memory");
+        assert_eq!(0, id.index());
+
+        let memory_slot = allocator.get(id).expect("should be able to find memory id");
+        memory_slot.apply(|memo| {
+            memo.push(10);
+            memo.push(20);
+            memo.push(30);
+        });
+
+        let content = memory_slot.clone_memory().expect("should clone valid data");
+        assert_eq!(vec![10, 20, 30], content);
     }
 }
