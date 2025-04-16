@@ -308,7 +308,7 @@ impl MemoryAllocation {
         }
     }
 
-    pub fn reset(&mut self) {
+    pub fn reset(&self) {
         let mut memory = self.memory.lock();
         if let Some(mem) = memory.as_mut() {
             mem.clear();
@@ -318,7 +318,7 @@ impl MemoryAllocation {
     }
 
     #[allow(clippy::slow_vector_initialization)]
-    pub fn reset_to(&mut self, new_capacity: usize) {
+    pub fn reset_to(&self, new_capacity: usize) {
         let mut memory = self.memory.lock();
         if let Some(mem) = memory.as_mut() {
             mem.clear();
@@ -334,7 +334,15 @@ impl MemoryAllocation {
         memory.replace(new_mem);
     }
 
-    pub fn clear(&mut self) -> MemoryAllocationResult<()> {
+    pub fn is_empty(&self) -> MemoryAllocationResult<bool> {
+        let mut memory = self.memory.lock();
+        if let Some(mem) = memory.as_mut() {
+            return Ok(mem.is_empty());
+        };
+        Err(MemoryAllocationError::NoMemoryAllocation)
+    }
+
+    pub fn clear(&self) -> MemoryAllocationResult<()> {
         let mut memory = self.memory.lock();
         if let Some(mem) = memory.as_mut() {
             mem.clear();
@@ -626,7 +634,6 @@ mod memory_allocation_tests {
         let mem1 = allocator.allocate(20).expect("should allocate memory");
         assert_eq!(0, mem1.index());
         assert_eq!(0, mem1.generation());
-
         assert_eq!(0, mem1.as_u64());
     }
 
@@ -688,5 +695,29 @@ mod memory_allocation_tests {
 
         let content = memory_slot.clone_memory().expect("should clone valid data");
         assert_eq!(vec![10, 20, 30], content);
+    }
+
+    #[test]
+    fn can_clear_allocated_memory() {
+        let mut allocator = MemoryAllocations::new();
+
+        let id = allocator.allocate(20).expect("should allocate memory");
+        assert_eq!(0, id.index());
+
+        let memory_slot = allocator.get(id).expect("should be able to find memory id");
+        memory_slot.apply(|memo| {
+            memo.push(10);
+            memo.push(20);
+            memo.push(30);
+        });
+
+        let content = memory_slot.clone_memory().expect("should clone valid data");
+        assert_eq!(vec![10, 20, 30], content);
+
+        memory_slot.clear().expect("clear memory");
+
+        assert!(memory_slot
+            .is_empty()
+            .expect("should return is_empty state"));
     }
 }
