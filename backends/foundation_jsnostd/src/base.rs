@@ -25,12 +25,34 @@ pub enum ValueTypes {
     Float64ArrayBuffer = 20,
 }
 
+#[allow(clippy::from_over_into)]
+impl Into<u8> for ValueTypes {
+    fn into(self) -> u8 {
+        self as u8
+    }
+}
+
 /// [`StrLocation`] represent the underlying location of an
 /// encoded string which points to the relevant starting index
 /// and length from that index location, this then can be
 /// applied to any valid memory address that contains the texts
 /// to find the relevant portion.
-pub struct StrLocation(pub u64, pub u64);
+pub struct StrLocation(u64, u64);
+
+#[allow(clippy::len_without_is_empty)]
+impl StrLocation {
+    pub fn new(index: u64, length: u64) -> Self {
+        Self(index, length)
+    }
+
+    pub fn index(&self) -> u64 {
+        self.0
+    }
+
+    pub fn len(&self) -> u64 {
+        self.1
+    }
+}
 
 /// [`ArgumentOperations`] representing the argument layout
 /// in memory used to represent the different argument blocks
@@ -67,6 +89,13 @@ pub enum ArgumentOperations {
     Begin = 2,
     End = 3,
     Stop = 4,
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for ArgumentOperations {
+    fn into(self) -> u8 {
+        self as u8
+    }
 }
 
 /// Lists all possible encodable operations supported
@@ -201,6 +230,13 @@ pub enum Operations {
     /// Memory wise: This is 1 Byte = 8 bits.
     ///
     Stop = 255,
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for Operations {
+    fn into(self) -> u8 {
+        self as u8
+    }
 }
 
 // [`CallParams`] defines the underlying location of memory
