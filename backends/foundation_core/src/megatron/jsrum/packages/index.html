@@ -1,15 +1,24 @@
 <html>
 
 <head>
-  <title>JSDOM</title>
+  <title>Megatron</title>
 </head>
 
 <body>
-  <h1>JSDOM Sandbox</h1>
+  <h1>Megatron Runtime Testbed</h1>
 
   <script type="text/javascript" src="/static/sse/reloader.js"></script>
   <script type="text/javascript" src="/megatron/runtime.js"></script>
   <script type="application/wasm" src="/megatron/intro.wasm"></script>
+  <style type="text/css">
+    body {
+      background-color: #181818;
+      color: #d9d9d9;
+    }
+  </style>
+  <script type="text/javascript">
+    Megatron.runAll();
+  </script>
 </body>
 
 </html>

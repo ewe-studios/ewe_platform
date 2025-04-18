@@ -2,7 +2,9 @@
 
 extern crate alloc;
 
-// mod jsrom;
+mod base;
+mod jsapi;
 mod ops;
 
-// pub use jsrom::*;
+pub use base::*;
+pub use jsapi::*;
