@@ -1,63 +1,72 @@
-#![allow(clippy::missing_doc_code_examples)]
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::missing_panics_doc)]
 
+use alloc::string::String;
+use alloc::vec::Vec;
 use foundation_nostd::{raw_parts::RawParts, spin::Mutex};
 
-static ALLOCATIONS: Mutex<Vec<Option<Vec<u8>>>> = Mutex::new(Vec::new());
+use crate::base::{ExternalPointer, JSEncoding};
+use crate::ops::MemoryAllocations;
 
-pub type JSAllocationId = f64;
+static ALLOCATIONS: Mutex<MemoryAllocations> = Mutex::new(MemoryAllocations::new());
+
+pub type JSAllocationId = u64;
 
 #[no_mangle]
-pub extern "C" fn create_allocation(size: usize) -> usize {
-    let mut buf = Vec::with_capacity(size as usize);
-    buf.resize(size, 0);
-    let mut allocations = ALLOCATIONS.lock();
-    let index = allocations.len();
-    allocations.push(Some(buf));
-    index
+pub extern "C" fn create_allocation(size: u64) -> u64 {
+    let mem_id = ALLOCATIONS
+        .lock()
+        .allocate(size)
+        .expect("should create requested allocation");
+    mem_id.as_u64()
 }
 
 #[no_mangle]
-pub extern "C" fn allocation_start_pointer(allocation_id: usize) -> *const u8 {
+pub extern "C" fn allocation_start_pointer(mem_id: u64) -> *const u8 {
     let allocations = ALLOCATIONS.lock();
-    let allocation = allocations
-        .get(allocation_id)
+    let memory = allocations
+        .get(mem_id.into())
         .expect("Allocation should be initialized");
-    let vec = allocation.as_ref().unwrap();
-    vec.as_ptr()
+    memory
+        .get_pointer()
+        .expect("should be able to get valid pointer")
 }
 
 #[no_mangle]
-pub extern "C" fn allocation_length(allocation_id: usize) -> f64 {
+pub extern "C" fn allocation_length(allocation_id: u64) -> u64 {
     let allocations = ALLOCATIONS.lock();
-    let allocation = allocations
-        .get(allocation_id)
+    let mem = allocations
+        .get(allocation_id.into())
         .expect("Allocation should be initialized");
-    let vec = allocation.as_ref().unwrap();
-    vec.len() as f64
+    mem.len().expect("should return allocation length")
 }
 
 #[no_mangle]
-pub extern "C" fn clear_allocation(allocation_id: usize) {
-    let mut allocations = ALLOCATIONS.lock();
-    allocations[allocation_id] = None;
+pub extern "C" fn clear_allocation(allocation_id: u64) {
+    let allocations = ALLOCATIONS.lock();
+    let mem = allocations
+        .get(allocation_id.into())
+        .expect("Allocation should be initialized");
+    mem.clear().expect("should clear memory");
 }
 
 // -- extract methods
 
-pub fn extract_vec_from_memory(allocation_id: usize) -> Vec<u8> {
+pub fn extract_vec_from_memory(allocation_id: u64) -> Vec<u8> {
     let allocations = ALLOCATIONS.lock();
-    let allocation = allocations.get(allocation_id).expect("should be allocated");
-    let vec = allocation.as_ref().unwrap();
-    vec.clone()
+    let mem = allocations
+        .get(allocation_id.into())
+        .expect("Allocation should be initialized");
+    mem.clone_memory().expect("should clone memory")
 }
 
-pub fn extract_string_from_memory(allocation_id: usize) -> String {
+pub fn extract_string_from_memory(allocation_id: u64) -> String {
     let allocations = ALLOCATIONS.lock();
-    let allocation = allocations.get(allocation_id).expect("should be allocated");
-    let vec = allocation.as_ref().unwrap();
-    String::from_utf8(vec.clone()).unwrap()
+    let mem = allocations
+        .get(allocation_id.into())
+        .expect("Allocation should be initialized");
+    mem.string_from_memory()
+        .expect("should convert into String")
 }
 
 /// `JSABI` is the expected interface which the JS portion or
@@ -69,14 +78,14 @@ pub fn extract_string_from_memory(allocation_id: usize) -> String {
 pub mod js_abi {
 
     // -- Data Information
-    pub mod data {
-        #[link(wasm_import_module = "data")]
+    pub mod batch {
+        #[link(wasm_import_module = "batch")]
         extern "C" {
-            // this support the need to send a value that will later
-            // be picked up for processing, e.g callbacks registered for
-            // a specific respoonse or batch data that should be processed.
-            // It requires the relevant ABI runtime side to know how to handle such things.
-            pub fn process_data(allocation_start: i64, allocation_end: i64);
+            // [apply_batch] takes a location in memory that has a batch of operations
+            // which match the [`crate::Operations`] outlined in the batching API the
+            // runtime supports, allowing us amortize the cost of doing bulk processing on
+            // the wasm and host boundaries.
+            pub fn apply_batch(allocation_start: u64, allocation_end: u64);
         }
     }
 
@@ -86,7 +95,7 @@ pub mod js_abi {
         extern "C" {
             //  Provides a way to inform the need to drop a outside cached reference
             //  used for execution, e.g JSFunction or some other referential type.
-            pub fn drop_reference(external_reference_id: i64);
+            pub fn drop_reference(external_reference_id: u64);
         }
     }
 
@@ -94,23 +103,36 @@ pub mod js_abi {
     pub mod functions {
         #[link(wasm_import_module = "funcs")]
         extern "C" {
+            // [`js_unregister_function`] provides a means to unregister a target function
+            // from the WASM - Host runtime boundary.
+            pub fn js_unregister_function(handle: u64);
+
+            // [`js_preallocate_reference`] allows you to pre-allocate a specific reference
+            // that can later be used for registration at a later point in time.
+            pub fn js_preallocate_reference() -> u64;
+
+            // [`js_register_function_at`] allows us to register a function at a
+            // pre-allocated location, it should panics if that id does not location
+            // was not pre-allocated via the [`js_preallocate_reference`].
+            pub fn js_register_function_at(handle: u64, start: u64, len: u64, encoding: u8) -> u64;
+
             // registers a function via it's provided start and length
             // indicative of where the function body can be found
             // as utf-8 or utf-18 encoded byte (based on third argument)
             // from the start pointer in memory to the specified
             // length to be registered in the shared
             // function registry.
-            pub fn js_register_function(start: f64, len: f64, encoding: u8) -> f64;
+            pub fn js_register_function(start: u64, len: u64, encoding: u8) -> u64;
 
             // invokes a Javascript function across the WASM/RUST ABI
             // which then returns the allocation_id (as f64) that can
             // be used to get the related allocation vector
             // from the global allocations.
             pub fn js_invoke_function(
-                handler: f64,
+                handler: u64,
                 parameters_start: *const u8,
                 parameters_length: usize,
-            ) -> f64;
+            ) -> u64;
         }
     }
 }
@@ -119,13 +141,13 @@ pub mod js_abi {
 
 #[derive(Copy, Clone)]
 pub struct JSFunction {
-    pub handler: f64,
+    pub handler: u64,
 }
 
 #[macro_export]
 macro_rules! js {
     ($e:expr) => {{
-        static mut FN: Option<f64> = None;
+        static mut FN: Option<u64> = None;
         unsafe {
             if FN.is_none() {
                 // store the handler for the related js function as a catch for later use.
@@ -136,100 +158,6 @@ macro_rules! js {
             }
         }
     }};
-}
-
-/// [`JSEncoding`] defines a defining type to help indicate the
-/// underlying encoding for a giving text body.
-pub enum JSEncoding {
-    UTF8,
-    UTF16,
-}
-
-impl Into<f32> for JSEncoding {
-    fn into(self) -> f32 {
-        match self {
-            JSEncoding::UTF8 => 8.0,
-            JSEncoding::UTF16 => 16.0,
-        }
-    }
-}
-
-impl Into<u8> for JSEncoding {
-    fn into(self) -> u8 {
-        match self {
-            JSEncoding::UTF8 => 8,
-            JSEncoding::UTF16 => 16,
-        }
-    }
-}
-
-impl Into<u32> for JSEncoding {
-    fn into(self) -> u32 {
-        match self {
-            JSEncoding::UTF8 => 8,
-            JSEncoding::UTF16 => 16,
-        }
-    }
-}
-
-impl From<u8> for JSEncoding {
-    fn from(value: u8) -> Self {
-        if value == 8 {
-            return JSEncoding::UTF8;
-        }
-        if value == 16 {
-            return JSEncoding::UTF16;
-        }
-        JSEncoding::UTF8
-    }
-}
-
-impl From<u16> for JSEncoding {
-    fn from(value: u16) -> Self {
-        if value == 8 {
-            return JSEncoding::UTF8;
-        }
-        if value == 16 {
-            return JSEncoding::UTF16;
-        }
-        JSEncoding::UTF8
-    }
-}
-
-impl From<u32> for JSEncoding {
-    fn from(value: u32) -> Self {
-        if value == 8 {
-            return JSEncoding::UTF8;
-        }
-        if value == 16 {
-            return JSEncoding::UTF16;
-        }
-        JSEncoding::UTF8
-    }
-}
-
-impl From<f32> for JSEncoding {
-    fn from(value: f32) -> Self {
-        if value == 8.0 {
-            return JSEncoding::UTF8;
-        }
-        if value == 16.0 {
-            return JSEncoding::UTF16;
-        }
-        JSEncoding::UTF8
-    }
-}
-
-impl From<f64> for JSEncoding {
-    fn from(value: f64) -> Self {
-        if value == 8.0 {
-            return JSEncoding::UTF8;
-        }
-        if value == 16.0 {
-            return JSEncoding::UTF16;
-        }
-        JSEncoding::UTF8
-    }
 }
 
 #[allow(clippy::cast_precision_loss)]
@@ -243,8 +171,8 @@ impl JSFunction {
         unsafe {
             JSFunction {
                 handler: js_abi::functions::js_register_function(
-                    start as f64,
-                    len as f64,
+                    start as u64,
+                    len as u64,
                     JSEncoding::UTF8.into(),
                 ), // precision loss here
             }
@@ -261,8 +189,8 @@ impl JSFunction {
         unsafe {
             JSFunction {
                 handler: js_abi::functions::js_register_function(
-                    start as f64,
-                    len as f64,
+                    start as u64,
+                    len as u64,
                     JSEncoding::UTF16.into(),
                 ), // precision loss here
             }
@@ -284,51 +212,48 @@ impl JSFunction {
         } = RawParts::from_vec(param_bytes);
         unsafe { js_abi::functions::js_invoke_function(self.handler, ptr, length) }
     }
+
+    /// [`unregister_function`] calls the JS ABI on the host to de-register
+    /// the target function.
+    pub fn unregister_function(&self) {
+        unsafe { js_abi::functions::js_unregister_function(self.handler) }
+    }
 }
 
-// -- ExternalReference
+// -- JS dropping ExternalPointer
 
-pub const JS_UNDEFINED: ExternalReference = ExternalReference { value: 0 };
-pub const JS_NULL: ExternalReference = ExternalReference { value: 1 };
-pub const DOM_SELF: ExternalReference = ExternalReference { value: 2 };
-pub const DOM_WINDOW: ExternalReference = ExternalReference { value: 2 };
-pub const DOM_DOCUMENT: ExternalReference = ExternalReference { value: 3 };
-pub const DOM_BODY: ExternalReference = ExternalReference { value: 4 };
+pub const JS_UNDEFINED: JSExternalRef = JSExternalRef(ExternalPointer::pointer(0));
+pub const JS_NULL: JSExternalRef = JSExternalRef(ExternalPointer::pointer(1));
+pub const DOM_SELF: JSExternalRef = JSExternalRef(ExternalPointer::pointer(2));
+pub const DOM_DOCUMENT: JSExternalRef = JSExternalRef(ExternalPointer::pointer(3));
+pub const DOM_WINDOW: JSExternalRef = JSExternalRef(ExternalPointer::pointer(4));
+pub const DOM_BODY: JSExternalRef = JSExternalRef(ExternalPointer::pointer(5));
+pub const DOM_FALSE: JSExternalRef = JSExternalRef(ExternalPointer::pointer(6));
+pub const DOM_TRUE: JSExternalRef = JSExternalRef(ExternalPointer::pointer(7));
 
-pub struct ExternalReference {
-    pub value: i64,
+pub struct JSExternalRef(ExternalPointer);
+
+impl JSExternalRef {
+    pub fn number(&self) -> u64 {
+        self.0.into_inner()
+    }
 }
 
-impl Drop for ExternalReference {
+impl Drop for JSExternalRef {
     fn drop(&mut self) {
         unsafe {
-            js_abi::references::drop_reference(self.value);
+            js_abi::references::drop_reference(self.0.into_inner());
         }
     }
 }
 
-impl From<i64> for ExternalReference {
-    fn from(value: i64) -> Self {
-        Self { value }
+impl From<u64> for JSExternalRef {
+    fn from(value: u64) -> Self {
+        Self(value.into())
     }
 }
 
 // --- Browser / WASM ABI
-
-/// `ReturnTypes`  represent the allocations type value being
-/// communicated by the contents of an allocation, a byte is
-/// allocated in each allocation to define what return type it
-/// represent.
-#[repr(usize)]
-pub enum ReturnTypes {
-    Undefined = 0,
-    NULL = 1,
-    String = 2,
-    Float64 = 3,
-    BigInt = 4,
-    Vector = 5,
-    ExternalReference = 6,
-}
 
 // --- Invocations
 
@@ -352,7 +277,7 @@ pub enum InvocationParameter<'a> {
     Float64Array(&'a [f64]),
     Bool(bool),
     Uint32Array(&'a [u32]),
-    ExternalReference(&'a ExternalReference),
+    ExternalReference(&'a JSExternalRef),
 }
 
 impl From<f64> for InvocationParameter<'_> {
@@ -385,8 +310,8 @@ impl<'a> From<&'a str> for InvocationParameter<'a> {
     }
 }
 
-impl<'a> From<&'a ExternalReference> for InvocationParameter<'a> {
-    fn from(i: &'a ExternalReference) -> Self {
+impl<'a> From<&'a JSExternalRef> for InvocationParameter<'a> {
+    fn from(i: &'a JSExternalRef) -> Self {
         InvocationParameter::ExternalReference(i)
     }
 }
@@ -443,7 +368,7 @@ impl<'a> InvocationParameter<'a> {
                 }
                 InvocationParameter::ExternalReference(i) => {
                     encoded_params.push(5);
-                    encoded_params.extend_from_slice(&i.value.to_le_bytes());
+                    encoded_params.extend_from_slice(&i.number().to_le_bytes());
                 }
                 InvocationParameter::Float32Array(a) => {
                     encoded_params.push(6);

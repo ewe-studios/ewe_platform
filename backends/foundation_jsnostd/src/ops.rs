@@ -3,87 +3,240 @@
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::missing_panics_doc)]
 
-use alloc::rc::Rc;
+use alloc::boxed::Box;
 use alloc::string::{FromUtf16Error, FromUtf8Error, String};
+use alloc::sync::Arc;
 use alloc::vec::Vec;
 use foundation_nostd::spin::Mutex;
 
-/// OpIndex defines the different operations that is
-/// representable and performable through the underlying
-/// index returned by the op_index method which returns
-/// the first byte indicative of the type of operation in a
-/// 32 bit number.
-///
-/// This allows us squeeze varying facts about a desired
-/// operation to be performed into a single u64 (32 bits)
-/// or in the future (u64) 64 bit number.
-pub trait OpIndex {
-    fn op_index(&self) -> u8;
+use super::{ExternalPointer, Operations, StrLocation, ValueTypes};
+
+pub type MemoryWriterResult<T> = core::result::Result<T, MemoryWriterError>;
+
+#[derive(Debug)]
+pub enum MemoryWriterError {
+    FailedWrite,
+    PreviousUnclosedOperation,
+    NotValidUTF8(FromUtf8Error),
+    NotValidUTF16(FromUtf16Error),
+    AllocationError(MemoryAllocationError),
+    UnableToWrite,
+    UnexpectedFreeState,
 }
 
-macro_rules! define_index {
-    ($id:literal,$item:ty) => {
-        impl OpIndex for $item {
-            fn op_index(&self) -> u8 {
-                $id
+impl From<MemoryAllocationError> for MemoryWriterError {
+    fn from(value: MemoryAllocationError) -> Self {
+        Self::AllocationError(value)
+    }
+}
+
+impl core::error::Error for MemoryWriterError {}
+
+impl core::fmt::Display for MemoryWriterError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+/// [`BatchEncodable`] defines a trait which allows you implement
+/// conversion an underlying binary representation of a Batch
+/// operation.
+pub trait BatchEncodable {
+    /// [`string`] encodes the underlying string
+    /// returning the string location information which allows
+    /// whatever is calling it
+    fn string(&self, data: &str) -> MemoryWriterResult<StrLocation>;
+
+    /// [`data`] provides the underlying related data for
+    /// the identified operation.
+    fn data(&self, data: &[u8]) -> MemoryWriterResult<()>;
+
+    /// [`end`] indicates the batch encoding can be considered finished and
+    /// added to the batch list.
+    fn end(self);
+}
+
+pub struct CompletedInstructions {
+    pub ops_id: MemoryId,
+    pub text_id: MemoryId,
+}
+
+pub struct Instructions {
+    ops_id: MemoryId,
+    text_id: MemoryId,
+    occupied: Option<Operations>,
+    mem: Option<(MemoryAllocation, MemoryAllocation)>,
+    consumer: Box<dyn FnOnce(CompletedInstructions) + 'static>,
+}
+
+// -- Implements BatchEncodable
+
+impl BatchEncodable for Instructions {
+    fn string(&self, data: &str) -> MemoryWriterResult<StrLocation> {
+        if self.in_occupied_state() {
+            if let Some((_, text)) = &self.mem {
+                let text_location = text.len()?;
+                let text_length = data.len() as u64;
+
+                text.apply(|mem| {
+                    mem.extend(data.as_bytes());
+                });
+
+                return Ok(StrLocation(text_location, text_length));
             }
         }
-    };
+
+        Err(MemoryWriterError::UnableToWrite)
+    }
+
+    fn data(&self, data: &[u8]) -> MemoryWriterResult<()> {
+        if self.in_occupied_state() {
+            if let Some((ops, _)) = &self.mem {
+                ops.apply(|mem| {
+                    mem.extend(data);
+                });
+
+                return Ok(());
+            }
+        }
+        Err(MemoryWriterError::UnableToWrite)
+    }
+
+    fn end(mut self) {
+        if let Some((ops, _)) = self.mem.take() {
+            ops.apply(|mem| {
+                mem.push(Operations::Stop as u8);
+            });
+
+            (self.consumer)(CompletedInstructions {
+                ops_id: self.ops_id,
+                text_id: self.text_id,
+            });
+        }
+    }
+}
+
+// -- Operations: checker
+
+impl Instructions {
+    pub fn in_occupied_state(&self) -> bool {
+        self.occupied.is_some()
+    }
+
+    pub fn in_free_state(&self) -> bool {
+        self.occupied.is_none()
+    }
+
+    pub fn should_be_occupied(&self) -> MemoryWriterResult<()> {
+        if self.in_free_state() {
+            return Err(MemoryWriterError::UnexpectedFreeState);
+        }
+        Ok(())
+    }
+}
+
+// -- Operations that can be batch
+
+impl Instructions {
+    /// [`register_function`] is immediate and will call end which will flush
+    /// the batch into the underlying Operations.
+    pub fn register_function(
+        self,
+        _allocated_handle: u64,
+        _body: &str,
+    ) -> MemoryWriterResult<Self> {
+        self.should_be_occupied()?;
+
+        Ok(self)
+    }
+}
+
+// -- Constructors
+
+impl Instructions {
+    pub fn new(
+        ops_id: MemoryId,
+        text_id: MemoryId,
+        ops: MemoryAllocation,
+        texts: MemoryAllocation,
+        consumer: Box<dyn FnOnce(CompletedInstructions) + 'static>,
+    ) -> Self {
+        Self {
+            ops_id,
+            text_id,
+            consumer,
+            occupied: None,
+            mem: Some((ops, texts)),
+        }
+    }
+
+    /// [`begin`] starts a new operation to be encoded into the Instructions set
+    /// if a operation was not properly closed then an error
+    /// [`MemoryWriterError::PreviousUnclosedOperation`] is returned.
+    pub fn begin(mut self) -> MemoryWriterResult<Self> {
+        if self.occupied.is_some() {
+            return Err(MemoryWriterError::PreviousUnclosedOperation);
+        }
+
+        self.occupied.replace(Operations::Begin);
+        if let Some((op, _)) = &self.mem {
+            op.apply(|mem| {
+                mem.push(Operations::Begin as u8);
+            });
+        }
+        Ok(self)
+    }
 }
 
 /// [`Batchable`] defines a infallible type which can be
 /// encoded into a [`BatchEncodable`] implementing type
 /// usually a [`Batch`].
 pub trait Batchable {
-    fn encode(encoder: impl BatchEncodable);
-}
-
-// [`CallParams`] defines the underlying location of memory
-// indicative of the starting pointer and length for which it
-// relates to.
-#[allow(unused)]
-pub struct CallParams(pub *const u8, pub u64);
-
-impl CallParams {
-    #[must_use]
-    pub fn new(addr: *const u8, length: u64) -> Self {
-        Self(addr, length)
-    }
-}
-
-/// ExternalPointer identifies an external handle pointing
-/// to a special pointer that is used to control/access
-/// an external resource.
-///
-/// Can be an object, function or some other resource
-/// that is to be used across wasm boundaries.
-pub struct ExternalPointer(u64);
-
-impl ExternalPointer {
-    fn into_inner(self) -> u64 {
-        self.0
-    }
-
-    fn borrow(&self) -> &u64 {
-        &self.0
-    }
-
-    fn clone_inner(&self) -> u64 {
-        self.0
-    }
+    fn encode(&self, encoder: impl BatchEncodable);
 }
 
 pub enum Params<'a> {
     Undefined,
     Null,
+    Bool(bool),
+    Float32(f32),
     Float64(f64),
-    BigInt(i64),
+    Int32(i32),
+    Int64(i64),
+    Uint32(u32),
+    Uint64(u64),
     String(&'a str),
+    Uint32Array(&'a [u32]),
+    Uint64Array(&'a [u64]),
+    Int32Array(&'a [i32]),
+    Int64Array(&'a [i64]),
     Float32Array(&'a [f32]),
     Float64Array(&'a [f64]),
-    Bool(bool),
-    Uint32Array(&'a [u32]),
     ExternalReference(&'a ExternalPointer),
+}
+
+impl Params<'_> {
+    fn value_type(&self) -> ValueTypes {
+        match self {
+            Params::Bool(_) => ValueTypes::Bool,
+            Params::Undefined => ValueTypes::Undefined,
+            Params::Null => ValueTypes::Null,
+            Params::Float32(_) => ValueTypes::Float32,
+            Params::Float64(_) => ValueTypes::Float64,
+            Params::Int32(_) => ValueTypes::Int32,
+            Params::Int64(_) => ValueTypes::Int64,
+            Params::Uint64(_) => ValueTypes::Uint64,
+            Params::Uint32(_) => ValueTypes::Uint32,
+            Params::String(_) => ValueTypes::String,
+            Params::Int32Array(_) => ValueTypes::Int32ArrayBuffer,
+            Params::Int64Array(_) => ValueTypes::Int64ArrayBuffer,
+            Params::Uint32Array(_) => ValueTypes::Uint32ArrayBuffer,
+            Params::Uint64Array(_) => ValueTypes::Uint64ArrayBuffer,
+            Params::Float32Array(_) => ValueTypes::Float32ArrayBuffer,
+            Params::Float64Array(_) => ValueTypes::Float64ArrayBuffer,
+            Params::ExternalReference(_) => ValueTypes::ExternalReference,
+        }
+    }
 }
 
 impl From<f64> for Params<'_> {
@@ -94,7 +247,7 @@ impl From<f64> for Params<'_> {
 
 impl From<i32> for Params<'_> {
     fn from(i: i32) -> Self {
-        Params::Float64(f64::from(i))
+        Params::Int32(i)
     }
 }
 
@@ -106,7 +259,7 @@ impl From<usize> for Params<'_> {
 
 impl From<i64> for Params<'_> {
     fn from(i: i64) -> Self {
-        Params::BigInt(i)
+        Params::Int64(i)
     }
 }
 
@@ -146,95 +299,39 @@ impl<'a> From<&'a [u32]> for Params<'a> {
     }
 }
 
+impl Batchable for Params<'_> {
+    fn encode(&self, _encoder: impl BatchEncodable) {
+        match self {
+            Params::Undefined => {
+                todo!()
+            }
+            Params::Null => todo!(),
+            Params::Float64(_) => todo!(),
+            Params::String(_) => todo!(),
+            Params::Float32Array(_) => todo!(),
+            Params::Float64Array(_) => todo!(),
+            Params::Bool(_) => todo!(),
+            Params::Uint32Array(_) => todo!(),
+            Params::ExternalReference(_) => todo!(),
+            Params::Float32(_) => todo!(),
+            Params::Int32(_) => todo!(),
+            Params::Int64(_) => todo!(),
+            Params::Uint32(_) => todo!(),
+            Params::Uint64(_) => todo!(),
+            Params::Uint64Array(_) => todo!(),
+            Params::Int32Array(_) => todo!(),
+            Params::Int64Array(_) => todo!(),
+        }
+    }
+}
+
 /// [`FuncHandle`] defines a type alias providing more
 /// context that this is used to represent the location
 /// of a runtime function across WASM boundary.
 pub type FuncHandle = u64;
 
-/// FuncCall defines the different function calls
-/// we can possible make which should be supported
-/// by whatever underlying runtime environment
-/// gets the underlying binary representation
-/// without any form of deserialization efforts
-/// as this will effectively be represented in binary
-pub enum FuncCall {
-    No(FuncHandle, CallParams),
-    I64(FuncHandle, CallParams),
-    I32(FuncHandle, CallParams),
-    U64(FuncHandle, CallParams),
-    String(FuncHandle, CallParams),
-    Object(FuncHandle, CallParams),
-}
-
-define_index!(1, FuncCall);
-
-#[cfg(test)]
-mod test_func_call {
-    use crate::ops::{CallParams, FuncCall, OpIndex};
-
-    #[test]
-    fn can_get_func_call() {
-        let handler = FuncCall::No(0, CallParams::new(&0, 10));
-        assert_eq!(handler.op_index(), 1);
-    }
-}
-
-/// [`StrLocation`] represent the underlying location of an
-/// encoded string which points to the relevant address
-/// of the string and it's underlying starting index and
-/// length from that index location.
-pub struct StrLocation(pub *const u8, pub u8, pub u8);
-
-impl StrLocation {
-    /// new returns a representation pointing to a specific
-    /// string within a specific memory location where a specific string
-    /// slice is located within that memory location.
-    ///
-    /// Allows us combine multiple string within a single memory
-    /// location but still be able to represent each specifically
-    /// within this singular memory.
-    pub fn new(pointer: *const u8, from: u8, length: u8) -> Self {
-        Self(pointer, from, length)
-    }
-}
-
-/// [`BatchEncodable`] defines a trait which allows you implement
-/// conversion an underlying binary representation of a Batch
-/// operation.
-pub trait BatchEncodable {
-    /// [`string`] encodes the underlying string
-    /// returning the string location information which allows
-    /// whatever is calling it
-    fn string(&self, data: &str) -> StrLocation;
-
-    /// [`op`] provides new operation data to be encoded
-    /// into the underlying data stream.
-    fn op(&self, data: &[u8]);
-}
-
-/// [`Op`] is an enum representing different operations that can be  
-/// performed. It also helps avoid heap allocation by
-/// attempting to use Traits to represent these different
-/// operations.
-pub enum Ops {
-    Func(FuncCall),
-}
-
-/// A list of different Operations to be applied.
-pub struct Operations(Vec<Ops>);
-
-/// Batch represents an encoded operation that is
-/// encoded as a series of ops byte each representing
-/// the desired operations and a vector of bytes for the
-/// potential batch string that might need to be converted
-/// over the boundaries.
-pub struct Batch {
-    pub text: Vec<u8>,
-    pub ops: Vec<u8>,
-}
-
 pub struct MemoryAllocation {
-    memory: Rc<Mutex<Option<Vec<u8>>>>,
+    memory: Arc<Mutex<Option<Vec<u8>>>>,
 }
 
 pub type MemoryAllocationResult<T> = core::result::Result<T, MemoryAllocationError>;
@@ -267,7 +364,7 @@ impl Clone for MemoryAllocation {
 impl MemoryAllocation {
     pub fn new(mem: Vec<u8>) -> Self {
         Self {
-            memory: Rc::new(Mutex::new(Some(mem))),
+            memory: Arc::new(Mutex::new(Some(mem))),
         }
     }
 
@@ -409,6 +506,19 @@ const BIT_MASK: u64 = 0xFFFFFFFF;
 #[derive(Clone, Eq, PartialEq, PartialOrd, Ord)]
 pub struct MemoryId(pub(crate) u32, pub(crate) u32);
 
+impl From<u64> for MemoryId {
+    fn from(value: u64) -> Self {
+        MemoryId::from_u64(value)
+    }
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u64> for MemoryId {
+    fn into(self) -> u64 {
+        self.as_u64()
+    }
+}
+
 impl MemoryId {
     /// [`from_u64`] implements conversion of a 64bit unsighed int
     /// into a Memory by the assuming that the First 32bit represent
@@ -467,6 +577,27 @@ impl MemoryAllocations {
         self.allocs.len() as u64
     }
 
+    pub fn batch_for(
+        &mut self,
+        text_capacity: u64,
+        operations_capacity: u64,
+        consumer: impl FnOnce(CompletedInstructions) + 'static,
+    ) -> MemoryAllocationResult<Instructions> {
+        let operations_id = self.allocate(operations_capacity)?;
+        let operations_buffer = self.get(operations_id.clone())?;
+
+        let text_id = self.allocate(text_capacity)?;
+        let text_buffer = self.get(text_id.clone())?;
+
+        Ok(Instructions::new(
+            operations_id,
+            text_id,
+            operations_buffer,
+            text_buffer,
+            Box::new(consumer),
+        ))
+    }
+
     /// [`deallocate`] releases the owned memory allocation as
     /// free for re-use by another desiring party. This means
     /// the giving memory location is forever free for usage.
@@ -489,7 +620,7 @@ impl MemoryAllocations {
 
     /// [`get`] returns the related [`MemoryAllocation`] object that is related to a
     /// giving [`MemoryId`] to be used.
-    pub fn get(&mut self, memory_id: MemoryId) -> MemoryAllocationResult<MemoryAllocation> {
+    pub fn get(&self, memory_id: MemoryId) -> MemoryAllocationResult<MemoryAllocation> {
         if !self.free.contains(&(memory_id.0 as usize)) {
             if let Some((generation_id, ref allocation)) = self.allocs.get(memory_id.0 as usize) {
                 if *generation_id == memory_id.1 {

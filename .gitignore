@@ -137,6 +137,8 @@ dist
 .yarn/unplugged
 .yarn/build-state.yml
 .yarn/install-state.gz
+
+*.wat
 .pnp.*
 .bacon-locations
 bacon-ls.log
