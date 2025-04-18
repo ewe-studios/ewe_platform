@@ -9,6 +9,8 @@ use alloc::sync::Arc;
 use alloc::vec::Vec;
 use foundation_nostd::spin::Mutex;
 
+use crate::ArgumentOperations;
+
 use super::{ExternalPointer, Operations, StrLocation, ValueTypes};
 
 pub type MemoryWriterResult<T> = core::result::Result<T, MemoryWriterError>;
@@ -75,14 +77,15 @@ impl BatchEncodable for Instructions {
     fn string(&self, data: &str) -> MemoryWriterResult<StrLocation> {
         if self.in_occupied_state() {
             if let Some((_, text)) = &self.mem {
-                let text_location = text.len()?;
-                let text_length = data.len() as u64;
+                let data_bytes = data.as_bytes();
+                let text_location = data_bytes.len() as u64;
+                let text_length = data_bytes.len() as u64;
 
                 text.apply(|mem| {
-                    mem.extend(data.as_bytes());
+                    mem.extend_from_slice(data_bytes);
                 });
 
-                return Ok(StrLocation(text_location, text_length));
+                return Ok(StrLocation::new(text_location, text_length));
             }
         }
 
@@ -192,7 +195,7 @@ impl Instructions {
 /// encoded into a [`BatchEncodable`] implementing type
 /// usually a [`Batch`].
 pub trait Batchable {
-    fn encode(&self, encoder: impl BatchEncodable);
+    fn encode(&self, encoder: impl BatchEncodable) -> MemoryWriterResult<()>;
 }
 
 pub enum Params<'a> {
@@ -300,24 +303,137 @@ impl<'a> From<&'a [u32]> for Params<'a> {
 }
 
 impl Batchable for Params<'_> {
-    fn encode(&self, _encoder: impl BatchEncodable) {
+    fn encode(&self, encoder: impl BatchEncodable) -> MemoryWriterResult<()> {
         match self {
             Params::Undefined => {
-                todo!()
+                let data: Vec<u8> = alloc::vec![
+                    ArgumentOperations::Begin.into(),
+                    ValueTypes::Undefined.into(),
+                    ArgumentOperations::End.into(),
+                ];
+
+                encoder.data(&data)?;
+                Ok(())
             }
-            Params::Null => todo!(),
-            Params::Float64(_) => todo!(),
-            Params::String(_) => todo!(),
+            Params::Null => {
+                let data: Vec<u8> = alloc::vec![
+                    ArgumentOperations::Begin.into(),
+                    ValueTypes::Null.into(),
+                    ArgumentOperations::End.into(),
+                ];
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::Bool(value) => {
+                let indicator = if *value { 1 } else { 0 };
+                let data: Vec<u8> = alloc::vec![
+                    ArgumentOperations::Begin.into(),
+                    ValueTypes::Bool.into(),
+                    indicator,
+                    ArgumentOperations::End.into(),
+                ];
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::Float64(value) => {
+                let value_bytes = value.to_le_bytes();
+                let total_length = value_bytes.len() + 3;
+
+                let mut data: Vec<u8> = Vec::with_capacity(total_length);
+                data.push(ArgumentOperations::Begin.into());
+                data.push(ValueTypes::Float64.into());
+                data.extend(&value_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::Float32(value) => {
+                let value_bytes = value.to_le_bytes();
+                let total_length = value_bytes.len() + 3;
+
+                let mut data: Vec<u8> = Vec::with_capacity(total_length);
+                data.push(ArgumentOperations::Begin.into());
+                data.push(ValueTypes::Float32.into());
+                data.extend(&value_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::Int32(value) => {
+                let value_bytes = value.to_le_bytes();
+                let total_length = value_bytes.len() + 3;
+
+                let mut data: Vec<u8> = Vec::with_capacity(total_length);
+                data.push(ArgumentOperations::Begin.into());
+                data.push(ValueTypes::Int32.into());
+                data.extend(&value_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::Int64(value) => {
+                let value_bytes = value.to_le_bytes();
+                let total_length = value_bytes.len() + 3;
+
+                let mut data: Vec<u8> = Vec::with_capacity(total_length);
+                data.push(ArgumentOperations::Begin.into());
+                data.push(ValueTypes::Int32.into());
+                data.extend(&value_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::Uint32(value) => {
+                let value_bytes = value.to_le_bytes();
+                let total_length = value_bytes.len() + 3;
+
+                let mut data: Vec<u8> = Vec::with_capacity(total_length);
+                data.push(ArgumentOperations::Begin.into());
+                data.push(ValueTypes::Uint32.into());
+                data.extend(&value_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::Uint64(value) => {
+                let value_bytes = value.to_le_bytes();
+                let total_length = value_bytes.len() + 3;
+
+                let mut data: Vec<u8> = Vec::with_capacity(total_length);
+                data.push(ArgumentOperations::Begin.into());
+                data.push(ValueTypes::Uint64.into());
+                data.extend(&value_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::String(value) => {
+                let value_pointer = encoder.string(value)?;
+                let value_index = value_pointer.index().to_le_bytes();
+                let value_length = value_pointer.len().to_le_bytes();
+
+                let mut data: Vec<u8> = Vec::with_capacity(value_length.len() + value_length.len());
+                data.push(ArgumentOperations::Begin.into());
+                data.push(ValueTypes::String.into());
+                data.extend_from_slice(&value_index);
+                data.extend_from_slice(&value_length);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
             Params::Float32Array(_) => todo!(),
             Params::Float64Array(_) => todo!(),
-            Params::Bool(_) => todo!(),
             Params::Uint32Array(_) => todo!(),
             Params::ExternalReference(_) => todo!(),
-            Params::Float32(_) => todo!(),
-            Params::Int32(_) => todo!(),
-            Params::Int64(_) => todo!(),
-            Params::Uint32(_) => todo!(),
-            Params::Uint64(_) => todo!(),
             Params::Uint64Array(_) => todo!(),
             Params::Int32Array(_) => todo!(),
             Params::Int64Array(_) => todo!(),
