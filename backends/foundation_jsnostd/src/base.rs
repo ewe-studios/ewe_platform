@@ -446,7 +446,7 @@ impl CallParams {
 ///
 /// Can be an object, function or some other resource
 /// that is to be used across wasm boundaries.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialOrd, Ord, Hash, Eq, PartialEq, Debug)]
 pub struct InternalPointer(u64);
 
 impl From<u64> for InternalPointer {
