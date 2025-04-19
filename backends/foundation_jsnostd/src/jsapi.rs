@@ -5,8 +5,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use foundation_nostd::{raw_parts::RawParts, spin::Mutex};
 
-use crate::base::{ExternalPointer, JSEncoding};
-use crate::ops::MemoryAllocations;
+use crate::{ExternalPointer, JSEncoding, MemoryAllocations};
 
 static ALLOCATIONS: Mutex<MemoryAllocations> = Mutex::new(MemoryAllocations::new());
 
