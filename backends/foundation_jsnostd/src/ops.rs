@@ -11,7 +11,7 @@ use foundation_nostd::spin::Mutex;
 
 use crate::ArgumentOperations;
 
-use super::{ExternalPointer, Operations, StrLocation, ValueTypes};
+use super::{Operations, Params, StrLocation, ValueTypes};
 
 pub type MemoryWriterResult<T> = core::result::Result<T, MemoryWriterError>;
 
@@ -198,110 +198,6 @@ pub trait Batchable {
     fn encode(&self, encoder: impl BatchEncodable) -> MemoryWriterResult<()>;
 }
 
-pub enum Params<'a> {
-    Undefined,
-    Null,
-    Bool(bool),
-    Float32(f32),
-    Float64(f64),
-    Int32(i32),
-    Int64(i64),
-    Uint32(u32),
-    Uint64(u64),
-    String(&'a str),
-    Uint32Array(&'a [u32]),
-    Uint64Array(&'a [u64]),
-    Int32Array(&'a [i32]),
-    Int64Array(&'a [i64]),
-    Float32Array(&'a [f32]),
-    Float64Array(&'a [f64]),
-    ExternalReference(&'a ExternalPointer),
-}
-
-impl Params<'_> {
-    fn value_type(&self) -> ValueTypes {
-        match self {
-            Params::Bool(_) => ValueTypes::Bool,
-            Params::Undefined => ValueTypes::Undefined,
-            Params::Null => ValueTypes::Null,
-            Params::Float32(_) => ValueTypes::Float32,
-            Params::Float64(_) => ValueTypes::Float64,
-            Params::Int32(_) => ValueTypes::Int32,
-            Params::Int64(_) => ValueTypes::Int64,
-            Params::Uint64(_) => ValueTypes::Uint64,
-            Params::Uint32(_) => ValueTypes::Uint32,
-            Params::String(_) => ValueTypes::String,
-            Params::Int32Array(_) => ValueTypes::Int32ArrayBuffer,
-            Params::Int64Array(_) => ValueTypes::Int64ArrayBuffer,
-            Params::Uint32Array(_) => ValueTypes::Uint32ArrayBuffer,
-            Params::Uint64Array(_) => ValueTypes::Uint64ArrayBuffer,
-            Params::Float32Array(_) => ValueTypes::Float32ArrayBuffer,
-            Params::Float64Array(_) => ValueTypes::Float64ArrayBuffer,
-            Params::ExternalReference(_) => ValueTypes::ExternalReference,
-        }
-    }
-}
-
-impl From<f64> for Params<'_> {
-    fn from(f: f64) -> Self {
-        Params::Float64(f)
-    }
-}
-
-impl From<i32> for Params<'_> {
-    fn from(i: i32) -> Self {
-        Params::Int32(i)
-    }
-}
-
-impl From<usize> for Params<'_> {
-    fn from(i: usize) -> Self {
-        Params::Float64(i as f64)
-    }
-}
-
-impl From<i64> for Params<'_> {
-    fn from(i: i64) -> Self {
-        Params::Int64(i)
-    }
-}
-
-impl<'a> From<&'a str> for Params<'a> {
-    fn from(s: &'a str) -> Self {
-        Params::String(s)
-    }
-}
-
-impl<'a> From<&'a ExternalPointer> for Params<'a> {
-    fn from(i: &'a ExternalPointer) -> Self {
-        Params::ExternalReference(i)
-    }
-}
-
-impl<'a> From<&'a [f32]> for Params<'a> {
-    fn from(a: &'a [f32]) -> Self {
-        Params::Float32Array(a)
-    }
-}
-
-impl<'a> From<&'a [f64]> for Params<'a> {
-    fn from(a: &'a [f64]) -> Self {
-        Params::Float64Array(a)
-    }
-}
-
-impl From<bool> for Params<'_> {
-    fn from(b: bool) -> Self {
-        Params::Bool(b)
-    }
-}
-
-impl<'a> From<&'a [u32]> for Params<'a> {
-    fn from(a: &'a [u32]) -> Self {
-        Params::Uint32Array(a)
-    }
-}
-
 impl Batchable for Params<'_> {
     fn encode(&self, encoder: impl BatchEncodable) -> MemoryWriterResult<()> {
         match self {
@@ -309,6 +205,7 @@ impl Batchable for Params<'_> {
                 let data: Vec<u8> = alloc::vec![
                     ArgumentOperations::Begin.into(),
                     ValueTypes::Undefined.into(),
+                    self.to_value_type().into(),
                     ArgumentOperations::End.into(),
                 ];
 
@@ -318,7 +215,7 @@ impl Batchable for Params<'_> {
             Params::Null => {
                 let data: Vec<u8> = alloc::vec![
                     ArgumentOperations::Begin.into(),
-                    ValueTypes::Null.into(),
+                    self.to_value_type().into(),
                     ArgumentOperations::End.into(),
                 ];
 
@@ -329,7 +226,7 @@ impl Batchable for Params<'_> {
                 let indicator = if *value { 1 } else { 0 };
                 let data: Vec<u8> = alloc::vec![
                     ArgumentOperations::Begin.into(),
-                    ValueTypes::Bool.into(),
+                    self.to_value_type().into(),
                     indicator,
                     ArgumentOperations::End.into(),
                 ];
@@ -343,7 +240,7 @@ impl Batchable for Params<'_> {
 
                 let mut data: Vec<u8> = Vec::with_capacity(total_length);
                 data.push(ArgumentOperations::Begin.into());
-                data.push(ValueTypes::Float64.into());
+                data.push(self.to_value_type().into());
                 data.extend(&value_bytes);
                 data.push(ArgumentOperations::End.into());
 
@@ -356,7 +253,7 @@ impl Batchable for Params<'_> {
 
                 let mut data: Vec<u8> = Vec::with_capacity(total_length);
                 data.push(ArgumentOperations::Begin.into());
-                data.push(ValueTypes::Float32.into());
+                data.push(self.to_value_type().into());
                 data.extend(&value_bytes);
                 data.push(ArgumentOperations::End.into());
 
@@ -369,7 +266,7 @@ impl Batchable for Params<'_> {
 
                 let mut data: Vec<u8> = Vec::with_capacity(total_length);
                 data.push(ArgumentOperations::Begin.into());
-                data.push(ValueTypes::Int32.into());
+                data.push(self.to_value_type().into());
                 data.extend(&value_bytes);
                 data.push(ArgumentOperations::End.into());
 
@@ -382,7 +279,7 @@ impl Batchable for Params<'_> {
 
                 let mut data: Vec<u8> = Vec::with_capacity(total_length);
                 data.push(ArgumentOperations::Begin.into());
-                data.push(ValueTypes::Int32.into());
+                data.push(self.to_value_type().into());
                 data.extend(&value_bytes);
                 data.push(ArgumentOperations::End.into());
 
@@ -395,7 +292,7 @@ impl Batchable for Params<'_> {
 
                 let mut data: Vec<u8> = Vec::with_capacity(total_length);
                 data.push(ArgumentOperations::Begin.into());
-                data.push(ValueTypes::Uint32.into());
+                data.push(self.to_value_type().into());
                 data.extend(&value_bytes);
                 data.push(ArgumentOperations::End.into());
 
@@ -408,21 +305,71 @@ impl Batchable for Params<'_> {
 
                 let mut data: Vec<u8> = Vec::with_capacity(total_length);
                 data.push(ArgumentOperations::Begin.into());
-                data.push(ValueTypes::Uint64.into());
+                data.push(self.to_value_type().into());
                 data.extend(&value_bytes);
                 data.push(ArgumentOperations::End.into());
 
                 encoder.data(&data)?;
                 Ok(())
             }
-            Params::String(value) => {
+            Params::Int8(value) => {
+                let value_bytes = value.to_le_bytes();
+
+                let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 3);
+                data.push(ArgumentOperations::Begin.into());
+                data.push(self.to_value_type().into());
+                data.extend(&value_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::Int16(value) => {
+                let value_bytes = value.to_le_bytes();
+
+                let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 3);
+                data.push(ArgumentOperations::Begin.into());
+                data.push(self.to_value_type().into());
+                data.extend(&value_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::Uint8(value) => {
+                let value_bytes = value.to_le_bytes();
+
+                let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 3);
+                data.push(ArgumentOperations::Begin.into());
+                data.push(self.to_value_type().into());
+                data.extend(&value_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::Uint16(value) => {
+                let value_bytes = value.to_le_bytes();
+
+                let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 3);
+                data.push(ArgumentOperations::Begin.into());
+                data.push(self.to_value_type().into());
+                data.extend(&value_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::Text8(value) => {
                 let value_pointer = encoder.string(value)?;
                 let value_index = value_pointer.index().to_le_bytes();
                 let value_length = value_pointer.len().to_le_bytes();
 
-                let mut data: Vec<u8> = Vec::with_capacity(value_length.len() + value_length.len());
+                let mut data: Vec<u8> =
+                    Vec::with_capacity(value_index.len() + value_length.len() + 3);
+
                 data.push(ArgumentOperations::Begin.into());
-                data.push(ValueTypes::String.into());
+                data.push(self.to_value_type().into());
                 data.extend_from_slice(&value_index);
                 data.extend_from_slice(&value_length);
                 data.push(ArgumentOperations::End.into());
@@ -430,13 +377,207 @@ impl Batchable for Params<'_> {
                 encoder.data(&data)?;
                 Ok(())
             }
-            Params::Float32Array(_) => todo!(),
-            Params::Float64Array(_) => todo!(),
-            Params::Uint32Array(_) => todo!(),
-            Params::ExternalReference(_) => todo!(),
-            Params::Uint64Array(_) => todo!(),
-            Params::Int32Array(_) => todo!(),
-            Params::Int64Array(_) => todo!(),
+            Params::Text16(value) => {
+                let value_length = value.len().to_le_bytes();
+
+                let value_pointer = value.as_ptr() as usize;
+                let value_pointer_bytes = value_pointer.to_le_bytes();
+
+                let mut data: Vec<u8> =
+                    Vec::with_capacity(value_pointer_bytes.len() + value_length.len() + 3);
+
+                data.push(ArgumentOperations::Begin.into());
+                data.push(self.to_value_type().into());
+                data.extend_from_slice(&value_pointer_bytes);
+                data.extend_from_slice(&value_length);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::Float32Array(value) => {
+                let value_pointer = value.as_ptr() as usize;
+                let value_pointer_bytes = value_pointer.to_le_bytes(); // size of
+                let value_length_bytes = value.len().to_le_bytes();
+
+                let mut data: Vec<u8> =
+                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 3);
+
+                data.push(ArgumentOperations::Begin.into());
+                data.push(self.to_value_type().into());
+                data.extend_from_slice(&value_pointer_bytes);
+                data.extend_from_slice(&value_length_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::Float64Array(value) => {
+                let value_pointer = value.as_ptr() as usize;
+                let value_pointer_bytes = value_pointer.to_le_bytes(); // size of
+                let value_length_bytes = value.len().to_le_bytes();
+
+                let mut data: Vec<u8> =
+                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 3);
+
+                data.push(ArgumentOperations::Begin.into());
+                data.push(self.to_value_type().into());
+                data.extend_from_slice(&value_pointer_bytes);
+                data.extend_from_slice(&value_length_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::Uint32Array(value) => {
+                let value_pointer = value.as_ptr() as usize;
+                let value_pointer_bytes = value_pointer.to_le_bytes(); // size of
+                let value_length_bytes = value.len().to_le_bytes();
+
+                let mut data: Vec<u8> =
+                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 3);
+
+                data.push(ArgumentOperations::Begin.into());
+                data.push(self.to_value_type().into());
+                data.extend_from_slice(&value_pointer_bytes);
+                data.extend_from_slice(&value_length_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::ExternalReference(value) => {
+                let value_bytes = value.into_inner().to_le_bytes();
+
+                let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 3);
+
+                data.push(ArgumentOperations::Begin.into());
+                data.push(self.to_value_type().into());
+                data.extend_from_slice(&value_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::Uint64Array(value) => {
+                let value_pointer = value.as_ptr() as usize;
+                let value_pointer_bytes = value_pointer.to_le_bytes(); // size of
+                let value_length_bytes = value.len().to_le_bytes();
+
+                let mut data: Vec<u8> =
+                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 3);
+
+                data.push(ArgumentOperations::Begin.into());
+                data.push(self.to_value_type().into());
+                data.extend_from_slice(&value_pointer_bytes);
+                data.extend_from_slice(&value_length_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::Int32Array(value) => {
+                let value_pointer = value.as_ptr() as usize;
+                let value_pointer_bytes = value_pointer.to_le_bytes(); // size of
+                let value_length_bytes = value.len().to_le_bytes();
+
+                let mut data: Vec<u8> =
+                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 3);
+
+                data.push(ArgumentOperations::Begin.into());
+                data.push(self.to_value_type().into());
+                data.extend_from_slice(&value_pointer_bytes);
+                data.extend_from_slice(&value_length_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::Int64Array(value) => {
+                let value_pointer = value.as_ptr() as usize;
+                let value_pointer_bytes = value_pointer.to_le_bytes(); // size of
+                let value_length_bytes = value.len().to_le_bytes();
+
+                let mut data: Vec<u8> =
+                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 3);
+
+                data.push(ArgumentOperations::Begin.into());
+                data.push(self.to_value_type().into());
+                data.extend_from_slice(&value_pointer_bytes);
+                data.extend_from_slice(&value_length_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::Int8Array(value) => {
+                let value_pointer = value.as_ptr() as usize;
+                let value_pointer_bytes = value_pointer.to_le_bytes(); // size of
+                let value_length_bytes = value.len().to_le_bytes();
+
+                let mut data: Vec<u8> =
+                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 3);
+
+                data.push(ArgumentOperations::Begin.into());
+                data.push(self.to_value_type().into());
+                data.extend_from_slice(&value_pointer_bytes);
+                data.extend_from_slice(&value_length_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::Int16Array(value) => {
+                let value_pointer = value.as_ptr() as usize;
+                let value_pointer_bytes = value_pointer.to_le_bytes(); // size of
+                let value_length_bytes = value.len().to_le_bytes();
+
+                let mut data: Vec<u8> =
+                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 3);
+
+                data.push(ArgumentOperations::Begin.into());
+                data.push(self.to_value_type().into());
+                data.extend_from_slice(&value_pointer_bytes);
+                data.extend_from_slice(&value_length_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::Uint8Array(value) => {
+                let value_pointer = value.as_ptr() as usize;
+                let value_pointer_bytes = value_pointer.to_le_bytes(); // size of
+                let value_length_bytes = value.len().to_le_bytes();
+
+                let mut data: Vec<u8> =
+                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 3);
+
+                data.push(ArgumentOperations::Begin.into());
+                data.push(self.to_value_type().into());
+                data.extend_from_slice(&value_pointer_bytes);
+                data.extend_from_slice(&value_length_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::Uint16Array(value) => {
+                let value_pointer = value.as_ptr() as usize;
+                let value_pointer_bytes = value_pointer.to_le_bytes(); // size of
+                let value_length_bytes = value.len().to_le_bytes();
+
+                let mut data: Vec<u8> =
+                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 3);
+
+                data.push(ArgumentOperations::Begin.into());
+                data.push(self.to_value_type().into());
+                data.extend_from_slice(&value_pointer_bytes);
+                data.extend_from_slice(&value_length_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
         }
     }
 }
