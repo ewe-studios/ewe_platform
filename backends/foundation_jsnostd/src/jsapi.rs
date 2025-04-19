@@ -5,7 +5,11 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use foundation_nostd::{raw_parts::RawParts, spin::Mutex};
 
-use crate::{ExternalPointer, JSEncoding, MemoryAllocations};
+use crate::{ExternalPointer, InternalReferenceRegistry, JSEncoding, MemoryAllocations};
+
+#[allow(unused)]
+static INTERNAL_CALLBACKS: Mutex<InternalReferenceRegistry> =
+    Mutex::new(InternalReferenceRegistry::create());
 
 static ALLOCATIONS: Mutex<MemoryAllocations> = Mutex::new(MemoryAllocations::new());
 

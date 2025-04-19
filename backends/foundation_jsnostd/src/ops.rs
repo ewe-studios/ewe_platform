@@ -7,7 +7,7 @@ use alloc::boxed::Box;
 use alloc::vec::Vec;
 
 use crate::{
-    ArgumentOperations, ExternalPointer, MemoryAllocation, MemoryAllocationResult,
+    ArgumentOperations, ExternalPointer, InternalPointer, MemoryAllocation, MemoryAllocationResult,
     MemoryAllocations, MemoryId, MemoryWriterError, MemoryWriterResult,
 };
 
@@ -622,6 +622,22 @@ impl<'a> Instructions<'a> {
 
 // -- Operations that can be batch
 
+impl<'a> Batchable<'a> for InternalPointer {
+    fn encode<F>(&self, encoder: &'a F) -> MemoryWriterResult<()>
+    where
+        F: BatchEncodable,
+    {
+        let value_bytes = self.into_inner().to_le_bytes();
+
+        let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 1);
+        data.push(self.to_value_type().into());
+        data.extend_from_slice(&value_bytes);
+
+        encoder.data(&data)?;
+        Ok(())
+    }
+}
+
 impl<'a> Batchable<'a> for ExternalPointer {
     fn encode<F>(&self, encoder: &'a F) -> MemoryWriterResult<()>
     where
@@ -643,16 +659,32 @@ impl<'a> Instructions<'a> {
     /// the batch into the underlying Operations.
     pub fn register_function(
         &self,
-        _allocated_handle: ExternalPointer,
-        _body: &str,
+        allocated_handle: ExternalPointer,
+        body: &str,
     ) -> MemoryWriterResult<()> {
+        let value_pointer = self.string(body)?;
+        let value_index = value_pointer.index().to_le_bytes();
+        let value_length = value_pointer.len().to_le_bytes();
+
+        let mut data: Vec<u8> = Vec::with_capacity(value_index.len() + value_length.len() + 10);
+
+        data.push(Operations::MakeFunction.into());
+        allocated_handle.encode(self)?;
+
+        data.push(ValueTypes::Text8.into());
+        data.extend_from_slice(&value_index);
+        data.extend_from_slice(&value_length);
+        data.push(ArgumentOperations::End.into());
+
+        self.data(&data)?;
+
         Ok(())
     }
 
     pub fn invoke_no_return_function(
         &self,
         allocated_handle: ExternalPointer,
-        params: &'a [Params<'a>],
+        params: Option<&'a [Params<'a>]>,
     ) -> MemoryWriterResult<()> {
         self.data(&[
             Operations::Begin as u8,
@@ -660,7 +692,51 @@ impl<'a> Instructions<'a> {
         ])?;
 
         allocated_handle.encode(self)?;
-        params.encode(self)?;
+        if let Some(pm) = params {
+            pm.encode(self)?;
+        }
+
+        self.data(&[Operations::Stop as u8])?;
+
+        Ok(())
+    }
+
+    pub fn invoke_returning_function(
+        &self,
+        allocated_handle: ExternalPointer,
+        params: Option<&'a [Params<'a>]>,
+    ) -> MemoryWriterResult<()> {
+        self.data(&[
+            Operations::Begin as u8,
+            Operations::InvokeReturningFunction as u8,
+        ])?;
+
+        allocated_handle.encode(self)?;
+        if let Some(pm) = params {
+            pm.encode(self)?;
+        }
+
+        self.data(&[Operations::Stop as u8])?;
+
+        Ok(())
+    }
+
+    pub fn invoke_callback_function(
+        &self,
+        allocated_handle: ExternalPointer,
+        callback_handle: InternalPointer,
+        params: Option<&'a [Params<'a>]>,
+    ) -> MemoryWriterResult<()> {
+        self.data(&[
+            Operations::Begin as u8,
+            Operations::InvokeCallbackFunction as u8,
+        ])?;
+
+        callback_handle.encode(self)?;
+        allocated_handle.encode(self)?;
+        if let Some(pm) = params {
+            pm.encode(self)?;
+        }
 
         self.data(&[Operations::Stop as u8])?;
 
