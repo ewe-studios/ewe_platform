@@ -5,30 +5,235 @@ pub enum ValueTypes {
     Null = 0,
     Undefined = 1,
     Bool = 2,
-    String = 3,
-    Int32 = 4,
-    Int64 = 5,
-    Uint32 = 6,
-    Uint64 = 7,
-    Float32 = 8,
-    Float64 = 9,
-    ExternalReference = 10,
-    Uint8ArrayBuffer = 11,
-    Uint16ArrayBuffer = 12,
-    Uint32ArrayBuffer = 13,
-    Uint64ArrayBuffer = 14,
-    Int8ArrayBuffer = 15,
-    Int16ArrayBuffer = 16,
-    Int32ArrayBuffer = 17,
-    Int64ArrayBuffer = 18,
-    Float32ArrayBuffer = 19,
-    Float64ArrayBuffer = 20,
+    Text8 = 3,
+    Text16 = 4,
+    Int8 = 5,
+    Int16 = 6,
+    Int32 = 7,
+    Int64 = 8,
+    Uint8 = 9,
+    Uint16 = 10,
+    Uint32 = 11,
+    Uint64 = 12,
+    Float32 = 13,
+    Float64 = 14,
+    ExternalReference = 15,
+    Uint8ArrayBuffer = 16,
+    Uint16ArrayBuffer = 17,
+    Uint32ArrayBuffer = 18,
+    Uint64ArrayBuffer = 19,
+    Int8ArrayBuffer = 20,
+    Int16ArrayBuffer = 21,
+    Int32ArrayBuffer = 22,
+    Int64ArrayBuffer = 23,
+    Float32ArrayBuffer = 24,
+    Float64ArrayBuffer = 25,
 }
 
 #[allow(clippy::from_over_into)]
 impl Into<u8> for ValueTypes {
     fn into(self) -> u8 {
         self as u8
+    }
+}
+
+pub enum Params<'a> {
+    Undefined,
+    Null,
+    Bool(bool),
+    Float32(f32),
+    Float64(f64),
+    Int8(i8),
+    Int16(i16),
+    Int32(i32),
+    Int64(i64),
+    Uint8(u8),
+    Uint16(u16),
+    Uint32(u32),
+    Uint64(u64),
+    Text8(&'a str),
+    Text16(&'a [u16]),
+    Int8Array(&'a [i8]),
+    Int16Array(&'a [i16]),
+    Int32Array(&'a [i32]),
+    Int64Array(&'a [i64]),
+    Uint8Array(&'a [u8]),
+    Uint16Array(&'a [u16]),
+    Uint32Array(&'a [u32]),
+    Uint64Array(&'a [u64]),
+    Float32Array(&'a [f32]),
+    Float64Array(&'a [f64]),
+    ExternalReference(&'a ExternalPointer),
+}
+
+impl Params<'_> {
+    pub fn to_value_type(&self) -> ValueTypes {
+        match self {
+            Params::Bool(_) => ValueTypes::Bool,
+            Params::Undefined => ValueTypes::Undefined,
+            Params::Null => ValueTypes::Null,
+            Params::Float32(_) => ValueTypes::Float32,
+            Params::Float64(_) => ValueTypes::Float64,
+            Params::Int8(_) => ValueTypes::Int8,
+            Params::Int16(_) => ValueTypes::Int16,
+            Params::Int32(_) => ValueTypes::Int32,
+            Params::Int64(_) => ValueTypes::Int64,
+            Params::Uint8(_) => ValueTypes::Uint8,
+            Params::Uint16(_) => ValueTypes::Uint16,
+            Params::Uint64(_) => ValueTypes::Uint64,
+            Params::Uint32(_) => ValueTypes::Uint32,
+            Params::Text8(_) => ValueTypes::Text8,
+            Params::Text16(_) => ValueTypes::Text16,
+            Params::Int8Array(_) => ValueTypes::Int8ArrayBuffer,
+            Params::Int16Array(_) => ValueTypes::Int16ArrayBuffer,
+            Params::Int32Array(_) => ValueTypes::Int32ArrayBuffer,
+            Params::Int64Array(_) => ValueTypes::Int64ArrayBuffer,
+            Params::Uint8Array(_) => ValueTypes::Uint8ArrayBuffer,
+            Params::Uint16Array(_) => ValueTypes::Uint16ArrayBuffer,
+            Params::Uint32Array(_) => ValueTypes::Uint32ArrayBuffer,
+            Params::Uint64Array(_) => ValueTypes::Uint64ArrayBuffer,
+            Params::Float32Array(_) => ValueTypes::Float32ArrayBuffer,
+            Params::Float64Array(_) => ValueTypes::Float64ArrayBuffer,
+            Params::ExternalReference(_) => ValueTypes::ExternalReference,
+        }
+    }
+}
+
+impl From<f64> for Params<'_> {
+    fn from(f: f64) -> Self {
+        Params::Float64(f)
+    }
+}
+
+impl From<u8> for Params<'_> {
+    fn from(i: u8) -> Self {
+        Params::Uint8(i)
+    }
+}
+
+impl From<u16> for Params<'_> {
+    fn from(i: u16) -> Self {
+        Params::Uint16(i)
+    }
+}
+
+impl From<u32> for Params<'_> {
+    fn from(i: u32) -> Self {
+        Params::Uint32(i)
+    }
+}
+
+impl From<u64> for Params<'_> {
+    fn from(i: u64) -> Self {
+        Params::Uint64(i)
+    }
+}
+
+impl From<i8> for Params<'_> {
+    fn from(i: i8) -> Self {
+        Params::Int8(i)
+    }
+}
+
+impl From<i16> for Params<'_> {
+    fn from(i: i16) -> Self {
+        Params::Int16(i)
+    }
+}
+
+impl From<i32> for Params<'_> {
+    fn from(i: i32) -> Self {
+        Params::Int32(i)
+    }
+}
+
+impl From<i64> for Params<'_> {
+    fn from(i: i64) -> Self {
+        Params::Int64(i)
+    }
+}
+
+impl From<usize> for Params<'_> {
+    fn from(i: usize) -> Self {
+        Params::Float64(i as f64)
+    }
+}
+
+impl<'a> From<&'a str> for Params<'a> {
+    fn from(s: &'a str) -> Self {
+        Params::Text8(s)
+    }
+}
+
+impl<'a> From<&'a ExternalPointer> for Params<'a> {
+    fn from(i: &'a ExternalPointer) -> Self {
+        Params::ExternalReference(i)
+    }
+}
+
+impl<'a> From<&'a [f32]> for Params<'a> {
+    fn from(a: &'a [f32]) -> Self {
+        Params::Float32Array(a)
+    }
+}
+
+impl<'a> From<&'a [f64]> for Params<'a> {
+    fn from(a: &'a [f64]) -> Self {
+        Params::Float64Array(a)
+    }
+}
+
+impl From<bool> for Params<'_> {
+    fn from(b: bool) -> Self {
+        Params::Bool(b)
+    }
+}
+
+impl<'a> From<&'a [i8]> for Params<'a> {
+    fn from(a: &'a [i8]) -> Self {
+        Params::Int8Array(a)
+    }
+}
+
+impl<'a> From<&'a [i16]> for Params<'a> {
+    fn from(a: &'a [i16]) -> Self {
+        Params::Int16Array(a)
+    }
+}
+
+impl<'a> From<&'a [i32]> for Params<'a> {
+    fn from(a: &'a [i32]) -> Self {
+        Params::Int32Array(a)
+    }
+}
+
+impl<'a> From<&'a [i64]> for Params<'a> {
+    fn from(a: &'a [i64]) -> Self {
+        Params::Int64Array(a)
+    }
+}
+
+impl<'a> From<&'a [u8]> for Params<'a> {
+    fn from(a: &'a [u8]) -> Self {
+        Params::Uint8Array(a)
+    }
+}
+
+impl<'a> From<&'a [u16]> for Params<'a> {
+    fn from(a: &'a [u16]) -> Self {
+        Params::Uint16Array(a)
+    }
+}
+
+impl<'a> From<&'a [u32]> for Params<'a> {
+    fn from(a: &'a [u32]) -> Self {
+        Params::Uint32Array(a)
+    }
+}
+
+impl<'a> From<&'a [u64]> for Params<'a> {
+    fn from(a: &'a [u64]) -> Self {
+        Params::Uint64Array(a)
     }
 }
 
