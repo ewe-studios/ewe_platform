@@ -28,6 +28,7 @@ pub enum ValueTypes {
     Int64ArrayBuffer = 23,
     Float32ArrayBuffer = 24,
     Float64ArrayBuffer = 25,
+    InternalReference = 26,
 }
 
 #[allow(clippy::from_over_into)]
@@ -64,6 +65,7 @@ pub enum Params<'a> {
     Float32Array(&'a [f32]),
     Float64Array(&'a [f64]),
     ExternalReference(&'a ExternalPointer),
+    InternalReference(&'a InternalPointer),
 }
 
 impl Params<'_> {
@@ -95,6 +97,7 @@ impl Params<'_> {
             Params::Float32Array(_) => ValueTypes::Float32ArrayBuffer,
             Params::Float64Array(_) => ValueTypes::Float64ArrayBuffer,
             Params::ExternalReference(_) => ValueTypes::ExternalReference,
+            Params::InternalReference(_) => ValueTypes::InternalReference,
         }
     }
 }
@@ -162,6 +165,12 @@ impl From<usize> for Params<'_> {
 impl<'a> From<&'a str> for Params<'a> {
     fn from(s: &'a str) -> Self {
         Params::Text8(s)
+    }
+}
+
+impl<'a> From<&'a InternalPointer> for Params<'a> {
+    fn from(i: &'a InternalPointer) -> Self {
+        Params::InternalReference(i)
     }
 }
 
@@ -360,33 +369,7 @@ pub enum Operations {
     ///
     MakeFunction = 1,
 
-    /// FunctionArguments represents the fact that the operation is a representation
-    /// of arguments to be passed to the preceding operation representing the
-    /// calling of a function.
-    ///
-    /// It usually either ends with a [`ArgumentOperations::Stop`] to indicate the
-    /// end of all arguments.
-    ///
-    /// In Actual Layout:
-    ///
-    /// Memory Layout: [
-    ///     1 Byte / 8 Bits for Operations type,
-    ///     4 Bytes for Memory Address for Location,
-    ///     8 Bytes for External Reference that is 64bit long,
-    ///     4 Bytes for Start Index,
-    ///     4 bytes for Length,
-    /// ]
-    ///
-    /// All together its: 21 Bytes = 168 bits Long.
-    ///
-    /// Adding the Begin (1 Byte) and Stop (1 Byte) bytes then we have additional 2 bytes = 16 bits
-    ///
-    /// So in total we will have 23 Bytes = 184 bits long.
-    ///
-    ///
-    FunctionArguments = 2,
-
-    /// CallNoReturnFunction represents the desire to call a
+    /// InvokeNoReturnFunction represents the desire to call a
     /// function across boundary that does not return any value
     /// in response to being called.
     ///
@@ -399,9 +382,9 @@ pub enum Operations {
     /// B. with arguments
     ///
     ///     [Begin, 3, FunctionHandle(u64), FunctionArguments, [Arguments], End]
-    CallNoReturnFunction = 3,
+    InvokeNoReturnFunction = 2,
 
-    /// CallReturningFunction represents the desire to call a
+    /// InvokeReturningFunction represents the desire to call a
     /// function across boundary that returns a value of
     /// defined type matching [`ReturnType`]
     /// in response to being called.
@@ -415,9 +398,9 @@ pub enum Operations {
     /// B. with arguments
     ///
     ///     [Begin, 3, FunctionHandle(u64), ReturnType, [Arguments], End]
-    CallReturningFunction = 4,
+    InvokeReturningFunction = 3,
 
-    /// CallCallbackFunction represents the desire to call a
+    /// InvokeCallbackFunction represents the desire to call a
     /// function across boundary that takes a callback external reference
     /// which it will use to supply appropriate response when ready (say async call)
     /// as response to being called.
@@ -425,7 +408,7 @@ pub enum Operations {
     /// It has a single layout formats:
     ///
     ///     [Begin, 3, FunctionHandle(u64), ArgStart, ArgBegin, ExternReference, ArgEnd, ArgStop, End]
-    CallCallbackFunction = 5,
+    InvokeCallbackFunction = 4,
 
     /// Stop - indicates the end of an operation in a batch, since
     /// a memory will contain multiple operations batched into a single
@@ -457,6 +440,39 @@ impl CallParams {
     }
 }
 
+/// [`InternalPointer`] identifies an external handle pointing
+/// to a special pointer that is used to control/access
+/// an external resource.
+///
+/// Can be an object, function or some other resource
+/// that is to be used across wasm boundaries.
+#[derive(Clone, Copy)]
+pub struct InternalPointer(u64);
+
+impl From<u64> for InternalPointer {
+    fn from(value: u64) -> Self {
+        Self(value)
+    }
+}
+
+impl InternalPointer {
+    pub const fn pointer(value: u64) -> Self {
+        Self(value)
+    }
+
+    pub fn into_inner(self) -> u64 {
+        self.0
+    }
+
+    pub fn clone_inner(&self) -> u64 {
+        self.0
+    }
+
+    pub fn to_value_type(&self) -> ValueTypes {
+        ValueTypes::InternalReference
+    }
+}
+
 /// [`ExternalPointer`] identifies an external handle pointing
 /// to a special pointer that is used to control/access
 /// an external resource.
@@ -483,6 +499,10 @@ impl ExternalPointer {
 
     pub fn clone_inner(&self) -> u64 {
         self.0
+    }
+
+    pub fn to_value_type(&self) -> ValueTypes {
+        ValueTypes::ExternalReference
     }
 }
 
