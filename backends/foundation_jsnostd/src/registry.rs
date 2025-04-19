@@ -1,5 +1,7 @@
 use alloc::{boxed::Box, collections::btree_map::BTreeMap, rc::Rc};
 
+use crate::InternalPointer;
+
 pub trait InternalCallback {
     fn receive(&self, start_pointer: *const u8, length: u64);
 }
@@ -24,7 +26,7 @@ impl FnCallback {
 }
 
 pub struct InternalReferenceRegistry {
-    tree: BTreeMap<u64, Rc<Box<dyn InternalCallback>>>,
+    tree: BTreeMap<InternalPointer, Rc<Box<dyn InternalCallback>>>,
     id: u64,
 }
 
@@ -42,21 +44,25 @@ impl InternalReferenceRegistry {
         }
     }
 
-    pub fn remove(&mut self, id: u64) -> Option<Rc<Box<dyn InternalCallback + 'static>>> {
+    pub fn remove(
+        &mut self,
+        id: InternalPointer,
+    ) -> Option<Rc<Box<dyn InternalCallback + 'static>>> {
         self.tree.remove(&id)
     }
 
-    pub fn get(&mut self, id: u64) -> Option<Rc<Box<dyn InternalCallback + 'static>>> {
+    pub fn get(&mut self, id: InternalPointer) -> Option<Rc<Box<dyn InternalCallback + 'static>>> {
         self.tree.get(&id).cloned()
     }
 
-    pub fn add<F>(&mut self, f: F) -> u64
+    pub fn add<F>(&mut self, f: F) -> InternalPointer
     where
         F: InternalCallback + 'static,
     {
         self.id += 1;
         let id = self.id;
-        self.tree.insert(id, Rc::new(Box::new(f)));
-        id
+        self.tree
+            .insert(InternalPointer::from(id), Rc::new(Box::new(f)));
+        InternalPointer::from(id)
     }
 }
