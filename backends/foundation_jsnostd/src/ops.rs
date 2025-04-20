@@ -756,10 +756,15 @@ mod test_instructions {
         let mut allocator = MemoryAllocations::new();
         let container: Rc<RefCell<Option<CompletedInstructions>>> = Rc::new(RefCell::new(None));
 
-        let _batch = allocator.batch_for(10, 10, |item| {
+        let batch = allocator.batch_for(10, 10, |item| {
             container.borrow_mut().replace(item);
-        });
+        })?;
 
-        // batch.
+        assert!(atch
+            .invoke_no_return_function(
+                ExternalPointer::from(1),
+                Some(&[Params::Int32(10), Params::Int64(10)]),
+            )
+            .is_ok());
     }
 }
