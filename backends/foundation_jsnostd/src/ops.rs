@@ -469,20 +469,96 @@ pub trait BatchEncodable {
 
     /// [`end`] indicates the batch encoding can be considered finished and
     /// added to the batch list.
-    fn end(self);
+    fn end(self) -> MemoryWriterResult<CompletedInstructions>;
 }
 
+#[derive(Clone, Eq, PartialEq, PartialOrd, Debug)]
 pub struct CompletedInstructions {
     pub ops_id: MemoryId,
     pub text_id: MemoryId,
 }
 
+/// [`Instructions`] is a one batch set writer, meaning it encodes a single
+/// batch of instruction marked by a [`Operations::Begin`] and [`Operations::Stop`]
+/// markers when the [`Instructions::end`] is called.
+///
+/// When the end is called the allocated memory slot used by the [`Instructions`]
+/// instance is marked completed and both returned by the call to [`Instructions::end`]
+/// and also the provided callback the [`MemoryAllocations::batch_for`] gets.
+///
+/// From then on the allocator can do whatever it wants with that memory register (mostly
+/// send the information to the other side) to process the batch.
 pub struct Instructions<'a> {
     ops_id: MemoryId,
     text_id: MemoryId,
-    occupied: Option<Operations>,
     mem: Option<(MemoryAllocation, MemoryAllocation)>,
     consumer: Box<dyn FnOnce(CompletedInstructions) + 'a>,
+}
+
+// -- Constructors
+
+impl<'a> Instructions<'a> {
+    pub fn new(
+        ops_id: MemoryId,
+        text_id: MemoryId,
+        ops: MemoryAllocation,
+        texts: MemoryAllocation,
+        consumer: Box<dyn FnOnce(CompletedInstructions) + 'a>,
+    ) -> Self {
+        Self {
+            ops_id,
+            text_id,
+            consumer,
+            mem: Some((ops, texts)),
+        }
+    }
+}
+
+// -- Instructions private
+
+impl Instructions<'_> {
+    /// [`begin`] starts a new operation to be encoded into the Instructions set
+    /// if a operation was not properly closed then an error
+    /// [`MemoryWriterError::PreviousUnclosedOperation`] is returned.
+    pub(crate) fn begin(&self) -> MemoryWriterResult<()> {
+        if self.in_free_state() {
+            return Err(MemoryWriterError::PreviousUnclosedOperation);
+        }
+
+        if let Some((op, _)) = &self.mem {
+            op.apply(|mem| {
+                mem.push(Operations::Begin as u8);
+            });
+        }
+        Ok(())
+    }
+}
+
+// -- Operations: checker
+
+impl Instructions<'_> {
+    pub fn in_occupied_state(&self) -> bool {
+        self.mem.is_some()
+    }
+
+    pub fn in_free_state(&self) -> bool {
+        self.mem.is_none()
+    }
+
+    pub fn should_be_occupied(&self) -> MemoryWriterResult<()> {
+        if self.in_free_state() {
+            return Err(MemoryWriterError::UnexpectedFreeState);
+        }
+        Ok(())
+    }
+
+    pub fn should_be_free(&self) -> MemoryWriterResult<()> {
+        if self.in_occupied_state() {
+            let var_name = Err(MemoryWriterError::UnexpectedOccupiedState);
+            return var_name;
+        }
+        Ok(())
+    }
 }
 
 impl MemoryAllocations {
@@ -498,13 +574,17 @@ impl MemoryAllocations {
         let text_id = self.allocate(text_capacity)?;
         let text_buffer = self.get(text_id.clone())?;
 
-        Ok(Instructions::new(
+        let instruction = Instructions::new(
             operations_id,
             text_id,
             operations_buffer,
             text_buffer,
             Box::new(consumer),
-        ))
+        );
+
+        // mark the instruction as started.
+        instruction.begin()?;
+        Ok(instruction)
     }
 }
 
@@ -542,81 +622,24 @@ impl BatchEncodable for Instructions<'_> {
         Err(MemoryWriterError::UnableToWrite)
     }
 
-    fn end(mut self) {
-        if let Some((ops, _)) = self.mem.take() {
-            ops.apply(|mem| {
-                mem.push(Operations::Stop as u8);
-            });
-
-            (self.consumer)(CompletedInstructions {
-                ops_id: self.ops_id,
-                text_id: self.text_id,
-            });
-        }
-    }
-}
-
-// -- Operations: checker
-
-impl Instructions<'_> {
-    pub fn in_occupied_state(&self) -> bool {
-        self.occupied.is_some()
-    }
-
-    pub fn in_free_state(&self) -> bool {
-        self.occupied.is_none()
-    }
-
-    pub fn should_be_occupied(&self) -> MemoryWriterResult<()> {
-        if self.in_free_state() {
-            return Err(MemoryWriterError::UnexpectedFreeState);
-        }
-        Ok(())
-    }
-
-    pub fn should_be_free(&self) -> MemoryWriterResult<()> {
+    fn end(mut self) -> MemoryWriterResult<CompletedInstructions> {
         if self.in_occupied_state() {
-            let var_name = Err(MemoryWriterError::UnexpectedOccupiedState);
-            return var_name;
-        }
-        Ok(())
-    }
-}
+            if let Some((ops, _)) = self.mem.take() {
+                ops.apply(|mem| {
+                    mem.push(Operations::Stop as u8);
+                });
 
-// -- Constructors
+                let completed = CompletedInstructions {
+                    ops_id: self.ops_id,
+                    text_id: self.text_id,
+                };
 
-impl<'a> Instructions<'a> {
-    pub fn new(
-        ops_id: MemoryId,
-        text_id: MemoryId,
-        ops: MemoryAllocation,
-        texts: MemoryAllocation,
-        consumer: Box<dyn FnOnce(CompletedInstructions) + 'a>,
-    ) -> Self {
-        Self {
-            ops_id,
-            text_id,
-            consumer,
-            occupied: None,
-            mem: Some((ops, texts)),
-        }
-    }
+                (self.consumer)(completed.clone());
 
-    /// [`begin`] starts a new operation to be encoded into the Instructions set
-    /// if a operation was not properly closed then an error
-    /// [`MemoryWriterError::PreviousUnclosedOperation`] is returned.
-    pub fn begin(mut self) -> MemoryWriterResult<Self> {
-        if self.occupied.is_some() {
-            return Err(MemoryWriterError::PreviousUnclosedOperation);
+                return Ok(completed);
+            }
         }
-
-        self.occupied.replace(Operations::Begin);
-        if let Some((op, _)) = &self.mem {
-            op.apply(|mem| {
-                mem.push(Operations::Begin as u8);
-            });
-        }
-        Ok(self)
+        Err(MemoryWriterError::UnableToWrite)
     }
 }
 
@@ -749,6 +772,9 @@ mod test_instructions {
     use alloc::rc::Rc;
     use core::cell::RefCell;
 
+    extern crate std;
+    use std::dbg;
+
     use super::*;
 
     #[test]
@@ -756,15 +782,38 @@ mod test_instructions {
         let mut allocator = MemoryAllocations::new();
         let container: Rc<RefCell<Option<CompletedInstructions>>> = Rc::new(RefCell::new(None));
 
-        let batch = allocator.batch_for(10, 10, |item| {
-            container.borrow_mut().replace(item);
-        })?;
+        let batch = allocator
+            .batch_for(10, 10, |item| {
+                container.borrow_mut().replace(item);
+            })
+            .expect("create new Instructions");
 
-        assert!(atch
-            .invoke_no_return_function(
-                ExternalPointer::from(1),
-                Some(&[Params::Int32(10), Params::Int64(10)]),
-            )
-            .is_ok());
+        batch.should_be_occupied().expect("is occupied");
+
+        let write_result = batch.invoke_no_return_function(
+            ExternalPointer::from(1),
+            Some(&[Params::Int32(10), Params::Int64(10)]),
+        );
+
+        assert!(write_result.is_ok());
+
+        let completed_data = batch.end().expect("finish writing completion result");
+
+        let content = container.take();
+        assert!(content.is_some());
+
+        let completed_batch = content.unwrap();
+        assert_eq!(completed_batch, completed_data);
+
+        let completed_strings = allocator.get(completed_batch.text_id).expect("get memory");
+        let completed_ops = allocator.get(completed_batch.ops_id).expect("get memory");
+
+        assert!(completed_strings.is_empty().expect("is_empty"));
+        assert!(!completed_ops.is_empty().expect("is_empty"));
+
+        let ops = completed_ops.clone_memory().expect("clone");
+        dbg!(&ops);
+
+        assert_eq!(alloc::vec![0, 1], ops,);
     }
 }

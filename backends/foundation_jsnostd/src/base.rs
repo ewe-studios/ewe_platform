@@ -314,18 +314,22 @@ impl Into<u8> for ArgumentOperations {
 
 /// Lists all possible encodable operations supported
 /// by this crate. This allows us represent different
-/// actions and operations as with a 1 byte pointer
-/// in the range of 0 - 277.
+/// actions and operations with a 1 byte pointer
+/// in the range of 0 - 255 (a u8, 8 bits).
 ///
-/// The expectation is that all operations will follow the
-/// underlying layout:
+/// The idea is a batch of different operations is represented
+/// as a memory slot sent to the other side (Host side) with
+/// the precondition that a batch must start with the [Begin] byte (u8)
+/// and end with a [Stop] byte (u8).
 ///
-/// Op: [Begin, Operation, [Operation Data], Stop]
+/// It must then follow the layout:
 ///
-/// Where memory will have multiple of these layout in linear
-/// memory:
+/// Op: [Begin, [Operation]*, Stop]
 ///
-/// Memory: [Op, Op, ....]
+/// Where Operation: is a layout of a specific type of operation
+/// with it's own underlying layout defining its components.
+///
+/// Operation: [Op, [OperationComponent]*, OpEnd]
 ///
 #[repr(usize)]
 #[derive(Clone)]

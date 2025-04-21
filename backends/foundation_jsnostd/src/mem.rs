@@ -3,6 +3,7 @@
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::missing_panics_doc)]
 
+use alloc::boxed::Box;
 use alloc::string::{FromUtf16Error, FromUtf8Error, String};
 use alloc::sync::Arc;
 use alloc::vec::Vec;
@@ -49,6 +50,13 @@ pub enum MemoryAllocationError {
     NoMemoryAllocation,
     NoMoreAllocationSlots,
     InvalidAllocationId,
+    MemoryWriteError(Box<MemoryWriterError>),
+}
+
+impl From<MemoryWriterError> for MemoryAllocationError {
+    fn from(value: MemoryWriterError) -> Self {
+        MemoryAllocationError::MemoryWriteError(Box::new(value))
+    }
 }
 
 impl core::error::Error for MemoryAllocationError {}
@@ -209,7 +217,7 @@ const BIT_MASK: u64 = 0xFFFFFFFF;
 /// First Elem - is the index
 /// Second Elem - is the generation
 ///
-#[derive(Clone, Eq, PartialEq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, PartialEq, PartialOrd, Ord)]
 pub struct MemoryId(pub(crate) u32, pub(crate) u32);
 
 impl From<u64> for MemoryId {

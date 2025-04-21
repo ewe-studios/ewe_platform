@@ -5,11 +5,12 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use foundation_nostd::{raw_parts::RawParts, spin::Mutex};
 
-use crate::{ExternalPointer, InternalReferenceRegistry, JSEncoding, MemoryAllocations};
+use crate::{
+    ExternalPointer, InternalCallback, InternalPointer, InternalReferenceRegistry, JSEncoding,
+    MemoryAllocations,
+};
 
-#[allow(unused)]
-static INTERNAL_CALLBACKS: Mutex<InternalReferenceRegistry> =
-    Mutex::new(InternalReferenceRegistry::create());
+static INTERNAL_CALLBACKS: Mutex<InternalReferenceRegistry> = InternalReferenceRegistry::create();
 
 static ALLOCATIONS: Mutex<MemoryAllocations> = Mutex::new(MemoryAllocations::new());
 
@@ -51,6 +52,24 @@ pub extern "C" fn clear_allocation(allocation_id: u64) {
         .get(allocation_id.into())
         .expect("Allocation should be initialized");
     mem.clear().expect("should clear memory");
+}
+
+// -- callback methods
+
+#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+pub fn register_internal_callback<F>(f: F) -> InternalPointer
+where
+    F: InternalCallback + 'static,
+{
+    INTERNAL_CALLBACKS.lock().add(f)
+}
+
+#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+pub fn register_internal_callback<F>(f: F) -> InternalPointer
+where
+    F: InternalCallback + Send + Sync + 'static,
+{
+    INTERNAL_CALLBACKS.lock().add(f)
 }
 
 // -- extract methods
