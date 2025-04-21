@@ -1059,13 +1059,13 @@ mod test_instructions {
                 ArgumentOperations::Start as u8, // start of all arguments
                 ArgumentOperations::Begin as u8, // start of this argument
                 ValueTypes::Int32 as u8,
-                TypeOptimization::QuantizedUint32AsU8 as u8,
+                TypeOptimization::QuantizedInt32AsI8 as u8,
                 // value of int32 in LittleIndian encoding, so 8 bytes
                 10,
                 ArgumentOperations::End as u8,   // end of this argument
                 ArgumentOperations::Begin as u8, // start of this argument
                 ValueTypes::Int64 as u8,
-                TypeOptimization::QuantizedUint64AsU8 as u8,
+                TypeOptimization::QuantizedInt64AsI8 as u8,
                 20,
                 ArgumentOperations::End as u8,  // end of this argument
                 ArgumentOperations::Stop as u8, // end of all arguments
