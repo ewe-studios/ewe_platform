@@ -219,6 +219,32 @@ impl<'a> Batchable<'a> for Params<'a> {
                 encoder.data(&data)?;
                 Ok(())
             }
+            Params::Int128(value) => {
+                let value_bytes = value.to_le_bytes();
+
+                let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 4);
+                data.push(ArgumentOperations::Begin.into());
+                data.push(self.to_value_type().into());
+                data.push(TypeOptimization::None.into());
+                data.extend(&value_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::Uint128(value) => {
+                let value_bytes = value.to_le_bytes();
+
+                let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 4);
+                data.push(ArgumentOperations::Begin.into());
+                data.push(self.to_value_type().into());
+                data.push(TypeOptimization::None.into());
+                data.extend(&value_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
             Params::Text8(value) => {
                 let value_pointer = encoder.string(value)?;
                 let value_index = value_pointer.index().to_le_bytes();
@@ -608,10 +634,7 @@ impl MemoryAllocations {
 
     /// [`get_memory`] retrieve the underlying memory allocation from the [`CompletedInstructions`] which can
     /// allow you to inspect or interact with its raw contents as a [`MemoryAllocation`].
-    pub fn get_memory(
-        &self,
-        completed: CompletedInstructions,
-    ) -> MemoryAllocationResult<MemorySlot> {
+    pub fn get_slot(&self, completed: CompletedInstructions) -> MemoryAllocationResult<MemorySlot> {
         let operation_buffer = self.get(completed.ops_id.clone())?;
         let text_buffer = self.get(completed.text_id.clone())?;
         Ok(MemorySlot::new(operation_buffer, text_buffer))
@@ -809,7 +832,7 @@ mod test_instructions {
     use super::*;
 
     #[test]
-    fn can_encode_params_with_instructions() {
+    fn can_encode_no_return_function_call() {
         let mut allocator = MemoryAllocations::new();
 
         let batch = allocator
@@ -827,7 +850,7 @@ mod test_instructions {
         assert!(write_result.is_ok());
 
         let completed_data = batch.end().expect("finish writing completion result");
-        let slot = allocator.get_memory(completed_data).expect("get memory");
+        let slot = allocator.get_slot(completed_data).expect("get memory");
 
         let completed_strings = slot.text_ref();
         let completed_ops = slot.ops_ref();
