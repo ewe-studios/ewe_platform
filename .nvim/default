@@ -13,12 +13,12 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +15 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/jsapi.rs
-badd +749 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/ops.rs
-badd +496 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/base.rs
+badd +14 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/jsapi.rs
+badd +489 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/ops.rs
+badd +225 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/base.rs
 badd +11 backends/foundation_jsnostd/src/lib.rs
-badd +422 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/mem.rs
-badd +29 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/registry.rs
+badd +56 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/mem.rs
+badd +50 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/registry.rs
 badd +29 ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/valtron/clonable_fn.rs
 badd +10 ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/valtron/clone_iterators.rs
 argglobal
@@ -31,10 +31,6 @@ wincmd _ | wincmd |
 vsplit
 1wincmd h
 wincmd w
-wincmd _ | wincmd |
-split
-1wincmd k
-wincmd w
 let &splitbelow = s:save_splitbelow
 let &splitright = s:save_splitright
 wincmd t
@@ -46,7 +42,7 @@ set winminwidth=0
 set winwidth=1
 wincmd =
 argglobal
-balt ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/jsapi.rs
+balt ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/mem.rs
 setlocal foldmethod=expr
 setlocal foldexpr=nvim_treesitter#foldexpr()
 setlocal foldmarker={{{,}}}
@@ -113,41 +109,37 @@ normal! zo
 normal! zo
 410
 normal! zo
-488
+57
+normal! zc
+519
 normal! zo
-489
+523
 normal! zo
-494
+528
 normal! zo
-513
+539
 normal! zo
-514
+548
 normal! zo
-515
+555
 normal! zo
-516
+564
 normal! zo
-532
-normal! zo
-533
-normal! zo
-534
-normal! zo
-545
-normal! zo
-546
-normal! zo
-561
+565
 normal! zo
 570
 normal! zo
-577
+593
 normal! zo
-588
+594
 normal! zo
-589
+595
 normal! zo
-608
+596
+normal! zo
+612
+normal! zo
+613
 normal! zo
 614
 normal! zo
@@ -155,42 +147,53 @@ normal! zo
 normal! zo
 626
 normal! zo
-641
+627
 normal! zo
-642
+648
 normal! zo
-657
+649
 normal! zo
-660
+664
 normal! zo
-684
+665
 normal! zo
-688
+680
 normal! zo
-704
+683
 normal! zo
-708
+707
 normal! zo
-724
+711
 normal! zo
-729
+727
 normal! zo
-748
+731
 normal! zo
-755
+747
 normal! zo
-let s:l = 765 - ((69 * winheight(0) + 35) / 71)
+752
+normal! zo
+771
+normal! zo
+781
+normal! zo
+785
+normal! zo
+785
+normal! zo
+let s:l = 733 - ((44 * winheight(0) + 35) / 71)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 765
-normal! 0
+keepjumps 733
+normal! 022|
 wincmd w
 argglobal
 if bufexists(fnamemodify("~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/registry.rs", ":p")) | buffer ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/registry.rs | else | edit ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/registry.rs | endif
 if &buftype ==# 'terminal'
   silent file ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/registry.rs
 endif
+balt ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/jsapi.rs
 setlocal foldmethod=expr
 setlocal foldexpr=nvim_treesitter#foldexpr()
 setlocal foldmarker={{{,}}}
@@ -199,33 +202,62 @@ setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-let s:l = 29 - ((17 * winheight(0) + 18) / 36)
+34
+normal! zo
+41
+normal! zo
+42
+normal! zo
+54
+normal! zo
+61
+normal! zo
+68
+normal! zo
+69
+normal! zo
+81
+normal! zo
+82
+normal! zo
+103
+normal! zo
+109
+normal! zo
+132
+normal! zo
+144
+normal! zo
+61
+normal! zo
+68
+normal! zo
+69
+normal! zo
+81
+normal! zo
+82
+normal! zo
+106
+normal! zo
+115
+normal! zo
+116
+normal! zo
+126
+normal! zo
+131
+normal! zo
+136
+normal! zo
+148
+normal! zo
+let s:l = 50 - ((49 * winheight(0) + 35) / 71)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 29
-normal! 0
-wincmd w
-argglobal
-if bufexists(fnamemodify("~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/jsapi.rs", ":p")) | buffer ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/jsapi.rs | else | edit ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/jsapi.rs | endif
-if &buftype ==# 'terminal'
-  silent file ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/jsapi.rs
-endif
-balt ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/ops.rs
-setlocal foldmethod=expr
-setlocal foldexpr=nvim_treesitter#foldexpr()
-setlocal foldmarker={{{,}}}
-setlocal foldignore=#
-setlocal foldlevel=99
-setlocal foldminlines=1
-setlocal foldnestmax=20
-setlocal foldenable
-let s:l = 12 - ((9 * winheight(0) + 17) / 34)
-if s:l < 1 | let s:l = 1 | endif
-keepjumps exe s:l
-normal! zt
-keepjumps 12
-normal! 0
+keepjumps 50
+normal! 069|
 wincmd w
 2wincmd w
 wincmd =

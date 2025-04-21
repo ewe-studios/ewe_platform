@@ -3,7 +3,6 @@
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::missing_panics_doc)]
 
-use alloc::boxed::Box;
 use alloc::vec::Vec;
 
 use crate::{
@@ -488,27 +487,24 @@ pub struct CompletedInstructions {
 ///
 /// From then on the allocator can do whatever it wants with that memory register (mostly
 /// send the information to the other side) to process the batch.
-pub struct Instructions<'a> {
+pub struct Instructions {
     ops_id: MemoryId,
     text_id: MemoryId,
     mem: Option<(MemoryAllocation, MemoryAllocation)>,
-    consumer: Box<dyn FnOnce(CompletedInstructions) + 'a>,
 }
 
 // -- Constructors
 
-impl<'a> Instructions<'a> {
+impl Instructions {
     pub fn new(
         ops_id: MemoryId,
         text_id: MemoryId,
         ops: MemoryAllocation,
         texts: MemoryAllocation,
-        consumer: Box<dyn FnOnce(CompletedInstructions) + 'a>,
     ) -> Self {
         Self {
             ops_id,
             text_id,
-            consumer,
             mem: Some((ops, texts)),
         }
     }
@@ -516,7 +512,7 @@ impl<'a> Instructions<'a> {
 
 // -- Instructions private
 
-impl Instructions<'_> {
+impl Instructions {
     /// [`begin`] starts a new operation to be encoded into the Instructions set
     /// if a operation was not properly closed then an error
     /// [`MemoryWriterError::PreviousUnclosedOperation`] is returned.
@@ -536,7 +532,7 @@ impl Instructions<'_> {
 
 // -- Operations: checker
 
-impl Instructions<'_> {
+impl Instructions {
     pub fn in_occupied_state(&self) -> bool {
         self.mem.is_some()
     }
@@ -562,24 +558,45 @@ impl Instructions<'_> {
 }
 
 impl MemoryAllocations {
-    pub fn batch_for<'a>(
+    /// [`batch_for`] creates a new memory slot for encoding a singular instruction
+    /// batch.
+    pub fn batch_for(
         &mut self,
         text_capacity: u64,
         operations_capacity: u64,
-        consumer: impl FnOnce(CompletedInstructions) + 'a,
-    ) -> MemoryAllocationResult<Instructions<'a>> {
+    ) -> MemoryAllocationResult<Instructions> {
         let operations_id = self.allocate(operations_capacity)?;
         let operations_buffer = self.get(operations_id.clone())?;
 
         let text_id = self.allocate(text_capacity)?;
         let text_buffer = self.get(text_id.clone())?;
 
+        let instruction = Instructions::new(operations_id, text_id, operations_buffer, text_buffer);
+
+        // mark the instruction as started.
+        instruction.begin()?;
+        Ok(instruction)
+    }
+
+    /// [`batch_from`] allows you continue building new batch instructions
+    /// from an already completed instruction memory slot. This added when you
+    /// are sure you do not need any immediate execution of the previous instruction
+    /// and will use callbacks or other means of retrieving results async or at a future
+    /// time, allowing you to encode as much information as possible before deliverying
+    /// to the other side, but also be aware this also means any potential error on
+    /// the host side that is caused by a batch will affect finality of your whole
+    /// batch.
+    pub fn batch_from(
+        &mut self,
+        completed: CompletedInstructions,
+    ) -> MemoryAllocationResult<Instructions> {
+        let operations = self.get(completed.ops_id.clone())?;
+        let text_buffer = self.get(completed.text_id.clone())?;
         let instruction = Instructions::new(
-            operations_id,
-            text_id,
-            operations_buffer,
+            completed.ops_id.clone(),
+            completed.text_id.clone(),
+            operations,
             text_buffer,
-            Box::new(consumer),
         );
 
         // mark the instruction as started.
@@ -590,7 +607,7 @@ impl MemoryAllocations {
 
 // -- Implements BatchEncodable
 
-impl BatchEncodable for Instructions<'_> {
+impl BatchEncodable for Instructions {
     fn string(&self, data: &str) -> MemoryWriterResult<StrLocation> {
         if self.in_occupied_state() {
             if let Some((_, text)) = &self.mem {
@@ -634,8 +651,6 @@ impl BatchEncodable for Instructions<'_> {
                     text_id: self.text_id,
                 };
 
-                (self.consumer)(completed.clone());
-
                 return Ok(completed);
             }
         }
@@ -677,7 +692,7 @@ impl<'a> Batchable<'a> for ExternalPointer {
     }
 }
 
-impl<'a> Instructions<'a> {
+impl Instructions {
     /// [`register_function`] is immediate and will call end which will flush
     /// the batch into the underlying Operations.
     pub fn register_function(
@@ -704,7 +719,7 @@ impl<'a> Instructions<'a> {
         Ok(())
     }
 
-    pub fn invoke_no_return_function(
+    pub fn invoke_no_return_function<'a>(
         &self,
         allocated_handle: ExternalPointer,
         params: Option<&'a [Params<'a>]>,
@@ -724,7 +739,7 @@ impl<'a> Instructions<'a> {
         Ok(())
     }
 
-    pub fn invoke_returning_function(
+    pub fn invoke_returning_function<'a>(
         &self,
         allocated_handle: ExternalPointer,
         params: Option<&'a [Params<'a>]>,
@@ -744,7 +759,7 @@ impl<'a> Instructions<'a> {
         Ok(())
     }
 
-    pub fn invoke_callback_function(
+    pub fn invoke_callback_function<'a>(
         &self,
         allocated_handle: ExternalPointer,
         callback_handle: InternalPointer,
@@ -769,9 +784,6 @@ impl<'a> Instructions<'a> {
 
 #[cfg(test)]
 mod test_instructions {
-    use alloc::rc::Rc;
-    use core::cell::RefCell;
-
     extern crate std;
     use std::dbg;
 
@@ -780,12 +792,9 @@ mod test_instructions {
     #[test]
     fn can_encode_params_with_instructions() {
         let mut allocator = MemoryAllocations::new();
-        let container: Rc<RefCell<Option<CompletedInstructions>>> = Rc::new(RefCell::new(None));
 
         let batch = allocator
-            .batch_for(10, 10, |item| {
-                container.borrow_mut().replace(item);
-            })
+            .batch_for(10, 10)
             .expect("create new Instructions");
 
         batch.should_be_occupied().expect("is occupied");
@@ -799,14 +808,8 @@ mod test_instructions {
 
         let completed_data = batch.end().expect("finish writing completion result");
 
-        let content = container.take();
-        assert!(content.is_some());
-
-        let completed_batch = content.unwrap();
-        assert_eq!(completed_batch, completed_data);
-
-        let completed_strings = allocator.get(completed_batch.text_id).expect("get memory");
-        let completed_ops = allocator.get(completed_batch.ops_id).expect("get memory");
+        let completed_strings = allocator.get(completed_data.text_id).expect("get memory");
+        let completed_ops = allocator.get(completed_data.ops_id).expect("get memory");
 
         assert!(completed_strings.is_empty().expect("is_empty"));
         assert!(!completed_ops.is_empty().expect("is_empty"));
