@@ -829,7 +829,7 @@ pub mod value_quantitzation {
     /// [`qpointer`] attempts to quantize a pointer value expressed as either
     /// a u8, u16, u32 or u64 depending on the range the pointer value falls under.
     pub fn qpointer(ptr: *const u8) -> (Vec<u8>, TypeOptimization) {
-        match ptr as u64 {
+        match ptr as u128 {
             0..=255 => {
                 let as_bit = ptr as u8;
                 let as_bit_bytes = as_bit.to_le_bytes();
@@ -852,6 +852,12 @@ pub mod value_quantitzation {
                 let as_bit_bytes = ptr_as_u64.to_le_bytes();
 
                 (as_bit_bytes.to_vec(), TypeOptimization::QuantizedPtrAsU64)
+            }
+            _ => {
+                let ptr_as_u64 = ptr as u128;
+                let as_bit_bytes = ptr_as_u64.to_le_bytes();
+
+                (as_bit_bytes.to_vec(), TypeOptimization::None)
             }
         }
     }
@@ -1027,6 +1033,52 @@ pub struct CompletedInstructions {
 mod quantization_tests {
     use super::*;
     use alloc::vec;
+
+    #[test]
+    fn can_quantize_ptr() {
+        struct TestCase {
+            value: *const u8,
+            expected_bytes: Vec<u8>,
+            quantization: TypeOptimization,
+        }
+
+        let test_cases: Vec<TestCase> = vec![
+            TestCase {
+                value: 20 as *const u8,
+                expected_bytes: vec![20],
+                quantization: TypeOptimization::QuantizedPtrAsU8,
+            },
+            TestCase {
+                value: 32767 as *const u8,
+                expected_bytes: vec![255, 127],
+                quantization: TypeOptimization::QuantizedPtrAsU16,
+            },
+            TestCase {
+                value: 2147483647 as *const u8,
+                expected_bytes: vec![255, 255, 255, 127],
+                quantization: TypeOptimization::QuantizedPtrAsU32,
+            },
+            TestCase {
+                value: 6294967296 as *const u8,
+                expected_bytes: vec![0, 148, 53, 119, 1, 0, 0, 0],
+                quantization: TypeOptimization::QuantizedPtrAsU64,
+            },
+            TestCase {
+                value: 9223372036854775809 as *const u8,
+                expected_bytes: vec![1, 0, 0, 0, 0, 0, 0, 128],
+                quantization: TypeOptimization::QuantizedPtrAsU64,
+            },
+        ];
+
+        for test_case in test_cases {
+            let (content, tq) = value_quantitzation::qpointer(test_case.value);
+            assert_eq!(
+                test_case.expected_bytes, content,
+                "Output bytes should match"
+            );
+            assert_eq!(test_case.quantization, tq, "Quantization type should match");
+        }
+    }
 
     #[test]
     fn can_quantize_i128() {
