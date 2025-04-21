@@ -9,6 +9,8 @@ use alloc::sync::Arc;
 use alloc::vec::Vec;
 use foundation_nostd::spin::Mutex;
 
+use crate::{CompletedInstructions, MemoryId, StrLocation};
+
 pub type MemoryWriterResult<T> = core::result::Result<T, MemoryWriterError>;
 
 #[derive(Debug)]
@@ -37,6 +39,11 @@ impl core::fmt::Display for MemoryWriterError {
     }
 }
 
+/// [`MemoryAllocation`] is a thread-safe and copy-cheap handle to a
+/// underlying memory location held by a [`Vec<u8>`].
+///
+/// It is cheap to clone a [`MemoryAllocation`] just be aware it all
+/// refers to the same memory location Vec<u8>;
 pub struct MemoryAllocation {
     memory: Arc<Mutex<Option<Vec<u8>>>>,
 }
@@ -199,66 +206,62 @@ impl MemoryAllocation {
     }
 }
 
-/// [`BIT_SIZE`] represent the shifting we want to do
-/// to shift 32 bit numbers into 64bit numbers.
-const BIT_SIZE: u64 = 32;
+/// [`BatchEncodable`] defines a trait which allows you implement
+/// conversion an underlying binary representation of a Batch
+/// operation.
+pub trait BatchEncodable {
+    /// [`string`] encodes the underlying string
+    /// returning the string location information which allows
+    /// whatever is calling it
+    fn string(&self, data: &str) -> MemoryWriterResult<StrLocation>;
 
-/// [`BIT_MASK`] representing the needing masking
-/// to be used in bitpacking two 32bit numbers into
-/// a 64 bit number.
-const BIT_MASK: u64 = 0xFFFFFFFF;
+    /// [`data`] provides the underlying related data for
+    /// the identified operation.
+    fn data(&self, data: &[u8]) -> MemoryWriterResult<()>;
 
-/// [`MemoryId`] represents a key to a allocation '
-/// which has a unique generation to denote it's ownership
-/// if the generation differs from the current generation of
-/// a given index then that means ownership was already lost and
-/// hence cant be used.
-///
-/// First Elem - is the index
-/// Second Elem - is the generation
-///
-#[derive(Debug, Clone, Eq, PartialEq, PartialOrd, Ord)]
-pub struct MemoryId(pub(crate) u32, pub(crate) u32);
-
-impl From<u64> for MemoryId {
-    fn from(value: u64) -> Self {
-        MemoryId::from_u64(value)
-    }
+    /// [`end`] indicates the batch encoding can be considered finished and
+    /// added to the batch list.
+    fn end(self) -> MemoryWriterResult<CompletedInstructions>;
 }
 
-#[allow(clippy::from_over_into)]
-impl Into<u64> for MemoryId {
-    fn into(self) -> u64 {
-        self.as_u64()
-    }
+/// [`Batchable`] defines a infallible type which can be
+/// encoded into a [`BatchEncodable`] implementing type
+/// usually a [`Batch`].
+pub trait Batchable<'a> {
+    /// [`encode`] implements the necessary underlying logic to encode the
+    /// [`self`] in this instance into bytes that can be correctly communicated
+    /// across with an argument [optimized] (boolean) to indicate if any
+    /// optimize should be applied during encoding (if at all possible)
+    /// which will improve the compactness wherever possible of the encoded
+    /// values.
+    fn encode<F>(&self, encoder: &'a F, optimized: bool) -> MemoryWriterResult<()>
+    where
+        F: BatchEncodable;
 }
 
-impl MemoryId {
-    /// [`from_u64`] implements conversion of a 64bit unsighed int
-    /// into a Memory by the assuming that the First 32bit represent
-    /// the index (LSB) and the last 32 bit (MSB) represent the
-    /// generation number.
-    pub fn from_u64(memory_id: u64) -> Self {
-        let index = ((memory_id >> BIT_SIZE) & BIT_MASK) as u32; // upper bit
-        let generation = (memory_id & BIT_MASK) as u32; // lower bit
-        Self(index, generation)
+/// [`MemorySlot`] provides a nicer API handle for memory allocation
+/// representing one that contains ops code represented as a `Vec<u8>`
+/// and text represent by a `Vec<u8>` of a utf-8 encoded text.
+pub struct MemorySlot(MemoryAllocation, MemoryAllocation);
+
+impl MemorySlot {
+    pub fn new(ops: MemoryAllocation, text: MemoryAllocation) -> Self {
+        Self(ops, text)
     }
 
-    /// [`as_u64`] packs the index and generation represented
-    /// by the [`MemoryId`] into a singular u64 number allowing
-    /// memory savings and improved cross over sharing.
-    pub fn as_u64(&self) -> u64 {
-        let msb_bit = ((self.0 as u64) & BIT_MASK) << BIT_SIZE; // Upper 32 bits at the MSB
-        let lsb_bit = (self.1 as u64) & BIT_MASK; // Lower 32 bits at the LSB
-        msb_bit | lsb_bit
+    pub fn ops(&self) -> MemoryAllocation {
+        self.0.clone()
+    }
+    pub fn text(&self) -> MemoryAllocation {
+        self.1.clone()
     }
 
-    pub fn index(&self) -> u32 {
-        self.0
+    pub fn ops_ref(&self) -> &MemoryAllocation {
+        &self.0
     }
 
-    pub fn generation(&self) -> u32 {
-        self.1
+    pub fn text_ref(&self) -> &MemoryAllocation {
+        &self.1
     }
 }
 
