@@ -6,33 +6,25 @@
 use alloc::vec::Vec;
 
 use crate::{
-    ArgumentOperations, ExternalPointer, InternalPointer, MemoryAllocation, MemoryAllocationResult,
-    MemoryAllocations, MemoryId, MemoryWriterError, MemoryWriterResult,
+    ArgumentOperations, BatchEncodable, Batchable, CompletedInstructions, ExternalPointer,
+    InternalPointer, MemoryAllocation, MemoryAllocationResult, MemoryAllocations, MemoryId,
+    MemorySlot, MemoryWriterError, MemoryWriterResult, TypeOptimization,
 };
 
 use super::{Operations, Params, StrLocation, ValueTypes};
-
-/// [`Batchable`] defines a infallible type which can be
-/// encoded into a [`BatchEncodable`] implementing type
-/// usually a [`Batch`].
-pub trait Batchable<'a> {
-    fn encode<F>(&self, encoder: &'a F) -> MemoryWriterResult<()>
-    where
-        F: BatchEncodable;
-}
 
 const DEFAULT_ALLOCATION_SIZE: usize = 10;
 static ARGUMENT_ENDER: &[u8] = &[ArgumentOperations::Stop as u8];
 static ARGUMENT_STARTER: &[u8] = &[ArgumentOperations::Start as u8];
 
 impl<'a> Batchable<'a> for Vec<Params<'a>> {
-    fn encode<F>(&self, encoder: &'a F) -> MemoryWriterResult<()>
+    fn encode<F>(&self, encoder: &'a F, optimize: bool) -> MemoryWriterResult<()>
     where
         F: BatchEncodable,
     {
         encoder.data(ARGUMENT_STARTER)?;
         for param in self.iter() {
-            param.encode(encoder)?;
+            param.encode(encoder, optimize)?;
         }
         encoder.data(ARGUMENT_ENDER)?;
         Ok(())
@@ -40,13 +32,13 @@ impl<'a> Batchable<'a> for Vec<Params<'a>> {
 }
 
 impl<'a> Batchable<'a> for &'a [Params<'a>] {
-    fn encode<F>(&self, encoder: &'a F) -> MemoryWriterResult<()>
+    fn encode<F>(&self, encoder: &'a F, optimize: bool) -> MemoryWriterResult<()>
     where
         F: BatchEncodable,
     {
         encoder.data(ARGUMENT_STARTER)?;
         for param in self.iter() {
-            param.encode(encoder)?;
+            param.encode(encoder, optimize)?;
         }
         encoder.data(ARGUMENT_ENDER)?;
         Ok(())
@@ -54,7 +46,7 @@ impl<'a> Batchable<'a> for &'a [Params<'a>] {
 }
 
 impl<'a> Batchable<'a> for Params<'a> {
-    fn encode<F>(&self, encoder: &'a F) -> MemoryWriterResult<()>
+    fn encode<F>(&self, encoder: &'a F, _optimize: bool) -> MemoryWriterResult<()>
     where
         F: BatchEncodable,
     {
@@ -94,11 +86,12 @@ impl<'a> Batchable<'a> for Params<'a> {
             }
             Params::Float64(value) => {
                 let value_bytes = value.to_le_bytes();
-                let total_length = value_bytes.len() + 3;
+                let total_length = value_bytes.len() + 4;
 
                 let mut data: Vec<u8> = Vec::with_capacity(total_length);
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
+                data.push(TypeOptimization::None.into());
                 data.extend(&value_bytes);
                 data.push(ArgumentOperations::End.into());
 
@@ -107,11 +100,12 @@ impl<'a> Batchable<'a> for Params<'a> {
             }
             Params::Float32(value) => {
                 let value_bytes = value.to_le_bytes();
-                let total_length = value_bytes.len() + 3;
+                let total_length = value_bytes.len() + 4;
 
                 let mut data: Vec<u8> = Vec::with_capacity(total_length);
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
+                data.push(TypeOptimization::None.into());
                 data.extend(&value_bytes);
                 data.push(ArgumentOperations::End.into());
 
@@ -120,11 +114,12 @@ impl<'a> Batchable<'a> for Params<'a> {
             }
             Params::Int32(value) => {
                 let value_bytes = value.to_le_bytes();
-                let total_length = value_bytes.len() + 3;
+                let total_length = value_bytes.len() + 4;
 
                 let mut data: Vec<u8> = Vec::with_capacity(total_length);
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
+                data.push(TypeOptimization::None.into());
                 data.extend(&value_bytes);
                 data.push(ArgumentOperations::End.into());
 
@@ -133,11 +128,12 @@ impl<'a> Batchable<'a> for Params<'a> {
             }
             Params::Int64(value) => {
                 let value_bytes = value.to_le_bytes();
-                let total_length = value_bytes.len() + 3;
+                let total_length = value_bytes.len() + 4;
 
                 let mut data: Vec<u8> = Vec::with_capacity(total_length);
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
+                data.push(TypeOptimization::None.into());
                 data.extend(&value_bytes);
                 data.push(ArgumentOperations::End.into());
 
@@ -146,11 +142,12 @@ impl<'a> Batchable<'a> for Params<'a> {
             }
             Params::Uint32(value) => {
                 let value_bytes = value.to_le_bytes();
-                let total_length = value_bytes.len() + 3;
+                let total_length = value_bytes.len() + 4;
 
                 let mut data: Vec<u8> = Vec::with_capacity(total_length);
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
+                data.push(TypeOptimization::None.into());
                 data.extend(&value_bytes);
                 data.push(ArgumentOperations::End.into());
 
@@ -159,11 +156,12 @@ impl<'a> Batchable<'a> for Params<'a> {
             }
             Params::Uint64(value) => {
                 let value_bytes = value.to_le_bytes();
-                let total_length = value_bytes.len() + 3;
+                let total_length = value_bytes.len() + 4;
 
                 let mut data: Vec<u8> = Vec::with_capacity(total_length);
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
+                data.push(TypeOptimization::None.into());
                 data.extend(&value_bytes);
                 data.push(ArgumentOperations::End.into());
 
@@ -185,9 +183,10 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Int16(value) => {
                 let value_bytes = value.to_le_bytes();
 
-                let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 3);
+                let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 4);
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
+                data.push(TypeOptimization::None.into());
                 data.extend(&value_bytes);
                 data.push(ArgumentOperations::End.into());
 
@@ -197,9 +196,10 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Uint8(value) => {
                 let value_bytes = value.to_le_bytes();
 
-                let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 3);
+                let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 4);
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
+                data.push(TypeOptimization::None.into());
                 data.extend(&value_bytes);
                 data.push(ArgumentOperations::End.into());
 
@@ -209,9 +209,10 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Uint16(value) => {
                 let value_bytes = value.to_le_bytes();
 
-                let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 3);
+                let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 4);
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
+                data.push(TypeOptimization::None.into());
                 data.extend(&value_bytes);
                 data.push(ArgumentOperations::End.into());
 
@@ -242,10 +243,11 @@ impl<'a> Batchable<'a> for Params<'a> {
                 let value_pointer_bytes = value_pointer.to_le_bytes();
 
                 let mut data: Vec<u8> =
-                    Vec::with_capacity(value_pointer_bytes.len() + value_length.len() + 3);
+                    Vec::with_capacity(value_pointer_bytes.len() + value_length.len() + 4);
 
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
+                data.push(TypeOptimization::None.into());
                 data.extend_from_slice(&value_pointer_bytes);
                 data.extend_from_slice(&value_length);
                 data.push(ArgumentOperations::End.into());
@@ -259,10 +261,11 @@ impl<'a> Batchable<'a> for Params<'a> {
                 let value_length_bytes = value.len().to_le_bytes();
 
                 let mut data: Vec<u8> =
-                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 3);
+                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 4);
 
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
+                data.push(TypeOptimization::None.into());
                 data.extend_from_slice(&value_pointer_bytes);
                 data.extend_from_slice(&value_length_bytes);
                 data.push(ArgumentOperations::End.into());
@@ -276,10 +279,11 @@ impl<'a> Batchable<'a> for Params<'a> {
                 let value_length_bytes = value.len().to_le_bytes();
 
                 let mut data: Vec<u8> =
-                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 3);
+                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 4);
 
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
+                data.push(TypeOptimization::None.into());
                 data.extend_from_slice(&value_pointer_bytes);
                 data.extend_from_slice(&value_length_bytes);
                 data.push(ArgumentOperations::End.into());
@@ -293,10 +297,11 @@ impl<'a> Batchable<'a> for Params<'a> {
                 let value_length_bytes = value.len().to_le_bytes();
 
                 let mut data: Vec<u8> =
-                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 3);
+                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 4);
 
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
+                data.push(TypeOptimization::None.into());
                 data.extend_from_slice(&value_pointer_bytes);
                 data.extend_from_slice(&value_length_bytes);
                 data.push(ArgumentOperations::End.into());
@@ -310,10 +315,11 @@ impl<'a> Batchable<'a> for Params<'a> {
                 let value_length_bytes = value.len().to_le_bytes();
 
                 let mut data: Vec<u8> =
-                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 3);
+                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 4);
 
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
+                data.push(TypeOptimization::None.into());
                 data.extend_from_slice(&value_pointer_bytes);
                 data.extend_from_slice(&value_length_bytes);
                 data.push(ArgumentOperations::End.into());
@@ -327,10 +333,11 @@ impl<'a> Batchable<'a> for Params<'a> {
                 let value_length_bytes = value.len().to_le_bytes();
 
                 let mut data: Vec<u8> =
-                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 3);
+                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 4);
 
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
+                data.push(TypeOptimization::None.into());
                 data.extend_from_slice(&value_pointer_bytes);
                 data.extend_from_slice(&value_length_bytes);
                 data.push(ArgumentOperations::End.into());
@@ -344,10 +351,11 @@ impl<'a> Batchable<'a> for Params<'a> {
                 let value_length_bytes = value.len().to_le_bytes();
 
                 let mut data: Vec<u8> =
-                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 3);
+                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 4);
 
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
+                data.push(TypeOptimization::None.into());
                 data.extend_from_slice(&value_pointer_bytes);
                 data.extend_from_slice(&value_length_bytes);
                 data.push(ArgumentOperations::End.into());
@@ -361,10 +369,11 @@ impl<'a> Batchable<'a> for Params<'a> {
                 let value_length_bytes = value.len().to_le_bytes();
 
                 let mut data: Vec<u8> =
-                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 3);
+                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 4);
 
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
+                data.push(TypeOptimization::None.into());
                 data.extend_from_slice(&value_pointer_bytes);
                 data.extend_from_slice(&value_length_bytes);
                 data.push(ArgumentOperations::End.into());
@@ -378,10 +387,11 @@ impl<'a> Batchable<'a> for Params<'a> {
                 let value_length_bytes = value.len().to_le_bytes();
 
                 let mut data: Vec<u8> =
-                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 3);
+                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 4);
 
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
+                data.push(TypeOptimization::None.into());
                 data.extend_from_slice(&value_pointer_bytes);
                 data.extend_from_slice(&value_length_bytes);
                 data.push(ArgumentOperations::End.into());
@@ -395,10 +405,11 @@ impl<'a> Batchable<'a> for Params<'a> {
                 let value_length_bytes = value.len().to_le_bytes();
 
                 let mut data: Vec<u8> =
-                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 3);
+                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 4);
 
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
+                data.push(TypeOptimization::None.into());
                 data.extend_from_slice(&value_pointer_bytes);
                 data.extend_from_slice(&value_length_bytes);
                 data.push(ArgumentOperations::End.into());
@@ -412,10 +423,11 @@ impl<'a> Batchable<'a> for Params<'a> {
                 let value_length_bytes = value.len().to_le_bytes();
 
                 let mut data: Vec<u8> =
-                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 3);
+                    Vec::with_capacity(value_pointer_bytes.len() + value_length_bytes.len() + 4);
 
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
+                data.push(TypeOptimization::None.into());
                 data.extend_from_slice(&value_pointer_bytes);
                 data.extend_from_slice(&value_length_bytes);
                 data.push(ArgumentOperations::End.into());
@@ -426,10 +438,11 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::ExternalReference(value) => {
                 let value_bytes = value.into_inner().to_le_bytes();
 
-                let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 3);
+                let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 4);
 
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
+                data.push(TypeOptimization::None.into());
                 data.extend_from_slice(&value_bytes);
                 data.push(ArgumentOperations::End.into());
 
@@ -439,10 +452,11 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::InternalReference(value) => {
                 let value_bytes = value.into_inner().to_le_bytes();
 
-                let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 3);
+                let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 4);
 
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
+                data.push(TypeOptimization::None.into());
                 data.extend_from_slice(&value_bytes);
                 data.push(ArgumentOperations::End.into());
 
@@ -451,30 +465,6 @@ impl<'a> Batchable<'a> for Params<'a> {
             }
         }
     }
-}
-
-/// [`BatchEncodable`] defines a trait which allows you implement
-/// conversion an underlying binary representation of a Batch
-/// operation.
-pub trait BatchEncodable {
-    /// [`string`] encodes the underlying string
-    /// returning the string location information which allows
-    /// whatever is calling it
-    fn string(&self, data: &str) -> MemoryWriterResult<StrLocation>;
-
-    /// [`data`] provides the underlying related data for
-    /// the identified operation.
-    fn data(&self, data: &[u8]) -> MemoryWriterResult<()>;
-
-    /// [`end`] indicates the batch encoding can be considered finished and
-    /// added to the batch list.
-    fn end(self) -> MemoryWriterResult<CompletedInstructions>;
-}
-
-#[derive(Clone, Eq, PartialEq, PartialOrd, Debug)]
-pub struct CompletedInstructions {
-    pub ops_id: MemoryId,
-    pub text_id: MemoryId,
 }
 
 /// [`Instructions`] is a one batch set writer, meaning it encodes a single
@@ -488,6 +478,7 @@ pub struct CompletedInstructions {
 /// From then on the allocator can do whatever it wants with that memory register (mostly
 /// send the information to the other side) to process the batch.
 pub struct Instructions {
+    optimized: bool,
     ops_id: MemoryId,
     text_id: MemoryId,
     mem: Option<(MemoryAllocation, MemoryAllocation)>,
@@ -497,6 +488,7 @@ pub struct Instructions {
 
 impl Instructions {
     pub fn new(
+        optimized: bool,
         ops_id: MemoryId,
         text_id: MemoryId,
         ops: MemoryAllocation,
@@ -505,6 +497,7 @@ impl Instructions {
         Self {
             ops_id,
             text_id,
+            optimized,
             mem: Some((ops, texts)),
         }
     }
@@ -564,6 +557,7 @@ impl MemoryAllocations {
         &mut self,
         text_capacity: u64,
         operations_capacity: u64,
+        optimized: bool,
     ) -> MemoryAllocationResult<Instructions> {
         let operations_id = self.allocate(operations_capacity)?;
         let operations_buffer = self.get(operations_id.clone())?;
@@ -571,7 +565,13 @@ impl MemoryAllocations {
         let text_id = self.allocate(text_capacity)?;
         let text_buffer = self.get(text_id.clone())?;
 
-        let instruction = Instructions::new(operations_id, text_id, operations_buffer, text_buffer);
+        let instruction = Instructions::new(
+            optimized,
+            operations_id,
+            text_id,
+            operations_buffer,
+            text_buffer,
+        );
 
         // mark the instruction as started.
         instruction.begin()?;
@@ -587,12 +587,14 @@ impl MemoryAllocations {
     /// the host side that is caused by a batch will affect finality of your whole
     /// batch.
     pub fn batch_from(
-        &mut self,
+        &self,
+        optimized: bool,
         completed: CompletedInstructions,
     ) -> MemoryAllocationResult<Instructions> {
         let operations = self.get(completed.ops_id.clone())?;
         let text_buffer = self.get(completed.text_id.clone())?;
         let instruction = Instructions::new(
+            optimized,
             completed.ops_id.clone(),
             completed.text_id.clone(),
             operations,
@@ -602,6 +604,17 @@ impl MemoryAllocations {
         // mark the instruction as started.
         instruction.begin()?;
         Ok(instruction)
+    }
+
+    /// [`get_memory`] retrieve the underlying memory allocation from the [`CompletedInstructions`] which can
+    /// allow you to inspect or interact with its raw contents as a [`MemoryAllocation`].
+    pub fn get_memory(
+        &self,
+        completed: CompletedInstructions,
+    ) -> MemoryAllocationResult<MemorySlot> {
+        let operation_buffer = self.get(completed.ops_id.clone())?;
+        let text_buffer = self.get(completed.text_id.clone())?;
+        Ok(MemorySlot::new(operation_buffer, text_buffer))
     }
 }
 
@@ -661,15 +674,25 @@ impl BatchEncodable for Instructions {
 // -- Operations that can be batch
 
 impl<'a> Batchable<'a> for InternalPointer {
-    fn encode<F>(&self, encoder: &'a F) -> MemoryWriterResult<()>
+    fn encode<F>(&self, encoder: &'a F, optimized: bool) -> MemoryWriterResult<()>
     where
         F: BatchEncodable,
     {
-        let value_bytes = self.into_inner().to_le_bytes();
+        let data = if optimized {
+            let value_bytes = self.into_inner().to_le_bytes();
+            let data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 2);
 
-        let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 1);
-        data.push(self.to_value_type().into());
-        data.extend_from_slice(&value_bytes);
+            data
+        } else {
+            let value_bytes = self.into_inner().to_le_bytes();
+
+            let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 2);
+            data.push(self.to_value_type().into());
+            data.push(TypeOptimization::None.into());
+            data.extend_from_slice(&value_bytes);
+
+            data
+        };
 
         encoder.data(&data)?;
         Ok(())
@@ -677,15 +700,25 @@ impl<'a> Batchable<'a> for InternalPointer {
 }
 
 impl<'a> Batchable<'a> for ExternalPointer {
-    fn encode<F>(&self, encoder: &'a F) -> MemoryWriterResult<()>
+    fn encode<F>(&self, encoder: &'a F, optimized: bool) -> MemoryWriterResult<()>
     where
         F: BatchEncodable,
     {
-        let value_bytes = self.into_inner().to_le_bytes();
+        let data = if optimized {
+            let value_bytes = self.into_inner().to_le_bytes();
+            let data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 2);
 
-        let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 1);
-        data.push(self.to_value_type().into());
-        data.extend_from_slice(&value_bytes);
+            data
+        } else {
+            let value_bytes = self.into_inner().to_le_bytes();
+            let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 2);
+
+            data.push(self.to_value_type().into());
+            data.push(TypeOptimization::None.into());
+            data.extend_from_slice(&value_bytes);
+
+            data
+        };
 
         encoder.data(&data)?;
         Ok(())
@@ -707,7 +740,7 @@ impl Instructions {
         let mut data: Vec<u8> = Vec::with_capacity(value_index.len() + value_length.len() + 10);
 
         data.push(Operations::MakeFunction.into());
-        allocated_handle.encode(self)?;
+        allocated_handle.encode(self, self.optimized)?;
 
         data.push(ValueTypes::Text8.into());
         data.extend_from_slice(&value_index);
@@ -724,17 +757,12 @@ impl Instructions {
         allocated_handle: ExternalPointer,
         params: Option<&'a [Params<'a>]>,
     ) -> MemoryWriterResult<()> {
-        self.data(&[
-            Operations::Begin as u8,
-            Operations::InvokeNoReturnFunction as u8,
-        ])?;
+        self.data(&[Operations::InvokeNoReturnFunction as u8])?;
 
-        allocated_handle.encode(self)?;
+        allocated_handle.encode(self, self.optimized)?;
         if let Some(pm) = params {
-            pm.encode(self)?;
+            pm.encode(self, self.optimized)?;
         }
-
-        self.data(&[Operations::Stop as u8])?;
 
         Ok(())
     }
@@ -744,17 +772,12 @@ impl Instructions {
         allocated_handle: ExternalPointer,
         params: Option<&'a [Params<'a>]>,
     ) -> MemoryWriterResult<()> {
-        self.data(&[
-            Operations::Begin as u8,
-            Operations::InvokeReturningFunction as u8,
-        ])?;
+        self.data(&[Operations::InvokeReturningFunction as u8])?;
 
-        allocated_handle.encode(self)?;
+        allocated_handle.encode(self, self.optimized)?;
         if let Some(pm) = params {
-            pm.encode(self)?;
+            pm.encode(self, self.optimized)?;
         }
-
-        self.data(&[Operations::Stop as u8])?;
 
         Ok(())
     }
@@ -765,18 +788,13 @@ impl Instructions {
         callback_handle: InternalPointer,
         params: Option<&'a [Params<'a>]>,
     ) -> MemoryWriterResult<()> {
-        self.data(&[
-            Operations::Begin as u8,
-            Operations::InvokeCallbackFunction as u8,
-        ])?;
+        self.data(&[Operations::InvokeCallbackFunction as u8])?;
 
-        callback_handle.encode(self)?;
-        allocated_handle.encode(self)?;
+        callback_handle.encode(self, self.optimized)?;
+        allocated_handle.encode(self, self.optimized)?;
         if let Some(pm) = params {
-            pm.encode(self)?;
+            pm.encode(self, self.optimized)?;
         }
-
-        self.data(&[Operations::Stop as u8])?;
 
         Ok(())
     }
@@ -785,7 +803,8 @@ impl Instructions {
 #[cfg(test)]
 mod test_instructions {
     extern crate std;
-    use std::dbg;
+
+    use crate::TypeOptimization;
 
     use super::*;
 
@@ -794,29 +813,70 @@ mod test_instructions {
         let mut allocator = MemoryAllocations::new();
 
         let batch = allocator
-            .batch_for(10, 10)
+            .batch_for(10, 10, false)
             .expect("create new Instructions");
 
         batch.should_be_occupied().expect("is occupied");
 
+        let function_handle = ExternalPointer::from(1);
         let write_result = batch.invoke_no_return_function(
-            ExternalPointer::from(1),
-            Some(&[Params::Int32(10), Params::Int64(10)]),
+            function_handle,
+            Some(&[Params::Int32(10), Params::Int64(20)]),
         );
 
         assert!(write_result.is_ok());
 
         let completed_data = batch.end().expect("finish writing completion result");
+        let slot = allocator.get_memory(completed_data).expect("get memory");
 
-        let completed_strings = allocator.get(completed_data.text_id).expect("get memory");
-        let completed_ops = allocator.get(completed_data.ops_id).expect("get memory");
+        let completed_strings = slot.text_ref();
+        let completed_ops = slot.ops_ref();
 
         assert!(completed_strings.is_empty().expect("is_empty"));
         assert!(!completed_ops.is_empty().expect("is_empty"));
 
         let ops = completed_ops.clone_memory().expect("clone");
-        dbg!(&ops);
-
-        assert_eq!(alloc::vec![0, 1], ops,);
+        assert_eq!(
+            alloc::vec![
+                0, // Begin signal indicating start of batch
+                Operations::InvokeNoReturnFunction as u8,
+                ValueTypes::ExternalReference as u8, // type of value
+                TypeOptimization::None as u8,
+                // address pointer to function which is a u64, so 8 bytes
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                ArgumentOperations::Start as u8, // start of all arguments
+                ArgumentOperations::Begin as u8, // start of this argument
+                ValueTypes::Int32 as u8,
+                TypeOptimization::None as u8,
+                // value of int32 in LittleIndian encoding, so 8 bytes
+                10,
+                0,
+                0,
+                0,
+                ArgumentOperations::End as u8,   // end of this argument
+                ArgumentOperations::Begin as u8, // start of this argument
+                ValueTypes::Int64 as u8,
+                TypeOptimization::None as u8,
+                20,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                ArgumentOperations::End as u8,  // end of this argument
+                ArgumentOperations::Stop as u8, // end of all arguments
+                255                             // Stop signal indicating batch is finished
+            ],
+            ops
+        );
     }
 }

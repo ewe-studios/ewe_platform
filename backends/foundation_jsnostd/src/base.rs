@@ -285,16 +285,20 @@ impl StrLocation {
 ///     1 Byte / 8 Bits for Start,
 ///     1 Byte / 8 Bits for Begin,
 ///     4 Bytes / 16 bits for Size of content
+///     1 Byte / 8 bytes for Type Optimization (Default: None, value = 0)
 ///     [CONTENT]
 ///     1 Byte / 8 Bits for End,
 ///     1 Byte / 8 Bits for Stop,
 /// ]
 ///
-/// All together its: 21 Bytes = 168 bits Long.
+/// All together its: 22 Bytes = 176 bits Long.
 ///
 /// Adding the Begin (1 Byte) and Stop (1 Byte) bytes then we have additional 2 bytes = 16 bits
 ///
-/// So in total we will have 23 Bytes = 184 bits long.
+/// So in total we will have 24 Bytes = 192 bits long for the Arguments section.
+///
+/// Note because of the [`TypeOptimization`] byte indicator the [CONTENT] might be shorter
+/// than it's actual type.
 ///
 ///
 #[repr(usize)]
@@ -510,6 +514,27 @@ impl ExternalPointer {
     }
 }
 
+/// [`TypeOptimization`] represent potential type optimization that can happen to types
+/// represented as a single [`u8`] (max of 255) numbers. This allows us
+/// declare within the format any potential optimization and space saving
+/// operation that might have occurred for a giving type, informing
+/// the HOST side about so it can correctly decode the underlying content.
+#[repr(usize)]
+pub enum TypeOptimization {
+    None = 0,
+    QuantInt32AsU8 = 1,
+    QuantInt32AsU16 = 2,
+    QuantInt64AsU8 = 3,
+    QuantInt64AsU16 = 4,
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for TypeOptimization {
+    fn into(self) -> u8 {
+        self as u8
+    }
+}
+
 /// [`JSEncoding`] defines a defining type to help indicate the
 /// underlying encoding for a giving text body.
 pub enum JSEncoding {
@@ -605,4 +630,73 @@ impl From<f64> for JSEncoding {
         }
         JSEncoding::UTF8
     }
+}
+
+/// [`BIT_SIZE`] represent the shifting we want to do
+/// to shift 32 bit numbers into 64bit numbers.
+const BIT_SIZE: u64 = 32;
+
+/// [`BIT_MASK`] representing the needing masking
+/// to be used in bitpacking two 32bit numbers into
+/// a 64 bit number.
+const BIT_MASK: u64 = 0xFFFFFFFF;
+
+/// [`MemoryId`] represents a key to a allocation '
+/// which has a unique generation to denote it's ownership
+/// if the generation differs from the current generation of
+/// a given index then that means ownership was already lost and
+/// hence cant be used.
+///
+/// First Elem - is the index
+/// Second Elem - is the generation
+///
+#[derive(Debug, Clone, Eq, PartialEq, PartialOrd, Ord)]
+pub struct MemoryId(pub(crate) u32, pub(crate) u32);
+
+impl From<u64> for MemoryId {
+    fn from(value: u64) -> Self {
+        MemoryId::from_u64(value)
+    }
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u64> for MemoryId {
+    fn into(self) -> u64 {
+        self.as_u64()
+    }
+}
+
+impl MemoryId {
+    /// [`from_u64`] implements conversion of a 64bit unsighed int
+    /// into a Memory by the assuming that the First 32bit represent
+    /// the index (LSB) and the last 32 bit (MSB) represent the
+    /// generation number.
+    pub fn from_u64(memory_id: u64) -> Self {
+        let index = ((memory_id >> BIT_SIZE) & BIT_MASK) as u32; // upper bit
+        let generation = (memory_id & BIT_MASK) as u32; // lower bit
+        Self(index, generation)
+    }
+
+    /// [`as_u64`] packs the index and generation represented
+    /// by the [`MemoryId`] into a singular u64 number allowing
+    /// memory savings and improved cross over sharing.
+    pub fn as_u64(&self) -> u64 {
+        let msb_bit = ((self.0 as u64) & BIT_MASK) << BIT_SIZE; // Upper 32 bits at the MSB
+        let lsb_bit = (self.1 as u64) & BIT_MASK; // Lower 32 bits at the LSB
+        msb_bit | lsb_bit
+    }
+
+    pub fn index(&self) -> u32 {
+        self.0
+    }
+
+    pub fn generation(&self) -> u32 {
+        self.1
+    }
+}
+
+#[derive(Clone, Eq, PartialEq, PartialOrd, Debug)]
+pub struct CompletedInstructions {
+    pub ops_id: MemoryId,
+    pub text_id: MemoryId,
 }
