@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 /// [`ValueTypes`] represent the underlying type of value
 /// being encoded into a binary stream.
 #[repr(usize)]
@@ -29,6 +31,8 @@ pub enum ValueTypes {
     Float32ArrayBuffer = 24,
     Float64ArrayBuffer = 25,
     InternalReference = 26,
+    Int128,
+    Uint128,
 }
 
 #[allow(clippy::from_over_into)]
@@ -48,10 +52,12 @@ pub enum Params<'a> {
     Int16(i16),
     Int32(i32),
     Int64(i64),
+    Int128(i128),
     Uint8(u8),
     Uint16(u16),
     Uint32(u32),
     Uint64(u64),
+    Uint128(u128),
     Text8(&'a str),
     Text16(&'a [u16]),
     Int8Array(&'a [i8]),
@@ -80,10 +86,12 @@ impl Params<'_> {
             Params::Int16(_) => ValueTypes::Int16,
             Params::Int32(_) => ValueTypes::Int32,
             Params::Int64(_) => ValueTypes::Int64,
+            Params::Int128(_) => ValueTypes::Int128,
             Params::Uint8(_) => ValueTypes::Uint8,
             Params::Uint16(_) => ValueTypes::Uint16,
-            Params::Uint64(_) => ValueTypes::Uint64,
             Params::Uint32(_) => ValueTypes::Uint32,
+            Params::Uint64(_) => ValueTypes::Uint64,
+            Params::Uint128(_) => ValueTypes::Uint128,
             Params::Text8(_) => ValueTypes::Text8,
             Params::Text16(_) => ValueTypes::Text16,
             Params::Int8Array(_) => ValueTypes::Int8ArrayBuffer,
@@ -132,6 +140,12 @@ impl From<u64> for Params<'_> {
     }
 }
 
+impl From<u128> for Params<'_> {
+    fn from(i: u128) -> Self {
+        Params::Uint128(i)
+    }
+}
+
 impl From<i8> for Params<'_> {
     fn from(i: i8) -> Self {
         Params::Int8(i)
@@ -153,6 +167,18 @@ impl From<i32> for Params<'_> {
 impl From<i64> for Params<'_> {
     fn from(i: i64) -> Self {
         Params::Int64(i)
+    }
+}
+
+impl From<i128> for Params<'_> {
+    fn from(i: i128) -> Self {
+        Params::Int128(i)
+    }
+}
+
+impl From<isize> for Params<'_> {
+    fn from(i: isize) -> Self {
+        Params::Float64(i as f64)
     }
 }
 
@@ -281,7 +307,7 @@ impl StrLocation {
 ///
 /// In Actual Layout:
 ///
-/// Memory Layout: [
+/// Memory Layout: {
 ///     1 Byte / 8 Bits for Start,
 ///     1 Byte / 8 Bits for Begin,
 ///     4 Bytes / 16 bits for Size of content
@@ -289,7 +315,7 @@ impl StrLocation {
 ///     [CONTENT]
 ///     1 Byte / 8 Bits for End,
 ///     1 Byte / 8 Bits for Stop,
-/// ]
+/// }
 ///
 /// All together its: 22 Bytes = 176 bits Long.
 ///
@@ -356,17 +382,17 @@ pub enum Operations {
     /// definition in batch memory, the starting index of the
     /// string and the length of the string bytes.
     ///
-    /// Layout: [1, [MemoryAllocationAddress], PreAllocatedExternalReference, StartIndex, Length]
+    /// Layout: {1{ [MemoryAllocationAddress}, PreAllocatedExternalReference, StartIndex, Length}
     ///
     /// In Actual Layout:
     ///
-    /// Memory Layout: [
+    /// Memory Layout: {
     ///     1 Byte / 8 Bits for Operations type,
     ///     4 Bytes for Memory Address for Location,
     ///     8 Bytes for External Reference that is 64bit long,
     ///     4 Bytes for Start Index,
     ///     4 bytes for Length,
-    /// ]
+    /// }
     ///
     /// All together its: 21 Bytes = 168 bits Long.
     ///
@@ -383,13 +409,9 @@ pub enum Operations {
     ///
     /// It has two layout formats:
     ///
-    /// A. with no argument:
+    /// A. with no argument: Begin, 3, FunctionHandle(u64), End
     ///
-    ///     [Begin, 3, FunctionHandle(u64), End]
-    ///
-    /// B. with arguments
-    ///
-    ///     [Begin, 3, FunctionHandle(u64), FunctionArguments, [Arguments], End]
+    /// B. with arguments: Begin, 3, FunctionHandle(u64), FunctionArguments, {Arguments}, End
     InvokeNoReturnFunction = 2,
 
     /// InvokeReturningFunction represents the desire to call a
@@ -399,13 +421,9 @@ pub enum Operations {
     ///
     /// It has two layout formats:
     ///
-    /// A. with no argument:
+    /// A. with no argument: Begin, 3, FunctionHandle(u64), ReturnType, End
     ///
-    ///     [Begin, 3, FunctionHandle(u64), ReturnType, End]
-    ///
-    /// B. with arguments
-    ///
-    ///     [Begin, 3, FunctionHandle(u64), ReturnType, [Arguments], End]
+    /// B. with arguments: Begin, 3, FunctionHandle(u64), ReturnType, Arguments*, End
     InvokeReturningFunction = 3,
 
     /// InvokeCallbackFunction represents the desire to call a
@@ -413,9 +431,8 @@ pub enum Operations {
     /// which it will use to supply appropriate response when ready (say async call)
     /// as response to being called.
     ///
-    /// It has a single layout formats:
-    ///
-    ///     [Begin, 3, FunctionHandle(u64), ArgStart, ArgBegin, ExternReference, ArgEnd, ArgStop, End]
+    /// Layout format: Begin, 3, FunctionHandle(u64), ArgStart, ArgBegin, ExternReference, ArgEnd, ArgStop,
+    ///  End
     InvokeCallbackFunction = 4,
 
     /// Stop - indicates the end of an operation in a batch, since
@@ -520,18 +537,323 @@ impl ExternalPointer {
 /// operation that might have occurred for a giving type, informing
 /// the HOST side about so it can correctly decode the underlying content.
 #[repr(usize)]
+#[derive(Debug, PartialEq, PartialOrd, Eq, Hash, Clone, Copy)]
 pub enum TypeOptimization {
     None = 0,
-    QuantInt32AsU8 = 1,
-    QuantInt32AsU16 = 2,
-    QuantInt64AsU8 = 3,
-    QuantInt64AsU16 = 4,
+
+    // optimize ints
+    QuantizedInt16AsI8 = 1,
+    QuantizedInt32AsI8 = 2,
+    QuantizedInt33AsI16 = 3,
+    QuantizedInt64AsI8 = 4,
+    QuantizedInt64AsI16 = 5,
+    QuantizedInt64AsI32 = 6,
+
+    // optimize uints
+    QuantizedUint16AsU8 = 7,
+    QuantizedUint32AsU8 = 8,
+    QuantizedUint33AsU16 = 9,
+    QuantizedUint64AsU8 = 10,
+    QuantizedUint64AsU16 = 11,
+    QuantizedUint64AsU32 = 12,
+
+    // optimize floats
+    QuantizedF32AsI8 = 13,
+    QuantizedF32AsI16 = 14,
+    QuantizedF64AsF32 = 15,
+    QuantizedF64AsI32 = 16,
+    QuantizedF64AsI16 = 17,
+    QuantizedF64AsI8 = 18,
+
+    // optimize i128 bits
+    QuantizedInt128AsI8 = 19,
+    QuantizedInt128AsI16 = 20,
+    QuantizedInt128AsI32 = 21,
+    QuantizedInt128AsI64 = 22,
+
+    // optimize u128 bits
+    QuantizedUint128AsU8 = 23,
+    QuantizedUint128AsU16 = 24,
+    QuantizedUint128AsU32 = 25,
+    QuantizedUint128AsU64 = 26,
+
+    // optimize pointers bits
+    QuantizedPtrAsU8 = 27,
+    QuantizedPtrAsU16 = 28,
+    QuantizedPtrAsU32 = 29,
+    QuantizedPtrAsU64 = 30,
 }
 
 #[allow(clippy::from_over_into)]
 impl Into<u8> for TypeOptimization {
     fn into(self) -> u8 {
         self as u8
+    }
+}
+
+#[derive(Debug)]
+pub enum MemOpError {
+    FailedQuantization,
+}
+
+pub type MemOpResult<T> = core::result::Result<T, MemOpError>;
+
+impl core::error::Error for MemOpError {}
+
+impl core::fmt::Display for MemOpError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+/// [`value_quantitzation`] contains various quantitzation methods
+/// which exists to take different unit value types returning a more
+/// compact representation of those values with a lesser unit type where
+/// possible.
+///
+/// Most of it is derived from the following sampkle code taking from
+/// a rust playground which experiments with quantizing pointers to values.
+///
+/// ```rust
+/// use std::println;
+///
+///  let n: u128 = 1;
+///  let n_u8_pointer = (n as *const u8) as u128;
+///
+///  match n_u8_pointer {
+///      0..=255 => {
+///          let as_bit = n_u8_pointer as u8;
+///          let as_bit_bytes = as_bit.to_le_bytes();
+///
+///          println!("ValueAs8: {:?} -> {:?}", as_bit, as_bit_bytes);
+///      }
+///      256..=65535 => {
+///          let as_bit = n_u8_pointer as u16;
+///          let as_bit_bytes = as_bit.to_le_bytes();
+///
+///          println!("ValueAs16: {:?} -> {:?}", as_bit, as_bit_bytes);
+///      }
+///      65536..=4294967295 => {
+///          let as_bit = n_u8_pointer as u32;
+///          let as_bit_bytes = as_bit.to_le_bytes();
+///
+///          println!("ValueAs32: {:?} -> {:?}", as_bit, as_bit_bytes);
+///      }
+///      4294967296..=18446744073709551615 => {
+///          let as_bit = n_u8_pointer as u64;
+///          let as_bit_bytes = as_bit.to_le_bytes();
+///
+///          println!("ValueAs64: {:?} -> {:?}", as_bit, as_bit_bytes);
+///      }
+///      _ => {
+///          let as_bit_bytes = n_u8_pointer.to_le_bytes();
+///          println!("ValueAsU64: {:?} -> {:?}", n_u8_pointer, as_bit_bytes);
+///      }
+///  };
+/// ```
+///
+pub mod value_quantitzation {
+    use super::*;
+
+    /// [`qi64`] performs an operation to transform
+    /// a [`i64`] large number (applies for i16 up to i64)
+    /// into bytes with an optimization that if the giving number
+    /// is within the ranges of the lower number types it will
+    /// first convert the number into that type then return
+    /// the binary in little endian and the [`TypeOptimization`]
+    /// applied to the value.
+    pub fn qi64(value: i64) -> (Vec<u8>, TypeOptimization) {
+        match value {
+            -128..=127 => {
+                let as_bit = value as i8;
+                let as_bit_bytes = as_bit.to_le_bytes();
+                (as_bit_bytes.to_vec(), TypeOptimization::QuantizedInt64AsI8)
+            }
+            -32768..=-129 | 128..=32767 => {
+                let as_bit = value as i16;
+                let as_bit_bytes = as_bit.to_le_bytes();
+
+                (as_bit_bytes.to_vec(), TypeOptimization::QuantizedInt64AsI16)
+            }
+            -2147483648..=-32769 | 32768..=2147483647 => {
+                let as_bit = value as i32;
+                let as_bit_bytes = as_bit.to_le_bytes();
+
+                (as_bit_bytes.to_vec(), TypeOptimization::QuantizedInt64AsI32)
+            }
+            _ => {
+                let as_bit_bytes = value.to_le_bytes();
+                (as_bit_bytes.to_vec(), TypeOptimization::None)
+            }
+        }
+    }
+
+    /// [`qi128`] performs an operation to transform
+    /// a [`i128`] large number (applies for i16 up to i128)
+    /// into bytes with an optimization that if the giving number
+    /// is within the ranges of the lower number types it will
+    /// first convert the number into that type then return
+    /// the binary in little endian and the [`TypeOptimization`]
+    /// applied to the value.
+    pub fn qi128(value: i128) -> (Vec<u8>, TypeOptimization) {
+        match value {
+            -128..=127 => {
+                let as_bit = value as i8;
+                let as_bit_bytes = as_bit.to_le_bytes();
+                (as_bit_bytes.to_vec(), TypeOptimization::QuantizedInt128AsI8)
+            }
+            -32768..=-129 | 128..=32767 => {
+                let as_bit = value as i16;
+                let as_bit_bytes = as_bit.to_le_bytes();
+
+                (
+                    as_bit_bytes.to_vec(),
+                    TypeOptimization::QuantizedInt128AsI16,
+                )
+            }
+            -2147483648..=-32769 | 32768..=2147483647 => {
+                let as_bit = value as i32;
+                let as_bit_bytes = as_bit.to_le_bytes();
+
+                (
+                    as_bit_bytes.to_vec(),
+                    TypeOptimization::QuantizedInt128AsI32,
+                )
+            }
+            -9223372036854775808..=-2147483649 | 2147483648..=9223372036854775807 => {
+                let as_bit = value as u64;
+                let as_bit_bytes = as_bit.to_le_bytes();
+
+                (
+                    as_bit_bytes.to_vec(),
+                    TypeOptimization::QuantizedInt128AsI64,
+                )
+            }
+            _ => {
+                let as_bit_bytes = value.to_le_bytes();
+                (as_bit_bytes.to_vec(), TypeOptimization::None)
+            }
+        }
+    }
+
+    /// [`qu64`] performs an operation to transform
+    /// a [`u64`] large number (applies for u16 up to u64)
+    /// into bytes with an optimization that if the giving number
+    /// is within the ranges of the lower number types it will
+    /// first convert the number into that type then return
+    /// the binary in little endian and the [`TypeOptimization`]
+    /// applied to the value.
+    pub fn qu64(value: u64) -> (Vec<u8>, TypeOptimization) {
+        match value {
+            0..=255 => {
+                let as_bit = value as u8;
+                let as_bit_bytes = as_bit.to_le_bytes();
+                (as_bit_bytes.to_vec(), TypeOptimization::QuantizedUint64AsU8)
+            }
+            256..=65535 => {
+                let as_bit = value as u16;
+                let as_bit_bytes = as_bit.to_le_bytes();
+
+                (
+                    as_bit_bytes.to_vec(),
+                    TypeOptimization::QuantizedUint64AsU16,
+                )
+            }
+            65536..=4294967295 => {
+                let as_bit = value as u32;
+                let as_bit_bytes = as_bit.to_le_bytes();
+
+                (
+                    as_bit_bytes.to_vec(),
+                    TypeOptimization::QuantizedUint64AsU32,
+                )
+            }
+            _ => {
+                let as_bit_bytes = value.to_le_bytes();
+                (as_bit_bytes.to_vec(), TypeOptimization::None)
+            }
+        }
+    }
+
+    /// [`qu128`] performs an operation to transform
+    /// a [`u128`] large number (applies for u16 up to u128)
+    /// into bytes with an optimization that if the giving number
+    /// is within the ranges of the lower number types it will
+    /// first convert the number into that type then return
+    /// the binary in little endian and the [`TypeOptimization`]
+    /// applied to the value.
+    pub fn qu128(value: u128) -> (Vec<u8>, TypeOptimization) {
+        match value {
+            0..=255 => {
+                let as_bit = value as u8;
+                let as_bit_bytes = as_bit.to_le_bytes();
+                (
+                    as_bit_bytes.to_vec(),
+                    TypeOptimization::QuantizedUint128AsU8,
+                )
+            }
+            256..=65535 => {
+                let as_bit = value as u16;
+                let as_bit_bytes = as_bit.to_le_bytes();
+
+                (
+                    as_bit_bytes.to_vec(),
+                    TypeOptimization::QuantizedUint128AsU16,
+                )
+            }
+            65536..=4294967295 => {
+                let as_bit = value as u32;
+                let as_bit_bytes = as_bit.to_le_bytes();
+
+                (
+                    as_bit_bytes.to_vec(),
+                    TypeOptimization::QuantizedUint128AsU32,
+                )
+            }
+            4294967296..=18446744073709551615 => {
+                let as_bit = value as u64;
+                let as_bit_bytes = as_bit.to_le_bytes();
+
+                (
+                    as_bit_bytes.to_vec(),
+                    TypeOptimization::QuantizedUint128AsU64,
+                )
+            }
+            _ => {
+                let as_bit_bytes = value.to_le_bytes();
+                (as_bit_bytes.to_vec(), TypeOptimization::None)
+            }
+        }
+    }
+
+    /// [`qpointer`] attempts to quantize a pointer value expressed as either
+    /// a u8, u16, u32 or u64 depending on the range the pointer value falls under.
+    pub fn qpointer(ptr: *const u8) -> (Vec<u8>, TypeOptimization) {
+        match ptr as u64 {
+            0..=255 => {
+                let as_bit = ptr as u8;
+                let as_bit_bytes = as_bit.to_le_bytes();
+                (as_bit_bytes.to_vec(), TypeOptimization::QuantizedPtrAsU8)
+            }
+            256..=65535 => {
+                let as_bit = ptr as u16;
+                let as_bit_bytes = as_bit.to_le_bytes();
+
+                (as_bit_bytes.to_vec(), TypeOptimization::QuantizedPtrAsU16)
+            }
+            65536..=4294967295 => {
+                let as_bit = ptr as u32;
+                let as_bit_bytes = as_bit.to_le_bytes();
+
+                (as_bit_bytes.to_vec(), TypeOptimization::QuantizedPtrAsU32)
+            }
+            4294967296..=18446744073709551615 => {
+                let ptr_as_u64 = ptr as u64;
+                let as_bit_bytes = ptr_as_u64.to_le_bytes();
+
+                (as_bit_bytes.to_vec(), TypeOptimization::QuantizedPtrAsU64)
+            }
+        }
     }
 }
 
@@ -699,4 +1021,184 @@ impl MemoryId {
 pub struct CompletedInstructions {
     pub ops_id: MemoryId,
     pub text_id: MemoryId,
+}
+
+#[cfg(test)]
+mod quantization_tests {
+    use super::*;
+    use alloc::vec;
+
+    #[test]
+    fn can_quantize_i128() {
+        struct TestCase {
+            value: i128,
+            expected_bytes: Vec<u8>,
+            quantization: TypeOptimization,
+        }
+
+        let test_cases: Vec<TestCase> = vec![
+            TestCase {
+                value: 20,
+                expected_bytes: vec![20],
+                quantization: TypeOptimization::QuantizedInt128AsI8,
+            },
+            TestCase {
+                value: 32767,
+                expected_bytes: vec![255, 127],
+                quantization: TypeOptimization::QuantizedInt128AsI16,
+            },
+            TestCase {
+                value: 2147483647,
+                expected_bytes: vec![255, 255, 255, 127],
+                quantization: TypeOptimization::QuantizedInt128AsI32,
+            },
+            TestCase {
+                value: 6294967296,
+                expected_bytes: vec![0, 148, 53, 119, 1, 0, 0, 0],
+                quantization: TypeOptimization::QuantizedInt128AsI64,
+            },
+            TestCase {
+                value: 9223372036854775809,
+                expected_bytes: vec![1, 0, 0, 0, 0, 0, 0, 128, 0, 0, 0, 0, 0, 0, 0, 0],
+                quantization: TypeOptimization::None,
+            },
+        ];
+
+        for test_case in test_cases {
+            let (content, tq) = value_quantitzation::qi128(test_case.value);
+            assert_eq!(
+                test_case.expected_bytes, content,
+                "Output bytes should match"
+            );
+            assert_eq!(test_case.quantization, tq, "Quantization type should match");
+        }
+    }
+
+    #[test]
+    fn can_quantize_u128() {
+        struct TestCase {
+            value: u128,
+            expected_bytes: Vec<u8>,
+            quantization: TypeOptimization,
+        }
+
+        let test_cases: Vec<TestCase> = vec![
+            TestCase {
+                value: 20,
+                expected_bytes: vec![20],
+                quantization: TypeOptimization::QuantizedUint128AsU8,
+            },
+            TestCase {
+                value: 65535,
+                expected_bytes: vec![255, 255],
+                quantization: TypeOptimization::QuantizedUint128AsU16,
+            },
+            TestCase {
+                value: 4294967295,
+                expected_bytes: vec![255, 255, 255, 255],
+                quantization: TypeOptimization::QuantizedUint128AsU32,
+            },
+            TestCase {
+                value: 6294967296,
+                expected_bytes: vec![0, 148, 53, 119, 1, 0, 0, 0],
+                quantization: TypeOptimization::QuantizedUint128AsU64,
+            },
+            TestCase {
+                value: 18446744073709551619,
+                expected_bytes: vec![3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                quantization: TypeOptimization::None,
+            },
+        ];
+
+        for test_case in test_cases {
+            let (content, tq) = value_quantitzation::qu128(test_case.value);
+            assert_eq!(
+                test_case.expected_bytes, content,
+                "Output bytes should match"
+            );
+            assert_eq!(test_case.quantization, tq, "Quantization type should match");
+        }
+    }
+
+    #[test]
+    fn can_quantize_u64() {
+        struct TestCase {
+            value: u64,
+            expected_bytes: Vec<u8>,
+            quantization: TypeOptimization,
+        }
+
+        let test_cases: Vec<TestCase> = vec![
+            TestCase {
+                value: 20,
+                expected_bytes: vec![20],
+                quantization: TypeOptimization::QuantizedUint64AsU8,
+            },
+            TestCase {
+                value: 65535,
+                expected_bytes: vec![255, 255],
+                quantization: TypeOptimization::QuantizedUint64AsU16,
+            },
+            TestCase {
+                value: 4294967295,
+                expected_bytes: vec![255, 255, 255, 255],
+                quantization: TypeOptimization::QuantizedUint64AsU32,
+            },
+            TestCase {
+                value: 6294967296,
+                expected_bytes: vec![0, 148, 53, 119, 1, 0, 0, 0],
+                quantization: TypeOptimization::None,
+            },
+        ];
+
+        for test_case in test_cases {
+            let (content, tq) = value_quantitzation::qu64(test_case.value);
+            assert_eq!(
+                test_case.expected_bytes, content,
+                "Output bytes should match"
+            );
+            assert_eq!(test_case.quantization, tq, "Quantization type should match");
+        }
+    }
+
+    #[test]
+    fn can_quantize_i64() {
+        struct TestCase {
+            value: i64,
+            expected_bytes: Vec<u8>,
+            quantization: TypeOptimization,
+        }
+
+        let test_cases: Vec<TestCase> = vec![
+            TestCase {
+                value: 20,
+                expected_bytes: vec![20],
+                quantization: TypeOptimization::QuantizedInt64AsI8,
+            },
+            TestCase {
+                value: 32767,
+                expected_bytes: vec![255, 127],
+                quantization: TypeOptimization::QuantizedInt64AsI16,
+            },
+            TestCase {
+                value: 2147483647,
+                expected_bytes: vec![255, 255, 255, 127],
+                quantization: TypeOptimization::QuantizedInt64AsI32,
+            },
+            TestCase {
+                value: 6294967296,
+                expected_bytes: vec![0, 148, 53, 119, 1, 0, 0, 0],
+                quantization: TypeOptimization::None,
+            },
+        ];
+
+        for test_case in test_cases {
+            let (content, tq) = value_quantitzation::qi64(test_case.value);
+            assert_eq!(
+                test_case.expected_bytes, content,
+                "Output bytes should match"
+            );
+            assert_eq!(test_case.quantization, tq, "Quantization type should match");
+        }
+    }
 }
