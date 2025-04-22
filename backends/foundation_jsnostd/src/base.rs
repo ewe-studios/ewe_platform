@@ -544,7 +544,7 @@ pub enum TypeOptimization {
     // optimize ints
     QuantizedInt16AsI8 = 1,
     QuantizedInt32AsI8 = 2,
-    QuantizedInt33AsI16 = 3,
+    QuantizedInt32AsI16 = 3,
     QuantizedInt64AsI8 = 4,
     QuantizedInt64AsI16 = 5,
     QuantizedInt64AsI32 = 6,
@@ -552,36 +552,33 @@ pub enum TypeOptimization {
     // optimize uints
     QuantizedUint16AsU8 = 7,
     QuantizedUint32AsU8 = 8,
-    QuantizedUint33AsU16 = 9,
+    QuantizedUint32AsU16 = 9,
     QuantizedUint64AsU8 = 10,
     QuantizedUint64AsU16 = 11,
     QuantizedUint64AsU32 = 12,
 
     // optimize floats
-    QuantizedF32AsI8 = 13,
-    QuantizedF32AsI16 = 14,
-    QuantizedF64AsF32 = 15,
-    QuantizedF64AsI32 = 16,
-    QuantizedF64AsI16 = 17,
-    QuantizedF64AsI8 = 18,
+    QuantizedF64AsF32 = 17,
+    QuantizedF128AsF32 = 18,
+    QuantizedF128AsF64 = 19,
 
     // optimize i128 bits
-    QuantizedInt128AsI8 = 19,
-    QuantizedInt128AsI16 = 20,
-    QuantizedInt128AsI32 = 21,
-    QuantizedInt128AsI64 = 22,
+    QuantizedInt128AsI8 = 20,
+    QuantizedInt128AsI16 = 21,
+    QuantizedInt128AsI32 = 22,
+    QuantizedInt128AsI64 = 23,
 
     // optimize u128 bits
-    QuantizedUint128AsU8 = 23,
-    QuantizedUint128AsU16 = 24,
-    QuantizedUint128AsU32 = 25,
-    QuantizedUint128AsU64 = 26,
+    QuantizedUint128AsU8 = 24,
+    QuantizedUint128AsU16 = 25,
+    QuantizedUint128AsU32 = 26,
+    QuantizedUint128AsU64 = 27,
 
     // optimize pointers bits
-    QuantizedPtrAsU8 = 27,
-    QuantizedPtrAsU16 = 28,
-    QuantizedPtrAsU32 = 29,
-    QuantizedPtrAsU64 = 30,
+    QuantizedPtrAsU8 = 28,
+    QuantizedPtrAsU16 = 29,
+    QuantizedPtrAsU32 = 30,
+    QuantizedPtrAsU64 = 31,
 }
 
 #[allow(clippy::from_over_into)]
@@ -655,6 +652,54 @@ impl core::fmt::Display for MemOpError {
 pub mod value_quantitzation {
     use super::*;
 
+    /// [`qi16`] performs an operation to transform
+    /// a [`i16`] large number into bytes with an
+    /// optimization that if the giving number
+    /// is within the ranges of the lower number types it will
+    /// first convert the number into that type then return
+    /// the binary in little endian and the [`TypeOptimization`]
+    /// applied to the value.
+    pub fn qi16(value: i16) -> (Vec<u8>, TypeOptimization) {
+        match value {
+            -128..=127 => {
+                let as_bit = value as i8;
+                let as_bit_bytes = as_bit.to_le_bytes();
+                (as_bit_bytes.to_vec(), TypeOptimization::QuantizedInt16AsI8)
+            }
+            _ => {
+                let as_bit_bytes = value.to_le_bytes();
+                (as_bit_bytes.to_vec(), TypeOptimization::None)
+            }
+        }
+    }
+
+    /// [`qi32`] performs an operation to transform
+    /// a [`i32`] large number (applies for i16 up to i32)
+    /// into bytes with an optimization that if the giving number
+    /// is within the ranges of the lower number types it will
+    /// first convert the number into that type then return
+    /// the binary in little endian and the [`TypeOptimization`]
+    /// applied to the value.
+    pub fn qi32(value: i32) -> (Vec<u8>, TypeOptimization) {
+        match value {
+            -128..=127 => {
+                let as_bit = value as i8;
+                let as_bit_bytes = as_bit.to_le_bytes();
+                (as_bit_bytes.to_vec(), TypeOptimization::QuantizedInt32AsI8)
+            }
+            -32768..=-129 | 128..=32767 => {
+                let as_bit = value as i16;
+                let as_bit_bytes = as_bit.to_le_bytes();
+
+                (as_bit_bytes.to_vec(), TypeOptimization::QuantizedInt32AsI16)
+            }
+            _ => {
+                let as_bit_bytes = value.to_le_bytes();
+                (as_bit_bytes.to_vec(), TypeOptimization::None)
+            }
+        }
+    }
+
     /// [`qi64`] performs an operation to transform
     /// a [`i64`] large number (applies for i16 up to i64)
     /// into bytes with an optimization that if the giving number
@@ -727,6 +772,57 @@ pub mod value_quantitzation {
                 (
                     as_bit_bytes.to_vec(),
                     TypeOptimization::QuantizedInt128AsI64,
+                )
+            }
+            _ => {
+                let as_bit_bytes = value.to_le_bytes();
+                (as_bit_bytes.to_vec(), TypeOptimization::None)
+            }
+        }
+    }
+
+    /// [`qu16`] performs an operation to transform
+    /// a [`u16`] large number into bytes with an
+    /// optimization that if the giving number
+    /// is within the ranges of the lower number types it will
+    /// first convert the number into that type then return
+    /// the binary in little endian and the [`TypeOptimization`]
+    /// applied to the value.
+    pub fn qu16(value: u16) -> (Vec<u8>, TypeOptimization) {
+        match value {
+            0..=255 => {
+                let as_bit = value as u8;
+                let as_bit_bytes = as_bit.to_le_bytes();
+                (as_bit_bytes.to_vec(), TypeOptimization::QuantizedUint16AsU8)
+            }
+            _ => {
+                let as_bit_bytes = value.to_le_bytes();
+                (as_bit_bytes.to_vec(), TypeOptimization::None)
+            }
+        }
+    }
+
+    /// [`qu32`] performs an operation to transform
+    /// a [`u32`] large number into bytes with an
+    /// optimization that if the giving number
+    /// is within the ranges of the lower number types it will
+    /// first convert the number into that type then return
+    /// the binary in little endian and the [`TypeOptimization`]
+    /// applied to the value.
+    pub fn qu32(value: u32) -> (Vec<u8>, TypeOptimization) {
+        match value {
+            0..=255 => {
+                let as_bit = value as u8;
+                let as_bit_bytes = as_bit.to_le_bytes();
+                (as_bit_bytes.to_vec(), TypeOptimization::QuantizedUint32AsU8)
+            }
+            256..=65535 => {
+                let as_bit = value as u16;
+                let as_bit_bytes = as_bit.to_le_bytes();
+
+                (
+                    as_bit_bytes.to_vec(),
+                    TypeOptimization::QuantizedUint32AsU16,
                 )
             }
             _ => {

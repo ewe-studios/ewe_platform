@@ -86,12 +86,11 @@ impl<'a> Batchable<'a> for Params<'a> {
             }
             Params::Float64(value) => {
                 let value_bytes = value.to_le_bytes();
-                let total_length = value_bytes.len() + 4;
+                let total_length = value_bytes.len() + 3;
 
                 let mut data: Vec<u8> = Vec::with_capacity(total_length);
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
-                data.push(TypeOptimization::None.into());
                 data.extend(&value_bytes);
                 data.push(ArgumentOperations::End.into());
 
@@ -100,12 +99,11 @@ impl<'a> Batchable<'a> for Params<'a> {
             }
             Params::Float32(value) => {
                 let value_bytes = value.to_le_bytes();
-                let total_length = value_bytes.len() + 4;
+                let total_length = value_bytes.len() + 3;
 
                 let mut data: Vec<u8> = Vec::with_capacity(total_length);
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
-                data.push(TypeOptimization::None.into());
                 data.extend(&value_bytes);
                 data.push(ArgumentOperations::End.into());
 
@@ -127,7 +125,7 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Int16(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qi64(*value as i64)
+                    value_quantitzation::qi16(*value)
                 } else {
                     (value.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
@@ -145,7 +143,7 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Int32(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qi64(*value as i64)
+                    value_quantitzation::qi32(*value)
                 } else {
                     (value.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
@@ -193,7 +191,7 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Uint16(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qu64(*value as u64)
+                    value_quantitzation::qu16(*value)
                 } else {
                     (value.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
@@ -211,7 +209,7 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Uint32(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qu64(*value as u64)
+                    value_quantitzation::qu32(*value)
                 } else {
                     (value.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
