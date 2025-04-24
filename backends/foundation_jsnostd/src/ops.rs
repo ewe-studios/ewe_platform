@@ -682,6 +682,247 @@ impl<'a> Batchable<'a> for Params<'a> {
     }
 }
 
+#[cfg(test)]
+mod params_tests {
+    use super::*;
+
+    // extern crate std;
+    // use std::dbg;
+
+    #[test]
+    fn can_encode_bool() {
+        let mut allocator = MemoryAllocations::new();
+
+        let batch = allocator
+            .batch_for(10, 10, true)
+            .expect("create new Instructions");
+
+        batch.should_be_occupied().expect("is occupied");
+
+        let write_result = batch.encode_params(Some(&[Params::Bool(true), Params::Bool(false)]));
+
+        assert!(write_result.is_ok());
+
+        let completed_data = batch.end().expect("finish writing completion result");
+        let slot = allocator.get_slot(completed_data).expect("get memory");
+
+        let completed_strings = slot.text_ref();
+        let completed_ops = slot.ops_ref();
+
+        assert_eq!(
+            alloc::vec![
+                0,                               // Begin signal indicating start of batch
+                ArgumentOperations::Start as u8, // start of all arguments
+                ArgumentOperations::Begin as u8, // start of this argument
+                ValueTypes::Bool as u8,
+                1,
+                ArgumentOperations::End as u8,   // end of this argument
+                ArgumentOperations::Begin as u8, // start of this argument
+                ValueTypes::Bool as u8,
+                0,
+                ArgumentOperations::End as u8,  // end of this argument
+                ArgumentOperations::Stop as u8, // end of all arguments
+                255                             // Stop signal indicating batch is finished
+            ],
+            completed_ops.clone_memory().expect("clone"),
+        );
+
+        assert!(completed_strings.is_empty().expect("returns state"));
+    }
+
+    #[test]
+    fn can_encode_uints() {
+        let mut allocator = MemoryAllocations::new();
+
+        let batch = allocator
+            .batch_for(10, 10, true)
+            .expect("create new Instructions");
+
+        batch.should_be_occupied().expect("is occupied");
+
+        let write_result = batch.encode_params(Some(&[
+            Params::Uint8(10),
+            Params::Uint16(10),
+            Params::Uint32(10),
+            Params::Uint64(10),
+            Params::Uint128(10),
+        ]));
+
+        assert!(write_result.is_ok());
+
+        let completed_data = batch.end().expect("finish writing completion result");
+        let slot = allocator.get_slot(completed_data).expect("get memory");
+
+        let completed_strings = slot.text_ref();
+        let completed_ops = slot.ops_ref();
+
+        assert_eq!(
+            alloc::vec![
+                0,                               // Begin signal indicating start of batch
+                ArgumentOperations::Start as u8, // start of all arguments
+                ArgumentOperations::Begin as u8, // start of this argument
+                ValueTypes::Uint8 as u8,
+                10,
+                ArgumentOperations::End as u8,   // end of this argument
+                ArgumentOperations::Begin as u8, // start of this argument
+                ValueTypes::Uint16 as u8,
+                TypeOptimization::QuantizedUint16AsU8 as u8,
+                // value of int32 in LittleIndian encoding, so 8 bytes
+                10,
+                ArgumentOperations::End as u8,   // end of this argument
+                ArgumentOperations::Begin as u8, // start of this argument
+                ValueTypes::Uint32 as u8,
+                TypeOptimization::QuantizedUint32AsU8 as u8,
+                // value of int32 in LittleIndian encoding, so 8 bytes
+                10,
+                ArgumentOperations::End as u8,   // end of this argument
+                ArgumentOperations::Begin as u8, // start of this argument
+                ValueTypes::Uint64 as u8,
+                TypeOptimization::QuantizedUint64AsU8 as u8,
+                10,
+                ArgumentOperations::End as u8,   // end of this argument
+                ArgumentOperations::Begin as u8, // start of this argument
+                ValueTypes::Uint128 as u8,
+                TypeOptimization::QuantizedUint128AsU8 as u8,
+                10,
+                ArgumentOperations::End as u8,  // end of this argument
+                ArgumentOperations::Stop as u8, // end of all arguments
+                255                             // Stop signal indicating batch is finished
+            ],
+            completed_ops.clone_memory().expect("clone"),
+        );
+
+        assert!(completed_strings.is_empty().expect("returns state"));
+    }
+
+    #[test]
+    fn can_encode_ints() {
+        let mut allocator = MemoryAllocations::new();
+
+        let batch = allocator
+            .batch_for(10, 10, true)
+            .expect("create new Instructions");
+
+        batch.should_be_occupied().expect("is occupied");
+
+        let write_result = batch.encode_params(Some(&[
+            Params::Int8(10),
+            Params::Int16(10),
+            Params::Int32(10),
+            Params::Int64(10),
+            Params::Int128(10),
+        ]));
+
+        assert!(write_result.is_ok());
+
+        let completed_data = batch.end().expect("finish writing completion result");
+        let slot = allocator.get_slot(completed_data).expect("get memory");
+
+        let completed_strings = slot.text_ref();
+        let completed_ops = slot.ops_ref();
+
+        assert_eq!(
+            alloc::vec![
+                0,                               // Begin signal indicating start of batch
+                ArgumentOperations::Start as u8, // start of all arguments
+                ArgumentOperations::Begin as u8, // start of this argument
+                ValueTypes::Int8 as u8,
+                10,
+                ArgumentOperations::End as u8,   // end of this argument
+                ArgumentOperations::Begin as u8, // start of this argument
+                ValueTypes::Int16 as u8,
+                TypeOptimization::QuantizedInt16AsI8 as u8,
+                // value of int32 in LittleIndian encoding, so 8 bytes
+                10,
+                ArgumentOperations::End as u8,   // end of this argument
+                ArgumentOperations::Begin as u8, // start of this argument
+                ValueTypes::Int32 as u8,
+                TypeOptimization::QuantizedInt32AsI8 as u8,
+                // value of int32 in LittleIndian encoding, so 8 bytes
+                10,
+                ArgumentOperations::End as u8,   // end of this argument
+                ArgumentOperations::Begin as u8, // start of this argument
+                ValueTypes::Int64 as u8,
+                TypeOptimization::QuantizedInt64AsI8 as u8,
+                10,
+                ArgumentOperations::End as u8,   // end of this argument
+                ArgumentOperations::Begin as u8, // start of this argument
+                ValueTypes::Int128 as u8,
+                TypeOptimization::QuantizedInt128AsI8 as u8,
+                10,
+                ArgumentOperations::End as u8,  // end of this argument
+                ArgumentOperations::Stop as u8, // end of all arguments
+                255                             // Stop signal indicating batch is finished
+            ],
+            completed_ops.clone_memory().expect("clone"),
+        );
+
+        assert!(completed_strings.is_empty().expect("returns state"));
+    }
+
+    #[test]
+    fn can_encode_texts() {
+        let mut allocator = MemoryAllocations::new();
+
+        let batch = allocator
+            .batch_for(10, 10, true)
+            .expect("create new Instructions");
+
+        batch.should_be_occupied().expect("is occupied");
+
+        let content = "alex";
+        let content_u16: Vec<u16> = content.encode_utf16().collect();
+
+        let write_result = batch.encode_params(Some(&[
+            Params::Text8(content),
+            Params::Text16(content_u16.as_slice()),
+        ]));
+
+        assert!(write_result.is_ok());
+
+        let completed_data = batch.end().expect("finish writing completion result");
+        let slot = allocator.get_slot(completed_data).expect("get memory");
+
+        let completed_strings = slot.text_ref();
+        let completed_ops = slot.ops_ref();
+
+        let encoded_start = alloc::vec![
+            0,                               // Begin signal indicating start of batch
+            ArgumentOperations::Start as u8, // start of all arguments
+            ArgumentOperations::Begin as u8, // start of this argument
+            ValueTypes::Text8 as u8,
+            TypeOptimization::QuantizedUint64AsU8 as u8,
+            0,
+            TypeOptimization::QuantizedUint64AsU8 as u8,
+            4,
+            ArgumentOperations::End as u8,   // end of this argument
+            ArgumentOperations::Begin as u8, // start of this argument
+            ValueTypes::Text16 as u8,
+            TypeOptimization::QuantizedPtrAsU64 as u8,
+        ];
+
+        let encoded_end = alloc::vec![
+            TypeOptimization::QuantizedUint64AsU8 as u8,
+            4,
+            ArgumentOperations::End as u8,  // end of this argument
+            ArgumentOperations::Stop as u8, // end of all arguments
+            255                             // Stop signal indicating batch is finished
+        ];
+
+        let pointer_bytes = (content_u16.as_ptr() as u64).to_le_bytes();
+
+        let mut encoded = Vec::new();
+        encoded.extend(encoded_start);
+        encoded.extend(pointer_bytes);
+        encoded.extend(encoded_end);
+
+        assert_eq!(encoded, completed_ops.clone_memory().expect("clone"),);
+
+        assert_eq!(4, completed_strings.len().expect("returns state"));
+        assert_eq!(&[97, 108, 101, 120], content.as_bytes());
+    }
+}
+
 /// [`Instructions`] is a one batch set writer, meaning it encodes a single
 /// batch of instruction marked by a [`Operations::Begin`] and [`Operations::Stop`]
 /// markers when the [`Instructions::end`] is called.
@@ -837,7 +1078,7 @@ impl BatchEncodable for Instructions {
         if self.in_occupied_state() {
             if let Some((_, text)) = &self.mem {
                 let data_bytes = data.as_bytes();
-                let text_location = data_bytes.len() as u64;
+                let text_location = text.len()?;
                 let text_length = data_bytes.len() as u64;
 
                 text.apply(|mem| {
@@ -1002,6 +1243,15 @@ impl Instructions {
 
         callback_handle.encode(self, self.optimized)?;
         allocated_handle.encode(self, self.optimized)?;
+        self.encode_params(params)?;
+
+        Ok(())
+    }
+
+    pub(crate) fn encode_params<'a>(
+        &self,
+        params: Option<&'a [Params<'a>]>,
+    ) -> MemoryWriterResult<()> {
         if let Some(pm) = params {
             pm.encode(self, self.optimized)?;
         }
