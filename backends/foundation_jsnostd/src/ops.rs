@@ -923,7 +923,7 @@ mod params_tests {
     }
 
     #[test]
-    fn can_encode_float_arrays() {
+    fn can_encode_float64_arrays() {
         let mut allocator = MemoryAllocations::new();
 
         let batch = allocator
@@ -932,13 +932,8 @@ mod params_tests {
 
         batch.should_be_occupied().expect("is occupied");
 
-        let content = "alex";
-        let content_u16: Vec<u16> = content.encode_utf16().collect();
-
-        let write_result = batch.encode_params(Some(&[
-            Params::Float32Array(&[1.0, 2.0]),
-            Params::Float64Array(&[1.0, 2.0]),
-        ]));
+        let items: &[f64] = &[1.0, 2.0];
+        let write_result = batch.encode_params(Some(&[Params::Float64Array(items)]));
 
         assert!(write_result.is_ok());
 
@@ -952,26 +947,19 @@ mod params_tests {
             0,                               // Begin signal indicating start of batch
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
-            ValueTypes::Text8 as u8,
-            TypeOptimization::QuantizedUint64AsU8 as u8,
-            0,
-            TypeOptimization::QuantizedUint64AsU8 as u8,
-            4,
-            ArgumentOperations::End as u8,   // end of this argument
-            ArgumentOperations::Begin as u8, // start of this argument
-            ValueTypes::Text16 as u8,
+            ValueTypes::Float64ArrayBuffer as u8,
             TypeOptimization::QuantizedPtrAsU64 as u8,
         ];
 
         let encoded_end = alloc::vec![
             TypeOptimization::QuantizedUint64AsU8 as u8,
-            4,
+            2,
             ArgumentOperations::End as u8,  // end of this argument
             ArgumentOperations::Stop as u8, // end of all arguments
             255                             // Stop signal indicating batch is finished
         ];
 
-        let pointer_bytes = (content_u16.as_ptr() as u64).to_le_bytes();
+        let pointer_bytes = (items.as_ptr() as u64).to_le_bytes();
 
         let mut encoded = Vec::new();
         encoded.extend(encoded_start);
@@ -980,8 +968,105 @@ mod params_tests {
 
         assert_eq!(encoded, completed_ops.clone_memory().expect("clone"),);
 
-        assert_eq!(4, completed_strings.len().expect("returns state"));
-        assert_eq!(&[97, 108, 101, 120], content.as_bytes());
+        assert!(completed_strings.is_empty().expect("returns state"));
+    }
+
+    #[test]
+    fn can_encode_float32_arrays() {
+        let mut allocator = MemoryAllocations::new();
+
+        let batch = allocator
+            .batch_for(10, 10, true)
+            .expect("create new Instructions");
+
+        batch.should_be_occupied().expect("is occupied");
+
+        let items: &[f32] = &[1.0, 2.0];
+        let write_result = batch.encode_params(Some(&[Params::Float32Array(items)]));
+
+        assert!(write_result.is_ok());
+
+        let completed_data = batch.end().expect("finish writing completion result");
+        let slot = allocator.get_slot(completed_data).expect("get memory");
+
+        let completed_strings = slot.text_ref();
+        let completed_ops = slot.ops_ref();
+
+        let encoded_start = alloc::vec![
+            0,                               // Begin signal indicating start of batch
+            ArgumentOperations::Start as u8, // start of all arguments
+            ArgumentOperations::Begin as u8, // start of this argument
+            ValueTypes::Float32ArrayBuffer as u8,
+            TypeOptimization::QuantizedPtrAsU64 as u8,
+        ];
+
+        let encoded_end = alloc::vec![
+            TypeOptimization::QuantizedUint64AsU8 as u8,
+            2,
+            ArgumentOperations::End as u8,  // end of this argument
+            ArgumentOperations::Stop as u8, // end of all arguments
+            255                             // Stop signal indicating batch is finished
+        ];
+
+        let pointer_bytes = (items.as_ptr() as u64).to_le_bytes();
+
+        let mut encoded = Vec::new();
+        encoded.extend(encoded_start);
+        encoded.extend(pointer_bytes);
+        encoded.extend(encoded_end);
+
+        assert_eq!(encoded, completed_ops.clone_memory().expect("clone"),);
+
+        assert!(completed_strings.is_empty().expect("returns state"));
+    }
+
+    #[test]
+    fn can_encode_uint32_arrays() {
+        let mut allocator = MemoryAllocations::new();
+
+        let batch = allocator
+            .batch_for(10, 10, true)
+            .expect("create new Instructions");
+
+        batch.should_be_occupied().expect("is occupied");
+
+        let items: &[u32] = &[1, 2];
+        let write_result = batch.encode_params(Some(&[Params::Uint32Array(items)]));
+
+        assert!(write_result.is_ok());
+
+        let completed_data = batch.end().expect("finish writing completion result");
+        let slot = allocator.get_slot(completed_data).expect("get memory");
+
+        let completed_strings = slot.text_ref();
+        let completed_ops = slot.ops_ref();
+
+        let encoded_start = alloc::vec![
+            0,                               // Begin signal indicating start of batch
+            ArgumentOperations::Start as u8, // start of all arguments
+            ArgumentOperations::Begin as u8, // start of this argument
+            ValueTypes::Uint32ArrayBuffer as u8,
+            TypeOptimization::QuantizedPtrAsU64 as u8,
+        ];
+
+        let encoded_end = alloc::vec![
+            TypeOptimization::QuantizedUint64AsU8 as u8,
+            2,
+            ArgumentOperations::End as u8,  // end of this argument
+            ArgumentOperations::Stop as u8, // end of all arguments
+            255                             // Stop signal indicating batch is finished
+        ];
+
+        let pointer_bytes = (items.as_ptr() as u64).to_le_bytes();
+
+        let mut encoded = Vec::new();
+        encoded.extend(encoded_start);
+        encoded.extend(pointer_bytes);
+        encoded.extend(encoded_end);
+
+        assert_eq!(encoded, completed_ops.clone_memory().expect("clone"),);
+
+        assert!(completed_strings.is_empty().expect("returns state"));
     }
 }
 
