@@ -54,7 +54,6 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Undefined => {
                 let data: Vec<u8> = alloc::vec![
                     ArgumentOperations::Begin.into(),
-                    ValueTypes::Undefined.into(),
                     self.to_value_type().into(),
                     ArgumentOperations::End.into(),
                 ];
@@ -688,6 +687,45 @@ mod params_tests {
 
     // extern crate std;
     // use std::dbg;
+
+    #[test]
+    fn can_encode_undefined_and_null() {
+        let mut allocator = MemoryAllocations::new();
+
+        let batch = allocator
+            .batch_for(10, 10, true)
+            .expect("create new Instructions");
+
+        batch.should_be_occupied().expect("is occupied");
+
+        let write_result = batch.encode_params(Some(&[Params::Undefined, Params::Null]));
+
+        assert!(write_result.is_ok());
+
+        let completed_data = batch.end().expect("finish writing completion result");
+        let slot = allocator.get_slot(completed_data).expect("get memory");
+
+        let completed_strings = slot.text_ref();
+        let completed_ops = slot.ops_ref();
+
+        assert_eq!(
+            alloc::vec![
+                0,                               // Begin signal indicating start of batch
+                ArgumentOperations::Start as u8, // start of all arguments
+                ArgumentOperations::Begin as u8, // start of this argument
+                ValueTypes::Undefined as u8,
+                ArgumentOperations::End as u8,   // end of this argument
+                ArgumentOperations::Begin as u8, // start of this argument
+                ValueTypes::Null as u8,
+                ArgumentOperations::End as u8,  // end of this argument
+                ArgumentOperations::Stop as u8, // end of all arguments
+                255                             // Stop signal indicating batch is finished
+            ],
+            completed_ops.clone_memory().expect("clone"),
+        );
+
+        assert!(completed_strings.is_empty().expect("returns state"));
+    }
 
     #[test]
     fn can_encode_bool() {
@@ -1405,6 +1443,96 @@ mod params_tests {
         let mut encoded = Vec::new();
         encoded.extend(encoded_start);
         encoded.extend(pointer_bytes);
+        encoded.extend(encoded_end);
+
+        assert_eq!(encoded, completed_ops.clone_memory().expect("clone"),);
+
+        assert!(completed_strings.is_empty().expect("returns state"));
+    }
+
+    #[test]
+    fn can_encode_external_pointer() {
+        let mut allocator = MemoryAllocations::new();
+
+        let batch = allocator
+            .batch_for(10, 10, true)
+            .expect("create new Instructions");
+
+        batch.should_be_occupied().expect("is occupied");
+
+        let items = ExternalPointer::pointer(0);
+        let write_result = batch.encode_params(Some(&[Params::ExternalReference(&items)]));
+
+        assert!(write_result.is_ok());
+
+        let completed_data = batch.end().expect("finish writing completion result");
+        let slot = allocator.get_slot(completed_data).expect("get memory");
+
+        let completed_strings = slot.text_ref();
+        let completed_ops = slot.ops_ref();
+
+        let encoded_start = alloc::vec![
+            0,                               // Begin signal indicating start of batch
+            ArgumentOperations::Start as u8, // start of all arguments
+            ArgumentOperations::Begin as u8, // start of this argument
+            ValueTypes::ExternalReference as u8,
+            TypeOptimization::QuantizedUint64AsU8 as u8,
+            0,
+        ];
+
+        let encoded_end = alloc::vec![
+            ArgumentOperations::End as u8,  // end of this argument
+            ArgumentOperations::Stop as u8, // end of all arguments
+            255                             // Stop signal indicating batch is finished
+        ];
+
+        let mut encoded = Vec::new();
+        encoded.extend(encoded_start);
+        encoded.extend(encoded_end);
+
+        assert_eq!(encoded, completed_ops.clone_memory().expect("clone"),);
+
+        assert!(completed_strings.is_empty().expect("returns state"));
+    }
+
+    #[test]
+    fn can_encode_internal_pointer() {
+        let mut allocator = MemoryAllocations::new();
+
+        let batch = allocator
+            .batch_for(10, 10, true)
+            .expect("create new Instructions");
+
+        batch.should_be_occupied().expect("is occupied");
+
+        let items = InternalPointer::pointer(0);
+        let write_result = batch.encode_params(Some(&[Params::InternalReference(&items)]));
+
+        assert!(write_result.is_ok());
+
+        let completed_data = batch.end().expect("finish writing completion result");
+        let slot = allocator.get_slot(completed_data).expect("get memory");
+
+        let completed_strings = slot.text_ref();
+        let completed_ops = slot.ops_ref();
+
+        let encoded_start = alloc::vec![
+            0,                               // Begin signal indicating start of batch
+            ArgumentOperations::Start as u8, // start of all arguments
+            ArgumentOperations::Begin as u8, // start of this argument
+            ValueTypes::InternalReference as u8,
+            TypeOptimization::QuantizedUint64AsU8 as u8,
+            0,
+        ];
+
+        let encoded_end = alloc::vec![
+            ArgumentOperations::End as u8,  // end of this argument
+            ArgumentOperations::Stop as u8, // end of all arguments
+            255                             // Stop signal indicating batch is finished
+        ];
+
+        let mut encoded = Vec::new();
+        encoded.extend(encoded_start);
         encoded.extend(encoded_end);
 
         assert_eq!(encoded, completed_ops.clone_memory().expect("clone"),);
