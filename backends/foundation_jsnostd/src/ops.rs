@@ -1021,6 +1021,300 @@ mod params_tests {
     }
 
     #[test]
+    fn can_encode_int8_arrays() {
+        let mut allocator = MemoryAllocations::new();
+
+        let batch = allocator
+            .batch_for(10, 10, true)
+            .expect("create new Instructions");
+
+        batch.should_be_occupied().expect("is occupied");
+
+        let items: &[i8] = &[1, 2];
+        let write_result = batch.encode_params(Some(&[Params::Int8Array(items)]));
+
+        assert!(write_result.is_ok());
+
+        let completed_data = batch.end().expect("finish writing completion result");
+        let slot = allocator.get_slot(completed_data).expect("get memory");
+
+        let completed_strings = slot.text_ref();
+        let completed_ops = slot.ops_ref();
+
+        let encoded_start = alloc::vec![
+            0,                               // Begin signal indicating start of batch
+            ArgumentOperations::Start as u8, // start of all arguments
+            ArgumentOperations::Begin as u8, // start of this argument
+            ValueTypes::Int8ArrayBuffer as u8,
+            TypeOptimization::QuantizedPtrAsU64 as u8,
+        ];
+
+        let encoded_end = alloc::vec![
+            TypeOptimization::QuantizedUint64AsU8 as u8,
+            2,
+            ArgumentOperations::End as u8,  // end of this argument
+            ArgumentOperations::Stop as u8, // end of all arguments
+            255                             // Stop signal indicating batch is finished
+        ];
+
+        let pointer_bytes = (items.as_ptr() as u64).to_le_bytes();
+
+        let mut encoded = Vec::new();
+        encoded.extend(encoded_start);
+        encoded.extend(pointer_bytes);
+        encoded.extend(encoded_end);
+
+        assert_eq!(encoded, completed_ops.clone_memory().expect("clone"),);
+
+        assert!(completed_strings.is_empty().expect("returns state"));
+    }
+
+    #[test]
+    fn can_encode_int16_arrays() {
+        let mut allocator = MemoryAllocations::new();
+
+        let batch = allocator
+            .batch_for(10, 10, true)
+            .expect("create new Instructions");
+
+        batch.should_be_occupied().expect("is occupied");
+
+        let items: &[i16] = &[1, 2];
+        let write_result = batch.encode_params(Some(&[Params::Int16Array(items)]));
+
+        assert!(write_result.is_ok());
+
+        let completed_data = batch.end().expect("finish writing completion result");
+        let slot = allocator.get_slot(completed_data).expect("get memory");
+
+        let completed_strings = slot.text_ref();
+        let completed_ops = slot.ops_ref();
+
+        let encoded_start = alloc::vec![
+            0,                               // Begin signal indicating start of batch
+            ArgumentOperations::Start as u8, // start of all arguments
+            ArgumentOperations::Begin as u8, // start of this argument
+            ValueTypes::Int16ArrayBuffer as u8,
+            TypeOptimization::QuantizedPtrAsU64 as u8,
+        ];
+
+        let encoded_end = alloc::vec![
+            TypeOptimization::QuantizedUint64AsU8 as u8,
+            2,
+            ArgumentOperations::End as u8,  // end of this argument
+            ArgumentOperations::Stop as u8, // end of all arguments
+            255                             // Stop signal indicating batch is finished
+        ];
+
+        let pointer_bytes = (items.as_ptr() as u64).to_le_bytes();
+
+        let mut encoded = Vec::new();
+        encoded.extend(encoded_start);
+        encoded.extend(pointer_bytes);
+        encoded.extend(encoded_end);
+
+        assert_eq!(encoded, completed_ops.clone_memory().expect("clone"),);
+
+        assert!(completed_strings.is_empty().expect("returns state"));
+    }
+
+    #[test]
+    fn can_encode_int32_arrays() {
+        let mut allocator = MemoryAllocations::new();
+
+        let batch = allocator
+            .batch_for(10, 10, true)
+            .expect("create new Instructions");
+
+        batch.should_be_occupied().expect("is occupied");
+
+        let items: &[i32] = &[1, 2];
+        let write_result = batch.encode_params(Some(&[Params::Int32Array(items)]));
+
+        assert!(write_result.is_ok());
+
+        let completed_data = batch.end().expect("finish writing completion result");
+        let slot = allocator.get_slot(completed_data).expect("get memory");
+
+        let completed_strings = slot.text_ref();
+        let completed_ops = slot.ops_ref();
+
+        let encoded_start = alloc::vec![
+            0,                               // Begin signal indicating start of batch
+            ArgumentOperations::Start as u8, // start of all arguments
+            ArgumentOperations::Begin as u8, // start of this argument
+            ValueTypes::Int32ArrayBuffer as u8,
+            TypeOptimization::QuantizedPtrAsU64 as u8,
+        ];
+
+        let encoded_end = alloc::vec![
+            TypeOptimization::QuantizedUint64AsU8 as u8,
+            2,
+            ArgumentOperations::End as u8,  // end of this argument
+            ArgumentOperations::Stop as u8, // end of all arguments
+            255                             // Stop signal indicating batch is finished
+        ];
+
+        let pointer_bytes = (items.as_ptr() as u64).to_le_bytes();
+
+        let mut encoded = Vec::new();
+        encoded.extend(encoded_start);
+        encoded.extend(pointer_bytes);
+        encoded.extend(encoded_end);
+
+        assert_eq!(encoded, completed_ops.clone_memory().expect("clone"),);
+
+        assert!(completed_strings.is_empty().expect("returns state"));
+    }
+
+    #[test]
+    fn can_encode_int64_arrays() {
+        let mut allocator = MemoryAllocations::new();
+
+        let batch = allocator
+            .batch_for(10, 10, true)
+            .expect("create new Instructions");
+
+        batch.should_be_occupied().expect("is occupied");
+
+        let items: &[i64] = &[1, 2];
+        let write_result = batch.encode_params(Some(&[Params::Int64Array(items)]));
+
+        assert!(write_result.is_ok());
+
+        let completed_data = batch.end().expect("finish writing completion result");
+        let slot = allocator.get_slot(completed_data).expect("get memory");
+
+        let completed_strings = slot.text_ref();
+        let completed_ops = slot.ops_ref();
+
+        let encoded_start = alloc::vec![
+            0,                               // Begin signal indicating start of batch
+            ArgumentOperations::Start as u8, // start of all arguments
+            ArgumentOperations::Begin as u8, // start of this argument
+            ValueTypes::Int64ArrayBuffer as u8,
+            TypeOptimization::QuantizedPtrAsU64 as u8,
+        ];
+
+        let encoded_end = alloc::vec![
+            TypeOptimization::QuantizedUint64AsU8 as u8,
+            2,
+            ArgumentOperations::End as u8,  // end of this argument
+            ArgumentOperations::Stop as u8, // end of all arguments
+            255                             // Stop signal indicating batch is finished
+        ];
+
+        let pointer_bytes = (items.as_ptr() as u64).to_le_bytes();
+
+        let mut encoded = Vec::new();
+        encoded.extend(encoded_start);
+        encoded.extend(pointer_bytes);
+        encoded.extend(encoded_end);
+
+        assert_eq!(encoded, completed_ops.clone_memory().expect("clone"),);
+
+        assert!(completed_strings.is_empty().expect("returns state"));
+    }
+
+    #[test]
+    fn can_encode_uint8_arrays() {
+        let mut allocator = MemoryAllocations::new();
+
+        let batch = allocator
+            .batch_for(10, 10, true)
+            .expect("create new Instructions");
+
+        batch.should_be_occupied().expect("is occupied");
+
+        let items: &[u8] = &[1, 2];
+        let write_result = batch.encode_params(Some(&[Params::Uint8Array(items)]));
+
+        assert!(write_result.is_ok());
+
+        let completed_data = batch.end().expect("finish writing completion result");
+        let slot = allocator.get_slot(completed_data).expect("get memory");
+
+        let completed_strings = slot.text_ref();
+        let completed_ops = slot.ops_ref();
+
+        let encoded_start = alloc::vec![
+            0,                               // Begin signal indicating start of batch
+            ArgumentOperations::Start as u8, // start of all arguments
+            ArgumentOperations::Begin as u8, // start of this argument
+            ValueTypes::Uint8ArrayBuffer as u8,
+            TypeOptimization::QuantizedPtrAsU64 as u8,
+        ];
+
+        let encoded_end = alloc::vec![
+            TypeOptimization::QuantizedUint64AsU8 as u8,
+            2,
+            ArgumentOperations::End as u8,  // end of this argument
+            ArgumentOperations::Stop as u8, // end of all arguments
+            255                             // Stop signal indicating batch is finished
+        ];
+
+        let pointer_bytes = (items.as_ptr() as u64).to_le_bytes();
+
+        let mut encoded = Vec::new();
+        encoded.extend(encoded_start);
+        encoded.extend(pointer_bytes);
+        encoded.extend(encoded_end);
+
+        assert_eq!(encoded, completed_ops.clone_memory().expect("clone"),);
+
+        assert!(completed_strings.is_empty().expect("returns state"));
+    }
+
+    #[test]
+    fn can_encode_uint16_arrays() {
+        let mut allocator = MemoryAllocations::new();
+
+        let batch = allocator
+            .batch_for(10, 10, true)
+            .expect("create new Instructions");
+
+        batch.should_be_occupied().expect("is occupied");
+
+        let items: &[u16] = &[1, 2];
+        let write_result = batch.encode_params(Some(&[Params::Uint16Array(items)]));
+
+        assert!(write_result.is_ok());
+
+        let completed_data = batch.end().expect("finish writing completion result");
+        let slot = allocator.get_slot(completed_data).expect("get memory");
+
+        let completed_strings = slot.text_ref();
+        let completed_ops = slot.ops_ref();
+
+        let encoded_start = alloc::vec![
+            0,                               // Begin signal indicating start of batch
+            ArgumentOperations::Start as u8, // start of all arguments
+            ArgumentOperations::Begin as u8, // start of this argument
+            ValueTypes::Uint16ArrayBuffer as u8,
+            TypeOptimization::QuantizedPtrAsU64 as u8,
+        ];
+
+        let encoded_end = alloc::vec![
+            TypeOptimization::QuantizedUint64AsU8 as u8,
+            2,
+            ArgumentOperations::End as u8,  // end of this argument
+            ArgumentOperations::Stop as u8, // end of all arguments
+            255                             // Stop signal indicating batch is finished
+        ];
+
+        let pointer_bytes = (items.as_ptr() as u64).to_le_bytes();
+
+        let mut encoded = Vec::new();
+        encoded.extend(encoded_start);
+        encoded.extend(pointer_bytes);
+        encoded.extend(encoded_end);
+
+        assert_eq!(encoded, completed_ops.clone_memory().expect("clone"),);
+
+        assert!(completed_strings.is_empty().expect("returns state"));
+    }
+
+    #[test]
     fn can_encode_uint32_arrays() {
         let mut allocator = MemoryAllocations::new();
 
@@ -1046,6 +1340,55 @@ mod params_tests {
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
             ValueTypes::Uint32ArrayBuffer as u8,
+            TypeOptimization::QuantizedPtrAsU64 as u8,
+        ];
+
+        let encoded_end = alloc::vec![
+            TypeOptimization::QuantizedUint64AsU8 as u8,
+            2,
+            ArgumentOperations::End as u8,  // end of this argument
+            ArgumentOperations::Stop as u8, // end of all arguments
+            255                             // Stop signal indicating batch is finished
+        ];
+
+        let pointer_bytes = (items.as_ptr() as u64).to_le_bytes();
+
+        let mut encoded = Vec::new();
+        encoded.extend(encoded_start);
+        encoded.extend(pointer_bytes);
+        encoded.extend(encoded_end);
+
+        assert_eq!(encoded, completed_ops.clone_memory().expect("clone"),);
+
+        assert!(completed_strings.is_empty().expect("returns state"));
+    }
+
+    #[test]
+    fn can_encode_uint64_arrays() {
+        let mut allocator = MemoryAllocations::new();
+
+        let batch = allocator
+            .batch_for(10, 10, true)
+            .expect("create new Instructions");
+
+        batch.should_be_occupied().expect("is occupied");
+
+        let items: &[u64] = &[1, 2];
+        let write_result = batch.encode_params(Some(&[Params::Uint64Array(items)]));
+
+        assert!(write_result.is_ok());
+
+        let completed_data = batch.end().expect("finish writing completion result");
+        let slot = allocator.get_slot(completed_data).expect("get memory");
+
+        let completed_strings = slot.text_ref();
+        let completed_ops = slot.ops_ref();
+
+        let encoded_start = alloc::vec![
+            0,                               // Begin signal indicating start of batch
+            ArgumentOperations::Start as u8, // start of all arguments
+            ArgumentOperations::Begin as u8, // start of this argument
+            ValueTypes::Uint64ArrayBuffer as u8,
             TypeOptimization::QuantizedPtrAsU64 as u8,
         ];
 
