@@ -8,9 +8,11 @@ authors.workspace = true
 repository.workspace = true
 description = "Implements the nostd interface runtime for WASM and JS interoperability"
 keywords = ["foundation js_notstd", "foundation_jsnostd"]
+include = ["/src", "/runtime"]
 
 [dependencies]
 foundation_nostd = { workspace = true }
+foundation_jsmacros = { workspace = true }
 
 [lints]
 workspace = true
