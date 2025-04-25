@@ -685,9 +685,6 @@ impl<'a> Batchable<'a> for Params<'a> {
 mod params_tests {
     use super::*;
 
-    // extern crate std;
-    // use std::dbg;
-
     #[test]
     fn can_encode_undefined_and_null() {
         let mut allocator = MemoryAllocations::new();

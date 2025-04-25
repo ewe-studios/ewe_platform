@@ -462,3 +462,13 @@ pub mod host_runtime {
         }
     }
 }
+
+pub mod js_runtime {
+    use foundation_jsmacros::embed_file_as;
+
+    #[embed_file_as("../runtime/js/runtime.js")]
+    pub struct RuntimeCore;
+
+    #[embed_file_as("../runtime/js/packer.js")]
+    pub struct PackerCore;
+}
