@@ -1125,6 +1125,7 @@ version = "0.0.1"
 dependencies = [
  "base85rs",
  "chrono",
+ "foundation_nostd",
  "new_mime_guess",
  "proc-macro-crate",
  "proc-macro2",

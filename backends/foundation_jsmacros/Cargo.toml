@@ -13,6 +13,8 @@ keywords = ["jsmacros", "fouundations_js_macros"]
 proc-macro = true
 
 [dependencies]
+foundation_nostd = { workspace = true }
+
 syn = ">=2.0"
 quote = ">=1.0"
 proc-macro2 = ">=1.0"
