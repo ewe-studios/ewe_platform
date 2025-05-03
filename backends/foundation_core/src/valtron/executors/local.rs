@@ -380,7 +380,7 @@ impl ExecutorState {
 
     /// Returns true/false if processing queue has task.
     pub fn has_inflight_task(&self) -> bool {
-        self.processing.borrow().len() > 0
+        !self.processing.borrow().is_empty()
     }
 
     /// Returns totla
@@ -416,7 +416,7 @@ impl ExecutorState {
     /// as the local queue had a task or no task was found.
     #[inline]
     pub fn schedule_next(&self) -> ScheduleOutcome {
-        if self.local_tasks.borrow().active_slots() > 0 && self.processing.borrow().len() > 0 {
+        if self.local_tasks.borrow().active_slots() > 0 && !self.processing.borrow().is_empty() {
             return ScheduleOutcome::LocalTaskRunning;
         }
 
@@ -706,7 +706,7 @@ impl ExecutorState {
                                             DurationWaker::from_now(top_entry.clone(), inner),
                                         ));
 
-                                        if self.processing.borrow().len() > 0 {
+                                        if !self.processing.borrow().is_empty() {
                                             return ProgressIndicator::CanProgress;
                                         }
 
@@ -1183,16 +1183,16 @@ impl ReferencedExecutorState {
 /// Below are concepts you will meet and should keep in mind as you reason about these scenarios:
 ///
 /// - [`PriorityOrder`]: means the executor will ensure to maintain existing priority of a task even if it goes to sleep,
-///     when the sleep period has expired no matter if another task is executing that task will be demoted for the previous
-///     task to become priority.
+///   when the sleep period has expired no matter if another task is executing that task will be demoted for the previous
+///   task to become priority.
 ///
 /// - Task Graph: internally the executor should keep a graph (HashMap really) that maps Task to it's
-///     Dependents (the lifter) in this case, this allows us to do the following:
-///     1. Task A lifts Task B so we store in Map: {B: Vec[A]}
-///     2. Task B lifts Task C so we store in Map: {C: Vec[B], B: Vec[A]}
-///     3. With Above we can identify the dependency tree by going Task C -> Task B -> Task A to
-///        understand the relationship graph and understand which tasks we need to move out of
-///        processing since Task C is now sleeping for some period of time.
+///   Dependents (the lifter) in this case, this allows us to do the following:
+///   1. Task A lifts Task B so we store in Map: {B: Vec[A]}
+///   2. Task B lifts Task C so we store in Map: {C: Vec[B], B: Vec[A]}
+///   3. With Above we can identify the dependency tree by going Task C -> Task B -> Task A to
+///      understand the relationship graph and understand which tasks we need to move out of
+///      processing since Task C is now sleeping for some period of time.
 ///
 /// #### Scenario 1: Task A to Completion
 /// A scenario where a task can execute to completion.
@@ -1216,8 +1216,8 @@ impl ReferencedExecutorState {
 /// taking it place to utilize resources better.
 ///
 /// - PriorityOrder: means the executor will ensure to maintain existing priority of a task even if it goes to sleep,
-///     when the sleep period has expired no matter if another task is executing that task will be demoted for the previous
-///     task to become priority.
+///   when the sleep period has expired no matter if another task is executing that task will be demoted for the previous
+///   task to become priority.
 ///
 /// 1. Task A gets scheduled by executor and can make progress
 /// 2. Task A wants to sleep for some duration of time

@@ -228,7 +228,6 @@ impl PointerValueExt for Value {
         if !name_or_pointer.contains("/") {
             return self
                 .get(name_or_pointer)
-                .take()
                 .map(|val| val.to_owned())
                 .ok_or_else(|| ValueError::PropertyNotFound(name_or_pointer.to_string()).into());
         }

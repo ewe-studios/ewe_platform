@@ -77,7 +77,7 @@ impl<E: Send + 'static> Broadcast<E> {
 
     fn deliver_pending_messages(&mut self) {
         let mut subs = self.subscribers.try_lock().unwrap();
-        if subs.len() == 0 {
+        if subs.is_empty() {
             return;
         }
 

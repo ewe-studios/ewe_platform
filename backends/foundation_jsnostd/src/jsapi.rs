@@ -464,11 +464,13 @@ pub mod host_runtime {
 }
 
 pub mod js_runtime {
-    use foundation_jsmacros::embed_file_as;
+    use foundation_jsmacros::EmbedFileAs;
 
-    #[embed_file_as("../runtime/js/runtime.js")]
+    #[derive(EmbedFileAs)]
+    #[source = "runtime/js/runtime.js"]
     pub struct RuntimeCore;
 
-    #[embed_file_as("../runtime/js/packer.js")]
+    #[derive(EmbedFileAs)]
+    #[source = "runtime/js/packer.js"]
     pub struct PackerCore;
 }
