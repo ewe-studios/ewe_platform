@@ -81,24 +81,16 @@ fn impl_embeddable_file(struct_name: &syn::Ident, target_file: String) -> TokenS
         env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
 
     let working_dir = env::current_dir().expect("get current working directory");
-    println!("WorkingDir:: {:?}", &working_dir);
-
     let manifest_dir = Path::new(&cargo_manifest_dir_env);
-    println!("ManifestDir:: {:?}", &manifest_dir);
 
     let project_dir = manifest_dir
         .strip_prefix(&working_dir)
         .expect("should be from home directory");
 
-    println!("ProjectDir:: {:?}", &project_dir);
-
     let embed_file_path = manifest_dir.join(target_file.as_str());
-    println!("EmbeddedFilePath:: {:?}", &embed_file_path);
-
     let embedded_file_relative_path = embed_file_path
         .strip_prefix(&working_dir)
         .expect("should be from home directory");
-    println!("RelEmbeddedFilePath:: {:?}", &embedded_file_relative_path);
 
     let embeddable_file =
         get_file(embed_file_path.clone()).expect("Failed to generate file embeddings");
@@ -137,17 +129,33 @@ fn impl_embeddable_file(struct_name: &syn::Ident, target_file: String) -> TokenS
 
     quote! {
         impl foundation_nostd::embeddable::EmbeddableFile for #struct_name {
-            const DATE_MODIFIED_SINCE_UNIX_EPOC: Option<i64> = #date_modified_tokens;
-            const MIME_TYPE: Option<&str> = #mime_type;
-
             const ROOT_DIR: &str = #project_dir_tokens;
             const SOURCE_FILE: &str = #target_file_tokens;
             const SOURCE_PATH: &str = #embedded_file_relative_path_tokens;
 
+            /// [`DATE_MODIFIED_SINCE_UNIX_EPOC`] is the last known date-time modification
+            /// date given in UNIX timestamp.
+            const DATE_MODIFIED_SINCE_UNIX_EPOC: Option<i64> = #date_modified_tokens;
+
+            /// [`MIME_TYPE`] is the suggested mime-type for the file based on
+            /// the extension of the source file.
+            const MIME_TYPE: Option<&str> = #mime_type;
+
+            /// [`ETAG`] provides a safe web-related e-tag value for use in web APIs.
+            /// It is really just the [Self::HASH`] enclosed in double quotes.
             const ETAG: &str = #etag_tokens;
+
+            /// [`HASH`] is the SHA-265 encoded content of the file.
             const HASH: &str = #hash_tokens;
 
+            /// [`UTF8`] provides the utf-8 byte slices of the file as is
+            /// read from file which uses the endiancess of the native system
+            /// when compiled by rust.
             const UTF8: &[u8] = #utf8_token_tree;
+
+            /// [`UTF16`] provides the utf-16 byte slices of the file as is
+            /// read from file which uses the endiancess of the native system
+            /// when compiled by rust.
             const UTF16: &[u16] = #utf16_token_tree;
         }
     }
