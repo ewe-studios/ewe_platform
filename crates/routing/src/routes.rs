@@ -1358,9 +1358,8 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
     /// All routes are sorted based on the the following rules:
     ///
     /// 1. The highest priority segments are sorted in descending order.
-    ///
     /// 2. Similiar routes segments with the same priority will be sorted in alphabetic order
-    ///         in ascending order.
+    ///    in ascending order.
     ///
     /// One thing to note is that the `SegmentType::Index` is treated specially in that
     /// it won't appear in your route sub-segments but instead will have it's relevant

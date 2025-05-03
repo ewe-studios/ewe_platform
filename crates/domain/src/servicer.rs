@@ -400,7 +400,7 @@ mod tests {
         let items = item.items();
 
         assert_eq!(
-            *items.first().take().unwrap(),
+            *items.first().unwrap(),
             CounterEvents::Decremented(CounterModel::new(-1))
         );
 

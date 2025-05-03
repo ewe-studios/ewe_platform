@@ -18,5 +18,17 @@ quote = ">=1.0"
 proc-macro2 = ">=1.0"
 proc-macro-crate = "3.3.0"
 
+# Compute hash
+sha2 = "0.10.8"
+
+# Encode hash & etag
+base85rs = "0.1"
+
+# Compute last-modified timestamps
+chrono = { version = "0.4", default-features = false, features = ["std"] }
+
+# Compute the mime types
+new_mime_guess = "4.0"
+
 [lints]
 workspace = true
