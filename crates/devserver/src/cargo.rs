@@ -39,6 +39,7 @@ type CargoShellResult<T> = types::Result<T>;
 /// It specifically runs the relevant shell commands, validate the binary
 /// was produced and run giving binary with a target command you provide.
 pub struct CargoShellBuilder {
+    pub stop_on_failure: bool,
     pub project: ProjectDefinition,
     pub build_notifier: broadcast::Sender<()>,
     pub file_notifications: broadcast::Sender<()>,
@@ -47,11 +48,17 @@ pub struct CargoShellBuilder {
 // constructors
 impl CargoShellBuilder {
     pub fn shared(
+        stop_on_failure: bool,
         project: ProjectDefinition,
         build_notifier: broadcast::Sender<()>,
         file_notifications: broadcast::Sender<()>,
     ) -> sync::Arc<Self> {
-        sync::Arc::new(Self { project, build_notifier, file_notifications })
+        sync::Arc::new(Self {
+            project,
+            stop_on_failure,
+            build_notifier,
+            file_notifications,
+        })
     }
 }
 
@@ -60,6 +67,7 @@ impl Clone for CargoShellBuilder {
         Self {
             project: self.project.clone(),
             build_notifier: self.build_notifier.clone(),
+            stop_on_failure: self.stop_on_failure.clone(),
             file_notifications: self.file_notifications.clone(),
         }
     }
@@ -69,6 +77,7 @@ impl Clone for CargoShellBuilder {
 
 impl operators::Operator for sync::Arc<CargoShellBuilder> {
     fn run(&self, mut signal: broadcast::Receiver<()>) -> JoinHandle<()> {
+        let stop_on_failure = self.stop_on_failure;
         let handle = self.clone();
         let mut recver = self.file_notifications.subscribe();
         tokio::spawn(async move {
@@ -82,7 +91,11 @@ impl operators::Operator for sync::Arc<CargoShellBuilder> {
                                 continue;
                             },
                             Err(err) => {
-                                return Err(err);
+                                ewe_trace::error!("Failed rebuilding due to: {:?}!", err);
+                                if stop_on_failure {
+                                    return Err(err);
+                                }
+                                continue;
                             }
                         }
                     },
@@ -121,6 +134,8 @@ impl CargoShellBuilder {
         match command
             .current_dir(self.project.workspace_root.clone())
             .args(binary_arguments)
+            .stdout(Stdio::inherit())
+            .stderr(Stdio::inherit())
             .output()
             .await
         {
@@ -158,6 +173,8 @@ impl CargoShellBuilder {
         match command
             .current_dir(self.project.workspace_root.clone())
             .args(["check"])
+            .stdout(Stdio::inherit())
+            .stderr(Stdio::inherit())
             .output()
             .await
         {
@@ -217,7 +234,11 @@ impl BinaryApp {
         build_notifications: broadcast::Sender<()>,
         running_notifications: broadcast::Sender<()>,
     ) -> sync::Arc<Self> {
-        sync::Arc::new(Self { project, running_notifications, build_notifications })
+        sync::Arc::new(Self {
+            project,
+            running_notifications,
+            build_notifications,
+        })
     }
 }
 
