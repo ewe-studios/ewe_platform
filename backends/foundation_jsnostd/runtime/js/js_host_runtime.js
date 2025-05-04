@@ -6,6 +6,40 @@ class ArenaAllocator {
   constructor() {
     this.items = [];
     this.free = [];
+
+    // add entries for base JS types at the top,
+    // and allocate 1-4 for use
+    // always for these.
+    //
+    // 0 is reserved for undefined
+    // 1 is reserved for null
+    // 2 is reserved for self
+    // 3 is reserved for document
+    // 4 is reserved for window
+    // 5 is reserved for document.body
+    // 6 is reserved for false
+    // 7 is reserved for true
+    //
+    this.create(undefined);
+    this.create(null);
+    this.create(self);
+    this.create(typeof window != "undefined" ? window : null);
+    this.create(typeof document != "undefined" ? document : null);
+    this.create(
+      typeof document != "undefined" && document && document.body
+        ? document.body
+        : null,
+    );
+    this.create(false);
+    this.create(true);
+  }
+
+  create(item) {
+    return this.add_entry(item);
+  }
+
+  destroy(item) {
+    return this.add_entry(item);
   }
 
   create_slot(item, index, generation) {
