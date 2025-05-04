@@ -16,53 +16,53 @@ pub trait EmbeddableFile {
     /// [`utf8_slice`] returns the provided utf-8 byte slices of the file as is
     /// read from file which uses the endiancess of the native system
     /// when compiled by rust.
-    fn utf8_slice(&self) -> &'static [u8] {
+    fn utf8_slice() -> &'static [u8] {
         Self::UTF8
     }
 
     /// [`utf16_slice`] returns the provided utf-16 byte slices of the file as is
     /// read from file which uses the endiancess of the native system
     /// when compiled by rust.
-    fn utf16_slice(&self) -> &'static [u16] {
+    fn utf16_slice() -> &'static [u16] {
         Self::UTF16
     }
 
     /// [`date_modified`] returns the last known date-time modification
     /// date given in UNIX timestamp.
-    fn date_modified(&self) -> Option<&i64> {
+    fn date_modified() -> Option<&'static i64> {
         Self::DATE_MODIFIED_SINCE_UNIX_EPOC.as_ref()
     }
 
     /// [`mime_type`] returns the suggested mime-type for the file based on
     /// the extension of the source file.
-    fn mime_type(&self) -> Option<&str> {
+    fn mime_type() -> Option<&'static str> {
         Self::MIME_TYPE
     }
 
     /// [`root_dir`] returns the root path of the file at the time of embedding during
     /// compilation.
-    fn root_dir(&self) -> &str {
+    fn root_dir() -> &'static str {
         Self::ROOT_DIR
     }
 
     /// [`source_file`] returns file path has provided in source for trait.
-    fn source_file(&self) -> &str {
+    fn source_file() -> &'static str {
         Self::SOURCE_FILE
     }
 
     /// [`source_paths`] returns the relative file path has identified during compilation.
-    fn source_path(&self) -> &str {
+    fn source_path() -> &'static str {
         Self::SOURCE_PATH
     }
 
     /// [`etag`] returns the safe web-related e-tag value for use in web APIs.
     /// It is really just the [Self::HASH`] enclosed in double quotes.
-    fn etag(&self) -> &str {
+    fn etag() -> &'static str {
         Self::ETAG
     }
 
     /// [`hash`] returns the SHA-265 encoded content of the file.
-    fn hash(&self) -> &str {
+    fn hash() -> &'static str {
         Self::HASH
     }
 }

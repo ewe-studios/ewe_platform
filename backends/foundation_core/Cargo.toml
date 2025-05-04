@@ -1,6 +1,6 @@
 [package]
 name = "foundation_core"
-version = "0.0.2"
+version = "0.0.3"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -10,21 +10,26 @@ description = "central crate for all foundation crates for the ewe-platform proj
 keywords = ["foundations_core", "ewe-platform-core"]
 
 [dependencies]
+# -- Workspace dependencies
+foundation_jsnostd = {workspace = true }
+foundation_nostd = {workspace = true }
+
+# -- Other dependencies
 derive_more = { version = "2.0", features = ["from", "debug", "error"] }
 serde = { version = "1", features = ["derive"] }
 concurrent-queue = { version = "2.5.0" }
-toml_datetime = { version = "0.6.8" }
+toml_datetime = { version = "0.6.9" }
 serde_json = { version = "1" }
 serde_yml = { version = "0.0.12" }
-toml = { version = "0.8.19" }
-rust-embed = "8.5.0"
+toml = { version = "0.8.22" }
+rust-embed = { version = "8.7.0", features = ["mime-guess"]}
 fastrand = "2.3.0"
 rand = "0.9"
 rand_chacha = "0.9"
 
-async-trait = { version = "0.1.82" }
-memchr = "2.7.2"
-tracing = { version = "0.1.40" }
+async-trait = { version = "0.1.88" }
+memchr = "2.7.4"
+tracing = { version = "0.1.41" }
 thiserror = { version = "2.0" }
 
 spin = { version = "0.10" }
@@ -33,15 +38,15 @@ wasm_sync = { version = "0.1.2" }
 url = "2.5"
 regex = "1.11.1"
 ctrlc = { version = "3.4" }
-native-tls-crate = { package = "native-tls", version = "0.2.12", optional = true }
+native-tls-crate = { package = "native-tls", version = "0.2.14", optional = true }
 
 # optional deps
 # -- tokio, axum and tower
-tokio = { version = "1.36", features = ["sync", "time"], optional = true }
+tokio = { version = "1.44", features = ["sync", "time"], optional = true }
 
 [dev-dependencies]
 tracing-test = { version = "0.2.5" }
-reqwest = { version = "0.12.9", features = ["blocking"] }
+reqwest = { version = "0.12.15", features = ["blocking"] }
 
 [features]
 debug_trace = []

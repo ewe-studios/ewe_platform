@@ -23,11 +23,15 @@ struct Public;
 
 async fn index_handler() -> Response {
     match package_request_handler("megatron".into(), "packages/index.html") {
-        Some(file_content) => {
+        Some((file_content, mime_type)) => {
             tracing::info!("Pulling from package provider: index: /index.html");
-            let content =
-                String::from_utf8(file_content.data.to_vec()).expect("should generate str");
-            Html(content).into_response()
+            if mime_type
+                .map(|t| t.as_str() == "text/html")
+                .unwrap_or(false)
+            {
+                return Html(file_content).into_response();
+            }
+            file_content.into_response()
         }
         None => match Public::get("public/index.html") {
             Some(html_data) => {
@@ -48,28 +52,25 @@ async fn megatron_handler(req: Request) -> Response {
         request_path
     );
     match package_request_handler("megatron".into(), request_path) {
-        Some(file_content) => {
-            let file_data = file_content.data.to_vec();
-            if request_path.ends_with(".js") || request_path.ends_with(".css") {
-                if let Ok(content) = String::from_utf8(file_data.clone()) {
-                    return content.into_response();
-                }
+        Some((file_content, mime_type)) => {
+            if mime_type
+                .map(|t| t.as_str() == "text/html")
+                .unwrap_or(false)
+            {
+                return Html(file_content).into_response();
             }
-            if request_path.ends_with(".html") {
-                if let Ok(content) = String::from_utf8(file_data.clone()) {
-                    return Html(content).into_response();
-                }
-            }
+
             if request_path.ends_with(".wasm") {
                 if let Ok(response) = Response::builder()
                     .status(StatusCode::OK)
                     .header("CONTENT-TYPE", "application/wasm")
-                    .body(body::Body::from(file_data.clone()))
+                    .body(body::Body::from(file_content.clone()))
                 {
                     return response;
                 }
             }
-            file_data.into_response()
+
+            file_content.into_response()
         }
         None => (StatusCode::NOT_FOUND, "404 NOT FOUND").into_response(),
     }
@@ -81,11 +82,7 @@ async fn public_handler(req: Request) -> Response {
         "[PublicHandler] Received request for path: {}",
         request_path
     );
-    match Public::get(
-        request_path
-            .strip_prefix("/")
-            .unwrap_or(request_path),
-    ) {
+    match Public::get(request_path.strip_prefix("/").unwrap_or(request_path)) {
         Some(html_data) => {
             let content = String::from_utf8(html_data.data.to_vec()).expect("should generate str");
             Html(content).into_response()
@@ -142,9 +139,7 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
 
     ewe_trace::info!("Listening on {}", listener.local_addr().unwrap());
 
-    axum::serve(listener, app)
-        .await
-        .map_err(Box::new)?;
+    axum::serve(listener, app).await.map_err(Box::new)?;
 
     Ok(())
 }

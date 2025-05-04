@@ -13,23 +13,34 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +473 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/jsapi.rs
-badd +470 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/ops.rs
+badd +471 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/jsapi.rs
+badd +592 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/ops.rs
 badd +665 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/base.rs
 badd +11 backends/foundation_jsnostd/src/lib.rs
-badd +220 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/mem.rs
+badd +271 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/mem.rs
 badd +13 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/registry.rs
 badd +29 ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/valtron/clonable_fn.rs
 badd +10 ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/valtron/clone_iterators.rs
 badd +103 ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsrum/packages/intro.wat
 badd +1 ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsrum/packages/runtime.js
 badd +19 ~/Labs/ewestudios/ewe_platform/demos/intro/src/lib.rs
-badd +91 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsmacros/src/embedders.rs
+badd +42 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsmacros/src/embedders.rs
 badd +8 backends/foundation_jsmacros/src/lib.rs
 badd +63 crates/channels/src/broadcast.rs
+badd +8 ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/quote-1.0.37/src/ext.rs
+badd +450 crates/domain/src/servicer.rs
+badd +5 ~/Labs/ewestudios/ewe_platform/backends/foundation_nostd/src/lib.rs
+badd +60 ~/Labs/ewestudios/ewe_platform/backends/foundation_nostd/src/embeddable.rs
+badd +17 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsmacros/Cargo.toml
+badd +55 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/runtime/js/runtime.js
+badd +50 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/runtime/js/js_host_runtime.js
+badd +8 ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsrum/mod.rs
+badd +95 ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rust-embed-utils-8.5.0/src/lib.rs
+badd +50 ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox_app/mod.rs
+badd +15 ~/Labs/ewestudios/ewe_platform/backends/foundation_core/Cargo.toml
 argglobal
 %argdel
-edit ~/Labs/ewestudios/ewe_platform/backends/foundation_jsmacros/src/embedders.rs
+edit ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsrum/mod.rs
 let s:save_splitbelow = &splitbelow
 let s:save_splitright = &splitright
 set splitbelow splitright
@@ -48,7 +59,7 @@ set winminwidth=0
 set winwidth=1
 wincmd =
 argglobal
-balt crates/channels/src/broadcast.rs
+balt ~/Labs/ewestudios/ewe_platform/backends/foundation_core/Cargo.toml
 setlocal foldmethod=expr
 setlocal foldexpr=nvim_treesitter#foldexpr()
 setlocal foldmarker={{{,}}}
@@ -57,13 +68,15 @@ setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-79
+23
 normal! zo
-let s:l = 100 - ((41 * winheight(0) + 35) / 70)
+26
+normal! zo
+let s:l = 8 - ((7 * winheight(0) + 27) / 54)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 100
+keepjumps 8
 normal! 06|
 wincmd w
 argglobal
@@ -71,7 +84,7 @@ if bufexists(fnamemodify("~/Labs/ewestudios/ewe_platform/backends/foundation_jsn
 if &buftype ==# 'terminal'
   silent file ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/jsapi.rs
 endif
-balt backends/foundation_jsmacros/src/lib.rs
+balt ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/runtime/js/js_host_runtime.js
 setlocal foldmethod=expr
 setlocal foldexpr=nvim_treesitter#foldexpr()
 setlocal foldmarker={{{,}}}
@@ -80,14 +93,13 @@ setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-let s:l = 473 - ((27 * winheight(0) + 17) / 34)
+let s:l = 469 - ((46 * winheight(0) + 27) / 54)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 473
-normal! 021|
+keepjumps 469
+normal! 026|
 wincmd w
-2wincmd w
 wincmd =
 tabnext 1
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
