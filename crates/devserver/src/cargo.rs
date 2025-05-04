@@ -66,8 +66,8 @@ impl Clone for CargoShellBuilder {
     fn clone(&self) -> Self {
         Self {
             project: self.project.clone(),
+            stop_on_failure: self.stop_on_failure,
             build_notifier: self.build_notifier.clone(),
-            stop_on_failure: self.stop_on_failure.clone(),
             file_notifications: self.file_notifications.clone(),
         }
     }

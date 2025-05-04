@@ -31,13 +31,21 @@ pub fn package_request_handler(
     );
     let request_path = req_url.into_string();
     let local_file_path = request_path.replace(&incoming_prefix_name, "packages");
+    let search_path = local_file_path
+        .strip_prefix("/")
+        .unwrap_or(local_file_path.as_str());
 
-    match local_file_path.as_str() {
-        "js_host_runtime.js" => Some((
+    tracing::info!(
+        "[PackageRequestHandler] Checking for path: {}",
+        &search_path,
+    );
+
+    match search_path {
+        "packages/js_host_runtime.js" => Some((
             JSHostRuntime::utf8_slice().to_vec(),
             JSHostRuntime::mime_type().map(|t| t.into_string()),
         )),
-        _ => Packages::get(local_file_path.strip_prefix("/").unwrap_or(req_url))
+        _ => Packages::get(search_path)
             .map(|f| (f.data.to_vec(), Some(f.metadata.mimetype().into_string()))),
     }
 }
