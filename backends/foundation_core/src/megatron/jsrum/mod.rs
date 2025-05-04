@@ -1,8 +1,10 @@
-use rust_embed::{Embed, EmbeddedFile};
+use rust_embed::Embed;
 
 use core::str;
 
 use crate::extensions::strings_ext::IntoString;
+use foundation_jsnostd::js_runtime::JSHostRuntime;
+use foundation_nostd::embeddable::EmbeddableFile;
 
 #[derive(Embed)]
 #[folder = "src/megatron/jsrum/packages/"]
@@ -22,17 +24,20 @@ pub struct Packages;
 pub fn package_request_handler(
     incoming_prefix_name: String,
     req_url: &str,
-) -> Option<EmbeddedFile> {
+) -> Option<(Vec<u8>, Option<String>)> {
     tracing::info!(
         "[PackageRequestHandler] Received request for path: {}",
         req_url
     );
     let request_path = req_url.into_string();
+    let local_file_path = request_path.replace(&incoming_prefix_name, "packages");
 
-    Packages::get(
-        request_path
-            .replace(&incoming_prefix_name, "packages")
-            .strip_prefix("/")
-            .unwrap_or(req_url),
-    )
+    match local_file_path.as_str() {
+        "js_host_runtime.js" => Some((
+            JSHostRuntime::utf8_slice().to_vec(),
+            JSHostRuntime::mime_type().map(|t| t.into_string()),
+        )),
+        _ => Packages::get(local_file_path.strip_prefix("/").unwrap_or(req_url))
+            .map(|f| (f.data.to_vec(), Some(f.metadata.mimetype().into_string()))),
+    }
 }

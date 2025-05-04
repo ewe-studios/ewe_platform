@@ -34,10 +34,10 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 [workspace.dependencies]
 
 # -- non 'ewe` namespaced crates
-foundation_core = { path = "./backends/foundation_core", version = "0.0.2" }
-foundation_nostd = { path = "./backends/foundation_nostd", version = "0.0.1" }
-foundation_jsnostd = { path = "./backends/foundation_jsnostd", version = "0.0.1" }
-foundation_jsmacros = { path = "./backends/foundation_jsmacros", version = "0.0.1" }
+foundation_core = { path = "./backends/foundation_core", version = "0.0.3" }
+foundation_nostd = { path = "./backends/foundation_nostd", version = "0.0.2" }
+foundation_jsnostd = { path = "./backends/foundation_jsnostd", version = "0.0.2" }
+foundation_jsmacros = { path = "./backends/foundation_jsmacros", version = "0.0.2" }
 
 # -- internal packages so others can use them
 ewe_web = { path = "./crates/web", version = "0.0.1" }
