@@ -39,6 +39,7 @@ type CargoShellResult<T> = types::Result<T>;
 /// It specifically runs the relevant shell commands, validate the binary
 /// was produced and run giving binary with a target command you provide.
 pub struct CargoShellBuilder {
+    pub skip_check: bool,
     pub stop_on_failure: bool,
     pub project: ProjectDefinition,
     pub build_notifier: broadcast::Sender<()>,
@@ -48,6 +49,7 @@ pub struct CargoShellBuilder {
 // constructors
 impl CargoShellBuilder {
     pub fn shared(
+        skip_check: bool,
         stop_on_failure: bool,
         project: ProjectDefinition,
         build_notifier: broadcast::Sender<()>,
@@ -55,6 +57,7 @@ impl CargoShellBuilder {
     ) -> sync::Arc<Self> {
         sync::Arc::new(Self {
             project,
+            skip_check,
             stop_on_failure,
             build_notifier,
             file_notifications,
@@ -67,6 +70,7 @@ impl Clone for CargoShellBuilder {
         Self {
             project: self.project.clone(),
             stop_on_failure: self.stop_on_failure,
+            skip_check: self.skip_check,
             build_notifier: self.build_notifier.clone(),
             file_notifications: self.file_notifications.clone(),
         }
@@ -114,7 +118,10 @@ impl operators::Operator for sync::Arc<CargoShellBuilder> {
 // builders
 impl CargoShellBuilder {
     pub async fn build(&self) -> CargoShellResult<()> {
-        self.run_checks().await?;
+        // only run checks if allowed
+        if !self.skip_check {
+            self.run_checks().await?;
+        }
         self.run_build().await?;
         self.build_notifier.send(())?;
         Ok(())

@@ -29,6 +29,7 @@ pub fn package_request_handler(
         "[PackageRequestHandler] Received request for path: {}",
         req_url
     );
+
     let request_path = req_url.into_string();
     let local_file_path = request_path.replace(&incoming_prefix_name, "packages");
     let search_path = local_file_path

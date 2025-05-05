@@ -46,6 +46,22 @@ pub fn register(command: clap::Command) -> clap::Command {
                     .help("The sandbox http server port the actual sandbox http server is running on")
                     .default_value("3080"),
             )
+            .arg(
+                clap::Arg::new("skip_rust_checks")
+                    .long("skip_rust_checks")
+                    .action(clap::ArgAction::Set)
+                    .value_parser(clap::value_parser!(bool))
+                    .help("When enabled will skip executing cargo check to improve rebuilding speed (default: true)")
+                    .default_value(true),
+            )
+            .arg(
+                clap::Arg::new("stop_on_failure")
+                    .long("stop_on_failure")
+                    .action(clap::ArgAction::Set)
+                    .value_parser(clap::value_parser!(bool))
+                    .help("When enabled kill the rebuilding server when there is an error (default: false)")
+                    .default_value(false),
+            )
     )
 }
 
@@ -78,6 +94,14 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
         .get_one::<usize>("proxy_port")
         .expect("should have destination port");
 
+    let skip_rust_checks = args
+        .get_one::<bool>("skip_rust_checks")
+        .expect("should have skip_rust_checks set");
+
+    let stop_on_failure = args
+        .get_one::<bool>("stop_on_failure")
+        .expect("should have stop_on_failure set");
+
     let subscriber = FmtSubscriber::builder()
         .with_max_level(Level::TRACE)
         .finish();
@@ -92,6 +116,8 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
     let tunnel_config = ProxyType::Http1(Http1::new(source, destination, Some(HashMap::new())));
 
     let definition = ProjectDefinition {
+        skip_rust_checks: *skip_rust_checks,
+        stop_on_failure: *stop_on_failure,
         proxy: tunnel_config,
         crate_name: project_name.clone(),
         workspace_root: project_directory.clone(),

@@ -171,7 +171,8 @@ const ARENA = (function () {
   arena_instance.create(false);
   arena_instance.create(true);
 
-  // wrap the destroy to ensure it never clears our first 5 fixed
+  // wrap the destroy to ensure it never clears
+  // our first 5 fixed
   // objects
   const SECURE_INSTANCE_OFFSET = 7n;
   const _destroy = arena_instance.destroy;

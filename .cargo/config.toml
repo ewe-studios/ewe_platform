@@ -1,3 +1,18 @@
 [env]
 TEMPLATES_DIR = { value = "templates", relative = true, force = true }
 EWE_PLATFORM_DIR = { value = ".", relative = true, force = true }
+
+# [target.x86_64-unknown-linux-gnu]
+# linker = "clang"
+# rustflags = ["-C", "link-arg=-fuse-ld=/home/linuxbrew/.linuxbrew/bin/mold", "-Z", "macro-backtrace", ]
+
+[target.'cfg(target_os = "linux")']
+linker = "clang"
+rustflags = ["-C", "link-arg=-fuse-ld=mold"]
+
+
+[unstable]
+codegen-backend = true
+
+[profile.server-dev]
+codegen-backend = "cranelift"

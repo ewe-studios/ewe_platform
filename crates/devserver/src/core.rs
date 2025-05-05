@@ -14,6 +14,8 @@ pub struct ProjectDefinition {
     pub target_directory: String,
     pub workspace_root: String,
     pub crate_name: String,
+    pub skip_rust_checks: bool,
+    pub stop_on_failure: bool,
     pub watch_directories: Vec<String>,
     pub build_arguments: Vec<String>,
     pub run_arguments: Vec<String>,
