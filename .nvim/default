@@ -13,42 +13,12 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +304 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/jsapi.rs
-badd +592 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/ops.rs
-badd +665 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/base.rs
-badd +11 backends/foundation_jsnostd/src/lib.rs
-badd +271 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/mem.rs
-badd +13 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/registry.rs
-badd +29 ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/valtron/clonable_fn.rs
-badd +10 ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/valtron/clone_iterators.rs
-badd +103 ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsrum/packages/intro.wat
-badd +1 ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsrum/packages/runtime.js
-badd +19 ~/Labs/ewestudios/ewe_platform/demos/intro/src/lib.rs
-badd +152 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsmacros/src/embedders.rs
-badd +8 backends/foundation_jsmacros/src/lib.rs
-badd +63 crates/channels/src/broadcast.rs
-badd +8 ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/quote-1.0.37/src/ext.rs
-badd +450 crates/domain/src/servicer.rs
-badd +5 ~/Labs/ewestudios/ewe_platform/backends/foundation_nostd/src/lib.rs
-badd +1 ~/Labs/ewestudios/ewe_platform/backends/foundation_nostd/src/embeddable.rs
-badd +36 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsmacros/Cargo.toml
-badd +55 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/runtime/js/runtime.js
-badd +65 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/runtime/js/js_host_runtime.js
-badd +43 ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsrum/mod.rs
-badd +95 ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rust-embed-utils-8.5.0/src/lib.rs
-badd +1 ~/Labs/ewestudios/ewe_platform/bin/platform/src/sandbox_app/mod.rs
-badd +3 ~/Labs/ewestudios/ewe_platform/backends/foundation_core/Cargo.toml
-badd +25 ~/Labs/ewestudios/ewe_platform/backends/foundation_core/src/megatron/jsrum/packages/index.html
-badd +42 Cargo.toml
-badd +3 backends/foundation_nostd/Cargo.toml
-badd +18 backends/foundation_jsnostd/Cargo.toml
-badd +69 crates/devserver/src/builders.rs
-badd +90 ~/Labs/ewestudios/ewe_platform/crates/devserver/src/cargo.rs
-badd +473 ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.44.2/src/process/mod.rs
-badd +850 ~/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/io/stdio.rs
+badd +1 backends/foundation_jsnostd/runtime/js/runtime.js
+badd +12 backends/foundation_jsnostd/src/jsapi.rs
+badd +12 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/runtime/js/js_host_runtime.js
 argglobal
 %argdel
-edit ~/Labs/ewestudios/ewe_platform/crates/devserver/src/cargo.rs
+edit backends/foundation_jsnostd/runtime/js/runtime.js
 let s:save_splitbelow = &splitbelow
 let s:save_splitright = &splitright
 set splitbelow splitright
@@ -67,7 +37,7 @@ set winminwidth=0
 set winwidth=1
 wincmd =
 argglobal
-balt crates/devserver/src/builders.rs
+balt backends/foundation_jsnostd/src/jsapi.rs
 setlocal foldmethod=expr
 setlocal foldexpr=nvim_treesitter#foldexpr()
 setlocal foldmarker={{{,}}}
@@ -76,55 +46,19 @@ setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-49
-normal! zo
-50
-normal! zo
-55
-normal! zo
-65
-normal! zo
-78
-normal! zo
-79
-normal! zo
-83
-normal! zo
-84
-normal! zo
-85
-normal! zo
-85
-normal! zo
-86
-normal! zo
-88
-normal! zo
-93
-normal! zo
-115
-normal! zo
-171
-normal! zo
-173
-normal! zo
-173
-normal! zo
-173
-normal! zo
-let s:l = 90 - ((25 * winheight(0) + 17) / 35)
+let s:l = 210 - ((32 * winheight(0) + 35) / 70)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 90
-normal! 011|
+keepjumps 210
+normal! 04|
 wincmd w
 argglobal
-if bufexists(fnamemodify("~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/jsapi.rs", ":p")) | buffer ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/jsapi.rs | else | edit ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/jsapi.rs | endif
+if bufexists(fnamemodify("backends/foundation_jsnostd/src/jsapi.rs", ":p")) | buffer backends/foundation_jsnostd/src/jsapi.rs | else | edit backends/foundation_jsnostd/src/jsapi.rs | endif
 if &buftype ==# 'terminal'
-  silent file ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/jsapi.rs
+  silent file backends/foundation_jsnostd/src/jsapi.rs
 endif
-balt ~/Labs/ewestudios/ewe_platform/backends/foundation_jsmacros/src/embedders.rs
+balt ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/runtime/js/js_host_runtime.js
 setlocal foldmethod=expr
 setlocal foldexpr=nvim_treesitter#foldexpr()
 setlocal foldmarker={{{,}}}
@@ -133,13 +67,14 @@ setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-let s:l = 304 - ((30 * winheight(0) + 17) / 35)
+let s:l = 12 - ((11 * winheight(0) + 35) / 70)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 304
-normal! 013|
+keepjumps 12
+normal! 0
 wincmd w
+2wincmd w
 wincmd =
 tabnext 1
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'

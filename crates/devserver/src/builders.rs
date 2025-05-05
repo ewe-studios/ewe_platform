@@ -62,7 +62,8 @@ impl HttpDevService {
         // these two should be restartable
         // app_builder restarts when the file watcher says stuff changes
         let app_builder = CargoShellBuilder::shared(
-            false,
+            self.project.skip_rust_checks,
+            self.project.stop_on_failure,
             self.project.clone(),
             self.package_built.clone(),
             self.package_changes.clone(),

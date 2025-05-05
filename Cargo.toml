@@ -24,7 +24,7 @@ exclude = [
 
 [workspace.package]
 edition = "2021"
-rust-version = "1.75"
+rust-version = "1.78"
 license = "Apache-2.0"
 authors = ["EweStudios Consulting Limited"]
 repository = "https://github.com/ewe-studios/ewe_platform"
@@ -66,6 +66,12 @@ concurrent-queue = { version = "2.5.0" }
 derive_more = { version = ">=2.0", features = ["full"] }
 
 [workspace.lints.clippy]
+
+[workspace.profile.dev]
+opt-level = 1
+
+[workspace.profile.dev.packages."*"]
+opt-level = 3
 
 [workspace.profile.release]
 lto = true # link time optimizations
