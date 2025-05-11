@@ -3,6 +3,9 @@ PACKAGES = ewe_platform foundations_ext ewe_trace ewe_async_utils ewe_channels e
 bacon:
 	bacon -j bacon-ls
 
+sandbox:
+	cargo +nightly run --profile dev --bin ewe_platform sandbox
+
 build-demos:
 	@RUSTFLAGS='-C link-arg=-s' cargo build --package intro --target wasm32-unknown-unknown 
 	cp target/wasm32-unknown-unknown/debug/intro.wasm ./backends/foundation_core/src/megatron/jsrum/packages/intro.wasm

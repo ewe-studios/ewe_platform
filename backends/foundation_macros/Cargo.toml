@@ -1,5 +1,5 @@
 [package]
-name = "foundation_jsmacros"
+name = "foundation_macros"
 version = "0.0.2"
 edition.workspace = true
 rust-version.workspace = true
@@ -7,7 +7,7 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 description = "Macros for the foundations_jsnostd crate providing suitable support to simplify usage"
-keywords = ["jsmacros", "fouundations_js_macros"]
+keywords = ["foundations_macros"]
 
 [lib]
 proc-macro = true

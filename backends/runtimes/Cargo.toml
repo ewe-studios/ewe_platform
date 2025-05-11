@@ -1,14 +1,13 @@
 [package]
-name = "foundation_jsnostd"
-version = "0.0.2"
+name = "foundation_runtimes"
+version = "0.0.1"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-description = "Implements the nostd interface runtime for WASM and JS interoperability"
-keywords = ["foundation js_notstd", "foundation_jsnostd"]
-include = ["/src", "/runtime"]
+description = "Central crate for all runtime assets accessible as embedded files"
+keywords = ["runtimes", "embedded_runtimes"]
 
 [dependencies]
 foundation_nostd = { workspace = true }
@@ -16,3 +15,4 @@ foundation_macros = { workspace = true }
 
 [lints]
 workspace = true
+

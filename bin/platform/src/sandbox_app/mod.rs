@@ -22,7 +22,7 @@ type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 struct Public;
 
 async fn index_handler() -> Response {
-    match package_request_handler("megatron".into(), "packages/index.html") {
+    match package_request_handler("megatron".into(), "packages/public/index.html") {
         Some((file_content, mime_type)) => {
             tracing::info!("Pulling from package provider: index: /index.html");
             if mime_type
@@ -51,7 +51,7 @@ async fn megatron_handler(req: Request) -> Response {
         "[MegatronHandler] Received request for path: {}",
         request_path
     );
-    match package_request_handler("megatron".into(), request_path) {
+    match package_request_handler("/megatron".into(), request_path) {
         Some((file_content, mime_type)) => {
             if mime_type
                 .map(|t| t.as_str() == "text/html")
