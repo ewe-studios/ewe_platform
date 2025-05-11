@@ -121,6 +121,8 @@ impl CargoShellBuilder {
         // only run checks if allowed
         if !self.skip_check {
             self.run_checks().await?;
+        } else {
+            ewe_trace::info!("Skipping cargo checks")
         }
         self.run_build().await?;
         self.build_notifier.send(())?;

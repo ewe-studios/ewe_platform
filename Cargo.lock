@@ -1122,7 +1122,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "foundation_jsmacros"
+name = "foundation_jsnostd"
+version = "0.0.2"
+dependencies = [
+ "foundation_macros",
+ "foundation_nostd",
+]
+
+[[package]]
+name = "foundation_macros"
 version = "0.0.2"
 dependencies = [
  "base85rs",
@@ -1137,18 +1145,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "foundation_jsnostd"
-version = "0.0.2"
-dependencies = [
- "foundation_jsmacros",
- "foundation_nostd",
-]
-
-[[package]]
 name = "foundation_nostd"
 version = "0.0.2"
 dependencies = [
  "spin 0.10.0",
+]
+
+[[package]]
+name = "foundation_runtimes"
+version = "0.0.1"
+dependencies = [
+ "foundation_macros",
+ "foundation_nostd",
 ]
 
 [[package]]

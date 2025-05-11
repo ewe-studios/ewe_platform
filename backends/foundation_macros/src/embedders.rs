@@ -76,18 +76,93 @@ fn get_attr(ast: &syn::DeriveInput, attr_name: &str) -> Option<String> {
     }
 }
 
-fn impl_embeddable_file(struct_name: &syn::Ident, target_file: String) -> TokenStream {
+fn find_root_cargo(
+    manifest_dir: PathBuf,
+    previous_dir: Option<PathBuf>,
+) -> Option<(PathBuf, PathBuf)> {
+    if let Ok(true) = fs::exists(manifest_dir.join("Cargo.toml")) {
+        return find_root_cargo(
+            manifest_dir
+                .parent()
+                .expect("path to have parent")
+                .to_owned(),
+            Some(manifest_dir.to_owned()),
+        );
+    }
+
+    if let Ok(true) = fs::exists(manifest_dir.join("cargo.toml")) {
+        return find_root_cargo(
+            manifest_dir
+                .parent()
+                .expect("path to have parent")
+                .to_owned(),
+            Some(manifest_dir.to_owned()),
+        );
+    }
+
+    if let Some(prev_dir) = previous_dir {
+        let prev_cargo_file = prev_dir.join("Cargo.toml");
+        if fs::exists(&prev_cargo_file).is_ok() {
+            return Some((prev_dir.to_owned(), prev_cargo_file));
+        }
+
+        let prev_cargo_file2 = prev_dir.join("cargo.toml");
+        if fs::exists(&prev_cargo_file2).is_ok() {
+            return Some((prev_dir.to_owned(), prev_cargo_file2));
+        }
+    }
+
+    None
+}
+
+static ROOT_WORKSPACE_MATCHER: &str = "$ROOT_CRATE";
+static CURRENT_CRATE_MATCHER: &str = "$CURRENT_CRATE";
+
+fn impl_embeddable_file(struct_name: &syn::Ident, target_source: String) -> TokenStream {
     let cargo_manifest_dir_env =
         env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
 
-    let working_dir = env::current_dir().expect("get current working directory");
     let manifest_dir = Path::new(&cargo_manifest_dir_env);
+    let working_dir = env::current_dir().expect("get current working directory");
+
+    let (root_workspace, _) = find_root_cargo(manifest_dir.to_owned(), None)
+        .expect("heuristically identify root workspace or crate");
+
+    let root_workspace_str = root_workspace.to_str().unwrap_or_else(|| {
+        panic!("cannot get str path for {:?}", root_workspace);
+    });
 
     let project_dir = manifest_dir
         .strip_prefix(&working_dir)
         .expect("should be from home directory");
 
-    let embed_file_path = manifest_dir.join(target_file.as_str());
+    let target_file = if target_source.contains(CURRENT_CRATE_MATCHER) {
+        target_source.replace(CURRENT_CRATE_MATCHER, &cargo_manifest_dir_env)
+    } else if target_source.contains(ROOT_WORKSPACE_MATCHER) {
+        target_source.replace(ROOT_WORKSPACE_MATCHER, &root_workspace_str)
+    } else {
+        target_source
+    };
+
+    let embed_file_path = if target_file.starts_with("/") {
+        Path::new(&target_file).to_owned()
+    } else {
+        manifest_dir.join(target_file.as_str())
+    };
+
+    match fs::exists(&embed_file_path) {
+        Ok(true) => {}
+        Ok(false) => {
+            panic!("Failed to find file: {:?}", &embed_file_path);
+        }
+        Err(err) => {
+            panic!(
+                "Failed to call fs.exists on file: {:?} due to {:?}",
+                &embed_file_path, err
+            );
+        }
+    };
+
     let embedded_file_relative_path = embed_file_path
         .strip_prefix(&working_dir)
         .expect("should be from home directory");

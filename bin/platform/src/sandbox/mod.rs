@@ -49,18 +49,18 @@ pub fn register(command: clap::Command) -> clap::Command {
             .arg(
                 clap::Arg::new("skip_rust_checks")
                     .long("skip_rust_checks")
-                    .action(clap::ArgAction::Set)
                     .value_parser(clap::value_parser!(bool))
+                    .default_value("true")
+                    .default_missing_value("false")
                     .help("When enabled will skip executing cargo check to improve rebuilding speed (default: true)")
-                    .default_value(true),
             )
             .arg(
                 clap::Arg::new("stop_on_failure")
                     .long("stop_on_failure")
-                    .action(clap::ArgAction::Set)
                     .value_parser(clap::value_parser!(bool))
+                    .default_value("false")
+                    .default_missing_value("true")
                     .help("When enabled kill the rebuilding server when there is an error (default: false)")
-                    .default_value(false),
             )
     )
 }
@@ -108,7 +108,7 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
 
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
-    ewe_trace::info!("Starting local binary");
+    ewe_trace::info!("Starting local binary skip_rust_checks={skip_rust_checks}, stop_on_failure={stop_on_failure}");
 
     let source = ProxyRemoteConfig::new(service_addr.clone(), *service_port);
     let destination = ProxyRemoteConfig::new(proxy_addr.clone(), *proxy_port);
