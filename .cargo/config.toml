@@ -15,4 +15,4 @@ rustflags = ["-C", "link-arg=-fuse-ld=mold"]
 codegen-backend = true
 
 [profile.dev]
-codegen-backend = "cranelift"
+# codegen-backend = "cranelift"
