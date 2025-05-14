@@ -3,6 +3,7 @@
 // of application in a different thread based on specifics.
 
 use crate::types::{self, BoxedError};
+use crate::FileChange;
 use crate::{
     operators::{self, Operator},
     types::JoinHandle,
@@ -42,8 +43,9 @@ pub struct CargoShellBuilder {
     pub skip_check: bool,
     pub stop_on_failure: bool,
     pub project: ProjectDefinition,
+    pub trigger_notifier: broadcast::Sender<()>,
     pub build_notifier: broadcast::Sender<()>,
-    pub file_notifications: broadcast::Sender<()>,
+    pub file_notifications: broadcast::Sender<FileChange>,
 }
 
 // constructors
@@ -53,12 +55,14 @@ impl CargoShellBuilder {
         stop_on_failure: bool,
         project: ProjectDefinition,
         build_notifier: broadcast::Sender<()>,
-        file_notifications: broadcast::Sender<()>,
+        trigger_notifier: broadcast::Sender<()>,
+        file_notifications: broadcast::Sender<FileChange>,
     ) -> sync::Arc<Self> {
         sync::Arc::new(Self {
             project,
             skip_check,
             stop_on_failure,
+            trigger_notifier,
             build_notifier,
             file_notifications,
         })
@@ -72,6 +76,7 @@ impl Clone for CargoShellBuilder {
             stop_on_failure: self.stop_on_failure,
             skip_check: self.skip_check,
             build_notifier: self.build_notifier.clone(),
+            trigger_notifier: self.trigger_notifier.clone(),
             file_notifications: self.file_notifications.clone(),
         }
     }
@@ -83,25 +88,40 @@ impl operators::Operator for sync::Arc<CargoShellBuilder> {
     fn run(&self, mut signal: broadcast::Receiver<()>) -> JoinHandle<()> {
         let stop_on_failure = self.stop_on_failure;
         let handle = self.clone();
+        let mut trigger = self.trigger_notifier.subscribe();
         let mut recver = self.file_notifications.subscribe();
         tokio::spawn(async move {
             loop {
                 tokio::select! {
-                    _ = recver.recv() => {
-                        ewe_trace::info!("Received rebuilding signal for binary!");
-                        match handle.build().await {
-                            Ok(()) => {
-                                ewe_trace::info!("Finished rebuilding binary!");
-                                continue;
-                            },
-                            Err(err) => {
-                                ewe_trace::error!("Failed rebuilding due to: {:?}!", err);
-                                if stop_on_failure {
-                                    return Err(err);
+                    _ = trigger.recv() => {
+                            match handle.build().await {
+                                Ok(()) => {
+                                    ewe_trace::info!("Finished rebuilding binary!");
+                                },
+                                Err(err) => {
+                                    ewe_trace::error!("Failed rebuilding due to: {:?}!", err);
+                                    if stop_on_failure {
+                                        return Err(err);
+                                    }
                                 }
-                                continue;
                             }
-                        }
+                    },
+                    changed_file = recver.recv() => {
+                        ewe_trace::info!("Received rebuilding signal for binary due to {:?}!", &changed_file);
+                        if let Ok(FileChange::Rust(_)) = changed_file {
+                            match handle.build().await {
+                                Ok(()) => {
+                                    ewe_trace::info!("Finished rebuilding binary!");
+                                },
+                                Err(err) => {
+                                    ewe_trace::error!("Failed rebuilding due to: {:?}!", err);
+                                    if stop_on_failure {
+                                        return Err(err);
+                                    }
+                                }
+                            }
+                        };
+                        continue;
                     },
                     _ = signal.recv() => {
                         ewe_trace::info!("Cancel signal received, shutting down!");

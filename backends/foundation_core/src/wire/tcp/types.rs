@@ -92,7 +92,7 @@ impl<T: Clone> Endpoint<T> {
         };
 
         if let Some(port) = endpoint_url.port_or_known_default() {
-            host = format!("{}:{}", host, port);
+            host = format!("{host}:{port}");
         }
 
         host

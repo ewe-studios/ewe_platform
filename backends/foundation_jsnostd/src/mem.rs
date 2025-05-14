@@ -35,7 +35,7 @@ impl core::error::Error for MemoryWriterError {}
 
 impl core::fmt::Display for MemoryWriterError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
 
@@ -70,7 +70,7 @@ impl core::error::Error for MemoryAllocationError {}
 
 impl core::fmt::Display for MemoryAllocationError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
 

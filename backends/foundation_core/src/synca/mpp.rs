@@ -25,7 +25,7 @@ impl core::error::Error for ReceiverError {}
 impl core::fmt::Display for ReceiverError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            ReceiverError::Closed(err) => write!(f, "ReceiverError::Closed({})", err),
+            ReceiverError::Closed(err) => write!(f, "ReceiverError::Closed({err})"),
             ReceiverError::Timeout => write!(f, "ReceiverError::Timeout"),
             ReceiverError::Empty => write!(f, "ReceiverError::Empty"),
         }
@@ -128,8 +128,8 @@ impl<T: core::fmt::Debug> core::error::Error for SenderError<T> {}
 impl<T: core::fmt::Debug> core::fmt::Display for SenderError<T> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            SenderError::SendError(err) => write!(f, "SenderError::SendError({:?})", err),
-            SenderError::ForceSendError(err) => write!(f, "SenderError::ForceSendError({:?})", err),
+            SenderError::SendError(err) => write!(f, "SenderError::SendError({err:?})"),
+            SenderError::ForceSendError(err) => write!(f, "SenderError::ForceSendError({err:?})"),
         }
     }
 }

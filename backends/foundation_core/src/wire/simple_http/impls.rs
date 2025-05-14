@@ -104,9 +104,10 @@ impl ChunkedData {
                         .iter_mut()
                         .map(|(key, value)| {
                             if value.is_none() {
-                                format!("; {}", key)
+                                format!("; {key}")
                             } else {
-                                format!("; {}=\"{}\"", key, value.clone().unwrap())
+                                let cloned_value = value.clone().unwrap();
+                                format!("; {key}=\"{cloned_value}\"")
                             }
                         })
                         .collect()
@@ -127,7 +128,7 @@ impl ChunkedData {
             }
             ChunkedData::DataEnded => b"0\r\n".to_vec(),
             ChunkedData::Trailer(trailer_key, trailer_value) => {
-                format!("{}:{}\r\n", trailer_key, trailer_value).into_bytes()
+                format!("{trailer_key}:{trailer_value}\r\n").into_bytes()
             }
         }
     }
@@ -290,8 +291,8 @@ impl core::fmt::Display for SimpleBody {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::None => write!(f, "None"),
-            Self::Text(inner) => write!(f, "Text({})", inner),
-            Self::Bytes(inner) => write!(f, "Bytes({:?})", inner),
+            Self::Text(inner) => write!(f, "Text({inner})"),
+            Self::Bytes(inner) => write!(f, "Bytes({inner:?})"),
             Self::Stream(inner) => match inner {
                 Some(_) => write!(f, "Stream(ClonableIterator<T>)"),
                 None => write!(f, "Stream(None)"),
@@ -949,7 +950,7 @@ impl Status {
             Status::HttpVersionNotSupported => "505 Http Version Not Supported".into(),
             Status::InsufficientStorage => "507 Insufficient Storage".into(),
             Status::NetworkAuthenticationRequired => "511 Network Authentication Required".into(),
-            Self::Custom(code, description) => format!("{} {}", code, description),
+            Self::Custom(code, description) => format!("{code} {description}"),
         }
     }
 }
@@ -1809,7 +1810,7 @@ impl Iterator for Http11RequestIterator {
 
                 let mut encoded_headers: Vec<String> = borrowed_headers
                     .iter()
-                    .map(|(key, value)| format!("{}: {}\r\n", key, value))
+                    .map(|(key, value)| format!("{key}: {value}\r\n"))
                     .collect();
 
                 // add CLRF for ending header
@@ -2070,7 +2071,7 @@ impl Iterator for Http11ResponseIterator {
 
                 let mut encoded_headers: Vec<String> = borrowed_headers
                     .iter()
-                    .map(|(key, value)| format!("{}: {}\r\n", key, value))
+                    .map(|(key, value)| format!("{key}: {value}\r\n"))
                     .collect();
 
                 // add CLRF for ending header
@@ -2456,9 +2457,9 @@ impl core::fmt::Display for IncomingRequestParts {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Intro(method, url, proto) => {
-                write!(f, "Intro({:?}, {:?}, {})", method, url, proto)
+                write!(f, "Intro({method:?}, {url:?}, {proto})")
             }
-            Self::Headers(headers) => write!(f, "Headers({:?})", headers),
+            Self::Headers(headers) => write!(f, "Headers({headers:?})"),
             Self::Body(_) => write!(f, "Body(_)"),
         }
     }

@@ -81,7 +81,7 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::De
             TaskStatus::Init => TStatus::Init,
         };
 
-        write!(f, "{:?}", debug_item)
+        write!(f, "{debug_item:?}")
     }
 }
 

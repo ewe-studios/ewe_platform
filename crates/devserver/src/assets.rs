@@ -11,6 +11,8 @@ use axum::{
     response::sse::{Event, KeepAlive, Sse},
 };
 
+use crate::FileChange;
+
 /// The static embedded reloading script for SSE dev server that the
 /// `RELOADER_SCRIPT_ENDPOINT` should load up when the endpoint gets hit
 /// on whatever html page is relevant.
@@ -41,7 +43,7 @@ pub fn sse_endpoint_script(
 fn sse_endpoint_reloader(
     _addr: SocketAddr,
     _request: crate::types::HyperRequest,
-    running_notification: broadcast::Receiver<()>,
+    running_notification: broadcast::Receiver<FileChange>,
 ) -> pin::Pin<Box<crate::types::HyperFuture>> {
     Box::pin(async move {
         let running_stream = BroadcastStream::new(running_notification);
@@ -74,9 +76,9 @@ fn sse_endpoint_reloader(
 /// 3. Tokio's `broadcast::Sender<T>` implements Clone and we can create a new receiver
 ///    on each re-call.
 pub fn create_sse_endpoint_handler(
-    running_notification: broadcast::Sender<()>,
+    reload_notification: broadcast::Sender<FileChange>,
 ) -> sync::Arc<crate::types::HyperFunc> {
     sync::Arc::new(move |addr, request| {
-        sse_endpoint_reloader(addr, request, running_notification.subscribe())
+        sse_endpoint_reloader(addr, request, reload_notification.subscribe())
     })
 }

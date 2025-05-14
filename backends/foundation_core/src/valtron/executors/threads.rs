@@ -61,10 +61,7 @@ pub(crate) fn get_allocatable_thread_count() -> usize {
     tracing::debug!("Desired thread count: {desired_threads:}");
 
     if desired_threads > max_threads {
-        panic!(
-            "Desired thread count cant be greater than maximum allowed threads {}",
-            max_threads
-        );
+        panic!("Desired thread count cant be greater than maximum allowed threads {max_threads}");
     }
 
     if desired_threads == 0 {
@@ -594,8 +591,7 @@ impl ThreadPool {
 
         if num_threads > THREADS_MAX {
             panic!(
-                "Unable to create ThreadPool with thread numbers of {}, must no go past {}",
-                num_threads, THREADS_MAX
+                "Unable to create ThreadPool with thread numbers of {num_threads}, must no go past {THREADS_MAX}"
             );
         }
         let thread_latch = Arc::new(LockSignal::new());
@@ -635,7 +631,7 @@ impl ThreadPool {
         for index in 1..num_threads {
             let _ = thread_pool
                 .create_thread_executor()
-                .unwrap_or_else(|_| panic!("should successfully create thread for {}", index));
+                .unwrap_or_else(|_| panic!("should successfully create thread for {index}"));
         }
 
         thread_pool
@@ -652,7 +648,7 @@ pub enum ThreadExecutionError {
     FailedStart(BoxedError),
 
     #[from(ignore)]
-    Paniced(Box<dyn Any + Send>),
+    Panicked(Box<dyn Any + Send>),
 }
 
 impl core::error::Error for ThreadExecutionError {}
@@ -660,8 +656,8 @@ impl core::error::Error for ThreadExecutionError {}
 impl core::fmt::Display for ThreadExecutionError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Paniced(_) => write!(f, "ThreadExecutionError(_)"),
-            _ => write!(f, "{:?}", self),
+            Self::Panicked(_) => write!(f, "ThreadExecutionError(_)"),
+            _ => write!(f, "{self:?}"),
         }
     }
 }
@@ -706,13 +702,8 @@ impl ThreadPool {
         let span = tracing::trace_span!("ThreadPool::await_threads");
         let _enter = span.enter();
 
-        let thread_keys: Vec<ThreadId> = self
-            .thread_handles
-            .read()
-            .unwrap()
-            .iter()
-            .map(|(key, _)| key.clone())
-            .collect();
+        let handle = self.thread_handles.read().unwrap();
+        let thread_keys = handle.keys().cloned();
 
         let mut handles = self.thread_handles.write().unwrap();
         for thread_id in thread_keys {
