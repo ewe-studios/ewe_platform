@@ -70,7 +70,7 @@ derive_more = { version = ">=2.0", features = ["full"] }
 
 [workspace.profile.dev]
 opt-level = 0
-codegen-backend = "cranelift"
+# codegen-backend = "cranelift"
 
 [workspace.profile.dev.packages."*"]
 opt-level = 0
