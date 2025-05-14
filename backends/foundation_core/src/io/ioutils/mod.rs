@@ -332,7 +332,6 @@ impl<T: Write + BufRead + BufferCapacity> PeekableReadStream for BufferedWriter<
         }
 
         let buffer = self.get_inner_ref().read_buffer();
-        println!("Buffer: {:?}", buffer);
         buf.copy_from_slice(&buffer[0..buf.len()]);
         Ok(buf.len())
     }

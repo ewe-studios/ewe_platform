@@ -67,6 +67,7 @@ pub fn register(command: clap::Command) -> clap::Command {
 
 pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
     let project_directory = std::env::var("EWE_PLATFORM_DIR")?;
+    let assets_directory = format!("{}/assets", project_directory.clone());
     let backends_directory = format!("{}/backends", project_directory.clone());
     let crates_directory = format!("{}/crates", project_directory.clone());
     let demos_directory = format!("{}/demos", project_directory.clone());
@@ -121,13 +122,22 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
         proxy: tunnel_config,
         crate_name: project_name.clone(),
         workspace_root: project_directory.clone(),
-        watch_directories: vec![
-            backends_directory,
-            demos_directory,
-            binary_directory,
-            crates_directory,
-            templates_directory,
-            examples_directory,
+        reload_directories: vec![
+            assets_directory,
+            backends_directory.clone(),
+            demos_directory.clone(),
+            binary_directory.clone(),
+            crates_directory.clone(),
+            templates_directory.clone(),
+            examples_directory.clone(),
+        ],
+        build_directories: vec![
+            backends_directory.clone(),
+            demos_directory.clone(),
+            binary_directory.clone(),
+            crates_directory.clone(),
+            templates_directory.clone(),
+            examples_directory.clone(),
         ],
         wait_before_reload: time::Duration::from_millis(300), // magic number that works
         target_directory: format!("{}/target", project_directory.clone()),

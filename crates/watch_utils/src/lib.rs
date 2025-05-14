@@ -1,4 +1,4 @@
-use notify::EventKind;
+pub use notify::EventKind;
 
 use std::{
     path::{Path, PathBuf},

@@ -31,7 +31,7 @@ impl From<Box<dyn error::Error>> for GenError {
 impl std::error::Error for GenError {}
 impl core::fmt::Display for GenError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
 
@@ -129,7 +129,7 @@ fn impl_embeddable_file(struct_name: &syn::Ident, target_source: String) -> Toke
         .expect("heuristically identify root workspace or crate");
 
     let root_workspace_str = root_workspace.to_str().unwrap_or_else(|| {
-        panic!("cannot get str path for {:?}", root_workspace);
+        panic!("cannot get str path for {root_workspace:?}");
     });
 
     let project_dir = manifest_dir
@@ -139,7 +139,7 @@ fn impl_embeddable_file(struct_name: &syn::Ident, target_source: String) -> Toke
     let target_file = if target_source.contains(CURRENT_CRATE_MATCHER) {
         target_source.replace(CURRENT_CRATE_MATCHER, &cargo_manifest_dir_env)
     } else if target_source.contains(ROOT_WORKSPACE_MATCHER) {
-        target_source.replace(ROOT_WORKSPACE_MATCHER, &root_workspace_str)
+        target_source.replace(ROOT_WORKSPACE_MATCHER, root_workspace_str)
     } else {
         target_source
     };

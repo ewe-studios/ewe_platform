@@ -51,7 +51,7 @@ impl TestServer {
     pub fn close(&self) -> Result<(), BoxedError> {
         let port = self.port;
         let address = self.address.clone();
-        let mut client = TcpStream::connect(format!("{}:{}", address, port))
+        let mut client = TcpStream::connect(format!("{address}:{port}"))
             .map_err(|err| err.into_boxed_error())?;
 
         client
@@ -74,8 +74,7 @@ impl TestServer {
         let (tx, rx) = mpsc::channel::<SimpleIncomingRequest>();
         let (workers_tx, workers_rx) = mpsc::channel::<JoinHandle<()>>();
 
-        let listener =
-            TcpListener::bind(format!("{}:{}", address, port)).expect("create tcp listener");
+        let listener = TcpListener::bind(format!("{address}:{port}")).expect("create tcp listener");
 
         (
             thread::spawn(move || {
@@ -224,7 +223,7 @@ impl TestServer {
     ) -> SimpleOutgoingResponse {
         SimpleOutgoingResponse::builder()
             .with_status(Status::InternalServerError)
-            .with_body(simple_http::SimpleBody::Text(format!("{:?}", err)))
+            .with_body(simple_http::SimpleBody::Text(format!("{err:?}")))
             .build()
             .expect("should generate request")
     }
@@ -270,7 +269,7 @@ mod test_server_tests {
                     Ok(content) => SimpleOutgoingResponse::builder()
                         .with_status(Status::OK)
                         .with_body_bytes(
-                            format!(r#"{{"name": "alex", "body": {} }}"#, content).into_bytes(),
+                            format!(r#"{{"name": "alex", "body": {content} }}"#).into_bytes(),
                         )
                         .build()
                         .map_err(|err| err.into_boxed_error()),
@@ -278,7 +277,7 @@ mod test_server_tests {
                 },
                 Some(SimpleBody::Text(body)) => SimpleOutgoingResponse::builder()
                     .with_status(Status::OK)
-                    .with_body_string(format!(r#"{{"name": "alex", "body": {} }}"#, body))
+                    .with_body_string(format!(r#"{{"name": "alex", "body": {body} }}"#))
                     .build()
                     .map_err(|err| err.into_boxed_error()),
                 _ => SimpleOutgoingResponse::builder()
@@ -350,7 +349,7 @@ Hello world!";
                     Ok(content) => SimpleOutgoingResponse::builder()
                         .with_status(Status::OK)
                         .with_body_bytes(
-                            format!(r#"{{"name": "alex", "body": {} }}"#, content).into_bytes(),
+                            format!(r#"{{"name": "alex", "body": {content} }}"#).into_bytes(),
                         )
                         .build()
                         .map_err(|err| err.into_boxed_error()),
@@ -358,7 +357,7 @@ Hello world!";
                 },
                 Some(SimpleBody::Text(body)) => SimpleOutgoingResponse::builder()
                     .with_status(Status::OK)
-                    .with_body_string(format!(r#"{{"name": "alex", "body": {} }}"#, body))
+                    .with_body_string(format!(r#"{{"name": "alex", "body": {body} }}"#))
                     .build()
                     .map_err(|err| err.into_boxed_error()),
                 _ => SimpleOutgoingResponse::builder()

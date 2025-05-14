@@ -246,8 +246,15 @@ const UTFCodec = function (get_memory_function, allocate_memory_function) {
 
   const readUTF8FromMemory = function (start, len) {
     const memory = get_memory_function();
-    const data_slice = memory.slice(start, start + len);
-    return utf8_decoder.decode(data_slice);
+    const begin = Number(start);
+    const end = Number(start + len);
+    console.debug(
+      `Reading memory: begin=${begin} (start=${start}, ${typeof start}) with end=${end} (len=${len}, ${typeof len})`,
+    );
+    const data_slice = memory.slice(begin, end);
+    decoded = utf8_decoder.decode(data_slice);
+    console.debug(`Decoded content: ${decoded}`);
+    return decoded;
   };
 
   const writeUTF8FromMemory = function (text) {
@@ -528,7 +535,7 @@ const WASMRuntime = function () {
       `"use strict"; return(${function_body})`,
     )();
     runtime.functions.push(registered_func);
-    return id;
+    return BigInt(id);
   };
 
   environment.funcs.js_invoke_function = function (
@@ -536,14 +543,10 @@ const WASMRuntime = function () {
     parameter_start,
     parameter_length,
   ) {
-    console.debug("FuncHandle: ", handle, parameter_start, parameter_length);
     // read parameters and invoke function via handle.
     const parameters = read_parameters(parameter_start, parameter_length);
-    console.debug("FuncHandleReadParameters: ", handle, parameters);
-
     if (!parameters && parameter_length > 0)
       throw new Error("No parameters returned though we expect some");
-    console.debug("FuncHandleReadParameters: ", handle, parameters);
 
     const func = runtime.functions[handle];
     console.debug("FuncHandleFunc: ", handle, func);

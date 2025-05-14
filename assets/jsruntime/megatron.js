@@ -918,12 +918,8 @@ class WASMLoader {
 // WasmWebScripts owns the loading of wasm applications that are added
 // to the current web page has <scripts> tags.
 class WasmWebScripts {
-  static default(env) {
-    return WasmWebScripts(10, 200, env, WASMLoader.configCompiledOptions({}));
-  }
-
   constructor(initial_memory, maximum_memory, environment, compileOptions) {
-    this.modules = WasmLoader.scriptsToWasmLoader(
+    this.modules = WASMLoader.scriptsToWasmLoader(
       initial_memory,
       maximum_memory,
       environment,
@@ -941,5 +937,9 @@ class WasmWebScripts {
     });
   }
 }
+
+WasmWebScripts.default = function (env) {
+  return new WasmWebScripts(10, 200, env, WASMLoader.configCompiledOptions({}));
+};
 
 // center up

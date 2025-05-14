@@ -17,7 +17,7 @@ impl core::error::Error for TryIntoStringError {}
 
 impl core::fmt::Display for TryIntoStringError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
 
@@ -46,55 +46,55 @@ impl<'a> TryIntoString<'a> for borrow::Cow<'a, str> {
 
 impl<'a> TryIntoString<'a> for i8 {
     fn try_into_string(&self) -> IntoStringResult {
-        Ok(format!("{}", self))
+        Ok(format!("{self}"))
     }
 }
 
 impl<'a> TryIntoString<'a> for i16 {
     fn try_into_string(&self) -> IntoStringResult {
-        Ok(format!("{}", self))
+        Ok(format!("{self}"))
     }
 }
 
 impl<'a> TryIntoString<'a> for i32 {
     fn try_into_string(&self) -> IntoStringResult {
-        Ok(format!("{}", self))
+        Ok(format!("{self}"))
     }
 }
 
 impl<'a> TryIntoString<'a> for i64 {
     fn try_into_string(&self) -> IntoStringResult {
-        Ok(format!("{}", self))
+        Ok(format!("{self}"))
     }
 }
 
 impl<'a> TryIntoString<'a> for u8 {
     fn try_into_string(&self) -> IntoStringResult {
-        Ok(format!("{}", self))
+        Ok(format!("{self}"))
     }
 }
 
 impl<'a> TryIntoString<'a> for u16 {
     fn try_into_string(&self) -> IntoStringResult {
-        Ok(format!("{}", self))
+        Ok(format!("{self}"))
     }
 }
 
 impl<'a> TryIntoString<'a> for u32 {
     fn try_into_string(&self) -> IntoStringResult {
-        Ok(format!("{}", self))
+        Ok(format!("{self}"))
     }
 }
 
 impl<'a> TryIntoString<'a> for u64 {
     fn try_into_string(&self) -> IntoStringResult {
-        Ok(format!("{}", self))
+        Ok(format!("{self}"))
     }
 }
 
 impl<'a> TryIntoString<'a> for usize {
     fn try_into_string(&self) -> IntoStringResult {
-        Ok(format!("{}", self))
+        Ok(format!("{self}"))
     }
 }
 
@@ -139,7 +139,7 @@ impl core::error::Error for TryIntoStrError {}
 
 impl core::fmt::Display for TryIntoStrError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
 

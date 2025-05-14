@@ -79,7 +79,7 @@ impl<T: rust_embed::Embed> PackageDirectorate for Directorate<T> {
         let target_dir = if directory.ends_with("/") {
             directory
         } else {
-            &format!("{}/", directory)
+            &format!("{directory}/")
         };
 
         let files: Vec<String> = T::iter()

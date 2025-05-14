@@ -430,7 +430,7 @@ impl<T: Clone> Iterator for ReconnectingStream<T> {
                         Some(Ok(ReconnectionStatus::Ready(connected_stream)))
                     }
                     Err(connection_error) => {
-                        println!("Failed to connect: {:?}", connection_error);
+                        println!("Failed to connect: {connection_error:?}");
                         match reconnection_state_option {
                             Some(rstate) => {
                                 let duration = rstate.wait.unwrap_or(Duration::from_secs(0));

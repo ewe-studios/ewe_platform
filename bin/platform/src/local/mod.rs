@@ -142,7 +142,8 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
         proxy: tunnel_config,
         crate_name: project_name.clone(),
         workspace_root: project_directory.clone(),
-        watch_directories: vec![project_directory.clone()],
+        build_directories: vec![project_directory.clone()],
+        reload_directories: vec![project_directory.clone()],
         wait_before_reload: time::Duration::from_millis(300), // magic number that works
         target_directory: format!("{}/target", project_directory.clone()),
         run_arguments: vec!["cargo", "run", "--bin", binary_name.as_str()].to_vec_string(),
