@@ -487,6 +487,9 @@ const WASMRuntime = function () {
     data: {},
     refs: {},
     funcs: {},
+    v1: {
+      funcs: {},
+    },
   };
 
   runtime.environment = environment;
@@ -502,7 +505,7 @@ const WASMRuntime = function () {
   const ALLOWED_UTF8_INDICATOR = [8, 16];
 
   // register a function on the javascript side for execution via a handle id.
-  environment.funcs.js_register_function = function (
+  environment.v1.js_register_function = function (
     start,
     length,
     utf_indicator,
@@ -538,7 +541,7 @@ const WASMRuntime = function () {
     return BigInt(id);
   };
 
-  environment.funcs.js_invoke_function = function (
+  environment.v1.js_invoke_function = function (
     handle,
     parameter_start,
     parameter_length,
@@ -553,7 +556,7 @@ const WASMRuntime = function () {
     return func.call(runtime, ...parameters);
   };
 
-  environment.funcs.js_invoke_function_and_return_object = function (
+  environment.v1.js_invoke_function_and_return_object = function (
     handle,
     parameter_start,
     parameter_length,
@@ -570,7 +573,7 @@ const WASMRuntime = function () {
     return runtime.heap.create(result);
   };
 
-  environment.funcs.js_invoke_function_and_return_bool = function (
+  environment.v1.js_invoke_function_and_return_bool = function (
     handle,
     parameter_start,
     parameter_length,
@@ -582,7 +585,7 @@ const WASMRuntime = function () {
     return result ? 1 : 0;
   };
 
-  environment.funcs.js_invoke_function_and_return_bigint = function (
+  environment.v1.js_invoke_function_and_return_bigint = function (
     handle,
     parameter_start,
     parameter_length,
@@ -593,7 +596,7 @@ const WASMRuntime = function () {
     return func.call(runtime, ...parameters);
   };
 
-  environment.funcs.js_invoke_function_and_return_string = function (
+  environment.v1.js_invoke_function_and_return_string = function (
     handle,
     parameter_start,
     parameter_length,
@@ -653,7 +656,7 @@ const Megatron = (function () {
       module = await WebAssembly.instantiateStreaming(
         wasm_source,
         {
-          funcs: env.funcs,
+          v1: env.v1,
           data: env.data,
           refs: env.refs,
           js: { mem: memory },
@@ -664,7 +667,7 @@ const Megatron = (function () {
       module = await WebAssembly.instantiate(
         wasm_source,
         {
-          funcs: env.funcs,
+          v1: env.v1,
           data: env.data,
           refs: env.refs,
         },

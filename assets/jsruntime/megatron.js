@@ -550,10 +550,17 @@ const MOVE_BY_32_BITS = 4;
 const MOVE_BY_64_BITS = 8;
 
 class ParameterParserV1 {
-  constructor(wasm_module) {
-    this.module = wasm_module;
-    this.operator = MemoryOperator(this.module);
-    this.texts = TextCodec(this.operator);
+  constructor(memory_operator, text_codec) {
+    if (!(memory_operator instanceof MemoryOperator)) {
+      throw new Error("Must be instance of MemoryOperator");
+    }
+    if (!(text_codec instanceof TextCodec)) {
+      throw new Error("Must be instance of TextCodec");
+    }
+
+    this.texts = text_codec;
+    this.operator = memory_operator;
+    this.module = memory_operator.get_module();
 
     this.parsers = {
       0: this.parseUndefined,
@@ -730,6 +737,150 @@ class ParameterParserV1 {
   }
 }
 
+const ALLOWED_UTF8_INDICATOR = [8, 16];
+
+class FunctionMiddlewareV1 {
+  constructor(wasm_module) {
+    this.functions = [];
+    this.module = wasm_module;
+
+    // heap for DOM objects
+    this.heap = new DOMArena();
+
+    // text decoders and memory ops
+    this.operator = MemoryOperator(this.module);
+    this.texts = TextCodec(this.operator);
+
+    // function parameters
+    this.parameter = ParameterParserV1(this.operator, this.texts);
+  }
+
+  abort() {
+    throw new Error("WasmInstance calls abort");
+  }
+
+  drop_external_reference(uid) {
+    return this.heap.destroy(uid);
+  }
+
+  js_register_function(start, length, utf_indicator) {
+    console.debug(
+      "Register function: ",
+      start,
+      length,
+      " UTF8: ",
+      utf_indicator,
+    );
+
+    let function_body = null;
+
+    if (ALLOWED_UTF8_INDICATOR.indexOf(utf_indicator) === -1) {
+      throw new Error("Unsupported UTF indicator (only 8 or 16)");
+    }
+
+    if (utf_indicator === 16) {
+      function_body = this.texts.read_utf16(start, length);
+    }
+    if (utf_indicator === 8) {
+      function_body = this.texts.read_utf8(start, length);
+    }
+    if (!function_body) throw new Error("Function body must be supplied");
+
+    const id = this.functions.length;
+    const registered_func = Function(
+      `"use strict"; return(${function_body})`,
+    )();
+    this.functions.push(registered_func);
+    return BigInt(id);
+  }
+
+  js_invoke_function(handle, parameter_start, parameter_length) {
+    // read parameters and invoke function via handle.
+    const parameters = this.parameter.parse_array(
+      parameter_start,
+      parameter_length,
+    );
+    if (!parameters && parameter_length > 0)
+      throw new Error("No parameters returned though we expect some");
+
+    const func = this.functions[handle];
+    console.debug("FuncHandleFunc: ", handle, func);
+
+    return func.call(runtime, ...parameters);
+  }
+
+  js_invoke_function_and_return_object(
+    handle,
+    parameter_start,
+    parameter_length,
+  ) {
+    // read parameters and invoke function via handle.
+    const parameters = this.parameter.parse_array(
+      parameter_start,
+      parameter_length,
+    );
+
+    const func = this.functions[handle];
+    const result = func.call(runtime, ...parameters);
+    if (result === undefined || result === null) {
+      throw new Error(
+        "function returned undefined or null while trying to return an object",
+      );
+    }
+
+    return this.heap.create(result);
+  }
+
+  js_invoke_function_and_return_bool(
+    handle,
+    parameter_start,
+    parameter_length,
+  ) {
+    // read parameters and invoke function via handle.
+    const parameters = this.parameter.parse_array(
+      parameter_start,
+      parameter_length,
+    );
+    const func = this.functions[handle];
+    const result = func.call(runtime, ...parameters);
+    return result ? 1 : 0;
+  }
+
+  js_invoke_function_and_return_bigint(
+    handle,
+    parameter_start,
+    parameter_length,
+  ) {
+    // read parameters and invoke function via handle.
+    const parameters = this.parameter.parse_array(
+      parameter_start,
+      parameter_length,
+    );
+    const func = this.functions[handle];
+    return func.call(runtime, ...parameters);
+  }
+
+  js_invoke_function_and_return_string(
+    handle,
+    parameter_start,
+    parameter_length,
+  ) {
+    // read parameters and invoke function via handle.
+    const parameters = this.parameter.parse_array(
+      parameter_start,
+      parameter_length,
+    );
+    const func = this.functions[handle];
+    const result = func.call(runtime, ...parameters);
+    if (result === undefined || result === null) {
+      throw new Error(
+        "function returned undefined or null while trying to return an object",
+      );
+    }
+    return this.operator.writeUint8Array(result);
+  }
+}
+
 class WASMLoader {
   // [scriptsToWasmLoader] will load all script marked with type=`application/wasm`
   // and create a WASMLoader instance which will manage the given script.
@@ -741,11 +892,11 @@ class WASMLoader {
   ) {
     const instantiated = [];
 
-    const scripts = getWASMScripts();
+    const scripts = WASMLoader.getScriptsForApplicationWASM();
     for (let index in scripts) {
       let script = scripts[index];
       if (script.url) {
-        const loader = WASMLoader(
+        const loader = new WASMLoader(
           initial_memory,
           maximum_memory,
           environment,
@@ -767,7 +918,7 @@ class WASMLoader {
     if (!initial_memory) initial_memory = 10;
     if (!maximum_memory) maximum_memory = 200;
 
-    this.module = None;
+    this.module = null;
     this.initial_memory = initial_memory;
     this.maximum_memory = maximum_memory;
     this.compiled_options = compileOptions;
@@ -796,7 +947,10 @@ class WASMLoader {
       throw new Error("Module must be an instance of WebAssembly.Instance");
     }
     this.module = module;
-    this.parser_v1 = ParameterParserV1(this.module);
+    this.parser_v1 = FunctionMiddlewareV1(this.module);
+
+    // add parser to v1
+    this.env.v1 = this.parser_v1;
   }
 
   async loadURL(wasm_url) {
@@ -941,5 +1095,3 @@ class WasmWebScripts {
 WasmWebScripts.default = function (env) {
   return new WasmWebScripts(10, 200, env, WASMLoader.configCompiledOptions({}));
 };
-
-// center up

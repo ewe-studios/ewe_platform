@@ -94,6 +94,7 @@ impl operators::Operator for sync::Arc<CargoShellBuilder> {
             loop {
                 tokio::select! {
                     _ = trigger.recv() => {
+                        ewe_trace::info!("Rebuilding due to trigger signal");
                             match handle.build().await {
                                 Ok(()) => {
                                     ewe_trace::info!("Finished rebuilding binary!");
@@ -107,8 +108,9 @@ impl operators::Operator for sync::Arc<CargoShellBuilder> {
                             }
                     },
                     changed_file = recver.recv() => {
-                        ewe_trace::info!("Received rebuilding signal for binary due to {:?}!", &changed_file);
+                        ewe_trace::info!("Received changed file signal {:?}!", &changed_file);
                         if let Ok(FileChange::Rust(_)) = changed_file {
+                            ewe_trace::info!("Rust file changed, so rebuilding");
                             match handle.build().await {
                                 Ok(()) => {
                                     ewe_trace::info!("Finished rebuilding binary!");
@@ -119,7 +121,9 @@ impl operators::Operator for sync::Arc<CargoShellBuilder> {
                                         return Err(err);
                                     }
                                 }
-                            }
+                            };
+                        } else {
+                            ewe_trace::info!("Non-Rust file changed, so not rebuilding");
                         };
                         continue;
                     },
@@ -300,6 +304,7 @@ impl Operator for sync::Arc<BinaryApp> {
                         if run_sender.send_in((), wait_before_reload).await.is_err() {
                             ewe_trace::warn!("No one is listening for re-running messages");
                         }
+
                         continue;
                     },
                     _ = signal.recv() => {
