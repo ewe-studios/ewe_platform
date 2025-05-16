@@ -4,7 +4,7 @@ pub mod js_runtimes {
     use super::*;
 
     #[derive(EmbedFileAs)]
-    #[source = "../../assets/jsruntime/js_host_runtime.js"]
+    #[source = "../../assets/jsruntime/megatron.js"]
     pub struct JSHostRuntime;
 
     #[derive(EmbedFileAs)]
