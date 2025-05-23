@@ -8,7 +8,7 @@ use alloc::vec::Vec;
 use crate::{
     value_quantitzation, ArgumentOperations, BatchEncodable, Batchable, CompletedInstructions,
     ExternalPointer, InternalPointer, MemoryAllocation, MemoryAllocationResult, MemoryAllocations,
-    MemoryId, MemorySlot, MemoryWriterError, MemoryWriterResult, TypeOptimization,
+    MemoryId, MemorySlot, MemoryWriterError, MemoryWriterResult, ToBinary, TypeOptimization,
 };
 
 use super::{Operations, Params, StrLocation, ValueTypes};
@@ -42,6 +42,189 @@ impl<'a> Batchable<'a> for &'a [Params<'a>] {
         }
         encoder.data(ARGUMENT_ENDER)?;
         Ok(())
+    }
+}
+
+impl<'a> ToBinary for Vec<Params<'a>> {
+    fn to_binary(&self) -> Vec<u8> {
+        let mut encoded_params: Vec<u8> = Vec::new();
+        for param in self.iter() {
+            encoded_params.extend(param.to_binary())
+        }
+        encoded_params
+    }
+}
+
+impl<'a> ToBinary for &'a [Params<'a>] {
+    fn to_binary(&self) -> Vec<u8> {
+        let mut encoded_params: Vec<u8> = Vec::new();
+        for param in self.iter() {
+            encoded_params.extend(param.to_binary())
+        }
+        encoded_params
+    }
+}
+
+impl ToBinary for Params<'_> {
+    fn to_binary(&self) -> Vec<u8> {
+        let mut encoded_params: Vec<u8> = Vec::new();
+        match self {
+            Params::Undefined => {
+                encoded_params.push(0);
+            }
+            Params::Null => {
+                encoded_params.push(1);
+            }
+            Params::Float64(value) => {
+                encoded_params.push(2);
+                encoded_params.extend_from_slice(&value.to_le_bytes());
+            }
+            Params::Uint64(value) => {
+                encoded_params.push(3);
+                encoded_params.extend_from_slice(&value.to_le_bytes());
+            }
+            Params::Text8(value) => {
+                encoded_params.push(4);
+                let start = value.as_ptr() as usize;
+                let len = value.len();
+                encoded_params.extend_from_slice(&start.to_le_bytes());
+                encoded_params.extend_from_slice(&len.to_le_bytes());
+            }
+            Params::ExternalReference(value) => {
+                encoded_params.push(5);
+                encoded_params.extend_from_slice(&value.clone_inner().to_le_bytes());
+            }
+            Params::Float32(value) => {
+                encoded_params.push(6);
+                encoded_params.extend_from_slice(&value.to_le_bytes());
+            }
+            Params::Bool(value) => {
+                if *value {
+                    encoded_params.push(7);
+                } else {
+                    encoded_params.push(8);
+                }
+            }
+            Params::Float64Array(value) => {
+                encoded_params.push(9);
+                let start = value.as_ptr() as usize;
+                let len = value.len();
+                encoded_params.extend_from_slice(&start.to_le_bytes());
+                encoded_params.extend_from_slice(&len.to_le_bytes());
+            }
+            Params::Uint32Array(value) => {
+                encoded_params.push(10);
+                let start = value.as_ptr() as usize;
+                let len = value.len();
+                encoded_params.extend_from_slice(&start.to_le_bytes());
+                encoded_params.extend_from_slice(&len.to_le_bytes());
+            }
+            Params::Int8(value) => {
+                encoded_params.push(11);
+                encoded_params.extend_from_slice(&value.to_le_bytes());
+            }
+            Params::Int16(value) => {
+                encoded_params.push(12);
+                encoded_params.extend_from_slice(&value.to_le_bytes());
+            }
+            Params::Int32(value) => {
+                encoded_params.push(13);
+                encoded_params.extend_from_slice(&value.to_le_bytes());
+            }
+            Params::Int64(value) => {
+                encoded_params.push(14);
+                encoded_params.extend_from_slice(&value.to_le_bytes());
+            }
+            Params::Uint8(value) => {
+                encoded_params.push(15);
+                encoded_params.extend_from_slice(&value.to_le_bytes());
+            }
+            Params::Uint16(value) => {
+                encoded_params.push(16);
+                encoded_params.extend_from_slice(&value.to_le_bytes());
+            }
+            Params::Uint32(value) => {
+                encoded_params.push(17);
+                encoded_params.extend_from_slice(&value.to_le_bytes());
+            }
+            Params::Int128(value) => {
+                encoded_params.push(18);
+                encoded_params.extend_from_slice(&value.to_le_bytes());
+            }
+            Params::Uint128(value) => {
+                encoded_params.push(19);
+                encoded_params.extend_from_slice(&value.to_le_bytes());
+            }
+            Params::Text16(value) => {
+                encoded_params.push(20);
+                let start = value.as_ptr() as usize;
+                let len = value.len();
+                encoded_params.extend_from_slice(&start.to_le_bytes());
+                encoded_params.extend_from_slice(&len.to_le_bytes());
+            }
+            Params::InternalReference(value) => {
+                encoded_params.push(21);
+                encoded_params.extend_from_slice(&value.clone_inner().to_le_bytes());
+            }
+            Params::Uint64Array(value) => {
+                encoded_params.push(22);
+                let start = value.as_ptr() as usize;
+                let len = value.len();
+                encoded_params.extend_from_slice(&start.to_le_bytes());
+                encoded_params.extend_from_slice(&len.to_le_bytes());
+            }
+            Params::Int32Array(value) => {
+                encoded_params.push(23);
+                let start = value.as_ptr() as usize;
+                let len = value.len();
+                encoded_params.extend_from_slice(&start.to_le_bytes());
+                encoded_params.extend_from_slice(&len.to_le_bytes());
+            }
+            Params::Int64Array(value) => {
+                encoded_params.push(24);
+                let start = value.as_ptr() as usize;
+                let len = value.len();
+                encoded_params.extend_from_slice(&start.to_le_bytes());
+                encoded_params.extend_from_slice(&len.to_le_bytes());
+            }
+            Params::Int8Array(value) => {
+                encoded_params.push(25);
+                let start = value.as_ptr() as usize;
+                let len = value.len();
+                encoded_params.extend_from_slice(&start.to_le_bytes());
+                encoded_params.extend_from_slice(&len.to_le_bytes());
+            }
+            Params::Int16Array(value) => {
+                encoded_params.push(26);
+                let start = value.as_ptr() as usize;
+                let len = value.len();
+                encoded_params.extend_from_slice(&start.to_le_bytes());
+                encoded_params.extend_from_slice(&len.to_le_bytes());
+            }
+            Params::Uint8Array(value) => {
+                encoded_params.push(27);
+                let start = value.as_ptr() as usize;
+                let len = value.len();
+                encoded_params.extend_from_slice(&start.to_le_bytes());
+                encoded_params.extend_from_slice(&len.to_le_bytes());
+            }
+            Params::Uint16Array(value) => {
+                encoded_params.push(28);
+                let start = value.as_ptr() as usize;
+                let len = value.len();
+                encoded_params.extend_from_slice(&start.to_le_bytes());
+                encoded_params.extend_from_slice(&len.to_le_bytes());
+            }
+            Params::Float32Array(value) => {
+                encoded_params.push(30);
+                let start = value.as_ptr() as usize;
+                let len = value.len();
+                encoded_params.extend_from_slice(&start.to_le_bytes());
+                encoded_params.extend_from_slice(&len.to_le_bytes());
+            }
+        };
+
+        encoded_params
     }
 }
 

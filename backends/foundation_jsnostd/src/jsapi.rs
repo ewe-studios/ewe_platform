@@ -7,7 +7,7 @@ use foundation_nostd::{raw_parts::RawParts, spin::Mutex};
 
 use crate::{
     ExternalPointer, InternalCallback, InternalPointer, InternalReferenceRegistry, JSEncoding,
-    MemoryAllocations,
+    MemoryAllocations, Params, ToBinary,
 };
 
 static INTERNAL_CALLBACKS: Mutex<InternalReferenceRegistry> = InternalReferenceRegistry::create();
@@ -131,6 +131,15 @@ pub mod exposed_runtime {
 pub mod host_runtime {
     use super::*;
 
+    pub const JS_UNDEFINED: ExternalPointer = ExternalPointer::pointer(0);
+    pub const JS_NULL: ExternalPointer = ExternalPointer::pointer(1);
+    pub const DOM_SELF: ExternalPointer = ExternalPointer::pointer(2);
+    pub const DOM_DOCUMENT: ExternalPointer = ExternalPointer::pointer(3);
+    pub const DOM_WINDOW: ExternalPointer = ExternalPointer::pointer(4);
+    pub const DOM_BODY: ExternalPointer = ExternalPointer::pointer(5);
+    pub const JS_FALSE: ExternalPointer = ExternalPointer::pointer(6);
+    pub const JS_TRUE: ExternalPointer = ExternalPointer::pointer(7);
+
     // -- Data Information
     pub mod api_v2 {
         #[link(wasm_import_module = "v2")]
@@ -185,26 +194,17 @@ pub mod host_runtime {
             ) -> u64;
         }
 
-        // -- JS dropping ExternalPointer
+        // [`Droppable`] creates a reference that when drops will
+        // also drop the related reference on the host JS runtime.
+        pub struct Droppable(ExternalPointer);
 
-        pub const JS_UNDEFINED: JSExternalRef = JSExternalRef(ExternalPointer::pointer(0));
-        pub const JS_NULL: JSExternalRef = JSExternalRef(ExternalPointer::pointer(1));
-        pub const DOM_SELF: JSExternalRef = JSExternalRef(ExternalPointer::pointer(2));
-        pub const DOM_DOCUMENT: JSExternalRef = JSExternalRef(ExternalPointer::pointer(3));
-        pub const DOM_WINDOW: JSExternalRef = JSExternalRef(ExternalPointer::pointer(4));
-        pub const DOM_BODY: JSExternalRef = JSExternalRef(ExternalPointer::pointer(5));
-        pub const DOM_FALSE: JSExternalRef = JSExternalRef(ExternalPointer::pointer(6));
-        pub const DOM_TRUE: JSExternalRef = JSExternalRef(ExternalPointer::pointer(7));
-
-        pub struct JSExternalRef(ExternalPointer);
-
-        impl JSExternalRef {
+        impl Droppable {
             pub fn number(&self) -> u64 {
                 self.0.into_inner()
             }
         }
 
-        impl Drop for JSExternalRef {
+        impl Drop for Droppable {
             fn drop(&mut self) {
                 unsafe {
                     host_runtime::api_v1::drop_reference(self.0.into_inner());
@@ -212,236 +212,70 @@ pub mod host_runtime {
             }
         }
 
-        impl From<u64> for JSExternalRef {
+        impl From<ExternalPointer> for Droppable {
+            fn from(value: ExternalPointer) -> Self {
+                Self(value)
+            }
+        }
+
+        impl From<u64> for Droppable {
             fn from(value: u64) -> Self {
                 Self(value.into())
             }
         }
 
-        // --- Browser / WASM ABI
-
-        // --- Invocations
-
-        //convert invoke parameters into bytes
-        //assuming each parameter is preceded by a 32 bit integer indicating its type
-        //0 = undefined
-        //1 = null
-        //2 = float-64
-        //3 = bigint
-        //4 = string (followed by 32-bit start and size of string in memory)
-        //5 = extern ref
-        //6 = array of float-64 (followed by 32-bit start and size of string in memory)
-
-        pub enum InvocationParameter<'a> {
-            Undefined,
-            Null,
-            Float64(f64),
-            BigInt(i64),
-            String(&'a str),
-            Float32Array(&'a [f32]),
-            Float64Array(&'a [f64]),
-            Bool(bool),
-            Uint32Array(&'a [u32]),
-            ExternalReference(&'a JSExternalRef),
-        }
-
-        impl From<f64> for InvocationParameter<'_> {
-            fn from(f: f64) -> Self {
-                InvocationParameter::Float64(f)
-            }
-        }
-
-        impl From<i32> for InvocationParameter<'_> {
-            fn from(i: i32) -> Self {
-                InvocationParameter::Float64(f64::from(i))
-            }
-        }
-
-        impl From<usize> for InvocationParameter<'_> {
-            fn from(i: usize) -> Self {
-                InvocationParameter::Float64(i as f64)
-            }
-        }
-
-        impl From<i64> for InvocationParameter<'_> {
-            fn from(i: i64) -> Self {
-                InvocationParameter::BigInt(i)
-            }
-        }
-
-        impl<'a> From<&'a str> for InvocationParameter<'a> {
-            fn from(s: &'a str) -> Self {
-                InvocationParameter::String(s)
-            }
-        }
-
-        impl<'a> From<&'a JSExternalRef> for InvocationParameter<'a> {
-            fn from(i: &'a JSExternalRef) -> Self {
-                InvocationParameter::ExternalReference(i)
-            }
-        }
-
-        impl<'a> From<&'a [f32]> for InvocationParameter<'a> {
-            fn from(a: &'a [f32]) -> Self {
-                InvocationParameter::Float32Array(a)
-            }
-        }
-
-        impl<'a> From<&'a [f64]> for InvocationParameter<'a> {
-            fn from(a: &'a [f64]) -> Self {
-                InvocationParameter::Float64Array(a)
-            }
-        }
-
-        impl From<bool> for InvocationParameter<'_> {
-            fn from(b: bool) -> Self {
-                InvocationParameter::Bool(b)
-            }
-        }
-
-        impl<'a> From<&'a [u32]> for InvocationParameter<'a> {
-            fn from(a: &'a [u32]) -> Self {
-                InvocationParameter::Uint32Array(a)
-            }
-        }
-
-        impl<'a> InvocationParameter<'a> {
-            pub fn param_to_bytes(params: &'a [InvocationParameter<'a>]) -> Vec<u8> {
-                let mut encoded_params: Vec<u8> = Vec::new();
-                for param in params {
-                    match param {
-                        InvocationParameter::Undefined => {
-                            encoded_params.push(0);
-                        }
-                        InvocationParameter::Null => {
-                            encoded_params.push(1);
-                        }
-                        InvocationParameter::Float64(f) => {
-                            encoded_params.push(2);
-                            encoded_params.extend_from_slice(&f.to_le_bytes());
-                        }
-                        InvocationParameter::BigInt(i) => {
-                            encoded_params.push(3);
-                            encoded_params.extend_from_slice(&i.to_le_bytes());
-                        }
-                        InvocationParameter::String(s) => {
-                            encoded_params.push(4);
-                            let start = s.as_ptr() as usize;
-                            let len = s.len();
-                            encoded_params.extend_from_slice(&start.to_le_bytes());
-                            encoded_params.extend_from_slice(&len.to_le_bytes());
-                        }
-                        InvocationParameter::ExternalReference(i) => {
-                            encoded_params.push(5);
-                            encoded_params.extend_from_slice(&i.number().to_le_bytes());
-                        }
-                        InvocationParameter::Float32Array(a) => {
-                            encoded_params.push(6);
-                            let start = a.as_ptr() as usize;
-                            let len = a.len();
-                            encoded_params.extend_from_slice(&start.to_le_bytes());
-                            encoded_params.extend_from_slice(&len.to_le_bytes());
-                        }
-                        InvocationParameter::Bool(b) => {
-                            if *b {
-                                encoded_params.push(7);
-                            } else {
-                                encoded_params.push(8);
-                            }
-                        }
-                        InvocationParameter::Float64Array(a) => {
-                            encoded_params.push(9);
-                            let start = a.as_ptr() as usize;
-                            let len = a.len();
-                            encoded_params.extend_from_slice(&start.to_le_bytes());
-                            encoded_params.extend_from_slice(&len.to_le_bytes());
-                        }
-                        InvocationParameter::Uint32Array(a) => {
-                            encoded_params.push(10);
-                            let start = a.as_ptr() as usize;
-                            let len = a.len();
-                            encoded_params.extend_from_slice(&start.to_le_bytes());
-                            encoded_params.extend_from_slice(&len.to_le_bytes());
-                        }
-                    }
+        /// [`register_function`] calls the underlying [`js_abi`] registration
+        /// function to register a javascript code that can be called from memory
+        /// allowing you define the underlying code we want executed.
+        pub fn register_function(code: &str) -> JSFunction {
+            let start = code.as_ptr() as usize;
+            let len = code.len();
+            unsafe {
+                JSFunction {
+                    handler: host_runtime::api_v1::js_register_function(
+                        start as u64,
+                        len as u64,
+                        JSEncoding::UTF8.into(),
+                    ), // precision loss here
                 }
-                encoded_params
             }
         }
 
-        // -- registration functions
+        /// [`register_function_utf16`] calls the underlying [`js_abi`] registration
+        /// function to register a javascript code already encoded
+        /// as UTF16 by the borrowed slice of u16 that can be called from memory
+        /// allowing you define the underlying code we want executed.
+        pub fn register_function_utf16(code: &[u16]) -> JSFunction {
+            let start = code.as_ptr() as usize;
+            let len = code.len();
+            unsafe {
+                JSFunction {
+                    handler: host_runtime::api_v1::js_register_function(
+                        start as u64,
+                        len as u64,
+                        JSEncoding::UTF16.into(),
+                    ), // precision loss here
+                }
+            }
+        }
+
+        // --- Browser / WASM ABI
 
         #[derive(Copy, Clone)]
         pub struct JSFunction {
             pub handler: u64,
         }
 
-        #[macro_export]
-        macro_rules! js {
-            ($e:expr) => {{
-                static mut FN: Option<u64> = None;
-                unsafe {
-                    if FN.is_none() {
-                        // store the handler for the related js function as a catch for later use.
-                        FN = Some(
-                            foundation_jsnostd::host_runtime::api_v1::JSFunction::register_function($e)
-                                .handler,
-                        );
-                    }
-                    foundation_jsnostd::host_runtime::api_v1::JSFunction {
-                        handler: FN.unwrap(),
-                    }
-                }
-            }};
-        }
-
-        pub use js;
-
         #[allow(clippy::cast_precision_loss)]
         impl JSFunction {
-            /// [`register_function`] calls the underlying [`js_abi`] registration
-            /// function to register a javascript code that can be called from memory
-            /// allowing you define the underlying code we want executed.
-            pub fn register_function(code: &str) -> JSFunction {
-                let start = code.as_ptr() as usize;
-                let len = code.len();
-                unsafe {
-                    JSFunction {
-                        handler: host_runtime::api_v1::js_register_function(
-                            start as u64,
-                            len as u64,
-                            JSEncoding::UTF8.into(),
-                        ), // precision loss here
-                    }
-                }
-            }
-
-            /// [`register_function_utf16`] calls the underlying [`js_abi`] registration
-            /// function to register a javascript code already encoded
-            /// as UTF16 by the borrowed slice of u16 that can be called from memory
-            /// allowing you define the underlying code we want executed.
-            pub fn register_function_utf16(code: &[u16]) -> JSFunction {
-                let start = code.as_ptr() as usize;
-                let len = code.len();
-                unsafe {
-                    JSFunction {
-                        handler: host_runtime::api_v1::js_register_function(
-                            start as u64,
-                            len as u64,
-                            JSEncoding::UTF16.into(),
-                        ), // precision loss here
-                    }
-                }
-            }
-
             /// [`invoke`] invokes a javascript function registered at the given handle
             /// defined by the [`JSFunction::handler`] which then receives the set of parameters
             /// supplied to be invoked with.
             ///
             /// The `js_abi` will handle necessary conversion and execution of the function
             /// with the passed arguments.
-            pub fn invoke(&self, params: &[InvocationParameter]) -> JSAllocationId {
-                let param_bytes = InvocationParameter::param_to_bytes(params);
+            pub fn invoke(&self, params: &[Params]) -> JSAllocationId {
+                let param_bytes = params.to_binary();
                 let RawParts {
                     ptr,
                     length,
