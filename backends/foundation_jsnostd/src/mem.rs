@@ -206,6 +206,12 @@ impl MemoryAllocation {
     }
 }
 
+/// [`ToBinary`] provides a basic type which we can encode as
+/// plain binary bytes usually in LittleIndian encoding.
+pub trait ToBinary {
+    fn to_binary(&self) -> Vec<u8>;
+}
+
 /// [`BatchEncodable`] defines a trait which allows you implement
 /// conversion an underlying binary representation of a Batch
 /// operation.

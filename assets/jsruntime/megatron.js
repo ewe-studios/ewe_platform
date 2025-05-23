@@ -1,3 +1,284 @@
+const NULL_AND_UNDEFINED = [null, undefined];
+
+const LEVELS = {
+  INFO: 1,
+  ERROR: 2,
+  WARNINGS: 3,
+  DEBUG: 4,
+};
+
+const LOGGER = {
+  mode: LEVELS.ERROR,
+};
+
+LOGGER.info = function () {
+  console.log.apply(console, arguments);
+};
+
+LOGGER.trace = function () {
+  console.trace.apply(console, arguments);
+};
+
+LOGGER.warning = function () {
+  if (LOGGER.mode < LEVELS.WARNINGS) return;
+  console.warn.apply(console, arguments);
+};
+
+LOGGER.error = function () {
+  if (LOGGER.mode < LEVELS.ERROR) return;
+  console.error.apply(console, arguments);
+};
+
+LOGGER.debug = function () {
+  if (LOGGER.mode < LEVELS.DEBUG) return;
+  console.debug.apply(console, arguments);
+};
+
+const Move = {
+  // Move the index by 1 8-bits movement - a DataView represent 1 move: 8 bits (1 byte)
+  // 8 bits is 1 Bytes, so we move by 1.
+  MOVE_BY_8_BITS: 1,
+
+  // Move the index by 2 8-bits movement - a DataView represent 1 move: 8 bits (1 byte)
+  // 16 bits is 2 Bytes, so we move by 2.
+  MOVE_BY_16_BYTES: 2,
+
+  // Move the index by 4 8-bits movement - a DataView represent 1 move: 8 bits (1 byte)
+  // 32 bits is 4 Bytes, so we move by 4.
+  MOVE_BY_32_BYTES: 4,
+
+  // Move the index by 8 8-bits movement - a DataView represent 1 move: 8 bits (1 byte)
+  // 64 bits is 8 Bytes, so we move by 8.
+  MOVE_BY_64_BYTES: 8,
+
+  // Move the index by 16 8-bits movement - a DataView represent 1 move: 8 bits (1 byte)
+  // 128 bits is 16 Bytes, so we move by 16.
+  MOVE_BY_128_BYTES: 16,
+};
+
+const UtfEncoding = {
+  // Represents as 16 to indicate encoding is UTF-8.
+  UTF8: 8,
+
+  // Represents as 16 to indicate encoding is UTF-16.
+  UTF16: 16,
+};
+
+UtfEncoding.__INVERSE__ = {
+  8: UtfEncoding.UTF8,
+  16: UtfEncoding.UTF16,
+};
+
+const ALLOWED_UTF8_INDICATOR = [UtfEncoding.UTF8, UtfEncoding.UTF16];
+
+const TypeOptimization = {
+  None: 0,
+
+  // optimize ints
+  QuantizedInt16AsI8: 1,
+  QuantizedInt32AsI8: 2,
+  QuantizedInt32AsI16: 3,
+  QuantizedInt64AsI8: 4,
+  QuantizedInt64AsI16: 5,
+  QuantizedInt64AsI32: 6,
+
+  // optimize uints
+  QuantizedUint16AsU8: 7,
+  QuantizedUint32AsU8: 8,
+  QuantizedUint32AsU16: 9,
+  QuantizedUint64AsU8: 10,
+  QuantizedUint64AsU16: 11,
+  QuantizedUint64AsU32: 12,
+
+  // optimize floats
+  QuantizedF64AsF32: 17,
+  QuantizedF128AsF32: 18,
+  QuantizedF128AsF64: 19,
+
+  // optimize i128 bits
+  QuantizedInt128AsI8: 20,
+  QuantizedInt128AsI16: 21,
+  QuantizedInt128AsI32: 22,
+  QuantizedInt128AsI64: 23,
+
+  // optimize u128 bits
+  QuantizedUint128AsU8: 24,
+  QuantizedUint128AsU16: 25,
+  QuantizedUint128AsU32: 26,
+  QuantizedUint128AsU64: 27,
+
+  // optimize pointers bits
+  QuantizedPtrAsU8: 28,
+  QuantizedPtrAsU16: 29,
+  QuantizedPtrAsU32: 30,
+  QuantizedPtrAsU64: 31,
+};
+
+TypeOptimization.__INVERSE__ = Object.keys(TypeOptimization)
+  .map((key) => {
+    return [key, TypeOptimization[key]];
+  })
+  .reduce((prev, current) => {
+    let [key, value] = current;
+    prev[value] = key;
+    return prev;
+  }, {});
+
+const Operations = {
+  /// Begin - Indicative of the start of a operation in a batch, generally
+  /// you should only ever see this once until the batch ends with a [`Operations::Stop`].
+  /// After the begin is seen, you should see other operations indicative of what the
+  /// sub-operation in the batch represent and it's specific layout.
+  ///
+  /// Memory wise: This is 1 Byte: 8 bits.
+  ///
+  Begin: 0,
+
+  /// MakeFunction represents the operation to create/register
+  /// a function on the other side at a specific ExternalReference
+  /// usually pre-allocated via some API call.
+  ///
+  /// The layout will have the function address followed by the
+  /// binary representation of the location of the function
+  /// definition in batch memory, the starting index of the
+  /// string and the length of the string bytes.
+  ///
+  /// Layout: {1{ [MemoryAllocationAddress}, PreAllocatedExternalReference, StartIndex, Length}
+  ///
+  /// In Actual Layout:
+  ///
+  /// Memory Layout: {
+  ///     1 Byte / 8 Bits for Operations type,
+  ///     4 Bytes for Memory Address for Location,
+  ///     8 Bytes for External Reference that is 64bit long,
+  ///     4 Bytes for Start Index,
+  ///     4 bytes for Length,
+  /// }
+  ///
+  /// All together its: 21 Bytes: 168 bits Long.
+  ///
+  /// Adding the Begin (1 Byte) and Stop (1 Byte) bytes then we have additional 2 bytes: 16 bits
+  ///
+  /// So in total we will have 23 Bytes: 184 bits long.
+  ///
+  ///
+  MakeFunction: 1,
+
+  /// InvokeNoReturnFunction represents the desire to call a
+  /// function across boundary that does not return any value
+  /// in response to being called.
+  ///
+  /// It has two layout formats:
+  ///
+  /// A. with no argument: Begin, 3, FunctionHandle(u64), End
+  ///
+  /// B. with arguments: Begin, 3, FunctionHandle(u64), FunctionArguments, {Arguments}, End
+  InvokeNoReturnFunction: 2,
+
+  /// InvokeReturningFunction represents the desire to call a
+  /// function across boundary that returns a value of
+  /// defined type matching [`ReturnType`]
+  /// in response to being called.
+  ///
+  /// It has two layout formats:
+  ///
+  /// A. with no argument: Begin, 3, FunctionHandle(u64), ReturnType, End
+  ///
+  /// B. with arguments: Begin, 3, FunctionHandle(u64), ReturnType, Arguments*, End
+  InvokeReturningFunction: 3,
+
+  /// InvokeCallbackFunction represents the desire to call a
+  /// function across boundary that takes a callback external reference
+  /// which it will use to supply appropriate response when ready (say async call)
+  /// as response to being called.
+  ///
+  /// Layout format: Begin, 3, FunctionHandle(u64), ArgStart, ArgBegin, ExternReference, ArgEnd, ArgStop,
+  ///  End
+  InvokeCallbackFunction: 4,
+
+  /// Stop - indicates the end of an operation in a batch, since
+  /// a memory will contain multiple operations batched into a single
+  /// memory slot, until you see this 1 byte signal then you should
+  /// consider that batch yet to finish.
+  ///
+  /// Memory wise: This is 1 Byte: 8 bits.
+  ///
+  Stop: 255,
+};
+
+Operations.__INVERSE__ = Object.keys(Operations)
+  .map((key) => {
+    return [key, Operations[key]];
+  })
+  .reduce((prev, current) => {
+    let [key, value] = current;
+    prev[value] = key;
+    return prev;
+  }, {});
+
+const ArgumentOperations = {
+  Start: 1,
+  Begin: 2,
+  End: 3,
+  Stop: 4,
+};
+
+ArgumentOperations.__INVERSE__ = Object.keys(ArgumentOperations)
+  .map((key) => {
+    return [key, ArgumentOperations[key]];
+  })
+  .reduce((prev, current) => {
+    let [key, value] = current;
+    prev[value] = key;
+    return prev;
+  }, {});
+
+const Params = {
+  Null: 0,
+  Undefined: 1,
+  Bool: 2,
+  Text8: 3,
+  Text16: 4,
+  Int8: 5,
+  Int16: 6,
+  Int32: 7,
+  Int64: 8,
+  Uint8: 9,
+  Uint16: 10,
+  Uint32: 11,
+  Uint64: 12,
+  Float32: 13,
+  Float64: 14,
+  ExternalReference: 15,
+  Uint8ArrayBuffer: 16,
+  Uint16ArrayBuffer: 17,
+  Uint32ArrayBuffer: 18,
+  Uint64ArrayBuffer: 19,
+  Int8ArrayBuffer: 20,
+  Int16ArrayBuffer: 21,
+  Int32ArrayBuffer: 22,
+  Int64ArrayBuffer: 23,
+  Float32ArrayBuffer: 24,
+  Float64ArrayBuffer: 25,
+  InternalReference: 26,
+  Int128: 27,
+  Uint128: 28,
+};
+
+Params.__INVERSE__ = Object.keys(Params)
+  .map((key) => {
+    return [key, Params[key]];
+  })
+  .reduce((prev, current) => {
+    let [key, value] = current;
+    prev[value] = key;
+    return prev;
+  }, {});
+
+function isUndefinedOrNull(value) {
+  return NULL_AND_UNDEFINED.indexOf(value) != -1;
+}
+
 class ArenaAllocator {
   static MAX_SIZE = BigInt(0xfffffff0);
   static BIT_MASK = BigInt(0xffffffff);
@@ -230,10 +511,6 @@ class MemoryOperator {
 
 class TextCodec {
   constructor(memory_operator) {
-    console.log(
-      memory_operator instanceof MemoryOperator,
-      "memory_operator must be MemoryOperator",
-    );
     this.operator = memory_operator;
     this.utf8_encoder = new TextEncoder();
     this.utf8_decoder = new TextDecoder("utf-8");
@@ -243,7 +520,7 @@ class TextCodec {
   readUTF8FromMemory(start, len) {
     const memory = this.operator.get_memory();
     const data_slice = memory.slice(start, start + len);
-    return utf8_decoder.decode(data_slice);
+    return this.utf8_decoder.decode(data_slice);
   }
 
   writeUTF8FromMemory(text) {
@@ -258,7 +535,7 @@ class TextCodec {
 
   readUTF16FromMemory(start, len) {
     const bytes = this.operator.get_memory().subarray(start, start + len);
-    const text = utf16_decoder.decode(bytes);
+    const text = this.utf16_decoder.decode(bytes);
     return text;
   }
 
@@ -541,14 +818,6 @@ class TextCodec {
   }
 }
 
-// Javascript 32 bits is 4 bytes (as 1 byte = 8 bits), so each memory location
-// is 32 bits and when moving index we move by 32 bits each.
-const MOVE_BY_32_BITS = 4;
-
-// Javascript is 32 bit memory, 4 bytes makes 32bit, to move 64bits then
-// its 4 bytes x 2 = 8 bytes.
-const MOVE_BY_64_BITS = 8;
-
 class ParameterParserV1 {
   constructor(memory_operator, text_codec) {
     if (!(memory_operator instanceof MemoryOperator)) {
@@ -563,42 +832,33 @@ class ParameterParserV1 {
     this.module = memory_operator.get_module();
 
     this.parsers = {
-      0: this.parseUndefined,
-      1: this.parseNull,
-      2: this.parseFloat64,
-      3: this.parseBigInt64,
-      4: this.parseString,
-      5: this.parseExternalReference,
-      6: this.parseFloat32,
-      7: this.parseTrue,
-      8: this.parseFalse,
-      9: this.parseFloat64Array,
-      10: this.parseUint32Array,
+      0: this.parseUndefined.bind(this),
+      1: this.parseNull.bind(this),
+      2: this.parseFloat64.bind(this),
+      3: this.parseBigInt64.bind(this),
+      4: this.parseString.bind(this),
+      5: this.parseExternalReference.bind(this),
+      6: this.parseFloat32.bind(this),
+      7: this.parseTrue.bind(this),
+      8: this.parseFalse.bind(this),
+      9: this.parseFloat64Array.bind(this),
+      10: this.parseUint32Array.bind(this),
     };
-  }
-
-  get_parser(parameter_type_id) {
-    const parser = this.parsers[parameter_type_id];
-    if (parser in [undefined, null]) {
-      throw new Error(
-        "Invalid parameter_type id provided: ",
-        parameter_type_id,
-      );
-    }
-    return parser;
   }
 
   parse_array(start, length) {
     const parameter_buffer = this.operator.readUint8Array(start, length);
-    console.debug("read_parameters: ", parameters, start, length);
+    LOGGER.debug("parse_array:start ", start, length, parameter_buffer);
 
     const converted_values = [];
+    let index = 0;
     while (index < parameter_buffer.length) {
+      const parameter_type = parameter_buffer[index];
+
+      // increment index since we read from table
       index += 1;
 
-      const parameter_type = parameter_buffer[index];
       const parser = this.get_parser(parameter_type);
-
       const [move_index_by, should_break] = parser(
         index,
         converted_values,
@@ -609,8 +869,19 @@ class ParameterParserV1 {
       if (should_break) break;
     }
 
-    console.debug("Read parameters: ", converted_values);
+    LOGGER.debug("parse_array:end: ", converted_values);
     return converted_values;
+  }
+
+  get_parser(parameter_type_id) {
+    const parser = this.parsers[parameter_type_id];
+    if (isUndefinedOrNull(parser)) {
+      throw new Error(
+        "Invalid parameter_type id provided: ",
+        parameter_type_id,
+      );
+    }
+    return parser;
   }
 
   parseUndefined(index, read_values_list, parameter_buffer) {
@@ -626,13 +897,13 @@ class ParameterParserV1 {
   parseFloat64(index, read_values_list, parameter_buffer) {
     const view = new DataView(parameter_buffer.buffer).getFloat64(index, true);
     read_values_list.push(view);
-    return [MOVE_INDEX_BY_64BIT, false];
+    return [Move.MOVE_BY_64_BYTES, false];
   }
 
   parseBigInt64(index, read_values_list, parameter_buffer) {
     const view = new DataView(parameter_buffer.buffer).getBigInt64(index, true);
     read_values_list.push(view);
-    return [MOVE_INDEX_BY_64BIT, false];
+    return [Move.MOVE_BY_64_BYTES, false];
   }
 
   parseString(index, read_values_list, parameter_buffer) {
@@ -644,13 +915,13 @@ class ParameterParserV1 {
       start_index,
       true,
     );
-    start_index += MOVE_INDEX_BY_32BITS;
+    start_index += Move.MOVE_BY_32_BYTES;
 
     const length = new DataView(parameter_buffer.buffer).getInt32(
       start_index,
       true,
     );
-    start_index += MOVE_INDEX_BY_32BITS;
+    start_index += Move.MOVE_BY_32_BYTES;
 
     const data = this.texts.readUTF8FromMemory(start, length);
     read_values_list.push(data);
@@ -664,7 +935,7 @@ class ParameterParserV1 {
       true,
     );
     read_values_list.push(ARENA.get(handle_uid));
-    return [MOVE_INDEX_BY_64BIT, false];
+    return [Move.MOVE_BY_64_BYTES, false];
   }
 
   parseFloat32(index, read_values_list, parameter_buffer) {
@@ -674,13 +945,13 @@ class ParameterParserV1 {
       start_index,
       true,
     );
-    start_index += MOVE_INDEX_BY_32BITS;
+    start_index += Move.MOVE_BY_32_BYTES;
 
     const length = new DataView(parameter_buffer.buffer).getInt32(
       start_index,
       true,
     );
-    start_index += MOVE_INDEX_BY_32BITS;
+    start_index += Move.MOVE_BY_32_BYTES;
 
     const memory = memory_ops.get_memory();
     const slice = memory.buffer.slice(start, start + length * 4);
@@ -706,10 +977,10 @@ class ParameterParserV1 {
     // 9 = array of Float64 from wasm memory (followed by 32-bit start and size of string in memory)
     let start_index = index;
     const start = new DataView(parameter_buffer).getInt32(start_index, true);
-    start_index += MOVE_INDEX_BY_32BITS;
+    start_index += Move.MOVE_BY_32_BYTES;
 
     const length = new DataView(parameter_buffer).getInt32(start_index, true);
-    start_index += MOVE_INDEX_BY_32BITS;
+    start_index += Move.MOVE_BY_32_BYTES;
 
     const memory = memory_ops.get_memory();
     const slice = memory.buffer.slice(start, start + length * 4);
@@ -723,10 +994,10 @@ class ParameterParserV1 {
     // 10 = array of Uint32 from wasm memory (followed by 32-bit start and size of string in memory)
     let start_index = index;
     const start = new DataView(parameter_buffer).getInt32(start_index, true);
-    start_index += MOVE_INDEX_BY_32BITS;
+    start_index += Move.MOVE_BY_32_BYTES;
 
     const length = new DataView(parameter_buffer).getInt32(start_index, true);
-    start_index += MOVE_INDEX_BY_32BITS;
+    start_index += Move.MOVE_BY_32_BYTES;
 
     const memory = memory_ops.get_memory();
     const slice = memory.buffer.slice(start, start + length * 4);
@@ -737,10 +1008,105 @@ class ParameterParserV1 {
   }
 }
 
-const ALLOWED_UTF8_INDICATOR = [8, 16];
+class ParameterParserV2 {
+  constructor(memory_operator, text_codec) {
+    if (!(memory_operator instanceof MemoryOperator)) {
+      throw new Error("Must be instance of MemoryOperator");
+    }
+    if (!(text_codec instanceof TextCodec)) {
+      throw new Error("Must be instance of TextCodec");
+    }
+
+    this.texts = text_codec;
+    this.operator = memory_operator;
+    this.module = memory_operator.get_module();
+  }
+
+  parse_array(view) {
+    if (!(view instanceof DataView)) {
+      throw new Error(
+        "Argument must be a DataView scoped to the area you want parsed",
+      );
+    }
+
+    const parameters = [];
+
+    let read_index = 0;
+
+    while (index < view.length) {
+      // validate we see begin marker
+      if (view.getUint8(read_index) != ArgumentOperations.Begin) {
+        throw new Error("Argument did not start with ArgumentOperation.Start");
+      }
+      read_index += Move.MOVE_BY_8_BITS;
+
+      const value_type = view.getUint8(read_index);
+
+      let move_by = 0;
+      let parameter = null;
+      switch (value_type) {
+        case Params.Undefined:
+          [move_by, parameter] = this.parseUndefined(read_index, view);
+          break;
+        case Params.Null:
+          [move_by, parameter] = this.parseNull(read_index, view);
+          break;
+        default:
+          throw new Error(`ArgumentType with key: ${value_type} not supported`);
+      }
+
+      LOGGER.debug("Read parameter type: ", value_type, move_by, parameter);
+      parameters.push(parameter);
+      read_index += move_by;
+
+      // validate we see end marker
+      if (view.getUint8(read_index) != ArgumentOperations.End) {
+        throw new Error("Argument did not start with ArgumentOperation.Start");
+      }
+      read_index += Move.MOVE_BY_8_BITS;
+    }
+  }
+
+  parseNull(from_index, view) {
+    const value_type = view.getUint8(from_index);
+    if (value_type != Params.Undefined) {
+      throw new Error(
+        `Parameter is not that of Undefined: received ${value_type}`,
+      );
+    }
+
+    return [Move.MOVE_BY_8_BITS, [null]];
+  }
+
+  parseUndefined(from_index, memory_buffer) {
+    const value_type = view.getUint8(from_index);
+    if (value_type != Params.Undefined) {
+      throw new Error(
+        `Parameter is not that of Undefined: received ${value_type}`,
+      );
+    }
+
+    return [Move.MOVE_BY_8_BITS, [undefined]];
+  }
+}
 
 class FunctionMiddlewareV1 {
-  constructor(wasm_module) {
+  constructor() {
+    this.functions = [];
+
+    // heap for DOM objects
+    this.heap = null;
+    this.module = null;
+
+    // text decoders and memory ops
+    this.texts = null;
+    this.operator = null;
+
+    // function parameters
+    this.parameter = null;
+  }
+
+  init(wasm_module) {
     this.functions = [];
     this.module = wasm_module;
 
@@ -748,11 +1114,28 @@ class FunctionMiddlewareV1 {
     this.heap = new DOMArena();
 
     // text decoders and memory ops
-    this.operator = MemoryOperator(this.module);
-    this.texts = TextCodec(this.operator);
+    this.operator = new MemoryOperator(this.module);
+    this.texts = new TextCodec(this.operator);
 
     // function parameters
-    this.parameter = ParameterParserV1(this.operator, this.texts);
+    this.parameter = new ParameterParserV1(this.operator, this.texts);
+  }
+
+  get mappings() {
+    return {
+      abort: this.abort,
+      drop_external_reference: this.drop_external_reference.bind(this),
+      js_register_function: this.js_register_function.bind(this),
+      js_invoke_function: this.js_invoke_function.bind(this),
+      js_invoke_function_and_return_object:
+        this.js_invoke_function_and_return_object.bind(this),
+      js_invoke_function_and_return_bool:
+        this.js_invoke_function_and_return_bool.bind(this),
+      js_invoke_function_and_return_bigint:
+        this.js_invoke_function_and_return_bigint.bind(this),
+      js_invoke_function_and_return_string:
+        this.js_invoke_function_and_return_string.bind(this),
+    };
   }
 
   abort() {
@@ -764,7 +1147,7 @@ class FunctionMiddlewareV1 {
   }
 
   js_register_function(start, length, utf_indicator) {
-    console.debug(
+    LOGGER.debug(
       "Register function: ",
       start,
       length,
@@ -778,11 +1161,14 @@ class FunctionMiddlewareV1 {
       throw new Error("Unsupported UTF indicator (only 8 or 16)");
     }
 
+    start = Number(start);
+    length = Number(length);
+
     if (utf_indicator === 16) {
-      function_body = this.texts.read_utf16(start, length);
+      function_body = this.texts.readUTF16FromMemory(start, length);
     }
     if (utf_indicator === 8) {
-      function_body = this.texts.read_utf8(start, length);
+      function_body = this.texts.readUTF8FromMemory(start, length);
     }
     if (!function_body) throw new Error("Function body must be supplied");
 
@@ -804,9 +1190,15 @@ class FunctionMiddlewareV1 {
       throw new Error("No parameters returned though we expect some");
 
     const func = this.functions[handle];
-    console.debug("FuncHandleFunc: ", handle, func);
 
-    return func.call(runtime, ...parameters);
+    const response = func.call(this, ...parameters);
+    if (isUndefinedOrNull(response)) {
+      return BigInt(0);
+    }
+    if (typeof response === "BigInt") {
+      return response;
+    }
+    return BigInt(response);
   }
 
   js_invoke_function_and_return_object(
@@ -903,14 +1295,13 @@ class WASMLoader {
           compileOptions,
         );
 
-        loader.module = await loader.loadURL(script.url);
-        instantiated.push(instance);
+        instantiated.push(loader.loadURL(script.url));
       } else {
         console.error("Properly must have 'url' property.", script);
       }
     }
 
-    return instantiated;
+    return await Promise.all(instantiated);
   }
 
   constructor(initial_memory, maximum_memory, environment, compileOptions) {
@@ -922,15 +1313,15 @@ class WASMLoader {
     this.initial_memory = initial_memory;
     this.maximum_memory = maximum_memory;
     this.compiled_options = compileOptions;
+
+    this.parser_v1 = new FunctionMiddlewareV1();
     this.memory = new WebAssembly.Memory({
       initial: initial_memory,
       maximum: maximum_memory,
     });
 
     this.env = {
-      data: {},
-      refs: {},
-      funcs: {},
+      v1: this.parser_v1.mappings,
       ...environment,
     };
   }
@@ -942,37 +1333,37 @@ class WASMLoader {
     return this.module.instance.exports.main();
   }
 
-  _setup_module(module) {
-    if (!(module instanceof WebAssembly.Instance)) {
+  #setup_module(module) {
+    if (!(module.instance instanceof WebAssembly.Instance)) {
       throw new Error("Module must be an instance of WebAssembly.Instance");
     }
-    this.module = module;
-    this.parser_v1 = FunctionMiddlewareV1(this.module);
 
-    // add parser to v1
-    this.env.v1 = this.parser_v1;
+    this.module = module;
+    this.parser_v1.init(module);
   }
 
   async loadURL(wasm_url) {
-    this._setup_module(
-      await WASMLoader.loadWASMURL(
-        wasm_url,
-        this.memory,
-        this.env,
-        this.compiled_options,
-      ),
-    );
+    await WASMLoader.loadWASMURL(
+      wasm_url,
+      this.memory,
+      this.env,
+      this.compiled_options,
+    ).then((module) => {
+      this.#setup_module(module);
+    });
+    return this;
   }
 
   async loadBytes(wasm_bytes) {
-    this._setup_module(
-      await WASMLoader.loadWASMBytes(
-        wasm_bytes,
-        this.memory,
-        this.env,
-        this.compiled_options,
-      ),
-    );
+    await WASMLoader.loadWASMBytes(
+      wasm_bytes,
+      this.memory,
+      this.env,
+      this.compiled_options,
+    ).then((module) => {
+      this.#setup_module(module);
+    });
+    return this;
   }
 
   static async loadWASMBytes(wasm_bytes, memory, environment, compileOptions) {
@@ -980,8 +1371,8 @@ class WASMLoader {
       false,
       wasm_bytes,
       compileOptions,
-      memory,
       environment,
+      memory,
     );
   }
 
@@ -991,8 +1382,8 @@ class WASMLoader {
       true,
       wasm_response,
       compileOptions,
-      memory,
       environment,
+      memory,
     );
   }
 
@@ -1085,6 +1476,7 @@ class WasmWebScripts {
   // scripts with type=`application/wasm` and execute main function.
   async runAll() {
     this.modules.then((modules) => {
+      LOGGER.debug("Loaded Modules: ", modules);
       modules.forEach((instance) => {
         instance.run();
       });

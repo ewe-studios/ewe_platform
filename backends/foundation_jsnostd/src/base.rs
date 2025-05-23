@@ -31,8 +31,8 @@ pub enum ValueTypes {
     Float32ArrayBuffer = 24,
     Float64ArrayBuffer = 25,
     InternalReference = 26,
-    Int128,
-    Uint128,
+    Int128 = 27,
+    Uint128 = 28,
 }
 
 #[allow(clippy::from_over_into)]
