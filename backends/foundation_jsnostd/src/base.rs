@@ -949,7 +949,7 @@ pub mod value_quantitzation {
     /// [`qpointer`] attempts to quantize a pointer value expressed as either
     /// a u8, u16, u32 or u64 depending on the range the pointer value falls under.
     pub fn qpointer(ptr: *const u8) -> (Vec<u8>, TypeOptimization) {
-        match ptr as u128 {
+        match ptr as u64 {
             0..=255 => {
                 let as_bit = ptr as u8;
                 let as_bit_bytes = as_bit.to_le_bytes();
@@ -967,14 +967,15 @@ pub mod value_quantitzation {
 
                 (as_bit_bytes.to_vec(), TypeOptimization::QuantizedPtrAsU32)
             }
-            4294967296..=18446744073709551615 => {
-                let ptr_as_u64 = ptr as u64;
-                let as_bit_bytes = ptr_as_u64.to_le_bytes();
-
-                (as_bit_bytes.to_vec(), TypeOptimization::QuantizedPtrAsU64)
-            }
+            // By default we already expecting a U64 pointer (maybe one-day it might become a u129)
+            // 4294967296..=18446744073709551615 => {
+            //     let ptr_as_u64 = ptr as u64;
+            //     let as_bit_bytes = ptr_as_u64.to_le_bytes();
+            //
+            //     (as_bit_bytes.to_vec(), TypeOptimization::QuantizedPtrAsU64)
+            // }
             _ => {
-                let ptr_as_u64 = ptr as u128;
+                let ptr_as_u64 = ptr as u64;
                 let as_bit_bytes = ptr_as_u64.to_le_bytes();
 
                 (as_bit_bytes.to_vec(), TypeOptimization::None)
