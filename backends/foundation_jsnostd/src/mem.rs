@@ -89,6 +89,7 @@ impl MemoryAllocation {
         }
     }
 
+    #[inline]
     pub fn apply<F>(&self, f: F)
     where
         F: FnOnce(&mut Vec<u8>),
@@ -99,9 +100,19 @@ impl MemoryAllocation {
         }
     }
 
+    #[inline]
+    pub fn as_address(&self) -> MemoryAllocationResult<(*const u8, u64)> {
+        let memory = self.memory.lock();
+        match memory.as_ref() {
+            Some(mem) => Ok((mem.as_ptr(), mem.len() as u64)),
+            None => Err(MemoryAllocationError::NoMemoryAllocation),
+        }
+    }
+
     /// [`get_pointer`] returns the address of the memory
     /// location if it is still valid else throws a panic
     /// as we want this to always be safe.
+    #[inline]
     pub fn get_pointer(&self) -> MemoryAllocationResult<*const u8> {
         let memory = self.memory.lock();
         match memory.as_ref() {
@@ -110,6 +121,7 @@ impl MemoryAllocation {
         }
     }
 
+    #[inline]
     pub fn capacity(&self) -> MemoryAllocationResult<u64> {
         let memory = self.memory.lock();
         match memory.as_ref() {
@@ -118,6 +130,7 @@ impl MemoryAllocation {
         }
     }
 
+    #[inline]
     pub fn len(&self) -> MemoryAllocationResult<u64> {
         let memory = self.memory.lock();
         match memory.as_ref() {
@@ -126,6 +139,7 @@ impl MemoryAllocation {
         }
     }
 
+    #[inline]
     pub fn reset(&self) {
         let mut memory = self.memory.lock();
         if let Some(mem) = memory.as_mut() {
@@ -135,6 +149,7 @@ impl MemoryAllocation {
         memory.replace(Vec::new());
     }
 
+    #[inline]
     #[allow(clippy::slow_vector_initialization)]
     pub fn reset_to(&self, new_capacity: usize) {
         let mut memory = self.memory.lock();
@@ -152,6 +167,7 @@ impl MemoryAllocation {
         memory.replace(new_mem);
     }
 
+    #[inline]
     pub fn is_empty(&self) -> MemoryAllocationResult<bool> {
         let mut memory = self.memory.lock();
         if let Some(mem) = memory.as_mut() {
@@ -160,6 +176,7 @@ impl MemoryAllocation {
         Err(MemoryAllocationError::NoMemoryAllocation)
     }
 
+    #[inline]
     pub fn clear(&self) -> MemoryAllocationResult<()> {
         let mut memory = self.memory.lock();
         if let Some(mem) = memory.as_mut() {
@@ -169,11 +186,13 @@ impl MemoryAllocation {
         Err(MemoryAllocationError::NoMemoryAllocation)
     }
 
+    #[inline]
     pub fn is_valid_memory(&self) -> bool {
         let memory = self.memory.lock();
         memory.as_ref().is_some()
     }
 
+    #[inline]
     pub fn clone_memory(&self) -> MemoryAllocationResult<Vec<u8>> {
         let memory = self.memory.lock();
         match memory.as_ref() {
@@ -182,10 +201,12 @@ impl MemoryAllocation {
         }
     }
 
+    #[inline]
     pub fn vec_from_memory(&self) -> MemoryAllocationResult<Vec<u8>> {
         self.clone_memory()
     }
 
+    #[inline]
     pub fn string_from_memory(&self) -> MemoryAllocationResult<String> {
         let mut memory = self.memory.lock();
         if let Some(mem) = memory.as_mut() {
@@ -200,6 +221,7 @@ impl MemoryAllocation {
     /// [`take`] allows you to both de-allocate the
     /// giving memory allocation and own the underlying
     /// memory slice either for dropping or usage.
+    #[inline]
     pub fn take(&mut self) -> Option<Vec<u8>> {
         let mut memory = self.memory.lock();
         memory.take()

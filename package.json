@@ -1,0 +1,22 @@
+{
+  "name": "ewe_platform",
+  "version": "1.0.0",
+  "description": "A series of crates providing different functionality and binaries for projects.",
+  "main": "assets/index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ewe-studios/ewe_platform.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ewe-studios/ewe_platform/issues"
+  },
+  "homepage": "https://github.com/ewe-studios/ewe_platform#readme"
+}
