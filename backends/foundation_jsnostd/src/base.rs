@@ -558,27 +558,27 @@ pub enum TypeOptimization {
     QuantizedUint64AsU32 = 12,
 
     // optimize floats
-    QuantizedF64AsF32 = 17,
-    QuantizedF128AsF32 = 18,
-    QuantizedF128AsF64 = 19,
+    QuantizedF64AsF32 = 13,
+    QuantizedF128AsF32 = 14,
+    QuantizedF128AsF64 = 15,
 
     // optimize i128 bits
-    QuantizedInt128AsI8 = 20,
-    QuantizedInt128AsI16 = 21,
-    QuantizedInt128AsI32 = 22,
-    QuantizedInt128AsI64 = 23,
+    QuantizedInt128AsI8 = 16,
+    QuantizedInt128AsI16 = 17,
+    QuantizedInt128AsI32 = 18,
+    QuantizedInt128AsI64 = 19,
 
     // optimize u128 bits
-    QuantizedUint128AsU8 = 24,
-    QuantizedUint128AsU16 = 25,
-    QuantizedUint128AsU32 = 26,
-    QuantizedUint128AsU64 = 27,
+    QuantizedUint128AsU8 = 20,
+    QuantizedUint128AsU16 = 21,
+    QuantizedUint128AsU32 = 22,
+    QuantizedUint128AsU64 = 23,
 
     // optimize pointers bits
-    QuantizedPtrAsU8 = 28,
-    QuantizedPtrAsU16 = 29,
-    QuantizedPtrAsU32 = 30,
-    QuantizedPtrAsU64 = 31,
+    QuantizedPtrAsU8 = 24,
+    QuantizedPtrAsU16 = 25,
+    QuantizedPtrAsU32 = 26,
+    QuantizedPtrAsU64 = 27,
 }
 
 #[allow(clippy::from_over_into)]
@@ -766,7 +766,7 @@ pub mod value_quantitzation {
                 )
             }
             -9223372036854775808..=-2147483649 | 2147483648..=9223372036854775807 => {
-                let as_bit = value as u64;
+                let as_bit = value as i64;
                 let as_bit_bytes = as_bit.to_le_bytes();
 
                 (
@@ -775,8 +775,20 @@ pub mod value_quantitzation {
                 )
             }
             _ => {
-                let as_bit_bytes = value.to_le_bytes();
-                (as_bit_bytes.to_vec(), TypeOptimization::None)
+                // get the MSB by shifting right 64 bits
+                let value_msb: i64 = (value >> 64) as i64;
+
+                // get the LSB by truncating to i64
+                let value_lsb: i64 = value as i64;
+
+                let msb_bytes = value_msb.to_le_bytes();
+                let lsb_bytes = value_lsb.to_le_bytes();
+
+                let mut content = Vec::with_capacity(msb_bytes.len() + lsb_bytes.len());
+                content.extend_from_slice(&msb_bytes);
+                content.extend_from_slice(&lsb_bytes);
+
+                (content, TypeOptimization::None)
             }
         }
     }
@@ -916,8 +928,20 @@ pub mod value_quantitzation {
                 )
             }
             _ => {
-                let as_bit_bytes = value.to_le_bytes();
-                (as_bit_bytes.to_vec(), TypeOptimization::None)
+                // get the MSB by shifting right 64 bits
+                let value_msb = (value >> 64) as u64;
+
+                // get the LSB by truncating to u64
+                let value_lsb = value as u64;
+
+                let msb_bytes = value_msb.to_le_bytes();
+                let lsb_bytes = value_lsb.to_le_bytes();
+
+                let mut content = Vec::with_capacity(msb_bytes.len() + lsb_bytes.len());
+                content.extend_from_slice(&msb_bytes);
+                content.extend_from_slice(&lsb_bytes);
+
+                (content, TypeOptimization::None)
             }
         }
     }

@@ -1,6 +1,8 @@
 #![allow(unused_imports)]
 
-use foundation_jsnostd::{self, exposed_runtime, host_runtime, Params};
+use foundation_jsnostd::{
+    self, exposed_runtime, host_runtime, internal_api, ExternalPointer, Params,
+};
 
 use foundation_nostd::*;
 
@@ -14,4 +16,22 @@ extern "C" fn main() {
     );
 
     console_log.invoke(&[Params::Text8("Hello from intro")]);
+
+    let console_log_id = host_runtime::api_v2::preallocate_func_external_reference();
+    let instructions = internal_api::create_instructions(100, 100);
+    instructions
+        .register_function(
+            console_log_id,
+            "
+        function(message){
+            console.log(message);
+        }",
+        )
+        .expect("should encode correctly");
+
+    instructions
+        .invoke_no_return_function(console_log_id, Some(&[Params::Text8("Hello from intro")]))
+        .expect("should register call");
+
+    host_runtime::api_v2::send_instructions(instructions);
 }

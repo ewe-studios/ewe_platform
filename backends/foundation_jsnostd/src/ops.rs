@@ -1721,6 +1721,25 @@ mod params_tests {
     }
 }
 
+/// [`MemoryPointer`] holds references memory ids for both text and operations.
+pub struct MemoryPointer(MemoryId, MemoryId);
+
+impl MemoryPointer {
+    pub(crate) fn new(texts: MemoryId, ops: MemoryId) -> Self {
+        Self(texts, ops)
+    }
+
+    /// [`text_id`] returns the `MemoryId` for the text data.
+    pub fn text_id(&self) -> MemoryId {
+        self.0.clone()
+    }
+
+    /// [`ops_id`] returns the `MemoryId` for the operations data.
+    pub fn ops_id(&self) -> MemoryId {
+        self.1.clone()
+    }
+}
+
 /// [`Instructions`] is a one batch set writer, meaning it encodes a single
 /// batch of instruction marked by a [`Operations::Begin`] and [`Operations::Stop`]
 /// markers when the [`Instructions::end`] is called.
@@ -1774,6 +1793,46 @@ impl Instructions {
             });
         }
         Ok(())
+    }
+}
+
+// --- Memory length and pointer
+
+impl Instructions {
+    /// [`operations_pointer`] returns the address and lenth of the memory allocation
+    /// used for encoding operations
+    pub fn operations_pointer(&self) -> MemoryWriterResult<(*const u8, u64)> {
+        match &self.mem {
+            Some((ops, _)) => Ok(ops.as_address()?),
+            None => Err(MemoryWriterError::UnexpectedFreeState),
+        }
+    }
+
+    /// [`text_pointer`] returns the address and lenth of the memory allocation
+    /// used for encoding operations
+    pub fn text_pointer(&self) -> MemoryWriterResult<(*const u8, u64)> {
+        match &self.mem {
+            Some((_, texts)) => Ok(texts.as_address()?),
+            None => Err(MemoryWriterError::UnexpectedFreeState),
+        }
+    }
+}
+
+// --- MemoryIds
+
+impl Instructions {
+    pub fn pointer(&self) -> MemoryPointer {
+        MemoryPointer::new(self.text_id.clone(), self.ops_id.clone())
+    }
+
+    /// [`text_id`] returns the `MemoryId` for the text data.
+    pub fn text_id(&self) -> MemoryId {
+        self.text_id.clone()
+    }
+
+    /// [`ops_id`] returns the `MemoryId` for the operations data.
+    pub fn ops_id(&self) -> MemoryId {
+        self.ops_id.clone()
     }
 }
 
@@ -1975,8 +2034,11 @@ impl<'a> Batchable<'a> for ExternalPointer {
 }
 
 impl Instructions {
-    /// [`register_function`] is immediate and will call end which will flush
-    /// the batch into the underlying Operations.
+    /// [`register_function`] allows you register a function to
+    /// a specific `ExternalPointer` that is allocated for it's use.
+    ///
+    /// This allows you have a specific handle you can always use to
+    /// call the specific function always.
     pub fn register_function(
         &self,
         allocated_handle: ExternalPointer,

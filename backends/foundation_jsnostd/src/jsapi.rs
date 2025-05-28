@@ -6,8 +6,8 @@ use alloc::vec::Vec;
 use foundation_nostd::{raw_parts::RawParts, spin::Mutex};
 
 use crate::{
-    ExternalPointer, InternalCallback, InternalPointer, InternalReferenceRegistry, JSEncoding,
-    MemoryAllocations, Params, ToBinary,
+    ExternalPointer, Instructions, InternalCallback, InternalPointer, InternalReferenceRegistry,
+    JSEncoding, MemoryAllocations, Params, ToBinary,
 };
 
 static INTERNAL_CALLBACKS: Mutex<InternalReferenceRegistry> = InternalReferenceRegistry::create();
@@ -16,8 +16,22 @@ static ALLOCATIONS: Mutex<MemoryAllocations> = Mutex::new(MemoryAllocations::new
 
 pub type JSAllocationId = u64;
 
+/// [`internal_api`] are internal methods, structs, and surfaces that provide core functionalities
+/// that we support or that allows making or preparing data to be sent-out or sent-across the API.
+///
+/// You should never place a function in here that needs to be exposed to the host or host function
+/// we want to define but instead use the [`exposed_runtime`] or [`host_runtime`] modules.
 pub mod internal_api {
     use super::*;
+
+    // -- Instruction methods
+
+    pub fn create_instructions(text_size: u64, operation_size: u64) -> Instructions {
+        ALLOCATIONS
+            .lock()
+            .batch_for(text_size, operation_size, true)
+            .expect("should create allocated memory slot")
+    }
 
     // -- callback methods
 
@@ -72,6 +86,9 @@ pub mod internal_api {
     }
 }
 
+/// [`exposed_runtime`] are the underlying functions we expose to the host from
+/// the system. These are functions the runtime exposes to the host to be able
+/// to make calls into the system or triggering processes.
 pub mod exposed_runtime {
     use super::*;
 
@@ -125,30 +142,91 @@ pub mod exposed_runtime {
 }
 
 /// [`host_runtime`] is the expected interface which the JS/Host
-/// must provide and related wrapper functions that make that interaction
-/// simpler.
+/// must provide for use with wrapper functions that make it simple
+/// and easier to interact with.
 #[allow(unused)]
 pub mod host_runtime {
     use super::*;
 
-    pub const JS_UNDEFINED: ExternalPointer = ExternalPointer::pointer(0);
-    pub const JS_NULL: ExternalPointer = ExternalPointer::pointer(1);
-    pub const DOM_SELF: ExternalPointer = ExternalPointer::pointer(2);
+    pub const DOM_SELF: ExternalPointer = ExternalPointer::pointer(0);
+    pub const DOM_THIS: ExternalPointer = ExternalPointer::pointer(1);
+    pub const DOM_WINDOW: ExternalPointer = ExternalPointer::pointer(2);
     pub const DOM_DOCUMENT: ExternalPointer = ExternalPointer::pointer(3);
-    pub const DOM_WINDOW: ExternalPointer = ExternalPointer::pointer(4);
-    pub const DOM_BODY: ExternalPointer = ExternalPointer::pointer(5);
-    pub const JS_FALSE: ExternalPointer = ExternalPointer::pointer(6);
-    pub const JS_TRUE: ExternalPointer = ExternalPointer::pointer(7);
+    pub const DOM_BODY: ExternalPointer = ExternalPointer::pointer(4);
 
     // -- Data Information
     pub mod api_v2 {
+        use super::*;
+
         #[link(wasm_import_module = "v2")]
         extern "C" {
-            // [apply_batch] takes a location in memory that has a batch of operations
+            // [`apply_instructions`] takes a location in memory that has a batch of operations
             // which match the [`crate::Operations`] outlined in the batching API the
             // runtime supports, allowing us amortize the cost of doing bulk processing on
             // the wasm and host boundaries.
-            pub fn apply_batch(allocation_start: u64, allocation_end: u64);
+            pub fn apply_instructions(
+                operation_pointer: u64,
+                operation_length: u64,
+                text_pointer: u64,
+                text_length: u64,
+            );
+
+            /// [`function_allocate_external_pointer`] allows you to ahead of time request the
+            /// allocation of an external reference id unique for a function and unreusable by anyone else
+            /// you the owner. This allows you get an id you would use later in the future to register
+            /// for usage later.
+            pub fn function_allocate_external_pointer() -> u64;
+
+            /// [`object_allocate_external_pointer`] allows you to ahead of time request the
+            /// allocation of an external reference id unique for an object and unreusable by anyone else
+            /// you the owner. This allows you get an id you would use later in the future to register
+            /// for usage later.
+            pub fn object_allocate_external_pointer() -> u64;
+
+            /// [`dom_allocate_external_pointer`] allows you to ahead of time request the
+            /// allocation of an external reference id unique for a dom node and unreusable by anyone else
+            /// you the owner. This allows you get an id you would use later in the future to register
+            /// for usage later.
+            pub fn dom_allocate_external_pointer() -> u64;
+        }
+
+        /// [`preallocate_dom_external_reference`] requests the host runtime to pre-allocate
+        /// a target external reference for usage by the caller for a dom node.
+        pub fn preallocate_dom_external_reference() -> ExternalPointer {
+            unsafe {
+                ExternalPointer::pointer(host_runtime::api_v2::dom_allocate_external_pointer())
+            }
+        }
+
+        /// [`preallocate_func_external_reference`] requests the host runtime to pre-allocate
+        /// a target external reference for usage by the caller for a function.
+        pub fn preallocate_func_external_reference() -> ExternalPointer {
+            unsafe {
+                ExternalPointer::pointer(host_runtime::api_v2::function_allocate_external_pointer())
+            }
+        }
+
+        /// [`preallocate_object_external_reference`] requests the host runtime to pre-allocate
+        /// a target external reference for usage by the caller for an object.
+        pub fn preallocate_object_external_reference() -> ExternalPointer {
+            unsafe {
+                ExternalPointer::pointer(host_runtime::api_v2::object_allocate_external_pointer())
+            }
+        }
+
+        /// [`send_instructions`] sends a list of instructions to the host runtime.
+        pub fn send_instructions(instruction: Instructions) {
+            let (ops_pointer, ops_length) =
+                instruction.operations_pointer().expect("get ops address");
+            let (text_pointer, text_length) = instruction.text_pointer().expect("get text address");
+            unsafe {
+                host_runtime::api_v2::apply_instructions(
+                    ops_pointer as u64,
+                    ops_length,
+                    text_pointer as u64,
+                    text_length,
+                )
+            }
         }
     }
 
