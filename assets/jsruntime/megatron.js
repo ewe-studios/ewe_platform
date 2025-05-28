@@ -1120,31 +1120,122 @@ class ParameterParserV2 {
     return [from_index, [undefined]];
   }
 
+  parseParam(from_index, view) {
+    const value_type = view.getUint8(from_index);
+    if (!(value_type in Params.__INVERSE__)) {
+      throw new Error(`Params ${value_type} is not known`);
+    }
+
+    from_index += Move.MOVE_BY_1_BYTES;
+
+    const optimization_type = view.getUint8(from_index);
+    if (!(optimization_type in TypeOptimization.__INVERSE__)) {
+      throw new Error(
+        `OptimizationType ${optimization_type} is not known for value_type: ${value_type}`,
+      );
+    }
+
+    switch (value_type) {
+      case Null:
+        break;
+      case Undefined:
+        break;
+      case Bool:
+        break;
+      case Text8:
+        break;
+      case Text16:
+        break;
+      case Int8:
+        break;
+      case Int16:
+        break;
+      case Int32:
+        break;
+      case Int64:
+        break;
+      case Uint8:
+        break;
+      case Uint16:
+        break;
+      case Uint32:
+        break;
+      case Uint64:
+        break;
+      case Float32:
+        break;
+      case Float64:
+        break;
+      case ExternalReference:
+        break;
+      case Uint8ArrayBuffer:
+        break;
+      case Uint16ArrayBuffer:
+        break;
+      case Uint32ArrayBuffer:
+        break;
+      case Uint64ArrayBuffer:
+        break;
+      case Int8ArrayBuffer:
+        break;
+      case Int16ArrayBuffer:
+        break;
+      case Int32ArrayBuffer:
+        break;
+      case Int64ArrayBuffer:
+        break;
+      case Float32ArrayBuffer:
+        break;
+      case Float64ArrayBuffer:
+        break;
+      case InternalReference:
+        break;
+      case Int128:
+        break;
+      case Uint129:
+        break;
+    }
+  }
+
   parseTypeOptimizatedPtr(from_index, value_type, view) {
     const optimization_type = view.getUint8(from_index);
     if (!(optimization_type in TypeOptimization.__INVERSE__)) {
-      throw new Error(`OptimizationType ${optimization_type} is not known`);
+      throw new Error(
+        `OptimizationType ${optimization_type} is not known for value_type: ${value_type}`,
+      );
     }
+
+    from_index += Move.MOVE_BY_1_BYTES;
 
     switch (optimization_type) {
       case TypeOptimization.None:
-        break;
+        return [
+          from_index + Move.MOVE_BY_64_BYTES,
+          view.getBigUint64(from_index),
+        ];
       case TypeOptimization.QuantizedPtrAsU8:
-        break;
+        return [from_index + Move.MOVE_BY_1_BYTES, view.getUint8(from_index)];
       case TypeOptimization.QuantizedPtrAsU16:
-        break;
+        return [from_index + Move.MOVE_BY_16_BYTES, view.getUint16(from_index)];
       case TypeOptimization.QuantizedPtrAsU32:
-        break;
+        return [from_index + Move.MOVE_BY_32_BYTES, view.getUint32(from_index)];
       case TypeOptimization.QuantizedPtrAsU64:
-        break;
+        return [
+          from_index + Move.MOVE_BY_64_BYTES,
+          view.getBigUint64(from_index),
+        ];
     }
   }
 
   parseTypeOptimizatedNumber16(from_index, value_type, view) {
     const optimization_type = view.getUint8(from_index);
     if (!(optimization_type in TypeOptimization.__INVERSE__)) {
-      throw new Error(`OptimizationType ${optimization_type} is not known`);
+      throw new Error(
+        `OptimizationType ${optimization_type} is not known for value_type: ${value_type}`,
+      );
     }
+
+    from_index += Move.MOVE_BY_1_BYTES;
 
     switch (optimization_type) {
       case TypeOptimization.None:
@@ -1165,7 +1256,9 @@ class ParameterParserV2 {
   parseTypeOptimizatedNumber64(from_index, value_type, view) {
     const optimization_type = view.getUint8(from_index);
     if (!(optimization_type in TypeOptimization.__INVERSE__)) {
-      throw new Error(`OptimizationType ${optimization_type} is not known`);
+      throw new Error(
+        `OptimizationType ${optimization_type} is not known for value_type: ${value_type}`,
+      );
     }
 
     from_index += Move.MOVE_BY_1_BYTES;
@@ -1200,7 +1293,9 @@ class ParameterParserV2 {
   parseTypeOptimizatedNumber32(from_index, value_type, view) {
     const optimization_type = view.getUint8(from_index);
     if (!(optimization_type in TypeOptimization.__INVERSE__)) {
-      throw new Error(`OptimizationType ${optimization_type} is not known`);
+      throw new Error(
+        `OptimizationType ${optimization_type} is not known for value_type: ${value_type}`,
+      );
     }
 
     from_index += Move.MOVE_BY_1_BYTES;
@@ -1228,7 +1323,9 @@ class ParameterParserV2 {
   parseTypeOptimizatedFloat32(from_index, value_type, view) {
     const optimization_type = view.getUint8(from_index);
     if (!(optimization_type == TypeOptimization.None)) {
-      throw new Error(`OptimizationType ${optimization_type} is not known`);
+      throw new Error(
+        `OptimizationType ${optimization_type} is not known for value_type: ${value_type}`,
+      );
     }
 
     from_index += Move.MOVE_BY_1_BYTES;
@@ -1238,7 +1335,9 @@ class ParameterParserV2 {
   parseTypeOptimizatedFloat64(from_index, value_type, view) {
     const optimization_type = view.getUint8(from_index);
     if (!(optimization_type in TypeOptimization.__INVERSE__)) {
-      throw new Error(`OptimizationType ${optimization_type} is not known`);
+      throw new Error(
+        `OptimizationType ${optimization_type} is not known for value_type: ${value_type}`,
+      );
     }
 
     from_index += Move.MOVE_BY_1_BYTES;
@@ -1260,7 +1359,9 @@ class ParameterParserV2 {
   parseTypeOptimizatedNumber128(from_index, value_type, view) {
     const optimization_type = view.getUint8(from_index);
     if (!(optimization_type in TypeOptimization.__INVERSE__)) {
-      throw new Error(`OptimizationType ${optimization_type} is not known`);
+      throw new Error(
+        `OptimizationType ${optimization_type} is not known for value_type: ${value_type}`,
+      );
     }
 
     from_index += Move.MOVE_BY_1_BYTES;
