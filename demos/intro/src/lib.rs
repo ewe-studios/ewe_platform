@@ -33,5 +33,5 @@ extern "C" fn main() {
         .invoke_no_return_function(console_log_id, Some(&[Params::Text8("Hello from intro")]))
         .expect("should register call");
 
-    host_runtime::api_v2::send_instructions(instructions);
+    host_runtime::api_v2::send_instructions(instructions.complete().expect("complete instruction"));
 }

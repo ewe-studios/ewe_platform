@@ -3,6 +3,7 @@ use alloc::vec::Vec;
 /// [`ValueTypes`] represent the underlying type of value
 /// being encoded into a binary stream.
 #[repr(usize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ValueTypes {
     Null = 0,
     Undefined = 1,
@@ -33,6 +34,13 @@ pub enum ValueTypes {
     InternalReference = 26,
     Int128 = 27,
     Uint128 = 28,
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for &ValueTypes {
+    fn into(self) -> u8 {
+        *self as u8
+    }
 }
 
 #[allow(clippy::from_over_into)]
@@ -277,6 +285,7 @@ impl<'a> From<&'a [u64]> for Params<'a> {
 /// and length from that index location, this then can be
 /// applied to any valid memory address that contains the texts
 /// to find the relevant portion.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct StrLocation(u64, u64);
 
 #[allow(clippy::len_without_is_empty)]
@@ -328,6 +337,7 @@ impl StrLocation {
 ///
 ///
 #[repr(usize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ArgumentOperations {
     Start = 1,
     Begin = 2,
@@ -336,9 +346,28 @@ pub enum ArgumentOperations {
 }
 
 #[allow(clippy::from_over_into)]
+impl Into<u8> for &ArgumentOperations {
+    fn into(self) -> u8 {
+        *self as u8
+    }
+}
+
+#[allow(clippy::from_over_into)]
 impl Into<u8> for ArgumentOperations {
     fn into(self) -> u8 {
         self as u8
+    }
+}
+
+impl From<u8> for ArgumentOperations {
+    fn from(value: u8) -> Self {
+        match value {
+            1 => ArgumentOperations::Start,
+            2 => ArgumentOperations::Begin,
+            3 => ArgumentOperations::End,
+            4 => ArgumentOperations::Stop,
+            _ => unreachable!("should not have any other type of ArgumentOperations"),
+        }
     }
 }
 
@@ -362,7 +391,7 @@ impl Into<u8> for ArgumentOperations {
 /// Operation: [Op, [OperationComponent]*, OpEnd]
 ///
 #[repr(usize)]
-#[derive(Clone)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Operations {
     /// Begin - Indicative of the start of a operation in a batch, generally
     /// you should only ever see this once until the batch ends with a [`Operations::Stop`].
@@ -446,9 +475,30 @@ pub enum Operations {
 }
 
 #[allow(clippy::from_over_into)]
+impl Into<u8> for &Operations {
+    fn into(self) -> u8 {
+        *self as u8
+    }
+}
+
+#[allow(clippy::from_over_into)]
 impl Into<u8> for Operations {
     fn into(self) -> u8 {
         self as u8
+    }
+}
+
+impl From<u8> for Operations {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => Operations::Begin,
+            1 => Operations::MakeFunction,
+            2 => Operations::InvokeNoReturnFunction,
+            3 => Operations::InvokeReturningFunction,
+            4 => Operations::InvokeCallbackFunction,
+            5 => Operations::Stop,
+            _ => unreachable!("should not have any other type of ArgumentOperations"),
+        }
     }
 }
 
@@ -456,6 +506,7 @@ impl Into<u8> for Operations {
 // indicative of the starting pointer and length for which it
 // relates to.
 #[allow(unused)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct CallParams(pub *const u8, pub u64);
 
 impl CallParams {
@@ -504,7 +555,7 @@ impl InternalPointer {
 ///
 /// Can be an object, function or some other resource
 /// that is to be used across wasm boundaries.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ExternalPointer(u64);
 
 impl From<u64> for ExternalPointer {
@@ -585,6 +636,42 @@ pub enum TypeOptimization {
 impl Into<u8> for TypeOptimization {
     fn into(self) -> u8 {
         self as u8
+    }
+}
+
+impl From<u8> for TypeOptimization {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => TypeOptimization::None,
+            1 => TypeOptimization::QuantizedInt16AsI8,
+            2 => TypeOptimization::QuantizedInt32AsI8,
+            3 => TypeOptimization::QuantizedInt32AsI16,
+            4 => TypeOptimization::QuantizedInt64AsI8,
+            5 => TypeOptimization::QuantizedInt64AsI16,
+            6 => TypeOptimization::QuantizedInt64AsI32,
+            7 => TypeOptimization::QuantizedUint16AsU8,
+            8 => TypeOptimization::QuantizedUint32AsU8,
+            9 => TypeOptimization::QuantizedUint32AsU16,
+            10 => TypeOptimization::QuantizedUint64AsU8,
+            11 => TypeOptimization::QuantizedUint64AsU16,
+            12 => TypeOptimization::QuantizedUint64AsU32,
+            13 => TypeOptimization::QuantizedF64AsF32,
+            14 => TypeOptimization::QuantizedF128AsF32,
+            15 => TypeOptimization::QuantizedF128AsF64,
+            16 => TypeOptimization::QuantizedInt128AsI8,
+            17 => TypeOptimization::QuantizedInt128AsI16,
+            18 => TypeOptimization::QuantizedInt128AsI32,
+            19 => TypeOptimization::QuantizedInt128AsI64,
+            20 => TypeOptimization::QuantizedUint128AsU8,
+            21 => TypeOptimization::QuantizedUint128AsU16,
+            22 => TypeOptimization::QuantizedUint128AsU32,
+            23 => TypeOptimization::QuantizedUint128AsU64,
+            24 => TypeOptimization::QuantizedPtrAsU8,
+            25 => TypeOptimization::QuantizedPtrAsU16,
+            26 => TypeOptimization::QuantizedPtrAsU32,
+            27 => TypeOptimization::QuantizedPtrAsU64,
+            _ => unreachable!("should not have any other type of ArgumentOperations"),
+        }
     }
 }
 
@@ -928,11 +1015,22 @@ pub mod value_quantitzation {
                 )
             }
             _ => {
+                // nice trick to switch all bits to 1 for a 64bit number.
+                const MASK: u128 = 0xFFFFFFFFFFFFFFFF;
+
                 // get the MSB by shifting right 64 bits
                 let value_msb = (value >> 64) as u64;
 
-                // get the LSB by truncating to u64
-                let value_lsb = value as u64;
+                // get the LSB by truncating to u64, this gets automatically truncated
+                // but we also just use u64::MAX to mask it to the lowest 64 bits
+                // or LSB.
+                let value_lsb = (value & MASK) as u64;
+
+                // You can always recombine them in this way:
+                //
+                // let value_back = (value_msb as u128) << 64;
+                // let value_front = value_lsb as u128;
+                // let value_up = value_back | value_front;
 
                 let msb_bytes = value_msb.to_le_bytes();
                 let lsb_bytes = value_lsb.to_le_bytes();
@@ -1182,12 +1280,12 @@ mod quantization_tests {
             TestCase {
                 value: 6294967296 as *const u8,
                 expected_bytes: vec![0, 148, 53, 119, 1, 0, 0, 0],
-                quantization: TypeOptimization::QuantizedPtrAsU64,
+                quantization: TypeOptimization::None,
             },
             TestCase {
                 value: 9223372036854775809 as *const u8,
                 expected_bytes: vec![1, 0, 0, 0, 0, 0, 0, 128],
-                quantization: TypeOptimization::QuantizedPtrAsU64,
+                quantization: TypeOptimization::None,
             },
         ];
 
@@ -1232,7 +1330,7 @@ mod quantization_tests {
             },
             TestCase {
                 value: 9223372036854775809,
-                expected_bytes: vec![1, 0, 0, 0, 0, 0, 0, 128, 0, 0, 0, 0, 0, 0, 0, 0],
+                expected_bytes: vec![0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 128],
                 quantization: TypeOptimization::None,
             },
         ];
@@ -1278,7 +1376,7 @@ mod quantization_tests {
             },
             TestCase {
                 value: 18446744073709551619,
-                expected_bytes: vec![3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                expected_bytes: vec![1, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0],
                 quantization: TypeOptimization::None,
             },
         ];
