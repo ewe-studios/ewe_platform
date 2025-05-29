@@ -1116,7 +1116,7 @@ mod params_tests {
             ArgumentOperations::End as u8,   // end of this argument
             ArgumentOperations::Begin as u8, // start of this argument
             ValueTypes::Text16 as u8,
-            TypeOptimization::QuantizedPtrAsU64 as u8,
+            TypeOptimization::None as u8,
         ];
 
         let encoded_end = alloc::vec![
@@ -1166,7 +1166,7 @@ mod params_tests {
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
             ValueTypes::Float64ArrayBuffer as u8,
-            TypeOptimization::QuantizedPtrAsU64 as u8,
+            TypeOptimization::None as u8,
         ];
 
         let encoded_end = alloc::vec![
@@ -1215,7 +1215,7 @@ mod params_tests {
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
             ValueTypes::Float32ArrayBuffer as u8,
-            TypeOptimization::QuantizedPtrAsU64 as u8,
+            TypeOptimization::None as u8,
         ];
 
         let encoded_end = alloc::vec![
@@ -1264,7 +1264,7 @@ mod params_tests {
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
             ValueTypes::Int8ArrayBuffer as u8,
-            TypeOptimization::QuantizedPtrAsU64 as u8,
+            TypeOptimization::None as u8,
         ];
 
         let encoded_end = alloc::vec![
@@ -1313,7 +1313,7 @@ mod params_tests {
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
             ValueTypes::Int16ArrayBuffer as u8,
-            TypeOptimization::QuantizedPtrAsU64 as u8,
+            TypeOptimization::None as u8,
         ];
 
         let encoded_end = alloc::vec![
@@ -1362,7 +1362,7 @@ mod params_tests {
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
             ValueTypes::Int32ArrayBuffer as u8,
-            TypeOptimization::QuantizedPtrAsU64 as u8,
+            TypeOptimization::None as u8,
         ];
 
         let encoded_end = alloc::vec![
@@ -1411,7 +1411,7 @@ mod params_tests {
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
             ValueTypes::Int64ArrayBuffer as u8,
-            TypeOptimization::QuantizedPtrAsU64 as u8,
+            TypeOptimization::None as u8,
         ];
 
         let encoded_end = alloc::vec![
@@ -1460,7 +1460,7 @@ mod params_tests {
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
             ValueTypes::Uint8ArrayBuffer as u8,
-            TypeOptimization::QuantizedPtrAsU64 as u8,
+            TypeOptimization::None as u8,
         ];
 
         let encoded_end = alloc::vec![
@@ -1509,7 +1509,7 @@ mod params_tests {
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
             ValueTypes::Uint16ArrayBuffer as u8,
-            TypeOptimization::QuantizedPtrAsU64 as u8,
+            TypeOptimization::None as u8,
         ];
 
         let encoded_end = alloc::vec![
@@ -1558,7 +1558,7 @@ mod params_tests {
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
             ValueTypes::Uint32ArrayBuffer as u8,
-            TypeOptimization::QuantizedPtrAsU64 as u8,
+            TypeOptimization::None as u8,
         ];
 
         let encoded_end = alloc::vec![
@@ -1607,7 +1607,7 @@ mod params_tests {
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
             ValueTypes::Uint64ArrayBuffer as u8,
-            TypeOptimization::QuantizedPtrAsU64 as u8,
+            TypeOptimization::None as u8,
         ];
 
         let encoded_end = alloc::vec![
@@ -1796,28 +1796,6 @@ impl Instructions {
     }
 }
 
-// --- Memory length and pointer
-
-impl Instructions {
-    /// [`operations_pointer`] returns the address and lenth of the memory allocation
-    /// used for encoding operations
-    pub fn operations_pointer(&self) -> MemoryWriterResult<(*const u8, u64)> {
-        match &self.mem {
-            Some((ops, _)) => Ok(ops.as_address()?),
-            None => Err(MemoryWriterError::UnexpectedFreeState),
-        }
-    }
-
-    /// [`text_pointer`] returns the address and lenth of the memory allocation
-    /// used for encoding operations
-    pub fn text_pointer(&self) -> MemoryWriterResult<(*const u8, u64)> {
-        match &self.mem {
-            Some((_, texts)) => Ok(texts.as_address()?),
-            None => Err(MemoryWriterError::UnexpectedFreeState),
-        }
-    }
-}
-
 // --- MemoryIds
 
 impl Instructions {
@@ -1860,6 +1838,14 @@ impl Instructions {
             return var_name;
         }
         Ok(())
+    }
+}
+
+// -- complete instruction
+
+impl Instructions {
+    pub fn complete(self) -> MemoryAllocationResult<CompletedInstructions> {
+        Ok(self.end()?)
     }
 }
 
@@ -2008,6 +1994,18 @@ impl<'a> Batchable<'a> for InternalPointer {
     }
 }
 
+impl<'a> Batchable<'a> for Operations {
+    fn encode<F>(&self, encoder: &'a F, _optimized: bool) -> MemoryWriterResult<()>
+    where
+        F: BatchEncodable,
+    {
+        let self_as_number: u8 = (*self).into();
+        encoder.data(&[self_as_number])?;
+
+        Ok(())
+    }
+}
+
 impl<'a> Batchable<'a> for ExternalPointer {
     fn encode<F>(&self, encoder: &'a F, optimized: bool) -> MemoryWriterResult<()>
     where
@@ -2048,11 +2046,10 @@ impl Instructions {
         let value_index = value_pointer.index().to_le_bytes();
         let value_length = value_pointer.len().to_le_bytes();
 
-        let mut data: Vec<u8> = Vec::with_capacity(value_index.len() + value_length.len() + 10);
-
-        data.push(Operations::MakeFunction.into());
+        self.data(&[Operations::MakeFunction as u8])?;
         allocated_handle.encode(self, self.optimized)?;
 
+        let mut data: Vec<u8> = Vec::with_capacity(value_index.len() + value_length.len() + 10);
         data.push(ValueTypes::Text8.into());
         data.extend_from_slice(&value_index);
         data.extend_from_slice(&value_length);
@@ -2250,6 +2247,51 @@ mod test_instructions {
                 ArgumentOperations::End as u8,  // end of this argument
                 ArgumentOperations::Stop as u8, // end of all arguments
                 255                             // Stop signal indicating batch is finished
+            ],
+            ops
+        );
+    }
+
+    #[test]
+    fn can_encode_function_registeration_and_invoke_function() {
+        let mut allocator = MemoryAllocations::new();
+
+        let batch = allocator
+            .batch_for(10, 10, false)
+            .expect("create new Instructions");
+
+        batch.should_be_occupied().expect("is occupied");
+
+        let function_handle = ExternalPointer::from(1);
+        batch
+            .register_function(
+                function_handle,
+                "
+            function(message){
+                console.log(message);
+            }",
+            )
+            .expect("should encode correctly");
+
+        batch
+            .invoke_no_return_function(function_handle, Some(&[Params::Text8("Hello from intro")]))
+            .expect("should register call");
+
+        let completed_data = batch.end().expect("finish writing completion result");
+        let slot = allocator.get_slot(completed_data).expect("get memory");
+
+        let completed_ops = slot.ops_ref();
+        let completed_strings = slot.text_ref();
+
+        assert!(!completed_strings.is_empty().expect("is_empty"));
+        assert!(!completed_ops.is_empty().expect("is_empty"));
+
+        let ops = completed_ops.clone_memory().expect("clone");
+        assert_eq!(
+            alloc::vec![
+                0, 1, 15, 0, 1, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 83, 0, 0, 0, 0, 0,
+                0, 0, 3, 2, 15, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 0, 83, 0, 0, 0, 0, 0, 0, 0, 0,
+                16, 0, 0, 0, 0, 0, 0, 0, 3, 4, 255
             ],
             ops
         );

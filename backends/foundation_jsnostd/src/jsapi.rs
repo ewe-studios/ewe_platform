@@ -6,8 +6,9 @@ use alloc::vec::Vec;
 use foundation_nostd::{raw_parts::RawParts, spin::Mutex};
 
 use crate::{
-    ExternalPointer, Instructions, InternalCallback, InternalPointer, InternalReferenceRegistry,
-    JSEncoding, MemoryAllocations, Params, ToBinary,
+    CompletedInstructions, ExternalPointer, Instructions, InternalCallback, InternalPointer,
+    InternalReferenceRegistry, JSEncoding, MemoryAllocation, MemoryAllocations, MemoryId, Params,
+    ToBinary,
 };
 
 static INTERNAL_CALLBACKS: Mutex<InternalReferenceRegistry> = InternalReferenceRegistry::create();
@@ -31,6 +32,13 @@ pub mod internal_api {
             .lock()
             .batch_for(text_size, operation_size, true)
             .expect("should create allocated memory slot")
+    }
+
+    pub fn get_memory(memory_id: MemoryId) -> MemoryAllocation {
+        ALLOCATIONS
+            .lock()
+            .get(memory_id)
+            .expect("should fetch related memory allocation")
     }
 
     // -- callback methods
@@ -215,10 +223,14 @@ pub mod host_runtime {
         }
 
         /// [`send_instructions`] sends a list of instructions to the host runtime.
-        pub fn send_instructions(instruction: Instructions) {
+        pub fn send_instructions(instruction: CompletedInstructions) {
+            let operations_memory = internal_api::get_memory(instruction.ops_id);
+            let text_memory = internal_api::get_memory(instruction.text_id);
+
             let (ops_pointer, ops_length) =
-                instruction.operations_pointer().expect("get ops address");
-            let (text_pointer, text_length) = instruction.text_pointer().expect("get text address");
+                operations_memory.as_address().expect("get ops address");
+            let (text_pointer, text_length) = text_memory.as_address().expect("get text address");
+
             unsafe {
                 host_runtime::api_v2::apply_instructions(
                     ops_pointer as u64,

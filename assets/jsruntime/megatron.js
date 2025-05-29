@@ -1085,41 +1085,6 @@ class ParameterParserV2 {
     }
   }
 
-  parseNull(from_index, view) {
-    const value_type = view.getUint8(from_index);
-    if (value_type != Params.Undefined) {
-      throw new Error(
-        `Parameter is not that of Undefined: received ${value_type}`,
-      );
-    }
-
-    return [Move.MOVE_BY_1_BYTES, [null]];
-  }
-
-  parseUndefined(from_index, view) {
-    const value_type = view.getUint8(from_index);
-    if (value_type != Params.Undefined) {
-      throw new Error(
-        `Parameter is not that of Undefined: received ${value_type}`,
-      );
-    }
-
-    return [Move.MOVE_BY_1_BYTES, [undefined]];
-  }
-
-  parseExternalPointer(from_index, view) {
-    const value_type = view.getUint8(from_index);
-    if (value_type != Params.ExternalReference) {
-      throw new Error(
-        `Parameter is not that of ExternalReference: received ${value_type}`,
-      );
-    }
-
-    from_index += Move.MOVE_BY_1_BYTES;
-
-    return [from_index, [undefined]];
-  }
-
   parseParam(from_index, view) {
     const value_type = view.getUint8(from_index);
     if (!(value_type in Params.__INVERSE__)) {
@@ -1136,68 +1101,135 @@ class ParameterParserV2 {
     }
 
     switch (value_type) {
-      case Null:
+      case Params.Null:
+        return this.parseNull(from_index, view);
+      case Params.Undefined:
+        return this.parseUndefined(from_index, view);
+      case Params.Bool:
+        return this.parseBoolean(from_index, view);
+      case Params.Int8:
+        return this.parseNumber8(from_index, value_type, view);
+      case Params.Int16:
+        return this.parseNumber16(from_index, value_type, view);
+      case Params.Int32:
+        return this.parseNumber32(from_index, value_type, view);
+      case Params.Int64:
+        return this.parseNumber64(from_index, value_type, view);
+      case Params.Uint8:
+        return this.parseNumber8(from_index, value_type, view);
+      case Params.Uint16:
+        return this.parseNumber16(from_index, value_type, view);
+      case Params.Uint32:
+        return this.parseNumber32(from_index, value_type, view);
+      case Params.Uint64:
+        return this.parseNumber64(from_index, value_type, view);
+      case Params.Int128:
+        return this.parseNumber128(from_index, value_type, view);
+      case Params.Uint128:
+        return this.parseNumber128(from_index, value_type, view);
+      case Params.Float32:
+        return this.parseFloat32(from_index, value_type, view);
+      case Params.Float64:
+        return this.parseFloat64(from_index, value_type, view);
+      case Params.ExternalReference:
+        return this.parseExternalPointer(from_index, value_type, view);
+      case Params.Uint8ArrayBuffer:
         break;
-      case Undefined:
+      case Params.Uint16ArrayBuffer:
         break;
-      case Bool:
+      case Params.Uint32ArrayBuffer:
         break;
-      case Text8:
+      case Params.Uint64ArrayBuffer:
         break;
-      case Text16:
+      case Params.Int8ArrayBuffer:
         break;
-      case Int8:
+      case Params.Int16ArrayBuffer:
         break;
-      case Int16:
+      case Params.Int32ArrayBuffer:
         break;
-      case Int32:
+      case Params.Int64ArrayBuffer:
         break;
-      case Int64:
+      case Params.Float32ArrayBuffer:
         break;
-      case Uint8:
+      case Params.Float64ArrayBuffer:
         break;
-      case Uint16:
+      case Params.InternalReference:
         break;
-      case Uint32:
+      case Params.Text8:
         break;
-      case Uint64:
-        break;
-      case Float32:
-        break;
-      case Float64:
-        break;
-      case ExternalReference:
-        break;
-      case Uint8ArrayBuffer:
-        break;
-      case Uint16ArrayBuffer:
-        break;
-      case Uint32ArrayBuffer:
-        break;
-      case Uint64ArrayBuffer:
-        break;
-      case Int8ArrayBuffer:
-        break;
-      case Int16ArrayBuffer:
-        break;
-      case Int32ArrayBuffer:
-        break;
-      case Int64ArrayBuffer:
-        break;
-      case Float32ArrayBuffer:
-        break;
-      case Float64ArrayBuffer:
-        break;
-      case InternalReference:
-        break;
-      case Int128:
-        break;
-      case Uint129:
+      case Params.Text16:
         break;
     }
   }
 
-  parseTypeOptimizatedPtr(from_index, value_type, view) {
+  parseNull(from_index, view) {
+    const value_type = view.getUint8(from_index);
+    if (value_type != Params.Undefined) {
+      throw new Error(
+        `Parameter is not that of Undefined: received ${value_type}`,
+      );
+    }
+
+    return [Move.MOVE_BY_1_BYTES, [null]];
+  }
+
+  parseNumber8(from_index, value_type, view) {
+    if ([Params.Int8, Params.Uint8].indexOf(value_type)) {
+      throw new Error(
+        `Parameter is not that of Undefined: received ${value_type}`,
+      );
+    }
+
+    if (value_type == Params.Int8) {
+      return [Move.MOVE_BY_1_BYTES, [view.getInt8(from_index)]];
+    }
+
+    return [Move.MOVE_BY_1_BYTES, [view.getUint8(from_index)]];
+  }
+
+  parseUndefined(from_index, view) {
+    const value_type = view.getUint8(from_index);
+    if (value_type != Params.Undefined) {
+      throw new Error(
+        `Parameter is not that of Undefined: received ${value_type}`,
+      );
+    }
+
+    return [Move.MOVE_BY_1_BYTES, [undefined]];
+  }
+
+  parseBoolean(from_index, view) {
+    const value_type = view.getUint8(from_index);
+    if (value_type != Params.Bool) {
+      throw new Error(
+        `Parameter is not that of Undefined: received ${value_type}`,
+      );
+    }
+
+    from_index += Move.MOVE_BY_1_BYTES;
+
+    const value_int = view.getUint8(from_index);
+    const value = value_int == 1;
+
+    from_index += Move.MOVE_BY_1_BYTES;
+
+    return [from_index, [value]];
+  }
+
+  parseExternalPointer(from_index, view) {
+    const value_type = view.getUint8(from_index);
+    if (value_type != Params.ExternalReference) {
+      throw new Error(
+        `Parameter is not that of ExternalReference: received ${value_type}`,
+      );
+    }
+
+    from_index += Move.MOVE_BY_1_BYTES;
+
+    return [from_index, [undefined]];
+  }
+
+  parsePtr(from_index, value_type, view) {
     const optimization_type = view.getUint8(from_index);
     if (!(optimization_type in TypeOptimization.__INVERSE__)) {
       throw new Error(
@@ -1227,7 +1259,7 @@ class ParameterParserV2 {
     }
   }
 
-  parseTypeOptimizatedNumber16(from_index, value_type, view) {
+  parseNumber16(from_index, value_type, view) {
     const optimization_type = view.getUint8(from_index);
     if (!(optimization_type in TypeOptimization.__INVERSE__)) {
       throw new Error(
@@ -1253,7 +1285,7 @@ class ParameterParserV2 {
     }
   }
 
-  parseTypeOptimizatedNumber64(from_index, value_type, view) {
+  parseNumber64(from_index, value_type, view) {
     const optimization_type = view.getUint8(from_index);
     if (!(optimization_type in TypeOptimization.__INVERSE__)) {
       throw new Error(
@@ -1290,7 +1322,7 @@ class ParameterParserV2 {
     }
   }
 
-  parseTypeOptimizatedNumber32(from_index, value_type, view) {
+  parseNumber32(from_index, value_type, view) {
     const optimization_type = view.getUint8(from_index);
     if (!(optimization_type in TypeOptimization.__INVERSE__)) {
       throw new Error(
@@ -1320,7 +1352,7 @@ class ParameterParserV2 {
     }
   }
 
-  parseTypeOptimizatedFloat32(from_index, value_type, view) {
+  parseFloat32(from_index, value_type, view) {
     const optimization_type = view.getUint8(from_index);
     if (!(optimization_type == TypeOptimization.None)) {
       throw new Error(
@@ -1332,7 +1364,7 @@ class ParameterParserV2 {
     return [from_index + Move.MOVE_BY_32_BYTES, view.getFloat32(from_index)];
   }
 
-  parseTypeOptimizatedFloat64(from_index, value_type, view) {
+  parseFloat64(from_index, value_type, view) {
     const optimization_type = view.getUint8(from_index);
     if (!(optimization_type in TypeOptimization.__INVERSE__)) {
       throw new Error(
@@ -1356,7 +1388,7 @@ class ParameterParserV2 {
     }
   }
 
-  parseTypeOptimizatedNumber128(from_index, value_type, view) {
+  parseNumber128(from_index, value_type, view) {
     const optimization_type = view.getUint8(from_index);
     if (!(optimization_type in TypeOptimization.__INVERSE__)) {
       throw new Error(
@@ -1409,68 +1441,6 @@ class ParameterParserV2 {
         return [from_index + Move.MOVE_BY_64_BYTES, view.getUint64(from_index)];
     }
   }
-
-  // parseTypeOptimizatedU64(from_index, view) {
-  //   const optimization_type = view.getUint8(from_index);
-  //   if (!(optimization_type in TypeOptimization.__INVERSE__)) {
-  //     throw new Error(`OptimizationType ${optimization_type} is not known`);
-  //   }
-  //
-  //   switch (optimization_type) {
-  //     case TypeOptimization.None:
-  //       break;
-  //     case TypeOptimization.QuantizedInt16AsI8:
-  //       break;
-  //     case TypeOptimization.QuantizedInt32AsI8:
-  //       break;
-  //     case TypeOptimization.QuantizedInt32AsI16:
-  //       break;
-  //     case TypeOptimization.QuantizedInt64AsI8:
-  //       break;
-  //     case TypeOptimization.QuantizedInt64AsI16:
-  //       break;
-  //     case TypeOptimization.QuantizedUint16AsU8:
-  //       break;
-  //     case TypeOptimization.QuantizedUint32AsU8:
-  //       break;
-  //     case TypeOptimization.QuantizedUint32AsU16:
-  //       break;
-  //     case TypeOptimization.QuantizedUint64AsU8:
-  //       break;
-  //     case TypeOptimization.QuantizedUint64AsU16:
-  //       break;
-  //     case TypeOptimization.QuantizedF64AsF32:
-  //       break;
-  //     case TypeOptimization.QuantizedF128AsF32:
-  //       break;
-  //     case TypeOptimization.QuantizedF128AsF64:
-  //       break;
-  //     case TypeOptimization.QuantizedInt128AsI8:
-  //       break;
-  //     case TypeOptimization.QuantizedInt128AsI16:
-  //       break;
-  //     case TypeOptimization.QuantizedInt128AsI32:
-  //       break;
-  //     case TypeOptimization.QuantizedInt128AsI64:
-  //       break;
-  //     case TypeOptimization.QuantizedUint128AsU8:
-  //       break;
-  //     case TypeOptimization.QuantizedUint128AsU16:
-  //       break;
-  //     case TypeOptimization.QuantizedUint128AsU32:
-  //       break;
-  //     case TypeOptimization.QuantizedUint128AsU64:
-  //       break;
-  //     case TypeOptimization.QuantizedPtrAsU8:
-  //       break;
-  //     case TypeOptimization.QuantizedPtrAsU16:
-  //       break;
-  //     case TypeOptimization.QuantizedPtrAsU32:
-  //       break;
-  //     case TypeOptimization.QuantizedPtrAsU64:
-  //       break;
-  //   }
-  // }
 }
 
 class BatchInstrructions {
@@ -1550,7 +1520,12 @@ class BatchInstrructions {
 
     read_index += Move.MOVE_BY_1_BYTES;
 
-    switch (operations.getUint8(read_index)) {
+    const operation_id = operations.getUint8(read_index);
+    LOGGER.debug(
+      `Received operation id: ${operation_id} at read_index: ${read_index}`,
+      operations,
+    );
+    switch (operation_id) {
       case Operations.MakeFunction:
         batch.push(this.parse_make_function(read_index, operations, texts));
         break;
@@ -1581,6 +1556,7 @@ class BatchInstrructions {
     }
 
     read_index += Move.MOVE_BY_1_BYTES;
+    console.log("Index: ", read_index);
   }
 }
 
@@ -2034,7 +2010,7 @@ WasmWebScripts.default = function (env) {
   return new WasmWebScripts(10, 200, env, WASMLoader.configCompiledOptions({}));
 };
 
-if (module) {
+if (typeof module !== "undefined") {
   module.exports = {
     LOGGER,
     LEVELS,
