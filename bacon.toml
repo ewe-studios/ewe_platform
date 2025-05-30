@@ -9,7 +9,7 @@ default_job = "bacon-ls"
 env.CARGO_TERM_COLOR = "always"
 
 [jobs.bacon-ls]
-command = [ "cargo", "+nightly", "clippy", "--workspace", "--tests", "--all-targets", "--all-features", "--message-format", "json-diagnostic-rendered-ansi" ]
+command = [ "cargo", "clippy", "--workspace", "--tests", "--all-targets", "--all-features", "--message-format", "json-diagnostic-rendered-ansi" ]
 analyzer = "cargo_json"
 need_stdout = true
 
@@ -54,6 +54,10 @@ need_stdout = false
 # - the tests of a package: bacon test -- -- -p config
 [jobs.test]
 command = ["cargo", "test"]
+need_stdout = true
+
+[jobs.test_foundation_jsnostd]
+command = ["cargo", "test", "--package", "foundation_jsnostd"]
 need_stdout = true
 
 [jobs.nextest]

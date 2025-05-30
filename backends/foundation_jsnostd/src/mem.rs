@@ -247,9 +247,21 @@ pub trait BatchEncodable {
     /// the identified operation.
     fn data(&self, data: &[u8]) -> MemoryWriterResult<()>;
 
+    /// [`end`] is used to mark a portion of the batch as completed.
+    /// This allows to encode as much individual instructions
+    /// into a single batch so that we can take advantage of
+    /// treating a series of instructions as atomic operations
+    /// that should roughly depending on host handling be
+    /// executed together. This allows the host perform a
+    /// all or nothing operation if later desired but that is
+    /// beyond the scope here. We just want a way to clearly
+    /// articulate the end of a sub-instruction and the start
+    /// of another.
+    fn end(&self) -> MemoryWriterResult<()>;
+
     /// [`end`] indicates the batch encoding can be considered finished and
     /// added to the batch list.
-    fn end(self) -> MemoryWriterResult<CompletedInstructions>;
+    fn stop(self) -> MemoryWriterResult<CompletedInstructions>;
 }
 
 /// [`Batchable`] defines a infallible type which can be

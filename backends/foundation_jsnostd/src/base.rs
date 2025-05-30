@@ -464,6 +464,12 @@ pub enum Operations {
     ///  End
     InvokeCallbackFunction = 4,
 
+    /// End - indicates the end of a portion of a instruction set.
+    /// Since an instruction memory array can contain multiple instructions
+    /// batched together, then each instruction must have a end marker indicating
+    /// one portion is over.
+    End = 254,
+
     /// Stop - indicates the end of an operation in a batch, since
     /// a memory will contain multiple operations batched into a single
     /// memory slot, until you see this 1 byte signal then you should
@@ -496,7 +502,8 @@ impl From<u8> for Operations {
             2 => Operations::InvokeNoReturnFunction,
             3 => Operations::InvokeReturningFunction,
             4 => Operations::InvokeCallbackFunction,
-            5 => Operations::Stop,
+            254 => Operations::End,
+            255 => Operations::Stop,
             _ => unreachable!("should not have any other type of ArgumentOperations"),
         }
     }
@@ -639,6 +646,12 @@ impl Into<u8> for TypeOptimization {
     }
 }
 
+impl core::fmt::Display for TypeOptimization {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
+
 impl From<u8> for TypeOptimization {
     fn from(value: u8) -> Self {
         match value {
@@ -736,7 +749,7 @@ impl core::fmt::Display for MemOpError {
 ///  };
 /// ```
 ///
-pub mod value_quantitzation {
+pub mod value_quantitization {
     use super::*;
 
     /// [`qi16`] performs an operation to transform
@@ -1290,7 +1303,7 @@ mod quantization_tests {
         ];
 
         for test_case in test_cases {
-            let (content, tq) = value_quantitzation::qpointer(test_case.value);
+            let (content, tq) = value_quantitization::qpointer(test_case.value);
             assert_eq!(
                 test_case.expected_bytes, content,
                 "Output bytes should match"
@@ -1336,7 +1349,7 @@ mod quantization_tests {
         ];
 
         for test_case in test_cases {
-            let (content, tq) = value_quantitzation::qi128(test_case.value);
+            let (content, tq) = value_quantitization::qi128(test_case.value);
             assert_eq!(
                 test_case.expected_bytes, content,
                 "Output bytes should match"
@@ -1382,7 +1395,7 @@ mod quantization_tests {
         ];
 
         for test_case in test_cases {
-            let (content, tq) = value_quantitzation::qu128(test_case.value);
+            let (content, tq) = value_quantitization::qu128(test_case.value);
             assert_eq!(
                 test_case.expected_bytes, content,
                 "Output bytes should match"
@@ -1420,10 +1433,15 @@ mod quantization_tests {
                 expected_bytes: vec![0, 148, 53, 119, 1, 0, 0, 0],
                 quantization: TypeOptimization::None,
             },
+            TestCase {
+                value: 4294967296,
+                expected_bytes: vec![0, 0, 0, 0, 1, 0, 0, 0],
+                quantization: TypeOptimization::None,
+            },
         ];
 
         for test_case in test_cases {
-            let (content, tq) = value_quantitzation::qu64(test_case.value);
+            let (content, tq) = value_quantitization::qu64(test_case.value);
             assert_eq!(
                 test_case.expected_bytes, content,
                 "Output bytes should match"
@@ -1464,7 +1482,7 @@ mod quantization_tests {
         ];
 
         for test_case in test_cases {
-            let (content, tq) = value_quantitzation::qi64(test_case.value);
+            let (content, tq) = value_quantitization::qi64(test_case.value);
             assert_eq!(
                 test_case.expected_bytes, content,
                 "Output bytes should match"
