@@ -222,7 +222,7 @@ pub mod host_runtime {
             }
         }
 
-        /// [`send_instructions`] sends a list of instructions to the host runtime.
+        /// [`send_instructions`] sends a [`CompletedInstructions`] batch over to the host runtime.
         pub fn send_instructions(instruction: CompletedInstructions) {
             let operations_memory = internal_api::get_memory(instruction.ops_id);
             let text_memory = internal_api::get_memory(instruction.text_id);
@@ -239,6 +239,12 @@ pub mod host_runtime {
                     text_length,
                 )
             }
+        }
+
+        /// [`complete_instructions`] completes and sends a [`Instructions`] batch over to the host runtime.
+        pub fn complete_instructions(instruction: Instructions) {
+            let completed = instruction.complete().expect("complete instruction");
+            host_runtime::api_v2::send_instructions(completed);
         }
     }
 

@@ -6,7 +6,7 @@
 use alloc::vec::Vec;
 
 use crate::{
-    value_quantitzation, ArgumentOperations, BatchEncodable, Batchable, CompletedInstructions,
+    value_quantitization, ArgumentOperations, BatchEncodable, Batchable, CompletedInstructions,
     ExternalPointer, InternalPointer, MemoryAllocation, MemoryAllocationResult, MemoryAllocations,
     MemoryId, MemorySlot, MemoryWriterError, MemoryWriterResult, ToBinary, TypeOptimization,
 };
@@ -45,7 +45,7 @@ impl<'a> Batchable<'a> for &'a [Params<'a>] {
     }
 }
 
-impl<'a> ToBinary for Vec<Params<'a>> {
+impl ToBinary for Vec<Params<'_>> {
     fn to_binary(&self) -> Vec<u8> {
         let mut encoded_params: Vec<u8> = Vec::new();
         for param in self.iter() {
@@ -307,7 +307,7 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Int16(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qi16(*value)
+                    value_quantitization::qi16(*value)
                 } else {
                     (value.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
@@ -325,7 +325,7 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Int32(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qi32(*value)
+                    value_quantitization::qi32(*value)
                 } else {
                     (value.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
@@ -343,7 +343,7 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Int64(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qi64(*value)
+                    value_quantitization::qi64(*value)
                 } else {
                     (value.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
@@ -373,7 +373,7 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Uint16(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qu16(*value)
+                    value_quantitization::qu16(*value)
                 } else {
                     (value.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
@@ -391,7 +391,7 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Uint32(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qu32(*value)
+                    value_quantitization::qu32(*value)
                 } else {
                     (value.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
@@ -409,7 +409,7 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Uint64(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qu64(*value)
+                    value_quantitization::qu64(*value)
                 } else {
                     (value.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
@@ -427,7 +427,7 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Int128(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qi128(*value)
+                    value_quantitization::qi128(*value)
                 } else {
                     (value.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
@@ -445,7 +445,7 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Uint128(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qu128(*value)
+                    value_quantitization::qu128(*value)
                 } else {
                     (value.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
@@ -465,7 +465,7 @@ impl<'a> Batchable<'a> for Params<'a> {
 
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_index_bytes, tq_index) = if optimized {
-                    value_quantitzation::qu64(value_pointer.index())
+                    value_quantitization::qu64(value_pointer.index())
                 } else {
                     (
                         value_pointer.index().to_le_bytes().to_vec(),
@@ -475,7 +475,7 @@ impl<'a> Batchable<'a> for Params<'a> {
 
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_length_bytes, tq_len) = if optimized {
-                    value_quantitzation::qu64(value_pointer.len())
+                    value_quantitization::qu64(value_pointer.len())
                 } else {
                     (
                         value_pointer.len().to_le_bytes().to_vec(),
@@ -500,14 +500,14 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Text16(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qpointer(value.as_ptr() as *const u8)
+                    value_quantitization::qpointer(value.as_ptr() as *const u8)
                 } else {
                     let value_pointer = value.as_ptr() as usize;
                     (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
 
                 let (value_length_bytes, tq_len) = if optimized {
-                    value_quantitzation::qu64(value.len() as u64)
+                    value_quantitization::qu64(value.len() as u64)
                 } else {
                     (value.len().to_le_bytes().to_vec(), TypeOptimization::None)
                 };
@@ -529,14 +529,14 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Float32Array(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qpointer(value.as_ptr() as *const u8)
+                    value_quantitization::qpointer(value.as_ptr() as *const u8)
                 } else {
                     let value_pointer = value.as_ptr() as usize;
                     (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
 
                 let (value_length_bytes, tq_len) = if optimized {
-                    value_quantitzation::qu64(value.len() as u64)
+                    value_quantitization::qu64(value.len() as u64)
                 } else {
                     (value.len().to_le_bytes().to_vec(), TypeOptimization::None)
                 };
@@ -558,14 +558,14 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Float64Array(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qpointer(value.as_ptr() as *const u8)
+                    value_quantitization::qpointer(value.as_ptr() as *const u8)
                 } else {
                     let value_pointer = value.as_ptr() as usize;
                     (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
 
                 let (value_length_bytes, tq_len) = if optimized {
-                    value_quantitzation::qu64(value.len() as u64)
+                    value_quantitization::qu64(value.len() as u64)
                 } else {
                     (value.len().to_le_bytes().to_vec(), TypeOptimization::None)
                 };
@@ -587,14 +587,14 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Uint32Array(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qpointer(value.as_ptr() as *const u8)
+                    value_quantitization::qpointer(value.as_ptr() as *const u8)
                 } else {
                     let value_pointer = value.as_ptr() as usize;
                     (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
 
                 let (value_length_bytes, tq_len) = if optimized {
-                    value_quantitzation::qu64(value.len() as u64)
+                    value_quantitization::qu64(value.len() as u64)
                 } else {
                     (value.len().to_le_bytes().to_vec(), TypeOptimization::None)
                 };
@@ -616,14 +616,14 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Uint64Array(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qpointer(value.as_ptr() as *const u8)
+                    value_quantitization::qpointer(value.as_ptr() as *const u8)
                 } else {
                     let value_pointer = value.as_ptr() as usize;
                     (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
 
                 let (value_length_bytes, tq_len) = if optimized {
-                    value_quantitzation::qu64(value.len() as u64)
+                    value_quantitization::qu64(value.len() as u64)
                 } else {
                     (value.len().to_le_bytes().to_vec(), TypeOptimization::None)
                 };
@@ -645,14 +645,14 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Int32Array(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qpointer(value.as_ptr() as *const u8)
+                    value_quantitization::qpointer(value.as_ptr() as *const u8)
                 } else {
                     let value_pointer = value.as_ptr() as usize;
                     (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
 
                 let (value_length_bytes, tq_len) = if optimized {
-                    value_quantitzation::qu64(value.len() as u64)
+                    value_quantitization::qu64(value.len() as u64)
                 } else {
                     (value.len().to_le_bytes().to_vec(), TypeOptimization::None)
                 };
@@ -674,14 +674,14 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Int64Array(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qpointer(value.as_ptr() as *const u8)
+                    value_quantitization::qpointer(value.as_ptr() as *const u8)
                 } else {
                     let value_pointer = value.as_ptr() as usize;
                     (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
 
                 let (value_length_bytes, tq_len) = if optimized {
-                    value_quantitzation::qu64(value.len() as u64)
+                    value_quantitization::qu64(value.len() as u64)
                 } else {
                     (value.len().to_le_bytes().to_vec(), TypeOptimization::None)
                 };
@@ -703,14 +703,14 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Int8Array(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qpointer(value.as_ptr() as *const u8)
+                    value_quantitization::qpointer(value.as_ptr() as *const u8)
                 } else {
                     let value_pointer = value.as_ptr() as usize;
                     (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
 
                 let (value_length_bytes, tq_len) = if optimized {
-                    value_quantitzation::qu64(value.len() as u64)
+                    value_quantitization::qu64(value.len() as u64)
                 } else {
                     (value.len().to_le_bytes().to_vec(), TypeOptimization::None)
                 };
@@ -732,14 +732,14 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Int16Array(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qpointer(value.as_ptr() as *const u8)
+                    value_quantitization::qpointer(value.as_ptr() as *const u8)
                 } else {
                     let value_pointer = value.as_ptr() as usize;
                     (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
 
                 let (value_length_bytes, tq_len) = if optimized {
-                    value_quantitzation::qu64(value.len() as u64)
+                    value_quantitization::qu64(value.len() as u64)
                 } else {
                     (value.len().to_le_bytes().to_vec(), TypeOptimization::None)
                 };
@@ -761,14 +761,14 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Uint8Array(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qpointer(value.as_ptr())
+                    value_quantitization::qpointer(value.as_ptr())
                 } else {
                     let value_pointer = value.as_ptr() as usize;
                     (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
 
                 let (value_length_bytes, tq_len) = if optimized {
-                    value_quantitzation::qu64(value.len() as u64)
+                    value_quantitization::qu64(value.len() as u64)
                 } else {
                     (value.len().to_le_bytes().to_vec(), TypeOptimization::None)
                 };
@@ -790,14 +790,14 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Uint16Array(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qpointer(value.as_ptr() as *const u8)
+                    value_quantitization::qpointer(value.as_ptr() as *const u8)
                 } else {
                     let value_pointer = value.as_ptr() as usize;
                     (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
 
                 let (value_length_bytes, tq_len) = if optimized {
-                    value_quantitzation::qu64(value.len() as u64)
+                    value_quantitization::qu64(value.len() as u64)
                 } else {
                     (value.len().to_le_bytes().to_vec(), TypeOptimization::None)
                 };
@@ -820,7 +820,7 @@ impl<'a> Batchable<'a> for Params<'a> {
                 // TODO(alex): Is there a more optimized way instead of
                 // `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qu64(value.into_inner())
+                    value_quantitization::qu64(value.into_inner())
                 } else {
                     (
                         value.into_inner().to_le_bytes().to_vec(),
@@ -841,7 +841,7 @@ impl<'a> Batchable<'a> for Params<'a> {
             }
             Params::InternalReference(value) => {
                 let (value_bytes, tq) = if optimized {
-                    value_quantitzation::qu64(value.into_inner())
+                    value_quantitization::qu64(value.into_inner())
                 } else {
                     (
                         value.into_inner().to_le_bytes().to_vec(),
@@ -882,7 +882,9 @@ mod params_tests {
 
         assert!(write_result.is_ok());
 
-        let completed_data = batch.end().expect("finish writing completion result");
+        batch.end().expect("end instruction");
+
+        let completed_data = batch.stop().expect("finish writing completion result");
         let slot = allocator.get_slot(completed_data).expect("get memory");
 
         let completed_strings = slot.text_ref();
@@ -899,6 +901,7 @@ mod params_tests {
                 ValueTypes::Null as u8,
                 ArgumentOperations::End as u8,  // end of this argument
                 ArgumentOperations::Stop as u8, // end of all arguments
+                254,                            // end of the sub-block of instruction
                 255                             // Stop signal indicating batch is finished
             ],
             completed_ops.clone_memory().expect("clone"),
@@ -921,7 +924,8 @@ mod params_tests {
 
         assert!(write_result.is_ok());
 
-        let completed_data = batch.end().expect("finish writing completion result");
+        batch.end().expect("end instruction");
+        let completed_data = batch.stop().expect("finish writing completion result");
         let slot = allocator.get_slot(completed_data).expect("get memory");
 
         let completed_strings = slot.text_ref();
@@ -940,6 +944,7 @@ mod params_tests {
                 0,
                 ArgumentOperations::End as u8,  // end of this argument
                 ArgumentOperations::Stop as u8, // end of all arguments
+                254,                            // end of the sub-block of instruction
                 255                             // Stop signal indicating batch is finished
             ],
             completed_ops.clone_memory().expect("clone"),
@@ -968,7 +973,9 @@ mod params_tests {
 
         assert!(write_result.is_ok());
 
-        let completed_data = batch.end().expect("finish writing completion result");
+        batch.end().expect("completed");
+
+        let completed_data = batch.stop().expect("finish writing completion result");
         let slot = allocator.get_slot(completed_data).expect("get memory");
 
         let completed_strings = slot.text_ref();
@@ -1005,6 +1012,7 @@ mod params_tests {
                 10,
                 ArgumentOperations::End as u8,  // end of this argument
                 ArgumentOperations::Stop as u8, // end of all arguments
+                254,                            // end of the sub-block of instruction
                 255                             // Stop signal indicating batch is finished
             ],
             completed_ops.clone_memory().expect("clone"),
@@ -1033,7 +1041,8 @@ mod params_tests {
 
         assert!(write_result.is_ok());
 
-        let completed_data = batch.end().expect("finish writing completion result");
+        batch.end().expect("ended");
+        let completed_data = batch.stop().expect("finish writing completion result");
         let slot = allocator.get_slot(completed_data).expect("get memory");
 
         let completed_strings = slot.text_ref();
@@ -1070,6 +1079,7 @@ mod params_tests {
                 10,
                 ArgumentOperations::End as u8,  // end of this argument
                 ArgumentOperations::Stop as u8, // end of all arguments
+                254,                            // end of the sub-block of instruction
                 255                             // Stop signal indicating batch is finished
             ],
             completed_ops.clone_memory().expect("clone"),
@@ -1098,7 +1108,8 @@ mod params_tests {
 
         assert!(write_result.is_ok());
 
-        let completed_data = batch.end().expect("finish writing completion result");
+        batch.end().expect("ended");
+        let completed_data = batch.stop().expect("finish writing completion result");
         let slot = allocator.get_slot(completed_data).expect("get memory");
 
         let completed_strings = slot.text_ref();
@@ -1124,6 +1135,7 @@ mod params_tests {
             4,
             ArgumentOperations::End as u8,  // end of this argument
             ArgumentOperations::Stop as u8, // end of all arguments
+            254,                            // end of the sub-block of instruction
             255                             // Stop signal indicating batch is finished
         ];
 
@@ -1155,7 +1167,8 @@ mod params_tests {
 
         assert!(write_result.is_ok());
 
-        let completed_data = batch.end().expect("finish writing completion result");
+        batch.end().expect("ended");
+        let completed_data = batch.stop().expect("finish writing completion result");
         let slot = allocator.get_slot(completed_data).expect("get memory");
 
         let completed_strings = slot.text_ref();
@@ -1174,6 +1187,7 @@ mod params_tests {
             2,
             ArgumentOperations::End as u8,  // end of this argument
             ArgumentOperations::Stop as u8, // end of all arguments
+            254,                            // end of the sub-block of instruction
             255                             // Stop signal indicating batch is finished
         ];
 
@@ -1204,7 +1218,8 @@ mod params_tests {
 
         assert!(write_result.is_ok());
 
-        let completed_data = batch.end().expect("finish writing completion result");
+        batch.end().expect("ended");
+        let completed_data = batch.stop().expect("finish writing completion result");
         let slot = allocator.get_slot(completed_data).expect("get memory");
 
         let completed_strings = slot.text_ref();
@@ -1223,6 +1238,7 @@ mod params_tests {
             2,
             ArgumentOperations::End as u8,  // end of this argument
             ArgumentOperations::Stop as u8, // end of all arguments
+            254,                            // end of the sub-block of instruction
             255                             // Stop signal indicating batch is finished
         ];
 
@@ -1253,7 +1269,8 @@ mod params_tests {
 
         assert!(write_result.is_ok());
 
-        let completed_data = batch.end().expect("finish writing completion result");
+        batch.end().expect("ended");
+        let completed_data = batch.stop().expect("finish writing completion result");
         let slot = allocator.get_slot(completed_data).expect("get memory");
 
         let completed_strings = slot.text_ref();
@@ -1272,6 +1289,7 @@ mod params_tests {
             2,
             ArgumentOperations::End as u8,  // end of this argument
             ArgumentOperations::Stop as u8, // end of all arguments
+            254,                            // end of the sub-block of instruction
             255                             // Stop signal indicating batch is finished
         ];
 
@@ -1302,7 +1320,8 @@ mod params_tests {
 
         assert!(write_result.is_ok());
 
-        let completed_data = batch.end().expect("finish writing completion result");
+        batch.end().expect("ended");
+        let completed_data = batch.stop().expect("finish writing completion result");
         let slot = allocator.get_slot(completed_data).expect("get memory");
 
         let completed_strings = slot.text_ref();
@@ -1321,6 +1340,7 @@ mod params_tests {
             2,
             ArgumentOperations::End as u8,  // end of this argument
             ArgumentOperations::Stop as u8, // end of all arguments
+            254,                            // end of the sub-block of instruction
             255                             // Stop signal indicating batch is finished
         ];
 
@@ -1351,7 +1371,8 @@ mod params_tests {
 
         assert!(write_result.is_ok());
 
-        let completed_data = batch.end().expect("finish writing completion result");
+        batch.end().expect("ended");
+        let completed_data = batch.stop().expect("finish writing completion result");
         let slot = allocator.get_slot(completed_data).expect("get memory");
 
         let completed_strings = slot.text_ref();
@@ -1370,6 +1391,7 @@ mod params_tests {
             2,
             ArgumentOperations::End as u8,  // end of this argument
             ArgumentOperations::Stop as u8, // end of all arguments
+            254,                            // end of the sub-block of instruction
             255                             // Stop signal indicating batch is finished
         ];
 
@@ -1400,7 +1422,8 @@ mod params_tests {
 
         assert!(write_result.is_ok());
 
-        let completed_data = batch.end().expect("finish writing completion result");
+        batch.end().expect("ended");
+        let completed_data = batch.stop().expect("finish writing completion result");
         let slot = allocator.get_slot(completed_data).expect("get memory");
 
         let completed_strings = slot.text_ref();
@@ -1419,6 +1442,7 @@ mod params_tests {
             2,
             ArgumentOperations::End as u8,  // end of this argument
             ArgumentOperations::Stop as u8, // end of all arguments
+            254,                            // end of the sub-block of instruction
             255                             // Stop signal indicating batch is finished
         ];
 
@@ -1449,7 +1473,8 @@ mod params_tests {
 
         assert!(write_result.is_ok());
 
-        let completed_data = batch.end().expect("finish writing completion result");
+        batch.end().expect("ended");
+        let completed_data = batch.stop().expect("finish writing completion result");
         let slot = allocator.get_slot(completed_data).expect("get memory");
 
         let completed_strings = slot.text_ref();
@@ -1468,6 +1493,7 @@ mod params_tests {
             2,
             ArgumentOperations::End as u8,  // end of this argument
             ArgumentOperations::Stop as u8, // end of all arguments
+            254,                            // end of the sub-block of instruction
             255                             // Stop signal indicating batch is finished
         ];
 
@@ -1498,7 +1524,8 @@ mod params_tests {
 
         assert!(write_result.is_ok());
 
-        let completed_data = batch.end().expect("finish writing completion result");
+        batch.end().expect("ended");
+        let completed_data = batch.stop().expect("finish writing completion result");
         let slot = allocator.get_slot(completed_data).expect("get memory");
 
         let completed_strings = slot.text_ref();
@@ -1517,6 +1544,7 @@ mod params_tests {
             2,
             ArgumentOperations::End as u8,  // end of this argument
             ArgumentOperations::Stop as u8, // end of all arguments
+            254,                            // end of the sub-block of instruction
             255                             // Stop signal indicating batch is finished
         ];
 
@@ -1547,7 +1575,8 @@ mod params_tests {
 
         assert!(write_result.is_ok());
 
-        let completed_data = batch.end().expect("finish writing completion result");
+        batch.end().expect("ended");
+        let completed_data = batch.stop().expect("finish writing completion result");
         let slot = allocator.get_slot(completed_data).expect("get memory");
 
         let completed_strings = slot.text_ref();
@@ -1566,6 +1595,7 @@ mod params_tests {
             2,
             ArgumentOperations::End as u8,  // end of this argument
             ArgumentOperations::Stop as u8, // end of all arguments
+            254,                            // end of the sub-block of instruction
             255                             // Stop signal indicating batch is finished
         ];
 
@@ -1596,7 +1626,8 @@ mod params_tests {
 
         assert!(write_result.is_ok());
 
-        let completed_data = batch.end().expect("finish writing completion result");
+        batch.end().expect("ended");
+        let completed_data = batch.stop().expect("finish writing completion result");
         let slot = allocator.get_slot(completed_data).expect("get memory");
 
         let completed_strings = slot.text_ref();
@@ -1615,6 +1646,7 @@ mod params_tests {
             2,
             ArgumentOperations::End as u8,  // end of this argument
             ArgumentOperations::Stop as u8, // end of all arguments
+            254,                            // end of the sub-block of instruction
             255                             // Stop signal indicating batch is finished
         ];
 
@@ -1645,7 +1677,9 @@ mod params_tests {
 
         assert!(write_result.is_ok());
 
-        let completed_data = batch.end().expect("finish writing completion result");
+        batch.end().expect("ended");
+
+        let completed_data = batch.stop().expect("finish writing completion result");
         let slot = allocator.get_slot(completed_data).expect("get memory");
 
         let completed_strings = slot.text_ref();
@@ -1663,6 +1697,7 @@ mod params_tests {
         let encoded_end = alloc::vec![
             ArgumentOperations::End as u8,  // end of this argument
             ArgumentOperations::Stop as u8, // end of all arguments
+            254,                            // end of the sub-block of instruction
             255                             // Stop signal indicating batch is finished
         ];
 
@@ -1690,7 +1725,9 @@ mod params_tests {
 
         assert!(write_result.is_ok());
 
-        let completed_data = batch.end().expect("finish writing completion result");
+        batch.end().expect("ended");
+
+        let completed_data = batch.stop().expect("finish writing completion result");
         let slot = allocator.get_slot(completed_data).expect("get memory");
 
         let completed_strings = slot.text_ref();
@@ -1708,6 +1745,7 @@ mod params_tests {
         let encoded_end = alloc::vec![
             ArgumentOperations::End as u8,  // end of this argument
             ArgumentOperations::Stop as u8, // end of all arguments
+            254,                            // end of the sub-block of instruction
             255                             // Stop signal indicating batch is finished
         ];
 
@@ -1845,7 +1883,7 @@ impl Instructions {
 
 impl Instructions {
     pub fn complete(self) -> MemoryAllocationResult<CompletedInstructions> {
-        Ok(self.end()?)
+        Ok(self.stop()?)
     }
 }
 
@@ -1918,14 +1956,31 @@ impl MemoryAllocations {
 
 impl BatchEncodable for Instructions {
     fn string(&self, data: &str) -> MemoryWriterResult<StrLocation> {
+        const SPACE_BYTES: u8 = b' ';
+
         if self.in_occupied_state() {
             if let Some((_, text)) = &self.mem {
                 let data_bytes = data.as_bytes();
                 let text_location = text.len()?;
                 let text_length = data_bytes.len() as u64;
 
+                // we want to account for more space when the bytes
+                // length is way more than, because we want to padd the
+                // added string because we use the byte length to correctly
+                // identify where we are selecting from.
+                let byte_length_diff = data_bytes.len() - data.len();
+
                 text.apply(|mem| {
                     mem.extend_from_slice(data_bytes);
+
+                    // pad string with difference if byte length is more than string
+                    // length so we do not end up picking up the next string on the host
+                    // side.
+                    if byte_length_diff > 0 {
+                        for _ in 0..byte_length_diff {
+                            mem.push(SPACE_BYTES);
+                        }
+                    }
                 });
 
                 return Ok(StrLocation::new(text_location, text_length));
@@ -1948,7 +2003,20 @@ impl BatchEncodable for Instructions {
         Err(MemoryWriterError::UnableToWrite)
     }
 
-    fn end(mut self) -> MemoryWriterResult<CompletedInstructions> {
+    fn end(&self) -> MemoryWriterResult<()> {
+        if self.in_occupied_state() {
+            if let Some((ops, _)) = &self.mem {
+                ops.apply(|mem| {
+                    mem.push(Operations::End as u8);
+                });
+
+                return Ok(());
+            }
+        }
+        Err(MemoryWriterError::UnableToWrite)
+    }
+
+    fn stop(mut self) -> MemoryWriterResult<CompletedInstructions> {
         if self.in_occupied_state() {
             if let Some((ops, _)) = self.mem.take() {
                 ops.apply(|mem| {
@@ -1975,7 +2043,7 @@ impl<'a> Batchable<'a> for InternalPointer {
         F: BatchEncodable,
     {
         let (value_bytes, tq) = if optimized {
-            value_quantitzation::qu64(self.into_inner())
+            value_quantitization::qu64(self.into_inner())
         } else {
             (
                 self.into_inner().to_le_bytes().to_vec(),
@@ -2012,7 +2080,7 @@ impl<'a> Batchable<'a> for ExternalPointer {
         F: BatchEncodable,
     {
         let (value_bytes, tq) = if optimized {
-            value_quantitzation::qu64(self.into_inner())
+            value_quantitization::qu64(self.into_inner())
         } else {
             (
                 self.into_inner().to_le_bytes().to_vec(),
@@ -2027,6 +2095,7 @@ impl<'a> Batchable<'a> for ExternalPointer {
         data.extend_from_slice(&value_bytes);
 
         encoder.data(&data)?;
+
         Ok(())
     }
 }
@@ -2053,9 +2122,9 @@ impl Instructions {
         data.push(ValueTypes::Text8.into());
         data.extend_from_slice(&value_index);
         data.extend_from_slice(&value_length);
-        data.push(ArgumentOperations::End.into());
 
         self.data(&data)?;
+        self.end()?;
 
         Ok(())
     }
@@ -2072,6 +2141,7 @@ impl Instructions {
             pm.encode(self, self.optimized)?;
         }
 
+        self.end()?;
         Ok(())
     }
 
@@ -2087,6 +2157,7 @@ impl Instructions {
             pm.encode(self, self.optimized)?;
         }
 
+        self.end()?;
         Ok(())
     }
 
@@ -2102,6 +2173,7 @@ impl Instructions {
         allocated_handle.encode(self, self.optimized)?;
         self.encode_params(params)?;
 
+        self.end()?;
         Ok(())
     }
 
@@ -2143,7 +2215,7 @@ mod test_instructions {
 
         assert!(write_result.is_ok());
 
-        let completed_data = batch.end().expect("finish writing completion result");
+        let completed_data = batch.stop().expect("finish writing completion result");
         let slot = allocator.get_slot(completed_data).expect("get memory");
 
         let completed_strings = slot.text_ref();
@@ -2155,7 +2227,7 @@ mod test_instructions {
         let ops = completed_ops.clone_memory().expect("clone");
         assert_eq!(
             alloc::vec![
-                0, // Begin signal indicating start of batch
+                Operations::Begin as u8, // start of block
                 Operations::InvokeNoReturnFunction as u8,
                 ValueTypes::ExternalReference as u8, // type of value
                 TypeOptimization::QuantizedUint64AsU8 as u8,
@@ -2174,7 +2246,8 @@ mod test_instructions {
                 20,
                 ArgumentOperations::End as u8,  // end of this argument
                 ArgumentOperations::Stop as u8, // end of all arguments
-                255                             // Stop signal indicating batch is finished
+                Operations::End as u8,          // end of current sub-block
+                Operations::Stop as u8,         // Stop signal indicating batch is finished
             ],
             ops
         );
@@ -2198,7 +2271,7 @@ mod test_instructions {
 
         assert!(write_result.is_ok());
 
-        let completed_data = batch.end().expect("finish writing completion result");
+        let completed_data = batch.stop().expect("finish writing completion result");
         let slot = allocator.get_slot(completed_data).expect("get memory");
 
         let completed_strings = slot.text_ref();
@@ -2210,9 +2283,9 @@ mod test_instructions {
         let ops = completed_ops.clone_memory().expect("clone");
         assert_eq!(
             alloc::vec![
-                0, // Begin signal indicating start of batch
-                Operations::InvokeNoReturnFunction as u8,
-                ValueTypes::ExternalReference as u8, // type of value
+                Operations::Begin as u8,                  // start of block
+                Operations::InvokeNoReturnFunction as u8, // sub-block: a type of instruction
+                ValueTypes::ExternalReference as u8,      // type of value
                 TypeOptimization::None as u8,
                 // address pointer to function which is a u64, so 8 bytes
                 1,
@@ -2246,7 +2319,8 @@ mod test_instructions {
                 0,
                 ArgumentOperations::End as u8,  // end of this argument
                 ArgumentOperations::Stop as u8, // end of all arguments
-                255                             // Stop signal indicating batch is finished
+                Operations::End as u8,          // end of current sub-block
+                Operations::Stop as u8,         // Stop signal indicating batch is finished
             ],
             ops
         );
@@ -2277,7 +2351,7 @@ mod test_instructions {
             .invoke_no_return_function(function_handle, Some(&[Params::Text8("Hello from intro")]))
             .expect("should register call");
 
-        let completed_data = batch.end().expect("finish writing completion result");
+        let completed_data = batch.stop().expect("finish writing completion result");
         let slot = allocator.get_slot(completed_data).expect("get memory");
 
         let completed_ops = slot.ops_ref();
@@ -2289,9 +2363,72 @@ mod test_instructions {
         let ops = completed_ops.clone_memory().expect("clone");
         assert_eq!(
             alloc::vec![
-                0, 1, 15, 0, 1, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 83, 0, 0, 0, 0, 0,
-                0, 0, 3, 2, 15, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 0, 83, 0, 0, 0, 0, 0, 0, 0, 0,
-                16, 0, 0, 0, 0, 0, 0, 0, 3, 4, 255
+                Operations::Begin as u8,
+                Operations::MakeFunction as u8,
+                15,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                3,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                83,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                Operations::End as u8,
+                Operations::InvokeNoReturnFunction as u8,
+                15,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                2,
+                3,
+                0,
+                83,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                16,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                3,
+                4,
+                Operations::End as u8,  // end of current sub-block
+                Operations::Stop as u8, // Stop signal indicating batch is finished
             ],
             ops
         );

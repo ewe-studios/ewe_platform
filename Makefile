@@ -1,10 +1,10 @@
-PACKAGES = ewe_platform foundations_ext ewe_trace ewe_async_utils ewe_channels ewe_domain ewe_devserver ewe_domain_server ewe_html ewe_html_macro ewe_mem ewe_routing ewe_spawn ewe_spawn ewe_template_macro ewe_templates ewe_temple ewe_watch_utils ewe_watchers ewe_web
+PACKAGES = ewe_platform foundations_ext foundations_jsnostd foundations_nostd ewe_trace ewe_async_utils ewe_channels ewe_domain ewe_devserver ewe_domain_server ewe_html ewe_html_macro ewe_mem ewe_routing ewe_spawn ewe_spawn ewe_template_macro ewe_templates ewe_temple ewe_watch_utils ewe_watchers ewe_web
 
 bacon:
 	bacon -j bacon-ls
 
 sandbox:
-	cargo +nightly run --profile dev --bin ewe_platform sandbox
+	cargo run --profile dev --bin ewe_platform sandbox
 
 build-demos:
 	@RUSTFLAGS='-C link-arg=-s' cargo build --package intro --target wasm32-unknown-unknown 

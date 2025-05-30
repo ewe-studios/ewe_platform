@@ -1,4 +1,5 @@
 const NULL_AND_UNDEFINED = [null, undefined];
+const MAX_ITERATION = 5000000;
 
 const LEVELS = {
   INFO: 1,
@@ -196,6 +197,12 @@ const Operations = {
   ///  End
   InvokeCallbackFunction: 4,
 
+  /// End - indicates the end of a portion of a instruction set.
+  /// Since an instruction memory array can contain multiple instructions
+  /// batched together, then each instruction must have a end marker indicating
+  /// one portion is over.
+  End: 254,
+
   /// Stop - indicates the end of an operation in a batch, since
   /// a memory will contain multiple operations batched into a single
   /// memory slot, until you see this 1 byte signal then you should
@@ -347,7 +354,10 @@ class ArenaAllocator {
     if (candidate.index >= this.items.length) {
       return null;
     }
-    LOGGER.debug(`Seeking for entry with id: ${uid} with slot: `, candidate);
+    LOGGER.debug(
+      `ArenaAllocator::get_entry for entry with id: ${uid} with slot: `,
+      candidate,
+    );
     const entry = this.get_entry_at_index(candidate.index);
     if (entry == null) return null;
     return entry.item;
@@ -356,6 +366,13 @@ class ArenaAllocator {
   update_entry(slot_id, item) {
     let candidate = ArenaAllocator.uid_to_entry(slot_id);
     if (candidate.index >= this.items.length) {
+      return false;
+    }
+    const slot = this.get_entry_at_index(candidate.index);
+    if (slot.generation != candidate.generation) {
+      LOGGER.debug(
+        `Slot for ${slot_id} with (index=${candidate.index}, gen=${candidate.generation}) failed generation match against ${slot.generation}`,
+      );
       return false;
     }
     slot.item = item;
@@ -421,16 +438,16 @@ class ArenaAllocator {
   //
   // Returns a BigInt representing the entry.
   static entry_to_uid(entry) {
-    const index_as_16bit = BigInt(entry.index) & ArenaAllocator.BIT_MASK; // Max to ensure we have 65,535 bits (16bit numbers)
-    const generation_as_16bit =
-      BigInt(entry.generation) & ArenaAllocator.BIT_MASK; // Max to ensure we have 65,535 bits (16bit numbers)
+    const index_as_32bit = BigInt(entry.index) & ArenaAllocator.BIT_MASK;
+    const generation_as_32bit =
+      BigInt(entry.generation) & ArenaAllocator.BIT_MASK;
 
     // shift the index to the MSB(Most Significant Bits, starting from the leftmost bit).
     // others say: shifting to the upper bits (so leftmost)
     // Then: shift the generation uid to the rightmost bit (Least Significant bit).
     // others say: shifting to the lower bits (so rightmost)
     let packed_uid =
-      (BigInt(index_as_16bit) << ArenaAllocator.BIT_SIZE) | generation_as_16bit;
+      (index_as_32bit << ArenaAllocator.BIT_SIZE) | generation_as_32bit;
     return packed_uid;
   }
 }
@@ -541,6 +558,20 @@ class TextCodec {
     return this.utf8_decoder.decode(data_slice);
   }
 
+  readUTF16FromMemory(start, len) {
+    const bytes = this.operator.get_memory().subarray(start, start + len);
+    const text = this.utf16_decoder.decode(bytes);
+    return text;
+  }
+
+  readUTF8FromView(view) {
+    return this.utf8_decoder.decode(view);
+  }
+
+  readUTF16FromView(view) {
+    return this.utf16_decoder.decode(view);
+  }
+
   writeUTF8FromMemory(text) {
     const bytes = utf8_encoder.encode(text);
     const len = bytes.length;
@@ -549,12 +580,6 @@ class TextCodec {
     const memory = this.operator.get_memory();
     memory.set(bytes, start);
     return id;
-  }
-
-  readUTF16FromMemory(start, len) {
-    const bytes = this.operator.get_memory().subarray(start, start + len);
-    const text = this.utf16_decoder.decode(bytes);
-    return text;
   }
 
   // [utf8ArrayToStr] convets your array to UTF-16 using the decodeURIComponent.
@@ -712,6 +737,60 @@ class TextCodec {
       maxBytesToRead,
       true,
     );
+  }
+
+  // Extracted from benchmarks: https://jsbench.me/4vl97c05lb/5
+  //
+  // Roughly 59.3% slower with large data list.
+  static decodeUTF8Slice(byte_array, start, _end) {
+    let pos = start;
+    const end = _end;
+    let out = "";
+    while (pos < end) {
+      const byte1 = byte_array[pos++];
+      if ((byte1 & 0x80) === 0) {
+        // 1 byte
+        out += String.fromCharCode(byte1);
+      } else if ((byte1 & 0xe0) === 0xc0) {
+        // 2 bytes
+        const byte2 = u8arr[pos++] & 0x3f;
+        out += String.fromCharCode(((byte1 & 0x1f) << 6) | byte2);
+      } else if ((byte1 & 0xf0) === 0xe0) {
+        // 3 bytes
+        const byte2 = u8arr[pos++] & 0x3f;
+        const byte3 = u8arr[pos++] & 0x3f;
+        out += String.fromCharCode(
+          ((byte1 & 0x1f) << 12) | (byte2 << 6) | byte3,
+        );
+      } else if ((byte1 & 0xf8) === 0xf0) {
+        // 4 bytes
+        const byte2 = u8arr[pos++] & 0x3f;
+        const byte3 = u8arr[pos++] & 0x3f;
+        const byte4 = u8arr[pos++] & 0x3f;
+        let unit =
+          ((byte1 & 0x07) << 0x12) | (byte2 << 0x0c) | (byte3 << 0x06) | byte4;
+        if (unit > 0xffff) {
+          unit -= 0x10000;
+          out += String.fromCharCode(((unit >>> 10) & 0x3ff) | 0xd800);
+          unit = 0xdc00 | (unit & 0x3ff);
+        }
+        out += String.fromCharCode(unit);
+      } else {
+        out += String.fromCharCode(byte1);
+      }
+    }
+
+    return out;
+  }
+
+  static decodeAsciiDecode(byte_array, start, _en) {
+    let pos = start;
+    const end = _end;
+    let out = "";
+    while (pos < end) {
+      out += String.fromCharCode(byte_array[pos++]);
+    }
+    return out;
   }
 
   // See https://github.com/emscripten-core/emscripten/blob/main/test/js_optimizer/applyImportAndExportNameChanges2-output.js#L30-L64
@@ -1040,8 +1119,14 @@ class ParameterParserV2 {
     this.module = memory_operator.get_module();
   }
 
-  parse_array(view) {
+  parseParams(moved_by, view, text_string_array) {
+    LOGGER.debug("Props", moved_by, view, typeof text_string_array);
     if (!(view instanceof DataView)) {
+      throw new Error(
+        "Argument must be a DataView scoped to the area you want parsed",
+      );
+    }
+    if (!(typeof text_string_array === "string")) {
       throw new Error(
         "Argument must be a DataView scoped to the area you want parsed",
       );
@@ -1049,56 +1134,54 @@ class ParameterParserV2 {
 
     const parameters = [];
 
-    let read_index = 0;
+    for (let i = 0; i < MAX_ITERATION; i++) {
+      if (view.getUint8(moved_by, true) == ArgumentOperations.Stop) {
+        break;
+      }
 
-    while (index < view.length) {
       // validate we see begin marker
-      if (view.getUint8(read_index) != ArgumentOperations.Begin) {
+      const id = view.getUint8(moved_by, true);
+
+      if (id != ArgumentOperations.Begin) {
         throw new Error("Argument did not start with ArgumentOperation.Start");
       }
-      read_index += Move.MOVE_BY_1_BYTES;
+      moved_by += Move.MOVE_BY_1_BYTES;
 
-      const value_type = view.getUint8(read_index);
+      let param;
+      [moved_by, param] = this.parseParam(moved_by, view, text_string_array);
 
-      let move_by = 0;
-      let parameter = null;
-      switch (value_type) {
-        case Params.Undefined:
-          [move_by, parameter] = this.parseUndefined(read_index, view);
-          break;
-        case Params.Null:
-          [move_by, parameter] = this.parseNull(read_index, view);
-          break;
-        default:
-          throw new Error(`ArgumentType with key: ${value_type} not supported`);
-      }
+      parameters.push(param);
 
-      LOGGER.debug("Read parameter type: ", value_type, move_by, parameter);
-      parameters.push(parameter);
-      read_index += move_by;
+      LOGGER.debug("Read parameter type: ", moved_by, param);
 
       // validate we see end marker
-      if (view.getUint8(read_index) != ArgumentOperations.End) {
-        throw new Error("Argument did not start with ArgumentOperation.Start");
+      if (view.getUint8(moved_by, true) != ArgumentOperations.End) {
+        throw new Error("Argument did not start with ArgumentOperation.End");
       }
-      read_index += Move.MOVE_BY_1_BYTES;
+
+      moved_by += Move.MOVE_BY_1_BYTES;
     }
+
+    if (view.getUint8(moved_by, true) != ArgumentOperations.Stop) {
+      throw new Error("Argument did not start with ArgumentOperation.End");
+    }
+    moved_by += Move.MOVE_BY_1_BYTES;
+
+    return [moved_by, parameters];
   }
 
-  parseParam(from_index, view) {
-    const value_type = view.getUint8(from_index);
+  parseParam(from_index, view, text_string_array) {
+    const value_type = view.getUint8(from_index, true);
     if (!(value_type in Params.__INVERSE__)) {
       throw new Error(`Params ${value_type} is not known`);
     }
 
-    from_index += Move.MOVE_BY_1_BYTES;
+    return this.parseParamType(from_index, value_type, view, text_string_array);
+  }
 
-    const optimization_type = view.getUint8(from_index);
-    if (!(optimization_type in TypeOptimization.__INVERSE__)) {
-      throw new Error(
-        `OptimizationType ${optimization_type} is not known for value_type: ${value_type}`,
-      );
-    }
+  parseParamType(from_index, value_type, view, text_string_array) {
+    const value_type_str = Params.__INVERSE__[value_type];
+    LOGGER.debug(`Received value_type: ${value_type} (${value_type_str})`);
 
     switch (value_type) {
       case Params.Null:
@@ -1156,21 +1239,36 @@ class ParameterParserV2 {
       case Params.InternalReference:
         break;
       case Params.Text8:
-        break;
+        return this.parseText8(from_index, view, text_string_array);
       case Params.Text16:
-        break;
+        return this.parseText16(from_index, view, text_string_array);
+      default:
+        throw new Error(
+          `Params type ${value_type} (type=${values_type_str}) is not supported`,
+        );
     }
   }
 
+  parseUint8ArrayBuffer(from_index, view) {
+    const value_type = view.getUint8(from_index, true);
+    if (value_type != Params.Uint8Array) {
+      throw new Error(
+        `Parameter is not that of Undefined: received ${value_type}`,
+      );
+    }
+
+    return [Move.MOVE_BY_1_BYTES, null];
+  }
+
   parseNull(from_index, view) {
-    const value_type = view.getUint8(from_index);
+    const value_type = view.getUint8(from_index, true);
     if (value_type != Params.Undefined) {
       throw new Error(
         `Parameter is not that of Undefined: received ${value_type}`,
       );
     }
 
-    return [Move.MOVE_BY_1_BYTES, [null]];
+    return [Move.MOVE_BY_1_BYTES, null];
   }
 
   parseNumber8(from_index, value_type, view) {
@@ -1181,25 +1279,25 @@ class ParameterParserV2 {
     }
 
     if (value_type == Params.Int8) {
-      return [Move.MOVE_BY_1_BYTES, [view.getInt8(from_index)]];
+      return [Move.MOVE_BY_1_BYTES, view.getInt8(from_index, true)];
     }
 
-    return [Move.MOVE_BY_1_BYTES, [view.getUint8(from_index)]];
+    return [Move.MOVE_BY_1_BYTES, view.getUint8(from_index, true)];
   }
 
   parseUndefined(from_index, view) {
-    const value_type = view.getUint8(from_index);
+    const value_type = view.getUint8(from_index, true);
     if (value_type != Params.Undefined) {
       throw new Error(
         `Parameter is not that of Undefined: received ${value_type}`,
       );
     }
 
-    return [Move.MOVE_BY_1_BYTES, [undefined]];
+    return [Move.MOVE_BY_1_BYTES, undefined];
   }
 
   parseBoolean(from_index, view) {
-    const value_type = view.getUint8(from_index);
+    const value_type = view.getUint8(from_index, true);
     if (value_type != Params.Bool) {
       throw new Error(
         `Parameter is not that of Undefined: received ${value_type}`,
@@ -1208,16 +1306,80 @@ class ParameterParserV2 {
 
     from_index += Move.MOVE_BY_1_BYTES;
 
-    const value_int = view.getUint8(from_index);
+    const value_int = view.getUint8(from_index, true);
     const value = value_int == 1;
 
     from_index += Move.MOVE_BY_1_BYTES;
 
-    return [from_index, [value]];
+    return [from_index, value];
+  }
+
+  parseStringLocation(from_index, view) {
+    const str_index = view.getBigUint64(from_index, true);
+    from_index += Move.MOVE_BY_64_BYTES;
+
+    const str_length = view.getBigUint64(from_index, true);
+    from_index += Move.MOVE_BY_64_BYTES;
+
+    LOGGER.debug(`StringLocation::(index=${str_index}, length=${str_length})`);
+
+    return [from_index, [Number(str_index), Number(str_length)]];
+  }
+
+  parseStringLocationAsOptimized(from_index, view) {
+    const [moved_by, location_index] = this.parseNumber64(
+      from_index,
+      Params.Uint64,
+      view,
+    );
+    const [moved_by_next, location_length] = this.parseNumber64(
+      moved_by,
+      Params.Uint64,
+      view,
+    );
+    LOGGER.debug(
+      `parseStringLocationAsOptimized::(index=${location_index}, length=${location_length})`,
+    );
+    return [moved_by_next, [Number(location_index), Number(location_length)]];
+  }
+
+  parseText16(from_index, view) {
+    const value_type = view.getUint8(from_index, true);
+    if (value_type != Params.Text16) {
+      throw new Error(
+        `Parameter is not that of Undefined: received ${value_type}`,
+      );
+    }
+  }
+
+  parseText8(from_index, view, text_string_array) {
+    const value_type = view.getUint8(from_index, true);
+    if (value_type != Params.Text8) {
+      throw new Error(`Parameter is not that of Text8: received ${value_type}`);
+    }
+
+    from_index += Move.MOVE_BY_1_BYTES;
+
+    let content_location;
+    [from_index, content_location] = this.parseStringLocationAsOptimized(
+      from_index,
+      view,
+    );
+
+    const target_text = text_string_array.substr.apply(
+      text_string_array,
+      content_location,
+    );
+
+    LOGGER.debug(
+      `parseText8: index=${content_location[0]}, length=${content_location[1]}, text=${target_text}`,
+    );
+
+    return [from_index, target_text];
   }
 
   parseExternalPointer(from_index, view) {
-    const value_type = view.getUint8(from_index);
+    const value_type = view.getUint8(from_index, true);
     if (value_type != Params.ExternalReference) {
       throw new Error(
         `Parameter is not that of ExternalReference: received ${value_type}`,
@@ -1226,11 +1388,20 @@ class ParameterParserV2 {
 
     from_index += Move.MOVE_BY_1_BYTES;
 
-    return [from_index, [undefined]];
+    // read out a 64 bit number representing the external reference.
+    const [move_by, external_id] = this.parseNumber64(
+      from_index,
+      Params.Uint64,
+      view,
+    );
+
+    LOGGER.debug("ExternalIdExtraction: ", move_by, external_id);
+
+    return [move_by, Number(external_id)];
   }
 
   parsePtr(from_index, value_type, view) {
-    const optimization_type = view.getUint8(from_index);
+    const optimization_type = view.getUint8(from_index, true);
     if (!(optimization_type in TypeOptimization.__INVERSE__)) {
       throw new Error(
         `OptimizationType ${optimization_type} is not known for value_type: ${value_type}`,
@@ -1246,11 +1417,20 @@ class ParameterParserV2 {
           view.getBigUint64(from_index),
         ];
       case TypeOptimization.QuantizedPtrAsU8:
-        return [from_index + Move.MOVE_BY_1_BYTES, view.getUint8(from_index)];
+        return [
+          from_index + Move.MOVE_BY_1_BYTES,
+          view.getUint8(from_index, true),
+        ];
       case TypeOptimization.QuantizedPtrAsU16:
-        return [from_index + Move.MOVE_BY_16_BYTES, view.getUint16(from_index)];
+        return [
+          from_index + Move.MOVE_BY_16_BYTES,
+          view.getUint16(from_index, true),
+        ];
       case TypeOptimization.QuantizedPtrAsU32:
-        return [from_index + Move.MOVE_BY_32_BYTES, view.getUint32(from_index)];
+        return [
+          from_index + Move.MOVE_BY_32_BYTES,
+          view.getUint32(from_index, true),
+        ];
       case TypeOptimization.QuantizedPtrAsU64:
         return [
           from_index + Move.MOVE_BY_64_BYTES,
@@ -1260,7 +1440,7 @@ class ParameterParserV2 {
   }
 
   parseNumber16(from_index, value_type, view) {
-    const optimization_type = view.getUint8(from_index);
+    const optimization_type = view.getUint8(from_index, true);
     if (!(optimization_type in TypeOptimization.__INVERSE__)) {
       throw new Error(
         `OptimizationType ${optimization_type} is not known for value_type: ${value_type}`,
@@ -1277,21 +1457,37 @@ class ParameterParserV2 {
             view.getInt16(from_index),
           ];
         }
-        return [from_index + Move.MOVE_BY_16_BYTES, view.getUint16(from_index)];
+        return [
+          from_index + Move.MOVE_BY_16_BYTES,
+          view.getUint16(from_index, true),
+        ];
       case TypeOptimization.QuantizedInt16AsI8:
-        return [from_index + Move.MOVE_BY_1_BYTES, view.getInt8(from_index)];
+        return [
+          from_index + Move.MOVE_BY_1_BYTES,
+          view.getInt8(from_index, true),
+        ];
       case TypeOptimization.QuantizedUint16AsU8:
-        return [from_index + Move.MOVE_BY_1_BYTES, view.getUint8(from_index)];
+        return [
+          from_index + Move.MOVE_BY_1_BYTES,
+          view.getUint8(from_index, true),
+        ];
     }
   }
 
   parseNumber64(from_index, value_type, view) {
-    const optimization_type = view.getUint8(from_index);
+    const optimization_type = view.getUint8(from_index, true);
     if (!(optimization_type in TypeOptimization.__INVERSE__)) {
       throw new Error(
         `OptimizationType ${optimization_type} is not known for value_type: ${value_type}`,
       );
     }
+
+    LOGGER.debug(
+      "parseNumber64 saw optimization: ",
+      optimization_type,
+      TypeOptimization.__INVERSE__[optimization_type],
+      Params.__INVERSE__[value_type],
+    );
 
     from_index += Move.MOVE_BY_1_BYTES;
 
@@ -1300,30 +1496,45 @@ class ParameterParserV2 {
         if (value_type == Params.Int64) {
           return [
             from_index + Move.MOVE_BY_64_BYTES,
-            view.getBigInt64(from_index),
+            view.getBigInt64(from_index, true),
           ];
         }
         return [
           from_index + Move.MOVE_BY_64_BYTES,
-          view.getBigUint64(from_index),
+          view.getBigUint64(from_index, true),
         ];
       case TypeOptimization.QuantizedInt64AsI8:
-        return [from_index + Move.MOVE_BY_1_BYTES, view.getInt8(from_index)];
+        return [
+          from_index + Move.MOVE_BY_1_BYTES,
+          view.getInt8(from_index, true),
+        ];
       case TypeOptimization.QuantizedUint64AsU8:
-        return [from_index + Move.MOVE_BY_1_BYTES, view.getUint8(from_index)];
+        return [
+          from_index + Move.MOVE_BY_1_BYTES,
+          view.getUint8(from_index, true),
+        ];
       case TypeOptimization.QuantizedUint64AsU16:
-        return [from_index + Move.MOVE_BY_16_BYTES, view.getUint16(from_index)];
+        return [
+          from_index + Move.MOVE_BY_16_BYTES,
+          view.getUint16(from_index, true),
+        ];
       case TypeOptimization.QuantizedInt64AsI16:
-        return [from_index + Move.MOVE_BY_16_BYTES, view.getInt16(from_index)];
+        return [
+          from_index + Move.MOVE_BY_16_BYTES,
+          view.getInt16(from_index, true),
+        ];
       case TypeOptimization.QuantizedInt64AsI32:
         return [from_index + Move.MOVE_BY_32_BYTES, view.geInt32(from_index)];
       case TypeOptimization.QuantizedUint64AsU32:
-        return [from_index + Move.MOVE_BY_32_BYTES, view.getUint32(from_index)];
+        return [
+          from_index + Move.MOVE_BY_32_BYTES,
+          view.getUint32(from_index, true),
+        ];
     }
   }
 
   parseNumber32(from_index, value_type, view) {
-    const optimization_type = view.getUint8(from_index);
+    const optimization_type = view.getUint8(from_index, true);
     if (!(optimization_type in TypeOptimization.__INVERSE__)) {
       throw new Error(
         `OptimizationType ${optimization_type} is not known for value_type: ${value_type}`,
@@ -1340,20 +1551,35 @@ class ParameterParserV2 {
             view.getInt32(from_index),
           ];
         }
-        return [from_index + Move.MOVE_BY_32_BYTES, view.getUint32(from_index)];
+        return [
+          from_index + Move.MOVE_BY_32_BYTES,
+          view.getUint32(from_index, true),
+        ];
       case TypeOptimization.QuantizedInt32AsI8:
-        return [from_index + Move.MOVE_BY_1_BYTES, view.getInt8(from_index)];
+        return [
+          from_index + Move.MOVE_BY_1_BYTES,
+          view.getInt8(from_index, true),
+        ];
       case TypeOptimization.QuantizedUint32AsU8:
-        return [from_index + Move.MOVE_BY_1_BYTES, view.getUint8(from_index)];
+        return [
+          from_index + Move.MOVE_BY_1_BYTES,
+          view.getUint8(from_index, true),
+        ];
       case TypeOptimization.QuantizedInt32AsI16:
-        return [from_index + Move.MOVE_BY_16_BYTES, view.getInt16(from_index)];
+        return [
+          from_index + Move.MOVE_BY_16_BYTES,
+          view.getInt16(from_index, true),
+        ];
       case TypeOptimization.QuantizedUint32AsU16:
-        return [from_index + Move.MOVE_BY_16_BYTES, view.getUint16(from_index)];
+        return [
+          from_index + Move.MOVE_BY_16_BYTES,
+          view.getUint16(from_index, true),
+        ];
     }
   }
 
   parseFloat32(from_index, value_type, view) {
-    const optimization_type = view.getUint8(from_index);
+    const optimization_type = view.getUint8(from_index, true);
     if (!(optimization_type == TypeOptimization.None)) {
       throw new Error(
         `OptimizationType ${optimization_type} is not known for value_type: ${value_type}`,
@@ -1361,11 +1587,14 @@ class ParameterParserV2 {
     }
 
     from_index += Move.MOVE_BY_1_BYTES;
-    return [from_index + Move.MOVE_BY_32_BYTES, view.getFloat32(from_index)];
+    return [
+      from_index + Move.MOVE_BY_32_BYTES,
+      view.getFloat32(from_index, true),
+    ];
   }
 
   parseFloat64(from_index, value_type, view) {
-    const optimization_type = view.getUint8(from_index);
+    const optimization_type = view.getUint8(from_index, true);
     if (!(optimization_type in TypeOptimization.__INVERSE__)) {
       throw new Error(
         `OptimizationType ${optimization_type} is not known for value_type: ${value_type}`,
@@ -1389,7 +1618,7 @@ class ParameterParserV2 {
   }
 
   parseNumber128(from_index, value_type, view) {
-    const optimization_type = view.getUint8(from_index);
+    const optimization_type = view.getUint8(from_index, true);
     if (!(optimization_type in TypeOptimization.__INVERSE__)) {
       throw new Error(
         `OptimizationType ${optimization_type} is not known for value_type: ${value_type}`,
@@ -1401,10 +1630,10 @@ class ParameterParserV2 {
     switch (optimization_type) {
       case TypeOptimization.None:
         if (value_type == Params.Int128) {
-          const value_msb = view.getInt64(from_index);
+          const value_msb = view.getInt64(from_index, true);
           from_index += Move.MOVE_BY_64_BYTES;
 
-          const value_lsb = view.getInt64(from_index);
+          const value_lsb = view.getInt64(from_index, true);
           from_index += Move.MOVE_BY_64_BYTES;
 
           let sent_value = BigInt(value_msb) << BigInt(64);
@@ -1413,10 +1642,10 @@ class ParameterParserV2 {
           return [from_index, sent_value];
         }
 
-        const value_msb = view.getUint64(from_index);
+        const value_msb = view.getUint64(from_index, true);
         from_index += Move.MOVE_BY_64_BYTES;
 
-        const value_lsb = view.getUint64(from_index);
+        const value_lsb = view.getUint64(from_index, true);
         from_index += Move.MOVE_BY_64_BYTES;
 
         let sent_value = BigInt(value_msb) << BigInt(64);
@@ -1424,21 +1653,45 @@ class ParameterParserV2 {
 
         return [from_index, sent_value];
       case TypeOptimization.QuantizedInt128AsI8:
-        return [from_index + Move.MOVE_BY_1_BYTES, view.getInt8(from_index)];
+        return [
+          from_index + Move.MOVE_BY_1_BYTES,
+          view.getInt8(from_index, true),
+        ];
       case TypeOptimization.QuantizedUint128AsU8:
-        return [from_index + Move.MOVE_BY_1_BYTES, view.getUint8(from_index)];
+        return [
+          from_index + Move.MOVE_BY_1_BYTES,
+          view.getUint8(from_index, true),
+        ];
       case TypeOptimization.QuantizedInt128AsI16:
-        return [from_index + Move.MOVE_BY_16_BYTES, view.getInt16(from_index)];
+        return [
+          from_index + Move.MOVE_BY_16_BYTES,
+          view.getInt16(from_index, true),
+        ];
       case TypeOptimization.QuantizedUint128AsU16:
-        return [from_index + Move.MOVE_BY_16_BYTES, view.getUint16(from_index)];
+        return [
+          from_index + Move.MOVE_BY_16_BYTES,
+          view.getUint16(from_index, true),
+        ];
       case TypeOptimization.QuantizedInt128AsI32:
-        return [from_index + Move.MOVE_BY_32_BYTES, view.getInt32(from_index)];
+        return [
+          from_index + Move.MOVE_BY_32_BYTES,
+          view.getInt32(from_index, true),
+        ];
       case TypeOptimization.QuantizedUint128AsU32:
-        return [from_index + Move.MOVE_BY_32_BYTES, view.getUint32(from_index)];
+        return [
+          from_index + Move.MOVE_BY_32_BYTES,
+          view.getUint32(from_index, true),
+        ];
       case TypeOptimization.QuantizedInt128AsI64:
-        return [from_index + Move.MOVE_BY_64_BYTES, view.getInt64(from_index)];
+        return [
+          from_index + Move.MOVE_BY_64_BYTES,
+          view.getInt64(from_index, true),
+        ];
       case TypeOptimization.QuantizedUint128AsU64:
-        return [from_index + Move.MOVE_BY_64_BYTES, view.getUint64(from_index)];
+        return [
+          from_index + Move.MOVE_BY_64_BYTES,
+          view.getUint64(from_index, true),
+        ];
     }
   }
 }
@@ -1473,90 +1726,214 @@ class BatchInstrructions {
       Number(ops_pointer),
       Number(ops_length),
     );
-    LOGGER.debug(
-      "BatchInstructions::parse_instructions -> processing ops: ",
-      operations_buffer,
-    );
 
     const text_buffer = this.operator.readUint8Buffer(
       Number(text_pointer),
       Number(text_length),
     );
+
+    const text_utf8 = this.texts.readUTF8FromView(text_buffer);
+
     LOGGER.debug(
-      "BatchInstructions::parse_instructions -> processing text: ",
+      "BatchInstructions::parse_instructions -> ",
+      "\n",
+      "ops:\n",
+      operations_buffer,
+      "\n",
+      "text:\n",
       text_buffer,
+      "\n",
+      "text_decoded:\n",
+      text_utf8,
     );
 
+    let moved_by = 0;
     const batches = [];
 
     const operations_view = new DataView(operations_buffer);
-    const texts_view = new DataView(text_buffer);
 
-    let readIndex = 0;
-    while (true) {
-      let [batch, consumedIndex] = this.parse_batch(
-        readIndex,
-        operations_view,
-        texts_view,
+    const starter_id = operations_view.getUint8(moved_by);
+    if (starter_id != Operations.Begin) {
+      throw new Error(
+        `Argument did not end with Operation.Begin instead got: ${starter_id}`,
       );
-      LOGGER.debug("Extracted batch: ", batch, consumedIndex);
-      readIndex = consumedIndex;
+    }
+
+    moved_by += Move.MOVE_BY_1_BYTES;
+
+    for (let i = 0; i < MAX_ITERATION; i++) {
+      let batch = null;
+      [moved_by, batch] = this.parse_one_batch(
+        moved_by,
+        operations_view,
+        text_utf8,
+      );
+
       batches.push(batch);
-      if (!batch) break;
+
+      const stop_op = operations_view.getUint8(moved_by);
+      if (stop_op == Operations.Stop) {
+        LOGGER.debug("Found Operations.Stop identification");
+        break;
+      }
     }
 
     LOGGER.debug("Extracted batches: ", batches);
-
     return batches;
   }
 
-  parse_batch(read_index, operations, texts) {
-    const batch = [];
-    if (operations.getUint8(read_index) != Operations.Begin) {
-      throw new Error(
-        `Argument did not end with Operation.Begin instead got: ${operations.getUint8(read_index)}`,
-      );
-    }
-
-    read_index += Move.MOVE_BY_1_BYTES;
-
+  parse_one_batch(read_index, operations, texts) {
     const operation_id = operations.getUint8(read_index);
+    const operations_name = Operations.__INVERSE__[operation_id];
     LOGGER.debug(
-      `Received operation id: ${operation_id} at read_index: ${read_index}`,
+      `Received operation id=${operation_id}, name=${operations_name} at read_index: ${read_index}`,
       operations,
     );
+
     switch (operation_id) {
       case Operations.MakeFunction:
-        batch.push(this.parse_make_function(read_index, operations, texts));
-        break;
+        return this.parse_make_function(read_index, operations, texts);
       case Operations.InvokeNoReturnFunction:
-        break;
+        return this.parse_invoke_no_return_function(
+          read_index,
+          operations,
+          texts,
+        );
       case Operations.InvokeReturningFunction:
         break;
       case Operations.InvokeCallbackFunction:
         break;
     }
+  }
 
-    if (operations.getUint8(read_index) != Operations.Stop) {
+  parse_invoke_no_return_function(moved_by, operations, texts) {
+    const action_id = operations.getUint8(moved_by, true);
+    if (action_id != Operations.InvokeNoReturnFunction) {
       throw new Error(
-        `Argument did not end with Operation.Stop instead got: ${operations.getUint8(read_index)}`,
+        `Argument should be Operation.InvokeNoReturnFunction instead got: ${action_id}`,
       );
     }
 
-    read_index += Move.MOVE_BY_1_BYTES;
+    moved_by += Move.MOVE_BY_1_BYTES;
 
-    return [batch, read_index];
+    // read the external pointer we want registered
+    let external_id = null;
+    [moved_by, external_id] = this.parameter_v2.parseExternalPointer(
+      moved_by,
+      operations,
+    );
+
+    LOGGER.debug(
+      "ExternalPointer: ",
+      external_id,
+      " with now index: ",
+      moved_by,
+    );
+
+    const next_token = operations.getUint8(moved_by, true);
+    if (next_token != ArgumentOperations.Start) {
+      throw new Error(
+        `Next token should be (id=${ArgumentOperations.Start}, name=${ArgumentOperations.__INVERSE__[ArgumentOperations.Start]}) instead got: ${next_token}`,
+      );
+    }
+
+    moved_by += Move.MOVE_BY_1_BYTES;
+
+    let parameters;
+    [moved_by, parameters] = this.parameter_v2.parseParams(
+      moved_by,
+      operations,
+      texts,
+    );
+
+    if (operations.getUint8(moved_by) != Operations.End) {
+      throw new Error(
+        `Operation should be Params.End instead got: ${operations.getUint8(
+          moved_by_next,
+        )}`,
+      );
+    }
+
+    moved_by += Move.MOVE_BY_1_BYTES;
+
+    LOGGER.debug("Params: ", moved_by, external_id, parameters);
+    const callbable = (instance) => {
+      const callable = instance.function_heap.get(external_id);
+      LOGGER.debug(
+        `Retrieved callable: ${callbable} from external_id=${external_id}`,
+      );
+      return callable.apply(instance, parameters);
+    };
+
+    return [moved_by, callbable];
   }
 
   parse_make_function(read_index, operations, texts) {
-    if (operations.getUint8(read_index) != Operations.Begin) {
+    if (operations.getUint8(read_index) != Operations.MakeFunction) {
       throw new Error(
-        `Argument did not end with Operation.MakeFunction instead got: ${operations.getUint8(read_index)}`,
+        `Argument should be Operation.MakeFunction instead got: ${operations.getUint8(
+          read_index,
+        )}`,
       );
     }
 
+    // read the external pointer we want registered
     read_index += Move.MOVE_BY_1_BYTES;
-    console.log("Index: ", read_index);
+    let [move_by, external_id] = this.parameter_v2.parseExternalPointer(
+      read_index,
+      operations,
+    );
+
+    LOGGER.debug("ExternalPointer: ", read_index, move_by, external_id);
+
+    if (operations.getUint8(move_by) != Params.Text8) {
+      throw new Error(
+        `Argument should be Params.Text8 instead got: ${operations.getUint8(
+          move_by,
+        )}`,
+      );
+    }
+
+    move_by += Move.MOVE_BY_1_BYTES;
+
+    let [move_by_next, string_location] = this.parameter_v2.parseStringLocation(
+      move_by,
+      operations,
+    );
+
+    if (operations.getUint8(move_by_next) != Operations.End) {
+      throw new Error(
+        `Operation should be Params.End instead got: ${operations.getUint8(
+          move_by_next,
+        )}`,
+      );
+    }
+
+    move_by_next += Move.MOVE_BY_1_BYTES;
+
+    // read the location of the text.
+    const function_definition = texts.substr.apply(texts, string_location);
+
+    LOGGER.debug(
+      "FunctionDefinition: ",
+      move_by_next,
+      string_location,
+      function_definition,
+    );
+
+    const register_function = (instance) => {
+      // define the function as a callable.
+      const function_invoker = Function(
+        `"use strict"; return(${function_definition})`,
+      )();
+
+      // update the reference to now be the reference
+      // for calling the function.
+      instance.function_heap.update(external_id, function_invoker);
+      return external_id;
+    };
+
+    return [move_by_next, register_function];
   }
 }
 
@@ -1615,6 +1992,11 @@ class MegatronMiddleware {
         this.object_allocate_external_pointer.bind(this),
       function_allocate_external_pointer:
         this.function_allocate_external_pointer.bind(this),
+      dom_drop_external_pointer: this.dom_drop_external_pointer.bind(this),
+      object_drop_external_pointer:
+        this.object_drop_external_pointer.bind(this),
+      function_drop_external_pointer:
+        this.function_drop_external_pointer.bind(this),
     };
   }
 
@@ -1646,7 +2028,23 @@ class MegatronMiddleware {
       text_pointer,
       text_length,
     );
-    LOGGER.debug("Received instructions in batch: ", instructions);
+    LOGGER.debug("Received instructions for batch: ", instructions);
+
+    for (let index in instructions) {
+      const instruction = instructions[index];
+      LOGGER.debug("Executing instruction: ", instruction);
+      instruction.call(this, this);
+    }
+  }
+
+  function_drop_external_pointer(uid) {
+    this.function_heap.destroy(uid);
+  }
+  dom_drop_external_pointer(uid) {
+    this.dom_heap.destroy(uid);
+  }
+  object_drop_external_pointer(uid) {
+    this.object_heap.destroy(uid);
   }
 
   drop_external_reference(uid) {
@@ -1654,18 +2052,21 @@ class MegatronMiddleware {
   }
 
   object_allocate_external_pointer() {
-    LOGGER.debug("Creating pointer for ");
-    return this.object_heap.create(null);
+    const slot_id = this.object_heap.create(null);
+    LOGGER.debug("Creating new object pointer for pre-allocation: ", slot_id);
+    return slot_id;
   }
 
   function_allocate_external_pointer() {
-    LOGGER.debug("Creating pointer for ");
-    return this.function_heap.create(null);
+    const slot_id = this.function_heap.create(null);
+    LOGGER.debug("Creating new function pointer for pre-allocation: ", slot_id);
+    return slot_id;
   }
 
   dom_allocate_external_pointer() {
-    LOGGER.debug("Creating pointer for ");
-    return this.dom_heap.create(null);
+    const slot_id = this.dom_heap.create(null);
+    LOGGER.debug("Creating new DOM pointer for pre-allocation: ", slot_id);
+    return slot_id;
   }
 
   js_register_function(start, length, utf_indicator) {
@@ -1818,7 +2219,7 @@ class WASMLoader {
 
         instantiated.push(loader.loadURL(script.url));
       } else {
-        console.error("Properly must have 'url' property.", script);
+        LOGGER.error("Properly must have 'url' property.", script);
       }
     }
 
