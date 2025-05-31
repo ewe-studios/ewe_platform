@@ -1,12 +1,12 @@
 [workspace]
-# usually this iset to 1
-resolver = "2"
+resolver = "3"
 # set members of your workspace
 members = [
   "bin/*",
   "crates/*",
   "backends/*",
   "demos/*",
+  "tests/integrations/*",
   "examples/web/*",
   "examples/template/*",
   "demos/intro",
@@ -68,13 +68,13 @@ derive_more = { version = ">=2.0", features = ["full"] }
 
 [workspace.lints.clippy]
 
-[workspace.profile.dev]
+[profile.dev]
 opt-level = 0
 
-[workspace.profile.dev.packages."*"]
+[profile.dev.package."*"]
 opt-level = 0
 
-[workspace.profile.release]
+[profile.release]
 lto = true # link time optimizations
 # Enable to remove debug info from wasm files
 strip = "debuginfo"

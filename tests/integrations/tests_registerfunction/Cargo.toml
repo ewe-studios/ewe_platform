@@ -1,12 +1,13 @@
 [package]
-name = "intro"
+name = "tests_registerfunction"
 version = "0.1.0"
+publish = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-keywords = ["Wasm_demo", "intro"]
+keywords = ["tests", "register_function"]
 
 [dependencies]
 foundation_nostd = { workspace = true }
@@ -15,6 +16,7 @@ foundation_jsnostd = { workspace = true }
 
 [lib]
 crate-type = ["cdylib"]
+
 
 [lints]
 workspace = true
