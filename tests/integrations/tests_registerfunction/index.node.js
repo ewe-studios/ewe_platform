@@ -5,7 +5,7 @@ const fs = require("node:fs");
 const wasm_buffer = fs.readFileSync("./module.wasm");
 
 describe("Web WASM Module", () => {
-  test("check we can decode a params IntArray", () => {
+  it("check we can decode a params IntArray", () => {
     console.log(megatron);
     assert.ok(true);
   });
