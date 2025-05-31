@@ -17,7 +17,7 @@ build-test-directory:
 	wasm2wat ./target/wasm32-unknown-unknown/debug/module.wasm -o $(TEST_DIRECTORY)/module.wat
 
 build-demos:
-	@RUSTFLAGS='-C link-arg=-s' cargo build --package intro --target wasm32-unknown-unknown 
+	@RUSTFLAGS='-C link-arg=-s' cargo build --package intro --target wasm32-unknown-unknown
 	cp target/wasm32-unknown-unknown/debug/intro.wasm ./assets/public/intro.wasm
 	wasm2wat ./assets/public/intro.wasm -o ./assets/public/intro.wat
 
@@ -26,8 +26,6 @@ build-tests:
 
 wasm-tests: build-tests
 	$(foreach var,$(TESTS_PACKAGES), node $(var)/index.node.js;)
-
-
 
 lint:
 	cargo fmt
