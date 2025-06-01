@@ -1,2 +1,6 @@
 *.wasm
 *.d
+*.wat
+megatron.js
+*/megatron.js
+*/**/megatron.js
