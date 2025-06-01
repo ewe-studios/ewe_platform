@@ -304,6 +304,10 @@ class ArenaAllocator {
     return this.add_entry(item);
   }
 
+  length(item) {
+    return this.items.length;
+  }
+
   get(item) {
     return this.get_entry(item);
   }
@@ -474,7 +478,9 @@ class DOMArena extends ArenaAllocator {
     // 3 is reserved for document
     // 4 is reserved for document.body
     //
-    this.create(self);
+    if (typeof self != "undefined") {
+      this.create(self);
+    }
     this.create(this);
     this.create(typeof window != "undefined" ? window : null);
     this.create(typeof document != "undefined" ? document : null);

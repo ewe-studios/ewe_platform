@@ -3086,6 +3086,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "tests_mocks"
+version = "0.1.0"
+dependencies = [
+ "foundation_jsnostd",
+ "foundation_nostd",
+]
+
+[[package]]
 name = "tests_registerfunction"
 version = "0.1.0"
 dependencies = [
