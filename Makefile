@@ -12,7 +12,7 @@ sandbox:
 
 build-test-directory:
 	@RUSTFLAGS='-C link-arg=-s' cargo build --package $(TEST_PACKAGE) --target wasm32-unknown-unknown
-	cp ./target/wasm32-unknown-unknown/debug/$(TEST_PACKAGE).d $(TEST_DIRECTORY)/$(TEST_PACKAGE).d
+	cp ./target/wasm32-unknown-unknown/debug/$(TEST_PACKAGE).d $(TEST_DIRECTORY)/module.d
 	cp ./target/wasm32-unknown-unknown/debug/$(TEST_PACKAGE).wasm $(TEST_DIRECTORY)/module.wasm
 	wasm2wat $(TEST_DIRECTORY)/module.wasm -o $(TEST_DIRECTORY)/module.wat
 
