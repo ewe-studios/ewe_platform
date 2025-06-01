@@ -14,18 +14,4 @@ extern "C" fn main() {
             console.log(message);
         }",
     );
-
-    let console_log_id = host_runtime::api_v2::preallocate_func_external_reference();
-    let instructions = internal_api::create_instructions(100, 100);
-    instructions
-        .register_function(
-            console_log_id,
-            "
-        function(message){
-            console.log(message);
-        }",
-        )
-        .expect("should encode correctly");
-
-    host_runtime::api_v2::send_instructions(instructions.complete().expect("complete instruction"));
 }

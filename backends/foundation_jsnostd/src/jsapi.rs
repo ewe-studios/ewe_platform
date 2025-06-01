@@ -262,15 +262,6 @@ pub mod host_runtime {
             // from the WASM - Host runtime boundary.
             pub fn js_unregister_function(handle: u64);
 
-            // [`js_preallocate_reference`] allows you to pre-allocate a specific reference
-            // that can later be used for registration at a later point in time.
-            pub fn js_preallocate_reference() -> u64;
-
-            // [`js_register_function_at`] allows us to register a function at a
-            // pre-allocated location, it should panics if that id does not location
-            // was not pre-allocated via the [`js_preallocate_reference`].
-            pub fn js_register_function_at(handle: u64, start: u64, len: u64, encoding: u8) -> u64;
-
             // registers a function via it's provided start and length
             // indicative of where the function body can be found
             // as utf-8 or utf-18 encoded byte (based on third argument)

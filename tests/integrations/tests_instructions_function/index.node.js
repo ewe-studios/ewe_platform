@@ -73,6 +73,7 @@ function create_imports() {
 
   v1_imports.js_register_function = function (start, len, encoding) {
     v1_imports.js_register_function_calls.push([start, len, encoding]);
+    return v1_imports.js_register_function_calls.length;
   };
 
   v1_imports.js_unregister_function = function (handler) {
@@ -82,21 +83,28 @@ function create_imports() {
   return { v1: v1_imports, v2: v2_imports };
 }
 
-describe("Megatron.callfunction", async () => {
+describe("Megatron.registerfunction", async () => {
   const imports = create_imports();
   const { module, instance } = await WebAssembly.instantiate(wasm_buffer, {
     ...imports,
   });
 
-  console.log("Instances: ", instance);
-  console.log("Imports: ", imports);
+  describe("Validate::setup", () => {
+    it("able to validate module and instance", () => {
+      assert.ok(module != undefined && module != null);
+      assert.ok(instance != undefined && instance != null);
+    });
 
-  it("able to validate module and instance", async () => {
-    assert.ok(module != undefined && module != null);
-    assert.ok(instance != undefined && instance != null);
+    it("able to access instance memory", () => {
+      assert.ok(instance.exports.memory != undefined);
+    });
   });
 
-  it("able to access instance memory", async () => {
-    assert.ok(instance.exports.memory != undefined);
+  describe("Validate::FuncRegistration", async () => {
+    // instance.exports.main();
+
+    it("validate register function was called", async () => {
+      
+    });
   });
 });
