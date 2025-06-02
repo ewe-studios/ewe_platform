@@ -9,6 +9,15 @@ const EXECUTING_DIR = path.dirname(__filename);
 
 const wasm_buffer = fs.readFileSync(path.join(EXECUTING_DIR, "./module.wasm"));
 
+const mock = {
+  runtime: {
+    calls: [],
+  },
+};
+mock.runtime.logs = (message) => {
+  mock.runtime.calls.push({ method: "log", arguments: [message] });
+};
+
 describe("Megatron.registerfunction", async () => {
   const runtime = new megatron.MegatronMiddleware();
   const wasm_module = await WebAssembly.instantiate(wasm_buffer, {
@@ -36,6 +45,22 @@ describe("Megatron.registerfunction", async () => {
 
     it("validate register function was called", async () => {
       assert.equal(runtime.function_heap.length(), 1);
+      const record = runtime.function_heap.items[0];
+      assert.ok(typeof record === "object");
+      assert.equal(record.active, true);
+      assert.equal(record.generation, 0);
+      assert.equal(typeof record.item, "function");
+    });
+
+    it("validate registered functions effect", async () => {
+      const record = runtime.function_heap.items[0];
+      const registered_func = record.item;
+      registered_func.call({ mock }, "hello");
+
+      console.log("MockCalls:", mock.runtime.calls);
+      assert.deepEqual(mock.runtime.calls, [
+        { method: "log", arguments: ["hello"] },
+      ]);
     });
   });
 });

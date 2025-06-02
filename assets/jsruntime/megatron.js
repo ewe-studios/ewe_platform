@@ -472,14 +472,16 @@ class DOMArena extends ArenaAllocator {
     // and allocate 1-4 for use
     // always for these.
     //
-    // 0 is reserved for self
-    // 1 is reserved for this (the dom arena)
+    // 0 is reserved for self (if `self` exists else is also `this`).
+    // 1 is reserved for this (the DOM arena)
     // 2 is reserved for window
     // 3 is reserved for document
     // 4 is reserved for document.body
     //
     if (typeof self != "undefined") {
       this.create(self);
+    } else {
+      this.create(this);
     }
     this.create(this);
     this.create(typeof window != "undefined" ? window : null);

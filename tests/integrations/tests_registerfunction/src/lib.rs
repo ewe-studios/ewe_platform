@@ -11,7 +11,7 @@ extern "C" fn main() {
     let _ = host_runtime::api_v1::register_function(
         r"
         function(message){
-            runtime.call(message);
+            this.mock.runtime.logs(message);
         }",
     );
 }
