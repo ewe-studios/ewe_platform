@@ -4,6 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const megatron = require("./megatron.js");
+megatron.LOGGER.mode = megatron.LEVELS.DEBUG;
 
 const EXECUTING_DIR = path.dirname(__filename);
 
@@ -12,11 +13,8 @@ const wasm_buffer = fs.readFileSync(path.join(EXECUTING_DIR, "./module.wasm"));
 const mock = {
   calls: [],
 };
-mock.logs = (message) => {
-  mock.calls.push({ method: "log", arguments: [message] });
-};
 
-describe("Megatron.js_invoke_function", async () => {
+describe("Megatron.js_invoke_function_and_return_bool", async () => {
   const runtime = new megatron.MegatronMiddleware();
   runtime.mock = mock;
 
@@ -25,6 +23,14 @@ describe("Megatron.js_invoke_function", async () => {
     v2: runtime.v2_mappings,
   });
   runtime.init(wasm_module);
+
+  mock.is_sample = (v1) => {
+    mock.calls.push({
+      method: "is_sample",
+      arguments: [v1],
+    });
+    return v1;
+  };
 
   describe("Validate::setup", () => {
     const { module, instance } = wasm_module;
@@ -45,8 +51,14 @@ describe("Megatron.js_invoke_function", async () => {
 
     it("validate registered functions effect", async () => {
       assert.deepEqual(mock.calls, [
-        { method: "log", arguments: ["Hello from intro"] },
+        {
+          method: "is_sample",
+          arguments: [true],
+        },
       ]);
+      assert.equal(runtime.dom_heap.length(), 5);
+      assert.equal(runtime.object_heap.length(), 0);
+      assert.equal(runtime.function_heap.length(), 1);
     });
   });
 });

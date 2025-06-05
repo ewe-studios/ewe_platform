@@ -10,10 +10,10 @@ use foundation_nostd::*;
 extern "C" fn main() {
     let console_log = host_runtime::api_v1::register_function(
         r"
-        function(message){
-            this.mock.logs(message);
+        function(v1){
+            return this.mock.is_sample(v1);
         }",
     );
 
-    console_log.invoke(&[Params::Text8("Hello from intro")]);
+    console_log.invoke_for_bool(&[Params::Bool(true)]);
 }
