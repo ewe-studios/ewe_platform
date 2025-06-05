@@ -2409,7 +2409,7 @@ class MegatronMiddleware {
         "function returned undefined or null while trying to return an object",
       );
     }
-    return response ? 1 : 0;
+    return response ? true : false;
   }
 
   js_invoke_function_and_return_bigint(

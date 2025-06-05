@@ -80,8 +80,8 @@ impl ToBinary for Params<'_> {
                 encoded_params.extend_from_slice(&value.to_le_bytes());
             }
             Params::Text8(value) => {
-                let start = value.as_ptr() as usize;
-                let len = value.len();
+                let start = value.as_ptr() as u64;
+                let len = value.len() as u64;
                 encoded_params.extend_from_slice(&start.to_le_bytes());
                 encoded_params.extend_from_slice(&len.to_le_bytes());
             }
