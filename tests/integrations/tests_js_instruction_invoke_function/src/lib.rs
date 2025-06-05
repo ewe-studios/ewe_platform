@@ -8,10 +8,12 @@ use foundation_nostd::*;
 
 #[no_mangle]
 extern "C" fn main() {
-    let _ = host_runtime::api_v1::register_function(
+    let console_log = host_runtime::api_v1::register_function(
         r"
         function(message){
-            console.log(message);
+            this.mock.logs(message);
         }",
     );
+
+    console_log.invoke(&[Params::Text8("Hello from intro")]);
 }
