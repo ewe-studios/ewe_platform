@@ -3086,8 +3086,48 @@ dependencies = [
 ]
 
 [[package]]
-name = "tests_mocks"
-version = "0.1.0"
+name = "tests_js_instruction_invoke_function"
+version = "0.0.1"
+dependencies = [
+ "foundation_jsnostd",
+ "foundation_nostd",
+]
+
+[[package]]
+name = "tests_js_invoke_function_and_return_big_int"
+version = "0.0.1"
+dependencies = [
+ "foundation_jsnostd",
+ "foundation_nostd",
+]
+
+[[package]]
+name = "tests_js_invoke_function_and_return_bool"
+version = "0.0.1"
+dependencies = [
+ "foundation_jsnostd",
+ "foundation_nostd",
+]
+
+[[package]]
+name = "tests_js_invoke_function_and_return_dom"
+version = "0.0.1"
+dependencies = [
+ "foundation_jsnostd",
+ "foundation_nostd",
+]
+
+[[package]]
+name = "tests_js_invoke_function_and_return_object"
+version = "0.0.1"
+dependencies = [
+ "foundation_jsnostd",
+ "foundation_nostd",
+]
+
+[[package]]
+name = "tests_js_invoke_function_and_return_string"
+version = "0.0.1"
 dependencies = [
  "foundation_jsnostd",
  "foundation_nostd",

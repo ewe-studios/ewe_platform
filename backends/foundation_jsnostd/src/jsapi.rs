@@ -15,8 +15,6 @@ static INTERNAL_CALLBACKS: Mutex<InternalReferenceRegistry> = InternalReferenceR
 
 static ALLOCATIONS: Mutex<MemoryAllocations> = Mutex::new(MemoryAllocations::new());
 
-pub type JSAllocationId = u64;
-
 /// [`internal_api`] are internal methods, structs, and surfaces that provide core functionalities
 /// that we support or that allows making or preparing data to be sent-out or sent-across the API.
 ///
@@ -270,6 +268,42 @@ pub mod host_runtime {
             // function registry.
             pub fn js_register_function(start: u64, len: u64, encoding: u8) -> u64;
 
+            // invokes a javascript function across the host boundary ABI and returns
+            // a u64 [`ExternalPointer`] that can be used to retrieve or
+            // manipulate`] for manipulating the given
+            // dom element.
+            pub fn js_invoke_function_and_return_dom(
+                handler: u64,
+                parameters_start: *const u8,
+                parameters_length: usize,
+            ) -> u64;
+
+            // invokes a javascript function across the host boundary ABI and returns
+            // a u64 [`ExternalPointer`] that can be used to retrieve or
+            // manipulate`] for manipulating the given
+            // object element.
+            pub fn js_invoke_function_and_return_object(
+                handler: u64,
+                parameters_start: *const u8,
+                parameters_length: usize,
+            ) -> u64;
+
+            // invokes a javascript function across the host boundary ABI and returns
+            // a u64 that is the result.
+            pub fn js_invoke_function_and_return_bigint(
+                handler: u64,
+                parameters_start: *const u8,
+                parameters_length: usize,
+            ) -> u64;
+
+            // invokes a javascript function across the host boundary ABI and returns
+            // a bool (represented as a u8) contains either 0 for false or 1 for true.
+            pub fn js_invoke_function_and_return_bool(
+                handler: u64,
+                parameters_start: *const u8,
+                parameters_length: usize,
+            ) -> u8;
+
             // invokes a Javascript function across the WASM/RUST ABI
             // which then returns the allocation_id (as f64) that can
             // be used to get the related allocation vector
@@ -361,7 +395,7 @@ pub mod host_runtime {
             ///
             /// The `js_abi` will handle necessary conversion and execution of the function
             /// with the passed arguments.
-            pub fn invoke(&self, params: &[Params]) -> JSAllocationId {
+            pub fn invoke(&self, params: &[Params]) -> u64 {
                 let param_bytes = params.to_binary();
                 let RawParts {
                     ptr,
@@ -369,6 +403,92 @@ pub mod host_runtime {
                     capacity: _,
                 } = RawParts::from_vec(param_bytes);
                 unsafe { host_runtime::api_v1::js_invoke_function(self.handler, ptr, length) }
+            }
+
+            /// [`invoke_for_bool`] invokes a javascript function registered at the given handle
+            /// defined by the [`JSFunction::handler`] which then returns a bool indicating the
+            /// result.
+            ///
+            /// Internal true is when the returned number is >= 1 and False if 0.
+            pub fn invoke_for_bool(&self, params: &[Params]) -> bool {
+                let param_bytes = params.to_binary();
+                let RawParts {
+                    ptr,
+                    length,
+                    capacity: _,
+                } = RawParts::from_vec(param_bytes);
+                unsafe {
+                    match host_runtime::api_v1::js_invoke_function_and_return_bool(
+                        self.handler,
+                        ptr,
+                        length,
+                    ) {
+                        1.. => true,
+                        0 => false,
+                    }
+                }
+            }
+
+            /// [`invoke_for_dom`] invokes a javascript function registered at the given handle
+            /// defined by the [`JSFunction::handler`] which then returns a [`ExternalPointer`]
+            /// representing the DOM node instance via an ExternalPointer that points to that object in the
+            /// hosts object heap.
+            pub fn invoke_for_bigint(&self, params: &[Params]) -> u64 {
+                let param_bytes = params.to_binary();
+                let RawParts {
+                    ptr,
+                    length,
+                    capacity: _,
+                } = RawParts::from_vec(param_bytes);
+                unsafe {
+                    host_runtime::api_v1::js_invoke_function_and_return_bigint(
+                        self.handler,
+                        ptr,
+                        length,
+                    )
+                }
+            }
+
+            /// [`invoke_for_dom`] invokes a javascript function registered at the given handle
+            /// defined by the [`JSFunction::handler`] which then returns a [`ExternalPointer`]
+            /// representing the DOM node instance via an ExternalPointer that points to that object in the
+            /// hosts object heap.
+            pub fn invoke_for_dom(&self, params: &[Params]) -> ExternalPointer {
+                let param_bytes = params.to_binary();
+                let RawParts {
+                    ptr,
+                    length,
+                    capacity: _,
+                } = RawParts::from_vec(param_bytes);
+                unsafe {
+                    host_runtime::api_v1::js_invoke_function_and_return_dom(
+                        self.handler,
+                        ptr,
+                        length,
+                    )
+                    .into()
+                }
+            }
+
+            /// [`invoke_for_object`] invokes a javascript function registered at the given handle
+            /// defined by the [`JSFunction::handler`] which then returns a [`ExternalPointer`]
+            /// representing the object via an ExternalPointer that points to that object in the
+            /// hosts object heap.
+            pub fn invoke_for_object(&self, params: &[Params]) -> ExternalPointer {
+                let param_bytes = params.to_binary();
+                let RawParts {
+                    ptr,
+                    length,
+                    capacity: _,
+                } = RawParts::from_vec(param_bytes);
+                unsafe {
+                    host_runtime::api_v1::js_invoke_function_and_return_object(
+                        self.handler,
+                        ptr,
+                        length,
+                    )
+                    .into()
+                }
             }
 
             /// [`unregister_function`] calls the JS ABI on the host to de-register

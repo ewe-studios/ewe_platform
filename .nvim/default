@@ -14,17 +14,39 @@ else
   set shortmess=aoO
 endif
 badd +1 backends/foundation_jsnostd/runtime/js/runtime.js
-badd +12 backends/foundation_jsnostd/src/jsapi.rs
+badd +280 backends/foundation_jsnostd/src/jsapi.rs
 badd +12 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/runtime/js/js_host_runtime.js
+badd +2016 assets/jsruntime/megatron.js
+badd +52 tests/integrations/tests_callfunction/index.node.js
+badd +11 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_registerfunction/src/lib.rs
+badd +42 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_registerfunction/index.node.js
+badd +14 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_callfunction/src/lib.rs
+badd +54612 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_callfunction/module.wat
+badd +13 Makefile
+badd +2 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_jsInstructionInvokeFunction/Cargo.toml
+badd +2 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_jsInvokeFunctionAndReturnBigInt/Cargo.toml
+badd +2 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_jsInvokeFunctionAndReturnBool/Cargo.toml
+badd +8 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_jsInvokeFunctionAndReturnDom/index.node.js
+badd +2 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_jsInvokeFunctionAndReturnDom/Cargo.toml
+badd +2 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_jsInvokeFunctionAndReturnObject/Cargo.toml
+badd +21 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_jsInvokeFunctionAndReturnString/Cargo.toml
+badd +8 backends/runtimes/src/lib.rs
 argglobal
 %argdel
-edit backends/foundation_jsnostd/runtime/js/runtime.js
+edit ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_jsInvokeFunctionAndReturnString/Cargo.toml
 let s:save_splitbelow = &splitbelow
 let s:save_splitright = &splitright
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
 1wincmd h
+wincmd w
+wincmd _ | wincmd |
+split
+wincmd _ | wincmd |
+split
+2wincmd k
+wincmd w
 wincmd w
 let &splitbelow = s:save_splitbelow
 let &splitright = s:save_splitright
@@ -37,6 +59,127 @@ set winminwidth=0
 set winwidth=1
 wincmd =
 argglobal
+balt backends/runtimes/src/lib.rs
+setlocal foldmethod=expr
+setlocal foldexpr=nvim_treesitter#foldexpr()
+setlocal foldmarker={{{,}}}
+setlocal foldignore=#
+setlocal foldlevel=99
+setlocal foldminlines=1
+setlocal foldnestmax=20
+setlocal foldenable
+let s:l = 21 - ((20 * winheight(0) + 27) / 55)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 21
+normal! 024|
+wincmd w
+argglobal
+if bufexists(fnamemodify("assets/jsruntime/megatron.js", ":p")) | buffer assets/jsruntime/megatron.js | else | edit assets/jsruntime/megatron.js | endif
+if &buftype ==# 'terminal'
+  silent file assets/jsruntime/megatron.js
+endif
+balt Makefile
+setlocal foldmethod=expr
+setlocal foldexpr=nvim_treesitter#foldexpr()
+setlocal foldmarker={{{,}}}
+setlocal foldignore=#
+setlocal foldlevel=99
+setlocal foldminlines=1
+setlocal foldnestmax=20
+setlocal foldenable
+305
+normal! zo
+474
+normal! zo
+474
+normal! zo
+496
+normal! zo
+2016
+normal! zo
+2016
+normal! zo
+2034
+normal! zo
+2082
+normal! zo
+2115
+normal! zo
+2136
+normal! zo
+2146
+normal! zo
+2154
+normal! zo
+2168
+normal! zo
+2176
+normal! zo
+2189
+normal! zo
+2197
+normal! zo
+2210
+normal! zo
+2218
+normal! zo
+2230
+normal! zo
+let s:l = 2117 - ((4 * winheight(0) + 9) / 18)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 2117
+normal! 03|
+wincmd w
+argglobal
+if bufexists(fnamemodify("backends/foundation_jsnostd/src/jsapi.rs", ":p")) | buffer backends/foundation_jsnostd/src/jsapi.rs | else | edit backends/foundation_jsnostd/src/jsapi.rs | endif
+if &buftype ==# 'terminal'
+  silent file backends/foundation_jsnostd/src/jsapi.rs
+endif
+balt ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_callfunction/src/lib.rs
+setlocal foldmethod=expr
+setlocal foldexpr=nvim_treesitter#foldexpr()
+setlocal foldmarker={{{,}}}
+setlocal foldignore=#
+setlocal foldlevel=99
+setlocal foldminlines=1
+setlocal foldnestmax=20
+setlocal foldenable
+25
+normal! zo
+47
+normal! zo
+25
+normal! zc
+100
+normal! zo
+100
+normal! zc
+156
+normal! zo
+166
+normal! zo
+226
+normal! zo
+252
+normal! zo
+353
+normal! zo
+let s:l = 270 - ((13 * winheight(0) + 9) / 18)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 270
+normal! 033|
+wincmd w
+argglobal
+if bufexists(fnamemodify("~/Labs/ewestudios/ewe_platform/tests/integrations/tests_callfunction/src/lib.rs", ":p")) | buffer ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_callfunction/src/lib.rs | else | edit ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_callfunction/src/lib.rs | endif
+if &buftype ==# 'terminal'
+  silent file ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_callfunction/src/lib.rs
+endif
 balt backends/foundation_jsnostd/src/jsapi.rs
 setlocal foldmethod=expr
 setlocal foldexpr=nvim_treesitter#foldexpr()
@@ -46,35 +189,15 @@ setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-let s:l = 210 - ((32 * winheight(0) + 35) / 70)
+10
+normal! zo
+let s:l = 14 - ((11 * winheight(0) + 8) / 17)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 210
-normal! 04|
+keepjumps 14
+normal! 026|
 wincmd w
-argglobal
-if bufexists(fnamemodify("backends/foundation_jsnostd/src/jsapi.rs", ":p")) | buffer backends/foundation_jsnostd/src/jsapi.rs | else | edit backends/foundation_jsnostd/src/jsapi.rs | endif
-if &buftype ==# 'terminal'
-  silent file backends/foundation_jsnostd/src/jsapi.rs
-endif
-balt ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/runtime/js/js_host_runtime.js
-setlocal foldmethod=expr
-setlocal foldexpr=nvim_treesitter#foldexpr()
-setlocal foldmarker={{{,}}}
-setlocal foldignore=#
-setlocal foldlevel=99
-setlocal foldminlines=1
-setlocal foldnestmax=20
-setlocal foldenable
-let s:l = 12 - ((11 * winheight(0) + 35) / 70)
-if s:l < 1 | let s:l = 1 | endif
-keepjumps exe s:l
-normal! zt
-keepjumps 12
-normal! 0
-wincmd w
-2wincmd w
 wincmd =
 tabnext 1
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'

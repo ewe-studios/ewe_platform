@@ -11,9 +11,10 @@ extern "C" fn main() {
     let console_log = host_runtime::api_v1::register_function(
         r"
         function(message){
-            this.mock.logs(message);
+            this.mock.createDom('div');
+            return {tag: 'div' };
         }",
     );
 
-    console_log.invoke(&[Params::Text8("Hello from intro")]);
+    console_log.invoke_for_dom(&[Params::Text8("Hello from intro")]);
 }

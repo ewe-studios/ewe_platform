@@ -923,6 +923,26 @@ class TextCodec {
   }
 }
 
+class ExternalPointer {
+  constructor(value) {
+    this.id = value;
+  }
+
+  get value() {
+    return this.id;
+  }
+}
+
+class InternalPointer {
+  constructor(value) {
+    this.id = value;
+  }
+
+  get value() {
+    return this.id;
+  }
+}
+
 class ParameterParserV1 {
   constructor(memory_operator, text_codec) {
     if (!(memory_operator instanceof MemoryOperator)) {
@@ -937,17 +957,35 @@ class ParameterParserV1 {
     this.module = memory_operator.get_module();
 
     this.parsers = {
-      0: this.parseUndefined.bind(this),
-      1: this.parseNull.bind(this),
-      2: this.parseFloat64.bind(this),
-      3: this.parseBigInt64.bind(this),
-      4: this.parseString.bind(this),
-      5: this.parseExternalReference.bind(this),
-      6: this.parseFloat32.bind(this),
-      7: this.parseTrue.bind(this),
-      8: this.parseFalse.bind(this),
-      9: this.parseFloat64Array.bind(this),
-      10: this.parseUint32Array.bind(this),
+      0: this.parseNull.bind(this),
+      1: this.parseUndefined.bind(this),
+      2: this.parseBool.bind(this),
+      3: this.parseText8.bind(this),
+      4: this.parseText16.bind(this),
+      5: this.parseInt8.bind(this),
+      6: this.parseInt16.bind(this),
+      7: this.parseInt32.bind(this),
+      8: this.parseBigInt64.bind(this),
+      9: this.parseUint8.bind(this),
+      10: this.parseUint16.bind(this),
+      11: this.parseUint32.bind(this),
+      12: this.parseBigUint64.bind(this),
+      13: this.parseFloat32.bind(this),
+      14: this.parseFloat64.bind(this),
+      15: this.parseExternalReference.bind(this),
+      16: this.parseUint8Array.bind(this),
+      17: this.parseUint16Array.bind(this),
+      18: this.parseUint32Array.bind(this),
+      19: this.parseUint64Array.bind(this),
+      20: this.parseInt8Array.bind(this),
+      21: this.parseInt16Array.bind(this),
+      22: this.parseInt32Array.bind(this),
+      23: this.parseInt64Array.bind(this),
+      24: this.parseFloat32Array.bind(this),
+      25: this.parseFloat64Array.bind(this),
+      26: this.parseInternalReference.bind(this),
+      27: this.parseBigInt128.bind(this),
+      28: this.parseBigUint128.bind(this),
     };
   }
 
@@ -962,6 +1000,8 @@ class ParameterParserV1 {
 
       // increment index since we read from table
       index += 1;
+
+      LOGGER.debug("Getting parameter type: ", index, parameter_type);
 
       const parser = this.get_parser(parameter_type);
       const [move_index_by, should_break] = parser(
@@ -980,6 +1020,12 @@ class ParameterParserV1 {
 
   get_parser(parameter_type_id) {
     const parser = this.parsers[parameter_type_id];
+    LOGGER.debug(
+      "Retrieved parser for parameter typeId: ",
+      parameter_type_id,
+      " with parser: ",
+      parser,
+    );
     if (isUndefinedOrNull(parser)) {
       throw new Error(
         "Invalid parameter_type id provided: ",
@@ -999,117 +1045,288 @@ class ParameterParserV1 {
     return [0, false];
   }
 
-  parseFloat64(index, read_values_list, parameter_buffer) {
-    const view = new DataView(parameter_buffer.buffer).getFloat64(index, true);
-    read_values_list.push(view);
-    return [Move.MOVE_BY_64_BYTES, false];
-  }
-
-  parseBigInt64(index, read_values_list, parameter_buffer) {
-    const view = new DataView(parameter_buffer.buffer).getBigInt64(index, true);
-    read_values_list.push(view);
-    return [Move.MOVE_BY_64_BYTES, false];
-  }
-
-  parseString(index, read_values_list, parameter_buffer) {
-    // 4 = string (followed by 32-bit start and size of string in wasm memory)
-    // 4 means we want to read a int32 memory size where we have 4 bytes for start, 4 bytes for length which
-    // indicate the memory range we need to read;
-    let start_index = index;
-    const start = new DataView(parameter_buffer.buffer).getInt32(
-      start_index,
-      true,
-    );
-    start_index += Move.MOVE_BY_32_BYTES;
-
-    const length = new DataView(parameter_buffer.buffer).getInt32(
-      start_index,
-      true,
-    );
-    start_index += Move.MOVE_BY_32_BYTES;
-
-    const data = this.texts.readUTF8FromMemory(start, length);
-    read_values_list.push(data);
-    return [start_index - index, false];
-  }
-
   parseExternalReference(index, read_values_list, parameter_buffer) {
     // 5 = extern ref
     const handle_uid = new DataView(parameter_buffer.buffer).getBigInt64(
       index,
       true,
     );
-    read_values_list.push(ARENA.get(handle_uid));
+    read_values_list.push(new ExternalPointer(handle_uid));
     return [Move.MOVE_BY_64_BYTES, false];
   }
 
+  parseInternalReference(index, read_values_list, parameter_buffer) {
+    // 5 = extern ref
+    const handle_uid = new DataView(parameter_buffer.buffer).getBigInt64(
+      index,
+      true,
+    );
+    read_values_list.push(new InternalPointer(handle_uid));
+    return [Move.MOVE_BY_64_BYTES, false];
+  }
+
+  parseInt8(index, read_values_list, parameter_buffer) {
+    const value = new DataView(parameter_buffer.buffer).getInt8(index, true);
+    read_values_list.push(value);
+    return [Move.MOVE_BY_1_BYTES, false];
+  }
+
+  parseUint8(index, read_values_list, parameter_buffer) {
+    const value = new DataView(parameter_buffer.buffer).getUint8(index, true);
+    read_values_list.push(value);
+    return [Move.MOVE_BY_1_BYTES, false];
+  }
+
+  parseUint32(index, read_values_list, parameter_buffer) {
+    const value = new DataView(parameter_buffer.buffer).getUint32(index, true);
+    read_values_list.push(value);
+    return [Move.MOVE_BY_32_BYTES, false];
+  }
+
+  parseInt32(index, read_values_list, parameter_buffer) {
+    const value = new DataView(parameter_buffer.buffer).getInt32(index, true);
+    read_values_list.push(value);
+    return [Move.MOVE_BY_32_BYTES, false];
+  }
+
+  parseUint16(index, read_values_list, parameter_buffer) {
+    const value = new DataView(parameter_buffer.buffer).getUint16(index, true);
+    read_values_list.push(value);
+    return [Move.MOVE_BY_16_BYTES, false];
+  }
+
+  parseInt16(index, read_values_list, parameter_buffer) {
+    const value = new DataView(parameter_buffer.buffer).getInt16(index, true);
+    read_values_list.push(value);
+    return [Move.MOVE_BY_16_BYTES, false];
+  }
+
   parseFloat32(index, read_values_list, parameter_buffer) {
-    // 6 = array of Float32 from wasm memory (followed by 32-bit start and size of string in memory)
+    const value = new DataView(parameter_buffer.buffer).getFloat32(index, true);
+    read_values_list.push(value);
+    return [Move.MOVE_BY_32_BYTES, false];
+  }
+
+  parseFloat64(index, read_values_list, parameter_buffer) {
+    const value = new DataView(parameter_buffer.buffer).getFloat64(index, true);
+    read_values_list.push(value);
+    return [Move.MOVE_BY_64_BYTES, false];
+  }
+
+  parseBigInt64(index, read_values_list, parameter_buffer) {
+    const value = new DataView(parameter_buffer.buffer).getBigInt64(
+      index,
+      true,
+    );
+    LOGGER.debug("parsedBigInt64: ", value, parameter_buffer.buffer);
+    read_values_list.push(value);
+    return [Move.MOVE_BY_64_BYTES, false];
+  }
+
+  parseBigUint128(index, read_values_list, parameter_buffer) {
+    const view = new DataView(parameter_buffer.buffer);
+
     let start_index = index;
-    const start = new DataView(parameter_buffer.buffer).getInt32(
-      start_index,
-      true,
-    );
-    start_index += Move.MOVE_BY_32_BYTES;
 
-    const length = new DataView(parameter_buffer.buffer).getInt32(
-      start_index,
-      true,
-    );
-    start_index += Move.MOVE_BY_32_BYTES;
+    const value_msb = view.getBigUint64(start_index, true);
+    start_index += Move.MOVE_BY_64_BYTES;
 
-    const memory = memory_ops.get_memory();
-    const slice = memory.buffer.slice(start, start + length * 4);
-    const array = new Float32Array(slice);
+    const value_lsb = view.getBigUint64(start_index, true);
+    start_index += Move.MOVE_BY_64_BYTES;
 
-    read_values_list.push(array);
+    let sent_value = value_msb << BigInt(64);
+    sent_value = sent_value | value_lsb;
+
+    read_values_list.push(sent_value);
     return [start_index - index, false];
   }
 
-  parseTrue(index, read_values_list, parameter_buffer) {
-    // 7 = true
-    read_values_list.push(true);
-    return [0, false];
+  parseBigInt128(index, read_values_list, parameter_buffer) {
+    const view = new DataView(parameter_buffer.buffer);
+
+    let start_index = index;
+
+    const value_msb = view.getBigInt64(start_index, true);
+    start_index += Move.MOVE_BY_64_BYTES;
+
+    const value_lsb = view.getBigInt64(start_index, true);
+    start_index += Move.MOVE_BY_64_BYTES;
+
+    let sent_value = value_msb << BigInt(64);
+    sent_value = sent_value | value_lsb;
+
+    read_values_list.push(sent_value);
+    return [start_index - index, false];
   }
 
-  parseFalse(index, read_values_list, parameter_buffer) {
-    // 8 = false
-    read_values_list.push(false);
-    return [0, false];
+  parseBigUint64(index, read_values_list, parameter_buffer) {
+    const value = new DataView(parameter_buffer.buffer).getBigInt64(
+      index,
+      true,
+    );
+    read_values_list.push(value);
+    return [Move.MOVE_BY_64_BYTES, false];
+  }
+
+  parseBool(index, read_values_list, parameter_buffer) {
+    const view = new DataView(parameter_buffer.buffer);
+    const value = view.getUint8(index, true);
+    read_values_list.push(value == 1 ? true : false);
+    return [1, false];
+  }
+
+  // cloneBufferArray creates a new DataView for the region of the
+  // wasm Memory to save the cost of the copy operation but also be
+  // aware this means that area of memory must be quickly consumed to
+  // avoid potential corruption or over-written of the data.
+  //
+  // It's wise to use this when you will immediately consume the contents
+  // and generate your derived value else use copyBufferArray instead
+  // to get a unique copy of the content.
+  cloneBufferArray(index, parameter_buffer) {
+    const buffer =
+      parameter_buffer instanceof Uint8Array
+        ? parameter_buffer.buffer
+        : parameter;
+    const view = new DataView(buffer);
+    let start_index = index;
+
+    let start = Number(view.getBigUint64(start_index, true), 10);
+    start_index += Move.MOVE_BY_64_BYTES;
+
+    let length = Number(view.getBigUint64(start_index, true), 10);
+    start_index += Move.MOVE_BY_64_BYTES;
+
+    // for more efficient usage, as slice copies, we can use:
+    const memory = this.operator.get_memory();
+    const slice_view = DataView(memory, start, start + length);
+
+    return [start_index - index, slice_view];
+  }
+
+  /// [copyBufferArray] creates a unique copy of the contents of
+  // the memory location pointing to the start and length of the
+  // expected content.
+  copyBufferArray(index, parameter_buffer) {
+    const buffer =
+      parameter_buffer instanceof Uint8Array
+        ? parameter_buffer.buffer
+        : parameter;
+
+    const view = new DataView(buffer);
+    let start_index = index;
+
+    let start = Number(view.getBigUint64(start_index, true));
+    start_index += Move.MOVE_BY_64_BYTES;
+
+    let length = Number(view.getBigUint64(start_index, true));
+    start_index += Move.MOVE_BY_64_BYTES;
+
+    const memory = this.operator.get_memory();
+    // const slice = memory.buffer.slice(start, start + length * 4);
+    const slice = memory.slice(start, start + length);
+
+    return [start_index - index, slice];
+  }
+
+  parseText16(index, read_values_list, parameter_buffer) {
+    // 4 = string (followed by 32-bit start and size of string in wasm memory)
+    // 4 means we want to read a int32 memory size where we have 4 bytes for start, 4 bytes for length which
+    // indicate the memory range we need to read;
+    const [moved_by, slice] = this.copyBufferArray(index, parameter_buffer);
+    const data = this.texts.readUTF16FromView(slice);
+    read_values_list.push(data);
+    return [moved_by, false];
+  }
+
+  parseText8(index, read_values_list, parameter_buffer) {
+    // 4 = string (followed by 32-bit start and size of string in wasm memory)
+    // 4 means we want to read a int32 memory size where we have 4 bytes for start, 4 bytes for length which
+    // indicate the memory range we need to read;
+    const [moved_by, slice] = this.copyBufferArray(index, parameter_buffer);
+    const data = this.texts.readUTF8FromView(slice);
+    read_values_list.push(data);
+    return [moved_by, false];
+  }
+
+  parseFloat32Array(index, read_values_list, parameter_buffer) {
+    // 6 = array of Float32 from wasm memory (followed by 32-bit start and size of string in memory)
+    const [moved_by, slice] = this.copyBufferArray(index, parameter_buffer);
+    const array = new Float32Array(slice);
+    read_values_list.push(array);
+    return [moved_by, false];
   }
 
   parseFloat64Array(index, read_values_list, parameter_buffer) {
     // 9 = array of Float64 from wasm memory (followed by 32-bit start and size of string in memory)
-    let start_index = index;
-    const start = new DataView(parameter_buffer).getInt32(start_index, true);
-    start_index += Move.MOVE_BY_32_BYTES;
-
-    const length = new DataView(parameter_buffer).getInt32(start_index, true);
-    start_index += Move.MOVE_BY_32_BYTES;
-
-    const memory = memory_ops.get_memory();
-    const slice = memory.buffer.slice(start, start + length * 4);
+    const [moved_by, slice] = this.copyBufferArray(index, parameter_buffer);
     const array = new Float64Array(slice);
-
     read_values_list.push(array);
-    return [start_index - index, false];
+    return [moved_by, false];
+  }
+
+  parseInt8Array(index, read_values_list, parameter_buffer) {
+    // 10 = array of Uint32 from wasm memory (followed by 32-bit start and size of string in memory)
+    const [moved_by, slice] = this.copyBufferArray(index, parameter_buffer);
+    const array = new Int8Array(slice);
+    read_values_list.push(array);
+    return [moved_by, false];
+  }
+
+  parseInt16Array(index, read_values_list, parameter_buffer) {
+    // 10 = array of Uint32 from wasm memory (followed by 32-bit start and size of string in memory)
+    const [moved_by, slice] = this.copyBufferArray(index, parameter_buffer);
+    const array = new Int16Array(slice);
+    read_values_list.push(array);
+    return [moved_by, false];
+  }
+
+  parseInt32Array(index, read_values_list, parameter_buffer) {
+    // 10 = array of Uint32 from wasm memory (followed by 32-bit start and size of string in memory)
+    const [moved_by, slice] = this.copyBufferArray(index, parameter_buffer);
+    const array = new Int32Array(slice);
+    read_values_list.push(array);
+    return [moved_by, false];
+  }
+
+  parseInt64Array(index, read_values_list, parameter_buffer) {
+    // 10 = array of Uint64 from wasm memory (followed by 32-bit start and size of string in memory)
+    const [moved_by, slice] = this.copyBufferArray(index, parameter_buffer);
+    const array = new BigInt64Array(slice);
+    read_values_list.push(array);
+    return [moved_by, false];
+  }
+
+  parseUint8Array(index, read_values_list, parameter_buffer) {
+    // 10 = array of Uint32 from wasm memory (followed by 32-bit start and size of string in memory)
+    const [moved_by, slice] = this.copyBufferArray(index, parameter_buffer);
+    const array = new Uint8Array(slice);
+    read_values_list.push(array);
+    return [moved_by, false];
+  }
+
+  parseUint16Array(index, read_values_list, parameter_buffer) {
+    // 10 = array of Uint32 from wasm memory (followed by 32-bit start and size of string in memory)
+    const [moved_by, slice] = this.copyBufferArray(index, parameter_buffer);
+    const array = new Uint16Array(slice);
+    read_values_list.push(array);
+    return [moved_by, false];
   }
 
   parseUint32Array(index, read_values_list, parameter_buffer) {
     // 10 = array of Uint32 from wasm memory (followed by 32-bit start and size of string in memory)
-    let start_index = index;
-    const start = new DataView(parameter_buffer).getInt32(start_index, true);
-    start_index += Move.MOVE_BY_32_BYTES;
-
-    const length = new DataView(parameter_buffer).getInt32(start_index, true);
-    start_index += Move.MOVE_BY_32_BYTES;
-
-    const memory = memory_ops.get_memory();
-    const slice = memory.buffer.slice(start, start + length * 4);
+    const [moved_by, slice] = this.copyBufferArray(index, parameter_buffer);
     const array = new Uint32Array(slice);
-
     read_values_list.push(array);
-    return [start_index - index, false];
+    return [moved_by, false];
+  }
+
+  parseUint64Array(index, read_values_list, parameter_buffer) {
+    // 10 = array of Uint64 from wasm memory (followed by 32-bit start and size of string in memory)
+    const [moved_by, slice] = this.copyBufferArray(index, parameter_buffer);
+    const array = new BigUint64Array(slice);
+    read_values_list.push(array);
+    return [moved_by, false];
   }
 }
 
@@ -1638,26 +1855,26 @@ class ParameterParserV2 {
     switch (optimization_type) {
       case TypeOptimization.None:
         if (value_type == Params.Int128) {
-          const value_msb = view.getInt64(from_index, true);
+          const value_msb = view.getBigInt64(from_index, true);
           from_index += Move.MOVE_BY_64_BYTES;
 
-          const value_lsb = view.getInt64(from_index, true);
+          const value_lsb = view.getBigInt64(from_index, true);
           from_index += Move.MOVE_BY_64_BYTES;
 
-          let sent_value = BigInt(value_msb) << BigInt(64);
-          sent_value = sent_value | BigInt(value_lsb);
+          let sent_value = value_msb << BigInt(64);
+          sent_value = sent_value | value_lsb;
 
           return [from_index, sent_value];
         }
 
-        const value_msb = view.getUint64(from_index, true);
+        const value_msb = view.getBigUint64(from_index, true);
         from_index += Move.MOVE_BY_64_BYTES;
 
-        const value_lsb = view.getUint64(from_index, true);
+        const value_lsb = view.getBigUint64(from_index, true);
         from_index += Move.MOVE_BY_64_BYTES;
 
-        let sent_value = BigInt(value_msb) << BigInt(64);
-        sent_value = sent_value | BigInt(value_lsb);
+        let sent_value = value_msb << BigInt(64);
+        sent_value = sent_value | value_lsb;
 
         return [from_index, sent_value];
       case TypeOptimization.QuantizedInt128AsI8:
@@ -1746,7 +1963,7 @@ class BatchInstrructions {
       "BatchInstructions::parse_instructions -> ",
       "\n",
       "ops:\n",
-      operations_buffer,
+      ntoperations_buffer,
       "\n",
       "text:\n",
       text_buffer,
@@ -2014,6 +2231,8 @@ class MegatronMiddleware {
       drop_external_reference: this.drop_external_reference.bind(this),
       js_register_function: this.js_register_function.bind(this),
       js_invoke_function: this.js_invoke_function.bind(this),
+      js_invoke_function_and_return_dom:
+        this.js_invoke_function_and_return_dom.bind(this),
       js_invoke_function_and_return_object:
         this.js_invoke_function_and_return_object.bind(this),
       js_invoke_function_and_return_bool:
@@ -2131,6 +2350,25 @@ class MegatronMiddleware {
     return BigInt(response);
   }
 
+  js_invoke_function_and_return_dom(handle, parameter_start, parameter_length) {
+    // read parameters and invoke function via handle.
+    const parameters = this.parameter_v1.parse_array(
+      parameter_start,
+      parameter_length,
+    );
+
+    const func = this.function_heap.get(handle);
+
+    const response = func.call(this, ...parameters);
+    if (isUndefinedOrNull(response)) {
+      throw new Error(
+        "function returned undefined or null while trying to return an object",
+      );
+    }
+    LOGGER.debug("js_invoke_function_and_return_dom: responded: ", response);
+    return this.dom_heap.create(response);
+  }
+
   js_invoke_function_and_return_object(
     handle,
     parameter_start,
@@ -2142,15 +2380,15 @@ class MegatronMiddleware {
       parameter_length,
     );
 
-    const func = this.functions[handle];
-    const result = func.call(runtime, ...parameters);
-    if (result === undefined || result === null) {
+    const func = this.function_heap.get(handle);
+
+    const response = func.apply(this, parameters);
+    if (isUndefinedOrNull(response)) {
       throw new Error(
         "function returned undefined or null while trying to return an object",
       );
     }
-
-    return this.dom_heap.create(result);
+    return this.object_heap.create(result);
   }
 
   js_invoke_function_and_return_bool(
@@ -2163,9 +2401,15 @@ class MegatronMiddleware {
       parameter_start,
       parameter_length,
     );
-    const func = this.functions[handle];
-    const result = func.call(runtime, ...parameters);
-    return result ? 1 : 0;
+
+    const func = this.function_heap.get(handle);
+    const response = func.apply(this, parameters);
+    if (isUndefinedOrNull(response)) {
+      throw new Error(
+        "function returned undefined or null while trying to return an object",
+      );
+    }
+    return response ? 1 : 0;
   }
 
   js_invoke_function_and_return_bigint(
@@ -2178,8 +2422,19 @@ class MegatronMiddleware {
       parameter_start,
       parameter_length,
     );
-    const func = this.functions[handle];
-    return func.call(runtime, ...parameters);
+
+    const func = this.function_heap.get(handle);
+    const response = func.apply(this, parameters);
+    if (isUndefinedOrNull(response)) {
+      throw new Error(
+        "function returned undefined or null while trying to return an object",
+      );
+    }
+    if (response instanceof BigInt) {
+      return response;
+    }
+
+    return BigInt(response);
   }
 
   js_invoke_function_and_return_string(
@@ -2193,13 +2448,13 @@ class MegatronMiddleware {
       parameter_length,
     );
     const func = this.functions[handle];
-    const result = func.call(runtime, ...parameters);
-    if (result === undefined || result === null) {
+    const response = func.apply(this, parameters);
+    if (isUndefinedOrNull(response)) {
       throw new Error(
         "function returned undefined or null while trying to return an object",
       );
     }
-    return this.operator.writeUint8Array(result);
+    return this.operator.writeUint8Array(response);
   }
 }
 

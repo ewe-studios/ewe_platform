@@ -39,7 +39,7 @@ describe("Megatron.registerfunction", async () => {
     });
   });
 
-  describe("Validate::FuncRegistration", async () => {
+  describe("Validate::Behaviour", async () => {
     const { module, instance } = wasm_module;
     instance.exports.main();
 

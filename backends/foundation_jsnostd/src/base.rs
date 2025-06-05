@@ -83,6 +83,10 @@ pub enum Params<'a> {
 }
 
 impl Params<'_> {
+    pub fn to_value_type_u8(&self) -> u8 {
+        self.to_value_type() as u8
+    }
+
     pub fn to_value_type(&self) -> ValueTypes {
         match self {
             Params::Bool(_) => ValueTypes::Bool,

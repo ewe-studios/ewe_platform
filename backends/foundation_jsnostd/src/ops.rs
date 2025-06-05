@@ -68,157 +68,159 @@ impl<'a> ToBinary for &'a [Params<'a>] {
 impl ToBinary for Params<'_> {
     fn to_binary(&self) -> Vec<u8> {
         let mut encoded_params: Vec<u8> = Vec::new();
+        encoded_params.push(self.to_value_type_u8());
+
         match self {
-            Params::Undefined => {
-                encoded_params.push(0);
-            }
-            Params::Null => {
-                encoded_params.push(1);
-            }
+            Params::Undefined => {}
+            Params::Null => {}
             Params::Float64(value) => {
-                encoded_params.push(2);
                 encoded_params.extend_from_slice(&value.to_le_bytes());
             }
             Params::Uint64(value) => {
-                encoded_params.push(3);
                 encoded_params.extend_from_slice(&value.to_le_bytes());
             }
             Params::Text8(value) => {
-                encoded_params.push(4);
                 let start = value.as_ptr() as usize;
                 let len = value.len();
                 encoded_params.extend_from_slice(&start.to_le_bytes());
                 encoded_params.extend_from_slice(&len.to_le_bytes());
             }
             Params::ExternalReference(value) => {
-                encoded_params.push(5);
                 encoded_params.extend_from_slice(&value.clone_inner().to_le_bytes());
             }
             Params::Float32(value) => {
-                encoded_params.push(6);
                 encoded_params.extend_from_slice(&value.to_le_bytes());
             }
             Params::Bool(value) => {
                 if *value {
-                    encoded_params.push(7);
+                    encoded_params.push(1);
                 } else {
-                    encoded_params.push(8);
+                    encoded_params.push(0);
                 }
             }
             Params::Float64Array(value) => {
-                encoded_params.push(9);
-                let start = value.as_ptr() as usize;
-                let len = value.len();
+                let start = value.as_ptr() as u64;
+                let len = value.len() as u64;
                 encoded_params.extend_from_slice(&start.to_le_bytes());
                 encoded_params.extend_from_slice(&len.to_le_bytes());
             }
             Params::Uint32Array(value) => {
-                encoded_params.push(10);
-                let start = value.as_ptr() as usize;
-                let len = value.len();
+                let start = value.as_ptr() as u64;
+                let len = value.len() as u64;
                 encoded_params.extend_from_slice(&start.to_le_bytes());
                 encoded_params.extend_from_slice(&len.to_le_bytes());
             }
             Params::Int8(value) => {
-                encoded_params.push(11);
                 encoded_params.extend_from_slice(&value.to_le_bytes());
             }
             Params::Int16(value) => {
-                encoded_params.push(12);
                 encoded_params.extend_from_slice(&value.to_le_bytes());
             }
             Params::Int32(value) => {
-                encoded_params.push(13);
                 encoded_params.extend_from_slice(&value.to_le_bytes());
             }
             Params::Int64(value) => {
-                encoded_params.push(14);
                 encoded_params.extend_from_slice(&value.to_le_bytes());
             }
             Params::Uint8(value) => {
-                encoded_params.push(15);
                 encoded_params.extend_from_slice(&value.to_le_bytes());
             }
             Params::Uint16(value) => {
-                encoded_params.push(16);
                 encoded_params.extend_from_slice(&value.to_le_bytes());
             }
             Params::Uint32(value) => {
-                encoded_params.push(17);
                 encoded_params.extend_from_slice(&value.to_le_bytes());
             }
             Params::Int128(value) => {
-                encoded_params.push(18);
-                encoded_params.extend_from_slice(&value.to_le_bytes());
+                // nice trick to switch all bits to 1 for a 64bit number.
+                const MASK: i128 = 0xFFFFFFFFFFFFFFFF;
+
+                // get the MSB by shifting right 64 bits
+                let value_msb = (value >> 64) as i64;
+
+                // get the LSB by truncating to u64, this gets automatically truncated
+                // but we also just use u64::MAX to mask it to the lowest 64 bits
+                // or LSB.
+                let value_lsb = (value & MASK) as i64;
+
+                let msb_bytes = value_msb.to_le_bytes();
+                let lsb_bytes = value_lsb.to_le_bytes();
+
+                encoded_params.extend_from_slice(&msb_bytes);
+                encoded_params.extend_from_slice(&lsb_bytes);
             }
             Params::Uint128(value) => {
-                encoded_params.push(19);
-                encoded_params.extend_from_slice(&value.to_le_bytes());
+                // nice trick to switch all bits to 1 for a 64bit number.
+                const MASK: u128 = 0xFFFFFFFFFFFFFFFF;
+
+                // get the MSB by shifting right 64 bits
+                let value_msb = (value >> 64) as u64;
+
+                // get the LSB by truncating to u64, this gets automatically truncated
+                // but we also just use u64::MAX to mask it to the lowest 64 bits
+                // or LSB.
+                let value_lsb = (value & MASK) as u64;
+
+                let msb_bytes = value_msb.to_le_bytes();
+                let lsb_bytes = value_lsb.to_le_bytes();
+
+                encoded_params.extend_from_slice(&msb_bytes);
+                encoded_params.extend_from_slice(&lsb_bytes);
             }
             Params::Text16(value) => {
-                encoded_params.push(20);
-                let start = value.as_ptr() as usize;
-                let len = value.len();
+                let start = value.as_ptr() as u64;
+                let len = value.len() as u64;
                 encoded_params.extend_from_slice(&start.to_le_bytes());
                 encoded_params.extend_from_slice(&len.to_le_bytes());
             }
             Params::InternalReference(value) => {
-                encoded_params.push(21);
                 encoded_params.extend_from_slice(&value.clone_inner().to_le_bytes());
             }
             Params::Uint64Array(value) => {
-                encoded_params.push(22);
-                let start = value.as_ptr() as usize;
-                let len = value.len();
+                let start = value.as_ptr() as u64;
+                let len = value.len() as u64;
                 encoded_params.extend_from_slice(&start.to_le_bytes());
                 encoded_params.extend_from_slice(&len.to_le_bytes());
             }
             Params::Int32Array(value) => {
-                encoded_params.push(23);
-                let start = value.as_ptr() as usize;
-                let len = value.len();
+                let start = value.as_ptr() as u64;
+                let len = value.len() as u64;
                 encoded_params.extend_from_slice(&start.to_le_bytes());
                 encoded_params.extend_from_slice(&len.to_le_bytes());
             }
             Params::Int64Array(value) => {
-                encoded_params.push(24);
-                let start = value.as_ptr() as usize;
-                let len = value.len();
+                let start = value.as_ptr() as u64;
+                let len = value.len() as u64;
                 encoded_params.extend_from_slice(&start.to_le_bytes());
                 encoded_params.extend_from_slice(&len.to_le_bytes());
             }
             Params::Int8Array(value) => {
-                encoded_params.push(25);
-                let start = value.as_ptr() as usize;
-                let len = value.len();
+                let start = value.as_ptr() as u64;
+                let len = value.len() as u64;
                 encoded_params.extend_from_slice(&start.to_le_bytes());
                 encoded_params.extend_from_slice(&len.to_le_bytes());
             }
             Params::Int16Array(value) => {
-                encoded_params.push(26);
-                let start = value.as_ptr() as usize;
-                let len = value.len();
+                let start = value.as_ptr() as u64;
+                let len = value.len() as u64;
                 encoded_params.extend_from_slice(&start.to_le_bytes());
                 encoded_params.extend_from_slice(&len.to_le_bytes());
             }
             Params::Uint8Array(value) => {
-                encoded_params.push(27);
-                let start = value.as_ptr() as usize;
-                let len = value.len();
+                let start = value.as_ptr() as u64;
+                let len = value.len() as u64;
                 encoded_params.extend_from_slice(&start.to_le_bytes());
                 encoded_params.extend_from_slice(&len.to_le_bytes());
             }
             Params::Uint16Array(value) => {
-                encoded_params.push(28);
-                let start = value.as_ptr() as usize;
+                let start = value.as_ptr() as u64;
                 let len = value.len();
                 encoded_params.extend_from_slice(&start.to_le_bytes());
                 encoded_params.extend_from_slice(&len.to_le_bytes());
             }
             Params::Float32Array(value) => {
-                encoded_params.push(30);
-                let start = value.as_ptr() as usize;
-                let len = value.len();
+                let start = value.as_ptr() as u64;
+                let len = value.len() as u64;
                 encoded_params.extend_from_slice(&start.to_le_bytes());
                 encoded_params.extend_from_slice(&len.to_le_bytes());
             }

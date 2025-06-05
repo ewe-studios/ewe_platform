@@ -6,12 +6,4 @@ pub mod js_runtimes {
     #[derive(EmbedFileAs)]
     #[source = "../../assets/jsruntime/megatron.js"]
     pub struct JSHostRuntime;
-
-    #[derive(EmbedFileAs)]
-    #[source = "../../assets/jsruntime/runtime.js"]
-    pub struct RuntimeCore;
-
-    #[derive(EmbedFileAs)]
-    #[source = "../../assets/jsruntime/packer.js"]
-    pub struct PackerCore;
 }
