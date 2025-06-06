@@ -269,12 +269,17 @@ impl<'a> Batchable<'a> for Params<'a> {
                 Ok(())
             }
             Params::Float64(value) => {
-                let value_bytes = value.to_le_bytes();
-                let total_length = value_bytes.len() + 3;
+                // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
+                let (value_bytes, tq) = if optimized {
+                    value_quantitization::qf64(*value)
+                } else {
+                    (value.to_le_bytes().to_vec(), TypeOptimization::None)
+                };
 
-                let mut data: Vec<u8> = Vec::with_capacity(total_length);
+                let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 7);
                 data.push(ArgumentOperations::Begin.into());
                 data.push(self.to_value_type().into());
+                data.push(tq.into());
                 data.extend(&value_bytes);
                 data.push(ArgumentOperations::End.into());
 
@@ -901,6 +906,57 @@ mod params_tests {
                 ArgumentOperations::End as u8,   // end of this argument
                 ArgumentOperations::Begin as u8, // start of this argument
                 ValueTypes::Null as u8,
+                ArgumentOperations::End as u8,  // end of this argument
+                ArgumentOperations::Stop as u8, // end of all arguments
+                254,                            // end of the sub-block of instruction
+                255                             // Stop signal indicating batch is finished
+            ],
+            completed_ops.clone_memory().expect("clone"),
+        );
+
+        assert!(completed_strings.is_empty().expect("returns state"));
+    }
+
+    #[test]
+    fn can_encode_floats() {
+        let mut allocator = MemoryAllocations::new();
+
+        let batch = allocator
+            .batch_for(10, 10, true)
+            .expect("create new Instructions");
+
+        batch.should_be_occupied().expect("is occupied");
+
+        let write_result =
+            batch.encode_params(Some(&[Params::Float32(10.2), Params::Float64(10.2)]));
+
+        assert!(write_result.is_ok());
+
+        batch.end().expect("end instruction");
+        let completed_data = batch.stop().expect("finish writing completion result");
+        let slot = allocator.get_slot(completed_data).expect("get memory");
+
+        let completed_strings = slot.text_ref();
+        let completed_ops = slot.ops_ref();
+
+        assert_eq!(
+            alloc::vec![
+                0,                               // Begin signal indicating start of batch
+                ArgumentOperations::Start as u8, // start of all arguments
+                ArgumentOperations::Begin as u8, // start of this argument
+                ValueTypes::Float32 as u8,
+                51,
+                51,
+                35,
+                65,
+                ArgumentOperations::End as u8,   // end of this argument
+                ArgumentOperations::Begin as u8, // start of this argument
+                ValueTypes::Float64 as u8,
+                TypeOptimization::QuantizedF64AsF32 as u8,
+                51,
+                51,
+                35,
+                65,
                 ArgumentOperations::End as u8,  // end of this argument
                 ArgumentOperations::Stop as u8, // end of all arguments
                 254,                            // end of the sub-block of instruction

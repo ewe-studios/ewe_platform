@@ -621,6 +621,11 @@ pub enum TypeOptimization {
 
     // optimize floats
     QuantizedF64AsF32 = 13,
+
+    // TODO(alex.ewetumo): Add quantization for these when f128 is stable.
+    //
+    // these wont be supported yet as f128 is still nightly only
+    // but added here for coverage
     QuantizedF128AsF32 = 14,
     QuantizedF128AsF64 = 15,
 
@@ -940,6 +945,29 @@ pub mod value_quantitization {
                     as_bit_bytes.to_vec(),
                     TypeOptimization::QuantizedUint32AsU16,
                 )
+            }
+            _ => {
+                let as_bit_bytes = value.to_le_bytes();
+                (as_bit_bytes.to_vec(), TypeOptimization::None)
+            }
+        }
+    }
+
+    // [`qf64`] quantizes a f64 into a f32 if its within the range there by reducing
+    // the actual bytes needed to communicate it from 8 to 4 and when you have
+    // alot of these, this will save us alot of space.
+    //
+    // When its actuall in the f64 range then the normal byte count is used with quantization
+    // set as [`TypeOptimization::None`].
+    pub fn qf64(value: f64) -> (Vec<u8>, TypeOptimization) {
+        const F32_MIN: f64 = f32::MIN as f64;
+        const F32_MAX: f64 = f32::MAX as f64;
+
+        match value {
+            F32_MIN..=F32_MAX => {
+                let as_bit = value as f32;
+                let as_bit_bytes = as_bit.to_le_bytes();
+                (as_bit_bytes.to_vec(), TypeOptimization::QuantizedF64AsF32)
             }
             _ => {
                 let as_bit_bytes = value.to_le_bytes();

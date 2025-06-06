@@ -14,5 +14,8 @@ include = ["/src", "/runtime"]
 foundation_nostd = { workspace = true }
 foundation_macros = { workspace = true }
 
+[features]
+f128 = []
+
 [lints]
 workspace = true
