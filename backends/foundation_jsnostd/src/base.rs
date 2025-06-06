@@ -34,6 +34,7 @@ pub enum ValueTypes {
     InternalReference = 26,
     Int128 = 27,
     Uint128 = 28,
+    CachedText = 29,
 }
 
 #[allow(clippy::from_over_into)]
@@ -66,6 +67,7 @@ pub enum Params<'a> {
     Uint32(u32),
     Uint64(u64),
     Uint128(u128),
+    CachedText(u64),
     Text8(&'a str),
     Text16(&'a [u16]),
     Int8Array(&'a [i8]),
@@ -106,6 +108,7 @@ impl Params<'_> {
             Params::Uint128(_) => ValueTypes::Uint128,
             Params::Text8(_) => ValueTypes::Text8,
             Params::Text16(_) => ValueTypes::Text16,
+            Params::CachedText(_) => ValueTypes::CachedText,
             Params::Int8Array(_) => ValueTypes::Int8ArrayBuffer,
             Params::Int16Array(_) => ValueTypes::Int16ArrayBuffer,
             Params::Int32Array(_) => ValueTypes::Int32ArrayBuffer,
@@ -524,6 +527,35 @@ impl CallParams {
     #[must_use]
     pub fn new(addr: *const u8, length: u64) -> Self {
         Self(addr, length)
+    }
+}
+
+/// [`CachedText8`] defines a instance of a cached UTF-8 text at some
+/// specific location managed by the host runtime identified by the
+/// wrapped u64 id.
+pub struct CachedText(u64);
+
+impl From<u64> for CachedText {
+    fn from(value: u64) -> Self {
+        Self(value)
+    }
+}
+
+impl CachedText {
+    pub const fn pointer(value: u64) -> Self {
+        Self(value)
+    }
+
+    pub fn into_inner(self) -> u64 {
+        self.0
+    }
+
+    pub fn clone_inner(&self) -> u64 {
+        self.0
+    }
+
+    pub fn to_value_type(&self) -> ValueTypes {
+        ValueTypes::InternalReference
     }
 }
 

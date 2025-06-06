@@ -248,13 +248,21 @@ pub mod host_runtime {
 
     // -- Functions (Invocation & Registration)
     pub mod api_v1 {
+        use crate::CachedText;
+
         use super::*;
 
         #[link(wasm_import_module = "v1")]
         extern "C" {
-            //  Provides a way to inform the need to drop a outside cached reference
+            //  [`js_drop_reference`] Provides a way to inform the need to drop a outside cached reference
             //  used for execution, e.g JSFunction or some other referential type.
-            pub fn drop_reference(external_reference_id: u64);
+            pub fn js_drop_reference(external_reference_id: u64);
+
+            /// [`js_cache_string`] provides a way to cache dynamic utf8 strings that
+            /// will be interned into a map of a u64 key representing the string, this allows
+            /// us to pay the cost of conversion once for these types of strings
+            /// whilst limiting the overall cost since only a reference is ever passed around.
+            pub fn js_cache_string(start: u64, len: u64, encoding: u8) -> u64;
 
             // [`js_unregister_function`] provides a means to unregister a target function
             // from the WASM - Host runtime boundary.
@@ -328,7 +336,7 @@ pub mod host_runtime {
         impl Drop for Droppable {
             fn drop(&mut self) {
                 unsafe {
-                    host_runtime::api_v1::drop_reference(self.0.into_inner());
+                    host_runtime::api_v1::js_drop_reference(self.0.into_inner());
                 }
             }
         }
@@ -345,6 +353,34 @@ pub mod host_runtime {
             }
         }
 
+        /// [`cached_text`] provides a way to have the host runtime cache an expense
+        /// text for you which allows you perform multiple re-use of the same text.
+        ///
+        /// Remember that UTF-8 top UTF-16 is an expensive operation and when you have
+        /// a string you plan to re-use over and over then there is benefit in simply
+        /// caching these string but also understand we are using more memory both in
+        /// the rust (guest wasm) side and the host side and you really only benefit from
+        /// that overhead when that string really is very much reused alot.
+        ///
+        /// Additionally, what if you end up sending the same UTF-16 text over to the host
+        /// often, there is also benefit in just sending it once, caching it and referencing
+        /// it by the cache id.
+        ///
+        /// Be aware this is immediate and instead of keeping the memory slot owned on the
+        /// wasm side, we defer to the host runtime to always maintain a reference id for us
+        /// and must guarantee that id will hold for the lifetime of the program.
+        pub fn cache_text(code: &str) -> CachedText {
+            let start = code.as_ptr() as usize;
+            let len = code.len();
+            unsafe {
+                CachedText::pointer(host_runtime::api_v1::js_cache_string(
+                    start as u64,
+                    len as u64,
+                    JSEncoding::UTF8.into(),
+                ))
+            }
+        }
+
         /// [`register_function`] calls the underlying [`js_abi`] registration
         /// function to register a javascript code that can be called from memory
         /// allowing you define the underlying code we want executed.
@@ -357,7 +393,7 @@ pub mod host_runtime {
                         start as u64,
                         len as u64,
                         JSEncoding::UTF8.into(),
-                    ), // precision loss here
+                    ),
                 }
             }
         }
@@ -493,7 +529,7 @@ pub mod host_runtime {
 
             /// [`unregister_function`] calls the JS ABI on the host to de-register
             /// the target function.
-            pub fn unregister_function(&self) {
+            pub fn unregister(self) {
                 unsafe { host_runtime::api_v1::js_unregister_function(self.handler) }
             }
         }

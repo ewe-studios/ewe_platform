@@ -56,6 +56,10 @@ need_stdout = false
 command = ["cargo", "test"]
 need_stdout = true
 
+[jobs.test_jsnostd_integrations]
+command = ["make", "wasm-tests"]
+need_stdout = true
+
 [jobs.test_foundation_jsnostd]
 command = ["cargo", "test", "--package", "foundation_jsnostd"]
 need_stdout = true

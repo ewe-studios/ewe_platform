@@ -27,10 +27,13 @@ build-demos:
 build-tests:
 	$(foreach var,$(TESTS_PACKAGES), $(MAKE) TEST_DIRECTORY=$(var) TEST_PACKAGE=$(notdir $(var)) build-test-directory;)
 
+build-target-test:
+	$(MAKE) TEST_DIRECTORY=./tests/integrations/$(TARGET_TEST) TEST_PACKAGE=$(TARGET_TEST) build-test-directory
+
 wasm-tests: build-tests
 	$(foreach var,$(TESTS_PACKAGES), node $(var)/index.node.js;)
 
-wasm-test: build-tests
+wasm-test: build-target-test
 	node $(dir $(TEST_DIRECTORY))/$(TARGET_TEST)/index.node.js
 
 lint:
