@@ -270,6 +270,7 @@ const Params = {
   InternalReference: 26,
   Int128: 27,
   Uint128: 28,
+  CachedText: 29,
 };
 
 Params.__INVERSE__ = Object.keys(Params)
@@ -284,6 +285,96 @@ Params.__INVERSE__ = Object.keys(Params)
 
 function isUndefinedOrNull(value) {
   return NULL_AND_UNDEFINED.indexOf(value) != -1;
+}
+
+class SimpleStringCache {
+  constructor() {
+    this.text_to_id = new Map();
+    this.id_to_text = new Map();
+    this.count = 0;
+  }
+
+  clear() {
+    this.text_to_id = new Map();
+    this.id_to_text = new Map();
+    this.count = 0;
+  }
+
+  destroy_id(id) {
+    if (!(id instanceof String)) {
+      throw new Error("Only strings are allowed");
+    }
+
+    if (!this.has_id(id)) {
+      return false;
+    }
+
+    this.id_to_text.delete(id);
+    this.text_to_id.delete(item);
+
+    if (this.text_to_id.size == 0) {
+      this.count = 0;
+    }
+  }
+
+  destroy(item) {
+    if (!(item instanceof String)) {
+      throw new Error("Only strings are allowed");
+    }
+
+    if (!this.has_text(item)) {
+      return false;
+    }
+
+    const id = this.get_id(item);
+    this.destroy_id(id);
+  }
+
+  create(item) {
+    if (!(item instanceof String)) {
+      throw new Error("Only strings are allowed");
+    }
+
+    if (this.has_text(item)) {
+      return this.text_to_id.get(item);
+    }
+
+    const new_id = this.count + 1;
+    this.new_count += 1;
+
+    this.text_to_id.set(item, new_id);
+    this.id_to_text.set(new_id, item);
+
+    return new_id;
+  }
+
+  has_id(id) {
+    if (!(id instanceof Number)) {
+      throw new Error("Only Number allowed");
+    }
+    return this.id_to_text.has(id);
+  }
+
+  has_text(text) {
+    if (!(text instanceof String)) {
+      throw new Error("Only string allowed");
+    }
+    return this.text_to_id.has(text);
+  }
+
+  get_text(id) {
+    if (!(id instanceof Number)) {
+      throw new Error("Only Number allowed");
+    }
+    return this.id_to_text.get(id);
+  }
+
+  get_id(text) {
+    if (!(text instanceof String)) {
+      throw new Error("Only string allowed");
+    }
+    return this.text_to_id.get(text);
+  }
 }
 
 class ArenaAllocator {
@@ -561,13 +652,14 @@ class TextCodec {
   }
 
   readUTF8FromMemory(start, len) {
-    const memory = this.operator.get_memory();
-    const data_slice = memory.slice(start, start + len);
+    const memory = new Uint8Array(this.operator.get_memory());
+    const data_slice = memory.subarray(start, start + len);
     return this.utf8_decoder.decode(data_slice);
   }
 
   readUTF16FromMemory(start, len) {
-    const bytes = this.operator.get_memory().subarray(start, start + len);
+    const memory = new Uint8Array(this.operator.get_memory());
+    const bytes = memory.subarray(start, start + len);
     const text = this.utf16_decoder.decode(bytes);
     return text;
   }
@@ -933,6 +1025,16 @@ class ExternalPointer {
   }
 }
 
+class CachePointer {
+  constructor(value) {
+    this.id = value;
+  }
+
+  get value() {
+    return this.id;
+  }
+}
+
 class InternalPointer {
   constructor(value) {
     this.id = value;
@@ -944,15 +1046,19 @@ class InternalPointer {
 }
 
 class ParameterParserV1 {
-  constructor(memory_operator, text_codec) {
+  constructor(memory_operator, text_codec, text_cache) {
     if (!(memory_operator instanceof MemoryOperator)) {
       throw new Error("Must be instance of MemoryOperator");
     }
     if (!(text_codec instanceof TextCodec)) {
       throw new Error("Must be instance of TextCodec");
     }
+    if (!(text_cache instanceof SimpleStringCache)) {
+      throw new Error("text_cache Must be instance of SimpleStringCache");
+    }
 
     this.texts = text_codec;
+    this.text_cache = text_cache;
     this.operator = memory_operator;
     this.module = memory_operator.get_module();
 
@@ -986,6 +1092,7 @@ class ParameterParserV1 {
       26: this.parseInternalReference.bind(this),
       27: this.parseBigInt128.bind(this),
       28: this.parseBigUint128.bind(this),
+      29: this.parseCachedText.bind(this),
     };
   }
 
@@ -1164,7 +1271,28 @@ class ParameterParserV1 {
       index,
       true,
     );
+
     read_values_list.push(value);
+    return [Move.MOVE_BY_64_BYTES, false];
+  }
+
+  parseCachedText(index, read_values_list, parameter_buffer) {
+    const value = new DataView(parameter_buffer.buffer).getBigInt64(
+      index,
+      true,
+    );
+
+    // pull the actual text that should already be registered in the cache
+    // if not found (i.e Null or Undefined) throw an error.
+    const cache_id = Number(value);
+    const cached_text = this.text_cache.get(cache_id);
+    if (isUndefinedOrNull(cached_text)) {
+      throw new Error(
+        `Expected text to have been cached with cache id: '${cache_id}'`,
+      );
+    }
+
+    read_values_list.push(cached_text);
     return [Move.MOVE_BY_64_BYTES, false];
   }
 
@@ -1191,15 +1319,16 @@ class ParameterParserV1 {
     const view = new DataView(buffer);
     let start_index = index;
 
-    let start = Number(view.getBigUint64(start_index, true), 10);
+    let start = Number(view.getBigUint64(start_index, true));
     start_index += Move.MOVE_BY_64_BYTES;
 
-    let length = Number(view.getBigUint64(start_index, true), 10);
+    let length = Number(view.getBigUint64(start_index, true));
     start_index += Move.MOVE_BY_64_BYTES;
 
     // for more efficient usage, as slice copies, we can use:
     const memory = this.operator.get_memory();
-    const slice_view = DataView(memory, start, start + length);
+    const uint_array = new Uint8Array(memory);
+    const slice_view = uint_array.subarray(start, start + length);
 
     return [start_index - index, slice_view];
   }
@@ -1223,7 +1352,6 @@ class ParameterParserV1 {
     start_index += Move.MOVE_BY_64_BYTES;
 
     const memory = this.operator.get_memory();
-    // const slice = memory.buffer.slice(start, start + length * 4);
     const slice = memory.slice(start, start + length);
 
     return [start_index - index, slice];
@@ -1233,7 +1361,7 @@ class ParameterParserV1 {
     // 4 = string (followed by 32-bit start and size of string in wasm memory)
     // 4 means we want to read a int32 memory size where we have 4 bytes for start, 4 bytes for length which
     // indicate the memory range we need to read;
-    const [moved_by, slice] = this.copyBufferArray(index, parameter_buffer);
+    const [moved_by, slice] = this.cloneBufferArray(index, parameter_buffer);
     const data = this.texts.readUTF16FromView(slice);
     read_values_list.push(data);
     return [moved_by, false];
@@ -1243,87 +1371,117 @@ class ParameterParserV1 {
     // 4 = string (followed by 32-bit start and size of string in wasm memory)
     // 4 means we want to read a int32 memory size where we have 4 bytes for start, 4 bytes for length which
     // indicate the memory range we need to read;
-    const [moved_by, slice] = this.copyBufferArray(index, parameter_buffer);
+    const [moved_by, slice] = this.cloneBufferArray(index, parameter_buffer);
     const data = this.texts.readUTF8FromView(slice);
     read_values_list.push(data);
     return [moved_by, false];
   }
 
+  // WARNING: This tries to be efficient and avoids copying the contents of the
+  // memory location in the wasm memory instance, so ensure to clone the provided
+  // data buffer to avoid data corruption if that memory gets overwritten.
   parseFloat32Array(index, read_values_list, parameter_buffer) {
     // 6 = array of Float32 from wasm memory (followed by 32-bit start and size of string in memory)
-    const [moved_by, slice] = this.copyBufferArray(index, parameter_buffer);
+    const [moved_by, slice] = this.cloneBufferArray(index, parameter_buffer);
     const array = new Float32Array(slice);
     read_values_list.push(array);
     return [moved_by, false];
   }
 
+  // WARNING: This tries to be efficient and avoids copying the contents of the
+  // memory location in the wasm memory instance, so ensure to clone the provided
+  // data buffer to avoid data corruption if that memory gets overwritten.
   parseFloat64Array(index, read_values_list, parameter_buffer) {
     // 9 = array of Float64 from wasm memory (followed by 32-bit start and size of string in memory)
-    const [moved_by, slice] = this.copyBufferArray(index, parameter_buffer);
+    const [moved_by, slice] = this.cloneBufferArray(index, parameter_buffer);
     const array = new Float64Array(slice);
     read_values_list.push(array);
     return [moved_by, false];
   }
 
+  // WARNING: This tries to be efficient and avoids copying the contents of the
+  // memory location in the wasm memory instance, so ensure to clone the provided
+  // data buffer to avoid data corruption if that memory gets overwritten.
   parseInt8Array(index, read_values_list, parameter_buffer) {
     // 10 = array of Uint32 from wasm memory (followed by 32-bit start and size of string in memory)
-    const [moved_by, slice] = this.copyBufferArray(index, parameter_buffer);
+    const [moved_by, slice] = this.cloneBufferArray(index, parameter_buffer);
     const array = new Int8Array(slice);
     read_values_list.push(array);
     return [moved_by, false];
   }
 
+  // WARNING: This tries to be efficient and avoids copying the contents of the
+  // memory location in the wasm memory instance, so ensure to clone the provided
+  // data buffer to avoid data corruption if that memory gets overwritten.
   parseInt16Array(index, read_values_list, parameter_buffer) {
     // 10 = array of Uint32 from wasm memory (followed by 32-bit start and size of string in memory)
-    const [moved_by, slice] = this.copyBufferArray(index, parameter_buffer);
+    const [moved_by, slice] = this.cloneBufferArray(index, parameter_buffer);
     const array = new Int16Array(slice);
     read_values_list.push(array);
     return [moved_by, false];
   }
 
+  // WARNING: This tries to be efficient and avoids copying the contents of the
+  // memory location in the wasm memory instance, so ensure to clone the provided
+  // data buffer to avoid data corruption if that memory gets overwritten.
   parseInt32Array(index, read_values_list, parameter_buffer) {
     // 10 = array of Uint32 from wasm memory (followed by 32-bit start and size of string in memory)
-    const [moved_by, slice] = this.copyBufferArray(index, parameter_buffer);
+    const [moved_by, slice] = this.cloneBufferArray(index, parameter_buffer);
     const array = new Int32Array(slice);
     read_values_list.push(array);
     return [moved_by, false];
   }
 
+  // WARNING: This tries to be efficient and avoids copying the contents of the
+  // memory location in the wasm memory instance, so ensure to clone the provided
+  // data buffer to avoid data corruption if that memory gets overwritten.
   parseInt64Array(index, read_values_list, parameter_buffer) {
     // 10 = array of Uint64 from wasm memory (followed by 32-bit start and size of string in memory)
-    const [moved_by, slice] = this.copyBufferArray(index, parameter_buffer);
+    const [moved_by, slice] = this.cloneBufferArray(index, parameter_buffer);
     const array = new BigInt64Array(slice);
     read_values_list.push(array);
     return [moved_by, false];
   }
 
+  // WARNING: This tries to be efficient and avoids copying the contents of the
+  // memory location in the wasm memory instance, so ensure to clone the provided
+  // data buffer to avoid data corruption if that memory gets overwritten.
   parseUint8Array(index, read_values_list, parameter_buffer) {
     // 10 = array of Uint32 from wasm memory (followed by 32-bit start and size of string in memory)
-    const [moved_by, slice] = this.copyBufferArray(index, parameter_buffer);
+    const [moved_by, slice] = this.cloneBufferArray(index, parameter_buffer);
     const array = new Uint8Array(slice);
     read_values_list.push(array);
     return [moved_by, false];
   }
 
+  // WARNING: This tries to be efficient and avoids copying the contents of the
+  // memory location in the wasm memory instance, so ensure to clone the provided
+  // data buffer to avoid data corruption if that memory gets overwritten.
   parseUint16Array(index, read_values_list, parameter_buffer) {
     // 10 = array of Uint32 from wasm memory (followed by 32-bit start and size of string in memory)
-    const [moved_by, slice] = this.copyBufferArray(index, parameter_buffer);
+    const [moved_by, slice] = this.cloneBufferArray(index, parameter_buffer);
     const array = new Uint16Array(slice);
     read_values_list.push(array);
     return [moved_by, false];
   }
 
+  // WARNING: This tries to be efficient and avoids copying the contents of the
+  // memory location in the wasm memory instance, so ensure to clone the provided
+  // data buffer to avoid data corruption if that memory gets overwritten.
   parseUint32Array(index, read_values_list, parameter_buffer) {
     // 10 = array of Uint32 from wasm memory (followed by 32-bit start and size of string in memory)
-    const [moved_by, slice] = this.copyBufferArray(index, parameter_buffer);
+    const [moved_by, slice] = this.cloneBufferArray(index, parameter_buffer);
     const array = new Uint32Array(slice);
     read_values_list.push(array);
     return [moved_by, false];
   }
 
+  // WARNING: This tries to be efficient and avoids copying the contents of the
+  // memory location in the wasm memory instance, so ensure to clone the provided
+  // data buffer to avoid data corruption if that memory gets overwritten.
   parseUint64Array(index, read_values_list, parameter_buffer) {
     // 10 = array of Uint64 from wasm memory (followed by 32-bit start and size of string in memory)
-    const [moved_by, slice] = this.copyBufferArray(index, parameter_buffer);
+    const [moved_by, slice] = this.cloneBufferArray(index, parameter_buffer);
     const array = new BigUint64Array(slice);
     read_values_list.push(array);
     return [moved_by, false];
@@ -1331,15 +1489,19 @@ class ParameterParserV1 {
 }
 
 class ParameterParserV2 {
-  constructor(memory_operator, text_codec) {
+  constructor(memory_operator, text_codec, text_cache) {
     if (!(memory_operator instanceof MemoryOperator)) {
       throw new Error("Must be instance of MemoryOperator");
     }
     if (!(text_codec instanceof TextCodec)) {
       throw new Error("Must be instance of TextCodec");
     }
+    if (!(text_cache instanceof SimpleStringCache)) {
+      throw new Error("text_cache Must be instance of SimpleStringCache");
+    }
 
     this.texts = text_codec;
+    this.text_cache = text_cache;
     this.operator = memory_operator;
     this.module = memory_operator.get_module();
   }
@@ -1360,6 +1522,8 @@ class ParameterParserV2 {
     const parameters = [];
 
     for (let i = 0; i < MAX_ITERATION; i++) {
+      let portion = view.buffer.slice(moved_by, view.buffer.length);
+      LOGGER.debug("View::Current: ", portion);
       if (view.getUint8(moved_by, true) == ArgumentOperations.Stop) {
         break;
       }
@@ -1381,7 +1545,7 @@ class ParameterParserV2 {
 
       // validate we see end marker
       if (view.getUint8(moved_by, true) != ArgumentOperations.End) {
-        throw new Error("Argument did not start with ArgumentOperation.End");
+        throw new Error("Argument did not end with ArgumentOperation.End");
       }
 
       moved_by += Move.MOVE_BY_1_BYTES;
@@ -1401,6 +1565,8 @@ class ParameterParserV2 {
       throw new Error(`Params ${value_type} is not known`);
     }
 
+    from_index += Move.MOVE_BY_1_BYTES;
+
     return this.parseParamType(from_index, value_type, view, text_string_array);
   }
 
@@ -1410,11 +1576,11 @@ class ParameterParserV2 {
 
     switch (value_type) {
       case Params.Null:
-        return this.parseNull(from_index, view);
+        return this.parseNull(from_index, value_type, view);
       case Params.Undefined:
-        return this.parseUndefined(from_index, view);
+        return this.parseUndefined(from_index, value_type, view);
       case Params.Bool:
-        return this.parseBoolean(from_index, view);
+        return this.parseBoolean(from_index, value_type, view);
       case Params.Int8:
         return this.parseNumber8(from_index, value_type, view);
       case Params.Int16:
@@ -1439,34 +1605,46 @@ class ParameterParserV2 {
         return this.parseFloat32(from_index, value_type, view);
       case Params.Float64:
         return this.parseFloat64(from_index, value_type, view);
+      case Params.InternalReference:
+        return this.parseInternalReference(from_index, value_type, view);
       case Params.ExternalReference:
         return this.parseExternalPointer(from_index, value_type, view);
       case Params.Uint8ArrayBuffer:
-        break;
+        return this.parseUint8ArrayBuffer(from_index, value_type, view);
       case Params.Uint16ArrayBuffer:
-        break;
+        return this.parseUint16ArrayBuffer(from_index, value_type, view);
       case Params.Uint32ArrayBuffer:
-        break;
+        return this.parseUint32ArrayBuffer(from_index, value_type, view);
       case Params.Uint64ArrayBuffer:
-        break;
+        return this.parseUint64ArrayBuffer(from_index, value_type, view);
       case Params.Int8ArrayBuffer:
-        break;
+        return this.parseInt8ArrayBuffer(from_index, value_type, view);
       case Params.Int16ArrayBuffer:
-        break;
+        return this.parseInt16ArrayBuffer(from_index, value_type, view);
       case Params.Int32ArrayBuffer:
-        break;
+        return this.parseInt32ArrayBuffer(from_index, value_type, view);
       case Params.Int64ArrayBuffer:
-        break;
+        return this.parseInt64ArrayBuffer(from_index, value_type, view);
       case Params.Float32ArrayBuffer:
-        break;
+        return this.parseFloat32ArrayBuffer(from_index, value_type, view);
       case Params.Float64ArrayBuffer:
-        break;
-      case Params.InternalReference:
-        break;
+        return this.parseFloat64ArrayBuffer(from_index, value_type, view);
+      case Params.CachedText:
+        return this.parseCachedText(
+          from_index,
+          value_type,
+          view,
+          text_string_array,
+        );
       case Params.Text8:
-        return this.parseText8(from_index, view, text_string_array);
+        return this.parseText8(from_index, value_type, view, text_string_array);
       case Params.Text16:
-        return this.parseText16(from_index, view, text_string_array);
+        return this.parseText16(
+          from_index,
+          value_type,
+          view,
+          text_string_array,
+        );
       default:
         throw new Error(
           `Params type ${value_type} (type=${values_type_str}) is not supported`,
@@ -1474,62 +1652,243 @@ class ParameterParserV2 {
     }
   }
 
-  parseUint8ArrayBuffer(from_index, view) {
-    const value_type = view.getUint8(from_index, true);
+  // cloneBufferArray creates a new DataView for the region of the
+  // wasm Memory to save the cost of the copy operation but also be
+  // aware this means that area of memory must be quickly consumed to
+  // avoid potential corruption or over-written of the data.
+  //
+  // It's wise to use this when you will immediately consume the contents
+  // and generate your derived value else use copyBufferArray instead
+  // to get a unique copy of the content.
+  cloneBufferArray(from_index, view) {
+    // get the quantized pointer that points us to the location of the data.
+    let [moved_by, pointer] = this.parsePtr(from_index, Params.Uint64, view);
+
+    // get the length of the
+    let [moved_by_again, pointer_length] = this.parseBigUint64(
+      moved_by,
+      Params.Uint64,
+      view,
+    );
+
+    const start = Number(pointer);
+    const length = Number(pointer_length);
+
+    // for more efficient usage, as slice copies, we can use:
+    const memory = this.operator.get_memory();
+    const uint_array = new Uint8Array(memory);
+    const slice_view = uint_array.subarray(start, start + length);
+
+    return [moved_by_again, slice_view];
+  }
+
+  /// [copyBufferArray] creates a unique copy of the contents of
+  // the memory location pointing to the start and length of the
+  // expected content.
+  copyBufferArray(index, parameter_buffer) {
+    // get the quantized pointer that points us to the location of the data.
+    let [moved_by, pointer] = this.parsePtr(from_index, Params.Uint64, view);
+
+    // get the length of the
+    let [moved_by_again, pointer_length] = this.parseBigUint64(
+      moved_by,
+      Params.Uint64,
+      view,
+    );
+
+    const start = Number(pointer);
+    const length = Number(pointer_length);
+
+    // copy the memory which does a copy operation and is more costly.
+    const memory = this.operator.get_memory();
+    const slice = memory.slice(start, start + length);
+
+    return [moved_by_again, slice];
+  }
+
+  // WARNING: This tries to be efficient and avoids copying the contents of the
+  // memory location in the wasm memory instance, so ensure to clone the provided
+  // data buffer to avoid data corruption if that memory gets overwritten.
+  parseFloat64ArrayBuffer(from_index, value_type, view) {
+    if (value_type != Params.Float64Array) {
+      throw new Error(
+        `Parameter is not that of Undefined: received ${value_type}`,
+      );
+    }
+
+    const [moved_by, buffer] = this.cloneBufferArray(from_index, view);
+    return [moved_by, Float64ArrayBuffer(buffer)];
+  }
+
+  // WARNING: This tries to be efficient and avoids copying the contents of the
+  // memory location in the wasm memory instance, so ensure to clone the provided
+  // data buffer to avoid data corruption if that memory gets overwritten.
+  parseFloat32ArrayBuffer(from_index, value_type, view) {
+    if (value_type != Params.Float32Array) {
+      throw new Error(
+        `Parameter is not that of Undefined: received ${value_type}`,
+      );
+    }
+
+    const [moved_by, buffer] = this.cloneBufferArray(from_index, view);
+    return [moved_by, Float32ArrayBuffer(buffer)];
+  }
+
+  // WARNING: This tries to be efficient and avoids copying the contents of the
+  // memory location in the wasm memory instance, so ensure to clone the provided
+  // data buffer to avoid data corruption if that memory gets overwritten.
+  parseInt64ArrayBuffer(from_index, value_type, view) {
+    if (value_type != Params.Int64Array) {
+      throw new Error(
+        `Parameter is not that of Undefined: received ${value_type}`,
+      );
+    }
+
+    const [moved_by, buffer] = this.cloneBufferArray(from_index, view);
+    return [moved_by, Int64ArrayBuffer(buffer)];
+  }
+
+  // WARNING: This tries to be efficient and avoids copying the contents of the
+  // memory location in the wasm memory instance, so ensure to clone the provided
+  // data buffer to avoid data corruption if that memory gets overwritten.
+  parseInt32ArrayBuffer(from_index, value_type, view) {
+    if (value_type != Params.Int32Array) {
+      throw new Error(
+        `Parameter is not that of Undefined: received ${value_type}`,
+      );
+    }
+
+    const [moved_by, buffer] = this.cloneBufferArray(from_index, view);
+    return [moved_by, Int32ArrayBuffer(buffer)];
+  }
+
+  // WARNING: This tries to be efficient and avoids copying the contents of the
+  // memory location in the wasm memory instance, so ensure to clone the provided
+  // data buffer to avoid data corruption if that memory gets overwritten.
+  parseInt16ArrayBuffer(from_index, value_type, view) {
+    if (value_type != Params.Int16Array) {
+      throw new Error(
+        `Parameter is not that of Undefined: received ${value_type}`,
+      );
+    }
+
+    const [moved_by, buffer] = this.cloneBufferArray(from_index, view);
+    return [moved_by, Int16ArrayBuffer(buffer)];
+  }
+
+  // WARNING: This tries to be efficient and avoids copying the contents of the
+  // memory location in the wasm memory instance, so ensure to clone the provided
+  // data buffer to avoid data corruption if that memory gets overwritten.
+  parseInt8ArrayBuffer(from_index, value_type, view) {
+    if (value_type != Params.Int8Array) {
+      throw new Error(
+        `Parameter is not that of Undefined: received ${value_type}`,
+      );
+    }
+
+    const [moved_by, buffer] = this.cloneBufferArray(from_index, view);
+    return [moved_by, Int8ArrayBuffer(buffer)];
+  }
+
+  // WARNING: This tries to be efficient and avoids copying the contents of the
+  // memory location in the wasm memory instance, so ensure to clone the provided
+  // data buffer to avoid data corruption if that memory gets overwritten.
+  parseUint64ArrayBuffer(from_index, value_type, view) {
+    if (value_type != Params.Uint64Array) {
+      throw new Error(
+        `Parameter is not that of Undefined: received ${value_type}`,
+      );
+    }
+
+    const [moved_by, buffer] = this.cloneBufferArray(from_index, view);
+    return [moved_by, Uint64ArrayBuffer(buffer)];
+  }
+
+  // WARNING: This tries to be efficient and avoids copying the contents of the
+  // memory location in the wasm memory instance, so ensure to clone the provided
+  // data buffer to avoid data corruption if that memory gets overwritten.
+  parseUint32ArrayBuffer(from_index, value_type, view) {
+    if (value_type != Params.Uint32Array) {
+      throw new Error(
+        `Parameter is not that of Undefined: received ${value_type}`,
+      );
+    }
+
+    const [moved_by, buffer] = this.cloneBufferArray(from_index, view);
+    return [moved_by, Uint32ArrayBuffer(buffer)];
+  }
+
+  // WARNING: This tries to be efficient and avoids copying the contents of the
+  // memory location in the wasm memory instance, so ensure to clone the provided
+  // data buffer to avoid data corruption if that memory gets overwritten.
+  parseUint16ArrayBuffer(from_index, value_type, view) {
+    if (value_type != Params.Uint16Array) {
+      throw new Error(
+        `Parameter is not that of Undefined: received ${value_type}`,
+      );
+    }
+
+    const [moved_by, buffer] = this.cloneBufferArray(from_index, view);
+    return [moved_by, Uint16ArrayBuffer(buffer)];
+  }
+
+  // WARNING: This tries to be efficient and avoids copying the contents of the
+  // memory location in the wasm memory instance, so ensure to clone the provided
+  // data buffer to avoid data corruption if that memory gets overwritten.
+  parseUint8ArrayBuffer(from_index, value_type, view) {
     if (value_type != Params.Uint8Array) {
       throw new Error(
         `Parameter is not that of Undefined: received ${value_type}`,
       );
     }
 
-    return [Move.MOVE_BY_1_BYTES, null];
+    const [moved_by, buffer] = this.cloneBufferArray(from_index, view);
+    return [moved_by, Uint8ArrayBuffer(buffer)];
   }
 
-  parseNull(from_index, view) {
-    const value_type = view.getUint8(from_index, true);
+  parseNull(from_index, value_type, view) {
     if (value_type != Params.Undefined) {
       throw new Error(
         `Parameter is not that of Undefined: received ${value_type}`,
       );
     }
 
-    return [Move.MOVE_BY_1_BYTES, null];
+    return [from_index, null];
+  }
+
+  parseUndefined(from_index, value_type, view) {
+    if (value_type != Params.Undefined) {
+      throw new Error(
+        `Parameter is not that of Undefined: received ${value_type}`,
+      );
+    }
+
+    return [from_index, undefined];
   }
 
   parseNumber8(from_index, value_type, view) {
-    if ([Params.Int8, Params.Uint8].indexOf(value_type)) {
+    if ([Params.Int8, Params.Uint8].indexOf(value_type) == -1) {
       throw new Error(
-        `Parameter is not that of Undefined: received ${value_type}`,
+        `Parameter is not that of Number8(Int/uint): received ${value_type}`,
       );
     }
 
     if (value_type == Params.Int8) {
-      return [Move.MOVE_BY_1_BYTES, view.getInt8(from_index, true)];
+      return [
+        from_index + Move.MOVE_BY_1_BYTES,
+        view.getInt8(from_index, true),
+      ];
     }
 
-    return [Move.MOVE_BY_1_BYTES, view.getUint8(from_index, true)];
+    return [from_index + Move.MOVE_BY_1_BYTES, view.getUint8(from_index, true)];
   }
 
-  parseUndefined(from_index, view) {
-    const value_type = view.getUint8(from_index, true);
-    if (value_type != Params.Undefined) {
-      throw new Error(
-        `Parameter is not that of Undefined: received ${value_type}`,
-      );
-    }
-
-    return [Move.MOVE_BY_1_BYTES, undefined];
-  }
-
-  parseBoolean(from_index, view) {
-    const value_type = view.getUint8(from_index, true);
+  parseBoolean(from_index, value_type, view) {
     if (value_type != Params.Bool) {
       throw new Error(
-        `Parameter is not that of Undefined: received ${value_type}`,
+        `Parameter is not that of Boolean: received ${value_type}`,
       );
     }
-
-    from_index += Move.MOVE_BY_1_BYTES;
 
     const value_int = view.getUint8(from_index, true);
     const value = value_int == 1;
@@ -1569,7 +1928,6 @@ class ParameterParserV2 {
   }
 
   parseText16(from_index, view) {
-    const value_type = view.getUint8(from_index, true);
     if (value_type != Params.Text16) {
       throw new Error(
         `Parameter is not that of Undefined: received ${value_type}`,
@@ -1577,13 +1935,34 @@ class ParameterParserV2 {
     }
   }
 
-  parseText8(from_index, view, text_string_array) {
-    const value_type = view.getUint8(from_index, true);
+  parseCachedText(from_index, value_type, view, text_string_array) {
+    if (value_type != Params.CachedText) {
+      throw new Error(
+        `Parameter is not that of CachedText: received ${value_type}`,
+      );
+    }
+
+    // read out a 64 bit number representing the external reference.
+    const [move_by, cache_id] = this.parseNumber64(
+      from_index,
+      Params.Uint64,
+      view,
+    );
+
+    const target_text = this.cache_text.get_text(cache_id);
+    LOGGER.debug(`parseCachedText: cache_id=${cache_id}, text=${target_text}`);
+
+    if (isUndefinedOrNull(target_text)) {
+      throw new Error(`Missing Cached text at cache_id: ${cache_id}`);
+    }
+
+    return [move_by, target_text];
+  }
+
+  parseText8(from_index, value_type, view, text_string_array) {
     if (value_type != Params.Text8) {
       throw new Error(`Parameter is not that of Text8: received ${value_type}`);
     }
-
-    from_index += Move.MOVE_BY_1_BYTES;
 
     let content_location;
     [from_index, content_location] = this.parseStringLocationAsOptimized(
@@ -1603,15 +1982,31 @@ class ParameterParserV2 {
     return [from_index, target_text];
   }
 
-  parseExternalPointer(from_index, view) {
-    const value_type = view.getUint8(from_index, true);
+  parseInternalPointer(from_index, value_type, view) {
     if (value_type != Params.ExternalReference) {
       throw new Error(
         `Parameter is not that of ExternalReference: received ${value_type}`,
       );
     }
 
-    from_index += Move.MOVE_BY_1_BYTES;
+    // read out a 64 bit number representing the external reference.
+    const [move_by, external_id] = this.parseNumber64(
+      from_index,
+      Params.Uint64,
+      view,
+    );
+
+    LOGGER.debug("InternalIdExtraction: ", move_by, external_id);
+
+    return [move_by, new InternalPointer(external_id)];
+  }
+
+  parseExternalPointer(from_index, value_type, view) {
+    if (value_type != Params.ExternalReference) {
+      throw new Error(
+        `Parameter is not that of ExternalReference: received ${value_type}`,
+      );
+    }
 
     // read out a 64 bit number representing the external reference.
     const [move_by, external_id] = this.parseNumber64(
@@ -1622,7 +2017,7 @@ class ParameterParserV2 {
 
     LOGGER.debug("ExternalIdExtraction: ", move_by, external_id);
 
-    return [move_by, Number(external_id)];
+    return [move_by, new ExternalPointer(external_id)];
   }
 
   parsePtr(from_index, value_type, view) {
@@ -1665,6 +2060,12 @@ class ParameterParserV2 {
   }
 
   parseNumber16(from_index, value_type, view) {
+    if ([Params.Int16, Params.Uint16].indexOf(value_type) == -1) {
+      throw new Error(
+        `Parameter is not that of Number16(Int/Uint): received ${value_type}`,
+      );
+    }
+
     const optimization_type = view.getUint8(from_index, true);
     if (!(optimization_type in TypeOptimization.__INVERSE__)) {
       throw new Error(
@@ -1700,6 +2101,12 @@ class ParameterParserV2 {
   }
 
   parseNumber64(from_index, value_type, view) {
+    if ([Params.Int64, Params.Uint64].indexOf(value_type) == -1) {
+      throw new Error(
+        `Parameter is not that of Number64(Int/Uint): received ${value_type}`,
+      );
+    }
+
     const optimization_type = view.getUint8(from_index, true);
     if (!(optimization_type in TypeOptimization.__INVERSE__)) {
       throw new Error(
@@ -1759,6 +2166,12 @@ class ParameterParserV2 {
   }
 
   parseNumber32(from_index, value_type, view) {
+    if ([Params.Int32, Params.Uint32].indexOf(value_type) == -1) {
+      throw new Error(
+        `Parameter is not that of Number64(Int/Uint): received ${value_type}`,
+      );
+    }
+
     const optimization_type = view.getUint8(from_index, true);
     if (!(optimization_type in TypeOptimization.__INVERSE__)) {
       throw new Error(
@@ -1804,14 +2217,12 @@ class ParameterParserV2 {
   }
 
   parseFloat32(from_index, value_type, view) {
-    const optimization_type = view.getUint8(from_index, true);
-    if (!(optimization_type == TypeOptimization.None)) {
+    if (value_type != Params.Float32) {
       throw new Error(
-        `OptimizationType ${optimization_type} is not known for value_type: ${value_type}`,
+        `Parameter is not that of Float32: received ${value_type}`,
       );
     }
 
-    from_index += Move.MOVE_BY_1_BYTES;
     return [
       from_index + Move.MOVE_BY_32_BYTES,
       view.getFloat32(from_index, true),
@@ -1819,6 +2230,12 @@ class ParameterParserV2 {
   }
 
   parseFloat64(from_index, value_type, view) {
+    if (value_type != Params.Float64) {
+      throw new Error(
+        `Parameter is not that of Float64: received ${value_type}`,
+      );
+    }
+
     const optimization_type = view.getUint8(from_index, true);
     if (!(optimization_type in TypeOptimization.__INVERSE__)) {
       throw new Error(
@@ -1832,12 +2249,12 @@ class ParameterParserV2 {
       case TypeOptimization.None:
         return [
           from_index + Move.MOVE_BY_64_BYTES,
-          view.getFloat64(from_index),
+          view.getFloat64(from_index, true),
         ];
       case TypeOptimization.QuantizedF64AsF32:
         return [
           from_index + Move.MOVE_BY_32_BYTES,
-          view.getFloat32(from_index),
+          view.getFloat32(from_index, true),
         ];
     }
   }
@@ -1921,21 +2338,29 @@ class ParameterParserV2 {
   }
 }
 
-class BatchInstrructions {
-  constructor(memory_operator, text_codec) {
+class BatchInstructions {
+  constructor(memory_operator, text_codec, text_cache) {
     if (!(memory_operator instanceof MemoryOperator)) {
       throw new Error("Must be instance of MemoryOperator");
     }
     if (!(text_codec instanceof TextCodec)) {
       throw new Error("Must be instance of TextCodec");
     }
+    if (!(text_cache instanceof SimpleStringCache)) {
+      throw new Error("Must be instance of SimpleStringCache");
+    }
 
     this.texts = text_codec;
+    this.text_cache = text_cache;
     this.operator = memory_operator;
     this.module = memory_operator.get_module();
 
     // v2 function parameters handling
-    this.parameter_v2 = new ParameterParserV2(this.operator, this.texts);
+    this.parameter_v2 = new ParameterParserV2(
+      this.operator,
+      this.texts,
+      this.text_cache,
+    );
   }
 
   parse_instructions(ops_pointer, ops_length, text_pointer, text_length) {
@@ -1963,7 +2388,7 @@ class BatchInstrructions {
       "BatchInstructions::parse_instructions -> ",
       "\n",
       "ops:\n",
-      ntoperations_buffer,
+      operations_buffer,
       "\n",
       "text:\n",
       text_buffer,
@@ -2015,11 +2440,19 @@ class BatchInstrructions {
       operations,
     );
 
+    read_index += Move.MOVE_BY_1_BYTES;
+
     switch (operation_id) {
       case Operations.MakeFunction:
-        return this.parse_make_function(read_index, operations, texts);
+        return this.parse_make_function(
+          operation_id,
+          read_index,
+          operations,
+          texts,
+        );
       case Operations.InvokeNoReturnFunction:
         return this.parse_invoke_no_return_function(
+          operation_id,
           read_index,
           operations,
           texts,
@@ -2031,20 +2464,21 @@ class BatchInstrructions {
     }
   }
 
-  parse_invoke_no_return_function(moved_by, operations, texts) {
-    const action_id = operations.getUint8(moved_by, true);
-    if (action_id != Operations.InvokeNoReturnFunction) {
+  parse_invoke_no_return_function(operation_id, moved_by, operations, texts) {
+    if (operation_id != Operations.InvokeNoReturnFunction) {
       throw new Error(
-        `Argument should be Operation.InvokeNoReturnFunction instead got: ${action_id}`,
+        `Argument should be Operation.InvokeNoReturnFunction instead got: ${operation_id}`,
       );
     }
 
+    const next_value_type = operations.getUint8(moved_by, true);
     moved_by += Move.MOVE_BY_1_BYTES;
 
     // read the external pointer we want registered
     let external_id = null;
     [moved_by, external_id] = this.parameter_v2.parseExternalPointer(
       moved_by,
+      next_value_type,
       operations,
     );
 
@@ -2083,7 +2517,7 @@ class BatchInstrructions {
 
     LOGGER.debug("Params: ", moved_by, external_id, parameters);
     const callbable = (instance) => {
-      const callable = instance.function_heap.get(external_id);
+      const callable = instance.function_heap.get(external_id.value);
       LOGGER.debug(
         `Retrieved callable: ${callbable} from external_id=${external_id}`,
       );
@@ -2093,19 +2527,20 @@ class BatchInstrructions {
     return [moved_by, callbable];
   }
 
-  parse_make_function(read_index, operations, texts) {
-    if (operations.getUint8(read_index) != Operations.MakeFunction) {
+  parse_make_function(operation_id, read_index, operations, texts) {
+    if (operation_id != Operations.MakeFunction) {
       throw new Error(
-        `Argument should be Operation.MakeFunction instead got: ${operations.getUint8(
-          read_index,
-        )}`,
+        `Argument should be Operation.MakeFunction instead got: ${operation_id}`,
       );
     }
 
-    // read the external pointer we want registered
+    const next_value_type = operations.getUint8(read_index, true);
     read_index += Move.MOVE_BY_1_BYTES;
+
+    // read the external pointer we want registered
     let [move_by, external_id] = this.parameter_v2.parseExternalPointer(
       read_index,
+      next_value_type,
       operations,
     );
 
@@ -2152,9 +2587,16 @@ class BatchInstrructions {
         `"use strict"; return(${function_definition})`,
       )();
 
+      LOGGER.debug(
+        "Register function in heap: ",
+        external_id,
+        external_id.value,
+        function_invoker,
+      );
+
       // update the reference to now be the reference
       // for calling the function.
-      instance.function_heap.update(external_id, function_invoker);
+      instance.function_heap.update(external_id.value, function_invoker);
       return external_id;
     };
 
@@ -2175,6 +2617,9 @@ class MegatronMiddleware {
     // object_heap
     this.object_heap = null;
 
+    // string_cache
+    this.string_cache = null;
+
     // text decoders and memory ops
     this.texts = null;
     this.operator = null;
@@ -2189,6 +2634,14 @@ class MegatronMiddleware {
     // DOM object heap for registering DOM objects.
     this.dom_heap = new DOMArena();
 
+    // string cache provides a clear cache for registering reusable.
+    // dynamic strings that can will be re-used by we can definitely
+    // save on the overall conversion by caching them for re-use on both
+    // sides, similar to how wasm-bindgen supports interning strings
+    //
+    // See https://github.com/rustwasm/wasm-bindgen/blob/f28cfc26fe28f5c87b32387415aedc52eea14cb8/src/cache/intern.rs
+    this.string_cache = new SimpleStringCache();
+
     // object heap for registering generated or borrowed objects.
     this.object_heap = new ArenaAllocator();
 
@@ -2202,10 +2655,18 @@ class MegatronMiddleware {
     this.texts = new TextCodec(this.operator);
 
     // v1 function parameters handling
-    this.parameter_v1 = new ParameterParserV1(this.operator, this.texts);
+    this.parameter_v1 = new ParameterParserV1(
+      this.operator,
+      this.texts,
+      this.string_cache,
+    );
 
     // v2 batch instruction handling
-    this.batch_parser = new BatchInstrructions(this.operator, this.texts);
+    this.batch_parser = new BatchInstructions(
+      this.operator,
+      this.texts,
+      this.string_cache,
+    );
   }
 
   get v2_mappings() {
@@ -2227,8 +2688,9 @@ class MegatronMiddleware {
 
   get v1_mappings() {
     return {
-      abort: this.abort.bind(this),
-      drop_external_reference: this.drop_external_reference.bind(this),
+      js_abort: this.abort.bind(this),
+      js_cache_string: this.js_cache_string.bind(this),
+      js_drop_external_reference: this.drop_external_reference.bind(this),
       js_register_function: this.js_register_function.bind(this),
       js_invoke_function: this.js_invoke_function.bind(this),
       js_invoke_function_and_return_dom:
@@ -2241,6 +2703,13 @@ class MegatronMiddleware {
         this.js_invoke_function_and_return_bigint.bind(this),
       js_invoke_function_and_return_string:
         this.js_invoke_function_and_return_string.bind(this),
+      js_string_cache_drop_external_pointer:
+        this.string_cache_drop_external_pointer.bind(this),
+      js_function_drop_external_pointer:
+        this.function_drop_external_pointer.bind(this),
+      js_dom_drop_external_pointer: this.dom_drop_external_pointer.bind(this),
+      js_object_drop_external_pointer:
+        this.object_drop_external_pointer.bind(this),
     };
   }
 
@@ -2267,11 +2736,17 @@ class MegatronMiddleware {
   function_drop_external_pointer(uid) {
     this.function_heap.destroy(uid);
   }
+
   dom_drop_external_pointer(uid) {
     this.dom_heap.destroy(uid);
   }
+
   object_drop_external_pointer(uid) {
     this.object_heap.destroy(uid);
+  }
+
+  string_cache_drop_external_pointer(uid) {
+    this.string_cache.destroy(uid);
   }
 
   drop_external_reference(uid) {
@@ -2294,6 +2769,35 @@ class MegatronMiddleware {
     const slot_id = this.dom_heap.create(null);
     LOGGER.debug("Creating new DOM pointer for pre-allocation: ", slot_id);
     return slot_id;
+  }
+
+  js_cache_string(start, length, utf_indicator) {
+    LOGGER.debug(
+      "Register string for cache/interning: ",
+      start,
+      length,
+      " UTF8: ",
+      utf_indicator,
+    );
+
+    if (ALLOWED_UTF8_INDICATOR.indexOf(utf_indicator) === -1) {
+      throw new Error("Unsupported UTF indicator (only 8 or 16)");
+    }
+
+    start = Number(start);
+    length = Number(length);
+
+    let target_string;
+    if (utf_indicator === 16) {
+      target_string = this.texts.readUTF16FromMemory(start, length);
+    }
+    if (utf_indicator === 8) {
+      target_string = this.texts.readUTF8FromMemory(start, length);
+    }
+
+    if (!target_string) throw new Error("No valid string was provided");
+
+    return this.string_cache.create(target_string);
   }
 
   js_register_function(start, length, utf_indicator) {
@@ -2691,7 +3195,7 @@ if (typeof module !== "undefined") {
     WasmWebScripts,
     ParameterParserV1,
     ParameterParserV2,
-    BatchInstrructions,
+    BatchInstrructions: BatchInstructions,
     MegatronMiddleware,
   };
 }

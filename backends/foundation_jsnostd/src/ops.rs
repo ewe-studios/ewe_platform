@@ -76,6 +76,9 @@ impl ToBinary for Params<'_> {
             Params::Float64(value) => {
                 encoded_params.extend_from_slice(&value.to_le_bytes());
             }
+            Params::CachedText(value) => {
+                encoded_params.extend_from_slice(&value.to_le_bytes());
+            }
             Params::Uint64(value) => {
                 encoded_params.extend_from_slice(&value.to_le_bytes());
             }
@@ -453,6 +456,24 @@ impl<'a> Batchable<'a> for Params<'a> {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
                     value_quantitization::qu128(*value)
+                } else {
+                    (value.to_le_bytes().to_vec(), TypeOptimization::None)
+                };
+
+                let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 4);
+                data.push(ArgumentOperations::Begin.into());
+                data.push(self.to_value_type().into());
+                data.push(tq.into());
+                data.extend(&value_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::CachedText(value) => {
+                // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
+                let (value_bytes, tq) = if optimized {
+                    value_quantitization::qu64(*value)
                 } else {
                     (value.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
@@ -1067,6 +1088,47 @@ mod params_tests {
                 ArgumentOperations::Begin as u8, // start of this argument
                 ValueTypes::Uint128 as u8,
                 TypeOptimization::QuantizedUint128AsU8 as u8,
+                10,
+                ArgumentOperations::End as u8,  // end of this argument
+                ArgumentOperations::Stop as u8, // end of all arguments
+                254,                            // end of the sub-block of instruction
+                255                             // Stop signal indicating batch is finished
+            ],
+            completed_ops.clone_memory().expect("clone"),
+        );
+
+        assert!(completed_strings.is_empty().expect("returns state"));
+    }
+
+    #[test]
+    fn can_encode_cached_text() {
+        let mut allocator = MemoryAllocations::new();
+
+        let batch = allocator
+            .batch_for(10, 10, true)
+            .expect("create new Instructions");
+
+        batch.should_be_occupied().expect("is occupied");
+
+        let write_result = batch.encode_params(Some(&[Params::CachedText(10)]));
+
+        assert!(write_result.is_ok());
+
+        batch.end().expect("ended");
+
+        let completed_data = batch.stop().expect("finish writing completion result");
+        let slot = allocator.get_slot(completed_data).expect("get memory");
+
+        let completed_strings = slot.text_ref();
+        let completed_ops = slot.ops_ref();
+
+        assert_eq!(
+            alloc::vec![
+                0,                               // Begin signal indicating start of batch
+                ArgumentOperations::Start as u8, // start of arguments
+                ArgumentOperations::Begin as u8, // start of this argument
+                ValueTypes::CachedText as u8,
+                TypeOptimization::QuantizedUint64AsU8 as u8,
                 10,
                 ArgumentOperations::End as u8,  // end of this argument
                 ArgumentOperations::Stop as u8, // end of all arguments
