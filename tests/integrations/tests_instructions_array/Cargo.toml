@@ -1,13 +1,13 @@
 [package]
-name = "tests_js_instruction_invoke_function"
-version = "0.0.1"
-publish = false
+name = "tests_instructions_array"
+version = "0.1.0"
+publish = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-keywords = ["tests", "callfunction"]
+keywords = ["tests", "instructions_array"]
 
 [dependencies]
 foundation_nostd = { workspace = true }
@@ -16,6 +16,7 @@ foundation_jsnostd = { workspace = true }
 
 [lib]
 crate-type = ["cdylib"]
+
 
 [lints]
 workspace = true

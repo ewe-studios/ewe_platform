@@ -3078,7 +3078,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tests_instructions_argument_types"
+name = "tests_instructions_array"
 version = "0.1.0"
 dependencies = [
  "foundation_jsnostd",
@@ -3094,7 +3094,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tests_js_instruction_invoke_function"
+name = "tests_js_invoke_function"
 version = "0.0.1"
 dependencies = [
  "foundation_jsnostd",
