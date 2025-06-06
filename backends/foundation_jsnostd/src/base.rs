@@ -80,8 +80,8 @@ pub enum Params<'a> {
     Uint64Array(&'a [u64]),
     Float32Array(&'a [f32]),
     Float64Array(&'a [f64]),
-    ExternalReference(&'a ExternalPointer),
-    InternalReference(&'a InternalPointer),
+    ExternalReference(u64),
+    InternalReference(u64),
 }
 
 impl Params<'_> {
@@ -211,13 +211,13 @@ impl<'a> From<&'a str> for Params<'a> {
 
 impl<'a> From<&'a InternalPointer> for Params<'a> {
     fn from(i: &'a InternalPointer) -> Self {
-        Params::InternalReference(i)
+        Params::InternalReference(i.into_inner())
     }
 }
 
 impl<'a> From<&'a ExternalPointer> for Params<'a> {
     fn from(i: &'a ExternalPointer) -> Self {
-        Params::ExternalReference(i)
+        Params::ExternalReference(i.into_inner())
     }
 }
 

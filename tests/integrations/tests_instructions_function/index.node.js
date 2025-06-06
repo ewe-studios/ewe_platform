@@ -15,7 +15,7 @@ const mock = {
   calls: [],
 };
 
-describe("Megatron.apply_instructions", async () => {
+describe("Megatron.js_invoke_function", async () => {
   const runtime = new megatron.MegatronMiddleware();
   runtime.mock = mock;
 

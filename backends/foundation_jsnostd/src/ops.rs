@@ -89,7 +89,7 @@ impl ToBinary for Params<'_> {
                 encoded_params.extend_from_slice(&len.to_le_bytes());
             }
             Params::ExternalReference(value) => {
-                encoded_params.extend_from_slice(&value.clone_inner().to_le_bytes());
+                encoded_params.extend_from_slice(&value.to_le_bytes());
             }
             Params::Float32(value) => {
                 encoded_params.extend_from_slice(&value.to_le_bytes());
@@ -177,7 +177,7 @@ impl ToBinary for Params<'_> {
                 encoded_params.extend_from_slice(&len.to_le_bytes());
             }
             Params::InternalReference(value) => {
-                encoded_params.extend_from_slice(&value.clone_inner().to_le_bytes());
+                encoded_params.extend_from_slice(&value.to_le_bytes());
             }
             Params::Uint64Array(value) => {
                 let start = value.as_ptr() as u64;
@@ -848,12 +848,9 @@ impl<'a> Batchable<'a> for Params<'a> {
                 // TODO(alex): Is there a more optimized way instead of
                 // `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitization::qu64(value.into_inner())
+                    value_quantitization::qu64(*value)
                 } else {
-                    (
-                        value.into_inner().to_le_bytes().to_vec(),
-                        TypeOptimization::None,
-                    )
+                    (value.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
 
                 let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 4);
@@ -869,12 +866,9 @@ impl<'a> Batchable<'a> for Params<'a> {
             }
             Params::InternalReference(value) => {
                 let (value_bytes, tq) = if optimized {
-                    value_quantitization::qu64(value.into_inner())
+                    value_quantitization::qu64(*value)
                 } else {
-                    (
-                        value.into_inner().to_le_bytes().to_vec(),
-                        TypeOptimization::None,
-                    )
+                    (value.to_le_bytes().to_vec(), TypeOptimization::None)
                 };
 
                 let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 4);
@@ -1792,8 +1786,7 @@ mod params_tests {
 
         batch.should_be_occupied().expect("is occupied");
 
-        let items = ExternalPointer::pointer(0);
-        let write_result = batch.encode_params(Some(&[Params::ExternalReference(&items)]));
+        let write_result = batch.encode_params(Some(&[Params::ExternalReference(0)]));
 
         assert!(write_result.is_ok());
 
@@ -1840,8 +1833,7 @@ mod params_tests {
 
         batch.should_be_occupied().expect("is occupied");
 
-        let items = InternalPointer::pointer(0);
-        let write_result = batch.encode_params(Some(&[Params::InternalReference(&items)]));
+        let write_result = batch.encode_params(Some(&[Params::InternalReference(0)]));
 
         assert!(write_result.is_ok());
 

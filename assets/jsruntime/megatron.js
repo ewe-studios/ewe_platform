@@ -3185,6 +3185,9 @@ if (typeof module !== "undefined") {
     Move,
     Params,
     Operations,
+    CachePointer,
+    ExternalPointer,
+    InternalPointer,
     ArgumentOperations,
     TypeOptimization,
     DOMArena,
@@ -3195,7 +3198,7 @@ if (typeof module !== "undefined") {
     WasmWebScripts,
     ParameterParserV1,
     ParameterParserV2,
-    BatchInstrructions: BatchInstructions,
+    BatchInstructions,
     MegatronMiddleware,
   };
 }
