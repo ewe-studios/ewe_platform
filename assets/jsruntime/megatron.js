@@ -2899,8 +2899,20 @@ class MegatronMiddleware {
         this.js_invoke_function_and_return_object.bind(this),
       js_invoke_function_and_return_bool:
         this.js_invoke_function_and_return_bool.bind(this),
+      js_invoke_function_and_return_float64:
+        this.js_invoke_function_and_return_float.bind(this),
+      js_invoke_function_and_return_float32:
+        this.js_invoke_function_and_return_float.bind(this),
       js_invoke_function_and_return_bigint:
         this.js_invoke_function_and_return_bigint.bind(this),
+      js_invoke_function_and_return_int8:
+        this.js_invoke_function_and_return_int.bind(this),
+      js_invoke_function_and_return_int16:
+        this.js_invoke_function_and_return_int.bind(this),
+      js_invoke_function_and_return_int32:
+        this.js_invoke_function_and_return_int.bind(this),
+      js_invoke_function_and_return_int64:
+        this.js_invoke_function_and_return_int.bind(this),
       js_invoke_function_and_return_string:
         this.js_invoke_function_and_return_string.bind(this),
       js_string_cache_drop_external_pointer:
@@ -3033,7 +3045,7 @@ class MegatronMiddleware {
     return this.function_heap.create(registered_func);
   }
 
-  js_invoke_function(handle, parameter_start, parameter_length) {
+  js_invoke_function_with_return(handle, parameter_start, parameter_length) {
     // read parameters and invoke function via handle.
     const parameters = this.parameter_v1.parse_array(
       parameter_start,
@@ -3045,31 +3057,24 @@ class MegatronMiddleware {
     const func = this.function_heap.get(handle);
 
     const response = func.call(this, ...parameters);
-    if (isUndefinedOrNull(response)) {
-      return BigInt(0);
-    }
-    if (typeof response === "BigInt") {
-      return response;
-    }
-    return BigInt(response);
+    LOGGER.debug("js_invoke_function_with_return: ", response);
+    return response;
   }
 
-  js_invoke_function_and_return_dom(handle, parameter_start, parameter_length) {
-    // read parameters and invoke function via handle.
-    const parameters = this.parameter_v1.parse_array(
+  js_invoke_function(handle, parameter_start, parameter_length) {
+    this.js_invoke_function_with_return(
+      handle,
       parameter_start,
       parameter_length,
     );
+  }
 
-    const func = this.function_heap.get(handle);
-
-    const response = func.call(this, ...parameters);
-    if (isUndefinedOrNull(response)) {
-      throw new Error(
-        "function returned undefined or null while trying to return an object",
-      );
-    }
-    LOGGER.debug("js_invoke_function_and_return_dom: responded: ", response);
+  js_invoke_function_and_return_dom(handle, parameter_start, parameter_length) {
+    const response = this.js_invoke_function_with_return(
+      handle,
+      parameter_start,
+      parameter_length,
+    );
     return this.dom_heap.create(response);
   }
 
@@ -3078,21 +3083,12 @@ class MegatronMiddleware {
     parameter_start,
     parameter_length,
   ) {
-    // read parameters and invoke function via handle.
-    const parameters = this.parameter_v1.parse_array(
+    const response = this.js_invoke_function_with_return(
+      handle,
       parameter_start,
       parameter_length,
     );
-
-    const func = this.function_heap.get(handle);
-
-    const response = func.apply(this, parameters);
-    if (isUndefinedOrNull(response)) {
-      throw new Error(
-        "function returned undefined or null while trying to return an object",
-      );
-    }
-    return this.object_heap.create(result);
+    return this.object_heap.create(response);
   }
 
   js_invoke_function_and_return_bool(
@@ -3100,20 +3096,45 @@ class MegatronMiddleware {
     parameter_start,
     parameter_length,
   ) {
-    // read parameters and invoke function via handle.
-    const parameters = this.parameter_v1.parse_array(
+    const response = this.js_invoke_function_with_return(
+      handle,
       parameter_start,
       parameter_length,
     );
-
-    const func = this.function_heap.get(handle);
-    const response = func.apply(this, parameters);
-    if (isUndefinedOrNull(response)) {
-      throw new Error(
-        "function returned undefined or null while trying to return an object",
-      );
-    }
     return response ? true : false;
+  }
+
+  js_invoke_function_and_return_float(
+    handle,
+    parameter_start,
+    parameter_length,
+  ) {
+    const response = this.js_invoke_function_with_return(
+      handle,
+      parameter_start,
+      parameter_length,
+    );
+    if (typeof response != "number") {
+      throw new Error(`Response ${response} is not a number`);
+    }
+    return response;
+  }
+
+  js_invoke_function_and_return_int(handle, parameter_start, parameter_length) {
+    const response = this.js_invoke_function_with_return(
+      handle,
+      parameter_start,
+      parameter_length,
+    );
+    LOGGER.debug("ReturnInt: ", response, typeof response);
+    if (typeof response != "number" && typeof response != "bigint") {
+      throw new Error(`Response ${response} is not a number`);
+    }
+    if (response instanceof BigInt || typeof response == "bigint") {
+      return Number(response);
+    }
+
+    return response;
   }
 
   js_invoke_function_and_return_bigint(
@@ -3121,23 +3142,17 @@ class MegatronMiddleware {
     parameter_start,
     parameter_length,
   ) {
-    // read parameters and invoke function via handle.
-    const parameters = this.parameter_v1.parse_array(
+    const response = this.js_invoke_function_with_return(
+      handle,
       parameter_start,
       parameter_length,
     );
-
-    const func = this.function_heap.get(handle);
-    const response = func.apply(this, parameters);
-    if (isUndefinedOrNull(response)) {
-      throw new Error(
-        "function returned undefined or null while trying to return an object",
-      );
-    }
     if (response instanceof BigInt) {
       return response;
     }
-
+    if (typeof response == "bigint") {
+      return response;
+    }
     return BigInt(response);
   }
 
@@ -3146,18 +3161,11 @@ class MegatronMiddleware {
     parameter_start,
     parameter_length,
   ) {
-    // read parameters and invoke function via handle.
-    const parameters = this.parameter_v1.parse_array(
+    const response = this.js_invoke_function_with_return(
+      handle,
       parameter_start,
       parameter_length,
     );
-    const func = this.functions[handle];
-    const response = func.apply(this, parameters);
-    if (isUndefinedOrNull(response)) {
-      throw new Error(
-        "function returned undefined or null while trying to return an object",
-      );
-    }
     return this.operator.writeUint8Array(response);
   }
 }

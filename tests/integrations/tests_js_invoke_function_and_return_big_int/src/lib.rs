@@ -15,7 +15,7 @@ extern "C" fn main() {
         }",
     );
 
-    console_log.invoke_for_bigint(&[
+    console_log.invoke_for_u64(&[
         Params::Int32(5),
         Params::Int64(5),
         Params::Int16(10),

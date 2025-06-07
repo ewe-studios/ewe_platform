@@ -142,7 +142,7 @@ pub mod exposed_runtime {
     }
 
     #[no_mangle]
-    pub extern "C" fn run_callback(addr: u64, start: u64, length: u64) {
+    pub extern "C" fn invoke_callback(addr: u64, start: u64, length: u64) {
         internal_api::run_internal_callbacks(addr.into(), start as *const u8, length);
     }
 }
@@ -297,6 +297,46 @@ pub mod host_runtime {
             ) -> u64;
 
             // invokes a javascript function across the host boundary ABI and returns
+            // a f32 that is the result.
+            pub fn js_invoke_function_and_return_float32(
+                handler: u64,
+                parameters_start: *const u8,
+                parameters_length: usize,
+            ) -> f32;
+
+            // invokes a javascript function across the host boundary ABI and returns
+            // a f64 that is the result.
+            pub fn js_invoke_function_and_return_float64(
+                handler: u64,
+                parameters_start: *const u8,
+                parameters_length: usize,
+            ) -> f64;
+
+            // invokes a javascript function across the host boundary ABI and returns
+            // a u8 that is the result.
+            pub fn js_invoke_function_and_return_int8(
+                handler: u64,
+                parameters_start: *const u8,
+                parameters_length: usize,
+            ) -> u8;
+
+            // invokes a javascript function across the host boundary ABI and returns
+            // a u16 that is the result.
+            pub fn js_invoke_function_and_return_int16(
+                handler: u64,
+                parameters_start: *const u8,
+                parameters_length: usize,
+            ) -> u16;
+
+            // invokes a javascript function across the host boundary ABI and returns
+            // a u32 that is the result.
+            pub fn js_invoke_function_and_return_int32(
+                handler: u64,
+                parameters_start: *const u8,
+                parameters_length: usize,
+            ) -> u32;
+
+            // invokes a javascript function across the host boundary ABI and returns
             // a u64 that is the result.
             pub fn js_invoke_function_and_return_bigint(
                 handler: u64,
@@ -320,7 +360,7 @@ pub mod host_runtime {
                 handler: u64,
                 parameters_start: *const u8,
                 parameters_length: usize,
-            ) -> u64;
+            );
         }
 
         // [`Droppable`] creates a reference that when drops will
@@ -431,14 +471,14 @@ pub mod host_runtime {
             ///
             /// The `js_abi` will handle necessary conversion and execution of the function
             /// with the passed arguments.
-            pub fn invoke(&self, params: &[Params]) -> u64 {
+            pub fn invoke(&self, params: &[Params]) {
                 let param_bytes = params.to_binary();
                 let RawParts {
                     ptr,
                     length,
                     capacity: _,
                 } = RawParts::from_vec(param_bytes);
-                unsafe { host_runtime::api_v1::js_invoke_function(self.handler, ptr, length) }
+                unsafe { host_runtime::api_v1::js_invoke_function(self.handler, ptr, length) };
             }
 
             /// [`invoke_for_bool`] invokes a javascript function registered at the given handle
@@ -465,11 +505,101 @@ pub mod host_runtime {
                 }
             }
 
+            /// [`invoke_for_u8`] invokes a javascript function registered at the given handle
+            /// defined by the [`JSFunction::handler`] which then returns a u8.
+            pub fn invoke_for_u8(&self, params: &[Params]) -> u8 {
+                let param_bytes = params.to_binary();
+                let RawParts {
+                    ptr,
+                    length,
+                    capacity: _,
+                } = RawParts::from_vec(param_bytes);
+                unsafe {
+                    host_runtime::api_v1::js_invoke_function_and_return_int8(
+                        self.handler,
+                        ptr,
+                        length,
+                    )
+                }
+            }
+
+            /// [`invoke_for_u16`] invokes a javascript function registered at the given handle
+            /// defined by the [`JSFunction::handler`] which then returns a u16.
+            pub fn invoke_for_u16(&self, params: &[Params]) -> u16 {
+                let param_bytes = params.to_binary();
+                let RawParts {
+                    ptr,
+                    length,
+                    capacity: _,
+                } = RawParts::from_vec(param_bytes);
+                unsafe {
+                    host_runtime::api_v1::js_invoke_function_and_return_int16(
+                        self.handler,
+                        ptr,
+                        length,
+                    )
+                }
+            }
+
+            /// [`invoke_for_u32`] invokes a javascript function registered at the given handle
+            /// defined by the [`JSFunction::handler`] which then returns a u32.
+            pub fn invoke_for_u32(&self, params: &[Params]) -> u32 {
+                let param_bytes = params.to_binary();
+                let RawParts {
+                    ptr,
+                    length,
+                    capacity: _,
+                } = RawParts::from_vec(param_bytes);
+                unsafe {
+                    host_runtime::api_v1::js_invoke_function_and_return_int32(
+                        self.handler,
+                        ptr,
+                        length,
+                    )
+                }
+            }
+
+            /// [`invoke_for_float64`] invokes a javascript function registered at the given handle
+            /// defined by the [`JSFunction::handler`] which then returns a f64.
+            pub fn invoke_for_f64(&self, params: &[Params]) -> f64 {
+                let param_bytes = params.to_binary();
+                let RawParts {
+                    ptr,
+                    length,
+                    capacity: _,
+                } = RawParts::from_vec(param_bytes);
+                unsafe {
+                    host_runtime::api_v1::js_invoke_function_and_return_float64(
+                        self.handler,
+                        ptr,
+                        length,
+                    )
+                }
+            }
+
+            /// [`invoke_for_float32`] invokes a javascript function registered at the given handle
+            /// defined by the [`JSFunction::handler`] which then returns a f32.
+            pub fn invoke_for_f32(&self, params: &[Params]) -> f32 {
+                let param_bytes = params.to_binary();
+                let RawParts {
+                    ptr,
+                    length,
+                    capacity: _,
+                } = RawParts::from_vec(param_bytes);
+                unsafe {
+                    host_runtime::api_v1::js_invoke_function_and_return_float32(
+                        self.handler,
+                        ptr,
+                        length,
+                    )
+                }
+            }
+
             /// [`invoke_for_dom`] invokes a javascript function registered at the given handle
             /// defined by the [`JSFunction::handler`] which then returns a [`ExternalPointer`]
             /// representing the DOM node instance via an ExternalPointer that points to that object in the
             /// hosts object heap.
-            pub fn invoke_for_bigint(&self, params: &[Params]) -> u64 {
+            pub fn invoke_for_u64(&self, params: &[Params]) -> u64 {
                 let param_bytes = params.to_binary();
                 let RawParts {
                     ptr,
