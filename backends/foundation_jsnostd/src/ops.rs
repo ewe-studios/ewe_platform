@@ -2106,9 +2106,11 @@ impl MemoryAllocations {
     ) -> MemoryAllocationResult<Instructions> {
         let operations_id = self.allocate(operations_capacity)?;
         let operations_buffer = self.get(operations_id.clone())?;
+        operations_buffer.reset_to(0);
 
         let text_id = self.allocate(text_capacity)?;
         let text_buffer = self.get(text_id.clone())?;
+        text_buffer.reset_to(0);
 
         let instruction = Instructions::new(
             optimized,
