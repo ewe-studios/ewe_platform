@@ -26,6 +26,7 @@ describe("Megatron.apply_instructions", async () => {
   runtime.init(wasm_module);
 
   mock.select = (args) => {
+    console.log("SelectArgs: ", args);
     mock.calls.push({ method: "select", arguments: args });
   };
 
@@ -50,7 +51,25 @@ describe("Megatron.apply_instructions", async () => {
       assert.deepEqual(mock.calls, [
         {
           method: "select",
-          arguments: [true, false, 10, 10, 10, 10, 10, 10, 10, 10, 10.0, 10.0],
+          arguments: [
+            "alex",
+            new megatron.ExternalPointer(1),
+            new megatron.InternalPointer(2),
+            new Uint8Array([1, 1]),
+            new Int8Array([1, 1]),
+            new Uint16Array([1, 1]),
+            new Int16Array([1, 1]),
+            new Uint32Array([1, 1]),
+            new Int32Array([1, 1]),
+            new BigInt64Array([BigInt(2), BigInt(2)]),
+            new BigUint64Array([BigInt(3), BigInt(3)]),
+            new Float32Array([1.0, 1.0]),
+            new Float64Array([1.0, 1.0]),
+            new megatron.TypedArraySlice(
+              megatron.TypedSlice.Uint8,
+              new Uint8Array([4, 4]),
+            ),
+          ],
         },
       ]);
     });

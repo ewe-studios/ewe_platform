@@ -227,6 +227,14 @@ impl ToBinary for Params<'_> {
                 encoded_params.extend_from_slice(&start.to_le_bytes());
                 encoded_params.extend_from_slice(&len.to_le_bytes());
             }
+            Params::TypedArraySlice(slice_type, slice_content) => {
+                encoded_params.push(slice_type.into());
+
+                let start = slice_content.as_ptr() as u64;
+                let len = slice_content.len() as u64;
+                encoded_params.extend_from_slice(&start.to_le_bytes());
+                encoded_params.extend_from_slice(&len.to_le_bytes());
+            }
         };
 
         encoded_params
@@ -554,6 +562,36 @@ impl<'a> Batchable<'a> for Params<'a> {
                 encoder.data(&data)?;
                 Ok(())
             }
+            Params::TypedArraySlice(slice_type, value) => {
+                // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
+                let (value_bytes, tq) = if optimized {
+                    value_quantitization::qpointer(value.as_ptr())
+                } else {
+                    let value_pointer = value.as_ptr() as usize;
+                    (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
+                };
+
+                let (value_length_bytes, tq_len) = if optimized {
+                    value_quantitization::qu64(value.len() as u64)
+                } else {
+                    (value.len().to_le_bytes().to_vec(), TypeOptimization::None)
+                };
+
+                let mut data: Vec<u8> =
+                    Vec::with_capacity(value_bytes.len() + value_length_bytes.len() + 5);
+
+                data.push(ArgumentOperations::Begin.into());
+                data.push(self.to_value_type().into());
+                data.push(slice_type.into());
+                data.push(tq.into());
+                data.extend_from_slice(&value_bytes);
+                data.push(tq_len.into());
+                data.extend_from_slice(&value_length_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
             Params::Float32Array(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
@@ -613,6 +651,64 @@ impl<'a> Batchable<'a> for Params<'a> {
                 Ok(())
             }
             Params::Uint32Array(value) => {
+                // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
+                let (value_bytes, tq) = if optimized {
+                    value_quantitization::qpointer(value.as_ptr() as *const u8)
+                } else {
+                    let value_pointer = value.as_ptr() as usize;
+                    (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
+                };
+
+                let (value_length_bytes, tq_len) = if optimized {
+                    value_quantitization::qu64(value.len() as u64)
+                } else {
+                    (value.len().to_le_bytes().to_vec(), TypeOptimization::None)
+                };
+
+                let mut data: Vec<u8> =
+                    Vec::with_capacity(value_bytes.len() + value_length_bytes.len() + 5);
+
+                data.push(ArgumentOperations::Begin.into());
+                data.push(self.to_value_type().into());
+                data.push(tq.into());
+                data.extend_from_slice(&value_bytes);
+                data.push(tq_len.into());
+                data.extend_from_slice(&value_length_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::Uint8Array(value) => {
+                // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
+                let (value_bytes, tq) = if optimized {
+                    value_quantitization::qpointer(value.as_ptr())
+                } else {
+                    let value_pointer = value.as_ptr() as usize;
+                    (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
+                };
+
+                let (value_length_bytes, tq_len) = if optimized {
+                    value_quantitization::qu64(value.len() as u64)
+                } else {
+                    (value.len().to_le_bytes().to_vec(), TypeOptimization::None)
+                };
+
+                let mut data: Vec<u8> =
+                    Vec::with_capacity(value_bytes.len() + value_length_bytes.len() + 5);
+
+                data.push(ArgumentOperations::Begin.into());
+                data.push(self.to_value_type().into());
+                data.push(tq.into());
+                data.extend_from_slice(&value_bytes);
+                data.push(tq_len.into());
+                data.extend_from_slice(&value_length_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
+            Params::Uint16Array(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
                     value_quantitization::qpointer(value.as_ptr() as *const u8)
@@ -758,64 +854,6 @@ impl<'a> Batchable<'a> for Params<'a> {
                 Ok(())
             }
             Params::Int16Array(value) => {
-                // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
-                let (value_bytes, tq) = if optimized {
-                    value_quantitization::qpointer(value.as_ptr() as *const u8)
-                } else {
-                    let value_pointer = value.as_ptr() as usize;
-                    (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
-                };
-
-                let (value_length_bytes, tq_len) = if optimized {
-                    value_quantitization::qu64(value.len() as u64)
-                } else {
-                    (value.len().to_le_bytes().to_vec(), TypeOptimization::None)
-                };
-
-                let mut data: Vec<u8> =
-                    Vec::with_capacity(value_bytes.len() + value_length_bytes.len() + 5);
-
-                data.push(ArgumentOperations::Begin.into());
-                data.push(self.to_value_type().into());
-                data.push(tq.into());
-                data.extend_from_slice(&value_bytes);
-                data.push(tq_len.into());
-                data.extend_from_slice(&value_length_bytes);
-                data.push(ArgumentOperations::End.into());
-
-                encoder.data(&data)?;
-                Ok(())
-            }
-            Params::Uint8Array(value) => {
-                // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
-                let (value_bytes, tq) = if optimized {
-                    value_quantitization::qpointer(value.as_ptr())
-                } else {
-                    let value_pointer = value.as_ptr() as usize;
-                    (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
-                };
-
-                let (value_length_bytes, tq_len) = if optimized {
-                    value_quantitization::qu64(value.len() as u64)
-                } else {
-                    (value.len().to_le_bytes().to_vec(), TypeOptimization::None)
-                };
-
-                let mut data: Vec<u8> =
-                    Vec::with_capacity(value_bytes.len() + value_length_bytes.len() + 5);
-
-                data.push(ArgumentOperations::Begin.into());
-                data.push(self.to_value_type().into());
-                data.push(tq.into());
-                data.extend_from_slice(&value_bytes);
-                data.push(tq_len.into());
-                data.extend_from_slice(&value_length_bytes);
-                data.push(ArgumentOperations::End.into());
-
-                encoder.data(&data)?;
-                Ok(())
-            }
-            Params::Uint16Array(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
                     value_quantitization::qpointer(value.as_ptr() as *const u8)

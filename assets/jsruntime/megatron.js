@@ -72,6 +72,29 @@ UtfEncoding.__INVERSE__ = {
 
 const ALLOWED_UTF8_INDICATOR = [UtfEncoding.UTF8, UtfEncoding.UTF16];
 
+const TypedSlice = {
+  Int8: 1,
+  Int16: 2,
+  Int32: 3,
+  Int64: 4,
+  Uint8: 5,
+  Uint16: 6,
+  Uint32: 7,
+  Uint64: 8,
+  Float32: 9,
+  Float64: 10,
+};
+
+TypedSlice.__INVERSE__ = Object.keys(TypedSlice)
+  .map((key) => {
+    return [key, TypedSlice[key]];
+  })
+  .reduce((prev, current) => {
+    let [key, value] = current;
+    prev[value] = key;
+    return prev;
+  }, {});
+
 const TypeOptimization = {
   None: 0,
 
@@ -271,6 +294,7 @@ const Params = {
   Int128: 27,
   Uint128: 28,
   CachedText: 29,
+  TypedArraySlice: 30,
 };
 
 Params.__INVERSE__ = Object.keys(Params)
@@ -301,7 +325,7 @@ class SimpleStringCache {
   }
 
   destroy_id(id) {
-    if (!(id instanceof String)) {
+    if (typeof item !== "string") {
       throw new Error("Only strings are allowed");
     }
 
@@ -318,7 +342,7 @@ class SimpleStringCache {
   }
 
   destroy(item) {
-    if (!(item instanceof String)) {
+    if (typeof item !== "string") {
       throw new Error("Only strings are allowed");
     }
 
@@ -331,7 +355,7 @@ class SimpleStringCache {
   }
 
   create(item) {
-    if (!(item instanceof String)) {
+    if (typeof item !== "string") {
       throw new Error("Only strings are allowed");
     }
 
@@ -349,28 +373,28 @@ class SimpleStringCache {
   }
 
   has_id(id) {
-    if (!(id instanceof Number)) {
+    if (typeof id !== "number") {
       throw new Error("Only Number allowed");
     }
     return this.id_to_text.has(id);
   }
 
   has_text(text) {
-    if (!(text instanceof String)) {
+    if (typeof text !== "string") {
       throw new Error("Only string allowed");
     }
     return this.text_to_id.has(text);
   }
 
   get_text(id) {
-    if (!(id instanceof Number)) {
+    if (typeof id !== "number") {
       throw new Error("Only Number allowed");
     }
     return this.id_to_text.get(id);
   }
 
   get_id(text) {
-    if (!(text instanceof String)) {
+    if (typeof text !== "string") {
       throw new Error("Only string allowed");
     }
     return this.text_to_id.get(text);
@@ -395,7 +419,7 @@ class ArenaAllocator {
     return this.add_entry(item);
   }
 
-  length(item) {
+  length() {
     return this.items.length;
   }
 
@@ -1035,6 +1059,33 @@ class CachePointer {
   }
 }
 
+class TypedArraySlice {
+  constructor(slice_type, content) {
+    if (!(slice_type in TypedSlice.__INVERSE__)) {
+      throw new Error(
+        `TypedSlice ${slice_type} is not known for TypedSlice: ${slice_type}`,
+      );
+    }
+
+    this.slice_type = slice_type;
+    this.slice_content = content;
+  }
+
+  equals(other) {
+    return (
+      this.content_type == other.content_type && this.content == other.content
+    );
+  }
+
+  get content() {
+    return this.slice_content;
+  }
+
+  get content_type() {
+    return this.slice_type;
+  }
+}
+
 class InternalPointer {
   constructor(value) {
     this.id = value;
@@ -1093,6 +1144,7 @@ class ParameterParserV1 {
       27: this.parseBigInt128.bind(this),
       28: this.parseBigUint128.bind(this),
       29: this.parseCachedText.bind(this),
+      30: this.parseTypedArraySlice.bind(this),
     };
   }
 
@@ -1311,7 +1363,7 @@ class ParameterParserV1 {
   // It's wise to use this when you will immediately consume the contents
   // and generate your derived value else use copyBufferArray instead
   // to get a unique copy of the content.
-  cloneBufferArray(index, parameter_buffer) {
+  cloneBufferArrayAdjusted(index, parameter_buffer, adjusterMultiplier) {
     const buffer =
       parameter_buffer instanceof Uint8Array
         ? parameter_buffer.buffer
@@ -1325,18 +1377,56 @@ class ParameterParserV1 {
     let length = Number(view.getBigUint64(start_index, true));
     start_index += Move.MOVE_BY_64_BYTES;
 
+    const end = start + length * adjusterMultiplier;
+
     // for more efficient usage, as slice copies, we can use:
     const memory = this.operator.get_memory();
     const uint_array = new Uint8Array(memory);
-    const slice_view = uint_array.subarray(start, start + length);
+    const slice_view = uint_array.subarray(start, end);
+
+    LOGGER.debug(
+      `clonedBufferArray: selecting start=${start}, length=${length}, end=${end} -> ${slice_view}`,
+    );
 
     return [start_index - index, slice_view];
+  }
+
+  cloneBufferArray1Byte(from_index, view) {
+    return this.cloneBufferArrayAdjusted(
+      from_index,
+      view,
+      Move.MOVE_BY_1_BYTES,
+    );
+  }
+
+  cloneBufferArray16Bytes(from_index, view) {
+    return this.cloneBufferArrayAdjusted(
+      from_index,
+      view,
+      Move.MOVE_BY_16_BYTES,
+    );
+  }
+
+  cloneBufferArray32Bytes(from_index, view) {
+    return this.cloneBufferArrayAdjusted(
+      from_index,
+      view,
+      Move.MOVE_BY_32_BYTES,
+    );
+  }
+
+  cloneBufferArray64Bytes(from_index, view) {
+    return this.cloneBufferArrayAdjusted(
+      from_index,
+      view,
+      Move.MOVE_BY_64_BYTES,
+    );
   }
 
   /// [copyBufferArray] creates a unique copy of the contents of
   // the memory location pointing to the start and length of the
   // expected content.
-  copyBufferArray(index, parameter_buffer) {
+  copyBufferArrayAdjusted(index, parameter_buffer, adjusterMultiplier) {
     const buffer =
       parameter_buffer instanceof Uint8Array
         ? parameter_buffer.buffer
@@ -1351,17 +1441,54 @@ class ParameterParserV1 {
     let length = Number(view.getBigUint64(start_index, true));
     start_index += Move.MOVE_BY_64_BYTES;
 
+    const end = start + length * adjusterMultiplier;
+
     const memory = this.operator.get_memory();
-    const slice = memory.slice(start, start + length);
+    const slice = memory.slice(start, end);
+
+    LOGGER.debug(
+      `copyBufferArray: selecting start=${start}, length=${length}, end=${end} -> ${slice}`,
+    );
 
     return [start_index - index, slice];
+  }
+
+  copyBufferArray1Byte(from_index, view) {
+    return this.copyBufferArrayAdjusted(from_index, view, Move.MOVE_BY_1_BYTES);
+  }
+
+  copyBufferArray16Bytes(from_index, view) {
+    return this.copyBufferArrayAdjusted(
+      from_index,
+      view,
+      Move.MOVE_BY_16_BYTES,
+    );
+  }
+
+  copyBufferArray32Bytes(from_index, view) {
+    return this.copyBufferArrayAdjusted(
+      from_index,
+      view,
+      Move.MOVE_BY_32_BYTES,
+    );
+  }
+
+  copyBufferArray64Bytes(from_index, view) {
+    return this.copyBufferArrayAdjusted(
+      from_index,
+      view,
+      Move.MOVE_BY_64_BYTES,
+    );
   }
 
   parseText16(index, read_values_list, parameter_buffer) {
     // 4 = string (followed by 32-bit start and size of string in wasm memory)
     // 4 means we want to read a int32 memory size where we have 4 bytes for start, 4 bytes for length which
     // indicate the memory range we need to read;
-    const [moved_by, slice] = this.cloneBufferArray(index, parameter_buffer);
+    const [moved_by, slice] = this.cloneBufferArray16Bytes(
+      index,
+      parameter_buffer,
+    );
     const data = this.texts.readUTF16FromView(slice);
     read_values_list.push(data);
     return [moved_by, false];
@@ -1371,117 +1498,143 @@ class ParameterParserV1 {
     // 4 = string (followed by 32-bit start and size of string in wasm memory)
     // 4 means we want to read a int32 memory size where we have 4 bytes for start, 4 bytes for length which
     // indicate the memory range we need to read;
-    const [moved_by, slice] = this.cloneBufferArray(index, parameter_buffer);
+    const [moved_by, slice] = this.cloneBufferArray1Byte(
+      index,
+      parameter_buffer,
+    );
     const data = this.texts.readUTF8FromView(slice);
     read_values_list.push(data);
     return [moved_by, false];
   }
 
-  // WARNING: This tries to be efficient and avoids copying the contents of the
-  // memory location in the wasm memory instance, so ensure to clone the provided
-  // data buffer to avoid data corruption if that memory gets overwritten.
   parseFloat32Array(index, read_values_list, parameter_buffer) {
     // 6 = array of Float32 from wasm memory (followed by 32-bit start and size of string in memory)
-    const [moved_by, slice] = this.cloneBufferArray(index, parameter_buffer);
+    const [moved_by, slice] = this.copyBufferArray32Bytes(
+      index,
+      parameter_buffer,
+    );
     const array = new Float32Array(slice);
     read_values_list.push(array);
     return [moved_by, false];
   }
 
-  // WARNING: This tries to be efficient and avoids copying the contents of the
-  // memory location in the wasm memory instance, so ensure to clone the provided
-  // data buffer to avoid data corruption if that memory gets overwritten.
   parseFloat64Array(index, read_values_list, parameter_buffer) {
     // 9 = array of Float64 from wasm memory (followed by 32-bit start and size of string in memory)
-    const [moved_by, slice] = this.cloneBufferArray(index, parameter_buffer);
+    const [moved_by, slice] = this.copyBufferArray64Bytes(
+      index,
+      parameter_buffer,
+    );
     const array = new Float64Array(slice);
     read_values_list.push(array);
     return [moved_by, false];
   }
 
   // WARNING: This tries to be efficient and avoids copying the contents of the
-  // memory location in the wasm memory instance, so ensure to clone the provided
+  // memory location in the wasm memory instance, so ensure to copy the provided
   // data buffer to avoid data corruption if that memory gets overwritten.
   parseInt8Array(index, read_values_list, parameter_buffer) {
     // 10 = array of Uint32 from wasm memory (followed by 32-bit start and size of string in memory)
-    const [moved_by, slice] = this.cloneBufferArray(index, parameter_buffer);
+    const [moved_by, slice] = this.copyBufferArray1Byte(
+      index,
+      parameter_buffer,
+    );
     const array = new Int8Array(slice);
     read_values_list.push(array);
     return [moved_by, false];
   }
 
-  // WARNING: This tries to be efficient and avoids copying the contents of the
-  // memory location in the wasm memory instance, so ensure to clone the provided
-  // data buffer to avoid data corruption if that memory gets overwritten.
   parseInt16Array(index, read_values_list, parameter_buffer) {
     // 10 = array of Uint32 from wasm memory (followed by 32-bit start and size of string in memory)
-    const [moved_by, slice] = this.cloneBufferArray(index, parameter_buffer);
+    const [moved_by, slice] = this.copyBufferArray16Bytes(
+      index,
+      parameter_buffer,
+    );
     const array = new Int16Array(slice);
     read_values_list.push(array);
     return [moved_by, false];
   }
 
-  // WARNING: This tries to be efficient and avoids copying the contents of the
-  // memory location in the wasm memory instance, so ensure to clone the provided
-  // data buffer to avoid data corruption if that memory gets overwritten.
   parseInt32Array(index, read_values_list, parameter_buffer) {
     // 10 = array of Uint32 from wasm memory (followed by 32-bit start and size of string in memory)
-    const [moved_by, slice] = this.cloneBufferArray(index, parameter_buffer);
+    const [moved_by, slice] = this.copyBufferArray32Bytes(
+      index,
+      parameter_buffer,
+    );
     const array = new Int32Array(slice);
     read_values_list.push(array);
     return [moved_by, false];
   }
 
-  // WARNING: This tries to be efficient and avoids copying the contents of the
-  // memory location in the wasm memory instance, so ensure to clone the provided
-  // data buffer to avoid data corruption if that memory gets overwritten.
   parseInt64Array(index, read_values_list, parameter_buffer) {
     // 10 = array of Uint64 from wasm memory (followed by 32-bit start and size of string in memory)
-    const [moved_by, slice] = this.cloneBufferArray(index, parameter_buffer);
+    const [moved_by, slice] = this.copyBufferArray64Bytes(
+      index,
+      parameter_buffer,
+    );
     const array = new BigInt64Array(slice);
     read_values_list.push(array);
     return [moved_by, false];
   }
 
   // WARNING: This tries to be efficient and avoids copying the contents of the
-  // memory location in the wasm memory instance, so ensure to clone the provided
+  // memory location in the wasm memory instance, so ensure to copy the provided
+  // data buffer to avoid data corruption if that memory gets overwritten.
+  parseTypedArraySlice(index, read_values_list, parameter_buffer) {
+    // read out the type of the typed slice array
+    let slice_type = Number(view.getUint8(start_index, true));
+    start_index += Move.MOVE_BY_1_BYTES;
+
+    const [moved_by, slice] = this.cloneBufferArray1Byte(
+      index,
+      parameter_buffer,
+    );
+
+    read_values_list.push(TypedArraySlice(slice_type, slice));
+    return [moved_by, false];
+  }
+
+  // WARNING: This tries to be efficient and avoids copying the contents of the
+  // memory location in the wasm memory instance, so ensure to copy the provided
   // data buffer to avoid data corruption if that memory gets overwritten.
   parseUint8Array(index, read_values_list, parameter_buffer) {
     // 10 = array of Uint32 from wasm memory (followed by 32-bit start and size of string in memory)
-    const [moved_by, slice] = this.cloneBufferArray(index, parameter_buffer);
+    const [moved_by, slice] = this.cloneBufferArray1Byte(
+      index,
+      parameter_buffer,
+    );
     const array = new Uint8Array(slice);
     read_values_list.push(array);
     return [moved_by, false];
   }
 
-  // WARNING: This tries to be efficient and avoids copying the contents of the
-  // memory location in the wasm memory instance, so ensure to clone the provided
-  // data buffer to avoid data corruption if that memory gets overwritten.
   parseUint16Array(index, read_values_list, parameter_buffer) {
     // 10 = array of Uint32 from wasm memory (followed by 32-bit start and size of string in memory)
-    const [moved_by, slice] = this.cloneBufferArray(index, parameter_buffer);
+    const [moved_by, slice] = this.copyBufferArray16Bytes(
+      index,
+      parameter_buffer,
+    );
     const array = new Uint16Array(slice);
     read_values_list.push(array);
     return [moved_by, false];
   }
 
-  // WARNING: This tries to be efficient and avoids copying the contents of the
-  // memory location in the wasm memory instance, so ensure to clone the provided
-  // data buffer to avoid data corruption if that memory gets overwritten.
   parseUint32Array(index, read_values_list, parameter_buffer) {
     // 10 = array of Uint32 from wasm memory (followed by 32-bit start and size of string in memory)
-    const [moved_by, slice] = this.cloneBufferArray(index, parameter_buffer);
+    const [moved_by, slice] = this.copyBufferArray32Bytes(
+      index,
+      parameter_buffer,
+    );
     const array = new Uint32Array(slice);
     read_values_list.push(array);
     return [moved_by, false];
   }
 
-  // WARNING: This tries to be efficient and avoids copying the contents of the
-  // memory location in the wasm memory instance, so ensure to clone the provided
-  // data buffer to avoid data corruption if that memory gets overwritten.
   parseUint64Array(index, read_values_list, parameter_buffer) {
     // 10 = array of Uint64 from wasm memory (followed by 32-bit start and size of string in memory)
-    const [moved_by, slice] = this.cloneBufferArray(index, parameter_buffer);
+    const [moved_by, slice] = this.copyBufferArray64Bytes(
+      index,
+      parameter_buffer,
+    );
     const array = new BigUint64Array(slice);
     read_values_list.push(array);
     return [moved_by, false];
@@ -1522,8 +1675,6 @@ class ParameterParserV2 {
     const parameters = [];
 
     for (let i = 0; i < MAX_ITERATION; i++) {
-      let portion = view.buffer.slice(moved_by, view.buffer.length);
-      LOGGER.debug("View::Current: ", portion);
       if (view.getUint8(moved_by, true) == ArgumentOperations.Stop) {
         break;
       }
@@ -1606,7 +1757,7 @@ class ParameterParserV2 {
       case Params.Float64:
         return this.parseFloat64(from_index, value_type, view);
       case Params.InternalReference:
-        return this.parseInternalReference(from_index, value_type, view);
+        return this.parseInternalPointer(from_index, value_type, view);
       case Params.ExternalReference:
         return this.parseExternalPointer(from_index, value_type, view);
       case Params.Uint8ArrayBuffer:
@@ -1629,6 +1780,8 @@ class ParameterParserV2 {
         return this.parseFloat32ArrayBuffer(from_index, value_type, view);
       case Params.Float64ArrayBuffer:
         return this.parseFloat64ArrayBuffer(from_index, value_type, view);
+      case Params.TypedArraySlice:
+        return this.parseTypedArraySlice(from_index, value_type, view);
       case Params.CachedText:
         return this.parseCachedText(
           from_index,
@@ -1660,12 +1813,12 @@ class ParameterParserV2 {
   // It's wise to use this when you will immediately consume the contents
   // and generate your derived value else use copyBufferArray instead
   // to get a unique copy of the content.
-  cloneBufferArray(from_index, view) {
+  cloneBufferArrayAdjusted(from_index, view, adjusterMultiplier) {
     // get the quantized pointer that points us to the location of the data.
     let [moved_by, pointer] = this.parsePtr(from_index, Params.Uint64, view);
 
     // get the length of the
-    let [moved_by_again, pointer_length] = this.parseBigUint64(
+    let [moved_by_again, pointer_length] = this.parseNumber64(
       moved_by,
       Params.Uint64,
       view,
@@ -1673,24 +1826,64 @@ class ParameterParserV2 {
 
     const start = Number(pointer);
     const length = Number(pointer_length);
+    const end = start + length * adjusterMultiplier;
 
     // for more efficient usage, as slice copies, we can use:
     const memory = this.operator.get_memory();
     const uint_array = new Uint8Array(memory);
-    const slice_view = uint_array.subarray(start, start + length);
+    const slice_view = uint_array.subarray(start, end);
+
+    LOGGER.debug(
+      `clonedBufferArray: selecting start=${start}, length=${length}, end=${end} -> slice_view=${slice_view}`,
+    );
+    LOGGER.debug(
+      `View: ${slice_view} -> ${slice_view.length} --> ${slice_view.buffer} -> ${slice_view.buffer.byteLength}`,
+    );
 
     return [moved_by_again, slice_view];
+  }
+
+  cloneBufferArray1Byte(from_index, view) {
+    return this.cloneBufferArrayAdjusted(
+      from_index,
+      view,
+      Move.MOVE_BY_1_BYTES,
+    );
+  }
+
+  cloneBufferArray16Bytes(from_index, view) {
+    return this.cloneBufferArrayAdjusted(
+      from_index,
+      view,
+      Move.MOVE_BY_16_BYTES,
+    );
+  }
+
+  cloneBufferArray32Bytes(from_index, view) {
+    return this.cloneBufferArrayAdjusted(
+      from_index,
+      view,
+      Move.MOVE_BY_32_BYTES,
+    );
+  }
+
+  cloneBufferArray64Bytes(from_index, view) {
+    return this.cloneBufferArrayAdjusted(
+      from_index,
+      view,
+      Move.MOVE_BY_64_BYTES,
+    );
   }
 
   /// [copyBufferArray] creates a unique copy of the contents of
   // the memory location pointing to the start and length of the
   // expected content.
-  copyBufferArray(index, parameter_buffer) {
+  copyBufferArrayAdjusted(from_index, view, adjusterMultiplier) {
     // get the quantized pointer that points us to the location of the data.
     let [moved_by, pointer] = this.parsePtr(from_index, Params.Uint64, view);
 
     // get the length of the
-    let [moved_by_again, pointer_length] = this.parseBigUint64(
+    let [moved_by_again, pointer_length] = this.parseNumber64(
       moved_by,
       Params.Uint64,
       view,
@@ -1698,152 +1891,202 @@ class ParameterParserV2 {
 
     const start = Number(pointer);
     const length = Number(pointer_length);
+    const end = start + length * adjusterMultiplier;
 
     // copy the memory which does a copy operation and is more costly.
     const memory = this.operator.get_memory();
-    const slice = memory.slice(start, start + length);
+    const slice = memory.slice(start, end);
+
+    LOGGER.debug(
+      `copyBufferArray: selecting start=${start}, length=${length}, end=${end} -> slice=${slice}`,
+    );
 
     return [moved_by_again, slice];
   }
 
-  // WARNING: This tries to be efficient and avoids copying the contents of the
-  // memory location in the wasm memory instance, so ensure to clone the provided
-  // data buffer to avoid data corruption if that memory gets overwritten.
+  copyBufferArray1Byte(from_index, view) {
+    return this.copyBufferArrayAdjusted(from_index, view, Move.MOVE_BY_1_BYTES);
+  }
+
+  copyBufferArray16Bytes(from_index, view) {
+    return this.copyBufferArrayAdjusted(
+      from_index,
+      view,
+      Move.MOVE_BY_16_BYTES,
+    );
+  }
+
+  copyBufferArray32Bytes(from_index, view) {
+    return this.copyBufferArrayAdjusted(
+      from_index,
+      view,
+      Move.MOVE_BY_32_BYTES,
+    );
+  }
+
+  copyBufferArray64Bytes(from_index, view) {
+    return this.copyBufferArrayAdjusted(
+      from_index,
+      view,
+      Move.MOVE_BY_64_BYTES,
+    );
+  }
+
   parseFloat64ArrayBuffer(from_index, value_type, view) {
-    if (value_type != Params.Float64Array) {
+    if (value_type != Params.Float64ArrayBuffer) {
       throw new Error(
         `Parameter is not that of Undefined: received ${value_type}`,
       );
     }
 
-    const [moved_by, buffer] = this.cloneBufferArray(from_index, view);
-    return [moved_by, Float64ArrayBuffer(buffer)];
+    const [moved_by, buffer] = this.copyBufferArray64Bytes(from_index, view);
+    return [moved_by, new Float64Array(buffer)];
   }
 
-  // WARNING: This tries to be efficient and avoids copying the contents of the
-  // memory location in the wasm memory instance, so ensure to clone the provided
-  // data buffer to avoid data corruption if that memory gets overwritten.
   parseFloat32ArrayBuffer(from_index, value_type, view) {
-    if (value_type != Params.Float32Array) {
+    if (value_type != Params.Float32ArrayBuffer) {
       throw new Error(
         `Parameter is not that of Undefined: received ${value_type}`,
       );
     }
 
-    const [moved_by, buffer] = this.cloneBufferArray(from_index, view);
-    return [moved_by, Float32ArrayBuffer(buffer)];
+    const [moved_by, buffer] = this.copyBufferArray32Bytes(from_index, view);
+    LOGGER.debug("Float32Array: ", moved_by, buffer);
+    return [moved_by, new Float32Array(buffer)];
   }
 
-  // WARNING: This tries to be efficient and avoids copying the contents of the
-  // memory location in the wasm memory instance, so ensure to clone the provided
-  // data buffer to avoid data corruption if that memory gets overwritten.
   parseInt64ArrayBuffer(from_index, value_type, view) {
-    if (value_type != Params.Int64Array) {
+    if (value_type != Params.Int64ArrayBuffer) {
       throw new Error(
         `Parameter is not that of Undefined: received ${value_type}`,
       );
     }
 
-    const [moved_by, buffer] = this.cloneBufferArray(from_index, view);
-    return [moved_by, Int64ArrayBuffer(buffer)];
+    const [moved_by, buffer] = this.copyBufferArray64Bytes(from_index, view);
+    return [moved_by, new BigInt64Array(buffer)];
   }
 
-  // WARNING: This tries to be efficient and avoids copying the contents of the
-  // memory location in the wasm memory instance, so ensure to clone the provided
-  // data buffer to avoid data corruption if that memory gets overwritten.
   parseInt32ArrayBuffer(from_index, value_type, view) {
-    if (value_type != Params.Int32Array) {
+    if (value_type != Params.Int32ArrayBuffer) {
       throw new Error(
         `Parameter is not that of Undefined: received ${value_type}`,
       );
     }
 
-    const [moved_by, buffer] = this.cloneBufferArray(from_index, view);
-    return [moved_by, Int32ArrayBuffer(buffer)];
+    const [moved_by, buffer] = this.copyBufferArray32Bytes(from_index, view);
+    LOGGER.debug(
+      `Int32Array moved_by ${moved_by} bytes with buffer: ${buffer} : ${typeof buffer}`,
+    );
+    return [moved_by, new Int32Array(buffer)];
   }
 
-  // WARNING: This tries to be efficient and avoids copying the contents of the
-  // memory location in the wasm memory instance, so ensure to clone the provided
-  // data buffer to avoid data corruption if that memory gets overwritten.
   parseInt16ArrayBuffer(from_index, value_type, view) {
-    if (value_type != Params.Int16Array) {
+    if (value_type != Params.Int16ArrayBuffer) {
       throw new Error(
         `Parameter is not that of Undefined: received ${value_type}`,
       );
     }
 
-    const [moved_by, buffer] = this.cloneBufferArray(from_index, view);
-    return [moved_by, Int16ArrayBuffer(buffer)];
+    const [moved_by, buffer] = this.copyBufferArray16Bytes(from_index, view);
+    LOGGER.debug(
+      `Int16Array moved_by ${moved_by} bytes with buffer: ${buffer} : ${typeof buffer}`,
+    );
+    return [moved_by, new Int16Array(buffer)];
   }
 
   // WARNING: This tries to be efficient and avoids copying the contents of the
   // memory location in the wasm memory instance, so ensure to clone the provided
   // data buffer to avoid data corruption if that memory gets overwritten.
   parseInt8ArrayBuffer(from_index, value_type, view) {
-    if (value_type != Params.Int8Array) {
+    if (value_type != Params.Int8ArrayBuffer) {
       throw new Error(
         `Parameter is not that of Undefined: received ${value_type}`,
       );
     }
 
-    const [moved_by, buffer] = this.cloneBufferArray(from_index, view);
-    return [moved_by, Int8ArrayBuffer(buffer)];
+    const [moved_by, buffer] = this.cloneBufferArray1Byte(from_index, view);
+    LOGGER.debug(
+      `Int64Array moved_by ${moved_by} bytes with buffer: ${buffer}`,
+    );
+    return [moved_by, new Int8Array(buffer)];
   }
 
-  // WARNING: This tries to be efficient and avoids copying the contents of the
-  // memory location in the wasm memory instance, so ensure to clone the provided
-  // data buffer to avoid data corruption if that memory gets overwritten.
   parseUint64ArrayBuffer(from_index, value_type, view) {
-    if (value_type != Params.Uint64Array) {
+    if (value_type != Params.Uint64ArrayBuffer) {
       throw new Error(
         `Parameter is not that of Undefined: received ${value_type}`,
       );
     }
 
-    const [moved_by, buffer] = this.cloneBufferArray(from_index, view);
-    return [moved_by, Uint64ArrayBuffer(buffer)];
+    const [moved_by, buffer] = this.copyBufferArray64Bytes(from_index, view);
+    return [moved_by, new BigUint64Array(buffer)];
   }
 
-  // WARNING: This tries to be efficient and avoids copying the contents of the
-  // memory location in the wasm memory instance, so ensure to clone the provided
-  // data buffer to avoid data corruption if that memory gets overwritten.
   parseUint32ArrayBuffer(from_index, value_type, view) {
-    if (value_type != Params.Uint32Array) {
+    if (value_type != Params.Uint32ArrayBuffer) {
       throw new Error(
         `Parameter is not that of Undefined: received ${value_type}`,
       );
     }
 
-    const [moved_by, buffer] = this.cloneBufferArray(from_index, view);
-    return [moved_by, Uint32ArrayBuffer(buffer)];
+    const [moved_by, buffer] = this.copyBufferArray32Bytes(from_index, view);
+    LOGGER.debug(
+      `Uint32Array moved_by ${moved_by} bytes with buffer: ${buffer}`,
+    );
+    return [moved_by, new Uint32Array(buffer)];
+  }
+
+  parseUint16ArrayBuffer(from_index, value_type, view) {
+    if (value_type != Params.Uint16ArrayBuffer) {
+      throw new Error(
+        `Parameter is not that of Undefined: received ${value_type}`,
+      );
+    }
+
+    const [moved_by, buffer] = this.copyBufferArray16Bytes(from_index, view);
+    LOGGER.debug(
+      `Uint16Array moved_by ${moved_by} bytes with buffer: ${buffer}`,
+    );
+
+    return [moved_by, new Uint16Array(buffer)];
   }
 
   // WARNING: This tries to be efficient and avoids copying the contents of the
   // memory location in the wasm memory instance, so ensure to clone the provided
   // data buffer to avoid data corruption if that memory gets overwritten.
-  parseUint16ArrayBuffer(from_index, value_type, view) {
-    if (value_type != Params.Uint16Array) {
+  parseTypedArraySlice(from_index, value_type, view) {
+    if (value_type != Params.TypedArraySlice) {
       throw new Error(
-        `Parameter is not that of Undefined: received ${value_type}`,
+        `Parameter is not that of Params.Uint8Array: received ${value_type}`,
       );
     }
 
-    const [moved_by, buffer] = this.cloneBufferArray(from_index, view);
-    return [moved_by, Uint16ArrayBuffer(buffer)];
+    const slice_type = view.getUint8(from_index);
+    from_index += Move.MOVE_BY_1_BYTES;
+
+    const [moved_by, buffer] = this.cloneBufferArray1Byte(from_index, view);
+    LOGGER.debug(
+      `TypedArraySlice moved_by ${moved_by} bytes with buffer: ${buffer} and slice_type: ${slice_type}`,
+    );
+
+    return [moved_by, new TypedArraySlice(slice_type, buffer)];
   }
 
   // WARNING: This tries to be efficient and avoids copying the contents of the
   // memory location in the wasm memory instance, so ensure to clone the provided
   // data buffer to avoid data corruption if that memory gets overwritten.
   parseUint8ArrayBuffer(from_index, value_type, view) {
-    if (value_type != Params.Uint8Array) {
+    if (value_type != Params.Uint8ArrayBuffer) {
       throw new Error(
-        `Parameter is not that of Undefined: received ${value_type}`,
+        `Parameter is not that of Params.Uint8Array: received ${value_type}`,
       );
     }
 
-    const [moved_by, buffer] = this.cloneBufferArray(from_index, view);
-    return [moved_by, Uint8ArrayBuffer(buffer)];
+    const [moved_by, buffer] = this.cloneBufferArray1Byte(from_index, view);
+    LOGGER.debug(
+      `Uint8Array moved_by ${moved_by} bytes with buffer: ${buffer}`,
+    );
+    return [moved_by, buffer];
   }
 
   parseNull(from_index, value_type, view) {
@@ -1933,6 +2176,11 @@ class ParameterParserV2 {
         `Parameter is not that of Undefined: received ${value_type}`,
       );
     }
+
+    const [moved_by, buffer] = this.cloneBufferArray16Bytes(from_index, view);
+    LOGGER.debug(
+      `Int16Array moved_by ${moved_by} bytes with buffer: ${buffer} : ${typeof buffer}`,
+    );
   }
 
   parseCachedText(from_index, value_type, view, text_string_array) {
@@ -1949,7 +2197,7 @@ class ParameterParserV2 {
       view,
     );
 
-    const target_text = this.cache_text.get_text(cache_id);
+    const target_text = this.text_cache.get_text(cache_id);
     LOGGER.debug(`parseCachedText: cache_id=${cache_id}, text=${target_text}`);
 
     if (isUndefinedOrNull(target_text)) {
@@ -1983,9 +2231,9 @@ class ParameterParserV2 {
   }
 
   parseInternalPointer(from_index, value_type, view) {
-    if (value_type != Params.ExternalReference) {
+    if (value_type != Params.InternalReference) {
       throw new Error(
-        `Parameter is not that of ExternalReference: received ${value_type}`,
+        `Parameter is not that of InternalReference: received ${value_type}`,
       );
     }
 
@@ -2797,7 +3045,7 @@ class MegatronMiddleware {
 
     if (!target_string) throw new Error("No valid string was provided");
 
-    return this.string_cache.create(target_string);
+    return BigInt(this.string_cache.create(target_string));
   }
 
   js_register_function(start, length, utf_indicator) {
@@ -3188,6 +3436,8 @@ if (typeof module !== "undefined") {
     CachePointer,
     ExternalPointer,
     InternalPointer,
+    TypedSlice,
+    TypedArraySlice,
     ArgumentOperations,
     TypeOptimization,
     DOMArena,
