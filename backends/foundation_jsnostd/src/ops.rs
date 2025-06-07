@@ -17,6 +17,25 @@ const DEFAULT_ALLOCATION_SIZE: usize = 10;
 static ARGUMENT_ENDER: &[u8] = &[ArgumentOperations::Stop as u8];
 static ARGUMENT_STARTER: &[u8] = &[ArgumentOperations::Start as u8];
 
+/// [`MemoryPointer`] holds references memory ids for both text and operations.
+pub struct MemoryPointer(MemoryId, MemoryId);
+
+impl MemoryPointer {
+    pub(crate) fn new(texts: MemoryId, ops: MemoryId) -> Self {
+        Self(texts, ops)
+    }
+
+    /// [`text_id`] returns the `MemoryId` for the text data.
+    pub fn text_id(&self) -> MemoryId {
+        self.0.clone()
+    }
+
+    /// [`ops_id`] returns the `MemoryId` for the operations data.
+    pub fn ops_id(&self) -> MemoryId {
+        self.1.clone()
+    }
+}
+
 impl<'a> Batchable<'a> for Vec<Params<'a>> {
     fn encode<F>(&self, encoder: &'a F, optimize: bool) -> MemoryWriterResult<()>
     where
@@ -1965,25 +1984,6 @@ mod params_tests {
     }
 }
 
-/// [`MemoryPointer`] holds references memory ids for both text and operations.
-pub struct MemoryPointer(MemoryId, MemoryId);
-
-impl MemoryPointer {
-    pub(crate) fn new(texts: MemoryId, ops: MemoryId) -> Self {
-        Self(texts, ops)
-    }
-
-    /// [`text_id`] returns the `MemoryId` for the text data.
-    pub fn text_id(&self) -> MemoryId {
-        self.0.clone()
-    }
-
-    /// [`ops_id`] returns the `MemoryId` for the operations data.
-    pub fn ops_id(&self) -> MemoryId {
-        self.1.clone()
-    }
-}
-
 /// [`Instructions`] is a one batch set writer, meaning it encodes a single
 /// batch of instruction marked by a [`Operations::Begin`] and [`Operations::Stop`]
 /// markers when the [`Instructions::end`] is called.
@@ -2092,6 +2092,8 @@ impl Instructions {
         Ok(self.stop()?)
     }
 }
+
+// -- Creating Instructions from MemoryAllocations
 
 impl MemoryAllocations {
     /// [`batch_for`] creates a new memory slot for encoding a singular instruction
@@ -2343,9 +2345,7 @@ impl Instructions {
         self.data(&[Operations::InvokeNoReturnFunction as u8])?;
 
         allocated_handle.encode(self, self.optimized)?;
-        if let Some(pm) = params {
-            pm.encode(self, self.optimized)?;
-        }
+        self.encode_params(params)?;
 
         self.end()?;
         Ok(())
@@ -2359,9 +2359,7 @@ impl Instructions {
         self.data(&[Operations::InvokeReturningFunction as u8])?;
 
         allocated_handle.encode(self, self.optimized)?;
-        if let Some(pm) = params {
-            pm.encode(self, self.optimized)?;
-        }
+        self.encode_params(params)?;
 
         self.end()?;
         Ok(())
