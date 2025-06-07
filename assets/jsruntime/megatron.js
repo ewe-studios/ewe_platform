@@ -630,6 +630,7 @@ class DOMArena extends ArenaAllocator {
 class MemoryOperator {
   constructor(wasm_module) {
     this.module = wasm_module;
+    this.instance = this.module.instance;
   }
 
   get_module() {
@@ -644,10 +645,21 @@ class MemoryOperator {
     // create an allocation within the wasm instance by
     // calling its create_allocation exported function
     // as we expect.
-    const wasmInstance = this.module;
-    const allocation_id = wasmInstance.exports.create_allocation(size);
+    LOGGER.debug(
+      "allocate_memory: allocating memory location with size: ",
+      size,
+    );
+    const allocation_id = this.instance.exports.create_allocation(BigInt(size));
+    LOGGER.debug(
+      "Created allocation_id: ",
+      allocation_id,
+      typeof allocation_id,
+    );
     const allocation_start_pointer =
-      wasmInstance.exports.allocation_start_pointer(allocation_id);
+      this.instance.exports.allocation_start_pointer(allocation_id);
+    LOGGER.debug(
+      `Retrieved allocation ptr: ${allocation_start_pointer} for id: ${allocation_id}`,
+    );
 
     return [allocation_id, allocation_start_pointer];
   }
@@ -661,18 +673,26 @@ class MemoryOperator {
     return new Uint8Array(this.readUint8Buffer(start_pointer, len));
   }
 
-  writeUint8Buffer(uint8_buffer) {
-    const len = uint8_buffer.length;
+  writeUint8Buffer(buffer) {
+    const buffer_type = typeof buffer;
+    LOGGER.debug(
+      `writeUint8Buffer: Writing buffer to memory(type=${buffer_type}): len=${buffer.length} from buffer=${buffer}`,
+    );
+    const len = buffer.length;
     const [id, start] = this.allocate_memory(len);
 
-    const memory = this.get_memory();
-    memory.set(uint8_buffer, start);
+    const memory = new Uint8Array(this.get_memory());
+    memory.set(buffer, start);
 
     return id;
   }
 
-  writeUint8Array(array_buffer) {
-    const uint8_buffer = new Uint8Array(array_buffer);
+  writeUint8Array(int8_buffer) {
+    LOGGER.debug("Writing Uint8Array from: ", int8_buffer);
+    let uint8_buffer =
+      int8_buffer instanceof Uint8Array
+        ? int8_buffer
+        : new Uint8Array(int8_buffer);
     return this.writeUint8Buffer(uint8_buffer);
   }
 }
@@ -706,14 +726,9 @@ class TextCodec {
     return this.utf16_decoder.decode(view);
   }
 
-  writeUTF8FromMemory(text) {
-    const bytes = utf8_encoder.encode(text);
-    const len = bytes.length;
-    const [id, start] = this.operator.allocate_memory(len);
-
-    const memory = this.operator.get_memory();
-    memory.set(bytes, start);
-    return id;
+  writeUTF8ToMemory(text) {
+    const bytes = this.utf8_encoder.encode(text);
+    return this.operator.writeUint8Array(bytes);
   }
 
   // [utf8ArrayToStr] convets your array to UTF-16 using the decodeURIComponent.
@@ -3166,7 +3181,7 @@ class MegatronMiddleware {
       parameter_start,
       parameter_length,
     );
-    return this.operator.writeUint8Array(response);
+    return this.texts.writeUTF8ToMemory(response);
   }
 }
 

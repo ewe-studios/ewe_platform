@@ -3,6 +3,7 @@
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::missing_panics_doc)]
 
+use alloc;
 use alloc::boxed::Box;
 use alloc::string::{FromUtf16Error, FromUtf8Error, String};
 use alloc::sync::Arc;
@@ -159,6 +160,7 @@ impl MemoryAllocation {
                 let reservation = new_capacity - mem.capacity();
                 mem.reserve(reservation);
             }
+            mem.resize(new_capacity, 0);
             return;
         }
 
@@ -391,8 +393,8 @@ impl MemoryAllocations {
 
                 let next_index_u32 = next_index as u32;
 
-                let allocation =
-                    MemoryAllocation::new(Vec::with_capacity(desired_capacity as usize));
+                let vec_mem: Vec<u8> = alloc::vec![0; desired_capacity as usize];
+                let allocation = MemoryAllocation::new(vec_mem);
                 self.allocs.push((0, allocation));
 
                 Ok(MemoryId(next_index_u32, 0))

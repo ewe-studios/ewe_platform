@@ -248,7 +248,7 @@ pub mod host_runtime {
 
     // -- Functions (Invocation & Registration)
     pub mod api_v1 {
-        use crate::CachedText;
+        use crate::{CachedText, MemoryAllocationResult};
 
         use super::*;
 
@@ -339,6 +339,14 @@ pub mod host_runtime {
             // invokes a javascript function across the host boundary ABI and returns
             // a u64 that is the result.
             pub fn js_invoke_function_and_return_bigint(
+                handler: u64,
+                parameters_start: *const u8,
+                parameters_length: usize,
+            ) -> u64;
+
+            // invokes a javascript function across the host boundary ABI and returns
+            // a u64 representing the allocation id that is the result.
+            pub fn js_invoke_function_and_return_string(
                 handler: u64,
                 parameters_start: *const u8,
                 parameters_length: usize,
@@ -595,7 +603,7 @@ pub mod host_runtime {
                 }
             }
 
-            /// [`invoke_for_dom`] invokes a javascript function registered at the given handle
+            /// [`invoke_for_u64`] invokes a javascript function registered at the given handle
             /// defined by the [`JSFunction::handler`] which then returns a [`ExternalPointer`]
             /// representing the DOM node instance via an ExternalPointer that points to that object in the
             /// hosts object heap.
@@ -613,6 +621,36 @@ pub mod host_runtime {
                         length,
                     )
                 }
+            }
+
+            /// [`invoke_for_memory`] invokes a javascript function registered at the given handle
+            /// defined by the [`JSFunction::handler`] which then returns a [`u64`]
+            /// which represents the allocation id of the contents.
+            pub fn invoke_for_memory(&self, params: &[Params]) -> MemoryId {
+                let param_bytes = params.to_binary();
+                let RawParts {
+                    ptr,
+                    length,
+                    capacity: _,
+                } = RawParts::from_vec(param_bytes);
+                unsafe {
+                    let mem_id = host_runtime::api_v1::js_invoke_function_and_return_string(
+                        self.handler,
+                        ptr,
+                        length,
+                    );
+
+                    MemoryId::from_u64(mem_id)
+                }
+            }
+
+            /// [`invoke_for_str`] invokes a javascript function registered at the given handle
+            /// defined by the [`JSFunction::handler`] which then returns a [`u64`]
+            /// which represents the allocation id of the contents.
+            pub fn invoke_for_str(&self, params: &[Params]) -> MemoryAllocationResult<String> {
+                let memory_id = self.invoke_for_memory(params);
+                let memory = internal_api::get_memory(memory_id);
+                memory.string_from_memory()
             }
 
             /// [`invoke_for_dom`] invokes a javascript function registered at the given handle
