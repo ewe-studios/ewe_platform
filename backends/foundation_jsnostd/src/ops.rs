@@ -217,7 +217,7 @@ impl ToBinary for Params<'_> {
             }
             Params::Uint16Array(value) => {
                 let start = value.as_ptr() as u64;
-                let len = value.len();
+                let len = value.len() as u64;
                 encoded_params.extend_from_slice(&start.to_le_bytes());
                 encoded_params.extend_from_slice(&len.to_le_bytes());
             }
