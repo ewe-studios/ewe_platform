@@ -1,5 +1,54 @@
 use alloc::vec::Vec;
 
+/// [`TypedSlice`] represent the type of a slice which is sent over.
+/// And helps the receiver know what exactly is represented by a slice of u8 array.
+#[repr(usize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TypedSlice {
+    Int8 = 1,
+    Int16 = 2,
+    Int32 = 3,
+    Int64 = 4,
+    Uint8 = 5,
+    Uint16 = 6,
+    Uint32 = 7,
+    Uint64 = 8,
+    Float32 = 9,
+    Float64 = 10,
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for &TypedSlice {
+    fn into(self) -> u8 {
+        *self as u8
+    }
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for TypedSlice {
+    fn into(self) -> u8 {
+        self as u8
+    }
+}
+
+impl From<u8> for TypedSlice {
+    fn from(value: u8) -> Self {
+        match value {
+            1 => Self::Int8,
+            2 => Self::Int16,
+            3 => Self::Int32,
+            4 => Self::Int64,
+            5 => Self::Uint8,
+            6 => Self::Uint16,
+            7 => Self::Uint32,
+            8 => Self::Uint64,
+            9 => Self::Float32,
+            10 => Self::Float64,
+            _ => unreachable!("should not have any other type of ArgumentOperations"),
+        }
+    }
+}
+
 /// [`ValueTypes`] represent the underlying type of value
 /// being encoded into a binary stream.
 #[repr(usize)]
@@ -35,6 +84,7 @@ pub enum ValueTypes {
     Int128 = 27,
     Uint128 = 28,
     CachedText = 29,
+    TypedArraySlice = 30,
 }
 
 #[allow(clippy::from_over_into)]
@@ -82,6 +132,7 @@ pub enum Params<'a> {
     Float64Array(&'a [f64]),
     ExternalReference(u64),
     InternalReference(u64),
+    TypedArraySlice(TypedSlice, &'a [u8]),
 }
 
 impl Params<'_> {
@@ -121,6 +172,7 @@ impl Params<'_> {
             Params::Float64Array(_) => ValueTypes::Float64ArrayBuffer,
             Params::ExternalReference(_) => ValueTypes::ExternalReference,
             Params::InternalReference(_) => ValueTypes::InternalReference,
+            Params::TypedArraySlice(_, _) => ValueTypes::TypedArraySlice,
         }
     }
 }
@@ -128,6 +180,18 @@ impl Params<'_> {
 impl From<f64> for Params<'_> {
     fn from(f: f64) -> Self {
         Params::Float64(f)
+    }
+}
+
+impl<'a> From<(u8, &'a [u8])> for Params<'a> {
+    fn from((tp, ta): (u8, &'a [u8])) -> Self {
+        Params::TypedArraySlice(tp.into(), ta)
+    }
+}
+
+impl<'a> From<(TypedSlice, &'a [u8])> for Params<'a> {
+    fn from((tp, ta): (TypedSlice, &'a [u8])) -> Self {
+        Params::TypedArraySlice(tp, ta)
     }
 }
 
@@ -544,6 +608,10 @@ impl From<u64> for CachedText {
 impl CachedText {
     pub const fn pointer(value: u64) -> Self {
         Self(value)
+    }
+
+    pub fn into_param<'a>(self) -> Params<'a> {
+        Params::CachedText(self.0)
     }
 
     pub fn into_inner(self) -> u64 {
