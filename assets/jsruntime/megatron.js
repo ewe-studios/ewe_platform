@@ -2553,6 +2553,124 @@ class ParameterParserV2 {
   }
 }
 
+class BatchOperation {
+  constructor(operation_id, operation_handler) {
+    this.operation_id = operation_id;
+    this.handler = operation_handler;
+  }
+
+  is_operation(operation_id) {
+    return this.operation_id == operation_id;
+  }
+
+  perform(batch_instructions, operations_id, read_index, operations, texts) {
+    return this.handler(
+      batch_instructions,
+      operations_id,
+      read_index,
+      operations,
+      texts,
+    );
+  }
+}
+
+const MAKE_FUNCTION = new BatchOperation(
+  Operations.MakeFunction,
+  (instance, operation_id, read_index, operations, texts) => {
+    if (operation_id != Operations.MakeFunction) {
+      throw new Error(
+        `Argument should be Operation.MakeFunction instead got: ${operation_id}`,
+      );
+    }
+
+    const next_value_type = operations.getUint8(read_index, true);
+    read_index += Move.MOVE_BY_1_BYTES;
+
+    // read the external pointer we want registered
+    let [move_by, external_id] = instance.parameter_v2.parseExternalPointer(
+      read_index,
+      next_value_type,
+      operations,
+    );
+
+    LOGGER.debug("ExternalPointer: ", read_index, move_by, external_id);
+
+    if (operations.getUint8(move_by) != Params.Text8) {
+      throw new Error(
+        `Argument should be Params.Text8 instead got: ${operations.getUint8(
+          move_by,
+        )}`,
+      );
+    }
+
+    move_by += Move.MOVE_BY_1_BYTES;
+
+    let [move_by_next, string_location] =
+      instance.parameter_v2.parseStringLocation(move_by, operations);
+
+    if (operations.getUint8(move_by_next) != Operations.End) {
+      throw new Error(
+        `Operation should be Params.End instead got: ${operations.getUint8(
+          move_by_next,
+        )}`,
+      );
+    }
+
+    move_by_next += Move.MOVE_BY_1_BYTES;
+
+    // read the location of the text.
+    const function_definition = texts.substr.apply(texts, string_location);
+
+    LOGGER.debug(
+      "FunctionDefinition: ",
+      move_by_next,
+      string_location,
+      function_definition,
+    );
+
+    const register_function = (instance) => {
+      // define the function as a callable.
+      const function_invoker = Function(
+        `"use strict"; return(${function_definition})`,
+      )();
+
+      LOGGER.debug(
+        "Register function in heap: ",
+        external_id,
+        external_id.value,
+        function_invoker,
+      );
+
+      // update the reference to now be the reference
+      // for calling the function.
+      instance.function_heap.update(external_id.value, function_invoker);
+      return external_id;
+    };
+
+    return [move_by_next, register_function];
+  },
+);
+
+const INVOKE_NO_RETURN = new BatchOperation(
+  Operations.InvokeNoReturnFunction,
+  (instance, operation_id, moved_by, operations, texts) => {
+    if (operation_id != Operations.InvokeNoReturnFunction) {
+      throw new Error(
+        `Argument should be Operation.InvokeNoReturnFunction instead got: ${operation_id}`,
+      );
+    }
+
+    return instance.parse_and_invoke(
+      moved_by,
+      operations,
+      texts,
+      function (result) {
+        LOGGER.debug("parse_invoke_no_return_function result: ", result);
+      },
+    );
+  },
+);
+
 class BatchInstructions {
   constructor(memory_operator, text_codec, text_cache) {
     if (!(memory_operator instanceof MemoryOperator)) {
@@ -2576,6 +2694,45 @@ class BatchInstructions {
       this.texts,
       this.text_cache,
     );
+
+    this.operations = [MAKE_FUNCTION, INVOKE_NO_RETURN];
+  }
+
+  register_operation_handler(operation) {
+    if (!(operation instanceof BatchOperation)) {
+      throw new Error(`operation: ${operation} should be a BatchOperation`);
+    }
+    this.operations.push(operation);
+  }
+
+  parse_one_batch(read_index, operations, texts) {
+    const operation_id = operations.getUint8(read_index);
+    const operations_name = Operations.__INVERSE__[operation_id];
+    LOGGER.debug(
+      `Received operation id=${operation_id}, name=${operations_name} at read_index: ${read_index}`,
+      operations,
+    );
+
+    read_index += Move.MOVE_BY_1_BYTES;
+
+    LOGGER.debug(`Registered Operations: ${this.operations.length}`);
+    for (let index = 0; index < this.operations.length; index++) {
+      const operation = this.operations[index];
+      LOGGER.debug(
+        `Checking for operation=${operation_id} against ${operation} at index=${index}`,
+      );
+      if (!operation.is_operation(operation_id)) continue;
+
+      return operation.perform(
+        this,
+        operation_id,
+        read_index,
+        operations,
+        texts,
+      );
+    }
+
+    throw new Error(`operation: ${operation_id} could not be handled`);
   }
 
   parse_instructions(ops_pointer, ops_length, text_pointer, text_length) {
@@ -2647,45 +2804,7 @@ class BatchInstructions {
     return batches;
   }
 
-  parse_one_batch(read_index, operations, texts) {
-    const operation_id = operations.getUint8(read_index);
-    const operations_name = Operations.__INVERSE__[operation_id];
-    LOGGER.debug(
-      `Received operation id=${operation_id}, name=${operations_name} at read_index: ${read_index}`,
-      operations,
-    );
-
-    read_index += Move.MOVE_BY_1_BYTES;
-
-    switch (operation_id) {
-      case Operations.MakeFunction:
-        return this.parse_make_function(
-          operation_id,
-          read_index,
-          operations,
-          texts,
-        );
-      case Operations.InvokeNoReturnFunction:
-        return this.parse_invoke_no_return_function(
-          operation_id,
-          read_index,
-          operations,
-          texts,
-        );
-      case Operations.InvokeReturningFunction:
-        break;
-      case Operations.InvokeCallbackFunction:
-        break;
-    }
-  }
-
-  parse_invoke_no_return_function(operation_id, moved_by, operations, texts) {
-    if (operation_id != Operations.InvokeNoReturnFunction) {
-      throw new Error(
-        `Argument should be Operation.InvokeNoReturnFunction instead got: ${operation_id}`,
-      );
-    }
-
+  parse_and_invoke(moved_by, operations, texts, result_callback) {
     const next_value_type = operations.getUint8(moved_by, true);
     moved_by += Move.MOVE_BY_1_BYTES;
 
@@ -2706,8 +2825,10 @@ class BatchInstructions {
 
     const next_token = operations.getUint8(moved_by, true);
     if (next_token != ArgumentOperations.Start) {
+      const type_name =
+        ArgumentOperations.__INVERSE__[ArgumentOperations.Start];
       throw new Error(
-        `Next token should be (id=${ArgumentOperations.Start}, name=${ArgumentOperations.__INVERSE__[ArgumentOperations.Start]}) instead got: ${next_token}`,
+        `Next token should be (id=${ArgumentOperations.Start}, name=${type_name}) instead got: ${next_token}`,
       );
     }
 
@@ -2736,86 +2857,14 @@ class BatchInstructions {
       LOGGER.debug(
         `Retrieved callable: ${callbable} from external_id=${external_id}`,
       );
-      return callable.apply(instance, parameters);
+
+      const result = callable.apply(instance, parameters);
+      if (!isUndefinedOrNull(result)) {
+        result_callback(result);
+      }
     };
 
     return [moved_by, callbable];
-  }
-
-  parse_make_function(operation_id, read_index, operations, texts) {
-    if (operation_id != Operations.MakeFunction) {
-      throw new Error(
-        `Argument should be Operation.MakeFunction instead got: ${operation_id}`,
-      );
-    }
-
-    const next_value_type = operations.getUint8(read_index, true);
-    read_index += Move.MOVE_BY_1_BYTES;
-
-    // read the external pointer we want registered
-    let [move_by, external_id] = this.parameter_v2.parseExternalPointer(
-      read_index,
-      next_value_type,
-      operations,
-    );
-
-    LOGGER.debug("ExternalPointer: ", read_index, move_by, external_id);
-
-    if (operations.getUint8(move_by) != Params.Text8) {
-      throw new Error(
-        `Argument should be Params.Text8 instead got: ${operations.getUint8(
-          move_by,
-        )}`,
-      );
-    }
-
-    move_by += Move.MOVE_BY_1_BYTES;
-
-    let [move_by_next, string_location] = this.parameter_v2.parseStringLocation(
-      move_by,
-      operations,
-    );
-
-    if (operations.getUint8(move_by_next) != Operations.End) {
-      throw new Error(
-        `Operation should be Params.End instead got: ${operations.getUint8(
-          move_by_next,
-        )}`,
-      );
-    }
-
-    move_by_next += Move.MOVE_BY_1_BYTES;
-
-    // read the location of the text.
-    const function_definition = texts.substr.apply(texts, string_location);
-
-    LOGGER.debug(
-      "FunctionDefinition: ",
-      move_by_next,
-      string_location,
-      function_definition,
-    );
-
-    const register_function = (instance) => {
-      // define the function as a callable.
-      const function_invoker = Function(
-        `"use strict"; return(${function_definition})`,
-      )();
-
-      LOGGER.debug(
-        "Register function in heap: ",
-        external_id,
-        external_id.value,
-        function_invoker,
-      );
-
-      // update the reference to now be the reference
-      // for calling the function.
-      instance.function_heap.update(external_id.value, function_invoker);
-      return external_id;
-    };
-
-    return [move_by_next, register_function];
   }
 }
 
@@ -3141,7 +3190,6 @@ class MegatronMiddleware {
       parameter_start,
       parameter_length,
     );
-    LOGGER.debug("ReturnInt: ", response, typeof response);
     if (typeof response != "number" && typeof response != "bigint") {
       throw new Error(`Response ${response} is not a number`);
     }

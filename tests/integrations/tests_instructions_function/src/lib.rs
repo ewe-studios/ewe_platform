@@ -44,7 +44,6 @@ extern "C" fn main() {
                 Params::Uint64(10),
                 Params::Float32(10.0),
                 Params::Float64(10.0),
-                // Params::Uint8Array(&[1, 1]),
             ]),
         )
         .expect("encode instruction");

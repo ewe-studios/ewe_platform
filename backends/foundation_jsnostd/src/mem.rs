@@ -3,7 +3,6 @@
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::missing_panics_doc)]
 
-use alloc;
 use alloc::boxed::Box;
 use alloc::string::{FromUtf16Error, FromUtf8Error, String};
 use alloc::sync::Arc;
@@ -562,6 +561,8 @@ mod memory_allocation_tests {
         assert_eq!(0, id.index());
 
         let memory_slot = allocator.get(id).expect("should be able to find memory id");
+        memory_slot.reset_to(0);
+
         memory_slot.apply(|memo| {
             memo.push(10);
             memo.push(20);
@@ -580,6 +581,7 @@ mod memory_allocation_tests {
         assert_eq!(0, id.index());
 
         let memory_slot = allocator.get(id).expect("should be able to find memory id");
+        memory_slot.reset_to(0);
         memory_slot.apply(|memo| {
             memo.push(10);
             memo.push(20);
