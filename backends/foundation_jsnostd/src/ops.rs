@@ -926,6 +926,8 @@ impl<'a> Batchable<'a> for Params<'a> {
 
 #[cfg(test)]
 mod params_tests {
+    use crate::TypedSlice;
+
     use super::*;
 
     #[test]
@@ -1128,6 +1130,60 @@ mod params_tests {
             ],
             completed_ops.clone_memory().expect("clone"),
         );
+
+        assert!(completed_strings.is_empty().expect("returns state"));
+    }
+
+    #[test]
+    fn can_encode_typed_array_slice() {
+        let mut allocator = MemoryAllocations::new();
+
+        let batch = allocator
+            .batch_for(10, 10, true)
+            .expect("create new Instructions");
+
+        batch.should_be_occupied().expect("is occupied");
+
+        let items: &[u8] = &[1, 1];
+        let pointer_bytes = (items.as_ptr() as u64).to_le_bytes();
+
+        let write_result =
+            batch.encode_params(Some(&[Params::TypedArraySlice(TypedSlice::Uint8, items)]));
+
+        assert!(write_result.is_ok());
+
+        batch.end().expect("ended");
+
+        let completed_data = batch.stop().expect("finish writing completion result");
+        let slot = allocator.get_slot(completed_data).expect("get memory");
+
+        let completed_strings = slot.text_ref();
+        let completed_ops = slot.ops_ref();
+
+        let encoded_start = alloc::vec![
+            0,                               // Begin signal indicating start of batch
+            ArgumentOperations::Start as u8, // start of arguments
+            ArgumentOperations::Begin as u8, // start of this argument
+            ValueTypes::TypedArraySlice as u8,
+            TypedSlice::Uint8 as u8, // type of slice
+            TypeOptimization::None as u8,
+        ];
+
+        let encoded_end = alloc::vec![
+            TypeOptimization::QuantizedUint64AsU8 as u8,
+            2,
+            ArgumentOperations::End as u8,  // end of this argument
+            ArgumentOperations::Stop as u8, // end of all arguments
+            254,                            // end of the sub-block of instruction
+            255                             // Stop signal indicating batch is finished
+        ];
+
+        let mut encoded = Vec::new();
+        encoded.extend(encoded_start);
+        encoded.extend(pointer_bytes);
+        encoded.extend(encoded_end);
+
+        assert_eq!(encoded, completed_ops.clone_memory().expect("clone"),);
 
         assert!(completed_strings.is_empty().expect("returns state"));
     }
