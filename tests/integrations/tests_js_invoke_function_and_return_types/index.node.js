@@ -25,6 +25,7 @@ describe("Megatron.tests_js_invoke_function_and_return_types", async () => {
   runtime.init(wasm_module);
 
   mock.returnArg = (v1) => {
+    console.log("ReturnArg got: ", v1);
     mock.calls.push({
       method: "returnArg",
       arguments: [v1],
@@ -91,10 +92,18 @@ describe("Megatron.tests_js_invoke_function_and_return_types", async () => {
           method: "returnArg",
           arguments: [5],
         },
+        {
+          method: "returnArg",
+          arguments: ["alex"],
+        },
+        {
+          method: "returnArg",
+          arguments: ["hello"],
+        },
       ]);
       assert.equal(runtime.dom_heap.length(), 5);
       assert.equal(runtime.object_heap.length(), 0);
-      assert.equal(runtime.function_heap.length(), 1);
+      assert.equal(runtime.function_heap.length(), 2);
     });
   });
 });
