@@ -1,3 +1,4 @@
+"strict mode";
 const NULL_AND_UNDEFINED = [null, undefined];
 const MAX_ITERATION = 5000000;
 
@@ -35,6 +36,8 @@ LOGGER.debug = function () {
   console.debug.apply(console, arguments);
 };
 
+Object.freeze(LOGGER);
+
 const Move = {
   // Move the index by 1 8-bits movement - a DataView represent 1 move: 8 bits (1 byte)
   // 8 bits is 1 Bytes, so we move by 1.
@@ -57,6 +60,8 @@ const Move = {
   MOVE_BY_128_BYTES: 16,
 };
 
+Object.freeze(Move);
+
 const UtfEncoding = {
   // Represents as 16 to indicate encoding is UTF-8.
   UTF8: 8,
@@ -69,6 +74,8 @@ UtfEncoding.__INVERSE__ = {
   8: UtfEncoding.UTF8,
   16: UtfEncoding.UTF16,
 };
+
+Object.freeze(UtfEncoding);
 
 const ALLOWED_UTF8_INDICATOR = [UtfEncoding.UTF8, UtfEncoding.UTF16];
 
@@ -94,6 +101,8 @@ TypedSlice.__INVERSE__ = Object.keys(TypedSlice)
     prev[value] = key;
     return prev;
   }, {});
+
+Object.freeze(TypedSlice);
 
 const TypeOptimization = {
   None: 0,
@@ -147,6 +156,72 @@ TypeOptimization.__INVERSE__ = Object.keys(TypeOptimization)
     prev[value] = key;
     return prev;
   }, {});
+
+Object.freeze(TypeOptimization);
+
+/// [`ReturnTypes`] represent the type indicating the underlying returned
+/// value for an operation.
+const ReturnTypes = {
+  None: 0,
+  One: 1,
+  Many: 2,
+};
+
+ReturnTypes.__INVERSE__ = Object.keys(ReturnTypes)
+  .map((key) => {
+    return [key, ReturnTypes[key]];
+  })
+  .reduce((prev, current) => {
+    let [key, value] = current;
+    prev[value] = key;
+    return prev;
+  }, {});
+
+Object.freeze(ReturnTypes);
+
+/// [`ReturnValueTypes`] represent the type indicating the underlying returned
+/// value for an operation.
+const ReturnValueTypes = {
+  Bool: 1,
+  Text8: 2,
+  Int8: 3,
+  Int16: 4,
+  Int32: 5,
+  Int64: 6,
+  Uint8: 7,
+  Uint16: 8,
+  Uint32: 9,
+  Uint64: 10,
+  Float32: 11,
+  Float64: 12,
+  Int128: 13,
+  Uint128: 14,
+  MemorySlice: 15,
+  ExternalReference: 16,
+  InternalReference: 17,
+  Uint8ArrayBuffer: 18,
+  Uint16ArrayBuffer: 19,
+  Uint32ArrayBuffer: 20,
+  Uint64ArrayBuffer: 21,
+  Int8ArrayBuffer: 22,
+  Int16ArrayBuffer: 23,
+  Int32ArrayBuffer: 24,
+  Int64ArrayBuffer: 25,
+  Float32ArrayBuffer: 26,
+  Float64ArrayBuffer: 27,
+};
+
+ReturnValueTypes.__INVERSE__ = Object.keys(ReturnValueTypes)
+  .map((key) => {
+    return [key, ReturnValueTypes[key]];
+  })
+  .reduce((prev, current) => {
+    let [key, value] = current;
+    prev[value] = key;
+    return prev;
+  }, {});
+
+Object.freeze(ReturnValueTypes);
 
 const Operations = {
   /// Begin - Indicative of the start of a operation in a batch, generally
@@ -212,13 +287,25 @@ const Operations = {
   InvokeReturningFunction: 3,
 
   /// InvokeCallbackFunction represents the desire to call a
-  /// function across boundary that takes a callback external reference
+  /// function across boundary that takes a callback internal reference
   /// which it will use to supply appropriate response when ready (say async call)
   /// as response to being called.
+  ///
+  /// The return value to the callback function must always be of the type: [`Returns`].
   ///
   /// Layout format: Begin, 3, FunctionHandle(u64), ArgStart, ArgBegin, ExternReference, ArgEnd, ArgStop,
   ///  End
   InvokeCallbackFunction: 4,
+
+  /// InvokeAsyncCallbackFunction represents the desire to call a
+  /// async function across boundary that takes a callback internal reference
+  /// which it will use to supply appropriate response when ready.
+  ///
+  /// The return value to the callback function must always be of the type: [`Returns`].
+  ///
+  /// Layout format: Begin, 3, FunctionHandle(u64), ArgStart, ArgBegin, ExternReference, ArgEnd, ArgStop,
+  ///  End
+  InvokeAsyncCallbackFunction: 5,
 
   /// End - indicates the end of a portion of a instruction set.
   /// Since an instruction memory array can contain multiple instructions
@@ -703,6 +790,22 @@ class TextCodec {
     this.utf8_encoder = new TextEncoder();
     this.utf8_decoder = new TextDecoder("utf-8");
     this.utf16_decoder = new TextDecoder("utf-16");
+  }
+
+  readShortUTF8FromMemory(start, len) {
+    const memory = new Uint8Array(this.operator.get_memory());
+    const data_slice = memory.subarray(start, start + len);
+    const text = TextCodec.utf8ArrayToStr(data_slice);
+    LOGGER.debug("TextDecoder:utf8ArrayToStr -> ", text);
+    return text;
+  }
+
+  readShortUTF16FromMemory(start, len) {
+    const memory = new Uint8Array(this.operator.get_memory());
+    const bytes = memory.subarray(start, start + len);
+    const text = TextCodec.utf8ArrayToStr(bytes);
+    LOGGER.debug("TextDecoder:utf8ArrayToStr -> ", text);
+    return text;
   }
 
   readUTF8FromMemory(start, len) {
@@ -2671,6 +2774,25 @@ const INVOKE_NO_RETURN = new BatchOperation(
   },
 );
 
+class ReplyInstructions {
+  constructor(memory_operator, text_codec, text_cache) {
+    if (!(memory_operator instanceof MemoryOperator)) {
+      throw new Error("Must be instance of MemoryOperator");
+    }
+    if (!(text_codec instanceof TextCodec)) {
+      throw new Error("Must be instance of TextCodec");
+    }
+    if (!(text_cache instanceof SimpleStringCache)) {
+      throw new Error("Must be instance of SimpleStringCache");
+    }
+
+    this.texts = text_codec;
+    this.text_cache = text_cache;
+    this.operator = memory_operator;
+    this.module = memory_operator.get_module();
+  }
+}
+
 class BatchInstructions {
   constructor(memory_operator, text_codec, text_cache) {
     if (!(memory_operator instanceof MemoryOperator)) {
@@ -2884,12 +3006,20 @@ class MegatronMiddleware {
     // string_cache
     this.string_cache = null;
 
-    // text decoders and memory ops
-    this.texts = null;
-    this.operator = null;
-
     // function parameters
     this.parameter_v1 = null;
+
+    // text decoders and encoder handler
+    this.texts = null;
+
+    // memory operation handler
+    this.operator = null;
+
+    // batch instruction parser
+    this.batch_parser = null;
+
+    // reply instruction parser
+    this.reply_parser = null;
   }
 
   init(wasm_module) {
@@ -2915,11 +3045,17 @@ class MegatronMiddleware {
     // memory operations.
     this.operator = new MemoryOperator(this.module);
 
-    // text codec for text handling
+    // text codec for text handling (encoding & decoding)
     this.texts = new TextCodec(this.operator);
 
     // v1 function parameters handling
     this.parameter_v1 = new ParameterParserV1(
+      this.operator,
+      this.texts,
+      this.string_cache,
+    );
+
+    this.reply_parser = new ReplyInstructions(
       this.operator,
       this.texts,
       this.string_cache,
@@ -3065,11 +3201,13 @@ class MegatronMiddleware {
 
     let target_string;
     if (utf_indicator === 16) {
-      target_string = this.texts.readUTF16FromMemory(start, length);
+      target_string = this.texts.readShortUTF16FromMemory(start, length);
     }
     if (utf_indicator === 8) {
-      target_string = this.texts.readUTF8FromMemory(start, length);
+      target_string = this.texts.readShortUTF8FromMemory(start, length);
     }
+
+    LOGGER.debug(`Generated cache string: ${target_string}`);
 
     if (!target_string) throw new Error("No valid string was provided");
 

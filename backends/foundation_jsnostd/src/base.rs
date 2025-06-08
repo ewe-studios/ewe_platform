@@ -1,39 +1,4 @@
-use alloc::vec::Vec;
-
-/// [`ReturnTypes`] represent the type indicating the underlying returned
-/// value for an operation.
-#[repr(usize)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum ReturnTypes {
-    None = 0,
-    One = 1,
-    Many = 2,
-}
-
-#[allow(clippy::from_over_into)]
-impl Into<u8> for &ReturnTypes {
-    fn into(self) -> u8 {
-        *self as u8
-    }
-}
-
-#[allow(clippy::from_over_into)]
-impl Into<u8> for ReturnTypes {
-    fn into(self) -> u8 {
-        self as u8
-    }
-}
-
-impl From<u8> for ReturnTypes {
-    fn from(value: u8) -> Self {
-        match value {
-            0 => Self::None,
-            1 => Self::One,
-            2 => Self::Many,
-            _ => unreachable!("should not have any other type of ArgumentOperations"),
-        }
-    }
-}
+use alloc::{string::String, vec::Vec};
 
 /// [`TypedSlice`] represent the type of a slice which is sent over.
 /// And helps the receiver know what exactly is represented by a slice of u8 array.
@@ -136,13 +101,231 @@ impl Into<u8> for ValueTypes {
     }
 }
 
+/// [`ReturnValueTypes`] represent the type indicating the underlying returned
+/// value for an operation.
+#[repr(usize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ReturnValueTypes {
+    Bool = 1,
+    Text8 = 2,
+    Int8 = 3,
+    Int16 = 4,
+    Int32 = 5,
+    Int64 = 6,
+    Uint8 = 7,
+    Uint16 = 8,
+    Uint32 = 9,
+    Uint64 = 10,
+    Float32 = 11,
+    Float64 = 12,
+    Int128 = 13,
+    Uint128 = 14,
+    MemorySlice = 15,
+    ExternalReference = 16,
+    InternalReference = 17,
+    Uint8ArrayBuffer = 18,
+    Uint16ArrayBuffer = 19,
+    Uint32ArrayBuffer = 20,
+    Uint64ArrayBuffer = 21,
+    Int8ArrayBuffer = 22,
+    Int16ArrayBuffer = 23,
+    Int32ArrayBuffer = 24,
+    Int64ArrayBuffer = 25,
+    Float32ArrayBuffer = 26,
+    Float64ArrayBuffer = 27,
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for &ReturnValueTypes {
+    fn into(self) -> u8 {
+        *self as u8
+    }
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for ReturnValueTypes {
+    fn into(self) -> u8 {
+        self as u8
+    }
+}
+
+impl From<u8> for ReturnValueTypes {
+    fn from(value: u8) -> Self {
+        match value {
+            1 => Self::Bool,
+            2 => Self::Text8,
+            3 => Self::Int8,
+            4 => Self::Int16,
+            5 => Self::Int32,
+            6 => Self::Int64,
+            7 => Self::Uint8,
+            8 => Self::Uint16,
+            9 => Self::Uint32,
+            10 => Self::Uint64,
+            11 => Self::Float32,
+            12 => Self::Float64,
+            13 => Self::Int128,
+            14 => Self::Uint128,
+            15 => Self::MemorySlice,
+            16 => Self::ExternalReference,
+            17 => Self::InternalReference,
+            18 => Self::Uint8ArrayBuffer,
+            19 => Self::Uint16ArrayBuffer,
+            20 => Self::Uint32ArrayBuffer,
+            21 => Self::Uint64ArrayBuffer,
+            22 => Self::Int8ArrayBuffer,
+            23 => Self::Int16ArrayBuffer,
+            24 => Self::Int32ArrayBuffer,
+            25 => Self::Int64ArrayBuffer,
+            26 => Self::Float32ArrayBuffer,
+            27 => Self::Float64ArrayBuffer,
+            _ => unreachable!("should not have any other type of ArgumentOperations"),
+        }
+    }
+}
+
+/// [`ReturnTypes`] represent the type indicating the underlying returned
+/// value for an operation.
+#[repr(usize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ReturnTypes {
+    None = 0,
+    One = 1,
+    Many = 2,
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for &ReturnTypes {
+    fn into(self) -> u8 {
+        *self as u8
+    }
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for ReturnTypes {
+    fn into(self) -> u8 {
+        self as u8
+    }
+}
+
+impl ReturnTypes {
+    pub fn as_u8(&self) -> u8 {
+        *self as u8
+    }
+}
+
+impl From<u8> for ReturnTypes {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => Self::None,
+            1 => Self::One,
+            2 => Self::Many,
+            _ => unreachable!("should not have any other type of ArgumentOperations"),
+        }
+    }
+}
+
 /// [`Returns`] represent the potential return values of calling a
-/// function across the call boundary, allowing us to flexible represent
-/// the different return values of a function.
-pub enum Returns<'a> {
+/// function
+pub enum Returns {
     None,
-    One(Params<'a>),
-    Many(Vec<Params<'a>>),
+    One(ReturnValues),
+    Many(Vec<ReturnValues>),
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for Returns {
+    fn into(self) -> u8 {
+        self.to_returns_u8()
+    }
+}
+
+impl Returns {
+    pub fn as_u8(&self) -> u8 {
+        self.to_returns_u8()
+    }
+}
+
+impl Returns {
+    pub fn to_returns_u8(&self) -> u8 {
+        self.to_returns_type() as u8
+    }
+
+    pub fn to_returns_type(&self) -> ReturnTypes {
+        match self {
+            Self::None => ReturnTypes::None,
+            Self::One(_) => ReturnTypes::One,
+            Self::Many(_) => ReturnTypes::Many,
+        }
+    }
+}
+
+pub enum ReturnValues {
+    Bool(bool),
+    Float32(f32),
+    Float64(f64),
+    Int8(i8),
+    Int16(i16),
+    Int32(i32),
+    Int64(i64),
+    Int128(i128),
+    Uint8(u8),
+    Uint16(u16),
+    Uint32(u32),
+    Uint64(u64),
+    Uint128(u128),
+    Text8(String),
+    ExternalReference(u64),
+    InternalReference(u64),
+    Int8Array(Vec<i8>),
+    Int16Array(Vec<i16>),
+    Int32Array(Vec<i32>),
+    Int64Array(Vec<i64>),
+    Uint8Array(Vec<u8>),
+    Uint16Array(Vec<u16>),
+    Uint32Array(Vec<u32>),
+    Uint64Array(Vec<u64>),
+    Float32Array(Vec<f32>),
+    Float64Array(Vec<f64>),
+    MemorySlice(MemoryId),
+}
+
+impl ReturnValues {
+    pub fn to_return_value_type_u8(&self) -> u8 {
+        self.to_return_value_type() as u8
+    }
+
+    pub fn to_return_value_type(&self) -> ReturnValueTypes {
+        match self {
+            Self::Bool(_) => ReturnValueTypes::Bool,
+            Self::Float32(_) => ReturnValueTypes::Float32,
+            Self::Float64(_) => ReturnValueTypes::Float64,
+            Self::Int8(_) => ReturnValueTypes::Int8,
+            Self::Int16(_) => ReturnValueTypes::Int16,
+            Self::Int32(_) => ReturnValueTypes::Int32,
+            Self::Int64(_) => ReturnValueTypes::Int64,
+            Self::Int128(_) => ReturnValueTypes::Int128,
+            Self::Uint8(_) => ReturnValueTypes::Uint8,
+            Self::Uint16(_) => ReturnValueTypes::Uint16,
+            Self::Uint32(_) => ReturnValueTypes::Uint32,
+            Self::Uint64(_) => ReturnValueTypes::Uint64,
+            Self::Uint128(_) => ReturnValueTypes::Uint128,
+            Self::Text8(_) => ReturnValueTypes::Text8,
+            Self::MemorySlice(_) => ReturnValueTypes::MemorySlice,
+            Self::Int8Array(_) => ReturnValueTypes::Int8ArrayBuffer,
+            Self::Int16Array(_) => ReturnValueTypes::Int16ArrayBuffer,
+            Self::Int32Array(_) => ReturnValueTypes::Int32ArrayBuffer,
+            Self::Int64Array(_) => ReturnValueTypes::Int64ArrayBuffer,
+            Self::Uint8Array(_) => ReturnValueTypes::Uint8ArrayBuffer,
+            Self::Uint16Array(_) => ReturnValueTypes::Uint16ArrayBuffer,
+            Self::Uint32Array(_) => ReturnValueTypes::Uint32ArrayBuffer,
+            Self::Uint64Array(_) => ReturnValueTypes::Uint64ArrayBuffer,
+            Self::Float32Array(_) => ReturnValueTypes::Float32ArrayBuffer,
+            Self::Float64Array(_) => ReturnValueTypes::Float64ArrayBuffer,
+            Self::ExternalReference(_) => ReturnValueTypes::ExternalReference,
+            Self::InternalReference(_) => ReturnValueTypes::InternalReference,
+        }
+    }
 }
 
 pub enum Params<'a> {
@@ -229,7 +412,7 @@ impl From<f64> for Params<'_> {
 
 impl<'a> From<(u8, &'a [u8])> for Params<'a> {
     fn from((tp, ta): (u8, &'a [u8])) -> Self {
-        Params::TypedArraySlice(tp.into < TypedSlice(), ta)
+        Params::TypedArraySlice(tp.into(), ta)
     }
 }
 
@@ -563,6 +746,8 @@ pub enum Operations {
     /// defined type matching [`ReturnType`]
     /// in response to being called.
     ///
+    /// The return value to the callback function must always be of the type: [`Returns`].
+    ///
     /// It has two layout formats:
     ///
     /// A. with no argument: Begin, 3, FunctionHandle(u64), ReturnType, End
@@ -571,34 +756,25 @@ pub enum Operations {
     InvokeReturningFunction = 3,
 
     /// InvokeCallbackFunction represents the desire to call a
-    /// function across boundary that takes a callback external reference
+    /// function across boundary that takes a callback internal reference
     /// which it will use to supply appropriate response when ready (say async call)
     /// as response to being called.
+    ///
+    /// The return value to the callback function must always be of the type: [`Returns`].
     ///
     /// Layout format: Begin, 3, FunctionHandle(u64), ArgStart, ArgBegin, ExternReference, ArgEnd, ArgStop,
     ///  End
     InvokeCallbackFunction = 4,
 
     /// InvokeAsyncCallbackFunction represents the desire to call a
-    /// async function across boundary that takes a callback external reference
-    /// which it will use to supply appropriate response when ready (say async call)
-    /// as response to being called.
+    /// async function across boundary that takes a callback internal reference
+    /// which it will use to supply appropriate response when ready.
+    ///
+    /// The return value to the callback function must always be of the type: [`Returns`].
     ///
     /// Layout format: Begin, 3, FunctionHandle(u64), ArgStart, ArgBegin, ExternReference, ArgEnd, ArgStop,
     ///  End
-    InvokeAsyncCallbackFunction = 4,
-
-    /// InvokeAsyncReturningFunction represents the desire to call a
-    /// async function across boundary that returns a value of
-    /// defined type matching [`ReturnType`]
-    /// in response to being called.
-    ///
-    /// It has two layout formats:
-    ///
-    /// A. with no argument: Begin, 3, FunctionHandle(u64), ReturnType, End
-    ///
-    /// B. with arguments: Begin, 3, FunctionHandle(u64), ReturnType, Arguments*, End
-    InvokeAsyncReturningFunction = 3,
+    InvokeAsyncCallbackFunction = 5,
 
     /// End - indicates the end of a portion of a instruction set.
     /// Since an instruction memory array can contain multiple instructions
