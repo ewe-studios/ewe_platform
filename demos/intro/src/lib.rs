@@ -21,6 +21,8 @@ extern "C" fn main() {
         console_log.invoke(&[Params::Text8(e.to_string().as_str())]);
     }));
 
+    let _ = host_runtime::api_v1::cache_text("alex");
+
     let console_log_id = host_runtime::api_v2::preallocate_func_external_reference();
     let instructions = internal_api::create_instructions(100, 100);
     instructions
