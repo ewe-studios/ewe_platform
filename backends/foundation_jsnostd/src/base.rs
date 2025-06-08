@@ -1,5 +1,40 @@
 use alloc::vec::Vec;
 
+/// [`ReturnTypes`] represent the type indicating the underlying returned
+/// value for an operation.
+#[repr(usize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ReturnTypes {
+    None = 0,
+    One = 1,
+    Many = 2,
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for &ReturnTypes {
+    fn into(self) -> u8 {
+        *self as u8
+    }
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for ReturnTypes {
+    fn into(self) -> u8 {
+        self as u8
+    }
+}
+
+impl From<u8> for ReturnTypes {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => Self::None,
+            1 => Self::One,
+            2 => Self::Many,
+            _ => unreachable!("should not have any other type of ArgumentOperations"),
+        }
+    }
+}
+
 /// [`TypedSlice`] represent the type of a slice which is sent over.
 /// And helps the receiver know what exactly is represented by a slice of u8 array.
 #[repr(usize)]
@@ -101,6 +136,15 @@ impl Into<u8> for ValueTypes {
     }
 }
 
+/// [`Returns`] represent the potential return values of calling a
+/// function across the call boundary, allowing us to flexible represent
+/// the different return values of a function.
+pub enum Returns<'a> {
+    None,
+    One(Params<'a>),
+    Many(Vec<Params<'a>>),
+}
+
 pub enum Params<'a> {
     Undefined,
     Null,
@@ -185,7 +229,7 @@ impl From<f64> for Params<'_> {
 
 impl<'a> From<(u8, &'a [u8])> for Params<'a> {
     fn from((tp, ta): (u8, &'a [u8])) -> Self {
-        Params::TypedArraySlice(tp.into(), ta)
+        Params::TypedArraySlice(tp.into < TypedSlice(), ta)
     }
 }
 
@@ -534,6 +578,27 @@ pub enum Operations {
     /// Layout format: Begin, 3, FunctionHandle(u64), ArgStart, ArgBegin, ExternReference, ArgEnd, ArgStop,
     ///  End
     InvokeCallbackFunction = 4,
+
+    /// InvokeAsyncCallbackFunction represents the desire to call a
+    /// async function across boundary that takes a callback external reference
+    /// which it will use to supply appropriate response when ready (say async call)
+    /// as response to being called.
+    ///
+    /// Layout format: Begin, 3, FunctionHandle(u64), ArgStart, ArgBegin, ExternReference, ArgEnd, ArgStop,
+    ///  End
+    InvokeAsyncCallbackFunction = 4,
+
+    /// InvokeAsyncReturningFunction represents the desire to call a
+    /// async function across boundary that returns a value of
+    /// defined type matching [`ReturnType`]
+    /// in response to being called.
+    ///
+    /// It has two layout formats:
+    ///
+    /// A. with no argument: Begin, 3, FunctionHandle(u64), ReturnType, End
+    ///
+    /// B. with arguments: Begin, 3, FunctionHandle(u64), ReturnType, Arguments*, End
+    InvokeAsyncReturningFunction = 3,
 
     /// End - indicates the end of a portion of a instruction set.
     /// Since an instruction memory array can contain multiple instructions
