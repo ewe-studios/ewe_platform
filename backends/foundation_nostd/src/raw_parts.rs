@@ -46,12 +46,12 @@ pub struct RawParts<T> {
     ///
     /// This value is the same as the value returned by [`Vec::len`] in the
     /// source vector.
-    pub length: usize,
+    pub length: u64,
     /// The number of elements the source vector can hold without reallocating.
     ///
     /// This value is the same as the value returned by [`Vec::capacity`] in the
     /// source vector.
-    pub capacity: usize,
+    pub capacity: u64,
 }
 
 impl<T> From<Vec<T>> for RawParts<T> {
@@ -145,8 +145,8 @@ impl<T> RawParts<T> {
 
         Self {
             ptr,
-            length,
-            capacity,
+            length: length as u64,
+            capacity: capacity as u64,
         }
     }
 
@@ -240,7 +240,7 @@ impl<T> RawParts<T> {
         //
         // The safety invariants that callers must uphold when calling `from` match
         // the safety invariants of `Vec::from_raw_parts`.
-        unsafe { Vec::from_raw_parts(ptr, length, capacity) }
+        unsafe { Vec::from_raw_parts(ptr, length as usize, capacity as usize) }
     }
 }
 

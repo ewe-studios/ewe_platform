@@ -2815,7 +2815,7 @@ const Megatron = (function () {
     },
   );
 
-  class ReplyInstructions {
+  class Reply {
     constructor(memory_operator, text_codec, text_cache) {
       if (!(memory_operator instanceof MemoryOperator)) {
         throw new Error("Must be instance of MemoryOperator");
@@ -2831,9 +2831,12 @@ const Megatron = (function () {
       this.text_cache = text_cache;
       this.operator = memory_operator;
       this.module = memory_operator.get_module();
+
+      this.reply_types = {};
+      this.reply_types[ReturnValueTypes.Bool] = Reply.encodeBool;
     }
 
-    send(internal_poiinter, values) {
+    send(internal_pointer, values) {
       // send these to wasm targeting the callback handler
       LOGGER.debug(
         `Sending values: ${values} to callback pointer: ${internal_pointer}`,
@@ -2841,7 +2844,485 @@ const Megatron = (function () {
     }
 
     encode(values) {
-      const content = [];
+      if (!(values instanceof Array)) {
+        throw new Error("values must be a list/array");
+      }
+
+      // create our content byte buffer
+      const initial_bytes_size = 80;
+      const content = new ArrayBuffer(initial_bytes_size);
+
+      // create our view for setting up values correctly.
+      const view = new DataView(content);
+
+      let offset = 0;
+      for (let index = 0; i < values.length; i++) {
+        const value = values[index];
+        if (isUndefinedOrNull(value.type)) {
+          throw new Error("Reply types must have a type id");
+        }
+
+        const encoder = this.getEncoder(value);
+        offset = encoder(offset, value, view);
+      }
+
+      LOGGER.debug(
+        `Finished encoding data with initial_size=${initial_bytes_size} and encoded_size=${offset}`,
+      );
+      if (offset < initial_bytes_size) {
+        content.resize(offset);
+      }
+
+      return content;
+    }
+
+    getEncoder(directive) {
+      if (!(directive.type in ReturnValueTypes.__INVERSE__)) {
+        throw new Error(`Unknown Reply encode type id: ${directive.type}`);
+      }
+      return ReturnValueTypes.__INVERSE__[directive.type];
+    }
+
+    static encodeFloat64ArrayBuffer(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeFloat32ArrayBuffer(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeInt64ArrayBuffer(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeInt32ArrayBuffer(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeInt16ArrayBuffer(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeInt8ArrayBuffer(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeUint64ArrayBuffer(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeUint32ArrayBuffer(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeUint16ArrayBuffer(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeUint8ArrayBuffer(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeInternalReference(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeExternalReference(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeMemorySlice(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeInt128(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeUint128(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeFloat32(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeFloat64(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeBigUint64(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeUint32(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeUint16(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeUint8(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeBigInt64(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeInt32(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeInt16(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeInt8(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeText8(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      return offset;
+    }
+
+    static encodeBool(offset, directive, view) {
+      if (directive.type != ReturnValueTypes.Bool) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      view.setUint8(offset, directive.type);
+      offset += Move.MOVE_BY_1_BYTES;
+
+      view.setUint8(offset, directive.value == true ? 1 : 0);
+      offset += Move.MOVE_BY_1_BYTES;
+
+      return offset;
+    }
+
+    static asFloat64Array(value) {
+      if (value instanceof Float64Array) {
+        throw new Error("Value must be Float64Array");
+      }
+      return Reply.asValue(ReturnValueTypes.Float64ArrayBuffer, value);
+    }
+
+    static asFloat32Array(value) {
+      if (value instanceof Float32Array) {
+        throw new Error("Value must be Float32Array");
+      }
+      return Reply.asValue(ReturnValueTypes.Float32ArrayBuffer, value);
+    }
+
+    static asInt64Array(value) {
+      if (value instanceof Int64Array) {
+        throw new Error("Value must be Int64Array");
+      }
+      return Reply.asValue(ReturnValueTypes.Int64ArrayBuffer, value);
+    }
+
+    static asInt32Array(value) {
+      if (value instanceof Int32Array) {
+        throw new Error("Value must be Int32Array");
+      }
+      return Reply.asValue(ReturnValueTypes.Int32ArrayBuffer, value);
+    }
+
+    static asInt16Array(value) {
+      if (value instanceof Int16Array) {
+        throw new Error("Value must be Int16Array");
+      }
+      return Reply.asValue(ReturnValueTypes.Int16ArrayBuffer, value);
+    }
+
+    static asInt8Array(value) {
+      if (value instanceof Int8Array) {
+        throw new Error("Value must be Int8Array");
+      }
+      return Reply.asValue(ReturnValueTypes.Int8ArrayBuffer, value);
+    }
+
+    static asUint64Array(value) {
+      if (value instanceof Uint64Array) {
+        throw new Error("Value must be Uint64Array");
+      }
+      return Reply.asValue(ReturnValueTypes.Uint64ArrayBuffer, value);
+    }
+
+    static asUint32Array(value) {
+      if (value instanceof Uint32Array) {
+        throw new Error("Value must be Uint32Array");
+      }
+      return Reply.asValue(ReturnValueTypes.Uint32ArrayBuffer, value);
+    }
+
+    static asUint16Array(value) {
+      if (value instanceof Uint16Array) {
+        throw new Error("Value must be Uint16Array");
+      }
+      return Reply.asValue(ReturnValueTypes.Uint16ArrayBuffer, value);
+    }
+
+    static asUint8Array(value) {
+      if (value instanceof Uint8Array) {
+        throw new Error("Value must be Uint8Array");
+      }
+      return Reply.asValue(ReturnValueTypes.Uint8ArrayBuffer, value);
+    }
+
+    static asMemorySlice(value) {
+      if (typeof value !== "bigint") {
+        throw new Error("Value must be bigint");
+      }
+      return Reply.asValue(ReturnValueTypes.MemorySlice, value);
+    }
+
+    static asInternalReference(value) {
+      if (value instanceof InternalPointer && typeof value !== "bigint") {
+        throw new Error("Value must be bigint/InternalPointer");
+      }
+      if (value instanceof InternalPointer) {
+        return Reply.asValue(ReturnValueTypes.InternalReference, value.value);
+      }
+      return Reply.asValue(ReturnValueTypes.InternalReference, value);
+    }
+
+    static asExternalReference(value) {
+      if (value instanceof ExternalPointer && typeof value !== "bigint") {
+        throw new Error("Value must be bigint/ExternalPointer");
+      }
+      if (value instanceof ExternalPointer) {
+        return Reply.asValue(ReturnValueTypes.ExternalReference, value.value);
+      }
+      return Reply.asValue(ReturnValueTypes.ExternalReference, value);
+    }
+
+    static asMemorySlice(value) {
+      if (typeof value !== "bigint") {
+        throw new Error("Value must be bigint");
+      }
+      return Reply.asValue(ReturnValueTypes.MemorySlice, value);
+    }
+
+    static asFloat64(value) {
+      if (typeof value !== "number") {
+        throw new Error("Value must be float64");
+      }
+      return Reply.asValue(ReturnValueTypes.Float64, value);
+    }
+
+    static asFloat32(value) {
+      if (typeof value !== "number") {
+        throw new Error("Value must be float32");
+      }
+      return Reply.asValue(ReturnValueTypes.Float32, value);
+    }
+
+    static asInt128(value_lsb, value_msb) {
+      if (typeof value !== "bigint") {
+        throw new Error("Value must be bigint for 128bit number");
+      }
+      return Reply.asValue(ReturnValueTypes.Int128, {
+        value_lsb,
+        value_msb,
+      });
+    }
+
+    static asUint128(value_lsb, value_msb) {
+      if (typeof value !== "bigint") {
+        throw new Error("Value must be bigint for 128bit number");
+      }
+      return Reply.asValue(ReturnValueTypes.Uint128, {
+        value_lsb,
+        value_msb,
+      });
+    }
+
+    static asUint64(value) {
+      if (typeof value !== "number" && typeof value !== "bigint") {
+        throw new Error("Value must be int64/bigint");
+      }
+      return Reply.asValue(ReturnValueTypes.Uint64, value);
+    }
+
+    static asUint32(value) {
+      if (typeof value !== "number") {
+        throw new Error("Value must be int32");
+      }
+      return Reply.asValue(ReturnValueTypes.Uint32, value);
+    }
+
+    static asUint16(value) {
+      if (typeof value !== "number") {
+        throw new Error("Value must be int16");
+      }
+      return Reply.asValue(ReturnValueTypes.Uint16, value);
+    }
+
+    static asUint8(value) {
+      if (typeof value !== "number") {
+        throw new Error("Value must be int8");
+      }
+      return Reply.asValue(ReturnValueTypes.Uint8, value);
+    }
+
+    static asInt64(value) {
+      if (typeof value !== "number") {
+        throw new Error("Value must be int64");
+      }
+      return Reply.asValue(ReturnValueTypes.Int64, value);
+    }
+
+    static asInt32(value) {
+      if (typeof value !== "number") {
+        throw new Error("Value must be int32");
+      }
+      return Reply.asValue(ReturnValueTypes.Int32, value);
+    }
+
+    static asInt16(value) {
+      if (typeof value !== "number") {
+        throw new Error("Value must be int16");
+      }
+      return Reply.asValue(ReturnValueTypes.Int16, value);
+    }
+
+    static asInt8(value) {
+      if (typeof value !== "number") {
+        throw new Error("Value must be int8");
+      }
+      return Reply.asValue(ReturnValueTypes.Int8, value);
+    }
+
+    static asText8(value) {
+      if (typeof value !== "string") {
+        throw new Error("Value must be string");
+      }
+      return Reply.asValue(ReturnValueTypes.Text8, value);
+    }
+
+    static asBool(value) {
+      if (typeof value !== "boolean") {
+        throw new Error("Value must be bool/boolean");
+      }
+      return Reply.asValue(ReturnValueTypes.Bool, value);
+    }
+
+    // asValue provides a clear indicator of what type the giving return value is
+    // which provides an important metadata for encoding.
+    static asValue(return_type, value) {
+      if (!(return_type in ReturnValueTypes.__INVERSE__)) {
+        throw new Error(
+          `ReturnValueTypes ${return_type} is not known for value_type: ${return_type}`,
+        );
+      }
+
+      return { type: return_type, value };
     }
   }
 
@@ -3107,7 +3588,7 @@ const Megatron = (function () {
         this.string_cache,
       );
 
-      this.reply_parser = new ReplyInstructions(
+      this.reply_parser = new Reply(
         this.operator,
         this.texts,
         this.string_cache,
@@ -3661,28 +4142,40 @@ const Megatron = (function () {
   };
 
   return {
+    // Base loggers and types
     LOGGER,
     LEVELS,
     Move,
     Params,
     Operations,
+    ReturnTypes,
+    ReturnValueTypes,
+    TypedSlice,
+    ArgumentOperations,
+    TypeOptimization,
+
+    // Support classes and functions
     CachePointer,
     ExternalPointer,
     InternalPointer,
-    TypedSlice,
     TypedArraySlice,
-    ArgumentOperations,
-    TypeOptimization,
     DOMArena,
     TextCodec,
     WASMLoader,
     ArenaAllocator,
     MemoryOperator,
-    WasmWebScripts,
+
+    // Arguments parsers (immediate and batch)
     ParameterParserV1,
     ParameterParserV2,
     BatchInstructions,
+
+    // Returns and Result replies
+    Reply,
+
+    // Core classes and managers
     MegatronMiddleware,
+    WasmWebScripts,
   };
 })();
 

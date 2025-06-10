@@ -283,7 +283,7 @@ pub mod host_runtime {
             pub fn js_invoke_function_and_return_dom(
                 handler: u64,
                 parameters_start: *const u8,
-                parameters_length: usize,
+                parameters_length: u64,
             ) -> u64;
 
             // invokes a javascript function across the host boundary ABI and returns
@@ -293,7 +293,7 @@ pub mod host_runtime {
             pub fn js_invoke_function_and_return_object(
                 handler: u64,
                 parameters_start: *const u8,
-                parameters_length: usize,
+                parameters_length: u64,
             ) -> u64;
 
             // invokes a javascript function across the host boundary ABI and returns
@@ -301,7 +301,7 @@ pub mod host_runtime {
             pub fn js_invoke_function_and_return_float32(
                 handler: u64,
                 parameters_start: *const u8,
-                parameters_length: usize,
+                parameters_length: u64,
             ) -> f32;
 
             // invokes a javascript function across the host boundary ABI and returns
@@ -309,7 +309,7 @@ pub mod host_runtime {
             pub fn js_invoke_function_and_return_float64(
                 handler: u64,
                 parameters_start: *const u8,
-                parameters_length: usize,
+                parameters_length: u64,
             ) -> f64;
 
             // invokes a javascript function across the host boundary ABI and returns
@@ -317,7 +317,7 @@ pub mod host_runtime {
             pub fn js_invoke_function_and_return_int8(
                 handler: u64,
                 parameters_start: *const u8,
-                parameters_length: usize,
+                parameters_length: u64,
             ) -> u8;
 
             // invokes a javascript function across the host boundary ABI and returns
@@ -325,7 +325,7 @@ pub mod host_runtime {
             pub fn js_invoke_function_and_return_int16(
                 handler: u64,
                 parameters_start: *const u8,
-                parameters_length: usize,
+                parameters_length: u64,
             ) -> u16;
 
             // invokes a javascript function across the host boundary ABI and returns
@@ -333,7 +333,7 @@ pub mod host_runtime {
             pub fn js_invoke_function_and_return_int32(
                 handler: u64,
                 parameters_start: *const u8,
-                parameters_length: usize,
+                parameters_length: u64,
             ) -> u32;
 
             // invokes a javascript function across the host boundary ABI and returns
@@ -341,7 +341,7 @@ pub mod host_runtime {
             pub fn js_invoke_function_and_return_bigint(
                 handler: u64,
                 parameters_start: *const u8,
-                parameters_length: usize,
+                parameters_length: u64,
             ) -> u64;
 
             // invokes a javascript function across the host boundary ABI and returns
@@ -349,7 +349,7 @@ pub mod host_runtime {
             pub fn js_invoke_function_and_return_string(
                 handler: u64,
                 parameters_start: *const u8,
-                parameters_length: usize,
+                parameters_length: u64,
             ) -> u64;
 
             // invokes a javascript function across the host boundary ABI and returns
@@ -357,7 +357,7 @@ pub mod host_runtime {
             pub fn js_invoke_function_and_return_bool(
                 handler: u64,
                 parameters_start: *const u8,
-                parameters_length: usize,
+                parameters_length: u64,
             ) -> u8;
 
             // invokes a Javascript function across the WASM/RUST ABI
@@ -367,8 +367,22 @@ pub mod host_runtime {
             pub fn js_invoke_function(
                 handler: u64,
                 parameters_start: *const u8,
-                parameters_length: usize,
+                parameters_length: u64,
             );
+
+            // invokes a Javascript function across the WASM/RUST ABI
+            // allowing you to specify the memory location for both outgoing
+            // parameters and also return type expectation which
+            // then returns the allocation_id (as f64) that can
+            // be used to get the related allocation vector
+            // from the global allocations.
+            pub fn host_invoke_function(
+                handler: u64,
+                parameters_start: *const u8,
+                parameters_length: usize,
+                returns_start: *const u8,
+                returns_length: u64,
+            ) -> u64;
         }
 
         // [`Droppable`] creates a reference that when drops will
