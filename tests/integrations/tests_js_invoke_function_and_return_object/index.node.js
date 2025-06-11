@@ -21,8 +21,7 @@ describe("Megatron.js_invoke_function", async () => {
   runtime.mock = mock;
 
   const wasm_module = await WebAssembly.instantiate(wasm_buffer, {
-    v1: runtime.v1_mappings,
-    v2: runtime.v2_mappings,
+    abi: runtime.web_abi,
   });
   runtime.init(wasm_module);
 

@@ -160,11 +160,13 @@ pub mod host_runtime {
     pub const DOM_DOCUMENT: ExternalPointer = ExternalPointer::pointer(3);
     pub const DOM_BODY: ExternalPointer = ExternalPointer::pointer(4);
 
-    // -- Data Information
-    pub mod api_v2 {
+    // -- Functions (Invocation & Registration)
+    pub mod web {
+        use crate::{CachedText, MemoryAllocationResult};
+
         use super::*;
 
-        #[link(wasm_import_module = "v2")]
+        #[link(wasm_import_module = "abi")]
         extern "C" {
             // [`apply_instructions`] takes a location in memory that has a batch of operations
             // which match the [`crate::Operations`] outlined in the batching API the
@@ -194,66 +196,7 @@ pub mod host_runtime {
             /// you the owner. This allows you get an id you would use later in the future to register
             /// for usage later.
             pub fn dom_allocate_external_pointer() -> u64;
-        }
 
-        /// [`preallocate_dom_external_reference`] requests the host runtime to pre-allocate
-        /// a target external reference for usage by the caller for a dom node.
-        pub fn preallocate_dom_external_reference() -> ExternalPointer {
-            unsafe {
-                ExternalPointer::pointer(host_runtime::api_v2::dom_allocate_external_pointer())
-            }
-        }
-
-        /// [`preallocate_func_external_reference`] requests the host runtime to pre-allocate
-        /// a target external reference for usage by the caller for a function.
-        pub fn preallocate_func_external_reference() -> ExternalPointer {
-            unsafe {
-                ExternalPointer::pointer(host_runtime::api_v2::function_allocate_external_pointer())
-            }
-        }
-
-        /// [`preallocate_object_external_reference`] requests the host runtime to pre-allocate
-        /// a target external reference for usage by the caller for an object.
-        pub fn preallocate_object_external_reference() -> ExternalPointer {
-            unsafe {
-                ExternalPointer::pointer(host_runtime::api_v2::object_allocate_external_pointer())
-            }
-        }
-
-        /// [`send_instructions`] sends a [`CompletedInstructions`] batch over to the host runtime.
-        pub fn send_instructions(instruction: CompletedInstructions) {
-            let operations_memory = internal_api::get_memory(instruction.ops_id);
-            let text_memory = internal_api::get_memory(instruction.text_id);
-
-            let (ops_pointer, ops_length) =
-                operations_memory.as_address().expect("get ops address");
-            let (text_pointer, text_length) = text_memory.as_address().expect("get text address");
-
-            unsafe {
-                host_runtime::api_v2::apply_instructions(
-                    ops_pointer as u64,
-                    ops_length,
-                    text_pointer as u64,
-                    text_length,
-                )
-            }
-        }
-
-        /// [`complete_instructions`] completes and sends a [`Instructions`] batch over to the host runtime.
-        pub fn complete_instructions(instruction: Instructions) {
-            let completed = instruction.complete().expect("complete instruction");
-            host_runtime::api_v2::send_instructions(completed);
-        }
-    }
-
-    // -- Functions (Invocation & Registration)
-    pub mod api_v1 {
-        use crate::{CachedText, MemoryAllocationResult};
-
-        use super::*;
-
-        #[link(wasm_import_module = "v1")]
-        extern "C" {
             //  [`js_drop_reference`] Provides a way to inform the need to drop a outside cached reference
             //  used for execution, e.g JSFunction or some other referential type.
             pub fn js_drop_reference(external_reference_id: u64);
@@ -398,7 +341,7 @@ pub mod host_runtime {
         impl Drop for Droppable {
             fn drop(&mut self) {
                 unsafe {
-                    host_runtime::api_v1::js_drop_reference(self.0.into_inner());
+                    host_runtime::web::js_drop_reference(self.0.into_inner());
                 }
             }
         }
@@ -413,6 +356,53 @@ pub mod host_runtime {
             fn from(value: u64) -> Self {
                 Self(value.into())
             }
+        }
+
+        /// [`preallocate_dom_external_reference`] requests the host runtime to pre-allocate
+        /// a target external reference for usage by the caller for a dom node.
+        pub fn preallocate_dom_external_reference() -> ExternalPointer {
+            unsafe { ExternalPointer::pointer(host_runtime::web::dom_allocate_external_pointer()) }
+        }
+
+        /// [`preallocate_func_external_reference`] requests the host runtime to pre-allocate
+        /// a target external reference for usage by the caller for a function.
+        pub fn preallocate_func_external_reference() -> ExternalPointer {
+            unsafe {
+                ExternalPointer::pointer(host_runtime::web::function_allocate_external_pointer())
+            }
+        }
+
+        /// [`preallocate_object_external_reference`] requests the host runtime to pre-allocate
+        /// a target external reference for usage by the caller for an object.
+        pub fn preallocate_object_external_reference() -> ExternalPointer {
+            unsafe {
+                ExternalPointer::pointer(host_runtime::web::object_allocate_external_pointer())
+            }
+        }
+
+        /// [`send_instructions`] sends a [`CompletedInstructions`] batch over to the host runtime.
+        pub fn send_instructions(instruction: CompletedInstructions) {
+            let operations_memory = internal_api::get_memory(instruction.ops_id);
+            let text_memory = internal_api::get_memory(instruction.text_id);
+
+            let (ops_pointer, ops_length) =
+                operations_memory.as_address().expect("get ops address");
+            let (text_pointer, text_length) = text_memory.as_address().expect("get text address");
+
+            unsafe {
+                host_runtime::web::apply_instructions(
+                    ops_pointer as u64,
+                    ops_length,
+                    text_pointer as u64,
+                    text_length,
+                )
+            }
+        }
+
+        /// [`complete_instructions`] completes and sends a [`Instructions`] batch over to the host runtime.
+        pub fn complete_instructions(instruction: Instructions) {
+            let completed = instruction.complete().expect("complete instruction");
+            host_runtime::web::send_instructions(completed);
         }
 
         /// [`cached_text`] provides a way to have the host runtime cache an expense
@@ -435,7 +425,7 @@ pub mod host_runtime {
             let start = code.as_ptr() as usize;
             let len = code.len();
             unsafe {
-                CachedText::pointer(host_runtime::api_v1::js_cache_string(
+                CachedText::pointer(host_runtime::web::js_cache_string(
                     start as u64,
                     len as u64,
                     JSEncoding::UTF8.into(),
@@ -451,7 +441,7 @@ pub mod host_runtime {
             let len = code.len();
             unsafe {
                 JSFunction {
-                    handler: host_runtime::api_v1::js_register_function(
+                    handler: host_runtime::web::js_register_function(
                         start as u64,
                         len as u64,
                         JSEncoding::UTF8.into(),
@@ -469,7 +459,7 @@ pub mod host_runtime {
             let len = code.len();
             unsafe {
                 JSFunction {
-                    handler: host_runtime::api_v1::js_register_function(
+                    handler: host_runtime::web::js_register_function(
                         start as u64,
                         len as u64,
                         JSEncoding::UTF16.into(),
@@ -500,7 +490,7 @@ pub mod host_runtime {
                     length,
                     capacity: _,
                 } = RawParts::from_vec(param_bytes);
-                unsafe { host_runtime::api_v1::js_invoke_function(self.handler, ptr, length) };
+                unsafe { host_runtime::web::js_invoke_function(self.handler, ptr, length) };
             }
 
             /// [`invoke_for_bool`] invokes a javascript function registered at the given handle
@@ -516,7 +506,7 @@ pub mod host_runtime {
                     capacity: _,
                 } = RawParts::from_vec(param_bytes);
                 unsafe {
-                    match host_runtime::api_v1::js_invoke_function_and_return_bool(
+                    match host_runtime::web::js_invoke_function_and_return_bool(
                         self.handler,
                         ptr,
                         length,
@@ -537,11 +527,7 @@ pub mod host_runtime {
                     capacity: _,
                 } = RawParts::from_vec(param_bytes);
                 unsafe {
-                    host_runtime::api_v1::js_invoke_function_and_return_int8(
-                        self.handler,
-                        ptr,
-                        length,
-                    )
+                    host_runtime::web::js_invoke_function_and_return_int8(self.handler, ptr, length)
                 }
             }
 
@@ -555,7 +541,7 @@ pub mod host_runtime {
                     capacity: _,
                 } = RawParts::from_vec(param_bytes);
                 unsafe {
-                    host_runtime::api_v1::js_invoke_function_and_return_int16(
+                    host_runtime::web::js_invoke_function_and_return_int16(
                         self.handler,
                         ptr,
                         length,
@@ -573,7 +559,7 @@ pub mod host_runtime {
                     capacity: _,
                 } = RawParts::from_vec(param_bytes);
                 unsafe {
-                    host_runtime::api_v1::js_invoke_function_and_return_int32(
+                    host_runtime::web::js_invoke_function_and_return_int32(
                         self.handler,
                         ptr,
                         length,
@@ -591,7 +577,7 @@ pub mod host_runtime {
                     capacity: _,
                 } = RawParts::from_vec(param_bytes);
                 unsafe {
-                    host_runtime::api_v1::js_invoke_function_and_return_float64(
+                    host_runtime::web::js_invoke_function_and_return_float64(
                         self.handler,
                         ptr,
                         length,
@@ -609,7 +595,7 @@ pub mod host_runtime {
                     capacity: _,
                 } = RawParts::from_vec(param_bytes);
                 unsafe {
-                    host_runtime::api_v1::js_invoke_function_and_return_float32(
+                    host_runtime::web::js_invoke_function_and_return_float32(
                         self.handler,
                         ptr,
                         length,
@@ -629,7 +615,7 @@ pub mod host_runtime {
                     capacity: _,
                 } = RawParts::from_vec(param_bytes);
                 unsafe {
-                    host_runtime::api_v1::js_invoke_function_and_return_bigint(
+                    host_runtime::web::js_invoke_function_and_return_bigint(
                         self.handler,
                         ptr,
                         length,
@@ -648,7 +634,7 @@ pub mod host_runtime {
                     capacity: _,
                 } = RawParts::from_vec(param_bytes);
                 unsafe {
-                    let mem_id = host_runtime::api_v1::js_invoke_function_and_return_string(
+                    let mem_id = host_runtime::web::js_invoke_function_and_return_string(
                         self.handler,
                         ptr,
                         length,
@@ -679,12 +665,8 @@ pub mod host_runtime {
                     capacity: _,
                 } = RawParts::from_vec(param_bytes);
                 unsafe {
-                    host_runtime::api_v1::js_invoke_function_and_return_dom(
-                        self.handler,
-                        ptr,
-                        length,
-                    )
-                    .into()
+                    host_runtime::web::js_invoke_function_and_return_dom(self.handler, ptr, length)
+                        .into()
                 }
             }
 
@@ -700,7 +682,7 @@ pub mod host_runtime {
                     capacity: _,
                 } = RawParts::from_vec(param_bytes);
                 unsafe {
-                    host_runtime::api_v1::js_invoke_function_and_return_object(
+                    host_runtime::web::js_invoke_function_and_return_object(
                         self.handler,
                         ptr,
                         length,
@@ -712,7 +694,7 @@ pub mod host_runtime {
             /// [`unregister_function`] calls the JS ABI on the host to de-register
             /// the target function.
             pub fn unregister(self) {
-                unsafe { host_runtime::api_v1::js_unregister_function(self.handler) }
+                unsafe { host_runtime::web::js_unregister_function(self.handler) }
             }
         }
     }

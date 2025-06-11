@@ -8,7 +8,8 @@ use alloc::vec::Vec;
 use crate::{
     value_quantitization, ArgumentOperations, BatchEncodable, Batchable, CompletedInstructions,
     ExternalPointer, InternalPointer, MemoryAllocation, MemoryAllocationResult, MemoryAllocations,
-    MemoryId, MemorySlot, MemoryWriterError, MemoryWriterResult, ToBinary, TypeOptimization,
+    MemoryId, MemorySlot, MemoryWriterError, MemoryWriterResult, ReturnTypes, Returns, ToBinary,
+    TypeOptimization,
 };
 
 use super::{Operations, Params, StrLocation, ValueTypes};
@@ -83,6 +84,8 @@ impl<'a> ToBinary for &'a [Params<'a>] {
         encoded_params
     }
 }
+
+impl ToBinary for Returns {}
 
 impl ToBinary for Params<'_> {
     fn to_binary(&self) -> Vec<u8> {

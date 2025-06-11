@@ -142,3 +142,4 @@ dist
 .pnp.*
 .bacon-locations
 bacon-ls.log
+.aider*

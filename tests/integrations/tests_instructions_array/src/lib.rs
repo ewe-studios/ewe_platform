@@ -8,9 +8,9 @@ use foundation_nostd::*;
 
 #[no_mangle]
 extern "C" fn main() {
-    let cached_id = host_runtime::api_v1::cache_text("alex");
+    let cached_id = host_runtime::web::cache_text("alex");
 
-    let console_log_id = host_runtime::api_v2::preallocate_func_external_reference();
+    let console_log_id = host_runtime::web::preallocate_func_external_reference();
     let instructions = internal_api::create_instructions(100, 100);
     instructions
         .register_function(
@@ -45,5 +45,5 @@ extern "C" fn main() {
         )
         .expect("encode instruction");
 
-    host_runtime::api_v2::send_instructions(instructions.complete().expect("complete instruction"));
+    host_runtime::web::send_instructions(instructions.complete().expect("complete instruction"));
 }

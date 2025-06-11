@@ -8,7 +8,7 @@ use foundation_nostd::*;
 
 #[no_mangle]
 extern "C" fn main() {
-    let console_log = host_runtime::api_v1::register_function(
+    let console_log = host_runtime::web::register_function(
         r"
         function(message){
             console.log('Error occurred: ',message);
@@ -19,8 +19,8 @@ extern "C" fn main() {
         console_log.invoke(&[Params::Text8(e.to_string().as_str())]);
     }));
 
-    let hello_id = host_runtime::api_v1::cache_text("hello");
-    let return_arg = host_runtime::api_v1::register_function(
+    let hello_id = host_runtime::web::cache_text("hello");
+    let return_arg = host_runtime::web::register_function(
         r"
         function(v1){
             const ret = this.mock.returnArg(v1);
