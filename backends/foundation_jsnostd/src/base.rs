@@ -105,7 +105,8 @@ impl Into<u8> for ValueTypes {
 /// value for an operation.
 #[repr(usize)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum ReturnValueTypes {
+pub enum ReturnTypeId {
+    None = 0,
     Bool = 1,
     Text8 = 2,
     Int8 = 3,
@@ -136,20 +137,20 @@ pub enum ReturnValueTypes {
 }
 
 #[allow(clippy::from_over_into)]
-impl Into<u8> for &ReturnValueTypes {
+impl Into<u8> for &ReturnTypeId {
     fn into(self) -> u8 {
         *self as u8
     }
 }
 
 #[allow(clippy::from_over_into)]
-impl Into<u8> for ReturnValueTypes {
+impl Into<u8> for ReturnTypeId {
     fn into(self) -> u8 {
         self as u8
     }
 }
 
-impl From<u8> for ReturnValueTypes {
+impl From<u8> for ReturnTypeId {
     fn from(value: u8) -> Self {
         match value {
             1 => Self::Bool,
@@ -225,6 +226,53 @@ impl From<u8> for ReturnTypes {
     }
 }
 
+/// [`ReturnTypeHints`] represent the potential return values of calling a
+/// function
+pub enum ReturnTypeHints {
+    None,
+    One(ReturnTypeId),
+    Many(Vec<ReturnTypeId>),
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for ReturnTypeHints {
+    fn into(self) -> u8 {
+        self.to_returns_u8()
+    }
+}
+
+impl ReturnTypeHints {
+    pub fn as_u8(&self) -> u8 {
+        self.to_returns_u8()
+    }
+}
+
+impl ReturnTypeHints {
+    pub fn to_returns_u8(&self) -> u8 {
+        self.to_returns_type() as u8
+    }
+
+    pub fn to_returns_type(&self) -> ReturnTypes {
+        match self {
+            Self::None => ReturnTypes::None,
+            Self::One(_) => ReturnTypes::One,
+            Self::Many(_) => ReturnTypes::Many,
+        }
+    }
+
+    pub fn to_returns_value_u8(&self) -> u8 {
+        self.to_returns_type() as u8
+    }
+
+    pub fn to_returns_value(&self) -> ReturnTypeId {
+        match self {
+            Self::None => ReturnTypes::None,
+            Self::One(v) => *v,
+            Self::Many(_) => ReturnTypes::Many,
+        }
+    }
+}
+
 /// [`Returns`] represent the potential return values of calling a
 /// function
 pub enum Returns {
@@ -295,35 +343,35 @@ impl ReturnValues {
         self.to_return_value_type() as u8
     }
 
-    pub fn to_return_value_type(&self) -> ReturnValueTypes {
+    pub fn to_return_value_type(&self) -> ReturnTypeId {
         match self {
-            Self::Bool(_) => ReturnValueTypes::Bool,
-            Self::Float32(_) => ReturnValueTypes::Float32,
-            Self::Float64(_) => ReturnValueTypes::Float64,
-            Self::Int8(_) => ReturnValueTypes::Int8,
-            Self::Int16(_) => ReturnValueTypes::Int16,
-            Self::Int32(_) => ReturnValueTypes::Int32,
-            Self::Int64(_) => ReturnValueTypes::Int64,
-            Self::Int128(_) => ReturnValueTypes::Int128,
-            Self::Uint8(_) => ReturnValueTypes::Uint8,
-            Self::Uint16(_) => ReturnValueTypes::Uint16,
-            Self::Uint32(_) => ReturnValueTypes::Uint32,
-            Self::Uint64(_) => ReturnValueTypes::Uint64,
-            Self::Uint128(_) => ReturnValueTypes::Uint128,
-            Self::Text8(_) => ReturnValueTypes::Text8,
-            Self::MemorySlice(_) => ReturnValueTypes::MemorySlice,
-            Self::Int8Array(_) => ReturnValueTypes::Int8ArrayBuffer,
-            Self::Int16Array(_) => ReturnValueTypes::Int16ArrayBuffer,
-            Self::Int32Array(_) => ReturnValueTypes::Int32ArrayBuffer,
-            Self::Int64Array(_) => ReturnValueTypes::Int64ArrayBuffer,
-            Self::Uint8Array(_) => ReturnValueTypes::Uint8ArrayBuffer,
-            Self::Uint16Array(_) => ReturnValueTypes::Uint16ArrayBuffer,
-            Self::Uint32Array(_) => ReturnValueTypes::Uint32ArrayBuffer,
-            Self::Uint64Array(_) => ReturnValueTypes::Uint64ArrayBuffer,
-            Self::Float32Array(_) => ReturnValueTypes::Float32ArrayBuffer,
-            Self::Float64Array(_) => ReturnValueTypes::Float64ArrayBuffer,
-            Self::ExternalReference(_) => ReturnValueTypes::ExternalReference,
-            Self::InternalReference(_) => ReturnValueTypes::InternalReference,
+            Self::Bool(_) => ReturnTypeId::Bool,
+            Self::Float32(_) => ReturnTypeId::Float32,
+            Self::Float64(_) => ReturnTypeId::Float64,
+            Self::Int8(_) => ReturnTypeId::Int8,
+            Self::Int16(_) => ReturnTypeId::Int16,
+            Self::Int32(_) => ReturnTypeId::Int32,
+            Self::Int64(_) => ReturnTypeId::Int64,
+            Self::Int128(_) => ReturnTypeId::Int128,
+            Self::Uint8(_) => ReturnTypeId::Uint8,
+            Self::Uint16(_) => ReturnTypeId::Uint16,
+            Self::Uint32(_) => ReturnTypeId::Uint32,
+            Self::Uint64(_) => ReturnTypeId::Uint64,
+            Self::Uint128(_) => ReturnTypeId::Uint128,
+            Self::Text8(_) => ReturnTypeId::Text8,
+            Self::MemorySlice(_) => ReturnTypeId::MemorySlice,
+            Self::Int8Array(_) => ReturnTypeId::Int8ArrayBuffer,
+            Self::Int16Array(_) => ReturnTypeId::Int16ArrayBuffer,
+            Self::Int32Array(_) => ReturnTypeId::Int32ArrayBuffer,
+            Self::Int64Array(_) => ReturnTypeId::Int64ArrayBuffer,
+            Self::Uint8Array(_) => ReturnTypeId::Uint8ArrayBuffer,
+            Self::Uint16Array(_) => ReturnTypeId::Uint16ArrayBuffer,
+            Self::Uint32Array(_) => ReturnTypeId::Uint32ArrayBuffer,
+            Self::Uint64Array(_) => ReturnTypeId::Uint64ArrayBuffer,
+            Self::Float32Array(_) => ReturnTypeId::Float32ArrayBuffer,
+            Self::Float64Array(_) => ReturnTypeId::Float64ArrayBuffer,
+            Self::ExternalReference(_) => ReturnTypeId::ExternalReference,
+            Self::InternalReference(_) => ReturnTypeId::InternalReference,
         }
     }
 }

@@ -8,7 +8,7 @@ use foundation_nostd::*;
 
 #[no_mangle]
 extern "C" fn main() {
-    let console_log = host_runtime::api_v1::register_function(
+    let console_log = host_runtime::web::register_function(
         r"
         function(message){
             this.mock.createDom('div');

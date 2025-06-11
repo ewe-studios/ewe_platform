@@ -8,7 +8,7 @@ use foundation_nostd::*;
 
 #[no_mangle]
 extern "C" fn main() {
-    let console_log = host_runtime::api_v1::register_function(
+    let console_log = host_runtime::web::register_function(
         r"
         function(message){
             console.log(message);
@@ -21,9 +21,9 @@ extern "C" fn main() {
         console_log.invoke(&[Params::Text8(e.to_string().as_str())]);
     }));
 
-    let _ = host_runtime::api_v1::cache_text("alex");
+    let _ = host_runtime::web::cache_text("alex");
 
-    let console_log_id = host_runtime::api_v2::preallocate_func_external_reference();
+    let console_log_id = host_runtime::web::preallocate_func_external_reference();
     let instructions = internal_api::create_instructions(100, 100);
     instructions
         .register_function(
@@ -39,5 +39,5 @@ extern "C" fn main() {
         .invoke_no_return_function(console_log_id, Some(&[Params::Text8("Hello from intro")]))
         .expect("should register call");
 
-    host_runtime::api_v2::send_instructions(instructions.complete().expect("complete instruction"));
+    host_runtime::web::send_instructions(instructions.complete().expect("complete instruction"));
 }

@@ -8,9 +8,9 @@ use foundation_nostd::*;
 
 #[no_mangle]
 extern "C" fn main() {
-    let cached_id = host_runtime::api_v1::cache_text("alex");
+    let cached_id = host_runtime::web::cache_text("alex");
 
-    let select_ref = host_runtime::api_v1::register_function(
+    let select_ref = host_runtime::web::register_function(
         r"
         function(){
             const args = Array.from(arguments);

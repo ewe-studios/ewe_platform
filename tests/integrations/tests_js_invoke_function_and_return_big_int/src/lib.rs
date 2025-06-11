@@ -8,7 +8,7 @@ use foundation_nostd::*;
 
 #[no_mangle]
 extern "C" fn main() {
-    let console_log = host_runtime::api_v1::register_function(
+    let console_log = host_runtime::web::register_function(
         r"
         function(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14){
             return this.mock.calculateAge(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14);
