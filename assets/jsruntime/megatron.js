@@ -181,8 +181,7 @@ const Megatron = (function () {
 
   /// [`ReturnValueTypes`] represent the type indicating the underlying returned
   /// value for an operation.
-  const ReturnValueTypes = {
-    None: 0,
+  const ReturnTypeId = {
     Bool: 1,
     Text8: 2,
     Int8: 3,
@@ -212,9 +211,9 @@ const Megatron = (function () {
     Float64ArrayBuffer: 27,
   };
 
-  ReturnValueTypes.__INVERSE__ = Object.keys(ReturnValueTypes)
+  ReturnTypeId.__INVERSE__ = Object.keys(ReturnTypeId)
     .map((key) => {
-      return [key, ReturnValueTypes[key]];
+      return [key, ReturnTypeId[key]];
     })
     .reduce((prev, current) => {
       let [key, value] = current;
@@ -222,7 +221,7 @@ const Megatron = (function () {
       return prev;
     }, {});
 
-  Object.freeze(ReturnValueTypes);
+  Object.freeze(ReturnTypeId);
 
   const Operations = {
     /// Begin - Indicative of the start of a operation in a batch, generally
@@ -2820,6 +2819,7 @@ const Megatron = (function () {
     },
   );
 
+  // Add comments to this class. Keep your thinking short and simple, do not overthink. AI!
   class Reply {
     constructor(memory_operator, text_codec, text_cache) {
       if (!(memory_operator instanceof MemoryOperator)) {
@@ -2838,36 +2838,37 @@ const Megatron = (function () {
       this.module = memory_operator.get_module();
 
       this.reply_types = {};
-      this.reply_types[ReturnValueTypes.Bool] = Reply.encodeBool;
-      this.reply_types[ReturnValueTypes.Uint8] = Reply.encodeInt8;
-      this.reply_types[ReturnValueTypes.Uint16] = Reply.encodeInt16;
-      this.reply_types[ReturnValueTypes.Uint32] = Reply.encodeInt32;
-      this.reply_types[ReturnValueTypes.Uint64] = Reply.encodeBigInt64;
-      this.reply_types[ReturnValueTypes.Int8] = Reply.encodeInt8;
-      this.reply_types[ReturnValueTypes.Int16] = Reply.encodeInt16;
-      this.reply_types[ReturnValueTypes.Int32] = Reply.encodeInt32;
-      this.reply_types[ReturnValueTypes.Int64] = Reply.encodeBigInt64;
-      this.reply_types[ReturnValueTypes.Float32] = Reply.encodeFloat32;
-      this.reply_types[ReturnValueTypes.Float64] = Reply.encodeFloat64;
-      this.reply_types[ReturnValueTypes.Uint8ArrayBuffer] =
+      this.reply_types[ReturnTypeId.Bool] = Reply.encodeBool;
+      this.reply_types[ReturnTypeId.Uint8] = Reply.encodeInt8;
+      this.reply_types[ReturnTypeId.Uint16] = Reply.encodeInt16;
+      this.reply_types[ReturnTypeId.Uint32] = Reply.encodeInt32;
+      this.reply_types[ReturnTypeId.Uint64] = Reply.encodeBigInt64;
+      this.reply_types[ReturnTypeId.Int8] = Reply.encodeInt8;
+      this.reply_types[ReturnTypeId.Int16] = Reply.encodeInt16;
+      this.reply_types[ReturnTypeId.Int32] = Reply.encodeInt32;
+      this.reply_types[ReturnTypeId.Int64] = Reply.encodeBigInt64;
+      this.reply_types[ReturnTypeId.Float32] = Reply.encodeFloat32;
+      this.reply_types[ReturnTypeId.Float64] = Reply.encodeFloat64;
+      this.reply_types[ReturnTypeId.MemorySlice] = Reply.encodeMemorySlice;
+      this.reply_types[ReturnTypeId.Uint8ArrayBuffer] =
         Reply.encodeUint8ArrayBuffer;
-      this.reply_types[ReturnValueTypes.Uint16ArrayBuffer] =
+      this.reply_types[ReturnTypeId.Uint16ArrayBuffer] =
         Reply.encodeUint16ArrayBuffer;
-      this.reply_types[ReturnValueTypes.Uint32ArrayBuffer] =
+      this.reply_types[ReturnTypeId.Uint32ArrayBuffer] =
         Reply.encodeUint32ArrayBuffer;
-      this.reply_types[ReturnValueTypes.Uint64ArrayBuffer] =
+      this.reply_types[ReturnTypeId.Uint64ArrayBuffer] =
         Reply.encodeUint64ArrayBuffer;
-      this.reply_types[ReturnValueTypes.Int8ArrayBuffer] =
+      this.reply_types[ReturnTypeId.Int8ArrayBuffer] =
         Reply.encodeUint8ArrayBuffer;
-      this.reply_types[ReturnValueTypes.Int16ArrayBuffer] =
+      this.reply_types[ReturnTypeId.Int16ArrayBuffer] =
         Reply.encodeUint16ArrayBuffer;
-      this.reply_types[ReturnValueTypes.Int32ArrayBuffer] =
+      this.reply_types[ReturnTypeId.Int32ArrayBuffer] =
         Reply.encodeUint32ArrayBuffer;
-      this.reply_types[ReturnValueTypes.Int64ArrayBuffer] =
+      this.reply_types[ReturnTypeId.Int64ArrayBuffer] =
         Reply.encodeUint64ArrayBuffer;
-      this.reply_types[ReturnValueTypes.Float32ArrayBuffer] =
+      this.reply_types[ReturnTypeId.Float32ArrayBuffer] =
         Reply.encodeFloat32ArrayBuffer;
-      this.reply_types[ReturnValueTypes.Float64ArrayBuffer] =
+      this.reply_types[ReturnTypeId.Float64ArrayBuffer] =
         Reply.encodeFloat64ArrayBuffer;
     }
 
@@ -2912,14 +2913,14 @@ const Megatron = (function () {
     }
 
     getEncoder(directive) {
-      if (!(directive.type in ReturnValueTypes.__INVERSE__)) {
+      if (!(directive.type in ReturnTypeId.__INVERSE__)) {
         throw new Error(`Unknown Reply encode type id: ${directive.type}`);
       }
-      return ReturnValueTypes.__INVERSE__[directive.type];
+      return ReturnTypeId.__INVERSE__[directive.type];
     }
 
     static encodeFloat64ArrayBuffer(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.Float64) {
+      if (directive.type != ReturnTypeId.Float64) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -2935,7 +2936,7 @@ const Megatron = (function () {
     }
 
     static encodeFloat32ArrayBuffer(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.Float32) {
+      if (directive.type != ReturnTypeId.Float32) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -2951,7 +2952,7 @@ const Megatron = (function () {
     }
 
     static encodeInt64ArrayBuffer(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.Int64) {
+      if (directive.type != ReturnTypeId.Int64) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -2967,7 +2968,7 @@ const Megatron = (function () {
     }
 
     static encodeInt32ArrayBuffer(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.Int32) {
+      if (directive.type != ReturnTypeId.Int32) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -2983,7 +2984,7 @@ const Megatron = (function () {
     }
 
     static encodeInt16ArrayBuffer(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.Int16) {
+      if (directive.type != ReturnTypeId.Int16) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -2999,7 +3000,7 @@ const Megatron = (function () {
     }
 
     static encodeInt8ArrayBuffer(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.Int8) {
+      if (directive.type != ReturnTypeId.Int8) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -3015,7 +3016,7 @@ const Megatron = (function () {
     }
 
     static encodeUint64ArrayBuffer(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.Uint64) {
+      if (directive.type != ReturnTypeId.Uint64) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -3031,7 +3032,7 @@ const Megatron = (function () {
     }
 
     static encodeUint32ArrayBuffer(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.Uint32) {
+      if (directive.type != ReturnTypeId.Uint32) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -3047,7 +3048,7 @@ const Megatron = (function () {
     }
 
     static encodeUint16ArrayBuffer(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.Uint16) {
+      if (directive.type != ReturnTypeId.Uint16) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -3063,7 +3064,7 @@ const Megatron = (function () {
     }
 
     static encodeUint8ArrayBuffer(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.Uint8) {
+      if (directive.type != ReturnTypeId.Uint8) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -3078,7 +3079,7 @@ const Megatron = (function () {
     }
 
     static encodeInternalReference(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.InternalReference) {
+      if (directive.type != ReturnTypeId.InternalReference) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -3092,7 +3093,7 @@ const Megatron = (function () {
     }
 
     static encodeExternalReference(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.ExternalReference) {
+      if (directive.type != ReturnTypeId.ExternalReference) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -3106,7 +3107,7 @@ const Megatron = (function () {
     }
 
     static encodeMemorySlice(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.MemorySlice) {
+      if (directive.type != ReturnTypeId.MemorySlice) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -3120,7 +3121,7 @@ const Megatron = (function () {
     }
 
     static encodeInt128(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.Int128) {
+      if (directive.type != ReturnTypeId.Int128) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -3137,7 +3138,7 @@ const Megatron = (function () {
     }
 
     static encodeUint128(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.Uint128) {
+      if (directive.type != ReturnTypeId.Uint128) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -3154,7 +3155,7 @@ const Megatron = (function () {
     }
 
     static encodeFloat32(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.Float32) {
+      if (directive.type != ReturnTypeId.Float32) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -3169,7 +3170,7 @@ const Megatron = (function () {
 
     // implement encoding of a float64 using the same as the encodeBool method
     static encodeFloat64(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.Float64) {
+      if (directive.type != ReturnTypeId.Float64) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -3183,7 +3184,7 @@ const Megatron = (function () {
     }
 
     static encodeBigUint64(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.Uint64) {
+      if (directive.type != ReturnTypeId.Uint64) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -3197,7 +3198,7 @@ const Megatron = (function () {
     }
 
     static encodeUint32(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.Uint32) {
+      if (directive.type != ReturnTypeId.Uint32) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -3211,7 +3212,7 @@ const Megatron = (function () {
     }
 
     static encodeUint16(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.Uint16) {
+      if (directive.type != ReturnTypeId.Uint16) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -3225,7 +3226,7 @@ const Megatron = (function () {
     }
 
     static encodeUint8(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.Bool) {
+      if (directive.type != ReturnTypeId.Bool) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -3239,7 +3240,7 @@ const Megatron = (function () {
     }
 
     static encodeBigInt64(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.Bool) {
+      if (directive.type != ReturnTypeId.Bool) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -3253,7 +3254,7 @@ const Megatron = (function () {
     }
 
     static encodeInt32(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.Int32) {
+      if (directive.type != ReturnTypeId.Int32) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -3267,7 +3268,7 @@ const Megatron = (function () {
     }
 
     static encodeInt16(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.Int16) {
+      if (directive.type != ReturnTypeId.Int16) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -3281,7 +3282,7 @@ const Megatron = (function () {
     }
 
     static encodeInt8(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.Int8) {
+      if (directive.type != ReturnTypeId.Int8) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -3295,7 +3296,7 @@ const Megatron = (function () {
     }
 
     static encodeText8(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.Text8) {
+      if (directive.type != ReturnTypeId.Text8) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -3310,7 +3311,7 @@ const Megatron = (function () {
     }
 
     static encodeBool(offset, directive, view) {
-      if (directive.type != ReturnValueTypes.Bool) {
+      if (directive.type != ReturnTypeId.Bool) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -3327,77 +3328,77 @@ const Megatron = (function () {
       if (value instanceof Float64Array) {
         throw new Error("Value must be Float64Array");
       }
-      return Reply.asValue(ReturnValueTypes.Float64ArrayBuffer, value);
+      return Reply.asValue(ReturnTypeId.Float64ArrayBuffer, value);
     }
 
     static asFloat32Array(value) {
       if (value instanceof Float32Array) {
         throw new Error("Value must be Float32Array");
       }
-      return Reply.asValue(ReturnValueTypes.Float32ArrayBuffer, value);
+      return Reply.asValue(ReturnTypeId.Float32ArrayBuffer, value);
     }
 
     static asInt64Array(value) {
       if (value instanceof Int64Array) {
         throw new Error("Value must be Int64Array");
       }
-      return Reply.asValue(ReturnValueTypes.Int64ArrayBuffer, value);
+      return Reply.asValue(ReturnTypeId.Int64ArrayBuffer, value);
     }
 
     static asInt32Array(value) {
       if (value instanceof Int32Array) {
         throw new Error("Value must be Int32Array");
       }
-      return Reply.asValue(ReturnValueTypes.Int32ArrayBuffer, value);
+      return Reply.asValue(ReturnTypeId.Int32ArrayBuffer, value);
     }
 
     static asInt16Array(value) {
       if (value instanceof Int16Array) {
         throw new Error("Value must be Int16Array");
       }
-      return Reply.asValue(ReturnValueTypes.Int16ArrayBuffer, value);
+      return Reply.asValue(ReturnTypeId.Int16ArrayBuffer, value);
     }
 
     static asInt8Array(value) {
       if (value instanceof Int8Array) {
         throw new Error("Value must be Int8Array");
       }
-      return Reply.asValue(ReturnValueTypes.Int8ArrayBuffer, value);
+      return Reply.asValue(ReturnTypeId.Int8ArrayBuffer, value);
     }
 
     static asUint64Array(value) {
       if (value instanceof Uint64Array) {
         throw new Error("Value must be Uint64Array");
       }
-      return Reply.asValue(ReturnValueTypes.Uint64ArrayBuffer, value);
+      return Reply.asValue(ReturnTypeId.Uint64ArrayBuffer, value);
     }
 
     static asUint32Array(value) {
       if (value instanceof Uint32Array) {
         throw new Error("Value must be Uint32Array");
       }
-      return Reply.asValue(ReturnValueTypes.Uint32ArrayBuffer, value);
+      return Reply.asValue(ReturnTypeId.Uint32ArrayBuffer, value);
     }
 
     static asUint16Array(value) {
       if (value instanceof Uint16Array) {
         throw new Error("Value must be Uint16Array");
       }
-      return Reply.asValue(ReturnValueTypes.Uint16ArrayBuffer, value);
+      return Reply.asValue(ReturnTypeId.Uint16ArrayBuffer, value);
     }
 
     static asUint8Array(value) {
       if (value instanceof Uint8Array) {
         throw new Error("Value must be Uint8Array");
       }
-      return Reply.asValue(ReturnValueTypes.Uint8ArrayBuffer, value);
+      return Reply.asValue(ReturnTypeId.Uint8ArrayBuffer, value);
     }
 
     static asMemorySlice(value) {
       if (typeof value !== "bigint") {
         throw new Error("Value must be bigint");
       }
-      return Reply.asValue(ReturnValueTypes.MemorySlice, value);
+      return Reply.asValue(ReturnTypeId.MemorySlice, value);
     }
 
     static asInternalReference(value) {
@@ -3405,9 +3406,9 @@ const Megatron = (function () {
         throw new Error("Value must be bigint/InternalPointer");
       }
       if (value instanceof InternalPointer) {
-        return Reply.asValue(ReturnValueTypes.InternalReference, value.value);
+        return Reply.asValue(ReturnTypeId.InternalReference, value.value);
       }
-      return Reply.asValue(ReturnValueTypes.InternalReference, value);
+      return Reply.asValue(ReturnTypeId.InternalReference, value);
     }
 
     static asExternalReference(value) {
@@ -3415,37 +3416,37 @@ const Megatron = (function () {
         throw new Error("Value must be bigint/ExternalPointer");
       }
       if (value instanceof ExternalPointer) {
-        return Reply.asValue(ReturnValueTypes.ExternalReference, value.value);
+        return Reply.asValue(ReturnTypeId.ExternalReference, value.value);
       }
-      return Reply.asValue(ReturnValueTypes.ExternalReference, value);
+      return Reply.asValue(ReturnTypeId.ExternalReference, value);
     }
 
     static asMemorySlice(value) {
       if (typeof value !== "bigint") {
         throw new Error("Value must be bigint");
       }
-      return Reply.asValue(ReturnValueTypes.MemorySlice, value);
+      return Reply.asValue(ReturnTypeId.MemorySlice, value);
     }
 
     static asFloat64(value) {
       if (typeof value !== "number") {
         throw new Error("Value must be float64");
       }
-      return Reply.asValue(ReturnValueTypes.Float64, value);
+      return Reply.asValue(ReturnTypeId.Float64, value);
     }
 
     static asFloat32(value) {
       if (typeof value !== "number") {
         throw new Error("Value must be float32");
       }
-      return Reply.asValue(ReturnValueTypes.Float32, value);
+      return Reply.asValue(ReturnTypeId.Float32, value);
     }
 
     static asInt128(value_lsb, value_msb) {
       if (typeof value !== "bigint") {
         throw new Error("Value must be bigint for 128bit number");
       }
-      return Reply.asValue(ReturnValueTypes.Int128, {
+      return Reply.asValue(ReturnTypeId.Int128, {
         value_lsb,
         value_msb,
       });
@@ -3455,7 +3456,7 @@ const Megatron = (function () {
       if (typeof value !== "bigint") {
         throw new Error("Value must be bigint for 128bit number");
       }
-      return Reply.asValue(ReturnValueTypes.Uint128, {
+      return Reply.asValue(ReturnTypeId.Uint128, {
         value_lsb,
         value_msb,
       });
@@ -3465,76 +3466,76 @@ const Megatron = (function () {
       if (typeof value !== "number" && typeof value !== "bigint") {
         throw new Error("Value must be int64/bigint");
       }
-      return Reply.asValue(ReturnValueTypes.Uint64, value);
+      return Reply.asValue(ReturnTypeId.Uint64, value);
     }
 
     static asUint32(value) {
       if (typeof value !== "number") {
         throw new Error("Value must be int32");
       }
-      return Reply.asValue(ReturnValueTypes.Uint32, value);
+      return Reply.asValue(ReturnTypeId.Uint32, value);
     }
 
     static asUint16(value) {
       if (typeof value !== "number") {
         throw new Error("Value must be int16");
       }
-      return Reply.asValue(ReturnValueTypes.Uint16, value);
+      return Reply.asValue(ReturnTypeId.Uint16, value);
     }
 
     static asUint8(value) {
       if (typeof value !== "number") {
         throw new Error("Value must be int8");
       }
-      return Reply.asValue(ReturnValueTypes.Uint8, value);
+      return Reply.asValue(ReturnTypeId.Uint8, value);
     }
 
     static asInt64(value) {
       if (typeof value !== "number") {
         throw new Error("Value must be int64");
       }
-      return Reply.asValue(ReturnValueTypes.Int64, value);
+      return Reply.asValue(ReturnTypeId.Int64, value);
     }
 
     static asInt32(value) {
       if (typeof value !== "number") {
         throw new Error("Value must be int32");
       }
-      return Reply.asValue(ReturnValueTypes.Int32, value);
+      return Reply.asValue(ReturnTypeId.Int32, value);
     }
 
     static asInt16(value) {
       if (typeof value !== "number") {
         throw new Error("Value must be int16");
       }
-      return Reply.asValue(ReturnValueTypes.Int16, value);
+      return Reply.asValue(ReturnTypeId.Int16, value);
     }
 
     static asInt8(value) {
       if (typeof value !== "number") {
         throw new Error("Value must be int8");
       }
-      return Reply.asValue(ReturnValueTypes.Int8, value);
+      return Reply.asValue(ReturnTypeId.Int8, value);
     }
 
     static asText8(value) {
       if (typeof value !== "string") {
         throw new Error("Value must be string");
       }
-      return Reply.asValue(ReturnValueTypes.Text8, value);
+      return Reply.asValue(ReturnTypeId.Text8, value);
     }
 
     static asBool(value) {
       if (typeof value !== "boolean") {
         throw new Error("Value must be bool/boolean");
       }
-      return Reply.asValue(ReturnValueTypes.Bool, value);
+      return Reply.asValue(ReturnTypeId.Bool, value);
     }
 
     // asValue provides a clear indicator of what type the giving return value is
     // which provides an important metadata for encoding.
     static asValue(return_type, value) {
-      if (!(return_type in ReturnValueTypes.__INVERSE__)) {
+      if (!(return_type in ReturnTypeId.__INVERSE__)) {
         throw new Error(
           `ReturnValueTypes ${return_type} is not known for value_type: ${return_type}`,
         );
@@ -4371,7 +4372,7 @@ const Megatron = (function () {
     Params,
     Operations,
     ReturnTypes,
-    ReturnValueTypes,
+    ReturnValueTypes: ReturnTypeId,
     TypedSlice,
     ArgumentOperations,
     TypeOptimization,

@@ -8,8 +8,8 @@ use alloc::vec::Vec;
 use crate::{
     value_quantitization, ArgumentOperations, BatchEncodable, Batchable, CompletedInstructions,
     ExternalPointer, InternalPointer, MemoryAllocation, MemoryAllocationResult, MemoryAllocations,
-    MemoryId, MemorySlot, MemoryWriterError, MemoryWriterResult, ReturnTypes, Returns, ToBinary,
-    TypeOptimization,
+    MemoryId, MemorySlot, MemoryWriterError, MemoryWriterResult, ReturnHintMarker, ReturnTypeHints,
+    ToBinary, TypeOptimization,
 };
 
 use super::{Operations, Params, StrLocation, ValueTypes};
@@ -85,7 +85,47 @@ impl<'a> ToBinary for &'a [Params<'a>] {
     }
 }
 
-impl ToBinary for Returns {}
+impl ToBinary for ReturnTypeHints {
+    fn to_binary(&self) -> Vec<u8> {
+        if ReturnTypeHints::None == *self {
+            alloc::vec![self.to_returns_u8()]
+        } else {
+            alloc::vec![
+                self.to_returns_u8(),
+                self.to_returns_value()
+                    .expect("One and Many should have value")
+                    .into_u8()
+            ]
+        }
+    }
+}
+
+impl<'a> Batchable<'a> for ReturnTypeHints {
+    fn encode<F>(&self, encoder: &'a F, _optimized: bool) -> MemoryWriterResult<()>
+    where
+        F: BatchEncodable,
+    {
+        let encoded = if ReturnTypeHints::None == *self {
+            alloc::vec![
+                ReturnHintMarker::Start as u8,
+                self.to_returns_u8(),
+                ReturnHintMarker::Stop as u8,
+            ]
+        } else {
+            alloc::vec![
+                ReturnHintMarker::Start as u8,
+                self.to_returns_u8(),
+                self.to_returns_value()
+                    .expect("One and Many should have value")
+                    .into_u8(),
+                ReturnHintMarker::Stop as u8,
+            ]
+        };
+
+        encoder.data(&encoded)?;
+        Ok(())
+    }
+}
 
 impl ToBinary for Params<'_> {
     fn to_binary(&self) -> Vec<u8> {
@@ -948,9 +988,72 @@ impl<'a> Batchable<'a> for Params<'a> {
 
 #[cfg(test)]
 mod params_tests {
-    use crate::TypedSlice;
+    use crate::{ReturnTypeHints, ReturnTypeId, ReturnTypes, TypedSlice};
 
     use super::*;
+
+    #[test]
+    fn can_encode_type_hint_markers() {
+        let mut allocator = MemoryAllocations::new();
+
+        let batch = allocator
+            .batch_for(10, 10, true)
+            .expect("create new Instructions");
+
+        batch.should_be_occupied().expect("is occupied");
+
+        assert!(batch.encode_return_hints(ReturnTypeHints::None).is_ok());
+        assert!(batch
+            .encode_return_hints(ReturnTypeHints::One(ReturnTypeId::Int32))
+            .is_ok());
+        assert!(batch
+            .encode_return_hints(ReturnTypeHints::One(ReturnTypeId::Float32))
+            .is_ok());
+        assert!(batch
+            .encode_return_hints(ReturnTypeHints::One(ReturnTypeId::MemorySlice))
+            .is_ok());
+        assert!(batch
+            .encode_return_hints(ReturnTypeHints::Many(ReturnTypeId::MemorySlice))
+            .is_ok());
+
+        batch.end().expect("end instruction");
+
+        let completed_data = batch.stop().expect("finish writing completion result");
+        let slot = allocator.get_slot(completed_data).expect("get memory");
+
+        let completed_strings = slot.text_ref();
+        let completed_ops = slot.ops_ref();
+
+        assert_eq!(
+            alloc::vec![
+                0, // Begin signal indicating start of batch
+                ReturnHintMarker::Start as u8,
+                ReturnTypes::None as u8,
+                ReturnHintMarker::Stop as u8,
+                ReturnHintMarker::Start as u8,
+                ReturnTypes::One as u8,
+                ReturnTypeId::Int32 as u8,
+                ReturnHintMarker::Stop as u8,
+                ReturnHintMarker::Start as u8,
+                ReturnTypes::One as u8,
+                ReturnTypeId::Float32 as u8,
+                ReturnHintMarker::Stop as u8,
+                ReturnHintMarker::Start as u8,
+                ReturnTypes::One as u8,
+                ReturnTypeId::MemorySlice as u8,
+                ReturnHintMarker::Stop as u8,
+                ReturnHintMarker::Start as u8,
+                ReturnTypes::Many as u8,
+                ReturnTypeId::MemorySlice as u8,
+                ReturnHintMarker::Stop as u8,
+                254, // end of the sub-block of instruction
+                255  // Stop signal indicating batch is finished
+            ],
+            completed_ops.clone_memory().expect("clone"),
+        );
+
+        assert!(completed_strings.is_empty().expect("returns state"));
+    }
 
     #[test]
     fn can_encode_undefined_and_null() {
@@ -2383,6 +2486,11 @@ impl Instructions {
         self.encode_params(params)?;
 
         self.end()?;
+        Ok(())
+    }
+
+    pub(crate) fn encode_return_hints(&self, hint: ReturnTypeHints) -> MemoryWriterResult<()> {
+        hint.encode(self, self.optimized)?;
         Ok(())
     }
 

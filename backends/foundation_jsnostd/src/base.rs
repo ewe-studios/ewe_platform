@@ -104,9 +104,8 @@ impl Into<u8> for ValueTypes {
 /// [`ReturnValueTypes`] represent the type indicating the underlying returned
 /// value for an operation.
 #[repr(usize)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Hash, Copy, Debug, PartialEq, Eq)]
 pub enum ReturnTypeId {
-    None = 0,
     Bool = 1,
     Text8 = 2,
     Int8 = 3,
@@ -146,6 +145,12 @@ impl Into<u8> for &ReturnTypeId {
 #[allow(clippy::from_over_into)]
 impl Into<u8> for ReturnTypeId {
     fn into(self) -> u8 {
+        self as u8
+    }
+}
+
+impl ReturnTypeId {
+    pub fn into_u8(self) -> u8 {
         self as u8
     }
 }
@@ -228,10 +233,11 @@ impl From<u8> for ReturnTypes {
 
 /// [`ReturnTypeHints`] represent the potential return values of calling a
 /// function
+#[derive(Eq, PartialEq, Hash, Debug, Clone, Copy)]
 pub enum ReturnTypeHints {
     None,
     One(ReturnTypeId),
-    Many(Vec<ReturnTypeId>),
+    Many(ReturnTypeId),
 }
 
 #[allow(clippy::from_over_into)]
@@ -260,21 +266,22 @@ impl ReturnTypeHints {
         }
     }
 
-    pub fn to_returns_value_u8(&self) -> u8 {
-        self.to_returns_type() as u8
+    pub fn to_returns_value_u8(&self) -> Option<u8> {
+        self.to_returns_value().map(|inner| inner as u8)
     }
 
-    pub fn to_returns_value(&self) -> ReturnTypeId {
+    pub fn to_returns_value(&self) -> Option<ReturnTypeId> {
         match self {
-            Self::None => ReturnTypes::None,
-            Self::One(v) => *v,
-            Self::Many(_) => ReturnTypes::Many,
+            Self::None => None,
+            Self::One(v) => Some(*v),
+            Self::Many(v) => Some(*v),
         }
     }
 }
 
 /// [`Returns`] represent the potential return values of calling a
 /// function
+#[derive(PartialEq, Debug, Clone)]
 pub enum Returns {
     None,
     One(ReturnValues),
@@ -308,6 +315,7 @@ impl Returns {
     }
 }
 
+#[derive(PartialEq, Debug, Clone)]
 pub enum ReturnValues {
     Bool(bool),
     Float32(f32),
@@ -649,6 +657,37 @@ impl StrLocation {
     }
 }
 
+#[repr(usize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ReturnHintMarker {
+    Start = 200,
+    Stop = 201,
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for &ReturnHintMarker {
+    fn into(self) -> u8 {
+        *self as u8
+    }
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for ReturnHintMarker {
+    fn into(self) -> u8 {
+        self as u8
+    }
+}
+
+impl From<u8> for ReturnHintMarker {
+    fn from(value: u8) -> Self {
+        match value {
+            1 => Self::Start,
+            4 => Self::Stop,
+            _ => unreachable!("should not have any other type of ArgumentOperations"),
+        }
+    }
+}
+
 /// [`ArgumentOperations`] representing the argument layout
 /// in memory used to represent the different argument blocks
 /// a function is to receive.
@@ -708,10 +747,10 @@ impl Into<u8> for ArgumentOperations {
 impl From<u8> for ArgumentOperations {
     fn from(value: u8) -> Self {
         match value {
-            1 => ArgumentOperations::Start,
-            2 => ArgumentOperations::Begin,
-            3 => ArgumentOperations::End,
-            4 => ArgumentOperations::Stop,
+            1 => Self::Start,
+            2 => Self::Begin,
+            3 => Self::End,
+            4 => Self::Stop,
             _ => unreachable!("should not have any other type of ArgumentOperations"),
         }
     }
