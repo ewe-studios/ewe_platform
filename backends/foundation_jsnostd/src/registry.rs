@@ -8,10 +8,10 @@ use alloc::sync::Arc;
 
 use foundation_nostd::spin::Mutex;
 
-use crate::InternalPointer;
+use crate::{InternalPointer, Returns};
 
 pub trait InternalCallback {
-    fn receive(&self, start_pointer: *const u8, length: u64);
+    fn receive(&self, value: Returns);
 }
 
 #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
@@ -32,8 +32,8 @@ unsafe impl Send for WrappedInternalCallback {}
 
 #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
 impl InternalCallback for WrappedInternalCallback {
-    fn receive(&self, start_pointer: *const u8, length: u64) {
-        self.0.receive(start_pointer, length);
+    fn receive(&self, value: Returns) {
+        self.0.receive(value);
     }
 }
 
@@ -59,8 +59,8 @@ impl Clone for WrappedInternalCallback {
 
 #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
 impl InternalCallback for WrappedInternalCallback {
-    fn receive(&self, start_pointer: *const u8, length: u64) {
-        self.0.lock().receive(start_pointer, length);
+    fn receive(&self, value: Returns) {
+        self.0.lock().receive(value);
     }
 }
 
@@ -76,22 +76,22 @@ impl WrappedInternalCallback {
 
 pub type CallbackFn = dyn Fn(*const u8, u64) + 'static;
 
-pub struct FnCallback(Box<dyn Fn(*const u8, u64)>);
+pub struct FnCallback(Box<dyn Fn(Returns)>);
 
 impl FnCallback {
     pub fn from<F>(elem: F) -> Self
     where
-        F: Fn(*const u8, u64) + 'static,
+        F: Fn(Returns) + 'static,
     {
         Self(Box::new(elem))
     }
 
-    pub fn new(elem: Box<dyn Fn(*const u8, u64)>) -> Self {
+    pub fn new(elem: Box<dyn Fn(Returns)>) -> Self {
         Self(elem)
     }
 
-    pub fn receive(&mut self, start_pointer: *const u8, length: u64) {
-        (self.0)(start_pointer, length)
+    pub fn receive(&mut self, value: Returns) {
+        (self.0)(value)
     }
 }
 

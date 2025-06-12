@@ -64,12 +64,13 @@ pub mod internal_api {
             .expect("should be registered");
     }
 
-    pub fn run_internal_callbacks(addr: InternalPointer, start_pointer: *const u8, length: u64) {
-        let callback = INTERNAL_CALLBACKS
-            .lock()
-            .get(addr)
-            .expect("should be registered");
-        callback.receive(start_pointer, length);
+    pub fn run_internal_callbacks(_addr: InternalPointer, _value: MemoryId) {
+        // let callback = INTERNAL_CALLBACKS
+        //     .lock()
+        //     .get(addr)
+        //     .expect("should be registered");
+        // callback.receive(value);
+        todo!()
     }
 
     // -- extract methods
@@ -142,8 +143,11 @@ pub mod exposed_runtime {
     }
 
     #[no_mangle]
-    pub extern "C" fn invoke_callback(addr: u64, start: u64, length: u64) {
-        internal_api::run_internal_callbacks(addr.into(), start as *const u8, length);
+    pub extern "C" fn invoke_callback(internal_pointer: u64, allocation_id: u64) {
+        internal_api::run_internal_callbacks(
+            InternalPointer::pointer(internal_pointer),
+            MemoryId::from_u64(allocation_id),
+        );
     }
 }
 
