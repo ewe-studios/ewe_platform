@@ -90,12 +90,13 @@ impl ToBinary for ReturnTypeHints {
         if ReturnTypeHints::None == *self {
             alloc::vec![self.to_returns_u8()]
         } else {
-            alloc::vec![
-                self.to_returns_u8(),
-                self.to_returns_value()
-                    .expect("One and Many should have value")
-                    .into_u8()
-            ]
+            let mut items = Vec::new();
+            items.push(self.to_returns_u8());
+            items.extend(
+                self.to_returns_value_u8()
+                    .expect("One and Many should have value"),
+            );
+            items
         }
     }
 }
@@ -112,14 +113,15 @@ impl<'a> Batchable<'a> for ReturnTypeHints {
                 ReturnHintMarker::Stop as u8,
             ]
         } else {
-            alloc::vec![
-                ReturnHintMarker::Start as u8,
-                self.to_returns_u8(),
-                self.to_returns_value()
-                    .expect("One and Many should have value")
-                    .into_u8(),
-                ReturnHintMarker::Stop as u8,
-            ]
+            let mut items = Vec::new();
+            items.push(ReturnHintMarker::Start as u8);
+            items.push(self.to_returns_u8());
+            items.extend(
+                self.to_returns_value_u8()
+                    .expect("One and Many should have value"),
+            );
+            items.push(ReturnHintMarker::Stop as u8);
+            items
         };
 
         encoder.data(&encoded)?;
@@ -1013,7 +1015,9 @@ mod params_tests {
             .encode_return_hints(ReturnTypeHints::One(ReturnTypeId::MemorySlice))
             .is_ok());
         assert!(batch
-            .encode_return_hints(ReturnTypeHints::Many(ReturnTypeId::MemorySlice))
+            .encode_return_hints(ReturnTypeHints::Multi(alloc::vec![
+                ReturnTypeId::MemorySlice
+            ]))
             .is_ok());
 
         batch.end().expect("end instruction");
@@ -1043,7 +1047,7 @@ mod params_tests {
                 ReturnTypeId::MemorySlice as u8,
                 ReturnHintMarker::Stop as u8,
                 ReturnHintMarker::Start as u8,
-                ReturnTypes::Many as u8,
+                ReturnTypes::Multi as u8,
                 ReturnTypeId::MemorySlice as u8,
                 ReturnHintMarker::Stop as u8,
                 254, // end of the sub-block of instruction

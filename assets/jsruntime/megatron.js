@@ -159,6 +159,23 @@ const Megatron = (function () {
 
   Object.freeze(TypeOptimization);
 
+  ReturnValueMarker = {
+    Begin: 100,
+    End: 101,
+  };
+
+  ReturnValueMarker.__INVERSE__ = Object.keys(ReturnValueMarker)
+    .map((key) => {
+      return [key, ReturnValueMarker[key]];
+    })
+    .reduce((prev, current) => {
+      let [key, value] = current;
+      prev[value] = key;
+      return prev;
+    }, {});
+
+  Object.freeze(ReturnValueMarker);
+
   /// [`ReturnTypes`] represent the type indicating the underlying returned
   /// value for an operation.
   const ReturnTypes = {
@@ -2839,7 +2856,7 @@ const Megatron = (function () {
 
       this.reply_types = {};
       this.reply_types[ReturnTypeId.Bool] = Reply.encodeBool;
-      this.reply_types[ReturnTypeId.Uint8] = Reply.encodeInt8;
+      this.reply_types[ReturnTypeId.Uint8] = Reply.encodeUint8;
       this.reply_types[ReturnTypeId.Uint16] = Reply.encodeInt16;
       this.reply_types[ReturnTypeId.Uint32] = Reply.encodeInt32;
       this.reply_types[ReturnTypeId.Uint64] = Reply.encodeBigInt64;
@@ -2892,6 +2909,10 @@ const Megatron = (function () {
       const view = new DataView(content);
 
       let offset = 0;
+
+      view.setUint8(offset, ReturnValueMarker.Begin);
+      offset += Move.MOVE_BY_1_BYTES;
+
       for (let index = 0; i < values.length; i++) {
         const value = values[index];
         if (isUndefinedOrNull(value.type)) {
@@ -2901,6 +2922,9 @@ const Megatron = (function () {
         const encoder = this.getEncoder(value);
         offset = encoder(offset, value, view);
       }
+
+      view.setUint8(offset, ReturnValueMarker.End);
+      offset += Move.MOVE_BY_1_BYTES;
 
       LOGGER.debug(
         `Finished encoding data with initial_size=${initial_bytes_size} and encoded_size=${offset}`,

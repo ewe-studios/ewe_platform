@@ -8,7 +8,7 @@ use alloc::sync::Arc;
 
 use foundation_nostd::spin::Mutex;
 
-use crate::{InternalPointer, Returns};
+use crate::{InternalPointer, ReturnTypeHints, Returns};
 
 pub trait InternalCallback {
     fn receive(&self, value: Returns);
@@ -96,7 +96,7 @@ impl FnCallback {
 }
 
 pub struct InternalReferenceRegistry {
-    tree: BTreeMap<InternalPointer, WrappedInternalCallback>,
+    tree: BTreeMap<InternalPointer, (ReturnTypeHints, WrappedInternalCallback)>,
     id: u64,
 }
 
@@ -124,35 +124,41 @@ impl InternalReferenceRegistry {
 // -- Methods
 
 impl InternalReferenceRegistry {
-    pub fn remove(&mut self, id: InternalPointer) -> Option<WrappedInternalCallback> {
+    pub fn remove(
+        &mut self,
+        id: InternalPointer,
+    ) -> Option<(ReturnTypeHints, WrappedInternalCallback)> {
         self.tree.remove(&id)
     }
 
-    pub fn get(&mut self, id: InternalPointer) -> Option<WrappedInternalCallback> {
+    pub fn get(
+        &mut self,
+        id: InternalPointer,
+    ) -> Option<(ReturnTypeHints, WrappedInternalCallback)> {
         self.tree.get(&id).cloned()
     }
 
     #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
-    pub fn add<F>(&mut self, f: F) -> InternalPointer
+    pub fn add<F>(&mut self, hint: ReturnTypeHints, f: F) -> InternalPointer
     where
         F: InternalCallback + 'static,
     {
         self.id += 1;
         let id = self.id;
         let wrapped = WrappedInternalCallback::new(f);
-        self.tree.insert(InternalPointer::from(id), wrapped);
+        self.tree.insert(InternalPointer::from(id), (hint, wrapped));
         InternalPointer::from(id)
     }
 
     #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-    pub fn add<F>(&mut self, f: F) -> InternalPointer
+    pub fn add<F>(&mut self, hint: ReturnTypeHints, f: F) -> InternalPointer
     where
         F: InternalCallback + Send + Sync + 'static,
     {
         self.id += 1;
         let id = self.id;
         let wrapped = WrappedInternalCallback::new(f);
-        self.tree.insert(InternalPointer::from(id), wrapped);
+        self.tree.insert(InternalPointer::from(id), (hint, wrapped));
         InternalPointer::from(id)
     }
 }
