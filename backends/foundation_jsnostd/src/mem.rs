@@ -90,6 +90,18 @@ impl MemoryAllocation {
     }
 
     #[inline]
+    pub fn into_with<F, T>(&self, f: F) -> Option<T>
+    where
+        F: FnOnce(&mut Vec<u8>) -> T,
+    {
+        let mut locked_mem = self.memory.lock();
+        if let Some(mem) = locked_mem.as_mut() {
+            return Some(f(mem));
+        }
+        None
+    }
+
+    #[inline]
     pub fn apply<F>(&self, f: F)
     where
         F: FnOnce(&mut Vec<u8>),
@@ -233,6 +245,44 @@ impl MemoryAllocation {
 /// plain binary bytes usually in LittleIndian encoding.
 pub trait ToBinary {
     fn to_binary(&self) -> Vec<u8>;
+}
+
+/// [`FromBinary`] provides a basic type to convert from binary
+/// data to the defined `T`.
+///
+/// Please take notice that, since we are using [`bincode`],
+/// you have to make sure that your types are encoded in a way
+/// they can be decoded.
+pub trait FromBinary {
+    type T;
+
+    fn into_type(bin: &[u8]) -> BinaryReaderResult<Self::T>;
+}
+
+pub type BinaryReaderResult<T> = core::result::Result<T, BinaryReadError>;
+
+#[derive(Debug, Clone)]
+pub enum BinaryReadError {
+    WrongStarterCode(u8),
+    UnexpectedBinCode(u8),
+    ExpectedStringInCode(u8),
+    WrongEndingCode(u8),
+    MemoryError(String),
+}
+
+impl core::error::Error for BinaryReadError {}
+
+impl core::fmt::Display for BinaryReadError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
+
+impl From<MemoryAllocationError> for BinaryReadError {
+    fn from(value: MemoryAllocationError) -> Self {
+        let content = alloc::format!("MemoryAllocationError({value})");
+        Self::MemoryError(content)
+    }
 }
 
 /// [`BatchEncodable`] defines a trait which allows you implement

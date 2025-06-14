@@ -6,14 +6,686 @@ use alloc::vec::Vec;
 use foundation_nostd::{raw_parts::RawParts, spin::Mutex};
 
 use crate::{
-    CompletedInstructions, ExternalPointer, Instructions, InternalCallback, InternalPointer,
-    InternalReferenceRegistry, JSEncoding, MemoryAllocation, MemoryAllocations, MemoryId, Params,
-    ToBinary,
+    BinaryReadError, BinaryReaderResult, CompletedInstructions, ExternalPointer, FromBinary,
+    Instructions, InternalCallback, InternalPointer, InternalReferenceRegistry, JSEncoding,
+    MemoryAllocation, MemoryAllocations, MemoryId, Params, ReturnTypeHints, ReturnTypeId,
+    ReturnValueMarker, ReturnValues, ToBinary, MOVE_ONE_BYTE, MOVE_SIXTEEN_BYTES,
+    MOVE_SIXTY_FOUR_BYTES, MOVE_THIRTY_TWO_BYTES,
 };
 
 static INTERNAL_CALLBACKS: Mutex<InternalReferenceRegistry> = InternalReferenceRegistry::create();
 
 static ALLOCATIONS: Mutex<MemoryAllocations> = Mutex::new(MemoryAllocations::new());
+
+impl FromBinary for ReturnTypeHints {
+    type T = Vec<ReturnValues>;
+
+    fn into_type(bin: &[u8]) -> BinaryReaderResult<Self::T> {
+        if bin[0] != (ReturnValueMarker::Begin as u8) {
+            return Err(BinaryReadError::WrongStarterCode(bin[0]));
+        }
+
+        let length = bin.len();
+        if bin[length - 1] != (ReturnValueMarker::End as u8) {
+            return Err(BinaryReadError::WrongEndingCode(bin[0]));
+        }
+
+        let mut index: usize = MOVE_ONE_BYTE;
+        let mut decoded = Vec::with_capacity(10);
+
+        while index < length {
+            let return_id: ReturnTypeId = bin[index].into();
+
+            // move by 1 byte
+            index += MOVE_ONE_BYTE;
+
+            match return_id {
+                ReturnTypeId::Bool => {
+                    if bin[index] == 1 {
+                        decoded.push(ReturnValues::Bool(true));
+                    } else {
+                        decoded.push(ReturnValues::Bool(false));
+                    }
+                    index += MOVE_ONE_BYTE;
+                }
+                ReturnTypeId::Uint8 => {
+                    let item = u8::from_le(bin[index]);
+                    decoded.push(ReturnValues::Uint8(item));
+                    index += MOVE_ONE_BYTE;
+                }
+                ReturnTypeId::Uint16 => {
+                    let end = index + MOVE_SIXTEEN_BYTES;
+                    let portion = &bin[index..end];
+                    let mut section: [u8; 2] = Default::default();
+                    section.copy_from_slice(portion);
+
+                    let item = u16::from_le_bytes(section);
+                    decoded.push(ReturnValues::Uint16(item));
+
+                    index = end
+                }
+                ReturnTypeId::Uint32 => {
+                    let end = index + MOVE_THIRTY_TWO_BYTES;
+                    let portion = &bin[index..end];
+                    let mut section: [u8; 4] = Default::default();
+                    section.copy_from_slice(portion);
+
+                    let item = u32::from_le_bytes(section);
+                    decoded.push(ReturnValues::Uint32(item));
+
+                    index = end
+                }
+                ReturnTypeId::Uint64 => {
+                    let end = index + MOVE_SIXTY_FOUR_BYTES;
+                    let portion = &bin[index..end];
+                    let mut section: [u8; 8] = Default::default();
+                    section.copy_from_slice(portion);
+
+                    let item = u64::from_le_bytes(section);
+                    decoded.push(ReturnValues::Uint64(item));
+
+                    index = end
+                }
+                ReturnTypeId::Uint128 => {
+                    let msb_end = index + MOVE_SIXTY_FOUR_BYTES;
+                    let msb_portion = &bin[index..msb_end];
+                    let mut msb_section: [u8; 8] = Default::default();
+                    msb_section.copy_from_slice(msb_portion);
+
+                    let lsb_end = msb_end + MOVE_SIXTY_FOUR_BYTES;
+                    let lsb_portion = &bin[index..lsb_end];
+                    let mut lsb_section: [u8; 8] = Default::default();
+                    lsb_section.copy_from_slice(lsb_portion);
+
+                    let value_msb = u64::from_le_bytes(msb_section);
+                    let value_lsb = u64::from_le_bytes(lsb_section);
+
+                    let mut value: u128 = (value_msb as u128) << 64;
+                    value |= value_lsb as u128;
+
+                    decoded.push(ReturnValues::Uint128(value));
+
+                    index = lsb_end
+                }
+                ReturnTypeId::Int8 => {
+                    let item = i8::from_le(bin[index] as i8);
+                    decoded.push(ReturnValues::Int8(item));
+                    index += MOVE_ONE_BYTE;
+                }
+                ReturnTypeId::Int16 => {
+                    let end = index + MOVE_SIXTEEN_BYTES;
+                    let portion = &bin[index..end];
+                    let mut section: [u8; 2] = Default::default();
+                    section.copy_from_slice(portion);
+
+                    let item = i16::from_le_bytes(section);
+                    decoded.push(ReturnValues::Int16(item));
+
+                    index = end
+                }
+                ReturnTypeId::Int32 => {
+                    let end = index + MOVE_THIRTY_TWO_BYTES;
+                    let portion = &bin[index..end];
+                    let mut section: [u8; 4] = Default::default();
+                    section.copy_from_slice(portion);
+
+                    let item = i32::from_le_bytes(section);
+                    decoded.push(ReturnValues::Int32(item));
+
+                    index = end
+                }
+                ReturnTypeId::Int64 => {
+                    let end = index + MOVE_SIXTY_FOUR_BYTES;
+                    let portion = &bin[index..end];
+                    let mut section: [u8; 8] = Default::default();
+                    section.copy_from_slice(portion);
+
+                    let item = i64::from_le_bytes(section);
+                    decoded.push(ReturnValues::Int64(item));
+
+                    index = end
+                }
+                ReturnTypeId::Int128 => {
+                    let msb_end = index + MOVE_SIXTY_FOUR_BYTES;
+                    let msb_portion = &bin[index..msb_end];
+                    let mut msb_section: [u8; 8] = Default::default();
+                    msb_section.copy_from_slice(msb_portion);
+
+                    let lsb_end = msb_end + MOVE_SIXTY_FOUR_BYTES;
+                    let lsb_portion = &bin[index..lsb_end];
+                    let mut lsb_section: [u8; 8] = Default::default();
+                    lsb_section.copy_from_slice(lsb_portion);
+
+                    let value_msb = i64::from_le_bytes(msb_section);
+                    let value_lsb = i64::from_le_bytes(lsb_section);
+
+                    let mut value: i128 = (value_msb as i128) << 64;
+                    value |= value_lsb as i128;
+
+                    decoded.push(ReturnValues::Int128(value));
+
+                    index = lsb_end
+                }
+                ReturnTypeId::Float32 => {
+                    let end = index + MOVE_THIRTY_TWO_BYTES;
+                    let portion = &bin[index..end];
+                    let mut section: [u8; 4] = Default::default();
+                    section.copy_from_slice(portion);
+
+                    let item = f32::from_le_bytes(section);
+                    decoded.push(ReturnValues::Float32(item));
+
+                    index = end
+                }
+                ReturnTypeId::Float64 => {
+                    let end = index + MOVE_THIRTY_TWO_BYTES;
+                    let portion = &bin[index..end];
+                    let mut section: [u8; 8] = Default::default();
+                    section.copy_from_slice(portion);
+
+                    let item = f64::from_le_bytes(section);
+                    decoded.push(ReturnValues::Float64(item));
+
+                    index = end
+                }
+                ReturnTypeId::MemorySlice => {
+                    let end = index + MOVE_SIXTY_FOUR_BYTES;
+                    let portion = &bin[index..end];
+                    let mut section: [u8; 8] = Default::default();
+                    section.copy_from_slice(portion);
+
+                    let item = u64::from_le_bytes(section);
+                    let mem_id = MemoryId::from_u64(item);
+                    decoded.push(ReturnValues::MemorySlice(mem_id));
+
+                    index = end
+                }
+                ReturnTypeId::ExternalReference => {
+                    let end = index + MOVE_SIXTY_FOUR_BYTES;
+                    let portion = &bin[index..end];
+                    let mut section: [u8; 8] = Default::default();
+                    section.copy_from_slice(portion);
+
+                    let item = u64::from_le_bytes(section);
+                    decoded.push(ReturnValues::ExternalReference(item));
+
+                    index = end
+                }
+                ReturnTypeId::InternalReference => {
+                    let end = index + MOVE_SIXTY_FOUR_BYTES;
+                    let portion = &bin[index..end];
+                    let mut section: [u8; 8] = Default::default();
+                    section.copy_from_slice(portion);
+
+                    let item = u64::from_le_bytes(section);
+                    decoded.push(ReturnValues::InternalReference(item));
+
+                    index = end
+                }
+                ReturnTypeId::Uint8ArrayBuffer => {
+                    let end = index + MOVE_SIXTY_FOUR_BYTES;
+                    let portion = &bin[index..end];
+
+                    let mut section: [u8; 8] = Default::default();
+                    section.copy_from_slice(portion);
+
+                    let alloc_id = u64::from_le_bytes(section);
+                    let mem_id = MemoryId::from_u64(alloc_id);
+
+                    let mut memory = ALLOCATIONS.lock().get(mem_id)?;
+                    let memory_vec = memory.take();
+                    if memory_vec.is_none() {
+                        return Err(BinaryReadError::MemoryError(String::from(
+                            "No Vec<u8> not found, big problem",
+                        )));
+                    }
+
+                    decoded.push(ReturnValues::Uint8Array(memory_vec.unwrap()));
+                    index = end
+                }
+                ReturnTypeId::Uint16ArrayBuffer => {
+                    const TOTAL_U8_IN_U18: usize = 2;
+
+                    let end = index + MOVE_SIXTY_FOUR_BYTES;
+                    let portion = &bin[index..end];
+
+                    let mut section: [u8; 8] = Default::default();
+                    section.copy_from_slice(portion);
+
+                    let alloc_id = u64::from_le_bytes(section);
+                    let mem_id = MemoryId::from_u64(alloc_id);
+
+                    let mut memory = ALLOCATIONS.lock().get(mem_id)?;
+                    let memory_vec_container = memory.take();
+                    if memory_vec_container.is_none() {
+                        return Err(BinaryReadError::MemoryError(String::from(
+                            "No Vec<u8> not found, big problem",
+                        )));
+                    }
+
+                    let memory_vec = memory_vec_container.unwrap();
+                    let memory_size = memory_vec.len();
+
+                    // if the mode of 2 (size in bytes/u8) is not zero then
+                    // then its an invalid u16 array converted to u8
+                    if memory_size % TOTAL_U8_IN_U18 != 0 {
+                        return Err(BinaryReadError::MemoryError(String::from(
+                            "Vec<u8> of u16 send as u8 should have even lengths, because u16 in u8 is two u8",
+                        )));
+                    }
+
+                    let arr_size = memory_size / TOTAL_U8_IN_U18;
+                    let mut arr_content: Vec<u16> = Vec::with_capacity(arr_size);
+
+                    let mut move_index = 0;
+                    while move_index < arr_size {
+                        let portion_end = move_index + TOTAL_U8_IN_U18;
+                        let portion = &memory_vec[move_index..portion_end];
+                        let mut arr: [u8; TOTAL_U8_IN_U18] = Default::default();
+                        arr.copy_from_slice(portion);
+                        arr_content.push(u16::from_le_bytes(arr));
+                        move_index = portion_end;
+                    }
+
+                    decoded.push(ReturnValues::Uint16Array(arr_content));
+                    index = end
+                }
+                ReturnTypeId::Uint32ArrayBuffer => {
+                    const TOTAL_U8_IN_U32: usize = 4;
+
+                    let end = index + MOVE_SIXTY_FOUR_BYTES;
+                    let portion = &bin[index..end];
+
+                    let mut section: [u8; 8] = Default::default();
+                    section.copy_from_slice(portion);
+
+                    let alloc_id = u64::from_le_bytes(section);
+                    let mem_id = MemoryId::from_u64(alloc_id);
+
+                    let mut memory = ALLOCATIONS.lock().get(mem_id)?;
+                    let memory_vec_container = memory.take();
+                    if memory_vec_container.is_none() {
+                        return Err(BinaryReadError::MemoryError(String::from(
+                            "No Vec<u8> not found, big problem",
+                        )));
+                    }
+
+                    let memory_vec = memory_vec_container.unwrap();
+                    let memory_size = memory_vec.len();
+
+                    // if the mode of 2 (size in bytes/u8) is not zero then
+                    // then its an invalid u32 array converted to u8
+                    if memory_size % TOTAL_U8_IN_U32 != 0 {
+                        return Err(BinaryReadError::MemoryError(String::from(
+                            "Vec<u8> of u32 send as u8 should have even lengths, because u32 in u8 is two u8",
+                        )));
+                    }
+
+                    let arr_size = memory_size / TOTAL_U8_IN_U32;
+                    let mut arr_content: Vec<u32> = Vec::with_capacity(arr_size);
+
+                    let mut move_index = 0;
+                    while move_index < arr_size {
+                        let portion_end = move_index + TOTAL_U8_IN_U32;
+                        let portion = &memory_vec[move_index..portion_end];
+                        let mut arr: [u8; TOTAL_U8_IN_U32] = Default::default();
+                        arr.copy_from_slice(portion);
+                        arr_content.push(u32::from_le_bytes(arr));
+                        move_index = portion_end;
+                    }
+
+                    decoded.push(ReturnValues::Uint32Array(arr_content));
+                    index = end
+                }
+                ReturnTypeId::Uint64ArrayBuffer => {
+                    const TOTAL_U8_IN_U64: usize = 8;
+
+                    let end = index + MOVE_SIXTY_FOUR_BYTES;
+                    let portion = &bin[index..end];
+
+                    let mut section: [u8; 8] = Default::default();
+                    section.copy_from_slice(portion);
+
+                    let alloc_id = u64::from_le_bytes(section);
+                    let mem_id = MemoryId::from_u64(alloc_id);
+
+                    let mut memory = ALLOCATIONS.lock().get(mem_id)?;
+                    let memory_vec_container = memory.take();
+                    if memory_vec_container.is_none() {
+                        return Err(BinaryReadError::MemoryError(String::from(
+                            "No Vec<u8> not found, big problem",
+                        )));
+                    }
+
+                    let memory_vec = memory_vec_container.unwrap();
+                    let memory_size = memory_vec.len();
+
+                    // if the mode of 2 (size in bytes/u8) is not zero then
+                    // then its an invalid u64 array converted to u8
+                    if memory_size % TOTAL_U8_IN_U64 != 0 {
+                        return Err(BinaryReadError::MemoryError(String::from(
+                            "Vec<u8> of u64 send as u8 should have even lengths, because u64 in u8 is two u8",
+                        )));
+                    }
+
+                    let arr_size = memory_size / TOTAL_U8_IN_U64;
+                    let mut arr_content: Vec<u64> = Vec::with_capacity(arr_size);
+
+                    let mut move_index = 0;
+                    while move_index < arr_size {
+                        let portion_end = move_index + TOTAL_U8_IN_U64;
+                        let portion = &memory_vec[move_index..portion_end];
+                        let mut arr: [u8; TOTAL_U8_IN_U64] = Default::default();
+                        arr.copy_from_slice(portion);
+                        arr_content.push(u64::from_le_bytes(arr));
+                        move_index = portion_end;
+                    }
+
+                    decoded.push(ReturnValues::Uint64Array(arr_content));
+                    index = end
+                }
+                ReturnTypeId::Int8ArrayBuffer => {
+                    let end = index + MOVE_SIXTY_FOUR_BYTES;
+                    let portion = &bin[index..end];
+
+                    let mut section: [u8; 8] = Default::default();
+                    section.copy_from_slice(portion);
+
+                    let alloc_id = u64::from_le_bytes(section);
+                    let mem_id = MemoryId::from_u64(alloc_id);
+
+                    let mut memory = ALLOCATIONS.lock().get(mem_id)?;
+                    let memory_vec_container = memory.take();
+                    if memory_vec_container.is_none() {
+                        return Err(BinaryReadError::MemoryError(String::from(
+                            "No Vec<u8> not found, big problem",
+                        )));
+                    }
+
+                    let memory_vec = memory_vec_container.unwrap();
+                    let mut arr_content: Vec<i8> = Vec::with_capacity(memory_vec.len());
+
+                    for value in memory_vec {
+                        arr_content.push(i8::from_le(value as i8))
+                    }
+
+                    decoded.push(ReturnValues::Int8Array(arr_content));
+                    index = end
+                }
+                ReturnTypeId::Int16ArrayBuffer => {
+                    const TOTAL_U8_IN_U16: usize = 2;
+
+                    let end = index + MOVE_SIXTY_FOUR_BYTES;
+                    let portion = &bin[index..end];
+
+                    let mut section: [u8; 8] = Default::default();
+                    section.copy_from_slice(portion);
+
+                    let alloc_id = u64::from_le_bytes(section);
+                    let mem_id = MemoryId::from_u64(alloc_id);
+
+                    let mut memory = ALLOCATIONS.lock().get(mem_id)?;
+                    let memory_vec_container = memory.take();
+                    if memory_vec_container.is_none() {
+                        return Err(BinaryReadError::MemoryError(String::from(
+                            "No Vec<u8> not found, big problem",
+                        )));
+                    }
+
+                    let memory_vec = memory_vec_container.unwrap();
+                    let memory_size = memory_vec.len();
+
+                    // if the mode of 2 (size in bytes/u8) is not zero then
+                    // then its an invalid u16 array converted to u8
+                    if memory_size % TOTAL_U8_IN_U16 != 0 {
+                        return Err(BinaryReadError::MemoryError(String::from(
+                            "Vec<u8> of u16 send as u8 should have even lengths, because u16 in u8 is two u8",
+                        )));
+                    }
+
+                    let arr_size = memory_size / TOTAL_U8_IN_U16;
+                    let mut arr_content: Vec<i16> = Vec::with_capacity(arr_size);
+
+                    let mut move_index = 0;
+                    while move_index < arr_size {
+                        let portion_end = move_index + TOTAL_U8_IN_U16;
+                        let portion = &memory_vec[move_index..portion_end];
+                        let mut arr: [u8; TOTAL_U8_IN_U16] = Default::default();
+                        arr.copy_from_slice(portion);
+                        arr_content.push(i16::from_le_bytes(arr));
+                        move_index = portion_end;
+                    }
+
+                    decoded.push(ReturnValues::Int16Array(arr_content));
+                    index = end
+                }
+                ReturnTypeId::Int32ArrayBuffer => {
+                    const TOTAL_U8_IN_U32: usize = 4;
+
+                    let end = index + MOVE_SIXTY_FOUR_BYTES;
+                    let portion = &bin[index..end];
+
+                    let mut section: [u8; 8] = Default::default();
+                    section.copy_from_slice(portion);
+
+                    let alloc_id = u64::from_le_bytes(section);
+                    let mem_id = MemoryId::from_u64(alloc_id);
+
+                    let mut memory = ALLOCATIONS.lock().get(mem_id)?;
+                    let memory_vec_container = memory.take();
+                    if memory_vec_container.is_none() {
+                        return Err(BinaryReadError::MemoryError(String::from(
+                            "No Vec<u8> not found, big problem",
+                        )));
+                    }
+
+                    let memory_vec = memory_vec_container.unwrap();
+                    let memory_size = memory_vec.len();
+
+                    // if the mode of 2 (size in bytes/u8) is not zero then
+                    // then its an invalid u16 array converted to u8
+                    if memory_size % TOTAL_U8_IN_U32 != 0 {
+                        return Err(BinaryReadError::MemoryError(String::from(
+                            "Vec<u8> of u16 send as u8 should have even lengths, because u16 in u8 is two u8",
+                        )));
+                    }
+
+                    let arr_size = memory_size / TOTAL_U8_IN_U32;
+                    let mut arr_content: Vec<i32> = Vec::with_capacity(arr_size);
+
+                    let mut move_index = 0;
+                    while move_index < arr_size {
+                        let portion_end = move_index + TOTAL_U8_IN_U32;
+                        let portion = &memory_vec[move_index..portion_end];
+                        let mut arr: [u8; TOTAL_U8_IN_U32] = Default::default();
+                        arr.copy_from_slice(portion);
+                        arr_content.push(i32::from_le_bytes(arr));
+                        move_index = portion_end;
+                    }
+
+                    decoded.push(ReturnValues::Int32Array(arr_content));
+                    index = end
+                }
+                ReturnTypeId::Int64ArrayBuffer => {
+                    const TOTAL_U8_IN_U64: usize = 8;
+
+                    let end = index + MOVE_SIXTY_FOUR_BYTES;
+                    let portion = &bin[index..end];
+
+                    let mut section: [u8; 8] = Default::default();
+                    section.copy_from_slice(portion);
+
+                    let alloc_id = u64::from_le_bytes(section);
+                    let mem_id = MemoryId::from_u64(alloc_id);
+
+                    let mut memory = ALLOCATIONS.lock().get(mem_id)?;
+                    let memory_vec_container = memory.take();
+                    if memory_vec_container.is_none() {
+                        return Err(BinaryReadError::MemoryError(String::from(
+                            "No Vec<u8> not found, big problem",
+                        )));
+                    }
+
+                    let memory_vec = memory_vec_container.unwrap();
+                    let memory_size = memory_vec.len();
+
+                    // if the mode of 2 (size in bytes/u8) is not zero then
+                    // then its an invalid u16 array converted to u8
+                    if memory_size % TOTAL_U8_IN_U64 != 0 {
+                        return Err(BinaryReadError::MemoryError(String::from(
+                            "Vec<u8> of u16 send as u8 should have even lengths, because u16 in u8 is two u8",
+                        )));
+                    }
+
+                    let arr_size = memory_size / TOTAL_U8_IN_U64;
+                    let mut arr_content: Vec<i64> = Vec::with_capacity(arr_size);
+
+                    let mut move_index = 0;
+                    while move_index < arr_size {
+                        let portion_end = move_index + TOTAL_U8_IN_U64;
+                        let portion = &memory_vec[move_index..portion_end];
+                        let mut arr: [u8; TOTAL_U8_IN_U64] = Default::default();
+                        arr.copy_from_slice(portion);
+                        arr_content.push(i64::from_le_bytes(arr));
+                        move_index = portion_end;
+                    }
+
+                    decoded.push(ReturnValues::Int64Array(arr_content));
+                    index = end
+                }
+                ReturnTypeId::Float32ArrayBuffer => {
+                    const TOTAL_U8_IN_F32: usize = 4;
+
+                    let end = index + MOVE_SIXTY_FOUR_BYTES;
+                    let portion = &bin[index..end];
+
+                    let mut section: [u8; 8] = Default::default();
+                    section.copy_from_slice(portion);
+
+                    let alloc_id = u64::from_le_bytes(section);
+                    let mem_id = MemoryId::from_u64(alloc_id);
+
+                    let mut memory = ALLOCATIONS.lock().get(mem_id)?;
+                    let memory_vec_container = memory.take();
+                    if memory_vec_container.is_none() {
+                        return Err(BinaryReadError::MemoryError(String::from(
+                            "No Vec<u8> not found, big problem",
+                        )));
+                    }
+
+                    let memory_vec = memory_vec_container.unwrap();
+                    let memory_size = memory_vec.len();
+
+                    // if the mode of 2 (size in bytes/u8) is not zero then
+                    // then its an invalid u16 array converted to u8
+                    if memory_size % TOTAL_U8_IN_F32 != 0 {
+                        return Err(BinaryReadError::MemoryError(String::from(
+                            "Vec<u8> of u16 send as u8 should have even lengths, because u16 in u8 is two u8",
+                        )));
+                    }
+
+                    let arr_size = memory_size / TOTAL_U8_IN_F32;
+                    let mut arr_content: Vec<f32> = Vec::with_capacity(arr_size);
+
+                    let mut move_index = 0;
+                    while move_index < arr_size {
+                        let portion_end = move_index + TOTAL_U8_IN_F32;
+                        let portion = &memory_vec[move_index..portion_end];
+                        let mut arr: [u8; TOTAL_U8_IN_F32] = Default::default();
+                        arr.copy_from_slice(portion);
+                        arr_content.push(f32::from_le_bytes(arr));
+                        move_index = portion_end;
+                    }
+
+                    decoded.push(ReturnValues::Float32Array(arr_content));
+                    index = end
+                }
+                ReturnTypeId::Float64ArrayBuffer => {
+                    const TOTAL_U8_IN_F64: usize = 8;
+
+                    let end = index + MOVE_SIXTY_FOUR_BYTES;
+                    let portion = &bin[index..end];
+
+                    let mut section: [u8; 8] = Default::default();
+                    section.copy_from_slice(portion);
+
+                    let alloc_id = u64::from_le_bytes(section);
+                    let mem_id = MemoryId::from_u64(alloc_id);
+
+                    let mut memory = ALLOCATIONS.lock().get(mem_id)?;
+                    let memory_vec_container = memory.take();
+                    if memory_vec_container.is_none() {
+                        return Err(BinaryReadError::MemoryError(String::from(
+                            "No Vec<u8> not found, big problem",
+                        )));
+                    }
+
+                    let memory_vec = memory_vec_container.unwrap();
+                    let memory_size = memory_vec.len();
+
+                    // if the mode of 2 (size in bytes/u8) is not zero then
+                    // then its an invalid u16 array converted to u8
+                    if memory_size % TOTAL_U8_IN_F64 != 0 {
+                        return Err(BinaryReadError::MemoryError(String::from(
+                            "Vec<u8> of u16 send as u8 should have even lengths, because u16 in u8 is two u8",
+                        )));
+                    }
+
+                    let arr_size = memory_size / TOTAL_U8_IN_F64;
+                    let mut arr_content: Vec<f64> = Vec::with_capacity(arr_size);
+
+                    let mut move_index = 0;
+                    while move_index < arr_size {
+                        let portion_end = move_index + TOTAL_U8_IN_F64;
+                        let portion = &memory_vec[move_index..portion_end];
+                        let mut arr: [u8; TOTAL_U8_IN_F64] = Default::default();
+                        arr.copy_from_slice(portion);
+                        arr_content.push(f64::from_le_bytes(arr));
+                        move_index = portion_end;
+                    }
+
+                    decoded.push(ReturnValues::Float64Array(arr_content));
+                    index = end
+                }
+                ReturnTypeId::Text8 => {
+                    let end = index + MOVE_SIXTY_FOUR_BYTES;
+                    let portion = &bin[index..end];
+
+                    let mut section: [u8; 8] = Default::default();
+                    section.copy_from_slice(portion);
+
+                    let alloc_id = u64::from_le_bytes(section);
+                    let mem_id = MemoryId::from_u64(alloc_id);
+
+                    let mut memory = ALLOCATIONS.lock().get(mem_id)?;
+                    let memory_vec_container = memory.take();
+                    if memory_vec_container.is_none() {
+                        return Err(BinaryReadError::MemoryError(String::from(
+                            "No Vec<u8> not found, big problem",
+                        )));
+                    }
+
+                    let memory_vec = memory_vec_container.unwrap();
+
+                    match String::from_utf8(memory_vec) {
+                        Ok(content) => {
+                            decoded.push(ReturnValues::Text8(content));
+                        }
+                        Err(_) => {
+                            return Err(BinaryReadError::ExpectedStringInCode(
+                                ReturnTypeId::Text8 as u8,
+                            ))
+                        }
+                    };
+
+                    index = end
+                }
+            }
+        }
+
+        Ok(decoded)
+    }
+}
 
 /// [`internal_api`] are internal methods, structs, and surfaces that provide core functionalities
 /// that we support or that allows making or preparing data to be sent-out or sent-across the API.
@@ -50,11 +722,11 @@ pub mod internal_api {
     }
 
     #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-    pub fn register_internal_callback<F>(f: F) -> InternalPointer
+    pub fn register_internal_callback<F>(hint: ReturnTypeHints, f: F) -> InternalPointer
     where
         F: InternalCallback + Send + Sync + 'static,
     {
-        INTERNAL_CALLBACKS.lock().add(f)
+        INTERNAL_CALLBACKS.lock().add(hint, f)
     }
 
     pub fn unregister_internal_callback(addr: InternalPointer) {

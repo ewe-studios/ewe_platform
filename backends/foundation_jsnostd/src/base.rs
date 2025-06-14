@@ -1,5 +1,11 @@
 use alloc::{string::String, vec::Vec};
 
+pub const MOVE_ONE_BYTE: usize = 1;
+pub const MOVE_SIXTEEN_BYTES: usize = 2;
+pub const MOVE_THIRTY_TWO_BYTES: usize = 4;
+pub const MOVE_SIXTY_FOUR_BYTES: usize = 8;
+pub const MOVE_ONE_TWENTY_EIGHT_BYTES: usize = 16;
+
 /// [`TypedSlice`] represent the type of a slice which is sent over.
 /// And helps the receiver know what exactly is represented by a slice of u8 array.
 #[repr(usize)]
@@ -196,8 +202,15 @@ impl From<u8> for ReturnTypeId {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ReturnTypes {
     None = 0,
+
+    // Returns a single result.
     One = 1,
-    Many = 2,
+
+    // Returns a multiple distinct result of specific types.
+    Multi = 2,
+
+    // Returns a list of a specific type
+    List = 3,
 }
 
 #[allow(clippy::from_over_into)]
@@ -225,7 +238,8 @@ impl From<u8> for ReturnTypes {
         match value {
             0 => Self::None,
             1 => Self::One,
-            2 => Self::Many,
+            2 => Self::Multi,
+            3 => Self::List,
             _ => unreachable!("should not have any other type of ArgumentOperations"),
         }
     }
@@ -233,11 +247,12 @@ impl From<u8> for ReturnTypes {
 
 /// [`ReturnTypeHints`] represent the potential return values of calling a
 /// function
-#[derive(Eq, PartialEq, Hash, Debug, Clone, Copy)]
+#[derive(Eq, PartialEq, Hash, Debug, Clone)]
 pub enum ReturnTypeHints {
     None,
     One(ReturnTypeId),
-    Many(ReturnTypeId),
+    Multi(Vec<ReturnTypeId>),
+    List(ReturnTypeId),
 }
 
 #[allow(clippy::from_over_into)]
@@ -262,19 +277,22 @@ impl ReturnTypeHints {
         match self {
             Self::None => ReturnTypes::None,
             Self::One(_) => ReturnTypes::One,
-            Self::Many(_) => ReturnTypes::Many,
+            Self::List(_) => ReturnTypes::List,
+            Self::Multi(_) => ReturnTypes::Multi,
         }
     }
 
-    pub fn to_returns_value_u8(&self) -> Option<u8> {
-        self.to_returns_value().map(|inner| inner as u8)
+    pub fn to_returns_value_u8(&self) -> Option<Vec<u8>> {
+        self.to_returns_value()
+            .map(|inner| inner.iter().map(|item| *item as u8).collect())
     }
 
-    pub fn to_returns_value(&self) -> Option<ReturnTypeId> {
+    pub fn to_returns_value(&self) -> Option<Vec<ReturnTypeId>> {
         match self {
             Self::None => None,
-            Self::One(v) => Some(*v),
-            Self::Many(v) => Some(*v),
+            Self::One(v) => Some(alloc::vec![*v]),
+            Self::Multi(v) => Some(v.clone()),
+            Self::List(v) => Some(alloc::vec![*v]),
         }
     }
 }
@@ -285,7 +303,8 @@ impl ReturnTypeHints {
 pub enum Returns {
     None,
     One(ReturnValues),
-    Many(Vec<ReturnValues>),
+    List(ReturnValues),
+    Multi(Vec<ReturnValues>),
 }
 
 #[allow(clippy::from_over_into)]
@@ -310,7 +329,8 @@ impl Returns {
         match self {
             Self::None => ReturnTypes::None,
             Self::One(_) => ReturnTypes::One,
-            Self::Many(_) => ReturnTypes::Many,
+            Self::List(_) => ReturnTypes::List,
+            Self::Multi(_) => ReturnTypes::Multi,
         }
     }
 }
@@ -654,6 +674,37 @@ impl StrLocation {
 
     pub fn len(&self) -> u64 {
         self.1
+    }
+}
+
+#[repr(usize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ReturnValueMarker {
+    Begin = 100,
+    End = 101,
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for &ReturnValueMarker {
+    fn into(self) -> u8 {
+        *self as u8
+    }
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for ReturnValueMarker {
+    fn into(self) -> u8 {
+        self as u8
+    }
+}
+
+impl From<u8> for ReturnValueMarker {
+    fn from(value: u8) -> Self {
+        match value {
+            1 => Self::Begin,
+            4 => Self::End,
+            _ => unreachable!("should not have any other type of ArgumentOperations"),
+        }
     }
 }
 
