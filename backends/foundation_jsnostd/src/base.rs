@@ -139,6 +139,8 @@ pub enum ReturnTypeId {
     Int64ArrayBuffer = 25,
     Float32ArrayBuffer = 26,
     Float64ArrayBuffer = 27,
+    Object = 28,
+    DOMObject = 29,
 }
 
 #[allow(clippy::from_over_into)]
@@ -191,6 +193,8 @@ impl From<u8> for ReturnTypeId {
             25 => Self::Int64ArrayBuffer,
             26 => Self::Float32ArrayBuffer,
             27 => Self::Float64ArrayBuffer,
+            28 => Self::Object,
+            29 => Self::DOMObject,
             _ => unreachable!("should not have any other type of ArgumentOperations"),
         }
     }
@@ -351,8 +355,6 @@ pub enum ReturnValues {
     Uint64(u64),
     Uint128(u128),
     Text8(String),
-    ExternalReference(u64),
-    InternalReference(u64),
     Int8Array(Vec<i8>),
     Int16Array(Vec<i16>),
     Int32Array(Vec<i32>),
@@ -364,6 +366,10 @@ pub enum ReturnValues {
     Float32Array(Vec<f32>),
     Float64Array(Vec<f64>),
     MemorySlice(MemoryId),
+    Object(ExternalPointer),
+    DOMObject(InternalPointer),
+    ExternalReference(ExternalPointer),
+    InternalReference(InternalPointer),
 }
 
 impl ReturnValues {
@@ -387,6 +393,8 @@ impl ReturnValues {
             Self::Uint64(_) => ReturnTypeId::Uint64,
             Self::Uint128(_) => ReturnTypeId::Uint128,
             Self::Text8(_) => ReturnTypeId::Text8,
+            Self::Object(_) => ReturnTypeId::Object,
+            Self::DOMObject(_) => ReturnTypeId::DOMObject,
             Self::MemorySlice(_) => ReturnTypeId::MemorySlice,
             Self::Int8Array(_) => ReturnTypeId::Int8ArrayBuffer,
             Self::Int16Array(_) => ReturnTypeId::Int16ArrayBuffer,

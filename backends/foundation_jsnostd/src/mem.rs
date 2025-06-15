@@ -9,7 +9,7 @@ use alloc::sync::Arc;
 use alloc::vec::Vec;
 use foundation_nostd::spin::Mutex;
 
-use crate::{CompletedInstructions, MemoryId, StrLocation};
+use crate::{CompletedInstructions, MemoryId, ReturnTypeId, StrLocation};
 
 pub type MemoryWriterResult<T> = core::result::Result<T, MemoryWriterError>;
 
@@ -256,7 +256,7 @@ pub trait ToBinary {
 pub trait FromBinary {
     type T;
 
-    fn into_type(bin: &[u8]) -> BinaryReaderResult<Self::T>;
+    fn into_type(self, bin: &[u8]) -> BinaryReaderResult<Self::T>;
 }
 
 pub type BinaryReaderResult<T> = core::result::Result<T, BinaryReadError>;
@@ -268,6 +268,7 @@ pub enum BinaryReadError {
     ExpectedStringInCode(u8),
     WrongEndingCode(u8),
     MemoryError(String),
+    NotMatchingTypeHint(ReturnTypeId, ReturnTypeId),
 }
 
 impl core::error::Error for BinaryReadError {}

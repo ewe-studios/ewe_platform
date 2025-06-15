@@ -159,6 +159,23 @@ const Megatron = (function () {
 
   Object.freeze(TypeOptimization);
 
+  const ReturnHintMarker = {
+    Start: 200,
+    Stop: 201,
+  };
+
+  ReturnHintMarker.__INVERSE__ = Object.keys(ReturnHintMarker)
+    .map((key) => {
+      return [key, ReturnHintMarker[key]];
+    })
+    .reduce((prev, current) => {
+      let [key, value] = current;
+      prev[value] = key;
+      return prev;
+    }, {});
+
+  Object.freeze(ReturnHintMarker);
+
   ReturnValueMarker = {
     Begin: 100,
     End: 101,
@@ -181,7 +198,8 @@ const Megatron = (function () {
   const ReturnTypes = {
     None: 0,
     One: 1,
-    Many: 2,
+    Multi: 2,
+    List: 3,
   };
 
   ReturnTypes.__INVERSE__ = Object.keys(ReturnTypes)
@@ -226,6 +244,8 @@ const Megatron = (function () {
     Int64ArrayBuffer: 25,
     Float32ArrayBuffer: 26,
     Float64ArrayBuffer: 27,
+    Object: 28,
+    DOMObject: 29,
   };
 
   ReturnTypeId.__INVERSE__ = Object.keys(ReturnTypeId)
@@ -1073,7 +1093,7 @@ const Megatron = (function () {
       return out;
     }
 
-    // See https://github.com/emscripten-core/emscripten/blob/main/test/js_optimizer/applyImportAndExportNameChanges2-output.js#L30-L64
+    // See https://github.com/emscripten-core/emscripten/blob/main/test/host_optimizer/applyImportAndExportNameChanges2-output.js#L30-L64
     static emscriptenUTF8ArrayToString(
       u8Array,
       idx,
@@ -1197,7 +1217,7 @@ const Megatron = (function () {
     }
   }
 
-  class ExternalPointer {
+  class RefPointer {
     constructor(value) {
       this.id = value;
     }
@@ -1207,15 +1227,154 @@ const Megatron = (function () {
     }
   }
 
-  class CachePointer {
-    constructor(value) {
-      this.id = value;
+  class ReturnHint {
+    constructor(return_type, value_type) {
+      this.value_type = value_type;
+      this.return_type = return_type;
+      this.type_validators = {};
+      this.type_validators[ReturnTypeId.Bool] = this.validateBool;
+      this.type_validators[ReturnTypeId.Text8] = this.validateText8;
+      this.type_validators[ReturnTypeId.Uint16] = this.validateInt;
+      this.type_validators[ReturnTypeId.Uint32] = this.validateInt;
+      this.type_validators[ReturnTypeId.Uint64] = this.validateInt64;
+      this.type_validators[ReturnTypeId.Int8] = this.validateInt;
+      this.type_validators[ReturnTypeId.Int16] = this.validateInt;
+      this.type_validators[ReturnTypeId.Int32] = this.validateInt;
+      this.type_validators[ReturnTypeId.Int64] = this.validateInt64;
+      this.type_validators[ReturnTypeId.Float32] = this.validateFloat;
+      this.type_validators[ReturnTypeId.Float64] = this.validateFloat;
     }
 
-    get value() {
-      return this.id;
+    get return_valuetype() {
+      return this.value_type;
+    }
+
+    get_validator(input_type) {
+      const validator = this.type_validators[input_type];
+      if (isUndefinedOrNull(validator)) {
+        throw new Error(`ReturnTypeId ${value_type} is not known`);
+      }
+      return validator;
+    }
+
+    validateBool(value) {
+      return typeof value != "boolean";
+    }
+
+    validateText8(value) {
+      return typeof value != "string";
+    }
+
+    validateFloat(value) {
+      return typeof value != "number";
+    }
+
+    validateInt(value) {
+      return typeof value != "number";
+    }
+
+    validateInt64(value) {
+      return typeof value != "bigint";
+    }
+
+    validateUint8Array(value) {
+      return value instanceof Uint8Array;
+    }
+
+    validateUint16Array(value) {
+      return value instanceof Uint16Array;
+    }
+
+    validateUint32Array(value) {
+      return value instanceof Uint32Array;
+    }
+
+    validateUint64Array(value) {
+      return value instanceof BigUint64Array;
+    }
+
+    validateInt8Array(value) {
+      return value instanceof Int8Array;
+    }
+
+    validateInt16Array(value) {
+      return value instanceof Int16Array;
+    }
+
+    validateInt32Array(value) {
+      return value instanceof Int32Array;
+    }
+
+    validateInt64Array(value) {
+      return value instanceof BigInt64Array;
+    }
+
+    validateFloat32Array(value) {
+      return value instanceof Float32Array;
+    }
+
+    validateFloat64Array(value) {
+      return value instanceof Float32Array;
+    }
+
+    validateMemorySlice(value) {
+      if (typeof value == "bigint") {
+        return true;
+      }
+      return false;
+    }
+
+    validateReference(value) {
+      if (value instanceof ExternalPointer) {
+        return true;
+      }
+      if (value instanceof InternalPointer) {
+        return true;
+      }
+      if (typeof value == "bigint") {
+        return true;
+      }
+      return false;
     }
   }
+
+  class NoReturn extends ReturnHint {
+    constructor() {
+      super(ReturnTypes.None, -1);
+    }
+
+    validate(input) {
+      return isUndefinedOrNull(input);
+    }
+  }
+
+  class SingleReturn extends ReturnHint {
+    constructor(value_type) {
+      super(ReturnTypes.One, value_type);
+    }
+
+    validate(input) {
+      return false;
+    }
+  }
+
+  class ListReturn extends ReturnHint {
+    constructor(value_types) {
+      super(ReturnTypes.List, value_types);
+    }
+  }
+
+  class MultiReturn extends ReturnHint {
+    constructor(value_type) {
+      super(ReturnTypes.Multi, value_type);
+    }
+  }
+
+  class ExternalPointer extends RefPointer {}
+
+  class InternalPointer extends RefPointer {}
+
+  class CachePointer extends RefPointer {}
 
   class TypedArraySlice {
     constructor(slice_type, content) {
@@ -1244,13 +1403,83 @@ const Megatron = (function () {
     }
   }
 
-  class InternalPointer {
-    constructor(value) {
-      this.id = value;
+  class ReturnHintParser {
+    constructor() {
+      this.parsers = {};
+      this.parsers[ReturnTypes.One] = this.parse_one;
+      this.parsers[ReturnTypes.None] = this.parse_none;
+      this.parsers[ReturnTypes.List] = this.parse_list;
+      this.parsers[ReturnTypes.Multi] = this.parse_multiple;
     }
 
-    get value() {
-      return this.id;
+    parse(moved_by, view) {
+      // validate we see begin marker
+      const id = view.getUint8(moved_by, true);
+
+      if (id != ReturnHintMarker.Start) {
+        throw new Error("Argument did not start with ArgumentOperation.Start");
+      }
+      moved_by += Move.MOVE_BY_1_BYTES;
+
+      // get the type of hint
+      const hint_type = view.getUint8(moved_by, true);
+      if (!(hint_type in this.parsers)) {
+        throw new Error(`ReturnHintType ${hint_type} not found`);
+      }
+
+      let return_validator;
+      const parser = this.parsers[hint_type];
+      [moved_by, return_validator] = parser(moved_by, view);
+
+      if (view.getUint8(moved_by, true) != ReturnHintMarker.Stop) {
+        throw new Error("Argument did not end with ArgumentOperation.End");
+      }
+
+      moved_by += Move.MOVE_BY_1_BYTES;
+
+      return [moved_by, return_validator];
+    }
+
+    parse_none(offset, view) {
+      return [offset, new NoReturn()];
+    }
+
+    parse_one(offset, view) {
+      const value_type = view.getUint8(moved_by, true);
+      if (!(value_type in ReturnTypeId.__INVERSE__)) {
+        throw new Error(`ReturnTypeId ${value_type} is not known`);
+      }
+
+      moved_by += Move.MOVE_BY_1_BYTES;
+      return [offset, new SingleReturn(value_type)];
+    }
+
+    parse_multiple(offset, view) {
+      const multi_values = [];
+      while (true) {
+        let value_type = view.getUint8(moved_by, true);
+        if (value_type == ReturnHintMarker.Stop) {
+          break;
+        }
+
+        if (!(value_type in ReturnTypeId.__INVERSE__)) {
+          throw new Error(`ReturnTypeId ${value_type} is not known`);
+        }
+
+        multi_values.push(value_type);
+      }
+
+      return [offset, new MultiReturn(multi_values)];
+    }
+
+    parse_list(offset, view) {
+      const value_type = view.getUint8(moved_by, true);
+      if (!(value_type in ReturnTypeId.__INVERSE__)) {
+        throw new Error(`ReturnTypeId ${value_type} is not known`);
+      }
+
+      moved_by += Move.MOVE_BY_1_BYTES;
+      return [offset, new ListReturn(value_type)];
     }
   }
 
@@ -2362,6 +2591,25 @@ const Megatron = (function () {
       return [from_index, target_text];
     }
 
+    parseDOMPointer(from_index, value_type, view) {
+      if (value_type != Params.InternalReference) {
+        throw new Error(
+          `Parameter is not that of InternalReference: received ${value_type}`,
+        );
+      }
+
+      // read out a 64 bit number representing the external reference.
+      const [move_by, external_id] = this.parseNumber64(
+        from_index,
+        Params.Uint64,
+        view,
+      );
+
+      LOGGER.debug("InternalIdExtraction: ", move_by, external_id);
+
+      return [move_by, new InternalPointer(external_id)];
+    }
+
     parseInternalPointer(from_index, value_type, view) {
       if (value_type != Params.InternalReference) {
         throw new Error(
@@ -2866,6 +3114,12 @@ const Megatron = (function () {
       this.reply_types[ReturnTypeId.Int64] = Reply.encodeBigInt64;
       this.reply_types[ReturnTypeId.Float32] = Reply.encodeFloat32;
       this.reply_types[ReturnTypeId.Float64] = Reply.encodeFloat64;
+      this.reply_types[ReturnTypeId.Object] = Reply.encodeObject;
+      this.reply_types[ReturnTypeId.DOMObject] = Reply.encodeDOMObject;
+      this.reply_types[ReturnTypeId.ExternalReference] =
+        Reply.encodeExternalReference;
+      this.reply_types[ReturnTypeId.InternalReference] =
+        Reply.encodeInternalReference;
       this.reply_types[ReturnTypeId.MemorySlice] = Reply.encodeMemorySlice;
       this.reply_types[ReturnTypeId.Uint8ArrayBuffer] =
         Reply.encodeUint8ArrayBuffer;
@@ -2876,13 +3130,13 @@ const Megatron = (function () {
       this.reply_types[ReturnTypeId.Uint64ArrayBuffer] =
         Reply.encodeUint64ArrayBuffer;
       this.reply_types[ReturnTypeId.Int8ArrayBuffer] =
-        Reply.encodeUint8ArrayBuffer;
+        Reply.encodeInt8ArrayBuffer;
       this.reply_types[ReturnTypeId.Int16ArrayBuffer] =
-        Reply.encodeUint16ArrayBuffer;
+        Reply.encodeInt16ArrayBuffer;
       this.reply_types[ReturnTypeId.Int32ArrayBuffer] =
-        Reply.encodeUint32ArrayBuffer;
+        Reply.encodeInt32ArrayBuffer;
       this.reply_types[ReturnTypeId.Int64ArrayBuffer] =
-        Reply.encodeUint64ArrayBuffer;
+        Reply.encodeInt64ArrayBuffer;
       this.reply_types[ReturnTypeId.Float32ArrayBuffer] =
         Reply.encodeFloat32ArrayBuffer;
       this.reply_types[ReturnTypeId.Float64ArrayBuffer] =
@@ -3104,6 +3358,34 @@ const Megatron = (function () {
 
     static encodeInternalReference(offset, directive, view) {
       if (directive.type != ReturnTypeId.InternalReference) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      view.setUint8(offset, directive.type);
+      offset += Move.MOVE_BY_1_BYTES;
+
+      view.setBigUint64(offset, directive.value);
+      offset += Move.MOVE_BY_64_BYTES;
+
+      return offset;
+    }
+
+    static encodeObject(offset, directive, view) {
+      if (directive.type != ReturnTypeId.Object) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      view.setUint8(offset, directive.type);
+      offset += Move.MOVE_BY_1_BYTES;
+
+      view.setBigUint64(offset, directive.value);
+      offset += Move.MOVE_BY_64_BYTES;
+
+      return offset;
+    }
+
+    static encodeDOMObject(offset, directive, view) {
+      if (directive.type != ReturnTypeId.DOMObject) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
@@ -3445,6 +3727,26 @@ const Megatron = (function () {
       return Reply.asValue(ReturnTypeId.ExternalReference, value);
     }
 
+    static asObject(value) {
+      if (value instanceof ExternalPointer && typeof value !== "bigint") {
+        throw new Error("Value must be bigint/ExternalPointer");
+      }
+      if (value instanceof ExternalPointer) {
+        return Reply.asValue(ReturnTypeId.Object, value.value);
+      }
+      return Reply.asValue(ReturnTypeId.Object, value);
+    }
+
+    static asDOMObject(value) {
+      if (value instanceof ExternalPointer && typeof value !== "bigint") {
+        throw new Error("Value must be bigint/ExternalPointer");
+      }
+      if (value instanceof ExternalPointer) {
+        return Reply.asValue(ReturnTypeId.DOMObject, value.value);
+      }
+      return Reply.asValue(ReturnTypeId.DOMObject, value);
+    }
+
     static asMemorySlice(value) {
       if (typeof value !== "bigint") {
         throw new Error("Value must be bigint");
@@ -3585,6 +3887,9 @@ const Megatron = (function () {
       this.text_cache = text_cache;
       this.operator = memory_operator;
       this.module = memory_operator.get_module();
+
+      // parser for return hints.
+      this.returns = ReturnHintParser();
 
       // v2 function parameters handling
       this.parameter_v2 = new ParameterParserV2(
@@ -3847,53 +4152,92 @@ const Megatron = (function () {
 
     get web_abi() {
       return {
-        js_abort: this.abort.bind(this),
-        js_cache_string: this.js_cache_string.bind(this),
-        js_drop_external_reference: this.drop_external_reference.bind(this),
-        js_register_function: this.js_register_function.bind(this),
-        js_invoke_function: this.js_invoke_function.bind(this),
-        host_invoke_function: this.host_invoke_function.bind(this),
-        js_invoke_function_and_return_dom:
-          this.js_invoke_function_and_return_dom.bind(this),
-        js_invoke_function_and_return_object:
-          this.js_invoke_function_and_return_object.bind(this),
-        js_invoke_function_and_return_bool:
-          this.js_invoke_function_and_return_bool.bind(this),
-        js_invoke_function_and_return_float64:
-          this.js_invoke_function_and_return_float.bind(this),
-        js_invoke_function_and_return_float32:
-          this.js_invoke_function_and_return_float.bind(this),
-        js_invoke_function_and_return_bigint:
-          this.js_invoke_function_and_return_bigint.bind(this),
-        js_invoke_function_and_return_int8:
-          this.js_invoke_function_and_return_int.bind(this),
-        js_invoke_function_and_return_int16:
-          this.js_invoke_function_and_return_int.bind(this),
-        js_invoke_function_and_return_int32:
-          this.js_invoke_function_and_return_int.bind(this),
-        js_invoke_function_and_return_int64:
-          this.js_invoke_function_and_return_int.bind(this),
-        js_invoke_function_and_return_string:
-          this.js_invoke_function_and_return_string.bind(this),
-        js_string_cache_drop_external_pointer:
-          this.string_cache_drop_external_pointer.bind(this),
-        js_function_drop_external_pointer:
-          this.function_drop_external_pointer.bind(this),
-        js_dom_drop_external_pointer: this.dom_drop_external_pointer.bind(this),
-        js_object_drop_external_pointer:
-          this.object_drop_external_pointer.bind(this),
-        apply_instructions: this.apply_instructions.bind(this),
+        // aborting host call/execution, basicalling panicing on the host.
+        host_abort: this.abort.bind(this),
+
+        // extern references
+        //
+        // external reference/pointer bindings
+        //
+        // 1. allocate pointer for dom node/object.
         dom_allocate_external_pointer:
           this.dom_allocate_external_pointer.bind(this),
+
+        // 2. allocate pointer for general js object.
         object_allocate_external_pointer:
           this.object_allocate_external_pointer.bind(this),
+
+        // 2. allocate pointer for function
         function_allocate_external_pointer:
           this.function_allocate_external_pointer.bind(this),
-        dom_drop_external_pointer: this.dom_drop_external_pointer.bind(this),
-        object_drop_external_pointer:
-          this.object_drop_external_pointer.bind(this),
-        function_drop_external_pointer:
+
+        // external reference/pointer de-registration
+        //
+        // 1. Drop string external reference
+        host_string_cache_drop_external_pointer:
+          this.string_cache_drop_external_pointer.bind(this),
+
+        // 2. Drop function external reference
+        host_function_drop_external_pointer:
           this.function_drop_external_pointer.bind(this),
+
+        // 3. Drop dom external reference
+        host_dom_drop_external_pointer:
+          this.dom_drop_external_pointer.bind(this),
+
+        // 4. Drop object external reference
+        host_object_drop_external_pointer:
+          this.object_drop_external_pointer.bind(this),
+
+        // Batch bindings
+        //
+        host_batch_apply: this.apply_instructions.bind(this),
+
+        // string caching and interning
+        host_cache_string: this.host_cache_string.bind(this),
+
+        // registration binding
+        host_register_function: this.host_register_function.bind(this),
+
+        // invocation bindings
+        //
+        // 1. Generic Binding
+        host_invoke_function: this.host_invoke_function.bind(this),
+
+        // 2. Callback Binding
+        host_invoke_callback_function:
+          this.host_invoke_callback_function.bind(this),
+
+        // host_invoke_function_as_dom:
+        //   this.host_invoke_function_as_dom.bind(this),
+        // host_invoke_function_as_object:
+        //   this.host_invoke_function_as_object.bind(this),
+
+        // 3. Specific Bindings
+        host_invoke_function_as_bool:
+          this.host_invoke_function_as_bool.bind(this),
+        host_invoke_function_as_float64:
+          this.host_invoke_function_as_float.bind(this),
+        host_invoke_function_as_float32:
+          this.host_invoke_function_as_float.bind(this),
+        host_invoke_function_as_uint8:
+          this.host_invoke_function_as_int.bind(this),
+        host_invoke_function_as_uint16:
+          this.host_invoke_function_as_int.bind(this),
+        host_invoke_function_as_uint32:
+          this.host_invoke_function_as_int.bind(this),
+        host_invoke_function_as_uint64:
+          this.host_invoke_function_as_bigint.bind(this),
+        host_invoke_function_as_int8:
+          this.host_invoke_function_as_int.bind(this),
+        host_invoke_function_as_int16:
+          this.host_invoke_function_as_int.bind(this),
+        host_invoke_function_as_int32:
+          this.host_invoke_function_as_int.bind(this),
+        host_invoke_function_as_int64:
+          this.host_invoke_function_as_bigint.bind(this),
+        host_invoke_function_as_string:
+          this.host_invoke_function_as_string.bind(this),
       };
     }
 
@@ -3958,7 +4302,7 @@ const Megatron = (function () {
       return slot_id;
     }
 
-    js_cache_string(start, length, utf_indicator) {
+    host_cache_string(start, length, utf_indicator) {
       LOGGER.debug(
         "Register string for cache/interning: ",
         start,
@@ -3989,7 +4333,7 @@ const Megatron = (function () {
       return BigInt(this.string_cache.create(target_string));
     }
 
-    js_register_function(start, length, utf_indicator) {
+    host_register_function(start, length, utf_indicator) {
       LOGGER.debug(
         "Register function: ",
         start,
@@ -4022,24 +4366,36 @@ const Megatron = (function () {
       return this.function_heap.create(registered_func);
     }
 
-    js_invoke_function_with_return(handle, parameter_start, parameter_length) {
+    host_invoke_function_with_return(
+      handle,
+      parameter_start,
+      parameter_length,
+      returns_start,
+      returns_length,
+    ) {
       // read parameters and invoke function via handle.
       const parameters = this.parameter_v1.parse_array(
         parameter_start,
         parameter_length,
       );
+
       if (!parameters && parameter_length > 0)
         throw new Error("No parameters returned though we expect some");
 
       const func = this.function_heap.get(handle);
 
       const response = func.call(this, ...parameters);
-      LOGGER.debug("js_invoke_function_with_return: ", response);
+      LOGGER.debug("host_invoke_function_with_return: ", response);
       return response;
     }
 
-    host_invoke_function(handle, parameter_start, parameter_length) {
-      // this.js_invoke_function_with_return(
+    host_invoke_callback_function(
+      handle,
+      callback_handle,
+      parameter_start,
+      parameter_length,
+    ) {
+      // this.host_invoke_function_with_return(
       //   handle,
       //   parameter_start,
       //   parameter_length,
@@ -4047,20 +4403,33 @@ const Megatron = (function () {
       return BigInt(0);
     }
 
-    js_invoke_function(handle, parameter_start, parameter_length) {
-      this.js_invoke_function_with_return(
-        handle,
-        parameter_start,
-        parameter_length,
-      );
+    host_invoke_function(handle, parameter_start, parameter_length) {
+      // this.host_invoke_function_with_return(
+      //   handle,
+      //   parameter_start,
+      //   parameter_length,
+      // );
+      return BigInt(0);
     }
 
-    js_invoke_function_and_return_dom(
+    host_invoke_function(
       handle,
       parameter_start,
       parameter_length,
+      returns_start,
+      returns_length,
     ) {
-      const response = this.js_invoke_function_with_return(
+      this.host_invoke_function_with_return(
+        handle,
+        parameter_start,
+        parameter_length,
+        returns_start,
+        returns_length,
+      );
+    }
+
+    host_invoke_function_as_dom(handle, parameter_start, parameter_length) {
+      const response = this.host_invoke_function_with_return(
         handle,
         parameter_start,
         parameter_length,
@@ -4068,12 +4437,8 @@ const Megatron = (function () {
       return this.dom_heap.create(response);
     }
 
-    js_invoke_function_and_return_object(
-      handle,
-      parameter_start,
-      parameter_length,
-    ) {
-      const response = this.js_invoke_function_with_return(
+    host_invoke_function_as_object(handle, parameter_start, parameter_length) {
+      const response = this.host_invoke_function_with_return(
         handle,
         parameter_start,
         parameter_length,
@@ -4081,12 +4446,8 @@ const Megatron = (function () {
       return this.object_heap.create(response);
     }
 
-    js_invoke_function_and_return_bool(
-      handle,
-      parameter_start,
-      parameter_length,
-    ) {
-      const response = this.js_invoke_function_with_return(
+    host_invoke_function_as_bool(handle, parameter_start, parameter_length) {
+      const response = this.host_invoke_function_with_return(
         handle,
         parameter_start,
         parameter_length,
@@ -4094,12 +4455,8 @@ const Megatron = (function () {
       return response ? true : false;
     }
 
-    js_invoke_function_and_return_float(
-      handle,
-      parameter_start,
-      parameter_length,
-    ) {
-      const response = this.js_invoke_function_with_return(
+    host_invoke_function_as_float(handle, parameter_start, parameter_length) {
+      const response = this.host_invoke_function_with_return(
         handle,
         parameter_start,
         parameter_length,
@@ -4110,12 +4467,8 @@ const Megatron = (function () {
       return response;
     }
 
-    js_invoke_function_and_return_int(
-      handle,
-      parameter_start,
-      parameter_length,
-    ) {
-      const response = this.js_invoke_function_with_return(
+    host_invoke_function_as_int(handle, parameter_start, parameter_length) {
+      const response = this.host_invoke_function_with_return(
         handle,
         parameter_start,
         parameter_length,
@@ -4130,12 +4483,8 @@ const Megatron = (function () {
       return response;
     }
 
-    js_invoke_function_and_return_bigint(
-      handle,
-      parameter_start,
-      parameter_length,
-    ) {
-      const response = this.js_invoke_function_with_return(
+    host_invoke_function_as_bigint(handle, parameter_start, parameter_length) {
+      const response = this.host_invoke_function_with_return(
         handle,
         parameter_start,
         parameter_length,
@@ -4149,12 +4498,8 @@ const Megatron = (function () {
       return BigInt(response);
     }
 
-    js_invoke_function_and_return_string(
-      handle,
-      parameter_start,
-      parameter_length,
-    ) {
-      const response = this.js_invoke_function_with_return(
+    host_invoke_function_as_string(handle, parameter_start, parameter_length) {
+      const response = this.host_invoke_function_with_return(
         handle,
         parameter_start,
         parameter_length,
