@@ -10,7 +10,7 @@ use foundation_nostd::*;
 extern "C" fn main() {
     let cached_id = host_runtime::web::cache_text("alex");
 
-    let console_log_id = host_runtime::web::preallocate_func_external_reference();
+    let console_log_id = host_runtime::web::allocate_function_reference();
     let instructions = internal_api::create_instructions(100, 100);
     instructions
         .register_function(
