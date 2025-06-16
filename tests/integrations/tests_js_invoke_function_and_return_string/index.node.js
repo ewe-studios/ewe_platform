@@ -9,6 +9,8 @@ const EXECUTING_DIR = path.dirname(__filename);
 
 const wasm_buffer = fs.readFileSync(path.join(EXECUTING_DIR, "./module.wasm"));
 
+megatron.LOGGER.mode = megatron.LEVELS.DEBUG;
+
 const mock = {
   calls: [],
 };

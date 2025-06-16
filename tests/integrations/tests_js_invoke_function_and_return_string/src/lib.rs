@@ -15,5 +15,5 @@ extern "C" fn main() {
         }",
     );
 
-    console_log.invoke(&[Params::Text8("Hello from intro")]);
+    console_log.invoke_no_return(&[Params::Text8("Hello from intro")]);
 }

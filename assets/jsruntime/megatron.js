@@ -246,6 +246,7 @@ const Megatron = (function () {
     Float64ArrayBuffer: 27,
     Object: 28,
     DOMObject: 29,
+    None: 30,
   };
 
   ReturnTypeId.__INVERSE__ = Object.keys(ReturnTypeId)
@@ -445,6 +446,22 @@ const Megatron = (function () {
     return NULL_AND_UNDEFINED.indexOf(value) != -1;
   }
 
+  function isBigInt(value) {
+    if (typeof value == "bigint" || vale instanceof BigInt) return true;
+    return false;
+  }
+
+  function isBigIntOrNumber(value) {
+    if (typeof value == "bigint" || vale instanceof BigInt) return true;
+    if (typeof value == "number") return true;
+    return false;
+  }
+
+  function isNumber(value) {
+    if (typeof value !== "bigint" && typeof value == "number") return true;
+    return false;
+  }
+
   class SimpleStringCache {
     constructor() {
       this.text_to_id = new Map();
@@ -458,35 +475,46 @@ const Megatron = (function () {
       this.count = 0;
     }
 
-    destroy_id(id) {
-      if (typeof item !== "string") {
-        throw new Error("Only strings are allowed");
-      }
-
-      if (!this.has_id(id)) {
-        return false;
-      }
-
-      this.id_to_text.delete(id);
-      this.text_to_id.delete(item);
-
-      if (this.text_to_id.size == 0) {
-        this.count = 0;
-      }
-    }
-
-    destroy(item) {
-      if (typeof item !== "string") {
-        throw new Error("Only strings are allowed");
-      }
-
-      if (!this.has_text(item)) {
-        return false;
-      }
-
-      const id = this.get_id(item);
-      this.destroy_id(id);
-    }
+    // TODO(alex.ewetumo): Decide if this
+    // should ever be exposed, the whole idea of the cache
+    // is to save those frequently access content in a way
+    // that over the lifetime of the instance be amortized
+    // without needing to reuse it over and over.
+    //
+    // MainPoint: And i do not reason we ever want to delete
+    // that ever actively via an API, if the brower restarts
+    // and that is not stored somewhere then its fine to rebuild.
+    //
+    //
+    // destroy_id(id) {
+    //   if (typeof item !== "string") {
+    //     throw new Error("Only strings are allowed");
+    //   }
+    //
+    //   if (!this.has_id(id)) {
+    //     return false;
+    //   }
+    //
+    //   this.id_to_text.delete(id);
+    //   this.text_to_id.delete(item);
+    //
+    //   if (this.text_to_id.size == 0) {
+    //     this.count = 0;
+    //   }
+    // }
+    //
+    // destroy(item) {
+    //   if (typeof item !== "string") {
+    //     throw new Error("Only strings are allowed");
+    //   }
+    //
+    //   if (!this.has_text(item)) {
+    //     return false;
+    //   }
+    //
+    //   const id = this.get_id(item);
+    //   this.destroy_id(id);
+    // }
 
     create(item) {
       if (typeof item !== "string") {
@@ -721,7 +749,7 @@ const Megatron = (function () {
       // and allocate 1-4 for use
       // always for these.
       //
-      // 0 is reserved for self (if `self` exists else is also `this`).
+      // 0 is reserved for this.(if `this. exists else is also `this`).
       // 1 is reserved for this (the DOM arena)
       // 2 is reserved for window
       // 3 is reserved for document
@@ -1227,10 +1255,23 @@ const Megatron = (function () {
     }
   }
 
+  class ReplyContainer {
+    constructor(value_type, value) {
+      if (!(value_type in ReturnTypeId.__INVERSE__)) {
+        throw new Error(
+          `ReturnValueTypes ${return_type} is not known for value_type: ${return_type}`,
+        );
+      }
+
+      this.type = value_type;
+      this.value = value;
+    }
+  }
+
   class ReturnHint {
     constructor(return_type, value_type) {
-      this.value_type = value_type;
       this.return_type = return_type;
+      this.value_type = value_type;
       this.type_validators = {};
       this.type_validators[ReturnTypeId.Bool] = this.validateBool;
       this.type_validators[ReturnTypeId.Text8] = this.validateText8;
@@ -1344,7 +1385,15 @@ const Megatron = (function () {
     }
 
     validate(input) {
-      return isUndefinedOrNull(input);
+      if (isUndefinedOrNull(input)) return;
+      if (input instanceof ReplyContainer) {
+        if (input.type == ReturnTypeId.None) {
+          return;
+        }
+      }
+      throw new Error(
+        "NoReturn cant be anything other than None/Null/Undefined",
+      );
     }
   }
 
@@ -1354,19 +1403,68 @@ const Megatron = (function () {
     }
 
     validate(input) {
-      return false;
+      if (!(input instanceof ReplyContainer)) {
+        throw new Error("Input should be wrapped in ReplyContainer");
+      }
+      LOGGER.info(
+        `Incoming input ${input} against SingleReturn(value=${this.value_type})`,
+      );
+      if (input.type !== this.value_type) {
+        throw new Error(
+          `Input type: ${input.type} and expected type: ${this.value_type} do not match`,
+        );
+      }
     }
   }
 
   class ListReturn extends ReturnHint {
-    constructor(value_types) {
-      super(ReturnTypes.List, value_types);
+    constructor(value_type) {
+      super(ReturnTypes.List, value_type);
+    }
+
+    validate(input) {
+      if (!(input instanceof Array)) {
+        throw new Error("Input should an Array");
+      }
+      for (let index in input) {
+        let item = input[index];
+        if (!(input instanceof ReplyContainer)) {
+          throw new Error("Input should be wrapped in ReplyContainer");
+        }
+        if (input.type !== this.value_type) {
+          throw new Error(
+            `Input type: ${input.type} and expected type: ${this.value_type} do not match`,
+          );
+        }
+      }
     }
   }
 
   class MultiReturn extends ReturnHint {
-    constructor(value_type) {
-      super(ReturnTypes.Multi, value_type);
+    constructor(value_types) {
+      if (!(value_types instanceof Array))
+        throw new Error(
+          "MultiReturn must have a list of expected return types in order",
+        );
+      super(ReturnTypes.Multi, value_types);
+    }
+    validate(input) {
+      if (!(input instanceof Array)) {
+        throw new Error("Input should an Array");
+      }
+      for (let index in input) {
+        let item = input[index];
+        let expected = this.value_type[index];
+
+        if (!(input instanceof ReplyContainer)) {
+          throw new Error("Input should be wrapped in ReplyContainer");
+        }
+        if (item.type !== expected) {
+          throw new Error(
+            `Input type: ${input.type} and expected type: ${this.value_type} do not match`,
+          );
+        }
+      }
     }
   }
 
@@ -1404,7 +1502,14 @@ const Megatron = (function () {
   }
 
   class ReturnHintParser {
-    constructor() {
+    constructor(memory_operator) {
+      if (!(memory_operator instanceof MemoryOperator)) {
+        throw new Error("Must be instance of MemoryOperator");
+      }
+
+      this.operator = memory_operator;
+      this.module = memory_operator.get_module();
+
       this.parsers = {};
       this.parsers[ReturnTypes.One] = this.parse_one;
       this.parsers[ReturnTypes.None] = this.parse_none;
@@ -1412,12 +1517,23 @@ const Megatron = (function () {
       this.parsers[ReturnTypes.Multi] = this.parse_multiple;
     }
 
+    parse_hint(start, length) {
+      const hint_buffer = this.operator.readUint8Buffer(
+        Number(start),
+        Number(length),
+      );
+      LOGGER.debug("parse_hint:start ", start, length, hint_buffer);
+
+      const hint_view = new DataView(hint_buffer);
+      return this.parse(0, hint_view);
+    }
+
     parse(moved_by, view) {
       // validate we see begin marker
       const id = view.getUint8(moved_by, true);
 
       if (id != ReturnHintMarker.Start) {
-        throw new Error("Argument did not start with ArgumentOperation.Start");
+        throw new Error("Buffer did not start with ReturnHintMarker.Start");
       }
       moved_by += Move.MOVE_BY_1_BYTES;
 
@@ -1427,12 +1543,16 @@ const Megatron = (function () {
         throw new Error(`ReturnHintType ${hint_type} not found`);
       }
 
+      moved_by += Move.MOVE_BY_1_BYTES;
+
+      LOGGER.debug("Fetching handler for return_type hint: ", hint_type);
+
       let return_validator;
       const parser = this.parsers[hint_type];
       [moved_by, return_validator] = parser(moved_by, view);
 
       if (view.getUint8(moved_by, true) != ReturnHintMarker.Stop) {
-        throw new Error("Argument did not end with ArgumentOperation.End");
+        throw new Error("Buffer did not end with ReturnHintMarker.End");
       }
 
       moved_by += Move.MOVE_BY_1_BYTES;
@@ -1444,17 +1564,19 @@ const Megatron = (function () {
       return [offset, new NoReturn()];
     }
 
-    parse_one(offset, view) {
+    parse_one(moved_by, view) {
       const value_type = view.getUint8(moved_by, true);
       if (!(value_type in ReturnTypeId.__INVERSE__)) {
         throw new Error(`ReturnTypeId ${value_type} is not known`);
       }
 
+      LOGGER.debug("Extracted ParseOne value item: ", value_type);
+
       moved_by += Move.MOVE_BY_1_BYTES;
-      return [offset, new SingleReturn(value_type)];
+      return [moved_by, new SingleReturn(value_type)];
     }
 
-    parse_multiple(offset, view) {
+    parse_multiple(moved_by, view) {
       const multi_values = [];
       while (true) {
         let value_type = view.getUint8(moved_by, true);
@@ -1466,20 +1588,23 @@ const Megatron = (function () {
           throw new Error(`ReturnTypeId ${value_type} is not known`);
         }
 
+        LOGGER.debug("Extracted multiple value item: ", value_type);
+
+        moved_by += MOVE.MOVE_BY_1_BYTES;
         multi_values.push(value_type);
       }
 
-      return [offset, new MultiReturn(multi_values)];
+      return [moved_by, new MultiReturn(multi_values)];
     }
 
-    parse_list(offset, view) {
+    parse_list(moved_by, view) {
       const value_type = view.getUint8(moved_by, true);
       if (!(value_type in ReturnTypeId.__INVERSE__)) {
         throw new Error(`ReturnTypeId ${value_type} is not known`);
       }
 
       moved_by += Move.MOVE_BY_1_BYTES;
-      return [offset, new ListReturn(value_type)];
+      return [moved_by, new ListReturn(value_type)];
     }
   }
 
@@ -3086,7 +3211,14 @@ const Megatron = (function () {
 
   // Add comments to this class. Keep your thinking short and simple, do not overthink. AI!
   class Reply {
-    constructor(memory_operator, text_codec, text_cache) {
+    constructor(
+      memory_operator,
+      text_codec,
+      text_cache,
+      function_heap,
+      object_heap,
+      dom_heap,
+    ) {
       if (!(memory_operator instanceof MemoryOperator)) {
         throw new Error("Must be instance of MemoryOperator");
       }
@@ -3096,18 +3228,50 @@ const Megatron = (function () {
       if (!(text_cache instanceof SimpleStringCache)) {
         throw new Error("Must be instance of SimpleStringCache");
       }
+      if (!(function_heap instanceof ArenaAllocator)) {
+        throw new Error("Must be instance of ArenaAllocator");
+      }
+      if (!(object_heap instanceof ArenaAllocator)) {
+        throw new Error("Must be instance of ArenaAllocator");
+      }
+      if (!(dom_heap instanceof DOMArena)) {
+        throw new Error("Must be instance of DomArena");
+      }
 
       this.texts = text_codec;
+      this.dom_heap = dom_heap;
       this.text_cache = text_cache;
+      this.object_heap = object_heap;
       this.operator = memory_operator;
+      this.function_heap = function_heap;
       this.module = memory_operator.get_module();
 
+      this.return_naked = [
+        ReturnTypeId.Uint8,
+        ReturnTypeId.Uint16,
+        ReturnTypeId.Uint32,
+        ReturnTypeId.Uint64,
+        ReturnTypeId.Int8,
+        ReturnTypeId.Int16,
+        ReturnTypeId.Int32,
+        ReturnTypeId.Int64,
+        ReturnTypeId.Float32,
+        ReturnTypeId.Float64,
+        ReturnTypeId.Object,
+        ReturnTypeId.DOMObject,
+        ReturnTypeId.MemorySlice,
+        ReturnTypeId.InternalReference,
+        ReturnTypeId.ExternalReference,
+      ];
+
       this.reply_types = {};
+      this.reply_types[ReturnTypeId.None] = Reply.encodeNone;
       this.reply_types[ReturnTypeId.Bool] = Reply.encodeBool;
       this.reply_types[ReturnTypeId.Uint8] = Reply.encodeUint8;
       this.reply_types[ReturnTypeId.Uint16] = Reply.encodeInt16;
       this.reply_types[ReturnTypeId.Uint32] = Reply.encodeInt32;
       this.reply_types[ReturnTypeId.Uint64] = Reply.encodeBigInt64;
+      this.reply_types[ReturnTypeId.Text8] = Reply.encodeText8;
       this.reply_types[ReturnTypeId.Int8] = Reply.encodeInt8;
       this.reply_types[ReturnTypeId.Int16] = Reply.encodeInt16;
       this.reply_types[ReturnTypeId.Int32] = Reply.encodeInt32;
@@ -3143,11 +3307,156 @@ const Megatron = (function () {
         Reply.encodeFloat64ArrayBuffer;
     }
 
-    send(internal_pointer, values) {
-      // send these to wasm targeting the callback handler
-      LOGGER.debug(
-        `Sending values: ${values} to callback pointer: ${internal_pointer}`,
+    morph(return_hint, values) {
+      if (!(return_hint instanceof ReturnHint)) {
+        throw new Error("argument must be a type of ReturnHint");
+      }
+
+      LOGGER.debug(`Reply.morph: received: "${values}"`);
+
+      if (return_hint instanceof NoReturn && isUndefinedOrNull(values)) {
+        return null;
+      }
+
+      if (return_hint instanceof NoReturn && !isUndefinedOrNull(values)) {
+        throw new Error(`Expected NoReturn value but got ${values}`);
+      }
+
+      const transformed = this.transform(
+        values instanceof Array ? values : [values],
       );
+
+      LOGGER.debug(
+        `Reply.morph: transformed values from "${values}" to ${transformed}`,
+      );
+
+      if (return_hint instanceof SingleReturn) {
+        const target = transformed[0];
+
+        LOGGER.debug(`Reply.morph: single return value: ${target}`);
+
+        return_hint.validate(target);
+        if (this.return_naked.indexOf(target.type)) {
+          LOGGER.debug(
+            `Reply.morph: returning value as is/naked: ${target.value} from ${target}`,
+          );
+          return target.value;
+        }
+      } else {
+        LOGGER.debug(`Reply.morph: validate list/multi-return: ${transformed}`);
+        return_hint.validate(transformed);
+      }
+
+      const encoded_buffer = new Uint8Array(this.encode(transformed));
+      LOGGER.debug(
+        `Reply.morph: encoded value: ${transformed} -> ${encoded_buffer}`,
+      );
+      return new BigInt(this.memory.writeUint8Array(encoded_buffer));
+    }
+
+    callback(internal_pointer, return_hint, values) {
+      if (!(return_hint instanceof ReturnHint)) {
+        throw new Error("argument must be a type of ReturnHint");
+      }
+
+      LOGGER.debug(`Reply.callback: received: "${values}"`);
+
+      if (return_hint instanceof NoReturn && isUndefinedOrNull(values)) {
+        return null;
+      }
+
+      if (return_hint instanceof NoReturn && !isUndefinedOrNull(values)) {
+        throw new Error(`Expected NoReturn value but got ${values}`);
+      }
+
+      const transformed = this.transform(
+        values instanceof Array ? values : [values],
+      );
+
+      LOGGER.debug(
+        `Reply.callback: transformed values from ${values} to ${transformed}`,
+      );
+
+      if (return_hint instanceof SingleReturn) {
+        const target = transformed[0];
+
+        LOGGER.debug(`Reply.callback: single return value: ${target}`);
+
+        return_hint.validate(target);
+        if (this.return_naked.indexOf(target.type)) {
+          LOGGER.debug(
+            `Reply.callback: returning value as is/naked: ${target.value} from ${target}`,
+          );
+          return target.value;
+        }
+      } else {
+        LOGGER.debug(
+          `Reply.callback: validate list/multi-return: ${transformed}`,
+        );
+        return_hint.validate(transformed);
+      }
+
+      const encoded_buffer = new Uint8Array(this.encode(transformed));
+      LOGGER.debug(
+        `Reply.callback: encoded value: ${transformed} -> ${encoded_buffer}`,
+      );
+
+      const allocation_id = new BigInt(
+        this.memory.writeUint8Array(encoded_buffer),
+      );
+
+      this.module.exports.invoke_callback(internal_pointer, allocation_id);
+    }
+
+    transform(values) {
+      const transformed = [];
+      for (let index in values) {
+        const item = values[index];
+
+        if (isUndefinedOrNull(item)) {
+          transformed.push(Reply.asNone());
+          continue;
+        }
+
+        if (item instanceof ReplyContainer) {
+          transformed.push(item);
+          continue;
+        }
+
+        if (
+          item instanceof Node ||
+          item instanceof Document ||
+          item instanceof Window
+        ) {
+          transformed.push(Reply.asDOMObject(item));
+          continue;
+        }
+
+        switch (typeof item) {
+          case "function":
+            transformed.push(
+              Reply.asExternalReference(this.function_heap.create(item)),
+            );
+            break;
+          case "symbol":
+            transformed.push(Reply.asObject(this.object_heap.create(item)));
+            break;
+          case "object":
+            transformed.push(Reply.asObject(this.object_heap.create(item)));
+            break;
+          case "string":
+            transformed.push(Reply.asText8(item));
+            break;
+          case "number":
+            transformed.push(Reply.asUint64(item));
+            break;
+          case "bool":
+            transformed.push(Reply.asBool(item));
+            break;
+        }
+      }
+
+      return transformed;
     }
 
     encode(values) {
@@ -3616,6 +3925,17 @@ const Megatron = (function () {
       return offset;
     }
 
+    static encodeNone(offset, directive, view) {
+      if (directive.type != ReturnTypeId.None) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      view.setUint8(offset, directive.type);
+      offset += Move.MOVE_BY_1_BYTES;
+
+      return offset;
+    }
+
     static encodeBool(offset, directive, view) {
       if (directive.type != ReturnTypeId.Bool) {
         throw new Error(`Reply type with id ${value.type} is not known`);
@@ -3725,6 +4045,10 @@ const Megatron = (function () {
         return Reply.asValue(ReturnTypeId.ExternalReference, value.value);
       }
       return Reply.asValue(ReturnTypeId.ExternalReference, value);
+    }
+
+    static asNone() {
+      return Reply.asValue(ReturnTypeId.None, null);
     }
 
     static asObject(value) {
@@ -3866,8 +4190,7 @@ const Megatron = (function () {
           `ReturnValueTypes ${return_type} is not known for value_type: ${return_type}`,
         );
       }
-
-      return { type: return_type, value };
+      return new ReplyContainer(return_type, value);
     }
   }
 
@@ -3889,7 +4212,7 @@ const Megatron = (function () {
       this.module = memory_operator.get_module();
 
       // parser for return hints.
-      this.returns = ReturnHintParser();
+      this.return_hints = new ReturnHintParser(this.operator);
 
       // v2 function parameters handling
       this.parameter_v2 = new ParameterParserV2(
@@ -4099,6 +4422,9 @@ const Megatron = (function () {
       // batch instruction parser
       this.batch_parser = null;
 
+      // return hints instruction parser
+      this.return_hints = null;
+
       // reply instruction parser
       this.reply_parser = null;
     }
@@ -4126,6 +4452,9 @@ const Megatron = (function () {
       // memory operations.
       this.operator = new MemoryOperator(this.module);
 
+      // parser for return hints.
+      this.return_hints = new ReturnHintParser(this.operator);
+
       // text codec for text handling (encoding & decoding)
       this.texts = new TextCodec(this.operator);
 
@@ -4136,10 +4465,14 @@ const Megatron = (function () {
         this.string_cache,
       );
 
+      // reply parameter parser
       this.reply_parser = new Reply(
         this.operator,
         this.texts,
         this.string_cache,
+        this.function_heap,
+        this.object_heap,
+        this.dom_heap,
       );
 
       // v2 batch instruction handling
@@ -4382,11 +4715,20 @@ const Megatron = (function () {
       if (!parameters && parameter_length > 0)
         throw new Error("No parameters returned though we expect some");
 
+      const [read, return_hints] = this.return_hints.parse_hint(
+        returns_start,
+        returns_length,
+      );
+      LOGGER.debug(
+        `host_invoke_function_with_return: Return hints(read=${read}): ${return_hints}`,
+      );
+
       const func = this.function_heap.get(handle);
 
       const response = func.call(this, ...parameters);
-      LOGGER.debug("host_invoke_function_with_return: ", response);
-      return response;
+      LOGGER.debug("host_invoke_function_with_return: result=", response);
+
+      return this.reply_parser.morph(return_hints, response);
     }
 
     host_invoke_callback_function(
@@ -4394,22 +4736,37 @@ const Megatron = (function () {
       callback_handle,
       parameter_start,
       parameter_length,
+      returns_start,
+      returns_length,
     ) {
-      // this.host_invoke_function_with_return(
-      //   handle,
-      //   parameter_start,
-      //   parameter_length,
-      // );
-      return BigInt(0);
-    }
+      // read parameters and invoke function via handle.
+      const parameters = this.parameter_v1.parse_array(
+        parameter_start,
+        parameter_length,
+      );
 
-    host_invoke_function(handle, parameter_start, parameter_length) {
-      // this.host_invoke_function_with_return(
-      //   handle,
-      //   parameter_start,
-      //   parameter_length,
-      // );
-      return BigInt(0);
+      if (!parameters && parameter_length > 0)
+        throw new Error("No parameters returned though we expect some");
+
+      const [read, return_hints] = this.return_hints.parse_hint(
+        returns_start,
+        returns_length,
+      );
+      LOGGER.debug(
+        `host_invoke_function_with_return: Return hints(read=${read}): ${return_hints}`,
+      );
+
+      const func = this.function_heap.get(handle);
+
+      const response = func.call(this, ...parameters);
+      LOGGER.debug("host_invoke_callback_function: result=", response);
+
+      this.reply_parser.callback(
+        new BigInt(callback_handle),
+        return_hints,
+        internal_pointer,
+        response,
+      );
     }
 
     host_invoke_function(
@@ -4419,13 +4776,19 @@ const Megatron = (function () {
       returns_start,
       returns_length,
     ) {
-      this.host_invoke_function_with_return(
+      LOGGER.info("Invoking host_invoke_function");
+      const result = this.host_invoke_function_with_return(
         handle,
         parameter_start,
         parameter_length,
         returns_start,
         returns_length,
       );
+
+      if (isUndefinedOrNull(result)) return BigInt(-1);
+      if (!isBigIntOrNumber(value)) throw new Error("Not a BigInt or Number");
+      if (isNumber(value)) return BigInt(value);
+      return result;
     }
 
     host_invoke_function_as_dom(handle, parameter_start, parameter_length) {
