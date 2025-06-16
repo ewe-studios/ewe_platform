@@ -88,14 +88,20 @@ impl<'a> ToBinary for &'a [Params<'a>] {
 impl ToBinary for ReturnTypeHints {
     fn to_binary(&self) -> Vec<u8> {
         if ReturnTypeHints::None == *self {
-            alloc::vec![self.to_returns_u8()]
+            alloc::vec![
+                ReturnHintMarker::Start as u8,
+                self.to_returns_u8(),
+                ReturnHintMarker::Stop as u8,
+            ]
         } else {
-            let mut items = Vec::new();
+            let mut items = Vec::with_capacity(4);
+            items.push(ReturnHintMarker::Start as u8);
             items.push(self.to_returns_u8());
             items.extend(
                 self.to_returns_value_u8()
                     .expect("One and Many should have value"),
             );
+            items.push(ReturnHintMarker::Stop as u8);
             items
         }
     }
@@ -106,24 +112,7 @@ impl<'a> Batchable<'a> for ReturnTypeHints {
     where
         F: BatchEncodable,
     {
-        let encoded = if ReturnTypeHints::None == *self {
-            alloc::vec![
-                ReturnHintMarker::Start as u8,
-                self.to_returns_u8(),
-                ReturnHintMarker::Stop as u8,
-            ]
-        } else {
-            let mut items = Vec::new();
-            items.push(ReturnHintMarker::Start as u8);
-            items.push(self.to_returns_u8());
-            items.extend(
-                self.to_returns_value_u8()
-                    .expect("One and Many should have value"),
-            );
-            items.push(ReturnHintMarker::Stop as u8);
-            items
-        };
-
+        let encoded = self.to_binary();
         encoder.data(&encoded)?;
         Ok(())
     }

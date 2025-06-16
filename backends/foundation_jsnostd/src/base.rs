@@ -141,6 +141,7 @@ pub enum ReturnTypeId {
     Float64ArrayBuffer = 27,
     Object = 28,
     DOMObject = 29,
+    None = 30,
 }
 
 #[allow(clippy::from_over_into)]
@@ -195,6 +196,7 @@ impl From<u8> for ReturnTypeId {
             27 => Self::Float64ArrayBuffer,
             28 => Self::Object,
             29 => Self::DOMObject,
+            30 => Self::None,
             _ => unreachable!("should not have any other type of ArgumentOperations"),
         }
     }
@@ -341,6 +343,7 @@ impl Returns {
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum ReturnValues {
+    None,
     Bool(bool),
     Float32(f32),
     Float64(f64),
@@ -379,6 +382,7 @@ impl ReturnValues {
 
     pub fn to_return_value_type(&self) -> ReturnTypeId {
         match self {
+            Self::None => ReturnTypeId::None,
             Self::Bool(_) => ReturnTypeId::Bool,
             Self::Float32(_) => ReturnTypeId::Float32,
             Self::Float64(_) => ReturnTypeId::Float64,

@@ -48,6 +48,10 @@ impl ReturnValueParserIter<'_> {
         index += MOVE_ONE_BYTE;
 
         match return_id {
+            ReturnTypeId::None => {
+                self.index = index;
+                Ok(ReturnValues::None)
+            }
             ReturnTypeId::Bool => {
                 let value = if bin[index] == 1 {
                     ReturnValues::Bool(true)
@@ -860,11 +864,11 @@ pub mod internal_api {
     // -- callback methods
 
     #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
-    pub fn register_internal_callback<F>(f: F) -> InternalPointer
+    pub fn register_internal_callback<F>(hint: ReturnTypeHints, f: F) -> InternalPointer
     where
         F: InternalCallback + 'static,
     {
-        INTERNAL_CALLBACKS.lock().add(f)
+        INTERNAL_CALLBACKS.lock().add(hint, f)
     }
 
     #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
