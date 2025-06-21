@@ -3,6 +3,9 @@
 const Megatron = (function () {
   const NULL_AND_UNDEFINED = [null, undefined];
   const MAX_ITERATION = 5000000;
+  const FOUR_GIG_BYTES = 4294967296;
+
+  const CONTEXT = {};
 
   const LEVELS = {
     INFO: 1,
@@ -214,7 +217,7 @@ const Megatron = (function () {
 
   Object.freeze(ReturnTypes);
 
-  /// [`ReturnValueTypes`] represent the type indicating the underlying returned
+  /// [`ReturnTypeId`] represent the type indicating the underlying returned
   /// value for an operation.
   const ReturnTypeId = {
     Bool: 1,
@@ -447,12 +450,12 @@ const Megatron = (function () {
   }
 
   function isBigInt(value) {
-    if (typeof value == "bigint" || vale instanceof BigInt) return true;
+    if (typeof value == "bigint" || value instanceof BigInt) return true;
     return false;
   }
 
   function isBigIntOrNumber(value) {
-    if (typeof value == "bigint" || vale instanceof BigInt) return true;
+    if (typeof value == "bigint" || value instanceof BigInt) return true;
     if (typeof value == "number") return true;
     return false;
   }
@@ -812,7 +815,7 @@ const Megatron = (function () {
       const allocation_start_pointer =
         this.instance.exports.allocation_start_pointer(allocation_id);
       LOGGER.debug(
-        `Retrieved allocation ptr: ${allocation_start_pointer} for id: ${allocation_id}`,
+        `Retrieved allocation start ptr: ${allocation_start_pointer} for id: ${allocation_id}`,
       );
 
       return [allocation_id, allocation_start_pointer];
@@ -829,10 +832,10 @@ const Megatron = (function () {
 
     writeUint8Buffer(buffer) {
       const buffer_type = typeof buffer;
+      const len = buffer.length || buffer.byteLength;
       LOGGER.debug(
-        `writeUint8Buffer: Writing buffer to memory(type=${buffer_type}): len=${buffer.length} from buffer=${buffer}`,
+        `writeUint8Buffer: Writing buffer to memory(type=${buffer_type}): len=${len} from buffer=${buffer}`,
       );
-      const len = buffer.length;
       const [id, start] = this.allocate_memory(len);
 
       const memory = new Uint8Array(this.get_memory());
@@ -841,13 +844,22 @@ const Megatron = (function () {
       return id;
     }
 
-    writeUint8Array(int8_buffer) {
-      LOGGER.debug("Writing Uint8Array from: ", int8_buffer);
-      let uint8_buffer =
-        int8_buffer instanceof Uint8Array
-          ? int8_buffer
-          : new Uint8Array(int8_buffer);
+    writeUint8Array(uint8_buffer) {
+      LOGGER.debug("Writing Uint8Array from: ", uint8_buffer);
+      if (!(uint8_buffer instanceof Uint8Array))
+        throw new Error("Please supply a Uint8Array to this method");
       return this.writeUint8Buffer(uint8_buffer);
+    }
+
+    static copyUint8Data(from, to, fromIndex) {
+      LOGGER.debug("Copying data from buffer: ", from, " to buffer2: ", to);
+
+      if (!(from instanceof Uint8Array))
+        throw new Error("from variable must be a Uint8Array");
+      if (!(to instanceof Uint8Array))
+        throw new Error("to variable must be a Uint8Array");
+
+      to.set(from, fromIndex);
     }
   }
 
@@ -899,6 +911,24 @@ const Megatron = (function () {
     writeUTF8ToMemory(text) {
       const bytes = this.utf8_encoder.encode(text);
       return this.operator.writeUint8Array(bytes);
+    }
+
+    writeUTF8ToView(text, to_view, fromIndex) {
+      if (!(view instanceof Uint8Array))
+        throw new Error("View argument must be Uint8Array");
+
+      const from_source = this.utf8_encoder.encode(text);
+      const fromByteLength = from_source.byteLength;
+      const targetByteLength = to_view.byteLength;
+      const remainingSpace = targetByteLength - fromIndex;
+
+      if (remainingSpace < fromByteLength) {
+        throw new Error("Not enough space in target for copying");
+      }
+
+      to_view.set(from_source, fromIndex);
+
+      return fromIndex + fromByteLength;
     }
 
     // *******************************************************
@@ -1407,7 +1437,11 @@ const Megatron = (function () {
         throw new Error("Input should be wrapped in ReplyContainer");
       }
       LOGGER.info(
-        `Incoming input ${input} against SingleReturn(value=${this.value_type})`,
+        "Incoming input",
+        input,
+        "against SingleReturn(value=",
+        this.value_type,
+        "})",
       );
       if (input.type !== this.value_type) {
         throw new Error(
@@ -1525,10 +1559,10 @@ const Megatron = (function () {
       LOGGER.debug("parse_hint:start ", start, length, hint_buffer);
 
       const hint_view = new DataView(hint_buffer);
-      return this.parse(0, hint_view);
+      return this.parse_from(0, hint_view);
     }
 
-    parse(moved_by, view) {
+    parse_from(moved_by, view) {
       // validate we see begin marker
       const id = view.getUint8(moved_by, true);
 
@@ -3265,46 +3299,48 @@ const Megatron = (function () {
       ];
 
       this.reply_types = {};
-      this.reply_types[ReturnTypeId.None] = Reply.encodeNone;
-      this.reply_types[ReturnTypeId.Bool] = Reply.encodeBool;
-      this.reply_types[ReturnTypeId.Uint8] = Reply.encodeUint8;
-      this.reply_types[ReturnTypeId.Uint16] = Reply.encodeInt16;
-      this.reply_types[ReturnTypeId.Uint32] = Reply.encodeInt32;
-      this.reply_types[ReturnTypeId.Uint64] = Reply.encodeBigInt64;
-      this.reply_types[ReturnTypeId.Text8] = Reply.encodeText8;
-      this.reply_types[ReturnTypeId.Int8] = Reply.encodeInt8;
-      this.reply_types[ReturnTypeId.Int16] = Reply.encodeInt16;
-      this.reply_types[ReturnTypeId.Int32] = Reply.encodeInt32;
-      this.reply_types[ReturnTypeId.Int64] = Reply.encodeBigInt64;
-      this.reply_types[ReturnTypeId.Float32] = Reply.encodeFloat32;
-      this.reply_types[ReturnTypeId.Float64] = Reply.encodeFloat64;
-      this.reply_types[ReturnTypeId.Object] = Reply.encodeObject;
-      this.reply_types[ReturnTypeId.DOMObject] = Reply.encodeDOMObject;
+      this.reply_types[ReturnTypeId.None] = this.encodeNone.bind(this);
+      this.reply_types[ReturnTypeId.Bool] = this.encodeBool.bind(this);
+      this.reply_types[ReturnTypeId.Uint8] = this.encodeUint8.bind(this);
+      this.reply_types[ReturnTypeId.Uint16] = this.encodeInt16.bind(this);
+      this.reply_types[ReturnTypeId.Uint32] = this.encodeInt32.bind(this);
+      this.reply_types[ReturnTypeId.Uint64] = this.encodeBigInt64.bind(this);
+      this.reply_types[ReturnTypeId.Text8] = this.encodeText8.bind(this);
+      this.reply_types[ReturnTypeId.Int8] = this.encodeInt8.bind(this);
+      this.reply_types[ReturnTypeId.Int16] = this.encodeInt16.bind(this);
+      this.reply_types[ReturnTypeId.Int32] = this.encodeInt32.bind(this);
+      this.reply_types[ReturnTypeId.Int64] = this.encodeBigInt64.bind(this);
+      this.reply_types[ReturnTypeId.Float32] = this.encodeFloat32.bind(this);
+      this.reply_types[ReturnTypeId.Float64] = this.encodeFloat64.bind(this);
+      this.reply_types[ReturnTypeId.Object] = this.encodeObject.bind(this);
+      this.reply_types[ReturnTypeId.DOMObject] =
+        this.encodeDOMObject.bind(this);
       this.reply_types[ReturnTypeId.ExternalReference] =
-        Reply.encodeExternalReference;
+        this.encodeExternalReference.bind(this);
       this.reply_types[ReturnTypeId.InternalReference] =
-        Reply.encodeInternalReference;
-      this.reply_types[ReturnTypeId.MemorySlice] = Reply.encodeMemorySlice;
+        this.encodeInternalReference.bind(this);
+      this.reply_types[ReturnTypeId.MemorySlice] =
+        this.encodeMemorySlice.bind(this);
       this.reply_types[ReturnTypeId.Uint8ArrayBuffer] =
-        Reply.encodeUint8ArrayBuffer;
+        this.encodeUint8ArrayBuffer.bind(this);
       this.reply_types[ReturnTypeId.Uint16ArrayBuffer] =
-        Reply.encodeUint16ArrayBuffer;
+        this.encodeUint16ArrayBuffer.bind(this);
       this.reply_types[ReturnTypeId.Uint32ArrayBuffer] =
-        Reply.encodeUint32ArrayBuffer;
+        this.encodeUint32ArrayBuffer.bind(this);
       this.reply_types[ReturnTypeId.Uint64ArrayBuffer] =
-        Reply.encodeUint64ArrayBuffer;
+        this.encodeUint64ArrayBuffer.bind(this);
       this.reply_types[ReturnTypeId.Int8ArrayBuffer] =
-        Reply.encodeInt8ArrayBuffer;
+        this.encodeInt8ArrayBuffer.bind(this);
       this.reply_types[ReturnTypeId.Int16ArrayBuffer] =
-        Reply.encodeInt16ArrayBuffer;
+        this.encodeInt16ArrayBuffer.bind(this);
       this.reply_types[ReturnTypeId.Int32ArrayBuffer] =
-        Reply.encodeInt32ArrayBuffer;
+        this.encodeInt32ArrayBuffer.bind(this);
       this.reply_types[ReturnTypeId.Int64ArrayBuffer] =
-        Reply.encodeInt64ArrayBuffer;
+        this.encodeInt64ArrayBuffer.bind(this);
       this.reply_types[ReturnTypeId.Float32ArrayBuffer] =
-        Reply.encodeFloat32ArrayBuffer;
+        this.encodeFloat32ArrayBuffer.bind(this);
       this.reply_types[ReturnTypeId.Float64ArrayBuffer] =
-        Reply.encodeFloat64ArrayBuffer;
+        this.encodeFloat64ArrayBuffer.bind(this);
     }
 
     morph(return_hint, values) {
@@ -3312,22 +3348,22 @@ const Megatron = (function () {
         throw new Error("argument must be a type of ReturnHint");
       }
 
-      LOGGER.debug(`Reply.morph: received: "${values}"`);
-
-      if (return_hint instanceof NoReturn && isUndefinedOrNull(values)) {
-        return null;
-      }
+      LOGGER.debug(
+        `Reply.morph: received: "${values}" with return hint: `,
+        return_hint,
+      );
 
       if (return_hint instanceof NoReturn && !isUndefinedOrNull(values)) {
         throw new Error(`Expected NoReturn value but got ${values}`);
       }
 
+      if (return_hint instanceof NoReturn && isUndefinedOrNull(values)) {
+        return BigInt(-1);
+      }
+
       const transformed = this.transform(
         values instanceof Array ? values : [values],
-      );
-
-      LOGGER.debug(
-        `Reply.morph: transformed values from "${values}" to ${transformed}`,
+        return_hint,
       );
 
       if (return_hint instanceof SingleReturn) {
@@ -3336,22 +3372,32 @@ const Megatron = (function () {
         LOGGER.debug(`Reply.morph: single return value: ${target}`);
 
         return_hint.validate(target);
-        if (this.return_naked.indexOf(target.type)) {
+        if (this.return_naked.indexOf(target.type) !== -1) {
           LOGGER.debug(
-            `Reply.morph: returning value as is/naked: ${target.value} from ${target}`,
+            "Reply.morph: returning value as is/naked:",
+            target.value,
+            " from ",
+            target,
           );
           return target.value;
         }
       } else {
-        LOGGER.debug(`Reply.morph: validate list/multi-return: ${transformed}`);
+        LOGGER.debug("Reply.morph: validate list/multi-return: ", transformed);
         return_hint.validate(transformed);
       }
 
       const encoded_buffer = new Uint8Array(this.encode(transformed));
       LOGGER.debug(
-        `Reply.morph: encoded value: ${transformed} -> ${encoded_buffer}`,
+        `Reply.morph: encoded value: `,
+        transformed,
+        " -> ",
+        encoded_buffer,
       );
-      return new BigInt(this.memory.writeUint8Array(encoded_buffer));
+
+      const reply_id = BigInt(this.operator.writeUint8Array(encoded_buffer));
+      LOGGER.debug("Reply.morph: written return values to: ", reply_id);
+
+      return reply_id;
     }
 
     callback(internal_pointer, return_hint, values) {
@@ -3361,20 +3407,17 @@ const Megatron = (function () {
 
       LOGGER.debug(`Reply.callback: received: "${values}"`);
 
-      if (return_hint instanceof NoReturn && isUndefinedOrNull(values)) {
-        return null;
-      }
-
       if (return_hint instanceof NoReturn && !isUndefinedOrNull(values)) {
         throw new Error(`Expected NoReturn value but got ${values}`);
       }
 
+      if (return_hint instanceof NoReturn && isUndefinedOrNull(values)) {
+        return new Big(-1);
+      }
+
       const transformed = this.transform(
         values instanceof Array ? values : [values],
-      );
-
-      LOGGER.debug(
-        `Reply.callback: transformed values from ${values} to ${transformed}`,
+        return_hint,
       );
 
       if (return_hint instanceof SingleReturn) {
@@ -3408,54 +3451,178 @@ const Megatron = (function () {
       this.module.exports.invoke_callback(internal_pointer, allocation_id);
     }
 
-    transform(values) {
-      const transformed = [];
-      for (let index in values) {
-        const item = values[index];
+    get_value_type_hint(index, hints) {
+      LOGGER.debug(
+        "Requesting value for hint type: ",
+        hints,
+        " at index: ",
+        index,
+      );
+      if (hints instanceof SingleReturn) {
+        return hints.value_type;
+      }
+      if (hints instanceof MultiReturn) {
+        return hints.value_type;
+      }
+      if (hints instanceof ListReturn) {
+        return hints.value_type[index];
+      }
 
-        if (isUndefinedOrNull(item)) {
-          transformed.push(Reply.asNone());
-          continue;
-        }
+      throw new Error("Unknown hint type: ", hints);
+    }
 
-        if (item instanceof ReplyContainer) {
-          transformed.push(item);
-          continue;
-        }
+    transform_value(item, hint, index) {
+      LOGGER.debug("Received value: ", item, " with hint: ", hint);
 
-        if (
-          item instanceof Node ||
-          item instanceof Document ||
-          item instanceof Window
-        ) {
-          transformed.push(Reply.asDOMObject(item));
-          continue;
-        }
+      const value_type_id = this.get_value_type_hint(index, hint);
 
-        switch (typeof item) {
-          case "function":
-            transformed.push(
-              Reply.asExternalReference(this.function_heap.create(item)),
-            );
-            break;
-          case "symbol":
-            transformed.push(Reply.asObject(this.object_heap.create(item)));
-            break;
-          case "object":
-            transformed.push(Reply.asObject(this.object_heap.create(item)));
-            break;
-          case "string":
-            transformed.push(Reply.asText8(item));
-            break;
-          case "number":
-            transformed.push(Reply.asUint64(item));
-            break;
-          case "bool":
-            transformed.push(Reply.asBool(item));
-            break;
+      if (isUndefinedOrNull(item)) {
+        return Reply.asNone();
+      }
+
+      if (item instanceof ReplyContainer) {
+        return item;
+      }
+
+      if (item instanceof Uint8Array) {
+        return Reply.asUint8Array(item);
+      }
+
+      if (item instanceof Uint16Array) {
+        return Reply.asUint16Array(item);
+      }
+
+      if (item instanceof Uint32Array) {
+        return Reply.asUint32Array(item);
+      }
+
+      if (item instanceof BigUint64Array) {
+        return Reply.asUint64Array(item);
+      }
+
+      if (item instanceof Int8Array) {
+        return Reply.asInt8Array(item);
+      }
+
+      if (item instanceof Int16Array) {
+        return Reply.asInt16Array(item);
+      }
+
+      if (item instanceof Int32Array) {
+        return Reply.asInt32Array(item);
+      }
+
+      if (item instanceof BigInt64Array) {
+        return Reply.asInt64Array(item);
+      }
+
+      if (typeof Document !== "undefined") {
+        if (item instanceof Document) {
+          return Reply.asDOMObject(item);
         }
       }
 
+      if (typeof Window !== "undefined") {
+        if (item instanceof Window) {
+          return Reply.asDOMObject(item);
+        }
+      }
+
+      if (typeof Node !== "undefined") {
+        if (item instanceof Node) {
+          return Reply.asDOMObject(item);
+        }
+      }
+
+      if (typeof Element !== "undefined") {
+        if (item instanceof Element) {
+          return Reply.asDOMObject(item);
+        }
+      }
+
+      switch (typeof item) {
+        case "function":
+          return Reply.asExternalReference(this.function_heap.create(item));
+        case "symbol":
+          return Reply.asObject(this.object_heap.create(item));
+        case "object":
+          return Reply.asObject(this.object_heap.create(item));
+        case "string":
+          return Reply.asText8(item);
+        case "bool":
+          return Reply.asBool(item);
+        case "bigint":
+          switch (value_type_id) {
+            case ReturnTypeId.Uint8:
+              return Reply.asUint8(item);
+            case ReturnTypeId.Uint16:
+              return Reply.asUint16(item);
+            case ReturnTypeId.Uint32:
+              return Reply.asUint32(item);
+            case ReturnTypeId.Uint64:
+              return Reply.asUint64(item);
+            case ReturnTypeId.Int8:
+              return Reply.asInt8(item);
+            case ReturnTypeId.Int16:
+              return Reply.asInt16(item);
+            case ReturnTypeId.Int32:
+              return Reply.asInt32(item);
+            case ReturnTypeId.Int64:
+              return Reply.asInt64(item);
+            case ReturnTypeId.Float32:
+              return Reply.asFloat32(item);
+            case ReturnTypeId.Float64:
+              return Reply.asFloat64(item);
+            default:
+              return Reply.asUint64(item);
+          }
+        case "number":
+          switch (value_type_id) {
+            case ReturnTypeId.Uint8:
+              return Reply.asUint8(item);
+            case ReturnTypeId.Uint16:
+              return Reply.asUint16(item);
+            case ReturnTypeId.Uint32:
+              return Reply.asUint32(item);
+            case ReturnTypeId.Uint64:
+              return Reply.asUint64(item);
+            case ReturnTypeId.Int8:
+              return Reply.asInt8(item);
+            case ReturnTypeId.Int16:
+              return Reply.asInt16(item);
+            case ReturnTypeId.Int32:
+              return Reply.asInt32(item);
+            case ReturnTypeId.Int64:
+              return Reply.asInt64(item);
+            case ReturnTypeId.Float32:
+              return Reply.asFloat32(item);
+            case ReturnTypeId.Float64:
+              return Reply.asFloat64(item);
+            default:
+              return Reply.asUint64(item);
+          }
+      }
+
+      throw new Error("Transformation for type: ", hint, " unknown");
+    }
+
+    transform(values, hint) {
+      LOGGER.debug("Received value: ", values, " with hint: ", hint);
+
+      const transformed = [];
+      for (let index in values) {
+        const item = values[index];
+        transformed.push(this.transform_value(item, hint, index));
+      }
+
+      LOGGER.debug(
+        "Generated transformed values: ",
+        transformed,
+        " from values: ",
+        values,
+        " with hint: ",
+        hint,
+      );
       return transformed;
     }
 
@@ -3466,7 +3633,9 @@ const Megatron = (function () {
 
       // create our content byte buffer
       const initial_bytes_size = 80;
-      const content = new ArrayBuffer(initial_bytes_size);
+      const content = new ArrayBuffer(initial_bytes_size, {
+        maxByteLength: FOUR_GIG_BYTES,
+      });
 
       // create our view for setting up values correctly.
       const view = new DataView(content);
@@ -3476,21 +3645,31 @@ const Megatron = (function () {
       view.setUint8(offset, ReturnValueMarker.Begin);
       offset += Move.MOVE_BY_1_BYTES;
 
-      for (let index = 0; i < values.length; i++) {
+      for (let index = 0; index < values.length; index++) {
         const value = values[index];
         if (isUndefinedOrNull(value.type)) {
           throw new Error("Reply types must have a type id");
         }
 
+        LOGGER.debug("Getting encoder for value: ", value, index);
         const encoder = this.getEncoder(value);
+        LOGGER.debug(
+          "Received encoder for value: ",
+          value,
+          index,
+          " encoder: ",
+          encoder,
+        );
         offset = encoder(offset, value, view);
       }
 
       view.setUint8(offset, ReturnValueMarker.End);
       offset += Move.MOVE_BY_1_BYTES;
 
+      const encodedBufferSize = content.byteLength;
       LOGGER.debug(
-        `Finished encoding data with initial_size=${initial_bytes_size} and encoded_size=${offset}`,
+        `Finished encoding data with initial_size=${initial_bytes_size} and encoded_size=${offset} with byteLength=`,
+        encodedBufferSize,
       );
       if (offset < initial_bytes_size) {
         content.resize(offset);
@@ -3503,10 +3682,10 @@ const Megatron = (function () {
       if (!(directive.type in ReturnTypeId.__INVERSE__)) {
         throw new Error(`Unknown Reply encode type id: ${directive.type}`);
       }
-      return ReturnTypeId.__INVERSE__[directive.type];
+      return this.reply_types[directive.type];
     }
 
-    static encodeFloat64ArrayBuffer(offset, directive, view) {
+    encodeFloat64ArrayBuffer(offset, directive, view) {
       if (directive.type != ReturnTypeId.Float64) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
@@ -3515,346 +3694,346 @@ const Megatron = (function () {
       offset += Move.MOVE_BY_1_BYTES;
 
       const content = Uint8Array(directive.value.buffer);
-      const allocation_id = this.operations.writeUint8Buffer(content);
-      view.getBigUint64(offset, allocation_id);
+      const allocation_id = this.operator.writeUint8Buffer(content);
+      view.setBigUint64(offset, allocation_id, true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
     }
 
-    static encodeFloat32ArrayBuffer(offset, directive, view) {
+    encodeFloat32ArrayBuffer(offset, directive, view) {
       if (directive.type != ReturnTypeId.Float32) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
       const content = Uint8Array(directive.value.buffer);
-      const allocation_id = this.operations.writeUint8Buffer(content);
-      view.getBigUint64(offset, allocation_id);
+      const allocation_id = this.operator.writeUint8Buffer(content);
+      view.setBigUint64(offset, allocation_id, true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
     }
 
-    static encodeInt64ArrayBuffer(offset, directive, view) {
+    encodeInt64ArrayBuffer(offset, directive, view) {
       if (directive.type != ReturnTypeId.Int64) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
       const content = Uint8Array(directive.value.buffer);
-      const allocation_id = this.operations.writeUint8Buffer(content);
-      view.getBigUint64(offset, allocation_id);
+      const allocation_id = this.operator.writeUint8Buffer(content);
+      view.setBigUint64(offset, allocation_id, true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
     }
 
-    static encodeInt32ArrayBuffer(offset, directive, view) {
+    encodeInt32ArrayBuffer(offset, directive, view) {
       if (directive.type != ReturnTypeId.Int32) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
       const content = Uint8Array(directive.value.buffer);
-      const allocation_id = this.operations.writeUint8Buffer(content);
-      view.getBigUint64(offset, allocation_id);
+      const allocation_id = this.operator.writeUint8Buffer(content);
+      view.setBigUint64(offset, allocation_id, true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
     }
 
-    static encodeInt16ArrayBuffer(offset, directive, view) {
+    encodeInt16ArrayBuffer(offset, directive, view) {
       if (directive.type != ReturnTypeId.Int16) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
       const content = Uint8Array(directive.value.buffer);
-      const allocation_id = this.operations.writeUint8Buffer(content);
-      view.getBigUint64(offset, allocation_id);
+      const allocation_id = this.operator.writeUint8Buffer(content);
+      view.setBigUint64(offset, allocation_id, true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
     }
 
-    static encodeInt8ArrayBuffer(offset, directive, view) {
+    encodeInt8ArrayBuffer(offset, directive, view) {
       if (directive.type != ReturnTypeId.Int8) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
       const content = Uint8Array(directive.value.buffer);
-      const allocation_id = this.operations.writeUint8Buffer(content);
-      view.getBigUint64(offset, allocation_id);
+      const allocation_id = this.operator.writeUint8Buffer(content);
+      view.setBigUint64(offset, allocation_id, true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
     }
 
-    static encodeUint64ArrayBuffer(offset, directive, view) {
+    encodeUint64ArrayBuffer(offset, directive, view) {
       if (directive.type != ReturnTypeId.Uint64) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
       const content = Uint8Array(directive.value.buffer);
-      const allocation_id = this.operations.writeUint8Buffer(content);
-      view.getBigUint64(offset, allocation_id);
+      const allocation_id = this.operator.writeUint8Buffer(content);
+      view.setBigUint64(offset, allocation_id, true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
     }
 
-    static encodeUint32ArrayBuffer(offset, directive, view) {
+    encodeUint32ArrayBuffer(offset, directive, view) {
       if (directive.type != ReturnTypeId.Uint32) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
       const content = Uint8Array(directive.value.buffer);
-      const allocation_id = this.operations.writeUint8Buffer(content);
-      view.getBigUint64(offset, allocation_id);
+      const allocation_id = this.operator.writeUint8Buffer(content);
+      view.setBigUint64(offset, allocation_id, true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
     }
 
-    static encodeUint16ArrayBuffer(offset, directive, view) {
+    encodeUint16ArrayBuffer(offset, directive, view) {
       if (directive.type != ReturnTypeId.Uint16) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
       const content = Uint8Array(directive.value.buffer);
-      const allocation_id = this.operations.writeUint8Buffer(content);
-      view.getBigUint64(offset, allocation_id);
+      const allocation_id = this.operator.writeUint8Buffer(content);
+      view.setBigUint64(offset, allocation_id, true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
     }
 
-    static encodeUint8ArrayBuffer(offset, directive, view) {
+    encodeUint8ArrayBuffer(offset, directive, view) {
       if (directive.type != ReturnTypeId.Uint8) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
-      const allocation_id = this.operations.writeUint8Buffer(directive.value);
-      view.getBigUint64(offset, allocation_id);
+      const allocation_id = this.operator.writeUint8Buffer(directive.value);
+      view.setBigUint64(offset, allocation_id, true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
     }
 
-    static encodeInternalReference(offset, directive, view) {
+    encodeInternalReference(offset, directive, view) {
       if (directive.type != ReturnTypeId.InternalReference) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
-      view.setBigUint64(offset, directive.value);
+      view.setBigUint64(offset, directive.value, true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
     }
 
-    static encodeObject(offset, directive, view) {
+    encodeObject(offset, directive, view) {
       if (directive.type != ReturnTypeId.Object) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
-      view.setBigUint64(offset, directive.value);
+      view.setBigUint64(offset, directive.value, true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
     }
 
-    static encodeDOMObject(offset, directive, view) {
+    encodeDOMObject(offset, directive, view) {
       if (directive.type != ReturnTypeId.DOMObject) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
-      view.setBigUint64(offset, directive.value);
+      view.setBigUint64(offset, directive.value, true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
     }
 
-    static encodeExternalReference(offset, directive, view) {
+    encodeExternalReference(offset, directive, view) {
       if (directive.type != ReturnTypeId.ExternalReference) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
-      view.setBigUint64(offset, directive.value);
+      view.setBigUint64(offset, directive.value, true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
     }
 
-    static encodeMemorySlice(offset, directive, view) {
+    encodeMemorySlice(offset, directive, view) {
       if (directive.type != ReturnTypeId.MemorySlice) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
-      view.setBigUint64(offset, directive.value);
+      view.setBigUint64(offset, directive.value, true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
     }
 
-    static encodeInt128(offset, directive, view) {
+    encodeInt128(offset, directive, view) {
       if (directive.type != ReturnTypeId.Int128) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
-      view.setBigInt64(offset, directive.value.value_msb);
+      view.setBigInt64(offset, directive.value.value_msb, true);
       offset += Move.MOVE_BY_64_BYTES;
 
-      view.setBigInt64(offset, directive.value.value_lsb);
+      view.setBigInt64(offset, directive.value.value_lsb, true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
     }
 
-    static encodeUint128(offset, directive, view) {
+    encodeUint128(offset, directive, view) {
       if (directive.type != ReturnTypeId.Uint128) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
-      view.setBigUint64(offset, directive.value.value_msb);
+      view.setBigUint64(offset, directive.value.value_msb, true);
       offset += Move.MOVE_BY_64_BYTES;
 
-      view.setBigUint64(offset, directive.value.value_lsb);
+      view.setBigUint64(offset, directive.value.value_lsb, true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
     }
 
-    static encodeFloat32(offset, directive, view) {
+    encodeFloat32(offset, directive, view) {
       if (directive.type != ReturnTypeId.Float32) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
-      view.setFloat32(offset, directive.value);
+      view.setFloat32(offset, directive.value, true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
     }
 
     // implement encoding of a float64 using the same as the encodeBool method
-    static encodeFloat64(offset, directive, view) {
+    encodeFloat64(offset, directive, view) {
       if (directive.type != ReturnTypeId.Float64) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
-      view.setFloat64(offset, directive.value);
+      view.setFloat64(offset, directive.value, true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
     }
 
-    static encodeBigUint64(offset, directive, view) {
+    encodeBigUint64(offset, directive, view) {
       if (directive.type != ReturnTypeId.Uint64) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
-      view.setBigUint64(offset, directive.value);
+      view.setBigUint64(offset, directive.value, true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
     }
 
-    static encodeUint32(offset, directive, view) {
+    encodeUint32(offset, directive, view) {
       if (directive.type != ReturnTypeId.Uint32) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
-      view.setUint32(offset, directive.value);
+      view.setUint32(offset, directive.value, true);
       offset += Move.MOVE_BY_32_BYTES;
 
       return offset;
     }
 
-    static encodeUint16(offset, directive, view) {
+    encodeUint16(offset, directive, view) {
       if (directive.type != ReturnTypeId.Uint16) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
-      view.setUint16(offset, directive.value);
+      view.setUint16(offset, directive.value, true);
       offset += Move.MOVE_BY_16_BYTES;
 
       return offset;
     }
 
-    static encodeUint8(offset, directive, view) {
+    encodeUint8(offset, directive, view) {
       if (directive.type != ReturnTypeId.Bool) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
-      view.setUint8(offset, directive.value);
+      view.setUint8(offset, directive.value, true);
       offset += Move.MOVE_BY_1_BYTES;
 
       return offset;
     }
 
-    static encodeBigInt64(offset, directive, view) {
+    encodeBigInt64(offset, directive, view) {
       if (directive.type != ReturnTypeId.Bool) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
@@ -3868,83 +4047,89 @@ const Megatron = (function () {
       return offset;
     }
 
-    static encodeInt32(offset, directive, view) {
+    encodeInt32(offset, directive, view) {
       if (directive.type != ReturnTypeId.Int32) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
-      view.setInt32(offset, directive.value);
+      view.setInt32(offset, directive.value, true);
       offset += Move.MOVE_BY_32_BYTES;
 
       return offset;
     }
 
-    static encodeInt16(offset, directive, view) {
+    encodeInt16(offset, directive, view) {
       if (directive.type != ReturnTypeId.Int16) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
-      view.setInt16(offset, directive.value);
+      view.setInt16(offset, directive.value, true);
       offset += Move.MOVE_BY_16_BYTES;
 
       return offset;
     }
 
-    static encodeInt8(offset, directive, view) {
+    encodeInt8(offset, directive, view) {
       if (directive.type != ReturnTypeId.Int8) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
-      view.setInt8(offset, directive.value);
+      view.setInt8(offset, directive.value, true);
       offset += Move.MOVE_BY_1_BYTES;
 
       return offset;
     }
 
-    static encodeText8(offset, directive, view) {
+    encodeText8(offset, directive, view) {
       if (directive.type != ReturnTypeId.Text8) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
       const allocation_id = this.texts.writeUTF8ToMemory(directive.value);
-      view.getBigUint64(offset, allocation_id);
+      LOGGER.debug(
+        "Reply::encodeText8: written text: ",
+        directive,
+        " into location_id: ",
+        allocation_id,
+      );
+      view.setBigUint64(offset, allocation_id, true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
     }
 
-    static encodeNone(offset, directive, view) {
+    encodeNone(offset, directive, view) {
       if (directive.type != ReturnTypeId.None) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
       return offset;
     }
 
-    static encodeBool(offset, directive, view) {
+    encodeBool(offset, directive, view) {
       if (directive.type != ReturnTypeId.Bool) {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
-      view.setUint8(offset, directive.type);
+      view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
-      view.setUint8(offset, directive.value == true ? 1 : 0);
+      view.setUint8(offset, directive.value == true ? 1 : 0, true);
       offset += Move.MOVE_BY_1_BYTES;
 
       return offset;
@@ -4021,10 +4206,13 @@ const Megatron = (function () {
     }
 
     static asMemorySlice(value) {
-      if (typeof value !== "bigint") {
+      if (!isBigIntOrNumber(value)) {
         throw new Error("Value must be bigint");
       }
-      return Reply.asValue(ReturnTypeId.MemorySlice, value);
+      return Reply.asValue(
+        ReturnTypeId.MemorySlice,
+        isBigInt(value) ? value : BigInt(value),
+      );
     }
 
     static asInternalReference(value) {
@@ -4069,13 +4257,6 @@ const Megatron = (function () {
         return Reply.asValue(ReturnTypeId.DOMObject, value.value);
       }
       return Reply.asValue(ReturnTypeId.DOMObject, value);
-    }
-
-    static asMemorySlice(value) {
-      if (typeof value !== "bigint") {
-        throw new Error("Value must be bigint");
-      }
-      return Reply.asValue(ReturnTypeId.MemorySlice, value);
     }
 
     static asFloat64(value) {
@@ -4349,6 +4530,51 @@ const Megatron = (function () {
         moved_by,
       );
 
+      const [moved_after_return, return_hints] = this.parse_return_hints(
+        moved_by,
+        operations,
+        texts,
+      );
+      const [moved_after_parameters, parameters] = this.parse_parameters(
+        moved_after_return,
+        operations,
+        texts,
+      );
+
+      moved_by = moved_after_parameters;
+
+      LOGGER.debug("Params: ", moved_by, external_id, parameters);
+      const callbable = (instance) => {
+        const callable = instance.function_heap.get(external_id.value);
+        LOGGER.debug(
+          `Retrieved callable: ${callbable} from external_id=${external_id}`,
+        );
+
+        const result = callable.apply(instance, parameters);
+        if (!isUndefinedOrNull(result)) {
+          result_callback(result);
+        }
+      };
+
+      return [moved_by, callbable];
+    }
+
+    parse_return_hints(moved_by, operations, texts) {
+      let return_hints = null;
+      [moved_by, return_hints] = this.return_hints.parse_from(
+        moved_by,
+        operations,
+      );
+      if (isUndefinedOrNull(return_hints)) {
+        throw new Error("should have received ");
+      }
+      if (!(return_hints instanceof ReturnHint)) {
+        throw new Error("value should be a type of ReturnHint validator");
+      }
+      return [moved_by, return_hints];
+    }
+
+    parse_arguments(moved_by, operations, texts) {
       const next_token = operations.getUint8(moved_by, true);
       if (next_token != ArgumentOperations.Start) {
         const type_name =
@@ -4377,20 +4603,7 @@ const Megatron = (function () {
 
       moved_by += Move.MOVE_BY_1_BYTES;
 
-      LOGGER.debug("Params: ", moved_by, external_id, parameters);
-      const callbable = (instance) => {
-        const callable = instance.function_heap.get(external_id.value);
-        LOGGER.debug(
-          `Retrieved callable: ${callbable} from external_id=${external_id}`,
-        );
-
-        const result = callable.apply(instance, parameters);
-        if (!isUndefinedOrNull(result)) {
-          result_callback(result);
-        }
-      };
-
-      return [moved_by, callbable];
+      return [moved_by, parameters];
     }
   }
 
@@ -4430,6 +4643,12 @@ const Megatron = (function () {
     }
 
     init(wasm_module) {
+      // the ctx (context) allowing access
+      // to all classes and systems
+      // the megatron module has.
+      this.ctx = CONTEXT;
+
+      // the wasm module
       this.module = wasm_module;
 
       // DOM object heap for registering DOM objects.
@@ -4549,27 +4768,25 @@ const Megatron = (function () {
         // 3. Specific Bindings
         host_invoke_function_as_bool:
           this.host_invoke_function_as_bool.bind(this),
-        host_invoke_function_as_float64:
+        host_invoke_function_as_f64:
           this.host_invoke_function_as_float.bind(this),
-        host_invoke_function_as_float32:
+        host_invoke_function_as_f32:
           this.host_invoke_function_as_float.bind(this),
-        host_invoke_function_as_uint8:
+        host_invoke_function_as_u8: this.host_invoke_function_as_int.bind(this),
+        host_invoke_function_as_u16:
           this.host_invoke_function_as_int.bind(this),
-        host_invoke_function_as_uint16:
+        host_invoke_function_as_u32:
           this.host_invoke_function_as_int.bind(this),
-        host_invoke_function_as_uint32:
-          this.host_invoke_function_as_int.bind(this),
-        host_invoke_function_as_uint64:
+        host_invoke_function_as_u64:
           this.host_invoke_function_as_bigint.bind(this),
-        host_invoke_function_as_int8:
+        host_invoke_function_as_i8: this.host_invoke_function_as_int.bind(this),
+        host_invoke_function_as_i16:
           this.host_invoke_function_as_int.bind(this),
-        host_invoke_function_as_int16:
+        host_invoke_function_as_i32:
           this.host_invoke_function_as_int.bind(this),
-        host_invoke_function_as_int32:
-          this.host_invoke_function_as_int.bind(this),
-        host_invoke_function_as_int64:
+        host_invoke_function_as_i64:
           this.host_invoke_function_as_bigint.bind(this),
-        host_invoke_function_as_string:
+        host_invoke_function_as_str:
           this.host_invoke_function_as_string.bind(this),
       };
     }
@@ -4699,6 +4916,34 @@ const Megatron = (function () {
       return this.function_heap.create(registered_func);
     }
 
+    host_invoke_function_for_return(
+      handle,
+      parameter_start,
+      parameter_length,
+      return_hints,
+    ) {
+      // read parameters and invoke function via handle.
+      const parameters = this.parameter_v1.parse_array(
+        parameter_start,
+        parameter_length,
+      );
+
+      if (!parameters && parameter_length > 0)
+        throw new Error("No parameters returned though we expect some");
+
+      LOGGER.debug(
+        `host_invoke_function_with_return: Parameters=${parameters} (type=${typeof parameters})`,
+        parameters,
+      );
+
+      const func = this.function_heap.get(handle);
+
+      const response = func.call(this, ...parameters);
+      LOGGER.debug("host_invoke_function_with_return: result=", response);
+
+      return this.reply_parser.morph(return_hints, response);
+    }
+
     host_invoke_function_with_return(
       handle,
       parameter_start,
@@ -4714,6 +4959,11 @@ const Megatron = (function () {
 
       if (!parameters && parameter_length > 0)
         throw new Error("No parameters returned though we expect some");
+
+      LOGGER.debug(
+        `host_invoke_function_with_return: Parameters=${parameters} (type=${typeof parameters})`,
+        parameters,
+      );
 
       const [read, return_hints] = this.return_hints.parse_hint(
         returns_start,
@@ -4776,7 +5026,13 @@ const Megatron = (function () {
       returns_start,
       returns_length,
     ) {
-      LOGGER.info("Invoking host_invoke_function");
+      LOGGER.debug("host_invoke_function: ", {
+        handle,
+        parameter_start,
+        parameter_length,
+        returns_start,
+        returns_length,
+      });
       const result = this.host_invoke_function_with_return(
         handle,
         parameter_start,
@@ -4785,44 +5041,51 @@ const Megatron = (function () {
         returns_length,
       );
 
+      LOGGER.debug(
+        "host_invoke_function: this.host_invoke_function_with_return returned: ",
+        result,
+      );
+
       if (isUndefinedOrNull(result)) return BigInt(-1);
-      if (!isBigIntOrNumber(value)) throw new Error("Not a BigInt or Number");
-      if (isNumber(value)) return BigInt(value);
+      if (!isBigIntOrNumber(result)) throw new Error("Not a BigInt or Number");
+      if (isNumber(result)) return BigInt(result);
       return result;
     }
 
     host_invoke_function_as_dom(handle, parameter_start, parameter_length) {
-      const response = this.host_invoke_function_with_return(
+      return this.host_invoke_function_for_return(
         handle,
         parameter_start,
         parameter_length,
+        new SingleReturn(ReturnTypeId.DOMObject),
       );
-      return this.dom_heap.create(response);
     }
 
     host_invoke_function_as_object(handle, parameter_start, parameter_length) {
-      const response = this.host_invoke_function_with_return(
+      return this.host_invoke_function_for_return(
         handle,
         parameter_start,
         parameter_length,
+        new SingleReturn(ReturnTypeId.Object),
       );
-      return this.object_heap.create(response);
     }
 
     host_invoke_function_as_bool(handle, parameter_start, parameter_length) {
-      const response = this.host_invoke_function_with_return(
+      const response = this.host_invoke_function_for_return(
         handle,
         parameter_start,
         parameter_length,
+        new SingleReturn(ReturnTypeId.Bool),
       );
       return response ? true : false;
     }
 
     host_invoke_function_as_float(handle, parameter_start, parameter_length) {
-      const response = this.host_invoke_function_with_return(
+      const response = this.host_invoke_function_for_return(
         handle,
         parameter_start,
         parameter_length,
+        new SingleReturn(ReturnTypeId.Float64),
       );
       if (typeof response != "number") {
         throw new Error(`Response ${response} is not a number`);
@@ -4831,10 +5094,11 @@ const Megatron = (function () {
     }
 
     host_invoke_function_as_int(handle, parameter_start, parameter_length) {
-      const response = this.host_invoke_function_with_return(
+      const response = this.host_invoke_function_for_return(
         handle,
         parameter_start,
         parameter_length,
+        new SingleReturn(ReturnTypeId.Int64),
       );
       if (typeof response != "number" && typeof response != "bigint") {
         throw new Error(`Response ${response} is not a number`);
@@ -4847,10 +5111,11 @@ const Megatron = (function () {
     }
 
     host_invoke_function_as_bigint(handle, parameter_start, parameter_length) {
-      const response = this.host_invoke_function_with_return(
+      const response = this.host_invoke_function_for_return(
         handle,
         parameter_start,
         parameter_length,
+        new SingleReturn(ReturnTypeId.Uint64),
       );
       if (response instanceof BigInt) {
         return response;
@@ -5096,42 +5361,42 @@ const Megatron = (function () {
     );
   };
 
-  return {
-    // Base loggers and types
-    LOGGER,
-    LEVELS,
-    Move,
-    Params,
-    Operations,
-    ReturnTypes,
-    ReturnValueTypes: ReturnTypeId,
-    TypedSlice,
-    ArgumentOperations,
-    TypeOptimization,
+  // Returns and Result replies
+  CONTEXT.Reply = Reply;
 
-    // Support classes and functions
-    CachePointer,
-    ExternalPointer,
-    InternalPointer,
-    TypedArraySlice,
-    DOMArena,
-    TextCodec,
-    WASMLoader,
-    ArenaAllocator,
-    MemoryOperator,
+  // Base loggers and types
+  CONTEXT.Move = Move;
+  CONTEXT.Params = Params;
+  CONTEXT.LOGGER = LOGGER;
+  CONTEXT.LEVELS = LEVELS;
+  CONTEXT.Operations = Operations;
+  CONTEXT.TypedSlice = TypedSlice;
+  CONTEXT.ReturnTypes = ReturnTypes;
+  CONTEXT.ReturnTypeId = ReturnTypeId;
+  CONTEXT.TypeOptimization = TypeOptimization;
+  CONTEXT.ArgumentOperations = ArgumentOperations;
 
-    // Arguments parsers (immediate and batch)
-    ParameterParserV1,
-    ParameterParserV2,
-    BatchInstructions,
+  // Support classes and functions
+  CONTEXT.DOMArena = DOMArena;
+  CONTEXT.TextCodec = TextCodec;
+  CONTEXT.WASMLoader = WASMLoader;
+  CONTEXT.CachePointer = CachePointer;
+  CONTEXT.ArenaAllocator = ArenaAllocator;
+  CONTEXT.MemoryOperator = MemoryOperator;
+  CONTEXT.ExternalPointer = ExternalPointer;
+  CONTEXT.InternalPointer = InternalPointer;
+  CONTEXT.TypedArraySlice = TypedArraySlice;
 
-    // Returns and Result replies
-    Reply,
+  // Arguments parsers (immediate and batch)
+  CONTEXT.BatchInstructions = BatchInstructions;
+  CONTEXT.ParameterParserV1 = ParameterParserV1;
+  CONTEXT.ParameterParserV2 = ParameterParserV2;
 
-    // Core classes and managers
-    MegatronMiddleware,
-    WasmWebScripts,
-  };
+  // Core classes and managers
+  CONTEXT.WasmWebScripts = WasmWebScripts;
+  CONTEXT.MegatronMiddleware = MegatronMiddleware;
+
+  return CONTEXT;
 })();
 
 if (typeof module !== "undefined") {

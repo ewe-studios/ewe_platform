@@ -1,15 +1,15 @@
 #![allow(dead_code)]
+#![allow(clippy::wrong_self_convention)]
 #![allow(clippy::items_after_test_module)]
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::missing_panics_doc)]
 
-use alloc::boxed::Box;
 use alloc::string::{FromUtf16Error, FromUtf8Error, String};
 use alloc::sync::Arc;
 use alloc::vec::Vec;
 use foundation_nostd::spin::Mutex;
 
-use crate::{CompletedInstructions, MemoryId, ReturnTypeId, StrLocation};
+use crate::{CompletedInstructions, MemoryId, ReturnTypeId, ReturnValues, StrLocation};
 
 pub type MemoryWriterResult<T> = core::result::Result<T, MemoryWriterError>;
 
@@ -19,16 +19,9 @@ pub enum MemoryWriterError {
     PreviousUnclosedOperation,
     NotValidUTF8(FromUtf8Error),
     NotValidUTF16(FromUtf16Error),
-    AllocationError(MemoryAllocationError),
     UnableToWrite,
     UnexpectedFreeState,
     UnexpectedOccupiedState,
-}
-
-impl From<MemoryAllocationError> for MemoryWriterError {
-    fn from(value: MemoryAllocationError) -> Self {
-        Self::AllocationError(value)
-    }
 }
 
 impl core::error::Error for MemoryWriterError {}
@@ -36,6 +29,64 @@ impl core::error::Error for MemoryWriterError {}
 impl core::fmt::Display for MemoryWriterError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{self:?}")
+    }
+}
+
+#[derive(Debug)]
+pub enum ReturnValueError {
+    UnexpectedReturnType,
+    InvalidReturnType(ReturnValues),
+    ExpectedOne(Vec<ReturnValues>),
+    ExpectedList(Vec<ReturnValues>),
+    ExpectedMultiple(Vec<ReturnValues>),
+    InvalidReturnTypes(Vec<ReturnValues>),
+}
+
+impl core::error::Error for ReturnValueError {}
+
+impl core::fmt::Display for ReturnValueError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
+
+#[derive(Debug)]
+pub enum MemoryReaderError {
+    NotValidUTF8(FromUtf8Error),
+    NotValidUTF16(FromUtf16Error),
+    ReturnValueError(ReturnValueError),
+    NotValidReplyBinary(BinaryReadError),
+}
+
+impl core::error::Error for MemoryReaderError {}
+
+impl core::fmt::Display for MemoryReaderError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
+
+impl From<ReturnValueError> for MemoryReaderError {
+    fn from(value: ReturnValueError) -> Self {
+        Self::ReturnValueError(value)
+    }
+}
+
+impl From<BinaryReadError> for MemoryReaderError {
+    fn from(value: BinaryReadError) -> Self {
+        Self::NotValidReplyBinary(value)
+    }
+}
+
+impl From<FromUtf16Error> for MemoryReaderError {
+    fn from(value: FromUtf16Error) -> Self {
+        Self::NotValidUTF16(value)
+    }
+}
+
+impl From<FromUtf8Error> for MemoryReaderError {
+    fn from(value: FromUtf8Error) -> Self {
+        Self::NotValidUTF8(value)
     }
 }
 
@@ -48,21 +99,45 @@ pub struct MemoryAllocation {
     memory: Arc<Mutex<Option<Vec<u8>>>>,
 }
 
+impl core::fmt::Debug for MemoryAllocation {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "MemoryAllocations")
+    }
+}
+
+impl core::fmt::Display for MemoryAllocation {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "MemoryAllocations")
+    }
+}
+
 pub type MemoryAllocationResult<T> = core::result::Result<T, MemoryAllocationError>;
 
 #[derive(Debug)]
 pub enum MemoryAllocationError {
-    NotValidUTF8(FromUtf8Error),
-    NotValidUTF16(FromUtf16Error),
     NoMemoryAllocation,
     NoMoreAllocationSlots,
     InvalidAllocationId,
-    MemoryWriteError(Box<MemoryWriterError>),
+    FailedAllocationReading(MemoryId),
+    MemoryReadError(MemoryReaderError),
+    MemoryWriteError(MemoryWriterError),
+}
+
+impl From<ReturnValueError> for MemoryAllocationError {
+    fn from(value: ReturnValueError) -> Self {
+        Self::MemoryReadError(value.into())
+    }
+}
+
+impl From<MemoryReaderError> for MemoryAllocationError {
+    fn from(value: MemoryReaderError) -> Self {
+        MemoryAllocationError::MemoryReadError(value)
+    }
 }
 
 impl From<MemoryWriterError> for MemoryAllocationError {
     fn from(value: MemoryWriterError) -> Self {
-        MemoryAllocationError::MemoryWriteError(Box::new(value))
+        MemoryAllocationError::MemoryWriteError(value)
     }
 }
 
@@ -225,7 +300,7 @@ impl MemoryAllocation {
         if let Some(mem) = memory.as_mut() {
             return match String::from_utf8(mem.clone()) {
                 Ok(content) => Ok(content),
-                Err(err) => Err(MemoryAllocationError::NotValidUTF8(err)),
+                Err(err) => Err(MemoryReaderError::NotValidUTF8(err).into()),
             };
         };
         Err(MemoryAllocationError::NoMemoryAllocation)
@@ -256,7 +331,7 @@ pub trait ToBinary {
 pub trait FromBinary {
     type T;
 
-    fn into_type(self, bin: &[u8]) -> BinaryReaderResult<Self::T>;
+    fn from_binary(self, bin: &[u8]) -> BinaryReaderResult<Self::T>;
 }
 
 pub type BinaryReaderResult<T> = core::result::Result<T, BinaryReadError>;
@@ -360,6 +435,26 @@ impl MemorySlot {
 pub struct MemoryAllocations {
     allocs: Vec<(u32, MemoryAllocation)>,
     free: Vec<usize>,
+}
+
+impl core::fmt::Debug for MemoryAllocations {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "MemoryAllocations(allocs: {:?}, free: {:?})",
+            self.allocs, self.free
+        )
+    }
+}
+
+impl core::fmt::Display for MemoryAllocations {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "MemoryAllocations(allocs: {:?}, free: {:?})",
+            self.allocs, self.free
+        )
+    }
 }
 
 impl Default for MemoryAllocations {
@@ -584,7 +679,7 @@ mod memory_allocation_tests {
         assert_eq!(0, mem1.as_u64());
 
         allocator
-            .deallocate(mem1.clone())
+            .deallocate(mem1)
             .expect("should dispose allocation");
 
         assert!(

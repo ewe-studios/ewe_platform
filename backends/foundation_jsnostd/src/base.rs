@@ -109,8 +109,7 @@ impl Into<u8> for ValueTypes {
 
 /// [`ReturnValueTypes`] represent the type indicating the underlying returned
 /// value for an operation.
-#[repr(usize)]
-#[derive(Clone, Hash, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Hash, Debug, PartialEq, Eq)]
 pub enum ReturnTypeId {
     Bool = 1,
     Text8 = 2,
@@ -1733,7 +1732,7 @@ const BIT_MASK: u64 = 0xFFFFFFFF;
 /// First Elem - is the index
 /// Second Elem - is the generation
 ///
-#[derive(Debug, Clone, Eq, PartialEq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord)]
 pub struct MemoryId(pub(crate) u32, pub(crate) u32);
 
 impl From<u64> for MemoryId {

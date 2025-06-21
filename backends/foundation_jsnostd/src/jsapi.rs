@@ -8,9 +8,9 @@ use foundation_nostd::{raw_parts::RawParts, spin::Mutex};
 use crate::{
     BinaryReadError, BinaryReaderResult, CompletedInstructions, ExternalPointer, FromBinary,
     Instructions, InternalCallback, InternalPointer, InternalReferenceRegistry, JSEncoding,
-    MemoryAllocation, MemoryAllocations, MemoryId, Params, ReturnTypeHints, ReturnTypeId,
-    ReturnValueMarker, ReturnValues, ToBinary, MOVE_ONE_BYTE, MOVE_SIXTEEN_BYTES,
-    MOVE_SIXTY_FOUR_BYTES, MOVE_THIRTY_TWO_BYTES,
+    MemoryAllocation, MemoryAllocationError, MemoryAllocations, MemoryId, Params, ReturnTypeHints,
+    ReturnTypeId, ReturnValueError, ReturnValueMarker, ReturnValues, ToBinary, MOVE_ONE_BYTE,
+    MOVE_SIXTEEN_BYTES, MOVE_SIXTY_FOUR_BYTES, MOVE_THIRTY_TWO_BYTES,
 };
 
 static INTERNAL_CALLBACKS: Mutex<InternalReferenceRegistry> = InternalReferenceRegistry::create();
@@ -38,16 +38,20 @@ impl<'a> ReturnValueParserIter<'a> {
 // -- Parsing
 
 impl ReturnValueParserIter<'_> {
-    fn parse_next(&mut self) -> BinaryReaderResult<ReturnValues> {
+    fn parse_next(&mut self) -> Option<BinaryReaderResult<ReturnValues>> {
         let bin = &self.src;
         let mut index = self.index;
+
+        if self.index >= self.src.len() {
+            return None;
+        }
 
         let return_id: ReturnTypeId = bin[index].into();
 
         // move by 1 byte
         index += MOVE_ONE_BYTE;
 
-        match return_id {
+        let result = match return_id {
             ReturnTypeId::None => {
                 self.index = index;
                 Ok(ReturnValues::None)
@@ -291,12 +295,16 @@ impl ReturnValueParserIter<'_> {
                 let alloc_id = u64::from_le_bytes(section);
                 let mem_id = MemoryId::from_u64(alloc_id);
 
-                let mut memory = ALLOCATIONS.lock().get(mem_id)?;
+                let memory_result = ALLOCATIONS.lock().get(mem_id);
+                if let Err(err) = memory_result {
+                    return Some(Err(err.into()));
+                }
+                let mut memory = memory_result.unwrap();
                 let memory_vec = memory.take();
                 if memory_vec.is_none() {
-                    return Err(BinaryReadError::MemoryError(String::from(
+                    return Some(Err(BinaryReadError::MemoryError(String::from(
                         "No Vec<u8> not found, big problem",
-                    )));
+                    ))));
                 }
 
                 self.index = end;
@@ -315,12 +323,16 @@ impl ReturnValueParserIter<'_> {
                 let alloc_id = u64::from_le_bytes(section);
                 let mem_id = MemoryId::from_u64(alloc_id);
 
-                let mut memory = ALLOCATIONS.lock().get(mem_id)?;
+                let memory_result = ALLOCATIONS.lock().get(mem_id);
+                if let Err(err) = memory_result {
+                    return Some(Err(err.into()));
+                }
+                let mut memory = memory_result.unwrap();
                 let memory_vec_container = memory.take();
                 if memory_vec_container.is_none() {
-                    return Err(BinaryReadError::MemoryError(String::from(
+                    return Some(Err(BinaryReadError::MemoryError(String::from(
                         "No Vec<u8> not found, big problem",
-                    )));
+                    ))));
                 }
 
                 let memory_vec = memory_vec_container.unwrap();
@@ -329,9 +341,9 @@ impl ReturnValueParserIter<'_> {
                 // if the mode of 2 (size in bytes/u8) is not zero then
                 // then its an invalid u16 array converted to u8
                 if memory_size % TOTAL_U8_IN_U18 != 0 {
-                    return Err(BinaryReadError::MemoryError(String::from(
+                    return Some(Err(BinaryReadError::MemoryError(String::from(
                             "Vec<u8> of u16 send as u8 should have even lengths, because u16 in u8 is two u8",
-                        )));
+                        ))));
                 }
 
                 let arr_size = memory_size / TOTAL_U8_IN_U18;
@@ -363,12 +375,16 @@ impl ReturnValueParserIter<'_> {
                 let alloc_id = u64::from_le_bytes(section);
                 let mem_id = MemoryId::from_u64(alloc_id);
 
-                let mut memory = ALLOCATIONS.lock().get(mem_id)?;
+                let memory_result = ALLOCATIONS.lock().get(mem_id);
+                if let Err(err) = memory_result {
+                    return Some(Err(err.into()));
+                }
+                let mut memory = memory_result.unwrap();
                 let memory_vec_container = memory.take();
                 if memory_vec_container.is_none() {
-                    return Err(BinaryReadError::MemoryError(String::from(
+                    return Some(Err(BinaryReadError::MemoryError(String::from(
                         "No Vec<u8> not found, big problem",
-                    )));
+                    ))));
                 }
 
                 let memory_vec = memory_vec_container.unwrap();
@@ -377,9 +393,9 @@ impl ReturnValueParserIter<'_> {
                 // if the mode of 2 (size in bytes/u8) is not zero then
                 // then its an invalid u32 array converted to u8
                 if memory_size % TOTAL_U8_IN_U32 != 0 {
-                    return Err(BinaryReadError::MemoryError(String::from(
+                    return Some(Err(BinaryReadError::MemoryError(String::from(
                             "Vec<u8> of u32 send as u8 should have even lengths, because u32 in u8 is four u8",
-                        )));
+                        ))));
                 }
 
                 let arr_size = memory_size / TOTAL_U8_IN_U32;
@@ -411,12 +427,16 @@ impl ReturnValueParserIter<'_> {
                 let alloc_id = u64::from_le_bytes(section);
                 let mem_id = MemoryId::from_u64(alloc_id);
 
-                let mut memory = ALLOCATIONS.lock().get(mem_id)?;
+                let memory_result = ALLOCATIONS.lock().get(mem_id);
+                if let Err(err) = memory_result {
+                    return Some(Err(err.into()));
+                }
+                let mut memory = memory_result.unwrap();
                 let memory_vec_container = memory.take();
                 if memory_vec_container.is_none() {
-                    return Err(BinaryReadError::MemoryError(String::from(
+                    return Some(Err(BinaryReadError::MemoryError(String::from(
                         "No Vec<u8> not found, big problem",
-                    )));
+                    ))));
                 }
 
                 let memory_vec = memory_vec_container.unwrap();
@@ -425,9 +445,9 @@ impl ReturnValueParserIter<'_> {
                 // if the mode of 2 (size in bytes/u8) is not zero then
                 // then its an invalid u64 array converted to u8
                 if memory_size % TOTAL_U8_IN_U64 != 0 {
-                    return Err(BinaryReadError::MemoryError(String::from(
+                    return Some(Err(BinaryReadError::MemoryError(String::from(
                             "Vec<u8> of u64 send as u8 should have even lengths, because u64 in u8 is eight's u8",
-                        )));
+                        ))));
                 }
 
                 let arr_size = memory_size / TOTAL_U8_IN_U64;
@@ -457,12 +477,16 @@ impl ReturnValueParserIter<'_> {
                 let alloc_id = u64::from_le_bytes(section);
                 let mem_id = MemoryId::from_u64(alloc_id);
 
-                let mut memory = ALLOCATIONS.lock().get(mem_id)?;
+                let memory_result = ALLOCATIONS.lock().get(mem_id);
+                if let Err(err) = memory_result {
+                    return Some(Err(err.into()));
+                }
+                let mut memory = memory_result.unwrap();
                 let memory_vec_container = memory.take();
                 if memory_vec_container.is_none() {
-                    return Err(BinaryReadError::MemoryError(String::from(
+                    return Some(Err(BinaryReadError::MemoryError(String::from(
                         "No Vec<u8> not found, big problem",
-                    )));
+                    ))));
                 }
 
                 let memory_vec = memory_vec_container.unwrap();
@@ -488,12 +512,16 @@ impl ReturnValueParserIter<'_> {
                 let alloc_id = u64::from_le_bytes(section);
                 let mem_id = MemoryId::from_u64(alloc_id);
 
-                let mut memory = ALLOCATIONS.lock().get(mem_id)?;
+                let memory_result = ALLOCATIONS.lock().get(mem_id);
+                if let Err(err) = memory_result {
+                    return Some(Err(err.into()));
+                }
+                let mut memory = memory_result.unwrap();
                 let memory_vec_container = memory.take();
                 if memory_vec_container.is_none() {
-                    return Err(BinaryReadError::MemoryError(String::from(
+                    return Some(Err(BinaryReadError::MemoryError(String::from(
                         "No Vec<u8> not found, big problem",
-                    )));
+                    ))));
                 }
 
                 let memory_vec = memory_vec_container.unwrap();
@@ -502,9 +530,9 @@ impl ReturnValueParserIter<'_> {
                 // if the mode of 2 (size in bytes/u8) is not zero then
                 // then its an invalid u16 array converted to u8
                 if memory_size % TOTAL_U8_IN_U16 != 0 {
-                    return Err(BinaryReadError::MemoryError(String::from(
+                    return Some(Err(BinaryReadError::MemoryError(String::from(
                             "Vec<u8> of u16 send as u8 should have even lengths, because u16 in u8 is two u8",
-                        )));
+                        ))));
                 }
 
                 let arr_size = memory_size / TOTAL_U8_IN_U16;
@@ -536,12 +564,16 @@ impl ReturnValueParserIter<'_> {
                 let alloc_id = u64::from_le_bytes(section);
                 let mem_id = MemoryId::from_u64(alloc_id);
 
-                let mut memory = ALLOCATIONS.lock().get(mem_id)?;
+                let memory_result = ALLOCATIONS.lock().get(mem_id);
+                if let Err(err) = memory_result {
+                    return Some(Err(err.into()));
+                }
+                let mut memory = memory_result.unwrap();
                 let memory_vec_container = memory.take();
                 if memory_vec_container.is_none() {
-                    return Err(BinaryReadError::MemoryError(String::from(
+                    return Some(Err(BinaryReadError::MemoryError(String::from(
                         "No Vec<u8> not found, big problem",
-                    )));
+                    ))));
                 }
 
                 let memory_vec = memory_vec_container.unwrap();
@@ -550,9 +582,9 @@ impl ReturnValueParserIter<'_> {
                 // if the mode of 2 (size in bytes/u8) is not zero then
                 // then its an invalid u16 array converted to u8
                 if memory_size % TOTAL_U8_IN_U32 != 0 {
-                    return Err(BinaryReadError::MemoryError(String::from(
+                    return Some(Err(BinaryReadError::MemoryError(String::from(
                             "Vec<u8> of u16 send as u8 should have even lengths, because u16 in u8 is four u8",
-                        )));
+                        ))));
                 }
 
                 let arr_size = memory_size / TOTAL_U8_IN_U32;
@@ -584,12 +616,16 @@ impl ReturnValueParserIter<'_> {
                 let alloc_id = u64::from_le_bytes(section);
                 let mem_id = MemoryId::from_u64(alloc_id);
 
-                let mut memory = ALLOCATIONS.lock().get(mem_id)?;
+                let memory_result = ALLOCATIONS.lock().get(mem_id);
+                if let Err(err) = memory_result {
+                    return Some(Err(err.into()));
+                }
+                let mut memory = memory_result.unwrap();
                 let memory_vec_container = memory.take();
                 if memory_vec_container.is_none() {
-                    return Err(BinaryReadError::MemoryError(String::from(
+                    return Some(Err(BinaryReadError::MemoryError(String::from(
                         "No Vec<u8> not found, big problem",
-                    )));
+                    ))));
                 }
 
                 let memory_vec = memory_vec_container.unwrap();
@@ -598,9 +634,9 @@ impl ReturnValueParserIter<'_> {
                 // if the mode of 2 (size in bytes/u8) is not zero then
                 // then its an invalid u16 array converted to u8
                 if memory_size % TOTAL_U8_IN_U64 != 0 {
-                    return Err(BinaryReadError::MemoryError(String::from(
+                    return Some(Err(BinaryReadError::MemoryError(String::from(
                             "Vec<u8> of u16 send as u8 should have even lengths, because u16 in u8 is eight's u8",
-                        )));
+                        ))));
                 }
 
                 let arr_size = memory_size / TOTAL_U8_IN_U64;
@@ -632,12 +668,16 @@ impl ReturnValueParserIter<'_> {
                 let alloc_id = u64::from_le_bytes(section);
                 let mem_id = MemoryId::from_u64(alloc_id);
 
-                let mut memory = ALLOCATIONS.lock().get(mem_id)?;
+                let memory_result = ALLOCATIONS.lock().get(mem_id);
+                if let Err(err) = memory_result {
+                    return Some(Err(err.into()));
+                }
+                let mut memory = memory_result.unwrap();
                 let memory_vec_container = memory.take();
                 if memory_vec_container.is_none() {
-                    return Err(BinaryReadError::MemoryError(String::from(
+                    return Some(Err(BinaryReadError::MemoryError(String::from(
                         "No Vec<u8> not found, big problem",
-                    )));
+                    ))));
                 }
 
                 let memory_vec = memory_vec_container.unwrap();
@@ -646,9 +686,9 @@ impl ReturnValueParserIter<'_> {
                 // if the mode of 2 (size in bytes/u8) is not zero then
                 // then its an invalid u16 array converted to u8
                 if memory_size % TOTAL_U8_IN_F32 != 0 {
-                    return Err(BinaryReadError::MemoryError(String::from(
+                    return Some(Err(BinaryReadError::MemoryError(String::from(
                             "Vec<u8> of u16 send as u8 should have even lengths, because u16 in u8 is four's u8",
-                        )));
+                        ))));
                 }
 
                 let arr_size = memory_size / TOTAL_U8_IN_F32;
@@ -680,12 +720,16 @@ impl ReturnValueParserIter<'_> {
                 let alloc_id = u64::from_le_bytes(section);
                 let mem_id = MemoryId::from_u64(alloc_id);
 
-                let mut memory = ALLOCATIONS.lock().get(mem_id)?;
+                let memory_result = ALLOCATIONS.lock().get(mem_id);
+                if let Err(err) = memory_result {
+                    return Some(Err(err.into()));
+                }
+                let mut memory = memory_result.unwrap();
                 let memory_vec_container = memory.take();
                 if memory_vec_container.is_none() {
-                    return Err(BinaryReadError::MemoryError(String::from(
+                    return Some(Err(BinaryReadError::MemoryError(String::from(
                         "No Vec<u8> not found, big problem",
-                    )));
+                    ))));
                 }
 
                 let memory_vec = memory_vec_container.unwrap();
@@ -694,9 +738,9 @@ impl ReturnValueParserIter<'_> {
                 // if the mode of 2 (size in bytes/u8) is not zero then
                 // then its an invalid u16 array converted to u8
                 if memory_size % TOTAL_U8_IN_F64 != 0 {
-                    return Err(BinaryReadError::MemoryError(String::from(
+                    return Some(Err(BinaryReadError::MemoryError(String::from(
                             "Vec<u8> of u16 send as u8 should have even lengths, because u16 in u8 is eight's u8",
-                        )));
+                        ))));
                 }
 
                 let arr_size = memory_size / TOTAL_U8_IN_F64;
@@ -723,15 +767,25 @@ impl ReturnValueParserIter<'_> {
                 let mut section: [u8; 8] = Default::default();
                 section.copy_from_slice(portion);
 
+                // panic!("Allocation section: {:?}", section);
+
                 let alloc_id = u64::from_le_bytes(section);
                 let mem_id = MemoryId::from_u64(alloc_id);
 
-                let mut memory = ALLOCATIONS.lock().get(mem_id)?;
+                let memory_result = ALLOCATIONS.lock().get(mem_id);
+                if let Err(err) = memory_result {
+                    panic!(
+                        "Allocation section: {:?} -> {:?} and mem: {:?} (index: {:?}, end: {:?})",
+                        section, alloc_id, mem_id, index, end
+                    );
+                    return Some(Err(err.into()));
+                }
+                let mut memory = memory_result.unwrap();
                 let memory_vec_container = memory.take();
                 if memory_vec_container.is_none() {
-                    return Err(BinaryReadError::MemoryError(String::from(
+                    return Some(Err(BinaryReadError::MemoryError(String::from(
                         "No Vec<u8> not found, big problem",
-                    )));
+                    ))));
                 }
 
                 let memory_vec = memory_vec_container.unwrap();
@@ -739,9 +793,9 @@ impl ReturnValueParserIter<'_> {
                 let value = match String::from_utf8(memory_vec) {
                     Ok(content) => ReturnValues::Text8(content),
                     Err(_) => {
-                        return Err(BinaryReadError::ExpectedStringInCode(
+                        return Some(Err(BinaryReadError::ExpectedStringInCode(
                             ReturnTypeId::Text8 as u8,
-                        ));
+                        )));
                     }
                 };
 
@@ -749,7 +803,9 @@ impl ReturnValueParserIter<'_> {
 
                 Ok(value)
             }
-        }
+        };
+
+        Some(result)
     }
 }
 
@@ -759,7 +815,7 @@ impl Iterator for ReturnValueParserIter<'_> {
     type Item = BinaryReaderResult<ReturnValues>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.parse_next() {
+        match self.parse_next()? {
             Ok(item) => {
                 let item_value_type_id = item.to_return_value_type();
 
@@ -804,7 +860,7 @@ impl Iterator for ReturnValueParserIter<'_> {
 impl FromBinary for ReturnTypeHints {
     type T = Vec<ReturnValues>;
 
-    fn into_type(self, input_bin: &[u8]) -> BinaryReaderResult<Self::T> {
+    fn from_binary(self, input_bin: &[u8]) -> BinaryReaderResult<Self::T> {
         if input_bin[0] != (ReturnValueMarker::Begin as u8) {
             return Err(BinaryReadError::WrongStarterCode(input_bin[0]));
         }
@@ -988,7 +1044,7 @@ pub mod host_runtime {
 
     // -- Functions (Invocation & Registration)
     pub mod web {
-        use crate::{CachedText, MemoryAllocationResult};
+        use crate::{CachedText, MemoryAllocationResult, MemoryReaderError};
 
         use super::*;
 
@@ -1520,6 +1576,52 @@ pub mod host_runtime {
             };
         }
 
+        /// [`invoke_for_replies`] invokes a javascript function registered at the given handle
+        /// defined by the [`HostFunction::handler`] which then returns a [`u64`]
+        /// which represents the allocation id of the contents which are to be encoded in
+        /// the new Reply binary format implemented via [`FromBinary`] for [`ReturnTypeHints`].
+        pub fn invoke_for_replies(
+            handler: u64,
+            params: &[Params],
+            returns: ReturnTypeHints,
+        ) -> MemoryAllocationResult<Vec<ReturnValues>> {
+            let memory_id =
+                MemoryId::from_u64(host_runtime::web::invoke(handler, params, returns.clone()));
+
+            let memory = internal_api::get_memory(memory_id);
+            let result_container =
+                memory.into_with(|mem| returns.clone().from_binary(mem.as_ref()));
+
+            if result_container.is_none() {
+                return Err(MemoryAllocationError::FailedAllocationReading(memory_id));
+            }
+
+            let result = result_container.unwrap();
+            if let Err(err) = result {
+                return Err(MemoryReaderError::NotValidReplyBinary(err).into());
+            }
+
+            let replies = result.unwrap();
+
+            match &returns {
+                ReturnTypeHints::One(_) => {
+                    if replies.len() != 1 {
+                        return Err(MemoryReaderError::ReturnValueError(
+                            crate::ReturnValueError::ExpectedOne(replies),
+                        )
+                        .into());
+                    }
+
+                    Ok(replies)
+                }
+                ReturnTypeHints::List(_) => Ok(replies),
+                ReturnTypeHints::Multi(_) => Ok(replies),
+                ReturnTypeHints::None => unreachable!(
+                    "a reply is always expected you cant use this in situation where None is given"
+                ),
+            }
+        }
+
         /// [`invoke`] invokes a host function registered at the given handle
         /// which points to a registered function on the host side.
         ///
@@ -1589,6 +1691,32 @@ pub mod host_runtime {
                 }
             }
 
+            /// [`invoke_for_i8`] invokes a javascript function registered at the given handle
+            /// defined by the [`HostFunction::handler`] which then returns a u8.
+            pub fn invoke_for_i8(&self, params: &[Params]) -> i8 {
+                unsafe { host_runtime::web::invoke_as_i8(self.handler, params) }
+            }
+
+            /// [`invoke_for_i16`] invokes a javascript function registered at the given handle
+            /// defined by the [`HostFunction::handler`] which then returns a u16.
+            pub fn invoke_for_i16(&self, params: &[Params]) -> i16 {
+                host_runtime::web::invoke_as_i16(self.handler, params)
+            }
+
+            /// [`invoke_for_i32`] invokes a javascript function registered at the given handle
+            /// defined by the [`HostFunction::handler`] which then returns a u32.
+            pub fn invoke_for_i32(&self, params: &[Params]) -> i32 {
+                host_runtime::web::invoke_as_i32(self.handler, params)
+            }
+
+            /// [`invoke_for_i64`] invokes a javascript function registered at the given handle
+            /// defined by the [`HostFunction::handler`] which then returns a [`ExternalPointer`]
+            /// representing the DOM node instance via an ExternalPointer that points to that object in the
+            /// hosts object heap.
+            pub fn invoke_for_i64(&self, params: &[Params]) -> i64 {
+                host_runtime::web::invoke_as_i64(self.handler, params)
+            }
+
             /// [`invoke_for_u8`] invokes a javascript function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a u8.
             pub fn invoke_for_u8(&self, params: &[Params]) -> u8 {
@@ -1631,13 +1759,17 @@ pub mod host_runtime {
             /// defined by the [`HostFunction::handler`] which then returns a [`u64`]
             /// which represents the allocation id of the contents.
             pub fn invoke_for_str(&self, params: &[Params]) -> MemoryAllocationResult<String> {
-                let memory_id = MemoryId::from_u64(host_runtime::web::invoke(
+                match host_runtime::web::invoke_for_replies(
                     self.handler,
                     params,
                     ReturnTypeHints::One(ReturnTypeId::Text8),
-                ));
-                let memory = internal_api::get_memory(memory_id);
-                memory.string_from_memory()
+                ) {
+                    Ok(mut values) => match values.pop().unwrap() {
+                        ReturnValues::Text8(content) => Ok(content),
+                        _ => Err(ReturnValueError::UnexpectedReturnType.into()),
+                    },
+                    Err(err) => Err(err),
+                }
             }
 
             /// [`invoke_for_dom`] invokes a javascript function registered at the given handle

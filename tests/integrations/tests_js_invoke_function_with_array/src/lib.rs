@@ -18,7 +18,7 @@ extern "C" fn main() {
         }",
     );
 
-    select_ref.invoke(&[
+    select_ref.invoke_no_return(&[
         cached_id.into_param(),
         Params::ExternalReference(1),
         Params::InternalReference(2),
