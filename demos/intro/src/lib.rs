@@ -39,8 +39,12 @@ extern "C" fn main() {
         .expect("should encode correctly");
 
     instructions
-        .invoke_no_return_function(console_log_id, Some(&[Params::Text8("Hello from intro")]))
+        .invoke(
+            console_log_id,
+            Some(&[Params::Text8("Hello from intro")]),
+            ReturnTypeHints::None,
+        )
         .expect("should register call");
 
-    host_runtime::web::send_instructions(instructions.complete().expect("complete instruction"));
+    host_runtime::web::batch_response(instructions.complete().expect("complete instruction"));
 }

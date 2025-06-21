@@ -8,7 +8,7 @@ pub const MOVE_ONE_TWENTY_EIGHT_BYTES: usize = 16;
 
 /// [`TypedSlice`] represent the type of a slice which is sent over.
 /// And helps the receiver know what exactly is represented by a slice of u8 array.
-#[repr(usize)]
+#[repr(u8)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TypedSlice {
     Int8 = 1,
@@ -57,7 +57,7 @@ impl From<u8> for TypedSlice {
 
 /// [`ValueTypes`] represent the underlying type of value
 /// being encoded into a binary stream.
-#[repr(usize)]
+#[repr(u8)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ValueTypes {
     Null = 0,
@@ -91,6 +91,7 @@ pub enum ValueTypes {
     Uint128 = 28,
     CachedText = 29,
     TypedArraySlice = 30,
+    ErrorCode = 31,
 }
 
 #[allow(clippy::from_over_into)]
@@ -109,6 +110,7 @@ impl Into<u8> for ValueTypes {
 
 /// [`ReturnValueTypes`] represent the type indicating the underlying returned
 /// value for an operation.
+#[repr(u8)]
 #[derive(Clone, Copy, Hash, Debug, PartialEq, Eq)]
 pub enum ReturnTypeId {
     Bool = 1,
@@ -141,6 +143,7 @@ pub enum ReturnTypeId {
     Object = 28,
     DOMObject = 29,
     None = 30,
+    ErrorCode = 31,
 }
 
 #[allow(clippy::from_over_into)]
@@ -196,6 +199,7 @@ impl From<u8> for ReturnTypeId {
             28 => Self::Object,
             29 => Self::DOMObject,
             30 => Self::None,
+            31 => Self::ErrorCode,
             _ => unreachable!("should not have any other type of ArgumentOperations"),
         }
     }
@@ -357,6 +361,7 @@ pub enum ReturnValues {
     Uint64(u64),
     Uint128(u128),
     Text8(String),
+    ErrorCode(u16),
     Int8Array(Vec<i8>),
     Int16Array(Vec<i16>),
     Int32Array(Vec<i32>),
@@ -397,6 +402,7 @@ impl ReturnValues {
             Self::Uint128(_) => ReturnTypeId::Uint128,
             Self::Text8(_) => ReturnTypeId::Text8,
             Self::Object(_) => ReturnTypeId::Object,
+            Self::ErrorCode(_) => ReturnTypeId::ErrorCode,
             Self::DOMObject(_) => ReturnTypeId::DOMObject,
             Self::MemorySlice(_) => ReturnTypeId::MemorySlice,
             Self::Int8Array(_) => ReturnTypeId::Int8ArrayBuffer,
@@ -415,6 +421,7 @@ impl ReturnValues {
     }
 }
 
+#[repr(u8)]
 pub enum Params<'a> {
     Undefined,
     Null,
@@ -688,7 +695,7 @@ impl StrLocation {
     }
 }
 
-#[repr(usize)]
+#[repr(u8)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ReturnValueMarker {
     Begin = 100,
@@ -719,7 +726,38 @@ impl From<u8> for ReturnValueMarker {
     }
 }
 
-#[repr(usize)]
+#[repr(u8)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum GroupReturnHintMarker {
+    Start = 111,
+    Stop = 222,
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for &GroupReturnHintMarker {
+    fn into(self) -> u8 {
+        *self as u8
+    }
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for GroupReturnHintMarker {
+    fn into(self) -> u8 {
+        self as u8
+    }
+}
+
+impl From<u8> for GroupReturnHintMarker {
+    fn from(value: u8) -> Self {
+        match value {
+            1 => Self::Start,
+            4 => Self::Stop,
+            _ => unreachable!("should not have any other type of ArgumentOperations"),
+        }
+    }
+}
+
+#[repr(u8)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ReturnHintMarker {
     Start = 200,
@@ -879,8 +917,8 @@ pub enum Operations {
     ///
     MakeFunction = 1,
 
-    /// InvokeNoReturnFunction represents the desire to call a
-    /// function across boundary that does not return any value
+    /// Invoke represents the desire to call a
+    /// function across boundary that may or may not return any value
     /// in response to being called.
     ///
     /// It has two layout formats:
@@ -888,21 +926,7 @@ pub enum Operations {
     /// A. with no argument: Begin, 3, FunctionHandle(u64), End
     ///
     /// B. with arguments: Begin, 3, FunctionHandle(u64), FunctionArguments, {Arguments}, End
-    InvokeNoReturnFunction = 2,
-
-    /// InvokeReturningFunction represents the desire to call a
-    /// function across boundary that returns a value of
-    /// defined type matching [`ReturnType`]
-    /// in response to being called.
-    ///
-    /// The return value to the callback function must always be of the type: [`Returns`].
-    ///
-    /// It has two layout formats:
-    ///
-    /// A. with no argument: Begin, 3, FunctionHandle(u64), ReturnType, End
-    ///
-    /// B. with arguments: Begin, 3, FunctionHandle(u64), ReturnType, Arguments*, End
-    InvokeReturningFunction = 3,
+    Invoke = 2,
 
     /// InvokeCallbackFunction represents the desire to call a
     /// function across boundary that takes a callback internal reference
@@ -913,7 +937,7 @@ pub enum Operations {
     ///
     /// Layout format: Begin, 3, FunctionHandle(u64), ArgStart, ArgBegin, ExternReference, ArgEnd, ArgStop,
     ///  End
-    InvokeCallbackFunction = 4,
+    InvokeCallback = 3,
 
     /// InvokeAsyncCallbackFunction represents the desire to call a
     /// async function across boundary that takes a callback internal reference
@@ -960,9 +984,8 @@ impl From<u8> for Operations {
         match value {
             0 => Operations::Begin,
             1 => Operations::MakeFunction,
-            2 => Operations::InvokeNoReturnFunction,
-            3 => Operations::InvokeReturningFunction,
-            4 => Operations::InvokeCallbackFunction,
+            2 => Operations::Invoke,
+            4 => Operations::InvokeCallback,
             254 => Operations::End,
             255 => Operations::Stop,
             _ => unreachable!("should not have any other type of ArgumentOperations"),

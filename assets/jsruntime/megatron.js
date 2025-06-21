@@ -162,6 +162,23 @@ const Megatron = (function () {
 
   Object.freeze(TypeOptimization);
 
+  const GroupReturnHintMarker = {
+    Start: 111,
+    Stop: 222,
+  };
+
+  GroupReturnHintMarker.__INVERSE__ = Object.keys(GroupReturnHintMarker)
+    .map((key) => {
+      return [key, GroupReturnHintMarker[key]];
+    })
+    .reduce((prev, current) => {
+      let [key, value] = current;
+      prev[value] = key;
+      return prev;
+    }, {});
+
+  Object.freeze(GroupReturnHintMarker);
+
   const ReturnHintMarker = {
     Start: 200,
     Stop: 201,
@@ -250,6 +267,7 @@ const Megatron = (function () {
     Object: 28,
     DOMObject: 29,
     None: 30,
+    ErrorCode: 31,
   };
 
   ReturnTypeId.__INVERSE__ = Object.keys(ReturnTypeId)
@@ -1275,6 +1293,12 @@ const Megatron = (function () {
     }
   }
 
+  class FakeNode {
+    constructor(tag) {
+      this.tag = tag;
+    }
+  }
+
   class RefPointer {
     constructor(value) {
       this.id = value;
@@ -1306,6 +1330,7 @@ const Megatron = (function () {
       this.type_validators[ReturnTypeId.Bool] = this.validateBool;
       this.type_validators[ReturnTypeId.Text8] = this.validateText8;
       this.type_validators[ReturnTypeId.Uint16] = this.validateInt;
+      this.type_validators[ReturnTypeId.ErrorCode] = this.validateInt;
       this.type_validators[ReturnTypeId.Uint32] = this.validateInt;
       this.type_validators[ReturnTypeId.Uint64] = this.validateInt64;
       this.type_validators[ReturnTypeId.Int8] = this.validateInt;
@@ -3146,104 +3171,16 @@ const Megatron = (function () {
     }
   }
 
-  const MAKE_FUNCTION = new BatchOperation(
-    Operations.MakeFunction,
-    (instance, operation_id, read_index, operations, texts) => {
-      if (operation_id != Operations.MakeFunction) {
-        throw new Error(
-          `Argument should be Operation.MakeFunction instead got: ${operation_id}`,
-        );
+  class InvocationResponse {
+    constructor(hint, value) {
+      if (!(hint instanceof ReturnHint)) {
+        throw new Error("Must be instance of MemoryOperator");
       }
+      this.hint = hint;
+      this.value = value;
+    }
+  }
 
-      const next_value_type = operations.getUint8(read_index, true);
-      read_index += Move.MOVE_BY_1_BYTES;
-
-      // read the external pointer we want registered
-      let [move_by, external_id] = instance.parameter_v2.parseExternalPointer(
-        read_index,
-        next_value_type,
-        operations,
-      );
-
-      LOGGER.debug("ExternalPointer: ", read_index, move_by, external_id);
-
-      if (operations.getUint8(move_by) != Params.Text8) {
-        throw new Error(
-          `Argument should be Params.Text8 instead got: ${operations.getUint8(
-            move_by,
-          )}`,
-        );
-      }
-
-      move_by += Move.MOVE_BY_1_BYTES;
-
-      let [move_by_next, string_location] =
-        instance.parameter_v2.parseStringLocation(move_by, operations);
-
-      if (operations.getUint8(move_by_next) != Operations.End) {
-        throw new Error(
-          `Operation should be Params.End instead got: ${operations.getUint8(
-            move_by_next,
-          )}`,
-        );
-      }
-
-      move_by_next += Move.MOVE_BY_1_BYTES;
-
-      // read the location of the text.
-      const function_definition = texts.substr.apply(texts, string_location);
-
-      LOGGER.debug(
-        "FunctionDefinition: ",
-        move_by_next,
-        string_location,
-        function_definition,
-      );
-
-      const register_function = (instance) => {
-        // define the function as a callable.
-        const function_invoker = Function(
-          `"use strict"; return(${function_definition})`,
-        )();
-
-        LOGGER.debug(
-          "Register function in heap: ",
-          external_id,
-          external_id.value,
-          function_invoker,
-        );
-
-        // update the reference to now be the reference
-        // for calling the function.
-        instance.function_heap.update(external_id.value, function_invoker);
-        return external_id;
-      };
-
-      return [move_by_next, register_function];
-    },
-  );
-
-  const INVOKE_NO_RETURN = new BatchOperation(
-    Operations.InvokeNoReturnFunction,
-    (instance, operation_id, moved_by, operations, texts) => {
-      if (operation_id != Operations.InvokeNoReturnFunction) {
-        throw new Error(
-          `Argument should be Operation.InvokeNoReturnFunction instead got: ${operation_id}`,
-        );
-      }
-
-      return instance.parse_and_invoke(
-        moved_by,
-        operations,
-        texts,
-        function (result) {
-          LOGGER.debug("parse_invoke_no_return_function result: ", result);
-        },
-      );
-    },
-  );
-
-  // Add comments to this class. Keep your thinking short and simple, do not overthink. AI!
   class Reply {
     constructor(
       memory_operator,
@@ -3281,6 +3218,7 @@ const Megatron = (function () {
       this.module = memory_operator.get_module();
 
       this.return_naked = [
+        ReturnTypeId.Bool,
         ReturnTypeId.Uint8,
         ReturnTypeId.Uint16,
         ReturnTypeId.Uint32,
@@ -3293,6 +3231,7 @@ const Megatron = (function () {
         ReturnTypeId.Float64,
         ReturnTypeId.Object,
         ReturnTypeId.DOMObject,
+        ReturnTypeId.ErrorCode,
         ReturnTypeId.MemorySlice,
         ReturnTypeId.InternalReference,
         ReturnTypeId.ExternalReference,
@@ -3308,6 +3247,8 @@ const Megatron = (function () {
       this.reply_types[ReturnTypeId.Text8] = this.encodeText8.bind(this);
       this.reply_types[ReturnTypeId.Int8] = this.encodeInt8.bind(this);
       this.reply_types[ReturnTypeId.Int16] = this.encodeInt16.bind(this);
+      this.reply_types[ReturnTypeId.ErrorCode] =
+        this.encodeErrorCode.bind(this);
       this.reply_types[ReturnTypeId.Int32] = this.encodeInt32.bind(this);
       this.reply_types[ReturnTypeId.Int64] = this.encodeBigInt64.bind(this);
       this.reply_types[ReturnTypeId.Float32] = this.encodeFloat32.bind(this);
@@ -3343,13 +3284,32 @@ const Megatron = (function () {
         this.encodeFloat64ArrayBuffer.bind(this);
     }
 
-    morph(return_hint, values) {
+    encode_into_memory(items) {
+      const encoded_buffer = new Uint8Array(
+        this.encode(items instanceof Array ? items : [items]),
+      );
+      LOGGER.debug(
+        `Reply.morph: encoded value: `,
+        items,
+        " -> ",
+        encoded_buffer,
+      );
+
+      const reply_id = BigInt(this.operator.writeUint8Array(encoded_buffer));
+      LOGGER.debug("Reply.morph: written return values to: ", reply_id);
+
+      return reply_id;
+    }
+
+    immediate(return_hint, values) {
       if (!(return_hint instanceof ReturnHint)) {
         throw new Error("argument must be a type of ReturnHint");
       }
 
       LOGGER.debug(
-        `Reply.morph: received: "${values}" with return hint: `,
+        `Reply.morph: received: "`,
+        values,
+        `" with return hint: `,
         return_hint,
       );
 
@@ -3369,7 +3329,7 @@ const Megatron = (function () {
       if (return_hint instanceof SingleReturn) {
         const target = transformed[0];
 
-        LOGGER.debug(`Reply.morph: single return value: ${target}`);
+        LOGGER.debug(`Reply.morph: single return value: `, target);
 
         return_hint.validate(target);
         if (this.return_naked.indexOf(target.type) !== -1) {
@@ -3386,18 +3346,7 @@ const Megatron = (function () {
         return_hint.validate(transformed);
       }
 
-      const encoded_buffer = new Uint8Array(this.encode(transformed));
-      LOGGER.debug(
-        `Reply.morph: encoded value: `,
-        transformed,
-        " -> ",
-        encoded_buffer,
-      );
-
-      const reply_id = BigInt(this.operator.writeUint8Array(encoded_buffer));
-      LOGGER.debug("Reply.morph: written return values to: ", reply_id);
-
-      return reply_id;
+      return this.encode_into_memory(transformed);
     }
 
     callback(internal_pointer, return_hint, values) {
@@ -3451,168 +3400,22 @@ const Megatron = (function () {
       this.module.exports.invoke_callback(internal_pointer, allocation_id);
     }
 
-    get_value_type_hint(index, hints) {
-      LOGGER.debug(
-        "Requesting value for hint type: ",
-        hints,
-        " at index: ",
-        index,
-      );
-      if (hints instanceof SingleReturn) {
-        return hints.value_type;
-      }
-      if (hints instanceof MultiReturn) {
-        return hints.value_type;
-      }
-      if (hints instanceof ListReturn) {
-        return hints.value_type[index];
-      }
-
-      throw new Error("Unknown hint type: ", hints);
-    }
-
-    transform_value(item, hint, index) {
-      LOGGER.debug("Received value: ", item, " with hint: ", hint);
-
-      const value_type_id = this.get_value_type_hint(index, hint);
-
-      if (isUndefinedOrNull(item)) {
-        return Reply.asNone();
-      }
-
-      if (item instanceof ReplyContainer) {
-        return item;
-      }
-
-      if (item instanceof Uint8Array) {
-        return Reply.asUint8Array(item);
-      }
-
-      if (item instanceof Uint16Array) {
-        return Reply.asUint16Array(item);
-      }
-
-      if (item instanceof Uint32Array) {
-        return Reply.asUint32Array(item);
-      }
-
-      if (item instanceof BigUint64Array) {
-        return Reply.asUint64Array(item);
-      }
-
-      if (item instanceof Int8Array) {
-        return Reply.asInt8Array(item);
-      }
-
-      if (item instanceof Int16Array) {
-        return Reply.asInt16Array(item);
-      }
-
-      if (item instanceof Int32Array) {
-        return Reply.asInt32Array(item);
-      }
-
-      if (item instanceof BigInt64Array) {
-        return Reply.asInt64Array(item);
-      }
-
-      if (typeof Document !== "undefined") {
-        if (item instanceof Document) {
-          return Reply.asDOMObject(item);
-        }
-      }
-
-      if (typeof Window !== "undefined") {
-        if (item instanceof Window) {
-          return Reply.asDOMObject(item);
-        }
-      }
-
-      if (typeof Node !== "undefined") {
-        if (item instanceof Node) {
-          return Reply.asDOMObject(item);
-        }
-      }
-
-      if (typeof Element !== "undefined") {
-        if (item instanceof Element) {
-          return Reply.asDOMObject(item);
-        }
-      }
-
-      switch (typeof item) {
-        case "function":
-          return Reply.asExternalReference(this.function_heap.create(item));
-        case "symbol":
-          return Reply.asObject(this.object_heap.create(item));
-        case "object":
-          return Reply.asObject(this.object_heap.create(item));
-        case "string":
-          return Reply.asText8(item);
-        case "bool":
-          return Reply.asBool(item);
-        case "bigint":
-          switch (value_type_id) {
-            case ReturnTypeId.Uint8:
-              return Reply.asUint8(item);
-            case ReturnTypeId.Uint16:
-              return Reply.asUint16(item);
-            case ReturnTypeId.Uint32:
-              return Reply.asUint32(item);
-            case ReturnTypeId.Uint64:
-              return Reply.asUint64(item);
-            case ReturnTypeId.Int8:
-              return Reply.asInt8(item);
-            case ReturnTypeId.Int16:
-              return Reply.asInt16(item);
-            case ReturnTypeId.Int32:
-              return Reply.asInt32(item);
-            case ReturnTypeId.Int64:
-              return Reply.asInt64(item);
-            case ReturnTypeId.Float32:
-              return Reply.asFloat32(item);
-            case ReturnTypeId.Float64:
-              return Reply.asFloat64(item);
-            default:
-              return Reply.asUint64(item);
-          }
-        case "number":
-          switch (value_type_id) {
-            case ReturnTypeId.Uint8:
-              return Reply.asUint8(item);
-            case ReturnTypeId.Uint16:
-              return Reply.asUint16(item);
-            case ReturnTypeId.Uint32:
-              return Reply.asUint32(item);
-            case ReturnTypeId.Uint64:
-              return Reply.asUint64(item);
-            case ReturnTypeId.Int8:
-              return Reply.asInt8(item);
-            case ReturnTypeId.Int16:
-              return Reply.asInt16(item);
-            case ReturnTypeId.Int32:
-              return Reply.asInt32(item);
-            case ReturnTypeId.Int64:
-              return Reply.asInt64(item);
-            case ReturnTypeId.Float32:
-              return Reply.asFloat32(item);
-            case ReturnTypeId.Float64:
-              return Reply.asFloat64(item);
-            default:
-              return Reply.asUint64(item);
-          }
-      }
-
-      throw new Error("Transformation for type: ", hint, " unknown");
-    }
-
     transform(values, hint) {
       LOGGER.debug("Received value: ", values, " with hint: ", hint);
 
       const transformed = [];
       for (let index in values) {
         const item = values[index];
-        transformed.push(this.transform_value(item, hint, index));
+        transformed.push(
+          Reply.auto_transform_value(
+            this.function_heap,
+            this.dom_heap,
+            this.object_heap,
+            item,
+            hint,
+            index,
+          ),
+        );
       }
 
       LOGGER.debug(
@@ -3642,7 +3445,7 @@ const Megatron = (function () {
 
       let offset = 0;
 
-      view.setUint8(offset, ReturnValueMarker.Begin);
+      view.setUint8(offset, ReturnValueMarker.Begin, true);
       offset += Move.MOVE_BY_1_BYTES;
 
       for (let index = 0; index < values.length; index++) {
@@ -3663,7 +3466,7 @@ const Megatron = (function () {
         offset = encoder(offset, value, view);
       }
 
-      view.setUint8(offset, ReturnValueMarker.End);
+      view.setUint8(offset, ReturnValueMarker.End, true);
       offset += Move.MOVE_BY_1_BYTES;
 
       const encodedBufferSize = content.byteLength;
@@ -4061,6 +3864,19 @@ const Megatron = (function () {
       return offset;
     }
 
+    encodeErrorCode(offset, directive, view) {
+      if (directive.type != ReturnTypeId.ErrorCode) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      view.setUint8(offset, directive.type, true);
+      offset += Move.MOVE_BY_1_BYTES;
+
+      view.setInt16(offset, directive.value, true);
+      offset += Move.MOVE_BY_16_BYTES;
+
+      return offset;
+    }
     encodeInt16(offset, directive, view) {
       if (directive.type != ReturnTypeId.Int16) {
         throw new Error(`Reply type with id ${value.type} is not known`);
@@ -4133,6 +3949,320 @@ const Megatron = (function () {
       offset += Move.MOVE_BY_1_BYTES;
 
       return offset;
+    }
+
+    static auto_transform_value(
+      function_heap,
+      dom_heap,
+      object_heap,
+      item,
+      hint,
+      index,
+    ) {
+      LOGGER.debug("Received value: ", item, " with hint: ", hint);
+
+      const value_type_id = Reply.get_value_type_hint(index, hint);
+
+      if (isUndefinedOrNull(item)) {
+        return Reply.asNone();
+      }
+
+      if (item instanceof ReplyContainer) {
+        return item;
+      }
+
+      if (item instanceof Uint8Array) {
+        return Reply.asUint8Array(item);
+      }
+
+      if (item instanceof Uint16Array) {
+        return Reply.asUint16Array(item);
+      }
+
+      if (item instanceof Uint32Array) {
+        return Reply.asUint32Array(item);
+      }
+
+      if (item instanceof BigUint64Array) {
+        return Reply.asUint64Array(item);
+      }
+
+      if (item instanceof Int8Array) {
+        return Reply.asInt8Array(item);
+      }
+
+      if (item instanceof Int16Array) {
+        return Reply.asInt16Array(item);
+      }
+
+      if (item instanceof Int32Array) {
+        return Reply.asInt32Array(item);
+      }
+
+      if (item instanceof BigInt64Array) {
+        return Reply.asInt64Array(item);
+      }
+
+      if (typeof Document !== "undefined") {
+        if (item instanceof Document) {
+          return Reply.asDOMObject(dom_heap.create(item));
+        }
+      }
+
+      if (typeof Window !== "undefined") {
+        if (item instanceof Window) {
+          return Reply.asDOMObject(dom_heap.create(item));
+        }
+      }
+
+      if (typeof Node !== "undefined") {
+        if (item instanceof Node) {
+          return Reply.asDOMObject(dom_heap.create(item));
+        }
+      }
+
+      if (typeof Element !== "undefined") {
+        if (item instanceof Element) {
+          return Reply.asDOMObject(dom_heap.create(item));
+        }
+      }
+
+      switch (typeof item) {
+        case "function":
+          return Reply.asExternalReference(function_heap.create(item));
+        case "symbol":
+          return Reply.asObject(object_heap.create(item));
+        case "object":
+          return Reply.asObject(object_heap.create(item));
+        case "string":
+          return Reply.asText8(item);
+        case "boolean":
+          return Reply.asBool(item);
+        case "bigint":
+          switch (value_type_id) {
+            case ReturnTypeId.Uint8:
+              return Reply.asUint8(item);
+            case ReturnTypeId.Uint16:
+              return Reply.asUint16(item);
+            case ReturnTypeId.Uint32:
+              return Reply.asUint32(item);
+            case ReturnTypeId.Uint64:
+              return Reply.asUint64(item);
+            case ReturnTypeId.Int8:
+              return Reply.asInt8(item);
+            case ReturnTypeId.Int16:
+              return Reply.asInt16(item);
+            case ReturnTypeId.Int32:
+              return Reply.asInt32(item);
+            case ReturnTypeId.Int64:
+              return Reply.asInt64(item);
+            case ReturnTypeId.Float32:
+              return Reply.asFloat32(item);
+            case ReturnTypeId.Float64:
+              return Reply.asFloat64(item);
+            default:
+              return Reply.asUint64(item);
+          }
+        case "number":
+          switch (value_type_id) {
+            case ReturnTypeId.Uint8:
+              return Reply.asUint8(item);
+            case ReturnTypeId.Uint16:
+              return Reply.asUint16(item);
+            case ReturnTypeId.Uint32:
+              return Reply.asUint32(item);
+            case ReturnTypeId.Uint64:
+              return Reply.asUint64(item);
+            case ReturnTypeId.Int8:
+              return Reply.asInt8(item);
+            case ReturnTypeId.Int16:
+              return Reply.asInt16(item);
+            case ReturnTypeId.Int32:
+              return Reply.asInt32(item);
+            case ReturnTypeId.Int64:
+              return Reply.asInt64(item);
+            case ReturnTypeId.Float32:
+              return Reply.asFloat32(item);
+            case ReturnTypeId.Float64:
+              return Reply.asFloat64(item);
+            default:
+              return Reply.asUint64(item);
+          }
+      }
+
+      LOGGER.debug("Unable to transform provided type: ", hint, item);
+      throw new Error("Transformation for type: " + hint + " unknown");
+    }
+
+    static transform_return_type(
+      function_heap,
+      dom_heap,
+      object_heap,
+      item,
+      hint,
+    ) {
+      if (item instanceof ListReturn || item instanceof MultiReturn) {
+        if (!(item instanceof Array)) {
+          throw new Error(
+            "item should be a List/Array for ListReturn/MultiReturn hints",
+          );
+        }
+
+        const transformed = [];
+        for (let index in item) {
+          let value = Reply.transform_from_hint(
+            function_heap,
+            dom_heap,
+            object_heap,
+            item[index],
+            hint,
+            index,
+          );
+          transformed.push(value);
+        }
+
+        return transfoermed;
+      }
+
+      return Reply.transform_from_hint(
+        function_heap,
+        dom_heap,
+        object_heap,
+        item,
+        hint,
+        0,
+      );
+    }
+
+    static transform_from_hint(
+      function_heap,
+      dom_heap,
+      object_heap,
+      item,
+      hint,
+      index,
+    ) {
+      LOGGER.debug("Received value: ", item, " with hint: ", hint);
+
+      const value_type_id = Reply.get_value_type_hint(index, hint);
+      LOGGER.debug(
+        "Extractd value_type_id: ",
+        value_type_id,
+        " with hint: ",
+        hint,
+      );
+
+      if (isUndefinedOrNull(item)) {
+        return Reply.asNone();
+      }
+
+      if (item instanceof ReplyContainer) {
+        return item;
+      }
+
+      if (item instanceof Function) {
+        return Reply.asExternalReference(function_heap.create(item));
+      }
+
+      switch (value_type_id) {
+        case ReturnTypeId.None:
+          if (!IsUndefinedOrNull(item))
+            throw new Error("Value must either be null or undefined");
+          return Reply.asNone();
+        case ReturnTypeId.Bool:
+          return Reply.asBool(item);
+        case ReturnTypeId.Text8:
+          return Reply.asText8(item);
+        case ReturnTypeId.Int128:
+          return Reply.asInt128(item.value_lsb, item.value_msb);
+        case ReturnTypeId.Uint128:
+          return Reply.asUint128(item.value_lsb, item.value_msb);
+        case ReturnTypeId.Uint8:
+          return Reply.asUint8(item);
+        case ReturnTypeId.Uint16:
+          return Reply.asUint16(item);
+        case ReturnTypeId.Uint32:
+          return Reply.asUint32(item);
+        case ReturnTypeId.Uint64:
+          return Reply.asUint64(item);
+        case ReturnTypeId.Int8:
+          return Reply.asInt8(item);
+        case ReturnTypeId.Int16:
+          return Reply.asInt16(item);
+        case ReturnTypeId.Int32:
+          return Reply.asInt32(item);
+        case ReturnTypeId.Int64:
+          return Reply.asInt64(item);
+        case ReturnTypeId.Float32:
+          return Reply.asFloat32(item);
+        case ReturnTypeId.Float64:
+          return Reply.asFloat64(item);
+        case Reply.Uint8ArrayBuffer:
+          return Reply.asUint8Array(item);
+        case Reply.Uint16ArrayBuffer:
+          return Reply.asUint8Array(item);
+        case Reply.Uint32ArrayBuffer:
+          return Reply.asUint8Array(item);
+        case Reply.Uint64ArrayBuffer:
+          return Reply.asUint8Array(item);
+        case Reply.Int8ArrayBuffer:
+          return Reply.asInt8Array(item);
+        case Reply.Int16ArrayBuffer:
+          return Reply.asInt16Array(item);
+        case Reply.Int32ArrayBuffer:
+          return Reply.asInt32Array(item);
+        case Reply.Int64ArrayBuffer:
+          return Reply.asInt64Array(item);
+        case Reply.Float32ArrayBuffer:
+          return Reply.asFloat32Array(item);
+        case Reply.Float64ArrayBuffer:
+          return Reply.asFloat64Array(item);
+        case ReturnTypeId.MemorySlice:
+          return Reply.asMemorySlice(item);
+        case ReturnTypeId.InternalReference:
+          return Reply.asInternalReference(item);
+        case ReturnTypeId.ExternalReference:
+          return Reply.asExternalReference(item);
+        case ReturnTypeId.DOMObject:
+          if (typeof Node !== "undefined") {
+            if (!(item instanceof Node) && !(item instanceof FakeNode)) {
+              throw new Error("Expected value to a Node or FakeNode instance");
+            }
+          }
+          return Reply.asDOMObject(dom_heap.create(item));
+        case ReturnTypeId.Object:
+          return Reply.asObject(object_heap.create(item));
+        default:
+          throw new Error(
+            "Transformation for type_hint: " +
+              hint +
+              " failed for value: " +
+              item,
+          );
+      }
+    }
+
+    static get_value_type_hint(index, hints) {
+      LOGGER.debug(
+        "Requesting value for hint type: ",
+        hints,
+        " at index: ",
+        index,
+      );
+      if (hints instanceof NoReturn) {
+        return ReturnTypeId.None;
+      }
+      if (hints instanceof SingleReturn) {
+        return hints.value_type;
+      }
+      if (hints instanceof MultiReturn) {
+        return hints.value_type[index];
+      }
+      if (hints instanceof ListReturn) {
+        return hints.value_type[index];
+      }
+
+      throw new Error("Unknown hint type: ", hints);
     }
 
     static asFloat64Array(value) {
@@ -4216,7 +4346,7 @@ const Megatron = (function () {
     }
 
     static asInternalReference(value) {
-      if (value instanceof InternalPointer && typeof value !== "bigint") {
+      if (!(value instanceof InternalPointer) && typeof value !== "bigint") {
         throw new Error("Value must be bigint/InternalPointer");
       }
       if (value instanceof InternalPointer) {
@@ -4226,7 +4356,7 @@ const Megatron = (function () {
     }
 
     static asExternalReference(value) {
-      if (value instanceof ExternalPointer && typeof value !== "bigint") {
+      if (!(value instanceof ExternalPointer) && typeof value !== "bigint") {
         throw new Error("Value must be bigint/ExternalPointer");
       }
       if (value instanceof ExternalPointer) {
@@ -4240,7 +4370,7 @@ const Megatron = (function () {
     }
 
     static asObject(value) {
-      if (value instanceof ExternalPointer && typeof value !== "bigint") {
+      if (!(value instanceof ExternalPointer) && typeof value !== "bigint") {
         throw new Error("Value must be bigint/ExternalPointer");
       }
       if (value instanceof ExternalPointer) {
@@ -4250,7 +4380,7 @@ const Megatron = (function () {
     }
 
     static asDOMObject(value) {
-      if (value instanceof ExternalPointer && typeof value !== "bigint") {
+      if (!(value instanceof ExternalPointer) && typeof value !== "bigint") {
         throw new Error("Value must be bigint/ExternalPointer");
       }
       if (value instanceof ExternalPointer) {
@@ -4302,21 +4432,28 @@ const Megatron = (function () {
 
     static asUint32(value) {
       if (typeof value !== "number") {
-        throw new Error("Value must be int32");
+        throw new Error("Value must be uint32");
       }
       return Reply.asValue(ReturnTypeId.Uint32, value);
     }
 
+    static asErrorCode(value) {
+      if (typeof value !== "number") {
+        throw new Error("Value must be uint16");
+      }
+      return Reply.asValue(ReturnTypeId.ErrorCode, value);
+    }
+
     static asUint16(value) {
       if (typeof value !== "number") {
-        throw new Error("Value must be int16");
+        throw new Error("Value must be uint16");
       }
       return Reply.asValue(ReturnTypeId.Uint16, value);
     }
 
     static asUint8(value) {
       if (typeof value !== "number") {
-        throw new Error("Value must be int8");
+        throw new Error("Value must be uint8");
       }
       return Reply.asValue(ReturnTypeId.Uint8, value);
     }
@@ -4360,7 +4497,7 @@ const Megatron = (function () {
       if (typeof value !== "boolean") {
         throw new Error("Value must be bool/boolean");
       }
-      return Reply.asValue(ReturnTypeId.Bool, value);
+      return Reply.asValue(ReturnTypeId.Bool, value ? 1 : 0);
     }
 
     // asValue provides a clear indicator of what type the giving return value is
@@ -4374,6 +4511,104 @@ const Megatron = (function () {
       return new ReplyContainer(return_type, value);
     }
   }
+
+  const MAKE_FUNCTION = new BatchOperation(
+    Operations.MakeFunction,
+    (instance, operation_id, read_index, operations, texts) => {
+      if (operation_id != Operations.MakeFunction) {
+        throw new Error(
+          `Argument should be Operation.MakeFunction instead got: ${operation_id}`,
+        );
+      }
+
+      const next_value_type = operations.getUint8(read_index, true);
+      read_index += Move.MOVE_BY_1_BYTES;
+
+      // read the external pointer we want registered
+      let [move_by, external_id] = instance.parameter_v2.parseExternalPointer(
+        read_index,
+        next_value_type,
+        operations,
+      );
+
+      LOGGER.debug("ExternalPointer: ", read_index, move_by, external_id);
+
+      if (operations.getUint8(move_by) != Params.Text8) {
+        throw new Error(
+          `Argument should be Params.Text8 instead got: ${operations.getUint8(
+            move_by,
+          )}`,
+        );
+      }
+
+      move_by += Move.MOVE_BY_1_BYTES;
+
+      let [move_by_next, string_location] =
+        instance.parameter_v2.parseStringLocation(move_by, operations);
+
+      if (operations.getUint8(move_by_next) != Operations.End) {
+        throw new Error(
+          `Operation should be Params.End instead got: ${operations.getUint8(
+            move_by_next,
+          )}`,
+        );
+      }
+
+      move_by_next += Move.MOVE_BY_1_BYTES;
+
+      // read the location of the text.
+      const function_definition = texts.substr.apply(texts, string_location);
+
+      LOGGER.debug(
+        "FunctionDefinition: ",
+        move_by_next,
+        string_location,
+        function_definition,
+      );
+
+      const register_function = (instance) => {
+        // define the function as a callable.
+        const function_invoker = Function(
+          `"use strict"; return(${function_definition})`,
+        )();
+
+        LOGGER.debug(
+          "Register function in heap: ",
+          external_id,
+          external_id.value,
+          function_invoker,
+        );
+
+        // update the reference to now be the reference
+        // for calling the function.
+        instance.function_heap.update(external_id.value, function_invoker);
+
+        return Reply.asExternalReference(external_id);
+      };
+
+      return [move_by_next, register_function];
+    },
+  );
+
+  const INVOKE_NO_RETURN = new BatchOperation(
+    Operations.InvokeNoReturnFunction,
+    (instance, operation_id, moved_by, operations, texts) => {
+      if (operation_id != Operations.InvokeNoReturnFunction) {
+        throw new Error(
+          `Argument should be Operation.InvokeNoReturnFunction instead got: ${operation_id}`,
+        );
+      }
+
+      return instance.parse_and_invoke(
+        moved_by,
+        operations,
+        texts,
+        function (result) {
+          LOGGER.debug("invoke_no_return: ", result);
+        },
+      );
+    },
+  );
 
   class BatchInstructions {
     constructor(memory_operator, text_codec, text_cache) {
@@ -4535,7 +4770,13 @@ const Megatron = (function () {
         operations,
         texts,
       );
-      const [moved_after_parameters, parameters] = this.parse_parameters(
+      LOGGER.debug(
+        "Extracted ReturnTypeHints: ",
+        return_hints,
+        moved_after_return,
+      );
+
+      const [moved_after_parameters, parameters] = this.parse_arguments(
         moved_after_return,
         operations,
         texts,
@@ -4551,9 +4792,30 @@ const Megatron = (function () {
         );
 
         const result = callable.apply(instance, parameters);
-        if (!isUndefinedOrNull(result)) {
+
+        // validate result with expected return hint.
+        return_hints.validate(result);
+
+        if (!isUndefinedOrNull(result) && !isUndefinedOrNull(result_callback)) {
           result_callback(result);
         }
+
+        const encoded_result = Reply.transform_return_type(
+          instance.function_heap,
+          instance.dom_heap,
+          instance.object_heap,
+          result,
+          return_hints,
+        );
+
+        LOGGER.debug(
+          "parse_and_invoke: result=",
+          result,
+          " with encoded_result=",
+          encoded_result,
+        );
+
+        return encoded_result;
       };
 
       return [moved_by, callbable];
@@ -4565,9 +4827,6 @@ const Megatron = (function () {
         moved_by,
         operations,
       );
-      if (isUndefinedOrNull(return_hints)) {
-        throw new Error("should have received ");
-      }
       if (!(return_hints instanceof ReturnHint)) {
         throw new Error("value should be a type of ReturnHint validator");
       }
@@ -4743,7 +5002,8 @@ const Megatron = (function () {
 
         // Batch bindings
         //
-        host_batch_apply: this.apply_instructions.bind(this),
+        host_batch_apply: this.no_return_instructions.bind(this),
+        host_batch_returning_apply: this.returning_instructions.bind(this),
 
         // string caching and interning
         host_cache_string: this.host_cache_string.bind(this),
@@ -4795,20 +5055,105 @@ const Megatron = (function () {
       throw new Error("WasmInstance calls abort");
     }
 
-    apply_instructions(ops_pointer, ops_length, text_pointer, text_length) {
+    no_return_instructions(ops_pointer, ops_length, text_pointer, text_length) {
       const instructions = this.batch_parser.parse_instructions(
         ops_pointer,
         ops_length,
         text_pointer,
         text_length,
       );
+
       LOGGER.debug("Received instructions for batch: ", instructions);
 
       for (let index in instructions) {
         const instruction = instructions[index];
         LOGGER.debug("Executing instruction: ", instruction);
-        instruction.call(this, this);
+        let result = instruction.call(this, this);
+        LOGGER.debug("Instructured return result: ", result);
       }
+    }
+
+    returning_instructions(ops_pointer, ops_length, text_pointer, text_length) {
+      const instructions = this.batch_parser.parse_instructions(
+        ops_pointer,
+        ops_length,
+        text_pointer,
+        text_length,
+      );
+      LOGGER.debug(
+        "returning_instructions: Received instructions for batch: ",
+        instructions,
+      );
+
+      const results = [];
+      for (let index in instructions) {
+        const instruction = instructions[index];
+        LOGGER.debug(
+          "returning_instructions: Executing instruction: ",
+          instruction,
+        );
+        let result = instruction.call(this, this);
+        LOGGER.debug(
+          "returning_instructions: Instructured return result: ",
+          result,
+        );
+
+        const alloc_id = this.reply_parser.encode_into_memory(result);
+        LOGGER.debug(
+          "returning_instructions: Written result into memory: ",
+          alloc_id,
+          result,
+        );
+
+        results.push(alloc_id);
+      }
+
+      LOGGER.debug("returning_instructions: All results memory id: ", results);
+
+      // create our content byte buffer
+      const size = Move.MOVE_BY_64_BYTES * results.length + 2; // 2 for the wrapper flags
+      LOGGER.debug(
+        "returning_instructions: Creating ArrayBuffer of size=",
+        size,
+      );
+
+      const content = new ArrayBuffer(size);
+
+      // create our view for setting up values correctly.
+      const view = new DataView(content);
+
+      let offset = 0;
+
+      view.setUint8(offset, GroupReturnHintMarker.Start, true);
+      offset += Move.MOVE_BY_1_BYTES;
+
+      for (let index = 0; index < results.length; index++) {
+        const value = results[index];
+        if (!isBigInt(value)) {
+          throw new Error("Value must be a BigInt");
+        }
+
+        LOGGER.debug(
+          "returning_instructions: Getting encoder for value: ",
+          value,
+          index,
+        );
+        view.setBigUint64(offset, value, true);
+
+        offset += Move.MOVE_BY_64_BYTES;
+      }
+
+      view.setUint8(offset, GroupReturnHintMarker.Stop, true);
+      offset += Move.MOVE_BY_1_BYTES;
+
+      const encoded_buffer = new Uint8Array(content);
+      const reply_id = BigInt(this.operator.writeUint8Array(encoded_buffer));
+      LOGGER.debug(
+        "returning_instructions:  written return values to: ",
+        reply_id,
+      );
+
+      return reply_id;
     }
 
     function_drop_external_pointer(uid) {
@@ -4941,7 +5286,7 @@ const Megatron = (function () {
       const response = func.call(this, ...parameters);
       LOGGER.debug("host_invoke_function_with_return: result=", response);
 
-      return this.reply_parser.morph(return_hints, response);
+      return this.reply_parser.immediate(return_hints, response);
     }
 
     host_invoke_function_with_return(
@@ -4978,7 +5323,7 @@ const Megatron = (function () {
       const response = func.call(this, ...parameters);
       LOGGER.debug("host_invoke_function_with_return: result=", response);
 
-      return this.reply_parser.morph(return_hints, response);
+      return this.reply_parser.immediate(return_hints, response);
     }
 
     host_invoke_callback_function(
@@ -5077,7 +5422,7 @@ const Megatron = (function () {
         parameter_length,
         new SingleReturn(ReturnTypeId.Bool),
       );
-      return response ? true : false;
+      return response ? 1 : 0;
     }
 
     host_invoke_function_as_float(handle, parameter_start, parameter_length) {
@@ -5133,6 +5478,95 @@ const Megatron = (function () {
         parameter_length,
       );
       return this.texts.writeUTF8ToMemory(response);
+    }
+
+    asNone() {
+      return Reply.asNone();
+    }
+
+    asObject(value) {
+      if (typeof value !== "object") {
+        throw new Error("Value must be a JS Object/object");
+      }
+
+      const id = this.object_heap.create(value);
+      return Reply.asObject(id);
+    }
+
+    asDOMObject(value) {
+      if (!(value instanceof FakeNode) && !(value instanceof Node)) {
+        throw new Error("Value must be a DOM Node/FakeNode");
+      }
+
+      const dom_id = this.dom_heap.create(value);
+      return Reply.asDOMObject(dom_id);
+    }
+
+    asFakeNode(tag) {
+      if (typeof tag !== "string") {
+        throw new Error("Value must be a JS string");
+      }
+      return this.asDOMObject(new FakeNode(tag));
+    }
+
+    asFloat64(value) {
+      return Reply.asFloat64(value);
+    }
+
+    asFloat32(value) {
+      return Reply.asFloat32(value);
+    }
+
+    asInt128(value_lsb, value_msb) {
+      return Reply.asInt128(value_lsb, value_msb);
+    }
+
+    asUint128(value_lsb, value_msb) {
+      return Reply.asUint128(value_lsb, value_msb);
+    }
+
+    asUint64(value) {
+      return Reply.asUint64(value);
+    }
+
+    asUint32(value) {
+      return Reply.asUint32(value);
+    }
+
+    asErrorCode(value) {
+      return Reply.asErrorCode(value);
+    }
+
+    asUint16(value) {
+      return Reply.asUint16(value);
+    }
+
+    asUint8(value) {
+      return Reply.asUint8(value);
+    }
+
+    asInt64(value) {
+      return Reply.asInt64(value);
+    }
+
+    asInt32(value) {
+      return Reply.asInt32(value);
+    }
+
+    asInt16(value) {
+      return Reply.asInt16(value);
+    }
+
+    asInt8(value) {
+      return Reply.asInt8(value);
+    }
+
+    asText8(value) {
+      return Reply.asText8(value);
+    }
+
+    asBool(value) {
+      return Reply.asBool(value);
     }
   }
 
@@ -5377,6 +5811,7 @@ const Megatron = (function () {
   CONTEXT.ArgumentOperations = ArgumentOperations;
 
   // Support classes and functions
+  CONTEXT.FakeNode = FakeNode;
   CONTEXT.DOMArena = DOMArena;
   CONTEXT.TextCodec = TextCodec;
   CONTEXT.WASMLoader = WASMLoader;

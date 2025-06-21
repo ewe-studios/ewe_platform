@@ -2438,46 +2438,30 @@ impl Instructions {
         Ok(())
     }
 
-    pub fn invoke_no_return_function<'a>(
+    pub fn invoke<'a>(
         &self,
         allocated_handle: ExternalPointer,
         params: Option<&'a [Params<'a>]>,
+        returns: ReturnTypeHints,
     ) -> MemoryWriterResult<()> {
-        self.data(&[Operations::InvokeNoReturnFunction as u8])?;
+        self.data(&[Operations::Invoke as u8])?;
 
         allocated_handle.encode(self, self.optimized)?;
-        self.encode_return_hints(ReturnTypeHints::None)?;
+        self.encode_return_hints(returns)?;
         self.encode_params(params)?;
 
         self.end()?;
         Ok(())
     }
 
-    pub fn invoke_returning_function<'a>(
-        &self,
-        allocated_handle: ExternalPointer,
-        params: Option<&'a [Params<'a>]>,
-        returning: ReturnTypeHints,
-    ) -> MemoryWriterResult<()> {
-        self.data(&[Operations::InvokeReturningFunction as u8])?;
-
-        allocated_handle.encode(self, self.optimized)?;
-
-        self.encode_return_hints(returning)?;
-        self.encode_params(params)?;
-
-        self.end()?;
-        Ok(())
-    }
-
-    pub fn invoke_callback_function<'a>(
+    pub fn invoke_for_callback<'a>(
         &self,
         allocated_handle: ExternalPointer,
         callback_handle: InternalPointer,
         params: Option<&'a [Params<'a>]>,
         returning: ReturnTypeHints,
     ) -> MemoryWriterResult<()> {
-        self.data(&[Operations::InvokeCallbackFunction as u8])?;
+        self.data(&[Operations::InvokeCallback as u8])?;
 
         allocated_handle.encode(self, self.optimized)?;
         callback_handle.encode(self, self.optimized)?;
@@ -2527,9 +2511,10 @@ mod test_instructions {
         batch.should_be_occupied().expect("is occupied");
 
         let function_handle = ExternalPointer::from(1);
-        let write_result = batch.invoke_no_return_function(
+        let write_result = batch.invoke(
             function_handle,
             Some(&[Params::Int32(10), Params::Int64(20)]),
+            ReturnTypeHints::None,
         );
 
         assert!(write_result.is_ok());
@@ -2547,7 +2532,7 @@ mod test_instructions {
         assert_eq!(
             alloc::vec![
                 Operations::Begin as u8, // start of block
-                Operations::InvokeNoReturnFunction as u8,
+                Operations::Invoke as u8,
                 ValueTypes::ExternalReference as u8, // type of value
                 TypeOptimization::QuantizedUint64AsU8 as u8,
                 // address pointer to function which is a u64, so 8 bytes
@@ -2583,9 +2568,10 @@ mod test_instructions {
         batch.should_be_occupied().expect("is occupied");
 
         let function_handle = ExternalPointer::from(1);
-        let write_result = batch.invoke_no_return_function(
+        let write_result = batch.invoke(
             function_handle,
             Some(&[Params::Int32(10), Params::Int64(20)]),
+            ReturnTypeHints::None,
         );
 
         assert!(write_result.is_ok());
@@ -2602,9 +2588,9 @@ mod test_instructions {
         let ops = completed_ops.clone_memory().expect("clone");
         assert_eq!(
             alloc::vec![
-                Operations::Begin as u8,                  // start of block
-                Operations::InvokeNoReturnFunction as u8, // sub-block: a type of instruction
-                ValueTypes::ExternalReference as u8,      // type of value
+                Operations::Begin as u8,             // start of block
+                Operations::Invoke as u8,            // sub-block: a type of instruction
+                ValueTypes::ExternalReference as u8, // type of value
                 TypeOptimization::None as u8,
                 // address pointer to function which is a u64, so 8 bytes
                 1,
@@ -2667,7 +2653,11 @@ mod test_instructions {
             .expect("should encode correctly");
 
         batch
-            .invoke_no_return_function(function_handle, Some(&[Params::Text8("Hello from intro")]))
+            .invoke(
+                function_handle,
+                Some(&[Params::Text8("Hello from intro")]),
+                ReturnTypeHints::None,
+            )
             .expect("should register call");
 
         let completed_data = batch.stop().expect("finish writing completion result");
@@ -2712,7 +2702,7 @@ mod test_instructions {
                 0,
                 0,
                 Operations::End as u8,
-                Operations::InvokeNoReturnFunction as u8,
+                Operations::Invoke as u8,
                 15,
                 0,
                 1,
