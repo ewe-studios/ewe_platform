@@ -767,17 +767,11 @@ impl ReturnValueParserIter<'_> {
                 let mut section: [u8; 8] = Default::default();
                 section.copy_from_slice(portion);
 
-                // panic!("Allocation section: {:?}", section);
-
                 let alloc_id = u64::from_le_bytes(section);
                 let mem_id = MemoryId::from_u64(alloc_id);
 
                 let memory_result = ALLOCATIONS.lock().get(mem_id);
                 if let Err(err) = memory_result {
-                    panic!(
-                        "Allocation section: {:?} -> {:?} and mem: {:?} (index: {:?}, end: {:?})",
-                        section, alloc_id, mem_id, index, end
-                    );
                     return Some(Err(err.into()));
                 }
                 let mut memory = memory_result.unwrap();
@@ -1662,12 +1656,8 @@ pub mod host_runtime {
             ///
             /// The `js_abi` will handle necessary conversion and execution of the function
             /// with the passed arguments.
-            pub fn invoke(&self, params: &[Params]) -> MemoryId {
-                MemoryId::from_u64(host_runtime::web::invoke(
-                    self.handler,
-                    params,
-                    ReturnTypeHints::One(ReturnTypeId::MemorySlice),
-                ))
+            pub fn invoke(&self, params: &[Params], returns: ReturnTypeHints) -> MemoryId {
+                MemoryId::from_u64(host_runtime::web::invoke(self.handler, params, returns))
             }
 
             /// [`invoke_for_memory`] invokes a javascript function registered at the given handle
