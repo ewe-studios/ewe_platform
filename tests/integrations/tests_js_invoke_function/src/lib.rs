@@ -1,7 +1,7 @@
 #![allow(unused_imports)]
 
 use foundation_jsnostd::{
-    self, exposed_runtime, host_runtime, internal_api, ExternalPointer, Params,
+    self, exposed_runtime, host_runtime, internal_api, ExternalPointer, Params, ReturnTypeHints,
 };
 
 use foundation_nostd::*;
@@ -15,5 +15,5 @@ extern "C" fn main() {
         }",
     );
 
-    console_log.invoke(&[Params::Text8("Hello from intro")]);
+    console_log.invoke(&[Params::Text8("Hello from intro")], ReturnTypeHints::None);
 }

@@ -12,6 +12,7 @@ extern "C" fn main() {
         r"
         function(message){
             this.mock.logs(message);
+            return {};
         }",
     );
 

@@ -1,7 +1,7 @@
 #![allow(unused_imports)]
 
 use foundation_jsnostd::{
-    self, exposed_runtime, host_runtime, internal_api, ExternalPointer, Params,
+    self, exposed_runtime, host_runtime, internal_api, ExternalPointer, Params, ReturnTypeHints,
 };
 
 use foundation_nostd::*;
@@ -15,10 +15,13 @@ extern "C" fn main() {
         }",
     );
 
-    console_log.invoke(&[Params::Text8("Hello from intro")]);
+    console_log.invoke(&[Params::Text8("Hello from intro")], ReturnTypeHints::None);
 
     std::panic::set_hook(Box::new(move |e| {
-        console_log.invoke(&[Params::Text8(e.to_string().as_str())]);
+        console_log.invoke(
+            &[Params::Text8(e.to_string().as_str())],
+            ReturnTypeHints::None,
+        );
     }));
 
     let _ = host_runtime::web::cache_text("alex");
