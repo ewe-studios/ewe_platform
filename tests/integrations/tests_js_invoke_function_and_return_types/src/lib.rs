@@ -16,7 +16,7 @@ extern "C" fn main() {
     );
 
     std::panic::set_hook(Box::new(move |e| {
-        console_log.invoke(&[Params::Text8(e.to_string().as_str())]);
+        console_log.invoke_no_return(&[Params::Text8(e.to_string().as_str())]);
     }));
 
     let hello_id = host_runtime::web::cache_text("hello");
@@ -45,7 +45,7 @@ extern "C" fn main() {
 
     assert!(return_arg.invoke_for_u32(&[Params::Int32(5)]) == 5);
 
-    assert!(return_arg.invoke_for_u16(&[Params::Int16(5)]) == 5);
+    assert!(return_arg.invoke_for_i16(&[Params::Int16(5)]) == 5);
 
     assert!(return_arg.invoke_for_u8(&[Params::Int8(5)]) == 5);
 

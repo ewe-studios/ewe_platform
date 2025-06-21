@@ -28,12 +28,12 @@ impl MemoryPointer {
 
     /// [`text_id`] returns the `MemoryId` for the text data.
     pub fn text_id(&self) -> MemoryId {
-        self.0.clone()
+        self.0
     }
 
     /// [`ops_id`] returns the `MemoryId` for the operations data.
     pub fn ops_id(&self) -> MemoryId {
-        self.1.clone()
+        self.1
     }
 }
 
@@ -2143,17 +2143,17 @@ impl Instructions {
 
 impl Instructions {
     pub fn pointer(&self) -> MemoryPointer {
-        MemoryPointer::new(self.text_id.clone(), self.ops_id.clone())
+        MemoryPointer::new(self.text_id, self.ops_id)
     }
 
     /// [`text_id`] returns the `MemoryId` for the text data.
     pub fn text_id(&self) -> MemoryId {
-        self.text_id.clone()
+        self.text_id
     }
 
     /// [`ops_id`] returns the `MemoryId` for the operations data.
     pub fn ops_id(&self) -> MemoryId {
-        self.ops_id.clone()
+        self.ops_id
     }
 }
 
@@ -2204,11 +2204,11 @@ impl MemoryAllocations {
         optimized: bool,
     ) -> MemoryAllocationResult<Instructions> {
         let operations_id = self.allocate(operations_capacity)?;
-        let operations_buffer = self.get(operations_id.clone())?;
+        let operations_buffer = self.get(operations_id)?;
         operations_buffer.reset_to(0);
 
         let text_id = self.allocate(text_capacity)?;
-        let text_buffer = self.get(text_id.clone())?;
+        let text_buffer = self.get(text_id)?;
         text_buffer.reset_to(0);
 
         let instruction = Instructions::new(
@@ -2237,12 +2237,12 @@ impl MemoryAllocations {
         optimized: bool,
         completed: CompletedInstructions,
     ) -> MemoryAllocationResult<Instructions> {
-        let operations = self.get(completed.ops_id.clone())?;
-        let text_buffer = self.get(completed.text_id.clone())?;
+        let operations = self.get(completed.ops_id)?;
+        let text_buffer = self.get(completed.text_id)?;
         let instruction = Instructions::new(
             optimized,
-            completed.ops_id.clone(),
-            completed.text_id.clone(),
+            completed.ops_id,
+            completed.text_id,
             operations,
             text_buffer,
         );
@@ -2255,8 +2255,8 @@ impl MemoryAllocations {
     /// [`get_memory`] retrieve the underlying memory allocation from the [`CompletedInstructions`] which can
     /// allow you to inspect or interact with its raw contents as a [`MemoryAllocation`].
     pub fn get_slot(&self, completed: CompletedInstructions) -> MemoryAllocationResult<MemorySlot> {
-        let operation_buffer = self.get(completed.ops_id.clone())?;
-        let text_buffer = self.get(completed.text_id.clone())?;
+        let operation_buffer = self.get(completed.ops_id)?;
+        let text_buffer = self.get(completed.text_id)?;
         Ok(MemorySlot::new(operation_buffer, text_buffer))
     }
 }
@@ -2270,7 +2270,7 @@ impl BatchEncodable for Instructions {
         if self.in_occupied_state() {
             if let Some((_, text)) = &self.mem {
                 let data_bytes = data.as_bytes();
-                let text_location = text.len()?;
+                let text_location = text.len().map_err(|_| MemoryWriterError::UnableToWrite)?;
                 let text_length = data_bytes.len() as u64;
 
                 // we want to account for more space when the bytes
@@ -2446,6 +2446,7 @@ impl Instructions {
         self.data(&[Operations::InvokeNoReturnFunction as u8])?;
 
         allocated_handle.encode(self, self.optimized)?;
+        self.encode_return_hints(ReturnTypeHints::None)?;
         self.encode_params(params)?;
 
         self.end()?;
@@ -2456,10 +2457,13 @@ impl Instructions {
         &self,
         allocated_handle: ExternalPointer,
         params: Option<&'a [Params<'a>]>,
+        returning: ReturnTypeHints,
     ) -> MemoryWriterResult<()> {
         self.data(&[Operations::InvokeReturningFunction as u8])?;
 
         allocated_handle.encode(self, self.optimized)?;
+
+        self.encode_return_hints(returning)?;
         self.encode_params(params)?;
 
         self.end()?;
@@ -2471,22 +2475,27 @@ impl Instructions {
         allocated_handle: ExternalPointer,
         callback_handle: InternalPointer,
         params: Option<&'a [Params<'a>]>,
+        returning: ReturnTypeHints,
     ) -> MemoryWriterResult<()> {
         self.data(&[Operations::InvokeCallbackFunction as u8])?;
 
-        callback_handle.encode(self, self.optimized)?;
         allocated_handle.encode(self, self.optimized)?;
+        callback_handle.encode(self, self.optimized)?;
+
+        self.encode_return_hints(returning)?;
         self.encode_params(params)?;
 
         self.end()?;
         Ok(())
     }
 
+    #[inline(always)]
     pub(crate) fn encode_return_hints(&self, hint: ReturnTypeHints) -> MemoryWriterResult<()> {
         hint.encode(self, self.optimized)?;
         Ok(())
     }
 
+    #[inline(always)]
     pub(crate) fn encode_params<'a>(
         &self,
         params: Option<&'a [Params<'a>]>,
