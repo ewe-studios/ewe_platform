@@ -1,7 +1,7 @@
 #![allow(unused_imports)]
 
 use foundation_jsnostd::{
-    self, exposed_runtime, host_runtime, internal_api, ExternalPointer, Params,
+    self, exposed_runtime, host_runtime, internal_api, ExternalPointer, Params, ReturnTypeHints,
 };
 
 use foundation_nostd::*;
@@ -24,12 +24,13 @@ extern "C" fn main() {
         function(){
             const args = Array.from(arguments);
             this.mock.select(args);
+            return null;
         }",
         )
         .expect("should encode correctly");
 
     instructions
-        .invoke_no_return_function(
+        .invoke(
             console_log_id,
             Some(&[
                 Params::Bool(true),
@@ -45,8 +46,9 @@ extern "C" fn main() {
                 Params::Float32(10.0),
                 Params::Float64(10.0),
             ]),
+            ReturnTypeHints::None,
         )
         .expect("encode instruction");
 
-    host_runtime::web::send_instructions(instructions.complete().expect("complete instruction"));
+    _ = host_runtime::web::batch_response(instructions.complete().expect("complete instruction"));
 }

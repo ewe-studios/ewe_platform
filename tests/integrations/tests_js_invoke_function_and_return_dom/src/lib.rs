@@ -12,7 +12,8 @@ extern "C" fn main() {
         r"
         function(message){
             this.mock.createDom('div');
-            return {tag: 'div' };
+
+            return this.asFakeNode('div');
         }",
     );
 

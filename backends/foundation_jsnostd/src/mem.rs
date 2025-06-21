@@ -118,6 +118,7 @@ pub enum MemoryAllocationError {
     NoMemoryAllocation,
     NoMoreAllocationSlots,
     InvalidAllocationId,
+    FailedDeAllocation,
     FailedAllocationReading(MemoryId),
     MemoryReadError(MemoryReaderError),
     MemoryWriteError(MemoryWriterError),

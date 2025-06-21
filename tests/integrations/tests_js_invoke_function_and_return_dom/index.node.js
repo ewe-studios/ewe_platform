@@ -4,6 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const megatron = require("./megatron.js");
+megatron.LOGGER.mode = megatron.LEVELS.DEBUG;
 
 const EXECUTING_DIR = path.dirname(__filename);
 

@@ -1,7 +1,8 @@
 #![allow(unused_imports)]
 
 use foundation_jsnostd::{
-    self, exposed_runtime, host_runtime, internal_api, ExternalPointer, Params, TypedSlice,
+    self, exposed_runtime, host_runtime, internal_api, ExternalPointer, Params, ReturnTypeHints,
+    TypedSlice,
 };
 
 use foundation_nostd::*;
@@ -24,7 +25,7 @@ extern "C" fn main() {
         .expect("should encode correctly");
 
     instructions
-        .invoke_no_return_function(
+        .invoke(
             console_log_id,
             Some(&[
                 cached_id.into_param(),
@@ -42,8 +43,9 @@ extern "C" fn main() {
                 Params::Float64Array(&[1.0, 1.0]),
                 Params::TypedArraySlice(TypedSlice::Uint8, &[4, 4]),
             ]),
+            ReturnTypeHints::None,
         )
         .expect("encode instruction");
 
-    host_runtime::web::send_instructions(instructions.complete().expect("complete instruction"));
+    host_runtime::web::batch_response(instructions.complete().expect("complete instruction"));
 }

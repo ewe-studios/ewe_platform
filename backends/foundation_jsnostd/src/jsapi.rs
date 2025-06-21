@@ -7,10 +7,11 @@ use foundation_nostd::{raw_parts::RawParts, spin::Mutex};
 
 use crate::{
     BinaryReadError, BinaryReaderResult, CompletedInstructions, ExternalPointer, FromBinary,
-    Instructions, InternalCallback, InternalPointer, InternalReferenceRegistry, JSEncoding,
-    MemoryAllocation, MemoryAllocationError, MemoryAllocations, MemoryId, Params, ReturnTypeHints,
-    ReturnTypeId, ReturnValueError, ReturnValueMarker, ReturnValues, ToBinary, MOVE_ONE_BYTE,
-    MOVE_SIXTEEN_BYTES, MOVE_SIXTY_FOUR_BYTES, MOVE_THIRTY_TWO_BYTES,
+    GroupReturnHintMarker, Instructions, InternalCallback, InternalPointer,
+    InternalReferenceRegistry, JSEncoding, MemoryAllocation, MemoryAllocationError,
+    MemoryAllocations, MemoryId, Params, ReturnTypeHints, ReturnTypeId, ReturnValueError,
+    ReturnValueMarker, ReturnValues, Returns, ToBinary, MOVE_ONE_BYTE, MOVE_SIXTEEN_BYTES,
+    MOVE_SIXTY_FOUR_BYTES, MOVE_THIRTY_TWO_BYTES,
 };
 
 static INTERNAL_CALLBACKS: Mutex<InternalReferenceRegistry> = InternalReferenceRegistry::create();
@@ -55,6 +56,18 @@ impl ReturnValueParserIter<'_> {
             ReturnTypeId::None => {
                 self.index = index;
                 Ok(ReturnValues::None)
+            }
+            ReturnTypeId::ErrorCode => {
+                let end = index + MOVE_SIXTEEN_BYTES;
+                let portion = &bin[index..end];
+                let mut section: [u8; 2] = Default::default();
+                section.copy_from_slice(portion);
+
+                let item = u16::from_le_bytes(section);
+
+                self.index = end;
+
+                Ok(ReturnValues::ErrorCode(item))
             }
             ReturnTypeId::Bool => {
                 let value = if bin[index] == 1 {
@@ -307,6 +320,10 @@ impl ReturnValueParserIter<'_> {
                     ))));
                 }
 
+                if let Err(err) = ALLOCATIONS.lock().deallocate(mem_id) {
+                    return Some(Err(err.into()));
+                }
+
                 self.index = end;
 
                 Ok(ReturnValues::Uint8Array(memory_vec.unwrap()))
@@ -333,6 +350,10 @@ impl ReturnValueParserIter<'_> {
                     return Some(Err(BinaryReadError::MemoryError(String::from(
                         "No Vec<u8> not found, big problem",
                     ))));
+                }
+
+                if let Err(err) = ALLOCATIONS.lock().deallocate(mem_id) {
+                    return Some(Err(err.into()));
                 }
 
                 let memory_vec = memory_vec_container.unwrap();
@@ -387,6 +408,10 @@ impl ReturnValueParserIter<'_> {
                     ))));
                 }
 
+                if let Err(err) = ALLOCATIONS.lock().deallocate(mem_id) {
+                    return Some(Err(err.into()));
+                }
+
                 let memory_vec = memory_vec_container.unwrap();
                 let memory_size = memory_vec.len();
 
@@ -439,6 +464,10 @@ impl ReturnValueParserIter<'_> {
                     ))));
                 }
 
+                if let Err(err) = ALLOCATIONS.lock().deallocate(mem_id) {
+                    return Some(Err(err.into()));
+                }
+
                 let memory_vec = memory_vec_container.unwrap();
                 let memory_size = memory_vec.len();
 
@@ -489,6 +518,10 @@ impl ReturnValueParserIter<'_> {
                     ))));
                 }
 
+                if let Err(err) = ALLOCATIONS.lock().deallocate(mem_id) {
+                    return Some(Err(err.into()));
+                }
+
                 let memory_vec = memory_vec_container.unwrap();
                 let mut arr_content: Vec<i8> = Vec::with_capacity(memory_vec.len());
 
@@ -522,6 +555,10 @@ impl ReturnValueParserIter<'_> {
                     return Some(Err(BinaryReadError::MemoryError(String::from(
                         "No Vec<u8> not found, big problem",
                     ))));
+                }
+
+                if let Err(err) = ALLOCATIONS.lock().deallocate(mem_id) {
+                    return Some(Err(err.into()));
                 }
 
                 let memory_vec = memory_vec_container.unwrap();
@@ -576,6 +613,10 @@ impl ReturnValueParserIter<'_> {
                     ))));
                 }
 
+                if let Err(err) = ALLOCATIONS.lock().deallocate(mem_id) {
+                    return Some(Err(err.into()));
+                }
+
                 let memory_vec = memory_vec_container.unwrap();
                 let memory_size = memory_vec.len();
 
@@ -626,6 +667,10 @@ impl ReturnValueParserIter<'_> {
                     return Some(Err(BinaryReadError::MemoryError(String::from(
                         "No Vec<u8> not found, big problem",
                     ))));
+                }
+
+                if let Err(err) = ALLOCATIONS.lock().deallocate(mem_id) {
+                    return Some(Err(err.into()));
                 }
 
                 let memory_vec = memory_vec_container.unwrap();
@@ -680,6 +725,10 @@ impl ReturnValueParserIter<'_> {
                     ))));
                 }
 
+                if let Err(err) = ALLOCATIONS.lock().deallocate(mem_id) {
+                    return Some(Err(err.into()));
+                }
+
                 let memory_vec = memory_vec_container.unwrap();
                 let memory_size = memory_vec.len();
 
@@ -732,6 +781,10 @@ impl ReturnValueParserIter<'_> {
                     ))));
                 }
 
+                if let Err(err) = ALLOCATIONS.lock().deallocate(mem_id) {
+                    return Some(Err(err.into()));
+                }
+
                 let memory_vec = memory_vec_container.unwrap();
                 let memory_size = memory_vec.len();
 
@@ -780,6 +833,10 @@ impl ReturnValueParserIter<'_> {
                     return Some(Err(BinaryReadError::MemoryError(String::from(
                         "No Vec<u8> not found, big problem",
                     ))));
+                }
+
+                if let Err(err) = ALLOCATIONS.lock().deallocate(mem_id) {
+                    return Some(Err(err.into()));
                 }
 
                 let memory_vec = memory_vec_container.unwrap();
@@ -887,6 +944,59 @@ impl FromBinary for ReturnTypeHints {
     }
 }
 
+/// [`GroupReturnTypeHints`] represents conversion of
+/// underlying type which is a grouping of return values
+/// from the host where it represent a batch of return values
+/// that should be generated/materialized.
+pub struct GroupReturnTypeHints;
+
+impl FromBinary for GroupReturnTypeHints {
+    type T = Vec<Returns>;
+
+    fn from_binary(self, input_bin: &[u8]) -> BinaryReaderResult<Self::T> {
+        if input_bin[0] != (GroupReturnHintMarker::Start as u8) {
+            return Err(BinaryReadError::WrongStarterCode(input_bin[0]));
+        }
+
+        let length = input_bin.len();
+        if input_bin[length - 1] != (GroupReturnHintMarker::Stop as u8) {
+            return Err(BinaryReadError::WrongEndingCode(input_bin[length - 1]));
+        }
+
+        // let value_start = 1;
+        // let value_end = length - 1;
+        //
+        // let bin = &input_bin[value_start..value_end];
+        //
+        // let mut decoded = Vec::with_capacity(1);
+        //
+        // let mut index = 0;
+        //
+        // while index < bin.len() {
+        //     let end = index + MOVE_SIXTY_FOUR_BYTES;
+        //     let portion = &bin[index..end];
+        //     let mut section: [u8; 8] = Default::default();
+        //     section.copy_from_slice(portion);
+        //
+        //     let alloc_id = u64::from_le_bytes(section);
+        //     let mem_id = MemoryId::from_u64(alloc_id);
+        //
+        //     let memory_result = ALLOCATIONS.lock().get(mem_id);
+        //     if let Err(err) = memory_result {
+        //         return Some(Err(err.into()));
+        //     }
+        //     let mut memory = memory_result.unwrap();
+        //     let memory_vec_container = memory.take();
+        //     if memory_vec_container.is_none() {
+        //         return Some(Err(BinaryReadError::MemoryError(String::from(
+        //             "No Vec<u8> not found, big problem",
+        //         ))));
+        //     }
+        // }
+        todo!()
+    }
+}
+
 /// [`internal_api`] are internal methods, structs, and surfaces that provide core functionalities
 /// that we support or that allows making or preparing data to be sent-out or sent-across the API.
 ///
@@ -913,20 +1023,11 @@ pub mod internal_api {
 
     // -- callback methods
 
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
-    pub fn register_internal_callback<F>(hint: ReturnTypeHints, f: F) -> InternalPointer
+    pub fn register_internal_callback<F>(f: F) -> InternalPointer
     where
         F: InternalCallback + 'static,
     {
-        INTERNAL_CALLBACKS.lock().add(hint, f)
-    }
-
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-    pub fn register_internal_callback<F>(hint: ReturnTypeHints, f: F) -> InternalPointer
-    where
-        F: InternalCallback + Send + Sync + 'static,
-    {
-        INTERNAL_CALLBACKS.lock().add(hint, f)
+        INTERNAL_CALLBACKS.lock().add(f)
     }
 
     pub fn unregister_internal_callback(addr: InternalPointer) {
@@ -1049,12 +1150,26 @@ pub mod host_runtime {
             /// which match the [`crate::Operations`] outlined in the batching API the
             /// runtime supports, allowing us amortize the cost of doing bulk processing on
             /// the wasm and host boundaries.
+            ///
+            /// This batch apply returns no value and no underlying result will
+            /// be written to memory.
             pub fn host_batch_apply(
                 operation_pointer: u64,
                 operation_length: u64,
                 text_pointer: u64,
                 text_length: u64,
             );
+
+            /// [`host_batch_returning_apply`] takes a location in memory that has a batch of operations
+            /// which match the [`crate::Operations`] outlined in the batching API the
+            /// runtime supports, allowing us amortize the cost of doing bulk processing on
+            /// the wasm and host boundaries.
+            pub fn host_batch_returning_apply(
+                operation_pointer: u64,
+                operation_length: u64,
+                text_pointer: u64,
+                text_length: u64,
+            ) -> u64;
 
             /// [`function_allocate_external_pointer`] allows you to ahead of time request the
             /// allocation of an external reference id unique for a function and unreusable by anyone else
@@ -1196,6 +1311,19 @@ pub mod host_runtime {
                 parameters_length: u64,
             ) -> u8;
 
+            /// [`host_invoke_function_as_bool`] invokes a Host function across the WASM/RUST ABI
+            /// allowing you to specify the arguments to be read from specified memory location
+            /// (pointer) and length of the content.
+            ///
+            /// It always expects to return a [`u8`] as result. We do this to optimize any need to
+            /// allocate memory explicitly for the result though wasm will do
+            /// this for us since the type is basically supported.
+            pub fn host_invoke_function_as_bool(
+                handler: u64,
+                parameters_start: *const u8,
+                parameters_length: u64,
+            ) -> u8;
+
             /// [`host_invoke_function_as_f64`] invokes a Host function across the WASM/RUST ABI
             /// allowing you to specify the arguments to be read from specified memory location
             /// (pointer) and length of the content.
@@ -1275,8 +1403,9 @@ pub mod host_runtime {
             }
         }
 
-        /// [`send_instructions`] sends a [`CompletedInstructions`] batch over to the host runtime.
-        pub fn send_instructions(instruction: CompletedInstructions) {
+        /// [`batch`] sends a [`CompletedInstructions`] batch over to the host runtime
+        /// to be applied and expects no responses/returned values to be provided.
+        pub fn batch(instruction: CompletedInstructions) {
             let operations_memory = internal_api::get_memory(instruction.ops_id);
             let text_memory = internal_api::get_memory(instruction.text_id);
 
@@ -1290,14 +1419,34 @@ pub mod host_runtime {
                     ops_length,
                     text_pointer as u64,
                     text_length,
-                )
-            }
+                );
+            };
         }
 
-        /// [`complete_instructions`] completes and sends a [`Instructions`] batch over to the host runtime.
-        pub fn complete_instructions(instruction: Instructions) {
-            let completed = instruction.complete().expect("complete instruction");
-            host_runtime::web::send_instructions(completed);
+        /// [`batch_response`] sends a [`CompletedInstructions`] batch over to the host runtime
+        /// and expects the returned values of these execution to be returned to it.
+        ///
+        /// Note: Instructions that call callbacks will generally return None or
+        /// [`ReturnTypeHints::None`] as their returned values.
+        ///
+        /// We ensure to keep the order of instructions to returned values through
+        /// group returns.
+        pub fn batch_response(instruction: CompletedInstructions) -> u64 {
+            let operations_memory = internal_api::get_memory(instruction.ops_id);
+            let text_memory = internal_api::get_memory(instruction.text_id);
+
+            let (ops_pointer, ops_length) =
+                operations_memory.as_address().expect("get ops address");
+            let (text_pointer, text_length) = text_memory.as_address().expect("get text address");
+
+            unsafe {
+                host_runtime::web::host_batch_returning_apply(
+                    ops_pointer as u64,
+                    ops_length,
+                    text_pointer as u64,
+                    text_length,
+                )
+            }
         }
 
         /// [`cache_text`] provides a way to have the host runtime cache an expense
@@ -1329,7 +1478,7 @@ pub mod host_runtime {
         }
 
         /// [`register_function`] calls the underlying [`js_abi`] registration
-        /// function to register a javascript code that can be called from memory
+        /// function to register a host code that can be called from memory
         /// allowing you define the underlying code we want executed.
         pub fn register_function(code: &str) -> HostFunction {
             let start = code.as_ptr() as usize;
@@ -1346,7 +1495,7 @@ pub mod host_runtime {
         }
 
         /// [`register_function_utf16`] calls the underlying [`js_abi`] registration
-        /// function to register a javascript code already encoded
+        /// function to register a host code already encoded
         /// as UTF16 by the borrowed slice of u16 that can be called from memory
         /// allowing you define the underlying code we want executed.
         pub fn register_function_utf16(code: &[u16]) -> HostFunction {
@@ -1533,6 +1682,22 @@ pub mod host_runtime {
             }
         }
 
+        /// [`invoke_as_bool`] invokes a host function registered at the given handle
+        /// defined by the [`HostFunction::handler`] which then returns a [`u8`]
+        /// which represents the state to be returned (1- true, 0 - false).
+        pub fn invoke_as_bool(handler: u64, params: &[Params]) -> bool {
+            let param_bytes = params.to_binary();
+            let param_raw = RawParts::from_vec(param_bytes);
+
+            unsafe {
+                host_runtime::web::host_invoke_function_as_bool(
+                    handler,
+                    param_raw.ptr,
+                    param_raw.length,
+                ) == 1
+            }
+        }
+
         /// [`invoke_as_callback`] invokes a host function registered at the given handle
         /// which points to a registered function on the host side which will when executed
         /// must have it's returned result communicated via a callback handle provided.
@@ -1570,7 +1735,7 @@ pub mod host_runtime {
             };
         }
 
-        /// [`invoke_for_replies`] invokes a javascript function registered at the given handle
+        /// [`invoke_for_replies`] invokes a host function registered at the given handle
         /// defined by the [`HostFunction::handler`] which then returns a [`u64`]
         /// which represents the allocation id of the contents which are to be encoded in
         /// the new Reply binary format implemented via [`FromBinary`] for [`ReturnTypeHints`].
@@ -1616,6 +1781,23 @@ pub mod host_runtime {
             }
         }
 
+        /// [`invoke_for_str`] invokes a host function registered at the given handle
+        /// defined by the [`HostFunction::handler`] which then returns a [`u64`]
+        /// which represents the allocation id of the contents.
+        pub fn invoke_for_str(handler: u64, params: &[Params]) -> MemoryAllocationResult<String> {
+            match host_runtime::web::invoke_for_replies(
+                handler,
+                params,
+                ReturnTypeHints::One(ReturnTypeId::Text8),
+            ) {
+                Ok(mut values) => match values.pop().unwrap() {
+                    ReturnValues::Text8(content) => Ok(content),
+                    _ => Err(ReturnValueError::UnexpectedReturnType.into()),
+                },
+                Err(err) => Err(err),
+            }
+        }
+
         /// [`invoke`] invokes a host function registered at the given handle
         /// which points to a registered function on the host side.
         ///
@@ -1650,7 +1832,7 @@ pub mod host_runtime {
 
         #[allow(clippy::cast_precision_loss)]
         impl HostFunction {
-            /// [`invoke`] invokes a javascript function registered at the given handle
+            /// [`invoke`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then receives the set of parameters
             /// supplied to be invoked with.
             ///
@@ -1660,46 +1842,41 @@ pub mod host_runtime {
                 MemoryId::from_u64(host_runtime::web::invoke(self.handler, params, returns))
             }
 
-            /// [`invoke_for_memory`] invokes a javascript function registered at the given handle
+            /// [`invoke_for_memory`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a [`u64`]
             /// which represents the allocation id of the contents.
             pub fn invoke_no_return(&self, params: &[Params]) {
                 _ = host_runtime::web::invoke(self.handler, params, ReturnTypeHints::None);
             }
 
-            /// [`invoke_for_bool`] invokes a javascript function registered at the given handle
+            /// [`invoke_for_bool`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a bool indicating the
             /// result.
             ///
             /// Internal true is when the returned number is >= 1 and False if 0.
             pub fn invoke_for_bool(&self, params: &[Params]) -> bool {
-                unsafe {
-                    match host_runtime::web::invoke_as_u8(self.handler, params) {
-                        1.. => true,
-                        0 => false,
-                    }
-                }
+                host_runtime::web::invoke_as_bool(self.handler, params)
             }
 
-            /// [`invoke_for_i8`] invokes a javascript function registered at the given handle
+            /// [`invoke_for_i8`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a u8.
             pub fn invoke_for_i8(&self, params: &[Params]) -> i8 {
                 unsafe { host_runtime::web::invoke_as_i8(self.handler, params) }
             }
 
-            /// [`invoke_for_i16`] invokes a javascript function registered at the given handle
+            /// [`invoke_for_i16`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a u16.
             pub fn invoke_for_i16(&self, params: &[Params]) -> i16 {
                 host_runtime::web::invoke_as_i16(self.handler, params)
             }
 
-            /// [`invoke_for_i32`] invokes a javascript function registered at the given handle
+            /// [`invoke_for_i32`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a u32.
             pub fn invoke_for_i32(&self, params: &[Params]) -> i32 {
                 host_runtime::web::invoke_as_i32(self.handler, params)
             }
 
-            /// [`invoke_for_i64`] invokes a javascript function registered at the given handle
+            /// [`invoke_for_i64`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a [`ExternalPointer`]
             /// representing the DOM node instance via an ExternalPointer that points to that object in the
             /// hosts object heap.
@@ -1707,25 +1884,25 @@ pub mod host_runtime {
                 host_runtime::web::invoke_as_i64(self.handler, params)
             }
 
-            /// [`invoke_for_u8`] invokes a javascript function registered at the given handle
+            /// [`invoke_for_u8`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a u8.
             pub fn invoke_for_u8(&self, params: &[Params]) -> u8 {
                 unsafe { host_runtime::web::invoke_as_u8(self.handler, params) }
             }
 
-            /// [`invoke_for_u16`] invokes a javascript function registered at the given handle
+            /// [`invoke_for_u16`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a u16.
             pub fn invoke_for_u16(&self, params: &[Params]) -> u16 {
                 host_runtime::web::invoke_as_u16(self.handler, params)
             }
 
-            /// [`invoke_for_u32`] invokes a javascript function registered at the given handle
+            /// [`invoke_for_u32`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a u32.
             pub fn invoke_for_u32(&self, params: &[Params]) -> u32 {
                 host_runtime::web::invoke_as_u32(self.handler, params)
             }
 
-            /// [`invoke_for_u64`] invokes a javascript function registered at the given handle
+            /// [`invoke_for_u64`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a [`ExternalPointer`]
             /// representing the DOM node instance via an ExternalPointer that points to that object in the
             /// hosts object heap.
@@ -1733,36 +1910,26 @@ pub mod host_runtime {
                 host_runtime::web::invoke_as_u64(self.handler, params)
             }
 
-            /// [`invoke_for_float64`] invokes a javascript function registered at the given handle
+            /// [`invoke_for_float64`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a f64.
             pub fn invoke_for_f64(&self, params: &[Params]) -> f64 {
                 host_runtime::web::invoke_as_f64(self.handler, params)
             }
 
-            /// [`invoke_for_float32`] invokes a javascript function registered at the given handle
+            /// [`invoke_for_float32`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a f32.
             pub fn invoke_for_f32(&self, params: &[Params]) -> f32 {
                 host_runtime::web::invoke_as_f32(self.handler, params)
             }
 
-            /// [`invoke_for_str`] invokes a javascript function registered at the given handle
+            /// [`invoke_for_str`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a [`u64`]
             /// which represents the allocation id of the contents.
             pub fn invoke_for_str(&self, params: &[Params]) -> MemoryAllocationResult<String> {
-                match host_runtime::web::invoke_for_replies(
-                    self.handler,
-                    params,
-                    ReturnTypeHints::One(ReturnTypeId::Text8),
-                ) {
-                    Ok(mut values) => match values.pop().unwrap() {
-                        ReturnValues::Text8(content) => Ok(content),
-                        _ => Err(ReturnValueError::UnexpectedReturnType.into()),
-                    },
-                    Err(err) => Err(err),
-                }
+                host_runtime::web::invoke_for_str(self.handler, params)
             }
 
-            /// [`invoke_for_dom`] invokes a javascript function registered at the given handle
+            /// [`invoke_for_dom`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a [`ExternalPointer`]
             /// representing the DOM node instance via an ExternalPointer that points to that object in the
             /// hosts object heap.
@@ -1774,7 +1941,7 @@ pub mod host_runtime {
                 ))
             }
 
-            /// [`invoke_for_object`] invokes a javascript function registered at the given handle
+            /// [`invoke_for_object`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a [`ExternalPointer`]
             /// representing the object via an ExternalPointer that points to that object in the
             /// hosts object heap.
