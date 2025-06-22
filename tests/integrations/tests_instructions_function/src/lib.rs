@@ -2,18 +2,23 @@
 
 use foundation_jsnostd::{
     self, exposed_runtime, host_runtime, internal_api, ExternalPointer, Params, ReturnTypeHints,
+    ReturnValues, Returns,
 };
 
 use foundation_nostd::*;
 
 #[no_mangle]
 extern "C" fn main() {
-    let _ = host_runtime::web::register_function(
+    let console_log = host_runtime::web::register_function(
         r"
         function(message){
-            console.log(message);
+            console.log('Error occurred: ',message);
         }",
     );
+
+    std::panic::set_hook(Box::new(move |e| {
+        console_log.invoke_no_return(&[Params::Text8(e.to_string().as_str())]);
+    }));
 
     let console_log_id = host_runtime::web::allocate_function_reference();
     let instructions = internal_api::create_instructions(100, 100);
@@ -50,5 +55,14 @@ extern "C" fn main() {
         )
         .expect("encode instruction");
 
-    _ = host_runtime::web::batch_response(instructions.complete().expect("complete instruction"));
+    let result =
+        host_runtime::web::batch_response(instructions.complete().expect("complete instruction"))
+            .expect("should get back values");
+
+    assert_eq!(
+        result,
+        vec![Returns::One(ReturnValues::ExternalReference(
+            4294967296.into()
+        ))]
+    )
 }
