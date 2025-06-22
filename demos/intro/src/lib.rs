@@ -46,5 +46,7 @@ extern "C" fn main() {
         )
         .expect("should register call");
 
-    host_runtime::web::batch_response(instructions.complete().expect("complete instruction"));
+    let _ =
+        host_runtime::web::batch_response(instructions.complete().expect("complete instruction"))
+            .expect("should finish successfully");
 }

@@ -530,7 +530,7 @@ impl MemoryAllocations {
     /// allocation.
     #[allow(clippy::cast_possible_truncation)]
     pub fn allocate(&mut self, desired_capacity: u64) -> MemoryAllocationResult<MemoryId> {
-        match self.get_ideal_allocation(desired_capacity)? {
+        match self.get_free_slot()? {
             None => {
                 let next_index = self.allocs.len();
                 if u32::try_from(next_index).is_err() {
@@ -557,86 +557,11 @@ impl MemoryAllocations {
     }
 
     #[allow(clippy::cast_possible_truncation)]
-    fn get_ideal_allocation(
-        &mut self,
-        desired_capacity_u: u64,
-    ) -> MemoryAllocationResult<Option<usize>> {
-        let desired_capacity = desired_capacity_u as usize;
-        let mut potential_candidate_index: Option<(usize, usize, usize)> = None;
-        for (free_index, memory_index) in self.free.iter().enumerate() {
-            if let Some((_, ref allocation)) = self.allocs.get(*memory_index) {
-                let memory_capacity = allocation.capacity()? as usize;
-
-                match &potential_candidate_index {
-                    None => {
-                        // if the capacity diff is less than 100 and more than
-                        // desired then we can reuse this immediately.
-                        if memory_capacity > desired_capacity {
-                            let diff = memory_capacity - desired_capacity;
-                            if diff < 100 {
-                                potential_candidate_index =
-                                    Some((*memory_index, memory_capacity, free_index));
-                                break;
-                            }
-                            potential_candidate_index =
-                                Some((*memory_index, memory_capacity, free_index));
-                            continue;
-                        }
-
-                        let diff = desired_capacity - memory_capacity;
-
-                        // if the difference is just between 10 or 100
-                        // then this is a potential location we can use with some
-                        // expansion, so we will
-                        if diff < 100 {
-                            potential_candidate_index =
-                                Some((*memory_index, memory_capacity, free_index));
-                            continue;
-                        }
-
-                        potential_candidate_index =
-                            Some((*memory_index, memory_capacity, free_index));
-                        break;
-                    }
-                    Some((_, index_size, _)) => {
-                        // if index (candidate) is already bigger than desired capacity
-                        // but less than current capacity, then this is ideal since we we
-                        // do not wish to use larger memory if not required
-                        if *index_size > desired_capacity && *index_size < memory_capacity {
-                            continue;
-                        }
-
-                        // if the capacity is less than current selected and
-                        // even less than desired, just skip it.
-                        if memory_capacity < *index_size && memory_capacity < desired_capacity {
-                            continue;
-                        }
-
-                        // if the new candidate is larger than the previous but
-                        // still less than recent, then swap potential candidate with
-                        // this index
-                        if memory_capacity > *index_size && memory_capacity < desired_capacity {
-                            potential_candidate_index =
-                                Some((*memory_index, memory_capacity, free_index));
-                            continue;
-                        }
-
-                        // if we found a capacity bigger than desired but less than current
-                        // candidate then swap them, we want to use as close a match as possible.
-                        if *index_size > desired_capacity && *index_size > memory_capacity {
-                            potential_candidate_index =
-                                Some((*memory_index, memory_capacity, free_index));
-                            continue;
-                        }
-                    }
-                };
+    fn get_free_slot(&mut self) -> MemoryAllocationResult<Option<usize>> {
+        if !self.free.is_empty() {
+            if let Some(index) = self.free.pop() {
+                return Ok(Some(index));
             }
-        }
-
-        if let Some((index, _, free_index)) = potential_candidate_index {
-            // remove the index from the free list.
-            _ = self.free.remove(free_index);
-            return Ok(Some(index));
         }
 
         Ok(None)
