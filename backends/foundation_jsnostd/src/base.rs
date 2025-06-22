@@ -312,7 +312,7 @@ impl ReturnTypeHints {
 pub enum Returns {
     None,
     One(ReturnValues),
-    List(ReturnValues),
+    List(Vec<ReturnValues>),
     Multi(Vec<ReturnValues>),
 }
 

@@ -13,10 +13,11 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +841 assets/jsruntime/megatron.js
-badd +756 backends/foundation_jsnostd/src/jsapi.rs
-badd +17 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_and_return_types/index.node.js
-badd +54 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_and_return_types/src/lib.rs
+badd +3499 assets/jsruntime/megatron.js
+badd +871 backends/foundation_jsnostd/src/jsapi.rs
+badd +54 tests/integrations/tests_instructions_function/src/lib.rs
+badd +13 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_instructions_function/index.node.js
+badd +262 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/base.rs
 argglobal
 %argdel
 edit assets/jsruntime/megatron.js
@@ -46,148 +47,149 @@ set winwidth=1
 wincmd =
 argglobal
 setlocal foldmethod=expr
-setlocal foldexpr=nvim_treesitter#foldexpr()
+setlocal foldexpr=v:lua.require'lazyvim.util'.ui.foldexpr()
 setlocal foldmarker={{{,}}}
 setlocal foldignore=#
 setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-let s:l = 843 - ((31 * winheight(0) + 35) / 71)
+3
+normal! zo
+922
+normal! zo
+1061
+normal! zo
+1480
+normal! zo
+1481
+normal! zo
+1724
+normal! zo
+1724
+normal! zc
+2224
+normal! zo
+2224
+normal! zc
+3207
+normal! zo
+3207
+normal! zc
+3228
+normal! zo
+3468
+normal! zo
+3490
+normal! zo
+4147
+normal! zo
+4667
+normal! zo
+4734
+normal! zo
+4734
+normal! zc
+4933
+normal! zo
+5028
+normal! zo
+5028
+normal! zc
+5122
+normal! zo
+5122
+normal! zc
+5141
+normal! zo
+5159
+normal! zo
+5202
+normal! zo
+5229
+normal! zo
+let s:l = 3499 - ((38 * winheight(0) + 36) / 72)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 843
-normal! 0
+keepjumps 3499
+normal! 056|
 wincmd w
 argglobal
 if bufexists(fnamemodify("backends/foundation_jsnostd/src/jsapi.rs", ":p")) | buffer backends/foundation_jsnostd/src/jsapi.rs | else | edit backends/foundation_jsnostd/src/jsapi.rs | endif
 if &buftype ==# 'terminal'
   silent file backends/foundation_jsnostd/src/jsapi.rs
 endif
-balt assets/jsruntime/megatron.js
+balt ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/base.rs
 setlocal foldmethod=expr
-setlocal foldexpr=nvim_treesitter#foldexpr()
+setlocal foldexpr=v:lua.require'lazyvim.util'.ui.foldexpr()
 setlocal foldmarker={{{,}}}
 setlocal foldignore=#
 setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-43
+41
 normal! zo
-43
+41
+normal! zc
+865
 normal! zo
-54
+953
 normal! zo
-60
+956
 normal! zo
-60
+975
 normal! zo
-300
-normal! zo
-310
-normal! zo
-324
-normal! zo
-335
-normal! zo
-372
-normal! zo
-383
-normal! zo
-406
-normal! zo
-420
-normal! zo
-431
-normal! zo
-466
-normal! zo
-483
-normal! zo
-497
-normal! zo
-508
-normal! zo
-545
-normal! zo
-556
-normal! zo
-579
-normal! zo
-593
-normal! zo
-604
-normal! zo
-641
-normal! zo
-652
-normal! zo
-675
-normal! zo
-689
-normal! zo
-700
-normal! zo
-735
-normal! zo
-743
-normal! zo
-745
-normal! zo
-758
-normal! zo
-let s:l = 756 - ((54 * winheight(0) + 35) / 71)
+let s:l = 877 - ((846 * winheight(0) + 36) / 72)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 756
-normal! 010|
+keepjumps 877
+normal! 0
 wincmd w
 argglobal
-if bufexists(fnamemodify("~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_and_return_types/src/lib.rs", ":p")) | buffer ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_and_return_types/src/lib.rs | else | edit ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_and_return_types/src/lib.rs | endif
+if bufexists(fnamemodify("tests/integrations/tests_instructions_function/src/lib.rs", ":p")) | buffer tests/integrations/tests_instructions_function/src/lib.rs | else | edit tests/integrations/tests_instructions_function/src/lib.rs | endif
 if &buftype ==# 'terminal'
-  silent file ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_and_return_types/src/lib.rs
-endif
-balt ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_and_return_types/index.node.js
-setlocal foldmethod=expr
-setlocal foldexpr=nvim_treesitter#foldexpr()
-setlocal foldmarker={{{,}}}
-setlocal foldignore=#
-setlocal foldlevel=99
-setlocal foldminlines=1
-setlocal foldnestmax=20
-setlocal foldenable
-let s:l = 63 - ((32 * winheight(0) + 17) / 35)
-if s:l < 1 | let s:l = 1 | endif
-keepjumps exe s:l
-normal! zt
-keepjumps 63
-normal! 023|
-wincmd w
-argglobal
-if bufexists(fnamemodify("~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_and_return_types/index.node.js", ":p")) | buffer ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_and_return_types/index.node.js | else | edit ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_and_return_types/index.node.js | endif
-if &buftype ==# 'terminal'
-  silent file ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_and_return_types/index.node.js
+  silent file tests/integrations/tests_instructions_function/src/lib.rs
 endif
 balt backends/foundation_jsnostd/src/jsapi.rs
 setlocal foldmethod=expr
-setlocal foldexpr=nvim_treesitter#foldexpr()
+setlocal foldexpr=v:lua.require'lazyvim.util'.ui.foldexpr()
 setlocal foldmarker={{{,}}}
 setlocal foldignore=#
 setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-let s:l = 41 - ((4 * winheight(0) + 17) / 35)
+let s:l = 31 - ((30 * winheight(0) + 17) / 35)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 41
-normal! 07|
+keepjumps 31
+normal! 0
 wincmd w
-2wincmd w
+argglobal
+if bufexists(fnamemodify("~/Labs/ewestudios/ewe_platform/tests/integrations/tests_instructions_function/index.node.js", ":p")) | buffer ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_instructions_function/index.node.js | else | edit ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_instructions_function/index.node.js | endif
+if &buftype ==# 'terminal'
+  silent file ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_instructions_function/index.node.js
+endif
+balt tests/integrations/tests_instructions_function/src/lib.rs
+setlocal foldmethod=expr
+setlocal foldexpr=v:lua.require'lazyvim.util'.ui.foldexpr()
+setlocal foldmarker={{{,}}}
+setlocal foldignore=#
+setlocal foldlevel=99
+setlocal foldminlines=1
+setlocal foldnestmax=20
+setlocal foldenable
+let s:l = 13 - ((12 * winheight(0) + 18) / 36)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 13
+normal! 0
+wincmd w
 wincmd =
 tabnext 1
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'

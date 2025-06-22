@@ -16,6 +16,44 @@ const Megatron = (function () {
 
   const LOGGER = {
     mode: LEVELS.ERROR,
+    namespace: null,
+  };
+
+  LOGGER.scoped = function (namespace) {
+    return {
+      info: function () {
+        const args = [namespace, " "];
+        args.push.apply(args, Array.from(arguments));
+        console.log.apply(console, args);
+      },
+
+      trace: function () {
+        const args = [namespace, " "];
+        args.push.apply(args, Array.from(arguments));
+        console.trace.apply(console, args);
+      },
+
+      warning: function () {
+        if (LOGGER.mode < LEVELS.WARNINGS) return;
+        const args = [namespace, " "];
+        args.push.apply(args, Array.from(arguments));
+        console.warn.apply(console, args);
+      },
+
+      error: function () {
+        if (LOGGER.mode < LEVELS.ERROR) return;
+        const args = [namespace, " "];
+        args.push.apply(args, Array.from(arguments));
+        console.error.apply(console, args);
+      },
+
+      debug: function () {
+        if (LOGGER.mode < LEVELS.DEBUG) return;
+        const args = [namespace, " "];
+        args.push.apply(args, Array.from(arguments));
+        console.debug.apply(console, args);
+      },
+    };
   };
 
   LOGGER.info = function () {
@@ -1445,6 +1483,7 @@ const Megatron = (function () {
         throw new Error("Must be instance of MemoryOperator");
       }
       this.hint_type = hint.return_type;
+      this.value_type = hint.value_type;
       this.value = value;
     }
   }
@@ -3290,18 +3329,15 @@ const Megatron = (function () {
     }
 
     encode_into_memory(items) {
+      const logger = LOGGER.scoped("Reply.encode_into_memory: ");
+
       const encoded_buffer = new Uint8Array(
         this.encode(items instanceof Array ? items : [items]),
       );
-      LOGGER.debug(
-        `Reply.morph: encoded value: `,
-        items,
-        " -> ",
-        encoded_buffer,
-      );
+      logger.debug(`encoded value: `, items, " -> ", encoded_buffer);
 
       const reply_id = BigInt(this.operator.writeUint8Array(encoded_buffer));
-      LOGGER.debug("Reply.morph: written return values to: ", reply_id);
+      logger.debug("written return values to: ", reply_id);
 
       return reply_id;
     }
@@ -3311,12 +3347,9 @@ const Megatron = (function () {
         throw new Error("argument must be a type of ReturnHint");
       }
 
-      LOGGER.debug(
-        `Reply.morph: received: "`,
-        values,
-        `" with return hint: `,
-        return_hint,
-      );
+      const logger = LOGGER.scoped("Reply.callback: ");
+
+      logger.debug(`received: "`, values, `" with return hint: `, return_hint);
 
       if (return_hint instanceof NoReturn && !isUndefinedOrNull(values)) {
         throw new Error(`Expected NoReturn value but got ${values}`);
@@ -3334,12 +3367,12 @@ const Megatron = (function () {
       if (return_hint instanceof SingleReturn) {
         const target = transformed[0];
 
-        LOGGER.debug(`Reply.morph: single return value: `, target);
+        logger.debug(`single return value: `, target);
 
         return_hint.validate(target);
         if (this.return_naked.indexOf(target.type) !== -1) {
-          LOGGER.debug(
-            "Reply.morph: returning value as is/naked:",
+          logger.debug(
+            "returning value as is/naked:",
             target.value,
             " from ",
             target,
@@ -3347,7 +3380,7 @@ const Megatron = (function () {
           return target.value;
         }
       } else {
-        LOGGER.debug("Reply.morph: validate list/multi-return: ", transformed);
+        logger.debug("validate list/multi-return: ", transformed);
         return_hint.validate(transformed);
       }
 
@@ -3359,7 +3392,9 @@ const Megatron = (function () {
         throw new Error("argument must be a type of ReturnHint");
       }
 
-      LOGGER.debug(`Reply.callback: received: "${values}"`);
+      const logger = LOGGER.scoped("Reply.callback: ");
+
+      logger.debug(`received: "${values}"`);
 
       if (return_hint instanceof NoReturn && !isUndefinedOrNull(values)) {
         throw new Error(`Expected NoReturn value but got ${values}`);
@@ -3377,26 +3412,22 @@ const Megatron = (function () {
       if (return_hint instanceof SingleReturn) {
         const target = transformed[0];
 
-        LOGGER.debug(`Reply.callback: single return value: ${target}`);
+        logger.debug(`single return value: ${target}`);
 
         return_hint.validate(target);
         if (this.return_naked.indexOf(target.type)) {
-          LOGGER.debug(
-            `Reply.callback: returning value as is/naked: ${target.value} from ${target}`,
+          logger.debug(
+            `returning value as is/naked: ${target.value} from ${target}`,
           );
           return target.value;
         }
       } else {
-        LOGGER.debug(
-          `Reply.callback: validate list/multi-return: ${transformed}`,
-        );
+        logger.debug(`validate list/multi-return: ${transformed}`);
         return_hint.validate(transformed);
       }
 
       const encoded_buffer = new Uint8Array(this.encode(transformed));
-      LOGGER.debug(
-        `Reply.callback: encoded value: ${transformed} -> ${encoded_buffer}`,
-      );
+      logger.debug(`encoded value: ${transformed} -> ${encoded_buffer}`);
 
       const allocation_id = new BigInt(
         this.memory.writeUint8Array(encoded_buffer),
@@ -3439,14 +3470,17 @@ const Megatron = (function () {
         throw new Error("values must be a list/array");
       }
 
+      const logger = LOGGER.scoped("Reply.encode");
+
       // create our content byte buffer
-      const initial_bytes_size = 80;
-      const content = new ArrayBuffer(initial_bytes_size, {
+      let size = 80;
+      let size_at_70 = Math.floor(size * 0.7) - Move.MOVE_BY_64_BYTES;
+      const content = new ArrayBuffer(size, {
         maxByteLength: FOUR_GIG_BYTES,
       });
 
       // create our view for setting up values correctly.
-      const view = new DataView(content);
+      let view = new DataView(content);
 
       let offset = 0;
 
@@ -3454,6 +3488,24 @@ const Megatron = (function () {
       offset += Move.MOVE_BY_1_BYTES;
 
       for (let index = 0; index < values.length; index++) {
+        // if we are close to 70% full, then increase size by size.
+        if (
+          offset >= size_at_70 ||
+          offset + Move.MOVE_BY_64_BYTES > size_at_70
+        ) {
+          size = size * 2;
+          size_at_70 = Math.floor(size * 0.7);
+
+          content.resize(size);
+          view = new DataView(content);
+          logger.debug(
+            "Resizing buffer to new size=",
+            size,
+            " with 70% mark at: ",
+            size_at_70,
+          );
+        }
+
         const value = values[index];
         if (isUndefinedOrNull(value.type)) {
           throw new Error("Reply types must have a type id");
@@ -3471,15 +3523,36 @@ const Megatron = (function () {
         offset = encoder(offset, value, view);
       }
 
+      // if we are close to 70% full, then increase size by size.
+      if (offset >= size_at_70) {
+        logger.debug(
+          "Resizing due to offset at: ",
+          offset,
+          " with size of buffer: ",
+          content.byteLength,
+        );
+        size = size * 2;
+        size_at_70 = Math.floor(size * 0.7);
+
+        content.resize(size);
+        view = new DataView(content);
+        logger.debug(
+          "Resizing buffer to new size=",
+          size,
+          " with 70% mark at: ",
+          size_at_70,
+        );
+      }
+
       view.setUint8(offset, ReturnValueMarker.End, true);
       offset += Move.MOVE_BY_1_BYTES;
 
       const encodedBufferSize = content.byteLength;
       LOGGER.debug(
-        `Finished encoding data with initial_size=${initial_bytes_size} and encoded_size=${offset} with byteLength=`,
+        `Finished encoding data with initial_size=${size} and encoded_size=${offset} with byteLength=`,
         encodedBufferSize,
       );
-      if (offset < initial_bytes_size) {
+      if (offset < content.byteLength) {
         content.resize(offset);
       }
 
@@ -4443,7 +4516,7 @@ const Megatron = (function () {
     }
 
     static asErrorCode(value) {
-      if (typeof value !== "number") {
+      if (!isBigIntOrNumber(value)) {
         throw new Error("Value must be uint16");
       }
       return Reply.asValue(ReturnTypeId.ErrorCode, value);
@@ -4768,7 +4841,7 @@ const Megatron = (function () {
       );
 
       LOGGER.debug(
-        "ExternalPointer: ",
+        "BatchInstructions.parse_and_invoke: ExternalPointer: ",
         external_id,
         " with now index: ",
         moved_by,
@@ -4780,7 +4853,7 @@ const Megatron = (function () {
         texts,
       );
       LOGGER.debug(
-        "Extracted ReturnTypeHints: ",
+        "BatchInstructions.parse_and_invoke: Extracted ReturnTypeHints: ",
         return_hints,
         moved_after_return,
       );
@@ -4793,16 +4866,20 @@ const Megatron = (function () {
 
       moved_by = moved_after_parameters;
 
-      LOGGER.debug("Params: ", moved_by, external_id, parameters);
+      LOGGER.debug(
+        "BatchInstructions.parse_and_invoke: Params: ",
+        moved_by,
+        external_id,
+        parameters,
+      );
       const callbable = (instance) => {
         const callable = instance.function_heap.get(external_id.value);
-        LOGGER.debug(
-          `Retrieved callable: ${callbable} from external_id=${external_id}`,
-        );
-
         const result = callable.apply(instance, parameters);
 
-        LOGGER.debug("Function returned: ", result);
+        LOGGER.debug(
+          "BatchInstructions.parse_and_invoke: Function returned: ",
+          result,
+        );
 
         // validate result with expected return hint.
         return_hints.validate(result);
@@ -4824,7 +4901,7 @@ const Megatron = (function () {
         );
 
         LOGGER.debug(
-          "parse_and_invoke: result=",
+          "BatchInstructions.parse_and_invoke: parse_and_invoke: result=",
           result,
           " with encoded_result=",
           encoded_result,
@@ -5071,6 +5148,9 @@ const Megatron = (function () {
     }
 
     no_return_instructions(ops_pointer, ops_length, text_pointer, text_length) {
+      const logger = LOGGER.scoped(
+        "MegatronMiddleware.returning_instructions: ",
+      );
       const instructions = this.batch_parser.parse_instructions(
         ops_pointer,
         ops_length,
@@ -5078,7 +5158,7 @@ const Megatron = (function () {
         text_length,
       );
 
-      LOGGER.debug("Received instructions for batch: ", instructions);
+      logger.debug("Received instructions for batch: ", instructions);
 
       for (let index in instructions) {
         const instruction = instructions[index];
@@ -5087,13 +5167,18 @@ const Megatron = (function () {
     }
 
     returning_instructions(ops_pointer, ops_length, text_pointer, text_length) {
+      const logger = LOGGER.scoped(
+        "MegatronMiddleware.returning_instructions: ",
+      );
+
       const instructions = this.batch_parser.parse_instructions(
         ops_pointer,
         ops_length,
         text_pointer,
         text_length,
       );
-      LOGGER.debug(
+
+      logger.debug(
         "returning_instructions: Received instructions for batch: ",
         instructions,
       );
@@ -5104,35 +5189,40 @@ const Megatron = (function () {
         let result = instruction.call(this, this);
         if (isUndefinedOrNull(result)) continue;
 
-        LOGGER.debug("Received result value: ", result);
+        logger.debug("Received result value: ", result);
 
         const alloc_id = this.reply_parser.encode_into_memory(result.value);
-        LOGGER.debug(
+        logger.debug(
           "returning_instructions: Written result into memory: ",
           result,
           alloc_id,
         );
 
-        results.push(alloc_id);
+        results.push([result, alloc_id]);
       }
 
-      LOGGER.debug("returning_instructions: All results memory id: ", results);
+      logger.debug("returning_instructions: All results memory id: ", results);
 
       // create our content byte buffer
       // x 64bit numbers + 2 int8 numbers for header & trailer + x int8 numbers indicate
       // return type.
       //
       // Where x is the total number of return items,.
-      const size = Move.MOVE_BY_64_BYTES * results.length + 2 + results.length;
-      LOGGER.debug(
-        "returning_instructions: Creating ArrayBuffer of size=",
+      let size = Move.MOVE_BY_64_BYTES * results.length + 2 + results.length;
+      let size_at_70 = Math.floor(size * 0.7);
+      logger.debug(
+        "Creating ArrayBuffer of size=",
         size,
+        " with 70% mark at: ",
+        size_at_70,
       );
 
-      const content = new ArrayBuffer(size);
+      const content = new ArrayBuffer(size, {
+        maxByteLength: FOUR_GIG_BYTES,
+      });
 
       // create our view for setting up values correctly.
-      const view = new DataView(content);
+      let view = new DataView(content);
 
       let offset = 0;
 
@@ -5140,27 +5230,97 @@ const Megatron = (function () {
       offset += Move.MOVE_BY_1_BYTES;
 
       for (let index = 0; index < results.length; index++) {
-        const value = results[index];
+        // if we are close to 70% full, then increase size by size.
+        if (
+          offset >= size_at_70 ||
+          offset + Move.MOVE_BY_64_BYTES > size_at_70
+        ) {
+          size = size * 2;
+          size_at_70 = Math.floor(size * 0.7);
+
+          content.resize(size);
+          view = new DataView(content);
+          logger.debug(
+            "Resizing buffer to new size=",
+            size,
+            " with 70% mark at: ",
+            size_at_70,
+          );
+        }
+
+        const items = results[index];
+        const container = items[0];
+        const value = items[1];
+
         if (!isBigInt(value)) {
           throw new Error("Value must be a BigInt");
         }
 
-        LOGGER.debug(
+        logger.debug(
           "returning_instructions: Getting encoder for value: ",
           value,
+          container,
           index,
         );
-        view.setBigUint64(offset, value, true);
+        view.setUint8(offset, container.hint_type, true);
+        offset += Move.MOVE_BY_1_BYTES;
 
+        if (container.value_type instanceof Array) {
+          view.setUint16(offset, container.value_type.length, true);
+          offset += Move.MOVE_BY_16_BYTES;
+
+          for (let index2 in container.value_type) {
+            let index_type = container.value_type[index2];
+            view.setUint8(offset, index_type, true);
+            offset += Move.MOVE_BY_1_BYTES;
+          }
+        } else {
+          view.setUint8(offset, container.value_type, true);
+          offset += Move.MOVE_BY_1_BYTES;
+        }
+
+        view.setBigUint64(offset, value, true);
         offset += Move.MOVE_BY_64_BYTES;
+      }
+
+      // if we are close to 70% full, then increase size by size.
+      if (offset >= size_at_70) {
+        logger.debug(
+          "Resizing due to offset at: ",
+          offset,
+          " with size of buffer: ",
+          content.byteLength,
+        );
+        size = size * 2;
+        size_at_70 = Math.floor(size * 0.7);
+
+        content.resize(size);
+        view = new DataView(content);
+        logger.debug(
+          "Resizing buffer to new size=",
+          size,
+          " with 70% mark at: ",
+          size_at_70,
+        );
       }
 
       view.setUint8(offset, GroupReturnHintMarker.Stop, true);
       offset += Move.MOVE_BY_1_BYTES;
 
+      // shrink content to fit final offset
+      if (offset < content.byteLength) {
+        logger.debug(
+          "Shrinking size of buffer with offset at: ",
+          offset,
+          " with size of buffer: ",
+          content.byteLength,
+        );
+        content.resize(offset);
+      }
+
       const encoded_buffer = new Uint8Array(content);
       const reply_id = BigInt(this.operator.writeUint8Array(encoded_buffer));
-      LOGGER.debug(
+      logger.debug(
         "returning_instructions:  written return values to: ",
         reply_id,
       );
@@ -5189,14 +5349,20 @@ const Megatron = (function () {
     }
 
     object_allocate_external_pointer() {
+      const logger = LOGGER.scoped(
+        "MegatronMiddlewarte.object_allocate_external_pointer",
+      );
       const slot_id = this.object_heap.create(null);
-      LOGGER.debug("Creating new object pointer for pre-allocation: ", slot_id);
+      logger.debug("Creating new object pointer for pre-allocation: ", slot_id);
       return slot_id;
     }
 
     function_allocate_external_pointer() {
+      const logger = LOGGER.scoped(
+        "MegatronMiddlewarte.function_allocate_external_pointer",
+      );
       const slot_id = this.function_heap.create(null);
-      LOGGER.debug(
+      logger.debug(
         "Creating new function pointer for pre-allocation: ",
         slot_id,
       );
@@ -5204,13 +5370,19 @@ const Megatron = (function () {
     }
 
     dom_allocate_external_pointer() {
+      const logger = LOGGER.scoped(
+        "MegatronMiddlewarte.dom_allocate_external_pointer",
+      );
       const slot_id = this.dom_heap.create(null);
-      LOGGER.debug("Creating new DOM pointer for pre-allocation: ", slot_id);
+      logger.debug("Creating new DOM pointer for pre-allocation: ", slot_id);
       return slot_id;
     }
 
     host_cache_string(start, length, utf_indicator) {
-      LOGGER.debug(
+      const logger = LOGGER.scoped(
+        "MegatronMiddlewarte.host_register_function",
+      );
+      logger.debug(
         "Register string for cache/interning: ",
         start,
         length,
@@ -5233,7 +5405,7 @@ const Megatron = (function () {
         target_string = this.texts.readShortUTF8FromMemory(start, length);
       }
 
-      LOGGER.debug(`Generated cache string: ${target_string}`);
+      logger.debug(`Generated cache string: ${target_string}`);
 
       if (!target_string) throw new Error("No valid string was provided");
 
@@ -5241,7 +5413,10 @@ const Megatron = (function () {
     }
 
     host_register_function(start, length, utf_indicator) {
-      LOGGER.debug(
+      const logger = LOGGER.scoped(
+        "MegatronMiddlewarte.host_register_function",
+      );
+      logger.debug(
         "Register function: ",
         start,
         length,
@@ -5279,6 +5454,9 @@ const Megatron = (function () {
       parameter_length,
       return_hints,
     ) {
+      const logger = LOGGER.scoped(
+        "MegatronMiddlewarte.host_invoke_function_for_return",
+      );
       // read parameters and invoke function via handle.
       const parameters = this.parameter_v1.parse_array(
         parameter_start,
@@ -5288,7 +5466,7 @@ const Megatron = (function () {
       if (!parameters && parameter_length > 0)
         throw new Error("No parameters returned though we expect some");
 
-      LOGGER.debug(
+      logger.debug(
         `host_invoke_function_with_return: Parameters=${parameters} (type=${typeof parameters})`,
         parameters,
       );
@@ -5296,7 +5474,7 @@ const Megatron = (function () {
       const func = this.function_heap.get(handle);
 
       const response = func.call(this, ...parameters);
-      LOGGER.debug("host_invoke_function_with_return: result=", response);
+      logger.debug("host_invoke_function_with_return: result=", response);
 
       return this.reply_parser.immediate(return_hints, response);
     }
@@ -5308,6 +5486,10 @@ const Megatron = (function () {
       returns_start,
       returns_length,
     ) {
+      const logger = LOGGER.scoped(
+        "MegatronMiddlewarte.host_invoke_function_for_return",
+      );
+
       // read parameters and invoke function via handle.
       const parameters = this.parameter_v1.parse_array(
         parameter_start,
@@ -5317,7 +5499,7 @@ const Megatron = (function () {
       if (!parameters && parameter_length > 0)
         throw new Error("No parameters returned though we expect some");
 
-      LOGGER.debug(
+      logger.debug(
         `host_invoke_function_with_return: Parameters=${parameters} (type=${typeof parameters})`,
         parameters,
       );
@@ -5326,14 +5508,14 @@ const Megatron = (function () {
         returns_start,
         returns_length,
       );
-      LOGGER.debug(
+      logger.debug(
         `host_invoke_function_with_return: Return hints(read=${read}): ${return_hints}`,
       );
 
       const func = this.function_heap.get(handle);
 
       const response = func.call(this, ...parameters);
-      LOGGER.debug("host_invoke_function_with_return: result=", response);
+      logger.debug("host_invoke_function_with_return: result=", response);
 
       return this.reply_parser.immediate(return_hints, response);
     }
@@ -5346,6 +5528,9 @@ const Megatron = (function () {
       returns_start,
       returns_length,
     ) {
+      const logger = LOGGER.scoped(
+        "MegatronMiddlewarte.host_invoke_function_for_return",
+      );
       // read parameters and invoke function via handle.
       const parameters = this.parameter_v1.parse_array(
         parameter_start,
@@ -5359,14 +5544,14 @@ const Megatron = (function () {
         returns_start,
         returns_length,
       );
-      LOGGER.debug(
+      logger.debug(
         `host_invoke_function_with_return: Return hints(read=${read}): ${return_hints}`,
       );
 
       const func = this.function_heap.get(handle);
 
       const response = func.call(this, ...parameters);
-      LOGGER.debug("host_invoke_callback_function: result=", response);
+      logger.debug("host_invoke_callback_function: result=", response);
 
       this.reply_parser.callback(
         new BigInt(callback_handle),

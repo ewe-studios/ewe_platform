@@ -9,9 +9,9 @@ use crate::{
     BinaryReadError, BinaryReaderResult, CompletedInstructions, ExternalPointer, FromBinary,
     GroupReturnHintMarker, Instructions, InternalCallback, InternalPointer,
     InternalReferenceRegistry, JSEncoding, MemoryAllocation, MemoryAllocationError,
-    MemoryAllocations, MemoryId, Params, ReturnTypeHints, ReturnTypeId, ReturnValueError,
-    ReturnValueMarker, ReturnValues, Returns, ToBinary, MOVE_ONE_BYTE, MOVE_SIXTEEN_BYTES,
-    MOVE_SIXTY_FOUR_BYTES, MOVE_THIRTY_TWO_BYTES,
+    MemoryAllocations, MemoryId, Params, ReturnTypeHints, ReturnTypeId, ReturnTypes,
+    ReturnValueError, ReturnValueMarker, ReturnValues, Returns, ToBinary, MOVE_ONE_BYTE,
+    MOVE_SIXTEEN_BYTES, MOVE_SIXTY_FOUR_BYTES, MOVE_THIRTY_TWO_BYTES,
 };
 
 static INTERNAL_CALLBACKS: Mutex<InternalReferenceRegistry> = InternalReferenceRegistry::create();
@@ -948,6 +948,7 @@ impl FromBinary for ReturnTypeHints {
 /// underlying type which is a grouping of return values
 /// from the host where it represent a batch of return values
 /// that should be generated/materialized.
+#[derive(Default)]
 pub struct GroupReturnTypeHints;
 
 impl FromBinary for GroupReturnTypeHints {
@@ -963,37 +964,108 @@ impl FromBinary for GroupReturnTypeHints {
             return Err(BinaryReadError::WrongEndingCode(input_bin[length - 1]));
         }
 
-        // let value_start = 1;
-        // let value_end = length - 1;
-        //
-        // let bin = &input_bin[value_start..value_end];
-        //
-        // let mut decoded = Vec::with_capacity(1);
-        //
-        // let mut index = 0;
-        //
-        // while index < bin.len() {
-        //     let end = index + MOVE_SIXTY_FOUR_BYTES;
-        //     let portion = &bin[index..end];
-        //     let mut section: [u8; 8] = Default::default();
-        //     section.copy_from_slice(portion);
-        //
-        //     let alloc_id = u64::from_le_bytes(section);
-        //     let mem_id = MemoryId::from_u64(alloc_id);
-        //
-        //     let memory_result = ALLOCATIONS.lock().get(mem_id);
-        //     if let Err(err) = memory_result {
-        //         return Some(Err(err.into()));
-        //     }
-        //     let mut memory = memory_result.unwrap();
-        //     let memory_vec_container = memory.take();
-        //     if memory_vec_container.is_none() {
-        //         return Some(Err(BinaryReadError::MemoryError(String::from(
-        //             "No Vec<u8> not found, big problem",
-        //         ))));
-        //     }
-        // }
-        todo!()
+        let value_start = 1;
+        let value_end = length - 1;
+
+        let bin = &input_bin[value_start..value_end];
+        // panic!("Received binary info: {:?}", bin);
+
+        let mut decoded = Vec::with_capacity(2);
+
+        let mut index = 0;
+
+        while index < bin.len() {
+            let reply_type: ReturnTypes = u8::from_le(bin[index]).into();
+            index += MOVE_ONE_BYTE;
+
+            let return_hint: ReturnTypeHints = match reply_type {
+                ReturnTypes::One => {
+                    let value_type: ReturnTypeId = u8::from_le(bin[index]).into();
+                    index += MOVE_ONE_BYTE;
+
+                    ReturnTypeHints::One(value_type)
+                }
+                ReturnTypes::List => {
+                    let value_type: ReturnTypeId = u8::from_le(bin[index]).into();
+                    index += MOVE_ONE_BYTE;
+
+                    ReturnTypeHints::List(value_type)
+                }
+                ReturnTypes::Multi => {
+                    let item_count_start = index;
+                    let item_count_end = index + MOVE_SIXTEEN_BYTES;
+                    index = item_count_end;
+
+                    let item_count_slice = &bin[item_count_start..item_count_end];
+                    let mut item_count_arr: [u8; 2] = Default::default();
+                    item_count_arr.copy_from_slice(item_count_slice);
+
+                    let item_count = u16::from_le_bytes(item_count_arr);
+
+                    let mut value_types = Vec::with_capacity(item_count as usize);
+                    for _ in 1..item_count {
+                        let item_value: ReturnTypeId = u8::from_le(bin[index]).into();
+                        value_types.push(item_value);
+                        index += MOVE_ONE_BYTE;
+                    }
+
+                    ReturnTypeHints::Multi(value_types)
+                }
+                ReturnTypes::None => unreachable!("should never get type of value from host"),
+            };
+
+            let end = index + MOVE_SIXTY_FOUR_BYTES;
+            let portion = &bin[index..end];
+
+            index = end;
+
+            let mut section: [u8; 8] = Default::default();
+            section.copy_from_slice(portion);
+
+            let alloc_id = u64::from_le_bytes(section);
+            let mem_id = MemoryId::from_u64(alloc_id);
+
+            let memory_result = ALLOCATIONS.lock().get(mem_id);
+            if let Err(err) = memory_result {
+                return Err(err.into());
+            }
+            let memory = memory_result.unwrap();
+
+            match memory.into_with(|mem| return_hint.clone().from_binary(mem.as_ref())) {
+                Some(item_result) => {
+                    let mut item = item_result?;
+
+                    let value_item = match return_hint {
+                        ReturnTypeHints::One(_) => {
+                            if item.len() != 1 {
+                                return Err(BinaryReadError::MemoryError(String::from(
+                                    "more than one item for ReturnTypes::One(_)",
+                                )));
+                            }
+                            Returns::One(item.pop().expect("valid index"))
+                        }
+                        ReturnTypeHints::List(_) => Returns::List(item),
+                        ReturnTypeHints::Multi(_) => Returns::Multi(item),
+                        ReturnTypeHints::None => {
+                            unreachable!("should never get return type from group")
+                        }
+                    };
+
+                    decoded.push(value_item);
+                }
+                None => {
+                    return Err(BinaryReadError::MemoryError(String::from(
+                        "expected a valid returned value not None",
+                    )));
+                }
+            };
+
+            if let Err(err) = ALLOCATIONS.lock().deallocate(mem_id) {
+                return Err(err.into());
+            }
+        }
+
+        Ok(decoded)
     }
 }
 
@@ -1431,7 +1503,9 @@ pub mod host_runtime {
         ///
         /// We ensure to keep the order of instructions to returned values through
         /// group returns.
-        pub fn batch_response(instruction: CompletedInstructions) -> u64 {
+        pub fn batch_response(
+            instruction: CompletedInstructions,
+        ) -> BinaryReaderResult<Vec<Returns>> {
             let operations_memory = internal_api::get_memory(instruction.ops_id);
             let text_memory = internal_api::get_memory(instruction.text_id);
 
@@ -1439,14 +1513,37 @@ pub mod host_runtime {
                 operations_memory.as_address().expect("get ops address");
             let (text_pointer, text_length) = text_memory.as_address().expect("get text address");
 
-            unsafe {
+            let return_id = unsafe {
                 host_runtime::web::host_batch_returning_apply(
                     ops_pointer as u64,
                     ops_length,
                     text_pointer as u64,
                     text_length,
                 )
+            };
+
+            let mem_id = MemoryId::from_u64(return_id);
+            let memory_result = ALLOCATIONS.lock().get(mem_id);
+            if let Err(err) = memory_result {
+                return Err(err.into());
             }
+            let memory = memory_result.unwrap();
+
+            let result = match memory.into_with(|item| {
+                let group: GroupReturnTypeHints = Default::default();
+                group.from_binary(item.as_ref())
+            }) {
+                Some(value) => value,
+                None => Err(BinaryReadError::MemoryError(String::from(
+                    "unable to read return values",
+                ))),
+            };
+
+            if let Err(err) = ALLOCATIONS.lock().deallocate(mem_id) {
+                return Err(err.into());
+            }
+
+            result
         }
 
         /// [`cache_text`] provides a way to have the host runtime cache an expense
