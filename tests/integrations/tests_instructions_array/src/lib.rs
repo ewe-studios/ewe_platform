@@ -9,6 +9,17 @@ use foundation_nostd::*;
 
 #[no_mangle]
 extern "C" fn main() {
+    let console_log = host_runtime::web::register_function(
+        r"
+        function(message){
+            console.log('Error occurred: ',message);
+        }",
+    );
+
+    std::panic::set_hook(Box::new(move |e| {
+        console_log.invoke_no_return(&[Params::Text8(e.to_string().as_str())]);
+    }));
+
     let cached_id = host_runtime::web::cache_text("alex");
 
     let console_log_id = host_runtime::web::allocate_function_reference();
@@ -47,5 +58,9 @@ extern "C" fn main() {
         )
         .expect("encode instruction");
 
-    host_runtime::web::batch_response(instructions.complete().expect("complete instruction"));
+    let items =
+        host_runtime::web::batch_response(instructions.complete().expect("complete instruction"))
+            .expect("got no response");
+
+    assert_eq!(items.len(), 1);
 }
