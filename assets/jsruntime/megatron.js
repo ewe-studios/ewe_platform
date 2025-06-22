@@ -1341,6 +1341,11 @@ const Megatron = (function () {
       this.type_validators[ReturnTypeId.Float64] = this.validateFloat;
     }
 
+    asValue(value) {
+      if (this.return_type == ReturnTypes.None) return null;
+      return ReturnHintValue(this, value);
+    }
+
     get return_valuetype() {
       return this.value_type;
     }
@@ -1431,6 +1436,16 @@ const Megatron = (function () {
         return true;
       }
       return false;
+    }
+  }
+
+  class ReturnHintValue {
+    constructor(hint, value) {
+      if (!(hint instanceof ReturnHint)) {
+        throw new Error("Must be instance of MemoryOperator");
+      }
+      this.hint_type = hint.return_type;
+      this.value = value;
     }
   }
 
@@ -3171,16 +3186,6 @@ const Megatron = (function () {
     }
   }
 
-  class InvocationResponse {
-    constructor(hint, value) {
-      if (!(hint instanceof ReturnHint)) {
-        throw new Error("Must be instance of MemoryOperator");
-      }
-      this.hint = hint;
-      this.value = value;
-    }
-  }
-
   class Reply {
     constructor(
       memory_operator,
@@ -4242,18 +4247,18 @@ const Megatron = (function () {
       }
     }
 
-    static get_value_type_hint(index, hints) {
+    static rewrap_value(hint, value) {
       LOGGER.debug(
-        "Requesting value for hint type: ",
-        hints,
-        " at index: ",
-        index,
+        "Rewrapping value for hint type: ",
+        hint,
+        " for value: ",
+        value,
       );
       if (hints instanceof NoReturn) {
-        return ReturnTypeId.None;
+        return InvocationResponse(hint, null);
       }
       if (hints instanceof SingleReturn) {
-        return hints.value_type;
+        return InvocationResponse(hint, value);
       }
       if (hints instanceof MultiReturn) {
         return hints.value_type[index];
@@ -4512,6 +4517,7 @@ const Megatron = (function () {
     }
   }
 
+  const MAKE_FUNCTION_HINT = new SingleReturn(ReturnTypeId.ExternalReference);
   const MAKE_FUNCTION = new BatchOperation(
     Operations.MakeFunction,
     (instance, operation_id, read_index, operations, texts) => {
@@ -4583,7 +4589,10 @@ const Megatron = (function () {
         // for calling the function.
         instance.function_heap.update(external_id.value, function_invoker);
 
-        return Reply.asExternalReference(external_id);
+        return new ReturnHintValue(
+          MAKE_FUNCTION_HINT,
+          Reply.asExternalReference(external_id),
+        );
       };
 
       return [move_by_next, register_function];
@@ -4793,8 +4802,14 @@ const Megatron = (function () {
 
         const result = callable.apply(instance, parameters);
 
+        LOGGER.debug("Function returned: ", result);
+
         // validate result with expected return hint.
         return_hints.validate(result);
+
+        if (return_hints instanceof NoReturn) {
+          return null;
+        }
 
         if (!isUndefinedOrNull(result) && !isUndefinedOrNull(result_callback)) {
           result_callback(result);
@@ -4815,7 +4830,7 @@ const Megatron = (function () {
           encoded_result,
         );
 
-        return encoded_result;
+        return return_hint.asValue(encoded_result);
       };
 
       return [moved_by, callbable];
@@ -5067,9 +5082,7 @@ const Megatron = (function () {
 
       for (let index in instructions) {
         const instruction = instructions[index];
-        LOGGER.debug("Executing instruction: ", instruction);
-        let result = instruction.call(this, this);
-        LOGGER.debug("Instructured return result: ", result);
+        instruction.call(this, this);
       }
     }
 
@@ -5088,21 +5101,16 @@ const Megatron = (function () {
       const results = [];
       for (let index in instructions) {
         const instruction = instructions[index];
-        LOGGER.debug(
-          "returning_instructions: Executing instruction: ",
-          instruction,
-        );
         let result = instruction.call(this, this);
-        LOGGER.debug(
-          "returning_instructions: Instructured return result: ",
-          result,
-        );
+        if (isUndefinedOrNull(result)) continue;
 
-        const alloc_id = this.reply_parser.encode_into_memory(result);
+        LOGGER.debug("Received result value: ", result);
+
+        const alloc_id = this.reply_parser.encode_into_memory(result.value);
         LOGGER.debug(
           "returning_instructions: Written result into memory: ",
-          alloc_id,
           result,
+          alloc_id,
         );
 
         results.push(alloc_id);
@@ -5111,7 +5119,11 @@ const Megatron = (function () {
       LOGGER.debug("returning_instructions: All results memory id: ", results);
 
       // create our content byte buffer
-      const size = Move.MOVE_BY_64_BYTES * results.length + 2; // 2 for the wrapper flags
+      // x 64bit numbers + 2 int8 numbers for header & trailer + x int8 numbers indicate
+      // return type.
+      //
+      // Where x is the total number of return items,.
+      const size = Move.MOVE_BY_64_BYTES * results.length + 2 + results.length;
       LOGGER.debug(
         "returning_instructions: Creating ArrayBuffer of size=",
         size,
