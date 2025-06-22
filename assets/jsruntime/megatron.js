@@ -4320,6 +4320,25 @@ const Megatron = (function () {
       }
     }
 
+    static get_value_type_hint(index, hints) {
+      LOGGER.debug(
+        "Requesting value for hint type: ",
+        hints,
+        " at index: ",
+        index,
+      );
+      if (hints instanceof SingleReturn) {
+        return hints.value_type;
+      }
+      if (hints instanceof MultiReturn) {
+        return hints.value_type[index];
+      }
+      if (hints instanceof ListReturn) {
+        return hints.value_type[index];
+      }
+
+      throw new Error("Unknown hint type: ", hints);
+    }
     static rewrap_value(hint, value) {
       LOGGER.debug(
         "Rewrapping value for hint type: ",
