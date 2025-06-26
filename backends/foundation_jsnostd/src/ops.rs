@@ -2514,7 +2514,7 @@ impl Instructions {
 mod test_instructions {
     extern crate std;
 
-    use crate::{ReturnIds, TypeOptimization};
+    use crate::{ReturnIds, ReturnTypeId, ThreeState, ThreeStateId, TypeOptimization};
 
     use super::*;
 
@@ -2680,7 +2680,7 @@ mod test_instructions {
             .invoke(
                 function_handle,
                 Some(&[Params::Text8("Hello from intro")]),
-                ReturnTypeHints::None,
+                ReturnTypeHints::One(ThreeState::One(crate::ReturnTypeId::None)),
             )
             .expect("should register call");
 
@@ -2738,7 +2738,9 @@ mod test_instructions {
                 0,
                 0,
                 ReturnHintMarker::Start as u8,
-                ReturnIds::None as u8,
+                ReturnIds::One as u8,
+                ThreeStateId::One as u8,
+                ReturnTypeId::None as u8,
                 ReturnHintMarker::Stop as u8,
                 ArgumentOperations::Start as u8, // start of all arguments
                 2,
