@@ -2,7 +2,7 @@
 
 use foundation_jsnostd::{
     self, exposed_runtime, host_runtime, internal_api, ExternalPointer, Params, ReturnTypeHints,
-    ReturnTypeId,
+    ReturnTypeId, ThreeState,
 };
 
 use foundation_nostd::*;
@@ -19,6 +19,6 @@ extern "C" fn main() {
 
     console_log.invoke(
         &[Params::Text8("Hello from intro")],
-        ReturnTypeHints::One(ReturnTypeId::Object),
+        ReturnTypeHints::One(ThreeState::One(ReturnTypeId::Object)),
     );
 }

@@ -9,9 +9,9 @@ use crate::{
     BinaryReadError, BinaryReaderResult, CompletedInstructions, ExternalPointer, FromBinary,
     GroupReturnHintMarker, Instructions, InternalCallback, InternalPointer,
     InternalReferenceRegistry, JSEncoding, MemoryAllocation, MemoryAllocationError,
-    MemoryAllocations, MemoryId, Params, ReturnTypeHints, ReturnTypeId, ReturnTypes,
-    ReturnValueError, ReturnValueMarker, ReturnValues, Returns, ToBinary, MOVE_ONE_BYTE,
-    MOVE_SIXTEEN_BYTES, MOVE_SIXTY_FOUR_BYTES, MOVE_THIRTY_TWO_BYTES,
+    MemoryAllocations, MemoryId, Params, ReturnTypeHints, ReturnTypeId, ReturnIds,
+    ReturnValueError, ReturnValueMarker, ReturnValues, Returns, ThreeState, ThreeStateId, ToBinary,
+    MOVE_ONE_BYTE, MOVE_SIXTEEN_BYTES, MOVE_SIXTY_FOUR_BYTES, MOVE_THIRTY_TWO_BYTES,
 };
 
 static INTERNAL_CALLBACKS: Mutex<InternalReferenceRegistry> = InternalReferenceRegistry::create();
@@ -871,33 +871,97 @@ impl Iterator for ReturnValueParserIter<'_> {
                 let item_value_type_id = item.to_return_value_type();
 
                 match self.hint.clone() {
-                    ReturnTypeHints::One(return_type_id) => {
-                        if item_value_type_id != return_type_id {
-                            return Some(Err(BinaryReadError::NotMatchingTypeHint(
-                                return_type_id,
-                                item_value_type_id,
-                            )));
+                    ReturnTypeHints::One(state) => match state {
+                        crate::ThreeState::One(return_type_id) => {
+                            if item_value_type_id != return_type_id {
+                                return Some(Err(BinaryReadError::NotMatchingTypeHint(
+                                    state,
+                                    item_value_type_id,
+                                )));
+                            }
                         }
-                    }
-                    ReturnTypeHints::Multi(return_type_ids) => {
-                        let next_type_id = return_type_ids[self.item_index];
-
-                        if item_value_type_id != next_type_id {
-                            return Some(Err(BinaryReadError::NotMatchingTypeHint(
-                                next_type_id,
-                                item_value_type_id,
-                            )));
+                        crate::ThreeState::Two(p1, p2) => {
+                            if item_value_type_id != p1 && item_value_type_id != p2 {
+                                return Some(Err(BinaryReadError::NotMatchingTypeHint(
+                                    state,
+                                    item_value_type_id,
+                                )));
+                            }
+                        }
+                        crate::ThreeState::Three(p1, p2, p3) => {
+                            if item_value_type_id != p1
+                                && item_value_type_id != p2
+                                && item_value_type_id != p3
+                            {
+                                return Some(Err(BinaryReadError::NotMatchingTypeHint(
+                                    state,
+                                    item_value_type_id,
+                                )));
+                            }
+                        }
+                    },
+                    ReturnTypeHints::Multi(states) => {
+                        let state = states[self.item_index].clone();
+                        match state {
+                            crate::ThreeState::One(return_type_id) => {
+                                if item_value_type_id != return_type_id {
+                                    return Some(Err(BinaryReadError::NotMatchingTypeHint(
+                                        state,
+                                        item_value_type_id,
+                                    )));
+                                }
+                            }
+                            crate::ThreeState::Two(p1, p2) => {
+                                if item_value_type_id != p1 && item_value_type_id != p2 {
+                                    return Some(Err(BinaryReadError::NotMatchingTypeHint(
+                                        state,
+                                        item_value_type_id,
+                                    )));
+                                }
+                            }
+                            crate::ThreeState::Three(p1, p2, p3) => {
+                                if item_value_type_id != p1
+                                    && item_value_type_id != p2
+                                    && item_value_type_id != p3
+                                {
+                                    return Some(Err(BinaryReadError::NotMatchingTypeHint(
+                                        state,
+                                        item_value_type_id,
+                                    )));
+                                }
+                            }
                         }
                         self.item_index += 1;
                     }
-                    ReturnTypeHints::List(return_type_id) => {
-                        if item_value_type_id != return_type_id {
-                            return Some(Err(BinaryReadError::NotMatchingTypeHint(
-                                return_type_id,
-                                item_value_type_id,
-                            )));
+                    ReturnTypeHints::List(state) => match state {
+                        crate::ThreeState::One(return_type_id) => {
+                            if item_value_type_id != return_type_id {
+                                return Some(Err(BinaryReadError::NotMatchingTypeHint(
+                                    state,
+                                    item_value_type_id,
+                                )));
+                            }
                         }
-                    }
+                        crate::ThreeState::Two(p1, p2) => {
+                            if item_value_type_id != p1 && item_value_type_id != p2 {
+                                return Some(Err(BinaryReadError::NotMatchingTypeHint(
+                                    state,
+                                    item_value_type_id,
+                                )));
+                            }
+                        }
+                        crate::ThreeState::Three(p1, p2, p3) => {
+                            if item_value_type_id != p1
+                                && item_value_type_id != p2
+                                && item_value_type_id != p3
+                            {
+                                return Some(Err(BinaryReadError::NotMatchingTypeHint(
+                                    state,
+                                    item_value_type_id,
+                                )));
+                            }
+                        }
+                    },
                     ReturnTypeHints::None => unreachable!("Should never be called"),
                 };
 
@@ -975,23 +1039,79 @@ impl FromBinary for GroupReturnTypeHints {
         let mut index = 0;
 
         while index < bin.len() {
-            let reply_type: ReturnTypes = u8::from_le(bin[index]).into();
+            let reply_type: ReturnIds = u8::from_le(bin[index]).into();
             index += MOVE_ONE_BYTE;
 
             let return_hint: ReturnTypeHints = match reply_type {
-                ReturnTypes::One => {
-                    let value_type: ReturnTypeId = u8::from_le(bin[index]).into();
+                ReturnIds::One => {
+                    let state_type: ThreeStateId = u8::from_le(bin[index]).into();
                     index += MOVE_ONE_BYTE;
 
-                    ReturnTypeHints::One(value_type)
+                    ReturnTypeHints::One(match state_type {
+                        ThreeStateId::One => {
+                            let value_type: ReturnTypeId = u8::from_le(bin[index]).into();
+                            index += MOVE_ONE_BYTE;
+
+                            ThreeState::One(value_type)
+                        }
+                        ThreeStateId::Two => {
+                            let p1: ReturnTypeId = u8::from_le(bin[index]).into();
+                            index += MOVE_ONE_BYTE;
+
+                            let p2: ReturnTypeId = u8::from_le(bin[index]).into();
+                            index += MOVE_ONE_BYTE;
+
+                            ThreeState::Two(p1, p2)
+                        }
+                        ThreeStateId::Three => {
+                            let p1: ReturnTypeId = u8::from_le(bin[index]).into();
+                            index += MOVE_ONE_BYTE;
+
+                            let p2: ReturnTypeId = u8::from_le(bin[index]).into();
+                            index += MOVE_ONE_BYTE;
+
+                            let p3: ReturnTypeId = u8::from_le(bin[index]).into();
+                            index += MOVE_ONE_BYTE;
+
+                            ThreeState::Three(p1, p2, p3)
+                        }
+                    })
                 }
-                ReturnTypes::List => {
-                    let value_type: ReturnTypeId = u8::from_le(bin[index]).into();
+                ReturnIds::List => {
+                    let state_type: ThreeStateId = u8::from_le(bin[index]).into();
                     index += MOVE_ONE_BYTE;
 
-                    ReturnTypeHints::List(value_type)
+                    ReturnTypeHints::List(match state_type {
+                        ThreeStateId::One => {
+                            let value_type: ReturnTypeId = u8::from_le(bin[index]).into();
+                            index += MOVE_ONE_BYTE;
+
+                            ThreeState::One(value_type)
+                        }
+                        ThreeStateId::Two => {
+                            let p1: ReturnTypeId = u8::from_le(bin[index]).into();
+                            index += MOVE_ONE_BYTE;
+
+                            let p2: ReturnTypeId = u8::from_le(bin[index]).into();
+                            index += MOVE_ONE_BYTE;
+
+                            ThreeState::Two(p1, p2)
+                        }
+                        ThreeStateId::Three => {
+                            let p1: ReturnTypeId = u8::from_le(bin[index]).into();
+                            index += MOVE_ONE_BYTE;
+
+                            let p2: ReturnTypeId = u8::from_le(bin[index]).into();
+                            index += MOVE_ONE_BYTE;
+
+                            let p3: ReturnTypeId = u8::from_le(bin[index]).into();
+                            index += MOVE_ONE_BYTE;
+
+                            ThreeState::Three(p1, p2, p3)
+                        }
+                    })
                 }
-                ReturnTypes::Multi => {
+                ReturnIds::Multi => {
                     let item_count_start = index;
                     let item_count_end = index + MOVE_SIXTEEN_BYTES;
                     index = item_count_end;
@@ -1004,14 +1124,43 @@ impl FromBinary for GroupReturnTypeHints {
 
                     let mut value_types = Vec::with_capacity(item_count as usize);
                     for _ in 1..item_count {
-                        let item_value: ReturnTypeId = u8::from_le(bin[index]).into();
-                        value_types.push(item_value);
+                        let state_type: ThreeStateId = u8::from_le(bin[index]).into();
                         index += MOVE_ONE_BYTE;
+
+                        value_types.push(match state_type {
+                            ThreeStateId::One => {
+                                let value_type: ReturnTypeId = u8::from_le(bin[index]).into();
+                                index += MOVE_ONE_BYTE;
+
+                                ThreeState::One(value_type)
+                            }
+                            ThreeStateId::Two => {
+                                let p1: ReturnTypeId = u8::from_le(bin[index]).into();
+                                index += MOVE_ONE_BYTE;
+
+                                let p2: ReturnTypeId = u8::from_le(bin[index]).into();
+                                index += MOVE_ONE_BYTE;
+
+                                ThreeState::Two(p1, p2)
+                            }
+                            ThreeStateId::Three => {
+                                let p1: ReturnTypeId = u8::from_le(bin[index]).into();
+                                index += MOVE_ONE_BYTE;
+
+                                let p2: ReturnTypeId = u8::from_le(bin[index]).into();
+                                index += MOVE_ONE_BYTE;
+
+                                let p3: ReturnTypeId = u8::from_le(bin[index]).into();
+                                index += MOVE_ONE_BYTE;
+
+                                ThreeState::Three(p1, p2, p3)
+                            }
+                        });
                     }
 
                     ReturnTypeHints::Multi(value_types)
                 }
-                ReturnTypes::None => unreachable!("should never get type of value from host"),
+                ReturnIds::None => unreachable!("should never get type of value from host"),
             };
 
             let end = index + MOVE_SIXTY_FOUR_BYTES;
@@ -1039,7 +1188,7 @@ impl FromBinary for GroupReturnTypeHints {
                         ReturnTypeHints::One(_) => {
                             if item.len() != 1 {
                                 return Err(BinaryReadError::MemoryError(String::from(
-                                    "more than one item for ReturnTypes::One(_)",
+                                    "more than one item for ReturnIds::One(_)",
                                 )));
                             }
                             Returns::One(item.pop().expect("valid index"))
@@ -1885,7 +2034,7 @@ pub mod host_runtime {
             match host_runtime::web::invoke_for_replies(
                 handler,
                 params,
-                ReturnTypeHints::One(ReturnTypeId::Text8),
+                ReturnTypeHints::One(ThreeState::One(ReturnTypeId::Text8)),
             ) {
                 Ok(mut values) => match values.pop().unwrap() {
                     ReturnValues::Text8(content) => Ok(content),
@@ -2034,7 +2183,7 @@ pub mod host_runtime {
                 ExternalPointer::pointer(host_runtime::web::invoke(
                     self.handler,
                     params,
-                    ReturnTypeHints::One(ReturnTypeId::DOMObject),
+                    ReturnTypeHints::One(ThreeState::One(ReturnTypeId::DOMObject)),
                 ))
             }
 
@@ -2046,7 +2195,7 @@ pub mod host_runtime {
                 ExternalPointer::pointer(host_runtime::web::invoke(
                     self.handler,
                     params,
-                    ReturnTypeHints::One(ReturnTypeId::Object),
+                    ReturnTypeHints::One(ThreeState::One(ReturnTypeId::Object)),
                 ))
             }
 

@@ -205,11 +205,134 @@ impl From<u8> for ReturnTypeId {
     }
 }
 
-/// [`ReturnTypes`] represent the type indicating the underlying returned
+/// [`ThreeState`] represent the fact that some operation
+/// can be a single state or two or three states (think: `Option` & `Result<T>` or `Result<Option<T>>`)
+/// and we wish to be able to express that clear to users.
+///
+/// This is useful for declaring that a type may return None or Some
+/// or that a type may return a Int or an ErrorCode or even
+/// a type that can b e None or a Concrete Type or ErrorCode.
+///
+/// [`ThreeState`] is about expressing the potential values we
+/// could retrieve and not the amount and this provides us a level
+/// of expressiveness and type safety the [`ReturnTypeId`] afford us
+/// by allowing us to flexible express fallible operations and the
+/// results of those operations clearly and easily without moving
+/// into very hard to deal with unboundness of the types we can express.
+///
+/// More so, this allows us to be clear to both the hosts and to ourselves
+/// on the overall expectations we have.
+///
+/// It provides a deep enough flexibility to allow us express what
+/// that is in a clear and concise way.
+#[derive(Eq, PartialEq, Hash, Debug, Clone)]
+pub enum ThreeState {
+    One(ReturnTypeId),
+    Two(ReturnTypeId, ReturnTypeId),
+    Three(ReturnTypeId, ReturnTypeId, ReturnTypeId),
+}
+
+impl ThreeState {
+    pub fn as_u8(&self) -> u8 {
+        self.to_state_id_u8()
+    }
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for ThreeState {
+    fn into(self) -> u8 {
+        self.to_state_id_u8()
+    }
+}
+
+impl ThreeState {
+    pub fn to_state_id_u8(&self) -> u8 {
+        self.to_state_id() as u8
+    }
+
+    pub fn to_state_id(&self) -> ThreeStateId {
+        match self {
+            Self::One(_) => ThreeStateId::One,
+            Self::Two(_, _) => ThreeStateId::Two,
+            Self::Three(_, _, _) => ThreeStateId::Three,
+        }
+    }
+
+    pub fn to_returns_value_u8(&self) -> Vec<u8> {
+        let mut items = Vec::with_capacity(4);
+
+        items.push(self.to_state_id_u8());
+
+        match self {
+            Self::One(p1) => {
+                items.push(p1.into_u8());
+            }
+            Self::Two(p1, p2) => {
+                items.push(p1.into_u8());
+                items.push(p2.into_u8());
+            }
+            Self::Three(p1, p2, p3) => {
+                items.push(p1.into_u8());
+                items.push(p2.into_u8());
+                items.push(p3.into_u8());
+            }
+        }
+
+        items
+    }
+}
+
+/// [`ThreeStateId`] represent the type indicating the underlying returned
 /// value for an operation.
 #[repr(usize)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum ReturnTypes {
+pub enum ThreeStateId {
+    // Where we can only ever have 1 state
+    One = 70,
+
+    // Where we can have two different states.
+    Two = 80,
+
+    // Where we can have three different states.
+    Three = 90,
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for &ThreeStateId {
+    fn into(self) -> u8 {
+        *self as u8
+    }
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for ThreeStateId {
+    fn into(self) -> u8 {
+        self as u8
+    }
+}
+
+impl ThreeStateId {
+    pub fn as_u8(&self) -> u8 {
+        *self as u8
+    }
+}
+
+impl From<u8> for ThreeStateId {
+    fn from(value: u8) -> Self {
+        match value {
+            70 => Self::One,
+            80 => Self::Two,
+            90 => Self::Three,
+            _ => unreachable!("should not have any other type of ThreeStateId"),
+        }
+    }
+}
+
+/// [`ReturnIds`] represent the type indicating the underlying returned
+/// value for an operation.
+#[repr(usize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ReturnIds {
     None = 0,
 
     // Returns a single result.
@@ -223,26 +346,26 @@ pub enum ReturnTypes {
 }
 
 #[allow(clippy::from_over_into)]
-impl Into<u8> for &ReturnTypes {
+impl Into<u8> for &ReturnIds {
     fn into(self) -> u8 {
         *self as u8
     }
 }
 
 #[allow(clippy::from_over_into)]
-impl Into<u8> for ReturnTypes {
+impl Into<u8> for ReturnIds {
     fn into(self) -> u8 {
         self as u8
     }
 }
 
-impl ReturnTypes {
+impl ReturnIds {
     pub fn as_u8(&self) -> u8 {
         *self as u8
     }
 }
 
-impl From<u8> for ReturnTypes {
+impl From<u8> for ReturnIds {
     fn from(value: u8) -> Self {
         match value {
             0 => Self::None,
@@ -259,9 +382,9 @@ impl From<u8> for ReturnTypes {
 #[derive(Eq, PartialEq, Hash, Debug, Clone)]
 pub enum ReturnTypeHints {
     None,
-    One(ReturnTypeId),
-    Multi(Vec<ReturnTypeId>),
-    List(ReturnTypeId),
+    One(ThreeState),
+    List(ThreeState),
+    Multi(Vec<ThreeState>),
 }
 
 #[allow(clippy::from_over_into)]
@@ -279,29 +402,32 @@ impl ReturnTypeHints {
 
 impl ReturnTypeHints {
     pub fn to_returns_u8(&self) -> u8 {
-        self.to_returns_type() as u8
+        self.to_return_id() as u8
     }
 
-    pub fn to_returns_type(&self) -> ReturnTypes {
+    pub fn to_return_id(&self) -> ReturnIds {
         match self {
-            Self::None => ReturnTypes::None,
-            Self::One(_) => ReturnTypes::One,
-            Self::List(_) => ReturnTypes::List,
-            Self::Multi(_) => ReturnTypes::Multi,
+            Self::None => ReturnIds::None,
+            Self::One(_) => ReturnIds::One,
+            Self::List(_) => ReturnIds::List,
+            Self::Multi(_) => ReturnIds::Multi,
         }
     }
 
     pub fn to_returns_value_u8(&self) -> Option<Vec<u8>> {
-        self.to_returns_value()
-            .map(|inner| inner.iter().map(|item| *item as u8).collect())
+        self.to_returns_value().map(|item| {
+            item.iter()
+                .flat_map(|item| item.to_returns_value_u8())
+                .collect()
+        })
     }
 
-    pub fn to_returns_value(&self) -> Option<Vec<ReturnTypeId>> {
+    pub fn to_returns_value(&self) -> Option<Vec<ThreeState>> {
         match self {
             Self::None => None,
-            Self::One(v) => Some(alloc::vec![*v]),
             Self::Multi(v) => Some(v.clone()),
-            Self::List(v) => Some(alloc::vec![*v]),
+            Self::One(v) => Some(alloc::vec![v.clone()]),
+            Self::List(v) => Some(alloc::vec![v.clone()]),
         }
     }
 }
@@ -334,12 +460,12 @@ impl Returns {
         self.to_returns_type() as u8
     }
 
-    pub fn to_returns_type(&self) -> ReturnTypes {
+    pub fn to_returns_type(&self) -> ReturnIds {
         match self {
-            Self::None => ReturnTypes::None,
-            Self::One(_) => ReturnTypes::One,
-            Self::List(_) => ReturnTypes::List,
-            Self::Multi(_) => ReturnTypes::Multi,
+            Self::None => ReturnIds::None,
+            Self::One(_) => ReturnIds::One,
+            Self::List(_) => ReturnIds::List,
+            Self::Multi(_) => ReturnIds::Multi,
         }
     }
 }
@@ -928,26 +1054,20 @@ pub enum Operations {
     /// B. with arguments: Begin, 3, FunctionHandle(u64), FunctionArguments, {Arguments}, End
     Invoke = 2,
 
-    /// InvokeCallbackFunction represents the desire to call a
+    /// `Operations::InvokeAsync` aka InvokeAsyncCallback represents the desire to call a
     /// function across boundary that takes a callback internal reference
-    /// which it will use to supply appropriate response when ready (say async call)
-    /// as response to being called.
+    /// which it will use to supply appropriate response when ready via the
+    /// returned promise or future the host uses to represent the operation.
+    ///
+    /// The idea is the result is not immediate and hence will not have a
+    /// returned value but instead the internal callback reference will be
+    /// used to deliver the result based on type hints.
     ///
     /// The return value to the callback function must always be of the type: [`Returns`].
     ///
     /// Layout format: Begin, 3, FunctionHandle(u64), ArgStart, ArgBegin, ExternReference, ArgEnd, ArgStop,
     ///  End
-    InvokeCallback = 3,
-
-    /// InvokeAsyncCallbackFunction represents the desire to call a
-    /// async function across boundary that takes a callback internal reference
-    /// which it will use to supply appropriate response when ready.
-    ///
-    /// The return value to the callback function must always be of the type: [`Returns`].
-    ///
-    /// Layout format: Begin, 3, FunctionHandle(u64), ArgStart, ArgBegin, ExternReference, ArgEnd, ArgStop,
-    ///  End
-    InvokeAsyncCallbackFunction = 5,
+    InvokeAsync = 3,
 
     /// End - indicates the end of a portion of a instruction set.
     /// Since an instruction memory array can contain multiple instructions
@@ -982,10 +1102,10 @@ impl Into<u8> for Operations {
 impl From<u8> for Operations {
     fn from(value: u8) -> Self {
         match value {
-            0 => Operations::Begin,
-            1 => Operations::MakeFunction,
-            2 => Operations::Invoke,
-            4 => Operations::InvokeCallback,
+            0 => Self::Begin,
+            1 => Self::MakeFunction,
+            2 => Self::Invoke,
+            3 => Self::InvokeAsync,
             254 => Operations::End,
             255 => Operations::Stop,
             _ => unreachable!("should not have any other type of ArgumentOperations"),
