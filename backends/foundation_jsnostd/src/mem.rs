@@ -9,7 +9,7 @@ use alloc::sync::Arc;
 use alloc::vec::Vec;
 use foundation_nostd::spin::Mutex;
 
-use crate::{CompletedInstructions, MemoryId, ReturnTypeId, ReturnValues, StrLocation};
+use crate::{CompletedInstructions, MemoryId, ReturnTypeId, ReturnValues, StrLocation, ThreeState};
 
 pub type MemoryWriterResult<T> = core::result::Result<T, MemoryWriterError>;
 
@@ -39,7 +39,7 @@ pub enum ReturnValueError {
     ExpectedOne(Vec<ReturnValues>),
     ExpectedList(Vec<ReturnValues>),
     ExpectedMultiple(Vec<ReturnValues>),
-    InvalidReturnTypes(Vec<ReturnValues>),
+    InvalidReturnIds(Vec<ReturnValues>),
 }
 
 impl core::error::Error for ReturnValueError {}
@@ -344,7 +344,7 @@ pub enum BinaryReadError {
     ExpectedStringInCode(u8),
     WrongEndingCode(u8),
     MemoryError(String),
-    NotMatchingTypeHint(ReturnTypeId, ReturnTypeId),
+    NotMatchingTypeHint(ThreeState, ReturnTypeId),
 }
 
 impl core::error::Error for BinaryReadError {}

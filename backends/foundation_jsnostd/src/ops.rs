@@ -979,7 +979,7 @@ impl<'a> Batchable<'a> for Params<'a> {
 
 #[cfg(test)]
 mod params_tests {
-    use crate::{ReturnTypeHints, ReturnTypeId, ReturnTypes, TypedSlice};
+    use crate::{ReturnIds, ReturnTypeHints, ReturnTypeId, ThreeState, ThreeStateId, TypedSlice};
 
     use super::*;
 
@@ -995,17 +995,25 @@ mod params_tests {
 
         assert!(batch.encode_return_hints(ReturnTypeHints::None).is_ok());
         assert!(batch
-            .encode_return_hints(ReturnTypeHints::One(ReturnTypeId::Int32))
+            .encode_return_hints(ReturnTypeHints::One(ThreeState::One(ReturnTypeId::Int32)))
             .is_ok());
         assert!(batch
-            .encode_return_hints(ReturnTypeHints::One(ReturnTypeId::Float32))
+            .encode_return_hints(ReturnTypeHints::One(ThreeState::Two(
+                ReturnTypeId::Float32,
+                ReturnTypeId::Float64
+            )))
             .is_ok());
         assert!(batch
-            .encode_return_hints(ReturnTypeHints::One(ReturnTypeId::MemorySlice))
+            .encode_return_hints(ReturnTypeHints::One(ThreeState::Three(
+                ReturnTypeId::MemorySlice,
+                ReturnTypeId::ExternalReference,
+                ReturnTypeId::InternalReference,
+            )))
             .is_ok());
         assert!(batch
             .encode_return_hints(ReturnTypeHints::Multi(alloc::vec![
-                ReturnTypeId::MemorySlice
+                ThreeState::One(ReturnTypeId::MemorySlice),
+                ThreeState::Two(ReturnTypeId::MemorySlice, ReturnTypeId::ExternalReference),
             ]))
             .is_ok());
 
@@ -1021,23 +1029,33 @@ mod params_tests {
             alloc::vec![
                 0, // Begin signal indicating start of batch
                 ReturnHintMarker::Start as u8,
-                ReturnTypes::None as u8,
+                ReturnIds::None as u8,
                 ReturnHintMarker::Stop as u8,
                 ReturnHintMarker::Start as u8,
-                ReturnTypes::One as u8,
+                ReturnIds::One as u8,
+                ThreeStateId::One as u8,
                 ReturnTypeId::Int32 as u8,
                 ReturnHintMarker::Stop as u8,
                 ReturnHintMarker::Start as u8,
-                ReturnTypes::One as u8,
+                ReturnIds::One as u8,
+                ThreeStateId::Two as u8,
                 ReturnTypeId::Float32 as u8,
+                ReturnTypeId::Float64 as u8,
                 ReturnHintMarker::Stop as u8,
                 ReturnHintMarker::Start as u8,
-                ReturnTypes::One as u8,
+                ReturnIds::One as u8,
+                ThreeStateId::Three as u8,
                 ReturnTypeId::MemorySlice as u8,
+                ReturnTypeId::ExternalReference as u8,
+                ReturnTypeId::InternalReference as u8,
                 ReturnHintMarker::Stop as u8,
                 ReturnHintMarker::Start as u8,
-                ReturnTypes::Multi as u8,
+                ReturnIds::Multi as u8,
+                ThreeStateId::One as u8,
                 ReturnTypeId::MemorySlice as u8,
+                ThreeStateId::Two as u8,
+                ReturnTypeId::MemorySlice as u8,
+                ReturnTypeId::ExternalReference as u8,
                 ReturnHintMarker::Stop as u8,
                 254, // end of the sub-block of instruction
                 255  // Stop signal indicating batch is finished
@@ -2454,14 +2472,14 @@ impl Instructions {
         Ok(())
     }
 
-    pub fn invoke_for_callback<'a>(
+    pub fn invoke_async<'a>(
         &self,
         allocated_handle: ExternalPointer,
         callback_handle: InternalPointer,
         params: Option<&'a [Params<'a>]>,
         returning: ReturnTypeHints,
     ) -> MemoryWriterResult<()> {
-        self.data(&[Operations::InvokeCallback as u8])?;
+        self.data(&[Operations::InvokeAsync as u8])?;
 
         allocated_handle.encode(self, self.optimized)?;
         callback_handle.encode(self, self.optimized)?;
@@ -2496,7 +2514,7 @@ impl Instructions {
 mod test_instructions {
     extern crate std;
 
-    use crate::TypeOptimization;
+    use crate::{ReturnIds, TypeOptimization};
 
     use super::*;
 
@@ -2537,6 +2555,9 @@ mod test_instructions {
                 TypeOptimization::QuantizedUint64AsU8 as u8,
                 // address pointer to function which is a u64, so 8 bytes
                 1,
+                ReturnHintMarker::Start as u8,
+                ReturnIds::None as u8,
+                ReturnHintMarker::Stop as u8,
                 ArgumentOperations::Start as u8, // start of all arguments
                 ArgumentOperations::Begin as u8, // start of this argument
                 ValueTypes::Int32 as u8,
@@ -2601,6 +2622,9 @@ mod test_instructions {
                 0,
                 0,
                 0,
+                ReturnHintMarker::Start as u8,
+                ReturnIds::None as u8,
+                ReturnHintMarker::Stop as u8,
                 ArgumentOperations::Start as u8, // start of all arguments
                 ArgumentOperations::Begin as u8, // start of this argument
                 ValueTypes::Int32 as u8,
@@ -2713,7 +2737,10 @@ mod test_instructions {
                 0,
                 0,
                 0,
-                1,
+                ReturnHintMarker::Start as u8,
+                ReturnIds::None as u8,
+                ReturnHintMarker::Stop as u8,
+                ArgumentOperations::Start as u8, // start of all arguments
                 2,
                 3,
                 0,
@@ -2734,10 +2761,10 @@ mod test_instructions {
                 0,
                 0,
                 0,
-                3,
-                4,
-                Operations::End as u8,  // end of current sub-block
-                Operations::Stop as u8, // Stop signal indicating batch is finished
+                ArgumentOperations::End as u8,  // end of this argument
+                ArgumentOperations::Stop as u8, // end of all arguments
+                Operations::End as u8,          // end of current sub-block
+                Operations::Stop as u8,         // Stop signal indicating batch is finished
             ],
             ops
         );

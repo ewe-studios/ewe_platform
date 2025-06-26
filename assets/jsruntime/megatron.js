@@ -120,6 +120,29 @@ const Megatron = (function () {
 
   const ALLOWED_UTF8_INDICATOR = [UtfEncoding.UTF8, UtfEncoding.UTF16];
 
+  const ThreeStateId = {
+    // Where we can only ever have 1 state
+    One: 70,
+
+    // Where we can have two different states.
+    Two: 80,
+
+    // Where we can have three different states.
+    Three: 90,
+  };
+
+  ThreeStateId.__INVERSE__ = Object.keys(ThreeStateId)
+    .map((key) => {
+      return [key, ThreeStateId[key]];
+    })
+    .reduce((prev, current) => {
+      let [key, value] = current;
+      prev[value] = key;
+      return prev;
+    }, {});
+
+  Object.freeze(ThreeStateId);
+
   const TypedSlice = {
     Int8: 1,
     Int16: 2,
@@ -251,18 +274,18 @@ const Megatron = (function () {
 
   Object.freeze(ReturnValueMarker);
 
-  /// [`ReturnTypes`] represent the type indicating the underlying returned
+  /// [`ReturnIds`] represent the type indicating the underlying returned
   /// value for an operation.
-  const ReturnTypes = {
+  const ReturnIds = {
     None: 0,
     One: 1,
     Multi: 2,
     List: 3,
   };
 
-  ReturnTypes.__INVERSE__ = Object.keys(ReturnTypes)
+  ReturnIds.__INVERSE__ = Object.keys(ReturnIds)
     .map((key) => {
-      return [key, ReturnTypes[key]];
+      return [key, ReturnIds[key]];
     })
     .reduce((prev, current) => {
       let [key, value] = current;
@@ -270,7 +293,7 @@ const Megatron = (function () {
       return prev;
     }, {});
 
-  Object.freeze(ReturnTypes);
+  Object.freeze(ReturnIds);
 
   /// [`ReturnTypeId`] represent the type indicating the underlying returned
   /// value for an operation.
@@ -360,8 +383,8 @@ const Megatron = (function () {
     ///
     MakeFunction: 1,
 
-    /// InvokeNoReturnFunction represents the desire to call a
-    /// function across boundary that does not return any value
+    /// Invoke represents the desire to call a
+    /// function across boundary that may or may not return any value
     /// in response to being called.
     ///
     /// It has two layout formats:
@@ -369,19 +392,7 @@ const Megatron = (function () {
     /// A. with no argument: Begin, 3, FunctionHandle(u64), End
     ///
     /// B. with arguments: Begin, 3, FunctionHandle(u64), FunctionArguments, {Arguments}, End
-    InvokeNoReturnFunction: 2,
-
-    /// InvokeReturningFunction represents the desire to call a
-    /// function across boundary that returns a value of
-    /// defined type matching [`ReturnType`]
-    /// in response to being called.
-    ///
-    /// It has two layout formats:
-    ///
-    /// A. with no argument: Begin, 3, FunctionHandle(u64), ReturnType, End
-    ///
-    /// B. with arguments: Begin, 3, FunctionHandle(u64), ReturnType, Arguments*, End
-    InvokeReturningFunction: 3,
+    Invoke: 2,
 
     /// InvokeCallbackFunction represents the desire to call a
     /// function across boundary that takes a callback internal reference
@@ -392,17 +403,17 @@ const Megatron = (function () {
     ///
     /// Layout format: Begin, 3, FunctionHandle(u64), ArgStart, ArgBegin, ExternReference, ArgEnd, ArgStop,
     ///  End
-    InvokeCallbackFunction: 4,
+    InvokeCallback: 3,
 
-    /// InvokeAsyncCallbackFunction represents the desire to call a
-    /// async function across boundary that takes a callback internal reference
+    /// InvokeAsyncCallback represents the desire to call a async function
+    /// across boundary that takes a callback internal reference
     /// which it will use to supply appropriate response when ready.
     ///
     /// The return value to the callback function must always be of the type: [`Returns`].
     ///
     /// Layout format: Begin, 3, FunctionHandle(u64), ArgStart, ArgBegin, ExternReference, ArgEnd, ArgStop,
     ///  End
-    InvokeAsyncCallbackFunction: 5,
+    InvokeAsyncCallback: 4,
 
     /// End - indicates the end of a portion of a instruction set.
     /// Since an instruction memory array can contain multiple instructions
@@ -1380,7 +1391,7 @@ const Megatron = (function () {
     }
 
     asValue(value) {
-      if (this.return_type == ReturnTypes.None) return null;
+      if (this.return_type == ReturnIds.None) return null;
       return ReturnHintValue(this, value);
     }
 
@@ -1490,7 +1501,7 @@ const Megatron = (function () {
 
   class NoReturn extends ReturnHint {
     constructor() {
-      super(ReturnTypes.None, -1);
+      super(ReturnIds.None, -1);
     }
 
     validate(input) {
@@ -1508,7 +1519,7 @@ const Megatron = (function () {
 
   class SingleReturn extends ReturnHint {
     constructor(value_type) {
-      super(ReturnTypes.One, value_type);
+      super(ReturnIds.One, value_type);
     }
 
     validate(input) {
@@ -1532,7 +1543,7 @@ const Megatron = (function () {
 
   class ListReturn extends ReturnHint {
     constructor(value_type) {
-      super(ReturnTypes.List, value_type);
+      super(ReturnIds.List, value_type);
     }
 
     validate(input) {
@@ -1559,7 +1570,7 @@ const Megatron = (function () {
         throw new Error(
           "MultiReturn must have a list of expected return types in order",
         );
-      super(ReturnTypes.Multi, value_types);
+      super(ReturnIds.Multi, value_types);
     }
     validate(input) {
       if (!(input instanceof Array)) {
@@ -1624,10 +1635,10 @@ const Megatron = (function () {
       this.module = memory_operator.get_module();
 
       this.parsers = {};
-      this.parsers[ReturnTypes.One] = this.parse_one;
-      this.parsers[ReturnTypes.None] = this.parse_none;
-      this.parsers[ReturnTypes.List] = this.parse_list;
-      this.parsers[ReturnTypes.Multi] = this.parse_multiple;
+      this.parsers[ReturnIds.One] = this.parse_one;
+      this.parsers[ReturnIds.None] = this.parse_none;
+      this.parsers[ReturnIds.List] = this.parse_list;
+      this.parsers[ReturnIds.Multi] = this.parse_multiple;
     }
 
     parse_hint(start, length) {
@@ -3411,16 +3422,8 @@ const Megatron = (function () {
 
       if (return_hint instanceof SingleReturn) {
         const target = transformed[0];
-
-        logger.debug(`single return value: ${target}`);
-
+        logger.debug(`validate single return value: ${target}`);
         return_hint.validate(target);
-        if (this.return_naked.indexOf(target.type)) {
-          logger.debug(
-            `returning value as is/naked: ${target.value} from ${target}`,
-          );
-          return target.value;
-        }
       } else {
         logger.debug(`validate list/multi-return: ${transformed}`);
         return_hint.validate(transformed);
@@ -4691,8 +4694,28 @@ const Megatron = (function () {
     },
   );
 
-  const INVOKE_NO_RETURN = new BatchOperation(
-    Operations.InvokeNoReturnFunction,
+  const INVOKE = new BatchOperation(
+    Operations.Invoke,
+    (instance, operation_id, moved_by, operations, texts) => {
+      if (operation_id != Operations.InvokeNoReturnFunction) {
+        throw new Error(
+          `Argument should be Operation.InvokeNoReturnFunction instead got: ${operation_id}`,
+        );
+      }
+
+      return instance.parse_and_invoke(
+        moved_by,
+        operations,
+        texts,
+        function (result) {
+          LOGGER.debug("invoke_no_return: ", result);
+        },
+      );
+    },
+  );
+
+  const INVOKE_CALLBACK_RETURN = new BatchOperation(
+    Operations.InvokeCallback,
     (instance, operation_id, moved_by, operations, texts) => {
       if (operation_id != Operations.InvokeNoReturnFunction) {
         throw new Error(
@@ -4847,6 +4870,109 @@ const Megatron = (function () {
       return batches;
     }
 
+    parse_and_invoke_callback(moved_by, operations, texts, result_callback) {
+      const next_value_type = operations.getUint8(moved_by, true);
+      moved_by += Move.MOVE_BY_1_BYTES;
+
+      // read the external pointer we want invoked
+      let external_id = null;
+      [moved_by, external_id] = this.parameter_v2.parseExternalPointer(
+        moved_by,
+        next_value_type,
+        operations,
+      );
+
+      // read the internal pointer we want used for deliverying result.
+      let callback_id = null;
+      [moved_by, callback_id] = this.parameter_v2.parseExternalPointer(
+        moved_by,
+        next_value_type,
+        operations,
+      );
+
+      LOGGER.debug(
+        "BatchInstructions.parse_and_invoke_callback: ExternalPointer: ",
+        external_id,
+        " InternalCallbackId: ",
+        callback_id,
+        " with now index: ",
+        moved_by,
+      );
+
+      const [moved_after_return, return_hints] = this.parse_return_hints(
+        moved_by,
+        operations,
+        texts,
+      );
+      LOGGER.debug(
+        "BatchInstructions.parse_and_invoke_callback: Extracted ReturnTypeHints: ",
+        return_hints,
+        moved_after_return,
+      );
+
+      const [moved_after_parameters, parameters] = this.parse_arguments(
+        moved_after_return,
+        operations,
+        texts,
+      );
+
+      moved_by = moved_after_parameters;
+
+      LOGGER.debug(
+        "BatchInstructions.parse_and_invoke_callback: Params: ",
+        moved_by,
+        external_id,
+        parameters,
+      );
+
+      const callbable = (instance) => {
+        const callable = instance.function_heap.get(external_id.value);
+
+        const fn = function (result) {
+          LOGGER.debug(
+            "BatchInstructions.parse_and_invoke_callback: Function returned: ",
+            result,
+          );
+
+          // validate result with expected return hint.
+          return_hints.validate(result);
+
+          if (return_hints instanceof NoReturn) {
+            return null;
+          }
+
+          if (
+            !isUndefinedOrNull(result) &&
+            !isUndefinedOrNull(result_callback)
+          ) {
+            result_callback(result);
+          }
+
+          const encoded_result = Reply.transform_return_type(
+            instance.function_heap,
+            instance.dom_heap,
+            instance.object_heap,
+            result,
+            return_hints,
+          );
+
+          LOGGER.debug(
+            "BatchInstructions.parse_and_invoke_callback: parse_and_invoke: result=",
+            result,
+            " with encoded_result=",
+            encoded_result,
+          );
+
+          return return_hint.asValue(encoded_result);
+        };
+        const args = [];
+
+        callable.apply(instance, parameters);
+      };
+
+      return [moved_by, callbable];
+    }
+
     parse_and_invoke(moved_by, operations, texts, result_callback) {
       const next_value_type = operations.getUint8(moved_by, true);
       moved_by += Move.MOVE_BY_1_BYTES;
@@ -4893,6 +5019,7 @@ const Megatron = (function () {
       );
       const callbable = (instance) => {
         const callable = instance.function_heap.get(external_id.value);
+
         const result = callable.apply(instance, parameters);
 
         LOGGER.debug(
@@ -6021,7 +6148,7 @@ const Megatron = (function () {
   CONTEXT.LEVELS = LEVELS;
   CONTEXT.Operations = Operations;
   CONTEXT.TypedSlice = TypedSlice;
-  CONTEXT.ReturnTypes = ReturnTypes;
+  CONTEXT.ReturnIds = ReturnIds;
   CONTEXT.ReturnTypeId = ReturnTypeId;
   CONTEXT.TypeOptimization = TypeOptimization;
   CONTEXT.ArgumentOperations = ArgumentOperations;
