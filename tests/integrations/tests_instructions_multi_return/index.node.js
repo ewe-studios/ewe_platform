@@ -4,6 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const megatron = require("./megatron.js");
+
 megatron.LOGGER.mode = megatron.LEVELS.DEBUG;
 
 const EXECUTING_DIR = path.dirname(__filename);
@@ -12,9 +13,6 @@ const wasm_buffer = fs.readFileSync(path.join(EXECUTING_DIR, "./module.wasm"));
 
 const mock = {
   calls: [],
-};
-mock.logs = (message) => {
-  mock.calls.push({ method: "log", arguments: [message] });
 };
 
 describe("Megatron.js_invoke_function", async () => {
@@ -25,6 +23,10 @@ describe("Megatron.js_invoke_function", async () => {
     abi: runtime.web_abi,
   });
   runtime.init(wasm_module);
+
+  mock.select = (args) => {
+    mock.calls.push({ method: "select", arguments: args });
+  };
 
   describe("Validate::setup", () => {
     const { module, instance } = wasm_module;
@@ -43,9 +45,12 @@ describe("Megatron.js_invoke_function", async () => {
     const { module, instance } = wasm_module;
     instance.exports.main();
 
-    it("validate registered functions effect", async () => {
+    it("validate all argument types", async () => {
       assert.deepEqual(mock.calls, [
-        { method: "log", arguments: ["Hello from intro"] },
+        {
+          method: "select",
+          arguments: [true, false, 10, 10, 10, 10, 10, 10, 10, 10, 10.0, 10.0],
+        },
       ]);
     });
   });

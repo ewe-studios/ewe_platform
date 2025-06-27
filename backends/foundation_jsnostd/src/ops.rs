@@ -1014,6 +1014,11 @@ mod params_tests {
             .encode_return_hints(ReturnTypeHints::Multi(alloc::vec![
                 ThreeState::One(ReturnTypeId::MemorySlice),
                 ThreeState::Two(ReturnTypeId::MemorySlice, ReturnTypeId::ExternalReference),
+                ThreeState::Three(
+                    ReturnTypeId::MemorySlice,
+                    ReturnTypeId::ExternalReference,
+                    ReturnTypeId::Bool
+                ),
             ]))
             .is_ok());
 
@@ -1056,6 +1061,10 @@ mod params_tests {
                 ThreeStateId::Two as u8,
                 ReturnTypeId::MemorySlice as u8,
                 ReturnTypeId::ExternalReference as u8,
+                ThreeStateId::Three as u8,
+                ReturnTypeId::MemorySlice as u8,
+                ReturnTypeId::ExternalReference as u8,
+                ReturnTypeId::Bool as u8,
                 ReturnHintMarker::Stop as u8,
                 254, // end of the sub-block of instruction
                 255  // Stop signal indicating batch is finished
