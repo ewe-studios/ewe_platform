@@ -394,20 +394,26 @@ const Megatron = (function () {
     /// B. with arguments: Begin, 3, FunctionHandle(u64), FunctionArguments, {Arguments}, End
     Invoke: 2,
 
-    /// `Operations::InvokeAsync` aka InvokeAsyncCallback represents the desire to call a
+    /// InvokeCallbackFunction represents the desire to call a
     /// function across boundary that takes a callback internal reference
-    /// which it will use to supply appropriate response when ready via the
-    /// returned promise or future the host uses to represent the operation.
-    ///
-    /// The idea is the result is not immediate and hence will not have a
-    /// returned value but instead the internal callback reference will be
-    /// used to deliver the result based on type hints.
+    /// which it will use to supply appropriate response when ready (say async call)
+    /// as response to being called.
     ///
     /// The return value to the callback function must always be of the type: [`Returns`].
     ///
     /// Layout format: Begin, 3, FunctionHandle(u64), ArgStart, ArgBegin, ExternReference, ArgEnd, ArgStop,
     ///  End
-    InvokeAsyn: 3,
+    InvokeCallback: 3,
+
+    /// InvokeAsyncCallback represents the desire to call a async function
+    /// across boundary that takes a callback internal reference
+    /// which it will use to supply appropriate response when ready.
+    ///
+    /// The return value to the callback function must always be of the type: [`Returns`].
+    ///
+    /// Layout format: Begin, 3, FunctionHandle(u64), ArgStart, ArgBegin, ExternReference, ArgEnd, ArgStop,
+    ///  End
+    InvokeAsyncCallback: 4,
 
     /// End - indicates the end of a portion of a instruction set.
     /// Since an instruction memory array can contain multiple instructions
@@ -1416,20 +1422,7 @@ const Megatron = (function () {
     }
 
     validate(input) {
-      if (input instanceof Array) {
-        for (let index in input) {
-          let item = input[index];
-          if (!(item instanceof ReplyContainer)) {
-            throw new Error(
-              "Input[" +
-                index +
-                "] with value: '" +
-                item +
-                "' should be wrapped in ReplyContainer",
-            );
-          }
-        }
-      } else if (!(input instanceof ReplyContainer)) {
+      if (!(input instanceof ReplyContainer)) {
         throw new Error("Input should be wrapped in ReplyContainer");
       }
 
@@ -1446,7 +1439,7 @@ const Megatron = (function () {
         let states = this.states[state_index].options;
         if (states.indexOf(input.type) === -1) {
           throw new Error(
-            `Input type: ${input.type} not in any expected types: ` + states,
+            `Input type: ${input.type} not in any expected types: ${states}`,
           );
         }
       }
@@ -1676,12 +1669,8 @@ const Megatron = (function () {
       const parser = this.parsers[hint_type];
       [moved_by, return_validator] = parser(moved_by, view);
 
-      const next_token = view.getUint8(moved_by, true);
-      if (next_token != ReturnHintMarker.Stop) {
-        throw new Error(
-          "Buffer did not end with ReturnHintMarker.End instead got: " +
-            next_token,
-        );
+      if (view.getUint8(moved_by, true) != ReturnHintMarker.Stop) {
+        throw new Error("Buffer did not end with ReturnHintMarker.End");
       }
 
       moved_by += Move.MOVE_BY_1_BYTES;
@@ -1795,6 +1784,7 @@ const Megatron = (function () {
       while (true) {
         let value_type = view.getUint8(moved_by, true);
         if (value_type == ReturnHintMarker.Stop) {
+          moved_by += MOVE.MOVE_BY_1_BYTES;
           break;
         }
 
@@ -1807,7 +1797,7 @@ const Megatron = (function () {
 
         LOGGER.debug("Extracted multiple state item: ", states);
 
-        multi_values.push.apply(multi_values, states);
+        multi_values.push.apply(multi_values, states[0]);
       }
 
       return [moved_by, new MultiReturn(multi_values)];
@@ -3522,31 +3512,24 @@ const Megatron = (function () {
     }
 
     transform(values, hint) {
-      const logger = LOGGER.scoped("Reply.transform");
-      logger.debug(
-        "Received value: ",
-        values,
-        " with hint: ",
-        hint,
-        " with state: ",
-        hint.states,
-      );
+      LOGGER.debug("Received value: ", values, " with hint: ", hint);
 
       const transformed = [];
       for (let index in values) {
         const item = values[index];
         transformed.push(
-          Reply.transform_return_type(
+          Reply.auto_transform_value(
             this.function_heap,
             this.dom_heap,
             this.object_heap,
             item,
             hint,
+            index,
           ),
         );
       }
 
-      logger.debug(
+      LOGGER.debug(
         "Generated transformed values: ",
         transformed,
         " from values: ",
@@ -4121,164 +4104,147 @@ const Megatron = (function () {
       return offset;
     }
 
-    static check_for_type(item, value_type_id) {
-      const logger = LOGGER.scoped("Reply.check_for_type");
-      logger.debug(
-        "check value: ",
-        item,
-        " with value type id: ",
-        value_type_id,
-      );
+    static auto_transform_value(
+      function_heap,
+      dom_heap,
+      object_heap,
+      item,
+      hint,
+      index,
+    ) {
+      LOGGER.debug("Received value: ", item, " with hint: ", hint);
 
-      if (isUndefinedOrNull(item) && value_type_id == ReturnTypeId.None) {
-        return value_type_id;
+      const value_type_id = Reply.get_value_type_hint(index, hint);
+
+      if (isUndefinedOrNull(item)) {
+        return Reply.asNone();
       }
 
-      if (
-        item instanceof Uint8Array &&
-        value_type_id == ReturnTypeId.Uint8ArrayBuffer
-      ) {
-        return value_type_id;
+      if (item instanceof ReplyContainer) {
+        return item;
       }
 
-      if (
-        item instanceof Uint16Array &&
-        value_type_id == ReturnTypeId.Uint16ArrayBuffer
-      ) {
-        return value_type_id;
+      if (item instanceof Uint8Array) {
+        return Reply.asUint8Array(item);
       }
 
-      if (
-        item instanceof Uint32Array &&
-        value_type_id == ReturnTypeId.Uint32ArrayBuffer
-      ) {
-        return value_type_id;
+      if (item instanceof Uint16Array) {
+        return Reply.asUint16Array(item);
       }
 
-      if (
-        item instanceof BigUint64Array &&
-        value_type_id == ReturnTypeId.Uint64ArrayBuffer
-      ) {
-        return value_type_id;
+      if (item instanceof Uint32Array) {
+        return Reply.asUint32Array(item);
       }
 
-      if (
-        item instanceof Int8Array &&
-        value_type_id == ReturnTypeId.Int8ArrayBuffer
-      ) {
-        return value_type_id;
+      if (item instanceof BigUint64Array) {
+        return Reply.asUint64Array(item);
       }
 
-      if (
-        item instanceof Int16Array &&
-        value_type_id == ReturnTypeId.Int16ArrayBuffer
-      ) {
-        return value_type_id;
+      if (item instanceof Int8Array) {
+        return Reply.asInt8Array(item);
       }
 
-      if (
-        item instanceof Int32Array &&
-        value_type_id == ReturnTypeId.Int32ArrayBuffer
-      ) {
-        return value_type_id;
+      if (item instanceof Int16Array) {
+        return Reply.asInt16Array(item);
       }
 
-      if (
-        item instanceof BigInt64Array &&
-        value_type_id == ReturnTypeId.Int64ArrayBuffer
-      ) {
-        return value_type_id;
+      if (item instanceof Int32Array) {
+        return Reply.asInt32Array(item);
+      }
+
+      if (item instanceof BigInt64Array) {
+        return Reply.asInt64Array(item);
       }
 
       if (typeof Document !== "undefined") {
-        if (
-          item instanceof Document &&
-          value_type_id == ReturnTypeId.ExternalReference
-        ) {
-          return value_type_id;
+        if (item instanceof Document) {
+          return Reply.asDOMObject(dom_heap.create(item));
         }
       }
 
       if (typeof Window !== "undefined") {
-        if (
-          item instanceof Window &&
-          value_type_id == ReturnTypeId.ExternalReference
-        ) {
-          return value_type_id;
+        if (item instanceof Window) {
+          return Reply.asDOMObject(dom_heap.create(item));
         }
       }
 
       if (typeof Node !== "undefined") {
-        if (
-          item instanceof Node &&
-          value_type_id == ReturnTypeId.ExternalReference
-        ) {
-          return value_type_id;
+        if (item instanceof Node) {
+          return Reply.asDOMObject(dom_heap.create(item));
         }
       }
 
       if (typeof Element !== "undefined") {
-        if (
-          item instanceof Element &&
-          value_type_id == ReturnTypeId.ExternalReference
-        ) {
-          return value_type_id;
+        if (item instanceof Element) {
+          return Reply.asDOMObject(dom_heap.create(item));
         }
       }
 
-      const value_type = typeof item;
-      switch (true) {
-        case (value_type == "function" &&
-          value_type_id == ReturnTypeId.ExternalReference) ||
-          value_type_id == ReturnTypeId.InternalReference:
-          return value_type_id;
-        case value_type == "symbol" && value_type_id == ReturnTypeId.Object:
-          return value_type_id;
-        case value_type == "object" && value_type_id == ReturnTypeId.Object:
-          return value_type_id;
-        case value_type == "string" && value_type_id == ReturnTypeId.Text8:
-          return value_type_id;
-        case value_type == "boolean" && value_type_id == ReturnTypeId.Bool:
-          return value_type_id;
-        case value_type == "bigint" || value_type == "number":
-          switch (true) {
-            case value_type_id == ReturnTypeId.Uint8 &&
-              item <= 255 &&
-              item >= 0:
-              return value_type_id;
-            case value_type_id == ReturnTypeId.Uint16 &&
-              item <= 65535 &&
-              item >= 0:
-              return value_type_id;
-            case value_type_id == ReturnTypeId.Uint32 &&
-              item <= 4294967295 &&
-              item >= 0:
-              return value_type_id;
-            case value_type_id == ReturnTypeId.Int8 &&
-              item <= 128 &&
-              item >= -128:
-              return value_type_id;
-            case value_type_id == ReturnTypeId.Int16 &&
-              item <= 127 &&
-              item >= -128:
-              return value_type_id;
-            case value_type_id == ReturnTypeId.Int32 &&
-              item <= -2147483648 &&
-              item >= 2147483647:
-              return value_type_id;
-            case value_type_id == ReturnTypeId.Uint64:
-              return value_type_id;
-            case value_type_id == ReturnTypeId.Int64:
-              return value_type_id;
-            case value_type_id == ReturnTypeId.Float32:
-              return value_type_id;
-            case value_type_id == ReturnTypeId.Float64:
-              return value_type_id;
+      switch (typeof item) {
+        case "function":
+          return Reply.asExternalReference(function_heap.create(item));
+        case "symbol":
+          return Reply.asObject(object_heap.create(item));
+        case "object":
+          return Reply.asObject(object_heap.create(item));
+        case "string":
+          return Reply.asText8(item);
+        case "boolean":
+          return Reply.asBool(item);
+        case "bigint":
+          switch (value_type_id) {
+            case ReturnTypeId.Uint8:
+              return Reply.asUint8(item);
+            case ReturnTypeId.Uint16:
+              return Reply.asUint16(item);
+            case ReturnTypeId.Uint32:
+              return Reply.asUint32(item);
+            case ReturnTypeId.Uint64:
+              return Reply.asUint64(item);
+            case ReturnTypeId.Int8:
+              return Reply.asInt8(item);
+            case ReturnTypeId.Int16:
+              return Reply.asInt16(item);
+            case ReturnTypeId.Int32:
+              return Reply.asInt32(item);
+            case ReturnTypeId.Int64:
+              return Reply.asInt64(item);
+            case ReturnTypeId.Float32:
+              return Reply.asFloat32(item);
+            case ReturnTypeId.Float64:
+              return Reply.asFloat64(item);
+            default:
+              return Reply.asUint64(item);
+          }
+        case "number":
+          switch (value_type_id) {
+            case ReturnTypeId.Uint8:
+              return Reply.asUint8(item);
+            case ReturnTypeId.Uint16:
+              return Reply.asUint16(item);
+            case ReturnTypeId.Uint32:
+              return Reply.asUint32(item);
+            case ReturnTypeId.Uint64:
+              return Reply.asUint64(item);
+            case ReturnTypeId.Int8:
+              return Reply.asInt8(item);
+            case ReturnTypeId.Int16:
+              return Reply.asInt16(item);
+            case ReturnTypeId.Int32:
+              return Reply.asInt32(item);
+            case ReturnTypeId.Int64:
+              return Reply.asInt64(item);
+            case ReturnTypeId.Float32:
+              return Reply.asFloat32(item);
+            case ReturnTypeId.Float64:
+              return Reply.asFloat64(item);
+            default:
+              return Reply.asUint64(item);
           }
       }
 
-      logger.debug("Unable to transform provided type: ", item);
-      return null;
+      LOGGER.debug("Unable to transform provided type: ", hint, item);
+      throw new Error("Transformation for type: " + hint + " unknown");
     }
 
     static transform_return_type(
@@ -4295,8 +4261,6 @@ const Megatron = (function () {
           );
         }
 
-        const logger = LOGGER.scoped("Reply.transform_return_type:");
-
         const transformed = [];
         for (let index in item) {
           let value = Reply.transform_from_hint(
@@ -4310,8 +4274,7 @@ const Megatron = (function () {
           transformed.push(value);
         }
 
-        logger.debug("Transformed input: ", item, " into: ", transformed);
-        return transformed;
+        return transfoermed;
       }
 
       return Reply.transform_from_hint(
@@ -4332,8 +4295,15 @@ const Megatron = (function () {
       hint,
       index,
     ) {
-      const logger = LOGGER.scoped("Reply.transform_from_hint");
-      logger.debug("Received value: ", item, " with hint: ", hint);
+      LOGGER.debug("Received value: ", item, " with hint: ", hint);
+
+      const value_type_id = Reply.get_value_type_hint(index, hint);
+      LOGGER.debug(
+        "Extractd value_type_id: ",
+        value_type_id,
+        " with hint: ",
+        hint,
+      );
 
       if (isUndefinedOrNull(item)) {
         return Reply.asNone();
@@ -4346,41 +4316,6 @@ const Megatron = (function () {
       if (item instanceof Function) {
         return Reply.asExternalReference(function_heap.create(item));
       }
-
-      let value_type_id;
-      for (let state_index in hint.states) {
-        let states = hint.states[state_index].options;
-        logger.debug(
-          "State at index: ",
-          state_index,
-          " having states: ",
-          states,
-        );
-
-        for (let state_item_index in states) {
-          let candidate = states[state_item_index];
-          logger.debug(
-            "Checking item: ",
-            item,
-            " against type=",
-            candidate,
-            " from states: ",
-            states,
-          );
-
-          let result = this.check_for_type(item, candidate);
-          if (isUndefinedOrNull(result)) continue;
-          value_type_id = result;
-          break;
-        }
-      }
-
-      logger.debug(
-        "Extractd value_type_id: ",
-        value_type_id,
-        " with hint: ",
-        hint,
-      );
 
       switch (value_type_id) {
         case ReturnTypeId.None:
@@ -4458,6 +4393,48 @@ const Megatron = (function () {
               item,
           );
       }
+    }
+
+    static get_value_type_hint(index, hints) {
+      LOGGER.debug(
+        "Requesting value for hint type: ",
+        hints,
+        " at index: ",
+        index,
+      );
+      if (hints instanceof SingleReturn) {
+        return hints.value_type;
+      }
+      if (hints instanceof MultiReturn) {
+        return hints.value_type[index];
+      }
+      if (hints instanceof ListReturn) {
+        return hints.value_type[index];
+      }
+
+      throw new Error("Unknown hint type: ", hints);
+    }
+    static rewrap_value(hint, value) {
+      LOGGER.debug(
+        "Rewrapping value for hint type: ",
+        hint,
+        " for value: ",
+        value,
+      );
+      if (hints instanceof NoReturn) {
+        return InvocationResponse(hint, null);
+      }
+      if (hints instanceof SingleReturn) {
+        return InvocationResponse(hint, value);
+      }
+      if (hints instanceof MultiReturn) {
+        return hints.value_type[index];
+      }
+      if (hints instanceof ListReturn) {
+        return hints.value_type[index];
+      }
+
+      throw new Error("Unknown hint type: ", hints);
     }
 
     static asFloat64Array(value) {
@@ -4795,9 +4772,9 @@ const Megatron = (function () {
   const INVOKE = new BatchOperation(
     Operations.Invoke,
     (instance, operation_id, moved_by, operations, texts) => {
-      if (operation_id != Operations.Invoke) {
+      if (operation_id != Operations.InvokeNoReturnFunction) {
         throw new Error(
-          `Argument should be Operation.Invoke instead got: ${operation_id}`,
+          `Argument should be Operation.InvokeNoReturnFunction instead got: ${operation_id}`,
         );
       }
 
@@ -4815,9 +4792,9 @@ const Megatron = (function () {
   const INVOKE_ASYNC = new BatchOperation(
     Operations.InvokeCallback,
     (instance, operation_id, moved_by, operations, texts) => {
-      if (operation_id != Operations.InvokeAsync) {
+      if (operation_id != Operations.InvokeNoReturnFunction) {
         throw new Error(
-          `Argument should be Operation.InvokeAsync instead got: ${operation_id}`,
+          `Argument should be Operation.InvokeNoReturnFunction instead got: ${operation_id}`,
         );
       }
 
@@ -5447,12 +5424,6 @@ const Megatron = (function () {
 
       logger.debug("returning_instructions: All results memory id: ", results);
 
-      return this.write_out_returns(results);
-    }
-
-    write_out_returns(results) {
-      const logger = LOGGER.scoped("MegatronMiddleware.write_out_returns: ");
-
       // create our content byte buffer
       // x 64bit numbers + 2 int8 numbers for header & trailer + x int8 numbers indicate
       // return type.
@@ -5510,29 +5481,23 @@ const Megatron = (function () {
           "returning_instructions: Getting encoder for value: ",
           value,
           container,
-          container.states,
           index,
         );
-
         view.setUint8(offset, container.hint_type, true);
         offset += Move.MOVE_BY_1_BYTES;
 
-        if (container.hint_type == ReturnIds.Multi) {
-          view.setUint16(offset, container.states.length, true);
+        if (container.value_type instanceof Array) {
+          view.setUint16(offset, container.value_type.length, true);
           offset += Move.MOVE_BY_16_BYTES;
-        }
 
-        for (let state_index in container.states) {
-          let current_state = container.states[state_index];
-          let state_type = current_state.state_type;
-          view.setUint8(offset, state_type, true);
-          offset += Move.MOVE_BY_1_BYTES;
-
-          for (let state_type_index in current_state.options) {
-            let index_type = current_state.options[state_type_index];
+          for (let index2 in container.value_type) {
+            let index_type = container.value_type[index2];
             view.setUint8(offset, index_type, true);
             offset += Move.MOVE_BY_1_BYTES;
           }
+        } else {
+          view.setUint8(offset, container.value_type, true);
+          offset += Move.MOVE_BY_1_BYTES;
         }
 
         view.setBigUint64(offset, value, true);
@@ -5842,7 +5807,7 @@ const Megatron = (function () {
         returns_length,
       );
 
-      logger.debug("Call returned: ", result);
+      logger.debug("this.host_invoke_function_with_return returned: ", result);
 
       if (isUndefinedOrNull(result)) return BigInt(-1);
       if (!isBigIntOrNumber(result)) throw new Error("Not a BigInt or Number");
@@ -5855,9 +5820,7 @@ const Megatron = (function () {
         handle,
         parameter_start,
         parameter_length,
-        new SingleReturn(
-          new ThreeState(ThreeStateId.One, [ReturnTypeId.DOMObject]),
-        ),
+        new SingleReturn(ReturnTypeId.DOMObject),
       );
     }
 
@@ -5866,9 +5829,7 @@ const Megatron = (function () {
         handle,
         parameter_start,
         parameter_length,
-        new SingleReturn(
-          new ThreeState(ThreeStateId.One, [ReturnTypeId.Object]),
-        ),
+        new SingleReturn(ReturnTypeId.Object),
       );
     }
 
@@ -5877,7 +5838,7 @@ const Megatron = (function () {
         handle,
         parameter_start,
         parameter_length,
-        new SingleReturn(new ThreeState(ThreeStateId.One, [ReturnTypeId.Bool])),
+        new SingleReturn(ReturnTypeId.Bool),
       );
       return response ? 1 : 0;
     }
@@ -5887,9 +5848,7 @@ const Megatron = (function () {
         handle,
         parameter_start,
         parameter_length,
-        new SingleReturn(
-          new ThreeState(ThreeStateId.One, [ReturnTypeId.Float64]),
-        ),
+        new SingleReturn(ReturnTypeId.Float64),
       );
       if (typeof response != "number") {
         throw new Error(`Response ${response} is not a number`);
@@ -5902,9 +5861,7 @@ const Megatron = (function () {
         handle,
         parameter_start,
         parameter_length,
-        new SingleReturn(
-          new ThreeState(ThreeStateId.One, [ReturnTypeId.Int64]),
-        ),
+        new SingleReturn(ReturnTypeId.Int64),
       );
       if (typeof response != "number" && typeof response != "bigint") {
         throw new Error(`Response ${response} is not a number`);
@@ -5921,9 +5878,7 @@ const Megatron = (function () {
         handle,
         parameter_start,
         parameter_length,
-        new SingleReturn(
-          new ThreeState(ThreeStateId.One, [ReturnTypeId.Uint64]),
-        ),
+        new SingleReturn(ReturnTypeId.Uint64),
       );
       if (response instanceof BigInt) {
         return response;

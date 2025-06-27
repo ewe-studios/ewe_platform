@@ -3094,6 +3094,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "tests_instructions_multi_return"
+version = "0.1.0"
+dependencies = [
+ "foundation_jsnostd",
+ "foundation_nostd",
+]
+
+[[package]]
 name = "tests_js_invoke_function"
 version = "0.0.1"
 dependencies = [
