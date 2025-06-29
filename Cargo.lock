@@ -3110,6 +3110,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "tests_instructions_none_return_callback"
+version = "0.1.0"
+dependencies = [
+ "foundation_jsnostd",
+ "foundation_nostd",
+]
+
+[[package]]
 name = "tests_js_invoke_async_function"
 version = "0.0.1"
 dependencies = [
@@ -3151,6 +3159,14 @@ dependencies = [
 
 [[package]]
 name = "tests_js_invoke_function_and_return_dom"
+version = "0.0.1"
+dependencies = [
+ "foundation_jsnostd",
+ "foundation_nostd",
+]
+
+[[package]]
+name = "tests_js_invoke_function_and_return_none"
 version = "0.0.1"
 dependencies = [
  "foundation_jsnostd",

@@ -3508,7 +3508,7 @@ const Megatron = (function () {
         throw new Error("argument must be a type of ReturnHint");
       }
 
-      const logger = LOGGER.scoped("Reply.callback: ");
+      const logger = LOGGER.scoped("Reply.immediate: ");
 
       logger.debug(`received: "`, values, `" with return hint: `, return_hint);
 
@@ -3605,7 +3605,7 @@ const Megatron = (function () {
         );
       }
 
-      const logger = LOGGER.scoped("Reply.callback: ");
+      const logger = LOGGER.scoped("Reply.callback_success:");
 
       logger.debug(`received callback result: "${values}"`);
 

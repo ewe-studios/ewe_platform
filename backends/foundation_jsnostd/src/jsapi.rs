@@ -2090,6 +2090,48 @@ pub mod host_runtime {
             };
         }
 
+        /// [`invoke_for_str`] invokes a host function registered at the given handle
+        /// defined by the [`HostFunction::handler`] which then returns a [`u64`]
+        /// which represents the allocation id of the contents.
+        pub fn invoke_for_str(handler: u64, params: &[Params]) -> MemoryAllocationResult<String> {
+            match host_runtime::web::invoke_for_replies(
+                handler,
+                params,
+                ReturnTypeHints::One(ThreeState::One(ReturnTypeId::Text8)),
+            ) {
+                Ok(mut values) => match values.pop().unwrap() {
+                    ReturnValues::Text8(content) => Ok(content),
+                    _ => Err(ReturnValueError::UnexpectedReturnType.into()),
+                },
+                Err(err) => Err(err),
+            }
+        }
+
+        /// [`invoke`] invokes a host function registered at the given handle
+        /// which points to a registered function on the host side.
+        ///
+        /// When called we expect the return of a [`u64`] which actually points to a
+        /// [`MemoryId`] registered in [`ALLOCATIONS`] which can be retrieved to get
+        /// the actual result and is expected to be a binary of [`ReturnValues`]
+        /// which match the return hints [`ReturnTypeHints`].
+        pub fn invoke(handler: u64, params: &[Params], returns: ReturnTypeHints) -> u64 {
+            let return_hints_bytes = returns.to_binary();
+            let return_raw = RawParts::from_vec(return_hints_bytes);
+
+            let param_bytes = params.to_binary();
+            let param_raw = RawParts::from_vec(param_bytes);
+
+            unsafe {
+                host_runtime::web::host_invoke_function(
+                    handler,
+                    param_raw.ptr,
+                    param_raw.length,
+                    return_raw.ptr,
+                    return_raw.length,
+                )
+            }
+        }
+
         /// [`invoke_for_replies`] invokes a host function registered at the given handle
         /// defined by the [`HostFunction::handler`] which then returns a [`u64`]
         /// which represents the allocation id of the contents which are to be encoded in
@@ -2136,48 +2178,6 @@ pub mod host_runtime {
             }
         }
 
-        /// [`invoke_for_str`] invokes a host function registered at the given handle
-        /// defined by the [`HostFunction::handler`] which then returns a [`u64`]
-        /// which represents the allocation id of the contents.
-        pub fn invoke_for_str(handler: u64, params: &[Params]) -> MemoryAllocationResult<String> {
-            match host_runtime::web::invoke_for_replies(
-                handler,
-                params,
-                ReturnTypeHints::One(ThreeState::One(ReturnTypeId::Text8)),
-            ) {
-                Ok(mut values) => match values.pop().unwrap() {
-                    ReturnValues::Text8(content) => Ok(content),
-                    _ => Err(ReturnValueError::UnexpectedReturnType.into()),
-                },
-                Err(err) => Err(err),
-            }
-        }
-
-        /// [`invoke`] invokes a host function registered at the given handle
-        /// which points to a registered function on the host side.
-        ///
-        /// When called we expect the return of a [`u64`] which actually points to a
-        /// [`MemoryId`] registered in [`ALLOCATIONS`] which can be retrieved to get
-        /// the actual result and is expected to be a binary of [`ReturnValues`]
-        /// which match the return hints [`ReturnTypeHints`].
-        pub fn invoke(handler: u64, params: &[Params], returns: ReturnTypeHints) -> u64 {
-            let return_hints_bytes = returns.to_binary();
-            let return_raw = RawParts::from_vec(return_hints_bytes);
-
-            let param_bytes = params.to_binary();
-            let param_raw = RawParts::from_vec(param_bytes);
-
-            unsafe {
-                host_runtime::web::host_invoke_function(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                    return_raw.ptr,
-                    return_raw.length,
-                )
-            }
-        }
-
         // --- Browser / WASM ABI
 
         #[derive(Copy, Clone)]
@@ -2202,6 +2202,19 @@ pub mod host_runtime {
             /// which represents the allocation id of the contents.
             pub fn invoke_no_return(&self, params: &[Params]) {
                 _ = host_runtime::web::invoke(self.handler, params, ReturnTypeHints::None);
+            }
+
+            /// [`invoke_for_none`] invokes a host function registered at the given handle
+            /// defined by the [`HostFunction::handler`] which then returns confirmation
+            /// that it's return value is of type [`ReturnTypeId::None`] by applying
+            /// return type checks.
+            pub fn invoke_for_none(&self, params: &[Params]) -> bool {
+                host_runtime::web::invoke_for_replies(
+                    self.handler,
+                    params,
+                    ReturnTypeHints::One(ThreeState::One(ReturnTypeId::None)),
+                )
+                .is_ok()
             }
 
             /// [`invoke_for_bool`] invokes a host function registered at the given handle
