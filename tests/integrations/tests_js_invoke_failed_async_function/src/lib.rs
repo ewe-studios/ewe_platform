@@ -23,7 +23,6 @@ extern "C" fn main() {
     let callback_handle = internal_api::register_callback(
         ReturnTypeHints::One(ThreeState::One(ReturnTypeId::Uint8)),
         |result| {
-            panic!("This is what i got: {:?}", result);
             assert_eq!(result, Err(TaskErrorCode(101)));
         },
     );
