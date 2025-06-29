@@ -9,9 +9,10 @@ use crate::{
     BinaryReadError, BinaryReaderResult, CompletedInstructions, ExternalPointer, FromBinary,
     GroupReturnHintMarker, Instructions, InternalCallback, InternalPointer,
     InternalReferenceRegistry, JSEncoding, MemoryAllocation, MemoryAllocationError,
-    MemoryAllocations, MemoryId, Params, ReturnTypeHints, ReturnTypeId, ReturnIds,
-    ReturnValueError, ReturnValueMarker, ReturnValues, Returns, ThreeState, ThreeStateId, ToBinary,
-    MOVE_ONE_BYTE, MOVE_SIXTEEN_BYTES, MOVE_SIXTY_FOUR_BYTES, MOVE_THIRTY_TWO_BYTES,
+    MemoryAllocations, MemoryId, MemoryReaderError, Params, ReturnIds, ReturnTypeHints,
+    ReturnTypeId, ReturnValueError, ReturnValueMarker, ReturnValues, Returns, TaskErrorCode,
+    TaskResult, ThreeState, ThreeStateId, ToBinary, MOVE_ONE_BYTE, MOVE_SIXTEEN_BYTES,
+    MOVE_SIXTY_FOUR_BYTES, MOVE_THIRTY_TWO_BYTES,
 };
 
 static INTERNAL_CALLBACKS: Mutex<InternalReferenceRegistry> = InternalReferenceRegistry::create();
@@ -1123,7 +1124,7 @@ impl FromBinary for GroupReturnTypeHints {
                     let item_count = u16::from_le_bytes(item_count_arr);
 
                     let mut value_types = Vec::with_capacity(item_count as usize);
-                    for _ in 1..item_count {
+                    for _ in 0..item_count {
                         let state_type: ThreeStateId = u8::from_le(bin[index]).into();
                         index += MOVE_ONE_BYTE;
 
@@ -1175,6 +1176,12 @@ impl FromBinary for GroupReturnTypeHints {
             let mem_id = MemoryId::from_u64(alloc_id);
 
             let memory_result = ALLOCATIONS.lock().get(mem_id);
+            if memory_result.is_err() {
+                panic!(
+                    "GroupReturnTypeHints: Received memoryId: {:?} -> {:?} -- result: {:?}",
+                    &mem_id, &return_hint, &memory_result
+                );
+            }
             if let Err(err) = memory_result {
                 return Err(err.into());
             }
@@ -1224,7 +1231,14 @@ impl FromBinary for GroupReturnTypeHints {
 /// You should never place a function in here that needs to be exposed to the host or host function
 /// we want to define but instead use the [`exposed_runtime`] or [`host_runtime`] modules.
 pub mod internal_api {
+    use alloc::boxed::Box;
+
+    use crate::{FnCallback, MemoryAllocationResult, ReturnValues};
+
     use super::*;
+
+    static FAILED_RETURN_HINT: ReturnTypeHints =
+        ReturnTypeHints::One(ThreeState::One(ReturnTypeId::ErrorCode));
 
     // -- Instruction methods
 
@@ -1242,13 +1256,193 @@ pub mod internal_api {
             .expect("should fetch related memory allocation")
     }
 
+    // Reply parsers
+
+    /// [`parse_replies`] will attempt to parse the replies encoded into the giving
+    /// memory location referenced by the provided [`MemoryId`].
+    pub fn parse_callback_replies(
+        memory_id: MemoryId,
+        returns: ReturnTypeHints,
+    ) -> MemoryAllocationResult<Returns> {
+        let memory = internal_api::get_memory(memory_id);
+        let result_container = memory.into_with(|mem| {
+            (
+                returns.clone().from_binary(mem.as_ref()),
+                FAILED_RETURN_HINT.clone().from_binary(mem.as_ref()),
+            )
+        });
+
+        if result_container.is_none() {
+            return Err(MemoryAllocationError::FailedAllocationReading(memory_id));
+        }
+
+        let (result, failed_result) = result_container.unwrap();
+
+        if let Ok(mut failed_returns) = failed_result {
+            if let Some(ReturnValues::ErrorCode(code)) = failed_returns.pop() {
+                return Err(MemoryAllocationError::TaskFailure(TaskErrorCode::new(code)));
+            }
+        }
+
+        if let Err(err) = result {
+            return Err(MemoryReaderError::NotValidReplyBinary(err).into());
+        }
+
+        let mut replies = result.unwrap();
+
+        // // check if the replies only contain 1 [`ReturnValues`] which is an ErrorCode.
+        // // if any of them are then return result as is, else indicate this is a task failure
+        // // communicated by the host.
+        // if replies.len() == 1 {
+        //     if let ReturnValues::ErrorCode(code) = &replies[0] {
+        //         match &returns {
+        //             ReturnTypeHints::One(state) => match state {
+        //                 ThreeState::One(p1) => {
+        //                     if *p1 != ReturnTypeId::ErrorCode {
+        //                         return Err(MemoryAllocationError::TaskFailure(
+        //                             TaskErrorCode::new(*code),
+        //                         ));
+        //                     }
+        //                 }
+        //                 ThreeState::Two(p1, p2) => {
+        //                     if *p1 != ReturnTypeId::ErrorCode && *p2 != ReturnTypeId::ErrorCode {
+        //                         return Err(MemoryAllocationError::TaskFailure(
+        //                             TaskErrorCode::new(*code),
+        //                         ));
+        //                     }
+        //                 }
+        //                 ThreeState::Three(p1, p2, p3) => {
+        //                     if *p1 != ReturnTypeId::ErrorCode
+        //                         && *p2 != ReturnTypeId::ErrorCode
+        //                         && *p3 != ReturnTypeId::ErrorCode
+        //                     {
+        //                         return Err(MemoryAllocationError::TaskFailure(
+        //                             TaskErrorCode::new(*code),
+        //                         ));
+        //                     }
+        //                 }
+        //             },
+        //             ReturnTypeHints::List(state) => match state {
+        //                 ThreeState::One(p1) => {
+        //                     if *p1 != ReturnTypeId::ErrorCode {
+        //                         return Err(MemoryAllocationError::TaskFailure(
+        //                             TaskErrorCode::new(*code),
+        //                         ));
+        //                     }
+        //                 }
+        //                 ThreeState::Two(p1, p2) => {
+        //                     if *p1 != ReturnTypeId::ErrorCode && *p2 != ReturnTypeId::ErrorCode {
+        //                         return Err(MemoryAllocationError::TaskFailure(
+        //                             TaskErrorCode::new(*code),
+        //                         ));
+        //                     }
+        //                 }
+        //                 ThreeState::Three(p1, p2, p3) => {
+        //                     if *p1 != ReturnTypeId::ErrorCode
+        //                         && *p2 != ReturnTypeId::ErrorCode
+        //                         && *p3 != ReturnTypeId::ErrorCode
+        //                     {
+        //                         return Err(MemoryAllocationError::TaskFailure(
+        //                             TaskErrorCode::new(*code),
+        //                         ));
+        //                     }
+        //                 }
+        //             },
+        //             ReturnTypeHints::Multi(states) => {
+        //                 let mut found_type = false;
+        //                 for state in states {
+        //                     match state {
+        //                         ThreeState::One(p1) => {
+        //                             if *p1 == ReturnTypeId::ErrorCode {
+        //                                 found_type = true;
+        //                                 break;
+        //                             }
+        //                         }
+        //                         ThreeState::Two(p1, p2) => {
+        //                             if *p1 == ReturnTypeId::ErrorCode
+        //                                 || *p2 == ReturnTypeId::ErrorCode
+        //                             {
+        //                                 found_type = true;
+        //                                 break;
+        //                             }
+        //                         }
+        //                         ThreeState::Three(p1, p2, p3) => {
+        //                             if *p1 == ReturnTypeId::ErrorCode
+        //                                 || *p2 == ReturnTypeId::ErrorCode
+        //                                 || *p3 == ReturnTypeId::ErrorCode
+        //                             {
+        //                                 found_type = true;
+        //                                 break;
+        //                             }
+        //                         }
+        //                     }
+        //                 }
+        //
+        //                 if !found_type {
+        //                     return Err(MemoryAllocationError::TaskFailure(TaskErrorCode::new(
+        //                         *code,
+        //                     )));
+        //                 }
+        //             }
+        //             ReturnTypeHints::None => unreachable!(
+        //                 "ReturnTypeHints::None should never be returned, its a bug at the host"
+        //             ),
+        //         }
+        //     }
+        // }
+
+        match &returns {
+            ReturnTypeHints::One(_) => {
+                if replies.len() != 1 {
+                    return Err(MemoryReaderError::ReturnValueError(
+                        crate::ReturnValueError::ExpectedOne(replies),
+                    )
+                    .into());
+                }
+
+                Ok(Returns::One(replies.pop().expect("should have value")))
+            }
+            ReturnTypeHints::List(_) => Ok(Returns::List(replies)),
+            ReturnTypeHints::Multi(_) => Ok(Returns::Multi(replies)),
+            ReturnTypeHints::None => unreachable!(
+                "ReturnTypeHints::None should never be returned, its a bug at the host"
+            ),
+        }
+    }
+
     // -- callback methods
 
-    pub fn register_internal_callback<F>(f: F) -> InternalPointer
+    /// [`register_callback`] provides a method that will automatically
+    /// convert any type that implements the [`Fn`] trait.
+    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    pub fn register_callback<F>(returns: ReturnTypeHints, f: F) -> InternalPointer
+    where
+        F: Fn(TaskResult<Returns>) + Send + 'static,
+    {
+        INTERNAL_CALLBACKS
+            .lock()
+            .add(returns, FnCallback::new(Box::new(f)))
+    }
+
+    /// [`register_callback`] provides a method that will automatically
+    /// convert any type that implements the [`Fn`] trait.
+    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    pub fn register_callback<F>(returns: ReturnTypeHints, f: F) -> InternalPointer
+    where
+        F: Fn(TaskResult<Returns>) + 'static,
+    {
+        INTERNAL_CALLBACKS
+            .lock()
+            .add(returns, FnCallback::new(Box::new(f)))
+    }
+
+    /// [`register_internal_callback`] provides a more direct method for
+    /// registering a type that implements the [`InternalCallback`] trait.
+    pub fn register_internal_callback<F>(returns: ReturnTypeHints, f: F) -> InternalPointer
     where
         F: InternalCallback + 'static,
     {
-        INTERNAL_CALLBACKS.lock().add(f)
+        INTERNAL_CALLBACKS.lock().add(returns, f)
     }
 
     pub fn unregister_internal_callback(addr: InternalPointer) {
@@ -1258,13 +1452,22 @@ pub mod internal_api {
             .expect("should be registered");
     }
 
-    pub fn run_internal_callbacks(_addr: InternalPointer, _value: MemoryId) {
-        // let callback = INTERNAL_CALLBACKS
-        //     .lock()
-        //     .get(addr)
-        //     .expect("should be registered");
-        // callback.receive(value);
-        todo!()
+    pub fn run_internal_callbacks(addr: InternalPointer, value: MemoryId) {
+        let (returns, callback) = INTERNAL_CALLBACKS
+            .lock()
+            .get(addr)
+            .expect("should be registered");
+
+        match internal_api::parse_callback_replies(value, returns) {
+            Ok(values) => callback.receive(Ok(values)),
+            Err(err) => match err {
+                MemoryAllocationError::TaskFailure(code) => callback.receive(Err(code)),
+                _ => panic!(
+                    "Runtime memory bug, please investigate, this should not fail: {:?}",
+                    err
+                ),
+            },
+        }
     }
 
     // -- extract methods
@@ -1578,7 +1781,7 @@ pub mod host_runtime {
             /// The host will issue a request to pass relevant response to the callback via
             /// the [`super::exposed_runtime::invoke_callback`] with the memory location
             /// containing the result.
-            pub fn host_invoke_callback_function(
+            pub fn host_invoke_async_function(
                 handler: u64,
                 callback_handler: u64,
                 parameters_start: *const u8,
@@ -1673,6 +1876,13 @@ pub mod host_runtime {
 
             let mem_id = MemoryId::from_u64(return_id);
             let memory_result = ALLOCATIONS.lock().get(mem_id);
+            if memory_result.is_err() {
+                panic!(
+                    "batch_response: failed to get memory location: {:?} from {:?} with {:?}",
+                    mem_id, return_id, memory_result
+                );
+            }
+
             if let Err(err) = memory_result {
                 return Err(err.into());
             }
@@ -1957,7 +2167,7 @@ pub mod host_runtime {
         /// [`MemoryId`] registered in [`ALLOCATIONS`] which can be retrieved to get
         /// the actual result and is expected to be a binary of [`ReturnValues`]
         /// which match the return hints [`ReturnTypeHints`].
-        pub fn invoke_as_callback(
+        pub fn invoke_as_async(
             handler: u64,
             callback: InternalPointer,
             params: &[Params],
@@ -1970,7 +2180,7 @@ pub mod host_runtime {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                host_runtime::web::host_invoke_callback_function(
+                host_runtime::web::host_invoke_async_function(
                     handler,
                     callback.into_inner(),
                     param_raw.ptr,
@@ -2197,6 +2407,18 @@ pub mod host_runtime {
                     params,
                     ReturnTypeHints::One(ThreeState::One(ReturnTypeId::Object)),
                 ))
+            }
+
+            /// [`invoke_async`] invokes an async function which is registered and will be
+            /// invoked and expected to return a Promise that is then used to collect the result or
+            /// error.
+            pub fn invoke_async(
+                &self,
+                callback_id: InternalPointer,
+                params: &[Params],
+                returns: ReturnTypeHints,
+            ) {
+                host_runtime::web::invoke_as_async(self.handler, callback_id, params, returns)
             }
 
             /// [`unregister_function`] calls the JS ABI on the host to de-register

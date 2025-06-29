@@ -10,5 +10,6 @@ pub mod macros;
 pub mod megatron;
 pub mod retries;
 pub mod synca;
+pub mod trace;
 pub mod valtron;
 pub mod wire;

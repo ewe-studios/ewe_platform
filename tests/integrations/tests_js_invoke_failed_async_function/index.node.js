@@ -5,29 +5,32 @@ const path = require("node:path");
 const process = require("node:process");
 
 const megatron = require("./megatron.js");
-
-megatron.LOGGER.mode =  process.env.DEBUG ? megatron.LEVELS.DEBUG : megatron.LEVELS.INFO
+megatron.LOGGER.mode = process.env.DEBUG
+  ? megatron.LEVELS.DEBUG
+  : megatron.LEVELS.INFO;
 
 const EXECUTING_DIR = path.dirname(__filename);
 
 const wasm_buffer = fs.readFileSync(path.join(EXECUTING_DIR, "./module.wasm"));
 
+const promises = [];
 const mock = {
   calls: [],
 };
+mock.logs = (message, promise) => {
+  promises.push(promise);
+  mock.calls.push({ method: "log", arguments: [message] });
+};
 
-describe("Megatron.js_invoke_function", async () => {
+describe("Megatron.tests_js_invoke_failed_async_function", async () => {
   const runtime = new megatron.MegatronMiddleware();
+  runtime.collect_async_tasks();
   runtime.mock = mock;
 
   const wasm_module = await WebAssembly.instantiate(wasm_buffer, {
     abi: runtime.web_abi,
   });
   runtime.init(wasm_module);
-
-  mock.select = (args) => {
-    mock.calls.push({ method: "select", arguments: args });
-  };
 
   describe("Validate::setup", () => {
     const { module, instance } = wasm_module;
@@ -46,13 +49,14 @@ describe("Megatron.js_invoke_function", async () => {
     const { module, instance } = wasm_module;
     instance.exports.main();
 
-    it("validate all argument types", async () => {
+    it("validate registered functions effect", async () => {
       assert.deepEqual(mock.calls, [
-        {
-          method: "select",
-          arguments: [true, false, 10, 10, 10, 10, 10, 10, 10, 10, 10.0, 10.0],
-        },
+        { method: "log", arguments: ["Hello from intro"] },
       ]);
+    });
+
+    await runtime.await_tasks().catch((err) => {
+      return true;
     });
   });
 });

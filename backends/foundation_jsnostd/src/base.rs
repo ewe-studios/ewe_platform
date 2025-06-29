@@ -387,6 +387,36 @@ pub enum ReturnTypeHints {
     Multi(Vec<ThreeState>),
 }
 
+// -- Special Methods
+
+// impl ReturnTypeHints {
+//
+//     /// [`into_fallible`] attempts to represent the hint as a state than can
+//     /// be an error (think like a [`Result`] object where one of the state is [`Error`]).
+//     ///
+//     /// This allows us to express to the user the idea that one of the underlying states
+//     /// in here except of [`ReturnTypeHints::None`] can have a [`ThreeState`] where one of
+//     /// the underlying values is an error.
+//     pub fn into_fallible(self) -> Self {
+//         match &self {
+//             ReturnTypeHints::None => self,
+//             ReturnTypeHints::One(state) => {
+//                 match state {
+//                     ThreeState::One(return_type_id) => {
+//                         ReturnTypeHints::One(ThreeState::Two(*return_type_id, ReturnTypeId::ErrorCode))
+//                     },
+//                     ThreeState::Two(return_type_id, return_type_id1) => todo!(),
+//                     ThreeState::Three(return_type_id, return_type_id1, return_type_id2) => todo!(),
+//                 }
+//             },
+//             ReturnTypeHints::List(state) => todo!(),
+//             ReturnTypeHints::Multi(states) => todo!(),
+//         }
+//     }
+// }
+
+// -- General methods
+
 #[allow(clippy::from_over_into)]
 impl Into<u8> for ReturnTypeHints {
     fn into(self) -> u8 {
