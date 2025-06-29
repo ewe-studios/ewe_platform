@@ -3551,7 +3551,6 @@ const Megatron = (function () {
     callback_failure(internal_pointer, value) {
       const logger = LOGGER.scoped("Reply.callback_failure:");
 
-      logger.debug("Check it is a InternalPointer");
       if (!(internal_pointer instanceof InternalPointer)) {
         throw new Error(
           "internal_pointer: must be a type of InternalPointer: " +
@@ -3559,12 +3558,10 @@ const Megatron = (function () {
         );
       }
 
-      logger.debug("Check it is a ReplyError");
       if (value instanceof ReplyError) {
         value = Reply.asErrorCode(value);
       }
 
-      logger.debug("Check it is a ReplyContainer");
       if (value instanceof ReplyContainer) {
         if (value.type != ReturnTypeId.ErrorCode) {
           throw new Error(
