@@ -4768,6 +4768,13 @@ const Megatron = (function () {
       }
     }
 
+    // static asTypedArraySlice(value) {
+    //   if (!(value instanceof TypedArraySlice)) {
+    //     throw new Error("Value must be TypedArraySlice");
+    //   }
+    //   return Reply.asValue(ReturnTypeId.TypedArraySlice, value);
+    // }
+
     static asFloat64Array(value) {
       if (value instanceof Float64Array) {
         throw new Error("Value must be Float64Array");
@@ -6333,6 +6340,15 @@ const Megatron = (function () {
       return Reply.asBool(value);
     }
 
+    // asTypedArraySlice(slice_type, value) {
+    //   if (!(slice_type in TypedSlice.__INVERSE__)) {
+    //     throw new Error("slice_type must be a TypedSlice type");
+    //   }
+    //
+    //   const slice =
+    //   return Reply.asFloat64Array(value);
+    // }
+
     asFloat64Array(value) {
       return Reply.asFloat64Array(value);
     }
@@ -6653,6 +6669,11 @@ const Megatron = (function () {
   return {
     LEVELS,
     LOGGER,
+    FakeNode,
+    TypedSlice,
+    TypedArraySlice,
+    ExternalPointer,
+    InternalPointer,
     WasmWebScripts,
     MegatronMiddleware,
   };
