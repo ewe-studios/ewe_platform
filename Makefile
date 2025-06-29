@@ -1,3 +1,4 @@
+DEBUG :=
 PACKAGES = ewe_platform foundations_ext foundations_jsnostd foundations_nostd ewe_trace ewe_async_utils ewe_channels ewe_domain ewe_devserver ewe_domain_server ewe_html ewe_html_macro ewe_mem ewe_routing ewe_spawn ewe_spawn ewe_template_macro ewe_templates ewe_temple ewe_watch_utils ewe_watchers ewe_web
 TESTS_PACKAGES = $(wildcard ./tests/integrations/*)
 
@@ -31,10 +32,10 @@ build-target-test:
 	$(MAKE) TEST_DIRECTORY=./tests/integrations/$(TARGET_TEST) TEST_PACKAGE=$(TARGET_TEST) build-test-directory
 
 wasm-tests: build-tests
-	$(foreach var,$(TESTS_PACKAGES), node $(var)/index.node.js;)
+	$(foreach var,$(TESTS_PACKAGES), DEBUG=$(DEBUG) node $(var)/index.node.js;)
 
 wasm-test: build-target-test
-	node $(dir $(TEST_DIRECTORY))/$(TARGET_TEST)/index.node.js
+	 DEBUG=$(DEBUG) node $(dir $(TEST_DIRECTORY))/$(TARGET_TEST)/index.node.js
 
 lint:
 	cargo fmt

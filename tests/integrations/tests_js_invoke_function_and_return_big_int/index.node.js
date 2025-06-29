@@ -2,9 +2,10 @@ const { describe, it } = require("node:test");
 const assert = require("node:assert");
 const fs = require("node:fs");
 const path = require("node:path");
+const process = require("node:process");
 
 const megatron = require("./megatron.js");
-megatron.LOGGER.mode = megatron.LEVELS.DEBUG;
+megatron.LOGGER.mode =  process.env.DEBUG ? megatron.LEVELS.DEBUG : megatron.LEVELS.INFO
 
 const EXECUTING_DIR = path.dirname(__filename);
 

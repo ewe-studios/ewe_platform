@@ -65,8 +65,13 @@ extern "C" fn main() {
 
     assert_eq!(
         result,
-        vec![Returns::One(ReturnValues::ExternalReference(
-            4294967296.into()
-        ))]
+        vec![
+            Returns::One(ReturnValues::ExternalReference(4294967296.into())),
+            Returns::Multi(vec![
+                ReturnValues::Uint8(1),
+                ReturnValues::Bool(true),
+                ReturnValues::Int8(1),
+            ]),
+        ]
     )
 }

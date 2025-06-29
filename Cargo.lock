@@ -3086,6 +3086,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "tests_instructions_array_callback"
+version = "0.1.0"
+dependencies = [
+ "foundation_jsnostd",
+ "foundation_nostd",
+]
+
+[[package]]
 name = "tests_instructions_function"
 version = "0.1.0"
 dependencies = [
@@ -3096,6 +3104,22 @@ dependencies = [
 [[package]]
 name = "tests_instructions_multi_return"
 version = "0.1.0"
+dependencies = [
+ "foundation_jsnostd",
+ "foundation_nostd",
+]
+
+[[package]]
+name = "tests_js_invoke_async_function"
+version = "0.0.1"
+dependencies = [
+ "foundation_jsnostd",
+ "foundation_nostd",
+]
+
+[[package]]
+name = "tests_js_invoke_failed_async_function"
+version = "0.0.1"
 dependencies = [
  "foundation_jsnostd",
  "foundation_nostd",

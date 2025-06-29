@@ -10,7 +10,9 @@ description = "central crate for all foundation crates for the ewe-platform proj
 keywords = ["foundations_core", "ewe-platform-core"]
 
 [dependencies]
+
 # -- Workspace dependencies
+
 foundation_jsnostd = {workspace = true }
 foundation_nostd = {workspace = true }
 
@@ -22,7 +24,6 @@ toml_datetime = { version = "0.6.9" }
 serde_json = { version = "1" }
 serde_yml = { version = "0.0.12" }
 toml = { version = "0.8.22" }
-rust-embed = { version = "8.7.0", features = ["mime-guess"]}
 fastrand = "2.3.0"
 rand = "0.9"
 rand_chacha = "0.9"
@@ -40,6 +41,9 @@ regex = "1.11.1"
 ctrlc = { version = "3.4" }
 native-tls-crate = { package = "native-tls", version = "0.2.14", optional = true }
 
+# rust-embed
+rust-embed = { version = "8.7.0", features = ["mime-guess"]}
+
 # optional deps
 # -- tokio, axum and tower
 tokio = { version = "1.44", features = ["sync", "time"], optional = true }
@@ -49,7 +53,13 @@ tracing-test = { version = "0.2.5" }
 reqwest = { version = "0.12.15", features = ["blocking"] }
 
 [features]
-debug_trace = []
+default = ["standard"]
+debug_trace = ["standard", "log_debug"]
+standard = ["log_info", "log_errors", "log_warnings"]
+log_warnings = []
+log_errors = []
+log_debug = []
+log_info = []
 nightly = []
 
 # features for tls via native-tls crate
@@ -66,8 +76,6 @@ nothread_runtime = []
 
 # This feature help enable tokio
 tokio_runtime = ["dep:tokio"]
-
-default = []
 
 
 [lints]

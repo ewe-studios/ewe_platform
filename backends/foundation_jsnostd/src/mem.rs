@@ -9,7 +9,10 @@ use alloc::sync::Arc;
 use alloc::vec::Vec;
 use foundation_nostd::spin::Mutex;
 
-use crate::{CompletedInstructions, MemoryId, ReturnTypeId, ReturnValues, StrLocation, ThreeState};
+use crate::{
+    CompletedInstructions, MemoryId, ReturnTypeId, ReturnValues, StrLocation, TaskErrorCode,
+    ThreeState,
+};
 
 pub type MemoryWriterResult<T> = core::result::Result<T, MemoryWriterError>;
 
@@ -119,9 +122,16 @@ pub enum MemoryAllocationError {
     NoMoreAllocationSlots,
     InvalidAllocationId,
     FailedDeAllocation,
+    TaskFailure(TaskErrorCode),
     FailedAllocationReading(MemoryId),
     MemoryReadError(MemoryReaderError),
     MemoryWriteError(MemoryWriterError),
+}
+
+impl From<TaskErrorCode> for MemoryAllocationError {
+    fn from(value: TaskErrorCode) -> Self {
+        Self::TaskFailure(value)
+    }
 }
 
 impl From<ReturnValueError> for MemoryAllocationError {

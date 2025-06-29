@@ -1,0 +1,22 @@
+[package]
+name = "tests_instructions_array_callback"
+version = "0.1.0"
+publish = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+keywords = ["tests", "instructions_array", "instructions_array_callback"]
+
+[dependencies]
+foundation_nostd = { workspace = true }
+foundation_jsnostd = { workspace = true }
+
+
+[lib]
+crate-type = ["cdylib"]
+
+
+[lints]
+workspace = true

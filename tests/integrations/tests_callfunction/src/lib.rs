@@ -13,7 +13,7 @@ extern "C" fn main() {
         r"
         function(message){
             this.mock.logs(message);
-            return this.ctx.Reply.asMemorySlice(0);
+            return this.asMemorySlice(0);
         }",
     );
 
