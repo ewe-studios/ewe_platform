@@ -11,7 +11,7 @@ keywords = ["tests", "register_function"]
 
 [dependencies]
 foundation_nostd = { workspace = true }
-foundation_jsnostd = { workspace = true }
+foundation_wasm = { workspace = true }
 
 
 [lib]

@@ -1099,8 +1099,8 @@ dependencies = [
  "ctrlc",
  "derive_more",
  "fastrand",
- "foundation_jsnostd",
  "foundation_nostd",
+ "foundation_wasm",
  "memchr",
  "native-tls",
  "rand 0.9.0",
@@ -1120,14 +1120,6 @@ dependencies = [
  "tracing-test",
  "url",
  "wasm_sync",
-]
-
-[[package]]
-name = "foundation_jsnostd"
-version = "0.0.2"
-dependencies = [
- "foundation_macros",
- "foundation_nostd",
 ]
 
 [[package]]
@@ -1155,6 +1147,14 @@ dependencies = [
 [[package]]
 name = "foundation_runtimes"
 version = "0.0.1"
+dependencies = [
+ "foundation_macros",
+ "foundation_nostd",
+]
+
+[[package]]
+name = "foundation_wasm"
+version = "0.0.2"
 dependencies = [
  "foundation_macros",
  "foundation_nostd",
@@ -1727,8 +1727,8 @@ dependencies = [
 name = "intro"
 version = "0.1.0"
 dependencies = [
- "foundation_jsnostd",
  "foundation_nostd",
+ "foundation_wasm",
 ]
 
 [[package]]
@@ -3073,144 +3073,144 @@ dependencies = [
 name = "tests_callfunction"
 version = "0.0.1"
 dependencies = [
- "foundation_jsnostd",
  "foundation_nostd",
+ "foundation_wasm",
 ]
 
 [[package]]
 name = "tests_instructions_array"
 version = "0.1.0"
 dependencies = [
- "foundation_jsnostd",
  "foundation_nostd",
+ "foundation_wasm",
 ]
 
 [[package]]
 name = "tests_instructions_array_callback"
 version = "0.1.0"
 dependencies = [
- "foundation_jsnostd",
  "foundation_nostd",
+ "foundation_wasm",
 ]
 
 [[package]]
 name = "tests_instructions_function"
 version = "0.1.0"
 dependencies = [
- "foundation_jsnostd",
  "foundation_nostd",
+ "foundation_wasm",
 ]
 
 [[package]]
 name = "tests_instructions_multi_return"
 version = "0.1.0"
 dependencies = [
- "foundation_jsnostd",
  "foundation_nostd",
+ "foundation_wasm",
 ]
 
 [[package]]
 name = "tests_instructions_none_return_callback"
 version = "0.1.0"
 dependencies = [
- "foundation_jsnostd",
  "foundation_nostd",
+ "foundation_wasm",
 ]
 
 [[package]]
 name = "tests_js_invoke_async_function"
 version = "0.0.1"
 dependencies = [
- "foundation_jsnostd",
  "foundation_nostd",
+ "foundation_wasm",
 ]
 
 [[package]]
 name = "tests_js_invoke_failed_async_function"
 version = "0.0.1"
 dependencies = [
- "foundation_jsnostd",
  "foundation_nostd",
+ "foundation_wasm",
 ]
 
 [[package]]
 name = "tests_js_invoke_function"
 version = "0.0.1"
 dependencies = [
- "foundation_jsnostd",
  "foundation_nostd",
+ "foundation_wasm",
 ]
 
 [[package]]
 name = "tests_js_invoke_function_and_return_big_int"
 version = "0.0.1"
 dependencies = [
- "foundation_jsnostd",
  "foundation_nostd",
+ "foundation_wasm",
 ]
 
 [[package]]
 name = "tests_js_invoke_function_and_return_bool"
 version = "0.0.1"
 dependencies = [
- "foundation_jsnostd",
  "foundation_nostd",
+ "foundation_wasm",
 ]
 
 [[package]]
 name = "tests_js_invoke_function_and_return_dom"
 version = "0.0.1"
 dependencies = [
- "foundation_jsnostd",
  "foundation_nostd",
+ "foundation_wasm",
 ]
 
 [[package]]
 name = "tests_js_invoke_function_and_return_none"
 version = "0.0.1"
 dependencies = [
- "foundation_jsnostd",
  "foundation_nostd",
+ "foundation_wasm",
 ]
 
 [[package]]
 name = "tests_js_invoke_function_and_return_object"
 version = "0.0.1"
 dependencies = [
- "foundation_jsnostd",
  "foundation_nostd",
+ "foundation_wasm",
 ]
 
 [[package]]
 name = "tests_js_invoke_function_and_return_string"
 version = "0.0.1"
 dependencies = [
- "foundation_jsnostd",
  "foundation_nostd",
+ "foundation_wasm",
 ]
 
 [[package]]
 name = "tests_js_invoke_function_and_return_types"
 version = "0.0.1"
 dependencies = [
- "foundation_jsnostd",
  "foundation_nostd",
+ "foundation_wasm",
 ]
 
 [[package]]
 name = "tests_js_invoke_function_with_array"
 version = "0.1.0"
 dependencies = [
- "foundation_jsnostd",
  "foundation_nostd",
+ "foundation_wasm",
 ]
 
 [[package]]
 name = "tests_registerfunction"
 version = "0.1.0"
 dependencies = [
- "foundation_jsnostd",
  "foundation_nostd",
+ "foundation_wasm",
 ]
 
 [[package]]

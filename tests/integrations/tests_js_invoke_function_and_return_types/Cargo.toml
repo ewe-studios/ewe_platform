@@ -11,7 +11,7 @@ keywords = ["tests", "tests_js_invoke_function_and_return_types"]
 
 [dependencies]
 foundation_nostd = { workspace = true }
-foundation_jsnostd = { workspace = true }
+foundation_wasm = { workspace = true }
 
 
 [lib]

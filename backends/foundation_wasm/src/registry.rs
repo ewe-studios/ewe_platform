@@ -2,7 +2,7 @@ use alloc::{boxed::Box, collections::btree_map::BTreeMap};
 
 use foundation_nostd::spin::Mutex;
 
-use crate::{InternalPointer, ReturnTypeHints, ReturnValues, Returns};
+use crate::{InternalPointer, ReturnTypeHints, ReturnValues, Returns, WrappedItem};
 
 pub type TaskResult<T> = core::result::Result<T, TaskErrorCode>;
 
@@ -110,45 +110,13 @@ impl InternalCallback for FnCallback {
     }
 }
 
-#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-pub struct WrappedInternalCallback<T>(alloc::sync::Arc<Mutex<T>>);
-
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
-pub struct WrappedInternalCallback<T>(alloc::rc::Rc<T>);
-
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
-unsafe impl<T> Sync for WrappedInternalCallback<T> {}
-
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
-unsafe impl<T> Send for WrappedInternalCallback<T> {}
-
-impl<T> WrappedInternalCallback<T> {
-    pub fn new(f: T) -> Self {
-        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
-        {
-            Self(alloc::rc::Rc::new(f))
-        }
-
-        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-        {
-            Self(alloc::sync::Arc::new(Mutex::new(f)))
-        }
-    }
-}
-
-impl<T: Clone> Clone for WrappedInternalCallback<T> {
-    fn clone(&self) -> Self {
-        Self(self.0.clone())
-    }
-}
-
 #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
 pub struct InternalReferenceRegistry {
     tree: BTreeMap<
         InternalPointer,
         (
             ReturnTypeHints,
-            WrappedInternalCallback<Box<dyn InternalCallback + 'static>>,
+            WrappedItem<Box<dyn InternalCallback + 'static>>,
         ),
     >,
     id: u64,
@@ -160,7 +128,7 @@ pub struct InternalReferenceRegistry {
         InternalPointer,
         (
             ReturnTypeHints,
-            WrappedInternalCallback<Box<dyn InternalCallback + Sync + Send + 'static>>,
+            WrappedItem<Box<dyn InternalCallback + Sync + Send + 'static>>,
         ),
     >,
     id: u64,
@@ -216,7 +184,7 @@ impl InternalReferenceRegistry {
     ) -> InternalPointer {
         self.id += 1;
         let id = self.id;
-        let wrapped = WrappedInternalCallback::new(callback);
+        let wrapped = WrappedItem::new(callback);
         self.tree
             .insert(InternalPointer::from(id), (returns, wrapped));
         InternalPointer::from(id)
@@ -240,7 +208,7 @@ impl InternalReferenceRegistry {
     ) -> InternalPointer {
         self.id += 1;
         let id = self.id;
-        let wrapped = WrappedInternalCallback::new(callback);
+        let wrapped = WrappedItem::new(callback);
         self.tree
             .insert(InternalPointer::from(id), (returns, wrapped));
         InternalPointer::from(id)

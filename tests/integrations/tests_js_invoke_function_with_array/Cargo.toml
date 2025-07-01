@@ -11,7 +11,7 @@ keywords = ["tests", "tests_js_invoke_function_with_array"]
 
 [dependencies]
 foundation_nostd = { workspace = true }
-foundation_jsnostd = { workspace = true }
+foundation_wasm = { workspace = true }
 
 
 [lib]
