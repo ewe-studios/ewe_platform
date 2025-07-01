@@ -27,5 +27,5 @@ extern "C" fn main() {
         }",
     );
 
-    handler.invoke_for_none(&[Params::Bool(true)]);
+    assert!(handler.invoke_for_none(&[Params::Bool(true)]));
 }

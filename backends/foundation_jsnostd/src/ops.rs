@@ -12,7 +12,7 @@ use crate::{
     ToBinary, TypeOptimization,
 };
 
-use super::{Operations, Params, StrLocation, ValueTypes};
+use super::{Operations, ParamTypeId, Params, StrLocation};
 
 const DEFAULT_ALLOCATION_SIZE: usize = 10;
 static ARGUMENT_ENDER: &[u8] = &[ArgumentOperations::Stop as u8];
@@ -1102,10 +1102,10 @@ mod params_tests {
                 0,                               // Begin signal indicating start of batch
                 ArgumentOperations::Start as u8, // start of all arguments
                 ArgumentOperations::Begin as u8, // start of this argument
-                ValueTypes::Undefined as u8,
+                ParamTypeId::Undefined as u8,
                 ArgumentOperations::End as u8,   // end of this argument
                 ArgumentOperations::Begin as u8, // start of this argument
-                ValueTypes::Null as u8,
+                ParamTypeId::Null as u8,
                 ArgumentOperations::End as u8,  // end of this argument
                 ArgumentOperations::Stop as u8, // end of all arguments
                 254,                            // end of the sub-block of instruction
@@ -1144,14 +1144,14 @@ mod params_tests {
                 0,                               // Begin signal indicating start of batch
                 ArgumentOperations::Start as u8, // start of all arguments
                 ArgumentOperations::Begin as u8, // start of this argument
-                ValueTypes::Float32 as u8,
+                ParamTypeId::Float32 as u8,
                 51,
                 51,
                 35,
                 65,
                 ArgumentOperations::End as u8,   // end of this argument
                 ArgumentOperations::Begin as u8, // start of this argument
-                ValueTypes::Float64 as u8,
+                ParamTypeId::Float64 as u8,
                 TypeOptimization::QuantizedF64AsF32 as u8,
                 51,
                 51,
@@ -1194,11 +1194,11 @@ mod params_tests {
                 0,                               // Begin signal indicating start of batch
                 ArgumentOperations::Start as u8, // start of all arguments
                 ArgumentOperations::Begin as u8, // start of this argument
-                ValueTypes::Bool as u8,
+                ParamTypeId::Bool as u8,
                 1,
                 ArgumentOperations::End as u8,   // end of this argument
                 ArgumentOperations::Begin as u8, // start of this argument
-                ValueTypes::Bool as u8,
+                ParamTypeId::Bool as u8,
                 0,
                 ArgumentOperations::End as u8,  // end of this argument
                 ArgumentOperations::Stop as u8, // end of all arguments
@@ -1244,28 +1244,28 @@ mod params_tests {
                 0,                               // Begin signal indicating start of batch
                 ArgumentOperations::Start as u8, // start of all arguments
                 ArgumentOperations::Begin as u8, // start of this argument
-                ValueTypes::Uint8 as u8,
+                ParamTypeId::Uint8 as u8,
                 10,
                 ArgumentOperations::End as u8,   // end of this argument
                 ArgumentOperations::Begin as u8, // start of this argument
-                ValueTypes::Uint16 as u8,
+                ParamTypeId::Uint16 as u8,
                 TypeOptimization::QuantizedUint16AsU8 as u8,
                 // value of int32 in LittleIndian encoding, so 8 bytes
                 10,
                 ArgumentOperations::End as u8,   // end of this argument
                 ArgumentOperations::Begin as u8, // start of this argument
-                ValueTypes::Uint32 as u8,
+                ParamTypeId::Uint32 as u8,
                 TypeOptimization::QuantizedUint32AsU8 as u8,
                 // value of int32 in LittleIndian encoding, so 8 bytes
                 10,
                 ArgumentOperations::End as u8,   // end of this argument
                 ArgumentOperations::Begin as u8, // start of this argument
-                ValueTypes::Uint64 as u8,
+                ParamTypeId::Uint64 as u8,
                 TypeOptimization::QuantizedUint64AsU8 as u8,
                 10,
                 ArgumentOperations::End as u8,   // end of this argument
                 ArgumentOperations::Begin as u8, // start of this argument
-                ValueTypes::Uint128 as u8,
+                ParamTypeId::Uint128 as u8,
                 TypeOptimization::QuantizedUint128AsU8 as u8,
                 10,
                 ArgumentOperations::End as u8,  // end of this argument
@@ -1309,7 +1309,7 @@ mod params_tests {
             0,                               // Begin signal indicating start of batch
             ArgumentOperations::Start as u8, // start of arguments
             ArgumentOperations::Begin as u8, // start of this argument
-            ValueTypes::TypedArraySlice as u8,
+            ParamTypeId::TypedArraySlice as u8,
             TypedSlice::Uint8 as u8, // type of slice
             TypeOptimization::None as u8,
         ];
@@ -1360,7 +1360,7 @@ mod params_tests {
                 0,                               // Begin signal indicating start of batch
                 ArgumentOperations::Start as u8, // start of arguments
                 ArgumentOperations::Begin as u8, // start of this argument
-                ValueTypes::CachedText as u8,
+                ParamTypeId::CachedText as u8,
                 TypeOptimization::QuantizedUint64AsU8 as u8,
                 10,
                 ArgumentOperations::End as u8,  // end of this argument
@@ -1406,28 +1406,28 @@ mod params_tests {
                 0,                               // Begin signal indicating start of batch
                 ArgumentOperations::Start as u8, // start of all arguments
                 ArgumentOperations::Begin as u8, // start of this argument
-                ValueTypes::Int8 as u8,
+                ParamTypeId::Int8 as u8,
                 10,
                 ArgumentOperations::End as u8,   // end of this argument
                 ArgumentOperations::Begin as u8, // start of this argument
-                ValueTypes::Int16 as u8,
+                ParamTypeId::Int16 as u8,
                 TypeOptimization::QuantizedInt16AsI8 as u8,
                 // value of int32 in LittleIndian encoding, so 8 bytes
                 10,
                 ArgumentOperations::End as u8,   // end of this argument
                 ArgumentOperations::Begin as u8, // start of this argument
-                ValueTypes::Int32 as u8,
+                ParamTypeId::Int32 as u8,
                 TypeOptimization::QuantizedInt32AsI8 as u8,
                 // value of int32 in LittleIndian encoding, so 8 bytes
                 10,
                 ArgumentOperations::End as u8,   // end of this argument
                 ArgumentOperations::Begin as u8, // start of this argument
-                ValueTypes::Int64 as u8,
+                ParamTypeId::Int64 as u8,
                 TypeOptimization::QuantizedInt64AsI8 as u8,
                 10,
                 ArgumentOperations::End as u8,   // end of this argument
                 ArgumentOperations::Begin as u8, // start of this argument
-                ValueTypes::Int128 as u8,
+                ParamTypeId::Int128 as u8,
                 TypeOptimization::QuantizedInt128AsI8 as u8,
                 10,
                 ArgumentOperations::End as u8,  // end of this argument
@@ -1472,14 +1472,14 @@ mod params_tests {
             0,                               // Begin signal indicating start of batch
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
-            ValueTypes::Text8 as u8,
+            ParamTypeId::Text8 as u8,
             TypeOptimization::QuantizedUint64AsU8 as u8,
             0,
             TypeOptimization::QuantizedUint64AsU8 as u8,
             4,
             ArgumentOperations::End as u8,   // end of this argument
             ArgumentOperations::Begin as u8, // start of this argument
-            ValueTypes::Text16 as u8,
+            ParamTypeId::Text16 as u8,
             TypeOptimization::None as u8,
         ];
 
@@ -1531,7 +1531,7 @@ mod params_tests {
             0,                               // Begin signal indicating start of batch
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
-            ValueTypes::Float64ArrayBuffer as u8,
+            ParamTypeId::Float64ArrayBuffer as u8,
             TypeOptimization::None as u8,
         ];
 
@@ -1582,7 +1582,7 @@ mod params_tests {
             0,                               // Begin signal indicating start of batch
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
-            ValueTypes::Float32ArrayBuffer as u8,
+            ParamTypeId::Float32ArrayBuffer as u8,
             TypeOptimization::None as u8,
         ];
 
@@ -1633,7 +1633,7 @@ mod params_tests {
             0,                               // Begin signal indicating start of batch
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
-            ValueTypes::Int8ArrayBuffer as u8,
+            ParamTypeId::Int8ArrayBuffer as u8,
             TypeOptimization::None as u8,
         ];
 
@@ -1684,7 +1684,7 @@ mod params_tests {
             0,                               // Begin signal indicating start of batch
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
-            ValueTypes::Int16ArrayBuffer as u8,
+            ParamTypeId::Int16ArrayBuffer as u8,
             TypeOptimization::None as u8,
         ];
 
@@ -1735,7 +1735,7 @@ mod params_tests {
             0,                               // Begin signal indicating start of batch
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
-            ValueTypes::Int32ArrayBuffer as u8,
+            ParamTypeId::Int32ArrayBuffer as u8,
             TypeOptimization::None as u8,
         ];
 
@@ -1786,7 +1786,7 @@ mod params_tests {
             0,                               // Begin signal indicating start of batch
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
-            ValueTypes::Int64ArrayBuffer as u8,
+            ParamTypeId::Int64ArrayBuffer as u8,
             TypeOptimization::None as u8,
         ];
 
@@ -1837,7 +1837,7 @@ mod params_tests {
             0,                               // Begin signal indicating start of batch
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
-            ValueTypes::Uint8ArrayBuffer as u8,
+            ParamTypeId::Uint8ArrayBuffer as u8,
             TypeOptimization::None as u8,
         ];
 
@@ -1888,7 +1888,7 @@ mod params_tests {
             0,                               // Begin signal indicating start of batch
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
-            ValueTypes::Uint16ArrayBuffer as u8,
+            ParamTypeId::Uint16ArrayBuffer as u8,
             TypeOptimization::None as u8,
         ];
 
@@ -1939,7 +1939,7 @@ mod params_tests {
             0,                               // Begin signal indicating start of batch
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
-            ValueTypes::Uint32ArrayBuffer as u8,
+            ParamTypeId::Uint32ArrayBuffer as u8,
             TypeOptimization::None as u8,
         ];
 
@@ -1990,7 +1990,7 @@ mod params_tests {
             0,                               // Begin signal indicating start of batch
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
-            ValueTypes::Uint64ArrayBuffer as u8,
+            ParamTypeId::Uint64ArrayBuffer as u8,
             TypeOptimization::None as u8,
         ];
 
@@ -2041,7 +2041,7 @@ mod params_tests {
             0,                               // Begin signal indicating start of batch
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
-            ValueTypes::ExternalReference as u8,
+            ParamTypeId::ExternalReference as u8,
             TypeOptimization::QuantizedUint64AsU8 as u8,
             0,
         ];
@@ -2088,7 +2088,7 @@ mod params_tests {
             0,                               // Begin signal indicating start of batch
             ArgumentOperations::Start as u8, // start of all arguments
             ArgumentOperations::Begin as u8, // start of this argument
-            ValueTypes::InternalReference as u8,
+            ParamTypeId::InternalReference as u8,
             TypeOptimization::QuantizedUint64AsU8 as u8,
             0,
         ];
@@ -2455,7 +2455,7 @@ impl Instructions {
         allocated_handle.encode(self, self.optimized)?;
 
         let mut data: Vec<u8> = Vec::with_capacity(value_index.len() + value_length.len() + 10);
-        data.push(ValueTypes::Text8.into());
+        data.push(ParamTypeId::Text8.into());
         data.extend_from_slice(&value_index);
         data.extend_from_slice(&value_length);
 
@@ -2560,7 +2560,7 @@ mod test_instructions {
             alloc::vec![
                 Operations::Begin as u8, // start of block
                 Operations::Invoke as u8,
-                ValueTypes::ExternalReference as u8, // type of value
+                ParamTypeId::ExternalReference as u8, // type of value
                 TypeOptimization::QuantizedUint64AsU8 as u8,
                 // address pointer to function which is a u64, so 8 bytes
                 1,
@@ -2569,13 +2569,13 @@ mod test_instructions {
                 ReturnHintMarker::Stop as u8,
                 ArgumentOperations::Start as u8, // start of all arguments
                 ArgumentOperations::Begin as u8, // start of this argument
-                ValueTypes::Int32 as u8,
+                ParamTypeId::Int32 as u8,
                 TypeOptimization::QuantizedInt32AsI8 as u8,
                 // value of int32 in LittleIndian encoding, so 8 bytes
                 10,
                 ArgumentOperations::End as u8,   // end of this argument
                 ArgumentOperations::Begin as u8, // start of this argument
-                ValueTypes::Int64 as u8,
+                ParamTypeId::Int64 as u8,
                 TypeOptimization::QuantizedInt64AsI8 as u8,
                 20,
                 ArgumentOperations::End as u8,  // end of this argument
@@ -2618,9 +2618,9 @@ mod test_instructions {
         let ops = completed_ops.clone_memory().expect("clone");
         assert_eq!(
             alloc::vec![
-                Operations::Begin as u8,             // start of block
-                Operations::Invoke as u8,            // sub-block: a type of instruction
-                ValueTypes::ExternalReference as u8, // type of value
+                Operations::Begin as u8,              // start of block
+                Operations::Invoke as u8,             // sub-block: a type of instruction
+                ParamTypeId::ExternalReference as u8, // type of value
                 TypeOptimization::None as u8,
                 // address pointer to function which is a u64, so 8 bytes
                 1,
@@ -2636,7 +2636,7 @@ mod test_instructions {
                 ReturnHintMarker::Stop as u8,
                 ArgumentOperations::Start as u8, // start of all arguments
                 ArgumentOperations::Begin as u8, // start of this argument
-                ValueTypes::Int32 as u8,
+                ParamTypeId::Int32 as u8,
                 TypeOptimization::None as u8,
                 // value of int32 in LittleIndian encoding, so 8 bytes
                 10,
@@ -2645,7 +2645,7 @@ mod test_instructions {
                 0,
                 ArgumentOperations::End as u8,   // end of this argument
                 ArgumentOperations::Begin as u8, // start of this argument
-                ValueTypes::Int64 as u8,
+                ParamTypeId::Int64 as u8,
                 TypeOptimization::None as u8,
                 20,
                 0,

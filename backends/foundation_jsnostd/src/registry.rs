@@ -1,11 +1,5 @@
 use alloc::{boxed::Box, collections::btree_map::BTreeMap};
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
-use alloc::rc::Rc;
-
-#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-use alloc::sync::Arc;
-
 use foundation_nostd::spin::Mutex;
 
 use crate::{InternalPointer, ReturnTypeHints, ReturnValues, Returns};
@@ -62,57 +56,6 @@ pub trait InternalCallback: Send + Sync {
     fn receive(&self, value: TaskResult<Returns>);
 }
 
-#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-pub struct WrappedInternalCallback(Arc<Mutex<Box<dyn InternalCallback + 'static>>>);
-
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
-pub struct WrappedInternalCallback(Rc<Box<dyn InternalCallback + 'static>>);
-
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
-unsafe impl Sync for WrappedInternalCallback {}
-
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
-unsafe impl Send for WrappedInternalCallback {}
-
-impl WrappedInternalCallback {
-    pub fn new<F>(f: F) -> Self
-    where
-        F: InternalCallback + 'static,
-    {
-        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
-        {
-            Self(Rc::new(Box::new(f)))
-        }
-
-        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-        {
-            Self(Arc::new(Mutex::new(Box::new(f))))
-        }
-    }
-}
-
-impl Clone for WrappedInternalCallback {
-    fn clone(&self) -> Self {
-        Self(self.0.clone())
-    }
-}
-
-impl InternalCallback for WrappedInternalCallback {
-    fn receive(&self, value: TaskResult<Returns>) {
-        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-        {
-            self.0.lock().receive(value);
-        }
-
-        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
-        {
-            self.0.receive(value);
-        }
-    }
-}
-
-pub type CallbackFn = dyn Fn(*const u8, u64) + 'static;
-
 #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
 pub struct FnCallback(Box<dyn Fn(TaskResult<Returns>)>);
 
@@ -167,8 +110,59 @@ impl InternalCallback for FnCallback {
     }
 }
 
+#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+pub struct WrappedInternalCallback<T>(alloc::sync::Arc<Mutex<T>>);
+
+#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+pub struct WrappedInternalCallback<T>(alloc::rc::Rc<T>);
+
+#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+unsafe impl<T> Sync for WrappedInternalCallback<T> {}
+
+#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+unsafe impl<T> Send for WrappedInternalCallback<T> {}
+
+impl<T> WrappedInternalCallback<T> {
+    pub fn new(f: T) -> Self {
+        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        {
+            Self(alloc::rc::Rc::new(f))
+        }
+
+        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        {
+            Self(alloc::sync::Arc::new(Mutex::new(f)))
+        }
+    }
+}
+
+impl<T: Clone> Clone for WrappedInternalCallback<T> {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
+
+#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
 pub struct InternalReferenceRegistry {
-    tree: BTreeMap<InternalPointer, (ReturnTypeHints, WrappedInternalCallback)>,
+    tree: BTreeMap<
+        InternalPointer,
+        (
+            ReturnTypeHints,
+            WrappedInternalCallback<Box<dyn InternalCallback + 'static>>,
+        ),
+    >,
+    id: u64,
+}
+
+#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+pub struct InternalReferenceRegistry {
+    tree: BTreeMap<
+        InternalPointer,
+        (
+            ReturnTypeHints,
+            WrappedInternalCallback<Box<dyn InternalCallback + Sync + Send + 'static>>,
+        ),
+    >,
     id: u64,
 }
 
@@ -196,41 +190,57 @@ impl InternalReferenceRegistry {
 // -- Methods
 
 impl InternalReferenceRegistry {
-    pub fn remove(
-        &mut self,
-        id: InternalPointer,
-    ) -> Option<(ReturnTypeHints, WrappedInternalCallback)> {
-        self.tree.remove(&id)
+    pub fn delete(&mut self, id: InternalPointer) -> Option<ReturnTypeHints> {
+        self.tree.remove(&id).map(|(hint, _)| hint)
     }
 
-    pub fn get(
-        &mut self,
-        id: InternalPointer,
-    ) -> Option<(ReturnTypeHints, WrappedInternalCallback)> {
-        self.tree.get(&id).cloned()
+    pub fn get_type(&self, id: InternalPointer) -> Option<ReturnTypeHints> {
+        self.tree.get(&id).map(|(hint, _)| hint.clone())
+    }
+}
+
+#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+impl InternalReferenceRegistry {
+    pub fn call(&self, id: InternalPointer, values: TaskResult<Returns>) -> Option<()> {
+        if let Some((_, callback)) = self.tree.get(&id) {
+            callback.0.receive(values);
+            return Some(());
+        }
+        None
     }
 
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
-    pub fn add<F>(&mut self, returns: ReturnTypeHints, f: F) -> InternalPointer
-    where
-        F: InternalCallback + 'static,
-    {
+    pub fn add(
+        &mut self,
+        returns: ReturnTypeHints,
+        callback: Box<dyn InternalCallback + 'static>,
+    ) -> InternalPointer {
         self.id += 1;
         let id = self.id;
-        let wrapped = WrappedInternalCallback::new(f);
+        let wrapped = WrappedInternalCallback::new(callback);
         self.tree
             .insert(InternalPointer::from(id), (returns, wrapped));
         InternalPointer::from(id)
     }
+}
 
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-    pub fn add<F>(&mut self, returns: ReturnTypeHints, f: F) -> InternalPointer
-    where
-        F: InternalCallback + Send + Sync + 'static,
-    {
+#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+impl InternalReferenceRegistry {
+    pub fn call(&self, id: InternalPointer, values: TaskResult<Returns>) -> Option<()> {
+        if let Some((_, callback)) = self.tree.get(&id) {
+            callback.0.lock().receive(values);
+            return Some(());
+        }
+        None
+    }
+
+    pub fn add(
+        &mut self,
+        returns: ReturnTypeHints,
+        callback: Box<dyn InternalCallback + Send + Sync + 'static>,
+    ) -> InternalPointer {
         self.id += 1;
         let id = self.id;
-        let wrapped = WrappedInternalCallback::new(f);
+        let wrapped = WrappedInternalCallback::new(callback);
         self.tree
             .insert(InternalPointer::from(id), (returns, wrapped));
         InternalPointer::from(id)

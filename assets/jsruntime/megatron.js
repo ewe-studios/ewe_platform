@@ -329,6 +329,7 @@ const Megatron = (function () {
     DOMObject: 29,
     None: 30,
     ErrorCode: 31,
+    TypedArraySlice: 32,
   };
 
   ReturnTypeId.__INVERSE__ = Object.keys(ReturnTypeId)
@@ -3459,6 +3460,8 @@ const Megatron = (function () {
       this.reply_types[ReturnTypeId.Float32] = this.encodeFloat32.bind(this);
       this.reply_types[ReturnTypeId.Float64] = this.encodeFloat64.bind(this);
       this.reply_types[ReturnTypeId.Object] = this.encodeObject.bind(this);
+      this.reply_types[ReturnTypeId.TypedArraySlice] =
+        this.encodeTypedSlice.bind(this);
       this.reply_types[ReturnTypeId.DOMObject] =
         this.encodeDOMObject.bind(this);
       this.reply_types[ReturnTypeId.ExternalReference] =
@@ -4140,6 +4143,23 @@ const Megatron = (function () {
       return offset;
     }
 
+    encodeTypedSlice(offset, directive, view) {
+      if (directive.type != ReturnTypeId.TypedArraySlice) {
+        throw new Error(`Reply type with id ${value.type} is not known`);
+      }
+
+      view.setUint8(offset, directive.type, true);
+      offset += Move.MOVE_BY_1_BYTES;
+
+      view.setUint8(offset, directive.value.slice_type, true);
+      offset += Move.MOVE_BY_1_BYTES;
+
+      view.setBigUint64(offset, directive.value.slice_id, true);
+      offset += Move.MOVE_BY_64_BYTES;
+
+      return offset;
+    }
+
     encodeMemorySlice(offset, directive, view) {
       if (directive.type != ReturnTypeId.MemorySlice) {
         throw new Error(`Reply type with id ${value.type} is not known`);
@@ -4404,6 +4424,34 @@ const Megatron = (function () {
 
       if (
         item instanceof Uint8Array &&
+        value_type_id == ReturnTypeId.TypedArraySlice
+      ) {
+        return value_type_id;
+      }
+
+      if (
+        item instanceof Uint16Array &&
+        value_type_id == ReturnTypeId.TypedArraySlice
+      ) {
+        return value_type_id;
+      }
+
+      if (
+        item instanceof Uint32Array &&
+        value_type_id == ReturnTypeId.TypedArraySlice
+      ) {
+        return value_type_id;
+      }
+
+      if (
+        item instanceof BigUint64Array &&
+        value_type_id == ReturnTypeId.TypedArraySlice
+      ) {
+        return value_type_id;
+      }
+
+      if (
+        item instanceof Uint8Array &&
         value_type_id == ReturnTypeId.Uint8ArrayBuffer
       ) {
         return value_type_id;
@@ -4431,6 +4479,13 @@ const Megatron = (function () {
       }
 
       if (
+        item instanceof ReplyError &&
+        value_type_id == ReturnTypeId.ErrorCode
+      ) {
+        return value_type_id;
+      }
+
+      if (
         item instanceof Int8Array &&
         value_type_id == ReturnTypeId.Int8ArrayBuffer
       ) {
@@ -4438,8 +4493,29 @@ const Megatron = (function () {
       }
 
       if (
-        item instanceof ReplyError &&
-        value_type_id == ReturnTypeId.ErrorCode
+        item instanceof Int8Array &&
+        value_type_id == ReturnTypeId.TypedArraySlice
+      ) {
+        return value_type_id;
+      }
+
+      if (
+        item instanceof Int16Array &&
+        value_type_id == ReturnTypeId.TypedArraySlice
+      ) {
+        return value_type_id;
+      }
+
+      if (
+        item instanceof Int32Array &&
+        value_type_id == ReturnTypeId.TypedArraySlice
+      ) {
+        return value_type_id;
+      }
+
+      if (
+        item instanceof BigInt64Array &&
+        value_type_id == ReturnTypeId.TypedArraySlice
       ) {
         return value_type_id;
       }
@@ -4699,6 +4775,8 @@ const Megatron = (function () {
           return Reply.asBool(item);
         case ReturnTypeId.Text8:
           return Reply.asText8(item);
+        case ReturnTypeId.TypedArraySlice:
+          return Reply.asTypedSlice(item.slice_type, item.slice_id);
         case ReturnTypeId.Int128:
           return Reply.asInt128(item.value_lsb, item.value_msb);
         case ReturnTypeId.Uint128:
@@ -4768,64 +4846,64 @@ const Megatron = (function () {
       }
     }
 
-    // static asTypedArraySlice(value) {
-    //   if (!(value instanceof TypedArraySlice)) {
-    //     throw new Error("Value must be TypedArraySlice");
-    //   }
-    //   return Reply.asValue(ReturnTypeId.TypedArraySlice, value);
-    // }
+    static asTypedArraySlice(slice_type, slice_id) {
+      return Reply.asValue(ReturnTypeId.TypedArraySlice, {
+        slice_type,
+        slice_id,
+      });
+    }
 
     static asFloat64Array(value) {
-      if (value instanceof Float64Array) {
+      if (!(value instanceof Float64Array)) {
         throw new Error("Value must be Float64Array");
       }
       return Reply.asValue(ReturnTypeId.Float64ArrayBuffer, value);
     }
 
     static asFloat32Array(value) {
-      if (value instanceof Float32Array) {
+      if (!(value instanceof Float32Array)) {
         throw new Error("Value must be Float32Array");
       }
       return Reply.asValue(ReturnTypeId.Float32ArrayBuffer, value);
     }
 
     static asInt64Array(value) {
-      if (value instanceof Int64Array) {
+      if (!(value instanceof Int64Array)) {
         throw new Error("Value must be Int64Array");
       }
       return Reply.asValue(ReturnTypeId.Int64ArrayBuffer, value);
     }
 
     static asInt32Array(value) {
-      if (value instanceof Int32Array) {
+      if (!(value instanceof Int32Array)) {
         throw new Error("Value must be Int32Array");
       }
       return Reply.asValue(ReturnTypeId.Int32ArrayBuffer, value);
     }
 
     static asInt16Array(value) {
-      if (value instanceof Int16Array) {
+      if (!(value instanceof Int16Array)) {
         throw new Error("Value must be Int16Array");
       }
       return Reply.asValue(ReturnTypeId.Int16ArrayBuffer, value);
     }
 
     static asInt8Array(value) {
-      if (value instanceof Int8Array) {
+      if (!(value instanceof Int8Array)) {
         throw new Error("Value must be Int8Array");
       }
       return Reply.asValue(ReturnTypeId.Int8ArrayBuffer, value);
     }
 
     static asUint64Array(value) {
-      if (value instanceof Uint64Array) {
+      if (!(value instanceof Uint64Array)) {
         throw new Error("Value must be Uint64Array");
       }
       return Reply.asValue(ReturnTypeId.Uint64ArrayBuffer, value);
     }
 
     static asUint32Array(value) {
-      if (value instanceof Uint32Array) {
+      if (!(value instanceof Uint32Array)) {
         throw new Error("Value must be Uint32Array");
       }
       return Reply.asValue(ReturnTypeId.Uint32ArrayBuffer, value);
