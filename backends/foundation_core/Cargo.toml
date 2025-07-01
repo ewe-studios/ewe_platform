@@ -13,7 +13,7 @@ keywords = ["foundations_core", "ewe-platform-core"]
 
 # -- Workspace dependencies
 
-foundation_jsnostd = {workspace = true }
+foundation_wasm = {workspace = true }
 foundation_nostd = {workspace = true }
 
 # -- Other dependencies

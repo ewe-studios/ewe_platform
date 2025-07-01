@@ -1,5 +1,5 @@
 [package]
-name = "foundation_jsnostd"
+name = "foundation_wasm"
 version = "0.0.2"
 edition.workspace = true
 rust-version.workspace = true
@@ -7,7 +7,7 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 description = "Implements the nostd interface runtime for WASM and JS interoperability"
-keywords = ["foundation js_notstd", "foundation_jsnostd"]
+keywords = ["foundation wasm layer", "foundation_wasm"]
 include = ["/src", "/runtime"]
 
 [dependencies]
