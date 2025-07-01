@@ -13,6 +13,11 @@ command = [ "cargo", "clippy", "--workspace", "--tests", "--all-targets", "--all
 analyzer = "cargo_json"
 need_stdout = true
 
+[jobs.bacon-wasm]
+command = [ "cargo", "clippy", "--workspace", "--tests", "--targets=\"wasm32-unknown-unknown\"", "--all-features", "--message-format", "json-diagnostic-rendered-ansi" ]
+analyzer = "cargo_json"
+need_stdout = true
+
 [exports.cargo-json-spans]
 auto = true
 exporter = "analyzer"

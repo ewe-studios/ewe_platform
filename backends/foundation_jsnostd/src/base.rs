@@ -55,59 +55,6 @@ impl From<u8> for TypedSlice {
     }
 }
 
-/// [`ValueTypes`] represent the underlying type of value
-/// being encoded into a binary stream.
-#[repr(u8)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum ValueTypes {
-    Null = 0,
-    Undefined = 1,
-    Bool = 2,
-    Text8 = 3,
-    Text16 = 4,
-    Int8 = 5,
-    Int16 = 6,
-    Int32 = 7,
-    Int64 = 8,
-    Uint8 = 9,
-    Uint16 = 10,
-    Uint32 = 11,
-    Uint64 = 12,
-    Float32 = 13,
-    Float64 = 14,
-    ExternalReference = 15,
-    Uint8ArrayBuffer = 16,
-    Uint16ArrayBuffer = 17,
-    Uint32ArrayBuffer = 18,
-    Uint64ArrayBuffer = 19,
-    Int8ArrayBuffer = 20,
-    Int16ArrayBuffer = 21,
-    Int32ArrayBuffer = 22,
-    Int64ArrayBuffer = 23,
-    Float32ArrayBuffer = 24,
-    Float64ArrayBuffer = 25,
-    InternalReference = 26,
-    Int128 = 27,
-    Uint128 = 28,
-    CachedText = 29,
-    TypedArraySlice = 30,
-    ErrorCode = 31,
-}
-
-#[allow(clippy::from_over_into)]
-impl Into<u8> for &ValueTypes {
-    fn into(self) -> u8 {
-        *self as u8
-    }
-}
-
-#[allow(clippy::from_over_into)]
-impl Into<u8> for ValueTypes {
-    fn into(self) -> u8 {
-        self as u8
-    }
-}
-
 /// [`ReturnValueTypes`] represent the type indicating the underlying returned
 /// value for an operation.
 #[repr(u8)]
@@ -144,6 +91,7 @@ pub enum ReturnTypeId {
     DOMObject = 29,
     None = 30,
     ErrorCode = 31,
+    TypedArraySlice = 32,
 }
 
 #[allow(clippy::from_over_into)]
@@ -200,6 +148,7 @@ impl From<u8> for ReturnTypeId {
             29 => Self::DOMObject,
             30 => Self::None,
             31 => Self::ErrorCode,
+            32 => Self::TypedArraySlice,
             _ => unreachable!("should not have any other type of ArgumentOperations"),
         }
     }
@@ -387,34 +336,6 @@ pub enum ReturnTypeHints {
     Multi(Vec<ThreeState>),
 }
 
-// -- Special Methods
-
-// impl ReturnTypeHints {
-//
-//     /// [`into_fallible`] attempts to represent the hint as a state than can
-//     /// be an error (think like a [`Result`] object where one of the state is [`Error`]).
-//     ///
-//     /// This allows us to express to the user the idea that one of the underlying states
-//     /// in here except of [`ReturnTypeHints::None`] can have a [`ThreeState`] where one of
-//     /// the underlying values is an error.
-//     pub fn into_fallible(self) -> Self {
-//         match &self {
-//             ReturnTypeHints::None => self,
-//             ReturnTypeHints::One(state) => {
-//                 match state {
-//                     ThreeState::One(return_type_id) => {
-//                         ReturnTypeHints::One(ThreeState::Two(*return_type_id, ReturnTypeId::ErrorCode))
-//                     },
-//                     ThreeState::Two(return_type_id, return_type_id1) => todo!(),
-//                     ThreeState::Three(return_type_id, return_type_id1, return_type_id2) => todo!(),
-//                 }
-//             },
-//             ReturnTypeHints::List(state) => todo!(),
-//             ReturnTypeHints::Multi(states) => todo!(),
-//         }
-//     }
-// }
-
 // -- General methods
 
 #[allow(clippy::from_over_into)]
@@ -533,6 +454,7 @@ pub enum ReturnValues {
     DOMObject(InternalPointer),
     ExternalReference(ExternalPointer),
     InternalReference(InternalPointer),
+    TypedArraySlice(TypedSlice, MemoryId),
 }
 
 impl ReturnValues {
@@ -571,9 +493,63 @@ impl ReturnValues {
             Self::Uint64Array(_) => ReturnTypeId::Uint64ArrayBuffer,
             Self::Float32Array(_) => ReturnTypeId::Float32ArrayBuffer,
             Self::Float64Array(_) => ReturnTypeId::Float64ArrayBuffer,
+            Self::TypedArraySlice(_, _) => ReturnTypeId::TypedArraySlice,
             Self::ExternalReference(_) => ReturnTypeId::ExternalReference,
             Self::InternalReference(_) => ReturnTypeId::InternalReference,
         }
+    }
+}
+
+/// [`ParamTypeId`] represent the underlying type of value
+/// being encoded into a binary stream.
+#[repr(u8)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ParamTypeId {
+    Null = 0,
+    Undefined = 1,
+    Bool = 2,
+    Text8 = 3,
+    Text16 = 4,
+    Int8 = 5,
+    Int16 = 6,
+    Int32 = 7,
+    Int64 = 8,
+    Uint8 = 9,
+    Uint16 = 10,
+    Uint32 = 11,
+    Uint64 = 12,
+    Float32 = 13,
+    Float64 = 14,
+    ExternalReference = 15,
+    Uint8ArrayBuffer = 16,
+    Uint16ArrayBuffer = 17,
+    Uint32ArrayBuffer = 18,
+    Uint64ArrayBuffer = 19,
+    Int8ArrayBuffer = 20,
+    Int16ArrayBuffer = 21,
+    Int32ArrayBuffer = 22,
+    Int64ArrayBuffer = 23,
+    Float32ArrayBuffer = 24,
+    Float64ArrayBuffer = 25,
+    InternalReference = 26,
+    Int128 = 27,
+    Uint128 = 28,
+    CachedText = 29,
+    TypedArraySlice = 30,
+    ErrorCode = 31,
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for &ParamTypeId {
+    fn into(self) -> u8 {
+        *self as u8
+    }
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for ParamTypeId {
+    fn into(self) -> u8 {
+        self as u8
     }
 }
 
@@ -617,39 +593,39 @@ impl Params<'_> {
         self.to_value_type() as u8
     }
 
-    pub fn to_value_type(&self) -> ValueTypes {
+    pub fn to_value_type(&self) -> ParamTypeId {
         match self {
-            Params::Bool(_) => ValueTypes::Bool,
-            Params::Undefined => ValueTypes::Undefined,
-            Params::Null => ValueTypes::Null,
-            Params::Float32(_) => ValueTypes::Float32,
-            Params::Float64(_) => ValueTypes::Float64,
-            Params::Int8(_) => ValueTypes::Int8,
-            Params::Int16(_) => ValueTypes::Int16,
-            Params::Int32(_) => ValueTypes::Int32,
-            Params::Int64(_) => ValueTypes::Int64,
-            Params::Int128(_) => ValueTypes::Int128,
-            Params::Uint8(_) => ValueTypes::Uint8,
-            Params::Uint16(_) => ValueTypes::Uint16,
-            Params::Uint32(_) => ValueTypes::Uint32,
-            Params::Uint64(_) => ValueTypes::Uint64,
-            Params::Uint128(_) => ValueTypes::Uint128,
-            Params::Text8(_) => ValueTypes::Text8,
-            Params::Text16(_) => ValueTypes::Text16,
-            Params::CachedText(_) => ValueTypes::CachedText,
-            Params::Int8Array(_) => ValueTypes::Int8ArrayBuffer,
-            Params::Int16Array(_) => ValueTypes::Int16ArrayBuffer,
-            Params::Int32Array(_) => ValueTypes::Int32ArrayBuffer,
-            Params::Int64Array(_) => ValueTypes::Int64ArrayBuffer,
-            Params::Uint8Array(_) => ValueTypes::Uint8ArrayBuffer,
-            Params::Uint16Array(_) => ValueTypes::Uint16ArrayBuffer,
-            Params::Uint32Array(_) => ValueTypes::Uint32ArrayBuffer,
-            Params::Uint64Array(_) => ValueTypes::Uint64ArrayBuffer,
-            Params::Float32Array(_) => ValueTypes::Float32ArrayBuffer,
-            Params::Float64Array(_) => ValueTypes::Float64ArrayBuffer,
-            Params::ExternalReference(_) => ValueTypes::ExternalReference,
-            Params::InternalReference(_) => ValueTypes::InternalReference,
-            Params::TypedArraySlice(_, _) => ValueTypes::TypedArraySlice,
+            Params::Bool(_) => ParamTypeId::Bool,
+            Params::Undefined => ParamTypeId::Undefined,
+            Params::Null => ParamTypeId::Null,
+            Params::Float32(_) => ParamTypeId::Float32,
+            Params::Float64(_) => ParamTypeId::Float64,
+            Params::Int8(_) => ParamTypeId::Int8,
+            Params::Int16(_) => ParamTypeId::Int16,
+            Params::Int32(_) => ParamTypeId::Int32,
+            Params::Int64(_) => ParamTypeId::Int64,
+            Params::Int128(_) => ParamTypeId::Int128,
+            Params::Uint8(_) => ParamTypeId::Uint8,
+            Params::Uint16(_) => ParamTypeId::Uint16,
+            Params::Uint32(_) => ParamTypeId::Uint32,
+            Params::Uint64(_) => ParamTypeId::Uint64,
+            Params::Uint128(_) => ParamTypeId::Uint128,
+            Params::Text8(_) => ParamTypeId::Text8,
+            Params::Text16(_) => ParamTypeId::Text16,
+            Params::CachedText(_) => ParamTypeId::CachedText,
+            Params::Int8Array(_) => ParamTypeId::Int8ArrayBuffer,
+            Params::Int16Array(_) => ParamTypeId::Int16ArrayBuffer,
+            Params::Int32Array(_) => ParamTypeId::Int32ArrayBuffer,
+            Params::Int64Array(_) => ParamTypeId::Int64ArrayBuffer,
+            Params::Uint8Array(_) => ParamTypeId::Uint8ArrayBuffer,
+            Params::Uint16Array(_) => ParamTypeId::Uint16ArrayBuffer,
+            Params::Uint32Array(_) => ParamTypeId::Uint32ArrayBuffer,
+            Params::Uint64Array(_) => ParamTypeId::Uint64ArrayBuffer,
+            Params::Float32Array(_) => ParamTypeId::Float32ArrayBuffer,
+            Params::Float64Array(_) => ParamTypeId::Float64ArrayBuffer,
+            Params::ExternalReference(_) => ParamTypeId::ExternalReference,
+            Params::InternalReference(_) => ParamTypeId::InternalReference,
+            Params::TypedArraySlice(_, _) => ParamTypeId::TypedArraySlice,
         }
     }
 }
@@ -1185,8 +1161,8 @@ impl CachedText {
         self.0
     }
 
-    pub fn to_value_type(&self) -> ValueTypes {
-        ValueTypes::InternalReference
+    pub fn to_value_type(&self) -> ParamTypeId {
+        ParamTypeId::InternalReference
     }
 }
 
@@ -1218,8 +1194,8 @@ impl InternalPointer {
         self.0
     }
 
-    pub fn to_value_type(&self) -> ValueTypes {
-        ValueTypes::InternalReference
+    pub fn to_value_type(&self) -> ParamTypeId {
+        ParamTypeId::InternalReference
     }
 }
 
@@ -1251,8 +1227,8 @@ impl ExternalPointer {
         self.0
     }
 
-    pub fn to_value_type(&self) -> ValueTypes {
-        ValueTypes::ExternalReference
+    pub fn to_value_type(&self) -> ParamTypeId {
+        ParamTypeId::ExternalReference
     }
 }
 
