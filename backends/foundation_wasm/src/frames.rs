@@ -1,6 +1,5 @@
 use alloc::{boxed::Box, vec::Vec};
 
-use crate::InternalPointer;
 use foundation_nostd::spin::Mutex;
 
 #[derive(PartialEq, Eq, Debug, Clone)]
@@ -100,6 +99,10 @@ impl Default for FrameCallbackList {
 }
 
 impl FrameCallbackList {
+    pub fn len(&self) -> usize {
+        self.items.len()
+    }
+
     #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
     pub fn add(&mut self, handler: Box<dyn FrameCallback + 'static>) {
         self.items.push(Some(handler));
@@ -145,3 +148,66 @@ unsafe impl Sync for FrameCallbackList {}
 
 #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
 unsafe impl Send for FrameCallbackList {}
+
+#[cfg(test)]
+mod test_frame_callback_registry {
+    extern crate std;
+
+    use alloc::boxed::Box;
+    use alloc::sync::Arc;
+
+    use super::*;
+    use std::sync::Mutex;
+
+    #[test]
+    fn test_add_when_requeued() {
+        let mut registry = FrameCallbackList::new();
+
+        let value: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
+
+        let copy_value = value.clone();
+        let handle = Box::new(FnFrameCallback::from(move |value| {
+            let mut item = copy_value.lock().unwrap();
+            *item = value as usize;
+            TickState::REQUEUE
+        }));
+
+        assert_eq!(registry.len(), 0);
+        registry.add(handle);
+
+        assert_eq!(registry.len(), 1);
+        assert_eq!(*value.lock().unwrap(), 0);
+
+        registry.call(2.0);
+
+        assert_eq!(*value.lock().unwrap(), 2);
+
+        assert_eq!(registry.len(), 1);
+    }
+
+    #[test]
+    fn test_add_when_stopping() {
+        let mut registry = FrameCallbackList::new();
+
+        let value: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
+
+        let copy_value = value.clone();
+        let handle = Box::new(FnFrameCallback::from(move |value| {
+            let mut item = copy_value.lock().unwrap();
+            *item = value as usize;
+            TickState::STOP
+        }));
+
+        assert_eq!(registry.len(), 0);
+        registry.add(handle);
+
+        assert_eq!(registry.len(), 1);
+        assert_eq!(*value.lock().unwrap(), 0);
+
+        registry.call(2.0);
+
+        assert_eq!(*value.lock().unwrap(), 2);
+
+        assert_eq!(registry.len(), 0);
+    }
+}
