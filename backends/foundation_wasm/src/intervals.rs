@@ -1,29 +1,29 @@
 use alloc::{boxed::Box, vec::Vec};
 
-use crate::InternalPointer;
+use crate::TickState;
 use foundation_nostd::spin::Mutex;
 
 #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
-pub trait DoTask {
-    fn do(&self);
+pub trait IntervalCallback {
+    fn perform(&self) -> TickState;
 }
 
 #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-pub trait DoTask: Send + Sync {
-    fn do(&self);
+pub trait IntervalCallback: Send + Sync {
+    fn perform(&self) -> TickState;
 }
 
 #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
-pub struct FnDoTask(Box<dyn Fn()>);
+pub struct FnIntervalCallback(Box<dyn Fn() -> TickState>);
 
 #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-pub struct FnDoTask(Mutex<Box<dyn Fn()  + Send + 'static>>);
+pub struct FnIntervalCallback(Mutex<Box<dyn Fn() -> TickState + Send + 'static>>);
 
-impl FnDoTask {
+impl FnIntervalCallback {
     #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
     pub fn from<F>(elem: F) -> Self
     where
-        F: Fn()  + Send + 'static,
+        F: Fn() -> TickState + Send + 'static,
     {
         Self::new(Box::new(elem))
     }
@@ -31,38 +31,38 @@ impl FnDoTask {
     #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
     pub fn from<F>(elem: F) -> Self
     where
-        F: Fn(f64) -> TickState + 'static,
+        F: Fn() -> TickState + 'static,
     {
         Self::new(Box::new(elem))
     }
 
     #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-    pub fn new(elem: Box<dyn Fn(f64) -> TickState + Send + 'static>) -> Self {
+    pub fn new(elem: Box<dyn Fn() -> TickState + Send + 'static>) -> Self {
         Self(Mutex::new(elem))
     }
 
     #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
-    pub fn new(elem: Box<dyn Fn(f64) -> TickState>) -> Self {
+    pub fn new(elem: Box<dyn Fn() -> TickState>) -> Self {
         Self(elem)
     }
 }
 
 #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
-unsafe impl Sync for FnDoTask {}
+unsafe impl Sync for FnIntervalCallback {}
 
 #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
-unsafe impl Send for FnDoTask {}
+unsafe impl Send for FnIntervalCallback {}
 
-impl DoTask for FnDoTask {
-    fn do(&self, value: f64) -> TickState {
+impl IntervalCallback for FnIntervalCallback {
+    fn perform(&self) -> TickState {
         #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
         {
-            (self.0.lock())(value)
+            (self.0.lock())()
         }
 
         #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
         {
-            (self.0)(value)
+            (self.0)()
         }
     }
 }
@@ -93,30 +93,27 @@ impl Default for IntervalCallbackList {
 }
 
 impl IntervalCallbackList {
+    pub fn len(&self) -> usize {
+        self.items.len()
+    }
+
     #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
-    pub fn add(&mut self, handler: Box<dyn IntervalCallback + 'static>) -> InternalPointer {
-        let next_index = self.items.len();
+    pub fn add(&mut self, handler: Box<dyn IntervalCallback + 'static>) {
         self.items.push(Some(handler));
-        InternalPointer::from(next_index as u64)
     }
 
     #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-    pub fn add(
-        &mut self,
-        handler: Box<dyn IntervalCallback + Send + Sync + 'static>,
-    ) -> InternalPointer {
-        let next_index = self.items.len();
+    pub fn add(&mut self, handler: Box<dyn IntervalCallback + Send + Sync + 'static>) {
         self.items.push(Some(handler));
-        InternalPointer::from(next_index as u64)
     }
 
-    pub fn call(&mut self, value: f64) -> TickState {
+    pub fn call(&mut self) -> TickState {
         let total = self.items.len();
         let mut to_keep: Vec<usize> = Vec::with_capacity(total);
 
         for (index, item) in self.items.iter().enumerate() {
             if let Some(elem) = item {
-                if TickState::REQUEUE == elem.tick(value) {
+                if TickState::REQUEUE == elem.perform() {
                     to_keep.push(index);
                 }
             }
@@ -145,3 +142,66 @@ unsafe impl Sync for IntervalCallbackList {}
 
 #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
 unsafe impl Send for IntervalCallbackList {}
+
+#[cfg(test)]
+mod test_interval_registry {
+    extern crate std;
+
+    use alloc::boxed::Box;
+    use alloc::sync::Arc;
+
+    use super::*;
+    use std::sync::Mutex;
+
+    #[test]
+    fn test_add_when_requeued() {
+        let mut registry = IntervalCallbackList::new();
+
+        let value: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
+
+        let copy_value = value.clone();
+        let handle = Box::new(FnIntervalCallback::from(move || {
+            let mut item = copy_value.lock().unwrap();
+            *item = 2;
+            TickState::REQUEUE
+        }));
+
+        assert_eq!(registry.len(), 0);
+        registry.add(handle);
+
+        assert_eq!(registry.len(), 1);
+        assert_eq!(*value.lock().unwrap(), 0);
+
+        registry.call();
+
+        assert_eq!(*value.lock().unwrap(), 2);
+
+        assert_eq!(registry.len(), 1);
+    }
+
+    #[test]
+    fn test_add_when_stopping() {
+        let mut registry = IntervalCallbackList::new();
+
+        let value: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
+
+        let copy_value = value.clone();
+        let handle = Box::new(FnIntervalCallback::from(move || {
+            let mut item = copy_value.lock().unwrap();
+            *item = 2;
+            TickState::STOP
+        }));
+
+        assert_eq!(registry.len(), 0);
+        registry.add(handle);
+
+        assert_eq!(registry.len(), 1);
+        assert_eq!(*value.lock().unwrap(), 0);
+
+        registry.call();
+
+        assert_eq!(*value.lock().unwrap(), 2);
+
+        assert_eq!(registry.len(), 0);
+    }
+}
