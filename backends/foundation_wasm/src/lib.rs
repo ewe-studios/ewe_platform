@@ -3,6 +3,7 @@
 extern crate alloc;
 
 mod base;
+mod error;
 mod frames;
 mod intervals;
 mod jsapi;
@@ -13,6 +14,7 @@ mod schedule;
 mod wrapped;
 
 pub use base::*;
+pub use error::*;
 pub use frames::*;
 pub use intervals::*;
 pub use jsapi::*;

@@ -10,88 +10,10 @@ use alloc::vec::Vec;
 use foundation_nostd::spin::Mutex;
 
 use crate::{
-    CompletedInstructions, MemoryId, ReturnTypeId, ReturnValues, StrLocation, TaskErrorCode,
-    ThreeState,
+    BinaryReadError, BinaryReaderResult, CompletedInstructions, MemoryAllocationError,
+    MemoryAllocationResult, MemoryId, MemoryReaderError, MemoryReaderResult, MemoryWriterError,
+    MemoryWriterResult, ReturnTypeId, ReturnValues, StrLocation, TaskErrorCode, ThreeState,
 };
-
-pub type MemoryWriterResult<T> = core::result::Result<T, MemoryWriterError>;
-
-#[derive(Debug)]
-pub enum MemoryWriterError {
-    FailedWrite,
-    PreviousUnclosedOperation,
-    NotValidUTF8(FromUtf8Error),
-    NotValidUTF16(FromUtf16Error),
-    UnableToWrite,
-    UnexpectedFreeState,
-    UnexpectedOccupiedState,
-}
-
-impl core::error::Error for MemoryWriterError {}
-
-impl core::fmt::Display for MemoryWriterError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{self:?}")
-    }
-}
-
-#[derive(Debug)]
-pub enum ReturnValueError {
-    UnexpectedReturnType,
-    InvalidReturnType(ReturnValues),
-    ExpectedOne(Vec<ReturnValues>),
-    ExpectedList(Vec<ReturnValues>),
-    ExpectedMultiple(Vec<ReturnValues>),
-    InvalidReturnIds(Vec<ReturnValues>),
-}
-
-impl core::error::Error for ReturnValueError {}
-
-impl core::fmt::Display for ReturnValueError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{self:?}")
-    }
-}
-
-#[derive(Debug)]
-pub enum MemoryReaderError {
-    NotValidUTF8(FromUtf8Error),
-    NotValidUTF16(FromUtf16Error),
-    ReturnValueError(ReturnValueError),
-    NotValidReplyBinary(BinaryReadError),
-}
-
-impl core::error::Error for MemoryReaderError {}
-
-impl core::fmt::Display for MemoryReaderError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{self:?}")
-    }
-}
-
-impl From<ReturnValueError> for MemoryReaderError {
-    fn from(value: ReturnValueError) -> Self {
-        Self::ReturnValueError(value)
-    }
-}
-
-impl From<BinaryReadError> for MemoryReaderError {
-    fn from(value: BinaryReadError) -> Self {
-        Self::NotValidReplyBinary(value)
-    }
-}
-
-impl From<FromUtf16Error> for MemoryReaderError {
-    fn from(value: FromUtf16Error) -> Self {
-        Self::NotValidUTF16(value)
-    }
-}
-
-impl From<FromUtf8Error> for MemoryReaderError {
-    fn from(value: FromUtf8Error) -> Self {
-        Self::NotValidUTF8(value)
-    }
-}
 
 /// [`MemoryAllocation`] is a thread-safe and copy-cheap handle to a
 /// underlying memory location held by a [`Vec<u8>`].
@@ -111,52 +33,6 @@ impl core::fmt::Debug for MemoryAllocation {
 impl core::fmt::Display for MemoryAllocation {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "MemoryAllocations")
-    }
-}
-
-pub type MemoryAllocationResult<T> = core::result::Result<T, MemoryAllocationError>;
-
-#[derive(Debug)]
-pub enum MemoryAllocationError {
-    NoMemoryAllocation,
-    NoMoreAllocationSlots,
-    InvalidAllocationId,
-    FailedDeAllocation,
-    TaskFailure(TaskErrorCode),
-    FailedAllocationReading(MemoryId),
-    MemoryReadError(MemoryReaderError),
-    MemoryWriteError(MemoryWriterError),
-}
-
-impl From<TaskErrorCode> for MemoryAllocationError {
-    fn from(value: TaskErrorCode) -> Self {
-        Self::TaskFailure(value)
-    }
-}
-
-impl From<ReturnValueError> for MemoryAllocationError {
-    fn from(value: ReturnValueError) -> Self {
-        Self::MemoryReadError(value.into())
-    }
-}
-
-impl From<MemoryReaderError> for MemoryAllocationError {
-    fn from(value: MemoryReaderError) -> Self {
-        MemoryAllocationError::MemoryReadError(value)
-    }
-}
-
-impl From<MemoryWriterError> for MemoryAllocationError {
-    fn from(value: MemoryWriterError) -> Self {
-        MemoryAllocationError::MemoryWriteError(value)
-    }
-}
-
-impl core::error::Error for MemoryAllocationError {}
-
-impl core::fmt::Display for MemoryAllocationError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{self:?}")
     }
 }
 
@@ -345,33 +221,6 @@ pub trait FromBinary {
     fn from_binary(self, bin: &[u8]) -> BinaryReaderResult<Self::T>;
 }
 
-pub type BinaryReaderResult<T> = core::result::Result<T, BinaryReadError>;
-
-#[derive(Debug, Clone)]
-pub enum BinaryReadError {
-    WrongStarterCode(u8),
-    UnexpectedBinCode(u8),
-    ExpectedStringInCode(u8),
-    WrongEndingCode(u8),
-    MemoryError(String),
-    NotMatchingTypeHint(ThreeState, ReturnTypeId),
-}
-
-impl core::error::Error for BinaryReadError {}
-
-impl core::fmt::Display for BinaryReadError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{self:?}")
-    }
-}
-
-impl From<MemoryAllocationError> for BinaryReadError {
-    fn from(value: MemoryAllocationError) -> Self {
-        let content = alloc::format!("MemoryAllocationError({value})");
-        Self::MemoryError(content)
-    }
-}
-
 /// [`BatchEncodable`] defines a trait which allows you implement
 /// conversion an underlying binary representation of a Batch
 /// operation.
@@ -475,7 +324,14 @@ impl Default for MemoryAllocations {
 }
 
 impl MemoryAllocations {
-    pub const fn new() -> Self {
+    pub const fn create() -> Self {
+        Self {
+            allocs: Vec::new(),
+            free: Vec::new(),
+        }
+    }
+
+    pub fn new() -> Self {
         Self {
             allocs: Vec::new(),
             free: Vec::new(),

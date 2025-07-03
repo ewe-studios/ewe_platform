@@ -1,6 +1,6 @@
-use alloc::{boxed::Box, vec::Vec};
+use alloc::{boxed::Box, collections::btree_map::BTreeMap, vec::Vec};
 
-use crate::TickState;
+use crate::{InternalPointer, TickState, WrappedItem};
 use foundation_nostd::spin::Mutex;
 
 #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
@@ -81,6 +81,11 @@ impl IntervalCallbackList {
             items: Vec::with_capacity(capacity),
         }
     }
+
+    pub const fn create() -> Self {
+        Self { items: Vec::new() }
+    }
+
     pub fn new() -> Self {
         Self { items: Vec::new() }
     }
@@ -99,6 +104,8 @@ impl IntervalCallbackList {
 
     #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
     pub fn add(&mut self, handler: Box<dyn IntervalCallback + 'static>) {
+        self.id += 1;
+        let id = self.id;
         self.items.push(Some(handler));
     }
 
@@ -203,5 +210,126 @@ mod test_interval_registry {
         assert_eq!(*value.lock().unwrap(), 2);
 
         assert_eq!(registry.len(), 0);
+    }
+}
+
+#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+pub struct IntervalRegistry {
+    tree: BTreeMap<InternalPointer, WrappedItem<Box<dyn IntervalCallback + 'static>>>,
+    id: u64,
+}
+
+#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+pub struct IntervalRegistry {
+    tree: BTreeMap<InternalPointer, WrappedItem<Box<dyn IntervalCallback + Sync + Send + 'static>>>,
+    id: u64,
+}
+
+// -- Constructors
+
+#[allow(unused)]
+impl IntervalRegistry {
+    pub(crate) fn new() -> Self {
+        Self {
+            id: 0,
+            tree: BTreeMap::new(),
+        }
+    }
+}
+
+impl IntervalRegistry {
+    pub const fn create() -> Mutex<Self> {
+        Mutex::new(Self {
+            id: 0,
+            tree: BTreeMap::new(),
+        })
+    }
+}
+
+// -- Methods
+
+impl IntervalRegistry {
+    pub fn delete(&mut self, id: InternalPointer) -> Option<()> {
+        self.tree.remove(&id).map(|_| ())
+    }
+}
+
+#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+impl IntervalRegistry {
+    pub fn call(&self, id: InternalPointer) -> Option<()> {
+        if let Some(callback) = self.tree.get(&id) {
+            callback.0.perform();
+            return Some(());
+        }
+        None
+    }
+
+    pub fn add(&mut self, callback: Box<dyn IntervalCallback + 'static>) -> InternalPointer {
+        self.id += 1;
+        let id = self.id;
+        let wrapped = WrappedItem::new(callback);
+        self.tree.insert(InternalPointer::from(id), wrapped);
+        InternalPointer::from(id)
+    }
+}
+
+#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+impl IntervalRegistry {
+    pub fn len(&self) -> usize {
+        self.tree.len()
+    }
+
+    pub fn call(&self, id: InternalPointer) -> Option<()> {
+        if let Some(callback) = self.tree.get(&id) {
+            callback.0.lock().perform();
+            return Some(());
+        }
+        None
+    }
+
+    pub fn add(
+        &mut self,
+        callback: Box<dyn IntervalCallback + Send + Sync + 'static>,
+    ) -> InternalPointer {
+        self.id += 1;
+        let id = self.id;
+        let wrapped = WrappedItem::new(callback);
+        self.tree.insert(InternalPointer::from(id), wrapped);
+        InternalPointer::from(id)
+    }
+}
+
+#[cfg(test)]
+mod test_schedule_registry {
+    extern crate std;
+
+    use alloc::boxed::Box;
+    use alloc::sync::Arc;
+
+    use super::FnIntervalCallback;
+    use super::IntervalRegistry;
+    use super::TickState;
+    use std::sync::Mutex;
+
+    #[test]
+    fn test_add() {
+        let mut registry = IntervalRegistry::new();
+
+        let value: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
+
+        let copy_value = value.clone();
+        let handle = Box::new(FnIntervalCallback::from(move || {
+            let mut item = copy_value.lock().unwrap();
+            *item = 2;
+            TickState::REQUEUE
+        }));
+
+        let id = registry.add(handle);
+
+        assert_eq!(*value.lock().unwrap(), 0);
+
+        registry.call(id);
+
+        assert_eq!(*value.lock().unwrap(), 2);
     }
 }
