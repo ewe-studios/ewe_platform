@@ -2,49 +2,9 @@ use alloc::{boxed::Box, collections::btree_map::BTreeMap};
 
 use foundation_nostd::spin::Mutex;
 
-use crate::{InternalPointer, ReturnTypeHints, ReturnValues, Returns, WrappedItem};
-
-pub type TaskResult<T> = core::result::Result<T, TaskErrorCode>;
-
-/// [`TaskErrorCode`] represents the converted response of an
-/// [`ReturnValues::ErrorCode`] when its communicated that a async task
-/// or function failed.
-///
-/// Usually when the only response is [`ReturnValues::ErrorCode`] when
-/// the response hint provided did not match that.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct TaskErrorCode(pub u16);
-
-impl TaskErrorCode {
-    pub fn new(code: u16) -> Self {
-        Self(code)
-    }
-}
-
-impl From<u16> for TaskErrorCode {
-    fn from(code: u16) -> Self {
-        Self(code)
-    }
-}
-
-impl From<ReturnValues> for TaskErrorCode {
-    fn from(value: ReturnValues) -> Self {
-        match &value {
-            ReturnValues::ErrorCode(code) => {
-                Self(*code)
-            }
-            _ => unreachable!("We should never attempt to convert anything but a ReturnValues::ErrorCode to a TaskErrorCode. This is a bug in the runtime code. Please report it.")
-        }
-    }
-}
-
-impl core::error::Error for TaskErrorCode {}
-
-impl core::fmt::Display for TaskErrorCode {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{self:?}")
-    }
-}
+use crate::{
+    InternalPointer, ReturnTypeHints, ReturnValues, Returns, TaskErrorCode, TaskResult, WrappedItem,
+};
 
 #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
 pub trait InternalCallback {

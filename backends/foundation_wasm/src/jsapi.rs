@@ -1,4 +1,4 @@
-#![allow(clippy::must_use_candidate)]
+e![allow(clippy::must_use_candidate)]
 #![allow(clippy::missing_panics_doc)]
 
 use alloc::string::String;
@@ -6,18 +6,32 @@ use alloc::vec::Vec;
 use foundation_nostd::{raw_parts::RawParts, spin::Mutex};
 
 use crate::{
-    BinaryReadError, BinaryReaderResult, CompletedInstructions, ExternalPointer, FromBinary,
-    GroupReturnHintMarker, Instructions, InternalCallback, InternalPointer,
-    InternalReferenceRegistry, JSEncoding, MemoryAllocation, MemoryAllocationError,
-    MemoryAllocations, MemoryId, MemoryReaderError, Params, ReturnIds, ReturnTypeHints,
-    ReturnTypeId, ReturnValueError, ReturnValueMarker, ReturnValues, Returns, TaskErrorCode,
-    TaskResult, ThreeState, ThreeStateId, ToBinary, TypedSlice, MOVE_ONE_BYTE, MOVE_SIXTEEN_BYTES,
+    BinaryReadError, BinaryReaderResult, CompletedInstructions, ExternalPointer, FnDoTask,
+    FnFrameCallback, FnIntervalCallback, FrameCallbackList, FromBinary, GroupReturnHintMarker,
+    GuestOperationError, Instructions, InternalCallback, InternalPointer,
+    InternalReferenceRegistry, IntervalCallback, IntervalCallbackList, IntervalRegistry,
+    JSEncoding, MemoryAllocation, MemoryAllocationError, MemoryAllocations, MemoryId,
+    MemoryReaderError, Params, ReturnIds, ReturnTypeHints, ReturnTypeId, ReturnValueError,
+    ReturnValueMarker, ReturnValues, Returns, TaskErrorCode, TaskResult, ThreeState, ThreeStateId,
+    TickState, ToBinary, TypedSlice, WasmErrorResult, MOVE_ONE_BYTE, MOVE_SIXTEEN_BYTES,
     MOVE_SIXTY_FOUR_BYTES, MOVE_THIRTY_TWO_BYTES,
 };
 
+// Allocations for the memory management.
+static ALLOCATIONS: Mutex<MemoryAllocations> = Mutex::new(MemoryAllocations::create());
+
+// All registered animation callback, a registered function must indicate when it should
+// be removed and hence no direct removal/deletion is supported.
+static ANIMATION_FRAME_CALLBACKS: Mutex<FrameCallbackList> =
+    Mutex::new(FrameCallbackList::create());
+
+// All operation callbacks registered for a giving result by by the host.
 static INTERNAL_CALLBACKS: Mutex<InternalReferenceRegistry> = InternalReferenceRegistry::create();
 
-static ALLOCATIONS: Mutex<MemoryAllocations> = Mutex::new(MemoryAllocations::new());
+// All registered interval (think: setInterval in JS) all registered functions must indicate
+// if they should still be called on the next interval, host will manage
+// registration/registration.
+static RECURRING_INTERVAL_CALLBACKS: Mutex<IntervalRegistry> = IntervalRegistry::create();
 
 /// [`internal_api`] are internal methods, structs, and surfaces that provide core functionalities
 /// that we support or that allows making or preparing data to be sent-out or sent-across the API.
@@ -103,6 +117,54 @@ pub mod internal_api {
         }
     }
 
+    // interval function registration with the host.
+
+    /// [`run_interval_callback`] provides a method that will automatically
+    /// convert any type that implements the [`Fn`] trait.
+    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    pub fn run_interval_callback(id: InternalPointer) -> WasmErrorResult<()> {
+        match RECURRING_INTERVAL_CALLBACKS.lock().call(id) {
+            Some(_) => Ok(()),
+            None => Err(crate::WASMErrors::GuestError(
+                GuestOperationError::UnknownInternalPointer(id),
+            )),
+        }
+    }
+
+    /// [`register_callback`] provides a method that will automatically
+    /// convert any type that implements the [`Fn`] trait.
+    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    pub fn register_interval<F>(timing: f64, f: F) -> InternalPointer
+    where
+        F: Fn() -> TickState + Send + Sync + 'static,
+    {
+        RECURRING_INTERVAL_CALLBACKS
+            .lock()
+            .add(Box::new(FnIntervalCallback::new(Box::new(f))))
+    }
+
+    /// [`register_callback`] provides a method that will automatically
+    /// convert any type that implements the [`Fn`] trait.
+    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    pub fn register_interval<F>(timing: f64, f: F) -> InternalPointer
+    where
+        F: Fn() -> TickState + 'static,
+    {
+        RECURRING_INTERVAL_CALLBACKS
+            .lock()
+            .add(Box::new(FnIntervalCallback::new(Box::new(f))))
+    }
+
+    /// [`register_interval_callback`] provides a more direct method for
+    /// registering a type that implements the [`InternalCallback`] trait.
+    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    pub fn register_interval_callback<F>(timing: f64, f: F) -> InternalPointer
+    where
+        F: IntervalCallback + Send + Sync + 'static,
+    {
+        RECURRING_INTERVAL_CALLBACKS.lock().add(Box::new(f))
+    }
+
     // -- callback methods
 
     /// [`register_callback`] provides a method that will automatically
@@ -117,16 +179,6 @@ pub mod internal_api {
             .add(returns, Box::new(FnCallback::new(Box::new(f))))
     }
 
-    /// [`register_internal_callback`] provides a more direct method for
-    /// registering a type that implements the [`InternalCallback`] trait.
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-    pub fn register_internal_callback<F>(returns: ReturnTypeHints, f: F) -> InternalPointer
-    where
-        F: InternalCallback + Send + Sync + 'static,
-    {
-        INTERNAL_CALLBACKS.lock().add(returns, Box::new(f))
-    }
-
     /// [`register_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
     #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
@@ -137,6 +189,16 @@ pub mod internal_api {
         INTERNAL_CALLBACKS
             .lock()
             .add(returns, Box::new(FnCallback::new(Box::new(f))))
+    }
+
+    /// [`register_internal_callback`] provides a more direct method for
+    /// registering a type that implements the [`InternalCallback`] trait.
+    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    pub fn register_internal_callback<F>(returns: ReturnTypeHints, f: F) -> InternalPointer
+    where
+        F: InternalCallback + Send + Sync + 'static,
+    {
+        INTERNAL_CALLBACKS.lock().add(returns, Box::new(f))
     }
 
     /// [`register_internal_callback`] provides a more direct method for
@@ -240,12 +302,36 @@ pub mod exposed_runtime {
     }
 
     #[no_mangle]
+    pub extern "C" fn dispose_allocation(allocation_id: u64) {
+        let mut allocations = ALLOCATIONS.lock();
+        allocations
+            .deallocate(allocation_id.into())
+            .expect("Allocation should be initialized");
+    }
+
+    #[no_mangle]
     pub extern "C" fn clear_allocation(allocation_id: u64) {
         let allocations = ALLOCATIONS.lock();
         let mem = allocations
             .get(allocation_id.into())
             .expect("Allocation should be initialized");
         mem.clear().expect("should clear memory");
+    }
+
+    #[no_mangle]
+    pub extern "C" fn trigger_animation_callbacks(addr: f64) {
+        todo!()
+    }
+
+    #[no_mangle]
+    pub extern "C" fn get_total_animation_callbacks(addr: f64) -> usize {
+        return ANIMATION_FRAME_CALLBACKS.lock().len();
+    }
+
+    #[no_mangle]
+    pub extern "C" fn invoke_interval_callback(internal_pointer: u64) {
+        internal_api::run_interval_callback(InternalPointer::pointer(internal_pointer))
+            .expect("should have executed");
     }
 
     #[no_mangle]
@@ -283,6 +369,23 @@ pub mod host_runtime {
 
         #[link(wasm_import_module = "abi")]
         extern "C" {
+
+            /// [`hook_into_animation_frames`] registers a our interest with the host to be called
+            ///  by the host animation runloop (e.g requestAnimationFrame in JS) to get
+            ///  triggered (calling [`exposed_runtime::trigger_animation_callbacks`]) when
+            ///  the next animation frame triggers.
+            ///  Generally, the host will ask for how many animation callbacks are registered and not
+            ///  trigger anything if its 0 via [`exposed_runtime::get_total_animation_callbacks`].
+            pub fn hook_into_animation_frames();
+
+            /// [`schedule_timeout_callback`] registers a function to be called after
+            /// a giving duration in milliseconds.
+            pub fn schedule_timeout_callback(timing: f64, callback: u64);
+
+            /// [`schedule_interval_callback`] registers a function to be polled every [`timing`]
+            /// and calls the relevant function when the timing is met recurringly.
+            /// Think of it as setInterval in JS Host.
+            pub fn schedule_interval_callback(timing: f64, callback: u64);
 
             /// [`host_batch_apply`] takes a location in memory that has a batch of operations
             /// which match the [`crate::Operations`] outlined in the batching API the

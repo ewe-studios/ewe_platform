@@ -87,7 +87,12 @@ impl FrameCallbackList {
             items: Vec::with_capacity(capacity),
         }
     }
+
     pub fn new() -> Self {
+        Self { items: Vec::new() }
+    }
+
+    pub const fn create() -> Self {
         Self { items: Vec::new() }
     }
 }
