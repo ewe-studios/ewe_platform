@@ -1,4 +1,4 @@
-e![allow(clippy::must_use_candidate)]
+#![allow(clippy::must_use_candidate)]
 #![allow(clippy::missing_panics_doc)]
 
 use alloc::string::String;
@@ -64,7 +64,7 @@ pub mod internal_api {
             .expect("should fetch related memory allocation")
     }
 
-    // Reply parsers
+    // Callback return parsers
 
     /// [`parse_replies`] will attempt to parse the replies encoded into the giving
     /// memory location referenced by the provided [`MemoryId`].
@@ -115,6 +115,54 @@ pub mod internal_api {
                 "ReturnTypeHints::None should never be returned, its a bug at the host"
             ),
         }
+    }
+
+    // animation function registration with the host.
+
+    /// [`run_animation_frames`] provides a method that will automatically
+    /// convert any type that implements the [`Fn`] trait.
+    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    pub fn run_interval_callback(tick: f64) -> WasmErrorResult<()> {
+        match ANIMATION_FRAME_CALLBACS.lock().call(tick) {
+            Some(_) => Ok(()),
+            None => Err(crate::WASMErrors::GuestError(
+                GuestOperationError::UnknownInternalPointer(id),
+            )),
+        }
+    }
+
+    /// [`register_callback`] provides a method that will automatically
+    /// convert any type that implements the [`Fn`] trait.
+    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    pub fn register_interval<F>(timing: f64, f: F) -> InternalPointer
+    where
+        F: Fn() -> TickState + Send + Sync + 'static,
+    {
+        RECURRING_INTERVAL_CALLBACKS
+            .lock()
+            .add(Box::new(FnIntervalCallback::new(Box::new(f))))
+    }
+
+    /// [`register_callback`] provides a method that will automatically
+    /// convert any type that implements the [`Fn`] trait.
+    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    pub fn register_interval<F>(timing: f64, f: F) -> InternalPointer
+    where
+        F: Fn() -> TickState + 'static,
+    {
+        RECURRING_INTERVAL_CALLBACKS
+            .lock()
+            .add(Box::new(FnIntervalCallback::new(Box::new(f))))
+    }
+
+    /// [`register_interval_callback`] provides a more direct method for
+    /// registering a type that implements the [`InternalCallback`] trait.
+    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    pub fn register_interval_callback<F>(timing: f64, f: F) -> InternalPointer
+    where
+        F: IntervalCallback + Send + Sync + 'static,
+    {
+        RECURRING_INTERVAL_CALLBACKS.lock().add(Box::new(f))
     }
 
     // interval function registration with the host.
