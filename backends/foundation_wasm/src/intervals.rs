@@ -102,6 +102,10 @@ impl IntervalCallbackList {
         self.items.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.items.is_empty()
+    }
+
     #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
     pub fn add(&mut self, handler: Box<dyn IntervalCallback + 'static>) {
         self.id += 1;
@@ -277,6 +281,10 @@ impl IntervalRegistry {
 impl IntervalRegistry {
     pub fn len(&self) -> usize {
         self.tree.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.tree.is_empty()
     }
 
     pub fn call(&self, id: InternalPointer) -> Option<()> {

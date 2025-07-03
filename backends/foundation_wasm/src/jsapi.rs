@@ -6,15 +6,15 @@ use alloc::vec::Vec;
 use foundation_nostd::{raw_parts::RawParts, spin::Mutex};
 
 use crate::{
-    BinaryReadError, BinaryReaderResult, CompletedInstructions, ExternalPointer, FnDoTask,
-    FnFrameCallback, FnIntervalCallback, FrameCallbackList, FromBinary, GroupReturnHintMarker,
-    GuestOperationError, Instructions, InternalCallback, InternalPointer,
-    InternalReferenceRegistry, IntervalCallback, IntervalCallbackList, IntervalRegistry,
-    JSEncoding, MemoryAllocation, MemoryAllocationError, MemoryAllocations, MemoryId,
-    MemoryReaderError, Params, ReturnIds, ReturnTypeHints, ReturnTypeId, ReturnValueError,
-    ReturnValueMarker, ReturnValues, Returns, TaskErrorCode, TaskResult, ThreeState, ThreeStateId,
-    TickState, ToBinary, TypedSlice, WasmErrorResult, MOVE_ONE_BYTE, MOVE_SIXTEEN_BYTES,
-    MOVE_SIXTY_FOUR_BYTES, MOVE_THIRTY_TWO_BYTES,
+    BinaryReadError, BinaryReaderResult, CompletedInstructions, DoTask, ExternalPointer, FnDoTask,
+    FnFrameCallback, FnIntervalCallback, FrameCallback, FrameCallbackList, FromBinary,
+    GroupReturnHintMarker, GuestOperationError, Instructions, InternalCallback, InternalPointer,
+    InternalReferenceRegistry, IntervalCallback, IntervalRegistry, JSEncoding, MemoryAllocation,
+    MemoryAllocationError, MemoryAllocations, MemoryId, MemoryReaderError, Params, ReturnIds,
+    ReturnTypeHints, ReturnTypeId, ReturnValueError, ReturnValueMarker, ReturnValues, Returns,
+    ScheduleRegistry, TaskErrorCode, TaskResult, ThreeState, ThreeStateId, TickState, ToBinary,
+    TypedSlice, WasmErrorResult, MOVE_ONE_BYTE, MOVE_SIXTEEN_BYTES, MOVE_SIXTY_FOUR_BYTES,
+    MOVE_THIRTY_TWO_BYTES,
 };
 
 // Allocations for the memory management.
@@ -28,10 +28,11 @@ static ANIMATION_FRAME_CALLBACKS: Mutex<FrameCallbackList> =
 // All operation callbacks registered for a giving result by by the host.
 static INTERNAL_CALLBACKS: Mutex<InternalReferenceRegistry> = InternalReferenceRegistry::create();
 
-// All registered interval (think: setInterval in JS) all registered functions must indicate
-// if they should still be called on the next interval, host will manage
-// registration/registration.
+// All registered interval callbacks (think: setInterval in JS) registry.
 static RECURRING_INTERVAL_CALLBACKS: Mutex<IntervalRegistry> = IntervalRegistry::create();
+
+// All registered scheduled callbacks (think: setTimeout in JS) registry.
+static SCHEDULED_CALLBACKS: Mutex<ScheduleRegistry> = ScheduleRegistry::create();
 
 /// [`internal_api`] are internal methods, structs, and surfaces that provide core functionalities
 /// that we support or that allows making or preparing data to be sent-out or sent-across the API.
@@ -119,11 +120,69 @@ pub mod internal_api {
 
     // animation function registration with the host.
 
+    /// [`get_total_animation_callbacks`] returns total count of registered callbacks.
+    pub fn get_total_animation_callbacks() -> usize {
+        ANIMATION_FRAME_CALLBACKS.lock().len()
+    }
+
     /// [`run_animation_frames`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
     #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-    pub fn run_interval_callback(tick: f64) -> WasmErrorResult<()> {
-        match ANIMATION_FRAME_CALLBACS.lock().call(tick) {
+    pub fn run_animation_frames(tick: f64) -> u8 {
+        ANIMATION_FRAME_CALLBACKS.lock().call(tick).into()
+    }
+
+    /// [`register_animation_hook`] provides a method that will automatically
+    /// convert any type that implements the [`Fn`] trait.
+    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    pub fn register_animation_hook<F>(f: F)
+    where
+        F: Fn(f64) -> TickState + Send + Sync + 'static,
+    {
+        ANIMATION_FRAME_CALLBACKS
+            .lock()
+            .add(Box::new(FnFrameCallback::new(Box::new(f))));
+    }
+
+    /// [`register_callback`] provides a method that will automatically
+    /// convert any type that implements the [`Fn`] trait.
+    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    pub fn register_animation_hook<F>(f: F)
+    where
+        F: Fn(f64) -> TickState + 'static,
+    {
+        ANIMATION_FRAME_CALLBACKS
+            .lock()
+            .add(Box::new(FnFrameCallback::new(Box::new(f))));
+    }
+
+    /// [`register_animation_interval_callback`] provides a more direct method for
+    /// registering a type that implements the [`FrameCallback`] trait.
+    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    pub fn register_animation_interval_callback<F>(f: F)
+    where
+        F: FrameCallback + 'static,
+    {
+        ANIMATION_FRAME_CALLBACKS.lock().add(Box::new(f));
+    }
+
+    /// [`register_animation_interval_callback`] provides a more direct method for
+    /// registering a type that implements the [`FrameCallback`] trait.
+    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    pub fn register_animation_interval_callback<F>(f: F)
+    where
+        F: FrameCallback + Send + Sync + 'static,
+    {
+        ANIMATION_FRAME_CALLBACKS.lock().add(Box::new(f));
+    }
+
+    // schedule function registration with the host.
+
+    /// [`run_schedule_callback`] provides a method that will automatically
+    /// convert any type that implements the [`Fn`] trait.
+    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    pub fn run_schedule_callback(id: InternalPointer) -> WasmErrorResult<()> {
+        match SCHEDULED_CALLBACKS.lock().call(id) {
             Some(_) => Ok(()),
             None => Err(crate::WASMErrors::GuestError(
                 GuestOperationError::UnknownInternalPointer(id),
@@ -134,35 +193,45 @@ pub mod internal_api {
     /// [`register_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
     #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-    pub fn register_interval<F>(timing: f64, f: F) -> InternalPointer
+    pub fn register_schedule<F>(f: F) -> InternalPointer
     where
-        F: Fn() -> TickState + Send + Sync + 'static,
+        F: Fn() + Send + Sync + 'static,
     {
-        RECURRING_INTERVAL_CALLBACKS
+        SCHEDULED_CALLBACKS
             .lock()
-            .add(Box::new(FnIntervalCallback::new(Box::new(f))))
+            .add(Box::new(FnDoTask::new(Box::new(f))))
     }
 
     /// [`register_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
     #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
-    pub fn register_interval<F>(timing: f64, f: F) -> InternalPointer
+    pub fn register_schedule<F>(f: F) -> InternalPointer
     where
-        F: Fn() -> TickState + 'static,
+        F: Fn() + 'static,
     {
-        RECURRING_INTERVAL_CALLBACKS
+        SCHEDULED_CALLBACKS
             .lock()
-            .add(Box::new(FnIntervalCallback::new(Box::new(f))))
+            .add(Box::new(FnDoTask::new(Box::new(f))))
     }
 
-    /// [`register_interval_callback`] provides a more direct method for
+    /// [`register_schedule_callback`] provides a more direct method for
+    /// registering a type that implements the [`InternalCallback`] trait.
+    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    pub fn register_schedule_callback<F>(f: F) -> InternalPointer
+    where
+        F: DoTask + 'static,
+    {
+        SCHEDULED_CALLBACKS.lock().add(Box::new(f))
+    }
+
+    /// [`register_schedule_callback`] provides a more direct method for
     /// registering a type that implements the [`InternalCallback`] trait.
     #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-    pub fn register_interval_callback<F>(timing: f64, f: F) -> InternalPointer
+    pub fn register_schedule_callback<F>(f: F) -> InternalPointer
     where
-        F: IntervalCallback + Send + Sync + 'static,
+        F: DoTask + Send + Sync + 'static,
     {
-        RECURRING_INTERVAL_CALLBACKS.lock().add(Box::new(f))
+        SCHEDULED_CALLBACKS.lock().add(Box::new(f))
     }
 
     // interval function registration with the host.
@@ -182,7 +251,7 @@ pub mod internal_api {
     /// [`register_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
     #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-    pub fn register_interval<F>(timing: f64, f: F) -> InternalPointer
+    pub fn register_interval<F>(f: F) -> InternalPointer
     where
         F: Fn() -> TickState + Send + Sync + 'static,
     {
@@ -194,7 +263,7 @@ pub mod internal_api {
     /// [`register_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
     #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
-    pub fn register_interval<F>(timing: f64, f: F) -> InternalPointer
+    pub fn register_interval<F>(f: F) -> InternalPointer
     where
         F: Fn() -> TickState + 'static,
     {
@@ -205,8 +274,18 @@ pub mod internal_api {
 
     /// [`register_interval_callback`] provides a more direct method for
     /// registering a type that implements the [`InternalCallback`] trait.
+    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    pub fn register_interval_callback<F>(f: F) -> InternalPointer
+    where
+        F: IntervalCallback + 'static,
+    {
+        RECURRING_INTERVAL_CALLBACKS.lock().add(Box::new(f))
+    }
+
+    /// [`register_interval_callback`] provides a more direct method for
+    /// registering a type that implements the [`InternalCallback`] trait.
     #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-    pub fn register_interval_callback<F>(timing: f64, f: F) -> InternalPointer
+    pub fn register_interval_callback<F>(f: F) -> InternalPointer
     where
         F: IntervalCallback + Send + Sync + 'static,
     {
@@ -366,14 +445,22 @@ pub mod exposed_runtime {
         mem.clear().expect("should clear memory");
     }
 
+    // schedule function registration with the host.
+
     #[no_mangle]
-    pub extern "C" fn trigger_animation_callbacks(addr: f64) {
-        todo!()
+    pub extern "C" fn run_scheduled_callback(id: u64) {
+        internal_api::run_schedule_callback(InternalPointer::pointer(id))
+            .expect("should trigger handler");
     }
 
     #[no_mangle]
-    pub extern "C" fn get_total_animation_callbacks(addr: f64) -> usize {
-        return ANIMATION_FRAME_CALLBACKS.lock().len();
+    pub extern "C" fn trigger_animation_callbacks(tick: f64) -> u8 {
+        internal_api::run_animation_frames(tick)
+    }
+
+    #[no_mangle]
+    pub extern "C" fn get_total_animation_callbacks() -> usize {
+        internal_api::get_total_animation_callbacks()
     }
 
     #[no_mangle]
@@ -424,16 +511,22 @@ pub mod host_runtime {
             ///  the next animation frame triggers.
             ///  Generally, the host will ask for how many animation callbacks are registered and not
             ///  trigger anything if its 0 via [`exposed_runtime::get_total_animation_callbacks`].
-            pub fn hook_into_animation_frames();
+            pub fn hook_up_animation_frames();
 
-            /// [`schedule_timeout_callback`] registers a function to be called after
+            /// [`schedule_timeout`] registers a function to be called after
             /// a giving duration in milliseconds.
-            pub fn schedule_timeout_callback(timing: f64, callback: u64);
+            pub fn schedule_timeout(timing: f64, callback: u64);
 
-            /// [`schedule_interval_callback`] registers a function to be polled every [`timing`]
+            /// [`unschedule_timeout`] unregisters a function timeout registration.
+            pub fn unschedule_timeout(callback: u64);
+
+            /// [`schedule_interval`] registers a function to be polled every [`timing`]
             /// and calls the relevant function when the timing is met recurringly.
             /// Think of it as setInterval in JS Host.
-            pub fn schedule_interval_callback(timing: f64, callback: u64);
+            pub fn schedule_interval(timing: f64, callback: u64);
+
+            /// [`unschedule_timeout`] unregisters a function interval registration.
+            pub fn unschedule_interval(callback: u64);
 
             /// [`host_batch_apply`] takes a location in memory that has a batch of operations
             /// which match the [`crate::Operations`] outlined in the batching API the
@@ -769,6 +862,202 @@ pub mod host_runtime {
 
             result
         }
+
+        // animation function registration with the host.
+
+        /// [`register_animation_hook`] provides a method that will automatically
+        /// convert any type that implements the [`Fn`] trait.
+        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        pub fn register_animation_hook<F>(timing: f64, f: F)
+        where
+            F: Fn(f64) -> TickState + Send + Sync + 'static,
+        {
+            internal_api::register_animation_hook(f);
+
+            // notify the host we are interested in animation frames
+            // generally host should ignore if we are already registered.
+            unsafe {
+                host_runtime::web::hook_up_animation_frames();
+            };
+        }
+
+        /// [`register_callback`] provides a method that will automatically
+        /// convert any type that implements the [`Fn`] trait.
+        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        pub fn register_animation_hook<F>(timing: f64, f: F)
+        where
+            F: Fn(f64) -> TickState + 'static,
+        {
+            internal_api::register_animation_hook(f);
+
+            // notify the host we are interested in animation frames
+            // generally host should ignore if we are already registered.
+            unsafe {
+                host_runtime::web::hook_up_animation_frames();
+            };
+        }
+
+        /// [`register_animation_interval_callback`] provides a more direct method for
+        /// registering a type that implements the [`FrameCallback`] trait.
+        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        pub fn register_animation_interval_callback<F>(f: F)
+        where
+            F: FrameCallback + Send + Sync + 'static,
+        {
+            internal_api::register_animation_interval_callback(f);
+
+            // notify the host we are interested in animation frames
+            // generally host should ignore if we are already registered.
+            unsafe {
+                host_runtime::web::hook_up_animation_frames();
+            };
+        }
+
+        /// [`register_animation_interval_callback`] provides a more direct method for
+        /// registering a type that implements the [`FrameCallback`] trait.
+        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        pub fn register_animation_interval_callback<F>(f: F)
+        where
+            F: FrameCallback + Send + Sync + 'static,
+        {
+            internal_api::register_animation_interval_callback(f);
+
+            // notify the host we are interested in animation frames
+            // generally host should ignore if we are already registered.
+            unsafe {
+                host_runtime::web::hook_up_animation_frames();
+            };
+        }
+
+        // schedule function registration with the host.
+
+        pub fn unregister_schedule<F>(id: InternalPointer) {
+            unsafe {
+                host_runtime::web::unschedule_timeout(id.into_inner());
+            };
+        }
+
+        /// [`register_callback`] provides a method that will automatically
+        /// convert any type that implements the [`Fn`] trait.
+        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        pub fn register_schedule<F>(timing: f64, f: F) -> InternalPointer
+        where
+            F: Fn() + Send + Sync + 'static,
+        {
+            let id = internal_api::register_schedule(f);
+            unsafe {
+                host_runtime::web::schedule_timeout(timing, id.into_inner());
+            };
+            id
+        }
+
+        /// [`register_callback`] provides a method that will automatically
+        /// convert any type that implements the [`Fn`] trait.
+        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        pub fn register_schedule<F>(timing: f64, f: F) -> InternalPointer
+        where
+            F: Fn() + 'static,
+        {
+            let id = internal_api::register_schedule(f);
+            unsafe {
+                host_runtime::web::schedule_timeout(timing, id.into_inner());
+            };
+            id
+        }
+
+        /// [`register_schedule_callback`] provides a more direct method for
+        /// registering a type that implements the [`InternalCallback`] trait.
+        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        pub fn register_schedule_callback<F>(timing: f64, f: F) -> InternalPointer
+        where
+            F: DoTask + 'static,
+        {
+            let id = internal_api::register_schedule_callback(f);
+            unsafe {
+                host_runtime::web::schedule_timeout(timing, id.into_inner());
+            };
+            id
+        }
+
+        /// [`register_schedule_callback`] provides a more direct method for
+        /// registering a type that implements the [`InternalCallback`] trait.
+        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        pub fn register_schedule_callback<F>(timing: f64, f: F) -> InternalPointer
+        where
+            F: DoTask + Send + Sync + 'static,
+        {
+            let id = internal_api::register_schedule_callback(f);
+            unsafe {
+                host_runtime::web::schedule_timeout(timing, id.into_inner());
+            };
+            id
+        }
+
+        // interval function registration with the host.
+
+        pub fn unregister_interval<F>(id: InternalPointer) {
+            unsafe {
+                host_runtime::web::unschedule_interval(id.into_inner());
+            };
+        }
+
+        /// [`register_callback`] provides a method that will automatically
+        /// convert any type that implements the [`Fn`] trait.
+        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        pub fn register_interval<F>(timing: f64, f: F) -> InternalPointer
+        where
+            F: Fn() -> TickState + Send + Sync + 'static,
+        {
+            let id = internal_api::register_interval(f);
+            unsafe {
+                host_runtime::web::schedule_interval(timing, id.into_inner());
+            };
+            id
+        }
+
+        /// [`register_callback`] provides a method that will automatically
+        /// convert any type that implements the [`Fn`] trait.
+        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        pub fn register_interval<F>(timing: f64, f: F) -> InternalPointer
+        where
+            F: Fn() -> TickState + 'static,
+        {
+            let id = internal_api::register_interval(f);
+            unsafe {
+                host_runtime::web::schedule_interval(timing, id.into_inner());
+            };
+            id
+        }
+
+        /// [`register_interval_callback`] provides a more direct method for
+        /// registering a type that implements the [`InternalCallback`] trait.
+        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        pub fn register_interval_callback<F>(timing: f64, f: F) -> InternalPointer
+        where
+            F: IntervalCallback + Send + Sync + 'static,
+        {
+            let id = internal_api::register_interval_callback(f);
+            unsafe {
+                host_runtime::web::schedule_interval(timing, id.into_inner());
+            };
+            id
+        }
+
+        /// [`register_interval_callback`] provides a more direct method for
+        /// registering a type that implements the [`InternalCallback`] trait.
+        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        pub fn register_interval_callback<F>(timing: f64, f: F) -> InternalPointer
+        where
+            F: IntervalCallback + Send + Sync + 'static,
+        {
+            let id = internal_api::register_interval_callback(f);
+            unsafe {
+                host_runtime::web::schedule_interval(timing, id.into_inner());
+            };
+            id
+        }
+
+        // Other methods
 
         /// [`cache_text`] provides a way to have the host runtime cache an expense
         /// text for you which allows you perform multiple re-use of the same text.
