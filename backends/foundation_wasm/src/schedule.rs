@@ -133,6 +133,10 @@ impl ScheduleRegistry {
         self.tree.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.tree.is_empty()
+    }
+
     pub fn call(&self, id: InternalPointer) -> Option<()> {
         if let Some(callback) = self.tree.get(&id) {
             callback.0.lock().perform();

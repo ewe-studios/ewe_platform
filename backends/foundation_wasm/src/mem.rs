@@ -4,15 +4,14 @@
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::missing_panics_doc)]
 
-use alloc::string::{FromUtf16Error, FromUtf8Error, String};
+use alloc::string::String;
 use alloc::sync::Arc;
 use alloc::vec::Vec;
 use foundation_nostd::spin::Mutex;
 
 use crate::{
-    BinaryReadError, BinaryReaderResult, CompletedInstructions, MemoryAllocationError,
-    MemoryAllocationResult, MemoryId, MemoryReaderError, MemoryReaderResult, MemoryWriterError,
-    MemoryWriterResult, ReturnTypeId, ReturnValues, StrLocation, TaskErrorCode, ThreeState,
+    BinaryReaderResult, CompletedInstructions, MemoryAllocationError, MemoryAllocationResult,
+    MemoryId, MemoryReaderError, MemoryWriterResult, StrLocation,
 };
 
 /// [`MemoryAllocation`] is a thread-safe and copy-cheap handle to a

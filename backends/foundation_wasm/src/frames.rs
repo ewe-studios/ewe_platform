@@ -9,6 +9,22 @@ pub enum TickState {
     STOP = 2,
 }
 
+impl From<TickState> for u8 {
+    fn from(val: TickState) -> Self {
+        val as u8
+    }
+}
+
+impl From<u8> for TickState {
+    fn from(value: u8) -> Self {
+        match value {
+            1 => Self::REQUEUE,
+            2 => Self::STOP,
+            _ => unreachable!("No other u8 state is supported"),
+        }
+    }
+}
+
 #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
 pub trait FrameCallback {
     fn tick(&self, value: f64) -> TickState;
@@ -106,6 +122,10 @@ impl Default for FrameCallbackList {
 impl FrameCallbackList {
     pub fn len(&self) -> usize {
         self.items.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.items.is_empty()
     }
 
     #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
