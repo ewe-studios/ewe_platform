@@ -1,37 +1,23 @@
-# Foundation WASM Crate Documentation
+# Platform
 
-## Overview
-
-The `foundation_wasm` crate provides foundational functionalities and utilities for building WebAssembly (WASM) applications.
-
-### Key Features:
-
-- **Memory Management**: Provides memory allocation, deallocation, and management capabilities.
-- **Runtime Integration**: Facilitates integration with the host runtime environment via WASM ABI functions.
-- **Web API Support**: Offers support for web-related APIs such as DOM manipulation, event handling, and more.
-
-## Usage
-
-To use this crate in your project:
-
-1. Add it to your `Cargo.toml` dependencies:
-   ```toml
-   [dependencies]
-   foundation_wasm = "0.1"
-   ```
-
-2. Import the necessary modules and functions from the crate into your codebase.
-
-3. Utilize the provided functionalities as per your application requirements.
-
-## Documentation
-
-For detailed documentation on each module, function, and type within this crate, refer to the [API Reference](https://docs.rs/foundation_wasm).
-
-## Contributing
-
-Contributions are welcome! If you find any issues or have suggestions for improvements, please open an issue or submit a pull request.
+A series of crates providing different functionality and binaries for projects.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+Licensed under either of
+
+* Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+* MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+
+## Binaries
+
+See the [bin](./bin) directory
+
+## Crates
+
+See the [crates](./crates) and [backend](./backends) directories.
+
+
+## Project Templates
+
+See the [templates](./templates) directory.

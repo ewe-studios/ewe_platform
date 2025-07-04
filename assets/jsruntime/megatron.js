@@ -5228,6 +5228,7 @@ const Megatron = (function () {
     },
   );
 
+  // Add documentation to class. AI!
   class AsyncTaskCollector {
     constructor(collect) {
       this.tasks = [];
@@ -5256,6 +5257,138 @@ const Megatron = (function () {
 
     await_all() {
       return Promise.all(this.tasks);
+    }
+  }
+
+  class TimeoutDirector {
+    constructor(wasm_module) {
+      // the wasm module
+      this.module = wasm_module;
+
+      // the instance within the module.
+      this.instance = this.module.instance;
+
+      // indicates when we are hooked up.
+      this.registers = {};
+    }
+
+    register(id, timing) {
+      if (!(id instanceof InternalPointer)) {
+        throw new Error("argument should be an InternalPointer");
+      }
+
+      if (id in this.registers) return;
+
+      const fn = function () {
+        this.instance.exports.run_schedule_callback(id.id);
+      }.bind(this);
+
+      this.register[id] = setTimeout(fn, timing);
+    }
+
+    unregister(id) {
+      if (!(id instanceof InternalPointer)) {
+        throw new Error("argument should be an InternalPointer");
+      }
+
+      if (!(id in this.registers)) return;
+
+      const reg_id = this.register[id];
+      clearTimeout(reg_id);
+    }
+  }
+
+  class IntervalDirector {
+    constructor(wasm_module) {
+      // the wasm module
+      this.module = wasm_module;
+
+      // the instance within the module.
+      this.instance = this.module.instance;
+
+      // indicates when we are hooked up.
+      this.registers = {};
+    }
+
+    register(id, timing) {
+      if (!(id instanceof InternalPointer)) {
+        throw new Error("argument should be an InternalPointer");
+      }
+
+      if (id in this.registers) return;
+
+      const fn = function () {
+        this.instance.exports.run_interval_callback(id.id);
+      }.bind(this);
+
+      this.register[id] = setInterval(fn, timing);
+    }
+
+    unregister(id) {
+      if (!(id instanceof InternalPointer)) {
+        throw new Error("argument should be an InternalPointer");
+      }
+
+      if (!(id in this.registers)) return;
+
+      const reg_id = this.register[id];
+      clearInterval(reg_id);
+    }
+  }
+
+  class AnimationDirector {
+    constructor(wasm_module) {
+      // the wasm module
+      this.module = wasm_module;
+
+      // the instance within the module.
+      this.instance = this.module.instance;
+
+      // indicates when we are hooked up.
+      this._listening = false;
+    }
+
+    register_for_tick() {
+      const runner = (tick) => {
+        if (this.instance.exports.get_total_animation_callbacks() == 0) {
+          return;
+        }
+        if (!this._listening) return;
+
+        // call the trigger for the wasm instance
+        this.instance.exports.trigger_animation_callbacks(tick);
+
+        // re-call registration for animation runner
+        this.register_for_tick();
+      };
+
+      AnimationDirector.requestAnimationFrame(runner.bind(this));
+    }
+
+    listen() {
+      if (this._listening) return;
+      this._listening = true;
+      this.register_for_tick();
+    }
+
+    unlisten() {
+      if (!this._listening) return;
+      this._listening = false;
+    }
+
+    static requestAnimationFrame(fn) {
+      if (typeof window !== "undefined") {
+        if (typeof window.requestAnimationFrame !== "undefined") {
+          // when we have Window
+          return window.requestAnimationFrame(fn);
+        }
+      }
+
+      if (typeof setImmediate !== "undefined") {
+        return setImmediate(() => fn(Date.now()));
+      }
+
+      setTimeout(() => fn(Date.now()), 0);
     }
   }
 
@@ -5679,6 +5812,15 @@ const Megatron = (function () {
       // reply instruction parser
       this.reply_parser = null;
 
+      // animation director
+      this.animation_director = null;
+
+      // schedule director
+      this.schedule_directory = null;
+
+      // timeout director
+      this.timeout_directory = null;
+
       // collector for async tasks, enabled by default.
       this.async_tasks = new AsyncTaskCollector(false);
     }
@@ -5718,6 +5860,15 @@ const Megatron = (function () {
       // text codec for text handling (encoding & decoding)
       this.texts = new TextCodec(this.operator);
 
+      // animation director to manage hook into request animation frame.
+      this.animation_director = new AnimationDirector(this.module);
+
+      // schedule director
+      this.schedule_directory = new TimeoutDirector(this.module);
+
+      // timeout director
+      this.timeout_directory = new IntervalDirector(this.module);
+
       // v1 function parameters handling
       this.parameter_v1 = new ParameterParserV1(
         this.operator,
@@ -5749,6 +5900,21 @@ const Megatron = (function () {
       return {
         // aborting host call/execution, basicalling panicing on the host.
         host_abort: this.abort.bind(this),
+
+        // animation handling
+        hook_up_animation_frames: this.hook_up_animation_frames.bind(this),
+
+        // timeout callbacks
+        schedule_timeout: this.schedule_timeout.bind(this),
+
+        // unschedule_interval callbacks
+        unschedule_timeout: this.unschedule_timeout.bind(this),
+
+        // interval callbacks
+        schedule_interval: this.schedule_interval.bind(this),
+
+        // unschedule_interval callbacks
+        unschedule_interval: this.unschedule_interval.bind(this),
 
         // extern references
         //
@@ -5909,6 +6075,49 @@ const Megatron = (function () {
 
     get_pending_async() {
       return this.pending_promises;
+    }
+
+    hook_up_animation_frames() {
+      if (isUndefinedOrNull(this.animation_director)) {
+        throw new Error("Animation director not setup");
+      }
+      this.animation_director.listen();
+    }
+
+    schedule_timeout(timing, id) {
+      if (isUndefinedOrNull(this.schedule_directory)) {
+        throw new Error("Interval director not setup");
+      }
+
+      const callback_id = new InternalPointer(id);
+      this.timeout_directory.register(callback_id, timing);
+    }
+
+    unschedule_timeout(id) {
+      if (isUndefinedOrNull(this.timeout_directory)) {
+        throw new Error("Interval director not setup");
+      }
+
+      const callback_id = new InternalPointer(id);
+      this.timeout_directory.unregister(callback_id);
+    }
+
+    schedule_interval(timing, id) {
+      if (isUndefinedOrNull(this.)) {
+        throw new Error("Interval director not setup");
+      }
+
+      const callback_id = new InternalPointer(id);
+      this.schedule_directory.register(callback_id, timing);
+    }
+
+    unschedule_interval(id) {
+      if (isUndefinedOrNull(this.schedule_directory)) {
+        throw new Error("Interval director not setup");
+      }
+
+      const callback_id = new InternalPointer(id);
+      this.schedule_directory.unregister(callback_id);
     }
 
     function_drop_external_pointer(uid) {

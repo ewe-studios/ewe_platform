@@ -178,6 +178,15 @@ pub mod internal_api {
 
     // schedule function registration with the host.
 
+    /// [`unregister_schedule_callback`] unregisters the underlying callback
+    /// in the schedule callback list.
+    pub fn unregister_schedule_callback(addr: InternalPointer) {
+        SCHEDULED_CALLBACKS
+            .lock()
+            .delete(addr)
+            .expect("should be registered");
+    }
+
     /// [`run_schedule_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
     #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
@@ -258,6 +267,15 @@ pub mod internal_api {
         RECURRING_INTERVAL_CALLBACKS
             .lock()
             .add(Box::new(FnIntervalCallback::new(Box::new(f))))
+    }
+
+    /// [`unregister_interval_callback`] unregisters the underlying callback
+    /// in the interval callback list.
+    pub fn unregister_interval_callback(addr: InternalPointer) {
+        RECURRING_INTERVAL_CALLBACKS
+            .lock()
+            .delete(addr)
+            .expect("should be registered");
     }
 
     /// [`register_callback`] provides a method that will automatically
@@ -454,6 +472,12 @@ pub mod exposed_runtime {
     }
 
     #[no_mangle]
+    pub extern "C" fn run_interval_callback(internal_pointer: u64) {
+        internal_api::run_interval_callback(InternalPointer::pointer(internal_pointer))
+            .expect("should have executed");
+    }
+
+    #[no_mangle]
     pub extern "C" fn trigger_animation_callbacks(tick: f64) -> u8 {
         internal_api::run_animation_frames(tick)
     }
@@ -461,12 +485,6 @@ pub mod exposed_runtime {
     #[no_mangle]
     pub extern "C" fn get_total_animation_callbacks() -> usize {
         internal_api::get_total_animation_callbacks()
-    }
-
-    #[no_mangle]
-    pub extern "C" fn invoke_interval_callback(internal_pointer: u64) {
-        internal_api::run_interval_callback(InternalPointer::pointer(internal_pointer))
-            .expect("should have executed");
     }
 
     #[no_mangle]
@@ -525,7 +543,7 @@ pub mod host_runtime {
             /// Think of it as setInterval in JS Host.
             pub fn schedule_interval(timing: f64, callback: u64);
 
-            /// [`unschedule_timeout`] unregisters a function interval registration.
+            /// [`unschedule_interval`] unregisters a function interval registration.
             pub fn unschedule_interval(callback: u64);
 
             /// [`host_batch_apply`] takes a location in memory that has a batch of operations
@@ -881,10 +899,10 @@ pub mod host_runtime {
             };
         }
 
-        /// [`register_callback`] provides a method that will automatically
+        /// [`register_animation_hook`] provides a method that will automatically
         /// convert any type that implements the [`Fn`] trait.
         #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
-        pub fn register_animation_hook<F>(timing: f64, f: F)
+        pub fn register_animation_hook<F>(f: F)
         where
             F: Fn(f64) -> TickState + 'static,
         {
@@ -897,10 +915,10 @@ pub mod host_runtime {
             };
         }
 
-        /// [`register_animation_interval_callback`] provides a more direct method for
+        /// [`register_animation_hook_callback`] provides a more direct method for
         /// registering a type that implements the [`FrameCallback`] trait.
         #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
-        pub fn register_animation_interval_callback<F>(f: F)
+        pub fn register_animation_hook_callback<F>(f: F)
         where
             F: FrameCallback + Send + Sync + 'static,
         {
@@ -913,10 +931,10 @@ pub mod host_runtime {
             };
         }
 
-        /// [`register_animation_interval_callback`] provides a more direct method for
+        /// [`register_animation_hook_callback`] provides a more direct method for
         /// registering a type that implements the [`FrameCallback`] trait.
         #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-        pub fn register_animation_interval_callback<F>(f: F)
+        pub fn register_animation_hook_callback<F>(f: F)
         where
             F: FrameCallback + Send + Sync + 'static,
         {
@@ -935,6 +953,7 @@ pub mod host_runtime {
             unsafe {
                 host_runtime::web::unschedule_timeout(id.into_inner());
             };
+            internal_api::unregister_schedule_callback(id);
         }
 
         /// [`register_callback`] provides a method that will automatically
@@ -995,10 +1014,11 @@ pub mod host_runtime {
 
         // interval function registration with the host.
 
-        pub fn unregister_interval<F>(id: InternalPointer) {
+        pub fn unregister_internal<F>(id: InternalPointer) {
             unsafe {
                 host_runtime::web::unschedule_interval(id.into_inner());
             };
+            internal_api::unregister_interval_callback(id);
         }
 
         /// [`register_callback`] provides a method that will automatically
