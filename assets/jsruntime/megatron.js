@@ -143,6 +143,23 @@ const Megatron = (function () {
 
   Object.freeze(ThreeStateId);
 
+  const ReturnEncoded = {
+    AsNakedPriority: 30,
+    AlwaysEncoded: 40,
+  };
+
+  ReturnEncoded.__INVERSE__ = Object.keys(ReturnEncoded)
+    .map((key) => {
+      return [key, ReturnEncoded[key]];
+    })
+    .reduce((prev, current) => {
+      let [key, value] = current;
+      prev[value] = key;
+      return prev;
+    }, {});
+
+  Object.freeze(ReturnEncoded);
+
   const TickState = {
     REQUEUE: 1,
     STOP: 2,
@@ -512,6 +529,7 @@ const Megatron = (function () {
     // so you get the raw Uint8ArrayBuffer which you must
     // use or copy to avoid corruption of data.
     TypedArraySlice: 30,
+    ErrorCode: 31,
   };
 
   Params.__INVERSE__ = Object.keys(Params)
@@ -1385,6 +1403,21 @@ const Megatron = (function () {
     }
   }
 
+  class ErrorCode {
+    constructor(value) {
+      this.id = value;
+    }
+
+    get value() {
+      return this.id;
+    }
+
+    equals(other) {
+      if (!(other instanceof ErrorCode)) return false;
+      return (other.id = this.id);
+    }
+  }
+
   class RefPointer {
     constructor(value) {
       this.id = value;
@@ -1953,6 +1986,7 @@ const Megatron = (function () {
         28: this.parseBigUint128.bind(this),
         29: this.parseCachedText.bind(this),
         30: this.parseTypedArraySlice.bind(this),
+        31: this.parseErrorCode.bind(this),
       };
     }
 
@@ -2059,6 +2093,12 @@ const Megatron = (function () {
     parseUint16(index, read_values_list, parameter_buffer) {
       const value = parameter_buffer.getUint16(index, true);
       read_values_list.push(value);
+      return [index + Move.MOVE_BY_16_BYTES, false];
+    }
+
+    parseErrorCode(index, read_values_list, parameter_buffer) {
+      const value = parameter_buffer.getUint16(index, true);
+      read_values_list.push(new ErrorCode(value));
       return [index + Move.MOVE_BY_16_BYTES, false];
     }
 
@@ -2558,6 +2598,8 @@ const Megatron = (function () {
           return this.parseFloat32ArrayBuffer(from_index, value_type, view);
         case Params.Float64ArrayBuffer:
           return this.parseFloat64ArrayBuffer(from_index, value_type, view);
+        case Params.ErrorCode:
+          return this.parseErrorCode(from_index, value_type, view);
         case Params.TypedArraySlice:
           return this.parseTypedArraySlice(from_index, value_type, view);
         case Params.CachedText:
@@ -3039,6 +3081,25 @@ const Megatron = (function () {
       return [move_by, new InternalPointer(external_id)];
     }
 
+    parseErrorCode(from_index, value_type, view) {
+      if (value_type != Params.ErrorCode) {
+        throw new Error(
+          `Parameter is not that of ErrorCode: received ${value_type}`,
+        );
+      }
+
+      // read out a 64 bit number representing the external reference.
+      const [move_by, code] = this.parseNumber64(
+        from_index,
+        Params.Uint64,
+        view,
+      );
+
+      LOGGER.debug("ErrorCode: ", move_by, code);
+
+      return [move_by, new ErrorCode(code)];
+    }
+
     parseInternalPointer(from_index, value_type, view) {
       if (value_type != Params.InternalReference) {
         throw new Error(
@@ -3480,6 +3541,8 @@ const Megatron = (function () {
       this.reply_types[ReturnTypeId.Uint16] = this.encodeInt16.bind(this);
       this.reply_types[ReturnTypeId.Uint32] = this.encodeInt32.bind(this);
       this.reply_types[ReturnTypeId.Uint64] = this.encodeBigInt64.bind(this);
+      this.reply_types[ReturnTypeId.Uint128] = this.encodeUint128.bind(this);
+      this.reply_types[ReturnTypeId.Int128] = this.encodeInt128.bind(this);
       this.reply_types[ReturnTypeId.Text8] = this.encodeText8.bind(this);
       this.reply_types[ReturnTypeId.Int8] = this.encodeInt8.bind(this);
       this.reply_types[ReturnTypeId.Int16] = this.encodeInt16.bind(this);
@@ -3536,7 +3599,7 @@ const Megatron = (function () {
       return reply_id;
     }
 
-    immediate(return_hint, values) {
+    immediate(return_hint, values, always_encoded) {
       if (!(return_hint instanceof ReturnHint)) {
         throw new Error("argument must be a type of ReturnHint");
       }
@@ -3564,7 +3627,7 @@ const Megatron = (function () {
         logger.debug(`single return value: `, target);
 
         return_hint.validate(target);
-        if (this.return_naked.indexOf(target.type) !== -1) {
+        if (this.return_naked.indexOf(target.type) !== -1 && !always_encoded) {
           logger.debug(
             "returning value as is/naked:",
             target.value,
@@ -4214,13 +4277,15 @@ const Megatron = (function () {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
+      LOGGER.debug("Encoding value directive: ", directive.value);
+
       view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
-      view.setBigInt64(offset, directive.value.value_msb, true);
+      view.setBigInt64(offset, BigInt(directive.value.value_msb), true);
       offset += Move.MOVE_BY_64_BYTES;
 
-      view.setBigInt64(offset, directive.value.value_lsb, true);
+      view.setBigInt64(offset, BigInt(directive.value.value_lsb), true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
@@ -4231,13 +4296,15 @@ const Megatron = (function () {
         throw new Error(`Reply type with id ${value.type} is not known`);
       }
 
+      LOGGER.debug("Encoding value directive: ", directive.value);
+
       view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
-      view.setBigUint64(offset, directive.value.value_msb, true);
+      view.setBigUint64(offset, BigInt(directive.value.value_msb), true);
       offset += Move.MOVE_BY_64_BYTES;
 
-      view.setBigUint64(offset, directive.value.value_lsb, true);
+      view.setBigUint64(offset, BigInt(directive.value.value_lsb), true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
@@ -4336,7 +4403,7 @@ const Megatron = (function () {
       view.setUint8(offset, directive.type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
-      view.setUint8(offset, directive.value, true);
+      view.setBigInt64(offset, directive.value, true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
@@ -4542,6 +4609,13 @@ const Megatron = (function () {
       }
 
       if (
+        item instanceof ErrorCode &&
+        value_type_id == ReturnTypeId.ErrorCode
+      ) {
+        return value_type_id;
+      }
+
+      if (
         item instanceof Int16Array &&
         value_type_id == ReturnTypeId.TypedArraySlice
       ) {
@@ -4579,6 +4653,20 @@ const Megatron = (function () {
       if (
         item instanceof BigInt64Array &&
         value_type_id == ReturnTypeId.Int64ArrayBuffer
+      ) {
+        return value_type_id;
+      }
+
+      if (
+        item instanceof InternalPointer &&
+        value_type_id == ReturnTypeId.InternalReference
+      ) {
+        return value_type_id;
+      }
+
+      if (
+        item instanceof ExternalPointer &&
+        value_type_id == ReturnTypeId.ExternalReference
       ) {
         return value_type_id;
       }
@@ -4635,6 +4723,10 @@ const Megatron = (function () {
           return value_type_id;
         case value_type == "bigint" || value_type == "number":
           switch (true) {
+            case value_type_id == ReturnTypeId.Int128:
+              return value_type_id;
+            case value_type_id == ReturnTypeId.Uint128:
+              return value_type_id;
             case value_type_id == ReturnTypeId.Uint8 &&
               item <= 255 &&
               item >= 0:
@@ -4824,8 +4916,14 @@ const Megatron = (function () {
             item.address[1],
           );
         case ReturnTypeId.Int128:
+          if (isBigIntOrNumber(item)) {
+            return Reply.asInt128(item, 0);
+          }
           return Reply.asInt128(item.value_lsb, item.value_msb);
         case ReturnTypeId.Uint128:
+          if (isBigIntOrNumber(item)) {
+            return Reply.asUint128(item, 0);
+          }
           return Reply.asUint128(item.value_lsb, item.value_msb);
         case ReturnTypeId.Uint8:
           return Reply.asUint8(item);
@@ -5025,21 +5123,22 @@ const Megatron = (function () {
     }
 
     static asFloat64(value) {
-      if (typeof value !== "number") {
+      if (!isNumber(value)) {
         throw new Error("Value must be float64");
       }
       return Reply.asValue(ReturnTypeId.Float64, value);
     }
 
     static asFloat32(value) {
-      if (typeof value !== "number") {
+      if (!isNumber(value)) {
         throw new Error("Value must be float32");
       }
       return Reply.asValue(ReturnTypeId.Float32, value);
     }
 
     static asInt128(value_lsb, value_msb) {
-      if (typeof value !== "bigint") {
+      LOGGER.debug("Incoming: ", value_lsb, value_msb);
+      if (!isBigIntOrNumber(value_lsb) || !isBigIntOrNumber(value_msb)) {
         throw new Error("Value must be bigint for 128bit number");
       }
       return Reply.asValue(ReturnTypeId.Int128, {
@@ -5049,7 +5148,7 @@ const Megatron = (function () {
     }
 
     static asUint128(value_lsb, value_msb) {
-      if (typeof value !== "bigint") {
+      if (!isBigIntOrNumber(value_lsb) || !isBigIntOrNumber(value_msb)) {
         throw new Error("Value must be bigint for 128bit number");
       }
       return Reply.asValue(ReturnTypeId.Uint128, {
@@ -5059,22 +5158,29 @@ const Megatron = (function () {
     }
 
     static asUint64(value) {
-      if (typeof value !== "number" && typeof value !== "bigint") {
+      if (!isBigIntOrNumber(value)) {
         throw new Error("Value must be int64/bigint");
       }
       return Reply.asValue(ReturnTypeId.Uint64, value);
     }
 
     static asUint32(value) {
-      if (typeof value !== "number") {
+      if (!isBigIntOrNumber(value)) {
         throw new Error("Value must be uint32");
       }
       return Reply.asValue(ReturnTypeId.Uint32, value);
     }
 
     static asErrorCode(value) {
-      if (!isBigIntOrNumber(value) && !(value instanceof ReplyError)) {
-        throw new Error("Value must be ReplyError or U16");
+      if (
+        !isBigIntOrNumber(value) &&
+        !(value instanceof ReplyError) &&
+        !(value instanceof ErrorCode)
+      ) {
+        throw new Error("Value must be ReplyError or ErrorCode or U16");
+      }
+      if (value instanceof ErrorCode) {
+        return Reply.asValue(ReturnTypeId.ErrorCode, value.id);
       }
       if (value instanceof ReplyError) {
         return Reply.asValue(ReturnTypeId.ErrorCode, value.code);
@@ -5083,42 +5189,42 @@ const Megatron = (function () {
     }
 
     static asUint16(value) {
-      if (typeof value !== "number") {
+      if (!isBigIntOrNumber(value)) {
         throw new Error("Value must be uint16");
       }
       return Reply.asValue(ReturnTypeId.Uint16, value);
     }
 
     static asUint8(value) {
-      if (typeof value !== "number") {
+      if (!isBigIntOrNumber(value)) {
         throw new Error("Value must be uint8");
       }
       return Reply.asValue(ReturnTypeId.Uint8, value);
     }
 
     static asInt64(value) {
-      if (typeof value !== "number") {
+      if (!isBigIntOrNumber(value)) {
         throw new Error("Value must be int64");
       }
       return Reply.asValue(ReturnTypeId.Int64, value);
     }
 
     static asInt32(value) {
-      if (typeof value !== "number") {
+      if (!isBigIntOrNumber(value)) {
         throw new Error("Value must be int32");
       }
       return Reply.asValue(ReturnTypeId.Int32, value);
     }
 
     static asInt16(value) {
-      if (typeof value !== "number") {
+      if (!isBigIntOrNumber(value)) {
         throw new Error("Value must be int16");
       }
       return Reply.asValue(ReturnTypeId.Int16, value);
     }
 
     static asInt8(value) {
-      if (typeof value !== "number") {
+      if (!isBigIntOrNumber(value)) {
         throw new Error("Value must be int8");
       }
       return Reply.asValue(ReturnTypeId.Int8, value);
@@ -6329,6 +6435,7 @@ const Megatron = (function () {
       parameter_start,
       parameter_length,
       return_hints,
+      always_encoded,
     ) {
       if (isUndefinedOrNull(handle)) {
         throw new Error("handle: Must provide function handle id");
@@ -6355,7 +6462,11 @@ const Megatron = (function () {
       const response = func.call(this, ...parameters);
       logger.debug("result=", response);
 
-      return this.reply_parser.immediate(return_hints, response);
+      return this.reply_parser.immediate(
+        return_hints,
+        response,
+        always_encoded,
+      );
     }
 
     host_invoke_function_with_return(
@@ -6397,7 +6508,7 @@ const Megatron = (function () {
       const response = func.call(this, ...parameters);
       logger.debug("result=", response);
 
-      return this.reply_parser.immediate(return_hints, response);
+      return this.reply_parser.immediate(return_hints, response, true);
     }
 
     host_invoke_async_function(
@@ -6525,6 +6636,7 @@ const Megatron = (function () {
         new SingleReturn(
           new ThreeState(ThreeStateId.One, [ReturnTypeId.DOMObject]),
         ),
+        false,
       );
     }
 
@@ -6536,6 +6648,7 @@ const Megatron = (function () {
         new SingleReturn(
           new ThreeState(ThreeStateId.One, [ReturnTypeId.Object]),
         ),
+        false,
       );
     }
 
@@ -6545,6 +6658,7 @@ const Megatron = (function () {
         parameter_start,
         parameter_length,
         new SingleReturn(new ThreeState(ThreeStateId.One, [ReturnTypeId.Bool])),
+        false,
       );
       return response ? 1 : 0;
     }
@@ -6557,6 +6671,7 @@ const Megatron = (function () {
         new SingleReturn(
           new ThreeState(ThreeStateId.One, [ReturnTypeId.Float64]),
         ),
+        false,
       );
       if (typeof response != "number") {
         throw new Error(`Response ${response} is not a number`);
@@ -6572,6 +6687,7 @@ const Megatron = (function () {
         new SingleReturn(
           new ThreeState(ThreeStateId.One, [ReturnTypeId.Int64]),
         ),
+        false,
       );
       if (typeof response != "number" && typeof response != "bigint") {
         throw new Error(`Response ${response} is not a number`);
@@ -6591,6 +6707,7 @@ const Megatron = (function () {
         new SingleReturn(
           new ThreeState(ThreeStateId.One, [ReturnTypeId.Uint64]),
         ),
+        false,
       );
       if (response instanceof BigInt) {
         return response;
@@ -7016,6 +7133,7 @@ const Megatron = (function () {
   CONTEXT.IntervalDirector = IntervalDirector;
   CONTEXT.AnimationDirector = AnimationDirector;
   CONTEXT.ReplyError = ReplyError;
+  CONTEXT.ErrorCode = ErrorCode;
   CONTEXT.TypedSlice = TypedSlice;
   CONTEXT.ReturnIds = ReturnIds;
   CONTEXT.ReturnTypeId = ReturnTypeId;
@@ -7047,6 +7165,8 @@ const Megatron = (function () {
     LEVELS,
     LOGGER,
     FakeNode,
+    ReplyError,
+    ErrorCode,
     TypedSlice,
     TypedArraySlice,
     ExternalPointer,

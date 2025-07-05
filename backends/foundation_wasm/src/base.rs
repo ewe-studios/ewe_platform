@@ -231,6 +231,48 @@ impl ThreeState {
     }
 }
 
+/// [`ReturnEncoded`] represent the type indicating the underlying returned
+/// value for an operation.
+#[repr(usize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ReturnEncoded {
+    // Where we can only ever have 1 state
+    AsNakedPriority = 30,
+
+    // Where we can have two different states.
+    AlwaysEncoded = 40,
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for &ReturnEncoded {
+    fn into(self) -> u8 {
+        *self as u8
+    }
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<u8> for ReturnEncoded {
+    fn into(self) -> u8 {
+        self as u8
+    }
+}
+
+impl ReturnEncoded {
+    pub fn as_u8(&self) -> u8 {
+        *self as u8
+    }
+}
+
+impl From<u8> for ReturnEncoded {
+    fn from(value: u8) -> Self {
+        match value {
+            30 => Self::AsNakedPriority,
+            40 => Self::AlwaysEncoded,
+            _ => unreachable!("should not have any other type of ReturnEncoded"),
+        }
+    }
+}
+
 /// [`ThreeStateId`] represent the type indicating the underlying returned
 /// value for an operation.
 #[repr(usize)]
@@ -571,6 +613,7 @@ pub enum Params<'a> {
     Uint64(u64),
     Uint128(u128),
     CachedText(u64),
+    ErrorCode(u16),
     Text8(&'a str),
     Text16(&'a [u16]),
     Int8Array(&'a [i8]),
@@ -612,6 +655,7 @@ impl Params<'_> {
             Params::Uint128(_) => ParamTypeId::Uint128,
             Params::Text8(_) => ParamTypeId::Text8,
             Params::Text16(_) => ParamTypeId::Text16,
+            Params::ErrorCode(_) => ParamTypeId::ErrorCode,
             Params::CachedText(_) => ParamTypeId::CachedText,
             Params::Int8Array(_) => ParamTypeId::Int8ArrayBuffer,
             Params::Int16Array(_) => ParamTypeId::Int16ArrayBuffer,

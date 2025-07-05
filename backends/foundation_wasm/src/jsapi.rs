@@ -1413,8 +1413,8 @@ pub mod host_runtime {
             params: &[Params],
             returns: ReturnTypeHints,
         ) -> WasmRequestResult<Vec<ReturnValues>> {
-            let memory_id =
-                MemoryId::from_u64(host_runtime::web::invoke(handler, params, returns.clone()));
+            let value = host_runtime::web::invoke(handler, params, returns.clone());
+            let memory_id = MemoryId::from_u64(value);
 
             let memory = internal_api::get_memory(memory_id);
             let result_container =
@@ -1736,7 +1736,7 @@ impl ReturnValueParserIter<'_> {
                 msb_section.copy_from_slice(msb_portion);
 
                 let lsb_end = msb_end + MOVE_SIXTY_FOUR_BYTES;
-                let lsb_portion = &bin[index..lsb_end];
+                let lsb_portion = &bin[msb_end..lsb_end];
                 let mut lsb_section: [u8; 8] = Default::default();
                 lsb_section.copy_from_slice(lsb_portion);
 
@@ -1801,7 +1801,7 @@ impl ReturnValueParserIter<'_> {
                 msb_section.copy_from_slice(msb_portion);
 
                 let lsb_end = msb_end + MOVE_SIXTY_FOUR_BYTES;
-                let lsb_portion = &bin[index..lsb_end];
+                let lsb_portion = &bin[msb_end..lsb_end];
                 let mut lsb_section: [u8; 8] = Default::default();
                 lsb_section.copy_from_slice(lsb_portion);
 

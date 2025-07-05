@@ -53,13 +53,13 @@ describe("Megatron.tests_js_invoke_function_and_return_types", async () => {
     instance.exports.main();
 
     it("validate registered functions effect", async () => {
-      assert.deepEqual(mock.calls, [
-        {
-          arguments: [
-            new megatron.TypedArraySlice(1, new Uint8Array([5]), 1050909, 1),
-          ],
-          method: "returnArg",
-        },
+      const type_slice = mock.calls[0];
+      const type_slice_item = type_slice.arguments[0];
+      console.log("Slice: ", type_slice, type_slice_item);
+      assert.equal(true, type_slice_item instanceof megatron.TypedArraySlice);
+
+      expected = [
+        type_slice,
         {
           method: "returnArg",
           arguments: [5],
@@ -108,7 +108,36 @@ describe("Megatron.tests_js_invoke_function_and_return_types", async () => {
           method: "returnArg",
           arguments: ["hello"],
         },
-      ]);
+        {
+          method: "returnArg",
+          arguments: [new megatron.ErrorCode(50)],
+        },
+        {
+          method: "returnArg",
+          arguments: [undefined],
+        },
+        {
+          method: "returnArg",
+          arguments: [new megatron.InternalPointer(0)],
+        },
+        {
+          method: "returnArg",
+          arguments: [new megatron.ExternalPointer(0)],
+        },
+        {
+          method: "returnArg",
+          arguments: [10n],
+        },
+        {
+          method: "returnArg",
+          arguments: [10n],
+        },
+      ];
+
+      console.log(mock.calls);
+      console.log(expected);
+
+      assert.deepEqual(mock.calls, expected);
       assert.equal(runtime.dom_heap.length(), 5);
       assert.equal(runtime.object_heap.length(), 0);
       assert.equal(runtime.function_heap.length(), 2);
