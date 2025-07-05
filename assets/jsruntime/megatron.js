@@ -5410,7 +5410,10 @@ const Megatron = (function () {
         if (!this._listening) return;
 
         // call the trigger for the wasm instance
-        this.instance.exports.trigger_animation_callbacks(tick);
+        const state = this.instance.exports.trigger_animation_callbacks(tick);
+        if (state == TickState.STOP) {
+          return;
+        }
 
         // re-call registration for animation runner
         this.register_for_tick();
@@ -6995,6 +6998,9 @@ const Megatron = (function () {
   CONTEXT.Move = Move;
   CONTEXT.Params = Params;
   CONTEXT.Operations = Operations;
+  CONTEXT.TimeoutDirector = TimeoutDirector;
+  CONTEXT.IntervalDirector = IntervalDirector;
+  CONTEXT.AnimationDirector = AnimationDirector;
   CONTEXT.ReplyError = ReplyError;
   CONTEXT.TypedSlice = TypedSlice;
   CONTEXT.ReturnIds = ReturnIds;

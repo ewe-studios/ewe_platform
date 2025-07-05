@@ -258,7 +258,7 @@ impl IntervalRegistry {
 
 #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
 impl IntervalRegistry {
-    pub fn call(&self, id: InternalPointer) -> Option<()> {
+    pub fn call(&self, id: InternalPointer) -> Option<TickState> {
         if let Some(callback) = self.tree.get(&id) {
             return Some(callback.0.perform());
         }
