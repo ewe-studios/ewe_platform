@@ -260,8 +260,7 @@ impl IntervalRegistry {
 impl IntervalRegistry {
     pub fn call(&self, id: InternalPointer) -> Option<()> {
         if let Some(callback) = self.tree.get(&id) {
-            callback.0.perform();
-            return Some(());
+            return Some(callback.0.perform());
         }
         None
     }
