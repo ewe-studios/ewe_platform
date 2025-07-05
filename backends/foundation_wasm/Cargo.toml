@@ -7,7 +7,7 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 description = "Implements the nostd interface runtime for WASM and JS interoperability"
-keywords = ["foundation wasm layer", "foundation_wasm"]
+keywords = ["foundation_wasm_layer", "foundation_wasm"]
 include = ["/src", "/runtime"]
 
 [dependencies]
