@@ -143,7 +143,7 @@ const Megatron = (function () {
 
   Object.freeze(ThreeStateId);
 
-  TickState = {
+  const TickState = {
     REQUEUE: 1,
     STOP: 2,
   };
