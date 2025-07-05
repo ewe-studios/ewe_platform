@@ -5,6 +5,7 @@ const path = require("node:path");
 const process = require("node:process");
 
 const megatron = require("./megatron.js");
+megatron.LOGGER.mode = megatron.LEVELS.DEBUG;
 
 const EXECUTING_DIR = path.dirname(__filename);
 
@@ -17,7 +18,7 @@ mock.logs = (message) => {
   mock.calls.push({ method: "log", arguments: [message] });
 };
 
-describe("Megatron.js_invoke_function", async () => {
+describe("Megatron.js_interval", async () => {
   const runtime = new megatron.MegatronMiddleware();
   runtime.mock = mock;
 
@@ -42,6 +43,13 @@ describe("Megatron.js_invoke_function", async () => {
   describe("Validate::Behaviour", async () => {
     const { module, instance } = wasm_module;
     instance.exports.main();
+
+    await new Promise((resolve, reject) => {
+      setTimeout(() => {
+        runtime.schedule_director.unregister_all();
+        resolve();
+      }, 1000);
+    });
 
     it("validate registered functions effect", async () => {
       assert.deepEqual(mock.calls, [

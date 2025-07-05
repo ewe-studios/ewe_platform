@@ -55,6 +55,7 @@ describe("Megatron.js_interval", async () => {
       assert.deepEqual(mock.calls, [
         { method: "log", arguments: ["Hello from intro"] },
         { method: "log", arguments: ["Hello from intro"] },
+        { method: "log", arguments: ["Hello from intro"] },
       ]);
     });
   });

@@ -471,7 +471,7 @@ pub mod exposed_runtime {
     pub extern "C" fn run_interval_callback(internal_pointer: u64) -> u8 {
         let state = internal_api::run_interval_callback(InternalPointer::pointer(internal_pointer))
             .expect("should have executed");
-        state as u8
+        state.into_u8()
     }
 
     #[no_mangle]
@@ -883,7 +883,7 @@ pub mod host_runtime {
         /// [`register_animation_hook`] provides a method that will automatically
         /// convert any type that implements the [`Fn`] trait.
         #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-        pub fn register_animation_hook<F>(timing: f64, f: F)
+        pub fn register_animation_hook<F>(f: F)
         where
             F: Fn(f64) -> TickState + Send + Sync + 'static,
         {

@@ -7,6 +7,12 @@ pub enum TickState {
     STOP = 2,
 }
 
+impl TickState {
+    pub fn into_u8(self) -> u8 {
+        self as u8
+    }
+}
+
 impl From<TickState> for u8 {
     fn from(val: TickState) -> Self {
         val as u8
