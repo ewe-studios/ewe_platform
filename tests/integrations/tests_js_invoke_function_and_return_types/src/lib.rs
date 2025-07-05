@@ -1,8 +1,8 @@
 #![allow(unused_imports)]
 
 use foundation_wasm::{
-    self, exposed_runtime, host_runtime, internal_api, ExternalPointer, MemoryId, MemoryLocation,
-    Params, ReturnTypeHints, ReturnTypeId, ReturnValues, ThreeState, TypedSlice,
+    self, exposed_runtime, host_runtime, internal_api, ExternalPointer, InternalPointer, MemoryId,
+    MemoryLocation, Params, ReturnTypeHints, ReturnTypeId, ReturnValues, ThreeState, TypedSlice,
 };
 
 use foundation_nostd::*;
@@ -74,5 +74,65 @@ extern "C" fn main() {
             .invoke_for_str(&[hello_id.into_param()])
             .expect("is str")
             == *"hello"
+    );
+
+    assert!(
+        return_arg
+            .invoke_for_replies(
+                &[Params::ErrorCode(50)],
+                ReturnTypeHints::One(ThreeState::One(ReturnTypeId::ErrorCode))
+            )
+            .unwrap()
+            == vec![ReturnValues::ErrorCode(50)],
+    );
+
+    assert!(
+        return_arg
+            .invoke_for_replies(
+                &[Params::Undefined],
+                ReturnTypeHints::One(ThreeState::One(ReturnTypeId::None))
+            )
+            .unwrap()
+            == vec![ReturnValues::None],
+    );
+
+    assert!(
+        return_arg
+            .invoke_for_replies(
+                &[Params::InternalReference(0)],
+                ReturnTypeHints::One(ThreeState::One(ReturnTypeId::InternalReference))
+            )
+            .unwrap()
+            == vec![ReturnValues::InternalReference(InternalPointer::pointer(0))],
+    );
+
+    assert!(
+        return_arg
+            .invoke_for_replies(
+                &[Params::ExternalReference(0)],
+                ReturnTypeHints::One(ThreeState::One(ReturnTypeId::ExternalReference))
+            )
+            .unwrap()
+            == vec![ReturnValues::ExternalReference(ExternalPointer::pointer(0))],
+    );
+
+    assert!(
+        return_arg
+            .invoke_for_replies(
+                &[Params::Int128(10)],
+                ReturnTypeHints::One(ThreeState::One(ReturnTypeId::Int128))
+            )
+            .unwrap()
+            == vec![ReturnValues::Int128(10)],
+    );
+
+    assert!(
+        return_arg
+            .invoke_for_replies(
+                &[Params::Uint128(10)],
+                ReturnTypeHints::One(ThreeState::One(ReturnTypeId::Uint128))
+            )
+            .unwrap()
+            == vec![ReturnValues::Uint128(10)],
     );
 }

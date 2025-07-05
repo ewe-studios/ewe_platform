@@ -181,6 +181,9 @@ impl ToBinary for Params<'_> {
             Params::Uint8(value) => {
                 encoded_params.extend_from_slice(&value.to_le_bytes());
             }
+            Params::ErrorCode(value) => {
+                encoded_params.extend_from_slice(&value.to_le_bytes());
+            }
             Params::Uint16(value) => {
                 encoded_params.extend_from_slice(&value.to_le_bytes());
             }
@@ -375,6 +378,24 @@ impl<'a> Batchable<'a> for Params<'a> {
                 encoder.data(&data)?;
                 Ok(())
             }
+            Params::ErrorCode(value) => {
+                // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
+                let (value_bytes, tq) = if optimized {
+                    value_quantitization::qu16(*value)
+                } else {
+                    (value.to_le_bytes().to_vec(), TypeOptimization::None)
+                };
+
+                let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 4);
+                data.push(ArgumentOperations::Begin.into());
+                data.push(self.to_value_type().into());
+                data.push(tq.into());
+                data.extend(&value_bytes);
+                data.push(ArgumentOperations::End.into());
+
+                encoder.data(&data)?;
+                Ok(())
+            }
             Params::Int16(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
@@ -500,7 +521,20 @@ impl<'a> Batchable<'a> for Params<'a> {
                 let (value_bytes, tq) = if optimized {
                     value_quantitization::qi128(*value)
                 } else {
-                    (value.to_le_bytes().to_vec(), TypeOptimization::None)
+                    // get the MSB by shifting right 64 bits
+                    let value_msb: i64 = (*value >> 64) as i64;
+
+                    // get the LSB by truncating to i64
+                    let value_lsb: i64 = *value as i64;
+
+                    let msb_bytes = value_msb.to_le_bytes();
+                    let lsb_bytes = value_lsb.to_le_bytes();
+
+                    let mut content = Vec::with_capacity(msb_bytes.len() + lsb_bytes.len());
+                    content.extend_from_slice(&msb_bytes);
+                    content.extend_from_slice(&lsb_bytes);
+
+                    (content, TypeOptimization::None)
                 };
 
                 let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 4);
@@ -518,7 +552,20 @@ impl<'a> Batchable<'a> for Params<'a> {
                 let (value_bytes, tq) = if optimized {
                     value_quantitization::qu128(*value)
                 } else {
-                    (value.to_le_bytes().to_vec(), TypeOptimization::None)
+                    // get the MSB by shifting right 64 bits
+                    let value_msb: u64 = (*value >> 64) as u64;
+
+                    // get the LSB by truncating to u64
+                    let value_lsb: u64 = *value as u64;
+
+                    let msb_bytes = value_msb.to_le_bytes();
+                    let lsb_bytes = value_lsb.to_le_bytes();
+
+                    let mut content = Vec::with_capacity(msb_bytes.len() + lsb_bytes.len());
+                    content.extend_from_slice(&msb_bytes);
+                    content.extend_from_slice(&lsb_bytes);
+
+                    (content, TypeOptimization::None)
                 };
 
                 let mut data: Vec<u8> = Vec::with_capacity(value_bytes.len() + 4);
