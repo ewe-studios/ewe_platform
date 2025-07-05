@@ -78,6 +78,10 @@ describe("Megatron.apply_instructions", async () => {
         true,
         typed_slice_incoming instanceof megatron.TypedArraySlice,
       );
+      assert.equal(
+        true,
+        typed_slice_incoming.slice_content instanceof Uint8Array,
+      );
 
       console.log("Calls: ", mocked_arguments);
       console.log("Expected: ", expected_arguments);
