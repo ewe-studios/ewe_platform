@@ -539,6 +539,12 @@ const Megatron = (function () {
     return false;
   }
 
+  function toBigInt(value) {
+    if (typeof value == "number") return BigInt(value);
+    if (typeof value == "bigint" || value instanceof BigInt) return value;
+    throw new Error("value must either be number or BigInt");
+  }
+
   function isNumber(value) {
     if (typeof value !== "bigint" && typeof value == "number") return true;
     return false;
@@ -1489,6 +1495,7 @@ const Megatron = (function () {
 
       for (let state_index in this.states) {
         let states = this.states[state_index].options;
+        logger.debug("Received state options: ", states);
         if (states.indexOf(input.type) === -1) {
           throw new Error(
             `Input type: ${input.type} not in any expected types: ` + states,
@@ -1682,7 +1689,7 @@ const Megatron = (function () {
   class CachePointer extends RefPointer {}
 
   class TypedArraySlice {
-    constructor(slice_type, content) {
+    constructor(slice_type, content, start_addr, length) {
       if (!(slice_type in TypedSlice.__INVERSE__)) {
         throw new Error(
           `TypedSlice ${slice_type} is not known for TypedSlice: ${slice_type}`,
@@ -1691,6 +1698,7 @@ const Megatron = (function () {
 
       this.slice_type = slice_type;
       this.slice_content = content;
+      this.address = [start_addr, length];
     }
 
     equals(other) {
@@ -2168,7 +2176,7 @@ const Megatron = (function () {
         `clonedBufferArray: selecting start=${start}, length=${length}, end=${end} -> ${slice_view}`,
       );
 
-      return [start_index, slice_view];
+      return [start_index, slice_view, start, length];
     }
 
     cloneBufferArray1Byte(from_index, view) {
@@ -2222,7 +2230,7 @@ const Megatron = (function () {
         `copyBufferArray: selecting start=${start}, length=${length}, end=${end} -> ${slice}`,
       );
 
-      return [start_index, slice];
+      return [start_index, slice, start, length];
     }
 
     copyBufferArray1Byte(from_index, view) {
@@ -2258,7 +2266,7 @@ const Megatron = (function () {
     }
 
     parseText16(index, read_values_list, parameter_buffer) {
-      const [moved_by, slice] = this.cloneBufferArray16Bytes(
+      const [moved_by, slice, _start, _length] = this.cloneBufferArray16Bytes(
         index,
         parameter_buffer,
       );
@@ -2268,7 +2276,7 @@ const Megatron = (function () {
     }
 
     parseText8(index, read_values_list, parameter_buffer) {
-      const [moved_by, slice] = this.cloneBufferArray1Byte(
+      const [moved_by, slice, start, length] = this.cloneBufferArray1Byte(
         index,
         parameter_buffer,
       );
@@ -2278,7 +2286,7 @@ const Megatron = (function () {
     }
 
     parseFloat32Array(index, read_values_list, parameter_buffer) {
-      const [moved_by, slice] = this.copyBufferArray32Bytes(
+      const [moved_by, slice, _start, _length] = this.copyBufferArray32Bytes(
         index,
         parameter_buffer,
       );
@@ -2288,7 +2296,7 @@ const Megatron = (function () {
     }
 
     parseFloat64Array(index, read_values_list, parameter_buffer) {
-      const [moved_by, slice] = this.copyBufferArray64Bytes(
+      const [moved_by, slice, _start, _length] = this.copyBufferArray64Bytes(
         index,
         parameter_buffer,
       );
@@ -2298,7 +2306,7 @@ const Megatron = (function () {
     }
 
     parseInt8Array(index, read_values_list, parameter_buffer) {
-      const [moved_by, slice] = this.copyBufferArray1Byte(
+      const [moved_by, slice, _start, _length] = this.copyBufferArray1Byte(
         index,
         parameter_buffer,
       );
@@ -2309,7 +2317,7 @@ const Megatron = (function () {
 
     parseInt16Array(index, read_values_list, parameter_buffer) {
       // 10 = array of Uint32 from wasm memory (followed by 32-bit start and size of string in memory)
-      const [moved_by, slice] = this.copyBufferArray16Bytes(
+      const [moved_by, slice, _start, _length] = this.copyBufferArray16Bytes(
         index,
         parameter_buffer,
       );
@@ -2320,7 +2328,7 @@ const Megatron = (function () {
 
     parseInt32Array(index, read_values_list, parameter_buffer) {
       // 10 = array of Uint32 from wasm memory (followed by 32-bit start and size of string in memory)
-      const [moved_by, slice] = this.copyBufferArray32Bytes(
+      const [moved_by, slice, _start, _length] = this.copyBufferArray32Bytes(
         index,
         parameter_buffer,
       );
@@ -2331,7 +2339,7 @@ const Megatron = (function () {
 
     parseInt64Array(index, read_values_list, parameter_buffer) {
       // 10 = array of Uint64 from wasm memory (followed by 32-bit start and size of string in memory)
-      const [moved_by, slice] = this.copyBufferArray64Bytes(
+      const [moved_by, slice, _start, _length] = this.copyBufferArray64Bytes(
         index,
         parameter_buffer,
       );
@@ -2348,14 +2356,19 @@ const Megatron = (function () {
       const slice_type = Number(view.getUint8(start_index, true));
       start_index += Move.MOVE_BY_1_BYTES;
 
-      const [moved_by, slice] = this.cloneBufferArray1Byte(start_index, view);
+      const [moved_by, slice, start, length] = this.cloneBufferArray1Byte(
+        start_index,
+        view,
+      );
 
-      read_values_list.push(new TypedArraySlice(slice_type, slice));
+      read_values_list.push(
+        new TypedArraySlice(slice_type, slice, start, length),
+      );
       return [moved_by, false];
     }
 
     parseUint8Array(index, read_values_list, parameter_buffer) {
-      const [moved_by, slice] = this.copyBufferArray1Byte(
+      const [moved_by, slice, _start, _length] = this.copyBufferArray1Byte(
         index,
         parameter_buffer,
       );
@@ -2365,7 +2378,7 @@ const Megatron = (function () {
     }
 
     parseUint16Array(index, read_values_list, parameter_buffer) {
-      const [moved_by, slice] = this.copyBufferArray16Bytes(
+      const [moved_by, slice, _start, _length] = this.copyBufferArray16Bytes(
         index,
         parameter_buffer,
       );
@@ -2375,7 +2388,7 @@ const Megatron = (function () {
     }
 
     parseUint32Array(index, read_values_list, parameter_buffer) {
-      const [moved_by, slice] = this.copyBufferArray32Bytes(
+      const [moved_by, slice, _start, _length] = this.copyBufferArray32Bytes(
         index,
         parameter_buffer,
       );
@@ -2386,7 +2399,7 @@ const Megatron = (function () {
 
     parseUint64Array(index, read_values_list, parameter_buffer) {
       // 10 = array of Uint64 from wasm memory (followed by 32-bit start and size of string in memory)
-      const [moved_by, slice] = this.copyBufferArray64Bytes(
+      const [moved_by, slice, _start, _length] = this.copyBufferArray64Bytes(
         index,
         parameter_buffer,
       );
@@ -4171,7 +4184,12 @@ const Megatron = (function () {
       view.setUint8(offset, directive.value.slice_type, true);
       offset += Move.MOVE_BY_1_BYTES;
 
-      view.setBigUint64(offset, directive.value.slice_id, true);
+      const slice_addr = toBigInt(directive.value.slice_addr);
+      view.setBigUint64(offset, slice_addr, true);
+      offset += Move.MOVE_BY_64_BYTES;
+
+      const slice_length = toBigInt(directive.value.slice_length);
+      view.setBigUint64(offset, slice_length, true);
       offset += Move.MOVE_BY_64_BYTES;
 
       return offset;
@@ -4436,6 +4454,13 @@ const Megatron = (function () {
       );
 
       if (isUndefinedOrNull(item) && value_type_id == ReturnTypeId.None) {
+        return value_type_id;
+      }
+
+      if (
+        item instanceof TypedArraySlice &&
+        value_type_id == ReturnTypeId.TypedArraySlice
+      ) {
         return value_type_id;
       }
 
@@ -4793,7 +4818,11 @@ const Megatron = (function () {
         case ReturnTypeId.Text8:
           return Reply.asText8(item);
         case ReturnTypeId.TypedArraySlice:
-          return Reply.asTypedSlice(item.slice_type, item.slice_id);
+          return Reply.asTypedArraySlice(
+            item.slice_type,
+            item.address[0],
+            item.address[1],
+          );
         case ReturnTypeId.Int128:
           return Reply.asInt128(item.value_lsb, item.value_msb);
         case ReturnTypeId.Uint128:
@@ -4863,10 +4892,11 @@ const Megatron = (function () {
       }
     }
 
-    static asTypedArraySlice(slice_type, slice_id) {
+    static asTypedArraySlice(slice_type, slice_addr, slice_length) {
       return Reply.asValue(ReturnTypeId.TypedArraySlice, {
         slice_type,
-        slice_id,
+        slice_addr,
+        slice_length,
       });
     }
 
@@ -5321,25 +5351,6 @@ const Megatron = (function () {
       this.register = {};
     }
   }
-
-  //   Exports:  [Object: null prototype] {
-  //   memory: Memory [WebAssembly.Memory] {},
-  //   main: [Function: 17],
-  //   create_allocation: [Function: 979],
-  //   allocation_start_pointer: [Function: 980],
-  //   allocation_length: [Function: 981],
-  //   dispose_allocation: [Function: 982],
-  //   clear_allocation: [Function: 983],
-  //   run_scheduled_callback: [Function: 984],
-  //   run_interval_callback: [Function: 985],
-  //   trigger_animation_callbacks: [Function: 986],
-  //   get_total_animation_callbacks: [Function: 987],
-  //   unregister_callback: [Function: 988],
-  //   invoke_callback: [Function: 989],
-  //   __data_end: Global [WebAssembly.Global] {},
-  //   __heap_base: Global [WebAssembly.Global] {}
-  // }
-  //
 
   class IntervalDirector {
     constructor(wasm_module) {
@@ -6700,14 +6711,17 @@ const Megatron = (function () {
       return Reply.asBool(value);
     }
 
-    // asTypedArraySlice(slice_type, value) {
-    //   if (!(slice_type in TypedSlice.__INVERSE__)) {
-    //     throw new Error("slice_type must be a TypedSlice type");
-    //   }
-    //
-    //   const slice =
-    //   return Reply.asFloat64Array(value);
-    // }
+    asTypedArraySlice(slice_type, memory_id) {
+      if (!(slice_type in TypedSlice.__INVERSE__)) {
+        throw new Error("slice_type must be a TypedSlice type");
+      }
+
+      if (!isBigIntOrNumber(memory_id)) {
+        throw new Error("memory_id must be a big int or number");
+      }
+
+      return Reply.asTypedArraySlice(slice_type, memory_id);
+    }
 
     asFloat64Array(value) {
       return Reply.asFloat64Array(value);

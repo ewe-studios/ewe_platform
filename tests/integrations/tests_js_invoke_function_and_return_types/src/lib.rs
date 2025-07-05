@@ -1,7 +1,8 @@
 #![allow(unused_imports)]
 
 use foundation_wasm::{
-    self, exposed_runtime, host_runtime, internal_api, ExternalPointer, Params,
+    self, exposed_runtime, host_runtime, internal_api, ExternalPointer, MemoryId, MemoryLocation,
+    Params, ReturnTypeHints, ReturnTypeId, ReturnValues, ThreeState, TypedSlice,
 };
 
 use foundation_nostd::*;
@@ -28,6 +29,18 @@ extern "C" fn main() {
             return ret;
         }",
     );
+
+    assert!(matches!(
+        return_arg
+            .invoke_for_replies(
+                &[Params::TypedArraySlice(TypedSlice::Int8, &[5])],
+                ReturnTypeHints::One(ThreeState::One(ReturnTypeId::TypedArraySlice))
+            )
+            .unwrap()
+            .pop()
+            .unwrap(),
+        ReturnValues::TypedArraySlice(TypedSlice::Int8, _)
+    ));
 
     assert!(return_arg.invoke_for_f64(&[Params::Float64(5.0)]) == 5.0);
 
