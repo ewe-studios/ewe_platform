@@ -1,7 +1,5 @@
 use alloc::{boxed::Box, vec::Vec};
 
-use foundation_nostd::spin::Mutex;
-
 #[derive(PartialEq, Eq, Debug, Clone)]
 #[repr(u8)]
 pub enum TickState {
@@ -39,7 +37,9 @@ pub trait FrameCallback: Send + Sync {
 pub struct FnFrameCallback(Box<dyn Fn(f64) -> TickState>);
 
 #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-pub struct FnFrameCallback(Mutex<Box<dyn Fn(f64) -> TickState + Send + 'static>>);
+pub struct FnFrameCallback(
+    foundation_nostd::spin::Mutex<Box<dyn Fn(f64) -> TickState + Send + 'static>>,
+);
 
 impl FnFrameCallback {
     #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
@@ -60,7 +60,7 @@ impl FnFrameCallback {
 
     #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
     pub fn new(elem: Box<dyn Fn(f64) -> TickState + Send + 'static>) -> Self {
-        Self(Mutex::new(elem))
+        Self(foundation_nostd::spin::Mutex::new(elem))
     }
 
     #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]

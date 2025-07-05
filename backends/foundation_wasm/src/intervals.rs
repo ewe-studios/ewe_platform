@@ -108,8 +108,6 @@ impl IntervalCallbackList {
 
     #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
     pub fn add(&mut self, handler: Box<dyn IntervalCallback + 'static>) {
-        self.id += 1;
-        let id = self.id;
         self.items.push(Some(handler));
     }
 
@@ -287,10 +285,9 @@ impl IntervalRegistry {
         self.tree.is_empty()
     }
 
-    pub fn call(&self, id: InternalPointer) -> Option<()> {
+    pub fn call(&self, id: InternalPointer) -> Option<TickState> {
         if let Some(callback) = self.tree.get(&id) {
-            callback.0.lock().perform();
-            return Some(());
+            return Some(callback.0.lock().perform());
         }
         None
     }
