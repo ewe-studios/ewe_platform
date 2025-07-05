@@ -454,7 +454,7 @@ pub enum ReturnValues {
     DOMObject(InternalPointer),
     ExternalReference(ExternalPointer),
     InternalReference(InternalPointer),
-    TypedArraySlice(TypedSlice, MemoryId),
+    TypedArraySlice(TypedSlice, MemoryLocation),
 }
 
 impl ReturnValues {
@@ -1872,6 +1872,29 @@ const BIT_SIZE: u64 = 32;
 /// a 64 bit number.
 const BIT_MASK: u64 = 0xFFFFFFFF;
 
+/// [`MemoryLocation`] represents a location in memory where the
+/// first value is a pointer to the memory location and the next is
+/// the length of the value.
+///
+#[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord)]
+pub struct MemoryLocation(pub(crate) *const u8, pub(crate) u64);
+
+impl MemoryLocation {
+    pub fn new(ptr: *const u8, length: u64) -> Self {
+        Self(ptr, length)
+    }
+}
+
+impl MemoryLocation {
+    pub fn address(&self) -> *const u8 {
+        self.0
+    }
+
+    pub fn length(&self) -> u64 {
+        self.1
+    }
+}
+
 /// [`MemoryId`] represents a key to a allocation '
 /// which has a unique generation to denote it's ownership
 /// if the generation differs from the current generation of
@@ -1883,6 +1906,12 @@ const BIT_MASK: u64 = 0xFFFFFFFF;
 ///
 #[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord)]
 pub struct MemoryId(pub(crate) u32, pub(crate) u32);
+
+impl MemoryId {
+    pub fn new(index: u32, gen: u32) -> Self {
+        Self(index, gen)
+    }
+}
 
 impl From<u64> for MemoryId {
     fn from(value: u64) -> Self {

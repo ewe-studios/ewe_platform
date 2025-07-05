@@ -187,7 +187,7 @@ pub mod internal_api {
 
     /// [`run_schedule_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
-    pub fn run_schedule_callback(id: InternalPointer) -> crate::WasmErrorResult<()> {
+    pub fn run_schedule_callback(id: InternalPointer) -> crate::WasmRequestResult<()> {
         match SCHEDULED_CALLBACKS.lock().call(id) {
             Some(_) => Ok(()),
             None => Err(crate::WASMErrors::GuestError(
@@ -244,7 +244,7 @@ pub mod internal_api {
 
     /// [`run_interval_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
-    pub fn run_interval_callback(id: InternalPointer) -> crate::WasmErrorResult<TickState> {
+    pub fn run_interval_callback(id: InternalPointer) -> crate::WasmRequestResult<TickState> {
         match RECURRING_INTERVAL_CALLBACKS.lock().call(id) {
             Some(inner) => Ok(inner),
             None => Err(crate::WASMErrors::GuestError(
@@ -513,7 +513,7 @@ pub mod host_runtime {
 
     // -- Functions (Invocation & Registration)
     pub mod web {
-        use crate::{CachedText, MemoryAllocationResult, MemoryReaderError};
+        use crate::{CachedText, MemoryAllocationResult, MemoryReaderError, WasmRequestResult};
 
         use super::*;
 
@@ -1365,7 +1365,7 @@ pub mod host_runtime {
         /// [`invoke_for_str`] invokes a host function registered at the given handle
         /// defined by the [`HostFunction::handler`] which then returns a [`u64`]
         /// which represents the allocation id of the contents.
-        pub fn invoke_for_str(handler: u64, params: &[Params]) -> MemoryAllocationResult<String> {
+        pub fn invoke_for_str(handler: u64, params: &[Params]) -> WasmRequestResult<String> {
             match host_runtime::web::invoke_for_replies(
                 handler,
                 params,
@@ -1412,7 +1412,7 @@ pub mod host_runtime {
             handler: u64,
             params: &[Params],
             returns: ReturnTypeHints,
-        ) -> MemoryAllocationResult<Vec<ReturnValues>> {
+        ) -> WasmRequestResult<Vec<ReturnValues>> {
             let memory_id =
                 MemoryId::from_u64(host_runtime::web::invoke(handler, params, returns.clone()));
 
@@ -1421,7 +1421,7 @@ pub mod host_runtime {
                 memory.into_with(|mem| returns.clone().from_binary(mem.as_ref()));
 
             if result_container.is_none() {
-                return Err(MemoryAllocationError::FailedAllocationReading(memory_id));
+                return Err(MemoryAllocationError::FailedAllocationReading(memory_id).into());
             }
 
             let result = result_container.unwrap();
@@ -1487,6 +1487,14 @@ pub mod host_runtime {
                     ReturnTypeHints::One(ThreeState::One(ReturnTypeId::None)),
                 )
                 .is_ok()
+            }
+
+            pub fn invoke_for_replies(
+                &self,
+                params: &[Params],
+                expected: ReturnTypeHints,
+            ) -> WasmRequestResult<Vec<ReturnValues>> {
+                host_runtime::web::invoke_for_replies(self.handler, params, expected)
             }
 
             /// [`invoke_for_bool`] invokes a host function registered at the given handle
@@ -1565,7 +1573,7 @@ pub mod host_runtime {
             /// [`invoke_for_str`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a [`u64`]
             /// which represents the allocation id of the contents.
-            pub fn invoke_for_str(&self, params: &[Params]) -> MemoryAllocationResult<String> {
+            pub fn invoke_for_str(&self, params: &[Params]) -> WasmRequestResult<String> {
                 host_runtime::web::invoke_for_str(self.handler, params)
             }
 
@@ -1837,17 +1845,29 @@ impl ReturnValueParserIter<'_> {
                 let item_type: TypedSlice = u8::from_le(bin[index]).into();
                 index += MOVE_ONE_BYTE;
 
-                let end = index + MOVE_SIXTY_FOUR_BYTES;
-                let portion = &bin[index..end];
-                let mut section: [u8; 8] = Default::default();
-                section.copy_from_slice(portion);
+                let ptr_end = index + MOVE_SIXTY_FOUR_BYTES;
+                let ptr_portion = &bin[index..ptr_end];
+                let mut ptr_section: [u8; 8] = Default::default();
+                ptr_section.copy_from_slice(ptr_portion);
 
-                let item = u64::from_le_bytes(section);
-                let mem_id = MemoryId::from_u64(item);
+                index = ptr_end;
 
-                self.index = end;
+                let address_as_u64 = u64::from_le_bytes(ptr_section);
+                let address_as_ptr = address_as_u64 as *const u8;
 
-                Ok(ReturnValues::TypedArraySlice(item_type, mem_id))
+                let length_end = index + MOVE_SIXTY_FOUR_BYTES;
+                let len_portion = &bin[index..length_end];
+                let mut len_section: [u8; 8] = Default::default();
+                len_section.copy_from_slice(len_portion);
+
+                let length_as_u64 = u64::from_le_bytes(len_section);
+
+                self.index = length_end;
+
+                Ok(ReturnValues::TypedArraySlice(
+                    item_type,
+                    crate::MemoryLocation(address_as_ptr, length_as_u64),
+                ))
             }
             ReturnTypeId::MemorySlice => {
                 let end = index + MOVE_SIXTY_FOUR_BYTES;

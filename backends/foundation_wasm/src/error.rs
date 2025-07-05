@@ -224,7 +224,7 @@ impl core::fmt::Display for GuestOperationError {
     }
 }
 
-pub type WasmErrorResult<T> = core::result::Result<T, WASMErrors>;
+pub type WasmRequestResult<T> = core::result::Result<T, WASMErrors>;
 
 #[derive(Debug)]
 pub enum WASMErrors {
@@ -233,6 +233,7 @@ pub enum WASMErrors {
     MemoryErrors(MemoryAllocationError),
     WriteErrors(MemoryWriterError),
     ReadErrors(MemoryReaderError),
+    ReturnError(ReturnValueError),
 }
 
 impl core::error::Error for WASMErrors {}
@@ -240,6 +241,12 @@ impl core::error::Error for WASMErrors {}
 impl core::fmt::Display for WASMErrors {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{self:?}")
+    }
+}
+
+impl From<ReturnValueError> for WASMErrors {
+    fn from(value: ReturnValueError) -> Self {
+        Self::ReturnError(value)
     }
 }
 

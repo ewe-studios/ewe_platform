@@ -5,7 +5,9 @@ const path = require("node:path");
 const process = require("node:process");
 
 const megatron = require("./megatron.js");
-megatron.LOGGER.mode =  process.env.DEBUG ? megatron.LEVELS.DEBUG : megatron.LEVELS.INFO
+megatron.LOGGER.mode = process.env.DEBUG
+  ? megatron.LEVELS.DEBUG
+  : megatron.LEVELS.INFO;
 
 const EXECUTING_DIR = path.dirname(__filename);
 
@@ -52,6 +54,12 @@ describe("Megatron.tests_js_invoke_function_and_return_types", async () => {
 
     it("validate registered functions effect", async () => {
       assert.deepEqual(mock.calls, [
+        {
+          arguments: [
+            new megatron.TypedArraySlice(1, new Uint8Array([5]), 1050909, 1),
+          ],
+          method: "returnArg",
+        },
         {
           method: "returnArg",
           arguments: [5],
