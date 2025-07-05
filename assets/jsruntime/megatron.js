@@ -143,6 +143,23 @@ const Megatron = (function () {
 
   Object.freeze(ThreeStateId);
 
+  TickState = {
+    REQUEUE: 1,
+    STOP: 2,
+  };
+
+  TickState.__INVERSE__ = Object.keys(TickState)
+    .map((key) => {
+      return [key, TickState[key]];
+    })
+    .reduce((prev, current) => {
+      let [key, value] = current;
+      prev[value] = key;
+      return prev;
+    }, {});
+
+  Object.freeze(TickState);
+
   const TypedSlice = {
     Int8: 1,
     Int16: 2,
@@ -5280,7 +5297,7 @@ const Megatron = (function () {
       if (id in this.registers) return;
 
       const fn = function () {
-        this.instance.exports.run_schedule_callback(id.id);
+        this.instance.exports.run_scheduled_callback(id.id);
       }.bind(this);
 
       this.register[id] = setTimeout(fn, timing);
@@ -5296,7 +5313,33 @@ const Megatron = (function () {
       const reg_id = this.register[id];
       clearTimeout(reg_id);
     }
+
+    unregister_all() {
+      for (let index in this.register) {
+        clearTimeout(this.register[index]);
+      }
+      this.register = {};
+    }
   }
+
+  //   Exports:  [Object: null prototype] {
+  //   memory: Memory [WebAssembly.Memory] {},
+  //   main: [Function: 17],
+  //   create_allocation: [Function: 979],
+  //   allocation_start_pointer: [Function: 980],
+  //   allocation_length: [Function: 981],
+  //   dispose_allocation: [Function: 982],
+  //   clear_allocation: [Function: 983],
+  //   run_scheduled_callback: [Function: 984],
+  //   run_interval_callback: [Function: 985],
+  //   trigger_animation_callbacks: [Function: 986],
+  //   get_total_animation_callbacks: [Function: 987],
+  //   unregister_callback: [Function: 988],
+  //   invoke_callback: [Function: 989],
+  //   __data_end: Global [WebAssembly.Global] {},
+  //   __heap_base: Global [WebAssembly.Global] {}
+  // }
+  //
 
   class IntervalDirector {
     constructor(wasm_module) {
@@ -5318,7 +5361,12 @@ const Megatron = (function () {
       if (id in this.registers) return;
 
       const fn = function () {
-        this.instance.exports.run_interval_callback(id.id);
+        const returned_state_id = this.instance.exports.run_interval_callback(
+          id.id,
+        );
+        if (returned_state_id == TickState.STOP) {
+          this.unregister(id);
+        }
       }.bind(this);
 
       this.register[id] = setInterval(fn, timing);
@@ -5333,6 +5381,12 @@ const Megatron = (function () {
 
       const reg_id = this.register[id];
       clearInterval(reg_id);
+    }
+
+    unregister_all() {
+      for (let index in this.register) {
+        clearInterval(this.register[index]);
+      }
     }
   }
 
@@ -5816,10 +5870,10 @@ const Megatron = (function () {
       this.animation_director = null;
 
       // schedule director
-      this.schedule_directory = null;
+      this.schedule_director = null;
 
       // timeout director
-      this.timeout_directory = null;
+      this.timeout_director = null;
 
       // collector for async tasks, enabled by default.
       this.async_tasks = new AsyncTaskCollector(false);
@@ -5864,10 +5918,10 @@ const Megatron = (function () {
       this.animation_director = new AnimationDirector(this.module);
 
       // schedule director
-      this.schedule_directory = new TimeoutDirector(this.module);
+      this.schedule_director = new IntervalDirector(this.module);
 
       // timeout director
-      this.timeout_directory = new IntervalDirector(this.module);
+      this.timeout_director = new TimeoutDirector(this.module);
 
       // v1 function parameters handling
       this.parameter_v1 = new ParameterParserV1(
@@ -6085,39 +6139,55 @@ const Megatron = (function () {
     }
 
     schedule_timeout(timing, id) {
-      if (isUndefinedOrNull(this.schedule_directory)) {
+      if (isUndefinedOrNull(this.schedule_director)) {
         throw new Error("Interval director not setup");
       }
 
+      const logger = LOGGER.scoped("schedule_timeout");
       const callback_id = new InternalPointer(id);
-      this.timeout_directory.register(callback_id, timing);
+      logger.debug("Registering timeout handler: ", callback_id);
+      this.timeout_director.register(callback_id, timing);
+      logger.debug(
+        "Registered timeout handler: ",
+        callback_id,
+        " with timing: ",
+        timing,
+      );
     }
 
     unschedule_timeout(id) {
-      if (isUndefinedOrNull(this.timeout_directory)) {
+      if (isUndefinedOrNull(this.timeout_director)) {
         throw new Error("Interval director not setup");
       }
 
       const callback_id = new InternalPointer(id);
-      this.timeout_directory.unregister(callback_id);
+      this.timeout_director.unregister(callback_id);
     }
 
     schedule_interval(timing, id) {
-      if (isUndefinedOrNull(this.)) {
+      if (isUndefinedOrNull(this.schedule_director)) {
         throw new Error("Interval director not setup");
       }
 
+      const logger = LOGGER.scoped("schedule_timeout");
       const callback_id = new InternalPointer(id);
-      this.schedule_directory.register(callback_id, timing);
+      logger.debug("Registering interval handler: ", callback_id);
+      this.schedule_director.register(callback_id, timing);
+      logger.debug(
+        "Registered interval handler: ",
+        callback_id,
+        " with interval: ",
+        timing,
+      );
     }
 
     unschedule_interval(id) {
-      if (isUndefinedOrNull(this.schedule_directory)) {
+      if (isUndefinedOrNull(this.schedule_director)) {
         throw new Error("Interval director not setup");
       }
 
       const callback_id = new InternalPointer(id);
-      this.schedule_directory.unregister(callback_id);
+      this.schedule_director.unregister(callback_id);
     }
 
     function_drop_external_pointer(uid) {

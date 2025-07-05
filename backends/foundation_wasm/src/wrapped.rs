@@ -1,7 +1,5 @@
-use foundation_nostd::spin::Mutex;
-
 #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-pub struct WrappedItem<T>(pub alloc::sync::Arc<Mutex<T>>);
+pub struct WrappedItem<T>(pub alloc::sync::Arc<foundation_nostd::spin::Mutex<T>>);
 
 #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
 pub struct WrappedItem<T>(pub alloc::rc::Rc<T>);
@@ -21,7 +19,7 @@ impl<T> WrappedItem<T> {
 
         #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
         {
-            Self(alloc::sync::Arc::new(Mutex::new(f)))
+            Self(alloc::sync::Arc::new(foundation_nostd::spin::Mutex::new(f)))
         }
     }
 }

@@ -8,13 +8,12 @@ use foundation_nostd::{raw_parts::RawParts, spin::Mutex};
 use crate::{
     BinaryReadError, BinaryReaderResult, CompletedInstructions, DoTask, ExternalPointer, FnDoTask,
     FnFrameCallback, FnIntervalCallback, FrameCallback, FrameCallbackList, FromBinary,
-    GroupReturnHintMarker, GuestOperationError, Instructions, InternalCallback, InternalPointer,
+    GroupReturnHintMarker, Instructions, InternalCallback, InternalPointer,
     InternalReferenceRegistry, IntervalCallback, IntervalRegistry, JSEncoding, MemoryAllocation,
     MemoryAllocationError, MemoryAllocations, MemoryId, MemoryReaderError, Params, ReturnIds,
     ReturnTypeHints, ReturnTypeId, ReturnValueError, ReturnValueMarker, ReturnValues, Returns,
     ScheduleRegistry, TaskErrorCode, TaskResult, ThreeState, ThreeStateId, TickState, ToBinary,
-    TypedSlice, WasmErrorResult, MOVE_ONE_BYTE, MOVE_SIXTEEN_BYTES, MOVE_SIXTY_FOUR_BYTES,
-    MOVE_THIRTY_TWO_BYTES,
+    TypedSlice, MOVE_ONE_BYTE, MOVE_SIXTEEN_BYTES, MOVE_SIXTY_FOUR_BYTES, MOVE_THIRTY_TWO_BYTES,
 };
 
 // Allocations for the memory management.
@@ -127,7 +126,6 @@ pub mod internal_api {
 
     /// [`run_animation_frames`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
     pub fn run_animation_frames(tick: f64) -> u8 {
         ANIMATION_FRAME_CALLBACKS.lock().call(tick).into()
     }
@@ -189,12 +187,11 @@ pub mod internal_api {
 
     /// [`run_schedule_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-    pub fn run_schedule_callback(id: InternalPointer) -> WasmErrorResult<()> {
+    pub fn run_schedule_callback(id: InternalPointer) -> crate::WasmErrorResult<()> {
         match SCHEDULED_CALLBACKS.lock().call(id) {
             Some(_) => Ok(()),
             None => Err(crate::WASMErrors::GuestError(
-                GuestOperationError::UnknownInternalPointer(id),
+                crate::GuestOperationError::UnknownInternalPointer(id),
             )),
         }
     }
@@ -247,12 +244,11 @@ pub mod internal_api {
 
     /// [`run_interval_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-    pub fn run_interval_callback(id: InternalPointer) -> WasmErrorResult<()> {
+    pub fn run_interval_callback(id: InternalPointer) -> crate::WasmErrorResult<TickState> {
         match RECURRING_INTERVAL_CALLBACKS.lock().call(id) {
-            Some(_) => Ok(()),
+            Some(inner) => Ok(inner),
             None => Err(crate::WASMErrors::GuestError(
-                GuestOperationError::UnknownInternalPointer(id),
+                crate::GuestOperationError::UnknownInternalPointer(id),
             )),
         }
     }
@@ -472,9 +468,10 @@ pub mod exposed_runtime {
     }
 
     #[no_mangle]
-    pub extern "C" fn run_interval_callback(internal_pointer: u64) {
-        internal_api::run_interval_callback(InternalPointer::pointer(internal_pointer))
+    pub extern "C" fn run_interval_callback(internal_pointer: u64) -> u8 {
+        let state = internal_api::run_interval_callback(InternalPointer::pointer(internal_pointer))
             .expect("should have executed");
+        state as u8
     }
 
     #[no_mangle]

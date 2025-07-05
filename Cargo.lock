@@ -3118,6 +3118,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "tests_js_interval"
+version = "0.0.1"
+dependencies = [
+ "foundation_nostd",
+ "foundation_wasm",
+]
+
+[[package]]
 name = "tests_js_invoke_async_function"
 version = "0.0.1"
 dependencies = [
@@ -3200,6 +3208,22 @@ dependencies = [
 [[package]]
 name = "tests_js_invoke_function_with_array"
 version = "0.1.0"
+dependencies = [
+ "foundation_nostd",
+ "foundation_wasm",
+]
+
+[[package]]
+name = "tests_js_raf"
+version = "0.0.1"
+dependencies = [
+ "foundation_nostd",
+ "foundation_wasm",
+]
+
+[[package]]
+name = "tests_js_timeout"
+version = "0.0.1"
 dependencies = [
  "foundation_nostd",
  "foundation_wasm",
