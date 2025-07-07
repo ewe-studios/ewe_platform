@@ -1,6 +1,3 @@
-// Implements Vultron executors based on a multi-threaded model of thread pools that can communicate
-// via a ConcurrentQueue that allows different threads in the pool to pull task off the thread at their
-// own respective pace.
 #![allow(clippy::return_self_not_must_use)]
 #![allow(clippy::type_complexity)]
 #![allow(clippy::extra_unused_lifetimes)]
@@ -14,11 +11,7 @@ use super::{
 };
 use crate::synca::Entry;
 
-#[cfg(not(target_arch = "wasm32"))]
-use std::sync::Mutex;
-
-#[cfg(target_arch = "wasm32")]
-use wasm_sync::Mutex;
+use crate::compati::Mutex;
 
 pub struct OnNext<Action, Resolver, Mapper, Task, Done, Pending>
 where
@@ -185,7 +178,7 @@ where
                         TaskStatus::Spawn(action) => match action.apply(entry, executor) {
                             Ok(_) => State::SpawnFinished,
                             Err(err) => {
-                                tracing::error!("Failed to apply ExectionAction: {:?}", err);
+                                tracing::error!("Failed to apply ExecutionAction: {:?}", err);
                                 State::SpawnFailed
                             }
                         },

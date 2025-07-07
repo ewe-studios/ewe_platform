@@ -42,7 +42,7 @@ ctrlc = { version = "3.4" }
 native-tls-crate = { package = "native-tls", version = "0.2.14", optional = true }
 
 # rust-embed
-rust-embed = { version = "8.7.0", features = ["mime-guess"]}
+rust-embed = { version = "8.7.0", features = ["mime-guess", "interpolate-folder-path"]}
 
 # optional deps
 # -- tokio, axum and tower

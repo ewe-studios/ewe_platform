@@ -1,6 +1,6 @@
 [package]
 name = "foundation_nostd"
-version = "0.0.2"
+version = "0.0.3"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -10,7 +10,7 @@ description = "Foundational nostd core implementation for the ewe_platform proje
 keywords = ["foundation_nostd"]
 
 [dependencies]
-spin = "0.10"
+spin = { version = "0.10", default-features = false, features = ["rwlock", "mutex", "spin_mutex"] }
 
 [lints]
 workspace = true

@@ -55,6 +55,8 @@ The crate provides two main means of driving execution:
 
 Provided in the [multi](./executors/multi) module which allows you start a multi-threaded executor that utilizes as much threads as you allow it where work is distributed across these threads but one unique behaviour of the executor is that they never steal work, once a job has being allocated to a thread executor that job is forever owned by it till completion hence removing concerns on runtime cost to move work across threads and memory boundaries.
 
+#### Example 1
+
 ```rust
 use core::time;
 use std::thread;
@@ -83,6 +85,69 @@ fn main() {
             .schedule()
             .expect("should deliver task");
     });
+
+    handler_kill.join().expect("should finish");
+}
+```
+
+#### Example 2
+
+
+```rust
+use core::time;
+use std::thread;
+
+use rand::RngCore;
+use foundation_core::valtron::FnReady;
+use foundation_core::valtron::multi::{block_on, get_pool};
+
+fn main() {
+    let seed = rand::thread_rng().next_u64();
+
+    let handler_kill = thread::spawn(move || {
+        thread::sleep(time::Duration::from_millis(3000));
+        get_pool().kill();
+    });
+
+    // spawn a task and get back a iterator that returns the state 
+    // this means it return immediately with Pending or Done, so it never 
+    // blocks but lets you spin things or control polling of iterator.
+    for status in pool.spawn().with_task(Counter::new(5)).iter() {
+        // do something with the status
+    }
+
+    handler_kill.join().expect("should finish");
+}
+```
+
+#### Example 3
+
+
+```rust
+use core::time;
+use std::thread;
+
+use rand::RngCore;
+use foundation_core::valtron::FnReady;
+use foundation_core::valtron::multi::{block_on, get_pool};
+
+fn main() {
+    let seed = rand::thread_rng().next_u64();
+
+    let handler_kill = thread::spawn(move || {
+        thread::sleep(time::Duration::from_millis(3000));
+        get_pool().kill();
+    });
+
+    // spawn a task but block the thread till we get a Done 
+    // item, so it consumes the pending and blocks till 
+    // a `Done` is received.
+    //
+    // Its iterable until all the the None value is received that 
+    // closes the iterator.
+    for item in pool.spawn().with_task(Counter::new(5)).blocking_iter() {
+        // do something with the item
+    }
 
     handler_kill.join().expect("should finish");
 }
@@ -134,6 +199,11 @@ impl TaskIterator for Counter {
     }
 }
 
+```
+
+#### Example 1
+
+```rust
 
 fn main() {
     let seed = rand::thread_rng().next_u64();
@@ -158,6 +228,69 @@ fn main() {
 
     // run tasks queued to completion
     run_until_complete();
+
+    // check output is what we expect
+    let items = shared_list.borrow().clone(); // should be: vec![0, 1, 2, 3, 4]);
+}
+```
+
+#### Example 2
+
+```rust
+
+use foundations_core::valtron::single::task_iter;
+
+fn main() {
+    let seed = rand::thread_rng().next_u64();
+
+    let shared_list = Rc::new(RefCell::new(Vec::new()));
+    let counter = Counter::new(5, shared_list.clone());
+
+    // initialize executor with a predictable seed
+    // your task can get a random number generator that
+    // can provide predictable random numbers every single
+    // time if the seed provided is the same.
+    initialize(seed);
+
+    // spawn a task and get back a iterator that returns the state 
+    // this means it return immediately with Pending or Done, so it never 
+    // blocks but lets you spin things or control polling of iterator.
+    for status in task_iter(spawn().with_task(counter)) {
+        // do something with status
+    }
+
+    // check output is what we expect
+    let items = shared_list.borrow().clone(); // should be: vec![0, 1, 2, 3, 4]);
+}
+```
+
+#### Example 3
+
+```rust
+
+use foundations_core::valtron::single::block_iter;
+
+fn main() {
+    let seed = rand::thread_rng().next_u64();
+
+    let shared_list = Rc::new(RefCell::new(Vec::new()));
+    let counter = Counter::new(5, shared_list.clone());
+
+    // initialize executor with a predictable seed
+    // your task can get a random number generator that
+    // can provide predictable random numbers every single
+    // time if the seed provided is the same.
+    initialize(seed);
+
+    // spawn a task but block the thread till we get a Done 
+    // item, so it consumes the pending and blocks till 
+    // a `Done` is received.
+    //
+    // Its iterable until all the the None value is received that 
+    // closes the iterator.
+    for status in block_iter(spawn().with_task(counter)) {
+        // do something with status
+    }
 
     // check output is what we expect
     let items = shared_list.borrow().clone(); // should be: vec![0, 1, 2, 3, 4]);
