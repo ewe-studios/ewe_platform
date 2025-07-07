@@ -24,12 +24,7 @@ use rand_chacha::ChaCha8Rng;
 use concurrent_queue::{ConcurrentQueue, PushError};
 
 #[allow(unused)]
-#[cfg(not(target_arch = "wasm32"))]
-use std::sync::Mutex;
-
-#[allow(unused)]
-#[cfg(target_arch = "wasm32")]
-use wasm_sync::Mutex;
+use crate::compati::Mutex;
 
 use super::{
     BoxedExecutionEngine, BoxedExecutionIterator, BoxedSendExecutionIterator, ExecutionAction,

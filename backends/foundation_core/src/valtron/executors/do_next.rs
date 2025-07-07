@@ -5,12 +5,7 @@ use super::{
     ExecutionAction, ExecutionIterator, State, TaskIterator, TaskStatus,
 };
 
-#[cfg(not(target_arch = "wasm32"))]
-use std::sync::Mutex;
-
-#[cfg(target_arch = "wasm32")]
-use wasm_sync::Mutex;
-
+use crate::compati::Mutex;
 use crate::synca::Entry;
 
 /// DoNext provides an implementer of `ExecutionIterator` which is focused on

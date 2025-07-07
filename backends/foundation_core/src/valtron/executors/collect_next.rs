@@ -8,11 +8,7 @@ use super::{
 };
 use crate::synca::Entry;
 
-#[cfg(not(target_arch = "wasm32"))]
-use std::sync::Mutex;
-
-#[cfg(target_arch = "wasm32")]
-use wasm_sync::Mutex;
+use crate::compati::Mutex;
 
 /// [`CollectNext`] provides an implementer of `ExecutionIterator` which is focused on
 /// making progress for your `TaskIterator` which focuses on making progress in

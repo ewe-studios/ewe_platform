@@ -1,4 +1,7 @@
-use std::{sync::Arc, time::Instant};
+use std::{
+    sync::Arc,
+    time::{self, Instant},
+};
 
 use concurrent_queue::{ConcurrentQueue, ForcePushError, PopError, PushError, TryIter};
 use derive_more::derive::From;
@@ -113,6 +116,110 @@ impl<T> Receiver<T> {
     }
 }
 
+pub struct RecvIter<T> {
+    chan: Arc<ConcurrentQueue<T>>,
+}
+
+impl<T> Clone for RecvIter<T> {
+    fn clone(&self) -> Self {
+        Self {
+            chan: self.chan.clone(),
+        }
+    }
+}
+
+#[allow(unused)]
+impl<T> RecvIter<T> {
+    pub fn new(chan: Arc<ConcurrentQueue<T>>) -> Self {
+        Self { chan }
+    }
+
+    /// [`as_iter`] returns a new iterator that will block for 50 nanoseconds
+    /// if the channel is empty and will yield to the OS thread scheduler if no
+    /// content is received.
+    pub fn as_iter(self) -> RecvIterator<T> {
+        RecvIterator::ten_nano(self)
+    }
+
+    /// [`block_iter`] returns a new iterator that will block for provided duration
+    /// if the channel is empty and will yield to the OS thread scheduler if no
+    /// content is received.
+    pub fn block_iter(self, dur: time::Duration) -> RecvIterator<T> {
+        RecvIterator::new(self, dur)
+    }
+
+    /// [`recv`] returns a Result of the value from the underlying channel if
+    /// there is a value or if empty or closed.
+    pub fn recv(&self) -> Result<T, ReceiverError> {
+        match self.chan.pop() {
+            Ok(value) => Ok(value),
+            Err(err) => match err {
+                PopError::Empty => Err(ReceiverError::Empty),
+                PopError::Closed => Err(ReceiverError::Closed(err)),
+            },
+        }
+    }
+
+    /// [`block_recv`] blocks the thread with a spinning loop waiting for an item
+    /// to be received on the channel.
+    pub fn block_recv(&self, block_ts: time::Duration) -> Result<T, ReceiverError> {
+        let mut yield_now = false;
+        loop {
+            // if not parking then
+            match self.chan.pop() {
+                Ok(value) => return Ok(value),
+                Err(err) => match err {
+                    PopError::Empty => {
+                        if yield_now {
+                            yield_now = false;
+                            std::thread::yield_now();
+                            continue;
+                        }
+
+                        std::thread::park_timeout(block_ts);
+                        yield_now = true;
+                        continue;
+                    }
+                    PopError::Closed => return Err(ReceiverError::Closed(err)),
+                },
+            };
+        }
+    }
+}
+
+/// [`RecvIterator`] implements an iterator for the [`RecvIter`] type.
+pub struct RecvIterator<T>(RecvIter<T>, time::Duration);
+
+/// [`DEFAULT_BLOCK_DURATION`] is the default wait time used by the [`RecvIter`]
+/// when we use a normal iterator.
+const DEFAULT_BLOCK_DURATION: time::Duration = time::Duration::from_nanos(50);
+
+impl<T> RecvIterator<T> {
+    pub fn from_chan(item: Arc<ConcurrentQueue<T>>, dur: time::Duration) -> Self {
+        Self::new(RecvIter::new(item), dur)
+    }
+
+    pub fn from_ten_nano(item: Arc<ConcurrentQueue<T>>) -> Self {
+        Self::new(RecvIter::new(item), DEFAULT_BLOCK_DURATION)
+    }
+
+    pub fn ten_nano(item: RecvIter<T>) -> Self {
+        Self::new(item, DEFAULT_BLOCK_DURATION)
+    }
+
+    pub fn new(item: RecvIter<T>, dur: time::Duration) -> Self {
+        Self(item, dur)
+    }
+}
+
+impl<T> Iterator for RecvIterator<T> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.block_recv(self.1).ok()
+    }
+}
+
 pub struct Sender<T> {
     chan: Arc<ConcurrentQueue<T>>,
 }
@@ -204,7 +311,11 @@ pub fn unbounded<T>() -> (Sender<T>, Receiver<T>) {
 
 #[cfg(test)]
 mod test_channels {
-    use std::{thread, time::Duration};
+    use std::{sync::Arc, thread, time::Duration};
+
+    use concurrent_queue::ConcurrentQueue;
+
+    use crate::synca::mpp::RecvIterator;
 
     use super::{bounded, unbounded, ReceiverError};
 
@@ -258,5 +369,20 @@ mod test_channels {
             42
         );
         join_handler.join().expect("should finish");
+    }
+
+    #[test]
+    fn can_receive_from_recv_iterator() {
+        let chan: Arc<ConcurrentQueue<usize>> = Arc::new(ConcurrentQueue::bounded(10));
+
+        chan.push(42).expect("Must receive value");
+        chan.close();
+
+        let chan_iter = RecvIterator::from_ten_nano(chan);
+
+        let items: Vec<usize> = chan_iter.collect();
+        dbg!("Received values: {:?}", &items);
+
+        assert_eq!(items, vec![42]);
     }
 }

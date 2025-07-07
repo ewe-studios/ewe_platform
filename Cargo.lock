@@ -1139,7 +1139,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_nostd"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "spin 0.10.0",
 ]
