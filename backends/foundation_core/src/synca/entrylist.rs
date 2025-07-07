@@ -8,7 +8,7 @@ use wasm_sync::RwLock;
 
 /// Entry based list using generation markers to identify
 /// used list items in an efficient list.
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub struct Entry {
     id: usize,
     gen: usize,
@@ -145,7 +145,7 @@ impl<T> EntryList<T> {
         if let Some((gen, value)) = self.items.get_mut(entry.id) {
             if *gen == entry.gen {
                 if let Some(con) = value.take() {
-                    self.free_entries.push(entry.clone());
+                    self.free_entries.push(*entry);
                     drop(con);
                 }
             }
@@ -167,7 +167,7 @@ impl<T> EntryList<T> {
         if let Some((gen, value)) = self.items.get_mut(entry.id) {
             if *gen == entry.gen {
                 if let Some(con) = value.take() {
-                    self.packed_entries.push(entry.clone());
+                    self.packed_entries.push(*entry);
                     return Some(con);
                 }
             }
@@ -224,7 +224,7 @@ impl<T> EntryList<T> {
         if let Some((gen, value)) = self.items.get_mut(entry.id) {
             if *gen == entry.gen {
                 if let Some(con) = value.take() {
-                    self.free_entries.push(entry.clone());
+                    self.free_entries.push(*entry);
                     return Some(con);
                 }
             }

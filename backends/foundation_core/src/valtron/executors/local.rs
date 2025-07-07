@@ -1543,13 +1543,13 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 
         loop {
             if kill_signal.probe() {
-                tracing::debug!("Received signal to stop and die");
+                tracing::debug!("Received signal to stop and die at loop level, stopping");
                 return;
             }
 
             for _ in 0..200 {
                 if kill_signal.probe() {
-                    tracing::debug!("Received signal to stop and die");
+                    tracing::debug!("Received signal stoppng immediately");
                     return;
                 }
 
@@ -1557,7 +1557,9 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                     ProgressIndicator::CanProgress => continue,
                     ProgressIndicator::NoWork => {
                         if kill_signal.probe() {
-                            tracing::debug!("Received signal to stop and die");
+                            tracing::debug!(
+                                "Received signal stoppng immediately at no work probing"
+                            );
                             return;
                         }
                         self.yielder.yield_process();
@@ -1565,7 +1567,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                     }
                     ProgressIndicator::SpinWait(duration) => {
                         if kill_signal.probe() {
-                            tracing::debug!("Received signal to stop and die");
+                            tracing::debug!("Received signal stoppng immediately at spin wait");
                             return;
                         }
 
@@ -1574,6 +1576,8 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                     }
                 }
             }
+
+            tracing::debug!("Yielding processes");
             self.yielder.yield_process();
         }
     }
