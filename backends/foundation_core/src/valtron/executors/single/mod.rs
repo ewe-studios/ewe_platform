@@ -148,7 +148,7 @@ mod single_threaded_tests {
 
     use crate::valtron::{
         single::{initialize, run_until_complete, spawn},
-        FnReady, NoSpawner, TaskIterator,
+        FnReady, NoSpawner, TaskIterator, TaskStatus,
     };
 
     struct Counter(usize, Rc<RefCell<Vec<usize>>>);
@@ -222,6 +222,36 @@ mod single_threaded_tests {
 
         run_until_complete();
 
+        assert_eq!(shared_list.borrow().clone(), vec![0, 1, 2, 3, 4]);
+    }
+
+    #[test]
+    #[traced_test]
+    fn can_queue_and_complete_task_with_iterator() {
+        let seed = rand::rng().next_u64();
+
+        let shared_list = Rc::new(RefCell::new(Vec::new()));
+        let counter = Counter::new(5, shared_list.clone());
+
+        initialize(seed);
+
+        let iter = spawn()
+            .with_task(counter)
+            .schedule_iter(std::time::Duration::from_nanos(50))
+            .expect("should deliver task");
+
+        run_until_complete();
+
+        let complete: Vec<usize> = iter
+            .map(|item| match item {
+                TaskStatus::Ready(value) => Some(value),
+                _ => None,
+            })
+            .take_while(|t| t.is_some())
+            .map(|t| t.unwrap())
+            .collect();
+
+        assert_eq!(complete, vec![1, 2, 3, 4, 5]);
         assert_eq!(shared_list.borrow().clone(), vec![0, 1, 2, 3, 4]);
     }
 }

@@ -24,14 +24,18 @@ use std::str::FromStr;
 
 use crate::{
     retries::ExponentialBackoffDecider,
-    synca::{mpp, Entry, EntryList, IdleMan, LockSignal, OnSignal, RunOnDrop, SleepyMan},
+    synca::{
+        mpp::{self, RecvIterator},
+        Entry, EntryList, IdleMan, LockSignal, OnSignal, RunOnDrop, SleepyMan,
+    },
     valtron::{AnyResult, BoxedError, LocalThreadExecutor},
 };
 
 use super::{
-    constants::*, BoxedExecutionEngine, BoxedPanicHandler, BoxedSendExecutionIterator, DoNext,
-    ExecutionAction, ExecutionIterator, ExecutorError, FnMutReady, FnReady, OnNext, PriorityOrder,
-    ProcessController, TaskIterator, TaskReadyResolver, TaskStatus, TaskStatusMapper,
+    constants::*, BoxedExecutionEngine, BoxedPanicHandler, BoxedSendExecutionIterator,
+    ConsumingIter, DoNext, ExecutionAction, ExecutionIterator, ExecutorError, FnMutReady, FnReady,
+    OnNext, PriorityOrder, ProcessController, TaskIterator, TaskReadyResolver, TaskStatus,
+    TaskStatusMapper,
 };
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -1185,6 +1189,49 @@ impl<
         self
     }
 
+    /// [`schedule_iter`] adds a task into execution queue but instead of depending
+    /// on a [`TaskReadyResolver`] to process the final state instead allows you
+    /// to get back a wrapper iterator that allows you synchronously receive those
+    /// values from a [`RecvIterator`] that implements the [`Iterator`] trait.
+    ///
+    /// This makes it possible to build synchronous experiences in a async world.
+    ///
+    /// Following our naming: [`schedule_iter`] calls the `schedule` method to deliver
+    /// a task to the bottom of the thread-local execution queue.
+    pub fn schedule_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<RecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
+        let iter_chan: Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(ConcurrentQueue::unbounded());
+
+        let boxed_task = match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (None, Some(mappers)) => ConsumingIter::new(task, mappers, iter_chan.clone()),
+                (None, None) => ConsumingIter::new(task, Vec::new(), iter_chan.clone()),
+                (_, _) => return Err(ExecutorError::NotSupported),
+            },
+            None => return Err(ExecutorError::TaskRequired),
+        };
+
+        match self.tasks.push(boxed_task.into()) {
+            Ok(_) => {
+                match self.tasks.len() {
+                    1 => self.latch.signal_one(),
+                    _ => self.latch.signal_all(),
+                };
+
+                Ok(RecvIterator::from_chan(iter_chan, wait_cycle))
+            }
+            Err(err) => match err {
+                PushError::Full(_) => Err(ExecutorError::QueueFull),
+                PushError::Closed(_) => Err(ExecutorError::QueueClosed),
+            },
+        }
+    }
+
+    /// [`schedule`] adds a task into the global execution queue which should
+    /// be processed by the underlying thread pool.
     pub fn schedule(self) -> AnyResult<(), ExecutorError> {
         let task: BoxedSendExecutionIterator = match self.task {
             Some(task) => match (self.resolver, self.mappers) {
