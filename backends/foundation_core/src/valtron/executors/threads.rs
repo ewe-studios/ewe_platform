@@ -38,11 +38,7 @@ use super::{
     TaskStatus, TaskStatusMapper,
 };
 
-#[cfg(not(target_arch = "wasm32"))]
-use std::sync::{Mutex, RwLock};
-
-#[cfg(target_arch = "wasm32")]
-use wasm_sync::{Mutex, RwLock};
+use crate::compati::{Mutex, RwLock};
 
 /// Number of bits used for the thread counters.
 #[cfg(target_pointer_width = "64")]
