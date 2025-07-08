@@ -257,7 +257,7 @@ impl<Mapper, Action, Task, Done: 'static, Pending: 'static> Into<BoxedExecutionI
     for ReadyConsumingIter<Mapper, Action, Task, Done, Pending>
 where
     Action: ExecutionAction + 'static,
-    Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
+    Mapper: TaskStatusMapper<Done, Pending, Action> + 'static,
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
 {
     fn into(self) -> BoxedExecutionIterator {
