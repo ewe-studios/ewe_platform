@@ -101,12 +101,12 @@ pub type BoxedTaskIterator<D, P, S> = Box<dyn Iterator<Item = TaskStatus<D, P, S
 /// those states both for either a singular result or multiple elements.
 ///
 /// This means this can keep producing elements as and the caller simply takes the
-/// `TaskStatus::Done` state results (if they only care about the final value)
+/// [`TaskStatus::Done`] state results (if they only care about the final value)
 /// else use the other state for whatever is sensible.
 ///
 /// One thing to note is, the same restrictions apply with these iterators, you do
 /// not want to block the thread where this is executed or other processes and its always
-/// adviced to finish early by moving long processes into other threads that allow you
+/// advised to finish early by moving long processes into other threads that allow you
 /// noify once next is called to notify if the task is done or still pending.
 pub trait TaskIterator {
     /// The type to indicate pending operation, either can be a `time::Duration`

@@ -8,7 +8,7 @@ use crate::io::ioutils::BufferedReader;
 
 use crate::io::ioutils::{PeekError, PeekableReadStream};
 use crate::retries::{
-    ClonableReconnectionDecider, ExponentialBackoffDecider, RetryDecider, RetryState,
+    CloneableReconnectionDecider, ExponentialBackoffDecider, RetryDecider, RetryState,
 };
 use crate::valtron::delayed_iterators::Delayed;
 use crate::valtron::delayed_iterators::{DelayedIterator, SleepIterator};
@@ -288,7 +288,7 @@ pub struct ReconnectingStream<T: Clone> {
     max_retries: u32,
     state: ConnectionState<T>,
     connection_timeout: time::Duration,
-    decider: Box<dyn ClonableReconnectionDecider>,
+    decider: Box<dyn CloneableReconnectionDecider>,
 }
 
 impl<T: Clone> ReconnectingStream<T> {

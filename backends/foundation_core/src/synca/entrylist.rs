@@ -158,7 +158,7 @@ impl<T> EntryList<T> {
     /// You can think of this as a temporary borrow where we want
     /// to borrow that given entry, use it for some undefined period of
     /// time and be guaranteed that slot will not be usable till it's unpacked
-    /// bascially, you own that entry till its unpacked.
+    /// basically, you own that entry till its unpacked.
     ///
     /// This allows us support situations where we need to maintain that entry
     /// but cant afford to invalid the entry due to dependency chains built on it.
@@ -461,7 +461,7 @@ impl<T> ThreadSafeEntry<T> {
     /// You can think of this as a temporary borrow where we want
     /// to borrow that given entry, use it for some undefined period of
     /// time and be guaranteed that slot will not be usable till it's unpacked
-    /// bascially, you own that entry till its unpacked.
+    /// basically, you own that entry till its unpacked.
     ///
     /// This allows us support situations where we need to maintain that entry
     /// but cant afford to invalid the entry due to dependency chains built on it.

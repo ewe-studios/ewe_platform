@@ -274,7 +274,7 @@ impl ThreadId {
     }
 
     pub fn get_cloned(&self) -> Entry {
-        self.0.clone()
+        self.0
     }
 
     pub fn get_name(&self) -> &String {
@@ -519,7 +519,7 @@ pub struct ThreadPool {
     live_threads: Arc<AtomicUsize>,
     idle_threads: Arc<AtomicUsize>,
 
-    // thread mapings.
+    // thread mappings.
     thread_map: RwLock<HashMap<ThreadId, ThreadRef>>,
     thread_handles: RwLock<HashMap<ThreadId, JoinHandle<ThreadExecutionResult<()>>>>,
 }
@@ -801,8 +801,7 @@ impl ThreadPool {
         task: T,
     ) -> AnyResult<(), ExecutorError> {
         let span = tracing::trace_span!("ThreadPool::schedule");
-        let _enter = span.enter();
-        match self.tasks.push(Box::new(task)) {
+        span.in_scope(|| match self.tasks.push(Box::new(task)) {
             Ok(_) => {
                 match self.tasks.len() {
                     1 => self.latch.signal_one(),
@@ -814,7 +813,7 @@ impl ThreadPool {
                 PushError::Full(_) => Err(ExecutorError::QueueFull),
                 PushError::Closed(_) => Err(ExecutorError::QueueClosed),
             },
-        }
+        })
     }
 }
 
@@ -996,13 +995,9 @@ impl ThreadPool {
 
     fn listen_for_normal_activity(&self) -> Option<()> {
         let remaining_live = self.live_threads.load(atomic::Ordering::Acquire);
-        tracing::debug!("Currently active threads: {:?}", remaining_live);
         if remaining_live == 0 {
             tracing::debug!("No more live threads, so returning");
-
-            tracing::debug!("signal wakeup via latch");
             self.latch.signal_all();
-
             return None;
         }
 
@@ -1051,12 +1046,12 @@ impl ThreadPool {
                 }
             }
             ThreadActivity::Parked(thread_id) => {
-                tracing::info!("Thread executor with id: {:?} has been parked", thread_id);
+                tracing::debug!("Thread executor with id: {:?} has been parked", thread_id);
                 self.idle_threads.fetch_add(1, atomic::Ordering::SeqCst);
                 self.add_thread_id_from_packed_list(thread_id);
             }
             ThreadActivity::Unparked(thread_id) => {
-                tracing::info!("Thread executor with id: {:?} has been unparked", thread_id);
+                tracing::debug!("Thread executor with id: {:?} has been unparked", thread_id);
                 self.idle_threads.fetch_sub(1, atomic::Ordering::SeqCst);
                 self.remove_thread_id_from_packed_list(thread_id);
             }

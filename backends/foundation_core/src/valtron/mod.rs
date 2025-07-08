@@ -1,5 +1,5 @@
-mod clonable_fn;
 mod clone_iterators;
+mod cloneable_fn;
 mod drain;
 mod executors;
 mod notifiers;
@@ -9,8 +9,8 @@ mod types;
 pub mod delayed_iterators;
 pub mod multi_iterator;
 
-pub use clonable_fn::*;
 pub use clone_iterators::*;
+pub use cloneable_fn::*;
 pub use drain::*;
 pub use executors::*;
 pub use notifiers::*;
