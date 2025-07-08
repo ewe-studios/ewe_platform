@@ -5,8 +5,8 @@ use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
 use crate::io::ioutils::{self, PeekableReadStream};
 use crate::io::ubytes::{self, BytesPointer};
 use crate::valtron::{
-    CanCloneSendIterator, ClonableFn, ClonableSendBoxIterator, ClonableSendVecIterator,
-    ClonableStringIterator,
+    CanCloneSendIterator, CloneableFn, CloneableSendBoxIterator, CloneableSendVecIterator,
+    CloneableStringIterator,
 };
 use derive_more::From;
 use regex::Regex;
@@ -134,17 +134,17 @@ impl ChunkedData {
     }
 }
 
-pub type ChunkedClonableVecIterator<E> = ClonableSendBoxIterator<ChunkedData, E>;
+pub type ChunkedCloneableVecIterator<E> = CloneableSendBoxIterator<ChunkedData, E>;
 
 pub struct ChunkedDataLimitIterator {
     limit: BodySizeLimit,
-    parent: ChunkedClonableVecIterator<BoxedError>,
+    parent: ChunkedCloneableVecIterator<BoxedError>,
     collected: AtomicUsize,
     exhausted: AtomicBool,
 }
 
 impl ChunkedDataLimitIterator {
-    pub fn new(limit: BodySizeLimit, parent: ChunkedClonableVecIterator<BoxedError>) -> Self {
+    pub fn new(limit: BodySizeLimit, parent: ChunkedCloneableVecIterator<BoxedError>) -> Self {
         Self {
             limit,
             parent,
@@ -198,20 +198,20 @@ impl Iterator for ChunkedDataLimitIterator {
 
 pub type BodySize = u64;
 pub type BodySizeLimit = usize;
-pub type TransferEncodng = String;
+pub type TransferEncoding = String;
 
 #[derive(Clone, Debug)]
 pub enum Body {
     LimitedBody(BodySize, SimpleHeaders),
-    ChunkedBody(TransferEncodng, SimpleHeaders, Option<BodySizeLimit>),
+    ChunkedBody(TransferEncoding, SimpleHeaders, Option<BodySizeLimit>),
 }
 
 pub enum SimpleBody {
     None,
     Text(String),
     Bytes(Vec<u8>),
-    Stream(Option<ClonableSendVecIterator<BoxedError>>),
-    ChunkedStream(Option<ChunkedClonableVecIterator<BoxedError>>),
+    Stream(Option<CloneableSendVecIterator<BoxedError>>),
+    ChunkedStream(Option<ChunkedCloneableVecIterator<BoxedError>>),
     LimitedChunkedStream(Option<ChunkedDataLimitIterator>),
 }
 
@@ -294,19 +294,19 @@ impl core::fmt::Display for SimpleBody {
             Self::Text(inner) => write!(f, "Text({inner})"),
             Self::Bytes(inner) => write!(f, "Bytes({inner:?})"),
             Self::Stream(inner) => match inner {
-                Some(_) => write!(f, "Stream(ClonableIterator<T>)"),
+                Some(_) => write!(f, "Stream(CloneableIterator<T>)"),
                 None => write!(f, "Stream(None)"),
             },
             Self::LimitedChunkedStream(inner) => match inner {
                 Some(item) => write!(
                     f,
-                    "LimitedChunkedStream({}, ClonableIterator<T>)",
+                    "LimitedChunkedStream({}, CloneableIterator<T>)",
                     item.limit
                 ),
                 None => write!(f, "LimitedChunkedStream(0, None)"),
             },
             Self::ChunkedStream(inner) => match inner {
-                Some(_) => write!(f, "ChunkedStream(ClonableIterator<T>)"),
+                Some(_) => write!(f, "ChunkedStream(CloneableIterator<T>)"),
                 None => write!(f, "ChunkedStream(None)"),
             },
         }
@@ -371,7 +371,7 @@ pub trait RenderHttp: Send {
     fn http_render_encoded_string<E>(
         &self,
         encoder: E,
-    ) -> std::result::Result<ClonableStringIterator<Self::Error>, Self::Error>
+    ) -> std::result::Result<CloneableStringIterator<Self::Error>, Self::Error>
     where
         E: Fn(Result<Vec<u8>, Self::Error>) -> Result<String, Self::Error> + Send + Clone + 'static,
     {
@@ -384,7 +384,7 @@ pub trait RenderHttp: Send {
     /// `RenderHttp::http_render()` as utf8 strings.
     fn http_render_utf8_string(
         &self,
-    ) -> std::result::Result<ClonableStringIterator<Self::Error>, Self::Error> {
+    ) -> std::result::Result<CloneableStringIterator<Self::Error>, Self::Error> {
         self.http_render_encoded_string(|part_result| match part_result {
             Ok(part) => match String::from_utf8(part) {
                 Ok(inner) => Ok(inner),
@@ -1411,7 +1411,7 @@ impl SimpleOutgoingResponseBuilder {
         self
     }
 
-    pub fn with_body_stream(mut self, body: ClonableSendVecIterator<BoxedError>) -> Self {
+    pub fn with_body_stream(mut self, body: CloneableSendVecIterator<BoxedError>) -> Self {
         self.body = Some(SimpleBody::Stream(Some(body)));
         self
     }
@@ -1554,7 +1554,7 @@ impl SimpleIncomingRequestBuilder {
         self
     }
 
-    pub fn with_body_stream(mut self, body: ClonableSendVecIterator<BoxedError>) -> Self {
+    pub fn with_body_stream(mut self, body: CloneableSendVecIterator<BoxedError>) -> Self {
         self.body = Some(SimpleBody::Stream(Some(body)));
         self
     }
@@ -1706,7 +1706,7 @@ pub enum Http11ReqState {
 
     /// Third state which starts rendering the body of the request
     /// this variant is unique because depending on the body type it can
-    /// go to the End vairant or the BodyStreaming variant.
+    /// go to the End variant or the BodyStreaming variant.
     ///
     /// Once done it moves state to the `Http11ReqState::BodyStream`
     ///  or `Http11ReqState::End` variant.
@@ -1730,11 +1730,11 @@ pub enum Http11ReqState {
     ///
     /// Once done it moves state to the `Http11ReqState::BodyStream`
     ///  or `Http11ReqState::End` variant.
-    BodyStreaming(Option<ClonableSendVecIterator<BoxedError>>),
+    BodyStreaming(Option<CloneableSendVecIterator<BoxedError>>),
 
     /// ChunkedBodyStreaming like BodyStreaming is meant to support
     /// handling of a chunked body parts where
-    ChunkedBodyStreaming(Option<ChunkedClonableVecIterator<BoxedError>>),
+    ChunkedBodyStreaming(Option<ChunkedCloneableVecIterator<BoxedError>>),
 
     /// Limited ChunkedBodyStreaming that caps chunked data to a specific size.
     LimitedChunkedBodyStreaming(Option<ChunkedDataLimitIterator>),
@@ -1989,9 +1989,9 @@ pub enum Http11ResState {
     Intro(SimpleOutgoingResponse),
     Headers(SimpleOutgoingResponse),
     Body(SimpleOutgoingResponse),
-    BodyStreaming(Option<ClonableSendVecIterator<BoxedError>>),
+    BodyStreaming(Option<CloneableSendVecIterator<BoxedError>>),
     LimitedChunkedBodyStreaming(Option<ChunkedDataLimitIterator>),
-    ChunkedBodyStreaming(Option<ChunkedClonableVecIterator<BoxedError>>),
+    ChunkedBodyStreaming(Option<ChunkedCloneableVecIterator<BoxedError>>),
     End,
 }
 
@@ -3734,21 +3734,21 @@ pub trait SimpleServer {
     fn handle(&self, req: SimpleIncomingRequest) -> Result<SimpleOutgoingResponse, BoxedError>;
 }
 
-pub trait ClonableSimpleServer: SimpleServer + Send {
-    fn clone_box(&self) -> Box<dyn ClonableSimpleServer>;
+pub trait CloneableSimpleServer: SimpleServer + Send {
+    fn clone_box(&self) -> Box<dyn CloneableSimpleServer>;
 }
 
-impl<F> ClonableSimpleServer for F
+impl<F> CloneableSimpleServer for F
 where
     F: 'static + Clone + Send + SimpleServer,
 {
-    fn clone_box(&self) -> Box<dyn ClonableSimpleServer> {
+    fn clone_box(&self) -> Box<dyn CloneableSimpleServer> {
         Box::new(self.clone())
     }
 }
 
 pub type SimpleFunc = Box<
-    dyn ClonableFn<SimpleIncomingRequest, Result<SimpleOutgoingResponse, BoxedError>>
+    dyn CloneableFn<SimpleIncomingRequest, Result<SimpleOutgoingResponse, BoxedError>>
         + Send
         + 'static,
 >;
@@ -3760,7 +3760,7 @@ pub struct FuncSimpleServer {
 impl FuncSimpleServer {
     pub fn new<F>(f: F) -> Self
     where
-        F: ClonableFn<SimpleIncomingRequest, Result<SimpleOutgoingResponse, BoxedError>>
+        F: CloneableFn<SimpleIncomingRequest, Result<SimpleOutgoingResponse, BoxedError>>
             + Send
             + 'static,
     {
@@ -3869,7 +3869,7 @@ pub struct ServiceAction {
     pub route: SimpleUrl,
     pub method: SimpleMethod,
     pub headers: Option<SimpleHeaders>,
-    pub body: Box<dyn ClonableSimpleServer + 'static>,
+    pub body: Box<dyn CloneableSimpleServer + 'static>,
 }
 
 impl std::fmt::Debug for ServiceAction {
@@ -3877,7 +3877,7 @@ impl std::fmt::Debug for ServiceAction {
         f.debug_struct("ServiceAction")
             .field("method", &self.method)
             .field("headers", &self.headers)
-            .field("Body", &"Body(ClonableSimpleServer)")
+            .field("Body", &"Body(CloneableSimpleServer)")
             .finish()
     }
 }
@@ -3947,7 +3947,7 @@ pub struct ServiceActionBuilder {
     method: Option<SimpleMethod>,
     route: Option<SimpleUrl>,
     headers: Option<SimpleHeaders>,
-    body: Option<Box<dyn ClonableSimpleServer + Send + 'static>>,
+    body: Option<Box<dyn CloneableSimpleServer + Send + 'static>>,
 }
 
 impl Default for ServiceActionBuilder {
@@ -3983,7 +3983,7 @@ impl ServiceActionBuilder {
         self
     }
 
-    pub fn with_body(mut self, body: impl ClonableSimpleServer + 'static) -> Self {
+    pub fn with_body(mut self, body: impl CloneableSimpleServer + 'static) -> Self {
         self.body = Some(Box::new(body));
         self
     }
