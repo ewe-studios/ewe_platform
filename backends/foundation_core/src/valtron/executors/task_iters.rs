@@ -111,62 +111,80 @@ where
             }
         };
 
-        Some(match task_response {
-            Some(inner) => {
-                let mut previous_response = Some(inner);
-                for mapper in &mut self.local_mappers {
-                    previous_response = mapper.map(previous_response);
-                }
+        if task_response.is_none() {
+            // close the queue
+            self.channel.close();
 
-                if previous_response.is_none() {
-                    return Some(State::Done);
-                }
+            // send State::Done
+            return Some(State::Done);
+        }
 
-                match previous_response.unwrap() {
-                    TaskStatus::Spawn(action) => match action.apply(entry, executor) {
-                        Ok(_) => State::Progressed,
-                        Err(err) => {
-                            tracing::error!("Failed to to spawn action: {:?}", err);
-                            State::SpawnFailed
-                        }
-                    },
-                    TaskStatus::Delayed(inner) => match self
-                        .channel
-                        .push(TaskStatus::Delayed(inner))
-                    {
-                        Ok(_) => State::Pending(Some(inner)),
-                        Err(_) => {
-                            tracing::error!("Failed to deliver status to channel, closing task",);
-                            State::Done
-                        }
-                    },
-                    TaskStatus::Init => match self.channel.push(TaskStatus::Init) {
-                        Ok(_) => State::Pending(None),
-                        Err(_) => {
-                            tracing::error!("Failed to deliver status to channel, closing task",);
-                            State::Done
-                        }
-                    },
-                    TaskStatus::Pending(inner) => match self
-                        .channel
-                        .push(TaskStatus::Pending(inner))
-                    {
-                        Ok(_) => State::Pending(None),
-                        Err(_) => {
-                            tracing::error!("Failed to deliver status to channel, closing task",);
-                            State::Done
-                        }
-                    },
-                    TaskStatus::Ready(inner) => match self.channel.push(TaskStatus::Ready(inner)) {
-                        Ok(_) => State::Progressed,
-                        Err(_) => {
-                            tracing::error!("Failed to deliver status to channel, closing task");
-                            State::Done
-                        }
-                    },
+        let inner = task_response.unwrap();
+        let mut previous_response = Some(inner);
+        for mapper in &mut self.local_mappers {
+            previous_response = mapper.map(previous_response);
+        }
+
+        if previous_response.is_none() {
+            // close the queue
+            self.channel.close();
+
+            // send State::Done
+            return Some(State::Done);
+        }
+
+        Some(match previous_response.unwrap() {
+            TaskStatus::Spawn(action) => match action.apply(entry, executor) {
+                Ok(_) => State::Progressed,
+                Err(err) => {
+                    tracing::error!("Failed to to spawn action: {:?}", err);
+                    State::SpawnFailed
                 }
-            }
-            None => State::Done,
+            },
+            TaskStatus::Delayed(inner) => match self.channel.push(TaskStatus::Delayed(inner)) {
+                Ok(_) => State::Pending(Some(inner)),
+                Err(_) => {
+                    tracing::error!("Failed to deliver status to channel, closing task",);
+
+                    // close the queue
+                    self.channel.close();
+
+                    State::Done
+                }
+            },
+            TaskStatus::Init => match self.channel.push(TaskStatus::Init) {
+                Ok(_) => State::Pending(None),
+                Err(_) => {
+                    tracing::error!("Failed to deliver status to channel, closing task",);
+
+                    // close the queue
+                    self.channel.close();
+
+                    State::Done
+                }
+            },
+            TaskStatus::Pending(inner) => match self.channel.push(TaskStatus::Pending(inner)) {
+                Ok(_) => State::Pending(None),
+                Err(_) => {
+                    tracing::error!("Failed to deliver status to channel, closing task",);
+
+                    // close the queue
+                    self.channel.close();
+
+                    State::Done
+                }
+            },
+            TaskStatus::Ready(inner) => match self.channel.push(TaskStatus::Ready(inner)) {
+                Ok(_) => State::Progressed,
+                Err(_) => {
+                    tracing::error!("Failed to deliver status to channel, closing task");
+
+                    // close the queue
+                    self.channel.close();
+
+                    State::Done
+                }
+            },
         })
     }
 }
@@ -265,38 +283,50 @@ where
             }
         };
 
-        Some(match task_response {
-            Some(inner) => {
-                let mut previous_response = Some(inner);
-                for mapper in &mut self.mappers {
-                    previous_response = mapper.map(previous_response);
-                }
+        if task_response.is_none() {
+            // close the queue
+            self.channel.close();
 
-                if previous_response.is_none() {
-                    return Some(State::Done);
-                }
+            // send State::Done
+            return Some(State::Done);
+        }
 
-                match previous_response.unwrap() {
-                    TaskStatus::Spawn(action) => match action.apply(entry, executor) {
-                        Ok(_) => State::Progressed,
-                        Err(err) => {
-                            tracing::error!("Failed to to spawn action: {:?}", err);
-                            State::SpawnFailed
-                        }
-                    },
-                    TaskStatus::Delayed(dur) => State::Pending(Some(dur)),
-                    TaskStatus::Pending(_) => State::Pending(None),
-                    TaskStatus::Init => State::Pending(None),
-                    TaskStatus::Ready(inner) => match self.channel.push(TaskStatus::Ready(inner)) {
-                        Ok(_) => State::Progressed,
-                        Err(_) => {
-                            tracing::error!("Failed to deliver status to channel, closing task");
-                            State::Done
-                        }
-                    },
+        let inner = task_response.unwrap();
+        let mut previous_response = Some(inner);
+        for mapper in &mut self.mappers {
+            previous_response = mapper.map(previous_response);
+        }
+
+        if previous_response.is_none() {
+            // close the queue
+            self.channel.close();
+
+            // send State::Done
+            return Some(State::Done);
+        }
+
+        Some(match previous_response.unwrap() {
+            TaskStatus::Spawn(action) => match action.apply(entry, executor) {
+                Ok(_) => State::Progressed,
+                Err(err) => {
+                    tracing::error!("Failed to to spawn action: {:?}", err);
+                    State::SpawnFailed
                 }
-            }
-            None => State::Done,
+            },
+            TaskStatus::Delayed(dur) => State::Pending(Some(dur)),
+            TaskStatus::Pending(_) => State::Pending(None),
+            TaskStatus::Init => State::Pending(None),
+            TaskStatus::Ready(inner) => match self.channel.push(TaskStatus::Ready(inner)) {
+                Ok(_) => State::Progressed,
+                Err(_) => {
+                    tracing::error!("Failed to deliver status to channel, closing task");
+
+                    // close the queue
+                    self.channel.close();
+
+                    State::Done
+                }
+            },
         })
     }
 }

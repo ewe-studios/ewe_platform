@@ -347,7 +347,7 @@ impl<
     ///
     /// Following our naming: [`schedule_iter`] calls the `schedule` method to deliver
     /// a task to the bottom of the thread-local execution queue.
-    pub fn schedule_iter<T>(
+    pub fn schedule_iter(
         self,
         wait_cycle: time::Duration,
     ) -> AnyResult<RecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
@@ -377,7 +377,7 @@ impl<
     ///
     /// Following our naming: [`lift_iter`] calls the `lift` method to deliver
     /// a task to the top of the thread-local execution queue.
-    pub fn lift_iter<T>(
+    pub fn lift_iter(
         self,
         wait_cycle: time::Duration,
     ) -> AnyResult<RecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
@@ -480,7 +480,7 @@ impl<
     ///
     /// Following our naming: [`broadcast_iter`] calls the `broadcast` method to deliver
     /// a task to the bottom of the global execution queue.
-    pub fn broadcast_iter<T>(
+    pub fn broadcast_iter(
         self,
         wait_cycle: time::Duration,
     ) -> AnyResult<RecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {

@@ -16,6 +16,32 @@ use super::{
 static CANCELATION_REGISTRATION: OnceLock<Option<()>> = OnceLock::new();
 static GLOBAL_THREAD_POOL: OnceLock<ThreadPool> = OnceLock::new();
 
+/// [get_pool] returns the initialized thread_pool for your use.
+pub fn get_pool() -> &'static ThreadPool {
+    match GLOBAL_THREAD_POOL.get() {
+        Some(pool) => pool,
+        None => panic!("Thread pool not initialized, ensure to call block_on first"),
+    }
+}
+
+/// [`block_on`] instantiates the thread pool if it has not already
+/// then starts blocking the current thread executing the pool until all
+/// tasks are ready, but before it does so it calls the provided function
+/// once to allow you perform whatever instantiation of tasks or operations
+/// you require.
+pub fn block_on<F>(seed_from_rng: u64, thread_num: Option<usize>, setup: F)
+where
+    F: FnOnce(&ThreadPool),
+{
+    let pool = thread_pool(seed_from_rng, thread_num);
+    tracing::debug!("Executing ThreadPool with block_on function");
+    setup(pool);
+    tracing::debug!("Initialize and call ThreadPool::run_until");
+    pool.run_until();
+}
+
+/// [`thread_pool`] is the core function for initializing a thread pool which is
+/// then returned for scheduling tasks on the pool.
 pub fn thread_pool(pool_seed: u64, user_thread_num: Option<usize>) -> &'static ThreadPool {
     // register thread pool
     let thread_pool = GLOBAL_THREAD_POOL.get_or_init(|| {
@@ -42,30 +68,6 @@ pub fn thread_pool(pool_seed: u64, user_thread_num: Option<usize>) -> &'static T
     });
 
     thread_pool
-}
-
-/// [get_pool] returns the initialized thread_pool for your use.
-pub fn get_pool() -> &'static ThreadPool {
-    match GLOBAL_THREAD_POOL.get() {
-        Some(pool) => pool,
-        None => panic!("Thread pool not initialized, ensure to call block_on first"),
-    }
-}
-
-/// [`block_on`] instantiates the thread pool if it has not already
-/// then starts blocking the current thread executing the pool until all
-/// tasks are ready, but before it does so it calls the provided function
-/// once to allow you perform whatever instantiation of tasks or operations
-/// you require.
-pub fn block_on<F>(seed_from_rng: u64, thread_num: Option<usize>, setup: F)
-where
-    F: FnOnce(&ThreadPool),
-{
-    let pool = thread_pool(seed_from_rng, thread_num);
-    tracing::debug!("Executing ThreadPool with block_on function");
-    setup(pool);
-    tracing::debug!("Initialize and call ThreadPool::run_until");
-    pool.run_until();
 }
 
 /// [`spawn`] provides a builder which specifically allows you to build out
@@ -135,8 +137,40 @@ mod multi_threaded_tests {
     use super::{block_on, get_pool};
     use crate::{
         synca::mpp,
-        valtron::{FnReady, NoSpawner, TaskIterator},
+        valtron::{multi::thread_pool, FnReady, NoSpawner, TaskIterator, TaskStatus},
     };
+
+    struct DCounter(usize, Arc<Mutex<Vec<usize>>>);
+
+    impl DCounter {
+        pub fn new(val: usize, list: Arc<Mutex<Vec<usize>>>) -> Self {
+            Self(val, list)
+        }
+    }
+
+    impl TaskIterator for DCounter {
+        type Pending = ();
+
+        type Ready = usize;
+
+        type Spawner = NoSpawner;
+
+        fn next(
+            &mut self,
+        ) -> Option<crate::valtron::TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+            let item_size = self.1.lock().unwrap().len();
+
+            if item_size == self.0 {
+                return None;
+            }
+
+            self.1.lock().unwrap().push(item_size);
+
+            Some(crate::valtron::TaskStatus::Ready(
+                self.1.lock().unwrap().len(),
+            ))
+        }
+    }
 
     struct Counter(usize, Arc<Mutex<Vec<usize>>>, mpp::Sender<()>);
 
@@ -263,5 +297,33 @@ mod multi_threaded_tests {
         handler_kill.join().expect("should finish");
 
         assert_eq!(shared_list.lock().unwrap().clone(), vec![0, 1, 2, 3, 4]);
+    }
+
+    #[test]
+    #[traced_test]
+    fn can_queue_and_complete_task_with_iterator() {
+        let seed = rand::rng().next_u64();
+
+        let shared_list = Arc::new(Mutex::new(Vec::new()));
+        let counter = DCounter::new(5, shared_list.clone());
+
+        let pool = thread_pool(seed, None);
+
+        let iter = pool
+            .spawn()
+            .with_task(counter)
+            .schedule_iter(std::time::Duration::from_nanos(50))
+            .expect("should deliver task");
+
+        let complete: Vec<usize> = iter
+            .map(|item| match item {
+                TaskStatus::Ready(value) => Some(value),
+                _ => None,
+            })
+            .take_while(|t| t.is_some())
+            .map(|t| t.unwrap())
+            .collect();
+
+        assert_eq!(complete, vec![1, 2, 3, 4, 5]);
     }
 }
