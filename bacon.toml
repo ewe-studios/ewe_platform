@@ -8,8 +8,13 @@
 default_job = "bacon-ls"
 env.CARGO_TERM_COLOR = "always"
 
+[jobs.backends]
+command = [ "cargo", "clippy", "--workspace", "--tests", "--all-targets", "--features=default", "--message-format", "json-diagnostic-rendered-ansi" ]
+analyzer = "cargo_json"
+need_stdout = true
+
 [jobs.bacon-ls]
-command = [ "cargo", "clippy", "--workspace", "--tests", "--all-targets", "--all-features", "--message-format", "json-diagnostic-rendered-ansi" ]
+command = [ "cargo", "clippy", "--workspace", "--tests", "--all-targets", "--message-format", "json-diagnostic-rendered-ansi" ]
 analyzer = "cargo_json"
 need_stdout = true
 

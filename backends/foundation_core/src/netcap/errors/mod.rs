@@ -2,6 +2,12 @@ use derive_more::From;
 
 use std::{io, net::AddrParseError};
 
+/// [`BoxedError`] is the error type used by functions that may return an error.
+/// It can be any kind of boxed trait object with `Error`, `Send`, and `Sync` traits.
+pub trait Error: std::fmt::Debug + std::error::Error {}
+
+pub type BoxedErrors = Box<dyn Error + Send + Sync + 'static>;
+
 pub type TlsResult<T> = std::result::Result<T, TlsError>;
 
 #[derive(From, Debug)]
@@ -46,6 +52,7 @@ pub type DataStreamResult<T> = std::result::Result<T, DataStreamError>;
 pub enum DataStreamError {
     ConnectionFailed,
     ReconnectionError,
+    FailedToAcquireAddrs,
 
     #[from(ignore)]
     IO(io::Error),

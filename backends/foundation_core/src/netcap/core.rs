@@ -1,28 +1,3 @@
-#[derive(Clone, Debug)]
-pub struct DataStreamAddr(core::net::SocketAddr, core::net::SocketAddr);
-
-// --- Constructors
-
-impl DataStreamAddr {
-    pub fn new(local_addr: core::net::SocketAddr, remote_addr: core::net::SocketAddr) -> Self {
-        Self(local_addr, remote_addr)
-    }
-}
-
-// --- Methods
-
-impl DataStreamAddr {
-    #[inline]
-    pub fn peer_addr(&self) -> core::net::SocketAddr {
-        self.1
-    }
-
-    #[inline]
-    pub fn local_addr(&self) -> core::net::SocketAddr {
-        self.0
-    }
-}
-
 /// DataStream defines a trait defining an expected
 /// network stream of data of type `NetworkStreams::BodyType`.
 pub trait DataStream {
