@@ -1,4 +1,5 @@
 #![allow(clippy::match_like_matches_macro)]
+#![allow(clippy::ptr_arg)]
 
 use anyhow::anyhow;
 use foundation_core::io::mem::stringpointer::StringPointer;
@@ -1622,8 +1623,8 @@ impl HTMLParser {
         }
 
         match self.parse_text_block(acc, stacks) {
-            Ok(elem) => return Ok(elem),
-            Err(err) => return Err(err),
+            Ok(elem) => Ok(elem),
+            Err(err) => Err(err),
         }
     }
 

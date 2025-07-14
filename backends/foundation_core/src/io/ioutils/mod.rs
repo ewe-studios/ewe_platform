@@ -268,6 +268,7 @@ pub fn buffered_stream_with_capacity<T: Write + Read>(
 
 #[derive(From, Debug)]
 pub enum PeekError {
+    NotSupported,
     BiggerThanCapacity {
         requested: usize,
         buffer_capacity: usize,
