@@ -12,6 +12,7 @@ pub type TlsResult<T> = std::result::Result<T, TlsError>;
 
 #[derive(From, Debug)]
 pub enum TlsError {
+    Failed,
     Handshake,
     ConnectorCreation,
 
@@ -50,6 +51,9 @@ pub type DataStreamResult<T> = std::result::Result<T, DataStreamError>;
 
 #[derive(From, Debug)]
 pub enum DataStreamError {
+    NoAddr,
+    NoLocalAddr,
+    NoPeerAddr,
     ConnectionFailed,
     ReconnectionError,
     FailedToAcquireAddrs,

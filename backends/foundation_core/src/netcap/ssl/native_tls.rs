@@ -4,10 +4,12 @@
 
 use crate::io::ioutils::{PeekError, PeekableReadStream};
 use crate::netcap::connection::Connection;
-use crate::netcap::{DataStreamAddr, Endpoint, EndpointConfig};
+use crate::netcap::{
+    DataStreamAddr, DataStreamError, DataStreamResult, Endpoint, EndpointConfig, SocketAddr,
+};
 use std::error::Error;
 use std::io::{Read, Write};
-use std::net::{Shutdown, SocketAddr, TcpStream};
+use std::net::{Shutdown, TcpStream};
 use std::sync::{Arc, Mutex};
 use zeroize::Zeroizing;
 
@@ -20,9 +22,43 @@ use native_tls::{Identity, TlsConnector, TlsStream};
 #[derive(Clone)]
 pub struct NativeTlsStream(Arc<Mutex<native_tls::TlsStream<Connection>>>);
 
+impl NativeTlsStream {
+    pub fn read_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
+        self.0
+            .lock()
+            .expect("Failed to lock SSL stream mutex")
+            .get_ref()
+            .read_timeout()
+    }
+
+    pub fn write_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
+        self.0
+            .lock()
+            .expect("Failed to lock SSL stream mutex")
+            .get_ref()
+            .write_timeout()
+    }
+
+    pub fn set_write_timeout(&mut self, dur: Option<std::time::Duration>) -> std::io::Result<()> {
+        self.0
+            .lock()
+            .expect("Failed to lock SSL stream mutex")
+            .get_mut()
+            .set_write_timeout(dur)
+    }
+
+    pub fn set_read_timeout(&mut self, dur: Option<std::time::Duration>) -> std::io::Result<()> {
+        self.0
+            .lock()
+            .expect("Failed to lock SSL stream mutex")
+            .get_mut()
+            .set_read_timeout(dur)
+    }
+}
+
 // These struct methods form the implict contract for swappable TLS implementations
 impl NativeTlsStream {
-    pub fn local_addr(&mut self) -> std::io::Result<Option<SocketAddr>> {
+    pub fn local_addr(&self) -> std::io::Result<Option<SocketAddr>> {
         self.0
             .lock()
             .expect("Failed to lock SSL stream mutex")
@@ -30,7 +66,7 @@ impl NativeTlsStream {
             .local_addr()
     }
 
-    pub fn peer_addr(&mut self) -> std::io::Result<Option<SocketAddr>> {
+    pub fn peer_addr(&self) -> std::io::Result<Option<SocketAddr>> {
         self.0
             .lock()
             .expect("Failed to lock SSL stream mutex")
@@ -38,11 +74,16 @@ impl NativeTlsStream {
             .peer_addr()
     }
 
-    pub fn stream_addr(&mut self) -> std::io::Result<Option<DataStreamAddr>> {
-        Ok(Some(DataStreamAddr::new(
-            self.local_addr()?,
-            self.peer_addr()?,
-        )))
+    pub fn stream_addr(&self) -> DataStreamResult<DataStreamAddr> {
+        let local_addr = self.local_addr()?;
+        let peer_addr = self.peer_addr()?;
+
+        match (local_addr, peer_addr) {
+            (Some(l1), Some(l2)) => Ok(DataStreamAddr::new(l1, Some(l2))),
+            (Some(l1), None) => Ok(DataStreamAddr::new(l1, None)),
+            (None, Some(_)) => Err(DataStreamError::NoLocalAddr),
+            _ => Err(DataStreamError::NoAddr),
+        }
     }
 
     pub fn shutdown(&mut self, how: Shutdown) -> std::io::Result<()> {
@@ -138,13 +179,20 @@ impl NativeTlsConnector {
 
     pub fn from_tcp_stream(
         &self,
-        sni: &str,
+        sni: String,
         plain: Connection,
     ) -> Result<(NativeTlsStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
         let local_addr = plain.local_addr()?;
         let peer_addr = plain.peer_addr()?;
 
-        let ssl_stream = self.0.connect(sni, plain)?;
+        let addr = match (local_addr, peer_addr) {
+            (Some(l1), Some(l2)) => Ok(DataStreamAddr::new(l1, Some(l2))),
+            (Some(l1), None) => Ok(DataStreamAddr::new(l1, None)),
+            (None, Some(_)) => Err(DataStreamError::NoPeerAddr),
+            _ => Err(DataStreamError::NoAddr),
+        }?;
+
+        let ssl_stream = self.0.connect(sni.as_str(), plain)?;
 
         Ok(NativeTlsStream(Arc::new(Mutex::new(ssl_stream))))
     }
@@ -154,9 +202,9 @@ impl NativeTlsConnector {
         endpoint: Endpoint<T>,
     ) -> Result<(NativeTlsStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
         let host = endpoint.host();
-        let host_socket_addr: SocketAddr = host.parse()?;
+        let host_socket_addr: core::net::SocketAddr = host.parse()?;
 
-        let plain_stream = match self {
+        let plain_stream = match endpoint {
             Endpoint::WithDefault(config) => match config {
                 EndpointConfig::WithTimeout(_, timeout) => {
                     TcpStream::connect_timeout(&host_socket_addr, timeout)
@@ -171,6 +219,6 @@ impl NativeTlsConnector {
             },
         }?;
 
-        Self::from_tcp_stream(host, plain_stream)
+        self.from_tcp_stream(host, Connection::Tcp(plain_stream))
     }
 }

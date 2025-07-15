@@ -12,11 +12,17 @@ use std::net::SocketAddr;
 use std::time::Duration;
 use std::{net::TcpStream, time};
 
-use super::{errors, Connection, DataStreamError};
+use super::{errors, Connection, DataStreamError, TlsError};
 
 pub enum RawStream {
-    AsPlain(BufferedReader<Connection>, super::DataStreamAddr),
-    AsTls(BufferedReader<ServerSSLStream>, super::DataStreamAddr),
+    AsPlain(
+        BufferedReader<BufferedWriter<Connection>>,
+        super::DataStreamAddr,
+    ),
+    AsTls(
+        BufferedReader<BufferedWriter<ServerSSLStream>>,
+        super::DataStreamAddr,
+    ),
 }
 
 // -- Basic constructors
@@ -32,6 +38,7 @@ impl RawStream {
         let conn_addr = conn
             .stream_addr()
             .map_err(|_| DataStreamError::FailedToAcquireAddrs)?;
+
         let reader = BufferedReader::new(BufferedWriter::new(conn));
         Ok(Self::AsPlain(reader, conn_addr))
     }
@@ -58,12 +65,28 @@ impl RawStream {
 #[allow(unused)]
 impl RawStream {
     #[inline]
-    pub fn set_read_timeout(&self, duration: Option<time::Duration>) -> errors::TlsResult<()> {
+    pub fn read_timeout(&self) -> errors::TlsResult<Option<Duration>> {
+        let result = match self {
+            RawStream::AsPlain(inner, _) => inner.get_core_mut().read_timeout(),
+            RawStream::AsTls(inner, _) => inner.get_core_mut().read_timeout(),
+        };
+        result.map_err(|_| TlsError::Failed)
+    }
+
+    #[inline]
+    pub fn write_timeout(&self) -> errors::TlsResult<Option<Duration>> {
+        let result = match self {
+            RawStream::AsPlain(inner, _) => inner.get_core_mut().write_timeout(),
+            RawStream::AsTls(inner, _) => inner.get_core_mut().write_timeout(),
+        };
+        result.map_err(|_| TlsError::Failed)
+    }
+
+    #[inline]
+    pub fn set_write_timeout(&mut self, duration: Option<time::Duration>) -> errors::TlsResult<()> {
         let work = match self {
-            RawStream::AsPlain(inner, _) => inner.set_read_timeout(duration),
-            RawStream::AsTls(inner, _) => {
-                inner.get_inner_ref().get_ref().set_read_timeout(duration)
-            }
+            RawStream::AsPlain(inner, _) => inner.get_core_mut().set_write_timeout(duration),
+            RawStream::AsTls(inner, _) => inner.get_core_mut().set_write_timeout(duration),
         };
 
         match work {
@@ -73,17 +96,30 @@ impl RawStream {
     }
 
     #[inline]
-    pub fn clone_plain(&self) -> errors::TlsResult<TcpStream> {
+    pub fn set_read_timeout(&mut self, duration: Option<time::Duration>) -> errors::TlsResult<()> {
         let work = match self {
-            RawStream::AsPlain(inner, _) => inner.try_clone(),
-            RawStream::AsTls(inner, _) => inner.get_inner_ref().get_ref().try_clone(),
+            RawStream::AsPlain(inner, _) => inner.get_core_mut().set_read_timeout(duration),
+            RawStream::AsTls(inner, _) => inner.get_core_mut().set_read_timeout(duration),
         };
 
         match work {
-            Ok(inner) => Ok(inner),
+            Ok(_) => Ok(()),
             Err(err) => Err(err.into()),
         }
     }
+
+    // #[inline]
+    // pub fn clone(&self) -> errors::TlsResult<TcpStream> {
+    //     let work = match self {
+    //         RawStream::AsPlain(inner, _) => inner.clone(),
+    //         RawStream::AsTls(inner, _) => inner.get_inner_ref().get_ref().clone(),
+    //     };
+    //
+    //     match work {
+    //         Ok(inner) => Ok(inner),
+    //         Err(err) => Err(err.into()),
+    //     }
+    // }
 
     #[inline]
     pub fn addrs(&self) -> super::DataStreamAddr {
@@ -94,7 +130,7 @@ impl RawStream {
     }
 
     #[inline]
-    pub fn peer_addr(&self) -> net::SocketAddr {
+    pub fn peer_addr(&self) -> SocketAddr {
         match self {
             RawStream::AsPlain(inner, addr) => addr.peer_addr(),
             RawStream::AsTls(inner, addr) => addr.peer_addr(),
@@ -102,7 +138,7 @@ impl RawStream {
     }
 
     #[inline]
-    pub fn local_addr(&self) -> net::SocketAddr {
+    pub fn local_addr(&self) -> SocketAddr {
         match self {
             RawStream::AsPlain(inner, addr) => addr.local_addr(),
             RawStream::AsTls(inner, addr) => addr.local_addr(),
