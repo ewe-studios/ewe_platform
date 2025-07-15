@@ -4,10 +4,14 @@
 
 use crate::netcap::connection::Connection;
 use crate::netcap::errors::BoxedErrors;
-use crate::netcap::{DataStreamAddr, Endpoint, EndpointConfig};
+use crate::netcap::{
+    DataStreamAddr, DataStreamError, DataStreamResult, Endpoint, EndpointConfig, SocketAddr,
+};
+use crate::valtron::BoxedError;
+use rustls::pki_types::ServerName;
 use std::error::Error;
 use std::io::{Read, Write};
-use std::net::{Shutdown, SocketAddr, TcpStream};
+use std::net::{Shutdown, TcpStream};
 use std::sync::{Arc, Mutex};
 use zeroize::Zeroizing;
 
@@ -17,7 +21,41 @@ use zeroize::Zeroizing;
 pub struct RustlsStream<T>(Arc<Mutex<rustls::StreamOwned<T, Connection>>>);
 
 impl<T> RustlsStream<T> {
-    pub fn local_addr(&mut self) -> std::io::Result<Option<SocketAddr>> {
+    pub fn read_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
+        self.0
+            .lock()
+            .expect("Failed to lock SSL stream mutex")
+            .sock
+            .read_timeout()
+    }
+
+    pub fn write_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
+        self.0
+            .lock()
+            .expect("Failed to lock SSL stream mutex")
+            .sock
+            .write_timeout()
+    }
+
+    pub fn set_write_timeout(&mut self, dur: Option<std::time::Duration>) -> std::io::Result<()> {
+        self.0
+            .lock()
+            .expect("Failed to lock SSL stream mutex")
+            .sock
+            .set_write_timeout(dur)
+    }
+
+    pub fn set_read_timeout(&mut self, dur: Option<std::time::Duration>) -> std::io::Result<()> {
+        self.0
+            .lock()
+            .expect("Failed to lock SSL stream mutex")
+            .sock
+            .set_read_timeout(dur)
+    }
+}
+
+impl<T> RustlsStream<T> {
+    pub fn local_addr(&self) -> std::io::Result<Option<SocketAddr>> {
         self.0
             .lock()
             .expect("Failed to lock SSL stream mutex")
@@ -25,7 +63,7 @@ impl<T> RustlsStream<T> {
             .local_addr()
     }
 
-    pub fn peer_addr(&mut self) -> std::io::Result<Option<SocketAddr>> {
+    pub fn peer_addr(&self) -> std::io::Result<Option<SocketAddr>> {
         self.0
             .lock()
             .expect("Failed to lock SSL stream mutex")
@@ -33,11 +71,16 @@ impl<T> RustlsStream<T> {
             .peer_addr()
     }
 
-    pub fn stream_addr(&mut self) -> std::io::Result<Option<DataStreamAddr>> {
-        Ok(Some(DataStreamAddr::new(
-            self.local_addr()?,
-            self.peer_addr()?,
-        )))
+    pub fn stream_addr(&self) -> DataStreamResult<DataStreamAddr> {
+        let local_addr = self.local_addr()?;
+        let peer_addr = self.peer_addr()?;
+
+        match (local_addr, peer_addr) {
+            (Some(l1), Some(l2)) => Ok(DataStreamAddr::new(l1, Some(l2))),
+            (Some(l1), None) => Ok(DataStreamAddr::new(l1, None)),
+            (None, Some(_)) => Err(DataStreamError::NoLocalAddr),
+            _ => Err(DataStreamError::NoAddr),
+        }
     }
 
     pub fn shutdown(&mut self, how: Shutdown) -> std::io::Result<()> {
@@ -55,7 +98,7 @@ impl<T> Clone for RustlsStream<T> {
     }
 }
 
-impl<T> Read for RustlsStream<T> {
+impl Read for RustlsStream<rustls::ClientConnection> {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         self.0
             .lock()
@@ -64,7 +107,32 @@ impl<T> Read for RustlsStream<T> {
     }
 }
 
-impl<T> Write for RustlsStream<T> {
+impl Read for RustlsStream<rustls::ServerConnection> {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        self.0
+            .lock()
+            .expect("Failed to lock SSL stream mutex")
+            .read(buf)
+    }
+}
+
+impl Write for RustlsStream<rustls::ClientConnection> {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        self.0
+            .lock()
+            .expect("Failed to lock SSL stream mutex")
+            .write(buf)
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        self.0
+            .lock()
+            .expect("Failed to lock SSL stream mutex")
+            .flush()
+    }
+}
+
+impl Write for RustlsStream<rustls::ServerConnection> {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         self.0
             .lock()
@@ -93,11 +161,15 @@ impl RustlsAcceptor {
         use rustls::pki_types::pem::PemObject;
         use rustls::pki_types::{CertificateDer, PrivateKeyDer};
 
-        let certs = CertificateDer::from_pem_slice(private_key.as_slice())?;
+        let certs_result: Result<
+            Vec<rustls::pki_types::CertificateDer<'static>>,
+            rustls::pki_types::pem::Error,
+        > = CertificateDer::pem_slice_iter(private_key.as_slice()).collect();
+
+        let certs = certs_result?;
         let p_key = PrivateKeyDer::from_pem_slice(private_key.as_slice())?;
 
         let tls_conf = rustls::ServerConfig::builder()
-            .with_safe_defaults()
             .with_no_client_auth()
             .with_single_cert(certs, p_key)?;
 
@@ -123,8 +195,8 @@ pub type RustTlsClientStream = RustlsStream<rustls::ClientConnection>;
 impl RustlsConnector {
     pub fn create(endpoint: &Endpoint<Arc<rustls::ClientConfig>>) -> Self {
         match &endpoint {
-            Endpoint::WithIdentity(config, identity) => {
-                Self(identity.clone());
+            Endpoint::WithIdentity(_, identity) => {
+                Self(identity.clone())
             }
             _ => unreachable!("You generally won't call this method with Endpoint::NoIdentity since its left to you to generate")
         }
@@ -132,16 +204,25 @@ impl RustlsConnector {
 
     pub fn from_tcp_stream(
         &self,
-        sni: &str,
+        sni: String,
         plain: Connection,
     ) -> Result<(RustTlsClientStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
         let local_addr = plain.local_addr()?;
         let peer_addr = plain.peer_addr()?;
 
-        let mut conn = rustls::ClientConnection::new(self.0.clone(), sni)?;
-        let mut ssl_stream = rustls::StreamOwned::new(conn, plain);
+        let addr = match (local_addr, peer_addr) {
+            (Some(l1), Some(l2)) => Ok(DataStreamAddr::new(l1, Some(l2))),
+            (Some(l1), None) => Ok(DataStreamAddr::new(l1, None)),
+            (None, Some(_)) => Err(DataStreamError::NoPeerAddr),
+            _ => Err(DataStreamError::NoAddr),
+        }?;
 
-        Ok(RustlsStream(Arc::new(Mutex::new(ssl_stream))))
+        let server_name: ServerName = sni.try_into().map_err(|err| Box::new(err))?;
+        let conn = rustls::ClientConnection::new(self.0.clone(), server_name)?;
+        let ssl_stream = rustls::StreamOwned::new(conn, plain);
+        let shared_stream = Arc::new(Mutex::new(ssl_stream));
+
+        Ok((RustlsStream(shared_stream), addr))
     }
 
     pub fn from_endpoint<T: Clone>(
@@ -149,23 +230,23 @@ impl RustlsConnector {
         endpoint: &Endpoint<T>,
     ) -> Result<(RustTlsClientStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
         let host = endpoint.host();
-        let host_socket_addr: SocketAddr = host.parse()?;
+        let host_socket_addr: core::net::SocketAddr = host.parse()?;
 
-        let plain_stream = match self {
+        let plain_stream = match endpoint {
             Endpoint::WithDefault(config) => match config {
                 EndpointConfig::WithTimeout(_, timeout) => {
-                    TcpStream::connect_timeout(&host_socket_addr, timeout)
+                    TcpStream::connect_timeout(&host_socket_addr, *timeout)
                 }
                 _ => TcpStream::connect(&host_socket_addr),
             },
             Endpoint::WithIdentity(config, _) => match config {
                 EndpointConfig::WithTimeout(_, timeout) => {
-                    TcpStream::connect_timeout(&host_socket_addr, timeout)
+                    TcpStream::connect_timeout(&host_socket_addr, *timeout)
                 }
                 _ => TcpStream::connect(&host_socket_addr),
             },
         }?;
 
-        Self::from_tcp_stream(host, plain_stream)
+        self.from_tcp_stream(host, Connection::Tcp(plain_stream))
     }
 }

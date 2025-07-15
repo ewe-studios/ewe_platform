@@ -6,13 +6,23 @@ use crate::io::ioutils::{PeekError, PeekableReadStream};
 use std::os::unix::net as unix_net;
 use std::{
     io::{Read, Write},
-    net::{Shutdown, SocketAddr, TcpListener, TcpStream, ToSocketAddrs},
+    net::{Shutdown, TcpListener, TcpStream, ToSocketAddrs},
     ops::{Deref, DerefMut},
     path::PathBuf,
     time::Duration,
 };
 
 use derive_more::derive::From;
+
+use super::{DataStreamError, DataStreamResult};
+
+#[derive(From, Debug, Clone)]
+pub enum SocketAddr {
+    Tcp(core::net::SocketAddr),
+
+    #[cfg(unix)]
+    Unix(std::os::unix::net::SocketAddr),
+}
 
 #[derive(From, Debug)]
 pub enum EndpointError {
@@ -34,8 +44,8 @@ pub enum EndpointConfig {
 }
 
 #[allow(unused)]
-impl<T: Clone> EndpointConfig<T> {
-    /// Returns a copy of the url of the target endpont.
+impl EndpointConfig {
+    /// Returns a copy of the url of the target endpoint.
     #[inline]
     pub fn url(&self) -> url::Url {
         match self {
@@ -171,12 +181,12 @@ impl<T: Clone> Endpoint<T> {
 }
 
 #[derive(Clone, Debug)]
-pub struct DataStreamAddr(core::net::SocketAddr, core::net::SocketAddr);
+pub struct DataStreamAddr(SocketAddr, Option<SocketAddr>);
 
 // --- Constructors
 
 impl DataStreamAddr {
-    pub fn new(local_addr: core::net::SocketAddr, remote_addr: core::net::SocketAddr) -> Self {
+    pub fn new(local_addr: SocketAddr, remote_addr: Option<SocketAddr>) -> Self {
         Self(local_addr, remote_addr)
     }
 }
@@ -185,24 +195,29 @@ impl DataStreamAddr {
 
 impl DataStreamAddr {
     #[inline]
-    pub fn peer_addr(&self) -> core::net::SocketAddr {
-        self.1
+    pub fn peer_addr(&self) -> Option<SocketAddr> {
+        self.1.clone()
     }
 
     #[inline]
-    pub fn local_addr(&self) -> core::net::SocketAddr {
-        self.0
+    pub fn local_addr(&self) -> SocketAddr {
+        self.0.clone()
     }
 }
 
 /// Unified listener. Either a [`TcpListener`] or [`std::os::unix::net::UnixListener`]
 pub enum Listener {
     Tcp(TcpListener),
+
     #[cfg(unix)]
     Unix(unix_net::UnixListener),
 }
 
 impl Listener {
+    pub fn peer_addr(&self) -> std::io::Result<Option<ListenAddr>> {
+        Ok(None)
+    }
+
     pub fn local_addr(&self) -> std::io::Result<ListenAddr> {
         match self {
             Self::Tcp(l) => l.local_addr().map(ListenAddr::from),
@@ -215,9 +230,12 @@ impl Listener {
         match self {
             Self::Tcp(l) => l
                 .accept()
-                .map(|(conn, addr)| (Connection::from(conn), Some(addr))),
+                .map(|(conn, addr)| (Connection::from(conn), Some(SocketAddr::from(addr)))),
+
             #[cfg(unix)]
-            Self::Unix(l) => l.accept().map(|(conn, _)| (Connection::from(conn), None)),
+            Self::Unix(l) => l
+                .accept()
+                .map(|(conn, addr)| (Connection::from(conn), Some(SocketAddr::from(addr)))),
         }
     }
 }
@@ -244,8 +262,42 @@ pub enum Connection {
 }
 
 impl Connection {
+    pub fn read_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
+        match self {
+            Self::Tcp(t) => t.read_timeout(),
+            #[cfg(unix)]
+            Self::Unix(u) => u.read_timeout(),
+        }
+    }
+
+    pub fn write_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
+        match self {
+            Self::Tcp(t) => t.write_timeout(),
+            #[cfg(unix)]
+            Self::Unix(u) => u.write_timeout(),
+        }
+    }
+
+    pub fn set_write_timeout(&mut self, dur: Option<std::time::Duration>) -> std::io::Result<()> {
+        match self {
+            Self::Tcp(t) => t.set_write_timeout(dur),
+            #[cfg(unix)]
+            Self::Unix(u) => u.set_write_timeout(dur),
+        }
+    }
+
+    pub fn set_read_timeout(&mut self, dur: Option<std::time::Duration>) -> std::io::Result<()> {
+        match self {
+            Self::Tcp(t) => t.set_read_timeout(dur),
+            #[cfg(unix)]
+            Self::Unix(u) => u.set_read_timeout(dur),
+        }
+    }
+}
+
+impl Connection {
     pub fn with_timeout(
-        addr: SocketAddr,
+        addr: std::net::SocketAddr,
         timeout: Duration,
     ) -> std::result::Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
         Ok(Self::Tcp(TcpStream::connect_timeout(&addr, timeout)?))
@@ -302,28 +354,32 @@ impl std::io::Write for Connection {
 
 impl Connection {
     /// Gets the peer's address. Some for TCP, None for Unix sockets.
-    pub fn peer_addr(&mut self) -> std::io::Result<Option<SocketAddr>> {
+    pub fn peer_addr(&self) -> std::io::Result<Option<SocketAddr>> {
         match self {
-            Self::Tcp(s) => s.peer_addr().map(Some),
+            Self::Tcp(s) => s.peer_addr().map(SocketAddr::from).map(Some),
             #[cfg(unix)]
             Self::Unix(_) => Ok(None),
         }
     }
 
     /// Gets the local's address. Some for TCP, None for Unix sockets.
-    pub fn local_addr(&mut self) -> std::io::Result<Option<SocketAddr>> {
+    pub fn local_addr(&self) -> std::io::Result<Option<SocketAddr>> {
         match self {
-            Self::Tcp(s) => s.local_addr().map(Some),
+            Self::Tcp(s) => s.local_addr().map(SocketAddr::from).map(Some),
             #[cfg(unix)]
-            Self::Unix(_) => Ok(None),
+            Self::Unix(u) => u.local_addr().map(SocketAddr::from).map(Some),
         }
     }
 
-    pub fn stream_addr(&mut self) -> std::io::Result<Option<DataStreamAddr>> {
-        match self {
-            Self::Tcp(s) => Ok(Some(DataStreamAddr::new(s.local_addr()?, s.peer_addr()?))),
-            #[cfg(unix)]
-            Self::Unix(_) => Ok(None),
+    pub fn stream_addr(&self) -> DataStreamResult<DataStreamAddr> {
+        let local_addr = self.local_addr()?;
+        let peer_addr = self.peer_addr()?;
+
+        match (local_addr, peer_addr) {
+            (Some(l1), Some(l2)) => Ok(DataStreamAddr::new(l1, Some(l2))),
+            (Some(l1), None) => Ok(DataStreamAddr::new(l1, None)),
+            (None, Some(_)) => Err(DataStreamError::NoLocalAddr),
+            _ => Err(DataStreamError::NoAddr),
         }
     }
 
@@ -357,12 +413,12 @@ impl From<unix_net::UnixStream> for Connection {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(From, Debug, Clone)]
 pub enum ConfigListenAddr {
-    IP(Vec<SocketAddr>),
+    IP(Vec<std::net::SocketAddr>),
 
-    #[cfg(unix)]
     // TODO: use SocketAddr when bind_addr is stabilized
+    #[cfg(unix)]
     Unix(std::path::PathBuf),
 }
 
@@ -386,19 +442,28 @@ impl ConfigListenAddr {
 }
 
 /// Unified listen socket address. Either a [`SocketAddr`] or [`std::os::unix::net::SocketAddr`].
-#[derive(Debug, Clone)]
+#[derive(From, Debug, Clone)]
 pub enum ListenAddr {
-    IP(SocketAddr),
+    IP(core::net::SocketAddr),
+
     #[cfg(unix)]
     Unix(unix_net::SocketAddr),
 }
 
 impl ListenAddr {
+    pub fn to_addr(self) -> Option<SocketAddr> {
+        match self {
+            Self::IP(s) => Some(SocketAddr::from(s)),
+            #[cfg(unix)]
+            Self::Unix(s) => Some(SocketAddr::from(s)),
+        }
+    }
+
     pub fn to_ip(self) -> Option<SocketAddr> {
         match self {
-            Self::IP(s) => Some(s),
+            Self::IP(s) => Some(SocketAddr::from(s)),
             #[cfg(unix)]
-            Self::Unix(_) => None,
+            Self::Unix(s) => None,
         }
     }
 
@@ -415,19 +480,6 @@ impl ListenAddr {
     #[cfg(not(unix))]
     pub fn to_unix(self) -> Option<SocketAddr> {
         None
-    }
-}
-
-impl From<SocketAddr> for ListenAddr {
-    fn from(s: SocketAddr) -> Self {
-        Self::IP(s)
-    }
-}
-
-#[cfg(unix)]
-impl From<unix_net::SocketAddr> for ListenAddr {
-    fn from(s: unix_net::SocketAddr) -> Self {
-        Self::Unix(s)
     }
 }
 
@@ -530,7 +582,10 @@ impl TcpStreamWrapper {
     }
 
     /// Creates a new TCP stream and issues a connect with a timeout to the specified address.
-    pub fn connect_timeout(addr: &SocketAddr, timeout: Duration) -> std::io::Result<Self> {
+    pub fn connect_timeout(
+        addr: &core::net::SocketAddr,
+        timeout: Duration,
+    ) -> std::io::Result<Self> {
         TcpStream::connect_timeout(addr, timeout).map(Self::new)
     }
 

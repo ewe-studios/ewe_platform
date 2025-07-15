@@ -31,6 +31,16 @@ impl<T: Read> BufferedReader<T> {
     }
 }
 
+impl<T: Read + Write> BufferedReader<BufferedWriter<T>> {
+    pub fn get_core_ref(&self) -> &T {
+        self.inner.get_ref().get_inner_ref()
+    }
+
+    pub fn get_core_mut(&mut self) -> &mut T {
+        self.inner.get_mut().get_inner_mut()
+    }
+}
+
 impl<T: Read> BufferedReader<T> {
     pub fn get_ref(&self) -> &BufReader<T> {
         &self.inner
@@ -168,6 +178,16 @@ impl<T: Read + Write + BufferCapacity> BufferedWriter<T> {
 
     pub fn read_buffer(&self) -> &[u8] {
         self.inner.get_ref().read_buffer()
+    }
+}
+
+impl<T: Read + Write> BufferedWriter<BufferedReader<T>> {
+    pub fn get_core_ref(&self) -> &T {
+        self.inner.get_ref().get_inner_ref()
+    }
+
+    pub fn get_core_mut(&mut self) -> &mut T {
+        self.inner.get_mut().get_inner_mut()
     }
 }
 
