@@ -18,6 +18,21 @@ command = [ "cargo", "clippy", "--workspace", "--tests", "--all-targets", "--mes
 analyzer = "cargo_json"
 need_stdout = true
 
+[jobs.bacon-ssl-openssl]
+command = [ "cargo", "clippy", "--workspace", "--tests", "--all-targets", "--features=ssl-openssl", "--message-format", "json-diagnostic-rendered-ansi" ]
+analyzer = "cargo_json"
+need_stdout = true
+
+[jobs.bacon-ssl-rustls]
+command = [ "cargo", "clippy", "--workspace", "--tests", "--all-targets", "--features=ssl-rustls", "--message-format", "json-diagnostic-rendered-ansi" ]
+analyzer = "cargo_json"
+need_stdout = true
+
+[jobs.bacon-ssl-native-tls]
+command = [ "cargo", "clippy", "--workspace", "--tests", "--all-targets", "--features=ssl-native-tls", "--message-format", "json-diagnostic-rendered-ansi" ]
+analyzer = "cargo_json"
+need_stdout = true
+
 [jobs.bacon-wasm]
 command = [ "cargo", "clippy", "--workspace", "--tests", "--targets=\"wasm32-unknown-unknown\"", "--all-features", "--message-format", "json-diagnostic-rendered-ansi" ]
 analyzer = "cargo_json"

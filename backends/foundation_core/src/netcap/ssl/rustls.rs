@@ -3,11 +3,10 @@
 #![cfg(not(target_arch = "wasm32"))]
 
 use crate::netcap::connection::Connection;
-use crate::netcap::errors::BoxedErrors;
+use crate::netcap::errors::BoxedError;
 use crate::netcap::{
     DataStreamAddr, DataStreamError, DataStreamResult, Endpoint, EndpointConfig, SocketAddr,
 };
-use crate::valtron::BoxedError;
 use rustls::pki_types::ServerName;
 use std::error::Error;
 use std::io::{Read, Write};
@@ -15,12 +14,22 @@ use std::net::{Shutdown, TcpStream};
 use std::sync::{Arc, Mutex};
 use zeroize::Zeroizing;
 
+pub use rustls::{ClientConfig, ServerConfig};
+
 /// A wrapper around an owned Rustls connection and corresponding stream.
 ///
 /// Uses an internal Mutex to permit disparate reader & writer threads to access the stream independently.
 pub struct RustlsStream<T>(Arc<Mutex<rustls::StreamOwned<T, Connection>>>);
 
 impl<T> RustlsStream<T> {
+    pub fn try_clone_connection(&self) -> std::io::Result<Connection> {
+        self.0
+            .lock()
+            .expect("Failed to lock ssl stream")
+            .sock
+            .try_clone()
+    }
+
     pub fn read_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
         self.0
             .lock()
@@ -164,7 +173,7 @@ impl RustlsAcceptor {
         let certs_result: Result<
             Vec<rustls::pki_types::CertificateDer<'static>>,
             rustls::pki_types::pem::Error,
-        > = CertificateDer::pem_slice_iter(private_key.as_slice()).collect();
+        > = CertificateDer::pem_slice_iter(certificates.as_slice()).collect();
 
         let certs = certs_result?;
         let p_key = PrivateKeyDer::from_pem_slice(private_key.as_slice())?;
@@ -217,7 +226,7 @@ impl RustlsConnector {
             _ => Err(DataStreamError::NoAddr),
         }?;
 
-        let server_name: ServerName = sni.try_into().map_err(|err| Box::new(err))?;
+        let server_name: ServerName = sni.try_into().map_err(Box::new)?;
         let conn = rustls::ClientConnection::new(self.0.clone(), server_name)?;
         let ssl_stream = rustls::StreamOwned::new(conn, plain);
         let shared_stream = Arc::new(Mutex::new(ssl_stream));
@@ -225,9 +234,9 @@ impl RustlsConnector {
         Ok((RustlsStream(shared_stream), addr))
     }
 
-    pub fn from_endpoint<T: Clone>(
+    pub fn from_endpoint(
         &self,
-        endpoint: &Endpoint<T>,
+        endpoint: &Endpoint<Arc<rustls::ClientConfig>>,
     ) -> Result<(RustTlsClientStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
         let host = endpoint.host();
         let host_socket_addr: core::net::SocketAddr = host.parse()?;
@@ -237,13 +246,13 @@ impl RustlsConnector {
                 EndpointConfig::WithTimeout(_, timeout) => {
                     TcpStream::connect_timeout(&host_socket_addr, *timeout)
                 }
-                _ => TcpStream::connect(&host_socket_addr),
+                _ => TcpStream::connect(host_socket_addr),
             },
             Endpoint::WithIdentity(config, _) => match config {
                 EndpointConfig::WithTimeout(_, timeout) => {
                     TcpStream::connect_timeout(&host_socket_addr, *timeout)
                 }
-                _ => TcpStream::connect(&host_socket_addr),
+                _ => TcpStream::connect(host_socket_addr),
             },
         }?;
 

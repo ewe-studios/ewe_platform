@@ -12,11 +12,17 @@ use std::net::{Shutdown, TcpStream};
 use std::sync::{Arc, Mutex};
 use zeroize::Zeroizing;
 
+pub use openssl::ssl::SslConnector;
+
 pub struct OpenSslStream {
     inner: openssl::ssl::SslStream<Connection>,
 }
 
 impl OpenSslStream {
+    pub fn try_clone(&self) -> std::io::Result<Self> {
+        self.inner.get_ref().try_clone()
+    }
+
     pub fn read_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
         self.inner.get_ref().read_timeout()
     }
@@ -207,9 +213,9 @@ impl OpenSslConnector {
         Ok(SplitOpenSslStream(Arc::new(Mutex::new(ssl_stream))))
     }
 
-    pub fn from_endpoint<T: Clone>(
+    pub fn from_endpoint(
         &self,
-        endpoint: Endpoint<T>,
+        endpoint: Endpoint<Arc<openssl::ssl::SslConnector>>,
     ) -> Result<(SplitOpenSslStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
         let host = endpoint.host();
         let host_socket_addr: core::net::SocketAddr = host.parse()?;

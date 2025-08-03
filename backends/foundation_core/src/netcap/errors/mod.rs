@@ -1,12 +1,8 @@
 use derive_more::From;
 
-use std::{io, net::AddrParseError};
+use std::{error, fmt, io, net::AddrParseError};
 
-/// [`BoxedError`] is the error type used by functions that may return an error.
-/// It can be any kind of boxed trait object with `Error`, `Send`, and `Sync` traits.
-pub trait Error: std::fmt::Debug + std::error::Error {}
-
-pub type BoxedErrors = Box<dyn Error + Send + Sync + 'static>;
+pub type BoxedError = Box<dyn error::Error + Send + Sync + 'static>;
 
 pub type TlsResult<T> = std::result::Result<T, TlsError>;
 
@@ -59,6 +55,9 @@ pub enum DataStreamError {
     FailedToAcquireAddrs,
 
     #[from(ignore)]
+    Boxed(BoxedError),
+
+    #[from(ignore)]
     IO(io::Error),
 
     #[from(ignore)]
@@ -82,6 +81,12 @@ impl PartialEq for DataStreamError {
             (Self::ReconnectionError, Self::ReconnectionError) => true,
             _ => false,
         }
+    }
+}
+
+impl From<BoxedError> for DataStreamError {
+    fn from(value: BoxedError) -> Self {
+        Self::Boxed(value)
     }
 }
 

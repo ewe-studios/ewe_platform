@@ -3,7 +3,7 @@ let s:so_save = &g:so | let s:siso_save = &g:siso | setg so=0 siso=0 | setl so=-
 let v:this_session=expand("<sfile>:p")
 silent only
 silent tabonly
-cd ~/Labs/ewestudios/ewe_platform
+cd ~/Documents/box/box.dev/ewe_platform
 if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
@@ -13,37 +13,19 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +3511 assets/jsruntime/megatron.js
-badd +2206 backends/foundation_jsnostd/src/jsapi.rs
-badd +30 tests/integrations/tests_instructions_function/src/lib.rs
-badd +16 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_instructions_function/index.node.js
-badd +145 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/base.rs
-badd +13 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_async_function/src/lib.rs
-badd +11 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_async_function/index.node.js
-badd +5115 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_async_function/megatron.js
-badd +55 backends/foundation_jsnostd/src/ops.rs
-badd +30 tests/integrations/tests_instructions_array/src/lib.rs
-badd +26 tests/integrations/tests_instructions_array_callback/src/lib.rs
-badd +31 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/registry.rs
-badd +2 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_failed_async_function/Cargo.toml
-badd +16 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_failed_async_function/index.node.js
-badd +29 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_failed_async_function/src/lib.rs
-badd +1 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_and_return_big_int/src/lib.rs
-badd +16 tests/integrations/tests_callfunction/src/lib.rs
-badd +5220 \'
-badd +131 ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/mem.rs
-badd +1452 crates/html/src/parsers.rs
-badd +77 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_with_array/index.node.js
-badd +11 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_with_array/src/lib.rs
-badd +2 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_instructions_none_return_callback/Cargo.toml
-badd +12 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_instructions_none_return_callback/src/lib.rs
-badd +37 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_instructions_none_return_callback/index.node.js
-badd +2 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_and_return_none/Cargo.toml
-badd +30 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_and_return_none/src/lib.rs
-badd +58 ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_and_return_none/index.node.js
+badd +215 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/server.rs
+badd +1 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/wasm.rs
+badd +28 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/core.rs
+badd +1 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/mod.rs
+badd +80 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/no_wasm.rs
+badd +49 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs
+badd +2 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/rustls.rs
+badd +66 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/connection/mod.rs
+badd +9 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/openssl.rs
+badd +7 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/native_tls.rs
 argglobal
 %argdel
-edit assets/jsruntime/megatron.js
+edit ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/rustls.rs
 let s:save_splitbelow = &splitbelow
 let s:save_splitright = &splitright
 set splitbelow splitright
@@ -52,11 +34,14 @@ vsplit
 wincmd _ | wincmd |
 vsplit
 2wincmd h
-wincmd w
-wincmd w
 wincmd _ | wincmd |
 split
-1wincmd k
+wincmd _ | wincmd |
+split
+2wincmd k
+wincmd w
+wincmd w
+wincmd w
 wincmd w
 let &splitbelow = s:save_splitbelow
 let &splitright = s:save_splitright
@@ -69,7 +54,7 @@ set winminwidth=0
 set winwidth=1
 wincmd =
 argglobal
-balt backends/foundation_jsnostd/src/jsapi.rs
+balt ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs
 setlocal foldmethod=expr
 setlocal foldexpr=v:lua.require'lazyvim.util'.ui.foldexpr()
 setlocal foldmarker={{{,}}}
@@ -78,1014 +63,47 @@ setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-3
-normal! zo
-1666
-normal! zo
-2381
-normal! zo
-3011
-normal! zo
-3388
-normal! zo
-3492
-normal! zo
-3506
-normal! zo
-3551
-normal! zo
-3554
-normal! zo
-3564
-normal! zo
-3565
-normal! zo
-3581
-normal! zo
-3591
-normal! zo
-3592
-normal! zo
-3599
-normal! zo
-3640
-normal! zo
-3650
-normal! zo
-3683
-normal! zo
-3685
-normal! zo
-3726
-normal! zo
-3744
-normal! zo
-3768
-normal! zo
-3788
-normal! zo
-3800
-normal! zo
-3802
-normal! zo
-3824
-normal! zo
-3846
-normal! zo
-3848
-normal! zo
-3883
-normal! zo
-3918
-normal! zo
-3925
-normal! zo
-3941
-normal! zo
-3957
-normal! zo
-3973
-normal! zo
-3989
-normal! zo
-4005
-normal! zo
-4021
-normal! zo
-4037
-normal! zo
-4053
-normal! zo
-4069
-normal! zo
-4084
-normal! zo
-4098
-normal! zo
-4112
-normal! zo
-4126
-normal! zo
-4140
-normal! zo
-4154
-normal! zo
-4171
-normal! zo
-4188
-normal! zo
-4203
-normal! zo
-4217
-normal! zo
-4231
-normal! zo
-4245
-normal! zo
-4259
-normal! zo
-4273
-normal! zo
-4287
-normal! zo
-4301
-normal! zo
-4315
-normal! zo
-4329
-normal! zo
-4343
-normal! zo
-4364
-normal! zo
-4375
-normal! zo
-4389
-normal! zo
-4465
-normal! zo
-4474
-normal! zo
-4483
-normal! zo
-4492
-normal! zo
-4502
-normal! zo
-4515
-normal! zo
-4516
-normal! zo
-4558
-normal! zo
-4567
-normal! zo
-4568
-normal! zo
-4575
-normal! zo
-4609
-normal! zo
-4656
-normal! zo
-4688
-normal! zo
-4689
-normal! zo
-4749
-normal! zo
-4750
-normal! zo
-4758
-normal! zo
-4768
-normal! zo
-4775
-normal! zo
-4782
-normal! zo
-4789
-normal! zo
-4796
-normal! zo
-4803
-normal! zo
-4810
-normal! zo
-4817
-normal! zo
-4824
-normal! zo
-4831
-normal! zo
-4838
-normal! zo
-4848
-normal! zo
-4858
-normal! zo
-4872
-normal! zo
-4882
-normal! zo
-4892
-normal! zo
-4899
-normal! zo
-4906
-normal! zo
-4916
-normal! zo
-4926
-normal! zo
-4933
-normal! zo
-4940
-normal! zo
-4950
-normal! zo
-4957
-normal! zo
-4964
-normal! zo
-4971
-normal! zo
-4978
-normal! zo
-4985
-normal! zo
-4992
-normal! zo
-4999
-normal! zo
-5011
-normal! zo
-5012
-normal! zo
-3565
-normal! zo
-3566
-normal! zo
-3581
-normal! zo
-3591
-normal! zo
-3592
-normal! zo
-3599
-normal! zo
-3640
-normal! zo
-3650
-normal! zo
-3683
-normal! zo
-3685
-normal! zo
-3726
-normal! zo
-3744
-normal! zo
-3768
-normal! zo
-3788
-normal! zo
-3800
-normal! zo
-3802
-normal! zo
-3824
-normal! zo
-3846
-normal! zo
-3848
-normal! zo
-3883
-normal! zo
-3918
-normal! zo
-3925
-normal! zo
-3941
-normal! zo
-3957
-normal! zo
-3973
-normal! zo
-3989
-normal! zo
-4005
-normal! zo
-4021
-normal! zo
-4037
-normal! zo
-4053
-normal! zo
-4069
-normal! zo
-4084
-normal! zo
-4098
-normal! zo
-4112
-normal! zo
-4126
-normal! zo
-4140
-normal! zo
-4154
-normal! zo
-4171
-normal! zo
-4188
-normal! zo
-4203
-normal! zo
-4217
-normal! zo
-4231
-normal! zo
-4245
-normal! zo
-4259
-normal! zo
-4273
-normal! zo
-4287
-normal! zo
-4301
-normal! zo
-4315
-normal! zo
-4329
-normal! zo
-4343
-normal! zo
-4364
-normal! zo
-4375
-normal! zo
-4389
-normal! zo
-4465
-normal! zo
-4474
-normal! zo
-4483
-normal! zo
-4492
-normal! zo
-4502
-normal! zo
-4515
-normal! zo
-4516
-normal! zo
-4558
-normal! zo
-4567
-normal! zo
-4568
-normal! zo
-4575
-normal! zo
-4609
-normal! zo
-4656
-normal! zo
-4688
-normal! zo
-4689
-normal! zo
-4749
-normal! zo
-4750
-normal! zo
-4758
-normal! zo
-4768
-normal! zo
-4776
-normal! zo
-4783
-normal! zo
-4790
-normal! zo
-4797
-normal! zo
-4804
-normal! zo
-4811
-normal! zo
-4818
-normal! zo
-4825
-normal! zo
-4832
-normal! zo
-4839
-normal! zo
-4849
-normal! zo
-4859
-normal! zo
-4873
-normal! zo
-4883
-normal! zo
-4893
-normal! zo
-4900
-normal! zo
-4907
-normal! zo
-4917
-normal! zo
-4927
-normal! zo
-4934
-normal! zo
-4941
-normal! zo
-4951
-normal! zo
-4958
-normal! zo
-4965
-normal! zo
-4972
-normal! zo
-4979
-normal! zo
-4986
-normal! zo
-4993
-normal! zo
-5000
-normal! zo
-5009
-normal! zo
-5010
-normal! zo
-3584
-normal! zo
-4771
-normal! zo
-4778
-normal! zo
-4784
-normal! zo
-4785
-normal! zo
-4789
-normal! zo
-4796
-normal! zo
-4803
-normal! zo
-4810
-normal! zo
-4817
-normal! zo
-4824
-normal! zo
-4831
-normal! zo
-4838
-normal! zo
-4845
-normal! zo
-4852
-normal! zo
-4862
-normal! zo
-4872
-normal! zo
-4882
-normal! zo
-4886
-normal! zo
-4896
-normal! zo
-4906
-normal! zo
-4913
-normal! zo
-4920
-normal! zo
-4930
-normal! zo
-4940
-normal! zo
-4947
-normal! zo
-4954
-normal! zo
-4964
-normal! zo
-4971
-normal! zo
-4978
-normal! zo
-4985
-normal! zo
-4992
-normal! zo
-4999
-normal! zo
-5006
-normal! zo
-5013
-normal! zo
-5022
-normal! zo
-5023
-normal! zo
-5032
-normal! zo
-5035
-normal! zo
-5035
-normal! zo
-5051
-normal! zo
-5052
-normal! zo
-5064
-normal! zo
-5065
-normal! zo
-5084
-normal! zo
-5036
-normal! zo
-5038
-normal! zo
-5039
-normal! zo
-5057
-normal! zo
-5058
-normal! zo
-5070
-normal! zo
-5071
-normal! zo
-5090
-normal! zo
-5117
-normal! zo
-5119
-normal! zo
-5120
-normal! zo
-5126
-normal! zo
-5137
-normal! zo
-5139
-normal! zo
-5140
-normal! zo
-5146
-normal! zo
-5157
-normal! zo
-5171
-normal! zo
-5188
-normal! zo
-5189
-normal! zo
-5232
-normal! zo
-5239
-normal! zo
-3594
-normal! zo
-3595
-normal! zo
-3602
-normal! zo
-3643
-normal! zo
-3653
-normal! zo
-3686
-normal! zo
-3688
-normal! zo
-3729
-normal! zo
-3747
-normal! zo
-3771
-normal! zo
-3791
-normal! zo
-3803
-normal! zo
-3805
-normal! zo
-3827
-normal! zo
-3849
-normal! zo
-3851
-normal! zo
-3886
-normal! zo
-3921
-normal! zo
-3928
-normal! zo
-3944
-normal! zo
-3960
-normal! zo
-3976
-normal! zo
-3992
-normal! zo
-4008
-normal! zo
-4024
-normal! zo
-4040
-normal! zo
-4056
-normal! zo
-4072
-normal! zo
-4087
-normal! zo
-4101
-normal! zo
-4115
-normal! zo
-4129
-normal! zo
-4143
-normal! zo
-4157
-normal! zo
-4174
-normal! zo
-4191
-normal! zo
-4206
-normal! zo
-4220
-normal! zo
-4234
-normal! zo
-4248
-normal! zo
-4262
-normal! zo
-4276
-normal! zo
-4290
-normal! zo
-4304
-normal! zo
-4318
-normal! zo
-4332
-normal! zo
-4346
-normal! zo
-4367
-normal! zo
-4378
-normal! zo
-4392
-normal! zo
-4468
-normal! zo
-4477
-normal! zo
-4486
-normal! zo
-4495
-normal! zo
-4505
-normal! zo
-4518
-normal! zo
-4519
-normal! zo
-4561
-normal! zo
-4570
-normal! zo
-4571
-normal! zo
-4578
-normal! zo
-4612
-normal! zo
-4659
-normal! zo
-4691
-normal! zo
-4692
-normal! zo
-4752
-normal! zo
-4753
-normal! zo
-4761
-normal! zo
-4778
-normal! zo
-4785
-normal! zo
-4792
-normal! zo
-4799
-normal! zo
-4806
-normal! zo
-4813
-normal! zo
-4820
-normal! zo
-4827
-normal! zo
-4834
-normal! zo
-4841
-normal! zo
-4848
-normal! zo
-4858
-normal! zo
-4868
-normal! zo
-4882
-normal! zo
-4892
-normal! zo
-4902
-normal! zo
-4909
-normal! zo
-4916
-normal! zo
-4926
-normal! zo
-4936
-normal! zo
-4943
-normal! zo
-4950
-normal! zo
-4960
-normal! zo
-4967
-normal! zo
-4974
-normal! zo
-4981
-normal! zo
-4988
-normal! zo
-4995
-normal! zo
-5002
-normal! zo
-5009
-normal! zo
-5018
-normal! zo
-5019
-normal! zo
-5032
-normal! zo
-5034
-normal! zo
-5035
-normal! zo
-5053
-normal! zo
-5054
-normal! zo
-5066
-normal! zo
-5067
-normal! zo
-5086
-normal! zo
-5113
-normal! zo
-5115
-normal! zo
-5116
-normal! zo
-5122
-normal! zo
-5133
-normal! zo
-5135
-normal! zo
-5136
-normal! zo
-5142
-normal! zo
-5153
-normal! zo
-5167
-normal! zo
-5184
-normal! zo
-5185
-normal! zo
-5228
-normal! zo
-5235
-normal! zo
-5246
-normal! zo
-5265
-normal! zo
-5298
-normal! zo
-5306
-normal! zo
-5327
-normal! zo
-5343
-normal! zo
-5401
-normal! zo
-5420
-normal! zo
-5456
-normal! zo
-5472
-normal! zo
-5486
-normal! zo
-5499
-normal! zo
-5525
-normal! zo
-5537
-normal! zo
-5539
-normal! zo
-5556
-normal! zo
-5557
-normal! zo
-5570
-normal! zo
-5608
-normal! zo
-5670
-normal! zo
-5771
-normal! zo
-5790
-normal! zo
-5805
-normal! zo
-5856
-normal! zo
-5865
-normal! zo
-5877
-normal! zo
-5886
-normal! zo
-5920
-normal! zo
-5956
-normal! zo
-5990
-normal! zo
-6032
-normal! zo
-6086
-normal! zo
-6116
-normal! zo
-6149
-normal! zo
-6150
-normal! zo
-6160
-normal! zo
-6161
-normal! zo
-6171
-normal! zo
-6181
-normal! zo
-6182
-normal! zo
-6196
-normal! zo
-6197
-normal! zo
-6215
-normal! zo
-6216
-normal! zo
-6233
-normal! zo
-6246
-normal! zo
-6255
-normal! zo
-6264
-normal! zo
-6405
-normal! zo
-6408
-normal! zo
-6417
-normal! zo
-6419
-normal! zo
-6436
-normal! zo
-6458
-normal! zo
-6465
-normal! zo
-6474
-normal! zo
-6486
-normal! zo
-6498
-normal! zo
-6513
-normal! zo
-6528
-normal! zo
-6538
-normal! zo
-6539
-normal! zo
-6548
-normal! zo
-6563
-normal! zo
-6569
-normal! zo
-6580
-normal! zo
-6599
-normal! zo
-6600
-normal! zo
-6611
-normal! zo
-6612
-normal! zo
-6620
-normal! zo
-6631
-normal! zo
-6621
-normal! zo
-6681
-normal! zo
-let s:l = 3511 - ((27 * winheight(0) + 35) / 71)
+25
+sil! normal! zo
+25
+sil! normal! zc
+59
+sil! normal! zo
+59
+sil! normal! zc
+103
+sil! normal! zo
+103
+sil! normal! zc
+112
+sil! normal! zo
+112
+sil! normal! zc
+121
+sil! normal! zo
+121
+sil! normal! zc
+137
+sil! normal! zo
+137
+sil! normal! zc
+158
+sil! normal! zo
+158
+sil! normal! zc
+let s:l = 5 - ((4 * winheight(0) + 12) / 24)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 3511
-normal! 051|
-wincmd w
-argglobal
-if bufexists(fnamemodify("backends/foundation_jsnostd/src/jsapi.rs", ":p")) | buffer backends/foundation_jsnostd/src/jsapi.rs | else | edit backends/foundation_jsnostd/src/jsapi.rs | endif
-if &buftype ==# 'terminal'
-  silent file backends/foundation_jsnostd/src/jsapi.rs
-endif
-balt ~/Labs/ewestudios/ewe_platform/backends/foundation_jsnostd/src/base.rs
-setlocal foldmethod=expr
-setlocal foldexpr=v:lua.require'lazyvim.util'.ui.foldexpr()
-setlocal foldmarker={{{,}}}
-setlocal foldignore=#
-setlocal foldlevel=99
-setlocal foldminlines=1
-setlocal foldnestmax=20
-setlocal foldenable
-1233
-normal! zo
-1263
-normal! zo
-1266
-normal! zo
-1281
-normal! zo
-1454
-normal! zo
-1464
-normal! zo
-2163
-normal! zo
-2189
-normal! zo
-2211
-normal! zo
-let s:l = 2206 - ((47 * winheight(0) + 35) / 71)
-if s:l < 1 | let s:l = 1 | endif
-keepjumps exe s:l
-normal! zt
-keepjumps 2206
+keepjumps 5
 normal! 0
 wincmd w
 argglobal
-if bufexists(fnamemodify("~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_and_return_none/src/lib.rs", ":p")) | buffer ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_and_return_none/src/lib.rs | else | edit ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_and_return_none/src/lib.rs | endif
+if bufexists(fnamemodify("~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/openssl.rs", ":p")) | buffer ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/openssl.rs | else | edit ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/openssl.rs | endif
 if &buftype ==# 'terminal'
-  silent file ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_and_return_none/src/lib.rs
+  silent file ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/openssl.rs
 endif
-balt ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_instructions_none_return_callback/index.node.js
+balt ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/rustls.rs
 setlocal foldmethod=expr
 setlocal foldexpr=v:lua.require'lazyvim.util'.ui.foldexpr()
 setlocal foldmarker={{{,}}}
@@ -1094,21 +112,27 @@ setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-10
-normal! zo
-let s:l = 30 - ((29 * winheight(0) + 17) / 35)
+139
+sil! normal! zo
+139
+sil! normal! zc
+182
+sil! normal! zo
+182
+sil! normal! zc
+let s:l = 9 - ((8 * winheight(0) + 11) / 23)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 30
-normal! 011|
+keepjumps 9
+normal! 022|
 wincmd w
 argglobal
-if bufexists(fnamemodify("~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_and_return_none/index.node.js", ":p")) | buffer ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_and_return_none/index.node.js | else | edit ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_and_return_none/index.node.js | endif
+if bufexists(fnamemodify("~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/native_tls.rs", ":p")) | buffer ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/native_tls.rs | else | edit ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/native_tls.rs | endif
 if &buftype ==# 'terminal'
-  silent file ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_function_and_return_none/index.node.js
+  silent file ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/native_tls.rs
 endif
-balt ~/Labs/ewestudios/ewe_platform/tests/integrations/tests_js_invoke_async_function/src/lib.rs
+balt ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/openssl.rs
 setlocal foldmethod=expr
 setlocal foldexpr=v:lua.require'lazyvim.util'.ui.foldexpr()
 setlocal foldmarker={{{,}}}
@@ -1117,14 +141,72 @@ setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-let s:l = 58 - ((30 * winheight(0) + 17) / 35)
+137
+sil! normal! zo
+137
+sil! normal! zc
+171
+sil! normal! zo
+let s:l = 7 - ((6 * winheight(0) + 12) / 24)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 58
-normal! 018|
+keepjumps 7
+normal! 020|
 wincmd w
-4wincmd w
+argglobal
+if bufexists(fnamemodify("~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/no_wasm.rs", ":p")) | buffer ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/no_wasm.rs | else | edit ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/no_wasm.rs | endif
+if &buftype ==# 'terminal'
+  silent file ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/no_wasm.rs
+endif
+balt ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/connection/mod.rs
+setlocal foldmethod=expr
+setlocal foldexpr=v:lua.require'lazyvim.util'.ui.foldexpr()
+setlocal foldmarker={{{,}}}
+setlocal foldignore=#
+setlocal foldlevel=99
+setlocal foldminlines=1
+setlocal foldnestmax=20
+setlocal foldenable
+75
+sil! normal! zo
+84
+sil! normal! zo
+91
+sil! normal! zo
+let s:l = 80 - ((19 * winheight(0) + 36) / 73)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 80
+normal! 085|
+wincmd w
+argglobal
+if bufexists(fnamemodify("~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs", ":p")) | buffer ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs | else | edit ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs | endif
+if &buftype ==# 'terminal'
+  silent file ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs
+endif
+balt ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/core.rs
+setlocal foldmethod=expr
+setlocal foldexpr=v:lua.require'lazyvim.util'.ui.foldexpr()
+setlocal foldmarker={{{,}}}
+setlocal foldignore=#
+setlocal foldlevel=99
+setlocal foldminlines=1
+setlocal foldnestmax=20
+setlocal foldenable
+42
+sil! normal! zo
+43
+sil! normal! zo
+let s:l = 49 - ((30 * winheight(0) + 36) / 73)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 49
+normal! 031|
+wincmd w
+2wincmd w
 wincmd =
 tabnext 1
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'

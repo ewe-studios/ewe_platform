@@ -13,8 +13,7 @@ use std::net::{Shutdown, TcpStream};
 use std::sync::{Arc, Mutex};
 use zeroize::Zeroizing;
 
-#[cfg(feature = "ssl-native-tls")]
-use native_tls::{Identity, TlsConnector, TlsStream};
+pub use native_tls::{Identity, TlsConnector, TlsStream};
 
 /// A wrapper around a `native_tls` stream.
 ///
@@ -58,6 +57,14 @@ impl NativeTlsStream {
 
 // These struct methods form the implict contract for swappable TLS implementations
 impl NativeTlsStream {
+    pub fn try_clone(&self) -> std::io::Result<Self> {
+        self.0
+            .lock()
+            .expect("Failed to lock ssl stream")
+            .get_ref()
+            .try_clone()
+    }
+
     pub fn local_addr(&self) -> std::io::Result<Option<SocketAddr>> {
         self.0
             .lock()
@@ -197,9 +204,9 @@ impl NativeTlsConnector {
         Ok(NativeTlsStream(Arc::new(Mutex::new(ssl_stream))))
     }
 
-    pub fn from_endpoint<T: Clone>(
+    pub fn from_endpoint(
         &self,
-        endpoint: Endpoint<T>,
+        endpoint: Endpoint<Arc<native_tls::TlsConnector>>,
     ) -> Result<(NativeTlsStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
         let host = endpoint.host();
         let host_socket_addr: core::net::SocketAddr = host.parse()?;

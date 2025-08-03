@@ -25,12 +25,12 @@ pub use self::rustls::RustlsAcceptor as SSLAcceptor;
 pub use self::rustls::RustlsConnector as SSLConnector;
 
 #[cfg(feature = "ssl-native-tls")]
-pub mod native_tls;
+pub mod native_ttls;
 #[cfg(feature = "ssl-native-tls")]
-pub use self::native_tls::NativeTlsAcceptor as SSLAcceptor;
+pub use self::native_ttls::NativeTlsAcceptor as SSLAcceptor;
 #[cfg(feature = "ssl-native-tls")]
-pub use self::native_tls::NativeTlsConnector as SSLConnector;
+pub use self::native_ttls::NativeTlsConnector as SSLConnector;
 #[cfg(feature = "ssl-native-tls")]
-pub use self::native_tls::NativeTlsStream as ClientSSLStream;
+pub use self::native_ttls::NativeTlsStream as ClientSSLStream;
 #[cfg(feature = "ssl-native-tls")]
-pub use self::native_tls::NativeTlsStream as ServerSSLStream;
+pub use self::native_ttls::NativeTlsStream as ServerSSLStream;

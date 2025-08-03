@@ -253,12 +253,28 @@ impl From<unix_net::UnixListener> for Listener {
     }
 }
 
-/// Unified connection. Either a [`TcpStream`] or [`std::os::unix::net::UnixStream`].
+/// [`Connection`] is a unified connection. Either
+/// a [`TcpStream`] or [`std::os::unix::net::UnixStream`].
 #[derive(Debug)]
 pub enum Connection {
     Tcp(TcpStream),
     #[cfg(unix)]
     Unix(unix_net::UnixStream),
+}
+
+impl Connection {
+    pub fn without_timeout(
+        addr: core::net::SocketAddr,
+    ) -> std::result::Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
+        Ok(Self::Tcp(TcpStream::connect(addr)?))
+    }
+
+    pub fn with_timeout(
+        addr: core::net::SocketAddr,
+        timeout: Duration,
+    ) -> std::result::Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
+        Ok(Self::Tcp(TcpStream::connect_timeout(&addr, timeout)?))
+    }
 }
 
 impl Connection {
@@ -292,15 +308,6 @@ impl Connection {
             #[cfg(unix)]
             Self::Unix(u) => u.set_read_timeout(dur),
         }
-    }
-}
-
-impl Connection {
-    pub fn with_timeout(
-        addr: std::net::SocketAddr,
-        timeout: Duration,
-    ) -> std::result::Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
-        Ok(Self::Tcp(TcpStream::connect_timeout(&addr, timeout)?))
     }
 }
 
@@ -463,7 +470,7 @@ impl ListenAddr {
         match self {
             Self::IP(s) => Some(SocketAddr::from(s)),
             #[cfg(unix)]
-            Self::Unix(s) => None,
+            Self::Unix(_) => None,
         }
     }
 
