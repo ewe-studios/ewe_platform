@@ -35,15 +35,15 @@ pub trait RetryDecider {
     fn decide(&self, state: RetryState) -> Option<RetryState>;
 }
 
-pub trait CloneableReconnectionDecider: RetryDecider {
-    fn clone_box(&self) -> Box<dyn CloneableReconnectionDecider>;
+pub trait CReconnectionDecider: RetryDecider {
+    fn clone_box(&self) -> Box<dyn CReconnectionDecider>;
 }
 
-impl<T> CloneableReconnectionDecider for T
+impl<T> CReconnectionDecider for T
 where
     T: RetryDecider + Clone + 'static,
 {
-    fn clone_box(&self) -> Box<dyn CloneableReconnectionDecider> {
+    fn clone_box(&self) -> Box<dyn CReconnectionDecider> {
         Box::new(self.clone())
     }
 }

@@ -132,14 +132,14 @@ Hello world!";
     //     // Test function for "Disallow UTF-8 in URI path in strict mode"
     //     #[test]
     //     fn test_disallow_utf8_in_uri_path_in_strict_mode() {
-    //         let message = "GET /δ¶/δt/pope?q=1#narf HTTP/1.1\nHost: github.com\n\n\n";
+    //         let message = "GET /δ¶/δt/pope?q=1#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]arf HTTP/1.1\nHost: github.com\n\n\n";
     //         // Test implementation would go here
     //     }
     //
     //     // Test function for "Fragment in URI"
     //     #[test]
     //     fn test_fragment_in_uri() {
-    //         let message = "GET /forums/1/topics/2375?page=1#posts-17408 HTTP/1.1\n\n\n";
+    //         let message = "GET /forums/1/topics/2375?page=1#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]osts-17408 HTTP/1.1\n\n\n";
     //         // Test implementation would go here
     //     }
     //
@@ -167,7 +167,7 @@ Hello world!";
     //     // Test for "Parsing and setting flag"
     //     #[test]
     //     fn parsing_and_setting_flag() {
-    //         let message = r#"PUT /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT /url HTTP/1.1
     // Transfer-Encoding: chunked
     //
     // "#;
@@ -177,7 +177,7 @@ Hello world!";
     //     // Test for "Parse chunks with lowercase size"
     //     #[test]
     //     fn parse_chunks_with_lowercase_size() {
-    //         let message = r#"PUT /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT /url HTTP/1.1
     // Transfer-Encoding: chunked
     //
     // a
@@ -191,7 +191,7 @@ Hello world!";
     //     // Test for "Parse chunks with uppercase size"
     //     #[test]
     //     fn parse_chunks_with_uppercase_size() {
-    //         let message = r#"PUT /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT /url HTTP/1.1
     // Transfer-Encoding: chunked
     //
     // A
@@ -205,7 +205,7 @@ Hello world!";
     //     // Test for "POST with Transfer-Encoding: chunked"
     //     #[test]
     //     fn post_with_transfer_encoding_chunked() {
-    //         let message = r#"POST /post_chunked_all_your_base HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST /post_chunked_all_your_base HTTP/1.1
     // Transfer-Encoding: chunked
     //
     // 1e
@@ -219,7 +219,7 @@ Hello world!";
     //     // Test for "Two chunks and triple zero prefixed end chunk"
     //     #[test]
     //     fn two_chunks_and_triple_zero_prefixed_end_chunk() {
-    //         let message = r#"POST /two_chunks_mult_zero_end HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST /two_chunks_mult_zero_end HTTP/1.1
     // Transfer-Encoding: chunked
     //
     // 5
@@ -235,7 +235,7 @@ Hello world!";
     //     // Test for "Trailing headers"
     //     #[test]
     //     fn trailing_headers() {
-    //         let message = r#"POST /chunked_w_trailing_headers HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST /chunked_w_trailing_headers HTTP/1.1
     // Transfer-Encoding: chunked
     //
     // 5
@@ -253,7 +253,7 @@ Hello world!";
     //     // Test for "Chunk extensions"
     //     #[test]
     //     fn chunk_extensions() {
-    //         let message = r#"POST /chunked_w_unicorns_after_length HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST /chunked_w_unicorns_after_length HTTP/1.1
     // Transfer-Encoding: chunked
     //
     // 5;ilovew3;somuchlove=aretheseparametersfor;another=withvalue
@@ -269,7 +269,7 @@ Hello world!";
     //     // Test for "No semicolon before chunk extensions"
     //     #[test]
     //     fn no_semicolon_before_chunk_extensions() {
-    //         let message = r#"POST /chunked_w_unicorns_after_length HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST /chunked_w_unicorns_after_length HTTP/1.1
     // Host: localhost
     // Transfer-encoding: chunked
     //
@@ -284,7 +284,7 @@ Hello world!";
     //     // Test for "No extension after semicolon"
     //     #[test]
     //     fn no_extension_after_semicolon() {
-    //         let message = r#"POST /chunked_w_unicorns_after_length HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST /chunked_w_unicorns_after_length HTTP/1.1
     // Host: localhost
     // Transfer-encoding: chunked
     //
@@ -299,7 +299,7 @@ Hello world!";
     //     // Test for "Chunk extensions quoting"
     //     #[test]
     //     fn chunk_extensions_quoting() {
-    //         let message = r#"POST /chunked_w_unicorns_after_length HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST /chunked_w_unicorns_after_length HTTP/1.1
     // Transfer-Encoding: chunked
     //
     // 5;ilovew3="I \"love\"; \\extensions\\";somuchlove="aretheseparametersfor";blah;foo=bar
@@ -315,7 +315,7 @@ Hello world!";
     //     // Test for "Unbalanced chunk extensions quoting"
     //     #[test]
     //     fn unbalanced_chunk_extensions_quoting() {
-    //         let message = r#"POST /chunked_w_unicorns_after_length HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST /chunked_w_unicorns_after_length HTTP/1.1
     // Transfer-Encoding: chunked
     //
     // 5;ilovew3="abc";somuchlove="def; ghi
@@ -331,7 +331,7 @@ Hello world!";
     //     // Test for "Ignoring pigeons"
     //     #[test]
     //     fn ignoring_pigeons() {
-    //         let message = r#"PUT /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT /url HTTP/1.1
     // Transfer-Encoding: pigeons
     //
     // "#;
@@ -341,7 +341,7 @@ Hello world!";
     //     // Test for "POST with Transfer-Encoding and Content-Length"
     //     #[test]
     //     fn post_with_transfer_encoding_and_content_length() {
-    //         let message = r#"POST /post_identity_body_world?q=search#hey HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST /post_identity_body_world?q=search#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]ey HTTP/1.1
     // Accept: */*
     // Transfer-Encoding: identity
     // Content-Length: 5
@@ -354,7 +354,7 @@ Hello world!";
     //     // Test for "POST with Transfer-Encoding and Content-Length (lenient)"
     //     #[test]
     //     fn post_with_transfer_encoding_and_content_length_lenient() {
-    //         let message = r#"POST /post_identity_body_world?q=search#hey HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST /post_identity_body_world?q=search#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]ey HTTP/1.1
     // Accept: */*
     // Transfer-Encoding: identity
     // Content-Length: 1
@@ -367,7 +367,7 @@ Hello world!";
     //     // Test for "POST with empty Transfer-Encoding and Content-Length (lenient)"
     //     #[test]
     //     fn post_with_empty_transfer_encoding_and_content_length_lenient() {
-    //         let message = r#"POST / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST / HTTP/1.1
     // Host: foo
     // Content-Length: 10
     // Transfer-Encoding:
@@ -384,7 +384,7 @@ Hello world!";
     //     // Test for "POST with chunked before other transfer coding names"
     //     #[test]
     //     fn post_with_chunked_before_other_transfer_coding_names() {
-    //         let message = r#"POST /post_identity_body_world?q=search#hey HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST /post_identity_body_world?q=search#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]ey HTTP/1.1
     // Accept: */*
     // Transfer-Encoding: chunked, deflate
     //
@@ -396,7 +396,7 @@ Hello world!";
     //     // Test for "POST with chunked and duplicate transfer-encoding"
     //     #[test]
     //     fn post_with_chunked_and_duplicate_transfer_encoding() {
-    //         let message = r#"POST /post_identity_body_world?q=search#hey HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST /post_identity_body_world?q=search#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]ey HTTP/1.1
     // Accept: */*
     // Transfer-Encoding: chunked
     // Transfer-Encoding: deflate
@@ -409,7 +409,7 @@ Hello world!";
     //     // Test for "POST with chunked before other transfer-coding (lenient)"
     //     #[test]
     //     fn post_with_chunked_before_other_transfer_coding_lenient() {
-    //         let message = r#"POST /post_identity_body_world?q=search#hey HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST /post_identity_body_world?q=search#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]ey HTTP/1.1
     // Accept: */*
     // Transfer-Encoding: chunked, deflate
     //
@@ -421,7 +421,7 @@ Hello world!";
     //     // Test for "POST with chunked and duplicate transfer-encoding (lenient)"
     //     #[test]
     //     fn post_with_chunked_and_duplicate_transfer_encoding_lenient() {
-    //         let message = r#"POST /post_identity_body_world?q=search#hey HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST /post_identity_body_world?q=search#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]ey HTTP/1.1
     // Accept: */*
     // Transfer-Encoding: chunked
     // Transfer-Encoding: deflate
@@ -434,7 +434,7 @@ Hello world!";
     //     // Test for "POST with chunked as last transfer-encoding"
     //     #[test]
     //     fn post_with_chunked_as_last_transfer_encoding() {
-    //         let message = r#"POST /post_identity_body_world?q=search#hey HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST /post_identity_body_world?q=search#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]ey HTTP/1.1
     // Accept: */*
     // Transfer-Encoding: deflate, chunked
     //
@@ -449,7 +449,7 @@ Hello world!";
     //     // Test for "POST with chunked as last transfer-encoding (multiple headers)"
     //     #[test]
     //     fn post_with_chunked_as_last_transfer_encoding_multiple_headers() {
-    //         let message = r#"POST /post_identity_body_world?q=search#hey HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST /post_identity_body_world?q=search#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]ey HTTP/1.1
     // Accept: */*
     // Transfer-Encoding: deflate
     // Transfer-Encoding: chunked
@@ -465,7 +465,7 @@ Hello world!";
     //     // Test for "POST with chunkedchunked as transfer-encoding"
     //     #[test]
     //     fn post_with_chunkedchunked_as_transfer_encoding() {
-    //         let message = r#"POST /post_identity_body_world?q=search#hey HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST /post_identity_body_world?q=search#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]ey HTTP/1.1
     // Accept: */*
     // Transfer-Encoding: chunkedchunked
     //
@@ -480,7 +480,7 @@ Hello world!";
     //     // Test for "Missing last-chunk"
     //     #[test]
     //     fn missing_last_chunk() {
-    //         let message = r#"PUT /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT /url HTTP/1.1
     // Transfer-Encoding: chunked
     //
     // 3
@@ -493,7 +493,7 @@ Hello world!";
     //     // Test for "Validate chunk parameters"
     //     #[test]
     //     fn validate_chunk_parameters() {
-    //         let message = r#"PUT /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT /url HTTP/1.1
     // Transfer-Encoding: chunked
     //
     // 3 \n  \r\n\
@@ -506,7 +506,7 @@ Hello world!";
     //     // Test for "Invalid OBS fold after chunked value"
     //     #[test]
     //     fn invalid_obs_fold_after_chunked_value() {
-    //         let message = r#"PUT /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT /url HTTP/1.1
     // Transfer-Encoding: chunked
     //   abc
     //
@@ -521,7 +521,7 @@ Hello world!";
     //     // Test for "Chunk header not terminated by CRLF"
     //     #[test]
     //     fn chunk_header_not_terminated_by_crlf() {
-    //         let message = r#"GET / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET / HTTP/1.1
     // Host: a
     // Connection: close
     // Transfer-Encoding: chunked
@@ -544,7 +544,7 @@ Hello world!";
     //     // Test for "Chunk header not terminated by CRLF (lenient)"
     //     #[test]
     //     fn chunk_header_not_terminated_by_crlf_lenient() {
-    //         let message = r#"GET / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET / HTTP/1.1
     // Host: a
     // Connection: close
     // Transfer-Encoding: chunked
@@ -566,7 +566,7 @@ Hello world!";
     //     // Test for "Chunk data not terminated by CRLF"
     //     #[test]
     //     fn chunk_data_not_terminated_by_crlf() {
-    //         let message = r#"GET / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET / HTTP/1.1
     // Host: a
     // Connection: close
     // Transfer-Encoding: chunked
@@ -581,7 +581,7 @@ Hello world!";
     //     // Test for "Chunk data not terminated by CRLF (lenient)"
     //     #[test]
     //     fn chunk_data_not_terminated_by_crlf_lenient() {
-    //         let message = r#"GET / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET / HTTP/1.1
     // Host: a
     // Connection: close
     // Transfer-Encoding: chunked
@@ -596,7 +596,7 @@ Hello world!";
     //     // Test for "Space after chunk header"
     //     #[test]
     //     fn space_after_chunk_header() {
-    //         let message = r#"PUT /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT /url HTTP/1.1
     // Transfer-Encoding: chunked
     //
     // a \r\n0123456789
@@ -609,7 +609,7 @@ Hello world!";
     //     // Test for "Space after chunk header (lenient)"
     //     #[test]
     //     fn space_after_chunk_header_lenient() {
-    //         let message = r#"PUT /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT /url HTTP/1.1
     // Transfer-Encoding: chunked
     //
     // a \r\n0123456789
@@ -622,7 +622,7 @@ Hello world!";
     //     // Test for "Simple request"
     //     #[test]
     //     fn simple_request() {
-    //         let message = r#"OPTIONS /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]OPTIONS /url HTTP/1.1
     // Header1: Value1
     // Header2:	 Value2
     //
@@ -633,7 +633,7 @@ Hello world!";
     //     // Test for "Request with method starting with H"
     //     #[test]
     //     fn request_with_method_starting_with_h() {
-    //         let message = r#"HEAD /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]HEAD /url HTTP/1.1
     //
     // "#;
     //         // Placeholder for test logic
@@ -642,7 +642,7 @@ Hello world!";
     //     // Test for "curl GET"
     //     #[test]
     //     fn curl_get() {
-    //         let message = r#"GET /test HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET /test HTTP/1.1
     // User-Agent: curl/7.18.0 (i486-pc-linux-gnu) libcurl/7.18.0 OpenSSL/0.9.8g zlib/1.2.3.3 libidn/1.1
     // Host: 0.0.0.0=5000
     // Accept: */*
@@ -654,7 +654,7 @@ Hello world!";
     //     // Test for "Firefox GET"
     //     #[test]
     //     fn firefox_get() {
-    //         let message = r#"GET /favicon.ico HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET /favicon.ico HTTP/1.1
     // Host: 0.0.0.0=5000
     // User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9) Gecko/2008061015 Firefox/3.0
     // Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
@@ -671,7 +671,7 @@ Hello world!";
     //     // Test for "DUMBPACK"
     //     #[test]
     //     fn dumbpack() {
-    //         let message = r#"GET /dumbpack HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET /dumbpack HTTP/1.1
     // aaaaaaaaaaaaa:++++++++++
     //
     // "#;
@@ -681,7 +681,7 @@ Hello world!";
     //     // Test for "No headers and no body"
     //     #[test]
     //     fn no_headers_and_no_body() {
-    //         let message = r#"GET /get_no_headers_no_body/world HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET /get_no_headers_no_body/world HTTP/1.1
     //
     // "#;
     //         // Placeholder for test logic
@@ -690,7 +690,7 @@ Hello world!";
     //     // Test for "One header and no body"
     //     #[test]
     //     fn one_header_and_no_body() {
-    //         let message = r#"GET /get_one_header_no_body HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET /get_one_header_no_body HTTP/1.1
     // Accept: */*
     //
     // "#;
@@ -700,7 +700,7 @@ Hello world!";
     //     // Test for "Apache bench GET"
     //     #[test]
     //     fn apache_bench_get() {
-    //         let message = r#"GET /test HTTP/1.0
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET /test HTTP/1.0
     // Host: 0.0.0.0:5000
     // User-Agent: ApacheBench/2.3
     // Accept: */*
@@ -712,7 +712,7 @@ Hello world!";
     //     // Test for "Prefix newline"
     //     #[test]
     //     fn prefix_newline() {
-    //         let message = r#"\r\nGET /test HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]\r\nGET /test HTTP/1.1
     //
     // "#;
     //         // Placeholder for test logic
@@ -721,7 +721,7 @@ Hello world!";
     //     // Test for "No HTTP version"
     //     #[test]
     //     fn no_http_version() {
-    //         let message = r#"GET /
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET /
     //
     // "#;
     //         // Placeholder for test logic
@@ -730,7 +730,7 @@ Hello world!";
     //     // Test for "Line folding in header value with CRLF"
     //     #[test]
     //     fn line_folding_in_header_value_with_crlf() {
-    //         let message = r#"GET / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET / HTTP/1.1
     // Line1:   abc
     //     def
     //  ghi
@@ -752,7 +752,7 @@ Hello world!";
     //     // Test for "Line folding in header value with LF"
     //     #[test]
     //     fn line_folding_in_header_value_with_lf() {
-    //         let message = r#"GET / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET / HTTP/1.1
     // Line1:   abc\n\
     //     def\n\
     //  ghi\n\
@@ -774,7 +774,7 @@ Hello world!";
     //     // Test for "No LF after CR"
     //     #[test]
     //     fn no_lf_after_cr() {
-    //         let message = r#"GET / HTTP/1.1\rLine: 1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET / HTTP/1.1\rLine: 1
     //
     // "#;
     //         // Placeholder for test logic
@@ -783,7 +783,7 @@ Hello world!";
     //     // Test for "No LF after CR (lenient)"
     //     #[test]
     //     fn no_lf_after_cr_lenient() {
-    //         let message = r#"GET / HTTP/1.1\rLine: 1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET / HTTP/1.1\rLine: 1
     //
     // "#;
     //         // Placeholder for test logic
@@ -792,7 +792,7 @@ Hello world!";
     //     // Test for "Request starting with CRLF"
     //     #[test]
     //     fn request_starting_with_crlf() {
-    //         let message = r#"\r\nGET /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]\r\nGET /url HTTP/1.1
     // Header1: Value1
     //
     // "#;
@@ -802,7 +802,7 @@ Hello world!";
     //     // Test for "Extended Characters"
     //     #[test]
     //     fn extended_characters() {
-    //         let message = r#"GET / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET / HTTP/1.1
     // Test: Düsseldorf
     //
     // "#;
@@ -812,7 +812,7 @@ Hello world!";
     //     // Test for "255 ASCII in header value"
     //     #[test]
     //     fn ascii_255_in_header_value() {
-    //         let message = r#"OPTIONS /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]OPTIONS /url HTTP/1.1
     // Header1: Value1
     // Header2: \xffValue2
     //
@@ -823,7 +823,7 @@ Hello world!";
     //     // Test for "X-SSL-Nonsense"
     //     #[test]
     //     fn x_ssl_nonsense() {
-    //         let message = r#"GET / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET / HTTP/1.1
     // X-SSL-Nonsense:   -----BEGIN CERTIFICATE-----
     //     MIIFbTCCBFWgAwIBAgICH4cwDQYJKoZIhvcNAQEFBQAwcDELMAkGA1UEBhMCVUsx
     //     ETAPBgNVBAoTCGVTY2llbmNlMRIwEAYDVQQLEwlBdXRob3JpdHkxCzAJBgNVBAMT
@@ -864,7 +864,7 @@ Hello world!";
     //     // Test for "Should parse multiple events"
     //     #[test]
     //     fn should_parse_multiple_events() {
-    //         let message = r#"POST /aaa HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST /aaa HTTP/1.1
     // Content-Length: 3
     //
     // AAA
@@ -883,7 +883,7 @@ Hello world!";
     //     // Test for "on_message_begin"
     //     #[test]
     //     fn on_message_begin() {
-    //         let message = r#"POST / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST / HTTP/1.1
     // Content-Length: 3
     //
     // abc
@@ -894,7 +894,7 @@ Hello world!";
     //     // Test for "on_message_complete"
     //     #[test]
     //     fn on_message_complete() {
-    //         let message = r#"POST / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST / HTTP/1.1
     // Content-Length: 3
     //
     // abc
@@ -905,7 +905,7 @@ Hello world!";
     //     // Test for "on_protocol_complete"
     //     #[test]
     //     fn on_protocol_complete() {
-    //         let message = r#"POST / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST / HTTP/1.1
     // Content-Length: 3
     //
     // abc
@@ -916,7 +916,7 @@ Hello world!";
     //     // Test for "on_method_complete"
     //     #[test]
     //     fn on_method_complete() {
-    //         let message = r#"POST / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST / HTTP/1.1
     // Content-Length: 3
     //
     // abc
@@ -927,7 +927,7 @@ Hello world!";
     //     // Test for "on_url_complete"
     //     #[test]
     //     fn on_url_complete() {
-    //         let message = r#"POST / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST / HTTP/1.1
     // Content-Length: 3
     //
     // abc
@@ -938,7 +938,7 @@ Hello world!";
     //     // Test for "on_version_complete"
     //     #[test]
     //     fn on_version_complete() {
-    //         let message = r#"POST / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST / HTTP/1.1
     // Content-Length: 3
     //
     // abc
@@ -949,7 +949,7 @@ Hello world!";
     //     // Test for "on_header_field_complete"
     //     #[test]
     //     fn on_header_field_complete() {
-    //         let message = r#"POST / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST / HTTP/1.1
     // Content-Length: 3
     //
     // abc
@@ -960,7 +960,7 @@ Hello world!";
     //     // Test for "on_header_value_complete"
     //     #[test]
     //     fn on_header_value_complete() {
-    //         let message = r#"POST / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST / HTTP/1.1
     // Content-Length: 3
     //
     // abc
@@ -971,7 +971,7 @@ Hello world!";
     //     // Test for "on_headers_complete"
     //     #[test]
     //     fn on_headers_complete() {
-    //         let message = r#"POST / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST / HTTP/1.1
     // Content-Length: 3
     //
     // abc
@@ -982,7 +982,7 @@ Hello world!";
     //     // Test for "on_chunk_header"
     //     #[test]
     //     fn on_chunk_header() {
-    //         let message = r#"PUT / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT / HTTP/1.1
     // Transfer-Encoding: chunked
     //
     // a
@@ -996,7 +996,7 @@ Hello world!";
     //     // Test for "on_chunk_extension_name"
     //     #[test]
     //     fn on_chunk_extension_name() {
-    //         let message = r#"PUT / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT / HTTP/1.1
     // Transfer-Encoding: chunked
     //
     // a;foo=bar
@@ -1010,7 +1010,7 @@ Hello world!";
     //     // Test for "on_chunk_extension_value"
     //     #[test]
     //     fn on_chunk_extension_value() {
-    //         let message = r#"PUT / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT / HTTP/1.1
     // Transfer-Encoding: chunked
     //
     // a;foo=bar
@@ -1024,7 +1024,7 @@ Hello world!";
     //     // Test for "on_chunk_complete"
     //     #[test]
     //     fn on_chunk_complete() {
-    //         let message = r#"PUT / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT / HTTP/1.1
     // Transfer-Encoding: chunked
     //
     // a
@@ -1038,7 +1038,7 @@ Hello world!";
     //     // Test for "REPORT request"
     //     #[test]
     //     fn report_request() {
-    //         let message = r#"REPORT /test HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]REPORT /test HTTP/1.1
     //
     // "#;
     //         // Placeholder for test logic
@@ -1047,7 +1047,7 @@ Hello world!";
     //     // Test for "CONNECT request"
     //     #[test]
     //     fn connect_request() {
-    //         let message = r#"CONNECT 0-home0.netscape.com:443 HTTP/1.0
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]CONNECT 0-home0.netscape.com:443 HTTP/1.0
     // User-agent: Mozilla/1.1N
     // Proxy-authorization: basic aGVsbG86d29ybGQ=
     //
@@ -1060,7 +1060,7 @@ Hello world!";
     //     // Test for "CONNECT request with CAPS"
     //     #[test]
     //     fn connect_request_with_caps() {
-    //         let message = r#"CONNECT HOME0.NETSCAPE.COM:443 HTTP/1.0
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]CONNECT HOME0.NETSCAPE.COM:443 HTTP/1.0
     // User-agent: Mozilla/1.1N
     // Proxy-authorization: basic aGVsbG86d29ybGQ=
     //
@@ -1071,7 +1071,7 @@ Hello world!";
     //     // Test for "CONNECT with body"
     //     #[test]
     //     fn connect_with_body() {
-    //         let message = r#"CONNECT foo.bar.com:443 HTTP/1.0
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]CONNECT foo.bar.com:443 HTTP/1.0
     // User-agent: Mozilla/1.1N
     // Proxy-authorization: basic aGVsbG86d29ybGQ=
     // Content-Length: 10
@@ -1084,7 +1084,7 @@ Hello world!";
     //     // Test for "M-SEARCH request"
     //     #[test]
     //     fn m_search_request() {
-    //         let message = r#"M-SEARCH * HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]M-SEARCH * HTTP/1.1
     // HOST: 239.255.255.250:1900
     // MAN: "ssdp:discover"
     // ST: "ssdp:all"
@@ -1096,7 +1096,7 @@ Hello world!";
     //     // Test for "PATCH request"
     //     #[test]
     //     fn patch_request() {
-    //         let message = r#"PATCH /file.txt HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PATCH /file.txt HTTP/1.1
     // Host: www.example.com
     // Content-Type: application/example
     // If-Match: "e0023aa4e"
@@ -1110,7 +1110,7 @@ Hello world!";
     //     // Test for "PURGE request"
     //     #[test]
     //     fn purge_request() {
-    //         let message = r#"PURGE /file.txt HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PURGE /file.txt HTTP/1.1
     // Host: www.example.com
     //
     // "#;
@@ -1120,7 +1120,7 @@ Hello world!";
     //     // Test for "SEARCH request"
     //     #[test]
     //     fn search_request() {
-    //         let message = r#"SEARCH / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]SEARCH / HTTP/1.1
     // Host: www.example.com
     //
     // "#;
@@ -1130,7 +1130,7 @@ Hello world!";
     //     // Test for "LINK request" (first occurrence)
     //     #[test]
     //     fn link_request_1() {
-    //         let message = r#"LINK /images/my_dog.jpg HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]LINK /images/my_dog.jpg HTTP/1.1
     // Host: example.com
     // Link: <http://example.com/profiles/joe>; rel="tag"
     // Link: <http://example.com/profiles/sally>; rel="tag"
@@ -1142,7 +1142,7 @@ Hello world!";
     //     // Test for "LINK request" (second occurrence, UNLINK)
     //     #[test]
     //     fn unlink_request() {
-    //         let message = r#"UNLINK /images/my_dog.jpg HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]UNLINK /images/my_dog.jpg HTTP/1.1
     // Host: example.com
     // Link: <http://example.com/profiles/sally>; rel="tag"
     //
@@ -1153,7 +1153,7 @@ Hello world!";
     //     // Test for "SOURCE request"
     //     #[test]
     //     fn source_request() {
-    //         let message = r#"SOURCE /music/sweet/music HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]SOURCE /music/sweet/music HTTP/1.1
     // Host: example.com
     //
     // "#;
@@ -1163,7 +1163,7 @@ Hello world!";
     //     // Test for "SOURCE request with ICE"
     //     #[test]
     //     fn source_request_with_ice() {
-    //         let message = r#"SOURCE /music/sweet/music ICE/1.0
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]SOURCE /music/sweet/music ICE/1.0
     // Host: example.com
     //
     // "#;
@@ -1173,7 +1173,7 @@ Hello world!";
     //     // Test for "OPTIONS request with RTSP"
     //     #[test]
     //     fn options_request_with_rtsp() {
-    //         let message = r#"OPTIONS /music/sweet/music RTSP/1.0
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]OPTIONS /music/sweet/music RTSP/1.0
     // Host: example.com
     //
     // "#;
@@ -1183,7 +1183,7 @@ Hello world!";
     //     // Test for "ANNOUNCE request with RTSP"
     //     #[test]
     //     fn announce_request_with_rtsp() {
-    //         let message = r#"ANNOUNCE /music/sweet/music RTSP/1.0
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]ANNOUNCE /music/sweet/music RTSP/1.0
     // Host: example.com
     //
     // "#;
@@ -1193,7 +1193,7 @@ Hello world!";
     //     // Test for "PRI request HTTP2"
     //     #[test]
     //     fn pri_request_http2() {
-    //         let message = r#"PRI * HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PRI * HTTP/1.1
     //
     // SM
     //
@@ -1204,7 +1204,7 @@ Hello world!";
     //     // Test for "QUERY request"
     //     #[test]
     //     fn query_request() {
-    //         let message = r#"QUERY /contacts HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]QUERY /contacts HTTP/1.1
     // Host: example.org
     // Content-Type: example/query
     // Accept: text/csv
@@ -1218,7 +1218,7 @@ Hello world!";
     //     // Test for "Invalid HTTP version (lenient)"
     //     #[test]
     //     fn invalid_http_version_lenient() {
-    //         let message = r#"GET / HTTP/5.6
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET / HTTP/5.6
     //
     // "#;
     //         // Placeholder for test logic
@@ -1227,7 +1227,7 @@ Hello world!";
     //     // Test for "Header value (lenient)"
     //     #[test]
     //     fn header_value_lenient() {
-    //         let message = r#"GET /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET /url HTTP/1.1
     // Header1: \f
     //
     // "#;
@@ -1237,7 +1237,7 @@ Hello world!";
     //     // Test for "Second request header value (lenient)"
     //     #[test]
     //     fn second_request_header_value_lenient() {
-    //         let message = r#"GET /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET /url HTTP/1.1
     // Header1: Okay
     //
     // GET /url HTTP/1.1
@@ -1250,7 +1250,7 @@ Hello world!";
     //     // Test for "Header value"
     //     #[test]
     //     fn header_value() {
-    //         let message = r#"GET /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET /url HTTP/1.1
     // Header1: \f
     //
     // "#;
@@ -1260,7 +1260,7 @@ Hello world!";
     //     // Test for "Empty headers separated by CR (lenient)"
     //     #[test]
     //     fn empty_headers_separated_by_cr_lenient() {
-    //         let message = r#"POST / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST / HTTP/1.1
     // Connection: Close
     // Host: localhost:5000
     // x:\rTransfer-Encoding: chunked
@@ -1276,7 +1276,7 @@ Hello world!";
     //     // Test for "ICE protocol and GET method"
     //     #[test]
     //     fn ice_protocol_and_get_method() {
-    //         let message = r#"GET /music/sweet/music ICE/1.0
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET /music/sweet/music ICE/1.0
     // Host: example.com
     //
     // "#;
@@ -1286,7 +1286,7 @@ Hello world!";
     //     // Test for "ICE protocol, but not really"
     //     #[test]
     //     fn ice_protocol_but_not_really() {
-    //         let message = r#"GET /music/sweet/music IHTTP/1.0
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET /music/sweet/music IHTTP/1.0
     // Host: example.com
     //
     // "#;
@@ -1296,7 +1296,7 @@ Hello world!";
     //     // Test for "RTSP protocol and PUT method"
     //     #[test]
     //     fn rtsp_protocol_and_put_method() {
-    //         let message = r#"PUT /music/sweet/music RTSP/1.0
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT /music/sweet/music RTSP/1.0
     // Host: example.com
     //
     // "#;
@@ -1306,7 +1306,7 @@ Hello world!";
     //     // Test for "HTTP protocol and ANNOUNCE method"
     //     #[test]
     //     fn http_protocol_and_announce_method() {
-    //         let message = r#"ANNOUNCE /music/sweet/music HTTP/1.0
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]ANNOUNCE /music/sweet/music HTTP/1.0
     // Host: example.com
     //
     // "#;
@@ -1316,7 +1316,7 @@ Hello world!";
     //     // Test for "Headers separated by CR"
     //     #[test]
     //     fn headers_separated_by_cr() {
-    //         let message = r#"GET / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET / HTTP/1.1
     // Foo: 1\rBar: 2
     //
     // "#;
@@ -1326,7 +1326,7 @@ Hello world!";
     //     // Test for "Headers separated by LF"
     //     #[test]
     //     fn headers_separated_by_lf() {
-    //         let message = r#"POST / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST / HTTP/1.1
     // Host: localhost:5000
     // x:x\nTransfer-Encoding: chunked
     //
@@ -1341,7 +1341,7 @@ Hello world!";
     //     // Test for "Headers separated by dummy characters"
     //     #[test]
     //     fn headers_separated_by_dummy_characters() {
-    //         let message = r#"GET / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET / HTTP/1.1
     // Connection: close
     // Host: a
     // \rZGET /evil: HTTP/1.1
@@ -1354,7 +1354,7 @@ Hello world!";
     //     // Test for "Headers separated by dummy characters (lenient)"
     //     #[test]
     //     fn headers_separated_by_dummy_characters_lenient() {
-    //         let message = r#"GET / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET / HTTP/1.1
     // Connection: close
     // Host: a
     // \rZGET /evil: HTTP/1.1
@@ -1367,7 +1367,7 @@ Hello world!";
     //     // Test for "Empty headers separated by CR"
     //     #[test]
     //     fn empty_headers_separated_by_cr() {
-    //         let message = r#"POST / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST / HTTP/1.1
     // Connection: Close
     // Host: localhost:5000
     // x:\rTransfer-Encoding: chunked
@@ -1383,7 +1383,7 @@ Hello world!";
     //     // Test for "Empty headers separated by LF"
     //     #[test]
     //     fn empty_headers_separated_by_lf() {
-    //         let message = r#"POST / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST / HTTP/1.1
     // Host: localhost:5000
     // x:\nTransfer-Encoding: chunked
     //
@@ -1398,7 +1398,7 @@ Hello world!";
     //     // Test for "Invalid header token #1"
     //     #[test]
     //     fn invalid_header_token_1() {
-    //         let message = r#"GET / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET / HTTP/1.1
     // Fo@: Failure
     //
     // "#;
@@ -1408,7 +1408,7 @@ Hello world!";
     //     // Test for "Invalid header token #2"
     //     #[test]
     //     fn invalid_header_token_2() {
-    //         let message = r#"GET / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET / HTTP/1.1
     // Foo\01\test: Bar
     //
     // "#;
@@ -1418,7 +1418,7 @@ Hello world!";
     //     // Test for "Invalid header token #3"
     //     #[test]
     //     fn invalid_header_token_3() {
-    //         let message = r#"GET / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET / HTTP/1.1
     // : Bar
     //
     // "#;
@@ -1428,7 +1428,7 @@ Hello world!";
     //     // Test for "Invalid method"
     //     #[test]
     //     fn invalid_method() {
-    //         let message = r#"MKCOLA / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]MKCOLA / HTTP/1.1
     //
     // "#;
     //         // Placeholder for test logic
@@ -1437,7 +1437,7 @@ Hello world!";
     //     // Test for "Illegal header field name line folding"
     //     #[test]
     //     fn illegal_header_field_name_line_folding() {
-    //         let message = r#"GET / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET / HTTP/1.1
     // name
     //  : value
     //
@@ -1448,7 +1448,7 @@ Hello world!";
     //     // Test for "Corrupted Connection header"
     //     #[test]
     //     fn corrupted_connection_header() {
-    //         let message = r#"GET / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET / HTTP/1.1
     // Host: www.example.com
     // Connection\r\033\065\325eep-Alive
     // Accept-Encoding: gzip
@@ -1460,7 +1460,7 @@ Hello world!";
     //     // Test for "Corrupted header name"
     //     #[test]
     //     fn corrupted_header_name() {
-    //         let message = r#"GET / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET / HTTP/1.1
     // Host: www.example.com
     // X-Some-Header\r\033\065\325eep-Alive
     // Accept-Encoding: gzip
@@ -1472,7 +1472,7 @@ Hello world!";
     //     // Test for "Missing CR between headers"
     //     #[test]
     //     fn missing_cr_between_headers() {
-    //         let message = r#"GET / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET / HTTP/1.1
     // Host: localhost
     // Dummy: gett /admin HTTP/1.1
     // Host: localhost
@@ -1484,7 +1484,7 @@ Hello world!";
     //     // Test for "Invalid HTTP version"
     //     #[test]
     //     fn invalid_http_version() {
-    //         let message = r#"GET / HTTP/5.6
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET / HTTP/5.6
     // "#;
     //         // Placeholder for test logic
     //     }
@@ -1492,7 +1492,7 @@ Hello world!";
     //     // Test for "Invalid space after start line"
     //     #[test]
     //     fn invalid_space_after_start_line() {
-    //         let message = r#"GET / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET / HTTP/1.1
     //  Host: foo
     // "#;
     //         // Placeholder for test logic
@@ -1501,7 +1501,7 @@ Hello world!";
     //     // Test for "Only LFs present"
     //     #[test]
     //     fn only_lfs_present() {
-    //         let message = r#"POST / HTTP/1.1\nTransfer-Encoding: chunked\nTrailer: Baz
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST / HTTP/1.1\nTransfer-Encoding: chunked\nTrailer: Baz
     // Foo: abc\nBar: def\n\n1\nA\n1;abc\nB\n1;def=ghi\nC\n1;jkl="mno"\nD\n0\n\nBaz: ghi\n\n"#;
     //         // Placeholder for test logic
     //     }
@@ -1509,7 +1509,7 @@ Hello world!";
     //     // Test for "Only LFs present (lenient)"
     //     #[test]
     //     fn only_lfs_present_lenient() {
-    //         let message = r#"POST / HTTP/1.1\nTransfer-Encoding: chunked\nTrailer: Baz
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST / HTTP/1.1\nTransfer-Encoding: chunked\nTrailer: Baz
     // Foo: abc\nBar: def\n\n1\nA\n1;abc\nB\n1;def=ghi\nC\n1;jkl="mno"\nD\n0\n\nBaz: ghi\n\n"#;
     //         // Placeholder for test logic
     //     }
@@ -1517,7 +1517,7 @@ Hello world!";
     //     // Test for "Spaces before headers"
     //     #[test]
     //     fn spaces_before_headers() {
-    //         let message = r#"POST /hello HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST /hello HTTP/1.1
     // Host: localhost
     // Foo: bar
     //  Content-Length: 38
@@ -1532,7 +1532,7 @@ Hello world!";
     //     // Test for "Spaces before headers (lenient)"
     //     #[test]
     //     fn spaces_before_headers_lenient() {
-    //         let message = r#"POST /hello HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST /hello HTTP/1.1
     // Host: localhost
     // Foo: bar
     //  Content-Length: 38
@@ -1547,7 +1547,7 @@ Hello world!";
     //     // Test for "Content-Length with zeroes"
     //     #[test]
     //     fn content_length_with_zeroes() {
-    //         let message = r#"PUT /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT /url HTTP/1.1
     // Content-Length: 003
     //
     // abc"#;
@@ -1558,7 +1558,7 @@ Hello world!";
     //     // Test for "Content-Length with follow-up headers"
     //     #[test]
     //     fn content_length_with_follow_up_headers() {
-    //         let message = r#"PUT /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT /url HTTP/1.1
     // Content-Length: 003
     // Ohai: world
     //
@@ -1569,7 +1569,7 @@ Hello world!";
     //     // Test for "Error on Content-Length overflow"
     //     #[test]
     //     fn error_on_content_length_overflow() {
-    //         let message = r#"PUT /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT /url HTTP/1.1
     // Content-Length: 1000000000000000000000
     //
     // "#;
@@ -1579,7 +1579,7 @@ Hello world!";
     //     // Test for "Error on duplicate Content-Length"
     //     #[test]
     //     fn error_on_duplicate_content_length() {
-    //         let message = r#"PUT /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT /url HTTP/1.1
     // Content-Length: 1
     // Content-Length: 2
     //
@@ -1590,7 +1590,7 @@ Hello world!";
     //     // Test for "Error on simultaneous Content-Length and Transfer-Encoding: identity"
     //     #[test]
     //     fn error_on_simultaneous_content_length_and_transfer_encoding_identity() {
-    //         let message = r#"PUT /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT /url HTTP/1.1
     // Content-Length: 1
     // Transfer-Encoding: identity
     //
@@ -1601,7 +1601,7 @@ Hello world!";
     //     // Test for "Invalid whitespace token with Content-Length header field"
     //     #[test]
     //     fn invalid_whitespace_token_with_content_length_header_field() {
-    //         let message = r#"PUT /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT /url HTTP/1.1
     // Connection: upgrade
     // Content-Length : 4
     // Upgrade: ws
@@ -1613,7 +1613,7 @@ Hello world!";
     //     // Test for "Invalid whitespace token with Content-Length header field (lenient)"
     //     #[test]
     //     fn invalid_whitespace_token_with_content_length_header_field_lenient() {
-    //         let message = r#"PUT /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT /url HTTP/1.1
     // Connection: upgrade
     // Content-Length : 4
     // Upgrade: ws
@@ -1625,7 +1625,7 @@ Hello world!";
     //     // Test for "No error on simultaneous Content-Length and Transfer-Encoding: identity (lenient)"
     //     #[test]
     //     fn no_error_on_simultaneous_content_length_and_transfer_encoding_identity_lenient() {
-    //         let message = r#"PUT /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT /url HTTP/1.1
     // Content-Length: 1
     // Transfer-Encoding: identity
     //
@@ -1636,7 +1636,7 @@ Hello world!";
     //     // Test for "Funky Content-Length with body"
     //     #[test]
     //     fn funky_content_length_with_body() {
-    //         let message = r#"GET /get_funky_content_length_body_hello HTTP/1.0
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]GET /get_funky_content_length_body_hello HTTP/1.0
     // conTENT-Length: 5
     //
     // HELLO"#;
@@ -1646,7 +1646,7 @@ Hello world!";
     //     // Test for "Spaces in Content-Length (surrounding)"
     //     #[test]
     //     fn spaces_in_content_length_surrounding() {
-    //         let message = r#"POST / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST / HTTP/1.1
     // Content-Length:  42
     //
     // "#;
@@ -1656,7 +1656,7 @@ Hello world!";
     //     // Test for "Spaces in Content-Length #2"
     //     #[test]
     //     fn spaces_in_content_length_2() {
-    //         let message = r#"POST / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST / HTTP/1.1
     // Content-Length: 4 2
     //
     // "#;
@@ -1666,7 +1666,7 @@ Hello world!";
     //     // Test for "Spaces in Content-Length #3"
     //     #[test]
     //     fn spaces_in_content_length_3() {
-    //         let message = r#"POST / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST / HTTP/1.1
     // Content-Length: 13 37
     //
     // "#;
@@ -1676,7 +1676,7 @@ Hello world!";
     //     // Test for "Empty Content-Length"
     //     #[test]
     //     fn empty_content_length() {
-    //         let message = r#"POST / HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]POST / HTTP/1.1
     // Content-Length:
     //
     // "#;
@@ -1686,7 +1686,7 @@ Hello world!";
     //     // Test for "Content-Length with CR instead of dash"
     //     #[test]
     //     fn content_length_with_cr_instead_of_dash() {
-    //         let message = r#"PUT /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT /url HTTP/1.1
     // Content\rLength: 003
     //
     // abc"#;
@@ -1696,7 +1696,7 @@ Hello world!";
     //     // Test for "Content-Length reset when no body is received"
     //     #[test]
     //     fn content_length_reset_when_no_body_is_received() {
-    //         let message = r#"PUT /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT /url HTTP/1.1
     // Content-Length: 123
     //
     // POST /url HTTP/1.1
@@ -1709,7 +1709,7 @@ Hello world!";
     //     // Test for "Missing CRLF-CRLF before body"
     //     #[test]
     //     fn missing_crlf_crlf_before_body() {
-    //         let message = r#"PUT /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT /url HTTP/1.1
     // Content-Length: 3
     // \rabc"#;
     //         // Placeholder for test logic
@@ -1718,7 +1718,7 @@ Hello world!";
     //     // Test for "Missing CRLF-CRLF before body (lenient)"
     //     #[test]
     //     fn missing_crlf_crlf_before_body_lenient() {
-    //         let message = r#"PUT /url HTTP/1.1
+    //         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]PUT /url HTTP/1.1
     // Content-Length: 3
     // \rabc"#;
     //         // Placeholder for test logic
@@ -2010,7 +2010,7 @@ Hello world!";
 //
 //     #[test]
 //     fn test_http_301_moved_permanently() {
-//         let message = r#"Date: Thu, 03 Jun 2010 09:56:32 GMT
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]Date: Thu, 03 Jun 2010 09:56:32 GMT
 // Server: Apache/2.2.3 (Red Hat)
 // Cache-Control: public
 // Pragma:
@@ -2027,7 +2027,7 @@ Hello world!";
 //
 //     #[test]
 //     fn test_http_200_ok_spaces_in_header() {
-//         let message = r#"Date: Tue, 28 Sep 2010 01:14:13 GMT
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]Date: Tue, 28 Sep 2010 01:14:13 GMT
 // Server: Apache
 // Cache-Control: no-cache, must-revalidate
 // Expires: Mon, 26 Jul 1997 05:00:00 GMT
@@ -2048,7 +2048,7 @@ Hello world!";
 //
 //     #[test]
 //     fn test_http_200_ok_spaces_in_header_name() {
-//         let message = r#"Server: Microsoft-IIS/6.0
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]Server: Microsoft-IIS/6.0
 // X-Powered-By: ASP.NET
 // en-US Content-Type: text/xml
 // Content-Type: text/xml
@@ -2065,7 +2065,7 @@ Hello world!";
 //
 //     #[test]
 //     fn test_http_500_orientatieprobleem() {
-//         let message = r#"Date: Fri, 5 Nov 2010 23:07:12 GMT+2
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]Date: Fri, 5 Nov 2010 23:07:12 GMT+2
 // Content-Length: 0
 // Connection: close"#;
 //         assert!(
@@ -2076,13 +2076,13 @@ Hello world!";
 //
 //     #[test]
 //     fn test_http_09_200_ok() {
-//         let message = r#""#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]"#;
 //         assert!(true, "Test for HTTP/0.9 200 OK not implemented");
 //     }
 //
 //     #[test]
 //     fn test_http_200_ok_no_content_length() {
-//         let message = r#"Content-Type: text/plain
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]Content-Type: text/plain
 //
 // hello world"#;
 //         assert!(
@@ -2093,7 +2093,7 @@ Hello world!";
 //
 //     #[test]
 //     fn test_http_200_ok_crlf_start() {
-//         let message = r#"Header1: Value1
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]Header1: Value1
 // Header2:	 Value2
 // Content-Length: 0"#;
 //         assert!(
@@ -2104,19 +2104,19 @@ Hello world!";
 //
 //     #[test]
 //     fn test_http_404_not_found() {
-//         let message = r#""#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]"#;
 //         assert!(true, "Test for HTTP/1.1 404 Not Found not implemented");
 //     }
 //
 //     #[test]
 //     fn test_http_301() {
-//         let message = r#""#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]"#;
 //         assert!(true, "Test for HTTP/1.1 301 not implemented");
 //     }
 //
 //     #[test]
 //     fn test_http_200_empty_reason() {
-//         let message = r#""#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]"#;
 //         assert!(
 //             true,
 //             "Test for HTTP/1.1 200 with empty reason phrase not implemented"
@@ -2125,7 +2125,7 @@ Hello world!";
 //
 //     #[test]
 //     fn test_http_200_ok_no_cr() {
-//         let message = r#"Content-Type: text/html; charset=utf-8
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]Content-Type: text/html; charset=utf-8
 // Connection: close
 //
 // these headers are from http://news.ycombinator.com/"#;
@@ -2137,7 +2137,7 @@ Hello world!";
 //
 //     #[test]
 //     fn test_http_200_ok_no_cr_lenient() {
-//         let message = r#"Content-Type: text/html; charset=utf-8
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]Content-Type: text/html; charset=utf-8
 // Connection: close
 //
 // these headers are from http://news.ycombinator.com/"#;
@@ -2149,7 +2149,7 @@ Hello world!";
 //
 //     #[test]
 //     fn test_http_200_ok_underscore_header() {
-//         let message = r#"Server: DCLK-AdSvr
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]Server: DCLK-AdSvr
 // Content-Type: text/xml
 // Content-Length: 0
 // DCLK_imp: v7;x;114750856;0-0;0;17820020;0/0;21603567/21621457/1;;~okv=;dcmt=text/xml;;~cs=o"#;
@@ -2161,19 +2161,19 @@ Hello world!";
 //
 //     #[test]
 //     fn test_httper_200_ok() {
-//         let message = r#""#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]"#;
 //         assert!(true, "Test for HTTPER/1.1 200 OK not implemented");
 //     }
 //
 //     #[test]
 //     fn test_http_200_ok() {
-//         let message = r#""#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]"#;
 //         assert!(true, "Test for HTTP/1.1 200 OK not implemented");
 //     }
 //
 //     #[test]
 //     fn test_http_301_moved_permanently() {
-//         let message = r#"Location: http://www.google.com/
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]Location: http://www.google.com/
 // Content-Type: text/html; charset=UTF-8
 // Date: Sun, 26 Apr 2009 11:11:49 GMT
 // Expires: Tue, 26 May 2009 11:11:49 GMT
@@ -2196,7 +2196,7 @@ Hello world!";
 //
 //     #[test]
 //     fn test_http_301_movedpermanently() {
-//         let message = r#"Date: Wed, 15 May 2013 17:06:33 GMT
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]Date: Wed, 15 May 2013 17:06:33 GMT
 // Server: Server
 // x-amz-id-1: 0GPHKXSJQ826RK7GZEB2
 // p3p: policyref="http://www.amazon.com/w3c/p3p.xml",CP="CAO DSP LAW CUR ADM IVAo IVDo CONo OTPo OUR DELi PUBi OTRi BUS PHY ONL UNI PUR FIN COM NAV INT DEM CNT STA HEA PRE LOC GOV OTC "
@@ -2217,7 +2217,7 @@ Hello world!";
 //
 //     #[test]
 //     fn test_http_200_ok() {
-//         let message = r#"Header1: Value1
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]Header1: Value1
 // Header2:	 Value2
 // Content-Length: 0"#;
 //         assert!(true, "Test for HTTP/1.1 200 OK not implemented");
@@ -2225,19 +2225,19 @@ Hello world!";
 //
 //     #[test]
 //     fn test_rtsp_200_ok() {
-//         let message = r#""#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]"#;
 //         assert!(true, "Test for RTSP/1.1 200 OK not implemented");
 //     }
 //
 //     #[test]
 //     fn test_ice_200_ok() {
-//         let message = r#""#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]"#;
 //         assert!(true, "Test for ICE/1.1 200 OK not implemented");
 //     }
 //
 //     #[test]
 //     fn test_200_ok() {
-//         let message = r#"Content-Type: text/plain
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]Content-Type: text/plain
 // Transfer-Encoding: chunked
 //
 // 25  \r\n\
@@ -2252,7 +2252,7 @@ Hello world!";
 //
 //     #[test]
 //     fn test_200_ok_chunked_deflate() {
-//         let message = r#"Accept: */*
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]Accept: */*
 // Transfer-Encoding: chunked, deflate
 //
 // World"#;
@@ -2264,7 +2264,7 @@ Hello world!";
 //
 //     #[test]
 //     fn test_200_ok_multiple_transfer_encoding() {
-//         let message = r#"Accept: */*
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]Accept: */*
 // Transfer-Encoding: chunked
 // Transfer-Encoding: identity
 //
@@ -2277,7 +2277,7 @@ Hello world!";
 //
 //     #[test]
 //     fn test_200_ok_chunkedchunked() {
-//         let message = r#"Accept: */*
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]Accept: */*
 // Transfer-Encoding: chunkedchunked
 //
 // 2
@@ -2291,7 +2291,7 @@ Hello world!";
 //
 //     #[test]
 //     fn test_200_ok_chunk_extensions() {
-//         let message = r#"Host: localhost
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]Host: localhost
 // Transfer-encoding: chunked
 //
 // 5;ilovew3;somuchlove=aretheseparametersfor
@@ -2307,7 +2307,7 @@ Hello world!";
 //
 //     #[test]
 //     fn test_200_ok_no_semicolon_chunk_extensions() {
-//         let message = r#"Host: localhost
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]Host: localhost
 // Transfer-encoding: chunked
 //
 // 2 erfrferferf
@@ -2321,7 +2321,7 @@ Hello world!";
 //
 //     #[test]
 //     fn test_200_ok_no_extension_after_semicolon() {
-//         let message = r#"Host: localhost
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]Host: localhost
 // Transfer-encoding: chunked
 //
 // 2;
@@ -2335,7 +2335,7 @@ Hello world!";
 //
 //     #[test]
 //     fn test_200_ok_chunk_extensions_quoting() {
-//         let message = r#"Host: localhost
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]Host: localhost
 // Transfer-Encoding: chunked
 //
 // 5;ilovew3="I love; extensions";somuchlove="aretheseparametersfor";blah;foo=bar
@@ -2351,7 +2351,7 @@ Hello world!";
 //
 //     #[test]
 //     fn test_200_ok_unbalanced_chunk_extensions_quoting() {
-//         let message = r#"Host: localhost
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]Host: localhost
 // Transfer-Encoding: chunked
 //
 // 5;ilovew3="abc";somuchlove="def; ghi
@@ -2367,7 +2367,7 @@ Hello world!";
 //
 //     #[test]
 //     fn test_200_ok_invalid_obs_fold() {
-//         let message = r#"Transfer-Encoding: chunked
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]Transfer-Encoding: chunked
 //   abc
 //
 // 5
@@ -2762,43 +2762,43 @@ Hello world!";
 //
 //     #[test]
 //     fn test_absolute_url() {
-//         let message = r#"http://example.com/path?query=value#schema"#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]http://example.com/path?query=value#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]chema"#;
 //         assert!(true, "Test for absolute URL not implemented");
 //     }
 //
 //     #[test]
 //     fn test_relative_url() {
-//         let message = r#"/path?query=value#schema"#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]/path?query=value#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]chema"#;
 //         assert!(true, "Test for relative URL not implemented");
 //     }
 //
 //     #[test]
 //     fn test_broken_schema() {
-//         let message = r#"schema:/path?query=value#schema"#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]schema:/path?query=value#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]chema"#;
 //         assert!(true, "Test for broken schema not implemented");
 //     }
 //
 //     #[test]
 //     fn test_proxy_request() {
-//         let message = r#"http://hostname/"#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]http://hostname/"#;
 //         assert!(true, "Test for proxy request not implemented");
 //     }
 //
 //     #[test]
 //     fn test_proxy_request_with_port() {
-//         let message = r#"http://hostname:444/"#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]http://hostname:444/"#;
 //         assert!(true, "Test for proxy request with port not implemented");
 //     }
 //
 //     #[test]
 //     fn test_proxy_ipv6_request() {
-//         let message = r#"http://[1:2::3:4]/"#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]http://[1:2::3:4]/"#;
 //         assert!(true, "Test for proxy IPv6 request not implemented");
 //     }
 //
 //     #[test]
 //     fn test_proxy_ipv6_request_with_port() {
-//         let message = r#"http://[1:2::3:4]:67/"#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]http://[1:2::3:4]:67/"#;
 //         assert!(
 //             true,
 //             "Test for proxy IPv6 request with port not implemented"
@@ -2807,55 +2807,55 @@ Hello world!";
 //
 //     #[test]
 //     fn test_ipv4_in_ipv6() {
-//         let message = r#"http://[2001:0000:0000:0000:0000:0000:1.9.1.1]/"#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]http://[2001:0000:0000:0000:0000:0000:1.9.1.1]/"#;
 //         assert!(true, "Test for IPv4 in IPv6 address not implemented");
 //     }
 //
 //     #[test]
 //     fn test_extra_query() {
-//         let message = r#"http://a.tbcdn.cn/p/fp/2010c/??fp-header-min.css,fp-base-min.css,fp-channel-min.css,fp-product-min.css,fp-mall-min.css,fp-category-min.css,fp-sub-min.css,fp-gdp4p-min.css,fp-css3-min.css,fp-misc-min.css?t=20101022.css"#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]http://a.tbcdn.cn/p/fp/2010c/??fp-header-min.css,fp-base-min.css,fp-channel-min.css,fp-product-min.css,fp-mall-min.css,fp-category-min.css,fp-sub-min.css,fp-gdp4p-min.css,fp-css3-min.css,fp-misc-min.css?t=20101022.css"#;
 //         assert!(true, "Test for extra ? in query string not implemented");
 //     }
 //
 //     #[test]
 //     fn test_url_encoded_space() {
-//         let message = r#"/toto.html?toto=a%20b"#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]/toto.html?toto=a%20b"#;
 //         assert!(true, "Test for URL encoded space not implemented");
 //     }
 //
 //     #[test]
 //     fn test_url_fragment() {
-//         let message = r#"/toto.html#titi"#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]/toto.html#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]iti"#;
 //         assert!(true, "Test for URL fragment not implemented");
 //     }
 //
 //     #[test]
 //     fn test_complex_url_fragment() {
-//         let message = r#"http://www.webmasterworld.com/r.cgi?f=21&d=8405&url=http://www.example.com/index.html?foo=bar&hello=world#midpage"#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]http://www.webmasterworld.com/r.cgi?f=21&d=8405&url=http://www.example.com/index.html?foo=bar&hello=world#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]idpage"#;
 //         assert!(true, "Test for complex URL fragment not implemented");
 //     }
 //
 //     #[test]
 //     fn test_complex_url_node() {
-//         let message = r#"http://host.com:8080/p/a/t/h?query=string#hash"#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]http://host.com:8080/p/a/t/h?query=string#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]ash"#;
 //         assert!(true, "Test for complex URL from node.js not implemented");
 //     }
 //
 //     #[test]
 //     fn test_complex_url_basic_auth() {
-//         let message = r#"http://a:b@host.com:8080/p/a/t/h?query=string#hash"#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]http://a:b@host.com:8080/p/a/t/h?query=string#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]ash"#;
 //         assert!(true, "Test for complex URL with basic auth not implemented");
 //     }
 //
 //     #[test]
 //     fn test_double_at() {
-//         let message = r#"http://a:b@@hostname:443/"#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]http://a:b@@hostname:443/"#;
 //         assert!(true, "Test for double @ in URL not implemented");
 //     }
 //
 //     #[test]
 //     fn test_proxy_basic_auth_encoded_space() {
-//         let message = r#"http://a%20:b@host.com/"#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]http://a%20:b@host.com/"#;
 //         assert!(
 //             true,
 //             "Test for proxy basic auth with encoded space not implemented"
@@ -2864,7 +2864,7 @@ Hello world!";
 //
 //     #[test]
 //     fn test_proxy_basic_auth_unreserved() {
-//         let message = r#"http://a!;-_!=+$@host.com/"#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]http://a!;-_!=+$@host.com/"#;
 //         assert!(
 //             true,
 //             "Test for proxy basic auth with unreserved chars not implemented"
@@ -2873,13 +2873,13 @@ Hello world!";
 //
 //     #[test]
 //     fn test_ipv6_zone_id() {
-//         let message = r#"http://[fe80::a%25eth0]/"#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]http://[fe80::a%25eth0]/"#;
 //         assert!(true, "Test for IPv6 address with Zone ID not implemented");
 //     }
 //
 //     #[test]
 //     fn test_ipv6_zone_id_non_encoded() {
-//         let message = r#"http://[fe80::a%eth0]/"#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]http://[fe80::a%eth0]/"#;
 //         assert!(
 //             true,
 //             "Test for IPv6 address with non-encoded % not implemented"
@@ -2888,13 +2888,13 @@ Hello world!";
 //
 //     #[test]
 //     fn test_disallow_tab() {
-//         let message = r#"/foo	bar/"#;
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]/foo	bar/"#;
 //         assert!(true, "Test for disallow tab in URL not implemented");
 //     }
 //
 //     #[test]
 //     fn test_disallow_form_feed() {
-//         let message = r#"/foo
+//         let message = r#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]/foo
 // bar/"#;
 //         assert!(true, "Test for disallow form-feed in URL not implemented");
 //     }

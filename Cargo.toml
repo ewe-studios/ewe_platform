@@ -59,7 +59,7 @@ ewe_domain_macro = { path = "./crates/domain-macro", version = "0.0.1" }
 ewe_templates_macro = { path = "./crates/template-macro", version = "0.0.1" }
 
 # -- workspace wide packages
-toml = { version = "0.8.19" }
+toml = { version = "0.9.4" }
 anyhow = { version = "1.0.80" }
 tracing = { version = "0.1.40" }
 concurrent-queue = { version = "2.5.0" }

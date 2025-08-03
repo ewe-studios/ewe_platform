@@ -2713,7 +2713,7 @@ pub type ChunkSizeOctet = String;
 // ChunkState provides a series of parsing functions that help process the Chunked Transfer Coding
 // specification for Http 1.1.
 //
-// See https://datatracker.ietf.org/doc/html/rfc7230#section-4.1:
+// See https://datatracker.ietf.org/doc/html/rfc7230#[cfg(all(feature = "ssl-rustls", not(feature="ssl-openssl"), not(feature="ssl-native-tls"))))]ection-4.1:
 //
 //  4.1.  Chunked Transfer Coding
 //
