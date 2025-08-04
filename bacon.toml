@@ -14,7 +14,7 @@ analyzer = "cargo_json"
 need_stdout = true
 
 [jobs.bacon-ls]
-command = [ "cargo", "clippy", "--workspace", "--tests", "--all-targets", "--message-format", "json-diagnostic-rendered-ansi" ]
+command = [ "cargo", "clippy", "--workspace", "--tests", "--all-targets", "--features=default", "--message-format", "json-diagnostic-rendered-ansi" ]
 analyzer = "cargo_json"
 need_stdout = true
 

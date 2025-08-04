@@ -57,7 +57,7 @@ impl NativeTlsStream {
 
 // These struct methods form the implict contract for swappable TLS implementations
 impl NativeTlsStream {
-    pub fn try_clone(&self) -> std::io::Result<Self> {
+    pub fn try_clone_connection(&self) -> std::io::Result<Connection> {
         self.0
             .lock()
             .expect("Failed to lock ssl stream")
@@ -102,7 +102,7 @@ impl NativeTlsStream {
     }
 }
 
-impl PeekableReadStream for Connection {
+impl PeekableReadStream for NativeTlsStream {
     fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError> {
         self.0
             .lock()
@@ -148,7 +148,7 @@ impl NativeTlsAcceptor {
 
     pub fn from_der(
         der: Vec<u8>,
-        password: Zeroizing<Vec<u8>>,
+        password: Zeroizing<String>,
     ) -> Result<Self, Box<dyn Error + Send + Sync>> {
         let identity = native_tls::Identity::from_pkcs12(&der, &password)?;
         Self::from_identity(identity)
@@ -177,8 +177,8 @@ pub struct NativeTlsConnector(Arc<native_tls::TlsConnector>);
 impl NativeTlsConnector {
     pub fn create(endpoint: &Endpoint<Arc<native_tls::TlsConnector>>) -> Self {
         match &endpoint {
-            Endpoint::WithIdentity(config, identity) => {
-                Self(identity.clone());
+            Endpoint::WithIdentity(_config, identity) => {
+                Self(identity.clone())
             }
             _ => unreachable!("You generally won't call this method with Endpoint::NoIdentity since its left to you to generate")
         }
@@ -200,13 +200,14 @@ impl NativeTlsConnector {
         }?;
 
         let ssl_stream = self.0.connect(sni.as_str(), plain)?;
+        let conn_stream = Arc::new(Mutex::new(ssl_stream));
 
-        Ok(NativeTlsStream(Arc::new(Mutex::new(ssl_stream))))
+        Ok((NativeTlsStream(conn_stream), addr))
     }
 
     pub fn from_endpoint(
         &self,
-        endpoint: Endpoint<Arc<native_tls::TlsConnector>>,
+        endpoint: &Endpoint<Arc<native_tls::TlsConnector>>,
     ) -> Result<(NativeTlsStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
         let host = endpoint.host();
         let host_socket_addr: core::net::SocketAddr = host.parse()?;
@@ -214,15 +215,15 @@ impl NativeTlsConnector {
         let plain_stream = match endpoint {
             Endpoint::WithDefault(config) => match config {
                 EndpointConfig::WithTimeout(_, timeout) => {
-                    TcpStream::connect_timeout(&host_socket_addr, timeout)
+                    TcpStream::connect_timeout(&host_socket_addr, *timeout)
                 }
-                _ => TcpStream::connect(&host_socket_addr),
+                _ => TcpStream::connect(host_socket_addr),
             },
             Endpoint::WithIdentity(config, _) => match config {
                 EndpointConfig::WithTimeout(_, timeout) => {
-                    TcpStream::connect_timeout(&host_socket_addr, timeout)
+                    TcpStream::connect_timeout(&host_socket_addr, *timeout)
                 }
-                _ => TcpStream::connect(&host_socket_addr),
+                _ => TcpStream::connect(host_socket_addr),
             },
         }?;
 

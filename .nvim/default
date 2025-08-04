@@ -17,12 +17,13 @@ badd +215 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netc
 badd +1 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/wasm.rs
 badd +28 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/core.rs
 badd +1 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/mod.rs
-badd +80 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/no_wasm.rs
+badd +114 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/no_wasm.rs
 badd +49 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs
-badd +2 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/rustls.rs
+badd +7 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/rustls.rs
 badd +66 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/connection/mod.rs
-badd +9 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/openssl.rs
-badd +7 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/native_tls.rs
+badd +1 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/openssl.rs
+badd +1 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/native_tls.rs
+badd +215 ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/native_ttls.rs
 argglobal
 %argdel
 edit ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/rustls.rs
@@ -63,39 +64,59 @@ setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-25
+24
 sil! normal! zo
 25
-sil! normal! zc
-59
 sil! normal! zo
-59
+25
 sil! normal! zc
-103
+57
 sil! normal! zo
-103
+58
+sil! normal! zo
+58
+sil! normal! zo
+58
 sil! normal! zc
+110
+sil! normal! zo
+111
+sil! normal! zo
 112
 sil! normal! zo
 112
+sil! normal! zo
+112
 sil! normal! zc
+119
+sil! normal! zo
+120
+sil! normal! zo
+121
+sil! normal! zo
 121
 sil! normal! zo
 121
 sil! normal! zc
+128
+sil! normal! zo
+136
+sil! normal! zo
+137
+sil! normal! zo
 137
 sil! normal! zo
 137
 sil! normal! zc
-158
+144
 sil! normal! zo
-158
+144
 sil! normal! zc
-let s:l = 5 - ((4 * winheight(0) + 12) / 24)
+let s:l = 7 - ((4 * winheight(0) + 12) / 24)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 5
+keepjumps 7
 normal! 0
 wincmd w
 argglobal
@@ -112,27 +133,23 @@ setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-139
+131
 sil! normal! zo
-139
+131
 sil! normal! zc
-182
-sil! normal! zo
-182
-sil! normal! zc
-let s:l = 9 - ((8 * winheight(0) + 11) / 23)
+let s:l = 1 - ((-13 * winheight(0) + 11) / 23)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 9
+keepjumps 1
 normal! 022|
 wincmd w
 argglobal
-if bufexists(fnamemodify("~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/native_tls.rs", ":p")) | buffer ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/native_tls.rs | else | edit ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/native_tls.rs | endif
+if bufexists(fnamemodify("~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/native_ttls.rs", ":p")) | buffer ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/native_ttls.rs | else | edit ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/native_ttls.rs | endif
 if &buftype ==# 'terminal'
-  silent file ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/native_tls.rs
+  silent file ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/native_ttls.rs
 endif
-balt ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/openssl.rs
+balt ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/ssl/native_tls.rs
 setlocal foldmethod=expr
 setlocal foldexpr=v:lua.require'lazyvim.util'.ui.foldexpr()
 setlocal foldmarker={{{,}}}
@@ -141,18 +158,12 @@ setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-137
-sil! normal! zo
-137
-sil! normal! zc
-171
-sil! normal! zo
-let s:l = 7 - ((6 * winheight(0) + 12) / 24)
+let s:l = 215 - ((6 * winheight(0) + 12) / 24)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 7
-normal! 020|
+keepjumps 215
+normal! 027|
 wincmd w
 argglobal
 if bufexists(fnamemodify("~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/no_wasm.rs", ":p")) | buffer ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/no_wasm.rs | else | edit ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/netcap/no_wasm.rs | endif
@@ -168,18 +179,20 @@ setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
+56
+sil! normal! zo
 75
 sil! normal! zo
-84
+76
 sil! normal! zo
-91
+86
 sil! normal! zo
-let s:l = 80 - ((19 * winheight(0) + 36) / 73)
+let s:l = 114 - ((40 * winheight(0) + 36) / 73)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 80
-normal! 085|
+keepjumps 114
+normal! 0
 wincmd w
 argglobal
 if bufexists(fnamemodify("~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs", ":p")) | buffer ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs | else | edit ~/Documents/box/box.dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs | endif
@@ -195,18 +208,18 @@ setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-42
+39
 sil! normal! zo
-43
+40
 sil! normal! zo
-let s:l = 49 - ((30 * winheight(0) + 36) / 73)
+let s:l = 49 - ((12 * winheight(0) + 36) / 73)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
 keepjumps 49
-normal! 031|
+normal! 05|
 wincmd w
-2wincmd w
+3wincmd w
 wincmd =
 tabnext 1
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'

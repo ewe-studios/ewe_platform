@@ -19,7 +19,7 @@ pub struct OpenSslStream {
 }
 
 impl OpenSslStream {
-    pub fn try_clone(&self) -> std::io::Result<Self> {
+    pub fn try_clone_connection(&self) -> std::io::Result<Connection> {
         self.inner.get_ref().try_clone()
     }
 
@@ -186,8 +186,8 @@ pub struct OpenSslConnector(Arc<openssl::ssl::SslConnector>);
 impl OpenSslConnector {
     pub fn create(endpoint: &Endpoint<Arc<openssl::ssl::SslConnector>>) -> Self {
         match &endpoint {
-            Endpoint::WithIdentity(config, identity) => {
-                Self(identity.clone());
+            Endpoint::WithIdentity(_, identity) => {
+                Self(identity.clone())
             }
             _ => unreachable!("You generally won't call this method with Endpoint::NoIdentity since its left to you to generate")
         }
@@ -208,14 +208,18 @@ impl OpenSslConnector {
             _ => Err(DataStreamError::NoAddr),
         }?;
 
-        let ssl_stream = self.0.connect(sni.as_str(), plain)?;
+        let ssl_stream = OpenSslStream {
+            inner: self.0.connect(sni.as_str(), plain)?,
+        };
 
-        Ok(SplitOpenSslStream(Arc::new(Mutex::new(ssl_stream))))
+        let split_stream = SplitOpenSslStream(Arc::new(Mutex::new(ssl_stream)));
+
+        Ok((split_stream, addr))
     }
 
     pub fn from_endpoint(
         &self,
-        endpoint: Endpoint<Arc<openssl::ssl::SslConnector>>,
+        endpoint: &Endpoint<Arc<openssl::ssl::SslConnector>>,
     ) -> Result<(SplitOpenSslStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
         let host = endpoint.host();
         let host_socket_addr: core::net::SocketAddr = host.parse()?;
@@ -223,15 +227,15 @@ impl OpenSslConnector {
         let plain_stream = match endpoint {
             Endpoint::WithDefault(config) => match config {
                 EndpointConfig::WithTimeout(_, timeout) => {
-                    TcpStream::connect_timeout(&host_socket_addr, timeout)
+                    TcpStream::connect_timeout(&host_socket_addr, *timeout)
                 }
-                _ => TcpStream::connect(&host_socket_addr),
+                _ => TcpStream::connect(host_socket_addr),
             },
             Endpoint::WithIdentity(config, _) => match config {
                 EndpointConfig::WithTimeout(_, timeout) => {
-                    TcpStream::connect_timeout(&host_socket_addr, timeout)
+                    TcpStream::connect_timeout(&host_socket_addr, *timeout)
                 }
-                _ => TcpStream::connect(&host_socket_addr),
+                _ => TcpStream::connect(host_socket_addr),
             },
         }?;
 
