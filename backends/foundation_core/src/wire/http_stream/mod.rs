@@ -1,4 +1,5 @@
 use core::time;
+use std::sync::Arc;
 use std::time::Duration;
 
 use crate::netcap::{ClientEndpoint, DataStreamError, RawStream};
@@ -8,6 +9,7 @@ use crate::valtron::delayed_iterators::{DelayedIterator, SleepIterator};
 use derive_more::derive::From;
 
 use super::simple_http;
+use crate::compati::Mutex;
 
 pub fn create_simple_http_reader<T: simple_http::BodyExtractor>(
     stream: RawStream,
@@ -31,7 +33,7 @@ const DEFAULT_MAX_RETRIES: u32 = 10;
 
 pub struct ReconnectingStream {
     max_retries: u32,
-    state: ConnectionState,
+    state: Arc<Mutex<ConnectionState>>,
     connection_timeout: time::Duration,
     decider: Box<dyn CReconnectionDecider>,
 }
@@ -85,7 +87,7 @@ impl ReconnectingStream {
             max_retries,
             connection_timeout,
             decider: Box::new(decider),
-            state: ConnectionState::Todo(endpoint),
+            state: Arc::new(Mutex::new(ConnectionState::Todo(endpoint))),
         }
     }
 }
@@ -159,7 +161,8 @@ impl Iterator for ReconnectingStream {
 
     #[allow(clippy::too_many_lines)]
     fn next(&mut self) -> Option<Self::Item> {
-        match &mut self.state {
+        let mut current_state = self.state.lock().unwrap();
+        match &mut *current_state {
             ConnectionState::Todo(endpoint) => {
                 // if we get called and we are at the established state then it
                 // means reconnection is required.
@@ -171,7 +174,7 @@ impl Iterator for ReconnectingStream {
 
                 match RawStream::from_endpoint(endpoint) {
                     Ok(connected_stream) => {
-                        self.state = ConnectionState::Established(endpoint.clone());
+                        *current_state = ConnectionState::Established(endpoint.clone());
                         Some(Ok(ReconnectionStatus::Ready(Box::new(connected_stream))))
                     }
                     Err(connection_error) => match reconnection_state_option {
@@ -179,11 +182,11 @@ impl Iterator for ReconnectingStream {
                             let duration = rstate.wait.unwrap_or(Duration::from_secs(0));
 
                             let sleeper = SleepIterator::until(duration, endpoint.clone());
-                            self.state = ConnectionState::Reconnect(rstate, Some(sleeper));
+                            *current_state = ConnectionState::Reconnect(rstate, Some(sleeper));
                             Some(Ok(ReconnectionStatus::Waiting(duration)))
                         }
                         None => {
-                            self.state = ConnectionState::Exhausted(endpoint.clone());
+                            *current_state = ConnectionState::Exhausted(endpoint.clone());
                             Some(Err(ReconnectionError::Failed(connection_error)))
                         }
                     },
@@ -196,7 +199,7 @@ impl Iterator for ReconnectingStream {
 
                 match RawStream::from_endpoint(endpoint) {
                     Ok(connected_stream) => {
-                        self.state = ConnectionState::Established(endpoint.clone());
+                        *current_state = ConnectionState::Established(endpoint.clone());
                         Some(Ok(ReconnectionStatus::Ready(Box::new(connected_stream))))
                     }
                     Err(connection_error) => match reconnection_state_option {
@@ -204,11 +207,11 @@ impl Iterator for ReconnectingStream {
                             let duration = rstate.wait.unwrap_or(Duration::from_secs(0));
 
                             let sleeper = SleepIterator::until(duration, endpoint.clone());
-                            self.state = ConnectionState::Reconnect(rstate, Some(sleeper));
+                            *current_state = ConnectionState::Reconnect(rstate, Some(sleeper));
                             Some(Ok(ReconnectionStatus::Waiting(duration)))
                         }
                         None => {
-                            self.state = ConnectionState::Exhausted(endpoint.clone());
+                            *current_state = ConnectionState::Exhausted(endpoint.clone());
                             Some(Err(ReconnectionError::Failed(connection_error)))
                         }
                     },
@@ -231,11 +234,11 @@ impl Iterator for ReconnectingStream {
                         };
 
                         let sleeper = SleepIterator::until(duration, endpoint.clone());
-                        self.state = ConnectionState::Reconnect(rstate, Some(sleeper));
+                        *current_state = ConnectionState::Reconnect(rstate, Some(sleeper));
                         Some(Ok(ReconnectionStatus::Waiting(duration)))
                     }
                     None => {
-                        self.state = ConnectionState::Exhausted(endpoint.clone());
+                        *current_state = ConnectionState::Exhausted(endpoint.clone());
                         Some(Err(ReconnectionError::NoMoreRetries))
                     }
                 }
@@ -245,12 +248,12 @@ impl Iterator for ReconnectingStream {
                     Some(mut sleeper) => match sleeper.next() {
                         Some(delayed_state) => match delayed_state {
                             Delayed::Pending(_, _, remaining_dur) => {
-                                self.state =
+                                *current_state =
                                     ConnectionState::Reconnect(rstate.clone(), Some(sleeper));
                                 Some(Ok(ReconnectionStatus::Waiting(remaining_dur)))
                             }
                             Delayed::Done(endpoint) => {
-                                self.state = ConnectionState::Redo(endpoint, rstate.clone());
+                                *current_state = ConnectionState::Redo(endpoint, rstate.clone());
                                 Some(Ok(ReconnectionStatus::NoMoreWaiting))
                             }
                         },

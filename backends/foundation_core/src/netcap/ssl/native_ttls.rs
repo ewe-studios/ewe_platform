@@ -146,6 +146,14 @@ impl NativeTlsAcceptor {
         Ok(Self(acceptor))
     }
 
+    pub fn from_der2(
+        der: Vec<u8>,
+        password: Zeroizing<Vec<u8>>,
+    ) -> Result<Self, Box<dyn Error + Send + Sync>> {
+        let identity = native_tls::Identity::from_pkcs8(&der, &password)?;
+        Self::from_identity(identity)
+    }
+
     pub fn from_der(
         der: Vec<u8>,
         password: Zeroizing<String>,
