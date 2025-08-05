@@ -14,7 +14,7 @@ analyzer = "cargo_json"
 need_stdout = true
 
 [jobs.bacon-ls]
-command = [ "cargo", "clippy", "--workspace", "--tests", "--all-targets", "--features=default", "--message-format", "json-diagnostic-rendered-ansi" ]
+command = [ "cargo", "clippy", "--workspace", "--tests", "--all-targets",  "--message-format", "json-diagnostic-rendered-ansi" ]
 analyzer = "cargo_json"
 need_stdout = true
 
@@ -33,10 +33,11 @@ command = [ "cargo", "clippy", "--workspace", "--tests", "--all-targets", "--fea
 analyzer = "cargo_json"
 need_stdout = true
 
-[jobs.bacon-wasm]
+[jobs.tests-wasm]
 command = [ "cargo", "clippy", "--workspace", "--tests", "--targets=\"wasm32-unknown-unknown\"", "--all-features", "--message-format", "json-diagnostic-rendered-ansi" ]
 analyzer = "cargo_json"
 need_stdout = true
+
 
 [exports.cargo-json-spans]
 auto = true
@@ -85,8 +86,16 @@ need_stdout = true
 command = ["make", "wasm-tests"]
 need_stdout = true
 
+[jobs.test_foundation_core]
+command = ["cargo", "nextest", "--", "--package", "foundation_core",
+    "--hide-progress-bar", "--failure-output", "final"
+]
+need_stdout = true
+
 [jobs.test_foundation_wasm]
-command = ["cargo", "test", "--package", "foundation_wasm"]
+command = ["cargo", "nextest", "--", "--package", "foundation_wasm",
+    "--hide-progress-bar", "--failure-output", "final"
+]
 need_stdout = true
 
 [jobs.nextest]
@@ -153,3 +162,4 @@ allow_warnings = true
 [keybindings]
 # alt-m = "job:my-job"
 c = "job:clippy-all" # comment this to have 'c' run clippy on only the default target
+t = "job:tests-http-request-compliance" # comment this to have 'c' run clippy on only the default target

@@ -83,7 +83,7 @@ nothread_runtime = []
 tokio_runtime = ["dep:tokio"]
 
 # default flags
-default = ["standard", "ssl-native-tls"]
+default = ["standard", "ssl"]
 
 [package.metadata.docs.rs]
 # enable one of these as default implementation
