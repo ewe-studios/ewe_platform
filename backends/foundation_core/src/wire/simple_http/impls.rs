@@ -2588,6 +2588,9 @@ where
                         self.state = HttpReadState::Finished;
                         return Some(Err(HttpReaderError::HeaderKeyContainsEncodedCRLF));
                     }
+
+                    println!("HeaderKey: {:?}", &header_key);
+
                     for space_char in SPACE_CHARS {
                         if header_key.contains(*space_char) {
                             self.state = HttpReadState::Finished;
@@ -3292,6 +3295,13 @@ impl<T: PeekableReadStream + Send> Iterator for SimpleHttpChunkIterator<T> {
                     Err(err) => return Some(Err(Box::new(err))),
                 };
 
+                println!(
+                    "Chunked header slice: {:?} [{}] -> {:?}",
+                    &header_slice,
+                    header_slice.len(),
+                    str::from_utf8(header_slice).expect("into string")
+                );
+
                 let total_bytes_before_body =
                     match ChunkState::get_http_chunk_header_length_from_pointer(
                         &mut ubytes::BytesPointer::new(header_slice),
@@ -3300,31 +3310,42 @@ impl<T: PeekableReadStream + Send> Iterator for SimpleHttpChunkIterator<T> {
                         Err(err) => return Some(Err(Box::new(err))),
                     };
 
+                println!(
+                    "Chunked header slice: {:?} - {:?}",
+                    &header_slice, &total_bytes_before_body
+                );
+
                 let mut head_pointer = ubytes::BytesPointer::new(header_slice);
                 match ChunkState::parse_http_chunk_from_pointer(&mut head_pointer) {
-                    Ok(chunk) => match chunk {
-                        ChunkState::Chunk(size, _, opt_exts) => {
-                            let size_to_read = (total_bytes_before_body as u64) + size;
-                            let mut read_buffer = Vec::with_capacity(size_to_read as usize);
+                    Ok(chunk) => {
+                        println!("Chunked state: {:?}", &chunk);
+                        match chunk {
+                            ChunkState::Chunk(size, _, opt_exts) => {
+                                let size_to_read = (total_bytes_before_body as u64) + size;
+                                let mut read_buffer = Vec::with_capacity(size_to_read as usize);
 
-                            if let Err(err) = reader.read_exact(&mut read_buffer) {
-                                return Some(Err(Box::new(err)));
+                                if let Err(err) = reader.read_exact(&mut read_buffer) {
+                                    return Some(Err(Box::new(err)));
+                                }
+
+                                let chunk_data: &[u8] =
+                                    &read_buffer[total_bytes_before_body..read_buffer.len()];
+
+                                println!("Chunked data: {:?}", &chunk_data);
+                                Some(Ok(ChunkedData::Data(Vec::from(chunk_data), opt_exts)))
                             }
-
-                            let chunk_data: &[u8] =
-                                &read_buffer[total_bytes_before_body..read_buffer.len()];
-
-                            Some(Ok(ChunkedData::Data(Vec::from(chunk_data), opt_exts)))
+                            ChunkState::LastChunk => Some(Ok(ChunkedData::DataEnded)),
+                            ChunkState::Trailer(mut inner) => match inner.find(":") {
+                                Some(index) => {
+                                    let (key, value) = inner.split_at_mut(index);
+                                    Some(Ok(ChunkedData::Trailer(key.into(), value.into())))
+                                }
+                                None => {
+                                    Some(Err(Box::new(HttpReaderError::InvalidTailerWithNoValue)))
+                                }
+                            },
                         }
-                        ChunkState::LastChunk => Some(Ok(ChunkedData::DataEnded)),
-                        ChunkState::Trailer(mut inner) => match inner.find(":") {
-                            Some(index) => {
-                                let (key, value) = inner.split_at_mut(index);
-                                Some(Ok(ChunkedData::Trailer(key.into(), value.into())))
-                            }
-                            None => Some(Err(Box::new(HttpReaderError::InvalidTailerWithNoValue))),
-                        },
-                    },
+                    }
                     Err(err) => Some(Err(Box::new(err))),
                 }
             }

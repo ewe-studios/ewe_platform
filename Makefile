@@ -7,6 +7,12 @@ TEST_PACKAGE ?= $(notdir $(TEST_DIRECTORY))
 
 TARGET_TEST ?= tests_callfunction
 
+nextest:
+	bacon -j nextest 
+
+test_foundation_core:
+	bacon -j test_foundation_core
+
 bacon:
 	bacon -j bacon-ls
 

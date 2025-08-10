@@ -1,12 +1,15 @@
+#![allow(unused)]
+
 #[cfg(test)]
 mod test_http_reader_requests_compliance {
     use regex::Regex;
 
+    use crate::extensions::result_ext::BoxedError;
     use crate::io::ioutils;
     use crate::panic_if_failed;
     use crate::wire::simple_http::{
-        HttpReader, HttpReaderError, IncomingRequestParts, SimpleBody, SimpleHeader, SimpleMethod,
-        SimpleUrl, WrappedTcpStream,
+        ChunkedData, HttpReader, HttpReaderError, IncomingRequestParts, SimpleBody, SimpleHeader,
+        SimpleMethod, SimpleUrl, WrappedTcpStream,
     };
 
     use std::collections::BTreeMap;
@@ -378,61 +381,176 @@ Hello world!";
 
     // Test function for "Disallow UTF-8 in URI path in strict mode"
     #[test]
-    fn test_disallow_utf8_in_uri_path_in_strict_mode() {
+    fn test_allow_utf8_in_uri_path() {
         let message = "GET /δ¶/δt/pope?q=1#narf HTTP/1.1\nHost: github.com\n\n\n";
+
         // Test implementation would go here
+        let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+        let addr = listener.local_addr().expect("should return address");
+
+        let req_thread = thread::spawn(move || {
+            let mut client = panic_if_failed!(TcpStream::connect(addr));
+            panic_if_failed!(client.write(message.as_bytes()))
+        });
+
+        let (client_stream, _) = panic_if_failed!(listener.accept());
+        let reader = ioutils::BufferedReader::new(WrappedTcpStream::new(client_stream));
+        let simple_tcp_stream = HttpReader::simple_tcp_stream(reader);
+        let request_reader = simple_tcp_stream;
+
+        let request_parts = request_reader
+            .into_iter()
+            .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+            .expect("should generate output");
+
+        dbg!(&request_parts);
+
+        let expected_parts: Vec<IncomingRequestParts> = vec![
+            IncomingRequestParts::Intro(
+                SimpleMethod::GET,
+                SimpleUrl {
+                    url: "/δ¶/δt/pope?q=1#narf".into(),
+                    url_only: false,
+                    matcher: Some(panic_if_failed!(Regex::new("/δ¶/δt/pope"))),
+                    params: None,
+                    queries: Some(BTreeMap::<String, String>::from([(
+                        "q".into(),
+                        "1#narf".into(),
+                    )])),
+                },
+                "HTTP/1.1".into(),
+            ),
+            IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([(
+                SimpleHeader::HOST,
+                "github.com".into(),
+            )])),
+            IncomingRequestParts::Body(Some(SimpleBody::None)),
+        ];
+
+        assert_eq!(request_parts, expected_parts);
+        req_thread.join().expect("should be closed");
     }
 
     // Test function for "Fragment in URI"
     #[test]
     fn test_fragment_in_uri() {
         let message = "GET /forums/1/topics/2375?page=1#posts-17408 HTTP/1.1\n\n\n";
+
         // Test implementation would go here
-    }
+        let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+        let addr = listener.local_addr().expect("should return address");
 
-    // Test function for "Underscore in hostname"
-    #[test]
-    fn test_underscore_in_hostname() {
-        let message = "CONNECT home_0.netscape.com:443 HTTP/1.0\nUser-agent: Mozilla/1.1N\nProxy-authorization: basic aGVsbG86d29ybGQ=\n\n\n";
-        // Test implementation would go here
-    }
+        let req_thread = thread::spawn(move || {
+            let mut client = panic_if_failed!(TcpStream::connect(addr));
+            panic_if_failed!(client.write(message.as_bytes()))
+        });
 
-    // Test function for "`host:port` and basic auth"
-    #[test]
-    fn test_host_port_and_basic_auth() {
-        let message = "GET http://a%12:b!&*$@hypnotoad.org:1234/toto HTTP/1.1\n\n\n";
-        // Test implementation would go here
-    }
+        let (client_stream, _) = panic_if_failed!(listener.accept());
+        let reader = ioutils::BufferedReader::new(WrappedTcpStream::new(client_stream));
+        let simple_tcp_stream = HttpReader::simple_tcp_stream(reader);
+        let request_reader = simple_tcp_stream;
 
-    // Test function for "Space in URI"
-    #[test]
-    fn test_space_in_uri() {
-        let message = "GET /foo bar/ HTTP/1.1\n\n\n";
-        // Test implementation would go here
-    }
+        let request_parts = request_reader
+            .into_iter()
+            .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+            .expect("should generate output");
 
-    // Test for "Parsing and setting flag"
-    #[test]
-    fn parsing_and_setting_flag() {
-        let message = r#"PUT /url HTTP/1.1
-    Transfer-Encoding: chunked
+        dbg!(&request_parts);
 
-    "#;
-        // Placeholder for test logic
+        let expected_parts: Vec<IncomingRequestParts> = vec![
+            IncomingRequestParts::Intro(
+                SimpleMethod::GET,
+                SimpleUrl {
+                    url: "/forums/1/topics/2375?page=1#posts-17408".into(),
+                    url_only: false,
+                    matcher: Some(panic_if_failed!(Regex::new("/forums/1/topics/2375"))),
+                    params: None,
+                    queries: Some(BTreeMap::<String, String>::from([(
+                        "page".into(),
+                        "1#posts-17408".into(),
+                    )])),
+                },
+                "HTTP/1.1".into(),
+            ),
+            IncomingRequestParts::Headers(BTreeMap::new()),
+            IncomingRequestParts::Body(Some(SimpleBody::None)),
+        ];
+
+        assert_eq!(request_parts, expected_parts);
+        req_thread.join().expect("should be closed");
     }
 
     // Test for "Parse chunks with lowercase size"
     #[test]
     fn parse_chunks_with_lowercase_size() {
         let message = r#"PUT /url HTTP/1.1
-    Transfer-Encoding: chunked
+Transfer-Encoding: chunked
 
-    a
-    0123456789
-    0
+a
+0123456789
+0
 
     "#;
-        // Placeholder for test logic
+
+        // Test implementation would go here
+        let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+        let addr = listener.local_addr().expect("should return address");
+
+        let req_thread = thread::spawn(move || {
+            let mut client = panic_if_failed!(TcpStream::connect(addr));
+            panic_if_failed!(client.write(message.as_bytes()))
+        });
+
+        let (client_stream, _) = panic_if_failed!(listener.accept());
+        let reader = ioutils::BufferedReader::new(WrappedTcpStream::new(client_stream));
+        let simple_tcp_stream = HttpReader::simple_tcp_stream(reader);
+        let request_reader = simple_tcp_stream;
+
+        let mut request_parts = request_reader
+            .into_iter()
+            .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+            .expect("should generate output");
+
+        dbg!(&request_parts);
+
+        let expected_parts: Vec<IncomingRequestParts> = vec![
+            IncomingRequestParts::Intro(
+                SimpleMethod::PUT,
+                SimpleUrl {
+                    url: "/url".into(),
+                    url_only: false,
+                    matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                    params: None,
+                    queries: None,
+                },
+                "HTTP/1.1".into(),
+            ),
+            IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([(
+                SimpleHeader::TRANSFER_ENCODING,
+                "chunked".into(),
+            )])),
+        ];
+
+        assert_eq!(&request_parts[0..2], expected_parts);
+
+        let mut chunked_body = request_parts.pop().expect("retrieved body");
+        assert!(matches!(
+            &chunked_body,
+            IncomingRequestParts::Body(Some(SimpleBody::ChunkedStream(Some(_))))
+        ));
+
+        let IncomingRequestParts::Body(Some(SimpleBody::ChunkedStream(Some(body_iter)))) =
+            chunked_body
+        else {
+            panic!("Not a ChunkedStream")
+        };
+
+        let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+        let contents = content_result.expect("extracted all chunks");
+
+        println!("ChunkedContent: {:?}", contents);
+
+        req_thread.join().expect("should be closed");
     }
 
     // Test for "Parse chunks with uppercase size"
@@ -443,20 +561,6 @@ Hello world!";
 
     A
     0123456789
-    0
-
-    "#;
-        // Placeholder for test logic
-    }
-
-    // Test for "POST with Transfer-Encoding: chunked"
-    #[test]
-    fn post_with_transfer_encoding_chunked() {
-        let message = r#"POST /post_chunked_all_your_base HTTP/1.1
-    Transfer-Encoding: chunked
-
-    1e
-    all your base are belong to us
     0
 
     "#;

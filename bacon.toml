@@ -87,13 +87,17 @@ command = ["make", "wasm-tests"]
 need_stdout = true
 
 [jobs.test_foundation_core]
-command = ["cargo", "nextest", "--", "--package", "foundation_core",
-    "--hide-progress-bar", "--failure-output", "final"
+command = ["cargo", "nextest", "run",
+    "--package", "foundation_core",
+    "--fail-fast",
+    "--failure-output", "immediate-final",
+    "--hide-progress-bar", 
 ]
 need_stdout = true
 
 [jobs.test_foundation_wasm]
-command = ["cargo", "nextest", "--", "--package", "foundation_wasm",
+command = ["cargo", "nextest", 
+    "--package", "foundation_wasm",
     "--hide-progress-bar", "--failure-output", "final"
 ]
 need_stdout = true
