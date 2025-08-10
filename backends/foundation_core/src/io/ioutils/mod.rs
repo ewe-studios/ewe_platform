@@ -328,8 +328,18 @@ impl<T: Read> PeekableReadStream for BufferedReader<T> {
         }
 
         let buffer = self.inner.buffer();
-        buf.copy_from_slice(&buffer[0..buf.len()]);
-        Ok(buf.len())
+
+        let ending = if buffer.len() < buf.len() {
+            buffer.len()
+        } else {
+            buf.len()
+        };
+
+        for (index, elem) in buffer[0..ending].iter().enumerate() {
+            buf[index] = *elem
+        }
+
+        Ok(ending)
     }
 }
 
@@ -353,8 +363,16 @@ impl<T: Write + BufRead + BufferCapacity> PeekableReadStream for BufferedWriter<
         }
 
         let buffer = self.get_inner_ref().read_buffer();
-        buf.copy_from_slice(&buffer[0..buf.len()]);
-        Ok(buf.len())
+        let ending = if buffer.len() < buf.len() {
+            buffer.len()
+        } else {
+            buf.len()
+        };
+
+        for (index, elem) in buffer[0..ending].iter().enumerate() {
+            buf[index] = *elem
+        }
+        Ok(ending)
     }
 }
 
