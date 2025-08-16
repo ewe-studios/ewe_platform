@@ -568,11 +568,145 @@ Hello world!";
         #[test]
         fn parse_chunks_with_uppercase_size() {
             let message = "PUT /url HTTP/1.1\nTransfer-Encoding: chunked\n\nA\n0123456789\n0\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = ioutils::BufferedReader::new(WrappedTcpStream::new(client_stream));
+            let simple_tcp_stream = HttpReader::simple_tcp_stream(reader);
+            let request_reader = simple_tcp_stream;
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::PUT,
+                    SimpleUrl {
+                        url: "/url".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([(
+                    SimpleHeader::TRANSFER_ENCODING,
+                    "chunked".into(),
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingRequestParts::Body(Some(SimpleBody::ChunkedStream(Some(_))))
+            ));
+
+            let IncomingRequestParts::Body(Some(SimpleBody::ChunkedStream(Some(body_iter)))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all chunks");
+
+            // println!("ChunkedContent: {:?}", contents);
+            // [Data([48, 49, 50, 51, 52, 53, 54, 55, 56, 57], None), DataEnded]
+            assert_eq!(
+                contents,
+                vec![
+                    ChunkedData::Data(vec![48, 49, 50, 51, 52, 53, 54, 55, 56, 57], None),
+                    ChunkedData::DataEnded,
+                ],
+            );
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
         fn post_with_transfer_encoding_chunked() {
-            let message = "POST /post_chunked_all_your_base HTTP/1.1\nTransfer-Encoding: chunked\n\n1e\nall your base are belong to us\n0\n\n\n";
+            let message = "POST /url HTTP/1.1\nTransfer-Encoding: chunked\n\n1e\nall your base are belong to us\n0\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = ioutils::BufferedReader::new(WrappedTcpStream::new(client_stream));
+            let simple_tcp_stream = HttpReader::simple_tcp_stream(reader);
+            let request_reader = simple_tcp_stream;
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::POST,
+                    SimpleUrl {
+                        url: "/url".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([(
+                    SimpleHeader::TRANSFER_ENCODING,
+                    "chunked".into(),
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingRequestParts::Body(Some(SimpleBody::ChunkedStream(Some(_))))
+            ));
+
+            let IncomingRequestParts::Body(Some(SimpleBody::ChunkedStream(Some(body_iter)))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all chunks");
+
+            assert_eq!(
+                contents,
+                vec![
+                    ChunkedData::Data("all your base are belong to us".as_bytes().to_vec(), None),
+                    ChunkedData::DataEnded,
+                ],
+            );
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
