@@ -489,6 +489,8 @@ Hello world!";
     }
 
     mod transfer_encoding {
+        use tracing_test::traced_test;
+
         use super::*;
 
         // Test for "Parse chunks with lowercase size"
@@ -711,10 +713,79 @@ Hello world!";
 
         #[test]
         fn two_chunks_and_triple_zero_prefixed_end_chunk() {
-            let message = "POST /two_chunks_mult_zero_end HTTP/1.1\nTransfer-Encoding: chunked\n\n5\nhello\n6\n world\n000\n\n\n";
+            let message =
+                "POST /url HTTP/1.1\nTransfer-Encoding: chunked\n\n5\nhello\n6\n world\n000\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = ioutils::BufferedReader::new(WrappedTcpStream::new(client_stream));
+            let simple_tcp_stream = HttpReader::simple_tcp_stream(reader);
+            let request_reader = simple_tcp_stream;
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::POST,
+                    SimpleUrl {
+                        url: "/url".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([(
+                    SimpleHeader::TRANSFER_ENCODING,
+                    "chunked".into(),
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingRequestParts::Body(Some(SimpleBody::ChunkedStream(Some(_))))
+            ));
+
+            let IncomingRequestParts::Body(Some(SimpleBody::ChunkedStream(Some(body_iter)))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all chunks");
+
+            assert_eq!(
+                contents,
+                vec![
+                    ChunkedData::Data("hello".as_bytes().to_vec(), None),
+                    ChunkedData::Data(" world".as_bytes().to_vec(), None),
+                    ChunkedData::DataEnded,
+                ],
+            );
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
+        #[traced_test]
         fn trailing_headers() {
             let message = "POST /chunked_w_trailing_headers HTTP/1.1\nTransfer-Encoding: chunked\n\n5\nhello\n6\n world\n0\nVary: *\nContent-Type: text/plain\n\n\n";
         }
