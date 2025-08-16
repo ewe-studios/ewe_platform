@@ -2590,6 +2590,8 @@ where
                         return Some(Err(HttpReaderError::HeaderKeyContainsEncodedCRLF));
                     }
 
+                    tracing::debug!("HeaderKey: {:?}", &header_key);
+
                     for space_char in SPACE_CHARS {
                         if header_key.contains(*space_char) {
                             self.state = HttpReadState::Finished;
@@ -2969,8 +2971,10 @@ impl ChunkState {
             None => return Err(ChunkStateError::ChunkSizeNotFound),
         };
 
-        // eat up any space (except CRLF)
-        // is it just a newline here, then lets manage the madness
+        tracing::debug!("Reading chunk size: {:?} to {:?}", &chunk_size, &chunk_size,);
+
+        // // eat up any space (except CRLF)
+        // // is it just a newline here, then lets manage the madness
         Self::eat_space_safely(data_pointer)?;
         Self::eat_newlines_safely(data_pointer)?;
 
@@ -2982,11 +2986,6 @@ impl ChunkState {
                 Err(err) => return Err(err),
             }
         }
-
-        // is it just a newline here, then lets manage the madness
-        // eat up any space (except CRLF)
-        Self::eat_space_safely(data_pointer)?;
-        Self::eat_newlines_safely(data_pointer)?;
 
         // are we starting out with a CRLF, if so, skip it
         if data_pointer.peek(2) == Some(b"\r\n") {
@@ -3414,6 +3413,12 @@ impl<T: PeekableReadStream + Send> Iterator for SimpleHttpChunkIterator<T> {
                     Err(err) => return Some(Err(Box::new(err))),
                 };
 
+                tracing::debug!(
+                    "Incoming headerline: {:?} | {:?}",
+                    &header_slice,
+                    str::from_utf8(&header_slice),
+                );
+
                 let total_header_read = header_slice.len();
                 let mut head_pointer = ubytes::BytesPointer::new(header_slice);
 
@@ -3442,6 +3447,8 @@ impl<T: PeekableReadStream + Send> Iterator for SimpleHttpChunkIterator<T> {
                     Ok(chunk) => {
                         match chunk {
                             ChunkState::Chunk(size, _, opt_exts) => {
+                                tracing::debug!("ChunkState::Chunk: {:?} | {:?}", size, &opt_exts);
+
                                 // calculate whats left in our in-mem pointer
                                 let remaining_bytes = head_pointer.rem_len();
 
@@ -3459,6 +3466,12 @@ impl<T: PeekableReadStream + Send> Iterator for SimpleHttpChunkIterator<T> {
 
                                 let chunk_data: &[u8] =
                                     &read_buffer[total_header_bytes_used..read_buffer.len()];
+
+                                tracing::debug!(
+                                    "ChunkState::Chunk::DataRead: {:?} | {:?}",
+                                    &chunk_data,
+                                    str::from_utf8(&chunk_data),
+                                );
 
                                 Some(Ok(ChunkedData::Data(Vec::from(chunk_data), opt_exts)))
                             }
