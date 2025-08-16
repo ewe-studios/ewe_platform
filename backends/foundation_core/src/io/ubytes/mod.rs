@@ -223,6 +223,13 @@ impl<'a> BytesPointer<'a> {
         self.content.len()
     }
 
+    /// Returns the distance between the peek position and the actual cursor
+    /// position.
+    #[inline]
+    pub fn distance(&self) -> usize {
+        self.peek_pos - self.pos
+    }
+
     /// peek_rem_len returns the remaining count of strings
     /// left from the current peeks's cursor.
     #[inline]
@@ -251,6 +258,16 @@ impl<'a> BytesPointer<'a> {
     pub fn reset_to(&mut self, to: usize) {
         self.pos = to;
         self.peek_pos = to;
+    }
+
+    /// skip_with_position will skip all the contents of the accumulator up to
+    /// the current position of the peek cursor and return the difference
+    /// between the peek_pos and position before moving the cursor forward.
+    #[inline]
+    pub fn skip_position(&mut self) -> usize {
+        let diff = self.peek_pos - self.pos;
+        self.pos = self.peek_pos;
+        diff
     }
 
     /// skip will skip all the contents of the accumulator up to

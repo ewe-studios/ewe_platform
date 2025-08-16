@@ -24,6 +24,8 @@ pub enum HttpReaderError {
     ExpectedSizedBodyViaContentLength,
     GuardedResourceAccess,
     SeeTrailerBeforeLastChunk,
+    TrailerShouldNotOccurHere,
+    OnlyTrailersAreAllowedHere,
     InvalidTailerWithNoValue,
     InvalidChunkSize,
     ReadFailed,
@@ -150,6 +152,7 @@ pub enum ChunkStateError {
     InvalidByte(u8),
     ChunkSizeNotFound,
     InvalidChunkEnding,
+    InvalidChunkEndingExpectedCRLF,
     ExtensionWithNoValue,
     InvalidOctetBytes(FromUtf8Error),
 }
