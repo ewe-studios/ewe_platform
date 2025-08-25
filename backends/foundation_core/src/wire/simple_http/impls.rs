@@ -3400,7 +3400,7 @@ impl<T: PeekableReadStream + Send> Iterator for SimpleHttpChunkIterator<T> {
         let ending_indicator = self.3.clone();
         match self.2.try_lock() {
             Ok(mut reader) => {
-                let mut header_list: [u8; 128] = [0; 128];
+                let mut header_list: [u8; 24] = [0; 24];
 
                 let header_slice: &[u8] = match reader.peek(&mut header_list) {
                     Ok(written) => {
@@ -3423,32 +3423,36 @@ impl<T: PeekableReadStream + Send> Iterator for SimpleHttpChunkIterator<T> {
                 let mut head_pointer = ubytes::BytesPointer::new(header_slice);
 
                 if ending_indicator.load(Ordering::Acquire) {
+                    tracing::debug!("ChunKState::ParsingTrailer");
+
                     return match ChunkState::parse_http_trailer_from_pointer(&mut head_pointer) {
-                        Ok(value) => match value {
-                            Some(item) => match item {
-                                ChunkState::Trailer(mut inner) => match inner.find(":") {
-                                    Some(index) => {
-                                        let (key, value) = inner.split_at_mut(index);
-                                        Some(Ok(ChunkedData::Trailer(key.into(), value.into())))
-                                    }
-                                    None => None,
+                        Ok(value) => {
+                            tracing::debug!("ChunkTrailer::Chunk::DataRead: {:?} ", &value,);
+                            match value {
+                                Some(item) => match item {
+                                    ChunkState::Trailer(mut inner) => match inner.find(":") {
+                                        Some(index) => {
+                                            let (key, value) = inner.split_at_mut(index);
+                                            Some(Ok(ChunkedData::Trailer(key.into(), value.into())))
+                                        }
+                                        None => None,
+                                    },
+                                    _ => Some(Err(Box::new(
+                                        HttpReaderError::OnlyTrailersAreAllowedHere,
+                                    ))),
                                 },
-                                _ => {
-                                    Some(Err(Box::new(HttpReaderError::OnlyTrailersAreAllowedHere)))
-                                }
-                            },
-                            None => None,
-                        },
+                                None => None,
+                            }
+                        }
                         Err(err) => Some(Err(Box::new(err))),
                     };
                 }
 
+                tracing::debug!("ChunKState::StillParsingChunks");
                 match ChunkState::parse_http_chunk_from_pointer(&mut head_pointer) {
                     Ok(chunk) => {
                         match chunk {
                             ChunkState::Chunk(size, _, opt_exts) => {
-                                tracing::debug!("ChunkState::Chunk: {:?} | {:?}", size, &opt_exts);
-
                                 // calculate whats left in our in-mem pointer
                                 let remaining_bytes = head_pointer.rem_len();
 

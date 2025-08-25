@@ -287,7 +287,6 @@ impl<'a> BytesPointer<'a> {
     /// peek_next allows you to increment the peek cursor, moving
     /// the peek cursor forward by a step and returns the next
     /// token string.
-    #[cfg_attr(feature = "debug_trace", tracing::instrument(level = "trace"))]
     #[inline]
     pub fn peek_next(&mut self) -> Option<&'a [u8]> {
         if let Some(res) = self.peek_slice(1) {
@@ -300,7 +299,6 @@ impl<'a> BytesPointer<'a> {
     /// peek_next allows you to increment the peek cursor, moving
     /// the peek cursor forward by a mount of step and returns the next
     /// token string.
-    #[cfg_attr(feature = "debug_trace", tracing::instrument(level = "trace"))]
     #[inline]
     pub fn peek_next_by(&mut self, by: usize) -> Option<&'a [u8]> {
         if let Some(res) = self.peek_slice(by) {
@@ -312,7 +310,6 @@ impl<'a> BytesPointer<'a> {
 
     /// unpeek_next reverses the last forward move of the peek
     /// cursor by -1.
-    #[cfg_attr(feature = "debug_trace", tracing::instrument(level = "trace"))]
     #[inline]
     pub fn unpeek_next(&mut self) -> Option<&'a [u8]> {
         if let Some(res) = self.unpeek_slice(1) {
@@ -323,7 +320,6 @@ impl<'a> BytesPointer<'a> {
 
     /// unpeek_slice lets you reverse the peek cursor position
     /// by a certain amount to reverse the forward movement.
-    #[cfg_attr(feature = "debug_trace", tracing::instrument(level = "trace"))]
     #[inline]
     fn unpeek_slice(&mut self, by: usize) -> Option<&'a [u8]> {
         if self.peek_pos == 0 {
@@ -342,7 +338,6 @@ impl<'a> BytesPointer<'a> {
 
     /// scan returns the whole string slice currently at the points of where
     /// the main pos (position) cursor till the end.
-    #[cfg_attr(feature = "debug_trace", tracing::instrument(level = "trace"))]
     #[inline]
     pub fn scan_remaining(&mut self) -> Option<&'a [u8]> {
         Some(&self.content[self.pos..])
@@ -351,7 +346,6 @@ impl<'a> BytesPointer<'a> {
     /// scan returns the whole string slice currently at the points of where
     /// the main pos (position) cursor and the peek cursor so you can
     /// pull the string right at the current range.
-    #[cfg_attr(feature = "debug_trace", tracing::instrument(level = "trace"))]
     #[inline]
     pub fn scan(&mut self) -> Option<&'a [u8]> {
         Some(&self.content[self.pos..self.peek_pos])
@@ -455,34 +449,34 @@ impl<'a> BytesPointer<'a> {
         }
 
         let from = self.pos;
-        tracing::debug!(
-            "take_with_amount: possibly shift in positions: org:({}, {}) then end in final:({},{})",
-            self.content.len(),
-            self.pos,
-            from,
-            until_pos,
-        );
+        // tracing::debug!(
+        //     "take_with_amount: possibly shift in positions: org:({}, {}) then end in final:({},{})",
+        //     self.content.len(),
+        //     self.pos,
+        //     from,
+        //     until_pos,
+        // );
 
         let position = (from, until_pos);
 
-        tracing::debug!(
-            "take_with_amount: content len: {} with pos: {}, peek_pos: {}, by: {}, until: {}",
-            self.content.len(),
-            self.pos,
-            self.peek_pos,
-            by,
-            until_pos,
-        );
+        // tracing::debug!(
+        //     "take_with_amount: content len: {} with pos: {}, peek_pos: {}, by: {}, until: {}",
+        //     self.content.len(),
+        //     self.pos,
+        //     self.peek_pos,
+        //     by,
+        //     until_pos,
+        // );
 
         let content_slice = &self.content[from..until_pos];
 
-        tracing::debug!(
-            "take_with_amount: sliced worked from: {}, by: {}, till loc: {} with text: '{:?}'",
-            self.pos,
-            by,
-            until_pos,
-            content_slice,
-        );
+        // tracing::debug!(
+        //     "take_with_amount: sliced worked from: {}, by: {}, till loc: {} with text: '{:?}'",
+        //     self.pos,
+        //     by,
+        //     until_pos,
+        //     content_slice,
+        // );
 
         let res = Some((content_slice, position));
         self.pos = self.peek_pos;
@@ -516,7 +510,7 @@ impl<'a> BytesPointer<'a> {
 #[cfg(test)]
 mod bytes_pointer_tests {
     use super::*;
-
+}
     #[test]
     fn test_can_use_accumulator_to_peek_next_character() {
         let mut accumulator = BytesPointer::new(b"hello");

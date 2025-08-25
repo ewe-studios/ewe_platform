@@ -7,6 +7,10 @@ use derive_more::derive::From;
 pub trait BufferCapacity {
     fn read_buffer(&self) -> &[u8];
     fn read_capacity(&self) -> usize;
+
+    fn buffer_length(&self) -> usize {
+        self.read_buffer().len()
+    }
 }
 
 // -- Reader
@@ -62,8 +66,16 @@ impl<T: Read> BufferedReader<T> {
         self.inner.capacity()
     }
 
-    pub fn buffer(&mut self) -> &[u8] {
+    pub fn buffer(&self) -> &[u8] {
         self.inner.buffer()
+    }
+
+    pub fn buffer_len(&self) -> usize {
+        self.inner.buffer().len()
+    }
+
+    pub fn consume(&mut self, amount: usize) {
+        self.inner.consume(amount);
     }
 }
 
@@ -212,7 +224,7 @@ impl<T: Write> BufferedWriter<T> {
         self.inner.capacity()
     }
 
-    pub fn buffer(&mut self) -> &[u8] {
+    pub fn buffer(&self) -> &[u8] {
         self.inner.buffer()
     }
 }
@@ -340,6 +352,370 @@ impl<T: Read> PeekableReadStream for BufferedReader<T> {
         }
 
         Ok(ending)
+    }
+}
+
+pub struct ByteBufferPointer<'a, T: Read> {
+    reader: &'a mut BufferedReader<T>,
+    buffer: Vec<u8>,
+    pos: usize,
+    peek_pos: usize,
+}
+
+// Constructors
+
+impl<'a, T: Read> ByteBufferPointer<'a, T> {
+    pub fn new(buf_capacity: usize, reader: &'a mut BufferedReader<T>) -> Self {
+        Self {
+            buffer: Vec::with_capacity(buf_capacity),
+            reader: reader,
+            pos: 0,
+            peek_pos: 0,
+        }
+    }
+}
+
+// Methods
+
+/// [PeekState] is the request peek value you wanted to see.
+///
+pub enum PeekState<'a> {
+    Request(&'a [u8]), // data you resulted
+    EndOfBuffered,     // end of buffered data, so consume and read more
+    EndOfFile,         // end of file, the real underlying stream is finished
+}
+
+#[allow(unused)]
+impl<'a, T: Read> ByteBufferPointer<'a, T> {
+    #[inline]
+    pub fn is_empty(&mut self) -> bool {
+        self.reader.buffer_len() == 0
+    }
+
+    /// Returns the total length of the string being accumulated on.
+    #[inline]
+    pub fn len(&mut self) -> usize {
+        self.reader.buffer_len()
+    }
+
+    pub fn peek(&'a self, by: usize) -> Option<&'a [u8]> {
+        let buffer = self.reader.buffer();
+
+        None
+    }
+
+    // /// Returns the distance between the peek position and the actual cursor
+    // /// position.
+    // #[inline]
+    // pub fn distance(&mut self) -> usize {
+    //     self.peek_pos - self.pos
+    // }
+    //
+    // /// [`fill`] asks the internal reader to fill the buffer with more
+    // /// data if there is still space for it else its a no-op.
+    // pub fn fill(&mut self) -> std::io::Result<()> {
+    //     self.reader.fill_buf().map(|_| ())
+    // }
+    //
+    // /// peek_slice allows you to peek forward by an amount
+    // /// from the current peek cursor position.
+    // ///
+    // /// If we've exhausted the total string slice left or are trying to
+    // /// take more than available text length then we return None
+    // /// which can indicate no more text for processing.
+    // ///
+    // /// IMPORTANT: because we are using a BufferedReader internally, all this operations
+    // /// instead work on the currently filled buffer (array slice), hence progress is only
+    // /// ever possible once you've consumed the data via calling read or consume.
+    // #[inline]
+    // fn peek_slice(&'a mut self, by: usize) -> Option<&'a [u8]> {
+    //     let mut until_pos = self.peek_pos + by;
+    //     if self.peek_pos + by > self.len() {
+    //         until_pos = self.len()
+    //     }
+    //
+    //     let from = self.peek_pos;
+    //
+    //     let buf = self.reader.buffer();
+    //
+    //     Some(&buf[from..until_pos])
+    // }
+
+    /// peek_slice_range allows you to peek forward by an amount
+    /// from the current peek cursor position to a specific position
+    /// in the current reader's buffer (if the position is more than the buffer length)
+    /// then it uses the length of the underlying buffer.
+    ///
+    /// If we've exhausted the total string slice left or are trying to
+    /// take more than available text length then we return None
+    /// which can indicate no more text for processing.
+    ///
+    /// IMPORTANT: because we are using a BufferedReader internally, all this operations
+    /// instead work on the currently filled buffer (array slice), hence progress is only
+    /// ever possible once you've consumed the data via calling read or consume.
+    pub fn peek_slice_range(&'a mut self, from: usize, to: usize) -> Option<&'a [u8]> {
+        let new_peek_pos = self.peek_pos + from;
+        let until_pos = if new_peek_pos + to > self.len() {
+            self.len()
+        } else {
+            new_peek_pos + to
+        };
+
+        let buf = self.reader.buffer();
+        Some(&buf[new_peek_pos..until_pos])
+    }
+
+    // /// scan returns the whole string slice currently at the points of where
+    // /// the main pos (position) cursor till the end.
+    // #[inline]
+    // pub fn scan_remaining(&'a mut self) -> Option<&'a [u8]> {
+    //     let buf = self.reader.buffer();
+    //     let portion = &buf[self.pos..];
+    //
+    //     Some(portion)
+    // }
+    //
+    // /// scan returns the whole string slice currently at the points of where
+    // /// the main pos (position) cursor and the peek cursor so you can
+    // /// pull the string right at the current range.
+    // #[inline]
+    // pub fn scan(&'a mut self) -> Option<&'a [u8]> {
+    //     let buf = self.reader.buffer();
+    //     let portion = &buf[self.pos..self.peek_pos];
+    //
+    //     Some(portion)
+    // }
+    //
+    // /// unpeek_slice lets you reverse the peek cursor position
+    // /// by a certain amount to reverse the forward movement.
+    // #[inline]
+    // fn unpeek_slice(&'a mut self, by: usize) -> Option<&'a [u8]> {
+    //     if self.peek_pos == 0 {
+    //         return None;
+    //     }
+    //
+    //     // unpeek only works when we are higher then current pos cursor.
+    //     // it should have no effect when have not moved forward
+    //     if self.peek_pos > self.pos {
+    //         self.peek_pos -= 1;
+    //     }
+    //
+    //     let new_peek_pos = self.peek_pos + by;
+    //     let buf = self.reader.buffer();
+    //     let portion = &buf[self.peek_pos..new_peek_pos];
+    //
+    //     Some(portion)
+    // }
+    //
+    // /// peek pulls the next token at the current peek position
+    // /// cursor which will
+    // #[inline]
+    // pub fn peek(&'a mut self, by: usize) -> Option<&'a [u8]> {
+    //     self.peek_slice(by)
+    // }
+
+    /// peek_next allows you to increment the peek cursor, moving
+    /// the peek cursor forward by a step and returns the next
+    /// token string.
+    #[inline]
+    pub fn peek_next(&'a mut self) -> Option<&'a [u8]> {
+        let by = 1;
+        if self.peek_pos + by > self.len() {
+            return None;
+        }
+
+        let from = self.peek_pos;
+        let until_pos = self.peek_pos + by;
+
+        let buf = self.reader.buffer();
+        let portion = &buf[from..until_pos];
+
+        self.peek_pos += by;
+        Some(portion)
+    }
+
+    /// peek_next allows you to increment the peek cursor, moving
+    /// the peek cursor forward by a mount of step and returns the next
+    /// token string.
+    #[inline]
+    pub fn peek_next_by(&'a mut self, by: usize) -> Option<&'a [u8]> {
+        if self.peek_pos + by > self.len() {
+            return None;
+        }
+
+        let from = self.peek_pos;
+        let until_pos = self.peek_pos + by;
+
+        let buf = self.reader.buffer();
+        let portion = &buf[from..until_pos];
+
+        self.peek_pos += by;
+        Some(portion)
+    }
+
+    // /// unpeek_next reverses the last forward move of the peek
+    // /// cursor by -1.
+    // #[inline]
+    // pub fn unpeek_next(&'a mut self) -> Option<&'a [u8]> {
+    //     if let Some(res) = self.unpeek_slice(1) {
+    //         return Some(res);
+    //     }
+    //     None
+    // }
+
+    /// look_with_amount returns the total bytes slice from the
+    /// actual accumulators position cursor til the current
+    /// peek cursor position with adjustment on `by` amount i.e
+    /// [u8][position_cursor..(peek_cursor + by_value)].
+    ///
+    /// It provides super-useful way to borrow the contents within
+    /// that region temporarily without actually consuming the reader
+    /// which will empower in certain scenarios.
+    ///
+    /// But note, it never actual moves the position of the cursors (position and peek cursor)
+    /// to do that instead use [`Self::consume_with_amount`] or [`Self::consume`]
+    ///
+    #[inline]
+    pub fn look_with_amount(&'a mut self, by: usize) -> Option<(&'a [u8], (usize, usize))> {
+        if self.peek_pos + by > self.len() {
+            return None;
+        }
+
+        let until_pos = if self.peek_pos + by > self.len() {
+            self.len()
+        } else {
+            self.peek_pos + by
+        };
+
+        if self.pos >= self.len() {
+            return None;
+        }
+
+        let from = self.pos;
+        // tracing::debug!(
+        //     "take_with_amount: possibly shift in positions: org:({}, {}) then end in final:({},{})",
+        //     self.len(),
+        //     self.pos,
+        //     from,
+        //     until_pos,
+        // );
+
+        let position = (from, until_pos);
+
+        // tracing::debug!(
+        //     "take_with_amount: len: {} with pos: {}, peek_pos: {}, by: {}, until: {}",
+        //     self.len(),
+        //     self.pos,
+        //     self.peek_pos,
+        //     by,
+        //     until_pos,
+        // );
+
+        let buf = self.reader.buffer();
+        let content_slice = &buf[from..until_pos];
+
+        // tracing::debug!(
+        //     "take_with_amount: sliced worked from: {}, by: {}, till loc: {} with text: '{:?}'",
+        //     self.pos,
+        //     by,
+        //     until_pos,
+        //     content_slice,
+        // );
+
+        let res = Some((content_slice, position));
+        res
+    }
+
+    /// consume_silently is unique and destructive and must be carefully used, generally it
+    /// calculates the amount of bytes between the peek cursor and the current positional cursor
+    /// and then consumes (throws away) that amount of bytes in the internal reader.
+    #[inline]
+    pub fn consume_silently(&mut self) -> std::io::Result<()> {
+        let buf_remaining = self.len() - self.pos;
+        let amount = self.peek_pos - self.pos;
+        self.reader.consume(amount);
+
+        if buf_remaining <= amount {
+            self.pos = self.peek_pos;
+        } else {
+            self.reader.fill_buf()?;
+            self.pos = 0;
+        }
+
+        Ok(())
+    }
+
+    #[inline]
+    pub(crate) fn consume_amount_silently(
+        &mut self,
+        amount: usize,
+        new_pos: usize,
+    ) -> std::io::Result<()> {
+        let buf_remaining = self.len() - self.pos;
+        self.reader.consume(amount);
+        if buf_remaining <= amount {
+            self.pos = new_pos;
+        } else {
+            self.reader.fill_buf()?;
+            self.pos = 0;
+        }
+
+        Ok(())
+    }
+
+    #[inline]
+    pub fn consme(&mut self) -> std::io::Result<(Vec<u8>, (usize, usize))> {
+        self.consume_with_amount(0)
+    }
+
+    /// [`consume_with_amount`] will perform the same steps as [`look_with_amount`] but
+    /// will also consume the data returning a owned Slice of the bytes in that position.
+    #[inline]
+    pub fn consume_with_amount(&mut self, by: usize) -> std::io::Result<(Vec<u8>, (usize, usize))> {
+        let until_pos = if self.peek_pos + by > self.len() {
+            self.len()
+        } else {
+            self.peek_pos + by
+        };
+
+        let from = self.pos;
+        // tracing::debug!(
+        //     "take_with_amount: possibly shift in positions: org:({}, {}) then end in final:({},{})",
+        //     self.len(),
+        //     self.pos,
+        //     from,
+        //     until_pos,
+        // );
+
+        let position = (from, until_pos);
+
+        // tracing::debug!(
+        //     "take_with_amount: len: {} with pos: {}, peek_pos: {}, by: {}, until: {}",
+        //     self.len(),
+        //     self.pos,
+        //     self.peek_pos,
+        //     by,
+        //     until_pos,
+        // );
+
+        let buf = self.reader.buffer();
+        let content_slice = &buf[from..until_pos];
+
+        let copied_slice: Vec<u8> = content_slice.into();
+
+        // consume the reader till the position
+        let amount = until_pos - from;
+        self.consume_amount_silently(until_pos - from, until_pos)?;
+
+        // tracing::debug!(
+        //     "take_with_amount: sliced worked from: {}, by: {}, till loc: {} with text: '{:?}'",
+        //     self.pos,
+        //     by,
+        //     until_pos,
+        //     content_slice,
+        // );
+
+        Ok((copied_slice, position))
     }
 }
 
