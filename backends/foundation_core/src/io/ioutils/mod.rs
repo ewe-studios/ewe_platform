@@ -365,12 +365,12 @@ pub struct ByteBufferPointer<'a, T: Read> {
 // Constructors
 
 impl<'a, T: Read> ByteBufferPointer<'a, T> {
-    pub fn new(buf_capacity: usize, reader: &'a mut BufferedReader<T>) -> Self {
+    pub fn new(reader: &'a mut BufferedReader<T>) -> Self {
+        let buffer_capacity = reader.buffer().len();
         Self {
-            buffer: Vec::with_capacity(buf_capacity),
+            buffer: Vec::with_capacity(buffer_capacity),
             reader: reader,
             pos: 0,
-            peek_pos: 0,
         }
     }
 }
@@ -398,8 +398,59 @@ impl<'a, T: Read> ByteBufferPointer<'a, T> {
         self.reader.buffer_len()
     }
 
-    pub fn peek(&'a self, by: usize) -> Option<&'a [u8]> {
+    #[inline]
+    pub fn scan(&mut self) -> Option<&'a [u8]> {
         let buffer = self.reader.buffer();
+        Some(&buffer[0..self.pos])
+    }
+
+    pub fn uncapture(&self, by: usize) {
+        self.uncapture_by(1);
+    }
+
+    pub fn uncapture_by(&self, by: usize) {
+        if (self.pos - by) > 0 {
+            self.pos -= by;
+        } else {
+            self.pos = 0;
+        }
+    }
+
+    pub fn capture(&'a mut self) -> std::io::Result<PeekState> {
+        self.capture_by(1)
+    }
+
+    pub fn capture_by(&'a mut self, by: usize) -> std::io::Result<PeekState> {
+        let buffer = self.reader.buffer();
+
+        let until_pos = self.peek_pos + to;
+        let fetch_more_from_reader = if until_pos > buffer.len() {
+            (self.pos + to) - buffer.len()
+        } else {
+            0
+        };
+
+        if fetch_more_from_reader == 0 {
+           self.pos += to;
+
+           return Ok(PeekState::Request(&self.content[self.pos..until_pos]))
+        }
+
+        let copied = Vec::with_capacity(buffer.len());
+        if let Err(err) = self.buffer.copy(buffer, copied) {
+            return Err(err)
+        }
+
+        // copy into the buffer the data just extracted from the buffer.
+        self.buffer.extend(copied);
+
+        // consume all contents of buffer and refill
+        self.buffer.consume(self.buffer.len());
+        self.buffer.fill_buf()?;
+
+        let old_position = self.pos;
+
+        self.pos = 0;
 
         None
     }
