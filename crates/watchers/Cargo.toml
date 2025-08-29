@@ -29,7 +29,7 @@ thiserror = { version = "1.0.57" }
 
 # -- tracing crates
 tracing = { version = "0.1.40" }
-tracing-subscriber = { version = "0.3.18" }
+tracing-subscriber = { version = "0.3.20" }
 
 # -- watcher
 notify = { version = "6.1.1", features = [] }

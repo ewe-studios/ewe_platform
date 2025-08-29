@@ -23,7 +23,7 @@ strum_macros = { version = "0.26" }
 lazy_static = { version = "1.4.0" }
 lazycell = { version = "1.3.0" }
 tracing = { version = "0.1.40" }
-tracing-subscriber = { version = "0.3.18" }
+tracing-subscriber = { version = "0.3.20" }
 anyhow = { version = "1.0.80" }
 thiserror = { version = "1.0.57" }
 

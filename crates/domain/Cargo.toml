@@ -18,7 +18,7 @@ ewe_channels.workspace = true
 
 # other dependencies
 tracing = { version = "0.1.40" }
-tracing-subscriber = { version = "0.3.18" }
+tracing-subscriber = { version = "0.3.20" }
 
 tokio = { version = "1.36", features = ["full"] }
 async-channel = { version = "2.2" }

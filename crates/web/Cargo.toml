@@ -34,7 +34,7 @@ serde_with = { version = "3.6.1" }
 
 # -- tracing crates
 tracing = { version = "0.1.40" }
-tracing-subscriber = { version = "0.3.18" }
+tracing-subscriber = { version = "0.3.20" }
 
 # -- error crates
 anyhow = { version = "1.0.80" }
