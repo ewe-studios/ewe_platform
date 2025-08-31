@@ -510,7 +510,7 @@ impl<'a> BytesPointer<'a> {
 #[cfg(test)]
 mod bytes_pointer_tests {
     use super::*;
-}
+
     #[test]
     fn test_can_use_accumulator_to_peek_next_character() {
         let mut accumulator = BytesPointer::new(b"hello");
