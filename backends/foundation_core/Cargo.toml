@@ -20,10 +20,10 @@ foundation_nostd = {workspace = true }
 derive_more = { version = "2.0", features = ["from", "debug", "error"] }
 serde = { version = "1", features = ["derive"] }
 concurrent-queue = { version = "2.5.0" }
-toml_datetime = { version = "0.6.9" }
+toml_datetime = { version = "0.7" }
 serde_json = { version = "1" }
 serde_yml = { version = "0.0.12" }
-toml = { version = "0.8.22" }
+toml = { version = "0.9" }
 fastrand = "2.3.0"
 rand = "0.9"
 rand_chacha = "0.9"
@@ -91,4 +91,3 @@ features = ["ssl-rustls"]
 
 [lints]
 workspace = true
-
