@@ -831,6 +831,49 @@ mod byte_buffered_buffer_pointer {
     }
 
     #[test]
+    fn can_skip_data() {
+        let content = b"alexander_wonderbat";
+        let mut reader = BufferedReader::new(BufferedWriter::new(Cursor::new(content.to_vec())));
+        let mut buffer = ByteBufferPointer::new(128, &mut reader);
+
+        assert_eq!(
+            buffer.peek().expect("less than requested"),
+            PeekState::LessThanRequested
+        );
+
+        buffer.fill_up().expect("should fill up");
+
+        let data3 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
+        assert_eq!(
+            buffer.peek_by(10).expect("capture 3"),
+            PeekState::Request(data3.as_ref())
+        );
+
+        assert_eq!(
+            buffer.forward_by(10).expect("capture 3"),
+            PeekState::Continue
+        );
+
+        assert_eq!(buffer.scan(), &data3[0..10]);
+
+        assert_eq!(
+            buffer.unforward_by(5).expect("capture 3"),
+            PeekState::Continue
+        );
+
+        buffer.skip();
+
+        let data4: Vec<u8> = vec![];
+        assert_eq!(buffer.scan(), &data4);
+
+        let data5: Vec<u8> = vec![110, 100, 101, 114, 95];
+        assert_eq!(
+            buffer.peek_by(5).expect("capture 3"),
+            PeekState::Request(data5.as_ref())
+        );
+    }
+
+    #[test]
     fn can_move_next_data() {
         let content = b"alexander_wonderbat";
         let mut reader = BufferedReader::new(BufferedWriter::new(Cursor::new(content.to_vec())));
