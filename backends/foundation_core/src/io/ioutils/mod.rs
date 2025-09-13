@@ -434,9 +434,17 @@ impl<'a, T: Read> ByteBufferPointer<'a, T> {
     pub fn fill_up(&mut self) -> std::io::Result<()> {
         self.reader.fill_buf()?;
         let mut buffer = self.reader.buffer();
+        let buffer_length = buffer.len();
 
         let mut copied = Vec::with_capacity(self.pull_amount);
-        for buffer_item in &buffer[0..self.pull_amount] {
+
+        let available = if buffer_length < self.pull_amount {
+            buffer_length
+        } else {
+            self.pull_amount
+        };
+
+        for buffer_item in &buffer[0..available] {
             copied.push(*buffer_item);
         }
 
@@ -451,20 +459,20 @@ impl<'a, T: Read> ByteBufferPointer<'a, T> {
         Ok(())
     }
 
-    pub fn peek(&'a mut self) -> std::io::Result<PeekState<'a>> {
+    pub fn peek(&'a self) -> std::io::Result<PeekState<'a>> {
         self.peek_by(1)
     }
 
-    pub fn peek_by(&'a mut self, by: usize) -> std::io::Result<PeekState<'a>> {
+    pub fn peek_by(&'a self, by: usize) -> std::io::Result<PeekState<'a>> {
         let until_pos = self.peek_pos + by;
 
         // if we are further than the current buffer and the actual content of
         // the reading buffer, then indicate we are beyond available data which
         // requires user to fill up the buffer.
         let buffer_length = self.reader.buffer_len();
-        if until_pos > self.buffer.len() && until_pos > buffer_length {
-            self.fill_up()?
-        }
+        // if until_pos > self.buffer.len() && until_pos > buffer_length {
+        //     self.fill_up()?
+        // }
 
         // data is less than requested
         if until_pos > self.buffer.len() && until_pos > buffer_length {
@@ -476,103 +484,41 @@ impl<'a, T: Read> ByteBufferPointer<'a, T> {
         Ok(PeekState::Request(&self.buffer[from..until_pos]))
     }
 
-    // //
-    // // /// [`fill`] asks the internal reader to fill the buffer with more
-    // // /// data if there is still space for it else its a no-op.
-    // // pub fn fill(&mut self) -> std::io::Result<()> {
-    // //     self.reader.fill_buf().map(|_| ())
-    // // }
-    // //
-    // // /// peek_slice allows you to peek forward by an amount
-    // // /// from the current peek cursor position.
-    // // ///
-    // // /// If we've exhausted the total string slice left or are trying to
-    // // /// take more than available text length then we return None
-    // // /// which can indicate no more text for processing.
-    // // ///
-    // // /// IMPORTANT: because we are using a BufferedReader internally, all this operations
-    // // /// instead work on the currently filled buffer (array slice), hence progress is only
-    // // /// ever possible once you've consumed the data via calling read or consume.
-    // // #[inline]
-    // // fn peek_slice(&'a mut self, by: usize) -> Option<&'a [u8]> {
-    // //     let mut until_pos = self.peek_pos + by;
-    // //     if self.peek_pos + by > self.len() {
-    // //         until_pos = self.len()
-    // //     }
-    // //
-    // //     let from = self.peek_pos;
-    // //
-    // //     let buf = self.reader.buffer();
-    // //
-    // //     Some(&buf[from..until_pos])
-    // // }
-    //
-    // /// peek_slice_range allows you to peek forward by an amount
-    // /// from the current peek cursor position to a specific position
-    // /// in the current reader's buffer (if the position is more than the buffer length)
-    // /// then it uses the length of the underlying buffer.
-    // ///
-    // /// If we've exhausted the total string slice left or are trying to
-    // /// take more than available text length then we return None
-    // /// which can indicate no more text for processing.
-    // ///
-    // /// IMPORTANT: because we are using a BufferedReader internally, all this operations
-    // /// instead work on the currently filled buffer (array slice), hence progress is only
-    // /// ever possible once you've consumed the data via calling read or consume.
-    // // pub fn peek_slice_range(&'a mut self, from: usize, to: usize) -> Option<&'a [u8]> {
-    // //     let new_peek_pos = self.peek_pos + from;
-    // //     let until_pos = if new_peek_pos + to > self.len() {
-    // //         self.len()
-    // //     } else {
-    // //         new_peek_pos + to
-    // //     };
-    // //
-    // //     let buf = self.reader.buffer();
-    // //     Some(&buf[new_peek_pos..until_pos])
-    // // }
-    //
-    // // /// scan returns the whole string slice currently at the points of where
-    // // /// the main pos (position) cursor till the end.
-    // // #[inline]
-    // // pub fn scan_remaining(&'a mut self) -> Option<&'a [u8]> {
-    // //     let buf = self.reader.buffer();
-    // //     let portion = &buf[self.pos..];
-    // //
-    // //     Some(portion)
-    // // }
-    // //
-    // // /// scan returns the whole string slice currently at the points of where
-    // // /// the main pos (position) cursor and the peek cursor so you can
-    // // /// pull the string right at the current range.
-    // // #[inline]
-    // // pub fn scan(&'a mut self) -> Option<&'a [u8]> {
-    // //     let buf = self.reader.buffer();
-    // //     let portion = &buf[self.pos..self.peek_pos];
-    // //
-    // //     Some(portion)
-    // // }
-    // //
-    // // /// unpeek_slice lets you reverse the peek cursor position
-    // // /// by a certain amount to reverse the forward movement.
-    // // #[inline]
-    // // fn unpeek_slice(&'a mut self, by: usize) -> Option<&'a [u8]> {
-    // //     if self.peek_pos == 0 {
-    // //         return None;
-    // //     }
-    // //
-    // //     // unpeek only works when we are higher then current pos cursor.
-    // //     // it should have no effect when have not moved forward
-    // //     if self.peek_pos > self.pos {
-    // //         self.peek_pos -= 1;
-    // //     }
-    // //
-    // //     let new_peek_pos = self.peek_pos + by;
-    // //     let buf = self.reader.buffer();
-    // //     let portion = &buf[self.peek_pos..new_peek_pos];
-    // //
-    // //     Some(portion)
-    // // }
-    // //
+    /// scan returns the whole string slice currently at the points of where
+    /// the main pos (position) cursor till the end.
+    #[inline]
+    pub fn scan_peeked(&'a self) -> Option<&'a [u8]> {
+        let portion = &self.buffer[self.pos..self.peek_pos];
+        Some(portion)
+    }
+
+    /// scan returns the whole string slice currently at the points of where
+    /// the main pos (position) cursor till the end.
+    #[inline]
+    pub fn scan(&'a self) -> Option<&'a [u8]> {
+        let portion = &self.buffer[self.pos..];
+        Some(portion)
+    }
+
+    /// unpeek_slice lets you reverse the peek cursor position
+    /// by a certain amount to reverse the forward movement.
+    #[inline]
+    fn unpeek_by(&'a mut self, by: usize) -> Option<()> {
+        if self.peek_pos == 0 {
+            return None;
+        }
+
+        // unpeek only works when we are higher then current pos cursor.
+        // it should have no effect when have not moved forward
+        let new_peek_pos = self.peek_pos - by;
+        if new_peek_pos < self.pos {
+            return None;
+        }
+
+        self.peek_pos = new_peek_pos;
+        Some(())
+    }
+
     // // /// peek pulls the next token at the current peek position
     // // /// cursor which will
     // // #[inline]
@@ -797,11 +743,50 @@ mod byte_buffered_buffer_pointer {
         let mut reader = BufferedReader::new(BufferedWriter::new(Cursor::new(content.to_vec())));
         let mut buffer = ByteBufferPointer::new(128, &mut reader);
 
-        let data = vec![1, 2];
+        assert_eq!(
+            buffer.peek().expect("less than requested"),
+            PeekState::LessThanRequested
+        );
+
+        buffer.fill_up().expect("should fill up");
+
+        let mut data = vec![97];
 
         assert_eq!(
             buffer.peek().expect("capture 1"),
             PeekState::Request(data.as_ref())
+        );
+
+        let data2 = vec![97, 108];
+        assert_eq!(
+            buffer.peek_by(2).expect("capture 2"),
+            PeekState::Request(data2.as_ref())
+        );
+
+        let data3 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
+        assert_eq!(
+            buffer.peek_by(10).expect("capture 3"),
+            PeekState::Request(data3.as_ref())
+        );
+    }
+
+    #[test]
+    fn can_take_peeked_data() {
+        let content = b"alexander_wonderbat";
+        let mut reader = BufferedReader::new(BufferedWriter::new(Cursor::new(content.to_vec())));
+        let mut buffer = ByteBufferPointer::new(128, &mut reader);
+
+        assert_eq!(
+            buffer.peek().expect("less than requested"),
+            PeekState::LessThanRequested
+        );
+
+        buffer.fill_up().expect("should fill up");
+
+        let data3 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
+        assert_eq!(
+            buffer.peek_by(10).expect("capture 3"),
+            PeekState::Request(data3.as_ref())
         );
     }
 }
