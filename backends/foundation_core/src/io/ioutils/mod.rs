@@ -382,35 +382,49 @@ impl<'a, T: Read> ByteBufferPointer<'a, T> {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PeekState<'a> {
+    Consumed(Vec<u8>), // data you resulted
     Request(&'a [u8]), // data you resulted
     LessThanRequested, // when data is way less than requested position
     EndOfBuffered,     // end of buffered data, so consume and read more
     EndOfFile,         // end of file, the real underlying stream is finished
+    NoNext,   // indicates the peek cursor is still at the same position as the data cursor.
+    Continue, // indicates you can continue to peek into the buffer
 }
 
 #[allow(unused)]
 impl<'a, T: Read> ByteBufferPointer<'a, T> {
+    /// Returns the distance between the peek position and the actual cursor
+    /// position.
+    #[inline]
+    pub fn distance(&self) -> usize {
+        self.peek_pos - self.pos
+    }
+
+    pub fn peek_cursor(&self) -> usize {
+        self.peek_pos
+    }
+
+    pub fn data_cursor(&self) -> usize {
+        self.pos
+    }
+
+    /// Returns the total length of the string being accumulated on.
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.buffer.len()
+    }
+
     #[inline]
     pub fn is_empty(&mut self) -> bool {
         self.reader.buffer_len() == 0
     }
 
-    /// Returns the total length of the string being accumulated on.
     #[inline]
-    pub fn len(&mut self) -> usize {
-        self.reader.buffer_len()
-    }
-
-    #[inline]
-    pub fn scan(&'a mut self) -> Option<&'a [u8]> {
-        let buffer = self.reader.buffer();
-        Some(&buffer[0..self.pos])
-    }
-
     pub fn uncapture(&mut self, by: usize) {
         self.uncapture_by(1);
     }
 
+    #[inline]
     pub fn uncapture_by(&mut self, by: usize) {
         if (self.pos - by) > 0 {
             self.pos -= by;
@@ -419,11 +433,55 @@ impl<'a, T: Read> ByteBufferPointer<'a, T> {
         }
     }
 
-    /// Returns the distance between the peek position and the actual cursor
-    /// position.
+    /// scan returns the whole string slice currently at the points of where
+    /// the main pos (position) cursor till the end.
     #[inline]
-    pub fn distance(&mut self) -> usize {
-        self.peek_pos - self.pos
+    pub fn scan(&'a self) -> &'a [u8] {
+        &self.buffer[self.pos..self.peek_pos]
+    }
+
+    #[inline]
+    pub fn greater_than_40_percent(&self) -> bool {
+        // if we have not moved at all the ignore
+        if self.pos == 0 {
+            return false;
+        }
+
+        let buffer_length = self.buffer.len();
+        let precentage = (buffer_length as f64 / self.pos as f64);
+        return precentage > 0.4;
+    }
+
+    #[inline]
+    pub fn truncate(&mut self, force: bool) {
+        // if we have not moved at all the ignore
+        if self.pos == 0 {
+            return;
+        }
+
+        let distance = self.peek_pos - self.pos;
+        let buffer_length = self.buffer.len();
+        let percentage = (buffer_length as f64 / self.pos as f64);
+        let should_truncate = percentage > 0.7 || force;
+
+        if !should_truncate {
+            return;
+        }
+
+        let slice = &self.buffer[self.pos..buffer_length];
+        let mut slice_copy = vec![0; slice.len()];
+        slice_copy.truncate(0);
+        slice_copy.extend_from_slice(slice);
+        let slice_length = slice_copy.len();
+
+        // move the slice to the start of the buffer.
+        for (index, byte) in slice_copy.iter().enumerate() {
+            self.buffer[index] = *byte;
+        }
+
+        self.buffer.truncate(slice_length);
+        self.pos = 0;
+        self.peek_pos = self.pos + distance;
     }
 
     /// [`fill_up`] fills the internal buffer with the pull amount
@@ -431,13 +489,18 @@ impl<'a, T: Read> ByteBufferPointer<'a, T> {
     /// set of data which we match is right in the correct set of
     /// bytes until we indicate to the pointer to consume the data until
     /// the position cursor.
+    #[inline]
     pub fn fill_up(&mut self) -> std::io::Result<()> {
+        // truncate buffer if we have read most of it.
+        let force = self.greater_than_40_percent();
+        self.truncate(force);
+
+        // extract and add more to buffer from reader.
         self.reader.fill_buf()?;
         let mut buffer = self.reader.buffer();
         let buffer_length = buffer.len();
 
         let mut copied = Vec::with_capacity(self.pull_amount);
-
         let available = if buffer_length < self.pull_amount {
             buffer_length
         } else {
@@ -449,7 +512,7 @@ impl<'a, T: Read> ByteBufferPointer<'a, T> {
         }
 
         // copy into the buffer the data just extracted from the buffer.
-        let location_before_extend = self.buffer.len();
+        // let location_before_extend = self.buffer.len();
         self.buffer.extend(copied);
 
         // consume all contents of buffer and refill
@@ -459,10 +522,12 @@ impl<'a, T: Read> ByteBufferPointer<'a, T> {
         Ok(())
     }
 
+    #[inline]
     pub fn peek(&'a self) -> std::io::Result<PeekState<'a>> {
         self.peek_by(1)
     }
 
+    #[inline]
     pub fn peek_by(&'a self, by: usize) -> std::io::Result<PeekState<'a>> {
         let until_pos = self.peek_pos + by;
 
@@ -470,9 +535,6 @@ impl<'a, T: Read> ByteBufferPointer<'a, T> {
         // the reading buffer, then indicate we are beyond available data which
         // requires user to fill up the buffer.
         let buffer_length = self.reader.buffer_len();
-        // if until_pos > self.buffer.len() && until_pos > buffer_length {
-        //     self.fill_up()?
-        // }
 
         // data is less than requested
         if until_pos > self.buffer.len() && until_pos > buffer_length {
@@ -480,314 +542,71 @@ impl<'a, T: Read> ByteBufferPointer<'a, T> {
         }
 
         let from = self.peek_pos;
-
         Ok(PeekState::Request(&self.buffer[from..until_pos]))
     }
 
-    /// scan returns the whole string slice currently at the points of where
-    /// the main pos (position) cursor till the end.
     #[inline]
-    pub fn scan_peeked(&'a self) -> Option<&'a [u8]> {
-        let portion = &self.buffer[self.pos..self.peek_pos];
-        Some(portion)
+    fn forward(&mut self) -> std::io::Result<PeekState<'_>> {
+        self.forward_by(1)
     }
 
-    /// scan returns the whole string slice currently at the points of where
-    /// the main pos (position) cursor till the end.
     #[inline]
-    pub fn scan(&'a self) -> Option<&'a [u8]> {
-        let portion = &self.buffer[self.pos..];
-        Some(portion)
-    }
-
-    /// unpeek_slice lets you reverse the peek cursor position
-    /// by a certain amount to reverse the forward movement.
-    #[inline]
-    fn unpeek_by(&'a mut self, by: usize) -> Option<()> {
-        if self.peek_pos == 0 {
-            return None;
+    fn forward_by(&mut self, by: usize) -> std::io::Result<PeekState<'_>> {
+        let buffer_length = self.buffer.len();
+        let new_peek = self.peek_pos + by;
+        if new_peek > buffer_length {
+            self.peek_pos = buffer_length;
+            Ok(PeekState::EndOfBuffered)
+        } else {
+            self.peek_pos = new_peek;
+            Ok(PeekState::Continue)
         }
+    }
 
-        // unpeek only works when we are higher then current pos cursor.
-        // it should have no effect when have not moved forward
-        let new_peek_pos = self.peek_pos - by;
-        if new_peek_pos < self.pos {
-            return None;
+    /// unnext_by moves your peek position backwards at which if it moves
+    /// all the way back, will forever stay at the last know position of
+    /// the actual data cursor.
+    #[inline]
+    fn unforward_by(&mut self, by: usize) -> std::io::Result<PeekState<'_>> {
+        let new_peek = self.peek_pos - by;
+        if new_peek <= self.pos {
+            self.peek_pos = self.pos;
+            Ok(PeekState::Continue)
+        } else {
+            self.peek_pos = new_peek;
+            Ok(PeekState::Continue)
         }
-
-        self.peek_pos = new_peek_pos;
-        Some(())
     }
 
-    // // /// peek pulls the next token at the current peek position
-    // // /// cursor which will
-    // // #[inline]
-    // // pub fn peek(&'a mut self, by: usize) -> Option<&'a [u8]> {
-    // //     self.peek_slice(by)
-    // // }
-    //
-    // /// peek_next allows you to increment the peek cursor, moving
-    // /// the peek cursor forward by a step and returns the next
-    // /// token string.
-    // #[inline]
-    // pub fn peek_next(&'a mut self) -> Option<&'a [u8]> {
-    //     let by = 1;
-    //     if self.peek_pos + by > self.len() {
-    //         return None;
-    //     }
-    //
-    //     let from = self.peek_pos;
-    //     let until_pos = self.peek_pos + by;
-    //
-    //     let buf = self.reader.buffer();
-    //     let portion = &buf[from..until_pos];
-    //
-    //     self.peek_pos += by;
-    //     Some(portion)
-    // }
-    //
-    // /// peek_next allows you to increment the peek cursor, moving
-    // /// the peek cursor forward by a mount of step and returns the next
-    // /// token string.
-    // #[inline]
-    // pub fn peek_next_by(&'a mut self, by: usize) -> Option<&'a [u8]> {
-    //     if self.peek_pos + by > self.len() {
-    //         return None;
-    //     }
-    //
-    //     let from = self.peek_pos;
-    //     let until_pos = self.peek_pos + by;
-    //
-    //     let buf = self.reader.buffer();
-    //     let portion = &buf[from..until_pos];
-    //
-    //     self.peek_pos += by;
-    //     Some(portion)
-    // }
-    //
-    // // /// unpeek_next reverses the last forward move of the peek
-    // // /// cursor by -1.
-    // // #[inline]
-    // // pub fn unpeek_next(&'a mut self) -> Option<&'a [u8]> {
-    // //     if let Some(res) = self.unpeek_slice(1) {
-    // //         return Some(res);
-    // //     }
-    // //     None
-    // // }
-    //
-    // /// look_with_amount returns the total bytes slice from the
-    // /// actual accumulators position cursor til the current
-    // /// peek cursor position with adjustment on `by` amount i.e
-    // /// [u8][position_cursor..(peek_cursor + by_value)].
-    // ///
-    // /// It provides super-useful way to borrow the contents within
-    // /// that region temporarily without actually consuming the reader
-    // /// which will empower in certain scenarios.
-    // ///
-    // /// But note, it never actual moves the position of the cursors (position and peek cursor)
-    // /// to do that instead use [`Self::consume_with_amount`] or [`Self::consume`]
-    // ///
-    // #[inline]
-    // pub fn look_with_amount(&'a mut self, by: usize) -> Option<(&'a [u8], (usize, usize))> {
-    //     if self.peek_pos + by > self.len() {
-    //         return None;
-    //     }
-    //
-    //     let until_pos = if self.peek_pos + by > self.len() {
-    //         self.len()
-    //     } else {
-    //         self.peek_pos + by
-    //     };
-    //
-    //     if self.pos >= self.len() {
-    //         return None;
-    //     }
-    //
-    //     let from = self.pos;
-    //     // tracing::debug!(
-    //     //     "take_with_amount: possibly shift in positions: org:({}, {}) then end in final:({},{})",
-    //     //     self.len(),
-    //     //     self.pos,
-    //     //     from,
-    //     //     until_pos,
-    //     // );
-    //
-    //     let position = (from, until_pos);
-    //
-    //     // tracing::debug!(
-    //     //     "take_with_amount: len: {} with pos: {}, peek_pos: {}, by: {}, until: {}",
-    //     //     self.len(),
-    //     //     self.pos,
-    //     //     self.peek_pos,
-    //     //     by,
-    //     //     until_pos,
-    //     // );
-    //
-    //     let buf = self.reader.buffer();
-    //     let content_slice = &buf[from..until_pos];
-    //
-    //     // tracing::debug!(
-    //     //     "take_with_amount: sliced worked from: {}, by: {}, till loc: {} with text: '{:?}'",
-    //     //     self.pos,
-    //     //     by,
-    //     //     until_pos,
-    //     //     content_slice,
-    //     // );
-    //
-    //     let res = Some((content_slice, position));
-    //     res
-    // }
-    //
-    // /// consume_silently is unique and destructive and must be carefully used, generally it
-    // /// calculates the amount of bytes between the peek cursor and the current positional cursor
-    // /// and then consumes (throws away) that amount of bytes in the internal reader.
-    // #[inline]
-    // pub fn consume_silently(&mut self) -> std::io::Result<()> {
-    //     let buf_remaining = self.len() - self.pos;
-    //     let amount = self.peek_pos - self.pos;
-    //     self.reader.consume(amount);
-    //
-    //     if buf_remaining <= amount {
-    //         self.pos = self.peek_pos;
-    //     } else {
-    //         self.reader.fill_buf()?;
-    //         self.pos = 0;
-    //     }
-    //
-    //     Ok(())
-    // }
-    //
-    // #[inline]
-    // pub(crate) fn consume_amount_silently(
-    //     &mut self,
-    //     amount: usize,
-    //     new_pos: usize,
-    // ) -> std::io::Result<()> {
-    //     let buf_remaining = self.len() - self.pos;
-    //     self.reader.consume(amount);
-    //     if buf_remaining <= amount {
-    //         self.pos = new_pos;
-    //     } else {
-    //         self.reader.fill_buf()?;
-    //         self.pos = 0;
-    //     }
-    //
-    //     Ok(())
-    // }
-    //
-    // #[inline]
-    // pub fn consme(&mut self) -> std::io::Result<(Vec<u8>, (usize, usize))> {
-    //     self.consume_with_amount(0)
-    // }
-    //
-    // /// [`consume_with_amount`] will perform the same steps as [`look_with_amount`] but
-    // /// will also consume the data returning a owned Slice of the bytes in that position.
-    // #[inline]
-    // pub fn consume_with_amount(&mut self, by: usize) -> std::io::Result<(Vec<u8>, (usize, usize))> {
-    //     let until_pos = if self.peek_pos + by > self.len() {
-    //         self.len()
-    //     } else {
-    //         self.peek_pos + by
-    //     };
-    //
-    //     let from = self.pos;
-    //     // tracing::debug!(
-    //     //     "take_with_amount: possibly shift in positions: org:({}, {}) then end in final:({},{})",
-    //     //     self.len(),
-    //     //     self.pos,
-    //     //     from,
-    //     //     until_pos,
-    //     // );
-    //
-    //     let position = (from, until_pos);
-    //
-    //     // tracing::debug!(
-    //     //     "take_with_amount: len: {} with pos: {}, peek_pos: {}, by: {}, until: {}",
-    //     //     self.len(),
-    //     //     self.pos,
-    //     //     self.peek_pos,
-    //     //     by,
-    //     //     until_pos,
-    //     // );
-    //
-    //     let buf = self.reader.buffer();
-    //     let content_slice = &buf[from..until_pos];
-    //
-    //     let copied_slice: Vec<u8> = content_slice.into();
-    //
-    //     // consume the reader till the position
-    //     let amount = until_pos - from;
-    //     self.consume_amount_silently(until_pos - from, until_pos)?;
-    //
-    //     // tracing::debug!(
-    //     //     "take_with_amount: sliced worked from: {}, by: {}, till loc: {} with text: '{:?}'",
-    //     //     self.pos,
-    //     //     by,
-    //     //     until_pos,
-    //     //     content_slice,
-    //     // );
-    //
-    //     Ok((copied_slice, position))
-    // }
-}
+    /// consumes the amount of data that has been peeked over-so far, returning
+    /// that to the caller, this also moves the position of the data cursor
+    /// forward to the location of the skip cursor.
+    fn consume(&mut self) -> std::io::Result<PeekState<'_>> {
+        let from = self.pos;
+        let until_pos = self.peek_pos;
+        if from == until_pos {
+            return Ok(PeekState::NoNext);
+        }
+        let slice = &self.buffer[from..until_pos];
+        self.pos = self.peek_pos;
 
-#[cfg(test)]
-mod byte_buffered_buffer_pointer {
-    use std::io::Cursor;
+        let mut slice_copy = vec![0; slice.len()];
+        slice_copy.truncate(0);
+        slice_copy.extend_from_slice(slice);
 
-    use super::*;
-
-    #[test]
-    fn can_read_data_via_byte_buffer_pointer() {
-        let content = b"alexander_wonderbat";
-        let mut reader = BufferedReader::new(BufferedWriter::new(Cursor::new(content.to_vec())));
-        let mut buffer = ByteBufferPointer::new(128, &mut reader);
-
-        assert_eq!(
-            buffer.peek().expect("less than requested"),
-            PeekState::LessThanRequested
-        );
-
-        buffer.fill_up().expect("should fill up");
-
-        let mut data = vec![97];
-
-        assert_eq!(
-            buffer.peek().expect("capture 1"),
-            PeekState::Request(data.as_ref())
-        );
-
-        let data2 = vec![97, 108];
-        assert_eq!(
-            buffer.peek_by(2).expect("capture 2"),
-            PeekState::Request(data2.as_ref())
-        );
-
-        let data3 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
-        assert_eq!(
-            buffer.peek_by(10).expect("capture 3"),
-            PeekState::Request(data3.as_ref())
-        );
+        Ok(PeekState::Consumed(slice_copy))
     }
 
-    #[test]
-    fn can_take_peeked_data() {
-        let content = b"alexander_wonderbat";
-        let mut reader = BufferedReader::new(BufferedWriter::new(Cursor::new(content.to_vec())));
-        let mut buffer = ByteBufferPointer::new(128, &mut reader);
-
-        assert_eq!(
-            buffer.peek().expect("less than requested"),
-            PeekState::LessThanRequested
-        );
-
-        buffer.fill_up().expect("should fill up");
-
-        let data3 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
-        assert_eq!(
-            buffer.peek_by(10).expect("capture 3"),
-            PeekState::Request(data3.as_ref())
-        );
+    /// skip the amount of data that has been peeked over-so far, returning
+    /// that to the caller, this also moves the position of the data cursor
+    /// forward to the location of the skip cursor.
+    fn skip(&mut self) {
+        let from = self.pos;
+        let until_pos = self.peek_pos;
+        if from == until_pos {
+            return;
+        }
+        self.pos = self.peek_pos;
     }
 }
 
@@ -915,5 +734,132 @@ mod buffered_writer_tests {
         assert_eq!(b"alexa", &content_to_read[..]);
 
         assert_eq!(content, reader.buffer());
+    }
+}
+
+#[cfg(test)]
+mod byte_buffered_buffer_pointer {
+    use std::io::Cursor;
+
+    use super::*;
+
+    #[test]
+    fn can_read_data_via_byte_buffer_pointer() {
+        let content = b"alexander_wonderbat";
+        let mut reader = BufferedReader::new(BufferedWriter::new(Cursor::new(content.to_vec())));
+        let mut buffer = ByteBufferPointer::new(128, &mut reader);
+
+        assert_eq!(
+            buffer.peek().expect("less than requested"),
+            PeekState::LessThanRequested
+        );
+
+        buffer.fill_up().expect("should fill up");
+
+        let data = vec![97];
+
+        assert_eq!(
+            buffer.peek().expect("capture 1"),
+            PeekState::Request(data.as_ref())
+        );
+
+        let data2 = vec![97, 108];
+        assert_eq!(
+            buffer.peek_by(2).expect("capture 2"),
+            PeekState::Request(data2.as_ref())
+        );
+
+        let data3 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
+        assert_eq!(
+            buffer.peek_by(10).expect("capture 3"),
+            PeekState::Request(data3.as_ref())
+        );
+    }
+
+    #[test]
+    fn can_take_peeked_data() {
+        let content = b"alexander_wonderbat";
+        let mut reader = BufferedReader::new(BufferedWriter::new(Cursor::new(content.to_vec())));
+        let mut buffer = ByteBufferPointer::new(128, &mut reader);
+
+        assert_eq!(
+            buffer.peek().expect("less than requested"),
+            PeekState::LessThanRequested
+        );
+
+        buffer.fill_up().expect("should fill up");
+
+        let data3 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
+        assert_eq!(
+            buffer.peek_by(10).expect("capture 3"),
+            PeekState::Request(data3.as_ref())
+        );
+    }
+
+    #[test]
+    fn can_take_unmove_data() {
+        let content = b"alexander_wonderbat";
+        let mut reader = BufferedReader::new(BufferedWriter::new(Cursor::new(content.to_vec())));
+        let mut buffer = ByteBufferPointer::new(128, &mut reader);
+
+        assert_eq!(
+            buffer.peek().expect("less than requested"),
+            PeekState::LessThanRequested
+        );
+
+        buffer.fill_up().expect("should fill up");
+
+        let data3 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
+        assert_eq!(
+            buffer.peek_by(10).expect("capture 3"),
+            PeekState::Request(data3.as_ref())
+        );
+
+        assert_eq!(
+            buffer.forward_by(10).expect("capture 3"),
+            PeekState::Continue
+        );
+
+        assert_eq!(buffer.scan(), &data3[0..10]);
+
+        assert_eq!(
+            buffer.unforward_by(5).expect("capture 3"),
+            PeekState::Continue
+        );
+
+        assert_eq!(buffer.scan(), &data3[0..5]);
+    }
+
+    #[test]
+    fn can_move_next_data() {
+        let content = b"alexander_wonderbat";
+        let mut reader = BufferedReader::new(BufferedWriter::new(Cursor::new(content.to_vec())));
+        let mut buffer = ByteBufferPointer::new(128, &mut reader);
+
+        assert_eq!(
+            buffer.peek().expect("less than requested"),
+            PeekState::LessThanRequested
+        );
+
+        buffer.fill_up().expect("should fill up");
+
+        let data3 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
+        assert_eq!(0, buffer.data_cursor());
+        assert_eq!(0, buffer.peek_cursor());
+        assert_eq!(
+            buffer.peek_by(10).expect("capture 3"),
+            PeekState::Request(data3.as_ref())
+        );
+        assert_eq!(
+            buffer.forward_by(10).expect("capture 3"),
+            PeekState::Continue
+        );
+        assert_eq!(buffer.scan(), &data3[0..10]);
+        assert_eq!(buffer.greater_than_40_percent(), false);
+        assert_eq!(
+            buffer.consume().expect("capture 3"),
+            PeekState::Consumed(data3.clone())
+        );
+        assert_eq!(buffer.greater_than_40_percent(), true);
     }
 }
