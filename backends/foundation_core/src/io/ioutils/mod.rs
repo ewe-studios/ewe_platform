@@ -816,9 +816,9 @@ mod buffered_writer_tests {
 
 #[cfg(test)]
 mod byte_buffered_buffer_pointer {
-    use std::fs::File;
     use std::io::Cursor;
-    use std::io::Write;
+    use std::sync::Arc;
+    use std::sync::Mutex;
 
     use super::*;
 
@@ -991,6 +991,53 @@ mod byte_buffered_buffer_pointer {
         println!("ContentLength: {}", content.len());
 
         let reader = OwnedReader::NoSync(Rc::new(RefCell::new(Cursor::new(content.to_vec()))));
+        let mut buffer = ByteBufferPointer::new(10, reader);
+
+        assert_eq!(
+            buffer.peek().expect("less than requested"),
+            PeekState::LessThanRequested
+        );
+
+        buffer.fill_up().expect("should fill up");
+
+        let data3 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
+        assert_eq!(
+            buffer.peek_by(10).expect("capture 3"),
+            PeekState::Request(data3.as_ref())
+        );
+
+        assert_eq!(
+            buffer.forward_by(9).expect("capture 3"),
+            PeekState::Continue
+        );
+
+        assert_eq!(buffer.scan(), &data3[0..9]);
+        assert_eq!(buffer.full_scan(), &data3[0..10]);
+
+        assert_eq!(
+            buffer.forward_by(10).expect("capture 4"),
+            PeekState::EndOfBuffered
+        );
+
+        let amt = buffer.fill_up().expect("should fill up");
+
+        assert_eq!(
+            buffer.forward_by(amt).expect("capture 3"),
+            PeekState::Continue
+        );
+
+        let data4 = vec![
+            97, 108, 101, 120, 97, 110, 100, 101, 114, 95, 119, 111, 110, 100, 101, 114, 98, 97,
+            116,
+        ];
+        assert_eq!(buffer.scan(), &data4);
+    }
+
+    #[test]
+    fn can_pull_more_data_with_mutex() {
+        let content = b"alexander_wonderbat";
+
+        let reader = OwnedReader::Sync(Arc::new(Mutex::new(Cursor::new(content.to_vec()))));
         let mut buffer = ByteBufferPointer::new(10, reader);
 
         assert_eq!(
