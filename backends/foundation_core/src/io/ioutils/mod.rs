@@ -433,6 +433,13 @@ impl<'a, T: Read> ByteBufferPointer<'a, T> {
         }
     }
 
+    /// full_scan returns the whole buffer as is, so you see the entire
+    /// content regardless of cursors position.
+    #[inline]
+    pub fn full_scan(&'a self) -> &'a [u8] {
+        &self.buffer[..]
+    }
+
     /// scan returns the whole string slice currently at the points of where
     /// the main pos (position) cursor till the end.
     #[inline]
@@ -482,6 +489,7 @@ impl<'a, T: Read> ByteBufferPointer<'a, T> {
         self.buffer.truncate(slice_length);
         self.pos = 0;
         self.peek_pos = self.pos + distance;
+        println!("Truncated data: {}", force);
     }
 
     /// [`fill_up`] fills the internal buffer with the pull amount
@@ -493,30 +501,32 @@ impl<'a, T: Read> ByteBufferPointer<'a, T> {
     pub fn fill_up(&mut self) -> std::io::Result<()> {
         // truncate buffer if we have read most of it.
         let force = self.greater_than_40_percent();
+        println!(
+            "More than 40% of buffer filled: force={} - pos={} / peek_pos={} - buffer_len={} / reader_buffer_len={}",
+            force,
+            self.pos,
+            self.peek_pos,
+            self.buffer.len(),
+            self.reader.buffer().len()
+        );
         self.truncate(force);
 
         // extract and add more to buffer from reader.
-        self.reader.fill_buf()?;
-        let mut buffer = self.reader.buffer();
-        let buffer_length = buffer.len();
-
-        let mut copied = Vec::with_capacity(self.pull_amount);
-        let available = if buffer_length < self.pull_amount {
-            buffer_length
-        } else {
-            self.pull_amount
+        // self.reader.fill_buf()?;
+        let mut copied = vec![0; self.pull_amount];
+        let read = match self.reader.read(&mut copied) {
+            Ok(read) => read,
+            Err(err) => return Err(err),
         };
-
-        for buffer_item in &buffer[0..available] {
-            copied.push(*buffer_item);
-        }
 
         // copy into the buffer the data just extracted from the buffer.
         // let location_before_extend = self.buffer.len();
-        self.buffer.extend(copied);
+        self.buffer.extend_from_slice(&copied[0..read]);
+
+        println!("Read more: {} / {}", read, self.buffer.len());
 
         // consume all contents of buffer and refill
-        self.reader.consume(self.pull_amount);
+        self.reader.consume(read);
         self.reader.fill_buf()?;
 
         Ok(())
@@ -904,5 +914,49 @@ mod byte_buffered_buffer_pointer {
             PeekState::Consumed(data3.clone())
         );
         assert_eq!(buffer.greater_than_40_percent(), true);
+    }
+
+    #[test]
+    fn can_pull_more_data() {
+        let content = b"alexander_wonderbat";
+        println!("ContentLength: {}", content.len());
+
+        let cursor = Cursor::new(content.to_vec());
+        let mut reader = BufferedReader::new(cursor);
+        let mut buffer = ByteBufferPointer::new(10, &mut reader);
+
+        assert_eq!(
+            buffer.peek().expect("less than requested"),
+            PeekState::LessThanRequested
+        );
+
+        buffer.fill_up().expect("should fill up");
+
+        let data3 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
+        assert_eq!(
+            buffer.peek_by(10).expect("capture 3"),
+            PeekState::Request(data3.as_ref())
+        );
+
+        assert_eq!(
+            buffer.forward_by(9).expect("capture 3"),
+            PeekState::Continue
+        );
+
+        assert_eq!(buffer.scan(), &data3[0..9]);
+        assert_eq!(buffer.full_scan(), &data3[0..10]);
+
+        assert_eq!(
+            buffer.forward_by(10).expect("capture 4"),
+            PeekState::EndOfBuffered
+        );
+
+        buffer.fill_up().expect("should fill up");
+
+        let data4 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
+        assert_eq!(
+            buffer.forward_by(10).expect("capture 3"),
+            PeekState::Request(data4.as_ref())
+        );
     }
 }
