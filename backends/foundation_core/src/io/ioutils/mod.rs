@@ -401,7 +401,7 @@ pub enum OwnedReader<T: Read> {
 impl<T: Read> Read for OwnedReader<T> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         match self {
-            Self::NoSync(core) => *core.borrow_mut().read(buf),
+            Self::NoSync(core) => (*core).borrow_mut().read(buf),
             Self::Sync(core) => {
                 let mut guard = core.lock().expect("can acquire");
                 guard.read(buf)
@@ -415,7 +415,7 @@ impl<T: Read> Read for OwnedReader<T> {
 
     fn read_vectored(&mut self, bufs: &mut [IoSliceMut<'_>]) -> Result<usize> {
         match self {
-            Self::NoSync(core) => *core.get_mut().read_vectored(bufs),
+            Self::NoSync(core) => (*core).borrow_mut().read_vectored(bufs),
             Self::Sync(core) => {
                 let mut guard = core.lock().expect("can acquire");
                 guard.read_vectored(bufs)
@@ -429,7 +429,7 @@ impl<T: Read> Read for OwnedReader<T> {
 
     fn read_exact(&mut self, buf: &mut [u8]) -> Result<()> {
         match self {
-            Self::NoSync(core) => *core.get_mut().read_exact(buf),
+            Self::NoSync(core) => (*core).borrow_mut().read_exact(buf),
             Self::Sync(core) => {
                 let mut guard = core.lock().expect("can acquire");
                 guard.read_exact(buf)
@@ -443,7 +443,7 @@ impl<T: Read> Read for OwnedReader<T> {
 
     fn read_to_end(&mut self, buf: &mut Vec<u8>) -> Result<usize> {
         match self {
-            Self::NoSync(core) => *core.get_mut().read_to_end(buf),
+            Self::NoSync(core) => (*core).borrow_mut().read_to_end(buf),
             Self::Sync(core) => {
                 let mut guard = core.lock().expect("can acquire");
                 guard.read_to_end(buf)
@@ -457,7 +457,7 @@ impl<T: Read> Read for OwnedReader<T> {
 
     fn read_to_string(&mut self, buf: &mut String) -> Result<usize> {
         match self {
-            Self::NoSync(core) => *core.get_mut().read_to_string(buf),
+            Self::NoSync(core) => (*core).borrow_mut().read_to_string(buf),
             Self::Sync(core) => {
                 let mut guard = core.lock().expect("can acquire");
                 guard.read_to_string(buf)
@@ -612,16 +612,9 @@ impl<T: Read> ByteBufferPointer<T> {
     /// bytes until we indicate to the pointer to consume the data until
     /// the position cursor.
     #[inline]
-    pub fn fill_up(&mut self) -> std::io::Result<()> {
+    pub fn fill_up(&mut self) -> std::io::Result<usize> {
         // truncate buffer if we have read most of it.
         let force = self.greater_than_40_percent();
-        println!(
-            "More than 40% of buffer filled: force={} - pos={} / peek_pos={} - buffer_len={}",
-            force,
-            self.pos,
-            self.peek_pos,
-            self.buffer.len(),
-        );
         self.truncate(force);
 
         // extract and add more to buffer from reader.
@@ -636,9 +629,7 @@ impl<T: Read> ByteBufferPointer<T> {
         // let location_before_extend = self.buffer.len();
         self.buffer.extend_from_slice(&copied[0..read]);
 
-        println!("Read more: {} / {}", read, self.buffer.len());
-
-        Ok(())
+        Ok(read)
     }
 
     #[inline]
@@ -834,8 +825,8 @@ mod byte_buffered_buffer_pointer {
     #[test]
     fn can_read_data_via_byte_buffer_pointer() {
         let content = b"alexander_wonderbat";
-        let mut reader = BufferedReader::new(BufferedWriter::new(Cursor::new(content.to_vec())));
-        let mut buffer = ByteBufferPointer::new(128, &mut reader);
+        let reader = OwnedReader::NoSync(Rc::new(RefCell::new(Cursor::new(content.to_vec()))));
+        let mut buffer = ByteBufferPointer::new(128, reader);
 
         assert_eq!(
             buffer.peek().expect("less than requested"),
@@ -867,8 +858,8 @@ mod byte_buffered_buffer_pointer {
     #[test]
     fn can_take_peeked_data() {
         let content = b"alexander_wonderbat";
-        let mut reader = BufferedReader::new(BufferedWriter::new(Cursor::new(content.to_vec())));
-        let mut buffer = ByteBufferPointer::new(128, &mut reader);
+        let reader = OwnedReader::NoSync(Rc::new(RefCell::new(Cursor::new(content.to_vec()))));
+        let mut buffer = ByteBufferPointer::new(128, reader);
 
         assert_eq!(
             buffer.peek().expect("less than requested"),
@@ -887,8 +878,8 @@ mod byte_buffered_buffer_pointer {
     #[test]
     fn can_take_unmove_data() {
         let content = b"alexander_wonderbat";
-        let mut reader = BufferedReader::new(BufferedWriter::new(Cursor::new(content.to_vec())));
-        let mut buffer = ByteBufferPointer::new(128, &mut reader);
+        let reader = OwnedReader::NoSync(Rc::new(RefCell::new(Cursor::new(content.to_vec()))));
+        let mut buffer = ByteBufferPointer::new(128, reader);
 
         assert_eq!(
             buffer.peek().expect("less than requested"),
@@ -921,8 +912,8 @@ mod byte_buffered_buffer_pointer {
     #[test]
     fn can_skip_data() {
         let content = b"alexander_wonderbat";
-        let mut reader = BufferedReader::new(BufferedWriter::new(Cursor::new(content.to_vec())));
-        let mut buffer = ByteBufferPointer::new(128, &mut reader);
+        let reader = OwnedReader::NoSync(Rc::new(RefCell::new(Cursor::new(content.to_vec()))));
+        let mut buffer = ByteBufferPointer::new(128, reader);
 
         assert_eq!(
             buffer.peek().expect("less than requested"),
@@ -964,8 +955,8 @@ mod byte_buffered_buffer_pointer {
     #[test]
     fn can_move_next_data() {
         let content = b"alexander_wonderbat";
-        let mut reader = BufferedReader::new(BufferedWriter::new(Cursor::new(content.to_vec())));
-        let mut buffer = ByteBufferPointer::new(128, &mut reader);
+        let reader = OwnedReader::NoSync(Rc::new(RefCell::new(Cursor::new(content.to_vec()))));
+        let mut buffer = ByteBufferPointer::new(128, reader);
 
         assert_eq!(
             buffer.peek().expect("less than requested"),
@@ -999,15 +990,8 @@ mod byte_buffered_buffer_pointer {
         let content = b"alexander_wonderbat";
         println!("ContentLength: {}", content.len());
 
-        let target_file = "sample.txt";
-        let mut file = File::create(target_file).expect("create file");
-        file.write_all(content).expect("write file");
-
-        let file_reader = File::open(target_file).expect("read file");
-
-        // let cursor = Cursor::new(content.to_vec());
-        let mut reader = BufferedReader::new(file_reader);
-        let mut buffer = ByteBufferPointer::new(10, &mut reader);
+        let reader = OwnedReader::NoSync(Rc::new(RefCell::new(Cursor::new(content.to_vec()))));
+        let mut buffer = ByteBufferPointer::new(10, reader);
 
         assert_eq!(
             buffer.peek().expect("less than requested"),
@@ -1035,12 +1019,17 @@ mod byte_buffered_buffer_pointer {
             PeekState::EndOfBuffered
         );
 
-        buffer.fill_up().expect("should fill up");
+        let amt = buffer.fill_up().expect("should fill up");
 
-        let data4 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
         assert_eq!(
-            buffer.forward_by(10).expect("capture 3"),
-            PeekState::Request(data4.as_ref())
+            buffer.forward_by(amt).expect("capture 3"),
+            PeekState::Continue
         );
+
+        let data4 = vec![
+            97, 108, 101, 120, 97, 110, 100, 101, 114, 95, 119, 111, 110, 100, 101, 114, 98, 97,
+            116,
+        ];
+        assert_eq!(buffer.scan(), &data4);
     }
 }
