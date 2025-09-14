@@ -1,4 +1,7 @@
+use std::cell::RefCell;
 use std::io::{BufRead, BufReader, BufWriter, Cursor, IoSlice, IoSliceMut, Read, Result, Write};
+use std::rc::Rc;
+use std::sync::{Arc, Mutex, RwLock};
 
 use derive_more::derive::From;
 
@@ -281,6 +284,39 @@ impl<T: Write + BufRead + ?Sized> BufRead for BufferedWriter<T> {
     }
 }
 
+impl<T: Write + BufRead + BufferCapacity> PeekableReadStream for BufferedWriter<T> {
+    fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError> {
+        if buf.len() > self.get_inner_ref().read_capacity() {
+            return Err(PeekError::BiggerThanCapacity {
+                requested: buf.len(),
+                buffer_capacity: self.get_inner_ref().read_capacity(),
+            });
+        }
+
+        let mut last_len = 0;
+        while self.read_buffer().len() < buf.len() {
+            self.inner.get_mut().fill_buf()?;
+            let current_len = self.get_inner_ref().read_buffer().len();
+            if last_len == current_len {
+                break;
+            }
+            last_len = current_len;
+        }
+
+        let buffer = self.get_inner_ref().read_buffer();
+        let ending = if buffer.len() < buf.len() {
+            buffer.len()
+        } else {
+            buf.len()
+        };
+
+        for (index, elem) in buffer[0..ending].iter().enumerate() {
+            buf[index] = *elem
+        }
+        Ok(ending)
+    }
+}
+
 pub type BufferedStream<T> = BufferedWriter<BufferedReader<T>>;
 
 /// Returns a new BufferedStream type for `T` which is wrapping a `BufferedReader` and `BufferedWriter`
@@ -355,8 +391,87 @@ impl<T: Read> PeekableReadStream for BufferedReader<T> {
     }
 }
 
-pub struct ByteBufferPointer<'a, T: Read> {
-    reader: &'a mut BufferedReader<T>,
+#[derive(Clone)]
+pub enum OwnedReader<T: Read> {
+    NoSync(Rc<RefCell<T>>),
+    Sync(Arc<Mutex<T>>),
+    RWrite(Arc<RwLock<T>>),
+}
+
+impl<T: Read> Read for OwnedReader<T> {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
+        match self {
+            Self::NoSync(core) => *core.borrow_mut().read(buf),
+            Self::Sync(core) => {
+                let mut guard = core.lock().expect("can acquire");
+                guard.read(buf)
+            }
+            Self::RWrite(core) => {
+                let mut guard = core.write().expect("can acquire");
+                guard.read(buf)
+            }
+        }
+    }
+
+    fn read_vectored(&mut self, bufs: &mut [IoSliceMut<'_>]) -> Result<usize> {
+        match self {
+            Self::NoSync(core) => *core.get_mut().read_vectored(bufs),
+            Self::Sync(core) => {
+                let mut guard = core.lock().expect("can acquire");
+                guard.read_vectored(bufs)
+            }
+            Self::RWrite(core) => {
+                let mut guard = core.write().expect("can acquire");
+                guard.read_vectored(bufs)
+            }
+        }
+    }
+
+    fn read_exact(&mut self, buf: &mut [u8]) -> Result<()> {
+        match self {
+            Self::NoSync(core) => *core.get_mut().read_exact(buf),
+            Self::Sync(core) => {
+                let mut guard = core.lock().expect("can acquire");
+                guard.read_exact(buf)
+            }
+            Self::RWrite(core) => {
+                let mut guard = core.write().expect("can acquire");
+                guard.read_exact(buf)
+            }
+        }
+    }
+
+    fn read_to_end(&mut self, buf: &mut Vec<u8>) -> Result<usize> {
+        match self {
+            Self::NoSync(core) => *core.get_mut().read_to_end(buf),
+            Self::Sync(core) => {
+                let mut guard = core.lock().expect("can acquire");
+                guard.read_to_end(buf)
+            }
+            Self::RWrite(core) => {
+                let mut guard = core.write().expect("can acquire");
+                guard.read_to_end(buf)
+            }
+        }
+    }
+
+    fn read_to_string(&mut self, buf: &mut String) -> Result<usize> {
+        match self {
+            Self::NoSync(core) => *core.get_mut().read_to_string(buf),
+            Self::Sync(core) => {
+                let mut guard = core.lock().expect("can acquire");
+                guard.read_to_string(buf)
+            }
+            Self::RWrite(core) => {
+                let mut guard = core.write().expect("can acquire");
+                guard.read_to_string(buf)
+            }
+        }
+    }
+}
+
+pub struct ByteBufferPointer<T: Read> {
+    reader: OwnedReader<T>,
     pull_amount: usize,
     peek_pos: usize,
     buffer: Vec<u8>,
@@ -365,11 +480,10 @@ pub struct ByteBufferPointer<'a, T: Read> {
 
 // Constructors
 
-impl<'a, T: Read> ByteBufferPointer<'a, T> {
-    pub fn new(pull_amount: usize, reader: &'a mut BufferedReader<T>) -> Self {
-        let buffer_capacity = reader.buffer().len();
+impl<T: Read> ByteBufferPointer<T> {
+    pub fn new(pull_amount: usize, reader: OwnedReader<T>) -> Self {
         Self {
-            buffer: Vec::with_capacity(buffer_capacity),
+            buffer: Vec::with_capacity(pull_amount),
             pull_amount,
             peek_pos: 0,
             reader,
@@ -392,7 +506,7 @@ pub enum PeekState<'a> {
 }
 
 #[allow(unused)]
-impl<'a, T: Read> ByteBufferPointer<'a, T> {
+impl<T: Read> ByteBufferPointer<T> {
     /// Returns the distance between the peek position and the actual cursor
     /// position.
     #[inline]
@@ -416,7 +530,7 @@ impl<'a, T: Read> ByteBufferPointer<'a, T> {
 
     #[inline]
     pub fn is_empty(&mut self) -> bool {
-        self.reader.buffer_len() == 0
+        self.buffer.len() == 0
     }
 
     #[inline]
@@ -436,14 +550,14 @@ impl<'a, T: Read> ByteBufferPointer<'a, T> {
     /// full_scan returns the whole buffer as is, so you see the entire
     /// content regardless of cursors position.
     #[inline]
-    pub fn full_scan(&'a self) -> &'a [u8] {
+    pub fn full_scan<'a>(&'a self) -> &'a [u8] {
         &self.buffer[..]
     }
 
     /// scan returns the whole string slice currently at the points of where
     /// the main pos (position) cursor till the end.
     #[inline]
-    pub fn scan(&'a self) -> &'a [u8] {
+    pub fn scan<'a>(&'a self) -> &'a [u8] {
         &self.buffer[self.pos..self.peek_pos]
     }
 
@@ -502,12 +616,11 @@ impl<'a, T: Read> ByteBufferPointer<'a, T> {
         // truncate buffer if we have read most of it.
         let force = self.greater_than_40_percent();
         println!(
-            "More than 40% of buffer filled: force={} - pos={} / peek_pos={} - buffer_len={} / reader_buffer_len={}",
+            "More than 40% of buffer filled: force={} - pos={} / peek_pos={} - buffer_len={}",
             force,
             self.pos,
             self.peek_pos,
             self.buffer.len(),
-            self.reader.buffer().len()
         );
         self.truncate(force);
 
@@ -525,29 +638,25 @@ impl<'a, T: Read> ByteBufferPointer<'a, T> {
 
         println!("Read more: {} / {}", read, self.buffer.len());
 
-        // consume all contents of buffer and refill
-        self.reader.consume(read);
-        self.reader.fill_buf()?;
-
         Ok(())
     }
 
     #[inline]
-    pub fn peek(&'a self) -> std::io::Result<PeekState<'a>> {
+    pub fn peek<'a>(&'a self) -> std::io::Result<PeekState<'a>> {
         self.peek_by(1)
     }
 
     #[inline]
-    pub fn peek_by(&'a self, by: usize) -> std::io::Result<PeekState<'a>> {
+    pub fn peek_by<'a>(&'a self, by: usize) -> std::io::Result<PeekState<'a>> {
         let until_pos = self.peek_pos + by;
 
         // if we are further than the current buffer and the actual content of
         // the reading buffer, then indicate we are beyond available data which
         // requires user to fill up the buffer.
-        let buffer_length = self.reader.buffer_len();
+        let buffer_length = self.buffer.len();
 
         // data is less than requested
-        if until_pos > self.buffer.len() && until_pos > buffer_length {
+        if until_pos > buffer_length {
             return Ok(PeekState::LessThanRequested);
         }
 
@@ -617,39 +726,6 @@ impl<'a, T: Read> ByteBufferPointer<'a, T> {
             return;
         }
         self.pos = self.peek_pos;
-    }
-}
-
-impl<T: Write + BufRead + BufferCapacity> PeekableReadStream for BufferedWriter<T> {
-    fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError> {
-        if buf.len() > self.get_inner_ref().read_capacity() {
-            return Err(PeekError::BiggerThanCapacity {
-                requested: buf.len(),
-                buffer_capacity: self.get_inner_ref().read_capacity(),
-            });
-        }
-
-        let mut last_len = 0;
-        while self.read_buffer().len() < buf.len() {
-            self.inner.get_mut().fill_buf()?;
-            let current_len = self.get_inner_ref().read_buffer().len();
-            if last_len == current_len {
-                break;
-            }
-            last_len = current_len;
-        }
-
-        let buffer = self.get_inner_ref().read_buffer();
-        let ending = if buffer.len() < buf.len() {
-            buffer.len()
-        } else {
-            buf.len()
-        };
-
-        for (index, elem) in buffer[0..ending].iter().enumerate() {
-            buf[index] = *elem
-        }
-        Ok(ending)
     }
 }
 
@@ -749,7 +825,9 @@ mod buffered_writer_tests {
 
 #[cfg(test)]
 mod byte_buffered_buffer_pointer {
+    use std::fs::File;
     use std::io::Cursor;
+    use std::io::Write;
 
     use super::*;
 
@@ -921,8 +999,14 @@ mod byte_buffered_buffer_pointer {
         let content = b"alexander_wonderbat";
         println!("ContentLength: {}", content.len());
 
-        let cursor = Cursor::new(content.to_vec());
-        let mut reader = BufferedReader::new(cursor);
+        let target_file = "sample.txt";
+        let mut file = File::create(target_file).expect("create file");
+        file.write_all(content).expect("write file");
+
+        let file_reader = File::open(target_file).expect("read file");
+
+        // let cursor = Cursor::new(content.to_vec());
+        let mut reader = BufferedReader::new(file_reader);
         let mut buffer = ByteBufferPointer::new(10, &mut reader);
 
         assert_eq!(
