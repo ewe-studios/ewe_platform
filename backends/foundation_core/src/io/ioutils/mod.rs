@@ -398,6 +398,20 @@ pub enum OwnedReader<T: Read> {
     RWrite(Arc<RwLock<T>>),
 }
 
+impl<T: Read> OwnedReader<T> {
+    pub fn rwrite(reader: Arc<RwLock<T>>) -> Self {
+        Self::RWrite(reader)
+    }
+
+    pub fn sync(reader: Arc<Mutex<T>>) -> Self {
+        Self::Sync(reader)
+    }
+
+    pub fn no_sync(reader: Rc<RefCell<T>>) -> Self {
+        Self::NoSync(reader)
+    }
+}
+
 impl<T: Read> Read for OwnedReader<T> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         match self {
@@ -950,6 +964,40 @@ mod byte_buffered_buffer_pointer {
             buffer.peek_by(5).expect("capture 3"),
             PeekState::Request(data5.as_ref())
         );
+    }
+
+    #[test]
+    fn can_use_buffered_reader_move_next_data() {
+        let content = b"alexander_wonderbat";
+        let reader = BufferedReader::new(BufferedWriter::new(Cursor::new(content.to_vec())));
+        let mut buffer =
+            ByteBufferPointer::new(128, OwnedReader::NoSync(Rc::new(RefCell::new(reader))));
+
+        assert_eq!(
+            buffer.peek().expect("less than requested"),
+            PeekState::LessThanRequested
+        );
+
+        buffer.fill_up().expect("should fill up");
+
+        let data3 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
+        assert_eq!(0, buffer.data_cursor());
+        assert_eq!(0, buffer.peek_cursor());
+        assert_eq!(
+            buffer.peek_by(10).expect("capture 3"),
+            PeekState::Request(data3.as_ref())
+        );
+        assert_eq!(
+            buffer.forward_by(10).expect("capture 3"),
+            PeekState::Continue
+        );
+        assert_eq!(buffer.scan(), &data3[0..10]);
+        assert_eq!(buffer.greater_than_40_percent(), false);
+        assert_eq!(
+            buffer.consume().expect("capture 3"),
+            PeekState::Consumed(data3.clone())
+        );
+        assert_eq!(buffer.greater_than_40_percent(), true);
     }
 
     #[test]
