@@ -49,7 +49,7 @@ pub type CloneableSendU64Iterator<E> = CloneableSendBoxIterator<u64, E>;
 pub type CloneableSendI16Iterator<E> = CloneableSendBoxIterator<i16, E>;
 pub type CloneableSendI32Iterator<E> = CloneableSendBoxIterator<i32, E>;
 pub type CloneableSendI64Iterator<E> = CloneableSendBoxIterator<i64, E>;
-pub type CloneableSendVecIterator<E> = CloneableSendBoxIterator<Vec<u8>, E>;
+pub type SendableVecIterator<E> = CloneableSendBoxIterator<Vec<u8>, E>;
 pub type CloneableSendStringIterator<E> = CloneableSendBoxIterator<String, E>;
 pub type CloneableSendByteIterator<'a, E> = CloneableSendBoxIterator<&'a [u8], E>;
 
@@ -121,5 +121,55 @@ impl<T> Iterator for CanCloneSendIterator<T> {
 
     fn next(&mut self) -> Option<Self::Item> {
         self.0.next()
+    }
+}
+
+/// SendableIterator that can be Send and implements iterator.
+pub trait SendableIterator<T>: Iterator<Item = T> + Send {}
+
+pub type SendableBoxIterator<T, E> = Box<dyn SendableIterator<AnyResult<T, E>>>;
+
+// Nice pre-defined types, feel free to define yours
+pub type SendableI8Iterator<E> = SendableBoxIterator<i8, E>;
+pub type SendU8Iterator<E> = SendableBoxIterator<u8, E>;
+pub type SendU16Iterator<E> = SendableBoxIterator<u16, E>;
+pub type SendU32Iterator<E> = SendableBoxIterator<u32, E>;
+pub type SendU64Iterator<E> = SendableBoxIterator<u64, E>;
+pub type SendI16Iterator<E> = SendableBoxIterator<i16, E>;
+pub type SendI32Iterator<E> = SendableBoxIterator<i32, E>;
+pub type SendI64Iterator<E> = SendableBoxIterator<i64, E>;
+pub type SendVecIterator<E> = SendableBoxIterator<Vec<u8>, E>;
+pub type SendStringIterator<E> = SendableBoxIterator<String, E>;
+pub type SendByteIterator<'a, E> = SendableBoxIterator<&'a [u8], E>;
+
+// impl<T, I> SendableIterator<I> for T where T: Box<dyn SendableIterator<T> + Send + 'static> {}
+
+pub struct TransformSendIterator<T: Send, V: Send> {
+    transformer: Box<dyn Fn(T) -> Option<V> + Send + 'static>,
+    source: Box<dyn SendableIterator<T>>,
+}
+
+impl<T: Send, V: Send> TransformSendIterator<T, V> {
+    pub fn new(
+        tn: Box<dyn Fn(T) -> Option<V> + Send + 'static>,
+        source: Box<dyn SendableIterator<T>>,
+    ) -> Self {
+        Self {
+            transformer: tn,
+            source,
+        }
+    }
+}
+
+impl<T: Send, V: Send> SendableIterator<V> for TransformSendIterator<T, V> {}
+
+impl<T: Send, V: Send> Iterator for TransformSendIterator<T, V> {
+    type Item = V;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.source.next() {
+            Some(item) => (self.transformer)(item),
+            _ => None,
+        }
     }
 }

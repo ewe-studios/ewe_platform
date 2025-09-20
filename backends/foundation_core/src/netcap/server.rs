@@ -13,8 +13,8 @@ use crate::{
     extensions::result_ext::{BoxedError, BoxedResult},
     io::ioutils,
     wire::simple_http::{
-        self, Http11, IncomingRequestParts, Proto, RenderHttp, ServiceAction, ServiceActionList,
-        SimpleIncomingRequest, SimpleOutgoingResponse, Status, WrappedTcpStream,
+        self, Http11, IncomingRequestParts, Proto, RenderHttp, RequestDescriptor, ServiceAction,
+        ServiceActionList, SimpleIncomingRequest, SimpleOutgoingResponse, Status, WrappedTcpStream,
     },
 };
 
@@ -64,14 +64,14 @@ impl TestServer {
         &self,
     ) -> (
         JoinHandle<Result<(), BoxedError>>,
-        mpsc::Receiver<SimpleIncomingRequest>,
+        mpsc::Receiver<RequestDescriptor>,
         mpsc::Receiver<JoinHandle<()>>,
     ) {
         let port = self.port;
         let address = self.address.clone();
         let actions = self.actions.clone();
 
-        let (tx, rx) = mpsc::channel::<SimpleIncomingRequest>();
+        let (tx, rx) = mpsc::channel::<RequestDescriptor>();
         let (workers_tx, workers_rx) = mpsc::channel::<JoinHandle<()>>();
 
         let listener = TcpListener::bind(format!("{address}:{port}")).expect("create tcp listener");
@@ -105,7 +105,7 @@ impl TestServer {
     fn serve_connection(
         read_stream: TcpStream,
         actions: Vec<ServiceAction>,
-        sender: mpsc::Sender<SimpleIncomingRequest>,
+        sender: mpsc::Sender<RequestDescriptor>,
     ) -> JoinHandle<()> {
         let action_list = ServiceActionList::new(actions);
 
@@ -154,7 +154,7 @@ impl TestServer {
                     }
                 }
 
-                let Some(Ok(IncomingRequestParts::Body(body))) = request_reader.next() else {
+                let Some(Ok(IncomingRequestParts::Body(Some(body)))) = request_reader.next() else {
                     break;
                 };
 
@@ -163,14 +163,14 @@ impl TestServer {
                     .with_url(url)
                     .with_proto(proto.clone())
                     .with_method(method)
+                    .with_body(body)
                     .build()
                 {
-                    let mut cloned_request = request.clone();
-                    cloned_request.body = body;
+                    sender
+                        .send(request.descriptor())
+                        .expect("should sent request");
 
-                    sender.send(request).expect("should sent request");
-
-                    let outgoing_response = match resource.body.clone_box().handle(cloned_request) {
+                    let outgoing_response = match resource.body.clone_box().handle(request) {
                         Ok(outgoing) => outgoing,
                         Err(err) => Self::internal_server_error_response(err),
                     };
@@ -240,7 +240,9 @@ mod test_server_tests {
 
     use crate::{
         extensions::result_ext::BoxedResult,
-        wire::simple_http::{FuncSimpleServer, SimpleBody, SimpleIncomingRequest, Status},
+        wire::simple_http::{
+            FuncSimpleServer, RequestDescriptor, SimpleBody, SimpleIncomingRequest, Status,
+        },
     };
 
     use super::{
@@ -333,7 +335,7 @@ Hello world!";
             }
         };
 
-        let sent_requests: Vec<SimpleIncomingRequest> = requests.iter().collect();
+        let sent_requests: Vec<RequestDescriptor> = requests.iter().collect();
         assert_eq!(sent_requests.len(), 1);
     }
 
@@ -415,7 +417,7 @@ Hello buster!";
             }
         };
 
-        let sent_requests: Vec<SimpleIncomingRequest> = requests.iter().collect();
+        let sent_requests: Vec<RequestDescriptor> = requests.iter().collect();
         assert_eq!(sent_requests.len(), 0);
     }
 }
