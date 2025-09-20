@@ -837,6 +837,53 @@ mod byte_buffered_buffer_pointer {
     use super::*;
 
     #[test]
+    fn can_take_peeked_data_with_multi_mutex() {
+        let content = b"alexander_wonderbat";
+
+        let reader = OwnedReader::Sync(Arc::new(Mutex::new(Cursor::new(content.to_vec()))));
+        let buffer = Mutex::new(ByteBufferPointer::new(10, reader));
+
+        assert_eq!(
+            buffer.lock().unwrap().peek().expect("less than requested"),
+            PeekState::LessThanRequested
+        );
+
+        buffer.lock().unwrap().fill_up().expect("should fill up");
+
+        let data3 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
+        assert_eq!(
+            buffer.lock().unwrap().peek_by(10).expect("capture 3"),
+            PeekState::Request(data3.as_ref())
+        );
+
+        assert_eq!(
+            buffer.lock().unwrap().forward_by(9).expect("capture 3"),
+            PeekState::Continue
+        );
+
+        assert_eq!(buffer.lock().unwrap().scan(), &data3[0..9]);
+        assert_eq!(buffer.lock().unwrap().full_scan(), &data3[0..10]);
+
+        assert_eq!(
+            buffer.lock().unwrap().forward_by(10).expect("capture 4"),
+            PeekState::EndOfBuffered
+        );
+
+        let amt = buffer.lock().unwrap().fill_up().expect("should fill up");
+
+        assert_eq!(
+            buffer.lock().unwrap().forward_by(amt).expect("capture 3"),
+            PeekState::Continue
+        );
+
+        let data4 = vec![
+            97, 108, 101, 120, 97, 110, 100, 101, 114, 95, 119, 111, 110, 100, 101, 114, 98, 97,
+            116,
+        ];
+        assert_eq!(buffer.lock().unwrap().scan(), &data4);
+    }
+
+    #[test]
     fn can_read_data_via_byte_buffer_pointer() {
         let content = b"alexander_wonderbat";
         let reader = OwnedReader::NoSync(Rc::new(RefCell::new(Cursor::new(content.to_vec()))));
