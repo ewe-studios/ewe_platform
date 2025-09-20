@@ -143,9 +143,9 @@ impl<T> DelayedIterator for SleepIterator<T> {
         let result = match self.0.checked_add(self.1) {
             Some(completed_at) => match completed_at.checked_duration_since(now) {
                 Some(diff) => Delayed::Pending(self.0, self.1, diff),
-                None => Delayed::Done(self.2.take().expect("item should not be taken yet")),
+                _ => Delayed::Done(self.2.take().expect("item should not be taken yet")),
             },
-            None => Delayed::Done(self.2.take().expect("item should not be taken yet")),
+            _ => Delayed::Done(self.2.take().expect("item should not be taken yet")),
         };
 
         Some(result)

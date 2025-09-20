@@ -5,8 +5,8 @@ use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
 use crate::io::ioutils::{self, PeekableReadStream};
 use crate::io::ubytes::{self, BytesPointer};
 use crate::valtron::{
-    CanCloneSendIterator, CloneableFn, CloneableSendBoxIterator, CloneableSendVecIterator,
-    CloneableStringIterator,
+    CloneableFn, SendStringIterator, SendVecIterator, SendableBoxIterator, SendableIterator,
+    TransformSendIterator,
 };
 use crate::wire::simple_http::errors::*;
 use derive_more::From;
@@ -72,17 +72,17 @@ impl ChunkedData {
     }
 }
 
-pub type ChunkedCloneableVecIterator<E> = CloneableSendBoxIterator<ChunkedData, E>;
+pub type ChunkedVecIterator<E> = SendableBoxIterator<ChunkedData, E>;
 
 pub struct ChunkedDataLimitIterator {
     limit: BodySizeLimit,
-    parent: ChunkedCloneableVecIterator<BoxedError>,
+    parent: ChunkedVecIterator<BoxedError>,
     collected: AtomicUsize,
     exhausted: AtomicBool,
 }
 
 impl ChunkedDataLimitIterator {
-    pub fn new(limit: BodySizeLimit, parent: ChunkedCloneableVecIterator<BoxedError>) -> Self {
+    pub fn new(limit: BodySizeLimit, parent: ChunkedVecIterator<BoxedError>) -> Self {
         Self {
             limit,
             parent,
@@ -92,16 +92,7 @@ impl ChunkedDataLimitIterator {
     }
 }
 
-impl Clone for ChunkedDataLimitIterator {
-    fn clone(&self) -> Self {
-        Self {
-            limit: self.limit,
-            parent: self.parent.clone_box_send_iterator(),
-            exhausted: AtomicBool::new(self.exhausted.load(Ordering::SeqCst)),
-            collected: AtomicUsize::new(self.collected.load(Ordering::SeqCst)),
-        }
-    }
-}
+impl SendableIterator<Result<ChunkedData, BoxedError>> for ChunkedDataLimitIterator {}
 
 impl Iterator for ChunkedDataLimitIterator {
     type Item = Result<ChunkedData, BoxedError>;
@@ -148,8 +139,8 @@ pub enum SimpleBody {
     None,
     Text(String),
     Bytes(Vec<u8>),
-    Stream(Option<CloneableSendVecIterator<BoxedError>>),
-    ChunkedStream(Option<ChunkedCloneableVecIterator<BoxedError>>),
+    Stream(Option<SendVecIterator<BoxedError>>),
+    ChunkedStream(Option<ChunkedVecIterator<BoxedError>>),
     LimitedChunkedStream(Option<ChunkedDataLimitIterator>),
 }
 
@@ -251,28 +242,6 @@ impl core::fmt::Display for SimpleBody {
     }
 }
 
-impl Clone for SimpleBody {
-    fn clone(&self) -> Self {
-        match self {
-            Self::LimitedChunkedStream(inner) => match inner {
-                Some(item) => Self::LimitedChunkedStream(Some(item.clone())),
-                None => Self::Stream(None),
-            },
-            Self::ChunkedStream(inner) => match inner {
-                Some(item) => Self::ChunkedStream(Some(item.clone_box_send_iterator())),
-                None => Self::Stream(None),
-            },
-            Self::Stream(inner) => match inner {
-                Some(item) => Self::Stream(Some(item.clone_box_send_iterator())),
-                None => Self::Stream(None),
-            },
-            Self::Text(inner) => Self::Text(inner.clone()),
-            Self::Bytes(inner) => Self::Bytes(inner.clone()),
-            Self::None => Self::None,
-        }
-    }
-}
-
 /// RenderHttp lets types implement the ability to be rendered into
 /// http protocol which makes it easily for more structured types.
 #[allow(unused)]
@@ -280,41 +249,50 @@ pub trait RenderHttp: Send {
     type Error: From<FromUtf8Error> + From<BoxedError> + Send + 'static;
 
     fn http_render(
-        &self,
-    ) -> std::result::Result<CanCloneSendIterator<Result<Vec<u8>, Self::Error>>, Self::Error>;
+        self,
+    ) -> std::result::Result<SendableBoxIterator<Vec<u8>, Self::Error>, Self::Error>
+    where
+        Self: Sized;
 
     /// http_render_encoded_string attempts to render the results of calling
     /// `RenderHttp::http_render()` as a custom encoded strings.
     fn http_render_encoded_string<E>(
-        &self,
+        self,
         encoder: E,
-    ) -> std::result::Result<CloneableStringIterator<Self::Error>, Self::Error>
+    ) -> std::result::Result<SendStringIterator<Self::Error>, Self::Error>
     where
-        E: Fn(Result<Vec<u8>, Self::Error>) -> Result<String, Self::Error> + Send + Clone + 'static,
+        E: Fn(Result<Vec<u8>, Self::Error>) -> Option<Result<String, Self::Error>> + Send + 'static,
+        Self: Sized,
     {
         let render_bytes = self.http_render()?;
-        let transformed = render_bytes.map(encoder);
+        let transformed = TransformSendIterator::new(Box::new(encoder), render_bytes);
         Ok(Box::new(transformed))
     }
 
     /// http_render_utf8_string attempts to render the results of calling
     /// `RenderHttp::http_render()` as utf8 strings.
     fn http_render_utf8_string(
-        &self,
-    ) -> std::result::Result<CloneableStringIterator<Self::Error>, Self::Error> {
+        self,
+    ) -> std::result::Result<SendStringIterator<Self::Error>, Self::Error>
+    where
+        Self: Sized,
+    {
         self.http_render_encoded_string(|part_result| match part_result {
             Ok(part) => match String::from_utf8(part) {
-                Ok(inner) => Ok(inner),
-                Err(err) => Err(err.into()),
+                Ok(inner) => Some(Ok(inner)),
+                Err(err) => Some(Err(err.into())),
             },
-            Err(err) => Err(err),
+            Err(err) => Some(Err(err)),
         })
     }
 
     /// allows implementing string representation of the http constructs
     /// as a string. You can override to implement a custom render but by
     /// default it calls `RenderHttp::http_render_utf8_string`.
-    fn http_render_string(&self) -> std::result::Result<String, Self::Error> {
+    fn http_render_string(self) -> std::result::Result<String, Self::Error>
+    where
+        Self: Sized,
+    {
         let mut encoded_content = String::new();
         for part in self.http_render_utf8_string()? {
             match part {
@@ -1267,7 +1245,6 @@ mod simple_url_tests {
     }
 }
 
-#[derive(Clone)]
 pub struct SimpleOutgoingResponse {
     pub proto: Proto,
     pub status: Status,
@@ -1289,7 +1266,7 @@ impl SimpleOutgoingResponse {
     }
 }
 
-#[derive(Clone, Default)]
+#[derive(Default)]
 pub struct SimpleOutgoingResponseBuilder {
     proto: Option<Proto>,
     status: Option<Status>,
@@ -1328,7 +1305,7 @@ impl SimpleOutgoingResponseBuilder {
         self
     }
 
-    pub fn with_body_stream(mut self, body: CloneableSendVecIterator<BoxedError>) -> Self {
+    pub fn with_body_stream(mut self, body: SendVecIterator<BoxedError>) -> Self {
         self.body = Some(SimpleBody::Stream(Some(body)));
         self
     }
@@ -1416,7 +1393,15 @@ impl core::fmt::Display for SimpleRequestError {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Clone)]
+pub struct RequestDescriptor {
+    pub proto: Proto,
+    pub request_url: SimpleUrl,
+    pub headers: SimpleHeaders,
+    pub method: SimpleMethod,
+}
+
+#[derive(Debug)]
 pub struct SimpleIncomingRequest {
     pub proto: Proto,
     pub request_url: SimpleUrl,
@@ -1428,6 +1413,15 @@ pub struct SimpleIncomingRequest {
 impl SimpleIncomingRequest {
     pub fn builder() -> SimpleIncomingRequestBuilder {
         SimpleIncomingRequestBuilder::default()
+    }
+
+    pub fn descriptor(&self) -> RequestDescriptor {
+        RequestDescriptor {
+            proto: self.proto.clone(),
+            request_url: self.request_url.clone(),
+            headers: self.headers.clone(),
+            method: self.method.clone(),
+        }
     }
 }
 
@@ -1471,7 +1465,7 @@ impl SimpleIncomingRequestBuilder {
         self
     }
 
-    pub fn with_body_stream(mut self, body: CloneableSendVecIterator<BoxedError>) -> Self {
+    pub fn with_body_stream(mut self, body: SendVecIterator<BoxedError>) -> Self {
         self.body = Some(SimpleBody::Stream(Some(body)));
         self
     }
@@ -1606,11 +1600,11 @@ pub enum Http11ReqState {
     ///
     /// Once done it moves state to the `Http11ReqState::BodyStream`
     ///  or `Http11ReqState::End` variant.
-    BodyStreaming(Option<CloneableSendVecIterator<BoxedError>>),
+    BodyStreaming(Option<SendVecIterator<BoxedError>>),
 
     /// ChunkedBodyStreaming like BodyStreaming is meant to support
     /// handling of a chunked body parts where
-    ChunkedBodyStreaming(Option<ChunkedCloneableVecIterator<BoxedError>>),
+    ChunkedBodyStreaming(Option<ChunkedVecIterator<BoxedError>>),
 
     /// Limited ChunkedBodyStreaming that caps chunked data to a specific size.
     LimitedChunkedBodyStreaming(Option<ChunkedDataLimitIterator>),
@@ -1619,39 +1613,12 @@ pub enum Http11ReqState {
     End,
 }
 
-impl Clone for Http11ReqState {
-    fn clone(&self) -> Self {
-        match self {
-            Self::Intro(inner) => Self::Intro(inner.clone()),
-            Self::Headers(inner) => Self::Headers(inner.clone()),
-            Self::Body(inner) => Self::Body(inner.clone()),
-            Self::BodyStreaming(inner) => match inner {
-                Some(inner2) => Self::BodyStreaming(Some(inner2.clone_box_send_iterator())),
-                None => Self::BodyStreaming(None),
-            },
-            Self::LimitedChunkedBodyStreaming(inner) => match inner {
-                Some(inner2) => Self::LimitedChunkedBodyStreaming(Some(inner2.clone())),
-                None => Self::ChunkedBodyStreaming(None),
-            },
-            Self::ChunkedBodyStreaming(inner) => match inner {
-                Some(inner2) => Self::ChunkedBodyStreaming(Some(inner2.clone_box_send_iterator())),
-                None => Self::ChunkedBodyStreaming(None),
-            },
-            Self::End => Self::End,
-        }
-    }
-}
-
 /// [`Http11RequestIterator`] represents the rendering of a `HTTP`
 /// request via an Iterator pattern that supports both sync and async
 /// contexts.
 pub struct Http11RequestIterator(Option<Http11ReqState>);
 
-impl Clone for Http11RequestIterator {
-    fn clone(&self) -> Self {
-        Self(self.0.clone())
-    }
-}
+impl SendableIterator<Result<Vec<u8>, Http11RenderError>> for Http11RequestIterator {}
 
 impl Iterator for Http11RequestIterator {
     type Item = Result<Vec<u8>, Http11RenderError>;
@@ -1659,30 +1626,25 @@ impl Iterator for Http11RequestIterator {
     fn next(&mut self) -> Option<Self::Item> {
         match self.0.take()? {
             Http11ReqState::Intro(request) => {
+                let method = request.method.clone();
+                let url = request.request_url.url.clone();
                 // switch state to headers
-                self.0 = Some(Http11ReqState::Headers(request.clone()));
+                self.0 = Some(Http11ReqState::Headers(request));
 
                 // generate HTTP 1.1 intro
-                let http_intro_string = format!(
-                    "{} {} HTTP/1.1\r\n",
-                    request.method, request.request_url.url
-                );
+                let http_intro_string = format!("{} {} HTTP/1.1\r\n", method, url,);
 
                 Some(Ok(http_intro_string.into_bytes()))
             }
             Http11ReqState::Headers(request) => {
                 // HTTP 1.1 requires atleast 1 header in the request being generated
-                if request.headers.is_empty() {
+                let borrowed_headers = &request.headers;
+                if borrowed_headers.is_empty() {
                     // tell the iterator we want it to end
                     self.0 = Some(Http11ReqState::End);
 
                     return Some(Err(Http11RenderError::HeadersRequired));
                 }
-
-                // switch state to body rendering next
-                self.0 = Some(Http11ReqState::Body(request.clone()));
-
-                let borrowed_headers = &request.headers;
 
                 let mut encoded_headers: Vec<String> = borrowed_headers
                     .iter()
@@ -1691,6 +1653,9 @@ impl Iterator for Http11RequestIterator {
 
                 // add CLRF for ending header
                 encoded_headers.push("\r\n".into());
+
+                // switch state to body rendering next
+                self.0 = Some(Http11ReqState::Body(request));
 
                 // join all intermediate with CLRF (last
                 // element does not get it hence why we do it above)
@@ -1868,42 +1833,15 @@ pub enum Http11ResState {
     Intro(SimpleOutgoingResponse),
     Headers(SimpleOutgoingResponse),
     Body(SimpleOutgoingResponse),
-    BodyStreaming(Option<CloneableSendVecIterator<BoxedError>>),
+    BodyStreaming(Option<SendVecIterator<BoxedError>>),
     LimitedChunkedBodyStreaming(Option<ChunkedDataLimitIterator>),
-    ChunkedBodyStreaming(Option<ChunkedCloneableVecIterator<BoxedError>>),
+    ChunkedBodyStreaming(Option<ChunkedVecIterator<BoxedError>>),
     End,
-}
-
-impl Clone for Http11ResState {
-    fn clone(&self) -> Self {
-        match self {
-            Self::Intro(inner) => Self::Intro(inner.clone()),
-            Self::Headers(inner) => Self::Headers(inner.clone()),
-            Self::Body(inner) => Self::Body(inner.clone()),
-            Self::BodyStreaming(inner) => match inner {
-                Some(inner2) => Self::BodyStreaming(Some(inner2.clone_box_send_iterator())),
-                None => Self::BodyStreaming(None),
-            },
-            Self::LimitedChunkedBodyStreaming(inner) => match inner {
-                Some(inner2) => Self::LimitedChunkedBodyStreaming(Some(inner2.clone())),
-                None => Self::ChunkedBodyStreaming(None),
-            },
-            Self::ChunkedBodyStreaming(inner) => match inner {
-                Some(inner2) => Self::ChunkedBodyStreaming(Some(inner2.clone_box_send_iterator())),
-                None => Self::ChunkedBodyStreaming(None),
-            },
-            Self::End => Self::End,
-        }
-    }
 }
 
 pub struct Http11ResponseIterator(Option<Http11ResState>);
 
-impl Clone for Http11ResponseIterator {
-    fn clone(&self) -> Self {
-        Self(self.0.clone())
-    }
-}
+impl SendableIterator<Result<Vec<u8>, Http11RenderError>> for Http11ResponseIterator {}
 
 /// We want to implement an iterator that generates valid HTTP response
 /// message like:
@@ -1927,10 +1865,11 @@ impl Iterator for Http11ResponseIterator {
         match self.0.take()? {
             Http11ResState::Intro(response) => {
                 // switch state to headers
-                self.0 = Some(Http11ResState::Headers(response.clone()));
 
                 // generate HTTP 1.1 intro
                 let http_intro_string = format!("HTTP/1.1 {}\r\n", response.status.status_line());
+
+                self.0 = Some(Http11ResState::Headers(response));
 
                 Some(Ok(http_intro_string.into_bytes()))
             }
@@ -1943,9 +1882,6 @@ impl Iterator for Http11ResponseIterator {
                     return Some(Err(Http11RenderError::HeadersRequired));
                 }
 
-                // switch state to body rendering next
-                self.0 = Some(Http11ResState::Body(response.clone()));
-
                 let borrowed_headers = &response.headers;
 
                 let mut encoded_headers: Vec<String> = borrowed_headers
@@ -1955,6 +1891,9 @@ impl Iterator for Http11ResponseIterator {
 
                 // add CLRF for ending header
                 encoded_headers.push("\r\n".into());
+
+                // switch state to body rendering next
+                self.0 = Some(Http11ResState::Body(response));
 
                 // join all intermediate with CLRF (last element
                 // does not get it hence why we do it above)
@@ -2096,12 +2035,13 @@ impl Iterator for Http11ResponseIterator {
             Http11ResState::BodyStreaming(mut response) => {
                 match response.take() {
                     Some(mut actual_iterator) => {
-                        match actual_iterator.next() {
+                        let next = actual_iterator.next();
+
+                        match next {
                             Some(collected) => match collected {
                                 Ok(inner) => {
-                                    self.0 = Some(Http11ResState::BodyStreaming(Some(
-                                        actual_iterator.clone_box_send_iterator(),
-                                    )));
+                                    self.0 =
+                                        Some(Http11ResState::BodyStreaming(Some(actual_iterator)));
 
                                     Some(Ok(inner))
                                 }
@@ -2151,15 +2091,15 @@ impl RenderHttp for Http11 {
     type Error = Http11RenderError;
 
     fn http_render(
-        &self,
-    ) -> std::result::Result<CanCloneSendIterator<Result<Vec<u8>, Self::Error>>, Self::Error> {
+        self,
+    ) -> std::result::Result<SendableBoxIterator<Vec<u8>, Self::Error>, Self::Error> {
         match self {
-            Http11::Request(request) => Ok(CanCloneSendIterator::new(Box::new(
-                Http11RequestIterator(Some(Http11ReqState::Intro(request.clone()))),
-            ))),
-            Http11::Response(response) => Ok(CanCloneSendIterator::new(Box::new(
-                Http11ResponseIterator(Some(Http11ResState::Intro(response.clone()))),
-            ))),
+            Http11::Request(request) => Ok(Box::new(Http11RequestIterator(Some(
+                Http11ReqState::Intro(request),
+            )))),
+            Http11::Response(response) => Ok(Box::new(Http11ResponseIterator(Some(
+                Http11ResState::Intro(response),
+            )))),
         }
     }
 }
@@ -2167,22 +2107,6 @@ impl RenderHttp for Http11 {
 #[cfg(test)]
 mod simple_incoming_tests {
     use super::*;
-
-    #[test]
-    fn should_be_able_to_clone_request() {
-        let request_1 = SimpleIncomingRequest::builder()
-            .with_plain_url("/")
-            .with_method(SimpleMethod::GET)
-            .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
-            .add_header(SimpleHeader::HOST, "localhost:8000")
-            .add_header(SimpleHeader::Custom("X-VILLA".into()), "YES")
-            .with_body_string("Hello")
-            .build()
-            .unwrap();
-
-        let request_2 = request_1.clone();
-        _ = request_2
-    }
 
     #[test]
     fn should_convert_to_get_request_with_custom_header() {
@@ -2221,20 +2145,6 @@ mod simple_incoming_tests {
             request.http_render_string().unwrap(),
             "GET / HTTP/1.1\r\nCONTENT-LENGTH: 5\r\nCONTENT-TYPE: application/json\r\nHOST: localhost:8000\r\n\r\nHello"
         );
-    }
-
-    #[test]
-    fn should_be_able_to_clone_response() {
-        let response_1 = SimpleOutgoingResponse::builder()
-            .with_status(Status::OK)
-            .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
-            .add_header(SimpleHeader::HOST, "localhost:8000")
-            .with_body_string("Hello")
-            .build()
-            .unwrap();
-
-        let response_2 = response_1.clone();
-        _ = response_2;
     }
 
     #[test]
@@ -2325,18 +2235,6 @@ impl core::fmt::Display for IncomingRequestParts {
             }
             Self::Headers(headers) => write!(f, "Headers({headers:?})"),
             Self::Body(_) => write!(f, "Body(_)"),
-        }
-    }
-}
-
-impl Clone for IncomingRequestParts {
-    fn clone(&self) -> Self {
-        match self {
-            Self::Intro(method, url, proto) => {
-                Self::Intro(method.clone(), url.clone(), proto.clone())
-            }
-            Self::Headers(headers) => Self::Headers(headers.clone()),
-            Self::Body(body) => Self::Body(body.clone()),
         }
     }
 }
@@ -3391,6 +3289,11 @@ impl<T: PeekableReadStream + Send> SimpleHttpChunkIterator<T> {
             Arc::new(AtomicBool::new(false)),
         )
     }
+}
+
+impl<T: PeekableReadStream + Send> SendableIterator<Result<ChunkedData, BoxedError>>
+    for SimpleHttpChunkIterator<T>
+{
 }
 
 impl<T: PeekableReadStream + Send> Iterator for SimpleHttpChunkIterator<T> {
