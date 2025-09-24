@@ -670,6 +670,39 @@ impl<T: Read> ByteBufferPointer<T> {
     }
 
     #[inline]
+    pub fn peek_until<'a, 'b>(&'a self, signal: &'b [u8]) -> std::io::Result<PeekState<'a>> {
+        loop {
+            match self.peek_by(signal.len())? {
+                PeekState::Request(data) => {
+                    self.forward_by(signal.len())?;
+                    if data == signal {
+                        break;
+                    } else {
+                        continue;
+                    }
+                }
+                PeekState::LessThanRequested => {
+                    self.fill_up()?;
+                    continue;
+                }
+                PeekState::EndOfBuffered => {
+                    self.fill_up()?;
+                    continue;
+                }
+                PeekState::Continue => continue,
+                PeekState::EndOfFile => {
+                    return Ok(PeekState::EndOfFile);
+                }
+                PeekState::NoNext | PeekState::Consumed(_) => {
+                    unreachable!("Should never hit this types")
+                }
+            }
+        }
+
+        Ok(PeekState::Request(&self.buffer[self.pos..self.peek_pos]))
+    }
+
+    #[inline]
     fn forward(&mut self) -> std::io::Result<PeekState<'_>> {
         self.forward_by(1)
     }
@@ -835,6 +868,30 @@ mod byte_buffered_buffer_pointer {
     use std::sync::Mutex;
 
     use super::*;
+
+    #[test]
+    fn can_peek_until_a_signal() {
+        const signal: &[u8] = b"_";
+
+        let content = b"alexander_wonderbat";
+
+        let reader = OwnedReader::Sync(Arc::new(Mutex::new(Cursor::new(content.to_vec()))));
+        let buffer = Mutex::new(ByteBufferPointer::new(10, reader));
+
+        let binding = buffer.lock().unwrap();
+        let result = binding.peek_until(signal);
+        assert!(matches!(result, Ok(PeekState::Request(_))));
+
+        let PeekState::Request(content) = result.unwrap() else {
+            panic!("Failed expectation")
+        };
+
+        let data4 = vec![
+            97, 108, 101, 120, 97, 110, 100, 101, 114, 95, 119, 111, 110, 100, 101, 114, 98, 97,
+            116,
+        ];
+        assert_eq!(content, &data4);
+    }
 
     #[test]
     fn can_take_peeked_data_with_multi_mutex() {
