@@ -511,7 +511,6 @@ impl<T: Read> ByteBufferPointer<T> {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PeekState<'a> {
-    Consumed(Vec<u8>), // data you resulted
     Request(&'a [u8]), // data you resulted
     LessThanRequested, // when data is way less than requested position
     EndOfBuffered,     // end of buffered data, so consume and read more
@@ -708,6 +707,181 @@ impl<T: Read> ByteBufferPointer<T> {
         Ok(PeekState::Request(&self.buffer[self.pos..self.peek_pos]))
     }
 
+    /// [`read_bytes_until`] reads the provided bytes into a Vec consuming read cursor, until it
+    /// finds the relevant else stopping.
+    ///
+    /// If the new line byte is not found then everything read till that point is appended to the
+    /// string and the cursor is consumed.
+    pub fn read_bytes_until<'a>(
+        &'a mut self,
+        target: &[u8],
+        buf: &mut Vec<u8>,
+    ) -> std::io::Result<usize> {
+        let read = match self.peek_until(target) {
+            Ok(inner) => match inner {
+                PeekState::Request(c) => {
+                    unsafe {
+                        buf.extend_from_slice(&c);
+                    };
+                    Ok(c.len())
+                }
+                PeekState::EndOfFile => Ok(0),
+                _ => unreachable!("Should never trigger"),
+            },
+            Err(err) => return Err(err),
+        };
+
+        match read {
+            Ok(inner) => {
+                if inner == 0 {
+                    let slice = &self.buffer[self.pos..self.peek_pos];
+                    let slice_length = slice.len();
+                    unsafe {
+                        buf.extend_from_slice(&slice);
+                    };
+
+                    self.skip();
+                    return Ok(slice_length);
+                }
+
+                self.skip();
+                return Ok(inner);
+            }
+            Err(err) => Err(err),
+        }
+    }
+
+    /// [`read_line`] reads the provided line into a string and consumes the read data moving
+    /// the cusrsor forward.
+    ///
+    /// If the new line byte is not found then everything read till that point is appended to the
+    /// string and the cursor is consumed.
+    pub fn read_line<'a>(&'a mut self, buf: &mut String) -> std::io::Result<usize> {
+        const NEWLINE_SLICE: &[u8] = b"\n";
+        let read = match self.peek_until(NEWLINE_SLICE) {
+            Ok(inner) => match inner {
+                PeekState::Request(c) => {
+                    unsafe {
+                        let mut buf_vec = buf.as_mut_vec();
+                        buf_vec.extend_from_slice(&c);
+                    };
+                    Ok(c.len())
+                }
+                PeekState::EndOfFile => Ok(0),
+                _ => unreachable!("Should never trigger"),
+            },
+            Err(err) => return Err(err),
+        };
+
+        match read {
+            Ok(inner) => {
+                if inner == 0 {
+                    let slice = &self.buffer[self.pos..self.peek_pos];
+                    let slice_length = slice.len();
+
+                    unsafe {
+                        let mut buf_vec = buf.as_mut_vec();
+                        buf_vec.extend_from_slice(&slice);
+                    };
+
+                    self.skip();
+                    return Ok(slice_length);
+                }
+
+                self.skip();
+                return Ok(inner);
+            }
+            Err(err) => Err(err),
+        }
+    }
+
+    /// [`peek_line`] reads the provided line into a string without consuming the read content.
+    /// Allowing you to perform further operation on the data.
+    ///
+    /// If the newline byte is not found then it reads all the bytes into the provided buffer ontil
+    /// it hits EOF or EndOfFile but this is key, it won't move the cursor forward, just copies the
+    /// underlying data over.
+    pub fn peek_line<'a>(&'a mut self, buf: &mut String) -> std::io::Result<usize> {
+        const NEWLINE_SLICE: &[u8] = b"\n";
+        let read = match self.peek_until(NEWLINE_SLICE) {
+            Ok(inner) => match inner {
+                PeekState::Request(c) => {
+                    unsafe {
+                        let mut buf_vec = buf.as_mut_vec();
+                        buf_vec.extend_from_slice(&c);
+                    };
+                    Ok(c.len())
+                }
+                PeekState::EndOfFile => Ok(0),
+                _ => unreachable!("Should never trigger"),
+            },
+            Err(err) => return Err(err),
+        };
+
+        match read {
+            Ok(inner) => {
+                if inner == 0 {
+                    let slice = &self.buffer[self.pos..self.peek_pos];
+                    let slice_length = slice.len();
+
+                    unsafe {
+                        let mut buf_vec = buf.as_mut_vec();
+                        buf_vec.extend_from_slice(&slice);
+                    };
+
+                    return Ok(slice_length);
+                }
+
+                return Ok(inner);
+            }
+            Err(err) => Err(err),
+        }
+    }
+
+    /// [`peek_bytes_until`] reads the provided bytes into a Vec without consuming the read cursor.
+    /// Allowing you to perform further operation on the data.
+    ///
+    /// If the target byte is not found then it reads all the bytes into the provided buffer ontil
+    /// it hits EOF or EndOfFile but this is key, it won't move the cursor forward, just copies the
+    /// underlying data over.
+    pub fn peek_bytes_until<'a>(
+        &'a mut self,
+        target: &[u8],
+        buf: &mut Vec<u8>,
+    ) -> std::io::Result<usize> {
+        let read = match self.peek_until(target) {
+            Ok(inner) => match inner {
+                PeekState::Request(c) => {
+                    unsafe {
+                        buf.extend_from_slice(&c);
+                    };
+                    Ok(c.len())
+                }
+                PeekState::EndOfFile => Ok(0),
+                _ => unreachable!("Should never trigger"),
+            },
+            Err(err) => return Err(err),
+        };
+
+        match read {
+            Ok(inner) => {
+                if inner == 0 {
+                    let slice = &self.buffer[self.pos..self.peek_pos];
+                    let slice_length = slice.len();
+
+                    unsafe {
+                        buf.extend_from_slice(&slice);
+                    };
+
+                    return Ok(slice_length);
+                }
+
+                return Ok(inner);
+            }
+            Err(err) => Err(err),
+        }
+    }
+
     #[inline]
     fn forward(&mut self) -> std::io::Result<PeekState<'_>> {
         self.forward_by(1)
@@ -744,11 +918,11 @@ impl<T: Read> ByteBufferPointer<T> {
     /// consumes the amount of data that has been peeked over-so far, returning
     /// that to the caller, this also moves the position of the data cursor
     /// forward to the location of the skip cursor.
-    fn consume(&mut self) -> std::io::Result<PeekState<'_>> {
+    fn consume(&mut self) -> std::io::Result<Vec<u8>> {
         let from = self.pos;
         let until_pos = self.peek_pos;
         if from == until_pos {
-            return Ok(PeekState::NoNext);
+            return Ok(vec![]);
         }
         let slice = &self.buffer[from..until_pos];
         self.pos = self.peek_pos;
@@ -757,7 +931,7 @@ impl<T: Read> ByteBufferPointer<T> {
         slice_copy.truncate(0);
         slice_copy.extend_from_slice(slice);
 
-        Ok(PeekState::Consumed(slice_copy))
+        Ok(slice_copy)
     }
 
     /// skip the amount of data that has been peeked over-so far, returning
@@ -876,8 +1050,85 @@ mod byte_buffered_buffer_pointer {
     use super::*;
 
     #[test]
+    fn can_read_bytes_until_found() {
+        const NO_BAR: &[u8] = b"_";
+        let content = b"alexander_wonderbat\n";
+
+        let reader = OwnedReader::Sync(Arc::new(Mutex::new(Cursor::new(content.to_vec()))));
+        let buffer = Mutex::new(ByteBufferPointer::new(10, reader));
+
+        let mut binding = buffer.lock().unwrap();
+
+        let mut new_line = Vec::new();
+        let read = binding.read_bytes_until(NO_BAR, &mut new_line);
+
+        assert_eq!(10, read.unwrap());
+        let data4 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
+        assert_eq!(new_line, data4);
+    }
+
+    #[test]
+    fn can_read_bytes_until_not_found() {
+        const NO_BAR: &[u8] = b"-";
+        let content = b"alexander_wonderbat\n";
+
+        let reader = OwnedReader::Sync(Arc::new(Mutex::new(Cursor::new(content.to_vec()))));
+        let buffer = Mutex::new(ByteBufferPointer::new(10, reader));
+
+        let mut binding = buffer.lock().unwrap();
+
+        let mut new_line = Vec::new();
+        let read = binding.read_bytes_until(NO_BAR, &mut new_line);
+
+        assert_eq!(content.len(), read.unwrap());
+        let data4 = vec![
+            97, 108, 101, 120, 97, 110, 100, 101, 114, 95, 119, 111, 110, 100, 101, 114, 98, 97,
+            116, 10,
+        ];
+        assert_eq!(new_line, data4);
+    }
+
+    #[test]
+    fn can_peek_line() {
+        let content = b"alexander_wonderbat\n";
+
+        let reader = OwnedReader::Sync(Arc::new(Mutex::new(Cursor::new(content.to_vec()))));
+        let buffer = Mutex::new(ByteBufferPointer::new(10, reader));
+
+        let mut binding = buffer.lock().unwrap();
+
+        let mut new_line = String::new();
+        let read = binding.peek_line(&mut new_line);
+
+        assert_eq!(content.len(), read.unwrap());
+        assert_eq!(new_line, "alexander_wonderbat\n");
+
+        let data4 = vec![
+            97, 108, 101, 120, 97, 110, 100, 101, 114, 95, 119, 111, 110, 100, 101, 114, 98, 97,
+            116, 10,
+        ];
+        assert_eq!(binding.scan(), &data4);
+    }
+
+    #[test]
+    fn can_read_line() {
+        let content = b"alexander_wonderbat\n";
+
+        let reader = OwnedReader::Sync(Arc::new(Mutex::new(Cursor::new(content.to_vec()))));
+        let buffer = Mutex::new(ByteBufferPointer::new(10, reader));
+
+        let mut binding = buffer.lock().unwrap();
+
+        let mut new_line = String::new();
+        let read = binding.read_line(&mut new_line);
+
+        assert_eq!(content.len(), read.unwrap());
+        assert_eq!(new_line, "alexander_wonderbat\n");
+    }
+
+    #[test]
     fn can_peek_until_a_signal_and_consume() {
-        const signal: &[u8] = b"_";
+        const SIGNAL: &[u8] = b"_";
 
         let content = b"alexander_wonderbat";
 
@@ -886,14 +1137,12 @@ mod byte_buffered_buffer_pointer {
 
         let mut binding = buffer.lock().unwrap();
         assert!(matches!(
-            binding.peek_until(signal).expect("should peek"),
+            binding.peek_until(SIGNAL).expect("should peek"),
             PeekState::Request(_)
         ));
 
         let result = binding.consume();
-        let PeekState::Consumed(content) = result.unwrap() else {
-            panic!("Failed expectation")
-        };
+        let content = result.unwrap();
 
         let data4 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
         assert_eq!(content, data4);
@@ -1144,10 +1393,7 @@ mod byte_buffered_buffer_pointer {
         );
         assert_eq!(buffer.scan(), &data3[0..10]);
         assert_eq!(buffer.greater_than_40_percent(), false);
-        assert_eq!(
-            buffer.consume().expect("capture 3"),
-            PeekState::Consumed(data3.clone())
-        );
+        assert_eq!(buffer.consume().expect("capture 3"), data3.clone());
         assert_eq!(buffer.greater_than_40_percent(), true);
     }
 
@@ -1177,10 +1423,7 @@ mod byte_buffered_buffer_pointer {
         );
         assert_eq!(buffer.scan(), &data3[0..10]);
         assert_eq!(buffer.greater_than_40_percent(), false);
-        assert_eq!(
-            buffer.consume().expect("capture 3"),
-            PeekState::Consumed(data3.clone())
-        );
+        assert_eq!(buffer.consume().expect("capture 3"), data3.clone());
         assert_eq!(buffer.greater_than_40_percent(), true);
     }
 
