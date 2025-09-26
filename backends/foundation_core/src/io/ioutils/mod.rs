@@ -336,6 +336,7 @@ pub fn buffered_stream_with_capacity<T: Write + Read>(
 
 #[derive(From, Debug)]
 pub enum PeekError {
+    ZeroLengthNotAllowed,
     NotSupported,
     BiggerThanCapacity {
         requested: usize,
@@ -515,8 +516,9 @@ pub enum PeekState<'a> {
     LessThanRequested, // when data is way less than requested position
     EndOfBuffered,     // end of buffered data, so consume and read more
     EndOfFile,         // end of file, the real underlying stream is finished
-    NoNext,   // indicates the peek cursor is still at the same position as the data cursor.
-    Continue, // indicates you can continue to peek into the buffer
+    NoNext, // indicates the peek cursor is still at the same position as the data cursor.
+    Continue,
+    ZeroLengthInput, // indicates you can continue to peek into the buffer
 }
 
 #[allow(unused)]
@@ -617,7 +619,6 @@ impl<T: Read> ByteBufferPointer<T> {
         self.buffer.truncate(slice_length);
         self.pos = 0;
         self.peek_pos = self.pos + distance;
-        println!("Truncated data: {}", force);
     }
 
     /// [`fill_up`] fills the internal buffer with the pull amount
@@ -670,35 +671,40 @@ impl<T: Read> ByteBufferPointer<T> {
     }
 
     #[inline]
-    pub fn peek_until<'a, 'b>(&'a self, signal: &'b [u8]) -> std::io::Result<PeekState<'a>> {
+    pub fn peek_until<'a, 'b>(&'a mut self, signal: &'b [u8]) -> std::io::Result<PeekState<'a>> {
+        if signal.len() == 0 {
+            return Ok(PeekState::ZeroLengthInput);
+        }
         loop {
-            match self.peek_by(signal.len())? {
+            let state = self.peek_by(signal.len())?;
+            match state {
                 PeekState::Request(data) => {
-                    self.forward_by(signal.len())?;
                     if data == signal {
                         break;
-                    } else {
-                        continue;
                     }
                 }
-                PeekState::LessThanRequested => {
-                    self.fill_up()?;
-                    continue;
-                }
-                PeekState::EndOfBuffered => {
-                    self.fill_up()?;
+                PeekState::EndOfBuffered | PeekState::LessThanRequested => {
+                    // if at the end then return with EndOfFile
+                    if self.fill_up()? == 0 {
+                        return Ok(PeekState::EndOfFile);
+                    }
                     continue;
                 }
                 PeekState::Continue => continue,
                 PeekState::EndOfFile => {
                     return Ok(PeekState::EndOfFile);
                 }
-                PeekState::NoNext | PeekState::Consumed(_) => {
+                _ => {
                     unreachable!("Should never hit this types")
                 }
-            }
+            };
+
+            self.peek_pos += signal.len();
         }
 
+        // account for the found block where we break and ensure we can capture
+        // the last peek correctly.
+        self.peek_pos += signal.len();
         Ok(PeekState::Request(&self.buffer[self.pos..self.peek_pos]))
     }
 
@@ -870,6 +876,33 @@ mod byte_buffered_buffer_pointer {
     use super::*;
 
     #[test]
+    fn can_peek_until_a_signal_and_consume() {
+        const signal: &[u8] = b"_";
+
+        let content = b"alexander_wonderbat";
+
+        let reader = OwnedReader::Sync(Arc::new(Mutex::new(Cursor::new(content.to_vec()))));
+        let buffer = Mutex::new(ByteBufferPointer::new(10, reader));
+
+        let mut binding = buffer.lock().unwrap();
+        assert!(matches!(
+            binding.peek_until(signal).expect("should peek"),
+            PeekState::Request(_)
+        ));
+
+        let result = binding.consume();
+        let PeekState::Consumed(content) = result.unwrap() else {
+            panic!("Failed expectation")
+        };
+
+        let data4 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
+        assert_eq!(content, data4);
+
+        let data_4_str = str::from_utf8(&data4).expect("convert into string");
+        assert_eq!(data_4_str, "alexander_");
+    }
+
+    #[test]
     fn can_peek_until_a_signal() {
         const signal: &[u8] = b"_";
 
@@ -878,7 +911,7 @@ mod byte_buffered_buffer_pointer {
         let reader = OwnedReader::Sync(Arc::new(Mutex::new(Cursor::new(content.to_vec()))));
         let buffer = Mutex::new(ByteBufferPointer::new(10, reader));
 
-        let binding = buffer.lock().unwrap();
+        let mut binding = buffer.lock().unwrap();
         let result = binding.peek_until(signal);
         assert!(matches!(result, Ok(PeekState::Request(_))));
 
@@ -886,11 +919,25 @@ mod byte_buffered_buffer_pointer {
             panic!("Failed expectation")
         };
 
-        let data4 = vec![
-            97, 108, 101, 120, 97, 110, 100, 101, 114, 95, 119, 111, 110, 100, 101, 114, 98, 97,
-            116,
-        ];
+        let data4 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
         assert_eq!(content, &data4);
+
+        let data_4_str = str::from_utf8(&data4).expect("convert into string");
+        assert_eq!(data_4_str, "alexander_");
+    }
+
+    #[test]
+    fn can_peek_until_a_signal_but_not_found() {
+        const signal: &[u8] = b"-";
+
+        let content = b"alexander_wonderbat";
+
+        let reader = OwnedReader::Sync(Arc::new(Mutex::new(Cursor::new(content.to_vec()))));
+        let buffer = Mutex::new(ByteBufferPointer::new(10, reader));
+
+        let mut binding = buffer.lock().unwrap();
+        let result = binding.peek_until(signal);
+        assert!(matches!(result, Ok(PeekState::EndOfFile)));
     }
 
     #[test]
