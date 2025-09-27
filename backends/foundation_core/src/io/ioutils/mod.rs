@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::io::{BufRead, BufReader, BufWriter, Cursor, IoSlice, IoSliceMut, Read, Result, Write};
 use std::rc::Rc;
+use std::sync::atomic::AtomicPtr;
 use std::sync::{Arc, Mutex, RwLock};
 
 use derive_more::derive::From;
@@ -394,7 +395,7 @@ impl<T: Read> PeekableReadStream for BufferedReader<T> {
 
 #[derive(Clone)]
 pub enum OwnedReader<T: Read> {
-    NoSync(Rc<RefCell<T>>),
+    Atomic(Arc<AtomicPtr<T>>),
     Sync(Arc<Mutex<T>>),
     RWrite(Arc<RwLock<T>>),
 }
@@ -408,15 +409,21 @@ impl<T: Read> OwnedReader<T> {
         Self::Sync(reader)
     }
 
-    pub fn no_sync(reader: Rc<RefCell<T>>) -> Self {
-        Self::NoSync(reader)
+    pub fn atomic(reader: &mut T) -> Self {
+        Self::Atomic(Arc::new(AtomicPtr::new(reader)))
     }
 }
 
 impl<T: Read> Read for OwnedReader<T> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         match self {
-            Self::NoSync(core) => (*core).borrow_mut().read(buf),
+            Self::Atomic(core) => {
+                let ptr = core.load(std::sync::atomic::Ordering::Acquire);
+                unsafe {
+                    let atomic_reader: &mut T = &mut *ptr;
+                    atomic_reader.read(buf)
+                }
+            }
             Self::Sync(core) => {
                 let mut guard = core.lock().expect("can acquire");
                 guard.read(buf)
@@ -430,7 +437,13 @@ impl<T: Read> Read for OwnedReader<T> {
 
     fn read_vectored(&mut self, bufs: &mut [IoSliceMut<'_>]) -> Result<usize> {
         match self {
-            Self::NoSync(core) => (*core).borrow_mut().read_vectored(bufs),
+            Self::Atomic(core) => {
+                let ptr = core.load(std::sync::atomic::Ordering::Acquire);
+                unsafe {
+                    let atomic_reader: &mut T = &mut *ptr;
+                    atomic_reader.read_vectored(buf)
+                }
+            }
             Self::Sync(core) => {
                 let mut guard = core.lock().expect("can acquire");
                 guard.read_vectored(bufs)
@@ -444,7 +457,13 @@ impl<T: Read> Read for OwnedReader<T> {
 
     fn read_exact(&mut self, buf: &mut [u8]) -> Result<()> {
         match self {
-            Self::NoSync(core) => (*core).borrow_mut().read_exact(buf),
+            Self::Atomic(core) => {
+                let ptr = core.load(std::sync::atomic::Ordering::Acquire);
+                unsafe {
+                    let atomic_reader: &mut T = &mut *ptr;
+                    atomic_reader.read_exact(buf)
+                }
+            }
             Self::Sync(core) => {
                 let mut guard = core.lock().expect("can acquire");
                 guard.read_exact(buf)
@@ -458,7 +477,13 @@ impl<T: Read> Read for OwnedReader<T> {
 
     fn read_to_end(&mut self, buf: &mut Vec<u8>) -> Result<usize> {
         match self {
-            Self::NoSync(core) => (*core).borrow_mut().read_to_end(buf),
+            Self::Atomic(core) => {
+                let ptr = core.load(std::sync::atomic::Ordering::Acquire);
+                unsafe {
+                    let atomic_reader: &mut T = &mut *ptr;
+                    atomic_reader.read_to_end(buf)
+                }
+            }
             Self::Sync(core) => {
                 let mut guard = core.lock().expect("can acquire");
                 guard.read_to_end(buf)
@@ -472,7 +497,13 @@ impl<T: Read> Read for OwnedReader<T> {
 
     fn read_to_string(&mut self, buf: &mut String) -> Result<usize> {
         match self {
-            Self::NoSync(core) => (*core).borrow_mut().read_to_string(buf),
+            Self::Atomic(core) => {
+                let ptr = core.load(std::sync::atomic::Ordering::Acquire);
+                unsafe {
+                    let atomic_reader: &mut T = &mut *ptr;
+                    atomic_reader.read_to_string(buf)
+                }
+            }
             Self::Sync(core) => {
                 let mut guard = core.lock().expect("can acquire");
                 guard.read_to_string(buf)
@@ -669,6 +700,87 @@ impl<T: Read> ByteBufferPointer<T> {
         Ok(PeekState::Request(&self.buffer[from..until_pos]))
     }
 
+    pub fn read_size<'a, 'b>(&'a mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        match self.peek_size(buf.len()) {
+            Ok(state) => match state {
+                PeekState::Request(data) => {
+                    let ending = if buf.len() > data.len() {
+                        data.len()
+                    } else {
+                        buf.len()
+                    };
+
+                    for (index, elem) in data[0..ending].iter().enumerate() {
+                        buf[index] = *elem
+                    }
+                    Ok(data.len())
+                }
+                PeekState::LessThanRequested => {
+                    let ending = if buf.len() > self.buffer.len() {
+                        self.buffer.len()
+                    } else {
+                        buf.len()
+                    };
+                    for (index, elem) in self.buffer[0..ending].iter().enumerate() {
+                        buf[index] = *elem
+                    }
+                    Ok(ending)
+                }
+                _ => return Ok(0),
+            },
+            Err(err) => Err(err),
+        }
+    }
+
+    /// [`peek_size`] returns a portion of the underlying buffer for the specified
+    /// size using a tight loop until the requested size is of data has being pulled
+    /// into the internal peek buffer for peeking .
+    ///
+    /// This moves forward the cursor forward until the requested size is achieved
+    /// and if the loop stops and the current buffer size does not match then
+    /// we return what's already acquired, so you need to be aware that this can happen
+    /// since generally it means we have reached EOF from the internal readers perspective.
+    #[inline]
+    pub fn peek_size<'a, 'b>(&'a mut self, size: usize) -> std::io::Result<PeekState<'a>> {
+        if size == 0 {
+            return Ok(PeekState::ZeroLengthInput);
+        }
+
+        loop {
+            let buffer_len = self.buffer.len();
+            let rem = size - buffer_len;
+
+            if rem < 0 {
+                break;
+            }
+
+            let state = self.peek_by(rem)?;
+            let read = match state {
+                PeekState::Request(po) => po.len(),
+                PeekState::Continue | PeekState::EndOfBuffered | PeekState::LessThanRequested => {
+                    continue;
+                }
+                PeekState::EndOfFile => {
+                    break;
+                }
+                _ => {
+                    unreachable!("Should never hit this types")
+                }
+            };
+
+            self.peek_pos += read;
+        }
+
+        let slice = &self.buffer[self.pos..self.peek_pos];
+        Ok(PeekState::Request(slice))
+    }
+
+    /// [`peek_until`] returns the peek state for the requested data until the delimiter is seen
+    /// at which point the underlying reference to the data is either shared in a
+    /// [`PeekState::Request`] if fully read else return [`PeekState::EndOfFile`] if the
+    /// source returns EOF or if the data available is less than requested.
+    ///
+    /// It runs in a tight loop and ensures to acquire as much data as needed.
     #[inline]
     pub fn peek_until<'a, 'b>(&'a mut self, signal: &'b [u8]) -> std::io::Result<PeekState<'a>> {
         if signal.len() == 0 {
@@ -726,6 +838,7 @@ impl<T: Read> ByteBufferPointer<T> {
                     Ok(c.len())
                 }
                 PeekState::EndOfFile => Ok(0),
+                PeekState::ZeroLengthInput => Ok(0),
                 _ => unreachable!("Should never trigger"),
             },
             Err(err) => return Err(err),
@@ -768,6 +881,7 @@ impl<T: Read> ByteBufferPointer<T> {
                     Ok(c.len())
                 }
                 PeekState::EndOfFile => Ok(0),
+                PeekState::ZeroLengthInput => Ok(0),
                 _ => unreachable!("Should never trigger"),
             },
             Err(err) => return Err(err),
@@ -813,6 +927,7 @@ impl<T: Read> ByteBufferPointer<T> {
                     Ok(c.len())
                 }
                 PeekState::EndOfFile => Ok(0),
+                PeekState::ZeroLengthInput => Ok(0),
                 _ => unreachable!("Should never trigger"),
             },
             Err(err) => return Err(err),
@@ -858,6 +973,7 @@ impl<T: Read> ByteBufferPointer<T> {
                     Ok(c.len())
                 }
                 PeekState::EndOfFile => Ok(0),
+                PeekState::ZeroLengthInput => Ok(0),
                 _ => unreachable!("Should never trigger"),
             },
             Err(err) => return Err(err),
@@ -947,97 +1063,40 @@ impl<T: Read> ByteBufferPointer<T> {
     }
 }
 
-// -- Cursor
-
-pub struct BufferedCapacityCursor<T>(std::io::Cursor<T>);
-
-impl BufferCapacity for BufferedCapacityCursor<&str> {
-    fn read_buffer(&self) -> &[u8] {
-        self.0.get_ref().as_bytes()
-    }
-
-    fn read_capacity(&self) -> usize {
-        self.0.get_ref().len()
+impl<T: Read> Read for ByteBufferPointer<T> {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
+        self.read_size(buf)
     }
 }
 
-impl BufferCapacity for BufferedCapacityCursor<String> {
-    fn read_buffer(&self) -> &[u8] {
-        self.0.get_ref().as_bytes()
-    }
-
-    fn read_capacity(&self) -> usize {
-        self.0.get_ref().len()
+impl<T: Read> PeekableReadStream for Arc<Mutex<ByteBufferPointee<T>>> {
+    fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError> {
+        let binding = self.lock().unwrap();
+        binding.peek(buf)
     }
 }
 
-impl BufferCapacity for BufferedCapacityCursor<&[u8]> {
-    fn read_buffer(&self) -> &[u8] {
-        self.0.get_ref()
-    }
+impl<T: Read> PeekableReadStream for ByteBufferPointer<T> {
+    fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError> {
+        match self.peek_size(buf.len()) {
+            Ok(state) => match state {
+                PeekState::Request(data) => {
+                    let ending = if buf.len() > data.len() {
+                        data.len()
+                    } else {
+                        buf.len()
+                    };
 
-    fn read_capacity(&self) -> usize {
-        self.0.get_ref().len()
-    }
-}
-
-impl BufferCapacity for BufferedCapacityCursor<Vec<u8>> {
-    fn read_buffer(&self) -> &[u8] {
-        self.0.get_ref()
-    }
-
-    fn read_capacity(&self) -> usize {
-        self.0.get_ref().len()
-    }
-}
-
-impl<T> BufferedCapacityCursor<T> {
-    pub fn new(cursor: std::io::Cursor<T>) -> Self {
-        Self(cursor)
-    }
-
-    /// get_ref returns the reference to the wrapped `Cursor<T>`.
-    pub fn get_ref(&self) -> &Cursor<T> {
-        &self.0
-    }
-
-    /// get_mut returns the mutable reference to the wrapped `Cursor<T>`.
-    pub fn get_mut(&mut self) -> &mut Cursor<T> {
-        &mut self.0
-    }
-
-    /// get_inner_mut returns a immutable reference to the  inner content
-    /// of the wrapped `Cursor<T>`.
-    pub fn get_inner_ref(&self) -> &T {
-        self.0.get_ref()
-    }
-
-    /// get_inner_mut returns a mutable reference to the  inner content
-    /// of the wrapped `Cursor<T>`.
-    pub fn get_inner_mut(&mut self) -> &mut T {
-        self.0.get_mut()
-    }
-}
-
-#[cfg(test)]
-mod buffered_writer_tests {
-    use std::io::Cursor;
-
-    use super::*;
-
-    #[test]
-    fn can_buffered_writer_peek() {
-        let content = b"alexander_wonderbat";
-        let mut reader = BufferedReader::new(BufferedWriter::new(Cursor::new(content.to_vec())));
-
-        let mut content_to_read = vec![0; 5];
-        reader
-            .peek(&mut content_to_read)
-            .expect("should read data correctly");
-
-        assert_eq!(b"alexa", &content_to_read[..]);
-
-        assert_eq!(content, reader.buffer());
+                    for (index, elem) in data[0..ending].iter().enumerate() {
+                        buf[index] = *elem
+                    }
+                    Ok(data.len())
+                }
+                PeekState::ZeroLengthInput => Ok(0),
+                _ => unreachable!("We should never hit this state"),
+            },
+            Err(err) => Err(PeekError::IOError(err)),
+        }
     }
 }
 
@@ -1239,7 +1298,8 @@ mod byte_buffered_buffer_pointer {
     #[test]
     fn can_read_data_via_byte_buffer_pointer() {
         let content = b"alexander_wonderbat";
-        let reader = OwnedReader::NoSync(Rc::new(RefCell::new(Cursor::new(content.to_vec()))));
+        let mut source = Cursor::new(content.to_vec());
+        let reader = OwnedReader::atomic(&mut source);
         let mut buffer = ByteBufferPointer::new(128, reader);
 
         assert_eq!(
@@ -1272,7 +1332,8 @@ mod byte_buffered_buffer_pointer {
     #[test]
     fn can_take_peeked_data() {
         let content = b"alexander_wonderbat";
-        let reader = OwnedReader::NoSync(Rc::new(RefCell::new(Cursor::new(content.to_vec()))));
+        let mut source = Cursor::new(content.to_vec());
+        let reader = OwnedReader::atomic(&mut source);
         let mut buffer = ByteBufferPointer::new(128, reader);
 
         assert_eq!(
@@ -1292,7 +1353,8 @@ mod byte_buffered_buffer_pointer {
     #[test]
     fn can_take_unmove_data() {
         let content = b"alexander_wonderbat";
-        let reader = OwnedReader::NoSync(Rc::new(RefCell::new(Cursor::new(content.to_vec()))));
+        let mut source = Cursor::new(content.to_vec());
+        let reader = OwnedReader::atomic(&mut source);
         let mut buffer = ByteBufferPointer::new(128, reader);
 
         assert_eq!(
@@ -1326,7 +1388,8 @@ mod byte_buffered_buffer_pointer {
     #[test]
     fn can_skip_data() {
         let content = b"alexander_wonderbat";
-        let reader = OwnedReader::NoSync(Rc::new(RefCell::new(Cursor::new(content.to_vec()))));
+        let mut source = Cursor::new(content.to_vec());
+        let reader = OwnedReader::atomic(&mut source);
         let mut buffer = ByteBufferPointer::new(128, reader);
 
         assert_eq!(
@@ -1369,9 +1432,8 @@ mod byte_buffered_buffer_pointer {
     #[test]
     fn can_use_buffered_reader_move_next_data() {
         let content = b"alexander_wonderbat";
-        let reader = BufferedReader::new(BufferedWriter::new(Cursor::new(content.to_vec())));
-        let mut buffer =
-            ByteBufferPointer::new(128, OwnedReader::NoSync(Rc::new(RefCell::new(reader))));
+        let mut reader = BufferedReader::new(BufferedWriter::new(Cursor::new(content.to_vec())));
+        let mut buffer = ByteBufferPointer::new(128, OwnedReader::atomic(&mut reader));
 
         assert_eq!(
             buffer.peek().expect("less than requested"),
@@ -1400,7 +1462,8 @@ mod byte_buffered_buffer_pointer {
     #[test]
     fn can_move_next_data() {
         let content = b"alexander_wonderbat";
-        let reader = OwnedReader::NoSync(Rc::new(RefCell::new(Cursor::new(content.to_vec()))));
+        let mut source = Cursor::new(content.to_vec());
+        let reader = OwnedReader::atomic(&mut source);
         let mut buffer = ByteBufferPointer::new(128, reader);
 
         assert_eq!(
@@ -1432,7 +1495,8 @@ mod byte_buffered_buffer_pointer {
         let content = b"alexander_wonderbat";
         println!("ContentLength: {}", content.len());
 
-        let reader = OwnedReader::NoSync(Rc::new(RefCell::new(Cursor::new(content.to_vec()))));
+        let mut source = Cursor::new(content.to_vec());
+        let reader = OwnedReader::atomic(&mut source);
         let mut buffer = ByteBufferPointer::new(10, reader);
 
         assert_eq!(
@@ -1520,5 +1584,99 @@ mod byte_buffered_buffer_pointer {
             116,
         ];
         assert_eq!(buffer.scan(), &data4);
+    }
+}
+
+// -- Cursor
+
+pub struct BufferedCapacityCursor<T>(std::io::Cursor<T>);
+
+impl BufferCapacity for BufferedCapacityCursor<&str> {
+    fn read_buffer(&self) -> &[u8] {
+        self.0.get_ref().as_bytes()
+    }
+
+    fn read_capacity(&self) -> usize {
+        self.0.get_ref().len()
+    }
+}
+
+impl BufferCapacity for BufferedCapacityCursor<String> {
+    fn read_buffer(&self) -> &[u8] {
+        self.0.get_ref().as_bytes()
+    }
+
+    fn read_capacity(&self) -> usize {
+        self.0.get_ref().len()
+    }
+}
+
+impl BufferCapacity for BufferedCapacityCursor<&[u8]> {
+    fn read_buffer(&self) -> &[u8] {
+        self.0.get_ref()
+    }
+
+    fn read_capacity(&self) -> usize {
+        self.0.get_ref().len()
+    }
+}
+
+impl BufferCapacity for BufferedCapacityCursor<Vec<u8>> {
+    fn read_buffer(&self) -> &[u8] {
+        self.0.get_ref()
+    }
+
+    fn read_capacity(&self) -> usize {
+        self.0.get_ref().len()
+    }
+}
+
+impl<T> BufferedCapacityCursor<T> {
+    pub fn new(cursor: std::io::Cursor<T>) -> Self {
+        Self(cursor)
+    }
+
+    /// get_ref returns the reference to the wrapped `Cursor<T>`.
+    pub fn get_ref(&self) -> &Cursor<T> {
+        &self.0
+    }
+
+    /// get_mut returns the mutable reference to the wrapped `Cursor<T>`.
+    pub fn get_mut(&mut self) -> &mut Cursor<T> {
+        &mut self.0
+    }
+
+    /// get_inner_mut returns a immutable reference to the  inner content
+    /// of the wrapped `Cursor<T>`.
+    pub fn get_inner_ref(&self) -> &T {
+        self.0.get_ref()
+    }
+
+    /// get_inner_mut returns a mutable reference to the  inner content
+    /// of the wrapped `Cursor<T>`.
+    pub fn get_inner_mut(&mut self) -> &mut T {
+        self.0.get_mut()
+    }
+}
+
+#[cfg(test)]
+mod buffered_writer_tests {
+    use std::io::Cursor;
+
+    use super::*;
+
+    #[test]
+    fn can_buffered_writer_peek() {
+        let content = b"alexander_wonderbat";
+        let mut reader = BufferedReader::new(BufferedWriter::new(Cursor::new(content.to_vec())));
+
+        let mut content_to_read = vec![0; 5];
+        reader
+            .peek(&mut content_to_read)
+            .expect("should read data correctly");
+
+        assert_eq!(b"alexa", &content_to_read[..]);
+
+        assert_eq!(content, reader.buffer());
     }
 }

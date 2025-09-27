@@ -114,9 +114,8 @@ impl TestServer {
                 .try_clone()
                 .expect("should be able to clone connection");
 
-            let mut request_reader = simple_http::HttpReader::simple_tcp_stream(
-                ioutils::BufferedReader::new(WrappedTcpStream::new(read_stream)),
-            );
+            let mut request_reader =
+                simple_http::HttpReader::from_reader(WrappedTcpStream::new(read_stream));
 
             loop {
                 // fetch the intro portion and validate we have resources for processing request
