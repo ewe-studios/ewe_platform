@@ -54,7 +54,22 @@ pub enum RawStream {
 // -- Basic constructors
 
 impl RawStream {
-    /// from_endpoint_timeout creates a naked RawStream which is not mapped to a specific
+    /// [`from_tcp`] creates a naked RawStream from a TCPStream connected to the relevant Endpoint
+    /// upgrade to TLS if required.
+    ///
+    /// How you take the returned RawStream is up to you but this allows you more control
+    /// on how exactly the request starts.
+    pub fn from_tcp(stream: TcpStream) -> super::DataStreamResult<Self> {
+        let conn = Connection::Tcp(stream);
+        let conn_addr = conn
+            .stream_addr()
+            .map_err(|_| DataStreamError::FailedToAcquireAddrs)?;
+
+        let reader = BufferedReader::new(BufferedWriter::new(conn));
+        Ok(Self::AsPlain(reader, conn_addr))
+    }
+
+    /// [`from_connection`] creates a naked RawStream which is not mapped to a specific
     /// protocol version and simply is a TCPStream connected to the relevant Endpoint
     /// upgrade to TLS if required.
     ///

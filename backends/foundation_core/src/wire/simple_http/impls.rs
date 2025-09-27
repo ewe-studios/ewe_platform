@@ -4,6 +4,7 @@ use crate::extensions::result_ext::BoxedError;
 use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
 use crate::io::ioutils::{self, ByteBufferPointer, OwnedReader, PeekableReadStream};
 use crate::io::ubytes::{self, BytesPointer};
+use crate::netcap::RawStream;
 use crate::valtron::{
     CloneableFn, SendStringIterator, SendVecIterator, SendableBoxIterator, SendableIterator,
     TransformSendIterator,
@@ -3456,21 +3457,20 @@ impl BodyExtractor for SimpleHttpBody {
     }
 }
 
-impl HttpReader<SimpleHttpBody, SharedByteBufferStream<WrappedTcpStream>> {
-    pub fn from_reader(reader: WrappedTcpStream) -> HttpReader<SimpleHttpBody, WrappedTcpStream> {
+impl HttpReader<SimpleHttpBody, SharedByteBufferStream<RawStream>> {
+    pub fn from_reader(reader: RawStream) -> HttpReader<SimpleHttpBody, RawStream> {
         let buffered_reader = ioutils::BufferedReader::new(reader);
-        let owned_reader = OwnedReader::rwrute(RwLock::new(buffered_reader));
-        let byte_reader = ByteBufferPointer::new(128, owned_reader);
-        HttpReader::<SimpleHttpBody, WrappedTcpStream>::new(
+        let byte_reader = ByteBufferPointer::reader(buffered_reader);
+        HttpReader::<SimpleHttpBody, RawStream>::new(
             Arc::new(Mutex::new(byte_reader)),
             SimpleHttpBody,
         )
     }
 
     pub fn simple_tcp_stream(
-        reader: SharedByteBufferStream<WrappedTcpStream>,
-    ) -> HttpReader<SimpleHttpBody, WrappedTcpStream> {
-        HttpReader::<SimpleHttpBody, WrappedTcpStream>::new(reader, SimpleHttpBody)
+        reader: SharedByteBufferStream<RawStream>,
+    ) -> HttpReader<SimpleHttpBody, RawStream> {
+        HttpReader::<SimpleHttpBody, RawStream>::new(reader, SimpleHttpBody)
     }
 }
 
@@ -3511,7 +3511,7 @@ Hello world!";
         });
 
         let (client_stream, _) = panic_if_failed!(listener.accept());
-        let reader = ioutils::BufferedReader::new(WrappedTcpStream::new(client_stream));
+        let reader = RawStream::from_tcp(client_stream);
         let request_reader = super::HttpReader::from_reader(reader);
 
         let request_parts = request_reader
