@@ -526,6 +526,8 @@ pub struct ByteBufferPointer<T: Read> {
 
 // Constructors
 
+const DEFAULT_READ_SIZE: usize = 1024;
+
 impl<T: Read> ByteBufferPointer<T> {
     pub fn new(pull_amount: usize, reader: OwnedReader<T>) -> Self {
         Self {
@@ -535,6 +537,16 @@ impl<T: Read> ByteBufferPointer<T> {
             reader,
             pos: 0,
         }
+    }
+
+    pub fn from_reader(pull_amount: usize, reader: T) -> Self {
+        let wrapped_reader = OwnedReader::rwrite(Arc::new(RwLock::new(reader)));
+        Self::new(pull_amount, wrapped_reader)
+    }
+
+    pub fn reader(reader: T) -> Self {
+        let wrapped_reader = OwnedReader::rwrite(Arc::new(RwLock::new(reader)));
+        Self::new(DEFAULT_READ_SIZE, wrapped_reader)
     }
 }
 
