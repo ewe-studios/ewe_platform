@@ -1,11 +1,13 @@
 #![allow(clippy::type_complexity)]
 #![cfg(not(target_arch = "wasm32"))]
 
+use crate::{compati::Mutex, netcap::RawStream};
 use derive_more::From;
 use std::{
     io::Write,
     net::{TcpListener, TcpStream},
     sync::mpsc,
+    sync::Arc,
     thread::{self, JoinHandle},
 };
 
@@ -14,7 +16,7 @@ use crate::{
     io::ioutils,
     wire::simple_http::{
         self, Http11, IncomingRequestParts, Proto, RenderHttp, RequestDescriptor, ServiceAction,
-        ServiceActionList, SimpleIncomingRequest, SimpleOutgoingResponse, Status, WrappedTcpStream,
+        ServiceActionList, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
     },
 };
 
@@ -114,8 +116,8 @@ impl TestServer {
                 .try_clone()
                 .expect("should be able to clone connection");
 
-            let mut request_reader =
-                simple_http::HttpReader::from_reader(WrappedTcpStream::new(read_stream));
+            let conn = RawStream::from_tcp(read_stream).expect("should wrap tcp stream");
+            let mut request_reader = simple_http::HttpReader::from_reader(conn);
 
             loop {
                 // fetch the intro portion and validate we have resources for processing request
