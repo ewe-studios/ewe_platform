@@ -2,6 +2,7 @@ use core::time;
 use std::sync::Arc;
 use std::time::Duration;
 
+use crate::io::ioutils;
 use crate::netcap::{ClientEndpoint, DataStreamError, RawStream};
 use crate::retries::{CReconnectionDecider, ExponentialBackoffDecider, RetryDecider, RetryState};
 use crate::valtron::delayed_iterators::Delayed;
@@ -10,12 +11,23 @@ use derive_more::derive::From;
 
 use super::simple_http;
 use crate::compati::Mutex;
+use crate::compati::RwLock;
+
+// Bare metal platforms usually have very small amounts of RAM
+// (in the order of hundreds of KB)
+pub const DEFAULT_BYTE_BUFFER_PULL: usize = if cfg!(target_os = "espidf") {
+    512
+} else {
+    8 * 1024
+};
 
 pub fn create_simple_http_reader<T: simple_http::BodyExtractor>(
     stream: RawStream,
     extractor: T,
 ) -> simple_http::HttpReader<T, RawStream> {
-    simple_http::HttpReader::new(crate::io::ioutils::BufferedReader::new(stream), extractor)
+    let wrapped_reader = ioutils::OwnedReader::rwrite(Arc::new(RwLock::new(stream)));
+    let byte_reader = ioutils::ByteBufferPointer::new(DEFAULT_BYTE_BUFFER_PULL, wrapped_reader);
+    simple_http::HttpReader::new(Arc::new(Mutex::new(byte_reader)), extractor)
 }
 
 /// Representing the different state a connection goes through

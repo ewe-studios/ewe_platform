@@ -1,8 +1,10 @@
 #![allow(clippy::type_complexity)]
 
+use crate::compati::Mutex;
+use crate::compati::RwLock;
 use crate::extensions::result_ext::BoxedError;
 use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
-use crate::io::ioutils::{self, ByteBufferPointer, OwnedReader, PeekableReadStream};
+use crate::io::ioutils::{self, ByteBufferPointer};
 use crate::io::ubytes::{self, BytesPointer};
 use crate::netcap::RawStream;
 use crate::valtron::{
@@ -17,8 +19,7 @@ use std::sync::Arc;
 use std::{
     collections::BTreeMap,
     convert::Infallible,
-    io::{self, BufRead, Read},
-    net::TcpStream,
+    io::{BufRead, Read},
     str::FromStr,
     string::FromUtf8Error,
 };
@@ -2242,42 +2243,7 @@ impl core::fmt::Display for IncomingRequestParts {
 
 /// SharedPointerReader defines a shared buffer reader pointer that allows reading through
 /// a underlying buffered stream.
-pub type SharedByteBufferStream<T: Read> =
-    std::sync::Arc<std::sync::Mutex<ByteBufferPointer<OwnedReader<ioutils::BufferedReader<T>>>>>;
-
-pub struct WrappedTcpStream(TcpStream);
-
-impl WrappedTcpStream {
-    pub fn new(stream: TcpStream) -> Self {
-        Self(stream)
-    }
-
-    pub fn get_inner(&self) -> &TcpStream {
-        &self.0
-    }
-
-    pub fn get_mut(&mut self) -> &mut TcpStream {
-        &mut self.0
-    }
-}
-
-impl Read for WrappedTcpStream {
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        self.0.read(buf)
-    }
-}
-
-impl PeekableReadStream for WrappedTcpStream {
-    fn peek(
-        &mut self,
-        buf: &mut [u8],
-    ) -> std::result::Result<usize, crate::io::ioutils::PeekError> {
-        match self.0.peek(buf) {
-            Ok(count) => Ok(count),
-            Err(err) => Err(crate::io::ioutils::PeekError::IOError(err)),
-        }
-    }
-}
+pub type SharedByteBufferStream<T: Read> = std::sync::Arc<std::sync::Mutex<ByteBufferPointer<T>>>;
 
 pub trait BodyExtractor {
     /// extract will attempt to extract the relevant Body of a TcpStream shared
@@ -2287,7 +2253,7 @@ pub trait BodyExtractor {
     /// This allows custom implementation of Tcp/Http body extractors.
     ///
     /// See sample implementation in `SimpleHttpBody`.
-    fn extract<T: PeekableReadStream + Send + 'static>(
+    fn extract<T: Read + Sync + Send + 'static>(
         &self,
         body: Body,
         stream: SharedByteBufferStream<T>,
@@ -2304,7 +2270,7 @@ pub enum HttpReadState {
 }
 
 #[derive(Clone)]
-pub struct HttpReader<F: BodyExtractor, T: PeekableReadStream + Send + 'static> {
+pub struct HttpReader<F: BodyExtractor, T: std::io::Read + Send + 'static> {
     reader: SharedByteBufferStream<T>,
     state: HttpReadState,
     bodies: F,
@@ -2316,7 +2282,7 @@ pub struct HttpReader<F: BodyExtractor, T: PeekableReadStream + Send + 'static> 
 impl<F, T> HttpReader<F, T>
 where
     F: BodyExtractor,
-    T: PeekableReadStream + Send + 'static,
+    T: std::io::Read + Send + 'static,
 {
     pub fn new(reader: SharedByteBufferStream<T>, bodies: F) -> Self {
         Self {
@@ -2384,7 +2350,7 @@ static SPACE_CHARS: &[char] = &[' ', '\n', '\t', '\r'];
 impl<F, T> Iterator for HttpReader<F, T>
 where
     F: BodyExtractor,
-    T: PeekableReadStream + Send + 'static,
+    T: std::io::Read + Send + Sync + 'static,
 {
     type Item = Result<IncomingRequestParts, HttpReaderError>;
 
@@ -3262,14 +3228,14 @@ mod test_chunk_parser {
     }
 }
 
-pub struct SimpleHttpChunkIterator<T: PeekableReadStream + Send + Sync>(
+pub struct SimpleHttpChunkIterator<T: std::io::Read + Send + Sync>(
     String,
     SimpleHeaders,
     SharedByteBufferStream<T>,
     Arc<AtomicBool>,
 );
 
-impl<T: PeekableReadStream + Send + Sync> Clone for SimpleHttpChunkIterator<T> {
+impl<T: std::io::Read + Send + Sync> Clone for SimpleHttpChunkIterator<T> {
     fn clone(&self) -> Self {
         Self(
             self.0.clone(),
@@ -3280,7 +3246,7 @@ impl<T: PeekableReadStream + Send + Sync> Clone for SimpleHttpChunkIterator<T> {
     }
 }
 
-impl<T: PeekableReadStream + Send + Sync> SimpleHttpChunkIterator<T> {
+impl<T: std::io::Read + Send + Sync> SimpleHttpChunkIterator<T> {
     pub fn new(
         transfer_encoding: String,
         headers: SimpleHeaders,
@@ -3295,12 +3261,12 @@ impl<T: PeekableReadStream + Send + Sync> SimpleHttpChunkIterator<T> {
     }
 }
 
-impl<T: PeekableReadStream + Send + Sync> SendableIterator<Result<ChunkedData, BoxedError>>
+impl<T: std::io::Read + Send + Sync> SendableIterator<Result<ChunkedData, BoxedError>>
     for SimpleHttpChunkIterator<T>
 {
 }
 
-impl<T: PeekableReadStream + Send + Sync> Iterator for SimpleHttpChunkIterator<T> {
+impl<T: std::io::Read + Send + Sync> Iterator for SimpleHttpChunkIterator<T> {
     type Item = Result<ChunkedData, BoxedError>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -3418,7 +3384,7 @@ impl<T: PeekableReadStream + Send + Sync> Iterator for SimpleHttpChunkIterator<T
 pub struct SimpleHttpBody;
 
 impl BodyExtractor for SimpleHttpBody {
-    fn extract<T: PeekableReadStream + Send + Sync + 'static>(
+    fn extract<T: std::io::Read + Send + Sync + 'static>(
         &self,
         body: Body,
         stream: SharedByteBufferStream<T>,
@@ -3457,10 +3423,12 @@ impl BodyExtractor for SimpleHttpBody {
     }
 }
 
+const DEFAULT_BYTE_BUFFER_PULL: usize = 1024 * 4;
+
 impl HttpReader<SimpleHttpBody, SharedByteBufferStream<RawStream>> {
     pub fn from_reader(reader: RawStream) -> HttpReader<SimpleHttpBody, RawStream> {
-        let buffered_reader = ioutils::BufferedReader::new(reader);
-        let byte_reader = ByteBufferPointer::reader(buffered_reader);
+        let wrapped_reader = ioutils::OwnedReader::rwrite(Arc::new(RwLock::new(reader)));
+        let byte_reader = ioutils::ByteBufferPointer::new(DEFAULT_BYTE_BUFFER_PULL, wrapped_reader);
         HttpReader::<SimpleHttpBody, RawStream>::new(
             Arc::new(Mutex::new(byte_reader)),
             SimpleHttpBody,
@@ -3476,7 +3444,7 @@ impl HttpReader<SimpleHttpBody, SharedByteBufferStream<RawStream>> {
 
 #[cfg(test)]
 mod test_http_reader {
-    use io::Write;
+    use std::io::Write;
 
     use crate::panic_if_failed;
 
@@ -3511,7 +3479,7 @@ Hello world!";
         });
 
         let (client_stream, _) = panic_if_failed!(listener.accept());
-        let reader = RawStream::from_tcp(client_stream);
+        let reader = RawStream::from_tcp(client_stream).expect("should create stream");
         let request_reader = super::HttpReader::from_reader(reader);
 
         let request_parts = request_reader
@@ -3570,7 +3538,7 @@ Hello world!";
         });
 
         let (client_stream, _) = panic_if_failed!(listener.accept());
-        let reader = ioutils::BufferedReader::new(WrappedTcpStream::new(client_stream));
+        let reader = RawStream::from_tcp(client_stream).expect("should create stream");
         let request_reader = super::HttpReader::from_reader(reader);
 
         let request_parts = request_reader
@@ -3626,7 +3594,7 @@ Hello world!";
         });
 
         let (client_stream, _) = panic_if_failed!(listener.accept());
-        let reader = ioutils::BufferedReader::new(WrappedTcpStream::new(client_stream));
+        let reader = RawStream::from_tcp(client_stream).expect("check reader");
         let request_reader = super::HttpReader::from_reader(reader);
 
         let request_parts = request_reader
