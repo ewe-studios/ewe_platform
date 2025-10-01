@@ -1,10 +1,8 @@
 #![allow(clippy::type_complexity)]
 
-use crate::compati::Mutex;
-use crate::compati::RwLock;
 use crate::extensions::result_ext::BoxedError;
 use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
-use crate::io::ioutils::{self, ByteBufferPointer};
+use crate::io::ioutils::{self, SharedByteBufferStream};
 use crate::io::ubytes::{self, BytesPointer};
 use crate::netcap::RawStream;
 use crate::valtron::{
@@ -2241,10 +2239,6 @@ impl core::fmt::Display for IncomingRequestParts {
     }
 }
 
-/// SharedPointerReader defines a shared buffer reader pointer that allows reading through
-/// a underlying buffered stream.
-pub type SharedByteBufferStream<T: Read> = std::sync::Arc<std::sync::Mutex<ByteBufferPointer<T>>>;
-
 pub trait BodyExtractor {
     /// extract will attempt to extract the relevant Body of a TcpStream shared
     /// stream by doing whatever internal logic is required to extract the necessary
@@ -3427,12 +3421,8 @@ const DEFAULT_BYTE_BUFFER_PULL: usize = 1024 * 4;
 
 impl HttpReader<SimpleHttpBody, SharedByteBufferStream<RawStream>> {
     pub fn from_reader(reader: RawStream) -> HttpReader<SimpleHttpBody, RawStream> {
-        let wrapped_reader = ioutils::OwnedReader::rwrite(Arc::new(RwLock::new(reader)));
-        let byte_reader = ioutils::ByteBufferPointer::new(DEFAULT_BYTE_BUFFER_PULL, wrapped_reader);
-        HttpReader::<SimpleHttpBody, RawStream>::new(
-            Arc::new(Mutex::new(byte_reader)),
-            SimpleHttpBody,
-        )
+        let byte_reader = ioutils::SharedByteBufferStream::new(reader);
+        HttpReader::<SimpleHttpBody, RawStream>::new(byte_reader, SimpleHttpBody)
     }
 
     pub fn simple_tcp_stream(
