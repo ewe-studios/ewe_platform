@@ -532,15 +532,18 @@ pub struct SharedByteBufferStream<T: Read>(std::sync::Arc<std::sync::RwLock<Byte
 
 impl<T: Read> SharedByteBufferStream<T> {
     pub fn new(reader: T) -> Self {
+        let wrapped_reader = OwnedReader::rwrite(Arc::new(RwLock::new(reader)));
         Self(Arc::new(RwLock::new(ByteBufferPointer::new(
             DEFAULT_READ_SIZE,
-            reader,
+            wrapped_reader,
         ))))
     }
 
     pub fn with_capacity(capacity: usize, reader: T) -> Self {
+        let wrapped_reader = OwnedReader::rwrite(Arc::new(RwLock::new(reader)));
         Self(Arc::new(RwLock::new(ByteBufferPointer::new(
-            capacity, reader,
+            capacity,
+            wrapped_reader,
         ))))
     }
 }
@@ -552,17 +555,9 @@ impl<T: Read> SharedByteBufferStream<BufferedReader<T>> {
     }
 }
 
-impl<T: Read> SharedByteBufferStream<BufferedReader<OwnedReader<T>>> {
+impl<T: Read> SharedByteBufferStream<BufferedReader<T>> {
     pub fn with_buffered_owned_reader(reader: T) -> Self {
-        let wrapped_reader = OwnedReader::rwrite(Arc::new(RwLock::new(reader)));
-        Self::new(BufferedReader::new(wrapped_reader))
-    }
-}
-
-impl<T: Read> SharedByteBufferStream<OwnedReader<T>> {
-    pub fn with_owned_reader(reader: T) -> Self {
-        let wrapped_reader = OwnedReader::rwrite(Arc::new(RwLock::new(reader)));
-        Self::new(wrapped_reader)
+        Self::new(BufferedReader::new(reader))
     }
 }
 
@@ -601,75 +596,27 @@ impl<T: Read> SharedByteBufferStream<T> {
     }
 
     #[inline]
-    pub fn uncapture(&mut self, by: usize) {
-        let binding = self.0.read().expect("get lock");
-        binding.uncapture()
+    pub fn uncapture(&self, by: usize) {
+        let mut binding = self.0.write().expect("get lock");
+        binding.uncapture(by)
     }
 
     #[inline]
-    pub fn uncapture_by(&mut self, by: usize) {
-        let binding = self.0.read().expect("get lock");
+    pub fn uncapture_by(&self, by: usize) {
+        let mut binding = self.0.write().expect("get lock");
         binding.uncapture_by(by)
-    }
-
-    /// full_scan returns the whole buffer as is, so you see the entire
-    /// content regardless of cursors position.
-    #[inline]
-    pub fn full_scan<'a>(&'a self) -> &'a [u8] {
-        let binding = self.0.read().expect("get lock");
-        binding.full_scan()
-    }
-
-    /// scan returns the whole string slice currently at the points of where
-    /// the main pos (position) cursor till the end.
-    #[inline]
-    pub fn scan<'a>(&'a self) -> &'a [u8] {
-        let binding = self.0.read().expect("get lock");
-        binding.scan()
     }
 
     #[inline]
     pub fn greater_than_40_percent(&self) -> bool {
-        // if we have not moved at all the ignore
-        if self.pos == 0 {
-            return false;
-        }
-
-        let buffer_length = self.buffer.len();
-        let precentage = (buffer_length as f64 / self.pos as f64);
-        return precentage > 0.4;
+        let binding = self.0.read().expect("get lock");
+        binding.greater_than_40_percent()
     }
 
     #[inline]
     pub fn truncate(&mut self, force: bool) {
-        // if we have not moved at all the ignore
-        if self.pos == 0 {
-            return;
-        }
-
-        let distance = self.peek_pos - self.pos;
-        let buffer_length = self.buffer.len();
-        let percentage = (buffer_length as f64 / self.pos as f64);
-        let should_truncate = percentage > 0.7 || force;
-
-        if !should_truncate {
-            return;
-        }
-
-        let slice = &self.buffer[self.pos..buffer_length];
-        let mut slice_copy = vec![0; slice.len()];
-        slice_copy.truncate(0);
-        slice_copy.extend_from_slice(slice);
-        let slice_length = slice_copy.len();
-
-        // move the slice to the start of the buffer.
-        for (index, byte) in slice_copy.iter().enumerate() {
-            self.buffer[index] = *byte;
-        }
-
-        self.buffer.truncate(slice_length);
-        self.pos = 0;
-        self.peek_pos = self.pos + distance;
+        let mut binding = self.0.write().expect("get lock");
+        binding.truncate(force)
     }
 
     /// [`fill_up`] fills the internal buffer with the pull amount
@@ -678,47 +625,21 @@ impl<T: Read> SharedByteBufferStream<T> {
     /// bytes until we indicate to the pointer to consume the data until
     /// the position cursor.
     #[inline]
-    pub fn fill_up(&mut self) -> std::io::Result<usize> {
-        // truncate buffer if we have read most of it.
-        let force = self.greater_than_40_percent();
-        self.truncate(force);
-
-        // extract and add more to buffer from reader.
-        // self.reader.fill_buf()?;
-        let mut copied = vec![0; self.pull_amount];
-        let read = match self.reader.read(&mut copied) {
-            Ok(read) => read,
-            Err(err) => return Err(err),
-        };
-
-        // copy into the buffer the data just extracted from the buffer.
-        // let location_before_extend = self.buffer.len();
-        self.buffer.extend_from_slice(&copied[0..read]);
-
-        Ok(read)
+    pub fn fill_up(&self) -> std::io::Result<usize> {
+        let mut binding = self.0.write().expect("get lock");
+        binding.fill_up()
     }
 
     #[inline]
-    pub fn peek<'a>(&'a self) -> std::io::Result<PeekState<'a>> {
-        self.peek_by(1)
+    pub fn peek(&self) -> std::io::Result<PeekState<'_>> {
+        let binding = self.0.read().expect("get lock");
+        binding.peek()
     }
 
     #[inline]
     pub fn peek_by<'a>(&'a self, by: usize) -> std::io::Result<PeekState<'a>> {
-        let until_pos = self.peek_pos + by;
-
-        // if we are further than the current buffer and the actual content of
-        // the reading buffer, then indicate we are beyond available data which
-        // requires user to fill up the buffer.
-        let buffer_length = self.buffer.len();
-
-        // data is less than requested
-        if until_pos > buffer_length {
-            return Ok(PeekState::LessThanRequested);
-        }
-
-        let from = self.peek_pos;
-        Ok(PeekState::Request(&self.buffer[from..until_pos]))
+        let binding = self.0.read().expect("get lock");
+        binding.peek_by(by)
     }
 
     pub fn read_size<'a, 'b>(&'a mut self, buf: &mut [u8]) -> std::io::Result<usize> {
@@ -1153,7 +1074,7 @@ impl<T: Read> ByteBufferPointer<T> {
     }
 
     #[inline]
-    pub fn is_empty(&mut self) -> bool {
+    pub fn is_empty(&self) -> bool {
         self.buffer.len() == 0
     }
 
