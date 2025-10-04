@@ -2352,7 +2352,7 @@ where
         match &self.state {
             HttpReadState::Intro => {
                 let mut line = String::new();
-                let mut borrowed_reader = match self.reader.try_lock() {
+                let mut borrowed_reader = match self.reader.write() {
                     Ok(borrowed_reader) => borrowed_reader,
                     Err(_) => return Some(Err(HttpReaderError::GuardedResourceAccess)),
                 };
@@ -2391,7 +2391,7 @@ where
 
                 let mut line = String::new();
 
-                let mut borrowed_reader = match self.reader.try_lock() {
+                let mut borrowed_reader = match self.reader.write() {
                     Ok(borrowed_reader) => borrowed_reader,
                     Err(_) => return Some(Err(HttpReaderError::GuardedResourceAccess)),
                 };
@@ -3265,11 +3265,11 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleHttpChunkIterator<T> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let ending_indicator = self.3.clone();
-        match self.2.try_lock() {
+        match self.2.write() {
             Ok(mut reader) => {
                 let mut header_list: [u8; 24] = [0; 24];
 
-                let header_slice: &[u8] = match reader.peek(&mut header_list) {
+                let header_slice: &[u8] = match reader.peek_until(&mut header_list) {
                     Ok(written) => {
                         if written == 0 {
                             return Some(Err(Box::new(HttpReaderError::ReadFailed)));
@@ -3389,7 +3389,7 @@ impl BodyExtractor for SimpleHttpBody {
                     return Ok(SimpleBody::None);
                 }
 
-                let mut borrowed_stream = match stream.try_lock() {
+                let mut borrowed_stream = match stream.write() {
                     Ok(borrowed_reader) => borrowed_reader,
                     Err(_) => return Err(Box::new(HttpReaderError::GuardedResourceAccess)),
                 };
