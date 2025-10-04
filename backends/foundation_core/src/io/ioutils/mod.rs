@@ -3,7 +3,10 @@ use std::io::{BufRead, BufReader, BufWriter, Cursor, IoSlice, IoSliceMut, Read, 
 use std::sync::atomic::AtomicPtr;
 use std::sync::{Arc, LockResult, Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
+use crate::err;
 use derive_more::derive::From;
+
+// macros
 
 // BufferCapacity Trait
 
@@ -755,6 +758,12 @@ impl<T: Read> ByteBufferPointer<T> {
 // Methods
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Data<'a> {
+    Request(&'a [u8]), // data you resulted
+    Consumed(Vec<u8>),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PeekState<'a> {
     Request(&'a [u8]), // data you resulted
     LessThanRequested, // when data is way less than requested position
@@ -946,6 +955,14 @@ impl<T: Read> ByteBufferPointer<T> {
         }
     }
 
+    pub fn peek_size2<'a, 'b>(&'a mut self, size: usize) -> std::io::Result<&'a [u8]> {
+        self.peek_size(size).map(|item| match item {
+            PeekState::Request(inner) => Ok(inner),
+            PeekState::ZeroLengthInput => Err(crate::err!(WriteZero, "Provided zero size request")),
+            _ => unreachable!("Should not trigger this stage"),
+        })
+    }
+
     /// [`peek_size`] returns a portion of the underlying buffer for the specified
     /// size using a tight loop until the requested size is of data has being pulled
     /// into the internal peek buffer for peeking .
@@ -955,7 +972,7 @@ impl<T: Read> ByteBufferPointer<T> {
     /// we return what's already acquired, so you need to be aware that this can happen
     /// since generally it means we have reached EOF from the internal readers perspective.
     #[inline]
-    pub fn peek_size<'a, 'b>(&'a mut self, size: usize) -> std::io::Result<PeekState<'a>> {
+    pub fn peek_size<'a>(&'a mut self, size: usize) -> std::io::Result<PeekState<'a>> {
         if size == 0 {
             return Ok(PeekState::ZeroLengthInput);
         }
