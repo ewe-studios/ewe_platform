@@ -2671,27 +2671,29 @@ impl ChunkState {
     }
 
     pub fn parse_http_trailer_from_pointer<T: Read>(
-        acc: SharedByteBufferStream<T>,
+        pointer: SharedByteBufferStream<T>,
     ) -> Result<Option<Self>, ChunkStateError> {
+        let mut acc = pointer.write().map_err(|_| ChunkStateError::ReadErrors)?;
+
         // eat all the space
-        Self::eat_space_safely(acc)?;
+        Self::eat_space(&mut acc)?;
 
         while let Some(b) = acc.peek_next() {
             match b {
                 b"\r" => {
-                    acc.unpeek_next();
+                    acc.unforward();
                     break;
                 }
                 b"\n" => {
-                    acc.unpeek_next();
+                    acc.unforward();
                     break;
                 }
                 _ => continue,
             }
         }
 
-        match acc.take() {
-            Some(value) => match String::from_utf8(value.to_vec()) {
+        match acc.consume() {
+            Ok(value) => match String::from_utf8(value.to_vec()) {
                 Ok(converted_string) => Ok(if converted_string.is_empty() {
                     None
                 } else {
@@ -2708,14 +2710,14 @@ impl ChunkState {
     /// This allows you easily know how far to read out from a stream reader so you know how much
     /// data to skip to get to the actual data of the chunk.
     pub fn get_http_chunk_header_length_from_pointer<T: Read>(
-        acc: SharedByteBufferStream<T>,
+        pointer: SharedByteBufferStream<T>,
     ) -> Result<usize, ChunkStateError> {
+        let mut acc = pointer.write().map_err(|_| ChunkStateError::ReadErrors)?;
         let mut total_bytes = 0;
 
         // are we starting out with a CRLF, if so, count and skip it
-        if data_pointer.peek(2) != Some(b"\r\n") {
-            data_pointer.peek_next_by(2);
-            data_pointer.skip();
+        if acc.peek_size2(2) != Some(b"\r\n") {
+            acc.skip();
 
             total_bytes += 2;
         }
@@ -2989,16 +2991,15 @@ impl ChunkState {
         Ok(())
     }
 
-    fn eat_space<T: Read>(acc: LockResult<RwLockWriteGuard<'_, ByteBufferPointer<T>>>) -> Result<(), ChunkStateError> {
-        let mut pointer = acc.write().map_err(|_| ChunkStateError::ReadErrors)?;
-        while let Ok(b) = pointer.peek_size2(1) {
+    fn eat_space<T: Read>(acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>) -> Result<(), ChunkStateError> {
+        while let Ok(b) = acc.peek_size2(1) {
             if b[0] == b' ' {
                 continue;
             }
 
             // move backwards
-            pointer.unforward();
-            pointer.skip();
+            acc.unforward();
+            acc.skip();
             return Ok(());
         }
         Ok(())
