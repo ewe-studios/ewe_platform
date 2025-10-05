@@ -960,7 +960,7 @@ impl<T: Read> ByteBufferPointer<T> {
             PeekState::Request(inner) => Ok(inner),
             PeekState::ZeroLengthInput => Err(crate::err!(WriteZero, "Provided zero size request")),
             _ => unreachable!("Should not trigger this stage"),
-        })
+        })?
     }
 
     /// [`peek_size`] returns a portion of the underlying buffer for the specified
@@ -1229,13 +1229,14 @@ impl<T: Read> ByteBufferPointer<T> {
         }
     }
 
+    /// Forward by 1.
     #[inline]
-    fn forward(&mut self) -> std::io::Result<PeekState<'_>> {
+    pub fn forward(&mut self) -> std::io::Result<PeekState<'_>> {
         self.forward_by(1)
     }
 
     #[inline]
-    fn forward_by(&mut self, by: usize) -> std::io::Result<PeekState<'_>> {
+    pub fn forward_by(&mut self, by: usize) -> std::io::Result<PeekState<'_>> {
         let buffer_length = self.buffer.len();
         let new_peek = self.peek_pos + by;
         if new_peek > buffer_length {
@@ -1247,11 +1248,17 @@ impl<T: Read> ByteBufferPointer<T> {
         }
     }
 
-    /// unnext_by moves your peek position backwards at which if it moves
+    /// Unforward by 1.
+    #[inline]
+    pub fn unforward(&mut self) -> std::io::Result<PeekState<'_>> {
+        self.unforward_by(1)
+    }
+
+    /// unforward_by moves your peek position backwards at which if it moves
     /// all the way back, will forever stay at the last know position of
     /// the actual data cursor.
     #[inline]
-    fn unforward_by(&mut self, by: usize) -> std::io::Result<PeekState<'_>> {
+    pub fn unforward_by(&mut self, by: usize) -> std::io::Result<PeekState<'_>> {
         let new_peek = self.peek_pos - by;
         if new_peek <= self.pos {
             self.peek_pos = self.pos;
@@ -1265,7 +1272,7 @@ impl<T: Read> ByteBufferPointer<T> {
     /// consumes the amount of data that has been peeked over-so far, returning
     /// that to the caller, this also moves the position of the data cursor
     /// forward to the location of the skip cursor.
-    fn consume(&mut self) -> std::io::Result<Vec<u8>> {
+    pub fn consume(&mut self) -> std::io::Result<Vec<u8>> {
         let from = self.pos;
         let until_pos = self.peek_pos;
         if from == until_pos {
@@ -1284,7 +1291,7 @@ impl<T: Read> ByteBufferPointer<T> {
     /// skip the amount of data that has been peeked over-so far, returning
     /// that to the caller, this also moves the position of the data cursor
     /// forward to the location of the skip cursor.
-    fn skip(&mut self) {
+    pub fn skip(&mut self) {
         let from = self.pos;
         let until_pos = self.peek_pos;
         if from == until_pos {
