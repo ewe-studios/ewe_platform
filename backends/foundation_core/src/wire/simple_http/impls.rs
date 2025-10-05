@@ -2,9 +2,8 @@
 
 use crate::extensions::result_ext::BoxedError;
 use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
-use crate::io::ioutils::{self, SharedByteBufferStream, ByteBufferPointer};
+use crate::io::ioutils::{self, ByteBufferPointer, SharedByteBufferStream};
 use crate::io::ubytes::{self};
-use std::sync::{Arc, LockResult, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use crate::netcap::RawStream;
 use crate::valtron::{
     CloneableFn, SendStringIterator, SendVecIterator, SendableBoxIterator, SendableIterator,
@@ -15,6 +14,7 @@ use derive_more::From;
 use regex::Regex;
 use std::io::Cursor;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::sync::{Arc, LockResult, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::{
     collections::BTreeMap,
     convert::Infallible,
@@ -2678,7 +2678,7 @@ impl ChunkState {
         // eat all the space
         Self::eat_space(&mut acc)?;
 
-        while let Some(b) = acc.peek_next() {
+        while let Ok(b) = acc.nextby2(1) {
             match b {
                 b"\r" => {
                     acc.unforward();
@@ -2701,7 +2701,7 @@ impl ChunkState {
                 }),
                 Err(err) => Err(ChunkStateError::InvalidOctetBytes(err)),
             },
-            None => Ok(None),
+            Err(_) => Ok(None),
         }
     }
 
@@ -2716,22 +2716,22 @@ impl ChunkState {
         let mut total_bytes = 0;
 
         // are we starting out with a CRLF, if so, count and skip it
-        if acc.peek_size2(2) != Some(b"\r\n") {
+        if acc.nextby2(2)? != b"\r\n" {
             acc.skip();
 
             total_bytes += 2;
         }
 
         // fetch chunk_size_octet
-        while let Some(content) = data_pointer.peek_next() {
+        while let Ok(content) = acc.nextby2(1) {
             match content {
                 b"\r" => {
-                    data_pointer.unpeek_next();
+                    acc.unforward();
                     break;
                 }
                 // incase they use newline instead, http spec not respected
                 b"\n" => {
-                    data_pointer.unpeek_next();
+                    acc.unforward();
                     break;
                 }
                 _ => {
@@ -2749,33 +2749,30 @@ impl ChunkState {
         //     return Err(ChunkStateError::InvalidChunkEndingExpectedCRLF);
         // }
 
-        if data_pointer.peek(1) == Some(b"\r") {
+        if acc.peekby2(1)? == b"\r" {
             // once we hit a CRLF then it means we have no extensions,
             // so we return just the size and its string representation.
-            if data_pointer.peek(2) != Some(b"\r\n") {
+            if acc.peekby2(2)? != b"\r\n" {
                 return Err(ChunkStateError::InvalidChunkEndingExpectedCRLF);
             }
 
-            _ = data_pointer.peek_next_by(1);
+            _ = acc.nextby(2);
             total_bytes += 1;
         }
 
         // is it just a newline here, then lets manage the madness
-        if data_pointer.peek(1) == Some(b"\n") {
-            _ = data_pointer.peek_next_by(1);
+        if acc.peekby2(1)? == b"\n" {
+            _ = acc.nextby2(1)?;
             total_bytes += 1;
         }
 
         // once we hit a CRLF then it means we have no extensions,
         // so we return just the size and its string representation.
-        if data_pointer.peek(1) == Some(b"\r")
-            || data_pointer.peek(1) == Some(b" ")
-            || data_pointer.peek(1) == Some(b"\n")
-        {
+        if acc.peekby2(1)? == b"\r" || acc.peekby2(1)? == b" " || acc.peekby2(1)? == b"\n" {
             return Err(ChunkStateError::InvalidChunkEndingExpectedCRLF);
         }
 
-        data_pointer.skip();
+        acc.skip();
 
         // // skip past CRLF
         // data_pointer.peek_next_by(2);
@@ -2785,39 +2782,40 @@ impl ChunkState {
     }
 
     pub fn parse_http_chunk_from_pointer<T: Read>(
-        acc: SharedByteBufferStream<T>,
+        pointer: SharedByteBufferStream<T>,
     ) -> Result<Self, ChunkStateError> {
-        let mut chunk_size_octet: Option<&[u8]> = None;
+        let mut acc = pointer.write()?;
 
         // eat up any space (except CRLF)
-        Self::eat_space(data_pointer)?;
+        Self::eat_space(&mut acc)?;
 
         // are we starting out with a CRLF, if so, skip it
-        if data_pointer.peek(2) == Some(b"\r\n") {
-            data_pointer.peek_next_by(2);
-            data_pointer.skip();
+        if acc.peekby2(2)? == b"\r\n" {
+            acc.nextby2(2)?;
+            acc.skip();
         }
 
-        if data_pointer.peek(2) == Some(b"\n\n") {
-            data_pointer.peek_next_by(2);
-            data_pointer.skip();
+        if acc.peekby2(2)? == b"\n\n" {
+            acc.nextby2(2)?;
+            acc.skip();
         }
 
-        if data_pointer.peek(1) == Some(b"\n") {
-            data_pointer.peek_next_by(1);
-            data_pointer.skip();
+        if acc.peekby2(1)? == b"\n" {
+            acc.nextby(1)?;
+            acc.skip();
         }
 
         // fetch chunk_size_octet
-        while let Some(content) = data_pointer.peek_next() {
+        let mut chunk_size_octet: Option<Vec<u8>> = None;
+        while let Ok(content) = acc.nextby2(1) {
             let b = content[0];
             match b {
                 b'0'..=b'9' => continue,
                 b'a'..=b'f' => continue,
                 b'A'..=b'F' => continue,
                 b' ' | b'\r' | b'\n' | b';' => {
-                    data_pointer.unpeek_next();
-                    chunk_size_octet = data_pointer.take();
+                    acc.unforward();
+                    chunk_size_octet = Some(acc.consume()?);
                     break;
                 }
                 _ => return Err(ChunkStateError::InvalidByte(b)),
@@ -2828,8 +2826,8 @@ impl ChunkState {
             return Err(ChunkStateError::ChunkSizeNotFound);
         }
 
-        let (chunk_size, chunk_string): (u64, String) = match &chunk_size_octet {
-            Some(value) => match Self::parse_chunk_octet(value) {
+        let (chunk_size, chunk_string): (u64, String) = match chunk_size_octet.take() {
+            Some(value) => match Self::parse_chunk_octet(&value) {
                 Ok(converted) => match String::from_utf8(value.to_vec()) {
                     Ok(converted_string) => (converted, converted_string),
                     Err(err) => return Err(ChunkStateError::InvalidOctetBytes(err)),
@@ -2843,27 +2841,27 @@ impl ChunkState {
 
         // // eat up any space (except CRLF)
         // // is it just a newline here, then lets manage the madness
-        Self::eat_space_safely(data_pointer)?;
-        Self::eat_newlines_safely(data_pointer)?;
+        Self::eat_space(&mut acc)?;
+        Self::eat_newlines(&mut acc)?;
 
         // do we have an extension marker
         let mut extensions: Extensions = Vec::new();
-        while data_pointer.peek(1) == Some(b";") {
-            match Self::parse_http_chunk_extension(data_pointer) {
+        while acc.peekby2(1)? == b";" {
+            match Self::parse_http_chunk_extension(&mut acc) {
                 Ok(extension) => extensions.push(extension),
                 Err(err) => return Err(err),
             }
         }
 
         // are we starting out with a CRLF, if so, skip it
-        if data_pointer.peek(2) == Some(b"\r\n") {
-            data_pointer.peek_next_by(2);
-            data_pointer.skip();
+        if acc.peekby2(2)? == b"\r\n" {
+            let _ = acc.nextby(2);
+            acc.skip();
         }
 
-        if data_pointer.peek(2) == Some(b"\n\n") {
-            data_pointer.peek_next_by(2);
-            data_pointer.skip();
+        if acc.peekby2(2)? == b"\n\n" {
+            let _ = acc.nextby2(2);
+            acc.skip();
         }
 
         if chunk_size == 0 {
@@ -2877,61 +2875,70 @@ impl ChunkState {
         Ok(Self::Chunk(chunk_size, chunk_string, Some(extensions)))
     }
 
-    pub(crate) fn parse_http_chunk_extension<T: Read>(
+    pub(crate) fn parse_http_chunk_extension_from_stream<T: Read>(
         pointer: SharedByteBufferStream<T>,
     ) -> Result<(String, Option<String>), ChunkStateError> {
         let mut acc = pointer.write().map_err(|_| ChunkStateError::ReadErrors)?;
+        Self::parse_http_chunk_extension(&mut acc)
+    }
 
+    pub(crate) fn parse_http_chunk_extension<T: Read>(
+        mut acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
+    ) -> Result<(String, Option<String>), ChunkStateError> {
         // skip first extension starter
-        if b";" == acc.peek_size2(1)? {
+        if b";" == acc.peekby2(1)? {
+            acc.nextby2(1)?;
             acc.skip();
         }
 
         // eat all the space
-        Self::eat_space(pointer)?;
+        Self::eat_space(&mut acc)?;
 
-        while let Ok(b) = acc.peek_size2(1) {
+        while let Ok(b) = acc.nextby2(1) {
             match b {
                 b" " | b"=" | b"\r" => {
-                    acc.unforward();
+                    let _ = acc.unforward();
                     break;
                 }
                 _ => continue,
             }
         }
 
-        let extension_key = acc.consume()?;
+        let extension_key = acc.consume_some();
 
         // eat all the space
-        Self::eat_space(pointer)?;
+        Self::eat_space(&mut acc)?;
 
         // skip first extension starter
-        if acc.peek_size2(1)? != b"=" {
-            return match String::from_utf8(extension_key.to_vec()) {
-                Ok(converted_string) => Ok((converted_string, None)),
-                Err(err) => Err(ChunkStateError::InvalidOctetBytes(err)),
-            };
+        if acc.nextby2(1)? != b"=" {
+            if let Some(ext) = extension_key {
+                return match String::from_utf8(ext) {
+                    Ok(converted_string) => Ok((converted_string, None)),
+                    Err(err) => Err(ChunkStateError::InvalidOctetBytes(err)),
+                };
+            }
+            return Err(ChunkStateError::ChunkSizeNotFound);
         }
 
         // eat the "=" (equal sign)
         acc.skip();
 
         // eat all the space
-        Self::eat_space(pointer)?;
+        Self::eat_space(&mut acc)?;
 
-        let is_quoted = acc.peek(1) == Some(b"\"");
+        let is_quoted = acc.peekby2(1)? == b"\"";
 
         // move pointer forward for quoted value
         if is_quoted {
-            acc.forward();
+            let _ = acc.forward();
             acc.skip();
         }
 
-        while let Some(b) = acc.peek_next() {
+        while let Ok(b) = acc.nextby2(1) {
             if is_quoted {
                 match b {
                     b"\"" => {
-                        acc.unpeek_next();
+                        let _ = acc.unforward();
                         break;
                     }
                     _ => continue,
@@ -2940,14 +2947,14 @@ impl ChunkState {
 
             match b {
                 b" " | b"\r" => {
-                    acc.unpeek_next();
+                    let _ = acc.unforward();
                     break;
                 }
                 _ => continue,
             }
         }
 
-        let extension_value = acc.take();
+        let extension_value = acc.consume_some();
 
         if is_quoted {
             acc.forward();
@@ -2975,30 +2982,33 @@ impl ChunkState {
         }
     }
 
-    fn eat_newlines<T: Read>(acc: &mut <T>) -> Result<(), ChunkStateError> {
-        let mut pointer = acc.write().map_err(|_| ChunkStateError::ReadErrors)?;
-        while let Ok(b) = pointer.peek_size2(1) {
+    fn eat_newlines<T: Read>(
+        acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
+    ) -> Result<(), ChunkStateError> {
+        while let Ok(b) = acc.nextby2(1) {
             if b[0] == b'\n' {
                 continue;
             }
 
             // move backwards
-            pointer.unforward();
-            pointer.skip();
+            let _ = acc.unforward();
+            acc.skip();
 
             return Ok(());
         }
         Ok(())
     }
 
-    fn eat_space<T: Read>(acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>) -> Result<(), ChunkStateError> {
-        while let Ok(b) = acc.peek_size2(1) {
+    fn eat_space<T: Read>(
+        acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
+    ) -> Result<(), ChunkStateError> {
+        while let Ok(b) = acc.nextby2(1) {
             if b[0] == b' ' {
                 continue;
             }
 
             // move backwards
-            acc.unforward();
+            let _ = acc.unforward();
             acc.skip();
             return Ok(());
         }
@@ -3007,7 +3017,7 @@ impl ChunkState {
 
     /// Parse a buffer of bytes that should contain a hex string of the size of chunk.
     ///
-    /// This is taking from the [httpparse](https://github.com/seanmonstar/httparse) crate.
+    /// This is taking from the [httpparse](ttps://github.com/seanmonstar/httparse) crate.
     ///
     /// It uses math trics by using the positional int value of a byte from the characters in
     /// a hexadecimal (octet) number.
@@ -3260,25 +3270,22 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleHttpChunkIterator<T> {
             Ok(chunk) => {
                 match chunk {
                     ChunkState::Chunk(size, _, opt_exts) => {
-                        // calculate whats left in our in-mem pointer
-                        let remaining_bytes = head_pointer.rem_len();
+                        // // calculate whats left in our in-mem pointer
+                        // let remaining_bytes = head_pointer.rem_len();
+                        //
+                        // // how much exactly did it take to get the length of the chunk
+                        // let total_header_bytes_used = total_header_read - remaining_bytes;
+                        //
+                        // // so add that to the size, so we can pull the chunk size + actual
+                        // // data together since before we peeked.
+                        // let bytes_we_need = total_header_bytes_used + (size as usize);
 
-                        // how much exactly did it take to get the length of the chunk
-                        let total_header_bytes_used = total_header_read - remaining_bytes;
-
-                        // so add that to the size, so we can pull the chunk size + actual
-                        // data together since before we peeked.
-                        let bytes_we_need = total_header_bytes_used + (size as usize);
-
-                        match  self.2.write() {
-                            Ok(reader) => {
-                                let mut read_buffer = vec![0; bytes_we_need];
-                                if let Err(err) = reader.read_exact(&mut read_buffer) {
+                        match self.2.write() {
+                            Ok(mut reader) => {
+                                let mut chunk_data = vec![0; size as usize];
+                                if let Err(err) = reader.read_exact(&mut chunk_data) {
                                     return Some(Err(Box::new(err)));
                                 }
-
-                                let chunk_data: &[u8] =
-                                    &read_buffer[total_header_bytes_used..read_buffer.len()];
 
                                 tracing::debug!(
                                     "ChunkState::Chunk::DataRead: {:?} | {:?}",
@@ -3288,19 +3295,18 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleHttpChunkIterator<T> {
 
                                 Some(Ok(ChunkedData::Data(Vec::from(chunk_data), opt_exts)))
                             }
-                            Err(err) => Some(Err(Box::new(HttpReaderError::ReadFailed)))
+                            Err(err) => Some(Err(Box::new(HttpReaderError::ReadFailed))),
                         }
-
                     }
                     ChunkState::LastChunk => {
-                        // calculate whats left in our in-mem pointer
-                        let remaining_bytes = head_pointer.rem_len();
-
-                        // how much exactly did it take to get the length of the chunk
-                        let total_header_bytes_used = total_header_read - remaining_bytes;
-
-                        // consume these bytes, so we move forward
-                        reader.consume(total_header_bytes_used);
+                        // // calculate whats left in our in-mem pointer
+                        // let remaining_bytes = head_pointer.rem_len();
+                        //
+                        // // how much exactly did it take to get the length of the chunk
+                        // let total_header_bytes_used = total_header_read - remaining_bytes;
+                        //
+                        // // consume these bytes, so we move forward
+                        // reader.consume(total_header_bytes_used);
 
                         // set the state store as false
                         ending_indicator.store(true, Ordering::Release);
