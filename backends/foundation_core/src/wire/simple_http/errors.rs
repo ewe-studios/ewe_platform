@@ -1,6 +1,9 @@
 use crate::extensions::result_ext::BoxedError;
 use derive_more::From;
-use std::string::{FromUtf16Error, FromUtf8Error};
+use std::{
+    string::{FromUtf16Error, FromUtf8Error},
+    sync::PoisonError,
+};
 
 pub type Result<T, E> = std::result::Result<T, E>;
 
@@ -156,6 +159,12 @@ pub enum ChunkStateError {
     InvalidChunkEndingExpectedCRLF,
     ExtensionWithNoValue,
     InvalidOctetBytes(FromUtf8Error),
+}
+
+impl<T> From<PoisonError<T>> for ChunkStateError {
+    fn from(_: PoisonError<T>) -> Self {
+        Self::ReadErrors
+    }
 }
 
 impl From<std::io::Error> for ChunkStateError {
