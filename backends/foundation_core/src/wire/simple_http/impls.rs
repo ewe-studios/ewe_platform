@@ -2,8 +2,9 @@
 
 use crate::extensions::result_ext::BoxedError;
 use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
-use crate::io::ioutils::{self, SharedByteBufferStream};
-use crate::io::ubytes::{self, BytesPointer};
+use crate::io::ioutils::{self, SharedByteBufferStream, ByteBufferPointer};
+use crate::io::ubytes::{self};
+use std::sync::{Arc, LockResult, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use crate::netcap::RawStream;
 use crate::valtron::{
     CloneableFn, SendStringIterator, SendVecIterator, SendableBoxIterator, SendableIterator,
@@ -12,8 +13,8 @@ use crate::valtron::{
 use crate::wire::simple_http::errors::*;
 use derive_more::From;
 use regex::Regex;
+use std::io::Cursor;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-use std::sync::Arc;
 use std::{
     collections::BTreeMap,
     convert::Infallible,
@@ -2652,12 +2653,25 @@ impl ChunkState {
     }
 
     pub fn parse_http_trailer_chunk(chunk_text: &[u8]) -> Result<Option<Self>, ChunkStateError> {
-        let mut data_pointer = ubytes::BytesPointer::new(chunk_text);
-        Self::parse_http_trailer_from_pointer(&mut data_pointer)
+        let cursor = Cursor::new(chunk_text.to_vec());
+        let reader = SharedByteBufferStream::new(cursor);
+        Self::parse_http_trailer_from_pointer(reader)
     }
 
-    pub fn parse_http_trailer_from_pointer(
-        acc: &mut BytesPointer,
+    pub fn parse_http_chunk(chunk_text: &[u8]) -> Result<Self, ChunkStateError> {
+        let cursor = Cursor::new(chunk_text.to_vec());
+        let reader = SharedByteBufferStream::new(cursor);
+        Self::parse_http_chunk_from_pointer(reader)
+    }
+
+    pub fn get_http_chunk_header_length(chunk_text: &[u8]) -> Result<usize, ChunkStateError> {
+        let cursor = Cursor::new(chunk_text.to_vec());
+        let reader = SharedByteBufferStream::new(cursor);
+        Self::get_http_chunk_header_length_from_pointer(reader)
+    }
+
+    pub fn parse_http_trailer_from_pointer<T: Read>(
+        acc: SharedByteBufferStream<T>,
     ) -> Result<Option<Self>, ChunkStateError> {
         // eat all the space
         Self::eat_space_safely(acc)?;
@@ -2689,22 +2703,12 @@ impl ChunkState {
         }
     }
 
-    pub fn parse_http_chunk(chunk_text: &[u8]) -> Result<Self, ChunkStateError> {
-        let mut data_pointer = ubytes::BytesPointer::new(chunk_text);
-        Self::parse_http_chunk_from_pointer(&mut data_pointer)
-    }
-
-    pub fn get_http_chunk_header_length(chunk_text: &[u8]) -> Result<usize, ChunkStateError> {
-        let mut data_pointer = ubytes::BytesPointer::new(chunk_text);
-        Self::get_http_chunk_header_length_from_pointer(&mut data_pointer)
-    }
-
     /// get_http_chunk_header_length_with_pointer lets you count the amount of bytes of chunked transfer
     /// body chunk just right till the last CRLF before the actual data it refers to.
     /// This allows you easily know how far to read out from a stream reader so you know how much
     /// data to skip to get to the actual data of the chunk.
-    pub fn get_http_chunk_header_length_from_pointer(
-        data_pointer: &mut BytesPointer,
+    pub fn get_http_chunk_header_length_from_pointer<T: Read>(
+        acc: SharedByteBufferStream<T>,
     ) -> Result<usize, ChunkStateError> {
         let mut total_bytes = 0;
 
@@ -2778,8 +2782,8 @@ impl ChunkState {
         Ok(total_bytes)
     }
 
-    pub fn parse_http_chunk_from_pointer(
-        data_pointer: &mut BytesPointer,
+    pub fn parse_http_chunk_from_pointer<T: Read>(
+        acc: SharedByteBufferStream<T>,
     ) -> Result<Self, ChunkStateError> {
         let mut chunk_size_octet: Option<&[u8]> = None;
 
@@ -2871,57 +2875,54 @@ impl ChunkState {
         Ok(Self::Chunk(chunk_size, chunk_string, Some(extensions)))
     }
 
-    pub(crate) fn parse_http_chunk_extension(
-        acc: &mut BytesPointer,
+    pub(crate) fn parse_http_chunk_extension<T: Read>(
+        pointer: SharedByteBufferStream<T>,
     ) -> Result<(String, Option<String>), ChunkStateError> {
+        let mut acc = pointer.write().map_err(|_| ChunkStateError::ReadErrors)?;
+
         // skip first extension starter
-        if acc.peek(1) == Some(b";") {
-            acc.peek_next();
+        if b";" == acc.peek_size2(1)? {
             acc.skip();
         }
 
         // eat all the space
-        Self::eat_space(acc)?;
+        Self::eat_space(pointer)?;
 
-        while let Some(b) = acc.peek_next() {
+        while let Ok(b) = acc.peek_size2(1) {
             match b {
                 b" " | b"=" | b"\r" => {
-                    acc.unpeek_next();
+                    acc.unforward();
                     break;
                 }
                 _ => continue,
             }
         }
 
-        let extension_key = acc.take();
+        let extension_key = acc.consume()?;
 
         // eat all the space
-        Self::eat_space(acc)?;
+        Self::eat_space(pointer)?;
 
         // skip first extension starter
-        if acc.peek(1) != Some(b"=") {
-            return match extension_key {
-                Some(key) => match String::from_utf8(key.to_vec()) {
-                    Ok(converted_string) => Ok((converted_string, None)),
-                    Err(err) => Err(ChunkStateError::InvalidOctetBytes(err)),
-                },
-                None => Err(ChunkStateError::ParseFailed),
+        if acc.peek_size2(1)? != b"=" {
+            return match String::from_utf8(extension_key.to_vec()) {
+                Ok(converted_string) => Ok((converted_string, None)),
+                Err(err) => Err(ChunkStateError::InvalidOctetBytes(err)),
             };
         }
 
         // eat the "=" (equal sign)
-        acc.peek_next();
         acc.skip();
 
         // eat all the space
-        Self::eat_space(acc)?;
+        Self::eat_space(pointer)?;
 
         let is_quoted = acc.peek(1) == Some(b"\"");
 
         // move pointer forward for quoted value
         if is_quoted {
-            acc.peek_next();
-            acc.skip()
+            acc.forward();
+            acc.skip();
         }
 
         while let Some(b) = acc.peek_next() {
@@ -2947,8 +2948,8 @@ impl ChunkState {
         let extension_value = acc.take();
 
         if is_quoted {
-            acc.peek_next();
-            acc.skip()
+            acc.forward();
+            acc.skip();
         }
 
         match (extension_key, extension_value) {
@@ -2972,72 +2973,35 @@ impl ChunkState {
         }
     }
 
-    fn eat_newlines_safely(acc: &mut BytesPointer) -> Result<(), ChunkStateError> {
-        while let Some(b) = acc.peek_next() {
+    fn eat_newlines<T: Read>(acc: &mut <T>) -> Result<(), ChunkStateError> {
+        let mut pointer = acc.write().map_err(|_| ChunkStateError::ReadErrors)?;
+        while let Ok(b) = pointer.peek_size2(1) {
             if b[0] == b'\n' {
                 continue;
             }
 
             // move backwards
-            acc.unpeek_next();
-
-            // take the space
-            acc.take();
+            pointer.unforward();
+            pointer.skip();
 
             return Ok(());
         }
         Ok(())
     }
 
-    fn eat_newlines(acc: &mut BytesPointer) -> Result<(), ChunkStateError> {
-        while let Some(b) = acc.peek_next() {
-            if b[0] == b'\n' {
-                continue;
-            }
-
-            // move backwards
-            acc.unpeek_next();
-
-            // take the space
-            acc.take();
-
-            return Ok(());
-        }
-        Err(ChunkStateError::ParseFailed)
-    }
-
-    fn eat_space_safely(acc: &mut BytesPointer) -> Result<(), ChunkStateError> {
-        while let Some(b) = acc.peek_next() {
+    fn eat_space<T: Read>(acc: LockResult<RwLockWriteGuard<'_, ByteBufferPointer<T>>>) -> Result<(), ChunkStateError> {
+        let mut pointer = acc.write().map_err(|_| ChunkStateError::ReadErrors)?;
+        while let Ok(b) = pointer.peek_size2(1) {
             if b[0] == b' ' {
                 continue;
             }
 
             // move backwards
-            acc.unpeek_next();
-
-            // take the space
-            acc.take();
-
+            pointer.unforward();
+            pointer.skip();
             return Ok(());
         }
         Ok(())
-    }
-
-    fn eat_space(acc: &mut BytesPointer) -> Result<(), ChunkStateError> {
-        while let Some(b) = acc.peek_next() {
-            if b[0] == b' ' {
-                continue;
-            }
-
-            // move backwards
-            acc.unpeek_next();
-
-            // take the space
-            acc.take();
-
-            return Ok(());
-        }
-        Err(ChunkStateError::ParseFailed)
     }
 
     /// Parse a buffer of bytes that should contain a hex string of the size of chunk.
@@ -3265,71 +3229,48 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleHttpChunkIterator<T> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let ending_indicator = self.3.clone();
-        match self.2.write() {
-            Ok(mut reader) => {
-                let mut header_list: [u8; 24] = [0; 24];
 
-                let header_slice: &[u8] = match reader.peek_until(&mut header_list) {
-                    Ok(written) => {
-                        if written == 0 {
-                            return Some(Err(Box::new(HttpReaderError::ReadFailed)));
-                        }
+        if ending_indicator.load(Ordering::Acquire) {
+            tracing::debug!("ChunKState::ParsingTrailer");
 
-                        &header_list[0..written]
-                    }
-                    Err(err) => return Some(Err(Box::new(err))),
-                };
-
-                tracing::debug!(
-                    "Incoming headerline: {:?} | {:?}",
-                    &header_slice,
-                    str::from_utf8(&header_slice),
-                );
-
-                let total_header_read = header_slice.len();
-                let mut head_pointer = ubytes::BytesPointer::new(header_slice);
-
-                if ending_indicator.load(Ordering::Acquire) {
-                    tracing::debug!("ChunKState::ParsingTrailer");
-
-                    return match ChunkState::parse_http_trailer_from_pointer(&mut head_pointer) {
-                        Ok(value) => {
-                            tracing::debug!("ChunkTrailer::Chunk::DataRead: {:?} ", &value,);
-                            match value {
-                                Some(item) => match item {
-                                    ChunkState::Trailer(mut inner) => match inner.find(":") {
-                                        Some(index) => {
-                                            let (key, value) = inner.split_at_mut(index);
-                                            Some(Ok(ChunkedData::Trailer(key.into(), value.into())))
-                                        }
-                                        None => None,
-                                    },
-                                    _ => Some(Err(Box::new(
-                                        HttpReaderError::OnlyTrailersAreAllowedHere,
-                                    ))),
-                                },
+            return match ChunkState::parse_http_trailer_from_pointer(self.2.clone()) {
+                Ok(value) => {
+                    tracing::debug!("ChunkTrailer::Chunk::DataRead: {:?} ", &value,);
+                    match value {
+                        Some(item) => match item {
+                            ChunkState::Trailer(mut inner) => match inner.find(":") {
+                                Some(index) => {
+                                    let (key, value) = inner.split_at_mut(index);
+                                    Some(Ok(ChunkedData::Trailer(key.into(), value.into())))
+                                }
                                 None => None,
-                            }
-                        }
-                        Err(err) => Some(Err(Box::new(err))),
-                    };
+                            },
+                            _ => Some(Err(Box::new(HttpReaderError::OnlyTrailersAreAllowedHere))),
+                        },
+                        None => None,
+                    }
                 }
+                Err(err) => Some(Err(Box::new(err))),
+            };
+        }
 
-                tracing::debug!("ChunKState::StillParsingChunks");
-                match ChunkState::parse_http_chunk_from_pointer(&mut head_pointer) {
-                    Ok(chunk) => {
-                        match chunk {
-                            ChunkState::Chunk(size, _, opt_exts) => {
-                                // calculate whats left in our in-mem pointer
-                                let remaining_bytes = head_pointer.rem_len();
+        tracing::debug!("ChunKState::StillParsingChunks");
+        match ChunkState::parse_http_chunk_from_pointer(self.2.clone()) {
+            Ok(chunk) => {
+                match chunk {
+                    ChunkState::Chunk(size, _, opt_exts) => {
+                        // calculate whats left in our in-mem pointer
+                        let remaining_bytes = head_pointer.rem_len();
 
-                                // how much exactly did it take to get the length of the chunk
-                                let total_header_bytes_used = total_header_read - remaining_bytes;
+                        // how much exactly did it take to get the length of the chunk
+                        let total_header_bytes_used = total_header_read - remaining_bytes;
 
-                                // so add that to the size, so we can pull the chunk size + actual
-                                // data together since before we peeked.
-                                let bytes_we_need = total_header_bytes_used + (size as usize);
+                        // so add that to the size, so we can pull the chunk size + actual
+                        // data together since before we peeked.
+                        let bytes_we_need = total_header_bytes_used + (size as usize);
 
+                        match  self.2.write() {
+                            Ok(reader) => {
                                 let mut read_buffer = vec![0; bytes_we_need];
                                 if let Err(err) = reader.read_exact(&mut read_buffer) {
                                     return Some(Err(Box::new(err)));
@@ -3346,30 +3287,31 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleHttpChunkIterator<T> {
 
                                 Some(Ok(ChunkedData::Data(Vec::from(chunk_data), opt_exts)))
                             }
-                            ChunkState::LastChunk => {
-                                // calculate whats left in our in-mem pointer
-                                let remaining_bytes = head_pointer.rem_len();
-
-                                // how much exactly did it take to get the length of the chunk
-                                let total_header_bytes_used = total_header_read - remaining_bytes;
-
-                                // consume these bytes, so we move forward
-                                reader.consume(total_header_bytes_used);
-
-                                // set the state store as false
-                                ending_indicator.store(true, Ordering::Release);
-
-                                Some(Ok(ChunkedData::DataEnded))
-                            }
-                            ChunkState::Trailer(_) => {
-                                Some(Err(Box::new(HttpReaderError::TrailerShouldNotOccurHere)))
-                            }
+                            Err(err) => Some(Err(Box::new(HttpReaderError::ReadFailed)))
                         }
+
                     }
-                    Err(err) => Some(Err(Box::new(err))),
+                    ChunkState::LastChunk => {
+                        // calculate whats left in our in-mem pointer
+                        let remaining_bytes = head_pointer.rem_len();
+
+                        // how much exactly did it take to get the length of the chunk
+                        let total_header_bytes_used = total_header_read - remaining_bytes;
+
+                        // consume these bytes, so we move forward
+                        reader.consume(total_header_bytes_used);
+
+                        // set the state store as false
+                        ending_indicator.store(true, Ordering::Release);
+
+                        Some(Ok(ChunkedData::DataEnded))
+                    }
+                    ChunkState::Trailer(_) => {
+                        Some(Err(Box::new(HttpReaderError::TrailerShouldNotOccurHere)))
+                    }
                 }
             }
-            Err(_) => Some(Err(Box::new(HttpReaderError::GuardedResourceAccess))),
+            Err(err) => Some(Err(Box::new(err))),
         }
     }
 }

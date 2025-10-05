@@ -149,12 +149,19 @@ impl core::fmt::Display for SimpleHttpError {
 #[derive(From, Debug)]
 pub enum ChunkStateError {
     ParseFailed,
+    ReadErrors,
     InvalidByte(u8),
     ChunkSizeNotFound,
     InvalidChunkEnding,
     InvalidChunkEndingExpectedCRLF,
     ExtensionWithNoValue,
     InvalidOctetBytes(FromUtf8Error),
+}
+
+impl From<std::io::Error> for ChunkStateError {
+    fn from(_: std::io::Error) -> Self {
+        Self::ReadErrors
+    }
 }
 
 impl std::error::Error for ChunkStateError {}
