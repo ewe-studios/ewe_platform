@@ -674,7 +674,7 @@ impl<T: Read> PeekableReadStream for SharedByteBufferStream<T> {
             .write()
             .map_err(|_| PeekError::LockAcquisitionError)?;
 
-        match binding.peek_size(buf.len()) {
+        match binding.next_size(buf.len()) {
             Ok(state) => match state {
                 PeekState::Request(data) => {
                     let ending = if buf.len() > data.len() {
@@ -924,7 +924,7 @@ impl<T: Read> ByteBufferPointer<T> {
     }
 
     pub fn read_size<'a, 'b>(&'a mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        match self.peek_size(buf.len()) {
+        match self.next_size(buf.len()) {
             Ok(state) => match state {
                 PeekState::Request(data) => {
                     let ending = if buf.len() > data.len() {
@@ -956,7 +956,7 @@ impl<T: Read> ByteBufferPointer<T> {
     }
 
     pub fn peek_size2<'a, 'b>(&'a mut self, size: usize) -> std::io::Result<&'a [u8]> {
-        self.peek_size(size).map(|item| match item {
+        self.next_size(size).map(|item| match item {
             PeekState::Request(inner) => Ok(inner),
             PeekState::ZeroLengthInput => Err(crate::err!(WriteZero, "Provided zero size request")),
             _ => unreachable!("Should not trigger this stage"),
@@ -972,7 +972,7 @@ impl<T: Read> ByteBufferPointer<T> {
     /// we return what's already acquired, so you need to be aware that this can happen
     /// since generally it means we have reached EOF from the internal readers perspective.
     #[inline]
-    pub fn peek_size<'a>(&'a mut self, size: usize) -> std::io::Result<PeekState<'a>> {
+    pub fn next_size<'a>(&'a mut self, size: usize) -> std::io::Result<PeekState<'a>> {
         if size == 0 {
             return Ok(PeekState::ZeroLengthInput);
         }
@@ -1309,7 +1309,7 @@ impl<T: Read> Read for ByteBufferPointer<T> {
 
 impl<T: Read> PeekableReadStream for ByteBufferPointer<T> {
     fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError> {
-        match self.peek_size(buf.len()) {
+        match self.next_size(buf.len()) {
             Ok(state) => match state {
                 PeekState::Request(data) => {
                     let ending = if buf.len() > data.len() {
