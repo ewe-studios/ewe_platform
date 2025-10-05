@@ -900,11 +900,95 @@ impl<T: Read> ByteBufferPointer<T> {
         Ok(read)
     }
 
+    /// Forward by 1 by calling the [`Self::forward_by`] method underneath.
+    #[inline]
+    pub fn forward(&mut self) -> std::io::Result<PeekState<'_>> {
+        self.forward_by(1)
+    }
+
+    /// [`forward_by`] provides method to move the peek cursor by a cetain amount.
+    /// Generally this is used external as the logic is generally backed into the
+    /// `next*` and `read*` methods but in cases where you intend to progress the
+    /// cursor your seek using the `peek*` methods this provides that surface.
+    #[inline]
+    pub fn forward_by(&mut self, by: usize) -> std::io::Result<PeekState<'_>> {
+        let buffer_length = self.buffer.len();
+        let new_peek = self.peek_pos + by;
+        if new_peek > buffer_length {
+            self.peek_pos = buffer_length;
+            Ok(PeekState::EndOfBuffered)
+        } else {
+            self.peek_pos = new_peek;
+            Ok(PeekState::Continue)
+        }
+    }
+
+    /// Unforward by 1 by calling the [`Self::unforward_by`] method underneath.
+    #[inline]
+    pub fn unforward(&mut self) -> std::io::Result<PeekState<'_>> {
+        self.unforward_by(1)
+    }
+
+    /// [`unforward_by`] moves your peek position backwards at which if it moves
+    /// all the way back, will forever stay at the last know position of
+    /// the actual data cursor.
+    #[inline]
+    pub fn unforward_by(&mut self, by: usize) -> std::io::Result<PeekState<'_>> {
+        let new_peek = self.peek_pos - by;
+        if new_peek <= self.pos {
+            self.peek_pos = self.pos;
+            Ok(PeekState::Continue)
+        } else {
+            self.peek_pos = new_peek;
+            Ok(PeekState::Continue)
+        }
+    }
+
+    /// [`consume`] consumes the amount of data that has been peeked over-so far, returning
+    /// that to the caller, this also moves the position of the data cursor
+    /// forward to the location of the skip cursor.
+    pub fn consume(&mut self) -> std::io::Result<Vec<u8>> {
+        let from = self.pos;
+        let until_pos = self.peek_pos;
+        if from == until_pos {
+            return Ok(vec![]);
+        }
+        let slice = &self.buffer[from..until_pos];
+        self.pos = self.peek_pos;
+
+        let mut slice_copy = vec![0; slice.len()];
+        slice_copy.truncate(0);
+        slice_copy.extend_from_slice(slice);
+
+        Ok(slice_copy)
+    }
+
+    /// [`skip`] skip the amount of data that has been peeked over-so far, returning
+    /// that to the caller, this also moves the position of the data cursor
+    /// forward to the location of the skip cursor.
+    pub fn skip(&mut self) {
+        let from = self.pos;
+        let until_pos = self.peek_pos;
+        if from == until_pos {
+            return;
+        }
+        self.pos = self.peek_pos;
+    }
+
+    /// [`peek`] peeks into the future by 1 position without actually permanently
+    /// change the peek cursor's position.
     #[inline]
     pub fn peek<'a>(&'a self) -> std::io::Result<PeekState<'a>> {
         self.peek_by(1)
     }
 
+    /// [`peek_by`] returns the available data if there is available within the forward movement
+    /// being requested, the peek cursor is never adjusted but only used to look forward.
+    ///
+    /// WARNING: Do not use this method and then call [`Self::consume`] has it has no effect
+    /// or you may consume far less than intended. This is intended to let you peek forward
+    /// without actual changes to peek cursor which is used in consume to extract the data
+    /// already seen by calling all `next_*` methods.
     #[inline]
     pub fn peek_by<'a>(&'a self, by: usize) -> std::io::Result<PeekState<'a>> {
         let until_pos = self.peek_pos + by;
@@ -923,7 +1007,142 @@ impl<T: Read> ByteBufferPointer<T> {
         Ok(PeekState::Request(&self.buffer[from..until_pos]))
     }
 
-    pub fn read_size<'a, 'b>(&'a mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+    /// [`peek_until`] returns the peek state for the requested data until the delimiter is seen
+    /// at which point the underlying reference to the data is either shared in a
+    /// [`PeekState::Request`] if fully read else return [`PeekState::EndOfFile`] if the
+    /// source returns EOF or if the data available is less than requested.
+    ///
+    /// It runs in a tight loop and ensures to acquire as much data as needed.
+    ///
+    /// It catches the initial position of the peek cursor then returns back to that
+    /// position after stoping. So the peek cursor will not adjust though the internal
+    /// buffer may have been filled up using memory attempting to find the giving signal
+    /// and this might read the underlying reader until its EOF or OOM occurs if the signal
+    /// is never found.
+    ///
+    /// WARNING: Do not use this method and then call [`Self::consume`] has it has no effect
+    /// or you may consume far less than intended. This is intended to let you peek forward
+    /// without actual changes to peek cursor which is used in consume to extract the data
+    /// already seen by calling all `next_*` methods.
+    #[inline]
+    pub fn peek_until<'a, 'b>(&'a mut self, signal: &'b [u8]) -> std::io::Result<PeekState<'a>> {
+        if signal.len() == 0 {
+            return Ok(PeekState::ZeroLengthInput);
+        }
+        let current_peek_pos = self.peek_pos;
+        loop {
+            let state = self.peek_by(signal.len())?;
+            match state {
+                PeekState::Request(data) => {
+                    if data == signal {
+                        break;
+                    }
+                }
+                PeekState::EndOfBuffered | PeekState::LessThanRequested => {
+                    // if at the end then return with EndOfFile
+                    if self.fill_up()? == 0 {
+                        return Ok(PeekState::EndOfFile);
+                    }
+                    continue;
+                }
+                PeekState::Continue => continue,
+                PeekState::EndOfFile => {
+                    return Ok(PeekState::EndOfFile);
+                }
+                _ => {
+                    unreachable!("Should never hit this types")
+                }
+            };
+
+            self.peek_pos += signal.len();
+        }
+
+        // account for the found block where we break and ensure we can capture
+        // the last peek correctly.
+        self.peek_pos += signal.len();
+
+        let slice = self.buffer[self.pos..self.peek_pos];
+
+        // restores peek position
+        self.peek_pos = current_peek_pos;
+
+        Ok(PeekState::Request(&slice))
+    }
+
+    /// [`peek_size2`] provides a friendly method which calls [`peek_size`] underneath
+    /// to peek into the distance without modifying cursor position.
+    ///
+    /// This means the cursor is at that position it was after peek into the need size from
+    /// the current position.
+    ///
+    /// WARNING: Do not use this method and then call [`Self::consume`] has it has no effect
+    /// or you may consume far less than intended. This is intended to let you peek forward
+    /// without actual changes to peek cursor which is used in consume to extract the data
+    /// already seen by calling all `next_*` methods.
+    pub fn peek_size2<'a, 'b>(&'a mut self, size: usize) -> std::io::Result<&'a [u8]> {
+        self.peek_size(size).map(|item| match item {
+            PeekState::Request(inner) => Ok(inner),
+            PeekState::ZeroLengthInput => Err(crate::err!(WriteZero, "Provided zero size request")),
+            _ => unreachable!("Should not trigger this stage"),
+        })?
+    }
+
+    /// [`peek_size`] returns a portion of the underlying buffer for the specified
+    /// size using a tight loop until the requested size is of data has being pulled
+    /// into the internal peek buffer for peeking .
+    ///
+    /// This moves forward the peek cursor forward temporarily until the requested size is achieved
+    /// and if the loop stops and the current buffer size does not match then
+    /// we return what's already acquired, so you need to be aware that this can happen
+    /// since generally it means we have reached EOF from the internal readers perspective.
+    ///
+    /// WARNING: Do not use this method and then call [`Self::consume`] has it has no effect
+    /// or you may consume far less than intended. This is intended to let you peek forward
+    /// without actual changes to peek cursor which is used in consume to extract the data
+    /// already seen by calling all `next_*` methods.
+    #[inline]
+    pub fn peek_size<'a>(&'a mut self, size: usize) -> std::io::Result<PeekState<'a>> {
+        if size == 0 {
+            return Ok(PeekState::ZeroLengthInput);
+        }
+
+        let current_peek_pos = self.peek_pos;
+        loop {
+            let buffer_len = self.buffer.len();
+            let rem = size - buffer_len;
+
+            if rem < 0 {
+                break;
+            }
+
+            let state = self.peek_by(rem)?;
+            let read = match state {
+                PeekState::Request(po) => po.len(),
+                PeekState::Continue | PeekState::EndOfBuffered | PeekState::LessThanRequested => {
+                    continue;
+                }
+                PeekState::EndOfFile => {
+                    break;
+                }
+                _ => {
+                    unreachable!("Should never hit this types")
+                }
+            };
+
+            self.peek_pos += read;
+        }
+
+        let slice = &self.buffer[self.pos..self.peek_pos];
+        self.peek_pos = current_peek_pos;
+
+        Ok(PeekState::Request(slice))
+    }
+
+    /// [`read_size`] reads the underlying size of the buffer provided data, consuming
+    /// all that is requested which moves both the peek cursor and the actual data cursor
+    /// which means that part of the internal buffer read from the underlying reader will
+    /// at some point be discarded as it should be.
+    pub fn read_size<'a>(&'a mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         match self.next_size(buf.len()) {
             Ok(state) => match state {
                 PeekState::Request(data) => {
@@ -955,7 +1174,9 @@ impl<T: Read> ByteBufferPointer<T> {
         }
     }
 
-    pub fn peek_size2<'a, 'b>(&'a mut self, size: usize) -> std::io::Result<&'a [u8]> {
+    /// [`next_size2`] provides a more friendly API ontop [`Self::next_size`] returning
+    /// the slice `&[u8]` without the [`PeekState`] wrapper.
+    pub fn next_size2<'a>(&'a mut self, size: usize) -> std::io::Result<&'a [u8]> {
         self.next_size(size).map(|item| match item {
             PeekState::Request(inner) => Ok(inner),
             PeekState::ZeroLengthInput => Err(crate::err!(WriteZero, "Provided zero size request")),
@@ -963,7 +1184,7 @@ impl<T: Read> ByteBufferPointer<T> {
         })?
     }
 
-    /// [`peek_size`] returns a portion of the underlying buffer for the specified
+    /// [`next_size`] returns a portion of the underlying buffer for the specified
     /// size using a tight loop until the requested size is of data has being pulled
     /// into the internal peek buffer for peeking .
     ///
@@ -971,6 +1192,8 @@ impl<T: Read> ByteBufferPointer<T> {
     /// and if the loop stops and the current buffer size does not match then
     /// we return what's already acquired, so you need to be aware that this can happen
     /// since generally it means we have reached EOF from the internal readers perspective.
+    ///
+    /// This moves the peek cursor forward.
     #[inline]
     pub fn next_size<'a>(&'a mut self, size: usize) -> std::io::Result<PeekState<'a>> {
         if size == 0 {
@@ -1006,14 +1229,16 @@ impl<T: Read> ByteBufferPointer<T> {
         Ok(PeekState::Request(slice))
     }
 
-    /// [`peek_until`] returns the peek state for the requested data until the delimiter is seen
+    /// [`next_until`] returns the peek state for the requested data until the delimiter is seen
     /// at which point the underlying reference to the data is either shared in a
     /// [`PeekState::Request`] if fully read else return [`PeekState::EndOfFile`] if the
     /// source returns EOF or if the data available is less than requested.
     ///
     /// It runs in a tight loop and ensures to acquire as much data as needed.
+    ///
+    /// This moves the peek cursor forward.
     #[inline]
-    pub fn peek_until<'a, 'b>(&'a mut self, signal: &'b [u8]) -> std::io::Result<PeekState<'a>> {
+    pub fn next_util<'a, 'b>(&'a mut self, signal: &'b [u8]) -> std::io::Result<PeekState<'a>> {
         if signal.len() == 0 {
             return Ok(PeekState::ZeroLengthInput);
         }
@@ -1050,17 +1275,112 @@ impl<T: Read> ByteBufferPointer<T> {
         Ok(PeekState::Request(&self.buffer[self.pos..self.peek_pos]))
     }
 
+    /// [`next_line`] reads the provided line into a string without consuming the read content.
+    /// Allowing you to perform further operation on the data.
+    ///
+    /// If the newline byte is not found then it reads all the bytes into the provided buffer ontil
+    /// it hits EOF or EndOfFile but this is key, it won't move the cursor forward, just copies the
+    /// underlying data over.
+    ///
+    /// This moves the peek cursor forward.
+    pub fn next_line<'a>(&'a mut self, buf: &mut String) -> std::io::Result<usize> {
+        const NEWLINE_SLICE: &[u8] = b"\n";
+        let read = match self.next_util(NEWLINE_SLICE) {
+            Ok(inner) => match inner {
+                PeekState::Request(c) => {
+                    unsafe {
+                        let mut buf_vec = buf.as_mut_vec();
+                        buf_vec.extend_from_slice(&c);
+                    };
+                    Ok(c.len())
+                }
+                PeekState::EndOfFile => Ok(0),
+                PeekState::ZeroLengthInput => Ok(0),
+                _ => unreachable!("Should never trigger"),
+            },
+            Err(err) => return Err(err),
+        };
+
+        match read {
+            Ok(inner) => {
+                if inner == 0 {
+                    let slice = &self.buffer[self.pos..self.peek_pos];
+                    let slice_length = slice.len();
+
+                    unsafe {
+                        let mut buf_vec = buf.as_mut_vec();
+                        buf_vec.extend_from_slice(&slice);
+                    };
+
+                    return Ok(slice_length);
+                }
+
+                return Ok(inner);
+            }
+            Err(err) => Err(err),
+        }
+    }
+
+    /// [`next_bytes_until`] reads the provided bytes into a Vec without consuming the read cursor.
+    /// Allowing you to perform further operation on the data.
+    ///
+    /// If the target byte is not found then it reads all the bytes into the provided buffer ontil
+    /// it hits EOF or EndOfFile but this is key, it won't move the cursor forward, just copies the
+    /// underlying data over.
+    ///
+    /// This moves the peek cursor forward.
+    pub fn next_bytes_until<'a>(
+        &'a mut self,
+        target: &[u8],
+        buf: &mut Vec<u8>,
+    ) -> std::io::Result<usize> {
+        let read = match self.next_util(target) {
+            Ok(inner) => match inner {
+                PeekState::Request(c) => {
+                    unsafe {
+                        buf.extend_from_slice(&c);
+                    };
+                    Ok(c.len())
+                }
+                PeekState::EndOfFile => Ok(0),
+                PeekState::ZeroLengthInput => Ok(0),
+                _ => unreachable!("Should never trigger"),
+            },
+            Err(err) => return Err(err),
+        };
+
+        match read {
+            Ok(inner) => {
+                if inner == 0 {
+                    let slice = &self.buffer[self.pos..self.peek_pos];
+                    let slice_length = slice.len();
+
+                    unsafe {
+                        buf.extend_from_slice(&slice);
+                    };
+
+                    return Ok(slice_length);
+                }
+
+                return Ok(inner);
+            }
+            Err(err) => Err(err),
+        }
+    }
+
     /// [`read_bytes_until`] reads the provided bytes into a Vec consuming read cursor, until it
     /// finds the relevant else stopping.
     ///
     /// If the new line byte is not found then everything read till that point is appended to the
     /// string and the cursor is consumed.
+    ///
+    /// This moves the peek cursor forward.
     pub fn read_bytes_until<'a>(
         &'a mut self,
         target: &[u8],
         buf: &mut Vec<u8>,
     ) -> std::io::Result<usize> {
-        let read = match self.peek_until(target) {
+        let read = match self.next_util(target) {
             Ok(inner) => match inner {
                 PeekState::Request(c) => {
                     unsafe {
@@ -1100,9 +1420,11 @@ impl<T: Read> ByteBufferPointer<T> {
     ///
     /// If the new line byte is not found then everything read till that point is appended to the
     /// string and the cursor is consumed.
+    ///
+    /// This moves the peek cursor forward.
     pub fn read_line<'a>(&'a mut self, buf: &mut String) -> std::io::Result<usize> {
         const NEWLINE_SLICE: &[u8] = b"\n";
-        let read = match self.peek_until(NEWLINE_SLICE) {
+        let read = match self.next_util(NEWLINE_SLICE) {
             Ok(inner) => match inner {
                 PeekState::Request(c) => {
                     unsafe {
@@ -1138,166 +1460,6 @@ impl<T: Read> ByteBufferPointer<T> {
             }
             Err(err) => Err(err),
         }
-    }
-
-    /// [`peek_line`] reads the provided line into a string without consuming the read content.
-    /// Allowing you to perform further operation on the data.
-    ///
-    /// If the newline byte is not found then it reads all the bytes into the provided buffer ontil
-    /// it hits EOF or EndOfFile but this is key, it won't move the cursor forward, just copies the
-    /// underlying data over.
-    pub fn peek_line<'a>(&'a mut self, buf: &mut String) -> std::io::Result<usize> {
-        const NEWLINE_SLICE: &[u8] = b"\n";
-        let read = match self.peek_until(NEWLINE_SLICE) {
-            Ok(inner) => match inner {
-                PeekState::Request(c) => {
-                    unsafe {
-                        let mut buf_vec = buf.as_mut_vec();
-                        buf_vec.extend_from_slice(&c);
-                    };
-                    Ok(c.len())
-                }
-                PeekState::EndOfFile => Ok(0),
-                PeekState::ZeroLengthInput => Ok(0),
-                _ => unreachable!("Should never trigger"),
-            },
-            Err(err) => return Err(err),
-        };
-
-        match read {
-            Ok(inner) => {
-                if inner == 0 {
-                    let slice = &self.buffer[self.pos..self.peek_pos];
-                    let slice_length = slice.len();
-
-                    unsafe {
-                        let mut buf_vec = buf.as_mut_vec();
-                        buf_vec.extend_from_slice(&slice);
-                    };
-
-                    return Ok(slice_length);
-                }
-
-                return Ok(inner);
-            }
-            Err(err) => Err(err),
-        }
-    }
-
-    /// [`peek_bytes_until`] reads the provided bytes into a Vec without consuming the read cursor.
-    /// Allowing you to perform further operation on the data.
-    ///
-    /// If the target byte is not found then it reads all the bytes into the provided buffer ontil
-    /// it hits EOF or EndOfFile but this is key, it won't move the cursor forward, just copies the
-    /// underlying data over.
-    pub fn peek_bytes_until<'a>(
-        &'a mut self,
-        target: &[u8],
-        buf: &mut Vec<u8>,
-    ) -> std::io::Result<usize> {
-        let read = match self.peek_until(target) {
-            Ok(inner) => match inner {
-                PeekState::Request(c) => {
-                    unsafe {
-                        buf.extend_from_slice(&c);
-                    };
-                    Ok(c.len())
-                }
-                PeekState::EndOfFile => Ok(0),
-                PeekState::ZeroLengthInput => Ok(0),
-                _ => unreachable!("Should never trigger"),
-            },
-            Err(err) => return Err(err),
-        };
-
-        match read {
-            Ok(inner) => {
-                if inner == 0 {
-                    let slice = &self.buffer[self.pos..self.peek_pos];
-                    let slice_length = slice.len();
-
-                    unsafe {
-                        buf.extend_from_slice(&slice);
-                    };
-
-                    return Ok(slice_length);
-                }
-
-                return Ok(inner);
-            }
-            Err(err) => Err(err),
-        }
-    }
-
-    /// Forward by 1.
-    #[inline]
-    pub fn forward(&mut self) -> std::io::Result<PeekState<'_>> {
-        self.forward_by(1)
-    }
-
-    #[inline]
-    pub fn forward_by(&mut self, by: usize) -> std::io::Result<PeekState<'_>> {
-        let buffer_length = self.buffer.len();
-        let new_peek = self.peek_pos + by;
-        if new_peek > buffer_length {
-            self.peek_pos = buffer_length;
-            Ok(PeekState::EndOfBuffered)
-        } else {
-            self.peek_pos = new_peek;
-            Ok(PeekState::Continue)
-        }
-    }
-
-    /// Unforward by 1.
-    #[inline]
-    pub fn unforward(&mut self) -> std::io::Result<PeekState<'_>> {
-        self.unforward_by(1)
-    }
-
-    /// unforward_by moves your peek position backwards at which if it moves
-    /// all the way back, will forever stay at the last know position of
-    /// the actual data cursor.
-    #[inline]
-    pub fn unforward_by(&mut self, by: usize) -> std::io::Result<PeekState<'_>> {
-        let new_peek = self.peek_pos - by;
-        if new_peek <= self.pos {
-            self.peek_pos = self.pos;
-            Ok(PeekState::Continue)
-        } else {
-            self.peek_pos = new_peek;
-            Ok(PeekState::Continue)
-        }
-    }
-
-    /// consumes the amount of data that has been peeked over-so far, returning
-    /// that to the caller, this also moves the position of the data cursor
-    /// forward to the location of the skip cursor.
-    pub fn consume(&mut self) -> std::io::Result<Vec<u8>> {
-        let from = self.pos;
-        let until_pos = self.peek_pos;
-        if from == until_pos {
-            return Ok(vec![]);
-        }
-        let slice = &self.buffer[from..until_pos];
-        self.pos = self.peek_pos;
-
-        let mut slice_copy = vec![0; slice.len()];
-        slice_copy.truncate(0);
-        slice_copy.extend_from_slice(slice);
-
-        Ok(slice_copy)
-    }
-
-    /// skip the amount of data that has been peeked over-so far, returning
-    /// that to the caller, this also moves the position of the data cursor
-    /// forward to the location of the skip cursor.
-    pub fn skip(&mut self) {
-        let from = self.pos;
-        let until_pos = self.peek_pos;
-        if from == until_pos {
-            return;
-        }
-        self.pos = self.peek_pos;
     }
 }
 
@@ -1388,7 +1550,7 @@ mod byte_buffered_buffer_pointer {
         let mut binding = buffer.lock().unwrap();
 
         let mut new_line = String::new();
-        let read = binding.peek_line(&mut new_line);
+        let read = binding.next_line(&mut new_line);
 
         assert_eq!(content.len(), read.unwrap());
         assert_eq!(new_line, "alexander_wonderbat\n");
@@ -1427,7 +1589,7 @@ mod byte_buffered_buffer_pointer {
 
         let mut binding = buffer.lock().unwrap();
         assert!(matches!(
-            binding.peek_until(SIGNAL).expect("should peek"),
+            binding.next_util(SIGNAL).expect("should peek"),
             PeekState::Request(_)
         ));
 
@@ -1451,7 +1613,7 @@ mod byte_buffered_buffer_pointer {
         let buffer = Mutex::new(ByteBufferPointer::new(10, reader));
 
         let mut binding = buffer.lock().unwrap();
-        let result = binding.peek_until(signal);
+        let result = binding.next_util(signal);
         assert!(matches!(result, Ok(PeekState::Request(_))));
 
         let PeekState::Request(content) = result.unwrap() else {
@@ -1475,7 +1637,7 @@ mod byte_buffered_buffer_pointer {
         let buffer = Mutex::new(ByteBufferPointer::new(10, reader));
 
         let mut binding = buffer.lock().unwrap();
-        let result = binding.peek_until(signal);
+        let result = binding.next_util(signal);
         assert!(matches!(result, Ok(PeekState::EndOfFile)));
     }
 
