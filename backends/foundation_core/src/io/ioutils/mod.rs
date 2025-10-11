@@ -6,8 +6,6 @@ use std::sync::{Arc, LockResult, Mutex, RwLock, RwLockReadGuard, RwLockWriteGuar
 use crate::err;
 use derive_more::derive::From;
 
-// macros
-
 // BufferCapacity Trait
 
 pub trait BufferCapacity {
@@ -1080,6 +1078,7 @@ impl<T: Read> ByteBufferPointer<T> {
     pub fn peekby2<'a, 'b>(&'a mut self, size: usize) -> std::io::Result<&'a [u8]> {
         self.peekby(size).map(|item| match item {
             PeekState::Request(inner) => Ok(inner),
+            PeekState::NoNext => Err(crate::err!(UnexpectedEof, "No more data to pull through")),
             PeekState::ZeroLengthInput => Err(crate::err!(WriteZero, "Provided zero size request")),
             _ => unreachable!("Should not trigger this stage"),
         })?
@@ -1139,6 +1138,9 @@ impl<T: Read> ByteBufferPointer<T> {
         }
 
         let slice = &self.buffer[current_peek_pos..self.peek_pos];
+        if self.peek_pos == current_peek_pos {
+            return Ok(PeekState::NoNext);
+        }
 
         self.peek_pos = current_peek_pos;
 
@@ -1186,6 +1188,7 @@ impl<T: Read> ByteBufferPointer<T> {
     pub fn nextby2<'a>(&'a mut self, size: usize) -> std::io::Result<&'a [u8]> {
         self.nextby(size).map(|item| match item {
             PeekState::Request(inner) => Ok(inner),
+            PeekState::NoNext => Err(crate::err!(UnexpectedEof, "No more data to pull through")),
             PeekState::ZeroLengthInput => Err(crate::err!(WriteZero, "Provided zero size request")),
             _ => unreachable!("Should not trigger this stage"),
         })?
@@ -1243,6 +1246,10 @@ impl<T: Read> ByteBufferPointer<T> {
         }
 
         let slice = &self.buffer[original_peek..self.peek_pos];
+
+        if self.peek_pos == original_peek {
+            return Ok(PeekState::NoNext);
+        }
         Ok(PeekState::Request(slice))
     }
 
@@ -1903,7 +1910,6 @@ mod byte_buffered_buffer_pointer {
     #[test]
     fn can_pull_more_data() {
         let content = b"alexander_wonderbat";
-        println!("ContentLength: {}", content.len());
 
         let mut source = Cursor::new(content.to_vec());
         let reader = OwnedReader::atomic(&mut source);

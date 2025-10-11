@@ -4,6 +4,7 @@ use crate::extensions::result_ext::BoxedError;
 use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
 use crate::io::ioutils::{self, ByteBufferPointer, SharedByteBufferStream};
 use crate::io::ubytes::{self};
+use crate::is_ok;
 use crate::netcap::RawStream;
 use crate::valtron::{
     CloneableFn, SendStringIterator, SendVecIterator, SendableBoxIterator, SendableIterator,
@@ -2843,6 +2844,10 @@ impl ChunkState {
             &chunk_string
         );
 
+        let rem = acc.peekby2(10)?;
+        let rem_string = String::from_utf8(rem.to_vec());
+        println!("What's left: {:?} and {:?}", rem, rem_string);
+
         // eat up any space (except CRLF)
         // is it just a newline here, then lets manage the madness
         Self::eat_space(&mut acc)?;
@@ -2850,7 +2855,11 @@ impl ChunkState {
 
         // do we have an extension marker
         let mut extensions: Extensions = Vec::new();
-        while acc.peekby2(1)? == b";" {
+        while let Ok(value) = acc.peekby2(1) {
+            if value != b";" {
+                break;
+            }
+
             match Self::parse_http_chunk_extension(&mut acc) {
                 Ok(extension) => extensions.push(extension),
                 Err(err) => return Err(err),
@@ -2858,12 +2867,12 @@ impl ChunkState {
         }
 
         // are we starting out with a CRLF, if so, skip it
-        if acc.peekby2(2)? == b"\r\n" {
+        if crate::is_ok!(acc.peekby2(2), b"\r\n") {
             let _ = acc.nextby(2);
             acc.skip();
         }
 
-        if acc.peekby2(2)? == b"\n\n" {
+        if crate::is_ok!(acc.peekby2(2), b"\n\n") {
             let _ = acc.nextby2(2);
             acc.skip();
         }
@@ -2890,7 +2899,7 @@ impl ChunkState {
         mut acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
     ) -> Result<(String, Option<String>), ChunkStateError> {
         // skip first extension starter
-        if b";" == acc.peekby2(1)? {
+        if crate::is_ok!(acc.peekby2(1), b";") {
             acc.nextby2(1)?;
             acc.skip();
         }
@@ -2914,7 +2923,7 @@ impl ChunkState {
         Self::eat_space(&mut acc)?;
 
         // skip first extension starter
-        if acc.nextby2(1)? != b"=" {
+        if !crate::is_ok!(acc.nextby2(1), b"=") {
             if let Some(ext) = extension_key {
                 return match String::from_utf8(ext) {
                     Ok(converted_string) => Ok((converted_string, None)),
@@ -2930,7 +2939,7 @@ impl ChunkState {
         // eat all the space
         Self::eat_space(&mut acc)?;
 
-        let is_quoted = acc.peekby2(1)? == b"\"";
+        let is_quoted = crate::is_ok!(acc.peekby2(1), b"\"");
 
         // move pointer forward for quoted value
         if is_quoted {
@@ -2989,8 +2998,10 @@ impl ChunkState {
     fn eat_newlines<T: Read>(
         acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
     ) -> Result<(), ChunkStateError> {
+        let newline = b"\n";
         while let Ok(b) = acc.nextby2(1) {
-            if b[0] == b'\n' {
+            println!("Received: {:?} against {:?}", b, newline);
+            if b[0] == newline[0] {
                 continue;
             }
 
@@ -3288,7 +3299,6 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleHttpChunkIterator<T> {
                             Ok(mut reader) => {
                                 let mut chunk_data = vec![0; size as usize];
                                 if let Err(err) = reader.read_exact(&mut chunk_data) {
-                                    println!("ChunkRead: {:?}", err);
                                     return Some(Err(Box::new(err)));
                                 }
 
