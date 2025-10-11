@@ -47,8 +47,7 @@ impl error::Error for Err {
 /// # Example
 ///
 /// ```rust
-/// #[macro_use]
-/// extern crate io_error;
+/// use foundation_core::*;
 ///
 /// let x = 42 + 3;
 /// let error = err!(NotFound, "my error description", "this is an error, x is {}", x);

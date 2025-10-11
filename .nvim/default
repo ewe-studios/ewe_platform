@@ -13,10 +13,20 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +763 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/io/ioutils/mod.rs
-badd +2344 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/impls.rs
-badd +34 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs
+badd +1913 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/io/ioutils/mod.rs
+badd +1 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/impls.rs
+badd +283 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs
 badd +19 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/errors.rs
+badd +4 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/macros/mod.rs
+badd +133 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/macros/rezzo/mod.rs
+badd +78 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/macros/ioerrs/mod.rs
+badd +7 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/macros/collections/mod.rs
+badd +1 /tmp/bash-fc.KhVX9l
+badd +1 /tmp/bfba6c70-6a49-439a-abb2-91518898b3b7.dump
+badd +2 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/tests.rs
+badd +1 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/megatron/mod.rs
+badd +7 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/synca/mod.rs
+badd +17 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/lib.rs
 argglobal
 %argdel
 edit ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/impls.rs
@@ -50,78 +60,77 @@ setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-2244
+2245
 sil! normal! zo
-2350
-sil! normal! zo
-2353
+2351
 sil! normal! zo
 2354
 sil! normal! zo
 2355
 sil! normal! zo
-2382
+2356
 sil! normal! zo
-2391
+2383
 sil! normal! zo
-2403
+2392
 sil! normal! zo
-2514
+2404
 sil! normal! zo
-2526
+2515
 sil! normal! zo
 2527
 sil! normal! zo
 2528
 sil! normal! zo
-2558
+2529
 sil! normal! zo
-2560
+2559
+sil! normal! zo
+2561
+sil! normal! zo
+2642
+sil! normal! zo
+2716
+sil! normal! zo
+2788
+sil! normal! zo
+2859
+sil! normal! zo
+2901
+sil! normal! zo
+3234
 sil! normal! zo
 3239
 sil! normal! zo
-3242
+3345
 sil! normal! zo
-3372
+3350
 sil! normal! zo
-3413
+3351
 sil! normal! zo
-3470
+3368
 sil! normal! zo
-let s:l = 2344 - ((11 * winheight(0) + 34) / 69)
+3401
+sil! normal! zo
+3428
+sil! normal! zo
+3428
+sil! normal! zo
+3447
+sil! normal! zo
+3459
+sil! normal! zo
+let s:l = 2849 - ((61 * winheight(0) + 34) / 69)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 2344
+keepjumps 2849
 normal! 0
 wincmd w
 argglobal
-if bufexists(fnamemodify("~/boxxed/@dev/ewe_platform/backends/foundation_core/src/io/ioutils/mod.rs", ":p")) | buffer ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/io/ioutils/mod.rs | else | edit ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/io/ioutils/mod.rs | endif
+if bufexists(fnamemodify("~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/tests.rs", ":p")) | buffer ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/tests.rs | else | edit ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/tests.rs | endif
 if &buftype ==# 'terminal'
-  silent file ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/io/ioutils/mod.rs
-endif
-balt ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs
-setlocal foldmethod=indent
-setlocal foldexpr=0
-setlocal foldmarker={{{,}}}
-setlocal foldignore=#
-setlocal foldlevel=99
-setlocal foldminlines=1
-setlocal foldnestmax=20
-setlocal foldenable
-767
-sil! normal! zo
-let s:l = 763 - ((28 * winheight(0) + 34) / 69)
-if s:l < 1 | let s:l = 1 | endif
-keepjumps exe s:l
-normal! zt
-keepjumps 763
-normal! 0
-wincmd w
-argglobal
-if bufexists(fnamemodify("~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs", ":p")) | buffer ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs | else | edit ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs | endif
-if &buftype ==# 'terminal'
-  silent file ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs
+  silent file ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/tests.rs
 endif
 balt ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/impls.rs
 setlocal foldmethod=expr
@@ -132,11 +141,50 @@ setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-let s:l = 350 - ((68 * winheight(0) + 34) / 69)
+let s:l = 2 - ((1 * winheight(0) + 34) / 69)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 350
+keepjumps 2
+normal! 0
+wincmd w
+argglobal
+if bufexists(fnamemodify("~/boxxed/@dev/ewe_platform/backends/foundation_core/src/io/ioutils/mod.rs", ":p")) | buffer ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/io/ioutils/mod.rs | else | edit ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/io/ioutils/mod.rs | endif
+if &buftype ==# 'terminal'
+  silent file ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/io/ioutils/mod.rs
+endif
+balt ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/macros/ioerrs/mod.rs
+setlocal foldmethod=expr
+setlocal foldexpr=v:lua.vim.lsp.foldexpr()
+setlocal foldmarker={{{,}}}
+setlocal foldignore=#
+setlocal foldlevel=99
+setlocal foldminlines=1
+setlocal foldnestmax=20
+setlocal foldenable
+764
+sil! normal! zo
+1078
+sil! normal! zo
+1079
+sil! normal! zo
+1101
+sil! normal! zo
+1188
+sil! normal! zo
+1189
+sil! normal! zo
+1208
+sil! normal! zo
+1521
+sil! normal! zo
+1911
+sil! normal! zo
+let s:l = 1913 - ((34 * winheight(0) + 34) / 69)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 1913
 normal! 0
 wincmd w
 2wincmd w
