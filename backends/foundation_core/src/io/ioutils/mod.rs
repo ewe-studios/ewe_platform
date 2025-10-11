@@ -1113,24 +1113,33 @@ impl<T: Read> ByteBufferPointer<T> {
                 break;
             }
 
-            let state = self.peek_by(rem as usize)?;
-            let read = match state {
-                PeekState::Request(po) => po.len(),
-                PeekState::Continue | PeekState::EndOfBuffered | PeekState::LessThanRequested => {
-                    continue;
-                }
-                PeekState::EndOfFile => {
-                    break;
-                }
-                _ => {
-                    unreachable!("Should never hit this types")
-                }
-            };
-
-            self.peek_pos += read;
+            // request more data so we get to enough to actually resolve the
+            // requested size.
+            if self.fill_up()? == 0 {
+                break;
+            }
         }
 
-        let slice = &self.buffer[self.pos..self.peek_pos];
+        let buffer_len = self.buffer.len();
+
+        // never overflows, how much exactly did we have before we
+        // requested for more data
+        let total_data_left = buffer_len - current_peek_pos;
+
+        // never overflows, its either + or 0.
+        let distance_to_end = buffer_len - self.peek_pos;
+
+        // we were less than even what is requested or exactly what was requested
+        // move peek to the end and move on
+        if total_data_left <= size {
+            self.peek_pos = buffer_len;
+        } else {
+            // if we basically indicative that the length to wanted is basically
+            self.peek_pos = current_peek_pos + size;
+        }
+
+        let slice = &self.buffer[current_peek_pos..self.peek_pos];
+
         self.peek_pos = current_peek_pos;
 
         Ok(PeekState::Request(slice))
@@ -1198,6 +1207,8 @@ impl<T: Read> ByteBufferPointer<T> {
             return Ok(PeekState::ZeroLengthInput);
         }
 
+        let original_peek = self.peek_pos;
+
         loop {
             let buffer_len = self.buffer.len() as isize;
             let rem = (size as isize) - buffer_len;
@@ -1206,24 +1217,32 @@ impl<T: Read> ByteBufferPointer<T> {
                 break;
             }
 
-            let state = self.peek_by(rem as usize)?;
-            let read = match state {
-                PeekState::Request(po) => po.len(),
-                PeekState::Continue | PeekState::EndOfBuffered | PeekState::LessThanRequested => {
-                    continue;
-                }
-                PeekState::EndOfFile => {
-                    break;
-                }
-                _ => {
-                    unreachable!("Should never hit this types")
-                }
-            };
-
-            self.peek_pos += read;
+            // request more data so we get to enough to actually resolve the
+            // requested size.
+            if self.fill_up()? == 0 {
+                break;
+            }
         }
 
-        let slice = &self.buffer[self.pos..self.peek_pos];
+        let buffer_len = self.buffer.len();
+
+        // never overflows, how much exactly did we have before we
+        // requested for more data
+        let total_data_left = buffer_len - original_peek;
+
+        // never overflows, its either + or 0.
+        let distance_to_end = buffer_len - self.peek_pos;
+
+        // we were less than even what is requested or exactly what was requested
+        // move peek to the end and move on
+        if total_data_left <= size {
+            self.peek_pos = buffer_len;
+        } else {
+            // if we basically indicative that the length to wanted is basically
+            self.peek_pos = original_peek + size;
+        }
+
+        let slice = &self.buffer[original_peek..self.peek_pos];
         Ok(PeekState::Request(slice))
     }
 

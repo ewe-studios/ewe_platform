@@ -19,6 +19,9 @@ pub enum HttpReaderError {
     BodyBuildFailed(BoxedError),
 
     #[from(ignore)]
+    ProtoBuildFailed(BoxedError),
+
+    #[from(ignore)]
     LineReadFailed(BoxedError),
 
     #[from(ignore)]
