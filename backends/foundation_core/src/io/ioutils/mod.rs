@@ -1103,7 +1103,6 @@ impl<T: Read> ByteBufferPointer<T> {
             return Ok(PeekState::ZeroLengthInput);
         }
 
-        let current_peek_pos = self.peek_pos;
         loop {
             let buffer_len = self.buffer.len() as isize;
             let rem = (size as isize) - buffer_len;
@@ -1121,12 +1120,11 @@ impl<T: Read> ByteBufferPointer<T> {
 
         let buffer_len = self.buffer.len();
 
+        let original_peek = self.peek_pos;
+
         // never overflows, how much exactly did we have before we
         // requested for more data
-        let total_data_left = buffer_len - current_peek_pos;
-
-        // never overflows, its either + or 0.
-        let distance_to_end = buffer_len - self.peek_pos;
+        let total_data_left = buffer_len - original_peek;
 
         // we were less than even what is requested or exactly what was requested
         // move peek to the end and move on
@@ -1134,16 +1132,72 @@ impl<T: Read> ByteBufferPointer<T> {
             self.peek_pos = buffer_len;
         } else {
             // if we basically indicative that the length to wanted is basically
-            self.peek_pos = current_peek_pos + size;
+            self.peek_pos = original_peek + size;
         }
 
-        let slice = &self.buffer[current_peek_pos..self.peek_pos];
-        if self.peek_pos == current_peek_pos {
+        let slice = &self.buffer[original_peek..self.peek_pos];
+        if self.peek_pos == original_peek {
             return Ok(PeekState::NoNext);
         }
 
-        self.peek_pos = current_peek_pos;
+        self.peek_pos = original_peek;
 
+        Ok(PeekState::Request(slice))
+    }
+
+    /// [`next_size`] returns a portion of the underlying buffer for the specified
+    /// size using a tight loop until the requested size is of data has being pulled
+    /// into the internal peek buffer for peeking .
+    ///
+    /// This moves forward the cursor forward until the requested size is achieved
+    /// and if the loop stops and the current buffer size does not match then
+    /// we return what's already acquired, so you need to be aware that this can happen
+    /// since generally it means we have reached EOF from the internal readers perspective.
+    ///
+    /// This moves the peek cursor forward.
+    #[inline]
+    pub fn nextby<'a>(&'a mut self, size: usize) -> std::io::Result<PeekState<'a>> {
+        if size == 0 {
+            return Ok(PeekState::ZeroLengthInput);
+        }
+
+        loop {
+            let buffer_len = self.buffer.len() as isize;
+            let rem = (size as isize) - buffer_len;
+
+            if rem < 0 {
+                break;
+            }
+
+            // request more data so we get to enough to actually resolve the
+            // requested size.
+            if self.fill_up()? == 0 {
+                break;
+            }
+        }
+
+        let buffer_len = self.buffer.len();
+
+        let original_peek = self.peek_pos;
+
+        // never overflows, how much exactly did we have before we
+        // requested for more data
+        let total_data_left = buffer_len - original_peek;
+
+        // we were less than even what is requested or exactly what was requested
+        // move peek to the end and move on
+        if total_data_left <= size {
+            self.peek_pos = buffer_len;
+        } else {
+            // if we basically indicative that the length to wanted is basically
+            self.peek_pos = original_peek + size;
+        }
+
+        let slice = &self.buffer[original_peek..self.peek_pos];
+
+        if self.peek_pos == original_peek {
+            return Ok(PeekState::NoNext);
+        }
         Ok(PeekState::Request(slice))
     }
 
@@ -1192,65 +1246,6 @@ impl<T: Read> ByteBufferPointer<T> {
             PeekState::ZeroLengthInput => Err(crate::err!(WriteZero, "Provided zero size request")),
             _ => unreachable!("Should not trigger this stage"),
         })?
-    }
-
-    /// [`next_size`] returns a portion of the underlying buffer for the specified
-    /// size using a tight loop until the requested size is of data has being pulled
-    /// into the internal peek buffer for peeking .
-    ///
-    /// This moves forward the cursor forward until the requested size is achieved
-    /// and if the loop stops and the current buffer size does not match then
-    /// we return what's already acquired, so you need to be aware that this can happen
-    /// since generally it means we have reached EOF from the internal readers perspective.
-    ///
-    /// This moves the peek cursor forward.
-    #[inline]
-    pub fn nextby<'a>(&'a mut self, size: usize) -> std::io::Result<PeekState<'a>> {
-        if size == 0 {
-            return Ok(PeekState::ZeroLengthInput);
-        }
-
-        let original_peek = self.peek_pos;
-
-        loop {
-            let buffer_len = self.buffer.len() as isize;
-            let rem = (size as isize) - buffer_len;
-
-            if rem < 0 {
-                break;
-            }
-
-            // request more data so we get to enough to actually resolve the
-            // requested size.
-            if self.fill_up()? == 0 {
-                break;
-            }
-        }
-
-        let buffer_len = self.buffer.len();
-
-        // never overflows, how much exactly did we have before we
-        // requested for more data
-        let total_data_left = buffer_len - original_peek;
-
-        // never overflows, its either + or 0.
-        let distance_to_end = buffer_len - self.peek_pos;
-
-        // we were less than even what is requested or exactly what was requested
-        // move peek to the end and move on
-        if total_data_left <= size {
-            self.peek_pos = buffer_len;
-        } else {
-            // if we basically indicative that the length to wanted is basically
-            self.peek_pos = original_peek + size;
-        }
-
-        let slice = &self.buffer[original_peek..self.peek_pos];
-
-        if self.peek_pos == original_peek {
-            return Ok(PeekState::NoNext);
-        }
-        Ok(PeekState::Request(slice))
     }
 
     /// [`next_until`] returns the peek state for the requested data until the delimiter is seen
