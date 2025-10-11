@@ -13,12 +13,13 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +1099 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/io/ioutils/mod.rs
-badd +3267 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/impls.rs
-badd +63 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs
+badd +763 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/io/ioutils/mod.rs
+badd +2344 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/impls.rs
+badd +34 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs
+badd +19 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/errors.rs
 argglobal
 %argdel
-edit ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/io/ioutils/mod.rs
+edit ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/impls.rs
 let s:save_splitbelow = &splitbelow
 let s:save_splitright = &splitright
 set splitbelow splitright
@@ -40,27 +41,89 @@ set winminwidth=0
 set winwidth=1
 wincmd =
 argglobal
-setlocal foldmethod=expr
-setlocal foldexpr=v:lua.vim.lsp.foldexpr()
+balt ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/errors.rs
+setlocal foldmethod=indent
+setlocal foldexpr=0
 setlocal foldmarker={{{,}}}
 setlocal foldignore=#
 setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-let s:l = 1099 - ((31 * winheight(0) + 36) / 72)
+2244
+sil! normal! zo
+2350
+sil! normal! zo
+2353
+sil! normal! zo
+2354
+sil! normal! zo
+2355
+sil! normal! zo
+2382
+sil! normal! zo
+2391
+sil! normal! zo
+2403
+sil! normal! zo
+2514
+sil! normal! zo
+2526
+sil! normal! zo
+2527
+sil! normal! zo
+2528
+sil! normal! zo
+2558
+sil! normal! zo
+2560
+sil! normal! zo
+3239
+sil! normal! zo
+3242
+sil! normal! zo
+3372
+sil! normal! zo
+3413
+sil! normal! zo
+3470
+sil! normal! zo
+let s:l = 2344 - ((11 * winheight(0) + 34) / 69)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 1099
-normal! 067|
+keepjumps 2344
+normal! 0
+wincmd w
+argglobal
+if bufexists(fnamemodify("~/boxxed/@dev/ewe_platform/backends/foundation_core/src/io/ioutils/mod.rs", ":p")) | buffer ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/io/ioutils/mod.rs | else | edit ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/io/ioutils/mod.rs | endif
+if &buftype ==# 'terminal'
+  silent file ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/io/ioutils/mod.rs
+endif
+balt ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs
+setlocal foldmethod=indent
+setlocal foldexpr=0
+setlocal foldmarker={{{,}}}
+setlocal foldignore=#
+setlocal foldlevel=99
+setlocal foldminlines=1
+setlocal foldnestmax=20
+setlocal foldenable
+767
+sil! normal! zo
+let s:l = 763 - ((28 * winheight(0) + 34) / 69)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 763
+normal! 0
 wincmd w
 argglobal
 if bufexists(fnamemodify("~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs", ":p")) | buffer ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs | else | edit ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs | endif
 if &buftype ==# 'terminal'
   silent file ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs
 endif
-balt ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/io/ioutils/mod.rs
+balt ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/impls.rs
 setlocal foldmethod=expr
 setlocal foldexpr=v:lua.vim.lsp.foldexpr()
 setlocal foldmarker={{{,}}}
@@ -69,34 +132,14 @@ setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-let s:l = 26 - ((25 * winheight(0) + 36) / 72)
+let s:l = 350 - ((68 * winheight(0) + 34) / 69)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 26
-normal! 017|
-wincmd w
-argglobal
-if bufexists(fnamemodify("~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/impls.rs", ":p")) | buffer ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/impls.rs | else | edit ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/impls.rs | endif
-if &buftype ==# 'terminal'
-  silent file ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/impls.rs
-endif
-balt ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs
-setlocal foldmethod=expr
-setlocal foldexpr=v:lua.vim.lsp.foldexpr()
-setlocal foldmarker={{{,}}}
-setlocal foldignore=#
-setlocal foldlevel=99
-setlocal foldminlines=1
-setlocal foldnestmax=20
-setlocal foldenable
-let s:l = 3267 - ((30 * winheight(0) + 36) / 72)
-if s:l < 1 | let s:l = 1 | endif
-keepjumps exe s:l
-normal! zt
-keepjumps 3267
+keepjumps 350
 normal! 0
 wincmd w
+2wincmd w
 wincmd =
 tabnext 1
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'

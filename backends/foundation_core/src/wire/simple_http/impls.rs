@@ -2384,7 +2384,7 @@ where
                         SimpleUrl::url_with_query(intro_parts[1].to_string()),
                         proto,
                     ))),
-                    Err(err) => Some(Err(HttpReaderError::BodyBuildFailed(Box::new(err)))),
+                    Err(err) => Some(Err(HttpReaderError::ProtoBuildFailed(Box::new(err)))),
                 }
             }
             HttpReadState::Headers => {
@@ -2837,10 +2837,14 @@ impl ChunkState {
             None => return Err(ChunkStateError::ChunkSizeNotFound),
         };
 
-        tracing::debug!("Reading chunk size: {:?} to {:?}", &chunk_size, &chunk_size,);
+        tracing::debug!(
+            "Reading chunk size: {:?} to {:?}",
+            &chunk_size,
+            &chunk_string
+        );
 
-        // // eat up any space (except CRLF)
-        // // is it just a newline here, then lets manage the madness
+        // eat up any space (except CRLF)
+        // is it just a newline here, then lets manage the madness
         Self::eat_space(&mut acc)?;
         Self::eat_newlines(&mut acc)?;
 
@@ -3284,6 +3288,7 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleHttpChunkIterator<T> {
                             Ok(mut reader) => {
                                 let mut chunk_data = vec![0; size as usize];
                                 if let Err(err) = reader.read_exact(&mut chunk_data) {
+                                    println!("ChunkRead: {:?}", err);
                                     return Some(Err(Box::new(err)));
                                 }
 
