@@ -4,7 +4,6 @@ use crate::extensions::result_ext::BoxedError;
 use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
 use crate::io::ioutils::{self, ByteBufferPointer, SharedByteBufferStream};
 use crate::io::ubytes::{self};
-use crate::is_ok;
 use crate::netcap::RawStream;
 use crate::valtron::{
     CloneableFn, SendStringIterator, SendVecIterator, SendableBoxIterator, SendableIterator,
@@ -15,13 +14,9 @@ use derive_more::From;
 use regex::Regex;
 use std::io::Cursor;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-use std::sync::{Arc, LockResult, RwLock, RwLockReadGuard, RwLockWriteGuard};
+use std::sync::{Arc, RwLockWriteGuard};
 use std::{
-    collections::BTreeMap,
-    convert::Infallible,
-    io::{BufRead, Read},
-    str::FromStr,
-    string::FromUtf8Error,
+    collections::BTreeMap, convert::Infallible, io::Read, str::FromStr, string::FromUtf8Error,
 };
 
 pub type Trailer = String;
@@ -30,7 +25,7 @@ pub type Extensions = Vec<(String, Option<String>)>;
 #[derive(Clone, Debug, PartialEq, PartialOrd, Eq, Ord)]
 pub enum ChunkedData {
     Data(Vec<u8>, Option<Extensions>),
-    Trailer(String, String),
+    Trailers(Vec<(String, Option<String>)>),
     DataEnded,
 }
 
@@ -67,8 +62,19 @@ impl ChunkedData {
                 chunk_data
             }
             ChunkedData::DataEnded => b"0\r\n".to_vec(),
-            ChunkedData::Trailer(trailer_key, trailer_value) => {
-                format!("{trailer_key}:{trailer_value}\r\n").into_bytes()
+            ChunkedData::Trailers(trailers) => {
+                let content: Vec<String> = trailers
+                    .iter()
+                    .map(|(key, value)| {
+                        if value.is_some() {
+                            let v = value.clone().unwrap();
+                            format!("{key}:{v}")
+                        } else {
+                            format!("{key}")
+                        }
+                    })
+                    .collect();
+                content.join(";").into_bytes()
             }
         }
     }
@@ -115,7 +121,7 @@ impl Iterator for ChunkedDataLimitIterator {
                     let chunked_size: usize = match &data {
                         ChunkedData::Data(content, _) => content.len(),
                         ChunkedData::DataEnded => 0,
-                        ChunkedData::Trailer(_, _) => 0,
+                        ChunkedData::Trailers(c) => c.len(),
                     };
                     let _ = self.collected.fetch_add(chunked_size, Ordering::SeqCst);
                     Some(Ok(data))
@@ -2677,17 +2683,49 @@ impl ChunkState {
         let mut acc = pointer.write().map_err(|_| ChunkStateError::ReadErrors)?;
 
         // eat all the space
-        Self::eat_space(&mut acc)?;
+        let _ = Self::eat_space(&mut acc)?;
 
         while let Ok(b) = acc.nextby2(1) {
             match b {
                 b"\r" => {
-                    acc.unforward();
-                    break;
+                    // if 3 forward peeks reveal additional CLRF, two or three newlines
+                    // then we've gotten to end of trailer, simply just end it there without
+                    // moving back.
+                    if crate::is_ok!(acc.peekby2(3), b"\n\r\n", b"\n\n\n") {
+                        let _ = acc.unforward_by(1);
+                        break;
+                    }
+                    if crate::is_ok!(acc.peekby2(3), b"\n\n") {
+                        let _ = acc.unforward_by(1);
+                        break;
+                    }
+                    // if even with 3 bytes forward peeks, if its still only more newline, then
+                    // consider this has end of chunk and move back by 1.
+                    if crate::is_ok!(acc.peekby2(3), b"\n") {
+                        let _ = acc.unforward_by(1);
+                        break;
+                    }
+                    continue;
                 }
                 b"\n" => {
-                    acc.unforward();
-                    break;
+                    // if 3 forward peeks reveal additional CLRF, two or three newlines
+                    // then we've gotten to end of trailer, simply just end it there without
+                    // moving back.
+                    if crate::is_ok!(acc.peekby2(3), b"\r\n", b"\n\n") {
+                        let _ = acc.unforward_by(1);
+                        break;
+                    }
+                    if crate::is_ok!(acc.peekby2(3), b"\n\n\n") {
+                        let _ = acc.unforward_by(1);
+                        break;
+                    }
+                    // if even with 3 bytes forward peeks, if its still only more newline, then
+                    // consider this has end of chunk and move back by 1.
+                    if crate::is_ok!(acc.peekby2(3), b"\n") {
+                        let _ = acc.unforward_by(1);
+                        break;
+                    }
+                    continue;
                 }
                 _ => continue,
             }
@@ -2695,11 +2733,13 @@ impl ChunkState {
 
         match acc.consume() {
             Ok(value) => match String::from_utf8(value.to_vec()) {
-                Ok(converted_string) => Ok(if converted_string.is_empty() {
-                    None
-                } else {
-                    Some(ChunkState::Trailer(converted_string))
-                }),
+                Ok(converted_string) => Ok(
+                    if converted_string.is_empty() || converted_string.trim().is_empty() {
+                        None
+                    } else {
+                        Some(ChunkState::Trailer(converted_string))
+                    },
+                ),
                 Err(err) => Err(ChunkStateError::InvalidOctetBytes(err)),
             },
             Err(_) => Ok(None),
@@ -2727,12 +2767,12 @@ impl ChunkState {
         while let Ok(content) = acc.nextby2(1) {
             match content {
                 b"\r" => {
-                    acc.unforward();
+                    let _ = acc.unforward();
                     break;
                 }
                 // incase they use newline instead, http spec not respected
                 b"\n" => {
-                    acc.unforward();
+                    let _ = acc.unforward();
                     break;
                 }
                 _ => {
@@ -2815,7 +2855,7 @@ impl ChunkState {
                 b'a'..=b'f' => continue,
                 b'A'..=b'F' => continue,
                 b' ' | b'\r' | b'\n' | b';' => {
-                    acc.unforward();
+                    let _ = acc.unforward();
                     chunk_size_octet = Some(acc.consume()?);
                     break;
                 }
@@ -2843,10 +2883,6 @@ impl ChunkState {
             &chunk_size,
             &chunk_string
         );
-
-        let rem = acc.peekby2(10)?;
-        let rem_string = String::from_utf8(rem.to_vec());
-        println!("What's left: {:?} and {:?}", rem, rem_string);
 
         // eat up any space (except CRLF)
         // is it just a newline here, then lets manage the madness
@@ -2888,6 +2924,7 @@ impl ChunkState {
         Ok(Self::Chunk(chunk_size, chunk_string, Some(extensions)))
     }
 
+    #[allow(unused)]
     pub(crate) fn parse_http_chunk_extension_from_stream<T: Read>(
         pointer: SharedByteBufferStream<T>,
     ) -> Result<(String, Option<String>), ChunkStateError> {
@@ -2970,7 +3007,7 @@ impl ChunkState {
         let extension_value = acc.consume_some();
 
         if is_quoted {
-            acc.forward();
+            let _ = acc.forward();
             acc.skip();
         }
 
@@ -3000,7 +3037,6 @@ impl ChunkState {
     ) -> Result<(), ChunkStateError> {
         let newline = b"\n";
         while let Ok(b) = acc.nextby2(1) {
-            println!("Received: {:?} against {:?}", b, newline);
             if b[0] == newline[0] {
                 continue;
             }
@@ -3103,9 +3139,15 @@ mod test_chunk_parser {
             expected: vec![
                 Some(ChunkState::Trailer("Farm: FarmValue".into())),
                 Some(ChunkState::Trailer("Farm:FarmValue".into())),
+                Some(ChunkState::Trailer("Farm:FarmValue".into())),
                 None,
             ],
-            content: &["Farm: FarmValue\r\n", "Farm:FarmValue\r\n", "\r\n"][..],
+            content: &[
+                "Farm: FarmValue\r\n",
+                "Farm:FarmValue\r\n",
+                "Farm:FarmValue\n\n",
+                "\r\n",
+            ][..],
         }];
 
         for sample in test_cases {
@@ -3261,16 +3303,26 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleHttpChunkIterator<T> {
 
             return match ChunkState::parse_http_trailer_from_pointer(self.2.clone()) {
                 Ok(value) => {
-                    tracing::debug!("ChunkTrailer::Chunk::DataRead: {:?} ", &value,);
+                    tracing::debug!("ChunkTrailer::Chunk::DataRead: {:?} ", &value);
                     match value {
                         Some(item) => match item {
-                            ChunkState::Trailer(mut inner) => match inner.find(":") {
-                                Some(index) => {
-                                    let (key, value) = inner.split_at_mut(index);
-                                    Some(Ok(ChunkedData::Trailer(key.into(), value.into())))
-                                }
-                                None => None,
-                            },
+                            ChunkState::Trailer(inner) => {
+                                tracing::debug!("Processing::Chunk::Trailer: {:?} ", &inner);
+                                let trailers: Vec<(String, Option<String>)> = inner
+                                    .split("\n")
+                                    .filter(|item| !item.trim().is_empty())
+                                    .map(|item| match item.find(":") {
+                                        Some(index) => {
+                                            let (key, value) = item.split_at(index);
+                                            tracing::debug!("Processing::Chunk::Trailer::parts: key={:?} value={:?}", &key, value);
+                                            (key.into(), Some(value[1..].trim().into()))
+                                        }
+                                        None => (item.into(), None),
+                                    })
+                                    .collect();
+
+                                Some(Ok(ChunkedData::Trailers(trailers)))
+                            }
                             _ => Some(Err(Box::new(HttpReaderError::OnlyTrailersAreAllowedHere))),
                         },
                         None => None,
@@ -3310,19 +3362,10 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleHttpChunkIterator<T> {
 
                                 Some(Ok(ChunkedData::Data(Vec::from(chunk_data), opt_exts)))
                             }
-                            Err(err) => Some(Err(Box::new(HttpReaderError::ReadFailed))),
+                            Err(_err) => Some(Err(Box::new(HttpReaderError::ReadFailed))),
                         }
                     }
                     ChunkState::LastChunk => {
-                        // // calculate whats left in our in-mem pointer
-                        // let remaining_bytes = head_pointer.rem_len();
-                        //
-                        // // how much exactly did it take to get the length of the chunk
-                        // let total_header_bytes_used = total_header_read - remaining_bytes;
-                        //
-                        // // consume these bytes, so we move forward
-                        // reader.consume(total_header_bytes_used);
-
                         // set the state store as false
                         ending_indicator.store(true, Ordering::Release);
 
@@ -3380,8 +3423,6 @@ impl BodyExtractor for SimpleHttpBody {
         }
     }
 }
-
-const DEFAULT_BYTE_BUFFER_PULL: usize = 1024 * 4;
 
 impl HttpReader<SimpleHttpBody, SharedByteBufferStream<RawStream>> {
     pub fn from_reader(reader: RawStream) -> HttpReader<SimpleHttpBody, RawStream> {
