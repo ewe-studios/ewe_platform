@@ -31,11 +31,11 @@ mod test_on_result {
     #[test]
     fn test() {
         assert_eq!(
-            on_result!(Ok::<usize, Box<dyn std::error::Error + 'static>>(10), val => val, err => 20),
+            on_result!(Ok::<usize, Box<dyn std::error::Error + 'static>>(10), val => val, _err => 20),
             10
         );
         assert_eq!(
-            on_result!(Err::<usize, std::io::Error>(std::io::Error::from(std::io::ErrorKind::AlreadyExists)), val => val, err => 20),
+            on_result!(Err::<usize, std::io::Error>(std::io::Error::from(std::io::ErrorKind::AlreadyExists)), val => val, _err => 20),
             20
         );
     }
