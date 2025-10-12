@@ -940,6 +940,7 @@ impl<T: Read> ByteBufferPointer<T> {
             return None;
         }
         let slice = &self.buffer[from..until_pos];
+        let slice_string = String::from_utf8(slice.to_vec());
         self.pos = self.peek_pos;
 
         let mut slice_copy = vec![0; slice.len()];
@@ -1120,27 +1121,15 @@ impl<T: Read> ByteBufferPointer<T> {
 
         let buffer_len = self.buffer.len();
 
-        let original_peek = self.peek_pos;
-
-        // never overflows, how much exactly did we have before we
-        // requested for more data
-        let total_data_left = buffer_len - original_peek;
-
-        // we were less than even what is requested or exactly what was requested
-        // move peek to the end and move on
-        if total_data_left <= size {
-            self.peek_pos = buffer_len;
-        } else {
-            // if we basically indicative that the length to wanted is basically
-            self.peek_pos = original_peek + size;
+        let mut until_pos = self.peek_pos + size;
+        if until_pos > buffer_len {
+            until_pos = buffer_len;
         }
 
-        let slice = &self.buffer[original_peek..self.peek_pos];
-        if self.peek_pos == original_peek {
+        let slice = &self.buffer[self.peek_pos..until_pos];
+        if slice.len() == 0 {
             return Ok(PeekState::NoNext);
         }
-
-        self.peek_pos = original_peek;
 
         Ok(PeekState::Request(slice))
     }
