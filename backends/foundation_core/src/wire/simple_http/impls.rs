@@ -2815,10 +2815,6 @@ impl ChunkState {
 
         acc.skip();
 
-        // // skip past CRLF
-        // data_pointer.peek_next_by(2);
-        // total_bytes += 2;
-
         Ok(total_bytes)
     }
 
@@ -2884,9 +2880,7 @@ impl ChunkState {
             &chunk_string
         );
 
-        // eat up any space (except CRLF)
-        // is it just a newline here, then lets manage the madness
-        Self::eat_space(&mut acc)?;
+        Self::eat_crlf(&mut acc)?;
         Self::eat_newlines(&mut acc)?;
 
         // do we have an extension marker
@@ -2941,12 +2935,9 @@ impl ChunkState {
             acc.skip();
         }
 
-        // eat all the space
-        Self::eat_space(&mut acc)?;
-
         while let Ok(b) = acc.nextby2(1) {
             match b {
-                b" " | b"=" | b"\r" => {
+                b"=" | b";" | b"\r" | b"\n" => {
                     let _ = acc.unforward();
                     break;
                 }
@@ -2954,7 +2945,20 @@ impl ChunkState {
             }
         }
 
+        // if we see a semicolon, this means this a
+        // an extension without a value, stop and return as is
+        if crate::is_ok!(acc.peekby2(1), b";") {
+            let extension_key = acc.consume_some();
+            if let Some(ext) = extension_key {
+                return match String::from_utf8(ext) {
+                    Ok(converted_string) => Ok((converted_string, None)),
+                    Err(err) => Err(ChunkStateError::InvalidOctetBytes(err)),
+                };
+            }
+        }
+
         let extension_key = acc.consume_some();
+        tracing::debug!("Extension key: {:?}", extension_key);
 
         // eat all the space
         Self::eat_space(&mut acc)?;
@@ -2995,8 +2999,12 @@ impl ChunkState {
                 }
             }
 
+            if b == b"\n" {
+                break;
+            }
+
             match b {
-                b" " | b"\r" => {
+                b" " | b";" | b"\r" | b"\n" => {
                     let _ = acc.unforward();
                     break;
                 }
@@ -3046,6 +3054,19 @@ impl ChunkState {
             acc.skip();
 
             return Ok(());
+        }
+        Ok(())
+    }
+
+    fn eat_crlf<T: Read>(
+        acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
+    ) -> Result<(), ChunkStateError> {
+        while let Ok(b) = acc.nextby2(1) {
+            if b[0] != b'\r' && b[0] != b'\n' {
+                let _ = acc.unforward();
+                acc.skip();
+                break;
+            }
         }
         Ok(())
     }
@@ -3122,6 +3143,7 @@ impl ChunkState {
 #[cfg(test)]
 mod test_chunk_parser {
     use super::*;
+    use tracing_test::traced_test;
 
     struct ChunkSample {
         content: &'static [&'static str],
@@ -3163,6 +3185,7 @@ mod test_chunk_parser {
     }
 
     #[test]
+    #[traced_test]
     fn test_chunk_state_parse_http_chunk_code() {
         let test_cases: Vec<ChunkSample> = vec![
             ChunkSample {
@@ -3179,7 +3202,7 @@ mod test_chunk_parser {
                         5,
                         "5".into(),
                         Some(vec![
-                            ("comment".into(), Some("first chunk".into())),
+                            (" comment".into(), Some("first chunk".into())),
                             ("day".into(), Some("1".into())),
                         ]),
                     ),
@@ -3187,26 +3210,26 @@ mod test_chunk_parser {
                         5,
                         "5".into(),
                         Some(vec![
-                            ("comment".into(), Some("first chunk".into())),
-                            ("age".into(), Some("1".into())),
+                            (" comment".into(), Some("first chunk".into())),
+                            (" age".into(), Some("1".into())),
                         ]),
                     ),
                     ChunkState::Chunk(
                         5,
                         "5".into(),
-                        Some(vec![("comment".into(), Some("first chunk".into()))]),
+                        Some(vec![(" comment".into(), Some("first chunk".into()))]),
                     ),
                     ChunkState::Chunk(
                         5,
                         "5".into(),
-                        Some(vec![("comment".into(), Some("second chunk".into()))]),
+                        Some(vec![(" comment".into(), Some("second chunk".into()))]),
                     ),
                     ChunkState::Chunk(
                         5,
                         "5".into(),
-                        Some(vec![("name".into(), Some("second".into()))]),
+                        Some(vec![(" name".into(), Some("second".into()))]),
                     ),
-                    ChunkState::Chunk(5, "5".into(), Some(vec![("ranger".into(), None)])),
+                    ChunkState::Chunk(5, "5".into(), Some(vec![(" ranger".into(), None)])),
                     ChunkState::LastChunk,
                 ],
                 content: &[
@@ -3228,6 +3251,7 @@ mod test_chunk_parser {
                 .map(|t| ChunkState::parse_http_chunk(t.as_bytes()))
                 .collect();
 
+            dbg!(&chunks);
             assert!(chunks.is_ok());
             assert_eq!(chunks.unwrap(), sample.expected);
         }
@@ -3349,6 +3373,8 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleHttpChunkIterator<T> {
 
                         match self.2.write() {
                             Ok(mut reader) => {
+                                tracing::debug!("ChunkState::Chunk::GetSize: {:?}", size);
+
                                 let mut chunk_data = vec![0; size as usize];
                                 if let Err(err) = reader.read_exact(&mut chunk_data) {
                                     return Some(Err(Box::new(err)));
