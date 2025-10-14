@@ -484,6 +484,8 @@ Hello world!";
     mod transfer_encoding {
         use tracing_test::traced_test;
 
+        use crate::wire::simple_http::ChunkStateError;
+
         use super::*;
 
         // Test for "Parse chunks with lowercase size"
@@ -1087,10 +1089,68 @@ Hello world!";
             req_thread.join().expect("should be closed");
         }
 
-        //     #[test]
-        //     fn no_semicolon_before_chunk_extensions() {
-        //         let message = "POST /chunked_w_unicorns_after_length HTTP/1.1\nHost: localhost\nTransfer-encoding: chunked\n\n2 erfrferferf\naa\n0 rrrr\n\n\n";
-        //     }
+        #[test]
+        #[traced_test]
+        fn no_semicolon_before_chunk_extensions() {
+            let message = "POST /url HTTP/1.1\nHost: localhost\nTransfer-encoding: chunked\n\n2 erfrferferf\naa\n0 rrrr\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::POST,
+                    SimpleUrl {
+                        url: "/url".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([
+                    (SimpleHeader::HOST, "localhost".into()),
+                    (SimpleHeader::TRANSFER_ENCODING, "chunked".into()),
+                ])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingRequestParts::Body(Some(SimpleBody::ChunkedStream(Some(_))))
+            ));
+
+            let IncomingRequestParts::Body(Some(SimpleBody::ChunkedStream(Some(body_iter)))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            assert!(matches!(content_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
         //
         //     #[test]
         //     fn no_extension_after_semicolon() {

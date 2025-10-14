@@ -2945,10 +2945,12 @@ impl ChunkState {
             }
         }
 
+        let extension_key = acc.consume_some();
+        tracing::debug!("Extension key: {:?}", extension_key);
+
         // if we see a semicolon, this means this a
         // an extension without a value, stop and return as is
         if crate::is_ok!(acc.peekby2(1), b";") {
-            let extension_key = acc.consume_some();
             if let Some(ext) = extension_key {
                 return match String::from_utf8(ext) {
                     Ok(converted_string) => Ok((converted_string, None)),
@@ -2956,9 +2958,6 @@ impl ChunkState {
                 };
             }
         }
-
-        let extension_key = acc.consume_some();
-        tracing::debug!("Extension key: {:?}", extension_key);
 
         // eat all the space
         Self::eat_space(&mut acc)?;
