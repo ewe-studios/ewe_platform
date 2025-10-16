@@ -2883,16 +2883,19 @@ impl ChunkState {
         Self::eat_crlf(&mut acc)?;
         Self::eat_newlines(&mut acc)?;
 
-        // do we have an extension marker
         let mut extensions: Extensions = Vec::new();
-        while let Ok(value) = acc.peekby2(1) {
-            if value != b";" {
-                break;
-            }
 
-            match Self::parse_http_chunk_extension(&mut acc) {
-                Ok(extension) => extensions.push(extension),
-                Err(err) => return Err(err),
+        // do w have the extension starter marker (a semicolon)
+        if crate::is_ok!(acc.peekby2(1), b";") {
+            while let Ok(value) = acc.peekby2(1) {
+                if value == b"\r" || value == b"\n" {
+                    break;
+                }
+
+                match Self::parse_http_chunk_extension(&mut acc) {
+                    Ok(extension) => extensions.push(extension),
+                    Err(err) => return Err(err),
+                }
             }
         }
 
@@ -2907,6 +2910,10 @@ impl ChunkState {
             acc.skip();
         }
 
+        // eat all the space
+        Self::eat_crlf(&mut acc)?;
+        Self::eat_newlines(&mut acc)?;
+
         if chunk_size == 0 {
             return Ok(Self::LastChunk);
         }
@@ -2916,14 +2923,6 @@ impl ChunkState {
         }
 
         Ok(Self::Chunk(chunk_size, chunk_string, Some(extensions)))
-    }
-
-    #[allow(unused)]
-    pub(crate) fn parse_http_chunk_extension_from_stream<T: Read>(
-        pointer: SharedByteBufferStream<T>,
-    ) -> Result<(String, Option<String>), ChunkStateError> {
-        let mut acc = pointer.write().map_err(|_| ChunkStateError::ReadErrors)?;
-        Self::parse_http_chunk_extension(&mut acc)
     }
 
     pub(crate) fn parse_http_chunk_extension<T: Read>(
@@ -2946,11 +2945,22 @@ impl ChunkState {
         }
 
         let extension_key = acc.consume_some();
-        tracing::debug!("Extension key: {:?}", extension_key);
 
         // if we see a semicolon, this means this a
         // an extension without a value, stop and return as is
         if crate::is_ok!(acc.peekby2(1), b";") {
+            acc.nextby2(1)?;
+            acc.skip();
+
+            if let Some(ext) = extension_key {
+                return match String::from_utf8(ext) {
+                    Ok(converted_string) => Ok((converted_string, None)),
+                    Err(err) => Err(ChunkStateError::InvalidOctetBytes(err)),
+                };
+            }
+        }
+
+        if crate::is_ok!(acc.peekby2(1), b"\n") {
             if let Some(ext) = extension_key {
                 return match String::from_utf8(ext) {
                     Ok(converted_string) => Ok((converted_string, None)),
@@ -2982,28 +2992,39 @@ impl ChunkState {
         let is_quoted = crate::is_ok!(acc.peekby2(1), b"\"");
 
         // move pointer forward for quoted value
+        let mut quoted = 0;
         if is_quoted {
             let _ = acc.forward();
-            acc.skip();
+
+            quoted += 1;
         }
 
         while let Ok(b) = acc.nextby2(1) {
             if is_quoted {
                 match b {
                     b"\"" => {
-                        let _ = acc.unforward();
-                        break;
+                        // if the next one is not a semiconlon then increase
+                        // quote count as this can be a embedded token.
+                        if !crate::is_ok!(acc.peekby2(1), b";", b"\r", b"\n") {
+                            quoted += 1;
+                            continue;
+                        }
+
+                        // if we see another quote and we just one then break here
+                        // should be the end of the extension;
+                        if quoted == 1 {
+                            break;
+                        }
+
+                        quoted -= 1;
+                        continue;
                     }
                     _ => continue,
                 }
             }
 
-            if b == b"\n" {
-                break;
-            }
-
             match b {
-                b" " | b";" | b"\r" | b"\n" => {
+                b";" | b"\r" | b"\n" => {
                     let _ = acc.unforward();
                     break;
                 }
@@ -3015,6 +3036,11 @@ impl ChunkState {
 
         if is_quoted {
             let _ = acc.forward();
+            acc.skip();
+        }
+
+        if crate::is_ok!(acc.peekby2(1), b";") {
+            acc.nextby2(1)?;
             acc.skip();
         }
 
@@ -3201,7 +3227,7 @@ mod test_chunk_parser {
                         5,
                         "5".into(),
                         Some(vec![
-                            (" comment".into(), Some("first chunk".into())),
+                            (" comment".into(), Some("\"first chunk\"".into())),
                             ("day".into(), Some("1".into())),
                         ]),
                     ),
@@ -3209,19 +3235,19 @@ mod test_chunk_parser {
                         5,
                         "5".into(),
                         Some(vec![
-                            (" comment".into(), Some("first chunk".into())),
+                            (" comment".into(), Some("\"first chunk\"".into())),
                             (" age".into(), Some("1".into())),
                         ]),
                     ),
                     ChunkState::Chunk(
                         5,
                         "5".into(),
-                        Some(vec![(" comment".into(), Some("first chunk".into()))]),
+                        Some(vec![(" comment".into(), Some("\"first chunk\"".into()))]),
                     ),
                     ChunkState::Chunk(
                         5,
                         "5".into(),
-                        Some(vec![(" comment".into(), Some("second chunk".into()))]),
+                        Some(vec![(" comment".into(), Some("\"second chunk\"".into()))]),
                     ),
                     ChunkState::Chunk(
                         5,
