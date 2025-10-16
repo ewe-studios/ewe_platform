@@ -1009,7 +1009,7 @@ Hello world!";
 
         #[test]
         #[traced_test]
-        fn chunk_extensions() {
+        fn chunk_extensions_noquoting() {
             let message = "POST /url HTTP/1.1\nTransfer-Encoding: chunked\n\n5;ilovew3;somuchlove=aretheseparametersfor;another=withvalue\nhello\n6;blahblah;blah\n world\n0\n\n\n";
 
             // Test implementation would go here
@@ -1075,7 +1075,7 @@ Hello world!";
                         Some(vec![
                             ("ilovew3".into(), None),
                             ("somuchlove".into(), Some("aretheseparametersfor".into())),
-                            ("another".into(), Some("withvalue\n".into())),
+                            ("another".into(), Some("withvalue".into())),
                         ])
                     ),
                     ChunkedData::Data(
@@ -1151,68 +1151,221 @@ Hello world!";
 
             req_thread.join().expect("should be closed");
         }
-        //
+
+        #[test]
+        #[traced_test]
+        fn no_extension_after_semicolon() {
+            let message = "POST /url HTTP/1.1\nHost: localhost\nTransfer-encoding: chunked\n\n2;\naa\n0\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::POST,
+                    SimpleUrl {
+                        url: "/url".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([
+                    (SimpleHeader::HOST, "localhost".into()),
+                    (SimpleHeader::TRANSFER_ENCODING, "chunked".into()),
+                ])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingRequestParts::Body(Some(SimpleBody::ChunkedStream(Some(_))))
+            ));
+
+            let IncomingRequestParts::Body(Some(SimpleBody::ChunkedStream(Some(body_iter)))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            assert!(matches!(content_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn chunk_extensions_quoting() {
+            let message = "POST /url HTTP/1.1\nTransfer-Encoding: chunked\n\n5;ilovew3=\"I \\\"love\\\"; \\extensions\\\";somuchlove=\"aretheseparametersfor\";blah;foo=bar\nhello\n6;blahblah;blah\n world\n0\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::POST,
+                    SimpleUrl {
+                        url: "/url".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([(
+                    SimpleHeader::TRANSFER_ENCODING,
+                    "chunked".into(),
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingRequestParts::Body(Some(SimpleBody::ChunkedStream(Some(_))))
+            ));
+
+            let IncomingRequestParts::Body(Some(SimpleBody::ChunkedStream(Some(body_iter)))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all chunks");
+
+            assert_eq!(
+                contents,
+                vec![
+                    ChunkedData::Data(
+                        "hello".as_bytes().to_vec(),
+                        Some(vec![
+                            (
+                                "ilovew3".into(),
+                                Some("\"I \\\"love\\\"; \\extensions\\\"".into())
+                            ),
+                            (
+                                "somuchlove".into(),
+                                Some("\"aretheseparametersfor\"".into())
+                            ),
+                            ("blah".into(), None),
+                            ("foo".into(), Some("bar".into())),
+                        ])
+                    ),
+                    ChunkedData::Data(
+                        " world".as_bytes().to_vec(),
+                        Some(vec![("blahblah".into(), None), ("blah".into(), None)])
+                    ),
+                    ChunkedData::DataEnded,
+                ],
+            );
+
+            req_thread.join().expect("should be closed");
+        }
+
         //     #[test]
-        //     fn no_extension_after_semicolon() {
-        //         let message = "POST /chunked_w_unicorns_after_length HTTP/1.1\nHost: localhost\nTransfer-encoding: chunked\n\n2;\naa\n0\n\n\n";
-        //     }
-        //
-        //     #[test]
-        //     fn chunk_extensions_quoting() {
-        //         let message = "POST /chunked_w_unicorns_after_length HTTP/1.1\nTransfer-Encoding: chunked\n\n5;ilovew3=\"I \\\"love\\\"; \\extensions\\\";somuchlove=\"aretheseparametersfor\";blah;foo=bar\nhello\n6;blahblah;blah\n world\n0\n\n\n";
-        //     }
-        //
-        //     #[test]
+        // #[traced_test]
         //     fn unbalanced_chunk_extensions_quoting() {
         //         let message = "POST /chunked_w_unicorns_after_length HTTP/1.1\nTransfer-Encoding: chunked\n\n5;ilovew3=\"abc\";somuchlove=\"def; ghi\nhello\n6;blahblah;blah\n world\n0\n\n\n";
         //     }
         //
         //     #[test]
+        // #[traced_test]
         //     fn ignoring_pigeons() {
         //         let message = "PUT /url HTTP/1.1\nTransfer-Encoding: pigeons\n\n\n";
         //     }
         //
         //     #[test]
+        // #[traced_test]
         //     fn post_with_transfer_encoding_and_content_length() {
         //         let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: identity\nContent-Length: 5\n\nWorld\n";
         //     }
         //
         //     #[test]
+        // #[traced_test]
         //     fn post_with_transfer_encoding_and_content_length_lenient() {
         //         let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: identity\nContent-Length: 1\n\nWorld\n";
         //     }
         //
         //     #[test]
+        // #[traced_test]
         //     fn post_with_empty_transfer_encoding_and_content_length_lenient() {
         //         let message = "POST / HTTP/1.1\nHost: foo\nContent-Length: 10\nTransfer-Encoding:\nTransfer-Encoding:\nTransfer-Encoding:\n\n2\nAA\n0\n";
         //     }
         //
         //     #[test]
+        // #[traced_test]
         //     fn post_with_chunked_before_other_transfer_coding_names() {
         //         let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: chunked, deflate\n\nWorld\n";
         //     }
         //
         //     #[test]
+        // #[traced_test]
         //     fn post_with_chunked_and_duplicate_transfer_encoding() {
         //         let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: chunked\nTransfer-Encoding: deflate\n\nWorld\n";
         //     }
         //
         //     #[test]
+        // #[traced_test]
         //     fn post_with_chunked_before_other_transfer_coding_lenient() {
         //         let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: chunked, deflate\n\nWorld\n";
         //     }
         //
         //     #[test]
+        // #[traced_test]
         //     fn post_with_chunked_and_duplicate_transfer_encoding_lenient() {
         //         let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: chunked\nTransfer-Encoding: deflate\n\nWorld\n";
         //     }
         //
         //     #[test]
+        // #[traced_test]
         //     fn post_with_chunked_as_last_transfer_encoding() {
         //         let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: deflate, chunked\n\n5\nWorld\n0\n\n\n";
         //     }
         //
         //     #[test]
+        // #[traced_test]
         //     fn post_with_chunked_as_last_transfer_encoding_multiple_headers() {
         //         let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: deflate\nTransfer-Encoding: chunked\n\n5\nWorld\n0\n\n\n";
         //     }
