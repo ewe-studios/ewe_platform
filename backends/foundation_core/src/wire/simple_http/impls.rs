@@ -2899,6 +2899,8 @@ impl ChunkState {
             }
         }
 
+        tracing::debug!("Extensions : {:?}", &extensions);
+
         // are we starting out with a CRLF, if so, skip it
         if crate::is_ok!(acc.peekby2(2), b"\r\n") {
             let _ = acc.nextby(2);
