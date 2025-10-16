@@ -2346,9 +2346,7 @@ where
     }
 }
 
-const CHUNKED_VALUE: &str = "chunked";
 const MAX_HEADER_NAME_LEN: usize = (1 << 16) - 1;
-
 static SPACE_CHARS: &[char] = &[' ', '\n', '\t', '\r'];
 
 impl<F, T> Iterator for HttpReader<F, T>
@@ -2522,11 +2520,13 @@ where
                 tracing::debug!("Transfer Encoding value: {:?}", &transfer_encoding);
 
                 if let Some(transfer_encoding_value) = transfer_encoding {
-                    if transfer_encoding_value.as_str() != CHUNKED_VALUE {
+                    if transfer_encoding_value.lower() != "chunked" {
                         self.state = HttpReadState::Finished;
                         return Some(Err(HttpReaderError::InvalidTransferEncodingValue));
                     }
+                }
 
+                if transfer_encoding.is_some() {
                     self.state = HttpReadState::Body(Body::ChunkedBody(
                         transfer_encoding.unwrap().clone(),
                         headers.clone(),

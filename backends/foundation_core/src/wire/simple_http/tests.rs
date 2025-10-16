@@ -1367,12 +1367,37 @@ Hello world!";
             req_thread.join().expect("should be closed");
         }
 
-        //     #[test]
-        // #[traced_test]
-        //     fn ignoring_pigeons() {
-        //         let message = "PUT /url HTTP/1.1\nTransfer-Encoding: pigeons\n\n\n";
-        //     }
-        //
+        // Requests cannot have invalid `Transfer-Encoding`. It is impossible to determine
+        // their body size. Not erroring would make HTTP smuggling attacks possible.
+        #[test]
+        #[traced_test]
+        fn ignoring_pigeons__we_do_not_allow_request_smuggling() {
+            let message = "PUT /url HTTP/1.1\nTransfer-Encoding: pigeons\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts_result = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+
+            dbg!(&request_parts_result);
+
+            assert!(matches!(request_parts_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
         //     #[test]
         // #[traced_test]
         //     fn post_with_transfer_encoding_and_content_length() {

@@ -39,6 +39,7 @@ pub enum HttpReaderError {
     InvalidHeaderValueStarter,
     InvalidHeaderValueEnder,
     InvalidHeaderValue,
+    InvalidTransferEncodingValue,
     HeaderValueContainsEncodedCRLF,
     HeaderKeyContainsEncodedCRLF,
     #[from(ignore)]
