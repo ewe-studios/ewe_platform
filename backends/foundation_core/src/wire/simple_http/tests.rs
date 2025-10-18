@@ -1377,7 +1377,7 @@ Hello world!";
         // their body size. Not erroring would make HTTP smuggling attacks possible.
         #[test]
         #[traced_test]
-        fn ignoring_pigeons__we_do_not_allow_request_smuggling() {
+        fn ignoring_pigeons_we_do_not_allow_request_smuggling() {
             let message = "PUT /url HTTP/1.1\nTransfer-Encoding: pigeons\n\n\n";
 
             // Test implementation would go here
@@ -1578,6 +1578,7 @@ Hello world!";
         #[traced_test]
         fn post_with_chunked_and_duplicate_transfer_encoding_lenient() {
             let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: chunked\nTransfer-Encoding: deflate\n\nWorld\n";
+
             // Test implementation would go here
             let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
             let addr = listener.local_addr().expect("should return address");
@@ -1605,14 +1606,82 @@ Hello world!";
         #[test]
         #[traced_test]
         fn post_with_chunked_as_last_transfer_encoding() {
-            let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: deflate, chunked\n\n5\nWorld\n0\n\n\n";
+            let message = "POST /url HTTP/1.1\nAccept: */*\nTransfer-Encoding: deflate, chunked\n\n5\nWorld\n0\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::POST,
+                    SimpleUrl {
+                        url: "/url".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (SimpleHeader::ACCEPT, vec!["*/*".into()]),
+                    (
+                        SimpleHeader::TRANSFER_ENCODING,
+                        vec!["deflate".into(), "chunked".into()],
+                    ),
+                ])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingRequestParts::Body(Some(SimpleBody::ChunkedStream(Some(_))))
+            ));
+
+            let IncomingRequestParts::Body(Some(SimpleBody::ChunkedStream(Some(body_iter)))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all chunks");
+
+            assert_eq!(
+                contents,
+                vec![
+                    ChunkedData::Data("World".as_bytes().to_vec(), None),
+                    ChunkedData::DataEnded,
+                ],
+            );
+
+            req_thread.join().expect("should be closed");
         }
-        //
-        //     #[test]
+
+        // #[test]
         // #[traced_test]
-        //     fn post_with_chunked_as_last_transfer_encoding_multiple_headers() {
+        // fn post_with_chunked_as_last_transfer_encoding_multiple_headers() {
         //         let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: deflate\nTransfer-Encoding: chunked\n\n5\nWorld\n0\n\n\n";
-        //     }
+        // }
         //
         //     #[test]
         //     fn post_with_chunkedchunked_as_transfer_encoding() {
