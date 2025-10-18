@@ -69,20 +69,26 @@ Hello world!";
                     },
                     "HTTP/1.1".into(),
                 ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([
-                    (SimpleHeader::ACCEPT_RANGES, "bytes".into()),
-                    (SimpleHeader::CONNECTION, "close".into()),
-                    (SimpleHeader::CONTENT_LENGTH, "12".into()),
-                    (SimpleHeader::CONTENT_TYPE, "text/html".into()),
-                    (SimpleHeader::DATE, "Sun, 10 Oct 2010 23:26:07 GMT".into()),
-                    (SimpleHeader::ETAG, "\"45b6-834-49130cc1182c0\"".into()),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (SimpleHeader::ACCEPT_RANGES, vec!["bytes".into()]),
+                    (SimpleHeader::CONNECTION, vec!["close".into()]),
+                    (SimpleHeader::CONTENT_LENGTH, vec!["12".into()]),
+                    (SimpleHeader::CONTENT_TYPE, vec!["text/html".into()]),
+                    (
+                        SimpleHeader::DATE,
+                        vec!["Sun, 10 Oct 2010 23:26:07 GMT".into()],
+                    ),
+                    (
+                        SimpleHeader::ETAG,
+                        vec!["\"45b6-834-49130cc1182c0\"".into()],
+                    ),
                     (
                         SimpleHeader::LAST_MODIFIED,
-                        "Sun, 26 Sep 2010 22:04:35 GMT".into(),
+                        vec!["Sun, 26 Sep 2010 22:04:35 GMT".into()],
                     ),
                     (
                         SimpleHeader::SERVER,
-                        "Apache/2.2.8 (Ubuntu) mod_ssl/2.2.8 OpenSSL/0.9.8g".into(),
+                        vec!["Apache/2.2.8 (Ubuntu) mod_ssl/2.2.8 OpenSSL/0.9.8g".into()],
                     ),
                 ])),
                 IncomingRequestParts::Body(Some(SimpleBody::Bytes(vec![
@@ -421,9 +427,9 @@ Hello world!";
                     },
                     "HTTP/1.1".into(),
                 ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([(
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
                     SimpleHeader::HOST,
-                    "github.com".into(),
+                    vec!["github.com".into()],
                 )])),
                 IncomingRequestParts::Body(Some(SimpleBody::None)),
             ];
@@ -526,9 +532,9 @@ Hello world!";
                     },
                     "HTTP/1.1".into(),
                 ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([(
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
                     SimpleHeader::TRANSFER_ENCODING,
-                    "chunked".into(),
+                    vec!["chunked".into()],
                 )])),
             ];
 
@@ -599,9 +605,9 @@ Hello world!";
                     },
                     "HTTP/1.1".into(),
                 ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([(
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
                     SimpleHeader::TRANSFER_ENCODING,
-                    "chunked".into(),
+                    vec!["chunked".into()],
                 )])),
             ];
 
@@ -672,9 +678,9 @@ Hello world!";
                     },
                     "HTTP/1.1".into(),
                 ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([(
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
                     SimpleHeader::TRANSFER_ENCODING,
-                    "chunked".into(),
+                    vec!["chunked".into()],
                 )])),
             ];
 
@@ -744,9 +750,9 @@ Hello world!";
                     },
                     "HTTP/1.1".into(),
                 ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([(
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
                     SimpleHeader::TRANSFER_ENCODING,
-                    "chunked".into(),
+                    vec!["chunked".into()],
                 )])),
             ];
 
@@ -816,9 +822,9 @@ Hello world!";
                     },
                     "HTTP/1.1".into(),
                 ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([(
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
                     SimpleHeader::TRANSFER_ENCODING,
-                    "chunked".into(),
+                    vec!["chunked".into()],
                 )])),
             ];
 
@@ -892,9 +898,9 @@ Hello world!";
                     },
                     "HTTP/1.1".into(),
                 ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([(
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
                     SimpleHeader::TRANSFER_ENCODING,
-                    "chunked".into(),
+                    vec!["chunked".into()],
                 )])),
             ];
 
@@ -968,9 +974,9 @@ Hello world!";
                     },
                     "HTTP/1.1".into(),
                 ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([(
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
                     SimpleHeader::TRANSFER_ENCODING,
-                    "chunked".into(),
+                    vec!["chunked".into()],
                 )])),
             ];
 
@@ -1044,9 +1050,9 @@ Hello world!";
                     },
                     "HTTP/1.1".into(),
                 ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([(
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
                     SimpleHeader::TRANSFER_ENCODING,
-                    "chunked".into(),
+                    vec!["chunked".into()],
                 )])),
             ];
 
@@ -1126,9 +1132,9 @@ Hello world!";
                     },
                     "HTTP/1.1".into(),
                 ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([
-                    (SimpleHeader::HOST, "localhost".into()),
-                    (SimpleHeader::TRANSFER_ENCODING, "chunked".into()),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (SimpleHeader::HOST, vec!["localhost".into()]),
+                    (SimpleHeader::TRANSFER_ENCODING, vec!["chunked".into()]),
                 ])),
             ];
 
@@ -1189,9 +1195,9 @@ Hello world!";
                     },
                     "HTTP/1.1".into(),
                 ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([
-                    (SimpleHeader::HOST, "localhost".into()),
-                    (SimpleHeader::TRANSFER_ENCODING, "chunked".into()),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (SimpleHeader::HOST, vec!["localhost".into()]),
+                    (SimpleHeader::TRANSFER_ENCODING, vec!["chunked".into()]),
                 ])),
             ];
 
@@ -1252,9 +1258,9 @@ Hello world!";
                     },
                     "HTTP/1.1".into(),
                 ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([(
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
                     SimpleHeader::TRANSFER_ENCODING,
-                    "chunked".into(),
+                    vec!["chunked".into()],
                 )])),
             ];
 
@@ -1341,9 +1347,9 @@ Hello world!";
                     },
                     "HTTP/1.1".into(),
                 ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([(
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
                     SimpleHeader::TRANSFER_ENCODING,
-                    "chunked".into(),
+                    vec!["chunked".into()],
                 )])),
             ];
 
@@ -1398,53 +1404,209 @@ Hello world!";
             req_thread.join().expect("should be closed");
         }
 
-        //     #[test]
-        // #[traced_test]
-        //     fn post_with_transfer_encoding_and_content_length() {
-        //         let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: identity\nContent-Length: 5\n\nWorld\n";
-        //     }
-        //
-        //     #[test]
-        // #[traced_test]
-        //     fn post_with_transfer_encoding_and_content_length_lenient() {
-        //         let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: identity\nContent-Length: 1\n\nWorld\n";
-        //     }
-        //
-        //     #[test]
-        // #[traced_test]
-        //     fn post_with_empty_transfer_encoding_and_content_length_lenient() {
-        //         let message = "POST / HTTP/1.1\nHost: foo\nContent-Length: 10\nTransfer-Encoding:\nTransfer-Encoding:\nTransfer-Encoding:\n\n2\nAA\n0\n";
-        //     }
-        //
-        //     #[test]
-        // #[traced_test]
-        //     fn post_with_chunked_before_other_transfer_coding_names() {
-        //         let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: chunked, deflate\n\nWorld\n";
-        //     }
-        //
-        //     #[test]
-        // #[traced_test]
-        //     fn post_with_chunked_and_duplicate_transfer_encoding() {
-        //         let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: chunked\nTransfer-Encoding: deflate\n\nWorld\n";
-        //     }
-        //
-        //     #[test]
-        // #[traced_test]
-        //     fn post_with_chunked_before_other_transfer_coding_lenient() {
-        //         let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: chunked, deflate\n\nWorld\n";
-        //     }
-        //
-        //     #[test]
-        // #[traced_test]
-        //     fn post_with_chunked_and_duplicate_transfer_encoding_lenient() {
-        //         let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: chunked\nTransfer-Encoding: deflate\n\nWorld\n";
-        //     }
-        //
-        //     #[test]
-        // #[traced_test]
-        //     fn post_with_chunked_as_last_transfer_encoding() {
-        //         let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: deflate, chunked\n\n5\nWorld\n0\n\n\n";
-        //     }
+        #[test]
+        #[traced_test]
+        fn post_with_transfer_encoding_and_content_length() {
+            let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: identity\nContent-Length: 5\n\nWorld\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts_result = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+
+            dbg!(&request_parts_result);
+
+            assert!(matches!(request_parts_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn post_with_transfer_encoding_and_content_length_lenient() {
+            let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: identity\nContent-Length: 1\n\nWorld\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts_result = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+
+            dbg!(&request_parts_result);
+
+            assert!(matches!(request_parts_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn post_with_empty_transfer_encoding_and_content_length_lenient() {
+            let message = "POST / HTTP/1.1\nHost: foo\nContent-Length: 10\nTransfer-Encoding:\nTransfer-Encoding:\nTransfer-Encoding:\n\n2\nAA\n0\n";
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts_result = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+
+            dbg!(&request_parts_result);
+
+            assert!(matches!(request_parts_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn post_with_chunked_before_other_transfer_coding_names() {
+            let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: chunked, deflate\n\nWorld\n";
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts_result = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+
+            dbg!(&request_parts_result);
+
+            assert!(matches!(request_parts_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn post_with_chunked_and_duplicate_transfer_encoding() {
+            let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: chunked\nTransfer-Encoding: deflate\n\nWorld\n";
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts_result = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+
+            dbg!(&request_parts_result);
+
+            assert!(matches!(request_parts_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn post_with_chunked_before_other_transfer_coding_lenient() {
+            let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: chunked, deflate\n\nWorld\n";
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts_result = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+
+            dbg!(&request_parts_result);
+
+            assert!(matches!(request_parts_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn post_with_chunked_and_duplicate_transfer_encoding_lenient() {
+            let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: chunked\nTransfer-Encoding: deflate\n\nWorld\n";
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts_result = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+
+            dbg!(&request_parts_result);
+
+            assert!(matches!(request_parts_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn post_with_chunked_as_last_transfer_encoding() {
+            let message = "POST /post_identity_body_world?q=search#hey HTTP/1.1\nAccept: */*\nTransfer-Encoding: deflate, chunked\n\n5\nWorld\n0\n\n\n";
+        }
         //
         //     #[test]
         // #[traced_test]
