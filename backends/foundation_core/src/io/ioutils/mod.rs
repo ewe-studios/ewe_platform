@@ -824,8 +824,8 @@ impl<T: Read> ByteBufferPointer<T> {
         }
 
         let buffer_length = self.buffer.len();
-        let precentage = (buffer_length as f64 / self.pos as f64);
-        return precentage > 0.4;
+        let percentage = (buffer_length as f64 / self.pos as f64);
+        return percentage > 0.4;
     }
 
     #[inline]
@@ -892,7 +892,7 @@ impl<T: Read> ByteBufferPointer<T> {
         self.forward_by(1)
     }
 
-    /// [`forward_by`] provides method to move the peek cursor by a cetain amount.
+    /// [`forward_by`] provides method to move the peek cursor by a certain amount.
     /// Generally this is used external as the logic is generally backed into the
     /// `next*` and `read*` methods but in cases where you intend to progress the
     /// cursor your seek using the `peek*` methods this provides that surface.
@@ -1012,7 +1012,7 @@ impl<T: Read> ByteBufferPointer<T> {
     /// It runs in a tight loop and ensures to acquire as much data as needed.
     ///
     /// It catches the initial position of the peek cursor then returns back to that
-    /// position after stoping. So the peek cursor will not adjust though the internal
+    /// position after stopping. So the peek cursor will not adjust though the internal
     /// buffer may have been filled up using memory attempting to find the giving signal
     /// and this might read the underlying reader until its EOF or OOM occurs if the signal
     /// is never found.

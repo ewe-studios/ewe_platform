@@ -12,6 +12,7 @@ use crate::valtron::{
 use crate::wire::simple_http::errors::*;
 use derive_more::From;
 use regex::Regex;
+use std::collections::HashSet;
 use std::io::Cursor;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, RwLockWriteGuard};
@@ -135,12 +136,11 @@ impl Iterator for ChunkedDataLimitIterator {
 
 pub type BodySize = u64;
 pub type BodySizeLimit = usize;
-pub type TransferEncoding = String;
 
 #[derive(Clone, Debug)]
 pub enum Body {
     LimitedBody(BodySize, SimpleHeaders),
-    ChunkedBody(TransferEncoding, SimpleHeaders, Option<BodySizeLimit>),
+    ChunkedBody(Vec<String>, SimpleHeaders, Option<BodySizeLimit>),
 }
 
 pub enum SimpleBody {
@@ -360,7 +360,7 @@ impl core::fmt::Display for Proto {
     }
 }
 
-pub type SimpleHeaders = BTreeMap<SimpleHeader, String>;
+pub type SimpleHeaders = BTreeMap<SimpleHeader, Vec<String>>;
 
 /// is_sub_set_of_other_header returns True if the `SimpleHeaders` is a subset of the
 /// other headers in `other`.
@@ -1336,7 +1336,13 @@ impl SimpleOutgoingResponseBuilder {
     pub fn add_header<H: Into<SimpleHeader>, S: Into<String>>(mut self, key: H, value: S) -> Self {
         let mut headers = self.headers.unwrap_or_default();
 
-        headers.insert(key.into(), value.into());
+        let actual_key = key.into();
+        if let Some(values) = headers.get_mut(&actual_key) {
+            values.push(value.into());
+        } else {
+            headers.insert(actual_key.into(), vec![value.into()]);
+        }
+
         self.headers = Some(headers);
         self
     }
@@ -1353,25 +1359,31 @@ impl SimpleOutgoingResponseBuilder {
 
         match &body {
             SimpleBody::None => {
-                headers.insert(SimpleHeader::CONTENT_LENGTH, String::from("0"));
+                headers.insert(SimpleHeader::CONTENT_LENGTH, vec![String::from("0")]);
             }
             SimpleBody::Bytes(inner) => {
-                headers.insert(
-                    SimpleHeader::CONTENT_LENGTH,
-                    inner
-                        .len()
-                        .try_into_string()
-                        .map_err(SimpleResponseError::StringConversion)?,
-                );
+                let content_length = inner
+                    .len()
+                    .try_into_string()
+                    .map_err(SimpleResponseError::StringConversion)?;
+
+                if let Some(header_values) = headers.get_mut(&SimpleHeader::CONTENT_LENGTH) {
+                    header_values.push(content_length);
+                } else {
+                    headers.insert(SimpleHeader::CONTENT_LENGTH, vec![content_length]);
+                }
             }
             SimpleBody::Text(inner) => {
-                headers.insert(
-                    SimpleHeader::CONTENT_LENGTH,
-                    inner
-                        .len()
-                        .try_into_string()
-                        .map_err(SimpleResponseError::StringConversion)?,
-                );
+                let content_length = inner
+                    .len()
+                    .try_into_string()
+                    .map_err(SimpleResponseError::StringConversion)?;
+
+                if let Some(header_values) = headers.get_mut(&SimpleHeader::CONTENT_LENGTH) {
+                    header_values.push(content_length);
+                } else {
+                    headers.insert(SimpleHeader::CONTENT_LENGTH, vec![content_length]);
+                }
             }
             _ => {}
         };
@@ -1495,7 +1507,21 @@ impl SimpleIncomingRequestBuilder {
 
     pub fn add_header<H: Into<SimpleHeader>, S: Into<String>>(mut self, key: H, value: S) -> Self {
         let mut headers = self.headers.unwrap_or_default();
-        headers.insert(key.into(), value.into());
+
+        let actual_key = key.into();
+        let actual_value: String = value.into();
+        let actual_value_parts: Vec<String> = actual_value
+            .split(",")
+            .into_iter()
+            .map(|item| item.trim().into())
+            .collect();
+
+        if let Some(values) = headers.get_mut(&actual_key) {
+            values.extend(actual_value_parts);
+        } else {
+            headers.insert(actual_key.into(), actual_value_parts);
+        }
+
         self.headers = Some(headers);
         self
     }
@@ -1518,25 +1544,31 @@ impl SimpleIncomingRequestBuilder {
 
         match &body {
             SimpleBody::None => {
-                headers.insert(SimpleHeader::CONTENT_LENGTH, String::from("0"));
+                headers.insert(SimpleHeader::CONTENT_LENGTH, vec![String::from("0")]);
             }
             SimpleBody::Bytes(inner) => {
-                headers.insert(
-                    SimpleHeader::CONTENT_LENGTH,
-                    inner
-                        .len()
-                        .try_into_string()
-                        .map_err(SimpleRequestError::StringConversion)?,
-                );
+                let content_length = inner
+                    .len()
+                    .try_into_string()
+                    .map_err(SimpleRequestError::StringConversion)?;
+
+                if let Some(header_values) = headers.get_mut(&SimpleHeader::CONTENT_LENGTH) {
+                    header_values.push(content_length);
+                } else {
+                    headers.insert(SimpleHeader::CONTENT_LENGTH, vec![content_length]);
+                }
             }
             SimpleBody::Text(inner) => {
-                headers.insert(
-                    SimpleHeader::CONTENT_LENGTH,
-                    inner
-                        .len()
-                        .try_into_string()
-                        .map_err(SimpleRequestError::StringConversion)?,
-                );
+                let content_length = inner
+                    .len()
+                    .try_into_string()
+                    .map_err(SimpleRequestError::StringConversion)?;
+
+                if let Some(header_values) = headers.get_mut(&SimpleHeader::CONTENT_LENGTH) {
+                    header_values.push(content_length);
+                } else {
+                    headers.insert(SimpleHeader::CONTENT_LENGTH, vec![content_length]);
+                }
             }
             _ => {}
         };
@@ -1656,7 +1688,10 @@ impl Iterator for Http11RequestIterator {
 
                 let mut encoded_headers: Vec<String> = borrowed_headers
                     .iter()
-                    .map(|(key, value)| format!("{key}: {value}\r\n"))
+                    .map(|(key, value)| {
+                        let joined_value = value.join(", ");
+                        format!("{key}: {joined_value}\r\n")
+                    })
                     .collect();
 
                 // add CLRF for ending header
@@ -1894,7 +1929,10 @@ impl Iterator for Http11ResponseIterator {
 
                 let mut encoded_headers: Vec<String> = borrowed_headers
                     .iter()
-                    .map(|(key, value)| format!("{key}: {value}\r\n"))
+                    .map(|(key, value)| {
+                        let joined_value = value.join(", ");
+                        format!("{key}: {joined_value}\r\n")
+                    })
                     .collect();
 
                 // add CLRF for ending header
@@ -2351,6 +2389,8 @@ const MAX_HEADER_NAME_LEN: usize = (1 << 16) - 1;
 
 static SPACE_CHARS: &[char] = &[' ', '\n', '\t', '\r'];
 
+static TRANSFER_ENCODING_VALUES: &[&str] = &["chunked", "compress", "deflate", "gzip"];
+
 impl<F, T> Iterator for HttpReader<F, T>
 where
     F: BodyExtractor,
@@ -2512,23 +2552,64 @@ where
                     // check if there is any funny business with headers
                     // for header_value_part in header_value.split(','). {}
 
-                    headers.insert(SimpleHeader::from(header_key), header_value);
+                    let actual_key = SimpleHeader::from(header_key);
+                    if let Some(values) = headers.get_mut(&actual_key) {
+                        values.push(header_value.into());
+                    } else {
+                        headers.insert(actual_key.into(), vec![header_value.into()]);
+                    }
 
                     line.clear();
                 }
 
                 // if its a chunked body then send and move state to chunked body state
-                let transfer_encoding = headers.get(&SimpleHeader::TRANSFER_ENCODING);
-                tracing::debug!("Transfer Encoding value: {:?}", &transfer_encoding);
+                if let Some(transfer_encodings) = headers.get(&SimpleHeader::TRANSFER_ENCODING) {
+                    tracing::debug!("Transfer Encoding value: {:?}", &transfer_encodings);
 
-                if let Some(transfer_encoding_value) = transfer_encoding {
-                    if transfer_encoding_value.as_str() != CHUNKED_VALUE {
-                        self.state = HttpReadState::Finished;
-                        return Some(Err(HttpReaderError::InvalidTransferEncodingValue));
+                    let content_length_header = headers.get(&SimpleHeader::CONTENT_LENGTH);
+
+                    if content_length_header.is_some() {
+                        return Some(Err(
+                            HttpReaderError::BothTransferEncodingAndContentLengthNotAllowed,
+                        ));
+                    }
+
+                    let allowed_values: HashSet<String> = TRANSFER_ENCODING_VALUES
+                        .iter()
+                        .map(|item| (*item).into())
+                        .collect();
+
+                    let current_values: HashSet<String> = transfer_encodings
+                        .iter()
+                        .map(|item| item.to_lowercase())
+                        .collect();
+
+                    let difference: HashSet<_> =
+                        current_values.difference(&allowed_values).collect();
+
+                    if difference.len() != 0 {
+                        return Some(Err(HttpReaderError::UnknownTransferEncodingHeaderValue));
+                    }
+
+                    if current_values.len() == 1 && current_values.get(CHUNKED_VALUE).is_none() {
+                        return Some(Err(HttpReaderError::UnsupportedTransferEncodingType));
+                    }
+
+                    if current_values.len() > 1 {
+                        if let Some(chunked_index) =
+                            transfer_encodings.iter().position(|n| n == CHUNKED_VALUE)
+                        {
+                            tracing::debug!("Chunked header index: {}", chunked_index);
+                            if chunked_index != (current_values.len() - 1) {
+                                return Some(Err(HttpReaderError::ChunkedEncodingMustBeLast));
+                            }
+                        } else {
+                            return Some(Err(HttpReaderError::UnknownTransferEncodingHeaderValue));
+                        }
                     }
 
                     self.state = HttpReadState::Body(Body::ChunkedBody(
-                        transfer_encoding.unwrap().clone(),
+                        transfer_encodings.clone(),
                         headers.clone(),
                         self.max_body_length,
                     ));
@@ -2539,27 +2620,33 @@ where
                 // must have a CONTENT_LENGTH
                 // header.
                 match headers.get(&SimpleHeader::CONTENT_LENGTH) {
-                    Some(content_size_str) => match content_size_str.parse::<u64>() {
-                        Ok(value) => {
-                            if let Some(max_value) = self.max_body_length {
-                                if value > (max_value as u64) {
-                                    return Some(Err(
-                                        HttpReaderError::BodyContentSizeIsGreaterThanLimit(
-                                            max_value,
-                                        ),
-                                    ));
+                    Some(content_size_headers) => {
+                        let content_size_str = content_size_headers
+                            .get(0)
+                            .clone()
+                            .expect("get content size");
+                        match content_size_str.parse::<u64>() {
+                            Ok(value) => {
+                                if let Some(max_value) = self.max_body_length {
+                                    if value > (max_value as u64) {
+                                        return Some(Err(
+                                            HttpReaderError::BodyContentSizeIsGreaterThanLimit(
+                                                max_value,
+                                            ),
+                                        ));
+                                    }
                                 }
-                            }
 
-                            self.state =
-                                HttpReadState::Body(Body::LimitedBody(value, headers.clone()));
-                            Some(Ok(IncomingRequestParts::Headers(headers)))
+                                self.state =
+                                    HttpReadState::Body(Body::LimitedBody(value, headers.clone()));
+                                Some(Ok(IncomingRequestParts::Headers(headers)))
+                            }
+                            Err(err) => {
+                                self.state = HttpReadState::Finished;
+                                Some(Err(HttpReaderError::InvalidContentSizeValue(Box::new(err))))
+                            }
                         }
-                        Err(err) => {
-                            self.state = HttpReadState::Finished;
-                            Some(Err(HttpReaderError::InvalidContentSizeValue(Box::new(err))))
-                        }
-                    },
+                    }
                     None => {
                         self.state = HttpReadState::NoBody;
                         Some(Ok(IncomingRequestParts::Headers(headers)))
@@ -3315,7 +3402,7 @@ mod test_chunk_parser {
 }
 
 pub struct SimpleHttpChunkIterator<T: std::io::Read + Send + Sync>(
-    String,
+    Vec<String>,
     SimpleHeaders,
     SharedByteBufferStream<T>,
     Arc<AtomicBool>,
@@ -3334,7 +3421,7 @@ impl<T: std::io::Read + Send + Sync> Clone for SimpleHttpChunkIterator<T> {
 
 impl<T: std::io::Read + Send + Sync> SimpleHttpChunkIterator<T> {
     pub fn new(
-        transfer_encoding: String,
+        transfer_encoding: Vec<String>,
         headers: SimpleHeaders,
         stream: SharedByteBufferStream<T>,
     ) -> Self {
@@ -3558,20 +3645,26 @@ Hello world!";
                 },
                 "HTTP/1.1".into(),
             ),
-            IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([
-                (SimpleHeader::ACCEPT_RANGES, "bytes".into()),
-                (SimpleHeader::CONNECTION, "close".into()),
-                (SimpleHeader::CONTENT_LENGTH, "12".into()),
-                (SimpleHeader::CONTENT_TYPE, "text/html".into()),
-                (SimpleHeader::DATE, "Sun, 10 Oct 2010 23:26:07 GMT".into()),
-                (SimpleHeader::ETAG, "\"45b6-834-49130cc1182c0\"".into()),
+            IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                (SimpleHeader::ACCEPT_RANGES, vec!["bytes".into()]),
+                (SimpleHeader::CONNECTION, vec!["close".into()]),
+                (SimpleHeader::CONTENT_LENGTH, vec!["12".into()]),
+                (SimpleHeader::CONTENT_TYPE, vec!["text/html".into()]),
+                (
+                    SimpleHeader::DATE,
+                    vec!["Sun, 10 Oct 2010 23:26:07 GMT".into()],
+                ),
+                (
+                    SimpleHeader::ETAG,
+                    vec!["\"45b6-834-49130cc1182c0\"".into()],
+                ),
                 (
                     SimpleHeader::LAST_MODIFIED,
-                    "Sun, 26 Sep 2010 22:04:35 GMT".into(),
+                    vec!["Sun, 26 Sep 2010 22:04:35 GMT".into()],
                 ),
                 (
                     SimpleHeader::SERVER,
-                    "Apache/2.2.8 (Ubuntu) mod_ssl/2.2.8 OpenSSL/0.9.8g".into(),
+                    vec!["Apache/2.2.8 (Ubuntu) mod_ssl/2.2.8 OpenSSL/0.9.8g".into()],
                 ),
             ])),
             IncomingRequestParts::Body(Some(SimpleBody::Bytes(vec![
@@ -3617,14 +3710,14 @@ Hello world!";
                 },
                 "HTTP/1.1".into(),
             ),
-            IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([
-                (SimpleHeader::ACCEPT, "*/*".into()),
-                (SimpleHeader::CONTENT_LENGTH, "24".into()),
+            IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                (SimpleHeader::ACCEPT, vec!["*/*".into()]),
+                (SimpleHeader::CONTENT_LENGTH, vec!["24".into()]),
                 (
                     SimpleHeader::CONTENT_TYPE,
-                    "application/x-www-form-urlencoded".into(),
+                    vec!["application/x-www-form-urlencoded".into()],
                 ),
-                (SimpleHeader::HOST, "127.0.0.1:7889".into()),
+                (SimpleHeader::HOST, vec!["127.0.0.1:7889".into()]),
             ])),
             IncomingRequestParts::Body(Some(SimpleBody::Bytes(vec![
                 104, 101, 108, 108, 111, 61, 119, 111, 114, 108, 100, 38, 115, 101, 97, 110, 61,
@@ -3673,14 +3766,14 @@ Hello world!";
                 },
                 "HTTP/1.1".into(),
             ),
-            IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, String>::from([
-                (SimpleHeader::ACCEPT, "*/*".into()),
-                (SimpleHeader::CONTENT_LENGTH, "24".into()),
+            IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                (SimpleHeader::ACCEPT, vec!["*/*".into()]),
+                (SimpleHeader::CONTENT_LENGTH, vec!["24".into()]),
                 (
                     SimpleHeader::CONTENT_TYPE,
-                    "application/x-www-form-urlencoded".into(),
+                    vec!["application/x-www-form-urlencoded".into()],
                 ),
-                (SimpleHeader::HOST, "127.0.0.1:7887".into()),
+                (SimpleHeader::HOST, vec!["127.0.0.1:7887".into()]),
             ])),
             IncomingRequestParts::Body(Some(SimpleBody::Bytes(vec![
                 104, 101, 108, 108, 111, 61, 119, 111, 114, 108, 100, 38, 115, 101, 97, 110, 61,
@@ -3929,7 +4022,7 @@ impl ServiceActionBuilder {
         }
     }
 
-    pub fn with_headers(mut self, headers: BTreeMap<SimpleHeader, String>) -> Self {
+    pub fn with_headers(mut self, headers: BTreeMap<SimpleHeader, Vec<String>>) -> Self {
         self.headers = Some(headers);
         self
     }
@@ -3941,7 +4034,15 @@ impl ServiceActionBuilder {
 
     pub fn add_header<H: Into<SimpleHeader>, J: Into<String>>(mut self, key: H, value: J) -> Self {
         let mut headers = self.headers.unwrap_or_default();
-        headers.insert(key.into(), value.into());
+
+        let key_str: SimpleHeader = key.into();
+        let value_str: String = value.into();
+        if let Some(header_values) = headers.get_mut(&key_str) {
+            header_values.push(value_str);
+        } else {
+            headers.insert(key_str, vec![value_str]);
+        }
+
         self.headers = Some(headers);
         self
     }
@@ -4031,7 +4132,7 @@ mod service_action_test {
             .expect("should generate service action");
 
         let mut headers = SimpleHeaders::new();
-        let _ = headers.insert(SimpleHeader::CONTENT_TYPE, "application/json".into());
+        let _ = headers.insert(SimpleHeader::CONTENT_TYPE, vec!["application/json".into()]);
 
         let (matched_url, params) =
             resource.extract_match("/service/endpoint/v1", SimpleMethod::GET, Some(headers));

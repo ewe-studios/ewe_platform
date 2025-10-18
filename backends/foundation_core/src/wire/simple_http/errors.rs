@@ -51,6 +51,10 @@ pub enum HttpReaderError {
 
     #[from(ignore)]
     LimitReached(usize),
+    BothTransferEncodingAndContentLengthNotAllowed,
+    UnknownTransferEncodingHeaderValue,
+    ChunkedEncodingMustBeLast,
+    UnsupportedTransferEncodingType,
 }
 
 impl std::error::Error for HttpReaderError {}
