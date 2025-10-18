@@ -2391,6 +2391,13 @@ static SPACE_CHARS: &[char] = &[' ', '\n', '\t', '\r'];
 
 static TRANSFER_ENCODING_VALUES: &[&str] = &["chunked", "compress", "deflate", "gzip"];
 
+static NO_SPLIT_HEADERS: &[SimpleHeader] = &[
+    SimpleHeader::DATE,
+    SimpleHeader::ETAG,
+    SimpleHeader::SERVER,
+    SimpleHeader::LAST_MODIFIED,
+];
+
 impl<F, T> Iterator for HttpReader<F, T>
 where
     F: BodyExtractor,
@@ -2556,7 +2563,21 @@ where
                     if let Some(values) = headers.get_mut(&actual_key) {
                         values.push(header_value.into());
                     } else {
-                        headers.insert(actual_key.into(), vec![header_value.into()]);
+                        if NO_SPLIT_HEADERS
+                            .iter()
+                            .position(|n| n == &actual_key)
+                            .is_some()
+                        {
+                            headers.insert(actual_key, vec![header_value]);
+                        } else {
+                            headers.insert(
+                                actual_key,
+                                header_value
+                                    .split(",")
+                                    .map(|t| t.trim().to_lowercase().into())
+                                    .collect(),
+                            );
+                        }
                     }
 
                     line.clear();
