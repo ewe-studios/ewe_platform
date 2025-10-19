@@ -2999,7 +2999,9 @@ impl ChunkState {
             &chunk_string
         );
 
+        Self::eat_space(&mut acc)?;
         Self::eat_crlf(&mut acc)?;
+        Self::eat_escaped_crlf(&mut acc)?;
         Self::eat_newlines(&mut acc)?;
 
         let mut extensions: Extensions = Vec::new();
@@ -3204,10 +3206,33 @@ impl ChunkState {
         Ok(())
     }
 
+    fn eat_escaped_crlf<T: Read>(
+        acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
+    ) -> Result<(), ChunkStateError> {
+        while let Ok(b) = acc.nextby2(2) {
+            tracing::debug!(
+                "Tracing escaped clrf: {:?} and {:?}",
+                &b,
+                String::from_utf8(b.to_vec())
+            );
+            if b != b"\\r" && b != b"\\n" {
+                let _ = acc.unforward_by(2);
+                acc.skip();
+                break;
+            }
+        }
+        Ok(())
+    }
+
     fn eat_crlf<T: Read>(
         acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
     ) -> Result<(), ChunkStateError> {
         while let Ok(b) = acc.nextby2(1) {
+            tracing::debug!(
+                "Tracing clrf: {:?} and {:?}",
+                &b,
+                String::from_utf8(b.to_vec())
+            );
             if b[0] != b'\r' && b[0] != b'\n' {
                 let _ = acc.unforward();
                 acc.skip();
