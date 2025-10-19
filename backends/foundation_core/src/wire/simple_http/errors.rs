@@ -161,7 +161,13 @@ impl core::fmt::Display for SimpleHttpError {
 pub enum ChunkStateError {
     ParseFailed,
     ReadErrors,
+
+    #[from(ignore)]
     InvalidByte(u8),
+
+    #[from(ignore)]
+    InvalidOctetSizeByte(u8),
+
     ChunkSizeNotFound,
     InvalidChunkEnding,
     InvalidChunkEndingExpectedCRLF,

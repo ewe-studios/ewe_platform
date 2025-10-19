@@ -2972,7 +2972,9 @@ impl ChunkState {
                     chunk_size_octet = Some(acc.consume()?);
                     break;
                 }
-                _ => return Err(ChunkStateError::InvalidByte(b)),
+                _ => {
+                    return Err(ChunkStateError::InvalidOctetSizeByte(b));
+                }
             }
         }
 
