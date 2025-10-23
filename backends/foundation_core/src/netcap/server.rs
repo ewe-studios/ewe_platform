@@ -155,7 +155,7 @@ impl TestServer {
                     }
                 }
 
-                let Some(Ok(IncomingRequestParts::Body(Some(body)))) = request_reader.next() else {
+                let Some(Ok(IncomingRequestParts::Body(body))) = request_reader.next() else {
                     break;
                 };
 
