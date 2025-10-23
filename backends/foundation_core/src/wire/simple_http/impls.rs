@@ -559,7 +559,7 @@ impl From<String> for SimpleHeader {
             "X-DNS-PREFETCH-CONTROL" => Self::X_DNS_PREFETCH_CONTROL,
             "X-FRAME-OPTIONS" => Self::X_FRAME_OPTIONS,
             "X-XSS-PROTECTION" => Self::X_XSS_PROTECTION,
-            _ => Self::Custom(upper),
+            _ => Self::Custom(value),
         }
     }
 }
@@ -575,7 +575,7 @@ impl FromStr for SimpleHeader {
 impl core::fmt::Display for SimpleHeader {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Custom(inner) => write!(f, "{}", inner.to_uppercase()),
+            Self::Custom(inner) => write!(f, "{}", inner),
             Self::ACCEPT => write!(f, "ACCEPT"),
             Self::ACCEPT_CHARSET => write!(f, "ACCEPT-CHARSET"),
             Self::ACCEPT_ENCODING => write!(f, "ACCEPT-ENCODING"),
@@ -671,6 +671,7 @@ pub enum SimpleMethod {
     PUT,
     DELETE,
     PATCH,
+    OPTIONS,
     Custom(String),
 }
 
@@ -688,6 +689,7 @@ impl From<&str> for SimpleMethod {
             "PUT" => Self::PUT,
             "DELETE" => Self::DELETE,
             "PATCH" => Self::PATCH,
+            "OPTION" | "OPTIONS" => Self::OPTIONS,
             _ => Self::Custom(value.into()),
         }
     }
@@ -701,6 +703,7 @@ impl From<String> for SimpleMethod {
             "PUT" => Self::PUT,
             "DELETE" => Self::DELETE,
             "PATCH" => Self::PATCH,
+            "OPTION" | "OPTIONS" => Self::OPTIONS,
             _ => Self::Custom(value),
         }
     }
@@ -714,6 +717,7 @@ impl SimpleMethod {
             SimpleMethod::PUT => "PUT".into(),
             SimpleMethod::DELETE => "DELETE".into(),
             SimpleMethod::PATCH => "PATCH".into(),
+            SimpleMethod::OPTIONS => "OPTIONS".into(),
             SimpleMethod::Custom(inner) => inner.clone(),
         }
     }
@@ -2270,7 +2274,7 @@ pub type Protocol = String;
 pub enum IncomingRequestParts {
     Intro(SimpleMethod, SimpleUrl, Proto),
     Headers(SimpleHeaders),
-    Body(Option<SimpleBody>),
+    Body(SimpleBody),
 }
 
 impl core::fmt::Display for IncomingRequestParts {
@@ -2510,6 +2514,7 @@ where
                     }
 
                     tracing::debug!("HeaderKey: {:?}", &header_key);
+                    tracing::debug!("HeaderValue: {:?}", &header_value);
 
                     for space_char in SPACE_CHARS {
                         if header_key.contains(*space_char) {
@@ -2559,6 +2564,9 @@ where
                     // check if there is any funny business with headers
                     // for header_value_part in header_value.split(','). {}
 
+                    tracing::debug!("[2] HeaderKey: {:?}", &header_key);
+                    tracing::debug!("[2] HeaderValue: {:?}", &header_value);
+
                     let actual_key = SimpleHeader::from(header_key);
                     if let Some(values) = headers.get_mut(&actual_key) {
                         values.push(header_value.into());
@@ -2572,10 +2580,7 @@ where
                         } else {
                             headers.insert(
                                 actual_key,
-                                header_value
-                                    .split(",")
-                                    .map(|t| t.trim().to_lowercase().into())
-                                    .collect(),
+                                header_value.split(",").map(|t| t.trim().into()).collect(),
                             );
                         }
                     }
@@ -2676,7 +2681,7 @@ where
             }
             HttpReadState::NoBody => {
                 self.state = HttpReadState::Finished;
-                Some(Ok(IncomingRequestParts::Body(Some(SimpleBody::None))))
+                Some(Ok(IncomingRequestParts::Body(SimpleBody::None)))
             }
             HttpReadState::Body(body) => {
                 let cloned_stream = self.reader.clone();
@@ -2685,7 +2690,7 @@ where
                         // once we've gotten a body iterator and gives it to the user
                         // the next state is finished.
                         self.state = HttpReadState::Finished;
-                        Some(Ok(IncomingRequestParts::Body(Some(generated_body))))
+                        Some(Ok(IncomingRequestParts::Body(generated_body)))
                     }
                     Err(err) => {
                         self.state = HttpReadState::Finished;
@@ -3715,9 +3720,9 @@ Hello world!";
                     vec!["Apache/2.2.8 (Ubuntu) mod_ssl/2.2.8 OpenSSL/0.9.8g".into()],
                 ),
             ])),
-            IncomingRequestParts::Body(Some(SimpleBody::Bytes(vec![
+            IncomingRequestParts::Body(SimpleBody::Bytes(vec![
                 72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33,
-            ]))),
+            ])),
         ];
 
         assert_eq!(request_parts, expected_parts);
@@ -3767,10 +3772,10 @@ Hello world!";
                 ),
                 (SimpleHeader::HOST, vec!["127.0.0.1:7889".into()]),
             ])),
-            IncomingRequestParts::Body(Some(SimpleBody::Bytes(vec![
+            IncomingRequestParts::Body(SimpleBody::Bytes(vec![
                 104, 101, 108, 108, 111, 61, 119, 111, 114, 108, 100, 38, 115, 101, 97, 110, 61,
                 109, 111, 110, 115, 116, 97, 114,
-            ]))),
+            ])),
         ];
 
         assert_eq!(request_parts, expected_parts);
@@ -3823,10 +3828,10 @@ Hello world!";
                 ),
                 (SimpleHeader::HOST, vec!["127.0.0.1:7887".into()]),
             ])),
-            IncomingRequestParts::Body(Some(SimpleBody::Bytes(vec![
+            IncomingRequestParts::Body(SimpleBody::Bytes(vec![
                 104, 101, 108, 108, 111, 61, 119, 111, 114, 108, 100, 38, 115, 101, 97, 110, 61,
                 109, 111, 110, 115, 116, 97, 114,
-            ]))),
+            ])),
         ];
 
         assert_eq!(request_parts, expected_parts);
