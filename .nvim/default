@@ -14,7 +14,7 @@ else
   set shortmess=aoO
 endif
 badd +1892 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/io/ioutils/mod.rs
-badd +1409 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/impls.rs
+badd +2402 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/impls.rs
 badd +283 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/http_stream/mod.rs
 badd +54 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/errors.rs
 badd +4 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/macros/mod.rs
@@ -23,14 +23,17 @@ badd +78 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/macros/ioerrs/m
 badd +7 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/macros/collections/mod.rs
 badd +1 /tmp/bash-fc.KhVX9l
 badd +1 /tmp/bfba6c70-6a49-439a-abb2-91518898b3b7.dump
-badd +1616 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/tests.rs
+badd +2517 backends/foundation_core/src/wire/simple_http/tests.rs
 badd +1 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/megatron/mod.rs
 badd +7 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/synca/mod.rs
 badd +17 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/lib.rs
-badd +816 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/testcases/request/transfer-encoding.md
+badd +645 backends/foundation_core/src/wire/simple_http/testcases/request/transfer-encoding.md
+badd +12 backends/foundation_core/src/wire/simple_http/testcases/request/connection.md
+badd +3 backends/foundation_core/src/wire/simple_http/testcases/request/sample.md
+badd +167 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/netcap/server.rs
 argglobal
 %argdel
-edit ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/impls.rs
+edit backends/foundation_core/src/wire/simple_http/tests.rs
 let s:save_splitbelow = &splitbelow
 let s:save_splitright = &splitright
 set splitbelow splitright
@@ -39,10 +42,6 @@ vsplit
 wincmd _ | wincmd |
 vsplit
 2wincmd h
-wincmd w
-wincmd _ | wincmd |
-split
-1wincmd k
 wincmd w
 wincmd w
 let &splitbelow = s:save_splitbelow
@@ -56,193 +55,6 @@ set winminwidth=0
 set winwidth=1
 wincmd =
 argglobal
-balt ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/errors.rs
-setlocal foldmethod=indent
-setlocal foldexpr=0
-setlocal foldmarker={{{,}}}
-setlocal foldignore=#
-setlocal foldlevel=99
-setlocal foldminlines=1
-setlocal foldnestmax=20
-setlocal foldenable
-368
-sil! normal! zo
-369
-sil! normal! zo
-370
-sil! normal! zo
-371
-sil! normal! zo
-1302
-sil! normal! zo
-1337
-sil! normal! zo
-1351
-sil! normal! zo
-1361
-sil! normal! zo
-1365
-sil! normal! zo
-1458
-sil! normal! zo
-1644
-sil! normal! zo
-1647
-sil! normal! zo
-1648
-sil! normal! zo
-1685
-sil! normal! zo
-1694
-sil! normal! zo
-1724
-sil! normal! zo
-1725
-sil! normal! zo
-2251
-sil! normal! zo
-2252
-sil! normal! zo
-2253
-sil! normal! zo
-2371
-sil! normal! zo
-2374
-sil! normal! zo
-2375
-sil! normal! zo
-2376
-sil! normal! zo
-2403
-sil! normal! zo
-2412
-sil! normal! zo
-2424
-sil! normal! zo
-2534
-sil! normal! zo
-2539
-sil! normal! zo
-2547
-sil! normal! zo
-2675
-sil! normal! zo
-2710
-sil! normal! zo
-2716
-sil! normal! zo
-2717
-sil! normal! zo
-2738
-sil! normal! zo
-2783
-sil! normal! zo
-2851
-sil! normal! zo
-2875
-sil! normal! zo
-2877
-sil! normal! zo
-2917
-sil! normal! zo
-2918
-sil! normal! zo
-2960
-sil! normal! zo
-2967
-sil! normal! zo
-2968
-sil! normal! zo
-2981
-sil! normal! zo
-2985
-sil! normal! zo
-2993
-sil! normal! zo
-2994
-sil! normal! zo
-3006
-sil! normal! zo
-3007
-sil! normal! zo
-3032
-sil! normal! zo
-3033
-sil! normal! zo
-3034
-sil! normal! zo
-3035
-sil! normal! zo
-3056
-sil! normal! zo
-3077
-sil! normal! zo
-3078
-sil! normal! zo
-3199
-sil! normal! zo
-3244
-sil! normal! zo
-3245
-sil! normal! zo
-3254
-sil! normal! zo
-3255
-sil! normal! zo
-3374
-sil! normal! zo
-3377
-sil! normal! zo
-3380
-sil! normal! zo
-3383
-sil! normal! zo
-3384
-sil! normal! zo
-3386
-sil! normal! zo
-3387
-sil! normal! zo
-3388
-sil! normal! zo
-3390
-sil! normal! zo
-3393
-sil! normal! zo
-3415
-sil! normal! zo
-3416
-sil! normal! zo
-3417
-sil! normal! zo
-3418
-sil! normal! zo
-3468
-sil! normal! zo
-3473
-sil! normal! zo
-3474
-sil! normal! zo
-3475
-sil! normal! zo
-3491
-sil! normal! zo
-3497
-sil! normal! zo
-3508
-sil! normal! zo
-let s:l = 1409 - ((48 * winheight(0) + 34) / 69)
-if s:l < 1 | let s:l = 1 | endif
-keepjumps exe s:l
-normal! zt
-keepjumps 1409
-normal! 0
-wincmd w
-argglobal
-if bufexists(fnamemodify("~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/tests.rs", ":p")) | buffer ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/tests.rs | else | edit ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/tests.rs | endif
-if &buftype ==# 'terminal'
-  silent file ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/tests.rs
-endif
 balt ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/impls.rs
 setlocal foldmethod=expr
 setlocal foldexpr=v:lua.vim.lsp.foldexpr()
@@ -252,147 +64,19 @@ setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-4
-sil! normal! zo
-23
-sil! normal! zo
-28
-sil! normal! zo
-60
-sil! normal! zo
-484
-sil! normal! zo
-1012
-sil! normal! zo
-1070
-sil! normal! zo
-1072
-sil! normal! zo
-1073
-sil! normal! zo
-1075
-sil! normal! zo
-1094
-sil! normal! zo
-1101
-sil! normal! zo
-1117
-sil! normal! zo
-1118
-sil! normal! zo
-1129
-sil! normal! zo
-1129
-sil! normal! zo
-1138
-sil! normal! zo
-1157
-sil! normal! zo
-1164
-sil! normal! zo
-1180
-sil! normal! zo
-1181
-sil! normal! zo
-1192
-sil! normal! zo
-1192
-sil! normal! zo
-1201
-sil! normal! zo
-1220
-sil! normal! zo
-1227
-sil! normal! zo
-1243
-sil! normal! zo
-1244
-sil! normal! zo
-1255
-sil! normal! zo
-1255
-sil! normal! zo
-1255
-sil! normal! zo
-1264
-sil! normal! zo
-1278
-sil! normal! zo
-1280
-sil! normal! zo
-1281
-sil! normal! zo
-1283
-sil! normal! zo
-1283
-sil! normal! zo
-1295
-sil! normal! zo
-1309
-sil! normal! zo
-1316
-sil! normal! zo
-1332
-sil! normal! zo
-1333
-sil! normal! zo
-1344
-sil! normal! zo
-1344
-sil! normal! zo
-1344
-sil! normal! zo
-1353
-sil! normal! zo
-1374
-sil! normal! zo
-1381
-sil! normal! zo
-1403
-sil! normal! zo
-1410
-sil! normal! zo
-1432
-sil! normal! zo
-1439
-sil! normal! zo
-1461
-sil! normal! zo
-1467
-sil! normal! zo
-1489
-sil! normal! zo
-1495
-sil! normal! zo
-1517
-sil! normal! zo
-1523
-sil! normal! zo
-1545
-sil! normal! zo
-1551
-sil! normal! zo
-1545
-sil! normal! zc
-1573
-sil! normal! zo
-1579
-sil! normal! zo
-1573
-sil! normal! zc
-let s:l = 1616 - ((44 * winheight(0) + 17) / 34)
+let s:l = 2517 - ((51 * winheight(0) + 34) / 69)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 1616
-normal! 020|
+keepjumps 2517
+normal! 048|
 wincmd w
 argglobal
-if bufexists(fnamemodify("~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/testcases/request/transfer-encoding.md", ":p")) | buffer ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/testcases/request/transfer-encoding.md | else | edit ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/testcases/request/transfer-encoding.md | endif
+if bufexists(fnamemodify("backends/foundation_core/src/wire/simple_http/testcases/request/sample.md", ":p")) | buffer backends/foundation_core/src/wire/simple_http/testcases/request/sample.md | else | edit backends/foundation_core/src/wire/simple_http/testcases/request/sample.md | endif
 if &buftype ==# 'terminal'
-  silent file ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/testcases/request/transfer-encoding.md
+  silent file backends/foundation_core/src/wire/simple_http/testcases/request/sample.md
 endif
-balt ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/tests.rs
+balt backends/foundation_core/src/wire/simple_http/testcases/request/connection.md
 setlocal foldmethod=indent
 setlocal foldexpr=0
 setlocal foldmarker={{{,}}}
@@ -401,32 +85,124 @@ setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-let s:l = 631 - ((4 * winheight(0) + 17) / 34)
+let s:l = 130 - ((67 * winheight(0) + 34) / 69)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 631
+keepjumps 130
 normal! 0
 wincmd w
 argglobal
-if bufexists(fnamemodify("~/boxxed/@dev/ewe_platform/backends/foundation_core/src/io/ioutils/mod.rs", ":p")) | buffer ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/io/ioutils/mod.rs | else | edit ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/io/ioutils/mod.rs | endif
+if bufexists(fnamemodify("~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/impls.rs", ":p")) | buffer ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/impls.rs | else | edit ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/impls.rs | endif
 if &buftype ==# 'terminal'
-  silent file ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/io/ioutils/mod.rs
+  silent file ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/impls.rs
 endif
-balt ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/macros/ioerrs/mod.rs
-setlocal foldmethod=expr
-setlocal foldexpr=v:lua.vim.lsp.foldexpr()
+balt ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/netcap/server.rs
+setlocal foldmethod=indent
+setlocal foldexpr=0
 setlocal foldmarker={{{,}}}
 setlocal foldignore=#
 setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-let s:l = 1892 - ((11 * winheight(0) + 29) / 58)
+478
+sil! normal! zo
+479
+sil! normal! zo
+478
+sil! normal! zc
+576
+sil! normal! zo
+577
+sil! normal! zo
+578
+sil! normal! zo
+576
+sil! normal! zc
+686
+sil! normal! zo
+687
+sil! normal! zo
+701
+sil! normal! zo
+702
+sil! normal! zo
+716
+sil! normal! zo
+717
+sil! normal! zo
+2414
+sil! normal! zo
+2417
+sil! normal! zo
+2418
+sil! normal! zo
+2419
+sil! normal! zo
+2446
+sil! normal! zo
+2455
+sil! normal! zo
+2467
+sil! normal! zo
+2578
+sil! normal! zo
+2585
+sil! normal! zo
+2653
+sil! normal! zo
+2654
+sil! normal! zo
+2659
+sil! normal! zo
+2660
+sil! normal! zo
+2691
+sil! normal! zo
+2693
+sil! normal! zo
+3480
+sil! normal! zo
+3634
+sil! normal! zo
+3675
+sil! normal! zo
+3675
+sil! normal! zo
+3694
+sil! normal! zo
+3738
+sil! normal! zo
+3759
+sil! normal! zo
+3791
+sil! normal! zo
+3815
+sil! normal! zo
+3864
+sil! normal! zo
+3874
+sil! normal! zo
+3876
+sil! normal! zo
+3903
+sil! normal! zo
+3908
+sil! normal! zo
+3909
+sil! normal! zo
+4010
+sil! normal! zo
+4144
+sil! normal! zo
+4183
+sil! normal! zo
+let s:l = 2402 - ((28 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 1892
+keepjumps 2402
 normal! 0
 wincmd w
 wincmd =
