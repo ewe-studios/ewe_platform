@@ -2348,84 +2348,795 @@ Hello world!";
         #[traced_test]
         fn request_with_method_starting_with_h() {
             let message = "HEAD /url HTTP/1.1\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::HEAD,
+                    SimpleUrl {
+                        url: "/url".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([])),
+                IncomingRequestParts::Body(SimpleBody::None),
+            ];
+
+            assert_eq!(request_parts, expected_parts);
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
         #[traced_test]
         fn curl_get() {
-            let message = "GET /test HTTP/1.1\nUser-Agent: curl/7.18.0 (i486-pc-linux-gnu) libcurl/7.18.0 OpenSSL/0.9.8g zlib/1.2.3.3 libidn/1.1\nHost: 0.0.0.0=5000\nAccept: */*\n\n\n";
+            let message = "GET /url HTTP/1.1\nUser-Agent: curl/7.18.0 (i486-pc-linux-gnu) libcurl/7.18.0 OpenSSL/0.9.8g zlib/1.2.3.3 libidn/1.1\nHost: 0.0.0.0=5000\nAccept: */*\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::GET,
+                    SimpleUrl {
+                        url: "/url".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (
+                        SimpleHeader::ACCEPT,
+                        vec!["*/*".into()],
+                    ),
+                    (
+                        SimpleHeader::HOST,
+                        vec!["0.0.0.0=5000".into()],
+                    ),
+                    (
+                        SimpleHeader::USER_AGENT,
+                        vec!["curl/7.18.0 (i486-pc-linux-gnu) libcurl/7.18.0 OpenSSL/0.9.8g zlib/1.2.3.3 libidn/1.1".into()],
+                    ),
+                ])),
+                IncomingRequestParts::Body(SimpleBody::None),
+            ];
+
+            assert_eq!(request_parts, expected_parts);
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
         #[traced_test]
         fn firefox_get() {
             let message = "GET /favicon.ico HTTP/1.1\nHost: 0.0.0.0=5000\nUser-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9) Gecko/2008061015 Firefox/3.0\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\nAccept-Language: en-us,en;q=0.5\nAccept-Encoding: gzip,deflate\nAccept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7\nKeep-Alive: 300\nConnection: keep-alive\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::GET,
+                    SimpleUrl {
+                        url: "/favicon.ico".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/favicon.ico"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (
+                        SimpleHeader::ACCEPT,
+                        vec![
+                            "text/html".into(), 
+                            "application/xhtml+xml".into(),
+                            "application/xml;q=0.9".into(), 
+                            "*/*;q=0.8".into(),
+                        ],
+                    ),
+                    (
+                        SimpleHeader::ACCEPT_LANGUAGE,
+                        vec!["en-us".into(), "en;q=0.5".into()],
+                    ),
+                    (
+                        SimpleHeader::ACCEPT_ENCODING,
+                        vec!["gzip".into(), "deflate".into()],
+                    ),
+                    (
+                        SimpleHeader::ACCEPT_CHARSET,
+                        vec!["ISO-8859-1".into(), "utf-8;q=0.7".into(), "*;q=0.7".into()],
+                    ),
+                    (
+                        SimpleHeader::KEEP_ALIVE,
+                        vec!["300".into()],
+                    ),
+                    (
+                        SimpleHeader::CONNECTION,
+                        vec!["keep-alive".into()],
+                    ),
+                    (
+                        SimpleHeader::HOST,
+                        vec!["0.0.0.0=5000".into()],
+                    ),
+                    (
+                        SimpleHeader::USER_AGENT,
+                        vec!["Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9) Gecko/2008061015 Firefox/3.0".into()],
+                    ),
+
+                ])),
+                IncomingRequestParts::Body(SimpleBody::None),
+            ];
+
+            assert_eq!(request_parts, expected_parts);
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
         #[traced_test]
         fn dumbpack() {
             let message = "GET /dumbpack HTTP/1.1\naaaaaaaaaaaaa:++++++++++\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::OPTIONS,
+                    SimpleUrl {
+                        url: "/url".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (
+                        SimpleHeader::Custom(String::from("Header1")),
+                        vec!["Value1".into()],
+                    ),
+                    (
+                        SimpleHeader::Custom(String::from("Header2")),
+                        vec!["Value2".into()],
+                    ),
+                ])),
+                IncomingRequestParts::Body(SimpleBody::None),
+            ];
+
+            assert_eq!(request_parts, expected_parts);
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
         #[traced_test]
         fn no_headers_and_no_body() {
             let message = "GET /get_no_headers_no_body/world HTTP/1.1\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::OPTIONS,
+                    SimpleUrl {
+                        url: "/url".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (
+                        SimpleHeader::Custom(String::from("Header1")),
+                        vec!["Value1".into()],
+                    ),
+                    (
+                        SimpleHeader::Custom(String::from("Header2")),
+                        vec!["Value2".into()],
+                    ),
+                ])),
+                IncomingRequestParts::Body(SimpleBody::None),
+            ];
+
+            assert_eq!(request_parts, expected_parts);
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
         #[traced_test]
         fn one_header_and_no_body() {
             let message = "GET /get_one_header_no_body HTTP/1.1\nAccept: */*\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::OPTIONS,
+                    SimpleUrl {
+                        url: "/url".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (
+                        SimpleHeader::Custom(String::from("Header1")),
+                        vec!["Value1".into()],
+                    ),
+                    (
+                        SimpleHeader::Custom(String::from("Header2")),
+                        vec!["Value2".into()],
+                    ),
+                ])),
+                IncomingRequestParts::Body(SimpleBody::None),
+            ];
+
+            assert_eq!(request_parts, expected_parts);
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
         #[traced_test]
         fn apache_bench_get() {
             let message = "GET /test HTTP/1.0\nHost: 0.0.0.0:5000\nUser-Agent: ApacheBench/2.3\nAccept: */*\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::OPTIONS,
+                    SimpleUrl {
+                        url: "/url".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (
+                        SimpleHeader::Custom(String::from("Header1")),
+                        vec!["Value1".into()],
+                    ),
+                    (
+                        SimpleHeader::Custom(String::from("Header2")),
+                        vec!["Value2".into()],
+                    ),
+                ])),
+                IncomingRequestParts::Body(SimpleBody::None),
+            ];
+
+            assert_eq!(request_parts, expected_parts);
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
         #[traced_test]
         fn prefix_newline() {
             let message = "\r\nGET /test HTTP/1.1\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::OPTIONS,
+                    SimpleUrl {
+                        url: "/url".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (
+                        SimpleHeader::Custom(String::from("Header1")),
+                        vec!["Value1".into()],
+                    ),
+                    (
+                        SimpleHeader::Custom(String::from("Header2")),
+                        vec!["Value2".into()],
+                    ),
+                ])),
+                IncomingRequestParts::Body(SimpleBody::None),
+            ];
+
+            assert_eq!(request_parts, expected_parts);
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
         #[traced_test]
         fn no_http_version() {
             let message = "GET /\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::OPTIONS,
+                    SimpleUrl {
+                        url: "/url".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (
+                        SimpleHeader::Custom(String::from("Header1")),
+                        vec!["Value1".into()],
+                    ),
+                    (
+                        SimpleHeader::Custom(String::from("Header2")),
+                        vec!["Value2".into()],
+                    ),
+                ])),
+                IncomingRequestParts::Body(SimpleBody::None),
+            ];
+
+            assert_eq!(request_parts, expected_parts);
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
         #[traced_test]
         fn line_folding_in_header_value_with_crlf() {
             let message = "GET / HTTP/1.1\nLine1:   abc\n\tdef\n ghi\n\t\tjkl\n  mno \n\t \tqrs\nLine2: \t line2\t\nLine3:\n line3\nLine4: \n \nConnection:\n close\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::OPTIONS,
+                    SimpleUrl {
+                        url: "/url".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (
+                        SimpleHeader::Custom(String::from("Header1")),
+                        vec!["Value1".into()],
+                    ),
+                    (
+                        SimpleHeader::Custom(String::from("Header2")),
+                        vec!["Value2".into()],
+                    ),
+                ])),
+                IncomingRequestParts::Body(SimpleBody::None),
+            ];
+
+            assert_eq!(request_parts, expected_parts);
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
         #[traced_test]
         fn line_folding_in_header_value_with_lf() {
             let message = "GET / HTTP/1.1\nLine1:   abc\\n\\\n\tdef\\n\\\n ghi\\n\\\n\t\tjkl\\n\\\n  mno \\n\\\n\t \tqrs\\n\\\nLine2: \t line2\t\\n\\\nLine3:\\n\\\n line3\\n\\\nLine4: \\n\\\n \\n\\\nConnection:\\n\\\n close\\n\\\n\\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::OPTIONS,
+                    SimpleUrl {
+                        url: "/url".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (
+                        SimpleHeader::Custom(String::from("Header1")),
+                        vec!["Value1".into()],
+                    ),
+                    (
+                        SimpleHeader::Custom(String::from("Header2")),
+                        vec!["Value2".into()],
+                    ),
+                ])),
+                IncomingRequestParts::Body(SimpleBody::None),
+            ];
+
+            assert_eq!(request_parts, expected_parts);
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
         #[traced_test]
         fn no_lf_after_cr() {
             let message = "GET / HTTP/1.1\rLine: 1\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::OPTIONS,
+                    SimpleUrl {
+                        url: "/url".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (
+                        SimpleHeader::Custom(String::from("Header1")),
+                        vec!["Value1".into()],
+                    ),
+                    (
+                        SimpleHeader::Custom(String::from("Header2")),
+                        vec!["Value2".into()],
+                    ),
+                ])),
+                IncomingRequestParts::Body(SimpleBody::None),
+            ];
+
+            assert_eq!(request_parts, expected_parts);
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
         #[traced_test]
         fn no_lf_after_cr_lenient() {
             let message = "GET / HTTP/1.1\rLine: 1\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::OPTIONS,
+                    SimpleUrl {
+                        url: "/url".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (
+                        SimpleHeader::Custom(String::from("Header1")),
+                        vec!["Value1".into()],
+                    ),
+                    (
+                        SimpleHeader::Custom(String::from("Header2")),
+                        vec!["Value2".into()],
+                    ),
+                ])),
+                IncomingRequestParts::Body(SimpleBody::None),
+            ];
+
+            assert_eq!(request_parts, expected_parts);
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
         #[traced_test]
         fn request_starting_with_crlf() {
             let message = "\r\nGET /url HTTP/1.1\nHeader1: Value1\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::OPTIONS,
+                    SimpleUrl {
+                        url: "/url".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (
+                        SimpleHeader::Custom(String::from("Header1")),
+                        vec!["Value1".into()],
+                    ),
+                    (
+                        SimpleHeader::Custom(String::from("Header2")),
+                        vec!["Value2".into()],
+                    ),
+                ])),
+                IncomingRequestParts::Body(SimpleBody::None),
+            ];
+
+            assert_eq!(request_parts, expected_parts);
+
+            req_thread.join().expect("should be closed");
         }
     }
 

@@ -429,6 +429,7 @@ pub enum SimpleHeader {
     IF_RANGE,
     IF_UNMODIFIED_SINCE,
     LAST_MODIFIED,
+    KEEP_ALIVE,
     LINK,
     LOCATION,
     MAX_FORWARDS,
@@ -478,6 +479,8 @@ impl From<String> for SimpleHeader {
     fn from(value: String) -> Self {
         let upper = value.to_uppercase();
         match upper.as_str() {
+            "KEEP_ALIVE" => Self::KEEP_ALIVE,
+            "KEEP-ALIVE" => Self::KEEP_ALIVE,
             "ACCEPT" => Self::ACCEPT,
             "ACCEPT-CHARSET" => Self::ACCEPT_CHARSET,
             "ACCEPT-ENCODING" => Self::ACCEPT_ENCODING,
@@ -577,6 +580,7 @@ impl core::fmt::Display for SimpleHeader {
         match self {
             Self::Custom(inner) => write!(f, "{}", inner),
             Self::ACCEPT => write!(f, "ACCEPT"),
+            Self::KEEP_ALIVE => write!(f, "KEEP-ALIVE"),
             Self::ACCEPT_CHARSET => write!(f, "ACCEPT-CHARSET"),
             Self::ACCEPT_ENCODING => write!(f, "ACCEPT-ENCODING"),
             Self::ACCEPT_LANGUAGE => write!(f, "ACCEPT-LANGUAGE"),
@@ -666,6 +670,7 @@ impl core::fmt::Display for SimpleHeader {
 /// HTTP methods
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum SimpleMethod {
+    HEAD,
     GET,
     POST,
     PUT,
@@ -684,6 +689,7 @@ impl core::fmt::Display for SimpleMethod {
 impl From<&str> for SimpleMethod {
     fn from(value: &str) -> Self {
         match value {
+            "HEAD" => Self::HEAD,
             "GET" => Self::GET,
             "POST" => Self::POST,
             "PUT" => Self::PUT,
@@ -699,6 +705,7 @@ impl From<String> for SimpleMethod {
     fn from(value: String) -> Self {
         match value.to_uppercase().as_str() {
             "GET" => Self::GET,
+            "HEAD" => Self::HEAD,
             "POST" => Self::POST,
             "PUT" => Self::PUT,
             "DELETE" => Self::DELETE,
@@ -712,6 +719,7 @@ impl From<String> for SimpleMethod {
 impl SimpleMethod {
     fn value(&self) -> String {
         match self {
+            SimpleMethod::HEAD => "HEAD".into(),
             SimpleMethod::GET => "GET".into(),
             SimpleMethod::POST => "POST".into(),
             SimpleMethod::PUT => "PUT".into(),
@@ -2569,15 +2577,27 @@ where
 
                     let actual_key = SimpleHeader::from(header_key);
                     if let Some(values) = headers.get_mut(&actual_key) {
-                        values.push(header_value.into());
+                        if NO_SPLIT_HEADERS
+                            .iter()
+                            .position(|n| n == &actual_key)
+                            .is_some()
+                        {
+                            tracing::debug!("[2] ExtendHeader: {:?}", &header_value);
+                            values.push(header_value.into());
+                        } else {
+                            tracing::debug!("[2] ExtendAndSplitHeader: {:?}", &header_value);
+                            values.extend(header_value.split(",").map(|t| t.trim().into()));
+                        }
                     } else {
                         if NO_SPLIT_HEADERS
                             .iter()
                             .position(|n| n == &actual_key)
                             .is_some()
                         {
+                            tracing::debug!("[2] InsertHeader: {:?}", &header_value);
                             headers.insert(actual_key, vec![header_value]);
                         } else {
+                            tracing::debug!("[2] InsertAndSplitHeader: {:?}", &header_value);
                             headers.insert(
                                 actual_key,
                                 header_value.split(",").map(|t| t.trim().into()).collect(),
