@@ -2561,9 +2561,9 @@ Hello world!";
 
             let expected_parts: Vec<IncomingRequestParts> = vec![
                 IncomingRequestParts::Intro(
-                    SimpleMethod::OPTIONS,
+                    SimpleMethod::GET,
                     SimpleUrl {
-                        url: "/url".into(),
+                        url: "/dumbpack".into(),
                         url_only: false,
                         matcher: Some(panic_if_failed!(Regex::new("/url"))),
                         params: None,
@@ -2571,16 +2571,10 @@ Hello world!";
                     },
                     "HTTP/1.1".into(),
                 ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
-                    (
-                        SimpleHeader::Custom(String::from("Header1")),
-                        vec!["Value1".into()],
-                    ),
-                    (
-                        SimpleHeader::Custom(String::from("Header2")),
-                        vec!["Value2".into()],
-                    ),
-                ])),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::Custom(String::from("aaaaaaaaaaaaa")),
+                    vec!["++++++++++".into()],
+                )])),
                 IncomingRequestParts::Body(SimpleBody::None),
             ];
 
@@ -2616,26 +2610,19 @@ Hello world!";
 
             let expected_parts: Vec<IncomingRequestParts> = vec![
                 IncomingRequestParts::Intro(
-                    SimpleMethod::OPTIONS,
+                    SimpleMethod::GET,
                     SimpleUrl {
-                        url: "/url".into(),
+                        url: "/get_no_headers_no_body/world".into(),
                         url_only: false,
-                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        matcher: Some(panic_if_failed!(Regex::new(
+                            "/get_no_headers_no_body/world"
+                        ))),
                         params: None,
                         queries: None,
                     },
                     "HTTP/1.1".into(),
                 ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
-                    (
-                        SimpleHeader::Custom(String::from("Header1")),
-                        vec!["Value1".into()],
-                    ),
-                    (
-                        SimpleHeader::Custom(String::from("Header2")),
-                        vec!["Value2".into()],
-                    ),
-                ])),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([])),
                 IncomingRequestParts::Body(SimpleBody::None),
             ];
 
@@ -2671,26 +2658,20 @@ Hello world!";
 
             let expected_parts: Vec<IncomingRequestParts> = vec![
                 IncomingRequestParts::Intro(
-                    SimpleMethod::OPTIONS,
+                    SimpleMethod::GET,
                     SimpleUrl {
-                        url: "/url".into(),
+                        url: "/get_one_header_no_body".into(),
                         url_only: false,
-                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        matcher: Some(panic_if_failed!(Regex::new("/get_one_header_no_body"))),
                         params: None,
                         queries: None,
                     },
                     "HTTP/1.1".into(),
                 ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
-                    (
-                        SimpleHeader::Custom(String::from("Header1")),
-                        vec!["Value1".into()],
-                    ),
-                    (
-                        SimpleHeader::Custom(String::from("Header2")),
-                        vec!["Value2".into()],
-                    ),
-                ])),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::ACCEPT,
+                    vec!["*/*".into()],
+                )])),
                 IncomingRequestParts::Body(SimpleBody::None),
             ];
 
@@ -2702,7 +2683,7 @@ Hello world!";
         #[test]
         #[traced_test]
         fn apache_bench_get() {
-            let message = "GET /test HTTP/1.0\nHost: 0.0.0.0:5000\nUser-Agent: ApacheBench/2.3\nAccept: */*\n\n\n";
+            let message = "GET /url HTTP/1.0\nHost: 0.0.0.0:5000\nUser-Agent: ApacheBench/2.3\nAccept: */*\n\n\n";
 
             // Test implementation would go here
             let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
@@ -2726,7 +2707,7 @@ Hello world!";
 
             let expected_parts: Vec<IncomingRequestParts> = vec![
                 IncomingRequestParts::Intro(
-                    SimpleMethod::OPTIONS,
+                    SimpleMethod::GET,
                     SimpleUrl {
                         url: "/url".into(),
                         url_only: false,
@@ -2734,17 +2715,12 @@ Hello world!";
                         params: None,
                         queries: None,
                     },
-                    "HTTP/1.1".into(),
+                    "HTTP/1.0".into(),
                 ),
                 IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
-                    (
-                        SimpleHeader::Custom(String::from("Header1")),
-                        vec!["Value1".into()],
-                    ),
-                    (
-                        SimpleHeader::Custom(String::from("Header2")),
-                        vec!["Value2".into()],
-                    ),
+                    (SimpleHeader::HOST, vec!["0.0.0.0:5000".into()]),
+                    (SimpleHeader::ACCEPT, vec!["*/*".into()]),
+                    (SimpleHeader::USER_AGENT, vec!["ApacheBench/2.3".into()]),
                 ])),
                 IncomingRequestParts::Body(SimpleBody::None),
             ];
