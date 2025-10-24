@@ -319,6 +319,7 @@ pub trait RenderHttp: Send {
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Proto {
+    HTTP10,
     HTTP11,
     HTTP20,
     HTTP30,
@@ -342,6 +343,7 @@ impl FromStr for Proto {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let upper = s.to_uppercase();
         match upper.as_str() {
+            "HTTP/1.0" | "HTTP 1.0" | "HTTP10" | "HTTP_10" => Ok(Self::HTTP10),
             "HTTP/1.1" | "HTTP 1.1" | "HTTP11" | "HTTP_11" => Ok(Self::HTTP11),
             "HTTP/2.0" | "HTTP 2.0" | "HTTP20" | "HTTP_20" => Ok(Self::HTTP20),
             "HTTP/3.0" | "HTTP 3.0" | "HTTP30" | "HTTP_30" => Ok(Self::HTTP30),
@@ -353,6 +355,7 @@ impl FromStr for Proto {
 impl core::fmt::Display for Proto {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::HTTP10 => write!(f, "HTTP/1.0"),
             Self::HTTP11 => write!(f, "HTTP/1.1"),
             Self::HTTP20 => write!(f, "HTTP/2.0"),
             Self::HTTP30 => write!(f, "HTTP/3.0"),
@@ -2447,12 +2450,24 @@ where
                 self.state = HttpReadState::Headers;
 
                 match Proto::from_str(intro_parts[2]) {
-                    Ok(proto) => Some(Ok(IncomingRequestParts::Intro(
-                        SimpleMethod::from(intro_parts[0].to_string()),
-                        SimpleUrl::url_with_query(intro_parts[1].to_string()),
-                        proto,
-                    ))),
-                    Err(err) => Some(Err(HttpReaderError::ProtoBuildFailed(Box::new(err)))),
+                    Ok(proto) => {
+                        tracing::debug!("Creating intro part for: {:?}", proto);
+
+                        Some(Ok(IncomingRequestParts::Intro(
+                            SimpleMethod::from(intro_parts[0].to_string()),
+                            SimpleUrl::url_with_query(intro_parts[1].to_string()),
+                            proto,
+                        )))
+                    }
+                    Err(err) => {
+                        tracing::error!(
+                            "Error generating proto: {:?} from {:?}",
+                            err,
+                            &intro_parts
+                        );
+
+                        Some(Err(HttpReaderError::ProtoBuildFailed(Box::new(err))))
+                    }
                 }
             }
             HttpReadState::Headers => {
