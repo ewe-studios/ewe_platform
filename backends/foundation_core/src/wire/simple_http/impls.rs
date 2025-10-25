@@ -2286,6 +2286,7 @@ pub enum IncomingRequestParts {
     Intro(SimpleMethod, SimpleUrl, Proto),
     Headers(SimpleHeaders),
     Body(SimpleBody),
+    SKIP,
 }
 
 impl core::fmt::Display for IncomingRequestParts {
@@ -2296,6 +2297,7 @@ impl core::fmt::Display for IncomingRequestParts {
             }
             Self::Headers(headers) => write!(f, "Headers({headers:?})"),
             Self::Body(_) => write!(f, "Body(_)"),
+            Self::SKIP => write!(f, "SKIP"),
         }
     }
 }
@@ -2434,20 +2436,43 @@ where
                     .map_err(|err| HttpReaderError::LineReadFailed(Box::new(err)));
 
                 if line_read_result.is_err() {
+                    tracing::debug!("Http read error: {:?}", &line_read_result);
+
                     self.state = HttpReadState::Finished;
                     return Some(Err(line_read_result.unwrap_err()));
                 }
 
                 let intro_parts: Vec<&str> = line.split_whitespace().collect();
 
+                if intro_parts.len() == 0 {
+                    self.state = HttpReadState::Intro;
+                    return Some(Ok(IncomingRequestParts::SKIP));
+                }
+
                 // if the lines is more than two then this is not
                 // allowed or wanted, so fail immediately.
-                if intro_parts.len() != 3 {
+                tracing::debug!(
+                    "Http Starter with invalid line: {:?} from {:?}",
+                    &intro_parts,
+                    &line
+                );
+                if intro_parts.len() != 2 && intro_parts.len() != 3 {
                     self.state = HttpReadState::Finished;
                     return Some(Err(HttpReaderError::InvalidLine(line.clone())));
                 }
 
                 self.state = HttpReadState::Headers;
+
+                // this means no protocol is provided, by default use HTTP11
+                if intro_parts.len() == 2 {
+                    tracing::debug!("Creating intro part from 2 components: {:?}", &intro_parts);
+
+                    return Some(Ok(IncomingRequestParts::Intro(
+                        SimpleMethod::from(intro_parts[0].to_string()),
+                        SimpleUrl::url_with_query(intro_parts[1].to_string()),
+                        Proto::HTTP11,
+                    )));
+                }
 
                 match Proto::from_str(intro_parts[2]) {
                     Ok(proto) => {
@@ -2492,7 +2517,12 @@ where
                         return Some(Err(line_read_result.unwrap_err()));
                     }
 
-                    if line.trim().is_empty() {
+                    tracing::debug!("HeaderLine: {:?}", &line);
+
+                    if line.trim().is_empty()
+                        && (line == "\n" || line == "\r\n" || line == "\n\n" || line == "")
+                    {
+                        line.clear();
                         break;
                     }
 
@@ -2537,7 +2567,11 @@ where
                     }
 
                     tracing::debug!("HeaderKey: {:?}", &header_key);
-                    tracing::debug!("HeaderValue: {:?}", &header_value);
+                    tracing::debug!(
+                        "HeaderValue: {:?} -> trimmed: {:?}",
+                        &header_value,
+                        header_value.trim()
+                    );
 
                     for space_char in SPACE_CHARS {
                         if header_key.contains(*space_char) {
@@ -2555,10 +2589,15 @@ where
                         }
                     }
 
+                    // ALLOW empty header value
+                    //
                     if header_value.is_empty() {
-                        self.state = HttpReadState::Finished;
-                        return Some(Err(HttpReaderError::InvalidHeaderValue));
+                        // self.state = HttpReadState::Finished;
+                        // return Some(Err(HttpReaderError::InvalidHeaderValue));
+                        line.clear();
+                        continue;
                     }
+
                     if header_value == "," {
                         self.state = HttpReadState::Finished;
                         return Some(Err(HttpReaderError::InvalidHeaderValue));
@@ -2592,6 +2631,11 @@ where
 
                     let actual_key = SimpleHeader::from(header_key);
                     if let Some(values) = headers.get_mut(&actual_key) {
+                        if header_value.trim() == "" {
+                            line.clear();
+                            continue;
+                        }
+
                         if NO_SPLIT_HEADERS
                             .iter()
                             .position(|n| n == &actual_key)
@@ -2603,21 +2647,32 @@ where
                             tracing::debug!("[2] ExtendAndSplitHeader: {:?}", &header_value);
                             values.extend(header_value.split(",").map(|t| t.trim().into()));
                         }
+
+                        line.clear();
+                        continue;
+                    }
+
+                    if header_value.trim() == "" {
+                        headers.insert(actual_key, vec![]);
+
+                        line.clear();
+                        continue;
+                    }
+
+                    if NO_SPLIT_HEADERS
+                        .iter()
+                        .position(|n| n == &actual_key)
+                        .is_some()
+                    {
+                        tracing::debug!("[2] InsertHeader: {:?}", &header_value);
+
+                        headers.insert(actual_key, vec![header_value]);
                     } else {
-                        if NO_SPLIT_HEADERS
-                            .iter()
-                            .position(|n| n == &actual_key)
-                            .is_some()
-                        {
-                            tracing::debug!("[2] InsertHeader: {:?}", &header_value);
-                            headers.insert(actual_key, vec![header_value]);
-                        } else {
-                            tracing::debug!("[2] InsertAndSplitHeader: {:?}", &header_value);
-                            headers.insert(
-                                actual_key,
-                                header_value.split(",").map(|t| t.trim().into()).collect(),
-                            );
-                        }
+                        tracing::debug!("[2] InsertAndSplitHeader: {:?}", &header_value);
+                        headers.insert(
+                            actual_key,
+                            header_value.split(",").map(|t| t.trim().into()).collect(),
+                        );
                     }
 
                     line.clear();
