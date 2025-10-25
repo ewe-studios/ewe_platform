@@ -2733,7 +2733,7 @@ Hello world!";
         #[test]
         #[traced_test]
         fn prefix_newline() {
-            let message = "\r\nGET /test HTTP/1.1\n\n\n";
+            let message = "\r\nGET /url HTTP/1.1\n\n\n";
 
             // Test implementation would go here
             let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
@@ -2756,8 +2756,9 @@ Hello world!";
             dbg!(&request_parts);
 
             let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::SKIP,
                 IncomingRequestParts::Intro(
-                    SimpleMethod::OPTIONS,
+                    SimpleMethod::GET,
                     SimpleUrl {
                         url: "/url".into(),
                         url_only: false,
@@ -2767,16 +2768,7 @@ Hello world!";
                     },
                     "HTTP/1.1".into(),
                 ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
-                    (
-                        SimpleHeader::Custom(String::from("Header1")),
-                        vec!["Value1".into()],
-                    ),
-                    (
-                        SimpleHeader::Custom(String::from("Header2")),
-                        vec!["Value2".into()],
-                    ),
-                ])),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([])),
                 IncomingRequestParts::Body(SimpleBody::None),
             ];
 
@@ -2812,26 +2804,17 @@ Hello world!";
 
             let expected_parts: Vec<IncomingRequestParts> = vec![
                 IncomingRequestParts::Intro(
-                    SimpleMethod::OPTIONS,
+                    SimpleMethod::GET,
                     SimpleUrl {
-                        url: "/url".into(),
+                        url: "/".into(),
                         url_only: false,
-                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        matcher: Some(panic_if_failed!(Regex::new("/"))),
                         params: None,
                         queries: None,
                     },
                     "HTTP/1.1".into(),
                 ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
-                    (
-                        SimpleHeader::Custom(String::from("Header1")),
-                        vec!["Value1".into()],
-                    ),
-                    (
-                        SimpleHeader::Custom(String::from("Header2")),
-                        vec!["Value2".into()],
-                    ),
-                ])),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([])),
                 IncomingRequestParts::Body(SimpleBody::None),
             ];
 
@@ -2843,7 +2826,7 @@ Hello world!";
         #[test]
         #[traced_test]
         fn line_folding_in_header_value_with_crlf() {
-            let message = "GET / HTTP/1.1\nLine1:   abc\n\tdef\n ghi\n\t\tjkl\n  mno \n\t \tqrs\nLine2: \t line2\t\nLine3:\n line3\nLine4: \n \nConnection:\n close\n\n\n";
+            let message = "GET /url HTTP/1.1\nLine1:   abc\n\tdef\n ghi\n\t\tjkl\n  mno \n\t \tqrs\nLine2: \t line2\t\nLine3:\n line3\nLine4: \n \nConnection:\n close\n\n\n";
 
             // Test implementation would go here
             let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
@@ -2867,7 +2850,7 @@ Hello world!";
 
             let expected_parts: Vec<IncomingRequestParts> = vec![
                 IncomingRequestParts::Intro(
-                    SimpleMethod::OPTIONS,
+                    SimpleMethod::GET,
                     SimpleUrl {
                         url: "/url".into(),
                         url_only: false,
@@ -2879,13 +2862,26 @@ Hello world!";
                 ),
                 IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
                     (
-                        SimpleHeader::Custom(String::from("Header1")),
-                        vec!["Value1".into()],
+                        SimpleHeader::Custom(String::from("Line1")),
+                        vec![
+                            "abc".into(),
+                            "def".into(),
+                            "ghi".into(),
+                            "jkl".into(),
+                            "mno".into(),
+                            "qrs".into(),
+                        ],
                     ),
                     (
-                        SimpleHeader::Custom(String::from("Header2")),
-                        vec!["Value2".into()],
+                        SimpleHeader::Custom(String::from("Line2")),
+                        vec!["line2".into()],
                     ),
+                    (
+                        SimpleHeader::Custom(String::from("Line3")),
+                        vec!["line3".into()],
+                    ),
+                    (SimpleHeader::Custom(String::from("Line4")), vec![]),
+                    (SimpleHeader::CONNECTION, vec!["close".into()]),
                 ])),
                 IncomingRequestParts::Body(SimpleBody::None),
             ];
@@ -2898,7 +2894,7 @@ Hello world!";
         #[test]
         #[traced_test]
         fn line_folding_in_header_value_with_lf() {
-            let message = "GET / HTTP/1.1\nLine1:   abc\\n\\\n\tdef\\n\\\n ghi\\n\\\n\t\tjkl\\n\\\n  mno \\n\\\n\t \tqrs\\n\\\nLine2: \t line2\t\\n\\\nLine3:\\n\\\n line3\\n\\\nLine4: \\n\\\n \\n\\\nConnection:\\n\\\n close\\n\\\n\\n\n";
+            let message = "GET /url HTTP/1.1\nLine1:   abc\\n\\\n\tdef\\n\\\n ghi\\n\\\n\t\tjkl\\n\\\n  mno \\n\\\n\t \tqrs\\n\\\nLine2: \t line2\t\\n\\\nLine3:\\n\\\n line3\\n\\\nLine4: \\n\\\n \\n\\\nConnection:\\n\\\n close\\n\\\n\\n\n";
 
             // Test implementation would go here
             let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
@@ -2922,7 +2918,7 @@ Hello world!";
 
             let expected_parts: Vec<IncomingRequestParts> = vec![
                 IncomingRequestParts::Intro(
-                    SimpleMethod::OPTIONS,
+                    SimpleMethod::GET,
                     SimpleUrl {
                         url: "/url".into(),
                         url_only: false,
@@ -2934,12 +2930,31 @@ Hello world!";
                 ),
                 IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
                     (
-                        SimpleHeader::Custom(String::from("Header1")),
-                        vec!["Value1".into()],
+                        SimpleHeader::Custom(String::from("Line1")),
+                        vec![
+                            "abc\\n\\".into(),
+                            "def\\n\\".into(),
+                            "ghi\\n\\".into(),
+                            "jkl\\n\\".into(),
+                            "mno \\n\\".into(),
+                            "qrs\\n\\".into(),
+                        ],
                     ),
                     (
-                        SimpleHeader::Custom(String::from("Header2")),
-                        vec!["Value2".into()],
+                        SimpleHeader::Custom(String::from("Line2")),
+                        vec!["line2\t\\n\\".into()],
+                    ),
+                    (
+                        SimpleHeader::Custom(String::from("Line3")),
+                        vec!["\\n\\".into(), "line3\\n\\".into()],
+                    ),
+                    (
+                        SimpleHeader::Custom(String::from("Line4")),
+                        vec!["\\n\\".into(), "\\n\\".into()],
+                    ),
+                    (
+                        SimpleHeader::CONNECTION,
+                        vec!["\\n\\".into(), "close\\n\\".into(), "\\n".into()],
                     ),
                 ])),
                 IncomingRequestParts::Body(SimpleBody::None),
@@ -2953,7 +2968,7 @@ Hello world!";
         #[test]
         #[traced_test]
         fn no_lf_after_cr() {
-            let message = "GET / HTTP/1.1\rLine: 1\n\n\n";
+            let message = "GET /url HTTP/1.1\rLine: 1\n\n\n";
 
             // Test implementation would go here
             let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
@@ -2970,37 +2985,11 @@ Hello world!";
 
             let mut request_parts = request_reader
                 .into_iter()
-                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
-                .expect("should generate output");
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             dbg!(&request_parts);
 
-            let expected_parts: Vec<IncomingRequestParts> = vec![
-                IncomingRequestParts::Intro(
-                    SimpleMethod::OPTIONS,
-                    SimpleUrl {
-                        url: "/url".into(),
-                        url_only: false,
-                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
-                        params: None,
-                        queries: None,
-                    },
-                    "HTTP/1.1".into(),
-                ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
-                    (
-                        SimpleHeader::Custom(String::from("Header1")),
-                        vec!["Value1".into()],
-                    ),
-                    (
-                        SimpleHeader::Custom(String::from("Header2")),
-                        vec!["Value2".into()],
-                    ),
-                ])),
-                IncomingRequestParts::Body(SimpleBody::None),
-            ];
-
-            assert_eq!(request_parts, expected_parts);
+            assert!(matches!(request_parts, Err(_)));
 
             req_thread.join().expect("should be closed");
         }
@@ -3025,37 +3014,11 @@ Hello world!";
 
             let mut request_parts = request_reader
                 .into_iter()
-                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
-                .expect("should generate output");
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
             dbg!(&request_parts);
 
-            let expected_parts: Vec<IncomingRequestParts> = vec![
-                IncomingRequestParts::Intro(
-                    SimpleMethod::OPTIONS,
-                    SimpleUrl {
-                        url: "/url".into(),
-                        url_only: false,
-                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
-                        params: None,
-                        queries: None,
-                    },
-                    "HTTP/1.1".into(),
-                ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
-                    (
-                        SimpleHeader::Custom(String::from("Header1")),
-                        vec!["Value1".into()],
-                    ),
-                    (
-                        SimpleHeader::Custom(String::from("Header2")),
-                        vec!["Value2".into()],
-                    ),
-                ])),
-                IncomingRequestParts::Body(SimpleBody::None),
-            ];
-
-            assert_eq!(request_parts, expected_parts);
+            assert!(matches!(request_parts, Err(_)));
 
             req_thread.join().expect("should be closed");
         }
@@ -3086,8 +3049,9 @@ Hello world!";
             dbg!(&request_parts);
 
             let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::SKIP,
                 IncomingRequestParts::Intro(
-                    SimpleMethod::OPTIONS,
+                    SimpleMethod::GET,
                     SimpleUrl {
                         url: "/url".into(),
                         url_only: false,
@@ -3097,16 +3061,10 @@ Hello world!";
                     },
                     "HTTP/1.1".into(),
                 ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
-                    (
-                        SimpleHeader::Custom(String::from("Header1")),
-                        vec!["Value1".into()],
-                    ),
-                    (
-                        SimpleHeader::Custom(String::from("Header2")),
-                        vec!["Value2".into()],
-                    ),
-                ])),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::Custom(String::from("Header1")),
+                    vec!["Value1".into()],
+                )])),
                 IncomingRequestParts::Body(SimpleBody::None),
             ];
 
