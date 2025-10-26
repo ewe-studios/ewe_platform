@@ -1246,14 +1246,26 @@ impl<T: Read> ByteBufferPointer<T> {
     ///
     /// This moves the peek cursor forward.
     #[inline]
-    pub fn next_util<'a, 'b>(&'a mut self, signal: &'b [u8]) -> std::io::Result<PeekState<'a>> {
+    pub fn next_until<'a, 'b>(&'a mut self, signal: &'b [u8]) -> std::io::Result<PeekState<'a>> {
         if signal.len() == 0 {
             return Ok(PeekState::ZeroLengthInput);
         }
         loop {
             let state = self.peek_by(signal.len())?;
+            // tracing::debug!(
+            //     "Next_Until: using signal: {:?} against {:?}",
+            //     &signal,
+            //     &state,
+            // );
             match state {
                 PeekState::Request(data) => {
+                    // tracing::debug!(
+                    //     "Next_Until: using signal: {:?}(len={}) against {:?} as {:?}",
+                    //     &signal,
+                    //     signal.len(),
+                    //     &data,
+                    //     String::from_utf8(data.to_vec()),
+                    // );
                     if data == signal {
                         break;
                     }
@@ -1293,7 +1305,7 @@ impl<T: Read> ByteBufferPointer<T> {
     /// This moves the peek cursor forward.
     pub fn next_line<'a>(&'a mut self, buf: &mut String) -> std::io::Result<usize> {
         const NEWLINE_SLICE: &[u8] = b"\n";
-        let read = match self.next_util(NEWLINE_SLICE) {
+        let read = match self.next_until(NEWLINE_SLICE) {
             Ok(inner) => match inner {
                 PeekState::Request(c) => {
                     unsafe {
@@ -1342,7 +1354,7 @@ impl<T: Read> ByteBufferPointer<T> {
         target: &[u8],
         buf: &mut Vec<u8>,
     ) -> std::io::Result<usize> {
-        let read = match self.next_util(target) {
+        let read = match self.next_until(target) {
             Ok(inner) => match inner {
                 PeekState::Request(c) => {
                     unsafe {
@@ -1388,7 +1400,7 @@ impl<T: Read> ByteBufferPointer<T> {
         target: &[u8],
         buf: &mut Vec<u8>,
     ) -> std::io::Result<usize> {
-        let read = match self.next_util(target) {
+        let read = match self.next_until(target) {
             Ok(inner) => match inner {
                 PeekState::Request(c) => {
                     unsafe {
@@ -1432,14 +1444,32 @@ impl<T: Read> ByteBufferPointer<T> {
     /// This moves the peek cursor forward.
     pub fn read_line<'a>(&'a mut self, buf: &mut String) -> std::io::Result<usize> {
         const NEWLINE_SLICE: &[u8] = b"\n";
-        let read = match self.next_util(NEWLINE_SLICE) {
+        let read = match self.next_until(NEWLINE_SLICE) {
             Ok(inner) => match inner {
                 PeekState::Request(c) => {
-                    unsafe {
-                        let mut buf_vec = buf.as_mut_vec();
-                        buf_vec.extend_from_slice(&c);
-                    };
-                    Ok(c.len())
+                    match String::from_utf8(c.to_vec()) {
+                        Ok(inner) => {
+                            unsafe {
+                                let inner_bytes = inner.as_bytes();
+                                let mut buf_vec = buf.as_mut_vec();
+                                buf_vec.extend_from_slice(&inner_bytes);
+                            };
+
+                            Ok(c.len())
+                        }
+                        Err(err) => {
+                            tracing::error!(
+                                "Received invalid utf8 data {:?} with error: {:?}",
+                                &c,
+                                err,
+                            );
+
+                            // fallback into character by character handling
+                            buf.extend(c.iter().map(|b| char::from(*b)));
+
+                            Ok(c.len())
+                        }
+                    }
                 }
                 PeekState::EndOfFile => Ok(0),
                 PeekState::ZeroLengthInput => Ok(0),
@@ -1597,7 +1627,7 @@ mod byte_buffered_buffer_pointer {
 
         let mut binding = buffer.lock().unwrap();
         assert!(matches!(
-            binding.next_util(SIGNAL).expect("should peek"),
+            binding.next_until(SIGNAL).expect("should peek"),
             PeekState::Request(_)
         ));
 
@@ -1621,7 +1651,7 @@ mod byte_buffered_buffer_pointer {
         let buffer = Mutex::new(ByteBufferPointer::new(10, reader));
 
         let mut binding = buffer.lock().unwrap();
-        let result = binding.next_util(SIGNAL);
+        let result = binding.next_until(SIGNAL);
         assert!(matches!(result, Ok(PeekState::Request(_))));
 
         let PeekState::Request(content) = result.unwrap() else {
@@ -1645,7 +1675,7 @@ mod byte_buffered_buffer_pointer {
         let buffer = Mutex::new(ByteBufferPointer::new(10, reader));
 
         let mut binding = buffer.lock().unwrap();
-        let result = binding.next_util(SIGNAL);
+        let result = binding.next_until(SIGNAL);
         assert!(matches!(result, Ok(PeekState::EndOfFile)));
     }
 
