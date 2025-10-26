@@ -3141,7 +3141,8 @@ Hello world!";
         #[test]
         #[traced_test]
         fn ascii_255_in_header_value() {
-            let message = r#"OPTIONS /url HTTP/1.1\nHeader1: Value1\nHeader2: \xffValue2\n\n\n"#;
+            let message =
+                b"OPTIONS /url HTTP/1.1\r\nHeader1: Value1\r\nHeader2: \xFFValue2\r\n\n\n";
 
             // Test implementation would go here
             let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
@@ -3149,7 +3150,7 @@ Hello world!";
 
             let req_thread = thread::spawn(move || {
                 let mut client = panic_if_failed!(TcpStream::connect(addr));
-                panic_if_failed!(client.write(message.as_bytes()))
+                panic_if_failed!(client.write(message))
             });
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
@@ -3182,7 +3183,7 @@ Hello world!";
                     ),
                     (
                         SimpleHeader::Custom(String::from("Header2")),
-                        vec!["Value2".into()],
+                        vec!["ÿValue2".into()],
                     ),
                 ])),
                 IncomingRequestParts::Body(SimpleBody::None),

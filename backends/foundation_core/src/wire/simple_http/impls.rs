@@ -2452,7 +2452,7 @@ where
                 // if the lines is more than two then this is not
                 // allowed or wanted, so fail immediately.
                 tracing::debug!(
-                    "Http Starter with invalid line: {:?} from {:?}",
+                    "Http Starter with line: {:?} from {:?}",
                     &intro_parts,
                     &line
                 );
@@ -2533,10 +2533,18 @@ where
 
                     let line_parts: Vec<&str> = line.splitn(2, ':').collect();
 
+                    tracing::debug!("HeaderLineParts: {:?}", &line_parts);
+
                     let (header_key, header_value) = if !line.contains(":") && last_header.is_some()
                     {
                         (last_header.clone().unwrap(), line.clone())
                     } else {
+                        tracing::debug!(
+                            "HeaderLinePartsUnicodeTrim: {:?} -- {:?}",
+                            &line_parts[0],
+                            line_parts[1]
+                                .trim_matches(|c: char| c.is_whitespace() || c.is_control()),
+                        );
                         (line_parts[0].to_string(), line_parts[1].trim().to_string())
                     };
 
