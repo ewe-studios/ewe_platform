@@ -3329,17 +3329,11 @@ Hello world!";
                     },
                     "HTTP/1.1".into(),
                 ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
-                    (
-                        SimpleHeader::Custom(String::from("Header1")),
-                        vec!["Value1".into()],
-                    ),
-                    (
-                        SimpleHeader::Custom(String::from("Header2")),
-                        vec!["Value2".into()],
-                    ),
-                ])),
-                IncomingRequestParts::NoBody,
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::CONTENT_LENGTH,
+                    vec!["3".into()],
+                )])),
+                IncomingRequestParts::SizedBody(SimpleBody::Text("AAA".into())),
             ];
 
             assert_eq!(request_parts, expected_parts);
