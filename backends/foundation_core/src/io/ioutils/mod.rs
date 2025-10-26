@@ -1450,7 +1450,7 @@ impl<T: Read> ByteBufferPointer<T> {
                     match String::from_utf8(c.to_vec()) {
                         Ok(inner) => {
                             buf.extend(inner.chars());
-                            Ok(c.len())
+                            Ok(inner.len())
                         }
                         Err(err) => {
                             tracing::error!(
