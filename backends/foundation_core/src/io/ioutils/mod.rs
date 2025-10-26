@@ -1449,12 +1449,7 @@ impl<T: Read> ByteBufferPointer<T> {
                 PeekState::Request(c) => {
                     match String::from_utf8(c.to_vec()) {
                         Ok(inner) => {
-                            unsafe {
-                                let inner_bytes = inner.as_bytes();
-                                let mut buf_vec = buf.as_mut_vec();
-                                buf_vec.extend_from_slice(&inner_bytes);
-                            };
-
+                            buf.extend(inner.chars());
                             Ok(c.len())
                         }
                         Err(err) => {
