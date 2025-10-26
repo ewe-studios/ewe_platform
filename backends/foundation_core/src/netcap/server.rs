@@ -1,7 +1,7 @@
 #![allow(clippy::type_complexity)]
 #![cfg(not(target_arch = "wasm32"))]
 
-use crate::{compati::Mutex, netcap::RawStream};
+use crate::{compati::Mutex, netcap::RawStream, wire::simple_http::SimpleBody};
 use derive_more::From;
 use std::{
     io::Write,
@@ -155,8 +155,22 @@ impl TestServer {
                     }
                 }
 
-                let Some(Ok(IncomingRequestParts::Body(body))) = request_reader.next() else {
+                let body_container = request_reader.next();
+                if body_container.is_none() {
                     break;
+                }
+
+                let body_part = body_container.unwrap();
+                if let Err(err) = body_part {
+                    tracing::error!("Breaking http read due to err: {:?}", err);
+                    break;
+                }
+
+                let body = match body_part {
+                    Ok(IncomingRequestParts::NoBody) => SimpleBody::None,
+                    Ok(IncomingRequestParts::SizedBody(inner)) => inner,
+                    Ok(IncomingRequestParts::StreamedBody(inner)) => inner,
+                    _ => unreachable!("should never trigger this clause"),
                 };
 
                 if let Ok(request) = SimpleIncomingRequest::builder()

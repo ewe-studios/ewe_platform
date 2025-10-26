@@ -22,7 +22,7 @@ pub type CloneableByteIterator<'a, E> = CloneableBoxIterator<&'a [u8], E>;
 
 /// CloneableIterator defines a trait which requires the implementing type to
 /// be Send and Cloneable this allows you to have a implementing type that can
-/// safely be cloned and wholely send across a thread into another without having
+/// safely be cloned and wholly send across a thread into another without having
 /// to juggle the usual complainst of requiring the type to also be sync.
 pub trait CloneableIterator: Iterator {
     fn clone_box_iterator(&self) -> Box<dyn CloneableIterator<Item = Self::Item>>;
