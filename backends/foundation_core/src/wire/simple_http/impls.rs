@@ -140,7 +140,7 @@ pub type BodySizeLimit = usize;
 #[derive(Clone, Debug)]
 pub enum Body {
     LimitedBody(BodySize, SimpleHeaders),
-    ChunkedBody(Vec<String>, SimpleHeaders, Option<BodySizeLimit>),
+    ChunkedBody(Vec<String>, SimpleHeaders),
 }
 
 pub enum SimpleBody {
@@ -149,7 +149,6 @@ pub enum SimpleBody {
     Bytes(Vec<u8>),
     Stream(Option<SendVecIterator<BoxedError>>),
     ChunkedStream(Option<ChunkedVecIterator<BoxedError>>),
-    LimitedChunkedStream(Option<ChunkedDataLimitIterator>),
 }
 
 impl Eq for SimpleBody {}
@@ -172,12 +171,6 @@ impl PartialEq for SimpleBody {
                 (Some(_this), Some(_that)) => true,
                 _ => false,
             },
-            (Self::LimitedChunkedStream(me), Self::LimitedChunkedStream(other)) => {
-                match (me, other) {
-                    (Some(_this), Some(_that)) => true,
-                    _ => false,
-                }
-            }
             _ => false,
         }
     }
@@ -193,7 +186,6 @@ impl core::fmt::Debug for SimpleBody {
             Bytes(&'a [u8]),
             Stream(Option<()>),
             ChunkedStream(Option<()>),
-            LimitedChunkedStream(usize, Option<()>),
         }
 
         let repr = match self {
@@ -208,16 +200,6 @@ impl core::fmt::Debug for SimpleBody {
                 Some(_) => Some(()),
                 None => None,
             }),
-            Self::LimitedChunkedStream(inner) => SimpleBodyRepr::LimitedChunkedStream(
-                match inner {
-                    Some(item) => item.limit,
-                    None => 0,
-                },
-                match inner {
-                    Some(_) => Some(()),
-                    None => None,
-                },
-            ),
         };
 
         repr.fmt(f)
@@ -233,14 +215,6 @@ impl core::fmt::Display for SimpleBody {
             Self::Stream(inner) => match inner {
                 Some(_) => write!(f, "Stream(CloneableIterator<T>)"),
                 None => write!(f, "Stream(None)"),
-            },
-            Self::LimitedChunkedStream(inner) => match inner {
-                Some(item) => write!(
-                    f,
-                    "LimitedChunkedStream({}, CloneableIterator<T>)",
-                    item.limit
-                ),
-                None => write!(f, "LimitedChunkedStream(0, None)"),
             },
             Self::ChunkedStream(inner) => match inner {
                 Some(_) => write!(f, "ChunkedStream(CloneableIterator<T>)"),
@@ -1661,9 +1635,6 @@ pub enum Http11ReqState {
     /// handling of a chunked body parts where
     ChunkedBodyStreaming(Option<ChunkedVecIterator<BoxedError>>),
 
-    /// Limited ChunkedBodyStreaming that caps chunked data to a specific size.
-    LimitedChunkedBodyStreaming(Option<ChunkedDataLimitIterator>),
-
     /// The final state of the rendering which once read ends the iterator.
     End,
 }
@@ -1744,20 +1715,6 @@ impl Iterator for Http11RequestIterator {
                         self.0 = Some(Http11ReqState::End);
                         Some(Ok(inner.to_vec()))
                     }
-                    SimpleBody::LimitedChunkedStream(mut streamer_container) => {
-                        match streamer_container.take() {
-                            Some(inner) => {
-                                self.0 =
-                                    Some(Http11ReqState::LimitedChunkedBodyStreaming(Some(inner)));
-                                Some(Ok(b"".to_vec()))
-                            }
-                            None => {
-                                // tell the iterator we want it to end
-                                self.0 = Some(Http11ReqState::End);
-                                Some(Ok(b"\r\n".to_vec()))
-                            }
-                        }
-                    }
                     SimpleBody::ChunkedStream(mut streamer_container) => {
                         match streamer_container.take() {
                             Some(inner) => {
@@ -1783,37 +1740,6 @@ impl Iterator for Http11RequestIterator {
                                 Some(Ok(b"\r\n".to_vec()))
                             }
                         }
-                    }
-                }
-            }
-            Http11ReqState::LimitedChunkedBodyStreaming(container) => {
-                match container {
-                    Some(mut body_iterator) => {
-                        match body_iterator.next() {
-                            Some(collected) => match collected {
-                                Ok(mut inner) => {
-                                    self.0 = Some(Http11ReqState::LimitedChunkedBodyStreaming(
-                                        Some(body_iterator),
-                                    ));
-                                    Some(Ok(inner.into_bytes()))
-                                }
-                                Err(err) => {
-                                    // tell the iterator we want it to end
-                                    self.0 = Some(Http11ReqState::End);
-                                    Some(Err(err.into()))
-                                }
-                            },
-                            None => {
-                                // tell the iterator we want it to end
-                                self.0 = Some(Http11ReqState::End);
-                                Some(Ok(b"".to_vec()))
-                            }
-                        }
-                    }
-                    None => {
-                        // tell the iterator we want it to end
-                        self.0 = Some(Http11ReqState::End);
-                        Some(Ok(b"".to_vec()))
                     }
                 }
             }
@@ -1892,7 +1818,6 @@ pub enum Http11ResState {
     Headers(SimpleOutgoingResponse),
     Body(SimpleOutgoingResponse),
     BodyStreaming(Option<SendVecIterator<BoxedError>>),
-    LimitedChunkedBodyStreaming(Option<ChunkedDataLimitIterator>),
     ChunkedBodyStreaming(Option<ChunkedVecIterator<BoxedError>>),
     End,
 }
@@ -1985,20 +1910,6 @@ impl Iterator for Http11ResponseIterator {
                         self.0 = Some(Http11ResState::End);
                         Some(Ok(inner.to_vec()))
                     }
-                    SimpleBody::LimitedChunkedStream(mut streamer_container) => {
-                        match streamer_container.take() {
-                            Some(inner) => {
-                                self.0 =
-                                    Some(Http11ResState::LimitedChunkedBodyStreaming(Some(inner)));
-                                Some(Ok(b"".to_vec()))
-                            }
-                            None => {
-                                // tell the iterator we want it to end
-                                self.0 = Some(Http11ResState::End);
-                                Some(Ok(b"".to_vec()))
-                            }
-                        }
-                    }
                     SimpleBody::ChunkedStream(mut streamer_container) => {
                         match streamer_container.take() {
                             Some(inner) => {
@@ -2024,39 +1935,6 @@ impl Iterator for Http11ResponseIterator {
                                 Some(Ok(b"".to_vec()))
                             }
                         }
-                    }
-                }
-            }
-            Http11ResState::LimitedChunkedBodyStreaming(mut response) => {
-                match response.take() {
-                    Some(mut actual_iterator) => {
-                        match actual_iterator.next() {
-                            Some(collected) => {
-                                match collected {
-                                    Ok(mut chunked) => {
-                                        self.0 = Some(Http11ResState::LimitedChunkedBodyStreaming(
-                                            Some(actual_iterator),
-                                        ));
-                                        Some(Ok(chunked.into_bytes()))
-                                    }
-                                    Err(err) => {
-                                        // tell the iterator we want it to end
-                                        self.0 = Some(Http11ResState::End);
-                                        Some(Err(err.into()))
-                                    }
-                                }
-                            }
-                            None => {
-                                // tell the iterator we want it to end
-                                self.0 = Some(Http11ResState::End);
-                                Some(Ok(b"".to_vec()))
-                            }
-                        }
-                    }
-                    None => {
-                        // tell the iterator we want it to end
-                        self.0 = Some(Http11ResState::End);
-                        Some(Ok(b"".to_vec()))
                     }
                 }
             }
@@ -2283,10 +2161,12 @@ pub type Protocol = String;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum IncomingRequestParts {
+    SKIP,
+    NoBody,
     Intro(SimpleMethod, SimpleUrl, Proto),
     Headers(SimpleHeaders),
-    Body(SimpleBody),
-    SKIP,
+    SizedBody(SimpleBody),
+    StreamedBody(SimpleBody),
 }
 
 impl core::fmt::Display for IncomingRequestParts {
@@ -2296,7 +2176,9 @@ impl core::fmt::Display for IncomingRequestParts {
                 write!(f, "Intro({method:?}, {url:?}, {proto})")
             }
             Self::Headers(headers) => write!(f, "Headers({headers:?})"),
-            Self::Body(_) => write!(f, "Body(_)"),
+            Self::SizedBody(_) => write!(f, "SizedBody(_)"),
+            Self::StreamedBody(_) => write!(f, "StreamedBody(_)"),
+            Self::NoBody => write!(f, "NoBody"),
             Self::SKIP => write!(f, "SKIP"),
         }
     }
@@ -2735,7 +2617,6 @@ where
                     self.state = HttpReadState::Body(Body::ChunkedBody(
                         transfer_encodings.clone(),
                         headers.clone(),
-                        self.max_body_length,
                     ));
                     return Some(Ok(IncomingRequestParts::Headers(headers)));
                 }
@@ -2761,8 +2642,15 @@ where
                                     }
                                 }
 
-                                self.state =
-                                    HttpReadState::Body(Body::LimitedBody(value, headers.clone()));
+                                if value == 0 {
+                                    self.state = HttpReadState::NoBody;
+                                } else {
+                                    self.state = HttpReadState::Body(Body::LimitedBody(
+                                        value,
+                                        headers.clone(),
+                                    ));
+                                }
+
                                 Some(Ok(IncomingRequestParts::Headers(headers)))
                             }
                             Err(err) => {
@@ -2779,7 +2667,7 @@ where
             }
             HttpReadState::NoBody => {
                 self.state = HttpReadState::Finished;
-                Some(Ok(IncomingRequestParts::Body(SimpleBody::None)))
+                Some(Ok(IncomingRequestParts::NoBody))
             }
             HttpReadState::Body(body) => {
                 let cloned_stream = self.reader.clone();
@@ -2788,7 +2676,24 @@ where
                         // once we've gotten a body iterator and gives it to the user
                         // the next state is finished.
                         self.state = HttpReadState::Finished;
-                        Some(Ok(IncomingRequestParts::Body(generated_body)))
+
+                        match generated_body {
+                            SimpleBody::None => Some(Ok(IncomingRequestParts::NoBody)),
+                            SimpleBody::Stream(inner) => Some(Ok(
+                                IncomingRequestParts::StreamedBody(SimpleBody::Stream(inner)),
+                            )),
+                            SimpleBody::ChunkedStream(inner) => {
+                                Some(Ok(IncomingRequestParts::StreamedBody(
+                                    SimpleBody::ChunkedStream(inner),
+                                )))
+                            }
+                            SimpleBody::Bytes(inner) => Some(Ok(IncomingRequestParts::SizedBody(
+                                SimpleBody::Bytes(inner),
+                            ))),
+                            SimpleBody::Text(inner) => {
+                                Some(Ok(IncomingRequestParts::SizedBody(SimpleBody::Text(inner))))
+                            }
+                        }
                     }
                     Err(err) => {
                         self.state = HttpReadState::Finished;
@@ -3693,7 +3598,7 @@ impl BodyExtractor for SimpleHttpBody {
         match body {
             Body::LimitedBody(content_length, _) => {
                 if content_length == 0 {
-                    return Ok(SimpleBody::None);
+                    return Err(Box::new(HttpReaderError::ZeroBodySizeNotAllowed));
                 }
 
                 let mut borrowed_stream = match stream.write() {
@@ -3707,17 +3612,12 @@ impl BodyExtractor for SimpleHttpBody {
                     Err(err) => Err(Box::new(err)),
                 }
             }
-            Body::ChunkedBody(transfer_encoding, headers, opt_max_size) => {
+            Body::ChunkedBody(transfer_encoding, headers) => {
                 let chunked_iterator = Box::new(SimpleHttpChunkIterator::new(
                     transfer_encoding,
                     headers,
                     stream,
                 ));
-                if let Some(max_value) = opt_max_size {
-                    return Ok(SimpleBody::LimitedChunkedStream(Some(
-                        ChunkedDataLimitIterator::new(max_value, chunked_iterator),
-                    )));
-                }
                 Ok(SimpleBody::ChunkedStream(Some(chunked_iterator)))
             }
         }
@@ -3734,6 +3634,26 @@ impl HttpReader<SimpleHttpBody, SharedByteBufferStream<RawStream>> {
         reader: SharedByteBufferStream<RawStream>,
     ) -> HttpReader<SimpleHttpBody, RawStream> {
         HttpReader::<SimpleHttpBody, RawStream>::new(reader, SimpleHttpBody)
+    }
+}
+
+/// [HTTPStreams] is a http reader that can handle multiple streams of http requests where
+/// it will yield an instance of [`HttpReader`] each time it's [`HTTPStreams::read`] method is
+/// called. It is expected that the returned reader is fully exhausted before the next http reader
+/// is requested, specifically due to cases where the underlying http request is a chunked stream
+/// as the reader
+pub struct HTTPStreams {
+    source: SharedByteBufferStream<RawStream>,
+}
+
+impl HTTPStreams {
+    pub fn new(source: SharedByteBufferStream<RawStream>) -> Self {
+        Self { source }
+    }
+
+    pub fn from_reader(reader: RawStream) -> Self {
+        let source = ioutils::SharedByteBufferStream::new(reader);
+        Self::new(source)
     }
 }
 
@@ -3818,7 +3738,7 @@ Hello world!";
                     vec!["Apache/2.2.8 (Ubuntu) mod_ssl/2.2.8 OpenSSL/0.9.8g".into()],
                 ),
             ])),
-            IncomingRequestParts::Body(SimpleBody::Bytes(vec![
+            IncomingRequestParts::SizedBody(SimpleBody::Bytes(vec![
                 72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33,
             ])),
         ];
@@ -3870,7 +3790,7 @@ Hello world!";
                 ),
                 (SimpleHeader::HOST, vec!["127.0.0.1:7889".into()]),
             ])),
-            IncomingRequestParts::Body(SimpleBody::Bytes(vec![
+            IncomingRequestParts::SizedBody(SimpleBody::Bytes(vec![
                 104, 101, 108, 108, 111, 61, 119, 111, 114, 108, 100, 38, 115, 101, 97, 110, 61,
                 109, 111, 110, 115, 116, 97, 114,
             ])),
@@ -3926,7 +3846,7 @@ Hello world!";
                 ),
                 (SimpleHeader::HOST, vec!["127.0.0.1:7887".into()]),
             ])),
-            IncomingRequestParts::Body(SimpleBody::Bytes(vec![
+            IncomingRequestParts::SizedBody(SimpleBody::Bytes(vec![
                 104, 101, 108, 108, 111, 61, 119, 111, 114, 108, 100, 38, 115, 101, 97, 110, 61,
                 109, 111, 110, 115, 116, 97, 114,
             ])),

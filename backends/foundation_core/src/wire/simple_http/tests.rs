@@ -91,7 +91,7 @@ Hello world!";
                         vec!["Apache/2.2.8 (Ubuntu) mod_ssl/2.2.8 OpenSSL/0.9.8g".into()],
                     ),
                 ])),
-                IncomingRequestParts::Body(SimpleBody::Bytes(vec![
+                IncomingRequestParts::SizedBody(SimpleBody::Bytes(vec![
                     72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33,
                 ])),
             ];
@@ -144,7 +144,7 @@ Hello world!";
                     "HTTP/1.1".into(),
                 ),
                 IncomingRequestParts::Headers(BTreeMap::new()),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -191,7 +191,7 @@ Hello world!";
                     "HTTP/1.1".into(),
                 ),
                 IncomingRequestParts::Headers(BTreeMap::new()),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -239,7 +239,7 @@ Hello world!";
                     "HTTP/1.1".into(),
                 ),
                 IncomingRequestParts::Headers(BTreeMap::new()),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -287,7 +287,7 @@ Hello world!";
                     "HTTP/1.1".into(),
                 ),
                 IncomingRequestParts::Headers(BTreeMap::new()),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -335,7 +335,7 @@ Hello world!";
                     "HTTP/1.1".into(),
                 ),
                 IncomingRequestParts::Headers(BTreeMap::new()),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -380,7 +380,7 @@ Hello world!";
                     "HTTP/1.1".into(),
                 ),
                 IncomingRequestParts::Headers(BTreeMap::new()),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -431,7 +431,7 @@ Hello world!";
                     SimpleHeader::HOST,
                     vec!["github.com".into()],
                 )])),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -479,7 +479,7 @@ Hello world!";
                     "HTTP/1.1".into(),
                 ),
                 IncomingRequestParts::Headers(BTreeMap::new()),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -543,10 +543,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -616,10 +616,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -689,10 +689,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -761,10 +761,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -833,10 +833,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -909,10 +909,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -985,10 +985,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -1061,10 +1061,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -1143,10 +1143,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -1206,10 +1206,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -1269,10 +1269,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -1358,10 +1358,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -1654,10 +1654,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -1728,10 +1728,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -1828,10 +1828,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -1892,10 +1892,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -1986,10 +1986,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -2050,10 +2050,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -2114,10 +2114,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -2186,10 +2186,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -2258,10 +2258,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::Body(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -2336,7 +2336,7 @@ Hello world!";
                         vec!["Value2".into()],
                     ),
                 ])),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -2382,7 +2382,7 @@ Hello world!";
                     "HTTP/1.1".into(),
                 ),
                 IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([])),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -2441,7 +2441,7 @@ Hello world!";
                         vec!["curl/7.18.0 (i486-pc-linux-gnu) libcurl/7.18.0 OpenSSL/0.9.8g zlib/1.2.3.3 libidn/1.1".into()],
                     ),
                 ])),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -2526,7 +2526,7 @@ Hello world!";
                     ),
 
                 ])),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -2575,7 +2575,7 @@ Hello world!";
                     SimpleHeader::Custom(String::from("aaaaaaaaaaaaa")),
                     vec!["++++++++++".into()],
                 )])),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -2623,7 +2623,7 @@ Hello world!";
                     "HTTP/1.1".into(),
                 ),
                 IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([])),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -2672,7 +2672,7 @@ Hello world!";
                     SimpleHeader::ACCEPT,
                     vec!["*/*".into()],
                 )])),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -2722,7 +2722,7 @@ Hello world!";
                     (SimpleHeader::ACCEPT, vec!["*/*".into()]),
                     (SimpleHeader::USER_AGENT, vec!["ApacheBench/2.3".into()]),
                 ])),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -2769,7 +2769,7 @@ Hello world!";
                     "HTTP/1.1".into(),
                 ),
                 IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([])),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -2815,7 +2815,7 @@ Hello world!";
                     "HTTP/1.1".into(),
                 ),
                 IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([])),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -2883,7 +2883,7 @@ Hello world!";
                     (SimpleHeader::Custom(String::from("Line4")), vec![]),
                     (SimpleHeader::CONNECTION, vec!["close".into()]),
                 ])),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -2957,7 +2957,7 @@ Hello world!";
                         vec!["\\n\\".into(), "close\\n\\".into(), "\\n".into()],
                     ),
                 ])),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -3065,7 +3065,7 @@ Hello world!";
                     SimpleHeader::Custom(String::from("Header1")),
                     vec!["Value1".into()],
                 )])),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -3122,7 +3122,7 @@ Hello world!";
                     SimpleHeader::Custom(String::from("Test")),
                     vec!["Düsseldorf".into()],
                 )])),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -3186,7 +3186,7 @@ Hello world!";
                         vec!["ÿValue2".into()],
                     ),
                 ])),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -3276,7 +3276,7 @@ Hello world!";
                             "-----END CERTIFICATE-----".into(),
                         ],
                 )])),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -3319,7 +3319,7 @@ Hello world!";
 
             let expected_parts: Vec<IncomingRequestParts> = vec![
                 IncomingRequestParts::Intro(
-                    SimpleMethod::OPTIONS,
+                    SimpleMethod::POST,
                     SimpleUrl {
                         url: "/url".into(),
                         url_only: false,
@@ -3339,7 +3339,7 @@ Hello world!";
                         vec!["Value2".into()],
                     ),
                 ])),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
@@ -3402,7 +3402,7 @@ Hello world!";
                         vec!["Value2".into()],
                     ),
                 ])),
-                IncomingRequestParts::Body(SimpleBody::None),
+                IncomingRequestParts::NoBody,
             ];
 
             assert_eq!(request_parts, expected_parts);
