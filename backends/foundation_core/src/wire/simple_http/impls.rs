@@ -3646,6 +3646,8 @@ pub struct HTTPStreams {
     source: SharedByteBufferStream<RawStream>,
 }
 
+// Constructors
+
 impl HTTPStreams {
     pub fn new(source: SharedByteBufferStream<RawStream>) -> Self {
         Self { source }
@@ -3654,6 +3656,16 @@ impl HTTPStreams {
     pub fn from_reader(reader: RawStream) -> Self {
         let source = ioutils::SharedByteBufferStream::new(reader);
         Self::new(source)
+    }
+}
+
+// Methods
+
+impl HTTPStreams {
+    /// [`next_reader`] returns a new HttpReader to read the next read http request within the
+    /// underlying stream.
+    pub fn next_reader(&self) -> HttpReader<SimpleHttpBody, RawStream> {
+        HttpReader::<SimpleHttpBody, RawStream>::new(self.source.clone(), SimpleHttpBody)
     }
 }
 
