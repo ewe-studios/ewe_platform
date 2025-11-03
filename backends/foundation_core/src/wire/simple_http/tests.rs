@@ -8,8 +8,8 @@ mod http_requests_compliance {
     use crate::netcap::RawStream;
     use crate::panic_if_failed;
     use crate::wire::simple_http::{
-        ChunkedData, HttpReader, HttpReaderError, IncomingRequestParts, SimpleBody, SimpleHeader,
-        SimpleMethod, SimpleUrl,
+        ChunkedData, HTTPStreams, HttpReader, HttpReaderError, IncomingRequestParts, SimpleBody,
+        SimpleHeader, SimpleMethod, SimpleUrl,
     };
     use regex::Regex;
 
@@ -3308,35 +3308,93 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_stream = super::HTTPStreams::from_reader(reader);
 
-            let mut request_parts = request_reader
+            let request_one = request_stream
+                .next_reader()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
 
-            dbg!(&request_parts);
+            assert_eq!(
+                request_one,
+                vec![
+                    IncomingRequestParts::Intro(
+                        SimpleMethod::POST,
+                        SimpleUrl {
+                            url: "/aaa".into(),
+                            url_only: false,
+                            matcher: Some(panic_if_failed!(Regex::new("/aaa"))),
+                            params: None,
+                            queries: None,
+                        },
+                        "HTTP/1.1".into(),
+                    ),
+                    IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                        SimpleHeader::CONTENT_LENGTH,
+                        vec!["3".into()],
+                    )])),
+                    IncomingRequestParts::SizedBody(SimpleBody::Bytes("AAA".as_bytes().to_vec())),
+                ]
+            );
 
-            let expected_parts: Vec<IncomingRequestParts> = vec![
-                IncomingRequestParts::Intro(
-                    SimpleMethod::POST,
-                    SimpleUrl {
-                        url: "/url".into(),
-                        url_only: false,
-                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
-                        params: None,
-                        queries: None,
-                    },
-                    "HTTP/1.1".into(),
-                ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
-                    SimpleHeader::CONTENT_LENGTH,
-                    vec!["3".into()],
-                )])),
-                IncomingRequestParts::SizedBody(SimpleBody::Text("AAA".into())),
-            ];
+            let request_two = request_stream
+                .next_reader()
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+            assert_eq!(
+                request_two,
+                vec![
+                    IncomingRequestParts::SKIP,
+                    IncomingRequestParts::Intro(
+                        SimpleMethod::PUT,
+                        SimpleUrl {
+                            url: "/bbb".into(),
+                            url_only: false,
+                            matcher: Some(panic_if_failed!(Regex::new("/bbb"))),
+                            params: None,
+                            queries: None,
+                        },
+                        "HTTP/1.1".into(),
+                    ),
+                    IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                        SimpleHeader::CONTENT_LENGTH,
+                        vec!["4".into()],
+                    )])),
+                    IncomingRequestParts::SizedBody(SimpleBody::Bytes("BBBB".as_bytes().to_vec())),
+                ]
+            );
 
-            assert_eq!(request_parts, expected_parts);
+            let request_three = request_stream
+                .next_reader()
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+            assert_eq!(
+                request_three,
+                vec![
+                    IncomingRequestParts::SKIP,
+                    IncomingRequestParts::Intro(
+                        SimpleMethod::PATCH,
+                        SimpleUrl {
+                            url: "/ccc".into(),
+                            url_only: false,
+                            matcher: Some(panic_if_failed!(Regex::new("/ccc"))),
+                            params: None,
+                            queries: None,
+                        },
+                        "HTTP/1.1".into(),
+                    ),
+                    IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                        SimpleHeader::CONTENT_LENGTH,
+                        vec!["5".into()],
+                    )])),
+                    IncomingRequestParts::SizedBody(SimpleBody::Bytes(
+                        "CCCC\n".as_bytes().to_vec()
+                    )),
+                ]
+            );
 
             req_thread.join().expect("should be closed");
         }
