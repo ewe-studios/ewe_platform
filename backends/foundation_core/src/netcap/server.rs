@@ -142,7 +142,7 @@ impl TestServer {
                     break;
                 }
 
-                let request_parts = parts.unwrap();
+                let mut request_parts = parts.unwrap();
                 if request_parts.len() != 3 {
                     tracing::error!(
                         "Failed to receive expected request parts of 3: {:?}",
@@ -151,8 +151,11 @@ impl TestServer {
                     break;
                 }
 
-                let IncomingRequestParts::Intro(ref method, ref url, ref proto) = request_parts[0]
-                else {
+                let body_part = request_parts.pop().unwrap();
+                let headers_part = request_parts.pop().unwrap();
+                let intros_part = request_parts.pop().unwrap();
+
+                let IncomingRequestParts::Intro(method, url, proto) = intros_part else {
                     tracing::error!("Failed to receive a IncomingRequestParts::Intro(_, _, _)");
                     return;
                 };
@@ -164,7 +167,7 @@ impl TestServer {
                     proto,
                 );
 
-                if proto != &Proto::HTTP11 {
+                if proto != Proto::HTTP11 {
                     break;
                 }
 
@@ -172,7 +175,7 @@ impl TestServer {
                     break;
                 };
 
-                let IncomingRequestParts::Headers(headers) = request_parts[1] else {
+                let IncomingRequestParts::Headers(headers) = headers_part else {
                     tracing::error!("Failed to receive a IncomingRequestParts::Headers(_)");
                     break;
                 };
@@ -184,7 +187,7 @@ impl TestServer {
                     }
                 }
 
-                let body = match request_parts[2] {
+                let body = match body_part {
                     IncomingRequestParts::NoBody => SimpleBody::None,
                     IncomingRequestParts::SizedBody(inner) => inner,
                     IncomingRequestParts::StreamedBody(inner) => inner,

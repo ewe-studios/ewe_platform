@@ -1195,7 +1195,7 @@ impl<T: Read> ByteBufferPointer<T> {
     /// which means that part of the internal buffer read from the underlying reader will
     /// at some point be discarded as it should be.
     pub fn read_size<'a>(&'a mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        match self.nextby(buf.len()) {
+        let read = match self.nextby(buf.len()) {
             Ok(state) => match state {
                 PeekState::Request(data) => {
                     let ending = if buf.len() > data.len() {
@@ -1222,6 +1222,14 @@ impl<T: Read> ByteBufferPointer<T> {
                 }
                 _ => return Ok(0),
             },
+            Err(err) => Err(err),
+        };
+
+        match read {
+            Ok(val) => {
+                self.skip();
+                Ok(val)
+            }
             Err(err) => Err(err),
         }
     }
