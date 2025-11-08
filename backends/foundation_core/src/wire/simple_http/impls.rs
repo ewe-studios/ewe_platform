@@ -654,6 +654,8 @@ pub enum SimpleMethod {
     DELETE,
     PATCH,
     OPTIONS,
+    CONNECT,
+    TRACE,
     Custom(String),
 }
 
@@ -667,6 +669,8 @@ impl From<&str> for SimpleMethod {
     fn from(value: &str) -> Self {
         match value {
             "HEAD" => Self::HEAD,
+            "CONNECT" => Self::CONNECT,
+            "TRACE" => Self::TRACE,
             "GET" => Self::GET,
             "POST" => Self::POST,
             "PUT" => Self::PUT,
@@ -687,6 +691,8 @@ impl From<String> for SimpleMethod {
             "PUT" => Self::PUT,
             "DELETE" => Self::DELETE,
             "PATCH" => Self::PATCH,
+            "TRACE" => Self::TRACE,
+            "CONNECT" => Self::CONNECT,
             "OPTION" | "OPTIONS" => Self::OPTIONS,
             _ => Self::Custom(value),
         }
@@ -703,6 +709,8 @@ impl SimpleMethod {
             SimpleMethod::DELETE => "DELETE".into(),
             SimpleMethod::PATCH => "PATCH".into(),
             SimpleMethod::OPTIONS => "OPTIONS".into(),
+            SimpleMethod::CONNECT => "CONNECT".into(),
+            SimpleMethod::TRACE => "TRACE".into(),
             SimpleMethod::Custom(inner) => inner.clone(),
         }
     }
@@ -2203,6 +2211,7 @@ pub trait BodyExtractor {
 pub enum HttpReadState {
     Intro,
     Headers,
+    OnlyHeaders,
     Body(Body),
     NoBody,
     Finished,
@@ -2290,6 +2299,8 @@ static SPACE_CHARS: &[char] = &[' ', '\n', '\t', '\r'];
 
 static TRANSFER_ENCODING_VALUES: &[&str] = &["chunked", "compress", "deflate", "gzip"];
 
+static NO_BODY_METHODS: &[SimpleMethod] = &[SimpleMethod::HEAD, SimpleMethod::CONNECT];
+
 static NO_SPLIT_HEADERS: &[SimpleHeader] = &[
     SimpleHeader::DATE,
     SimpleHeader::ETAG,
@@ -2305,6 +2316,11 @@ where
     type Item = Result<IncomingRequestParts, HttpReaderError>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        let no_body = match &self.state {
+            HttpReadState::OnlyHeaders => true,
+            _ => false,
+        };
+
         match &self.state {
             HttpReadState::Intro => {
                 let mut line = String::new();
@@ -2343,14 +2359,21 @@ where
                     return Some(Err(HttpReaderError::InvalidLine(line.clone())));
                 }
 
-                self.state = HttpReadState::Headers;
+                let method = SimpleMethod::from(intro_parts[0].to_string());
+
+                // ensure to capture and skip methods that should not have a body attached.
+                self.state = if NO_BODY_METHODS.iter().position(|n| n == &method).is_some() {
+                    HttpReadState::OnlyHeaders
+                } else {
+                    HttpReadState::Headers
+                };
 
                 // this means no protocol is provided, by default use HTTP11
                 if intro_parts.len() == 2 {
                     tracing::debug!("Creating intro part from 2 components: {:?}", &intro_parts);
 
                     return Some(Ok(IncomingRequestParts::Intro(
-                        SimpleMethod::from(intro_parts[0].to_string()),
+                        method,
                         SimpleUrl::url_with_query(intro_parts[1].to_string()),
                         Proto::HTTP11,
                     )));
@@ -2361,7 +2384,7 @@ where
                         tracing::debug!("Creating intro part for: {:?}", proto);
 
                         Some(Ok(IncomingRequestParts::Intro(
-                            SimpleMethod::from(intro_parts[0].to_string()),
+                            method,
                             SimpleUrl::url_with_query(intro_parts[1].to_string()),
                             proto,
                         )))
@@ -2377,7 +2400,7 @@ where
                     }
                 }
             }
-            HttpReadState::Headers => {
+            HttpReadState::Headers | HttpReadState::OnlyHeaders => {
                 let mut headers: SimpleHeaders = BTreeMap::new();
 
                 let mut line = String::new();
@@ -2566,6 +2589,12 @@ where
                     }
 
                     line.clear();
+                }
+
+                if no_body {
+                    tracing::debug!("No body flag is set to true");
+                    self.state = HttpReadState::NoBody;
+                    return Some(Ok(IncomingRequestParts::Headers(headers)));
                 }
 
                 // if its a chunked body then send and move state to chunked body state
