@@ -3400,7 +3400,7 @@ Hello world!";
         }
     }
 
-    mod pausing {
+    mod methods {
         use tracing_test::traced_test;
 
         use crate::wire::simple_http::ChunkStateError;
@@ -3409,8 +3409,8 @@ Hello world!";
 
         #[test]
         #[traced_test]
-        fn on_message_begin() {
-            let message = "POST / HTTP/1.1\nContent-Length: 3\n\nabc\n";
+        fn report_request() {
+            let message = "REPORT /test HTTP/1.1\n\n\n";
 
             // Test implementation would go here
             let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
@@ -3423,143 +3423,138 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_stream = super::HTTPStreams::from_reader(reader);
 
-            let mut request_parts = request_reader
+            let request_one = request_stream
+                .next_reader()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
 
-            dbg!(&request_parts);
-
-            let expected_parts: Vec<IncomingRequestParts> = vec![
-                IncomingRequestParts::Intro(
-                    SimpleMethod::OPTIONS,
-                    SimpleUrl {
-                        url: "/url".into(),
-                        url_only: false,
-                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
-                        params: None,
-                        queries: None,
-                    },
-                    "HTTP/1.1".into(),
-                ),
-                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
-                    (
-                        SimpleHeader::Custom(String::from("Header1")),
-                        vec!["Value1".into()],
+            assert_eq!(
+                request_one,
+                vec![
+                    IncomingRequestParts::Intro(
+                        SimpleMethod::Custom("REPORT".into()),
+                        SimpleUrl {
+                            url: "/test".into(),
+                            url_only: false,
+                            matcher: Some(panic_if_failed!(Regex::new("/test"))),
+                            params: None,
+                            queries: None,
+                        },
+                        "HTTP/1.1".into(),
                     ),
-                    (
-                        SimpleHeader::Custom(String::from("Header2")),
-                        vec!["Value2".into()],
-                    ),
-                ])),
-                IncomingRequestParts::NoBody,
-            ];
-
-            assert_eq!(request_parts, expected_parts);
+                    IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([])),
+                    IncomingRequestParts::NoBody,
+                ]
+            );
 
             req_thread.join().expect("should be closed");
         }
 
         #[test]
         #[traced_test]
-        fn on_message_complete() {
-            let message = "POST / HTTP/1.1\nContent-Length: 3\n\nabc\n";
-        }
-
-        #[test]
-        #[traced_test]
-        fn on_protocol_complete() {
-            let message = "POST / HTTP/1.1\nContent-Length: 3\n\nabc\n";
-        }
-
-        #[test]
-        #[traced_test]
-        fn on_method_complete() {
-            let message = "POST / HTTP/1.1\nContent-Length: 3\n\nabc\n";
-        }
-
-        #[test]
-        #[traced_test]
-        fn on_url_complete() {
-            let message = "POST / HTTP/1.1\nContent-Length: 3\n\nabc\n";
-        }
-
-        #[test]
-        #[traced_test]
-        fn on_version_complete() {
-            let message = "POST / HTTP/1.1\nContent-Length: 3\n\nabc\n";
-        }
-
-        #[test]
-        #[traced_test]
-        fn on_header_field_complete() {
-            let message = "POST / HTTP/1.1\nContent-Length: 3\n\nabc\n";
-        }
-
-        #[test]
-        #[traced_test]
-        fn on_header_value_complete() {
-            let message = "POST / HTTP/1.1\nContent-Length: 3\n\nabc\n";
-        }
-
-        #[test]
-        #[traced_test]
-        fn on_headers_complete() {
-            let message = "POST / HTTP/1.1\nContent-Length: 3\n\nabc\n";
-        }
-
-        #[test]
-        #[traced_test]
-        fn on_chunk_header() {
-            let message = "PUT / HTTP/1.1\nTransfer-Encoding: chunked\n\na\n0123456789\n0\n\n\n";
-        }
-
-        #[test]
-        #[traced_test]
-        fn on_chunk_extension_name() {
-            let message =
-                "PUT / HTTP/1.1\nTransfer-Encoding: chunked\n\na;foo=bar\n0123456789\n0\n\n\n";
-        }
-
-        #[test]
-        #[traced_test]
-        fn on_chunk_extension_value() {
-            let message =
-                "PUT / HTTP/1.1\nTransfer-Encoding: chunked\n\na;foo=bar\n0123456789\n0\n\n\n";
-        }
-
-        #[test]
-        #[traced_test]
-        fn on_chunk_complete() {
-            let message = "PUT / HTTP/1.1\nTransfer-Encoding: chunked\n\na\n0123456789\n0\n\n\n";
-        }
-    }
-
-    mod methods {
-        use tracing_test::traced_test;
-
-        use crate::wire::simple_http::ChunkStateError;
-
-        use super::*;
-
-        #[test]
-        #[traced_test]
-        fn report_request() {
-            let message = "REPORT /test HTTP/1.1\n\n\n";
-        }
-
-        #[test]
-        #[traced_test]
         fn connect_request() {
             let message = "CONNECT 0-home0.netscape.com:443 HTTP/1.0\nUser-agent: Mozilla/1.1N\nProxy-authorization: basic aGVsbG86d29ybGQ=\n\nsome data\nand yet even more data\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_stream = super::HTTPStreams::from_reader(reader);
+
+            let request_one = request_stream
+                .next_reader()
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            assert_eq!(
+                request_one,
+                vec![
+                    IncomingRequestParts::Intro(
+                        SimpleMethod::CONNECT,
+                        SimpleUrl {
+                            url: "0-home0.netscape.com:443".into(),
+                            url_only: false,
+                            matcher: Some(panic_if_failed!(Regex::new("0-home0.netscape.com:443"))),
+                            params: None,
+                            queries: None,
+                        },
+                        "HTTP/1.0".into(),
+                    ),
+                    IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                        (SimpleHeader::USER_AGENT, vec!["Mozilla/1.1N".into()],),
+                        (
+                            SimpleHeader::PROXY_AUTHORIZATION,
+                            vec!["basic aGVsbG86d29ybGQ=".into()],
+                        ),
+                    ])),
+                    IncomingRequestParts::NoBody,
+                ]
+            );
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
         #[traced_test]
         fn connect_request_with_caps() {
             let message = "CONNECT HOME0.NETSCAPE.COM:443 HTTP/1.0\nUser-agent: Mozilla/1.1N\nProxy-authorization: basic aGVsbG86d29ybGQ=\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_stream = super::HTTPStreams::from_reader(reader);
+
+            let request_one = request_stream
+                .next_reader()
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            assert_eq!(
+                request_one,
+                vec![
+                    IncomingRequestParts::Intro(
+                        SimpleMethod::CONNECT,
+                        SimpleUrl {
+                            url: "HOME0.NETSCAPE.COM:443".into(),
+                            url_only: false,
+                            matcher: Some(panic_if_failed!(Regex::new("HOME0.NETSCAPE.COM:443"))),
+                            params: None,
+                            queries: None,
+                        },
+                        "HTTP/1.0".into(),
+                    ),
+                    IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                        (SimpleHeader::USER_AGENT, vec!["Mozilla/1.1N".into()],),
+                        (
+                            SimpleHeader::PROXY_AUTHORIZATION,
+                            vec!["basic aGVsbG86d29ybGQ=".into()],
+                        ),
+                    ])),
+                    IncomingRequestParts::NoBody,
+                ]
+            );
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
