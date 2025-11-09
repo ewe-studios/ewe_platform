@@ -41,8 +41,11 @@ pub enum HttpReaderError {
     InvalidHeaderValueEnder,
     InvalidHeaderValue,
     InvalidTransferEncodingValue,
+    HeaderValueStartingWithCR,
+    HeaderValueStartingWithLF,
     HeaderValueContainsEncodedCRLF,
     HeaderKeyContainsEncodedCRLF,
+    HeaderKeyContainsNotAllowedChars,
     #[from(ignore)]
     HeaderKeyGreaterThanLimit(usize),
     #[from(ignore)]
