@@ -37,7 +37,7 @@ spin = { version = "0.10" }
 wasm_sync = { version = "0.1.2" }
 
 url = "2.5"
-regex = "1.11.1"
+regex = "1.12.2"
 ctrlc = { version = "3.4" }
 
 # rust-embed

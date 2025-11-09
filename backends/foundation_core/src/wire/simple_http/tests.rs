@@ -3561,12 +3561,109 @@ Hello world!";
         #[traced_test]
         fn connect_with_body() {
             let message = "CONNECT foo.bar.com:443 HTTP/1.0\nUser-agent: Mozilla/1.1N\nProxy-authorization: basic aGVsbG86d29ybGQ=\nContent-Length: 10\n\nblarfcicle\"\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_stream = super::HTTPStreams::from_reader(reader);
+
+            let request_one = request_stream
+                .next_reader()
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            assert_eq!(
+                request_one,
+                vec![
+                    IncomingRequestParts::Intro(
+                        SimpleMethod::CONNECT,
+                        SimpleUrl {
+                            url: "foo.bar.com:443".into(),
+                            url_only: false,
+                            matcher: Some(panic_if_failed!(Regex::new("foo.bar.com:443"))),
+                            params: None,
+                            queries: None,
+                        },
+                        "HTTP/1.0".into(),
+                    ),
+                    IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                        (SimpleHeader::USER_AGENT, vec!["Mozilla/1.1N".into()],),
+                        (SimpleHeader::CONTENT_LENGTH, vec!["10".into()]),
+                        (
+                            SimpleHeader::PROXY_AUTHORIZATION,
+                            vec!["basic aGVsbG86d29ybGQ=".into()],
+                        ),
+                    ])),
+                    IncomingRequestParts::NoBody,
+                ]
+            );
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
         #[traced_test]
         fn m_search_request() {
             let message = "M-SEARCH * HTTP/1.1\nHOST: 239.255.255.250:1900\nMAN: \"ssdp:discover\"\nST: \"ssdp:all\"\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_stream = super::HTTPStreams::from_reader(reader);
+
+            let request_one = request_stream
+                .next_reader()
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            assert_eq!(
+                request_one,
+                vec![
+                    IncomingRequestParts::Intro(
+                        SimpleMethod::Custom("M-SEARCH".into()),
+                        SimpleUrl {
+                            url: "*".into(),
+                            url_only: false,
+                            matcher: Some(panic_if_failed!(Regex::new("\\*"))),
+                            params: None,
+                            queries: None,
+                        },
+                        "HTTP/1.1".into(),
+                    ),
+                    IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                        (SimpleHeader::HOST, vec!["239.255.255.250:1900".into()]),
+                        (
+                            SimpleHeader::Custom("MAN".into()),
+                            vec!["\"ssdp:discover\"".into()]
+                        ),
+                        (
+                            SimpleHeader::Custom("ST".into()),
+                            vec!["\"ssdp:all\"".into()]
+                        ),
+                    ])),
+                    IncomingRequestParts::NoBody,
+                ]
+            );
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]

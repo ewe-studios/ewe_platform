@@ -11,7 +11,7 @@ use crate::valtron::{
 };
 use crate::wire::simple_http::errors::*;
 use derive_more::From;
-use regex::Regex;
+use regex::{self, Regex};
 use std::collections::HashSet;
 use std::io::Cursor;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
@@ -1100,9 +1100,20 @@ impl SimpleUrl {
     pub fn capture_path_pattern(url: &str) -> regex::Regex {
         let re = Regex::new(CAPTURE_PARAM_STR).unwrap();
         let query_regex = Regex::new(CAPTURE_QUERY).unwrap();
-        let pattern = query_regex.replace(url, "");
+        let pattern = query_regex.replace(&url, "");
         let pattern = re.replace_all(&pattern, QUERY_REPLACER);
-        Regex::new(&pattern).unwrap()
+        let url_pattern = match Regex::new(&pattern) {
+            Ok(item) => Ok(item),
+            Err(err) => match &err {
+                regex::Error::Syntax(detail) => {
+                    tracing::error!("Regex syntax error occurred: {:?} -> {:?}", detail, err);
+                    let escaped_url = regex::escape(&pattern);
+                    Regex::new(&escaped_url)
+                }
+                _ => Err(err),
+            },
+        };
+        url_pattern.expect("Should have created url matcher")
     }
 
     pub fn capture_query_hashmap(url: &str) -> Option<BTreeMap<String, String>> {
