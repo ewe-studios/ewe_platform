@@ -297,6 +297,7 @@ pub enum Proto {
     HTTP11,
     HTTP20,
     HTTP30,
+    Custom(String),
 }
 
 impl From<String> for Proto {
@@ -321,7 +322,7 @@ impl FromStr for Proto {
             "HTTP/1.1" | "HTTP 1.1" | "HTTP11" | "HTTP_11" => Ok(Self::HTTP11),
             "HTTP/2.0" | "HTTP 2.0" | "HTTP20" | "HTTP_20" => Ok(Self::HTTP20),
             "HTTP/3.0" | "HTTP 3.0" | "HTTP30" | "HTTP_30" => Ok(Self::HTTP30),
-            _ => Err(StringHandlingError::Unknown),
+            _ => Ok(Self::Custom(upper)),
         }
     }
 }
@@ -333,6 +334,7 @@ impl core::fmt::Display for Proto {
             Self::HTTP11 => write!(f, "HTTP/1.1"),
             Self::HTTP20 => write!(f, "HTTP/2.0"),
             Self::HTTP30 => write!(f, "HTTP/3.0"),
+            Self::Custom(inner) => write!(f, "{:?}", inner),
         }
     }
 }

@@ -167,9 +167,11 @@ impl TestServer {
                     proto,
                 );
 
-                if proto != Proto::HTTP11 {
-                    break;
-                }
+                // allow custom protocols.
+                //
+                // if proto != Proto::HTTP11 {
+                //     break;
+                // }
 
                 let Some(resource) = action_list.get_one_matching2(&url, method.clone()) else {
                     break;
