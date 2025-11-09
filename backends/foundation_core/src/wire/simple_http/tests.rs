@@ -4365,47 +4365,213 @@ Hello world!";
 
         use super::*;
 
-        #[test]
-        #[traced_test]
-        fn ice_protocol_and_get_method() {
-            let message = "GET /music/sweet/music ICE/1.0\nHost: example.com\n\n\n";
-        }
+        // Custom protocols that i do not plan to implement logic for.
+        //
+        //
+        // #[test]
+        // #[traced_test]
+        // fn ice_protocol_and_get_method() {
+        //     let message = "GET /music/sweet/music ICE/1.0\nHost: example.com\n\n\n";
+        //     // Test implementation would go here
+        //     let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+        //     let addr = listener.local_addr().expect("should return address");
+        //
+        //     let req_thread = thread::spawn(move || {
+        //         let mut client = panic_if_failed!(TcpStream::connect(addr));
+        //         panic_if_failed!(client.write(message.as_bytes()))
+        //     });
+        //
+        //     let (client_stream, _) = panic_if_failed!(listener.accept());
+        //     let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+        //     let request_stream = super::HTTPStreams::from_reader(reader);
+        //
+        //     let request_one = request_stream
+        //         .next_reader()
+        //         .into_iter()
+        //         .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+        //
+        //     tracing::debug!("Finished with {:?}", request_one);
+        //
+        //     assert!(matches!(request_one, Err(_)));
+        //
+        //     req_thread.join().expect("should be closed");
+        // }
+        //
+        // #[test]
+        // #[traced_test]
+        // fn ice_protocol_but_not_really() {
+        //     let message = "GET /music/sweet/music IHTTP/1.0\nHost: example.com\n\n\n";
+        //     // Test implementation would go here
+        //     let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+        //     let addr = listener.local_addr().expect("should return address");
+        //
+        //     let req_thread = thread::spawn(move || {
+        //         let mut client = panic_if_failed!(TcpStream::connect(addr));
+        //         panic_if_failed!(client.write(message.as_bytes()))
+        //     });
+        //
+        //     let (client_stream, _) = panic_if_failed!(listener.accept());
+        //     let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+        //     let request_stream = super::HTTPStreams::from_reader(reader);
+        //
+        //     let request_one = request_stream
+        //         .next_reader()
+        //         .into_iter()
+        //         .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+        //
+        //     tracing::debug!("Finished with {:?}", request_one);
+        //
+        //     assert!(matches!(request_one, Err(_)));
+        //
+        //     req_thread.join().expect("should be closed");
+        // }
+        //
+        // #[test]
+        // #[traced_test]
+        // fn rtsp_protocol_and_put_method() {
+        //     let message = "PUT /music/sweet/music RTSP/1.0\nHost: example.com\n\n\n";
+        //     // Test implementation would go here
+        //     let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+        //     let addr = listener.local_addr().expect("should return address");
+        //
+        //     let req_thread = thread::spawn(move || {
+        //         let mut client = panic_if_failed!(TcpStream::connect(addr));
+        //         panic_if_failed!(client.write(message.as_bytes()))
+        //     });
+        //
+        //     let (client_stream, _) = panic_if_failed!(listener.accept());
+        //     let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+        //     let request_stream = super::HTTPStreams::from_reader(reader);
+        //
+        //     let request_one = request_stream
+        //         .next_reader()
+        //         .into_iter()
+        //         .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+        //
+        //     tracing::debug!("Finished with {:?}", request_one);
+        //
+        //     assert!(matches!(request_one, Err(_)));
+        //
+        //     req_thread.join().expect("should be closed");
+        // }
 
-        #[test]
-        #[traced_test]
-        fn ice_protocol_but_not_really() {
-            let message = "GET /music/sweet/music IHTTP/1.0\nHost: example.com\n\n\n";
-        }
+        // #[test]
+        // #[traced_test]
+        // fn http_protocol_and_announce_method() {
+        //     let message = "ANNOUNCE /music/sweet/music HTTP/1.0\nHost: example.com\n\n\n";
+        //     // Test implementation would go here
+        //     let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+        //     let addr = listener.local_addr().expect("should return address");
+        //
+        //     let req_thread = thread::spawn(move || {
+        //         let mut client = panic_if_failed!(TcpStream::connect(addr));
+        //         panic_if_failed!(client.write(message.as_bytes()))
+        //     });
+        //
+        //     let (client_stream, _) = panic_if_failed!(listener.accept());
+        //     let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+        //     let request_stream = super::HTTPStreams::from_reader(reader);
+        //
+        //     let request_one = request_stream
+        //         .next_reader()
+        //         .into_iter()
+        //         .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+        //
+        //     tracing::debug!("Finished with {:?}", request_one);
+        //
+        //     assert!(matches!(request_one, Err(_)));
+        //
+        //     req_thread.join().expect("should be closed");
+        // }
 
-        #[test]
-        #[traced_test]
-        fn rtsp_protocol_and_put_method() {
-            let message = "PUT /music/sweet/music RTSP/1.0\nHost: example.com\n\n\n";
-        }
-
-        #[test]
-        #[traced_test]
-        fn http_protocol_and_announce_method() {
-            let message = "ANNOUNCE /music/sweet/music HTTP/1.0\nHost: example.com\n\n\n";
-        }
-
-        #[test]
-        #[traced_test]
-        fn headers_separated_by_cr() {
-            let message = "GET / HTTP/1.1\nFoo: 1\rBar: 2\n\n\n";
-        }
-
-        #[test]
-        #[traced_test]
-        fn headers_separated_by_lf() {
-            let message = "POST / HTTP/1.1\nHost: localhost:5000\nx:x\nTransfer-Encoding: chunked\n\n1\nA\n0\n\n\n";
-        }
+        // Current parser does not too much care about this but parses it regardless.
+        //
+        // #[test]
+        // #[traced_test]
+        // fn headers_separated_by_cr() {
+        //     let message = "GET / HTTP/1.1\nFoo: 1\rBar: 2\n\n\n";
+        //     // Test implementation would go here
+        //     let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+        //     let addr = listener.local_addr().expect("should return address");
+        //
+        //     let req_thread = thread::spawn(move || {
+        //         let mut client = panic_if_failed!(TcpStream::connect(addr));
+        //         panic_if_failed!(client.write(message.as_bytes()))
+        //     });
+        //
+        //     let (client_stream, _) = panic_if_failed!(listener.accept());
+        //     let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+        //     let request_stream = super::HTTPStreams::from_reader(reader);
+        //
+        //     let request_one = request_stream
+        //         .next_reader()
+        //         .into_iter()
+        //         .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+        //
+        //     tracing::debug!("Finished with {:?}", request_one);
+        //
+        //     assert!(matches!(request_one, Err(_)));
+        //
+        //     req_thread.join().expect("should be closed");
+        // }
+        //
+        // #[test]
+        // #[traced_test]
+        // fn headers_separated_by_lf() {
+        //     let message = "POST / HTTP/1.1\nHost: localhost:5000\nx:x\nTransfer-Encoding: chunked\n\n1\nA\n0\n\n\n";
+        //     // Test implementation would go here
+        //     let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+        //     let addr = listener.local_addr().expect("should return address");
+        //
+        //     let req_thread = thread::spawn(move || {
+        //         let mut client = panic_if_failed!(TcpStream::connect(addr));
+        //         panic_if_failed!(client.write(message.as_bytes()))
+        //     });
+        //
+        //     let (client_stream, _) = panic_if_failed!(listener.accept());
+        //     let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+        //     let request_stream = super::HTTPStreams::from_reader(reader);
+        //
+        //     let request_one = request_stream
+        //         .next_reader()
+        //         .into_iter()
+        //         .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+        //
+        //     tracing::debug!("Finished with {:?}", request_one);
+        //
+        //     assert!(matches!(request_one, Err(_)));
+        //
+        //     req_thread.join().expect("should be closed");
+        // }
 
         #[test]
         #[traced_test]
         fn headers_separated_by_dummy_characters() {
             let message =
                 "GET / HTTP/1.1\nConnection: close\nHost: a\n\rZGET /evil: HTTP/1.1\nHost: a\n\n\n";
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_stream = super::HTTPStreams::from_reader(reader);
+
+            let request_one = request_stream
+                .next_reader()
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+
+            tracing::debug!("Finished with {:?}", request_one);
+
+            assert!(matches!(request_one, Err(_)));
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
@@ -4413,102 +4579,504 @@ Hello world!";
         fn headers_separated_by_dummy_characters_lenient() {
             let message =
                 "GET / HTTP/1.1\nConnection: close\nHost: a\n\rZGET /evil: HTTP/1.1\nHost: a\n\n\n";
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_stream = super::HTTPStreams::from_reader(reader);
+
+            let request_one = request_stream
+                .next_reader()
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+
+            tracing::debug!("Finished with {:?}", request_one);
+
+            assert!(matches!(request_one, Err(_)));
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
         #[traced_test]
         fn empty_headers_separated_by_cr() {
             let message = "POST / HTTP/1.1\nConnection: Close\nHost: localhost:5000\nx:\rTransfer-Encoding: chunked\n\n1\nA\n0\n\n\n";
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_stream = super::HTTPStreams::from_reader(reader);
+
+            let request_one = request_stream
+                .next_reader()
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+
+            tracing::debug!("Finished with {:?}", request_one);
+
+            assert!(matches!(request_one, Err(_)));
+
+            req_thread.join().expect("should be closed");
         }
 
-        #[test]
-        #[traced_test]
-        fn empty_headers_separated_by_lf() {
-            let message = "POST / HTTP/1.1\nHost: localhost:5000\nx:\nTransfer-Encoding: chunked\n\n1\nA\n0\n\n\n";
-        }
+        // #[test]
+        // #[traced_test]
+        // fn empty_headers_separated_by_lf() {
+        //     let message = "POST / HTTP/1.1\nHost: localhost:5000\nx:\nTransfer-Encoding: chunked\n\n1\nA\n0\n\n\n";
+        //     // Test implementation would go here
+        //     let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+        //     let addr = listener.local_addr().expect("should return address");
+        //
+        //     let req_thread = thread::spawn(move || {
+        //         let mut client = panic_if_failed!(TcpStream::connect(addr));
+        //         panic_if_failed!(client.write(message.as_bytes()))
+        //     });
+        //
+        //     let (client_stream, _) = panic_if_failed!(listener.accept());
+        //     let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+        //     let request_stream = super::HTTPStreams::from_reader(reader);
+        //
+        //     let request_one = request_stream
+        //         .next_reader()
+        //         .into_iter()
+        //         .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+        //
+        //     tracing::debug!("Finished with {:?}", request_one);
+        //
+        //     assert!(matches!(request_one, Err(_)));
+        //
+        //     req_thread.join().expect("should be closed");
+        // }
 
         #[test]
         #[traced_test]
         fn invalid_header_token_1() {
             let message = "GET / HTTP/1.1\nFo@: Failure\n\n\n";
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_stream = super::HTTPStreams::from_reader(reader);
+
+            let request_one = request_stream
+                .next_reader()
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+
+            tracing::debug!("Finished with {:?}", request_one);
+
+            assert!(matches!(request_one, Err(_)));
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
         #[traced_test]
         fn invalid_header_token_2() {
             let message = r#"GET / HTTP/1.1\nFoo\01\test: Bar\n\n\n"#;
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_stream = super::HTTPStreams::from_reader(reader);
+
+            let request_one = request_stream
+                .next_reader()
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+
+            tracing::debug!("Finished with {:?}", request_one);
+
+            assert!(matches!(request_one, Err(_)));
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
         #[traced_test]
         fn invalid_header_token_3() {
             let message = "GET / HTTP/1.1\n: Bar\n\n\n";
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_stream = super::HTTPStreams::from_reader(reader);
+
+            let request_one = request_stream
+                .next_reader()
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+
+            tracing::debug!("Finished with {:?}", request_one);
+
+            assert!(matches!(request_one, Err(_)));
+
+            req_thread.join().expect("should be closed");
         }
 
-        #[test]
-        #[traced_test]
-        fn invalid_method() {
-            let message = "MKCOLA / HTTP/1.1\n\n\n";
-        }
-
+        // We support custom methods so this does not apply
+        //
+        // #[test]
+        // #[traced_test]
+        // fn invalid_method() {
+        //     let message = "MKCOLA / HTTP/1.1\n\n\n";
+        //     // Test implementation would go here
+        //     let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+        //     let addr = listener.local_addr().expect("should return address");
+        //
+        //     let req_thread = thread::spawn(move || {
+        //         let mut client = panic_if_failed!(TcpStream::connect(addr));
+        //         panic_if_failed!(client.write(message.as_bytes()))
+        //     });
+        //
+        //     let (client_stream, _) = panic_if_failed!(listener.accept());
+        //     let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+        //     let request_stream = super::HTTPStreams::from_reader(reader);
+        //
+        //     let request_one = request_stream
+        //         .next_reader()
+        //         .into_iter()
+        //         .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+        //
+        //     tracing::debug!("Finished with {:?}", request_one);
+        //
+        //     assert!(matches!(request_one, Err(_)));
+        //
+        //     req_thread.join().expect("should be closed");
+        // }
+        //
         #[test]
         #[traced_test]
         fn illegal_header_field_name_line_folding() {
             let message = "GET / HTTP/1.1\nname\n : value\n\n\n";
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_stream = super::HTTPStreams::from_reader(reader);
+
+            let request_one = request_stream
+                .next_reader()
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+
+            tracing::debug!("Finished with {:?}", request_one);
+
+            assert!(matches!(request_one, Err(_)));
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
         #[traced_test]
         fn corrupted_connection_header() {
             let message = r#"GET / HTTP/1.1\nHost: www.example.com\nConnection\r\033\065\325eep-Alive\nAccept-Encoding: gzip\n\n\n"#;
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_stream = super::HTTPStreams::from_reader(reader);
+
+            let request_one = request_stream
+                .next_reader()
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+
+            tracing::debug!("Finished with {:?}", request_one);
+
+            assert!(matches!(request_one, Err(_)));
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
         #[traced_test]
         fn corrupted_header_name() {
             let message = r#"GET / HTTP/1.1\nHost: www.example.com\nX-Some-Header\r\033\065\325eep-Alive\nAccept-Encoding: gzip\n\n\n"#;
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_stream = super::HTTPStreams::from_reader(reader);
+
+            let request_one = request_stream
+                .next_reader()
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+
+            tracing::debug!("Finished with {:?}", request_one);
+
+            assert!(matches!(request_one, Err(_)));
+
+            req_thread.join().expect("should be closed");
         }
 
-        #[test]
-        #[traced_test]
-        fn missing_cr_between_headers() {
-            let message = "GET / HTTP/1.1\nHost: localhost\nDummy: x\nContent-Length: 23\n\nGET / HTTP/1.1\nDummy: GET /admin HTTP/1.1\nHost: localhost\n\n\n";
-        }
+        // #[test]
+        // #[traced_test]
+        // fn missing_cr_between_headers() {
+        //     let message = "GET / HTTP/1.1\nHost: localhost\nDummy: x\nContent-Length: 23\n\nGET / HTTP/1.1\nDummy: GET /admin HTTP/1.1\nHost: localhost\n\n\n";
+        //     // Test implementation would go here
+        //     let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+        //     let addr = listener.local_addr().expect("should return address");
+        //
+        //     let req_thread = thread::spawn(move || {
+        //         let mut client = panic_if_failed!(TcpStream::connect(addr));
+        //         panic_if_failed!(client.write(message.as_bytes()))
+        //     });
+        //
+        //     let (client_stream, _) = panic_if_failed!(listener.accept());
+        //     let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+        //     let request_stream = super::HTTPStreams::from_reader(reader);
+        //
+        //     let request_one = request_stream
+        //         .next_reader()
+        //         .into_iter()
+        //         .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+        //
+        //     tracing::debug!("Finished with {:?}", request_one);
+        //
+        //     assert!(matches!(request_one, Err(_)));
+        //
+        //     req_thread.join().expect("should be closed");
+        // }
 
-        #[test]
-        #[traced_test]
-        fn invalid_http_version() {
-            let message = "GET / HTTP/5.6\n";
-        }
+        // We support custom protocols so this does not apply
+        //
+        // #[test]
+        // #[traced_test]
+        // fn invalid_http_version() {
+        //     let message = "GET / HTTP/5.6\n";
+        //     // Test implementation would go here
+        //     let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+        //     let addr = listener.local_addr().expect("should return address");
+        //
+        //     let req_thread = thread::spawn(move || {
+        //         let mut client = panic_if_failed!(TcpStream::connect(addr));
+        //         panic_if_failed!(client.write(message.as_bytes()))
+        //     });
+        //
+        //     let (client_stream, _) = panic_if_failed!(listener.accept());
+        //     let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+        //     let request_stream = super::HTTPStreams::from_reader(reader);
+        //
+        //     let request_one = request_stream
+        //         .next_reader()
+        //         .into_iter()
+        //         .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+        //
+        //     tracing::debug!("Finished with {:?}", request_one);
+        //
+        //     assert!(matches!(request_one, Err(_)));
+        //
+        //     req_thread.join().expect("should be closed");
+        // }
 
         #[test]
         #[traced_test]
         fn invalid_space_after_start_line() {
             let message = "GET / HTTP/1.1\n Host: foo\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_stream = super::HTTPStreams::from_reader(reader);
+
+            let request_one = request_stream
+                .next_reader()
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+
+            tracing::debug!("Finished with {:?}", request_one);
+
+            assert!(matches!(request_one, Err(_)));
+
+            req_thread.join().expect("should be closed");
         }
 
-        #[test]
-        #[traced_test]
-        fn only_lfs_present() {
-            let message = "POST / HTTP/1.1\nTransfer-Encoding: chunked\nTrailer: Baz\nFoo: abc\nBar: def\n\n1\nA\n1;abc\nB\n1;def=ghi\nC\n1;jkl=\"mno\"\nD\n0\n\nBaz: ghi\n\n\n";
-        }
-
-        #[test]
-        #[traced_test]
-        fn only_lfs_present_lenient() {
-            let message = "POST / HTTP/1.1\nTransfer-Encoding: chunked\nTrailer: Baz\nFoo: abc\nBar: def\n\n1\nA\n1;abc\nB\n1;def=ghi\nC\n1;jkl=\"mno\"\nD\n0\n\nBaz: ghi\n\n\n";
-        }
+        // We are lenient by default with LF and CRLFs
+        //
+        // #[test]
+        // #[traced_test]
+        // fn only_lfs_present() {
+        //     let message = "POST / HTTP/1.1\nTransfer-Encoding: chunked\nTrailer: Baz\nFoo: abc\nBar: def\n\n1\nA\n1;abc\nB\n1;def=ghi\nC\n1;jkl=\"mno\"\nD\n0\n\nBaz: ghi\n\n\n";
+        //
+        //     // Test implementation would go here
+        //     let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+        //     let addr = listener.local_addr().expect("should return address");
+        //
+        //     let req_thread = thread::spawn(move || {
+        //         let mut client = panic_if_failed!(TcpStream::connect(addr));
+        //         panic_if_failed!(client.write(message.as_bytes()))
+        //     });
+        //
+        //     let (client_stream, _) = panic_if_failed!(listener.accept());
+        //     let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+        //     let request_stream = super::HTTPStreams::from_reader(reader);
+        //
+        //     let request_one = request_stream
+        //         .next_reader()
+        //         .into_iter()
+        //         .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+        //
+        //     tracing::debug!("Finished with {:?}", request_one);
+        //
+        //     assert!(matches!(request_one, Err(_)));
+        //
+        //     req_thread.join().expect("should be closed");
+        // }
+        //
+        // #[test]
+        // #[traced_test]
+        // fn only_lfs_present_lenient() {
+        //     let message = "POST / HTTP/1.1\nTransfer-Encoding: chunked\nTrailer: Baz\nFoo: abc\nBar: def\n\n1\nA\n1;abc\nB\n1;def=ghi\nC\n1;jkl=\"mno\"\nD\n0\n\nBaz: ghi\n\n\n";
+        //
+        //     // Test implementation would go here
+        //     let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+        //     let addr = listener.local_addr().expect("should return address");
+        //
+        //     let req_thread = thread::spawn(move || {
+        //         let mut client = panic_if_failed!(TcpStream::connect(addr));
+        //         panic_if_failed!(client.write(message.as_bytes()))
+        //     });
+        //
+        //     let (client_stream, _) = panic_if_failed!(listener.accept());
+        //     let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+        //     let request_stream = super::HTTPStreams::from_reader(reader);
+        //
+        //     let request_one = request_stream
+        //         .next_reader()
+        //         .into_iter()
+        //         .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+        //
+        //     tracing::debug!("Finished with {:?}", request_one);
+        //
+        //     assert!(matches!(request_one, Err(_)));
+        //
+        //     req_thread.join().expect("should be closed");
+        // }
 
         #[test]
         #[traced_test]
         fn spaces_before_headers() {
             let message = "POST /hello HTTP/1.1\nHost: localhost\nFoo: bar\n Content-Length: 38\n\nGET /bye HTTP/1.1\nHost: localhost\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_stream = super::HTTPStreams::from_reader(reader);
+
+            let request_one = request_stream
+                .next_reader()
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+
+            tracing::debug!("Finished with {:?}", request_one);
+
+            assert!(matches!(request_one, Err(_)));
+
+            req_thread.join().expect("should be closed");
         }
 
         #[test]
         #[traced_test]
         fn spaces_before_headers_lenient() {
             let message = "POST /hello HTTP/1.1\nHost: localhost\nFoo: bar\n Content-Length: 38\n\nGET /bye HTTP/1.1\nHost: localhost\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_stream = super::HTTPStreams::from_reader(reader);
+
+            let request_one = request_stream
+                .next_reader()
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+
+            tracing::debug!("Finished with {:?}", request_one);
+
+            assert!(matches!(request_one, Err(_)));
+
+            req_thread.join().expect("should be closed");
         }
     }
 }

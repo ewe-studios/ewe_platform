@@ -2453,6 +2453,20 @@ where
 
                     tracing::debug!("HeaderLineParts: {:?}", &line_parts);
 
+                    // if its start with an invalid character then indicate error
+                    if line_parts.len() == 2 {
+                        if line_parts[1].starts_with('\r') {
+                            self.state = HttpReadState::Finished;
+                            return Some(Err(HttpReaderError::HeaderValueStartingWithCR));
+                        }
+
+                        // Breaks line folding handling
+                        // if line_parts[1] == "\n" || line_parts[1].trim().is_empty() {
+                        //     self.state = HttpReadState::Finished;
+                        //     return Some(Err(HttpReaderError::HeaderValueStartingWithLF));
+                        // }
+                    }
+
                     let (header_key, header_value) = if !line.contains(":") && last_header.is_some()
                     {
                         (last_header.clone().unwrap(), line.clone())
@@ -2472,6 +2486,19 @@ where
                         Some(max_value) => max_value,
                         None => MAX_HEADER_NAME_LEN,
                     };
+
+                    if !header_key
+                        .chars()
+                        .all(|c| c.is_ascii_alphanumeric() || c == '-')
+                    {
+                        self.state = HttpReadState::Finished;
+                        return Some(Err(HttpReaderError::HeaderKeyContainsNotAllowedChars));
+                    }
+
+                    if header_key.trim() == "" {
+                        self.state = HttpReadState::Finished;
+                        return Some(Err(HttpReaderError::InvalidHeaderKey));
+                    }
 
                     if header_key.len() > max_header_key_length {
                         self.state = HttpReadState::Finished;
@@ -2498,6 +2525,11 @@ where
                         &header_value,
                         header_value.trim()
                     );
+
+                    if header_value.starts_with('\r') {
+                        self.state = HttpReadState::Finished;
+                        return Some(Err(HttpReaderError::HeaderValueStartingWithCR));
+                    }
 
                     for space_char in SPACE_CHARS {
                         if header_key.contains(*space_char) {
