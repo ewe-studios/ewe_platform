@@ -126,7 +126,7 @@ impl TestServer {
             loop {
                 // fetch the intro portion and validate we have resources for processing request
                 // if not, just break and return an error
-                let request_reader = request_streams.next_reader();
+                let request_reader = request_streams.next_request();
 
                 let parts: Result<Vec<IncomingRequestParts>, HttpReaderError> = request_reader
                     .into_iter()

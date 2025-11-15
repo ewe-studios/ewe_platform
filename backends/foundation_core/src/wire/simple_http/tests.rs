@@ -1,6 +1,1614 @@
 #![allow(unused)]
 
 #[cfg(test)]
+mod http_response_compliance {
+    use super::*;
+    use crate::extensions::result_ext::BoxedError;
+    use crate::io::ioutils;
+    use crate::netcap::RawStream;
+    use crate::panic_if_failed;
+    use crate::wire::simple_http::{
+        ChunkedData, HTTPStreams, HttpReaderError, HttpResponseReader, IncomingResponseParts,
+        SimpleBody, SimpleHeader, SimpleMethod, SimpleUrl, Status,
+    };
+    use regex::Regex;
+
+    use std::collections::BTreeMap;
+    use std::io::Write;
+    use std::{
+        net::{TcpListener, TcpStream},
+        thread,
+    };
+
+    mod transfer_encoding {
+        use tracing_test::traced_test;
+
+        use crate::wire::simple_http::ChunkStateError;
+
+        use super::*;
+
+        // Test for "Parse chunks with lowercase size"
+        #[test]
+        #[traced_test]
+        fn parse_chunks_with_lowercase_size() {
+            let message = "HTTP/1.1 200 OK\nTransfer-Encoding: chunked\n\na\n0123456789\n0\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::TRANSFER_ENCODING,
+                    vec!["chunked".into()],
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all chunks");
+
+            // println!("ChunkedContent: {:?}", contents);
+            // [Data([48, 49, 50, 51, 52, 53, 54, 55, 56, 57], None), DataEnded]
+            assert_eq!(
+                contents,
+                vec![
+                    ChunkedData::Data(vec![48, 49, 50, 51, 52, 53, 54, 55, 56, 57], None),
+                    ChunkedData::DataEnded,
+                ],
+            );
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn parse_chunks_with_uppercase_size() {
+            let message = "HTTP/1.1 200 OK\nTransfer-Encoding: chunked\n\nA\n0123456789\n0\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::TRANSFER_ENCODING,
+                    vec!["chunked".into()],
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all chunks");
+
+            // println!("ChunkedContent: {:?}", contents);
+            // [Data([48, 49, 50, 51, 52, 53, 54, 55, 56, 57], None), DataEnded]
+            assert_eq!(
+                contents,
+                vec![
+                    ChunkedData::Data(vec![48, 49, 50, 51, 52, 53, 54, 55, 56, 57], None),
+                    ChunkedData::DataEnded,
+                ],
+            );
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn post_with_transfer_encoding_chunked() {
+            let message = "HTTP/1.1 200 OK\nTransfer-Encoding: chunked\n\n1e\nall your base are belong to us\n0\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::TRANSFER_ENCODING,
+                    vec!["chunked".into()],
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all chunks");
+
+            assert_eq!(
+                contents,
+                vec![
+                    ChunkedData::Data("all your base are belong to us".as_bytes().to_vec(), None),
+                    ChunkedData::DataEnded,
+                ],
+            );
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn two_chunks_and_triple_zero_prefixed_end_chunk() {
+            let message =
+                "HTTP/1.1 200 OK\nTransfer-Encoding: chunked\n\n5\nhello\n6\n world\n000\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::TRANSFER_ENCODING,
+                    vec!["chunked".into()],
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all chunks");
+
+            assert_eq!(
+                contents,
+                vec![
+                    ChunkedData::Data("hello".as_bytes().to_vec(), None),
+                    ChunkedData::Data(" world".as_bytes().to_vec(), None),
+                    ChunkedData::DataEnded,
+                ],
+            );
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn trailing_headers_with_multiple_newline_endings() {
+            let message = "HTTP/1.1 200 OK\nTransfer-Encoding: chunked\n\n5\nhello\n6\n world\n0\nVary: *\n\nContent-Type: text/plain\n\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::TRANSFER_ENCODING,
+                    vec!["chunked".into()],
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all chunks");
+
+            assert_eq!(
+                contents,
+                vec![
+                    ChunkedData::Data("hello".as_bytes().to_vec(), None),
+                    ChunkedData::Data(" world".as_bytes().to_vec(), None),
+                    ChunkedData::DataEnded,
+                    ChunkedData::Trailers(vec![
+                        ("Vary".into(), Some("*".into())),
+                        ("Content-Type".into(), Some("text/plain".into())),
+                    ])
+                ],
+            );
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn trailing_headers_with_multiple_clrf() {
+            let message = "HTTP/1.1 200 OK\nTransfer-Encoding: chunked\n\n5\nhello\n6\n world\n0\nVary: *\r\nContent-Type: text/plain\r\n\r\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::TRANSFER_ENCODING,
+                    vec!["chunked".into()],
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all chunks");
+
+            assert_eq!(
+                contents,
+                vec![
+                    ChunkedData::Data("hello".as_bytes().to_vec(), None),
+                    ChunkedData::Data(" world".as_bytes().to_vec(), None),
+                    ChunkedData::DataEnded,
+                    ChunkedData::Trailers(vec![
+                        ("Vary".into(), Some("*".into())),
+                        ("Content-Type".into(), Some("text/plain".into())),
+                    ])
+                ],
+            );
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn trailing_headers() {
+            let message = "HTTP/1.1 200 OK\nTransfer-Encoding: chunked\n\n5\nhello\n6\n world\n0\nVary: *\nContent-Type: text/plain\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::TRANSFER_ENCODING,
+                    vec!["chunked".into()],
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all chunks");
+
+            assert_eq!(
+                contents,
+                vec![
+                    ChunkedData::Data("hello".as_bytes().to_vec(), None),
+                    ChunkedData::Data(" world".as_bytes().to_vec(), None),
+                    ChunkedData::DataEnded,
+                    ChunkedData::Trailers(vec![
+                        ("Vary".into(), Some("*".into())),
+                        ("Content-Type".into(), Some("text/plain".into())),
+                    ])
+                ],
+            );
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn chunk_extensions_noquoting() {
+            let message = "HTTP/1.1 200 OK\nTransfer-Encoding: chunked\n\n5;ilovew3;somuchlove=aretheseparametersfor;another=withvalue\nhello\n6;blahblah;blah\n world\n0\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::TRANSFER_ENCODING,
+                    vec!["chunked".into()],
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all chunks");
+
+            assert_eq!(
+                contents,
+                vec![
+                    ChunkedData::Data(
+                        "hello".as_bytes().to_vec(),
+                        Some(vec![
+                            ("ilovew3".into(), None),
+                            ("somuchlove".into(), Some("aretheseparametersfor".into())),
+                            ("another".into(), Some("withvalue".into())),
+                        ])
+                    ),
+                    ChunkedData::Data(
+                        " world".as_bytes().to_vec(),
+                        Some(vec![("blahblah".into(), None), ("blah".into(), None)])
+                    ),
+                    ChunkedData::DataEnded,
+                ],
+            );
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn no_semicolon_before_chunk_extensions() {
+            let message = "HTTP/1.1 200 OK\nHost: localhost\nTransfer-encoding: chunked\n\n2 erfrferferf\naa\n0 rrrr\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (SimpleHeader::HOST, vec!["localhost".into()]),
+                    (SimpleHeader::TRANSFER_ENCODING, vec!["chunked".into()]),
+                ])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            assert!(matches!(content_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn no_extension_after_semicolon() {
+            let message =
+                "HTTP/1.1 200 OK\nHost: localhost\nTransfer-encoding: chunked\n\n2;\naa\n0\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (SimpleHeader::HOST, vec!["localhost".into()]),
+                    (SimpleHeader::TRANSFER_ENCODING, vec!["chunked".into()]),
+                ])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            assert!(matches!(content_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn chunk_extensions_quoting() {
+            let message = "HTTP/1.1 200 OK\nTransfer-Encoding: chunked\n\n5;ilovew3=\"I \\\"love\\\"; \\extensions\\\";somuchlove=\"aretheseparametersfor\";blah;foo=bar\nhello\n6;blahblah;blah\n world\n0\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::TRANSFER_ENCODING,
+                    vec!["chunked".into()],
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all chunks");
+
+            assert_eq!(
+                contents,
+                vec![
+                    ChunkedData::Data(
+                        "hello".as_bytes().to_vec(),
+                        Some(vec![
+                            (
+                                "ilovew3".into(),
+                                Some("\"I \\\"love\\\"; \\extensions\\\"".into())
+                            ),
+                            (
+                                "somuchlove".into(),
+                                Some("\"aretheseparametersfor\"".into())
+                            ),
+                            ("blah".into(), None),
+                            ("foo".into(), Some("bar".into())),
+                        ])
+                    ),
+                    ChunkedData::Data(
+                        " world".as_bytes().to_vec(),
+                        Some(vec![("blahblah".into(), None), ("blah".into(), None)])
+                    ),
+                    ChunkedData::DataEnded,
+                ],
+            );
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn unbalanced_chunk_extensions_quoting() {
+            let message = "HTTP/1.1 200 OK\nTransfer-Encoding: chunked\n\n5;ilovew3=\"abc\";somuchlove=\"def; ghi\nhello\n6;blahblah;blah\n world\n0\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::TRANSFER_ENCODING,
+                    vec!["chunked".into()],
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            assert!(matches!(content_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        // Requests cannot have invalid `Transfer-Encoding`. It is impossible to determine
+        // their body size. Not erroring would make HTTP smuggling attacks possible.
+        #[test]
+        #[traced_test]
+        fn ignoring_pigeons_we_do_not_allow_request_smuggling() {
+            let message = "HTTP/1.1 200 OK\nTransfer-Encoding: pigeons\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts_result = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
+
+            dbg!(&request_parts_result);
+
+            assert!(matches!(request_parts_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn post_with_transfer_encoding_and_content_length() {
+            let message = "HTTP/1.1 200 OK\nAccept: */*\nTransfer-Encoding: identity\nContent-Length: 5\n\nWorld\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts_result = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
+
+            dbg!(&request_parts_result);
+
+            assert!(matches!(request_parts_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn post_with_transfer_encoding_and_content_length_lenient() {
+            let message = "HTTP/1.1 200 OK\nAccept: */*\nTransfer-Encoding: identity\nContent-Length: 1\n\nWorld\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts_result = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
+
+            dbg!(&request_parts_result);
+
+            assert!(matches!(request_parts_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn post_with_empty_transfer_encoding_and_content_length_lenient() {
+            let message = "HTTP/1.1 200 OK\nHost: foo\nContent-Length: 10\nTransfer-Encoding:\nTransfer-Encoding:\nTransfer-Encoding:\n\n2\nAA\n0\n";
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts_result = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
+
+            dbg!(&request_parts_result);
+
+            assert!(matches!(request_parts_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn post_with_chunked_before_other_transfer_coding_names() {
+            let message =
+                "HTTP/1.1 200 OK\nAccept: */*\nTransfer-Encoding: chunked, deflate\n\nWorld\n";
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts_result = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
+
+            dbg!(&request_parts_result);
+
+            assert!(matches!(request_parts_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn post_with_chunked_and_duplicate_transfer_encoding() {
+            let message = "HTTP/1.1 200 OK\nAccept: */*\nTransfer-Encoding: chunked\nTransfer-Encoding: deflate\n\nWorld\n";
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts_result = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
+
+            dbg!(&request_parts_result);
+
+            assert!(matches!(request_parts_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn post_with_chunked_before_other_transfer_coding_lenient() {
+            let message =
+                "HTTP/1.1 200 OK\nAccept: */*\nTransfer-Encoding: chunked, deflate\n\nWorld\n";
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts_result = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
+
+            dbg!(&request_parts_result);
+
+            assert!(matches!(request_parts_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn post_with_chunked_and_duplicate_transfer_encoding_lenient() {
+            let message = "HTTP/1.1 200 OK\nAccept: */*\nTransfer-Encoding: chunked\nTransfer-Encoding: deflate\n\nWorld\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts_result = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
+
+            dbg!(&request_parts_result);
+
+            assert!(matches!(request_parts_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn post_with_chunked_as_last_transfer_encoding() {
+            let message = "HTTP/1.1 200 OK\nAccept: */*\nTransfer-Encoding: deflate, chunked\n\n5\nWorld\n0\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (SimpleHeader::ACCEPT, vec!["*/*".into()]),
+                    (
+                        SimpleHeader::TRANSFER_ENCODING,
+                        vec!["deflate".into(), "chunked".into()],
+                    ),
+                ])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all chunks");
+
+            assert_eq!(
+                contents,
+                vec![
+                    ChunkedData::Data("World".as_bytes().to_vec(), None),
+                    ChunkedData::DataEnded,
+                ],
+            );
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn post_with_chunked_as_last_transfer_encoding_multiple_headers() {
+            let message = "HTTP/1.1 200 OK\nAccept: */*\nTransfer-Encoding: deflate\nTransfer-Encoding: chunked\n\n5\nWorld\n0\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (SimpleHeader::ACCEPT, vec!["*/*".into()]),
+                    (
+                        SimpleHeader::TRANSFER_ENCODING,
+                        vec!["deflate".into(), "chunked".into()],
+                    ),
+                ])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all chunks");
+
+            assert_eq!(
+                contents,
+                vec![
+                    ChunkedData::Data("World".as_bytes().to_vec(), None),
+                    ChunkedData::DataEnded,
+                ],
+            );
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn post_with_chunkedchunked_as_transfer_encoding() {
+            let message = "HTTP/1.1 200 OK\nAccept: */*\nTransfer-Encoding: chunkedchunked\n\n5\nWorld\n0\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts_result = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
+
+            dbg!(&request_parts_result);
+
+            assert!(matches!(request_parts_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn missing_last_chunk() {
+            let message = "HTTP/1.1 200 OK\nTransfer-Encoding: chunked\n\n3\nfoo\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::TRANSFER_ENCODING,
+                    vec!["chunked".into()],
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            assert!(matches!(content_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn validate_chunk_parameters() {
+            let message =
+                "HTTP/1.1 200 OK\nTransfer-Encoding: chunked\n\n3 \\n  \\r\\n\\nfoo\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::TRANSFER_ENCODING,
+                    vec!["chunked".into()],
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            assert!(matches!(content_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn invalid_obs_fold_after_chunked_value() {
+            let message = "HTTP/1.1 200 OK\nTransfer-Encoding: chunked\n  abc\n\n5\nWorld\n0\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts_result = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
+
+            dbg!(&request_parts_result);
+
+            assert!(matches!(request_parts_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn chunk_header_not_terminated_by_crlf() {
+            let message = "HTTP/1.1 200 OK\nHost: a\nConnection: close \nTransfer-Encoding: chunked \n\n5\\r\\r;ABCD\n34\nE\n0\n\nGET / HTTP/1.1 \nHost: a\nContent-Length: 5\n\n0\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (SimpleHeader::CONNECTION, vec!["close".into()]),
+                    (SimpleHeader::HOST, vec!["a".into()]),
+                    (SimpleHeader::TRANSFER_ENCODING, vec!["chunked".into()]),
+                ])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            assert!(matches!(content_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn chunk_header_not_terminated_by_crlf_lenient() {
+            let message = "HTTP/1.1 200 OK\nHost: a\nConnection: close \nTransfer-Encoding: chunked \n\n6\\r\\r;ABCD\n33\nE\n0\n\nGET / HTTP/1.1 \nHost: a\nContent-Length: 5\n0\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (SimpleHeader::CONNECTION, vec!["close".into()]),
+                    (SimpleHeader::HOST, vec!["a".into()]),
+                    (SimpleHeader::TRANSFER_ENCODING, vec!["chunked".into()]),
+                ])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            assert!(matches!(content_result, Err(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn chunk_data_not_terminated_by_crlf() {
+            let message = "HTTP/1.1 200 OK\nHost: a\nConnection: close \nTransfer-Encoding: chunked \n\n5\nWorld0\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (SimpleHeader::CONNECTION, vec!["close".into()]),
+                    (SimpleHeader::HOST, vec!["a".into()]),
+                    (SimpleHeader::TRANSFER_ENCODING, vec!["chunked".into()]),
+                ])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all chunks");
+
+            assert_eq!(
+                contents,
+                vec![
+                    ChunkedData::Data("World".as_bytes().to_vec(), None),
+                    ChunkedData::DataEnded,
+                ],
+            );
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn space_after_chunk_header() {
+            let message =
+                "HTTP/1.1 200 OK\nTransfer-Encoding: chunked\n\na \\r\\n0123456789\n0\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::TRANSFER_ENCODING,
+                    vec!["chunked".into()],
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all chunks");
+
+            assert_eq!(
+                contents,
+                vec![
+                    ChunkedData::Data("0123456789".as_bytes().to_vec(), None),
+                    ChunkedData::DataEnded,
+                ],
+            );
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn space_after_chunk_header_lenient() {
+            let message =
+                "HTTP/1.1 200 OK\nTransfer-Encoding: chunked\n\na \\r\\n0123456789\n0\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::TRANSFER_ENCODING,
+                    vec!["chunked".into()],
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &chunked_body,
+                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+                chunked_body
+            else {
+                panic!("Not a ChunkedStream")
+            };
+
+            let content_result: Result<Vec<ChunkedData>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all chunks");
+
+            assert_eq!(
+                contents,
+                vec![
+                    ChunkedData::Data("0123456789".as_bytes().to_vec(), None),
+                    ChunkedData::DataEnded,
+                ],
+            );
+
+            req_thread.join().expect("should be closed");
+        }
+    }
+}
+
+#[cfg(test)]
 mod http_requests_compliance {
     use super::*;
     use crate::extensions::result_ext::BoxedError;
@@ -8,8 +1616,8 @@ mod http_requests_compliance {
     use crate::netcap::RawStream;
     use crate::panic_if_failed;
     use crate::wire::simple_http::{
-        ChunkedData, HTTPStreams, HttpReader, HttpReaderError, IncomingRequestParts, SimpleBody,
-        SimpleHeader, SimpleMethod, SimpleUrl,
+        ChunkedData, HTTPStreams, HttpReaderError, HttpRequestReader, IncomingRequestParts,
+        SimpleBody, SimpleHeader, SimpleMethod, SimpleUrl,
     };
     use regex::Regex;
 
@@ -48,7 +1656,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let request_parts = request_reader
                 .into_iter()
@@ -119,7 +1727,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let request_parts = request_reader
                 .into_iter()
@@ -166,7 +1774,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let request_parts = request_reader
                 .into_iter()
@@ -214,7 +1822,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let request_parts = request_reader
                 .into_iter()
@@ -262,7 +1870,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let request_parts = request_reader
                 .into_iter()
@@ -310,7 +1918,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let request_parts = request_reader
                 .into_iter()
@@ -358,7 +1966,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let request_parts = request_reader
                 .into_iter()
@@ -403,7 +2011,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let request_parts = request_reader
                 .into_iter()
@@ -454,7 +2062,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let request_parts = request_reader
                 .into_iter()
@@ -511,7 +2119,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -584,7 +2192,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -657,7 +2265,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -729,7 +2337,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -801,7 +2409,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -877,7 +2485,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -953,7 +2561,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -1029,7 +2637,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -1111,7 +2719,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -1174,7 +2782,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -1237,7 +2845,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -1326,7 +2934,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -1391,7 +2999,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -1420,7 +3028,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -1449,7 +3057,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -1477,7 +3085,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -1505,7 +3113,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -1533,7 +3141,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -1561,7 +3169,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -1590,7 +3198,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -1619,7 +3227,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -1693,7 +3301,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -1767,7 +3375,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -1796,7 +3404,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -1860,7 +3468,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -1924,7 +3532,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -1953,7 +3561,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -2017,7 +3625,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -2081,7 +3689,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -2154,7 +3762,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -2226,7 +3834,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -2305,7 +3913,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -2360,7 +3968,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -2406,7 +4014,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -2465,7 +4073,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -2550,7 +4158,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -2599,7 +4207,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -2647,7 +4255,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -2696,7 +4304,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -2746,7 +4354,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -2793,7 +4401,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -2839,7 +4447,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -2907,7 +4515,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -2981,7 +4589,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -3010,7 +4618,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -3039,7 +4647,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -3097,7 +4705,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -3155,7 +4763,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -3218,7 +4826,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpReader::from_reader(reader);
+            let request_reader = super::HttpRequestReader::from_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -3311,7 +4919,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
@@ -3339,7 +4947,7 @@ Hello world!";
             );
 
             let request_two = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
@@ -3367,7 +4975,7 @@ Hello world!";
             );
 
             let request_three = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
@@ -3426,7 +5034,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
@@ -3472,7 +5080,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
@@ -3524,7 +5132,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
@@ -3576,7 +5184,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
@@ -3629,7 +5237,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
@@ -3685,7 +5293,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -3713,7 +5321,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -3741,7 +5349,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -3769,7 +5377,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -3797,7 +5405,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -3826,7 +5434,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -3854,7 +5462,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -3882,7 +5490,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -3910,7 +5518,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -3938,7 +5546,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -3966,7 +5574,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4002,7 +5610,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4038,7 +5646,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4066,7 +5674,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4096,7 +5704,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4134,7 +5742,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4163,7 +5771,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4192,7 +5800,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4221,7 +5829,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4250,7 +5858,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4279,7 +5887,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4308,7 +5916,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4337,7 +5945,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4367,7 +5975,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4396,7 +6004,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4425,7 +6033,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4454,7 +6062,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4483,7 +6091,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4512,7 +6120,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4541,7 +6149,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4570,7 +6178,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4599,7 +6207,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4639,7 +6247,7 @@ Hello world!";
                 let request_stream = super::HTTPStreams::from_reader(reader);
 
                 let request_one = request_stream
-                    .next_reader()
+                    .next_request()
                     .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4668,7 +6276,7 @@ Hello world!";
                 let request_stream = super::HTTPStreams::from_reader(reader);
 
                 let request_one = request_stream
-                    .next_reader()
+                    .next_request()
                     .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4676,7 +6284,7 @@ Hello world!";
                 assert!(matches!(request_one, Ok(_)));
 
                 let request_two = request_stream
-                    .next_reader()
+                    .next_request()
                     .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4705,7 +6313,7 @@ Hello world!";
                 let request_stream = super::HTTPStreams::from_reader(reader);
 
                 let request_one = request_stream
-                    .next_reader()
+                    .next_request()
                     .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4734,7 +6342,7 @@ Hello world!";
                 let request_stream = super::HTTPStreams::from_reader(reader);
 
                 let request_one = request_stream
-                    .next_reader()
+                    .next_request()
                     .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4763,7 +6371,7 @@ Hello world!";
                 let request_stream = super::HTTPStreams::from_reader(reader);
 
                 let request_one = request_stream
-                    .next_reader()
+                    .next_request()
                     .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4792,7 +6400,7 @@ Hello world!";
                 let request_stream = super::HTTPStreams::from_reader(reader);
 
                 let request_one = request_stream
-                    .next_reader()
+                    .next_request()
                     .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4821,7 +6429,7 @@ Hello world!";
                 let request_stream = super::HTTPStreams::from_reader(reader);
 
                 let request_one = request_stream
-                    .next_reader()
+                    .next_request()
                     .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4854,7 +6462,7 @@ Hello world!";
                 let request_stream = super::HTTPStreams::from_reader(reader);
 
                 let request_one = request_stream
-                    .next_reader()
+                    .next_request()
                     .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4883,7 +6491,7 @@ Hello world!";
                 let request_stream = super::HTTPStreams::from_reader(reader);
 
                 let request_one = request_stream
-                    .next_reader()
+                    .next_request()
                     .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4912,7 +6520,7 @@ Hello world!";
                 let request_stream = super::HTTPStreams::from_reader(reader);
 
                 let request_one = request_stream
-                    .next_reader()
+                    .next_request()
                     .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4946,7 +6554,7 @@ Hello world!";
                 let request_stream = super::HTTPStreams::from_reader(reader);
 
                 let request_one = request_stream
-                    .next_reader()
+                    .next_request()
                     .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -4975,7 +6583,7 @@ Hello world!";
                 let request_stream = super::HTTPStreams::from_reader(reader);
 
                 let request_one = request_stream
-                    .next_reader()
+                    .next_request()
                     .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5004,7 +6612,7 @@ Hello world!";
                 let request_stream = super::HTTPStreams::from_reader(reader);
 
                 let request_one = request_stream
-                    .next_reader()
+                    .next_request()
                     .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5033,7 +6641,7 @@ Hello world!";
                 let request_stream = super::HTTPStreams::from_reader(reader);
 
                 let request_one = request_stream
-                    .next_reader()
+                    .next_request()
                     .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5062,7 +6670,7 @@ Hello world!";
                 let request_stream = super::HTTPStreams::from_reader(reader);
 
                 let request_one = request_stream
-                    .next_reader()
+                    .next_request()
                     .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5091,7 +6699,7 @@ Hello world!";
                 let request_stream = super::HTTPStreams::from_reader(reader);
 
                 let request_one = request_stream
-                    .next_reader()
+                    .next_request()
                     .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5124,7 +6732,7 @@ Hello world!";
                 let request_stream = super::HTTPStreams::from_reader(reader);
 
                 let request_one = request_stream
-                    .next_reader()
+                    .next_request()
                     .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5153,7 +6761,7 @@ Hello world!";
                 let request_stream = super::HTTPStreams::from_reader(reader);
 
                 let request_one = request_stream
-                    .next_reader()
+                    .next_request()
                     .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5182,7 +6790,7 @@ Hello world!";
                 let request_stream = super::HTTPStreams::from_reader(reader);
 
                 let request_one = request_stream
-                    .next_reader()
+                    .next_request()
                     .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5211,7 +6819,7 @@ Hello world!";
                 let request_stream = super::HTTPStreams::from_reader(reader);
 
                 let request_one = request_stream
-                    .next_reader()
+                    .next_request()
                     .into_iter()
                     .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5251,7 +6859,7 @@ Hello world!";
         //     let request_stream = super::HTTPStreams::from_reader(reader);
         //
         //     let request_one = request_stream
-        //         .next_reader()
+        //         .next_request()
         //         .into_iter()
         //         .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
         //
@@ -5280,7 +6888,7 @@ Hello world!";
         //     let request_stream = super::HTTPStreams::from_reader(reader);
         //
         //     let request_one = request_stream
-        //         .next_reader()
+        //         .next_request()
         //         .into_iter()
         //         .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
         //
@@ -5309,7 +6917,7 @@ Hello world!";
         //     let request_stream = super::HTTPStreams::from_reader(reader);
         //
         //     let request_one = request_stream
-        //         .next_reader()
+        //         .next_request()
         //         .into_iter()
         //         .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
         //
@@ -5338,7 +6946,7 @@ Hello world!";
         //     let request_stream = super::HTTPStreams::from_reader(reader);
         //
         //     let request_one = request_stream
-        //         .next_reader()
+        //         .next_request()
         //         .into_iter()
         //         .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
         //
@@ -5369,7 +6977,7 @@ Hello world!";
         //     let request_stream = super::HTTPStreams::from_reader(reader);
         //
         //     let request_one = request_stream
-        //         .next_reader()
+        //         .next_request()
         //         .into_iter()
         //         .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
         //
@@ -5398,7 +7006,7 @@ Hello world!";
         //     let request_stream = super::HTTPStreams::from_reader(reader);
         //
         //     let request_one = request_stream
-        //         .next_reader()
+        //         .next_request()
         //         .into_iter()
         //         .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
         //
@@ -5428,7 +7036,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5458,7 +7066,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5487,7 +7095,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5516,7 +7124,7 @@ Hello world!";
         //     let request_stream = super::HTTPStreams::from_reader(reader);
         //
         //     let request_one = request_stream
-        //         .next_reader()
+        //         .next_request()
         //         .into_iter()
         //         .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
         //
@@ -5545,7 +7153,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5574,7 +7182,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5603,7 +7211,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5634,7 +7242,7 @@ Hello world!";
         //     let request_stream = super::HTTPStreams::from_reader(reader);
         //
         //     let request_one = request_stream
-        //         .next_reader()
+        //         .next_request()
         //         .into_iter()
         //         .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
         //
@@ -5663,7 +7271,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5692,7 +7300,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5721,7 +7329,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5750,7 +7358,7 @@ Hello world!";
         //     let request_stream = super::HTTPStreams::from_reader(reader);
         //
         //     let request_one = request_stream
-        //         .next_reader()
+        //         .next_request()
         //         .into_iter()
         //         .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
         //
@@ -5781,7 +7389,7 @@ Hello world!";
         //     let request_stream = super::HTTPStreams::from_reader(reader);
         //
         //     let request_one = request_stream
-        //         .next_reader()
+        //         .next_request()
         //         .into_iter()
         //         .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
         //
@@ -5811,7 +7419,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5843,7 +7451,7 @@ Hello world!";
         //     let request_stream = super::HTTPStreams::from_reader(reader);
         //
         //     let request_one = request_stream
-        //         .next_reader()
+        //         .next_request()
         //         .into_iter()
         //         .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
         //
@@ -5873,7 +7481,7 @@ Hello world!";
         //     let request_stream = super::HTTPStreams::from_reader(reader);
         //
         //     let request_one = request_stream
-        //         .next_reader()
+        //         .next_request()
         //         .into_iter()
         //         .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
         //
@@ -5903,7 +7511,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5933,7 +7541,7 @@ Hello world!";
             let request_stream = super::HTTPStreams::from_reader(reader);
 
             let request_one = request_stream
-                .next_reader()
+                .next_request()
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
