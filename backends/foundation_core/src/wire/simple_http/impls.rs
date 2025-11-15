@@ -2700,8 +2700,9 @@ where
                 // header.
                 match headers.get(&SimpleHeader::CONTENT_LENGTH) {
                     Some(content_size_headers) => {
+                        let selected = content_size_headers.len() - 1;
                         let content_size_str = content_size_headers
-                            .get(0)
+                            .get(selected)
                             .clone()
                             .expect("get content size");
                         match content_size_str.parse::<u64>() {
