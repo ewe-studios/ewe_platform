@@ -2220,6 +2220,286 @@ pub trait BodyExtractor {
     ) -> Result<SimpleBody, BoxedError>;
 }
 
+const CHUNKED_VALUE: &str = "chunked";
+const MAX_HEADER_NAME_LEN: usize = (1 << 16) - 1;
+
+static SPACE_CHARS: &[char] = &[' ', '\n', '\t', '\r'];
+
+static TRANSFER_ENCODING_VALUES: &[&str] = &["chunked", "compress", "deflate", "gzip"];
+
+static NO_SPLIT_HEADERS: &[SimpleHeader] = &[
+    SimpleHeader::DATE,
+    SimpleHeader::ETAG,
+    SimpleHeader::SERVER,
+    SimpleHeader::LAST_MODIFIED,
+];
+
+#[derive(Clone)]
+pub struct HeaderReader<T: std::io::Read + Send + 'static> {
+    reader: SharedByteBufferStream<T>,
+    max_header_key_length: Option<usize>,
+    max_header_value_length: Option<usize>,
+    max_header_values_count: Option<usize>,
+}
+
+impl<T> HeaderReader<T>
+where
+    T: std::io::Read + Send + 'static,
+{
+    pub fn new(
+        reader: SharedByteBufferStream<T>,
+        max_header_key_length: Option<usize>,
+        max_header_values_count: Option<usize>,
+        max_header_value_length: Option<usize>,
+    ) -> Self {
+        Self {
+            max_header_key_length,
+            max_header_values_count,
+            max_header_value_length,
+            reader,
+        }
+    }
+}
+
+impl<T> HeaderReader<T>
+where
+    T: std::io::Read + Send + Sync + 'static,
+{
+    fn parse_headers(&mut self) -> Result<SimpleHeaders, HttpReaderError> {
+        let mut headers: SimpleHeaders = BTreeMap::new();
+
+        let mut line = String::new();
+
+        let mut borrowed_reader = match self.reader.write() {
+            Ok(borrowed_reader) => borrowed_reader,
+            Err(_) => return Err(HttpReaderError::GuardedResourceAccess),
+        };
+
+        let mut last_header: Option<String> = None;
+
+        loop {
+            let line_read_result = borrowed_reader
+                .read_line(&mut line)
+                .map_err(|err| HttpReaderError::LineReadFailed(Box::new(err)));
+
+            if line_read_result.is_err() {
+                return Err(line_read_result.unwrap_err());
+            }
+
+            tracing::debug!("HeaderLine: {:?}", &line);
+
+            if line.trim().is_empty()
+                && (line == "\n" || line == "\r\n" || line == "\n\n" || line == "")
+            {
+                line.clear();
+                break;
+            }
+
+            if !line.contains(":") && last_header.is_none() {
+                return Err(HttpReaderError::InvalidHeaderLine);
+            }
+
+            let line_parts: Vec<&str> = line.splitn(2, ':').collect();
+
+            tracing::debug!("HeaderLineParts: {:?}", &line_parts);
+
+            // if its start with an invalid character then indicate error
+            if line_parts.len() == 2 {
+                if line_parts[1].starts_with('\r') {
+                    return Err(HttpReaderError::HeaderValueStartingWithCR);
+                }
+
+                // Breaks line folding handling
+                // if line_parts[1] == "\n" || line_parts[1].trim().is_empty() {
+                //     return Err(HttpReaderError::HeaderValueStartingWithLF);
+                // }
+            }
+
+            let (header_key, header_value) = if !line.contains(":") && last_header.is_some() {
+                (last_header.clone().unwrap(), line.clone())
+            } else {
+                tracing::debug!(
+                    "HeaderLinePartsUnicodeTrim: {:?} -- {:?}",
+                    &line_parts[0],
+                    line_parts[1].trim_matches(|c: char| c.is_whitespace() || c.is_control()),
+                );
+                (line_parts[0].to_string(), line_parts[1].trim().to_string())
+            };
+
+            last_header = Some(header_key.clone());
+
+            let max_header_key_length: usize = match self.max_header_key_length {
+                Some(max_value) => max_value,
+                None => MAX_HEADER_NAME_LEN,
+            };
+
+            if !header_key
+                .chars()
+                .all(|c| c.is_ascii_alphanumeric() || c == '-')
+            {
+                return Err(HttpReaderError::HeaderKeyContainsNotAllowedChars);
+            }
+
+            if header_key.trim() == "" {
+                return Err(HttpReaderError::InvalidHeaderKey);
+            }
+
+            if header_key.len() > max_header_key_length {
+                return Err(HttpReaderError::HeaderKeyGreaterThanLimit(
+                    MAX_HEADER_NAME_LEN,
+                ));
+            }
+
+            // disallow encoded CR: "%0D"
+            if header_key.contains("%0D") {
+                return Err(HttpReaderError::HeaderKeyContainsEncodedCRLF);
+            }
+
+            // disallow encoded LF: "%0A"
+            if header_key.contains("%0A") {
+                return Err(HttpReaderError::HeaderKeyContainsEncodedCRLF);
+            }
+
+            if let Some(allowed_max_key_length) = self.max_header_key_length {
+                if header_key.len() > allowed_max_key_length {
+                    return Err(HttpReaderError::HeaderKeyTooLong);
+                }
+            }
+
+            if let Some(allowed_max_key_length) = self.max_header_value_length {
+                if header_value.len() > allowed_max_key_length {
+                    return Err(HttpReaderError::HeaderKeyTooLong);
+                }
+            }
+
+            tracing::debug!("HeaderKey: {:?}", &header_key);
+            tracing::debug!(
+                "HeaderValue: {:?} -> trimmed: {:?}",
+                &header_value,
+                header_value.trim()
+            );
+
+            if header_value.starts_with('\r') {
+                return Err(HttpReaderError::HeaderValueStartingWithCR);
+            }
+
+            for space_char in SPACE_CHARS {
+                if header_key.contains(*space_char) {
+                    return Err(HttpReaderError::InvalidHeaderKey);
+                }
+            }
+
+            if let Some(max_value) = self.max_header_value_length {
+                if header_value.len() > max_value {
+                    return Err(HttpReaderError::HeaderValueGreaterThanLimit(
+                        MAX_HEADER_NAME_LEN,
+                    ));
+                }
+            }
+
+            // ALLOW empty header value
+            //
+            if header_value.is_empty() {
+                // return Err(HttpReaderError::InvalidHeaderValue);
+                line.clear();
+                continue;
+            }
+
+            if header_value == "," {
+                return Err(HttpReaderError::InvalidHeaderValue);
+            }
+            if header_value.starts_with(',') {
+                return Err(HttpReaderError::InvalidHeaderValueStarter);
+            }
+            if header_value.ends_with(" ,") {
+                return Err(HttpReaderError::InvalidHeaderValueEnder);
+            }
+
+            // disallow encoded CR: "%0D"
+            if header_value.contains("%0D") {
+                return Err(HttpReaderError::HeaderValueContainsEncodedCRLF);
+            }
+
+            // disallow encoded LF: "%0A"
+            if header_value.contains("%0A") {
+                return Err(HttpReaderError::HeaderValueContainsEncodedCRLF);
+            }
+
+            // check if there is any funny business with headers
+            // for header_value_part in header_value.split(','). {}
+
+            tracing::debug!("[2] HeaderKey: {:?}", &header_key);
+            tracing::debug!("[2] HeaderValue: {:?}", &header_value);
+
+            let actual_key = SimpleHeader::from(header_key);
+            if let Some(values) = headers.get_mut(&actual_key) {
+                if header_value.trim() == "" {
+                    line.clear();
+                    continue;
+                }
+
+                if NO_SPLIT_HEADERS
+                    .iter()
+                    .position(|n| n == &actual_key)
+                    .is_some()
+                {
+                    tracing::debug!("[2] ExtendHeader: {:?}", &header_value);
+                    values.push(header_value.into());
+                } else {
+                    tracing::debug!("[2] ExtendAndSplitHeader: {:?}", &header_value);
+                    values.extend(header_value.split(",").map(|t| t.trim().into()));
+                }
+
+                if let Some(allowed_max_value_count) = self.max_header_values_count {
+                    if values.len() > allowed_max_value_count {
+                        return Err(HttpReaderError::HeaderValuesHasTooManyItems);
+                    }
+                }
+
+                line.clear();
+                continue;
+            }
+
+            if header_value.trim() == "" {
+                headers.insert(actual_key, vec![]);
+
+                line.clear();
+                continue;
+            }
+
+            if NO_SPLIT_HEADERS
+                .iter()
+                .position(|n| n == &actual_key)
+                .is_some()
+            {
+                tracing::debug!("[2] InsertHeader: {:?}", &header_value);
+
+                headers.insert(actual_key, vec![header_value]);
+            } else {
+                let header_values: Vec<String> =
+                    header_value.split(",").map(|t| t.trim().into()).collect();
+                tracing::debug!(
+                    "[2] InsertAndSplitHeader: {:?} -> values: {:?}",
+                    &header_value,
+                    &header_values
+                );
+
+                if let Some(allowed_max_value_count) = self.max_header_values_count {
+                    if header_values.len() > allowed_max_value_count {
+                        return Err(HttpReaderError::HeaderValuesHasTooManyItems);
+                    }
+                }
+
+                headers.insert(actual_key, header_values);
+            }
+
+            line.clear();
+        }
+
+        Ok(headers)
+    }
+}
+
 #[derive(Clone, Debug)]
 pub enum HttpReadState {
     Intro,
@@ -2238,6 +2518,7 @@ pub struct HttpReader<F: BodyExtractor, T: std::io::Read + Send + 'static> {
     max_body_length: Option<usize>,
     max_header_key_length: Option<usize>,
     max_header_value_length: Option<usize>,
+    max_header_values_count: Option<usize>,
 }
 
 impl<F, T> HttpReader<F, T>
@@ -2251,6 +2532,7 @@ where
             max_body_length: None,
             max_header_key_length: None,
             max_header_value_length: None,
+            max_header_values_count: None,
             state: HttpReadState::Intro,
             reader,
         }
@@ -2265,6 +2547,7 @@ where
             bodies,
             max_header_key_length: None,
             max_header_value_length: None,
+            max_header_values_count: None,
             max_body_length: Some(max_body_length),
             state: HttpReadState::Intro,
             reader,
@@ -2275,6 +2558,7 @@ where
         reader: SharedByteBufferStream<T>,
         bodies: F,
         max_header_key_length: usize,
+        max_header_values_count: usize,
         max_header_value_length: usize,
     ) -> Self {
         Self {
@@ -2282,6 +2566,7 @@ where
             reader,
             max_body_length: None,
             max_header_key_length: Some(max_header_key_length),
+            max_header_values_count: Some(max_header_values_count),
             max_header_value_length: Some(max_header_value_length),
             state: HttpReadState::Intro,
         }
@@ -2292,6 +2577,7 @@ where
         bodies: F,
         max_body_length: usize,
         max_header_key_length: usize,
+        max_header_values_count: usize,
         max_header_value_length: usize,
     ) -> Self {
         Self {
@@ -2299,27 +2585,14 @@ where
             reader,
             max_body_length: Some(max_body_length),
             max_header_key_length: Some(max_header_key_length),
+            max_header_values_count: Some(max_header_values_count),
             max_header_value_length: Some(max_header_value_length),
             state: HttpReadState::Intro,
         }
     }
 }
 
-const CHUNKED_VALUE: &str = "chunked";
-const MAX_HEADER_NAME_LEN: usize = (1 << 16) - 1;
-
-static SPACE_CHARS: &[char] = &[' ', '\n', '\t', '\r'];
-
-static TRANSFER_ENCODING_VALUES: &[&str] = &["chunked", "compress", "deflate", "gzip"];
-
 static NO_BODY_METHODS: &[SimpleMethod] = &[SimpleMethod::HEAD, SimpleMethod::CONNECT];
-
-static NO_SPLIT_HEADERS: &[SimpleHeader] = &[
-    SimpleHeader::DATE,
-    SimpleHeader::ETAG,
-    SimpleHeader::SERVER,
-    SimpleHeader::LAST_MODIFIED,
-];
 
 impl<F, T> Iterator for HttpReader<F, T>
 where
@@ -2414,227 +2687,20 @@ where
                 }
             }
             HttpReadState::Headers | HttpReadState::OnlyHeaders => {
-                let mut headers: SimpleHeaders = BTreeMap::new();
+                let mut header_reader = HeaderReader::new(
+                    self.reader.clone(),
+                    self.max_header_key_length,
+                    self.max_header_values_count,
+                    self.max_header_value_length,
+                );
 
-                let mut line = String::new();
-
-                let mut borrowed_reader = match self.reader.write() {
-                    Ok(borrowed_reader) => borrowed_reader,
-                    Err(_) => return Some(Err(HttpReaderError::GuardedResourceAccess)),
+                let headers = match header_reader.parse_headers() {
+                    Ok(header) => header,
+                    Err(err) => {
+                        self.state = HttpReadState::Finished;
+                        return Some(Err(err));
+                    }
                 };
-
-                let mut last_header: Option<String> = None;
-
-                loop {
-                    let line_read_result = borrowed_reader
-                        .read_line(&mut line)
-                        .map_err(|err| HttpReaderError::LineReadFailed(Box::new(err)));
-
-                    if line_read_result.is_err() {
-                        self.state = HttpReadState::Finished;
-                        return Some(Err(line_read_result.unwrap_err()));
-                    }
-
-                    tracing::debug!("HeaderLine: {:?}", &line);
-
-                    if line.trim().is_empty()
-                        && (line == "\n" || line == "\r\n" || line == "\n\n" || line == "")
-                    {
-                        line.clear();
-                        break;
-                    }
-
-                    if !line.contains(":") && last_header.is_none() {
-                        self.state = HttpReadState::Finished;
-                        return Some(Err(HttpReaderError::InvalidHeaderLine));
-                    }
-
-                    let line_parts: Vec<&str> = line.splitn(2, ':').collect();
-
-                    tracing::debug!("HeaderLineParts: {:?}", &line_parts);
-
-                    // if its start with an invalid character then indicate error
-                    if line_parts.len() == 2 {
-                        if line_parts[1].starts_with('\r') {
-                            self.state = HttpReadState::Finished;
-                            return Some(Err(HttpReaderError::HeaderValueStartingWithCR));
-                        }
-
-                        // Breaks line folding handling
-                        // if line_parts[1] == "\n" || line_parts[1].trim().is_empty() {
-                        //     self.state = HttpReadState::Finished;
-                        //     return Some(Err(HttpReaderError::HeaderValueStartingWithLF));
-                        // }
-                    }
-
-                    let (header_key, header_value) = if !line.contains(":") && last_header.is_some()
-                    {
-                        (last_header.clone().unwrap(), line.clone())
-                    } else {
-                        tracing::debug!(
-                            "HeaderLinePartsUnicodeTrim: {:?} -- {:?}",
-                            &line_parts[0],
-                            line_parts[1]
-                                .trim_matches(|c: char| c.is_whitespace() || c.is_control()),
-                        );
-                        (line_parts[0].to_string(), line_parts[1].trim().to_string())
-                    };
-
-                    last_header = Some(header_key.clone());
-
-                    let max_header_key_length: usize = match self.max_header_key_length {
-                        Some(max_value) => max_value,
-                        None => MAX_HEADER_NAME_LEN,
-                    };
-
-                    if !header_key
-                        .chars()
-                        .all(|c| c.is_ascii_alphanumeric() || c == '-')
-                    {
-                        self.state = HttpReadState::Finished;
-                        return Some(Err(HttpReaderError::HeaderKeyContainsNotAllowedChars));
-                    }
-
-                    if header_key.trim() == "" {
-                        self.state = HttpReadState::Finished;
-                        return Some(Err(HttpReaderError::InvalidHeaderKey));
-                    }
-
-                    if header_key.len() > max_header_key_length {
-                        self.state = HttpReadState::Finished;
-                        return Some(Err(HttpReaderError::HeaderKeyGreaterThanLimit(
-                            MAX_HEADER_NAME_LEN,
-                        )));
-                    }
-
-                    // disallow encoded CR: "%0D"
-                    if header_key.contains("%0D") {
-                        self.state = HttpReadState::Finished;
-                        return Some(Err(HttpReaderError::HeaderKeyContainsEncodedCRLF));
-                    }
-
-                    // disallow encoded LF: "%0A"
-                    if header_key.contains("%0A") {
-                        self.state = HttpReadState::Finished;
-                        return Some(Err(HttpReaderError::HeaderKeyContainsEncodedCRLF));
-                    }
-
-                    tracing::debug!("HeaderKey: {:?}", &header_key);
-                    tracing::debug!(
-                        "HeaderValue: {:?} -> trimmed: {:?}",
-                        &header_value,
-                        header_value.trim()
-                    );
-
-                    if header_value.starts_with('\r') {
-                        self.state = HttpReadState::Finished;
-                        return Some(Err(HttpReaderError::HeaderValueStartingWithCR));
-                    }
-
-                    for space_char in SPACE_CHARS {
-                        if header_key.contains(*space_char) {
-                            self.state = HttpReadState::Finished;
-                            return Some(Err(HttpReaderError::InvalidHeaderKey));
-                        }
-                    }
-
-                    if let Some(max_value) = self.max_header_value_length {
-                        if header_value.len() > max_value {
-                            self.state = HttpReadState::Finished;
-                            return Some(Err(HttpReaderError::HeaderValueGreaterThanLimit(
-                                MAX_HEADER_NAME_LEN,
-                            )));
-                        }
-                    }
-
-                    // ALLOW empty header value
-                    //
-                    if header_value.is_empty() {
-                        // self.state = HttpReadState::Finished;
-                        // return Some(Err(HttpReaderError::InvalidHeaderValue));
-                        line.clear();
-                        continue;
-                    }
-
-                    if header_value == "," {
-                        self.state = HttpReadState::Finished;
-                        return Some(Err(HttpReaderError::InvalidHeaderValue));
-                    }
-                    if header_value.starts_with(',') {
-                        self.state = HttpReadState::Finished;
-                        return Some(Err(HttpReaderError::InvalidHeaderValueStarter));
-                    }
-                    if header_value.ends_with(" ,") {
-                        self.state = HttpReadState::Finished;
-                        return Some(Err(HttpReaderError::InvalidHeaderValueEnder));
-                    }
-
-                    // disallow encoded CR: "%0D"
-                    if header_value.contains("%0D") {
-                        self.state = HttpReadState::Finished;
-                        return Some(Err(HttpReaderError::HeaderValueContainsEncodedCRLF));
-                    }
-
-                    // disallow encoded LF: "%0A"
-                    if header_value.contains("%0A") {
-                        self.state = HttpReadState::Finished;
-                        return Some(Err(HttpReaderError::HeaderValueContainsEncodedCRLF));
-                    }
-
-                    // check if there is any funny business with headers
-                    // for header_value_part in header_value.split(','). {}
-
-                    tracing::debug!("[2] HeaderKey: {:?}", &header_key);
-                    tracing::debug!("[2] HeaderValue: {:?}", &header_value);
-
-                    let actual_key = SimpleHeader::from(header_key);
-                    if let Some(values) = headers.get_mut(&actual_key) {
-                        if header_value.trim() == "" {
-                            line.clear();
-                            continue;
-                        }
-
-                        if NO_SPLIT_HEADERS
-                            .iter()
-                            .position(|n| n == &actual_key)
-                            .is_some()
-                        {
-                            tracing::debug!("[2] ExtendHeader: {:?}", &header_value);
-                            values.push(header_value.into());
-                        } else {
-                            tracing::debug!("[2] ExtendAndSplitHeader: {:?}", &header_value);
-                            values.extend(header_value.split(",").map(|t| t.trim().into()));
-                        }
-
-                        line.clear();
-                        continue;
-                    }
-
-                    if header_value.trim() == "" {
-                        headers.insert(actual_key, vec![]);
-
-                        line.clear();
-                        continue;
-                    }
-
-                    if NO_SPLIT_HEADERS
-                        .iter()
-                        .position(|n| n == &actual_key)
-                        .is_some()
-                    {
-                        tracing::debug!("[2] InsertHeader: {:?}", &header_value);
-
-                        headers.insert(actual_key, vec![header_value]);
-                    } else {
-                        tracing::debug!("[2] InsertAndSplitHeader: {:?}", &header_value);
-                        headers.insert(
-                            actual_key,
-                            header_value.split(",").map(|t| t.trim().into()).collect(),
-                        );
-                    }
-
-                    line.clear();
-                }
 
                 if no_body {
                     tracing::debug!("No body flag is set to true");
@@ -2700,7 +2766,11 @@ where
                 // header.
                 match headers.get(&SimpleHeader::CONTENT_LENGTH) {
                     Some(content_size_headers) => {
-                        if content_size_headers.len() == 0 {}
+                        if content_size_headers.len() == 0 {
+                            self.state = HttpReadState::NoBody;
+                            return Some(Ok(IncomingRequestParts::Headers(headers)));
+                        }
+
                         let selected = content_size_headers.len() - 1;
                         let content_size_str = content_size_headers
                             .get(selected)

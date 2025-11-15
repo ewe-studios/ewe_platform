@@ -44,6 +44,9 @@ pub enum HttpReaderError {
     HeaderValueStartingWithCR,
     HeaderValueStartingWithLF,
     HeaderValueContainsEncodedCRLF,
+    HeaderKeyTooLong,
+    HeaderValueTooLong,
+    HeaderValuesHasTooManyItems,
     HeaderKeyContainsEncodedCRLF,
     HeaderKeyContainsNotAllowedChars,
     #[from(ignore)]
