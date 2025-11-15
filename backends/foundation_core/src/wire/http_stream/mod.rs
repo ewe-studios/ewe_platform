@@ -15,9 +15,9 @@ use super::simple_http;
 pub fn create_simple_http_reader<T: simple_http::BodyExtractor>(
     stream: RawStream,
     extractor: T,
-) -> simple_http::HttpReader<T, RawStream> {
+) -> simple_http::HttpRequestReader<T, RawStream> {
     let byte_reader = ioutils::SharedByteBufferStream::new(stream);
-    simple_http::HttpReader::new(byte_reader, extractor)
+    simple_http::HttpRequestReader::new(byte_reader, extractor)
 }
 
 /// Representing the different state a connection goes through
