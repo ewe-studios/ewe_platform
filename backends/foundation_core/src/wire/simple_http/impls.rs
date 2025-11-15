@@ -2700,6 +2700,7 @@ where
                 // header.
                 match headers.get(&SimpleHeader::CONTENT_LENGTH) {
                     Some(content_size_headers) => {
+                        if content_size_headers.len() == 0 {}
                         let selected = content_size_headers.len() - 1;
                         let content_size_str = content_size_headers
                             .get(selected)
