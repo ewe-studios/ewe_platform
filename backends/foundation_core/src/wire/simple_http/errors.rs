@@ -203,7 +203,40 @@ impl core::fmt::Display for ChunkStateError {
 }
 
 #[derive(From, Debug)]
+pub enum LineFeedError {
+    ParseFailed,
+    ReadErrors,
+
+    #[from(ignore)]
+    InvalidByte(u8),
+
+    #[from(ignore)]
+    InvalidUTF(FromUtf8Error),
+}
+
+impl<T> From<PoisonError<T>> for LineFeedError {
+    fn from(_: PoisonError<T>) -> Self {
+        Self::ReadErrors
+    }
+}
+
+impl From<std::io::Error> for LineFeedError {
+    fn from(_: std::io::Error) -> Self {
+        Self::ReadErrors
+    }
+}
+
+impl std::error::Error for LineFeedError {}
+
+impl core::fmt::Display for LineFeedError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
+
+#[derive(From, Debug)]
 pub enum WireErrors {
+    LineFeeds(LineFeedError),
     ChunkState(ChunkStateError),
     SimpleHttp(SimpleHttpError),
     RenderError(RenderHttpError),

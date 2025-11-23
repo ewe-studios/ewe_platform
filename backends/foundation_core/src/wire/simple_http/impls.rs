@@ -139,8 +139,22 @@ pub type BodySizeLimit = usize;
 
 #[derive(Clone, Debug)]
 pub enum Body {
+    /// [`Self::FullBody`] let indicates when you wish to read the full
+    /// content of the stream till EOF, if the second option is supplied
+    /// then its used to limit the total read amount.
+    FullBody(SimpleHeaders, Option<BodySizeLimit>),
+
+    /// [`LimitedBody`] returns a body which is limited by the size and will
+    /// attempt to read that exact size via [`Reader::read_exact`].
     LimitedBody(BodySize, SimpleHeaders),
+
+    /// [`ChunkedBody`] returns a chunked body for iterating through
+    /// a chunked encoded body of data think transfer encoding style data.
     ChunkedBody(Vec<String>, SimpleHeaders),
+
+    /// [`LineFeedBody`] returns a body reader that iterating through
+    /// each line yielding each line to the reader.
+    LineFeedBody(SimpleHeaders),
 }
 
 pub enum SimpleBody {
@@ -149,6 +163,7 @@ pub enum SimpleBody {
     Bytes(Vec<u8>),
     Stream(Option<SendVecIterator<BoxedError>>),
     ChunkedStream(Option<ChunkedVecIterator<BoxedError>>),
+    LineFeedStream(Option<ChunkedVecIterator<BoxedError>>),
 }
 
 impl Eq for SimpleBody {}
@@ -2505,7 +2520,6 @@ where
             }
 
             // ALLOW empty header value
-            //
             if header_value.is_empty() {
                 // return Err(HttpReaderError::InvalidHeaderValue);
                 line.clear();
@@ -3153,6 +3167,19 @@ where
                     return Some(Ok(IncomingResponseParts::Headers(headers)));
                 }
 
+                // if no transfer encoding and content length provided then we wont fail but
+                // read the body till EOF
+                if headers.get(&SimpleHeader::TRANSFER_ENCODING).is_none()
+                    && headers.get(&SimpleHeader::CONTENT_LENGTH).is_none()
+                {
+                    self.state = HttpReadState::Body(Body::FullBody(
+                        headers.clone(),
+                        self.max_body_length.clone(),
+                    ));
+
+                    return Some(Ok(IncomingResponseParts::Headers(headers)));
+                }
+
                 // if its a chunked body then send and move state to chunked body state
                 if let Some(transfer_encodings) = headers.get(&SimpleHeader::TRANSFER_ENCODING) {
                     tracing::debug!("Transfer Encoding value: {:?}", &transfer_encodings);
@@ -3293,6 +3320,215 @@ where
                 }
             }
             HttpReadState::Finished => None,
+        }
+    }
+}
+
+pub type Line = String;
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum LineFeed {
+    Line(Line),
+    SKIP,
+}
+
+impl LineFeed {
+    pub fn stream_line_feeds_from_string(chunk_text: &[u8]) -> Result<Option<Self>, LineFeedError> {
+        let cursor = Cursor::new(chunk_text.to_vec());
+        let reader = SharedByteBufferStream::new(cursor);
+        Self::stream_line_feeds(reader)
+    }
+
+    pub fn stream_line_feeds<T: Read>(
+        pointer: SharedByteBufferStream<T>,
+    ) -> Result<Option<Self>, LineFeedError> {
+        let mut acc = pointer.write().map_err(|_| LineFeedError::ReadErrors)?;
+
+        while let Ok(b) = acc.nextby2(1) {
+            match b {
+                b"\r" => {
+                    // if 3 forward peeks reveal additional CLRF, two or three newlines
+                    // then we've gotten to end of trailer, simply just end it there without
+                    // moving back.
+                    if crate::is_ok!(acc.peekby2(3), b"\n\r\n", b"\n\n\n") {
+                        let _ = acc.unforward_by(1);
+                        break;
+                    }
+                    if crate::is_ok!(acc.peekby2(3), b"\n\n") {
+                        let _ = acc.unforward_by(1);
+                        break;
+                    }
+                    // if even with 3 bytes forward peeks, if its still only more newline, then
+                    // consider this has end of chunk and move back by 1.
+                    if crate::is_ok!(acc.peekby2(3), b"\n") {
+                        let _ = acc.unforward_by(1);
+                        break;
+                    }
+                    continue;
+                }
+                b"\n" => {
+                    // if 3 forward peeks reveal additional CLRF, two or three newlines
+                    // then we've gotten to end of trailer, simply just end it there without
+                    // moving back.
+                    if crate::is_ok!(acc.peekby2(3), b"\r\n", b"\n\n") {
+                        let _ = acc.unforward_by(1);
+                        break;
+                    }
+                    if crate::is_ok!(acc.peekby2(3), b"\n\n\n") {
+                        let _ = acc.unforward_by(1);
+                        break;
+                    }
+                    // if even with 3 bytes forward peeks, if its still only more newline, then
+                    // consider this has end of chunk and move back by 1.
+                    if crate::is_ok!(acc.peekby2(3), b"\n") {
+                        let _ = acc.unforward_by(1);
+                        break;
+                    }
+                    continue;
+                }
+                _ => continue,
+            }
+        }
+
+        let line_feed_result = match acc.consume() {
+            Ok(value) => match String::from_utf8(value.to_vec()) {
+                Ok(converted_string) => Ok(if converted_string.trim().is_empty() {
+                    Some(LineFeed::SKIP)
+                } else {
+                    Some(LineFeed::Line(converted_string))
+                }),
+                Err(err) => return Err(LineFeedError::InvalidUTF(err)),
+            },
+            Err(_) => return Err(LineFeedError::ParseFailed),
+        };
+
+        // eat all the space
+        let _ = Self::eat_space(&mut acc)?;
+
+        // eat all newlines
+        let _ = Self::eat_newlines(&mut acc)?;
+
+        // eat all crlf
+        let _ = Self::eat_crlf(&mut acc)?;
+
+        // eat all crlf
+        let _ = Self::eat_escaped_crlf(&mut acc)?;
+
+        line_feed_result
+    }
+
+    fn eat_newlines<T: Read>(
+        acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
+    ) -> Result<(), LineFeedError> {
+        let newline = b"\n";
+        while let Ok(b) = acc.nextby2(1) {
+            if b[0] == newline[0] {
+                continue;
+            }
+
+            // move backwards
+            let _ = acc.unforward();
+            acc.skip();
+
+            return Ok(());
+        }
+        Ok(())
+    }
+
+    fn eat_escaped_crlf<T: Read>(
+        acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
+    ) -> Result<(), LineFeedError> {
+        while let Ok(b) = acc.nextby2(2) {
+            tracing::debug!(
+                "Tracing escaped clrf: {:?} and {:?}",
+                &b,
+                String::from_utf8(b.to_vec())
+            );
+            if b != b"\\r" && b != b"\\n" {
+                let _ = acc.unforward_by(2);
+                acc.skip();
+                break;
+            }
+        }
+        Ok(())
+    }
+
+    fn eat_crlf<T: Read>(
+        acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
+    ) -> Result<(), LineFeedError> {
+        while let Ok(b) = acc.nextby2(1) {
+            tracing::debug!(
+                "Tracing clrf: {:?} and {:?}",
+                &b,
+                String::from_utf8(b.to_vec())
+            );
+            if b[0] != b'\r' && b[0] != b'\n' {
+                let _ = acc.unforward();
+                acc.skip();
+                break;
+            }
+        }
+        Ok(())
+    }
+
+    fn eat_space<T: Read>(
+        acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
+    ) -> Result<(), LineFeedError> {
+        while let Ok(b) = acc.nextby2(1) {
+            if b[0] == b' ' {
+                continue;
+            }
+
+            // move backwards
+            let _ = acc.unforward();
+            acc.skip();
+            return Ok(());
+        }
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod test_line_feed_parser {
+    use super::*;
+    use tracing_test::traced_test;
+
+    struct LineFeedSample {
+        content: &'static [&'static str],
+        expected: Vec<Option<LineFeed>>,
+    }
+
+    #[test]
+    #[traced_test]
+    fn test_chunk_state_parse_http_trailers() {
+        let test_cases: Vec<LineFeedSample> = vec![LineFeedSample {
+            expected: vec![
+                Some(LineFeed::Line("Farm: FarmValue".into())),
+                Some(LineFeed::Line("Farm:FarmValue".into())),
+                Some(LineFeed::Line("Farm:FarmValue".into())),
+                Some(LineFeed::Line("Farm:\rFarmValue".into())),
+                Some(LineFeed::Line("Farm:\nFarmValue".into())),
+                Some(LineFeed::SKIP),
+            ],
+            content: &[
+                "Farm: FarmValue\r\n",
+                "Farm:FarmValue\n\n",
+                "Farm:FarmValue\n\n\n",
+                "Farm:\rFarmValue\r\n\r\n",
+                "Farm:\nFarmValue\r\n\r\n",
+                "\r\n",
+            ][..],
+        }];
+
+        for sample in test_cases {
+            let chunks: Result<Vec<Option<LineFeed>>, LineFeedError> = sample
+                .content
+                .iter()
+                .map(|t| LineFeed::stream_line_feeds_from_string(t.as_bytes()))
+                .collect();
+
+            assert!(chunks.is_ok());
+            assert_eq!(chunks.unwrap(), sample.expected);
         }
     }
 }
@@ -4048,6 +4284,37 @@ mod test_chunk_parser {
     }
 }
 
+pub struct SimpleLineFeedIterator<T: std::io::Read + Send + Sync>(
+    SimpleHeaders,
+    SharedByteBufferStream<T>,
+);
+
+impl<T: std::io::Read + Send + Sync> Clone for SimpleLineFeedIterator<T> {
+    fn clone(&self) -> Self {
+        Self(self.0.clone(), self.1.clone())
+    }
+}
+
+impl<T: std::io::Read + Send + Sync> SimpleLineFeedIterator<T> {
+    pub fn new(headers: SimpleHeaders, stream: SharedByteBufferStream<T>) -> Self {
+        Self(headers, stream)
+    }
+}
+
+impl<T: std::io::Read + Send + Sync> SendableIterator<Result<ChunkedData, BoxedError>>
+    for SimpleLineFeedIterator<T>
+{
+}
+
+impl<T: std::io::Read + Send + Sync> Iterator for SimpleLineFeedIterator<T> {
+    type Item = Result<ChunkedData, BoxedError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        tracing::debug!("LineFeed::ParsingNext");
+        todo!()
+    }
+}
+
 pub struct SimpleHttpChunkIterator<T: std::io::Read + Send + Sync>(
     Vec<String>,
     SimpleHeaders,
@@ -4187,6 +4454,30 @@ impl BodyExtractor for SimpleHttpBody {
         stream: SharedByteBufferStream<T>,
     ) -> Result<SimpleBody, BoxedError> {
         match body {
+            Body::LineFeedBody(_) => {
+                let mut borrowed_stream = match stream.write() {
+                    Ok(borrowed_reader) => borrowed_reader,
+                    Err(_) => return Err(Box::new(HttpReaderError::GuardedResourceAccess)),
+                };
+
+                let mut body_content = Vec::with_capacity(1024);
+                match borrowed_stream.read_all(&mut body_content, optional_max_body_size) {
+                    Ok(_) => Ok(SimpleBody::Bytes(body_content)),
+                    Err(err) => Err(Box::new(err)),
+                }
+            }
+            Body::FullBody(_, optional_max_body_size) => {
+                let mut borrowed_stream = match stream.write() {
+                    Ok(borrowed_reader) => borrowed_reader,
+                    Err(_) => return Err(Box::new(HttpReaderError::GuardedResourceAccess)),
+                };
+
+                let mut body_content = Vec::with_capacity(1024);
+                match borrowed_stream.read_all(&mut body_content, optional_max_body_size) {
+                    Ok(_) => Ok(SimpleBody::Bytes(body_content)),
+                    Err(err) => Err(Box::new(err)),
+                }
+            }
             Body::LimitedBody(content_length, _) => {
                 if content_length == 0 {
                     return Err(Box::new(HttpReaderError::ZeroBodySizeNotAllowed));
