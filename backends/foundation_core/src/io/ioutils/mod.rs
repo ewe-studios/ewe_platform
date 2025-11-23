@@ -638,6 +638,14 @@ impl<T: Read> SharedByteBufferStream<T> {
         binding.fill_up()
     }
 
+    /// [`fill_all`] calls the underlying pointer to the byte buffer to
+    /// pull the whole data within the in-memory buffer.
+    #[inline]
+    pub fn fill_all(&self) -> std::io::Result<usize> {
+        let mut binding = self.0.write().expect("get lock");
+        binding.fill_all()
+    }
+
     /// [`read`] returns a borrowed [`RwLockReadGuard`] which allows you access the internal
     /// buffered byte reader for performing operations.
     #[inline]
@@ -884,6 +892,33 @@ impl<T: Read> ByteBufferPointer<T> {
         self.buffer.extend_from_slice(&copied[0..read]);
 
         Ok(read)
+    }
+
+    /// [fill_all] reads the whole underlying reader into the underlying
+    /// buffer, allowing you to extract the remaining data within the stream
+    /// as fully in-memory.
+    #[inline]
+    pub fn fill_all(&mut self) -> std::io::Result<usize> {
+        let mut total_read = 0;
+
+        // pull the amount of data until we reach EOF
+        let mut copied = vec![0; self.pull_amount];
+        loop {
+            let read = match self.reader.read(&mut copied) {
+                Ok(read) => read,
+                Err(err) => return Err(err),
+            };
+
+            if read == 0 {
+                break;
+            }
+
+            total_read += read;
+
+            self.buffer.extend_from_slice(&copied[0..read]);
+        }
+
+        Ok(total_read)
     }
 
     /// Forward by 1 by calling the [`Self::forward_by`] method underneath.
@@ -1502,6 +1537,29 @@ impl<T: Read> ByteBufferPointer<T> {
             Err(err) => Err(err),
         }
     }
+
+    /// [`read_all`] pulls the whole data within the underlying stream into provided buffer
+    /// returning the total length of bytes read out after pulling all the data within the
+    /// stream until EOF.
+    pub fn read_all<'a>(&'a mut self, buf: &mut Vec<u8>) -> std::io::Result<usize> {
+        self.fill_all()?;
+
+        // get len of buffer
+        let buffer_len = self.buffer.len();
+
+        // get current peek position
+        let original_peek = self.peek_pos;
+
+        let slice = &self.buffer[original_peek..buffer_len];
+        let slice_length = slice.len();
+
+        buf.extend_from_slice(&slice);
+
+        self.peek_pos = buffer_len;
+        self.skip();
+
+        Ok(slice_length)
+    }
 }
 
 impl<T: Read> Read for ByteBufferPointer<T> {
@@ -1541,6 +1599,26 @@ mod byte_buffered_buffer_pointer {
     use std::sync::Mutex;
 
     use super::*;
+
+    #[test]
+    fn can_read_all_the_data() {
+        let content = b"alexander_wonderbat";
+
+        let reader = OwnedReader::Sync(Arc::new(Mutex::new(Cursor::new(content.to_vec()))));
+        let buffer = Mutex::new(ByteBufferPointer::new(5, reader));
+
+        let mut binding = buffer.lock().unwrap();
+
+        let mut read_data = Vec::new();
+
+        let read_length = binding
+            .read_all(&mut read_data)
+            .expect("read data succesfully");
+        assert_eq!(read_length, content.len());
+
+        let data_4_str = str::from_utf8(&read_data[0..read_length]).expect("convert into string");
+        assert_eq!(data_4_str, "alexander_wonderbat");
+    }
 
     #[test]
     fn can_read_bytes_until_found() {
