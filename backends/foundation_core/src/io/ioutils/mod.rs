@@ -641,9 +641,9 @@ impl<T: Read> SharedByteBufferStream<T> {
     /// [`fill_all`] calls the underlying pointer to the byte buffer to
     /// pull the whole data within the in-memory buffer.
     #[inline]
-    pub fn fill_all(&self) -> std::io::Result<usize> {
+    pub fn fill_all(&self, read_limit: Option<usize>) -> std::io::Result<usize> {
         let mut binding = self.0.write().expect("get lock");
-        binding.fill_all()
+        binding.fill_all(read_limit)
     }
 
     /// [`read`] returns a borrowed [`RwLockReadGuard`] which allows you access the internal
@@ -898,7 +898,7 @@ impl<T: Read> ByteBufferPointer<T> {
     /// buffer, allowing you to extract the remaining data within the stream
     /// as fully in-memory.
     #[inline]
-    pub fn fill_all(&mut self) -> std::io::Result<usize> {
+    pub fn fill_all(&mut self, read_limit: Option<usize>) -> std::io::Result<usize> {
         let mut total_read = 0;
 
         // pull the amount of data until we reach EOF
@@ -914,6 +914,17 @@ impl<T: Read> ByteBufferPointer<T> {
             }
 
             total_read += read;
+
+            if let Some(limited_val) = read_limit {
+                if limited_val < total_read {
+                    return Err(crate::err!(
+                        Interrupted,
+                        "LimitReadTriggered",
+                        "Crossed read limit {}",
+                        limited_val,
+                    ));
+                }
+            }
 
             self.buffer.extend_from_slice(&copied[0..read]);
         }
@@ -1541,8 +1552,12 @@ impl<T: Read> ByteBufferPointer<T> {
     /// [`read_all`] pulls the whole data within the underlying stream into provided buffer
     /// returning the total length of bytes read out after pulling all the data within the
     /// stream until EOF.
-    pub fn read_all<'a>(&'a mut self, buf: &mut Vec<u8>) -> std::io::Result<usize> {
-        self.fill_all()?;
+    pub fn read_all<'a>(
+        &'a mut self,
+        buf: &mut Vec<u8>,
+        read_limit: Option<usize>,
+    ) -> std::io::Result<usize> {
+        self.fill_all(read_limit)?;
 
         // get len of buffer
         let buffer_len = self.buffer.len();
@@ -1601,6 +1616,21 @@ mod byte_buffered_buffer_pointer {
     use super::*;
 
     #[test]
+    fn fails_read_all_the_data_when_limit_is_reached() {
+        let content = b"alexander_wonderbat";
+
+        let reader = OwnedReader::Sync(Arc::new(Mutex::new(Cursor::new(content.to_vec()))));
+        let buffer = Mutex::new(ByteBufferPointer::new(5, reader));
+
+        let mut binding = buffer.lock().unwrap();
+
+        let mut read_data = Vec::new();
+
+        let read_length = binding.read_all(&mut read_data, Some(2));
+        assert!(matches!(read_length, Err(_)))
+    }
+
+    #[test]
     fn can_read_all_the_data() {
         let content = b"alexander_wonderbat";
 
@@ -1612,7 +1642,7 @@ mod byte_buffered_buffer_pointer {
         let mut read_data = Vec::new();
 
         let read_length = binding
-            .read_all(&mut read_data)
+            .read_all(&mut read_data, None)
             .expect("read data succesfully");
         assert_eq!(read_length, content.len());
 
