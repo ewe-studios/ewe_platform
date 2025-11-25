@@ -1905,6 +1905,11 @@ impl Iterator for Http11RequestIterator {
                                     match inner {
                                         LineFeed::Line(content) => Some(Ok(content.into_bytes())),
                                         LineFeed::SKIP => Some(Ok(b"".to_vec())),
+                                        LineFeed::END => {
+                                            // tell the iterator we want it to end
+                                            self.0 = Some(Http11ReqState::End);
+                                            None
+                                        }
                                     }
                                 }
                                 Err(err) => {
@@ -2149,6 +2154,13 @@ impl Iterator for Http11ResponseIterator {
                                     match inner {
                                         LineFeed::Line(content) => Some(Ok(content.into_bytes())),
                                         LineFeed::SKIP => Some(Ok(b"".to_vec())),
+                                        LineFeed::END => {
+                                            // tell the iterator we want it to end
+                                            self.0 = Some(Http11ResState::End);
+
+                                            // return None here
+                                            None
+                                        }
                                     }
                                 }
                                 Err(err) => {
@@ -2459,6 +2471,7 @@ pub trait BodyExtractor {
 
 const CHUNKED_VALUE: &str = "chunked";
 const MAX_HEADER_NAME_LEN: usize = (1 << 16) - 1;
+const TEXT_STREAM_MIME_TYPE: &str = "text/event-stream";
 
 static SPACE_CHARS: &[char] = &[' ', '\n', '\t', '\r'];
 
@@ -2948,6 +2961,22 @@ where
                     return Some(Ok(IncomingRequestParts::Headers(headers)));
                 }
 
+                // if header has content type that is equal to text/event-stream
+                // then set state to line feed streaming body.
+                if let Some(content_types) = headers.get(&SimpleHeader::CONTENT_TYPE) {
+                    if content_types
+                        .iter()
+                        .map(|item| item.to_lowercase())
+                        .filter(|item| item == TEXT_STREAM_MIME_TYPE)
+                        .count()
+                        != 0
+                    {
+                        self.state = HttpReadState::Body(Body::LineFeedBody(headers.clone()));
+
+                        return Some(Ok(IncomingRequestParts::Headers(headers)));
+                    }
+                }
+
                 // if its a chunked body then send and move state to chunked body state
                 if let Some(transfer_encodings) = headers.get(&SimpleHeader::TRANSFER_ENCODING) {
                     tracing::debug!("Transfer Encoding value: {:?}", &transfer_encodings);
@@ -3287,6 +3316,22 @@ where
                     return Some(Ok(IncomingResponseParts::Headers(headers)));
                 }
 
+                // if header has content type that is equal to text/event-stream
+                // then set state to line feed streaming body.
+                if let Some(content_types) = headers.get(&SimpleHeader::CONTENT_TYPE) {
+                    if content_types
+                        .iter()
+                        .map(|item| item.to_lowercase())
+                        .filter(|item| item == TEXT_STREAM_MIME_TYPE)
+                        .count()
+                        != 0
+                    {
+                        self.state = HttpReadState::Body(Body::LineFeedBody(headers.clone()));
+
+                        return Some(Ok(IncomingResponseParts::Headers(headers)));
+                    }
+                }
+
                 // if no transfer encoding and content length provided then we wont fail but
                 // read the body till EOF
                 if headers.get(&SimpleHeader::TRANSFER_ENCODING).is_none()
@@ -3455,10 +3500,11 @@ pub type Line = String;
 pub enum LineFeed {
     Line(Line),
     SKIP,
+    END,
 }
 
 impl LineFeed {
-    pub fn stream_line_feeds_from_string(chunk_text: &[u8]) -> Result<Option<Self>, LineFeedError> {
+    pub fn stream_line_feeds_from_string(chunk_text: &[u8]) -> Result<Self, LineFeedError> {
         let cursor = Cursor::new(chunk_text.to_vec());
         let reader = SharedByteBufferStream::new(cursor);
         Self::stream_line_feeds(reader)
@@ -3466,7 +3512,7 @@ impl LineFeed {
 
     pub fn stream_line_feeds<T: Read>(
         pointer: SharedByteBufferStream<T>,
-    ) -> Result<Option<Self>, LineFeedError> {
+    ) -> Result<Self, LineFeedError> {
         let mut acc = pointer.write().map_err(|_| LineFeedError::ReadErrors)?;
 
         while let Ok(b) = acc.nextby2(1) {
@@ -3528,10 +3574,10 @@ impl LineFeed {
             }
         }
 
-        let line_feed_result = match acc.consume() {
-            Ok(value) => match String::from_utf8(value.to_vec()) {
+        let line_feed_result = match acc.consume_some() {
+            Some(value) => match String::from_utf8(value.to_vec()) {
                 Ok(converted_string) => Ok(if converted_string.trim().is_empty() {
-                    Some(LineFeed::SKIP)
+                    LineFeed::SKIP
                 } else {
                     tracing::debug!("Processing::LineFeed::Line: {:?} ", &converted_string);
 
@@ -3541,11 +3587,11 @@ impl LineFeed {
                     //     .filter(|item| !item.trim().is_empty())
                     //     .collect();
 
-                    Some(LineFeed::Line(converted_string))
+                    LineFeed::Line(converted_string)
                 }),
                 Err(err) => return Err(LineFeedError::InvalidUTF(err)),
             },
-            Err(_) => return Err(LineFeedError::ParseFailed),
+            None => Ok(LineFeed::END),
         };
 
         // eat all the space
@@ -3631,7 +3677,7 @@ mod test_line_feed_parser {
 
     struct LineFeedSample {
         content: &'static [&'static str],
-        expected: Vec<Option<LineFeed>>,
+        expected: Vec<LineFeed>,
     }
 
     #[test]
@@ -3639,17 +3685,17 @@ mod test_line_feed_parser {
     fn test_chunk_state_parse_http_trailers() {
         let test_cases: Vec<LineFeedSample> = vec![LineFeedSample {
             expected: vec![
-                Some(LineFeed::Line("Farm: FarmValue".into())),
-                Some(LineFeed::Line("Farm:FarmValue".into())),
-                Some(LineFeed::Line("Farm:FarmValue".into())),
-                Some(LineFeed::Line("Farm:\rFarmValue".into())),
-                Some(LineFeed::Line("Farm:\nFarmValue".into())),
-                Some(LineFeed::SKIP),
+                LineFeed::Line("Farm: FarmValue".into()),
+                LineFeed::Line("Farm:FarmValue".into()),
+                LineFeed::Line("Farm:FarmValue".into()),
+                LineFeed::Line("Farm:\rFarmValue".into()),
+                LineFeed::Line("Farm:\nFarmValue".into()),
+                LineFeed::END,
                 // Will not capture joined lines but should in fact parse them one by one
                 // Some(LineFeed::Line("Farm: FarmValue\r\nFarm: FarmValue".into())),
                 //
                 // So instead, we will see:
-                Some(LineFeed::Line("Farm: FarmValue".into())),
+                LineFeed::Line("Farm: FarmValue".into()),
             ],
             content: &[
                 "Farm: FarmValue\r\n",
@@ -3666,7 +3712,7 @@ mod test_line_feed_parser {
         }];
 
         for sample in test_cases {
-            let chunks: Result<Vec<Option<LineFeed>>, LineFeedError> = sample
+            let chunks: Result<Vec<LineFeed>, LineFeedError> = sample
                 .content
                 .iter()
                 .map(|t| LineFeed::stream_line_feeds_from_string(t.as_bytes()))
@@ -4461,8 +4507,16 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleLineFeedIterator<T> {
     type Item = Result<LineFeed, BoxedError>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        tracing::debug!("LineFeed::ParsingNext");
-        todo!()
+        match LineFeed::stream_line_feeds(self.1.clone()) {
+            Ok(line) => {
+                tracing::debug!("LineFeed::next_line: {:?}", &line);
+                match &line {
+                    LineFeed::END => None,
+                    _ => Some(Ok(line)),
+                }
+            }
+            Err(err) => Some(Err(Box::new(err))),
+        }
     }
 }
 

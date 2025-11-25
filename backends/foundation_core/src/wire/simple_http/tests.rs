@@ -20,7 +20,7 @@ mod http_response_compliance {
         thread,
     };
 
-    mod transfer_encoding {
+    mod tranfer_encoding {
         use tracing_test::traced_test;
 
         use crate::wire::simple_http::ChunkStateError;
@@ -1607,6 +1607,262 @@ mod http_response_compliance {
         }
     }
 
+    mod text_event_stream {
+        use tracing_test::traced_test;
+
+        use crate::wire::simple_http::{ChunkStateError, LineFeed};
+
+        use super::*;
+
+        #[test]
+        #[traced_test]
+        fn parse_stream_with_multiple_lines_with_newlines_ending_with_double_newlines() {
+            let message =
+                "HTTP/1.1 200 OK\nContent-Type: text/event-stream\n\nevent: 0123456789\n\nevent2: 0123456789\n\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::CONTENT_TYPE,
+                    vec!["text/event-stream".into()],
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut feed_stream = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &feed_stream,
+                IncomingResponseParts::StreamedBody(SimpleBody::LineFeedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::LineFeedStream(Some(body_iter))) =
+                feed_stream
+            else {
+                panic!("Not a LineFeedStream")
+            };
+
+            let content_result: Result<Vec<LineFeed>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all feeds");
+
+            println!("LineFeeds: {:?}", contents);
+            assert_eq!(
+                contents,
+                vec![
+                    LineFeed::Line("event: 0123456789".into()),
+                    LineFeed::Line("event2: 0123456789".into()),
+                    LineFeed::SKIP,
+                ],
+            );
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn parse_stream_with_multiple_lines_with_crlf() {
+            let message =
+                "HTTP/1.1 200 OK\nContent-Type: text/event-stream\n\nevent: 0123456789\r\nevent2: 0123456789\r\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::CONTENT_TYPE,
+                    vec!["text/event-stream".into()],
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut feed_stream = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &feed_stream,
+                IncomingResponseParts::StreamedBody(SimpleBody::LineFeedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::LineFeedStream(Some(body_iter))) =
+                feed_stream
+            else {
+                panic!("Not a LineFeedStream")
+            };
+
+            let content_result: Result<Vec<LineFeed>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all feeds");
+
+            println!("LineFeeds: {:?}", contents);
+            assert_eq!(
+                contents,
+                vec![
+                    LineFeed::Line("event: 0123456789".into()),
+                    LineFeed::Line("event2: 0123456789".into()),
+                    LineFeed::SKIP,
+                ],
+            );
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn parse_stream_with_crlf() {
+            let message =
+                "HTTP/1.1 200 OK\nContent-Type: text/event-stream\n\nevent: 0123456789\r\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::CONTENT_TYPE,
+                    vec!["text/event-stream".into()],
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut feed_stream = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &feed_stream,
+                IncomingResponseParts::StreamedBody(SimpleBody::LineFeedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::LineFeedStream(Some(body_iter))) =
+                feed_stream
+            else {
+                panic!("Not a LineFeedStream")
+            };
+
+            let content_result: Result<Vec<LineFeed>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all feeds");
+
+            println!("LineFeeds: {:?}", contents);
+            assert_eq!(
+                contents,
+                vec![LineFeed::Line("event: 0123456789".into()), LineFeed::SKIP,],
+            );
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn parse_stream_with_double_line_endings() {
+            let message =
+                "HTTP/1.1 200 OK\nContent-Type: text/event-stream\n\nevent: 0123456789\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpResponseReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::CONTENT_TYPE,
+                    vec!["text/event-stream".into()],
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut feed_stream = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &feed_stream,
+                IncomingResponseParts::StreamedBody(SimpleBody::LineFeedStream(Some(_)))
+            ));
+
+            let IncomingResponseParts::StreamedBody(SimpleBody::LineFeedStream(Some(body_iter))) =
+                feed_stream
+            else {
+                panic!("Not a LineFeedStream")
+            };
+
+            let content_result: Result<Vec<LineFeed>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all feeds");
+
+            println!("LineFeeds: {:?}", contents);
+            assert_eq!(
+                contents,
+                vec![LineFeed::Line("event: 0123456789".into()), LineFeed::SKIP,],
+            );
+
+            req_thread.join().expect("should be closed");
+        }
+    }
+
     mod sample_responses {
         use tracing_test::traced_test;
 
@@ -2441,6 +2697,302 @@ Hello world!";
             ];
 
             assert_eq!(request_parts, expected_parts);
+            req_thread.join().expect("should be closed");
+        }
+    }
+
+    mod text_event_stream {
+        use tracing_test::traced_test;
+
+        use crate::wire::simple_http::{ChunkStateError, LineFeed};
+
+        use super::*;
+
+        #[test]
+        #[traced_test]
+        fn parse_stream_with_multiple_lines_with_newlines_ending_with_double_newlines() {
+            let message =
+                "PUT /url HTTP/1.1\nContent-Type: text/event-stream\n\nevent: 0123456789\n\nevent2: 0123456789\n\n\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpRequestReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::PUT,
+                    SimpleUrl {
+                        url: "/url".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::CONTENT_TYPE,
+                    vec!["text/event-stream".into()],
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut feed_stream = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &feed_stream,
+                IncomingRequestParts::StreamedBody(SimpleBody::LineFeedStream(Some(_)))
+            ));
+
+            let IncomingRequestParts::StreamedBody(SimpleBody::LineFeedStream(Some(body_iter))) =
+                feed_stream
+            else {
+                panic!("Not a LineFeedStream")
+            };
+
+            let content_result: Result<Vec<LineFeed>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all feeds");
+
+            println!("LineFeeds: {:?}", contents);
+            assert_eq!(
+                contents,
+                vec![
+                    LineFeed::Line("event: 0123456789".into()),
+                    LineFeed::Line("event2: 0123456789".into()),
+                    LineFeed::SKIP,
+                ],
+            );
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn parse_stream_with_multiple_lines_with_crlf() {
+            let message =
+                "PUT /url HTTP/1.1\nContent-Type: text/event-stream\n\nevent: 0123456789\r\nevent2: 0123456789\r\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpRequestReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::PUT,
+                    SimpleUrl {
+                        url: "/url".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::CONTENT_TYPE,
+                    vec!["text/event-stream".into()],
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut feed_stream = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &feed_stream,
+                IncomingRequestParts::StreamedBody(SimpleBody::LineFeedStream(Some(_)))
+            ));
+
+            let IncomingRequestParts::StreamedBody(SimpleBody::LineFeedStream(Some(body_iter))) =
+                feed_stream
+            else {
+                panic!("Not a LineFeedStream")
+            };
+
+            let content_result: Result<Vec<LineFeed>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all feeds");
+
+            println!("LineFeeds: {:?}", contents);
+            assert_eq!(
+                contents,
+                vec![
+                    LineFeed::Line("event: 0123456789".into()),
+                    LineFeed::Line("event2: 0123456789".into()),
+                    LineFeed::SKIP,
+                ],
+            );
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn parse_stream_with_crlf() {
+            let message =
+                "PUT /url HTTP/1.1\nContent-Type: text/event-stream\n\nevent: 0123456789\r\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpRequestReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::PUT,
+                    SimpleUrl {
+                        url: "/url".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::CONTENT_TYPE,
+                    vec!["text/event-stream".into()],
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut feed_stream = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &feed_stream,
+                IncomingRequestParts::StreamedBody(SimpleBody::LineFeedStream(Some(_)))
+            ));
+
+            let IncomingRequestParts::StreamedBody(SimpleBody::LineFeedStream(Some(body_iter))) =
+                feed_stream
+            else {
+                panic!("Not a LineFeedStream")
+            };
+
+            let content_result: Result<Vec<LineFeed>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all feeds");
+
+            println!("LineFeeds: {:?}", contents);
+            assert_eq!(
+                contents,
+                vec![LineFeed::Line("event: 0123456789".into()), LineFeed::SKIP,],
+            );
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn parse_stream_with_double_line_endings() {
+            let message =
+                "PUT /url HTTP/1.1\nContent-Type: text/event-stream\n\nevent: 0123456789\n\n";
+
+            // Test implementation would go here
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_reader = super::HttpRequestReader::from_reader(reader);
+
+            let mut request_parts = request_reader
+                .into_iter()
+                .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+                .expect("should generate output");
+
+            dbg!(&request_parts);
+
+            let expected_parts: Vec<IncomingRequestParts> = vec![
+                IncomingRequestParts::Intro(
+                    SimpleMethod::PUT,
+                    SimpleUrl {
+                        url: "/url".into(),
+                        url_only: false,
+                        matcher: Some(panic_if_failed!(Regex::new("/url"))),
+                        params: None,
+                        queries: None,
+                    },
+                    "HTTP/1.1".into(),
+                ),
+                IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
+                    SimpleHeader::CONTENT_TYPE,
+                    vec!["text/event-stream".into()],
+                )])),
+            ];
+
+            assert_eq!(&request_parts[0..2], expected_parts);
+
+            let mut feed_stream = request_parts.pop().expect("retrieved body");
+            assert!(matches!(
+                &feed_stream,
+                IncomingRequestParts::StreamedBody(SimpleBody::LineFeedStream(Some(_)))
+            ));
+
+            let IncomingRequestParts::StreamedBody(SimpleBody::LineFeedStream(Some(body_iter))) =
+                feed_stream
+            else {
+                panic!("Not a LineFeedStream")
+            };
+
+            let content_result: Result<Vec<LineFeed>, BoxedError> = body_iter.collect();
+            let contents = content_result.expect("extracted all feeds");
+
+            println!("LineFeeds: {:?}", contents);
+            assert_eq!(
+                contents,
+                vec![LineFeed::Line("event: 0123456789".into()), LineFeed::SKIP,],
+            );
+
             req_thread.join().expect("should be closed");
         }
     }
