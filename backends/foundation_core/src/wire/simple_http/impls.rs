@@ -82,6 +82,7 @@ impl ChunkedData {
 }
 
 pub type ChunkedVecIterator<E> = SendableBoxIterator<ChunkedData, E>;
+pub type LineFeedVecIterator<E> = SendableBoxIterator<LineFeed, E>;
 
 pub struct ChunkedDataLimitIterator {
     limit: BodySizeLimit,
@@ -163,7 +164,7 @@ pub enum SimpleBody {
     Bytes(Vec<u8>),
     Stream(Option<SendVecIterator<BoxedError>>),
     ChunkedStream(Option<ChunkedVecIterator<BoxedError>>),
-    LineFeedStream(Option<ChunkedVecIterator<BoxedError>>),
+    LineFeedStream(Option<LineFeedVecIterator<BoxedError>>),
 }
 
 impl Eq for SimpleBody {}
@@ -186,6 +187,10 @@ impl PartialEq for SimpleBody {
                 (Some(_this), Some(_that)) => true,
                 _ => false,
             },
+            (Self::LineFeedStream(me), Self::LineFeedStream(other)) => match (me, other) {
+                (Some(_this), Some(_that)) => true,
+                _ => false,
+            },
             _ => false,
         }
     }
@@ -201,12 +206,17 @@ impl core::fmt::Debug for SimpleBody {
             Bytes(&'a [u8]),
             Stream(Option<()>),
             ChunkedStream(Option<()>),
+            LineFeedStream(Option<()>),
         }
 
         let repr = match self {
             Self::None => SimpleBodyRepr::None,
             Self::Text(inner) => SimpleBodyRepr::Text(inner),
             Self::Bytes(inner) => SimpleBodyRepr::Bytes(inner),
+            Self::LineFeedStream(inner) => SimpleBodyRepr::LineFeedStream(match inner {
+                Some(_) => Some(()),
+                None => None,
+            }),
             Self::Stream(inner) => SimpleBodyRepr::Stream(match inner {
                 Some(_) => Some(()),
                 None => None,
@@ -227,6 +237,10 @@ impl core::fmt::Display for SimpleBody {
             Self::None => write!(f, "None"),
             Self::Text(inner) => write!(f, "Text({inner})"),
             Self::Bytes(inner) => write!(f, "Bytes({inner:?})"),
+            Self::LineFeedStream(inner) => match inner {
+                Some(_) => write!(f, "LineFeedStream(CloneableIterator<T>)"),
+                None => write!(f, "LineFeedStream(None)"),
+            },
             Self::Stream(inner) => match inner {
                 Some(_) => write!(f, "Stream(CloneableIterator<T>)"),
                 None => write!(f, "Stream(None)"),
@@ -1753,6 +1767,10 @@ pub enum Http11ReqState {
     /// handling of a chunked body parts where
     ChunkedBodyStreaming(Option<ChunkedVecIterator<BoxedError>>),
 
+    /// LineFeedStreaming like BodyStreaming is meant to support
+    /// handling of a chunked body parts where
+    LineFeedStreaming(Option<LineFeedVecIterator<BoxedError>>),
+
     /// The final state of the rendering which once read ends the iterator.
     End,
 }
@@ -1859,6 +1877,54 @@ impl Iterator for Http11RequestIterator {
                             }
                         }
                     }
+                    SimpleBody::LineFeedStream(mut streamer_container) => {
+                        match streamer_container.take() {
+                            Some(inner) => {
+                                self.0 = Some(Http11ReqState::LineFeedStreaming(Some(inner)));
+                                Some(Ok(b"".to_vec()))
+                            }
+                            None => {
+                                // tell the iterator we want it to end
+                                self.0 = Some(Http11ReqState::End);
+                                Some(Ok(b"\r\n".to_vec()))
+                            }
+                        }
+                    }
+                }
+            }
+            Http11ReqState::LineFeedStreaming(container) => {
+                match container {
+                    Some(mut body_iterator) => {
+                        match body_iterator.next() {
+                            Some(collected) => match collected {
+                                Ok(inner) => {
+                                    self.0 = Some(Http11ReqState::LineFeedStreaming(Some(
+                                        body_iterator,
+                                    )));
+
+                                    match inner {
+                                        LineFeed::Line(content) => Some(Ok(content.into_bytes())),
+                                        LineFeed::SKIP => Some(Ok(b"".to_vec())),
+                                    }
+                                }
+                                Err(err) => {
+                                    // tell the iterator we want it to end
+                                    self.0 = Some(Http11ReqState::End);
+                                    Some(Err(err.into()))
+                                }
+                            },
+                            None => {
+                                // tell the iterator we want it to end
+                                self.0 = Some(Http11ReqState::End);
+                                Some(Ok(b"".to_vec()))
+                            }
+                        }
+                    }
+                    None => {
+                        // tell the iterator we want it to end
+                        self.0 = Some(Http11ReqState::End);
+                        Some(Ok(b"".to_vec()))
+                    }
                 }
             }
             Http11ReqState::ChunkedBodyStreaming(container) => {
@@ -1936,6 +2002,7 @@ pub enum Http11ResState {
     Headers(SimpleOutgoingResponse),
     Body(SimpleOutgoingResponse),
     BodyStreaming(Option<SendVecIterator<BoxedError>>),
+    LineFeedStreaming(Option<LineFeedVecIterator<BoxedError>>),
     ChunkedBodyStreaming(Option<ChunkedVecIterator<BoxedError>>),
     End,
 }
@@ -2053,6 +2120,54 @@ impl Iterator for Http11ResponseIterator {
                                 Some(Ok(b"".to_vec()))
                             }
                         }
+                    }
+                    SimpleBody::LineFeedStream(mut streamer_container) => {
+                        match streamer_container.take() {
+                            Some(inner) => {
+                                self.0 = Some(Http11ResState::LineFeedStreaming(Some(inner)));
+                                Some(Ok(b"".to_vec()))
+                            }
+                            None => {
+                                // tell the iterator we want it to end
+                                self.0 = Some(Http11ResState::End);
+                                Some(Ok(b"".to_vec()))
+                            }
+                        }
+                    }
+                }
+            }
+            Http11ResState::LineFeedStreaming(container) => {
+                match container {
+                    Some(mut body_iterator) => {
+                        match body_iterator.next() {
+                            Some(collected) => match collected {
+                                Ok(inner) => {
+                                    self.0 = Some(Http11ResState::LineFeedStreaming(Some(
+                                        body_iterator,
+                                    )));
+
+                                    match inner {
+                                        LineFeed::Line(content) => Some(Ok(content.into_bytes())),
+                                        LineFeed::SKIP => Some(Ok(b"".to_vec())),
+                                    }
+                                }
+                                Err(err) => {
+                                    // tell the iterator we want it to end
+                                    self.0 = Some(Http11ResState::End);
+                                    Some(Err(err.into()))
+                                }
+                            },
+                            None => {
+                                // tell the iterator we want it to end
+                                self.0 = Some(Http11ResState::End);
+                                Some(Ok(b"".to_vec()))
+                            }
+                        }
+                    }
+                    None => {
+                        // tell the iterator we want it to end
+                        self.0 = Some(Http11ResState::End);
+                        Some(Ok(b"".to_vec()))
                     }
                 }
             }
@@ -2950,6 +3065,11 @@ where
 
                         match generated_body {
                             SimpleBody::None => Some(Ok(IncomingRequestParts::NoBody)),
+                            SimpleBody::LineFeedStream(inner) => {
+                                Some(Ok(IncomingRequestParts::StreamedBody(
+                                    SimpleBody::LineFeedStream(inner),
+                                )))
+                            }
                             SimpleBody::Stream(inner) => Some(Ok(
                                 IncomingRequestParts::StreamedBody(SimpleBody::Stream(inner)),
                             )),
@@ -3300,6 +3420,11 @@ where
                             SimpleBody::Stream(inner) => Some(Ok(
                                 IncomingResponseParts::StreamedBody(SimpleBody::Stream(inner)),
                             )),
+                            SimpleBody::LineFeedStream(inner) => {
+                                Some(Ok(IncomingResponseParts::StreamedBody(
+                                    SimpleBody::LineFeedStream(inner),
+                                )))
+                            }
                             SimpleBody::ChunkedStream(inner) => {
                                 Some(Ok(IncomingResponseParts::StreamedBody(
                                     SimpleBody::ChunkedStream(inner),
@@ -3364,6 +3489,13 @@ impl LineFeed {
                         let _ = acc.unforward_by(1);
                         break;
                     }
+
+                    // NOTE: We only want to capture one line at a time
+                    if crate::is_ok!(acc.peekby2(1), b"\n") {
+                        let _ = acc.unforward_by(1);
+                        break;
+                    }
+
                     continue;
                 }
                 b"\n" => {
@@ -3384,6 +3516,12 @@ impl LineFeed {
                         let _ = acc.unforward_by(1);
                         break;
                     }
+
+                    // NOTE: We only want to capture one line at a time
+                    if crate::is_ok!(acc.peekby2(1), b"\n") {
+                        let _ = acc.unforward_by(1);
+                        break;
+                    }
                     continue;
                 }
                 _ => continue,
@@ -3395,6 +3533,14 @@ impl LineFeed {
                 Ok(converted_string) => Ok(if converted_string.trim().is_empty() {
                     Some(LineFeed::SKIP)
                 } else {
+                    tracing::debug!("Processing::LineFeed::Line: {:?} ", &converted_string);
+
+                    // We could process here but maybe instead process else where:
+                    // let trailers: Vec<(String, Option<String>)> = converted_string
+                    //     .split("\r\n")
+                    //     .filter(|item| !item.trim().is_empty())
+                    //     .collect();
+
                     Some(LineFeed::Line(converted_string))
                 }),
                 Err(err) => return Err(LineFeedError::InvalidUTF(err)),
@@ -3439,11 +3585,6 @@ impl LineFeed {
         acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
     ) -> Result<(), LineFeedError> {
         while let Ok(b) = acc.nextby2(2) {
-            tracing::debug!(
-                "Tracing escaped clrf: {:?} and {:?}",
-                &b,
-                String::from_utf8(b.to_vec())
-            );
             if b != b"\\r" && b != b"\\n" {
                 let _ = acc.unforward_by(2);
                 acc.skip();
@@ -3457,11 +3598,6 @@ impl LineFeed {
         acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
     ) -> Result<(), LineFeedError> {
         while let Ok(b) = acc.nextby2(1) {
-            tracing::debug!(
-                "Tracing clrf: {:?} and {:?}",
-                &b,
-                String::from_utf8(b.to_vec())
-            );
             if b[0] != b'\r' && b[0] != b'\n' {
                 let _ = acc.unforward();
                 acc.skip();
@@ -3509,6 +3645,11 @@ mod test_line_feed_parser {
                 Some(LineFeed::Line("Farm:\rFarmValue".into())),
                 Some(LineFeed::Line("Farm:\nFarmValue".into())),
                 Some(LineFeed::SKIP),
+                // Will not capture joined lines but should in fact parse them one by one
+                // Some(LineFeed::Line("Farm: FarmValue\r\nFarm: FarmValue".into())),
+                //
+                // So instead, we will see:
+                Some(LineFeed::Line("Farm: FarmValue".into())),
             ],
             content: &[
                 "Farm: FarmValue\r\n",
@@ -3517,6 +3658,10 @@ mod test_line_feed_parser {
                 "Farm:\rFarmValue\r\n\r\n",
                 "Farm:\nFarmValue\r\n\r\n",
                 "\r\n",
+                // only one portion is extracted here,
+                // caller should call the stream again to
+                // pull the next chunk within the stream
+                "Farm: FarmValue\r\nFarm: FarmValue\r\n",
             ][..],
         }];
 
@@ -3657,6 +3802,14 @@ impl ChunkState {
                         let _ = acc.unforward_by(1);
                         break;
                     }
+
+                    // NOTE: We do not do this hear because we want to capture the whole trailer
+                    // regardless of parts and then chunk up later.
+                    //
+                    // if crate::is_ok!(acc.peekby2(1), b"\n") {
+                    //     let _ = acc.unforward_by(1);
+                    //     break;
+                    // }
                     continue;
                 }
                 b"\n" => {
@@ -3677,6 +3830,14 @@ impl ChunkState {
                         let _ = acc.unforward_by(1);
                         break;
                     }
+
+                    // NOTE: We do not do this hear because we want to capture the whole trailer
+                    // regardless of parts and then chunk up later.
+                    //
+                    // if crate::is_ok!(acc.peekby2(1), b"\n") {
+                    //     let _ = acc.unforward_by(1);
+                    //     break;
+                    // }
                     continue;
                 }
                 _ => continue,
@@ -4045,11 +4206,6 @@ impl ChunkState {
         acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
     ) -> Result<(), ChunkStateError> {
         while let Ok(b) = acc.nextby2(2) {
-            tracing::debug!(
-                "Tracing escaped clrf: {:?} and {:?}",
-                &b,
-                String::from_utf8(b.to_vec())
-            );
             if b != b"\\r" && b != b"\\n" {
                 let _ = acc.unforward_by(2);
                 acc.skip();
@@ -4063,11 +4219,6 @@ impl ChunkState {
         acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
     ) -> Result<(), ChunkStateError> {
         while let Ok(b) = acc.nextby2(1) {
-            tracing::debug!(
-                "Tracing clrf: {:?} and {:?}",
-                &b,
-                String::from_utf8(b.to_vec())
-            );
             if b[0] != b'\r' && b[0] != b'\n' {
                 let _ = acc.unforward();
                 acc.skip();
@@ -4301,13 +4452,13 @@ impl<T: std::io::Read + Send + Sync> SimpleLineFeedIterator<T> {
     }
 }
 
-impl<T: std::io::Read + Send + Sync> SendableIterator<Result<ChunkedData, BoxedError>>
+impl<T: std::io::Read + Send + Sync> SendableIterator<Result<LineFeed, BoxedError>>
     for SimpleLineFeedIterator<T>
 {
 }
 
 impl<T: std::io::Read + Send + Sync> Iterator for SimpleLineFeedIterator<T> {
-    type Item = Result<ChunkedData, BoxedError>;
+    type Item = Result<LineFeed, BoxedError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         tracing::debug!("LineFeed::ParsingNext");
@@ -4454,17 +4605,9 @@ impl BodyExtractor for SimpleHttpBody {
         stream: SharedByteBufferStream<T>,
     ) -> Result<SimpleBody, BoxedError> {
         match body {
-            Body::LineFeedBody(_) => {
-                let mut borrowed_stream = match stream.write() {
-                    Ok(borrowed_reader) => borrowed_reader,
-                    Err(_) => return Err(Box::new(HttpReaderError::GuardedResourceAccess)),
-                };
-
-                let mut body_content = Vec::with_capacity(1024);
-                match borrowed_stream.read_all(&mut body_content, optional_max_body_size) {
-                    Ok(_) => Ok(SimpleBody::Bytes(body_content)),
-                    Err(err) => Err(Box::new(err)),
-                }
+            Body::LineFeedBody(headers) => {
+                let line_feed_iterator = Box::new(SimpleLineFeedIterator::new(headers, stream));
+                Ok(SimpleBody::LineFeedStream(Some(line_feed_iterator)))
             }
             Body::FullBody(_, optional_max_body_size) => {
                 let mut borrowed_stream = match stream.write() {
