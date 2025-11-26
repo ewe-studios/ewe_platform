@@ -2203,11 +2203,21 @@ mod http_response_compliance {
             let request_one = request_stream
                 .next_response()
                 .into_iter()
-                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>()
+                .expect("should generate output");
 
-            tracing::debug!("Finished with {:?}", request_one);
+            dbg!(&request_one);
 
-            assert!(matches!(request_one, Err(_)));
+            let expected_parts: Vec<IncomingResponseParts> = vec![
+                IncomingResponseParts::Intro(Status::OK, "HTTP/1.1".into(), Some("OK".into())),
+                IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                    (SimpleHeader::Custom("Foo".into()), vec!["abc".into()]),
+                    (SimpleHeader::Custom("Bar".into()), vec!["def".into()]),
+                ])),
+                IncomingResponseParts::SizedBody(SimpleBody::Bytes(vec![66, 79, 68, 89, 10])),
+            ];
+
+            assert_eq!(request_one, expected_parts);
 
             req_thread.join().expect("should be closed");
         }
