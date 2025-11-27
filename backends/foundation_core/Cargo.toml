@@ -20,10 +20,10 @@ foundation_nostd = {workspace = true }
 derive_more = { version = "2.0", features = ["from", "debug", "error"] }
 serde = { version = "1", features = ["derive"] }
 concurrent-queue = { version = "2.5.0" }
-toml_datetime = { version = "0.6.9" }
+toml_datetime = { version = "0.7" }
 serde_json = { version = "1" }
 serde_yml = { version = "0.0.12" }
-toml = { version = "0.8.22" }
+toml = { version = "0.9" }
 fastrand = "2.3.0"
 rand = "0.9"
 rand_chacha = "0.9"
@@ -37,14 +37,19 @@ spin = { version = "0.10" }
 wasm_sync = { version = "0.1.2" }
 
 url = "2.5"
-regex = "1.11.1"
+regex = "1.12.2"
 ctrlc = { version = "3.4" }
-native-tls-crate = { package = "native-tls", version = "0.2.14", optional = true }
 
 # rust-embed
 rust-embed = { version = "8.7.0", features = ["mime-guess", "interpolate-folder-path"]}
 
 # optional deps
+openssl = { version = "0.10", optional = true }
+rustls = { version = "0.23", optional = true }
+rustls-pemfile = { version = "2.2", optional = true }
+zeroize = { version = "1", optional = true }
+native-tls = { version = "0.2", optional = true }
+
 # -- tokio, axum and tower
 tokio = { version = "1.44", features = ["sync", "time"], optional = true }
 
@@ -53,7 +58,6 @@ tracing-test = { version = "0.2.5" }
 reqwest = { version = "0.12.15", features = ["blocking"] }
 
 [features]
-default = ["standard"]
 debug_trace = ["standard", "log_debug"]
 standard = ["log_info", "log_errors", "log_warnings"]
 log_warnings = []
@@ -62,9 +66,10 @@ log_debug = []
 log_info = []
 nightly = []
 
-# features for tls via native-tls crate
-native-tls = ["native-tls-crate"]
-native-tls-vendored = ["native-tls", "native-tls-crate/vendored"]
+ssl-openssl = ["openssl", "zeroize"]
+ssl-rustls = ["rustls", "rustls-pemfile", "zeroize"]
+ssl-native-tls = ["native-tls", "native-tls/vendored", "zeroize"]
+ssl = ["ssl-rustls"]
 
 # This feature switches the no threading runtime where you have
 # specified control over when the Executor actually executes tasks
@@ -77,7 +82,12 @@ nothread_runtime = []
 # This feature help enable tokio
 tokio_runtime = ["dep:tokio"]
 
+# default flags
+default = ["standard", "ssl"]
+
+[package.metadata.docs.rs]
+# enable one of these as default implementation
+features = ["ssl-rustls"]
 
 [lints]
 workspace = true
-

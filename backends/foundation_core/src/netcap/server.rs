@@ -1,11 +1,17 @@
 #![allow(clippy::type_complexity)]
 #![cfg(not(target_arch = "wasm32"))]
 
+use crate::{
+    compati::Mutex,
+    netcap::RawStream,
+    wire::simple_http::{HTTPStreams, HttpReaderError, SimpleBody},
+};
 use derive_more::From;
 use std::{
     io::Write,
     net::{TcpListener, TcpStream},
     sync::mpsc,
+    sync::Arc,
     thread::{self, JoinHandle},
 };
 
@@ -13,8 +19,8 @@ use crate::{
     extensions::result_ext::{BoxedError, BoxedResult},
     io::ioutils,
     wire::simple_http::{
-        self, Http11, IncomingRequestParts, Proto, RenderHttp, ServiceAction, ServiceActionList,
-        SimpleIncomingRequest, SimpleOutgoingResponse, Status, WrappedTcpStream,
+        self, Http11, IncomingRequestParts, Proto, RenderHttp, RequestDescriptor, ServiceAction,
+        ServiceActionList, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
     },
 };
 
@@ -64,14 +70,14 @@ impl TestServer {
         &self,
     ) -> (
         JoinHandle<Result<(), BoxedError>>,
-        mpsc::Receiver<SimpleIncomingRequest>,
+        mpsc::Receiver<RequestDescriptor>,
         mpsc::Receiver<JoinHandle<()>>,
     ) {
         let port = self.port;
         let address = self.address.clone();
         let actions = self.actions.clone();
 
-        let (tx, rx) = mpsc::channel::<SimpleIncomingRequest>();
+        let (tx, rx) = mpsc::channel::<RequestDescriptor>();
         let (workers_tx, workers_rx) = mpsc::channel::<JoinHandle<()>>();
 
         let listener = TcpListener::bind(format!("{address}:{port}")).expect("create tcp listener");
@@ -105,7 +111,7 @@ impl TestServer {
     fn serve_connection(
         read_stream: TcpStream,
         actions: Vec<ServiceAction>,
-        sender: mpsc::Sender<SimpleIncomingRequest>,
+        sender: mpsc::Sender<RequestDescriptor>,
     ) -> JoinHandle<()> {
         let action_list = ServiceActionList::new(actions);
 
@@ -114,17 +120,42 @@ impl TestServer {
                 .try_clone()
                 .expect("should be able to clone connection");
 
-            let mut request_reader = simple_http::HttpReader::simple_tcp_stream(
-                ioutils::BufferedReader::new(WrappedTcpStream::new(read_stream)),
-            );
+            let conn = RawStream::from_tcp(read_stream).expect("should wrap tcp stream");
+            let request_streams = HTTPStreams::from_reader(conn);
 
             loop {
                 // fetch the intro portion and validate we have resources for processing request
                 // if not, just break and return an error
+                let request_reader = request_streams.next_request();
 
-                let Some(Ok(IncomingRequestParts::Intro(method, url, proto))) =
-                    request_reader.next()
-                else {
+                let parts: Result<Vec<IncomingRequestParts>, HttpReaderError> = request_reader
+                    .into_iter()
+                    .filter(|item| match item {
+                        Ok(IncomingRequestParts::SKIP) => false,
+                        Ok(_) => true,
+                        Err(_) => true,
+                    })
+                    .collect();
+
+                if let Err(part_err) = parts {
+                    tracing::error!("Failed to read requests from reader due to: {:?}", part_err);
+                    break;
+                }
+
+                let mut request_parts = parts.unwrap();
+                if request_parts.len() != 3 {
+                    tracing::error!(
+                        "Failed to receive expected request parts of 3: {:?}",
+                        &request_parts
+                    );
+                    break;
+                }
+
+                let body_part = request_parts.pop().unwrap();
+                let headers_part = request_parts.pop().unwrap();
+                let intros_part = request_parts.pop().unwrap();
+
+                let IncomingRequestParts::Intro(method, url, proto) = intros_part else {
                     tracing::error!("Failed to receive a IncomingRequestParts::Intro(_, _, _)");
                     return;
                 };
@@ -136,41 +167,48 @@ impl TestServer {
                     proto,
                 );
 
-                if proto != Proto::HTTP11 {
-                    break;
-                }
+                // allow custom protocols.
+                //
+                // if proto != Proto::HTTP11 {
+                //     break;
+                // }
 
                 let Some(resource) = action_list.get_one_matching2(&url, method.clone()) else {
                     break;
                 };
 
-                let Some(Ok(IncomingRequestParts::Headers(headers))) = request_reader.next() else {
+                let IncomingRequestParts::Headers(headers) = headers_part else {
+                    tracing::error!("Failed to receive a IncomingRequestParts::Headers(_)");
                     break;
                 };
 
                 if let Some(resource_headers) = &resource.headers {
                     if !simple_http::is_sub_set_of_other_header(resource_headers, &headers) {
+                        tracing::error!("Headers do not match expected");
                         break;
                     }
                 }
 
-                let Some(Ok(IncomingRequestParts::Body(body))) = request_reader.next() else {
-                    break;
+                let body = match body_part {
+                    IncomingRequestParts::NoBody => SimpleBody::None,
+                    IncomingRequestParts::SizedBody(inner) => inner,
+                    IncomingRequestParts::StreamedBody(inner) => inner,
+                    _ => unreachable!("should never trigger this clause"),
                 };
 
                 if let Ok(request) = SimpleIncomingRequest::builder()
                     .with_headers(headers)
-                    .with_url(url)
+                    .with_url(url.clone())
                     .with_proto(proto.clone())
-                    .with_method(method)
+                    .with_method(method.clone())
+                    .with_body(body)
                     .build()
                 {
-                    let mut cloned_request = request.clone();
-                    cloned_request.body = body;
+                    sender
+                        .send(request.descriptor())
+                        .expect("should sent request");
 
-                    sender.send(request).expect("should sent request");
-
-                    let outgoing_response = match resource.body.clone_box().handle(cloned_request) {
+                    let outgoing_response = match resource.body.clone_box().handle(request) {
                         Ok(outgoing) => outgoing,
                         Err(err) => Self::internal_server_error_response(err),
                     };
@@ -240,7 +278,9 @@ mod test_server_tests {
 
     use crate::{
         extensions::result_ext::BoxedResult,
-        wire::simple_http::{FuncSimpleServer, SimpleBody, SimpleIncomingRequest, Status},
+        wire::simple_http::{
+            FuncSimpleServer, RequestDescriptor, SimpleBody, SimpleIncomingRequest, Status,
+        },
     };
 
     use super::{
@@ -333,7 +373,7 @@ Hello world!";
             }
         };
 
-        let sent_requests: Vec<SimpleIncomingRequest> = requests.iter().collect();
+        let sent_requests: Vec<RequestDescriptor> = requests.iter().collect();
         assert_eq!(sent_requests.len(), 1);
     }
 
@@ -415,7 +455,7 @@ Hello buster!";
             }
         };
 
-        let sent_requests: Vec<SimpleIncomingRequest> = requests.iter().collect();
+        let sent_requests: Vec<RequestDescriptor> = requests.iter().collect();
         assert_eq!(sent_requests.len(), 0);
     }
 }

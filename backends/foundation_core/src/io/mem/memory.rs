@@ -314,7 +314,7 @@ impl<T> TypeArena<T> {
     /// Returns a draining iterator that removes the
     /// specified range in the underlying vector
     /// yields the removed items.
-    pub fn drain<R>(&mut self, range: R) -> Drain<T>
+    pub fn drain<'a, R>(&'a mut self, range: R) -> Drain<'a, T>
     where
         R: RangeBounds<usize>,
     {

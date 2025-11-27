@@ -1,6 +1,9 @@
 use crate::extensions::result_ext::BoxedError;
 use derive_more::From;
-use std::string::{FromUtf16Error, FromUtf8Error};
+use std::{
+    string::{FromUtf16Error, FromUtf8Error},
+    sync::PoisonError,
+};
 
 pub type Result<T, E> = std::result::Result<T, E>;
 
@@ -16,14 +19,20 @@ pub enum HttpReaderError {
     BodyBuildFailed(BoxedError),
 
     #[from(ignore)]
+    ProtoBuildFailed(BoxedError),
+
+    #[from(ignore)]
     LineReadFailed(BoxedError),
 
     #[from(ignore)]
     InvalidContentSizeValue(Box<std::num::ParseIntError>),
 
+    ZeroBodySizeNotAllowed,
     ExpectedSizedBodyViaContentLength,
     GuardedResourceAccess,
     SeeTrailerBeforeLastChunk,
+    TrailerShouldNotOccurHere,
+    OnlyTrailersAreAllowedHere,
     InvalidTailerWithNoValue,
     InvalidChunkSize,
     ReadFailed,
@@ -31,8 +40,15 @@ pub enum HttpReaderError {
     InvalidHeaderValueStarter,
     InvalidHeaderValueEnder,
     InvalidHeaderValue,
+    InvalidTransferEncodingValue,
+    HeaderValueStartingWithCR,
+    HeaderValueStartingWithLF,
     HeaderValueContainsEncodedCRLF,
+    HeaderKeyTooLong,
+    HeaderValueTooLong,
+    HeaderValuesHasTooManyItems,
     HeaderKeyContainsEncodedCRLF,
+    HeaderKeyContainsNotAllowedChars,
     #[from(ignore)]
     HeaderKeyGreaterThanLimit(usize),
     #[from(ignore)]
@@ -42,6 +58,10 @@ pub enum HttpReaderError {
 
     #[from(ignore)]
     LimitReached(usize),
+    BothTransferEncodingAndContentLengthNotAllowed,
+    UnknownTransferEncodingHeaderValue,
+    ChunkedEncodingMustBeLast,
+    UnsupportedTransferEncodingType,
 }
 
 impl std::error::Error for HttpReaderError {}
@@ -147,11 +167,31 @@ impl core::fmt::Display for SimpleHttpError {
 #[derive(From, Debug)]
 pub enum ChunkStateError {
     ParseFailed,
+    ReadErrors,
+
+    #[from(ignore)]
     InvalidByte(u8),
+
+    #[from(ignore)]
+    InvalidOctetSizeByte(u8),
+
     ChunkSizeNotFound,
     InvalidChunkEnding,
+    InvalidChunkEndingExpectedCRLF,
     ExtensionWithNoValue,
     InvalidOctetBytes(FromUtf8Error),
+}
+
+impl<T> From<PoisonError<T>> for ChunkStateError {
+    fn from(_: PoisonError<T>) -> Self {
+        Self::ReadErrors
+    }
+}
+
+impl From<std::io::Error> for ChunkStateError {
+    fn from(_: std::io::Error) -> Self {
+        Self::ReadErrors
+    }
 }
 
 impl std::error::Error for ChunkStateError {}
@@ -163,7 +203,40 @@ impl core::fmt::Display for ChunkStateError {
 }
 
 #[derive(From, Debug)]
+pub enum LineFeedError {
+    ParseFailed,
+    ReadErrors,
+
+    #[from(ignore)]
+    InvalidByte(u8),
+
+    #[from(ignore)]
+    InvalidUTF(FromUtf8Error),
+}
+
+impl<T> From<PoisonError<T>> for LineFeedError {
+    fn from(_: PoisonError<T>) -> Self {
+        Self::ReadErrors
+    }
+}
+
+impl From<std::io::Error> for LineFeedError {
+    fn from(_: std::io::Error) -> Self {
+        Self::ReadErrors
+    }
+}
+
+impl std::error::Error for LineFeedError {}
+
+impl core::fmt::Display for LineFeedError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
+
+#[derive(From, Debug)]
 pub enum WireErrors {
+    LineFeeds(LineFeedError),
     ChunkState(ChunkStateError),
     SimpleHttp(SimpleHttpError),
     RenderError(RenderHttpError),

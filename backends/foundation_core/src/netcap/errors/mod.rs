@@ -1,11 +1,14 @@
 use derive_more::From;
 
-use std::{io, net::AddrParseError};
+use std::{error, fmt, io, net::AddrParseError};
+
+pub type BoxedError = Box<dyn error::Error + Send + Sync + 'static>;
 
 pub type TlsResult<T> = std::result::Result<T, TlsError>;
 
 #[derive(From, Debug)]
 pub enum TlsError {
+    Failed,
     Handshake,
     ConnectorCreation,
 
@@ -44,8 +47,15 @@ pub type DataStreamResult<T> = std::result::Result<T, DataStreamError>;
 
 #[derive(From, Debug)]
 pub enum DataStreamError {
+    NoAddr,
+    NoLocalAddr,
+    NoPeerAddr,
     ConnectionFailed,
     ReconnectionError,
+    FailedToAcquireAddrs,
+
+    #[from(ignore)]
+    Boxed(BoxedError),
 
     #[from(ignore)]
     IO(io::Error),
@@ -71,6 +81,12 @@ impl PartialEq for DataStreamError {
             (Self::ReconnectionError, Self::ReconnectionError) => true,
             _ => false,
         }
+    }
+}
+
+impl From<BoxedError> for DataStreamError {
+    fn from(value: BoxedError) -> Self {
+        Self::Boxed(value)
     }
 }
 

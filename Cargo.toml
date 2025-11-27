@@ -24,7 +24,7 @@ exclude = [
 
 [workspace.package]
 edition = "2021"
-rust-version = "1.81"
+rust-version = "1.87"
 license = "Apache-2.0"
 authors = ["EweStudios Consulting Limited"]
 repository = "https://github.com/ewe-studios/ewe_platform"
@@ -59,10 +59,10 @@ ewe_domain_macro = { path = "./crates/domain-macro", version = "0.0.1" }
 ewe_templates_macro = { path = "./crates/template-macro", version = "0.0.1" }
 
 # -- workspace wide packages
-toml = { version = "0.8.19" }
-anyhow = { version = "1.0.80" }
-tracing = { version = "0.1.40" }
-concurrent-queue = { version = "2.5.0" }
+toml = { version = "0.9" }
+anyhow = { version = "1.0" }
+tracing = { version = "0.1" }
+concurrent-queue = { version = "2.5" }
 derive_more = { version = ">=2.0", features = ["full"] }
 
 [workspace.lints.clippy]
