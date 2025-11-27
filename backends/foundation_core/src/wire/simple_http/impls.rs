@@ -3241,7 +3241,7 @@ where
                 }
 
                 let intro_parts: Vec<&str> = line
-                    .split_whitespace()
+                    .splitn(2, ' ')
                     .filter(|item| item.trim().len() != 0)
                     .collect();
 
