@@ -3263,8 +3263,19 @@ where
                     return Some(Err(HttpReaderError::InvalidLine(line.clone())));
                 }
 
+                let status_parts: Vec<&str> = intro_parts[1]
+                    .splitn(2, ' ')
+                    .filter(|item| item.trim().len() != 0)
+                    .collect();
+
                 // ignore the last part, we do not care
-                let status = Status::from(intro_parts[1].to_string());
+                let status = Status::from(status_parts[0].to_string());
+                tracing::debug!(
+                    "Http Starter status: {:?} from {:?} (intro: {:?}",
+                    &status,
+                    &status_parts,
+                    &intro_parts,
+                );
 
                 // ensure to capture and skip methods that should not have a body attached.
                 self.state = HttpReadState::Headers;
@@ -3272,7 +3283,13 @@ where
                 // this means no protocol is provided, by default use HTTP11
                 let third_line: Option<String> = if intro_parts.len() == 3 {
                     tracing::debug!("Creating intro part from 3 components: {:?}", &intro_parts);
-                    Some(String::from(intro_parts[2]))
+                    Some(String::from(intro_parts[2].trim()))
+                } else if status_parts.len() > 1 {
+                    tracing::debug!(
+                        "Creating status text part from remaining status parts: {:?}",
+                        &status_parts
+                    );
+                    Some(String::from(status_parts[1].trim()))
                 } else {
                     None
                 };
