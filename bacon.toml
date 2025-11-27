@@ -8,15 +8,36 @@
 default_job = "bacon-ls"
 env.CARGO_TERM_COLOR = "always"
 
-[jobs.bacon-ls]
-command = [ "cargo", "clippy", "--workspace", "--tests", "--all-targets", "--all-features", "--message-format", "json-diagnostic-rendered-ansi" ]
+[jobs.backends]
+command = [ "cargo", "clippy", "--workspace", "--tests", "--all-targets", "--features=default", "--message-format", "json-diagnostic-rendered-ansi" ]
 analyzer = "cargo_json"
 need_stdout = true
 
-[jobs.bacon-wasm]
+[jobs.bacon-ls]
+command = [ "cargo", "clippy", "--workspace", "--tests", "--all-targets",  "--message-format", "json-diagnostic-rendered-ansi" ]
+analyzer = "cargo_json"
+need_stdout = true
+
+[jobs.bacon-ssl-openssl]
+command = [ "cargo", "clippy", "--workspace", "--tests", "--all-targets", "--features=ssl-openssl", "--message-format", "json-diagnostic-rendered-ansi" ]
+analyzer = "cargo_json"
+need_stdout = true
+
+[jobs.bacon-ssl-rustls]
+command = [ "cargo", "clippy", "--workspace", "--tests", "--all-targets", "--features=ssl-rustls", "--message-format", "json-diagnostic-rendered-ansi" ]
+analyzer = "cargo_json"
+need_stdout = true
+
+[jobs.bacon-ssl-native-tls]
+command = [ "cargo", "clippy", "--workspace", "--tests", "--all-targets", "--features=ssl-native-tls", "--message-format", "json-diagnostic-rendered-ansi" ]
+analyzer = "cargo_json"
+need_stdout = true
+
+[jobs.tests-wasm]
 command = [ "cargo", "clippy", "--workspace", "--tests", "--targets=\"wasm32-unknown-unknown\"", "--all-features", "--message-format", "json-diagnostic-rendered-ansi" ]
 analyzer = "cargo_json"
 need_stdout = true
+
 
 [exports.cargo-json-spans]
 auto = true
@@ -65,8 +86,20 @@ need_stdout = true
 command = ["make", "wasm-tests"]
 need_stdout = true
 
+[jobs.test_foundation_core]
+command = ["cargo", "nextest", "run",
+    "--package", "foundation_core",
+    "--fail-fast",
+    "--failure-output", "immediate-final",
+    "--hide-progress-bar", 
+]
+need_stdout = true
+
 [jobs.test_foundation_wasm]
-command = ["cargo", "test", "--package", "foundation_wasm"]
+command = ["cargo", "nextest", 
+    "--package", "foundation_wasm",
+    "--hide-progress-bar", "--failure-output", "final"
+]
 need_stdout = true
 
 [jobs.nextest]
@@ -133,3 +166,4 @@ allow_warnings = true
 [keybindings]
 # alt-m = "job:my-job"
 c = "job:clippy-all" # comment this to have 'c' run clippy on only the default target
+t = "job:tests-http-request-compliance" # comment this to have 'c' run clippy on only the default target

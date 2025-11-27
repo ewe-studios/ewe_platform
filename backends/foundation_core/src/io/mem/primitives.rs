@@ -107,7 +107,7 @@ impl<'b> Bytes<'b> {
     }
 
     #[inline]
-    pub fn opt_slice(&self, range: Option<Range>) -> Option<Bytes> {
+    pub fn opt_slice<'a>(&'a self, range: Option<Range>) -> Option<Bytes<'a>> {
         range.map(|range| self.to_slice(range))
     }
 
