@@ -2023,6 +2023,37 @@ mod http_response_compliance {
         #[test]
         #[traced_test]
         fn google_301() {
+            let message = "HTTP/1.1 301 Moved Permanently\r\nLocation: http://www.google.com/\r\nContent-Type: text/html; charset=UTF-8\r\nDate: Sun, 26 Apr 2009 11:11:49 GMT\r\nExpires: Tue, 26 May 2009 11:11:49 GMT\r\nX-$PrototypeBI-Version: 1.6.0.3\r\nCache-Control: public, max-age=2592000\r\nServer: gws\r\nContent-Length:  210\r\n\r\n<HTML><HEAD><meta http-equiv=content-type content=text/html;charset=utf-8>\n<TITLE>301 Moved</TITLE></HEAD><BODY>\n<H1>301 Moved</H1>\nThe document has moved\n<A HREF=\"http://www.google.com/\">here</A>.\r\n</BODY></HTML>";
+            // Test implementation can be added here
+
+            let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+            let addr = listener.local_addr().expect("should return address");
+
+            let req_thread = thread::spawn(move || {
+                let mut client = panic_if_failed!(TcpStream::connect(addr));
+                panic_if_failed!(client.write(message.as_bytes()))
+            });
+
+            let (client_stream, _) = panic_if_failed!(listener.accept());
+            let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+            let request_stream = super::HTTPStreams::from_reader(reader);
+
+            let request_one = request_stream
+                .next_response()
+                .into_iter()
+                .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
+
+            dbg!(&message);
+            dbg!(&request_one);
+
+            assert!(matches!(&request_one, Ok(_)));
+
+            req_thread.join().expect("should be closed");
+        }
+
+        #[test]
+        #[traced_test]
+        fn google_301_with_bad_content_length() {
             let message = "HTTP/1.1 301 Moved Permanently\r\nLocation: http://www.google.com/\r\nContent-Type: text/html; charset=UTF-8\r\nDate: Sun, 26 Apr 2009 11:11:49 GMT\r\nExpires: Tue, 26 May 2009 11:11:49 GMT\r\nX-$PrototypeBI-Version: 1.6.0.3\r\nCache-Control: public, max-age=2592000\r\nServer: gws\r\nContent-Length:  219\r\n\r\n<HTML><HEAD><meta http-equiv=content-type content=text/html;charset=utf-8>\n<TITLE>301 Moved</TITLE></HEAD><BODY>\n<H1>301 Moved</H1>\nThe document has moved\n<A HREF=\"http://www.google.com/\">here</A>.\r\n</BODY></HTML>";
             // Test implementation can be added here
 
@@ -2043,9 +2074,10 @@ mod http_response_compliance {
                 .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
+            dbg!(&message);
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(matches!(&request_one, Err(_)));
 
             req_thread.join().expect("should be closed");
         }
@@ -2345,7 +2377,7 @@ mod http_response_compliance {
 
             dbg!(&request_one);
 
-            assert!(matches!(&request_one, Ok(_)));
+            assert!(matches!(&request_one, Err(_)));
 
             req_thread.join().expect("should be closed");
         }

@@ -2474,6 +2474,9 @@ const MAX_HEADER_NAME_LEN: usize = (1 << 16) - 1;
 const TEXT_STREAM_MIME_TYPE: &str = "text/event-stream";
 
 static SPACE_CHARS: &[char] = &[' ', '\n', '\t', '\r'];
+static ALLOWED_HEADER_NAME_CHARS: &[char] = &[
+    '!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~',
+];
 
 static TRANSFER_ENCODING_VALUES: &[&str] = &["chunked", "compress", "deflate", "gzip"];
 
@@ -2585,7 +2588,7 @@ where
 
             if !header_key
                 .chars()
-                .all(|c| c.is_ascii_alphanumeric() || c == '-')
+                .all(|c| c.is_ascii_alphanumeric() || ALLOWED_HEADER_NAME_CHARS.contains(&c))
             {
                 return Err(HttpReaderError::HeaderKeyContainsNotAllowedChars);
             }
