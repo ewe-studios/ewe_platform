@@ -10,7 +10,7 @@ use std::{
     time,
 };
 
-use crate::{compati::Mutex, extensions::result_ext::SendableBoxedError, synca::mpp::RecvIterator};
+use crate::{compati::Mutex, synca::mpp::RecvIterator};
 use concurrent_queue::ConcurrentQueue;
 use derive_more::derive::From;
 use rand_chacha::ChaCha8Rng;
@@ -65,6 +65,7 @@ pub enum State {
 
 pub type BoxedStateIterator = Box<dyn Iterator<Item = State>>;
 pub type BoxedSendStateIterator = Box<dyn Iterator<Item = State> + Send>;
+pub type BoxedSendSyncStateIterator = Box<dyn Iterator<Item = State> + Send + Sync + 'static>;
 
 pub type BoxedExecutionEngine = Box<dyn ExecutionEngine>;
 
