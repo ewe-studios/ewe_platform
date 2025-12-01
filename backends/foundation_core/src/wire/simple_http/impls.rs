@@ -6,12 +6,14 @@ use crate::io::ioutils::{self, ByteBufferPointer, SharedByteBufferStream};
 use crate::io::ubytes::{self};
 use crate::valtron::{
     BoxedResultIterator, CloneableFn, SendVecIterator, StringBoxedIterator, TransformIterator,
+    VecIterator,
 };
 use crate::wire::simple_http::errors::*;
 use derive_more::From;
 use regex::{self, Regex};
 use std::collections::HashSet;
 use std::io::Cursor;
+use std::marker::PhantomData;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::{
@@ -158,7 +160,7 @@ pub enum SimpleBody {
     None,
     Text(String),
     Bytes(Vec<u8>),
-    Stream(Option<SendVecIterator<BoxedError>>),
+    Stream(Option<VecIterator<BoxedError>>),
     ChunkedStream(Option<ChunkedVecIterator<BoxedError>>),
     LineFeedStream(Option<LineFeedVecIterator<BoxedError>>),
 }
@@ -1757,7 +1759,7 @@ pub enum Http11ReqState {
     ///
     /// Once done it moves state to the `Http11ReqState::BodyStream`
     ///  or `Http11ReqState::End` variant.
-    BodyStreaming(Option<SendVecIterator<BoxedError>>),
+    BodyStreaming(Option<VecIterator<BoxedError>>),
 
     /// ChunkedBodyStreaming like BodyStreaming is meant to support
     /// handling of a chunked body parts where
@@ -2000,7 +2002,7 @@ pub enum Http11ResState {
     Intro(SimpleOutgoingResponse),
     Headers(SimpleOutgoingResponse),
     Body(SimpleOutgoingResponse),
-    BodyStreaming(Option<SendVecIterator<BoxedError>>),
+    BodyStreaming(Option<VecIterator<BoxedError>>),
     LineFeedStreaming(Option<LineFeedVecIterator<BoxedError>>),
     ChunkedBodyStreaming(Option<ChunkedVecIterator<BoxedError>>),
     End,
@@ -2446,7 +2448,7 @@ impl core::fmt::Display for IncomingRequestParts {
     }
 }
 
-pub trait BodyExtractor {
+pub trait BodyExtractor<'a> {
     /// extract will attempt to extract the relevant Body of a TcpStream shared
     /// stream by doing whatever internal logic is required to extract the necessary
     /// tcp body content required.
@@ -2454,7 +2456,7 @@ pub trait BodyExtractor {
     /// This allows custom implementation of Tcp/Http body extractors.
     ///
     /// See sample implementation in `SimpleHttpBody`.
-    fn extract<T: Read + 'static>(
+    fn extract<T: Read + 'a>(
         &self,
         body: Body,
         stream: SharedByteBufferStream<T>,
@@ -2756,7 +2758,7 @@ pub enum HttpReadState {
 }
 
 #[derive(Clone)]
-pub struct HttpRequestReader<F: BodyExtractor, T: std::io::Read> {
+pub struct HttpRequestReader<'a, F: BodyExtractor<'a>, T: std::io::Read + 'a> {
     reader: SharedByteBufferStream<T>,
     state: HttpReadState,
     bodies: F,
@@ -2764,12 +2766,13 @@ pub struct HttpRequestReader<F: BodyExtractor, T: std::io::Read> {
     max_header_key_length: Option<usize>,
     max_header_value_length: Option<usize>,
     max_header_values_count: Option<usize>,
+    lifetime_holder: PhantomData<&'a ()>,
 }
 
-impl<F, T> HttpRequestReader<F, T>
+impl<'a, F, T> HttpRequestReader<'a, F, T>
 where
-    F: BodyExtractor,
-    T: std::io::Read,
+    F: BodyExtractor<'a>,
+    T: std::io::Read + 'a,
 {
     pub fn new(reader: SharedByteBufferStream<T>, bodies: F) -> Self {
         Self {
@@ -2779,6 +2782,7 @@ where
             max_header_value_length: None,
             max_header_values_count: None,
             state: HttpReadState::Intro,
+            lifetime_holder: PhantomData::default(),
             reader,
         }
     }
@@ -2795,6 +2799,7 @@ where
             max_header_values_count: None,
             max_body_length: Some(max_body_length),
             state: HttpReadState::Intro,
+            lifetime_holder: PhantomData::default(),
             reader,
         }
     }
@@ -2813,6 +2818,7 @@ where
             max_header_key_length: Some(max_header_key_length),
             max_header_values_count: Some(max_header_values_count),
             max_header_value_length: Some(max_header_value_length),
+            lifetime_holder: PhantomData::default(),
             state: HttpReadState::Intro,
         }
     }
@@ -2832,6 +2838,7 @@ where
             max_header_key_length: Some(max_header_key_length),
             max_header_values_count: Some(max_header_values_count),
             max_header_value_length: Some(max_header_value_length),
+            lifetime_holder: PhantomData::default(),
             state: HttpReadState::Intro,
         }
     }
@@ -2839,10 +2846,10 @@ where
 
 static NO_BODY_METHODS: &[SimpleMethod] = &[SimpleMethod::HEAD, SimpleMethod::CONNECT];
 
-impl<F, T> Iterator for HttpRequestReader<F, T>
+impl<'a, F, T> Iterator for HttpRequestReader<'a, F, T>
 where
-    F: BodyExtractor,
-    T: std::io::Read + 'static,
+    F: BodyExtractor<'a>,
+    T: std::io::Read + 'a,
 {
     type Item = Result<IncomingRequestParts, HttpReaderError>;
 
@@ -3124,7 +3131,7 @@ where
 }
 
 #[derive(Clone)]
-pub struct HttpResponseReader<F: BodyExtractor, T: std::io::Read + 'static> {
+pub struct HttpResponseReader<'a, F: BodyExtractor<'a>, T: std::io::Read + 'a> {
     reader: SharedByteBufferStream<T>,
     state: HttpReadState,
     bodies: F,
@@ -3132,12 +3139,13 @@ pub struct HttpResponseReader<F: BodyExtractor, T: std::io::Read + 'static> {
     max_header_key_length: Option<usize>,
     max_header_value_length: Option<usize>,
     max_header_values_count: Option<usize>,
+    lifetime_holder: PhantomData<&'a ()>,
 }
 
-impl<F, T> HttpResponseReader<F, T>
+impl<'a, F, T> HttpResponseReader<'a, F, T>
 where
-    F: BodyExtractor,
-    T: std::io::Read + 'static,
+    F: BodyExtractor<'a>,
+    T: std::io::Read + 'a,
 {
     pub fn new(reader: SharedByteBufferStream<T>, bodies: F) -> Self {
         Self {
@@ -3147,6 +3155,7 @@ where
             max_header_value_length: None,
             max_header_values_count: None,
             state: HttpReadState::Intro,
+            lifetime_holder: PhantomData::default(),
             reader,
         }
     }
@@ -3163,6 +3172,7 @@ where
             max_header_values_count: None,
             max_body_length: Some(max_body_length),
             state: HttpReadState::Intro,
+            lifetime_holder: PhantomData::default(),
             reader,
         }
     }
@@ -3181,6 +3191,7 @@ where
             max_header_key_length: Some(max_header_key_length),
             max_header_values_count: Some(max_header_values_count),
             max_header_value_length: Some(max_header_value_length),
+            lifetime_holder: PhantomData::default(),
             state: HttpReadState::Intro,
         }
     }
@@ -3200,15 +3211,16 @@ where
             max_header_key_length: Some(max_header_key_length),
             max_header_values_count: Some(max_header_values_count),
             max_header_value_length: Some(max_header_value_length),
+            lifetime_holder: PhantomData::default(),
             state: HttpReadState::Intro,
         }
     }
 }
 
-impl<F, T> Iterator for HttpResponseReader<F, T>
+impl<'a, F, T> Iterator for HttpResponseReader<'a, F, T>
 where
-    F: BodyExtractor,
-    T: std::io::Read + 'static,
+    F: BodyExtractor<'a>,
+    T: std::io::Read + 'a,
 {
     type Item = Result<IncomingResponseParts, HttpReaderError>;
 
@@ -4550,21 +4562,25 @@ mod test_chunk_parser {
     }
 }
 
-pub struct SimpleLineFeedIterator<T: std::io::Read>(SimpleHeaders, SharedByteBufferStream<T>);
+pub struct SimpleLineFeedIterator<'a, T: std::io::Read + 'a>(
+    SimpleHeaders,
+    SharedByteBufferStream<T>,
+    PhantomData<&'a ()>,
+);
 
-impl<T: std::io::Read> Clone for SimpleLineFeedIterator<T> {
+impl<'a, T: std::io::Read + 'a> Clone for SimpleLineFeedIterator<'a, T> {
     fn clone(&self) -> Self {
-        Self(self.0.clone(), self.1.clone())
+        Self(self.0.clone(), self.1.clone(), self.2.clone())
     }
 }
 
-impl<T: std::io::Read> SimpleLineFeedIterator<T> {
+impl<'a, T: std::io::Read + 'a> SimpleLineFeedIterator<'a, T> {
     pub fn new(headers: SimpleHeaders, stream: SharedByteBufferStream<T>) -> Self {
-        Self(headers, stream)
+        Self(headers, stream, PhantomData::default())
     }
 }
 
-impl<T: std::io::Read> Iterator for SimpleLineFeedIterator<T> {
+impl<'a, T: std::io::Read + 'a> Iterator for SimpleLineFeedIterator<'a, T> {
     type Item = Result<LineFeed, BoxedError>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -4581,25 +4597,27 @@ impl<T: std::io::Read> Iterator for SimpleLineFeedIterator<T> {
     }
 }
 
-pub struct SimpleHttpChunkIterator<T: std::io::Read>(
+pub struct SimpleHttpChunkIterator<'a, T: std::io::Read + 'a>(
     Vec<String>,
     SimpleHeaders,
     SharedByteBufferStream<T>,
     Arc<AtomicBool>,
+    PhantomData<&'a ()>,
 );
 
-impl<T: std::io::Read> Clone for SimpleHttpChunkIterator<T> {
+impl<'a, T: std::io::Read> Clone for SimpleHttpChunkIterator<'a, T> {
     fn clone(&self) -> Self {
         Self(
             self.0.clone(),
             self.1.clone(),
             self.2.clone(),
             self.3.clone(),
+            self.4.clone(),
         )
     }
 }
 
-impl<T: std::io::Read> SimpleHttpChunkIterator<T> {
+impl<'a, T: std::io::Read> SimpleHttpChunkIterator<'a, T> {
     pub fn new(
         transfer_encoding: Vec<String>,
         headers: SimpleHeaders,
@@ -4610,11 +4628,12 @@ impl<T: std::io::Read> SimpleHttpChunkIterator<T> {
             headers,
             stream,
             Arc::new(AtomicBool::new(false)),
+            PhantomData::default(),
         )
     }
 }
 
-impl<T: std::io::Read> Iterator for SimpleHttpChunkIterator<T> {
+impl<'a, T: std::io::Read> Iterator for SimpleHttpChunkIterator<'a, T> {
     type Item = Result<ChunkedData, BoxedError>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -4706,10 +4725,10 @@ impl<T: std::io::Read> Iterator for SimpleHttpChunkIterator<T> {
 }
 
 #[derive(Default)]
-pub struct SimpleHttpBody;
+pub struct SimpleHttpBody<'a>(PhantomData<&'a ()>);
 
-impl BodyExtractor for SimpleHttpBody {
-    fn extract<T: std::io::Read + 'static>(
+impl<'a> BodyExtractor<'a> for SimpleHttpBody<'a> {
+    fn extract<T: std::io::Read + 'a>(
         &self,
         body: Body,
         stream: SharedByteBufferStream<T>,
@@ -4757,19 +4776,19 @@ impl BodyExtractor for SimpleHttpBody {
     }
 }
 
-impl<T: std::io::Read + 'static> HttpRequestReader<SimpleHttpBody, T> {
+impl<'a, T: std::io::Read + 'a> HttpRequestReader<'a, SimpleHttpBody<'a>, T> {
     pub fn simple_tcp_stream(
         reader: SharedByteBufferStream<T>,
-    ) -> HttpRequestReader<SimpleHttpBody, T> {
-        HttpRequestReader::<SimpleHttpBody, T>::new(reader, SimpleHttpBody)
+    ) -> HttpRequestReader<'a, SimpleHttpBody<'a>, T> {
+        HttpRequestReader::<SimpleHttpBody, T>::new(reader, SimpleHttpBody::default())
     }
 }
 
-impl<T: std::io::Read + 'static> HttpResponseReader<SimpleHttpBody, T> {
+impl<'a, T: std::io::Read + 'a> HttpResponseReader<'a, SimpleHttpBody<'a>, T> {
     pub fn simple_tcp_stream(
         reader: SharedByteBufferStream<T>,
-    ) -> HttpResponseReader<SimpleHttpBody, T> {
-        HttpResponseReader::<SimpleHttpBody, T>::new(reader, SimpleHttpBody)
+    ) -> HttpResponseReader<'a, SimpleHttpBody<'a>, T> {
+        HttpResponseReader::<SimpleHttpBody, T>::new(reader, SimpleHttpBody::default())
     }
 }
 

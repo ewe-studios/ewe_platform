@@ -131,6 +131,19 @@ pub type BoxedIterator<T> = Box<dyn Iterator<Item = T>>;
 /// [BoxedResultIterator] defines a type alias for a boxed iterator that always returns a Result object.
 pub type BoxedResultIterator<T, E> = BoxedIterator<AnyResult<T, E>>;
 
+// Nice pre-defined types, feel free to define yours
+pub type I8Iterator<E> = BoxedResultIterator<i8, E>;
+pub type U8Iterator<E> = BoxedResultIterator<u8, E>;
+pub type U16Iterator<E> = BoxedResultIterator<u16, E>;
+pub type U32Iterator<E> = BoxedResultIterator<u32, E>;
+pub type U64Iterator<E> = BoxedResultIterator<u64, E>;
+pub type I16Iterator<E> = BoxedResultIterator<i16, E>;
+pub type I32Iterator<E> = BoxedResultIterator<i32, E>;
+pub type I64Iterator<E> = BoxedResultIterator<i64, E>;
+pub type VecIterator<E> = BoxedResultIterator<Vec<u8>, E>;
+pub type StringIterator<E> = BoxedResultIterator<String, E>;
+pub type ByteIterator<'a, E> = BoxedResultIterator<&'a [u8], E>;
+
 /// Boxed iterator of Strings.
 pub type StringBoxedIterator<E> = BoxedResultIterator<String, E>;
 
