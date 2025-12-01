@@ -229,7 +229,7 @@ mod http_response_compliance {
         thread,
     };
 
-    mod tranfer_encoding {
+    mod transfer_encoding {
         use tracing_test::traced_test;
 
         use crate::wire::simple_http::ChunkStateError;
