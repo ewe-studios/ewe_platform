@@ -1,7 +1,10 @@
 // use crate::compati::Mutex;
+use std::cell::RefCell;
 use std::io::{BufRead, BufReader, BufWriter, Cursor, IoSlice, IoSliceMut, Read, Result, Write};
+
+use std::rc::Rc;
 use std::sync::atomic::AtomicPtr;
-use std::sync::{Arc, LockResult, Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard};
+use std::sync::{Arc, Mutex, RwLock};
 
 use crate::err;
 use derive_more::derive::From;
@@ -394,8 +397,8 @@ impl<T: Read> PeekableReadStream for BufferedReader<T> {
     }
 }
 
-#[derive(Clone)]
 pub enum OwnedReader<T: Read> {
+    RefCell(Rc<RefCell<T>>),
     Atomic(Arc<AtomicPtr<T>>),
     Sync(Arc<Mutex<T>>),
     RWrite(Arc<RwLock<T>>),
@@ -412,6 +415,131 @@ impl<T: Read> OwnedReader<T> {
 
     pub fn atomic(reader: &mut T) -> Self {
         Self::Atomic(Arc::new(AtomicPtr::new(reader)))
+    }
+
+    pub fn ref_cell(reader: Rc<RefCell<T>>) -> Self {
+        Self::RefCell(reader)
+    }
+}
+
+impl<T: Read> OwnedReader<T> {
+    pub fn do_ref<F, V>(&self, caller: F) -> V
+    where
+        F: Fn(&T) -> V,
+    {
+        match self {
+            Self::Atomic(core) => {
+                let ptr = core.load(std::sync::atomic::Ordering::Acquire);
+                unsafe {
+                    let atomic_reader: &mut T = &mut *ptr;
+                    (caller)(&atomic_reader)
+                }
+            }
+            Self::Sync(core) => {
+                let guard = core.lock().expect("can acquire");
+                (caller)(&guard)
+            }
+            Self::RWrite(core) => {
+                let guard = core.read().expect("can acquire");
+                (caller)(&guard)
+            }
+            Self::RefCell(core) => {
+                let guard = core.borrow();
+                (caller)(&guard)
+            }
+        }
+    }
+
+    pub fn do_once<F, V>(&self, caller: F) -> V
+    where
+        F: FnOnce(&T) -> V,
+    {
+        match self {
+            Self::Atomic(core) => {
+                let ptr = core.load(std::sync::atomic::Ordering::Acquire);
+                unsafe {
+                    let atomic_reader: &mut T = &mut *ptr;
+                    (caller)(&atomic_reader)
+                }
+            }
+            Self::Sync(core) => {
+                let guard = core.lock().expect("can acquire");
+                (caller)(&guard)
+            }
+            Self::RWrite(core) => {
+                let guard = core.read().expect("can acquire");
+                (caller)(&guard)
+            }
+            Self::RefCell(core) => {
+                let guard = core.borrow();
+                (caller)(&guard)
+            }
+        }
+    }
+
+    pub fn do_once_mut<F, V>(&self, caller: F) -> V
+    where
+        F: FnOnce(&mut T) -> V,
+    {
+        match self {
+            Self::Atomic(core) => {
+                let ptr = core.load(std::sync::atomic::Ordering::Acquire);
+                unsafe {
+                    let mut atomic_reader: &mut T = &mut *ptr;
+                    (caller)(&mut atomic_reader)
+                }
+            }
+            Self::Sync(core) => {
+                let mut guard = core.lock().expect("can acquire");
+                (caller)(&mut *guard)
+            }
+            Self::RWrite(core) => {
+                let mut guard = core.write().expect("can acquire");
+                (caller)(&mut *guard)
+            }
+            Self::RefCell(core) => {
+                let mut guard = core.borrow_mut();
+                (caller)(&mut *guard)
+            }
+        }
+    }
+
+    pub fn do_mut<F, V>(&self, mut caller: F) -> V
+    where
+        F: FnMut(&mut T) -> V,
+    {
+        match self {
+            Self::Atomic(core) => {
+                let ptr = core.load(std::sync::atomic::Ordering::Acquire);
+                unsafe {
+                    let mut atomic_reader: &mut T = &mut *ptr;
+                    (caller)(&mut atomic_reader)
+                }
+            }
+            Self::Sync(core) => {
+                let mut guard = core.lock().expect("can acquire");
+                (caller)(&mut guard)
+            }
+            Self::RWrite(core) => {
+                let mut guard = core.write().expect("can acquire");
+                (caller)(&mut guard)
+            }
+            Self::RefCell(core) => {
+                let mut guard = core.borrow_mut();
+                (caller)(&mut guard)
+            }
+        }
+    }
+}
+
+impl<T: Read> Clone for OwnedReader<T> {
+    fn clone(&self) -> Self {
+        match self {
+            Self::Atomic(core) => Self::Atomic(Arc::clone(&core)),
+            Self::RWrite(core) => Self::RWrite(Arc::clone(&core)),
+            Self::RefCell(core) => Self::RefCell(core.clone()),
+            Self::Sync(core) => Self::Sync(core.clone()),
+        }
     }
 }
 
@@ -431,6 +559,10 @@ impl<T: Read> Read for OwnedReader<T> {
             }
             Self::RWrite(core) => {
                 let mut guard = core.write().expect("can acquire");
+                guard.read(buf)
+            }
+            Self::RefCell(core) => {
+                let mut guard = core.borrow_mut();
                 guard.read(buf)
             }
         }
@@ -453,6 +585,10 @@ impl<T: Read> Read for OwnedReader<T> {
                 let mut guard = core.write().expect("can acquire");
                 guard.read_vectored(bufs)
             }
+            Self::RefCell(core) => {
+                let mut guard = core.borrow_mut();
+                guard.read_vectored(bufs)
+            }
         }
     }
 
@@ -471,6 +607,10 @@ impl<T: Read> Read for OwnedReader<T> {
             }
             Self::RWrite(core) => {
                 let mut guard = core.write().expect("can acquire");
+                guard.read_exact(buf)
+            }
+            Self::RefCell(core) => {
+                let mut guard = core.borrow_mut();
                 guard.read_exact(buf)
             }
         }
@@ -493,6 +633,10 @@ impl<T: Read> Read for OwnedReader<T> {
                 let mut guard = core.write().expect("can acquire");
                 guard.read_to_end(buf)
             }
+            Self::RefCell(core) => {
+                let mut guard = core.borrow_mut();
+                guard.read_to_end(buf)
+            }
         }
     }
 
@@ -513,6 +657,10 @@ impl<T: Read> Read for OwnedReader<T> {
                 let mut guard = core.write().expect("can acquire");
                 guard.read_to_string(buf)
             }
+            Self::RefCell(core) => {
+                let mut guard = core.borrow_mut();
+                guard.read_to_string(buf)
+            }
         }
     }
 }
@@ -527,7 +675,37 @@ pub const DEFAULT_READ_SIZE: usize = if cfg!(target_os = "espidf") {
 
 /// SharedPointerReader defines a shared buffer reader pointer that allows reading through
 /// a underlying buffered stream.
-pub struct SharedByteBufferStream<T: Read>(std::sync::Arc<std::sync::RwLock<ByteBufferPointer<T>>>);
+pub struct SharedByteBufferStream<T: Read>(OwnedReader<ByteBufferPointer<T>>);
+
+impl<T: Read> SharedByteBufferStream<T> {
+    pub fn do_ref<F, V>(&self, caller: F) -> V
+    where
+        F: Fn(&ByteBufferPointer<T>) -> V,
+    {
+        self.0.do_ref(caller)
+    }
+
+    pub fn do_once<F, V>(&self, caller: F) -> V
+    where
+        F: FnOnce(&ByteBufferPointer<T>) -> V,
+    {
+        self.0.do_once(caller)
+    }
+
+    pub fn do_once_mut<F, V>(&self, caller: F) -> V
+    where
+        F: FnOnce(&mut ByteBufferPointer<T>) -> V,
+    {
+        self.0.do_once_mut(caller)
+    }
+
+    pub fn do_mut<F, V>(&self, caller: F) -> V
+    where
+        F: FnMut(&mut ByteBufferPointer<T>) -> V,
+    {
+        self.0.do_mut(caller)
+    }
+}
 
 // Implement cloning for the [`SharedByteBufferStream`].
 impl<T: Read> Clone for SharedByteBufferStream<T> {
@@ -539,181 +717,90 @@ impl<T: Read> Clone for SharedByteBufferStream<T> {
 // Constructors
 
 impl<T: Read> SharedByteBufferStream<T> {
-    pub fn new(reader: T) -> Self {
-        let wrapped_reader = OwnedReader::rwrite(Arc::new(RwLock::new(reader)));
-        Self(Arc::new(RwLock::new(ByteBufferPointer::new(
-            DEFAULT_READ_SIZE,
-            wrapped_reader,
-        ))))
+    pub fn ref_cell(reader: T) -> Self {
+        let wrapped_reader = OwnedReader::ref_cell(Rc::new(RefCell::new(reader)));
+        let byte_reader = ByteBufferPointer::new(DEFAULT_READ_SIZE, wrapped_reader);
+        Self(OwnedReader::ref_cell(Rc::new(RefCell::new(byte_reader))))
     }
 
-    pub fn with_capacity(capacity: usize, reader: T) -> Self {
+    pub fn ref_cell_with_capacity(capacity: usize, reader: T) -> Self {
+        let wrapped_reader = OwnedReader::ref_cell(Rc::new(RefCell::new(reader)));
+        let byte_reader = ByteBufferPointer::new(capacity, wrapped_reader);
+        Self(OwnedReader::ref_cell(Rc::new(RefCell::new(byte_reader))))
+    }
+
+    pub fn rwrite(reader: T) -> Self {
         let wrapped_reader = OwnedReader::rwrite(Arc::new(RwLock::new(reader)));
-        Self(Arc::new(RwLock::new(ByteBufferPointer::new(
-            capacity,
-            wrapped_reader,
-        ))))
+        let byte_reader = ByteBufferPointer::new(DEFAULT_READ_SIZE, wrapped_reader);
+        Self(OwnedReader::rwrite(Arc::new(RwLock::new(byte_reader))))
+    }
+
+    pub fn rwrite_with_capacity(capacity: usize, reader: T) -> Self {
+        let wrapped_reader = OwnedReader::rwrite(Arc::new(RwLock::new(reader)));
+        let byte_reader = ByteBufferPointer::new(capacity, wrapped_reader);
+        Self(OwnedReader::rwrite(Arc::new(RwLock::new(byte_reader))))
     }
 }
 
 impl<T: Read> SharedByteBufferStream<BufferedReader<T>> {
     pub fn with_owned_reader(reader: T) -> Self {
         let wrapped_reader = BufferedReader::new(reader);
-        Self::new(wrapped_reader)
+        Self::rwrite(wrapped_reader)
     }
 }
 
 impl<T: Read> SharedByteBufferStream<BufferedReader<T>> {
     pub fn with_buffered_owned_reader(reader: T) -> Self {
-        Self::new(BufferedReader::new(reader))
+        Self::rwrite(BufferedReader::new(reader))
     }
 }
 
 // Public Methods
 
-impl<T: Read> SharedByteBufferStream<T> {
-    /// Returns the distance between the peek position and the actual cursor
-    /// position.
-    #[inline]
-    pub fn distance(&self) -> usize {
-        let binding = self.0.read().expect("get lock");
-        binding.distance()
-    }
-
-    pub fn peek_cursor(&self) -> usize {
-        let binding = self.0.read().expect("get lock");
-        binding.peek_cursor()
-    }
-
-    pub fn data_cursor(&self) -> usize {
-        let binding = self.0.read().expect("get lock");
-        binding.data_cursor()
-    }
-
-    /// Returns the total length of the string being accumulated on.
-    #[inline]
-    pub fn len(&self) -> usize {
-        let binding = self.0.read().expect("get lock");
-        binding.len()
-    }
-
-    #[inline]
-    pub fn is_empty(&self) -> bool {
-        let binding = self.0.read().expect("get lock");
-        binding.is_empty()
-    }
-
-    #[inline]
-    pub fn uncapture(&self, by: usize) {
-        let mut binding = self.0.write().expect("get lock");
-        binding.uncapture(by)
-    }
-
-    #[inline]
-    pub fn uncapture_by(&self, by: usize) {
-        let mut binding = self.0.write().expect("get lock");
-        binding.uncapture_by(by)
-    }
-
-    #[inline]
-    pub fn greater_than_40_percent(&self) -> bool {
-        let binding = self.0.read().expect("get lock");
-        binding.greater_than_40_percent()
-    }
-
-    #[inline]
-    pub fn truncate(&mut self, force: bool) {
-        let mut binding = self.0.write().expect("get lock");
-        binding.truncate(force)
-    }
-
-    /// [`fill_up`] fills the internal buffer with the pull amount
-    /// which allows you to continue to collect the relevant
-    /// set of data which we match is right in the correct set of
-    /// bytes until we indicate to the pointer to consume the data until
-    /// the position cursor.
-    #[inline]
-    pub fn fill_up(&self) -> std::io::Result<usize> {
-        let mut binding = self.0.write().expect("get lock");
-        binding.fill_up()
-    }
-
-    /// [`fill_all`] calls the underlying pointer to the byte buffer to
-    /// pull the whole data within the in-memory buffer.
-    #[inline]
-    pub fn fill_all(&self, read_limit: Option<usize>) -> std::io::Result<usize> {
-        let mut binding = self.0.write().expect("get lock");
-        binding.fill_all(read_limit)
-    }
-
-    /// [`read`] returns a borrowed [`RwLockReadGuard`] which allows you access the internal
-    /// buffered byte reader for performing operations.
-    #[inline]
-    pub fn read(&self) -> LockResult<RwLockReadGuard<'_, ByteBufferPointer<T>>> {
-        self.0.read()
-    }
-
-    /// [`write`] returns a borrowed [`RwLockWriteGuard`] which allows you access the internal
-    /// buffered byte reader for performing operations.
-    #[inline]
-    pub fn write(&self) -> LockResult<RwLockWriteGuard<'_, ByteBufferPointer<T>>> {
-        self.0.write()
-    }
-}
-
 impl<T: Read> PeekableReadStream for SharedByteBufferStream<T> {
     fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError> {
-        let mut binding = self
-            .0
-            .write()
-            .map_err(|_| PeekError::LockAcquisitionError)?;
+        self.0
+            .do_once_mut(|binding| match binding.nextby(buf.len()) {
+                Ok(state) => match state {
+                    PeekState::Request(data) => {
+                        let ending = if buf.len() > data.len() {
+                            data.len()
+                        } else {
+                            buf.len()
+                        };
 
-        match binding.nextby(buf.len()) {
-            Ok(state) => match state {
-                PeekState::Request(data) => {
-                    let ending = if buf.len() > data.len() {
-                        data.len()
-                    } else {
-                        buf.len()
-                    };
-
-                    for (index, elem) in data[0..ending].iter().enumerate() {
-                        buf[index] = *elem
+                        for (index, elem) in data[0..ending].iter().enumerate() {
+                            buf[index] = *elem
+                        }
+                        Ok(data.len())
                     }
-                    Ok(data.len())
-                }
-                PeekState::ZeroLengthInput => Ok(0),
-                _ => unreachable!("We should never hit this state"),
-            },
-            Err(err) => Err(PeekError::IOError(err)),
-        }
+                    PeekState::ZeroLengthInput => Ok(0),
+                    _ => unreachable!("We should never hit this state"),
+                },
+                Err(err) => Err(PeekError::IOError(err)),
+            })
     }
 }
 
 impl<T: Read> std::io::Read for SharedByteBufferStream<T> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
-        let mut binding = self.write().expect("should unlock reader");
-        binding.read(buf)
+        self.0.do_once_mut(|binding| binding.read(buf))
     }
 
     fn read_vectored(&mut self, buf: &mut [IoSliceMut<'_>]) -> Result<usize> {
-        let mut binding = self.write().expect("should unlock reader");
-        binding.read_vectored(buf)
+        self.0.do_once_mut(|binding| binding.read_vectored(buf))
     }
 
     fn read_exact(&mut self, buf: &mut [u8]) -> Result<()> {
-        let mut binding = self.write().expect("should unlock reader");
-        binding.read_exact(buf)
+        self.0.do_once_mut(|binding| binding.read_exact(buf))
     }
 
     fn read_to_end(&mut self, buf: &mut Vec<u8>) -> Result<usize> {
-        let mut binding = self.write().expect("should unlock reader");
-        binding.read_to_end(buf)
+        self.0.do_once_mut(|binding| binding.read_to_end(buf))
     }
 
     fn read_to_string(&mut self, buf: &mut String) -> Result<usize> {
-        let mut binding = self.write().expect("should unlock reader");
-        binding.read_to_string(buf)
+        self.0.do_once_mut(|binding| binding.read_to_string(buf))
     }
 }
 
@@ -1643,7 +1730,7 @@ mod byte_buffered_buffer_pointer {
 
         let read_length = binding
             .read_all(&mut read_data, None)
-            .expect("read data succesfully");
+            .expect("read data successfully");
         assert_eq!(read_length, content.len());
 
         let data_4_str = str::from_utf8(&read_data[0..read_length]).expect("convert into string");

@@ -1,6 +1,214 @@
 #![allow(unused)]
 
 #[cfg(test)]
+mod test_http_reader {
+
+    use crate::io::ioutils;
+    use crate::netcap::RawStream;
+    use crate::panic_if_failed;
+    use crate::wire::simple_http::{
+        http_streams, ChunkedData, HTTPStreams, HttpReaderError, HttpResponseReader,
+        IncomingRequestParts, IncomingResponseParts, SimpleBody, SimpleHeader, SimpleMethod,
+        SimpleUrl, Status,
+    };
+    use regex::Regex;
+
+    use std::collections::BTreeMap;
+    use std::io::Write;
+    use std::{
+        net::{TcpListener, TcpStream},
+        thread,
+    };
+
+    #[test]
+    fn test_can_read_http_post_request() {
+        let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:4888"));
+
+        let message = "\
+POST /users HTTP/1.1\r
+Date: Sun, 10 Oct 2010 23:26:07 GMT\r
+Server: Apache/2.2.8 (Ubuntu) mod_ssl/2.2.8 OpenSSL/0.9.8g\r
+Last-Modified: Sun, 26 Sep 2010 22:04:35 GMT
+ETag: \"45b6-834-49130cc1182c0\"\r
+Accept-Ranges: bytes\r
+Content-Length: 12\r
+Connection: close\r
+Content-Type: text/html\r
+\r
+Hello world!";
+
+        dbg!(&message);
+
+        let req_thread = thread::spawn(move || {
+            let mut client = panic_if_failed!(TcpStream::connect("localhost:4888"));
+            panic_if_failed!(client.write(message.as_bytes()))
+        });
+
+        let (client_stream, _) = panic_if_failed!(listener.accept());
+        let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+        let request_reader = http_streams::no_send::request_reader(reader);
+
+        let request_parts = request_reader
+            .into_iter()
+            .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+            .expect("should generate output");
+
+        dbg!(&request_parts);
+
+        let expected_parts: Vec<IncomingRequestParts> = vec![
+            IncomingRequestParts::Intro(
+                SimpleMethod::POST,
+                SimpleUrl {
+                    url: "/users".into(),
+                    url_only: false,
+                    matcher: Some(panic_if_failed!(Regex::new("/users"))),
+                    params: None,
+                    queries: None,
+                },
+                "HTTP/1.1".into(),
+            ),
+            IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                (SimpleHeader::ACCEPT_RANGES, vec!["bytes".into()]),
+                (SimpleHeader::CONNECTION, vec!["close".into()]),
+                (SimpleHeader::CONTENT_LENGTH, vec!["12".into()]),
+                (SimpleHeader::CONTENT_TYPE, vec!["text/html".into()]),
+                (
+                    SimpleHeader::DATE,
+                    vec!["Sun, 10 Oct 2010 23:26:07 GMT".into()],
+                ),
+                (
+                    SimpleHeader::ETAG,
+                    vec!["\"45b6-834-49130cc1182c0\"".into()],
+                ),
+                (
+                    SimpleHeader::LAST_MODIFIED,
+                    vec!["Sun, 26 Sep 2010 22:04:35 GMT".into()],
+                ),
+                (
+                    SimpleHeader::SERVER,
+                    vec!["Apache/2.2.8 (Ubuntu) mod_ssl/2.2.8 OpenSSL/0.9.8g".into()],
+                ),
+            ])),
+            IncomingRequestParts::SizedBody(SimpleBody::Bytes(vec![
+                72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33,
+            ])),
+        ];
+
+        assert_eq!(request_parts, expected_parts);
+        req_thread.join().expect("should be closed");
+    }
+
+    #[test]
+    fn test_can_read_http_body_from_reqwest_http_message() {
+        let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:5889"));
+
+        let message = "POST /form HTTP/1.1\r\ncontent-type: application/x-www-form-urlencoded\r\ncontent-length: 24\r\naccept: */*\r\nhost: 127.0.0.1:7889\r\n\r\nhello=world&sean=monstar";
+
+        let req_thread = thread::spawn(move || {
+            let mut client = panic_if_failed!(TcpStream::connect("localhost:5889"));
+            panic_if_failed!(client.write(message.as_bytes()))
+        });
+
+        let (client_stream, _) = panic_if_failed!(listener.accept());
+        let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+        let request_reader = http_streams::send::request_reader(reader);
+
+        let request_parts = request_reader
+            .into_iter()
+            .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+            .expect("should generate output");
+
+        dbg!(&request_parts);
+
+        let expected_parts: Vec<IncomingRequestParts> = vec![
+            IncomingRequestParts::Intro(
+                SimpleMethod::POST,
+                SimpleUrl {
+                    url: "/form".into(),
+                    url_only: false,
+                    matcher: Some(panic_if_failed!(Regex::new("/form"))),
+                    params: None,
+                    queries: None,
+                },
+                "HTTP/1.1".into(),
+            ),
+            IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                (SimpleHeader::ACCEPT, vec!["*/*".into()]),
+                (SimpleHeader::CONTENT_LENGTH, vec!["24".into()]),
+                (
+                    SimpleHeader::CONTENT_TYPE,
+                    vec!["application/x-www-form-urlencoded".into()],
+                ),
+                (SimpleHeader::HOST, vec!["127.0.0.1:7889".into()]),
+            ])),
+            IncomingRequestParts::SizedBody(SimpleBody::Bytes(vec![
+                104, 101, 108, 108, 111, 61, 119, 111, 114, 108, 100, 38, 115, 101, 97, 110, 61,
+                109, 111, 110, 115, 116, 97, 114,
+            ])),
+        ];
+
+        assert_eq!(request_parts, expected_parts);
+        req_thread.join().expect("should be closed");
+    }
+
+    #[test]
+    fn test_can_read_http_body_from_reqwest_client() {
+        let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:7887"));
+
+        let req_thread = thread::spawn(move || {
+            use reqwest;
+
+            let form = &[("hello", "world"), ("sean", "monstar")];
+            let _ = reqwest::blocking::Client::new()
+                .post("http://127.0.0.1:7887/form")
+                .form(form)
+                .send();
+        });
+
+        let (client_stream, _) = panic_if_failed!(listener.accept());
+        let reader = RawStream::from_tcp(client_stream).expect("check reader");
+        let request_reader = http_streams::send::request_reader(reader);
+
+        let request_parts = request_reader
+            .into_iter()
+            .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+            .expect("should generate output");
+
+        dbg!(&request_parts);
+
+        let expected_parts: Vec<IncomingRequestParts> = vec![
+            IncomingRequestParts::Intro(
+                SimpleMethod::POST,
+                SimpleUrl {
+                    url: "/form".into(),
+                    url_only: false,
+                    matcher: Some(panic_if_failed!(Regex::new("/form"))),
+                    params: None,
+                    queries: None,
+                },
+                "HTTP/1.1".into(),
+            ),
+            IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
+                (SimpleHeader::ACCEPT, vec!["*/*".into()]),
+                (SimpleHeader::CONTENT_LENGTH, vec!["24".into()]),
+                (
+                    SimpleHeader::CONTENT_TYPE,
+                    vec!["application/x-www-form-urlencoded".into()],
+                ),
+                (SimpleHeader::HOST, vec!["127.0.0.1:7887".into()]),
+            ])),
+            IncomingRequestParts::SizedBody(SimpleBody::Bytes(vec![
+                104, 101, 108, 108, 111, 61, 119, 111, 114, 108, 100, 38, 115, 101, 97, 110, 61,
+                109, 111, 110, 115, 116, 97, 114,
+            ])),
+        ];
+
+        assert_eq!(request_parts, expected_parts);
+        req_thread.join().expect("should be closed");
+    }
+}
+
+#[cfg(test)]
 mod http_response_compliance {
     use super::*;
     use crate::extensions::result_ext::BoxedError;
@@ -8,8 +216,9 @@ mod http_response_compliance {
     use crate::netcap::RawStream;
     use crate::panic_if_failed;
     use crate::wire::simple_http::{
-        ChunkedData, HTTPStreams, HttpReaderError, HttpResponseReader, IncomingResponseParts,
-        SimpleBody, SimpleHeader, SimpleMethod, SimpleUrl, Status,
+        http_streams, ChunkedData, HTTPStreams, HttpReaderError, HttpResponseReader,
+        IncomingRequestParts, IncomingResponseParts, SimpleBody, SimpleHeader, SimpleMethod,
+        SimpleUrl, Status,
     };
     use regex::Regex;
 
@@ -44,7 +253,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -107,7 +316,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -170,7 +379,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -232,7 +441,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -294,7 +503,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -360,7 +569,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -426,7 +635,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -492,7 +701,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -564,7 +773,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -618,7 +827,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -671,7 +880,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -750,7 +959,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -805,7 +1014,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -834,7 +1043,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -863,7 +1072,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -891,7 +1100,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -920,7 +1129,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -948,7 +1157,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -977,7 +1186,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -1006,7 +1215,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -1035,7 +1244,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -1099,7 +1308,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -1163,7 +1372,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -1192,7 +1401,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -1246,7 +1455,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -1299,7 +1508,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -1328,7 +1537,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -1382,7 +1591,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -1436,7 +1645,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -1499,7 +1708,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -1561,7 +1770,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -1631,7 +1840,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -1695,7 +1904,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -1759,7 +1968,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -1819,7 +2028,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpResponseReader::from_reader(reader);
+            let request_reader = http_streams::send::response_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -1886,7 +2095,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -1916,7 +2125,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -1946,7 +2155,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -1976,7 +2185,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2006,7 +2215,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2036,7 +2245,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2067,7 +2276,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2098,7 +2307,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2128,7 +2337,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2158,7 +2367,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2188,7 +2397,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2218,7 +2427,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2248,7 +2457,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2278,7 +2487,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2308,7 +2517,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2338,7 +2547,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2368,7 +2577,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2398,7 +2607,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2428,7 +2637,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2458,7 +2667,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2488,7 +2697,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2526,7 +2735,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2564,7 +2773,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2602,7 +2811,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2632,7 +2841,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2663,7 +2872,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2701,7 +2910,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2731,7 +2940,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2762,7 +2971,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2793,7 +3002,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2824,7 +3033,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2855,7 +3064,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2886,7 +3095,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2916,7 +3125,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2946,7 +3155,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -2977,7 +3186,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -3007,7 +3216,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -3037,7 +3246,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -3067,7 +3276,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -3097,7 +3306,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -3127,7 +3336,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -3170,7 +3379,7 @@ mod http_response_compliance {
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_response()
@@ -3207,8 +3416,9 @@ mod http_requests_compliance {
     use crate::netcap::RawStream;
     use crate::panic_if_failed;
     use crate::wire::simple_http::{
-        ChunkedData, HTTPStreams, HttpReaderError, HttpRequestReader, IncomingRequestParts,
-        SimpleBody, SimpleHeader, SimpleMethod, SimpleUrl,
+        http_streams, ChunkedData, HTTPStreams, HttpReaderError, HttpResponseReader,
+        IncomingRequestParts, IncomingResponseParts, SimpleBody, SimpleHeader, SimpleMethod,
+        SimpleUrl, Status,
     };
     use regex::Regex;
 
@@ -3247,7 +3457,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let request_parts = request_reader
                 .into_iter()
@@ -3318,7 +3528,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let request_parts = request_reader
                 .into_iter()
@@ -3365,7 +3575,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let request_parts = request_reader
                 .into_iter()
@@ -3413,7 +3623,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let request_parts = request_reader
                 .into_iter()
@@ -3461,7 +3671,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let request_parts = request_reader
                 .into_iter()
@@ -3509,7 +3719,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let request_parts = request_reader
                 .into_iter()
@@ -3557,7 +3767,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let request_parts = request_reader
                 .into_iter()
@@ -3602,7 +3812,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let request_parts = request_reader
                 .into_iter()
@@ -3653,7 +3863,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let request_parts = request_reader
                 .into_iter()
@@ -3710,7 +3920,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -3784,7 +3994,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -3858,7 +4068,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -3928,7 +4138,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -4006,7 +4216,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -4079,7 +4289,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -4152,7 +4362,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -4224,7 +4434,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -4296,7 +4506,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -4372,7 +4582,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -4448,7 +4658,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -4524,7 +4734,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -4606,7 +4816,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -4669,7 +4879,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -4732,7 +4942,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -4821,7 +5031,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -4886,7 +5096,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -4915,7 +5125,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -4944,7 +5154,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -4972,7 +5182,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -5000,7 +5210,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -5028,7 +5238,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -5056,7 +5266,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -5085,7 +5295,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -5114,7 +5324,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -5188,7 +5398,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -5262,7 +5472,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -5291,7 +5501,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -5355,7 +5565,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -5419,7 +5629,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts_result = request_reader
                 .into_iter()
@@ -5448,7 +5658,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -5512,7 +5722,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -5576,7 +5786,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -5649,7 +5859,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -5721,7 +5931,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -5800,7 +6010,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -5855,7 +6065,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -5901,7 +6111,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -5960,7 +6170,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -6045,7 +6255,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -6094,7 +6304,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -6142,7 +6352,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -6191,7 +6401,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -6241,7 +6451,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -6288,7 +6498,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -6334,7 +6544,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -6402,7 +6612,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -6476,7 +6686,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -6505,7 +6715,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -6534,7 +6744,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -6592,7 +6802,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -6650,7 +6860,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -6713,7 +6923,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_reader = super::HttpRequestReader::from_reader(reader);
+            let request_reader = http_streams::send::request_reader(reader);
 
             let mut request_parts = request_reader
                 .into_iter()
@@ -6803,7 +7013,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -6918,7 +7128,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -6964,7 +7174,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7016,7 +7226,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7068,7 +7278,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7121,7 +7331,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7177,7 +7387,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7205,7 +7415,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7233,7 +7443,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7261,7 +7471,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7289,7 +7499,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7318,7 +7528,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7346,7 +7556,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7374,7 +7584,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7402,7 +7612,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7430,7 +7640,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7458,7 +7668,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7494,7 +7704,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7530,7 +7740,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7558,7 +7768,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7588,7 +7798,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7626,7 +7836,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7655,7 +7865,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7684,7 +7894,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7713,7 +7923,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7742,7 +7952,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7771,7 +7981,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7800,7 +8010,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7829,7 +8039,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7859,7 +8069,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7888,7 +8098,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7917,7 +8127,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7946,7 +8156,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -7975,7 +8185,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -8004,7 +8214,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -8033,7 +8243,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -8062,7 +8272,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -8091,7 +8301,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -8131,7 +8341,7 @@ Hello world!";
 
                 let (client_stream, _) = panic_if_failed!(listener.accept());
                 let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-                let request_stream = super::HTTPStreams::from_reader(reader);
+                let request_stream = http_streams::send::http_streams(reader);
 
                 let request_one = request_stream
                     .next_request()
@@ -8160,7 +8370,7 @@ Hello world!";
 
                 let (client_stream, _) = panic_if_failed!(listener.accept());
                 let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-                let request_stream = super::HTTPStreams::from_reader(reader);
+                let request_stream = http_streams::send::http_streams(reader);
 
                 let request_one = request_stream
                     .next_request()
@@ -8197,7 +8407,7 @@ Hello world!";
 
                 let (client_stream, _) = panic_if_failed!(listener.accept());
                 let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-                let request_stream = super::HTTPStreams::from_reader(reader);
+                let request_stream = http_streams::send::http_streams(reader);
 
                 let request_one = request_stream
                     .next_request()
@@ -8226,7 +8436,7 @@ Hello world!";
 
                 let (client_stream, _) = panic_if_failed!(listener.accept());
                 let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-                let request_stream = super::HTTPStreams::from_reader(reader);
+                let request_stream = http_streams::send::http_streams(reader);
 
                 let request_one = request_stream
                     .next_request()
@@ -8255,7 +8465,7 @@ Hello world!";
 
                 let (client_stream, _) = panic_if_failed!(listener.accept());
                 let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-                let request_stream = super::HTTPStreams::from_reader(reader);
+                let request_stream = http_streams::send::http_streams(reader);
 
                 let request_one = request_stream
                     .next_request()
@@ -8284,7 +8494,7 @@ Hello world!";
 
                 let (client_stream, _) = panic_if_failed!(listener.accept());
                 let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-                let request_stream = super::HTTPStreams::from_reader(reader);
+                let request_stream = http_streams::send::http_streams(reader);
 
                 let request_one = request_stream
                     .next_request()
@@ -8313,7 +8523,7 @@ Hello world!";
 
                 let (client_stream, _) = panic_if_failed!(listener.accept());
                 let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-                let request_stream = super::HTTPStreams::from_reader(reader);
+                let request_stream = http_streams::send::http_streams(reader);
 
                 let request_one = request_stream
                     .next_request()
@@ -8346,7 +8556,7 @@ Hello world!";
 
                 let (client_stream, _) = panic_if_failed!(listener.accept());
                 let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-                let request_stream = super::HTTPStreams::from_reader(reader);
+                let request_stream = http_streams::send::http_streams(reader);
 
                 let request_one = request_stream
                     .next_request()
@@ -8375,7 +8585,7 @@ Hello world!";
 
                 let (client_stream, _) = panic_if_failed!(listener.accept());
                 let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-                let request_stream = super::HTTPStreams::from_reader(reader);
+                let request_stream = http_streams::send::http_streams(reader);
 
                 let request_one = request_stream
                     .next_request()
@@ -8404,7 +8614,7 @@ Hello world!";
 
                 let (client_stream, _) = panic_if_failed!(listener.accept());
                 let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-                let request_stream = super::HTTPStreams::from_reader(reader);
+                let request_stream = http_streams::send::http_streams(reader);
 
                 let request_one = request_stream
                     .next_request()
@@ -8438,7 +8648,7 @@ Hello world!";
 
                 let (client_stream, _) = panic_if_failed!(listener.accept());
                 let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-                let request_stream = super::HTTPStreams::from_reader(reader);
+                let request_stream = http_streams::send::http_streams(reader);
 
                 let request_one = request_stream
                     .next_request()
@@ -8467,7 +8677,7 @@ Hello world!";
 
                 let (client_stream, _) = panic_if_failed!(listener.accept());
                 let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-                let request_stream = super::HTTPStreams::from_reader(reader);
+                let request_stream = http_streams::send::http_streams(reader);
 
                 let request_one = request_stream
                     .next_request()
@@ -8496,7 +8706,7 @@ Hello world!";
 
                 let (client_stream, _) = panic_if_failed!(listener.accept());
                 let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-                let request_stream = super::HTTPStreams::from_reader(reader);
+                let request_stream = http_streams::send::http_streams(reader);
 
                 let request_one = request_stream
                     .next_request()
@@ -8525,7 +8735,7 @@ Hello world!";
 
                 let (client_stream, _) = panic_if_failed!(listener.accept());
                 let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-                let request_stream = super::HTTPStreams::from_reader(reader);
+                let request_stream = http_streams::send::http_streams(reader);
 
                 let request_one = request_stream
                     .next_request()
@@ -8554,7 +8764,7 @@ Hello world!";
 
                 let (client_stream, _) = panic_if_failed!(listener.accept());
                 let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-                let request_stream = super::HTTPStreams::from_reader(reader);
+                let request_stream = http_streams::send::http_streams(reader);
 
                 let request_one = request_stream
                     .next_request()
@@ -8583,7 +8793,7 @@ Hello world!";
 
                 let (client_stream, _) = panic_if_failed!(listener.accept());
                 let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-                let request_stream = super::HTTPStreams::from_reader(reader);
+                let request_stream = http_streams::send::http_streams(reader);
 
                 let request_one = request_stream
                     .next_request()
@@ -8616,7 +8826,7 @@ Hello world!";
 
                 let (client_stream, _) = panic_if_failed!(listener.accept());
                 let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-                let request_stream = super::HTTPStreams::from_reader(reader);
+                let request_stream = http_streams::send::http_streams(reader);
 
                 let request_one = request_stream
                     .next_request()
@@ -8645,7 +8855,7 @@ Hello world!";
 
                 let (client_stream, _) = panic_if_failed!(listener.accept());
                 let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-                let request_stream = super::HTTPStreams::from_reader(reader);
+                let request_stream = http_streams::send::http_streams(reader);
 
                 let request_one = request_stream
                     .next_request()
@@ -8674,7 +8884,7 @@ Hello world!";
 
                 let (client_stream, _) = panic_if_failed!(listener.accept());
                 let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-                let request_stream = super::HTTPStreams::from_reader(reader);
+                let request_stream = http_streams::send::http_streams(reader);
 
                 let request_one = request_stream
                     .next_request()
@@ -8703,7 +8913,7 @@ Hello world!";
 
                 let (client_stream, _) = panic_if_failed!(listener.accept());
                 let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-                let request_stream = super::HTTPStreams::from_reader(reader);
+                let request_stream = http_streams::send::http_streams(reader);
 
                 let request_one = request_stream
                     .next_request()
@@ -8743,7 +8953,7 @@ Hello world!";
         //
         //     let (client_stream, _) = panic_if_failed!(listener.accept());
         //     let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-        //     let request_stream = super::HTTPStreams::from_reader(reader);
+        //     let request_stream = http_streams::send::http_streams(reader);
         //
         //     let request_one = request_stream
         //         .next_request()
@@ -8772,7 +8982,7 @@ Hello world!";
         //
         //     let (client_stream, _) = panic_if_failed!(listener.accept());
         //     let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-        //     let request_stream = super::HTTPStreams::from_reader(reader);
+        //     let request_stream = http_streams::send::http_streams(reader);
         //
         //     let request_one = request_stream
         //         .next_request()
@@ -8801,7 +9011,7 @@ Hello world!";
         //
         //     let (client_stream, _) = panic_if_failed!(listener.accept());
         //     let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-        //     let request_stream = super::HTTPStreams::from_reader(reader);
+        //     let request_stream = http_streams::send::http_streams(reader);
         //
         //     let request_one = request_stream
         //         .next_request()
@@ -8830,7 +9040,7 @@ Hello world!";
         //
         //     let (client_stream, _) = panic_if_failed!(listener.accept());
         //     let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-        //     let request_stream = super::HTTPStreams::from_reader(reader);
+        //     let request_stream = http_streams::send::http_streams(reader);
         //
         //     let request_one = request_stream
         //         .next_request()
@@ -8861,7 +9071,7 @@ Hello world!";
         //
         //     let (client_stream, _) = panic_if_failed!(listener.accept());
         //     let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-        //     let request_stream = super::HTTPStreams::from_reader(reader);
+        //     let request_stream = http_streams::send::http_streams(reader);
         //
         //     let request_one = request_stream
         //         .next_request()
@@ -8890,7 +9100,7 @@ Hello world!";
         //
         //     let (client_stream, _) = panic_if_failed!(listener.accept());
         //     let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-        //     let request_stream = super::HTTPStreams::from_reader(reader);
+        //     let request_stream = http_streams::send::http_streams(reader);
         //
         //     let request_one = request_stream
         //         .next_request()
@@ -8920,7 +9130,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -8950,7 +9160,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -8979,7 +9189,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -9008,7 +9218,7 @@ Hello world!";
         //
         //     let (client_stream, _) = panic_if_failed!(listener.accept());
         //     let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-        //     let request_stream = super::HTTPStreams::from_reader(reader);
+        //     let request_stream = http_streams::send::http_streams(reader);
         //
         //     let request_one = request_stream
         //         .next_request()
@@ -9037,7 +9247,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -9066,7 +9276,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -9095,7 +9305,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -9126,7 +9336,7 @@ Hello world!";
         //
         //     let (client_stream, _) = panic_if_failed!(listener.accept());
         //     let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-        //     let request_stream = super::HTTPStreams::from_reader(reader);
+        //     let request_stream = http_streams::send::http_streams(reader);
         //
         //     let request_one = request_stream
         //         .next_request()
@@ -9155,7 +9365,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -9184,7 +9394,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -9213,7 +9423,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -9242,7 +9452,7 @@ Hello world!";
         //
         //     let (client_stream, _) = panic_if_failed!(listener.accept());
         //     let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-        //     let request_stream = super::HTTPStreams::from_reader(reader);
+        //     let request_stream = http_streams::send::http_streams(reader);
         //
         //     let request_one = request_stream
         //         .next_request()
@@ -9273,7 +9483,7 @@ Hello world!";
         //
         //     let (client_stream, _) = panic_if_failed!(listener.accept());
         //     let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-        //     let request_stream = super::HTTPStreams::from_reader(reader);
+        //     let request_stream = http_streams::send::http_streams(reader);
         //
         //     let request_one = request_stream
         //         .next_request()
@@ -9303,7 +9513,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -9335,7 +9545,7 @@ Hello world!";
         //
         //     let (client_stream, _) = panic_if_failed!(listener.accept());
         //     let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-        //     let request_stream = super::HTTPStreams::from_reader(reader);
+        //     let request_stream = http_streams::send::http_streams(reader);
         //
         //     let request_one = request_stream
         //         .next_request()
@@ -9365,7 +9575,7 @@ Hello world!";
         //
         //     let (client_stream, _) = panic_if_failed!(listener.accept());
         //     let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-        //     let request_stream = super::HTTPStreams::from_reader(reader);
+        //     let request_stream = http_streams::send::http_streams(reader);
         //
         //     let request_one = request_stream
         //         .next_request()
@@ -9395,7 +9605,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()
@@ -9425,7 +9635,7 @@ Hello world!";
 
             let (client_stream, _) = panic_if_failed!(listener.accept());
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-            let request_stream = super::HTTPStreams::from_reader(reader);
+            let request_stream = http_streams::send::http_streams(reader);
 
             let request_one = request_stream
                 .next_request()

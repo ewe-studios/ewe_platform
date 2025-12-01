@@ -1049,7 +1049,8 @@ impl ExecutionEngine for LocalExecutionEngine {
         tracing::debug!("broadcast: new task into Executor");
         if let Some(sender) = &self.activities {
             if let Err(err) = sender.send(ThreadActivity::BroadcastedTask) {
-                return Err(ExecutorError::FailedToSendThreadActivity(Box::new(err)));
+                tracing::error!("Failure in sending thread activity occurred: {:?}", err);
+                return Err(ExecutorError::FailedToSendThreadActivity);
             }
         }
         Ok(())

@@ -23,12 +23,13 @@ use rand_chacha::ChaCha8Rng;
 use std::str::FromStr;
 
 use crate::{
+    extensions::result_ext::SendableBoxedError,
     retries::ExponentialBackoffDecider,
     synca::{
         mpp::{self, RecvIterator},
         Entry, EntryList, IdleMan, LockSignal, OnSignal, RunOnDrop, SleepyMan,
     },
-    valtron::{AnyResult, BoxedError, LocalThreadExecutor},
+    valtron::{AnyResult, LocalThreadExecutor},
 };
 
 use super::{
@@ -645,7 +646,7 @@ pub type ThreadExecutionResult<T> = AnyResult<T, ThreadExecutionError>;
 #[derive(From, Debug)]
 pub enum ThreadExecutionError {
     #[from(ignore)]
-    FailedStart(BoxedError),
+    FailedStart(SendableBoxedError),
 
     #[from(ignore)]
     Panicked(Box<dyn Any + Send>),
