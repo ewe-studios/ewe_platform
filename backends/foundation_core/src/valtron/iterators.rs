@@ -1,7 +1,7 @@
 use super::types::AnyResult;
 
 /// CloneableBoxIterator is a type definition for an Iterator that can safely be
-/// sent across threads safely and easily. Requring the underlying generic
+/// sent across threads safely and easily. Requiring the underlying generic
 /// type to be `Send` but not `Sync`.
 ///
 /// This is intended for owned types where the receiving thread owns the object fully.
@@ -29,7 +29,7 @@ pub trait CloneableIterator: Iterator {
 }
 
 /// CloneableSendBoxIterator is a type definition for an Iterator that can safely be
-/// sent across threads safely and easily. Requring the underlying generic
+/// sent across threads safely and easily. Requiring the underlying generic
 /// type to be `Send` but not `Sync`.
 ///
 /// This is intended for owned types where the receiving thread owns the object fully.
@@ -124,6 +124,16 @@ impl<T> Iterator for CanCloneSendIterator<T> {
     }
 }
 
+/// [BoxedIterator] defines a type alias for a boxed iterator that always returns a object of type
+/// [`T`].
+pub type BoxedIterator<T> = Box<dyn Iterator<Item = T>>;
+
+/// [BoxedResultIterator] defines a type alias for a boxed iterator that always returns a Result object.
+pub type BoxedResultIterator<T, E> = BoxedIterator<AnyResult<T, E>>;
+
+/// Boxed iterator of Strings.
+pub type StringBoxedIterator<E> = BoxedResultIterator<String, E>;
+
 /// SendableIterator that can be Send and implements iterator.
 pub trait SendableIterator<T>: Iterator<Item = T> + Send {}
 
@@ -164,6 +174,31 @@ impl<T: Send, V: Send> TransformSendIterator<T, V> {
 impl<T: Send, V: Send> SendableIterator<V> for TransformSendIterator<T, V> {}
 
 impl<T: Send, V: Send> Iterator for TransformSendIterator<T, V> {
+    type Item = V;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.source.next() {
+            Some(item) => (self.transformer)(item),
+            _ => None,
+        }
+    }
+}
+
+pub struct TransformIterator<T, V> {
+    transformer: Box<dyn Fn(T) -> Option<V>>,
+    source: BoxedIterator<T>,
+}
+
+impl<T, V> TransformIterator<T, V> {
+    pub fn new(tn: Box<dyn Fn(T) -> Option<V>>, source: BoxedIterator<T>) -> Self {
+        Self {
+            transformer: tn,
+            source,
+        }
+    }
+}
+
+impl<T, V> Iterator for TransformIterator<T, V> {
     type Item = V;
 
     fn next(&mut self) -> Option<Self::Item> {

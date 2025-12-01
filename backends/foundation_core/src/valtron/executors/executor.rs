@@ -10,14 +10,14 @@ use std::{
     time,
 };
 
-use crate::{compati::Mutex, synca::mpp::RecvIterator};
+use crate::{compati::Mutex, extensions::result_ext::SendableBoxedError, synca::mpp::RecvIterator};
 use concurrent_queue::ConcurrentQueue;
 use derive_more::derive::From;
 use rand_chacha::ChaCha8Rng;
 
 use crate::{
     synca::Entry,
-    valtron::{AnyResult, BoxedError, GenericResult},
+    valtron::{AnyResult, GenericResult},
 };
 
 use super::{
@@ -254,7 +254,7 @@ pub enum ExecutorError {
     TaskRequired,
 
     #[from(ignore)]
-    FailedToSendThreadActivity(BoxedError),
+    FailedToSendThreadActivity,
 }
 
 impl std::error::Error for ExecutorError {}

@@ -3,8 +3,9 @@
 
 use crate::{
     compati::Mutex,
+    extensions::result_ext::{SendableBoxedError, SendableBoxedResult},
     netcap::RawStream,
-    wire::simple_http::{HTTPStreams, HttpReaderError, SimpleBody},
+    wire::simple_http::{http_streams, HTTPStreams, HttpReaderError, SimpleBody},
 };
 use derive_more::From;
 use std::{
@@ -69,7 +70,7 @@ impl TestServer {
     pub fn serve(
         &self,
     ) -> (
-        JoinHandle<Result<(), BoxedError>>,
+        JoinHandle<Result<(), SendableBoxedError>>,
         mpsc::Receiver<RequestDescriptor>,
         mpsc::Receiver<JoinHandle<()>>,
     ) {
@@ -98,7 +99,7 @@ impl TestServer {
                                 .send(Self::serve_connection(stream, actions.clone(), tx.clone()))
                                 .expect("should save worker handler");
                         }
-                        Err(err) => return Err(err.into_boxed_error()),
+                        Err(err) => return Err(err.into_sendable_boxed_error()),
                     }
                 }
                 Ok(())
@@ -121,7 +122,7 @@ impl TestServer {
                 .expect("should be able to clone connection");
 
             let conn = RawStream::from_tcp(read_stream).expect("should wrap tcp stream");
-            let request_streams = HTTPStreams::from_reader(conn);
+            let request_streams = http_streams::send::http_streams(conn);
 
             loop {
                 // fetch the intro portion and validate we have resources for processing request

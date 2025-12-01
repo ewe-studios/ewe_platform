@@ -16,7 +16,7 @@ pub fn create_simple_http_reader<T: simple_http::BodyExtractor>(
     stream: RawStream,
     extractor: T,
 ) -> simple_http::HttpRequestReader<T, RawStream> {
-    let byte_reader = ioutils::SharedByteBufferStream::new(stream);
+    let byte_reader = ioutils::SharedByteBufferStream::rwrite(stream);
     simple_http::HttpRequestReader::new(byte_reader, extractor)
 }
 

@@ -4,10 +4,8 @@ use crate::extensions::result_ext::BoxedError;
 use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
 use crate::io::ioutils::{self, ByteBufferPointer, SharedByteBufferStream};
 use crate::io::ubytes::{self};
-use crate::netcap::RawStream;
 use crate::valtron::{
-    CloneableFn, SendStringIterator, SendVecIterator, SendableBoxIterator, SendableIterator,
-    TransformSendIterator,
+    BoxedResultIterator, CloneableFn, SendVecIterator, StringBoxedIterator, TransformIterator,
 };
 use crate::wire::simple_http::errors::*;
 use derive_more::From;
@@ -15,7 +13,7 @@ use regex::{self, Regex};
 use std::collections::HashSet;
 use std::io::Cursor;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-use std::sync::{Arc, RwLockWriteGuard};
+use std::sync::Arc;
 use std::{
     collections::BTreeMap, convert::Infallible, io::Read, str::FromStr, string::FromUtf8Error,
 };
@@ -81,8 +79,8 @@ impl ChunkedData {
     }
 }
 
-pub type ChunkedVecIterator<E> = SendableBoxIterator<ChunkedData, E>;
-pub type LineFeedVecIterator<E> = SendableBoxIterator<LineFeed, E>;
+pub type ChunkedVecIterator<E> = BoxedResultIterator<ChunkedData, E>;
+pub type LineFeedVecIterator<E> = BoxedResultIterator<LineFeed, E>;
 
 pub struct ChunkedDataLimitIterator {
     limit: BodySizeLimit,
@@ -101,8 +99,6 @@ impl ChunkedDataLimitIterator {
         }
     }
 }
-
-impl SendableIterator<Result<ChunkedData, BoxedError>> for ChunkedDataLimitIterator {}
 
 impl Iterator for ChunkedDataLimitIterator {
     type Item = Result<ChunkedData, BoxedError>;
@@ -256,12 +252,12 @@ impl core::fmt::Display for SimpleBody {
 /// RenderHttp lets types implement the ability to be rendered into
 /// http protocol which makes it easily for more structured types.
 #[allow(unused)]
-pub trait RenderHttp: Send {
-    type Error: From<FromUtf8Error> + From<BoxedError> + Send + 'static;
+pub trait RenderHttp {
+    type Error: From<FromUtf8Error> + From<BoxedError> + 'static;
 
     fn http_render(
         self,
-    ) -> std::result::Result<SendableBoxIterator<Vec<u8>, Self::Error>, Self::Error>
+    ) -> std::result::Result<BoxedResultIterator<Vec<u8>, Self::Error>, Self::Error>
     where
         Self: Sized;
 
@@ -270,13 +266,13 @@ pub trait RenderHttp: Send {
     fn http_render_encoded_string<E>(
         self,
         encoder: E,
-    ) -> std::result::Result<SendStringIterator<Self::Error>, Self::Error>
+    ) -> std::result::Result<StringBoxedIterator<Self::Error>, Self::Error>
     where
         E: Fn(Result<Vec<u8>, Self::Error>) -> Option<Result<String, Self::Error>> + Send + 'static,
         Self: Sized,
     {
         let render_bytes = self.http_render()?;
-        let transformed = TransformSendIterator::new(Box::new(encoder), render_bytes);
+        let transformed = TransformIterator::new(Box::new(encoder), render_bytes);
         Ok(Box::new(transformed))
     }
 
@@ -284,7 +280,7 @@ pub trait RenderHttp: Send {
     /// `RenderHttp::http_render()` as utf8 strings.
     fn http_render_utf8_string(
         self,
-    ) -> std::result::Result<SendStringIterator<Self::Error>, Self::Error>
+    ) -> std::result::Result<StringBoxedIterator<Self::Error>, Self::Error>
     where
         Self: Sized,
     {
@@ -1780,8 +1776,6 @@ pub enum Http11ReqState {
 /// contexts.
 pub struct Http11RequestIterator(Option<Http11ReqState>);
 
-impl SendableIterator<Result<Vec<u8>, Http11RenderError>> for Http11RequestIterator {}
-
 impl Iterator for Http11RequestIterator {
     type Item = Result<Vec<u8>, Http11RenderError>;
 
@@ -2013,8 +2007,6 @@ pub enum Http11ResState {
 }
 
 pub struct Http11ResponseIterator(Option<Http11ResState>);
-
-impl SendableIterator<Result<Vec<u8>, Http11RenderError>> for Http11ResponseIterator {}
 
 /// We want to implement an iterator that generates valid HTTP response
 /// message like:
@@ -2276,7 +2268,7 @@ impl RenderHttp for Http11 {
 
     fn http_render(
         self,
-    ) -> std::result::Result<SendableBoxIterator<Vec<u8>, Self::Error>, Self::Error> {
+    ) -> std::result::Result<BoxedResultIterator<Vec<u8>, Self::Error>, Self::Error> {
         match self {
             Http11::Request(request) => Ok(Box::new(Http11RequestIterator(Some(
                 Http11ReqState::Intro(request),
@@ -2462,7 +2454,7 @@ pub trait BodyExtractor {
     /// This allows custom implementation of Tcp/Http body extractors.
     ///
     /// See sample implementation in `SimpleHttpBody`.
-    fn extract<T: Read + Sync + Send + 'static>(
+    fn extract<T: Read + 'static>(
         &self,
         body: Body,
         stream: SharedByteBufferStream<T>,
@@ -2488,7 +2480,7 @@ static NO_SPLIT_HEADERS: &[SimpleHeader] = &[
 ];
 
 #[derive(Clone)]
-pub struct HeaderReader<T: std::io::Read + Send + 'static> {
+pub struct HeaderReader<T: std::io::Read> {
     reader: SharedByteBufferStream<T>,
     max_header_key_length: Option<usize>,
     max_header_value_length: Option<usize>,
@@ -2497,7 +2489,7 @@ pub struct HeaderReader<T: std::io::Read + Send + 'static> {
 
 impl<T> HeaderReader<T>
 where
-    T: std::io::Read + Send + 'static,
+    T: std::io::Read,
 {
     pub fn new(
         reader: SharedByteBufferStream<T>,
@@ -2516,23 +2508,24 @@ where
 
 impl<T> HeaderReader<T>
 where
-    T: std::io::Read + Send + Sync + 'static,
+    T: std::io::Read,
 {
     fn parse_headers(&mut self) -> Result<SimpleHeaders, HttpReaderError> {
         let mut headers: SimpleHeaders = BTreeMap::new();
 
         let mut line = String::new();
 
-        let mut borrowed_reader = match self.reader.write() {
-            Ok(borrowed_reader) => borrowed_reader,
-            Err(_) => return Err(HttpReaderError::GuardedResourceAccess),
-        };
+        // let mut borrowed_reader = match self.reader.write() {
+        //     Ok(borrowed_reader) => borrowed_reader,
+        //     Err(_) => return Err(HttpReaderError::GuardedResourceAccess),
+        // };
 
         let mut last_header: Option<String> = None;
 
         loop {
-            let line_read_result = borrowed_reader
-                .read_line(&mut line)
+            let line_read_result = self
+                .reader
+                .do_once_mut(|binding| binding.read_line(&mut line))
                 .map_err(|err| HttpReaderError::LineReadFailed(Box::new(err)));
 
             if line_read_result.is_err() {
@@ -2763,7 +2756,7 @@ pub enum HttpReadState {
 }
 
 #[derive(Clone)]
-pub struct HttpRequestReader<F: BodyExtractor, T: std::io::Read + Send + 'static> {
+pub struct HttpRequestReader<F: BodyExtractor, T: std::io::Read> {
     reader: SharedByteBufferStream<T>,
     state: HttpReadState,
     bodies: F,
@@ -2776,7 +2769,7 @@ pub struct HttpRequestReader<F: BodyExtractor, T: std::io::Read + Send + 'static
 impl<F, T> HttpRequestReader<F, T>
 where
     F: BodyExtractor,
-    T: std::io::Read + Send + 'static,
+    T: std::io::Read,
 {
     pub fn new(reader: SharedByteBufferStream<T>, bodies: F) -> Self {
         Self {
@@ -2849,7 +2842,7 @@ static NO_BODY_METHODS: &[SimpleMethod] = &[SimpleMethod::HEAD, SimpleMethod::CO
 impl<F, T> Iterator for HttpRequestReader<F, T>
 where
     F: BodyExtractor,
-    T: std::io::Read + Send + Sync + 'static,
+    T: std::io::Read + 'static,
 {
     type Item = Result<IncomingRequestParts, HttpReaderError>;
 
@@ -2862,13 +2855,14 @@ where
         match &self.state {
             HttpReadState::Intro => {
                 let mut line = String::new();
-                let mut borrowed_reader = match self.reader.write() {
-                    Ok(borrowed_reader) => borrowed_reader,
-                    Err(_) => return Some(Err(HttpReaderError::GuardedResourceAccess)),
-                };
+                // let mut borrowed_reader = match self.reader.write() {
+                //     Ok(borrowed_reader) => borrowed_reader,
+                //     Err(_) => return Some(Err(HttpReaderError::GuardedResourceAccess)),
+                // };
 
-                let line_read_result = borrowed_reader
-                    .read_line(&mut line)
+                let line_read_result = self
+                    .reader
+                    .do_once_mut(|binding| binding.read_line(&mut line))
                     .map_err(|err| HttpReaderError::LineReadFailed(Box::new(err)));
 
                 if line_read_result.is_err() {
@@ -3130,7 +3124,7 @@ where
 }
 
 #[derive(Clone)]
-pub struct HttpResponseReader<F: BodyExtractor, T: std::io::Read + Send + 'static> {
+pub struct HttpResponseReader<F: BodyExtractor, T: std::io::Read + 'static> {
     reader: SharedByteBufferStream<T>,
     state: HttpReadState,
     bodies: F,
@@ -3143,7 +3137,7 @@ pub struct HttpResponseReader<F: BodyExtractor, T: std::io::Read + Send + 'stati
 impl<F, T> HttpResponseReader<F, T>
 where
     F: BodyExtractor,
-    T: std::io::Read + Send + 'static,
+    T: std::io::Read + 'static,
 {
     pub fn new(reader: SharedByteBufferStream<T>, bodies: F) -> Self {
         Self {
@@ -3214,7 +3208,7 @@ where
 impl<F, T> Iterator for HttpResponseReader<F, T>
 where
     F: BodyExtractor,
-    T: std::io::Read + Send + Sync + 'static,
+    T: std::io::Read + 'static,
 {
     type Item = Result<IncomingResponseParts, HttpReaderError>;
 
@@ -3227,13 +3221,10 @@ where
         match &self.state {
             HttpReadState::Intro => {
                 let mut line = String::new();
-                let mut borrowed_reader = match self.reader.write() {
-                    Ok(borrowed_reader) => borrowed_reader,
-                    Err(_) => return Some(Err(HttpReaderError::GuardedResourceAccess)),
-                };
 
-                let line_read_result = borrowed_reader
-                    .read_line(&mut line)
+                let line_read_result = self
+                    .reader
+                    .do_once_mut(|binding| binding.read_line(&mut line))
                     .map_err(|err| HttpReaderError::LineReadFailed(Box::new(err)));
 
                 if line_read_result.is_err() {
@@ -3526,75 +3517,79 @@ pub enum LineFeed {
 impl LineFeed {
     pub fn stream_line_feeds_from_string(chunk_text: &[u8]) -> Result<Self, LineFeedError> {
         let cursor = Cursor::new(chunk_text.to_vec());
-        let reader = SharedByteBufferStream::new(cursor);
+        let reader = SharedByteBufferStream::rwrite(cursor);
         Self::stream_line_feeds(reader)
     }
 
     pub fn stream_line_feeds<T: Read>(
         pointer: SharedByteBufferStream<T>,
     ) -> Result<Self, LineFeedError> {
-        let mut acc = pointer.write().map_err(|_| LineFeedError::ReadErrors)?;
+        while pointer.do_once_mut(|binding| {
+            if let Ok(b) = binding.nextby2(1) {
+                match b {
+                    b"\r" => {
+                        // if 3 forward peeks reveal additional CLRF, two or three newlines
+                        // then we've gotten to end of trailer, simply just end it there without
+                        // moving back.
 
-        while let Ok(b) = acc.nextby2(1) {
-            match b {
-                b"\r" => {
-                    // if 3 forward peeks reveal additional CLRF, two or three newlines
-                    // then we've gotten to end of trailer, simply just end it there without
-                    // moving back.
-                    if crate::is_ok!(acc.peekby2(3), b"\n\r\n", b"\n\n\n") {
-                        let _ = acc.unforward_by(1);
-                        break;
-                    }
-                    if crate::is_ok!(acc.peekby2(3), b"\n\n") {
-                        let _ = acc.unforward_by(1);
-                        break;
-                    }
-                    // if even with 3 bytes forward peeks, if its still only more newline, then
-                    // consider this has end of chunk and move back by 1.
-                    if crate::is_ok!(acc.peekby2(3), b"\n") {
-                        let _ = acc.unforward_by(1);
-                        break;
-                    }
+                        if crate::is_ok!(binding.peekby2(3), b"\n\r\n", b"\n\n\n") {
+                            let _ = binding.unforward_by(1);
+                            return false;
+                        }
+                        if crate::is_ok!(binding.peekby2(3), b"\n\n") {
+                            let _ = binding.unforward_by(1);
+                            return false;
+                        }
+                        // if even with 3 bytes forward peeks, if its still only more newline, then
+                        // consider this has end of chunk and move back by 1.
+                        if crate::is_ok!(binding.peekby2(3), b"\n") {
+                            let _ = binding.unforward_by(1);
+                            return false;
+                        }
 
-                    // NOTE: We only want to capture one line at a time
-                    if crate::is_ok!(acc.peekby2(1), b"\n") {
-                        let _ = acc.unforward_by(1);
-                        break;
-                    }
+                        // NOTE: We only want to capture one line at a time
+                        if crate::is_ok!(binding.peekby2(1), b"\n") {
+                            let _ = binding.unforward_by(1);
+                            return false;
+                        }
 
-                    continue;
+                        return true;
+                    }
+                    b"\n" => {
+                        // if 3 forward peeks reveal additional CLRF, two or three newlines
+                        // then we've gotten to end of trailer, simply just end it there without
+                        // moving back.
+                        if crate::is_ok!(binding.peekby2(3), b"\r\n", b"\n\n") {
+                            let _ = binding.unforward_by(1);
+                            return false;
+                        }
+                        if crate::is_ok!(binding.peekby2(3), b"\n\n\n") {
+                            let _ = binding.unforward_by(1);
+                            return false;
+                        }
+                        // if even with 3 bytes forward peeks, if its still only more newline, then
+                        // consider this has end of chunk and move back by 1.
+                        if crate::is_ok!(binding.peekby2(3), b"\n") {
+                            let _ = binding.unforward_by(1);
+                            return false;
+                        }
+
+                        // NOTE: We only want to capture one line at a time
+                        if crate::is_ok!(binding.peekby2(1), b"\n") {
+                            let _ = binding.unforward_by(1);
+                            return false;
+                        }
+                        return true;
+                    }
+                    _ => return true,
                 }
-                b"\n" => {
-                    // if 3 forward peeks reveal additional CLRF, two or three newlines
-                    // then we've gotten to end of trailer, simply just end it there without
-                    // moving back.
-                    if crate::is_ok!(acc.peekby2(3), b"\r\n", b"\n\n") {
-                        let _ = acc.unforward_by(1);
-                        break;
-                    }
-                    if crate::is_ok!(acc.peekby2(3), b"\n\n\n") {
-                        let _ = acc.unforward_by(1);
-                        break;
-                    }
-                    // if even with 3 bytes forward peeks, if its still only more newline, then
-                    // consider this has end of chunk and move back by 1.
-                    if crate::is_ok!(acc.peekby2(3), b"\n") {
-                        let _ = acc.unforward_by(1);
-                        break;
-                    }
-
-                    // NOTE: We only want to capture one line at a time
-                    if crate::is_ok!(acc.peekby2(1), b"\n") {
-                        let _ = acc.unforward_by(1);
-                        break;
-                    }
-                    continue;
-                }
-                _ => continue,
             }
+            false
+        }) {
+            continue;
         }
 
-        let line_feed_result = match acc.consume_some() {
+        let line_feed_result = match pointer.do_once_mut(|binding| binding.consume_some()) {
             Some(value) => match String::from_utf8(value.to_vec()) {
                 Ok(converted_string) => Ok(if converted_string.trim().is_empty() {
                     LineFeed::SKIP
@@ -3615,23 +3610,21 @@ impl LineFeed {
         };
 
         // eat all the space
-        let _ = Self::eat_space(&mut acc)?;
+        let _ = Self::eat_space(pointer.clone())?;
 
         // eat all newlines
-        let _ = Self::eat_newlines(&mut acc)?;
+        let _ = Self::eat_newlines(pointer.clone())?;
 
         // eat all crlf
-        let _ = Self::eat_crlf(&mut acc)?;
+        let _ = Self::eat_crlf(pointer.clone())?;
 
         // eat all crlf
-        let _ = Self::eat_escaped_crlf(&mut acc)?;
+        let _ = Self::eat_escaped_crlf(pointer.clone())?;
 
         line_feed_result
     }
 
-    fn eat_newlines<T: Read>(
-        acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
-    ) -> Result<(), LineFeedError> {
+    fn eat_newlines_pointer<T: Read>(acc: &mut ByteBufferPointer<T>) -> Result<(), LineFeedError> {
         let newline = b"\n";
         while let Ok(b) = acc.nextby2(1) {
             if b[0] == newline[0] {
@@ -3647,8 +3640,8 @@ impl LineFeed {
         Ok(())
     }
 
-    fn eat_escaped_crlf<T: Read>(
-        acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
+    fn eat_escaped_crlf_pointer<T: Read>(
+        acc: &mut ByteBufferPointer<T>,
     ) -> Result<(), LineFeedError> {
         while let Ok(b) = acc.nextby2(2) {
             if b != b"\\r" && b != b"\\n" {
@@ -3660,9 +3653,7 @@ impl LineFeed {
         Ok(())
     }
 
-    fn eat_crlf<T: Read>(
-        acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
-    ) -> Result<(), LineFeedError> {
+    fn eat_crlf_pointer<T: Read>(acc: &mut ByteBufferPointer<T>) -> Result<(), LineFeedError> {
         while let Ok(b) = acc.nextby2(1) {
             if b[0] != b'\r' && b[0] != b'\n' {
                 let _ = acc.unforward();
@@ -3673,9 +3664,7 @@ impl LineFeed {
         Ok(())
     }
 
-    fn eat_space<T: Read>(
-        acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
-    ) -> Result<(), LineFeedError> {
+    fn eat_space_pointer<T: Read>(acc: &mut ByteBufferPointer<T>) -> Result<(), LineFeedError> {
         while let Ok(b) = acc.nextby2(1) {
             if b[0] == b' ' {
                 continue;
@@ -3687,6 +3676,22 @@ impl LineFeed {
             return Ok(());
         }
         Ok(())
+    }
+
+    fn eat_newlines<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), LineFeedError> {
+        pointer.do_once_mut(|mut binding| Self::eat_newlines_pointer(&mut binding))
+    }
+
+    fn eat_escaped_crlf<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), LineFeedError> {
+        pointer.do_once_mut(|mut binding| Self::eat_escaped_crlf_pointer(&mut binding))
+    }
+
+    fn eat_crlf<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), LineFeedError> {
+        pointer.do_once_mut(|mut binding| Self::eat_crlf_pointer(&mut binding))
+    }
+
+    fn eat_space<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), LineFeedError> {
+        pointer.do_once_mut(|mut binding| Self::eat_space_pointer(&mut binding))
     }
 }
 
@@ -3824,93 +3829,100 @@ impl ChunkState {
 
     pub fn parse_http_trailer_chunk(chunk_text: &[u8]) -> Result<Option<Self>, ChunkStateError> {
         let cursor = Cursor::new(chunk_text.to_vec());
-        let reader = SharedByteBufferStream::new(cursor);
+        let reader = SharedByteBufferStream::ref_cell(cursor);
         Self::parse_http_trailer_from_pointer(reader)
     }
 
     pub fn parse_http_chunk(chunk_text: &[u8]) -> Result<Self, ChunkStateError> {
         let cursor = Cursor::new(chunk_text.to_vec());
-        let reader = SharedByteBufferStream::new(cursor);
+        let reader = SharedByteBufferStream::ref_cell(cursor);
         Self::parse_http_chunk_from_pointer(reader)
     }
 
     pub fn get_http_chunk_header_length(chunk_text: &[u8]) -> Result<usize, ChunkStateError> {
         let cursor = Cursor::new(chunk_text.to_vec());
-        let reader = SharedByteBufferStream::new(cursor);
+        let reader = SharedByteBufferStream::ref_cell(cursor);
         Self::get_http_chunk_header_length_from_pointer(reader)
     }
 
     pub fn parse_http_trailer_from_pointer<T: Read>(
         pointer: SharedByteBufferStream<T>,
     ) -> Result<Option<Self>, ChunkStateError> {
-        let mut acc = pointer.write().map_err(|_| ChunkStateError::ReadErrors)?;
+        // let mut acc = pointer.write().map_err(|_| ChunkStateError::ReadErrors)?;
 
         // eat all the space
-        let _ = Self::eat_space(&mut acc)?;
+        let _ = Self::eat_space(pointer.clone())?;
 
-        while let Ok(b) = acc.nextby2(1) {
-            match b {
-                b"\r" => {
-                    // if 3 forward peeks reveal additional CLRF, two or three newlines
-                    // then we've gotten to end of trailer, simply just end it there without
-                    // moving back.
-                    if crate::is_ok!(acc.peekby2(3), b"\n\r\n", b"\n\n\n") {
-                        let _ = acc.unforward_by(1);
-                        break;
-                    }
-                    if crate::is_ok!(acc.peekby2(3), b"\n\n") {
-                        let _ = acc.unforward_by(1);
-                        break;
-                    }
-                    // if even with 3 bytes forward peeks, if its still only more newline, then
-                    // consider this has end of chunk and move back by 1.
-                    if crate::is_ok!(acc.peekby2(3), b"\n") {
-                        let _ = acc.unforward_by(1);
-                        break;
-                    }
+        while pointer.do_once_mut(|acc| {
+            if let Ok(b) = acc.nextby2(1) {
+                match b {
+                    b"\r" => {
+                        // if 3 forward peeks reveal additional CLRF, two or three newlines
+                        // then we've gotten to end of trailer, simply just end it there without
+                        // moving back.
+                        if crate::is_ok!(acc.peekby2(3), b"\n\r\n", b"\n\n\n") {
+                            let _ = acc.unforward_by(1);
+                            return false;
+                        }
+                        if crate::is_ok!(acc.peekby2(3), b"\n\n") {
+                            let _ = acc.unforward_by(1);
+                            return false;
+                        }
+                        // if even with 3 bytes forward peeks, if its still only more newline, then
+                        // consider this has end of chunk and move back by 1.
+                        if crate::is_ok!(acc.peekby2(3), b"\n") {
+                            let _ = acc.unforward_by(1);
+                            return false;
+                        }
 
-                    // NOTE: We do not do this hear because we want to capture the whole trailer
-                    // regardless of parts and then chunk up later.
-                    //
-                    // if crate::is_ok!(acc.peekby2(1), b"\n") {
-                    //     let _ = acc.unforward_by(1);
-                    //     break;
-                    // }
-                    continue;
+                        // NOTE: We do not do this hear because we want to capture the whole trailer
+                        // regardless of parts and then chunk up later.
+                        //
+                        // if crate::is_ok!(acc.peekby2(1), b"\n") {
+                        //     let _ = acc.unforward_by(1);
+                        //     break;
+                        // }
+
+                        return true;
+                    }
+                    b"\n" => {
+                        // if 3 forward peeks reveal additional CLRF, two or three newlines
+                        // then we've gotten to end of trailer, simply just end it there without
+                        // moving back.
+                        if crate::is_ok!(acc.peekby2(3), b"\r\n", b"\n\n") {
+                            let _ = acc.unforward_by(1);
+                            return false;
+                        }
+                        if crate::is_ok!(acc.peekby2(3), b"\n\n\n") {
+                            let _ = acc.unforward_by(1);
+                            return false;
+                        }
+                        // if even with 3 bytes forward peeks, if its still only more newline, then
+                        // consider this has end of chunk and move back by 1.
+                        if crate::is_ok!(acc.peekby2(3), b"\n") {
+                            let _ = acc.unforward_by(1);
+                            return false;
+                        }
+
+                        // NOTE: We do not do this hear because we want to capture the whole trailer
+                        // regardless of parts and then chunk up later.
+                        //
+                        // if crate::is_ok!(acc.peekby2(1), b"\n") {
+                        //     let _ = acc.unforward_by(1);
+                        //     break;
+                        // }
+                        return true;
+                    }
+                    _ => return true,
                 }
-                b"\n" => {
-                    // if 3 forward peeks reveal additional CLRF, two or three newlines
-                    // then we've gotten to end of trailer, simply just end it there without
-                    // moving back.
-                    if crate::is_ok!(acc.peekby2(3), b"\r\n", b"\n\n") {
-                        let _ = acc.unforward_by(1);
-                        break;
-                    }
-                    if crate::is_ok!(acc.peekby2(3), b"\n\n\n") {
-                        let _ = acc.unforward_by(1);
-                        break;
-                    }
-                    // if even with 3 bytes forward peeks, if its still only more newline, then
-                    // consider this has end of chunk and move back by 1.
-                    if crate::is_ok!(acc.peekby2(3), b"\n") {
-                        let _ = acc.unforward_by(1);
-                        break;
-                    }
-
-                    // NOTE: We do not do this hear because we want to capture the whole trailer
-                    // regardless of parts and then chunk up later.
-                    //
-                    // if crate::is_ok!(acc.peekby2(1), b"\n") {
-                    //     let _ = acc.unforward_by(1);
-                    //     break;
-                    // }
-                    continue;
-                }
-                _ => continue,
             }
+
+            false
+        }) {
+            continue;
         }
 
-        match acc.consume() {
+        match pointer.do_once_mut(|acc| acc.consume()) {
             Ok(value) => match String::from_utf8(value.to_vec()) {
                 Ok(converted_string) => Ok(
                     if converted_string.is_empty() || converted_string.trim().is_empty() {
@@ -3932,33 +3944,41 @@ impl ChunkState {
     pub fn get_http_chunk_header_length_from_pointer<T: Read>(
         pointer: SharedByteBufferStream<T>,
     ) -> Result<usize, ChunkStateError> {
-        let mut acc = pointer.write().map_err(|_| ChunkStateError::ReadErrors)?;
+        // let mut acc = pointer.write().map_err(|_| ChunkStateError::ReadErrors)?;
         let mut total_bytes = 0;
 
         // are we starting out with a CRLF, if so, count and skip it
-        if acc.nextby2(2)? != b"\r\n" {
-            acc.skip();
+        let _: Result<(), ChunkStateError> = pointer.do_once_mut(|acc| {
+            if acc.nextby2(2)? != b"\r\n" {
+                acc.skip();
 
-            total_bytes += 2;
-        }
+                total_bytes += 2;
+            }
+            Ok(())
+        });
 
         // fetch chunk_size_octet
-        while let Ok(content) = acc.nextby2(1) {
-            match content {
-                b"\r" => {
-                    let _ = acc.unforward();
-                    break;
-                }
-                // incase they use newline instead, http spec not respected
-                b"\n" => {
-                    let _ = acc.unforward();
-                    break;
-                }
-                _ => {
-                    total_bytes += 1;
-                    continue;
+        while pointer.do_once_mut(|acc| {
+            if let Ok(content) = acc.nextby2(1) {
+                match content {
+                    b"\r" => {
+                        let _ = acc.unforward();
+                        return false;
+                    }
+                    // incase they use newline instead, http spec not respected
+                    b"\n" => {
+                        let _ = acc.unforward();
+                        return false;
+                    }
+                    _ => {
+                        total_bytes += 1;
+                        return true;
+                    }
                 }
             }
+            false
+        }) {
+            continue;
         }
 
         // NOTE: Some chunk encoding use \r\n and others \n\n for
@@ -3969,76 +3989,86 @@ impl ChunkState {
         //     return Err(ChunkStateError::InvalidChunkEndingExpectedCRLF);
         // }
 
-        if acc.peekby2(1)? == b"\r" {
+        pointer.do_once_mut(|acc| {
+            if acc.peekby2(1)? == b"\r" {
+                // once we hit a CRLF then it means we have no extensions,
+                // so we return just the size and its string representation.
+                if acc.peekby2(2)? != b"\r\n" {
+                    return Err(ChunkStateError::InvalidChunkEndingExpectedCRLF);
+                }
+
+                _ = acc.nextby(2);
+                total_bytes += 1;
+            }
+
+            // is it just a newline here, then lets manage the madness
+            if acc.peekby2(1)? == b"\n" {
+                _ = acc.nextby2(1)?;
+                total_bytes += 1;
+            }
+
             // once we hit a CRLF then it means we have no extensions,
             // so we return just the size and its string representation.
-            if acc.peekby2(2)? != b"\r\n" {
+            if acc.peekby2(1)? == b"\r" || acc.peekby2(1)? == b" " || acc.peekby2(1)? == b"\n" {
                 return Err(ChunkStateError::InvalidChunkEndingExpectedCRLF);
             }
 
-            _ = acc.nextby(2);
-            total_bytes += 1;
-        }
+            acc.skip();
 
-        // is it just a newline here, then lets manage the madness
-        if acc.peekby2(1)? == b"\n" {
-            _ = acc.nextby2(1)?;
-            total_bytes += 1;
-        }
-
-        // once we hit a CRLF then it means we have no extensions,
-        // so we return just the size and its string representation.
-        if acc.peekby2(1)? == b"\r" || acc.peekby2(1)? == b" " || acc.peekby2(1)? == b"\n" {
-            return Err(ChunkStateError::InvalidChunkEndingExpectedCRLF);
-        }
-
-        acc.skip();
-
-        Ok(total_bytes)
+            Ok(total_bytes)
+        })
     }
 
     pub fn parse_http_chunk_from_pointer<T: Read>(
         pointer: SharedByteBufferStream<T>,
     ) -> Result<Self, ChunkStateError> {
-        let mut acc = pointer.write()?;
+        // let mut acc = pointer.write()?;
 
         // eat up any space (except CRLF)
-        Self::eat_space(&mut acc)?;
+        Self::eat_space(pointer.clone())?;
 
         // are we starting out with a CRLF, if so, skip it
-        if acc.peekby2(2)? == b"\r\n" {
-            acc.nextby2(2)?;
-            acc.skip();
-        }
+        let _: Result<(), ChunkStateError> = pointer.do_once_mut(|acc| {
+            if acc.peekby2(2)? == b"\r\n" {
+                acc.nextby2(2)?;
+                acc.skip();
+            }
 
-        if acc.peekby2(2)? == b"\n\n" {
-            acc.nextby2(2)?;
-            acc.skip();
-        }
+            if acc.peekby2(2)? == b"\n\n" {
+                acc.nextby2(2)?;
+                acc.skip();
+            }
 
-        if acc.peekby2(1)? == b"\n" {
-            acc.nextby(1)?;
-            acc.skip();
-        }
+            if acc.peekby2(1)? == b"\n" {
+                acc.nextby(1)?;
+                acc.skip();
+            }
+
+            Ok(())
+        });
 
         // fetch chunk_size_octet
-        let mut chunk_size_octet: Option<Vec<u8>> = None;
-        while let Ok(content) = acc.nextby2(1) {
-            let b = content[0];
-            match b {
-                b'0'..=b'9' => continue,
-                b'a'..=b'f' => continue,
-                b'A'..=b'F' => continue,
-                b' ' | b'\r' | b'\n' | b';' => {
-                    let _ = acc.unforward();
-                    chunk_size_octet = Some(acc.consume()?);
-                    break;
-                }
-                _ => {
-                    return Err(ChunkStateError::InvalidOctetSizeByte(b));
+        let mut chunk_size_octet: Option<Vec<u8>> = pointer.do_once_mut(|acc| {
+            let mut chunk_size_octet: Option<Vec<u8>> = None;
+            while let Ok(content) = acc.nextby2(1) {
+                let b = content[0];
+                match b {
+                    b'0'..=b'9' => continue,
+                    b'a'..=b'f' => continue,
+                    b'A'..=b'F' => continue,
+                    b' ' | b'\r' | b'\n' | b';' => {
+                        let _ = acc.unforward();
+                        chunk_size_octet = Some(acc.consume()?);
+                        break;
+                    }
+                    _ => {
+                        return Err(ChunkStateError::InvalidOctetSizeByte(b));
+                    }
                 }
             }
-        }
+
+            Ok(chunk_size_octet)
+        })?;
 
         if chunk_size_octet.is_none() {
             return Err(ChunkStateError::ChunkSizeNotFound);
@@ -4061,57 +4091,62 @@ impl ChunkState {
             &chunk_string
         );
 
-        Self::eat_space(&mut acc)?;
-        Self::eat_crlf(&mut acc)?;
-        Self::eat_escaped_crlf(&mut acc)?;
-        Self::eat_newlines(&mut acc)?;
-
-        let mut extensions: Extensions = Vec::new();
+        Self::eat_space(pointer.clone())?;
+        Self::eat_crlf(pointer.clone())?;
+        Self::eat_escaped_crlf(pointer.clone())?;
+        Self::eat_newlines(pointer.clone())?;
 
         // do w have the extension starter marker (a semicolon)
-        if crate::is_ok!(acc.peekby2(1), b";") {
-            while let Ok(value) = acc.peekby2(1) {
-                if value == b"\r" || value == b"\n" {
-                    break;
-                }
+        let extensions: Extensions = pointer.do_once_mut(|mut acc| {
+            let mut extensions: Extensions = Vec::new();
+            if crate::is_ok!(acc.peekby2(1), b";") {
+                while let Ok(value) = acc.peekby2(1) {
+                    if value == b"\r" || value == b"\n" {
+                        break;
+                    }
 
-                match Self::parse_http_chunk_extension(&mut acc) {
-                    Ok(extension) => extensions.push(extension),
-                    Err(err) => return Err(err),
+                    match Self::parse_http_chunk_extension(&mut acc) {
+                        Ok(extension) => extensions.push(extension),
+                        Err(err) => return Err(err),
+                    }
                 }
             }
-        }
+
+            Ok(extensions)
+        })?;
 
         tracing::debug!("Extensions : {:?}", &extensions);
 
         // are we starting out with a CRLF, if so, skip it
-        if crate::is_ok!(acc.peekby2(2), b"\r\n") {
-            let _ = acc.nextby(2);
-            acc.skip();
-        }
+        pointer.do_once_mut(|mut acc| {
+            if crate::is_ok!(acc.peekby2(2), b"\r\n") {
+                let _ = acc.nextby(2);
+                acc.skip();
+            }
 
-        if crate::is_ok!(acc.peekby2(2), b"\n\n") {
-            let _ = acc.nextby2(2);
-            acc.skip();
-        }
+            if crate::is_ok!(acc.peekby2(2), b"\n\n") {
+                let _ = acc.nextby2(2);
+                acc.skip();
+            }
 
-        // eat all the space
-        Self::eat_crlf(&mut acc)?;
-        Self::eat_newlines(&mut acc)?;
+            // eat all the space
+            Self::eat_crlf_pointer(&mut acc)?;
+            Self::eat_newlines_pointer(&mut acc)?;
 
-        if chunk_size == 0 {
-            return Ok(Self::LastChunk);
-        }
+            if chunk_size == 0 {
+                return Ok(Self::LastChunk);
+            }
 
-        if extensions.is_empty() {
-            return Ok(Self::Chunk(chunk_size, chunk_string, None));
-        }
+            if extensions.is_empty() {
+                return Ok(Self::Chunk(chunk_size, chunk_string, None));
+            }
 
-        Ok(Self::Chunk(chunk_size, chunk_string, Some(extensions)))
+            Ok(Self::Chunk(chunk_size, chunk_string, Some(extensions)))
+        })
     }
 
     pub(crate) fn parse_http_chunk_extension<T: Read>(
-        mut acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
+        acc: &mut ByteBufferPointer<T>,
     ) -> Result<(String, Option<String>), ChunkStateError> {
         // skip first extension starter
         if crate::is_ok!(acc.peekby2(1), b";") {
@@ -4155,7 +4190,7 @@ impl ChunkState {
         }
 
         // eat all the space
-        Self::eat_space(&mut acc)?;
+        Self::eat_space_pointer(acc)?;
 
         // skip first extension starter
         if !crate::is_ok!(acc.nextby2(1), b"=") {
@@ -4172,7 +4207,7 @@ impl ChunkState {
         acc.skip();
 
         // eat all the space
-        Self::eat_space(&mut acc)?;
+        Self::eat_space_pointer(acc)?;
 
         let is_quoted = crate::is_ok!(acc.peekby2(1), b"\"");
 
@@ -4250,8 +4285,8 @@ impl ChunkState {
         }
     }
 
-    fn eat_newlines<T: Read>(
-        acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
+    fn eat_newlines_pointer<T: Read>(
+        acc: &mut ByteBufferPointer<T>,
     ) -> Result<(), ChunkStateError> {
         let newline = b"\n";
         while let Ok(b) = acc.nextby2(1) {
@@ -4268,8 +4303,8 @@ impl ChunkState {
         Ok(())
     }
 
-    fn eat_escaped_crlf<T: Read>(
-        acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
+    fn eat_escaped_crlf_pointer<T: Read>(
+        acc: &mut ByteBufferPointer<T>,
     ) -> Result<(), ChunkStateError> {
         while let Ok(b) = acc.nextby2(2) {
             if b != b"\\r" && b != b"\\n" {
@@ -4281,9 +4316,7 @@ impl ChunkState {
         Ok(())
     }
 
-    fn eat_crlf<T: Read>(
-        acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
-    ) -> Result<(), ChunkStateError> {
+    fn eat_crlf_pointer<T: Read>(acc: &mut ByteBufferPointer<T>) -> Result<(), ChunkStateError> {
         while let Ok(b) = acc.nextby2(1) {
             if b[0] != b'\r' && b[0] != b'\n' {
                 let _ = acc.unforward();
@@ -4294,9 +4327,7 @@ impl ChunkState {
         Ok(())
     }
 
-    fn eat_space<T: Read>(
-        acc: &mut RwLockWriteGuard<'_, ByteBufferPointer<T>>,
-    ) -> Result<(), ChunkStateError> {
+    fn eat_space_pointer<T: Read>(acc: &mut ByteBufferPointer<T>) -> Result<(), ChunkStateError> {
         while let Ok(b) = acc.nextby2(1) {
             if b[0] == b' ' {
                 continue;
@@ -4308,6 +4339,24 @@ impl ChunkState {
             return Ok(());
         }
         Ok(())
+    }
+
+    fn eat_newlines<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), ChunkStateError> {
+        pointer.do_once_mut(|mut binding| Self::eat_newlines_pointer(&mut binding))
+    }
+
+    fn eat_escaped_crlf<T: Read>(
+        pointer: SharedByteBufferStream<T>,
+    ) -> Result<(), ChunkStateError> {
+        pointer.do_once_mut(|mut binding| Self::eat_escaped_crlf_pointer(&mut binding))
+    }
+
+    fn eat_crlf<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), ChunkStateError> {
+        pointer.do_once_mut(|mut binding| Self::eat_crlf_pointer(&mut binding))
+    }
+
+    fn eat_space<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), ChunkStateError> {
+        pointer.do_once_mut(|mut binding| Self::eat_space_pointer(&mut binding))
     }
 
     /// Parse a buffer of bytes that should contain a hex string of the size of chunk.
@@ -4501,29 +4550,21 @@ mod test_chunk_parser {
     }
 }
 
-pub struct SimpleLineFeedIterator<T: std::io::Read + Send + Sync>(
-    SimpleHeaders,
-    SharedByteBufferStream<T>,
-);
+pub struct SimpleLineFeedIterator<T: std::io::Read>(SimpleHeaders, SharedByteBufferStream<T>);
 
-impl<T: std::io::Read + Send + Sync> Clone for SimpleLineFeedIterator<T> {
+impl<T: std::io::Read> Clone for SimpleLineFeedIterator<T> {
     fn clone(&self) -> Self {
         Self(self.0.clone(), self.1.clone())
     }
 }
 
-impl<T: std::io::Read + Send + Sync> SimpleLineFeedIterator<T> {
+impl<T: std::io::Read> SimpleLineFeedIterator<T> {
     pub fn new(headers: SimpleHeaders, stream: SharedByteBufferStream<T>) -> Self {
         Self(headers, stream)
     }
 }
 
-impl<T: std::io::Read + Send + Sync> SendableIterator<Result<LineFeed, BoxedError>>
-    for SimpleLineFeedIterator<T>
-{
-}
-
-impl<T: std::io::Read + Send + Sync> Iterator for SimpleLineFeedIterator<T> {
+impl<T: std::io::Read> Iterator for SimpleLineFeedIterator<T> {
     type Item = Result<LineFeed, BoxedError>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -4540,14 +4581,14 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleLineFeedIterator<T> {
     }
 }
 
-pub struct SimpleHttpChunkIterator<T: std::io::Read + Send + Sync>(
+pub struct SimpleHttpChunkIterator<T: std::io::Read>(
     Vec<String>,
     SimpleHeaders,
     SharedByteBufferStream<T>,
     Arc<AtomicBool>,
 );
 
-impl<T: std::io::Read + Send + Sync> Clone for SimpleHttpChunkIterator<T> {
+impl<T: std::io::Read> Clone for SimpleHttpChunkIterator<T> {
     fn clone(&self) -> Self {
         Self(
             self.0.clone(),
@@ -4558,7 +4599,7 @@ impl<T: std::io::Read + Send + Sync> Clone for SimpleHttpChunkIterator<T> {
     }
 }
 
-impl<T: std::io::Read + Send + Sync> SimpleHttpChunkIterator<T> {
+impl<T: std::io::Read> SimpleHttpChunkIterator<T> {
     pub fn new(
         transfer_encoding: Vec<String>,
         headers: SimpleHeaders,
@@ -4573,12 +4614,7 @@ impl<T: std::io::Read + Send + Sync> SimpleHttpChunkIterator<T> {
     }
 }
 
-impl<T: std::io::Read + Send + Sync> SendableIterator<Result<ChunkedData, BoxedError>>
-    for SimpleHttpChunkIterator<T>
-{
-}
-
-impl<T: std::io::Read + Send + Sync> Iterator for SimpleHttpChunkIterator<T> {
+impl<T: std::io::Read> Iterator for SimpleHttpChunkIterator<T> {
     type Item = Result<ChunkedData, BoxedError>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -4633,24 +4669,24 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleHttpChunkIterator<T> {
                         // // data together since before we peeked.
                         // let bytes_we_need = total_header_bytes_used + (size as usize);
 
-                        match self.2.write() {
-                            Ok(mut reader) => {
-                                tracing::debug!("ChunkState::Chunk::GetSize: {:?}", size);
+                        match self.2.do_once_mut(|reader| {
+                            tracing::debug!("ChunkState::Chunk::GetSize: {:?}", size);
 
-                                let mut chunk_data = vec![0; size as usize];
-                                if let Err(err) = reader.read_exact(&mut chunk_data) {
-                                    return Some(Err(Box::new(err)));
-                                }
-
-                                tracing::debug!(
-                                    "ChunkState::Chunk::DataRead: {:?} | {:?}",
-                                    &chunk_data,
-                                    str::from_utf8(&chunk_data),
-                                );
-
-                                Some(Ok(ChunkedData::Data(Vec::from(chunk_data), opt_exts)))
+                            let mut chunk_data = vec![0; size as usize];
+                            if let Err(err) = reader.read_exact(&mut chunk_data) {
+                                return Err(Box::new(err));
                             }
-                            Err(_err) => Some(Err(Box::new(HttpReaderError::ReadFailed))),
+
+                            tracing::debug!(
+                                "ChunkState::Chunk::DataRead: {:?} | {:?}",
+                                &chunk_data,
+                                str::from_utf8(&chunk_data),
+                            );
+
+                            Ok(ChunkedData::Data(Vec::from(chunk_data), opt_exts))
+                        }) {
+                            Ok(value) => Some(Ok(value)),
+                            Err(err) => Some(Err(Box::new(err))),
                         }
                     }
                     ChunkState::LastChunk => {
@@ -4673,7 +4709,7 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleHttpChunkIterator<T> {
 pub struct SimpleHttpBody;
 
 impl BodyExtractor for SimpleHttpBody {
-    fn extract<T: std::io::Read + Send + Sync + 'static>(
+    fn extract<T: std::io::Read + 'static>(
         &self,
         body: Body,
         stream: SharedByteBufferStream<T>,
@@ -4684,14 +4720,13 @@ impl BodyExtractor for SimpleHttpBody {
                 Ok(SimpleBody::LineFeedStream(Some(line_feed_iterator)))
             }
             Body::FullBody(_, optional_max_body_size) => {
-                let mut borrowed_stream = match stream.write() {
-                    Ok(borrowed_reader) => borrowed_reader,
-                    Err(_) => return Err(Box::new(HttpReaderError::GuardedResourceAccess)),
-                };
-
-                let mut body_content = Vec::with_capacity(1024);
-                match borrowed_stream.read_all(&mut body_content, optional_max_body_size) {
-                    Ok(_) => Ok(SimpleBody::Bytes(body_content)),
+                match stream.do_once_mut(|borrowed_stream| {
+                    let mut body_content = Vec::with_capacity(1024);
+                    borrowed_stream
+                        .read_all(&mut body_content, optional_max_body_size)
+                        .map(|_| SimpleBody::Bytes(body_content))
+                }) {
+                    Ok(inner) => Ok(inner),
                     Err(err) => Err(Box::new(err)),
                 }
             }
@@ -4700,14 +4735,13 @@ impl BodyExtractor for SimpleHttpBody {
                     return Err(Box::new(HttpReaderError::ZeroBodySizeNotAllowed));
                 }
 
-                let mut borrowed_stream = match stream.write() {
-                    Ok(borrowed_reader) => borrowed_reader,
-                    Err(_) => return Err(Box::new(HttpReaderError::GuardedResourceAccess)),
-                };
-
-                let mut body_content = vec![0; content_length as usize];
-                match borrowed_stream.read_exact(&mut body_content) {
-                    Ok(_) => Ok(SimpleBody::Bytes(body_content)),
+                match stream.do_once_mut(|borrowed_stream| {
+                    let mut body_content = vec![0; content_length as usize];
+                    borrowed_stream
+                        .read_exact(&mut body_content)
+                        .map(|_| SimpleBody::Bytes(body_content))
+                }) {
+                    Ok(inner) => Ok(inner),
                     Err(err) => Err(Box::new(err)),
                 }
             }
@@ -4723,29 +4757,19 @@ impl BodyExtractor for SimpleHttpBody {
     }
 }
 
-impl HttpRequestReader<SimpleHttpBody, SharedByteBufferStream<RawStream>> {
-    pub fn from_reader(reader: RawStream) -> HttpRequestReader<SimpleHttpBody, RawStream> {
-        let byte_reader = ioutils::SharedByteBufferStream::new(reader);
-        HttpRequestReader::<SimpleHttpBody, RawStream>::new(byte_reader, SimpleHttpBody)
-    }
-
+impl<T: std::io::Read + 'static> HttpRequestReader<SimpleHttpBody, T> {
     pub fn simple_tcp_stream(
-        reader: SharedByteBufferStream<RawStream>,
-    ) -> HttpRequestReader<SimpleHttpBody, RawStream> {
-        HttpRequestReader::<SimpleHttpBody, RawStream>::new(reader, SimpleHttpBody)
+        reader: SharedByteBufferStream<T>,
+    ) -> HttpRequestReader<SimpleHttpBody, T> {
+        HttpRequestReader::<SimpleHttpBody, T>::new(reader, SimpleHttpBody)
     }
 }
 
-impl HttpResponseReader<SimpleHttpBody, SharedByteBufferStream<RawStream>> {
-    pub fn from_reader(reader: RawStream) -> HttpResponseReader<SimpleHttpBody, RawStream> {
-        let byte_reader = ioutils::SharedByteBufferStream::new(reader);
-        HttpResponseReader::<SimpleHttpBody, RawStream>::new(byte_reader, SimpleHttpBody)
-    }
-
+impl<T: std::io::Read + 'static> HttpResponseReader<SimpleHttpBody, T> {
     pub fn simple_tcp_stream(
-        reader: SharedByteBufferStream<RawStream>,
-    ) -> HttpResponseReader<SimpleHttpBody, RawStream> {
-        HttpResponseReader::<SimpleHttpBody, RawStream>::new(reader, SimpleHttpBody)
+        reader: SharedByteBufferStream<T>,
+    ) -> HttpResponseReader<SimpleHttpBody, T> {
+        HttpResponseReader::<SimpleHttpBody, T>::new(reader, SimpleHttpBody)
     }
 }
 
@@ -4758,238 +4782,83 @@ impl HttpResponseReader<SimpleHttpBody, SharedByteBufferStream<RawStream>> {
 /// http request has been fully read from the underlying [`RawStream`], specifically due to cases
 /// where the underlying http request is a chunked or streaming body where we specifically do not
 /// know where it ends.
-pub struct HTTPStreams {
-    source: SharedByteBufferStream<RawStream>,
+pub struct HTTPStreams<T: std::io::Read + 'static> {
+    source: SharedByteBufferStream<T>,
 }
 
 // Constructors
 
-impl HTTPStreams {
-    pub fn new(source: SharedByteBufferStream<RawStream>) -> Self {
+impl<T: std::io::Read + 'static> HTTPStreams<T> {
+    pub fn new(source: SharedByteBufferStream<T>) -> Self {
         Self { source }
-    }
-
-    pub fn from_reader(reader: RawStream) -> Self {
-        let source = ioutils::SharedByteBufferStream::new(reader);
-        Self::new(source)
     }
 }
 
 // Methods
 
-impl HTTPStreams {
+impl<T: std::io::Read + Send + 'static> HTTPStreams<T> {
     /// [`next_request`] returns a new [`HttpRequestReader`] to read the next read http request from the
     /// underlying stream allowing you to stream each request as a consecutive unit containing all
     /// its data parts.
-    pub fn next_request(&self) -> HttpRequestReader<SimpleHttpBody, RawStream> {
-        HttpRequestReader::<SimpleHttpBody, RawStream>::new(self.source.clone(), SimpleHttpBody)
+    pub fn next_request(&self) -> HttpRequestReader<SimpleHttpBody, T> {
+        HttpRequestReader::<SimpleHttpBody, T>::new(self.source.clone(), SimpleHttpBody)
     }
 
     /// [`next_response`] returns a new [`HttpResponse`] to read the next read http response from the
     /// underlying stream allowing you to stream each response as a consecutive unit containing all
     /// its data parts.
-    pub fn next_response(&self) -> HttpResponseReader<SimpleHttpBody, RawStream> {
-        HttpResponseReader::<SimpleHttpBody, RawStream>::new(self.source.clone(), SimpleHttpBody)
+    pub fn next_response(&self) -> HttpResponseReader<SimpleHttpBody, T> {
+        HttpResponseReader::<SimpleHttpBody, T>::new(self.source.clone(), SimpleHttpBody)
     }
 }
 
-#[cfg(test)]
-mod test_http_reader {
-    use std::io::Write;
-
-    use crate::panic_if_failed;
-
+pub mod http_streams {
     use super::*;
-    use std::{
-        net::{TcpListener, TcpStream},
-        thread,
-    };
 
-    #[test]
-    fn test_can_read_http_post_request() {
-        let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:4888"));
+    pub mod no_send {
+        use super::*;
 
-        let message = "\
-POST /users HTTP/1.1\r
-Date: Sun, 10 Oct 2010 23:26:07 GMT\r
-Server: Apache/2.2.8 (Ubuntu) mod_ssl/2.2.8 OpenSSL/0.9.8g\r
-Last-Modified: Sun, 26 Sep 2010 22:04:35 GMT
-ETag: \"45b6-834-49130cc1182c0\"\r
-Accept-Ranges: bytes\r
-Content-Length: 12\r
-Connection: close\r
-Content-Type: text/html\r
-\r
-Hello world!";
+        pub fn request_reader<T: Read + 'static>(
+            reader: T,
+        ) -> HttpRequestReader<SimpleHttpBody, T> {
+            let byte_reader = ioutils::SharedByteBufferStream::ref_cell(reader);
+            HttpRequestReader::<SimpleHttpBody, T>::new(byte_reader, SimpleHttpBody)
+        }
 
-        dbg!(&message);
+        pub fn response_reader<T: Read + 'static>(
+            reader: T,
+        ) -> HttpResponseReader<SimpleHttpBody, T> {
+            let byte_reader = ioutils::SharedByteBufferStream::ref_cell(reader);
+            HttpResponseReader::<SimpleHttpBody, T>::new(byte_reader, SimpleHttpBody)
+        }
 
-        let req_thread = thread::spawn(move || {
-            let mut client = panic_if_failed!(TcpStream::connect("localhost:4888"));
-            panic_if_failed!(client.write(message.as_bytes()))
-        });
-
-        let (client_stream, _) = panic_if_failed!(listener.accept());
-        let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-        let request_reader = super::HttpRequestReader::from_reader(reader);
-
-        let request_parts = request_reader
-            .into_iter()
-            .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
-            .expect("should generate output");
-
-        dbg!(&request_parts);
-
-        let expected_parts: Vec<IncomingRequestParts> = vec![
-            IncomingRequestParts::Intro(
-                SimpleMethod::POST,
-                SimpleUrl {
-                    url: "/users".into(),
-                    url_only: false,
-                    matcher: Some(panic_if_failed!(Regex::new("/users"))),
-                    params: None,
-                    queries: None,
-                },
-                "HTTP/1.1".into(),
-            ),
-            IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
-                (SimpleHeader::ACCEPT_RANGES, vec!["bytes".into()]),
-                (SimpleHeader::CONNECTION, vec!["close".into()]),
-                (SimpleHeader::CONTENT_LENGTH, vec!["12".into()]),
-                (SimpleHeader::CONTENT_TYPE, vec!["text/html".into()]),
-                (
-                    SimpleHeader::DATE,
-                    vec!["Sun, 10 Oct 2010 23:26:07 GMT".into()],
-                ),
-                (
-                    SimpleHeader::ETAG,
-                    vec!["\"45b6-834-49130cc1182c0\"".into()],
-                ),
-                (
-                    SimpleHeader::LAST_MODIFIED,
-                    vec!["Sun, 26 Sep 2010 22:04:35 GMT".into()],
-                ),
-                (
-                    SimpleHeader::SERVER,
-                    vec!["Apache/2.2.8 (Ubuntu) mod_ssl/2.2.8 OpenSSL/0.9.8g".into()],
-                ),
-            ])),
-            IncomingRequestParts::SizedBody(SimpleBody::Bytes(vec![
-                72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33,
-            ])),
-        ];
-
-        assert_eq!(request_parts, expected_parts);
-        req_thread.join().expect("should be closed");
+        pub fn http_streams<T: Read + 'static>(reader: T) -> HTTPStreams<T> {
+            let source = ioutils::SharedByteBufferStream::ref_cell(reader);
+            HTTPStreams::new(source)
+        }
     }
 
-    #[test]
-    fn test_can_read_http_body_from_reqwest_http_message() {
-        let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:5889"));
+    pub mod send {
+        use super::*;
 
-        let message = "POST /form HTTP/1.1\r\ncontent-type: application/x-www-form-urlencoded\r\ncontent-length: 24\r\naccept: */*\r\nhost: 127.0.0.1:7889\r\n\r\nhello=world&sean=monstar";
+        pub fn request_reader<T: Read + 'static>(
+            reader: T,
+        ) -> HttpRequestReader<SimpleHttpBody, T> {
+            let byte_reader = ioutils::SharedByteBufferStream::rwrite(reader);
+            HttpRequestReader::<SimpleHttpBody, T>::new(byte_reader, SimpleHttpBody)
+        }
 
-        let req_thread = thread::spawn(move || {
-            let mut client = panic_if_failed!(TcpStream::connect("localhost:5889"));
-            panic_if_failed!(client.write(message.as_bytes()))
-        });
+        pub fn response_reader<T: Read + 'static>(
+            reader: T,
+        ) -> HttpResponseReader<SimpleHttpBody, T> {
+            let byte_reader = ioutils::SharedByteBufferStream::rwrite(reader);
+            HttpResponseReader::<SimpleHttpBody, T>::new(byte_reader, SimpleHttpBody)
+        }
 
-        let (client_stream, _) = panic_if_failed!(listener.accept());
-        let reader = RawStream::from_tcp(client_stream).expect("should create stream");
-        let request_reader = super::HttpRequestReader::from_reader(reader);
-
-        let request_parts = request_reader
-            .into_iter()
-            .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
-            .expect("should generate output");
-
-        dbg!(&request_parts);
-
-        let expected_parts: Vec<IncomingRequestParts> = vec![
-            IncomingRequestParts::Intro(
-                SimpleMethod::POST,
-                SimpleUrl {
-                    url: "/form".into(),
-                    url_only: false,
-                    matcher: Some(panic_if_failed!(Regex::new("/form"))),
-                    params: None,
-                    queries: None,
-                },
-                "HTTP/1.1".into(),
-            ),
-            IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
-                (SimpleHeader::ACCEPT, vec!["*/*".into()]),
-                (SimpleHeader::CONTENT_LENGTH, vec!["24".into()]),
-                (
-                    SimpleHeader::CONTENT_TYPE,
-                    vec!["application/x-www-form-urlencoded".into()],
-                ),
-                (SimpleHeader::HOST, vec!["127.0.0.1:7889".into()]),
-            ])),
-            IncomingRequestParts::SizedBody(SimpleBody::Bytes(vec![
-                104, 101, 108, 108, 111, 61, 119, 111, 114, 108, 100, 38, 115, 101, 97, 110, 61,
-                109, 111, 110, 115, 116, 97, 114,
-            ])),
-        ];
-
-        assert_eq!(request_parts, expected_parts);
-        req_thread.join().expect("should be closed");
-    }
-
-    #[test]
-    fn test_can_read_http_body_from_reqwest_client() {
-        let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:7887"));
-
-        let req_thread = thread::spawn(move || {
-            use reqwest;
-
-            let form = &[("hello", "world"), ("sean", "monstar")];
-            let _ = reqwest::blocking::Client::new()
-                .post("http://127.0.0.1:7887/form")
-                .form(form)
-                .send();
-        });
-
-        let (client_stream, _) = panic_if_failed!(listener.accept());
-        let reader = RawStream::from_tcp(client_stream).expect("check reader");
-        let request_reader = super::HttpRequestReader::from_reader(reader);
-
-        let request_parts = request_reader
-            .into_iter()
-            .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
-            .expect("should generate output");
-
-        dbg!(&request_parts);
-
-        let expected_parts: Vec<IncomingRequestParts> = vec![
-            IncomingRequestParts::Intro(
-                SimpleMethod::POST,
-                SimpleUrl {
-                    url: "/form".into(),
-                    url_only: false,
-                    matcher: Some(panic_if_failed!(Regex::new("/form"))),
-                    params: None,
-                    queries: None,
-                },
-                "HTTP/1.1".into(),
-            ),
-            IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
-                (SimpleHeader::ACCEPT, vec!["*/*".into()]),
-                (SimpleHeader::CONTENT_LENGTH, vec!["24".into()]),
-                (
-                    SimpleHeader::CONTENT_TYPE,
-                    vec!["application/x-www-form-urlencoded".into()],
-                ),
-                (SimpleHeader::HOST, vec!["127.0.0.1:7887".into()]),
-            ])),
-            IncomingRequestParts::SizedBody(SimpleBody::Bytes(vec![
-                104, 101, 108, 108, 111, 61, 119, 111, 114, 108, 100, 38, 115, 101, 97, 110, 61,
-                109, 111, 110, 115, 116, 97, 114,
-            ])),
-        ];
-
-        assert_eq!(request_parts, expected_parts);
-        req_thread.join().expect("should be closed");
+        pub fn http_streams<T: Read + 'static>(reader: T) -> HTTPStreams<T> {
+            let source = ioutils::SharedByteBufferStream::rwrite(reader);
+            HTTPStreams::new(source)
+        }
     }
 }
 
