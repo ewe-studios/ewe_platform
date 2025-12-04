@@ -170,6 +170,7 @@ fn impl_embeddable_file(struct_name: &syn::Ident, target_source: String) -> Toke
     let embeddable_file =
         get_file(embed_file_path.clone()).expect("Failed to generate file embeddings");
 
+    // let target_file_abs_tokens = Literal::string(embed_file_path.as_str());
     let target_file_tokens = Literal::string(target_file.as_str());
     let etag_tokens = Literal::string(embeddable_file.etag.as_str());
     let hash_tokens = Literal::string(embeddable_file.hash.as_str());
@@ -202,37 +203,124 @@ fn impl_embeddable_file(struct_name: &syn::Ident, target_source: String) -> Toke
     let utf8_token_tree = UTF8List(embeddable_file.utf8.as_slice());
     let utf16_token_tree = UTF16List(embeddable_file.utf16.as_slice());
 
+    if cfg!(debug_assertions) {
+        return quote! {
+
+            impl foundation_nostd::embeddable::FileData for #struct_name {
+
+                fn read_u8(&self) -> Option<Vec<u8>> {
+                    extern crate std;
+
+                    use std::fs::File;
+                    use std::io::Read;
+
+                    let mut handle = File::open(#target_file_tokens).expect("read target file: #target_file_tokens");
+                    let mut data_bytes = vec![];
+                    handle.read_to_end(&mut data_bytes).expect("should have read file bytes");
+
+                    Some(data_bytes)
+                }
+
+                fn read_u8_for(&self, _: &str) -> Option<Vec<u8>> {
+                    None
+                }
+
+                fn read_u16(&self) -> Option<Vec<u16>> {
+                    extern crate std;
+
+                    use std::fs::File;
+                    use std::io::Read;
+
+                    let mut handle = File::open(#target_file_tokens).expect("read target file: #target_file_tokens");
+                    let mut data_string = String::new();
+                    handle.read_to_string(&mut data_string).expect("should have read file bytes");
+
+                    let data_as_u16: Vec<u16> = data_string.encode_utf16().collect();
+
+                    Some(data_as_u16)
+                }
+
+                fn read_u16_for(&self, _: &str) -> Option<Vec<u16>> {
+                    None
+                }
+            }
+
+            impl foundation_nostd::embeddable::EmbeddableFile for #struct_name {
+
+                fn get_info<'a>(&'a self) -> foundation_nostd::embeddable::FileInfo<'a> {
+                    foundation_nostd::embeddable::FileInfo::new(
+                        #target_file_tokens,
+                        #embedded_file_relative_path_tokens,
+                        #project_dir_tokens,
+                        #hash_tokens,
+                        #etag_tokens,
+                        #mime_type,
+                        #date_modified_tokens,
+                    )
+                }
+
+                fn info_for<'a>(&self, source: &'a str) -> Option<foundation_nostd::embeddable::FileInfo<'a>> {
+                    None
+                }
+
+            }
+        };
+    }
+
     quote! {
-        impl foundation_nostd::embeddable::EmbeddableFile for #struct_name {
-            const ROOT_DIR: &str = #project_dir_tokens;
-            const SOURCE_FILE: &str = #target_file_tokens;
-            const SOURCE_PATH: &str = #embedded_file_relative_path_tokens;
 
-            /// [`DATE_MODIFIED_SINCE_UNIX_EPOC`] is the last known date-time modification
-            /// date given in UNIX timestamp.
-            const DATE_MODIFIED_SINCE_UNIX_EPOC: Option<i64> = #date_modified_tokens;
-
-            /// [`MIME_TYPE`] is the suggested mime-type for the file based on
-            /// the extension of the source file.
-            const MIME_TYPE: Option<&str> = #mime_type;
-
-            /// [`ETAG`] provides a safe web-related e-tag value for use in web APIs.
-            /// It is really just the [Self::HASH`] enclosed in double quotes.
-            const ETAG: &str = #etag_tokens;
-
-            /// [`HASH`] is the SHA-265 encoded content of the file.
-            const HASH: &str = #hash_tokens;
-
+        impl foundation_nostd::embeddable::FileData for #struct_name {
             /// [`UTF8`] provides the utf-8 byte slices of the file as is
             /// read from file which uses the endiancess of the native system
             /// when compiled by rust.
-            const UTF8: &[u8] = #utf8_token_tree;
+            const _DATA_U8: &'static [u8] = #utf8_token_tree;
 
             /// [`UTF16`] provides the utf-16 byte slices of the file as is
             /// read from file which uses the endiancess of the native system
             /// when compiled by rust.
-            const UTF16: &[u16] = #utf16_token_tree;
+            const _DATA_U16: &'static [u16] = #utf16_token_tree;
+
+            fn read_u8(&self) -> Option<Vec<u8>> {
+                let mut data: Vec<u8> = Vec::with_capacity(Self::_DATA_U8.len());
+                data.extend_from_slice(Self::_DATA_U8);
+                Some(data)
+            }
+
+            fn read_u8_for(&self, _: &str) -> Option<Vec<u8>> {
+                None
+            }
+
+            fn read_u16(&self) -> Option<Vec<u16>> {
+                let mut data: Vec<u16> = Vec::with_capacity(Self::_DATA_U16.len());
+                data.extend_from_slice(Self::_DATA_U16);
+                Some(data)
+            }
+
+            fn read_u16_for(&self, _: &str) -> Option<Vec<u16>> {
+                None
+            }
         }
+
+        impl foundation_nostd::embeddable::EmbeddableFile for #struct_name {
+
+            fn get_info<'a>(&'a self) -> foundation_nostd::embeddable::FileInfo<'a> {
+                foundation_nostd::embeddable::FileInfo::new(
+                    #target_file_tokens,
+                    #embedded_file_relative_path_tokens,
+                    #project_dir_tokens,
+                    #hash_tokens,
+                    #etag_tokens,
+                    #mime_type,
+                    #date_modified_tokens,
+                )
+            }
+
+            fn info_for<'a>(&self, _: &'a str) -> Option<foundation_nostd::embeddable::FileInfo<'a>> {
+                None
+            }
+
+        }
+
     }
 }
 

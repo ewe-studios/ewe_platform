@@ -1,68 +1,125 @@
+extern crate alloc;
+
+use alloc::vec::Vec;
+
+pub struct FileInfo<'a> {
+    pub source_name: &'a str,
+    pub source_path: &'a str,
+    pub root_dir: &'a str,
+    pub e_tag: &'a str,
+    pub hash: &'a str,
+    pub mime_type: Option<&'a str>,
+    pub date_modified_since_unix_epoc: Option<i64>,
+}
+
+impl<'a> FileInfo<'a> {
+    #[allow(clippy::too_many_arguments)]
+    pub const fn create(
+        source_name: &'a str,
+        source_path: &'a str,
+        root_dir: &'a str,
+        hash: &'a str,
+        e_tag: &'a str,
+        mime_type: Option<&'a str>,
+        date_modified: Option<i64>,
+    ) -> Self {
+        Self {
+            date_modified_since_unix_epoc: date_modified,
+            source_name,
+            source_path,
+            root_dir,
+            e_tag,
+            hash,
+            mime_type,
+        }
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        source_name: &'a str,
+        source_path: &'a str,
+        root_dir: &'a str,
+        hash: &'a str,
+        e_tag: &'a str,
+        mime_type: Option<&'a str>,
+        date_modified: Option<i64>,
+    ) -> Self {
+        Self {
+            date_modified_since_unix_epoc: date_modified,
+            source_name,
+            source_path,
+            root_dir,
+            e_tag,
+            hash,
+            mime_type,
+        }
+    }
+}
+
+pub trait FileData {
+    /// [`read_u8`] will return the data related to the File if its
+    /// a file else returns None.
+    fn read_u8(&self) -> Option<Vec<u8>>;
+
+    /// [`read_u8_for`] will return the data related to the File
+    /// pointed to by source path str pointer the if its
+    /// a file else returns None.
+    fn read_u8_for(&self, source: &str) -> Option<Vec<u8>>;
+
+    /// [`read_u16`] will return the UTF16 data related to the File if its
+    /// a file else returns None.
+    fn read_u16(&self) -> Option<Vec<u16>>;
+
+    /// [`read_u16_for`] will return the UTF16 data related to the File
+    /// pointed to by source path str pointer the if its
+    /// a file else returns None.
+    fn read_u16_for(&self, source: &str) -> Option<Vec<u16>>;
+}
+
 /// [`EmbeddableFile`] defines a trait definition in a no_std environment where
 /// the underlying data of the file are brought into the source tree via direct
 /// replication of the underlying bytes for a file and basic metadata (think:
 /// date_modified, etag, and sha256 hash of file content).
-pub trait EmbeddableFile {
-    const DATE_MODIFIED_SINCE_UNIX_EPOC: Option<i64>;
-    const MIME_TYPE: Option<&str>;
-    const SOURCE_FILE: &str;
-    const SOURCE_PATH: &str;
-    const ROOT_DIR: &str;
-    const ETAG: &str;
-    const HASH: &str;
-    const UTF8: &[u8];
-    const UTF16: &[u16];
+pub trait EmbeddableFile: FileData {
+    /// [`get_info`] returns the related information for the self
+    /// implementation of FileData.
+    fn get_info<'a>(&'a self) -> FileInfo<'a>;
 
-    /// [`utf8_slice`] returns the provided utf-8 byte slices of the file as is
-    /// read from file which uses the endiancess of the native system
-    /// when compiled by rust.
-    fn utf8_slice() -> &'static [u8] {
-        Self::UTF8
+    /// [`info_for`] returns the related information for the file based on the provided
+    /// source path string if it exists internal else returns None.
+    fn info_for<'a>(&self, source: &'a str) -> Option<FileInfo<'a>>;
+}
+
+pub struct OwnedData(&'static [u8], &'static [u16]);
+
+impl OwnedData {
+    pub const fn create(u8_data: &'static [u8], u16_data: &'static [u16]) -> Self {
+        Self(u8_data, u16_data)
     }
 
-    /// [`utf16_slice`] returns the provided utf-16 byte slices of the file as is
-    /// read from file which uses the endiancess of the native system
-    /// when compiled by rust.
-    fn utf16_slice() -> &'static [u16] {
-        Self::UTF16
+    pub fn new(u8_data: &'static [u8], u16_data: &'static [u16]) -> Self {
+        Self(u8_data, u16_data)
+    }
+}
+
+impl FileData for OwnedData {
+    fn read_u8(&self) -> Option<Vec<u8>> {
+        let mut data = Vec::with_capacity(self.0.len());
+        data.extend_from_slice(self.0);
+        Some(data)
     }
 
-    /// [`date_modified`] returns the last known date-time modification
-    /// date given in UNIX timestamp.
-    fn date_modified() -> Option<&'static i64> {
-        Self::DATE_MODIFIED_SINCE_UNIX_EPOC.as_ref()
+    fn read_u16(&self) -> Option<Vec<u16>> {
+        let mut data = Vec::with_capacity(self.1.len());
+        data.extend_from_slice(self.1);
+        Some(data)
     }
 
-    /// [`mime_type`] returns the suggested mime-type for the file based on
-    /// the extension of the source file.
-    fn mime_type() -> Option<&'static str> {
-        Self::MIME_TYPE
+    fn read_u8_for(&self, _: &str) -> Option<Vec<u8>> {
+        None
     }
 
-    /// [`root_dir`] returns the root path of the file at the time of embedding during
-    /// compilation.
-    fn root_dir() -> &'static str {
-        Self::ROOT_DIR
-    }
-
-    /// [`source_file`] returns file path has provided in source for trait.
-    fn source_file() -> &'static str {
-        Self::SOURCE_FILE
-    }
-
-    /// [`source_paths`] returns the relative file path has identified during compilation.
-    fn source_path() -> &'static str {
-        Self::SOURCE_PATH
-    }
-
-    /// [`etag`] returns the safe web-related e-tag value for use in web APIs.
-    /// It is really just the [Self::HASH`] enclosed in double quotes.
-    fn etag() -> &'static str {
-        Self::ETAG
-    }
-
-    /// [`hash`] returns the SHA-265 encoded content of the file.
-    fn hash() -> &'static str {
-        Self::HASH
+    fn read_u16_for(&self, _: &str) -> Option<Vec<u16>> {
+        None
     }
 }
