@@ -13,6 +13,7 @@ use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
 use foundation_core::megatron::jsrum::package_request_handler;
+use foundation_runtimes::js_runtimes::JSHostRuntime;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
@@ -76,6 +77,15 @@ async fn megatron_handler(req: Request) -> Response {
     }
 }
 
+async fn jsruntime_handler(req: Request) -> Response {
+    let request_path = req.uri().path();
+    tracing::info!("[JSHandler] Received request for path: {}", request_path);
+
+    let runtime = JSHostRuntime::default();
+    let content = String::from_utf8(runtime.read_u8()).expect("should generate str");
+    content.into_response()
+}
+
 async fn public_handler(req: Request) -> Response {
     let request_path = req.uri().path();
     tracing::info!(
@@ -130,6 +140,7 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
 
     let app = Router::new()
         .route("/", get(index_handler))
+        .route("/runtime/mega.js", get(jsruntime_handler))
         .route("/public/*path", get(public_handler))
         .route("/megatron/*path", get(megatron_handler));
 
