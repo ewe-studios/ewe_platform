@@ -895,6 +895,8 @@ dependencies = [
  "ewe_watch_utils",
  "ewe_watchers",
  "foundation_core",
+ "foundation_nostd",
+ "foundation_runtimes",
  "http",
  "http-body",
  "http-body-util",

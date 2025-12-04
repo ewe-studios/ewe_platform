@@ -13,6 +13,7 @@ use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
 use foundation_core::megatron::jsrum::package_request_handler;
+use foundation_nostd::embeddable::{EmbeddableFile, FileData};
 use foundation_runtimes::js_runtimes::JSHostRuntime;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
