@@ -2,7 +2,14 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
+pub enum DataCompression {
+    NONE,
+    GZIP,
+    BROTTLI,
+}
+
 pub struct FileInfo<'a> {
+    pub source_file_path: &'a str,
     pub source_name: &'a str,
     pub source_path: &'a str,
     pub root_dir: &'a str,
@@ -15,6 +22,7 @@ pub struct FileInfo<'a> {
 impl<'a> FileInfo<'a> {
     #[allow(clippy::too_many_arguments)]
     pub const fn create(
+        source_file_path: &'a str,
         source_name: &'a str,
         source_path: &'a str,
         root_dir: &'a str,
@@ -24,6 +32,7 @@ impl<'a> FileInfo<'a> {
         date_modified: Option<i64>,
     ) -> Self {
         Self {
+            source_file_path,
             date_modified_since_unix_epoc: date_modified,
             source_name,
             source_path,
@@ -36,6 +45,7 @@ impl<'a> FileInfo<'a> {
 
     #[allow(clippy::too_many_arguments)]
     pub fn new(
+        source_file_path: &'a str,
         source_name: &'a str,
         source_path: &'a str,
         root_dir: &'a str,
@@ -45,6 +55,7 @@ impl<'a> FileInfo<'a> {
         date_modified: Option<i64>,
     ) -> Self {
         Self {
+            source_file_path,
             date_modified_since_unix_epoc: date_modified,
             source_name,
             source_path,
