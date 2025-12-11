@@ -1,4 +1,7 @@
 extern crate proc_macro;
+use flate2::write::GzEncoder;
+use flate2::Compression;
+use foundation_nostd::embeddable::DataCompression;
 use new_mime_guess::MimeGuess;
 use quote::{quote, ToTokens};
 use sha2::{Digest, Sha256};
@@ -35,6 +38,26 @@ impl core::fmt::Display for GenError {
     }
 }
 
+pub fn embed_directory_on_struct(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let ast = parse_macro_input!(item as syn::DeriveInput);
+
+    match &ast.data {
+        Data::Struct(_) => {}
+        _ => {}
+    };
+
+    let gzip_compression = has_attr(&ast, "gzip_compression");
+    let brottli_compression = has_attr(&ast, "gzip_compression");
+    let file_path = if let Some(path_str) = get_attr(&ast, "source") {
+        path_str
+    } else {
+        panic!("A #[path=\"...\"] is required for the #[EmbedFileAs] macro")
+    };
+
+    // proc_macro::TokenStream::from(impl_embeddable_file(&ast.ident, file_path))
+    proc_macro::TokenStream::from(quote! {})
+}
+
 pub fn embed_file_on_struct(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let ast = parse_macro_input!(item as syn::DeriveInput);
 
@@ -45,13 +68,42 @@ pub fn embed_file_on_struct(item: proc_macro::TokenStream) -> proc_macro::TokenS
         }
     };
 
+    let gzip_compression = has_attr(&ast, "gzip_compression");
+    let brottli_compression = has_attr(&ast, "gzip_compression");
+
+    if gzip_compression && brottli_compression {
+        panic!("You can only use brotli or gzip compression and not both");
+    }
+
+    let mut compression = if gzip_compression && !brottli_compression {
+        foundation_nostd::embeddable::DataCompression::GZIP
+    } else {
+        foundation_nostd::embeddable::DataCompression::NONE
+    };
+
+    compression = if !gzip_compression && brottli_compression {
+        foundation_nostd::embeddable::DataCompression::BROTTLI
+    } else {
+        foundation_nostd::embeddable::DataCompression::NONE
+    };
+
     let file_path = if let Some(path_str) = get_attr(&ast, "source") {
         path_str
     } else {
         panic!("A #[path=\"...\"] is required for the #[EmbedFileAs] macro")
     };
 
-    proc_macro::TokenStream::from(impl_embeddable_file(&ast.ident, file_path))
+    proc_macro::TokenStream::from(impl_embeddable_file(&ast.ident, file_path, compression))
+}
+
+fn has_attr(ast: &syn::DeriveInput, attr_name: &str) -> bool {
+    ast.attrs
+        .iter()
+        .filter(|value| value.path().is_ident(attr_name))
+        .map(|value| &value.meta)
+        .take(1)
+        .next()
+        .is_some()
 }
 
 fn get_attr(ast: &syn::DeriveInput, attr_name: &str) -> Option<String> {
@@ -118,7 +170,11 @@ fn find_root_cargo(
 static ROOT_WORKSPACE_MATCHER: &str = "$ROOT_CRATE";
 static CURRENT_CRATE_MATCHER: &str = "$CURRENT_CRATE";
 
-fn impl_embeddable_file(struct_name: &syn::Ident, target_source: String) -> TokenStream {
+fn impl_embeddable_file(
+    struct_name: &syn::Ident,
+    target_source: String,
+    compression: foundation_nostd::embeddable::DataCompression,
+) -> TokenStream {
     let cargo_manifest_dir_env =
         env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
 
@@ -144,21 +200,18 @@ fn impl_embeddable_file(struct_name: &syn::Ident, target_source: String) -> Toke
         target_source
     };
 
-    let embed_file_path = if target_file.starts_with("/") {
+    let embed_file_candidate = if target_file.starts_with("/") {
         Path::new(&target_file).to_owned()
     } else {
         manifest_dir.join(target_file.as_str())
     };
 
-    match fs::exists(&embed_file_path) {
-        Ok(true) => {}
-        Ok(false) => {
-            panic!("Failed to find file: {:?}", &embed_file_path);
-        }
+    let embed_file_path = match std::fs::canonicalize(&embed_file_candidate) {
+        Ok(inner) => inner.to_owned(),
         Err(err) => {
             panic!(
                 "Failed to call fs.exists on file: {:?} due to {:?}",
-                &embed_file_path, err
+                &embed_file_candidate, err
             );
         }
     };
@@ -171,7 +224,16 @@ fn impl_embeddable_file(struct_name: &syn::Ident, target_source: String) -> Toke
         get_file(embed_file_path.clone()).expect("Failed to generate file embeddings");
 
     // let target_file_abs_tokens = Literal::string(embed_file_path.as_str());
-    let target_file_tokens = Literal::string(target_file.as_str());
+    let target_file_tokens = Literal::string(
+        embed_file_path
+            .file_name()
+            .expect("get name of file")
+            .to_str()
+            .expect("unwrap as str"),
+    );
+
+    let target_file_path_tokens = Literal::string(embed_file_path.to_str().expect("unwrap as str"));
+
     let etag_tokens = Literal::string(embeddable_file.etag.as_str());
     let hash_tokens = Literal::string(embeddable_file.hash.as_str());
     let project_dir_tokens =
@@ -203,108 +265,12 @@ fn impl_embeddable_file(struct_name: &syn::Ident, target_source: String) -> Toke
     let utf8_token_tree = UTF8List(embeddable_file.utf8.as_slice());
     let utf16_token_tree = UTF16List(embeddable_file.utf16.as_slice());
 
-    if cfg!(debug_assertions) {
-        return quote! {
-
-            impl foundation_nostd::embeddable::FileData for #struct_name {
-
-                fn read_u8(&self) -> Option<Vec<u8>> {
-                    extern crate std;
-
-                    use std::fs::File;
-                    use std::io::Read;
-
-                    let mut handle = File::open(#target_file_tokens).expect("read target file: #target_file_tokens");
-                    let mut data_bytes = vec![];
-                    handle.read_to_end(&mut data_bytes).expect("should have read file bytes");
-
-                    Some(data_bytes)
-                }
-
-                fn read_u8_for(&self, _: &str) -> Option<Vec<u8>> {
-                    None
-                }
-
-                fn read_u16(&self) -> Option<Vec<u16>> {
-                    extern crate std;
-
-                    use std::fs::File;
-                    use std::io::Read;
-
-                    let mut handle = File::open(#target_file_tokens).expect("read target file: #target_file_tokens");
-                    let mut data_string = String::new();
-                    handle.read_to_string(&mut data_string).expect("should have read file bytes");
-
-                    let data_as_u16: Vec<u16> = data_string.encode_utf16().collect();
-
-                    Some(data_as_u16)
-                }
-
-                fn read_u16_for(&self, _: &str) -> Option<Vec<u16>> {
-                    None
-                }
-            }
-
-            impl foundation_nostd::embeddable::EmbeddableFile for #struct_name {
-
-                fn get_info<'a>(&'a self) -> foundation_nostd::embeddable::FileInfo<'a> {
-                    foundation_nostd::embeddable::FileInfo::new(
-                        #target_file_tokens,
-                        #embedded_file_relative_path_tokens,
-                        #project_dir_tokens,
-                        #hash_tokens,
-                        #etag_tokens,
-                        #mime_type,
-                        #date_modified_tokens,
-                    )
-                }
-
-                fn info_for<'a>(&self, source: &'a str) -> Option<foundation_nostd::embeddable::FileInfo<'a>> {
-                    None
-                }
-
-            }
-        };
-    }
-
-    quote! {
-
-        impl foundation_nostd::embeddable::FileData for #struct_name {
-            /// [`UTF8`] provides the utf-8 byte slices of the file as is
-            /// read from file which uses the endiancess of the native system
-            /// when compiled by rust.
-            const _DATA_U8: &'static [u8] = #utf8_token_tree;
-
-            /// [`UTF16`] provides the utf-16 byte slices of the file as is
-            /// read from file which uses the endiancess of the native system
-            /// when compiled by rust.
-            const _DATA_U16: &'static [u16] = #utf16_token_tree;
-
-            fn read_u8(&self) -> Option<Vec<u8>> {
-                let mut data: Vec<u8> = Vec::with_capacity(Self::_DATA_U8.len());
-                data.extend_from_slice(Self::_DATA_U8);
-                Some(data)
-            }
-
-            fn read_u8_for(&self, _: &str) -> Option<Vec<u8>> {
-                None
-            }
-
-            fn read_u16(&self) -> Option<Vec<u16>> {
-                let mut data: Vec<u16> = Vec::with_capacity(Self::_DATA_U16.len());
-                data.extend_from_slice(Self::_DATA_U16);
-                Some(data)
-            }
-
-            fn read_u16_for(&self, _: &str) -> Option<Vec<u16>> {
-                None
-            }
-        }
-
+    let embeddable_file_tokens = quote! {
         impl foundation_nostd::embeddable::EmbeddableFile for #struct_name {
 
             fn get_info<'a>(&'a self) -> foundation_nostd::embeddable::FileInfo<'a> {
                 foundation_nostd::embeddable::FileInfo::new(
+                    #target_file_path_tokens,
                     #target_file_tokens,
                     #embedded_file_relative_path_tokens,
                     #project_dir_tokens,
@@ -315,10 +281,275 @@ fn impl_embeddable_file(struct_name: &syn::Ident, target_source: String) -> Toke
                 )
             }
 
-            fn info_for<'a>(&self, _: &'a str) -> Option<foundation_nostd::embeddable::FileInfo<'a>> {
+            fn info_for<'a>(&self, source: &'a str) -> Option<foundation_nostd::embeddable::FileInfo<'a>> {
                 None
             }
 
+        }
+    };
+
+    let file_data_tokens = match compression {
+        DataCompression::NONE => {
+            if cfg!(debug_assertions) {
+                quote! {
+                        fn read_u8(&self) -> Option<Vec<u8>> {
+                            extern crate std;
+
+                            use std::fs::File;
+                            use std::io::Read;
+
+                            let mut handle = File::open(#target_file_tokens).expect("read target file: #target_file_tokens");
+                            let mut data_bytes = vec![];
+                            handle.read_to_end(&mut data_bytes).expect("should have read file bytes");
+
+                            Some(data_bytes)
+                        }
+
+                        fn read_u8_for(&self, _: &str) -> Option<Vec<u8>> {
+                            None
+                        }
+
+                        fn read_u16(&self) -> Option<Vec<u16>> {
+                            extern crate std;
+
+                            use std::fs::File;
+                            use std::io::Read;
+
+                            let mut handle = File::open(#target_file_tokens).expect("read target file: #target_file_tokens");
+                            let mut data_string = String::new();
+                            handle.read_to_string(&mut data_string).expect("should have read file bytes");
+
+                            let data_as_u16: Vec<u16> = data_string.encode_utf16().collect();
+
+                            Some(data_as_u16)
+                        }
+
+                        fn read_u16_for(&self, _: &str) -> Option<Vec<u16>> {
+                            None
+                        }
+                }
+            } else {
+                let utf8_token_tree = UTF8List(embeddable_file.utf8.as_slice());
+                let utf16_token_tree = UTF16List(embeddable_file.utf16.as_slice());
+                quote! {
+                    /// [`UTF8`] provides the utf-8 byte slices of the file as is
+                    /// read from file which uses the endiancess of the native system
+                    /// when compiled by rust.
+                    const _DATA_U8: &'static [u8] = #utf8_token_tree;
+
+                    /// [`UTF16`] provides the utf-16 byte slices of the file as is
+                    /// read from file which uses the endiancess of the native system
+                    /// when compiled by rust.
+                    const _DATA_U16: &'static [u16] = #utf16_token_tree;
+
+                    fn read_u8(&self) -> Option<Vec<u8>> {
+                        let mut data: Vec<u8> = Vec::with_capacity(Self::_DATA_U8.len());
+                        data.extend_from_slice(Self::_DATA_U8);
+                        Some(data)
+                    }
+
+                    fn read_u8_for(&self, _: &str) -> Option<Vec<u8>> {
+                        None
+                    }
+
+                    fn read_u16(&self) -> Option<Vec<u16>> {
+                        let mut data: Vec<u16> = Vec::with_capacity(Self::_DATA_U16.len());
+                        data.extend_from_slice(Self::_DATA_U16);
+                        Some(data)
+                    }
+
+                    fn read_u16_for(&self, _: &str) -> Option<Vec<u16>> {
+                        None
+                    }
+                }
+            }
+        }
+        DataCompression::GZIP => {
+            if cfg!(debug_assertions) {
+                quote! {
+                        fn read_u8(&self) -> Option<Vec<u8>> {
+                            extern crate std;
+
+                            use std::fs::File;
+                            use std::io::Read;
+                            use flate2::write::GzEncoder;
+                            use flate2::Compression;
+
+                            let mut handle = File::open(#target_file_tokens).expect("read target file: #target_file_tokens");
+                            let mut data_bytes = vec![];
+                            handle.read_to_end(&mut data_bytes).expect("should have read file bytes");
+
+
+                            let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
+                            encoder.write_all(data_bytes).expect("written data");
+
+                            let generated = encoder.finish().expect("should finish encoding");
+                            Some(generated)
+                        }
+
+                        fn read_u8_for(&self, _: &str) -> Option<Vec<u8>> {
+                            None
+                        }
+
+                        fn read_u16(&self) -> Option<Vec<u16>> {
+                            extern crate std;
+
+                            use std::fs::File;
+                            use std::io::Read;
+                            use flate2::write::GzEncoder;
+                            use flate2::Compression;
+
+                            let mut handle = File::open(#target_file_tokens).expect("read target file: #target_file_tokens");
+                            let mut data_string = String::new();
+                            handle.read_to_string(&mut data_string).expect("should have read file bytes");
+
+                            let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
+                            encoder.write_all(data_string.as_bytes()).expect("written data");
+                            let compressed_bytes = encoder.finish().expect("encoded");
+
+                            let data_as_u16: Vec<u16> = compressed_bytes
+                                .chunks_exact(2)
+                                .map(|chunk| u16::from_ne_bytes([chunk[0], chunk[1]]))
+                                .collect()
+
+                            Some(data_as_u16)
+                        }
+
+                        fn read_u16_for(&self, _: &str) -> Option<Vec<u16>> {
+                            None
+                        }
+                }
+            } else {
+                let gzipped_utf8 = gzip_encoded_vec(embeddable_file.utf8.as_slice());
+                let utf8_token_tree = UTF8List(gzipped_utf8.as_slice());
+
+                let gzipped_utf16 = gzip_encoded_vec16(embeddable_file.utf16.as_slice());
+                let utf16_token_tree = UTF16List(gzipped_utf16.as_slice());
+                quote! {
+                    /// [`UTF8`] provides the utf-8 byte slices of the file as is
+                    /// read from file which uses the endiancess of the native system
+                    /// when compiled by rust.
+                    const _DATA_U8: &'static [u8] = #utf8_token_tree;
+
+                    /// [`UTF16`] provides the utf-16 byte slices of the file as is
+                    /// read from file which uses the endiancess of the native system
+                    /// when compiled by rust.
+                    const _DATA_U16: &'static [u16] = #utf16_token_tree;
+
+                    fn read_u8(&self) -> Option<Vec<u8>> {
+                        let mut data: Vec<u8> = Vec::with_capacity(Self::_DATA_U8.len());
+                        data.extend_from_slice(Self::_DATA_U8);
+                        Some(data)
+                    }
+
+                    fn read_u8_for(&self, _: &str) -> Option<Vec<u8>> {
+                        None
+                    }
+
+                    fn read_u16(&self) -> Option<Vec<u16>> {
+                        let mut data: Vec<u16> = Vec::with_capacity(Self::_DATA_U16.len());
+                        data.extend_from_slice(Self::_DATA_U16);
+                        Some(data)
+                    }
+
+                    fn read_u16_for(&self, _: &str) -> Option<Vec<u16>> {
+                        None
+                    }
+                }
+            }
+        }
+        DataCompression::BROTTLI => {
+            if cfg!(debug_assertions) {
+                quote! {
+                        fn read_u8(&self) -> Option<Vec<u8>> {
+                            extern crate std;
+
+                            use std::fs::File;
+                            use std::io::Read;
+
+                            let mut handle = File::open(#target_file_tokens).expect("read target file: #target_file_tokens");
+                            let mut data_bytes = vec![];
+                            handle.read_to_end(&mut data_bytes).expect("should have read file bytes");
+
+                            Some(data_bytes)
+                        }
+
+                        fn read_u8_for(&self, _: &str) -> Option<Vec<u8>> {
+                            None
+                        }
+
+                        fn read_u16(&self) -> Option<Vec<u16>> {
+                            extern crate std;
+
+                            use std::fs::File;
+                            use std::io::Read;
+
+                            let mut handle = File::open(#target_file_tokens).expect("read target file: #target_file_tokens");
+                            let mut data_string = String::new();
+                            handle.read_to_string(&mut data_string).expect("should have read file bytes");
+
+                            let data_as_u16: Vec<u16> = data_string.encode_utf16().collect();
+
+                            Some(data_as_u16)
+                        }
+
+                        fn read_u16_for(&self, _: &str) -> Option<Vec<u16>> {
+                            None
+                        }
+                }
+            } else {
+                let utf8_token_tree = UTF8List(embeddable_file.utf8.as_slice());
+                let utf16_token_tree = UTF16List(embeddable_file.utf16.as_slice());
+                quote! {
+                    /// [`UTF8`] provides the utf-8 byte slices of the file as is
+                    /// read from file which uses the endiancess of the native system
+                    /// when compiled by rust.
+                    const _DATA_U8: &'static [u8] = #utf8_token_tree;
+
+                    /// [`UTF16`] provides the utf-16 byte slices of the file as is
+                    /// read from file which uses the endiancess of the native system
+                    /// when compiled by rust.
+                    const _DATA_U16: &'static [u16] = #utf16_token_tree;
+
+                    fn read_u8(&self) -> Option<Vec<u8>> {
+                        let mut data: Vec<u8> = Vec::with_capacity(Self::_DATA_U8.len());
+                        data.extend_from_slice(Self::_DATA_U8);
+                        Some(data)
+                    }
+
+                    fn read_u8_for(&self, _: &str) -> Option<Vec<u8>> {
+                        None
+                    }
+
+                    fn read_u16(&self) -> Option<Vec<u16>> {
+                        let mut data: Vec<u16> = Vec::with_capacity(Self::_DATA_U16.len());
+                        data.extend_from_slice(Self::_DATA_U16);
+                        Some(data)
+                    }
+
+                    fn read_u16_for(&self, _: &str) -> Option<Vec<u16>> {
+                        None
+                    }
+                }
+            }
+        }
+    };
+
+    if cfg!(debug_assertions) {
+        return quote! {
+            #embeddable_file_tokens
+
+            impl foundation_nostd::embeddable::FileData for #struct_name {
+                #file_data_tokens
+            }
+        };
+    }
+
+    quote! {
+        #embeddable_file_tokens
+
+        impl foundation_nostd::embeddable::FileData for #struct_name {
+            #file_data_tokens
         }
 
     }
@@ -352,6 +583,30 @@ impl ToTokens for UTF8List<'_> {
             &[#items]
         });
     }
+}
+
+fn gzip_encoded_vec(data: &[u8]) -> Vec<u8> {
+    let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
+    encoder.write_all(data).expect("written data");
+    encoder.finish().expect("should finish encoding")
+}
+
+fn gzip_encoded_vec16(data: &[u16]) -> Vec<u16> {
+    let data_in_u8: Vec<u8> = data
+        .iter()
+        .flat_map(|value| value.to_ne_bytes().into_iter())
+        .collect();
+
+    let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
+    encoder
+        .write_all(data_in_u8.as_slice())
+        .expect("written data");
+
+    let compressed_bytes = encoder.finish().expect("should finish encoding");
+    compressed_bytes
+        .chunks_exact(2)
+        .map(|chunk| u16::from_ne_bytes([chunk[0], chunk[1]]))
+        .collect()
 }
 
 struct EmbeddableFile {
