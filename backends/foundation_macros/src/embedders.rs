@@ -298,7 +298,7 @@ fn impl_embeddable_file(
             if cfg!(debug_assertions) {
                 quote! {
                         fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
-                            DataCompression::NONE
+                            foundation_nostd::embeddable::DataCompression::NONE
                         }
 
                         fn read_utf8(&self) -> Option<Vec<u8>> {
@@ -314,11 +314,11 @@ fn impl_embeddable_file(
                             Some(data_bytes)
                         }
 
-                        fn read_u8_for(&self, _: &str) -> Option<Vec<u8>> {
+                        fn read_utf8_for(&self, _: &str) -> Option<Vec<u8>> {
                             None
                         }
 
-                        fn read_utf8(&self) -> Option<Vec<u8>> {
+                        fn read_utf16(&self) -> Option<Vec<u8>> {
                             extern crate std;
 
                             use std::fs::File;
@@ -331,7 +331,7 @@ fn impl_embeddable_file(
                             Some(data_string.encode_utf16().flat_map(|u| u.to_le_bytes()).collect())
                         }
 
-                        fn read_u16_for(&self, _: &str) -> Option<Vec<u16>> {
+                        fn read_utf16_for(&self, _: &str) -> Option<Vec<u8>> {
                             None
                         }
                 }
@@ -341,7 +341,7 @@ fn impl_embeddable_file(
 
                 quote! {
                     fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
-                        DataCompression::NONE
+                        foundation_nostd::embeddable::DataCompression::NONE
                     }
 
                     /// [`UTF8`] provides the utf-8 byte slices of the file as is
@@ -383,7 +383,7 @@ fn impl_embeddable_file(
             if cfg!(debug_assertions) {
                 quote! {
                         fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
-                            DataCompression::GZIP
+                            foundation_nostd::embeddable::DataCompression::GZIP
                         }
 
                         fn read_utf8(&self) -> Option<Vec<u8>> {
@@ -453,7 +453,7 @@ fn impl_embeddable_file(
                     const _DATA_UTF16: &'static [u16] = #utf16_token_tree;
 
                     fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
-                        DataCompression::GZIP
+                        foundation_nostd::embeddable::DataCompression::GZIP
                     }
 
                     fn read_utf8(&self) -> Option<Vec<u8>> {
@@ -485,7 +485,7 @@ fn impl_embeddable_file(
             if cfg!(debug_assertions) {
                 quote! {
                         fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
-                            DataCompression::BROTTLI
+                            foundation_nostd::embeddable::DataCompression::BROTTLI
                         }
 
                         fn read_utf8(&self) -> Option<Vec<u8>> {
@@ -556,7 +556,7 @@ fn impl_embeddable_file(
                     const _DATA_UTF16: &'static [u16] = #utf16_token_tree;
 
                     fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
-                        DataCompression::BROTTLI
+                        foundation_nostd::embeddable::DataCompression::BROTTLI
                     }
 
                     fn read_utf8(&self) -> Option<Vec<u8>> {
