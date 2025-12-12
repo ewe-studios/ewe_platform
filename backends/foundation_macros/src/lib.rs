@@ -76,6 +76,13 @@ pub fn embed_directory_as(item: TokenStream) -> TokenStream {
 ///  #[source = "$ROOT_CRATE/runtime/js/js_host_runtime.js"]
 ///  pub struct JSHostRuntime;
 ///
+///  // Use is_binary to indicate file is not a string file but binary file
+///  // so file does not get a valid utf16 content.
+///  #[derive(EmbedFileAs)]
+///  #[is_binary]
+///  #[source = "$ROOT_CRATE/runtime/js/js_host_runtime.js"]
+///  pub struct JSHostRuntime;
+///
 ///  // Use crate directory to better ensure consistent path
 ///  #[derive(EmbedFileAs)]
 ///  #[source = "$CURRENT_CRATE/runtime/js/runtime.js"]
@@ -92,7 +99,10 @@ pub fn embed_directory_as(item: TokenStream) -> TokenStream {
 ///  pub struct PackerCore3;
 /// ```
 ///
-#[proc_macro_derive(EmbedFileAs, attributes(source, gzip_compression, brottli_compression))]
+#[proc_macro_derive(
+    EmbedFileAs,
+    attributes(source, gzip_compression, brottli_compression, is_binary)
+)]
 pub fn embed_file_as(item: TokenStream) -> TokenStream {
     embedders::embed_file_on_struct(item)
 }
