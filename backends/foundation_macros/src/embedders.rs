@@ -46,10 +46,10 @@ pub fn embed_directory_on_struct(item: proc_macro::TokenStream) -> proc_macro::T
         _ => {}
     };
 
-    let gzip_compression = has_attr(&ast, "gzip_compression");
-    let brottli_compression = has_attr(&ast, "brottli_compression");
+    let _gzip_compression = has_attr(&ast, "gzip_compression");
+    let _brottli_compression = has_attr(&ast, "brottli_compression");
 
-    let file_path = if let Some(path_str) = get_attr(&ast, "source") {
+    let _file_path = if let Some(path_str) = get_attr(&ast, "source") {
         path_str
     } else {
         panic!("A #[path=\"...\"] is required for the #[EmbedFileAs] macro")
@@ -77,13 +77,9 @@ pub fn embed_file_on_struct(item: proc_macro::TokenStream) -> proc_macro::TokenS
         panic!("You can only use brotli or gzip compression and not both");
     }
 
-    let mut compression = if gzip_compression && !brottli_compression {
+    let compression = if gzip_compression && !brottli_compression {
         foundation_nostd::embeddable::DataCompression::GZIP
-    } else {
-        foundation_nostd::embeddable::DataCompression::NONE
-    };
-
-    compression = if !gzip_compression && brottli_compression {
+    } else if !gzip_compression && brottli_compression {
         foundation_nostd::embeddable::DataCompression::BROTTLI
     } else {
         foundation_nostd::embeddable::DataCompression::NONE
@@ -391,16 +387,17 @@ fn impl_embeddable_file(
 
                             use std::fs::File;
                             use std::io::Read;
+                            use std::io::Write;
                             use flate2::write::GzEncoder;
                             use flate2::Compression;
 
-                            let mut data_bytes = vec![];
+                            let mut data_bytes: Vec<u8> = vec![];
 
                             let mut handle = File::open(#target_file_tokens).expect("read target file: #target_file_tokens");
                             handle.read_to_end(&mut data_bytes).expect("should have read file bytes");
 
                             let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
-                            encoder.write_all(data_bytes).expect("written data");
+                            encoder.write_all(data_bytes.as_slice()).expect("written data");
 
                             let generated = encoder.finish().expect("should finish encoding");
                             Some(generated)
@@ -415,6 +412,7 @@ fn impl_embeddable_file(
 
                             use std::fs::File;
                             use std::io::Read;
+                            use std::io::Write;
                             use flate2::write::GzEncoder;
                             use flate2::Compression;
 
@@ -493,10 +491,11 @@ fn impl_embeddable_file(
 
                             use std::fs::File;
                             use std::io::Read;
+                            use std::io::Write;
                             use flate2::write::GzEncoder;
                             use flate2::Compression;
 
-                            let mut data_bytes = vec![];
+                            let mut data_bytes: Vec<u8> = vec![];
 
                             let mut handle = File::open(#target_file_tokens).expect("read target file: #target_file_tokens");
                             handle.read_to_end(&mut data_bytes).expect("should have read file bytes");
@@ -517,6 +516,7 @@ fn impl_embeddable_file(
 
                             use std::fs::File;
                             use std::io::Read;
+                            use std::io::Write;
                             use flate2::write::GzEncoder;
                             use flate2::Compression;
 
@@ -585,16 +585,6 @@ fn impl_embeddable_file(
             }
         }
     };
-
-    if cfg!(debug_assertions) {
-        return quote! {
-            #embeddable_file_tokens
-
-            impl foundation_nostd::embeddable::FileData for #struct_name {
-                #file_data_tokens
-            }
-        };
-    }
 
     quote! {
         #embeddable_file_tokens

@@ -13,6 +13,13 @@ keywords = ["runtimes", "embedded_runtimes"]
 foundation_nostd = { workspace = true }
 foundation_macros = { workspace = true }
 
+# brotli 
+brotli = "8.0.2"
+
+# gzip, zlib compression
+flate2 = "1.1.5"
+
+
 [lints]
 workspace = true
 
