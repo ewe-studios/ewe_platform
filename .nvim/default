@@ -23,7 +23,7 @@ badd +78 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/macros/ioerrs/m
 badd +7 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/macros/collections/mod.rs
 badd +1 /tmp/bash-fc.KhVX9l
 badd +1 /tmp/bfba6c70-6a49-439a-abb2-91518898b3b7.dump
-badd +3212 backends/foundation_core/src/wire/simple_http/tests.rs
+badd +3217 backends/foundation_core/src/wire/simple_http/tests.rs
 badd +1 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/megatron/mod.rs
 badd +7 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/synca/mod.rs
 badd +17 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/lib.rs
@@ -40,10 +40,7 @@ let s:save_splitright = &splitright
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
-wincmd _ | wincmd |
-vsplit
-2wincmd h
-wincmd w
+1wincmd h
 wincmd w
 let &splitbelow = s:save_splitbelow
 let &splitright = s:save_splitright
@@ -65,321 +62,12 @@ setlocal foldlevel=99
 setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
-4
-sil! normal! zo
-490
-sil! normal! zo
-2214
-sil! normal! zo
-2214
-sil! normal! zc
-490
-sil! normal! zc
-2285
-sil! normal! zo
-2294
-sil! normal! zo
-2349
-sil! normal! zo
-2349
-sil! normal! zc
-2395
-sil! normal! zo
-2395
-sil! normal! zc
-2454
-sil! normal! zo
-2477
-sil! normal! zo
-2489
-sil! normal! zo
-2489
-sil! normal! zo
-2489
-sil! normal! zo
-2490
-sil! normal! zo
-2454
-sil! normal! zc
-2539
-sil! normal! zo
-2562
-sil! normal! zo
-2563
-sil! normal! zo
-2574
-sil! normal! zo
-2574
-sil! normal! zo
-2574
-sil! normal! zo
-2574
-sil! normal! zo
-2577
-sil! normal! zo
-2539
-sil! normal! zc
-2588
-sil! normal! zo
-2595
-sil! normal! zo
-2611
-sil! normal! zo
-2612
-sil! normal! zo
-2614
-sil! normal! zo
-2617
-sil! normal! zo
-2617
-sil! normal! zo
-2588
-sil! normal! zc
-2636
-sil! normal! zo
-2643
-sil! normal! zo
-2659
-sil! normal! zo
-2660
-sil! normal! zo
-2671
-sil! normal! zo
-2671
-sil! normal! zo
-2671
-sil! normal! zo
-2636
-sil! normal! zc
-2685
-sil! normal! zo
-2692
-sil! normal! zo
-2708
-sil! normal! zo
-2709
-sil! normal! zo
-2720
-sil! normal! zo
-2720
-sil! normal! zo
-2685
-sil! normal! zc
-2735
-sil! normal! zo
-2742
-sil! normal! zo
-2758
-sil! normal! zo
-2760
-sil! normal! zo
-2735
-sil! normal! zc
-2782
-sil! normal! zo
-2789
-sil! normal! zo
-2805
-sil! normal! zo
-2806
-sil! normal! zo
-2782
-sil! normal! zc
-2828
-sil! normal! zo
-2835
-sil! normal! zo
-2851
-sil! normal! zo
-2852
-sil! normal! zo
-2863
-sil! normal! zo
-2863
-sil! normal! zo
-2863
-sil! normal! zo
-2864
-sil! normal! zo
-2885
-sil! normal! zo
-2828
-sil! normal! zc
-2896
-sil! normal! zo
-2903
-sil! normal! zo
-2919
-sil! normal! zo
-2920
-sil! normal! zo
-2931
-sil! normal! zo
-2931
-sil! normal! zo
-2931
-sil! normal! zo
-2932
-sil! normal! zo
-2896
-sil! normal! zc
-2970
-sil! normal! zo
-2977
-sil! normal! zo
-2999
-sil! normal! zo
-3006
-sil! normal! zo
-3028
-sil! normal! zo
-3035
-sil! normal! zo
-3051
-sil! normal! zo
-3053
-sil! normal! zo
-3064
-sil! normal! zo
-3064
-sil! normal! zo
-3064
-sil! normal! zo
-3064
-sil! normal! zo
-3064
-sil! normal! zo
-3064
-sil! normal! zo
-2285
-sil! normal! zc
-3077
-sil! normal! zo
-3086
-sil! normal! zo
-3093
-sil! normal! zo
-3109
-sil! normal! zo
-3110
-sil! normal! zo
-3121
-sil! normal! zo
-3121
-sil! normal! zo
-3121
-sil! normal! zo
-3140
-sil! normal! zo
-3149
-sil! normal! zo
-3156
-sil! normal! zo
-3172
-sil! normal! zo
-3173
-sil! normal! zo
-3184
-sil! normal! zo
-3184
-sil! normal! zo
-3184
-sil! normal! zo
-3203
-sil! normal! zo
-3212
-sil! normal! zo
-3219
-sil! normal! zo
-3235
-sil! normal! zo
-3236
-sil! normal! zo
-3247
-sil! normal! zo
-3247
-sil! normal! zo
-3247
-sil! normal! zo
-3266
-sil! normal! zo
-3275
-sil! normal! zo
-3282
-sil! normal! zo
-3298
-sil! normal! zo
-3299
-sil! normal! zo
-3310
-sil! normal! zo
-3310
-sil! normal! zo
-3310
-sil! normal! zo
-3329
-sil! normal! zo
-3338
-sil! normal! zo
-3345
-sil! normal! zo
-3361
-sil! normal! zo
-3362
-sil! normal! zo
-3373
-sil! normal! zo
-3373
-sil! normal! zo
-3373
-sil! normal! zo
-3466
-sil! normal! zo
-3570
-sil! normal! zo
-3584
-sil! normal! zo
-3610
-sil! normal! zo
-3721
-sil! normal! zo
-3728
-sil! normal! zo
-3768
-sil! normal! zo
-3790
-sil! normal! zo
-3831
-sil! normal! zo
-3860
-sil! normal! zo
-let s:l = 3212 - ((4 * winheight(0) + 34) / 69)
+let s:l = 3217 - ((7 * winheight(0) + 34) / 69)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 3212
+keepjumps 3217
 normal! 013|
-wincmd w
-argglobal
-if bufexists(fnamemodify("~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/testcases/request/all.md", ":p")) | buffer ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/testcases/request/all.md | else | edit ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/testcases/request/all.md | endif
-if &buftype ==# 'terminal'
-  silent file ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/testcases/request/all.md
-endif
-balt backends/foundation_core/src/wire/simple_http/testcases/request/sample.md
-setlocal foldmethod=indent
-setlocal foldexpr=0
-setlocal foldmarker={{{,}}}
-setlocal foldignore=#
-setlocal foldlevel=99
-setlocal foldminlines=1
-setlocal foldnestmax=20
-setlocal foldenable
-let s:l = 2036 - ((32 * winheight(0) + 34) / 69)
-if s:l < 1 | let s:l = 1 | endif
-keepjumps exe s:l
-normal! zt
-keepjumps 2036
-normal! 016|
 wincmd w
 argglobal
 if bufexists(fnamemodify("~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/impls.rs", ":p")) | buffer ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/impls.rs | else | edit ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/wire/simple_http/impls.rs | endif
@@ -403,118 +91,104 @@ sil! normal! zo
 sil! normal! zo
 357
 sil! normal! zo
-482
-sil! normal! zo
 483
-sil! normal! zo
-582
 sil! normal! zo
 583
 sil! normal! zo
 584
 sil! normal! zo
-693
+696
 sil! normal! zo
-694
+697
 sil! normal! zo
-708
+713
 sil! normal! zo
-709
+714
 sil! normal! zo
-723
+2285
 sil! normal! zo
-724
+2289
 sil! normal! zo
-2293
+2290
 sil! normal! zo
-2294
+2494
 sil! normal! zo
-2295
+2513
 sil! normal! zo
-2423
+2514
 sil! normal! zo
-2426
+2526
 sil! normal! zo
-2427
+2633
 sil! normal! zo
-2428
+2774
 sil! normal! zo
-2468
+2775
 sil! normal! zo
-2478
+3518
 sil! normal! zo
-2479
+3527
 sil! normal! zo
-2488
+3528
 sil! normal! zo
-2499
+3529
 sil! normal! zo
-2511
+3530
 sil! normal! zo
-2634
+3559
 sil! normal! zo
-2663
+3700
 sil! normal! zo
-2667
+3711
 sil! normal! zo
-2670
+3712
 sil! normal! zo
-2671
-sil! normal! zo
-2739
-sil! normal! zo
-2740
-sil! normal! zo
-2745
-sil! normal! zo
-2746
-sil! normal! zo
-2777
-sil! normal! zo
-2779
-sil! normal! zo
-3566
-sil! normal! zo
-3720
-sil! normal! zo
-3761
-sil! normal! zo
-3761
-sil! normal! zo
-3780
+3816
 sil! normal! zo
 3824
 sil! normal! zo
-3845
+3851
 sil! normal! zo
-3877
+3857
 sil! normal! zo
-3901
+3858
 sil! normal! zo
-3950
+3859
 sil! normal! zo
-3960
+3860
+sil! normal! zo
+3889
+sil! normal! zo
+3947
 sil! normal! zo
 3962
 sil! normal! zo
-3989
+3993
 sil! normal! zo
 3994
 sil! normal! zo
-3995
+4025
 sil! normal! zo
-4096
+4151
 sil! normal! zo
-4230
+4223
+sil! normal! zo
+4224
+sil! normal! zo
+4225
+sil! normal! zo
+4226
+sil! normal! zo
+4268
 sil! normal! zo
 4269
 sil! normal! zo
-let s:l = 2570 - ((44 * winheight(0) + 34) / 69)
+let s:l = 2570 - ((43 * winheight(0) + 34) / 69)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
 keepjumps 2570
-let s:c = 36 - ((9 * winwidth(0) + 58) / 116)
+let s:c = 36 - ((9 * winwidth(0) + 92) / 184)
 if s:c > 0
   exe 'normal! ' . s:c . '|zs' . 36 . '|'
 else

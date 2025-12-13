@@ -1,5 +1,6 @@
 extern crate alloc;
 
+use alloc::string::String;
 use alloc::vec::Vec;
 
 #[derive(Clone)]
@@ -9,27 +10,41 @@ pub enum DataCompression {
     BROTTLI,
 }
 
-pub struct FileInfo<'a> {
-    pub source_file_path: &'a str,
-    pub source_name: &'a str,
-    pub source_path: &'a str,
-    pub root_dir: &'a str,
-    pub e_tag: &'a str,
-    pub hash: &'a str,
-    pub mime_type: Option<&'a str>,
+pub enum FsInfo {
+    Dir(DirectoryInfo),
+    File(FileInfo),
+}
+
+pub struct DirectoryInfo {
+    pub index: Option<usize>,
+    pub dir_name: String,
+    pub root_dir: Option<String>,
     pub date_modified_since_unix_epoc: Option<i64>,
 }
 
-impl<'a> FileInfo<'a> {
+pub struct FileInfo {
+    pub index: Option<usize>,
+    pub source_file_path: String,
+    pub source_name: String,
+    pub source_path: String,
+    pub root_dir: String,
+    pub e_tag: String,
+    pub hash: String,
+    pub mime_type: Option<String>,
+    pub date_modified_since_unix_epoc: Option<i64>,
+}
+
+impl FileInfo {
     #[allow(clippy::too_many_arguments)]
     pub const fn create(
-        source_file_path: &'a str,
-        source_name: &'a str,
-        source_path: &'a str,
-        root_dir: &'a str,
-        hash: &'a str,
-        e_tag: &'a str,
-        mime_type: Option<&'a str>,
+        index: Option<usize>,
+        source_file_path: String,
+        source_name: String,
+        source_path: String,
+        root_dir: String,
+        hash: String,
+        e_tag: String,
+        mime_type: Option<String>,
         date_modified: Option<i64>,
     ) -> Self {
         Self {
@@ -38,6 +53,7 @@ impl<'a> FileInfo<'a> {
             source_name,
             source_path,
             root_dir,
+            index,
             e_tag,
             hash,
             mime_type,
@@ -46,13 +62,14 @@ impl<'a> FileInfo<'a> {
 
     #[allow(clippy::too_many_arguments)]
     pub fn new(
-        source_file_path: &'a str,
-        source_name: &'a str,
-        source_path: &'a str,
-        root_dir: &'a str,
-        hash: &'a str,
-        e_tag: &'a str,
-        mime_type: Option<&'a str>,
+        index: Option<usize>,
+        source_file_path: String,
+        source_name: String,
+        source_path: String,
+        root_dir: String,
+        hash: String,
+        e_tag: String,
+        mime_type: Option<String>,
         date_modified: Option<i64>,
     ) -> Self {
         Self {
@@ -61,6 +78,7 @@ impl<'a> FileInfo<'a> {
             source_name,
             source_path,
             root_dir,
+            index,
             e_tag,
             hash,
             mime_type,
@@ -98,11 +116,11 @@ pub trait FileData {
 pub trait EmbeddableFile: FileData {
     /// [`get_info`] returns the related information for the self
     /// implementation of FileData.
-    fn get_info<'a>(&'a self) -> FileInfo<'a>;
+    fn get_info(&self) -> &FileInfo;
 
     /// [`info_for`] returns the related information for the file based on the provided
     /// source path string if it exists internal else returns None.
-    fn info_for<'a>(&self, source: &'a str) -> Option<FileInfo<'a>>;
+    fn info_for<'a>(&self, source: &'a str) -> Option<&'a FileInfo>;
 }
 
 pub struct OwnedData(&'static [u8], &'static [u8], DataCompression);
