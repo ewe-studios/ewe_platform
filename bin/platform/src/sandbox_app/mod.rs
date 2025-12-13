@@ -84,16 +84,16 @@ async fn jsruntime_handler(req: Request) -> Response {
 
     let runtime = JSHostRuntime::default();
     match runtime
-        .read_u8()
-        .map(|data| String::from_utf8(data))
-        .ok()
-        .map(|value| value.into_response()) {
-            Ok(response) => response
-            Err(err) => {
-                tracing::error!("Failed to fetch contents due to: {:?}", &err);
-                (StatusCode::INTERNAL_SERVER_ERROR, "{:?}".format(err)).into_response()
-            }
+        .read_utf8()
+        .map(|data| String::from_utf8(data).expect("convert to string"))
+        .map(|value| value.into_response())
+    {
+        Ok(response) => response,
+        Err(err) => {
+            tracing::error!("Failed to fetch contents due to: {:?}", &err);
+            (StatusCode::INTERNAL_SERVER_ERROR, format!("{:?}", err)).into_response()
         }
+    }
 }
 
 async fn public_handler(req: Request) -> Response {
