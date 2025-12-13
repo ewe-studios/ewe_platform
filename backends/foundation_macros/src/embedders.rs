@@ -1,7 +1,7 @@
 extern crate proc_macro;
 use flate2::write::GzEncoder;
 use flate2::Compression;
-use foundation_nostd::embeddable::DataCompression;
+use foundation_nostd::embeddable::{DataCompression, DirectoryInfo, FileInfo, FsInfo};
 use new_mime_guess::MimeGuess;
 use quote::{quote, ToTokens};
 use sha2::{Digest, Sha256};
@@ -43,20 +43,37 @@ pub fn embed_directory_on_struct(item: proc_macro::TokenStream) -> proc_macro::T
 
     match &ast.data {
         Data::Struct(_) => {}
-        _ => {}
+        _ => panic!("Please use the macro on a struct only"),
     };
 
-    let _gzip_compression = has_attr(&ast, "gzip_compression");
-    let _brottli_compression = has_attr(&ast, "brottli_compression");
+    let is_binary = has_attr(&ast, "is_binary");
+    let gzip_compression = has_attr(&ast, "gzip_compression");
+    let brottli_compression = has_attr(&ast, "brottli_compression");
 
-    let _file_path = if let Some(path_str) = get_attr(&ast, "source") {
+    if gzip_compression && brottli_compression {
+        panic!("You can only use brotli or gzip compression and not both");
+    }
+
+    let compression = if gzip_compression && !brottli_compression {
+        foundation_nostd::embeddable::DataCompression::GZIP
+    } else if !gzip_compression && brottli_compression {
+        foundation_nostd::embeddable::DataCompression::BROTTLI
+    } else {
+        foundation_nostd::embeddable::DataCompression::NONE
+    };
+
+    let file_path = if let Some(path_str) = get_attr(&ast, "source") {
         path_str
     } else {
         panic!("A #[path=\"...\"] is required for the #[EmbedFileAs] macro")
     };
 
-    // proc_macro::TokenStream::from(impl_embeddable_file(&ast.ident, file_path))
-    proc_macro::TokenStream::from(quote! {})
+    proc_macro::TokenStream::from(impl_embeddable_directory(
+        &ast.ident,
+        file_path,
+        is_binary,
+        compression,
+    ))
 }
 
 pub fn embed_file_on_struct(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -259,7 +276,7 @@ fn impl_embeddable_file(
 
     let mime_type = match embeddable_file.mime_type {
         Some(inner) => quote! {
-            Some(#inner)
+            Some(String::from(#inner))
         },
         None => quote! {
             None
@@ -267,25 +284,29 @@ fn impl_embeddable_file(
     };
 
     let embeddable_file_tokens = quote! {
-        impl foundation_nostd::embeddable::EmbeddableFile for #struct_name {
+        impl #struct_name {
+            const _FILE_INFO: &'static foundation_nostd::embeddable::FileInfo = foundation_nostd::embeddable::FileInfo::create(
+                None,
+                String::from(#target_file_path_tokens),
+                String::from(#target_file_tokens),
+                String::from(#embedded_file_relative_path_tokens),
+                String::from(#project_dir_tokens),
+                String::from(#hash_tokens),
+                String::from(#etag_tokens),
+                #mime_type,
+                #date_modified_tokens,
+            );
 
-            fn get_info<'a>(&'a self) -> foundation_nostd::embeddable::FileInfo<'a> {
-                foundation_nostd::embeddable::FileInfo::new(
-                    #target_file_path_tokens,
-                    #target_file_tokens,
-                    #embedded_file_relative_path_tokens,
-                    #project_dir_tokens,
-                    #hash_tokens,
-                    #etag_tokens,
-                    #mime_type,
-                    #date_modified_tokens,
-                )
+        }
+
+        impl foundation_nostd::embeddable::EmbeddableFile for #struct_name {
+            fn get_info(&self) -> &foundation_nostd::embeddable::FileInfo {
+                &self._FILE_INFO
             }
 
-            fn info_for<'a>(&self, source: &'a str) -> Option<foundation_nostd::embeddable::FileInfo<'a>> {
+            fn info_for<'a>(&self, source: &'a str) -> Option<&'a foundation_nostd::embeddable::FileInfo> {
                 None
             }
-
         }
     };
 
@@ -621,6 +642,135 @@ fn impl_embeddable_file(
     }
 }
 
+fn impl_embeddable_directory(
+    struct_name: &syn::Ident,
+    target_source: String,
+    is_binary: bool,
+    compression: foundation_nostd::embeddable::DataCompression,
+) -> TokenStream {
+    let cargo_manifest_dir_env =
+        env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
+
+    let manifest_dir = Path::new(&cargo_manifest_dir_env);
+    let working_dir = env::current_dir().expect("get current working directory");
+
+    let (root_workspace, _) = find_root_cargo(manifest_dir.to_owned(), None)
+        .expect("heuristically identify root workspace or crate");
+
+    let root_workspace_str = root_workspace.to_str().unwrap_or_else(|| {
+        panic!("cannot get str path for {root_workspace:?}");
+    });
+
+    let project_dir = manifest_dir
+        .strip_prefix(&working_dir)
+        .expect("should be from home directory");
+
+    let target_directory = if target_source.contains(CURRENT_CRATE_MATCHER) {
+        target_source.replace(CURRENT_CRATE_MATCHER, &cargo_manifest_dir_env)
+    } else if target_source.contains(ROOT_WORKSPACE_MATCHER) {
+        target_source.replace(ROOT_WORKSPACE_MATCHER, root_workspace_str)
+    } else {
+        target_source
+    };
+
+    let embed_directory_candidate = if target_directory.starts_with("/") {
+        Path::new(&target_directory).to_owned()
+    } else {
+        manifest_dir.join(target_directory.as_str())
+    };
+
+    let embed_directory_path = match std::fs::canonicalize(&embed_directory_candidate) {
+        Ok(inner) => inner.to_owned(),
+        Err(err) => {
+            panic!(
+                "Failed to call fs.exists on file: {:?} due to {:?}",
+                &embed_directory_candidate, err
+            );
+        }
+    };
+
+    let embedded_file_relative_path = embed_directory_path
+        .strip_prefix(&working_dir)
+        .expect("should be from home directory");
+
+    let embedded_file_relative_path_tokens =
+        Literal::string(embed_directory_path.to_str().expect("unwrap as str"));
+
+    // let embeddable_file = get_file(embed_directory_path.clone(), is_binary)
+    //     .expect("Failed to generate file embeddings");
+    //
+    // // let target_file_abs_tokens = Literal::string(embed_file_path.as_str());
+    // let target_file_tokens = Literal::string(
+    //     embed_directory_path
+    //         .file_name()
+    //         .expect("get name of file")
+    //         .to_str()
+    //         .expect("unwrap as str"),
+    // );
+
+    todo!()
+}
+
+fn visit_dirs(collected: &mut Vec<FsInfo>, dir: &Path, root_dir: Option<&Path>, index: usize) {
+    if dir.is_dir() {
+        let dir_path_string = String::from(dir.to_str().expect("get strting"));
+        let dir_name = get_file_name(dir.to_path_buf());
+        let root_dir_parent = root_dir.map(|v| String::from(v.to_str().unwrap()));
+        let dir_date_modified =
+            get_file_modified_date(dir.to_path_buf()).expect("get modified date");
+
+        collected.push(FsInfo::Dir(DirectoryInfo {
+            dir_name,
+            index: Some(index),
+            root_dir: root_dir_parent,
+            date_modified_since_unix_epoc: dir_date_modified,
+        }));
+
+        let mut current_index = index;
+        for entry in fs::read_dir(dir).expect("to read path") {
+            let entry = entry.expect("resolve entry");
+
+            let date_modified = get_file_modified_date(entry.path()).expect("get modified date");
+            let file_path_string = String::from(entry.path().to_str().expect("get string"));
+            let file_name = get_file_name(entry.path());
+
+            let entry_path = entry.path();
+
+            let file_directory_relative = entry_path
+                .strip_prefix(dir)
+                .expect("should be able to strip root dir");
+
+            if entry_path.is_dir() {
+                current_index += 1;
+                visit_dirs(collected, entry_path.as_path(), root_dir, current_index);
+            } else {
+                let file_relative_str =
+                    String::from(file_directory_relative.to_str().expect("hello"));
+                let file_hash = get_file_hash(entry.path()).expect("generate hash");
+                let file_etag = format!("\"{}\"", &file_hash);
+                let file_mime_type = MimeGuess::from_path(entry.path())
+                    .first()
+                    .map(|v| v.to_string());
+
+                current_index += 1;
+                let file_info = FileInfo::new(
+                    Some(current_index),
+                    file_path_string,
+                    file_relative_str,
+                    file_name,
+                    dir_path_string.clone(),
+                    file_hash,
+                    file_etag,
+                    file_mime_type,
+                    date_modified,
+                );
+
+                collected.push(FsInfo::File(file_info));
+            }
+        }
+    }
+}
+
 struct EmbeddableFile {
     pub data: Vec<u8>,
     pub data_utf16: Option<Vec<u8>>,
@@ -628,6 +778,28 @@ struct EmbeddableFile {
     pub etag: String,
     pub mime_type: Option<String>,
     pub date_modified: Option<i64>,
+}
+
+fn get_file_name(target_file: PathBuf) -> String {
+    target_file
+        .file_name()
+        .map(|value| String::from(value.to_str().expect("to create str")))
+        .expect("should be string")
+}
+
+fn get_file_modified_date(target_file: PathBuf) -> Result<Option<i64>, GenError> {
+    let file_metadata = target_file.metadata().expect("ensure to retrieve metadata");
+    Ok(modified_unix_timestamp(&file_metadata))
+}
+
+fn get_file_hash(target_file: PathBuf) -> Result<String, GenError> {
+    let mut file = fs::File::open(&target_file).map_err(|err| GenError::Any(Box::new(err)))?;
+
+    let mut file_content: Vec<u8> = Vec::new();
+    file.read_to_end(&mut file_content)
+        .map_err(|err| GenError::Any(Box::new(err)))?;
+
+    Ok(generate_hash(&file_content))
 }
 
 fn get_file(target_file: PathBuf, is_binary: bool) -> Result<EmbeddableFile, GenError> {
