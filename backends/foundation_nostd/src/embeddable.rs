@@ -72,20 +72,20 @@ pub trait FileData {
     /// [`compression`] returns the compression used for the file data.
     fn compression(&self) -> DataCompression;
 
-    /// [`read_u8`] will return the data related to the File if its
+    /// [`read_utf8`] will return the data related to the File if its
     /// a file else returns None.
     fn read_utf8(&self) -> Option<Vec<u8>>;
 
-    /// [`read_u8_for`] will return the data related to the File
+    /// [`read_utf8_for`] will return the data related to the File
     /// pointed to by source path str pointer the if its
     /// a file else returns None.
     fn read_utf8_for(&self, source: &str) -> Option<Vec<u8>>;
 
-    /// [`read_u16`] will return the UTF16 data related to the File if its
+    /// [`read_utf16`] will return the UTF16 data related to the File if its
     /// a file else returns None.
     fn read_utf16(&self) -> Option<Vec<u8>>;
 
-    /// [`read_u16_for`] will return the UTF16 data related to the File
+    /// [`read_utf16_for`] will return the UTF16 data related to the File
     /// pointed to by source path str pointer the if its
     /// a file else returns None.
     fn read_utf16_for(&self, source: &str) -> Option<Vec<u8>>;
