@@ -293,6 +293,7 @@ fn impl_embeddable_file(
         DataCompression::NONE => {
             if cfg!(debug_assertions) {
                 quote! {
+                    impl foundation_nostd::embeddable::FileData for #struct_name {
                         fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
                             foundation_nostd::embeddable::DataCompression::NONE
                         }
@@ -330,47 +331,55 @@ fn impl_embeddable_file(
                         fn read_utf16_for(&self, _: &str) -> Option<Vec<u8>> {
                             None
                         }
+                    }
                 }
             } else {
                 let utf8_token_tree = UTF8List(embeddable_file.data.as_slice());
-                let utf16_token_tree = embeddable_file.data_utf16.map(UTF8Vec);
+                let utf16_token_tree = embeddable_file
+                    .data_utf16
+                    .map(UTF8Vec)
+                    .map_or(quote! {None}, |v| quote! { Some(#v)});
 
                 quote! {
-                    fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
-                        foundation_nostd::embeddable::DataCompression::NONE
+                    impl #struct_name {
+                        /// [`UTF8`] provides the utf-8 byte slices of the file as is
+                        /// read from file which uses the endiancess of the native system
+                        /// when compiled by rust.
+                        const _DATA_U8: &'static [u8] = #utf8_token_tree;
+
+                        /// [`UTF16`] provides the utf-16 byte slices of the file as is
+                        /// read from file which uses the endiancess of the native system
+                        /// when compiled by rust.
+                        const _DATA_UTF16: Option<&'static [u8]> = #utf16_token_tree;
                     }
 
-                    /// [`UTF8`] provides the utf-8 byte slices of the file as is
-                    /// read from file which uses the endiancess of the native system
-                    /// when compiled by rust.
-                    const _DATA_U8: &'static [u8] = #utf8_token_tree;
-
-                    /// [`UTF16`] provides the utf-16 byte slices of the file as is
-                    /// read from file which uses the endiancess of the native system
-                    /// when compiled by rust.
-                    const _DATA_UTF16: Option<&'static [u8]> = #utf16_token_tree;
-
-                    fn read_utf8(&self) -> Option<Vec<u8>> {
-                        let mut data: Vec<u8> = Vec::with_capacity(Self::_DATA_U8.len());
-                        data.extend_from_slice(Self::_DATA_U8);
-                        Some(data)
-                    }
-
-                    fn read_utf8_for(&self, _: &str) -> Option<Vec<u8>> {
-                        None
-                    }
-
-                    fn read_utf16(&self) -> Option<Vec<u8>> {
-                        if Self::_DATA_UTF16.is_some() {
-                            let mut data: Vec<u16> = Vec::with_capacity(Self::_DATA_U16.len());
-                            data.extend_from_slice(Self::_DATA_U16);
-                            return Some(data);
+                    impl foundation_nostd::embeddable::FileData for #struct_name {
+                        fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
+                            foundation_nostd::embeddable::DataCompression::NONE
                         }
-                        None
-                    }
 
-                    fn read_utf16_for(&self, _: &str) -> Option<Vec<u8>> {
-                        None
+                        fn read_utf8(&self) -> Option<Vec<u8>> {
+                            let mut data: Vec<u8> = Vec::with_capacity(Self::_DATA_U8.len());
+                            data.extend_from_slice(Self::_DATA_U8);
+                            Some(data)
+                        }
+
+                        fn read_utf8_for(&self, _: &str) -> Option<Vec<u8>> {
+                            None
+                        }
+
+                        fn read_utf16(&self) -> Option<Vec<u8>> {
+                            if Self::_DATA_UTF16.is_some() {
+                                let mut data: Vec<u16> = Vec::with_capacity(Self::_DATA_U16.len());
+                                data.extend_from_slice(Self::_DATA_U16);
+                                return Some(data);
+                            }
+                            None
+                        }
+
+                        fn read_utf16_for(&self, _: &str) -> Option<Vec<u8>> {
+                            None
+                        }
                     }
                 }
             }
@@ -378,6 +387,7 @@ fn impl_embeddable_file(
         DataCompression::GZIP => {
             if cfg!(debug_assertions) {
                 quote! {
+                    impl foundation_nostd::embeddable::FileData for #struct_name {
                         fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
                             foundation_nostd::embeddable::DataCompression::GZIP
                         }
@@ -421,7 +431,7 @@ fn impl_embeddable_file(
                             let mut handle = File::open(#target_file_tokens).expect("read target file: #target_file_tokens");
                             handle.read_to_string(&mut data_string).expect("should have read file bytes");
 
-                            let data_utf16 = data_string.encode_utf16().collect();
+                            let data_utf16: Vec<u8> = data_string.encode_utf16().flat_map(|u| u.to_le_bytes()).collect();
 
                             let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
                             encoder.write_all(data_utf16.as_slice()).expect("written data");
@@ -432,49 +442,56 @@ fn impl_embeddable_file(
                         fn read_utf16_for(&self, _: &str) -> Option<Vec<u8>> {
                             None
                         }
+                    }
                 }
             } else {
                 let utf8_token_tree = UTF8Vec(gzipped_vec(embeddable_file.data));
                 let utf16_token_tree = embeddable_file
                     .data_utf16
-                    .map(|data| UTF8Vec(gzipped_vec(data)));
+                    .map(|data| UTF8Vec(gzipped_vec(data)))
+                    .map_or(quote! {None}, |v| quote! { Some(#v)});
 
                 quote! {
-                    /// [`UTF8`] provides the utf-8 byte slices of the file as is
-                    /// read from file which uses the endiancess of the native system
-                    /// when compiled by rust.
-                    const _DATA_UTF8: &'static [u8] = #utf8_token_tree;
 
-                    /// [`UTF16`] provides the utf-16 byte slices of the file as is
-                    /// read from file which uses the endiancess of the native system
-                    /// when compiled by rust.
-                    const _DATA_UTF16: &'static [u16] = #utf16_token_tree;
+                    impl #struct_name {
+                        /// [`UTF8`] provides the utf-8 byte slices of the file as is
+                        /// read from file which uses the endiancess of the native system
+                        /// when compiled by rust.
+                        const _DATA_UTF8: &'static [u8] = #utf8_token_tree;
 
-                    fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
-                        foundation_nostd::embeddable::DataCompression::GZIP
+                        /// [`UTF16`] provides the utf-16 byte slices of the file as is
+                        /// read from file which uses the endiancess of the native system
+                        /// when compiled by rust.
+                        const _DATA_UTF16: Option<&'static [u8]> = #utf16_token_tree;
                     }
 
-                    fn read_utf8(&self) -> Option<Vec<u8>> {
-                        let mut data: Vec<u8> = Vec::with_capacity(Self::_DATA_U8.len());
-                        data.extend_from_slice(Self::_DATA_U8);
-                        Some(data)
-                    }
-
-                    fn read_utf8_for(&self, _: &str) -> Option<Vec<u8>> {
-                        None
-                    }
-
-                    fn read_utf16(&self) -> Option<Vec<u8>> {
-                        if Self::_DATA_UTF16.is_none() {
-                            return None;
+                    impl foundation_nostd::embeddable::FileData for #struct_name {
+                        fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
+                            foundation_nostd::embeddable::DataCompression::GZIP
                         }
-                        let mut data: Vec<u16> = Vec::with_capacity(Self::_DATA_UTF16.len());
-                        data.extend_from_slice(Self::_DATA_UTF16);
-                        Some(data)
-                    }
 
-                    fn read_utf16_for(&self, _: &str) -> Option<Vec<u16>> {
-                        None
+                        fn read_utf8(&self) -> Option<Vec<u8>> {
+                            let mut data: Vec<u8> = Vec::with_capacity(Self::_DATA_U8.len());
+                            data.extend_from_slice(Self::_DATA_U8);
+                            Some(data)
+                        }
+
+                        fn read_utf8_for(&self, _: &str) -> Option<Vec<u8>> {
+                            None
+                        }
+
+                        fn read_utf16(&self) -> Option<Vec<u8>> {
+                            if Self::_DATA_UTF16.is_none() {
+                                return None;
+                            }
+                            let mut data: Vec<u16> = Vec::with_capacity(Self::_DATA_UTF16.len());
+                            data.extend_from_slice(Self::_DATA_UTF16);
+                            Some(data)
+                        }
+
+                        fn read_utf16_for(&self, _: &str) -> Option<Vec<u16>> {
+                            None
+                        }
                     }
                 }
             }
@@ -482,6 +499,8 @@ fn impl_embeddable_file(
         DataCompression::BROTTLI => {
             if cfg!(debug_assertions) {
                 quote! {
+                    impl foundation_nostd::embeddable::FileData for #struct_name {
+
                         fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
                             foundation_nostd::embeddable::DataCompression::BROTTLI
                         }
@@ -525,62 +544,70 @@ fn impl_embeddable_file(
                             let mut handle = File::open(#target_file_tokens).expect("read target file: #target_file_tokens");
                             handle.read_to_string(&mut data_string).expect("should have read file bytes");
 
-                            let data_utf16 = data_string.encode_utf16().collect();
+                            let data_utf16: Vec<u8> = data_string.encode_utf16().flat_map(|u| u.to_le_bytes()).collect();
 
                             let mut writer = brotli::CompressorWriter::new(Vec::new(), 4096, 11, 22);
                             writer.write_all(data_utf16.as_slice()).expect("written data");
                             writer.flush().expect("flushed data");
 
-                            Some(encoder.into_inner())
+                            Some(writer.into_inner())
                         }
 
                         fn read_utf16_for(&self, _: &str) -> Option<Vec<u8>> {
                             None
                         }
+                    }
                 }
             } else {
                 let utf8_token_tree = UTF8Vec(brottli_vec(embeddable_file.data));
                 let utf16_token_tree = embeddable_file
                     .data_utf16
-                    .map(|data| UTF8Vec(brottli_vec(data)));
+                    .map(|data| UTF8Vec(brottli_vec(data)))
+                    .map_or(quote! {None}, |v| quote! { Some(#v)});
 
                 quote! {
-                    /// [`UTF8`] provides the utf-8 byte slices of the file as is
-                    /// read from file which uses the endiancess of the native system
-                    /// when compiled by rust.
-                    const _DATA_UTF8: &'static [u8] = #utf8_token_tree;
 
-                    /// [`UTF16`] provides the utf-16 byte slices of the file as is
-                    /// read from file which uses the endiancess of the native system
-                    /// when compiled by rust.
-                    const _DATA_UTF16: &'static [u16] = #utf16_token_tree;
+                    impl #struct_name {
+                        /// [`UTF8`] provides the utf-8 byte slices of the file as is
+                        /// read from file which uses the endiancess of the native system
+                        /// when compiled by rust.
+                        const _DATA_UTF8: &'static [u8] = #utf8_token_tree;
 
-                    fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
-                        foundation_nostd::embeddable::DataCompression::BROTTLI
+                        /// [`UTF16`] provides the utf-16 byte slices of the file as is
+                        /// read from file which uses the endiancess of the native system
+                        /// when compiled by rust.
+                        const _DATA_UTF16: Option<&'static [u8]> = #utf16_token_tree;
                     }
 
-                    fn read_utf8(&self) -> Option<Vec<u8>> {
-                        let mut data: Vec<u8> = Vec::with_capacity(Self::_DATA_U8.len());
-                        data.extend_from_slice(Self::_DATA_U8);
-                        Some(data)
-                    }
-
-                    fn read_utf8_for(&self, _: &str) -> Option<Vec<u8>> {
-                        None
-                    }
-
-                    fn read_utf16(&self) -> Option<Vec<u8>> {
-                        if Self::_DATA_UTF16.is_none() {
-                            return None;
+                    impl foundation_nostd::embeddable::FileData for #struct_name {
+                        fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
+                            foundation_nostd::embeddable::DataCompression::BROTTLI
                         }
-                        let mut data: Vec<u16> = Vec::with_capacity(Self::_DATA_UTF16.len());
-                        data.extend_from_slice(Self::_DATA_UTF16);
-                        Some(data)
+
+                        fn read_utf8(&self) -> Option<Vec<u8>> {
+                            let mut data: Vec<u8> = Vec::with_capacity(Self::_DATA_U8.len());
+                            data.extend_from_slice(Self::_DATA_U8);
+                            Some(data)
+                        }
+
+                        fn read_utf8_for(&self, _: &str) -> Option<Vec<u8>> {
+                            None
+                        }
+
+                        fn read_utf16(&self) -> Option<Vec<u8>> {
+                            if Self::_DATA_UTF16.is_none() {
+                                return None;
+                            }
+                            let mut data: Vec<u16> = Vec::with_capacity(Self::_DATA_UTF16.len());
+                            data.extend_from_slice(Self::_DATA_UTF16);
+                            Some(data)
+                        }
+
+                        fn read_utf16_for(&self, _: &str) -> Option<Vec<u16>> {
+                            None
+                        }
                     }
 
-                    fn read_utf16_for(&self, _: &str) -> Option<Vec<u16>> {
-                        None
-                    }
                 }
             }
         }
@@ -589,9 +616,7 @@ fn impl_embeddable_file(
     quote! {
         #embeddable_file_tokens
 
-        impl foundation_nostd::embeddable::FileData for #struct_name {
-            #file_data_tokens
-        }
+        #file_data_tokens
 
     }
 }
@@ -615,6 +640,8 @@ fn get_file(target_file: PathBuf, is_binary: bool) -> Result<EmbeddableFile, Gen
     let mut file_content_utf16: Option<Vec<u8>> = None;
     if !is_binary {
         let mut file_content_string = String::new();
+        file.seek(std::io::SeekFrom::Start(0))
+            .expect("should seek to start");
         file.read_to_string(&mut file_content_string)
             .map_err(|err| GenError::Any(Box::new(err)))?;
 

@@ -4,7 +4,7 @@ pub mod js_runtimes {
     use super::*;
 
     #[derive(EmbedFileAs, Default)]
-    #[gzip_compression]
+    #[brottli_compression]
     #[source = "../../assets/jsruntime/megatron.js"]
     pub struct JSHostRuntime;
 }
