@@ -3,18 +3,20 @@ extern crate alloc;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum DataCompression {
     NONE,
     GZIP,
     BROTTLI,
 }
 
+#[derive(Debug, Clone)]
 pub enum FsInfo {
     Dir(DirectoryInfo),
     File(FileInfo),
 }
 
+#[derive(Debug, Clone)]
 pub struct DirectoryInfo {
     pub index: Option<usize>,
     pub dir_name: String,
@@ -22,12 +24,13 @@ pub struct DirectoryInfo {
     pub date_modified_since_unix_epoc: Option<i64>,
 }
 
+#[derive(Debug, Clone)]
 pub struct FileInfo {
     pub index: Option<usize>,
     pub source_file_path: String,
     pub source_name: String,
     pub source_path: String,
-    pub root_dir: String,
+    pub package_directory: String,
     pub e_tag: String,
     pub hash: String,
     pub mime_type: Option<String>,
@@ -41,7 +44,7 @@ impl FileInfo {
         source_file_path: String,
         source_name: String,
         source_path: String,
-        root_dir: String,
+        package_directory: String,
         hash: String,
         e_tag: String,
         mime_type: Option<String>,
@@ -50,9 +53,9 @@ impl FileInfo {
         Self {
             source_file_path,
             date_modified_since_unix_epoc: date_modified,
+            package_directory,
             source_name,
             source_path,
-            root_dir,
             index,
             e_tag,
             hash,
@@ -66,18 +69,18 @@ impl FileInfo {
         source_file_path: String,
         source_name: String,
         source_path: String,
-        root_dir: String,
+        package_directory: String,
         hash: String,
         e_tag: String,
         mime_type: Option<String>,
         date_modified: Option<i64>,
     ) -> Self {
         Self {
-            source_file_path,
             date_modified_since_unix_epoc: date_modified,
+            source_file_path,
+            package_directory,
             source_name,
             source_path,
-            root_dir,
             index,
             e_tag,
             hash,
@@ -123,6 +126,7 @@ pub trait EmbeddableFile: FileData {
     fn info_for<'a>(&self, source: &'a str) -> Option<&'a FileInfo>;
 }
 
+#[derive(Debug, Clone)]
 pub struct OwnedData(&'static [u8], &'static [u8], DataCompression);
 
 impl OwnedData {
