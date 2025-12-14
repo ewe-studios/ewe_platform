@@ -296,12 +296,11 @@ fn impl_embeddable_file(
                 #mime_type,
                 #date_modified_tokens,
             );
-
         }
 
         impl foundation_nostd::embeddable::EmbeddableFile for #struct_name {
             fn get_info(&self) -> &foundation_nostd::embeddable::FileInfo {
-                &self._FILE_INFO
+                &Self::_FILE_INFO
             }
 
             fn info_for<'a>(&self, source: &'a str) -> Option<&'a foundation_nostd::embeddable::FileInfo> {
@@ -624,7 +623,7 @@ fn impl_embeddable_file(
                             Some(data)
                         }
 
-                        fn read_utf16_for(&self, _: &str) -> Option<Vec<u16>> {
+                        fn read_utf16_for(&self, _: &str) -> Option<Vec<u8>> {
                             None
                         }
                     }
@@ -664,6 +663,8 @@ fn impl_embeddable_directory(
     let project_dir = manifest_dir
         .strip_prefix(&working_dir)
         .expect("should be from home directory");
+    let project_dir_tokens =
+        Literal::string(project_dir.to_str().expect("get path string for file"));
 
     let target_directory = if target_source.contains(CURRENT_CRATE_MATCHER) {
         target_source.replace(CURRENT_CRATE_MATCHER, &cargo_manifest_dir_env)
@@ -679,7 +680,7 @@ fn impl_embeddable_directory(
         manifest_dir.join(target_directory.as_str())
     };
 
-    let embed_directory_path = match std::fs::canonicalize(&embed_directory_candidate) {
+    let embed_directory_full_path = match std::fs::canonicalize(&embed_directory_candidate) {
         Ok(inner) => inner.to_owned(),
         Err(err) => {
             panic!(
@@ -689,26 +690,520 @@ fn impl_embeddable_directory(
         }
     };
 
-    let embedded_file_relative_path = embed_directory_path
-        .strip_prefix(&working_dir)
-        .expect("should be from home directory");
+    let embed_directory_path = match std::fs::canonicalize(&embed_directory_full_path) {
+        Ok(inner) => inner.to_owned(),
+        Err(err) => {
+            panic!(
+                "Failed to call fs.exists on file: {:?} due to {:?}",
+                &embed_directory_candidate, err
+            );
+        }
+    };
 
-    let embedded_file_relative_path_tokens =
+    let embedded_date_modified =
+        get_file_modified_date(embed_directory_path.clone()).expect("get modified date");
+    let embedded_date_modified_tokens = match embedded_date_modified {
+        Some(inner) => quote! {
+            Some(#inner)
+        },
+        None => quote! {
+            None
+        },
+    };
+
+    let embedded_directory_name = get_file_name(embed_directory_path.clone());
+    let embedded_directory_name_literal = Literal::string(embedded_directory_name.as_str());
+
+    let embedded_directory_root = embed_directory_path.parent();
+    let embedded_directory_path_literal =
         Literal::string(embed_directory_path.to_str().expect("unwrap as str"));
 
-    // let embeddable_file = get_file(embed_directory_path.clone(), is_binary)
-    //     .expect("Failed to generate file embeddings");
-    //
-    // // let target_file_abs_tokens = Literal::string(embed_file_path.as_str());
-    // let target_file_tokens = Literal::string(
-    //     embed_directory_path
-    //         .file_name()
-    //         .expect("get name of file")
-    //         .to_str()
-    //         .expect("unwrap as str"),
-    // );
+    let embedded_directory_relative_path = embed_directory_path
+        .strip_prefix(&working_dir)
+        .expect("should be from home directory");
+    let embedded_directory_relative_path_literal = Literal::string(
+        embedded_directory_relative_path
+            .to_str()
+            .expect("unwrap as str"),
+    );
 
-    todo!()
+    if cfg!(debug_assertions) {
+        let embeddable_file_tokens = quote! {
+            impl #struct_name {
+                const _FILE_INFO: &'static foundation_nostd::embeddable::FileInfo = foundation_nostd::embeddable::FileInfo::create(
+                    None,
+                    String::from(#embedded_directory_path_literal),
+                    String::from(#embedded_directory_name_literal),
+                    String::from(#embedded_directory_relative_path_literal),
+                    String::from(#project_dir_tokens),
+                    String::from(""),
+                    String::from(""),
+                    None,
+                    #embedded_date_modified_tokens,
+                );
+
+                const _ROOT_DIRECTORY: &'static str =  #embedded_directory_path_literal;
+            }
+
+            impl foundation_nostd::embeddable::EmbeddableFile for #struct_name {
+                fn get_info(&self) -> &foundation_nostd::embeddable::FileInfo {
+                    &Self::_FILE_INFO
+                }
+
+                fn info_for<'a>(&self, source: &'a str) -> Option<&'a foundation_nostd::embeddable::FileInfo> {
+                    None
+                }
+            }
+        };
+
+        let file_data_tokens = match compression {
+            DataCompression::NONE => {
+                quote! {
+                    impl foundation_nostd::embeddable::FileData for #struct_name {
+                        fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
+                            foundation_nostd::embeddable::DataCompression::NONE
+                        }
+
+                        fn read_utf8(&self) -> Option<Vec<u8>> {
+                            None
+                        }
+
+                        fn read_utf8_for(&self, target: &str) -> Option<Vec<u8>> {
+                            extern crate std;
+
+                            use std::fs::File;
+                            use std::io::Read;
+
+                            let root_directory = std::path::Path::new(Self::_ROOT_DIRECTORY);
+                            let target_location = root_directory.join(target);
+
+                            if !target_loocation.exists() {
+                                return None;
+                            }
+
+                            if target.is_dir() {
+                                return None;
+                            }
+
+                            let mut handle = File::open(target_location).expect("read target file: #target_file_tokens");
+                            let mut data_bytes = vec![];
+                            handle.read_to_end(&mut data_bytes).expect("should have read file bytes");
+
+                            Some(data_bytes)
+                        }
+
+                        fn read_utf16(&self) -> Option<Vec<u8>> {
+                            None
+                        }
+
+                        fn read_utf16_for(&self, _: &str) -> Option<Vec<u8>> {
+                            extern crate std;
+
+                            use std::fs::File;
+                            use std::io::Read;
+
+                            let root_directory = std::path::Path::new(Self::_ROOT_DIRECTORY);
+                            let target_location = root_directory.join(target);
+
+                            if !target_loocation.exists() {
+                                return None;
+                            }
+
+                            if target.is_dir() {
+                                return None;
+                            }
+
+                            let mut handle = File::open(target_location).expect("read target file: #target_file_tokens");
+
+                            let mut data_string = String::new();
+                            handle.read_to_string(&mut data_string).expect("should have read file bytes");
+
+                            Some(data_string.encode_utf16().flat_map(|u| u.to_le_bytes()).collect())
+                        }
+                    }
+                }
+            }
+            DataCompression::GZIP => {
+                quote! {
+                    impl foundation_nostd::embeddable::FileData for #struct_name {
+                        fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
+                            foundation_nostd::embeddable::DataCompression::GZIP
+                        }
+
+                        fn read_utf8(&self) -> Option<Vec<u8>> {
+                            None
+                        }
+
+                        fn read_utf8_for(&self, target: &str) -> Option<Vec<u8>> {
+                            extern crate std;
+
+                            use std::fs::File;
+                            use std::io::Read;
+                            use std::io::Write;
+                            use flate2::write::GzEncoder;
+                            use flate2::Compression;
+
+                            let mut data_bytes: Vec<u8> = vec![];
+
+                            let root_directory = std::path::Path::new(Self::_ROOT_DIRECTORY);
+                            let target_location = root_directory.join(target);
+
+                            if !target_loocation.exists() {
+                                return None;
+                            }
+
+                            if target.is_dir() {
+                                return None;
+                            }
+
+                            let mut handle = File::open(target_location).expect("read target file: #target_file_tokens");
+                            handle.read_to_end(&mut data_bytes).expect("should have read file bytes");
+
+                            let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
+                            encoder.write_all(data_bytes.as_slice()).expect("written data");
+
+                            let generated = encoder.finish().expect("should finish encoding");
+                            Some(generated)
+                        }
+
+                        fn read_utf16(&self) -> Option<Vec<u8>> {
+                            None
+                        }
+
+                        fn read_utf16_for(&self, _: &str) -> Option<Vec<u8>> {
+                            extern crate std;
+
+                            use std::fs::File;
+                            use std::io::Read;
+                            use std::io::Write;
+                            use flate2::write::GzEncoder;
+                            use flate2::Compression;
+
+                            let mut data_string = String::new();
+
+                            let root_directory = std::path::Path::new(Self::_ROOT_DIRECTORY);
+                            let target_location = root_directory.join(target);
+
+                            if !target_loocation.exists() {
+                                return None;
+                            }
+
+                            if target.is_dir() {
+                                return None;
+                            }
+
+                            let mut handle = File::open(target_location).expect("read target file: #target_file_tokens");
+                            handle.read_to_string(&mut data_string).expect("should have read file bytes");
+
+                            let data_utf16: Vec<u8> = data_string.encode_utf16().flat_map(|u| u.to_le_bytes()).collect();
+
+                            let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
+                            encoder.write_all(data_utf16.as_slice()).expect("written data");
+
+                            Some(encoder.finish().expect("should finish encoding"))
+                        }
+                    }
+                }
+            }
+            DataCompression::BROTTLI => {
+                quote! {
+                    impl foundation_nostd::embeddable::FileData for #struct_name {
+
+                        fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
+                            foundation_nostd::embeddable::DataCompression::BROTTLI
+                        }
+
+                        fn read_utf8(&self) -> Option<Vec<u8>> {
+                            None
+                        }
+
+                        fn read_utf8_for(&self, _: &str) -> Option<Vec<u8>> {
+                            extern crate std;
+
+                            use std::fs::File;
+                            use std::io::Read;
+                            use std::io::Write;
+                            use flate2::write::GzEncoder;
+                            use flate2::Compression;
+
+                            let mut data_bytes: Vec<u8> = vec![];
+
+                            let root_directory = std::path::Path::new(Self::_ROOT_DIRECTORY);
+                            let target_location = root_directory.join(target);
+
+                            if !target_loocation.exists() {
+                                return None;
+                            }
+
+                            if target.is_dir() {
+                                return None;
+                            }
+
+                            let mut handle = File::open(target_location).expect("read target file: #target_file_tokens");
+                            handle.read_to_end(&mut data_bytes).expect("should have read file bytes");
+
+                            let mut writer = brotli::CompressorWriter::new(Vec::new(), 4096, 11, 22);
+                            writer.write_all(data_bytes.as_slice()).expect("written data");
+                            writer.flush().expect("flushed data");
+
+                            Some(writer.into_inner())
+                        }
+
+                        fn read_utf16(&self) -> Option<Vec<u8>> {
+                            None
+                        }
+
+                        fn read_utf16_for(&self, _: &str) -> Option<Vec<u8>> {
+                            extern crate std;
+
+                            use std::fs::File;
+                            use std::io::Read;
+                            use std::io::Write;
+                            use flate2::write::GzEncoder;
+                            use flate2::Compression;
+
+                            let mut data_string = String::new();
+
+                            let root_directory = std::path::Path::new(Self::_ROOT_DIRECTORY);
+                            let target_location = root_directory.join(target);
+
+                            if !target_loocation.exists() {
+                                return None;
+                            }
+
+                            if target.is_dir() {
+                                return None;
+                            }
+
+                            let mut handle = File::open(target_location).expect("read target file: #target_file_tokens");
+                            handle.read_to_string(&mut data_string).expect("should have read file bytes");
+
+                            let data_utf16: Vec<u8> = data_string.encode_utf16().flat_map(|u| u.to_le_bytes()).collect();
+
+                            let mut writer = brotli::CompressorWriter::new(Vec::new(), 4096, 11, 22);
+                            writer.write_all(data_utf16.as_slice()).expect("written data");
+                            writer.flush().expect("flushed data");
+
+                            Some(writer.into_inner())
+                        }
+                    }
+                }
+            }
+        };
+
+        return quote! {
+            #embeddable_file_tokens
+
+            #file_data_tokens
+        };
+    }
+
+    println!("packageDirectory: {:?}", &project_dir);
+    println!("ProjectDirFull: {:?}", &embed_directory_full_path);
+    println!("EmbedPath: {:?}", &embed_directory_path);
+    println!("EmbedRel: {:?}", &embedded_directory_relative_path);
+
+    let mut collected_entries: Vec<FsInfo> = Vec::new();
+    visit_dirs(
+        &mut collected_entries,
+        &embed_directory_path,
+        embedded_directory_root,
+        0,
+    );
+
+    println!("Collected: {:?}", &collected_entries);
+
+    let embeddable_file_tokens = quote! {
+        impl #struct_name {
+            const _FILE_INFO: &'static foundation_nostd::embeddable::FileInfo = foundation_nostd::embeddable::FileInfo::create(
+                None,
+                String::from(#embedded_directory_path_literal),
+                String::from(#embedded_directory_name_literal),
+                String::from(#embedded_directory_relative_path_literal),
+                String::from(#project_dir_tokens),
+                String::from(""),
+                String::from(""),
+                None,
+                #embedded_date_modified_tokens,
+            );
+
+            const _ROOT_DIRECTORY: &'static str =  #embedded_directory_path_literal;
+        }
+
+        impl foundation_nostd::embeddable::EmbeddableFile for #struct_name {
+            fn get_info(&self) -> &foundation_nostd::embeddable::FileInfo {
+                &Self::_FILE_INFO
+            }
+
+            fn info_for<'a>(&self, source: &'a str) -> Option<&'a foundation_nostd::embeddable::FileInfo> {
+                None
+            }
+        }
+    };
+
+    // let file_data_tokens = match compression {
+    //     DataCompression::NONE => {
+    //         let utf8_token_tree = UTF8List(embeddable_file.data.as_slice());
+    //         let utf16_token_tree = embeddable_file
+    //             .data_utf16
+    //             .map(UTF8Vec)
+    //             .map_or(quote! {None}, |v| quote! { Some(#v)});
+    //
+    //         quote! {
+    //             impl #struct_name {
+    //                 /// [`UTF8`] provides the utf-8 byte slices of the file as is
+    //                 /// read from file which uses the endiancess of the native system
+    //                 /// when compiled by rust.
+    //                 const _DATA_U8: &'static [u8] = #utf8_token_tree;
+    //
+    //                 /// [`UTF16`] provides the utf-16 byte slices of the file as is
+    //                 /// read from file which uses the endiancess of the native system
+    //                 /// when compiled by rust.
+    //                 const _DATA_UTF16: Option<&'static [u8]> = #utf16_token_tree;
+    //             }
+    //
+    //             impl foundation_nostd::embeddable::FileData for #struct_name {
+    //                 fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
+    //                     foundation_nostd::embeddable::DataCompression::NONE
+    //                 }
+    //
+    //                 fn read_utf8(&self) -> Option<Vec<u8>> {
+    //                     let mut data: Vec<u8> = Vec::with_capacity(Self::_DATA_U8.len());
+    //                     data.extend_from_slice(Self::_DATA_U8);
+    //                     Some(data)
+    //                 }
+    //
+    //                 fn read_utf8_for(&self, _: &str) -> Option<Vec<u8>> {
+    //                     None
+    //                 }
+    //
+    //                 fn read_utf16(&self) -> Option<Vec<u8>> {
+    //                     if Self::_DATA_UTF16.is_some() {
+    //                         let mut data: Vec<u16> = Vec::with_capacity(Self::_DATA_U16.len());
+    //                         data.extend_from_slice(Self::_DATA_U16);
+    //                         return Some(data);
+    //                     }
+    //                     None
+    //                 }
+    //
+    //                 fn read_utf16_for(&self, _: &str) -> Option<Vec<u8>> {
+    //                     None
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     DataCompression::GZIP => {
+    //         let utf8_token_tree = UTF8Vec(gzipped_vec(embeddable_file.data));
+    //         let utf16_token_tree = embeddable_file
+    //             .data_utf16
+    //             .map(|data| UTF8Vec(gzipped_vec(data)))
+    //             .map_or(quote! {None}, |v| quote! { Some(#v)});
+    //
+    //         quote! {
+    //
+    //             impl #struct_name {
+    //                 /// [`UTF8`] provides the utf-8 byte slices of the file as is
+    //                 /// read from file which uses the endiancess of the native system
+    //                 /// when compiled by rust.
+    //                 const _DATA_UTF8: &'static [u8] = #utf8_token_tree;
+    //
+    //                 /// [`UTF16`] provides the utf-16 byte slices of the file as is
+    //                 /// read from file which uses the endiancess of the native system
+    //                 /// when compiled by rust.
+    //                 const _DATA_UTF16: Option<&'static [u8]> = #utf16_token_tree;
+    //             }
+    //
+    //             impl foundation_nostd::embeddable::FileData for #struct_name {
+    //                 fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
+    //                     foundation_nostd::embeddable::DataCompression::GZIP
+    //                 }
+    //
+    //                 fn read_utf8(&self) -> Option<Vec<u8>> {
+    //                     let mut data: Vec<u8> = Vec::with_capacity(Self::_DATA_U8.len());
+    //                     data.extend_from_slice(Self::_DATA_U8);
+    //                     Some(data)
+    //                 }
+    //
+    //                 fn read_utf8_for(&self, _: &str) -> Option<Vec<u8>> {
+    //                     None
+    //                 }
+    //
+    //                 fn read_utf16(&self) -> Option<Vec<u8>> {
+    //                     if Self::_DATA_UTF16.is_none() {
+    //                         return None;
+    //                     }
+    //                     let mut data: Vec<u16> = Vec::with_capacity(Self::_DATA_UTF16.len());
+    //                     data.extend_from_slice(Self::_DATA_UTF16);
+    //                     Some(data)
+    //                 }
+    //
+    //                 fn read_utf16_for(&self, _: &str) -> Option<Vec<u16>> {
+    //                     None
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     DataCompression::BROTTLI => {
+    //         let utf8_token_tree = UTF8Vec(brottli_vec(embeddable_file.data));
+    //         let utf16_token_tree = embeddable_file
+    //             .data_utf16
+    //             .map(|data| UTF8Vec(brottli_vec(data)))
+    //             .map_or(quote! {None}, |v| quote! { Some(#v)});
+    //
+    //         quote! {
+    //
+    //             impl #struct_name {
+    //                 /// [`UTF8`] provides the utf-8 byte slices of the file as is
+    //                 /// read from file which uses the endiancess of the native system
+    //                 /// when compiled by rust.
+    //                 const _DATA_UTF8: &'static [u8] = #utf8_token_tree;
+    //
+    //                 /// [`UTF16`] provides the utf-16 byte slices of the file as is
+    //                 /// read from file which uses the endiancess of the native system
+    //                 /// when compiled by rust.
+    //                 const _DATA_UTF16: Option<&'static [u8]> = #utf16_token_tree;
+    //             }
+    //
+    //             impl foundation_nostd::embeddable::FileData for #struct_name {
+    //                 fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
+    //                     foundation_nostd::embeddable::DataCompression::BROTTLI
+    //                 }
+    //
+    //                 fn read_utf8(&self) -> Option<Vec<u8>> {
+    //                     let mut data: Vec<u8> = Vec::with_capacity(Self::_DATA_U8.len());
+    //                     data.extend_from_slice(Self::_DATA_U8);
+    //                     Some(data)
+    //                 }
+    //
+    //                 fn read_utf8_for(&self, _: &str) -> Option<Vec<u8>> {
+    //                     None
+    //                 }
+    //
+    //                 fn read_utf16(&self) -> Option<Vec<u8>> {
+    //                     if Self::_DATA_UTF16.is_none() {
+    //                         return None;
+    //                     }
+    //                     let mut data: Vec<u16> = Vec::with_capacity(Self::_DATA_UTF16.len());
+    //                     data.extend_from_slice(Self::_DATA_UTF16);
+    //                     Some(data)
+    //                 }
+    //
+    //                 fn read_utf16_for(&self, _: &str) -> Option<Vec<u8>> {
+    //                     None
+    //                 }
+    //             }
+    //
+    //         }
+    //     }
+    // };
+
+    let file_data_tokens = quote! {};
+
+    quote! {
+        #embeddable_file_tokens
+
+        #file_data_tokens
+    }
 }
 
 fn visit_dirs(collected: &mut Vec<FsInfo>, dir: &Path, root_dir: Option<&Path>, index: usize) {
