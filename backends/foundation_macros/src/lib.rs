@@ -49,7 +49,7 @@ mod embedders;
 ///
 #[proc_macro_derive(
     EmbedDirectoryAs,
-    attributes(source, gzip_compression, brottli_compression)
+    attributes(source, gzip_compression, brottli_compression, with_utf16)
 )]
 pub fn embed_directory_as(item: TokenStream) -> TokenStream {
     embedders::embed_directory_on_struct(item)
@@ -101,7 +101,7 @@ pub fn embed_directory_as(item: TokenStream) -> TokenStream {
 ///
 #[proc_macro_derive(
     EmbedFileAs,
-    attributes(source, gzip_compression, brottli_compression, is_binary)
+    attributes(source, gzip_compression, brottli_compression, with_utf16)
 )]
 pub fn embed_file_as(item: TokenStream) -> TokenStream {
     embedders::embed_file_on_struct(item)

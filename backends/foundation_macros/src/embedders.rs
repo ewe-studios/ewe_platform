@@ -46,7 +46,7 @@ pub fn embed_directory_on_struct(item: proc_macro::TokenStream) -> proc_macro::T
         _ => panic!("Please use the macro on a struct only"),
     };
 
-    let is_binary = has_attr(&ast, "is_binary");
+    let with_utf16 = has_attr(&ast, "with_utf16");
     let gzip_compression = has_attr(&ast, "gzip_compression");
     let brottli_compression = has_attr(&ast, "brottli_compression");
 
@@ -71,7 +71,7 @@ pub fn embed_directory_on_struct(item: proc_macro::TokenStream) -> proc_macro::T
     proc_macro::TokenStream::from(impl_embeddable_directory(
         &ast.ident,
         file_path,
-        is_binary,
+        with_utf16,
         compression,
     ))
 }
@@ -86,7 +86,7 @@ pub fn embed_file_on_struct(item: proc_macro::TokenStream) -> proc_macro::TokenS
         }
     };
 
-    let is_binary = has_attr(&ast, "is_binary");
+    let with_utf16 = has_attr(&ast, "with_utf16");
     let gzip_compression = has_attr(&ast, "gzip_compression");
     let brottli_compression = has_attr(&ast, "brottli_compression");
 
@@ -111,7 +111,7 @@ pub fn embed_file_on_struct(item: proc_macro::TokenStream) -> proc_macro::TokenS
     proc_macro::TokenStream::from(impl_embeddable_file(
         &ast.ident,
         file_path,
-        is_binary,
+        with_utf16,
         compression,
     ))
 }
@@ -193,7 +193,7 @@ static CURRENT_CRATE_MATCHER: &str = "$CURRENT_CRATE";
 fn impl_embeddable_file(
     struct_name: &syn::Ident,
     target_source: String,
-    is_binary: bool,
+    with_utf16: bool,
     compression: foundation_nostd::embeddable::DataCompression,
 ) -> TokenStream {
     let cargo_manifest_dir_env =
@@ -242,7 +242,7 @@ fn impl_embeddable_file(
         .expect("should be from home directory");
 
     let embeddable_file =
-        get_file(embed_file_path.clone(), is_binary).expect("Failed to generate file embeddings");
+        get_file(embed_file_path.clone(), with_utf16).expect("Failed to generate file embeddings");
 
     // let target_file_abs_tokens = Literal::string(embed_file_path.as_str());
     let target_file_tokens = Literal::string(
@@ -324,7 +324,7 @@ fn impl_embeddable_file(
                             use std::fs::File;
                             use std::io::Read;
 
-                            let mut handle = File::open(#target_file_tokens).expect("read target file: #target_file_tokens");
+                            let mut handle = File::open(#target_file_path_tokens).expect("read target file");
                             let mut data_bytes = vec![];
                             handle.read_to_end(&mut data_bytes).expect("should have read file bytes");
 
@@ -341,7 +341,7 @@ fn impl_embeddable_file(
                             use std::fs::File;
                             use std::io::Read;
 
-                            let mut handle = File::open(#target_file_tokens).expect("read target file: #target_file_tokens");
+                            let mut handle = File::open(#target_file_path_tokens).expect("read target file: #target_file_tokens");
                             let mut data_string = String::new();
                             handle.read_to_string(&mut data_string).expect("should have read file bytes");
 
@@ -423,7 +423,7 @@ fn impl_embeddable_file(
 
                             let mut data_bytes: Vec<u8> = vec![];
 
-                            let mut handle = File::open(#target_file_tokens).expect("read target file: #target_file_tokens");
+                            let mut handle = File::open(#target_file_path_tokens).expect("read target file: #target_file_tokens");
                             handle.read_to_end(&mut data_bytes).expect("should have read file bytes");
 
                             let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
@@ -448,7 +448,7 @@ fn impl_embeddable_file(
 
                             let mut data_string = String::new();
 
-                            let mut handle = File::open(#target_file_tokens).expect("read target file: #target_file_tokens");
+                            let mut handle = File::open(#target_file_path_tokens).expect("read target file: #target_file_tokens");
                             handle.read_to_string(&mut data_string).expect("should have read file bytes");
 
                             let data_utf16: Vec<u8> = data_string.encode_utf16().flat_map(|u| u.to_le_bytes()).collect();
@@ -536,7 +536,7 @@ fn impl_embeddable_file(
 
                             let mut data_bytes: Vec<u8> = vec![];
 
-                            let mut handle = File::open(#target_file_tokens).expect("read target file: #target_file_tokens");
+                            let mut handle = File::open(#target_file_path_tokens).expect("read target file: #target_file_tokens");
                             handle.read_to_end(&mut data_bytes).expect("should have read file bytes");
 
                             let mut writer = brotli::CompressorWriter::new(Vec::new(), 4096, 11, 22);
@@ -561,7 +561,7 @@ fn impl_embeddable_file(
 
                             let mut data_string = String::new();
 
-                            let mut handle = File::open(#target_file_tokens).expect("read target file: #target_file_tokens");
+                            let mut handle = File::open(#target_file_path_tokens).expect("read target file: #target_file_tokens");
                             handle.read_to_string(&mut data_string).expect("should have read file bytes");
 
                             let data_utf16: Vec<u8> = data_string.encode_utf16().flat_map(|u| u.to_le_bytes()).collect();
@@ -644,7 +644,7 @@ fn impl_embeddable_file(
 fn impl_embeddable_directory(
     struct_name: &syn::Ident,
     target_source: String,
-    is_binary: bool,
+    with_utf16: bool,
     compression: foundation_nostd::embeddable::DataCompression,
 ) -> TokenStream {
     let cargo_manifest_dir_env =
@@ -777,11 +777,11 @@ fn impl_embeddable_directory(
                             let root_directory = std::path::Path::new(Self::_ROOT_DIRECTORY);
                             let target_location = root_directory.join(target);
 
-                            if !target_loocation.exists() {
+                            if !target_location.exists() {
                                 return None;
                             }
 
-                            if target.is_dir() {
+                            if target_location.is_dir() {
                                 return None;
                             }
 
@@ -796,7 +796,7 @@ fn impl_embeddable_directory(
                             None
                         }
 
-                        fn read_utf16_for(&self, _: &str) -> Option<Vec<u8>> {
+                        fn read_utf16_for(&self, target: &str) -> Option<Vec<u8>> {
                             extern crate std;
 
                             use std::fs::File;
@@ -805,11 +805,11 @@ fn impl_embeddable_directory(
                             let root_directory = std::path::Path::new(Self::_ROOT_DIRECTORY);
                             let target_location = root_directory.join(target);
 
-                            if !target_loocation.exists() {
+                            if !target_location.exists() {
                                 return None;
                             }
 
-                            if target.is_dir() {
+                            if target_location.is_dir() {
                                 return None;
                             }
 
@@ -848,11 +848,11 @@ fn impl_embeddable_directory(
                             let root_directory = std::path::Path::new(Self::_ROOT_DIRECTORY);
                             let target_location = root_directory.join(target);
 
-                            if !target_loocation.exists() {
+                            if !target_location.exists() {
                                 return None;
                             }
 
-                            if target.is_dir() {
+                            if target_location.is_dir() {
                                 return None;
                             }
 
@@ -884,11 +884,11 @@ fn impl_embeddable_directory(
                             let root_directory = std::path::Path::new(Self::_ROOT_DIRECTORY);
                             let target_location = root_directory.join(target);
 
-                            if !target_loocation.exists() {
+                            if !target_location.exists() {
                                 return None;
                             }
 
-                            if target.is_dir() {
+                            if target_location.is_dir() {
                                 return None;
                             }
 
@@ -931,11 +931,11 @@ fn impl_embeddable_directory(
                             let root_directory = std::path::Path::new(Self::_ROOT_DIRECTORY);
                             let target_location = root_directory.join(target);
 
-                            if !target_loocation.exists() {
+                            if !target_location.exists() {
                                 return None;
                             }
 
-                            if target.is_dir() {
+                            if target_location.is_dir() {
                                 return None;
                             }
 
@@ -967,11 +967,11 @@ fn impl_embeddable_directory(
                             let root_directory = std::path::Path::new(Self::_ROOT_DIRECTORY);
                             let target_location = root_directory.join(target);
 
-                            if !target_loocation.exists() {
+                            if !target_location.exists() {
                                 return None;
                             }
 
-                            if target.is_dir() {
+                            if target_location.is_dir() {
                                 return None;
                             }
 
@@ -998,20 +998,10 @@ fn impl_embeddable_directory(
         };
     }
 
-    println!("packageDirectory: {:?}", &project_dir);
-    println!("ProjectDirFull: {:?}", &embed_directory_full_path);
-    println!("EmbedPath: {:?}", &embed_directory_path);
-    println!("EmbedRel: {:?}", &embedded_directory_relative_path);
-
-    let mut collected_entries: Vec<FsInfo> = Vec::new();
-    visit_dirs(
-        &mut collected_entries,
-        &embed_directory_path,
-        embedded_directory_root,
-        0,
-    );
-
-    println!("Collected: {:?}", &collected_entries);
+    // println!("packageDirectory: {:?}", &project_dir);
+    // println!("ProjectDirFull: {:?}", &embed_directory_full_path);
+    // println!("EmbedPath: {:?}", &embed_directory_path);
+    // println!("EmbedRel: {:?}", &embedded_directory_relative_path);
 
     let embeddable_file_tokens = quote! {
         impl #struct_name {
@@ -1041,163 +1031,122 @@ fn impl_embeddable_directory(
         }
     };
 
-    // let file_data_tokens = match compression {
-    //     DataCompression::NONE => {
-    //         let utf8_token_tree = UTF8List(embeddable_file.data.as_slice());
-    //         let utf16_token_tree = embeddable_file
-    //             .data_utf16
-    //             .map(UTF8Vec)
-    //             .map_or(quote! {None}, |v| quote! { Some(#v)});
-    //
-    //         quote! {
-    //             impl #struct_name {
-    //                 /// [`UTF8`] provides the utf-8 byte slices of the file as is
-    //                 /// read from file which uses the endiancess of the native system
-    //                 /// when compiled by rust.
-    //                 const _DATA_U8: &'static [u8] = #utf8_token_tree;
-    //
-    //                 /// [`UTF16`] provides the utf-16 byte slices of the file as is
-    //                 /// read from file which uses the endiancess of the native system
-    //                 /// when compiled by rust.
-    //                 const _DATA_UTF16: Option<&'static [u8]> = #utf16_token_tree;
-    //             }
-    //
-    //             impl foundation_nostd::embeddable::FileData for #struct_name {
-    //                 fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
-    //                     foundation_nostd::embeddable::DataCompression::NONE
-    //                 }
-    //
-    //                 fn read_utf8(&self) -> Option<Vec<u8>> {
-    //                     let mut data: Vec<u8> = Vec::with_capacity(Self::_DATA_U8.len());
-    //                     data.extend_from_slice(Self::_DATA_U8);
-    //                     Some(data)
-    //                 }
-    //
-    //                 fn read_utf8_for(&self, _: &str) -> Option<Vec<u8>> {
-    //                     None
-    //                 }
-    //
-    //                 fn read_utf16(&self) -> Option<Vec<u8>> {
-    //                     if Self::_DATA_UTF16.is_some() {
-    //                         let mut data: Vec<u16> = Vec::with_capacity(Self::_DATA_U16.len());
-    //                         data.extend_from_slice(Self::_DATA_U16);
-    //                         return Some(data);
-    //                     }
-    //                     None
-    //                 }
-    //
-    //                 fn read_utf16_for(&self, _: &str) -> Option<Vec<u8>> {
-    //                     None
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     DataCompression::GZIP => {
-    //         let utf8_token_tree = UTF8Vec(gzipped_vec(embeddable_file.data));
-    //         let utf16_token_tree = embeddable_file
-    //             .data_utf16
-    //             .map(|data| UTF8Vec(gzipped_vec(data)))
-    //             .map_or(quote! {None}, |v| quote! { Some(#v)});
-    //
-    //         quote! {
-    //
-    //             impl #struct_name {
-    //                 /// [`UTF8`] provides the utf-8 byte slices of the file as is
-    //                 /// read from file which uses the endiancess of the native system
-    //                 /// when compiled by rust.
-    //                 const _DATA_UTF8: &'static [u8] = #utf8_token_tree;
-    //
-    //                 /// [`UTF16`] provides the utf-16 byte slices of the file as is
-    //                 /// read from file which uses the endiancess of the native system
-    //                 /// when compiled by rust.
-    //                 const _DATA_UTF16: Option<&'static [u8]> = #utf16_token_tree;
-    //             }
-    //
-    //             impl foundation_nostd::embeddable::FileData for #struct_name {
-    //                 fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
-    //                     foundation_nostd::embeddable::DataCompression::GZIP
-    //                 }
-    //
-    //                 fn read_utf8(&self) -> Option<Vec<u8>> {
-    //                     let mut data: Vec<u8> = Vec::with_capacity(Self::_DATA_U8.len());
-    //                     data.extend_from_slice(Self::_DATA_U8);
-    //                     Some(data)
-    //                 }
-    //
-    //                 fn read_utf8_for(&self, _: &str) -> Option<Vec<u8>> {
-    //                     None
-    //                 }
-    //
-    //                 fn read_utf16(&self) -> Option<Vec<u8>> {
-    //                     if Self::_DATA_UTF16.is_none() {
-    //                         return None;
-    //                     }
-    //                     let mut data: Vec<u16> = Vec::with_capacity(Self::_DATA_UTF16.len());
-    //                     data.extend_from_slice(Self::_DATA_UTF16);
-    //                     Some(data)
-    //                 }
-    //
-    //                 fn read_utf16_for(&self, _: &str) -> Option<Vec<u16>> {
-    //                     None
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     DataCompression::BROTTLI => {
-    //         let utf8_token_tree = UTF8Vec(brottli_vec(embeddable_file.data));
-    //         let utf16_token_tree = embeddable_file
-    //             .data_utf16
-    //             .map(|data| UTF8Vec(brottli_vec(data)))
-    //             .map_or(quote! {None}, |v| quote! { Some(#v)});
-    //
-    //         quote! {
-    //
-    //             impl #struct_name {
-    //                 /// [`UTF8`] provides the utf-8 byte slices of the file as is
-    //                 /// read from file which uses the endiancess of the native system
-    //                 /// when compiled by rust.
-    //                 const _DATA_UTF8: &'static [u8] = #utf8_token_tree;
-    //
-    //                 /// [`UTF16`] provides the utf-16 byte slices of the file as is
-    //                 /// read from file which uses the endiancess of the native system
-    //                 /// when compiled by rust.
-    //                 const _DATA_UTF16: Option<&'static [u8]> = #utf16_token_tree;
-    //             }
-    //
-    //             impl foundation_nostd::embeddable::FileData for #struct_name {
-    //                 fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
-    //                     foundation_nostd::embeddable::DataCompression::BROTTLI
-    //                 }
-    //
-    //                 fn read_utf8(&self) -> Option<Vec<u8>> {
-    //                     let mut data: Vec<u8> = Vec::with_capacity(Self::_DATA_U8.len());
-    //                     data.extend_from_slice(Self::_DATA_U8);
-    //                     Some(data)
-    //                 }
-    //
-    //                 fn read_utf8_for(&self, _: &str) -> Option<Vec<u8>> {
-    //                     None
-    //                 }
-    //
-    //                 fn read_utf16(&self) -> Option<Vec<u8>> {
-    //                     if Self::_DATA_UTF16.is_none() {
-    //                         return None;
-    //                     }
-    //                     let mut data: Vec<u16> = Vec::with_capacity(Self::_DATA_UTF16.len());
-    //                     data.extend_from_slice(Self::_DATA_UTF16);
-    //                     Some(data)
-    //                 }
-    //
-    //                 fn read_utf16_for(&self, _: &str) -> Option<Vec<u8>> {
-    //                     None
-    //                 }
-    //             }
-    //
-    //         }
-    //     }
-    // };
+    let mut collected_entries: Vec<FsInfo> = Vec::new();
+    visit_dirs(
+        &mut collected_entries,
+        &embed_directory_path,
+        embedded_directory_root,
+        0,
+    );
 
-    let file_data_tokens = quote! {};
+    // println!("Collected: {:?}", &collected_entries);
+
+    let (file_data_list, file_meta_list): (Vec<TokenStream>, Vec<TokenStream>) = collected_entries
+        .iter()
+        .flat_map(|item| {
+            if let FsInfo::File(info) = item {
+                let source_file_path = PathBuf::from(info.source_file_path.clone());
+                let file_data = get_file(source_file_path, with_utf16)
+                    .expect("Failed to generate file embeddings");
+
+                let file_index = Literal::usize_unsuffixed(info.index.expect("should have index"));
+                let file_name = Literal::string(info.source_name.as_str());
+                let file_path_tokens = Literal::string(info.source_path.as_str());
+                let disk_path_tokens = Literal::string(info.source_file_path.as_str());
+
+                let etag_tokens = Literal::string(file_data.etag.as_str());
+                let hash_tokens = Literal::string(file_data.hash.as_str());
+
+                let date_modified_tokens = match file_data.date_modified {
+                    Some(inner) => quote! {
+                        Some(#inner)
+                    },
+                    None => quote! {
+                        None
+                    },
+                };
+
+                let mime_type = match file_data.mime_type {
+                    Some(inner) => quote! {
+                        Some(String::from(#inner))
+                    },
+                    None => quote! {
+                        None
+                    },
+                };
+
+                match compression {
+                    DataCompression::NONE => {
+                        let utf8_token_tree = UTF8List(file_data.data.as_slice());
+                        let utf16_data_line = file_data
+                            .data_utf16
+                            .map(UTF8Vec)
+                            .map_or(quote! {None}, |v| quote! { Some(#v)});
+
+                        Some((
+                            quote! {
+                                (#file_index, #utf8_token_tree, #utf16_data_line),
+                            },
+                            quote! {
+                                (#file_index, String::from(#file_name), String::from(#file_path_tokens), String::from(#etag_tokens), String::from(#hash_tokens), #mime_type, #date_modified_tokens, String::from(#disk_path_tokens)),
+                            },
+                        ))
+                    }
+                    DataCompression::GZIP => {
+                        let utf8_token_tree = UTF8Vec(gzipped_vec(file_data.data));
+                        let utf16_token_tree = file_data
+                            .data_utf16
+                            .map(|data| UTF8Vec(gzipped_vec(data)))
+                            .map_or(quote! {None}, |v| quote! { Some(#v)});
+
+                        Some((
+                            quote! {
+                                (#file_index, #utf8_token_tree, #utf16_token_tree),
+                            },
+                            quote! {
+                                (#file_index, String::from(#file_name), String::from(#file_path_tokens), String::from(#etag_tokens), String::from(#hash_tokens), #mime_type, #date_modified_tokens, String::from(#disk_path_tokens)),
+                            },
+                        ))
+                    }
+                    DataCompression::BROTTLI => {
+                        let utf8_token_tree = UTF8Vec(brottli_vec(file_data.data));
+                        let utf16_token_tree = file_data
+                            .data_utf16
+                            .map(|data| UTF8Vec(brottli_vec(data)))
+                            .map_or(quote! {None}, |v| quote! { Some(#v)});
+
+                        Some((
+                            quote! {
+                                (#file_index, #utf8_token_tree, #utf16_token_tree),
+                            },
+                            quote! {
+                                (#file_index, String::from(#file_name), String::from(#file_path_tokens), String::from(#etag_tokens), String::from(#hash_tokens), #mime_type, #date_modified_tokens, String::from(#disk_path_tokens)),
+                            },
+                        ))
+                    }
+                }
+            } else {
+                None
+            }
+        })
+        .unzip();
+
+    let file_data_tokens = quote! {
+        impl #struct_name {
+            const _ALL_FILES_REFS: &'static [(
+                usize,
+                String,
+                String,
+                String,
+                String,
+                Option<String>,
+                Option<i64>,
+                String
+            )] = [#(#file_meta_list)*];
+
+            const _ALL_FILES_DATA: &'static [(usize, &'static [u8], Option<&'static [u8]>)] = [#(#file_data_list)*];
+        }
+    };
 
     quote! {
         #embeddable_file_tokens
@@ -1232,7 +1181,7 @@ fn visit_dirs(collected: &mut Vec<FsInfo>, dir: &Path, root_dir: Option<&Path>, 
             let entry_path = entry.path();
 
             let file_directory_relative = entry_path
-                .strip_prefix(dir)
+                .strip_prefix(root_dir.unwrap_or(dir))
                 .expect("should be able to strip root dir");
 
             if entry_path.is_dir() {
@@ -1247,12 +1196,14 @@ fn visit_dirs(collected: &mut Vec<FsInfo>, dir: &Path, root_dir: Option<&Path>, 
                     .first()
                     .map(|v| v.to_string());
 
+                // println!("Path: {:?} == {:?}", &file_path_string, &file_relative_str);
+
                 current_index += 1;
                 let file_info = FileInfo::new(
                     Some(current_index),
                     file_path_string,
-                    file_relative_str,
                     file_name,
+                    file_relative_str,
                     dir_path_string.clone(),
                     file_hash,
                     file_etag,
@@ -1297,7 +1248,7 @@ fn get_file_hash(target_file: PathBuf) -> Result<String, GenError> {
     Ok(generate_hash(&file_content))
 }
 
-fn get_file(target_file: PathBuf, is_binary: bool) -> Result<EmbeddableFile, GenError> {
+fn get_file(target_file: PathBuf, with_utf16: bool) -> Result<EmbeddableFile, GenError> {
     let mut file = fs::File::open(&target_file).map_err(|err| GenError::Any(Box::new(err)))?;
 
     let mut file_content: Vec<u8> = Vec::new();
@@ -1305,7 +1256,7 @@ fn get_file(target_file: PathBuf, is_binary: bool) -> Result<EmbeddableFile, Gen
         .map_err(|err| GenError::Any(Box::new(err)))?;
 
     let mut file_content_utf16: Option<Vec<u8>> = None;
-    if !is_binary {
+    if with_utf16 {
         let mut file_content_string = String::new();
         file.seek(std::io::SeekFrom::Start(0))
             .expect("should seek to start");

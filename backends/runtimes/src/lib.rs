@@ -9,6 +9,6 @@ pub mod js_runtimes {
     pub struct JSHostRuntime;
 
     #[derive(EmbedDirectoryAs, Default)]
-    #[source = "../../assets/jsruntime"]
+    #[source = "../../assets/hello"]
     pub struct JSHostRuntimeAssets;
 }
