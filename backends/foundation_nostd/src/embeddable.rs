@@ -13,7 +13,7 @@ pub enum DataCompression {
 #[derive(Debug, Clone)]
 pub enum FsInfo {
     Dir(DirectoryInfo),
-    File(FileInfo),
+    File(OwnedFileInfo),
 }
 
 #[derive(Debug, Clone)]
@@ -25,7 +25,7 @@ pub struct DirectoryInfo {
 }
 
 #[derive(Debug, Clone)]
-pub struct FileInfo {
+pub struct OwnedFileInfo {
     pub index: Option<usize>,
     pub source_file_path: String,
     pub source_name: String,
@@ -37,32 +37,7 @@ pub struct FileInfo {
     pub date_modified_since_unix_epoc: Option<i64>,
 }
 
-impl FileInfo {
-    #[allow(clippy::too_many_arguments)]
-    pub const fn create(
-        index: Option<usize>,
-        source_file_path: String,
-        source_name: String,
-        source_path: String,
-        package_directory: String,
-        hash: String,
-        e_tag: String,
-        mime_type: Option<String>,
-        date_modified: Option<i64>,
-    ) -> Self {
-        Self {
-            source_file_path,
-            date_modified_since_unix_epoc: date_modified,
-            package_directory,
-            source_name,
-            source_path,
-            index,
-            e_tag,
-            hash,
-            mime_type,
-        }
-    }
-
+impl OwnedFileInfo {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         index: Option<usize>,
@@ -89,27 +64,84 @@ impl FileInfo {
     }
 }
 
-pub trait FileData {
+#[derive(Debug, Clone)]
+pub struct FileInfo {
+    pub index: Option<usize>,
+    pub source_file_path: &'static str,
+    pub source_name: &'static str,
+    pub source_path: &'static str,
+    pub package_directory: &'static str,
+    pub e_tag: &'static str,
+    pub hash: &'static str,
+    pub mime_type: Option<&'static str>,
+    pub date_modified_since_unix_epoc: Option<i64>,
+}
+
+impl FileInfo {
+    #[allow(clippy::too_many_arguments)]
+    pub const fn create(
+        index: Option<usize>,
+        source_file_path: &'static str,
+        source_name: &'static str,
+        source_path: &'static str,
+        package_directory: &'static str,
+        hash: &'static str,
+        e_tag: &'static str,
+        mime_type: Option<&'static str>,
+        date_modified: Option<i64>,
+    ) -> Self {
+        Self {
+            source_file_path,
+            date_modified_since_unix_epoc: date_modified,
+            package_directory,
+            source_name,
+            source_path,
+            index,
+            e_tag,
+            hash,
+            mime_type,
+        }
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        index: Option<usize>,
+        source_file_path: &'static str,
+        source_name: &'static str,
+        source_path: &'static str,
+        package_directory: &'static str,
+        hash: &'static str,
+        e_tag: &'static str,
+        mime_type: Option<&'static str>,
+        date_modified: Option<i64>,
+    ) -> Self {
+        Self {
+            date_modified_since_unix_epoc: date_modified,
+            source_file_path,
+            package_directory,
+            source_name,
+            source_path,
+            index,
+            e_tag,
+            hash,
+            mime_type,
+        }
+    }
+}
+
+pub trait HasCompression {
     /// [`compression`] returns the compression used for the file data.
     fn compression(&self) -> DataCompression;
+}
 
+pub trait FileData: HasCompression {
     /// [`read_utf8`] will return the data related to the File if its
     /// a file else returns None.
     fn read_utf8(&self) -> Option<Vec<u8>>;
 
-    /// [`read_utf8_for`] will return the data related to the File
-    /// pointed to by source path str pointer the if its
-    /// a file else returns None.
-    fn read_utf8_for(&self, source: &str) -> Option<Vec<u8>>;
-
     /// [`read_utf16`] will return the UTF16 data related to the File if its
     /// a file else returns None.
     fn read_utf16(&self) -> Option<Vec<u8>>;
-
-    /// [`read_utf16_for`] will return the UTF16 data related to the File
-    /// pointed to by source path str pointer the if its
-    /// a file else returns None.
-    fn read_utf16_for(&self, source: &str) -> Option<Vec<u8>>;
 }
 
 /// [`EmbeddableFile`] defines a trait definition in a no_std environment where
@@ -119,56 +151,23 @@ pub trait FileData {
 pub trait EmbeddableFile: FileData {
     /// [`get_info`] returns the related information for the self
     /// implementation of FileData.
-    fn get_info(&self) -> &FileInfo;
+    fn info(&self) -> &FileInfo;
+}
 
+pub trait DirectoryData: HasCompression {
+    /// [`read_utf8_for`] will return the data related to the File
+    /// pointed to by source path str pointer the if its
+    /// a file else returns None.
+    fn read_utf8_for(&self, source: &str) -> Option<Vec<u8>>;
+
+    /// [`read_utf16_for`] will return the UTF16 data related to the File
+    /// pointed to by source path str pointer the if its
+    /// a file else returns None.
+    fn read_utf16_for(&self, source: &str) -> Option<Vec<u8>>;
+}
+
+pub trait EmbeddableDirectory: DirectoryData {
     /// [`info_for`] returns the related information for the file based on the provided
     /// source path string if it exists internal else returns None.
-    fn info_for<'a>(&self, source: &'a str) -> Option<&'a FileInfo>;
-}
-
-#[derive(Debug, Clone)]
-pub struct OwnedData(&'static [u8], &'static [u8], DataCompression);
-
-impl OwnedData {
-    pub const fn create(
-        utf8_data: &'static [u8],
-        utf16_data: &'static [u8],
-        compression: DataCompression,
-    ) -> Self {
-        Self(utf8_data, utf16_data, compression)
-    }
-
-    pub fn new(
-        utf8_data: &'static [u8],
-        utf16_data: &'static [u8],
-        compression: DataCompression,
-    ) -> Self {
-        Self(utf8_data, utf16_data, compression)
-    }
-}
-
-impl FileData for OwnedData {
-    fn compression(&self) -> DataCompression {
-        self.2.clone()
-    }
-
-    fn read_utf8(&self) -> Option<Vec<u8>> {
-        let mut data = Vec::with_capacity(self.0.len());
-        data.extend_from_slice(self.0);
-        Some(data)
-    }
-
-    fn read_utf16(&self) -> Option<Vec<u8>> {
-        let mut data = Vec::with_capacity(self.1.len());
-        data.extend_from_slice(self.1);
-        Some(data)
-    }
-
-    fn read_utf8_for(&self, _: &str) -> Option<Vec<u8>> {
-        None
-    }
-
-    fn read_utf16_for(&self, _: &str) -> Option<Vec<u8>> {
-        None
-    }
+    fn info_for(&self, source: &str) -> Option<FileInfo>;
 }

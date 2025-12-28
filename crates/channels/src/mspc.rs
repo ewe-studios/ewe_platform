@@ -169,7 +169,7 @@ impl<T> ReceiveChannel<T> {
         }
     }
 
-    pub fn drain(&mut self) -> Drain<T> {
+    pub fn drain(&mut self) -> Drain<'_, T> {
         Drain { receiver: self }
     }
 
@@ -213,15 +213,17 @@ impl<T> ReceiveChannel<T> {
     pub async fn async_receive(&mut self) -> ChannelResult<T> {
         match &mut self.src {
             None => Err(ChannelError::Closed),
-            Some(src) => if let Ok(maybe_item) = src.recv().await {
-                self.read_flag.store(true);
-                Ok(maybe_item)
-            } else {
-                if src.is_closed() {
-                    return self.close_channel();
+            Some(src) => {
+                if let Ok(maybe_item) = src.recv().await {
+                    self.read_flag.store(true);
+                    Ok(maybe_item)
+                } else {
+                    if src.is_closed() {
+                        return self.close_channel();
+                    }
+                    Err(ChannelError::ReceivedNoData)
                 }
-                Err(ChannelError::ReceivedNoData)
-            },
+            }
         }
     }
 

@@ -1324,15 +1324,15 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
     field_method_as_mut!(method_mut, method, RouteMethod<R, S, Server>);
     set_field_method_as_mut!(set_method, method, RouteMethod<R, S, Server>);
 
-    pub fn iter_mut(&mut self) -> IterMut<RouteSegment<'a, R, S, Server>> {
+    pub fn iter_mut(&mut self) -> IterMut<'_, RouteSegment<'a, R, S, Server>> {
         self.dynamic_routes.iter_mut()
     }
 
-    pub fn iter(&self) -> Iter<RouteSegment<'a, R, S, Server>> {
+    pub fn iter(&self) -> Iter<'_, RouteSegment<'a, R, S, Server>> {
         self.dynamic_routes.iter()
     }
 
-    /// `take_routes` consumes the `RouteSegments` routes therby moving
+    /// `take_routes` consumes the `RouteSegments` routes there by moving
     /// it out of the route segments and returns all the routes
     /// as a Vec for whatever requirements you want.
     pub fn route_segments(self) -> Vec<SegmentType<'a>> {

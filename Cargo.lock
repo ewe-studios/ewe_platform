@@ -1223,7 +1223,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_macros"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "base85rs",
  "brotli",
@@ -1247,7 +1247,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_runtimes"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "brotli",
  "flate2",
