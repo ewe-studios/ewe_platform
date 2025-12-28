@@ -13,7 +13,7 @@ use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
 use foundation_core::megatron::jsrum::package_request_handler;
-use foundation_nostd::embeddable::{EmbeddableFile, FileData};
+use foundation_nostd::embeddable::FileData;
 use foundation_runtimes::js_runtimes::JSHostRuntime;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
@@ -88,11 +88,8 @@ async fn jsruntime_handler(req: Request) -> Response {
         .map(|data| String::from_utf8(data).expect("convert to string"))
         .map(|value| value.into_response())
     {
-        Ok(response) => response,
-        Err(err) => {
-            tracing::error!("Failed to fetch contents due to: {:?}", &err);
-            (StatusCode::INTERNAL_SERVER_ERROR, format!("{:?}", err)).into_response()
-        }
+        Some(response) => response,
+        None => (StatusCode::INTERNAL_SERVER_ERROR, "file not found").into_response(),
     }
 }
 

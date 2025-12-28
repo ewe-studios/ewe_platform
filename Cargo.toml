@@ -6,10 +6,10 @@ members = [
   "crates/*",
   "backends/*",
   "demos/*",
-  "tests/integrations/*",
   "examples/web/*",
   "examples/template/*",
   "demos/intro",
+  "tests/nodejs/integrations/*",
 ]
 exclude = [
   "crates/html-macro",
@@ -33,11 +33,11 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 
 [workspace.dependencies]
 
-foundation_macros = { path = "./backends/foundation_macros", version = "0.0.3" }
+foundation_macros = { path = "./backends/foundation_macros", version = "0.0.4" }
 foundation_nostd = { path = "./backends/foundation_nostd", version = "0.0.4" }
 foundation_wasm = { path = "./backends/foundation_wasm", version = "0.0.2" }
 foundation_core = { path = "./backends/foundation_core", version = "0.0.3" }
-foundation_runtimes = { path = "./backends/runtimes", version = "0.0.2" }
+foundation_runtimes = { path = "./backends/runtimes", version = "0.0.3" }
 
 # -- internal packages so others can use them
 ewe_web = { path = "./crates/web", version = "0.0.1" }

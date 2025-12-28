@@ -1,7 +1,7 @@
 extern crate proc_macro;
 use flate2::write::GzEncoder;
 use flate2::Compression;
-use foundation_nostd::embeddable::{DataCompression, DirectoryInfo, FileInfo, FsInfo};
+use foundation_nostd::embeddable::{DataCompression, DirectoryInfo, FsInfo, OwnedFileInfo};
 use new_mime_guess::MimeGuess;
 use quote::{quote, ToTokens};
 use sha2::{Digest, Sha256};
@@ -276,7 +276,7 @@ fn impl_embeddable_file(
 
     let mime_type = match embeddable_file.mime_type {
         Some(inner) => quote! {
-            Some(String::from(#inner))
+            Some(#inner)
         },
         None => quote! {
             None
@@ -285,26 +285,22 @@ fn impl_embeddable_file(
 
     let embeddable_file_tokens = quote! {
         impl #struct_name {
-            const _FILE_INFO: &'static foundation_nostd::embeddable::FileInfo = foundation_nostd::embeddable::FileInfo::create(
+            const _FILE_INFO: &'static foundation_nostd::embeddable::FileInfo = &foundation_nostd::embeddable::FileInfo::create(
                 None,
-                String::from(#target_file_path_tokens),
-                String::from(#target_file_tokens),
-                String::from(#embedded_file_relative_path_tokens),
-                String::from(#project_dir_tokens),
-                String::from(#hash_tokens),
-                String::from(#etag_tokens),
+                #target_file_path_tokens,
+                #target_file_tokens,
+                #embedded_file_relative_path_tokens,
+                #project_dir_tokens,
+                #hash_tokens,
+                #etag_tokens,
                 #mime_type,
                 #date_modified_tokens,
             );
         }
 
         impl foundation_nostd::embeddable::EmbeddableFile for #struct_name {
-            fn get_info(&self) -> &foundation_nostd::embeddable::FileInfo {
+            fn info(&self) -> &foundation_nostd::embeddable::FileInfo {
                 &Self::_FILE_INFO
-            }
-
-            fn info_for<'a>(&self, source: &'a str) -> Option<&'a foundation_nostd::embeddable::FileInfo> {
-                None
             }
         }
     };
@@ -313,11 +309,13 @@ fn impl_embeddable_file(
         DataCompression::NONE => {
             if cfg!(debug_assertions) {
                 quote! {
-                    impl foundation_nostd::embeddable::FileData for #struct_name {
+                    impl foundation_nostd::embeddable::HasCompression for #struct_name {
                         fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
                             foundation_nostd::embeddable::DataCompression::NONE
                         }
+                    }
 
+                    impl foundation_nostd::embeddable::FileData for #struct_name {
                         fn read_utf8(&self) -> Option<Vec<u8>> {
                             extern crate std;
 
@@ -331,10 +329,6 @@ fn impl_embeddable_file(
                             Some(data_bytes)
                         }
 
-                        fn read_utf8_for(&self, _: &str) -> Option<Vec<u8>> {
-                            None
-                        }
-
                         fn read_utf16(&self) -> Option<Vec<u8>> {
                             extern crate std;
 
@@ -346,10 +340,6 @@ fn impl_embeddable_file(
                             handle.read_to_string(&mut data_string).expect("should have read file bytes");
 
                             Some(data_string.encode_utf16().flat_map(|u| u.to_le_bytes()).collect())
-                        }
-
-                        fn read_utf16_for(&self, _: &str) -> Option<Vec<u8>> {
-                            None
                         }
                     }
                 }
@@ -373,19 +363,17 @@ fn impl_embeddable_file(
                         const _DATA_UTF16: Option<&'static [u8]> = #utf16_token_tree;
                     }
 
-                    impl foundation_nostd::embeddable::FileData for #struct_name {
+                    impl foundation_nostd::embeddable::HasCompression for #struct_name {
                         fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
                             foundation_nostd::embeddable::DataCompression::NONE
                         }
+                    }
 
+                    impl foundation_nostd::embeddable::FileData for #struct_name {
                         fn read_utf8(&self) -> Option<Vec<u8>> {
                             let mut data: Vec<u8> = Vec::with_capacity(Self::_DATA_U8.len());
                             data.extend_from_slice(Self::_DATA_U8);
                             Some(data)
-                        }
-
-                        fn read_utf8_for(&self, _: &str) -> Option<Vec<u8>> {
-                            None
                         }
 
                         fn read_utf16(&self) -> Option<Vec<u8>> {
@@ -396,10 +384,6 @@ fn impl_embeddable_file(
                             }
                             None
                         }
-
-                        fn read_utf16_for(&self, _: &str) -> Option<Vec<u8>> {
-                            None
-                        }
                     }
                 }
             }
@@ -407,11 +391,13 @@ fn impl_embeddable_file(
         DataCompression::GZIP => {
             if cfg!(debug_assertions) {
                 quote! {
-                    impl foundation_nostd::embeddable::FileData for #struct_name {
+                    impl foundation_nostd::embeddable::HasCompression for #struct_name {
                         fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
                             foundation_nostd::embeddable::DataCompression::GZIP
                         }
+                    }
 
+                    impl foundation_nostd::embeddable::FileData for #struct_name {
                         fn read_utf8(&self) -> Option<Vec<u8>> {
                             extern crate std;
 
@@ -431,10 +417,6 @@ fn impl_embeddable_file(
 
                             let generated = encoder.finish().expect("should finish encoding");
                             Some(generated)
-                        }
-
-                        fn read_utf8_for(&self, _: &str) -> Option<Vec<u8>> {
-                            None
                         }
 
                         fn read_utf16(&self) -> Option<Vec<u8>> {
@@ -457,10 +439,6 @@ fn impl_embeddable_file(
                             encoder.write_all(data_utf16.as_slice()).expect("written data");
 
                             Some(encoder.finish().expect("should finish encoding"))
-                        }
-
-                        fn read_utf16_for(&self, _: &str) -> Option<Vec<u8>> {
-                            None
                         }
                     }
                 }
@@ -485,19 +463,17 @@ fn impl_embeddable_file(
                         const _DATA_UTF16: Option<&'static [u8]> = #utf16_token_tree;
                     }
 
-                    impl foundation_nostd::embeddable::FileData for #struct_name {
+                    impl foundation_nostd::embeddable::HasCompression for #struct_name {
                         fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
                             foundation_nostd::embeddable::DataCompression::GZIP
                         }
+                    }
 
+                    impl foundation_nostd::embeddable::FileData for #struct_name {
                         fn read_utf8(&self) -> Option<Vec<u8>> {
                             let mut data: Vec<u8> = Vec::with_capacity(Self::_DATA_U8.len());
                             data.extend_from_slice(Self::_DATA_U8);
                             Some(data)
-                        }
-
-                        fn read_utf8_for(&self, _: &str) -> Option<Vec<u8>> {
-                            None
                         }
 
                         fn read_utf16(&self) -> Option<Vec<u8>> {
@@ -508,10 +484,6 @@ fn impl_embeddable_file(
                             data.extend_from_slice(Self::_DATA_UTF16);
                             Some(data)
                         }
-
-                        fn read_utf16_for(&self, _: &str) -> Option<Vec<u16>> {
-                            None
-                        }
                     }
                 }
             }
@@ -519,12 +491,13 @@ fn impl_embeddable_file(
         DataCompression::BROTTLI => {
             if cfg!(debug_assertions) {
                 quote! {
-                    impl foundation_nostd::embeddable::FileData for #struct_name {
-
+                    impl foundation_nostd::embeddable::HasCompression for #struct_name {
                         fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
                             foundation_nostd::embeddable::DataCompression::BROTTLI
                         }
+                    }
 
+                    impl foundation_nostd::embeddable::FileData for #struct_name {
                         fn read_utf8(&self) -> Option<Vec<u8>> {
                             extern crate std;
 
@@ -544,10 +517,6 @@ fn impl_embeddable_file(
                             writer.flush().expect("flushed data");
 
                             Some(writer.into_inner())
-                        }
-
-                        fn read_utf8_for(&self, _: &str) -> Option<Vec<u8>> {
-                            None
                         }
 
                         fn read_utf16(&self) -> Option<Vec<u8>> {
@@ -572,10 +541,6 @@ fn impl_embeddable_file(
 
                             Some(writer.into_inner())
                         }
-
-                        fn read_utf16_for(&self, _: &str) -> Option<Vec<u8>> {
-                            None
-                        }
                     }
                 }
             } else {
@@ -599,19 +564,17 @@ fn impl_embeddable_file(
                         const _DATA_UTF16: Option<&'static [u8]> = #utf16_token_tree;
                     }
 
-                    impl foundation_nostd::embeddable::FileData for #struct_name {
+                    impl foundation_nostd::embeddable::HasCompression for #struct_name {
                         fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
                             foundation_nostd::embeddable::DataCompression::BROTTLI
                         }
+                    }
 
+                    impl foundation_nostd::embeddable::FileData for #struct_name {
                         fn read_utf8(&self) -> Option<Vec<u8>> {
                             let mut data: Vec<u8> = Vec::with_capacity(Self::_DATA_U8.len());
                             data.extend_from_slice(Self::_DATA_U8);
                             Some(data)
-                        }
-
-                        fn read_utf8_for(&self, _: &str) -> Option<Vec<u8>> {
-                            None
                         }
 
                         fn read_utf16(&self) -> Option<Vec<u8>> {
@@ -621,10 +584,6 @@ fn impl_embeddable_file(
                             let mut data: Vec<u16> = Vec::with_capacity(Self::_DATA_UTF16.len());
                             data.extend_from_slice(Self::_DATA_UTF16);
                             Some(data)
-                        }
-
-                        fn read_utf16_for(&self, _: &str) -> Option<Vec<u8>> {
-                            None
                         }
                     }
 
@@ -637,7 +596,6 @@ fn impl_embeddable_file(
         #embeddable_file_tokens
 
         #file_data_tokens
-
     }
 }
 
@@ -730,14 +688,14 @@ fn impl_embeddable_directory(
     if cfg!(debug_assertions) {
         let embeddable_file_tokens = quote! {
             impl #struct_name {
-                const _FILE_INFO: &'static foundation_nostd::embeddable::FileInfo = foundation_nostd::embeddable::FileInfo::create(
+                const _FILE_INFO: &'static foundation_nostd::embeddable::FileInfo = &foundation_nostd::embeddable::FileInfo::create(
                     None,
-                    String::from(#embedded_directory_path_literal),
-                    String::from(#embedded_directory_name_literal),
-                    String::from(#embedded_directory_relative_path_literal),
-                    String::from(#project_dir_tokens),
-                    String::from(""),
-                    String::from(""),
+                    #embedded_directory_path_literal,
+                    #embedded_directory_name_literal,
+                    #embedded_directory_relative_path_literal,
+                    #project_dir_tokens,
+                    "",
+                    "",
                     None,
                     #embedded_date_modified_tokens,
                 );
@@ -745,12 +703,25 @@ fn impl_embeddable_directory(
                 const _ROOT_DIRECTORY: &'static str =  #embedded_directory_path_literal;
             }
 
-            impl foundation_nostd::embeddable::EmbeddableFile for #struct_name {
-                fn get_info(&self) -> &foundation_nostd::embeddable::FileInfo {
-                    &Self::_FILE_INFO
+            impl foundation_nostd::embeddable::FileData for #struct_name {
+                fn read_utf8(&self) -> Option<Vec<u8>> {
+                    None
                 }
 
-                fn info_for<'a>(&self, source: &'a str) -> Option<&'a foundation_nostd::embeddable::FileInfo> {
+                fn read_utf16(&self) -> Option<Vec<u8>> {
+                    None
+                }
+            }
+
+            impl foundation_nostd::embeddable::EmbeddableFile for #struct_name {
+                fn info(&self) -> &foundation_nostd::embeddable::FileInfo {
+                    &Self::_FILE_INFO
+                }
+            }
+
+
+            impl foundation_nostd::embeddable::EmbeddableDirectory for #struct_name {
+                fn info_for(&self, _target: &str) -> Option<foundation_nostd::embeddable::FileInfo> {
                     None
                 }
             }
@@ -759,15 +730,13 @@ fn impl_embeddable_directory(
         let file_data_tokens = match compression {
             DataCompression::NONE => {
                 quote! {
-                    impl foundation_nostd::embeddable::FileData for #struct_name {
+                    impl foundation_nostd::embeddable::HasCompression for #struct_name {
                         fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
                             foundation_nostd::embeddable::DataCompression::NONE
                         }
+                    }
 
-                        fn read_utf8(&self) -> Option<Vec<u8>> {
-                            None
-                        }
-
+                    impl foundation_nostd::embeddable::DirectoryData for #struct_name {
                         fn read_utf8_for(&self, target: &str) -> Option<Vec<u8>> {
                             extern crate std;
 
@@ -790,10 +759,6 @@ fn impl_embeddable_directory(
                             handle.read_to_end(&mut data_bytes).expect("should have read file bytes");
 
                             Some(data_bytes)
-                        }
-
-                        fn read_utf16(&self) -> Option<Vec<u8>> {
-                            None
                         }
 
                         fn read_utf16_for(&self, target: &str) -> Option<Vec<u8>> {
@@ -825,15 +790,13 @@ fn impl_embeddable_directory(
             }
             DataCompression::GZIP => {
                 quote! {
-                    impl foundation_nostd::embeddable::FileData for #struct_name {
+                    impl foundation_nostd::embeddable::HasCompression for #struct_name {
                         fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
                             foundation_nostd::embeddable::DataCompression::GZIP
                         }
+                    }
 
-                        fn read_utf8(&self) -> Option<Vec<u8>> {
-                            None
-                        }
-
+                    impl foundation_nostd::embeddable::DirectoryData for #struct_name {
                         fn read_utf8_for(&self, target: &str) -> Option<Vec<u8>> {
                             extern crate std;
 
@@ -864,10 +827,6 @@ fn impl_embeddable_directory(
 
                             let generated = encoder.finish().expect("should finish encoding");
                             Some(generated)
-                        }
-
-                        fn read_utf16(&self) -> Option<Vec<u8>> {
-                            None
                         }
 
                         fn read_utf16_for(&self, _: &str) -> Option<Vec<u8>> {
@@ -907,16 +866,13 @@ fn impl_embeddable_directory(
             }
             DataCompression::BROTTLI => {
                 quote! {
-                    impl foundation_nostd::embeddable::FileData for #struct_name {
-
+                    impl foundation_nostd::embeddable::HasCompression for #struct_name {
                         fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
                             foundation_nostd::embeddable::DataCompression::BROTTLI
                         }
+                    }
 
-                        fn read_utf8(&self) -> Option<Vec<u8>> {
-                            None
-                        }
-
+                    impl foundation_nostd::embeddable::DirectoryData for #struct_name {
                         fn read_utf8_for(&self, _: &str) -> Option<Vec<u8>> {
                             extern crate std;
 
@@ -947,10 +903,6 @@ fn impl_embeddable_directory(
                             writer.flush().expect("flushed data");
 
                             Some(writer.into_inner())
-                        }
-
-                        fn read_utf16(&self) -> Option<Vec<u8>> {
-                            None
                         }
 
                         fn read_utf16_for(&self, _: &str) -> Option<Vec<u8>> {
@@ -1005,14 +957,14 @@ fn impl_embeddable_directory(
 
     let embeddable_file_tokens = quote! {
         impl #struct_name {
-            const _FILE_INFO: &'static foundation_nostd::embeddable::FileInfo = foundation_nostd::embeddable::FileInfo::create(
+            const _FILE_INFO: &'static foundation_nostd::embeddable::FileInfo = &foundation_nostd::embeddable::FileInfo::create(
                 None,
-                String::from(#embedded_directory_path_literal),
-                String::from(#embedded_directory_name_literal),
-                String::from(#embedded_directory_relative_path_literal),
-                String::from(#project_dir_tokens),
-                String::from(""),
-                String::from(""),
+                #embedded_directory_path_literal,
+                #embedded_directory_name_literal,
+                #embedded_directory_relative_path_literal,
+                #project_dir_tokens,
+                "",
+                "",
                 None,
                 #embedded_date_modified_tokens,
             );
@@ -1020,13 +972,19 @@ fn impl_embeddable_directory(
             const _ROOT_DIRECTORY: &'static str =  #embedded_directory_path_literal;
         }
 
-        impl foundation_nostd::embeddable::EmbeddableFile for #struct_name {
-            fn get_info(&self) -> &foundation_nostd::embeddable::FileInfo {
-                &Self::_FILE_INFO
+        impl foundation_nostd::embeddable::FileData for #struct_name {
+            fn read_utf8(&self) -> Option<Vec<u8>> {
+                None
             }
 
-            fn info_for<'a>(&self, source: &'a str) -> Option<&'a foundation_nostd::embeddable::FileInfo> {
+            fn read_utf16(&self) -> Option<Vec<u8>> {
                 None
+            }
+        }
+
+        impl foundation_nostd::embeddable::EmbeddableFile for #struct_name {
+            fn info(&self) -> &foundation_nostd::embeddable::FileInfo {
+                &Self::_FILE_INFO
             }
         }
     };
@@ -1068,7 +1026,7 @@ fn impl_embeddable_directory(
 
                 let mime_type = match file_data.mime_type {
                     Some(inner) => quote! {
-                        Some(String::from(#inner))
+                        Some(#inner)
                     },
                     None => quote! {
                         None
@@ -1088,7 +1046,17 @@ fn impl_embeddable_directory(
                                 (#file_index, #utf8_token_tree, #utf16_data_line),
                             },
                             quote! {
-                                (#file_index, String::from(#file_name), String::from(#file_path_tokens), String::from(#etag_tokens), String::from(#hash_tokens), #mime_type, #date_modified_tokens, String::from(#disk_path_tokens)),
+                                foundation_nostd::embeddable::FileInfo::create(
+                                    Some(#file_index),
+                                    #disk_path_tokens,
+                                    #file_name,
+                                    #file_path_tokens,
+                                    #project_dir_tokens,
+                                    #hash_tokens,
+                                    #etag_tokens,
+                                    #mime_type,
+                                    #date_modified_tokens,
+                                ),
                             },
                         ))
                     }
@@ -1104,7 +1072,17 @@ fn impl_embeddable_directory(
                                 (#file_index, #utf8_token_tree, #utf16_token_tree),
                             },
                             quote! {
-                                (#file_index, String::from(#file_name), String::from(#file_path_tokens), String::from(#etag_tokens), String::from(#hash_tokens), #mime_type, #date_modified_tokens, String::from(#disk_path_tokens)),
+                                foundation_nostd::embeddable::FileInfo::create(
+                                    Some(#file_index),
+                                    #disk_path_tokens,
+                                    #file_name,
+                                    #file_path_tokens,
+                                    #project_dir_tokens,
+                                    #hash_tokens,
+                                    #etag_tokens,
+                                    #mime_type,
+                                    #date_modified_tokens,
+                                ),
                             },
                         ))
                     }
@@ -1120,7 +1098,17 @@ fn impl_embeddable_directory(
                                 (#file_index, #utf8_token_tree, #utf16_token_tree),
                             },
                             quote! {
-                                (#file_index, String::from(#file_name), String::from(#file_path_tokens), String::from(#etag_tokens), String::from(#hash_tokens), #mime_type, #date_modified_tokens, String::from(#disk_path_tokens)),
+                                foundation_nostd::embeddable::FileInfo::create(
+                                    Some(#file_index),
+                                    #disk_path_tokens,
+                                    #file_name,
+                                    #file_path_tokens,
+                                    #project_dir_tokens,
+                                    #hash_tokens,
+                                    #etag_tokens,
+                                    #mime_type,
+                                    #date_modified_tokens,
+                                ),
                             },
                         ))
                     }
@@ -1133,23 +1121,24 @@ fn impl_embeddable_directory(
 
     let file_data_tokens = quote! {
         impl #struct_name {
-            const _ALL_FILES_REFS: &'static [(
-                usize,
-                String,
-                String,
-                String,
-                String,
-                Option<String>,
-                Option<i64>,
-                String
-            )] = [#(#file_meta_list)*];
+            const _ALL_FILES_METADATA: &'static [foundation_nostd::embeddable::FileInfo] = [#(#file_meta_list)*];
 
             const _ALL_FILES_DATA: &'static [(usize, &'static [u8], Option<&'static [u8]>)] = [#(#file_data_list)*];
         }
     };
 
+    let embeddable_directory_tokens = quote! {
+        impl foundation_nostd::embeddable::EmbeddableDirectory for #struct_name {
+            fn info_for(&self, source: &str) -> Option<foundation_nostd::embeddable::FileInfo> {
+                None
+            }
+        }
+    };
+
     quote! {
         #embeddable_file_tokens
+
+        #embeddable_directory_tokens
 
         #file_data_tokens
     }
@@ -1199,7 +1188,7 @@ fn visit_dirs(collected: &mut Vec<FsInfo>, dir: &Path, root_dir: Option<&Path>, 
                 // println!("Path: {:?} == {:?}", &file_path_string, &file_relative_str);
 
                 current_index += 1;
-                let file_info = FileInfo::new(
+                let file_info = OwnedFileInfo::new(
                     Some(current_index),
                     file_path_string,
                     file_name,
