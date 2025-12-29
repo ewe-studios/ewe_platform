@@ -154,20 +154,75 @@ pub trait EmbeddableFile: FileData {
     fn info(&self) -> &FileInfo;
 }
 
+pub type StaticDirectoryData = (usize, &'static str, &'static [u8], Option<&'static [u8]>);
+
 pub trait DirectoryData: HasCompression {
+    const FILES_DATA: &'static [StaticDirectoryData];
+
+    /// [`get_utf8_for`] will return the data related to the File
+    /// pointed to by source path str pointer the if its
+    /// a file else returns None.
+    fn get_utf8_for(&self, index: usize) -> Option<Vec<u8>> {
+        Self::FILES_DATA.get(index).map(|(_, _, utf8_data, _)| {
+            let mut data = Vec::with_capacity(utf8_data.len());
+            data.extend_from_slice(utf8_data);
+            data
+        })
+    }
+
     /// [`read_utf8_for`] will return the data related to the File
     /// pointed to by source path str pointer the if its
     /// a file else returns None.
-    fn read_utf8_for(&self, source: &str) -> Option<Vec<u8>>;
+    fn read_utf8_for(&self, source: &str) -> Option<Vec<u8>> {
+        Self::FILES_DATA
+            .iter()
+            .find(|item| item.1 == source)
+            .map(|(_, _, utf8_data, _)| {
+                let mut data = Vec::with_capacity(utf8_data.len());
+                data.extend_from_slice(utf8_data);
+                data
+            })
+    }
+
+    /// [`get_utf16_for`] will return the UTF16 data related to the File
+    /// pointed to by source path str pointer the if its
+    /// a file else returns None.
+    fn get_utf16_for(&self, index: usize) -> Option<Vec<u8>> {
+        Self::FILES_DATA.get(index).map(|(_, _, _, utf16_data)| {
+            utf16_data.map(|inner| {
+                let mut data = Vec::with_capacity(inner.len());
+                data.extend_from_slice(inner);
+                data
+            })
+        })?
+    }
 
     /// [`read_utf16_for`] will return the UTF16 data related to the File
     /// pointed to by source path str pointer the if its
     /// a file else returns None.
-    fn read_utf16_for(&self, source: &str) -> Option<Vec<u8>>;
+    fn read_utf16_for(&self, source: &str) -> Option<Vec<u8>> {
+        Self::FILES_DATA
+            .iter()
+            .find(|item| item.1 == source)
+            .map(|(_, _, _, utf16_data)| {
+                utf16_data.map(|inner| {
+                    let mut data = Vec::with_capacity(inner.len());
+                    data.extend_from_slice(inner);
+                    data
+                })
+            })?
+    }
 }
 
 pub trait EmbeddableDirectory: DirectoryData {
+    const FILES_METADATA: &'static [FileInfo];
+
     /// [`info_for`] returns the related information for the file based on the provided
     /// source path string if it exists internal else returns None.
-    fn info_for(&self, source: &str) -> Option<FileInfo>;
+    fn info_for(&self, source: &str) -> Option<FileInfo> {
+        Self::FILES_METADATA
+            .iter()
+            .find(|item| item.source_path == source)
+            .cloned()
+    }
 }

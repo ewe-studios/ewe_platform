@@ -721,9 +721,7 @@ fn impl_embeddable_directory(
 
 
             impl foundation_nostd::embeddable::EmbeddableDirectory for #struct_name {
-                fn info_for(&self, _target: &str) -> Option<foundation_nostd::embeddable::FileInfo> {
-                    None
-                }
+                const FILES_METADATA: &'static [foundation_nostd::embeddable::FileInfo] = &[];
             }
         };
 
@@ -737,6 +735,8 @@ fn impl_embeddable_directory(
                     }
 
                     impl foundation_nostd::embeddable::DirectoryData for #struct_name {
+                        const FILES_DATA: &'static [foundation_nostd::embeddable::StaticDirectoryData] = &[];
+
                         fn read_utf8_for(&self, target: &str) -> Option<Vec<u8>> {
                             extern crate std;
 
@@ -797,6 +797,8 @@ fn impl_embeddable_directory(
                     }
 
                     impl foundation_nostd::embeddable::DirectoryData for #struct_name {
+                        const FILES_DATA: &'static [foundation_nostd::embeddable::StaticDirectoryData] = &[];
+
                         fn read_utf8_for(&self, target: &str) -> Option<Vec<u8>> {
                             extern crate std;
 
@@ -873,6 +875,8 @@ fn impl_embeddable_directory(
                     }
 
                     impl foundation_nostd::embeddable::DirectoryData for #struct_name {
+                        const FILES_DATA: &'static [foundation_nostd::embeddable::StaticDirectoryData] = &[];
+
                         fn read_utf8_for(&self, _: &str) -> Option<Vec<u8>> {
                             extern crate std;
 
@@ -1001,8 +1005,8 @@ fn impl_embeddable_directory(
 
     let (file_data_list, file_meta_list): (Vec<TokenStream>, Vec<TokenStream>) = collected_entries
         .iter()
-        .flat_map(|item| {
-            if let FsInfo::File(info) = item {
+        .flat_map(|item| match item {
+            FsInfo::File(info) => {
                 let source_file_path = PathBuf::from(info.source_file_path.clone());
                 let file_data = get_file(source_file_path, with_utf16)
                     .expect("Failed to generate file embeddings");
@@ -1113,25 +1117,44 @@ fn impl_embeddable_directory(
                         ))
                     }
                 }
-            } else {
-                None
+            }
+            FsInfo::Dir(info) => {
+                let file_index = Literal::usize_unsuffixed(info.index.expect("should have index"));
+                let file_name = Literal::string(info.dir_name.as_str());
+                let file_path_tokens = Literal::string(info.dir_name.as_str());
+                let disk_path_tokens = Literal::string(info.dir_name.as_str());
+
+                Some((
+                    quote! {
+                        (#file_index, &[], None),
+                    },
+                    quote! {
+                        foundation_nostd::embeddable::FileInfo::create(
+                            Some(#file_index),
+                            #disk_path_tokens,
+                            #file_name,
+                            #file_path_tokens,
+                            #project_dir_tokens,
+                            "",
+                            "",
+                            "",
+                            None,
+                        ),
+                    },
+                ))
             }
         })
         .unzip();
 
     let file_data_tokens = quote! {
-        impl #struct_name {
-            const _ALL_FILES_METADATA: &'static [foundation_nostd::embeddable::FileInfo] = [#(#file_meta_list)*];
-
-            const _ALL_FILES_DATA: &'static [(usize, &'static [u8], Option<&'static [u8]>)] = [#(#file_data_list)*];
+        impl foundation_nostd::embeddable::DirectoryData for #struct_name {
+            const FILES_DATA: &'static [foundation_nostd::embeddable::StaticDirectoryData] = &[#(#file_data_list)*];
         }
     };
 
     let embeddable_directory_tokens = quote! {
         impl foundation_nostd::embeddable::EmbeddableDirectory for #struct_name {
-            fn info_for(&self, source: &str) -> Option<foundation_nostd::embeddable::FileInfo> {
-                None
-            }
+            const FILES_METADATA: &'static [foundation_nostd::embeddable::FileInfo] = &[#(#file_meta_list)*];
         }
     };
 
