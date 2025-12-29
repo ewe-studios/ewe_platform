@@ -754,7 +754,7 @@ fn impl_embeddable_directory(
                                 return None;
                             }
 
-                            let mut handle = File::open(target_location).expect("read target file: #target_file_tokens");
+                            let mut handle = File::open(target_location).expect("read target file");
                             let mut data_bytes = vec![];
                             handle.read_to_end(&mut data_bytes).expect("should have read file bytes");
 
@@ -778,7 +778,7 @@ fn impl_embeddable_directory(
                                 return None;
                             }
 
-                            let mut handle = File::open(target_location).expect("read target file: #target_file_tokens");
+                            let mut handle = File::open(target_location).expect("read target file");
 
                             let mut data_string = String::new();
                             handle.read_to_string(&mut data_string).expect("should have read file bytes");
@@ -954,11 +954,6 @@ fn impl_embeddable_directory(
         };
     }
 
-    // println!("packageDirectory: {:?}", &project_dir);
-    // println!("ProjectDirFull: {:?}", &embed_directory_full_path);
-    // println!("EmbedPath: {:?}", &embed_directory_path);
-    // println!("EmbedRel: {:?}", &embedded_directory_relative_path);
-
     let embeddable_file_tokens = quote! {
         impl #struct_name {
             const _FILE_INFO: &'static foundation_nostd::embeddable::FileInfo = &foundation_nostd::embeddable::FileInfo::create(
@@ -1000,8 +995,6 @@ fn impl_embeddable_directory(
         embedded_directory_root,
         0,
     );
-
-    // println!("Collected: {:?}", &collected_entries);
 
     let (file_data_list, file_meta_list): (Vec<TokenStream>, Vec<TokenStream>) = collected_entries
         .iter()
