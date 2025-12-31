@@ -685,7 +685,88 @@ fn impl_embeddable_directory(
             .expect("unwrap as str"),
     );
 
+    let mut collected_entries: Vec<FsInfo> = Vec::new();
+    visit_dirs(
+        &mut collected_entries,
+        &embed_directory_path,
+        embedded_directory_root,
+        0,
+    );
+
     if cfg!(debug_assertions) {
+        let file_meta_list: Vec<TokenStream> = collected_entries
+            .iter()
+            .map(|item| match item {
+                FsInfo::File(info) => {
+                    let source_file_path = PathBuf::from(info.source_file_path.clone());
+                    let file_data = get_file(source_file_path, with_utf16)
+                        .expect("Failed to generate file embeddings");
+
+                    let file_index =
+                        Literal::usize_unsuffixed(info.index.expect("should have index"));
+                    let file_name = Literal::string(info.source_name.as_str());
+                    let file_path_tokens = Literal::string(info.source_path.as_str());
+                    let disk_path_tokens = Literal::string(info.source_file_path.as_str());
+
+                    let etag_tokens = Literal::string(file_data.etag.as_str());
+                    let hash_tokens = Literal::string(file_data.hash.as_str());
+
+                    let date_modified_tokens = match file_data.date_modified {
+                        Some(inner) => quote! {
+                            Some(#inner)
+                        },
+                        None => quote! {
+                            None
+                        },
+                    };
+
+                    let mime_type = match file_data.mime_type {
+                        Some(inner) => quote! {
+                            Some(#inner)
+                        },
+                        None => quote! {
+                            None
+                        },
+                    };
+
+                    quote! {
+                        foundation_nostd::embeddable::FileInfo::create(
+                            Some(#file_index),
+                            #disk_path_tokens,
+                            #file_name,
+                            #file_path_tokens,
+                            #project_dir_tokens,
+                            #hash_tokens,
+                            #etag_tokens,
+                            #mime_type,
+                            #date_modified_tokens,
+                        ),
+                    }
+                }
+                FsInfo::Dir(info) => {
+                    let file_index =
+                        Literal::usize_unsuffixed(info.index.expect("should have index"));
+                    let file_name = Literal::string(info.dir_name.as_str());
+                    let file_path_tokens = Literal::string(info.dir_name.as_str());
+                    let disk_path_tokens = Literal::string(info.dir_name.as_str());
+
+                    quote! {
+                        foundation_nostd::embeddable::FileInfo::create(
+                            Some(#file_index),
+                            #disk_path_tokens,
+                            #file_name,
+                            #file_path_tokens,
+                            #project_dir_tokens,
+                            "",
+                            "",
+                            "",
+                            None,
+                        ),
+                    }
+                }
+            })
+            .collect();
+
         let embeddable_file_tokens = quote! {
             impl #struct_name {
                 const _FILE_INFO: &'static foundation_nostd::embeddable::FileInfo = &foundation_nostd::embeddable::FileInfo::create(
@@ -721,7 +802,7 @@ fn impl_embeddable_directory(
 
 
             impl foundation_nostd::embeddable::EmbeddableDirectory for #struct_name {
-                const FILES_METADATA: &'static [foundation_nostd::embeddable::FileInfo] = &[];
+                const FILES_METADATA: &'static [foundation_nostd::embeddable::FileInfo] = &[#(#file_meta_list)*];
             }
         };
 
@@ -987,14 +1068,6 @@ fn impl_embeddable_directory(
             }
         }
     };
-
-    let mut collected_entries: Vec<FsInfo> = Vec::new();
-    visit_dirs(
-        &mut collected_entries,
-        &embed_directory_path,
-        embedded_directory_root,
-        0,
-    );
 
     let (file_data_list, file_meta_list): (Vec<TokenStream>, Vec<TokenStream>) = collected_entries
         .iter()

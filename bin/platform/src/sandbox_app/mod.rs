@@ -12,15 +12,15 @@ use rust_embed::Embed;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
-use foundation_core::megatron::jsrum::package_request_handler;
+// use foundation_core::megatron::jsrum::package_request_handler;
+use foundation_macros::EmbedDirectoryAs;
 use foundation_nostd::embeddable::FileData;
 use foundation_runtimes::js_runtimes::JSHostRuntime;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
-#[derive(Embed)]
-#[folder = "src/sandbox_app/public/"]
-#[prefix = "public/"]
+#[derive(EmbedDirectoryAs, Default)]
+#[source = "src/sandbox_app/public/"]
 struct Public;
 
 async fn index_handler() -> Response {
