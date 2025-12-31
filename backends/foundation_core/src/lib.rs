@@ -4,11 +4,9 @@ extern crate url;
 extern crate native_tls;
 
 pub mod compati;
-pub mod directorate;
 pub mod extensions;
 pub mod io;
 pub mod macros;
-pub mod megatron;
 pub mod netcap;
 pub mod retries;
 pub mod synca;
