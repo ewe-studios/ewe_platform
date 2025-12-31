@@ -759,7 +759,7 @@ fn impl_embeddable_directory(
                             #project_dir_tokens,
                             "",
                             "",
-                            "",
+                            None,
                             None,
                         ),
                     }
