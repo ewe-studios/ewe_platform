@@ -30,6 +30,7 @@ pub struct OwnedFileInfo {
     pub source_file_path: String,
     pub source_name: String,
     pub source_path: String,
+    pub source_path_from_parent: String,
     pub package_directory: String,
     pub e_tag: String,
     pub hash: String,
@@ -44,6 +45,7 @@ impl OwnedFileInfo {
         source_file_path: String,
         source_name: String,
         source_path: String,
+        source_path_from_parent: String,
         package_directory: String,
         hash: String,
         e_tag: String,
@@ -56,6 +58,7 @@ impl OwnedFileInfo {
             package_directory,
             source_name,
             source_path,
+            source_path_from_parent,
             index,
             e_tag,
             hash,
@@ -70,6 +73,7 @@ pub struct FileInfo {
     pub source_file_path: &'static str,
     pub source_name: &'static str,
     pub source_path: &'static str,
+    pub source_path_from_parent: &'static str,
     pub package_directory: &'static str,
     pub e_tag: &'static str,
     pub hash: &'static str,
@@ -84,6 +88,7 @@ impl FileInfo {
         source_file_path: &'static str,
         source_name: &'static str,
         source_path: &'static str,
+        source_path_from_parent: &'static str,
         package_directory: &'static str,
         hash: &'static str,
         e_tag: &'static str,
@@ -96,6 +101,7 @@ impl FileInfo {
             package_directory,
             source_name,
             source_path,
+            source_path_from_parent,
             index,
             e_tag,
             hash,
@@ -109,6 +115,7 @@ impl FileInfo {
         source_file_path: &'static str,
         source_name: &'static str,
         source_path: &'static str,
+        source_path_from_parent: &'static str,
         package_directory: &'static str,
         hash: &'static str,
         e_tag: &'static str,
@@ -121,6 +128,7 @@ impl FileInfo {
             package_directory,
             source_name,
             source_path,
+            source_path_from_parent,
             index,
             e_tag,
             hash,
@@ -154,7 +162,13 @@ pub trait EmbeddableFile: FileData {
     fn info(&self) -> &FileInfo;
 }
 
-pub type StaticDirectoryData = (usize, &'static str, &'static [u8], Option<&'static [u8]>);
+pub type StaticDirectoryData = (
+    usize,
+    &'static str,
+    &'static str,
+    &'static [u8],
+    Option<&'static [u8]>,
+);
 
 pub trait DirectoryData: HasCompression {
     const FILES_DATA: &'static [StaticDirectoryData];
@@ -163,7 +177,7 @@ pub trait DirectoryData: HasCompression {
     /// pointed to by source path str pointer the if its
     /// a file else returns None.
     fn get_utf8_for(&self, index: usize) -> Option<Vec<u8>> {
-        Self::FILES_DATA.get(index).map(|(_, _, utf8_data, _)| {
+        Self::FILES_DATA.get(index).map(|(_, _, _, utf8_data, _)| {
             let mut data = Vec::with_capacity(utf8_data.len());
             data.extend_from_slice(utf8_data);
             data
@@ -176,8 +190,8 @@ pub trait DirectoryData: HasCompression {
     fn read_utf8_for(&self, source: &str) -> Option<Vec<u8>> {
         Self::FILES_DATA
             .iter()
-            .find(|item| item.1 == source)
-            .map(|(_, _, utf8_data, _)| {
+            .find(|item| item.1 == source || item.2 == source)
+            .map(|(_, _, _, utf8_data, _)| {
                 let mut data = Vec::with_capacity(utf8_data.len());
                 data.extend_from_slice(utf8_data);
                 data
@@ -188,13 +202,15 @@ pub trait DirectoryData: HasCompression {
     /// pointed to by source path str pointer the if its
     /// a file else returns None.
     fn get_utf16_for(&self, index: usize) -> Option<Vec<u8>> {
-        Self::FILES_DATA.get(index).map(|(_, _, _, utf16_data)| {
-            utf16_data.map(|inner| {
-                let mut data = Vec::with_capacity(inner.len());
-                data.extend_from_slice(inner);
-                data
-            })
-        })?
+        Self::FILES_DATA
+            .get(index)
+            .map(|(_, _, _, _, utf16_data)| {
+                utf16_data.map(|inner| {
+                    let mut data = Vec::with_capacity(inner.len());
+                    data.extend_from_slice(inner);
+                    data
+                })
+            })?
     }
 
     /// [`read_utf16_for`] will return the UTF16 data related to the File
@@ -203,8 +219,8 @@ pub trait DirectoryData: HasCompression {
     fn read_utf16_for(&self, source: &str) -> Option<Vec<u8>> {
         Self::FILES_DATA
             .iter()
-            .find(|item| item.1 == source)
-            .map(|(_, _, _, utf16_data)| {
+            .find(|item| item.1 == source || item.2 == source)
+            .map(|(_, _, _, _, utf16_data)| {
                 utf16_data.map(|inner| {
                     let mut data = Vec::with_capacity(inner.len());
                     data.extend_from_slice(inner);
@@ -222,7 +238,51 @@ pub trait EmbeddableDirectory: DirectoryData {
     fn info_for(&self, source: &str) -> Option<FileInfo> {
         Self::FILES_METADATA
             .iter()
-            .find(|item| item.source_path == source)
+            .find(|item| item.source_path == source || item.source_path_from_parent == source)
             .cloned()
+    }
+
+    // [request_utf8] returns the relevant data and information for giving file if available.
+    // with the utf8 data copied into the returned owned vec.
+    fn request_utf8(&self, source: &str) -> Option<(Vec<u8>, Option<FileInfo>)> {
+        match Self::FILES_METADATA
+            .iter()
+            .find(|item| item.source_path == source || item.source_path_from_parent == source)
+        {
+            Some(info) => match info.index {
+                Some(index) => match self.get_utf8_for(index) {
+                    Some(data) => Some((data, Some(info.clone()))),
+                    None => self
+                        .read_utf8_for(source)
+                        .map(|data| (data, Some(info.clone()))),
+                },
+                None => self
+                    .read_utf8_for(source)
+                    .map(|data| (data, Some(info.clone()))),
+            },
+            None => self.read_utf8_for(source).map(|data| (data, None)),
+        }
+    }
+
+    // [request_utf16] returns the relevant data and information for giving file if available.
+    // with the utf16 data copied into the returned owned vec.
+    fn request_utf16(&self, source: &str) -> Option<(Vec<u8>, Option<FileInfo>)> {
+        match Self::FILES_METADATA
+            .iter()
+            .find(|item| item.source_path == source || item.source_path_from_parent == source)
+        {
+            Some(info) => match info.index {
+                Some(index) => match self.get_utf16_for(index) {
+                    Some(data) => Some((data, Some(info.clone()))),
+                    None => self
+                        .read_utf16_for(source)
+                        .map(|data| (data, Some(info.clone()))),
+                },
+                None => self
+                    .read_utf16_for(source)
+                    .map(|data| (data, Some(info.clone()))),
+            },
+            None => self.read_utf16_for(source).map(|data| (data, None)),
+        }
     }
 }

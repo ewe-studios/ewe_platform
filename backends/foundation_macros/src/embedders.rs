@@ -189,6 +189,7 @@ fn find_root_cargo(
 
 static ROOT_WORKSPACE_MATCHER: &str = "$ROOT_CRATE";
 static CURRENT_CRATE_MATCHER: &str = "$CURRENT_CRATE";
+static CURRENT_CRATE_ALT_MATCHER: &str = "$CRATE";
 
 fn impl_embeddable_file(
     struct_name: &syn::Ident,
@@ -215,6 +216,8 @@ fn impl_embeddable_file(
 
     let target_file = if target_source.contains(CURRENT_CRATE_MATCHER) {
         target_source.replace(CURRENT_CRATE_MATCHER, &cargo_manifest_dir_env)
+    } else if target_source.contains(CURRENT_CRATE_ALT_MATCHER) {
+        target_source.replace(CURRENT_CRATE_ALT_MATCHER, &cargo_manifest_dir_env)
     } else if target_source.contains(ROOT_WORKSPACE_MATCHER) {
         target_source.replace(ROOT_WORKSPACE_MATCHER, root_workspace_str)
     } else {
@@ -289,6 +292,7 @@ fn impl_embeddable_file(
                 None,
                 #target_file_path_tokens,
                 #target_file_tokens,
+                #embedded_file_relative_path_tokens,
                 #embedded_file_relative_path_tokens,
                 #project_dir_tokens,
                 #hash_tokens,
@@ -626,6 +630,8 @@ fn impl_embeddable_directory(
 
     let target_directory = if target_source.contains(CURRENT_CRATE_MATCHER) {
         target_source.replace(CURRENT_CRATE_MATCHER, &cargo_manifest_dir_env)
+    } else if target_source.contains(CURRENT_CRATE_ALT_MATCHER) {
+        target_source.replace(CURRENT_CRATE_ALT_MATCHER, &cargo_manifest_dir_env)
     } else if target_source.contains(ROOT_WORKSPACE_MATCHER) {
         target_source.replace(ROOT_WORKSPACE_MATCHER, root_workspace_str)
     } else {
@@ -679,6 +685,7 @@ fn impl_embeddable_directory(
     let embedded_directory_relative_path = embed_directory_path
         .strip_prefix(&working_dir)
         .expect("should be from home directory");
+
     let embedded_directory_relative_path_literal = Literal::string(
         embedded_directory_relative_path
             .to_str()
@@ -706,6 +713,8 @@ fn impl_embeddable_directory(
                         Literal::usize_unsuffixed(info.index.expect("should have index"));
                     let file_name = Literal::string(info.source_name.as_str());
                     let file_path_tokens = Literal::string(info.source_path.as_str());
+                    let file_path_parent_tokens =
+                        Literal::string(&info.source_path_from_parent.as_str());
                     let disk_path_tokens = Literal::string(info.source_file_path.as_str());
 
                     let etag_tokens = Literal::string(file_data.etag.as_str());
@@ -735,6 +744,7 @@ fn impl_embeddable_directory(
                             #disk_path_tokens,
                             #file_name,
                             #file_path_tokens,
+                            #file_path_parent_tokens,
                             #project_dir_tokens,
                             #hash_tokens,
                             #etag_tokens,
@@ -756,6 +766,7 @@ fn impl_embeddable_directory(
                             #disk_path_tokens,
                             #file_name,
                             #file_path_tokens,
+                            #file_path_tokens,
                             #project_dir_tokens,
                             "",
                             "",
@@ -773,6 +784,7 @@ fn impl_embeddable_directory(
                     None,
                     #embedded_directory_path_literal,
                     #embedded_directory_name_literal,
+                    #embedded_directory_relative_path_literal,
                     #embedded_directory_relative_path_literal,
                     #project_dir_tokens,
                     "",
@@ -1042,6 +1054,7 @@ fn impl_embeddable_directory(
                 #embedded_directory_path_literal,
                 #embedded_directory_name_literal,
                 #embedded_directory_relative_path_literal,
+                #embedded_directory_relative_path_literal,
                 #project_dir_tokens,
                 "",
                 "",
@@ -1080,6 +1093,8 @@ fn impl_embeddable_directory(
                 let file_index = Literal::usize_unsuffixed(info.index.expect("should have index"));
                 let file_name = Literal::string(info.source_name.as_str());
                 let file_path_tokens = Literal::string(info.source_path.as_str());
+                let file_path_parent_tokens =
+                    Literal::string(info.source_path_from_parent.as_str());
                 let disk_path_tokens = Literal::string(info.source_file_path.as_str());
 
                 let etag_tokens = Literal::string(file_data.etag.as_str());
@@ -1113,7 +1128,13 @@ fn impl_embeddable_directory(
 
                         Some((
                             quote! {
-                                (#file_index, #utf8_token_tree, #utf16_data_line),
+                                (
+                                    #file_index,
+                                    #file_path_tokens,
+                                    #file_path_parent_tokens,
+                                    #utf8_token_tree,
+                                    #utf16_data_line
+                                ),
                             },
                             quote! {
                                 foundation_nostd::embeddable::FileInfo::create(
@@ -1121,6 +1142,7 @@ fn impl_embeddable_directory(
                                     #disk_path_tokens,
                                     #file_name,
                                     #file_path_tokens,
+                                    #file_path_parent_tokens,
                                     #project_dir_tokens,
                                     #hash_tokens,
                                     #etag_tokens,
@@ -1139,7 +1161,13 @@ fn impl_embeddable_directory(
 
                         Some((
                             quote! {
-                                (#file_index, #utf8_token_tree, #utf16_token_tree),
+                                (
+                                    #file_index,
+                                    #file_path_tokens,
+                                    #file_path_parent_tokens,
+                                    #utf8_token_tree,
+                                    #utf16_token_tree
+                                ),
                             },
                             quote! {
                                 foundation_nostd::embeddable::FileInfo::create(
@@ -1147,6 +1175,7 @@ fn impl_embeddable_directory(
                                     #disk_path_tokens,
                                     #file_name,
                                     #file_path_tokens,
+                                    #file_path_parent_tokens,
                                     #project_dir_tokens,
                                     #hash_tokens,
                                     #etag_tokens,
@@ -1165,7 +1194,13 @@ fn impl_embeddable_directory(
 
                         Some((
                             quote! {
-                                (#file_index, #utf8_token_tree, #utf16_token_tree),
+                                (
+                                    #file_index,
+                                    #file_path_tokens,
+                                    #file_path_parent_tokens,
+                                    #utf8_token_tree,
+                                    #utf16_token_tree
+                                ),
                             },
                             quote! {
                                 foundation_nostd::embeddable::FileInfo::create(
@@ -1173,6 +1208,7 @@ fn impl_embeddable_directory(
                                     #disk_path_tokens,
                                     #file_name,
                                     #file_path_tokens,
+                                    #file_path_parent_tokens,
                                     #project_dir_tokens,
                                     #hash_tokens,
                                     #etag_tokens,
@@ -1192,13 +1228,20 @@ fn impl_embeddable_directory(
 
                 Some((
                     quote! {
-                        (#file_index, &[], None),
+                        (
+                            #file_index,
+                            #file_path_tokens,
+                            #file_path_tokens,
+                            &[],
+                            None
+                        ),
                     },
                     quote! {
                         foundation_nostd::embeddable::FileInfo::create(
                             Some(#file_index),
                             #disk_path_tokens,
                             #file_name,
+                            #file_path_tokens,
                             #file_path_tokens,
                             #project_dir_tokens,
                             "",
@@ -1259,6 +1302,10 @@ fn visit_dirs(collected: &mut Vec<FsInfo>, dir: &Path, root_dir: Option<&Path>, 
             let entry_path = entry.path();
 
             let file_directory_relative = entry_path
+                .strip_prefix(dir)
+                .expect("should be able to strip root dir");
+
+            let file_directory_parent_relative = entry_path
                 .strip_prefix(root_dir.unwrap_or(dir))
                 .expect("should be able to strip root dir");
 
@@ -1267,7 +1314,9 @@ fn visit_dirs(collected: &mut Vec<FsInfo>, dir: &Path, root_dir: Option<&Path>, 
                 visit_dirs(collected, entry_path.as_path(), root_dir, current_index);
             } else {
                 let file_relative_str =
-                    String::from(file_directory_relative.to_str().expect("hello"));
+                    String::from(file_directory_relative.to_str().expect("get path"));
+                let file_parent_relative_str =
+                    String::from(file_directory_parent_relative.to_str().expect("get path"));
                 let file_hash = get_file_hash(entry.path()).expect("generate hash");
                 let file_etag = format!("\"{}\"", &file_hash);
                 let file_mime_type = MimeGuess::from_path(entry.path())
@@ -1282,6 +1331,7 @@ fn visit_dirs(collected: &mut Vec<FsInfo>, dir: &Path, root_dir: Option<&Path>, 
                     file_path_string,
                     file_name,
                     file_relative_str,
+                    file_parent_relative_str,
                     dir_path_string.clone(),
                     file_hash,
                     file_etag,
