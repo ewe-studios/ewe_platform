@@ -6,17 +6,15 @@ use std::{net::SocketAddr, pin, sync, time::Duration};
 use tokio::sync::broadcast;
 use tokio_stream::{wrappers::BroadcastStream, StreamExt};
 
+use foundation_nostd::embeddable::DirectoryData;
+use foundation_runtimes::js_runtimes::AssetReloader;
+
 use axum::{
     body,
     response::sse::{Event, KeepAlive, Sse},
 };
 
 use crate::FileChange;
-
-/// The static embedded reloading script for SSE dev server that the
-/// `RELOADER_SCRIPT_ENDPOINT` should load up when the endpoint gets hit
-/// on whatever html page is relevant.
-pub static RELOADER_SCRIPT_BYTES: &[u8] = include_bytes!("./reloader.js");
 
 /// `RELOADER_SCRIPT_ENDPOINT` is the relevant script path to be used in our html
 /// to define where the reloading script can be found.
@@ -31,12 +29,24 @@ pub fn sse_endpoint_script(
     _request: crate::types::HyperRequest,
 ) -> pin::Pin<Box<crate::types::HyperFuture>> {
     Box::pin(async move {
-        let body = body::Body::new(crate::full(bytes::Bytes::from(RELOADER_SCRIPT_BYTES)));
-        Ok(hyper::Response::builder()
-            .header("Content-Type", "text/javascript")
-            .status(StatusCode::OK)
-            .body(body)
-            .unwrap())
+        let instance = AssetReloader::default();
+        match instance.read_utf8_for("reloader.js") {
+            Some(data) => {
+                let body = body::Body::new(crate::full(bytes::Bytes::from(data)));
+                Ok(hyper::Response::builder()
+                    .header("Content-Type", "text/javascript")
+                    .status(StatusCode::OK)
+                    .body(body)
+                    .unwrap())
+            }
+            None => {
+                let body = body::Body::new(crate::empty());
+                Ok(hyper::Response::builder()
+                    .status(StatusCode::NOT_FOUND)
+                    .body(body)
+                    .unwrap())
+            }
+        }
     })
 }
 
