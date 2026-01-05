@@ -1,7 +1,8 @@
 [env]
 EWE_PLATFORM_DIR = { value = ".", relative = true, force = true }
-INFRASTRUCTURE_DIR = { value = "infrastructure", relative=true, force = true }
+ARTEFACTS_DIR = { value = "artefacts", relative=true, force = true }
 BACKENDS_DIR = { value = "backends", relative=true, force = true }
+INFRASTRUCTURE_DIR = { value = "infrastructure", relative=true, force = true }
 
 # templates
 TEMPLATES_DIR = { value = "templates", relative = true, force = true }
