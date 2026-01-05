@@ -1,0 +1,20 @@
+[package]
+name = "embeddings"
+version = "0.1.131"
+edition = "2021"
+publish = false
+
+[dependencies]
+infrastructure_llama_cpp = { workspace = true }
+
+hf-hub = { workspace = true }
+clap = { workspace = true, features = ["derive"] }
+anyhow = { workspace = true }
+
+[features]
+cuda = ["infrastructure_llama_cpp/cuda"]
+metal = ["infrastructure_llama_cpp/metal"]
+vulkan = ["infrastructure_llama_cpp/vulkan"]
+
+[lints]
+workspace = true

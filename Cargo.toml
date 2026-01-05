@@ -5,17 +5,25 @@ members = [
   "bin/*",
   "crates/*",
   "backends/*",
-  "demos/*",
+  "infrastructure/*",
+
+  # examples 
   "examples/web/*",
+  "examples/intro",
   "examples/template/*",
-  "demos/intro",
+  "examples/llama-cpp/embeddings",
+  "examples/llama-cpp/simple",
+  "examples/llama-cpp/reranker",
+  "examples/llama-cpp/mtmd",
+
+  # tests members
   "tests/nodejs/integrations/*",
 ]
+
 exclude = [
+  "artefacts/*",
   "crates/html-macro",
   "templates/*",
-  "templates/http-app",
-  "templates/static-html-app",
   "examples/todo",
   "crates/temple/output_directory",
   "backends/docs",
@@ -33,10 +41,17 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 
 [workspace.dependencies]
 
+# --- infrastructure crates
+
+infrastructure_llama_bindings = { path = "./infrastructure/llama-bindings", version = "0.0.1" }
+infrastructure_llama_cpp = { path = "./infrastructure/llama-cpp", version = "0.0.1" }
+
+# --- foundation crates
 foundation_macros = { path = "./backends/foundation_macros", version = "0.0.4" }
 foundation_nostd = { path = "./backends/foundation_nostd", version = "0.0.4" }
 foundation_wasm = { path = "./backends/foundation_wasm", version = "0.0.2" }
 foundation_core = { path = "./backends/foundation_core", version = "0.0.3" }
+foundation_ai = { path = "./backends/foundation_ai", version = "0.0.1" }
 foundation_runtimes = { path = "./backends/runtimes", version = "0.0.3" }
 
 # -- internal packages so others can use them
@@ -61,11 +76,31 @@ ewe_templates_macro = { path = "./crates/template-macro", version = "0.0.1" }
 # -- workspace wide packages
 toml = { version = "0.9" }
 anyhow = { version = "1.0" }
-tracing = { version = "0.1" }
 concurrent-queue = { version = "2.5" }
 derive_more = { version = ">=2.0", features = ["full"] }
 
+# core library dependencies
+tracing = { version = "0.1" }
+tracing-core = { version = "0.1" }
+
+thiserror = { version = "1"} 
+
+# examples and benchmarks
+hf-hub = { version = "0.4.3" }
+criterion = { version = "0.5.1" }
+pprof = { version = "0.13.0" }
+bindgen = { version = "0.72.1" }
+cc = { version = "1.2.49" }
+clap = { version = "4.5.53" }
+encoding_rs = { version = "0.8.35" }
+tracing-subscriber = { version = "0.3", features = ["json"] }
+
+[workspace.lints.rust]
+missing_docs = { level = "allow" } 
+missing_debug_implementations = { level = "allow" } 
+
 [workspace.lints.clippy]
+pedantic = { level = "warn" }
 
 [profile.dev]
 opt-level = 0
