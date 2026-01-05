@@ -28,7 +28,7 @@ serde_json = { version = "1.0.114" }
 serde_with = { version = "3.6.1" }
 tracing = { version = "0.1.40" }
 anyhow = { version = "1.0.80" }
-thiserror = { version = "1.0.57" }
+thiserror = { version = "2.0.17" }
 
 [dev-dependencies]
 tokio = { version = "1.36", features = ["full"] }
