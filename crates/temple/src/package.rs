@@ -17,9 +17,7 @@ pub struct Directorate<T: rust_embed::RustEmbed> {
 
 impl<T: rust_embed::Embed + Default> Default for Directorate<T> {
     fn default() -> Self {
-        Self {
-            _data: PhantomData,
-        }
+        Self { _data: PhantomData }
     }
 }
 
@@ -74,7 +72,10 @@ impl<T: rust_embed::Embed> PackageDirectorate for Directorate<T> {
     fn root_directories(&self) -> Vec<String> {
         let mut dirs: Vec<String> = T::iter()
             .filter(|t| t.contains('/'))
-            .filter_map(|t| t.split_once('/').map(|(directory, _)| String::from(directory)))
+            .filter_map(|t| {
+                t.split_once('/')
+                    .map(|(directory, _)| String::from(directory))
+            })
             .collect();
 
         // sort and de-dup
@@ -185,12 +186,12 @@ mod directorate_tests {
     }
 }
 
-/// `PackageConfig` defines underlying default configuration that
-/// the `PackageGenerator` will use in it's underlying behavior of
-/// outputing the final package out.
+/// [`PackageConfig`] defines underlying default configuration that
+/// the [`PackageGenerator`] will use in it's underlying behavior of
+/// outputting the final package out.
 ///
-/// It might also be wrapped by Higher Level `PackageConfigurator`s tha
-/// might do custom things like `RustPackageConfigurator`.
+/// It might also be wrapped by Higher Level [`PackageConfigurator`]s that
+/// might do custom things like rust [`PackageConfigurator`].
 #[derive(Clone, Debug)]
 pub struct PackageConfig {
     pub params: serde_json::Map<String, serde_json::Value>,
@@ -218,11 +219,11 @@ impl PackageConfig {
     }
 }
 
-/// `PackageConfigurator` defines the underlying expectation the
-/// `PackageGenerator` expects when it receives a target configuration
+/// [`PackageConfigurator`] defines the underlying expectation the
+/// [`PackageGenerator`] expects when it receives a target configuration
 /// like the target output directory, custom parameters to apply to
 /// generated files in cases of templates and what target template name
-/// representing the Project template to be used in pacakge generation.
+/// representing the Project template to be used in package generation.
 pub trait PackageConfigurator {
     /// Returns the target directory where the output is written
     /// i.e the actual end project directory (`output_directory` / `package_name`).
@@ -726,7 +727,9 @@ impl PackageGenerator {
                     template_file_path
                         .as_path()
                         .strip_prefix(config.template_name.as_str())
-                        .unwrap_or_else(|_| panic!("expected valid starting as `{}`", config.template_name)),
+                        .unwrap_or_else(|_| {
+                            panic!("expected valid starting as `{}`", config.template_name)
+                        }),
                 );
 
             let rewritten_template_dir = rewritten_template_file_name
@@ -762,9 +765,7 @@ impl PackageGenerator {
             .run(configurator.params())
             .map_err(|err| PackageGenError::Failed(err.into()))?;
 
-        configurator
-            .finalize()
-            .map_err(PackageGenError::Failed)
+        configurator.finalize().map_err(PackageGenError::Failed)
     }
 }
 
@@ -916,7 +917,10 @@ mod package_generator_tests {
         let template_directories = Box::new(Directorate::<TemplateDefinitions>::default());
         let packager = PackageGenerator::new(template_directories);
 
-        let current_dir = std::env::current_dir().expect("should have gotten directory");
+        let current_dir = std::fs::canonicalize(Path::new(
+            &std::env::var("ARTEFACTS_DIR").expect("get ARTEFACTS_DIR environment"),
+        ))
+        .expect("failed to collect LLAMA_DIR path");
 
         let output_directory = current_dir.join("output_directory");
         let project_directory = output_directory.join("static_pages");
