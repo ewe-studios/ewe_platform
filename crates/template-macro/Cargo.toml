@@ -18,7 +18,7 @@ ewe_templates = { workspace = true }
 
 quote = "1.0.20"
 proc-macro2 = "1.0.40"
-syn = { version = "2.0.60", features = ["full"] }
+syn = { version = "2.0.113", features = ["full"] }
 
 # template dependencies
 serde = { version = "1.0.197", features = ["derive"] }
