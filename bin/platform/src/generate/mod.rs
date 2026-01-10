@@ -4,13 +4,14 @@ use ewe_temple::{
     RustProjectConfigurator,
 };
 use foundation_core::extensions::strings_ext::TryIntoString;
+use foundation_macros::EmbedDirectoryAs;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
-#[derive(rust_embed::Embed, Default)]
-#[folder = "$OUT_DIR/templates/"]
+#[derive(EmbedDirectoryAs, Default)]
+#[source = "$OUT_DIR/templates/"]
 struct ProjectTemplates;
 
 /// Provides a means of generating custom configurator for the underlying project.
@@ -239,7 +240,7 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
     let project_output_directory = output_directory.join(project_name.clone());
-    let template_directorate = Box::new(Directorate::<ProjectTemplates>::default());
+    let template_directorate = Directorate::<ProjectTemplates>::default();
     let packager = PackageGenerator::new(template_directorate);
 
     let package_configurator = selected_language.generate_package_config(
