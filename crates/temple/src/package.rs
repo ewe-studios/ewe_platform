@@ -5,7 +5,6 @@
 use core::str;
 use ewe_templates::minijinja;
 use foundation_core::extensions::strings_ext::{TryIntoStr, TryIntoString};
-use foundation_macros::EmbedDirectoryAs;
 use foundation_nostd::embeddable::EmbeddableDirectory;
 use std::{io::Write, path::PathBuf, sync};
 
@@ -153,6 +152,7 @@ impl<T: EmbeddableDirectory + Default> PackageDirectorate for Directorate<T> {
 mod directorate_tests {
 
     use super::*;
+    use foundation_macros::EmbedDirectoryAs;
 
     #[derive(EmbedDirectoryAs, Default)]
     #[source = "$ARTEFACTS_DIR/temples/templates/test_directory/"]
@@ -689,8 +689,9 @@ pub struct PackageGenerator<T: PackageDirectorate> {
     pub templates: T,
 }
 
+#[allow(dead_code)]
 impl<T: PackageDirectorate> PackageGenerator<T> {
-    fn new(templates: T) -> Self {
+    pub fn new(templates: T) -> Self {
         Self { templates }
     }
 }
@@ -805,6 +806,7 @@ mod package_generator_tests {
 
     use foundation_core::extensions::strings_ext::TryIntoString;
     use foundation_core::extensions::vec_ext::VecExt;
+    use foundation_macros::EmbedDirectoryAs;
 
     use tracing_test::traced_test;
 
