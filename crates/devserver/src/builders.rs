@@ -23,6 +23,7 @@ pub struct HttpDevService {
 // -- Constructors
 
 impl HttpDevService {
+    #[must_use] 
     pub fn new(project: ProjectDefinition) -> Self {
         let (trigger_rerun, _) = broadcast::channel::<()>(2);
         let (package_started, _) = broadcast::channel::<()>(2);
@@ -32,11 +33,11 @@ impl HttpDevService {
 
         Self {
             project,
-            page_reload,
-            trigger_rerun,
-            package_changes,
             package_built,
             package_started,
+            trigger_rerun,
+            page_reload,
+            package_changes,
         }
     }
 }

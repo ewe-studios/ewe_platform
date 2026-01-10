@@ -73,7 +73,7 @@ impl Operator for DirectoryWatcher {
                         Err(err) => {
                             tracing::error!("Failed to deliver notification: {err:?}");
                         }
-                    };
+                    }
                 }
                 Ok(())
             },
