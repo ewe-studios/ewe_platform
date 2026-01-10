@@ -113,7 +113,7 @@ pub async fn stream_tunnel(
         Err(err) => {
             ewe_trace::error!("Failed in data transmission to destination: {:?}", err);
         }
-    };
+    }
 
     match destination_to_source {
         Ok(copied) => {
@@ -122,7 +122,7 @@ pub async fn stream_tunnel(
         Err(err) => {
             ewe_trace::error!("Failed in data transmission to source: {:?}", err);
         }
-    };
+    }
 
     Ok(())
 }
