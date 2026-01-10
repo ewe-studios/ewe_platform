@@ -39,7 +39,7 @@ impl AsType<'_, Value> for u32 {
     fn from_value(value: &Value) -> ValueResult<Self, ValueError> {
         value
             .as_integer()
-            .map(|val| val.unsigned_abs())
+            .map(i64::unsigned_abs)
             .and_then(|v| u32::try_from(v).ok())
             .ok_or(ValueError::ValueNotType("u32"))
     }
@@ -76,7 +76,7 @@ impl AsType<'_, Value> for Datetime {
     fn from_value(value: &Value) -> ValueResult<Self, ValueError> {
         value
             .as_datetime()
-            .map(|val| val.to_owned())
+            .map(std::borrow::ToOwned::to_owned)
             .ok_or(ValueError::ValueNotType("datetime"))
     }
 }
@@ -87,7 +87,7 @@ impl AsType<'_, Value> for u64 {
     fn from_value(value: &Value) -> ValueResult<Self, ValueError> {
         value
             .as_integer()
-            .map(|val| val.unsigned_abs())
+            .map(i64::unsigned_abs)
             .ok_or(ValueError::ValueNotType("u64"))
     }
 }
@@ -178,13 +178,13 @@ impl PointerValueExt for Value {
     type Error = TomlError;
 
     fn get_path(&self, name_or_pointer: &str) -> ValueResult<&Self::Item, Self::Error> {
-        if !name_or_pointer.contains("/") {
+        if !name_or_pointer.contains('/') {
             return self
                 .get(name_or_pointer)
                 .ok_or_else(|| ValueError::PropertyNotFound(name_or_pointer.to_string()).into());
         }
 
-        let pointer_parts: Vec<&str> = name_or_pointer.split("/").skip(1).collect();
+        let pointer_parts: Vec<&str> = name_or_pointer.split('/').skip(1).collect();
 
         let mut current_value = self;
         for &part in &pointer_parts[..pointer_parts.len() - 1] {
@@ -225,14 +225,14 @@ impl PointerValueExt for Value {
     }
 
     fn take_path(&mut self, name_or_pointer: &str) -> ValueResult<Self::Item, Self::Error> {
-        if !name_or_pointer.contains("/") {
+        if !name_or_pointer.contains('/') {
             return self
                 .get(name_or_pointer)
-                .map(|val| val.to_owned())
+                .map(std::borrow::ToOwned::to_owned)
                 .ok_or_else(|| ValueError::PropertyNotFound(name_or_pointer.to_string()).into());
         }
 
-        let pointer_parts: Vec<&str> = name_or_pointer.split("/").skip(1).collect();
+        let pointer_parts: Vec<&str> = name_or_pointer.split('/').skip(1).collect();
 
         let mut current_value = self;
         for &part in &pointer_parts[..pointer_parts.len() - 1] {
@@ -292,7 +292,7 @@ impl DynamicValueExt for Value {
 
     fn d_get<T: DeserializeOwned>(&self, name_or_pointer: &str) -> ValueResult<T, Self::Error> {
         let value = PointerValueExt::get_path(self, name_or_pointer)?;
-        T::deserialize(value.to_owned()).map_err(|err| err.into())
+        T::deserialize(value.to_owned()).map_err(std::convert::Into::into)
     }
 
     fn d_get_as<'a, V: AsType<'a, Self::Item>>(
@@ -300,7 +300,7 @@ impl DynamicValueExt for Value {
         name_or_pointer: &str,
     ) -> ValueResult<V, Self::Error> {
         let value = PointerValueExt::get_path(self, name_or_pointer)?;
-        V::from_value(value).map_err(|err| err.into())
+        V::from_value(value).map_err(std::convert::Into::into)
     }
 
     fn d_take<T: DeserializeOwned>(
@@ -308,7 +308,7 @@ impl DynamicValueExt for Value {
         name_or_pointer: &str,
     ) -> ValueResult<T, Self::Error> {
         let value = PointerValueExt::take_path(self, name_or_pointer)?;
-        T::deserialize(value.to_owned()).map_err(|err| err.into())
+        T::deserialize(value.clone()).map_err(std::convert::Into::into)
     }
 
     fn d_insert<T: Serialize>(
@@ -318,15 +318,7 @@ impl DynamicValueExt for Value {
     ) -> ValueResult<(), Self::Error> {
         let new_value = Value::try_from(value)?;
 
-        if !name_or_pointer.starts_with('/') {
-            match self {
-                Value::Table(map) => {
-                    map.insert(name_or_pointer.to_string(), new_value);
-                    Ok(())
-                }
-                _ => Err(TomlError::custom("Value is not an Table, cannot d_insert")),
-            }
-        } else {
+        if name_or_pointer.starts_with('/') {
             let parts: Vec<&str> = name_or_pointer.split('/').skip(1).collect();
             let mut current = self;
 
@@ -353,6 +345,14 @@ impl DynamicValueExt for Value {
                 }
             } else {
                 Err(TomlError::into_custom("Invalid path"))
+            }
+        } else {
+            match self {
+                Value::Table(map) => {
+                    map.insert(name_or_pointer.to_string(), new_value);
+                    Ok(())
+                }
+                _ => Err(TomlError::custom("Value is not an Table, cannot d_insert")),
             }
         }
     }

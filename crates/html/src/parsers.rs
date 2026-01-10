@@ -270,10 +270,12 @@ impl From<SVGTags> for &str {
 }
 
 impl SVGTags {
+    #[must_use] 
     pub fn is_svg_element_closed_by_closing_tag(_me: SVGTags, _other: SVGTags) -> bool {
         false
     }
 
+    #[must_use] 
     pub fn is_svg_element_closed_by_opening_tag(me: SVGTags, other: SVGTags) -> bool {
         match me {
             SVGTags::Animate => match other {
@@ -284,6 +286,7 @@ impl SVGTags {
         }
     }
 
+    #[must_use] 
     pub fn is_self_closing_tag(self) -> bool {
         matches!(
             self,
@@ -297,6 +300,7 @@ impl SVGTags {
         )
     }
 
+    #[must_use] 
     pub fn is_auto_closed(_tag: SVGTags) -> bool {
         false
     }
@@ -768,6 +772,7 @@ impl HTMLTags {
         }
     }
 
+    #[must_use] 
     pub fn is_self_closing_tag(self) -> bool {
         matches!(
             self,
@@ -789,6 +794,7 @@ impl HTMLTags {
         )
     }
 
+    #[must_use] 
     pub fn is_html_element_closed_by_closing_tag(me: HTMLTags, other: HTMLTags) -> bool {
         match me {
             HTMLTags::Li => matches!(other, HTMLTags::Li | HTMLTags::Ol | HTMLTags::Ul),
@@ -802,6 +808,7 @@ impl HTMLTags {
         }
     }
 
+    #[must_use] 
     pub fn is_html_element_closed_by_opening_tag(me: HTMLTags, other: HTMLTags) -> bool {
         match me {
             HTMLTags::Meta => match other {
@@ -856,6 +863,7 @@ impl HTMLTags {
         }
     }
 
+    #[must_use] 
     pub fn is_auto_closed(tag: HTMLTags) -> bool {
         match tag {
             HTMLTags::Meta | HTMLTags::Link => true,
@@ -863,6 +871,7 @@ impl HTMLTags {
         }
     }
 
+    #[must_use] 
     pub fn is_block_tag(tag: HTMLTags) -> bool {
         if HTMLTags::is_table_tag(tag.clone())
             || HTMLTags::is_d_tag(tag.clone())
@@ -890,6 +899,7 @@ impl HTMLTags {
         }
     }
 
+    #[must_use] 
     pub fn is_table_tag(tag: HTMLTags) -> bool {
         match tag {
             HTMLTags::Tfoot
@@ -903,6 +913,7 @@ impl HTMLTags {
         }
     }
 
+    #[must_use] 
     pub fn is_block_text_tag(tag: HTMLTags) -> bool {
         match tag {
             HTMLTags::Script | HTMLTags::Noscript | HTMLTags::Style | HTMLTags::Pre => true,
@@ -910,6 +921,7 @@ impl HTMLTags {
         }
     }
 
+    #[must_use] 
     pub fn is_f_tag(tag: HTMLTags) -> bool {
         match tag {
             HTMLTags::Form
@@ -921,6 +933,7 @@ impl HTMLTags {
         }
     }
 
+    #[must_use] 
     pub fn is_d_tag(tag: HTMLTags) -> bool {
         match tag {
             HTMLTags::Details | HTMLTags::Dialog | HTMLTags::Dd | HTMLTags::Div | HTMLTags::Dt => {
@@ -930,6 +943,7 @@ impl HTMLTags {
         }
     }
 
+    #[must_use] 
     pub fn is_header_tag(tag: HTMLTags) -> bool {
         match tag {
             HTMLTags::H1
@@ -984,6 +998,7 @@ impl FromStr for MarkupTags {
 }
 
 impl MarkupTags {
+    #[must_use] 
     pub fn is_element_closed_by_opening_tag(me: MarkupTags, other: MarkupTags) -> bool {
         match (me, other) {
             (MarkupTags::HTML(me), MarkupTags::HTML(other)) => {
@@ -996,6 +1011,7 @@ impl MarkupTags {
         }
     }
 
+    #[must_use] 
     pub fn is_element_closed_by_closing_tag(me: MarkupTags, other: MarkupTags) -> bool {
         match (me, other) {
             (MarkupTags::HTML(me), MarkupTags::HTML(other)) => {
@@ -1008,6 +1024,7 @@ impl MarkupTags {
         }
     }
 
+    #[must_use] 
     pub fn is_element_self_closing(me: MarkupTags) -> bool {
         match me {
             MarkupTags::SVG(me) => SVGTags::is_self_closing_tag(me),
@@ -1016,6 +1033,7 @@ impl MarkupTags {
         }
     }
 
+    #[must_use] 
     pub fn is_element_auto_closed(me: MarkupTags) -> bool {
         match me {
             MarkupTags::SVG(me) => SVGTags::is_auto_closed(me),
@@ -1042,10 +1060,11 @@ impl MarkupTags {
             MarkupTags::DocType => Ok("!doctype"),
             MarkupTags::SVG(sg) => Ok(sg.into()),
             MarkupTags::HTML(ht) => Ok(ht.into()),
-            _ => Err(anyhow!("Cant get &str representation of {:?}", self)),
+            _ => Err(anyhow!("Cant get &str representation of {self:?}")),
         }
     }
 
+    #[must_use] 
     pub fn is_block_tag(tag: MarkupTags) -> bool {
         match tag {
             MarkupTags::HTML(t) => HTMLTags::is_block_tag(t),
@@ -1053,6 +1072,7 @@ impl MarkupTags {
         }
     }
 
+    #[must_use] 
     pub fn is_table_tag(tag: MarkupTags) -> bool {
         match tag {
             MarkupTags::HTML(t) => HTMLTags::is_table_tag(t),
@@ -1060,6 +1080,7 @@ impl MarkupTags {
         }
     }
 
+    #[must_use] 
     pub fn is_block_text_tag(tag: MarkupTags) -> bool {
         match tag {
             MarkupTags::HTML(t) => HTMLTags::is_block_text_tag(t),
@@ -1067,6 +1088,7 @@ impl MarkupTags {
         }
     }
 
+    #[must_use] 
     pub fn is_f_tag(tag: MarkupTags) -> bool {
         match tag {
             MarkupTags::HTML(t) => HTMLTags::is_f_tag(t),
@@ -1074,6 +1096,7 @@ impl MarkupTags {
         }
     }
 
+    #[must_use] 
     pub fn is_d_tag(tag: MarkupTags) -> bool {
         match tag {
             MarkupTags::HTML(t) => HTMLTags::is_d_tag(t),
@@ -1081,6 +1104,7 @@ impl MarkupTags {
         }
     }
 
+    #[must_use] 
     pub fn is_header_tag(tag: MarkupTags) -> bool {
         match tag {
             MarkupTags::HTML(t) => HTMLTags::is_header_tag(t),
@@ -1108,6 +1132,7 @@ pub struct Stack<'a> {
 }
 
 impl<'a> Stack<'a> {
+    #[must_use] 
     pub fn new(tag: MarkupTags, closed: bool, start_range: usize, end_range: usize) -> Self {
         Self {
             closed,
@@ -1123,6 +1148,7 @@ impl<'a> Stack<'a> {
         self.attrs.push((name, value));
     }
 
+    #[must_use] 
     pub fn get_tags(&self) -> Vec<MarkupTags> {
         let mut items = vec![];
         self.add_tags_to(&mut items);
@@ -1136,6 +1162,7 @@ impl<'a> Stack<'a> {
         items.push(self.tag.clone().unwrap());
     }
 
+    #[must_use] 
     pub fn empty() -> Self {
         Self {
             tag: None,
@@ -1211,6 +1238,7 @@ static DOC_TYPE_STARTER_MARKER: &str = "!";
 /// This is important to allow you when dealing with an html content where
 /// its not just a single root but has siblings and the parser does not handle such
 /// cases where there could be more than 1 root element.
+#[must_use] 
 pub fn wrap_in_document_fragment_container(data: String) -> String {
     format!("<{FRAME_FLAG_TAG}>{data}</{FRAME_FLAG_TAG}>")
 }
@@ -1952,7 +1980,7 @@ impl HTMLParser {
                     match self.parse_elem_attribute(acc, &mut elem) {
                         Ok(()) => self.collect_space(acc)?,
                         Err(err) => return Err(err),
-                    };
+                    }
                     collected_attrs = true;
                 }
 
@@ -2018,7 +2046,7 @@ impl HTMLParser {
                         elem.tag.replace(tag);
                     }
                     Err(err) => return Err(err),
-                };
+                }
 
                 ewe_trace::debug!("parse_xml_elem: generates tagname: {:?}", elem.tag);
 
@@ -2098,7 +2126,7 @@ impl HTMLParser {
                                 elem.tag.replace(tag);
                             }
                             Err(err) => return Err(err),
-                        };
+                        }
                     }
 
                     ewe_trace::debug!("parse_elem: generates self closing tagname: {:?}", elem.tag);
@@ -2128,7 +2156,7 @@ impl HTMLParser {
                         elem.tag.replace(tag);
                     }
                     Err(err) => return Err(err),
-                };
+                }
 
                 ewe_trace::debug!("parse_elem generates tagname: {:?}", elem.tag);
 

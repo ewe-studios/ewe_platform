@@ -14,6 +14,7 @@ pub struct Bytes<'a> {
 #[allow(missing_docs)]
 impl<'a> Bytes<'a> {
     #[inline]
+    #[must_use] 
     pub fn new(slice: &'a [u8]) -> Bytes<'a> {
         let start = slice.as_ptr();
         // SAFETY: obtain pointer to slice end; start points to slice start.
@@ -28,11 +29,13 @@ impl<'a> Bytes<'a> {
     }
 
     #[inline]
+    #[must_use] 
     pub fn pos(&self) -> usize {
         self.cursor as usize - self.start as usize
     }
 
     #[inline]
+    #[must_use] 
     pub fn peek(&self) -> Option<u8> {
         if self.cursor < self.end {
             // SAFETY:  bounds checked
@@ -43,6 +46,7 @@ impl<'a> Bytes<'a> {
     }
 
     #[inline]
+    #[must_use] 
     pub fn peek_ahead(&self, n: usize) -> Option<u8> {
         // SAFETY: obtain a potentially OOB pointer that is later compared against the `self.end`
         // pointer.
@@ -56,6 +60,7 @@ impl<'a> Bytes<'a> {
     }
 
     #[inline]
+    #[must_use] 
     pub fn peek_n<'b: 'a, U: TryFrom<&'a [u8]>>(&'b self, n: usize) -> Option<U> {
         // TODO: once we bump MSRC, use const generics to allow only [u8; N] reads
         // TODO: drop `n` arg in favour of const
@@ -70,7 +75,7 @@ impl<'a> Bytes<'a> {
     /// Caller must ensure that Bytes hasn't been advanced/bumped by more than [`Bytes::len()`].
     #[inline]
     pub unsafe fn bump(&mut self) {
-        self.advance(1)
+        self.advance(1);
     }
 
     /// Advance cursor by `n`
@@ -85,11 +90,13 @@ impl<'a> Bytes<'a> {
     }
 
     #[inline]
+    #[must_use] 
     pub fn len(&self) -> usize {
         self.end as usize - self.cursor as usize
     }
 
     #[inline]
+    #[must_use] 
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
@@ -118,7 +125,7 @@ impl<'a> Bytes<'a> {
 
     #[inline]
     pub fn commit(&mut self) {
-        self.start = self.cursor
+        self.start = self.cursor;
     }
 
     /// # Safety
@@ -131,16 +138,19 @@ impl<'a> Bytes<'a> {
     }
 
     #[inline]
+    #[must_use] 
     pub fn as_ptr(&self) -> *const u8 {
         self.cursor
     }
 
     #[inline]
+    #[must_use] 
     pub fn start(&self) -> *const u8 {
         self.start
     }
 
     #[inline]
+    #[must_use] 
     pub fn end(&self) -> *const u8 {
         self.end
     }
@@ -199,6 +209,7 @@ pub struct BytesPointer<'a> {
 }
 
 impl<'a> BytesPointer<'a> {
+    #[must_use] 
     pub fn new(content: &'a [u8]) -> Self {
         Self {
             content,
@@ -208,17 +219,20 @@ impl<'a> BytesPointer<'a> {
     }
 
     #[inline]
+    #[must_use] 
     pub fn content(&self) -> &'a [u8] {
         self.content
     }
 
     #[inline]
+    #[must_use] 
     pub fn is_empty(&self) -> bool {
         self.content.is_empty()
     }
 
     /// Returns the total length of the string being accumulated on.
     #[inline]
+    #[must_use] 
     pub fn len(&self) -> usize {
         self.content.len()
     }
@@ -226,21 +240,24 @@ impl<'a> BytesPointer<'a> {
     /// Returns the distance between the peek position and the actual cursor
     /// position.
     #[inline]
+    #[must_use] 
     pub fn distance(&self) -> usize {
         self.peek_pos - self.pos
     }
 
-    /// peek_rem_len returns the remaining count of strings
+    /// `peek_rem_len` returns the remaining count of strings
     /// left from the current peeks's cursor.
     #[inline]
+    #[must_use] 
     pub fn peek_rem_len(&self) -> usize {
         (self.content[self.peek_pos..]).len()
     }
 
-    /// rem_len returns the remaining count of strings
+    /// `rem_len` returns the remaining count of strings
     /// left from the current position's cursor
     /// regardless of where the peek cursor is at.
     #[inline]
+    #[must_use] 
     pub fn rem_len(&self) -> usize {
         (self.content[self.pos..]).len()
     }
@@ -249,10 +266,10 @@ impl<'a> BytesPointer<'a> {
     /// Basically moving them to the start position.
     #[inline]
     pub fn reset(&mut self) {
-        self.reset_to(0)
+        self.reset_to(0);
     }
 
-    /// reset_to lets you reset the position of the cursor for both
+    /// `reset_to` lets you reset the position of the cursor for both
     /// position and peek to the to value.
     #[inline]
     pub fn reset_to(&mut self, to: usize) {
@@ -260,9 +277,9 @@ impl<'a> BytesPointer<'a> {
         self.peek_pos = to;
     }
 
-    /// skip_with_position will skip all the contents of the accumulator up to
+    /// `skip_with_position` will skip all the contents of the accumulator up to
     /// the current position of the peek cursor and return the difference
-    /// between the peek_pos and position before moving the cursor forward.
+    /// between the `peek_pos` and position before moving the cursor forward.
     #[inline]
     pub fn skip_position(&mut self) -> usize {
         let diff = self.peek_pos - self.pos;
@@ -274,7 +291,7 @@ impl<'a> BytesPointer<'a> {
     /// the current position of the peek cursor.
     #[inline]
     pub fn skip(&mut self) {
-        self.pos = self.peek_pos
+        self.pos = self.peek_pos;
     }
 
     /// peek pulls the next token at the current peek position
@@ -284,7 +301,7 @@ impl<'a> BytesPointer<'a> {
         self.peek_slice(by)
     }
 
-    /// peek_next allows you to increment the peek cursor, moving
+    /// `peek_next` allows you to increment the peek cursor, moving
     /// the peek cursor forward by a step and returns the next
     /// token string.
     #[inline]
@@ -296,7 +313,7 @@ impl<'a> BytesPointer<'a> {
         None
     }
 
-    /// peek_next allows you to increment the peek cursor, moving
+    /// `peek_next` allows you to increment the peek cursor, moving
     /// the peek cursor forward by a mount of step and returns the next
     /// token string.
     #[inline]
@@ -308,7 +325,7 @@ impl<'a> BytesPointer<'a> {
         None
     }
 
-    /// unpeek_next reverses the last forward move of the peek
+    /// `unpeek_next` reverses the last forward move of the peek
     /// cursor by -1.
     #[inline]
     pub fn unpeek_next(&mut self) -> Option<&'a [u8]> {
@@ -318,7 +335,7 @@ impl<'a> BytesPointer<'a> {
         None
     }
 
-    /// unpeek_slice lets you reverse the peek cursor position
+    /// `unpeek_slice` lets you reverse the peek cursor position
     /// by a certain amount to reverse the forward movement.
     #[inline]
     fn unpeek_slice(&mut self, by: usize) -> Option<&'a [u8]> {
@@ -351,7 +368,7 @@ impl<'a> BytesPointer<'a> {
         Some(&self.content[self.pos..self.peek_pos])
     }
 
-    /// ppeek_at allows you to do a non-permant position cursor adjustment
+    /// `ppeek_at` allows you to do a non-permant position cursor adjustment
     /// by taking the current position cursor index with an adjustment
     /// where we add the `from` (pos + from) to get the new
     /// position to start from and `to` is added (pos + from + to)
@@ -377,10 +394,10 @@ impl<'a> BytesPointer<'a> {
         Some(&self.content[new_peek_pos..until_pos])
     }
 
-    /// vpeek_at allows you to do a non-permant peek cursor adjustment
+    /// `vpeek_at` allows you to do a non-permant peek cursor adjustment
     /// by taking the current peek cursor position with an adjustment
-    /// where we add the `from` (peek_cursor + from) to get the new
-    /// position to start from and `to` is added (peek_cursor + from + to)
+    /// where we add the `from` (`peek_cursor` + from) to get the new
+    /// position to start from and `to` is added (`peek_cursor` + from + to)
     /// the position to end at, if the total is more than the length of the string
     /// then its adjusted to be the string last index for the slice.
     ///
@@ -403,7 +420,7 @@ impl<'a> BytesPointer<'a> {
         Some(&self.content[new_peek_pos..until_pos])
     }
 
-    /// peek_slice allows you to peek forward by an amount
+    /// `peek_slice` allows you to peek forward by an amount
     /// from the current peek cursor position.
     ///
     /// If we've exhausted the total string slice left or are trying to
@@ -483,7 +500,7 @@ impl<'a> BytesPointer<'a> {
         res
     }
 
-    /// take_positional returns the total string slice from the
+    /// `take_positional` returns the total string slice from the
     /// actual accumulators position cursor til the current
     /// peek cursor position i.e [u8][position_cursor...peek_cursor].
     /// Allow you to collect the whole slice of strings that have been

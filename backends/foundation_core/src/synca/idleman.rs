@@ -98,6 +98,7 @@ impl IdleMan {
         }
     }
 
+    #[must_use] 
     pub fn basic(max_idle: u32) -> Self {
         Self::new(
             max_idle,
@@ -120,9 +121,7 @@ impl IdleMan {
                     Some(inner) => Some(inner),
                 },
                 SleepyState::Expired => {
-                    if !self.try_reset() {
-                        panic!("Failed to reset counter");
-                    }
+                    assert!(self.try_reset(), "Failed to reset counter");
                     self.sleepy.reset();
                     self.base_sleep
                 }
@@ -139,7 +138,7 @@ impl IdleMan {
         self.counter.load(atomic::Ordering::Acquire)
     }
 
-    /// try_reset attempts to reset the counter if it's
+    /// `try_reset` attempts to reset the counter if it's
     /// reached the maximum allowed amount and returns true
     /// else returns false.
     pub fn try_reset(&self) -> bool {

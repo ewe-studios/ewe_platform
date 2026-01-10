@@ -43,6 +43,7 @@ impl<T> Default for DurationStore<T> {
 }
 
 impl<T> DurationStore<T> {
+    #[must_use] 
     pub fn new() -> Self {
         Self {
             store: Arc::new(RwLock::new(EntryList::new())),
@@ -67,6 +68,7 @@ impl<T> DurationStore<T> {
     /// Removes a previously inserted sleeping ticker.
     ///
     /// Returns `true` if the ticker was notified.
+    #[must_use] 
     pub fn remove(&self, handle: &Entry) -> Option<DurationWaker<T>> {
         self.store.write().unwrap().take(handle)
     }
@@ -80,11 +82,12 @@ impl<T> DurationStore<T> {
     }
 
     /// Returns the list of
+    #[must_use] 
     pub fn get_matured(&self) -> Vec<DurationWaker<T>> {
         self.store
             .write()
             .unwrap()
-            .select_take(|item| item.is_ready())
+            .select_take(Waiter::is_ready)
     }
 
     /// Returns the minimum duration of time of all entries in the
@@ -94,7 +97,7 @@ impl<T> DurationStore<T> {
         self.store
             .read()
             .unwrap()
-            .map_with(|item| item.remaining())
+            .map_with(DurationWaker::remaining)
             .iter()
             .max()
             .copied()
@@ -107,7 +110,7 @@ impl<T> DurationStore<T> {
         self.store
             .read()
             .unwrap()
-            .map_with(|item| item.remaining())
+            .map_with(DurationWaker::remaining)
             .iter()
             .max()
             .copied()
@@ -136,7 +139,7 @@ impl<T> Waiter for DurationWaker<T> {
 
 impl<T: Waker> Waker for DurationWaker<T> {
     fn wake(&self) {
-        self.handle.wake()
+        self.handle.wake();
     }
 }
 
@@ -187,7 +190,7 @@ impl<T: Timeable + Waiter> Timing for Sleepers<T> {
         self.sleepers
             .read()
             .unwrap()
-            .map_with(|item| item.remaining_duration())
+            .map_with(Timeable::remaining_duration)
             .iter()
             .max()
             .copied()
@@ -200,7 +203,7 @@ impl<T: Timeable + Waiter> Timing for Sleepers<T> {
         self.sleepers
             .read()
             .unwrap()
-            .map_with(|item| item.remaining_duration())
+            .map_with(Timeable::remaining_duration)
             .iter()
             .max()
             .copied()
@@ -209,12 +212,11 @@ impl<T: Timeable + Waiter> Timing for Sleepers<T> {
 
 impl<T: Waker + Waiter> Waker for Sleepers<T> {
     fn wake(&self) {
-        for sleeper in self
+        for sleeper in &self
             .sleepers
             .write()
             .unwrap()
-            .select_take(|item| item.is_ready())
-            .iter()
+            .select_take(Waiter::is_ready)
         {
             sleeper.wake();
         }
@@ -236,6 +238,7 @@ impl<T: Waiter> Default for Sleepers<T> {
 }
 
 impl<T: Waiter> Sleepers<T> {
+    #[must_use] 
     pub fn new() -> Self {
         Self {
             sleepers: Arc::new(RwLock::new(EntryList::new())),
@@ -255,6 +258,7 @@ impl<T: Waiter> Sleepers<T> {
     /// Removes a previously inserted sleeping ticker.
     ///
     /// Returns `true` if the ticker was notified.
+    #[must_use] 
     pub fn remove(&self, handle: &Entry) -> Option<T> {
         self.sleepers.write().unwrap().take(handle)
     }
@@ -268,10 +272,11 @@ impl<T: Waiter> Sleepers<T> {
     }
 
     /// Returns the list of
+    #[must_use] 
     pub fn get_matured(&self) -> Vec<T> {
         self.sleepers
             .write()
             .unwrap()
-            .select_take(|item| item.is_ready())
+            .select_take(Waiter::is_ready)
     }
 }

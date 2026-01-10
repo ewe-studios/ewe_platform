@@ -85,15 +85,15 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::De
     }
 }
 
-/// AsTaskIterator represents a type for an iterator with
+/// `AsTaskIterator` represents a type for an iterator with
 /// the underlying output of the iterator to be `TaskStatus`
 /// and it's relevant semantics.
 pub type AsTaskIterator<D, P, S> = dyn Iterator<Item = TaskStatus<D, P, S>>;
 
-/// BoxedTaskIterator provides a Boxed (heap-allocated) Iterator based on a TaskIterator.
+/// `BoxedTaskIterator` provides a Boxed (heap-allocated) Iterator based on a `TaskIterator`.
 pub type BoxedTaskIterator<D, P, S> = Box<dyn Iterator<Item = TaskStatus<D, P, S>>>;
 
-/// TaskIterator is an iterator engineered around the concept of asynchronouse
+/// `TaskIterator` is an iterator engineered around the concept of asynchronouse
 /// task that have 3 states: PENDING, INIT (Initializing) and READY.
 ///
 /// This follows the Iterators in that when the iterator returns None then it's
@@ -130,7 +130,7 @@ pub trait TaskIterator {
     /// Advances the iterator and returns the next value.
     fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>>;
 
-    /// into_iter consumes the implementation and wraps
+    /// `into_iter` consumes the implementation and wraps
     /// it in an iterator type that emits
     /// `TaskStatus<TaskIterator::Pending ,TaskIterator::Done>`
     /// match the behavior desired for an iterator.
@@ -151,6 +151,7 @@ impl<D, P, S> TaskAsIterator<D, P, S> {
         Self(Box::new(t))
     }
 
+    #[must_use] 
     pub fn new(t: Box<dyn TaskIterator<Ready = D, Pending = P, Spawner = S>>) -> Self {
         Self(t)
     }

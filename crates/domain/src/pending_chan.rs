@@ -46,6 +46,7 @@ impl<E> Default for PendingChannelsRegistry<E> {
 }
 
 impl<E> PendingChannelsRegistry<E> {
+    #[must_use] 
     pub fn new() -> Self {
         Self {
             pending: sync::Arc::new(sync::Mutex::new(collections::HashMap::new())),

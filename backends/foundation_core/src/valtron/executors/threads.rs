@@ -33,7 +33,7 @@ use crate::{
 };
 
 use super::{
-    constants::*, BoxedExecutionEngine, BoxedPanicHandler, BoxedSendExecutionIterator,
+    constants::{DEFAULT_OP_READ_TIME, MAX_ROUNDS_IDLE_COUNT, MAX_ROUNDS_WHEN_SLEEPING_ENDS, BACK_OFF_THREAD_FACTOR, BACK_OFF_JITER, BACK_OFF_MIN_DURATION, BACK_OFF_MAX_DURATION}, BoxedExecutionEngine, BoxedPanicHandler, BoxedSendExecutionIterator,
     ConsumingIter, DoNext, ExecutionAction, ExecutionIterator, ExecutorError, FnMutReady, FnReady,
     OnNext, PriorityOrder, ProcessController, ReadyConsumingIter, TaskIterator, TaskReadyResolver,
     TaskStatus, TaskStatusMapper,
@@ -51,7 +51,7 @@ const THREADS_BITS: usize = 8;
 /// Max value for the thread counters.
 const THREADS_MAX: usize = (1 << THREADS_BITS) - 1;
 
-/// [get_allocatable_thread_count] ensures we allocate enough of threads as requested
+/// [`get_allocatable_thread_count`] ensures we allocate enough of threads as requested
 /// less 1 as the 1 thread will be used for waiting for kill signal and the remaining
 /// for task execution in situations where on 2 threads can be created apart from the current
 /// process.
@@ -61,21 +61,13 @@ pub(crate) fn get_allocatable_thread_count() -> usize {
     let desired_threads = get_num_threads();
     tracing::debug!("Desired thread count: {desired_threads:}");
 
-    if desired_threads > max_threads {
-        panic!("Desired thread count cant be greater than maximum allowed threads {max_threads}");
-    }
+    assert!((desired_threads <= max_threads), "Desired thread count cant be greater than maximum allowed threads {max_threads}");
 
-    if desired_threads == 0 {
-        panic!("Desired thread count cant be zero");
-    }
+    assert!((desired_threads != 0), "Desired thread count cant be zero");
 
-    if max_threads < 2 {
-        panic!("Available thread cant be less than 2 we use 1 thread for the service kill signal, and 1 for tasks");
-    }
+    assert!((max_threads >= 2), "Available thread cant be less than 2 we use 1 thread for the service kill signal, and 1 for tasks");
 
-    if desired_threads < 2 {
-        panic!("Requested thread cant be less than 2 we use 1 thread for the service kill signal, and 1 for tasks");
-    }
+    assert!((desired_threads >= 2), "Requested thread cant be less than 2 we use 1 thread for the service kill signal, and 1 for tasks");
 
     // return size of threads with us keeping 2 for our purposes.
     if desired_threads == max_threads {
@@ -262,6 +254,7 @@ impl ProcessController for ThreadYielder {
 pub struct ThreadId(Entry, String);
 
 impl ThreadId {
+    #[must_use] 
     pub fn new(entry: Entry, name: String) -> Self {
         Self(entry, name)
     }
@@ -270,14 +263,17 @@ impl ThreadId {
         &mut self.0
     }
 
+    #[must_use] 
     pub fn get_ref(&self) -> &Entry {
         &self.0
     }
 
+    #[must_use] 
     pub fn get_cloned(&self) -> Entry {
         self.0
     }
 
+    #[must_use] 
     pub fn get_name(&self) -> &String {
         &self.1
     }
@@ -291,7 +287,7 @@ pub enum ThreadActivity {
     Stopped(ThreadId),
 
     /// Indicates when a Thread with an executor has
-    /// blocked the thread with a CondVar waiting for
+    /// blocked the thread with a `CondVar` waiting for
     /// signal to become awake.
     Blocked(ThreadId),
 
@@ -386,11 +382,13 @@ impl SharedThreadRegistry {
         Self(inner)
     }
 
+    #[must_use] 
     pub fn executor_count(&self) -> usize {
         let registry = self.0.read().unwrap();
         registry.threads.active_slots()
     }
 
+    #[must_use] 
     pub fn get_thread(&self, thread: ThreadId) -> ThreadRef {
         let registry = self.0.read().unwrap();
 
@@ -530,9 +528,9 @@ pub struct ThreadPool {
 // -- constructor
 
 impl ThreadPool {
-    /// with_rng allows you to provide a custom Random number generator
+    /// `with_rng` allows you to provide a custom Random number generator
     /// that can be used to generate as the initial seed the
-    /// ThreadPool uses for it's local execution threads.
+    /// `ThreadPool` uses for it's local execution threads.
     ///
     /// We use the default to max threads allowed per process via `get_num_threads()`.
     pub fn with_rng<R: rand::Rng>(rng: &mut R) -> Self {
@@ -543,6 +541,7 @@ impl ThreadPool {
     /// [`ThreadPool::with_seed`] generates a `ThreadPool` using
     /// the provided seed and the default MAX threads allowed
     /// per Process using `get_num_threads()`.
+    #[must_use] 
     pub fn with_seed(seed_from_rng: u64) -> Self {
         let num_threads = get_num_threads();
         Self::with_seed_and_threads(seed_from_rng, num_threads)
@@ -552,6 +551,7 @@ impl ThreadPool {
     /// threadPool which uses the default values (see Constants section)
     /// set out in this modules for all required configuration
     /// which provide what we considered sensible defaults
+    #[must_use] 
     pub fn with_seed_and_threads(seed_from_rng: u64, num_threads: usize) -> Self {
         Self::new(
             seed_from_rng,
@@ -568,11 +568,12 @@ impl ThreadPool {
         )
     }
 
-    /// [`new`] creates a new ThreadPool for you which you can use
+    /// [`new`] creates a new `ThreadPool` for you which you can use
     /// for concurrent execution of `LocalExecutorEngine` executors
     /// within the total number of threads you provided via `num_threads`
     /// the threads are spawned and ready to take on work.
     #[allow(clippy::too_many_arguments)]
+    #[must_use] 
     pub fn new(
         seed_for_rng: u64,
         num_threads: usize,
@@ -586,15 +587,11 @@ impl ThreadPool {
         thread_back_min_duration: time::Duration,
         thread_back_max_duration: time::Duration,
     ) -> Self {
-        if num_threads < 2 {
-            panic!("Unable to create ThreadPool with 1 thread only, please specify >= 2");
-        }
+        assert!((num_threads >= 2), "Unable to create ThreadPool with 1 thread only, please specify >= 2");
 
-        if num_threads > THREADS_MAX {
-            panic!(
+        assert!((num_threads <= THREADS_MAX), 
                 "Unable to create ThreadPool with thread numbers of {num_threads}, must no go past {THREADS_MAX}"
             );
-        }
         let thread_latch = Arc::new(LockSignal::new());
         let kill_latch = Arc::new(LockSignal::new());
         let tasks: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
@@ -762,7 +759,7 @@ impl ThreadPool {
                     sender_id
                 );
             }) {
-                Ok(_) => Ok(()),
+                Ok(()) => Ok(()),
                 Err(err) => {
                     tracing::debug!("Thread executor has panic: {:?}: {:?}", sender_id, err);
                     sender
@@ -803,11 +800,11 @@ impl ThreadPool {
     ) -> AnyResult<(), ExecutorError> {
         let span = tracing::trace_span!("ThreadPool::schedule");
         span.in_scope(|| match self.tasks.push(Box::new(task)) {
-            Ok(_) => {
+            Ok(()) => {
                 match self.tasks.len() {
                     1 => self.latch.signal_one(),
                     _ => self.latch.signal_all(),
-                };
+                }
                 Ok(())
             }
             Err(err) => match err {
@@ -939,7 +936,7 @@ impl ThreadPool {
     ///
     /// CAUTION: You must be careful not to call `Self::run_until` and `Self::kill`
     /// in the same thread as a `CondVar` is used and will block the current thread
-    /// till `run_until` signals the CondVar to wake up the blocked thread when `Self::kill`
+    /// till `run_until` signals the `CondVar` to wake up the blocked thread when `Self::kill`
     /// is ever called.
     pub fn run_until(&self) {
         let span = tracing::trace_span!("ThreadPool::run_until");
@@ -1213,11 +1210,11 @@ impl<
         };
 
         match self.tasks.push(boxed_task.into()) {
-            Ok(_) => {
+            Ok(()) => {
                 match self.tasks.len() {
                     1 => self.latch.signal_one(),
                     _ => self.latch.signal_all(),
-                };
+                }
 
                 Ok(RecvIterator::from_chan(iter_chan, wait_cycle))
             }
@@ -1254,11 +1251,11 @@ impl<
         };
 
         match self.tasks.push(boxed_task.into()) {
-            Ok(_) => {
+            Ok(()) => {
                 match self.tasks.len() {
                     1 => self.latch.signal_one(),
                     _ => self.latch.signal_all(),
-                };
+                }
 
                 Ok(RecvIterator::from_chan(iter_chan, wait_cycle))
             }
@@ -1301,11 +1298,11 @@ impl<
         };
 
         match self.tasks.push(task) {
-            Ok(_) => {
+            Ok(()) => {
                 match self.tasks.len() {
                     1 => self.latch.signal_one(),
                     _ => self.latch.signal_all(),
-                };
+                }
                 Ok(())
             }
             Err(err) => match err {

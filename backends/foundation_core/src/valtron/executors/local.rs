@@ -32,7 +32,7 @@ use super::{
     TaskReadyResolver, TaskStatusMapper, ThreadActivity,
 };
 
-/// PriorityOrder defines how wake up tasks should placed once woken up.
+/// `PriorityOrder` defines how wake up tasks should placed once woken up.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PriorityOrder {
     Top,
@@ -73,10 +73,10 @@ pub(crate) enum SpawnType {
 /// It is the inner structure used by a `LocalExecutorEngine` to manage
 /// all relevant tasks it takes on.
 ///
-/// It's important to note that if a task panic, so will the ExecutorState
+/// It's important to note that if a task panic, so will the `ExecutorState`
 /// which can't be restored and all tasks owned will be lost, so its important
 /// you always handle panic in the actual task itself by using either the `DoNext`,
-/// `CollectNext` and `OnNext` and if you implement your own ExecutionIterator to
+/// `CollectNext` and `OnNext` and if you implement your own `ExecutionIterator` to
 /// ensure to follow the pattern demonstrated in those implementations to correctly
 /// handle panic from tasks even at the trade of some runtime cost from Mutex which
 /// allow you use [`std::panic::catch_unwind`].
@@ -84,7 +84,7 @@ pub struct ExecutorState {
     /// what priority should waking task be placed.
     pub(crate) priority: PriorityOrder,
 
-    /// global_tasks are the shared tasks coming from the main thread
+    /// `global_tasks` are the shared tasks coming from the main thread
     /// they generally will always come in fifo order and will be processed
     /// in the order received.
     pub(crate) global_tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
@@ -105,7 +105,7 @@ pub struct ExecutorState {
     /// execution.
     pub(crate) local_tasks: rc::Rc<cell::RefCell<EntryList<BoxedExecutionIterator>>>,
 
-    /// task_graph provides dependency mapping of a Task (Key) lifted
+    /// `task_graph` provides dependency mapping of a Task (Key) lifted
     /// by another Task (Value) allowing us to go from lifted task
     /// to it's tree of dependents.
     pub(crate) task_graph: rc::Rc<cell::RefCell<HashMap<Entry, Entry>>>,
@@ -176,7 +176,7 @@ impl ExecutorState {
 
 // --- implementations
 
-/// ScheduleOutcome communicates the outcome of an attempt to
+/// `ScheduleOutcome` communicates the outcome of an attempt to
 /// schedule a task from the global queue.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ScheduleOutcome {
@@ -188,14 +188,14 @@ pub enum ScheduleOutcome {
     /// is being processed.
     NoTaskRunningOrAcquired,
 
-    /// LocalTaskRunning indicates local task are still
+    /// `LocalTaskRunning` indicates local task are still
     /// running or pending hence no attempt will be made
     /// to go to the global queue yet.
     LocalTaskRunning,
 }
 
-/// ProgressIndicator communicates the potential status of
-/// an ExecutorState and whether it can make progress in it's
+/// `ProgressIndicator` communicates the potential status of
+/// an `ExecutorState` and whether it can make progress in it's
 /// work, this allows the manager of the executor to smartly
 /// manage the overall management of the executor.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -233,6 +233,7 @@ impl Clone for ExecutorState {
 
 impl ExecutorState {
     /// Returns a borrowed immutable
+    #[must_use] 
     pub fn get_rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
         self.rng.clone()
     }
@@ -248,6 +249,7 @@ impl ExecutorState {
     /// Returns the list of other task dependent on this giving tasks
     /// and their dependents in order.
     #[inline]
+    #[must_use] 
     pub fn get_task_dependents(&self, target: Entry) -> Vec<Entry> {
         let mut deps = Vec::new();
 
@@ -271,6 +273,7 @@ impl ExecutorState {
     /// Returns true/false indicative if the provided task entry
     /// is considered packed.
     #[inline]
+    #[must_use] 
     pub fn is_packed(&self, target: &Entry) -> bool {
         *self.packed_tasks.borrow().get(target).unwrap_or(&false)
     }
@@ -280,7 +283,7 @@ impl ExecutorState {
     pub fn unpack_task_and_dependents(&self, target: Entry) {
         tracing::debug!("Unpacking: tasks and dependents for: {:?}", &target);
         self.packed_tasks.borrow_mut().remove(&target);
-        for dependent in self.get_task_dependents(target).into_iter() {
+        for dependent in self.get_task_dependents(target) {
             tracing::debug!(
                 "Unpacking: task's: {:?} dependent : {:?}",
                 &dependent,
@@ -295,7 +298,7 @@ impl ExecutorState {
     pub fn pack_task_and_dependents(&self, target: Entry) {
         tracing::debug!("Packing: tasks and dependents for: {:?}", &target);
         self.packed_tasks.borrow_mut().insert(target, true);
-        for dependent in self.get_task_dependents(target).into_iter() {
+        for dependent in self.get_task_dependents(target) {
             tracing::debug!(
                 "Packing: task's: {:?} dependent : {:?}",
                 &target,
@@ -305,7 +308,7 @@ impl ExecutorState {
         }
     }
 
-    /// wake_up adds the entry into the list of wakers
+    /// `wake_up` adds the entry into the list of wakers
     /// that should be woken up by the executor.
     #[inline]
     pub fn wake_up(&self, target: Entry) {
@@ -325,7 +328,7 @@ impl ExecutorState {
             }
             PriorityOrder::Bottom => {
                 self.processing.borrow_mut().push_back(target);
-                for dependent in deps.into_iter() {
+                for dependent in deps {
                     self.packed_tasks.borrow_mut().remove(&dependent);
                     self.processing.borrow_mut().push_back(dependent);
                 }
@@ -333,7 +336,7 @@ impl ExecutorState {
         }
     }
 
-    /// next_wakeup checks all registered sleepers to see if they
+    /// `next_wakeup` checks all registered sleepers to see if they
     /// matured to the age of being woken up and placed back into
     /// the processing queue.
     #[inline]
@@ -359,6 +362,7 @@ impl ExecutorState {
     /// Returns True/False indicative if the executor has any local
     /// task still processing
     #[inline]
+    #[must_use] 
     pub fn has_local_tasks(&self) -> bool {
         self.local_tasks.borrow().active_slots() > 0
     }
@@ -369,20 +373,24 @@ impl ExecutorState {
     /// 1. Not sleeping
     /// 2. In local task queue
     ///
+    #[must_use] 
     pub fn has_active_tasks(&self) -> bool {
         self.total_active_tasks() > 0
     }
 
     /// Returns true/false if processing queue has task.
+    #[must_use] 
     pub fn has_inflight_task(&self) -> bool {
         !self.processing.borrow().is_empty()
     }
 
     /// Returns totla
+    #[must_use] 
     pub fn total_inprocess_tasks(&self) -> usize {
         self.number_of_inprocess()
     }
 
+    #[must_use] 
     pub fn total_sleeping_tasks(&self) -> usize {
         self.sleepers.count()
     }
@@ -404,7 +412,7 @@ impl ExecutorState {
         active_task_count
     }
 
-    /// schedule_next will attempt to pull a new task from the
+    /// `schedule_next` will attempt to pull a new task from the
     /// global queue if no task is pending on the local queue
     /// and if so returns true to indicate success else a false
     /// to indicate no task was taking from the global queue
@@ -551,7 +559,7 @@ impl ExecutorState {
         None
     }
 
-    /// do_work attempts to call the current iterator to progress
+    /// `do_work` attempts to call the current iterator to progress
     /// executing the next operation internally till it's ready for
     /// work to begin.
     #[inline]
@@ -580,173 +588,167 @@ impl ExecutorState {
             let iter_container = self.local_tasks.borrow_mut().park(&top_entry);
             match iter_container {
                 Some(mut iter) => {
-                    match iter.next(top_entry, engine) {
-                        Some(state) => {
-                            tracing::debug!("Task delivered state: {:?}", &state);
-                            match state {
-                                State::SpawnFailed => {
-                                    unreachable!("Executor should never fail to spawn a task");
-                                }
-                                State::Panicked => {
-                                    tracing::debug!(
-                                        "Task just panicked and communicated that with State::Panicked, will remove immediately"
-                                    );
+                    if let Some(state) = iter.next(top_entry, engine) {
+                        tracing::debug!("Task delivered state: {:?}", &state);
+                        match state {
+                            State::SpawnFailed => {
+                                unreachable!("Executor should never fail to spawn a task");
+                            }
+                            State::Panicked => {
+                                tracing::debug!(
+                                    "Task just panicked and communicated that with State::Panicked, will remove immediately"
+                                );
 
-                                    // unpack the entry in the task list
-                                    self.local_tasks.borrow_mut().unpark(&top_entry, iter);
-                                    self.local_tasks.borrow_mut().take(&top_entry);
+                                // unpack the entry in the task list
+                                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+                                self.local_tasks.borrow_mut().take(&top_entry);
 
-                                    // no need to push entry since it must have
-                                    tracing::debug!("Task is removed from queue due to panic");
+                                // no need to push entry since it must have
+                                tracing::debug!("Task is removed from queue due to panic");
 
-                                    // Task Iterator is really done
-                                    if remaining_tasks == 0 {
-                                        ProgressIndicator::NoWork
-                                    } else {
-                                        ProgressIndicator::CanProgress
-                                    }
-                                }
-                                State::SpawnFinished => {
-                                    let active_tasks = self.total_active_tasks();
-                                    let sleeping_tasks = self.total_active_tasks();
-                                    let in_process_tasks = self.total_inprocess_tasks();
-
-                                    tracing::debug!(
-                                        "Spawned new task successfully over current {:?} (rem_tasks: {}, active_tasks: {}, sleeping_tasks: {}, in_process_tasks: {})",
-                                        &top_entry,
-                                        remaining_tasks,
-                                        active_tasks,
-                                        sleeping_tasks,
-                                        in_process_tasks,
-                                    );
-
-                                    // unpack the entry in the task list
-                                    self.local_tasks.borrow_mut().unpark(&top_entry, iter);
-
-                                    // unless we just lifted with a parent then add entry back.
-                                    if let Some(op) = self.spawn_op.borrow().as_ref() {
-                                        tracing::info!("Spawned process with op: {:?}", op);
-                                        if op != &SpawnType::LiftedWithParent {
-                                            // push entry back into processing mut
-                                            tracing::info!(
-                                                "Adding task {:?} back into top of queue: {:?}",
-                                                top_entry,
-                                                op
-                                            );
-                                            self.processing.borrow_mut().push_front(top_entry);
-                                        }
-                                    }
-
-                                    // no need to push entry since it must have
-                                    ProgressIndicator::CanProgress
-                                }
-                                State::Done => {
-                                    tracing::debug!(
-                                        "Task as finished with State::Done (task: {:?}, rem_tasks: {})",
-                                        &top_entry,
-                                        remaining_tasks
-                                    );
-
-                                    // now unpack and take entry out of local tasks
-                                    self.local_tasks.borrow_mut().unpark(&top_entry, iter);
-                                    self.local_tasks.borrow_mut().take(&top_entry);
-
-                                    tracing::debug!(
-                                        "Finished unparking and taking task (task: {:?}, rem_tasks: {})",
-                                        &top_entry,
-                                        remaining_tasks
-                                    );
-
-                                    // Task Iterator is really done
-                                    if remaining_tasks == 0 {
-                                        ProgressIndicator::NoWork
-                                    } else {
-                                        ProgressIndicator::CanProgress
-                                    }
-                                }
-                                State::Progressed => {
-                                    tracing::debug!("Task is progressing with State::Progressed");
-                                    // unpack the entry in the task list
-                                    self.local_tasks.borrow_mut().unpark(&top_entry, iter);
-
-                                    // push entry back into processing mut
-                                    self.processing.borrow_mut().push_front(top_entry);
-                                    ProgressIndicator::CanProgress
-                                }
-                                State::Pending(duration) => {
-                                    tracing::debug!(
-                                        "Task indicates it is in pending state: State::Pending({:?})",
-                                        &duration
-                                    );
-                                    // if we have a duration then we check if
-                                    // we have other tasks pending, and if so
-                                    // we indicate we can make progress else we
-                                    // tell the executor to pause us for that duration
-                                    // till the task is ready.
-                                    //
-                                    // The task that wants to sleep gets removed from
-                                    // the processing queue and gets registered with the
-                                    // sleepers (which monitors task that are sleeping).
-                                    let final_state = match duration {
-                                        Some(inner) => {
-                                            tracing::debug!("Task provided duration: {:?}", &inner);
-
-                                            // unpack the entry in the task list
-                                            self.local_tasks.borrow_mut().unpark(&top_entry, iter);
-
-                                            // pack this entry and it's dependents into our packed registry.
-                                            self.pack_task_and_dependents(top_entry);
-
-                                            // I do not think I need to use the sleeper entry.
-                                            let _ = self.sleepers.insert(Sleepable::Timable(
-                                                DurationWaker::from_now(top_entry, inner),
-                                            ));
-
-                                            if !self.processing.borrow().is_empty() {
-                                                return ProgressIndicator::CanProgress;
-                                            }
-
-                                            ProgressIndicator::SpinWait(inner)
-                                        }
-                                        None => {
-                                            // unpack the entry in the task list
-                                            self.local_tasks.borrow_mut().unpark(&top_entry, iter);
-
-                                            // push back to top
-                                            self.processing.borrow_mut().push_front(top_entry);
-                                            ProgressIndicator::CanProgress
-                                        }
-                                    };
-
-                                    tracing::debug!("Sending out state: {:?}", &final_state);
-                                    final_state
-                                }
-                                State::Reschedule => {
-                                    tracing::debug!(
-                                        "Task is wishes to reschedule with State::Reschedule"
-                                    );
-
-                                    // unpack the entry in the task list
-                                    self.local_tasks.borrow_mut().unpark(&top_entry, iter);
-
-                                    // add back task into queue
-                                    self.processing.borrow_mut().push_back(top_entry);
-
+                                // Task Iterator is really done
+                                if remaining_tasks == 0 {
+                                    ProgressIndicator::NoWork
+                                } else {
                                     ProgressIndicator::CanProgress
                                 }
                             }
-                        }
-                        None => {
-                            tracing::debug!(
-                                "Task returned None (has finished) (rem_tasks: {})",
-                                remaining_tasks
-                            );
-                            // Task Iterator is really done
-                            if remaining_tasks == 0 {
-                                ProgressIndicator::NoWork
-                            } else {
+                            State::SpawnFinished => {
+                                let active_tasks = self.total_active_tasks();
+                                let sleeping_tasks = self.total_active_tasks();
+                                let in_process_tasks = self.total_inprocess_tasks();
+
+                                tracing::debug!(
+                                    "Spawned new task successfully over current {:?} (rem_tasks: {}, active_tasks: {}, sleeping_tasks: {}, in_process_tasks: {})",
+                                    &top_entry,
+                                    remaining_tasks,
+                                    active_tasks,
+                                    sleeping_tasks,
+                                    in_process_tasks,
+                                );
+
+                                // unpack the entry in the task list
+                                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+
+                                // unless we just lifted with a parent then add entry back.
+                                if let Some(op) = self.spawn_op.borrow().as_ref() {
+                                    tracing::info!("Spawned process with op: {:?}", op);
+                                    if op != &SpawnType::LiftedWithParent {
+                                        // push entry back into processing mut
+                                        tracing::info!(
+                                            "Adding task {:?} back into top of queue: {:?}",
+                                            top_entry,
+                                            op
+                                        );
+                                        self.processing.borrow_mut().push_front(top_entry);
+                                    }
+                                }
+
+                                // no need to push entry since it must have
                                 ProgressIndicator::CanProgress
                             }
+                            State::Done => {
+                                tracing::debug!(
+                                    "Task as finished with State::Done (task: {:?}, rem_tasks: {})",
+                                    &top_entry,
+                                    remaining_tasks
+                                );
+
+                                // now unpack and take entry out of local tasks
+                                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+                                self.local_tasks.borrow_mut().take(&top_entry);
+
+                                tracing::debug!(
+                                    "Finished unparking and taking task (task: {:?}, rem_tasks: {})",
+                                    &top_entry,
+                                    remaining_tasks
+                                );
+
+                                // Task Iterator is really done
+                                if remaining_tasks == 0 {
+                                    ProgressIndicator::NoWork
+                                } else {
+                                    ProgressIndicator::CanProgress
+                                }
+                            }
+                            State::Progressed => {
+                                tracing::debug!("Task is progressing with State::Progressed");
+                                // unpack the entry in the task list
+                                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+
+                                // push entry back into processing mut
+                                self.processing.borrow_mut().push_front(top_entry);
+                                ProgressIndicator::CanProgress
+                            }
+                            State::Pending(duration) => {
+                                tracing::debug!(
+                                    "Task indicates it is in pending state: State::Pending({:?})",
+                                    &duration
+                                );
+                                // if we have a duration then we check if
+                                // we have other tasks pending, and if so
+                                // we indicate we can make progress else we
+                                // tell the executor to pause us for that duration
+                                // till the task is ready.
+                                //
+                                // The task that wants to sleep gets removed from
+                                // the processing queue and gets registered with the
+                                // sleepers (which monitors task that are sleeping).
+                                let final_state = if let Some(inner) = duration {
+                                    tracing::debug!("Task provided duration: {:?}", &inner);
+
+                                    // unpack the entry in the task list
+                                    self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+
+                                    // pack this entry and it's dependents into our packed registry.
+                                    self.pack_task_and_dependents(top_entry);
+
+                                    // I do not think I need to use the sleeper entry.
+                                    let _ = self.sleepers.insert(Sleepable::Timable(
+                                        DurationWaker::from_now(top_entry, inner),
+                                    ));
+
+                                    if !self.processing.borrow().is_empty() {
+                                        return ProgressIndicator::CanProgress;
+                                    }
+
+                                    ProgressIndicator::SpinWait(inner)
+                                } else {
+                                    // unpack the entry in the task list
+                                    self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+
+                                    // push back to top
+                                    self.processing.borrow_mut().push_front(top_entry);
+                                    ProgressIndicator::CanProgress
+                                };
+
+                                tracing::debug!("Sending out state: {:?}", &final_state);
+                                final_state
+                            }
+                            State::Reschedule => {
+                                tracing::debug!(
+                                    "Task is wishes to reschedule with State::Reschedule"
+                                );
+
+                                // unpack the entry in the task list
+                                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+
+                                // add back task into queue
+                                self.processing.borrow_mut().push_back(top_entry);
+
+                                ProgressIndicator::CanProgress
+                            }
+                        }
+                    } else {
+                        tracing::debug!(
+                            "Task returned None (has finished) (rem_tasks: {})",
+                            remaining_tasks
+                        );
+                        // Task Iterator is really done
+                        if remaining_tasks == 0 {
+                            ProgressIndicator::NoWork
+                        } else {
+                            ProgressIndicator::CanProgress
                         }
                     }
                 }
@@ -844,7 +846,7 @@ impl ExecutorState {
     /// no more have control as to where it gets allocated.
     pub fn broadcast(&self, task: BoxedSendExecutionIterator) -> AnyResult<(), ExecutorError> {
         match self.global_tasks.push(task) {
-            Ok(_) => {
+            Ok(()) => {
                 self.spawn_op.borrow_mut().replace(SpawnType::Broadcast);
                 Ok(())
             }
@@ -883,6 +885,7 @@ impl Clone for ReferencedExecutorState {
 
 #[allow(unused)]
 impl ReferencedExecutorState {
+    #[must_use] 
     pub fn new(
         inner: rc::Rc<ExecutorState>,
         activities: Option<mpp::Sender<ThreadActivity>>,
@@ -899,7 +902,7 @@ impl ReferencedExecutorState {
     }
 
     fn use_activities(&mut self, activities: mpp::Sender<ThreadActivity>) {
-        self.activities = Some(activities)
+        self.activities = Some(activities);
     }
 
     fn get_ref(&self) -> &rc::Rc<ExecutorState> {
@@ -931,10 +934,12 @@ impl ReferencedExecutorState {
     }
 
     /// Returns true/false if processing queue has task.
+    #[must_use] 
     pub fn has_inflight_task(&self) -> bool {
         self.inner.has_inflight_task()
     }
 
+    #[must_use] 
     pub fn schedule_and_do_work(&self, engine: BoxedExecutionEngine) -> ProgressIndicator {
         self.inner.schedule_and_do_work(engine)
     }
@@ -957,6 +962,7 @@ impl Clone for LocalExecutionEngine {
 }
 
 impl LocalExecutionEngine {
+    #[must_use] 
     pub fn new(
         inner: rc::Rc<ExecutorState>,
         activities: Option<mpp::Sender<ThreadActivity>>,
@@ -966,7 +972,7 @@ impl LocalExecutionEngine {
 
     #[allow(unused)]
     fn use_activities(&mut self, activities: mpp::Sender<ThreadActivity>) {
-        self.activities = Some(activities)
+        self.activities = Some(activities);
     }
 }
 
@@ -1056,7 +1062,7 @@ impl ExecutionEngine for LocalExecutionEngine {
         Ok(())
     }
 
-    /// shared_queue returns access to the global queue.
+    /// `shared_queue` returns access to the global queue.
     fn shared_queue(&self) -> SharedTaskQueue {
         self.inner.global_tasks.clone()
     }
@@ -1069,11 +1075,13 @@ impl ExecutionEngine for LocalExecutionEngine {
 
 impl ReferencedExecutorState {
     #[inline]
+    #[must_use] 
     pub fn local_engine(&self) -> LocalExecutionEngine {
         LocalExecutionEngine::new(self.inner.clone(), self.activities.clone())
     }
 
     #[inline]
+    #[must_use] 
     pub fn boxed_engine(&self) -> BoxedExecutionEngine {
         Box::new(self.local_engine())
     }
@@ -1081,7 +1089,7 @@ impl ReferencedExecutorState {
 
 // --- End of: LocalExecutor for ExecutionIterator::Executor
 
-/// # LocalThreadExecutor
+/// # `LocalThreadExecutor`
 ///
 /// Detailed is the overall design decision selected in the design and implementation of the executor and
 /// it's variants
@@ -1157,10 +1165,10 @@ impl ReferencedExecutorState {
 ///
 /// ## Executors
 ///
-/// ### LocalThreadExecutor
+/// ### `LocalThreadExecutor`
 ///
 /// A Non threaded foundation executor that executes in the thread it is created in, generally most more complicated
-/// executors might use this executor underneath or the ConcurrentExecutor underneath. The core behaviour this executor
+/// executors might use this executor underneath or the `ConcurrentExecutor` underneath. The core behaviour this executor
 /// outlines is that it will only ever execute a singular task unto completion. Now to be clear this does not mean the
 /// executor waste cycles by doing nothing when a task in the queue is sleeping, delayed or communicates its unreadiness
 /// which then allows the executor prioritize other pending tasks but generally a executing task that can make progress
@@ -1182,7 +1190,7 @@ impl ReferencedExecutorState {
 ///   when the sleep period has expired no matter if another task is executing that task will be demoted for the previous
 ///   task to become priority.
 ///
-/// - Task Graph: internally the executor should keep a graph (HashMap really) that maps Task to it's
+/// - Task Graph: internally the executor should keep a graph (`HashMap` really) that maps Task to it's
 ///   Dependents (the lifter) in this case, this allows us to do the following:
 ///   1. Task A lifts Task B so we store in Map: {B: Vec[A]}
 ///   2. Task B lifts Task C so we store in Map: {C: Vec[B], B: Vec[A]}
@@ -1203,33 +1211,33 @@ impl ReferencedExecutorState {
 /// 1. Task A gets scheduled by executor and can make progress
 /// 2. Task A wants to sleep for some duration of time
 /// 3. Executor removes Task A from queue and puts it to sleep (register sleep waker)
-/// 4. Executor pulls new task from global queue and queues it for execution and progress (with: CoExecutionAllowed).
+/// 4. Executor pulls new task from global queue and queues it for execution and progress (with: `CoExecutionAllowed`).
 /// 5. When Task A sleep expires, executor lift Task A as priority with no dependency
-///    and continues executing Task A ///(with: PriorityOrder).
+///    and continues executing Task A ///(with: `PriorityOrder`).
 ///
-/// #### Scenario 3: Task A Goes to Sleep (PriorityOrder: On)
+/// #### Scenario 3: Task A Goes to Sleep (`PriorityOrder`: On)
 /// In such a scenario an executing task can indicate it wishes to go to sleep for some period of time with other tasks
 /// taking it place to utilize resources better.
 ///
-/// - PriorityOrder: means the executor will ensure to maintain existing priority of a task even if it goes to sleep,
+/// - `PriorityOrder`: means the executor will ensure to maintain existing priority of a task even if it goes to sleep,
 ///   when the sleep period has expired no matter if another task is executing that task will be demoted for the previous
 ///   task to become priority.
 ///
 /// 1. Task A gets scheduled by executor and can make progress
 /// 2. Task A wants to sleep for some duration of time
 /// 3. Executor removes Task A from queue and puts it to sleep (register sleep waker)
-/// 4. Executor pulls new task from global queue and queues it for execution and progress (with: CoExecutionAllowed).
+/// 4. Executor pulls new task from global queue and queues it for execution and progress (with: `CoExecutionAllowed`).
 /// 5. When Task A sleep expires, executor lift Task A as priority with no dependency and
-///    continues executing Task A ///(with: PriorityOrder).
+///    continues executing Task A ///(with: `PriorityOrder`).
 ///
-/// #### Scenario 4:  Task A Goes to Sleep (PriorityOrder: Off)
+/// #### Scenario 4:  Task A Goes to Sleep (`PriorityOrder`: Off)
 /// In such a scenario an executing task can indicate it wishes to go to sleep for some period of time with other tasks
 /// taking it place to utilize resources better.
 ///
 /// 1. Task A gets scheduled by executor and can make progress
 /// 2. Task A wants to sleep for some duration of time
 /// 3. Executor removes Task A from queue and puts it to sleep (register sleep waker)
-/// 4. Executor pulls new task from global queue and queues it for execution and progress (with: CoExecutionAllowed)
+/// 4. Executor pulls new task from global queue and queues it for execution and progress (with: `CoExecutionAllowed`)
 /// 5. When Task A sleep expires, executor schedules Task A to bottom of queue to wait its turn again.
 ///
 /// #### Scenario 5:  Task A spawns Task B which then wants to go to sleep
@@ -1241,7 +1249,7 @@ impl ReferencedExecutorState {
 /// 2. Task B wants to sleep for some duration of time
 /// 3. Executor removes Task B to Task A due to task graph (Task A -> (depends) Task B) from queue
 ///    and puts Task B to sleep (register sleep waker) and moves Task A from queue till Task B returns from sleep.
-/// 4. Executor goes on to execute other tasks and depending on state of PriorityOrder will either add Task C to Task A
+/// 4. Executor goes on to execute other tasks and depending on state of `PriorityOrder` will either add Task C to Task A
 ///    back to end of queue or start of queue.
 ///
 /// ##### Dev Notes
@@ -1249,16 +1257,16 @@ impl ReferencedExecutorState {
 ///
 /// ### Concurrent Executor
 ///
-/// ConcurrentExecutor generally will be executed in a multi-threaded environment which allows more larger control and
+/// `ConcurrentExecutor` generally will be executed in a multi-threaded environment which allows more larger control and
 /// performance has it can spread tasks to dedicated threads who really are each
-/// managing a LocalThreadExecutor in a given
-/// thread with CoExecution turned on.
+/// managing a `LocalThreadExecutor` in a given
+/// thread with `CoExecution` turned on.
 ///
 /// One thing must be clear, executors can never be sent across threads, they are designed that way, they exists in the
 /// thread they were created in which means their overall operations are serialized as you can't have some other thread
 /// do something with the task executor that requires `Sync`.
 ///
-/// ConcurrentExecutors have the exact same scenarios as the `LocalThreadExecutor` but it instead coordinates multiple
+/// `ConcurrentExecutors` have the exact same scenarios as the `LocalThreadExecutor` but it instead coordinates multiple
 /// instances of them in as many OS threads as you want.
 ///
 /// ## Higher Order Iterator (HOI) Tasks
@@ -1266,12 +1274,12 @@ impl ReferencedExecutorState {
 /// ### Grouped Iterator
 ///
 /// Grouped a HOI task type that sits on the provided executor in that it allows us group a series of tasks in that they
-/// make progress together. Unlike TimeSlice iterator where each task in the group gets
+/// make progress together. Unlike `TimeSlice` iterator where each task in the group gets
 /// a `TimeSlice`, the Grouped iterator simply just calls `Iter::next()` on all sub-tasks
 ///
-/// ### TimeSlice Iterator
+/// ### `TimeSlice` Iterator
 ///
-/// TimeSlice iterator implements a variant that sits on the provided executor in that it allows us create a
+/// `TimeSlice` iterator implements a variant that sits on the provided executor in that it allows us create a
 /// series of sub-tasks that can make progress for a given time slice,
 /// noting that it internally manages this tasks in it's `next()` call.
 ///
@@ -1282,61 +1290,61 @@ impl ReferencedExecutorState {
 /// The executor will keep executing those tasks concurrently for their time slice until they reach completion at which
 /// point the completed task is removed from the queue and another task is added in.
 ///
-/// #### Scenario 1:  Task A spawns a TimeSlice Iterator type Task with Task [B, C, D]
+/// #### Scenario 1:  Task A spawns a `TimeSlice` Iterator type Task with Task [B, C, D]
 ///
-/// In such a scenario an executing spawns the TimeSlice Iterator as a task making progress in the queue and calls
+/// In such a scenario an executing spawns the `TimeSlice` Iterator as a task making progress in the queue and calls
 /// it's `next()` which in turn calls the `next()` method of each sub-tasks (B, C, D)
-/// till its TimeSlice wrapper indicates to be
+/// till its `TimeSlice` wrapper indicates to be
 /// rescheduled, moving said task (either B, C, D) to the end of it's internal queue till it completes.
 ///
-/// The Executor just keeps receiving `State::Progress` from TimeSlice iterator indicating its making progress.
+/// The Executor just keeps receiving `State::Progress` from `TimeSlice` iterator indicating its making progress.
 ///
-/// #### Scenario 2:  Task A spawns a TimeSlice Iterator type Task with Task [B, C, D] but C wants to reschedule
+/// #### Scenario 2:  Task A spawns a `TimeSlice` Iterator type Task with Task [B, C, D] but C wants to reschedule
 ///
-/// In such a scenario an executing task spawns the TimeSlice Iterator as a task making progress in the queue
+/// In such a scenario an executing task spawns the `TimeSlice` Iterator as a task making progress in the queue
 /// and calls it's `next()` which in turn calls the `next()` method of each sub-tasks (B, C, D)
-/// till its TimeSlice wrapper indicates
+/// till its `TimeSlice` wrapper indicates
 /// to be rescheduled, moving said task (either B, C, D) to the end of it's internal queue till it completes .
 ///
-/// When sub-task C indicates it wants to reschedule, TimeSlice iterator moves C out into sleep register with a waker
+/// When sub-task C indicates it wants to reschedule, `TimeSlice` iterator moves C out into sleep register with a waker
 /// and continues executing task (B, D) within their time slices, and till C indicates its
-/// ready to make progress ///`State::Progress` to the TimeSlice iterator else keeps skipping C.
+/// ready to make progress ///`State::Progress` to the `TimeSlice` iterator else keeps skipping C.
 ///
-/// If All sub-task exclaim `State::Reschedule` then TimeSlice forwards that to Executor to reschedule TimeSlice as a
+/// If All sub-task exclaim `State::Reschedule` then `TimeSlice` forwards that to Executor to reschedule `TimeSlice` as a
 /// whole.
 ///
-/// The Executor just keeps receiving `State::Progress` from TimeSlice iterator indicating its making progress.
+/// The Executor just keeps receiving `State::Progress` from `TimeSlice` iterator indicating its making progress.
 ///
-/// #### Scenario 3:  Task A spawns a TimeSlice Iterator type Task with Task [B, C, D] but C wants to sleep
+/// #### Scenario 3:  Task A spawns a `TimeSlice` Iterator type Task with Task [B, C, D] but C wants to sleep
 ///
-/// In such a scenario an executing task spawns the TimeSlice Iterator as a task making progress in the queue and calls
+/// In such a scenario an executing task spawns the `TimeSlice` Iterator as a task making progress in the queue and calls
 /// it's `next()` which in turn calls the `next()` method of each sub-tasks (B, C, D) till
-/// its TimeSlice wrapper indicates
+/// its `TimeSlice` wrapper indicates
 /// to be rescheduled, moving said task (either B, C, D) to the end of it's internal queue till it completes .
 ///
-/// When sub-task C indicates it wants to sleep, TimeSlice iterator moves C out into sleep register with a waker and
+/// When sub-task C indicates it wants to sleep, `TimeSlice` iterator moves C out into sleep register with a waker and
 /// continues executing task (B, D) within their time slices, and till C wakes up, it keeps sending `State::Progress` to
 /// executor.
 ///
-/// If sub-task (B, D) finishes before C wakes up then TimeSlice iterator now yields `State::Pending(time::Duration)` to
+/// If sub-task (B, D) finishes before C wakes up then `TimeSlice` iterator now yields `State::Pending(time::Duration)` to
 /// indicate it also should be put to sleep for that given duration time upon which when it
 /// wakes will check if it has any
 /// sleepers who are ready to be woken and if so moves them into its internal execution queue for progress else issues
 /// another `State::Pending(time::Duration)`.
 ///
-/// #### Scenario 4:  Task A spawns a TimeSlice Iterator type Task with Task [B, C, D] and all sub-tasks wants to sleep
+/// #### Scenario 4:  Task A spawns a `TimeSlice` Iterator type Task with Task [B, C, D] and all sub-tasks wants to sleep
 ///
-/// In such a scenario an executing task spawns the TimeSlice Iterator as a task making progress in
+/// In such a scenario an executing task spawns the `TimeSlice` Iterator as a task making progress in
 /// the queue and calls it's `next()` which in turn calls the `next()` method of each
 /// sub-tasks (B, C, D) till all task indicates they wish to sleep.
 ///
-/// The TimeSlice iterator then puts all into its internal sleeping tracker and issues
+/// The `TimeSlice` iterator then puts all into its internal sleeping tracker and issues
 /// `State::Reschedule` until one of the task is ready to make progress.
 ///
-/// #### Scenario 5:  Task A spawns a TimeSlice Iterator type Task with Task [B, C, D] and B wants to lift sub-task
+/// #### Scenario 5:  Task A spawns a `TimeSlice` Iterator type Task with Task [B, C, D] and B wants to lift sub-task
 ///
-/// In such a scenario an executing task spawns the TimeSlice Iterator as a task making progress in the queue and which
-/// one of the tasks (Task B) would like to lift up another task as priority at which point the TimeSlice iterator will
+/// In such a scenario an executing task spawns the `TimeSlice` Iterator as a task making progress in the queue and which
+/// one of the tasks (Task B) would like to lift up another task as priority at which point the `TimeSlice` iterator will
 /// replace Task B positionally with new lifted Task (with the same time slice settings as Task B)  in essence
 /// putting Task B to sleep till it's lifted Task is done at which point only will
 /// Task B enters the group again to continue execution.
@@ -1386,7 +1394,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     }
 
     /// creates a new local executor which uses the provided
-    /// seed for ChaCha8Rng generator.
+    /// seed for `ChaCha8Rng` generator.
     pub fn from_seed(
         seed: u64,
         tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
@@ -1408,7 +1416,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     }
 
     /// Allows supplying a custom Rng generator for creating the initial
-    /// ChaCha8Rng seed.
+    /// `ChaCha8Rng` seed.
     pub fn from_rng<R: rand::Rng>(
         tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
         rng: &mut R,
@@ -1529,7 +1537,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         }
     }
 
-    /// block_on usually should in a separate thread where it will block
+    /// `block_on` usually should in a separate thread where it will block
     /// the thread until either a panic occurs or the kill signal is sent
     /// to the thread.
     #[inline]
@@ -1537,7 +1545,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         let span = tracing::trace_span!("LocalThreadExecutor::kill");
         let _enter = span.enter();
 
-        /// require kill_signal to be provided.
+        /// require `kill_signal` to be provided.
         let kill_signal = self.kill_signal
             .clone()
             .expect("Calling LocalThreadExecutor::block_on requires kill_signal to be provided for termination");
@@ -1586,8 +1594,9 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 
 // --- Access Methods run once
 
-/// typed_task allows you to create a task builder but requiring specific
+/// `typed_task` allows you to create a task builder but requiring specific
 /// definitions for your `Task`, `Action` and `Resolver` types.
+#[must_use] 
 pub fn typed_task<Task, Action, Resolver>(
     engine: BoxedExecutionEngine,
 ) -> ExecutionTaskIteratorBuilder<
@@ -1608,8 +1617,9 @@ where
     ExecutionTaskIteratorBuilder::new(engine)
 }
 
-/// any_task allows you to create a task builder with less restrictive type
+/// `any_task` allows you to create a task builder with less restrictive type
 /// requirements for the builder, specifically resolvers are Boxed.
+#[must_use] 
 pub fn any_task<Task, Action>(
     engine: BoxedExecutionEngine,
 ) -> ExecutionTaskIteratorBuilder<
@@ -1629,9 +1639,10 @@ where
     ExecutionTaskIteratorBuilder::new(engine)
 }
 
-/// send_any_task will unlike [`any_task`] deliver the provided
+/// `send_any_task` will unlike [`any_task`] deliver the provided
 /// task to the global queue instead of the local queue via the provided
 /// `ExecutionEngine`.
+#[must_use] 
 pub fn send_any_task<Task, Action>(
     engine: BoxedExecutionEngine,
 ) -> ExecutionTaskIteratorBuilder<
@@ -1651,9 +1662,10 @@ where
     ExecutionTaskIteratorBuilder::new(engine)
 }
 
-/// send_typed_task will unlike [`type_task`] deliver the provided
+/// `send_typed_task` will unlike [`type_task`] deliver the provided
 /// typed task to the global queue instead of the local queue via the provided
 /// `ExecutionEngine`.
+#[must_use] 
 pub fn send_typed_task<Task, Action, Resolver>(
     engine: BoxedExecutionEngine,
 ) -> ExecutionTaskIteratorBuilder<

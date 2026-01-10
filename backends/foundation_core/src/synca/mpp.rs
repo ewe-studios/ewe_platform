@@ -18,6 +18,7 @@ pub enum ReceiverError {
 }
 
 impl ReceiverError {
+    #[must_use] 
     pub fn is_timeout(&self) -> bool {
         matches!(self, ReceiverError::Timeout)
     }
@@ -49,26 +50,32 @@ impl<T> Receiver<T> {
         Receiver { chan }
     }
 
+    #[must_use] 
     pub fn capacity(&self) -> Option<usize> {
         self.chan.capacity()
     }
 
+    #[must_use] 
     pub fn len(&self) -> usize {
         self.chan.len()
     }
 
+    #[must_use] 
     pub fn is_closed(&self) -> bool {
         self.chan.is_closed()
     }
 
+    #[must_use] 
     pub fn close(&self) -> bool {
         self.chan.close()
     }
 
+    #[must_use] 
     pub fn is_full(&self) -> bool {
         self.chan.is_full()
     }
 
+    #[must_use] 
     pub fn is_empty(&self) -> bool {
         self.chan.is_empty()
     }
@@ -87,8 +94,8 @@ impl<T> Receiver<T> {
         }
     }
 
-    /// recv_timeout attempts to read value from the channel within the specified duration.
-    /// It internally uses [thread::park_timeout] to block the current thread
+    /// `recv_timeout` attempts to read value from the channel within the specified duration.
+    /// It internally uses [`thread::park_timeout`] to block the current thread
     /// for a given duration until a value is received or the timeout is reached.
     pub fn recv_timeout(&self, dur: std::time::Duration) -> Result<T, ReceiverError> {
         let started = Instant::now();
@@ -109,7 +116,7 @@ impl<T> Receiver<T> {
                     }
                     PopError::Closed => return Err(ReceiverError::Closed(err)),
                 },
-            };
+            }
 
             std::thread::park_timeout(remaining_timeout);
         }
@@ -137,6 +144,7 @@ impl<T> RecvIter<T> {
     /// [`as_iter`] returns a new iterator that will block for 50 nanoseconds
     /// if the channel is empty and will yield to the OS thread scheduler if no
     /// content is received.
+    #[must_use] 
     pub fn as_iter(self) -> RecvIterator<T> {
         RecvIterator::ten_nano(self)
     }
@@ -144,6 +152,7 @@ impl<T> RecvIter<T> {
     /// [`block_iter`] returns a new iterator that will block for provided duration
     /// if the channel is empty and will yield to the OS thread scheduler if no
     /// content is received.
+    #[must_use] 
     pub fn block_iter(self, dur: time::Duration) -> RecvIterator<T> {
         RecvIterator::new(self, dur)
     }
@@ -203,10 +212,12 @@ impl<T> RecvIterator<T> {
         Self::new(RecvIter::new(item), DEFAULT_BLOCK_DURATION)
     }
 
+    #[must_use] 
     pub fn ten_nano(item: RecvIter<T>) -> Self {
         Self::new(item, DEFAULT_BLOCK_DURATION)
     }
 
+    #[must_use] 
     pub fn new(item: RecvIter<T>, dur: time::Duration) -> Self {
         Self(item, dur)
     }
@@ -254,26 +265,32 @@ impl<T> Sender<T> {
         Sender { chan }
     }
 
+    #[must_use] 
     pub fn is_empty(&self) -> bool {
         self.chan.is_empty()
     }
 
+    #[must_use] 
     pub fn is_closed(&self) -> bool {
         self.chan.is_closed()
     }
 
+    #[must_use] 
     pub fn close(&self) -> bool {
         self.chan.close()
     }
 
+    #[must_use] 
     pub fn len(&self) -> usize {
         self.chan.len()
     }
 
+    #[must_use] 
     pub fn capacity(&self) -> Option<usize> {
         self.chan.capacity()
     }
 
+    #[must_use] 
     pub fn is_full(&self) -> bool {
         self.chan.is_full()
     }
@@ -294,6 +311,7 @@ impl<T> Sender<T> {
 }
 
 /// bounded creates a new bounded channel with the specified capacity.
+#[must_use] 
 pub fn bounded<T>(capacity: usize) -> (Sender<T>, Receiver<T>) {
     let chan = Arc::new(ConcurrentQueue::bounded(capacity));
     let sender = Sender::new(chan.clone());
@@ -302,6 +320,7 @@ pub fn bounded<T>(capacity: usize) -> (Sender<T>, Receiver<T>) {
 }
 
 /// unbounded creates a new unbounded channel.
+#[must_use] 
 pub fn unbounded<T>() -> (Sender<T>, Receiver<T>) {
     let chan = Arc::new(ConcurrentQueue::unbounded());
     let sender = Sender::new(chan.clone());

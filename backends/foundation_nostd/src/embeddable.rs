@@ -20,7 +20,8 @@ pub enum FsInfo {
 pub struct DirectoryInfo {
     pub index: Option<usize>,
     pub dir_name: String,
-    pub root_dir: Option<String>,
+    pub dir_path: String,
+    pub root_dir: String,
     pub date_modified_since_unix_epoc: Option<i64>,
 }
 
@@ -36,6 +37,7 @@ pub struct OwnedFileInfo {
     pub hash: String,
     pub mime_type: Option<String>,
     pub date_modified_since_unix_epoc: Option<i64>,
+    pub is_directory: bool,
 }
 
 impl OwnedFileInfo {
@@ -52,8 +54,10 @@ impl OwnedFileInfo {
         e_tag: String,
         mime_type: Option<String>,
         date_modified: Option<i64>,
+        is_directory: bool,
     ) -> Self {
         Self {
+            is_directory,
             date_modified_since_unix_epoc: date_modified,
             source_file_path,
             package_directory,
@@ -80,6 +84,7 @@ pub struct FileInfo {
     pub hash: &'static str,
     pub mime_type: Option<&'static str>,
     pub date_modified_since_unix_epoc: Option<i64>,
+    pub is_directory: bool,
 }
 
 impl FileInfo {
@@ -96,8 +101,10 @@ impl FileInfo {
         e_tag: &'static str,
         mime_type: Option<&'static str>,
         date_modified: Option<i64>,
+        is_directory: bool,
     ) -> Self {
         Self {
+            is_directory,
             source_file_path,
             date_modified_since_unix_epoc: date_modified,
             package_directory,
@@ -124,8 +131,10 @@ impl FileInfo {
         e_tag: &'static str,
         mime_type: Option<&'static str>,
         date_modified: Option<i64>,
+        is_directory: bool,
     ) -> Self {
         Self {
+            is_directory,
             date_modified_since_unix_epoc: date_modified,
             source_file_path,
             package_directory,

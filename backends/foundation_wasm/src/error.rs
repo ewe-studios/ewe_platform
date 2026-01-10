@@ -24,6 +24,7 @@ pub type TaskResult<T> = core::result::Result<T, TaskErrorCode>;
 pub struct TaskErrorCode(pub u16);
 
 impl TaskErrorCode {
+    #[must_use] 
     pub fn new(code: u16) -> Self {
         Self(code)
     }

@@ -1,4 +1,4 @@
-/// Notifable is a type that can be notified when the AsyncIterator
+/// Notifable is a type that can be notified when the `AsyncIterator`
 /// is ready.
 pub trait Notifiable<T> {
     fn notify(&self, t: T);
@@ -14,7 +14,7 @@ pub trait CanNotify<V> {
     fn register(&self, t: impl Notifiable<V>);
 }
 
-/// CanNotifyOfSelf defines a type whose underlying behave can deliver
+/// `CanNotifyOfSelf` defines a type whose underlying behave can deliver
 /// notification of it's self to others.
 ///
 /// It exposes a [`CanNotify::register`] method that allows you

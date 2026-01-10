@@ -1,6 +1,6 @@
-/// AbortIfPanic aborts the current process on the thread
+/// `AbortIfPanic` aborts the current process on the thread
 /// if it ever gets dropped.
-/// The only way to avoid it is to call std::mem::forget on the
+/// The only way to avoid it is to call `std::mem::forget` on the
 pub struct AbortIfPanic;
 
 impl Default for AbortIfPanic {
@@ -16,7 +16,7 @@ impl Drop for AbortIfPanic {
     }
 }
 
-/// RunOnDrop implements a type that runs a function when
+/// `RunOnDrop` implements a type that runs a function when
 /// it gets dropped, providing a similar convention to go's defer.
 pub struct RunOnDrop<F: FnOnce()>(Option<F>);
 

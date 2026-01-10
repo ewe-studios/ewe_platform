@@ -54,6 +54,7 @@ pub struct Bytes<'b>(Cow<'b, [u8]>);
 
 impl<'b> Bytes<'b> {
     #[inline]
+    #[must_use] 
     pub fn from_slice(slice: &'b [u8]) -> Bytes<'b> {
         Bytes(Cow::from(slice))
     }
@@ -69,6 +70,7 @@ impl<'b> Bytes<'b> {
     }
 
     #[inline]
+    #[must_use] 
     pub fn to_utf8_string(&self) -> String {
         str::from_utf8(self.0.as_ref())
             .expect("should be utf8 string")
@@ -76,11 +78,13 @@ impl<'b> Bytes<'b> {
     }
 
     #[inline]
+    #[must_use] 
     pub fn to_upper(self) -> Bytes<'b> {
         Bytes(Cow::from(self.0.to_ascii_uppercase()))
     }
 
     #[inline]
+    #[must_use] 
     pub fn to_lower(self) -> Bytes<'b> {
         Bytes(Cow::from(self.0.to_ascii_lowercase()))
     }
@@ -96,18 +100,21 @@ impl<'b> Bytes<'b> {
     }
 
     #[inline]
+    #[must_use] 
     pub fn into_owned(self) -> Bytes<'static> {
         Bytes(Cow::Owned(self.0.into_owned()))
     }
 
     #[inline]
+    #[must_use] 
     pub fn to_slice(&'b self, range: Range) -> Bytes<'b> {
         let byte_slice = self.0[range.start..range.end].into();
         Bytes(Cow::Borrowed(byte_slice))
     }
 
     #[inline]
-    pub fn opt_slice<'a>(&'a self, range: Option<Range>) -> Option<Bytes<'a>> {
+    #[must_use] 
+    pub fn opt_slice(&self, range: Option<Range>) -> Option<Bytes<'_>> {
         range.map(|range| self.to_slice(range))
     }
 

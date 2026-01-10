@@ -43,7 +43,7 @@ pub mod internal_api {
 
     use crate::{FnCallback, MemoryAllocationResult, ReturnValues};
 
-    use super::*;
+    use super::{ReturnTypeHints, ThreeState, ReturnTypeId, Instructions, ALLOCATIONS, MemoryId, MemoryAllocation, Returns, internal_api, FromBinary, MemoryAllocationError, TaskErrorCode, MemoryReaderError, ANIMATION_FRAME_CALLBACKS, TickState, FnFrameCallback, FrameCallback, InternalPointer, SCHEDULED_CALLBACKS, FnDoTask, DoTask, RECURRING_INTERVAL_CALLBACKS, FnIntervalCallback, IntervalCallback, TaskResult, INTERNAL_CALLBACKS, InternalCallback, Vec, String};
 
     static FAILED_RETURN_HINT: ReturnTypeHints =
         ReturnTypeHints::One(ThreeState::One(ReturnTypeId::ErrorCode));
@@ -189,7 +189,7 @@ pub mod internal_api {
     /// convert any type that implements the [`Fn`] trait.
     pub fn run_schedule_callback(id: InternalPointer) -> crate::WasmRequestResult<()> {
         match SCHEDULED_CALLBACKS.lock().call(id) {
-            Some(_) => Ok(()),
+            Some(()) => Ok(()),
             None => Err(crate::WASMErrors::GuestError(
                 crate::GuestOperationError::UnknownInternalPointer(id),
             )),
@@ -411,7 +411,7 @@ pub mod internal_api {
 /// the system. These are functions the runtime exposes to the host to be able
 /// to make calls into the system or triggering processes.
 pub mod exposed_runtime {
-    use super::*;
+    use super::{ALLOCATIONS, internal_api, InternalPointer, MemoryId};
 
     #[no_mangle]
     pub extern "C" fn create_allocation(size: u64) -> u64 {
@@ -503,7 +503,7 @@ pub mod exposed_runtime {
 /// and easier to interact with.
 #[allow(unused)]
 pub mod host_runtime {
-    use super::*;
+    use super::{ExternalPointer, DoTask, FrameCallback, FromBinary, InternalCallback, IntervalCallback, ToBinary, host_runtime, CompletedInstructions, internal_api, BinaryReaderResult, Vec, Returns, MemoryId, ALLOCATIONS, GroupReturnTypeHints, BinaryReadError, String, TickState, InternalPointer, JSEncoding, Params, RawParts, ReturnTypeHints, ThreeState, ReturnTypeId, ReturnValues, ReturnValueError, MemoryAllocationError};
 
     pub const DOM_SELF: ExternalPointer = ExternalPointer::pointer(0);
     pub const DOM_THIS: ExternalPointer = ExternalPointer::pointer(1);
@@ -515,7 +515,7 @@ pub mod host_runtime {
     pub mod web {
         use crate::{CachedText, MemoryAllocationResult, MemoryReaderError, WasmRequestResult};
 
-        use super::*;
+        use super::{DoTask, FrameCallback, FromBinary, InternalCallback, IntervalCallback, ToBinary, ExternalPointer, host_runtime, CompletedInstructions, internal_api, BinaryReaderResult, Vec, Returns, MemoryId, ALLOCATIONS, GroupReturnTypeHints, BinaryReadError, String, TickState, InternalPointer, JSEncoding, Params, RawParts, ReturnTypeHints, ThreeState, ReturnTypeId, ReturnValues, ReturnValueError, MemoryAllocationError};
 
         #[link(wasm_import_module = "abi")]
         extern "C" {
@@ -849,12 +849,10 @@ pub mod host_runtime {
 
             let mem_id = MemoryId::from_u64(return_id);
             let memory_result = ALLOCATIONS.lock().get(mem_id);
-            if memory_result.is_err() {
-                panic!(
+            assert!(!memory_result.is_err(), 
                     "batch_response: failed to get memory location: {:?} from {:?} with {:?}",
                     mem_id, return_id, memory_result
                 );
-            }
 
             if let Err(err) = memory_result {
                 return Err(err.into());
@@ -1526,7 +1524,7 @@ pub mod host_runtime {
 
             /// [`invoke_for_i64`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a [`ExternalPointer`]
-            /// representing the DOM node instance via an ExternalPointer that points to that object in the
+            /// representing the DOM node instance via an `ExternalPointer` that points to that object in the
             /// hosts object heap.
             pub fn invoke_for_i64(&self, params: &[Params]) -> i64 {
                 host_runtime::web::invoke_as_i64(self.handler, params)
@@ -1552,7 +1550,7 @@ pub mod host_runtime {
 
             /// [`invoke_for_u64`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a [`ExternalPointer`]
-            /// representing the DOM node instance via an ExternalPointer that points to that object in the
+            /// representing the DOM node instance via an `ExternalPointer` that points to that object in the
             /// hosts object heap.
             pub fn invoke_for_u64(&self, params: &[Params]) -> u64 {
                 host_runtime::web::invoke_as_u64(self.handler, params)
@@ -1579,7 +1577,7 @@ pub mod host_runtime {
 
             /// [`invoke_for_dom`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a [`ExternalPointer`]
-            /// representing the DOM node instance via an ExternalPointer that points to that object in the
+            /// representing the DOM node instance via an `ExternalPointer` that points to that object in the
             /// hosts object heap.
             pub fn invoke_for_dom(&self, params: &[Params]) -> ExternalPointer {
                 ExternalPointer::pointer(host_runtime::web::invoke(
@@ -1591,7 +1589,7 @@ pub mod host_runtime {
 
             /// [`invoke_for_object`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a [`ExternalPointer`]
-            /// representing the object via an ExternalPointer that points to that object in the
+            /// representing the object via an `ExternalPointer` that points to that object in the
             /// hosts object heap.
             pub fn invoke_for_object(&self, params: &[Params]) -> ExternalPointer {
                 ExternalPointer::pointer(host_runtime::web::invoke(
@@ -1610,7 +1608,7 @@ pub mod host_runtime {
                 params: &[Params],
                 returns: ReturnTypeHints,
             ) {
-                host_runtime::web::invoke_as_async(self.handler, callback_id, params, returns)
+                host_runtime::web::invoke_as_async(self.handler, callback_id, params, returns);
             }
 
             /// [`unregister_function`] calls the JS ABI on the host to de-register
@@ -1743,8 +1741,8 @@ impl ReturnValueParserIter<'_> {
                 let value_msb = u64::from_le_bytes(msb_section);
                 let value_lsb = u64::from_le_bytes(lsb_section);
 
-                let mut value: u128 = (value_msb as u128) << 64;
-                value |= value_lsb as u128;
+                let mut value: u128 = u128::from(value_msb) << 64;
+                value |= u128::from(value_lsb);
 
                 self.index = lsb_end;
 
@@ -1808,8 +1806,8 @@ impl ReturnValueParserIter<'_> {
                 let value_msb = i64::from_le_bytes(msb_section);
                 let value_lsb = i64::from_le_bytes(lsb_section);
 
-                let mut value: i128 = (value_msb as i128) << 64;
-                value |= value_lsb as i128;
+                let mut value: i128 = i128::from(value_msb) << 64;
+                value |= i128::from(value_lsb);
 
                 index = lsb_end;
 
@@ -1993,7 +1991,7 @@ impl ReturnValueParserIter<'_> {
 
                 // if the mode of 2 (size in bytes/u8) is not zero then
                 // then its an invalid u16 array converted to u8
-                if memory_size % TOTAL_U8_IN_U18 != 0 {
+                if !memory_size.is_multiple_of(TOTAL_U8_IN_U18) {
                     return Some(Err(BinaryReadError::MemoryError(String::from(
                             "Vec<u8> of u16 send as u8 should have even lengths, because u16 in u8 is two u8",
                         ))));
@@ -2049,7 +2047,7 @@ impl ReturnValueParserIter<'_> {
 
                 // if the mode of 2 (size in bytes/u8) is not zero then
                 // then its an invalid u32 array converted to u8
-                if memory_size % TOTAL_U8_IN_U32 != 0 {
+                if !memory_size.is_multiple_of(TOTAL_U8_IN_U32) {
                     return Some(Err(BinaryReadError::MemoryError(String::from(
                             "Vec<u8> of u32 send as u8 should have even lengths, because u32 in u8 is four u8",
                         ))));
@@ -2105,7 +2103,7 @@ impl ReturnValueParserIter<'_> {
 
                 // if the mode of 2 (size in bytes/u8) is not zero then
                 // then its an invalid u64 array converted to u8
-                if memory_size % TOTAL_U8_IN_U64 != 0 {
+                if !memory_size.is_multiple_of(TOTAL_U8_IN_U64) {
                     return Some(Err(BinaryReadError::MemoryError(String::from(
                             "Vec<u8> of u64 send as u8 should have even lengths, because u64 in u8 is eight's u8",
                         ))));
@@ -2158,7 +2156,7 @@ impl ReturnValueParserIter<'_> {
                 let mut arr_content: Vec<i8> = Vec::with_capacity(memory_vec.len());
 
                 for value in memory_vec {
-                    arr_content.push(i8::from_le(value as i8))
+                    arr_content.push(i8::from_le(value as i8));
                 }
 
                 self.index = end;
@@ -2198,7 +2196,7 @@ impl ReturnValueParserIter<'_> {
 
                 // if the mode of 2 (size in bytes/u8) is not zero then
                 // then its an invalid u16 array converted to u8
-                if memory_size % TOTAL_U8_IN_U16 != 0 {
+                if !memory_size.is_multiple_of(TOTAL_U8_IN_U16) {
                     return Some(Err(BinaryReadError::MemoryError(String::from(
                             "Vec<u8> of u16 send as u8 should have even lengths, because u16 in u8 is two u8",
                         ))));
@@ -2254,7 +2252,7 @@ impl ReturnValueParserIter<'_> {
 
                 // if the mode of 2 (size in bytes/u8) is not zero then
                 // then its an invalid u16 array converted to u8
-                if memory_size % TOTAL_U8_IN_U32 != 0 {
+                if !memory_size.is_multiple_of(TOTAL_U8_IN_U32) {
                     return Some(Err(BinaryReadError::MemoryError(String::from(
                             "Vec<u8> of u16 send as u8 should have even lengths, because u16 in u8 is four u8",
                         ))));
@@ -2310,7 +2308,7 @@ impl ReturnValueParserIter<'_> {
 
                 // if the mode of 2 (size in bytes/u8) is not zero then
                 // then its an invalid u16 array converted to u8
-                if memory_size % TOTAL_U8_IN_U64 != 0 {
+                if !memory_size.is_multiple_of(TOTAL_U8_IN_U64) {
                     return Some(Err(BinaryReadError::MemoryError(String::from(
                             "Vec<u8> of u16 send as u8 should have even lengths, because u16 in u8 is eight's u8",
                         ))));
@@ -2366,7 +2364,7 @@ impl ReturnValueParserIter<'_> {
 
                 // if the mode of 2 (size in bytes/u8) is not zero then
                 // then its an invalid u16 array converted to u8
-                if memory_size % TOTAL_U8_IN_F32 != 0 {
+                if !memory_size.is_multiple_of(TOTAL_U8_IN_F32) {
                     return Some(Err(BinaryReadError::MemoryError(String::from(
                             "Vec<u8> of u16 send as u8 should have even lengths, because u16 in u8 is four's u8",
                         ))));
@@ -2422,7 +2420,7 @@ impl ReturnValueParserIter<'_> {
 
                 // if the mode of 2 (size in bytes/u8) is not zero then
                 // then its an invalid u16 array converted to u8
-                if memory_size % TOTAL_U8_IN_F64 != 0 {
+                if !memory_size.is_multiple_of(TOTAL_U8_IN_F64) {
                     return Some(Err(BinaryReadError::MemoryError(String::from(
                             "Vec<u8> of u16 send as u8 should have even lengths, because u16 in u8 is eight's u8",
                         ))));
@@ -2595,7 +2593,7 @@ impl Iterator for ReturnValueParserIter<'_> {
                         }
                     },
                     ReturnTypeHints::None => unreachable!("Should never be called"),
-                };
+                }
 
                 Some(Ok(item))
             }
@@ -2807,12 +2805,10 @@ impl FromBinary for GroupReturnTypeHints {
             let mem_id = MemoryId::from_u64(alloc_id);
 
             let memory_result = ALLOCATIONS.lock().get(mem_id);
-            if memory_result.is_err() {
-                panic!(
+            assert!(!memory_result.is_err(), 
                     "GroupReturnTypeHints: Received memoryId: {:?} -> {:?} -- result: {:?}",
                     &mem_id, &return_hint, &memory_result
                 );
-            }
             if let Err(err) = memory_result {
                 return Err(err.into());
             }
@@ -2845,7 +2841,7 @@ impl FromBinary for GroupReturnTypeHints {
                         "expected a valid returned value not None",
                     )));
                 }
-            };
+            }
 
             if let Err(err) = ALLOCATIONS.lock().deallocate(mem_id) {
                 return Err(err.into());

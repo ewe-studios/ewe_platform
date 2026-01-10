@@ -37,6 +37,7 @@ impl FnDoTask {
     }
 
     #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[must_use] 
     pub fn new(elem: Box<dyn Fn() + Send + 'static>) -> Self {
         Self(Mutex::new(elem))
     }
@@ -57,7 +58,7 @@ impl DoTask for FnDoTask {
     fn perform(&self) {
         #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
         {
-            (self.0.lock())()
+            (self.0.lock())();
         }
 
         #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
@@ -92,6 +93,7 @@ impl ScheduleRegistry {
 }
 
 impl ScheduleRegistry {
+    #[must_use] 
     pub const fn create() -> Mutex<Self> {
         Mutex::new(Self {
             id: 0,
@@ -129,14 +131,17 @@ impl ScheduleRegistry {
 
 #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
 impl ScheduleRegistry {
+    #[must_use] 
     pub fn len(&self) -> usize {
         self.tree.len()
     }
 
+    #[must_use] 
     pub fn is_empty(&self) -> bool {
         self.tree.is_empty()
     }
 
+    #[must_use] 
     pub fn call(&self, id: InternalPointer) -> Option<()> {
         if let Some(callback) = self.tree.get(&id) {
             callback.0.lock().perform();

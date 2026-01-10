@@ -37,6 +37,7 @@ impl FnIntervalCallback {
     }
 
     #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[must_use] 
     pub fn new(elem: Box<dyn Fn() -> TickState + Send + 'static>) -> Self {
         Self(Mutex::new(elem))
     }
@@ -76,16 +77,19 @@ pub struct IntervalCallbackList {
 }
 
 impl IntervalCallbackList {
+    #[must_use] 
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
             items: Vec::with_capacity(capacity),
         }
     }
 
+    #[must_use] 
     pub const fn create() -> Self {
         Self { items: Vec::new() }
     }
 
+    #[must_use] 
     pub fn new() -> Self {
         Self { items: Vec::new() }
     }
@@ -98,10 +102,12 @@ impl Default for IntervalCallbackList {
 }
 
 impl IntervalCallbackList {
+    #[must_use] 
     pub fn len(&self) -> usize {
         self.items.len()
     }
 
+    #[must_use] 
     pub fn is_empty(&self) -> bool {
         self.items.is_empty()
     }
@@ -240,6 +246,7 @@ impl IntervalRegistry {
 }
 
 impl IntervalRegistry {
+    #[must_use] 
     pub const fn create() -> Mutex<Self> {
         Mutex::new(Self {
             id: 0,
@@ -276,14 +283,17 @@ impl IntervalRegistry {
 
 #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
 impl IntervalRegistry {
+    #[must_use] 
     pub fn len(&self) -> usize {
         self.tree.len()
     }
 
+    #[must_use] 
     pub fn is_empty(&self) -> bool {
         self.tree.is_empty()
     }
 
+    #[must_use] 
     pub fn call(&self, id: InternalPointer) -> Option<TickState> {
         if let Some(callback) = self.tree.get(&id) {
             return Some(callback.0.lock().perform());

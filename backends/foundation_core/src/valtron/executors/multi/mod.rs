@@ -16,7 +16,7 @@ use super::{
 static CANCELATION_REGISTRATION: OnceLock<Option<()>> = OnceLock::new();
 static GLOBAL_THREAD_POOL: OnceLock<ThreadPool> = OnceLock::new();
 
-/// [get_pool] returns the initialized thread_pool for your use.
+/// [`get_pool`] returns the initialized `thread_pool` for your use.
 pub fn get_pool() -> &'static ThreadPool {
     match GLOBAL_THREAD_POOL.get() {
         Some(pool) => pool,

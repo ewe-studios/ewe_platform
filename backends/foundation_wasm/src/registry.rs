@@ -38,6 +38,7 @@ impl FnCallback {
     }
 
     #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[must_use] 
     pub fn new(elem: Box<dyn Fn(TaskResult<Returns>) + Send + 'static>) -> Self {
         Self(Mutex::new(elem))
     }
@@ -105,6 +106,7 @@ impl InternalReferenceRegistry {
 }
 
 impl InternalReferenceRegistry {
+    #[must_use] 
     pub const fn create() -> Mutex<Self> {
         Mutex::new(Self {
             id: 0,
@@ -120,6 +122,7 @@ impl InternalReferenceRegistry {
         self.tree.remove(&id).map(|(hint, _)| hint)
     }
 
+    #[must_use] 
     pub fn get_type(&self, id: InternalPointer) -> Option<ReturnTypeHints> {
         self.tree.get(&id).map(|(hint, _)| hint.clone())
     }
@@ -151,6 +154,7 @@ impl InternalReferenceRegistry {
 
 #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
 impl InternalReferenceRegistry {
+    #[must_use] 
     pub fn call(&self, id: InternalPointer, values: TaskResult<Returns>) -> Option<()> {
         if let Some((_, callback)) = self.tree.get(&id) {
             callback.0.lock().receive(values);

@@ -48,14 +48,14 @@ pub trait DelayedReadyResolver<D> {
 
 pub type BoxedDelayedReadyResolver<D> = Box<dyn DelayedReadyResolver<D>>;
 
-/// DelayedIterator represents a new type of iterator that represents an operation
+/// `DelayedIterator` represents a new type of iterator that represents an operation
 /// that is to be completed at some future point in time due to a delay.
 ///
 /// Unlike an async operation where we do not know when it is done, a delayed operation
 /// stipulates when it begins that an operation is delayed till some duration of time
 /// is done at which you can expect the result in a `Delayed::Done` response.
 ///
-/// DelayedIterators can be thought of as two forms:
+/// `DelayedIterators` can be thought of as two forms:
 ///
 /// 1. In one sense this can be the delay result of a one time operation
 ///    upon which completion we get our result from the `Delayed::Done` option at
@@ -80,7 +80,7 @@ pub trait DelayedIterator {
     /// Advances the iterator and returns the next value.
     fn next(&mut self) -> Option<Delayed<Self::Item>>;
 
-    /// into_iter consumes the implementation and wraps
+    /// `into_iter` consumes the implementation and wraps
     /// it in an iterator type that emits `Multi<MultiIterator::Item>`
     /// match the behavior desired for an iterator.
     fn into_iter(self) -> impl Iterator<Item = Delayed<Self::Item>>
@@ -100,6 +100,7 @@ impl<T> DelayedAsIterator<T> {
         Self(Box::new(t))
     }
 
+    #[must_use] 
     pub fn new(t: Box<dyn DelayedIterator<Item = T>>) -> Self {
         Self(t)
     }
@@ -113,7 +114,7 @@ impl<T> Iterator for DelayedAsIterator<T> {
     }
 }
 
-/// SleepIterator implements a custom non-thread pausing sleep operation
+/// `SleepIterator` implements a custom non-thread pausing sleep operation
 /// which implements the `DelayedIterator`.
 ///
 /// It will keep responding with a `Delayed::Pending` till the time marked

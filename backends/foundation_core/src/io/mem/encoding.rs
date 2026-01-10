@@ -17,10 +17,12 @@ pub trait Encoding: Encoder + Decoder {}
 pub struct UTF8Encoding;
 
 impl UTF8Encoding {
+    #[must_use] 
     pub fn shared() -> SharedEncoding {
         rc::Rc::new(Self)
     }
 
+    #[must_use] 
     pub fn new() -> Self {
         Self {}
     }

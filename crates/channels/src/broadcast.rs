@@ -3,6 +3,7 @@
 use crate::mspc::{self, ChannelError};
 use std::sync;
 
+#[must_use] 
 pub fn create<E: Send + 'static>(initial_subscribers_capacity: usize) -> Broadcast<E> {
     Broadcast::<E>::new(initial_subscribers_capacity)
 }

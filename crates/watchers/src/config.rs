@@ -68,6 +68,7 @@ pub enum Watcher {
 }
 
 impl Watcher {
+    #[must_use] 
     pub fn debounce(&self) -> u16 {
         match self {
             Watcher::File(file) => file.debounce,
@@ -75,6 +76,7 @@ impl Watcher {
         }
     }
 
+    #[must_use] 
     pub fn commands(&self) -> Option<Vec<CommandDescription>> {
         match self {
             Watcher::File(file) => file.after_change.clone(),
@@ -82,6 +84,7 @@ impl Watcher {
         }
     }
 
+    #[must_use] 
     pub fn path(&self) -> String {
         match self {
             Watcher::File(file) => file.file.clone(),

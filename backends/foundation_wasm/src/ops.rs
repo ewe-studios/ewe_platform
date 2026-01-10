@@ -43,7 +43,7 @@ impl<'a> Batchable<'a> for Vec<Params<'a>> {
         F: BatchEncodable,
     {
         encoder.data(ARGUMENT_STARTER)?;
-        for param in self.iter() {
+        for param in self {
             param.encode(encoder, optimize)?;
         }
         encoder.data(ARGUMENT_ENDER)?;
@@ -57,7 +57,7 @@ impl<'a> Batchable<'a> for &'a [Params<'a>] {
         F: BatchEncodable,
     {
         encoder.data(ARGUMENT_STARTER)?;
-        for param in self.iter() {
+        for param in *self {
             param.encode(encoder, optimize)?;
         }
         encoder.data(ARGUMENT_ENDER)?;
@@ -68,8 +68,8 @@ impl<'a> Batchable<'a> for &'a [Params<'a>] {
 impl ToBinary for Vec<Params<'_>> {
     fn to_binary(&self) -> Vec<u8> {
         let mut encoded_params: Vec<u8> = Vec::new();
-        for param in self.iter() {
-            encoded_params.extend(param.to_binary())
+        for param in self {
+            encoded_params.extend(param.to_binary());
         }
         encoded_params
     }
@@ -78,8 +78,8 @@ impl ToBinary for Vec<Params<'_>> {
 impl<'a> ToBinary for &'a [Params<'a>] {
     fn to_binary(&self) -> Vec<u8> {
         let mut encoded_params: Vec<u8> = Vec::new();
-        for param in self.iter() {
-            encoded_params.extend(param.to_binary())
+        for param in *self {
+            encoded_params.extend(param.to_binary());
         }
         encoded_params
     }
@@ -291,7 +291,7 @@ impl ToBinary for Params<'_> {
                 encoded_params.extend_from_slice(&start.to_le_bytes());
                 encoded_params.extend_from_slice(&len.to_le_bytes());
             }
-        };
+        }
 
         encoded_params
     }
@@ -324,7 +324,7 @@ impl<'a> Batchable<'a> for Params<'a> {
                 Ok(())
             }
             Params::Bool(value) => {
-                let indicator = if *value { 1 } else { 0 };
+                let indicator = u8::from(*value);
                 let data: Vec<u8> = alloc::vec![
                     ArgumentOperations::Begin.into(),
                     self.to_value_type().into(),
@@ -636,7 +636,7 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Text16(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitization::qpointer(value.as_ptr() as *const u8)
+                    value_quantitization::qpointer(value.as_ptr().cast::<u8>())
                 } else {
                     let value_pointer = value.as_ptr() as usize;
                     (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
@@ -695,7 +695,7 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Float32Array(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitization::qpointer(value.as_ptr() as *const u8)
+                    value_quantitization::qpointer(value.as_ptr().cast::<u8>())
                 } else {
                     let value_pointer = value.as_ptr() as usize;
                     (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
@@ -724,7 +724,7 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Float64Array(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitization::qpointer(value.as_ptr() as *const u8)
+                    value_quantitization::qpointer(value.as_ptr().cast::<u8>())
                 } else {
                     let value_pointer = value.as_ptr() as usize;
                     (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
@@ -753,7 +753,7 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Uint32Array(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitization::qpointer(value.as_ptr() as *const u8)
+                    value_quantitization::qpointer(value.as_ptr().cast::<u8>())
                 } else {
                     let value_pointer = value.as_ptr() as usize;
                     (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
@@ -811,7 +811,7 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Uint16Array(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitization::qpointer(value.as_ptr() as *const u8)
+                    value_quantitization::qpointer(value.as_ptr().cast::<u8>())
                 } else {
                     let value_pointer = value.as_ptr() as usize;
                     (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
@@ -840,7 +840,7 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Uint64Array(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitization::qpointer(value.as_ptr() as *const u8)
+                    value_quantitization::qpointer(value.as_ptr().cast::<u8>())
                 } else {
                     let value_pointer = value.as_ptr() as usize;
                     (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
@@ -869,7 +869,7 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Int32Array(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitization::qpointer(value.as_ptr() as *const u8)
+                    value_quantitization::qpointer(value.as_ptr().cast::<u8>())
                 } else {
                     let value_pointer = value.as_ptr() as usize;
                     (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
@@ -898,7 +898,7 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Int64Array(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitization::qpointer(value.as_ptr() as *const u8)
+                    value_quantitization::qpointer(value.as_ptr().cast::<u8>())
                 } else {
                     let value_pointer = value.as_ptr() as usize;
                     (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
@@ -927,7 +927,7 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Int8Array(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitization::qpointer(value.as_ptr() as *const u8)
+                    value_quantitization::qpointer(value.as_ptr().cast::<u8>())
                 } else {
                     let value_pointer = value.as_ptr() as usize;
                     (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)
@@ -956,7 +956,7 @@ impl<'a> Batchable<'a> for Params<'a> {
             Params::Int16Array(value) => {
                 // TODO(alex): Is there a more optimized way instead of `to_vec()` which does a copy.
                 let (value_bytes, tq) = if optimized {
-                    value_quantitization::qpointer(value.as_ptr() as *const u8)
+                    value_quantitization::qpointer(value.as_ptr().cast::<u8>())
                 } else {
                     let value_pointer = value.as_ptr() as usize;
                     (value_pointer.to_le_bytes().to_vec(), TypeOptimization::None)

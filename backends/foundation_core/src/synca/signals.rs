@@ -18,6 +18,7 @@ impl Default for OnSignal {
 }
 
 impl OnSignal {
+    #[must_use] 
     pub fn new() -> Self {
         Self {
             state: AtomicUsize::new(0),
@@ -32,7 +33,7 @@ impl OnSignal {
             .is_ok()
     }
 
-    /// turn_on flip the state from UNSET to SET.
+    /// `turn_on` flip the state from UNSET to SET.
     #[inline]
     pub fn turn_on(&self) -> bool {
         self.state
@@ -53,7 +54,7 @@ const SLEEPY: usize = 2;
 /// Signal is indicative that the owner signal is now sleeping.
 const SLEEPING: usize = 3;
 
-/// `ActivitySignal` allows you to move a SleepSignal from
+/// `ActivitySignal` allows you to move a `SleepSignal` from
 /// a series of steps:
 ///
 /// 1. UNSET = indicate the signal is not asleep nor set.
@@ -76,6 +77,7 @@ impl Default for ActivitySignal {
 }
 
 impl ActivitySignal {
+    #[must_use] 
     pub fn new() -> Self {
         Self {
             state: AtomicUsize::new(0),

@@ -71,10 +71,10 @@ impl RetryDecider for ExponentialBackoffDecider {
         let mut duration = duration.saturating_mul(100);
         if random < jitter_factor {
             let jitter = duration.saturating_mul(random) / 100;
-            duration = duration.saturating_sub(jitter)
+            duration = duration.saturating_sub(jitter);
         } else {
             let jitter = duration.saturating_mul(random / 2) / 100;
-            duration = duration.saturating_add(jitter)
+            duration = duration.saturating_add(jitter);
         }
 
         duration /= 100;

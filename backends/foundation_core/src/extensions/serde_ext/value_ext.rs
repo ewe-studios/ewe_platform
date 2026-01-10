@@ -13,7 +13,7 @@ pub trait AsType<'a, T>: Sized {
 
 pub type ValueResult<T, E> = core::result::Result<T, E>;
 
-/// PointerValueExt defines method to pull value from an underlying value.
+/// `PointerValueExt` defines method to pull value from an underlying value.
 pub trait PointerValueExt {
     type Item;
     type Error;
@@ -25,7 +25,7 @@ pub trait PointerValueExt {
     fn take_path(&mut self, name_or_pointer: &str) -> ValueResult<Self::Item, Self::Error>;
 }
 
-/// DynamicValueExt defines a core expectation for dynamically generated
+/// `DynamicValueExt` defines a core expectation for dynamically generated
 /// value containers such as those in json, toml or yaml.
 /// This trait is focused on making interactions directly with these types
 /// easily and affordable without specifically dragging then need to serialize

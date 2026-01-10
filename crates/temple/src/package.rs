@@ -6,9 +6,8 @@ use core::str;
 use ewe_templates::minijinja;
 use foundation_core::extensions::strings_ext::{TryIntoStr, TryIntoString};
 use foundation_macros::EmbedDirectoryAs;
-use foundation_nostd::embeddable::DirectoryData;
 use foundation_nostd::embeddable::EmbeddableDirectory;
-use std::{io::Write, marker::PhantomData, path::PathBuf, sync};
+use std::{io::Write, path::PathBuf, sync};
 
 use crate::{error::BoxedError, FileContent, FileSystemCommand};
 
@@ -35,9 +34,16 @@ pub trait PackageDirectorate {
     fn list_all(&self) -> Vec<String>;
 }
 
-#[derive(Default)]
 pub struct Directorate<T: EmbeddableDirectory + Default> {
     store: T,
+}
+
+impl<T: EmbeddableDirectory + Default> Default for Directorate<T> {
+    fn default() -> Self {
+        Self {
+            store: T::default(),
+        }
+    }
 }
 
 impl<T: EmbeddableDirectory + Default> PackageDirectorate for Directorate<T> {
@@ -48,7 +54,8 @@ impl<T: EmbeddableDirectory + Default> PackageDirectorate for Directorate<T> {
     fn files(&self) -> Vec<String> {
         self.store
             .info_iter()
-            .filter(|item| !item.source_path.ends_with("/"))
+            .filter(|item| !item.is_directory)
+            .map(|item| item.source_path)
             .map(String::from)
             .collect()
     }
@@ -57,10 +64,11 @@ impl<T: EmbeddableDirectory + Default> PackageDirectorate for Directorate<T> {
         let mut dirs: Vec<String> = self
             .store
             .info_iter()
+            .filter(|item| item.is_directory)
+            .filter(|item| !item.source_path.is_empty())
             .filter_map(|t| {
-                t.source_path
-                    .split("/")
-                    .map(|(directory, _)| String::from(directory))
+                let parts: Vec<&str> = t.source_path.split("/").collect();
+                parts.get(0).map(|item| String::from(*item))
             })
             .collect();
 
@@ -74,7 +82,8 @@ impl<T: EmbeddableDirectory + Default> PackageDirectorate for Directorate<T> {
     fn list_all(&self) -> Vec<String> {
         self.store
             .info_iter()
-            .map(|item| String::from(item.source_path))
+            .map(|item| item.source_path)
+            .map(String::from)
             .collect()
     }
 
@@ -88,7 +97,9 @@ impl<T: EmbeddableDirectory + Default> PackageDirectorate for Directorate<T> {
         let files: Vec<String> = self
             .store
             .info_iter()
+            .filter(|item| !item.is_directory)
             .filter(|item| item.source_path.starts_with(target_dir))
+            .map(|item| item.source_path)
             .map(String::from)
             .collect();
 
@@ -111,7 +122,9 @@ impl<T: EmbeddableDirectory + Default> PackageDirectorate for Directorate<T> {
         let items: Vec<String> = self
             .store
             .info_iter()
+            .filter(|item| !item.is_directory)
             .filter(|item| item.source_path.starts_with(target_dir))
+            .map(|item| item.source_path)
             .map(String::from)
             .collect();
 
@@ -154,6 +167,7 @@ mod directorate_tests {
     #[test]
     fn validate_can_read_top_directories() {
         let generator = Directorate::<Directory>::default();
+        let files: Vec<String> = generator.files();
         let directories: Vec<String> = generator.root_directories();
         assert_eq!(directories, vec! {"docs", "schema"});
     }
@@ -162,6 +176,7 @@ mod directorate_tests {
     fn validate_can_read_only_files_for_top_directory() {
         let generator = Directorate::<Directory>::default();
         let files: Option<Vec<String>> = generator.files_for("schema");
+        assert!(files.is_some());
         assert_eq!(
             files.unwrap(),
             vec! {"schema/partials/partial_1.sql", "schema/schema.sql"}
@@ -171,10 +186,16 @@ mod directorate_tests {
     #[test]
     fn validate_can_read_all_directories() {
         let generator = Directorate::<Directory>::default();
-        let files: Vec<String> = generator.files().map(String::from).collect();
+        let files: Vec<String> = generator.files();
         assert_eq!(
             files,
-            vec! {"README.md", "docs/runner.sh", "elem.js", "schema/partials/partial_1.sql", "schema/schema.sql"}
+            vec! {
+                "docs/runner.sh",
+                "schema/partials/partial_1.sql",
+                "schema/schema.sql",
+                "README.md",
+                "elem.js",
+            }
         );
     }
 }
@@ -351,7 +372,11 @@ impl RustProjectConfigurator {
             if let Some(workspace_cargo) = &rust_config.workspace_cargo {
                 let manifest =
                     cargo_toml::Manifest::from_path(workspace_cargo.clone()).map_err(|err| {
-                        ewe_trace::error!("Failed to get cargo_toml::Manifest due to: {:?}", err);
+                        ewe_trace::error!(
+                            "Failed to get cargo_toml::Manifest({:}) due to: {:?}",
+                            workspace_cargo.display(),
+                            err
+                        );
                         RustProjectConfiguratorError::BadRustWorkspace
                     })?;
 
@@ -371,41 +396,41 @@ impl PackageConfigurator for RustProjectConfigurator {
         self.package_config.directory()
     }
 
-    /// params returns a modified `serde_json::Map` where standard
-    /// package information are added into the dictionary which are
-    /// accessible in the supported template langauge (minijinja):
-    ///
-    /// When a workspace:
-    ///
-    /// - `IS_WORKSPACE=true`
-    /// - `PACKAGE_NAME` (name of package being generated)
-    /// - `TEMPLATE_NAME` (name of template used)
-    /// - `ROOT_PACKAGE_LICENSE_FILE`
-    /// - `ROOT_PACKAGE_EDITION`
-    /// - `ROOT_PACKAGE_REPOSITORY`
-    /// - `ROOT_PACKAGE_VERSION`
-    /// - `ROOT_PACKAGE_RUST_VERSION`
-    /// - `ROOT_PACKAGE_RUST_LICENSE`
-    /// - `ROOT_PACKAGE_RUST_DESCRIPTION`
-    /// - `ROOT_PACKAGE_RUST_AUTHORS`
-    /// - `ROOT_PACKAGE_RUST_KEYWORDS`
-    ///
-    /// When not a workspace:
-    ///
-    /// - `IS_WORKSPACE=false`
-    /// - `PACKAGE_NAME` (name of package being generated)
-    /// - `TEMPLATE_NAME` (name of template used)
-    /// - `ROOT_PACKAGE_NAME`
-    /// - `ROOT_PACKAGE_LICENSE_FILE`
-    /// - `ROOT_PACKAGE_EDITION`
-    /// - `ROOT_PACKAGE_REPOSITORY`
-    /// - `ROOT_PACKAGE_VERSION`
-    /// - `ROOT_PACKAGE_RUST_VERSION`
-    /// - `ROOT_PACKAGE_RUST_LICENSE`
-    /// - `ROOT_PACKAGE_RUST_DESCRIPTION`
-    /// - `ROOT_PACKAGE_RUST_AUTHORS`
-    /// - `ROOT_PACKAGE_RUST_KEYWORDS`
-    ///
+    #[doc = r#"params returns a modified `serde_json::Map` where standard
+package information are added into the dictionary which are
+accessible in the supported template language (minijinja):
+
+When a workspace:
+
+- `IS_WORKSPACE=true`
+- `PACKAGE_NAME` (name of package being generated)
+- `TEMPLATE_NAME` (name of template used)
+- `ROOT_PACKAGE_LICENSE_FILE`
+- `ROOT_PACKAGE_EDITION`
+- `ROOT_PACKAGE_REPOSITORY`
+- `ROOT_PACKAGE_VERSION`
+- `ROOT_PACKAGE_RUST_VERSION`
+- `ROOT_PACKAGE_RUST_LICENSE`
+- `ROOT_PACKAGE_RUST_DESCRIPTION`
+- `ROOT_PACKAGE_RUST_AUTHORS`
+- `ROOT_PACKAGE_RUST_KEYWORDS`
+
+When not a workspace:
+
+- `IS_WORKSPACE=false`
+- `PACKAGE_NAME` (name of package being generated)
+- `TEMPLATE_NAME` (name of template used)
+- `ROOT_PACKAGE_NAME`
+- `ROOT_PACKAGE_LICENSE_FILE`
+- `ROOT_PACKAGE_EDITION`
+- `ROOT_PACKAGE_REPOSITORY`
+- `ROOT_PACKAGE_VERSION`
+- `ROOT_PACKAGE_RUST_VERSION`
+- `ROOT_PACKAGE_RUST_LICENSE`
+- `ROOT_PACKAGE_RUST_DESCRIPTION`
+- `ROOT_PACKAGE_RUST_AUTHORS`
+- `ROOT_PACKAGE_RUST_KEYWORDS`
+"#]
     fn params(&self) -> serde_json::Map<String, serde_json::Value> {
         let mut params = self.package_config.params.clone();
 
@@ -644,10 +669,6 @@ impl PackageConfigurator for RustProjectConfigurator {
     }
 }
 
-pub struct PackageGenerator<T: EmbeddableDirectory + Default> {
-    pub templates: T,
-}
-
 pub type PackageGenResult<T> = core::result::Result<T, PackageGenError>;
 
 #[derive(Debug, derive_more::From)]
@@ -664,13 +685,25 @@ impl core::fmt::Display for PackageGenError {
     }
 }
 
-impl<T: EmbeddableDirectory + Default> PackageGenerator<T> {
-    pub fn new(templates: T) -> Self {
+pub struct PackageGenerator<T: PackageDirectorate> {
+    pub templates: T,
+}
+
+impl<T: PackageDirectorate> PackageGenerator<T> {
+    fn new(templates: T) -> Self {
+        Self { templates }
+    }
+}
+
+impl<T: PackageDirectorate + Default> Default for PackageGenerator<T> {
+    fn default() -> Self {
         Self {
             templates: Default::default(),
         }
     }
+}
 
+impl<T: PackageDirectorate> PackageGenerator<T> {
     /// create will begin to setup the underlying specified project
     /// defined in the provided configurator.
     pub fn create<S: PackageConfigurator>(&self, configurator: S) -> PackageGenResult<()> {
@@ -764,186 +797,192 @@ impl<T: EmbeddableDirectory + Default> PackageGenerator<T> {
     }
 }
 
-// #[cfg(test)]
-// mod package_generator_tests {
-//
-//     use std::fs;
-//     use std::path;
-//
-//     use foundation_core::extensions::strings_ext::TryIntoString;
-//     use foundation_core::extensions::vec_ext::VecExt;
-//
-//     use tracing_test::traced_test;
-//
-//     use super::*;
-//
-//     #[derive(rust_embed::Embed, Default)]
-//     #[folder = "templates/"]
-//     struct TemplateDefinitions;
-//
-//     fn list_dir(target_path: &path::Path) -> Vec<String> {
-//         fs::read_dir(target_path)
-//             .expect("directory should exists")
-//             .map(|entry| entry.unwrap())
-//             .flat_map(|entry| {
-//                 if entry.file_type().unwrap().is_dir() {
-//                     return list_dir(&entry.path());
-//                 }
-//
-//                 vec![entry.path().try_into_string().unwrap()]
-//             })
-//             .collect()
-//     }
-//
-//     fn shorten_path(target: Vec<String>, path: String) -> Vec<String> {
-//         target
-//             .iter()
-//             .map(|value| value.replace(path.as_str(), "").replacen('/', "", 1))
-//             .collect()
-//     }
-//
-//     #[test]
-//     #[traced_test]
-//     fn package_generator_can_create_package_for_standard() {
-//         let template_directories = Box::new(Directorate::<TemplateDefinitions>::default());
-//         let packager = PackageGenerator::new(template_directories);
-//
-//         let current_dir = std::env::current_dir().expect("should have gotten directory");
-//
-//         let output_directory = current_dir.join("output_directory");
-//         let project_directory = output_directory.join("standard_project");
-//         let project_cargo_file = project_directory.join("Cargo.toml");
-//
-//         let mut params: serde_json::Map<String, serde_json::Value> = serde_json::Map::new();
-//         params
-//             .entry(String::from("PROJECT_DIRECTORY"))
-//             .or_insert(serde_json::Value::from(
-//                 project_directory
-//                     .try_into_string()
-//                     .expect("should convert into string"),
-//             ));
-//
-//         let rust_config = RustConfig::new(Some(project_cargo_file), false);
-//         let package_config = PackageConfig::new(
-//             project_directory.clone(),
-//             params,
-//             "CustomRustProject",
-//             "retro_project",
-//         );
-//
-//         let rust_configurator = RustProjectConfigurator::new(package_config, Some(rust_config))
-//             .expect("should generate rust configurator");
-//
-//         let result = packager.create(rust_configurator);
-//         ewe_trace::debug!("Result: {:?}", result);
-//         assert!(matches!(result, Ok(())));
-//
-//         assert_eq!(
-//             shorten_path(
-//                 list_dir(&project_directory),
-//                 project_directory.try_into_string().unwrap()
-//             ),
-//             vec![
-//                 "Cargo.toml",
-//                 ".gitignore",
-//                 "retro_project/src/lib.rs",
-//                 "retro_project/src/page.rs",
-//                 "retro_project/Cargo.toml",
-//             ]
-//             .to_vec_string()
-//         );
-//     }
-//
-//     #[test]
-//     #[traced_test]
-//     fn package_generator_can_create_package_for_workspace() {
-//         let template_directories = Box::new(Directorate::<TemplateDefinitions>::default());
-//         let packager = PackageGenerator::new(template_directories);
-//
-//         let current_dir = std::env::current_dir().expect("should have gotten directory");
-//
-//         let output_directory = current_dir.join("output_directory");
-//         let project_directory = output_directory.join("workspace_project");
-//         let project_cargo_file = project_directory.join("Cargo.toml");
-//
-//         let mut params: serde_json::Map<String, serde_json::Value> = serde_json::Map::new();
-//         params
-//             .entry(String::from("PROJECT_DIRECTORY"))
-//             .or_insert(serde_json::Value::from(
-//                 project_directory
-//                     .try_into_string()
-//                     .expect("should convert into string"),
-//             ));
-//
-//         let rust_config = RustConfig::new(Some(project_cargo_file), false);
-//         let package_config = PackageConfig::new(
-//             project_directory.clone(),
-//             params,
-//             "CustomRustProject",
-//             "retro_project",
-//         );
-//
-//         let rust_configurator = RustProjectConfigurator::new(package_config, Some(rust_config))
-//             .expect("should generate rust configurator");
-//
-//         let result = packager.create(rust_configurator);
-//         ewe_trace::debug!("Result: {:?}", result);
-//         assert!(matches!(result, Ok(())));
-//
-//         assert_eq!(
-//             shorten_path(
-//                 list_dir(&project_directory),
-//                 project_directory.try_into_string().unwrap()
-//             ),
-//             vec![
-//                 "Cargo.toml",
-//                 ".gitignore",
-//                 "retro_project/src/lib.rs",
-//                 "retro_project/src/page.rs",
-//                 "retro_project/Cargo.toml",
-//             ]
-//             .to_vec_string()
-//         );
-//     }
-//
-//     #[test]
-//     #[traced_test]
-//     fn package_generator_can_create_non_rust_package_from_template() {
-//         let template_directories = Box::new(Directorate::<TemplateDefinitions>::default());
-//         let packager = PackageGenerator::new(template_directories);
-//
-//         let current_dir = std::fs::canonicalize(Path::new(
-//             &std::env::var("ARTEFACTS_DIR").expect("get ARTEFACTS_DIR environment"),
-//         ))
-//         .expect("failed to collect LLAMA_DIR path");
-//
-//         let output_directory = current_dir.join("output_directory");
-//         let project_directory = output_directory.join("static_pages");
-//
-//         let mut params: serde_json::Map<String, serde_json::Value> = serde_json::Map::new();
-//         params
-//             .entry(String::from("PROJECT_DIRECTORY"))
-//             .or_insert(serde_json::Value::from(
-//                 project_directory
-//                     .try_into_string()
-//                     .expect("should convert into string"),
-//             ));
-//
-//         let package_config = PackageConfig::new(
-//             project_directory.clone(),
-//             params,
-//             "SimpleHTMLPage",
-//             "retro_project",
-//         );
-//
-//         assert!(matches!(packager.create(package_config), Ok(())));
-//
-//         assert_eq!(
-//             shorten_path(
-//                 list_dir(&project_directory),
-//                 project_directory.clone().try_into_string().unwrap()
-//             ),
-//             vec!["retro_project/index.html"].to_vec_string()
-//         );
-//     }
-// }
+#[cfg(test)]
+mod package_generator_tests {
+
+    use std::fs;
+    use std::path;
+
+    use foundation_core::extensions::strings_ext::TryIntoString;
+    use foundation_core::extensions::vec_ext::VecExt;
+
+    use tracing_test::traced_test;
+
+    use super::*;
+
+    #[derive(EmbedDirectoryAs, Default)]
+    #[source = "$ARTEFACTS_DIR/temples/templates/"]
+    struct TemplateDefinitions;
+
+    fn list_dir(target_path: &path::Path) -> Vec<String> {
+        fs::read_dir(target_path)
+            .expect("directory should exists")
+            .map(|entry| entry.unwrap())
+            .flat_map(|entry| {
+                if entry.file_type().unwrap().is_dir() {
+                    return list_dir(&entry.path());
+                }
+
+                vec![entry.path().try_into_string().unwrap()]
+            })
+            .collect()
+    }
+
+    fn shorten_path(target: Vec<String>, path: String) -> Vec<String> {
+        target
+            .iter()
+            .map(|value| value.replace(path.as_str(), "").replacen('/', "", 1))
+            .collect()
+    }
+
+    #[test]
+    #[traced_test]
+    fn package_generator_can_create_package_for_standard() {
+        let template_directories = Directorate::<TemplateDefinitions>::default();
+        let packager = PackageGenerator::new(template_directories);
+
+        let current_dir = std::fs::canonicalize(std::path::Path::new(
+            &std::env::var("ARTEFACTS_TEMPLES_DIR").expect("get ARTEFACTS_DIR environment"),
+        ))
+        .expect("failed to collect path");
+
+        let output_directory = current_dir.join("output_directory");
+        let project_directory = output_directory.join("standard_project");
+        let project_cargo_file = project_directory.join("Cargo.toml");
+
+        let mut params: serde_json::Map<String, serde_json::Value> = serde_json::Map::new();
+        params
+            .entry(String::from("PROJECT_DIRECTORY"))
+            .or_insert(serde_json::Value::from(
+                project_directory
+                    .try_into_string()
+                    .expect("should convert into string"),
+            ));
+
+        let rust_config = RustConfig::new(Some(project_cargo_file), false);
+        let package_config = PackageConfig::new(
+            project_directory.clone(),
+            params,
+            "CustomRustProject",
+            "retro_project",
+        );
+
+        let rust_configurator = RustProjectConfigurator::new(package_config, Some(rust_config))
+            .expect("should generate rust configurator");
+
+        let result = packager.create(rust_configurator);
+        ewe_trace::debug!("Result: {:?}", result);
+        assert!(matches!(result, Ok(())));
+
+        assert_eq!(
+            shorten_path(
+                list_dir(&project_directory),
+                project_directory.try_into_string().unwrap()
+            ),
+            vec![
+                "retro_project/Cargo.toml",
+                "retro_project/src/lib.rs",
+                "retro_project/src/page.rs",
+                ".gitignore",
+                "Cargo.toml",
+            ]
+            .to_vec_string()
+        );
+    }
+
+    #[test]
+    #[traced_test]
+    fn package_generator_can_create_package_for_workspace() {
+        let template_directories = Directorate::<TemplateDefinitions>::default();
+        let packager = PackageGenerator::new(template_directories);
+
+        let current_dir = std::fs::canonicalize(std::path::Path::new(
+            &std::env::var("ARTEFACTS_TEMPLES_DIR").expect("get ARTEFACTS_DIR environment"),
+        ))
+        .expect("failed to collect path");
+
+        let output_directory = current_dir.join("output_directory");
+        let project_directory = output_directory.join("workspace_project");
+        let project_cargo_file = project_directory.join("Cargo.toml");
+
+        let mut params: serde_json::Map<String, serde_json::Value> = serde_json::Map::new();
+        params
+            .entry(String::from("PROJECT_DIRECTORY"))
+            .or_insert(serde_json::Value::from(
+                project_directory
+                    .try_into_string()
+                    .expect("should convert into string"),
+            ));
+
+        let rust_config = RustConfig::new(Some(project_cargo_file), false);
+        let package_config = PackageConfig::new(
+            project_directory.clone(),
+            params,
+            "CustomRustProject",
+            "retro_project",
+        );
+
+        let rust_configurator = RustProjectConfigurator::new(package_config, Some(rust_config))
+            .expect("should generate rust configurator");
+
+        let result = packager.create(rust_configurator);
+        ewe_trace::debug!("Result: {:?}", result);
+        assert!(matches!(result, Ok(())));
+
+        assert_eq!(
+            shorten_path(
+                list_dir(&project_directory),
+                project_directory.try_into_string().unwrap()
+            ),
+            vec![
+                "retro_project/Cargo.toml",
+                "retro_project/src/lib.rs",
+                "retro_project/src/page.rs",
+                ".gitignore",
+                "Cargo.toml",
+            ]
+            .to_vec_string()
+        );
+    }
+
+    #[test]
+    #[traced_test]
+    fn package_generator_can_create_non_rust_package_from_template() {
+        let template_directories = Directorate::<TemplateDefinitions>::default();
+        let packager = PackageGenerator::new(template_directories);
+
+        let current_dir = std::fs::canonicalize(std::path::Path::new(
+            &std::env::var("ARTEFACTS_TEMPLES_DIR").expect("get ARTEFACTS_DIR environment"),
+        ))
+        .expect("failed to collect path");
+
+        let output_directory = current_dir.join("output_directory");
+        let project_directory = output_directory.join("static_pages");
+
+        let mut params: serde_json::Map<String, serde_json::Value> = serde_json::Map::new();
+        params
+            .entry(String::from("PROJECT_DIRECTORY"))
+            .or_insert(serde_json::Value::from(
+                project_directory
+                    .try_into_string()
+                    .expect("should convert into string"),
+            ));
+
+        let package_config = PackageConfig::new(
+            project_directory.clone(),
+            params,
+            "SimpleHTMLPage",
+            "retro_project",
+        );
+
+        assert!(matches!(packager.create(package_config), Ok(())));
+
+        assert_eq!(
+            shorten_path(
+                list_dir(&project_directory),
+                project_directory.clone().try_into_string().unwrap()
+            ),
+            vec!["retro_project/index.html"].to_vec_string()
+        );
+    }
+}
