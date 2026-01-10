@@ -14,6 +14,7 @@ use crate::{
 
 const DEFAULT_SUBSCRIBER_START_CAPACITY: usize = 10;
 
+#[must_use] 
 pub fn create<
     App,
     E: Send + Clone + 'static,

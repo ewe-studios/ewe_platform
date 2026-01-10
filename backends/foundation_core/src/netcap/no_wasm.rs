@@ -54,10 +54,10 @@ pub enum RawStream {
 // -- Basic constructors
 
 impl RawStream {
-    /// [`from_tcp`] creates a naked RawStream from a TCPStream connected to the relevant Endpoint
+    /// [`from_tcp`] creates a naked `RawStream` from a `TCPStream` connected to the relevant Endpoint
     /// upgrade to TLS if required.
     ///
-    /// How you take the returned RawStream is up to you but this allows you more control
+    /// How you take the returned `RawStream` is up to you but this allows you more control
     /// on how exactly the request starts.
     pub fn from_tcp(stream: TcpStream) -> super::DataStreamResult<Self> {
         let conn = Connection::Tcp(stream);
@@ -69,11 +69,11 @@ impl RawStream {
         Ok(Self::AsPlain(reader, conn_addr))
     }
 
-    /// [`from_connection`] creates a naked RawStream which is not mapped to a specific
-    /// protocol version and simply is a TCPStream connected to the relevant Endpoint
+    /// [`from_connection`] creates a naked `RawStream` which is not mapped to a specific
+    /// protocol version and simply is a `TCPStream` connected to the relevant Endpoint
     /// upgrade to TLS if required.
     ///
-    /// How you take the returned RawStream is up to you but this allows you more control
+    /// How you take the returned `RawStream` is up to you but this allows you more control
     /// on how exactly the request starts.
     pub fn from_connection(conn: Connection) -> super::DataStreamResult<Self> {
         let conn_addr = conn
@@ -84,7 +84,7 @@ impl RawStream {
         Ok(Self::AsPlain(reader, conn_addr))
     }
 
-    /// from_server_tls creates a RawStream from a server generated TLS Connection wrapped
+    /// `from_server_tls` creates a `RawStream` from a server generated TLS Connection wrapped
     /// by the [`ServerSSLStream`] type. Generally this is generated from a [`Listener`]
     /// which outputs the necessary connection.
     pub fn from_server_tls(conn: ServerSSLStream) -> super::DataStreamResult<Self> {
@@ -95,7 +95,7 @@ impl RawStream {
         Ok(Self::AsServerTls(reader, conn_addr))
     }
 
-    /// from_client_tls creates a RawStream from a client generated TLS Connection wrapped
+    /// `from_client_tls` creates a `RawStream` from a client generated TLS Connection wrapped
     /// by the [`ClientSSLStream`] type. Generally this is generated from [`TcpStream`] or equivalent
     /// that connects to a remote endpoint.
     pub fn from_client_tls(conn: ClientSSLStream) -> super::DataStreamResult<Self> {
@@ -256,7 +256,7 @@ impl RawStream {
         };
 
         match work {
-            Ok(_) => Ok(()),
+            Ok(()) => Ok(()),
             Err(err) => Err(err.into()),
         }
     }
@@ -270,7 +270,7 @@ impl RawStream {
         };
 
         match work {
-            Ok(_) => Ok(()),
+            Ok(()) => Ok(()),
             Err(err) => Err(err.into()),
         }
     }
@@ -289,6 +289,7 @@ impl RawStream {
     // }
 
     #[inline]
+    #[must_use] 
     pub fn addrs(&self) -> super::DataStreamAddr {
         match self {
             RawStream::AsPlain(inner, addr) => addr.clone(),
@@ -298,6 +299,7 @@ impl RawStream {
     }
 
     #[inline]
+    #[must_use] 
     pub fn peer_addr(&self) -> Option<SocketAddr> {
         match self {
             RawStream::AsPlain(inner, addr) => addr.peer_addr(),
@@ -307,6 +309,7 @@ impl RawStream {
     }
 
     #[inline]
+    #[must_use] 
     pub fn local_addr(&self) -> SocketAddr {
         match self {
             RawStream::AsPlain(inner, addr) => addr.local_addr(),

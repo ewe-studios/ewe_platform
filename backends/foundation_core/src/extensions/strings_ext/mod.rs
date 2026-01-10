@@ -44,61 +44,61 @@ impl<'a> TryIntoString<'a> for borrow::Cow<'a, str> {
     }
 }
 
-impl<'a> TryIntoString<'a> for i8 {
+impl TryIntoString<'_> for i8 {
     fn try_into_string(&self) -> IntoStringResult {
         Ok(format!("{self}"))
     }
 }
 
-impl<'a> TryIntoString<'a> for i16 {
+impl TryIntoString<'_> for i16 {
     fn try_into_string(&self) -> IntoStringResult {
         Ok(format!("{self}"))
     }
 }
 
-impl<'a> TryIntoString<'a> for i32 {
+impl TryIntoString<'_> for i32 {
     fn try_into_string(&self) -> IntoStringResult {
         Ok(format!("{self}"))
     }
 }
 
-impl<'a> TryIntoString<'a> for i64 {
+impl TryIntoString<'_> for i64 {
     fn try_into_string(&self) -> IntoStringResult {
         Ok(format!("{self}"))
     }
 }
 
-impl<'a> TryIntoString<'a> for u8 {
+impl TryIntoString<'_> for u8 {
     fn try_into_string(&self) -> IntoStringResult {
         Ok(format!("{self}"))
     }
 }
 
-impl<'a> TryIntoString<'a> for u16 {
+impl TryIntoString<'_> for u16 {
     fn try_into_string(&self) -> IntoStringResult {
         Ok(format!("{self}"))
     }
 }
 
-impl<'a> TryIntoString<'a> for u32 {
+impl TryIntoString<'_> for u32 {
     fn try_into_string(&self) -> IntoStringResult {
         Ok(format!("{self}"))
     }
 }
 
-impl<'a> TryIntoString<'a> for u64 {
+impl TryIntoString<'_> for u64 {
     fn try_into_string(&self) -> IntoStringResult {
         Ok(format!("{self}"))
     }
 }
 
-impl<'a> TryIntoString<'a> for usize {
+impl TryIntoString<'_> for usize {
     fn try_into_string(&self) -> IntoStringResult {
         Ok(format!("{self}"))
     }
 }
 
-impl<'a> TryIntoString<'a> for Vec<u8> {
+impl TryIntoString<'_> for Vec<u8> {
     fn try_into_string(&self) -> IntoStringResult {
         Ok(String::from(
             str::from_utf8(self).map_err(|_| TryIntoStringError::InvalidUTF8)?,

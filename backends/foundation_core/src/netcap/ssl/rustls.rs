@@ -1,4 +1,4 @@
-//! Taken from the tiny-http project https://github.com/tiny-http/tiny-http/
+//! Taken from the tiny-http project <https://github.com/tiny-http/tiny-http>/
 
 #![cfg(not(target_arch = "wasm32"))]
 
@@ -202,6 +202,7 @@ pub struct RustlsConnector(Arc<rustls::ClientConfig>);
 pub type RustTlsClientStream = RustlsStream<rustls::ClientConnection>;
 
 impl RustlsConnector {
+    #[must_use] 
     pub fn create(endpoint: &Endpoint<Arc<rustls::ClientConfig>>) -> Self {
         match &endpoint {
             Endpoint::WithIdentity(_, identity) => {

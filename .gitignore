@@ -156,3 +156,6 @@ dist
 .bacon-locations
 bacon-ls.log
 .aider*
+
+
+artefacts/temples/output_directory

@@ -1,7 +1,7 @@
 use foundation_macros::EmbedDirectoryAs;
 
 pub mod js_runtimes {
-    use super::*;
+    use super::EmbedDirectoryAs;
 
     #[derive(EmbedDirectoryAs, Default)]
     #[source = "$CRATE/../../sdk/web/reloader"]

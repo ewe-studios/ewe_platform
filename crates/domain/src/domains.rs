@@ -65,6 +65,7 @@ impl<'a, T: Clone> Display for NamedEvent<T> {
 }
 
 impl<'a, T: Clone> NamedEvent<T> {
+    #[must_use] 
     pub fn new(id: &str, t: Vec<T>) -> Self {
         Self(Id(id.to_string()), t)
     }
@@ -73,10 +74,12 @@ impl<'a, T: Clone> NamedEvent<T> {
         NamedRequest(self.0.clone(), t)
     }
 
+    #[must_use] 
     pub fn id(&self) -> Id {
         self.0.clone()
     }
 
+    #[must_use] 
     pub fn items(&self) -> Vec<T> {
         self.1.clone()
     }

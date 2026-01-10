@@ -20,7 +20,7 @@ pub enum Multi<T> {
 /// method.
 pub trait AsMultiIterator<T>: Iterator<Item = Multi<T>> {}
 
-/// MultiIterator is an iterator that can represent a type whose output
+/// `MultiIterator` is an iterator that can represent a type whose output
 /// can be both a singular item or multiple, this lets internal operation
 /// be flexible to define the output Item type.
 pub trait MultiIterator {
@@ -29,7 +29,7 @@ pub trait MultiIterator {
     /// Advances the iterator and returns the next value.
     fn next(&mut self) -> Option<Multi<Self::Item>>;
 
-    /// into_iter consumes the implementation and wraps
+    /// `into_iter` consumes the implementation and wraps
     /// it in an iterator type that emits [`Multi<MultiIterator::Item>`]
     /// match the behavior desired for an iterator.
     fn into_iter(self) -> impl Iterator<Item = Multi<Self::Item>>
@@ -47,6 +47,7 @@ impl<T> MultiAsIterator<T> {
         Self(Box::new(t))
     }
 
+    #[must_use] 
     pub fn new(t: Box<dyn MultiIterator<Item = T>>) -> Self {
         Self(t)
     }

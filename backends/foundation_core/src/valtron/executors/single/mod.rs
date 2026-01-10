@@ -9,7 +9,7 @@ use crate::{
 };
 
 use super::{
-    constants::*, BoxedSendExecutionIterator, ExecutionAction, ExecutionTaskIteratorBuilder,
+    constants::{MAX_ROUNDS_IDLE_COUNT, MAX_ROUNDS_WHEN_SLEEPING_ENDS, BACK_OFF_THREAD_FACTOR, BACK_OFF_JITER, BACK_OFF_MIN_DURATION, BACK_OFF_MAX_DURATION}, BoxedSendExecutionIterator, ExecutionAction, ExecutionTaskIteratorBuilder,
     LocalThreadExecutor, PriorityOrder, ProcessController, ProgressIndicator, TaskIterator,
     TaskReadyResolver, TaskStatusMapper,
 };
@@ -38,7 +38,7 @@ thread_local! {
 
 /// [`initialize`] initializes the local single-threaded
 /// execution engine, and is required to call this as your
-/// first call when using this in WebAssembly or SingleThreaded
+/// first call when using this in WebAssembly or `SingleThreaded`
 /// environment.
 pub fn initialize(seed_for_rng: u64) {
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| {
@@ -70,14 +70,15 @@ pub fn initialize(seed_for_rng: u64) {
     });
 }
 
-/// run_once calls the LocalExecution queue and processes
+/// `run_once` calls the `LocalExecution` queue and processes
 /// the next pending message by moving it forward just once.
 ///
 /// I rearly see you using this, but there might be situations
 /// where more fine-grained control on how much work you wish
-/// to do matters and you do not want a [run_until_complete]
+/// to do matters and you do not want a [`run_until_complete`]
 /// where the underlying point of stopping is not controlled
 /// by you.
+#[must_use] 
 pub fn run_once() -> ProgressIndicator {
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| match pool.get() {
         Some(pool) => pool.run_once(),
@@ -85,13 +86,13 @@ pub fn run_once() -> ProgressIndicator {
     })
 }
 
-/// run_until_complete calls the LocalExecution queue and processes
+/// `run_until_complete` calls the `LocalExecution` queue and processes
 /// all pending messages till they are completed.
 pub fn run_until_complete() {
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| match pool.get() {
         Some(pool) => pool.block_until_finished(),
         None => panic!("Thread pool not initialized, ensure to call initialize() first"),
-    })
+    });
 }
 
 /// `spawn` provides a builder which specifically allows you to build out
@@ -99,6 +100,7 @@ pub fn run_until_complete() {
 ///
 /// It expects you infer the type of `Task` and `Action` from the
 /// type implementing `TaskIterator`.
+#[must_use] 
 pub fn spawn<Task, Action>() -> ExecutionTaskIteratorBuilder<
     Task::Ready,
     Task::Pending,
@@ -123,6 +125,7 @@ where
 /// the underlying tasks to be scheduled into the global queue.
 ///
 /// It expects you to provide types for both Mapper and Resolver.
+#[must_use] 
 pub fn spawn2<Task, Action, Mapper, Resolver>(
 ) -> ExecutionTaskIteratorBuilder<Task::Ready, Task::Pending, Action, Mapper, Resolver, Task>
 where
