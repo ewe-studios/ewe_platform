@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@latest
+        uses: actions/checkout
       - name: Pull the accompany tools
         run: |
           ./scripts/modules.sh
