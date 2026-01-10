@@ -191,6 +191,32 @@ static ROOT_WORKSPACE_MATCHER: &str = "$ROOT_CRATE";
 static CURRENT_CRATE_MATCHER: &str = "$CURRENT_CRATE";
 static CURRENT_CRATE_ALT_MATCHER: &str = "$CRATE";
 
+fn get_target_source_path(
+    cargo_manifest_dir_env: &str,
+    root_workspace_str: &str,
+    target_source: &str,
+) -> String {
+    if target_source.contains(CURRENT_CRATE_MATCHER) {
+        return target_source.replace(CURRENT_CRATE_MATCHER, cargo_manifest_dir_env);
+    }
+    if target_source.contains(CURRENT_CRATE_ALT_MATCHER) {
+        return target_source.replace(CURRENT_CRATE_ALT_MATCHER, cargo_manifest_dir_env);
+    }
+    if target_source.contains(ROOT_WORKSPACE_MATCHER) {
+        return target_source.replace(ROOT_WORKSPACE_MATCHER, root_workspace_str);
+    }
+
+    if target_source.starts_with('$') {
+        if let Some((first_part, _rest)) = target_source.split_once('/') {
+            return env::var(first_part.replace('$', ""))
+                .expect("get environment variable: {:first_part}");
+        }
+    }
+
+    String::from(target_source)
+}
+
+#[allow(clippy::too_many_lines)]
 fn impl_embeddable_file(
     struct_name: &syn::Ident,
     target_source: String,
@@ -207,24 +233,16 @@ fn impl_embeddable_file(
         .expect("heuristically identify root workspace or crate");
 
     let root_workspace_str = root_workspace.to_str().unwrap_or_else(|| {
-        panic!("cannot get str path for {root_workspace:?}");
+        panic!("cannot get str path for {root_workspace:#?}");
     });
 
     let project_dir = manifest_dir
         .strip_prefix(&working_dir)
         .expect("should be from home directory");
 
-    let target_file = if target_source.contains(CURRENT_CRATE_MATCHER) {
-        target_source.replace(CURRENT_CRATE_MATCHER, &cargo_manifest_dir_env)
-    } else if target_source.contains(CURRENT_CRATE_ALT_MATCHER) {
-        target_source.replace(CURRENT_CRATE_ALT_MATCHER, &cargo_manifest_dir_env)
-    } else if target_source.contains(ROOT_WORKSPACE_MATCHER) {
-        target_source.replace(ROOT_WORKSPACE_MATCHER, root_workspace_str)
-    } else {
-        target_source
-    };
-
-    let embed_file_candidate = if target_file.starts_with("/") {
+    let target_file =
+        get_target_source_path(&cargo_manifest_dir_env, root_workspace_str, &target_source);
+    let embed_file_candidate = if target_file.starts_with('/') {
         Path::new(&target_file).to_owned()
     } else {
         manifest_dir.join(target_file.as_str())
@@ -603,6 +621,7 @@ fn impl_embeddable_file(
     }
 }
 
+#[allow(clippy::too_many_lines)]
 fn impl_embeddable_directory(
     struct_name: &syn::Ident,
     target_source: String,
@@ -628,15 +647,8 @@ fn impl_embeddable_directory(
     let project_dir_tokens =
         Literal::string(project_dir.to_str().expect("get path string for file"));
 
-    let target_directory = if target_source.contains(CURRENT_CRATE_MATCHER) {
-        target_source.replace(CURRENT_CRATE_MATCHER, &cargo_manifest_dir_env)
-    } else if target_source.contains(CURRENT_CRATE_ALT_MATCHER) {
-        target_source.replace(CURRENT_CRATE_ALT_MATCHER, &cargo_manifest_dir_env)
-    } else if target_source.contains(ROOT_WORKSPACE_MATCHER) {
-        target_source.replace(ROOT_WORKSPACE_MATCHER, root_workspace_str)
-    } else {
-        target_source
-    };
+    let target_directory =
+        get_target_source_path(&cargo_manifest_dir_env, root_workspace_str, &target_source);
 
     let embed_directory_candidate = if target_directory.starts_with("/") {
         Path::new(&target_directory).to_owned()
