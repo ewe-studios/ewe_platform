@@ -13,19 +13,19 @@ concurrency:
 permissions: read-all
 
 jobs:
-  check: 
+  check:
     name: "Ubuntu - Run rust checks"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
-        with:
-          submodules: recursive
+        uses: actions/checkout@latest
+      - name: Pull the accompany tools
+        run: |
+          ./scripts/modules.sh
       - name: Install native dependencies
         env:
           DEBIAN_FRONTEND: noninteractive
-        run:
-          sudo apt-get update && sudo apt-get install -y build-essential curl libssl-dev libclang-dev pkg-config cmake git
+        run: sudo apt-get update && sudo apt-get install -y build-essential curl libssl-dev libclang-dev pkg-config cmake git
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy, rustfmt
