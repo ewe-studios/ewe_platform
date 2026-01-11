@@ -19,7 +19,11 @@ All agents **MUST** follow this sequence at the start of every session:
 
 1. ✅ **Read `AGENTS.md`** (this file)
 2. ✅ **Load ALL rules from `.agents/rules/*`** (read all files in numerical order)
-3. ✅ **Load relevant stack files from `.agents/stacks/[language].md`** (only languages you'll use)
+3. ✅ **Load ONLY relevant stack files** from `.agents/stacks/[language].md`:
+   - **ONLY** load stack files for languages you will actually use
+   - Check specification requirements.md for Language Stack section
+   - Use file names and frontmatter to identify relevant files
+   - **DO NOT** load all stack files - wastes context window
 4. ✅ **Read specification files** (if working on a specific feature)
 
 **CRITICAL**: If conflicts arise, `.agents/rules/*` takes precedence over this file.
@@ -90,9 +94,16 @@ CLAUDE.md              # Backward compatibility redirect
 - Learning Logs (self-improving)
 - Tool configurations
 
+**⚠️ CRITICAL - Context Window Efficiency**:
+- **ONLY** read stack files for languages you will actually use
+- Check `requirements.md` Language Stack section to identify languages
+- Use file names (rust.md, javascript.md, python.md) to identify content
+- Check file frontmatter for quick overview before loading
+- **DO NOT** read all stack files - this wastes valuable context window space
+
 **⚠️ MANDATORY**: Read relevant stack file(s) before writing ANY code.
 
-→ **For full details**: Read `.agents/stacks/[language].md` for your language(s)
+→ **For full details**: Read `.agents/stacks/[language].md` for your language(s) ONLY
 
 ### `.agents/specifications/` - WHAT to Build
 
@@ -115,7 +126,8 @@ Before starting ANY work:
 
 - [ ] Load AGENTS.md (this file)
 - [ ] **Read ALL files in `.agents/rules/`** (detailed workflow rules)
-- [ ] **Read relevant `.agents/stacks/[language].md`** (coding standards)
+- [ ] **Identify languages from specification** (check requirements.md Language Stack section)
+- [ ] **Read ONLY relevant `.agents/stacks/[language].md`** (DO NOT load all - use context efficiently)
 - [ ] Read specification `requirements.md` and `tasks.md` (if applicable)
 - [ ] Understand verification workflow from Rule 04 and stack files
 - [ ] Follow orchestration model: Main Agent delegates, specialized agents do work
