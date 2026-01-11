@@ -42,6 +42,7 @@ All agents **MUST** follow this sequence at the start of every session:
 │   ├── 05-git-auto-approval-and-push.md
 │   ├── 06-specifications-and-requirements.md
 │   ├── 07-language-conventions-and-standards.md
+│   ├── 08-verification-workflow-complete-guide.md
 │   └── ...
 │
 ├── stacks/             # Language-specific standards (READ ONLY WHAT YOU USE)
@@ -78,6 +79,7 @@ CLAUDE.md              # Backward compatibility redirect
 - **Rule 05**: Auto-push workflow (after verification)
 - **Rule 06**: Specification management
 - **Rule 07**: Language standards enforcement
+- **Rule 08**: Verification workflow complete guide (comprehensive integration summary)
 
 **⚠️ MANDATORY**: Read ALL rule files before starting any work.
 
@@ -156,10 +158,10 @@ Before starting ANY work:
 |-------|----------|
 | Workflow and orchestration | `.agents/rules/04-coding-practice-agent-orchestration.md` |
 | Verification process | `.agents/rules/04-*` + `.agents/stacks/[language].md` |
+| Complete verification guide | `.agents/rules/08-verification-workflow-complete-guide.md` |
 | Commit requirements | `.agents/rules/03-work-commit-rules.md` |
 | Language standards | `.agents/stacks/[language].md` |
 | Specification format | `.agents/rules/06-specifications-and-requirements.md` |
-| Complete verification summary | `.agents/VERIFICATION_WORKFLOW_SUMMARY.md` |
 
 ---
 
