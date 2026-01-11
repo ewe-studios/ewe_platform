@@ -1,368 +1,1114 @@
 # Rust Coding Standards
 
 ## Overview
-- **Language**: Rust 1.75+ (stable)
-- **Use Cases**: High-performance backend services, system tools, CLI applications, performance-critical code
+- **Language**: Rust 1.75+ (stable channel, use latest stable)
+- **Edition**: 2021 (latest edition with all modern features)
+- **Use Cases**: Systems programming, high-performance backend services, CLI tools, embedded systems, WebAssembly, performance-critical code
 - **Official Docs**: https://doc.rust-lang.org/
+- **The Rust Book**: https://doc.rust-lang.org/book/
+- **Rust By Example**: https://doc.rust-lang.org/rust-by-example/
 
 ## Setup and Tools
 
 ### Required Tools
-- **rustc**: Rust compiler (via rustup)
-- **cargo**: Rust package manager and build tool
-- **rustfmt**: Code formatter (ships with Rust)
-- **clippy**: Linter for catching common mistakes
+- **rustup**: Rust toolchain installer and version manager
+- **rustc**: Rust compiler (managed by rustup)
+- **cargo**: Build system, package manager, test runner
+- **rustfmt**: Official code formatter (nightly for advanced features)
+- **clippy**: Lint tool for catching common mistakes and anti-patterns
+- **rust-analyzer**: LSP implementation for IDE support
 - **cargo-audit**: Security vulnerability scanner
-- **cargo-nextest** (optional): Next-generation test runner
+- **cargo-deny**: Dependency license and advisory checker
+- **cargo-expand**: Macro expansion tool (debugging)
+- **cargo-nextest**: Fast test runner (recommended)
+- **cargo-flamegraph**: Profiling tool
 
 ### Installation
 ```bash
+# Install rustup
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-rustup component add rustfmt clippy
-cargo install cargo-audit
+
+# Add essential components
+rustup component add rustfmt clippy rust-analyzer
+
+# Install additional cargo tools
+cargo install cargo-audit cargo-deny cargo-expand cargo-nextest cargo-flamegraph
+
+# Keep toolchain updated
+rustup update
 ```
 
 ### Configuration Files
-- **Cargo.toml**: Package manifest and dependencies
-- **Cargo.lock**: Locked dependency versions (commit this!)
-- **rustfmt.toml**: Formatter configuration
-- **.clippy.toml**: Clippy linter configuration
-- **rust-toolchain.toml**: Specify Rust version for project
 
-### Recommended Cargo.toml Settings
+#### **Cargo.toml** - Package Manifest
 ```toml
 [package]
 name = "project-name"
 version = "0.1.0"
-edition = "2021"  # Use latest edition
-rust-version = "1.75"  # Minimum Rust version
+edition = "2021"  # MANDATORY: Use 2021 edition
+rust-version = "1.75"  # MSRV (Minimum Supported Rust Version)
+authors = ["Your Name <email@example.com>"]
+license = "MIT OR Apache-2.0"  # Standard Rust dual license
+repository = "https://github.com/user/repo"
+documentation = "https://docs.rs/project-name"
+readme = "README.md"
+keywords = ["keyword1", "keyword2"]
+categories = ["category1"]
 
 [dependencies]
-# Production dependencies
+# Keep sorted alphabetically
+# Use workspace dependencies for monorepos
 
 [dev-dependencies]
-# Test/dev dependencies
+# Test and development dependencies
 
+# CRITICAL: Optimize for release builds
 [profile.release]
+opt-level = 3           # Maximum optimization
+lto = "fat"            # Full link-time optimization (slower compile, faster runtime)
+codegen-units = 1      # Better optimization, slower compile
+strip = true           # Strip symbols from binary
+panic = "abort"        # Smaller binary, no unwinding
+
+# IMPORTANT: Fast compilation for debug builds
+[profile.dev]
+opt-level = 0          # No optimization for fast compile
+debug = true           # Full debug info
+split-debuginfo = "unpacked"  # Faster on macOS/Linux
+
+# Optimize dependencies even in debug mode (faster debug experience)
+[profile.dev.package."*"]
+opt-level = 2
+
+# For testing with optimizations
+[profile.test]
+opt-level = 1
+
+# For benchmarking
+[profile.bench]
 opt-level = 3
-lto = true
+lto = "fat"
 codegen-units = 1
-strip = true  # Strip symbols from binary
 ```
 
-### Recommended Clippy Configuration
+#### **rustfmt.toml** - Formatter Configuration
 ```toml
-# .clippy.toml or clippy.toml
+# Use nightly features for best formatting
+edition = "2021"
+max_width = 100
+hard_tabs = false
+tab_spaces = 4
+newline_style = "Unix"
+use_small_heuristics = "Default"
+fn_call_width = 80
+attr_fn_like_width = 80
+struct_lit_width = 40
+struct_variant_width = 60
+array_width = 80
+chain_width = 60
+single_line_if_else_max_width = 50
+wrap_comments = true
+format_code_in_doc_comments = true
+normalize_comments = true
+normalize_doc_attributes = true
+license_template_path = ""
+format_strings = true
+format_macro_matchers = true
+format_macro_bodies = true
+hex_literal_case = "Lower"
+empty_item_single_line = true
+struct_lit_single_line = true
+fn_single_line = false
+where_single_line = false
+imports_granularity = "Crate"
+group_imports = "StdExternalCrate"
+reorder_imports = true
+reorder_modules = true
+reorder_impl_items = false
+match_block_trailing_comma = true
+trailing_comma = "Vertical"
+trailing_semicolon = true
+use_field_init_shorthand = true
+use_try_shorthand = true
+```
+
+#### **.clippy.toml** - Clippy Configuration
+```toml
+# Enforce strict clippy lints
+msrv = "1.75"
+warn-on-all-wildcard-imports = true
 disallowed-methods = [
-    # Disallow panicking in production code
-    { path = "std::panic", reason = "use Result instead" },
-    { path = "std::option::Option::unwrap", reason = "use ? or handle error properly" },
-    { path = "std::option::Option::expect", reason = "use ? or handle error properly" },
-    { path = "std::result::Result::unwrap", reason = "use ? or handle error properly" },
-    { path = "std::result::Result::expect", reason = "use ? or handle error properly" },
+    { path = "std::option::Option::unwrap", reason = "use ? operator or proper error handling" },
+    { path = "std::option::Option::expect", reason = "use ? operator or proper error handling" },
+    { path = "std::result::Result::unwrap", reason = "use ? operator or proper error handling" },
+    { path = "std::result::Result::expect", reason = "use ? operator or proper error handling" },
+    { path = "std::result::Result::unwrap_err", reason = "use proper error handling" },
+    { path = "std::panic::panic", reason = "use Result for recoverable errors" },
+    { path = "std::unimplemented", reason = "implement the functionality or use todo!()" },
 ]
+disallowed-types = []
+cognitive-complexity-threshold = 30
+```
+
+#### **rust-toolchain.toml** - Toolchain Specification
+```toml
+[toolchain]
+channel = "stable"
+profile = "default"
+components = ["rustfmt", "clippy", "rust-analyzer"]
+```
+
+#### **.cargo/config.toml** - Cargo Configuration
+```toml
+[build]
+# Use mold/lld for faster linking
+# rustflags = ["-C", "link-arg=-fuse-ld=lld"]  # Linux
+# rustflags = ["-C", "link-arg=-fuse-ld=mold"]  # Even faster on Linux
+
+[target.x86_64-unknown-linux-gnu]
+linker = "clang"
+rustflags = ["-C", "link-arg=-fuse-ld=lld"]
+
+# Enable unstable features for cargo
+[unstable]
+# sparse-registry = true  # Faster registry access
 ```
 
 ## Coding Standards
 
-### Naming Conventions
-- **Variables and Functions**: snake_case
-  - `let user_name = "John";`
-  - `fn calculate_total() -> u32 {}`
-- **Types (Structs, Enums, Traits)**: PascalCase
-  - `struct UserAccount {}`
-  - `enum UserRole { Admin, User, Guest }`
-  - `trait Validator {}`
-- **Constants**: UPPER_SNAKE_CASE
-  - `const MAX_RETRIES: u32 = 3;`
-- **Modules**: snake_case
-  - `mod user_service;`
-- **Type Parameters**: Single uppercase letter or PascalCase
-  - `fn process<T>(item: T) {}`
-  - `struct Wrapper<TData> { data: TData }`
-- **Lifetimes**: Short, lowercase, descriptive
-  - `fn longest<'a>(x: &'a str, y: &'a str) -> &'a str`
-- **Files**: snake_case, matching module name
-  - `user_service.rs`, `api_client.rs`
-- **Test Functions**: snake_case with test_ prefix
-  - `fn test_user_creation()`
+### Naming Conventions (RFC 430)
+- **Crate names**: `snake_case` (prefer single word)
+- **Modules**: `snake_case`
+- **Types**: `UpperCamelCase` (PascalCase)
+- **Traits**: `UpperCamelCase`
+- **Enum variants**: `UpperCamelCase`
+- **Functions**: `snake_case`
+- **Methods**: `snake_case`
+- **Local variables**: `snake_case`
+- **Static variables**: `SCREAMING_SNAKE_CASE`
+- **Constant variables**: `SCREAMING_SNAKE_CASE`
+- **Type parameters**: Single `UpperCamelCase` letter or short `UpperCamelCase` name
+- **Lifetimes**: Short lowercase names starting with `'` (e.g., `'a`, `'buf`, `'input`)
 
-### Code Organization
-- One module per file
-- Use `mod.rs` or the new `module_name.rs` pattern for module directories
-- Group related functionality into modules
-- Public API exposed through `pub` keyword carefully
-- Re-export commonly used items in lib.rs or mod.rs
-
-**Module Structure Example**:
-```
-src/
-├── lib.rs              # Public API
-├── api/
-│   ├── mod.rs          # api module root
-│   ├── client.rs       # api::client
-│   └── routes.rs       # api::routes
-├── models/
-│   ├── mod.rs
-│   ├── user.rs
-│   └── post.rs
-└── utils.rs
-```
-
-**lib.rs Public API**:
+**Examples**:
 ```rust
+// Correct
+const MAX_CONNECTIONS: usize = 100;
+static GLOBAL_COUNTER: AtomicUsize = AtomicUsize::new(0);
+
+struct UserAccount { /* ... */ }
+enum NetworkState { /* ... */ }
+trait Serialize { /* ... */ }
+
+fn calculate_checksum() -> u32 { /* ... */ }
+fn send_message(msg: &str) { /* ... */ }
+
+// Type parameters
+struct Buffer<T> { /* ... */ }
+struct Cache<Key, Value> { /* ... */ }
+fn process<T: Serialize>(item: T) { /* ... */ }
+
+// Lifetimes
+fn longest<'a>(x: &'a str, y: &'a str) -> &'a str { /* ... */ }
+fn parse<'input>(data: &'input [u8]) -> Result<&'input str, Error> { /* ... */ }
+```
+
+### Module Organization and Structure
+
+#### Project Layout
+```
+project/
+├── Cargo.toml
+├── Cargo.lock              # ALWAYS commit this
+├── src/
+│   ├── lib.rs              # Library crate root
+│   ├── main.rs             # Binary crate root (if applicable)
+│   ├── bin/                # Additional binaries
+│   │   └── tool.rs
+│   ├── models/
+│   │   ├── mod.rs          # Module root (or models.rs at src/)
+│   │   ├── user.rs
+│   │   └── post.rs
+│   ├── services/
+│   │   ├── mod.rs
+│   │   └── user_service.rs
+│   ├── utils/
+│   │   ├── mod.rs
+│   │   ├── validation.rs
+│   │   └── crypto.rs
+│   └── error.rs            # Centralized error types
+├── tests/                  # Integration tests
+│   ├── common/
+│   │   └── mod.rs          # Shared test utilities
+│   └── integration_test.rs
+├── benches/                # Benchmarks
+│   └── benchmarks.rs
+└── examples/               # Example usage
+    └── basic_usage.rs
+```
+
+#### Module Best Practices
+```rust
+// GOOD: Explicit re-exports for public API
+// src/lib.rs
+#![warn(missing_docs)]
+#![warn(clippy::all)]
+#![forbid(unsafe_code)]  // Unless you really need unsafe
+
+//! Top-level crate documentation.
+//!
+//! Provides functionality for X, Y, and Z.
+
 // Re-export commonly used items
-pub use api::client::ApiClient;
 pub use models::{User, Post};
+pub use services::UserService;
+pub use error::{Error, Result};
 
-pub mod api;
+// Public modules
 pub mod models;
-mod utils;  // Private module
+pub mod services;
+
+// Private modules
+mod utils;
+mod error;
+
+// Prelude module for convenient imports
+pub mod prelude {
+    pub use crate::{Error, Result};
+    pub use crate::models::{User, Post};
+    pub use crate::services::UserService;
+}
 ```
 
-### Comments and Documentation
-- **Doc comments** (`///`) for all public items
-- Module-level docs at top of file: `//!`
-- Inline comments (`//`) for complex logic only
-- Code should be self-documenting through good naming
-- Examples in doc comments are encouraged (and tested!)
-
-**Documentation Example**:
 ```rust
-//! User service module providing user management functionality.
+// GOOD: Module privacy and encapsulation
+// src/models/user.rs
+use crate::error::{Error, Result};
 
-/// Represents a user in the system.
+/// User account representation.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct User {
+    id: UserId,
+    pub name: String,      // Public field
+    email: Email,          // Private, use accessor
+    credentials: Credentials,  // Private, never expose
+}
+
+impl User {
+    /// Creates a new user.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if email is invalid.
+    pub fn new(name: String, email: String) -> Result<Self> {
+        Ok(Self {
+            id: UserId::new(),
+            name,
+            email: Email::parse(email)?,
+            credentials: Credentials::default(),
+        })
+    }
+
+    /// Returns the user's email address.
+    pub fn email(&self) -> &str {
+        self.email.as_str()
+    }
+
+    /// Returns the user's ID.
+    pub fn id(&self) -> UserId {
+        self.id
+    }
+}
+
+// Private helper types
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct Credentials {
+    password_hash: String,
+}
+
+impl Default for Credentials {
+    fn default() -> Self {
+        Self {
+            password_hash: String::new(),
+        }
+    }
+}
+```
+
+### Documentation Standards
+
+#### Module-Level Documentation
+```rust
+//! Authentication and authorization module.
+//!
+//! This module provides functionality for user authentication,
+//! session management, and authorization checks.
+//!
+//! # Examples
+//!
+//! ```
+//! use myapp::auth::{Authenticator, Credentials};
+//!
+//! let auth = Authenticator::new();
+//! let credentials = Credentials::new("user", "pass");
+//! let session = auth.login(credentials)?;
+//! # Ok::<(), Box<dyn std::error::Error>>(())
+//! ```
+//!
+//! # Security
+//!
+//! All passwords are hashed using Argon2id before storage.
+//! Sessions expire after 24 hours of inactivity.
+```
+
+#### Item Documentation
+```rust
+/// Represents a user session.
 ///
-/// Users have a unique ID, name, and email address. Email addresses
-/// must be unique across the system.
+/// Sessions are created upon successful authentication and contain
+/// the user's identity and authorization claims.
 ///
 /// # Examples
 ///
 /// ```
-/// use myapp::User;
+/// use myapp::Session;
 ///
-/// let user = User::new(1, "John", "john@example.com");
-/// assert_eq!(user.name(), "John");
+/// let session = Session::new(user_id, claims);
+/// assert!(session.is_valid());
 /// ```
-pub struct User {
-    id: u64,
-    name: String,
-    email: String,
+///
+/// # Thread Safety
+///
+/// `Session` is `Send + Sync` and can be safely shared across threads.
+#[derive(Debug, Clone)]
+pub struct Session {
+    id: SessionId,
+    user_id: UserId,
+    claims: Vec<Claim>,
+    expires_at: Instant,
 }
 
-impl User {
-    /// Creates a new user with the given details.
+impl Session {
+    /// Creates a new session for the given user.
     ///
     /// # Arguments
     ///
-    /// * `id` - Unique identifier for the user
-    /// * `name` - Display name
-    /// * `email` - Email address (must be valid format)
+    /// * `user_id` - The unique identifier of the authenticated user
+    /// * `claims` - Authorization claims for the session
     ///
-    /// # Panics
+    /// # Returns
     ///
-    /// This function does not panic. Note: Only document panics in public APIs.
-    pub fn new(id: u64, name: impl Into<String>, email: impl Into<String>) -> Self {
+    /// A new `Session` that expires in 24 hours.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use myapp::{Session, UserId, Claim};
+    /// let session = Session::new(UserId::new(), vec![]);
+    /// ```
+    pub fn new(user_id: UserId, claims: Vec<Claim>) -> Self {
         Self {
-            id,
-            name: name.into(),
-            email: email.into(),
+            id: SessionId::generate(),
+            user_id,
+            claims,
+            expires_at: Instant::now() + Duration::from_secs(86400),
         }
+    }
+
+    /// Checks if the session is still valid.
+    ///
+    /// A session is valid if it has not expired.
+    ///
+    /// # Returns
+    ///
+    /// `true` if the session is valid, `false` otherwise.
+    pub fn is_valid(&self) -> bool {
+        Instant::now() < self.expires_at
+    }
+
+    /// Returns the user ID associated with this session.
+    #[must_use]
+    pub fn user_id(&self) -> UserId {
+        self.user_id
     }
 }
 ```
 
-## Best Practices
+## Best Practices - Deep Dive
 
-### Rust-Specific Idioms
+### Error Handling - The Rust Way
 
-#### Error Handling
-- **MANDATORY**: Use `Result<T, E>` for operations that can fail
-- **FORBIDDEN**: Using `unwrap()` or `expect()` in production code
-- Use the `?` operator for error propagation
-- Create custom error types with `thiserror` or `anyhow`
-- Return errors, don't panic
-
-**Good Example**:
+#### Use `thiserror` for Libraries, `anyhow` for Applications
 ```rust
+// LIBRARY CODE: Use thiserror for well-typed errors
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum UserError {
-    #[error("User not found: {0}")]
-    NotFound(u64),
+pub enum ConfigError {
+    #[error("configuration file not found at {path}")]
+    NotFound { path: String },
 
-    #[error("Invalid email format: {0}")]
-    InvalidEmail(String),
+    #[error("invalid configuration: {0}")]
+    Invalid(String),
 
-    #[error("Database error: {0}")]
-    Database(#[from] sqlx::Error),
+    #[error("I/O error: {0}")]
+    Io(#[from] std::io::Error),
+
+    #[error("parse error: {0}")]
+    Parse(#[from] toml::de::Error),
 }
 
-pub fn fetch_user(id: u64) -> Result<User, UserError> {
-    let user = db::query("SELECT * FROM users WHERE id = ?", id)
-        .fetch_one()  // This returns Result
-        .await?;      // Propagate error with ?
+// APPLICATION CODE: Use anyhow for convenience
+use anyhow::{Context, Result};
 
-    Ok(user)
+fn load_config(path: &str) -> Result<Config> {
+    let content = std::fs::read_to_string(path)
+        .context(format!("failed to read config from {}", path))?;
+
+    let config = toml::from_str(&content)
+        .context("failed to parse config file")?;
+
+    Ok(config)
+}
+```
+
+#### NEVER Use `unwrap()` or `expect()` in Production
+```rust
+// BAD: These will panic and crash your program
+let value = option.unwrap();
+let value = result.expect("this should never fail");  // Famous last words
+
+// GOOD: Handle errors properly
+let value = option.ok_or(Error::NotFound)?;
+let value = result.map_err(|e| Error::from(e))?;
+let value = match result {
+    Ok(v) => v,
+    Err(e) => {
+        tracing::error!("operation failed: {}", e);
+        return Err(Error::from(e));
+    }
+};
+
+// ACCEPTABLE: In tests, examples, or truly impossible cases
+#[cfg(test)]
+fn test_something() {
+    let value = result.unwrap();  // OK in tests
+}
+
+// Only when mathematically impossible
+let idx = absolute_value.checked_sub(1).expect("value is always > 0 here");
+```
+
+#### Error Context and Chains
+```rust
+use anyhow::{Context, Result};
+
+fn process_user_data(user_id: UserId) -> Result<Data> {
+    let user = fetch_user(user_id)
+        .context(format!("failed to fetch user {}", user_id))?;
+
+    let permissions = load_permissions(&user)
+        .with_context(|| {
+            format!("failed to load permissions for user {}", user.name)
+        })?;
+
+    let data = transform_data(user, permissions)
+        .context("failed to transform user data")?;
+
+    Ok(data)
+}
+```
+
+### Type System Mastery
+
+#### Newtype Pattern for Type Safety
+```rust
+// EXCELLENT: Use newtypes to prevent mixing up similar types
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct UserId(uuid::Uuid);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct SessionId(uuid::Uuid);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ProductId(uuid::Uuid);
+
+impl UserId {
+    pub fn new() -> Self {
+        Self(uuid::Uuid::new_v4())
+    }
+
+    pub fn from_str(s: &str) -> Result<Self, uuid::Error> {
+        Ok(Self(uuid::Uuid::parse_str(s)?))
+    }
+}
+
+// Now this won't compile (type safety!):
+fn get_user(id: UserId) -> User { /* ... */ }
+let product_id = ProductId::new();
+// get_user(product_id);  // Compile error! Can't mix types
+```
+
+#### Builder Pattern for Complex Construction
+```rust
+// GOOD: Use typed builders for complex types
+pub struct ServerConfig {
+    host: String,
+    port: u16,
+    max_connections: usize,
+    timeout: Duration,
+    tls_config: Option<TlsConfig>,
+}
+
+impl ServerConfig {
+    pub fn builder() -> ServerConfigBuilder {
+        ServerConfigBuilder::default()
+    }
+}
+
+#[derive(Default)]
+pub struct ServerConfigBuilder {
+    host: Option<String>,
+    port: Option<u16>,
+    max_connections: Option<usize>,
+    timeout: Option<Duration>,
+    tls_config: Option<TlsConfig>,
+}
+
+impl ServerConfigBuilder {
+    pub fn host(mut self, host: impl Into<String>) -> Self {
+        self.host = Some(host.into());
+        self
+    }
+
+    pub fn port(mut self, port: u16) -> Self {
+        self.port = Some(port);
+        self
+    }
+
+    pub fn max_connections(mut self, n: usize) -> Self {
+        self.max_connections = Some(n);
+        self
+    }
+
+    pub fn timeout(mut self, timeout: Duration) -> Self {
+        self.timeout = Some(timeout);
+        self
+    }
+
+    pub fn tls(mut self, config: TlsConfig) -> Self {
+        self.tls_config = Some(config);
+        self
+    }
+
+    pub fn build(self) -> Result<ServerConfig, ConfigError> {
+        Ok(ServerConfig {
+            host: self.host.ok_or(ConfigError::MissingHost)?,
+            port: self.port.unwrap_or(8080),
+            max_connections: self.max_connections.unwrap_or(100),
+            timeout: self.timeout.unwrap_or(Duration::from_secs(30)),
+            tls_config: self.tls_config,
+        })
+    }
 }
 
 // Usage
-match fetch_user(1).await {
-    Ok(user) => println!("Found user: {}", user.name),
-    Err(UserError::NotFound(id)) => println!("User {} not found", id),
-    Err(e) => eprintln!("Error: {}", e),
-}
+let config = ServerConfig::builder()
+    .host("localhost")
+    .port(3000)
+    .max_connections(500)
+    .build()?;
 ```
 
-**Bad Example**:
+#### State Machines with Type States
 ```rust
-// BAD - Don't do this!
-pub fn fetch_user(id: u64) -> User {
-    let user = db::query("SELECT * FROM users WHERE id = ?", id)
-        .fetch_one()
-        .await
-        .unwrap();  // FORBIDDEN - will panic on error!
-
-    user
+// EXCELLENT: Use type states to make invalid states unrepresentable
+pub struct Connection<State> {
+    socket: TcpStream,
+    state: PhantomData<State>,
 }
+
+pub struct Disconnected;
+pub struct Connected;
+pub struct Authenticated;
+
+impl Connection<Disconnected> {
+    pub fn new(addr: &str) -> Result<Self, Error> {
+        Ok(Self {
+            socket: TcpStream::connect(addr)?,
+            state: PhantomData,
+        })
+    }
+
+    pub fn connect(self) -> Result<Connection<Connected>, Error> {
+        // Perform connection handshake
+        Ok(Connection {
+            socket: self.socket,
+            state: PhantomData,
+        })
+    }
+}
+
+impl Connection<Connected> {
+    pub fn authenticate(
+        self,
+        credentials: &Credentials,
+    ) -> Result<Connection<Authenticated>, Error> {
+        // Perform authentication
+        Ok(Connection {
+            socket: self.socket,
+            state: PhantomData,
+        })
+    }
+}
+
+impl Connection<Authenticated> {
+    pub fn send_message(&mut self, msg: &Message) -> Result<(), Error> {
+        // Only authenticated connections can send messages
+        Ok(())
+    }
+}
+
+// Usage - compile-time state checking!
+let conn = Connection::<Disconnected>::new("localhost:8080")?;
+// conn.send_message(&msg)?;  // Compile error! Not authenticated
+let conn = conn.connect()?;
+// conn.send_message(&msg)?;  // Still compile error!
+let mut conn = conn.authenticate(&creds)?;
+conn.send_message(&msg)?;  // OK!
 ```
 
-#### Option Handling
-- Use `Option<T>` for values that may not exist
-- Avoid `unwrap()`, use pattern matching or combinators
-- Use `?` operator with functions returning `Option` or `Result`
+### Ownership, Borrowing, and Lifetimes - Advanced
 
+#### Smart Pointer Usage
 ```rust
-// Good - using combinators
-let name = user.name.as_ref().unwrap_or("Anonymous");
-let upper = user.name.map(|n| n.to_uppercase());
+use std::rc::Rc;
+use std::sync::Arc;
+use std::cell::{RefCell, Cell};
 
-// Good - using if let
-if let Some(email) = user.email {
-    send_email(&email);
-}
+// Use Arc for thread-safe shared ownership
+let data = Arc::new(expensive_data);
+let data_clone = Arc::clone(&data);
+thread::spawn(move || {
+    process(data_clone);
+});
 
-// Good - using match
-match user.role {
-    Some(Role::Admin) => grant_admin_access(),
-    Some(Role::User) => grant_user_access(),
-    None => deny_access(),
-}
+// Use Rc for single-threaded shared ownership
+let config = Rc::new(Config::load()?);
+let service1 = Service::new(Rc::clone(&config));
+let service2 = Service::new(Rc::clone(&config));
+
+// Use RefCell for interior mutability (single-threaded)
+let cache = RefCell::new(HashMap::new());
+cache.borrow_mut().insert(key, value);
+let val = cache.borrow().get(&key).cloned();
+
+// Use Cell for Copy types
+let counter = Cell::new(0);
+counter.set(counter.get() + 1);
 ```
 
-#### Ownership and Borrowing
-- Prefer borrowing over ownership transfer when possible
-- Use `&T` for read-only access
-- Use `&mut T` for mutable access
-- Return owned values when the caller needs ownership
-- Clone only when necessary (and document why)
-
+#### Lifetime Elision Rules
 ```rust
-// Good - borrowing
-fn print_name(user: &User) {
-    println!("{}", user.name);
-}
+// GOOD: Let the compiler infer lifetimes when possible
 
-// Good - mutable borrowing
-fn update_email(user: &mut User, email: String) {
-    user.email = email;
-}
-
-// Good - taking ownership when needed
-fn consume_user(user: User) -> ProcessedData {
-    // Process and transform user
-    ProcessedData::from(user)
-}
-```
-
-#### Lifetimes
-- Let the compiler infer lifetimes when possible
-- Explicit lifetimes only when necessary
-- Name lifetimes descriptively in complex cases
-
-```rust
-// Compiler infers lifetimes
+// No lifetime annotations needed - elision rule 1
 fn first_word(s: &str) -> &str {
     s.split_whitespace().next().unwrap_or("")
 }
 
-// Explicit lifetime when needed
+// No lifetime annotations needed - elision rule 2
+impl Parser {
+    fn parse(&self, input: &str) -> &str {
+        // Return has lifetime of &self
+        &self.buffer
+    }
+}
+
+// Explicit lifetimes needed - multiple input lifetimes
 fn longest<'a>(x: &'a str, y: &'a str) -> &'a str {
     if x.len() > y.len() { x } else { y }
 }
+
+// Complex lifetime relationships
+fn parse_header<'input, 'headers>(
+    input: &'input [u8],
+    headers: &'headers mut HeaderMap,
+) -> Result<&'input [u8], Error>
+where
+    'input: 'headers,  // 'input outlives 'headers
+{
+    // Parse logic
+    Ok(input)
+}
 ```
 
-#### Iterators Over Loops
-- Prefer iterator methods over manual loops
-- Use `iter()`, `into_iter()`, `iter_mut()` appropriately
-- Chain iterator methods for data transformations
-- More functional style is more idiomatic in Rust
-
+#### Avoiding Unnecessary Clones
 ```rust
-// Good - iterator methods
-let doubled: Vec<i32> = numbers.iter()
-    .map(|n| n * 2)
-    .collect();
+// BAD: Cloning everything
+fn process_data(data: Vec<String>) -> Vec<String> {
+    data.iter()
+        .map(|s| s.clone().to_uppercase())  // Unnecessary clone!
+        .collect()
+}
 
-let sum: i32 = numbers.iter().sum();
+// GOOD: Use references
+fn process_data(data: &[String]) -> Vec<String> {
+    data.iter()
+        .map(|s| s.to_uppercase())  // No clone needed
+        .collect()
+}
 
-let evens: Vec<i32> = numbers.into_iter()
-    .filter(|n| n % 2 == 0)
-    .collect();
+// EXCELLENT: Use Cow for conditional cloning
+use std::borrow::Cow;
 
-// Acceptable - when iterator would be too complex
-for number in &numbers {
-    if complex_condition(number) {
-        do_something(number);
-        do_something_else(number);
+fn normalize<'a>(input: &'a str) -> Cow<'a, str> {
+    if input.chars().all(|c| c.is_lowercase()) {
+        Cow::Borrowed(input)  // No allocation!
+    } else {
+        Cow::Owned(input.to_lowercase())  // Allocate only when needed
     }
 }
 ```
 
-### Type System Usage
-- Use strong types (newtype pattern) for domain concepts
-- Leverage the type system to prevent invalid states
-- Use enums for mutually exclusive states
-- Make invalid states unrepresentable
+### Iterator Mastery
 
+#### Iterator Combinators
 ```rust
-// Good - strong types
-pub struct UserId(u64);
-pub struct Email(String);
+// EXCELLENT: Chain iterator methods
+let result: Vec<_> = numbers
+    .iter()
+    .filter(|&&x| x > 0)
+    .map(|&x| x * 2)
+    .take(10)
+    .collect();
 
-impl Email {
-    pub fn new(email: String) -> Result<Self, ValidationError> {
-        if email.contains('@') {
-            Ok(Email(email))
-        } else {
-            Err(ValidationError::InvalidEmail)
+// Use for_each for side effects
+numbers
+    .iter()
+    .filter(|&&x| x > 100)
+    .for_each(|x| println!("Large number: {}", x));
+
+// Use fold for accumulation
+let sum = numbers
+    .iter()
+    .fold(0, |acc, x| acc + x);
+
+// Use partition for splitting
+let (evens, odds): (Vec<_>, Vec<_>) = numbers
+    .iter()
+    .partition(|&&x| x % 2 == 0);
+```
+
+#### Custom Iterators
+```rust
+// GOOD: Implement Iterator for your types
+pub struct Fibonacci {
+    curr: u64,
+    next: u64,
+}
+
+impl Fibonacci {
+    pub fn new() -> Self {
+        Self { curr: 0, next: 1 }
+    }
+}
+
+impl Iterator for Fibonacci {
+    type Item = u64;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let curr = self.curr;
+        self.curr = self.next;
+        self.next = curr + self.next;
+        Some(curr)
+    }
+}
+
+// Usage
+for num in Fibonacci::new().take(10) {
+    println!("{}", num);
+}
+```
+
+#### Avoid Collect When Possible
+```rust
+// BAD: Unnecessary allocation
+let has_even = numbers
+    .iter()
+    .filter(|&&x| x % 2 == 0)
+    .collect::<Vec<_>>()  // Allocates!
+    .len() > 0;
+
+// GOOD: Use iterator methods
+let has_even = numbers
+    .iter()
+    .any(|&x| x % 2 == 0);  // Short-circuits!
+
+// BAD: Collect just to iterate again
+let uppercase: Vec<String> = names
+    .iter()
+    .map(|s| s.to_uppercase())
+    .collect();  // Unnecessary
+
+for name in uppercase {
+    println!("{}", name);
+}
+
+// GOOD: Iterate directly
+for name in names.iter().map(|s| s.to_uppercase()) {
+    println!("{}", name);
+}
+```
+
+### Trait Implementation Best Practices
+
+#### Implement Standard Traits
+```rust
+// ALWAYS implement these traits when applicable
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct User {
+    pub id: UserId,
+    pub name: String,
+}
+
+// Implement Display for user-facing output
+impl fmt::Display for User {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "User(id={}, name={})", self.id, self.name)
+    }
+}
+
+// Implement From for convenient conversions
+impl From<UserDto> for User {
+    fn from(dto: UserDto) -> Self {
+        Self {
+            id: UserId::from(dto.id),
+            name: dto.name,
         }
     }
 }
 
-// Good - using type system to enforce correctness
-pub struct ValidatedUser {
-    id: UserId,
-    email: Email,  // Can't construct invalid email
+// Implement TryFrom for fallible conversions
+impl TryFrom<&str> for UserId {
+    type Error = ParseError;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        uuid::Uuid::parse_str(s)
+            .map(UserId)
+            .map_err(|_| ParseError::InvalidUuid)
+    }
 }
 
-// Good - enum for states
-pub enum ConnectionState {
-    Disconnected,
-    Connecting,
-    Connected { session_id: String },
-    Error { reason: String },
+// Implement Default when there's a sensible default
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            host: "localhost".to_string(),
+            port: 8080,
+            max_connections: 100,
+        }
+    }
 }
 ```
 
-### Testing
-- Write unit tests in the same file with `#[cfg(test)]` module
-- Write integration tests in `tests/` directory
-- Use `cargo test` to run all tests
-- Test both success and error cases
-- Use `cargo nextest` for faster test execution (optional)
+#### Trait Bounds and Where Clauses
+```rust
+// GOOD: Use where clauses for complex bounds
+fn process<T>(item: T) -> Result<Output, Error>
+where
+    T: Serialize + DeserializeOwned + Send + Sync + 'static,
+    T::Error: Into<Error>,
+{
+    // Implementation
+    Ok(Output::default())
+}
 
+// EXCELLENT: Use trait aliases (requires nightly or wait for stabilization)
+// trait Processable = Serialize + DeserializeOwned + Send + Sync + 'static;
+// fn process<T: Processable>(item: T) -> Result<Output, Error> { }
+```
+
+#### Avoid Over-Generic Code
+```rust
+// BAD: Too generic, hard to understand
+fn do_thing<T, U, V, F, G>(t: T, f: F, g: G) -> Result<V, Error>
+where
+    T: Into<U>,
+    U: SomeTrait,
+    F: Fn(U) -> V,
+    G: Fn(Error) -> Error,
+{
+    // What does this even do?
+    unimplemented!()
+}
+
+// GOOD: Concrete types with clear purpose
+fn transform_user(
+    user_dto: UserDto,
+    transformer: impl Fn(UserDto) -> User,
+) -> Result<User, ValidationError> {
+    // Clear and understandable
+    let user = transformer(user_dto);
+    validate_user(&user)?;
+    Ok(user)
+}
+```
+
+### Async/Await Best Practices
+
+#### Task Management
+```rust
+use tokio::task;
+
+// GOOD: Spawn tasks for concurrent work
+async fn process_all(items: Vec<Item>) -> Vec<Result<Output, Error>> {
+    let tasks: Vec<_> = items
+        .into_iter()
+        .map(|item| {
+            task::spawn(async move {
+                process_item(item).await
+            })
+        })
+        .collect();
+
+    // Await all tasks
+    let results = futures::future::join_all(tasks).await;
+
+    results
+        .into_iter()
+        .map(|r| r.expect("task panicked"))
+        .collect()
+}
+
+// EXCELLENT: Use select for racing tasks
+use tokio::select;
+
+async fn fetch_with_timeout(url: &str) -> Result<Response, Error> {
+    select! {
+        result = fetch(url) => result,
+        _ = tokio::time::sleep(Duration::from_secs(30)) => {
+            Err(Error::Timeout)
+        }
+    }
+}
+```
+
+#### Avoiding Blocking in Async
+```rust
+// BAD: Blocking in async context
+async fn bad_example() {
+    let data = std::fs::read_to_string("file.txt");  // Blocks executor!
+    process(data).await;
+}
+
+// GOOD: Use async I/O
+async fn good_example() -> Result<(), Error> {
+    let data = tokio::fs::read_to_string("file.txt").await?;
+    process(&data).await?;
+    Ok(())
+}
+
+// GOOD: Use spawn_blocking for CPU-intensive work
+async fn process_heavy_computation(data: Vec<u8>) -> Result<Output, Error> {
+    tokio::task::spawn_blocking(move || {
+        // CPU-intensive work here
+        expensive_computation(&data)
+    })
+    .await
+    .map_err(|e| Error::TaskJoin(e))?
+}
+```
+
+#### Stream Processing
+```rust
+use tokio_stream::StreamExt;
+
+// EXCELLENT: Process streams efficiently
+async fn process_stream(stream: impl Stream<Item = Event>) {
+    stream
+        .filter(|event| event.is_valid())
+        .map(|event| process_event(event))
+        .buffer_unordered(10)  // Process 10 concurrently
+        .for_each(|result| async move {
+            match result {
+                Ok(output) => handle_output(output).await,
+                Err(e) => log_error(e),
+            }
+        })
+        .await;
+}
+```
+
+### Performance Optimization
+
+#### Allocation Reduction
+```rust
+// BAD: Many small allocations
+fn build_message(parts: &[&str]) -> String {
+    let mut msg = String::new();
+    for part in parts {
+        msg = msg + part;  // Reallocates each time!
+    }
+    msg
+}
+
+// GOOD: Pre-allocate with capacity
+fn build_message(parts: &[&str]) -> String {
+    let total_len: usize = parts.iter().map(|s| s.len()).sum();
+    let mut msg = String::with_capacity(total_len);
+    for part in parts {
+        msg.push_str(part);
+    }
+    msg
+}
+
+// EXCELLENT: Use join
+fn build_message(parts: &[&str]) -> String {
+    parts.join("")
+}
+```
+
+#### Stack vs Heap
+```rust
+// GOOD: Use stack allocation for small arrays
+let buffer: [u8; 1024] = [0; 1024];  // Stack allocated
+
+// Use Vec for dynamic or large data
+let mut large_buffer = Vec::with_capacity(1024 * 1024);
+
+// Use Box for large stack items
+let large_struct = Box::new(VeryLargeStruct::default());
+
+// Use SmallVec for small collections
+use smallvec::SmallVec;
+let small: SmallVec<[u32; 8]> = SmallVec::new();  // No heap if <= 8 items
+```
+
+#### Inline Hints
+```rust
+// Use inline hints for small, frequently called functions
+#[inline]
+pub fn is_valid_id(id: u64) -> bool {
+    id > 0 && id < 1_000_000
+}
+
+// Use inline(always) sparingly
+#[inline(always)]
+fn critical_fast_path() {
+    // Only for truly performance-critical code
+}
+
+// Prevent inlining for large functions
+#[inline(never)]
+fn large_rarely_called_function() {
+    // Keep binary size down
+}
+```
+
+### Testing Excellence
+
+#### Unit Testing
 ```rust
 #[cfg(test)]
 mod tests {
@@ -370,299 +1116,434 @@ mod tests {
 
     #[test]
     fn test_user_creation() {
-        let user = User::new(1, "John", "john@example.com");
-        assert_eq!(user.id, 1);
-        assert_eq!(user.name, "John");
+        let user = User::new("Alice".to_string(), "alice@example.com".to_string())
+            .expect("should create user");
+
+        assert_eq!(user.name, "Alice");
+        assert_eq!(user.email(), "alice@example.com");
     }
 
     #[test]
     fn test_invalid_email() {
-        let result = Email::new("invalid".to_string());
+        let result = User::new("Bob".to_string(), "invalid-email".to_string());
         assert!(result.is_err());
+        assert!(matches!(result, Err(Error::InvalidEmail(_))));
     }
 
-    #[tokio::test]  // For async tests
-    async fn test_fetch_user() {
-        let result = fetch_user(1).await;
-        assert!(result.is_ok());
+    #[test]
+    #[should_panic(expected = "division by zero")]
+    fn test_divide_by_zero() {
+        divide(10, 0);
     }
 }
 ```
 
-### Performance
-- Rust is fast by default, don't premature optimize
-- Use `cargo bench` for benchmarking
-- Profile before optimizing (use `perf`, `flamegraph`, etc.)
-- Avoid unnecessary allocations
-- Use `&str` instead of `String` when possible
-- Consider `Cow<str>` for sometimes-owned strings
-- Use `SmallVec` for small collections
-- Zero-cost abstractions mean abstractions are free
-
+#### Property-Based Testing
 ```rust
-// Good - avoid unnecessary String allocations
-fn process(text: &str) -> &str {
-    text.trim()  // Returns &str, no allocation
-}
+use proptest::prelude::*;
 
-// Good - using Cow to avoid clones when not needed
-use std::borrow::Cow;
+proptest! {
+    #[test]
+    fn test_roundtrip_serialization(user in any::<User>()) {
+        let serialized = serde_json::to_string(&user)?;
+        let deserialized: User = serde_json::from_str(&serialized)?;
+        prop_assert_eq!(user, deserialized);
+    }
 
-fn make_uppercase(s: &str) -> Cow<str> {
-    if s.chars().all(|c| c.is_uppercase()) {
-        Cow::Borrowed(s)  // No allocation
-    } else {
-        Cow::Owned(s.to_uppercase())  // Only allocate when needed
+    #[test]
+    fn test_parse_never_panics(s in ".*") {
+        // Should never panic, regardless of input
+        let _ = parse_input(&s);
     }
 }
 ```
 
-### Security
-- Never use `unsafe` without extensive documentation and justification
-- Audit all `unsafe` code carefully
-- Use `cargo audit` to check for vulnerable dependencies
-- Validate all external input
-- Use type system to enforce invariants
-- Avoid SQL injection with parameterized queries
-- Use prepared statements
+#### Integration Testing
+```rust
+// tests/integration_test.rs
+use myapp::prelude::*;
 
-### Dependencies
-- Prefer well-maintained crates with many downloads
-- Check crate quality: documentation, tests, recent updates
-- Lock dependencies with Cargo.lock (commit it!)
-- Run `cargo audit` regularly
-- Keep dependencies up to date
-- Minimize dependency count when possible
+#[tokio::test]
+async fn test_full_workflow() {
+    // Setup
+    let db = setup_test_database().await;
+    let service = UserService::new(db.clone());
 
-**Common Quality Crates**:
-- `tokio` - async runtime
-- `serde` - serialization/deserialization
-- `thiserror` - error handling
-- `anyhow` - flexible error handling for applications
-- `sqlx` - async SQL toolkit
-- `axum` / `actix-web` - web frameworks
-- `reqwest` - HTTP client
-- `tracing` - structured logging
+    // Execute
+    let user = service.create_user("Alice", "alice@example.com").await?;
+    let fetched = service.get_user(user.id()).await?;
+
+    // Verify
+    assert_eq!(user, fetched);
+
+    // Cleanup
+    cleanup_test_database(db).await;
+
+    Ok::<(), Error>(())
+}
+```
+
+#### Benchmarking
+```rust
+// benches/benchmarks.rs
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
+
+fn benchmark_parse(c: &mut Criterion) {
+    let input = "sample input string";
+
+    c.bench_function("parse_input", |b| {
+        b.iter(|| parse_input(black_box(input)))
+    });
+}
+
+criterion_group!(benches, benchmark_parse);
+criterion_main!(benches);
+```
+
+### Security Best Practices
+
+#### Input Validation
+```rust
+// ALWAYS validate untrusted input
+pub fn process_user_input(input: &str) -> Result<ProcessedData, Error> {
+    // Length check
+    if input.len() > MAX_INPUT_LENGTH {
+        return Err(Error::InputTooLong);
+    }
+
+    // Character validation
+    if !input.chars().all(|c| c.is_alphanumeric() || c.is_whitespace()) {
+        return Err(Error::InvalidCharacters);
+    }
+
+    // Sanitize and process
+    let sanitized = input.trim();
+    Ok(ProcessedData::from(sanitized))
+}
+```
+
+#### Secrets Management
+```rust
+use secrecy::{Secret, ExposeSecret};
+
+// DON'T: Store secrets in plain String
+// let api_key = "secret_key_123";
+
+// DO: Use secrecy crate
+let api_key: Secret<String> = Secret::new(load_api_key());
+
+// Use only when needed, never log
+fn make_request(api_key: &Secret<String>) -> Result<Response, Error> {
+    let key = api_key.expose_secret();  // Explicit exposure
+    // Use key for request
+    Ok(Response::default())
+}
+
+// Secret won't be exposed in Debug output
+#[derive(Debug)]
+struct Config {
+    api_key: Secret<String>,  // Won't appear in debug output
+}
+```
+
+#### Avoiding Common Vulnerabilities
+```rust
+// SQL Injection Prevention
+async fn get_user_safe(pool: &PgPool, user_id: i64) -> Result<User, Error> {
+    // GOOD: Use parameterized queries
+    sqlx::query_as::<_, User>(
+        "SELECT * FROM users WHERE id = $1"
+    )
+    .bind(user_id)  // Safely bound parameter
+    .fetch_one(pool)
+    .await
+    .map_err(Error::from)
+}
+
+// Command Injection Prevention
+use std::process::Command;
+
+fn run_command_safe(file_path: &str) -> Result<(), Error> {
+    // Validate input
+    let path = Path::new(file_path);
+    if !path.exists() || !path.is_file() {
+        return Err(Error::InvalidPath);
+    }
+
+    // Use argument array, not shell
+    Command::new("process")
+        .arg(path)  // Safe: not passed through shell
+        .output()?;
+
+    Ok(())
+}
+```
 
 ## Valid Code Requirements
 
-Code is considered valid when:
-- [x] Passes `cargo fmt --check` (formatted correctly)
-- [x] Passes `cargo clippy -- -D warnings` (no linter warnings)
-- [x] Passes `cargo test` (all tests pass)
-- [x] Passes `cargo build` (compiles without errors)
-- [x] Passes `cargo audit` (no known vulnerabilities)
-- [x] Has documentation for all public items
-- [x] Follows all naming conventions
-- [x] Uses proper error handling (no unwrap in prod code)
-- [x] Has adequate test coverage
+Code is considered valid when it passes ALL of the following:
+
+### Compilation and Linting
+- [x] **Compiles**: `cargo build` succeeds with zero errors
+- [x] **Warnings**: `cargo build` produces zero warnings
+- [x] **Clippy**: `cargo clippy -- -D warnings` passes with zero warnings
+- [x] **Format**: `cargo fmt -- --check` confirms code is formatted
+- [x] **Documentation**: All public items have doc comments
+- [x] **Tests**: `cargo test` all tests pass
+- [x] **Audit**: `cargo audit` shows no known vulnerabilities
+
+### Code Quality
+- [x] No `unwrap()` or `expect()` in production code paths
+- [x] Proper error handling with `Result<T, E>`
+- [x] All public APIs documented with examples
+- [x] Test coverage >= 80% for critical paths
+- [x] No `unsafe` blocks without extensive justification
+- [x] No compiler warnings allowed
+- [x] Follows naming conventions
+- [x] Uses type system effectively (newtype pattern, enums)
 
 ### Pre-commit Checklist
 ```bash
-# Format code
-cargo fmt
+#!/bin/bash
+# Save as .git/hooks/pre-commit and chmod +x
 
-# Lint code (fail on warnings)
-cargo clippy -- -D warnings
+set -e
 
-# Run tests
-cargo test
+echo "Running pre-commit checks..."
 
-# Check for security vulnerabilities
-cargo audit
+# Format check
+echo "1. Checking formatting..."
+cargo fmt -- --check
 
-# Build in release mode
-cargo build --release
+# Clippy
+echo "2. Running clippy..."
+cargo clippy --all-targets --all-features -- -D warnings
+
+# Tests
+echo "3. Running tests..."
+cargo test --all-features
+
+# Build
+echo "4. Building..."
+cargo build --all-features
+
+# Audit (warning only)
+echo "5. Security audit..."
+cargo audit || echo "Warning: Security vulnerabilities found"
+
+echo "All checks passed!"
 ```
 
-## Common Pitfalls
+## Common Pitfalls and Solutions
 
-### Pitfall 1: Using unwrap() or expect() in Production
-**Problem**: `unwrap()` and `expect()` will panic if the value is `None` or `Err`, crashing the program.
-**Solution**: Use proper error handling with `?` operator or pattern matching.
-
-**Bad**:
+### Pitfall 1: String Handling Inefficiency
+**Problem**: Unnecessary String allocations and conversions.
 ```rust
-let user = fetch_user(id).unwrap();  // FORBIDDEN
-```
+// BAD
+fn process(s: String) -> String {
+    s.to_uppercase()  // Takes ownership, caller must clone
+}
 
-**Good**:
-```rust
-let user = fetch_user(id)?;  // Propagate error
-// or
-let user = match fetch_user(id) {
-    Ok(u) => u,
-    Err(e) => {
-        error!("Failed to fetch user: {}", e);
-        return Err(e.into());
+// GOOD
+fn process(s: &str) -> String {
+    s.to_uppercase()  // Borrows, no clone needed
+}
+
+// EXCELLENT: Return Cow for zero-copy when possible
+fn process(s: &str) -> Cow<'_, str> {
+    if s.is_empty() {
+        Cow::Borrowed(s)
+    } else {
+        Cow::Owned(s.to_uppercase())
     }
-};
-```
-
-### Pitfall 2: Cloning Unnecessarily
-**Problem**: Cloning large data structures is expensive and often unnecessary.
-**Solution**: Use references and borrowing. Only clone when you truly need owned data.
-
-**Bad**:
-```rust
-fn print_user(user: User) {  // Takes ownership
-    println!("{}", user.name);
-}  // user is dropped here
-
-let user = User::new(1, "John", "john@example.com");
-print_user(user.clone());  // Unnecessary clone
-print_user(user.clone());  // Another clone!
-```
-
-**Good**:
-```rust
-fn print_user(user: &User) {  // Borrows
-    println!("{}", user.name);
-}
-
-let user = User::new(1, "John", "john@example.com");
-print_user(&user);  // Just borrow
-print_user(&user);  // Can reuse!
-```
-
-### Pitfall 3: Not Handling All Enum Variants
-**Problem**: Using `_` wildcard in match can miss newly added enum variants.
-**Solution**: Handle all variants explicitly or use `#[non_exhaustive]` attribute.
-
-### Pitfall 4: Blocking the Async Runtime
-**Problem**: Running blocking operations in async context blocks the executor.
-**Solution**: Use `tokio::task::spawn_blocking` for blocking operations.
-
-```rust
-// Bad - blocks async runtime
-async fn process_file() {
-    let content = std::fs::read_to_string("file.txt");  // Blocking!
-}
-
-// Good - spawn blocking task
-async fn process_file() {
-    let content = tokio::task::spawn_blocking(|| {
-        std::fs::read_to_string("file.txt")
-    }).await??;
 }
 ```
 
-### Pitfall 5: Not Using References in Loops
-**Problem**: Iterating with `for item in collection` moves the collection.
-**Solution**: Use `&collection` or `&mut collection` to iterate by reference.
+### Pitfall 2: Ignoring Compiler Errors/Warnings
+**Problem**: Warnings today become bugs tomorrow.
+**Solution**: Enable `#![deny(warnings)]` in lib.rs and fix all warnings immediately.
 
+### Pitfall 3: Not Using Rust 2021 Edition Features
+**Problem**: Missing out on better error messages and language improvements.
+**Solution**: Always use `edition = "2021"` in Cargo.toml.
+
+### Pitfall 4: Mutex Deadlocks
+**Problem**: Holding locks across await points or acquiring locks in wrong order.
 ```rust
-// Bad - moves vector
-for item in vec {  // vec is moved, can't use after loop
-    println!("{}", item);
-}
+// BAD: Holding lock across await
+let data = mutex.lock().unwrap();
+something_async().await;  // Still holding lock!
+drop(data);
 
-// Good - borrows vector
-for item in &vec {  // vec can be used after loop
-    println!("{}", item);
-}
+// GOOD: Drop lock before await
+let data = {
+    let guard = mutex.lock().unwrap();
+    guard.clone()
+};  // Lock dropped here
+something_async().await;
+
+// EXCELLENT: Use Tokio's async-aware Mutex
+let data = mutex.lock().await;
+something_async().await;
+drop(data);
 ```
 
-### Pitfall 6: Ignoring Compiler Warnings
-**Problem**: Warnings often indicate real issues that will become errors later.
-**Solution**: Fix all warnings. Use `#[deny(warnings)]` in CI.
-
-## Examples
-
-### Good Example: Type-Safe Database Model
+### Pitfall 5: Collecting Unnecessarily
+**Problem**: Allocating intermediate vectors when not needed.
 ```rust
-use sqlx::{FromRow, PgPool};
+// BAD
+let sum = numbers
+    .iter()
+    .map(|x| x * 2)
+    .collect::<Vec<_>>()  // Unnecessary allocation!
+    .iter()
+    .sum();
+
+// GOOD
+let sum: i32 = numbers
+    .iter()
+    .map(|x| x * 2)
+    .sum();  // Direct sum, no allocation
+```
+
+### Pitfall 6: Not Using rustfmt
+**Problem**: Inconsistent code style across team.
+**Solution**: Run `cargo fmt` before every commit. Set up CI to enforce.
+
+### Pitfall 7: Large Stack Allocations
+**Problem**: Stack overflow from large arrays.
+```rust
+// BAD: Can cause stack overflow
+let big_array = [0u8; 1024 * 1024];  // 1MB on stack!
+
+// GOOD: Use Vec for large data
+let big_array = vec![0u8; 1024 * 1024];  // Heap allocated
+
+// GOOD: Use Box for large structs
+let big_struct = Box::new(VeryLargeStruct::default());
+```
+
+### Pitfall 8: Not Implementing Error Traits
+**Problem**: Errors that can't be used with `?` operator or error chains.
+```rust
+// BAD
+#[derive(Debug)]
+pub struct MyError {
+    message: String,
+}
+
+// GOOD: Implement std::error::Error
+use std::error::Error;
+use std::fmt;
+
+#[derive(Debug)]
+pub struct MyError {
+    message: String,
+}
+
+impl fmt::Display for MyError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.message)
+    }
+}
+
+impl Error for MyError {}
+
+// EXCELLENT: Use thiserror
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum UserError {
-    #[error("User not found")]
-    NotFound,
-
-    #[error("Database error: {0}")]
-    Database(#[from] sqlx::Error),
-}
-
-#[derive(Debug, FromRow)]
-pub struct User {
-    pub id: i64,
-    pub name: String,
-    pub email: String,
-}
-
-impl User {
-    /// Fetches a user by ID from the database.
-    ///
-    /// # Errors
-    ///
-    /// Returns `UserError::NotFound` if user doesn't exist.
-    /// Returns `UserError::Database` on database errors.
-    pub async fn find_by_id(pool: &PgPool, id: i64) -> Result<Self, UserError> {
-        sqlx::query_as::<_, User>(
-            "SELECT id, name, email FROM users WHERE id = $1"
-        )
-        .bind(id)
-        .fetch_optional(pool)
-        .await?
-        .ok_or(UserError::NotFound)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn test_user_not_found() {
-        let pool = create_test_pool().await;
-        let result = User::find_by_id(&pool, 999).await;
-        assert!(matches!(result, Err(UserError::NotFound)));
-    }
+#[error("{message}")]
+pub struct MyError {
+    message: String,
 }
 ```
 
-**Why This is Good**:
-- Proper error handling with custom error type
-- Uses `Result` return type
-- No `unwrap()` or `expect()`
-- Good documentation
-- Includes tests
-- Type-safe database queries
+## Advanced Topics
 
-### Bad Example: Unsafe Database Code
+### Macros
 ```rust
-// BAD - Don't do this!
-pub fn get_user(id: i64) -> User {
-    let result = sqlx::query("SELECT * FROM users WHERE id = ?")
-        .bind(id)
-        .fetch_one()
-        .await
-        .unwrap();  // FORBIDDEN - will panic on error!
+// Declarative macros for repetitive code
+macro_rules! impl_id_type {
+    ($name:ident) => {
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+        pub struct $name(uuid::Uuid);
 
-    User {
-        id: result.get("id").unwrap(),  // More unwraps!
-        name: result.get("name").unwrap(),
-        email: result.get("email").unwrap(),
+        impl $name {
+            pub fn new() -> Self {
+                Self(uuid::Uuid::new_v4())
+            }
+        }
+
+        impl Default for $name {
+            fn default() -> Self {
+                Self::new()
+            }
+        }
+    };
+}
+
+impl_id_type!(UserId);
+impl_id_type!(SessionId);
+impl_id_type!(ProductId);
+```
+
+### Unsafe Code
+```rust
+// Only use unsafe when absolutely necessary
+// MUST document invariants and safety guarantees
+/// # Safety
+///
+/// The caller must ensure that:
+/// - `ptr` is valid for reads of `len` bytes
+/// - `ptr` is properly aligned
+/// - The memory referenced by `ptr` is initialized
+/// - No other threads are accessing this memory
+pub unsafe fn read_raw_bytes(ptr: *const u8, len: usize) -> Vec<u8> {
+    // SAFETY: Caller guarantees pointer validity
+    unsafe {
+        std::slice::from_raw_parts(ptr, len).to_vec()
     }
 }
 ```
 
-**Why This is Bad**:
-- Multiple `unwrap()` calls
-- Will panic on any error
-- Not using sqlx's `FromRow` derive
-- No error handling
-- No documentation
+### FFI (Foreign Function Interface)
+```rust
+// When interfacing with C code
+use std::ffi::{CStr, CString};
+use std::os::raw::c_char;
 
-**How to Fix**: Use the good example above with proper error handling.
+#[link(name = "mylib")]
+extern "C" {
+    fn external_function(input: *const c_char) -> i32;
+}
+
+pub fn safe_wrapper(input: &str) -> Result<i32, Error> {
+    let c_string = CString::new(input)?;
+
+    // SAFETY: c_string is valid C string, external_function expects C string
+    let result = unsafe { external_function(c_string.as_ptr()) };
+
+    Ok(result)
+}
+```
 
 ## Learning Log
 
-### 2026-01-11: Initial Rust Standards
-**Issue**: Creating initial standards document.
-**Learning**: Established baseline standards for Rust development in this project.
+### 2026-01-11: Comprehensive Rust Standards Established
+**Issue**: Initial creation of comprehensive Rust coding standards.
+**Learning**: Established expert-level standards covering:
+- Advanced error handling patterns (thiserror, anyhow)
+- Type system mastery (newtypes, type states, builder pattern)
+- Ownership and lifetime best practices
+- Iterator patterns and performance optimization
+- Async/await best practices
+- Security considerations
+- Comprehensive testing strategies
+- Advanced tooling configuration
+
 **Corrective Action**: None (initial creation).
-**New Standard**: All Rust code must follow these standards starting from this date.
+**New Standard**: All Rust code must follow these expert-level standards with zero tolerance for deviations.
 
 ---
 *Created: 2026-01-11*
