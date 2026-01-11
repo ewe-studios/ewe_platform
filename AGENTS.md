@@ -42,6 +42,11 @@ The rules should be loaded in the following order:
 .agents/
 ├── rules/           # Project-specific rules and conventions
 │   ├── *.md        # Individual rule files
+├── stacks/          # Language-specific coding standards
+│   ├── javascript.md    # JavaScript/TypeScript standards
+│   ├── rust.md          # Rust standards
+│   ├── python.md        # Python standards
+│   └── ...              # Additional language standards
 └── ...             # Other agent-related configurations
 
 AGENTS.md           # This file - central agent configuration
