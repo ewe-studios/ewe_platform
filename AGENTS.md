@@ -96,9 +96,9 @@ CLAUDE.md              # Backward compatibility redirect to AGENTS.md
 
 - **01**: Rule naming and structure policy
 - **02**: Rules directory policy
-- **03**: Work commit rules (commit after every change)
-- **04**: Coding practice and agent orchestration
-- **05**: Git auto-approval and push workflow
+- **03**: Work commit rules (commit after every change with verification status)
+- **04**: Agent orchestration and mandatory code verification (iron-clad)
+- **05**: Git auto-approval and push workflow (after verification)
 - **06**: Specifications and requirements management
 - **07**: Language conventions and coding standards
 
@@ -134,6 +134,7 @@ CLAUDE.md              # Backward compatibility redirect to AGENTS.md
 - Common pitfalls and solutions
 - Good/bad code examples
 - Learning Log (mistakes and learnings)
+- **Code Verification Workflow** (mandatory checks before commit)
 
 **Agent Requirements**:
 
@@ -141,8 +142,12 @@ CLAUDE.md              # Backward compatibility redirect to AGENTS.md
 - ✅ MUST read relevant stack file(s) before writing code
 - ✅ MUST follow all standards with zero deviation
 - ✅ MUST update Learning Log when mistakes are made
-- ✅ MUST run all required checks before committing
+- ✅ **MUST report to Main Agent after implementation (never commit directly)**
+- ✅ **Main Agent MUST delegate to ONE verification agent per stack**
+- ✅ **Verification agent MUST run all checks from stack file**
+- ✅ **ONLY commit after ALL verification checks PASS**
 - ❌ FORBIDDEN to deviate from documented standards
+- ❌ **FORBIDDEN to commit code without verification (ZERO TOLERANCE)**
 
 #### `.agents/specifications/`
 
