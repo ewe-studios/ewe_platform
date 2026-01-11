@@ -352,6 +352,140 @@ tools:
 4. **Update frontmatter**: Adjust completed/uncompleted counts
 5. **Update tools**: Add any new tools used
 
+## Pre-Work Review Agent Requirement
+
+### MANDATORY REVIEW AGENT REQUIREMENT
+
+Before **ANY** agent starts work on tasks within a specification, a **review agent MUST be launched first**. This is a **HARD REQUIREMENT** with **NO EXCEPTIONS**.
+
+#### Review Agent Purpose
+
+The review agent's role is to:
+
+1. **Read Specification Files Thoroughly**
+   - Read the `requirements.md` file completely
+   - Read the `tasks.md` file completely
+   - Understand all requirements and expected outcomes
+
+2. **Analyze Current Codebase Implementation**
+   - Search the codebase using Glob and Grep tools
+   - Locate all relevant files and implementations
+   - Analyze code quality and completeness
+   - Verify actual implementation state
+
+3. **Compare Reality vs Documentation**
+   - Compare codebase reality against requirements.md
+   - Compare actual implementation against tasks.md status
+   - Verify completion claims in checkboxes
+   - Identify any discrepancies or inconsistencies
+
+4. **Verify Task Status Accuracy**
+   - Check each task marked as `[x]` completed
+   - Verify completed tasks are actually implemented in code
+   - Check each task marked as `[ ]` pending
+   - Verify pending tasks are truly not yet implemented
+   - Identify tasks incorrectly marked as complete
+   - Identify tasks incorrectly marked as pending
+
+5. **Identify Issues and Blockers**
+   - Find unclear or ambiguous requirements
+   - Identify incomplete or vague specifications
+   - Detect inconsistencies between requirements and tasks
+   - Spot missing information that needs user clarification
+   - Flag potential technical blockers
+
+6. **Assess Work Readiness**
+   - Determine if specifications are clear enough to proceed
+   - Verify all necessary information is available
+   - Check if tasks are well-defined and actionable
+   - Assess if work can begin without further user input
+
+#### STOP WORK IF
+
+The review agent **MUST STOP ALL WORK** and report to the main agent if:
+
+- ❌ **Inconsistencies found**: Tasks marked complete but code doesn't exist
+- ❌ **Inconsistencies found**: Tasks marked pending but code already exists
+- ❌ **Requirements unclear**: Specifications are vague or ambiguous
+- ❌ **Requirements incomplete**: Critical information is missing
+- ❌ **Tasks need refinement**: Task descriptions are unclear or not actionable
+- ❌ **User input required**: Decisions need to be made by the user
+- ❌ **Conflicting information**: Requirements contradict each other
+- ❌ **Technical blockers**: Dependencies or prerequisites are missing
+
+#### Report to Main Agent
+
+The review agent **MUST** report back with:
+
+1. **Current Implementation State**
+   - What's actually implemented in the codebase
+   - What files and components exist
+   - What functionality is working
+   - What's missing or incomplete
+
+2. **Verified Task Status**
+   - Accurate completion status for each task
+   - Tasks that need status corrections
+   - Discrepancies between documentation and reality
+   - Recommended status updates
+
+3. **Inconsistencies Found**
+   - Specific tasks incorrectly marked
+   - Missing implementations claimed as complete
+   - Code existing for "pending" tasks
+   - Any conflicts or contradictions
+
+4. **Readiness Assessment**
+   - **GO**: Work can proceed (all clear, no issues)
+   - **STOP**: Work cannot proceed (issues require resolution)
+   - **CLARIFY**: User input needed before proceeding
+   - List of blockers or clarifications needed
+
+5. **Recommendations**
+   - Suggested corrections to tasks.md
+   - Recommended requirement clarifications
+   - Priority order for implementing tasks
+   - Technical approach suggestions
+
+#### Enforcement - Zero Tolerance
+
+**This requirement has ZERO TOLERANCE for violations.**
+
+- ❌ **FORBIDDEN**: Starting work without running review agent first
+- ❌ **FORBIDDEN**: Skipping review agent "to save time"
+- ❌ **FORBIDDEN**: Assuming specifications are accurate without verification
+- ❌ **FORBIDDEN**: Trusting task status without codebase verification
+- ❌ **FORBIDDEN**: Proceeding when review agent reports STOP or CLARIFY
+
+**VIOLATION CONSEQUENCES:**
+
+Any agent that violates this requirement will:
+1. Be immediately stopped
+2. Have their work discarded
+3. Require the review agent to be run properly
+4. Report the violation to the user
+
+#### Integration with Workflow
+
+The review agent requirement is **Step 0** - it happens **BEFORE** any implementation work:
+
+```
+Step 0: LAUNCH REVIEW AGENT (MANDATORY)
+   ├─ Review agent reads requirements.md and tasks.md
+   ├─ Review agent searches and analyzes codebase
+   ├─ Review agent verifies task completion status
+   ├─ Review agent identifies inconsistencies
+   ├─ Review agent reports back with readiness assessment
+   └─ Main agent evaluates report
+      ↓
+      IF report says "GO":
+         → Proceed to Step 1 (launch implementation agents)
+      IF report says "STOP" or "CLARIFY":
+         → DO NOT PROCEED
+         → Address issues or get user input
+         → May need to run review agent again
+```
+
 ## Workflow
 
 ### Complete Requirements-to-Implementation Workflow
@@ -393,20 +527,33 @@ tools:
    ├─ git push (following Rule 05)
    └─ Verify success
    ↓
-8. Launch Specialized Agents (Rule 04)
+8. LAUNCH REVIEW AGENT (MANDATORY - NEW STEP)
+   ├─ Review agent reads requirements.md thoroughly
+   ├─ Review agent reads tasks.md thoroughly
+   ├─ Review agent searches codebase for implementations
+   ├─ Review agent verifies task completion accuracy
+   ├─ Review agent identifies inconsistencies
+   ├─ Review agent reports readiness: GO / STOP / CLARIFY
+   └─ Main agent evaluates review report
+      ↓
+      IF GO: Continue to Step 9
+      IF STOP/CLARIFY: Address issues, get user input, re-review if needed
+   ↓
+9. Launch Specialized Agents (Rule 04)
    ├─ Agents MUST read requirements.md
    ├─ Agents MUST read tasks.md
-   ├─ Agents MUST verify status by searching codebase
-   └─ Agents work on tasks
+   ├─ Agents MUST read review agent's report
+   ├─ Agents work on tasks based on verified status
+   └─ Agents follow review agent's recommendations
    ↓
-9. Agent Updates During Work
-   ├─ Add new tasks BEFORE starting work on them
-   ├─ Update task checkboxes as work completes
-   ├─ Update frontmatter counts
-   ├─ Update tools list
-   └─ Commit changes to tasks.md after updates
+10. Agent Updates During Work
+    ├─ Add new tasks BEFORE starting work on them
+    ├─ Update task checkboxes as work completes
+    ├─ Update frontmatter counts
+    ├─ Update tools list
+    └─ Commit changes to tasks.md after updates
    ↓
-10. Verification and Completion
+11. Verification and Completion
     ├─ Agent searches codebase to verify implementation
     ├─ Agent updates tasks.md with actual status
     ├─ Agent updates requirements.md status if all done
@@ -463,7 +610,7 @@ Agent verification steps:
 
 ### Good Practice ✅
 
-**Example 1: Starting New Specification**
+**Example 1: Starting New Specification with Review Agent**
 ```
 User: "I need a caching layer for API responses"
 
@@ -484,39 +631,77 @@ Main Agent:
 
 4. Agent commits specification files
 
-5. Agent launches specialized agents to implement
+5. Agent launches REVIEW AGENT FIRST (MANDATORY)
+   - Review agent reads requirements.md and tasks.md
+   - Review agent searches codebase for any existing caching code
+   - Review agent verifies no conflicting implementations exist
+   - Review agent confirms all requirements are clear
+   - Review agent reports: "GO - specifications clear, no blockers"
+
+6. Agent launches specialized agents to implement
    - Each agent reads requirements.md and tasks.md first
+   - Each agent reads review agent's report
    - Agents verify status by searching codebase
    - Agents update tasks.md as they work
 
 ✅ Requirements documented before work began
 ✅ Full conversation captured
 ✅ Clear task list created
+✅ Review agent verified readiness BEFORE implementation
 ✅ Agents have clear direction
+✅ No wasted effort on unclear requirements
 ```
 
-**Example 2: Agent Verifying Status**
+**Example 2: Review Agent Finding Inconsistencies**
 ```
-Agent assigned to work on specification 03-database-migrations
+Main agent assigned to work on specification 03-database-migrations
 
-Agent process:
-1. Reads requirements.md
-2. Reads tasks.md (shows some tasks as [x] completed)
+Main agent launches REVIEW AGENT FIRST (Step 0):
+
+Review Agent process:
+1. Reads requirements.md thoroughly
+2. Reads tasks.md (shows 5 tasks marked [x] completed, 2 tasks marked [ ] pending)
 3. Searches codebase:
    - Globs for "**/migrations/*.ts"
    - Greps for "migrate|migration|schema"
    - Reads migration files to verify implementation
-4. Finds that 2 tasks marked as done are actually not implemented
-5. Updates tasks.md:
-   - Changes those tasks back to [ ]
-   - Updates frontmatter: completed: 5 → 3, uncompleted: 2 → 4
-   - Adds note explaining discrepancy
-6. Commits the correction
-7. Proceeds with actual implementation
+4. FINDS INCONSISTENCIES:
+   - Task "Create migration CLI command" marked [x] but no CLI file exists
+   - Task "Add rollback functionality" marked [x] but code is incomplete/stub only
+   - Task "Write migration docs" marked [ ] but docs/migrations.md already exists
+5. Reports to main agent: "STOP - Found 3 inconsistencies between tasks and code"
 
-✅ Verified actual status before trusting checkboxes
-✅ Corrected inaccurate status
-✅ User gets accurate picture of progress
+Review Agent Report:
+---
+STATUS: STOP
+REASON: Task status does not match codebase reality
+
+INCONSISTENCIES FOUND:
+- ❌ Task "Create migration CLI command" marked complete but src/cli/migrate.ts does not exist
+- ❌ Task "Add rollback functionality" marked complete but implementation is stub only
+- ✅ Task "Write migration docs" marked pending but docs/migrations.md exists and is complete
+
+RECOMMENDED CORRECTIONS:
+- Change "Create migration CLI command" from [x] to [ ]
+- Change "Add rollback functionality" from [x] to [ ]
+- Change "Write migration docs" from [ ] to [x]
+
+READINESS: Cannot proceed until tasks.md is corrected to reflect reality
+
+Main Agent actions:
+1. Does NOT launch implementation agents (review said STOP)
+2. Corrects tasks.md based on review agent findings:
+   - Updates 3 task statuses
+   - Updates frontmatter: completed: 5 → 3, uncompleted: 2 → 4
+   - Adds note explaining corrections
+3. Commits the corrections
+4. NOW launches implementation agents to work on actual pending tasks
+
+✅ Review agent caught inaccurate status BEFORE work started
+✅ Prevented wasted effort on wrong tasks
+✅ Corrected documentation to match reality
+✅ Implementation agents get accurate picture
+✅ No confusion about what's actually done
 ```
 
 **Example 3: Adding Tasks During Work**
@@ -538,7 +723,57 @@ Agent discovers additional work needed:
 ✅ Clear record of scope expansion
 ```
 
-**Example 4: Updating Spec.md Dashboard**
+**Example 4: Review Agent Requesting Clarification**
+```
+Main agent working on specification 06-payment-integration
+
+Main agent launches REVIEW AGENT FIRST:
+
+Review Agent process:
+1. Reads requirements.md thoroughly
+2. Reads tasks.md
+3. Searches codebase for existing payment code
+4. IDENTIFIES UNCLEAR REQUIREMENTS:
+   - Requirements mention "payment processing" but don't specify which provider (Stripe, PayPal, etc.)
+   - Tasks include "Handle payment failures" but no retry strategy defined
+   - Requirements say "secure payment handling" but no PCI compliance requirements listed
+   - No mention of webhook handling or event processing
+5. Reports to main agent: "CLARIFY - Requirements need user input"
+
+Review Agent Report:
+---
+STATUS: CLARIFY
+REASON: Critical information missing, user input required
+
+CLARIFICATION NEEDED:
+1. Which payment provider should be used? (Stripe, PayPal, Square, etc.)
+2. What should happen on payment failure? (retry strategy, user notification)
+3. What PCI compliance level is required?
+4. Should webhook events be processed? If so, which events?
+5. Are recurring payments needed or one-time only?
+6. What currencies need to be supported?
+
+RECOMMENDATION: Do not proceed with implementation until user clarifies these points
+
+Main Agent actions:
+1. Does NOT launch implementation agents (review said CLARIFY)
+2. Reports to user with questions from review agent
+3. Has conversation with user to get answers
+4. Updates requirements.md with clarified information
+5. Updates tasks.md with new tasks based on clarifications
+6. Commits updated specification
+7. Runs review agent AGAIN to verify clarity
+8. Review agent now reports "GO"
+9. NOW launches implementation agents
+
+✅ Review agent caught ambiguous requirements BEFORE implementation
+✅ Prevented implementation of wrong solution
+✅ Got user input on critical decisions
+✅ Specifications now clear and actionable
+✅ No wasted development effort
+```
+
+**Example 5: Updating Spec.md Dashboard**
 ```
 Agent completes specification 02-user-authentication
 
@@ -559,7 +794,35 @@ Agent process:
 
 ### Bad Practice ❌
 
-**Example 1: Starting Work Without Requirements**
+**Example 1: Starting Work Without Review Agent**
+```
+User: "Implement user authentication"
+
+Main Agent:
+Creates specification with requirements.md and tasks.md
+Commits specification files
+Immediately launches implementation agents WITHOUT review agent
+
+Implementation agents start coding based on tasks.md
+
+Problems:
+- tasks.md shows some tasks as [x] completed
+- Agents assume those are actually done
+- Agents start working on "pending" tasks
+- Later discover "completed" tasks aren't actually complete
+- Wasted 3 hours implementing features that depend on missing code
+- Had to stop and backtrack
+- User frustrated by delays and confusion
+
+❌ CRITICAL VIOLATION: Skipped mandatory review agent
+❌ No verification of task status before starting
+❌ Assumed documentation was accurate
+❌ Wasted significant development time
+❌ User experience negatively impacted
+❌ Could have been prevented by running review agent first
+```
+
+**Example 2: Starting Work Without Requirements**
 ```
 User: "Add user authentication"
 
@@ -569,12 +832,41 @@ Launches agents immediately to implement authentication
 ❌ No requirements conversation
 ❌ No specification directory created
 ❌ No documented requirements
+❌ No review agent (because no spec exists to review!)
 ❌ Agents don't know what to implement
 ❌ No task tracking
 ❌ User expectations may not be met
 ```
 
-**Example 2: Trusting Status Without Verification**
+**Example 3: Proceeding When Review Agent Says STOP**
+```
+Main agent working on specification 07-email-system
+
+Review Agent runs and reports:
+"STATUS: STOP - Found 5 tasks marked complete but implementations are missing"
+
+Main Agent IGNORES report and launches implementation agents anyway
+
+Implementation agents:
+- Read tasks.md and see tasks marked [x] complete
+- Assume those are done and skip them
+- Work on remaining tasks
+- Build features that depend on "completed" code
+- Features break because dependencies don't exist
+- Spend hours debugging "why isn't X working?"
+- Eventually realize the completed tasks weren't actually done
+
+User is upset: "Why did you waste time? Why didn't you verify first?"
+
+❌ CRITICAL VIOLATION: Ignored review agent STOP directive
+❌ Proceeded despite knowing status was inaccurate
+❌ Caused massive waste of development time
+❌ Built features on false assumptions
+❌ User trust damaged
+❌ This is exactly what review agent is designed to prevent
+```
+
+**Example 4: Trusting Status Without Verification**
 ```
 Agent reads specification 05-api-caching
 tasks.md shows: "[x] Implement Redis cache adapter"
@@ -702,6 +994,9 @@ All agents **MUST**:
 - Create specification directory before starting implementation
 - Document requirements conversation thoroughly
 - Create comprehensive task list before work begins
+- **Launch review agent BEFORE any implementation work begins**
+- **Read review agent's report before proceeding**
+- **Stop work if review agent reports STOP or CLARIFY**
 - Read both requirements.md and tasks.md before starting work
 - Verify status by searching codebase, not trusting checkboxes
 - Update tasks.md as work progresses
@@ -712,6 +1007,9 @@ All agents **MUST**:
 ### Violations
 
 Any of the following constitutes a serious violation:
+- **Starting implementation without running review agent first (CRITICAL)**
+- **Ignoring review agent's STOP or CLARIFY directive (CRITICAL)**
+- **Proceeding when review agent identifies blockers (CRITICAL)**
 - Starting implementation without documented requirements
 - Not creating specification directory and files
 - Skipping requirements conversation with user
@@ -730,19 +1028,33 @@ Violations have serious consequences:
 - **False progress**: Status shows completion when work is incomplete
 - **Confusion**: User can't understand what's been done
 - **Rework**: May need to redo work due to misunderstanding
+- **Time waste**: Building on false assumptions wastes hours of development time
+- **Trust erosion**: User loses confidence in agent reliability
 
-**THE USER WILL BE UPSET** if work proceeds without proper requirements documentation and status verification!
+**Review Agent Violations Are Especially Costly:**
+- Skipping review agent leads to hours of wasted implementation effort
+- Building on incorrect assumptions causes compound errors
+- Discovering issues late in development requires extensive rework
+- User becomes frustrated watching agents work on wrong things
+- Review agent could have prevented all of this in minutes
+
+**THE USER WILL BE UPSET** if work proceeds without proper requirements documentation, status verification, and mandatory review agent execution!
 
 ### Corrective Action
 
 When a violation occurs:
-1. **Stop immediately** if work has started without requirements
-2. **Create specification** if missing
-3. **Document requirements** by having conversation with user
-4. **Create task list** before proceeding
-5. **Verify status** by searching codebase if relying on checkboxes
-6. **Update files** to reflect accurate status
-7. **Commit changes** following proper git workflow
+1. **Stop immediately** if work has started without requirements or review agent
+2. **Launch review agent** if it was skipped (CRITICAL)
+3. **Read and act on review agent report** (MANDATORY)
+4. **Do not proceed** if review agent reports STOP or CLARIFY
+5. **Create specification** if missing
+6. **Document requirements** by having conversation with user
+7. **Create task list** before proceeding
+8. **Verify status** by searching codebase if relying on checkboxes
+9. **Update files** to reflect accurate status
+10. **Commit changes** following proper git workflow
+11. **Re-run review agent** if specifications were updated
+12. **Only proceed with implementation** when review agent reports GO
 
 ## Special Cases
 
@@ -790,22 +1102,34 @@ For pure documentation updates:
 
 ## Summary
 
-**Core Principle**: Never start significant work without documented requirements and a clear task list. Always verify status by checking actual implementation, never trust checkboxes blindly.
+**Core Principle**: Never start significant work without documented requirements and a clear task list. Always launch a review agent to verify specifications before implementation. Never trust checkboxes blindly.
 
 **Key Points**:
 - ✅ Requirements conversation comes first
 - ✅ Document everything in specification directory
 - ✅ Create comprehensive task list before work begins
+- ✅ **Launch review agent BEFORE implementation (MANDATORY)**
+- ✅ **Act on review agent's report (GO/STOP/CLARIFY)**
 - ✅ Agents read specifications before working
 - ✅ Verify status by searching codebase
 - ✅ Update tasks.md as work progresses
 - ✅ Keep Spec.md master index current
+- ❌ **Never skip review agent requirement (CRITICAL VIOLATION)**
+- ❌ **Never ignore review agent's STOP or CLARIFY (CRITICAL VIOLATION)**
 - ❌ Never start work without documented requirements
 - ❌ Never trust status without verification
 - ❌ Never add tasks retroactively
 - ❌ Never skip updating frontmatter counts
 
-**Remember**: The user will be upset if work proceeds without proper requirements or if status information is inaccurate!
+**Review Agent Is Mandatory:**
+The review agent requirement is non-negotiable. It saves hours of wasted effort by:
+- Verifying task status accuracy before implementation
+- Identifying unclear requirements that need clarification
+- Catching inconsistencies between documentation and code
+- Preventing work based on false assumptions
+- Ensuring specifications are actionable and complete
+
+**Remember**: The user will be upset if work proceeds without proper requirements, without status verification, or **without running the mandatory review agent first**!
 
 ---
 *Created: 2026-01-11*
