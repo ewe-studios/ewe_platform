@@ -14,7 +14,31 @@ The Main Agent **MUST**:
 - Coordinate specification updates
 - Commit code ONLY after verification passes
 
-### 2. Verification-First Workflow
+### 2. Agent Identity and Verification Authority
+**CRITICAL DISTINCTION**: Only the Main Agent can spawn verification agents.
+
+**Main Agent**:
+- ✅ The agent directly interacting with the user
+- ✅ The orchestrator at the top of the agent hierarchy
+- ✅ **ONLY agent with authority to spawn verification agents**
+- ✅ Spawns implementation agents, specification agents, and verification agents
+
+**Sub-Agents** (Implementation, Specification, etc.):
+- ❌ **NEVER spawn verification agents**
+- ❌ **NOT the Main Agent** - they are delegated workers
+- ✅ Report completion to Main Agent
+- ✅ Wait for Main Agent to coordinate verification
+
+**Agent Identity Rule**:
+```
+If you were spawned by another agent → You are a SUB-AGENT
+If you are directly interacting with user → You are the MAIN AGENT
+
+SUB-AGENTS: Report to Main Agent, NEVER spawn verification agents
+MAIN AGENT: Spawn verification agents, orchestrate all workflows
+```
+
+### 3. Verification-First Workflow
 **CRITICAL REQUIREMENT**: NO code is EVER committed without verification.
 
 ```
@@ -34,6 +58,11 @@ Implementation → Report to Main → Verification → Update Spec → Commit
 
 #### Implementation Agent Requirements
 Each implementation agent **MUST**:
+
+**Agent Identity Awareness**:
+1. ✅ **Know you are a SUB-AGENT** (spawned by Main Agent)
+2. ✅ **Understand you do NOT have verification authority**
+3. ✅ **NEVER spawn verification agents** (only Main Agent can)
 
 **Before Starting Work**:
 1. ✅ Read `AGENTS.md` file
@@ -62,6 +91,7 @@ Each implementation agent **MUST**:
 - ❌ Update tasks.md directly
 - ❌ Skip reporting to Main Agent
 - ❌ Proceed without Main Agent approval
+- ❌ **Spawn verification agents** (ONLY Main Agent has this authority)
 
 ### Phase 2: Mandatory Verification (IRON-CLAD)
 
@@ -875,6 +905,7 @@ The following are **CRITICAL VIOLATIONS** with **ZERO TOLERANCE**:
 4. ❌ **Multiple verification agents for same language** (race condition)
 5. ❌ **Committing code with failed verification** (quality breach)
 6. ❌ **Not updating specification on verification failure** (lost tracking)
+7. ❌ **Sub-agent spawns verification agent** (violates authority hierarchy)
 
 ### Consequences
 
@@ -912,6 +943,7 @@ Implement → Report → Verify → Update Spec → Commit → Push
 5. ✅ Specifications updated based on verification results
 6. ✅ Failed verification creates urgent task
 7. ✅ Process repeats until verification passes
+8. ✅ **ONLY Main Agent can spawn verification agents** (sub-agents cannot)
 
 **Zero Tolerance**:
 - ❌ No bypassing verification

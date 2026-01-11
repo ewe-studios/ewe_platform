@@ -23,7 +23,33 @@ Implementation → Report → Verify → Pass? → Commit → Push
                           Fail → Urgent Task → Fix → Loop
 ```
 
-**CRITICAL RULE**: Code commits happen ONLY after verification passes. Implementation agents **NEVER** commit directly.
+**CRITICAL RULES**:
+- Code commits happen ONLY after verification passes
+- Implementation agents **NEVER** commit directly
+- **ONLY Main Agent can spawn verification agents**
+
+### Agent Hierarchy and Verification Authority
+
+**Main Agent** (Top of hierarchy):
+- ✅ Directly interacting with user
+- ✅ Orchestrator of all workflows
+- ✅ **ONLY agent with authority to spawn verification agents**
+- ✅ Spawns: Implementation agents, Specification agents, Verification agents
+
+**Sub-Agents** (Implementation, Specification, etc.):
+- ❌ **NEVER spawn verification agents**
+- ❌ Do NOT have verification authority
+- ✅ Report completion to Main Agent
+- ✅ Wait for Main Agent to orchestrate verification
+
+**Identity Rule**:
+```
+If you were spawned by another agent → You are a SUB-AGENT
+If you are directly interacting with user → You are the MAIN AGENT
+
+SUB-AGENTS: NEVER spawn verification agents, report to Main Agent
+MAIN AGENT: Spawn verification agents, orchestrate verification
+```
 
 ---
 
@@ -33,6 +59,7 @@ Implementation → Report → Verify → Pass? → Commit → Push
 
 **What Happens:**
 - Implementation agent reads AGENTS.md, all rules, relevant stack files, and specifications
+- **Implementation agent recognizes it is a SUB-AGENT** (spawned by Main Agent)
 - Implements code following all documented standards
 - Writes tests for new functionality
 - Keeps track of changes made
@@ -43,6 +70,7 @@ Implementation → Report → Verify → Pass? → Commit → Push
 3. ❌ **DOES NOT commit** anything
 4. ❌ **DOES NOT push** anything
 5. ❌ **DOES NOT update** tasks.md directly
+6. ❌ **DOES NOT spawn verification agents** (only Main Agent has this authority)
 
 ### Phase 2: Mandatory Verification
 
