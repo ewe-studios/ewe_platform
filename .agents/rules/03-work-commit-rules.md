@@ -28,7 +28,9 @@ Every commit message **MUST** include:
 3. **Detailed explanation** of what was changed and why
 4. **Bullet-point summary** of specific changes made
 5. **Blank line**
-6. **Co-authorship attribution**: `Co-Authored-By: Claude <noreply@anthropic.com>`
+6. **Verification status** (if code changes were made) - see Rule 04
+7. **Blank line** (if verification section included)
+8. **Co-authorship attribution**: `Co-Authored-By: Claude <noreply@anthropic.com>`
 
 **Template:**
 ```
@@ -45,6 +47,50 @@ Changes made:
 
 Co-Authored-By: Claude <noreply@anthropic.com>
 ```
+
+**Template with Verification (for code changes):**
+```
+Brief summary of change
+
+Detailed explanation of what was changed and why this change
+was necessary. Explain the context and reasoning behind the
+modification.
+
+Changes made:
+- Specific change 1
+- Specific change 2
+- Specific change 3
+
+Verified by [Language] Verification Agent: All checks passed
+- Format: PASS
+- Lint: PASS
+- Type Check: PASS (if applicable)
+- Tests: [N]/[N] PASS
+- Build: PASS
+- Coverage: [N]%
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+### Code Verification Before Commit (MANDATORY)
+
+**CRITICAL**: When committing code changes (not documentation or configuration), the Main Agent **MUST**:
+
+1. **NEVER commit directly** after implementation
+2. **ALWAYS delegate to verification agent first** (see Rule 04)
+3. **WAIT for verification results** before committing
+4. **ONLY commit if ALL verifications PASS**
+5. **INCLUDE verification status** in commit message
+
+**Workflow:**
+```
+Implementation Complete → Report to Main Agent →
+Verification Agent Runs Checks → Report Back to Main Agent →
+IF ALL PASS: Main Agent Commits with Verification Status
+IF ANY FAIL: Main Agent Creates Urgent Task, Does NOT Commit
+```
+
+See **Rule 04 (Agent Orchestration)** for complete verification workflow details.
 
 ### Commit Verification
 After each commit, agents **MUST**:
@@ -85,9 +131,9 @@ Change 1 → Change 2 → Change 3 → git add → git commit ❌
 
 ### Good Practice ✅
 
-**Example 1: Adding a new feature**
+**Example 1: Adding a new feature with verification**
 ```bash
-# After adding authentication middleware
+# After implementation and successful verification
 git add src/middleware/auth.js
 git commit -m "$(cat <<'EOF'
 Add authentication middleware for API routes
@@ -101,6 +147,15 @@ Changes made:
 - Added JWT verification using jsonwebtoken library
 - Implemented error handling for invalid/expired tokens
 - Added user object attachment to req.user
+- Wrote comprehensive test suite
+
+Verified by JavaScript Verification Agent: All checks passed
+- Format: PASS (prettier)
+- Lint: PASS (eslint, 0 warnings)
+- Type Check: PASS (tsc)
+- Tests: 12/12 PASS
+- Build: PASS
+- Coverage: 94%
 
 Co-Authored-By: Claude <noreply@anthropic.com>
 EOF
@@ -151,9 +206,9 @@ EOF
 git status
 ```
 
-**Example 4: Multiple files in single logical change**
+**Example 4: Multiple files in single logical change with verification**
 ```bash
-# After adding new API endpoint
+# After adding new API endpoint and successful verification
 git add src/routes/users.js src/controllers/user-controller.js tests/user-routes.test.js
 git commit -m "$(cat <<'EOF'
 Add GET /users/:id endpoint for user profile retrieval
@@ -167,6 +222,45 @@ Changes made:
 - Added validation for user ID parameter
 - Created test suite with 8 test cases
 - Added error handling for non-existent users
+
+Verified by JavaScript Verification Agent: All checks passed
+- Format: PASS (prettier)
+- Lint: PASS (eslint, 0 warnings)
+- Type Check: PASS (tsc)
+- Tests: 15/15 PASS (8 new, 7 integration)
+- Build: PASS
+- Coverage: 91%
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
+git status
+```
+
+**Example 5: Rust code change with verification**
+```bash
+# After implementing Rust module and successful verification
+git add src/auth/token.rs tests/token_tests.rs
+git commit -m "$(cat <<'EOF'
+Implement JWT token generation and validation
+
+Created robust JWT token handling module with generation,
+validation, and refresh token support.
+
+Changes made:
+- Implemented TokenManager struct with key management
+- Added generate_token() with configurable expiration
+- Added validate_token() with signature verification
+- Implemented refresh token rotation
+- Added comprehensive test suite with edge cases
+
+Verified by Rust Verification Agent: All checks passed
+- Format: PASS (rustfmt)
+- Lint: PASS (clippy, 0 warnings)
+- Tests: 23/23 PASS
+- Build: PASS (debug and release)
+- Doc: PASS (cargo doc)
+- Security: PASS (cargo audit)
 
 Co-Authored-By: Claude <noreply@anthropic.com>
 EOF
@@ -240,6 +334,35 @@ EOF
 ❌ Missing "Co-Authored-By: Claude <noreply@anthropic.com>"
 ```
 
+**Example 6: Committing code without verification (CRITICAL VIOLATION)**
+```bash
+# Implementation agent completes work
+git add src/payment/processor.js
+git commit -m "$(cat <<'EOF'
+Add payment processing module
+
+Implemented payment processing with Stripe integration.
+
+Changes made:
+- Created PaymentProcessor class
+- Added Stripe API integration
+- Implemented error handling
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
+
+❌ CRITICAL VIOLATION: Code committed without verification
+❌ No verification agent was delegated to
+❌ Tests might be failing
+❌ Code might not compile
+❌ Linting/formatting might be broken
+❌ This violates Rule 04 (ZERO TOLERANCE)
+❌ Implementation agent should have REPORTED to Main Agent
+❌ Main Agent should have delegated to Verification Agent
+❌ Only commit after ALL checks PASS
+```
+
 ## Rationale
 
 ### Why Immediate Commits Matter
@@ -274,6 +397,26 @@ Any of the following constitutes a violation:
 - Missing co-authorship attribution
 - Failing to verify commit success
 - Skipping commits for "small" changes
+- **CRITICAL**: Committing code without verification (see Rule 04)
+- **CRITICAL**: Missing verification status in commit message for code changes
+
+### Critical Violations (Zero Tolerance)
+The following violations are **CRITICAL** and trigger immediate corrective action:
+
+1. ❌ **Committing code without verification**
+   - Implementation agents committing directly
+   - Main Agent committing before verification completes
+   - Bypassing verification workflow (Rule 04)
+
+2. ❌ **Committing code with failed verification**
+   - Ignoring verification failures
+   - Committing despite test failures
+   - Proceeding with broken builds
+
+3. ❌ **Missing verification status in code commit messages**
+   - Not including verification results
+   - Vague verification references
+   - Incomplete verification reports
 
 ### Corrective Action
 When a violation occurs:
@@ -283,12 +426,22 @@ When a violation occurs:
 4. **Verify each commit** before proceeding
 5. **Report the violation** to maintain awareness
 
+**For Critical Violations** (committing without verification):
+1. **REVERT the commit immediately** using `git revert` or `git reset`
+2. **Report to Main Agent** about the violation
+3. **Run proper verification workflow** (Rule 04)
+4. **Wait for ALL checks to PASS**
+5. **Re-commit with verification status** once checks pass
+6. **Document violation** in Learning Log
+
 ### Self-Enforcement
 All agents **MUST**:
 - Treat this rule as non-negotiable
 - Build commit steps into their workflow
 - Default to "commit after every change" behavior
 - When in doubt, commit rather than batch
+- **ALWAYS verify code before committing** (Rule 04)
+- **NEVER bypass verification** for any reason
 
 ## Special Cases
 
@@ -362,9 +515,38 @@ git status
 ## Integration with Other Rules
 
 This rule works in conjunction with:
-- **Agent Orchestration (Rule 03)**: Each specialized agent must commit their changes
-- **Directory Policy (Rule 02)**: Commits apply to files in all locations
-- **Naming Conventions (Rule 01)**: Commits apply to rule files and all other files
+
+### Rule 04 (Agent Orchestration and Verification) - CRITICAL INTEGRATION
+- **MANDATORY**: All code commits MUST go through verification workflow first
+- Implementation agents report to Main Agent (never commit directly)
+- Main Agent delegates to verification agent
+- Main Agent commits ONLY after verification passes
+- Commit messages MUST include verification status
+- See Rule 04 for complete verification workflow
+
+### Rule 05 (Git Auto-Approval and Push)
+- Verified commits are automatically pushed
+- Push happens after successful verification
+- Each specialized agent's commits follow this rule
+
+### Rule 06 (Specifications and Requirements)
+- Commits apply to specification files (requirements.md, tasks.md)
+- Specification updates are committed after verification
+- Task completion commits include verification results
+
+### Rule 07 (Language Conventions and Standards)
+- Commits must follow language-specific standards
+- Verification ensures standards compliance
+- Learning Log updates are committed immediately
+
+### Rule 02 (Directory Policy)
+- Commits apply to files in all locations
+- Stack files, rules, and specifications all follow this rule
+
+### Rule 01 (Naming Conventions)
+- Commits apply to rule files and all other files
+- Naming convention changes are committed immediately
 
 ---
 *Created: 2026-01-11*
+*Last Updated: 2026-01-11*
