@@ -1334,6 +1334,410 @@ cargo audit || echo "Warning: Security vulnerabilities found"
 echo "All checks passed!"
 ```
 
+## Code Verification Workflow
+
+### Overview
+
+**MANDATORY**: Every code change in Rust MUST be verified by a dedicated Rust Verification Agent before being committed. This is a **HARD REQUIREMENT** with **ZERO TOLERANCE** for violations.
+
+### Verification Agent Responsibility
+
+There can only be **ONE Rust Verification Agent** active at any time for a given set of changes. The Main Agent is responsible for:
+
+1. **Delegating** to the Rust Verification Agent after implementation is complete
+2. **Waiting** for verification results before proceeding
+3. **Not committing** any Rust code until verification passes
+4. **Reporting** verification results to the user
+
+### When Verification Must Run
+
+Verification MUST run:
+- ✅ After ANY code changes to `.rs` files
+- ✅ After changes to `Cargo.toml` or `Cargo.lock`
+- ✅ After adding new dependencies
+- ✅ After updating dependencies
+- ✅ Before ANY commit containing Rust code
+- ✅ After merging or rebasing branches
+
+### Verification Agent Workflow
+
+#### Step 1: Agent Delegation
+
+**Main Agent** responsibilities:
+```
+1. Implementation agent completes Rust code changes
+2. Implementation agent reports completion to Main Agent
+3. Main Agent spawns ONE Rust Verification Agent
+4. Main Agent provides verification agent with:
+   - List of changed files
+   - Description of changes made
+   - Specification reference (if applicable)
+5. Main Agent WAITS for verification results
+```
+
+**Verification Agent** receives:
+- Context about what was changed
+- Why it was changed
+- Expected behavior
+- Files modified
+
+#### Step 2: Verification Agent Execution
+
+The **Rust Verification Agent** MUST execute ALL of the following checks in order:
+
+##### 1. Format Verification
+```bash
+cargo fmt -- --check
+```
+- **MUST PASS**: Code must be properly formatted
+- **On Failure**: Run `cargo fmt` and report formatting issues
+- **Zero Tolerance**: No unformatted code allowed
+
+##### 2. Clippy Linting
+```bash
+cargo clippy --all-targets --all-features -- -D warnings
+```
+- **MUST PASS**: Zero clippy warnings allowed
+- **On Failure**: Report ALL warnings with file locations
+- **Zero Tolerance**: Fix all warnings before proceeding
+
+##### 3. Compilation Check
+```bash
+cargo build --all-features
+cargo build --all-features --release
+```
+- **MUST PASS**: Code must compile in both debug and release modes
+- **On Failure**: Report compilation errors with context
+- **Verify**: Both debug and release profiles compile
+
+##### 4. Test Execution
+```bash
+cargo test --all-features
+cargo test --all-features --release
+```
+- **MUST PASS**: All tests must pass in both modes
+- **On Failure**: Report which tests failed and why
+- **Verify**: Both debug and release tests pass
+
+##### 5. Documentation Check
+```bash
+cargo doc --no-deps --all-features
+```
+- **MUST PASS**: Documentation must build without errors
+- **On Failure**: Report missing or broken documentation
+- **Verify**: All public items are documented
+
+##### 6. Security Audit
+```bash
+cargo audit
+```
+- **MUST PASS**: No known security vulnerabilities
+- **On Warning**: Report vulnerabilities with severity
+- **Action**: Update dependencies or document accepted risks
+
+##### 7. Dependency Check (Optional but Recommended)
+```bash
+cargo deny check
+```
+- **Check**: License compatibility, banned dependencies
+- **On Failure**: Report policy violations
+- **Action**: Remove or replace problematic dependencies
+
+#### Step 3: Standards Compliance Verification
+
+The Verification Agent MUST also verify compliance with this stack file:
+
+##### Code Quality Checks
+- [ ] No `unwrap()` or `expect()` in production code
+  ```bash
+  rg "\.unwrap\(\)" --type rust src/
+  rg "\.expect\(" --type rust src/
+  ```
+  - Exclude test files (`#[cfg(test)]` modules)
+  - Report any violations with file and line number
+
+- [ ] Proper error handling with `Result<T, E>`
+  - Verify functions that can fail return `Result`
+  - Check error types are well-defined (use thiserror/anyhow)
+
+- [ ] All public items have documentation
+  ```bash
+  # Check for missing docs (clippy will catch this)
+  cargo clippy -- -W missing_docs
+  ```
+
+- [ ] Naming conventions followed
+  - snake_case for functions, variables, modules
+  - PascalCase for types, traits, enums
+  - SCREAMING_SNAKE_CASE for constants
+
+- [ ] No compiler warnings
+  ```bash
+  cargo build --all-features 2>&1 | grep "warning:"
+  ```
+  - Must return empty (zero warnings)
+
+##### Documentation Verification
+- [ ] Public functions have doc comments with:
+  - Summary description
+  - `# Arguments` section (if applicable)
+  - `# Returns` section
+  - `# Errors` section (for Result returns)
+  - `# Examples` section
+  - `# Safety` section (for unsafe code)
+
+- [ ] Examples in doc comments are tested
+  ```bash
+  cargo test --doc
+  ```
+
+#### Step 4: Verification Report
+
+The Verification Agent MUST generate a comprehensive report:
+
+##### Report Format
+```markdown
+# Rust Verification Report
+
+## Summary
+- **Status**: PASS ✅ / FAIL ❌
+- **Files Changed**: [list of files]
+- **Verification Time**: [timestamp]
+
+## Check Results
+
+### 1. Format Check
+- **Status**: PASS ✅ / FAIL ❌
+- **Details**: [any issues found]
+
+### 2. Clippy Linting
+- **Status**: PASS ✅ / FAIL ❌
+- **Warnings**: [count]
+- **Details**: [warning messages]
+
+### 3. Compilation
+- **Debug Build**: PASS ✅ / FAIL ❌
+- **Release Build**: PASS ✅ / FAIL ❌
+- **Details**: [any errors]
+
+### 4. Tests
+- **Tests Run**: [count]
+- **Tests Passed**: [count]
+- **Tests Failed**: [count]
+- **Details**: [failure details]
+
+### 5. Documentation
+- **Status**: PASS ✅ / FAIL ❌
+- **Details**: [any issues]
+
+### 6. Security Audit
+- **Status**: PASS ✅ / FAIL ❌
+- **Vulnerabilities**: [count]
+- **Details**: [vulnerability list]
+
+### 7. Standards Compliance
+- **unwrap/expect Check**: PASS ✅ / FAIL ❌
+- **Error Handling**: PASS ✅ / FAIL ❌
+- **Documentation**: PASS ✅ / FAIL ❌
+- **Naming Conventions**: PASS ✅ / FAIL ❌
+- **Compiler Warnings**: PASS ✅ / FAIL ❌
+
+## Overall Assessment
+
+[Detailed explanation of verification results]
+
+## Recommendations
+
+[Any suggestions for improvement]
+
+## Blockers
+
+[Any issues that prevent commit]
+```
+
+#### Step 5: Main Agent Response
+
+Based on Verification Agent report:
+
+##### If Verification PASSES (✅)
+```
+Main Agent actions:
+1. Receives PASS report from Verification Agent
+2. Reviews report for any warnings or recommendations
+3. Commits the changes following Rule 03 (Work Commit Rules)
+4. Includes verification summary in commit message:
+   "Verified by Rust Verification Agent: All checks passed"
+5. Pushes to remote following Rule 05 (Git Auto-Approval)
+6. Reports success to user
+```
+
+##### If Verification FAILS (❌)
+```
+Main Agent actions:
+1. Receives FAIL report from Verification Agent
+2. DOES NOT COMMIT any code
+3. Reports failures to implementation agent or user
+4. Lists all issues that must be fixed:
+   - Formatting issues
+   - Clippy warnings
+   - Compilation errors
+   - Test failures
+   - Documentation issues
+   - Standards violations
+5. Implementation agent fixes issues
+6. Repeats verification process
+7. ONLY proceeds after PASS
+```
+
+### Verification Agent Requirements
+
+The Verification Agent MUST:
+- ✅ Be spawned by Main Agent ONLY
+- ✅ Run ALL checks in order
+- ✅ Generate comprehensive report
+- ✅ Report results to Main Agent
+- ✅ NOT commit any code (Main Agent's responsibility)
+- ✅ NOT proceed with partial passes (all checks must pass)
+
+The Verification Agent MUST NOT:
+- ❌ Skip any verification checks
+- ❌ Ignore failures ("we'll fix it later")
+- ❌ Commit code directly
+- ❌ Proceed when checks fail
+- ❌ Run concurrently (only one per language stack)
+
+### Example Workflow
+
+#### Good Example ✅
+```
+1. User: "Implement user authentication in Rust"
+2. Main Agent: Creates specification
+3. Main Agent: Spawns Rust Implementation Agent
+4. Implementation Agent: Writes authentication code
+5. Implementation Agent: Reports completion to Main Agent
+6. Main Agent: Spawns Rust Verification Agent
+7. Verification Agent: Runs all checks
+8. Verification Agent: All checks PASS ✅
+9. Verification Agent: Generates report
+10. Verification Agent: Returns report to Main Agent
+11. Main Agent: Reviews report
+12. Main Agent: Commits code with verification note
+13. Main Agent: Reports success to user
+```
+
+#### Bad Example ❌
+```
+1. User: "Implement user authentication in Rust"
+2. Main Agent: Creates specification
+3. Main Agent: Spawns Rust Implementation Agent
+4. Implementation Agent: Writes authentication code
+5. Implementation Agent: Commits code directly ❌ VIOLATION!
+   (Should have reported to Main Agent first)
+6. Code contains `unwrap()` calls ❌ VIOLATION!
+7. Tests are failing ❌ VIOLATION!
+8. No verification was run ❌ CRITICAL VIOLATION!
+
+Result: Code quality compromised, standards violated
+```
+
+### Integration with Other Rules
+
+#### Works With Rule 03 (Work Commit Rules)
+- Verification happens BEFORE commit
+- Commit message includes verification status
+- Only verified code is committed
+
+#### Works With Rule 04 (Agent Orchestration)
+- Main Agent orchestrates verification
+- Implementation agents don't commit directly
+- Verification agent is specialized for quality checks
+
+#### Works With Rule 06 (Specifications and Requirements)
+- Verification agent receives specification context
+- Tests verify requirements are met
+- Verification report confirms completion
+
+#### Works With Rule 07 (Language Conventions)
+- Verification enforces stack standards
+- Checks compliance with this document
+- Updates Learning Log when new patterns discovered
+
+### Enforcement
+
+#### Zero Tolerance Policy
+
+**VIOLATIONS** are treated with **ZERO TOLERANCE**:
+
+- ❌ **FORBIDDEN**: Committing Rust code without verification
+- ❌ **FORBIDDEN**: Skipping verification checks
+- ❌ **FORBIDDEN**: Ignoring verification failures
+- ❌ **FORBIDDEN**: Running verification after commit
+- ❌ **FORBIDDEN**: Multiple concurrent verification agents
+
+#### Violation Consequences
+
+Any agent that violates verification requirements will:
+1. Have their changes **REVERTED**
+2. Be required to run verification properly
+3. Fix ALL issues before re-attempting
+4. Document the violation in Learning Log
+5. Report the violation to user
+
+#### User Impact
+
+Violations have serious consequences:
+- ❌ **Broken builds** in production
+- ❌ **Failed tests** discovered too late
+- ❌ **Security vulnerabilities** undetected
+- ❌ **Code quality degradation** over time
+- ❌ **Technical debt** accumulation
+- ❌ **User trust** in agent reliability lost
+
+**THE USER WILL BE UPSET** if code is committed without proper verification!
+
+### Verification Commands Quick Reference
+
+```bash
+# Complete verification suite (run in order)
+
+# 1. Format
+cargo fmt -- --check
+
+# 2. Lint
+cargo clippy --all-targets --all-features -- -D warnings
+
+# 3. Build
+cargo build --all-features
+cargo build --all-features --release
+
+# 4. Test
+cargo test --all-features
+cargo test --all-features --release
+
+# 5. Doc
+cargo doc --no-deps --all-features
+
+# 6. Audit
+cargo audit
+
+# 7. Standards Check
+rg "\.unwrap\(\)" --type rust src/
+rg "\.expect\(" --type rust src/
+
+# All checks must PASS before commit
+```
+
+### Continuous Improvement
+
+When verification catches issues:
+1. **Document the issue** in Learning Log
+2. **Explain why it was wrong**
+3. **Show the correct approach**
+4. **Update examples** if needed
+5. **Commit Learning Log** update
+
+This creates a self-improving system where standards evolve based on real issues encountered.
+
 ## Common Pitfalls and Solutions
 
 ### Pitfall 1: String Handling Inefficiency

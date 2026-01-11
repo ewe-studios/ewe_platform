@@ -320,6 +320,412 @@ npm run typecheck  # or: tsc --noEmit
 npm run test    # or: jest or vitest
 ```
 
+## Code Verification Workflow
+
+### Overview
+
+**MANDATORY**: Every code change in JavaScript/TypeScript MUST be verified by a dedicated JavaScript Verification Agent before being committed. This is a **HARD REQUIREMENT** with **ZERO TOLERANCE** for violations.
+
+### Verification Agent Responsibility
+
+There can only be **ONE JavaScript Verification Agent** active at any time for a given set of changes. The Main Agent is responsible for:
+
+1. **Delegating** to the JavaScript Verification Agent after implementation is complete
+2. **Waiting** for verification results before proceeding
+3. **Not committing** any JavaScript/TypeScript code until verification passes
+4. **Reporting** verification results to the user
+
+### When Verification Must Run
+
+Verification MUST run:
+- ✅ After ANY code changes to `.js`, `.ts`, `.jsx`, `.tsx` files
+- ✅ After changes to `package.json`, `package-lock.json`, or `tsconfig.json`
+- ✅ After adding new dependencies
+- ✅ After updating dependencies
+- ✅ Before ANY commit containing JavaScript/TypeScript code
+- ✅ After merging or rebasing branches
+
+### Verification Agent Workflow
+
+#### Step 1: Agent Delegation
+
+**Main Agent** responsibilities:
+```
+1. Implementation agent completes JavaScript/TypeScript code changes
+2. Implementation agent reports completion to Main Agent
+3. Main Agent spawns ONE JavaScript Verification Agent
+4. Main Agent provides verification agent with:
+   - List of changed files
+   - Description of changes made
+   - Specification reference (if applicable)
+5. Main Agent WAITS for verification results
+```
+
+**Verification Agent** receives:
+- Context about what was changed
+- Why it was changed
+- Expected behavior
+- Files modified
+
+#### Step 2: Verification Agent Execution
+
+The **JavaScript Verification Agent** MUST execute ALL of the following checks in order:
+
+##### 1. Format Verification
+```bash
+npx prettier --check .
+# or
+npm run format:check
+```
+- **MUST PASS**: Code must be properly formatted
+- **On Failure**: Run `prettier --write .` and report formatting issues
+- **Zero Tolerance**: No unformatted code allowed
+
+##### 2. TypeScript Type Check
+```bash
+npx tsc --noEmit
+# or
+npm run typecheck
+```
+- **MUST PASS**: Zero TypeScript errors allowed
+- **On Failure**: Report ALL type errors with file locations
+- **Zero Tolerance**: Fix all type errors before proceeding
+
+##### 3. ESLint Check
+```bash
+npx eslint . --ext .ts,.tsx,.js,.jsx --max-warnings 0
+# or
+npm run lint
+```
+- **MUST PASS**: Zero lint warnings or errors allowed
+- **On Failure**: Report ALL lint issues with file locations
+- **Zero Tolerance**: Fix all lint issues before proceeding
+
+##### 4. Test Execution
+```bash
+npm run test
+# or
+npx jest --coverage
+# or
+npx vitest run
+```
+- **MUST PASS**: All tests must pass
+- **On Failure**: Report which tests failed and why
+- **Verify**: Check test coverage meets requirements (80%+)
+
+##### 5. Build Check (if applicable)
+```bash
+npm run build
+# or
+npx tsc
+# or
+npx vite build
+```
+- **MUST PASS**: Build must succeed without errors
+- **On Failure**: Report build errors
+- **Verify**: Production build completes successfully
+
+##### 6. Dependency Audit
+```bash
+npm audit --audit-level=moderate
+```
+- **MUST PASS**: No moderate or higher severity vulnerabilities
+- **On Warning**: Report vulnerabilities with severity
+- **Action**: Update dependencies or document accepted risks
+
+#### Step 3: Standards Compliance Verification
+
+The Verification Agent MUST also verify compliance with this stack file:
+
+##### Code Quality Checks
+- [ ] No `any` type usage
+  ```bash
+  rg ": any" --type ts --type tsx
+  rg "as any" --type ts --type tsx
+  ```
+  - Report any violations with file and line number
+  - Exception: Third-party library type issues (must be documented)
+
+- [ ] Proper error handling
+  - All `async` functions have proper try/catch or error handling
+  - Promises have `.catch()` handlers or try/catch
+  - No unhandled promise rejections
+
+- [ ] JSDoc comments for exports
+  ```bash
+  # ESLint should enforce this with require-jsdoc rule
+  npx eslint . --rule "require-jsdoc: error"
+  ```
+
+- [ ] Naming conventions followed
+  - camelCase for functions, variables
+  - PascalCase for classes, interfaces, types
+  - UPPER_SNAKE_CASE for constants
+
+- [ ] No TypeScript error suppressions
+  ```bash
+  rg "@ts-ignore" --type ts --type tsx
+  rg "@ts-expect-error" --type ts --type tsx
+  ```
+  - Report any suppressions
+  - Must be justified with comment explaining why
+
+##### React-Specific Checks (if applicable)
+- [ ] No direct state mutation
+- [ ] useEffect cleanup functions present
+- [ ] Dependency arrays are correct
+- [ ] No missing dependencies warnings
+- [ ] Proper key props in lists
+
+#### Step 4: Verification Report
+
+The Verification Agent MUST generate a comprehensive report:
+
+##### Report Format
+```markdown
+# JavaScript/TypeScript Verification Report
+
+## Summary
+- **Status**: PASS ✅ / FAIL ❌
+- **Files Changed**: [list of files]
+- **Verification Time**: [timestamp]
+
+## Check Results
+
+### 1. Format Check
+- **Status**: PASS ✅ / FAIL ❌
+- **Details**: [any issues found]
+
+### 2. TypeScript Type Check
+- **Status**: PASS ✅ / FAIL ❌
+- **Errors**: [count]
+- **Details**: [error messages]
+
+### 3. ESLint Check
+- **Status**: PASS ✅ / FAIL ❌
+- **Warnings**: [count]
+- **Errors**: [count]
+- **Details**: [lint issues]
+
+### 4. Tests
+- **Tests Run**: [count]
+- **Tests Passed**: [count]
+- **Tests Failed**: [count]
+- **Coverage**: [percentage]
+- **Details**: [failure details]
+
+### 5. Build Check
+- **Status**: PASS ✅ / FAIL ❌
+- **Details**: [any errors]
+
+### 6. Dependency Audit
+- **Status**: PASS ✅ / FAIL ❌
+- **Vulnerabilities**: [count by severity]
+- **Details**: [vulnerability list]
+
+### 7. Standards Compliance
+- **No `any` Type**: PASS ✅ / FAIL ❌
+- **Error Handling**: PASS ✅ / FAIL ❌
+- **JSDoc Comments**: PASS ✅ / FAIL ❌
+- **Naming Conventions**: PASS ✅ / FAIL ❌
+- **No TS Suppressions**: PASS ✅ / FAIL ❌
+
+## Overall Assessment
+
+[Detailed explanation of verification results]
+
+## Recommendations
+
+[Any suggestions for improvement]
+
+## Blockers
+
+[Any issues that prevent commit]
+```
+
+#### Step 5: Main Agent Response
+
+Based on Verification Agent report:
+
+##### If Verification PASSES (✅)
+```
+Main Agent actions:
+1. Receives PASS report from Verification Agent
+2. Reviews report for any warnings or recommendations
+3. Commits the changes following Rule 03 (Work Commit Rules)
+4. Includes verification summary in commit message:
+   "Verified by JavaScript Verification Agent: All checks passed"
+5. Pushes to remote following Rule 05 (Git Auto-Approval)
+6. Reports success to user
+```
+
+##### If Verification FAILS (❌)
+```
+Main Agent actions:
+1. Receives FAIL report from Verification Agent
+2. DOES NOT COMMIT any code
+3. Reports failures to implementation agent or user
+4. Lists all issues that must be fixed:
+   - Formatting issues
+   - Type errors
+   - Lint warnings
+   - Test failures
+   - Build errors
+   - Standards violations
+5. Implementation agent fixes issues
+6. Repeats verification process
+7. ONLY proceeds after PASS
+```
+
+### Verification Agent Requirements
+
+The Verification Agent MUST:
+- ✅ Be spawned by Main Agent ONLY
+- ✅ Run ALL checks in order
+- ✅ Generate comprehensive report
+- ✅ Report results to Main Agent
+- ✅ NOT commit any code (Main Agent's responsibility)
+- ✅ NOT proceed with partial passes (all checks must pass)
+
+The Verification Agent MUST NOT:
+- ❌ Skip any verification checks
+- ❌ Ignore failures ("we'll fix it later")
+- ❌ Commit code directly
+- ❌ Proceed when checks fail
+- ❌ Run concurrently (only one per language stack)
+
+### Example Workflow
+
+#### Good Example ✅
+```
+1. User: "Add user profile component in React"
+2. Main Agent: Creates specification
+3. Main Agent: Spawns JavaScript Implementation Agent
+4. Implementation Agent: Writes React component with TypeScript
+5. Implementation Agent: Reports completion to Main Agent
+6. Main Agent: Spawns JavaScript Verification Agent
+7. Verification Agent: Runs all checks
+8. Verification Agent: All checks PASS ✅
+9. Verification Agent: Generates report
+10. Verification Agent: Returns report to Main Agent
+11. Main Agent: Reviews report
+12. Main Agent: Commits code with verification note
+13. Main Agent: Reports success to user
+```
+
+#### Bad Example ❌
+```
+1. User: "Add user profile component in React"
+2. Main Agent: Creates specification
+3. Main Agent: Spawns JavaScript Implementation Agent
+4. Implementation Agent: Writes React component
+5. Implementation Agent: Commits code directly ❌ VIOLATION!
+   (Should have reported to Main Agent first)
+6. Code uses `any` type ❌ VIOLATION!
+7. Tests are failing ❌ VIOLATION!
+8. No verification was run ❌ CRITICAL VIOLATION!
+
+Result: Code quality compromised, standards violated
+```
+
+### Integration with Other Rules
+
+#### Works With Rule 03 (Work Commit Rules)
+- Verification happens BEFORE commit
+- Commit message includes verification status
+- Only verified code is committed
+
+#### Works With Rule 04 (Agent Orchestration)
+- Main Agent orchestrates verification
+- Implementation agents don't commit directly
+- Verification agent is specialized for quality checks
+
+#### Works With Rule 06 (Specifications and Requirements)
+- Verification agent receives specification context
+- Tests verify requirements are met
+- Verification report confirms completion
+
+#### Works With Rule 07 (Language Conventions)
+- Verification enforces stack standards
+- Checks compliance with this document
+- Updates Learning Log when new patterns discovered
+
+### Enforcement
+
+#### Zero Tolerance Policy
+
+**VIOLATIONS** are treated with **ZERO TOLERANCE**:
+
+- ❌ **FORBIDDEN**: Committing JavaScript/TypeScript code without verification
+- ❌ **FORBIDDEN**: Skipping verification checks
+- ❌ **FORBIDDEN**: Ignoring verification failures
+- ❌ **FORBIDDEN**: Running verification after commit
+- ❌ **FORBIDDEN**: Multiple concurrent verification agents
+
+#### Violation Consequences
+
+Any agent that violates verification requirements will:
+1. Have their changes **REVERTED**
+2. Be required to run verification properly
+3. Fix ALL issues before re-attempting
+4. Document the violation in Learning Log
+5. Report the violation to user
+
+#### User Impact
+
+Violations have serious consequences:
+- ❌ **Runtime errors** in production from type issues
+- ❌ **Failed builds** discovered too late
+- ❌ **Security vulnerabilities** undetected
+- ❌ **Code quality degradation** over time
+- ❌ **Technical debt** accumulation
+- ❌ **User trust** in agent reliability lost
+
+**THE USER WILL BE UPSET** if code is committed without proper verification!
+
+### Verification Commands Quick Reference
+
+```bash
+# Complete verification suite (run in order)
+
+# 1. Format
+npx prettier --check .
+
+# 2. Type Check
+npx tsc --noEmit
+
+# 3. Lint
+npx eslint . --ext .ts,.tsx,.js,.jsx --max-warnings 0
+
+# 4. Test
+npm test
+
+# 5. Build
+npm run build
+
+# 6. Audit
+npm audit --audit-level=moderate
+
+# 7. Standards Check
+rg ": any" --type ts --type tsx
+rg "as any" --type ts --type tsx
+rg "@ts-ignore" --type ts --type tsx
+rg "@ts-expect-error" --type ts --type tsx
+
+# All checks must PASS before commit
+```
+
+### Continuous Improvement
+
+When verification catches issues:
+1. **Document the issue** in Learning Log
+2. **Explain why it was wrong**
+3. **Show the correct approach**
+4. **Update examples** if needed
+5. **Commit Learning Log** update
+
+This creates a self-improving system where standards evolve based on real issues encountered.
+
 ## Common Pitfalls
 
 ### Pitfall 1: Using `any` Type
