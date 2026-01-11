@@ -9,16 +9,49 @@ This rule establishes automatic approval for git operations and mandatory automa
 Agents **MUST NOT** ask for user approval before performing git operations. All git commits and pushes are **PRE-APPROVED** and should be executed automatically as part of the normal workflow.
 
 ### Automatic Push Requirement
-After **EVERY** successful git commit and verification, agents **MUST**:
+After **EVERY** successful git commit, agents **MUST**:
 
 1. **Verify commit success** using `git status`
 2. **Automatically push** to remote using `git push`
 3. **Verify push success** before proceeding to next task
 4. **No user confirmation** is required for any of these steps
 
-### Complete Workflow
+**IMPORTANT**: For code commits, this happens AFTER verification passes (see Rule 04):
 ```
-1. Make changes to file(s)
+Code Implementation → Verification Agent Checks → ALL PASS →
+Main Agent Commits with Verification Status → Automatic Push
+```
+
+### Complete Workflow (Code Changes)
+```
+1. Implementation agent completes code changes
+   ↓
+2. Reports to Main Agent (never commits directly)
+   ↓
+3. Main Agent spawns Verification Agent
+   ↓
+4. Verification Agent runs ALL checks
+   ↓
+5. IF ALL PASS:
+   ↓
+6. Main Agent: git add [files]
+   ↓
+7. Main Agent: git commit -m "[message with verification status]"
+   ↓
+8. Main Agent: git status (verify commit succeeded)
+   ↓
+9. Main Agent: git push (automatic - no approval needed)
+   ↓
+10. Verify push succeeded
+   ↓
+11. Proceed to next task
+
+IF ANY FAIL: Main Agent creates urgent task, does NOT commit
+```
+
+### Complete Workflow (Non-Code Changes)
+```
+1. Make changes to file(s) (docs, config, etc.)
    ↓
 2. git add [files]
    ↓
@@ -255,19 +288,48 @@ git push --force
 
 ## Workflow Integration
 
+### Integration with Rule 04 (Agent Orchestration and Verification) - CRITICAL
+
+Rule 04 establishes mandatory verification BEFORE commit for all code changes:
+```
+Implementation Complete → Report to Main Agent →
+Verification Agent Runs ALL Checks → Report Back →
+IF ALL PASS: Main Agent Commits → Rule 05 (Auto Push)
+IF ANY FAIL: Create Urgent Task, Do NOT Commit
+```
+
+**Critical Flow for Code Changes**:
+1. Implementation agent reports completion (NEVER commits)
+2. Main Agent delegates to ONE verification agent per language
+3. Verification agent runs: format, lint, type check, tests, build, security
+4. Verification agent reports PASS or FAIL to Main Agent
+5. **IF ALL PASS**: Main Agent commits with verification status → **Rule 05 auto-push**
+6. **IF ANY FAIL**: Main Agent creates urgent task, does NOT commit (no push)
+
+See Rule 04 for complete verification workflow details.
+
 ### Integration with Rule 03 (Work Commit Rules)
 
-Rule 03 establishes the commit workflow:
+Rule 03 establishes the commit workflow and message format:
 ```
 Change → git add → git commit → git status (verify)
 ```
 
-Rule 05 (this rule) extends it:
+Rule 05 (this rule) extends it with automatic push:
 ```
 Change → git add → git commit → git status (verify) → git push (auto)
 ```
 
-Combined workflow:
+**Combined workflow for code changes**:
+1. **Implementation** complete (agent reports to Main Agent)
+2. **Verification** runs (Rule 04 - all checks must pass)
+3. **Commit** with verification status (Rule 03 format, Rule 04 requirement)
+4. **Verify commit** with `git status` (Rule 03)
+5. **Push automatically** with `git push` (Rule 05 - this rule)
+6. **Verify push** succeeded
+7. **Proceed** to next task
+
+**Combined workflow for non-code changes**:
 1. **Make change** to file(s)
 2. **Stage changes** with `git add`
 3. **Create commit** with detailed message and co-authorship (Rule 03)
@@ -428,13 +490,33 @@ git push
 - **Rule 01**: File naming applies to git-tracked files
 - **Rule 02**: Directory policy applies to git repositories
 - **Rule 03**: Commit requirements are prerequisite for this rule
-- **Rule 04**: Agent orchestration applies to all git operations
+- **Rule 04**: Verification workflow must complete before push (for code changes)
+- **Rule 06**: Specification updates are committed and pushed
+- **Rule 07**: Stack standard compliance verified before push
 
 ### Dependencies
-This rule **DEPENDS ON** Rule 03 (Work Commit Rules):
-- Rule 03 ensures commits are well-formed and verified
-- Rule 05 adds automatic push after Rule 03's verification step
-- Both rules together create complete change-to-remote workflow
+This rule **DEPENDS ON**:
+
+1. **Rule 04 (Agent Orchestration and Verification)** - FOR CODE CHANGES:
+   - Rule 04 verification MUST complete successfully before commit
+   - Main Agent ONLY commits after ALL verification checks PASS
+   - Rule 05 automatic push happens AFTER Rule 04 verification and Rule 03 commit
+   - If verification FAILS, NO commit occurs (therefore NO push)
+
+2. **Rule 03 (Work Commit Rules)** - FOR ALL CHANGES:
+   - Rule 03 ensures commits are well-formed and verified
+   - Rule 05 adds automatic push after Rule 03's verification step
+   - Both rules together create complete change-to-remote workflow
+
+**Critical Chain for Code Changes**:
+```
+Rule 04 (Verification) → Rule 03 (Commit) → Rule 05 (Auto Push)
+```
+
+**Chain for Non-Code Changes**:
+```
+Rule 03 (Commit) → Rule 05 (Auto Push)
+```
 
 ### Rule Priority
 When rules conflict (they shouldn't):
@@ -457,3 +539,4 @@ When rules conflict (they shouldn't):
 
 ---
 *Created: 2026-01-11*
+*Last Updated: 2026-01-11*
