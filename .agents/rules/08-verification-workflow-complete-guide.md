@@ -1,12 +1,13 @@
-# Iron-Clad Verification Workflow - Complete Integration Summary
+# Verification Workflow - Complete Integration Guide
 
-**Date:** 2026-01-11
-**Status:** FULLY INTEGRATED
-**Enforcement:** ZERO TOLERANCE
+## Purpose
+This rule provides a comprehensive guide to the iron-clad verification workflow system that ensures **NO code is EVER committed without passing ALL quality checks**. This is an **IRON-CLAD REQUIREMENT** with **ZERO TOLERANCE** for violations.
 
----
+This guide integrates and summarizes the complete verification workflow from Rules 03, 04, 05, 07 and all stack files, providing a single reference for understanding the entire system.
 
-## Overview
+## Rule
+
+### Overview
 
 This document summarizes the comprehensive mandatory code verification workflow system that ensures **NO code is EVER committed without passing ALL quality checks**. This is an **IRON-CLAD REQUIREMENT** with **ZERO TOLERANCE** for violations.
 
@@ -595,11 +596,11 @@ Violations have severe consequences:
 
 ### Configuration Files
 - `AGENTS.md` - Updated with verification requirements
-- `.agents/VERIFICATION_WORKFLOW_SUMMARY.md` - This document
+- `.agents/rules/08-verification-workflow-complete-guide.md` - This rule (comprehensive guide)
 
 ---
 
-## Result
+## Summary
 
 **100% VERIFIED CODE**: Every commit is guaranteed to pass all quality gates.
 
@@ -614,5 +615,4 @@ Violations have severe consequences:
 ---
 
 *Created: 2026-01-11*
-*Status: ACTIVE*
-*Enforcement: MANDATORY*
+*Last Updated: 2026-01-11*
