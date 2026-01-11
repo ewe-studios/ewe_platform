@@ -1296,7 +1296,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_ai"
-version = "0.0.3"
+version = "0.0.1"
 dependencies = [
  "foundation_nostd",
 ]
