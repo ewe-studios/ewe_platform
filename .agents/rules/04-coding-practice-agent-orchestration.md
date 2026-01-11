@@ -206,15 +206,18 @@ Main Agent receives verification reports and **MUST** follow this logic:
 Main Agent MUST:
 1. ✅ Receive PASS reports from all verification agents
 2. ✅ Identify related specification (if applicable)
-3. ✅ Spawn Specification Update Agent OR update directly
-4. ✅ Update tasks.md with completed tasks
-5. ✅ Mark relevant tasks as [x] completed
-6. ✅ Update frontmatter counts (completed/uncompleted)
-7. ✅ Commit code following Rule 03
-8. ✅ Include verification status in commit message:
+3. ✅ Spawn Specification Update Agent (NEVER update directly)
+4. ✅ Provide Specification Agent with:
+   - Verification report (PASS status)
+   - Completed tasks list
+   - Files changed
+   - Implementation description
+5. ✅ WAIT for Specification Agent to complete
+6. ✅ Commit code AND specification updates following Rule 03
+7. ✅ Include verification status in commit message:
       "Verified by [Language] Verification Agent(s): All checks passed"
-9. ✅ Push to remote following Rule 05
-10. ✅ Report success to user
+8. ✅ Push to remote following Rule 05
+9. ✅ Report success to user
 ```
 
 ##### Specification Update Process
@@ -222,16 +225,38 @@ Main Agent MUST:
 **If work relates to a specification**:
 
 ```
-Main Agent actions:
-1. Read .agents/specifications/NN-spec-name/tasks.md
-2. Identify which tasks were completed
-3. Update task status from [ ] to [x]
+Main Agent responsibilities:
+1. Identify related specification directory
+2. Spawn Specification Update Agent
+3. Provide agent with:
+   - Specification path (.agents/specifications/NN-spec-name/)
+   - Verification report (full PASS report)
+   - List of tasks that were completed
+   - Implementation summary
+4. WAIT for agent to complete updates
+5. Review agent's completion report
+6. Commit specification changes with code
+
+Main Agent MUST NOT:
+❌ Read tasks.md directly
+❌ Update tasks.md directly
+❌ Update frontmatter directly
+❌ Mark tasks as complete directly
+```
+
+**Specification Update Agent responsibilities**:
+
+```
+Specification Update Agent MUST:
+1. Read tasks.md from specification directory
+2. Identify which tasks were completed (from Main Agent's context)
+3. Mark tasks as [x] completed
 4. Update frontmatter:
    - Increment 'completed' count
    - Decrement 'uncompleted' count
 5. Add completion notes if needed
 6. Save tasks.md
-7. Commit specification update with main code commit
+7. Report completion to Main Agent
 ```
 
 **Example tasks.md update**:
@@ -262,45 +287,171 @@ tools:
 Main Agent MUST:
 1. ❌ Receive FAIL report from one or more verification agents
 2. ❌ DO NOT COMMIT any code
-3. ❌ DO NOT update specification
-4. ❌ DO NOT push to remote
-5. ✅ Identify which verification(s) failed
-6. ✅ Extract detailed error information
-7. ✅ Create NEW task at TOP of tasks.md with HIGHEST PRIORITY
-8. ✅ Spawn Specification Update Agent OR update directly
-9. ✅ Report detailed failures to user
-10. ✅ Provide fix recommendations
+3. ❌ DO NOT push to remote
+4. ✅ Identify which verification(s) failed
+5. ✅ Extract detailed error information from verification report
+6. ✅ Identify related specification directory
+7. ✅ Spawn Specification Update Agent (NEVER update directly)
+8. ✅ Provide Specification Agent with:
+   - Specification path (.agents/specifications/NN-spec-name/)
+   - Full verification FAIL report
+   - Failed checks details
+   - Files affected
+   - Recommendation for fix
+9. ✅ WAIT for Specification Agent to create urgent task and verification.md
+10. ✅ Report detailed failures to user
+11. ✅ Provide fix recommendations
+
+Main Agent MUST NOT:
+❌ Update tasks.md directly
+❌ Create verification.md directly
+❌ Update frontmatter directly
+❌ Add urgent tasks directly
 ```
 
 ##### Failed Verification Task Creation
 
-**When verification fails**, Main Agent **MUST** add a new task at the TOP of tasks.md:
+**When verification fails**, Main Agent **MUST** delegate to Specification Update Agent.
 
+**Specification Update Agent responsibilities when verification FAILS**:
+
+```
+Specification Update Agent MUST:
+1. Read tasks.md from specification directory
+2. Create verification.md file in same directory with full verification report:
+   - Status: FAIL
+   - Date/time of failure
+   - Language(s) that failed
+   - All failed checks with details
+   - Error messages and line numbers
+   - Files affected
+   - Recommended fixes
+3. Add NEW URGENT task at TOP of tasks.md:
+   - Mark as highest priority
+   - Reference verification.md for details
+   - Include brief summary of issues
+4. Update frontmatter:
+   - Increment 'uncompleted' count by 1
+5. Save tasks.md
+6. Save verification.md
+7. Report completion to Main Agent
+
+IMPORTANT: verification.md is TRANSIENT:
+- Created fresh each verification failure
+- Overwritten on next verification failure
+- Deleted on verification success
+- Agent reads it to understand what to fix
+```
+
+**Example verification.md**:
+```markdown
+# Verification Report - FAILED
+
+**Status**: FAIL ❌
+**Date**: 2026-01-11 15:30:45
+**Language**: Rust
+**Specification**: .agents/specifications/03-user-authentication/
+
+## Failed Checks
+
+### 1. Clippy Lint - FAIL ❌
+```
+warning: using `unwrap()` on a `Result` value
+  --> src/auth/token.rs:45:22
+   |
+45 |     let key = key_result.unwrap();
+   |                          ^^^^^^^^
+   |
+   = note: `#[warn(clippy::unwrap_used)]` on by default
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#unwrap_used
+
+error: could not compile `auth-service` due to previous error; 2 warnings emitted
+```
+
+### 2. Tests - FAIL ❌
+```
+running 45 tests
+test auth::test_generate_token ... ok
+test auth::test_validate_token_expired ... FAILED
+test auth::test_validate_token_invalid ... FAILED
+...
+
+failures:
+
+---- auth::test_validate_token_expired stdout ----
+thread 'auth::test_validate_token_expired' panicked at 'assertion failed: `(left == right)`
+  left: `true`,
+ right: `false`', tests/auth_tests.rs:67:5
+
+---- auth::test_validate_token_invalid stdout ----
+thread 'auth::test_validate_token_invalid' panicked at 'called `Result::unwrap()` on an `Err` value: InvalidToken', tests/auth_tests.rs:82:37
+
+test result: FAILED. 43 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out
+```
+
+## Files Affected
+- src/auth/token.rs (line 45: unwrap() usage)
+- tests/auth_tests.rs (line 67: wrong assertion)
+- tests/auth_tests.rs (line 82: unwrap() in test)
+
+## Recommended Fixes
+
+1. **Replace unwrap() with proper error handling**:
+   ```rust
+   // Change from:
+   let key = key_result.unwrap();
+
+   // To:
+   let key = key_result?;  // or handle error explicitly
+   ```
+
+2. **Fix test assertion in test_validate_token_expired**:
+   - Expected result was inverted
+   - Update assertion at line 67
+
+3. **Fix test panic in test_validate_token_invalid**:
+   - Should use `unwrap_err()` since we expect an error
+   - Or use pattern matching
+
+## Agent Action Required
+
+Read this verification report, fix all issues listed above, then:
+1. Mark the urgent fix task in tasks.md as complete
+2. Continue with remaining tasks in tasks.md
+3. Report completion to Main Agent
+4. Main Agent will re-run verification
+
+When verification passes, this verification.md file will be deleted.
+```
+
+**Example tasks.md with urgent task**:
 ```markdown
 ---
 completed: 5
-uncompleted: 6  # Incremented by 1
+uncompleted: 6  # Incremented by 1 for urgent task
 tools:
   - Rust
   - Cargo
   - Clippy
 ---
 
-# Feature Implementation - Tasks
+# User Authentication - Tasks
 
 ## URGENT: Failed Verification Tasks
-- [ ] **FIX: Verification failures in [feature-name]**
-  - Verification failed on [date/time]
-  - Language: [Rust/JavaScript/Python]
-  - Failed checks:
-    * [Check 1]: [Error message]
-    * [Check 2]: [Error message]
-  - Files affected: [list]
+- [ ] **FIX: Verification failures in user authentication**
+  - Verification failed on 2026-01-11 15:30
+  - Language: Rust
+  - Failed checks: Clippy (1 error), Tests (2 failures)
+  - See verification.md for detailed report
+  - Files affected: src/auth/token.rs, tests/auth_tests.rs
   - Must fix before proceeding
-  - Assigned to: [Specification owner/Implementation agent]
 
 ## Implementation Tasks
-[rest of existing tasks...]
+- [x] Create base API structure
+- [x] Implement authentication endpoint
+- [ ] Add rate limiting
+- [ ] Add monitoring
+- [ ] Write integration tests
 ```
 
 **Notification to Implementation Agent or User**:
@@ -336,15 +487,39 @@ New urgent task added at top of task list.
 #### Implementation Agent Fixes Issues
 
 ```
-1. Implementation agent (or specification owner) addresses failures
-2. Fixes code issues
-3. Ensures tests pass locally
-4. REPORTS completion to Main Agent again
-5. Main Agent launches verification agents again
-6. Process repeats until verification passes
+1. Main Agent spawns Implementation Agent (or resumes existing agent)
+2. Main Agent provides context:
+   - Specification path
+   - verification.md location
+   - Urgent task details
+3. Implementation agent reads verification.md:
+   - Understands all failed checks
+   - Reviews error messages and line numbers
+   - Identifies recommended fixes
+4. Implementation agent fixes code issues:
+   - Addresses ALL failures listed in verification.md
+   - Ensures tests pass locally
+   - Follows all stack standards
+5. Implementation agent marks urgent fix task as [x] complete in tasks.md
+6. Implementation agent REPORTS completion to Main Agent again
+7. Main Agent launches verification agents again (back to Phase 2)
+8. IF verification PASSES:
+   - Specification Update Agent deletes verification.md
+   - Marks completed tasks in tasks.md
+   - Main Agent commits all changes
+9. IF verification FAILS again:
+   - Process repeats (Specification Agent updates verification.md)
+   - New urgent task created (or existing one updated)
+   - Implementation agent fixes again
 ```
 
-**CRITICAL**: This loop continues until ALL verifications PASS.
+**CRITICAL**: This loop continues until ALL verifications PASS. There is NO bypass.
+
+**verification.md Lifecycle**:
+- Created by Specification Update Agent on verification FAIL
+- Read by Implementation Agent to understand fixes needed
+- Overwritten on subsequent failures
+- Deleted by Specification Update Agent on verification PASS
 
 ## Verification Agent Rules (IRON-CLAD)
 
@@ -356,16 +531,18 @@ Each verification agent **MUST**:
 3. ✅ Be the ONLY verification agent for that language stack
 4. ✅ Generate comprehensive report
 5. ✅ Report to Main Agent ONLY
-6. ✅ NEVER commit code (Main Agent's job)
-7. ✅ NEVER update specifications (Main Agent's job)
+6. ✅ NEVER commit code (Main Agent delegates this)
+7. ✅ NEVER update specifications (Main Agent delegates this)
+8. ✅ NEVER create verification.md (Main Agent delegates this)
 
 Each verification agent **MUST NOT**:
 1. ❌ Skip any verification checks
 2. ❌ Allow partial passes ("tests mostly pass")
 3. ❌ Commit code directly
 4. ❌ Update tasks.md directly
-5. ❌ Run concurrently with another agent for same language
-6. ❌ Proceed when checks fail
+5. ❌ Create verification.md directly
+6. ❌ Run concurrently with another agent for same language
+7. ❌ Proceed when checks fail
 
 ### Race Condition Prevention
 
@@ -458,29 +635,47 @@ Before spawning verification agent:
 7. Main Agent:
    - Receives PASS report
    - Marks active_verifications['rust'] = null
-   - Opens .agents/specifications/03-user-authentication/tasks.md
-   - Updates completed tasks:
+   - Identifies specification: .agents/specifications/03-user-authentication/
+   - Spawns Specification Update Agent
+   - Provides context:
+     * Verification report (PASS)
+     * Completed tasks: authentication middleware, JWT generation, tests
+     * Files changed: [list]
+
+8. Specification Update Agent:
+   - Reads .agents/specifications/03-user-authentication/tasks.md
+   - Marks completed tasks as [x]:
      * [x] Implement authentication middleware
      * [x] Add JWT token generation
      * [x] Write authentication tests
    - Updates frontmatter: completed: 8, uncompleted: 2
+   - Deletes verification.md if it exists (cleanup from previous failure)
    - Saves tasks.md
+   - Reports completion to Main Agent
 
-8. Main Agent:
-   - Commits code with message:
+9. Main Agent:
+   - Receives completion report from Specification Agent
+   - git add [all changed files including specification]
+   - git commit with message:
      ```
      Implement user authentication middleware
 
-     - Added JWT token generation and validation
-     - Implemented authentication middleware
+     Added JWT token generation and validation with authentication
+     middleware for securing API endpoints.
+
+     Changes made:
+     - Implemented JWT token generation and validation
+     - Created authentication middleware
      - Added comprehensive tests (45 tests, all passing)
      - Updated error handling for auth failures
 
      Verified by Rust Verification Agent: All checks passed
-     - Format: PASS
-     - Lint: PASS
+     - Format: PASS (rustfmt)
+     - Lint: PASS (clippy, 0 warnings)
      - Tests: 45/45 PASS
-     - Build: PASS
+     - Build: PASS (debug and release)
+     - Doc: PASS (cargo doc)
+     - Security: PASS (cargo audit)
      - Coverage: 89%
 
      Specification: .agents/specifications/03-user-authentication/
@@ -489,9 +684,10 @@ Before spawning verification agent:
 
      Co-Authored-By: Claude <noreply@anthropic.com>
      ```
+   - git status (verify)
+   - git push (automatic, Rule 05)
 
-9. Main Agent:
-   - Pushes to remote (Rule 05)
+10. Main Agent:
    - Reports success to user:
      ```
      ✅ User authentication implemented successfully!
@@ -500,9 +696,13 @@ Before spawning verification agent:
      - All 45 tests passing
      - Code coverage: 89%
      - Zero lint warnings
-     - Build successful
+     - Build successful (debug and release)
+     - Documentation complete
+     - No security vulnerabilities
 
      Specification updated: 3 tasks completed, 2 remaining
+
+     Changes pushed to remote: foundation_ai branch
      ```
 ```
 
@@ -533,73 +733,108 @@ Before spawning verification agent:
 
 6. Main Agent:
    - Receives FAIL report
-   - DOES NOT COMMIT code
-   - Opens .agents/specifications/05-data-validation/tasks.md
-   - Adds NEW task at TOP:
+   - DOES NOT COMMIT code ❌
+   - Identifies specification: .agents/specifications/05-data-validation/
+   - Spawns Specification Update Agent
+   - Provides context:
+     * Verification report (FAIL with full details)
+     * Failed checks summary
+     * Files affected: src/validation.py, tests/test_validation.py
+     * Recommended fixes
+
+7. Specification Update Agent:
+   - Reads .agents/specifications/05-data-validation/tasks.md
+   - Creates verification.md with full FAIL report:
+     * All lint errors with line numbers
+     * All type errors
+     * All test failures with stack traces
+     * Recommended fixes
+   - Adds NEW URGENT task at TOP of tasks.md:
      ```markdown
      ## URGENT: Failed Verification Tasks
      - [ ] **FIX: Verification failures in data validation**
        - Verification failed on 2026-01-11 15:30
        - Language: Python
-       - Failed checks:
-         * Lint: 3 errors (unused imports, line too long, etc.)
-         * Type Check: Missing type hints on 5 functions
-         * Tests: 2 failing tests
-           - test_email_validation: AssertionError
-           - test_phone_validation: KeyError
+       - Failed checks: Lint (3 errors), Type Check (5 errors), Tests (2 failures)
+       - See verification.md for detailed report
        - Files affected: src/validation.py, tests/test_validation.py
        - Must fix before proceeding
      ```
    - Updates frontmatter: uncompleted: 4 → 5
-   - Saves tasks.md
-   - DOES NOT push anything
+   - Saves tasks.md and verification.md
+   - Reports completion to Main Agent
 
-7. Main Agent reports to user:
-   ```
-   ❌ VERIFICATION FAILED ❌
+8. Main Agent:
+   - Receives completion report
+   - DOES NOT commit anything ❌
+   - DOES NOT push anything ❌
+   - Reports to user:
+     ```
+     ❌ VERIFICATION FAILED ❌
 
-   Python Verification Agent found issues:
+     Python Verification Agent found issues:
 
-   Lint Errors (3):
-   - Line 45: Unused import 're'
-   - Line 103: Line too long (115 > 100 characters)
-   - Line 67: Undefined variable 'pattern'
+     Lint Errors (3):
+     - Line 45: Unused import 're'
+     - Line 103: Line too long (115 > 100 characters)
+     - Line 67: Undefined variable 'pattern'
 
-   Type Errors (5):
-   - Function 'validate_email' missing return type hint
-   - Function 'validate_phone' missing parameter type hints
-   [...]
+     Type Errors (5):
+     - Function 'validate_email' missing return type hint
+     - Function 'validate_phone' missing parameter type hints
+     [...]
 
-   Test Failures (2):
-   - test_email_validation: Expected True, got False
-   - test_phone_validation: KeyError: 'country_code'
+     Test Failures (2):
+     - test_email_validation: Expected True, got False
+     - test_phone_validation: KeyError: 'country_code'
 
-   Code has NOT been committed.
+     Code has NOT been committed.
 
-   Action Required:
-   1. Fix the 3 lint errors
-   2. Add missing type hints (5 functions)
-   3. Fix the 2 failing tests
-   4. Re-submit for verification
+     Action Required:
+     1. Fix the 3 lint errors
+     2. Add missing type hints (5 functions)
+     3. Fix the 2 failing tests
+     4. Re-submit for verification
 
-   Specification updated with urgent task at top.
-   ```
-
-8. Implementation Agent (or Specification Owner):
-   - Fixes all lint errors
-   - Adds type hints
-   - Fixes failing tests
-   - REPORTS completion to Main Agent again
+     Specification updated: urgent task added, verification.md created
+     Full details: .agents/specifications/05-data-validation/verification.md
+     ```
 
 9. Main Agent:
+   - Spawns Implementation Agent (or resumes existing)
+   - Provides context:
+     * Specification path
+     * verification.md location
+     * Urgent task to complete
+
+10. Implementation Agent:
+   - Reads verification.md
+   - Fixes all lint errors
+   - Adds all missing type hints
+   - Fixes both failing tests
+   - Marks urgent fix task as [x] in tasks.md
+   - REPORTS completion to Main Agent again
+
+11. Main Agent:
    - Spawns Python Verification Agent again
    - Agent runs all checks
    - All checks PASS ✅
-   - Main Agent updates tasks.md:
-     * Marks urgent fix task as [x] completed
-     * Marks original tasks as [x] completed
-   - Commits code
-   - Pushes to remote
+
+12. Main Agent:
+   - Spawns Specification Update Agent
+   - Provides context (PASS report, completed tasks)
+
+13. Specification Update Agent:
+   - Marks urgent fix task as [x] completed
+   - Marks original validation tasks as [x] completed
+   - Deletes verification.md (verification passed)
+   - Updates frontmatter
+   - Saves tasks.md
+   - Reports completion
+
+14. Main Agent:
+   - Commits code and specification updates
+   - Pushes to remote (Rule 05)
    - Reports success to user
 ```
 
