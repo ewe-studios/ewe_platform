@@ -111,10 +111,18 @@ Implementation → Report → Verify → Pass? → Commit → Push
 **IF ALL Verifications PASS ✅:**
 
 1. Main Agent identifies related specification (if applicable)
-2. Main Agent opens `.agents/specifications/NN-spec-name/tasks.md`
-3. Main Agent marks relevant tasks as `[x]` completed
-4. Main Agent updates frontmatter (`completed: N`, `uncompleted: M`)
-5. Main Agent commits code with **verification status included** (Rule 03):
+2. Main Agent spawns **Specification Update Agent** (NEVER updates directly)
+3. Main Agent provides Specification Agent with context:
+   - Verification report (PASS status)
+   - Completed tasks list
+   - Files changed
+   - Implementation description
+4. Specification Agent reads `.agents/specifications/NN-spec-name/tasks.md`
+5. Specification Agent marks relevant tasks as `[x]` completed
+6. Specification Agent updates frontmatter (`completed: N`, `uncompleted: M`)
+7. Specification Agent deletes `verification.md` if exists (cleanup from previous failure)
+8. Specification Agent saves tasks.md and reports completion to Main Agent
+9. Main Agent commits code AND specification updates with **verification status** (Rule 03):
    ```
    Brief summary of change
 
@@ -133,43 +141,107 @@ Implementation → Report → Verify → Pass? → Commit → Push
    - Build: PASS
    - Coverage: [N]%
 
+   Specification: .agents/specifications/NN-name/
+   Tasks completed: [N]
+   Tasks remaining: [M]
+
    Co-Authored-By: Claude <noreply@anthropic.com>
    ```
-6. Main Agent automatically pushes to remote (Rule 05)
-7. Main Agent reports success to user
+10. Main Agent automatically pushes to remote (Rule 05)
+11. Main Agent reports success to user
+
+**CRITICAL**: Main Agent MUST NOT read/write tasks.md directly - ALWAYS delegates to Specification Agent.
 
 **IF ANY Verification FAILS ❌:**
 
 1. Main Agent **DOES NOT COMMIT** any code
 2. Main Agent **DOES NOT PUSH** anything
-3. Main Agent opens `.agents/specifications/NN-spec-name/tasks.md`
-4. Main Agent adds **NEW URGENT TASK at TOP** of tasks.md:
+3. Main Agent identifies related specification directory
+4. Main Agent spawns **Specification Update Agent** (NEVER updates directly)
+5. Main Agent provides Specification Agent with context:
+   - Full verification FAIL report
+   - Failed checks details
+   - Files affected
+   - Recommended fixes
+6. Specification Agent creates **verification.md** in specification directory:
+   ```markdown
+   # Verification Report - FAILED
+
+   **Status**: FAIL ❌
+   **Date**: [timestamp]
+   **Language**: [Rust/JavaScript/Python]
+   **Specification**: [path]
+
+   ## Failed Checks
+   [Detailed errors with line numbers, stack traces, etc.]
+
+   ## Files Affected
+   [List of files with specific issues]
+
+   ## Recommended Fixes
+   [Step-by-step fix instructions]
+
+   ## Agent Action Required
+   Read this report, fix all issues, mark urgent task done,
+   report completion to Main Agent, verification will run again.
+   ```
+7. Specification Agent adds **NEW URGENT TASK at TOP** of tasks.md:
    ```markdown
    ## URGENT: Failed Verification Tasks
    - [ ] **FIX: Verification failures in [feature-name]**
      - Verification failed on [date/time]
      - Language: [Rust/JavaScript/Python]
-     - Failed checks:
-       * [Check 1]: [Error message]
-       * [Check 2]: [Error message]
+     - Failed checks: [summary]
+     - See verification.md for detailed report
      - Files affected: [list]
      - Must fix before proceeding
-     - Assigned to: [Owner]
    ```
-5. Main Agent updates frontmatter (`uncompleted: N+1`)
-6. Main Agent reports detailed failures to user with fix recommendations
+8. Specification Agent updates frontmatter (`uncompleted: N+1`)
+9. Specification Agent saves tasks.md and verification.md
+10. Specification Agent reports completion to Main Agent
+11. Main Agent reports detailed failures to user with fix recommendations
+
+**CRITICAL**: Main Agent MUST NOT create verification.md or update tasks.md directly - ALWAYS delegates to Specification Agent.
 
 ### Phase 4: Fix and Retry (If Verification Failed)
 
 **What Happens:**
-1. Implementation agent (or owner) fixes the issues
-2. Implementation agent addresses all failures from verification report
-3. Implementation agent ensures tests pass locally
-4. Implementation agent **REPORTS completion to Main Agent again**
-5. Main Agent launches verification agents again (back to Phase 2)
-6. Process repeats until **ALL verifications PASS**
+1. Main Agent spawns Implementation Agent (or resumes existing agent)
+2. Main Agent provides context:
+   - Specification path
+   - **verification.md location** (key file to read)
+   - Urgent task to complete
+3. Implementation Agent reads **verification.md** to understand:
+   - All failed checks with details
+   - Error messages and line numbers
+   - Recommended fixes
+4. Implementation agent fixes code issues:
+   - Addresses ALL failures listed in verification.md
+   - Ensures tests pass locally
+   - Follows all stack standards
+5. Implementation agent marks urgent fix task as `[x]` complete in tasks.md
+6. Implementation agent **REPORTS completion to Main Agent again**
+7. Main Agent launches verification agents again (back to Phase 2)
+8. **IF verification PASSES**:
+   - Main Agent spawns Specification Update Agent
+   - Specification Agent **deletes verification.md** (no longer needed)
+   - Specification Agent marks completed tasks in tasks.md
+   - Specification Agent reports completion
+   - Main Agent commits all changes (code + specification)
+9. **IF verification FAILS again**:
+   - Main Agent spawns Specification Update Agent
+   - Specification Agent **overwrites verification.md** with new report
+   - Specification Agent updates or adds urgent task
+   - Process repeats from step 1
 
 **CRITICAL**: This loop continues indefinitely until all checks pass. There is NO bypass.
+
+**verification.md Lifecycle**:
+- **Created** by Specification Update Agent on verification FAIL
+- **Read** by Implementation Agent to understand fixes needed
+- **Overwritten** by Specification Agent on subsequent failures
+- **Deleted** by Specification Update Agent on verification PASS
+- **Lives** in specification directory beside tasks.md (`.agents/specifications/NN-name/verification.md`)
 
 ---
 
