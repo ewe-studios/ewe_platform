@@ -240,7 +240,13 @@ impl<T> RawParts<T> {
         //
         // The safety invariants that callers must uphold when calling `from` match
         // the safety invariants of `Vec::from_raw_parts`.
-        unsafe { Vec::from_raw_parts(ptr, length as usize, capacity as usize) }
+        unsafe {
+            Vec::from_raw_parts(
+                ptr,
+                usize::try_from(length).expect("length overflows usize"),
+                usize::try_from(capacity).expect("capacity overflows usize"),
+            )
+        }
     }
 }
 
