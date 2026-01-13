@@ -1,6 +1,6 @@
 ---
 description: Fix all pending Rust lints, checks, and styling mistakes across the codebase (excluding foundation_core and infrastructure)
-status: uncompleted
+status: completed
 ---
 
 # Fix Rust Lints, Checks, and Styling - Requirements
