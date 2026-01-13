@@ -1548,7 +1548,7 @@ pub mod value_quantitization {
 
                 (as_bit_bytes.to_vec(), TypeOptimization::QuantizedInt64AsI16)
             }
-            -2147483648..=-32769 | 32768..=2147483647 => {
+            -2_147_483_648..=-32_769 | 32_768..=2_147_483_647 => {
                 let as_bit = value as i32;
                 let as_bit_bytes = as_bit.to_le_bytes();
 
@@ -1585,7 +1585,7 @@ pub mod value_quantitization {
                     TypeOptimization::QuantizedInt128AsI16,
                 )
             }
-            -2147483648..=-32769 | 32768..=2147483647 => {
+            -2_147_483_648..=-32_769 | 32_768..=2_147_483_647 => {
                 let as_bit = value as i32;
                 let as_bit_bytes = as_bit.to_le_bytes();
 
@@ -1594,7 +1594,7 @@ pub mod value_quantitization {
                     TypeOptimization::QuantizedInt128AsI32,
                 )
             }
-            -9223372036854775808..=-2147483649 | 2147483648..=9223372036854775807 => {
+            -9_223_372_036_854_775_808..=-2_147_483_649 | 2_147_483_648..=9_223_372_036_854_775_807 => {
                 let as_bit = value as i64;
                 let as_bit_bytes = as_bit.to_le_bytes();
 
@@ -1717,7 +1717,7 @@ pub mod value_quantitization {
                     TypeOptimization::QuantizedUint64AsU16,
                 )
             }
-            65536..=4294967295 => {
+            65_536..=4_294_967_295 => {
                 let as_bit = value as u32;
                 let as_bit_bytes = as_bit.to_le_bytes();
 
@@ -1760,7 +1760,7 @@ pub mod value_quantitization {
                     TypeOptimization::QuantizedUint128AsU16,
                 )
             }
-            65536..=4294967295 => {
+            65_536..=4_294_967_295 => {
                 let as_bit = value as u32;
                 let as_bit_bytes = as_bit.to_le_bytes();
 
@@ -1769,7 +1769,7 @@ pub mod value_quantitization {
                     TypeOptimization::QuantizedUint128AsU32,
                 )
             }
-            4294967296..=18446744073709551615 => {
+            4_294_967_296..=18_446_744_073_709_551_615 => {
                 let as_bit = value as u64;
                 let as_bit_bytes = as_bit.to_le_bytes();
 
@@ -1780,7 +1780,7 @@ pub mod value_quantitization {
             }
             _ => {
                 // nice trick to switch all bits to 1 for a 64bit number.
-                const MASK: u128 = 0xFFFFFFFFFFFFFFFF;
+                const MASK: u128 = 0xFFFF_FFFF_FFFF_FFFF;
 
                 // get the MSB by shifting right 64 bits
                 let value_msb = (value >> 64) as u64;
@@ -1951,7 +1951,7 @@ const BIT_SIZE: u64 = 32;
 /// [`BIT_MASK`] representing the needing masking
 /// to be used in bitpacking two 32bit numbers into
 /// a 64 bit number.
-const BIT_MASK: u64 = 0xFFFFFFFF;
+const BIT_MASK: u64 = 0xFFFF_FFFF;
 
 /// [`MemoryLocation`] represents a location in memory where the
 /// first value is a pointer to the memory location and the next is
