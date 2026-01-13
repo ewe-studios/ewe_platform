@@ -1,6 +1,6 @@
 ---
-completed: 10
-uncompleted: 18
+completed: 12
+uncompleted: 16
 tools:
   - cargo clippy
   - cargo fmt
@@ -37,8 +37,9 @@ scope: Excludes foundation_core and infrastructure/* due to compilation errors
 - [ ] Review and enhance existing documentation for clarity
 
 ### Phase 4: Code Quality Improvements
-- [ ] Fix needless_pass_by_value warnings (use references instead of owned values)
-- [ ] Fix redundant_continue expressions in watch_utils and other modules
+- [x] Fix needless_continue expressions in channels crate (2 fixed)
+- [ ] Fix needless_pass_by_value warnings (use references instead of owned values) - 7 remaining in foundation_macros
+- [ ] Fix redundant_continue expressions in watch_utils (2 remaining, at end of match arms)
 - [ ] Fix module_name_repetitions warnings (e.g., field names starting with struct name)
 - [ ] Replace direct unwrap()/expect() calls with proper error handling
 - [ ] Implement try_from conversions instead of unsafe casts where appropriate
