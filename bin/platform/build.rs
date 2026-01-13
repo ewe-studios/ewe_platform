@@ -37,15 +37,15 @@ fn main() {
     println!("TEMPLATE_DIR: {template_dir:?}");
 
     let out_directory = PathBuf::from(env::var("OUT_DIR").unwrap());
-    println!("OUT_DIR: {out_directory:?}");
+    println!("OUT_DIR: {}", out_directory.display());
 
     let output_directory = out_directory.join("templates");
 
     let package_directory = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
-    println!("PACKAGE_DIRECTORY: {package_directory:?}");
+    println!("PACKAGE_DIRECTORY: {}", package_directory.display());
 
     let source_directory = package_directory.join(template_dir);
-    println!("SOURCE_DIRECTORY: {source_directory:?}");
+    println!("SOURCE_DIRECTORY: {}", source_directory.display());
 
     // If it is already in the output directory, delete it and start over
     if output_directory.exists() {
