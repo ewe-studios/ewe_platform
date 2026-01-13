@@ -49,10 +49,16 @@ impl<E: Send + 'static> Broadcast<E> {
         }
     }
 
+    /// # Panics
+    ///
+    /// Panics if the internal receiver is in an invalid state.
     pub fn has_pending_messages(&mut self) -> bool {
         !self.message_receiver.is_empty().unwrap()
     }
 
+    /// # Panics
+    ///
+    /// Panics if the message cannot be sent to the internal queue.
     pub fn broadcast(&mut self, item: E) {
         self.message_sender
             .try_send(item)
@@ -86,12 +92,9 @@ impl<E: Send + 'static> Broadcast<E> {
             let message_reference = sync::Arc::new(message);
             for sub_slot in subs.iter_mut() {
                 if let Some(sub) = sub_slot {
-                    match sub.try_send(message_reference.clone()) {
-                        // if its closed, then remove sender.
-                        Err(ChannelError::Closed) => {
-                            sub_slot.take();
-                        }
-                        _ => {}
+                    // if its closed, then remove sender.
+                    if let Err(ChannelError::Closed) = sub.try_send(message_reference.clone()) {
+                        sub_slot.take();
                     }
                 }
             }
