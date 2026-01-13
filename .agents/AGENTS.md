@@ -34,6 +34,7 @@ All agents **MUST** follow this sequence at the start of every session:
 
 ```
 .agents/
+├── AGENTS.md           # This file (entry point)
 ├── rules/              # Detailed project rules (READ ALL OF THESE)
 │   ├── 01-rule-naming-and-structure.md
 │   ├── 02-rules-directory-policy.md
@@ -59,7 +60,6 @@ All agents **MUST** follow this sequence at the start of every session:
     │   └── verification.md  # (transient, created on verification failure)
     └── ...
 
-AGENTS.md              # This file (entry point)
 CLAUDE.md              # Backward compatibility redirect
 ```
 
@@ -72,6 +72,7 @@ CLAUDE.md              # Backward compatibility redirect
 **Purpose**: Defines workflow, orchestration, verification, and commit processes.
 
 **Key Rules**:
+
 - **Rule 01**: File naming conventions
 - **Rule 02**: Directory policies
 - **Rule 03**: Commit requirements (with verification status)
@@ -90,6 +91,7 @@ CLAUDE.md              # Backward compatibility redirect
 **Purpose**: Language-specific coding standards, conventions, verification workflows.
 
 **Contains**:
+
 - Coding standards and naming conventions
 - Best practices and common pitfalls
 - Verification workflow (commands to run)
@@ -97,6 +99,7 @@ CLAUDE.md              # Backward compatibility redirect
 - Tool configurations
 
 **⚠️ CRITICAL - Context Window Efficiency**:
+
 - **ONLY** read stack files for languages you will actually use
 - Check `requirements.md` Language Stack section to identify languages
 - Use file names (rust.md, javascript.md, python.md) to identify content
@@ -112,6 +115,7 @@ CLAUDE.md              # Backward compatibility redirect
 **Purpose**: Feature requirements, task tracking, verification reports.
 
 **Contains**:
+
 - `requirements.md`: What to build and why
 - `tasks.md`: Task list with checkboxes and progress tracking
 - `verification.md`: Detailed verification failure reports (transient)
@@ -154,18 +158,19 @@ Before starting ANY work:
 
 ## Where to Find Detailed Information
 
-| Topic | Location |
-|-------|----------|
-| Workflow and orchestration | `.agents/rules/04-coding-practice-agent-orchestration.md` |
-| Verification process | `.agents/rules/04-*` + `.agents/stacks/[language].md` |
+| Topic                       | Location                                                   |
+| --------------------------- | ---------------------------------------------------------- |
+| Workflow and orchestration  | `.agents/rules/04-coding-practice-agent-orchestration.md`  |
+| Verification process        | `.agents/rules/04-*` + `.agents/stacks/[language].md`      |
 | Complete verification guide | `.agents/rules/08-verification-workflow-complete-guide.md` |
-| Commit requirements | `.agents/rules/03-work-commit-rules.md` |
-| Language standards | `.agents/stacks/[language].md` |
-| Specification format | `.agents/rules/06-specifications-and-requirements.md` |
+| Commit requirements         | `.agents/rules/03-work-commit-rules.md`                    |
+| Language standards          | `.agents/stacks/[language].md`                             |
+| Specification format        | `.agents/rules/06-specifications-and-requirements.md`      |
 
 ---
 
 **Remember**: This file is just the entry point. The real details are in:
+
 - `.agents/rules/*` (HOW agents work)
 - `.agents/stacks/*` (HOW to write code)
 - `.agents/specifications/*` (WHAT to build)
@@ -174,5 +179,5 @@ Before starting ANY work:
 
 ---
 
-*Last updated: 2026-01-11*
-*Version: 3.0.0 - Streamlined entry point, full details in referenced files*
+_Last updated: 2026-01-11_
+_Version: 3.0.0 - Streamlined entry point, full details in referenced files_
