@@ -37,6 +37,9 @@ pub type NotifyWatcher = notify_debouncer_full::Debouncer<
 
 pub struct WatchHandle<T>(pub JoinHandle<T>, pub NotifyWatcher);
 
+/// # Errors
+///
+/// Returns an error if the file watcher cannot be initialized.
 pub fn create_notify_watcher(
     debounce_millis: u64,
     sender: std::sync::mpsc::Sender<DebounceEventResult>,
@@ -46,6 +49,12 @@ pub fn create_notify_watcher(
     Ok(watcher)
 }
 
+/// # Errors
+///
+/// Returns an error if:
+/// - The file watcher cannot be initialized
+/// - The specified paths cannot be watched
+/// - The handler function returns an error
 pub fn watch_path(
     debounce_millis: u64,
     target_paths: Vec<String>,
@@ -71,23 +80,18 @@ pub fn watch_path(
 
     // listen for change events
     let join_handler = thread::spawn(move || {
-        for event_result in rx {
-            match event_result {
-                Ok(events) => {
-                    for event in events {
-                        match event.kind {
-                            EventKind::Create(_) | EventKind::Remove(_) | EventKind::Modify(_) => {
-                                if let Err(failed) =
-                                    handler(event.time, event.kind, event.paths.clone())
-                                {
-                                    ewe_trace::error!("Failed execution of update: {}", failed);
-                                }
-                            }
-                            _ => continue,
+        for events in rx.into_iter().flatten() {
+            for event in events {
+                match event.kind {
+                    EventKind::Create(_) | EventKind::Remove(_) | EventKind::Modify(_) => {
+                        if let Err(failed) =
+                            handler(event.time, event.kind, event.paths.clone())
+                        {
+                            ewe_trace::error!("Failed execution of update: {}", failed);
                         }
                     }
+                    _ => {}
                 }
-                Err(_) => continue,
             }
         }
     });

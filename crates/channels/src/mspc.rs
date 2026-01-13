@@ -55,6 +55,9 @@ impl<E> ChannelGroup<E> {
 }
 
 pub trait SendOnlyChannel<T> {
+    /// # Errors
+    ///
+    /// Returns an error if the channel is closed or the send operation fails.
     fn try_send(&mut self, t: T) -> ChannelResult<()>;
 }
 
@@ -100,6 +103,9 @@ impl<T> SendChannel<T> {
         Self { src: Some(src) }
     }
 
+    /// # Errors
+    ///
+    /// Returns an error if the channel is closed.
     pub fn pending_message_count(&mut self) -> ChannelResult<usize> {
         match &mut self.src {
             Some(src) => Ok(src.len()),
@@ -107,6 +113,9 @@ impl<T> SendChannel<T> {
         }
     }
 
+    /// # Errors
+    ///
+    /// Returns an error if the channel is already closed.
     pub fn close(&mut self) -> ChannelResult<()> {
         if let Some(channel) = self.src.take() {
             drop(channel);
@@ -116,6 +125,9 @@ impl<T> SendChannel<T> {
         }
     }
 
+    /// # Errors
+    ///
+    /// Returns an error if the channel is closed or the send operation fails.
     pub async fn async_send(&mut self, t: T) -> ChannelResult<()> {
         match &mut self.src {
             Some(src) => match src.send(t).await {
@@ -129,6 +141,10 @@ impl<T> SendChannel<T> {
     /// [`SendChannel`].`block_send()` blocks the current thread till data is sent or
     /// an error received. This generally should not be used in WASM or non-blocking
     /// environments.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the channel is closed or the send operation fails.
     pub fn block_send(&mut self, t: T) -> ChannelResult<()> {
         match &mut self.src {
             Some(src) => match src.send_blocking(t) {
@@ -139,6 +155,9 @@ impl<T> SendChannel<T> {
         }
     }
 
+    /// # Errors
+    ///
+    /// Returns an error if the channel is closed or the send operation fails.
     pub fn try_send(&mut self, t: T) -> ChannelResult<()> {
         match &mut self.src {
             Some(src) => match src.try_send(t) {
@@ -179,10 +198,16 @@ impl<T> ReceiveChannel<T> {
     // if the [`RecieveChannel`] was ever read once then this
     // becomes true, its up to the user to decide how they fit
     // this into their logic.
+    /// # Errors
+    ///
+    /// Returns an error if the read flag cannot be accessed (should not occur in practice).
     pub fn read_atleast_once(&self) -> ChannelResult<bool> {
         Ok(self.read_flag.load())
     }
 
+    /// # Errors
+    ///
+    /// Returns an error if the channel is closed.
     pub fn is_empty(&mut self) -> ChannelResult<bool> {
         match &self.src {
             None => Err(ChannelError::Closed),
@@ -190,6 +215,9 @@ impl<T> ReceiveChannel<T> {
         }
     }
 
+    /// # Errors
+    ///
+    /// Returns an error if the channel is closed.
     pub fn is_closed(&mut self) -> ChannelResult<bool> {
         match &self.src {
             None => Err(ChannelError::Closed),
@@ -200,6 +228,10 @@ impl<T> ReceiveChannel<T> {
     /// [`ReceiveChannel`].`block_receive()` blocks the current thread till data is received or
     /// an error is seen. This generally should not be used in WASM or non-blocking
     /// environments.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the channel is closed or the receive operation fails.
     pub fn block_receive(&mut self) -> ChannelResult<T> {
         match &mut self.src {
             None => Err(ChannelError::Closed),
@@ -213,6 +245,9 @@ impl<T> ReceiveChannel<T> {
         }
     }
 
+    /// # Errors
+    ///
+    /// Returns an error if the channel is closed or no data is available.
     pub async fn async_receive(&mut self) -> ChannelResult<T> {
         match &mut self.src {
             None => Err(ChannelError::Closed),
@@ -230,6 +265,9 @@ impl<T> ReceiveChannel<T> {
         }
     }
 
+    /// # Errors
+    ///
+    /// Returns an error if the channel is closed or no data is available.
     pub fn try_receive(&mut self) -> ChannelResult<T> {
         match &mut self.src {
             None => Err(ChannelError::Closed),
@@ -268,10 +306,8 @@ impl<T> Iterator for Drain<'_, T> {
     fn next(&mut self) -> Option<Self::Item> {
         match self.receiver.try_receive() {
             Ok(item) => Some(item),
-            Err(ChannelError::ReceivedNoData) => None,
-            Err(ChannelError::ReceiveFailed(_)) => None,
             Err(ChannelError::Closed) => panic!("should not happen, channel was closed"),
-            _ => None,
+            Err(_) => None,
         }
     }
 }
