@@ -76,8 +76,8 @@ where
 }
 
 #[allow(clippy::needless_lifetimes)]
-impl<'a, Task, Done, Pending, Action> ExecutionIterator
-    for CollectNext<'a, Action, Task, Done, Pending>
+impl<Task, Done, Pending, Action> ExecutionIterator
+    for CollectNext<'_, Action, Task, Done, Pending>
 where
     Action: ExecutionAction,
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
@@ -99,7 +99,7 @@ where
                 TaskStatus::Pending(_) => State::Pending(None),
                 TaskStatus::Init => State::Pending(None),
                 TaskStatus::Spawn(action) => match action.apply(entry, executor) {
-                    Ok(_) => State::Progressed,
+                    Ok(()) => State::Progressed,
                     Err(err) => {
                         tracing::error!("Failed to apply ExecutionAction: {:?}", err);
                         State::SpawnFailed

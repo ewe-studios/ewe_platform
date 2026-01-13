@@ -64,5 +64,5 @@ extern "C" fn main() {
         vec![Returns::One(ReturnValues::ExternalReference(
             4294967296.into()
         ))]
-    )
+    );
 }

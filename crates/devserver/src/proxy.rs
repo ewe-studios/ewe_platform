@@ -218,6 +218,7 @@ pub struct StreamTCPApp {
 // -- Constructor
 
 impl StreamTCPApp {
+    #[must_use] 
     pub fn shared(wait_for_binary_secs: time::Duration, proxy_type: ProxyType) -> sync::Arc<Self> {
         sync::Arc::new(Self {
             wait_for_binary_secs,

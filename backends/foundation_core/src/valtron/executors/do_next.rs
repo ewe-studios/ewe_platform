@@ -8,7 +8,7 @@ use super::{
 use crate::compati::Mutex;
 use crate::synca::Entry;
 
-/// DoNext provides an implementer of `ExecutionIterator` which is focused on
+/// `DoNext` provides an implementer of `ExecutionIterator` which is focused on
 /// making progress for your `TaskIterator` which focuses on making progress in
 /// an async manner with out and most importantly not using the results the
 /// `TaskIterator` pushes out.
@@ -98,7 +98,7 @@ where
                 TaskStatus::Pending(_) => State::Pending(None),
                 TaskStatus::Init => State::Pending(None),
                 TaskStatus::Spawn(action) => match action.apply(entry, executor) {
-                    Ok(_) => State::SpawnFinished,
+                    Ok(()) => State::SpawnFinished,
                     Err(err) => {
                         tracing::error!("Failed to apply ExecutionAction: {:?}", err);
                         State::SpawnFailed

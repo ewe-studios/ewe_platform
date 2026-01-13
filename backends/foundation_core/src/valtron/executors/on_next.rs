@@ -176,7 +176,7 @@ where
                         TaskStatus::Pending(_) => State::Pending(None),
                         TaskStatus::Init => State::Pending(None),
                         TaskStatus::Spawn(action) => match action.apply(entry, executor) {
-                            Ok(_) => State::SpawnFinished,
+                            Ok(()) => State::SpawnFinished,
                             Err(err) => {
                                 tracing::error!("Failed to apply ExecutionAction: {:?}", err);
                                 State::SpawnFailed

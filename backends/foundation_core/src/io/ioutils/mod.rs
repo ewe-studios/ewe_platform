@@ -104,7 +104,7 @@ impl<T: Read + ?Sized> BufRead for BufferedReader<T> {
     }
 
     fn consume(&mut self, amt: usize) {
-        self.inner.consume(amt)
+        self.inner.consume(amt);
     }
 }
 
@@ -284,7 +284,7 @@ impl<T: Write + BufRead + ?Sized> BufRead for BufferedWriter<T> {
     }
 
     fn consume(&mut self, amt: usize) {
-        self.inner.get_mut().consume(amt)
+        self.inner.get_mut().consume(amt);
     }
 }
 
@@ -315,7 +315,7 @@ impl<T: Write + BufRead + BufferCapacity> PeekableReadStream for BufferedWriter<
         };
 
         for (index, elem) in buffer[0..ending].iter().enumerate() {
-            buf[index] = *elem
+            buf[index] = *elem;
         }
         Ok(ending)
     }
@@ -323,13 +323,13 @@ impl<T: Write + BufRead + BufferCapacity> PeekableReadStream for BufferedWriter<
 
 pub type BufferedStream<T> = BufferedWriter<BufferedReader<T>>;
 
-/// Returns a new BufferedStream type for `T` which is wrapping a `BufferedReader` and `BufferedWriter`
+/// Returns a new `BufferedStream` type for `T` which is wrapping a `BufferedReader` and `BufferedWriter`
 /// to support both read and write.
 pub fn buffered_stream<T: Write + Read>(inner: T) -> BufferedStream<T> {
     BufferedWriter::new(BufferedReader::new(inner))
 }
 
-/// Returns a new BufferedStream type for `T` which is wrapping a `BufferedReader` and `BufferedWriter`
+/// Returns a new `BufferedStream` type for `T` which is wrapping a `BufferedReader` and `BufferedWriter`
 /// to support both read and write with a customized capacity.
 pub fn buffered_stream_with_capacity<T: Write + Read>(
     capacity: usize,
@@ -390,7 +390,7 @@ impl<T: Read> PeekableReadStream for BufferedReader<T> {
         };
 
         for (index, elem) in buffer[0..ending].iter().enumerate() {
-            buf[index] = *elem
+            buf[index] = *elem;
         }
 
         Ok(ending)
@@ -432,7 +432,7 @@ impl<T: Read> OwnedReader<T> {
                 let ptr = core.load(std::sync::atomic::Ordering::Acquire);
                 unsafe {
                     let atomic_reader: &mut T = &mut *ptr;
-                    (caller)(&atomic_reader)
+                    (caller)(atomic_reader)
                 }
             }
             Self::Sync(core) => {
@@ -459,7 +459,7 @@ impl<T: Read> OwnedReader<T> {
                 let ptr = core.load(std::sync::atomic::Ordering::Acquire);
                 unsafe {
                     let atomic_reader: &mut T = &mut *ptr;
-                    (caller)(&atomic_reader)
+                    (caller)(atomic_reader)
                 }
             }
             Self::Sync(core) => {
@@ -485,8 +485,8 @@ impl<T: Read> OwnedReader<T> {
             Self::Atomic(core) => {
                 let ptr = core.load(std::sync::atomic::Ordering::Acquire);
                 unsafe {
-                    let mut atomic_reader: &mut T = &mut *ptr;
-                    (caller)(&mut atomic_reader)
+                    let atomic_reader: &mut T = &mut *ptr;
+                    (caller)(atomic_reader)
                 }
             }
             Self::Sync(core) => {
@@ -512,8 +512,8 @@ impl<T: Read> OwnedReader<T> {
             Self::Atomic(core) => {
                 let ptr = core.load(std::sync::atomic::Ordering::Acquire);
                 unsafe {
-                    let mut atomic_reader: &mut T = &mut *ptr;
-                    (caller)(&mut atomic_reader)
+                    let atomic_reader: &mut T = &mut *ptr;
+                    (caller)(atomic_reader)
                 }
             }
             Self::Sync(core) => {
@@ -535,8 +535,8 @@ impl<T: Read> OwnedReader<T> {
 impl<T: Read> Clone for OwnedReader<T> {
     fn clone(&self) -> Self {
         match self {
-            Self::Atomic(core) => Self::Atomic(Arc::clone(&core)),
-            Self::RWrite(core) => Self::RWrite(Arc::clone(&core)),
+            Self::Atomic(core) => Self::Atomic(Arc::clone(core)),
+            Self::RWrite(core) => Self::RWrite(Arc::clone(core)),
             Self::RefCell(core) => Self::RefCell(core.clone()),
             Self::Sync(core) => Self::Sync(core.clone()),
         }
@@ -673,7 +673,7 @@ pub const DEFAULT_READ_SIZE: usize = if cfg!(target_os = "espidf") {
     8 * 1024
 };
 
-/// SharedPointerReader defines a shared buffer reader pointer that allows reading through
+/// `SharedPointerReader` defines a shared buffer reader pointer that allows reading through
 /// a underlying buffered stream.
 pub struct SharedByteBufferStream<T: Read>(OwnedReader<ByteBufferPointer<T>>);
 
@@ -770,7 +770,7 @@ impl<T: Read> PeekableReadStream for SharedByteBufferStream<T> {
                         };
 
                         for (index, elem) in data[0..ending].iter().enumerate() {
-                            buf[index] = *elem
+                            buf[index] = *elem;
                         }
                         Ok(data.len())
                     }
@@ -815,6 +815,7 @@ pub struct ByteBufferPointer<T: Read> {
 // Constructors
 
 impl<T: Read> ByteBufferPointer<T> {
+    #[must_use] 
     pub fn new(pull_amount: usize, reader: OwnedReader<T>) -> Self {
         Self {
             buffer: Vec::with_capacity(pull_amount),
@@ -860,25 +861,30 @@ impl<T: Read> ByteBufferPointer<T> {
     /// Returns the distance between the peek position and the actual cursor
     /// position.
     #[inline]
+    #[must_use] 
     pub fn distance(&self) -> usize {
         self.peek_pos - self.pos
     }
 
+    #[must_use] 
     pub fn peek_cursor(&self) -> usize {
         self.peek_pos
     }
 
+    #[must_use] 
     pub fn data_cursor(&self) -> usize {
         self.pos
     }
 
     /// Returns the total length of the string being accumulated on.
     #[inline]
+    #[must_use] 
     pub fn len(&self) -> usize {
         self.buffer.len()
     }
 
     #[inline]
+    #[must_use] 
     pub fn is_empty(&self) -> bool {
         self.buffer.len() == 0
     }
@@ -897,9 +903,10 @@ impl<T: Read> ByteBufferPointer<T> {
         }
     }
 
-    /// full_scan returns the whole buffer as is, so you see the entire
+    /// `full_scan` returns the whole buffer as is, so you see the entire
     /// content regardless of cursors position.
     #[inline]
+    #[must_use] 
     pub fn full_scan(&self) -> &[u8] {
         &self.buffer[..]
     }
@@ -907,11 +914,13 @@ impl<T: Read> ByteBufferPointer<T> {
     /// scan returns the whole string slice currently at the points of where
     /// the main pos (position) cursor till the end.
     #[inline]
-    pub fn scan<'a>(&'a self) -> &'a [u8] {
+    #[must_use] 
+    pub fn scan(&self) -> &[u8] {
         &self.buffer[self.pos..self.peek_pos]
     }
 
     #[inline]
+    #[must_use] 
     pub fn greater_than_40_percent(&self) -> bool {
         // if we have not moved at all the ignore
         if self.pos == 0 {
@@ -920,7 +929,7 @@ impl<T: Read> ByteBufferPointer<T> {
 
         let buffer_length = self.buffer.len();
         let percentage = (buffer_length as f64 / self.pos as f64);
-        return percentage > 0.4;
+        percentage > 0.4
     }
 
     #[inline]
@@ -969,10 +978,7 @@ impl<T: Read> ByteBufferPointer<T> {
         // extract and add more to buffer from reader.
         // self.reader.fill_buf()?;
         let mut copied = vec![0; self.pull_amount];
-        let read = match self.reader.read(&mut copied) {
-            Ok(read) => read,
-            Err(err) => return Err(err),
-        };
+        let read = self.reader.read(&mut copied)?;
 
         // copy into the buffer the data just extracted from the buffer.
         // let location_before_extend = self.buffer.len();
@@ -981,7 +987,7 @@ impl<T: Read> ByteBufferPointer<T> {
         Ok(read)
     }
 
-    /// [fill_all] reads the whole underlying reader into the underlying
+    /// [`fill_all`] reads the whole underlying reader into the underlying
     /// buffer, allowing you to extract the remaining data within the stream
     /// as fully in-memory.
     #[inline]
@@ -991,10 +997,7 @@ impl<T: Read> ByteBufferPointer<T> {
         // pull the amount of data until we reach EOF
         let mut copied = vec![0; self.pull_amount];
         loop {
-            let read = match self.reader.read(&mut copied) {
-                Ok(read) => read,
-                Err(err) => return Err(err),
-            };
+            let read = self.reader.read(&mut copied)?;
 
             if read == 0 {
                 break;
@@ -1108,7 +1111,7 @@ impl<T: Read> ByteBufferPointer<T> {
     /// [`peek`] peeks into the future by 1 position without actually permanently
     /// change the peek cursor's position.
     #[inline]
-    pub fn peek<'a>(&'a self) -> std::io::Result<PeekState<'a>> {
+    pub fn peek(&self) -> std::io::Result<PeekState<'_>> {
         self.peek_by(1)
     }
 
@@ -1120,7 +1123,7 @@ impl<T: Read> ByteBufferPointer<T> {
     /// without actual changes to peek cursor which is used in consume to extract the data
     /// already seen by calling all `next_*` methods.
     #[inline]
-    pub fn peek_by<'a>(&'a self, by: usize) -> std::io::Result<PeekState<'a>> {
+    pub fn peek_by(&self, by: usize) -> std::io::Result<PeekState<'_>> {
         let until_pos = self.peek_pos + by;
 
         // if we are further than the current buffer and the actual content of
@@ -1155,8 +1158,8 @@ impl<T: Read> ByteBufferPointer<T> {
     /// without actual changes to peek cursor which is used in consume to extract the data
     /// already seen by calling all `next_*` methods.
     #[inline]
-    pub fn peek_until<'a, 'b>(&'a mut self, signal: &'b [u8]) -> std::io::Result<PeekState<'a>> {
-        if signal.len() == 0 {
+    pub fn peek_until<'a>(&'a mut self, signal: &[u8]) -> std::io::Result<PeekState<'a>> {
+        if signal.is_empty() {
             return Ok(PeekState::ZeroLengthInput);
         }
         let current_peek_pos = self.peek_pos;
@@ -1182,7 +1185,7 @@ impl<T: Read> ByteBufferPointer<T> {
                 _ => {
                     unreachable!("Should never hit this types")
                 }
-            };
+            }
 
             self.peek_pos += signal.len();
         }
@@ -1209,7 +1212,7 @@ impl<T: Read> ByteBufferPointer<T> {
     /// or you may consume far less than intended. This is intended to let you peek forward
     /// without actual changes to peek cursor which is used in consume to extract the data
     /// already seen by calling all `next_*` methods.
-    pub fn peekby2<'a, 'b>(&'a mut self, size: usize) -> std::io::Result<&'a [u8]> {
+    pub fn peekby2<'b>(&mut self, size: usize) -> std::io::Result<&[u8]> {
         self.peekby(size).map(|item| match item {
             PeekState::Request(inner) => Ok(inner),
             PeekState::NoNext => Err(crate::err!(UnexpectedEof, "No more data to pull through")),
@@ -1232,7 +1235,7 @@ impl<T: Read> ByteBufferPointer<T> {
     /// without actual changes to peek cursor which is used in consume to extract the data
     /// already seen by calling all `next_*` methods.
     #[inline]
-    pub fn peekby<'a>(&'a mut self, size: usize) -> std::io::Result<PeekState<'a>> {
+    pub fn peekby(&mut self, size: usize) -> std::io::Result<PeekState<'_>> {
         if size == 0 {
             return Ok(PeekState::ZeroLengthInput);
         }
@@ -1260,7 +1263,7 @@ impl<T: Read> ByteBufferPointer<T> {
         }
 
         let slice = &self.buffer[self.peek_pos..until_pos];
-        if slice.len() == 0 {
+        if slice.is_empty() {
             return Ok(PeekState::NoNext);
         }
 
@@ -1278,7 +1281,7 @@ impl<T: Read> ByteBufferPointer<T> {
     ///
     /// This moves the peek cursor forward.
     #[inline]
-    pub fn nextby<'a>(&'a mut self, size: usize) -> std::io::Result<PeekState<'a>> {
+    pub fn nextby(&mut self, size: usize) -> std::io::Result<PeekState<'_>> {
         if size == 0 {
             return Ok(PeekState::ZeroLengthInput);
         }
@@ -1327,7 +1330,7 @@ impl<T: Read> ByteBufferPointer<T> {
     /// all that is requested which moves both the peek cursor and the actual data cursor
     /// which means that part of the internal buffer read from the underlying reader will
     /// at some point be discarded as it should be.
-    pub fn read_size<'a>(&'a mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+    pub fn read_size(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         let read = match self.nextby(buf.len()) {
             Ok(state) => match state {
                 PeekState::Request(data) => {
@@ -1338,7 +1341,7 @@ impl<T: Read> ByteBufferPointer<T> {
                     };
 
                     for (index, elem) in data[0..ending].iter().enumerate() {
-                        buf[index] = *elem
+                        buf[index] = *elem;
                     }
                     Ok(data.len())
                 }
@@ -1349,7 +1352,7 @@ impl<T: Read> ByteBufferPointer<T> {
                         buf.len()
                     };
                     for (index, elem) in self.buffer[0..ending].iter().enumerate() {
-                        buf[index] = *elem
+                        buf[index] = *elem;
                     }
                     Ok(ending)
                 }
@@ -1369,7 +1372,7 @@ impl<T: Read> ByteBufferPointer<T> {
 
     /// [`nextby`] provides a more friendly API ontop [`Self::next_size`] returning
     /// the slice `&[u8]` without the [`PeekState`] wrapper.
-    pub fn nextby2<'a>(&'a mut self, size: usize) -> std::io::Result<&'a [u8]> {
+    pub fn nextby2(&mut self, size: usize) -> std::io::Result<&[u8]> {
         self.nextby(size).map(|item| match item {
             PeekState::Request(inner) => Ok(inner),
             PeekState::NoNext => Err(crate::err!(UnexpectedEof, "No more data to pull through")),
@@ -1387,8 +1390,8 @@ impl<T: Read> ByteBufferPointer<T> {
     ///
     /// This moves the peek cursor forward.
     #[inline]
-    pub fn next_until<'a, 'b>(&'a mut self, signal: &'b [u8]) -> std::io::Result<PeekState<'a>> {
-        if signal.len() == 0 {
+    pub fn next_until<'a>(&'a mut self, signal: &[u8]) -> std::io::Result<PeekState<'a>> {
+        if signal.is_empty() {
             return Ok(PeekState::ZeroLengthInput);
         }
         loop {
@@ -1425,7 +1428,7 @@ impl<T: Read> ByteBufferPointer<T> {
                 _ => {
                     unreachable!("Should never hit this types")
                 }
-            };
+            }
 
             self.peek_pos += signal.len();
         }
@@ -1440,18 +1443,18 @@ impl<T: Read> ByteBufferPointer<T> {
     /// Allowing you to perform further operation on the data.
     ///
     /// If the newline byte is not found then it reads all the bytes into the provided buffer ontil
-    /// it hits EOF or EndOfFile but this is key, it won't move the cursor forward, just copies the
+    /// it hits EOF or `EndOfFile` but this is key, it won't move the cursor forward, just copies the
     /// underlying data over.
     ///
     /// This moves the peek cursor forward.
-    pub fn next_line<'a>(&'a mut self, buf: &mut String) -> std::io::Result<usize> {
+    pub fn next_line(&mut self, buf: &mut String) -> std::io::Result<usize> {
         const NEWLINE_SLICE: &[u8] = b"\n";
         let read = match self.next_until(NEWLINE_SLICE) {
             Ok(inner) => match inner {
                 PeekState::Request(c) => {
                     unsafe {
                         let mut buf_vec = buf.as_mut_vec();
-                        buf_vec.extend_from_slice(&c);
+                        buf_vec.extend_from_slice(c);
                     };
                     Ok(c.len())
                 }
@@ -1470,13 +1473,13 @@ impl<T: Read> ByteBufferPointer<T> {
 
                     unsafe {
                         let mut buf_vec = buf.as_mut_vec();
-                        buf_vec.extend_from_slice(&slice);
+                        buf_vec.extend_from_slice(slice);
                     };
 
                     return Ok(slice_length);
                 }
 
-                return Ok(inner);
+                Ok(inner)
             }
             Err(err) => Err(err),
         }
@@ -1486,12 +1489,12 @@ impl<T: Read> ByteBufferPointer<T> {
     /// Allowing you to perform further operation on the data.
     ///
     /// If the target byte is not found then it reads all the bytes into the provided buffer ontil
-    /// it hits EOF or EndOfFile but this is key, it won't move the cursor forward, just copies the
+    /// it hits EOF or `EndOfFile` but this is key, it won't move the cursor forward, just copies the
     /// underlying data over.
     ///
     /// This moves the peek cursor forward.
-    pub fn next_bytes_until<'a>(
-        &'a mut self,
+    pub fn next_bytes_until(
+        &mut self,
         target: &[u8],
         buf: &mut Vec<u8>,
     ) -> std::io::Result<usize> {
@@ -1499,7 +1502,7 @@ impl<T: Read> ByteBufferPointer<T> {
             Ok(inner) => match inner {
                 PeekState::Request(c) => {
                     unsafe {
-                        buf.extend_from_slice(&c);
+                        buf.extend_from_slice(c);
                     };
                     Ok(c.len())
                 }
@@ -1517,13 +1520,13 @@ impl<T: Read> ByteBufferPointer<T> {
                     let slice_length = slice.len();
 
                     unsafe {
-                        buf.extend_from_slice(&slice);
+                        buf.extend_from_slice(slice);
                     };
 
                     return Ok(slice_length);
                 }
 
-                return Ok(inner);
+                Ok(inner)
             }
             Err(err) => Err(err),
         }
@@ -1536,8 +1539,8 @@ impl<T: Read> ByteBufferPointer<T> {
     /// string and the cursor is consumed.
     ///
     /// This moves the peek cursor forward.
-    pub fn read_bytes_until<'a>(
-        &'a mut self,
+    pub fn read_bytes_until(
+        &mut self,
         target: &[u8],
         buf: &mut Vec<u8>,
     ) -> std::io::Result<usize> {
@@ -1545,7 +1548,7 @@ impl<T: Read> ByteBufferPointer<T> {
             Ok(inner) => match inner {
                 PeekState::Request(c) => {
                     unsafe {
-                        buf.extend_from_slice(&c);
+                        buf.extend_from_slice(c);
                     };
                     Ok(c.len())
                 }
@@ -1562,7 +1565,7 @@ impl<T: Read> ByteBufferPointer<T> {
                     let slice = &self.buffer[self.pos..self.peek_pos];
                     let slice_length = slice.len();
                     unsafe {
-                        buf.extend_from_slice(&slice);
+                        buf.extend_from_slice(slice);
                     };
 
                     self.skip();
@@ -1570,7 +1573,7 @@ impl<T: Read> ByteBufferPointer<T> {
                 }
 
                 self.skip();
-                return Ok(inner);
+                Ok(inner)
             }
             Err(err) => Err(err),
         }
@@ -1583,14 +1586,14 @@ impl<T: Read> ByteBufferPointer<T> {
     /// string and the cursor is consumed.
     ///
     /// This moves the peek cursor forward.
-    pub fn read_line<'a>(&'a mut self, buf: &mut String) -> std::io::Result<usize> {
+    pub fn read_line(&mut self, buf: &mut String) -> std::io::Result<usize> {
         const NEWLINE_SLICE: &[u8] = b"\n";
         let read = match self.next_until(NEWLINE_SLICE) {
             Ok(inner) => match inner {
                 PeekState::Request(c) => {
                     match String::from_utf8(c.to_vec()) {
                         Ok(inner) => {
-                            buf.extend(inner.chars());
+                            buf.push_str(&inner);
                             Ok(inner.len())
                         }
                         Err(err) => {
@@ -1622,7 +1625,7 @@ impl<T: Read> ByteBufferPointer<T> {
 
                     unsafe {
                         let mut buf_vec = buf.as_mut_vec();
-                        buf_vec.extend_from_slice(&slice);
+                        buf_vec.extend_from_slice(slice);
                     };
 
                     self.skip();
@@ -1630,7 +1633,7 @@ impl<T: Read> ByteBufferPointer<T> {
                 }
 
                 self.skip();
-                return Ok(inner);
+                Ok(inner)
             }
             Err(err) => Err(err),
         }
@@ -1639,8 +1642,8 @@ impl<T: Read> ByteBufferPointer<T> {
     /// [`read_all`] pulls the whole data within the underlying stream into provided buffer
     /// returning the total length of bytes read out after pulling all the data within the
     /// stream until EOF.
-    pub fn read_all<'a>(
-        &'a mut self,
+    pub fn read_all(
+        &mut self,
         buf: &mut Vec<u8>,
         read_limit: Option<usize>,
     ) -> std::io::Result<usize> {
@@ -1655,7 +1658,7 @@ impl<T: Read> ByteBufferPointer<T> {
         let slice = &self.buffer[original_peek..buffer_len];
         let slice_length = slice.len();
 
-        buf.extend_from_slice(&slice);
+        buf.extend_from_slice(slice);
 
         self.peek_pos = buffer_len;
         self.skip();
@@ -1682,7 +1685,7 @@ impl<T: Read> PeekableReadStream for ByteBufferPointer<T> {
                     };
 
                     for (index, elem) in data[0..ending].iter().enumerate() {
-                        buf[index] = *elem
+                        buf[index] = *elem;
                     }
                     Ok(data.len())
                 }
@@ -2264,23 +2267,23 @@ impl<T> BufferedCapacityCursor<T> {
         Self(cursor)
     }
 
-    /// get_ref returns the reference to the wrapped `Cursor<T>`.
+    /// `get_ref` returns the reference to the wrapped `Cursor<T>`.
     pub fn get_ref(&self) -> &Cursor<T> {
         &self.0
     }
 
-    /// get_mut returns the mutable reference to the wrapped `Cursor<T>`.
+    /// `get_mut` returns the mutable reference to the wrapped `Cursor<T>`.
     pub fn get_mut(&mut self) -> &mut Cursor<T> {
         &mut self.0
     }
 
-    /// get_inner_mut returns a immutable reference to the  inner content
+    /// `get_inner_mut` returns a immutable reference to the  inner content
     /// of the wrapped `Cursor<T>`.
     pub fn get_inner_ref(&self) -> &T {
         self.0.get_ref()
     }
 
-    /// get_inner_mut returns a mutable reference to the  inner content
+    /// `get_inner_mut` returns a mutable reference to the  inner content
     /// of the wrapped `Cursor<T>`.
     pub fn get_inner_mut(&mut self) -> &mut T {
         self.0.get_mut()

@@ -5,42 +5,19 @@
 use core::str;
 use ewe_templates::minijinja;
 use foundation_core::extensions::strings_ext::{TryIntoStr, TryIntoString};
-use std::{io::Write, marker::PhantomData, path::PathBuf, sync};
+use foundation_nostd::embeddable::EmbeddableDirectory;
+use std::{io::Write, path::PathBuf, sync};
 
 use crate::{error::BoxedError, FileContent, FileSystemCommand};
 
-pub struct Directorate<T: rust_embed::RustEmbed> {
-    pub _data: PhantomData<T>,
-}
-
-// -- constructor + default
-
-impl<T: rust_embed::Embed + Default> Default for Directorate<T> {
-    fn default() -> Self {
-        Self {
-            _data: PhantomData,
-        }
-    }
-}
-
 // -- Rust Embed wrapper methods and constructor
-
-pub struct StringIterator(rust_embed::Filenames);
-
-impl Iterator for StringIterator {
-    type Item = std::borrow::Cow<'static, str>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.0.next()
-    }
-}
 
 pub trait PackageDirectorate {
     /// Returns the underlying content of a file.
-    fn get_file(&self, target_file: &str) -> Option<rust_embed::EmbeddedFile>;
+    fn get_file(&self, target_file: &str) -> Option<Vec<u8>>;
 
     /// Returns all filenames in directorate.
-    fn files(&self) -> StringIterator;
+    fn files(&self) -> Vec<String>;
 
     /// Returns all filenames for giving root directory.
     fn files_for(&self, directory: &str) -> Option<Vec<String>>;
@@ -56,25 +33,42 @@ pub trait PackageDirectorate {
     fn list_all(&self) -> Vec<String>;
 }
 
-impl<T: rust_embed::Embed + 'static> From<Directorate<T>> for Box<dyn PackageDirectorate> {
-    fn from(val: Directorate<T>) -> Self {
-        Box::new(val)
+pub struct Directorate<T: EmbeddableDirectory + Default> {
+    store: T,
+}
+
+impl<T: EmbeddableDirectory + Default> Default for Directorate<T> {
+    fn default() -> Self {
+        Self {
+            store: T::default(),
+        }
     }
 }
 
-impl<T: rust_embed::Embed> PackageDirectorate for Directorate<T> {
-    fn get_file(&self, target_file: &str) -> Option<rust_embed::EmbeddedFile> {
-        T::get(target_file)
+impl<T: EmbeddableDirectory + Default> PackageDirectorate for Directorate<T> {
+    fn get_file(&self, target_file: &str) -> Option<Vec<u8>> {
+        self.store.read_utf8_for(target_file)
     }
 
-    fn files(&self) -> StringIterator {
-        StringIterator(T::iter())
+    fn files(&self) -> Vec<String> {
+        self.store
+            .info_iter()
+            .filter(|item| !item.is_directory)
+            .map(|item| item.source_path)
+            .map(String::from)
+            .collect()
     }
 
     fn root_directories(&self) -> Vec<String> {
-        let mut dirs: Vec<String> = T::iter()
-            .filter(|t| t.contains('/'))
-            .filter_map(|t| t.split_once('/').map(|(directory, _)| String::from(directory)))
+        let mut dirs: Vec<String> = self
+            .store
+            .info_iter()
+            .filter(|item| item.is_directory)
+            .filter(|item| !item.source_path.is_empty())
+            .filter_map(|t| {
+                let parts: Vec<&str> = t.source_path.split("/").collect();
+                parts.get(0).map(|item| String::from(*item))
+            })
             .collect();
 
         // sort and de-dup
@@ -85,7 +79,11 @@ impl<T: rust_embed::Embed> PackageDirectorate for Directorate<T> {
     }
 
     fn list_all(&self) -> Vec<String> {
-        T::iter().map(String::from).collect()
+        self.store
+            .info_iter()
+            .map(|item| item.source_path)
+            .map(String::from)
+            .collect()
     }
 
     fn files_for(&self, directory: &str) -> Option<Vec<String>> {
@@ -95,8 +93,12 @@ impl<T: rust_embed::Embed> PackageDirectorate for Directorate<T> {
             &format!("{directory}/")
         };
 
-        let files: Vec<String> = T::iter()
-            .filter(|t| t.starts_with(target_dir))
+        let files: Vec<String> = self
+            .store
+            .info_iter()
+            .filter(|item| !item.is_directory)
+            .filter(|item| item.source_path.starts_with(target_dir))
+            .map(|item| item.source_path)
             .map(String::from)
             .collect();
 
@@ -116,21 +118,25 @@ impl<T: rust_embed::Embed> PackageDirectorate for Directorate<T> {
 
         let mut jinja_env = minijinja::Environment::new();
 
-        let items: Vec<std::borrow::Cow<'_, str>> =
-            T::iter().filter(|t| t.starts_with(target_dir)).collect();
+        let items: Vec<String> = self
+            .store
+            .info_iter()
+            .filter(|item| !item.is_directory)
+            .filter(|item| item.source_path.starts_with(target_dir))
+            .map(|item| item.source_path)
+            .map(String::from)
+            .collect();
 
         if items.is_empty() {
             return None;
         }
 
         for relevant_path in items {
-            let relevant_file = T::get(&relevant_path).unwrap();
-            let relevant_file_data = relevant_file.data.try_into_str().expect("should be string");
+            let relevant_file = self.store.read_utf8_for(&relevant_path).unwrap();
+            let relevant_file_data = relevant_file.try_into_str().expect("should be string");
             jinja_env
                 .add_template_owned(
-                    relevant_path
-                        .try_into_string()
-                        .expect("should turn into String"),
+                    relevant_path,
                     relevant_file_data
                         .try_into_string()
                         .expect("convert into String"),
@@ -146,9 +152,10 @@ impl<T: rust_embed::Embed> PackageDirectorate for Directorate<T> {
 mod directorate_tests {
 
     use super::*;
+    use foundation_macros::EmbedDirectoryAs;
 
-    #[derive(rust_embed::Embed, Default)]
-    #[folder = "templates/test_directory/"]
+    #[derive(EmbedDirectoryAs, Default)]
+    #[source = "$ARTEFACTS_DIR/temples/templates/test_directory/"]
     struct Directory;
 
     #[test]
@@ -160,6 +167,7 @@ mod directorate_tests {
     #[test]
     fn validate_can_read_top_directories() {
         let generator = Directorate::<Directory>::default();
+        let files: Vec<String> = generator.files();
         let directories: Vec<String> = generator.root_directories();
         assert_eq!(directories, vec! {"docs", "schema"});
     }
@@ -168,6 +176,7 @@ mod directorate_tests {
     fn validate_can_read_only_files_for_top_directory() {
         let generator = Directorate::<Directory>::default();
         let files: Option<Vec<String>> = generator.files_for("schema");
+        assert!(files.is_some());
         assert_eq!(
             files.unwrap(),
             vec! {"schema/partials/partial_1.sql", "schema/schema.sql"}
@@ -177,20 +186,26 @@ mod directorate_tests {
     #[test]
     fn validate_can_read_all_directories() {
         let generator = Directorate::<Directory>::default();
-        let files: Vec<String> = generator.files().map(String::from).collect();
+        let files: Vec<String> = generator.files();
         assert_eq!(
             files,
-            vec! {"README.md", "docs/runner.sh", "elem.js", "schema/partials/partial_1.sql", "schema/schema.sql"}
+            vec! {
+                "docs/runner.sh",
+                "schema/partials/partial_1.sql",
+                "schema/schema.sql",
+                "README.md",
+                "elem.js",
+            }
         );
     }
 }
 
-/// `PackageConfig` defines underlying default configuration that
-/// the `PackageGenerator` will use in it's underlying behavior of
-/// outputing the final package out.
+/// [`PackageConfig`] defines underlying default configuration that
+/// the [`PackageGenerator`] will use in it's underlying behavior of
+/// outputting the final package out.
 ///
-/// It might also be wrapped by Higher Level `PackageConfigurator`s tha
-/// might do custom things like `RustPackageConfigurator`.
+/// It might also be wrapped by Higher Level [`PackageConfigurator`]s that
+/// might do custom things like rust [`PackageConfigurator`].
 #[derive(Clone, Debug)]
 pub struct PackageConfig {
     pub params: serde_json::Map<String, serde_json::Value>,
@@ -218,11 +233,11 @@ impl PackageConfig {
     }
 }
 
-/// `PackageConfigurator` defines the underlying expectation the
-/// `PackageGenerator` expects when it receives a target configuration
+/// [`PackageConfigurator`] defines the underlying expectation the
+/// [`PackageGenerator`] expects when it receives a target configuration
 /// like the target output directory, custom parameters to apply to
 /// generated files in cases of templates and what target template name
-/// representing the Project template to be used in pacakge generation.
+/// representing the Project template to be used in package generation.
 pub trait PackageConfigurator {
     /// Returns the target directory where the output is written
     /// i.e the actual end project directory (`output_directory` / `package_name`).
@@ -357,7 +372,11 @@ impl RustProjectConfigurator {
             if let Some(workspace_cargo) = &rust_config.workspace_cargo {
                 let manifest =
                     cargo_toml::Manifest::from_path(workspace_cargo.clone()).map_err(|err| {
-                        ewe_trace::error!("Failed to get cargo_toml::Manifest due to: {:?}", err);
+                        ewe_trace::error!(
+                            "Failed to get cargo_toml::Manifest({:}) due to: {:?}",
+                            workspace_cargo.display(),
+                            err
+                        );
                         RustProjectConfiguratorError::BadRustWorkspace
                     })?;
 
@@ -377,41 +396,41 @@ impl PackageConfigurator for RustProjectConfigurator {
         self.package_config.directory()
     }
 
-    /// params returns a modified `serde_json::Map` where standard
-    /// package information are added into the dictionary which are
-    /// accessible in the supported template langauge (minijinja):
-    ///
-    /// When a workspace:
-    ///
-    /// - `IS_WORKSPACE=true`
-    /// - `PACKAGE_NAME` (name of package being generated)
-    /// - `TEMPLATE_NAME` (name of template used)
-    /// - `ROOT_PACKAGE_LICENSE_FILE`
-    /// - `ROOT_PACKAGE_EDITION`
-    /// - `ROOT_PACKAGE_REPOSITORY`
-    /// - `ROOT_PACKAGE_VERSION`
-    /// - `ROOT_PACKAGE_RUST_VERSION`
-    /// - `ROOT_PACKAGE_RUST_LICENSE`
-    /// - `ROOT_PACKAGE_RUST_DESCRIPTION`
-    /// - `ROOT_PACKAGE_RUST_AUTHORS`
-    /// - `ROOT_PACKAGE_RUST_KEYWORDS`
-    ///
-    /// When not a workspace:
-    ///
-    /// - `IS_WORKSPACE=false`
-    /// - `PACKAGE_NAME` (name of package being generated)
-    /// - `TEMPLATE_NAME` (name of template used)
-    /// - `ROOT_PACKAGE_NAME`
-    /// - `ROOT_PACKAGE_LICENSE_FILE`
-    /// - `ROOT_PACKAGE_EDITION`
-    /// - `ROOT_PACKAGE_REPOSITORY`
-    /// - `ROOT_PACKAGE_VERSION`
-    /// - `ROOT_PACKAGE_RUST_VERSION`
-    /// - `ROOT_PACKAGE_RUST_LICENSE`
-    /// - `ROOT_PACKAGE_RUST_DESCRIPTION`
-    /// - `ROOT_PACKAGE_RUST_AUTHORS`
-    /// - `ROOT_PACKAGE_RUST_KEYWORDS`
-    ///
+    #[doc = r#"params returns a modified `serde_json::Map` where standard
+package information are added into the dictionary which are
+accessible in the supported template language (minijinja):
+
+When a workspace:
+
+- `IS_WORKSPACE=true`
+- `PACKAGE_NAME` (name of package being generated)
+- `TEMPLATE_NAME` (name of template used)
+- `ROOT_PACKAGE_LICENSE_FILE`
+- `ROOT_PACKAGE_EDITION`
+- `ROOT_PACKAGE_REPOSITORY`
+- `ROOT_PACKAGE_VERSION`
+- `ROOT_PACKAGE_RUST_VERSION`
+- `ROOT_PACKAGE_RUST_LICENSE`
+- `ROOT_PACKAGE_RUST_DESCRIPTION`
+- `ROOT_PACKAGE_RUST_AUTHORS`
+- `ROOT_PACKAGE_RUST_KEYWORDS`
+
+When not a workspace:
+
+- `IS_WORKSPACE=false`
+- `PACKAGE_NAME` (name of package being generated)
+- `TEMPLATE_NAME` (name of template used)
+- `ROOT_PACKAGE_NAME`
+- `ROOT_PACKAGE_LICENSE_FILE`
+- `ROOT_PACKAGE_EDITION`
+- `ROOT_PACKAGE_REPOSITORY`
+- `ROOT_PACKAGE_VERSION`
+- `ROOT_PACKAGE_RUST_VERSION`
+- `ROOT_PACKAGE_RUST_LICENSE`
+- `ROOT_PACKAGE_RUST_DESCRIPTION`
+- `ROOT_PACKAGE_RUST_AUTHORS`
+- `ROOT_PACKAGE_RUST_KEYWORDS`
+"#]
     fn params(&self) -> serde_json::Map<String, serde_json::Value> {
         let mut params = self.package_config.params.clone();
 
@@ -650,10 +669,6 @@ impl PackageConfigurator for RustProjectConfigurator {
     }
 }
 
-pub struct PackageGenerator {
-    pub templates: Box<dyn PackageDirectorate>,
-}
-
 pub type PackageGenResult<T> = core::result::Result<T, PackageGenError>;
 
 #[derive(Debug, derive_more::From)]
@@ -670,11 +685,26 @@ impl core::fmt::Display for PackageGenError {
     }
 }
 
-impl PackageGenerator {
-    pub fn new(templates: Box<dyn PackageDirectorate>) -> Self {
+pub struct PackageGenerator<T: PackageDirectorate> {
+    pub templates: T,
+}
+
+#[allow(dead_code)]
+impl<T: PackageDirectorate> PackageGenerator<T> {
+    pub fn new(templates: T) -> Self {
         Self { templates }
     }
+}
 
+impl<T: PackageDirectorate + Default> Default for PackageGenerator<T> {
+    fn default() -> Self {
+        Self {
+            templates: Default::default(),
+        }
+    }
+}
+
+impl<T: PackageDirectorate> PackageGenerator<T> {
     /// create will begin to setup the underlying specified project
     /// defined in the provided configurator.
     pub fn create<S: PackageConfigurator>(&self, configurator: S) -> PackageGenResult<()> {
@@ -726,7 +756,9 @@ impl PackageGenerator {
                     template_file_path
                         .as_path()
                         .strip_prefix(config.template_name.as_str())
-                        .unwrap_or_else(|_| panic!("expected valid starting as `{}`", config.template_name)),
+                        .unwrap_or_else(|_| {
+                            panic!("expected valid starting as `{}`", config.template_name)
+                        }),
                 );
 
             let rewritten_template_dir = rewritten_template_file_name
@@ -762,9 +794,7 @@ impl PackageGenerator {
             .run(configurator.params())
             .map_err(|err| PackageGenError::Failed(err.into()))?;
 
-        configurator
-            .finalize()
-            .map_err(PackageGenError::Failed)
+        configurator.finalize().map_err(PackageGenError::Failed)
     }
 }
 
@@ -776,13 +806,14 @@ mod package_generator_tests {
 
     use foundation_core::extensions::strings_ext::TryIntoString;
     use foundation_core::extensions::vec_ext::VecExt;
+    use foundation_macros::EmbedDirectoryAs;
 
     use tracing_test::traced_test;
 
     use super::*;
 
-    #[derive(rust_embed::Embed, Default)]
-    #[folder = "templates/"]
+    #[derive(EmbedDirectoryAs, Default)]
+    #[source = "$ARTEFACTS_DIR/temples/templates/"]
     struct TemplateDefinitions;
 
     fn list_dir(target_path: &path::Path) -> Vec<String> {
@@ -809,10 +840,13 @@ mod package_generator_tests {
     #[test]
     #[traced_test]
     fn package_generator_can_create_package_for_standard() {
-        let template_directories = Box::new(Directorate::<TemplateDefinitions>::default());
+        let template_directories = Directorate::<TemplateDefinitions>::default();
         let packager = PackageGenerator::new(template_directories);
 
-        let current_dir = std::env::current_dir().expect("should have gotten directory");
+        let current_dir = std::fs::canonicalize(std::path::Path::new(
+            &std::env::var("ARTEFACTS_TEMPLES_DIR").expect("get ARTEFACTS_DIR environment"),
+        ))
+        .expect("failed to collect path");
 
         let output_directory = current_dir.join("output_directory");
         let project_directory = output_directory.join("standard_project");
@@ -848,11 +882,11 @@ mod package_generator_tests {
                 project_directory.try_into_string().unwrap()
             ),
             vec![
-                "Cargo.toml",
-                ".gitignore",
+                "retro_project/Cargo.toml",
                 "retro_project/src/lib.rs",
                 "retro_project/src/page.rs",
-                "retro_project/Cargo.toml",
+                ".gitignore",
+                "Cargo.toml",
             ]
             .to_vec_string()
         );
@@ -861,10 +895,13 @@ mod package_generator_tests {
     #[test]
     #[traced_test]
     fn package_generator_can_create_package_for_workspace() {
-        let template_directories = Box::new(Directorate::<TemplateDefinitions>::default());
+        let template_directories = Directorate::<TemplateDefinitions>::default();
         let packager = PackageGenerator::new(template_directories);
 
-        let current_dir = std::env::current_dir().expect("should have gotten directory");
+        let current_dir = std::fs::canonicalize(std::path::Path::new(
+            &std::env::var("ARTEFACTS_TEMPLES_DIR").expect("get ARTEFACTS_DIR environment"),
+        ))
+        .expect("failed to collect path");
 
         let output_directory = current_dir.join("output_directory");
         let project_directory = output_directory.join("workspace_project");
@@ -900,11 +937,11 @@ mod package_generator_tests {
                 project_directory.try_into_string().unwrap()
             ),
             vec![
-                "Cargo.toml",
-                ".gitignore",
+                "retro_project/Cargo.toml",
                 "retro_project/src/lib.rs",
                 "retro_project/src/page.rs",
-                "retro_project/Cargo.toml",
+                ".gitignore",
+                "Cargo.toml",
             ]
             .to_vec_string()
         );
@@ -913,10 +950,13 @@ mod package_generator_tests {
     #[test]
     #[traced_test]
     fn package_generator_can_create_non_rust_package_from_template() {
-        let template_directories = Box::new(Directorate::<TemplateDefinitions>::default());
+        let template_directories = Directorate::<TemplateDefinitions>::default();
         let packager = PackageGenerator::new(template_directories);
 
-        let current_dir = std::env::current_dir().expect("should have gotten directory");
+        let current_dir = std::fs::canonicalize(std::path::Path::new(
+            &std::env::var("ARTEFACTS_TEMPLES_DIR").expect("get ARTEFACTS_DIR environment"),
+        ))
+        .expect("failed to collect path");
 
         let output_directory = current_dir.join("output_directory");
         let project_directory = output_directory.join("static_pages");

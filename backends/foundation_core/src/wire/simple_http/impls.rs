@@ -7,7 +7,7 @@ use crate::io::ubytes::{self};
 use crate::valtron::{
     BoxedResultIterator, CloneableFn, SendVecIterator, StringBoxedIterator, TransformIterator,
 };
-use crate::wire::simple_http::errors::*;
+use crate::wire::simple_http::errors::{Result, HttpReaderError, StringHandlingError, Http11RenderError, LineFeedError, ChunkStateError, SimpleHttpResult, SimpleHttpError};
 use derive_more::From;
 use regex::{self, Regex};
 use std::collections::HashSet;
@@ -69,7 +69,7 @@ impl ChunkedData {
                             let v = value.clone().unwrap();
                             format!("{key}:{v}")
                         } else {
-                            format!("{key}")
+                            key.to_string()
                         }
                     })
                     .collect();
@@ -90,6 +90,7 @@ pub struct ChunkedDataLimitIterator {
 }
 
 impl ChunkedDataLimitIterator {
+    #[must_use] 
     pub fn new(limit: BodySizeLimit, parent: ChunkedVecIterator<BoxedError>) -> Self {
         Self {
             limit,
@@ -249,7 +250,7 @@ impl core::fmt::Display for SimpleBody {
     }
 }
 
-/// RenderHttp lets types implement the ability to be rendered into
+/// `RenderHttp` lets types implement the ability to be rendered into
 /// http protocol which makes it easily for more structured types.
 #[allow(unused)]
 pub trait RenderHttp {
@@ -261,7 +262,7 @@ pub trait RenderHttp {
     where
         Self: Sized;
 
-    /// http_render_encoded_string attempts to render the results of calling
+    /// `http_render_encoded_string` attempts to render the results of calling
     /// `RenderHttp::http_render()` as a custom encoded strings.
     fn http_render_encoded_string<E>(
         self,
@@ -276,7 +277,7 @@ pub trait RenderHttp {
         Ok(Box::new(transformed))
     }
 
-    /// http_render_utf8_string attempts to render the results of calling
+    /// `http_render_utf8_string` attempts to render the results of calling
     /// `RenderHttp::http_render()` as utf8 strings.
     fn http_render_utf8_string(
         self,
@@ -359,24 +360,24 @@ impl core::fmt::Display for Proto {
             Self::HTTP11 => write!(f, "HTTP/1.1"),
             Self::HTTP20 => write!(f, "HTTP/2.0"),
             Self::HTTP30 => write!(f, "HTTP/3.0"),
-            Self::Custom(inner) => write!(f, "{:?}", inner),
+            Self::Custom(inner) => write!(f, "{inner:?}"),
         }
     }
 }
 
 pub type SimpleHeaders = BTreeMap<SimpleHeader, Vec<String>>;
 
-/// is_sub_set_of_other_header returns True if the `SimpleHeaders` is a subset of the
+/// `is_sub_set_of_other_header` returns True if the `SimpleHeaders` is a subset of the
 /// other headers in `other`.
+#[must_use] 
 pub fn is_sub_set_of_other_header(this: &SimpleHeaders, other: &SimpleHeaders) -> bool {
-    for (key, value) in this.iter() {
+    for (key, value) in this {
         match other.get(key) {
             Some(other_value) => {
-                if value != other_value {
-                    return false;
-                } else {
+                if value == other_value {
                     continue;
                 }
+                return false;
             }
             None => return false,
         }
@@ -582,7 +583,7 @@ impl FromStr for SimpleHeader {
 impl core::fmt::Display for SimpleHeader {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Custom(inner) => write!(f, "{}", inner),
+            Self::Custom(inner) => write!(f, "{inner}"),
             Self::ACCEPT => write!(f, "ACCEPT"),
             Self::KEEP_ALIVE => write!(f, "KEEP-ALIVE"),
             Self::ACCEPT_CHARSET => write!(f, "ACCEPT-CHARSET"),
@@ -743,6 +744,7 @@ impl SimpleMethod {
     }
 
     /// compares with string equivalent
+    #[must_use] 
     pub fn equal(&self, value: &str) -> bool {
         self.value() == value
     }
@@ -903,6 +905,7 @@ impl From<String> for Status {
 
 impl Status {
     /// Returns status' full description
+    #[must_use] 
     pub fn status_line(&self) -> String {
         match self {
             Self::Continue => "100 Continue".into(),
@@ -959,12 +962,12 @@ impl Status {
             Self::InsufficientStorage => "507 Insufficient Storage".into(),
             Self::NetworkAuthenticationRequired => "511 Network Authentication Required".into(),
             Self::Numbered(code, description) => format!("{code} {description}"),
-            Self::Text(description) => format!("{description}"),
+            Self::Text(description) => description.to_string(),
         }
     }
 }
 
-/// ActUrl represents a url string and query parameters hashmap
+/// `ActUrl` represents a url string and query parameters hashmap
 #[derive(Clone, Debug)]
 pub struct SimpleUrl {
     pub url: String,
@@ -1006,7 +1009,7 @@ impl SimpleUrl {
         }
     }
 
-    /// url_only indicates you wish to represent a URL only where the Url
+    /// `url_only` indicates you wish to represent a URL only where the Url
     /// will not have queries or parameters to be extracted.
     /// Generally you will use this on the server side when representing
     /// a request with no queries or parameters.
@@ -1020,11 +1023,11 @@ impl SimpleUrl {
         }
     }
 
-    /// url_with_query is used when parsing a url with queries
+    /// `url_with_query` is used when parsing a url with queries
     /// e.g service.com/path/{param1}/{param2}?key=value&..
     /// this will extract these out into the `SimpleUrl` constructs.
     ///
-    /// This is the method to use when constructing your ServiceAction
+    /// This is the method to use when constructing your `ServiceAction`
     /// has it lets you match against specific paths, queries and parameters.
     ///
     /// A unique thing to note is the query part of a url (?key=value&..)
@@ -1047,6 +1050,7 @@ impl SimpleUrl {
         }
     }
 
+    #[must_use] 
     pub fn extract_matched_url(&self, target: &str) -> (bool, Option<BTreeMap<String, String>>) {
         let (matched_uri_regex, params): (bool, Option<BTreeMap<String, String>>) =
             match &self.matcher {
@@ -1116,6 +1120,7 @@ impl SimpleUrl {
         }
     }
 
+    #[must_use] 
     pub fn matches_other(&self, target: &SimpleUrl) -> bool {
         let matched_uri_regex = match &self.matcher {
             Some(inner) => inner.is_match(&target.url),
@@ -1133,6 +1138,7 @@ impl SimpleUrl {
         self.match_queries_tree(&target.queries)
     }
 
+    #[must_use] 
     pub fn matches_url(&self, target: &str) -> bool {
         let matched_uri_regex = match &self.matcher {
             Some(inner) => inner.is_match(target),
@@ -1173,7 +1179,7 @@ impl SimpleUrl {
             Some(inner) => match target_queries {
                 Some(extracted_queries) => {
                     let mut found = true;
-                    for (expected_key, expected_value) in inner.iter() {
+                    for (expected_key, expected_value) in inner {
                         if let Some(value) = extracted_queries.get(expected_key) {
                             if expected_value != value && expected_value != "*" {
                                 found = false;
@@ -1193,6 +1199,7 @@ impl SimpleUrl {
         }
     }
 
+    #[must_use] 
     pub fn capture_url_params(url: &str) -> Option<Vec<String>> {
         let re = Regex::new(CAPTURE_PARAM_STR).unwrap();
         let params: Vec<String> = re
@@ -1209,7 +1216,7 @@ impl SimpleUrl {
     pub fn capture_path_pattern(url: &str) -> regex::Regex {
         let re = Regex::new(CAPTURE_PARAM_STR).unwrap();
         let query_regex = Regex::new(CAPTURE_QUERY).unwrap();
-        let pattern = query_regex.replace(&url, "");
+        let pattern = query_regex.replace(url, "");
         let pattern = re.replace_all(&pattern, QUERY_REPLACER);
         let url_pattern = match Regex::new(&pattern) {
             Ok(item) => Ok(item),
@@ -1225,6 +1232,7 @@ impl SimpleUrl {
         url_pattern.expect("Should have created url matcher")
     }
 
+    #[must_use] 
     pub fn capture_query_hashmap(url: &str) -> Option<BTreeMap<String, String>> {
         let re = Regex::new(CAPTURE_QUERY_KEY_VALUE).unwrap();
         let path_regex = Regex::new(CAPTURE_PATH).unwrap();
@@ -1236,7 +1244,7 @@ impl SimpleUrl {
                 if let Some(query_key) = cap.name("qk") {
                     let query_value = match cap.name("qv") {
                         Some(v) => String::from(v.as_str()),
-                        None => String::from(""),
+                        None => String::new(),
                     };
                     return Some((String::from(query_key.as_str()), query_value));
                 }
@@ -1378,10 +1386,12 @@ pub struct SimpleOutgoingResponse {
 }
 
 impl SimpleOutgoingResponse {
+    #[must_use] 
     pub fn builder() -> SimpleOutgoingResponseBuilder {
         SimpleOutgoingResponseBuilder::default()
     }
 
+    #[must_use] 
     pub fn empty() -> SimpleOutgoingResponse {
         SimpleOutgoingResponseBuilder::default()
             .with_status(Status::OK)
@@ -1416,20 +1426,24 @@ impl core::fmt::Display for SimpleResponseError {
 }
 
 impl SimpleOutgoingResponseBuilder {
+    #[must_use] 
     pub fn with_proto(mut self, proto: Proto) -> Self {
         self.proto = Some(proto);
         self
     }
+    #[must_use] 
     pub fn with_status(mut self, status: Status) -> Self {
         self.status = Some(status);
         self
     }
 
+    #[must_use] 
     pub fn with_body(mut self, body: SimpleBody) -> Self {
         self.body = Some(body);
         self
     }
 
+    #[must_use] 
     pub fn with_body_stream(mut self, body: SendVecIterator<BoxedError>) -> Self {
         self.body = Some(SimpleBody::Stream(Some(body)));
         self
@@ -1445,6 +1459,7 @@ impl SimpleOutgoingResponseBuilder {
         self
     }
 
+    #[must_use] 
     pub fn with_headers(mut self, headers: SimpleHeaders) -> Self {
         self.headers = Some(headers);
         self
@@ -1457,7 +1472,7 @@ impl SimpleOutgoingResponseBuilder {
         if let Some(values) = headers.get_mut(&actual_key) {
             values.push(value.into());
         } else {
-            headers.insert(actual_key.into(), vec![value.into()]);
+            headers.insert(actual_key, vec![value.into()]);
         }
 
         self.headers = Some(headers);
@@ -1503,7 +1518,7 @@ impl SimpleOutgoingResponseBuilder {
                 }
             }
             _ => {}
-        };
+        }
 
         Ok(SimpleOutgoingResponse {
             body: Some(body),
@@ -1548,10 +1563,12 @@ pub struct SimpleIncomingRequest {
 }
 
 impl SimpleIncomingRequest {
+    #[must_use] 
     pub fn builder() -> SimpleIncomingRequestBuilder {
         SimpleIncomingRequestBuilder::default()
     }
 
+    #[must_use] 
     pub fn descriptor(&self) -> RequestDescriptor {
         RequestDescriptor {
             proto: self.proto.clone(),
@@ -1582,26 +1599,31 @@ impl SimpleIncomingRequestBuilder {
         self
     }
 
+    #[must_use] 
     pub fn with_url(mut self, url: SimpleUrl) -> Self {
         self.url = Some(url);
         self
     }
 
+    #[must_use] 
     pub fn with_some_body(mut self, body: Option<SimpleBody>) -> Self {
         self.body = body;
         self
     }
 
+    #[must_use] 
     pub fn with_proto(mut self, proto: Proto) -> Self {
         self.proto = Some(proto);
         self
     }
 
+    #[must_use] 
     pub fn with_body(mut self, body: SimpleBody) -> Self {
         self.body = Some(body);
         self
     }
 
+    #[must_use] 
     pub fn with_body_stream(mut self, body: SendVecIterator<BoxedError>) -> Self {
         self.body = Some(SimpleBody::Stream(Some(body)));
         self
@@ -1617,6 +1639,7 @@ impl SimpleIncomingRequestBuilder {
         self
     }
 
+    #[must_use] 
     pub fn with_headers(mut self, headers: SimpleHeaders) -> Self {
         self.headers = Some(headers);
         self
@@ -1628,21 +1651,21 @@ impl SimpleIncomingRequestBuilder {
         let actual_key = key.into();
         let actual_value: String = value.into();
         let actual_value_parts: Vec<String> = actual_value
-            .split(",")
-            .into_iter()
+            .split(',')
             .map(|item| item.trim().into())
             .collect();
 
         if let Some(values) = headers.get_mut(&actual_key) {
             values.extend(actual_value_parts);
         } else {
-            headers.insert(actual_key.into(), actual_value_parts);
+            headers.insert(actual_key, actual_value_parts);
         }
 
         self.headers = Some(headers);
         self
     }
 
+    #[must_use] 
     pub fn with_method(mut self, method: SimpleMethod) -> Self {
         self.method = Some(method);
         self
@@ -1688,7 +1711,7 @@ impl SimpleIncomingRequestBuilder {
                 }
             }
             _ => {}
-        };
+        }
 
         Ok(SimpleIncomingRequest {
             body: Some(body),
@@ -1733,7 +1756,7 @@ pub enum Http11ReqState {
 
     /// Third state which starts rendering the body of the request
     /// this variant is unique because depending on the body type it can
-    /// go to the End variant or the BodyStreaming variant.
+    /// go to the End variant or the `BodyStreaming` variant.
     ///
     /// Once done it moves state to the `Http11ReqState::BodyStream`
     ///  or `Http11ReqState::End` variant.
@@ -1759,11 +1782,11 @@ pub enum Http11ReqState {
     ///  or `Http11ReqState::End` variant.
     BodyStreaming(Option<SendVecIterator<BoxedError>>),
 
-    /// ChunkedBodyStreaming like BodyStreaming is meant to support
+    /// `ChunkedBodyStreaming` like `BodyStreaming` is meant to support
     /// handling of a chunked body parts where
     ChunkedBodyStreaming(Option<ChunkedVecIterator<BoxedError>>),
 
-    /// LineFeedStreaming like BodyStreaming is meant to support
+    /// `LineFeedStreaming` like `BodyStreaming` is meant to support
     /// handling of a chunked body parts where
     LineFeedStreaming(Option<LineFeedVecIterator<BoxedError>>),
 
@@ -1788,7 +1811,7 @@ impl Iterator for Http11RequestIterator {
                 self.0 = Some(Http11ReqState::Headers(request));
 
                 // generate HTTP 1.1 intro
-                let http_intro_string = format!("{} {} HTTP/1.1\r\n", method, url,);
+                let http_intro_string = format!("{method} {url} HTTP/1.1\r\n",);
 
                 Some(Ok(http_intro_string.into_bytes()))
             }
@@ -1843,148 +1866,121 @@ impl Iterator for Http11RequestIterator {
                     SimpleBody::Bytes(inner) => {
                         // tell the iterator we want it to end
                         self.0 = Some(Http11ReqState::End);
-                        Some(Ok(inner.to_vec()))
+                        Some(Ok(inner.clone()))
                     }
                     SimpleBody::ChunkedStream(mut streamer_container) => {
-                        match streamer_container.take() {
-                            Some(inner) => {
-                                self.0 = Some(Http11ReqState::ChunkedBodyStreaming(Some(inner)));
-                                Some(Ok(b"".to_vec()))
-                            }
-                            None => {
-                                // tell the iterator we want it to end
-                                self.0 = Some(Http11ReqState::End);
-                                Some(Ok(b"\r\n".to_vec()))
-                            }
+                        if let Some(inner) = streamer_container.take() {
+                            self.0 = Some(Http11ReqState::ChunkedBodyStreaming(Some(inner)));
+                            Some(Ok(b"".to_vec()))
+                        } else {
+                            // tell the iterator we want it to end
+                            self.0 = Some(Http11ReqState::End);
+                            Some(Ok(b"\r\n".to_vec()))
                         }
                     }
                     SimpleBody::Stream(mut streamer_container) => {
-                        match streamer_container.take() {
-                            Some(inner) => {
-                                self.0 = Some(Http11ReqState::BodyStreaming(Some(inner)));
-                                Some(Ok(b"".to_vec()))
-                            }
-                            None => {
-                                // tell the iterator we want it to end
-                                self.0 = Some(Http11ReqState::End);
-                                Some(Ok(b"\r\n".to_vec()))
-                            }
+                        if let Some(inner) = streamer_container.take() {
+                            self.0 = Some(Http11ReqState::BodyStreaming(Some(inner)));
+                            Some(Ok(b"".to_vec()))
+                        } else {
+                            // tell the iterator we want it to end
+                            self.0 = Some(Http11ReqState::End);
+                            Some(Ok(b"\r\n".to_vec()))
                         }
                     }
                     SimpleBody::LineFeedStream(mut streamer_container) => {
-                        match streamer_container.take() {
-                            Some(inner) => {
-                                self.0 = Some(Http11ReqState::LineFeedStreaming(Some(inner)));
-                                Some(Ok(b"".to_vec()))
-                            }
-                            None => {
-                                // tell the iterator we want it to end
-                                self.0 = Some(Http11ReqState::End);
-                                Some(Ok(b"\r\n".to_vec()))
-                            }
+                        if let Some(inner) = streamer_container.take() {
+                            self.0 = Some(Http11ReqState::LineFeedStreaming(Some(inner)));
+                            Some(Ok(b"".to_vec()))
+                        } else {
+                            // tell the iterator we want it to end
+                            self.0 = Some(Http11ReqState::End);
+                            Some(Ok(b"\r\n".to_vec()))
                         }
                     }
                 }
             }
             Http11ReqState::LineFeedStreaming(container) => {
-                match container {
-                    Some(mut body_iterator) => {
-                        match body_iterator.next() {
-                            Some(collected) => match collected {
-                                Ok(inner) => {
-                                    self.0 = Some(Http11ReqState::LineFeedStreaming(Some(
-                                        body_iterator,
-                                    )));
+                if let Some(mut body_iterator) = container {
+                    if let Some(collected) = body_iterator.next() { match collected {
+                        Ok(inner) => {
+                            self.0 = Some(Http11ReqState::LineFeedStreaming(Some(
+                                body_iterator,
+                            )));
 
-                                    match inner {
-                                        LineFeed::Line(content) => Some(Ok(content.into_bytes())),
-                                        LineFeed::SKIP => Some(Ok(b"".to_vec())),
-                                        LineFeed::END => {
-                                            // tell the iterator we want it to end
-                                            self.0 = Some(Http11ReqState::End);
-                                            None
-                                        }
-                                    }
-                                }
-                                Err(err) => {
+                            match inner {
+                                LineFeed::Line(content) => Some(Ok(content.into_bytes())),
+                                LineFeed::SKIP => Some(Ok(b"".to_vec())),
+                                LineFeed::END => {
                                     // tell the iterator we want it to end
                                     self.0 = Some(Http11ReqState::End);
-                                    Some(Err(err.into()))
+                                    None
                                 }
-                            },
-                            None => {
-                                // tell the iterator we want it to end
-                                self.0 = Some(Http11ReqState::End);
-                                Some(Ok(b"".to_vec()))
                             }
                         }
-                    }
-                    None => {
+                        Err(err) => {
+                            // tell the iterator we want it to end
+                            self.0 = Some(Http11ReqState::End);
+                            Some(Err(err.into()))
+                        }
+                    } } else {
                         // tell the iterator we want it to end
                         self.0 = Some(Http11ReqState::End);
                         Some(Ok(b"".to_vec()))
                     }
+                } else {
+                    // tell the iterator we want it to end
+                    self.0 = Some(Http11ReqState::End);
+                    Some(Ok(b"".to_vec()))
                 }
             }
             Http11ReqState::ChunkedBodyStreaming(container) => {
-                match container {
-                    Some(mut body_iterator) => {
-                        match body_iterator.next() {
-                            Some(collected) => match collected {
-                                Ok(mut inner) => {
-                                    self.0 = Some(Http11ReqState::ChunkedBodyStreaming(Some(
-                                        body_iterator,
-                                    )));
-                                    Some(Ok(inner.into_bytes()))
-                                }
-                                Err(err) => {
-                                    // tell the iterator we want it to end
-                                    self.0 = Some(Http11ReqState::End);
-                                    Some(Err(err.into()))
-                                }
-                            },
-                            None => {
-                                // tell the iterator we want it to end
-                                self.0 = Some(Http11ReqState::End);
-                                Some(Ok(b"".to_vec()))
-                            }
+                if let Some(mut body_iterator) = container {
+                    if let Some(collected) = body_iterator.next() { match collected {
+                        Ok(mut inner) => {
+                            self.0 = Some(Http11ReqState::ChunkedBodyStreaming(Some(
+                                body_iterator,
+                            )));
+                            Some(Ok(inner.into_bytes()))
                         }
-                    }
-                    None => {
+                        Err(err) => {
+                            // tell the iterator we want it to end
+                            self.0 = Some(Http11ReqState::End);
+                            Some(Err(err.into()))
+                        }
+                    } } else {
                         // tell the iterator we want it to end
                         self.0 = Some(Http11ReqState::End);
                         Some(Ok(b"".to_vec()))
                     }
+                } else {
+                    // tell the iterator we want it to end
+                    self.0 = Some(Http11ReqState::End);
+                    Some(Ok(b"".to_vec()))
                 }
             }
             Http11ReqState::BodyStreaming(container) => {
-                match container {
-                    Some(mut body_iterator) => {
-                        match body_iterator.next() {
-                            Some(collected) => match collected {
-                                Ok(inner) => {
-                                    self.0 =
-                                        Some(Http11ReqState::BodyStreaming(Some(body_iterator)));
-                                    Some(Ok(inner))
-                                }
-                                Err(err) => {
-                                    // tell the iterator we want it to end
-                                    self.0 = Some(Http11ReqState::End);
-                                    Some(Err(err.into()))
-                                }
-                            },
-                            None => {
-                                // tell the iterator we want it to end
-                                self.0 = Some(Http11ReqState::End);
-                                Some(Ok(b"".to_vec()))
-                            }
+                if let Some(mut body_iterator) = container {
+                    if let Some(collected) = body_iterator.next() { match collected {
+                        Ok(inner) => {
+                            self.0 =
+                                Some(Http11ReqState::BodyStreaming(Some(body_iterator)));
+                            Some(Ok(inner))
                         }
-                    }
-                    None => {
+                        Err(err) => {
+                            // tell the iterator we want it to end
+                            self.0 = Some(Http11ReqState::End);
+                            Some(Err(err.into()))
+                        }
+                    } } else {
                         // tell the iterator we want it to end
                         self.0 = Some(Http11ReqState::End);
                         Some(Ok(b"".to_vec()))
                     }
+                } else {
+                    // tell the iterator we want it to end
+                    self.0 = Some(Http11ReqState::End);
+                    Some(Ok(b"".to_vec()))
                 }
             }
 
@@ -2013,9 +2009,9 @@ pub struct Http11ResponseIterator(Option<Http11ResState>);
 ///
 ///   HTTP/1.1 200 OK
 ///   Date: Sun, 10 Oct 2010 23:26:07 GMT
-///   Server: Apache/2.2.8 (Ubuntu) mod_ssl/2.2.8 OpenSSL/0.9.8g
+///   Server: Apache/2.2.8 (Ubuntu) `mod_ssl/2.2.8` OpenSSL/0.9.8g
 ///   Last-Modified: Sun, 26 Sep 2010 22:04:35 GMT
-///   ETag: "45b6-834-49130cc1182c0"
+///   `ETag`: "45b6-834-49130cc1182c0"
 ///   Accept-Ranges: bytes
 ///   Content-Length: 12
 ///   Connection: close
@@ -2090,155 +2086,128 @@ impl Iterator for Http11ResponseIterator {
                     SimpleBody::Bytes(inner) => {
                         // tell the iterator we want it to end
                         self.0 = Some(Http11ResState::End);
-                        Some(Ok(inner.to_vec()))
+                        Some(Ok(inner.clone()))
                     }
                     SimpleBody::ChunkedStream(mut streamer_container) => {
-                        match streamer_container.take() {
-                            Some(inner) => {
-                                self.0 = Some(Http11ResState::ChunkedBodyStreaming(Some(inner)));
-                                Some(Ok(b"".to_vec()))
-                            }
-                            None => {
-                                // tell the iterator we want it to end
-                                self.0 = Some(Http11ResState::End);
-                                Some(Ok(b"".to_vec()))
-                            }
+                        if let Some(inner) = streamer_container.take() {
+                            self.0 = Some(Http11ResState::ChunkedBodyStreaming(Some(inner)));
+                            Some(Ok(b"".to_vec()))
+                        } else {
+                            // tell the iterator we want it to end
+                            self.0 = Some(Http11ResState::End);
+                            Some(Ok(b"".to_vec()))
                         }
                     }
                     SimpleBody::Stream(mut streamer_container) => {
-                        match streamer_container.take() {
-                            Some(inner) => {
-                                self.0 = Some(Http11ResState::BodyStreaming(Some(inner)));
-                                Some(Ok(b"".to_vec()))
-                            }
-                            None => {
-                                // tell the iterator we want it to end
-                                self.0 = Some(Http11ResState::End);
-                                Some(Ok(b"".to_vec()))
-                            }
+                        if let Some(inner) = streamer_container.take() {
+                            self.0 = Some(Http11ResState::BodyStreaming(Some(inner)));
+                            Some(Ok(b"".to_vec()))
+                        } else {
+                            // tell the iterator we want it to end
+                            self.0 = Some(Http11ResState::End);
+                            Some(Ok(b"".to_vec()))
                         }
                     }
                     SimpleBody::LineFeedStream(mut streamer_container) => {
-                        match streamer_container.take() {
-                            Some(inner) => {
-                                self.0 = Some(Http11ResState::LineFeedStreaming(Some(inner)));
-                                Some(Ok(b"".to_vec()))
-                            }
-                            None => {
-                                // tell the iterator we want it to end
-                                self.0 = Some(Http11ResState::End);
-                                Some(Ok(b"".to_vec()))
-                            }
+                        if let Some(inner) = streamer_container.take() {
+                            self.0 = Some(Http11ResState::LineFeedStreaming(Some(inner)));
+                            Some(Ok(b"".to_vec()))
+                        } else {
+                            // tell the iterator we want it to end
+                            self.0 = Some(Http11ResState::End);
+                            Some(Ok(b"".to_vec()))
                         }
                     }
                 }
             }
             Http11ResState::LineFeedStreaming(container) => {
-                match container {
-                    Some(mut body_iterator) => {
-                        match body_iterator.next() {
-                            Some(collected) => match collected {
-                                Ok(inner) => {
-                                    self.0 = Some(Http11ResState::LineFeedStreaming(Some(
-                                        body_iterator,
-                                    )));
+                if let Some(mut body_iterator) = container {
+                    if let Some(collected) = body_iterator.next() { match collected {
+                        Ok(inner) => {
+                            self.0 = Some(Http11ResState::LineFeedStreaming(Some(
+                                body_iterator,
+                            )));
 
-                                    match inner {
-                                        LineFeed::Line(content) => Some(Ok(content.into_bytes())),
-                                        LineFeed::SKIP => Some(Ok(b"".to_vec())),
-                                        LineFeed::END => {
-                                            // tell the iterator we want it to end
-                                            self.0 = Some(Http11ResState::End);
-
-                                            // return None here
-                                            None
-                                        }
-                                    }
-                                }
-                                Err(err) => {
+                            match inner {
+                                LineFeed::Line(content) => Some(Ok(content.into_bytes())),
+                                LineFeed::SKIP => Some(Ok(b"".to_vec())),
+                                LineFeed::END => {
                                     // tell the iterator we want it to end
                                     self.0 = Some(Http11ResState::End);
-                                    Some(Err(err.into()))
+
+                                    // return None here
+                                    None
                                 }
-                            },
-                            None => {
-                                // tell the iterator we want it to end
-                                self.0 = Some(Http11ResState::End);
-                                Some(Ok(b"".to_vec()))
                             }
                         }
-                    }
-                    None => {
+                        Err(err) => {
+                            // tell the iterator we want it to end
+                            self.0 = Some(Http11ResState::End);
+                            Some(Err(err.into()))
+                        }
+                    } } else {
                         // tell the iterator we want it to end
                         self.0 = Some(Http11ResState::End);
                         Some(Ok(b"".to_vec()))
                     }
+                } else {
+                    // tell the iterator we want it to end
+                    self.0 = Some(Http11ResState::End);
+                    Some(Ok(b"".to_vec()))
                 }
             }
             Http11ResState::ChunkedBodyStreaming(mut response) => {
-                match response.take() {
-                    Some(mut actual_iterator) => {
-                        match actual_iterator.next() {
-                            Some(collected) => {
-                                match collected {
-                                    Ok(mut chunked) => {
-                                        self.0 = Some(Http11ResState::ChunkedBodyStreaming(Some(
-                                            actual_iterator,
-                                        )));
-                                        Some(Ok(chunked.into_bytes()))
-                                    }
-                                    Err(err) => {
-                                        // tell the iterator we want it to end
-                                        self.0 = Some(Http11ResState::End);
-                                        Some(Err(err.into()))
-                                    }
-                                }
+                if let Some(mut actual_iterator) = response.take() {
+                    if let Some(collected) = actual_iterator.next() {
+                        match collected {
+                            Ok(mut chunked) => {
+                                self.0 = Some(Http11ResState::ChunkedBodyStreaming(Some(
+                                    actual_iterator,
+                                )));
+                                Some(Ok(chunked.into_bytes()))
                             }
-                            None => {
+                            Err(err) => {
                                 // tell the iterator we want it to end
                                 self.0 = Some(Http11ResState::End);
-                                Some(Ok(b"".to_vec()))
+                                Some(Err(err.into()))
                             }
                         }
-                    }
-                    None => {
+                    } else {
                         // tell the iterator we want it to end
                         self.0 = Some(Http11ResState::End);
                         Some(Ok(b"".to_vec()))
                     }
+                } else {
+                    // tell the iterator we want it to end
+                    self.0 = Some(Http11ResState::End);
+                    Some(Ok(b"".to_vec()))
                 }
             }
             Http11ResState::BodyStreaming(mut response) => {
-                match response.take() {
-                    Some(mut actual_iterator) => {
-                        let next = actual_iterator.next();
+                if let Some(mut actual_iterator) = response.take() {
+                    let next = actual_iterator.next();
 
-                        match next {
-                            Some(collected) => match collected {
-                                Ok(inner) => {
-                                    self.0 =
-                                        Some(Http11ResState::BodyStreaming(Some(actual_iterator)));
+                    if let Some(collected) = next { match collected {
+                        Ok(inner) => {
+                            self.0 =
+                                Some(Http11ResState::BodyStreaming(Some(actual_iterator)));
 
-                                    Some(Ok(inner))
-                                }
-                                Err(err) => {
-                                    // tell the iterator we want it to end
-                                    self.0 = Some(Http11ResState::End);
-                                    Some(Err(err.into()))
-                                }
-                            },
-                            None => {
-                                // tell the iterator we want it to end
-                                self.0 = Some(Http11ResState::End);
-                                Some(Ok(b"".to_vec()))
-                            }
+                            Some(Ok(inner))
                         }
-                    }
-                    None => {
+                        Err(err) => {
+                            // tell the iterator we want it to end
+                            self.0 = Some(Http11ResState::End);
+                            Some(Err(err.into()))
+                        }
+                    } } else {
                         // tell the iterator we want it to end
                         self.0 = Some(Http11ResState::End);
                         Some(Ok(b"".to_vec()))
                     }
+                } else {
+                    // tell the iterator we want it to end
+                    self.0 = Some(Http11ResState::End);
+                    Some(Ok(b"".to_vec()))
                 }
             }
 
@@ -2254,10 +2223,12 @@ pub enum Http11 {
 }
 
 impl Http11 {
+    #[must_use] 
     pub fn request(req: SimpleIncomingRequest) -> Self {
         Self::Request(req)
     }
 
+    #[must_use] 
     pub fn response(res: SimpleOutgoingResponse) -> Self {
         Self::Response(res)
     }
@@ -2363,6 +2334,7 @@ mod simple_incoming_tests {
 pub struct SimpleResponse<T>(Status, SimpleHeaders, T);
 
 impl SimpleResponse<()> {
+    #[must_use] 
     pub fn no_body(status: Status, headers: SimpleHeaders) -> Self {
         Self(status, headers, ())
     }
@@ -2447,7 +2419,7 @@ impl core::fmt::Display for IncomingRequestParts {
 }
 
 pub trait BodyExtractor {
-    /// extract will attempt to extract the relevant Body of a TcpStream shared
+    /// extract will attempt to extract the relevant Body of a `TcpStream` shared
     /// stream by doing whatever internal logic is required to extract the necessary
     /// tcp body content required.
     ///
@@ -2491,6 +2463,7 @@ impl<T> HeaderReader<T>
 where
     T: std::io::Read,
 {
+    #[must_use] 
     pub fn new(
         reader: SharedByteBufferStream<T>,
         max_header_key_length: Option<usize>,
@@ -2498,10 +2471,10 @@ where
         max_header_value_length: Option<usize>,
     ) -> Self {
         Self {
-            max_header_key_length,
-            max_header_values_count,
-            max_header_value_length,
             reader,
+            max_header_key_length,
+            max_header_value_length,
+            max_header_values_count,
         }
     }
 }
@@ -2535,13 +2508,13 @@ where
             tracing::debug!("HeaderLine: {:?}", &line);
 
             if line.trim().is_empty()
-                && (line == "\n" || line == "\r\n" || line == "\n\n" || line == "")
+                && (line == "\n" || line == "\r\n" || line == "\n\n" || line.is_empty())
             {
                 line.clear();
                 break;
             }
 
-            if !line.contains(":") && last_header.is_none() {
+            if !line.contains(':') && last_header.is_none() {
                 return Err(HttpReaderError::InvalidHeaderLine);
             }
 
@@ -2550,8 +2523,8 @@ where
             tracing::debug!("HeaderLineParts: {:?}", &line_parts);
 
             // if its start with an invalid character then indicate error
-            if line_parts.len() == 2 {
-                if line_parts[1].starts_with('\r') {
+            if line_parts.len() == 2
+                && line_parts[1].starts_with('\r') {
                     return Err(HttpReaderError::HeaderValueStartingWithCR);
                 }
 
@@ -2559,9 +2532,8 @@ where
                 // if line_parts[1] == "\n" || line_parts[1].trim().is_empty() {
                 //     return Err(HttpReaderError::HeaderValueStartingWithLF);
                 // }
-            }
 
-            let (header_key, header_value) = if !line.contains(":") && last_header.is_some() {
+            let (header_key, header_value) = if !line.contains(':') && last_header.is_some() {
                 (last_header.clone().unwrap(), line.clone())
             } else {
                 tracing::debug!(
@@ -2685,14 +2657,13 @@ where
 
                 if NO_SPLIT_HEADERS
                     .iter()
-                    .position(|n| n == &actual_key)
-                    .is_some()
+                    .any(|n| n == &actual_key)
                 {
                     tracing::debug!("[2] ExtendHeader: {:?}", &header_value);
-                    values.push(header_value.into());
+                    values.push(header_value);
                 } else {
                     tracing::debug!("[2] ExtendAndSplitHeader: {:?}", &header_value);
-                    values.extend(header_value.split(",").map(|t| t.trim().into()));
+                    values.extend(header_value.split(',').map(|t| t.trim().into()));
                 }
 
                 if let Some(allowed_max_value_count) = self.max_header_values_count {
@@ -2714,15 +2685,14 @@ where
 
             if NO_SPLIT_HEADERS
                 .iter()
-                .position(|n| n == &actual_key)
-                .is_some()
+                .any(|n| n == &actual_key)
             {
                 tracing::debug!("[2] InsertHeader: {:?}", &header_value);
 
                 headers.insert(actual_key, vec![header_value]);
             } else {
                 let header_values: Vec<String> =
-                    header_value.split(",").map(|t| t.trim().into()).collect();
+                    header_value.split(',').map(|t| t.trim().into()).collect();
                 tracing::debug!(
                     "[2] InsertAndSplitHeader: {:?} -> values: {:?}",
                     &header_value,
@@ -2874,10 +2844,10 @@ where
 
                 let intro_parts: Vec<&str> = line
                     .split_whitespace()
-                    .filter(|item| item.trim().len() != 0)
+                    .filter(|item| !item.trim().is_empty())
                     .collect();
 
-                if intro_parts.len() == 0 {
+                if intro_parts.is_empty() {
                     self.state = HttpReadState::Intro;
                     return Some(Ok(IncomingRequestParts::SKIP));
                 }
@@ -2898,7 +2868,7 @@ where
                 let method = SimpleMethod::from(intro_parts[0].to_string());
 
                 // ensure to capture and skip methods that should not have a body attached.
-                self.state = if NO_BODY_METHODS.iter().position(|n| n == &method).is_some() {
+                self.state = if NO_BODY_METHODS.iter().any(|n| n == &method) {
                     HttpReadState::OnlyHeaders
                 } else {
                     HttpReadState::Headers
@@ -2999,7 +2969,7 @@ where
                     let difference: HashSet<_> =
                         current_values.difference(&allowed_values).collect();
 
-                    if difference.len() != 0 {
+                    if !difference.is_empty() {
                         return Some(Err(HttpReaderError::UnknownTransferEncodingHeaderValue));
                     }
 
@@ -3030,51 +3000,47 @@ where
                 // Since it does not have a TRANSFER_ENCODING header then it
                 // must have a CONTENT_LENGTH
                 // header.
-                match headers.get(&SimpleHeader::CONTENT_LENGTH) {
-                    Some(content_size_headers) => {
-                        if content_size_headers.len() == 0 {
-                            self.state = HttpReadState::NoBody;
-                            return Some(Ok(IncomingRequestParts::Headers(headers)));
-                        }
+                if let Some(content_size_headers) = headers.get(&SimpleHeader::CONTENT_LENGTH) {
+                    if content_size_headers.is_empty() {
+                        self.state = HttpReadState::NoBody;
+                        return Some(Ok(IncomingRequestParts::Headers(headers)));
+                    }
 
-                        let selected = content_size_headers.len() - 1;
-                        let content_size_str = content_size_headers
-                            .get(selected)
-                            .clone()
-                            .expect("get content size");
-                        match content_size_str.parse::<u64>() {
-                            Ok(value) => {
-                                if let Some(max_value) = self.max_body_length {
-                                    if value > (max_value as u64) {
-                                        return Some(Err(
-                                            HttpReaderError::BodyContentSizeIsGreaterThanLimit(
-                                                max_value,
-                                            ),
-                                        ));
-                                    }
-                                }
-
-                                if value == 0 {
-                                    self.state = HttpReadState::NoBody;
-                                } else {
-                                    self.state = HttpReadState::Body(Body::LimitedBody(
-                                        value,
-                                        headers.clone(),
+                    let selected = content_size_headers.len() - 1;
+                    let content_size_str = content_size_headers
+                        .get(selected)
+                        .expect("get content size");
+                    match content_size_str.parse::<u64>() {
+                        Ok(value) => {
+                            if let Some(max_value) = self.max_body_length {
+                                if value > (max_value as u64) {
+                                    return Some(Err(
+                                        HttpReaderError::BodyContentSizeIsGreaterThanLimit(
+                                            max_value,
+                                        ),
                                     ));
                                 }
+                            }
 
-                                Some(Ok(IncomingRequestParts::Headers(headers)))
+                            if value == 0 {
+                                self.state = HttpReadState::NoBody;
+                            } else {
+                                self.state = HttpReadState::Body(Body::LimitedBody(
+                                    value,
+                                    headers.clone(),
+                                ));
                             }
-                            Err(err) => {
-                                self.state = HttpReadState::Finished;
-                                Some(Err(HttpReaderError::InvalidContentSizeValue(Box::new(err))))
-                            }
+
+                            Some(Ok(IncomingRequestParts::Headers(headers)))
+                        }
+                        Err(err) => {
+                            self.state = HttpReadState::Finished;
+                            Some(Err(HttpReaderError::InvalidContentSizeValue(Box::new(err))))
                         }
                     }
-                    None => {
-                        self.state = HttpReadState::NoBody;
-                        Some(Ok(IncomingRequestParts::Headers(headers)))
-                    }
+                } else {
+                    self.state = HttpReadState::NoBody;
+                    Some(Ok(IncomingRequestParts::Headers(headers)))
                 }
             }
             HttpReadState::NoBody => {
@@ -3236,10 +3202,10 @@ where
 
                 let intro_parts: Vec<&str> = line
                     .splitn(2, ' ')
-                    .filter(|item| item.trim().len() != 0)
+                    .filter(|item| !item.trim().is_empty())
                     .collect();
 
-                if intro_parts.len() == 0 {
+                if intro_parts.is_empty() {
                     self.state = HttpReadState::Intro;
                     return Some(Ok(IncomingResponseParts::SKIP));
                 }
@@ -3259,7 +3225,7 @@ where
 
                 let status_parts: Vec<&str> = intro_parts[1]
                     .splitn(2, ' ')
-                    .filter(|item| item.trim().len() != 0)
+                    .filter(|item| !item.trim().is_empty())
                     .collect();
 
                 // ignore the last part, we do not care
@@ -3350,7 +3316,7 @@ where
                 {
                     self.state = HttpReadState::Body(Body::FullBody(
                         headers.clone(),
-                        self.max_body_length.clone(),
+                        self.max_body_length,
                     ));
 
                     return Some(Ok(IncomingResponseParts::Headers(headers)));
@@ -3381,7 +3347,7 @@ where
                     let difference: HashSet<_> =
                         current_values.difference(&allowed_values).collect();
 
-                    if difference.len() != 0 {
+                    if !difference.is_empty() {
                         return Some(Err(HttpReaderError::UnknownTransferEncodingHeaderValue));
                     }
 
@@ -3412,51 +3378,47 @@ where
                 // Since it does not have a TRANSFER_ENCODING header then it
                 // must have a CONTENT_LENGTH
                 // header.
-                match headers.get(&SimpleHeader::CONTENT_LENGTH) {
-                    Some(content_size_headers) => {
-                        if content_size_headers.len() == 0 {
-                            self.state = HttpReadState::NoBody;
-                            return Some(Ok(IncomingResponseParts::Headers(headers)));
-                        }
+                if let Some(content_size_headers) = headers.get(&SimpleHeader::CONTENT_LENGTH) {
+                    if content_size_headers.is_empty() {
+                        self.state = HttpReadState::NoBody;
+                        return Some(Ok(IncomingResponseParts::Headers(headers)));
+                    }
 
-                        let selected = content_size_headers.len() - 1;
-                        let content_size_str = content_size_headers
-                            .get(selected)
-                            .clone()
-                            .expect("get content size");
-                        match content_size_str.parse::<u64>() {
-                            Ok(value) => {
-                                if let Some(max_value) = self.max_body_length {
-                                    if value > (max_value as u64) {
-                                        return Some(Err(
-                                            HttpReaderError::BodyContentSizeIsGreaterThanLimit(
-                                                max_value,
-                                            ),
-                                        ));
-                                    }
-                                }
-
-                                if value == 0 {
-                                    self.state = HttpReadState::NoBody;
-                                } else {
-                                    self.state = HttpReadState::Body(Body::LimitedBody(
-                                        value,
-                                        headers.clone(),
+                    let selected = content_size_headers.len() - 1;
+                    let content_size_str = content_size_headers
+                        .get(selected)
+                        .expect("get content size");
+                    match content_size_str.parse::<u64>() {
+                        Ok(value) => {
+                            if let Some(max_value) = self.max_body_length {
+                                if value > (max_value as u64) {
+                                    return Some(Err(
+                                        HttpReaderError::BodyContentSizeIsGreaterThanLimit(
+                                            max_value,
+                                        ),
                                     ));
                                 }
+                            }
 
-                                Some(Ok(IncomingResponseParts::Headers(headers)))
+                            if value == 0 {
+                                self.state = HttpReadState::NoBody;
+                            } else {
+                                self.state = HttpReadState::Body(Body::LimitedBody(
+                                    value,
+                                    headers.clone(),
+                                ));
                             }
-                            Err(err) => {
-                                self.state = HttpReadState::Finished;
-                                Some(Err(HttpReaderError::InvalidContentSizeValue(Box::new(err))))
-                            }
+
+                            Some(Ok(IncomingResponseParts::Headers(headers)))
+                        }
+                        Err(err) => {
+                            self.state = HttpReadState::Finished;
+                            Some(Err(HttpReaderError::InvalidContentSizeValue(Box::new(err))))
                         }
                     }
-                    None => {
-                        self.state = HttpReadState::NoBody;
-                        Some(Ok(IncomingResponseParts::Headers(headers)))
-                    }
+                } else {
+                    self.state = HttpReadState::NoBody;
+                    Some(Ok(IncomingResponseParts::Headers(headers)))
                 }
             }
             HttpReadState::NoBody => {
@@ -3589,8 +3551,8 @@ impl LineFeed {
             continue;
         }
 
-        let line_feed_result = match pointer.do_once_mut(|binding| binding.consume_some()) {
-            Some(value) => match String::from_utf8(value.to_vec()) {
+        let line_feed_result = match pointer.do_once_mut(crate::io::ioutils::ByteBufferPointer::consume_some) {
+            Some(value) => match String::from_utf8(value.clone()) {
                 Ok(converted_string) => Ok(if converted_string.trim().is_empty() {
                     LineFeed::SKIP
                 } else {
@@ -3610,16 +3572,16 @@ impl LineFeed {
         };
 
         // eat all the space
-        let _ = Self::eat_space(pointer.clone())?;
+        let () = Self::eat_space(pointer.clone())?;
 
         // eat all newlines
-        let _ = Self::eat_newlines(pointer.clone())?;
+        let () = Self::eat_newlines(pointer.clone())?;
 
         // eat all crlf
-        let _ = Self::eat_crlf(pointer.clone())?;
+        let () = Self::eat_crlf(pointer.clone())?;
 
         // eat all crlf
-        let _ = Self::eat_escaped_crlf(pointer.clone())?;
+        let () = Self::eat_escaped_crlf(pointer.clone())?;
 
         line_feed_result
     }
@@ -3679,19 +3641,19 @@ impl LineFeed {
     }
 
     fn eat_newlines<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), LineFeedError> {
-        pointer.do_once_mut(|mut binding| Self::eat_newlines_pointer(&mut binding))
+        pointer.do_once_mut(|binding| Self::eat_newlines_pointer(binding))
     }
 
     fn eat_escaped_crlf<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), LineFeedError> {
-        pointer.do_once_mut(|mut binding| Self::eat_escaped_crlf_pointer(&mut binding))
+        pointer.do_once_mut(|binding| Self::eat_escaped_crlf_pointer(binding))
     }
 
     fn eat_crlf<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), LineFeedError> {
-        pointer.do_once_mut(|mut binding| Self::eat_crlf_pointer(&mut binding))
+        pointer.do_once_mut(|binding| Self::eat_crlf_pointer(binding))
     }
 
     fn eat_space<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), LineFeedError> {
-        pointer.do_once_mut(|mut binding| Self::eat_space_pointer(&mut binding))
+        pointer.do_once_mut(|binding| Self::eat_space_pointer(binding))
     }
 }
 
@@ -3813,6 +3775,7 @@ pub enum ChunkState {
 }
 
 impl ChunkState {
+    #[must_use] 
     pub fn new(chunk_size_octet: String, chunk_extension: Option<Extensions>) -> Self {
         Self::try_new(chunk_size_octet, chunk_extension).expect("should parse octet string")
     }
@@ -3851,7 +3814,7 @@ impl ChunkState {
         // let mut acc = pointer.write().map_err(|_| ChunkStateError::ReadErrors)?;
 
         // eat all the space
-        let _ = Self::eat_space(pointer.clone())?;
+        let () = Self::eat_space(pointer.clone())?;
 
         while pointer.do_once_mut(|acc| {
             if let Ok(b) = acc.nextby2(1) {
@@ -3922,8 +3885,8 @@ impl ChunkState {
             continue;
         }
 
-        match pointer.do_once_mut(|acc| acc.consume()) {
-            Ok(value) => match String::from_utf8(value.to_vec()) {
+        match pointer.do_once_mut(crate::io::ioutils::ByteBufferPointer::consume) {
+            Ok(value) => match String::from_utf8(value.clone()) {
                 Ok(converted_string) => Ok(
                     if converted_string.is_empty() || converted_string.trim().is_empty() {
                         None
@@ -3937,7 +3900,7 @@ impl ChunkState {
         }
     }
 
-    /// get_http_chunk_header_length_with_pointer lets you count the amount of bytes of chunked transfer
+    /// `get_http_chunk_header_length_with_pointer` lets you count the amount of bytes of chunked transfer
     /// body chunk just right till the last CRLF before the actual data it refers to.
     /// This allows you easily know how far to read out from a stream reader so you know how much
     /// data to skip to get to the actual data of the chunk.
@@ -4076,7 +4039,7 @@ impl ChunkState {
 
         let (chunk_size, chunk_string): (u64, String) = match chunk_size_octet.take() {
             Some(value) => match Self::parse_chunk_octet(&value) {
-                Ok(converted) => match String::from_utf8(value.to_vec()) {
+                Ok(converted) => match String::from_utf8(value.clone()) {
                     Ok(converted_string) => (converted, converted_string),
                     Err(err) => return Err(ChunkStateError::InvalidOctetBytes(err)),
                 },
@@ -4097,7 +4060,7 @@ impl ChunkState {
         Self::eat_newlines(pointer.clone())?;
 
         // do w have the extension starter marker (a semicolon)
-        let extensions: Extensions = pointer.do_once_mut(|mut acc| {
+        let extensions: Extensions = pointer.do_once_mut(|acc| {
             let mut extensions: Extensions = Vec::new();
             if crate::is_ok!(acc.peekby2(1), b";") {
                 while let Ok(value) = acc.peekby2(1) {
@@ -4105,7 +4068,7 @@ impl ChunkState {
                         break;
                     }
 
-                    match Self::parse_http_chunk_extension(&mut acc) {
+                    match Self::parse_http_chunk_extension(acc) {
                         Ok(extension) => extensions.push(extension),
                         Err(err) => return Err(err),
                     }
@@ -4118,7 +4081,7 @@ impl ChunkState {
         tracing::debug!("Extensions : {:?}", &extensions);
 
         // are we starting out with a CRLF, if so, skip it
-        pointer.do_once_mut(|mut acc| {
+        pointer.do_once_mut(|acc| {
             if crate::is_ok!(acc.peekby2(2), b"\r\n") {
                 let _ = acc.nextby(2);
                 acc.skip();
@@ -4130,8 +4093,8 @@ impl ChunkState {
             }
 
             // eat all the space
-            Self::eat_crlf_pointer(&mut acc)?;
-            Self::eat_newlines_pointer(&mut acc)?;
+            Self::eat_crlf_pointer(acc)?;
+            Self::eat_newlines_pointer(acc)?;
 
             if chunk_size == 0 {
                 return Ok(Self::LastChunk);
@@ -4267,8 +4230,8 @@ impl ChunkState {
         match (extension_key, extension_value) {
             (Some(key), Some(value)) => {
                 match (
-                    String::from_utf8(key.to_vec()),
-                    String::from_utf8(value.to_vec()),
+                    String::from_utf8(key.clone()),
+                    String::from_utf8(value.clone()),
                 ) {
                     (Ok(key_string), Ok(value_string)) => Ok((key_string, Some(value_string))),
                     (Ok(_), Err(err)) => Err(ChunkStateError::InvalidOctetBytes(err)),
@@ -4276,7 +4239,7 @@ impl ChunkState {
                     (Err(err), Err(_)) => Err(ChunkStateError::InvalidOctetBytes(err)),
                 }
             }
-            (Some(key), None) => match String::from_utf8(key.to_vec()) {
+            (Some(key), None) => match String::from_utf8(key.clone()) {
                 Ok(converted_string) => Ok((converted_string, None)),
                 Err(err) => Err(ChunkStateError::InvalidOctetBytes(err)),
             },
@@ -4342,21 +4305,21 @@ impl ChunkState {
     }
 
     fn eat_newlines<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), ChunkStateError> {
-        pointer.do_once_mut(|mut binding| Self::eat_newlines_pointer(&mut binding))
+        pointer.do_once_mut(|binding| Self::eat_newlines_pointer(binding))
     }
 
     fn eat_escaped_crlf<T: Read>(
         pointer: SharedByteBufferStream<T>,
     ) -> Result<(), ChunkStateError> {
-        pointer.do_once_mut(|mut binding| Self::eat_escaped_crlf_pointer(&mut binding))
+        pointer.do_once_mut(|binding| Self::eat_escaped_crlf_pointer(binding))
     }
 
     fn eat_crlf<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), ChunkStateError> {
-        pointer.do_once_mut(|mut binding| Self::eat_crlf_pointer(&mut binding))
+        pointer.do_once_mut(|binding| Self::eat_crlf_pointer(binding))
     }
 
     fn eat_space<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), ChunkStateError> {
-        pointer.do_once_mut(|mut binding| Self::eat_space_pointer(&mut binding))
+        pointer.do_once_mut(|binding| Self::eat_space_pointer(binding))
     }
 
     /// Parse a buffer of bytes that should contain a hex string of the size of chunk.
@@ -4370,16 +4333,16 @@ impl ChunkState {
     ///
     /// 1. If its a 0-9 unicode byte, for each iteration, we take the previous size (default: 0)
     ///    then take the position of the first hex code `0` then we use the formula:
-    ///    => size = (size * 16) + (b::int - byte(0)::int)
+    ///    => size = (size * 16) + (`b::int` - `byte(0)::int`)
     ///    We then do the above formula for every number we see.
     /// 2. If its a alphabet (a-f) or (A-F), we also take the previous size (default: 0)
     ///    then take the position of the first hex code `0` then we use the formula:
     ///
-    ///    => size = ((size * 16) + 10) + (b::int - byte('a')::int)
+    ///    => size = ((size * 16) + 10) + (`b::int` - byte('a')`::int`)
     ///
     ///    OR
     ///
-    ///    => size = ((size * 16) + 10) + (b::int - byte('A')::int)
+    ///    => size = ((size * 16) + 10) + (`b::int` - byte('A')`::int`)
     ///
     /// This formulas ensure we can correctly map our hexadecimal octet string into
     /// the relevant value in numbers.
@@ -4394,15 +4357,15 @@ impl ChunkState {
             match b {
                 b'0'..=b'9' => {
                     size *= RADIX;
-                    size += (b - b'0') as u64;
+                    size += u64::from(b - b'0');
                 }
                 b'a'..=b'f' => {
                     size *= RADIX;
-                    size += (b + 10 - b'a') as u64;
+                    size += u64::from(b + 10 - b'a');
                 }
                 b'A'..=b'F' => {
                     size *= RADIX;
-                    size += (b + 10 - b'A') as u64;
+                    size += u64::from(b + 10 - b'A');
                 }
                 _ => return Err(ChunkStateError::InvalidByte(b)),
             }
@@ -4559,6 +4522,7 @@ impl<T: std::io::Read> Clone for SimpleLineFeedIterator<T> {
 }
 
 impl<T: std::io::Read> SimpleLineFeedIterator<T> {
+    #[must_use] 
     pub fn new(headers: SimpleHeaders, stream: SharedByteBufferStream<T>) -> Self {
         Self(headers, stream)
     }
@@ -4600,6 +4564,7 @@ impl<T: std::io::Read> Clone for SimpleHttpChunkIterator<T> {
 }
 
 impl<T: std::io::Read> SimpleHttpChunkIterator<T> {
+    #[must_use] 
     pub fn new(
         transfer_encoding: Vec<String>,
         headers: SimpleHeaders,
@@ -4631,9 +4596,9 @@ impl<T: std::io::Read> Iterator for SimpleHttpChunkIterator<T> {
                             ChunkState::Trailer(inner) => {
                                 tracing::debug!("Processing::Chunk::Trailer: {:?} ", &inner);
                                 let trailers: Vec<(String, Option<String>)> = inner
-                                    .split("\n")
+                                    .split('\n')
                                     .filter(|item| !item.trim().is_empty())
-                                    .map(|item| match item.find(":") {
+                                    .map(|item| match item.find(':') {
                                         Some(index) => {
                                             let (key, value) = item.split_at(index);
                                             tracing::debug!("Processing::Chunk::Trailer::parts: key={:?} value={:?}", &key, value);
@@ -4683,7 +4648,7 @@ impl<T: std::io::Read> Iterator for SimpleHttpChunkIterator<T> {
                                 str::from_utf8(&chunk_data),
                             );
 
-                            Ok(ChunkedData::Data(Vec::from(chunk_data), opt_exts))
+                            Ok(ChunkedData::Data(chunk_data, opt_exts))
                         }) {
                             Ok(value) => Some(Ok(value)),
                             Err(err) => Some(Err(Box::new(err))),
@@ -4739,7 +4704,7 @@ impl BodyExtractor for SimpleHttpBody {
                     let mut body_content = vec![0; content_length as usize];
                     borrowed_stream
                         .read_exact(&mut body_content)
-                        .map(|_| SimpleBody::Bytes(body_content))
+                        .map(|()| SimpleBody::Bytes(body_content))
                 }) {
                     Ok(inner) => Ok(inner),
                     Err(err) => Err(Box::new(err)),
@@ -4758,6 +4723,7 @@ impl BodyExtractor for SimpleHttpBody {
 }
 
 impl<T: std::io::Read + 'static> HttpRequestReader<SimpleHttpBody, T> {
+    #[must_use] 
     pub fn simple_tcp_stream(
         reader: SharedByteBufferStream<T>,
     ) -> HttpRequestReader<SimpleHttpBody, T> {
@@ -4766,6 +4732,7 @@ impl<T: std::io::Read + 'static> HttpRequestReader<SimpleHttpBody, T> {
 }
 
 impl<T: std::io::Read + 'static> HttpResponseReader<SimpleHttpBody, T> {
+    #[must_use] 
     pub fn simple_tcp_stream(
         reader: SharedByteBufferStream<T>,
     ) -> HttpResponseReader<SimpleHttpBody, T> {
@@ -4773,7 +4740,7 @@ impl<T: std::io::Read + 'static> HttpResponseReader<SimpleHttpBody, T> {
     }
 }
 
-/// [HTTPStreams] is a http reader that can handle multiple streams of http requests/responses where
+/// [`HTTPStreams`] is a http reader that can handle multiple streams of http requests/responses where
 /// it will yield an instance of [`HttpRequestReader`] or [`HttpResponseReader`] each time
 /// it's [`HTTPStreams::read`] method is called.
 ///
@@ -4789,6 +4756,7 @@ pub struct HTTPStreams<T: std::io::Read + 'static> {
 // Constructors
 
 impl<T: std::io::Read + 'static> HTTPStreams<T> {
+    #[must_use] 
     pub fn new(source: SharedByteBufferStream<T>) -> Self {
         Self { source }
     }
@@ -4800,6 +4768,7 @@ impl<T: std::io::Read + Send + 'static> HTTPStreams<T> {
     /// [`next_request`] returns a new [`HttpRequestReader`] to read the next read http request from the
     /// underlying stream allowing you to stream each request as a consecutive unit containing all
     /// its data parts.
+    #[must_use] 
     pub fn next_request(&self) -> HttpRequestReader<SimpleHttpBody, T> {
         HttpRequestReader::<SimpleHttpBody, T>::new(self.source.clone(), SimpleHttpBody)
     }
@@ -4807,16 +4776,17 @@ impl<T: std::io::Read + Send + 'static> HTTPStreams<T> {
     /// [`next_response`] returns a new [`HttpResponse`] to read the next read http response from the
     /// underlying stream allowing you to stream each response as a consecutive unit containing all
     /// its data parts.
+    #[must_use] 
     pub fn next_response(&self) -> HttpResponseReader<SimpleHttpBody, T> {
         HttpResponseReader::<SimpleHttpBody, T>::new(self.source.clone(), SimpleHttpBody)
     }
 }
 
 pub mod http_streams {
-    use super::*;
+    use super::{Read, HttpRequestReader, SimpleHttpBody, ioutils, HttpResponseReader, HTTPStreams};
 
     pub mod no_send {
-        use super::*;
+        use super::{Read, HttpRequestReader, SimpleHttpBody, ioutils, HttpResponseReader, HTTPStreams};
 
         pub fn request_reader<T: Read + 'static>(
             reader: T,
@@ -4839,7 +4809,7 @@ pub mod http_streams {
     }
 
     pub mod send {
-        use super::*;
+        use super::{Read, HttpRequestReader, SimpleHttpBody, ioutils, HttpResponseReader, HTTPStreams};
 
         pub fn request_reader<T: Read + 'static>(
             reader: T,
@@ -4919,12 +4889,13 @@ impl SimpleServer for FuncSimpleServer {
 pub struct ServiceActionList(Vec<ServiceAction>);
 
 impl ServiceActionList {
+    #[must_use] 
     pub fn get_one_matching2(
         &self,
         url: &SimpleUrl,
         method: SimpleMethod,
     ) -> Option<ServiceAction> {
-        for endpoint in self.0.iter() {
+        for endpoint in &self.0 {
             if endpoint.match_head2(url, method.clone()) {
                 return Some(endpoint.clone());
             }
@@ -4933,6 +4904,7 @@ impl ServiceActionList {
         None
     }
 
+    #[must_use] 
     pub fn get_matching2(
         &self,
         url: &SimpleUrl,
@@ -4940,7 +4912,7 @@ impl ServiceActionList {
     ) -> Option<Vec<ServiceAction>> {
         let mut matches = Vec::new();
 
-        for endpoint in self.0.iter() {
+        for endpoint in &self.0 {
             if !endpoint.match_head2(url, method.clone()) {
                 continue;
             }
@@ -4954,8 +4926,9 @@ impl ServiceActionList {
         Some(matches)
     }
 
+    #[must_use] 
     pub fn get_one_matching(&self, url: &str, method: SimpleMethod) -> Option<ServiceAction> {
-        for endpoint in self.0.iter() {
+        for endpoint in &self.0 {
             if endpoint.match_head(url, method.clone()) {
                 return Some(endpoint.clone());
             }
@@ -4963,10 +4936,11 @@ impl ServiceActionList {
         None
     }
 
+    #[must_use] 
     pub fn get_matching(&self, url: &str, method: SimpleMethod) -> Option<Vec<ServiceAction>> {
         let mut matches = Vec::new();
 
-        for endpoint in self.0.iter() {
+        for endpoint in &self.0 {
             if !endpoint.match_head(url, method.clone()) {
                 continue;
             }
@@ -4980,6 +4954,7 @@ impl ServiceActionList {
         Some(matches)
     }
 
+    #[must_use] 
     pub fn new(actions: Vec<ServiceAction>) -> Self {
         Self(actions)
     }
@@ -5026,10 +5001,12 @@ impl Clone for ServiceAction {
 }
 
 impl ServiceAction {
+    #[must_use] 
     pub fn builder() -> ServiceActionBuilder {
         ServiceActionBuilder::new()
     }
 
+    #[must_use] 
     pub fn match_head2(&self, url: &SimpleUrl, method: SimpleMethod) -> bool {
         if self.method != method {
             return false;
@@ -5038,6 +5015,7 @@ impl ServiceAction {
         self.route.matches_other(url)
     }
 
+    #[must_use] 
     pub fn match_head(&self, url: &str, method: SimpleMethod) -> bool {
         if self.method != method {
             return false;
@@ -5046,6 +5024,7 @@ impl ServiceAction {
         self.route.matches_url(url)
     }
 
+    #[must_use] 
     pub fn extract_match(
         &self,
         url: &str,
@@ -5089,6 +5068,7 @@ impl Default for ServiceActionBuilder {
 }
 
 impl ServiceActionBuilder {
+    #[must_use] 
     pub fn new() -> Self {
         Self {
             method: None,
@@ -5098,11 +5078,13 @@ impl ServiceActionBuilder {
         }
     }
 
+    #[must_use] 
     pub fn with_headers(mut self, headers: BTreeMap<SimpleHeader, Vec<String>>) -> Self {
         self.headers = Some(headers);
         self
     }
 
+    #[must_use] 
     pub fn with_method(mut self, method: SimpleMethod) -> Self {
         self.method = Some(method);
         self

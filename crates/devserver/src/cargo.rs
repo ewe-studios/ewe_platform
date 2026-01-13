@@ -50,6 +50,7 @@ pub struct CargoShellBuilder {
 
 // constructors
 impl CargoShellBuilder {
+    #[must_use] 
     pub fn shared(
         skip_check: bool,
         stop_on_failure: bool,
@@ -59,9 +60,9 @@ impl CargoShellBuilder {
         file_notifications: broadcast::Sender<FileChange>,
     ) -> sync::Arc<Self> {
         sync::Arc::new(Self {
-            project,
             skip_check,
             stop_on_failure,
+            project,
             trigger_notifier,
             build_notifier,
             file_notifications,
@@ -124,7 +125,7 @@ impl operators::Operator for sync::Arc<CargoShellBuilder> {
                             };
                         } else {
                             ewe_trace::info!("Non-Rust file changed, so not rebuilding");
-                        };
+                        }
                         continue;
                     },
                     _ = signal.recv() => {
@@ -143,10 +144,10 @@ impl operators::Operator for sync::Arc<CargoShellBuilder> {
 impl CargoShellBuilder {
     pub async fn build(&self) -> CargoShellResult<()> {
         // only run checks if allowed
-        if !self.skip_check {
-            self.run_checks().await?;
+        if self.skip_check {
+            ewe_trace::info!("Skipping cargo checks");
         } else {
-            ewe_trace::info!("Skipping cargo checks")
+            self.run_checks().await?;
         }
         self.run_build().await?;
         self.build_notifier.send(())?;
@@ -262,6 +263,7 @@ impl Clone for BinaryApp {
 
 // -- Constructor
 impl BinaryApp {
+    #[must_use] 
     pub fn shared(
         project: ProjectDefinition,
         build_notifications: broadcast::Sender<()>,

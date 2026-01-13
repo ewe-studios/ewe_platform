@@ -1,4 +1,4 @@
-//! Taking directly from: https://docs.rs/io-error/latest/io_error/macro.err.html
+//! Taking directly from: <https://docs.rs/io-error/latest/io_error/macro.err.html>
 //!
 //! Convenient macro for creating I/O errors.
 //!

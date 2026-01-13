@@ -1053,7 +1053,6 @@ dependencies = [
  "http-body-util",
  "hyper",
  "hyper-util",
- "rust-embed",
  "serde",
  "serde_json",
  "serde_with",
@@ -1139,8 +1138,9 @@ dependencies = [
  "ewe_templates",
  "ewe_trace",
  "foundation_core",
+ "foundation_macros",
+ "foundation_nostd",
  "rand 0.8.5",
- "rust-embed",
  "serde",
  "serde_json",
  "serde_with",
@@ -1296,7 +1296,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_ai"
-version = "0.0.3"
+version = "0.0.1"
 dependencies = [
  "foundation_nostd",
 ]

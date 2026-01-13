@@ -20,7 +20,8 @@ pub enum FsInfo {
 pub struct DirectoryInfo {
     pub index: Option<usize>,
     pub dir_name: String,
-    pub root_dir: Option<String>,
+    pub dir_path: String,
+    pub root_dir: String,
     pub date_modified_since_unix_epoc: Option<i64>,
 }
 
@@ -36,9 +37,11 @@ pub struct OwnedFileInfo {
     pub hash: String,
     pub mime_type: Option<String>,
     pub date_modified_since_unix_epoc: Option<i64>,
+    pub is_directory: bool,
 }
 
 impl OwnedFileInfo {
+    #[must_use]
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         index: Option<usize>,
@@ -51,8 +54,10 @@ impl OwnedFileInfo {
         e_tag: String,
         mime_type: Option<String>,
         date_modified: Option<i64>,
+        is_directory: bool,
     ) -> Self {
         Self {
+            is_directory,
             date_modified_since_unix_epoc: date_modified,
             source_file_path,
             package_directory,
@@ -79,9 +84,11 @@ pub struct FileInfo {
     pub hash: &'static str,
     pub mime_type: Option<&'static str>,
     pub date_modified_since_unix_epoc: Option<i64>,
+    pub is_directory: bool,
 }
 
 impl FileInfo {
+    #[must_use]
     #[allow(clippy::too_many_arguments)]
     pub const fn create(
         index: Option<usize>,
@@ -94,8 +101,10 @@ impl FileInfo {
         e_tag: &'static str,
         mime_type: Option<&'static str>,
         date_modified: Option<i64>,
+        is_directory: bool,
     ) -> Self {
         Self {
+            is_directory,
             source_file_path,
             date_modified_since_unix_epoc: date_modified,
             package_directory,
@@ -109,6 +118,7 @@ impl FileInfo {
         }
     }
 
+    #[must_use]
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         index: Option<usize>,
@@ -121,8 +131,10 @@ impl FileInfo {
         e_tag: &'static str,
         mime_type: Option<&'static str>,
         date_modified: Option<i64>,
+        is_directory: bool,
     ) -> Self {
         Self {
+            is_directory,
             date_modified_since_unix_epoc: date_modified,
             source_file_path,
             package_directory,
@@ -152,13 +164,13 @@ pub trait FileData: HasCompression {
     fn read_utf16(&self) -> Option<Vec<u8>>;
 }
 
-/// [`EmbeddableFile`] defines a trait definition in a no_std environment where
+/// [`EmbeddableFile`] defines a trait definition in a ``no_std`` environment where
 /// the underlying data of the file are brought into the source tree via direct
-/// replication of the underlying bytes for a file and basic metadata (think:
-/// date_modified, etag, and sha256 hash of file content).
+/// replication of the underlying bytes for a file and basic meta-data (think:
+/// ``date_modified``, ``etag``, and ``sha256`` hash of file content).
 pub trait EmbeddableFile: FileData {
     /// [`get_info`] returns the related information for the self
-    /// implementation of FileData.
+    /// implementation of [`FileData`].
     fn info(&self) -> &FileInfo;
 }
 
@@ -233,20 +245,47 @@ pub trait DirectoryData: HasCompression {
 pub trait EmbeddableDirectory: DirectoryData {
     const FILES_METADATA: &'static [FileInfo];
 
+    /// Setups the core function to get all registered [`FileInfo`] for the
+    /// embedded directory, you can modify this method to provide custom behaviors
+    /// which other functions in the trait use.
+    fn info_iter(&self) -> core::slice::Iter<'_, FileInfo> {
+        Self::FILES_METADATA.iter()
+    }
+
     /// [`info_for`] returns the related information for the file based on the provided
     /// source path string if it exists internal else returns None.
+    ///
+    /// All call the [`EmbeddableDirectory::info_iter`] method internally
+    /// to get the iterator.
     fn info_for(&self, source: &str) -> Option<FileInfo> {
-        Self::FILES_METADATA
-            .iter()
+        self.info_iter()
             .find(|item| item.source_path == source || item.source_path_from_parent == source)
             .cloned()
     }
 
-    // [request_utf8] returns the relevant data and information for giving file if available.
-    // with the utf8 data copied into the returned owned vec.
+    /// [`info_under_directory`] returns the related source info which are under
+    /// a giving directory.
+    ///
+    /// All call the [`EmbeddableDirectory::info_iter`] method internally
+    /// to get the iterator.
+    fn info_under_directory(&self, directory: &str) -> Vec<FileInfo> {
+        self.info_iter()
+            .filter(|item| {
+                item.source_path.starts_with(directory)
+                    || item.source_path_from_parent.starts_with(directory)
+            })
+            .cloned()
+            .collect()
+    }
+
+    /// [`request_utf8`] returns the relevant data and information for giving file if available.
+    /// with the utf8 data copied into the returned owned vec.
+    ///
+    /// All call the [`EmbeddableDirectory::info_iter`] method internally
+    /// to get the iterator.
     fn request_utf8(&self, source: &str) -> Option<(Vec<u8>, Option<FileInfo>)> {
-        match Self::FILES_METADATA
-            .iter()
+        match self
+            .info_iter()
             .find(|item| item.source_path == source || item.source_path_from_parent == source)
         {
             Some(info) => match info.index {
@@ -264,11 +303,14 @@ pub trait EmbeddableDirectory: DirectoryData {
         }
     }
 
-    // [request_utf16] returns the relevant data and information for giving file if available.
-    // with the utf16 data copied into the returned owned vec.
+    /// [`request_utf16`] returns the relevant data and information for giving file if available.
+    /// with the utf16 data copied into the returned owned vec.
+    ///
+    /// All call the [`EmbeddableDirectory::info_iter`] method internally
+    /// to get the iterator.
     fn request_utf16(&self, source: &str) -> Option<(Vec<u8>, Option<FileInfo>)> {
-        match Self::FILES_METADATA
-            .iter()
+        match self
+            .info_iter()
             .find(|item| item.source_path == source || item.source_path_from_parent == source)
         {
             Some(info) => match info.index {

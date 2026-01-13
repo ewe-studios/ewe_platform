@@ -6,6 +6,7 @@ pub struct StringPointer<'a> {
 }
 
 impl<'a> StringPointer<'a> {
+    #[must_use] 
     pub fn new(content: &'a str) -> Self {
         Self {
             content,
@@ -15,24 +16,28 @@ impl<'a> StringPointer<'a> {
     }
 
     #[inline]
+    #[must_use] 
     pub fn content(&self) -> &'a str {
         self.content
     }
 
     #[inline]
+    #[must_use] 
     pub fn is_empty(&self) -> bool {
         self.content.is_empty()
     }
 
     /// Returns the total length of the string being accumulated on.
     #[inline]
+    #[must_use] 
     pub fn len(&self) -> usize {
         self.content.len()
     }
 
-    /// peek_rem_len returns the remaining count of strings
+    /// `peek_rem_len` returns the remaining count of strings
     /// left from the current peeks's cursor.
     #[inline]
+    #[must_use] 
     pub fn peek_rem_len(&self) -> usize {
         (self.content[self.peek_pos..]).len()
     }
@@ -41,6 +46,7 @@ impl<'a> StringPointer<'a> {
     /// left from the current position's cursor
     /// regardless of where the peek cursor is at.
     #[inline]
+    #[must_use] 
     pub fn rem_len(&self) -> usize {
         (self.content[self.pos..]).len()
     }
@@ -49,10 +55,10 @@ impl<'a> StringPointer<'a> {
     /// Basically moving them to the start position.
     #[inline]
     pub fn reset(&mut self) {
-        self.reset_to(0)
+        self.reset_to(0);
     }
 
-    /// reset_to lets you reset the position of the cursor for both
+    /// `reset_to` lets you reset the position of the cursor for both
     /// position and peek to the to value.
     #[inline]
     pub fn reset_to(&mut self, to: usize) {
@@ -64,7 +70,7 @@ impl<'a> StringPointer<'a> {
     /// the current position of the peek cursor.
     #[inline]
     pub fn skip(&mut self) {
-        self.pos = self.peek_pos
+        self.pos = self.peek_pos;
     }
 
     /// peek pulls the next token at the current peek position
@@ -74,7 +80,7 @@ impl<'a> StringPointer<'a> {
         self.peek_slice(by)
     }
 
-    /// peek_next allows you to increment the peek cursor, moving
+    /// `peek_next` allows you to increment the peek cursor, moving
     /// the peek cursor forward by a mount of step and returns the next
     /// token string.
     #[cfg_attr(feature = "debug_trace", tracing::instrument(level = "trace"))]
@@ -104,7 +110,7 @@ impl<'a> StringPointer<'a> {
         Some(&self.content[self.pos..self.peek_pos])
     }
 
-    /// peek_next allows you to increment the peek cursor, moving
+    /// `peek_next` allows you to increment the peek cursor, moving
     /// the peek cursor forward by a step and returns the next
     /// token string.
     #[cfg_attr(feature = "debug_trace", tracing::instrument(level = "trace"))]
@@ -117,7 +123,7 @@ impl<'a> StringPointer<'a> {
         None
     }
 
-    /// unpeek_next reverses the last forward move of the peek
+    /// `unpeek_next` reverses the last forward move of the peek
     /// cursor by -1.
     #[cfg_attr(feature = "debug_trace", tracing::instrument(level = "trace"))]
     #[inline]
@@ -128,7 +134,7 @@ impl<'a> StringPointer<'a> {
         None
     }
 
-    /// unpeek_slice lets you reverse the peek cursor position
+    /// `unpeek_slice` lets you reverse the peek cursor position
     /// by a certain amount to reverse the forward movement.
     #[cfg_attr(feature = "debug_trace", tracing::instrument(level = "trace"))]
     #[inline]
@@ -147,7 +153,7 @@ impl<'a> StringPointer<'a> {
         Some(&self.content[self.peek_pos..new_peek_pos])
     }
 
-    /// ppeek_at allows you to do a non-permant position cursor adjustment
+    /// `ppeek_at` allows you to do a non-permant position cursor adjustment
     /// by taking the current position cursor index with an adjustment
     /// where we add the `from` (pos + from) to get the new
     /// position to start from and `to` is added (pos + from + to)
@@ -175,10 +181,10 @@ impl<'a> StringPointer<'a> {
         Some(&self.content[new_peek_pos..until_pos])
     }
 
-    /// vpeek_at allows you to do a non-permant peek cursor adjustment
+    /// `vpeek_at` allows you to do a non-permant peek cursor adjustment
     /// by taking the current peek cursor position with an adjustment
-    /// where we add the `from` (peek_cursor + from) to get the new
-    /// position to start from and `to` is added (peek_cursor + from + to)
+    /// where we add the `from` (`peek_cursor` + from) to get the new
+    /// position to start from and `to` is added (`peek_cursor` + from + to)
     /// the position to end at, if the total is more than the length of the string
     /// then its adjusted to be the string last index for the slice.
     ///
@@ -240,7 +246,7 @@ impl<'a> StringPointer<'a> {
         next_index
     }
 
-    /// peek_slice allows you to peek forward by an amount
+    /// `peek_slice` allows you to peek forward by an amount
     /// from the current peek cursor position.
     ///
     /// If we've exhausted the total string slice left or are trying to
@@ -260,7 +266,7 @@ impl<'a> StringPointer<'a> {
     /// take returns the total string slice from the
     /// actual accumulators position cursor til the current
     /// peek cursor position with adjustment on `by` amount i.e
-    /// str[position_cursor..(peek_cursor + by_value)].
+    /// str[`position_cursor..(peek_cursor` + `by_value`)].
     ///
     /// Allow you to collect the whole slice of strings that have been
     /// checked and peeked through.
@@ -324,9 +330,9 @@ impl<'a> StringPointer<'a> {
         res
     }
 
-    /// take_positional returns the total string slice from the
+    /// `take_positional` returns the total string slice from the
     /// actual accumulators position cursor til the current
-    /// peek cursor position i.e str[position_cursor...peek_cursor].
+    /// peek cursor position i.e str[`position_cursor...peek_cursor`].
     /// Allow you to collect the whole slice of strings that have been
     /// checked and peeked through.
     #[inline]
@@ -336,7 +342,7 @@ impl<'a> StringPointer<'a> {
 
     /// take returns the total string slice from the
     /// actual accumulators position cursor til the current
-    /// peek cursor position i.e str[position_cursor...peek_cursor].
+    /// peek cursor position i.e str[`position_cursor...peek_cursor`].
     /// Allow you to collect the whole slice of strings that have been
     /// checked and peeked through.
     #[inline]

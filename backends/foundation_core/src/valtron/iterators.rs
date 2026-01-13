@@ -1,6 +1,6 @@
 use super::types::AnyResult;
 
-/// CloneableBoxIterator is a type definition for an Iterator that can safely be
+/// `CloneableBoxIterator` is a type definition for an Iterator that can safely be
 /// sent across threads safely and easily. Requiring the underlying generic
 /// type to be `Send` but not `Sync`.
 ///
@@ -20,7 +20,7 @@ pub type CloneableVecIterator<E> = CloneableBoxIterator<Vec<u8>, E>;
 pub type CloneableStringIterator<E> = CloneableBoxIterator<String, E>;
 pub type CloneableByteIterator<'a, E> = CloneableBoxIterator<&'a [u8], E>;
 
-/// CloneableIterator defines a trait which requires the implementing type to
+/// `CloneableIterator` defines a trait which requires the implementing type to
 /// be Send and Cloneable this allows you to have a implementing type that can
 /// safely be cloned and wholly send across a thread into another without having
 /// to juggle the usual complainst of requiring the type to also be sync.
@@ -28,14 +28,14 @@ pub trait CloneableIterator: Iterator {
     fn clone_box_iterator(&self) -> Box<dyn CloneableIterator<Item = Self::Item>>;
 }
 
-/// CloneableSendBoxIterator is a type definition for an Iterator that can safely be
+/// `CloneableSendBoxIterator` is a type definition for an Iterator that can safely be
 /// sent across threads safely and easily. Requiring the underlying generic
 /// type to be `Send` but not `Sync`.
 ///
 /// This is intended for owned types where the receiving thread owns the object fully.
 pub type CloneableSendBoxIterator<T, E> = Box<dyn CloneableSendIterator<Item = AnyResult<T, E>>>;
 
-/// CloneableIterator that can be Send
+/// `CloneableIterator` that can be Send
 pub trait CloneableSendIterator: Iterator + Send {
     fn clone_box_send_iterator(&self) -> Box<dyn CloneableSendIterator<Item = Self::Item>>;
 }
@@ -77,12 +77,13 @@ impl<T: 'static> Clone for Box<dyn CloneableIterator<Item = T>> {
     }
 }
 
-/// CanCloneIterator provides a wrapper that lets you outrigt deal with
-/// situations where the compiler wants your ClonbableIterator implementing
+/// `CanCloneIterator` provides a wrapper that lets you outrigt deal with
+/// situations where the compiler wants your `ClonbableIterator` implementing
 /// type to directly implement Clone.
 pub struct CanCloneIterator<T>(Box<dyn CloneableIterator<Item = T>>);
 
 impl<T> CanCloneIterator<T> {
+    #[must_use] 
     pub fn new(elem: Box<dyn CloneableIterator<Item = T>>) -> Self {
         Self(elem)
     }
@@ -105,6 +106,7 @@ impl<T> Iterator for CanCloneIterator<T> {
 pub struct CanCloneSendIterator<T>(Box<dyn CloneableSendIterator<Item = T>>);
 
 impl<T> CanCloneSendIterator<T> {
+    #[must_use] 
     pub fn new(elem: Box<dyn CloneableSendIterator<Item = T>>) -> Self {
         Self(elem)
     }
@@ -124,17 +126,17 @@ impl<T> Iterator for CanCloneSendIterator<T> {
     }
 }
 
-/// [BoxedIterator] defines a type alias for a boxed iterator that always returns a object of type
+/// [`BoxedIterator`] defines a type alias for a boxed iterator that always returns a object of type
 /// [`T`].
 pub type BoxedIterator<T> = Box<dyn Iterator<Item = T>>;
 
-/// [BoxedResultIterator] defines a type alias for a boxed iterator that always returns a Result object.
+/// [`BoxedResultIterator`] defines a type alias for a boxed iterator that always returns a Result object.
 pub type BoxedResultIterator<T, E> = BoxedIterator<AnyResult<T, E>>;
 
 /// Boxed iterator of Strings.
 pub type StringBoxedIterator<E> = BoxedResultIterator<String, E>;
 
-/// SendableIterator that can be Send and implements iterator.
+/// `SendableIterator` that can be Send and implements iterator.
 pub trait SendableIterator<T>: Iterator<Item = T> + Send {}
 
 pub type SendableBoxIterator<T, E> = Box<dyn SendableIterator<AnyResult<T, E>>>;
@@ -160,6 +162,7 @@ pub struct TransformSendIterator<T: Send, V: Send> {
 }
 
 impl<T: Send, V: Send> TransformSendIterator<T, V> {
+    #[must_use] 
     pub fn new(
         tn: Box<dyn Fn(T) -> Option<V> + Send + 'static>,
         source: Box<dyn SendableIterator<T>>,
@@ -190,6 +193,7 @@ pub struct TransformIterator<T, V> {
 }
 
 impl<T, V> TransformIterator<T, V> {
+    #[must_use] 
     pub fn new(tn: Box<dyn Fn(T) -> Option<V>>, source: BoxedIterator<T>) -> Self {
         Self {
             transformer: tn,

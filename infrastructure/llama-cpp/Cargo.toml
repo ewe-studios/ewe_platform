@@ -49,6 +49,6 @@ workspace = true
 [package.metadata.docs.rs]
 features = ["sampler"]
 
-# [[example]]
-# name = "usage"
-# path = "../examples/usage.rs"
+[[example]]
+name = "usage"
+path = "examples/usage.rs"

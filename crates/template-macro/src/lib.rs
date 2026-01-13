@@ -155,8 +155,7 @@ impl Parse for TemplateTag {
         let lang = lang_ident.to_string();
 
         if let Err(err) = match lang.as_str() {
-            "jinja" => Ok(()),
-            "tiny" => Ok(()),
+            "jinja" | "tiny" => Ok(()),
             _ => Err(input.error(format!(
                 "'{lang}' is not a supported (jinja, tiny) template language"
             ))),
