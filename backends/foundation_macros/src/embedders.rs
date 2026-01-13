@@ -146,16 +146,15 @@ fn get_attr(ast: &syn::DeriveInput, attr_name: &str) -> Option<String> {
 }
 
 fn find_root_cargo(
-    manifest_dir: PathBuf,
+    manifest_dir: &Path,
     previous_dir: Option<PathBuf>,
 ) -> Option<(PathBuf, PathBuf)> {
     if let Ok(true) = fs::exists(manifest_dir.join("Cargo.toml")) {
         return find_root_cargo(
             manifest_dir
                 .parent()
-                .expect("path to have parent")
-                .to_owned(),
-            Some(manifest_dir.clone()),
+                .expect("path to have parent"),
+            Some(manifest_dir.to_owned()),
         );
     }
 
@@ -163,9 +162,8 @@ fn find_root_cargo(
         return find_root_cargo(
             manifest_dir
                 .parent()
-                .expect("path to have parent")
-                .to_owned(),
-            Some(manifest_dir.clone()),
+                .expect("path to have parent"),
+            Some(manifest_dir.to_owned()),
         );
     }
 
@@ -227,7 +225,7 @@ fn impl_embeddable_file(
     let manifest_dir = Path::new(&cargo_manifest_dir_env);
     let working_dir = env::current_dir().expect("get current working directory");
 
-    let (root_workspace, _) = find_root_cargo(manifest_dir.to_owned(), None)
+    let (root_workspace, _) = find_root_cargo(manifest_dir, None)
         .expect("heuristically identify root workspace or crate");
 
     let root_workspace_str = root_workspace.to_str().unwrap_or_else(|| {
@@ -262,7 +260,7 @@ fn impl_embeddable_file(
         .expect("should be from home directory");
 
     let embeddable_file =
-        get_file(embed_file_path.clone(), with_utf16).expect("Failed to generate file embeddings");
+        get_file(&embed_file_path, with_utf16).expect("Failed to generate file embeddings");
 
     // let target_file_abs_tokens = Literal::string(embed_file_path.as_str());
     let target_file_tokens = Literal::string(
@@ -467,10 +465,10 @@ fn impl_embeddable_file(
                     }
                 }
             } else {
-                let utf8_token_tree = UTF8Vec(gzipped_vec(embeddable_file.data));
+                let utf8_token_tree = UTF8Vec(gzipped_vec(&embeddable_file.data));
                 let utf16_token_tree = embeddable_file
                     .data_utf16
-                    .map(|data| UTF8Vec(gzipped_vec(data)))
+                    .map(|data| UTF8Vec(gzipped_vec(&data)))
                     .map_or(quote! {None}, |v| quote! { Some(#v)});
 
                 quote! {
@@ -568,10 +566,10 @@ fn impl_embeddable_file(
                     }
                 }
             } else {
-                let utf8_token_tree = UTF8Vec(brottli_vec(embeddable_file.data));
+                let utf8_token_tree = UTF8Vec(brottli_vec(&embeddable_file.data));
                 let utf16_token_tree = embeddable_file
                     .data_utf16
-                    .map(|data| UTF8Vec(brottli_vec(data)))
+                    .map(|data| UTF8Vec(brottli_vec(&data)))
                     .map_or(quote! {None}, |v| quote! { Some(#v)});
 
                 quote! {
@@ -636,7 +634,7 @@ fn impl_embeddable_directory(
     let manifest_dir = Path::new(&cargo_manifest_dir_env);
     let working_dir = env::current_dir().expect("get current working directory");
 
-    let (root_workspace, _) = find_root_cargo(manifest_dir.to_owned(), None)
+    let (root_workspace, _) = find_root_cargo(manifest_dir, None)
         .expect("heuristically identify root workspace or crate");
 
     let root_workspace_str = root_workspace.to_str().unwrap_or_else(|| {
@@ -681,7 +679,7 @@ fn impl_embeddable_directory(
     };
 
     let embedded_date_modified =
-        get_file_modified_date(embed_directory_path.clone()).expect("get modified date");
+        get_file_modified_date(&embed_directory_path);
     let embedded_date_modified_tokens = if let Some(inner) = embedded_date_modified {
         quote! {
             Some(#inner)
@@ -692,7 +690,7 @@ fn impl_embeddable_directory(
         }
     };
 
-    let embedded_directory_name = get_file_name(embed_directory_path.clone());
+    let embedded_directory_name = get_file_name(&embed_directory_path);
     let embedded_directory_name_literal = Literal::string(embedded_directory_name.as_str());
 
     // let embedded_directory_root = embed_directory_path.parent();
@@ -723,7 +721,7 @@ fn impl_embeddable_directory(
             .map(|item| match item {
                 FsInfo::File(info) => {
                     let source_file_path = PathBuf::from(info.source_file_path.clone());
-                    let file_data = get_file(source_file_path, with_utf16)
+                    let file_data = get_file(&source_file_path, with_utf16)
                         .expect("Failed to generate file embeddings");
 
                     let file_index =
@@ -1112,7 +1110,7 @@ fn impl_embeddable_directory(
         .map(|item| match item {
             FsInfo::File(info) => {
                 let source_file_path = PathBuf::from(info.source_file_path.clone());
-                let file_data = get_file(source_file_path, with_utf16)
+                let file_data = get_file(&source_file_path, with_utf16)
                     .expect("Failed to generate file embeddings");
 
                 let file_index = Literal::usize_unsuffixed(info.index.expect("should have index"));
@@ -1181,10 +1179,10 @@ fn impl_embeddable_directory(
                         )
                     }
                     DataCompression::GZIP => {
-                        let utf8_token_tree = UTF8Vec(gzipped_vec(file_data.data));
+                        let utf8_token_tree = UTF8Vec(gzipped_vec(&file_data.data));
                         let utf16_token_tree = file_data
                             .data_utf16
-                            .map(|data| UTF8Vec(gzipped_vec(data)))
+                            .map(|data| UTF8Vec(gzipped_vec(&data)))
                             .map_or(quote! {None}, |v| quote! { Some(#v)});
 
                         (
@@ -1215,10 +1213,10 @@ fn impl_embeddable_directory(
                         )
                     }
                     DataCompression::BROTTLI => {
-                        let utf8_token_tree = UTF8Vec(brottli_vec(file_data.data));
+                        let utf8_token_tree = UTF8Vec(brottli_vec(&file_data.data));
                         let utf16_token_tree = file_data
                             .data_utf16
-                            .map(|data| UTF8Vec(brottli_vec(data)))
+                            .map(|data| UTF8Vec(brottli_vec(&data)))
                             .map_or(quote! {None}, |v| quote! { Some(#v)});
 
                         (
@@ -1311,9 +1309,9 @@ fn visit_dirs(collected: &mut Vec<FsInfo>, dir: &Path, root_dir: &Path, index: u
     if dir.is_dir() {
         let root_parent = root_dir.parent().expect("get root dir");
         let dir_path_string = String::from(dir.to_str().expect("get string"));
-        let dir_name = get_file_name(dir.to_path_buf());
+        let dir_name = get_file_name(dir);
         let dir_date_modified =
-            get_file_modified_date(dir.to_path_buf()).expect("get modified date");
+            get_file_modified_date(dir);
 
         let directory_relative_path = dir
             .strip_prefix(root_dir)
@@ -1341,9 +1339,9 @@ fn visit_dirs(collected: &mut Vec<FsInfo>, dir: &Path, root_dir: &Path, index: u
         for entry in fs::read_dir(dir).expect("to read path") {
             let entry = entry.expect("resolve entry");
 
-            let date_modified = get_file_modified_date(entry.path()).expect("get modified date");
+            let date_modified = get_file_modified_date(entry.path().as_path());
             let file_path_string = String::from(entry.path().to_str().expect("get string"));
-            let file_name = get_file_name(entry.path());
+            let file_name = get_file_name(entry.path().as_path());
 
             let entry_path = entry.path();
 
@@ -1363,7 +1361,7 @@ fn visit_dirs(collected: &mut Vec<FsInfo>, dir: &Path, root_dir: &Path, index: u
                     String::from(file_directory_relative.to_str().expect("get path"));
                 let file_parent_relative_str =
                     String::from(file_directory_parent_relative.to_str().expect("get path"));
-                let file_hash = get_file_hash(entry.path()).expect("generate hash");
+                let file_hash = get_file_hash(entry.path().as_path()).expect("generate hash");
                 let file_etag = format!("\"{}\"", &file_hash);
                 let file_mime_type = MimeGuess::from_path(entry.path())
                     .first()
@@ -1399,20 +1397,20 @@ struct EmbeddableFile {
     pub date_modified: Option<i64>,
 }
 
-fn get_file_name(target_file: PathBuf) -> String {
+fn get_file_name(target_file: &Path) -> String {
     target_file
         .file_name()
         .map(|value| String::from(value.to_str().expect("to create str")))
         .expect("should be string")
 }
 
-fn get_file_modified_date(target_file: PathBuf) -> Result<Option<i64>, GenError> {
+fn get_file_modified_date(target_file: &Path) -> Option<i64> {
     let file_metadata = target_file.metadata().expect("ensure to retrieve metadata");
-    Ok(modified_unix_timestamp(&file_metadata))
+    modified_unix_timestamp(&file_metadata)
 }
 
-fn get_file_hash(target_file: PathBuf) -> Result<String, GenError> {
-    let mut file = fs::File::open(&target_file).map_err(|err| GenError::Any(Box::new(err)))?;
+fn get_file_hash(target_file: &Path) -> Result<String, GenError> {
+    let mut file = fs::File::open(target_file).map_err(|err| GenError::Any(Box::new(err)))?;
 
     let mut file_content: Vec<u8> = Vec::new();
     file.read_to_end(&mut file_content)
@@ -1421,8 +1419,8 @@ fn get_file_hash(target_file: PathBuf) -> Result<String, GenError> {
     Ok(generate_hash(&file_content))
 }
 
-fn get_file(target_file: PathBuf, with_utf16: bool) -> Result<EmbeddableFile, GenError> {
-    let mut file = fs::File::open(&target_file).map_err(|err| GenError::Any(Box::new(err)))?;
+fn get_file(target_file: &Path, with_utf16: bool) -> Result<EmbeddableFile, GenError> {
+    let mut file = fs::File::open(target_file).map_err(|err| GenError::Any(Box::new(err)))?;
 
     let mut file_content: Vec<u8> = Vec::new();
     file.read_to_end(&mut file_content)
@@ -1451,7 +1449,7 @@ fn get_file(target_file: PathBuf, with_utf16: bool) -> Result<EmbeddableFile, Ge
         .metadata()
         .map_err(|err| GenError::Any(Box::new(err)))?;
 
-    let file_mime_type = MimeGuess::from_path(&target_file)
+    let file_mime_type = MimeGuess::from_path(target_file)
         .first()
         .map(|v| v.to_string());
     let date_modified = modified_unix_timestamp(&file_metadata);
@@ -1518,15 +1516,15 @@ impl ToTokens for UTF8List<'_> {
     }
 }
 
-fn gzipped_vec(data: Vec<u8>) -> Vec<u8> {
+fn gzipped_vec(data: &[u8]) -> Vec<u8> {
     let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
-    encoder.write_all(data.as_slice()).expect("written data");
+    encoder.write_all(data).expect("written data");
     encoder.finish().expect("should finish encoding")
 }
 
-fn brottli_vec(data: Vec<u8>) -> Vec<u8> {
+fn brottli_vec(data: &[u8]) -> Vec<u8> {
     let mut writer = brotli::CompressorWriter::new(Vec::new(), 4096, 11, 22);
-    writer.write_all(data.as_slice()).expect("written data");
+    writer.write_all(data).expect("written data");
     writer.flush().expect("flushed data");
     writer.into_inner()
 }
