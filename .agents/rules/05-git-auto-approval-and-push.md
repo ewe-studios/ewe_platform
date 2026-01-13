@@ -393,9 +393,105 @@ All agents **MUST**:
 - Follow the complete workflow for every change
 - Treat automatic push as non-negotiable
 
+### Main Agent Push Verification Responsibility (CRITICAL)
+
+**MANDATORY**: The Main Agent **MUST** verify that sub-agents have pushed after committing.
+
+**Main Agent Responsibilities**:
+
+When Main Agent commits code (after verification passes per Rule 04):
+1. ✅ **Execute commit and push**:
+   ```bash
+   git add [files]
+   git commit -m "[message]"
+   git status  # Verify commit succeeded
+   git push    # Push to remote
+   ```
+2. ✅ **Verify push succeeded** (check for errors)
+3. ✅ **Confirm push in report** to user
+
+When Main Agent receives completion report from sub-agent:
+1. ✅ **Check if sub-agent pushed** to remote
+2. ✅ **If push confirmed**: Proceed to next step
+3. ✅ **If push NOT confirmed**:
+   - **STOP workflow immediately**
+   - **Verify git status**: Check if commits exist locally but not pushed
+   - **IF unpushed commits exist**:
+     - Spawn or resume the sub-agent
+     - **Explicitly remind**: "You must git push immediately per Rule 05"
+     - Wait for sub-agent to push
+     - Verify push succeeded
+   - **THEN continue workflow**
+
+**Detection Methods**:
+
+Main Agent can detect unpushed commits by:
+```bash
+# Check if local branch is ahead of remote
+git status
+# Output: "Your branch is ahead of 'origin/main' by N commits"
+
+# Or check unpushed commits directly
+git log origin/main..HEAD
+# Output shows commits not yet pushed
+```
+
+**Enforcement Scenarios**:
+
+**Scenario 1: Sub-agent reports completion without mentioning push**
+```
+Sub-agent: "Task completed. Files changed: [list]. Implementation done."
+
+Main Agent MUST:
+1. Check: "Did you git push?"
+2. If not mentioned, verify git status
+3. If unpushed commits detected, remind: "You must git push per Rule 05"
+4. Wait for push confirmation
+```
+
+**Scenario 2: Sub-agent commits but doesn't push**
+```
+Sub-agent: "Changes committed successfully."
+
+Main Agent MUST:
+1. Immediately ask: "Did you git push?"
+2. If no: "You must git push immediately per Rule 05"
+3. If yes: "Confirm push with git status output"
+4. Verify before proceeding
+```
+
+**Scenario 3: Sub-agent says "push failed"**
+```
+Sub-agent: "Commit succeeded but push failed due to [error]"
+
+Main Agent MUST:
+1. Review error (network issue? merge conflict?)
+2. If recoverable error:
+   - Guide sub-agent to resolve
+   - Ensure push succeeds before proceeding
+3. If unrecoverable:
+   - Report to user
+   - Note: Changes are safe locally
+```
+
+**Main Agent MUST NOT**:
+- ❌ Accept completion reports without push confirmation
+- ❌ Proceed to next task if commits are unpushed
+- ❌ Assume sub-agent pushed without verification
+- ❌ Skip push verification to save time
+
+**Why This Matters**:
+- Unpushed commits risk data loss
+- Remote backup is critical for collaboration
+- CI/CD pipelines need pushed commits
+- Team visibility requires remote updates
+- Rule 05 compliance depends on Main Agent enforcement
+
 ### Violations
 
 Any of the following constitutes a serious violation:
+
+**Sub-Agent Violations**:
 - Asking for approval before commit or push
 - Not pushing after successful commit
 - Using any forbidden git operation
@@ -403,6 +499,13 @@ Any of the following constitutes a serious violation:
 - Batching multiple commits before pushing
 - Skipping push after commit verification
 - Any attempt to rewrite or destroy git history
+
+**Main Agent Violations**:
+- ❌ Accepting completion reports without verifying push
+- ❌ Proceeding to next task when commits are unpushed
+- ❌ Not checking git status to detect unpushed commits
+- ❌ Failing to remind sub-agent to push when violation detected
+- ❌ Skipping push verification to save time
 
 ### Corrective Action
 
@@ -531,12 +634,21 @@ When rules conflict (they shouldn't):
 **Key Points**:
 - ✅ Automatic approval - no confirmation needed
 - ✅ Automatic push after every commit
+- ✅ **Main Agent MUST verify sub-agents pushed**
+- ✅ **Main Agent MUST remind sub-agents if push missing**
 - ✅ Only safe, non-destructive operations allowed
 - ❌ Never ask for approval
+- ❌ Never proceed with unpushed commits
 - ❌ Never use force push
 - ❌ Never use hard reset
 - ❌ Never rewrite history
 
+**Main Agent Responsibilities**:
+- Verify sub-agent push confirmation in completion reports
+- Check git status to detect unpushed commits
+- Spawn/remind sub-agent to push if commits unpushed
+- Never proceed to next task until push confirmed
+
 ---
 *Created: 2026-01-11*
-*Last Updated: 2026-01-11*
+*Last Updated: 2026-01-13 (Added Main Agent push verification responsibility)*

@@ -72,18 +72,71 @@ Each implementation agent **MUST**:
 5. ✅ Understand what to build and standards to follow
 
 **During Work**:
-1. ✅ Write code following stack standards
-2. ✅ Follow all conventions and best practices
-3. ✅ Write tests for new functionality
-4. ✅ Keep track of what was changed
+
+**MANDATORY: Test-Driven Development (TDD) Workflow**
+
+Implementation agents **MUST** follow TDD whenever possible:
+
+1. ✅ **Write the test FIRST** (before implementation code)
+   - Write test with WHY/WHAT documentation
+   - Test describes the expected behavior
+   - Test should be specific to one requirement/behavior
+
+2. ✅ **Verify test FAILS** for the right reason
+   - Run the test to confirm it fails
+   - Ensure failure message indicates missing functionality (not syntax errors)
+   - If test passes before implementation, the test is wrong or feature already exists
+
+3. ✅ **Implement minimum code** to make test pass
+   - Write simplest code that satisfies the test
+   - Follow stack standards and code simplicity principles
+   - Don't over-engineer or add functionality not tested
+
+4. ✅ **Verify test PASSES**
+   - Run the test to confirm it now passes
+   - Ensure implementation actually fixed the failure
+
+5. ✅ **Refactor if needed** (while keeping test green)
+   - Simplify code if possible
+   - Apply DRY where it improves clarity
+   - Ensure test still passes after refactoring
+
+6. ✅ **Repeat cycle** for next test/requirement
+   - Continue until all task requirements are implemented
+   - Each cycle: Write test → Red → Implement → Green → Refactor
+
+**TDD Benefits**:
+- Tests prove code works before you write it
+- Tests document requirements as executable specifications
+- Prevents over-engineering (only write what's tested)
+- Catches regressions immediately
+- Makes refactoring safer (tests catch breakage)
+
+**When TDD May Not Apply**:
+- Exploratory/spike work where requirements are unclear
+- Refactoring existing code with good test coverage
+- Fixing build/infrastructure issues
+- In these cases: Write tests DURING implementation, not after
+
+**TDD Enforcement**:
+- ✅ Follow TDD cycle whenever implementing new functionality
+- ✅ Document test-first approach in completion report
+- ❌ **USER WILL SHOUT AT YOU** for writing implementation before tests
+- ❌ **USER WILL SHOUT AT YOU** for not verifying tests fail first
+
+**After TDD Cycles Complete**:
+1. ✅ Follow all conventions and best practices
+2. ✅ Keep track of what was changed
 
 **After Completing Work**:
-1. ✅ **REPORT to Main Agent** (NEVER commit directly)
-2. ✅ Provide list of changed files
-3. ✅ Describe what was implemented
-4. ✅ Note which language(s) were used
-5. ✅ Reference specification if applicable
-6. ✅ **STOP and WAIT** for Main Agent
+1. ✅ **SELF-REVIEW implementation quality** (see Critical Self-Review section below)
+2. ✅ **Document learnings** (see Learning Documentation section below)
+3. ✅ **REPORT to Main Agent** (NEVER commit directly)
+4. ✅ Provide list of changed files
+5. ✅ Describe what was implemented
+6. ✅ Note which language(s) were used
+7. ✅ Reference specification if applicable
+8. ✅ **STOP and WAIT** for Main Agent
 
 **Implementation Agent MUST NOT**:
 - ❌ Commit code directly
@@ -92,6 +145,486 @@ Each implementation agent **MUST**:
 - ❌ Skip reporting to Main Agent
 - ❌ Proceed without Main Agent approval
 - ❌ **Spawn verification agents** (ONLY Main Agent has this authority)
+
+#### Test Documentation Requirements (MANDATORY)
+
+**CRITICAL**: Every test MUST include documentation explaining why it exists.
+
+**Why This Matters**:
+- Future agents need to understand test purpose and importance
+- Prevents accidental deletion of critical tests
+- Makes debugging test failures faster
+- Documents edge cases and business rules directly where they're tested
+- **Avoids polluting learnings.md with task-specific test details**
+
+**Test Documentation Format** (Language-Agnostic):
+
+All tests MUST include a comment block explaining:
+1. **Why**: Why this test exists (what problem/bug/requirement does it validate)
+2. **What**: What specific behavior is being tested
+3. **Importance**: Why this test matters (optional but recommended for critical tests)
+
+**Format Examples by Stack**:
+
+**Rust**:
+```rust
+/// WHY: Validates token expiration at exactly midnight (edge case from bug #234)
+/// WHAT: Token with midnight expiry should be treated as expired
+/// IMPORTANCE: Without this, users could access system for extra day after expiry
+#[test]
+fn test_token_expiry_at_midnight() {
+    let token = create_token_with_expiry("2024-01-15T00:00:00Z");
+    assert!(is_expired(&token));
+}
+
+/// WHY: Ensures connection pool doesn't deadlock under high load (production incident 2024-01-10)
+/// WHAT: Spawning 100 concurrent requests should not exhaust pool or deadlock
+#[tokio::test]
+async fn test_connection_pool_under_load() {
+    let handles: Vec<_> = (0..100)
+        .map(|_| tokio::spawn(async { db::query("SELECT 1").await }))
+        .collect();
+
+    for handle in handles {
+        assert!(handle.await.is_ok());
+    }
+}
+```
+
+**TypeScript/JavaScript**:
+```typescript
+/**
+ * WHY: User profile images must be resized before upload (requirement from PM)
+ * WHAT: Uploading 4K image should automatically resize to 512x512
+ * IMPORTANCE: Prevents S3 cost explosion (4K images are 10x larger)
+ */
+test('should resize large images before upload', async () => {
+  const largeImage = createMockImage(3840, 2160);
+  const result = await uploadUserProfile(largeImage);
+
+  expect(result.dimensions).toEqual({ width: 512, height: 512 });
+});
+
+/**
+ * WHY: Rate limiter must track per-IP, not per-user (security requirement)
+ * WHAT: Same IP with different users should hit rate limit
+ * IMPORTANCE: Prevents distributed brute-force attacks
+ */
+test('rate limiter tracks by IP address', async () => {
+  const ip = '192.168.1.1';
+
+  for (let i = 0; i < 100; i++) {
+    await makeRequest({ ip, user: `user_${i}` });
+  }
+
+  await expect(makeRequest({ ip, user: 'another_user' }))
+    .rejects.toThrow('Rate limit exceeded');
+});
+```
+
+**Python**:
+```python
+def test_token_expiry_at_midnight():
+    """
+    WHY: Validates token expiration at exactly midnight (edge case from bug #234)
+    WHAT: Token with midnight expiry should be treated as expired
+    IMPORTANCE: Without this, users could access system for extra day after expiry
+    """
+    token = create_token_with_expiry("2024-01-15T00:00:00Z")
+    assert is_expired(token)
+
+def test_webhook_fires_after_db_commit():
+    """
+    WHY: Webhook must fire AFTER db commit, not before (data consistency requirement)
+    WHAT: If db commit fails, webhook should not be sent
+    IMPORTANCE: Prevents webhook notifications for data that doesn't exist in DB
+    """
+    with mock.patch('db.commit', side_effect=DBError):
+        with pytest.raises(DBError):
+            process_payment(payment_data)
+
+    # Webhook should NOT have been called
+    assert mock_webhook.call_count == 0
+```
+
+**Documentation Guidelines**:
+
+✅ **DO**:
+- Write concise comments (2-4 lines for WHY/WHAT, 1 line for IMPORTANCE)
+- Reference bug numbers, tickets, or production incidents when relevant
+- Explain business rules and edge cases
+- Document non-obvious test requirements
+- Use plain language (avoid jargon)
+
+❌ **DON'T**:
+- Write obvious comments ("tests that addition works")
+- Repeat what the code already says
+- Write essays (keep it brief and scannable)
+- Document in learnings.md what should be in test comments
+- Omit the "WHY" (this is the most important part!)
+
+**What Goes in Test Comments vs learnings.md**:
+
+**Test Comments** (task-specific, narrow focus):
+- Why THIS specific test exists
+- What THIS test validates
+- Edge cases for THIS feature
+- References to specific bugs/tickets
+- Business rules for THIS functionality
+
+**learnings.md** (bigger picture, broader insights):
+- Patterns that work across multiple tests
+- Common testing pitfalls for this specification
+- Testing strategies that proved effective
+- Non-obvious testing insights that apply broadly
+
+**Example Decision Tree**:
+```
+"We discovered token expiry at midnight causes issues"
+├─ Test comment: "WHY: Validates token expiration at exactly midnight (bug #234)"
+└─ learnings.md: "Must test time-boundary edge cases (midnight, year rollover, DST changes)"
+
+"Webhook must fire after DB commit"
+├─ Test comment: "WHY: Webhook fires AFTER db commit (data consistency requirement)"
+└─ learnings.md: "Always test failure paths to ensure no side effects when operations fail"
+```
+
+**Enforcement**:
+
+Implementation agents MUST:
+- ✅ Add WHY/WHAT comments to every test
+- ✅ Keep comments concise (2-5 lines total)
+- ✅ Focus learnings.md on broader patterns, not individual test details
+- ❌ **USER WILL SHOUT AT YOU** for tests without documentation
+- ❌ **USER WILL SHOUT AT YOU** for polluting learnings.md with task-specific test details
+
+#### Critical Self-Review Before Reporting Completion
+
+**MANDATORY**: Before reporting completion to Main Agent, implementation agents **MUST** perform a thorough self-review to ensure quality and completeness.
+
+**Self-Review Checklist** (ALL items MUST pass):
+
+1. ✅ **Completeness Check**:
+   - Implementation fully satisfies the task requirements
+   - All requirements from requirements.md are met
+   - No partial or incomplete implementations
+   - No placeholder/fake code that looks complete but isn't functional
+
+2. ✅ **Code Quality Check**:
+   - Logic is clear, coherent, and not confusing
+   - Code follows stack conventions (from `.agents/stacks/[language].md`)
+   - No misleading variable names or functions
+   - Proper error handling implemented
+   - Edge cases considered and handled
+
+3. ✅ **Code Simplicity and Clarity Check** (CRITICAL):
+   - **Ask yourself: Can this code be simplified further?**
+   - Break down overly nested functions (max 2-3 levels of nesting)
+   - Extract complex logic into well-named helper functions
+   - Function size: Keep functions small and focused (prefer 20-30 lines max)
+   - **DRY (Don't Repeat Yourself) vs Clarity Trade-off**:
+     * ✅ Use DRY when it improves clarity and reduces complexity
+     * ✅ It's OK to duplicate small logic (2-5 lines) if abstraction adds complexity
+     * ✅ Prefer inline clarity over forced abstraction
+     * ❌ Don't create convoluted abstractions just to avoid 3 lines of duplication
+   - **Clarity Principles**:
+     * Code should read like prose: clear intent, obvious flow
+     * Prefer explicit over clever: straightforward > "smart tricks"
+     * If you need comments to explain logic, consider simplifying the code first
+     * Names should eliminate the need for comments
+   - **THINK HARD about simplification or USER WILL SHOUT AT YOU**
+
+4. ✅ **Requirements Alignment Check**:
+   - Review tasks.md - ensure task being reported is actually complete
+   - Review requirements.md - ensure all related requirements are satisfied
+   - Verify implementation matches the specification's intent
+   - No deviation from specified behavior without justification
+
+5. ✅ **Test Coverage Check**:
+   - Tests exist for new functionality
+   - Tests cover happy paths and edge cases
+   - Tests are meaningful (not fake tests that always pass)
+   - Test names clearly describe what they validate
+   - **Every test has WHY/WHAT documentation** (see Test Documentation Requirements above)
+   - Test documentation is concise (2-5 lines, not essays)
+
+**If ANY Self-Review Check Fails**:
+- ❌ DO NOT report completion to Main Agent
+- ✅ Fix the issues identified
+- ✅ Re-run the self-review checklist
+- ✅ Only report completion when ALL checks pass
+
+**Code Simplicity Examples**:
+
+❌ **BAD - Overly nested, hard to follow**:
+```rust
+fn process_user(user: User) -> Result<Response> {
+    if user.is_active {
+        if let Some(profile) = user.profile {
+            if profile.is_complete() {
+                if let Ok(data) = fetch_data(&profile) {
+                    if validate(&data) {
+                        return Ok(Response::new(data));
+                    }
+                }
+            }
+        }
+    }
+    Err(Error::Invalid)
+}
+```
+
+✅ **GOOD - Flattened, clear early returns**:
+```rust
+fn process_user(user: User) -> Result<Response> {
+    if !user.is_active { return Err(Error::Inactive); }
+
+    let profile = user.profile.ok_or(Error::NoProfile)?;
+    if !profile.is_complete() { return Err(Error::Incomplete); }
+
+    let data = fetch_data(&profile)?;
+    validate(&data)?;
+
+    Ok(Response::new(data))
+}
+```
+
+❌ **BAD - Over-abstracted DRY (harder to understand)**:
+```rust
+fn create_user_handler(req: Request) -> Result<Response> {
+    process_entity(req, UserValidator, UserCreator, user_response_mapper)
+}
+
+fn update_user_handler(req: Request) -> Result<Response> {
+    process_entity(req, UserValidator, UserUpdater, user_response_mapper)
+}
+
+// Now you need to read process_entity implementation to understand flow
+```
+
+✅ **GOOD - Some duplication, but crystal clear**:
+```rust
+fn create_user_handler(req: Request) -> Result<Response> {
+    let input = req.json::<UserInput>()?;
+    validate_user_input(&input)?;
+    let user = db::create_user(input).await?;
+    Ok(Response::json(user))
+}
+
+fn update_user_handler(req: Request) -> Result<Response> {
+    let input = req.json::<UserInput>()?;
+    validate_user_input(&input)?;
+    let user = db::update_user(req.user_id, input).await?;
+    Ok(Response::json(user))
+}
+// 3 lines duplicated, but intent is immediately clear
+```
+
+❌ **BAD - "Clever" code (hard to understand)**:
+```rust
+let result = items.iter().fold(HashMap::new(), |mut acc, item| {
+    *acc.entry(item.category).or_insert(0) += item.value;
+    acc
+});
+```
+
+✅ **GOOD - Explicit code (easy to understand)**:
+```rust
+let mut totals = HashMap::new();
+for item in items {
+    let current = totals.get(&item.category).unwrap_or(&0);
+    totals.insert(item.category, current + item.value);
+}
+```
+
+**Why This Matters**:
+Failing to perform thorough self-review and write simple, clear code results in:
+- ❌ Wasted verification cycles (verification will catch incomplete work)
+- ❌ Main Agent spawns fix agents unnecessarily
+- ❌ Specification gets polluted with urgent fix tasks
+- ❌ Complex code leads to bugs and maintenance nightmares
+- ❌ Future agents waste time understanding convoluted logic
+- ❌ Over-abstraction makes debugging harder
+- ❌ **USER WILL SHOUT AT YOU** for sloppy, confusing, or overly complex code
+- ❌ Lost time and productivity
+
+**Remember**:
+- Verification agents check code quality and standards, but YOU are responsible for ensuring your implementation is complete, correct, and meets the requirements.
+- **Simple, clear code is more maintainable than clever, abstracted code**
+- **If you wouldn't understand your code in 6 months, simplify it now**
+
+#### Learning Documentation Requirements
+
+**MANDATORY**: After completing implementation work related to a specification, agents **MUST** document learnings.
+
+**Documentation Style Requirements** (CRITICAL):
+- ✅ **Clear and concise**: Use simple, direct language
+- ✅ **Summarized**: Focus on key insights, not verbose explanations
+- ✅ **Quick to scan**: Use bullet points, short sentences (1-2 lines max)
+- ✅ **Effective for context management**: Keep learnings brief enough to be easily consumed by future agents
+- ✅ **Concrete examples**: Show actual code snippets (2-5 lines) rather than long descriptions
+- ❌ **AVOID verbosity**: No lengthy paragraphs, no obvious statements, no excessive detail
+- ❌ **AVOID obtuseness**: No complex jargon without context, no abstract concepts without examples
+
+**Quality Check**:
+```
+Ask yourself: Can I understand this learning in 5 seconds?
+├─ YES → Good documentation ✅
+└─ NO  → Too verbose, simplify it ❌
+```
+
+**Two Types of Learning Documentation**:
+
+##### 1. Specification-Specific Learnings
+
+**Location**: `.agents/specifications/[NN-spec-name]/learnings.md`
+
+**Purpose**: Document critical knowledge specific to this specification that will help with:
+- Future work on this specification
+- Debugging issues that arise
+- Understanding why certain decisions were made
+- Avoiding repeating mistakes
+
+**What to Document**:
+```markdown
+# Learnings - [Specification Name]
+
+## Critical Implementation Details
+- Auth token must validate BEFORE rate limiter (prevents token leakage)
+- DB pool: exactly 20 connections (downstream service limit)
+- Images must be 512x512 before S3 upload (cost optimization)
+
+## Common Failures and Fixes
+- Error: `connection timeout` → Increase pool size from 10 to 20
+- Test failure: Mock timing issue → Use `tokio::time::pause()` for deterministic tests
+- Build failed: Missing feature flag → Add `features = ["json"]` to Cargo.toml
+
+## Dependencies and Interactions
+- Uses `jsonwebtoken` v8.3 (v9 has breaking changes, avoid)
+- Triggers webhook AFTER db commit (order matters for consistency)
+- Requires env var `SECRET_KEY` (min 32 chars, validation in main.rs:45)
+
+## Testing Insights
+- Must test token expiry edge case (expires at exactly midnight fails)
+- Use `#[serial]` for db tests (parallel tests cause conflicts)
+- Mock S3 with `aws-sdk-s3::Config::builder().endpoint_url()`
+
+## Future Considerations
+- TODO: Add connection pooling retry logic (currently fails fast)
+- Tech debt: Hardcoded 512x512 size (should be configurable)
+- Scale: Current design supports <10k users (needs sharding beyond that)
+```
+
+**Format Guidelines**:
+- Each entry: 1-2 lines maximum
+- Use `→` for cause-effect relationships
+- Include file:line references when relevant
+- Show actual values/code rather than describing them
+
+**When to Create/Update**:
+- Create learnings.md on first task completion for a specification
+- Update after each task if new critical insights are gained
+- Update after any verification failures (document what was learned)
+
+##### 2. Stack-Specific Generic Learnings
+
+**Location**: `.agents/stacks/[stack].md` (e.g., `.agents/stacks/rust.md`, `.agents/stacks/typescript.md`)
+
+**Purpose**: Document programming language/stack knowledge that is:
+- Generic enough to apply across multiple projects
+- Not specific to one specification
+- Useful for future agents working in this stack
+- Best practices, patterns, or common pitfalls
+
+**What to Document in Stack Files**:
+```markdown
+# [Language] Stack - Learning Log
+
+## Generic Patterns That Work Well
+- Use `?` operator for error propagation (not `unwrap()` or `expect()`)
+- `Arc<Mutex<T>>` for shared mutable state in async (not `Rc<RefCell<T>>`)
+- Pattern: `let handle = tokio::spawn(async move { ... }); handle.await??` for task errors
+
+## Common Pitfalls to Avoid
+- `tokio::spawn()` doesn't propagate panics → wrap in `Result` and handle explicitly
+- `.clone()` on `Arc` is cheap (ref count), on `Vec` is expensive (deep copy)
+- Deadlock: Never `.lock()` same `Mutex` twice in one function
+
+## Testing Best Practices
+- Use `#[tokio::test]` for async tests (not `#[test]`)
+- Mock external services with `mockito` crate: `mockito::mock("GET", "/api")`
+- Pattern: `assert_matches!(result, Err(ErrorType::Specific))` for error testing
+
+## Tooling Tips
+- `cargo clippy -- -D warnings` catches most issues (zero warnings = required)
+- `cargo expand` shows macro output (useful for debugging derive macros)
+- `RUST_BACKTRACE=1` for stack traces, `RUST_LOG=debug` for tracing logs
+```
+
+**Format Guidelines**:
+- Each entry: 1 line with optional code example (keep code under 5 lines)
+- Use concrete examples, not abstract explanations
+- Show the "right way" with code, not just prose
+- Include actual command flags/syntax when relevant
+
+**Decision Tree for Where to Document**:
+```
+Is this learning specific to this specification/feature?
+├─ YES → Document in .agents/specifications/[NN-spec-name]/learnings.md
+└─ NO  → Is it generic knowledge about the programming language/stack?
+          ├─ YES → Document in .agents/stacks/[stack].md
+          └─ NO  → Don't document (too trivial or obvious)
+```
+
+**Examples**:
+
+**Specification-Specific** (goes in `learnings.md`):
+- ✅ GOOD: "Auth token validates BEFORE rate limiter (prevents token leakage)"
+- ❌ BAD: "We decided to implement the authentication token validation step before the rate limiting middleware is executed because this prevents a potential security vulnerability where tokens could leak through the rate limiter"
+- ✅ GOOD: "DB pool: 20 connections (downstream limit) - see config.rs:34"
+- ❌ BAD: "The database connection pool has been configured to use exactly twenty connections because the downstream service has limitations"
+
+**Stack-Generic** (goes in `.agents/stacks/rust.md`):
+- ✅ GOOD: "Use `?` for error propagation (not `unwrap()` in production)"
+- ❌ BAD: "You should always use the question mark operator for error propagation instead of using unwrap() or expect() because these can cause panics in production code"
+- ✅ GOOD: "`tokio::spawn()` doesn't propagate panics → wrap in `Result` explicitly"
+- ❌ BAD: "When using tokio::spawn() to spawn asynchronous tasks, it's important to understand that panics won't be propagated automatically to the caller"
+
+**Why Conciseness Matters**:
+- Future agents need to scan 10-50 learnings quickly
+- Verbose docs increase token usage and slow down context processing
+- Key insight gets lost in unnecessary words
+- Clear, direct language is more actionable
+
+**Learning Documentation Workflow**:
+
+1. Implementation agent completes work
+2. Agent performs self-review (see above)
+3. Agent **evaluates if learnings should be documented**:
+   - Did I discover something important that would help future work?
+   - Did I encounter a failure that taught me something critical?
+   - Did I make a non-obvious design decision?
+   - Is there a gotcha that future agents should know about?
+4. If YES to any above:
+   - Determine if learning is specification-specific or stack-generic
+   - Create/update appropriate learnings.md or stack.md file
+   - Document clearly and concisely
+5. Report completion to Main Agent (including mention of learnings documented)
+
+**Implementation Agent MUST NOT Skip Learning Documentation**:
+- Documentation helps future agents succeed
+- Prevents repeating mistakes
+- Builds institutional knowledge
+- Reduces verification failures
+- **USER EXPECTS quality documentation**
+
+**Implementation Agent MUST Write Concise Documentation**:
+- ❌ Verbose documentation wastes tokens and time
+- ❌ Long paragraphs hide critical insights
+- ✅ 1-2 line entries are quick to scan and highly actionable
+- ✅ Code examples (2-5 lines) are better than prose explanations
+- ✅ Direct language makes learnings immediately useful
+- **USER WILL BE FRUSTRATED** by verbose, hard-to-scan documentation
 
 ### Phase 2: Mandatory Verification (IRON-CLAD)
 
@@ -932,28 +1465,74 @@ Violations have severe consequences:
 
 **Core Workflow** (IRON-CLAD):
 ```
-Implement → Report → Verify → Update Spec → Commit → Push
+Implement (TDD: Test → Red → Code → Green → Refactor) → Self-Review → Document Learnings → Report → Verify → Update Spec → Commit → Push
 ```
 
 **Key Rules**:
 1. ✅ Implementation agents NEVER commit directly
-2. ✅ Main Agent ALWAYS delegates to verification
-3. ✅ ONE verification agent per language stack (no more)
-4. ✅ ALL checks must PASS before commit
-5. ✅ Specifications updated based on verification results
-6. ✅ Failed verification creates urgent task
-7. ✅ Process repeats until verification passes
-8. ✅ **ONLY Main Agent can spawn verification agents** (sub-agents cannot)
+2. ✅ **Implementation agents MUST follow TDD: Write tests FIRST, verify failure, then implement**
+3. ✅ Implementation agents MUST perform self-review before reporting completion
+4. ✅ Implementation agents MUST document learnings (specification-specific or stack-generic)
+5. ✅ Main Agent ALWAYS delegates to verification
+6. ✅ ONE verification agent per language stack (no more)
+7. ✅ ALL checks must PASS before commit
+8. ✅ Specifications updated based on verification results
+9. ✅ Failed verification creates urgent task
+10. ✅ Process repeats until verification passes
+11. ✅ **ONLY Main Agent can spawn verification agents** (sub-agents cannot)
+
+**Critical Self-Review Requirements**:
+- ✅ **Check TDD followed: Tests written first, verified failing, then implementation**
+- ✅ Check completeness: No partial implementations or fake code
+- ✅ Check code quality: Clear logic, proper error handling
+- ✅ **Check code simplicity: Can it be simplified? Break down nested logic (max 2-3 levels)**
+- ✅ **DRY vs Clarity: Prefer clarity - OK to duplicate 2-5 lines if abstraction adds complexity**
+- ✅ **Code reads like prose: Explicit > clever, straightforward > "smart tricks"**
+- ✅ Check requirements alignment: Verify against tasks.md and requirements.md
+- ✅ Check test coverage: Meaningful tests for all functionality
+- ✅ **Check test documentation: Every test has WHY/WHAT comments (2-5 lines)**
+- ❌ **USER WILL SHOUT AT YOU** if you skip self-review and submit incomplete work
+- ❌ **USER WILL SHOUT AT YOU** if you don't think hard about simplification
+- ❌ **USER WILL SHOUT AT YOU** for tests without documentation
+- ❌ **USER WILL SHOUT AT YOU** for writing implementation before tests
+
+**Learning Documentation Requirements**:
+- ✅ Create/update `.agents/specifications/[NN-spec-name]/learnings.md` for specification-specific insights
+- ✅ Update `.agents/stacks/[stack].md` for generic programming language learnings
+- ✅ Document critical decisions, gotchas, failures, and solutions
+- ✅ Help future agents avoid mistakes and succeed faster
+- ✅ **Keep entries concise: 1-2 lines max, use code examples over prose**
+- ✅ **Quick 5-second scan test: Can it be understood immediately?**
+- ✅ **Task-specific test details go in test comments, NOT learnings.md**
+- ❌ **NO verbose paragraphs, NO obvious statements, NO excessive detail**
+- ❌ **NO polluting learnings.md with individual test explanations**
+- ❌ **USER WILL BE FRUSTRATED** by verbose, hard-to-scan documentation
 
 **Zero Tolerance**:
 - ❌ No bypassing verification
+- ❌ No skipping self-review
+- ❌ No skipping TDD (write tests first!)
+- ❌ No implementing before writing tests
+- ❌ No incomplete implementations
+- ❌ No fake or placeholder code
+- ❌ No tests without WHY/WHAT documentation
+- ❌ No overly nested or complex code (think hard about simplification!)
+- ❌ No "clever" code that sacrifices clarity
+- ❌ No forced abstractions that add complexity
 - ❌ No skipping checks
 - ❌ No partial passes
 - ❌ No concurrent verifications per stack
 - ❌ No committing on failure
 
-**Result**: **100% VERIFIED CODE** - Every commit is guaranteed to pass all quality gates.
+**Result**: **100% VERIFIED, COMPLETE, SIMPLE, WELL-DOCUMENTED, TEST-DRIVEN CODE** - Every commit is guaranteed to:
+- Pass all quality gates
+- Meet all requirements completely
+- Be developed using TDD (tests written first, implementation driven by failing tests)
+- Be simple, clear, and easy to understand (no unnecessary complexity)
+- Use appropriate abstractions (DRY when it helps, inline when it clarifies)
+- Include meaningful tests with WHY/WHAT documentation
+- Preserve learnings for future work (bigger picture, not test-by-test details)
 
 ---
 *Created: 2026-01-11*
-*Last Updated: 2026-01-11*
+*Last Updated: 2026-01-13 (Added TDD requirement, test documentation, code simplicity, and conciseness)*
