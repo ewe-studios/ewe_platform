@@ -87,11 +87,11 @@ impl<E: Send + 'static> Broadcast<E> {
             for sub_slot in subs.iter_mut() {
                 if let Some(sub) = sub_slot {
                     match sub.try_send(message_reference.clone()) {
-                        // if its closed, then continue just remove sender.
+                        // if its closed, then remove sender.
                         Err(ChannelError::Closed) => {
                             sub_slot.take();
                         }
-                        _ => continue,
+                        _ => {}
                     }
                 }
             }
