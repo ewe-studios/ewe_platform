@@ -165,12 +165,12 @@ impl<E: Send + 'static> ExecutionService<E> {
                 let waker = waker_ref(&task);
                 let context = &mut Context::from_waker(&waker);
 
-                if future.as_mut().poll(context).is_pending() {
+                if future.as_mut().poll(context).is_ready() {
+                    // Future is complete, don't add it back to pending tasks
+                } else {
                     // put back the future since its still pending
                     *future_container = Some(future);
-
                     pending_tasks.push(task.clone());
-                    continue;
                 }
             }
         }
