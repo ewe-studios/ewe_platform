@@ -117,19 +117,88 @@ Please respond:
 
 **Agent MUST wait for explicit user response**:
 
-✅ **User says "APPROVED"** → Agent may proceed
+✅ **User says "APPROVED"** → Proceed to Step 4 (Git Safety Checkpoint)
 ❌ **User says "DENIED"** → Agent must NOT proceed, find alternative
 🔄 **User suggests alternative** → Agent implements alternative approach
 ⏳ **No response** → Agent MUST NOT proceed, must wait
 
-### Step 4: Execution with Safeguards
+### Step 4: Git Safety Checkpoint (MANDATORY)
 
-If user approves, agent should still:
+**CRITICAL**: Before executing ANY dangerous operation (even after user approval), ALL agents MUST:
 
-1. ✅ Create backup if possible (e.g., git stash, copy files)
+1. ✅ **Check for uncommitted changes** (across ALL agents):
+   ```bash
+   git status
+   # If any changes exist → MUST commit them first
+   ```
+
+2. ✅ **Main Agent: Verify all sub-agents have committed**:
+   - Check with each sub-agent if they have uncommitted work
+   - Ensure all sub-agents commit their changes
+   - No agent should have pending work
+
+3. ✅ **Commit ALL changes**:
+   ```bash
+   git add .
+   git commit -m "Checkpoint before dangerous operation: [operation description]"
+   ```
+
+4. ✅ **Push to remote**:
+   ```bash
+   git push
+   # MUST succeed before proceeding
+   ```
+
+5. ✅ **Verify push succeeded**:
+   ```bash
+   git status
+   # Should show: "Your branch is up to date with 'origin/[branch]'"
+   ```
+
+6. ✅ **Report git checkpoint completion**:
+   ```
+   ✅ Git Safety Checkpoint Complete:
+   - All changes committed
+   - All changes pushed to remote: origin/[branch]
+   - Working tree is clean
+   - Safe to proceed with dangerous operation
+   ```
+
+**Why This is Critical**:
+- 🛡️ Creates restore point if dangerous operation goes wrong
+- 🛡️ Prevents loss of uncommitted work
+- 🛡️ Ensures all code is backed up remotely
+- 🛡️ Allows easy rollback with `git reset --hard origin/[branch]`
+- 🛡️ Protects against mistakes during dangerous operations
+
+**If Git Push Fails**:
+```
+❌ Git Safety Checkpoint FAILED
+
+Cannot proceed with dangerous operation because:
+- [Push error message]
+
+Actions taken:
+1. Changes committed locally
+2. Push failed: [reason]
+
+⚠️  Dangerous operation BLOCKED until push succeeds.
+
+Please resolve git issues first, then I can retry the checkpoint.
+```
+
+**NEVER execute dangerous operation without successful git push.**
+
+### Step 5: Execution with Additional Safeguards
+
+After user approval AND successful git checkpoint, agent should:
+
+1. ✅ Create additional backup if possible (e.g., git stash, copy files)
 2. ✅ Document what is being done
 3. ✅ Provide way to undo if feasible
-4. ✅ Report exactly what was done after completion
+4. ✅ Execute the dangerous operation
+5. ✅ Report exactly what was done after completion
+6. ✅ Verify system still works after operation
 
 ## Examples
 
@@ -302,10 +371,11 @@ Type "CONFIRM" to proceed, or "CANCEL" to reconsider.
 
 ### Emergency Situations
 
-Even in emergencies (production down, critical bug), agent should:
+Even in emergencies (production down, critical bug), agent MUST still:
 1. ✅ Briefly explain what dangerous operation is needed
 2. ✅ Request quick approval
-3. ✅ Only proceed after approval
+3. ✅ **Complete Git Safety Checkpoint** (commit and push all changes)
+4. ✅ Only then proceed after approval
 
 ```
 🚨 URGENT: Production Fix Required 🚨
@@ -316,7 +386,11 @@ Impact: 200+ cache files deleted, will regenerate automatically
 Risk: Low - cache is ephemeral data
 
 Quick approval needed - respond "GO" to proceed
+
+Note: Will commit and push all changes before executing.
 ```
+
+**No exceptions for git checkpoint - even in emergencies.**
 
 ## Enforcement
 
@@ -328,6 +402,10 @@ Main Agent MUST:
 - ✅ Immediately report to user if sub-agent tries to bypass this rule
 - ✅ Review all commands before execution
 - ✅ Verify approval was obtained before proceeding
+- ✅ **Coordinate Git Safety Checkpoint across ALL agents**
+- ✅ **Verify all sub-agents have committed and pushed changes**
+- ✅ **Ensure working tree is clean before dangerous operation**
+- ✅ **Block dangerous operation if git push fails**
 
 ### Sub-Agent Responsibilities
 
@@ -337,12 +415,19 @@ Sub-Agents MUST:
 - ✅ NEVER execute dangerous operation without user approval
 - ✅ Wait for explicit approval, don't assume
 - ✅ Provide alternatives to dangerous operations when possible
+- ✅ **Commit all work before dangerous operation**
+- ✅ **Report to Main Agent when changes are committed and pushed**
+- ✅ **Wait for Main Agent coordination before dangerous operation**
 
 ### Violations
 
-**CRITICAL VIOLATION**: Performing dangerous operation without approval
+**CRITICAL VIOLATIONS**:
+1. Performing dangerous operation without user approval
+2. **Performing dangerous operation without git checkpoint (commit + push)**
+3. **Executing dangerous operation with uncommitted changes**
+4. **Proceeding when git push fails**
 
-**If this happens**:
+**If any violation happens**:
 1. 🛑 Immediately stop all operations
 2. 🛑 Report violation to user
 3. 🛑 Undo operation if possible
@@ -430,16 +515,31 @@ if (useNewImplementation) {
 **Remember**:
 - 🚨 Dangerous operations = Deletion, removal, dropping, truncating, force operations
 - 🚨 ALWAYS get user approval BEFORE executing
+- 🚨 **ALWAYS complete Git Safety Checkpoint (commit + push) BEFORE executing**
+- 🚨 **NEVER execute dangerous operation with uncommitted changes**
+- 🚨 **NEVER execute if git push fails**
 - 🚨 Provide detailed impact analysis
 - 🚨 Suggest alternatives
 - 🚨 Document what will be affected
 - 🚨 When in doubt, ask for approval
 - 🚨 Better to over-communicate than cause data loss
 
+**Mandatory Workflow for Dangerous Operations**:
+1. Detect dangerous operation
+2. Request user approval with detailed analysis
+3. Wait for explicit "APPROVED"
+4. **Complete Git Safety Checkpoint (ALL agents commit and push)**
+5. Verify git push succeeded
+6. Only then execute dangerous operation
+7. Report completion
+
 **User's emphasis**: "You must not and I repeat must never autonomously perform such without user consent, if not I will blast and shout at you really really. It's very very bad."
+
+**Additional requirement**: "Before any dangerous operation is performed, all git changes must be committed across all agents, and main agents' changes also are pushed successfully to remote git version. Never perform dangerous tasks when approved without validating, committing and first pushing all existing code changes first."
 
 **This rule is absolute. No exceptions.**
 
 ---
 *Created: 2026-01-13*
+*Updated: 2026-01-13 (Added mandatory Git Safety Checkpoint before dangerous operations)*
 *Priority: CRITICAL - This rule overrides all other considerations*
