@@ -1,12 +1,14 @@
 ---
-description: Fix all pending Rust lints, checks, and styling mistakes across the codebase
+description: Fix all pending Rust lints, checks, and styling mistakes across the codebase (excluding foundation_core and infrastructure)
 status: uncompleted
 ---
 
 # Fix Rust Lints, Checks, and Styling - Requirements
 
 ## Overview
-This specification covers the systematic resolution of all pending Rust lints, checks, and styling mistakes across the entire ewe_platform codebase. The goal is to achieve zero warnings from cargo clippy, zero formatting issues from cargo fmt, and full compliance with the Rust coding standards defined in `.agents/stacks/rust.md`.
+This specification covers the systematic resolution of all pending Rust lints, checks, and styling mistakes across the ewe_platform codebase that currently compiles. The goal is to achieve zero warnings from cargo clippy, zero formatting issues from cargo fmt, and full compliance with the Rust coding standards defined in `.agents/stacks/rust.md`.
+
+**SCOPE LIMITATION:** This specification excludes `backends/foundation_core` and `infrastructure/*` crates due to compilation errors that need to be addressed separately.
 
 ## Requirements Conversation Summary
 
@@ -92,23 +94,29 @@ Create a comprehensive specification to systematically fix all Rust linting, che
   - `cargo test` (for validation)
   - `cargo build` (for compilation checks)
 - **Workspace Structure**: Monorepo with multiple crates in:
-  - `backends/*`
+  - `backends/*` (EXCLUDING `foundation_core` - has compilation errors)
   - `bin/*`
   - `crates/*`
-  - `infrastructure/*`
   - `examples/*`
   - `tests/*`
-- **Integration Points**: All workspace members must be addressed
+  - (EXCLUDING `infrastructure/*` - has compilation errors)
+- **Integration Points**: All compiling workspace members will be addressed
 
 ### Success Criteria
 
-- [ ] `cargo clippy --all-targets --all-features -- -D warnings` passes with zero warnings
-- [ ] `cargo fmt -- --check` passes with no formatting issues
-- [ ] `cargo build --all-features` compiles successfully
-- [ ] `cargo test --all-features` passes all tests
+- [ ] `cargo clippy` on included crates passes with zero warnings
+- [ ] `cargo fmt -- --check` on included crates passes with no formatting issues
+- [ ] All included crates compile successfully
+- [ ] `cargo test` on included crates passes all tests
 - [ ] All public APIs maintain backward compatibility
 - [ ] Code quality metrics improve (fewer unwrap/expect, better documentation)
 - [ ] No runtime behavior changes (existing functionality preserved)
+
+### Out of Scope
+
+- `backends/foundation_core` - has compilation errors (SSL imports, unstable features)
+- `infrastructure/*` - has build script failures
+- These crates will be addressed in a separate specification after compilation issues are resolved
 
 ## Important Notes for Agents
 

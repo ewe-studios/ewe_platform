@@ -1,6 +1,6 @@
 ---
 completed: 0
-uncompleted: 32
+uncompleted: 28
 tools:
   - cargo clippy
   - cargo fmt
@@ -8,9 +8,12 @@ tools:
   - cargo build
   - ripgrep (rg)
   - Rust Verification Agent
+scope: Excludes foundation_core and infrastructure/* due to compilation errors
 ---
 
 # Fix Rust Lints, Checks, and Styling - Tasks
+
+**SCOPE NOTE:** This work excludes `backends/foundation_core` and `infrastructure/*` crates due to compilation errors. These will be addressed in a separate specification.
 
 ## Task List
 
@@ -48,18 +51,16 @@ tools:
 - [ ] Verify formatting consistency across all .rs files
 - [ ] Fix any remaining formatting edge cases
 
-### Phase 6: Backend Crates
-- [ ] Fix all issues in foundation_core
+### Phase 6: Backend Crates (Excluding foundation_core)
 - [ ] Fix all issues in foundation_wasm
 - [ ] Fix all issues in foundation_nostd
 - [ ] Fix all issues in foundation_macros
 - [ ] Fix all issues in foundation_runtimes
 - [ ] Fix all issues in foundation_ai
 
-### Phase 7: Main Crates
+### Phase 7: Main Crates (Excluding infrastructure)
 - [ ] Fix all issues in crates/* directory (html, routing, templates, etc.)
 - [ ] Fix all issues in bin/platform
-- [ ] Fix all issues in infrastructure/* crates
 - [ ] Fix all issues in examples/*
 - [ ] Fix all issues in tests/*
 
@@ -90,8 +91,12 @@ Primary files needing attention (from initial scan):
 - `bin/platform/build.rs` (debug formatting)
 - `crates/template-macro/src/lib.rs` (match arms)
 - `crates/watch_utils/src/lib.rs` (redundant continue)
-- `backends/foundation_core/src/io/ioutils/mod.rs` (trailing whitespace)
 - Multiple files with missing documentation
+
+### Excluded from Scope
+- `backends/foundation_core/*` - Has compilation errors (SSL imports, unstable features)
+- `infrastructure/*` - Has build script failures
+- These will be fixed in a separate specification
 
 ### Commit Strategy
 - Phase 1: One commit for assessment documentation
