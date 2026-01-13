@@ -22,6 +22,7 @@ impl Default for Watchers {
 }
 
 impl Watchers {
+    #[must_use] 
     pub fn new() -> Self {
         Self {
             config: None,
@@ -83,6 +84,7 @@ pub struct ConfigWatcher {
 }
 
 impl ConfigWatcher {
+    #[must_use] 
     pub fn new(watcher_file: Box<path::Path>, watcher: Watchers, debounce: u64) -> Self {
         Self {
             watcher_file,
@@ -139,6 +141,6 @@ impl ConfigWatcher {
             watcher.stop();
         })
         .join()
-        .map_err(|err| anyhow::anyhow!("Failed to join thread: {:?}", err))
+        .map_err(|err| anyhow::anyhow!("Failed to join thread: {err:?}"))
     }
 }

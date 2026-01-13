@@ -1,4 +1,4 @@
-/// VecExt implements convenient methods to extract a that can be applied to
+/// `VecExt` implements convenient methods to extract a that can be applied to
 /// Vec<T> objects for special methods.
 pub trait VecExt {
     fn to_vec_string(self) -> Vec<String>;

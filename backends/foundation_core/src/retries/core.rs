@@ -4,7 +4,7 @@ pub const DEFAULT_MIN_DURATION: time::Duration = time::Duration::from_millis(100
 
 /// Attempts is a state identifying the overall expectation for
 /// when a reconnection attempt should re-occur. It is Most
-/// useful to allow the ConnectionStateIterator to be able to
+/// useful to allow the `ConnectionStateIterator` to be able to
 /// securely handle retries.
 #[derive(Clone, Debug)]
 pub struct RetryState {
@@ -14,6 +14,7 @@ pub struct RetryState {
 }
 
 impl RetryState {
+    #[must_use] 
     pub fn new(attempt: u32, total_allowed: u32, wait: Option<time::Duration>) -> Self {
         Self {
             wait,
@@ -22,12 +23,13 @@ impl RetryState {
         }
     }
 
+    #[must_use] 
     pub fn can_retry(&self) -> bool {
         self.attempt == self.total_allowed
     }
 }
 
-/// ReconnectionDecider defines an retry mechanism that allows
+/// `ReconnectionDecider` defines an retry mechanism that allows
 /// a central system to decide the next reconnection attempt parameters
 /// regarding how long to wait before attempt and state info on the current
 /// attempts and when such attempt to stop by returning None.

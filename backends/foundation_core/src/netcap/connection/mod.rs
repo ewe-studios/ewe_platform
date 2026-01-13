@@ -1,4 +1,4 @@
-//! Taken from the tiny-http project https://github.com/tiny-http/tiny-http/
+//! Taken from the tiny-http project <https://github.com/tiny-http/tiny-http>/
 //! Abstractions of Tcp and Unix socket types
 
 use crate::io::ioutils::{PeekError, PeekableReadStream};
@@ -47,6 +47,7 @@ pub enum EndpointConfig {
 impl EndpointConfig {
     /// Returns a copy of the url of the target endpoint.
     #[inline]
+    #[must_use] 
     pub fn url(&self) -> url::Url {
         match self {
             Self::NoTimeout(inner) => inner.clone(),
@@ -66,11 +67,13 @@ pub enum Endpoint<I: Clone> {
 #[allow(unused)]
 impl Endpoint<()> {
     #[inline]
+    #[must_use] 
     pub fn with_default(target: url::Url) -> Self {
         Endpoint::WithDefault(EndpointConfig::NoTimeout(target))
     }
 
     #[inline]
+    #[must_use] 
     pub fn with_timeout(target: url::Url, timeout: Duration) -> Self {
         Endpoint::WithDefault(EndpointConfig::WithTimeout(target, timeout))
     }
@@ -156,9 +159,7 @@ impl<T: Clone> Endpoint<T> {
     #[inline]
     pub(crate) fn get_query_params(&self, endpoint_url: &url::Url) -> Option<String> {
         endpoint_url
-            .query()
-            .map(|q| Some(String::from(q)))
-            .unwrap_or(None)
+            .query().map(|q| String::from(q))
     }
 
     #[inline]
@@ -186,6 +187,7 @@ pub struct DataStreamAddr(SocketAddr, Option<SocketAddr>);
 // --- Constructors
 
 impl DataStreamAddr {
+    #[must_use] 
     pub fn new(local_addr: SocketAddr, remote_addr: Option<SocketAddr>) -> Self {
         Self(local_addr, remote_addr)
     }
@@ -195,11 +197,13 @@ impl DataStreamAddr {
 
 impl DataStreamAddr {
     #[inline]
+    #[must_use] 
     pub fn peer_addr(&self) -> Option<SocketAddr> {
         self.1.clone()
     }
 
     #[inline]
+    #[must_use] 
     pub fn local_addr(&self) -> SocketAddr {
         self.0.clone()
     }
@@ -458,6 +462,7 @@ pub enum ListenAddr {
 }
 
 impl ListenAddr {
+    #[must_use] 
     pub fn to_addr(self) -> Option<SocketAddr> {
         match self {
             Self::IP(s) => Some(SocketAddr::from(s)),
@@ -466,6 +471,7 @@ impl ListenAddr {
         }
     }
 
+    #[must_use] 
     pub fn to_ip(self) -> Option<SocketAddr> {
         match self {
             Self::IP(s) => Some(SocketAddr::from(s)),
@@ -478,6 +484,7 @@ impl ListenAddr {
     ///
     /// This is also available on non-Unix platforms, for ease of use, but always returns `None`.
     #[cfg(unix)]
+    #[must_use] 
     pub fn to_unix(self) -> Option<unix_net::SocketAddr> {
         match self {
             Self::IP(_) => None,
@@ -500,42 +507,44 @@ impl std::fmt::Display for ListenAddr {
     }
 }
 
-/// A wrapper around TcpStream.
+/// A wrapper around `TcpStream`.
 pub struct TcpStreamWrapper {
     inner: TcpStream,
 }
 
 impl TcpStreamWrapper {
-    /// Creates a new TcpStreamWrapper from a TcpStream
+    /// Creates a new `TcpStreamWrapper` from a `TcpStream`
+    #[must_use] 
     pub fn new(stream: TcpStream) -> Self {
         TcpStreamWrapper { inner: stream }
     }
 
-    /// Consumes the wrapper and returns the inner TcpStream
+    /// Consumes the wrapper and returns the inner `TcpStream`
+    #[must_use] 
     pub fn into_inner(self) -> TcpStream {
         self.inner
     }
 
-    /// Sets the value of the TCP_NODELAY option on this socket.
+    /// Sets the value of the `TCP_NODELAY` option on this socket.
     ///
     /// If set, this disables Nagle's algorithm, meaning segments are sent as soon as possible.
     pub fn set_nodelay(&self, nodelay: bool) -> std::io::Result<()> {
         self.inner.set_nodelay(nodelay)
     }
 
-    /// Gets the value of the TCP_NODELAY option for this socket.
+    /// Gets the value of the `TCP_NODELAY` option for this socket.
     pub fn nodelay(&self) -> std::io::Result<bool> {
         self.inner.nodelay()
     }
 
-    /// Sets the value for the IP_TTL option on this socket.
+    /// Sets the value for the `IP_TTL` option on this socket.
     ///
     /// This specifies the time-to-live for IP packets.
     pub fn set_ttl(&self, ttl: u32) -> std::io::Result<()> {
         self.inner.set_ttl(ttl)
     }
 
-    /// Gets the value of the IP_TTL option for this socket.
+    /// Gets the value of the `IP_TTL` option for this socket.
     pub fn ttl(&self) -> std::io::Result<u32> {
         self.inner.ttl()
     }

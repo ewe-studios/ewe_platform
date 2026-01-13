@@ -8,7 +8,7 @@ use wasm_sync::{CondVar, Mutex};
 
 use super::Waker;
 
-/// LockState defines the underlying state of a Condvar based
+/// `LockState` defines the underlying state of a Condvar based
 /// locks which will allow us sleep a thread silently without eating up
 /// CPU cycles.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -18,8 +18,8 @@ pub enum LockState {
     Released,
 }
 
-/// LockSignal allows us sleep a thread or process until a signal
-/// gets delivered via it's underlying CondVar.
+/// `LockSignal` allows us sleep a thread or process until a signal
+/// gets delivered via it's underlying `CondVar`.
 pub struct LockSignal {
     /// The condition variable used to wait on an event,
     /// also provides a way to awake a sleeping thread.
@@ -50,6 +50,7 @@ impl Default for LockSignal {
 }
 
 impl LockSignal {
+    #[must_use] 
     pub fn new() -> Self {
         Self {
             event: Condvar::new(),
@@ -65,7 +66,7 @@ impl LockSignal {
         match directive {
             NotifyDirective::One => self.event.notify_one(),
             NotifyDirective::All => self.event.notify_all(),
-        };
+        }
     }
 
     pub fn probe(&self) -> LockState {

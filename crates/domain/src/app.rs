@@ -1,6 +1,7 @@
 use crate::{core, domains, servicer};
 
 #[allow(clippy::type_complexity)]
+#[must_use] 
 pub fn create<App>() -> (
     core::CoreExecutor,
     servicer::DServicer<App, App::Events, App::Requests, App::Platform>,

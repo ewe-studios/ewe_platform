@@ -51,8 +51,8 @@ foundation_macros = { path = "./backends/foundation_macros", version = "0.0.4" }
 foundation_nostd = { path = "./backends/foundation_nostd", version = "0.0.4" }
 foundation_wasm = { path = "./backends/foundation_wasm", version = "0.0.2" }
 foundation_core = { path = "./backends/foundation_core", version = "0.0.3" }
-foundation_ai = { path = "./backends/foundation_ai", version = "0.0.1" }
 foundation_runtimes = { path = "./backends/runtimes", version = "0.0.3" }
+foundation_ai = { path = "./backends/foundation_ai", version = "0.0.1" }
 
 # -- internal packages so others can use them
 ewe_web = { path = "./crates/web", version = "0.0.1" }

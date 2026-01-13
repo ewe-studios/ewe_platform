@@ -31,6 +31,7 @@ pub struct EntryList<T> {
 // --- constructors
 
 impl<T> EntryList<T> {
+    #[must_use] 
     pub fn new() -> Self {
         Self {
             items: Vec::new(),
@@ -49,7 +50,7 @@ impl<T> Default for EntryList<T> {
 // --- methods
 
 impl<T> EntryList<T> {
-    /// active_slots returns how many slots have value and are in use.
+    /// `active_slots` returns how many slots have value and are in use.
     ///
     /// Basically does a calculation using:
     /// `EntryList::allocated_slots()` - `EntryList::active_slots()`.
@@ -57,29 +58,33 @@ impl<T> EntryList<T> {
     /// Returning the difference indicative of which slots do have value
     /// actively in use and not just empty and available for re-allocation.
     #[inline]
+    #[must_use] 
     pub fn active_slots(&self) -> usize {
         self.allocated_slots() - self.open_slots()
     }
 
     /// Returns total entries currently parked.
     #[inline]
+    #[must_use] 
     pub fn parked_slots(&self) -> usize {
         self.packed_entries.len()
     }
 
-    /// allocated_slots returns how many slots have being allocated overall.
+    /// `allocated_slots` returns how many slots have being allocated overall.
     #[inline]
+    #[must_use] 
     pub fn allocated_slots(&self) -> usize {
         self.items.len()
     }
 
-    /// open_slots returns how many free entries are now available.
+    /// `open_slots` returns how many free entries are now available.
     #[inline]
+    #[must_use] 
     pub fn open_slots(&self) -> usize {
         self.free_entries.len()
     }
 
-    /// get_mut lets you perform an in-place value replacement without
+    /// `get_mut` lets you perform an in-place value replacement without
     /// invalidating the `Entry` handle you have
     /// pointing to the given value it points to.
     ///
@@ -99,6 +104,7 @@ impl<T> EntryList<T> {
     /// get a reference to the relevant value within the
     /// list for the giving `Entry` if its still valid.
     #[inline]
+    #[must_use] 
     pub fn get(&self, entry: &Entry) -> Option<&T> {
         if let Some((gen, value)) = self.items.get(entry.id) {
             if *gen == entry.gen && value.is_some() {
@@ -108,7 +114,7 @@ impl<T> EntryList<T> {
         None
     }
 
-    /// not_valid returns bool (True/False) indicating if the entry
+    /// `not_valid` returns bool (True/False) indicating if the entry
     /// reference is still valid.
     #[inline]
     pub fn not_valid(&mut self, entry: &Entry) -> bool {
@@ -252,7 +258,7 @@ impl<T> EntryList<T> {
         None
     }
 
-    /// for_each loop through all active entries.
+    /// `for_each` loop through all active entries.
     #[inline]
     pub fn map_with<V>(&self, tn: impl Fn(&T) -> Option<V>) -> Vec<V> {
         self.items
@@ -270,7 +276,7 @@ impl<T> EntryList<T> {
             .collect()
     }
 
-    /// for_each loop through all active entries.
+    /// `for_each` loop through all active entries.
     #[inline]
     pub fn for_each(&self, tn: impl Fn(Option<&T>)) {
         self.items.iter().for_each(|(_gen, value)| {
@@ -278,11 +284,11 @@ impl<T> EntryList<T> {
                 return;
             }
 
-            tn(value.as_ref())
+            tn(value.as_ref());
         });
     }
 
-    /// select_take loop through all active entries, using the provided
+    /// `select_take` loop through all active entries, using the provided
     /// function as a filter and takes the relevant matching values
     /// out of the list returned as an `Vec<T>`.
     ///
@@ -371,10 +377,12 @@ impl<T> Default for ThreadSafeEntry<T> {
 }
 
 impl<T> ThreadSafeEntry<T> {
+    #[must_use] 
     pub fn new() -> Self {
         Self(Arc::new(RwLock::new(EntryList::new())))
     }
 
+    #[must_use] 
     pub fn from(list: EntryList<T>) -> Self {
         Self(Arc::new(RwLock::new(list)))
     }
@@ -389,29 +397,33 @@ impl<T> Clone for ThreadSafeEntry<T> {
 #[allow(unused)]
 impl<T> ThreadSafeEntry<T> {
     #[inline]
+    #[must_use] 
     pub fn active_slots(&self) -> usize {
         self.0.read().unwrap().active_slots()
     }
 
     /// Returns total entries currently parked.
     #[inline]
+    #[must_use] 
     pub fn parked_slots(&self) -> usize {
         self.0.read().unwrap().parked_slots()
     }
 
-    /// allocated_slots returns how many slots have being allocated overall.
+    /// `allocated_slots` returns how many slots have being allocated overall.
     #[inline]
+    #[must_use] 
     pub fn allocated_slots(&self) -> usize {
         self.0.read().unwrap().allocated_slots()
     }
 
-    /// open_slots returns how many free entries are now available.
+    /// `open_slots` returns how many free entries are now available.
     #[inline]
+    #[must_use] 
     pub fn open_slots(&self) -> usize {
         self.0.read().unwrap().open_slots()
     }
 
-    /// get_mut lets you perform an in-place value replacement without
+    /// `get_mut` lets you perform an in-place value replacement without
     /// invalidating the `Entry` handle you have
     /// pointing to the given value it points to.
     ///
@@ -432,9 +444,10 @@ impl<T> ThreadSafeEntry<T> {
         fnc(handle.get(entry));
     }
 
-    /// not_valid returns bool (True/False) indicating if the entry
+    /// `not_valid` returns bool (True/False) indicating if the entry
     /// reference is still valid.
     #[inline]
+    #[must_use] 
     pub fn not_valid(&self, entry: &Entry) -> bool {
         self.0.write().unwrap().not_valid(entry)
     }
@@ -442,6 +455,7 @@ impl<T> ThreadSafeEntry<T> {
     /// has returns bool (True/False) indicating if the entry
     /// exists and is still valid.
     #[inline]
+    #[must_use] 
     pub fn has(&self, entry: &Entry) -> bool {
         self.0.write().unwrap().has(entry)
     }
@@ -452,7 +466,7 @@ impl<T> ThreadSafeEntry<T> {
     /// The old value is dropped if it indeed is valid/has-value.
     #[inline]
     pub fn vacate(&self, entry: &Entry) {
-        self.0.write().unwrap().vacate(entry)
+        self.0.write().unwrap().vacate(entry);
     }
 
     /// pack collects the value pointed to by the relevant
@@ -466,6 +480,7 @@ impl<T> ThreadSafeEntry<T> {
     /// This allows us support situations where we need to maintain that entry
     /// but cant afford to invalid the entry due to dependency chains built on it.
     #[inline]
+    #[must_use] 
     pub fn park(&self, entry: &Entry) -> Option<T> {
         self.0.write().unwrap().park(entry)
     }
@@ -491,6 +506,7 @@ impl<T> ThreadSafeEntry<T> {
     /// `Entry` pointer if its still valid and then invalidates
     /// the pointer.
     #[inline]
+    #[must_use] 
     pub fn take(&self, entry: &Entry) -> Option<T> {
         self.0.write().unwrap().take(entry)
     }
@@ -503,19 +519,19 @@ impl<T> ThreadSafeEntry<T> {
         self.0.write().unwrap().update(entry, item)
     }
 
-    /// for_each loop through all active entries.
+    /// `for_each` loop through all active entries.
     #[inline]
     pub fn map_with<V>(&self, tn: impl Fn(&T) -> Option<V>) -> Vec<V> {
         self.0.read().unwrap().map_with(tn)
     }
 
-    /// for_each loop through all active entries.
+    /// `for_each` loop through all active entries.
     #[inline]
     pub fn for_each(&self, tn: impl Fn(Option<&T>)) {
-        self.0.read().unwrap().for_each(tn)
+        self.0.read().unwrap().for_each(tn);
     }
 
-    /// select_take loop through all active entries, using the provided
+    /// `select_take` loop through all active entries, using the provided
     /// function as a filter and takes the relevant matching values
     /// out of the list returned as an `Vec<T>`.
     ///

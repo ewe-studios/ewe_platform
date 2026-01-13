@@ -73,5 +73,5 @@ extern "C" fn main() {
                 ReturnValues::Int8(1),
             ]),
         ]
-    )
+    );
 }

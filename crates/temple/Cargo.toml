@@ -12,21 +12,19 @@ keywords.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# backend dependencies
+foundation_core = { workspace = true }
+foundation_nostd = { workspace = true }
+foundation_macros = { workspace = true }
 
 # internal package dependencies
 derive_more.workspace = true
 ewe_trace = { workspace = true }
 ewe_templates = { workspace = true }
 
-# backend dependencies
-foundation_core = { workspace = true }
-
 # rust package parsing
 cargo_toml = { version = "0.20.5" }
 toml = { version = "0.8.19" }
-
-# files embedding
-rust-embed = { version = "8.5"}
 
 # -- template crates
 rand = { version = "0.8.5" }

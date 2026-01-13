@@ -69,7 +69,7 @@ impl MemoryAllocation {
     {
         let mut locked_mem = self.memory.lock();
         if let Some(mem) = locked_mem.as_mut() {
-            f(mem)
+            f(mem);
         }
     }
 
@@ -146,7 +146,7 @@ impl MemoryAllocation {
         let mut memory = self.memory.lock();
         if let Some(mem) = memory.as_mut() {
             return Ok(mem.is_empty());
-        };
+        }
         Err(MemoryAllocationError::NoMemoryAllocation)
     }
 
@@ -156,7 +156,7 @@ impl MemoryAllocation {
         if let Some(mem) = memory.as_mut() {
             mem.clear();
             return Ok(());
-        };
+        }
         Err(MemoryAllocationError::NoMemoryAllocation)
     }
 
@@ -188,7 +188,7 @@ impl MemoryAllocation {
                 Ok(content) => Ok(content),
                 Err(err) => Err(MemoryReaderError::NotValidUTF8(err).into()),
             };
-        };
+        }
         Err(MemoryAllocationError::NoMemoryAllocation)
     }
 
@@ -203,7 +203,7 @@ impl MemoryAllocation {
 }
 
 /// [`ToBinary`] provides a basic type which we can encode as
-/// plain binary bytes usually in LittleIndian encoding.
+/// plain binary bytes usually in `LittleIndian` encoding.
 pub trait ToBinary {
     fn to_binary(&self) -> Vec<u8>;
 }

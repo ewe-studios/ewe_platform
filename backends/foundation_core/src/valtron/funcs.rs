@@ -1,4 +1,4 @@
-/// CloneableFnMut implements a cloning for your FnMut/Fn types
+/// `CloneableFnMut` implements a cloning for your FnMut/Fn types
 /// which allows you define a Fn/FnMut that can be owned and
 /// Send as well without concerns on Sync.
 /// This then allows you safely clone an Fn and send across threads easily.
@@ -23,11 +23,12 @@ where
 //     }
 // }
 
-/// WrappedCloneableFnMut exists to provide for cases where the compiler
-/// wants your implementing type for CloneableFnMut to also implement Clone.
+/// `WrappedCloneableFnMut` exists to provide for cases where the compiler
+/// wants your implementing type for `CloneableFnMut` to also implement Clone.
 pub struct WrappedCloneableFnMut<I, R>(Box<dyn CloneableFn<I, R>>);
 
 impl<I, R> WrappedCloneableFnMut<I, R> {
+    #[must_use] 
     pub fn new(elem: Box<dyn CloneableFn<I, R>>) -> Self {
         Self(elem)
     }
@@ -42,7 +43,7 @@ impl<I, R> WrappedCloneableFnMut<I, R> {
 /// Box<T + 'static>, since Box always owns its contents.
 /// Lifetimes only apply to references in rust.
 ///
-/// See https://doc.rust-lang.org/rust-by-example/scope/lifetime/static_lifetime.html.
+/// See <https://doc.rust-lang.org/rust-by-example/scope/lifetime/static_lifetime.html>.
 impl<I: 'static, R: 'static> Clone for WrappedCloneableFnMut<I, R> {
     fn clone(&self) -> Self {
         Self(self.0.clone_box())

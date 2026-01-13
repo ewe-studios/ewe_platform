@@ -25,6 +25,7 @@ pub struct MemoryLimiter {
 }
 
 impl MemoryLimiter {
+    #[must_use] 
     pub fn create_shared(max: usize) -> SharedMemoryLimiter {
         rc::Rc::new(cell::RefCell::new(MemoryLimiter {
             current_usage: 0,
@@ -32,6 +33,7 @@ impl MemoryLimiter {
         }))
     }
 
+    #[must_use] 
     pub fn non_shared(max: usize) -> MemoryLimiter {
         Self {
             current_usage: 0,
@@ -41,15 +43,17 @@ impl MemoryLimiter {
 
     #[inline]
     pub fn set_capacity(&mut self, new_max: usize) {
-        self.max = new_max
+        self.max = new_max;
     }
 
     #[inline]
+    #[must_use] 
     pub fn capacity(&self) -> usize {
         self.max
     }
 
     #[inline]
+    #[must_use] 
     pub fn current_usage(&self) -> usize {
         self.current_usage
     }
@@ -129,10 +133,12 @@ impl Arena {
     }
 
     #[inline]
+    #[must_use] 
     pub fn capacity(&self) -> usize {
         self.data.capacity()
     }
 
+    #[must_use] 
     pub fn bytes(&self) -> &[u8] {
         &self.data
     }
@@ -226,6 +232,7 @@ mod arena_tests {
     }
 }
 
+#[must_use] 
 pub fn calculate_size_for<T>(by_multiple: Option<usize>) -> usize {
     if let Some(by_value) = by_multiple {
         return size_of::<T>() * by_value;
@@ -274,6 +281,7 @@ impl<T> TypeArena<T> {
     }
 
     #[inline]
+    #[must_use] 
     pub fn first(&self) -> Option<&T> {
         self.data.first()
     }
@@ -284,21 +292,25 @@ impl<T> TypeArena<T> {
     }
 
     #[inline]
+    #[must_use] 
     pub fn last(&self) -> Option<&T> {
         self.data.last()
     }
 
     #[inline]
+    #[must_use] 
     pub fn capacity(&self) -> usize {
         self.data.capacity()
     }
 
     #[inline]
+    #[must_use] 
     pub fn is_empty(&self) -> bool {
         self.data.is_empty()
     }
 
     #[inline]
+    #[must_use] 
     pub fn len(&self) -> usize {
         self.data.len()
     }
@@ -314,11 +326,11 @@ impl<T> TypeArena<T> {
     /// Returns a draining iterator that removes the
     /// specified range in the underlying vector
     /// yields the removed items.
-    pub fn drain<'a, R>(&'a mut self, range: R) -> Drain<'a, T>
+    pub fn drain<R>(&mut self, range: R) -> Drain<'_, T>
     where
         R: RangeBounds<usize>,
     {
-        use std::ops::Bound::*;
+        use std::ops::Bound::{Included, Excluded, Unbounded};
 
         let start = match range.start_bound() {
             Included(&n) => n,
@@ -513,16 +525,19 @@ impl<T: Resettable> ArenaPool<T> {
     }
 
     #[inline]
+    #[must_use] 
     pub fn remaining_allocation(&self) -> usize {
         self.limiter.borrow().capacity() - self.tracker.current_usage()
     }
 
     #[inline]
+    #[must_use] 
     pub fn allocated(&self) -> usize {
         self.tracker.current_usage()
     }
 
     #[inline]
+    #[must_use] 
     pub fn capacity(&self) -> usize {
         self.limiter.borrow().capacity()
     }

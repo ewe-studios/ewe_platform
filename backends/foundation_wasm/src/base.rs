@@ -109,6 +109,7 @@ impl Into<u8> for ReturnTypeId {
 }
 
 impl ReturnTypeId {
+    #[must_use] 
     pub fn into_u8(self) -> u8 {
         self as u8
     }
@@ -159,8 +160,8 @@ impl From<u8> for ReturnTypeId {
 /// and we wish to be able to express that clear to users.
 ///
 /// This is useful for declaring that a type may return None or Some
-/// or that a type may return a Int or an ErrorCode or even
-/// a type that can b e None or a Concrete Type or ErrorCode.
+/// or that a type may return a Int or an `ErrorCode` or even
+/// a type that can b e None or a Concrete Type or `ErrorCode`.
 ///
 /// [`ThreeState`] is about expressing the potential values we
 /// could retrieve and not the amount and this provides us a level
@@ -182,6 +183,7 @@ pub enum ThreeState {
 }
 
 impl ThreeState {
+    #[must_use] 
     pub fn as_u8(&self) -> u8 {
         self.to_state_id_u8()
     }
@@ -195,10 +197,12 @@ impl Into<u8> for ThreeState {
 }
 
 impl ThreeState {
+    #[must_use] 
     pub fn to_state_id_u8(&self) -> u8 {
         self.to_state_id() as u8
     }
 
+    #[must_use] 
     pub fn to_state_id(&self) -> ThreeStateId {
         match self {
             Self::One(_) => ThreeStateId::One,
@@ -207,6 +211,7 @@ impl ThreeState {
         }
     }
 
+    #[must_use] 
     pub fn to_returns_value_u8(&self) -> Vec<u8> {
         let mut items = Vec::with_capacity(4);
 
@@ -258,6 +263,7 @@ impl Into<u8> for ReturnEncoded {
 }
 
 impl ReturnEncoded {
+    #[must_use] 
     pub fn as_u8(&self) -> u8 {
         *self as u8
     }
@@ -303,6 +309,7 @@ impl Into<u8> for ThreeStateId {
 }
 
 impl ThreeStateId {
+    #[must_use] 
     pub fn as_u8(&self) -> u8 {
         *self as u8
     }
@@ -351,6 +358,7 @@ impl Into<u8> for ReturnIds {
 }
 
 impl ReturnIds {
+    #[must_use] 
     pub fn as_u8(&self) -> u8 {
         *self as u8
     }
@@ -388,16 +396,19 @@ impl Into<u8> for ReturnTypeHints {
 }
 
 impl ReturnTypeHints {
+    #[must_use] 
     pub fn as_u8(&self) -> u8 {
         self.to_returns_u8()
     }
 }
 
 impl ReturnTypeHints {
+    #[must_use] 
     pub fn to_returns_u8(&self) -> u8 {
         self.to_return_id() as u8
     }
 
+    #[must_use] 
     pub fn to_return_id(&self) -> ReturnIds {
         match self {
             Self::None => ReturnIds::None,
@@ -407,14 +418,16 @@ impl ReturnTypeHints {
         }
     }
 
+    #[must_use] 
     pub fn to_returns_value_u8(&self) -> Option<Vec<u8>> {
         self.to_returns_value().map(|item| {
             item.iter()
-                .flat_map(|item| item.to_returns_value_u8())
+                .flat_map(ThreeState::to_returns_value_u8)
                 .collect()
         })
     }
 
+    #[must_use] 
     pub fn to_returns_value(&self) -> Option<Vec<ThreeState>> {
         match self {
             Self::None => None,
@@ -443,16 +456,19 @@ impl Into<u8> for Returns {
 }
 
 impl Returns {
+    #[must_use] 
     pub fn as_u8(&self) -> u8 {
         self.to_returns_u8()
     }
 }
 
 impl Returns {
+    #[must_use] 
     pub fn to_returns_u8(&self) -> u8 {
         self.to_returns_type() as u8
     }
 
+    #[must_use] 
     pub fn to_returns_type(&self) -> ReturnIds {
         match self {
             Self::None => ReturnIds::None,
@@ -500,10 +516,12 @@ pub enum ReturnValues {
 }
 
 impl ReturnValues {
+    #[must_use] 
     pub fn to_return_value_type_u8(&self) -> u8 {
         self.to_return_value_type() as u8
     }
 
+    #[must_use] 
     pub fn to_return_value_type(&self) -> ReturnTypeId {
         match self {
             Self::None => ReturnTypeId::None,
@@ -632,10 +650,12 @@ pub enum Params<'a> {
 }
 
 impl Params<'_> {
+    #[must_use] 
     pub fn to_value_type_u8(&self) -> u8 {
         self.to_value_type() as u8
     }
 
+    #[must_use] 
     pub fn to_value_type(&self) -> ParamTypeId {
         match self {
             Params::Bool(_) => ParamTypeId::Bool,
@@ -858,14 +878,17 @@ pub struct StrLocation(u64, u64);
 
 #[allow(clippy::len_without_is_empty)]
 impl StrLocation {
+    #[must_use] 
     pub fn new(index: u64, length: u64) -> Self {
         Self(index, length)
     }
 
+    #[must_use] 
     pub fn index(&self) -> u64 {
         self.0
     }
 
+    #[must_use] 
     pub fn len(&self) -> u64 {
         self.1
     }
@@ -1049,7 +1072,7 @@ impl From<u8> for ArgumentOperations {
 /// Where Operation: is a layout of a specific type of operation
 /// with it's own underlying layout defining its components.
 ///
-/// Operation: [Op, [OperationComponent]*, OpEnd]
+/// Operation: [Op, [`OperationComponent`]*, `OpEnd`]
 ///
 #[repr(usize)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -1063,8 +1086,8 @@ pub enum Operations {
     ///
     Begin = 0,
 
-    /// MakeFunction represents the operation to create/register
-    /// a function on the other side at a specific ExternalReference
+    /// `MakeFunction` represents the operation to create/register
+    /// a function on the other side at a specific `ExternalReference`
     /// usually pre-allocated via some API call.
     ///
     /// The layout will have the function address followed by the
@@ -1072,7 +1095,7 @@ pub enum Operations {
     /// definition in batch memory, the starting index of the
     /// string and the length of the string bytes.
     ///
-    /// Layout: {1{ [MemoryAllocationAddress}, PreAllocatedExternalReference, StartIndex, Length}
+    /// Layout: {1{ [`MemoryAllocationAddress`}, `PreAllocatedExternalReference`, `StartIndex`, Length}
     ///
     /// In Actual Layout:
     ///
@@ -1101,10 +1124,10 @@ pub enum Operations {
     ///
     /// A. with no argument: Begin, 3, FunctionHandle(u64), End
     ///
-    /// B. with arguments: Begin, 3, FunctionHandle(u64), FunctionArguments, {Arguments}, End
+    /// B. with arguments: Begin, 3, FunctionHandle(u64), `FunctionArguments`, {Arguments}, End
     Invoke = 2,
 
-    /// `Operations::InvokeAsync` aka InvokeAsyncCallback represents the desire to call a
+    /// `Operations::InvokeAsync` aka `InvokeAsyncCallback` represents the desire to call a
     /// function across boundary that takes a callback internal reference
     /// which it will use to supply appropriate response when ready via the
     /// returned promise or future the host uses to represent the operation.
@@ -1115,7 +1138,7 @@ pub enum Operations {
     ///
     /// The return value to the callback function must always be of the type: [`Returns`].
     ///
-    /// Layout format: Begin, 3, FunctionHandle(u64), ArgStart, ArgBegin, ExternReference, ArgEnd, ArgStop,
+    /// Layout format: Begin, 3, FunctionHandle(u64), `ArgStart`, `ArgBegin`, `ExternReference`, `ArgEnd`, `ArgStop`,
     ///  End
     InvokeAsync = 3,
 
@@ -1189,22 +1212,27 @@ impl From<u64> for CachedText {
 }
 
 impl CachedText {
+    #[must_use] 
     pub const fn pointer(value: u64) -> Self {
         Self(value)
     }
 
+    #[must_use] 
     pub fn into_param<'a>(self) -> Params<'a> {
         Params::CachedText(self.0)
     }
 
+    #[must_use] 
     pub fn into_inner(self) -> u64 {
         self.0
     }
 
+    #[must_use] 
     pub fn clone_inner(&self) -> u64 {
         self.0
     }
 
+    #[must_use] 
     pub fn to_value_type(&self) -> ParamTypeId {
         ParamTypeId::InternalReference
     }
@@ -1226,18 +1254,22 @@ impl From<u64> for InternalPointer {
 }
 
 impl InternalPointer {
+    #[must_use] 
     pub const fn pointer(value: u64) -> Self {
         Self(value)
     }
 
+    #[must_use] 
     pub fn into_inner(self) -> u64 {
         self.0
     }
 
+    #[must_use] 
     pub fn clone_inner(&self) -> u64 {
         self.0
     }
 
+    #[must_use] 
     pub fn to_value_type(&self) -> ParamTypeId {
         ParamTypeId::InternalReference
     }
@@ -1259,18 +1291,22 @@ impl From<u64> for ExternalPointer {
 }
 
 impl ExternalPointer {
+    #[must_use] 
     pub const fn pointer(value: u64) -> Self {
         Self(value)
     }
 
+    #[must_use] 
     pub fn into_inner(self) -> u64 {
         self.0
     }
 
+    #[must_use] 
     pub fn clone_inner(&self) -> u64 {
         self.0
     }
 
+    #[must_use] 
     pub fn to_value_type(&self) -> ParamTypeId {
         ParamTypeId::ExternalReference
     }
@@ -1442,7 +1478,7 @@ impl core::fmt::Display for MemOpError {
 /// ```
 ///
 pub mod value_quantitization {
-    use super::*;
+    use super::{Vec, TypeOptimization};
 
     /// [`qi16`] performs an operation to transform
     /// a [`i16`] large number into bytes with an
@@ -1451,17 +1487,15 @@ pub mod value_quantitization {
     /// first convert the number into that type then return
     /// the binary in little endian and the [`TypeOptimization`]
     /// applied to the value.
+    #[must_use] 
     pub fn qi16(value: i16) -> (Vec<u8>, TypeOptimization) {
-        match value {
-            -128..=127 => {
-                let as_bit = value as i8;
-                let as_bit_bytes = as_bit.to_le_bytes();
-                (as_bit_bytes.to_vec(), TypeOptimization::QuantizedInt16AsI8)
-            }
-            _ => {
-                let as_bit_bytes = value.to_le_bytes();
-                (as_bit_bytes.to_vec(), TypeOptimization::None)
-            }
+        if let -128..=127 = value {
+            let as_bit = value as i8;
+            let as_bit_bytes = as_bit.to_le_bytes();
+            (as_bit_bytes.to_vec(), TypeOptimization::QuantizedInt16AsI8)
+        } else {
+            let as_bit_bytes = value.to_le_bytes();
+            (as_bit_bytes.to_vec(), TypeOptimization::None)
         }
     }
 
@@ -1472,6 +1506,7 @@ pub mod value_quantitization {
     /// first convert the number into that type then return
     /// the binary in little endian and the [`TypeOptimization`]
     /// applied to the value.
+    #[must_use] 
     pub fn qi32(value: i32) -> (Vec<u8>, TypeOptimization) {
         match value {
             -128..=127 => {
@@ -1499,6 +1534,7 @@ pub mod value_quantitization {
     /// first convert the number into that type then return
     /// the binary in little endian and the [`TypeOptimization`]
     /// applied to the value.
+    #[must_use] 
     pub fn qi64(value: i64) -> (Vec<u8>, TypeOptimization) {
         match value {
             -128..=127 => {
@@ -1512,7 +1548,7 @@ pub mod value_quantitization {
 
                 (as_bit_bytes.to_vec(), TypeOptimization::QuantizedInt64AsI16)
             }
-            -2147483648..=-32769 | 32768..=2147483647 => {
+            -2_147_483_648..=-32_769 | 32_768..=2_147_483_647 => {
                 let as_bit = value as i32;
                 let as_bit_bytes = as_bit.to_le_bytes();
 
@@ -1532,6 +1568,7 @@ pub mod value_quantitization {
     /// first convert the number into that type then return
     /// the binary in little endian and the [`TypeOptimization`]
     /// applied to the value.
+    #[must_use] 
     pub fn qi128(value: i128) -> (Vec<u8>, TypeOptimization) {
         match value {
             -128..=127 => {
@@ -1548,7 +1585,7 @@ pub mod value_quantitization {
                     TypeOptimization::QuantizedInt128AsI16,
                 )
             }
-            -2147483648..=-32769 | 32768..=2147483647 => {
+            -2_147_483_648..=-32_769 | 32_768..=2_147_483_647 => {
                 let as_bit = value as i32;
                 let as_bit_bytes = as_bit.to_le_bytes();
 
@@ -1557,7 +1594,7 @@ pub mod value_quantitization {
                     TypeOptimization::QuantizedInt128AsI32,
                 )
             }
-            -9223372036854775808..=-2147483649 | 2147483648..=9223372036854775807 => {
+            -9_223_372_036_854_775_808..=-2_147_483_649 | 2_147_483_648..=9_223_372_036_854_775_807 => {
                 let as_bit = value as i64;
                 let as_bit_bytes = as_bit.to_le_bytes();
 
@@ -1592,17 +1629,15 @@ pub mod value_quantitization {
     /// first convert the number into that type then return
     /// the binary in little endian and the [`TypeOptimization`]
     /// applied to the value.
+    #[must_use] 
     pub fn qu16(value: u16) -> (Vec<u8>, TypeOptimization) {
-        match value {
-            0..=255 => {
-                let as_bit = value as u8;
-                let as_bit_bytes = as_bit.to_le_bytes();
-                (as_bit_bytes.to_vec(), TypeOptimization::QuantizedUint16AsU8)
-            }
-            _ => {
-                let as_bit_bytes = value.to_le_bytes();
-                (as_bit_bytes.to_vec(), TypeOptimization::None)
-            }
+        if let 0..=255 = value {
+            let as_bit = value as u8;
+            let as_bit_bytes = as_bit.to_le_bytes();
+            (as_bit_bytes.to_vec(), TypeOptimization::QuantizedUint16AsU8)
+        } else {
+            let as_bit_bytes = value.to_le_bytes();
+            (as_bit_bytes.to_vec(), TypeOptimization::None)
         }
     }
 
@@ -1613,6 +1648,7 @@ pub mod value_quantitization {
     /// first convert the number into that type then return
     /// the binary in little endian and the [`TypeOptimization`]
     /// applied to the value.
+    #[must_use] 
     pub fn qu32(value: u32) -> (Vec<u8>, TypeOptimization) {
         match value {
             0..=255 => {
@@ -1642,20 +1678,18 @@ pub mod value_quantitization {
     //
     // When its actuall in the f64 range then the normal byte count is used with quantization
     // set as [`TypeOptimization::None`].
+    #[must_use] 
     pub fn qf64(value: f64) -> (Vec<u8>, TypeOptimization) {
         const F32_MIN: f64 = f32::MIN as f64;
         const F32_MAX: f64 = f32::MAX as f64;
 
-        match value {
-            F32_MIN..=F32_MAX => {
-                let as_bit = value as f32;
-                let as_bit_bytes = as_bit.to_le_bytes();
-                (as_bit_bytes.to_vec(), TypeOptimization::QuantizedF64AsF32)
-            }
-            _ => {
-                let as_bit_bytes = value.to_le_bytes();
-                (as_bit_bytes.to_vec(), TypeOptimization::None)
-            }
+        if let F32_MIN..=F32_MAX = value {
+            let as_bit = value as f32;
+            let as_bit_bytes = as_bit.to_le_bytes();
+            (as_bit_bytes.to_vec(), TypeOptimization::QuantizedF64AsF32)
+        } else {
+            let as_bit_bytes = value.to_le_bytes();
+            (as_bit_bytes.to_vec(), TypeOptimization::None)
         }
     }
 
@@ -1666,6 +1700,7 @@ pub mod value_quantitization {
     /// first convert the number into that type then return
     /// the binary in little endian and the [`TypeOptimization`]
     /// applied to the value.
+    #[must_use] 
     pub fn qu64(value: u64) -> (Vec<u8>, TypeOptimization) {
         match value {
             0..=255 => {
@@ -1682,7 +1717,7 @@ pub mod value_quantitization {
                     TypeOptimization::QuantizedUint64AsU16,
                 )
             }
-            65536..=4294967295 => {
+            65_536..=4_294_967_295 => {
                 let as_bit = value as u32;
                 let as_bit_bytes = as_bit.to_le_bytes();
 
@@ -1705,6 +1740,7 @@ pub mod value_quantitization {
     /// first convert the number into that type then return
     /// the binary in little endian and the [`TypeOptimization`]
     /// applied to the value.
+    #[must_use] 
     pub fn qu128(value: u128) -> (Vec<u8>, TypeOptimization) {
         match value {
             0..=255 => {
@@ -1724,7 +1760,7 @@ pub mod value_quantitization {
                     TypeOptimization::QuantizedUint128AsU16,
                 )
             }
-            65536..=4294967295 => {
+            65_536..=4_294_967_295 => {
                 let as_bit = value as u32;
                 let as_bit_bytes = as_bit.to_le_bytes();
 
@@ -1733,7 +1769,7 @@ pub mod value_quantitization {
                     TypeOptimization::QuantizedUint128AsU32,
                 )
             }
-            4294967296..=18446744073709551615 => {
+            4_294_967_296..=18_446_744_073_709_551_615 => {
                 let as_bit = value as u64;
                 let as_bit_bytes = as_bit.to_le_bytes();
 
@@ -1744,7 +1780,7 @@ pub mod value_quantitization {
             }
             _ => {
                 // nice trick to switch all bits to 1 for a 64bit number.
-                const MASK: u128 = 0xFFFFFFFFFFFFFFFF;
+                const MASK: u128 = 0xFFFF_FFFF_FFFF_FFFF;
 
                 // get the MSB by shifting right 64 bits
                 let value_msb = (value >> 64) as u64;
@@ -1774,6 +1810,7 @@ pub mod value_quantitization {
 
     /// [`qpointer`] attempts to quantize a pointer value expressed as either
     /// a u8, u16, u32 or u64 depending on the range the pointer value falls under.
+    #[must_use] 
     pub fn qpointer(ptr: *const u8) -> (Vec<u8>, TypeOptimization) {
         match ptr as u64 {
             0..=255 => {
@@ -1914,7 +1951,7 @@ const BIT_SIZE: u64 = 32;
 /// [`BIT_MASK`] representing the needing masking
 /// to be used in bitpacking two 32bit numbers into
 /// a 64 bit number.
-const BIT_MASK: u64 = 0xFFFFFFFF;
+const BIT_MASK: u64 = 0xFFFF_FFFF;
 
 /// [`MemoryLocation`] represents a location in memory where the
 /// first value is a pointer to the memory location and the next is
@@ -1924,16 +1961,19 @@ const BIT_MASK: u64 = 0xFFFFFFFF;
 pub struct MemoryLocation(pub(crate) *const u8, pub(crate) u64);
 
 impl MemoryLocation {
+    #[must_use] 
     pub fn new(ptr: *const u8, length: u64) -> Self {
         Self(ptr, length)
     }
 }
 
 impl MemoryLocation {
+    #[must_use] 
     pub fn address(&self) -> *const u8 {
         self.0
     }
 
+    #[must_use] 
     pub fn length(&self) -> u64 {
         self.1
     }
@@ -1952,6 +1992,7 @@ impl MemoryLocation {
 pub struct MemoryId(pub(crate) u32, pub(crate) u32);
 
 impl MemoryId {
+    #[must_use] 
     pub fn new(index: u32, gen: u32) -> Self {
         Self(index, gen)
     }
@@ -1975,6 +2016,7 @@ impl MemoryId {
     /// into a Memory by the assuming that the First 32bit represent
     /// the index (LSB) and the last 32 bit (MSB) represent the
     /// generation number.
+    #[must_use] 
     pub fn from_u64(memory_id: u64) -> Self {
         let index = ((memory_id >> BIT_SIZE) & BIT_MASK) as u32; // upper bit
         let generation = (memory_id & BIT_MASK) as u32; // lower bit
@@ -1984,16 +2026,19 @@ impl MemoryId {
     /// [`as_u64`] packs the index and generation represented
     /// by the [`MemoryId`] into a singular u64 number allowing
     /// memory savings and improved cross over sharing.
+    #[must_use] 
     pub fn as_u64(&self) -> u64 {
-        let msb_bit = ((self.0 as u64) & BIT_MASK) << BIT_SIZE; // Upper 32 bits at the MSB
-        let lsb_bit = (self.1 as u64) & BIT_MASK; // Lower 32 bits at the LSB
+        let msb_bit = (u64::from(self.0) & BIT_MASK) << BIT_SIZE; // Upper 32 bits at the MSB
+        let lsb_bit = u64::from(self.1) & BIT_MASK; // Lower 32 bits at the LSB
         msb_bit | lsb_bit
     }
 
+    #[must_use] 
     pub fn index(&self) -> u32 {
         self.0
     }
 
+    #[must_use] 
     pub fn generation(&self) -> u32 {
         self.1
     }

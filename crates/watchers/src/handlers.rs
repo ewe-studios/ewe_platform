@@ -128,26 +128,22 @@ pub(crate) fn execute_command(mut command: config::CommandDescription) -> ExecRe
             if command.if_failed == Some(CommandExpectation::Exit) {
                 return Err(anyhow!(
                     r"
-    Command: {}, args={:?}
+    Command: {command_binary}, args={command_arguments:?}
 
     Output:
-        {}
+        {output}
 
     Error:
-        {}
+        {error_output}
 
     [end]
                     ",
-                    command_binary,
-                    command_arguments,
-                    output,
-                    error_output,
                 ));
             }
 
             Ok(())
         }
-        Err(err) => Err(anyhow!("failed to execute command: {}", err)),
+        Err(err) => Err(anyhow!("failed to execute command: {err}")),
     }
 }
 

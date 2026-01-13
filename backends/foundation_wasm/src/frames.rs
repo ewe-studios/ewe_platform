@@ -8,6 +8,7 @@ pub enum TickState {
 }
 
 impl TickState {
+    #[must_use] 
     pub fn into_u8(self) -> u8 {
         self as u8
     }
@@ -65,6 +66,7 @@ impl FnFrameCallback {
     }
 
     #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[must_use] 
     pub fn new(elem: Box<dyn Fn(f64) -> TickState + Send + 'static>) -> Self {
         Self(foundation_nostd::spin::Mutex::new(elem))
     }
@@ -104,16 +106,19 @@ pub struct FrameCallbackList {
 }
 
 impl FrameCallbackList {
+    #[must_use] 
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
             items: Vec::with_capacity(capacity),
         }
     }
 
+    #[must_use] 
     pub fn new() -> Self {
         Self { items: Vec::new() }
     }
 
+    #[must_use] 
     pub const fn create() -> Self {
         Self { items: Vec::new() }
     }
@@ -126,10 +131,12 @@ impl Default for FrameCallbackList {
 }
 
 impl FrameCallbackList {
+    #[must_use] 
     pub fn len(&self) -> usize {
         self.items.len()
     }
 
+    #[must_use] 
     pub fn is_empty(&self) -> bool {
         self.items.is_empty()
     }

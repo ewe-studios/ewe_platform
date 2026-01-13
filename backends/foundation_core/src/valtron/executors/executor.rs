@@ -145,6 +145,7 @@ where
 pub struct CanCloneExecutionIterator(Box<dyn CloneableExecutionIterator>);
 
 impl CanCloneExecutionIterator {
+    #[must_use] 
     pub fn new(elem: Box<dyn CloneableExecutionIterator>) -> Self {
         Self(elem)
     }
@@ -250,8 +251,8 @@ pub enum ExecutorError {
     /// being supported.
     NotSupported,
 
-    /// A given executor has no provided task in the case of a TaskIterator
-    /// based ExecutorIterator.
+    /// A given executor has no provided task in the case of a `TaskIterator`
+    /// based `ExecutorIterator`.
     TaskRequired,
 
     #[from(ignore)]
@@ -292,6 +293,7 @@ impl<
         Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
     > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, Resolver, Task>
 {
+    #[must_use] 
     pub fn new(engine: BoxedExecutionEngine) -> Self {
         Self {
             engine,
@@ -368,7 +370,7 @@ impl<
 
         self.engine
             .schedule(boxed_task.into())
-            .map(|_| RecvIterator::from_chan(iter_chan, wait_cycle))
+            .map(|()| RecvIterator::from_chan(iter_chan, wait_cycle))
     }
 
     /// [`lift_ready_iter`] adds a task into execution queue but instead of depending
@@ -401,7 +403,7 @@ impl<
 
         self.engine
             .lift(boxed_task.into(), parent)
-            .map(|_| RecvIterator::from_chan(iter_chan, wait_cycle))
+            .map(|()| RecvIterator::from_chan(iter_chan, wait_cycle))
     }
 
     /// [`schedule_iter`] adds a task into execution queue but instead of depending
@@ -431,7 +433,7 @@ impl<
 
         self.engine
             .schedule(boxed_task.into())
-            .map(|_| RecvIterator::from_chan(iter_chan, wait_cycle))
+            .map(|()| RecvIterator::from_chan(iter_chan, wait_cycle))
     }
 
     /// [`lift_iter`] adds a task into execution queue but instead of depending
@@ -462,7 +464,7 @@ impl<
 
         self.engine
             .lift(boxed_task.into(), parent)
-            .map(|_| RecvIterator::from_chan(iter_chan, wait_cycle))
+            .map(|()| RecvIterator::from_chan(iter_chan, wait_cycle))
     }
 
     /// [`lift`] delivers a task to the top of the thread-local execution queue.
@@ -564,7 +566,7 @@ impl<
 
         self.engine
             .broadcast(boxed_task.into())
-            .map(|_| RecvIterator::from_chan(iter_chan, wait_cycle))
+            .map(|()| RecvIterator::from_chan(iter_chan, wait_cycle))
     }
 
     /// [`broadcast_ready_iter`] adds a task into execution queue but instead of depending
@@ -596,7 +598,7 @@ impl<
 
         self.engine
             .broadcast(boxed_task.into())
-            .map(|_| RecvIterator::from_chan(iter_chan, wait_cycle))
+            .map(|()| RecvIterator::from_chan(iter_chan, wait_cycle))
     }
 }
 
@@ -670,7 +672,7 @@ where
     }
 }
 
-/// ExecutorEngine is the backbone of the valtron execution model
+/// `ExecutorEngine` is the backbone of the valtron execution model
 /// they can be spawned within threads or be the singular owner
 /// of a thread which the user/caller create to manage execution within the
 /// thread.
@@ -678,7 +680,7 @@ pub trait ExecutionEngine {
     /// [`lift`] prioritizes an incoming task to the top of the local
     /// execution queue which pauses all processing task till that
     /// point till the new task is done or goes to sleep (dependent on
-    /// the internals of the ExecutionEngine).
+    /// the internals of the `ExecutionEngine`).
     ///
     /// If `parent` is provided then a dependency connection is made
     /// with the relevant parent's identified by the `Entry` key.
@@ -691,7 +693,7 @@ pub trait ExecutionEngine {
     /// [`schedule`] adds provided incoming task to the bottom of the local
     /// execution queue which pauses all processing task till that
     /// point till the new task is done or goes to sleep (dependent on
-    /// the internals of the ExecutionEngine).
+    /// the internals of the `ExecutionEngine`).
     fn schedule(&self, task: BoxedExecutionIterator) -> AnyResult<(), ExecutorError>;
 
     /// [`broadcast`] allows you to deliver a task to the global execution queue
@@ -703,12 +705,12 @@ pub trait ExecutionEngine {
     /// [`shared_queue`] returns access to the global queue.
     fn shared_queue(&self) -> SharedTaskQueue;
 
-    /// rng returns a shared thread-safe ChaCha8Rng random generation
+    /// rng returns a shared thread-safe `ChaCha8Rng` random generation
     /// managed by the executor.
     fn rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>>;
 }
 
-/// TaskSpawner represents a underlying type that can
+/// `TaskSpawner` represents a underlying type that can
 /// spawn some other task by using the provided executor.
 pub trait ExecutionAction {
     fn apply(self, key: Entry, engine: BoxedExecutionEngine) -> GenericResult<()>;
@@ -752,6 +754,7 @@ impl<Action, Done, Pending> NoResolving<Action, Done, Pending>
 where
     Action: ExecutionAction,
 {
+    #[must_use] 
     pub fn new() -> Self {
         Self(PhantomData)
     }
@@ -783,7 +786,7 @@ where
     F: TaskReadyResolver<S, D, P>,
 {
     fn handle(&self, item: TaskStatus<D, P, S>, engine: BoxedExecutionEngine) {
-        (**self).handle(item, engine)
+        (**self).handle(item, engine);
     }
 }
 
@@ -793,7 +796,7 @@ where
     F: TaskReadyResolver<S, D, P> + ?Sized,
 {
     fn handle(&self, item: TaskStatus<D, P, S>, engine: BoxedExecutionEngine) {
-        (**self).handle(item, engine)
+        (**self).handle(item, engine);
     }
 }
 
@@ -812,7 +815,7 @@ where
 {
     fn handle(&self, item: TaskStatus<D, P, S>, engine: BoxedExecutionEngine) {
         let mut mut_fn = self.0.borrow_mut();
-        (mut_fn)(item, engine)
+        (mut_fn)(item, engine);
     }
 }
 
@@ -830,7 +833,7 @@ where
     F: Fn(TaskStatus<D, P, S>, BoxedExecutionEngine),
 {
     fn handle(&self, item: TaskStatus<D, P, S>, engine: BoxedExecutionEngine) {
-        self.0(item, engine)
+        self.0(item, engine);
     }
 }
 
@@ -924,7 +927,7 @@ mod test_fn_mapper {
     }
 }
 
-/// OnceCache implements a TaskStatus iterator that wraps
+/// `OnceCache` implements a `TaskStatus` iterator that wraps
 /// a provided iterator and provides a onetime read semantic
 /// on the iterator, where it ends its operation once the first
 /// value the iterator is received and returns None from then on.
@@ -991,7 +994,7 @@ where
     }
 }
 
-/// UntilTake implements an iterator that becomes temporarily finished/done
+/// `UntilTake` implements an iterator that becomes temporarily finished/done
 /// by always returning `None` until it's cached value is taken.
 ///
 /// This allows you to allocate the iterator for only one cycle, get it
@@ -1055,7 +1058,7 @@ where
     }
 }
 
-/// UntilUnblocked implements an iterator that yields the first received
+/// `UntilUnblocked` implements an iterator that yields the first received
 /// value from a owned iterator after which it becomes blocked until
 /// you call `UntilUnblocked::reset` method to be reusable again.
 pub struct UntilUnblocked<D, P, S: ExecutionAction, T: Iterator<Item = TaskStatus<D, P, S>>> {

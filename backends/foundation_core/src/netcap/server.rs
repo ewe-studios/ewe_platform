@@ -47,6 +47,7 @@ pub struct TestServer {
 }
 
 impl TestServer {
+    #[must_use] 
     pub fn new(port: usize, address: String, actions: Vec<ServiceAction>) -> Self {
         Self {
             port,
@@ -59,14 +60,15 @@ impl TestServer {
         let port = self.port;
         let address = self.address.clone();
         let mut client = TcpStream::connect(format!("{address}:{port}"))
-            .map_err(|err| err.into_boxed_error())?;
+            .map_err(super::super::extensions::result_ext::BoxedResult::into_boxed_error)?;
 
         client
             .write(b"CLOSE\r\n")
-            .map_err(|err| err.into_boxed_error())
+            .map_err(super::super::extensions::result_ext::BoxedResult::into_boxed_error)
             .map(|_| ())
     }
 
+    #[must_use] 
     pub fn serve(
         &self,
     ) -> (

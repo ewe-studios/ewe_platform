@@ -29,23 +29,20 @@ pub fn sse_endpoint_script(
     _request: crate::types::HyperRequest,
 ) -> pin::Pin<Box<crate::types::HyperFuture>> {
     Box::pin(async move {
-        let instance = AssetReloader::default();
-        match instance.read_utf8_for("reloader.js") {
-            Some(data) => {
-                let body = body::Body::new(crate::full(bytes::Bytes::from(data)));
-                Ok(hyper::Response::builder()
-                    .header("Content-Type", "text/javascript")
-                    .status(StatusCode::OK)
-                    .body(body)
-                    .unwrap())
-            }
-            None => {
-                let body = body::Body::new(crate::empty());
-                Ok(hyper::Response::builder()
-                    .status(StatusCode::NOT_FOUND)
-                    .body(body)
-                    .unwrap())
-            }
+        let instance = AssetReloader;
+        if let Some(data) = instance.read_utf8_for("reloader.js") {
+            let body = body::Body::new(crate::full(bytes::Bytes::from(data)));
+            Ok(hyper::Response::builder()
+                .header("Content-Type", "text/javascript")
+                .status(StatusCode::OK)
+                .body(body)
+                .unwrap())
+        } else {
+            let body = body::Body::new(crate::empty());
+            Ok(hyper::Response::builder()
+                .status(StatusCode::NOT_FOUND)
+                .body(body)
+                .unwrap())
         }
     })
 }
@@ -85,6 +82,7 @@ fn sse_endpoint_reloader(
 ///    inner function and therefore can not be reused on the next one.
 /// 3. Tokio's `broadcast::Sender<T>` implements Clone and we can create a new receiver
 ///    on each re-call.
+#[must_use] 
 pub fn create_sse_endpoint_handler(
     reload_notification: broadcast::Sender<FileChange>,
 ) -> sync::Arc<crate::types::HyperFunc> {

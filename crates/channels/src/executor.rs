@@ -22,7 +22,7 @@ struct Task<E: Send + 'static> {
 
     // we need to be able to re-queue/re-send the task if the thread gets
     // woken up. Basically we just send it back into the channel for reprocessing.
-    task_sender: async_channel::Sender<Arc<Task<E>>>,
+    sender: async_channel::Sender<Arc<Task<E>>>,
     ready_notification: async_channel::Sender<()>,
 }
 
@@ -30,7 +30,7 @@ impl<E: Send + 'static> ArcWake for Task<E> {
     fn wake_by_ref(arc_self: &Arc<Self>) {
         let cloned_task = arc_self.clone();
         arc_self
-            .task_sender
+            .sender
             .try_send(cloned_task)
             .expect("Failed to resend task into executor channel");
         arc_self
@@ -41,6 +41,7 @@ impl<E: Send + 'static> ArcWake for Task<E> {
     }
 }
 
+#[must_use] 
 pub fn create<E: Send + 'static>() -> (ExecutionService<E>, Executor<E>) {
     let (sender, receiver) = async_channel::unbounded::<Arc<Task<E>>>();
     let (task_completed_sender, task_completed_receiver) = async_channel::unbounded::<()>();
@@ -97,11 +98,15 @@ impl<E: Send + 'static> ExecutionService<E> {
         self.completed_notification.close();
     }
 
+    #[must_use] 
     pub fn task_ready(&self) -> async_channel::Receiver<()> {
         self.completed_notification.clone()
     }
 
-    pub async fn schedule_serve_async(&mut self) -> ExecutorResult<()> {
+    /// # Errors
+    ///
+    /// Returns an error if there are no tasks to schedule or if the executor is decommissioned.
+    pub fn schedule_serve_async(&mut self) -> ExecutorResult<()> {
         self.schedule_serve()
     }
 
@@ -127,14 +132,16 @@ impl<E: Send + 'static> ExecutionService<E> {
     /// the task are completed. It simply means they have being scheduled for completion
     /// and that completion might take a while, even past when this function's future completes.
     /// All the async function does is schedule them for completion
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if there are no tasks to schedule or if the executor is decommissioned.
     pub fn schedule_serve(&mut self) -> ExecutorResult<()> {
         if self.receiver.is_empty() {
             return ExecutorResult::Err(ExecutorError::NoTasks);
         }
 
-        if self.serve_and_capture_pending().is_err() {
-            return ExecutorResult::Err(ExecutorError::Decommission);
-        }
+        self.serve_and_capture_pending();
 
         Ok(())
     }
@@ -149,7 +156,7 @@ impl<E: Send + 'static> ExecutionService<E> {
     // will signal alter via the Waker re-adding the tasks for processing.
     //
     // To automtically have these re-processed, please use the serve_forever method.
-    fn serve_and_capture_pending(&self) -> ExecutorResult<Vec<Arc<Task<E>>>> {
+    fn serve_and_capture_pending(&self) -> Vec<Arc<Task<E>>> {
         let mut pending_tasks = Vec::<Arc<Task<E>>>::with_capacity(DEFAULT_TASK_PENDING_CAPACITY);
         while let Ok(task) = self.receiver.try_recv() {
             // get the future in the task container - we use an option here so we can easily
@@ -163,17 +170,17 @@ impl<E: Send + 'static> ExecutionService<E> {
                 let waker = waker_ref(&task);
                 let context = &mut Context::from_waker(&waker);
 
-                if future.as_mut().poll(context).is_pending() {
+                if future.as_mut().poll(context).is_ready() {
+                    // Future is complete, don't add it back to pending tasks
+                } else {
                     // put back the future since its still pending
                     *future_container = Some(future);
-
                     pending_tasks.push(task.clone());
-                    continue;
                 }
             }
         }
 
-        ExecutorResult::Ok(pending_tasks)
+        pending_tasks
     }
 }
 
@@ -189,6 +196,9 @@ impl<E: Send + 'static> Executor<E> {
     //
     // this allows us create inter-dependent work that
     // depends on the readiness of response on a channel.
+    /// # Errors
+    ///
+    /// Returns an error if the executor is decommissioned or the task queue is full.
     pub fn schedule<Fut>(
         &self,
         receiver: mspc::ReceiveChannel<E>,
@@ -199,13 +209,13 @@ impl<E: Send + 'static> Executor<E> {
     {
         let captured_async_fn = async move {
             let mut mutable_receiver = receiver.clone();
-            let received = mutable_receiver.async_receive().await;
-            receiver_fn(received).await;
+            let result = mutable_receiver.async_receive().await;
+            receiver_fn(result).await;
         };
 
         let box_future = Box::pin(captured_async_fn);
         let task = Arc::new(Task {
-            task_sender: self.sender.clone(),
+            sender: self.sender.clone(),
             handler: sync::Mutex::new(Some(box_future)),
             ready_notification: self.completed_notification.clone(),
         });
@@ -223,10 +233,13 @@ impl<E: Send + 'static> Executor<E> {
     //
     // The focus is on the future itself and it's compeleness.
     //
+    /// # Errors
+    ///
+    /// Returns an error if the executor is decommissioned or the task queue is full.
     pub fn spawn(&self, fut: impl Future<Output = ()> + 'static + Send) -> ExecutorResult<()> {
         let box_future = Box::pin(fut);
         let task = Arc::new(Task {
-            task_sender: self.sender.clone(),
+            sender: self.sender.clone(),
             handler: sync::Mutex::new(Some(box_future)),
             ready_notification: self.completed_notification.clone(),
         });

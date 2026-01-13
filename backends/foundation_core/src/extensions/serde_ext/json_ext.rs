@@ -136,7 +136,7 @@ impl PointerValueExt for Value {
     type Error = JsonError;
 
     fn get_path(&self, name_or_pointer: &str) -> ValueResult<&Self::Item, Self::Error> {
-        if name_or_pointer.starts_with("/") {
+        if name_or_pointer.starts_with('/') {
             return self
                 .pointer(name_or_pointer)
                 .ok_or_else(|| ValueError::PropertyNotFound(name_or_pointer.to_string()).into());
@@ -146,7 +146,7 @@ impl PointerValueExt for Value {
     }
 
     fn take_path(&mut self, name_or_pointer: &str) -> ValueResult<Self::Item, Self::Error> {
-        if name_or_pointer.starts_with("/") {
+        if name_or_pointer.starts_with('/') {
             return self
                 .pointer_mut(name_or_pointer)
                 .map(Value::take)
@@ -191,7 +191,7 @@ impl DynamicValueExt for Value {
                 .ok_or_else(|| ValueError::PropertyNotFound(name_or_pointer.to_string()))?
         };
 
-        V::from_value(value).map_err(|err| err.into())
+        V::from_value(value).map_err(std::convert::Into::into)
     }
 
     fn d_take<T: DeserializeOwned>(
@@ -219,15 +219,7 @@ impl DynamicValueExt for Value {
     ) -> ValueResult<(), Self::Error> {
         let new_value = serde_json::to_value(value)?;
 
-        if !name_or_pointer.starts_with('/') {
-            match self {
-                Value::Object(map) => {
-                    map.insert(name_or_pointer.to_string(), new_value);
-                    Ok(())
-                }
-                _ => Err(JsonError::custom("Value is not an Object, cannot x_insert")),
-            }
-        } else {
+        if name_or_pointer.starts_with('/') {
             let parts: Vec<&str> = name_or_pointer.split('/').skip(1).collect();
             let mut current = self;
 
@@ -252,6 +244,14 @@ impl DynamicValueExt for Value {
                 }
             } else {
                 Err(JsonError::into_custom("Invalid path"))
+            }
+        } else {
+            match self {
+                Value::Object(map) => {
+                    map.insert(name_or_pointer.to_string(), new_value);
+                    Ok(())
+                }
+                _ => Err(JsonError::custom("Value is not an Object, cannot x_insert")),
             }
         }
     }

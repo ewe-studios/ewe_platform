@@ -135,55 +135,43 @@ where
 
         Some(match previous_response.unwrap() {
             TaskStatus::Spawn(action) => match action.apply(entry, executor) {
-                Ok(_) => State::Progressed,
+                Ok(()) => State::Progressed,
                 Err(err) => {
                     tracing::error!("Failed to to spawn action: {:?}", err);
                     State::SpawnFailed
                 }
             },
-            TaskStatus::Delayed(inner) => match self.channel.push(TaskStatus::Delayed(inner)) {
-                Ok(_) => State::Pending(Some(inner)),
-                Err(_) => {
-                    tracing::error!("Failed to deliver status to channel, closing task",);
+            TaskStatus::Delayed(inner) => if let Ok(()) = self.channel.push(TaskStatus::Delayed(inner)) { State::Pending(Some(inner)) } else {
+                tracing::error!("Failed to deliver status to channel, closing task",);
 
-                    // close the queue
-                    self.channel.close();
+                // close the queue
+                self.channel.close();
 
-                    State::Done
-                }
+                State::Done
             },
-            TaskStatus::Init => match self.channel.push(TaskStatus::Init) {
-                Ok(_) => State::Pending(None),
-                Err(_) => {
-                    tracing::error!("Failed to deliver status to channel, closing task",);
+            TaskStatus::Init => if let Ok(()) = self.channel.push(TaskStatus::Init) { State::Pending(None) } else {
+                tracing::error!("Failed to deliver status to channel, closing task",);
 
-                    // close the queue
-                    self.channel.close();
+                // close the queue
+                self.channel.close();
 
-                    State::Done
-                }
+                State::Done
             },
-            TaskStatus::Pending(inner) => match self.channel.push(TaskStatus::Pending(inner)) {
-                Ok(_) => State::Pending(None),
-                Err(_) => {
-                    tracing::error!("Failed to deliver status to channel, closing task",);
+            TaskStatus::Pending(inner) => if let Ok(()) = self.channel.push(TaskStatus::Pending(inner)) { State::Pending(None) } else {
+                tracing::error!("Failed to deliver status to channel, closing task",);
 
-                    // close the queue
-                    self.channel.close();
+                // close the queue
+                self.channel.close();
 
-                    State::Done
-                }
+                State::Done
             },
-            TaskStatus::Ready(inner) => match self.channel.push(TaskStatus::Ready(inner)) {
-                Ok(_) => State::Progressed,
-                Err(_) => {
-                    tracing::error!("Failed to deliver status to channel, closing task");
+            TaskStatus::Ready(inner) => if let Ok(()) = self.channel.push(TaskStatus::Ready(inner)) { State::Progressed } else {
+                tracing::error!("Failed to deliver status to channel, closing task");
 
-                    // close the queue
-                    self.channel.close();
+                // close the queue
+                self.channel.close();
 
-                    State::Done
-                }
+                State::Done
             },
         })
     }
@@ -307,7 +295,7 @@ where
 
         Some(match previous_response.unwrap() {
             TaskStatus::Spawn(action) => match action.apply(entry, executor) {
-                Ok(_) => State::Progressed,
+                Ok(()) => State::Progressed,
                 Err(err) => {
                     tracing::error!("Failed to to spawn action: {:?}", err);
                     State::SpawnFailed
@@ -316,16 +304,13 @@ where
             TaskStatus::Delayed(dur) => State::Pending(Some(dur)),
             TaskStatus::Pending(_) => State::Pending(None),
             TaskStatus::Init => State::Pending(None),
-            TaskStatus::Ready(inner) => match self.channel.push(TaskStatus::Ready(inner)) {
-                Ok(_) => State::Progressed,
-                Err(_) => {
-                    tracing::error!("Failed to deliver status to channel, closing task");
+            TaskStatus::Ready(inner) => if let Ok(()) = self.channel.push(TaskStatus::Ready(inner)) { State::Progressed } else {
+                tracing::error!("Failed to deliver status to channel, closing task");
 
-                    // close the queue
-                    self.channel.close();
+                // close the queue
+                self.channel.close();
 
-                    State::Done
-                }
+                State::Done
             },
         })
     }

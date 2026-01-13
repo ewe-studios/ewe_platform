@@ -4,7 +4,7 @@ mod embedders;
 
 /// [`embed_directory_as`] specifies a proc macro for embedding files into
 /// your binary as a series of UTF8 array and UTF16 array with
-/// additional meta data like the hash, date_modified and mimetype
+/// additional meta data like the hash, `date_modified` and mimetype
 /// for the target source file.
 ///
 /// You can use:
@@ -57,7 +57,7 @@ pub fn embed_directory_as(item: TokenStream) -> TokenStream {
 
 /// [`embed_file_as`] specifies a proc macro for embedding files into
 /// your binary as a series of UTF8 array and UTF16 array with
-/// additional meta data like the hash, date_modified and mimetype
+/// additional meta data like the hash, `date_modified` and mimetype
 /// for the target source file.
 ///
 /// You can use:
