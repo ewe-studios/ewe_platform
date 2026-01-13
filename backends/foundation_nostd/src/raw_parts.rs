@@ -228,6 +228,10 @@ impl<T> RawParts<T> {
     ///     assert_eq!(rebuilt, [4, 5, 6]);
     /// }
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `length` or `capacity` cannot be converted to `usize`.
     #[must_use]
     pub unsafe fn into_vec(self) -> Vec<T> {
         let Self {
