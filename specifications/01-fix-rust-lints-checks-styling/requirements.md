@@ -1,6 +1,18 @@
 ---
 description: Fix all pending Rust lints, checks, and styling mistakes across the codebase (excluding foundation_core and infrastructure)
 status: completed
+priority: high
+created: 2026-01-14
+author: "Main Agent"
+metadata:
+  version: "1.0"
+  last_updated: 2026-01-14
+  estimated_effort: "medium"
+  tags:
+    - code-quality
+    - rust
+    - linting
+    - refactoring
 ---
 
 # Fix Rust Lints, Checks, and Styling - Requirements
