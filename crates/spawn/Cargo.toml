@@ -21,7 +21,7 @@ tokio-test = { version = "0.4" }
 [dependencies]
 cfg-if = { version = "1.0" }
 anyhow = { version = "1.0.80" }
-thiserror = { version = "1.0.57" }
+thiserror = { version = "2.0.17" }
 futures = { version = "0.3" }
 
 # tracing

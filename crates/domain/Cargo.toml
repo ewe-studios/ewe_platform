@@ -25,7 +25,7 @@ async-channel = { version = "2.2" }
 futures = { version = "0.3" }
 crossbeam = { version = "0.8" }
 anyhow = { version = "1.0.80" }
-thiserror = { version = "1.0.57" }
+thiserror = { version = "2.0.17" }
 
 [dev-dependencies]
 tracing-test = { version = "0.2.5" }

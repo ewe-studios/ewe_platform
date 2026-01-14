@@ -15,7 +15,7 @@ tracing.workspace = true
 anyhow.workspace = true
 
 # -- error crates
-thiserror = { version = "1.0.57" }
+thiserror = { version = "2.0.17" }
 
 # -- watcher
 notify = { version = "6.1.1", features = [] }
