@@ -27,7 +27,7 @@ tracing = { workspace = true }
 
 # cli
 ctrlc = { version = "3.4" }
-clap = { version = "4.5.20", features = ["derive"] }
+clap = { version = "4.5.54", features = ["derive"] }
 signal-hook = { version = "0.4.1" }
 
 # -- tokio, axum and tower
