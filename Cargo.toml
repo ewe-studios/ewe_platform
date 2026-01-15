@@ -87,7 +87,7 @@ thiserror = { version = "2"}
 
 # examples and benchmarks
 hf-hub = { version = "0.4.3" }
-criterion = { version = "0.5.1" }
+criterion = { version = "0.8.1" }
 pprof = { version = "0.13.0" }
 bindgen = { version = "0.72.1" }
 cc = { version = "1.2.49" }
