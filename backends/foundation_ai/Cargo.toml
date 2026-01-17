@@ -13,5 +13,14 @@ keywords = ["foundations_ai", "ewe-platform-ai"]
 
 # -- Workspace dependencies
 
-foundation_nostd = {workspace = true }
+foundation_nostd = { workspace = true }
+foundation_macros = { workspace = true }
+foundation_core = { workspace = true }
+
+# -- Other dependencies
+derive_more = { version = "2.1", features = ["from", "debug", "error"] }
+serde = { version = "1", features = ["derive"] }
+fastrand = { version = "2.3"}
+rand_chacha = { version = "0.9"}
+rand = { version = "0.9"}
 
