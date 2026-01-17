@@ -1,5 +1,7 @@
 use std::{any::Any, time};
 
+use crate::valtron::Stream;
+
 use super::ExecutionAction;
 
 /// The type for a panic handling closure. Note that this same closure
@@ -42,6 +44,18 @@ pub enum TaskStatus<D, P, S: ExecutionAction> {
     /// Ready is the final state where we consider the task
     /// has finished/ended with relevant result.
     Ready(D),
+}
+
+impl<D, P, S: ExecutionAction> Into<Stream<D, P>> for TaskStatus<D, P, S> {
+    fn into(self) -> Stream<D, P> {
+        match self {
+            TaskStatus::Init => Stream::Init,
+            TaskStatus::Spawn(_) => Stream::Ignore,
+            TaskStatus::Ready(inner) => Stream::Next(inner),
+            TaskStatus::Delayed(inner) => Stream::Delayed(inner),
+            TaskStatus::Pending(inner) => Stream::Pending(inner),
+        }
+    }
 }
 
 impl<D: PartialEq, P: PartialEq, S: ExecutionAction> Eq for TaskStatus<D, P, S> {}
@@ -151,7 +165,7 @@ impl<D, P, S> TaskAsIterator<D, P, S> {
         Self(Box::new(t))
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn new(t: Box<dyn TaskIterator<Ready = D, Pending = P, Spawner = S>>) -> Self {
         Self(t)
     }
