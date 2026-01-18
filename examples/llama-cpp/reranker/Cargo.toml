@@ -7,7 +7,7 @@ publish = false
 [dependencies]
 infrastructure_llama_cpp = { workspace = true }
 
-hf-hub = { workspace = true }
+hf-hub = { version = "0.4.3" }
 clap = { workspace = true, features = ["derive"] }
 anyhow = { workspace = true }
 encoding_rs = { workspace = true }
