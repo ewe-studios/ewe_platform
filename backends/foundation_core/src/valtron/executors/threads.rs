@@ -94,8 +94,8 @@ mod test_allocatable_threads {
     use super::*;
 
     #[test]
-    #[serial]
     #[traced_test]
+    #[serial]
     fn get_allocatable_thread_count_as_far_as_1_remains() {
         let max_threads = get_max_threads();
         assert!(max_threads > 3);
