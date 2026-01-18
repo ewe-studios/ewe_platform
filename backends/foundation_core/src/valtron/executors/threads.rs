@@ -89,10 +89,12 @@ pub(crate) fn get_allocatable_thread_count() -> usize {
 #[cfg(test)]
 mod test_allocatable_threads {
     use tracing_test::traced_test;
+    use serial_test::serial;
 
     use super::*;
 
     #[test]
+    #[serial]
     #[traced_test]
     fn get_allocatable_thread_count_as_far_as_1_remains() {
         let max_threads = get_max_threads();
@@ -110,6 +112,9 @@ mod test_allocatable_threads {
             new_thread_count_str
         );
 
+        // Very flaky, for now asset non-zero
+        // assert!(get_allocatable_thread_count() != 0);
+        //
         assert_eq!(get_allocatable_thread_count(), max_threads - 2);
     }
 }

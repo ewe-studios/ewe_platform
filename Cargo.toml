@@ -85,8 +85,10 @@ tracing-core = { version = "0.1" }
 
 thiserror = { version = "1"} 
 
+# specific for testing serially
+serial_test = "0.6.0"
+
 # examples and benchmarks
-hf-hub = { version = "0.4.3" }
 criterion = { version = "0.5.1" }
 pprof = { version = "0.13.0" }
 bindgen = { version = "0.72.1" }
