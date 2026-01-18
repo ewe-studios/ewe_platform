@@ -16,6 +16,7 @@ use std::{
     time::{self, Instant},
 };
 
+use crate::{synca::mpp::StreamRecvIterator, valtron::iterators::Stream};
 use concurrent_queue::{ConcurrentQueue, PushError};
 use derive_more::derive::From;
 use rand::{RngCore, SeedableRng};
@@ -34,7 +35,7 @@ use crate::{
 
 use super::{
     constants::{DEFAULT_OP_READ_TIME, MAX_ROUNDS_IDLE_COUNT, MAX_ROUNDS_WHEN_SLEEPING_ENDS, BACK_OFF_THREAD_FACTOR, BACK_OFF_JITER, BACK_OFF_MIN_DURATION, BACK_OFF_MAX_DURATION}, BoxedExecutionEngine, BoxedPanicHandler, BoxedSendExecutionIterator,
-    ConsumingIter, DoNext, ExecutionAction, ExecutionIterator, ExecutorError, FnMutReady, FnReady,
+    ConsumingIter, StreamConsumingIter, DoNext, ExecutionAction, ExecutionIterator, ExecutorError, FnMutReady, FnReady,
     OnNext, PriorityOrder, ProcessController, ReadyConsumingIter, TaskIterator, TaskReadyResolver,
     TaskStatus, TaskStatusMapper,
 };
@@ -1191,8 +1192,7 @@ impl<
     ///
     /// This makes it possible to build synchronous experiences in a async world.
     ///
-    /// Following our naming: [`schedule_iter`] calls the `schedule` method to deliver
-    /// a task to the bottom of the thread-local execution queue.
+    /// This will deliver task to deliver the bottom of the thread-local execution queue.
     pub fn ready_iter(
         self,
         wait_cycle: time::Duration,
@@ -1225,6 +1225,50 @@ impl<
         }
     }
 
+    /// [`stream_iter`] adds a task into execution queue but instead of depending
+    /// on a [`TaskReadyResolver`] to process the state streams instead allows you
+    /// to get back a wrapper iterator that allows you synchronously receive those
+    /// values from a [`StreamRecvIterator`] that implements the [`Iterator`] trait.
+    ///
+    /// But unlike [`schedule_iter`] returns [`Stream`] values that hide way the underling 
+    /// value types of [`TaskStatus`] which simplifies the trait types your usage 
+    /// requires.
+    ///
+    /// This makes it possible to build synchronous experiences in a async world.
+    ///
+    /// This will deliver task to deliver the bottom of the thread-local execution queue.
+    pub fn stream_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<StreamRecvIterator<Done, Pending>, ExecutorError> {
+        let iter_chan: Arc<ConcurrentQueue<Stream<Done, Pending>>> =
+            Arc::new(ConcurrentQueue::unbounded());
+
+        let boxed_task = match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (None, Some(mappers)) => StreamConsumingIter::new(task, mappers, iter_chan.clone()),
+                (None, None) => StreamConsumingIter::new(task, Vec::new(), iter_chan.clone()),
+                (_, _) => return Err(ExecutorError::NotSupported),
+            },
+            None => return Err(ExecutorError::TaskRequired),
+        };
+
+        match self.tasks.push(boxed_task.into()) {
+            Ok(()) => {
+                match self.tasks.len() {
+                    1 => self.latch.signal_one(),
+                    _ => self.latch.signal_all(),
+                }
+
+                Ok(StreamRecvIterator::new(RecvIterator::from_chan(iter_chan, wait_cycle)))
+            }
+            Err(err) => match err {
+                PushError::Full(_) => Err(ExecutorError::QueueFull),
+                PushError::Closed(_) => Err(ExecutorError::QueueClosed),
+            },
+        }
+    }
+
     /// [`schedule_iter`] adds a task into execution queue but instead of depending
     /// on a [`TaskReadyResolver`] to process the final state instead allows you
     /// to get back a wrapper iterator that allows you synchronously receive those
@@ -1232,8 +1276,7 @@ impl<
     ///
     /// This makes it possible to build synchronous experiences in a async world.
     ///
-    /// Following our naming: [`schedule_iter`] calls the `schedule` method to deliver
-    /// a task to the bottom of the thread-local execution queue.
+    /// This will deliver task to deliver the bottom of the thread-local execution queue.
     pub fn schedule_iter(
         self,
         wait_cycle: time::Duration,

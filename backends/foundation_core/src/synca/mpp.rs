@@ -6,6 +6,8 @@ use std::{
 use concurrent_queue::{ConcurrentQueue, ForcePushError, PopError, PushError, TryIter};
 use derive_more::derive::From;
 
+use crate::valtron::{Stream, StreamIterator};
+
 pub struct Receiver<T> {
     chan: Arc<ConcurrentQueue<T>>,
 }
@@ -18,7 +20,7 @@ pub enum ReceiverError {
 }
 
 impl ReceiverError {
-    #[must_use] 
+    #[must_use]
     pub fn is_timeout(&self) -> bool {
         matches!(self, ReceiverError::Timeout)
     }
@@ -50,32 +52,32 @@ impl<T> Receiver<T> {
         Receiver { chan }
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn capacity(&self) -> Option<usize> {
         self.chan.capacity()
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn len(&self) -> usize {
         self.chan.len()
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn is_closed(&self) -> bool {
         self.chan.is_closed()
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn close(&self) -> bool {
         self.chan.close()
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn is_full(&self) -> bool {
         self.chan.is_full()
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.chan.is_empty()
     }
@@ -144,7 +146,7 @@ impl<T> RecvIter<T> {
     /// [`as_iter`] returns a new iterator that will block for 50 nanoseconds
     /// if the channel is empty and will yield to the OS thread scheduler if no
     /// content is received.
-    #[must_use] 
+    #[must_use]
     pub fn as_iter(self) -> RecvIterator<T> {
         RecvIterator::ten_nano(self)
     }
@@ -152,7 +154,7 @@ impl<T> RecvIter<T> {
     /// [`block_iter`] returns a new iterator that will block for provided duration
     /// if the channel is empty and will yield to the OS thread scheduler if no
     /// content is received.
-    #[must_use] 
+    #[must_use]
     pub fn block_iter(self, dur: time::Duration) -> RecvIterator<T> {
         RecvIterator::new(self, dur)
     }
@@ -212,12 +214,12 @@ impl<T> RecvIterator<T> {
         Self::new(RecvIter::new(item), DEFAULT_BLOCK_DURATION)
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn ten_nano(item: RecvIter<T>) -> Self {
         Self::new(item, DEFAULT_BLOCK_DURATION)
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn new(item: RecvIter<T>, dur: time::Duration) -> Self {
         Self(item, dur)
     }
@@ -230,6 +232,24 @@ impl<T> Iterator for RecvIterator<T> {
         self.0.block_recv(self.1).ok()
     }
 }
+
+pub struct StreamRecvIterator<D, P>(RecvIterator<Stream<D, P>>);
+
+impl<D, P> StreamRecvIterator<D, P> {
+    pub fn new(iter: RecvIterator<Stream<D, P>>) -> Self {
+        Self(iter)
+    }
+}
+
+impl<D, P> Iterator for StreamRecvIterator<D, P> {
+    type Item = Stream<D, P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next()
+    }
+}
+
+impl<D, P> StreamIterator<D, P> for StreamRecvIterator<D, P> {}
 
 pub struct Sender<T> {
     chan: Arc<ConcurrentQueue<T>>,
@@ -265,32 +285,32 @@ impl<T> Sender<T> {
         Sender { chan }
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.chan.is_empty()
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn is_closed(&self) -> bool {
         self.chan.is_closed()
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn close(&self) -> bool {
         self.chan.close()
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn len(&self) -> usize {
         self.chan.len()
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn capacity(&self) -> Option<usize> {
         self.chan.capacity()
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn is_full(&self) -> bool {
         self.chan.is_full()
     }
@@ -311,7 +331,7 @@ impl<T> Sender<T> {
 }
 
 /// bounded creates a new bounded channel with the specified capacity.
-#[must_use] 
+#[must_use]
 pub fn bounded<T>(capacity: usize) -> (Sender<T>, Receiver<T>) {
     let chan = Arc::new(ConcurrentQueue::bounded(capacity));
     let sender = Sender::new(chan.clone());
@@ -320,7 +340,7 @@ pub fn bounded<T>(capacity: usize) -> (Sender<T>, Receiver<T>) {
 }
 
 /// unbounded creates a new unbounded channel.
-#[must_use] 
+#[must_use]
 pub fn unbounded<T>() -> (Sender<T>, Receiver<T>) {
     let chan = Arc::new(ConcurrentQueue::unbounded());
     let sender = Sender::new(chan.clone());
