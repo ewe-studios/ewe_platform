@@ -224,106 +224,147 @@ mod multi_threaded_tests {
         }
     }
 
-    #[test]
-    #[traced_test]
-    fn can_finish_even_when_task_panics() {
-        let seed = rand::rng().next_u64();
+    // Test show casing use of block_on as a central means of accessing
+    // the execution pool.
+    mod blocked_on_execution {
+        use super::*;
 
-        let handler_kill = thread::spawn(move || {
-            tracing::debug!("Waiting for kill signal");
-            thread::sleep(time::Duration::from_secs(5));
-            tracing::debug!("Got kill signal");
-            get_pool().kill();
-            tracing::debug!("Closing thread");
-        });
+        #[test]
+        #[traced_test]
+        fn can_finish_even_when_task_panics() {
+            let seed = rand::rng().next_u64();
 
-        let (task_sent_sender, task_sent_receiver) = mpp::bounded(1);
-        block_on(seed, None, |pool| {
-            pool.spawn()
-                .with_task(PanicCounter)
-                .with_resolver(Box::new(FnReady::new(|item, _| {
-                    tracing::info!("Received next: {item:?}");
-                })))
-                .schedule()
-                .expect("should deliver task");
-            task_sent_sender.send(()).expect("deliver message");
-        });
+            let handler_kill = thread::spawn(move || {
+                tracing::debug!("Waiting for kill signal");
+                thread::sleep(time::Duration::from_secs(5));
+                tracing::debug!("Got kill signal");
+                get_pool().kill();
+                tracing::debug!("Closing thread");
+            });
 
-        task_sent_receiver
-            .recv_timeout(time::Duration::from_secs(2))
-            .expect("should have spawned task");
+            let (task_sent_sender, task_sent_receiver) = mpp::bounded(1);
+            block_on(seed, None, |pool| {
+                pool.spawn()
+                    .with_task(PanicCounter)
+                    .with_resolver(Box::new(FnReady::new(|item, _| {
+                        tracing::info!("Received next: {item:?}");
+                    })))
+                    .schedule()
+                    .expect("should deliver task");
+                task_sent_sender.send(()).expect("deliver message");
+            });
 
-        tracing::info!("Wait for thread to die");
-        handler_kill.join().expect("should finish");
-        tracing::info!("Wait for thread to die");
-    }
-
-    #[test]
-    #[traced_test]
-    fn can_queue_and_complete_task() {
-        let seed = rand::rng().next_u64();
-
-        let shared_list = Arc::new(Mutex::new(vec![]));
-        let (counter, receiver) = Counter::new(5, shared_list.clone());
-
-        let handler_kill = thread::spawn(move || {
-            tracing::debug!("Waiting for kill signal");
-            receiver
+            task_sent_receiver
                 .recv_timeout(time::Duration::from_secs(2))
-                .expect("receive signal");
-            tracing::debug!("Got kill signal");
-            get_pool().kill();
-            tracing::debug!("Closing thread");
-        });
+                .expect("should have spawned task");
 
-        let (task_sent_sender, task_sent_receiver) = mpp::bounded(1);
-        block_on(seed, None, |pool| {
-            tracing::debug!("Spawning new task into pool");
-            pool.spawn()
-                .with_task(counter)
-                .with_resolver(Box::new(FnReady::new(|item, _| {
-                    tracing::info!("Received next: {item:?}");
-                })))
-                .schedule()
-                .expect("should deliver task");
-            tracing::debug!("Task spawned");
-            task_sent_sender.send(()).expect("deliver message");
-        });
+            tracing::info!("Wait for thread to die");
+            handler_kill.join().expect("should finish");
+            tracing::info!("Wait for thread to die");
+        }
 
-        task_sent_receiver
-            .recv_timeout(time::Duration::from_secs(2))
-            .expect("should have spawned task");
+        #[test]
+        #[traced_test]
+        fn can_queue_and_complete_task() {
+            let seed = rand::rng().next_u64();
 
-        handler_kill.join().expect("should finish");
+            let shared_list = Arc::new(Mutex::new(vec![]));
+            let (counter, receiver) = Counter::new(5, shared_list.clone());
 
-        assert_eq!(shared_list.lock().unwrap().clone(), vec![0, 1, 2, 3, 4]);
+            let handler_kill = thread::spawn(move || {
+                tracing::debug!("Waiting for kill signal");
+                receiver
+                    .recv_timeout(time::Duration::from_secs(2))
+                    .expect("receive signal");
+                tracing::debug!("Got kill signal");
+                get_pool().kill();
+                tracing::debug!("Closing thread");
+            });
+
+            let (task_sent_sender, task_sent_receiver) = mpp::bounded(1);
+            block_on(seed, None, |pool| {
+                tracing::debug!("Spawning new task into pool");
+                pool.spawn()
+                    .with_task(counter)
+                    .with_resolver(Box::new(FnReady::new(|item, _| {
+                        tracing::info!("Received next: {item:?}");
+                    })))
+                    .schedule()
+                    .expect("should deliver task");
+                tracing::debug!("Task spawned");
+                task_sent_sender.send(()).expect("deliver message");
+            });
+
+            task_sent_receiver
+                .recv_timeout(time::Duration::from_secs(2))
+                .expect("should have spawned task");
+
+            handler_kill.join().expect("should finish");
+
+            assert_eq!(shared_list.lock().unwrap().clone(), vec![0, 1, 2, 3, 4]);
+        }
     }
 
-    #[test]
-    #[traced_test]
-    fn can_queue_and_complete_task_with_iterator() {
-        let seed = rand::rng().next_u64();
+    // Test showcasing direct inline execution as we execute a task.
+    mod inline_execution {
+        use crate::valtron::Stream;
 
-        let shared_list = Arc::new(Mutex::new(Vec::new()));
-        let counter = DCounter::new(5, shared_list.clone());
+        use super::*;
 
-        let pool = thread_pool(seed, None);
+        #[test]
+        #[traced_test]
+        fn can_queue_and_complete_task_with_iterator() {
+            let seed = rand::rng().next_u64();
 
-        let iter = pool
-            .spawn()
-            .with_task(counter)
-            .schedule_iter(std::time::Duration::from_nanos(50))
-            .expect("should deliver task");
+            let shared_list = Arc::new(Mutex::new(Vec::new()));
+            let counter = DCounter::new(5, shared_list.clone());
 
-        let complete: Vec<usize> = iter
-            .map(|item| match item {
-                TaskStatus::Ready(value) => Some(value),
-                _ => None,
-            })
-            .take_while(|t| t.is_some())
-            .map(|t| t.unwrap())
-            .collect();
+            let pool = thread_pool(seed, None);
 
-        assert_eq!(complete, vec![1, 2, 3, 4, 5]);
+            let iter = pool
+                .spawn()
+                .with_task(counter)
+                .schedule_iter(std::time::Duration::from_nanos(50))
+                .expect("should deliver task");
+
+            let complete: Vec<usize> = iter
+                .map(|item| match item {
+                    TaskStatus::Ready(value) => Some(value),
+                    _ => None,
+                })
+                .take_while(|t| t.is_some())
+                .map(|t| t.unwrap())
+                .collect();
+
+            assert_eq!(complete, vec![1, 2, 3, 4, 5]);
+        }
+
+        #[test]
+        #[traced_test]
+        fn can_queue_use_stream_iterator_from_task_iterator() {
+            let seed = rand::rng().next_u64();
+
+            let shared_list = Arc::new(Mutex::new(Vec::new()));
+            let counter = DCounter::new(5, shared_list.clone());
+
+            let pool = thread_pool(seed, None);
+
+            let iter = pool
+                .spawn()
+                .with_task(counter)
+                .stream_iter(std::time::Duration::from_nanos(50))
+                .expect("should deliver task");
+
+            let complete: Vec<usize> = iter
+                .map(|item| match item {
+                    Stream::Next(value) => Some(value),
+                    _ => None,
+                })
+                .take_while(|t| t.is_some())
+                .map(|t| t.unwrap())
+                .collect();
+
+            assert_eq!(complete, vec![1, 2, 3, 4, 5]);
+        }
     }
 }
