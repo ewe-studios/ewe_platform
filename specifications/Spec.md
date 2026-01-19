@@ -24,28 +24,50 @@ This directory contains all project specifications and requirements. Each specif
 ### [02: Build HTTP Client](./02-build-http-client/)
 **Status:** ⏳ Pending
 **Description:** Create an HTTP 1.1 client using existing simple_http module structures with iterator-based patterns and valtron executors.
-**Has Features:** Yes (6 features)
+**Has Features:** Yes (13 features)
 
 | Feature | Description | Tasks | Dependencies |
 |---------|-------------|-------|--------------|
-| [tls-verification](./02-build-http-client/features/tls-verification/) | Verify/fix TLS backends | 8 | None |
+| [valtron-utilities](./02-build-http-client/features/valtron-utilities/) | ExecutionAction types, unified executor, Future adapter | 24 | None |
+| [tls-verification](./02-build-http-client/features/tls-verification/) | Verify/fix TLS backends | 8 | valtron-utilities |
 | [foundation](./02-build-http-client/features/foundation/) | Error types and DNS resolution | 7 | tls-verification |
+| [compression](./02-build-http-client/features/compression/) | gzip, deflate, brotli support | 9 | foundation |
 | [connection](./02-build-http-client/features/connection/) | URL parsing, TCP, TLS | 4 | foundation |
+| [proxy-support](./02-build-http-client/features/proxy-support/) | HTTP/HTTPS/SOCKS5 proxy | 14 | connection |
 | [request-response](./02-build-http-client/features/request-response/) | Request builder, response types | 4 | connection |
-| [task-iterator](./02-build-http-client/features/task-iterator/) | TaskIterator, executors | 8 | request-response |
+| [auth-helpers](./02-build-http-client/features/auth-helpers/) | Basic, Bearer, Digest auth | 10 | request-response |
+| [task-iterator](./02-build-http-client/features/task-iterator/) | TaskIterator, executors | 8 | request-response, valtron-utilities |
 | [public-api](./02-build-http-client/features/public-api/) | User-facing API, integration | 6 | task-iterator |
+| [cookie-jar](./02-build-http-client/features/cookie-jar/) | Automatic cookie handling | 15 | public-api |
+| [middleware](./02-build-http-client/features/middleware/) | Request/response interceptors | 14 | public-api |
+| [websocket](./02-build-http-client/features/websocket/) | WebSocket client and server | 20 | connection, public-api |
 
-**Total Tasks:** 37
+**Total Tasks:** 143
+
+---
+
+### [03: WASM-Friendly Sync Primitives](./03-wasm-friendly-sync-primitives/)
+**Status:** ⏳ Pending
+**Description:** Implement no_std-compatible spin-based synchronization primitives (SpinMutex, SpinRwLock, Once) for foundation_nostd with WASM optimization.
+**Has Features:** No
+
+**Key Components:**
+- `SpinMutex<T>` - Spin-based mutex with poisoning
+- `SpinRwLock<T>` - Writer-preferring read-write lock with poisoning
+- `Once` - One-time initialization primitive
+- WASM single-threaded optimization (no-op locks)
+
+**Total Tasks:** 22
 
 ---
 
 ## Status Dashboard
 
 ### Summary
-- **Total Specifications:** 2
-- **Completed:** 1 (50%)
+- **Total Specifications:** 3
+- **Completed:** 1 (33%)
 - **In Progress:** 0 (0%)
-- **Pending:** 1 (50%)
+- **Pending:** 2 (67%)
 
 ### Completed ✅
 - 01: Fix Rust Lints, Checks, and Styling
@@ -54,7 +76,8 @@ This directory contains all project specifications and requirements. Each specif
 _None_
 
 ### Pending ⏳
-- 02: Build HTTP Client (6 features, 37 tasks)
+- 02: Build HTTP Client (13 features, 143 tasks)
+- 03: WASM-Friendly Sync Primitives (22 tasks)
 
 ## Specification Guidelines
 
@@ -77,4 +100,4 @@ This dashboard provides:
 - **Feature breakdown**: Understanding of complex specification structure
 
 ---
-*Last updated: 2026-01-18*
+*Last updated: 2026-01-19*

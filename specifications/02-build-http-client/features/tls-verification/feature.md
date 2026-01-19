@@ -2,10 +2,11 @@
 feature: tls-verification
 description: Verify and fix TLS module to ensure all SSL backends work correctly with proper feature gating
 status: pending
-depends_on: []
+depends_on:
+  - valtron-utilities
 estimated_effort: medium
 created: 2026-01-18
-last_updated: 2026-01-18
+last_updated: 2026-01-19
 ---
 
 # TLS Verification Feature
@@ -17,7 +18,7 @@ Verify and fix the existing TLS/SSL module in `netcap/ssl/` to ensure all three 
 ## Dependencies
 
 This feature depends on:
-- None (this is the first feature to work on)
+- `valtron-utilities` - Foundational patterns for executors
 
 This feature is required by:
 - `connection` - Uses TLS connectors for HTTPS
