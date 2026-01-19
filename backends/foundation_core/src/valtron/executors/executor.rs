@@ -1178,18 +1178,15 @@ where
             return None;
         }
 
-        match self.iter.next() {
-            Some(elem) => match elem {
-                TaskStatus::Delayed(dur) => Some(TaskStatus::Delayed(dur)),
-                TaskStatus::Spawn(inner) => Some(TaskStatus::Spawn(inner)),
-                TaskStatus::Pending(dur) => Some(TaskStatus::Pending(dur)),
-                TaskStatus::Init => Some(TaskStatus::Init),
-                TaskStatus::Ready(item) => {
-                    self.blocked = Some(());
-                    Some(TaskStatus::Ready(item))
-                }
-            },
-            None => None,
-        }
+        self.iter.next().map(|elem| match elem {
+            TaskStatus::Delayed(dur) => TaskStatus::Delayed(dur),
+            TaskStatus::Spawn(inner) => TaskStatus::Spawn(inner),
+            TaskStatus::Pending(dur) => TaskStatus::Pending(dur),
+            TaskStatus::Init => TaskStatus::Init,
+            TaskStatus::Ready(item) => {
+                self.blocked = Some(());
+                TaskStatus::Ready(item)
+            }
+        })
     }
 }
