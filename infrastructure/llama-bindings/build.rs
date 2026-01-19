@@ -829,6 +829,20 @@ fn main() {
         .very_verbose(std::env::var("CMAKE_VERBOSE").is_ok()) // Not verbose by default
         .always_configure(false);
 
+    // Check for corrupted CMake state (CMakeCache.txt exists but no Makefile/build.ninja)
+    // This can happen if a previous configure was interrupted
+    let cmake_build_dir = out_dir.join("build");
+    let cmake_cache = cmake_build_dir.join("CMakeCache.txt");
+    let makefile = cmake_build_dir.join("Makefile");
+    let build_ninja = cmake_build_dir.join("build.ninja");
+
+    if cmake_cache.exists() && !makefile.exists() && !build_ninja.exists() {
+        debug_log!("Detected corrupted CMake state, cleaning build directory");
+        if let Err(e) = std::fs::remove_dir_all(&cmake_build_dir) {
+            debug_log!("Failed to clean CMake build dir: {}", e);
+        }
+    }
+
     let build_dir = config.build();
 
     // Search paths
