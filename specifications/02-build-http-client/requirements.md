@@ -5,8 +5,8 @@ priority: high
 created: 2026-01-18
 author: "Main Agent"
 metadata:
-  version: "2.0"
-  last_updated: 2026-01-18
+  version: "3.0"
+  last_updated: 2026-01-19
   estimated_effort: "large"
   tags:
     - http-client
@@ -18,12 +18,19 @@ builds_on: []
 related_specs: []
 has_features: true
 features:
+  - valtron-utilities
   - tls-verification
   - foundation
+  - compression
   - connection
+  - proxy-support
   - request-response
+  - auth-helpers
   - task-iterator
   - public-api
+  - cookie-jar
+  - middleware
+  - websocket
 ---
 
 # HTTP 1.1 Client - Requirements
@@ -34,16 +41,30 @@ Create an HTTP 1.1 client using the existing `simple_http` module structures, le
 
 ## Features
 
-This specification is broken into 6 features for reduced context size:
+This specification is broken into 13 features for reduced context size. Features are ordered by dependency.
 
-| Feature | Description | Dependencies |
-|---------|-------------|--------------|
-| [tls-verification](./features/tls-verification/feature.md) | Verify and fix TLS backends (rustls, openssl, native-tls) | None |
-| [foundation](./features/foundation/feature.md) | Error types and DNS resolution | tls-verification |
-| [connection](./features/connection/feature.md) | URL parsing, TCP, TLS | foundation |
-| [request-response](./features/request-response/feature.md) | Request builder, response types | connection |
-| [task-iterator](./features/task-iterator/feature.md) | TaskIterator, ExecutionAction, executors | request-response |
-| [public-api](./features/public-api/feature.md) | User-facing API, SimpleHttpClient, integration | task-iterator |
+### Core Features (Required)
+
+| # | Feature | Description | Dependencies |
+|---|---------|-------------|--------------|
+| 0 | [valtron-utilities](./features/valtron-utilities/feature.md) | Reusable ExecutionAction types, unified executor, state machine helpers | None |
+| 1 | [tls-verification](./features/tls-verification/feature.md) | Verify and fix TLS backends (rustls, openssl, native-tls) | valtron-utilities |
+| 2 | [foundation](./features/foundation/feature.md) | Error types and DNS resolution | tls-verification |
+| 3 | [compression](./features/compression/feature.md) | gzip, deflate, brotli support | foundation |
+| 4 | [connection](./features/connection/feature.md) | URL parsing, TCP, TLS | foundation |
+| 5 | [proxy-support](./features/proxy-support/feature.md) | HTTP/HTTPS/SOCKS5 proxy | connection |
+| 6 | [request-response](./features/request-response/feature.md) | Request builder, response types | connection |
+| 7 | [auth-helpers](./features/auth-helpers/feature.md) | Basic, Bearer, Digest auth | request-response |
+| 8 | [task-iterator](./features/task-iterator/feature.md) | TaskIterator, ExecutionAction, executors | request-response, valtron-utilities |
+| 9 | [public-api](./features/public-api/feature.md) | User-facing API, SimpleHttpClient, integration | task-iterator |
+
+### Extended Features (Optional)
+
+| # | Feature | Description | Dependencies |
+|---|---------|-------------|--------------|
+| 10 | [cookie-jar](./features/cookie-jar/feature.md) | Automatic cookie handling | public-api |
+| 11 | [middleware](./features/middleware/feature.md) | Request/response interceptors | public-api |
+| 12 | [websocket](./features/websocket/feature.md) | WebSocket client and server | connection, public-api |
 
 **Agents MUST read the relevant feature.md and tasks.md for detailed requirements.**
 
@@ -87,47 +108,58 @@ Build an HTTP 1.1 client that:
 
 ## User-Facing API (High-Level)
 
+The client provides a clean, simple API that hides internal complexity:
+
 ```rust
-// Create client
-let http_client = SimpleHttpClient::new();
-
-// Simple usage
-let response = http_client.get("http://google.com").send()?;
-
-// Streaming usage
-let mut request = http_client.get("http://google.com");
-let (intro, headers) = request.introduction()?;
-let body = request.body()?;
-
-// Power user: iterate over parts
-for part in http_client.get("http://google.com").parts() { ... }
+let client = SimpleHttpClient::new();
+let response = client.get("https://example.com").send()?;
 ```
 
-See [public-api feature](./features/public-api/feature.md) for detailed API design.
+See [public-api feature](./features/public-api/feature.md) for detailed API design and examples.
 
 ## File Structure
 
 ```
-backends/foundation_core/src/wire/
-├── simple_http/
-│   ├── mod.rs           (modify - add pub mod client)
-│   └── client/          (NEW)
-│       ├── mod.rs       (module entry, re-exports)
-│       ├── errors.rs    (HttpClientError, DnsError)
-│       ├── dns.rs       (DnsResolver trait + implementations)
-│       ├── connection.rs (ParsedUrl, HttpClientConnection)
-│       ├── request.rs   (ClientRequestBuilder, PreparedRequest)
-│       ├── intro.rs     (ResponseIntro wrapper)
-│       ├── actions.rs   (ExecutionAction implementations)
-│       ├── task.rs      (HttpRequestTask - internal TaskIterator)
-│       ├── executor.rs  (Feature-gated single/multi selection)
-│       ├── api.rs       (ClientRequest - user-facing)
-│       ├── client.rs    (SimpleHttpClient - main entry point)
-│       └── pool.rs      (ConnectionPool - optional)
+backends/foundation_core/src/
+├── valtron/executors/          (valtron-utilities additions)
+│   ├── actions.rs              (NEW - Reusable ExecutionAction types)
+│   ├── unified.rs              (NEW - Feature-gated unified executor)
+│   ├── state_machine.rs        (NEW - State machine helpers)
+│   └── wrappers.rs             (NEW - Retry/timeout wrappers)
+├── wire/simple_http/
+│   ├── mod.rs                  (modify - add pub mod client)
+│   └── client/                 (NEW - HTTP client implementation)
+│       ├── mod.rs              (module entry, re-exports)
+│       ├── errors.rs           (HttpClientError, DnsError)
+│       ├── dns.rs              (DnsResolver trait + implementations)
+│       ├── compression.rs      (Compression/decompression)
+│       ├── connection.rs       (ParsedUrl, HttpClientConnection)
+│       ├── proxy.rs            (Proxy configuration and tunneling)
+│       ├── request.rs          (ClientRequestBuilder, PreparedRequest)
+│       ├── auth.rs             (Authentication helpers)
+│       ├── intro.rs            (ResponseIntro wrapper)
+│       ├── actions.rs          (ExecutionAction implementations)
+│       ├── task.rs             (HttpRequestTask - internal TaskIterator)
+│       ├── executor.rs         (Feature-gated single/multi selection)
+│       ├── api.rs              (ClientRequest - user-facing)
+│       ├── client.rs           (SimpleHttpClient - main entry point)
+│       ├── pool.rs             (ConnectionPool - optional)
+│       ├── cookie.rs           (Cookie, CookieJar)
+│       ├── middleware.rs       (Middleware trait and chain)
+│       ├── extensions.rs       (Request extensions)
+│       └── websocket/          (WebSocket support)
+│           ├── mod.rs          (re-exports)
+│           ├── frame.rs        (WebSocketFrame, Opcode)
+│           ├── message.rs      (WebSocketMessage)
+│           ├── client.rs       (WebSocketClient, handshake)
+│           ├── server.rs       (WebSocketUpgrade)
+│           ├── connection.rs   (WebSocketConnection)
+│           └── error.rs        (WebSocketError)
 ```
 
 ## Success Criteria (Overall)
 
+### Core Functionality
 - [ ] All feature success criteria met
 - [ ] Plain HTTP requests work end-to-end
 - [ ] HTTPS requests work (with TLS feature)
@@ -136,6 +168,17 @@ backends/foundation_core/src/wire/
 - [ ] Connection pooling works (when enabled)
 - [ ] Works with single-threaded executor
 - [ ] Works with multi-threaded executor (feature-gated)
+
+### Extended Functionality
+- [ ] Compression (gzip, deflate, brotli) works
+- [ ] Proxy support (HTTP, HTTPS, SOCKS5) works
+- [ ] Authentication helpers work
+- [ ] Cookie jar works
+- [ ] Middleware system works
+- [ ] WebSocket client works
+- [ ] WebSocket server works
+
+### Quality
 - [ ] All tests pass
 - [ ] Code passes `cargo fmt` and `cargo clippy`
 - [ ] Compiles with all TLS feature combinations
@@ -184,4 +227,4 @@ cargo build --package foundation_core --all-features
 
 ---
 *Created: 2026-01-18*
-*Last Updated: 2026-01-18*
+*Last Updated: 2026-01-19*

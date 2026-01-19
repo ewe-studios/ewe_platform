@@ -3,12 +3,13 @@ feature: task-iterator
 description: Internal TaskIterator implementation, ExecutionAction spawners, and feature-gated executor wrapper
 status: pending
 depends_on:
+  - valtron-utilities
   - foundation
   - connection
   - request-response
 estimated_effort: medium
 created: 2026-01-18
-last_updated: 2026-01-18
+last_updated: 2026-01-19
 ---
 
 # TaskIterator Feature
@@ -22,6 +23,7 @@ Create the internal async machinery for the HTTP 1.1 client. This feature implem
 ## Dependencies
 
 This feature depends on:
+- `valtron-utilities` - Uses reusable ExecutionAction types, unified executor, state machine helpers
 - `foundation` - Uses HttpClientError for errors
 - `connection` - Uses HttpClientConnection, ParsedUrl
 - `request-response` - Uses PreparedRequest, ResponseIntro
