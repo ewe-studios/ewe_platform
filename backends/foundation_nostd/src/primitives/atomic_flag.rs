@@ -23,7 +23,7 @@ use core::sync::atomic::{AtomicBool, Ordering};
 
 /// A simple atomic boolean flag.
 ///
-/// This provides set/clear/is_set operations with sensible default
+/// This provides `set`/`clear`/`is_set` operations with sensible default
 /// memory ordering. For more control, use `AtomicBool` directly.
 pub struct AtomicFlag {
     inner: AtomicBool,
@@ -44,6 +44,7 @@ impl AtomicFlag {
     /// assert!(flag.is_set());
     /// ```
     #[inline]
+    #[must_use]
     pub const fn new(initial: bool) -> Self {
         Self {
             inner: AtomicBool::new(initial),
@@ -162,6 +163,11 @@ impl AtomicFlag {
     /// // Failed CAS - flag is already true
     /// assert_eq!(flag.compare_and_swap(false, true), Err(true));
     /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(actual)` with the actual flag value if the current value
+    /// doesn't match the expected `current` parameter.
     #[inline]
     pub fn compare_and_swap(&self, current: bool, new: bool) -> Result<bool, bool> {
         self.inner

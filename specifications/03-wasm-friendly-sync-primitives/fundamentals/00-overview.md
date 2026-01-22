@@ -9,6 +9,17 @@ This library provides **no_std-compatible** synchronization primitives that work
 
 All primitives are built on `core::sync::atomic` with no external dependencies.
 
+### Complete Primitive Set (16 types)
+
+| Category | Primitives | Count |
+|----------|------------|-------|
+| **Mutexes** | `SpinMutex`, `RawSpinMutex`, `NoopMutex` | 3 |
+| **RwLocks** | `SpinRwLock`, `ReaderSpinRwLock`, `RawSpinRwLock`, `NoopRwLock` | 4 |
+| **Once** | `Once`, `OnceLock`, `RawOnce` | 3 |
+| **Atomics** | `AtomicCell`, `AtomicOption`, `AtomicLazy`, `AtomicFlag` | 4 |
+| **Sync Helpers** | `SpinBarrier`, `SpinWait` | 2 |
+| **Total** | | **16** |
+
 ---
 
 ## Quick Start
@@ -18,7 +29,8 @@ All primitives are built on `core::sync::atomic` with no external dependencies.
 | I need to... | Use this | Notes |
 |--------------|----------|-------|
 | Protect shared mutable data | `SpinMutex<T>` or `RawSpinMutex<T>` | Spin-based, no OS needed |
-| Allow multiple readers OR one writer | `SpinRwLock<T>` or `RawSpinRwLock<T>` | Writer-preferring |
+| Allow multiple readers OR one writer | `SpinRwLock<T>` or `RawSpinRwLock<T>` | **Writer-preferring** (default, balanced) |
+| Multiple readers, **maximize read throughput** | `ReaderSpinRwLock<T>` | **Reader-preferring** (reads >95%, writes rare) |
 | Initialize something once | `Once` or `OnceLock<T>` | Lazy static alternative |
 | Store small atomic values | `AtomicCell<T>` | For `Copy` types ≤ pointer size |
 | Atomically swap Option values | `AtomicOption<T>` | For pointer-sized types |
@@ -72,7 +84,7 @@ let mut guard = counter.lock();
 *guard += 1;
 ```
 
-### SpinRwLock
+### SpinRwLock (Writer-Preferring)
 
 ```rust
 use foundation_nostd::primitives::SpinRwLock;
@@ -92,6 +104,30 @@ let data = SpinRwLock::new(vec![1, 2, 3]);
     w.push(4);
 }
 ```
+
+### ReaderSpinRwLock (Reader-Preferring)
+
+```rust
+use foundation_nostd::primitives::reader_spin_rwlock::ReaderSpinRwLock;
+
+// Use when reads vastly outnumber writes (>95%)
+let cache = ReaderSpinRwLock::new(vec![1, 2, 3]);
+
+// Readers can acquire even if writer is waiting (maximizes read throughput)
+{
+    let r1 = cache.read().unwrap();
+    let r2 = cache.read().unwrap();
+    // ... many more readers
+}
+
+// Writers wait for all readers (may wait longer)
+{
+    let mut w = cache.write().unwrap();
+    w.push(4);
+}
+```
+
+**See [10-rwlock-policies.md](./10-rwlock-policies.md) for detailed policy comparison and when to use each.**
 
 ### Once and OnceLock
 
@@ -209,6 +245,7 @@ let guard = mutex.lock().unwrap();
 | [07-implementation-guide.md](./07-implementation-guide.md) | Library internals |
 | [08-ordering-practical-guide.md](./08-ordering-practical-guide.md) | **Practical guide to Ordering** ⭐ |
 | [09-unsafecell-guide.md](./09-unsafecell-guide.md) | **UnsafeCell deep dive** ⭐ |
+| [10-rwlock-policies.md](./10-rwlock-policies.md) | **RwLock preference policies explained** ⭐ |
 
 ---
 
@@ -224,11 +261,12 @@ let guard = mutex.lock().unwrap();
 
 ### RwLock Types
 
-| Type | Poisoning | Policy |
-|------|-----------|--------|
-| `SpinRwLock<T>` | Yes | Writer-preferring |
-| `RawSpinRwLock<T>` | No | Writer-preferring |
-| `NoopRwLock<T>` | No | No-op |
+| Type | Poisoning | Policy | Use When |
+|------|-----------|--------|----------|
+| `SpinRwLock<T>` | Yes | **Writer-preferring** | Default choice, balanced fairness |
+| `ReaderSpinRwLock<T>` | Yes | **Reader-preferring** | Reads >95%, writes rare and can wait |
+| `RawSpinRwLock<T>` | No | Writer-preferring | Embedded, panic=abort |
+| `NoopRwLock<T>` | No | No-op | Single-threaded WASM |
 
 ### Once Types
 

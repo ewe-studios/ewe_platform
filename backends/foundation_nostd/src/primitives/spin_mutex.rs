@@ -19,7 +19,6 @@ use crate::primitives::{
 const UNLOCKED: u8 = 0b00;
 const LOCKED: u8 = 0b01;
 const POISONED: u8 = 0b10;
-const LOCKED_POISONED: u8 = 0b11;
 
 /// A spin-based mutual exclusion lock with poisoning support.
 ///

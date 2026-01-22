@@ -33,6 +33,11 @@ impl<T, F: FnOnce() -> T> AtomicLazy<T, F> {
     }
 
     /// Forces initialization and returns a reference to the value.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the initializer function has already been called or taken.
+    /// This should not happen in normal usage.
     #[inline]
     pub fn force(this: &Self) -> &T {
         this.once.call_once(|| {

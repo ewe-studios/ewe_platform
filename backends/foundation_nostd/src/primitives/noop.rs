@@ -118,9 +118,10 @@ impl<T: ?Sized> NoopMutex<T> {
     /// ```ignore
     #[inline]
     pub fn lock(&self) -> NoopMutexGuard<'_, T> {
-        if self.locked.get() {
-            panic!("NoopMutex: recursive lock attempt in single-threaded context");
-        }
+        assert!(
+            !self.locked.get(),
+            "NoopMutex: recursive lock attempt in single-threaded context"
+        );
         self.locked.set(true);
         NoopMutexGuard { mutex: self }
     }

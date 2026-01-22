@@ -8,7 +8,8 @@
 |------|-----------|-------------|
 | Exclusive access to data | `SpinMutex<T>` | General purpose, need panic safety |
 | Exclusive access (embedded) | `RawSpinMutex<T>` | panic=abort, simpler API |
-| Multiple readers, one writer | `SpinRwLock<T>` | Read-heavy workloads |
+| Multiple readers, one writer | `SpinRwLock<T>` | Read-heavy, balanced fairness |
+| Maximum read throughput | `ReaderSpinRwLock<T>` | Reads >95%, writes can wait |
 | One-time initialization | `Once` + `OnceLock<T>` | Lazy statics, config |
 | Small atomic values | `AtomicCell<T>` | Counters, flags, small structs |
 | Atomic optional pointer | `AtomicOption<T>` | Lock-free data structures |
@@ -138,6 +139,24 @@ fn update_timeout(new_timeout: u64) {
 | Short critical sections | Mutex (simpler) |
 | Write-heavy | Mutex |
 | Read-heavy with rare updates | RwLock |
+
+### Choosing RwLock Policy
+
+For read-heavy workloads, choose the right RwLock variant:
+
+```rust
+// Default: Writer-preferring (SpinRwLock)
+// Use when: Balanced fairness, writes are important
+use foundation_nostd::primitives::SpinRwLock;
+let data = SpinRwLock::new(config);
+
+// Optimization: Reader-preferring (ReaderSpinRwLock)
+// Use when: Reads >95%, writes rare and can wait
+use foundation_nostd::primitives::reader_spin_rwlock::ReaderSpinRwLock;
+let cache = ReaderSpinRwLock::new(config);
+```
+
+**See [10-rwlock-policies.md](./10-rwlock-policies.md) for detailed policy comparison.**
 
 ---
 
