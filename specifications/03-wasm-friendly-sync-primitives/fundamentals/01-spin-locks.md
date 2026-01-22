@@ -391,6 +391,8 @@ The `WRITER_WAITING` flag implements writer preference:
 - Prevents writer starvation in read-heavy workloads
 - Trade-off: readers may wait longer
 
+**Note:** This library also provides `ReaderSpinRwLock` which uses a **reader-preferring** policy instead. In reader-preferring mode, there is no `WRITER_WAITING` flag, and readers can always acquire the lock even when writers are waiting. See [10-rwlock-policies.md](./10-rwlock-policies.md) for a detailed comparison and when to use each policy.
+
 ---
 
 ## WASM Considerations

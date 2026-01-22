@@ -13,6 +13,7 @@ pub mod poison;
 pub mod raw_once;
 pub mod raw_spin_mutex;
 pub mod raw_spin_rwlock;
+pub mod reader_spin_rwlock;
 pub mod spin_mutex;
 pub mod spin_rwlock;
 pub mod spin_wait;
@@ -26,6 +27,7 @@ pub use spin_mutex::{SpinMutex, SpinMutexGuard};
 
 // Re-export rwlock types
 pub use raw_spin_rwlock::{RawReadGuard, RawSpinRwLock, RawWriteGuard};
+pub use reader_spin_rwlock::{ReaderReadGuard, ReaderSpinRwLock, ReaderWriteGuard};
 pub use spin_rwlock::{ReadGuard, SpinRwLock, WriteGuard};
 
 // Re-export once types

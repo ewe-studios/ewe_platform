@@ -47,6 +47,7 @@ pub struct BarrierWaitResult {
 impl BarrierWaitResult {
     /// Returns `true` if this thread was the last to reach the barrier.
     #[inline]
+    #[must_use]
     pub fn is_leader(&self) -> bool {
         self.is_leader
     }
@@ -58,6 +59,7 @@ impl SpinBarrier {
     /// # Panics
     ///
     /// Panics if `n` is 0.
+    #[must_use]
     pub fn new(n: usize) -> Self {
         assert!(n > 0, "barrier count must be > 0");
         Self {

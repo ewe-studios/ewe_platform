@@ -67,6 +67,7 @@ Matches `std::sync` API for drop-in replacement:
 |-----------|-------------|-----------|
 | `SpinMutex<T>` | Spin-based mutual exclusion with poisoning | `std::sync::Mutex` |
 | `SpinRwLock<T>` | Writer-preferring read-write lock with poisoning | `std::sync::RwLock` |
+| `ReaderSpinRwLock<T>` | Reader-preferring read-write lock with poisoning | Custom (variant of std::sync::RwLock) |
 
 ### Spin-Based Locks (Without Poisoning)
 
@@ -103,6 +104,29 @@ Built on `core::sync::atomic` for no_std compatibility:
 | `SpinBarrier` | Spin-based barrier synchronization | `std::sync::Barrier` |
 | `SpinWait` | Exponential backoff spin waiter | `crossbeam::utils::Backoff` |
 
+### RwLock Preference Policies
+
+This library provides two RwLock variants with different fairness policies:
+
+**Writer-Preferring (`SpinRwLock`)**:
+- When a writer is waiting, new readers are blocked
+- Prevents writer starvation in read-heavy workloads
+- Use when writes are important and cannot be delayed indefinitely
+- State encoding: Bits 0-29 reader count, Bit 30 writer waiting, Bit 31 writer active
+
+**Reader-Preferring (`ReaderSpinRwLock`)**:
+- Readers can acquire lock even if writer is waiting
+- Maximizes read concurrency but may starve writers
+- Use when writes are rare and readers are plentiful
+- State encoding: Bits 0-29 reader count, Bit 31 writer active (no Bit 30)
+
+**Choosing Between Them**:
+- **Use SpinRwLock** (writer-preferring) by default for balanced fairness
+- **Use ReaderSpinRwLock** (reader-preferring) only when:
+  - Reads vastly outnumber writes (>95% reads)
+  - Write latency is not critical
+  - You've measured that reader preference improves throughput
+
 ## File Structure
 
 ```
@@ -115,7 +139,8 @@ backends/foundation_nostd/src/
     │
     │   # Spin Locks (With Poisoning - std::sync compatible)
     ├── spin_mutex.rs       (SpinMutex<T>, SpinMutexGuard<T>)
-    ├── spin_rwlock.rs      (SpinRwLock<T>, SpinReadGuard<T>, SpinWriteGuard<T>)
+    ├── spin_rwlock.rs      (SpinRwLock<T>, SpinReadGuard<T>, SpinWriteGuard<T> - writer-preferring)
+    ├── reader_spin_rwlock.rs (ReaderSpinRwLock<T>, ReaderReadGuard<T>, ReaderWriteGuard<T> - reader-preferring)
     │
     │   # Spin Locks (Without Poisoning - simpler API)
     ├── raw_spin_mutex.rs   (RawSpinMutex<T>, RawSpinMutexGuard<T>)
