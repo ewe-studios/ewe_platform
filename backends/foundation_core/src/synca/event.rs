@@ -50,7 +50,7 @@ impl Default for LockSignal {
 }
 
 impl LockSignal {
-    #[must_use] 
+    #[must_use]
     pub fn new() -> Self {
         Self {
             event: Condvar::new(),

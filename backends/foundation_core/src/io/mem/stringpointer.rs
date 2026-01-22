@@ -6,7 +6,7 @@ pub struct StringPointer<'a> {
 }
 
 impl<'a> StringPointer<'a> {
-    #[must_use] 
+    #[must_use]
     pub fn new(content: &'a str) -> Self {
         Self {
             content,
@@ -16,20 +16,20 @@ impl<'a> StringPointer<'a> {
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn content(&self) -> &'a str {
         self.content
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.content.is_empty()
     }
 
     /// Returns the total length of the string being accumulated on.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn len(&self) -> usize {
         self.content.len()
     }
@@ -37,7 +37,7 @@ impl<'a> StringPointer<'a> {
     /// `peek_rem_len` returns the remaining count of strings
     /// left from the current peeks's cursor.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn peek_rem_len(&self) -> usize {
         (self.content[self.peek_pos..]).len()
     }
@@ -46,7 +46,7 @@ impl<'a> StringPointer<'a> {
     /// left from the current position's cursor
     /// regardless of where the peek cursor is at.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn rem_len(&self) -> usize {
         (self.content[self.pos..]).len()
     }

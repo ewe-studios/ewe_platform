@@ -41,7 +41,7 @@ pub struct ReconnectingStream {
 }
 
 impl ReconnectingStream {
-    #[must_use] 
+    #[must_use]
     pub fn from_endpoint(endpoint: ClientEndpoint) -> Self {
         static CONNECTION_TIMEOUT: time::Duration = time::Duration::from_millis(600);
 
@@ -53,7 +53,7 @@ impl ReconnectingStream {
         )
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn with_connection_timeout(
         endpoint: ClientEndpoint,
         connection_timeout: time::Duration,
@@ -181,16 +181,18 @@ impl Iterator for ReconnectingStream {
                         *current_state = ConnectionState::Established(endpoint.clone());
                         Some(Ok(ReconnectionStatus::Ready(Box::new(connected_stream))))
                     }
-                    Err(connection_error) => if let Some(rstate) = reconnection_state_option {
-                        let duration = rstate.wait.unwrap_or(Duration::from_secs(0));
+                    Err(connection_error) => {
+                        if let Some(rstate) = reconnection_state_option {
+                            let duration = rstate.wait.unwrap_or(Duration::from_secs(0));
 
-                        let sleeper = SleepIterator::until(duration, endpoint.clone());
-                        *current_state = ConnectionState::Reconnect(rstate, Some(sleeper));
-                        Some(Ok(ReconnectionStatus::Waiting(duration)))
-                    } else {
-                        *current_state = ConnectionState::Exhausted(endpoint.clone());
-                        Some(Err(ReconnectionError::Failed(connection_error)))
-                    },
+                            let sleeper = SleepIterator::until(duration, endpoint.clone());
+                            *current_state = ConnectionState::Reconnect(rstate, Some(sleeper));
+                            Some(Ok(ReconnectionStatus::Waiting(duration)))
+                        } else {
+                            *current_state = ConnectionState::Exhausted(endpoint.clone());
+                            Some(Err(ReconnectionError::Failed(connection_error)))
+                        }
+                    }
                 }
             }
             ConnectionState::Redo(endpoint, last_state) => {
@@ -203,16 +205,18 @@ impl Iterator for ReconnectingStream {
                         *current_state = ConnectionState::Established(endpoint.clone());
                         Some(Ok(ReconnectionStatus::Ready(Box::new(connected_stream))))
                     }
-                    Err(connection_error) => if let Some(rstate) = reconnection_state_option {
-                        let duration = rstate.wait.unwrap_or(Duration::from_secs(0));
+                    Err(connection_error) => {
+                        if let Some(rstate) = reconnection_state_option {
+                            let duration = rstate.wait.unwrap_or(Duration::from_secs(0));
 
-                        let sleeper = SleepIterator::until(duration, endpoint.clone());
-                        *current_state = ConnectionState::Reconnect(rstate, Some(sleeper));
-                        Some(Ok(ReconnectionStatus::Waiting(duration)))
-                    } else {
-                        *current_state = ConnectionState::Exhausted(endpoint.clone());
-                        Some(Err(ReconnectionError::Failed(connection_error)))
-                    },
+                            let sleeper = SleepIterator::until(duration, endpoint.clone());
+                            *current_state = ConnectionState::Reconnect(rstate, Some(sleeper));
+                            Some(Ok(ReconnectionStatus::Waiting(duration)))
+                        } else {
+                            *current_state = ConnectionState::Exhausted(endpoint.clone());
+                            Some(Err(ReconnectionError::Failed(connection_error)))
+                        }
+                    }
                 }
             }
             ConnectionState::Established(endpoint) => {

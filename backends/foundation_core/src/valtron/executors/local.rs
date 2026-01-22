@@ -233,7 +233,7 @@ impl Clone for ExecutorState {
 
 impl ExecutorState {
     /// Returns a borrowed immutable
-    #[must_use] 
+    #[must_use]
     pub fn get_rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
         self.rng.clone()
     }
@@ -249,7 +249,7 @@ impl ExecutorState {
     /// Returns the list of other task dependent on this giving tasks
     /// and their dependents in order.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn get_task_dependents(&self, target: Entry) -> Vec<Entry> {
         let mut deps = Vec::new();
 
@@ -273,7 +273,7 @@ impl ExecutorState {
     /// Returns true/false indicative if the provided task entry
     /// is considered packed.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn is_packed(&self, target: &Entry) -> bool {
         *self.packed_tasks.borrow().get(target).unwrap_or(&false)
     }
@@ -362,7 +362,7 @@ impl ExecutorState {
     /// Returns True/False indicative if the executor has any local
     /// task still processing
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn has_local_tasks(&self) -> bool {
         self.local_tasks.borrow().active_slots() > 0
     }
@@ -373,24 +373,24 @@ impl ExecutorState {
     /// 1. Not sleeping
     /// 2. In local task queue
     ///
-    #[must_use] 
+    #[must_use]
     pub fn has_active_tasks(&self) -> bool {
         self.total_active_tasks() > 0
     }
 
     /// Returns true/false if processing queue has task.
-    #[must_use] 
+    #[must_use]
     pub fn has_inflight_task(&self) -> bool {
         !self.processing.borrow().is_empty()
     }
 
     /// Returns totla
-    #[must_use] 
+    #[must_use]
     pub fn total_inprocess_tasks(&self) -> usize {
         self.number_of_inprocess()
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn total_sleeping_tasks(&self) -> usize {
         self.sleepers.count()
     }
@@ -885,7 +885,7 @@ impl Clone for ReferencedExecutorState {
 
 #[allow(unused)]
 impl ReferencedExecutorState {
-    #[must_use] 
+    #[must_use]
     pub fn new(
         inner: rc::Rc<ExecutorState>,
         activities: Option<mpp::Sender<ThreadActivity>>,
@@ -934,12 +934,12 @@ impl ReferencedExecutorState {
     }
 
     /// Returns true/false if processing queue has task.
-    #[must_use] 
+    #[must_use]
     pub fn has_inflight_task(&self) -> bool {
         self.inner.has_inflight_task()
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn schedule_and_do_work(&self, engine: BoxedExecutionEngine) -> ProgressIndicator {
         self.inner.schedule_and_do_work(engine)
     }
@@ -962,7 +962,7 @@ impl Clone for LocalExecutionEngine {
 }
 
 impl LocalExecutionEngine {
-    #[must_use] 
+    #[must_use]
     pub fn new(
         inner: rc::Rc<ExecutorState>,
         activities: Option<mpp::Sender<ThreadActivity>>,
@@ -1075,13 +1075,13 @@ impl ExecutionEngine for LocalExecutionEngine {
 
 impl ReferencedExecutorState {
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn local_engine(&self) -> LocalExecutionEngine {
         LocalExecutionEngine::new(self.inner.clone(), self.activities.clone())
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn boxed_engine(&self) -> BoxedExecutionEngine {
         Box::new(self.local_engine())
     }
@@ -1596,7 +1596,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 
 /// `typed_task` allows you to create a task builder but requiring specific
 /// definitions for your `Task`, `Action` and `Resolver` types.
-#[must_use] 
+#[must_use]
 pub fn typed_task<Task, Action, Resolver>(
     engine: BoxedExecutionEngine,
 ) -> ExecutionTaskIteratorBuilder<
@@ -1619,7 +1619,7 @@ where
 
 /// `any_task` allows you to create a task builder with less restrictive type
 /// requirements for the builder, specifically resolvers are Boxed.
-#[must_use] 
+#[must_use]
 pub fn any_task<Task, Action>(
     engine: BoxedExecutionEngine,
 ) -> ExecutionTaskIteratorBuilder<
@@ -1642,7 +1642,7 @@ where
 /// `send_any_task` will unlike [`any_task`] deliver the provided
 /// task to the global queue instead of the local queue via the provided
 /// `ExecutionEngine`.
-#[must_use] 
+#[must_use]
 pub fn send_any_task<Task, Action>(
     engine: BoxedExecutionEngine,
 ) -> ExecutionTaskIteratorBuilder<
@@ -1665,7 +1665,7 @@ where
 /// `send_typed_task` will unlike [`type_task`] deliver the provided
 /// typed task to the global queue instead of the local queue via the provided
 /// `ExecutionEngine`.
-#[must_use] 
+#[must_use]
 pub fn send_typed_task<Task, Action, Resolver>(
     engine: BoxedExecutionEngine,
 ) -> ExecutionTaskIteratorBuilder<

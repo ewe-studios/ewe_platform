@@ -47,7 +47,7 @@ pub enum EndpointConfig {
 impl EndpointConfig {
     /// Returns a copy of the url of the target endpoint.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn url(&self) -> url::Url {
         match self {
             Self::NoTimeout(inner) => inner.clone(),
@@ -67,13 +67,13 @@ pub enum Endpoint<I: Clone> {
 #[allow(unused)]
 impl Endpoint<()> {
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn with_default(target: url::Url) -> Self {
         Endpoint::WithDefault(EndpointConfig::NoTimeout(target))
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn with_timeout(target: url::Url, timeout: Duration) -> Self {
         Endpoint::WithDefault(EndpointConfig::WithTimeout(target, timeout))
     }
@@ -158,8 +158,7 @@ impl<T: Clone> Endpoint<T> {
 
     #[inline]
     pub(crate) fn get_query_params(&self, endpoint_url: &url::Url) -> Option<String> {
-        endpoint_url
-            .query().map(|q| String::from(q))
+        endpoint_url.query().map(|q| String::from(q))
     }
 
     #[inline]
@@ -187,7 +186,7 @@ pub struct DataStreamAddr(SocketAddr, Option<SocketAddr>);
 // --- Constructors
 
 impl DataStreamAddr {
-    #[must_use] 
+    #[must_use]
     pub fn new(local_addr: SocketAddr, remote_addr: Option<SocketAddr>) -> Self {
         Self(local_addr, remote_addr)
     }
@@ -197,13 +196,13 @@ impl DataStreamAddr {
 
 impl DataStreamAddr {
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn peer_addr(&self) -> Option<SocketAddr> {
         self.1.clone()
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn local_addr(&self) -> SocketAddr {
         self.0.clone()
     }
@@ -462,7 +461,7 @@ pub enum ListenAddr {
 }
 
 impl ListenAddr {
-    #[must_use] 
+    #[must_use]
     pub fn to_addr(self) -> Option<SocketAddr> {
         match self {
             Self::IP(s) => Some(SocketAddr::from(s)),
@@ -471,7 +470,7 @@ impl ListenAddr {
         }
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn to_ip(self) -> Option<SocketAddr> {
         match self {
             Self::IP(s) => Some(SocketAddr::from(s)),
@@ -484,7 +483,7 @@ impl ListenAddr {
     ///
     /// This is also available on non-Unix platforms, for ease of use, but always returns `None`.
     #[cfg(unix)]
-    #[must_use] 
+    #[must_use]
     pub fn to_unix(self) -> Option<unix_net::SocketAddr> {
         match self {
             Self::IP(_) => None,
@@ -514,13 +513,13 @@ pub struct TcpStreamWrapper {
 
 impl TcpStreamWrapper {
     /// Creates a new `TcpStreamWrapper` from a `TcpStream`
-    #[must_use] 
+    #[must_use]
     pub fn new(stream: TcpStream) -> Self {
         TcpStreamWrapper { inner: stream }
     }
 
     /// Consumes the wrapper and returns the inner `TcpStream`
-    #[must_use] 
+    #[must_use]
     pub fn into_inner(self) -> TcpStream {
         self.inner
     }

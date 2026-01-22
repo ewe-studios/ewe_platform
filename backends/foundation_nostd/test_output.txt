@@ -1,0 +1,182 @@
+    Blocking waiting for file lock on build directory
+   Compiling foundation_nostd v0.0.4 (/home/darkvoid/Boxxed/@dev/ewe_platform/backends/foundation_nostd)
+warning: unused import: `LockResult`
+  --> backends/foundation_nostd/src/primitives/noop.rs:30:25
+   |
+30 | use crate::primitives::{LockResult, TryLockError, TryLockResult};
+   |                         ^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: value assigned to `init_error` is never read
+  --> backends/foundation_nostd/src/primitives/once_lock.rs:87:21
+   |
+87 |                     init_error = Some(e);
+   |                     ^^^^^^^^^^
+   |
+   = help: maybe it is overwritten before being read?
+   = note: `#[warn(unused_assignments)]` (part of `#[warn(unused)]`) on by default
+
+warning: `foundation_nostd` (lib test) generated 2 warnings (run `cargo fix --lib -p foundation_nostd --tests` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 55.88s
+     Running unittests src/lib.rs (/home/darkvoid/Boxxed/@dev/ewe_platform/target/debug/deps/foundation_nostd-66733468c1d2c56c)
+
+running 155 tests
+test primitives::atomic_cell::tests::test_compare_exchange_failure ... ok
+test primitives::atomic_cell::tests::test_compare_exchange_success ... ok
+test primitives::atomic_cell::tests::test_default ... ok
+test primitives::atomic_cell::tests::test_from ... ok
+test primitives::atomic_cell::tests::test_get_mut ... ok
+test primitives::atomic_cell::tests::test_into_inner ... ok
+test primitives::atomic_cell::tests::test_new_and_load ... ok
+test primitives::atomic_cell::tests::test_send ... ok
+test primitives::atomic_cell::tests::test_store ... ok
+test primitives::atomic_cell::tests::test_swap ... ok
+test primitives::atomic_flag::tests::test_clear ... ok
+test primitives::atomic_flag::tests::test_compare_and_swap_failure ... ok
+test primitives::atomic_flag::tests::test_compare_and_swap_success ... ok
+test primitives::atomic_flag::tests::test_debug ... ok
+test primitives::atomic_flag::tests::test_default ... ok
+test primitives::atomic_flag::tests::test_load_relaxed ... ok
+test primitives::atomic_flag::tests::test_new ... ok
+test primitives::atomic_flag::tests::test_store_relaxed ... ok
+test primitives::atomic_flag::tests::test_test_and_clear ... ok
+test primitives::atomic_flag::tests::test_set ... ok
+test primitives::atomic_flag::tests::test_test_and_set ... ok
+test primitives::atomic_lazy::tests::test_debug ... ok
+test primitives::atomic_lazy::tests::test_default ... ok
+test primitives::atomic_lazy::tests::test_deref ... ok
+test primitives::atomic_lazy::tests::test_force ... ok
+test primitives::atomic_lazy::tests::test_lazy_init ... ok
+test primitives::atomic_lazy::tests::test_send ... ok
+test primitives::atomic_lazy::tests::test_sync ... ok
+test primitives::atomic_option::tests::test_default ... ok
+test primitives::atomic_option::tests::test_from ... ok
+test primitives::atomic_option::tests::test_into_inner ... ok
+test primitives::atomic_option::tests::test_load ... ok
+test primitives::atomic_option::tests::test_get_mut ... ok
+test primitives::atomic_option::tests::test_none ... ok
+test primitives::atomic_option::tests::test_send ... ok
+test primitives::atomic_option::tests::test_some ... ok
+test primitives::atomic_option::tests::test_store ... ok
+test primitives::atomic_option::tests::test_swap ... ok
+test primitives::atomic_option::tests::test_take ... ok
+test primitives::atomic_option::tests::test_take_none ... ok
+test primitives::barrier::tests::test_multiple_generations ... ok
+test primitives::atomic_option::tests::test_swap_none ... ok
+test primitives::barrier::tests::test_new ... ok
+test primitives::barrier::tests::test_send ... ok
+test primitives::atomic_option::tests::test_sync ... ok
+test primitives::barrier::tests::test_single_thread ... ok
+test primitives::noop::tests::test_mutex_get_mut ... ok
+test primitives::barrier::tests::test_sync ... ok
+test primitives::noop::tests::test_mutex_is_locked ... ok
+test primitives::noop::tests::test_mutex_lock ... ok
+test primitives::noop::tests::test_mutex_new_and_into_inner ... ok
+test primitives::noop::tests::test_mutex_try_lock_success ... ok
+test primitives::noop::tests::test_mutex_try_lock_would_block ... ok
+test primitives::noop::tests::test_once_call_once ... ok
+test primitives::noop::tests::test_once_debug ... ok
+test primitives::noop::tests::test_once_new ... ok
+test primitives::noop::tests::test_rwlock_get_mut ... ok
+test primitives::noop::tests::test_rwlock_multiple_readers ... ok
+test primitives::noop::tests::test_rwlock_new_and_into_inner ... ok
+test primitives::noop::tests::test_rwlock_read ... ok
+test primitives::noop::tests::test_rwlock_try_read_success ... ok
+test primitives::noop::tests::test_rwlock_try_write_success ... ok
+test primitives::noop::tests::test_rwlock_write ... ok
+test primitives::once::tests::test_call_once ... ok
+test primitives::once::tests::test_call_once_force ... ok
+test primitives::atomic_cell::tests::test_sync ... ok
+test primitives::atomic_flag::tests::test_from_bool ... ok
+test primitives::once::tests::test_completed_after_call ... ok
+test primitives::once::tests::test_default ... ok
+test primitives::once::tests::test_not_completed_initially ... ok
+test primitives::once::tests::test_send ... ok
+test primitives::once::tests::test_sync ... ok
+test primitives::once_lock::tests::test_default ... ok
+test primitives::once_lock::tests::test_from ... ok
+test primitives::once_lock::tests::test_get_or_init ... ok
+test primitives::once_lock::tests::test_into_inner ... ok
+test primitives::once_lock::tests::test_new_and_get ... ok
+test primitives::once_lock::tests::test_send ... ok
+test primitives::once_lock::tests::test_set_and_get ... ok
+test primitives::once_lock::tests::test_set_twice ... ok
+test primitives::once_lock::tests::test_sync ... ok
+test primitives::once_lock::tests::test_take ... ok
+test primitives::poison::tests::test_error_display ... ok
+test primitives::poison::tests::test_poison_error_get_ref ... ok
+test primitives::poison::tests::test_try_lock_error_variants ... ok
+test primitives::raw_once::tests::test_call_once ... ok
+test primitives::raw_once::tests::test_completed_after_call ... ok
+test primitives::raw_once::tests::test_default ... ok
+test primitives::raw_once::tests::test_not_completed_initially ... ok
+test primitives::raw_once::tests::test_send ... ok
+test primitives::raw_once::tests::test_sync ... ok
+test primitives::raw_spin_mutex::tests::test_debug ... ok
+test primitives::raw_spin_mutex::tests::test_default ... ok
+test primitives::raw_spin_mutex::tests::test_from ... ok
+test primitives::raw_spin_mutex::tests::test_get_mut ... ok
+test primitives::raw_spin_mutex::tests::test_lock ... ok
+test primitives::raw_spin_mutex::tests::test_new_and_into_inner ... ok
+test primitives::raw_spin_mutex::tests::test_send ... ok
+test primitives::raw_spin_mutex::tests::test_sync ... ok
+test primitives::raw_spin_mutex::tests::test_try_lock_failure ... ok
+test primitives::raw_spin_mutex::tests::test_try_lock_success ... ok
+test primitives::raw_spin_mutex::tests::test_try_lock_with_spin_limit ... ok
+test primitives::raw_spin_rwlock::tests::test_debug ... ok
+test primitives::raw_spin_rwlock::tests::test_default ... ok
+test primitives::raw_spin_rwlock::tests::test_from ... ok
+test primitives::raw_spin_rwlock::tests::test_get_mut ... ok
+test primitives::raw_spin_rwlock::tests::test_multiple_readers ... ok
+test primitives::raw_spin_rwlock::tests::test_new_and_into_inner ... ok
+test primitives::raw_spin_rwlock::tests::test_read ... ok
+test primitives::raw_spin_rwlock::tests::test_readers_block_writers ... ok
+test primitives::raw_spin_rwlock::tests::test_send ... ok
+test primitives::raw_spin_rwlock::tests::test_sync ... ok
+test primitives::raw_spin_rwlock::tests::test_try_read_success ... ok
+test primitives::raw_spin_rwlock::tests::test_try_read_with_spin_limit ... ok
+test primitives::raw_spin_rwlock::tests::test_try_write_success ... ok
+test primitives::raw_spin_rwlock::tests::test_try_write_with_spin_limit ... ok
+test primitives::raw_spin_rwlock::tests::test_write ... ok
+test primitives::raw_spin_rwlock::tests::test_write_blocks_readers ... ok
+test primitives::spin_mutex::tests::test_debug ... ok
+test primitives::spin_mutex::tests::test_default ... ok
+test primitives::spin_mutex::tests::test_from ... ok
+test primitives::spin_mutex::tests::test_get_mut ... ok
+test primitives::spin_mutex::tests::test_lock ... ok
+test primitives::spin_mutex::tests::test_new_and_into_inner ... ok
+test primitives::spin_mutex::tests::test_not_poisoned ... ok
+test primitives::spin_mutex::tests::test_send ... ok
+test primitives::spin_mutex::tests::test_sync ... ok
+test primitives::spin_mutex::tests::test_try_lock_success ... ok
+test primitives::spin_mutex::tests::test_try_lock_with_spin_limit ... ok
+test primitives::spin_mutex::tests::test_try_lock_would_block ... ok
+test primitives::spin_rwlock::tests::test_debug ... ok
+test primitives::spin_rwlock::tests::test_default ... ok
+test primitives::spin_rwlock::tests::test_from ... ok
+test primitives::spin_rwlock::tests::test_get_mut ... ok
+test primitives::spin_rwlock::tests::test_multiple_readers ... ok
+test primitives::spin_rwlock::tests::test_new_and_into_inner ... ok
+test primitives::spin_rwlock::tests::test_not_poisoned ... ok
+test primitives::spin_rwlock::tests::test_read ... ok
+test primitives::spin_rwlock::tests::test_readers_block_writers ... ok
+test primitives::spin_rwlock::tests::test_send ... ok
+test primitives::spin_rwlock::tests::test_sync ... ok
+test primitives::spin_rwlock::tests::test_try_read_success ... ok
+test primitives::spin_rwlock::tests::test_try_write_success ... ok
+test primitives::spin_rwlock::tests::test_write ... ok
+test primitives::spin_rwlock::tests::test_write_blocks_readers ... ok
+test primitives::spin_wait::tests::test_counter ... ok
+test primitives::spin_wait::tests::test_default ... ok
+test primitives::spin_wait::tests::test_new ... ok
+test primitives::spin_wait::tests::test_spin_once ... ok
+test primitives::spin_wait::tests::test_reset ... ok
+test primitives::spin_wait::tests::test_spin_exhaustion ... ok
+test raw_parts::tests::roundtrip ... ok
+test primitives::spin_wait::tests::test_spin_progression ... ok
+test primitives::once_lock::tests::test_get_or_try_init_ok ... ok
+test primitives::poison::tests::test_poison_error_into_inner ... ok
+
+test result: ok. 155 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
