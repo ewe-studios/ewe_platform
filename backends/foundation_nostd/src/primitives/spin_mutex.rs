@@ -20,7 +20,7 @@ const UNLOCKED: u8 = 0b00;
 const LOCKED: u8 = 0b01;
 const POISONED: u8 = 0b10;
 
-/// A spin-based mutual exclusion lock with poisoning support.
+/// A spin-based mutual exclusion `lock` with poisoning support.
 ///
 /// This matches the `std::sync::Mutex` API for drop-in replacement in
 /// `no_std` contexts.
@@ -50,6 +50,10 @@ impl<T> SpinMutex<T> {
     }
 
     /// Consumes the mutex and returns the inner value.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(PoisonError)` if the mutex was poisoned.
     #[inline]
     pub fn into_inner(self) -> LockResult<T> {
         let is_poisoned = self.is_poisoned();
@@ -63,6 +67,10 @@ impl<T> SpinMutex<T> {
     }
 
     /// Returns a mutable reference to the underlying data.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(PoisonError)` if the mutex was poisoned.
     #[inline]
     pub fn get_mut(&mut self) -> LockResult<&mut T> {
         let is_poisoned = self.is_poisoned();
@@ -84,6 +92,10 @@ impl<T: ?Sized> SpinMutex<T> {
     }
 
     /// Acquires the lock, spinning until it becomes available.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(PoisonError)` if the mutex was poisoned.
     #[inline]
     pub fn lock(&self) -> LockResult<SpinMutexGuard<'_, T>> {
         // Fast path: try to acquire immediately
@@ -133,7 +145,12 @@ impl<T: ?Sized> SpinMutex<T> {
         }
     }
 
-    /// Attempts to acquire the lock without blocking.
+    /// Attempts to acquire the `lock` without blocking.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(TryLockError::WouldBlock)` if the lock is already held,
+    /// or `Err(TryLockError::Poisoned)` if the mutex was poisoned.
     #[inline]
     pub fn try_lock(&self) -> TryLockResult<SpinMutexGuard<'_, T>> {
         let state = self.state.load(Ordering::Relaxed);
@@ -155,6 +172,11 @@ impl<T: ?Sized> SpinMutex<T> {
     }
 
     /// Attempts to acquire the lock, spinning up to `limit` times.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(TryLockError::WouldBlock)` if the lock could not be acquired
+    /// within the spin limit, or `Err(TryLockError::Poisoned)` if poisoned.
     pub fn try_lock_with_spin_limit(&self, limit: usize) -> TryLockResult<SpinMutexGuard<'_, T>> {
         for _ in 0..limit {
             let state = self.state.load(Ordering::Relaxed);
@@ -212,7 +234,7 @@ impl<T> From<T> for SpinMutex<T> {
     }
 }
 
-impl<'a, T: ?Sized> Deref for SpinMutexGuard<'a, T> {
+impl<T: ?Sized> Deref for SpinMutexGuard<'_, T> {
     type Target = T;
 
     #[inline]
@@ -221,14 +243,14 @@ impl<'a, T: ?Sized> Deref for SpinMutexGuard<'a, T> {
     }
 }
 
-impl<'a, T: ?Sized> DerefMut for SpinMutexGuard<'a, T> {
+impl<T: ?Sized> DerefMut for SpinMutexGuard<'_, T> {
     #[inline]
     fn deref_mut(&mut self) -> &mut T {
         unsafe { &mut *self.mutex.data.get() }
     }
 }
 
-impl<'a, T: ?Sized> Drop for SpinMutexGuard<'a, T> {
+impl<T: ?Sized> Drop for SpinMutexGuard<'_, T> {
     #[inline]
     fn drop(&mut self) {
         // Note: In no_std without panic detection, poisoning must be
@@ -257,16 +279,16 @@ impl<T: ?Sized + fmt::Display> fmt::Display for SpinMutexGuard<'_, T> {
 mod tests {
     use super::*;
 
-    /// WHY: Validates basic mutex construction and into_inner
-    /// WHAT: Creating a mutex and extracting its value should work
+    /// `WHY`: Validates basic mutex construction and `into_inner`
+    /// `WHAT`: Creating a mutex and extracting its value should work
     #[test]
     fn test_new_and_into_inner() {
         let mutex = SpinMutex::new(42);
         assert_eq!(mutex.into_inner().unwrap(), 42);
     }
 
-    /// WHY: Validates basic lock acquisition and data access
-    /// WHAT: Lock should be acquirable and data should be accessible
+    /// `WHY`: Validates basic `lock` acquisition and data access
+    /// `WHAT`: Lock should be acquirable and data should be accessible
     #[test]
     fn test_lock() {
         let mutex = SpinMutex::new(0);
@@ -279,8 +301,8 @@ mod tests {
         assert_eq!(*guard, 1);
     }
 
-    /// WHY: Validates try_lock behavior when lock is free
-    /// WHAT: try_lock should succeed when lock is not held
+    /// `WHY`: Validates `try_lock` behavior when `lock` is free
+    /// `WHAT`: `try_lock` should succeed when `lock` is not held
     #[test]
     fn test_try_lock_success() {
         let mutex = SpinMutex::new(42);
@@ -289,8 +311,8 @@ mod tests {
         assert_eq!(*guard.unwrap(), 42);
     }
 
-    /// WHY: Validates try_lock behavior when lock is held
-    /// WHAT: try_lock should return WouldBlock when already held
+    /// `WHY`: Validates `try_lock` behavior when `lock` is held
+    /// `WHAT`: `try_lock` should return `WouldBlock` when already held
     #[test]
     fn test_try_lock_would_block() {
         let mutex = SpinMutex::new(42);
@@ -299,16 +321,16 @@ mod tests {
         assert!(matches!(result, Err(TryLockError::WouldBlock)));
     }
 
-    /// WHY: Validates that mutex is not poisoned by default
-    /// WHAT: New mutex should not be poisoned
+    /// `WHY`: Validates that mutex is not poisoned by default
+    /// `WHAT`: New mutex should not be poisoned
     #[test]
     fn test_not_poisoned() {
         let mutex = SpinMutex::new(42);
         assert!(!mutex.is_poisoned());
     }
 
-    /// WHY: Validates get_mut functionality
-    /// WHAT: get_mut should provide mutable access without locking
+    /// `WHY`: Validates `get_mut` functionality
+    /// `WHAT`: `get_mut` should provide mutable access without locking
     #[test]
     fn test_get_mut() {
         let mut mutex = SpinMutex::new(0);
@@ -316,16 +338,16 @@ mod tests {
         assert_eq!(*mutex.lock().unwrap(), 42);
     }
 
-    /// WHY: Validates Send trait bounds
-    /// WHAT: Mutex should be Send when T is Send
+    /// `WHY`: Validates Send trait bounds
+    /// `WHAT`: Mutex should be Send when T is Send
     #[test]
     fn test_send() {
         fn assert_send<T: Send>() {}
         assert_send::<SpinMutex<i32>>();
     }
 
-    /// WHY: Validates Sync trait bounds
-    /// WHAT: Mutex should be Sync when T is Send
+    /// `WHY`: Validates Sync trait bounds
+    /// `WHAT`: Mutex should be Sync when T is Send
     #[test]
     fn test_sync() {
         fn assert_sync<T: Sync>() {}

@@ -63,14 +63,14 @@ pub type Mutex<T> = noop::NoopMutex<T>;
 #[cfg(any(not(target_arch = "wasm32"), target_feature = "atomics"))]
 pub type Mutex<T> = SpinMutex<T>;
 
-/// Platform-appropriate RwLock type.
+/// Platform-appropriate `RwLock` type.
 ///
 /// - On single-threaded WASM (no atomics): Uses `NoopRwLock`
 /// - On all other platforms: Uses `SpinRwLock`
 #[cfg(all(target_arch = "wasm32", not(target_feature = "atomics")))]
 pub type RwLock<T> = noop::NoopRwLock<T>;
 
-/// Platform-appropriate RwLock type.
+/// Platform-appropriate `RwLock` type.
 ///
 /// - On single-threaded WASM (no atomics): Uses `NoopRwLock`
 /// - On all other platforms: Uses `SpinRwLock`

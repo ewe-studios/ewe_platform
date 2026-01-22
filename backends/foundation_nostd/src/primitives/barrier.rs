@@ -169,7 +169,7 @@ mod tests {
     #[test]
     fn test_debug() {
         let barrier = SpinBarrier::new(3);
-        let debug = format!("{:?}", barrier);
+        let debug = format!("{barrier:?}");
         assert!(debug.contains("SpinBarrier"));
         assert!(debug.contains("num_threads"));
     }

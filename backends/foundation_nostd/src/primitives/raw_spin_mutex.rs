@@ -28,7 +28,7 @@ use core::sync::atomic::{AtomicBool, Ordering};
 
 use crate::primitives::spin_wait::SpinWait;
 
-/// A spin-based mutual exclusion lock without poisoning support.
+/// A spin-based mutual exclusion `lock` without poisoning support.
 ///
 /// This is simpler than `SpinMutex` and suitable for embedded systems where
 /// panic = abort (no unwinding), making poisoning unnecessary.
@@ -102,7 +102,7 @@ impl<T: ?Sized> RawSpinMutex<T> {
         }
     }
 
-    /// Attempts to acquire the lock without blocking.
+    /// Attempts to acquire the `lock` without blocking.
     #[inline]
     pub fn try_lock(&self) -> Option<RawSpinMutexGuard<'_, T>> {
         if self
@@ -161,7 +161,7 @@ impl<T> From<T> for RawSpinMutex<T> {
     }
 }
 
-impl<'a, T: ?Sized> Deref for RawSpinMutexGuard<'a, T> {
+impl<T: ?Sized> Deref for RawSpinMutexGuard<'_, T> {
     type Target = T;
 
     #[inline]
@@ -170,14 +170,14 @@ impl<'a, T: ?Sized> Deref for RawSpinMutexGuard<'a, T> {
     }
 }
 
-impl<'a, T: ?Sized> DerefMut for RawSpinMutexGuard<'a, T> {
+impl<T: ?Sized> DerefMut for RawSpinMutexGuard<'_, T> {
     #[inline]
     fn deref_mut(&mut self) -> &mut T {
         unsafe { &mut *self.mutex.data.get() }
     }
 }
 
-impl<'a, T: ?Sized> Drop for RawSpinMutexGuard<'a, T> {
+impl<T: ?Sized> Drop for RawSpinMutexGuard<'_, T> {
     #[inline]
     fn drop(&mut self) {
         self.mutex.locked.store(false, Ordering::Release);
@@ -200,16 +200,16 @@ impl<T: ?Sized + fmt::Display> fmt::Display for RawSpinMutexGuard<'_, T> {
 mod tests {
     use super::*;
 
-    /// WHY: Validates basic mutex construction and into_inner
-    /// WHAT: Creating a mutex and extracting its value should work
+    /// `WHY`: Validates basic mutex construction and `into_inner`
+    /// `WHAT`: Creating a mutex and extracting its value should work
     #[test]
     fn test_new_and_into_inner() {
         let mutex = RawSpinMutex::new(42);
         assert_eq!(mutex.into_inner(), 42);
     }
 
-    /// WHY: Validates basic lock acquisition and data access
-    /// WHAT: Lock should be acquirable and data should be accessible
+    /// `WHY`: Validates basic `lock` acquisition and data access
+    /// `WHAT`: Lock should be acquirable and data should be accessible
     #[test]
     fn test_lock() {
         let mutex = RawSpinMutex::new(0);
@@ -222,8 +222,8 @@ mod tests {
         assert_eq!(*guard, 1);
     }
 
-    /// WHY: Validates try_lock behavior when lock is free
-    /// WHAT: try_lock should succeed when lock is not held
+    /// `WHY`: Validates `try_lock` behavior when `lock` is free
+    /// `WHAT`: `try_lock` should succeed when `lock` is not held
     #[test]
     fn test_try_lock_success() {
         let mutex = RawSpinMutex::new(42);
@@ -232,8 +232,8 @@ mod tests {
         assert_eq!(*guard.unwrap(), 42);
     }
 
-    /// WHY: Validates try_lock behavior when lock is held
-    /// WHAT: try_lock should fail when lock is already held
+    /// `WHY`: Validates `try_lock` behavior when `lock` is held
+    /// `WHAT`: `try_lock` should fail when `lock` is already held
     #[test]
     fn test_try_lock_failure() {
         let mutex = RawSpinMutex::new(42);
@@ -242,8 +242,8 @@ mod tests {
         assert!(guard2.is_none());
     }
 
-    /// WHY: Validates try_lock_with_spin_limit functionality
-    /// WHAT: Should succeed within limit when lock becomes available
+    /// `WHY`: Validates `try_lock_with_spin_limit` functionality
+    /// `WHAT`: Should succeed within limit when `lock` becomes available
     #[test]
     fn test_try_lock_with_spin_limit() {
         let mutex = RawSpinMutex::new(42);
@@ -259,8 +259,8 @@ mod tests {
         assert!(guard2.is_none());
     }
 
-    /// WHY: Validates get_mut functionality with exclusive borrow
-    /// WHAT: get_mut should provide mutable access without locking
+    /// `WHY`: Validates `get_mut` functionality with exclusive borrow
+    /// `WHAT`: `get_mut` should provide mutable access without locking
     #[test]
     fn test_get_mut() {
         let mut mutex = RawSpinMutex::new(0);
@@ -268,16 +268,16 @@ mod tests {
         assert_eq!(*mutex.lock(), 42);
     }
 
-    /// WHY: Validates Send trait bounds
-    /// WHAT: Mutex should be Send when T is Send
+    /// `WHY`: Validates Send trait bounds
+    /// `WHAT`: Mutex should be Send when T is Send
     #[test]
     fn test_send() {
         fn assert_send<T: Send>() {}
         assert_send::<RawSpinMutex<i32>>();
     }
 
-    /// WHY: Validates Sync trait bounds
-    /// WHAT: Mutex should be Sync when T is Send
+    /// `WHY`: Validates Sync trait bounds
+    /// `WHAT`: Mutex should be Sync when T is Send
     #[test]
     fn test_sync() {
         fn assert_sync<T: Sync>() {}
