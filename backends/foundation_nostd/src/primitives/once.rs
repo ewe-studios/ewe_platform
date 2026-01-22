@@ -26,6 +26,7 @@ pub struct OnceState {
 impl OnceState {
     /// Returns `true` if the `Once` was poisoned.
     #[inline]
+    #[must_use]
     pub fn is_poisoned(&self) -> bool {
         self.poisoned
     }
@@ -34,6 +35,7 @@ impl OnceState {
 impl Once {
     /// Creates a new incomplete `Once`.
     #[inline]
+    #[must_use]
     pub const fn new() -> Self {
         Self {
             state: AtomicU8::new(INCOMPLETE),
@@ -46,6 +48,10 @@ impl Once {
     /// calls will panic immediately.
     ///
     /// # Examples
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `Once` instance is poisoned from a previous panic.
     ///
     /// ```
     /// use foundation_nostd::primitives::Once;
@@ -60,15 +66,21 @@ impl Once {
     where
         F: FnOnce(),
     {
+        struct PoisonOnPanic<'a>(&'a Once);
+
+        impl Drop for PoisonOnPanic<'_> {
+            fn drop(&mut self) {
+                self.0.state.store(POISONED, Ordering::Release);
+            }
+        }
+
         let state = self.state.load(Ordering::Acquire);
 
         if state == COMPLETE {
             return;
         }
 
-        if state == POISONED {
-            panic!("Once instance has been poisoned");
-        }
+        assert!(state != POISONED, "Once instance has been poisoned");
 
         // Try to transition from INCOMPLETE to RUNNING
         if self
@@ -77,13 +89,6 @@ impl Once {
             .is_ok()
         {
             // We won the race, execute the function
-            struct PoisonOnPanic<'a>(&'a Once);
-
-            impl Drop for PoisonOnPanic<'_> {
-                fn drop(&mut self) {
-                    self.0.state.store(POISONED, Ordering::Release);
-                }
-            }
 
             let guard = PoisonOnPanic(self);
             f();
@@ -123,6 +128,14 @@ impl Once {
     where
         F: FnOnce(OnceState),
     {
+        struct ResetOnPanic<'a>(&'a Once);
+
+        impl Drop for ResetOnPanic<'_> {
+            fn drop(&mut self) {
+                self.0.state.store(POISONED, Ordering::Release);
+            }
+        }
+
         let mut state = self.state.load(Ordering::Acquire);
 
         if state == COMPLETE {
@@ -149,13 +162,6 @@ impl Once {
         }
 
         // Execute the function
-        struct ResetOnPanic<'a>(&'a Once);
-
-        impl Drop for ResetOnPanic<'_> {
-            fn drop(&mut self) {
-                self.0.state.store(POISONED, Ordering::Release);
-            }
-        }
 
         let guard = ResetOnPanic(self);
         f(OnceState { poisoned });
@@ -182,8 +188,8 @@ mod tests {
     use super::*;
     use core::sync::atomic::{AtomicUsize, Ordering};
 
-    /// WHY: Validates basic once initialization
-    /// WHAT: Function should execute exactly once
+    /// `WHY`: Validates basic once initialization
+    /// `WHAT`: Function should execute exactly once
     #[test]
     fn test_call_once() {
         static COUNTER: AtomicUsize = AtomicUsize::new(0);
@@ -200,16 +206,16 @@ mod tests {
         assert_eq!(COUNTER.load(Ordering::SeqCst), 1);
     }
 
-    /// WHY: Validates is_completed returns false initially
-    /// WHAT: New Once should not be completed
+    /// `WHY`: Validates `is_completed` returns false initially
+    /// `WHAT`: New Once should not be completed
     #[test]
     fn test_not_completed_initially() {
         let once = Once::new();
         assert!(!once.is_completed());
     }
 
-    /// WHY: Validates is_completed returns true after call_once
-    /// WHAT: Once should be completed after initialization
+    /// `WHY`: Validates `is_completed` returns true after `call_once`
+    /// `WHAT`: Once should be completed after initialization
     #[test]
     fn test_completed_after_call() {
         let once = Once::new();
@@ -217,8 +223,8 @@ mod tests {
         assert!(once.is_completed());
     }
 
-    /// WHY: Validates call_once_force with non-poisoned state
-    /// WHAT: Should execute and report not poisoned
+    /// `WHY`: Validates `call_once`_force with non-poisoned state
+    /// `WHAT`: Should execute and report not poisoned
     #[test]
     fn test_call_once_force() {
         let once = Once::new();
@@ -233,24 +239,24 @@ mod tests {
         assert!(once.is_completed());
     }
 
-    /// WHY: Validates Default implementation
-    /// WHAT: Default should create incomplete Once
+    /// `WHY`: Validates Default implementation
+    /// `WHAT`: Default should create incomplete Once
     #[test]
     fn test_default() {
         let once = Once::default();
         assert!(!once.is_completed());
     }
 
-    /// WHY: Validates Send bound requirement
-    /// WHAT: Once should be Send
+    /// `WHY`: Validates Send bound requirement
+    /// `WHAT`: Once should be Send
     #[test]
     fn test_send() {
         fn assert_send<T: Send>() {}
         assert_send::<Once>();
     }
 
-    /// WHY: Validates Sync bound requirement
-    /// WHAT: Once should be Sync
+    /// `WHY`: Validates Sync bound requirement
+    /// `WHAT`: Once should be Sync
     #[test]
     fn test_sync() {
         fn assert_sync<T: Sync>() {}

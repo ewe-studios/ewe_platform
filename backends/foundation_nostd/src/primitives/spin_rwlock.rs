@@ -49,11 +49,11 @@ const WRITER_WAITING: u32 = 1 << 30; // 0x40000000
 const WRITER_ACTIVE: u32 = 1 << 31; // 0x80000000
 const MAX_READERS: u32 = READER_MASK;
 
-/// A writer-preferring read-write spin lock with poisoning support.
+/// A writer-preferring read-write `spin` `lock` with poisoning support.
 ///
 /// This matches the `std::sync::RwLock` API for drop-in replacement in
 /// `no_std` contexts. When a thread panics while holding the lock, the
-/// lock becomes poisoned to detect potential data corruption.
+/// `lock` becomes poisoned to detect potential data corruption.
 ///
 /// # Thread Safety
 ///
@@ -67,20 +67,20 @@ pub struct SpinRwLock<T: ?Sized> {
 unsafe impl<T: ?Sized + Send> Send for SpinRwLock<T> {}
 unsafe impl<T: ?Sized + Send + Sync> Sync for SpinRwLock<T> {}
 
-/// RAII read guard for `SpinRwLock`.
+/// RAII `read` guard for `SpinRwLock`.
 ///
-/// The read lock is released when this guard is dropped. If the thread panics
-/// while holding the guard, the lock will be poisoned.
+/// The `read` `lock` is released when this guard is dropped. If the thread panics
+/// while holding the guard, the `lock` will be poisoned.
 pub struct ReadGuard<'a, T: ?Sized + 'a> {
     lock: &'a SpinRwLock<T>,
 }
 
 unsafe impl<T: ?Sized + Sync> Sync for ReadGuard<'_, T> {}
 
-/// RAII write guard for `SpinRwLock`.
+/// RAII `write` guard for `SpinRwLock`.
 ///
-/// The write lock is released when this guard is dropped. If the thread panics
-/// while holding the guard, the lock will be poisoned.
+/// The `write` `lock` is released when this guard is dropped. If the thread panics
+/// while holding the guard, the `lock` will be poisoned.
 pub struct WriteGuard<'a, T: ?Sized + 'a> {
     lock: &'a SpinRwLock<T>,
 }
@@ -88,14 +88,14 @@ pub struct WriteGuard<'a, T: ?Sized + 'a> {
 unsafe impl<T: ?Sized + Sync> Sync for WriteGuard<'_, T> {}
 
 impl<T> SpinRwLock<T> {
-    /// Creates a new unlocked RwLock.
+    /// Creates a new unlocked `RwLock`.
     ///
     /// # Examples
     ///
     /// ```
     /// use foundation_nostd::primitives::SpinRwLock;
     ///
-    /// let lock = SpinRwLock::new(42);
+    /// let `lock` = SpinRwLock::new(42);
     /// ```
     #[inline]
     pub const fn new(data: T) -> Self {
@@ -106,19 +106,19 @@ impl<T> SpinRwLock<T> {
         }
     }
 
-    /// Consumes the lock and returns the inner value.
+    /// Consumes the `lock` and returns the inner value.
     ///
     /// # Errors
     ///
-    /// Returns `Err(PoisonError)` if the lock was poisoned.
+    /// Returns `Err(PoisonError)` if the `lock` was poisoned.
     ///
     /// # Examples
     ///
     /// ```
     /// use foundation_nostd::primitives::SpinRwLock;
     ///
-    /// let lock = SpinRwLock::new(42);
-    /// let value = lock.into_inner().unwrap();
+    /// let `lock` = SpinRwLock::new(42);
+    /// let value = `lock`.into_inner().unwrap();
     /// assert_eq!(value, 42);
     /// ```
     #[inline]
@@ -139,14 +139,14 @@ impl<T> SpinRwLock<T> {
     ///
     /// # Errors
     ///
-    /// Returns `Err(PoisonError)` if the lock was poisoned.
+    /// Returns `Err(PoisonError)` if the `lock` was poisoned.
     ///
     /// # Examples
     ///
     /// ```
     /// use foundation_nostd::primitives::SpinRwLock;
     ///
-    /// let mut lock = SpinRwLock::new(0);
+    /// let mut `lock` = SpinRwLock::new(0);
     /// *lock.get_mut().unwrap() = 10;
     /// assert_eq!(*lock.read().unwrap(), 10);
     /// ```
@@ -164,16 +164,16 @@ impl<T> SpinRwLock<T> {
 }
 
 impl<T: ?Sized> SpinRwLock<T> {
-    /// Checks if the lock is poisoned.
+    /// Checks if the `lock` is poisoned.
     ///
-    /// A lock is poisoned when a thread panicked while holding the lock.
+    /// A `lock` is poisoned when a thread panicked while holding the `lock`.
     ///
     /// # Examples
     ///
     /// ```
     /// use foundation_nostd::primitives::SpinRwLock;
     ///
-    /// let lock = SpinRwLock::new(0);
+    /// let `lock` = SpinRwLock::new(0);
     /// assert!(!lock.is_poisoned());
     /// ```
     #[inline]
@@ -181,14 +181,14 @@ impl<T: ?Sized> SpinRwLock<T> {
         self.poisoned.load(Ordering::Relaxed) != 0
     }
 
-    /// Acquires a read lock, spinning until available.
+    /// Acquires a `read` lock, spinning until available.
     ///
-    /// Multiple readers can hold the lock simultaneously. This call will block
+    /// Multiple readers can hold the `lock` simultaneously. This call will block
     /// if a writer is active or waiting (writer-preferring policy).
     ///
     /// # Errors
     ///
-    /// Returns `Err(PoisonError)` if the lock was poisoned. The guard is
+    /// Returns `Err(PoisonError)` if the `lock` was poisoned. The guard is
     /// still returned, allowing access to the underlying data.
     ///
     /// # Examples
@@ -196,17 +196,17 @@ impl<T: ?Sized> SpinRwLock<T> {
     /// ```
     /// use foundation_nostd::primitives::SpinRwLock;
     ///
-    /// let lock = SpinRwLock::new(vec![1, 2, 3]);
-    /// let r1 = lock.read().unwrap();
-    /// let r2 = lock.read().unwrap();  // Multiple readers OK
+    /// let `lock` = SpinRwLock::new(vec![1, 2, 3]);
+    /// let r1 = `lock`.read().unwrap();
+    /// let r2 = `lock`.read().unwrap();  // Multiple readers OK
     /// assert_eq!(*r1, vec![1, 2, 3]);
     /// ```
     #[inline]
     pub fn read(&self) -> LockResult<ReadGuard<'_, T>> {
         // Fast path: try to acquire read lock if no writer
         let state = self.state.load(Ordering::Relaxed);
-        if state & (WRITER_ACTIVE | WRITER_WAITING) == 0 && state < MAX_READERS {
-            if self
+        if state & (WRITER_ACTIVE | WRITER_WAITING) == 0 && state < MAX_READERS
+            && self
                 .state
                 .compare_exchange(state, state + 1, Ordering::Acquire, Ordering::Relaxed)
                 .is_ok()
@@ -218,7 +218,6 @@ impl<T: ?Sized> SpinRwLock<T> {
                     Ok(guard)
                 };
             }
-        }
 
         // Slow path: spin until we can acquire
         self.read_slow()
@@ -231,8 +230,8 @@ impl<T: ?Sized> SpinRwLock<T> {
                 let state = self.state.load(Ordering::Relaxed);
 
                 // Can only acquire if no writer is active or waiting
-                if state & (WRITER_ACTIVE | WRITER_WAITING) == 0 && state < MAX_READERS {
-                    if self
+                if state & (WRITER_ACTIVE | WRITER_WAITING) == 0 && state < MAX_READERS
+                    && self
                         .state
                         .compare_exchange(state, state + 1, Ordering::Acquire, Ordering::Relaxed)
                         .is_ok()
@@ -244,30 +243,29 @@ impl<T: ?Sized> SpinRwLock<T> {
                             Ok(guard)
                         };
                     }
-                }
 
                 core::hint::spin_loop();
             }
         }
     }
 
-    /// Attempts to acquire a read lock without blocking.
+    /// Attempts to acquire a `read` `lock` without blocking.
     ///
     /// Returns `Ok(guard)` if acquired, or an error if unavailable or poisoned.
     ///
     /// # Errors
     ///
-    /// - `Err(TryLockError::WouldBlock)` if the lock is currently held by a writer
-    /// - `Err(TryLockError::Poisoned)` if the lock was poisoned
+    /// - `Err(TryLockError::WouldBlock)` if the `lock` is currently held by a writer
+    /// - `Err(TryLockError::Poisoned)` if the `lock` was poisoned
     ///
     /// # Examples
     ///
     /// ```
     /// use foundation_nostd::primitives::SpinRwLock;
     ///
-    /// let lock = SpinRwLock::new(42);
+    /// let `lock` = SpinRwLock::new(42);
     ///
-    /// match lock.try_read() {
+    /// match `lock`.try_read() {
     ///     Ok(guard) => assert_eq!(*guard, 42),
     ///     Err(_) => {}
     /// };
@@ -277,8 +275,8 @@ impl<T: ?Sized> SpinRwLock<T> {
         let state = self.state.load(Ordering::Relaxed);
 
         // Can only acquire if no writer is active or waiting
-        if state & (WRITER_ACTIVE | WRITER_WAITING) == 0 && state < MAX_READERS {
-            if self
+        if state & (WRITER_ACTIVE | WRITER_WAITING) == 0 && state < MAX_READERS
+            && self
                 .state
                 .compare_exchange(state, state + 1, Ordering::Acquire, Ordering::Relaxed)
                 .is_ok()
@@ -290,19 +288,18 @@ impl<T: ?Sized> SpinRwLock<T> {
                     Ok(guard)
                 };
             }
-        }
 
         Err(TryLockError::WouldBlock)
     }
 
-    /// Acquires a write lock, spinning until available.
+    /// Acquires a `write` lock, spinning until available.
     ///
     /// Writers have exclusive access. This call sets the writer-waiting flag
     /// to block new readers (writer-preferring policy).
     ///
     /// # Errors
     ///
-    /// Returns `Err(PoisonError)` if the lock was poisoned. The guard is
+    /// Returns `Err(PoisonError)` if the `lock` was poisoned. The guard is
     /// still returned, allowing access to the underlying data.
     ///
     /// # Examples
@@ -310,8 +307,8 @@ impl<T: ?Sized> SpinRwLock<T> {
     /// ```
     /// use foundation_nostd::primitives::SpinRwLock;
     ///
-    /// let lock = SpinRwLock::new(0);
-    /// let mut w = lock.write().unwrap();
+    /// let `lock` = SpinRwLock::new(0);
+    /// let mut w = `lock`.write().unwrap();
     /// *w += 1;
     /// ```
     #[inline]
@@ -369,23 +366,23 @@ impl<T: ?Sized> SpinRwLock<T> {
         }
     }
 
-    /// Attempts to acquire a write lock without blocking.
+    /// Attempts to acquire a `write` `lock` without blocking.
     ///
     /// Returns `Ok(guard)` if acquired, or an error if unavailable or poisoned.
     ///
     /// # Errors
     ///
-    /// - `Err(TryLockError::WouldBlock)` if the lock is currently held
-    /// - `Err(TryLockError::Poisoned)` if the lock was poisoned
+    /// - `Err(TryLockError::WouldBlock)` if the `lock` is currently held
+    /// - `Err(TryLockError::Poisoned)` if the `lock` was poisoned
     ///
     /// # Examples
     ///
     /// ```
     /// use foundation_nostd::primitives::SpinRwLock;
     ///
-    /// let lock = SpinRwLock::new(42);
+    /// let `lock` = SpinRwLock::new(42);
     ///
-    /// match lock.try_write() {
+    /// match `lock`.try_write() {
     ///     Ok(mut guard) => *guard = 100,
     ///     Err(_) => {}
     /// };
@@ -446,7 +443,7 @@ impl<T> From<T> for SpinRwLock<T> {
     }
 }
 
-impl<'a, T: ?Sized> Deref for ReadGuard<'a, T> {
+impl<T: ?Sized> Deref for ReadGuard<'_, T> {
     type Target = T;
 
     #[inline]
@@ -456,7 +453,7 @@ impl<'a, T: ?Sized> Deref for ReadGuard<'a, T> {
     }
 }
 
-impl<'a, T: ?Sized> Drop for ReadGuard<'a, T> {
+impl<T: ?Sized> Drop for ReadGuard<'_, T> {
     fn drop(&mut self) {
         // Note: In no_std without panic detection, poisoning must be
         // triggered manually or through external panic runtime.
@@ -479,7 +476,7 @@ impl<T: ?Sized + fmt::Display> fmt::Display for ReadGuard<'_, T> {
     }
 }
 
-impl<'a, T: ?Sized> Deref for WriteGuard<'a, T> {
+impl<T: ?Sized> Deref for WriteGuard<'_, T> {
     type Target = T;
 
     #[inline]
@@ -489,7 +486,7 @@ impl<'a, T: ?Sized> Deref for WriteGuard<'a, T> {
     }
 }
 
-impl<'a, T: ?Sized> DerefMut for WriteGuard<'a, T> {
+impl<T: ?Sized> DerefMut for WriteGuard<'_, T> {
     #[inline]
     fn deref_mut(&mut self) -> &mut T {
         // SAFETY: We hold the write lock, so exclusive access is safe
@@ -497,7 +494,7 @@ impl<'a, T: ?Sized> DerefMut for WriteGuard<'a, T> {
     }
 }
 
-impl<'a, T: ?Sized> Drop for WriteGuard<'a, T> {
+impl<T: ?Sized> Drop for WriteGuard<'_, T> {
     fn drop(&mut self) {
         // Note: In no_std without panic detection, poisoning must be
         // triggered manually or through external panic runtime.
@@ -526,8 +523,8 @@ mod tests {
     use alloc::format;
     use alloc::vec;
 
-    /// WHY: Validates basic lock construction and into_inner
-    /// WHAT: Creating a lock and extracting its value should work
+    /// `WHY`: Validates basic `lock` construction and `into_inner`
+    /// `WHAT`: Creating a `lock` and extracting its value should work
     #[test]
     fn test_new_and_into_inner() {
         let lock = SpinRwLock::new(42);
@@ -535,8 +532,8 @@ mod tests {
         assert_eq!(lock.into_inner().unwrap(), 42);
     }
 
-    /// WHY: Validates basic read lock acquisition
-    /// WHAT: Read locks should be acquirable and data accessible
+    /// `WHY`: Validates basic `read` `lock` acquisition
+    /// `WHAT`: Read locks should be acquirable and data accessible
     #[test]
     fn test_read() {
         let lock = SpinRwLock::new(vec![1, 2, 3]);
@@ -544,8 +541,8 @@ mod tests {
         assert_eq!(*r, vec![1, 2, 3]);
     }
 
-    /// WHY: Validates multiple simultaneous readers
-    /// WHAT: Multiple read guards should coexist
+    /// `WHY`: Validates multiple simultaneous readers
+    /// `WHAT`: Multiple `read` guards should coexist
     #[test]
     fn test_multiple_readers() {
         let lock = SpinRwLock::new(42);
@@ -557,8 +554,8 @@ mod tests {
         assert_eq!(*r3, 42);
     }
 
-    /// WHY: Validates write lock acquisition and mutation
-    /// WHAT: Write lock should provide exclusive mutable access
+    /// `WHY`: Validates `write` `lock` acquisition and mutation
+    /// `WHAT`: Write `lock` should provide exclusive mutable access
     #[test]
     fn test_write() {
         let lock = SpinRwLock::new(0);
@@ -571,8 +568,8 @@ mod tests {
         assert_eq!(*r, 1);
     }
 
-    /// WHY: Validates write exclusivity
-    /// WHAT: try_read should fail when write lock is held
+    /// `WHY`: Validates `write` exclusivity
+    /// `WHAT`: `try_read` should fail when `write` `lock` is held
     #[test]
     fn test_write_blocks_readers() {
         let lock = SpinRwLock::new(42);
@@ -580,8 +577,8 @@ mod tests {
         assert!(lock.try_read().is_err());
     }
 
-    /// WHY: Validates reader blocking during write
-    /// WHAT: try_write should fail when read lock is held
+    /// `WHY`: Validates reader blocking during `write`
+    /// `WHAT`: `try_write` should fail when `read` `lock` is held
     #[test]
     fn test_readers_block_writers() {
         let lock = SpinRwLock::new(42);
@@ -589,8 +586,8 @@ mod tests {
         assert!(lock.try_write().is_err());
     }
 
-    /// WHY: Validates try_read when lock is free
-    /// WHAT: try_read should succeed when no writers
+    /// `WHY`: Validates `try_read` when `lock` is free
+    /// `WHAT`: `try_read` should succeed when no writers
     #[test]
     fn test_try_read_success() {
         let lock = SpinRwLock::new(42);
@@ -599,8 +596,8 @@ mod tests {
         assert_eq!(*r.unwrap(), 42);
     }
 
-    /// WHY: Validates try_write when lock is free
-    /// WHAT: try_write should succeed when no readers or writers
+    /// `WHY`: Validates `try_write` when `lock` is free
+    /// `WHAT`: `try_write` should succeed when no readers or writers
     #[test]
     fn test_try_write_success() {
         let lock = SpinRwLock::new(42);
@@ -608,8 +605,8 @@ mod tests {
         assert!(w.is_ok());
     }
 
-    /// WHY: Validates get_mut functionality
-    /// WHAT: get_mut should provide mutable access without locking
+    /// `WHY`: Validates `get_mut` functionality
+    /// `WHAT`: `get_mut` should provide mutable access without locking
     #[test]
     fn test_get_mut() {
         let mut lock = SpinRwLock::new(0);
@@ -617,49 +614,49 @@ mod tests {
         assert_eq!(*lock.read().unwrap(), 42);
     }
 
-    /// WHY: Validates is_poisoned detection
-    /// WHAT: Fresh lock should not be poisoned
+    /// `WHY`: Validates `is_poisoned` detection
+    /// `WHAT`: Fresh `lock` should not be poisoned
     #[test]
     fn test_not_poisoned() {
         let lock = SpinRwLock::new(0);
         assert!(!lock.is_poisoned());
     }
 
-    /// WHY: Validates Send trait bounds
-    /// WHAT: RwLock should be Send when T is Send + Sync
+    /// `WHY`: Validates Send trait bounds
+    /// `WHAT`: `RwLock` should be Send when T is Send + Sync
     #[test]
     fn test_send() {
         fn assert_send<T: Send>() {}
         assert_send::<SpinRwLock<i32>>();
     }
 
-    /// WHY: Validates Sync trait bounds
-    /// WHAT: RwLock should be Sync when T is Send + Sync
+    /// `WHY`: Validates Sync trait bounds
+    /// `WHAT`: `RwLock` should be Sync when T is Send + Sync
     #[test]
     fn test_sync() {
         fn assert_sync<T: Sync>() {}
         assert_sync::<SpinRwLock<i32>>();
     }
 
-    /// WHY: Validates Debug implementation
-    /// WHAT: Debug formatting should work for both locked and unlocked states
+    /// `WHY`: Validates Debug implementation
+    /// `WHAT`: Debug formatting should work for both locked and unlocked states
     #[test]
     fn test_debug() {
         let lock = SpinRwLock::new(42);
-        let debug_str = format!("{:?}", lock);
+        let debug_str = format!("{lock:?}");
         assert!(debug_str.contains("SpinRwLock"));
     }
 
-    /// WHY: Validates Default implementation
-    /// WHAT: Default should create lock with default value
+    /// `WHY`: Validates Default implementation
+    /// `WHAT`: Default should create `lock` with default value
     #[test]
     fn test_default() {
         let lock = SpinRwLock::<i32>::default();
         assert_eq!(*lock.read().unwrap(), 0);
     }
 
-    /// WHY: Validates From<T> implementation
-    /// WHAT: From trait should allow creating lock from value
+    /// `WHY`: Validates From<T> implementation
+    /// `WHAT`: From trait should allow creating `lock` from value
     #[test]
     fn test_from() {
         let lock = SpinRwLock::from(42);

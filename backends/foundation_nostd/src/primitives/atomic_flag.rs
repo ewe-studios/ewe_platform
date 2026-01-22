@@ -30,18 +30,18 @@ pub struct AtomicFlag {
 }
 
 impl AtomicFlag {
-    /// Creates a new `AtomicFlag` with the given initial value.
+    /// Creates a new ``AtomicFlag`` with the given initial value.
     ///
     /// # Examples
     ///
     /// ```
-    /// use foundation_nostd::primitives::AtomicFlag;
+    /// use foundation_nostd::primitives::`AtomicFlag`;
     ///
-    /// let flag = AtomicFlag::new(false);
-    /// assert!(!flag.is_set());
+    /// let flag = `AtomicFlag`::new(false);
+    /// assert!(!flag.is_`set()`);
     ///
-    /// let flag = AtomicFlag::new(true);
-    /// assert!(flag.is_set());
+    /// let flag = `AtomicFlag`::new(true);
+    /// assert!(flag.is_`set()`);
     /// ```
     #[inline]
     #[must_use]
@@ -58,10 +58,10 @@ impl AtomicFlag {
     /// # Examples
     ///
     /// ```
-    /// use foundation_nostd::primitives::AtomicFlag;
+    /// use foundation_nostd::primitives::`AtomicFlag`;
     ///
-    /// let flag = AtomicFlag::new(true);
-    /// assert!(flag.is_set());
+    /// let flag = `AtomicFlag`::new(true);
+    /// assert!(flag.is_`set()`);
     /// ```
     #[inline]
     pub fn is_set(&self) -> bool {
@@ -76,11 +76,11 @@ impl AtomicFlag {
     /// # Examples
     ///
     /// ```
-    /// use foundation_nostd::primitives::AtomicFlag;
+    /// use foundation_nostd::primitives::`AtomicFlag`;
     ///
-    /// let flag = AtomicFlag::new(false);
-    /// flag.set();
-    /// assert!(flag.is_set());
+    /// let flag = `AtomicFlag`::new(false);
+    /// flag.`set()`;
+    /// assert!(flag.is_`set()`);
     /// ```
     #[inline]
     pub fn set(&self) {
@@ -94,11 +94,11 @@ impl AtomicFlag {
     /// # Examples
     ///
     /// ```
-    /// use foundation_nostd::primitives::AtomicFlag;
+    /// use foundation_nostd::primitives::`AtomicFlag`;
     ///
-    /// let flag = AtomicFlag::new(true);
-    /// flag.clear();
-    /// assert!(!flag.is_set());
+    /// let flag = `AtomicFlag`::new(true);
+    /// flag.`clear()`;
+    /// assert!(!flag.is_`set()`);
     /// ```
     #[inline]
     pub fn clear(&self) {
@@ -112,11 +112,11 @@ impl AtomicFlag {
     /// # Examples
     ///
     /// ```
-    /// use foundation_nostd::primitives::AtomicFlag;
+    /// use foundation_nostd::primitives::`AtomicFlag`;
     ///
-    /// let flag = AtomicFlag::new(false);
-    /// assert!(!flag.test_and_set());
-    /// assert!(flag.is_set());
+    /// let flag = `AtomicFlag`::new(false);
+    /// assert!(!flag.test_and_`set()`);
+    /// assert!(flag.is_`set()`);
     /// ```
     #[inline]
     pub fn test_and_set(&self) -> bool {
@@ -130,11 +130,11 @@ impl AtomicFlag {
     /// # Examples
     ///
     /// ```
-    /// use foundation_nostd::primitives::AtomicFlag;
+    /// use foundation_nostd::primitives::`AtomicFlag`;
     ///
-    /// let flag = AtomicFlag::new(true);
-    /// assert!(flag.test_and_clear());
-    /// assert!(!flag.is_set());
+    /// let flag = `AtomicFlag`::new(true);
+    /// assert!(flag.test_and_`clear()`);
+    /// assert!(!flag.is_`set()`);
     /// ```
     #[inline]
     pub fn test_and_clear(&self) -> bool {
@@ -152,13 +152,13 @@ impl AtomicFlag {
     /// # Examples
     ///
     /// ```
-    /// use foundation_nostd::primitives::AtomicFlag;
+    /// use foundation_nostd::primitives::`AtomicFlag`;
     ///
-    /// let flag = AtomicFlag::new(false);
+    /// let flag = `AtomicFlag`::new(false);
     ///
     /// // Successful CAS
     /// assert_eq!(flag.compare_and_swap(false, true), Ok(false));
-    /// assert!(flag.is_set());
+    /// assert!(flag.is_`set()`);
     ///
     /// // Failed CAS - flag is already true
     /// assert_eq!(flag.compare_and_swap(false, true), Err(true));
@@ -182,9 +182,9 @@ impl AtomicFlag {
     /// # Examples
     ///
     /// ```
-    /// use foundation_nostd::primitives::AtomicFlag;
+    /// use foundation_nostd::primitives::`AtomicFlag`;
     ///
-    /// let flag = AtomicFlag::new(true);
+    /// let flag = `AtomicFlag`::new(true);
     /// assert!(flag.load_relaxed());
     /// ```
     #[inline]
@@ -199,9 +199,9 @@ impl AtomicFlag {
     /// # Examples
     ///
     /// ```
-    /// use foundation_nostd::primitives::AtomicFlag;
+    /// use foundation_nostd::primitives::`AtomicFlag`;
     ///
-    /// let flag = AtomicFlag::new(false);
+    /// let flag = `AtomicFlag`::new(false);
     /// flag.store_relaxed(true);
     /// assert!(flag.load_relaxed());
     /// ```
@@ -212,7 +212,7 @@ impl AtomicFlag {
 }
 
 impl Default for AtomicFlag {
-    /// Creates a new `AtomicFlag` initialized to `false`.
+    /// Creates a new ``AtomicFlag`` initialized to `false`.
     #[inline]
     fn default() -> Self {
         Self::new(false)
@@ -239,7 +239,7 @@ mod tests {
     use super::*;
     use alloc::format;
 
-    /// WHY: Validates AtomicFlag construction and initial state
+    /// WHY: Validates `AtomicFlag` construction and initial state
     /// WHAT: Creating a flag should set initial value correctly
     #[test]
     fn test_new() {
@@ -251,7 +251,7 @@ mod tests {
     }
 
     /// WHY: Validates set operation
-    /// WHAT: set() should change flag to true
+    /// WHAT: `set()` should change flag to true
     #[test]
     fn test_set() {
         let flag = AtomicFlag::new(false);
@@ -266,7 +266,7 @@ mod tests {
     }
 
     /// WHY: Validates clear operation
-    /// WHAT: clear() should change flag to false
+    /// WHAT: `clear()` should change flag to false
     #[test]
     fn test_clear() {
         let flag = AtomicFlag::new(true);
@@ -280,7 +280,7 @@ mod tests {
         assert!(!flag.is_set());
     }
 
-    /// WHY: Validates test_and_set atomic operation
+    /// WHY: Validates `test_and_set` atomic operation
     /// WHAT: Should return old value and set to true
     #[test]
     fn test_test_and_set() {
@@ -293,7 +293,7 @@ mod tests {
         assert!(flag.is_set());
     }
 
-    /// WHY: Validates test_and_clear atomic operation
+    /// WHY: Validates `test_and_clear` atomic operation
     /// WHAT: Should return old value and set to false
     #[test]
     fn test_test_and_clear() {
@@ -306,7 +306,7 @@ mod tests {
         assert!(!flag.is_set());
     }
 
-    /// WHY: Validates compare_and_swap success case
+    /// WHY: Validates `compare_and_swap` success case
     /// WHAT: CAS should succeed when current value matches
     #[test]
     fn test_compare_and_swap_success() {
@@ -319,7 +319,7 @@ mod tests {
         assert!(!flag.is_set());
     }
 
-    /// WHY: Validates compare_and_swap failure case
+    /// WHY: Validates `compare_and_swap` failure case
     /// WHAT: CAS should fail when current value doesn't match
     #[test]
     fn test_compare_and_swap_failure() {
@@ -330,7 +330,7 @@ mod tests {
     }
 
     /// WHY: Validates relaxed load operation
-    /// WHAT: load_relaxed should return current value
+    /// WHAT: `load_relaxed` should return current value
     #[test]
     fn test_load_relaxed() {
         let flag = AtomicFlag::new(true);
@@ -341,7 +341,7 @@ mod tests {
     }
 
     /// WHY: Validates relaxed store operation
-    /// WHAT: store_relaxed should set value
+    /// WHAT: `store_relaxed` should set value
     #[test]
     fn test_store_relaxed() {
         let flag = AtomicFlag::new(false);
@@ -366,7 +366,7 @@ mod tests {
     #[test]
     fn test_debug() {
         let flag = AtomicFlag::new(true);
-        let debug_str = format!("{:?}", flag);
+        let debug_str = format!("{flag:?}");
         assert!(debug_str.contains("AtomicFlag"));
         assert!(debug_str.contains("true"));
     }

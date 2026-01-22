@@ -20,7 +20,7 @@ const WRITER_WAITING: u32 = 1 << 30;
 const WRITER_ACTIVE: u32 = 1 << 31;
 const MAX_READERS: u32 = READER_MASK;
 
-/// A writer-preferring read-write spin lock without poisoning.
+/// A writer-preferring read-write `spin` `lock` without poisoning.
 pub struct RawSpinRwLock<T: ?Sized> {
     state: AtomicU32,
     data: UnsafeCell<T>,
@@ -29,14 +29,14 @@ pub struct RawSpinRwLock<T: ?Sized> {
 unsafe impl<T: ?Sized + Send> Send for RawSpinRwLock<T> {}
 unsafe impl<T: ?Sized + Send + Sync> Sync for RawSpinRwLock<T> {}
 
-/// RAII read guard for `RawSpinRwLock`.
+/// RAII `read` guard for `RawSpinRwLock`.
 pub struct RawReadGuard<'a, T: ?Sized + 'a> {
     lock: &'a RawSpinRwLock<T>,
 }
 
 unsafe impl<T: ?Sized + Sync> Sync for RawReadGuard<'_, T> {}
 
-/// RAII write guard for `RawSpinRwLock`.
+/// RAII `write` guard for `RawSpinRwLock`.
 pub struct RawWriteGuard<'a, T: ?Sized + 'a> {
     lock: &'a RawSpinRwLock<T>,
 }
@@ -44,7 +44,7 @@ pub struct RawWriteGuard<'a, T: ?Sized + 'a> {
 unsafe impl<T: ?Sized + Sync> Sync for RawWriteGuard<'_, T> {}
 
 impl<T> RawSpinRwLock<T> {
-    /// Creates a new unlocked RwLock.
+    /// Creates a new unlocked `RwLock`.
     #[inline]
     pub const fn new(data: T) -> Self {
         Self {
@@ -53,7 +53,7 @@ impl<T> RawSpinRwLock<T> {
         }
     }
 
-    /// Consumes the lock and returns the inner value.
+    /// Consumes the `lock` and returns the inner value.
     #[inline]
     pub fn into_inner(self) -> T {
         self.data.into_inner()
@@ -67,7 +67,7 @@ impl<T> RawSpinRwLock<T> {
 }
 
 impl<T: ?Sized> RawSpinRwLock<T> {
-    /// Acquires a read lock, spinning until available.
+    /// Acquires a `read` lock, spinning until available.
     #[inline]
     pub fn read(&self) -> RawReadGuard<'_, T> {
         // Fast path: no writers waiting/active, increment reader count
@@ -92,20 +92,19 @@ impl<T: ?Sized> RawSpinRwLock<T> {
         loop {
             let state = self.state.load(Ordering::Relaxed);
             // Wait if writer is waiting/active
-            if state & (WRITER_ACTIVE | WRITER_WAITING) == 0 && state < MAX_READERS {
-                if self
+            if state & (WRITER_ACTIVE | WRITER_WAITING) == 0 && state < MAX_READERS
+                && self
                     .state
                     .compare_exchange_weak(state, state + 1, Ordering::Acquire, Ordering::Relaxed)
                     .is_ok()
                 {
                     return RawReadGuard { lock: self };
                 }
-            }
             spin_wait.spin();
         }
     }
 
-    /// Attempts to acquire a read lock without blocking.
+    /// Attempts to acquire a `read` `lock` without blocking.
     #[inline]
     pub fn try_read(&self) -> Option<RawReadGuard<'_, T>> {
         let state = self.state.load(Ordering::Relaxed);
@@ -122,7 +121,7 @@ impl<T: ?Sized> RawSpinRwLock<T> {
         }
     }
 
-    /// Acquires a write lock, spinning until available.
+    /// Acquires a `write` lock, spinning until available.
     #[inline]
     pub fn write(&self) -> RawWriteGuard<'_, T> {
         // Fast path: no readers or writers
@@ -145,8 +144,8 @@ impl<T: ?Sized> RawSpinRwLock<T> {
         // Set writer waiting flag
         loop {
             let state = self.state.load(Ordering::Relaxed);
-            if state & WRITER_WAITING == 0 {
-                if self
+            if state & WRITER_WAITING == 0
+                && self
                     .state
                     .compare_exchange_weak(
                         state,
@@ -158,7 +157,6 @@ impl<T: ?Sized> RawSpinRwLock<T> {
                 {
                     break;
                 }
-            }
             spin_wait.spin();
         }
 
@@ -179,7 +177,7 @@ impl<T: ?Sized> RawSpinRwLock<T> {
         }
     }
 
-    /// Attempts to acquire a write lock without blocking.
+    /// Attempts to acquire a `write` `lock` without blocking.
     #[inline]
     pub fn try_write(&self) -> Option<RawWriteGuard<'_, T>> {
         if self
@@ -223,7 +221,7 @@ impl<T> From<T> for RawSpinRwLock<T> {
     }
 }
 
-impl<'a, T: ?Sized> Deref for RawReadGuard<'a, T> {
+impl<T: ?Sized> Deref for RawReadGuard<'_, T> {
     type Target = T;
 
     #[inline]
@@ -232,7 +230,7 @@ impl<'a, T: ?Sized> Deref for RawReadGuard<'a, T> {
     }
 }
 
-impl<'a, T: ?Sized> Drop for RawReadGuard<'a, T> {
+impl<T: ?Sized> Drop for RawReadGuard<'_, T> {
     #[inline]
     fn drop(&mut self) {
         self.lock.state.fetch_sub(1, Ordering::Release);
@@ -245,7 +243,7 @@ impl<T: ?Sized + fmt::Debug> fmt::Debug for RawReadGuard<'_, T> {
     }
 }
 
-impl<'a, T: ?Sized> Deref for RawWriteGuard<'a, T> {
+impl<T: ?Sized> Deref for RawWriteGuard<'_, T> {
     type Target = T;
 
     #[inline]
@@ -254,14 +252,14 @@ impl<'a, T: ?Sized> Deref for RawWriteGuard<'a, T> {
     }
 }
 
-impl<'a, T: ?Sized> DerefMut for RawWriteGuard<'a, T> {
+impl<T: ?Sized> DerefMut for RawWriteGuard<'_, T> {
     #[inline]
     fn deref_mut(&mut self) -> &mut T {
         unsafe { &mut *self.lock.data.get() }
     }
 }
 
-impl<'a, T: ?Sized> Drop for RawWriteGuard<'a, T> {
+impl<T: ?Sized> Drop for RawWriteGuard<'_, T> {
     #[inline]
     fn drop(&mut self) {
         self.lock.state.store(0, Ordering::Release);
@@ -278,16 +276,16 @@ impl<T: ?Sized + fmt::Debug> fmt::Debug for RawWriteGuard<'_, T> {
 mod tests {
     use super::*;
 
-    /// WHY: Validates basic construction and into_inner
-    /// WHAT: Creating lock and extracting value should work
+    /// `WHY`: Validates basic construction and `into_inner`
+    /// `WHAT`: Creating `lock` and extracting value should work
     #[test]
     fn test_new_and_into_inner() {
         let lock = RawSpinRwLock::new(42);
         assert_eq!(lock.into_inner(), 42);
     }
 
-    /// WHY: Validates read lock acquisition
-    /// WHAT: Read lock should be acquirable
+    /// `WHY`: Validates `read` `lock` acquisition
+    /// `WHAT`: Read `lock` should be acquirable
     #[test]
     fn test_read() {
         let lock = RawSpinRwLock::new(42);
@@ -295,8 +293,8 @@ mod tests {
         assert_eq!(*guard, 42);
     }
 
-    /// WHY: Validates write lock acquisition
-    /// WHAT: Write lock should be acquirable and allow mutation
+    /// `WHY`: Validates `write` `lock` acquisition
+    /// `WHAT`: Write `lock` should be acquirable and allow mutation
     #[test]
     fn test_write() {
         let lock = RawSpinRwLock::new(0);
@@ -307,8 +305,8 @@ mod tests {
         assert_eq!(*lock.read(), 42);
     }
 
-    /// WHY: Validates multiple simultaneous readers
-    /// WHAT: Multiple read guards should coexist
+    /// `WHY`: Validates multiple simultaneous readers
+    /// `WHAT`: Multiple `read` guards should coexist
     #[test]
     fn test_multiple_readers() {
         let lock = RawSpinRwLock::new(42);
@@ -318,8 +316,8 @@ mod tests {
         assert_eq!(*r2, 42);
     }
 
-    /// WHY: Validates try_read when lock is free
-    /// WHAT: try_read should succeed when no writers
+    /// `WHY`: Validates `try_read` when `lock` is free
+    /// `WHAT`: `try_read` should succeed when no writers
     #[test]
     fn test_try_read_success() {
         let lock = RawSpinRwLock::new(42);
@@ -327,8 +325,8 @@ mod tests {
         assert!(guard.is_some());
     }
 
-    /// WHY: Validates try_write when lock is free
-    /// WHAT: try_write should succeed when unlocked
+    /// `WHY`: Validates `try_write` when `lock` is free
+    /// `WHAT`: `try_write` should succeed when unlocked
     #[test]
     fn test_try_write_success() {
         let lock = RawSpinRwLock::new(42);
@@ -336,16 +334,16 @@ mod tests {
         assert!(guard.is_some());
     }
 
-    /// WHY: Validates Send trait bounds
-    /// WHAT: RwLock should be Send when T is Send
+    /// `WHY`: Validates Send trait bounds
+    /// `WHAT`: `RwLock` should be Send when T is Send
     #[test]
     fn test_send() {
         fn assert_send<T: Send>() {}
         assert_send::<RawSpinRwLock<i32>>();
     }
 
-    /// WHY: Validates Sync trait bounds
-    /// WHAT: RwLock should be Sync when T is Send + Sync
+    /// `WHY`: Validates Sync trait bounds
+    /// `WHAT`: `RwLock` should be Sync when T is Send + Sync
     #[test]
     fn test_sync() {
         fn assert_sync<T: Sync>() {}

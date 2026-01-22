@@ -128,6 +128,11 @@ impl<T: ?Sized> NoopMutex<T> {
 
     /// Attempts to acquire the lock.
     ///
+    /// # Errors
+    ///
+    /// Returns [`TryLockError::WouldBlock`] if the mutex is already locked in the
+    /// current single-threaded context.
+    ///
     /// # Examples
     ///
     /// ```ignore
@@ -192,7 +197,7 @@ impl<T> From<T> for NoopMutex<T> {
     }
 }
 
-impl<'a, T: ?Sized> Deref for NoopMutexGuard<'a, T> {
+impl<T: ?Sized> Deref for NoopMutexGuard<'_, T> {
     type Target = T;
 
     #[inline]
@@ -201,14 +206,14 @@ impl<'a, T: ?Sized> Deref for NoopMutexGuard<'a, T> {
     }
 }
 
-impl<'a, T: ?Sized> DerefMut for NoopMutexGuard<'a, T> {
+impl<T: ?Sized> DerefMut for NoopMutexGuard<'_, T> {
     #[inline]
     fn deref_mut(&mut self) -> &mut T {
         unsafe { &mut *self.mutex.data.get() }
     }
 }
 
-impl<'a, T: ?Sized> Drop for NoopMutexGuard<'a, T> {
+impl<T: ?Sized> Drop for NoopMutexGuard<'_, T> {
     #[inline]
     fn drop(&mut self) {
         self.mutex.locked.set(false);
@@ -258,7 +263,7 @@ pub struct NoopWriteGuard<'a, T: ?Sized + 'a> {
 }
 
 impl<T> NoopRwLock<T> {
-    /// Creates a new unlocked RwLock.
+    /// Creates a new unlocked `RwLock`.
     ///
     /// # Examples
     ///
@@ -345,6 +350,11 @@ impl<T: ?Sized> NoopRwLock<T> {
 
     /// Attempts to acquire a read lock.
     ///
+    /// # Errors
+    ///
+    /// Returns [`TryLockError::WouldBlock`] if the lock is already write-locked in the
+    /// current single-threaded context.
+    ///
     /// # Examples
     ///
     /// ```ignore
@@ -402,6 +412,11 @@ impl<T: ?Sized> NoopRwLock<T> {
 
     /// Attempts to acquire a write lock.
     ///
+    /// # Errors
+    ///
+    /// Returns [`TryLockError::WouldBlock`] if the lock is already locked (read or write)
+    /// in the current single-threaded context.
+    ///
     /// # Examples
     ///
     /// ```ignore
@@ -453,7 +468,7 @@ impl<T> From<T> for NoopRwLock<T> {
     }
 }
 
-impl<'a, T: ?Sized> Deref for NoopReadGuard<'a, T> {
+impl<T: ?Sized> Deref for NoopReadGuard<'_, T> {
     type Target = T;
 
     #[inline]
@@ -462,7 +477,7 @@ impl<'a, T: ?Sized> Deref for NoopReadGuard<'a, T> {
     }
 }
 
-impl<'a, T: ?Sized> Drop for NoopReadGuard<'a, T> {
+impl<T: ?Sized> Drop for NoopReadGuard<'_, T> {
     #[inline]
     fn drop(&mut self) {
         match self.lock.locked.get() {
@@ -489,7 +504,7 @@ impl<T: ?Sized + fmt::Display> fmt::Display for NoopReadGuard<'_, T> {
     }
 }
 
-impl<'a, T: ?Sized> Deref for NoopWriteGuard<'a, T> {
+impl<T: ?Sized> Deref for NoopWriteGuard<'_, T> {
     type Target = T;
 
     #[inline]
@@ -498,14 +513,14 @@ impl<'a, T: ?Sized> Deref for NoopWriteGuard<'a, T> {
     }
 }
 
-impl<'a, T: ?Sized> DerefMut for NoopWriteGuard<'a, T> {
+impl<T: ?Sized> DerefMut for NoopWriteGuard<'_, T> {
     #[inline]
     fn deref_mut(&mut self) -> &mut T {
         unsafe { &mut *self.lock.data.get() }
     }
 }
 
-impl<'a, T: ?Sized> Drop for NoopWriteGuard<'a, T> {
+impl<T: ?Sized> Drop for NoopWriteGuard<'_, T> {
     #[inline]
     fn drop(&mut self) {
         self.lock.locked.set(LockState::Unlocked);
@@ -547,6 +562,7 @@ impl NoopOnce {
     /// const INIT: NoopOnce = NoopOnce::new();
     /// ```ignore
     #[inline]
+    #[must_use]
     pub const fn new() -> Self {
         Self {
             called: Cell::new(false),
@@ -748,7 +764,7 @@ mod tests {
     #[test]
     fn test_once_debug() {
         let once = NoopOnce::new();
-        let debug_str = format!("{:?}", once);
+        let debug_str = format!("{once:?}");
         assert!(debug_str.contains("NoopOnce"));
     }
 }

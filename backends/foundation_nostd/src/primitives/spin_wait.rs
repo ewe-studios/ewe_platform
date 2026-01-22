@@ -29,13 +29,13 @@ use core::hint;
 
 /// Exponential backoff for spin-waiting.
 ///
-/// This gradually increases the number of iterations in each spin cycle,
+/// This gradually increases the number of iterations in each `spin` cycle,
 /// reducing CPU usage while maintaining responsiveness for short waits.
 ///
 /// # Algorithm
 ///
 /// - First few spins: Just `spin_loop` hints to the CPU
-/// - After threshold: Exponentially increase spin count
+/// - After threshold: Exponentially increase `spin` count
 /// - After max: Return `false` to indicate caller should yield/block
 pub struct SpinWait {
     counter: u32,
@@ -52,17 +52,18 @@ impl SpinWait {
     /// ```
     /// use foundation_nostd::primitives::SpinWait;
     ///
-    /// let mut spin = SpinWait::new();
+    /// let mut `spin` = SpinWait::new();
     /// ```
     #[inline]
+    #[must_use]
     pub const fn new() -> Self {
         Self { counter: 0 }
     }
 
-    /// Performs one spin iteration with exponential backoff.
+    /// Performs one `spin` iteration with exponential backoff.
     ///
     /// Returns `true` if spinning should continue, or `false` if the
-    /// maximum spin count has been reached and the caller should consider
+    /// maximum `spin` count has been reached and the caller should consider
     /// yielding or blocking.
     ///
     /// # Examples
@@ -70,8 +71,8 @@ impl SpinWait {
     /// ```
     /// use foundation_nostd::primitives::SpinWait;
     ///
-    /// let mut spin = SpinWait::new();
-    /// while spin.spin() {
+    /// let mut `spin` = SpinWait::new();
+    /// while `spin`.spin() {
     ///     // Keep spinning
     /// }
     /// ```
@@ -94,44 +95,44 @@ impl SpinWait {
         true
     }
 
-    /// Spins exactly once without incrementing the counter.
+    /// Spins exactly once without incrementing the `counter`.
     ///
-    /// This is useful when you want to spin without the exponential backoff.
+    /// This is useful when you want to `spin` without the exponential backoff.
     ///
     /// # Examples
     ///
     /// ```
     /// use foundation_nostd::primitives::SpinWait;
     ///
-    /// let mut spin = SpinWait::new();
-    /// spin.spin_once();
+    /// let mut `spin` = SpinWait::new();
+    /// `spin`.spin_once();
     /// ```
     #[inline]
     pub fn spin_once(&self) {
         hint::spin_loop();
     }
 
-    /// Resets the spin wait counter to zero.
+    /// Resets the `spin` wait `counter` to zero.
     ///
-    /// This allows reusing the `SpinWait` instance for a new spin sequence.
+    /// This allows reusing the `SpinWait` instance for a new `spin` sequence.
     ///
     /// # Examples
     ///
     /// ```
     /// use foundation_nostd::primitives::SpinWait;
     ///
-    /// let mut spin = SpinWait::new();
-    /// while spin.spin() {
+    /// let mut `spin` = SpinWait::new();
+    /// while `spin`.spin() {
     ///     // Spinning...
     /// }
-    /// spin.reset();  // Start fresh
+    /// `spin`.reset();  // Start fresh
     /// ```
     #[inline]
     pub fn reset(&mut self) {
         self.counter = 0;
     }
 
-    /// Returns the current spin counter value.
+    /// Returns the current `spin` `counter` value.
     ///
     /// This indicates how many times `spin()` has been called successfully.
     ///
@@ -140,12 +141,13 @@ impl SpinWait {
     /// ```
     /// use foundation_nostd::primitives::SpinWait;
     ///
-    /// let mut spin = SpinWait::new();
+    /// let mut `spin` = SpinWait::new();
     /// assert_eq!(spin.counter(), 0);
-    /// spin.spin();
+    /// `spin`.spin();
     /// assert_eq!(spin.counter(), 1);
     /// ```
     #[inline]
+    #[must_use]
     pub fn counter(&self) -> u32 {
         self.counter
     }
@@ -157,12 +159,13 @@ impl SpinWait {
     /// ```
     /// use foundation_nostd::primitives::SpinWait;
     ///
-    /// let mut spin = SpinWait::new();
+    /// let mut `spin` = SpinWait::new();
     /// assert!(!spin.is_exhausted());
-    /// while spin.spin() {}
+    /// while `spin`.spin() {}
     /// assert!(spin.is_exhausted());
     /// ```
     #[inline]
+    #[must_use]
     pub fn is_exhausted(&self) -> bool {
         self.counter >= SPIN_LIMIT
     }
@@ -179,8 +182,8 @@ impl Default for SpinWait {
 mod tests {
     use super::*;
 
-    /// WHY: Validates SpinWait construction
-    /// WHAT: Creating a SpinWait should start with counter at 0
+    /// `WHY`: Validates `SpinWait` construction
+    /// `WHAT`: Creating a `SpinWait` should start with `counter` at 0
     #[test]
     fn test_new() {
         let spin = SpinWait::new();
@@ -188,8 +191,8 @@ mod tests {
         assert!(!spin.is_exhausted());
     }
 
-    /// WHY: Validates spin progression
-    /// WHAT: Each spin() call should increment counter until exhausted
+    /// `WHY`: Validates `spin` progression
+    /// `WHAT`: Each `spin()` call should increment `counter` until exhausted
     #[test]
     fn test_spin_progression() {
         let mut spin = SpinWait::new();
@@ -203,8 +206,8 @@ mod tests {
         assert!(spin.is_exhausted());
     }
 
-    /// WHY: Validates spin returns false when exhausted
-    /// WHAT: spin() should return false after SPIN_LIMIT iterations
+    /// `WHY`: Validates `spin` returns false when exhausted
+    /// `WHAT`: `spin()` should return false after `SPIN_LIMIT` iterations
     #[test]
     fn test_spin_exhaustion() {
         let mut spin = SpinWait::new();
@@ -217,8 +220,8 @@ mod tests {
         assert!(spin.is_exhausted());
     }
 
-    /// WHY: Validates reset functionality
-    /// WHAT: reset() should allow restarting spin sequence
+    /// `WHY`: Validates `reset` functionality
+    /// `WHAT`: `reset()` should allow restarting `spin` sequence
     #[test]
     fn test_reset() {
         let mut spin = SpinWait::new();
@@ -232,8 +235,8 @@ mod tests {
         assert!(spin.spin());
     }
 
-    /// WHY: Validates spin_once doesn't affect counter
-    /// WHAT: spin_once() should spin without incrementing counter
+    /// `WHY`: Validates `spin_once` doesn't affect `counter`
+    /// `WHAT`: `spin_once()` should `spin` without incrementing `counter`
     #[test]
     fn test_spin_once() {
         let spin = SpinWait::new();
@@ -246,8 +249,8 @@ mod tests {
         assert_eq!(spin.counter(), 0);
     }
 
-    /// WHY: Validates counter tracking
-    /// WHAT: counter() should return number of successful spins
+    /// `WHY`: Validates `counter` tracking
+    /// `WHAT`: `counter()` should return number of successful spins
     #[test]
     fn test_counter() {
         let mut spin = SpinWait::new();
@@ -260,8 +263,8 @@ mod tests {
         assert_eq!(spin.counter(), 2);
     }
 
-    /// WHY: Validates Default implementation
-    /// WHAT: Default should create fresh SpinWait
+    /// `WHY`: Validates Default implementation
+    /// `WHAT`: Default should create fresh `SpinWait`
     #[test]
     fn test_default() {
         let spin = SpinWait::default();
