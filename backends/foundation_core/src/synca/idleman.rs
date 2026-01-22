@@ -98,7 +98,7 @@ impl IdleMan {
         }
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn basic(max_idle: u32) -> Self {
         Self::new(
             max_idle,

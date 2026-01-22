@@ -289,7 +289,7 @@ impl RawStream {
     // }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn addrs(&self) -> super::DataStreamAddr {
         match self {
             RawStream::AsPlain(inner, addr) => addr.clone(),
@@ -299,7 +299,7 @@ impl RawStream {
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn peer_addr(&self) -> Option<SocketAddr> {
         match self {
             RawStream::AsPlain(inner, addr) => addr.peer_addr(),
@@ -309,7 +309,7 @@ impl RawStream {
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn local_addr(&self) -> SocketAddr {
         match self {
             RawStream::AsPlain(inner, addr) => addr.local_addr(),

@@ -47,7 +47,7 @@ pub struct TestServer {
 }
 
 impl TestServer {
-    #[must_use] 
+    #[must_use]
     pub fn new(port: usize, address: String, actions: Vec<ServiceAction>) -> Self {
         Self {
             port,
@@ -68,7 +68,7 @@ impl TestServer {
             .map(|_| ())
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn serve(
         &self,
     ) -> (

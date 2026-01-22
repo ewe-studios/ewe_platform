@@ -100,7 +100,7 @@ impl<T> DelayedAsIterator<T> {
         Self(Box::new(t))
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn new(t: Box<dyn DelayedIterator<Item = T>>) -> Self {
         Self(t)
     }
