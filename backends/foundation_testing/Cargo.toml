@@ -14,16 +14,8 @@ categories = ["development-tools::testing"]
 # Foundation primitives being tested
 foundation_nostd = { path = "../foundation_nostd", features = ["std"] }
 
-# Required for std features (threading, time, etc.)
-# No dependencies for stress testing - pure Rust
-
-[dev-dependencies]
 # Criterion for benchmarking (only allowed external dependency for testing)
 criterion = { version = "0.5", features = ["html_reports"] }
-
-[[bench]]
-name = "condvar_bench"
-harness = false
 
 [features]
 default = ["std"]

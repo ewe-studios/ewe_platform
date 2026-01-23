@@ -16,15 +16,18 @@ This document captures critical learnings about the specification creation and e
 ### 1. **Tasks.md Must Be Updated Continuously**
 
 #### What Happened
+
 Initially, tasks.md was created at the start but not updated until late in the process (went from 46% to 90% in one update). User correctly pointed out: "update tasks.md as you go, not wait till the end."
 
 #### Why This Matters
+
 - Tasks.md is the **living progress tracker** for specifications
 - Delayed updates hide progress from users and other agents
 - Makes it hard to understand current status mid-specification
 - Violates the principle of transparent progress tracking
 
 #### What Should Change
+
 **ADD TO RULE 06**:
 
 ```markdown
@@ -33,6 +36,7 @@ Initially, tasks.md was created at the start but not updated until late in the p
 **CRITICAL**: Tasks.md MUST be updated immediately after completing EACH subtask, not batched at the end.
 
 **Update Trigger Points**:
+
 - ✅ After implementing each feature
 - ✅ After fixing each issue (clippy errors, test failures, etc.)
 - ✅ After completing each architectural decision
@@ -40,13 +44,14 @@ Initially, tasks.md was created at the start but not updated until late in the p
 - ✅ After each phase/step completion
 
 **Update Process**:
+
 1. Mark completed checkboxes with [x]
 2. Add completion notes (dates, counts, status)
 3. Update completion percentage in frontmatter
 4. Commit tasks.md updates separately with descriptive messages
 5. Continue with next task
 
-**Frequency**: Update tasks.md at MINIMUM every 3-5 completed subtasks.
+**Frequency**: Update tasks.md at MINIMUM every 1-2 completed subtasks.
 
 **Anti-Pattern**: Completing 50+ tasks and updating all at once.
 **Best Practice**: Update after each meaningful unit of work.
@@ -59,15 +64,18 @@ Initially, tasks.md was created at the start but not updated until late in the p
 ### 2. **Test Location Architecture Must Be Clear Early**
 
 #### What Happened
+
 Tests were initially placed in `foundation_testing/tests/` but should have been in `foundation_nostd/tests/`. User clarified: "tests should be in ./tests directory in main project, foundation_testing provides infrastructure only."
 
 #### Why This Matters
+
 - Incorrect test placement creates confusing architecture
 - Requires refactoring work to move tests
 - Wastes time if not caught early
 - Creates misunderstanding about crate purposes
 
 #### What Should Change
+
 **ADD TO RULE 06 - Requirements Conversation**:
 
 ```markdown
@@ -76,18 +84,21 @@ Tests were initially placed in `foundation_testing/tests/` but should have been 
 When specifications involve testing infrastructure or new test types, Main Agent MUST ask:
 
 **Test Location Questions**:
+
 1. "Where should the actual test implementations be placed?"
 2. "What belongs in the infrastructure crate vs the tested crate?"
 3. "Should test scenarios be reusable across multiple crates?"
 4. "Where do integration tests vs unit tests vs stress tests go?"
 
 **Answer Format**:
+
 - **Infrastructure Crate**: Provides reusable harnesses, scenarios, metrics, utilities
 - **Tested Crate's tests/ Directory**: Contains actual test implementations
 - **Clear Separation**: Infrastructure = tools, Tests directory = usage of those tools
 
 **Document in requirements.md**:
 ```
+
 ## Test Architecture
 
 - **Infrastructure**: `backends/foundation_testing/` - Reusable test harnesses, scenarios, metrics
@@ -95,7 +106,9 @@ When specifications involve testing infrastructure or new test types, Main Agent
 - **Unit Tests**: `backends/foundation_nostd/src/` - Inline with code
 
 Tests use infrastructure utilities but live in the crate being tested.
+
 ```
+
 ```
 
 **Rationale**: Prevents architectural confusion and rework by clarifying test organization upfront.
@@ -105,39 +118,46 @@ Tests use infrastructure utilities but live in the crate being tested.
 ### 3. **External Blockers Should Be Identified Early**
 
 #### What Happened
+
 WASM tests couldn't run due to workspace configuration issue (`backends/tests` missing). This blocker wasn't discovered until Step 3 of Phase 2, causing confusion about completion status.
 
 #### Why This Matters
+
 - External blockers are outside specification scope
 - Discovering them late creates ambiguity about "done"
 - May block verification or completion ceremonies
 - Needs clear documentation of what's in vs out of scope
 
 #### What Should Change
+
 **ADD TO RULE 06 - Pre-Implementation Checks**:
 
-```markdown
+````markdown
 ### Pre-Implementation Environment Check (MANDATORY)
 
 Before starting implementation, Main Agent MUST verify:
 
 **Workspace Integrity**:
+
 - [ ] `cargo build` succeeds in target crate
 - [ ] `cargo test` runs without workspace errors
 - [ ] All workspace members referenced in Cargo.toml exist
 - [ ] Target architectures (wasm32, etc.) are installable and testable
 
 **Dependency Availability**:
+
 - [ ] All required dependencies are accessible
 - [ ] External tools (rustfmt, clippy, criterion) are installed
 - [ ] Build scripts and makefiles work
 
 **Environment Readiness**:
+
 - [ ] Development environment is properly configured
 - [ ] No blocking infrastructure issues
 - [ ] Git repository is in good state
 
 **If Blockers Found**:
+
 1. **Document in requirements.md** under "Known Limitations" section
 2. **Mark as OUT OF SCOPE** if external to specification
 3. **Create separate specification** if blocker needs fixing
@@ -145,10 +165,12 @@ Before starting implementation, Main Agent MUST verify:
 5. **Update success criteria** to reflect blockers
 
 **Example Documentation**:
+
 ```markdown
 ## Known Limitations
 
 ### WASM Test Execution (OUT OF SCOPE)
+
 - **Issue**: Workspace configuration prevents `cargo test --target wasm32-unknown-unknown`
 - **Root Cause**: Missing Cargo.toml in `backends/tests/`
 - **Impact**: WASM integration tests cannot execute
@@ -156,7 +178,9 @@ Before starting implementation, Main Agent MUST verify:
 - **Scope**: OUT OF SCOPE - requires project-level workspace fix
 - **Tracking**: Create separate specification for workspace cleanup
 ```
-```
+````
+
+````
 
 **Rationale**: Identifies blockers early, sets clear expectations, prevents confusion about completion.
 
@@ -184,7 +208,7 @@ Before spawning any agent, Main Agent MUST:
 1. **Check Available Agents**:
    ```bash
    ls .agents/agents/*.md
-   ```
+````
 
 2. **Read Agent Documentation** to understand:
    - Agent name and type
@@ -199,9 +223,10 @@ Before spawning any agent, Main Agent MUST:
    - Review work → Check for review.md
 
 4. **Use Exact Agent Name** from documentation frontmatter:
+
    ```markdown
    ---
-   name: Implementation Agent  # Use this exact name
+   name: Implementation Agent # Use this exact name
    type: implementation
    ---
    ```
@@ -213,11 +238,13 @@ Before spawning any agent, Main Agent MUST:
    - Expected deliverables
 
 **If Agent Not Found**:
+
 - Use `general-purpose` agent with explicit instructions
 - Document the limitation
 - Consider creating specialized agent if need is recurring
 
 **Example Spawn**:
+
 ```python
 Task(
     name="Implementation Agent",  # From .agents/agents/implementation.md
@@ -225,7 +252,8 @@ Task(
     prompt="Load .agents/agents/implementation.md, Rules 01-04, Rule 13..."
 )
 ```
-```
+
+````
 
 **Rationale**: Ensures correct agent is used for each task, following established agent architecture.
 
@@ -306,8 +334,9 @@ When external blockers prevent Level 2 completion:
 ### Recommendation
 Mark specification as COMPLETED. Core functionality is production-ready.
 Blockers are project-level issues outside specification scope.
-```
-```
+````
+
+````
 
 **Rationale**: Provides clear completion criteria that account for blockers and deferred work.
 
@@ -365,7 +394,8 @@ Verification MUST happen at these checkpoints, not just at the end:
 - [x] Implement feature X
 - [x] Run clippy (0 warnings)
 - [x] Run tests (all passing)
-```
+````
+
 ```
 
 **Rationale**: Continuous verification prevents issues from accumulating and makes final verification ceremonial rather than critical.
@@ -502,3 +532,4 @@ These learnings should be incorporated into Rule 06 and related process rules to
 **Status**: RECOMMENDED FOR RULE UPDATE
 **Next Action**: Review with user, update Rule 06 accordingly
 **Priority**: HIGH - Impacts all future specifications
+```
