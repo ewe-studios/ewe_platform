@@ -1,7 +1,7 @@
 use alloc::{boxed::Box, collections::btree_map::BTreeMap, vec::Vec};
 
 use crate::{InternalPointer, TickState, WrappedItem};
-use foundation_nostd::spin::Mutex;
+use foundation_nostd::primitives::Mutex;
 
 #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
 pub trait IntervalCallback {

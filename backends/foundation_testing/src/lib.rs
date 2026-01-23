@@ -40,13 +40,10 @@
 #![warn(clippy::pedantic)]
 #![allow(clippy::module_name_repetitions)] // Common for testing crates
 
-pub mod stress;
-pub mod scenarios;
 pub mod metrics;
-
-#[cfg(test)]
-mod tests;
+pub mod scenarios;
+pub mod stress;
 
 // Re-export commonly used items
-pub use stress::{StressConfig, StressResult, StressHarness};
 pub use metrics::{Metrics, PerformanceReport};
+pub use stress::{StressConfig, StressHarness, StressResult};

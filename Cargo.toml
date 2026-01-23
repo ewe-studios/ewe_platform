@@ -17,7 +17,7 @@ members = [
   "examples/llama-cpp/mtmd",
 
   # tests members
-  "tests/nodejs/integrations/*",
+  "integrations/nodejs/integrations/*",
 ]
 
 exclude = [
