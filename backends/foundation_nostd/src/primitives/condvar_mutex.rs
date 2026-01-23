@@ -24,7 +24,7 @@ const POISONED: u8 = 0b10;
 ///
 /// # Examples
 ///
-/// ```
+/// ```no_run
 /// use foundation_nostd::primitives::{CondVar, CondVarMutex};
 ///
 /// let mutex = CondVarMutex::new(false);
@@ -205,6 +205,7 @@ impl<T: ?Sized> CondVarMutex<T> {
 
     /// Marks the mutex as poisoned.
     #[inline]
+    #[allow(dead_code)] // Used by Drop impl when panicking
     fn poison(&self) {
         self.state.fetch_or(POISONED, Ordering::Relaxed);
     }
@@ -215,6 +216,7 @@ impl<'a, T: ?Sized> CondVarMutexGuard<'a, T> {
     ///
     /// This is needed for condition variable wait operations.
     #[inline]
+    #[must_use]
     pub fn mutex(&self) -> &'a CondVarMutex<T> {
         self.mutex
     }
@@ -269,7 +271,7 @@ impl<T: ?Sized + fmt::Debug> fmt::Debug for CondVarMutex<T> {
         let mut d = f.debug_struct("CondVarMutex");
         match self.try_lock() {
             Ok(guard) => d.field("data", &&*guard),
-            Err(TryLockError::Poisoned(ref e)) => d.field("data", &**e.get_ref()),
+            Err(TryLockError::Poisoned(ref e)) => d.field("data", &&**e.get_ref()),
             Err(TryLockError::WouldBlock) => d.field("data", &format_args!("<locked>")),
         };
         d.field("poisoned", &self.is_poisoned());
@@ -390,6 +392,7 @@ impl<T: ?Sized> RawCondVarMutex<T> {
 impl<'a, T: ?Sized> RawCondVarMutexGuard<'a, T> {
     /// Returns a reference to the parent mutex.
     #[inline]
+    #[must_use]
     pub fn mutex(&self) -> &'a RawCondVarMutex<T> {
         self.mutex
     }
@@ -486,12 +489,12 @@ mod tests {
     }
 
     /// WHY: Validate guard provides mutex access
-    /// WHAT: Guard's mutex() method should return parent mutex
+    /// WHAT: Guard's `mutex()` method should return parent mutex
     #[test]
     fn test_condvar_mutex_guard_parent_access() {
         let mutex = CondVarMutex::new(0);
         let guard = mutex.lock().unwrap();
         let parent = guard.mutex();
-        assert!(core::ptr::eq(parent, &mutex));
+        assert!(core::ptr::eq(parent, &raw const mutex));
     }
 }

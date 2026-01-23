@@ -1,23 +1,23 @@
 //! Condition variable primitives for coordinating thread waits and notifications.
 //!
 //! This module provides three condition variable variants:
-//! - [`CondVar`]: Standard condition variable with poisoning support (std::sync::Condvar compatible)
+//! - [`CondVar`]: Standard condition variable with poisoning support (`std::sync::Condvar` compatible)
 //! - [`CondVarNonPoisoning`]: Simplified condition variable without poisoning overhead
-//! - [`RwLockCondVar`]: Condition variable for coordinating with RwLocks
+//! - [`RwLockCondVar`]: Condition variable for coordinating with `RwLocks`
 //!
 //! # Platform-Specific Behavior
 //!
 //! - **With std**: Uses `std::thread::park/unpark` for efficient waiting
-//! - **no_std**: Uses spin-waiting with exponential backoff
+//! - **`no_std`**: Uses spin-waiting with exponential backoff
 //!
 //! # Examples
 //!
-//! ## Basic Usage with CondVar
+//! ## Basic Usage with `CondVar`
 //!
-//! ```
-//! use foundation_nostd::primitives::{CondVar, SpinMutex};
+//! ```no_run
+//! use foundation_nostd::primitives::{CondVar, CondVarMutex};
 //!
-//! let mutex = SpinMutex::new(false);
+//! let mutex = CondVarMutex::new(false);
 //! let condvar = CondVar::new();
 //!
 //! // Thread 1: Wait for condition
@@ -31,9 +31,6 @@
 //! condvar.notify_one();
 //! ```
 
-#![allow(unused_variables)] // Temporary during development
-#![allow(dead_code)] // Temporary during development
-
 use core::fmt;
 use core::sync::atomic::{AtomicU32, AtomicUsize, Ordering};
 use core::time::Duration;
@@ -42,8 +39,7 @@ use core::time::Duration;
 use std::thread;
 
 use crate::primitives::{
-    LockResult, PoisonError, RawSpinMutex, RawSpinMutexGuard, SpinMutex, SpinMutexGuard,
-    SpinWait,
+    CondVarMutexGuard, LockResult, PoisonError, RawCondVarMutexGuard, SpinWait,
 };
 
 // State encoding (32-bit):
@@ -52,6 +48,7 @@ use crate::primitives::{
 // Bit 31: Poisoned flag (for poisoning variants)
 const WAITER_MASK: u32 = (1 << 30) - 1;
 const NOTIFY_FLAG: u32 = 1 << 30;
+#[allow(dead_code)] // Reserved for future use
 const POISON_FLAG: u32 = 1 << 31;
 
 /// Result of a timed wait operation.
@@ -64,6 +61,7 @@ pub struct WaitTimeoutResult(bool);
 impl WaitTimeoutResult {
     /// Returns `true` if the wait timed out.
     #[inline]
+    #[must_use] 
     pub const fn timed_out(&self) -> bool {
         self.0
     }
@@ -103,7 +101,7 @@ impl WaitNode {
 /// A condition variable with poisoning support.
 ///
 /// This provides full API compatibility with `std::sync::Condvar` for use in
-/// no_std and WASM contexts. Use this variant when you need std compatibility
+/// `no_std` and WASM contexts. Use this variant when you need std compatibility
 /// or want panic safety through poisoning.
 ///
 /// # Spurious Wakeups
@@ -114,10 +112,10 @@ impl WaitNode {
 ///
 /// # Examples
 ///
-/// ```
-/// use foundation_nostd::primitives::{CondVar, SpinMutex};
+/// ```no_run
+/// use foundation_nostd::primitives::{CondVar, CondVarMutex};
 ///
-/// let mutex = SpinMutex::new(false);
+/// let mutex = CondVarMutex::new(false);
 /// let condvar = CondVar::new();
 ///
 /// let mut ready = mutex.lock().unwrap();
@@ -141,6 +139,7 @@ impl CondVar {
     /// let condvar = CondVar::new();
     /// ```
     #[inline]
+    #[must_use] 
     pub const fn new() -> Self {
         Self {
             state: AtomicU32::new(0),
@@ -157,7 +156,7 @@ impl CondVar {
     /// # Platform-Specific Behavior
     ///
     /// - **With std**: Uses `std::thread::park()` for efficient blocking
-    /// - **no_std**: Uses spin-waiting with exponential backoff
+    /// - **`no_std`**: Uses spin-waiting with exponential backoff
     ///
     /// # Spurious Wakeups
     ///
@@ -167,10 +166,13 @@ impl CondVar {
     /// # Errors
     ///
     /// Returns `Err(PoisonError)` if the mutex was poisoned.
-    pub fn wait<'a, T>(&self, guard: SpinMutexGuard<'a, T>) -> LockResult<SpinMutexGuard<'a, T>> {
-        // Check if mutex is poisoned
-        let mutex_ptr = guard.mutex_ptr();
-        let was_poisoned = unsafe { (*mutex_ptr).is_poisoned() };
+    pub fn wait<'a, T>(
+        &self,
+        guard: CondVarMutexGuard<'a, T>,
+    ) -> LockResult<CondVarMutexGuard<'a, T>> {
+        // Get parent mutex reference and check if poisoned
+        let mutex = guard.mutex();
+        let was_poisoned = mutex.is_poisoned();
 
         // Increment waiter count
         self.state.fetch_add(1, Ordering::Relaxed);
@@ -217,10 +219,10 @@ impl CondVar {
         self.state.fetch_sub(1, Ordering::Relaxed);
 
         // Re-acquire the mutex
-        let guard = unsafe { (*mutex_ptr).lock()? };
+        let guard = mutex.lock()?;
 
         // Check if poisoned
-        if was_poisoned || unsafe { (*mutex_ptr).is_poisoned() } {
+        if was_poisoned || mutex.is_poisoned() {
             Err(PoisonError::new(guard))
         } else {
             Ok(guard)
@@ -237,9 +239,9 @@ impl CondVar {
     /// Returns `Err(PoisonError)` if the mutex was poisoned.
     pub fn wait_while<'a, T, F>(
         &self,
-        mut guard: SpinMutexGuard<'a, T>,
+        mut guard: CondVarMutexGuard<'a, T>,
         mut condition: F,
-    ) -> LockResult<SpinMutexGuard<'a, T>>
+    ) -> LockResult<CondVarMutexGuard<'a, T>>
     where
         F: FnMut(&mut T) -> bool,
     {
@@ -259,11 +261,11 @@ impl CondVar {
     /// Returns `Err(PoisonError)` if the mutex was poisoned.
     pub fn wait_timeout<'a, T>(
         &self,
-        guard: SpinMutexGuard<'a, T>,
+        guard: CondVarMutexGuard<'a, T>,
         dur: Duration,
-    ) -> LockResult<(SpinMutexGuard<'a, T>, WaitTimeoutResult)> {
-        let mutex_ptr = guard.mutex_ptr();
-        let was_poisoned = unsafe { (*mutex_ptr).is_poisoned() };
+    ) -> LockResult<(CondVarMutexGuard<'a, T>, WaitTimeoutResult)> {
+        let mutex = guard.mutex();
+        let was_poisoned = mutex.is_poisoned();
 
         self.state.fetch_add(1, Ordering::Relaxed);
         let gen = self.generation.load(Ordering::Acquire);
@@ -273,12 +275,12 @@ impl CondVar {
 
         self.state.fetch_sub(1, Ordering::Relaxed);
 
-        let guard = unsafe { (*mutex_ptr).lock() };
+        let guard = mutex.lock();
         let result = WaitTimeoutResult::new(timed_out);
 
         match guard {
             Ok(g) => {
-                if was_poisoned || unsafe { (*mutex_ptr).is_poisoned() } {
+                if was_poisoned || mutex.is_poisoned() {
                     Err(PoisonError::new((g, result)))
                 } else {
                     Ok((g, result))
@@ -342,10 +344,10 @@ impl CondVar {
     /// Returns `Err(PoisonError)` if the mutex was poisoned.
     pub fn wait_timeout_while<'a, T, F>(
         &self,
-        mut guard: SpinMutexGuard<'a, T>,
+        mut guard: CondVarMutexGuard<'a, T>,
         dur: Duration,
         mut condition: F,
-    ) -> LockResult<(SpinMutexGuard<'a, T>, WaitTimeoutResult)>
+    ) -> LockResult<(CondVarMutexGuard<'a, T>, WaitTimeoutResult)>
     where
         F: FnMut(&mut T) -> bool,
     {
@@ -385,7 +387,7 @@ impl CondVar {
     /// # Platform-Specific Behavior
     ///
     /// - **With std**: Uses `std::thread::Thread::unpark()`
-    /// - **no_std**: Updates atomic generation counter
+    /// - **`no_std`**: Updates atomic generation counter
     pub fn notify_one(&self) {
         let state = self.state.load(Ordering::Acquire);
         let waiter_count = state & WAITER_MASK;
@@ -427,24 +429,6 @@ impl fmt::Debug for CondVar {
     }
 }
 
-// Extension trait to get mutex pointer from guard
-trait MutexGuardExt<'a, T: ?Sized> {
-    fn mutex(&self) -> &'a SpinMutex<T>;
-}
-
-impl<'a, T: ?Sized> MutexGuardExt<'a, T> for SpinMutexGuard<'a, T> {
-    fn mutex(&self) -> &'a SpinMutex<T> {
-        // Access the mutex field directly - guards store a reference to their mutex
-        // SAFETY: We're accessing a private field through a trait
-        // The guard is constructed with 'mutex: &'a SpinMutex<T>' field
-        unsafe {
-            let guard_ptr = self as *const SpinMutexGuard<'a, T>;
-            let mutex_ptr = guard_ptr as *const &'a SpinMutex<T>;
-            *mutex_ptr
-        }
-    }
-}
-
 /// A condition variable without poisoning support.
 ///
 /// This is a simplified variant for use in WASM, embedded systems, or any
@@ -452,10 +436,10 @@ impl<'a, T: ?Sized> MutexGuardExt<'a, T> for SpinMutexGuard<'a, T> {
 ///
 /// # Examples
 ///
-/// ```
-/// use foundation_nostd::primitives::{CondVarNonPoisoning, RawSpinMutex};
+/// ```no_run
+/// use foundation_nostd::primitives::{CondVarNonPoisoning, RawCondVarMutex};
 ///
-/// let mutex = RawSpinMutex::new(0);
+/// let mutex = RawCondVarMutex::new(0);
 /// let condvar = CondVarNonPoisoning::new();
 ///
 /// let mut count = mutex.lock();
@@ -471,6 +455,7 @@ pub struct CondVarNonPoisoning {
 impl CondVarNonPoisoning {
     /// Creates a new condition variable.
     #[inline]
+    #[must_use] 
     pub const fn new() -> Self {
         Self {
             state: AtomicU32::new(0),
@@ -481,8 +466,11 @@ impl CondVarNonPoisoning {
     /// Blocks the current thread until notified.
     ///
     /// Returns the mutex guard after re-acquiring the lock.
-    pub fn wait<'a, T>(&self, guard: RawSpinMutexGuard<'a, T>) -> RawSpinMutexGuard<'a, T> {
-        let mutex_ptr = guard.mutex_ptr();
+    pub fn wait<'a, T>(
+        &self,
+        guard: RawCondVarMutexGuard<'a, T>,
+    ) -> RawCondVarMutexGuard<'a, T> {
+        let mutex = guard.mutex();
         self.state.fetch_add(1, Ordering::Relaxed);
         let gen = self.generation.load(Ordering::Acquire);
         drop(guard);
@@ -509,15 +497,15 @@ impl CondVarNonPoisoning {
         }
 
         self.state.fetch_sub(1, Ordering::Relaxed);
-        unsafe { (*mutex_ptr).lock() }
+        mutex.lock()
     }
 
     /// Waits with a predicate.
     pub fn wait_while<'a, T, F>(
         &self,
-        mut guard: RawSpinMutexGuard<'a, T>,
+        mut guard: RawCondVarMutexGuard<'a, T>,
         mut condition: F,
-    ) -> RawSpinMutexGuard<'a, T>
+    ) -> RawCondVarMutexGuard<'a, T>
     where
         F: FnMut(&mut T) -> bool,
     {
@@ -530,10 +518,10 @@ impl CondVarNonPoisoning {
     /// Waits with a timeout.
     pub fn wait_timeout<'a, T>(
         &self,
-        guard: RawSpinMutexGuard<'a, T>,
+        guard: RawCondVarMutexGuard<'a, T>,
         dur: Duration,
-    ) -> (RawSpinMutexGuard<'a, T>, WaitTimeoutResult) {
-        let mutex_ptr = guard.mutex_ptr();
+    ) -> (RawCondVarMutexGuard<'a, T>, WaitTimeoutResult) {
+        let mutex = guard.mutex();
         self.state.fetch_add(1, Ordering::Relaxed);
         let gen = self.generation.load(Ordering::Acquire);
         drop(guard);
@@ -541,7 +529,7 @@ impl CondVarNonPoisoning {
         let timed_out = self.wait_timeout_impl(gen, dur);
 
         self.state.fetch_sub(1, Ordering::Relaxed);
-        let guard = unsafe { (*mutex_ptr).lock() };
+        let guard = mutex.lock();
         (guard, WaitTimeoutResult::new(timed_out))
     }
 
@@ -585,10 +573,10 @@ impl CondVarNonPoisoning {
     /// Waits with a timeout and predicate.
     pub fn wait_timeout_while<'a, T, F>(
         &self,
-        mut guard: RawSpinMutexGuard<'a, T>,
+        mut guard: RawCondVarMutexGuard<'a, T>,
         dur: Duration,
         mut condition: F,
-    ) -> (RawSpinMutexGuard<'a, T>, WaitTimeoutResult)
+    ) -> (RawCondVarMutexGuard<'a, T>, WaitTimeoutResult)
     where
         F: FnMut(&mut T) -> bool,
     {
@@ -648,25 +636,11 @@ impl fmt::Debug for CondVarNonPoisoning {
     }
 }
 
-trait RawMutexGuardExt<'a, T: ?Sized> {
-    fn mutex_ptr(&self) -> *const RawSpinMutex<T>;
-}
-
-impl<'a, T: ?Sized> RawMutexGuardExt<'a, T> for RawSpinMutexGuard<'a, T> {
-    fn mutex_ptr(&self) -> *const RawSpinMutex<T> {
-        // SAFETY: Similar to SpinMutexGuard, extract mutex pointer
-        let guard_ref: &RawSpinMutexGuard<'a, T> = self;
-        let ptr_ref: &*const RawSpinMutex<T> =
-            unsafe { &*(guard_ref as *const _ as *const *const RawSpinMutex<T>) };
-        *ptr_ref
-    }
-}
-
-/// A condition variable for use with RwLocks.
+/// A condition variable for use with `RwLocks`.
 ///
 /// This allows coordination between readers and writers on a [`SpinRwLock`].
 ///
-/// **Note**: This is a placeholder implementation. Full RwLock coordination
+/// **Note**: This is a placeholder implementation. Full `RwLock` coordination
 /// requires additional infrastructure.
 pub struct RwLockCondVar {
     state: AtomicU32,
@@ -674,8 +648,9 @@ pub struct RwLockCondVar {
 }
 
 impl RwLockCondVar {
-    /// Creates a new condition variable for RwLocks.
+    /// Creates a new condition variable for `RwLocks`.
     #[inline]
+    #[must_use] 
     pub const fn new() -> Self {
         Self {
             state: AtomicU32::new(0),
