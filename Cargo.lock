@@ -1335,7 +1335,6 @@ dependencies = [
  "serde_json",
  "serde_yml",
  "serial_test",
- "spin",
  "thiserror 2.0.17",
  "tokio",
  "toml 0.9.8",
@@ -1343,7 +1342,6 @@ dependencies = [
  "tracing",
  "tracing-test",
  "url",
- "wasm_sync",
  "zeroize",
 ]
 
@@ -1367,9 +1365,6 @@ dependencies = [
 [[package]]
 name = "foundation_nostd"
 version = "0.0.4"
-dependencies = [
- "spin",
-]
 
 [[package]]
 name = "foundation_runtimes"
@@ -3472,15 +3467,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "spin"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d5fe4ccb98d9c292d56fec89a5e07da7fc4cf0dc11e156b41793132775d3e591"
-dependencies = [
- "lock_api",
-]
-
-[[package]]
 name = "stable_deref_trait"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4445,17 +4431,6 @@ dependencies = [
  "js-sys",
  "wasm-bindgen",
  "wasm-bindgen-futures",
- "web-sys",
-]
-
-[[package]]
-name = "wasm_sync"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cff360cade7fec41ff0e9d2cda57fe58258c5f16def0e21302394659e6bbb0ea"
-dependencies = [
- "js-sys",
- "wasm-bindgen",
  "web-sys",
 ]
 

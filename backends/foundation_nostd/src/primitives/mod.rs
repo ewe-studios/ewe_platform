@@ -6,6 +6,8 @@ pub mod atomic_flag;
 pub mod atomic_lazy;
 pub mod atomic_option;
 pub mod barrier;
+pub mod condvar;
+pub mod condvar_mutex;
 pub mod noop;
 pub mod once;
 pub mod once_lock;
@@ -44,6 +46,12 @@ pub use atomic_option::AtomicOption;
 // Re-export synchronization helpers
 pub use barrier::{BarrierWaitResult, SpinBarrier};
 pub use spin_wait::SpinWait;
+
+// Re-export condvar types
+pub use condvar::{CondVar, CondVarNonPoisoning, RwLockCondVar, WaitTimeoutResult};
+pub use condvar_mutex::{
+    CondVarMutex, CondVarMutexGuard, RawCondVarMutex, RawCondVarMutexGuard,
+};
 
 // Platform-specific type aliases
 // For single-threaded WASM, use no-op primitives

@@ -4,12 +4,7 @@
 
 use std::{sync::Arc, time};
 
-#[cfg(not(target_arch = "wasm32"))]
-use std::sync::RwLock;
-
-#[cfg(target_arch = "wasm32")]
-use wasm_sync::RwLock;
-
+use super::compati::RwLock;
 use super::{Entry, EntryList};
 
 pub trait Waker {

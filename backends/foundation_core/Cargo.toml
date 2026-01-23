@@ -33,9 +33,6 @@ memchr = "2.7.4"
 tracing = { version = "0.1.41" }
 thiserror = { version = "2.0" }
 
-spin = { version = "0.10" }
-wasm_sync = { version = "0.1.2" }
-
 url = "2.5"
 regex = "1.12.2"
 ctrlc = { version = "3.4" }
