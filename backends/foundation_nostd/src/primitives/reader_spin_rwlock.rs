@@ -158,9 +158,9 @@ impl<T: ?Sized> ReaderSpinRwLock<T> {
     pub fn try_read(&self) -> TryLockResult<ReaderReadGuard<'_, T>> {
         // Check poisoned first
         if self.poisoned.load(Ordering::Acquire) != 0 {
-            return Err(TryLockError::Poisoned(PoisonError::new(
-                ReaderReadGuard { lock: self },
-            )));
+            return Err(TryLockError::Poisoned(PoisonError::new(ReaderReadGuard {
+                lock: self,
+            })));
         }
 
         // Reader-preferring: Only check for active writer, ignore waiting writers
@@ -214,18 +214,16 @@ impl<T: ?Sized> ReaderSpinRwLock<T> {
     pub fn try_write(&self) -> TryLockResult<ReaderWriteGuard<'_, T>> {
         // Check poisoned first
         if self.poisoned.load(Ordering::Acquire) != 0 {
-            return Err(TryLockError::Poisoned(PoisonError::new(
-                ReaderWriteGuard { lock: self },
-            )));
+            return Err(TryLockError::Poisoned(PoisonError::new(ReaderWriteGuard {
+                lock: self,
+            })));
         }
 
         // Try to acquire write lock (state must be 0)
-        match self.state.compare_exchange(
-            0,
-            WRITER_ACTIVE,
-            Ordering::Acquire,
-            Ordering::Relaxed,
-        ) {
+        match self
+            .state
+            .compare_exchange(0, WRITER_ACTIVE, Ordering::Acquire, Ordering::Relaxed)
+        {
             Ok(_) => Ok(ReaderWriteGuard { lock: self }),
             Err(_) => Err(TryLockError::WouldBlock),
         }
@@ -259,13 +257,18 @@ impl<T: ?Sized> ReaderSpinRwLock<T> {
 impl<T: ?Sized + fmt::Debug> fmt::Debug for ReaderSpinRwLock<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.try_read() {
-            Ok(guard) => f.debug_struct("ReaderSpinRwLock").field("data", &&*guard).finish(),
-            Err(TryLockError::Poisoned(_)) => {
-                f.debug_struct("ReaderSpinRwLock").field("data", &"<poisoned>").finish()
-            }
-            Err(TryLockError::WouldBlock) => {
-                f.debug_struct("ReaderSpinRwLock").field("data", &"<locked>").finish()
-            }
+            Ok(guard) => f
+                .debug_struct("ReaderSpinRwLock")
+                .field("data", &&*guard)
+                .finish(),
+            Err(TryLockError::Poisoned(_)) => f
+                .debug_struct("ReaderSpinRwLock")
+                .field("data", &"<poisoned>")
+                .finish(),
+            Err(TryLockError::WouldBlock) => f
+                .debug_struct("ReaderSpinRwLock")
+                .field("data", &"<locked>")
+                .finish(),
         }
     }
 }

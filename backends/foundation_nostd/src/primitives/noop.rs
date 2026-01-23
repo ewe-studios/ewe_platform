@@ -626,6 +626,7 @@ impl fmt::Debug for NoopOnce {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(not(feature = "std"))]
     use alloc::format;
 
     // NoopMutex tests

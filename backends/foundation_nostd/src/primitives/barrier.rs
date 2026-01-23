@@ -122,6 +122,7 @@ impl fmt::Debug for SpinBarrier {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(not(feature = "std"))]
     use alloc::format;
 
     /// WHY: Validates barrier construction

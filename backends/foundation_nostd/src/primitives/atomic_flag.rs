@@ -237,6 +237,7 @@ impl From<bool> for AtomicFlag {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(not(feature = "std"))]
     use alloc::format;
 
     /// WHY: Validates `AtomicFlag` construction and initial state

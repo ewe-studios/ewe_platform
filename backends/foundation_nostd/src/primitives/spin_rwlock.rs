@@ -205,19 +205,20 @@ impl<T: ?Sized> SpinRwLock<T> {
     pub fn read(&self) -> LockResult<ReadGuard<'_, T>> {
         // Fast path: try to acquire read lock if no writer
         let state = self.state.load(Ordering::Relaxed);
-        if state & (WRITER_ACTIVE | WRITER_WAITING) == 0 && state < MAX_READERS
+        if state & (WRITER_ACTIVE | WRITER_WAITING) == 0
+            && state < MAX_READERS
             && self
                 .state
                 .compare_exchange(state, state + 1, Ordering::Acquire, Ordering::Relaxed)
                 .is_ok()
-            {
-                let guard = ReadGuard { lock: self };
-                return if self.is_poisoned() {
-                    Err(PoisonError::new(guard))
-                } else {
-                    Ok(guard)
-                };
-            }
+        {
+            let guard = ReadGuard { lock: self };
+            return if self.is_poisoned() {
+                Err(PoisonError::new(guard))
+            } else {
+                Ok(guard)
+            };
+        }
 
         // Slow path: spin until we can acquire
         self.read_slow()
@@ -230,19 +231,20 @@ impl<T: ?Sized> SpinRwLock<T> {
                 let state = self.state.load(Ordering::Relaxed);
 
                 // Can only acquire if no writer is active or waiting
-                if state & (WRITER_ACTIVE | WRITER_WAITING) == 0 && state < MAX_READERS
+                if state & (WRITER_ACTIVE | WRITER_WAITING) == 0
+                    && state < MAX_READERS
                     && self
                         .state
                         .compare_exchange(state, state + 1, Ordering::Acquire, Ordering::Relaxed)
                         .is_ok()
-                    {
-                        let guard = ReadGuard { lock: self };
-                        return if self.is_poisoned() {
-                            Err(PoisonError::new(guard))
-                        } else {
-                            Ok(guard)
-                        };
-                    }
+                {
+                    let guard = ReadGuard { lock: self };
+                    return if self.is_poisoned() {
+                        Err(PoisonError::new(guard))
+                    } else {
+                        Ok(guard)
+                    };
+                }
 
                 core::hint::spin_loop();
             }
@@ -275,19 +277,20 @@ impl<T: ?Sized> SpinRwLock<T> {
         let state = self.state.load(Ordering::Relaxed);
 
         // Can only acquire if no writer is active or waiting
-        if state & (WRITER_ACTIVE | WRITER_WAITING) == 0 && state < MAX_READERS
+        if state & (WRITER_ACTIVE | WRITER_WAITING) == 0
+            && state < MAX_READERS
             && self
                 .state
                 .compare_exchange(state, state + 1, Ordering::Acquire, Ordering::Relaxed)
                 .is_ok()
-            {
-                let guard = ReadGuard { lock: self };
-                return if self.is_poisoned() {
-                    Err(TryLockError::Poisoned(PoisonError::new(guard)))
-                } else {
-                    Ok(guard)
-                };
-            }
+        {
+            let guard = ReadGuard { lock: self };
+            return if self.is_poisoned() {
+                Err(TryLockError::Poisoned(PoisonError::new(guard)))
+            } else {
+                Ok(guard)
+            };
+        }
 
         Err(TryLockError::WouldBlock)
     }
@@ -520,7 +523,10 @@ impl<T: ?Sized + fmt::Display> fmt::Display for WriteGuard<'_, T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(not(feature = "std"))]
     use alloc::format;
+    #[cfg(not(feature = "std"))]
     use alloc::vec;
 
     /// `WHY`: Validates basic `lock` construction and `into_inner`

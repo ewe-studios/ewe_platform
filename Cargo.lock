@@ -1377,6 +1377,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_testing"
+version = "0.1.0"
+dependencies = [
+ "criterion",
+ "foundation_nostd",
+]
+
+[[package]]
 name = "foundation_wasm"
 version = "0.0.2"
 dependencies = [

@@ -92,14 +92,15 @@ impl<T: ?Sized> RawSpinRwLock<T> {
         loop {
             let state = self.state.load(Ordering::Relaxed);
             // Wait if writer is waiting/active
-            if state & (WRITER_ACTIVE | WRITER_WAITING) == 0 && state < MAX_READERS
+            if state & (WRITER_ACTIVE | WRITER_WAITING) == 0
+                && state < MAX_READERS
                 && self
                     .state
                     .compare_exchange_weak(state, state + 1, Ordering::Acquire, Ordering::Relaxed)
                     .is_ok()
-                {
-                    return RawReadGuard { lock: self };
-                }
+            {
+                return RawReadGuard { lock: self };
+            }
             spin_wait.spin();
         }
     }
@@ -154,9 +155,9 @@ impl<T: ?Sized> RawSpinRwLock<T> {
                         Ordering::Relaxed,
                     )
                     .is_ok()
-                {
-                    break;
-                }
+            {
+                break;
+            }
             spin_wait.spin();
         }
 
