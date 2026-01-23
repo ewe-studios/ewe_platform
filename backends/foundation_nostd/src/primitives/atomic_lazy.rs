@@ -89,6 +89,7 @@ impl<T, F> Drop for AtomicLazy<T, F> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(not(feature = "std"))]
     use alloc::{format, vec};
     use core::sync::atomic::{AtomicUsize, Ordering};
 

@@ -7,7 +7,6 @@ pub mod atomic_lazy;
 pub mod atomic_option;
 pub mod barrier;
 pub mod condvar;
-pub mod condvar_mutex;
 pub mod noop;
 pub mod once;
 pub mod once_lock;
@@ -47,10 +46,10 @@ pub use atomic_option::AtomicOption;
 pub use barrier::{BarrierWaitResult, SpinBarrier};
 pub use spin_wait::SpinWait;
 
-// Re-export condvar types
-pub use condvar::{CondVar, CondVarNonPoisoning, RwLockCondVar, WaitTimeoutResult};
-pub use condvar_mutex::{
-    CondVarMutex, CondVarMutexGuard, RawCondVarMutex, RawCondVarMutexGuard,
+// Re-export condvar types (includes mutexes and guards)
+pub use condvar::{
+    CondVar, CondVarMutex, CondVarMutexGuard, CondVarNonPoisoning, RawCondVarMutex,
+    RawCondVarMutexGuard, RwLockCondVar, WaitTimeoutResult,
 };
 
 // Platform-specific type aliases

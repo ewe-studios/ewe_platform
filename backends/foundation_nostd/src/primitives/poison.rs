@@ -127,6 +127,8 @@ impl<T> From<PoisonError<T>> for TryLockError<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(not(feature = "std"))]
     use alloc::format;
 
     /// `WHY`: Validates `PoisonError` construction and `into_inner` recovery
