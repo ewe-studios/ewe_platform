@@ -81,9 +81,9 @@ This directory contains all project specifications and requirements. Each specif
 - Complete wait/notify API (wait, wait_while, wait_timeout, notify_one, notify_all)
 - Bit-masking for compact state management
 
-**Total Tasks:** 58 (0% complete)
+**Total Tasks:** 68 (0% complete)
 **Testing:** 100% coverage target, WASM-specific tests, stress tests, Criterion benchmarks
-**Infrastructure:** Makefile for test orchestration
+**Infrastructure:** Makefile for test orchestration, new foundation_testing crate for reusable stress testing
 
 ---
 
@@ -100,7 +100,7 @@ This directory contains all project specifications and requirements. Each specif
 - 03: WASM-Friendly Sync Primitives
 
 ### In Progress 🔄
-- 04: CondVar Primitives (58 tasks, builds on spec 03)
+- 04: CondVar Primitives (68 tasks, builds on spec 03, new foundation_testing crate)
 
 ### Pending ⏳
 - 02: Build HTTP Client (13 features, 143 tasks)
