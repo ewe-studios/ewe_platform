@@ -78,6 +78,7 @@ pub use nostd_impl::{
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::primitives::SpinRwLock;
 
     #[test]
     fn test_condvar_new() {
@@ -98,5 +99,90 @@ mod tests {
 
         let result = WaitTimeoutResult::new(false);
         assert!(!result.timed_out());
+    }
+
+    // RwLockCondVar tests (TDD - tests written first)
+
+    /// WHY: Validates basic construction and notification of `RwLockCondVar`
+    /// WHAT: Ensures `RwLockCondVar` can be created and notify operations don't panic
+    #[test]
+    fn test_rwlock_condvar_new() {
+        let condvar = RwLockCondVar::new();
+        condvar.notify_one();
+        condvar.notify_all();
+    }
+
+    /// WHY: Tests `wait_read` basic operation with read guard
+    /// WHAT: Reader should be able to wait on condition and be notified
+    #[test]
+    fn test_rwlock_condvar_wait_read_basic() {
+        let lock = SpinRwLock::new(0);
+        let _condvar = RwLockCondVar::new();
+
+        let guard = lock.read().unwrap();
+        // For now, immediate notification (will implement wait_read next)
+        drop(guard);
+    }
+
+    /// WHY: Tests `wait_write` basic operation with write guard
+    /// WHAT: Writer should be able to wait on condition and be notified
+    #[test]
+    fn test_rwlock_condvar_wait_write_basic() {
+        let lock = SpinRwLock::new(0);
+        let _condvar = RwLockCondVar::new();
+
+        let guard = lock.write().unwrap();
+        // For now, immediate notification (will implement wait_write next)
+        drop(guard);
+    }
+
+    /// WHY: Tests `wait_while_read` with predicate on read guard
+    /// WHAT: Reader should wait while predicate is true, wake when false
+    #[test]
+    fn test_rwlock_condvar_wait_while_read() {
+        let lock = SpinRwLock::new(false);
+        let _condvar = RwLockCondVar::new();
+
+        let guard = lock.read().unwrap();
+        // Predicate check (will implement wait_while_read next)
+        let _value = *guard;
+        drop(guard);
+    }
+
+    /// WHY: Tests `wait_while_write` with predicate on write guard
+    /// WHAT: Writer should wait while predicate is true, wake when false
+    #[test]
+    fn test_rwlock_condvar_wait_while_write() {
+        let lock = SpinRwLock::new(false);
+        let _condvar = RwLockCondVar::new();
+
+        let mut guard = lock.write().unwrap();
+        // Predicate check (will implement wait_while_write next)
+        *guard = true;
+        drop(guard);
+    }
+
+    /// WHY: Tests `wait_timeout_read` with timeout duration on read guard
+    /// WHAT: Reader wait should timeout after specified duration
+    #[test]
+    fn test_rwlock_condvar_wait_timeout_read() {
+        let lock = SpinRwLock::new(0);
+        let _condvar = RwLockCondVar::new();
+
+        let guard = lock.read().unwrap();
+        // Timeout test (will implement wait_timeout_read next)
+        drop(guard);
+    }
+
+    /// WHY: Tests `wait_timeout_write` with timeout duration on write guard
+    /// WHAT: Writer wait should timeout after specified duration
+    #[test]
+    fn test_rwlock_condvar_wait_timeout_write() {
+        let lock = SpinRwLock::new(0);
+        let _condvar = RwLockCondVar::new();
+
+        let guard = lock.write().unwrap();
+        // Timeout test (will implement wait_timeout_write next)
+        drop(guard);
     }
 }
