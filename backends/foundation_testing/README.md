@@ -1,13 +1,23 @@
 # Foundation Testing
 
-Reusable stress testing infrastructure for Foundation synchronization primitives.
+**Infrastructure crate** providing reusable stress testing utilities, scenarios, and metrics for Foundation synchronization primitives.
+
+⚠️ **Important**: This crate provides testing *infrastructure* only. Actual test implementations should be placed in the `tests/` directory of the crate being tested (e.g., `foundation_nostd/tests/`).
+
+## Purpose
+
+Foundation Testing provides:
+- **Reusable Test Harnesses**: Configurable stress test framework
+- **Common Scenarios**: Producer-consumer, barriers, thread pools as building blocks
+- **Performance Metrics**: Latency, throughput, and scalability measurement tools
+- **Criterion Integration**: Benchmark utilities and helpers
 
 ## Features
 
 - **Stress Test Framework**: Configurable high-contention testing with thread count, iteration, and duration controls
 - **Common Scenarios**: Producer-consumer queues, barriers, thread pools
 - **Performance Metrics**: Latency, throughput, and scalability measurements
-- **Criterion Benchmarks**: Comparative performance testing
+- **Criterion Benchmarks**: Comparative performance testing utilities
 
 ## Usage
 

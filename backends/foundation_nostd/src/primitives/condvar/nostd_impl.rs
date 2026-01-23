@@ -736,6 +736,39 @@ impl fmt::Debug for CondVarNonPoisoning {
 }
 
 /// A condition variable for use with `RwLocks` (spin-wait implementation).
+///
+/// This condition variable works with [`SpinRwLock`](crate::primitives::SpinRwLock)
+/// and supports both read and write guards. It provides separate wait methods for
+/// readers and writers.
+///
+/// # Examples
+///
+/// ## Waiting with Read Guard
+///
+/// ```
+/// use foundation_nostd::primitives::{SpinRwLock, RwLockCondVar};
+///
+/// let lock = SpinRwLock::new(vec![1, 2, 3]);
+/// let condvar = RwLockCondVar::new();
+///
+/// // Reader waits for condition
+/// let guard = lock.read().unwrap();
+/// // guard = condvar.wait_read(guard, &lock).unwrap();
+/// ```
+///
+/// ## Waiting with Write Guard
+///
+/// ```
+/// use foundation_nostd::primitives::{SpinRwLock, RwLockCondVar};
+///
+/// let lock = SpinRwLock::new(0);
+/// let condvar = RwLockCondVar::new();
+///
+/// // Writer waits for condition
+/// let mut guard = lock.write().unwrap();
+/// // guard = condvar.wait_write(guard, &lock).unwrap();
+/// *guard = 42;
+/// ```
 pub struct RwLockCondVar {
     state: AtomicU32,
     generation: AtomicUsize,
@@ -750,6 +783,333 @@ impl RwLockCondVar {
             state: AtomicU32::new(0),
             generation: AtomicUsize::new(0),
         }
+    }
+
+    /// Blocks the current thread until this condition variable receives a notification (read guard variant).
+    ///
+    /// This function will atomically unlock the read guard and block the current thread.
+    /// When `notify_one` or `notify_all` is called, this thread will wake up and
+    /// re-acquire the read lock.
+    ///
+    /// # Spurious Wakeups
+    ///
+    /// This function may wake up spuriously (without a notification). Use `wait_while_read`
+    /// with a predicate to handle spurious wakeups automatically.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the lock was poisoned before or after waiting.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use foundation_nostd::primitives::{SpinRwLock, RwLockCondVar};
+    ///
+    /// let lock = SpinRwLock::new(false);
+    /// let condvar = RwLockCondVar::new();
+    ///
+    /// let guard = lock.read().unwrap();
+    /// // Wait for condition (would block if condition not met)
+    /// // let guard = condvar.wait_read(guard, &lock).unwrap();
+    /// ```
+    pub fn wait_read<'a, T>(
+        &self,
+        guard: crate::primitives::spin_rwlock::ReadGuard<'a, T>,
+        lock: &'a crate::primitives::SpinRwLock<T>,
+    ) -> LockResult<crate::primitives::spin_rwlock::ReadGuard<'a, T>> {
+        let was_poisoned = lock.is_poisoned();
+
+        self.state.fetch_add(1, Ordering::Relaxed);
+        let gen = self.generation.load(Ordering::Acquire);
+        drop(guard);
+
+        // Spin-wait for generation change
+        let mut spin_wait = SpinWait::new();
+        loop {
+            let new_gen = self.generation.load(Ordering::Acquire);
+            let state = self.state.load(Ordering::Acquire);
+
+            if new_gen != gen || state & NOTIFY_FLAG != 0 {
+                break;
+            }
+
+            spin_wait.spin();
+        }
+
+        self.state.fetch_sub(1, Ordering::Relaxed);
+        let guard = lock.read()?;
+
+        if was_poisoned || lock.is_poisoned() {
+            Err(PoisonError::new(guard))
+        } else {
+            Ok(guard)
+        }
+    }
+
+    /// Blocks the current thread until this condition variable receives a notification (write guard variant).
+    ///
+    /// This function will atomically unlock the write guard and block the current thread.
+    /// When `notify_one` or `notify_all` is called, this thread will wake up and
+    /// re-acquire the write lock.
+    ///
+    /// # Spurious Wakeups
+    ///
+    /// This function may wake up spuriously (without a notification). Use `wait_while_write`
+    /// with a predicate to handle spurious wakeups automatically.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the lock was poisoned before or after waiting.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use foundation_nostd::primitives::{SpinRwLock, RwLockCondVar};
+    ///
+    /// let lock = SpinRwLock::new(0);
+    /// let condvar = RwLockCondVar::new();
+    ///
+    /// let mut guard = lock.write().unwrap();
+    /// // Wait for condition (would block if condition not met)
+    /// // let mut guard = condvar.wait_write(guard, &lock).unwrap();
+    /// *guard = 42;
+    /// ```
+    pub fn wait_write<'a, T>(
+        &self,
+        guard: crate::primitives::spin_rwlock::WriteGuard<'a, T>,
+        lock: &'a crate::primitives::SpinRwLock<T>,
+    ) -> LockResult<crate::primitives::spin_rwlock::WriteGuard<'a, T>> {
+        let was_poisoned = lock.is_poisoned();
+
+        self.state.fetch_add(1, Ordering::Relaxed);
+        let gen = self.generation.load(Ordering::Acquire);
+        drop(guard);
+
+        // Spin-wait for generation change
+        let mut spin_wait = SpinWait::new();
+        loop {
+            let new_gen = self.generation.load(Ordering::Acquire);
+            let state = self.state.load(Ordering::Acquire);
+
+            if new_gen != gen || state & NOTIFY_FLAG != 0 {
+                break;
+            }
+
+            spin_wait.spin();
+        }
+
+        self.state.fetch_sub(1, Ordering::Relaxed);
+        let guard = lock.write()?;
+
+        if was_poisoned || lock.is_poisoned() {
+            Err(PoisonError::new(guard))
+        } else {
+            Ok(guard)
+        }
+    }
+
+    /// Waits on this condition variable with a predicate (read guard variant).
+    ///
+    /// This function will repeatedly call `wait_read` until the predicate returns `false`.
+    /// Spurious wakeups are automatically handled.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the lock is poisoned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use foundation_nostd::primitives::{SpinRwLock, RwLockCondVar};
+    ///
+    /// let lock = SpinRwLock::new(0);
+    /// let condvar = RwLockCondVar::new();
+    ///
+    /// let guard = lock.read().unwrap();
+    /// // Wait while value is less than 10
+    /// // let guard = condvar.wait_while_read(guard, &lock, |val| *val < 10).unwrap();
+    /// ```
+    pub fn wait_while_read<'a, T, F>(
+        &self,
+        mut guard: crate::primitives::spin_rwlock::ReadGuard<'a, T>,
+        lock: &'a crate::primitives::SpinRwLock<T>,
+        mut condition: F,
+    ) -> LockResult<crate::primitives::spin_rwlock::ReadGuard<'a, T>>
+    where
+        F: FnMut(&T) -> bool,
+    {
+        while condition(&*guard) {
+            guard = self.wait_read(guard, lock)?;
+        }
+        Ok(guard)
+    }
+
+    /// Waits on this condition variable with a predicate (write guard variant).
+    ///
+    /// This function will repeatedly call `wait_write` until the predicate returns `false`.
+    /// Spurious wakeups are automatically handled.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the lock is poisoned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use foundation_nostd::primitives::{SpinRwLock, RwLockCondVar};
+    ///
+    /// let lock = SpinRwLock::new(0);
+    /// let condvar = RwLockCondVar::new();
+    ///
+    /// let mut guard = lock.write().unwrap();
+    /// // Wait while value is less than 10
+    /// // let mut guard = condvar.wait_while_write(guard, &lock, |val| *val < 10).unwrap();
+    /// *guard = 42;
+    /// ```
+    pub fn wait_while_write<'a, T, F>(
+        &self,
+        mut guard: crate::primitives::spin_rwlock::WriteGuard<'a, T>,
+        lock: &'a crate::primitives::SpinRwLock<T>,
+        mut condition: F,
+    ) -> LockResult<crate::primitives::spin_rwlock::WriteGuard<'a, T>>
+    where
+        F: FnMut(&mut T) -> bool,
+    {
+        while condition(&mut *guard) {
+            guard = self.wait_write(guard, lock)?;
+        }
+        Ok(guard)
+    }
+
+    /// Waits on this condition variable with a timeout (read guard variant).
+    ///
+    /// The timeout duration specifies the maximum amount of time to wait.
+    /// Returns a tuple of the guard and a `WaitTimeoutResult` indicating whether
+    /// the timeout occurred.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the lock was poisoned before or after waiting.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use foundation_nostd::primitives::{SpinRwLock, RwLockCondVar};
+    /// use core::time::Duration;
+    ///
+    /// let lock = SpinRwLock::new(0);
+    /// let condvar = RwLockCondVar::new();
+    ///
+    /// let guard = lock.read().unwrap();
+    /// // Wait for up to 100 milliseconds
+    /// // let (guard, timeout_result) = condvar
+    /// //     .wait_timeout_read(guard, &lock, Duration::from_millis(100))
+    /// //     .unwrap();
+    /// ```
+    pub fn wait_timeout_read<'a, T>(
+        &self,
+        guard: crate::primitives::spin_rwlock::ReadGuard<'a, T>,
+        lock: &'a crate::primitives::SpinRwLock<T>,
+        dur: Duration,
+    ) -> LockResult<(crate::primitives::spin_rwlock::ReadGuard<'a, T>, WaitTimeoutResult)> {
+        let was_poisoned = lock.is_poisoned();
+
+        self.state.fetch_add(1, Ordering::Relaxed);
+        let gen = self.generation.load(Ordering::Acquire);
+        drop(guard);
+
+        let timed_out = self.wait_timeout_impl(gen, dur);
+
+        self.state.fetch_sub(1, Ordering::Relaxed);
+        let guard = lock.read();
+        let result = WaitTimeoutResult::new(timed_out);
+
+        match guard {
+            Ok(g) => {
+                if was_poisoned || lock.is_poisoned() {
+                    Err(PoisonError::new((g, result)))
+                } else {
+                    Ok((g, result))
+                }
+            }
+            Err(e) => Err(PoisonError::new((e.into_inner(), result))),
+        }
+    }
+
+    /// Waits on this condition variable with a timeout (write guard variant).
+    ///
+    /// The timeout duration specifies the maximum amount of time to wait.
+    /// Returns a tuple of the guard and a `WaitTimeoutResult` indicating whether
+    /// the timeout occurred.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the lock was poisoned before or after waiting.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use foundation_nostd::primitives::{SpinRwLock, RwLockCondVar};
+    /// use core::time::Duration;
+    ///
+    /// let lock = SpinRwLock::new(0);
+    /// let condvar = RwLockCondVar::new();
+    ///
+    /// let mut guard = lock.write().unwrap();
+    /// // Wait for up to 100 milliseconds
+    /// // let (mut guard, timeout_result) = condvar
+    /// //     .wait_timeout_write(guard, &lock, Duration::from_millis(100))
+    /// //     .unwrap();
+    /// *guard = 42;
+    /// ```
+    pub fn wait_timeout_write<'a, T>(
+        &self,
+        guard: crate::primitives::spin_rwlock::WriteGuard<'a, T>,
+        lock: &'a crate::primitives::SpinRwLock<T>,
+        dur: Duration,
+    ) -> LockResult<(crate::primitives::spin_rwlock::WriteGuard<'a, T>, WaitTimeoutResult)> {
+        let was_poisoned = lock.is_poisoned();
+
+        self.state.fetch_add(1, Ordering::Relaxed);
+        let gen = self.generation.load(Ordering::Acquire);
+        drop(guard);
+
+        let timed_out = self.wait_timeout_impl(gen, dur);
+
+        self.state.fetch_sub(1, Ordering::Relaxed);
+        let guard = lock.write();
+        let result = WaitTimeoutResult::new(timed_out);
+
+        match guard {
+            Ok(g) => {
+                if was_poisoned || lock.is_poisoned() {
+                    Err(PoisonError::new((g, result)))
+                } else {
+                    Ok((g, result))
+                }
+            }
+            Err(e) => Err(PoisonError::new((e.into_inner(), result))),
+        }
+    }
+
+    fn wait_timeout_impl(&self, gen: usize, dur: Duration) -> bool {
+        let max_spins = (dur.as_micros() / 10).max(1) as usize;
+        let mut spin_wait = SpinWait::new();
+
+        for _ in 0..max_spins {
+            let new_gen = self.generation.load(Ordering::Acquire);
+            let state = self.state.load(Ordering::Acquire);
+
+            if new_gen != gen || state & NOTIFY_FLAG != 0 {
+                return false;
+            }
+
+            spin_wait.spin();
+        }
+
+        let new_gen = self.generation.load(Ordering::Acquire);
+        let state = self.state.load(Ordering::Acquire);
+        new_gen == gen && state & NOTIFY_FLAG == 0
     }
 
     /// Wakes up one blocked thread.
