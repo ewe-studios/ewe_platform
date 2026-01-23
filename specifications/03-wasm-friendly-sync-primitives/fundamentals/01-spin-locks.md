@@ -76,11 +76,11 @@ impl BasicSpinLock {
 
 ### Key Operations
 
-| Operation | Purpose | Memory Ordering |
-|-----------|---------|-----------------|
-| `compare_exchange` | Atomically check-and-set | Acquire on success |
-| `store(false)` | Release the lock | Release |
-| `spin_loop()` | CPU hint for power efficiency | N/A |
+| Operation          | Purpose                       | Memory Ordering    |
+| ------------------ | ----------------------------- | ------------------ |
+| `compare_exchange` | Atomically check-and-set      | Acquire on success |
+| `store(false)`     | Release the lock              | Release            |
+| `spin_loop()`      | CPU hint for power efficiency | N/A                |
 
 ---
 
@@ -105,10 +105,10 @@ fn compare_exchange(current: &AtomicBool, expected: bool, new: bool) -> Result<b
 
 Rust provides two variants:
 
-| Variant | Spurious Failures | Use Case |
-|---------|-------------------|----------|
-| `compare_exchange` | No | Single attempt |
-| `compare_exchange_weak` | Yes | Loop (spin lock) |
+| Variant                 | Spurious Failures | Use Case         |
+| ----------------------- | ----------------- | ---------------- |
+| `compare_exchange`      | No                | Single attempt   |
+| `compare_exchange_weak` | Yes               | Loop (spin lock) |
 
 `_weak` may spuriously fail even when the expected value matches, but it's faster on some architectures (ARM, RISC-V). Since we're looping anyway, spurious failures are fine.
 
@@ -201,6 +201,7 @@ mutex.unlock(); // What if we forget? Or panic?
 ```
 
 The guard ensures:
+
 1. **Automatic unlock** on scope exit
 2. **Unlock on panic** (Drop is called during unwinding)
 3. **Lifetime tied to lock** - can't use data without holding lock
@@ -231,6 +232,7 @@ pub fn lock(&self) {
 ```
 
 Why this helps:
+
 - `compare_exchange` invalidates cache lines on other cores
 - `load` only reads, keeping cache line in shared state
 - Reduces bus traffic under contention
@@ -267,24 +269,26 @@ pub fn try_lock_with_spin_limit(&self, max_spins: u32) -> Option<RawSpinMutexGua
 
 ## Spin Lock vs OS Mutex
 
-| Aspect | Spin Lock | OS Mutex |
-|--------|-----------|----------|
-| **Wait behavior** | Busy-wait (CPU spinning) | Sleep (yields CPU) |
-| **Context switch** | No | Yes (expensive) |
-| **Power usage** | High when contended | Low when waiting |
-| **Best for** | Very short critical sections | Longer operations |
-| **OS required** | No (`no_std` compatible) | Yes |
-| **Fairness** | None (LIFO-ish) | Usually fair (FIFO) |
+| Aspect             | Spin Lock                    | OS Mutex            |
+| ------------------ | ---------------------------- | ------------------- |
+| **Wait behavior**  | Busy-wait (CPU spinning)     | Sleep (yields CPU)  |
+| **Context switch** | No                           | Yes (expensive)     |
+| **Power usage**    | High when contended          | Low when waiting    |
+| **Best for**       | Very short critical sections | Longer operations   |
+| **OS required**    | No (`no_std` compatible)     | Yes                 |
+| **Fairness**       | None (LIFO-ish)              | Usually fair (FIFO) |
 
 ### When to Use Spin Locks
 
 ✅ **Good for:**
+
 - Critical sections < 1μs
 - `no_std` / embedded / WASM
 - Lock rarely contended
 - Real-time systems (predictable latency)
 
 ❌ **Bad for:**
+
 - Critical sections > 10μs
 - High contention
 - Battery-powered devices
@@ -384,9 +388,100 @@ impl<T> RawSpinRwLock<T> {
 }
 ```
 
+#### Context on the Bit Checking
+
+Explanation of the Code Line
+
+```rust
+if state & READER_MASK == 0 && state & WRITER_ACTIVE == 0 { ... }
+```
+
+This is from line 343 in spin_rwlock.rs within the write_slow() function. Let me break down how this works:
+
+Bit Layout (from lines 42-49):
+
+const READER_MASK: u32 = (1 << 30) - 1; // 0x3FFFFFFF (bits 0-29)
+const WRITER_WAITING: u32 = 1 << 30; // 0x40000000 (bit 30)
+const WRITER_ACTIVE: u32 = 1 << 31; // 0x80000000 (bit 31)
+
+State Encoding (32-bit value):
+
+Bit 31: WRITER_ACTIVE (0x80000000)
+Bit 30: WRITER_WAITING (0x40000000)
+Bits 0-29: READER_MASK (reader count, max ~1 billion)
+
+The Condition Breakdown:
+
+state & READER_MASK == 0
+
+- Masks out bits 0-29 (the reader count)
+- Checks if reader count is 0
+- Returns true when NO readers are holding the lock
+
+state & WRITER_ACTIVE == 0
+
+- Masks out bit 31 (the writer active flag)
+- Checks if writer active flag is 0
+- Returns true when NO active writer is holding the lock
+
+Combined Meaning:
+
+The condition is true when:
+
+- ✅ Zero readers are holding read locks AND
+- ✅ No writer is currently holding the write lock
+
+This is the safe condition for a writer to acquire the lock.
+
+Important Note:
+
+The condition does NOT check WRITER_WAITING (bit 30). This is intentional! Here's why:
+
+At line 337, the writer already set the WRITER_WAITING flag:
+self.state.fetch_or(WRITER_WAITING, Ordering::Relaxed);
+
+So when checking if we can acquire (line 343), the state might look like:
+state = 0x40000000 (only WRITER_WAITING set, no readers, no active writer)
+
+The condition allows acquisition when:
+
+- Readers: 0 (bits 0-29 are 0)
+- Writer active: 0 (bit 31 is 0)
+- Writer waiting: can be 1 (bit 30, we don't care - that's us!)
+
+Why Your Original Line Would Be Wrong:
+
+If the code were:
+if state & (READER_MASK | WRITER_ACTIVE) == WRITER_WAITING {
+
+This would mean:
+
+1. Mask out bits 0-29 (readers) AND bit 31 (writer active)
+2. Check if result equals WRITER_WAITING (bit 30 set)
+
+This would be VALID and equivalent! Let me show you:
+
+state = 0x40000000 (WRITER_WAITING set, nothing else)
+
+state & (READER_MASK | WRITER_ACTIVE)
+= state & (0x3FFFFFFF | 0x80000000)
+= state & 0xBFFFFFFF
+= 0x40000000 & 0xBFFFFFFF
+= 0x40000000 (which equals WRITER_WAITING!)
+
+So your suggested line IS valid! It's just a different way to express the same condition:
+
+- Current code: state & READER_MASK == 0 && state & WRITER_ACTIVE == 0
+- Your version: state & (READER_MASK | WRITER_ACTIVE) == WRITER_WAITING
+
+Both check for: "no readers AND no active writer", which means only the WRITER_WAITING bit (that we set) should be present.
+
+Your version is actually more elegant - it's a single comparison instead of two! 🎯
+
 ### Writer-Preferring Policy
 
 The `WRITER_WAITING` flag implements writer preference:
+
 - When a writer is waiting, new readers block
 - Prevents writer starvation in read-heavy workloads
 - Trade-off: readers may wait longer
@@ -518,15 +613,15 @@ pub struct PaddedSpinLock {
 
 ## Summary
 
-| Concept | Key Point |
-|---------|-----------|
-| **Spin lock** | Busy-wait mutex using atomic CAS |
-| **Guard pattern** | RAII unlock on drop |
-| **Bounded spinning** | Always limit spin iterations |
-| **Writer-preferring** | `WRITER_WAITING` flag blocks new readers |
-| **Spin-wait optimization** | Read-only loads between CAS attempts |
-| **WASM** | No-op for single-threaded, real for multi-threaded |
+| Concept                    | Key Point                                          |
+| -------------------------- | -------------------------------------------------- |
+| **Spin lock**              | Busy-wait mutex using atomic CAS                   |
+| **Guard pattern**          | RAII unlock on drop                                |
+| **Bounded spinning**       | Always limit spin iterations                       |
+| **Writer-preferring**      | `WRITER_WAITING` flag blocks new readers           |
+| **Spin-wait optimization** | Read-only loads between CAS attempts               |
+| **WASM**                   | No-op for single-threaded, real for multi-threaded |
 
 ---
 
-*Next: [02-poisoning.md](./02-poisoning.md) - Lock poisoning explained*
+_Next: [02-poisoning.md](./02-poisoning.md) - Lock poisoning explained_

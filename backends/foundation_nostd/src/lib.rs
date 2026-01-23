@@ -5,4 +5,3 @@ extern crate alloc;
 pub mod embeddable;
 pub mod primitives;
 pub mod raw_parts;
-pub use spin;

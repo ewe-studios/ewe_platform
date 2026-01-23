@@ -1,10 +1,7 @@
 // Implements an Lock notification primitive usable in threads.
 
-#[cfg(not(target_arch = "wasm32"))]
-use std::sync::{Condvar, Mutex};
-
-#[cfg(target_arch = "wasm32")]
-use wasm_sync::{CondVar, Mutex};
+use foundation_nostd::compati::Mutex;
+use std::sync::Condvar;
 
 use super::Waker;
 

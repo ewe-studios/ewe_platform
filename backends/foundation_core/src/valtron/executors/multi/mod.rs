@@ -4,7 +4,7 @@
 use std::sync::OnceLock;
 
 #[cfg(target_arch = "wasm32")]
-use wasm_sync::OnceLock;
+use foundation_nostd::primitives::OnceLock;
 
 use crate::valtron::get_allocatable_thread_count;
 

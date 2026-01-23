@@ -4,7 +4,7 @@ use std::sync::Arc;
 use std::sync::RwLock;
 
 #[cfg(target_arch = "wasm32")]
-use wasm_sync::RwLock;
+pub use foundation_nostd::primtivies::RwLock;
 
 /// Entry based list using generation markers to identify
 /// used list items in an efficient list.
