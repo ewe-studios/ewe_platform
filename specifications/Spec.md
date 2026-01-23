@@ -65,20 +65,42 @@ This directory contains all project specifications and requirements. Each specif
 
 ---
 
+### [04: CondVar Primitives](./04-condvar-primitives/)
+**Status:** 🔄 In Progress
+**Description:** Implement CondVar (Condition Variable) primitives in foundation_nostd for no_std and WASM contexts with full std::sync::Condvar API compatibility.
+**Has Features:** No
+**Has Fundamentals:** Yes (7 fundamental documents)
+**Builds On:** [03-wasm-friendly-sync-primitives](./03-wasm-friendly-sync-primitives/)
+
+**Key Components:**
+- `CondVar` - Full std::sync::Condvar compatibility with poisoning
+- `CondVarNonPoisoning` - Simplified variant without poisoning overhead
+- `RwLockCondVar` - Condition variable for read-write locks
+- Integration with Mutex and RwLock from spec 03
+- WASM optimization with single-threaded detection
+- Complete wait/notify API (wait, wait_while, wait_timeout, notify_one, notify_all)
+- Bit-masking for compact state management
+
+**Total Tasks:** 58 (0% complete)
+**Testing:** 100% coverage target, WASM-specific tests, stress tests, Criterion benchmarks
+**Infrastructure:** Makefile for test orchestration
+
+---
+
 ## Status Dashboard
 
 ### Summary
-- **Total Specifications:** 3
-- **Completed:** 2 (67%)
-- **In Progress:** 0 (0%)
-- **Pending:** 1 (33%)
+- **Total Specifications:** 4
+- **Completed:** 2 (50%)
+- **In Progress:** 1 (25%)
+- **Pending:** 1 (25%)
 
 ### Completed ✅
 - 01: Fix Rust Lints, Checks, and Styling
 - 03: WASM-Friendly Sync Primitives
 
 ### In Progress 🔄
-_None_
+- 04: CondVar Primitives (58 tasks, builds on spec 03)
 
 ### Pending ⏳
 - 02: Build HTTP Client (13 features, 143 tasks)
@@ -104,4 +126,4 @@ This dashboard provides:
 - **Feature breakdown**: Understanding of complex specification structure
 
 ---
-*Last updated: 2026-01-19*
+*Last updated: 2026-01-23*
