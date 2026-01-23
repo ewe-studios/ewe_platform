@@ -267,6 +267,7 @@ Document this technique thoroughly in fundamentals with examples and rationale.
 - **Testing Dependencies**:
   - Criterion (benchmarks)
   - Standard Rust testing framework
+  - `foundation_testing` - New crate in `backends/` for reusable stress testing infrastructure
 - **Build Tools**:
   - Makefile for test orchestration
   - Cargo for building
@@ -298,6 +299,57 @@ mod wasm {
     // Optimized implementations
 }
 ```
+
+#### Foundation Testing Crate (NEW)
+
+**Location**: `backends/foundation_testing/`
+
+**Purpose**: Create a reusable stress testing infrastructure for all foundation crates, starting with CondVar testing.
+
+**Structure:**
+```
+backends/foundation_testing/
+├── Cargo.toml
+├── src/
+│   ├── lib.rs                    # Public API
+│   ├── stress/
+│   │   ├── mod.rs                # Stress test framework
+│   │   ├── sync/
+│   │   │   ├── mod.rs
+│   │   │   ├── condvar.rs        # CondVar stress tests
+│   │   │   └── mutex.rs          # Mutex stress tests (future)
+│   │   └── config.rs             # Test configuration
+│   ├── scenarios/
+│   │   ├── mod.rs                # Common test scenarios
+│   │   ├── producer_consumer.rs
+│   │   ├── barrier.rs
+│   │   └── thread_pool.rs
+│   └── metrics/
+│       ├── mod.rs                # Performance metrics collection
+│       └── reporter.rs           # Results reporting
+└── benches/                      # Criterion benchmarks
+```
+
+**Key Features:**
+- Reusable stress test harness for synchronization primitives
+- Configurable thread counts, iteration counts, duration
+- Common synchronization patterns (producer-consumer, barriers, thread pools)
+- Performance metrics collection and reporting
+- Integration with Criterion for benchmarking
+- Support for both std and no_std testing contexts
+
+**Benefits:**
+- **Reusability**: Can be used for testing Mutex, RwLock, CondVar, and future primitives
+- **Consistency**: Standardized stress testing approach across all primitives
+- **Extensibility**: Easy to add new stress test scenarios and patterns
+- **Maintenance**: Single location for stress testing infrastructure updates
+- **CI Integration**: Can be used in continuous integration pipelines
+
+**Integration with CondVar:**
+- CondVar stress tests will be implemented in `foundation_testing/src/stress/sync/condvar.rs`
+- Tests will use common scenarios from `scenarios/` module
+- Metrics will be collected and reported using `metrics/` module
+- Criterion benchmarks will live in `foundation_testing/benches/`
 
 #### Integration Points
 

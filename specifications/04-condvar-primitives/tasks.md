@@ -1,12 +1,12 @@
 ---
 completed: 0
-uncompleted: 58
+uncompleted: 68
 created: 2026-01-23
 author: "Main Agent"
 metadata:
   version: "1.0"
   last_updated: 2026-01-23
-  total_tasks: 58
+  total_tasks: 68
   completion_percentage: 0
 tools:
   - Rust
@@ -149,11 +149,37 @@ skills: []
 - [ ] Rapid wait/notify cycles (millions of operations)
 - [ ] Long-running wait operations with periodic notifications
 - [ ] Memory leak test (repeated wait/notify for extended period)
-- [ ] Create separate stress test module
+
+## Foundation Testing Crate Tasks (NEW CRATE)
+
+### Crate Setup
+- [ ] Create `backends/foundation_testing/` directory structure
+- [ ] Create `Cargo.toml` with appropriate dependencies (Criterion, foundation_nostd)
+- [ ] Create `src/lib.rs` with public API
+- [ ] Add foundation_testing to workspace Cargo.toml
+- [ ] Set up module structure (stress/, scenarios/, metrics/)
+
+### Stress Test Framework
+- [ ] Implement `stress/mod.rs` with base stress test harness
+- [ ] Implement `stress/config.rs` for test configuration (thread count, iterations, duration)
+- [ ] Create `stress/sync/mod.rs` for synchronization primitive tests
+- [ ] Implement `stress/sync/condvar.rs` with CondVar-specific stress tests
+
+### Common Scenarios
+- [ ] Implement `scenarios/producer_consumer.rs` pattern
+- [ ] Implement `scenarios/barrier.rs` pattern
+- [ ] Implement `scenarios/thread_pool.rs` pattern
+- [ ] Add scenario configuration and customization support
+
+### Metrics and Reporting
+- [ ] Implement `metrics/mod.rs` for performance metrics collection
+- [ ] Implement `metrics/reporter.rs` for results reporting
+- [ ] Add support for latency, throughput, and scalability metrics
+- [ ] Create human-readable and machine-readable output formats
 
 ## Benchmarking Tasks
 
-- [ ] Set up Criterion benchmark suite in `benches/condvar_bench.rs`
+- [ ] Set up Criterion benchmark suite in `foundation_testing/benches/condvar_bench.rs`
 - [ ] Benchmark uncontended wait/notify latency
 - [ ] Benchmark contended notify_one throughput (multiple waiters)
 - [ ] Benchmark notify_all scaling with thread count (10, 50, 100 threads)
@@ -168,8 +194,8 @@ skills: []
 - [ ] Create Makefile in foundation_nostd root
 - [ ] Add `make test` target for all tests
 - [ ] Add `make test-wasm` target for WASM tests with wasm32-unknown-unknown target
-- [ ] Add `make bench` target for benchmarks
-- [ ] Add `make stress` target for stress tests
+- [ ] Add `make bench` target for benchmarks (runs foundation_testing benchmarks)
+- [ ] Add `make stress` target for stress tests (runs foundation_testing stress tests)
 - [ ] Add `make clippy` target with strict lints
 - [ ] Add `make fmt` target for formatting check
 - [ ] Add `make check-all` target running all quality checks
@@ -192,8 +218,8 @@ skills: []
 - [ ] Run `cargo test` and ensure 100% pass rate
 - [ ] Run `cargo test --release` and verify performance
 - [ ] Run WASM tests: `cargo test --target wasm32-unknown-unknown`
-- [ ] Run benchmarks and document results
-- [ ] Run stress tests and verify stability
+- [ ] Run stress tests from foundation_testing crate
+- [ ] Run benchmarks from foundation_testing crate and document results
 - [ ] Verify 100% test coverage (use coverage tool)
 - [ ] Create PROGRESS.md at ~50% completion
 - [ ] Create FINAL_REPORT.md when all tasks complete
@@ -206,15 +232,18 @@ skills: []
 
 ### Implementation Order
 1. **FIRST**: Complete all fundamentals documentation (tasks 1-8)
-2. **SECOND**: Implement core types and CondVar variant
-3. **THIRD**: Implement CondVarNonPoisoning and RwLockCondVar
-4. **FOURTH**: Complete all unit tests
-5. **FIFTH**: Integration tests, stress tests, benchmarks
-6. **LAST**: Final verification and documentation
+2. **SECOND**: Create foundation_testing crate infrastructure
+3. **THIRD**: Implement core types and CondVar variant
+4. **FOURTH**: Implement CondVarNonPoisoning and RwLockCondVar
+5. **FIFTH**: Complete all unit tests
+6. **SIXTH**: Integration tests using foundation_testing stress tests
+7. **SEVENTH**: Benchmarks using foundation_testing
+8. **LAST**: Final verification and documentation
 
 ### Dependencies
 - Specification 03 (wasm-friendly-sync-primitives) MUST be completed
 - Requires: `SpinMutex`, `RawSpinMutex`, `SpinRwLock`, thread parking primitives from spec 03
+- New crate: `foundation_testing` in `backends/` for reusable stress testing infrastructure
 
 ### WASM Testing
 - Requires wasm32-unknown-unknown target installed: `rustup target add wasm32-unknown-unknown`
