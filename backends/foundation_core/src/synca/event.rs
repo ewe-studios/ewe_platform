@@ -1,12 +1,11 @@
 // Implements an Lock notification primitive usable in threads.
 
-use std::sync::Mutex;
 use std::panic::{RefUnwindSafe, UnwindSafe};
-use std::sync::Condvar;
+use foundation_nostd::comp::condvar_comp::{CondVarMutex as Mutex, CondVar};
 
 use super::Waker;
 
-/// `LockState` defines the underlying state of a Condvar based
+/// `LockState` defines the underlying state of a CondVar based
 /// locks which will allow us sleep a thread silently without eating up
 /// CPU cycles.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -21,7 +20,7 @@ pub enum LockState {
 pub struct LockSignal {
     /// The condition variable used to wait on an event,
     /// also provides a way to awake a sleeping thread.
-    event: Condvar,
+    event: CondVar,
 
     /// The mutex used to protect the event.
     ///
@@ -31,7 +30,7 @@ pub struct LockSignal {
 }
 
 // SAFETY: LockSignal is safe to use across unwind boundaries.
-// The internal Mutex and Condvar are designed to maintain consistency
+// The internal Mutex and CondVar are designed to maintain consistency
 // even in the presence of panics, and LockState is a simple enum.
 impl UnwindSafe for LockSignal {}
 impl RefUnwindSafe for LockSignal {}
@@ -57,7 +56,7 @@ impl LockSignal {
     #[must_use]
     pub fn new() -> Self {
         Self {
-            event: Condvar::new(),
+            event: CondVar::new(),
             lock: Mutex::new(LockState::Free),
         }
     }

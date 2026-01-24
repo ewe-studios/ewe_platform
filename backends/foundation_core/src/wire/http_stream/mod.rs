@@ -1,7 +1,7 @@
 use core::time;
 use std::sync::Arc;
-use std::sync::Mutex;
 use std::time::Duration;
+use foundation_nostd::comp::Mutex;
 
 use crate::io::ioutils;
 use crate::netcap::{ClientEndpoint, DataStreamError, RawStream};
