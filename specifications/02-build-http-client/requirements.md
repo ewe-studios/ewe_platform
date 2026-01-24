@@ -37,8 +37,8 @@ features:
 - websocket
 tasks:
   completed: 0
-  uncompleted: 13
-  total: 0
+  uncompleted: 154
+  total: 154
   completion_percentage: 0
 files_required:
   main_agent:
@@ -100,6 +100,26 @@ files_required:
 ## Overview
 
 Create an HTTP 1.1 client using the existing `simple_http` module structures, leveraging the iterator-based patterns and executor system from `valtron` without using async/await primitives, tokio, or any async runtime. The client will use valtron's `single` and `multi` executor modules to execute tasks in an async-like manner through the `TaskIterator` pattern.
+
+## Known Issues
+
+### Pre-existing foundation_wasm Compilation Errors
+
+**CRITICAL**: The workspace has ~110 compilation errors in `foundation_wasm` package due to incorrect `SpinMutex` API usage. This affects:
+- ❌ Cannot run `cargo test --workspace`
+- ❌ Cannot run workspace-level `cargo fmt --all --check`
+- ❌ Cannot run workspace-level `cargo clippy --workspace`
+- ✅ **Workaround**: Test features in isolation using `cargo test --package foundation_core`
+
+**Root Cause**: `SpinMutex::lock()` returns `Result<Guard, PoisonError>` but code calls it without unwrapping in frames.rs, intervals.rs, schedule.rs, registry.rs.
+
+**Decision**: This is a pre-existing issue outside the scope of this specification. All verification commands in this spec use `--package foundation_core` to work around these errors.
+
+**Impact on This Spec**:
+- All HTTP client code will be in `foundation_core` package (not `foundation_wasm`)
+- Verification will use package-level commands: `cargo test --package foundation_core`
+- Pure no_std builds cannot be verified until `foundation_wasm` is fixed
+- This does NOT block HTTP client implementation
 
 ## Features
 
