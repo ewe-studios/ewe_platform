@@ -34,10 +34,28 @@ _To be populated with technical debt and improvement opportunities_
 
 ## Valtron Utilities Implementation (2026-01-24)
 
+### Type Name Updates (2026-01-24)
+**CRITICAL**: Action types renamed to match specification requirements:
+- `LiftAction` → `SpawnWithLift` (primary name)
+- `ScheduleAction` → `SpawnWithSchedule` (primary name)
+- `BroadcastAction` → `SpawnWithBroadcast` (primary name)
+- `CompositeAction` → `SpawnStrategy` (primary name)
+
+**Reason**: New names better reflect their purpose of spawning child tasks with different strategies. The "SpawnWith*" prefix clarifies they are for spawning children from within a TaskIterator, not for initial task submission.
+
+**Backward Compatibility**: Deprecated type aliases provided:
+```rust
+#[deprecated(since = "3.0.0", note = "Use `SpawnWithLift` instead")]
+pub type LiftAction<I, D, P, S> = SpawnWithLift<I, D, P, S>;
+// ... (similar for other types)
+```
+
+**Send Bound Fix**: `SpawnStrategy` (formerly `CompositeAction`) now requires `V: Clone + Send + 'static` instead of `V: Clone + 'static`. This is necessary because the Broadcast variant uses `engine.broadcast()` which sends tasks to the global queue for cross-thread execution.
+
 ### Actions.rs Design Decisions
-- LiftAction uses `Option<I>` to ensure apply() is idempotent (can only be called once)
-- BroadcastAction clones values for each callback → requires T: Clone
-- CompositeAction applies actions sequentially → errors stop propagation
+- SpawnWithLift uses `Option<I>` to ensure apply() is idempotent (can only be called once)
+- SpawnWithBroadcast clones values for each callback → requires T: Clone
+- SpawnStrategy applies actions sequentially → errors stop propagation
 - All actions wrap tasks in DoNext before scheduling
 
 ### State Machine Pattern
