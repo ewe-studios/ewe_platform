@@ -13,6 +13,13 @@ use crate::synca::Entry;
 
 use crate::compati::Mutex;
 
+/// [`OnNext`] is unique in that you provided it a [`Resolver`]
+/// which is applied to every [`TaskStatus::Ready`] message received.
+///
+/// It provides us a means to perform specific behaviours to the results
+/// whilst forwarding other signals: pending, delayed to others for insights.
+///
+/// It will apply your [`TaskStatus::Spawn`] directly to the executor as it receives them.
 pub struct OnNext<Action, Resolver, Mapper, Task, Done, Pending>
 where
     Action: ExecutionAction,

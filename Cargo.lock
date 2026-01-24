@@ -1337,6 +1337,7 @@ dependencies = [
  "fastrand",
  "foundation_nostd",
  "foundation_wasm",
+ "futures-core",
  "memchr",
  "native-tls",
  "openssl",
@@ -1358,6 +1359,7 @@ dependencies = [
  "tracing",
  "tracing-test",
  "url",
+ "webpki-roots 0.26.11",
  "zeroize",
 ]
 
