@@ -6,8 +6,9 @@ members = [
   "crates/*",
   "backends/*",
   "infrastructure/*",
+  "tests",  # Workspace integration tests
 
-  # examples 
+  # examples
   "examples/web/*",
   "examples/intro",
   "examples/template/*",
