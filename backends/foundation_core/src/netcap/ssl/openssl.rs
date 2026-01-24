@@ -61,42 +61,48 @@ pub struct SplitOpenSslStream(Arc<Mutex<OpenSslStream>>);
 
 impl SplitOpenSslStream {
     pub fn read_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
-        self.0
+        let guard = self.0
             .lock()
-            .expect("Failed to lock SSL stream mutex")
-            .read_timeout()
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        guard.read_timeout()
     }
 
     pub fn write_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
-        self.0
+        let guard = self.0
             .lock()
-            .expect("Failed to lock SSL stream mutex")
-            .write_timeout()
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        guard.write_timeout()
     }
 
     pub fn set_write_timeout(&mut self, dur: Option<std::time::Duration>) -> std::io::Result<()> {
-        self.0
+        let mut guard = self.0
             .lock()
-            .expect("Failed to lock SSL stream mutex")
-            .set_write_timeout(dur)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        guard.set_write_timeout(dur)
     }
 
     pub fn set_read_timeout(&mut self, dur: Option<std::time::Duration>) -> std::io::Result<()> {
-        self.0
+        let mut guard = self.0
             .lock()
-            .expect("Failed to lock SSL stream mutex")
-            .set_read_timeout(dur)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        guard.set_read_timeout(dur)
     }
 }
 
 // These struct methods form the implict contract for swappable TLS implementations
 impl SplitOpenSslStream {
     pub fn local_addr(&self) -> std::io::Result<Option<SocketAddr>> {
-        self.0.lock().unwrap().inner.get_mut().local_addr()
+        let mut guard = self.0
+            .lock()
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        guard.inner.get_mut().local_addr()
     }
 
     pub fn peer_addr(&self) -> std::io::Result<Option<SocketAddr>> {
-        self.0.lock().unwrap().inner.get_mut().peer_addr()
+        let mut guard = self.0
+            .lock()
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        guard.inner.get_mut().peer_addr()
     }
 
     pub fn stream_addr(&self) -> DataStreamResult<DataStreamAddr> {
@@ -112,7 +118,10 @@ impl SplitOpenSslStream {
     }
 
     pub fn shutdown(&mut self, how: Shutdown) -> std::io::Result<()> {
-        self.0.lock().unwrap().inner.get_mut().shutdown(how)
+        let mut guard = self.0
+            .lock()
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        guard.inner.get_mut().shutdown(how)
     }
 }
 
@@ -124,17 +133,26 @@ impl Clone for SplitOpenSslStream {
 
 impl Read for SplitOpenSslStream {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        self.0.lock().unwrap().read(buf)
+        let mut guard = self.0
+            .lock()
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        guard.read(buf)
     }
 }
 
 impl Write for SplitOpenSslStream {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        self.0.lock().unwrap().write(buf)
+        let mut guard = self.0
+            .lock()
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        guard.write(buf)
     }
 
     fn flush(&mut self) -> std::io::Result<()> {
-        self.0.lock().unwrap().flush()
+        let mut guard = self.0
+            .lock()
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        guard.flush()
     }
 }
 
@@ -174,7 +192,8 @@ impl OpenSslAcceptor {
         stream: Connection,
     ) -> Result<OpenSslStream, Box<dyn Error + Send + Sync + 'static>> {
         use openssl::ssl::Ssl;
-        let session = Ssl::new(&self.0).expect("Failed to create new OpenSSL session");
+        let session = Ssl::new(&self.0)
+            .map_err(|e| Box::new(e) as Box<dyn Error + Send + Sync + 'static>)?;
         let stream = session.accept(stream)?;
         Ok(OpenSslStream { inner: stream })
     }

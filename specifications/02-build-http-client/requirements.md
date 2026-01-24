@@ -355,13 +355,58 @@ Complete features in order due to dependencies:
 
 ## Notes
 
-- Each feature has its own `tasks.md` with detailed checkboxes
+- Each feature has its own `feature.md` with integrated tasks
 - Complete features in order - later features depend on earlier ones
 - **valtron-utilities MUST be done first** (foundational patterns)
 - **tls-verification** should be done early to ensure TLS works
 - Extended features (cookie-jar, middleware, websocket) can be done in any order after public-api
 - Mark feature complete in this file only when ALL its tasks are done
-- Verification files (PROGRESS.md, FINAL_REPORT.md, etc.) are at this level, not in features
+- Verification files (PROGRESS.md, REPORT.md, etc.) are at this level, not in features
+
+## Additional Tasks (Not Part of HTTP Client)
+
+### foundation_core::synca Tests
+
+User requested additional test coverage for synca synchronization primitives alongside HTTP client work.
+
+**Status**: pending
+**Priority**: medium
+**Location**: `backends/foundation_core/src/synca/`
+
+#### synca::event (LockSignal) Tests
+- [ ] Test lock() behavior (free, locked, released states)
+- [ ] Test try_lock() return values
+- [ ] Test signal_one() single thread wake
+- [ ] Test signal_all() multiple thread wake
+- [ ] Test wait() blocking and unblocking
+- [ ] Test lock_and_wait() combined operation
+- [ ] Test probe() and probe_locked() state queries
+- [ ] Multi-threaded race condition scenarios
+- [ ] Edge cases (signal without lock, multiple signals)
+
+#### synca::sleepers Tests
+- [ ] Test DurationWaker creation and timing
+- [ ] Test Sleepers insertion with sorted order
+- [ ] Test Sleepers removal and cleanup
+- [ ] Test wake operations at correct times
+- [ ] Test Timing trait implementation
+- [ ] Concurrent access with multiple threads
+- [ ] Edge cases (empty list, single sleeper, many sleepers)
+
+#### synca::entrylist Tests
+- [ ] Test EntryList creation and initialization
+- [ ] Test entry insertion and structure maintenance
+- [ ] Test entry removal and return values
+- [ ] Test iteration order and completeness
+- [ ] Test entry lookup (find, missing entries)
+- [ ] Test clear/cleanup operations
+- [ ] Concurrent access with RwLock
+- [ ] Edge cases (empty operations, single entry, many entries)
+
+**Verification**:
+- [ ] All tests pass: `cargo test --package foundation_core`
+- [ ] Tests work with std feature
+- [ ] No warnings during test compilation
 
 ---
 *Last Updated: 2026-01-19*
