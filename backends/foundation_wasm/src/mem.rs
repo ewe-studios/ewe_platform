@@ -7,7 +7,7 @@
 use alloc::string::String;
 use alloc::sync::Arc;
 use alloc::vec::Vec;
-use foundation_nostd::primitives::Mutex;
+use foundation_nostd::comp::Mutex;
 
 use crate::{
     BinaryReaderResult, CompletedInstructions, MemoryAllocationError, MemoryAllocationResult,
@@ -55,7 +55,7 @@ impl MemoryAllocation {
     where
         F: FnOnce(&mut Vec<u8>) -> T,
     {
-        let mut locked_mem = self.memory.lock();
+        let mut locked_mem = self.memory.lock().unwrap_or_else(foundation_nostd::comp::PoisonError::into_inner);
         if let Some(mem) = locked_mem.as_mut() {
             return Some(f(mem));
         }
@@ -67,7 +67,7 @@ impl MemoryAllocation {
     where
         F: FnOnce(&mut Vec<u8>),
     {
-        let mut locked_mem = self.memory.lock();
+        let mut locked_mem = self.memory.lock().unwrap_or_else(foundation_nostd::comp::PoisonError::into_inner);
         if let Some(mem) = locked_mem.as_mut() {
             f(mem);
         }
@@ -75,7 +75,7 @@ impl MemoryAllocation {
 
     #[inline]
     pub fn as_address(&self) -> MemoryAllocationResult<(*const u8, u64)> {
-        let memory = self.memory.lock();
+        let memory = self.memory.lock().unwrap_or_else(foundation_nostd::comp::PoisonError::into_inner);
         match memory.as_ref() {
             Some(mem) => Ok((mem.as_ptr(), mem.len() as u64)),
             None => Err(MemoryAllocationError::NoMemoryAllocation),
@@ -87,7 +87,7 @@ impl MemoryAllocation {
     /// as we want this to always be safe.
     #[inline]
     pub fn get_pointer(&self) -> MemoryAllocationResult<*const u8> {
-        let memory = self.memory.lock();
+        let memory = self.memory.lock().unwrap_or_else(foundation_nostd::comp::PoisonError::into_inner);
         match memory.as_ref() {
             Some(mem) => Ok(mem.as_ptr()),
             None => Err(MemoryAllocationError::NoMemoryAllocation),
@@ -96,7 +96,7 @@ impl MemoryAllocation {
 
     #[inline]
     pub fn capacity(&self) -> MemoryAllocationResult<u64> {
-        let memory = self.memory.lock();
+        let memory = self.memory.lock().unwrap_or_else(foundation_nostd::comp::PoisonError::into_inner);
         match memory.as_ref() {
             Some(mem) => Ok(mem.capacity() as u64),
             None => Err(MemoryAllocationError::NoMemoryAllocation),
@@ -105,7 +105,7 @@ impl MemoryAllocation {
 
     #[inline]
     pub fn len(&self) -> MemoryAllocationResult<u64> {
-        let memory = self.memory.lock();
+        let memory = self.memory.lock().unwrap_or_else(foundation_nostd::comp::PoisonError::into_inner);
         match memory.as_ref() {
             Some(mem) => Ok(mem.len() as u64),
             None => Err(MemoryAllocationError::NoMemoryAllocation),
@@ -114,7 +114,7 @@ impl MemoryAllocation {
 
     #[inline]
     pub fn reset(&self) {
-        let mut memory = self.memory.lock();
+        let mut memory = self.memory.lock().unwrap_or_else(foundation_nostd::comp::PoisonError::into_inner);
         if let Some(mem) = memory.as_mut() {
             mem.clear();
             return;
@@ -125,7 +125,7 @@ impl MemoryAllocation {
     #[inline]
     #[allow(clippy::slow_vector_initialization)]
     pub fn reset_to(&self, new_capacity: usize) {
-        let mut memory = self.memory.lock();
+        let mut memory = self.memory.lock().unwrap_or_else(foundation_nostd::comp::PoisonError::into_inner);
         if let Some(mem) = memory.as_mut() {
             mem.clear();
             if mem.capacity() < new_capacity {
@@ -143,7 +143,7 @@ impl MemoryAllocation {
 
     #[inline]
     pub fn is_empty(&self) -> MemoryAllocationResult<bool> {
-        let mut memory = self.memory.lock();
+        let mut memory = self.memory.lock().unwrap_or_else(foundation_nostd::comp::PoisonError::into_inner);
         if let Some(mem) = memory.as_mut() {
             return Ok(mem.is_empty());
         }
@@ -152,7 +152,7 @@ impl MemoryAllocation {
 
     #[inline]
     pub fn clear(&self) -> MemoryAllocationResult<()> {
-        let mut memory = self.memory.lock();
+        let mut memory = self.memory.lock().unwrap_or_else(foundation_nostd::comp::PoisonError::into_inner);
         if let Some(mem) = memory.as_mut() {
             mem.clear();
             return Ok(());
@@ -162,13 +162,13 @@ impl MemoryAllocation {
 
     #[inline]
     pub fn is_valid_memory(&self) -> bool {
-        let memory = self.memory.lock();
+        let memory = self.memory.lock().unwrap_or_else(foundation_nostd::comp::PoisonError::into_inner);
         memory.as_ref().is_some()
     }
 
     #[inline]
     pub fn clone_memory(&self) -> MemoryAllocationResult<Vec<u8>> {
-        let memory = self.memory.lock();
+        let memory = self.memory.lock().unwrap_or_else(foundation_nostd::comp::PoisonError::into_inner);
         match memory.as_ref() {
             Some(mem) => Ok(mem.clone()),
             None => Err(MemoryAllocationError::NoMemoryAllocation),
@@ -182,7 +182,7 @@ impl MemoryAllocation {
 
     #[inline]
     pub fn string_from_memory(&self) -> MemoryAllocationResult<String> {
-        let mut memory = self.memory.lock();
+        let mut memory = self.memory.lock().unwrap_or_else(foundation_nostd::comp::PoisonError::into_inner);
         if let Some(mem) = memory.as_mut() {
             return match String::from_utf8(mem.clone()) {
                 Ok(content) => Ok(content),
@@ -197,7 +197,7 @@ impl MemoryAllocation {
     /// memory slice either for dropping or usage.
     #[inline]
     pub fn take(&mut self) -> Option<Vec<u8>> {
-        let mut memory = self.memory.lock();
+        let mut memory = self.memory.lock().unwrap_or_else(foundation_nostd::comp::PoisonError::into_inner);
         memory.take()
     }
 }

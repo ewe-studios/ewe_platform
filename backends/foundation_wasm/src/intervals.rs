@@ -1,7 +1,7 @@
 use alloc::{boxed::Box, collections::btree_map::BTreeMap, vec::Vec};
 
 use crate::{InternalPointer, TickState, WrappedItem};
-use foundation_nostd::primitives::Mutex;
+use foundation_nostd::comp::Mutex;
 
 #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
 pub trait IntervalCallback {
@@ -58,7 +58,7 @@ impl IntervalCallback for FnIntervalCallback {
     fn perform(&self) -> TickState {
         #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
         {
-            (self.0.lock())()
+            (self.0.lock().unwrap_or_else(foundation_nostd::comp::PoisonError::into_inner))()
         }
 
         #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
@@ -166,7 +166,7 @@ mod test_interval_registry {
     use alloc::sync::Arc;
 
     use super::*;
-    use std::sync::Mutex;
+    use foundation_nostd::comp::Mutex;
 
     #[test]
     fn test_add_when_requeued() {
@@ -293,10 +293,10 @@ impl IntervalRegistry {
         self.tree.is_empty()
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn call(&self, id: InternalPointer) -> Option<TickState> {
         if let Some(callback) = self.tree.get(&id) {
-            return Some(callback.0.lock().perform());
+            return Some(callback.0.lock().unwrap_or_else(foundation_nostd::comp::PoisonError::into_inner).perform());
         }
         None
     }
@@ -323,7 +323,7 @@ mod test_schedule_registry {
     use super::FnIntervalCallback;
     use super::IntervalRegistry;
     use super::TickState;
-    use std::sync::Mutex;
+    use foundation_nostd::comp::Mutex;
 
     #[test]
     fn test_add() {
