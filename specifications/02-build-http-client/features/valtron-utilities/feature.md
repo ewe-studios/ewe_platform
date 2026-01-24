@@ -9,9 +9,9 @@ created: 2026-01-19
 last_updated: 2026-01-24
 author: Main Agent
 tasks:
-  completed: 30
+  completed: 33
   uncompleted: 0
-  total: 30
+  total: 33
   completion_percentage: 100
 files_required:
   implementation_agent:
@@ -1648,6 +1648,9 @@ let task = StreamTask::new(stream);
 - [x] `PollLimitTask` available in all configurations
 - [x] `RetryingTask` wraps TaskIterator with retry logic
 - [x] `BackoffTask` supports fixed/exponential/linear strategies
+- [x] Type names updated: LiftAction→SpawnWithLift, ScheduleAction→SpawnWithSchedule, BroadcastAction→SpawnWithBroadcast, CompositeAction→SpawnStrategy
+- [x] Backward-compatible deprecated type aliases added for old names
+- [x] Send bound added to BroadcastTask<T> for thread safety
 - [x] All unit tests pass
 - [x] Code passes `cargo fmt` and `cargo clippy`
 
