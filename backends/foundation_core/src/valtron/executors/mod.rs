@@ -1,27 +1,37 @@
+mod actions;
 mod collect_next;
 mod constants;
 mod controller;
 mod do_next;
 mod executor;
+mod future_task;
 mod hot;
 mod local;
 mod on_next;
+mod state_machine;
 mod task;
 mod task_iters;
 mod threads;
+mod unified;
+mod wrappers;
 
+pub use actions::*;
 pub use collect_next::*;
 pub use constants::*;
 pub use controller::*;
 pub use do_next::*;
 pub use executor::*;
+pub use future_task::*;
 pub use hot::*;
 pub use local::*;
 pub use on_next::*;
 pub use rand::SeedableRng;
+pub use state_machine::*;
 pub use task::*;
 pub use task_iters::*;
 pub use threads::*;
+pub use unified::*;
+pub use wrappers::*;
 
 pub mod multi;
 pub mod single;

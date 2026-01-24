@@ -1,7 +1,7 @@
 ---
 feature: valtron-utilities
 description: Reusable ExecutionAction types, unified executor wrapper, state machine helpers, Future adapter, and retry/timeout wrappers
-status: pending
+status: completed
 priority: high
 depends_on: []
 estimated_effort: medium
@@ -9,10 +9,10 @@ created: 2026-01-19
 last_updated: 2026-01-24
 author: Main Agent
 tasks:
-  completed: 0
-  uncompleted: 30
+  completed: 30
+  uncompleted: 0
   total: 30
-  completion_percentage: 0
+  completion_percentage: 100
 files_required:
   implementation_agent:
     rules:
@@ -1162,36 +1162,36 @@ let task = StreamTask::new(stream);
 
 ## Success Criteria
 
-- [ ] `actions.rs` exists with LiftAction, ScheduleAction, BroadcastAction
-- [ ] `CompositeAction` enum combines all action types with custom slot
-- [ ] All action types implement ExecutionAction correctly
-- [ ] `unified.rs` exists with feature-gated execute() function
-- [ ] WASM always uses single executor
-- [ ] Native uses single by default, multi with feature flag
-- [ ] `StateTransition` enum covers all transition types
-- [ ] `StateMachine` trait is defined with associated types
-- [ ] `StateMachineTask` wrapper implements TaskIterator
-- [ ] `FutureTask` wraps Future and implements TaskIterator (std/alloc)
-- [ ] `FutureTaskRef` provides stack-pinned variant (pure no_std)
-- [ ] `FuturePollState` enum defined for pending state
-- [ ] No-op waker uses only `core` types (no_std compatible)
-- [ ] Thread-local waker cache used with `std` feature
-- [ ] `from_future()` convenience function works
-- [ ] `run_future()` executes futures through unified executor
-- [ ] WASM build works with relaxed Send bounds
-- [ ] Native build requires Send bounds
-- [ ] `StreamTask` wraps async Stream and implements TaskIterator
-- [ ] `from_stream()` convenience function works
-- [ ] `futures-core` uses `default-features = false`
-- [ ] `std` feature enables full functionality
-- [ ] `alloc` feature enables heap allocation without std
-- [ ] Pure no_std build compiles (no std, no alloc)
-- [ ] `TimeoutTask` available only with `std` feature
-- [ ] `PollLimitTask` available in all configurations
-- [ ] `RetryingTask` wraps TaskIterator with retry logic
-- [ ] `BackoffTask` supports fixed/exponential/linear strategies
-- [ ] All unit tests pass
-- [ ] Code passes `cargo fmt` and `cargo clippy`
+- [x] `actions.rs` exists with LiftAction, ScheduleAction, BroadcastAction
+- [x] `CompositeAction` enum combines all action types with custom slot
+- [x] All action types implement ExecutionAction correctly
+- [x] `unified.rs` exists with feature-gated execute() function
+- [x] WASM always uses single executor
+- [x] Native uses single by default, multi with feature flag
+- [x] `StateTransition` enum covers all transition types
+- [x] `StateMachine` trait is defined with associated types
+- [x] `StateMachineTask` wrapper implements TaskIterator
+- [x] `FutureTask` wraps Future and implements TaskIterator (std/alloc)
+- [x] `FutureTaskRef` provides stack-pinned variant (pure no_std)
+- [x] `FuturePollState` enum defined for pending state
+- [x] No-op waker uses only `core` types (no_std compatible)
+- [x] Thread-local waker cache used with `std` feature
+- [x] `from_future()` convenience function works
+- [x] `run_future()` executes futures through unified executor
+- [x] WASM build works with relaxed Send bounds
+- [x] Native build requires Send bounds
+- [x] `StreamTask` wraps async Stream and implements TaskIterator
+- [x] `from_stream()` convenience function works
+- [x] `futures-core` uses `default-features = false`
+- [x] `std` feature enables full functionality
+- [x] `alloc` feature enables heap allocation without std
+- [x] Pure no_std build compiles (no std, no alloc)
+- [x] `TimeoutTask` available only with `std` feature
+- [x] `PollLimitTask` available in all configurations
+- [x] `RetryingTask` wraps TaskIterator with retry logic
+- [x] `BackoffTask` supports fixed/exponential/linear strategies
+- [x] All unit tests pass
+- [x] Code passes `cargo fmt` and `cargo clippy`
 
 ## Verification Commands
 

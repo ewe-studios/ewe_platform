@@ -605,7 +605,7 @@ impl ThreadPool {
             "Unable to create ThreadPool with 1 thread only, please specify >= 2"
         );
 
-        assert!((num_threads <= THREADS_MAX), 
+        assert!((num_threads <= THREADS_MAX),
                 "Unable to create ThreadPool with thread numbers of {num_threads}, must no go past {THREADS_MAX}"
             );
         let thread_latch = Arc::new(LockSignal::new());
