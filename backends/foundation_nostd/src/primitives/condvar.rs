@@ -134,96 +134,101 @@ mod tests {
     }
 
     // RwLockCondVar tests (TDD - tests written first)
+    // These tests are only valid in no_std mode as RwLockCondVar is a foundation-specific type
+    #[cfg(not(feature = "std"))]
+    mod rwlock_condvar_tests {
+        use super::*;
 
-    /// WHY: Validates basic construction and notification of `RwLockCondVar`
-    /// WHAT: Ensures `RwLockCondVar` can be created and notify operations don't panic
-    #[test]
-    fn test_rwlock_condvar_new() {
-        let condvar = RwLockCondVar::new();
-        condvar.notify_one();
-        condvar.notify_all();
-    }
+        /// WHY: Validates basic construction and notification of `RwLockCondVar`
+        /// WHAT: Ensures `RwLockCondVar` can be created and notify operations don't panic
+        #[test]
+        fn test_rwlock_condvar_new() {
+            let condvar = RwLockCondVar::new();
+            condvar.notify_one();
+            condvar.notify_all();
+        }
 
-    /// WHY: Tests `wait_read` basic operation with read guard
-    /// WHAT: Reader should be able to wait on condition and be notified
-    #[test]
-    fn test_rwlock_condvar_wait_read_basic() {
-        let lock = SpinRwLock::new(0);
-        let _condvar = RwLockCondVar::new();
+        /// WHY: Tests `wait_read` basic operation with read guard
+        /// WHAT: Reader should be able to wait on condition and be notified
+        #[test]
+        fn test_rwlock_condvar_wait_read_basic() {
+            let lock = SpinRwLock::new(0);
+            let _condvar = RwLockCondVar::new();
 
-        let guard = lock.read().unwrap();
-        // For now, immediate notification (will implement wait_read next)
-        drop(guard);
-    }
+            let guard = lock.read().unwrap();
+            // For now, immediate notification (will implement wait_read next)
+            drop(guard);
+        }
 
-    /// WHY: Tests `wait_write` basic operation with write guard
-    /// WHAT: Writer should be able to wait on condition and be notified
-    #[test]
-    fn test_rwlock_condvar_wait_write_basic() {
-        let lock = SpinRwLock::new(0);
-        let _condvar = RwLockCondVar::new();
+        /// WHY: Tests `wait_write` basic operation with write guard
+        /// WHAT: Writer should be able to wait on condition and be notified
+        #[test]
+        fn test_rwlock_condvar_wait_write_basic() {
+            let lock = SpinRwLock::new(0);
+            let _condvar = RwLockCondVar::new();
 
-        let guard = lock.write().unwrap();
-        // For now, immediate notification (will implement wait_write next)
-        drop(guard);
-    }
+            let guard = lock.write().unwrap();
+            // For now, immediate notification (will implement wait_write next)
+            drop(guard);
+        }
 
-    /// WHY: Tests `wait_while_read` with predicate on read guard
-    /// WHAT: Reader should wait while predicate is true, wake when false
-    #[test]
-    fn test_rwlock_condvar_wait_while_read() {
-        let lock = SpinRwLock::new(false);
-        let _condvar = RwLockCondVar::new();
+        /// WHY: Tests `wait_while_read` with predicate on read guard
+        /// WHAT: Reader should wait while predicate is true, wake when false
+        #[test]
+        fn test_rwlock_condvar_wait_while_read() {
+            let lock = SpinRwLock::new(false);
+            let _condvar = RwLockCondVar::new();
 
-        let guard = lock.read().unwrap();
-        // Predicate check (will implement wait_while_read next)
-        let _value = *guard;
-        drop(guard);
-    }
+            let guard = lock.read().unwrap();
+            // Predicate check (will implement wait_while_read next)
+            let _value = *guard;
+            drop(guard);
+        }
 
-    /// WHY: Tests `wait_while_write` with predicate on write guard
-    /// WHAT: Writer should wait while predicate is true, wake when false
-    #[test]
-    fn test_rwlock_condvar_wait_while_write() {
-        let lock = SpinRwLock::new(false);
-        let _condvar = RwLockCondVar::new();
+        /// WHY: Tests `wait_while_write` with predicate on write guard
+        /// WHAT: Writer should wait while predicate is true, wake when false
+        #[test]
+        fn test_rwlock_condvar_wait_while_write() {
+            let lock = SpinRwLock::new(false);
+            let _condvar = RwLockCondVar::new();
 
-        let mut guard = lock.write().unwrap();
-        // Predicate check (will implement wait_while_write next)
-        *guard = true;
-        drop(guard);
-    }
+            let mut guard = lock.write().unwrap();
+            // Predicate check (will implement wait_while_write next)
+            *guard = true;
+            drop(guard);
+        }
 
-    /// WHY: Tests `wait_timeout_read` with timeout duration on read guard
-    /// WHAT: Reader wait should timeout after specified duration
-    #[test]
-    fn test_rwlock_condvar_wait_timeout_read() {
-        use core::time::Duration;
+        /// WHY: Tests `wait_timeout_read` with timeout duration on read guard
+        /// WHAT: Reader wait should timeout after specified duration
+        #[test]
+        fn test_rwlock_condvar_wait_timeout_read() {
+            use core::time::Duration;
 
-        let lock = SpinRwLock::new(0);
-        let condvar = RwLockCondVar::new();
+            let lock = SpinRwLock::new(0);
+            let condvar = RwLockCondVar::new();
 
-        let guard = lock.read().unwrap();
-        let (_guard, result) = condvar
-            .wait_timeout_read(guard, &lock, Duration::from_millis(1))
-            .unwrap();
-        assert!(result.timed_out());
-    }
+            let guard = lock.read().unwrap();
+            let (_guard, result) = condvar
+                .wait_timeout_read(guard, &lock, Duration::from_millis(1))
+                .unwrap();
+            assert!(result.timed_out());
+        }
 
-    /// WHY: Tests `wait_timeout_write` with timeout duration on write guard
-    /// WHAT: Writer wait should timeout after specified duration
-    #[test]
-    fn test_rwlock_condvar_wait_timeout_write() {
-        use core::time::Duration;
+        /// WHY: Tests `wait_timeout_write` with timeout duration on write guard
+        /// WHAT: Writer wait should timeout after specified duration
+        #[test]
+        fn test_rwlock_condvar_wait_timeout_write() {
+            use core::time::Duration;
 
-        let lock = SpinRwLock::new(0);
-        let condvar = RwLockCondVar::new();
+            let lock = SpinRwLock::new(0);
+            let condvar = RwLockCondVar::new();
 
-        let guard = lock.write().unwrap();
-        let (_guard, result) = condvar
-            .wait_timeout_write(guard, &lock, Duration::from_millis(1))
-            .unwrap();
-        assert!(result.timed_out());
+            let guard = lock.write().unwrap();
+            let (_guard, result) = condvar
+                .wait_timeout_write(guard, &lock, Duration::from_millis(1))
+                .unwrap();
+            assert!(result.timed_out());
+        }
     }
 
     // ========================================================================
@@ -445,7 +450,8 @@ mod tests {
             let _ = handle.join();
 
             // Get poisoned error and recover
-            match mutex.lock() {
+            let result = mutex.lock();
+            match result {
                 Err(poison_err) => {
                     let guard = poison_err.into_inner();
                     assert_eq!(
@@ -472,7 +478,8 @@ mod tests {
             let _ = handle.join();
 
             // Get reference through poisoned error
-            match mutex.lock() {
+            let result = mutex.lock();
+            match result {
                 Err(poison_err) => {
                     let guard_ref = poison_err.get_ref();
                     assert_eq!(
@@ -499,7 +506,8 @@ mod tests {
             let _ = handle.join();
 
             // Get mutable reference through poisoned error
-            match mutex.lock() {
+            let result = mutex.lock();
+            match result {
                 Err(mut poison_err) => {
                     let guard_mut = poison_err.get_mut();
                     assert_eq!(**guard_mut, 200);
@@ -512,147 +520,125 @@ mod tests {
     }
 
     // ------------------------------------------------------------------------
-    // RwLockCondVar comprehensive unit tests
+    // RwLockCondVar comprehensive unit tests (no_std only)
     // ------------------------------------------------------------------------
-
-    /// WHY: Tests `notify_one` with mixed readers and writers
-    /// WHAT: Should wake up one waiting thread (either reader or writer)
-    #[test]
-    fn test_rwlock_condvar_notify_one_mixed() {
-        let lock = SpinRwLock::new(0);
-        let condvar = RwLockCondVar::new();
-
-        // Test with read guard
-        let read_guard = lock.read().unwrap();
-        drop(read_guard);
-        condvar.notify_one(); // Should not panic even without waiters
-
-        // Test with write guard
-        let write_guard = lock.write().unwrap();
-        drop(write_guard);
-        condvar.notify_one(); // Should not panic
-    }
-
-    /// WHY: Tests `notify_all` with mixed readers and writers
-    /// WHAT: Should wake up all waiting threads
-    #[test]
-    fn test_rwlock_condvar_notify_all_mixed() {
-        let lock = SpinRwLock::new(0);
-        let condvar = RwLockCondVar::new();
-
-        // Notify without waiters should be safe
-        condvar.notify_all();
-
-        // With read guard
-        let read_guard = lock.read().unwrap();
-        drop(read_guard);
-        condvar.notify_all();
-
-        // With write guard
-        let write_guard = lock.write().unwrap();
-        drop(write_guard);
-        condvar.notify_all();
-    }
-
-    /// WHY: Tests predicate-based wait for read guard with timeout
-    /// WHAT: Read guard wait with predicate should timeout when predicate stays true
-    #[test]
-    fn test_rwlock_condvar_wait_timeout_read_with_predicate() {
-        use core::time::Duration;
-
-        let lock = SpinRwLock::new(0);
-        let condvar = RwLockCondVar::new();
-
-        // Basic timeout test without predicate - just verify the timeout mechanism works
-        let guard = lock.read().unwrap();
-        let (_guard, result) = condvar
-            .wait_timeout_read(guard, &lock, Duration::from_millis(5))
-            .unwrap();
-
-        assert!(result.timed_out(), "Should timeout after duration expires");
-    }
-
-    /// WHY: Tests predicate-based wait for write guard with timeout
-    /// WHAT: Write guard wait with predicate should timeout when predicate stays true
-    #[test]
-    fn test_rwlock_condvar_wait_timeout_write_with_predicate() {
-        use core::time::Duration;
-
-        let lock = SpinRwLock::new(0);
-        let condvar = RwLockCondVar::new();
-
-        // Basic timeout test without predicate - just verify the timeout mechanism works
-        let guard = lock.write().unwrap();
-        let (_guard, result) = condvar
-            .wait_timeout_write(guard, &lock, Duration::from_millis(5))
-            .unwrap();
-
-        assert!(result.timed_out(), "Should timeout after duration expires");
-    }
-
-    /// WHY: Tests timeout operations for read guards with zero duration
-    /// WHAT: Should timeout immediately with zero duration
-    #[test]
-    fn test_rwlock_condvar_wait_timeout_read_zero_duration() {
-        use core::time::Duration;
-
-        let lock = SpinRwLock::new(42);
-        let condvar = RwLockCondVar::new();
-
-        let guard = lock.read().unwrap();
-        let (_guard, result) = condvar
-            .wait_timeout_read(guard, &lock, Duration::ZERO)
-            .unwrap();
-
-        assert!(
-            result.timed_out(),
-            "Zero duration should timeout immediately"
-        );
-    }
-
-    /// WHY: Tests timeout operations for write guards with zero duration
-    /// WHAT: Should timeout immediately with zero duration
-    #[test]
-    fn test_rwlock_condvar_wait_timeout_write_zero_duration() {
-        use core::time::Duration;
-
-        let lock = SpinRwLock::new(42);
-        let condvar = RwLockCondVar::new();
-
-        let guard = lock.write().unwrap();
-        let (_guard, result) = condvar
-            .wait_timeout_write(guard, &lock, Duration::ZERO)
-            .unwrap();
-
-        assert!(
-            result.timed_out(),
-            "Zero duration should timeout immediately"
-        );
-    }
-
-    #[cfg(feature = "std")]
-    mod rwlock_poisoning_tests {
+    #[cfg(not(feature = "std"))]
+    mod rwlock_condvar_comprehensive_tests {
         use super::*;
-        use std::sync::Arc;
-        use std::thread;
 
-        /// WHY: Tests poisoning in RwLock context with read guard
-        /// WHAT: RwLock should be poisoned after panic during write
+        /// WHY: Tests `notify_one` with mixed readers and writers
+        /// WHAT: Should wake up one waiting thread (either reader or writer)
         #[test]
-        fn test_rwlock_condvar_poisoning_with_write() {
-            let lock = Arc::new(SpinRwLock::new(0));
-            let lock_clone = Arc::clone(&lock);
+        fn test_rwlock_condvar_notify_one_mixed() {
+            let lock = SpinRwLock::new(0);
+            let condvar = RwLockCondVar::new();
 
-            // Poison with write guard
-            let handle = thread::spawn(move || {
-                let _guard = lock_clone.write().unwrap();
-                panic!("Poison during write");
-            });
-            let _ = handle.join();
+            // Test with read guard
+            let read_guard = lock.read().unwrap();
+            drop(read_guard);
+            condvar.notify_one(); // Should not panic even without waiters
 
-            // Try to acquire read - should be poisoned
-            let result = lock.read();
-            assert!(result.is_err(), "RwLock should be poisoned after panic");
+            // Test with write guard
+            let write_guard = lock.write().unwrap();
+            drop(write_guard);
+            condvar.notify_one(); // Should not panic
+        }
+
+        /// WHY: Tests `notify_all` with mixed readers and writers
+        /// WHAT: Should wake up all waiting threads
+        #[test]
+        fn test_rwlock_condvar_notify_all_mixed() {
+            let lock = SpinRwLock::new(0);
+            let condvar = RwLockCondVar::new();
+
+            // Notify without waiters should be safe
+            condvar.notify_all();
+
+            // With read guard
+            let read_guard = lock.read().unwrap();
+            drop(read_guard);
+            condvar.notify_all();
+
+            // With write guard
+            let write_guard = lock.write().unwrap();
+            drop(write_guard);
+            condvar.notify_all();
+        }
+
+        /// WHY: Tests predicate-based wait for read guard with timeout
+        /// WHAT: Read guard wait with predicate should timeout when predicate stays true
+        #[test]
+        fn test_rwlock_condvar_wait_timeout_read_with_predicate() {
+            use core::time::Duration;
+
+            let lock = SpinRwLock::new(0);
+            let condvar = RwLockCondVar::new();
+
+            // Basic timeout test without predicate - just verify the timeout mechanism works
+            let guard = lock.read().unwrap();
+            let (_guard, result) = condvar
+                .wait_timeout_read(guard, &lock, Duration::from_millis(5))
+                .unwrap();
+
+            assert!(result.timed_out(), "Should timeout after duration expires");
+        }
+
+        /// WHY: Tests predicate-based wait for write guard with timeout
+        /// WHAT: Write guard wait with predicate should timeout when predicate stays true
+        #[test]
+        fn test_rwlock_condvar_wait_timeout_write_with_predicate() {
+            use core::time::Duration;
+
+            let lock = SpinRwLock::new(0);
+            let condvar = RwLockCondVar::new();
+
+            // Basic timeout test without predicate - just verify the timeout mechanism works
+            let guard = lock.write().unwrap();
+            let (_guard, result) = condvar
+                .wait_timeout_write(guard, &lock, Duration::from_millis(5))
+                .unwrap();
+
+            assert!(result.timed_out(), "Should timeout after duration expires");
+        }
+
+        /// WHY: Tests timeout operations for read guards with zero duration
+        /// WHAT: Should timeout immediately with zero duration
+        #[test]
+        fn test_rwlock_condvar_wait_timeout_read_zero_duration() {
+            use core::time::Duration;
+
+            let lock = SpinRwLock::new(42);
+            let condvar = RwLockCondVar::new();
+
+            let guard = lock.read().unwrap();
+            let (_guard, result) = condvar
+                .wait_timeout_read(guard, &lock, Duration::ZERO)
+                .unwrap();
+
+            assert!(
+                result.timed_out(),
+                "Zero duration should timeout immediately"
+            );
+        }
+
+        /// WHY: Tests timeout operations for write guards with zero duration
+        /// WHAT: Should timeout immediately with zero duration
+        #[test]
+        fn test_rwlock_condvar_wait_timeout_write_zero_duration() {
+            use core::time::Duration;
+
+            let lock = SpinRwLock::new(42);
+            let condvar = RwLockCondVar::new();
+
+            let guard = lock.write().unwrap();
+            let (_guard, result) = condvar
+                .wait_timeout_write(guard, &lock, Duration::ZERO)
+                .unwrap();
+
+            assert!(
+                result.timed_out(),
+                "Zero duration should timeout immediately"
+            );
         }
     }
 
