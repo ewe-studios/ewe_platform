@@ -24,7 +24,7 @@
 //! ```
 //!
 //! ```no_run
-//! use foundation_nostd::comp::{Mutex, RwLock};
+//! use foundation_nostd::comp::basic::{Mutex, RwLock};
 //!
 //! // Will use std::sync::Mutex when std feature is enabled
 //! let mutex = Mutex::new(42);
@@ -40,7 +40,7 @@
 //! ```
 //!
 //! ```no_run
-//! use foundation_nostd::comp::{Mutex, RwLock};
+//! use foundation_nostd::comp::basic::{Mutex, RwLock};
 //!
 //! // Will use foundation_nostd::primitives::SpinMutex when std feature is disabled
 //! let mutex = Mutex::new(42);
@@ -65,12 +65,10 @@
 pub mod basic;
 pub mod condvar_comp;
 
-// Re-export basic types for convenience
-pub use basic::*;
-
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::basic::{Barrier, Mutex, Once, OnceLock, RwLock};
+    use super::condvar_comp::{CondVar, Mutex as CondVarMutex};
 
     #[test]
     fn test_mutex_basic() {
@@ -100,10 +98,9 @@ mod tests {
 
     #[test]
     fn test_condvar_basic() {
-        use condvar_comp::{CondVar, Mutex};
         use core::time::Duration;
 
-        let mutex = Mutex::new(false);
+        let mutex = CondVarMutex::new(false);
         let condvar = CondVar::new();
 
         let guard = mutex.lock().unwrap();

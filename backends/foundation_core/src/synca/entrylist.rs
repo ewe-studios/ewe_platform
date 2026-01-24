@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 #[cfg(not(target_arch = "wasm32"))]
-use foundation_nostd::comp::RwLock;
+use foundation_nostd::comp::basic::RwLock;
 
 #[cfg(target_arch = "wasm32")]
 pub use foundation_nostd::primtivies::RwLock;

@@ -5,7 +5,7 @@ use std::io::{BufRead, BufReader, BufWriter, Cursor, IoSlice, IoSliceMut, Read, 
 use std::rc::Rc;
 use std::sync::atomic::AtomicPtr;
 use std::sync::Arc;
-use foundation_nostd::comp::{Mutex, RwLock};
+use foundation_nostd::comp::basic::{Mutex, RwLock};
 
 use crate::err;
 use derive_more::derive::From;
