@@ -95,3 +95,38 @@ _To be populated with technical debt and improvement opportunities_
 - Documentation follows existing patterns
 - Type constraints verified manually
 
+### TaskIterator Forwarding Pattern (CRITICAL INSIGHT - 2026-01-24)
+
+**Core Pattern**: TaskIterators should work with `Iterator<Item = TaskStatus<D, P, S>>` and forward states they don't transform.
+
+**Two Entry Points**:
+1. **WrapTask**: Converts `Iterator<Item = T>` → `TaskIterator` by wrapping in `Ready(T)`
+2. **LiftTask**: Converts `Iterator<Item = TaskStatus>` → `TaskIterator` by passing through as-is
+
+**Why This Matters**:
+- Prevents incorrect nesting: `Ready(Pending(...))` would lose semantic meaning
+- Enables clean composition: stack wrappers without information loss
+- Single responsibility: each wrapper only transforms states it cares about
+
+**Forwarding Examples**:
+- TimeoutTask: Forwards Ready/Delayed/Spawn, wraps Pending with timeout info
+- RetryingTask: Forwards all states (`other => other`)
+- FutureTask/StreamTask: Produce TaskStatus directly based on Poll result
+
+**Composition Works**:
+```rust
+vec![1,2,3].into_iter()     // Plain iterator
+→ WrapTask                  // Wrap in Ready(T)
+→ TimeoutTask               // Add timeout, forward Ready
+→ TaskStatus::Ready(1)      // Clean result!
+```
+
+**Anti-Pattern**:
+```rust
+// WRONG: Don't wrap TaskStatus in TaskStatus
+TaskStatus::Ready(TaskStatus::Pending(()))  // ❌ Loses meaning!
+
+// CORRECT: Use LiftTask to forward
+TaskStatus::Pending(())  // ✅ Semantic meaning preserved!
+```
+

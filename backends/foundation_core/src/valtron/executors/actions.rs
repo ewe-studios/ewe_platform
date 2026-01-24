@@ -13,21 +13,24 @@ use crate::valtron::GenericResult;
 use std::marker::PhantomData;
 
 // ============================================================================
-// LiftAction - Convert Iterator to TaskIterator
+// WrapTask - Wrap plain values in TaskStatus::Ready
 // ============================================================================
 
-/// Task that wraps an iterator and yields items as TaskStatus::Ready.
+/// Task that wraps an iterator of plain values and yields items as TaskStatus::Ready.
 ///
-/// WHY: Allows standard iterators to be used as TaskIterators in the executor.
+/// WHY: Allows standard iterators of plain values to be used as TaskIterators.
 /// WHAT: Each `next()` call wraps the iterator's item in TaskStatus::Ready.
-pub struct LiftTask<I, T>
+///
+/// NOTE: If your iterator already produces TaskStatus variants, use LiftTask instead
+/// to avoid nesting like Ready(Pending(...)). WrapTask is ONLY for plain value iterators.
+pub struct WrapTask<I, T>
 where
     I: Iterator<Item = T>,
 {
     iter: I,
 }
 
-impl<I, T> LiftTask<I, T>
+impl<I, T> WrapTask<I, T>
 where
     I: Iterator<Item = T>,
 {
@@ -36,7 +39,7 @@ where
     }
 }
 
-impl<I, T> TaskIterator for LiftTask<I, T>
+impl<I, T> TaskIterator for WrapTask<I, T>
 where
     I: Iterator<Item = T>,
 {
@@ -49,11 +52,78 @@ where
     }
 }
 
-/// Action that spawns a LiftTask wrapping an iterator.
+// ============================================================================
+// LiftTask - Pass through TaskStatus from iterator
+// ============================================================================
+
+/// Task that passes through TaskStatus items from an iterator without wrapping.
 ///
-/// WHY: Provides a reusable way to schedule iterators as tasks.
-/// WHAT: Creates a DoNext executor for the lifted iterator.
-pub struct LiftAction<I, T>
+/// WHY: Allows iterators that already produce TaskStatus to be used directly,
+/// preserving their semantic meaning (Pending, Delayed, Ready, etc.).
+/// WHAT: Each `next()` call passes through the TaskStatus variant as-is.
+///
+/// This prevents incorrect nesting like `Ready(Pending(...))` which would lose
+/// the semantic meaning of the original TaskStatus.
+///
+/// # Example
+///
+/// ```ignore
+/// let iter = vec![
+///     TaskStatus::Pending(()),
+///     TaskStatus::Delayed(Duration::from_secs(1)),
+///     TaskStatus::Ready(42)
+/// ].into_iter();
+///
+/// let mut task = LiftTask::new(iter);
+/// assert_eq!(task.next(), Some(TaskStatus::Pending(())));  // Preserved!
+/// assert_eq!(task.next(), Some(TaskStatus::Delayed(Duration::from_secs(1))));
+/// assert_eq!(task.next(), Some(TaskStatus::Ready(42)));
+/// ```
+pub struct LiftTask<I, D, P, S>
+where
+    I: Iterator<Item = TaskStatus<D, P, S>>,
+    S: ExecutionAction,
+{
+    iter: I,
+}
+
+impl<I, D, P, S> LiftTask<I, D, P, S>
+where
+    I: Iterator<Item = TaskStatus<D, P, S>>,
+    S: ExecutionAction,
+{
+    pub fn new(iter: I) -> Self {
+        Self { iter }
+    }
+}
+
+impl<I, D, P, S> TaskIterator for LiftTask<I, D, P, S>
+where
+    I: Iterator<Item = TaskStatus<D, P, S>>,
+    S: ExecutionAction,
+{
+    type Pending = P;
+    type Ready = D;
+    type Spawner = S;
+
+    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        // Pass through TaskStatus as-is, preserving semantic meaning
+        self.iter.next()
+    }
+}
+
+// ============================================================================
+// WrapAction - Action for wrapping plain value iterators
+// ============================================================================
+
+/// Action that spawns a WrapTask wrapping a plain value iterator.
+///
+/// WHY: Provides a reusable way to schedule plain value iterators as tasks.
+/// WHAT: Creates a DoNext executor for the wrapped iterator.
+///
+/// Use this when your iterator produces plain values (i32, String, etc.)
+/// that need to be wrapped in TaskStatus::Ready.
+pub struct WrapAction<I, T>
 where
     I: Iterator<Item = T> + 'static,
     T: 'static,
@@ -62,7 +132,7 @@ where
     _marker: PhantomData<T>,
 }
 
-impl<I, T> LiftAction<I, T>
+impl<I, T> WrapAction<I, T>
 where
     I: Iterator<Item = T> + 'static,
     T: 'static,
@@ -75,10 +145,68 @@ where
     }
 }
 
-impl<I, T> ExecutionAction for LiftAction<I, T>
+impl<I, T> ExecutionAction for WrapAction<I, T>
 where
     I: Iterator<Item = T> + 'static,
     T: 'static,
+{
+    fn apply(
+        mut self,
+        _key: crate::synca::Entry,
+        executor: BoxedExecutionEngine,
+    ) -> GenericResult<()> {
+        if let Some(iter) = self.iter.take() {
+            let task = WrapTask::new(iter);
+            let exec_iter: BoxedExecutionIterator = DoNext::new(task).into();
+            executor.schedule(exec_iter)?;
+        }
+        Ok(())
+    }
+}
+
+// ============================================================================
+// LiftAction - Action for TaskStatus iterators
+// ============================================================================
+
+/// Action that spawns a LiftTask that passes through TaskStatus items.
+///
+/// WHY: Provides a reusable way to schedule TaskStatus iterators.
+/// WHAT: Creates a DoNext executor that preserves TaskStatus semantics.
+///
+/// Use this when your iterator already produces TaskStatus variants
+/// and you want to preserve their semantic meaning (Pending, Delayed, etc.).
+pub struct LiftAction<I, D, P, S>
+where
+    I: Iterator<Item = TaskStatus<D, P, S>> + 'static,
+    D: 'static,
+    P: 'static,
+    S: ExecutionAction + 'static,
+{
+    iter: Option<I>,
+    _marker: PhantomData<(D, P, S)>,
+}
+
+impl<I, D, P, S> LiftAction<I, D, P, S>
+where
+    I: Iterator<Item = TaskStatus<D, P, S>> + 'static,
+    D: 'static,
+    P: 'static,
+    S: ExecutionAction + 'static,
+{
+    pub fn new(iter: I) -> Self {
+        Self {
+            iter: Some(iter),
+            _marker: PhantomData,
+        }
+    }
+}
+
+impl<I, D, P, S> ExecutionAction for LiftAction<I, D, P, S>
+where
+    I: Iterator<Item = TaskStatus<D, P, S>> + 'static,
+    D: 'static,
+    P: 'static,
+    S: ExecutionAction + 'static,
 {
     fn apply(
         mut self,
@@ -278,25 +406,34 @@ where
 ///
 /// WHY: Allows using different action types through a single enum type
 /// WHAT: Enum with variants for each action type, delegates to inner action
-pub enum CompositeAction<I, T, F, V, C>
+pub enum CompositeAction<IW, TW, IL, DL, PL, SL, F, V, C>
 where
-    I: Iterator<Item = T> + 'static,
-    T: 'static,
+    IW: Iterator<Item = TW> + 'static,
+    TW: 'static,
+    IL: Iterator<Item = TaskStatus<DL, PL, SL>> + 'static,
+    DL: 'static,
+    PL: 'static,
+    SL: ExecutionAction + 'static,
     F: FnOnce() + 'static,
     V: Clone + 'static,
     C: ExecutionAction,
 {
     None,
-    Lift(LiftAction<I, T>),
+    Wrap(WrapAction<IW, TW>),
+    Lift(LiftAction<IL, DL, PL, SL>),
     Schedule(ScheduleAction<F>),
     Broadcast(BroadcastAction<V>),
     Custom(C),
 }
 
-impl<I, T, F, V, C> ExecutionAction for CompositeAction<I, T, F, V, C>
+impl<IW, TW, IL, DL, PL, SL, F, V, C> ExecutionAction for CompositeAction<IW, TW, IL, DL, PL, SL, F, V, C>
 where
-    I: Iterator<Item = T> + 'static,
-    T: 'static,
+    IW: Iterator<Item = TW> + 'static,
+    TW: 'static,
+    IL: Iterator<Item = TaskStatus<DL, PL, SL>> + 'static,
+    DL: 'static,
+    PL: 'static,
+    SL: ExecutionAction + 'static,
     F: FnOnce() + 'static,
     V: Clone + 'static,
     C: ExecutionAction,
@@ -304,6 +441,7 @@ where
     fn apply(self, key: crate::synca::Entry, engine: BoxedExecutionEngine) -> GenericResult<()> {
         match self {
             Self::None => Ok(()),
+            Self::Wrap(action) => action.apply(key, engine),
             Self::Lift(action) => action.apply(key, engine),
             Self::Schedule(action) => action.apply(key, engine),
             Self::Broadcast(action) => action.apply(key, engine),
@@ -320,15 +458,18 @@ where
 mod tests {
     use super::*;
     use std::sync::{Arc, Mutex as StdMutex};
+    use std::time::Duration;
 
-    // PHASE 1: LiftAction Tests
+    // ============================================================================
+    // PHASE 1: WrapTask Tests (formerly LiftTask)
+    // ============================================================================
 
-    /// WHY: LiftAction must convert Iterator to a TaskIterator for scheduling
-    /// WHAT: Construct LiftTask from vector iterator
+    /// WHY: WrapTask must convert plain values to TaskStatus::Ready
+    /// WHAT: Construct WrapTask from vector iterator of plain integers
     #[test]
-    fn test_lift_task_from_vec_iterator() {
+    fn test_wrap_task_from_vec_iterator() {
         let items = vec![1, 2, 3];
-        let mut task = LiftTask::new(items.into_iter());
+        let mut task = WrapTask::new(items.into_iter());
 
         // First item should be Ready(1)
         match task.next() {
@@ -352,22 +493,22 @@ mod tests {
         assert!(task.next().is_none());
     }
 
-    /// WHY: LiftAction must wrap iterator in ExecutionAction for spawning
-    /// WHAT: Create action that spawns a lifted iterator task
+    /// WHY: WrapAction must wrap plain iterator in ExecutionAction for spawning
+    /// WHAT: Create action that spawns a wrapped iterator task
     #[test]
-    fn test_lift_action_creates_spawnable_task() {
+    fn test_wrap_action_creates_spawnable_task() {
         let items = vec![10, 20, 30];
-        let action = LiftAction::new(items.into_iter());
+        let action = WrapAction::new(items.into_iter());
 
         // Action should be an ExecutionAction
         let _: Box<dyn ExecutionAction> = Box::new(action);
     }
 
-    /// WHY: LiftTask should work with different iterator types
+    /// WHY: WrapTask should work with different iterator types
     /// WHAT: Test with range iterator
     #[test]
-    fn test_lift_task_with_range() {
-        let mut task = LiftTask::new(0..3);
+    fn test_wrap_task_with_range() {
+        let mut task = WrapTask::new(0..3);
 
         assert_eq!(task.next(), Some(TaskStatus::Ready(0)));
         assert_eq!(task.next(), Some(TaskStatus::Ready(1)));
@@ -375,7 +516,173 @@ mod tests {
         assert_eq!(task.next(), None);
     }
 
-    // PHASE 2: ScheduleAction Tests
+    // ============================================================================
+    // PHASE 2: LiftTask Tests (NEW - preserves TaskStatus)
+    // ============================================================================
+
+    /// WHY: LiftTask must preserve Pending states without wrapping
+    /// WHAT: TaskStatus::Pending should pass through as-is
+    #[test]
+    fn test_lift_task_preserves_pending_state() {
+        let iter = vec![TaskStatus::<i32, (), NoAction>::Pending(())].into_iter();
+        let mut task = LiftTask::new(iter);
+
+        match task.next() {
+            Some(TaskStatus::Pending(())) => {} // Correct! Not Ready(Pending(()))
+            other => panic!("Expected Pending(()), got {:?}", other),
+        }
+    }
+
+    /// WHY: LiftTask must preserve Delayed states without wrapping
+    /// WHAT: TaskStatus::Delayed should pass through as-is
+    #[test]
+    fn test_lift_task_preserves_delayed_state() {
+        let dur = Duration::from_secs(1);
+        let iter = vec![TaskStatus::<i32, (), NoAction>::Delayed(dur)].into_iter();
+        let mut task = LiftTask::new(iter);
+
+        match task.next() {
+            Some(TaskStatus::Delayed(d)) if d == dur => {} // Correct!
+            other => panic!("Expected Delayed({:?}), got {:?}", dur, other),
+        }
+    }
+
+    /// WHY: LiftTask must preserve Ready states as-is
+    /// WHAT: TaskStatus::Ready should pass through without double-wrapping
+    #[test]
+    fn test_lift_task_preserves_ready_state() {
+        let iter = vec![TaskStatus::<i32, (), NoAction>::Ready(42)].into_iter();
+        let mut task = LiftTask::new(iter);
+
+        match task.next() {
+            Some(TaskStatus::Ready(42)) => {} // Correct! Not Ready(Ready(42))
+            other => panic!("Expected Ready(42), got {:?}", other),
+        }
+    }
+
+    /// WHY: LiftTask must handle mixed TaskStatus sequences correctly
+    /// WHAT: Test sequence of different TaskStatus variants
+    #[test]
+    fn test_lift_task_with_mixed_statuses() {
+        let dur = Duration::from_millis(500);
+        let iter = vec![
+            TaskStatus::<i32, (), NoAction>::Pending(()),
+            TaskStatus::<i32, (), NoAction>::Delayed(dur),
+            TaskStatus::<i32, (), NoAction>::Ready(100),
+            TaskStatus::<i32, (), NoAction>::Pending(()),
+        ].into_iter();
+
+        let mut task = LiftTask::new(iter);
+
+        assert!(matches!(task.next(), Some(TaskStatus::Pending(()))));
+        assert!(matches!(task.next(), Some(TaskStatus::Delayed(d)) if d == dur));
+        assert!(matches!(task.next(), Some(TaskStatus::Ready(100))));
+        assert!(matches!(task.next(), Some(TaskStatus::Pending(()))));
+        assert!(task.next().is_none());
+    }
+
+    /// WHY: LiftAction must be spawnable with TaskStatus iterators
+    /// WHAT: Create action that spawns a LiftTask
+    #[test]
+    fn test_lift_action_is_execution_action() {
+        let iter = vec![TaskStatus::<i32, (), NoAction>::Ready(1)].into_iter();
+        let action = LiftAction::new(iter);
+
+        let _: Box<dyn ExecutionAction> = Box::new(action);
+    }
+
+    // ============================================================================
+    // PHASE 2.5: Composition Tests - The Core Pattern
+    // ============================================================================
+
+    /// WHY: The CORE INSIGHT - Plain iterator -> WrapTask wraps values in Ready
+    /// WHAT: WrapTask is the entry point for plain values into TaskIterator world
+    #[test]
+    fn test_wrap_task_is_entry_point() {
+        // Start with plain values
+        let plain = vec![1, 2, 3].into_iter();
+
+        // WrapTask wraps them in Ready
+        let mut wrapped = WrapTask::new(plain);
+
+        assert_eq!(wrapped.next(), Some(TaskStatus::Ready(1)));
+        assert_eq!(wrapped.next(), Some(TaskStatus::Ready(2)));
+        assert_eq!(wrapped.next(), Some(TaskStatus::Ready(3)));
+        assert_eq!(wrapped.next(), None);
+    }
+
+    /// WHY: LiftTask accepts iterators that ALREADY produce TaskStatus
+    /// WHAT: LiftTask forwards the TaskStatus without nesting
+    #[test]
+    fn test_lift_task_accepts_status_iterator() {
+        // Iterator that produces TaskStatus (NOT a TaskIterator)
+        let status_iter = vec![
+            TaskStatus::<i32, (), NoAction>::Ready(1),
+            TaskStatus::<i32, (), NoAction>::Pending(()),
+            TaskStatus::<i32, (), NoAction>::Ready(2),
+        ].into_iter();
+
+        // LiftTask makes it a TaskIterator, forwarding states
+        let mut lifted = LiftTask::new(status_iter);
+
+        assert_eq!(lifted.next(), Some(TaskStatus::Ready(1)));
+        assert_eq!(lifted.next(), Some(TaskStatus::Pending(())));
+        assert_eq!(lifted.next(), Some(TaskStatus::Ready(2)));
+        assert_eq!(lifted.next(), None);
+    }
+
+    /// WHY: Composition with wrappers (like TimeoutTask) should preserve states
+    /// WHAT: Timeout wraps WrapTask (a TaskIterator) and forwards Ready states
+    #[cfg(feature = "std")]
+    #[test]
+    fn test_composition_wrap_then_timeout() {
+        use super::super::wrappers::TimeoutTask;
+
+        // Plain values -> WrapTask -> TimeoutTask
+        let plain = vec![1, 2, 3].into_iter();
+        let wrapped = WrapTask::new(plain);
+        let mut timed = TimeoutTask::new(wrapped, Duration::from_secs(10));
+
+        // Should get Ready states through the composition
+        assert!(matches!(timed.next(), Some(TaskStatus::Ready(1))));
+        assert!(matches!(timed.next(), Some(TaskStatus::Ready(2))));
+        assert!(matches!(timed.next(), Some(TaskStatus::Ready(3))));
+        assert!(timed.next().is_none());
+    }
+
+    /// WHY: The forwarding pattern enables multi-layer composition
+    /// WHAT: TaskStatus -> LiftTask -> TimeoutTask preserves all states
+    #[cfg(feature = "std")]
+    #[test]
+    fn test_composition_lift_then_timeout_preserves_pending() {
+        use super::super::wrappers::TimeoutTask;
+
+        // Create iterator with mixed states
+        let statuses = vec![
+            TaskStatus::<i32, (), NoAction>::Pending(()),
+            TaskStatus::<i32, (), NoAction>::Ready(42),
+        ].into_iter();
+
+        // LiftTask forwards states
+        let lifted = LiftTask::new(statuses);
+
+        // TimeoutTask wraps Pending but forwards Ready
+        let mut timed = TimeoutTask::new(lifted, Duration::from_secs(10));
+
+        // First should be Pending (wrapped in TimeoutState)
+        match timed.next() {
+            Some(TaskStatus::Pending(_)) => {}, // Correct! TimeoutTask wraps pending
+            other => panic!("Expected Pending, got {:?}", other),
+        }
+
+        // Second should be Ready (forwarded as-is)
+        assert_eq!(timed.next(), Some(TaskStatus::Ready(42)));
+        assert!(timed.next().is_none());
+    }
+
+    // ============================================================================
+    // PHASE 3: ScheduleAction Tests
+    // ============================================================================
 
     /// WHY: ScheduleAction must allow scheduling closures as one-shot tasks
     /// WHAT: Execute closure when task is polled
@@ -433,7 +740,9 @@ mod tests {
         assert_eq!(*counter.lock().unwrap(), 1);
     }
 
-    // PHASE 3: BroadcastAction Tests
+    // ============================================================================
+    // PHASE 4: BroadcastAction Tests
+    // ============================================================================
 
     /// WHY: BroadcastAction must send values to multiple receivers
     /// WHAT: All receivers get a clone of the value
@@ -487,15 +796,48 @@ mod tests {
         assert!(task.next().is_none());
     }
 
-    // PHASE 4: CompositeAction Tests
+    // ============================================================================
+    // PHASE 5: CompositeAction Tests
+    // ============================================================================
 
     /// WHY: CompositeAction must support different action types via enum
     /// WHAT: CompositeAction::None variant compiles and is an ExecutionAction
     #[test]
     fn test_composite_action_none_variant() {
-        // CompositeAction is now an enum, test the None variant
-        let composite: CompositeAction<std::ops::Range<i32>, i32, fn(), i32, NoAction> =
-            CompositeAction::None;
+        type TestComposite = CompositeAction<
+            std::ops::Range<i32>,
+            i32,
+            std::vec::IntoIter<TaskStatus<i32, (), NoAction>>,
+            i32,
+            (),
+            NoAction,
+            fn(),
+            i32,
+            NoAction
+        >;
+
+        let composite: TestComposite = CompositeAction::None;
+        let _: Box<dyn ExecutionAction> = Box::new(composite);
+    }
+
+    /// WHY: CompositeAction should work with Wrap variant
+    /// WHAT: Wraps WrapAction in enum
+    #[test]
+    fn test_composite_action_with_wrap() {
+        type TestComposite = CompositeAction<
+            std::vec::IntoIter<i32>,
+            i32,
+            std::vec::IntoIter<TaskStatus<i32, (), NoAction>>,
+            i32,
+            (),
+            NoAction,
+            fn(),
+            i32,
+            NoAction
+        >;
+
+        let wrap = WrapAction::new(vec![1, 2, 3].into_iter());
+        let composite: TestComposite = CompositeAction::Wrap(wrap);
         let _: Box<dyn ExecutionAction> = Box::new(composite);
     }
 
@@ -503,8 +845,21 @@ mod tests {
     /// WHAT: Wraps LiftAction in enum
     #[test]
     fn test_composite_action_with_lift() {
-        let lift = LiftAction::new(vec![1, 2, 3].into_iter());
-        let composite: CompositeAction<_, _, fn(), i32, NoAction> = CompositeAction::Lift(lift);
+        type TestComposite = CompositeAction<
+            std::ops::Range<i32>,
+            i32,
+            std::vec::IntoIter<TaskStatus<i32, (), NoAction>>,
+            i32,
+            (),
+            NoAction,
+            fn(),
+            i32,
+            NoAction
+        >;
+
+        let iter = vec![TaskStatus::<i32, (), NoAction>::Ready(1)].into_iter();
+        let lift = LiftAction::new(iter);
+        let composite: TestComposite = CompositeAction::Lift(lift);
         let _: Box<dyn ExecutionAction> = Box::new(composite);
     }
 
@@ -512,9 +867,22 @@ mod tests {
     /// WHAT: Wraps ScheduleAction in enum
     #[test]
     fn test_composite_action_with_schedule() {
-        let schedule = ScheduleAction::new(|| {});
-        let composite: CompositeAction<std::ops::Range<i32>, i32, _, i32, NoAction> =
-            CompositeAction::Schedule(schedule);
+        fn dummy_fn() {}
+
+        type TestComposite = CompositeAction<
+            std::ops::Range<i32>,
+            i32,
+            std::vec::IntoIter<TaskStatus<i32, (), NoAction>>,
+            i32,
+            (),
+            NoAction,
+            fn(),
+            i32,
+            NoAction
+        >;
+
+        let schedule = ScheduleAction::new(dummy_fn);
+        let composite: TestComposite = CompositeAction::Schedule(schedule);
         let _: Box<dyn ExecutionAction> = Box::new(composite);
     }
 }
