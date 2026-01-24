@@ -147,3 +147,20 @@ TaskStatus::Pending(())  // ✅ Semantic meaning preserved!
 
 **Simplicity**: No complex interception logic needed - DoNext handles it all.
 
+## TLS Feature Conflict Resolution (2026-01-24)
+
+**Problem**: Default features included `ssl` which enabled `ssl-rustls`, causing conflicts when users tried to enable `ssl-openssl` or `ssl-native-tls`.
+
+**Root Cause**: `Cargo.toml` line 85: `default = ["standard", "ssl", "std"]` auto-enabled rustls.
+
+**Solution Applied**:
+1. **Removed ssl from default features**: Users must explicitly choose TLS backend
+2. **Added webpki-roots dependency**: For rustls client connections (version 0.26)
+3. **Added compile_error! guards**: Clear error messages for conflicting features
+
+**Changes Made**:
+- `Cargo.toml`: Removed `ssl` from default, added `webpki-roots` to ssl-rustls feature
+- `ssl/mod.rs`: Added 3 compile_error! macros for mutual exclusivity checks
+
+**Result**: Clean compile-time errors instead of silent failures or confusing unresolved imports.
+

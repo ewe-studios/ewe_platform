@@ -2,6 +2,16 @@
 
 #![cfg(not(target_arch = "wasm32"))]
 
+// Compile-time checks to ensure only one TLS backend is enabled
+#[cfg(all(feature = "ssl-rustls", feature = "ssl-openssl"))]
+compile_error!("Cannot enable both `ssl-rustls` and `ssl-openssl`. Choose one TLS backend.");
+
+#[cfg(all(feature = "ssl-rustls", feature = "ssl-native-tls"))]
+compile_error!("Cannot enable both `ssl-rustls` and `ssl-native-tls`. Choose one TLS backend.");
+
+#[cfg(all(feature = "ssl-openssl", feature = "ssl-native-tls"))]
+compile_error!("Cannot enable both `ssl-openssl` and `ssl-native-tls`. Choose one TLS backend.");
+
 #[cfg(all(
     feature = "ssl-openssl",
     not(feature = "ssl-rustls"),

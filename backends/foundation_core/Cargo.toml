@@ -10,6 +10,7 @@ description = "central crate for all foundation crates for the ewe-platform proj
 keywords = ["foundations_core", "ewe-platform-core"]
 
 [dependencies]
+futures-core = { version = "0.3", default-features = false }
 
 # -- Workspace dependencies
 
@@ -44,6 +45,7 @@ rust-embed = { version = "8.7.0", features = ["mime-guess", "interpolate-folder-
 openssl = { version = "0.10", optional = true }
 rustls = { version = "0.23", optional = true }
 rustls-pemfile = { version = "2.2", optional = true }
+webpki-roots = { version = "0.26", optional = true }
 zeroize = { version = "1", optional = true }
 native-tls = { version = "0.2", optional = true }
 
@@ -65,7 +67,7 @@ log_info = []
 nightly = []
 
 ssl-openssl = ["openssl", "zeroize"]
-ssl-rustls = ["rustls", "rustls-pemfile", "zeroize"]
+ssl-rustls = ["rustls", "rustls-pemfile", "webpki-roots", "zeroize"]
 ssl-native-tls = ["native-tls", "native-tls/vendored", "zeroize"]
 ssl = ["ssl-rustls"]
 
@@ -80,8 +82,13 @@ nothread_runtime = []
 # This feature help enable tokio
 tokio_runtime = ["dep:tokio"]
 
-# default flags
-default = ["standard", "ssl"]
+# default flags (removed ssl to avoid conflicts - users must explicitly choose TLS backend)
+default = ["standard", "std"]
+
+# Valtron utilities features
+std = ["futures-core/std"]
+alloc = ["futures-core/alloc"]
+multi = ["std"]  # Multi-threaded executor requires std
 
 [package.metadata.docs.rs]
 # enable one of these as default implementation
@@ -89,3 +96,5 @@ features = ["ssl-rustls"]
 
 [lints]
 workspace = true
+
+# Valtron utilities features
