@@ -1011,7 +1011,10 @@ impl RwLockCondVar {
         guard: crate::primitives::spin_rwlock::ReadGuard<'a, T>,
         lock: &'a crate::primitives::SpinRwLock<T>,
         dur: Duration,
-    ) -> LockResult<(crate::primitives::spin_rwlock::ReadGuard<'a, T>, WaitTimeoutResult)> {
+    ) -> LockResult<(
+        crate::primitives::spin_rwlock::ReadGuard<'a, T>,
+        WaitTimeoutResult,
+    )> {
         let was_poisoned = lock.is_poisoned();
 
         self.state.fetch_add(1, Ordering::Relaxed);
@@ -1067,7 +1070,10 @@ impl RwLockCondVar {
         guard: crate::primitives::spin_rwlock::WriteGuard<'a, T>,
         lock: &'a crate::primitives::SpinRwLock<T>,
         dur: Duration,
-    ) -> LockResult<(crate::primitives::spin_rwlock::WriteGuard<'a, T>, WaitTimeoutResult)> {
+    ) -> LockResult<(
+        crate::primitives::spin_rwlock::WriteGuard<'a, T>,
+        WaitTimeoutResult,
+    )> {
         let was_poisoned = lock.is_poisoned();
 
         self.state.fetch_add(1, Ordering::Relaxed);
