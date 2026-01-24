@@ -128,8 +128,8 @@ mod tests {
         let mutex = RawCondVarMutex::new(false);
         let condvar = CondVarNonPoisoning::new();
 
-        let guard = mutex.lock();
-        let (_guard, result) = condvar.wait_timeout(guard, Duration::from_millis(1));
+        let guard = mutex.lock().unwrap();
+        let (_guard, result) = condvar.wait_timeout(guard, Duration::from_millis(1)).unwrap();
         assert!(result.timed_out());
     }
 
@@ -749,8 +749,8 @@ mod tests {
         let mutex = RawCondVarMutex::new(false);
         let condvar = CondVarNonPoisoning::new();
 
-        let guard = mutex.lock();
-        let (_guard, result) = condvar.wait_timeout(guard, Duration::ZERO);
+        let guard = mutex.lock().unwrap();
+        let (_guard, result) = condvar.wait_timeout(guard, Duration::ZERO).unwrap();
         assert!(result.timed_out());
     }
 
@@ -764,9 +764,9 @@ mod tests {
         let condvar = CondVarNonPoisoning::new();
 
         // Wait while value is 0 (will timeout)
-        let guard = mutex.lock();
+        let guard = mutex.lock().unwrap();
         let (_guard, result) =
-            condvar.wait_timeout_while(guard, Duration::from_millis(5), |val| *val == 0);
+            condvar.wait_timeout_while(guard, Duration::from_millis(5), |val| *val == 0).unwrap();
         assert!(result.timed_out());
     }
 
@@ -779,8 +779,8 @@ mod tests {
         let mutex = RawCondVarMutex::new(false);
         let condvar = CondVarNonPoisoning::new();
 
-        let guard = mutex.lock();
-        let (_guard, result) = condvar.wait_timeout(guard, Duration::from_millis(1));
+        let guard = mutex.lock().unwrap();
+        let (_guard, result) = condvar.wait_timeout(guard, Duration::from_millis(1)).unwrap();
 
         // Should timeout, returns plain guard (not Result)
         assert!(result.timed_out());
