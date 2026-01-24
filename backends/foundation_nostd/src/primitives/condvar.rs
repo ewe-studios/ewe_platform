@@ -101,6 +101,38 @@ mod tests {
         assert!(!result.timed_out());
     }
 
+    /// WHY: Tests CondVar wait_timeout with short duration
+    /// WHAT: Should timeout after specified duration
+    #[test]
+    fn test_condvar_wait_timeout() {
+        use core::time::Duration;
+
+        let mutex = CondVarMutex::new(false);
+        let condvar = CondVar::new();
+
+        let guard = mutex.lock().unwrap();
+        let result = condvar.wait_timeout(guard, Duration::from_millis(1));
+        match result {
+            Ok((_guard, timeout_result)) => assert!(timeout_result.timed_out()),
+            Err(_) => {} // Poisoned mutex is OK for timeout test
+        }
+    }
+
+    /// WHY: Tests CondVarNonPoisoning wait_timeout with short duration
+    /// WHAT: Should timeout after specified duration
+    #[test]
+    fn test_condvar_non_poisoning_wait_timeout() {
+        use super::RawCondVarMutex;
+        use core::time::Duration;
+
+        let mutex = RawCondVarMutex::new(false);
+        let condvar = CondVarNonPoisoning::new();
+
+        let guard = mutex.lock();
+        let (_guard, result) = condvar.wait_timeout(guard, Duration::from_millis(1));
+        assert!(result.timed_out());
+    }
+
     // RwLockCondVar tests (TDD - tests written first)
 
     /// WHY: Validates basic construction and notification of `RwLockCondVar`
@@ -166,23 +198,31 @@ mod tests {
     /// WHAT: Reader wait should timeout after specified duration
     #[test]
     fn test_rwlock_condvar_wait_timeout_read() {
+        use core::time::Duration;
+
         let lock = SpinRwLock::new(0);
-        let _condvar = RwLockCondVar::new();
+        let condvar = RwLockCondVar::new();
 
         let guard = lock.read().unwrap();
-        // Timeout test (will implement wait_timeout_read next)
-        drop(guard);
+        let (_guard, result) = condvar
+            .wait_timeout_read(guard, &lock, Duration::from_millis(1))
+            .unwrap();
+        assert!(result.timed_out());
     }
 
     /// WHY: Tests `wait_timeout_write` with timeout duration on write guard
     /// WHAT: Writer wait should timeout after specified duration
     #[test]
     fn test_rwlock_condvar_wait_timeout_write() {
+        use core::time::Duration;
+
         let lock = SpinRwLock::new(0);
-        let _condvar = RwLockCondVar::new();
+        let condvar = RwLockCondVar::new();
 
         let guard = lock.write().unwrap();
-        // Timeout test (will implement wait_timeout_write next)
-        drop(guard);
+        let (_guard, result) = condvar
+            .wait_timeout_write(guard, &lock, Duration::from_millis(1))
+            .unwrap();
+        assert!(result.timed_out());
     }
 }
