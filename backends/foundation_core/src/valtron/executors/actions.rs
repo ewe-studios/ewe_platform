@@ -10,9 +10,9 @@
 //! Each action type calls a specific `ExecutionEngine` method:
 //!
 //! - **WrapAction**: Calls `engine.schedule()` - adds to local queue
-//! - **LiftAction**: Calls `engine.lift(task, parent)` - schedules with parent linkage
-//! - **ScheduleAction**: Calls `engine.schedule()` - adds to local queue
-//! - **BroadcastAction**: Calls `engine.broadcast()` - sends to global queue for any thread
+//! - **SpawnWithLift**: Calls `engine.lift(task, parent)` - schedules with parent linkage
+//! - **SpawnWithSchedule**: Calls `engine.schedule()` - adds to local queue
+//! - **SpawnWithBroadcast**: Calls `engine.broadcast()` - sends to global queue for any thread
 //!
 //! This enables different execution strategies through the Spawner type pattern.
 
@@ -176,7 +176,7 @@ where
 }
 
 // ============================================================================
-// LiftAction - Action for TaskStatus iterators
+// SpawnWithLift - Action for TaskStatus iterators
 // ============================================================================
 
 /// Action that spawns a LiftTask that passes through TaskStatus items.
@@ -187,7 +187,7 @@ where
 /// Use this when your iterator already produces TaskStatus variants
 /// and you want to preserve their semantic meaning (Pending, Delayed, etc.)
 /// while maintaining task hierarchy through lift().
-pub struct LiftAction<I, D, P, S>
+pub struct SpawnWithLift<I, D, P, S>
 where
     I: Iterator<Item = TaskStatus<D, P, S>> + 'static,
     D: 'static,
@@ -198,7 +198,7 @@ where
     _marker: PhantomData<(D, P, S)>,
 }
 
-impl<I, D, P, S> LiftAction<I, D, P, S>
+impl<I, D, P, S> SpawnWithLift<I, D, P, S>
 where
     I: Iterator<Item = TaskStatus<D, P, S>> + 'static,
     D: 'static,
@@ -213,7 +213,7 @@ where
     }
 }
 
-impl<I, D, P, S> ExecutionAction for LiftAction<I, D, P, S>
+impl<I, D, P, S> ExecutionAction for SpawnWithLift<I, D, P, S>
 where
     I: Iterator<Item = TaskStatus<D, P, S>> + 'static,
     D: 'static,
@@ -236,7 +236,7 @@ where
 }
 
 // ============================================================================
-// ScheduleAction - Execute closures as tasks
+// SpawnWithSchedule - Execute closures as tasks
 // ============================================================================
 
 /// Task that executes a closure once and completes.
@@ -283,14 +283,14 @@ where
 ///
 /// WHY: Provides reusable pattern for scheduling arbitrary code.
 /// WHAT: Wraps closure in a ScheduleTask and schedules it.
-pub struct ScheduleAction<F>
+pub struct SpawnWithSchedule<F>
 where
     F: FnOnce() + 'static,
 {
     closure: Option<F>,
 }
 
-impl<F> ScheduleAction<F>
+impl<F> SpawnWithSchedule<F>
 where
     F: FnOnce() + 'static,
 {
@@ -301,7 +301,7 @@ where
     }
 }
 
-impl<F> ExecutionAction for ScheduleAction<F>
+impl<F> ExecutionAction for SpawnWithSchedule<F>
 where
     F: FnOnce() + 'static,
 {
@@ -320,7 +320,7 @@ where
 }
 
 // ============================================================================
-// BroadcastAction - Send values to multiple receivers
+// SpawnWithBroadcast - Send values to multiple receivers
 // ============================================================================
 
 /// Task that broadcasts a value to multiple callbacks.
@@ -328,7 +328,7 @@ where
 /// WHY: Allows notifying multiple listeners of a result.
 /// WHAT: Calls all callbacks with clones of the value.
 ///
-/// Note: Requires Send bounds because BroadcastAction uses engine.broadcast()
+/// Note: Requires Send bounds because SpawnWithBroadcast uses engine.broadcast()
 /// which sends tasks to the global queue for any thread to pick up.
 pub struct BroadcastTask<T>
 where
@@ -379,7 +379,7 @@ where
 /// Unlike schedule() which adds to local queue, broadcast() sends the task
 /// to the global queue where any executor thread can pick it up. This enables
 /// work distribution across threads.
-pub struct BroadcastAction<T>
+pub struct SpawnWithBroadcast<T>
 where
     T: Clone + 'static,
 {
@@ -387,7 +387,7 @@ where
     callbacks: Vec<Box<dyn FnOnce(T) + Send>>,
 }
 
-impl<T> BroadcastAction<T>
+impl<T> SpawnWithBroadcast<T>
 where
     T: Clone + 'static,
 {
@@ -399,7 +399,7 @@ where
     }
 }
 
-impl<T> ExecutionAction for BroadcastAction<T>
+impl<T> ExecutionAction for SpawnWithBroadcast<T>
 where
     T: Clone + Send + 'static,
 {
@@ -421,14 +421,14 @@ where
 }
 
 // ============================================================================
-// CompositeAction - Enum combining action types
+// SpawnStrategy - Enum combining action types
 // ============================================================================
 
 /// Enum that combines all action types plus a custom action slot.
 ///
 /// WHY: Allows using different action types through a single enum type
 /// WHAT: Enum with variants for each action type, delegates to inner action
-pub enum CompositeAction<IW, TW, IL, DL, PL, SL, F, V, C>
+pub enum SpawnStrategy<IW, TW, IL, DL, PL, SL, F, V, C>
 where
     IW: Iterator<Item = TW> + 'static,
     TW: 'static,
@@ -442,13 +442,14 @@ where
 {
     None,
     Wrap(WrapAction<IW, TW>),
-    Lift(LiftAction<IL, DL, PL, SL>),
-    Schedule(ScheduleAction<F>),
-    Broadcast(BroadcastAction<V>),
+    Lift(SpawnWithLift<IL, DL, PL, SL>),
+    Schedule(SpawnWithSchedule<F>),
+    Broadcast(SpawnWithBroadcast<V>),
     Custom(C),
 }
 
-impl<IW, TW, IL, DL, PL, SL, F, V, C> ExecutionAction for CompositeAction<IW, TW, IL, DL, PL, SL, F, V, C>
+impl<IW, TW, IL, DL, PL, SL, F, V, C> ExecutionAction
+    for SpawnStrategy<IW, TW, IL, DL, PL, SL, F, V, C>
 where
     IW: Iterator<Item = TW> + 'static,
     TW: 'static,
@@ -457,7 +458,7 @@ where
     PL: 'static,
     SL: ExecutionAction + 'static,
     F: FnOnce() + 'static,
-    V: Clone + 'static,
+    V: Clone + Send + 'static,
     C: ExecutionAction,
 {
     fn apply(self, key: crate::synca::Entry, engine: BoxedExecutionEngine) -> GenericResult<()> {
@@ -471,6 +472,43 @@ where
         }
     }
 }
+
+// ============================================================================
+// Deprecated Type Aliases for Backward Compatibility
+// ============================================================================
+
+/// Deprecated: Use `SpawnWithLift` instead.
+///
+/// This type alias is provided for backward compatibility during migration.
+/// New code should use `SpawnWithLift` which better reflects its purpose
+/// of spawning child tasks with lift strategy.
+#[deprecated(since = "3.0.0", note = "Use `SpawnWithLift` instead")]
+pub type LiftAction<I, D, P, S> = SpawnWithLift<I, D, P, S>;
+
+/// Deprecated: Use `SpawnWithSchedule` instead.
+///
+/// This type alias is provided for backward compatibility during migration.
+/// New code should use `SpawnWithSchedule` which better reflects its purpose
+/// of spawning child tasks with schedule strategy.
+#[deprecated(since = "3.0.0", note = "Use `SpawnWithSchedule` instead")]
+pub type ScheduleAction<F> = SpawnWithSchedule<F>;
+
+/// Deprecated: Use `SpawnWithBroadcast` instead.
+///
+/// This type alias is provided for backward compatibility during migration.
+/// New code should use `SpawnWithBroadcast` which better reflects its purpose
+/// of spawning child tasks with broadcast strategy.
+#[deprecated(since = "3.0.0", note = "Use `SpawnWithBroadcast` instead")]
+pub type BroadcastAction<T> = SpawnWithBroadcast<T>;
+
+/// Deprecated: Use `SpawnStrategy` instead.
+///
+/// This type alias is provided for backward compatibility during migration.
+/// New code should use `SpawnStrategy` which better reflects that it's choosing
+/// a spawning strategy rather than composing actions.
+#[deprecated(since = "3.0.0", note = "Use `SpawnStrategy` instead")]
+pub type CompositeAction<IW, TW, IL, DL, PL, SL, F, V, C> =
+    SpawnStrategy<IW, TW, IL, DL, PL, SL, F, V, C>;
 
 // ============================================================================
 // Tests
@@ -592,7 +630,8 @@ mod tests {
             TaskStatus::<i32, (), NoAction>::Delayed(dur),
             TaskStatus::<i32, (), NoAction>::Ready(100),
             TaskStatus::<i32, (), NoAction>::Pending(()),
-        ].into_iter();
+        ]
+        .into_iter();
 
         let mut task = LiftTask::new(iter);
 
@@ -603,12 +642,12 @@ mod tests {
         assert!(task.next().is_none());
     }
 
-    /// WHY: LiftAction must be spawnable with TaskStatus iterators
+    /// WHY: SpawnWithLift must be spawnable with TaskStatus iterators
     /// WHAT: Create action that spawns a LiftTask
     #[test]
     fn test_lift_action_is_execution_action() {
         let iter = vec![TaskStatus::<i32, (), NoAction>::Ready(1)].into_iter();
-        let action = LiftAction::new(iter);
+        let action = SpawnWithLift::new(iter);
 
         let _: Box<dyn ExecutionAction> = Box::new(action);
     }
@@ -642,7 +681,8 @@ mod tests {
             TaskStatus::<i32, (), NoAction>::Ready(1),
             TaskStatus::<i32, (), NoAction>::Pending(()),
             TaskStatus::<i32, (), NoAction>::Ready(2),
-        ].into_iter();
+        ]
+        .into_iter();
 
         // LiftTask makes it a TaskIterator, forwarding states
         let mut lifted = LiftTask::new(status_iter);
@@ -683,7 +723,8 @@ mod tests {
         let statuses = vec![
             TaskStatus::<i32, (), NoAction>::Pending(()),
             TaskStatus::<i32, (), NoAction>::Ready(42),
-        ].into_iter();
+        ]
+        .into_iter();
 
         // LiftTask forwards states
         let lifted = LiftTask::new(statuses);
@@ -693,7 +734,7 @@ mod tests {
 
         // First should be Pending (wrapped in TimeoutState)
         match timed.next() {
-            Some(TaskStatus::Pending(_)) => {}, // Correct! TimeoutTask wraps pending
+            Some(TaskStatus::Pending(_)) => {} // Correct! TimeoutTask wraps pending
             other => panic!("Expected Pending, got {:?}", other),
         }
 
@@ -703,10 +744,10 @@ mod tests {
     }
 
     // ============================================================================
-    // PHASE 3: ScheduleAction Tests
+    // PHASE 3: SpawnWithSchedule Tests
     // ============================================================================
 
-    /// WHY: ScheduleAction must allow scheduling closures as one-shot tasks
+    /// WHY: SpawnWithSchedule must allow scheduling closures as one-shot tasks
     /// WHAT: Execute closure when task is polled
     #[test]
     fn test_schedule_task_executes_closure() {
@@ -729,14 +770,14 @@ mod tests {
         assert!(task.next().is_none());
     }
 
-    /// WHY: ScheduleAction must create spawnable one-shot tasks
+    /// WHY: SpawnWithSchedule must create spawnable one-shot tasks
     /// WHAT: Wrap closure in ExecutionAction
     #[test]
     fn test_schedule_action_is_execution_action() {
         let counter = Arc::new(StdMutex::new(0));
         let counter_clone = counter.clone();
 
-        let action = ScheduleAction::new(move || {
+        let action = SpawnWithSchedule::new(move || {
             *counter_clone.lock().unwrap() += 1;
         });
 
@@ -763,10 +804,10 @@ mod tests {
     }
 
     // ============================================================================
-    // PHASE 4: BroadcastAction Tests
+    // PHASE 4: SpawnWithBroadcast Tests
     // ============================================================================
 
-    /// WHY: BroadcastAction must send values to multiple receivers
+    /// WHY: SpawnWithBroadcast must send values to multiple receivers
     /// WHAT: All receivers get a clone of the value
     #[test]
     fn test_broadcast_task_sends_to_multiple_receivers() {
@@ -800,11 +841,11 @@ mod tests {
         assert!(task.next().is_none());
     }
 
-    /// WHY: BroadcastAction must be spawnable
+    /// WHY: SpawnWithBroadcast must be spawnable
     /// WHAT: Wrap broadcast task in ExecutionAction
     #[test]
     fn test_broadcast_action_is_execution_action() {
-        let action = BroadcastAction::new(100, vec![]);
+        let action = SpawnWithBroadcast::new(100, vec![]);
         let _: Box<dyn ExecutionAction> = Box::new(action);
     }
 
@@ -819,14 +860,14 @@ mod tests {
     }
 
     // ============================================================================
-    // PHASE 5: CompositeAction Tests
+    // PHASE 5: SpawnStrategy Tests
     // ============================================================================
 
-    /// WHY: CompositeAction must support different action types via enum
-    /// WHAT: CompositeAction::None variant compiles and is an ExecutionAction
+    /// WHY: SpawnStrategy must support different action types via enum
+    /// WHAT: SpawnStrategy::None variant compiles and is an ExecutionAction
     #[test]
     fn test_composite_action_none_variant() {
-        type TestComposite = CompositeAction<
+        type TestComposite = SpawnStrategy<
             std::ops::Range<i32>,
             i32,
             std::vec::IntoIter<TaskStatus<i32, (), NoAction>>,
@@ -835,18 +876,18 @@ mod tests {
             NoAction,
             fn(),
             i32,
-            NoAction
+            NoAction,
         >;
 
-        let composite: TestComposite = CompositeAction::None;
+        let composite: TestComposite = SpawnStrategy::None;
         let _: Box<dyn ExecutionAction> = Box::new(composite);
     }
 
-    /// WHY: CompositeAction should work with Wrap variant
+    /// WHY: SpawnStrategy should work with Wrap variant
     /// WHAT: Wraps WrapAction in enum
     #[test]
     fn test_composite_action_with_wrap() {
-        type TestComposite = CompositeAction<
+        type TestComposite = SpawnStrategy<
             std::vec::IntoIter<i32>,
             i32,
             std::vec::IntoIter<TaskStatus<i32, (), NoAction>>,
@@ -855,19 +896,19 @@ mod tests {
             NoAction,
             fn(),
             i32,
-            NoAction
+            NoAction,
         >;
 
         let wrap = WrapAction::new(vec![1, 2, 3].into_iter());
-        let composite: TestComposite = CompositeAction::Wrap(wrap);
+        let composite: TestComposite = SpawnStrategy::Wrap(wrap);
         let _: Box<dyn ExecutionAction> = Box::new(composite);
     }
 
-    /// WHY: CompositeAction should work with Lift variant
-    /// WHAT: Wraps LiftAction in enum
+    /// WHY: SpawnStrategy should work with Lift variant
+    /// WHAT: Wraps SpawnWithLift in enum
     #[test]
     fn test_composite_action_with_lift() {
-        type TestComposite = CompositeAction<
+        type TestComposite = SpawnStrategy<
             std::ops::Range<i32>,
             i32,
             std::vec::IntoIter<TaskStatus<i32, (), NoAction>>,
@@ -876,22 +917,22 @@ mod tests {
             NoAction,
             fn(),
             i32,
-            NoAction
+            NoAction,
         >;
 
         let iter = vec![TaskStatus::<i32, (), NoAction>::Ready(1)].into_iter();
-        let lift = LiftAction::new(iter);
-        let composite: TestComposite = CompositeAction::Lift(lift);
+        let lift = SpawnWithLift::new(iter);
+        let composite: TestComposite = SpawnStrategy::Lift(lift);
         let _: Box<dyn ExecutionAction> = Box::new(composite);
     }
 
-    /// WHY: CompositeAction should work with Schedule variant
-    /// WHAT: Wraps ScheduleAction in enum
+    /// WHY: SpawnStrategy should work with Schedule variant
+    /// WHAT: Wraps SpawnWithSchedule in enum
     #[test]
     fn test_composite_action_with_schedule() {
         fn dummy_fn() {}
 
-        type TestComposite = CompositeAction<
+        type TestComposite = SpawnStrategy<
             std::ops::Range<i32>,
             i32,
             std::vec::IntoIter<TaskStatus<i32, (), NoAction>>,
@@ -900,11 +941,11 @@ mod tests {
             NoAction,
             fn(),
             i32,
-            NoAction
+            NoAction,
         >;
 
-        let schedule = ScheduleAction::new(dummy_fn);
-        let composite: TestComposite = CompositeAction::Schedule(schedule);
+        let schedule = SpawnWithSchedule::new(dummy_fn);
+        let composite: TestComposite = SpawnStrategy::Schedule(schedule);
         let _: Box<dyn ExecutionAction> = Box::new(composite);
     }
 }
