@@ -1,0 +1,22 @@
+[package]
+name = "ewe_domain_macro"
+version = "0.0.1"
+description = "Macro crate for the ewe_domain crate"
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+rust-version.workspace = true
+keywords.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "2.0" }
+quote = { version = "1.0" }
+
+[lints]
+workspace = true

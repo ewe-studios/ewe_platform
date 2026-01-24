@@ -1,0 +1,9 @@
+[package]
+name = "CustomRustProject"
+authors = ["EweStudios Consulting Limited"]
+edition = "2021"
+version = "0.0.1"
+keywords = ["workspace_project"]
+license = "Apache-2.0"
+repository = "https://github.com/ewe-studios/ewe_platform"
+rust-version = "1.75"

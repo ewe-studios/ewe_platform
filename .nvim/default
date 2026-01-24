@@ -1,0 +1,260 @@
+let SessionLoad = 1
+let s:so_save = &g:so | let s:siso_save = &g:siso | setg so=0 siso=0 | setl so=-1 siso=-1
+let v:this_session=expand("<sfile>:p")
+silent only
+silent tabonly
+cd ~/boxxed/@dev/ewe_platform
+if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
+  let s:wipebuf = bufnr('%')
+endif
+let s:shortmess_save = &shortmess
+if &shortmess =~ 'A'
+  set shortmess=aoOA
+else
+  set shortmess=aoO
+endif
+badd +8 .github/dependabot.yml
+badd +2 infrastructure/llama-cpp-rs/.github/dependabot.yml
+badd +40 infrastructure/llama-cpp-rs/.github/workflows/llama-cpp-rs-check.yml
+badd +76 .github/workflows/check.yaml
+badd +30 infrastructure/llama-cpp-rs/.github/workflows/publish-upon-release.yml
+badd +1 infrastructure/llama-cpp-rs/.github/workflows/update-llama-cpp.yml
+badd +53 infrastructure/llama-cpp-rs/.github/workflows/update-toml-version.yaml
+badd +3 infrastructure/llama-cpp-rs/.gitignore
+badd +16 .gitignore
+badd +1 infrastructure/llama-cpp-rs/.dockerignore
+badd +1 .dockerignore
+badd +20 infrastructure/llama-cpp-rs/Cargo.toml
+badd +84 Cargo.toml
+badd +33 infrastructure/llama-bindings/Cargo.toml
+badd +5 infrastructure/llama-bindings/README.md
+badd +1 infrastructure/llama-cpp/README.md
+badd +37 infrastructure/llama-cpp/Cargo.toml
+badd +11 .gitmodules
+badd +25 crates/temple/Cargo.toml
+badd +1 crates/temple/templates/CustomRustProject/src/_lamp.rs
+badd +1 crates/temple/templates/CustomRustProject/src/lib.rs
+badd +1 crates/temple/templates/CustomRustProject/src/page.rs
+badd +1 crates/temple/src/error.rs
+badd +335 crates/temple/src/files.rs
+badd +1 crates/temple/src/lib.rs
+badd +151 crates/temple/src/package.rs
+badd +1 examples/llama-cpp/embeddings/Cargo.toml
+badd +17 examples/llama-cpp/mtmd/Cargo.toml
+badd +8 examples/llama-cpp/reranker/Cargo.toml
+badd +21 examples/llama-cpp/simple/Cargo.toml
+badd +5 crates/html/Cargo.toml
+badd +237 ~/boxxed/@dev/ewe_platform/backends/foundation_nostd/src/embeddable.rs
+badd +653 ~/boxxed/@dev/ewe_platform/backends/foundation_macros/src/embedders.rs
+badd +220 ~/boxxed/@dev/ewe_platform/infrastructure/llama-bindings/build.rs
+badd +13 ~/boxxed/@dev/ewe_platform/backends/runtimes/src/lib.rs
+badd +28 .cargo/config.toml
+badd +16 infrastructure/llama-cpp/src/context.rs
+badd +1 infrastructure/llama-cpp/src/token_type.rs
+badd +118 infrastructure/llama-cpp/src/lib.rs
+badd +14 infrastructure/llama-cpp/src/model/params.rs
+badd +8 ~/boxxed/@dev/ewe_platform/infrastructure/llama-bindings/src/lib.rs
+badd +1036 ~/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/mod.rs
+badd +69 ~/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs
+badd +66 bin/platform/Cargo.toml
+badd +185 ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/extensions/strings_ext/mod.rs
+argglobal
+%argdel
+edit crates/temple/src/package.rs
+let s:save_splitbelow = &splitbelow
+let s:save_splitright = &splitright
+set splitbelow splitright
+wincmd _ | wincmd |
+vsplit
+1wincmd h
+wincmd w
+let &splitbelow = s:save_splitbelow
+let &splitright = s:save_splitright
+wincmd t
+let s:save_winminheight = &winminheight
+let s:save_winminwidth = &winminwidth
+set winminheight=0
+set winheight=1
+set winminwidth=0
+set winwidth=1
+wincmd =
+argglobal
+balt ~/boxxed/@dev/ewe_platform/backends/foundation_core/src/extensions/strings_ext/mod.rs
+setlocal foldmethod=expr
+setlocal foldexpr=v:lua.vim.lsp.foldexpr()
+setlocal foldmarker={{{,}}}
+setlocal foldignore=#
+setlocal foldlevel=99
+setlocal foldminlines=1
+setlocal foldnestmax=20
+setlocal foldenable
+17
+sil! normal! zo
+43
+sil! normal! zo
+44
+sil! normal! zo
+47
+sil! normal! zo
+52
+sil! normal! zo
+55
+sil! normal! zo
+72
+sil! normal! zo
+48
+sil! normal! zo
+55
+sil! normal! zo
+56
+sil! normal! zo
+59
+sil! normal! zo
+76
+sil! normal! zo
+56
+sil! normal! zo
+60
+sil! normal! zo
+81
+sil! normal! zo
+102
+sil! normal! zo
+122
+sil! normal! zo
+140
+sil! normal! zo
+162
+sil! normal! zo
+172
+sil! normal! zo
+196
+sil! normal! zo
+197
+sil! normal! zo
+205
+sil! normal! zo
+220
+sil! normal! zo
+229
+sil! normal! zo
+234
+sil! normal! zo
+229
+sil! normal! zc
+266
+sil! normal! zo
+266
+sil! normal! zc
+328
+sil! normal! zo
+328
+sil! normal! zc
+365
+sil! normal! zo
+409
+sil! normal! zo
+409
+sil! normal! zc
+570
+sil! normal! zo
+570
+sil! normal! zc
+365
+sil! normal! zc
+667
+sil! normal! zo
+668
+sil! normal! zo
+676
+sil! normal! zo
+767
+sil! normal! zc
+let s:l = 151 - ((27 * winheight(0) + 18) / 37)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 151
+normal! 029|
+wincmd w
+argglobal
+if bufexists(fnamemodify("~/boxxed/@dev/ewe_platform/backends/foundation_nostd/src/embeddable.rs", ":p")) | buffer ~/boxxed/@dev/ewe_platform/backends/foundation_nostd/src/embeddable.rs | else | edit ~/boxxed/@dev/ewe_platform/backends/foundation_nostd/src/embeddable.rs | endif
+if &buftype ==# 'terminal'
+  silent file ~/boxxed/@dev/ewe_platform/backends/foundation_nostd/src/embeddable.rs
+endif
+balt ~/boxxed/@dev/ewe_platform/backends/foundation_macros/src/embedders.rs
+setlocal foldmethod=expr
+setlocal foldexpr=v:lua.vim.lsp.foldexpr()
+setlocal foldmarker={{{,}}}
+setlocal foldignore=#
+setlocal foldlevel=99
+setlocal foldminlines=1
+setlocal foldnestmax=20
+setlocal foldenable
+41
+sil! normal! zo
+85
+sil! normal! zo
+162
+sil! normal! zo
+176
+sil! normal! zo
+222
+sil! normal! zo
+236
+sil! normal! zo
+262
+sil! normal! zo
+264
+sil! normal! zo
+277
+sil! normal! zo
+281
+sil! normal! zo
+282
+sil! normal! zo
+282
+sil! normal! zo
+283
+sil! normal! zo
+283
+sil! normal! zo
+302
+sil! normal! zo
+306
+sil! normal! zo
+307
+sil! normal! zo
+307
+sil! normal! zo
+308
+sil! normal! zo
+308
+sil! normal! zo
+let s:l = 236 - ((14 * winheight(0) + 18) / 37)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 236
+normal! 011|
+wincmd w
+wincmd =
+tabnext 1
+if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
+  silent exe 'bwipe ' . s:wipebuf
+endif
+unlet! s:wipebuf
+set winheight=1 winwidth=20
+let &shortmess = s:shortmess_save
+let &winminheight = s:save_winminheight
+let &winminwidth = s:save_winminwidth
+let s:sx = expand("<sfile>:p:r")."x.vim"
+if filereadable(s:sx)
+  exe "source " . fnameescape(s:sx)
+endif
+let &g:so = s:so_save | let &g:siso = s:siso_save
+set hlsearch
+nohlsearch
+doautoall SessionLoadPost
+unlet SessionLoad
+" vim: set ft=vim :

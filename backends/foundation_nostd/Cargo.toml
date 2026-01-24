@@ -1,0 +1,17 @@
+[package]
+name = "foundation_nostd"
+version = "0.0.4"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Foundational nostd core implementation for the ewe_platform project"
+keywords = ["foundation_nostd"]
+
+[features]
+default = []
+std = []
+
+[lints]
+workspace = true

@@ -1,0 +1,91 @@
+[package]
+name = "foundation_core"
+version = "0.0.3"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "central crate for all foundation crates for the ewe-platform project"
+keywords = ["foundations_core", "ewe-platform-core"]
+
+[dependencies]
+
+# -- Workspace dependencies
+
+foundation_wasm = {workspace = true }
+foundation_nostd = {workspace = true }
+
+# -- Other dependencies
+derive_more = { version = "2.0", features = ["from", "debug", "error"] }
+serde = { version = "1", features = ["derive"] }
+concurrent-queue = { version = "2.5.0" }
+toml_datetime = { version = "0.7" }
+serde_json = { version = "1" }
+serde_yml = { version = "0.0.12" }
+toml = { version = "0.9" }
+fastrand = "2.3.0"
+rand = "0.9"
+rand_chacha = "0.9"
+
+async-trait = { version = "0.1.88" }
+memchr = "2.7.4"
+tracing = { version = "0.1.41" }
+thiserror = { version = "2.0" }
+
+url = "2.5"
+regex = "1.12.2"
+ctrlc = { version = "3.4" }
+
+# rust-embed
+rust-embed = { version = "8.7.0", features = ["mime-guess", "interpolate-folder-path"]}
+
+# optional deps
+openssl = { version = "0.10", optional = true }
+rustls = { version = "0.23", optional = true }
+rustls-pemfile = { version = "2.2", optional = true }
+zeroize = { version = "1", optional = true }
+native-tls = { version = "0.2", optional = true }
+
+# -- tokio, axum and tower
+tokio = { version = "1.44", features = ["sync", "time"], optional = true }
+
+[dev-dependencies]
+serial_test = { workspace = true }
+tracing-test = { version = "0.2.5" }
+reqwest = { version = "0.12.15", features = ["blocking"] }
+
+[features]
+debug_trace = ["standard", "log_debug"]
+standard = ["log_info", "log_errors", "log_warnings"]
+log_warnings = []
+log_errors = []
+log_debug = []
+log_info = []
+nightly = []
+
+ssl-openssl = ["openssl", "zeroize"]
+ssl-rustls = ["rustls", "rustls-pemfile", "zeroize"]
+ssl-native-tls = ["native-tls", "native-tls/vendored", "zeroize"]
+ssl = ["ssl-rustls"]
+
+# This feature switches the no threading runtime where you have
+# specified control over when the Executor actually executes tasks
+# allowing your calls to spawn to also call execution for submitted tasks.
+#
+# This feature enables usesful for WebAssembly and like environments
+# where multi-threading is not supported (for the moment).
+nothread_runtime = []
+
+# This feature help enable tokio
+tokio_runtime = ["dep:tokio"]
+
+# default flags
+default = ["standard", "ssl"]
+
+[package.metadata.docs.rs]
+# enable one of these as default implementation
+features = ["ssl-rustls"]
+
+[lints]
+workspace = true

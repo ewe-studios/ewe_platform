@@ -1,0 +1,53 @@
+[package]
+name = "ewe_devserver"
+version = "0.0.2"
+description = "The devserver implementation that allows easy wrapping of a reverse proxy server"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+keywords.workspace = true
+
+[dependencies]
+# workspace packages
+foundation_core = { workspace = true }
+foundation_nostd = { workspace = true }
+foundation_macros = { workspace = true }
+foundation_runtimes = { workspace = true }
+ewe_trace = { workspace = true, features = ["standard"]}
+ewe_watch_utils = { workspace = true, default-features = true }
+tracing.workspace = true
+anyhow.workspace = true
+derive_more.workspace = true
+
+# -- axum and tower
+itertools = "0.14.0"
+axum = { version = "0.7.5" }
+async-trait = { version = "0.1.82"}
+crossbeam = { version = "0.8" }
+futures = { version = "0.3" }
+tokio-stream = { version = "0.1.16", features = ["sync"]}
+tokio = { version = "1.36", features=["io-util", "full"] }
+bytes = { version = "1.6.1" }
+http = { version = "1.1" }
+http-body = { version = "1.0" }
+hyper = { version = "1.4.1", features = ["full"]}
+hyper-util = { version = "0.1.7"}
+http-body-util = { version = "0.1.2" }
+tower = { version = "0.4.13" }
+h2 = { version = "0.4" }
+h3 = { version = "0.0.6" }
+
+# -- utils
+lazy_static = { version = "1.4.0" }
+
+# -- serve# -- serve
+serde = { version = "1.0.197", features = ["derive"] }
+serde_json = { version = "1.0.114" }
+serde_with = { version = "3.6.1" }
+
+[features]
+
+[lints]
+workspace = true

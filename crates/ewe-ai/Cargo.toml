@@ -1,0 +1,18 @@
+[package]
+name = "ewe-ai"
+version = "0.1.0"
+description = "AI Library for working with differnt API providers and floneum"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+keywords.workspace = true
+
+[dependencies]
+
+[features]
+default = []
+
+[lints]
+workspace = true

@@ -1,0 +1,19 @@
+[package]
+name = "ewe_templates"
+version = "0.0.1"
+description = "Wrapper package for minijinja and tinytemplate, made to allow auto-inclusion of these pacakges without direct cargo import markings"
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+rust-version.workspace = true
+keywords.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tinytemplate = { git = "https://github.com/ewe-studios/TinyTemplate.git", branch = "master", version = "1.2.1" }
+minijinja = { version = "2.0.0", features = ["loader"]}
+
+[lints]
+workspace = true

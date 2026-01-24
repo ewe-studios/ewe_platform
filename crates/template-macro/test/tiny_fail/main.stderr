@@ -1,0 +1,11 @@
+error: expected string literal
+ --> test/tiny_fail/main.rs:8:18
+  |
+8 |          [hello, 20],
+  |                  ^^
+
+error[E0432]: unresolved import `minijinja`
+ --> test/tiny_fail/main.rs:2:5
+  |
+2 | use minijinja::context;
+  |     ^^^^^^^^^ help: a similar path exists: `ewe_templates::minijinja`

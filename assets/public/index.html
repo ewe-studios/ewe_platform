@@ -1,0 +1,27 @@
+<html>
+
+<head>
+  <title>Megatron</title>
+</head>
+
+<body>
+  <h1>Megatron Runtime Testbed</h1>
+
+  <script type="text/javascript" src="/static/sse/reloader.js"></script>
+  <script type="text/javascript" src="/megatron/megatron.js"></script>
+  <script type="application/wasm" src="/public/intro.wasm"></script>
+  <style type="text/css">
+    body {
+      background-color: #181818;
+      color: #d9d9d9;
+    }
+  </style>
+  <script type="text/javascript">
+    Megatron.LOGGER.mode = Megatron.LEVELS.DEBUG;
+
+    const modules = Megatron.WasmWebScripts.default({}); 
+    modules.runAll();
+  </script>
+</body>
+
+</html>

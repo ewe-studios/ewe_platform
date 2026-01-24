@@ -1,0 +1,1 @@
+CREATE TABLE PARTIAL(uuid int);

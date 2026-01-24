@@ -1,0 +1,27 @@
+[package]
+name = "foundation_ai"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "AI foundation create for the eweplatform"
+keywords = ["foundations_ai", "ewe-platform-ai"]
+
+[dependencies]
+
+# -- Workspace dependencies
+
+foundation_nostd = { workspace = true }
+foundation_macros = { workspace = true }
+foundation_core = { workspace = true }
+
+# -- Other dependencies
+derive_more = { version = "2.1", features = ["from", "debug", "error"] }
+serde = { version = "1", features = ["derive"] }
+fastrand = { version = "2.3"}
+rand_chacha = { version = "0.9"}
+rand = { version = "0.9"}
+
+hf-hub = { version = "0.4.3" }

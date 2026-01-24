@@ -1,0 +1,21 @@
+[package]
+name = "reranker"
+version = "0.1.86"
+edition = "2021"
+publish = false
+
+[dependencies]
+infrastructure_llama_cpp = { workspace = true }
+
+hf-hub = { version = "0.4.3" }
+clap = { workspace = true, features = ["derive"] }
+anyhow = { workspace = true }
+encoding_rs = { workspace = true }
+
+[features]
+cuda = ["infrastructure_llama_cpp/cuda"]
+metal = ["infrastructure_llama_cpp/metal"]
+vulkan = ["infrastructure_llama_cpp/vulkan"]
+
+[lints]
+workspace = true

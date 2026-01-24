@@ -1,0 +1,276 @@
+@font-face {
+    font-family: 'Raleway';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url(fonts/raleway_variable.ttf) format('tff');
+}
+
+@font-face {
+    font-family: 'Raleway';
+    font-style: italic;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url(fonts/raleway_italic.ttf) format('tff');
+}
+
+@font-face {
+    font-family: 'Nunito Sans';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url(fonts/nunito_sans_variable.ttf) format('tff');
+}
+
+@font-face {
+    font-family: 'Nunito Sans';
+    font-style: italic;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url(fonts/nunito_sans_italic.ttf) format('tff');
+}
+
+
+
+:root {
+    /* 8 point spacing system basically 96/8 = 11 numbers (excluding 0) */
+
+    --scale-system-00: 8;
+    --scale-system-001: 4;
+    --scale-system-10: 96;
+    --scale-system-09: 88;
+    --scale-system-08: 80;
+    --scale-system-07: 72;
+    --scale-system-06: 56;
+    --scale-system-05: 48;
+    --scale-system-04: 40;
+    --scale-system-03: 32;
+    --scale-system-02: 24;
+    --scale-system-01: 16;
+
+
+    --font-size-10: var(--scale-system-rem-10);
+    --font-size-09: var(--scale-system-rem-09);
+    --font-size-08: var(--scale-system-rem-08);
+    --font-size-07: var(--scale-system-rem-07);
+    --font-size-06: var(--scale-system-rem-06);
+    --font-size-05: var(--scale-system-rem-05);
+    --font-size-04: var(--scale-system-rem-04);
+    --font-size-03: var(--scale-system-rem-03);
+    --font-size-02: var(--scale-system-rem-02);
+    --font-size-01: var(--scale-system-rem-01);
+    --font-size-00: var(--scale-system-rem-00);
+    --font-size-001: var(--scale-system-rem-001);
+
+    --percent-scale-system-12: calc(var(--percent-scale-system-01) * 12);
+    --percent-scale-system-11: calc(var(--percent-scale-system-01) * 11);
+    --percent-scale-system-10: calc(var(--percent-scale-system-01) * 10);
+    --percent-scale-system-09: calc(var(--percent-scale-system-01) * 9);
+    --percent-scale-system-08: calc(var(--percent-scale-system-01) * 8);
+    --percent-scale-system-07: calc(var(--percent-scale-system-01) * 7);
+    --percent-scale-system-06: calc(var(--percent-scale-system-01) * 6);
+    --percent-scale-system-05: calc(var(--percent-scale-system-01) * 5);
+    --percent-scale-system-04: calc(var(--percent-scale-system-01) * 4);
+    --percent-scale-system-03: calc(var(--percent-scale-system-01) * 3);
+    --percent-scale-system-02: calc(var(--percent-scale-system-01) * 2);
+    --percent-scale-system-01: calc(var(--scale-system-00) * 1%);
+    --percent-scale-system-001: calc(var(--scale-system-001) * 1%);
+
+    --scale-system-px-10: calc(var(--scale-system-10) * 1px);
+    --scale-system-px-09: calc(var(--scale-system-09) * 1px);
+    --scale-system-px-08: calc(var(--scale-system-08) * 1px);
+    --scale-system-px-07: calc(var(--scale-system-07) * 1px);
+    --scale-system-px-06: calc(var(--scale-system-06) * 1px);
+    --scale-system-px-05: calc(var(--scale-system-05) * 1px);
+    --scale-system-px-04: calc(var(--scale-system-04) * 1px);
+    --scale-system-px-03: calc(var(--scale-system-03) * 1px);
+    --scale-system-px-02: calc(var(--scale-system-02) * 1px);
+    --scale-system-px-01: calc(var(--scale-system-01) * 1px);
+    --scale-system-px-00: calc(var(--scale-system-00) * 1px);
+    --scale-system-px-001: calc(var(--scale-system-001) * 1px);
+
+    --scale-system-em-10: calc(calc(var(--scale-system-10) / var(--scale-system-01)) * 1em);
+    --scale-system-em-09: calc(calc(var(--scale-system-09) / var(--scale-system-01)) * 1em);
+    --scale-system-em-08: calc(calc(var(--scale-system-08) / var(--scale-system-01)) * 1em);
+    --scale-system-em-07: calc(calc(var(--scale-system-07) / var(--scale-system-01)) * 1em);
+    --scale-system-em-06: calc(calc(var(--scale-system-06) / var(--scale-system-01)) * 1em);
+    --scale-system-em-05: calc(calc(var(--scale-system-05) / var(--scale-system-01)) * 1em);
+    --scale-system-em-04: calc(calc(var(--scale-system-04) / var(--scale-system-01)) * 1em);
+    --scale-system-em-03: calc(calc(var(--scale-system-03) / var(--scale-system-01)) * 1em);
+    --scale-system-em-02: calc(calc(var(--scale-system-02) / var(--scale-system-01)) * 1em);
+    --scale-system-em-01: calc(calc(var(--scale-system-01) / var(--scale-system-01)) * 1em);
+    --scale-system-em-00: calc(calc(var(--scale-system-00) / var(--scale-system-01)) * 1em);
+    --scale-system-em-001: calc(calc(var(--scale-system-001) / var(--scale-system-01)) * 1em);
+
+    --scale-system-percent-10: calc(calc(var(--scale-system-10) / var(--scale-system-01)) * 1%);
+    --scale-system-percent-09: calc(calc(var(--scale-system-09) / var(--scale-system-01)) * 1%);
+    --scale-system-percent-08: calc(calc(var(--scale-system-08) / var(--scale-system-01)) * 1%);
+    --scale-system-percent-07: calc(calc(var(--scale-system-07) / var(--scale-system-01)) * 1%);
+    --scale-system-percent-06: calc(calc(var(--scale-system-06) / var(--scale-system-01)) * 1%);
+    --scale-system-percent-05: calc(calc(var(--scale-system-05) / var(--scale-system-01)) * 1%);
+    --scale-system-percent-04: calc(calc(var(--scale-system-04) / var(--scale-system-01)) * 1%);
+    --scale-system-percent-03: calc(calc(var(--scale-system-03) / var(--scale-system-01)) * 1%);
+    --scale-system-percent-02: calc(calc(var(--scale-system-02) / var(--scale-system-01)) * 1%);
+    --scale-system-percent-01: calc(calc(var(--scale-system-01) / var(--scale-system-01)) * 1%);
+    --scale-system-percent-00: calc(calc(var(--scale-system-00) / var(--scale-system-01)) * 1%);
+    --scale-system-percent-001: calc(calc(var(--scale-system-001) / var(--scale-system-01)) * 1%);
+
+    --scale-system-rem-10: calc(calc(var(--scale-system-10) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-09: calc(calc(var(--scale-system-09) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-08: calc(calc(var(--scale-system-08) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-07: calc(calc(var(--scale-system-07) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-06: calc(calc(var(--scale-system-06) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-05: calc(calc(var(--scale-system-05) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-04: calc(calc(var(--scale-system-04) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-03: calc(calc(var(--scale-system-03) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-02: calc(calc(var(--scale-system-02) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-01: calc(calc(var(--scale-system-01) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-00: calc(calc(var(--scale-system-00) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-001: calc(calc(var(--scale-system-001) / var(--scale-system-01)) * 1rem);
+
+    --lch-gray: 96% 0.005 96;
+    --lch-grey-dark: 92% 0.005 96;
+    --lch-grey-darker: 75% 0.005 96;
+
+
+
+}
+
+html {
+    height: 100%;
+    font-size: var(--scale-system-01)px;
+    background-color: oklch(var(--lch-gray));
+}
+
+html,
+body {
+    margin: 0 auto;
+    font-size: 100%;
+    font-family: "Raleway", Helvetica, 'Helvetica Neue', system-ui;
+    line-height: 1.5;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-size: 100%;
+    font-family: "Nunito Sans", system-ui;
+}
+
+.app,
+.header,
+.content,
+.header_top,
+.header_bottom,
+.content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+}
+
+
+.app {
+    flex: 1;
+    width: 100%;
+    margin: 0 auto;
+    align-items: center;
+    justify-content: center;
+}
+
+.header,
+.content {
+    align-items: center;
+}
+
+.header_top,
+.header_bottom,
+.content {
+    max-width: 1024px;
+}
+
+.app .header {
+    flex: 1;
+    width: 100%;
+    padding: var(--percent-scale-system-001);
+    border-bottom: 5px solid oklch(var(--lch-grey-darker) / 0.5);
+    box-shadow: 0px 10px 20px 1px rgba(0, 0, 0, 0.2);
+}
+
+.app .header .header_top {
+    margin: var(--scale-system-rem-00) 0;
+    text-align: center;
+    text-transform: uppercase;
+    font-size: var(--font-size-05);
+    font-weight: 900;
+    font-style: normal;
+}
+
+.app .header .header_top .header_title_mini {
+    font-size: var(--font-size-05);
+    font-weight: 750;
+    margin: 0 0;
+}
+
+.app .header .header_top .header_title_large {
+    font-size: var(--font-size-10);
+    line-height: 0.8;
+    margin: 0 0;
+}
+
+.app .content {
+    flex: 1;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-items: center;
+    padding-top: var(--scale-system-rem-05);
+    overflow: auto;
+}
+
+.header_bottom {
+    width: 100%;
+    margin: var(--scale-system-rem-04) 0;
+}
+
+.header_bottom .boxinput {
+    display: flex;
+    flex: 1;
+    flex-direction: rows;
+    width: var(--percent-scale-system-12);
+    height: var(--scale-system-rem-07);
+    border-radius: var(--scale-system-rem-05);
+    border: 5px solid oklch(var(--lch-grey-darker) / 0.4);
+}
+
+.header_bottom .boxinput .boxinput__input {
+    display: flex;
+    flex: 8;
+    padding: var(--scale-system-px-02);
+    border-top-left-radius: var(--scale-system-rem-05);
+    border-bottom-left-radius: var(--scale-system-rem-05);
+    border: var(--scale-system-rem-001) solid oklch(var(--lch-grey-darker) / 0.3);
+}
+
+.header_bottom .boxinput .boxinput__submit {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: var(--scale-system-px-02);
+    border-top-right-radius: var(--scale-system-rem-05);
+    border-bottom-right-radius: var(--scale-system-rem-05);
+}
+
+.header_bottom .boxinput .boxinput__submit .label {
+    display: flex;
+    line-height: 0;
+    margin-right: var(--scale-system-rem-01);
+    font-size: var(--font-size-10);
+    text-align: center;
+}

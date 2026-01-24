@@ -1,0 +1,46 @@
+[package]
+name = "ewe_watchers"
+version = "0.0.1"
+description = "The core watchers for directly listening to file changes"
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+rust-version.workspace = true
+keywords = [
+    "watcher",
+    "watchful",
+    "filewatcher",
+    "commandrunner",
+    "changewatcher",
+]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+toml = { version = "0.8.10" }
+serde = { version = "1.0.197", features = ["derive"] }
+serde_json = { version = "1.0.114" }
+serde_with = { version = "3.6.1" }
+
+# -- error crates
+anyhow = { version = "1.0.80" }
+thiserror = { version = "1.0.57" }
+
+# -- tracing crates
+tracing = { version = "0.1.40" }
+tracing-subscriber = { version = "0.3.18" }
+
+# -- watcher
+notify = { version = "6.1.1", features = [] }
+notify-debouncer-full = { version = "0.3.1", default-features = false }
+
+[dev-dependencies]
+tracing-test = { version = "0.2.5" }
+
+
+[features]
+macos_kqueue = ["notify/macos_kqueue"]
+
+[lints]
+workspace = true

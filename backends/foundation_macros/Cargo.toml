@@ -1,0 +1,42 @@
+[package]
+name = "foundation_macros"
+version = "0.0.4"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Macros for the foundations_jsnostd crate providing suitable support to simplify usage"
+keywords = ["foundations_macros"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+foundation_nostd = { workspace = true }
+
+syn = ">=2.0"
+quote = ">=1.0"
+proc-macro2 = ">=1.0"
+proc-macro-crate = "3.3.0"
+
+# brotli 
+brotli = "8.0.2"
+
+# gzip, zlib compression
+flate2 = "1.1.5"
+
+# Compute hash
+sha2 = "0.10.8"
+
+# Encode hash & etag
+base85rs = "0.1"
+
+# Compute last-modified timestamps
+chrono = { version = "0.4", default-features = false, features = ["std"] }
+
+# Compute the mime types
+new_mime_guess = "4.0"
+
+[lints]
+workspace = true

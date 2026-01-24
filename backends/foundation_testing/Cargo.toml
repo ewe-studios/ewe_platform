@@ -1,0 +1,22 @@
+[package]
+name = "foundation_testing"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+authors = ["Foundation AI Team"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/darkvoid/ewe_platform"
+description = "Reusable stress testing infrastructure for Foundation synchronization primitives"
+keywords = ["testing", "stress", "synchronization", "benchmarks", "condvar"]
+categories = ["development-tools::testing"]
+
+[dependencies]
+# Foundation primitives being tested
+foundation_nostd = { path = "../foundation_nostd", features = ["std"] }
+
+# Criterion for benchmarking (only allowed external dependency for testing)
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[features]
+default = ["std"]
+std = ["foundation_nostd/std"]

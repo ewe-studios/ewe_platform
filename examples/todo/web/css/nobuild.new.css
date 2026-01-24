@@ -1,0 +1,446 @@
+@font-face {
+    font-family: "Raleway";
+    font-style: normal;
+    font-weight: 100 900;
+    font-optical-sizing: auto;
+    font-display: swap;
+    src: url(../fonts/raleway_variable.ttf) format("TrueType");
+}
+
+@font-face {
+    font-family: "Raleway";
+    font-style: italic;
+    font-weight: 100 900;
+    font-display: swap;
+    font-optical-sizing: auto;
+    src: url(../fonts/raleway_italic.ttf) format("TrueType");
+}
+
+@font-face {
+    font-family: "Nunito Sans";
+    font-optical-sizing: auto;
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url(../fonts/nunito_sans_variable.ttf) format("TrueType");
+}
+
+@font-face {
+    font-family: "Nunito Sans";
+    font-optical-sizing: auto;
+    font-style: italic;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url(../fonts/nunito_sans_italic.ttf) format("TrueType");
+}
+
+
+
+:root {
+
+    --colors-info-100: #DDE8FA;
+    --colors-info-200: #BCD1F5;
+    --colors-info-300: #9AB9F0;
+    --colors-info-400: #79A2EB;
+    --colors-info-500: #578BE6;
+    --colors-info-600: #4670BA;
+    --colors-info-700: #35558E;
+    --colors-info-800: #1B2D4C;
+    --colors-info-900: #0A1220;
+
+    --colors-success-100: #C8E3C5;
+    --colors-success-200: #B6DAB2;
+    --colors-success-300: #91C88B;
+    --colors-success-400: #6DB565;
+    --colors-success-500: #48A33E;
+    --colors-success-600: #3A8232;
+    --colors-success-700: #2B6225;
+    --colors-success-800: #1D4119;
+    --colors-success-900: #163113;
+
+    --color-error-100: #F8C0C0;
+    --color-error-200: #F6ABAB;
+    --color-error-300: #F18282;
+    --color-error-400: #ED5858;
+    --color-error-500: #E82E2E;
+    --color-error-600: #BA2525;
+    --color-error-700: #8B1C1C;
+    --color-error-800: #5D1212;
+    --color-error-900: #460E0E;
+
+    --colors-warning-100: #FECEBA;
+    --colors-warning-200: #FDBEA3;
+    --colors-warning-300: #FC9D75;
+    --colors-warning-400: #FB7D47;
+    --colors-warning-500: #FA5C19;
+    --colors-warning-600: #C84A14;
+    --colors-warning-700: #96370F;
+    --colors-warning-800: #64250A;
+    --colors-warning-900: #4B1C08;
+
+
+    --colors-greys-100: #D9D7D7;
+    --colors-greys-200: #CCC9C9;
+    --colors-greys-300: #B3AFAF;
+    --colors-greys-400: #999494;
+    --colors-greys-500: #807979;
+    --colors-greys-600: #666161;
+    --colors-greys-700: #4D4949;
+    --colors-greys-800: #262424;
+    --colors-greys-800: #0D0C0C;
+
+    --colors-brand-100: #FFEFEF;
+    --colors-brand-200: #FFDEDE;
+    --colors-brand-300: #FFCECE;
+    --colors-brand-400: #FFBDBD;
+    --colors-brand-500: #FFADAD;
+    --colors-brand-600: #DA8A8A;
+    --colors-brand-700: #B56868;
+    --colors-brand-800: #914545;
+    --colors-brand-900: #6C2323;
+
+    --colors-background-main: #FFFAFA;
+    --colors-text-main: #0D0909;
+
+    /* 8 point spacing system basically 96/8 = 11 numbers (excluding 0) */
+
+    /*allows you step down to 4 point in rare case*/
+    --scale-system-00: calc(var(--scale-system-01) / 2);
+
+    /*normal 16 base scaling for base 8 point scale */
+    --scale-system-01: 8;
+    --scale-system-02: calc(var(--scale-system-01) * 2);
+    --scale-system-03: calc(var(--scale-system-01) * 3);
+    --scale-system-04: calc(var(--scale-system-01) * 4);
+    --scale-system-05: calc(var(--scale-system-01) * 5);
+    --scale-system-06: calc(var(--scale-system-01) * 6);
+    --scale-system-07: calc(var(--scale-system-01) * 7);
+    --scale-system-08: calc(var(--scale-system-01) * 8);
+    --scale-system-09: calc(var(--scale-system-01) * 9);
+    --scale-system-10: calc(var(--scale-system-01) * 10);
+    --scale-system-11: calc(var(--scale-system-01) * 11);
+    --scale-system-12: calc(var(--scale-system-01) * 12);
+    --scale-system-13: calc(var(--scale-system-01) * 13);
+    --scale-system-14: calc(var(--scale-system-01) * 14);
+    --scale-system-15: calc(var(--scale-system-01) * 15);
+    --scale-system-16: calc(var(--scale-system-01) * 16);
+
+    --scale-system-px-00: calc(var(--scale-system-00) * 1px);
+    --scale-system-px-01: calc(var(--scale-system-01) * 1px);
+    --scale-system-px-02: calc(var(--scale-system-02) * 1px);
+    --scale-system-px-03: calc(var(--scale-system-03) * 1px);
+    --scale-system-px-04: calc(var(--scale-system-04) * 1px);
+    --scale-system-px-05: calc(var(--scale-system-05) * 1px);
+    --scale-system-px-06: calc(var(--scale-system-06) * 1px);
+    --scale-system-px-07: calc(var(--scale-system-07) * 1px);
+    --scale-system-px-08: calc(var(--scale-system-08) * 1px);
+    --scale-system-px-09: calc(var(--scale-system-09) * 1px);
+    --scale-system-px-10: calc(var(--scale-system-10) * 1px);
+    --scale-system-px-11: calc(var(--scale-system-11) * 1px);
+    --scale-system-px-12: calc(var(--scale-system-12) * 1px);
+    --scale-system-px-13: calc(var(--scale-system-13) * 1px);
+    --scale-system-px-14: calc(var(--scale-system-14) * 1px);
+    --scale-system-px-15: calc(var(--scale-system-15) * 1px);
+    --scale-system-px-16: calc(var(--scale-system-16) * 1px);
+
+    --scale-system-em-00: calc(calc(var(--scale-system-00) / var(--scale-system-16)) * 1em);
+    --scale-system-em-01: calc(calc(var(--scale-system-01) / var(--scale-system-16)) * 1em);
+    --scale-system-em-02: calc(calc(var(--scale-system-02) / var(--scale-system-16)) * 1em);
+    --scale-system-em-03: calc(calc(var(--scale-system-03) / var(--scale-system-16)) * 1em);
+    --scale-system-em-04: calc(calc(var(--scale-system-04) / var(--scale-system-16)) * 1em);
+    --scale-system-em-05: calc(calc(var(--scale-system-05) / var(--scale-system-16)) * 1em);
+    --scale-system-em-06: calc(calc(var(--scale-system-06) / var(--scale-system-16)) * 1em);
+    --scale-system-em-07: calc(calc(var(--scale-system-07) / var(--scale-system-16)) * 1em);
+    --scale-system-em-08: calc(calc(var(--scale-system-08) / var(--scale-system-16)) * 1em);
+    --scale-system-em-09: calc(calc(var(--scale-system-09) / var(--scale-system-16)) * 1em);
+    --scale-system-em-10: calc(calc(var(--scale-system-10) / var(--scale-system-16)) * 1em);
+    --scale-system-em-11: calc(calc(var(--scale-system-11) / var(--scale-system-16)) * 1em);
+    --scale-system-em-12: calc(calc(var(--scale-system-12) / var(--scale-system-16)) * 1em);
+    --scale-system-em-13: calc(calc(var(--scale-system-13) / var(--scale-system-16)) * 1em);
+    --scale-system-em-14: calc(calc(var(--scale-system-14) / var(--scale-system-16)) * 1em);
+    --scale-system-em-15: calc(calc(var(--scale-system-15) / var(--scale-system-16)) * 1em);
+    --scale-system-em-16: calc(calc(var(--scale-system-16) / var(--scale-system-16)) * 1em);
+
+    --scale-system-rem-00: calc(calc(var(--scale-system-00) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-01: calc(calc(var(--scale-system-01) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-02: calc(calc(var(--scale-system-02) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-03: calc(calc(var(--scale-system-03) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-04: calc(calc(var(--scale-system-04) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-05: calc(calc(var(--scale-system-05) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-06: calc(calc(var(--scale-system-06) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-07: calc(calc(var(--scale-system-07) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-08: calc(calc(var(--scale-system-08) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-09: calc(calc(var(--scale-system-09) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-10: calc(calc(var(--scale-system-10) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-11: calc(calc(var(--scale-system-10) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-12: calc(calc(var(--scale-system-10) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-13: calc(calc(var(--scale-system-10) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-14: calc(calc(var(--scale-system-10) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-15: calc(calc(var(--scale-system-10) / var(--scale-system-01)) * 1rem);
+    --scale-system-rem-16: calc(calc(var(--scale-system-10) / var(--scale-system-01)) * 1rem);
+
+    --scale-system-percent-00: calc(calc(var(--scale-system-00) / var(--scale-system-16)) * 100%);
+    --scale-system-percent-01: calc(calc(var(--scale-system-01) / var(--scale-system-16)) * 100%);
+    --scale-system-percent-02: calc(calc(var(--scale-system-02) / var(--scale-system-16)) * 100%);
+    --scale-system-percent-03: calc(calc(var(--scale-system-03) / var(--scale-system-16)) * 100%);
+    --scale-system-percent-04: calc(calc(var(--scale-system-04) / var(--scale-system-16)) * 100%);
+    --scale-system-percent-05: calc(calc(var(--scale-system-05) / var(--scale-system-16)) * 100%);
+    --scale-system-percent-06: calc(calc(var(--scale-system-06) / var(--scale-system-16)) * 100%);
+    --scale-system-percent-07: calc(calc(var(--scale-system-07) / var(--scale-system-16)) * 100%);
+    --scale-system-percent-08: calc(calc(var(--scale-system-08) / var(--scale-system-16)) * 100%);
+    --scale-system-percent-09: calc(calc(var(--scale-system-09) / var(--scale-system-16)) * 100%);
+    --scale-system-percent-10: calc(calc(var(--scale-system-10) / var(--scale-system-16)) * 100%);
+    --scale-system-percent-11: calc(calc(var(--scale-system-11) / var(--scale-system-16)) * 100%);
+    --scale-system-percent-12: calc(calc(var(--scale-system-12) / var(--scale-system-16)) * 100%);
+    --scale-system-percent-14: calc(calc(var(--scale-system-13) / var(--scale-system-16)) * 100%);
+    --scale-system-percent-15: calc(calc(var(--scale-system-14) / var(--scale-system-16)) * 100%);
+    --scale-system-percent-16: calc(calc(var(--scale-system-15) / var(--scale-system-16)) * 100%);
+
+
+    --font-size-00: var(--scale-system-rem-00);
+    --font-size-01: var(--scale-system-rem-01);
+    --font-size-02: var(--scale-system-rem-02);
+    --font-size-03: var(--scale-system-rem-03);
+    --font-size-04: var(--scale-system-rem-04);
+    --font-size-05: var(--scale-system-rem-05);
+    --font-size-06: var(--scale-system-rem-06);
+    --font-size-07: var(--scale-system-rem-07);
+    --font-size-08: var(--scale-system-rem-08);
+    --font-size-09: var(--scale-system-rem-09);
+    --font-size-10: var(--scale-system-rem-10);
+
+    --lch-gray: 96% 0.005 96;
+    --lch-grey-dark: 92% 0.005 96;
+    --lch-grey-darker: 75% 0.005 96;
+
+
+
+}
+
+html {
+    height: 100%;
+    color: var(--colors-text-main);
+    font-size: var(--scale-system-px-02);
+    background-color: var(--colors-background-main);
+}
+
+body {
+    width: 100%;
+    height: auto;
+}
+
+html,
+body {
+    margin: 0 auto;
+    font-size: 100%;
+    font-family: "Nunito Sans", system-ui;
+    font-style: normal;
+    line-height: 1.5;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-size: 100%;
+    font-style: normal;
+    font-family: "Raleway", system-ui;
+}
+
+.app,
+.header,
+.content,
+.header_top,
+.header_bottom,
+.content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+}
+
+
+.app {
+    flex: 1;
+    width: 100%;
+    height: auto;
+    margin: 0 auto;
+    align-items: center;
+    justify-content: center;
+}
+
+.header,
+.content {
+    align-items: center;
+}
+
+.header_top,
+.header_bottom,
+.content {
+    max-width: 1024px;
+}
+
+.app .header {
+    flex: 1;
+    width: 100%;
+    height: auto;
+    padding: var(--scale-system-percent-00);
+    border-bottom: 5px solid oklch(var(--lch-grey-darker) / 0.5);
+    box-shadow: 0px 10px 20px 1px rgba(0, 0, 0, 0.2);
+}
+
+.app .header .header_top {
+    display: flex;
+    flex: 1;
+    margin: var(--scale-system-rem-00) 0;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    text-transform: uppercase;
+    font-size: var(--font-size-03);
+    font-weight: 900;
+    font-style: normal;
+    color: var(--colors-brand-900);
+}
+
+.app .header .header_top .header_title_mini {
+    font-size: var(--font-size-03);
+    font-weight: 750;
+    margin: 0 0;
+}
+
+.app .header .header_top .header_title_large {
+    font-size: var(--font-size-07);
+    line-height: 0.8;
+    margin: 0 0;
+}
+
+
+.app .header .header_bottom {
+    flex: 1;
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    justify-content: space-between;
+    margin-top: var(--scale-system-rem-03);
+}
+
+.app .header .header_bottom .boxinput {
+    flex: 1;
+    display: flex;
+    background-color: var(--colors-brand-900);
+    height: var(--scale-system-rem-06);
+    border-radius: var(--scale-system-rem-04);
+    border: var(--scale-system-rem-00) solid var(--colors-brand-900);
+}
+
+.app .header .header_bottom .boxinput .boxinput__input {
+    display: flex;
+    flex: 5;
+    font-weight: 800;
+    font-size: var(--scale-system-rem-02);
+    padding: var(--scale-system-rem-01) var(--scale-system-rem-02);
+    border-radius: var(--scale-system-rem-04);
+    border: var(--scale-system-rem-00) solid var(--colors-brand-600);
+}
+
+.app .header .header_bottom .boxinput .boxinput__submit {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--scale-system-px-01);
+    border-top-right-radius: var(--scale-system-rem-04);
+    border-bottom-right-radius: var(--scale-system-rem-04);
+}
+
+.app .header .header_bottom .boxinput .boxinput__submit .label {
+    line-height: 0;
+    text-align: center;
+    color: var(--colors-brand-100);
+    font-size: var(--font-size-09);
+    margin-right: var(--scale-system-rem-01);
+}
+
+.app .header .header_bottom .boxhint {
+    flex: 1;
+    display: flex;
+    margin-top: var(--scale-system-px-04);
+    align-items: center;
+    justify-content: center;
+}
+
+.app .header .header_bottom .boxhint .hint {
+    font-style: italic;
+    font-size: var(--font-size-01);
+}
+
+.app .content {
+    width: 100%;
+    height: auto;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding-top: var(--scale-system-rem-03);
+}
+
+
+.app .content .todo {
+    flex: 1;
+    display: flex;
+    width: 60%;
+    min-height: 100px;
+    overflow: hidden;
+    margin: var(--scale-system-rem-01) 0;
+    background-color: var(--colors-brand-900);
+    border-radius: var(--scale-system-rem-04);
+    border: var(--scale-system-rem-00) solid var(--colors-brand-900);
+}
+
+.app .content .todo .note {
+    flex: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.app .content .todo .note .text {
+    color: var(--colors-brand-100);
+    font-size: var(--font-size-02);
+}
+
+.app .content .todo .action {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--scale-system-rem-04);
+    background-color: var(--colors-brand-100);
+}
+
+.app .content .todo .action .text {
+    line-height: 0;
+    text-align: center;
+    color: var(--colors-brand-900);
+    font-size: var(--font-size-01);
+}
+
+.app .content .todo .action .text::after {
+    font-size: var(--font-size-01);
+    font-weight: 800;
+    content: "Complete";
+}
+
+.app .content .completed {
+    background-color: var(--colors-brand-800);
+    border: var(--scale-system-rem-00) solid var(--colors-brand-800);
+}
+
+.app .content .completed .action .text::after {
+    content: "Completed";
+    font-weight: 800;
+    font-size: var(--font-size-01);
+}

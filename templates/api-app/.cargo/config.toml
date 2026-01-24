@@ -1,0 +1,7 @@
+[env]
+ENVIRONMENT = { value = "dev" }
+CONFIG_DIR = { value = "./config"}
+BINARY_NAME = { value ="app", force = true }
+PROJECT_DIRECTORY = { value =".", relative = true, force = true }
+
+[alias]

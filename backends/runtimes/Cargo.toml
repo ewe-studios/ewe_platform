@@ -1,0 +1,25 @@
+[package]
+name = "foundation_runtimes"
+version = "0.0.3"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Central crate for all runtime assets accessible as embedded files"
+keywords = ["runtimes", "embedded_runtimes"]
+
+[dependencies]
+foundation_nostd = { workspace = true }
+foundation_macros = { workspace = true }
+
+# brotli 
+brotli = "8.0.2"
+
+# gzip, zlib compression
+flate2 = "1.1.5"
+
+
+[lints]
+workspace = true
+

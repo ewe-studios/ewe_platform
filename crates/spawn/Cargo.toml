@@ -1,0 +1,42 @@
+[package]
+name = "ewe_spawn"
+version = "0.0.1"
+description = "Utilities for spawing or sending functions into background threads for web and non-web environment"
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+rust-version.workspace = true
+keywords.workspace = true
+
+[features]
+default = []
+server = ["dep:tokio"]
+web = ["dep:wasm-bindgen", "dep:wasm-bindgen-futures"]
+
+[dev-dependencies]
+tokio-test = { version = "0.4" }
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dependencies]
+cfg-if = { version = "1.0" }
+anyhow = { version = "1.0.80" }
+thiserror = { version = "1.0.57" }
+futures = { version = "0.3" }
+
+# tracing
+tracing = { version = "0.1.40" }
+
+# tokio
+tokio = { version = "1", features = [
+    "rt",
+], optional = true, default-features = false }
+
+# wasm
+wasm-bindgen-futures = { version = "0.4.42", optional = true }
+wasm-bindgen = { version = "0.2.29", features = [
+    "serde-serialize",
+], optional = true }
+
+[lints]
+workspace = true

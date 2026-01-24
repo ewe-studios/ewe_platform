@@ -1,0 +1,50 @@
+[package]
+name = "ewe_temple"
+version = "0.0.2"
+description = "File generation and templating stack for the ewe_platform package"
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+rust-version.workspace = true
+keywords.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# backend dependencies
+foundation_core = { workspace = true }
+foundation_nostd = { workspace = true }
+foundation_macros = { workspace = true }
+
+# internal package dependencies
+derive_more.workspace = true
+ewe_trace = { workspace = true }
+ewe_templates = { workspace = true }
+
+# rust package parsing
+cargo_toml = { version = "0.20.5" }
+toml = { version = "0.8.19" }
+
+# -- template crates
+rand = { version = "0.8.5" }
+
+# -- error crates
+anyhow = { version = "1.0.80" }
+
+# -- tracing
+tracing = { version = "0.1.40" }
+
+# -- serde
+serde = { version = "1.0.197", features = ["derive"] }
+serde_json = { version = "1.0.114" }
+serde_with = { version = "3.6.1" }
+
+[dev-dependencies]
+tracing-test = { version = "0.2.5" }
+
+[features]
+debug_trace = ["ewe_trace/debug_trace"]
+
+[lints]
+workspace = true

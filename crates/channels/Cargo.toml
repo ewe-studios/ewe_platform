@@ -1,0 +1,30 @@
+[package]
+name = "ewe_channels"
+version = "0.0.1"
+description = "The channels wrapper for implementing channels in ewe_domain crate"
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+rust-version.workspace = true
+keywords.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dev-dependencies]
+tokio-test = { version = "0.4" }
+tracing-test = { version = "0.2.5" }
+
+
+[dependencies]
+tracing = { version = "0.1.40" }
+tokio = { version = "1.36", features = ["full"] }
+async-channel = { version = "2.2" }
+futures = { version = "0.3" }
+crossbeam = { version = "0.8" }
+anyhow = { version = "1.0.80" }
+thiserror = { version = "1.0.57" }
+
+
+[lints]
+workspace = true
