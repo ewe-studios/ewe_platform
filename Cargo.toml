@@ -95,7 +95,7 @@ criterion = { version = "0.5.1" }
 pprof = { version = "0.13.0" }
 bindgen = { version = "0.72.1" }
 cc = { version = "1.2.49" }
-clap = { version = "4.5.53" }
+clap = { version = "4.5.54" }
 encoding_rs = { version = "0.8.35" }
 tracing-subscriber = { version = "0.3", features = ["json"] }
 
