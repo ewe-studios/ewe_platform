@@ -1,0 +1,107 @@
+# rust-analyzer configuration for ewe_platform
+# Enables LSP completions including C++ bindings from llama.cpp
+
+# Enable proc-macro support for better completions
+[procMacro]
+enable = true
+ignored = {}
+
+# Configure rustc to use rustup's wrapper (ensures rust-toolchain.toml is respected)
+[rustc]
+source = "discover"
+
+# Configure cargo settings
+[cargo]
+# Don't use allFeatures as it enables system-ggml which requires pre-installed ggml
+allFeatures = false
+# Load out-of-tree sources (needed for generated bindings)
+loadOutDirsFromCheck = true
+# Run build scripts to generate C++ bindings
+runBuildScripts = true
+# Set build script overrides if needed
+buildScripts.enable = true
+# Use rustup run to ensure the correct toolchain sysroot is used
+sysroot = "discover"
+# Use explicit sysroot source path to the active toolchain
+# The rust-toolchain.toml includes rust-src component
+sysrootSrc = "discover"
+# sysrootSrc = "/home/darkvoid/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library"
+# Ensure rust-analyzer uses rustup's toolchain (set in rust-toolchain.toml)
+# This prevents it from using system rustc at /usr/src/debug/
+# extraEnv = { "RUSTUP_TOOLCHAIN" = "stable" }
+#
+# OR
+#
+# Just uninstall rustc from your system, so rustup is the only one usable
+#
+# e.g archlinux: sudo pacman -Rs rust
+
+# Configure check on save
+[check]
+# Use clippy for additional lints
+command = "clippy"
+# Check all targets including build scripts
+allTargets = true
+# Don't use allFeatures for check either
+allFeatures = false
+
+# Completion settings
+[completion]
+# Enable auto-import suggestions
+autoimport.enable = true
+# Show completions from private items when appropriate
+privateEditable.enable = true
+# Full function signatures in completions
+callable.snippets = "fill_arguments"
+# Limit completion items for performance
+limit = 100
+
+# Inlay hints for better code understanding
+[inlayHints]
+# Show type hints for bindings
+bindingModeHints.enable = true
+# Show parameter names in function calls
+parameterHints.enable = true
+# Show type hints for variables
+typeHints.enable = true
+# Show chaining hints
+chainingHints.enable = true
+# Show closure return type hints
+closureReturnTypeHints.enable = "always"
+
+# Hover documentation
+[hover]
+# Show documentation on hover
+documentation.enable = true
+# Show keyword documentation
+documentation.keywords.enable = true
+
+# Diagnostics configuration
+[diagnostics]
+# Enable all diagnostics
+enable = true
+# Don't disable any diagnostics
+disabled = []
+
+# Rust files configuration
+[files]
+# Watch generated binding files in target directory
+watcher = "server"
+# Exclude large unnecessary directories from indexing
+excludeDirs = [
+    "tools/emsdk",
+    "tools/dawn",
+    "target/release",
+    ".git"
+]
+
+# Lens configuration
+[lens]
+# Show run lens for examples
+enable = true
+run.enable = true
+debug.enable = true
+implementations.enable = true
+references.adt.enable = true
+references.trait.enable = true
+references.method.enable = true

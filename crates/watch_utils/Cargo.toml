@@ -1,0 +1,32 @@
+[package]
+name = "ewe_watch_utils"
+version = "0.0.1"
+description = "Implements utilities for directory watching"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+keywords.workspace = true
+
+[dependencies]
+ewe_trace.workspace = true
+tracing.workspace = true
+anyhow.workspace = true
+
+# -- error crates
+thiserror = { version = "1.0.57" }
+
+# -- watcher
+notify = { version = "6.1.1", features = [] }
+notify-debouncer-full = { version = "0.3.1", default-features = false }
+
+[dev-dependencies]
+tracing-test = { version = "0.2.5" }
+
+[features]
+macos_kqueue = ["notify/macos_kqueue"]
+default = []
+
+[lints]
+workspace = true

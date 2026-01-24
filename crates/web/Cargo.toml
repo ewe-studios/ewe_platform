@@ -1,0 +1,70 @@
+[package]
+name = "ewe_web"
+description = "Implements browser based capabilities, utilities and structures for the web"
+version = "0.0.1"
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+rust-version.workspace = true
+keywords.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = ["console_error_panic_hook"]
+server = ["dep:tokio"]
+
+# # -- global dev dependencies
+# [dev_dependencies]
+# tracing-test = { version = "0.2.5" }
+# cargo-expand = { version = "1.0.85" }
+# tokio-test = { version = "0.4" }
+# wasm-pack = { version = "0.12.1" }
+# wasm-bindgen-cli = { version = "0.2.29" }
+# wasm-bindgen-test = { version = "0.3.42" }
+
+# -- global dependencies
+[dependencies]
+cfg-if = { version = "1.0" }
+
+serde = { version = "1.0.197", features = ["derive"] }
+serde_json = { version = "1.0.114" }
+serde_with = { version = "3.6.1" }
+
+# -- tracing crates
+tracing = { version = "0.1.40" }
+tracing-subscriber = { version = "0.3.18" }
+
+# -- error crates
+anyhow = { version = "1.0.80" }
+thiserror = { version = "1.0.57" }
+futures = { version = "0.3" }
+async-channel = { version = "2.2" }
+
+# tokio
+tokio = { version = "1", features = [
+    "rt",
+], optional = true, default-features = false }
+
+# wasm
+js-sys = { version = "0.3.68" }
+web-sys = { version = "0.3.68", features = [
+    "console",
+    "Window",
+    "Document",
+    "Element",
+] }
+wasm-bindgen = { version = "0.2.29", features = ["serde-serialize"] }
+serde-wasm-bindgen = { version = "0.6" }
+wasm-bindgen-futures = { version = "0.4.41" }
+
+# The `console_error_panic_hook` crate provides better debugging of panics by
+# logging them with `console.error`. This is great for development, but requires
+# all the `std::fmt` and `std::panicking` infrastructure, so isn't great for
+# code size when deploying.
+console_error_panic_hook = { version = "0.1.7", optional = true }
+
+[dev-dependencies]
+tracing-test = { version = "0.2.5" }
+tokio-test = { version = "0.4" }

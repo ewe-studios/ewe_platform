@@ -1,0 +1,119 @@
+[workspace]
+resolver = "3"
+# set members of your workspace
+members = [
+  "bin/*",
+  "crates/*",
+  "backends/*",
+  "infrastructure/*",
+  "tests",  # Workspace integration tests
+  "benches",  # Workspace benchmarks
+
+  # examples
+  "examples/web/*",
+  "examples/intro",
+  "examples/template/*",
+  "examples/llama-cpp/embeddings",
+  "examples/llama-cpp/simple",
+  "examples/llama-cpp/reranker",
+  "examples/llama-cpp/mtmd",
+
+  # tests members
+  "integrations/nodejs/integrations/*",
+]
+
+exclude = [
+  "artefacts/*",
+  "crates/html-macro",
+  "templates/*",
+  "examples/todo",
+  "crates/temple/output_directory",
+  "backends/docs",
+  "backends/docs/*",
+]
+
+[workspace.package]
+edition = "2021"
+rust-version = "1.87"
+license = "Apache-2.0"
+authors = ["EweStudios Consulting Limited"]
+repository = "https://github.com/ewe-studios/ewe_platform"
+keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
+
+
+[workspace.dependencies]
+
+# --- infrastructure crates
+
+infrastructure_llama_bindings = { path = "./infrastructure/llama-bindings", version = "0.0.1" }
+infrastructure_llama_cpp = { path = "./infrastructure/llama-cpp", version = "0.0.1" }
+
+# --- foundation crates
+foundation_macros = { path = "./backends/foundation_macros", version = "0.0.4" }
+foundation_nostd = { path = "./backends/foundation_nostd", version = "0.0.4" }
+foundation_wasm = { path = "./backends/foundation_wasm", version = "0.0.2" }
+foundation_core = { path = "./backends/foundation_core", version = "0.0.3" }
+foundation_runtimes = { path = "./backends/runtimes", version = "0.0.3" }
+foundation_ai = { path = "./backends/foundation_ai", version = "0.0.1" }
+
+# -- internal packages so others can use them
+ewe_web = { path = "./crates/web", version = "0.0.1" }
+ewe_trace = { path = "./crates/trace", version = "0.0.1" }
+ewe_html = { path = "./crates/html", version = "0.0.1" }
+ewe_spawn = { path = "./crates/spawn", version = "0.0.1" }
+ewe_temple = { path = "./crates/temple", version = "0.0.2" }
+ewe_domain = { path = "./crates/domain", version = "0.0.1" }
+ewe_routing = { path = "./crates/routing", version = "0.0.1" }
+ewe_platform = { path = "./crates/platform", version = "0.0.1" }
+ewe_channels = { path = "./crates/channels", version = "0.0.1" }
+ewe_watchers = { path = "./crates/watchers", version = "0.0.1" }
+ewe_devserver = { path = "./crates/devserver", version = "0.0.2" }
+ewe_templates = { path = "./crates/templates", version = "0.0.1" }
+ewe_html_macro = { path = "./crates/html-macro", version = "0.0.1" }
+ewe_watch_utils = { path = "./crates/watch_utils", version = "0.0.1" }
+ewe_async_utils = { path = "./crates/async-utils", version = "0.0.1" }
+ewe_domain_macro = { path = "./crates/domain-macro", version = "0.0.1" }
+ewe_templates_macro = { path = "./crates/template-macro", version = "0.0.1" }
+
+# -- workspace wide packages
+toml = { version = "0.9" }
+anyhow = { version = "1.0" }
+concurrent-queue = { version = "2.5" }
+derive_more = { version = ">=2.0", features = ["full"] }
+
+# core library dependencies
+tracing = { version = "0.1" }
+tracing-core = { version = "0.1" }
+
+thiserror = { version = "1"} 
+
+# specific for testing serially
+serial_test = "0.6.0"
+
+# examples and benchmarks
+criterion = { version = "0.5.1" }
+pprof = { version = "0.13.0" }
+bindgen = { version = "0.72.1" }
+cc = { version = "1.2.49" }
+clap = { version = "4.5.53" }
+encoding_rs = { version = "0.8.35" }
+tracing-subscriber = { version = "0.3", features = ["json"] }
+
+[workspace.lints.rust]
+missing_docs = { level = "allow" } 
+missing_debug_implementations = { level = "allow" } 
+
+[workspace.lints.clippy]
+pedantic = { level = "warn" }
+
+[profile.dev]
+opt-level = 0
+
+[profile.dev.package."*"]
+opt-level = 0
+
+[profile.release]
+lto = true # link time optimizations
+# Enable to remove debug info from wasm files
+strip = "debuginfo"
+

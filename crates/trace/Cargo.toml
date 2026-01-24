@@ -1,0 +1,28 @@
+[package]
+name = "ewe_trace"
+version = "0.0.1"
+description = "Logging package macros that call tracing crate underneath, used in the eweplatform crate"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+keywords.workspace = true
+
+[dependencies]
+tracing = { version = "0.1.40" }
+
+[dev-dependencies]
+tracing-test = { version = "0.2.5" }
+
+[lints]
+workspace = true
+
+[features]
+default = ["standard"]
+debug_trace = ["standard", "log_debug"]
+standard = ["log_info", "log_errors", "log_warnings"]
+log_warnings = []
+log_errors = []
+log_debug = []
+log_info = []

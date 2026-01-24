@@ -1,0 +1,16 @@
+; [submodule "infrastructure/TinyTemplate"]
+; 	path = backends/TinyTemplate
+; 	url = git@github.com:rstkit/TinyTemplate.git
+[submodule "tools/emsdk"]
+	path = tools/emsdk
+	url = https://github.com/emscripten-core/emsdk.git
+[submodule "tools/dawn"]
+	path = tools/dawn
+	depth = 1
+	url = https://github.com/google/dawn.git
+[submodule "infrastructure/llama-bindings/llama.cpp"]
+	path = infrastructure/llama-bindings/llama.cpp
+	url = https://github.com/ggml-org/llama.cpp
+[submodule ".agents"]
+	path = .agents
+	url = git@github.com:ewe-studios/agentic-coding-starter.git

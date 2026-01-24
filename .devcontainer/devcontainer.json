@@ -1,0 +1,480 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/python
+{
+	"name": "platforms_dev",
+	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	"dockerComposeFile": "./docker-compose.yml",
+	// the app in docker-compose to use
+	"service": "app",
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	"remoteUser": "ewestudio",
+	"containerUser": "ewestudio",
+	// The 'workspaceFolder' property is the path VS Code should open by default when
+	// connected. Corresponds to a volume mount in .devcontainer/docker-compose.yml
+	"workspaceFolder": "/workspace",
+	// Use this environment variable if you need to bind mount your local source code into a new container.
+	"remoteEnv": {
+		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+	},
+	"mounts": [
+		"source=${localEnv:HOME}/Labs/,target=/workspaces/labs,type=bind,consistency=cached"
+		// "source=${localWorkspaceFolder}/.vscode-server/extensions,target=/home/vscode/.vscode-server/extensions,type=bind,consistency=cached",
+		// "source=${localWorkspaceFolder}/.vscode-server/extensionsCache,target=/home/vscode/.vscode-server/extensionsCache,type=bind,consistency=cached"
+	],
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	"features": {
+		"ghcr.io/devcontainers/features/node:1": {}
+	},
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	"forwardPorts": [],
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": "",
+	// Customization for vscode settings, extensions
+	// Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				// General extensions
+				"asvetliakov.vscode-neovim",
+				"JulianIaquinandi.nvim-ui-modifier",
+				"codezombiech.gitignore",
+				"vadimcn.vscode-lldb",
+				"usernamehw.errorlens",
+				"ms-azuretools.vscode-docker",
+				"formulahendry.code-runner",
+				"ms-python.black-formatter",
+				"ms-vscode-remote.remote-containers",
+				"bradgashler.htmltagwrap",
+				"vscode-icons-team.vscode-icons",
+				"CoenraadS.disableligatures",
+				"ms-vscode.makefile-tools",
+				"octref.vetur",
+				"eamodio.gitlens",
+				"formulahendry.auto-close-tag",
+				// themes
+				"tal7aouy.theme",
+				"GitHub.github-vscode-theme",
+				"whizkydee.material-palenight-theme",
+				"BeardedBear.beardedtheme",
+				"dracula-theme.theme-dracula",
+				"enkia.tokyo-night",
+				// flexible command runner in rust
+				"skellock.just",
+				"SeaQL.firedbg-rust",
+				// Nice to have cause I will still edit such files
+				"ms-kubernetes-tools.vscode-kubernetes-tools",
+				"GoogleCloudTools.cloudcode",
+				"tombonnike.vscode-status-bar-format-toggle",
+				"bierner.markdown-preview-github-styles",
+				"bierner.markdown-mermaid",
+				"yzhang.markdown-all-in-one",
+				"bradlc.vscode-tailwindcss",
+				"XadillaX.viml",
+				"Equinusocio.moxer-icons",
+				"rebornix.toggle",
+				"GitHub.vscode-pull-request-github",
+				"johnpapa.vscode-peacock",
+				"VSpaceCode.whichkey",
+				"drcika.apc-extension",
+				"amodio.toggle-excluded-files",
+				"mrmlnc.vscode-duplicate",
+				"qufiwefefwoyn.inline-sql-syntax",
+				"tamasfe.even-better-toml",
+				"Chouzz.vscode-better-align",
+				"dbaeumer.vscode-eslint",
+				// extension packs
+				"fnando.linter",
+				// Python specifics extensions
+				"ms-python.python",
+				"samuelcolvin.jinjahtml",
+				"matangover.mypy",
+				"charliermarsh.ruff",
+				"ms-python.flake8",
+				"ms-python.isort",
+				"ms-python.vscode-pylance",
+				"ms-python.pylint",
+				// Rust specifics extensions
+				"charliermarsh.ruff",
+				"serayuzgur.crates",
+				"njpwerner.autodocstring",
+				"JScearcy.rust-doc-viewer",
+				"qufiwefefwoyn.inline-sql-syntax",
+				"vadimcn.vscode-lldb",
+				"rust-lang.rust-analyzer",
+				"hbenl.vscode-test-explorer",
+				"swellaby.vscode-rust-test-adapter",
+				"donjayamanne.githistory",
+				"DavidAnson.vscode-markdownlint",
+				"eamodio.gitlens"
+			],
+			"settings": {
+				// We can use Geist Mono instead of Fira Code
+				"editor.fontFamily": "Fira Code",
+				"scm.inputFontFamily": "Fira Code",
+				"terminal.integrated.fontFamily": "JetBrainsMono Nerd Font",
+				"chat.editor.fontFamily": "Fira Code",
+				"debug.console.fontFamily": "Fira Code",
+				"editor.codeLensFontFamily": "Fira Code",
+				"notebook.output.fontFamily": "Fira Code",
+				"markdown.preview.fontFamily": "Fira Code",
+				"editor.inlayHints.fontFamily": "Fira Code",
+				// End of Default Settings we prefer grouping ---
+				//
+				"firedbg.showWelcome": false,
+				"diffEditor": {
+					// Show me whitespace in diffs, just in case some slips through, shows up in the GitHub PR, and I look like a dummy.
+					"ignoreTrimWhitespace": false
+				},
+				"explorer": {
+					"compactFolders": false,
+					"openEditors": {
+						"visible": 1
+					}
+				},
+				"window": {
+					"commandCenter": false
+					// "zoomLevel": 0.75,
+				},
+				"terminal": {
+					"integrated": {
+						"fontSize": 14,
+						"lineHeight": 1.5,
+						"cursorBlinking": false,
+						"cursorStyle": "line"
+					}
+				},
+				"errorLens": {
+					"messageEnabled": true,
+					"enabledDiagnosticLevels": [
+						// enable hint to show more details but might annoy you
+						// "hint",
+						"error",
+						"warning",
+						"info"
+					],
+					"enabled": true,
+					"enableOnDiffView": true
+				},
+				"editor": {
+					"linkedEditing": true,
+					"bracketPairColorization": {
+						"enabled": true
+					},
+					"guides": {
+						"bracketPairs": true,
+						"indentation": false
+					},
+					"multiCursorModifier": "ctrlCmd",
+					"codeActionsOnSave": {
+						"source": {
+							"fixAll": true,
+							"organizeImports": true
+						}
+					},
+					"window": {
+						"title": "${activeEditorMedium}${separator}${rootName} ${dirty}",
+						"titleBar": "custom"
+					},
+					"scrollbar": {
+						"vertical": "auto",
+						"horizontal": "auto"
+					},
+					"minimap": {
+						"enabled": false
+					},
+					"codeLens": false,
+					"renderControlCharacters": false,
+					"renderIndentGuides": false,
+					"renderLineHighlight": "on",
+					"matchBrackets": "always",
+					// "lineNumbers": "on",
+					"lineNumbers": "relative",
+					"renderWhitespace": "off",
+					"fontSize": 16,
+					"lineHeight": 22,
+					"letterSpacing": 0,
+					"suggestFontSize": 16,
+					"suggestLineHeight": 28,
+					"fontLigatures": true,
+					"disableLigatures.mode": "Cursor",
+					// When I accidentally hit copy without selecting anything and it overrides my clipboard - ugh.
+					"emptySelectionClipboard": false,
+					// I removed the hyphen "-" from this list for better multi-cursor navigation.
+					// @freekmurze suggested I remove "$" too for php variables - brilliant!
+					"wordSeparators": "`~!@#%^&*()=+[{]}\\|;:'\",.<>/?",
+					// Give it to me as fast as you have it.
+					"quickSuggestionsDelay": 0,
+					// In sublime I got used to almost exclusively using "cmd+shift+v" (format on paste) - now it will do it by default!
+					"formatOnPaste": true,
+					"formatOnSave": true
+				},
+				"emmet": {
+					"includeLanguages": {
+						"blade.php": "html",
+						"vue": "html"
+					}
+				},
+				"zenMode": {
+					"fullScreen": false
+				},
+				"search.exclude": {
+					"**/node_modules": true,
+					"**/bower_components": true,
+					// Hide everything in /public, except "index.php"
+					"**/public/[abcdefghjklmnopqrstuvwxyz]*": true,
+					"**/public/i[abcdefghijklmopqrstuvwxyz]*": true,
+					// Hide everything in /vendor, except "laravel" folder.
+					"**/vendor/[abcdefghijkmnopqrstuvwxyz]*": true,
+					"**/vendor/l[bcdefghijklmnopqrstuvwxyz]*": true,
+					"storage/framework/views": true
+				},
+				"files": {
+					"trimTrailingWhitespace": true,
+					"trimFinalNewlines": true,
+					"associations": {
+						".php_cs": "php",
+						".php_cs.dist": "php",
+						"*.php": "php",
+						"*.python": "python"
+					},
+					"exclude": {
+						"**/.git": false,
+						"**/.svn": false,
+						"**/.hg": false,
+						"**/CVS": false,
+						"**/.DS_Store": false,
+						"**/Thumbs.db": false,
+						"**/node_modules": false,
+						"**/.next": false,
+						"**/.husky": false,
+						"**/drizzle": false,
+						"**/dist": false,
+						"**/.todo.md": false,
+						"**/.vscode": false,
+						"**/.eslintrc.cjs": false,
+						"**/.editorconfig": false,
+						"**/.gitignore": false,
+						"**/.lintstagedrc.mjs": false,
+						"**/.markdownlint.json": false,
+						"**/.markdownlintignore": false,
+						"**/.prettierignore": false,
+						"**/bun.lockb": false,
+						"**/cspell.json": false,
+						"**/package-lock.json": false,
+						"**/pnpm-lock.yaml": false,
+						"**/next-env.d.ts": false,
+						"**/postcss.config.cjs": false,
+						"**/prettier.config.js": false,
+						"**/README.md": false,
+						"**/next.config.js": false,
+						"**/tailwind.config.ts": false,
+						"**/drizzle.config.ts": false,
+						"**/migrate.ts": false,
+						"**/.env.example": false
+					}
+				},
+				"extensions": {
+					"experimental": {
+						"affinity": {
+							// To improve performance
+							// "vscodevim.vim": 1,
+							"asvetliakov.vscode-neovim": 1
+						}
+					}
+				},
+				"vim": {
+					"easymotion": true,
+					"incsearch": true,
+					"useSystemClipboard": true,
+					"useCtrlKeys": true,
+					"hlsearch": true,
+					"insertModeKeyBindings": [
+						{
+							"before": [
+								"j",
+								"j"
+							],
+							"after": [
+								"<Esc>"
+							]
+						}
+					],
+					"normalModeKeyBindingsNonRecursive": [
+						{
+							"before": [
+								"<leader>",
+								"d"
+							],
+							"after": [
+								"d",
+								"d"
+							]
+						},
+						{
+							"before": [
+								"<C-n>"
+							],
+							"commands": [
+								":nohl"
+							]
+						},
+						{
+							"before": [
+								"K"
+							],
+							"commands": [
+								"lineBreakInsert"
+							],
+							"silent": true
+						}
+					],
+					"leader": "<space>",
+					"handleKeys": {
+						"<C-a>": false,
+						"<C-f>": false
+					}
+				},
+				"[ruff]": {
+					"ruff.lint.args": [
+						"--config=${workspaceFolder}/ruff.toml"
+					],
+					"ruff.format.args": [
+						"--config=${workspaceFolder}/ruff.toml"
+					]
+				},
+				"python.analysis.autoImportCompletions": true,
+				"isort.check": true,
+				"isort.args": [
+					"--profile",
+					"black"
+				],
+				"python.testing.pytestEnabled": true,
+				"python.linting.pylintEnabled": true,
+				"python.linting.flake8Enabled": true,
+				"python.formatting.provider": "black",
+				"black-formatter.path": [
+					"black"
+				],
+				"[python]": {
+					"testing": {
+						"pytestArgs": [
+							"."
+						],
+						"unittestEnabled": false,
+						"pytestEnabled": true
+					},
+					"formatting": {
+						"provider": "black"
+					},
+					"editor": {
+						"formatOnType": true,
+						"formatOnSave": true,
+						"defaultFormatter": "charliermarsh.ruff",
+						// switch to black formatter if you prefer
+						// "editor.defaultFormatter": "ms-python.black-formatter", -- switch to black if you want
+						"codeActionsOnSave": {
+							"source": {
+								"fixAll": true,
+								"organizeImports": true
+							}
+						}
+					}
+				},
+				"[markdown]": {
+					"files.trimTrailingWhitespace": false
+				},
+				"workbench": {
+					"fontAliasing": "antialiased",
+					"iconTheme": "vscode-icons",
+					// "colorTheme": "Theme Mix",
+					// "colorTheme": "Theme Darker",
+					"colorTheme": "Tokyo Night Storm",
+					"editor": {
+						"showTabs": "none",
+						"activityBar": {
+							"visible": false
+						}
+					},
+					"startupEditor": "none",
+					"sideBar": {
+						"location": "right"
+					},
+					"activityBar": {
+						"location": "hidden"
+					},
+					"settings": {
+						"editor": "JSON with Comments",
+						"applyToAllProfiles": [
+							"workbench.sideBar.location",
+							"workbench.editor.showTabs",
+							"errorLens.enableOnDiffView",
+							"problems.visibility",
+							"editor.lineNumbers"
+						]
+					}
+				},
+				// NeoVim
+				"vscode-neovim": {
+					"neovimInitVimPaths": {
+						"darwin": "$HOME/.config/nvim-vscode/init.vim"
+					},
+					"neovimExecutablePaths": {
+						"darwin": "/opt/homebrew/bin/nvim"
+					}
+				},
+				// APC customizations
+				"apc.font.family": "Fira Code",
+				"apc.monospace.font.family": "Fira Code",
+				"apc.statusBar": {
+					"position": "editor-bottom",
+					"height": 28,
+					"fontSize": 12
+				},
+				"apc.activityBar": {
+					"position": "bottom",
+					"hideSettings": true,
+					"size": 28
+				},
+				"apc.electron": {
+					"titleBarStyle": "hiddenInset",
+					"trafficLightPosition": {
+						"x": 12,
+						"y": 10
+					}
+				},
+				// Cusom css
+				"apc.stylesheet": {
+					".sidebar > .composite": "height: 12px !important",
+					".title-label": "display: none !important",
+					".title-actions": "display: none !important",
+					".tabs-and-actions-container > .editor-actions": "display: none !important",
+					".titlebar-center": "display: none !important",
+					// ".titlebar-right": "display: none !important",
+					".inline-tabs-placeholder": "display: none !important"
+				},
+				// Aura theme customisation
+				"workbench.colorCustomizations": {
+					"[Aura Dark]": {
+						"editor.background": "#110f17",
+						"terminal.background": "#110f17",
+						"activityBar.background": "#110f17",
+						"statusBar.background": "#110f17",
+						"editorGroupHeader.tabsBackground": "#110f17",
+						"tab.inactiveBackground": "#110f17"
+					}
+				},
+				"lldb.library": "~/.vsocde/extensions/codelldb/",
+				"extensions.experimental.affinity": {
+					"vscodevim.vim": 1,
+					"asvetliakov.vscode-neovim": 1
+				},
+				"terminal.integrated.enableImages": true,
+				"search.showLineNumbers": true,
+				"csv-preview.lineNumbers": "source",
+				"editor.lineNumbers": "relative",
+				"zenMode.hideLineNumbers": false,
+				"errorLens.statusBarIconsEnabled": true
+			}
+		}
+	}
+}
