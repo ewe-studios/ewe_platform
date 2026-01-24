@@ -1,6 +1,6 @@
 // Implements an Lock notification primitive usable in threads.
 
-use foundation_nostd::compati::Mutex;
+use foundation_nostd::comp::Mutex;
 use std::sync::Condvar;
 
 use super::Waker;

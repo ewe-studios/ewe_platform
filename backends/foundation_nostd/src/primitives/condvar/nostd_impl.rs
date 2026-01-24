@@ -284,6 +284,11 @@ impl<T: ?Sized> RawCondVarMutex<T> {
     /// Acquires the mutex, blocking until it becomes available.
     ///
     /// This variant never poisons, so it always returns `Ok`.
+    ///
+    /// # Errors
+    ///
+    /// Never returns an error in practice. The `Result` type is used for API compatibility
+    /// with standard library synchronization primitives, but this implementation never poisons.
     pub fn lock(&self) -> LockResult<RawCondVarMutexGuard<'_, T>> {
         let mut spin_wait = SpinWait::new();
         loop {
@@ -301,6 +306,11 @@ impl<T: ?Sized> RawCondVarMutex<T> {
     /// Attempts to acquire the lock without blocking.
     ///
     /// This variant never poisons, so it returns `Ok` on success or `Err(TryLockError::WouldBlock)` if locked.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(TryLockError::WouldBlock)` if the mutex is currently locked by another thread.
+    /// Never returns a poison error as this implementation does not poison.
     #[inline]
     pub fn try_lock(&self) -> TryLockResult<RawCondVarMutexGuard<'_, T>> {
         if self
@@ -612,6 +622,11 @@ impl CondVarNonPoisoning {
     /// Blocks the current thread until notified.
     ///
     /// This variant never poisons, so it always returns `Ok`.
+    ///
+    /// # Errors
+    ///
+    /// Never returns an error in practice. The `Result` type is used for API compatibility
+    /// with standard library synchronization primitives, but this implementation never poisons.
     pub fn wait<'a, T>(
         &self,
         guard: RawCondVarMutexGuard<'a, T>,
@@ -637,6 +652,11 @@ impl CondVarNonPoisoning {
     /// Waits with a predicate.
     ///
     /// This variant never poisons, so it always returns `Ok`.
+    ///
+    /// # Errors
+    ///
+    /// Never returns an error in practice. The `Result` type is used for API compatibility
+    /// with standard library synchronization primitives, but this implementation never poisons.
     pub fn wait_while<'a, T, F>(
         &self,
         mut guard: RawCondVarMutexGuard<'a, T>,
@@ -654,6 +674,11 @@ impl CondVarNonPoisoning {
     /// Waits with a timeout.
     ///
     /// This variant never poisons, so the Result is always `Ok`.
+    ///
+    /// # Errors
+    ///
+    /// Never returns an error in practice. The `Result` type is used for API compatibility
+    /// with standard library synchronization primitives, but this implementation never poisons.
     pub fn wait_timeout<'a, T>(
         &self,
         guard: RawCondVarMutexGuard<'a, T>,
@@ -693,6 +718,11 @@ impl CondVarNonPoisoning {
     /// Waits with a timeout and predicate.
     ///
     /// This variant never poisons, so it always returns `Ok`.
+    ///
+    /// # Errors
+    ///
+    /// Never returns an error in practice. The `Result` type is used for API compatibility
+    /// with standard library synchronization primitives, but this implementation never poisons.
     pub fn wait_timeout_while<'a, T, F>(
         &self,
         mut guard: RawCondVarMutexGuard<'a, T>,
