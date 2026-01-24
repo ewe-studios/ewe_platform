@@ -347,4 +347,113 @@ Foundation_testing now provides infrastructure only (harnesses, scenarios, metri
 - **Comprehensive documentation** - all public items documented with examples
 
 ---
+
+## CRITICAL REMINDER: Specification Work File Organization (MANDATORY)
+
+**ALL files used for specification work MUST exist ONLY in the `specifications/04-condvar-primitives/` directory.**
+
+### What Goes Where
+
+**✅ ALLOWED in specifications/04-condvar-primitives/**:
+- `requirements.md` - Requirements documentation
+- `tasks.md` - Task tracking and completion (THIS FILE - use for ALL task tracking)
+- `PROGRESS.md` - Progress reports
+- `LEARNINGS.md` - Implementation insights and lessons
+- `PROCESS_LEARNINGS.md` - Process-specific learnings
+- `FINAL_REPORT.md` - Completion summary
+- `VERIFICATION_SIGNOFF.md` - Verification results
+- `fundamentals/` - User-facing documentation
+- `templates/` - Code templates (if needed)
+
+**❌ FORBIDDEN in actual code/crate/module directories**:
+- Progress tracking files
+- Learning documents
+- Task lists
+- Process notes
+- Agent work files
+- Temporary documentation
+
+**✅ REQUIRED: Use THIS FILE (tasks.md) for ALL task tracking**:
+- Update THIS FILE immediately after completing EACH task
+- Mark tasks as `[x]` the MOMENT you finish them (2-3 at a time)
+- Update frontmatter counts IMMEDIATELY (no batching)
+- DO NOT create separate task tracking files
+- DO NOT wait until multiple tasks done to update
+
+### Task Update Requirements (ZERO TOLERANCE)
+
+**IMMEDIATE updates required**:
+- ✅ Mark task as `[x]` IMMEDIATELY after completion
+- ✅ Update frontmatter `completed` count IMMEDIATELY
+- ✅ Update frontmatter `uncompleted` count IMMEDIATELY
+- ✅ Update `total_tasks` (completed + uncompleted) IMMEDIATELY
+- ✅ Update `completion_percentage` ((completed/total) * 100) IMMEDIATELY
+- ✅ Update `metadata.last_updated` to TODAY'S DATE IMMEDIATELY
+- ❌ DO NOT wait until multiple tasks done to update
+- ❌ DO NOT batch updates at end of session
+- ❌ DO NOT create separate tracking files
+
+### All Tasks Are Mandatory (DEFAULT)
+
+**Unless user EXPLICITLY states otherwise**:
+- ✅ ALL tasks in this file are MANDATORY
+- ✅ ALL tasks must be completed before marking specification complete
+- ✅ Completion percentage must reach 100% before marking complete
+- ❌ DO NOT skip tasks thinking "that can be done later"
+- ❌ DO NOT assume tasks are optional without explicit user confirmation
+- ❌ DO NOT treat unchecked tasks as "nice-to-have"
+
+**How user indicates optional**:
+- User explicitly says: "This task is optional"
+- User explicitly says: "This task can be skipped if needed"
+- Task is marked with "(OPTIONAL)" prefix
+- User provides priority levels and explicitly says lower priority tasks are optional
+
+**If in doubt**: ASK the user. Never assume something is optional.
+
+### Frontmatter Update Example
+
+After completing a task, frontmatter MUST look like:
+```yaml
+completed: [NEW count of [x] tasks]
+uncompleted: [NEW count of [ ] tasks]
+metadata:
+  total_tasks: [completed + uncompleted]
+  completion_percentage: [(completed / total_tasks) * 100]
+  last_updated: [TODAY'S DATE in YYYY-MM-DD format]
+```
+
+### User Visibility
+
+**User expects**:
+- Real-time visibility into task progress via THIS FILE
+- Accurate completion percentage at all times
+- Immediate updates after each task completion
+- Single source of truth for all task tracking
+
+**Agent must provide**:
+- Update THIS FILE after EACH task (2-3 at a time during active work)
+- Accurate frontmatter counts matching actual task status
+- No delay between task completion and file update
+- No separate tracking files anywhere
+
+### Enforcement
+
+**ZERO TOLERANCE violations**:
+- ❌ Creating task lists outside specifications/ directory
+- ❌ Batching task updates instead of immediate updates
+- ❌ Not updating frontmatter counts immediately
+- ❌ Skipping tasks without explicit user approval
+- ❌ Creating separate tracking files instead of using THIS FILE
+- ❌ Marking specification complete with unchecked `[ ]` tasks
+
+**Consequences**:
+- User frustration from inaccurate progress visibility
+- Lost work when updates not tracked immediately
+- Confusion from multiple tracking files
+- Trust erosion when user sees stale status
+- Specification cannot be marked complete
+
+---
+
 *Last Updated: 2026-01-23*
