@@ -51,9 +51,9 @@
 //! ## Using CondVar with proper Mutex pairing
 //!
 //! ```no_run
-//! use foundation_nostd::comp::condvar_comp::{CondVarMutex, CondVar};
+//! use foundation_nostd::comp::condvar_comp::{Mutex, CondVar};
 //!
-//! let mutex = CondVarMutex::new(false);
+//! let mutex = Mutex::new(false);
 //! let condvar = CondVar::new();
 //!
 //! let mut guard = mutex.lock().unwrap();
@@ -100,10 +100,10 @@ mod tests {
 
     #[test]
     fn test_condvar_basic() {
-        use condvar_comp::{CondVar, CondVarMutex};
+        use condvar_comp::{CondVar, Mutex};
         use core::time::Duration;
 
-        let mutex = CondVarMutex::new(false);
+        let mutex = Mutex::new(false);
         let condvar = CondVar::new();
 
         let guard = mutex.lock().unwrap();
