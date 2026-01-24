@@ -244,6 +244,30 @@ impl RustlsConnector {
         Self(default_client_config())
     }
 
+    /// Creates a new `RustlsConnector` with a custom `ClientConfig`.
+    ///
+    /// Use this when you need to customize the TLS configuration, such as:
+    /// - Using custom root certificates
+    /// - Disabling certificate validation (testing only!)
+    /// - Configuring client authentication
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use foundation_core::netcap::ssl::rustls::RustlsConnector;
+    /// use std::sync::Arc;
+    ///
+    /// let config = rustls::ClientConfig::builder()
+    ///     .with_root_certificates(rustls::RootCertStore::empty())
+    ///     .with_no_client_auth();
+    ///
+    /// let connector = RustlsConnector::with_config(Arc::new(config));
+    /// ```
+    #[must_use]
+    pub fn with_config(config: Arc<rustls::ClientConfig>) -> Self {
+        Self(config)
+    }
+
     #[must_use]
     pub fn create(endpoint: &Endpoint<Arc<rustls::ClientConfig>>) -> Self {
         match &endpoint {
