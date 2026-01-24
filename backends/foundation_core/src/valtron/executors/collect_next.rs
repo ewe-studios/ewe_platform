@@ -10,10 +10,12 @@ use crate::synca::Entry;
 
 use crate::compati::Mutex;
 
-/// [`CollectNext`] provides an implementer of `ExecutionIterator` which is focused on
-/// making progress for your `TaskIterator` which focuses on making progress in
-/// an async manner with out and most importantly not using the results the
-/// `TaskIterator` pushes out.
+/// [`CollectNext`] provides an implementer of [`ExecutionIterator`] collects all the .
+/// ready state [`TaskStatus::Ready`] into a provided [`Vec`] that will be the container
+/// of all the results.
+///
+/// It ensures to move your task [`TaskIterator`] forward, applying the actions correctly
+/// and forwarding the sgianls (delay, pending) properly.
 ///
 /// The `CollectNext` is focused around just driving the underlying process/operation
 /// your iterator performs.

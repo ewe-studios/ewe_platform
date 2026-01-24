@@ -8,13 +8,10 @@ use super::{
 use crate::compati::Mutex;
 use crate::synca::Entry;
 
-/// `DoNext` provides an implementer of `ExecutionIterator` which is focused on
-/// making progress for your `TaskIterator` which focuses on making progress in
-/// an async manner with out and most importantly not using the results the
-/// `TaskIterator` pushes out.
-///
-/// The `DoNext` is focused around just driving the underlying process/operation
-/// your iterator performs.
+/// [`DoNext`] is a [`ExecutionIterator`] that only cares about
+/// actions and progress. It ignores the values of [`TaskStatus::Ready`]
+/// and only ensurs your task iterator progresses but specifcally ensures
+/// to handle your [`TaskStatus::Spawn`] against the executor.
 pub struct DoNext<Action, Task, Done, Pending>
 where
     Action: ExecutionAction,
