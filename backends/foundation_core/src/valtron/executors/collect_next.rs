@@ -76,8 +76,7 @@ where
 }
 
 #[allow(clippy::needless_lifetimes)]
-impl<Task, Done, Pending, Action> ExecutionIterator
-    for CollectNext<'_, Action, Task, Done, Pending>
+impl<Task, Done, Pending, Action> ExecutionIterator for CollectNext<'_, Action, Task, Done, Pending>
 where
     Action: ExecutionAction,
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,

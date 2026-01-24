@@ -4,7 +4,7 @@ use std::sync::Arc;
 use std::sync::RwLock;
 
 #[cfg(target_arch = "wasm32")]
-use wasm_sync::RwLock;
+pub use foundation_nostd::primtivies::RwLock;
 
 /// Entry based list using generation markers to identify
 /// used list items in an efficient list.
@@ -31,7 +31,7 @@ pub struct EntryList<T> {
 // --- constructors
 
 impl<T> EntryList<T> {
-    #[must_use] 
+    #[must_use]
     pub fn new() -> Self {
         Self {
             items: Vec::new(),
@@ -58,28 +58,28 @@ impl<T> EntryList<T> {
     /// Returning the difference indicative of which slots do have value
     /// actively in use and not just empty and available for re-allocation.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn active_slots(&self) -> usize {
         self.allocated_slots() - self.open_slots()
     }
 
     /// Returns total entries currently parked.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn parked_slots(&self) -> usize {
         self.packed_entries.len()
     }
 
     /// `allocated_slots` returns how many slots have being allocated overall.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn allocated_slots(&self) -> usize {
         self.items.len()
     }
 
     /// `open_slots` returns how many free entries are now available.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn open_slots(&self) -> usize {
         self.free_entries.len()
     }
@@ -104,7 +104,7 @@ impl<T> EntryList<T> {
     /// get a reference to the relevant value within the
     /// list for the giving `Entry` if its still valid.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn get(&self, entry: &Entry) -> Option<&T> {
         if let Some((gen, value)) = self.items.get(entry.id) {
             if *gen == entry.gen && value.is_some() {
@@ -377,12 +377,12 @@ impl<T> Default for ThreadSafeEntry<T> {
 }
 
 impl<T> ThreadSafeEntry<T> {
-    #[must_use] 
+    #[must_use]
     pub fn new() -> Self {
         Self(Arc::new(RwLock::new(EntryList::new())))
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn from(list: EntryList<T>) -> Self {
         Self(Arc::new(RwLock::new(list)))
     }
@@ -397,28 +397,28 @@ impl<T> Clone for ThreadSafeEntry<T> {
 #[allow(unused)]
 impl<T> ThreadSafeEntry<T> {
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn active_slots(&self) -> usize {
         self.0.read().unwrap().active_slots()
     }
 
     /// Returns total entries currently parked.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn parked_slots(&self) -> usize {
         self.0.read().unwrap().parked_slots()
     }
 
     /// `allocated_slots` returns how many slots have being allocated overall.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn allocated_slots(&self) -> usize {
         self.0.read().unwrap().allocated_slots()
     }
 
     /// `open_slots` returns how many free entries are now available.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn open_slots(&self) -> usize {
         self.0.read().unwrap().open_slots()
     }
@@ -447,7 +447,7 @@ impl<T> ThreadSafeEntry<T> {
     /// `not_valid` returns bool (True/False) indicating if the entry
     /// reference is still valid.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn not_valid(&self, entry: &Entry) -> bool {
         self.0.write().unwrap().not_valid(entry)
     }
@@ -455,7 +455,7 @@ impl<T> ThreadSafeEntry<T> {
     /// has returns bool (True/False) indicating if the entry
     /// exists and is still valid.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn has(&self, entry: &Entry) -> bool {
         self.0.write().unwrap().has(entry)
     }
@@ -480,7 +480,7 @@ impl<T> ThreadSafeEntry<T> {
     /// This allows us support situations where we need to maintain that entry
     /// but cant afford to invalid the entry due to dependency chains built on it.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn park(&self, entry: &Entry) -> Option<T> {
         self.0.write().unwrap().park(entry)
     }
@@ -506,7 +506,7 @@ impl<T> ThreadSafeEntry<T> {
     /// `Entry` pointer if its still valid and then invalidates
     /// the pointer.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn take(&self, entry: &Entry) -> Option<T> {
         self.0.write().unwrap().take(entry)
     }

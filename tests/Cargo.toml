@@ -1,0 +1,14 @@
+[package]
+name = "ewe_platform_tests"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "mod.rs"
+
+[dependencies]
+foundation_nostd = { workspace = true }
+foundation_testing = { path = "../backends/foundation_testing" }
+
+[dev-dependencies]

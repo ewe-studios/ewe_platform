@@ -28,7 +28,7 @@ where
 pub struct WrappedCloneableFnMut<I, R>(Box<dyn CloneableFn<I, R>>);
 
 impl<I, R> WrappedCloneableFnMut<I, R> {
-    #[must_use] 
+    #[must_use]
     pub fn new(elem: Box<dyn CloneableFn<I, R>>) -> Self {
         Self(elem)
     }

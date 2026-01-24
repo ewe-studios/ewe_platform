@@ -6,8 +6,10 @@ members = [
   "crates/*",
   "backends/*",
   "infrastructure/*",
+  "tests",  # Workspace integration tests
+  "benches",  # Workspace benchmarks
 
-  # examples 
+  # examples
   "examples/web/*",
   "examples/intro",
   "examples/template/*",
@@ -17,7 +19,7 @@ members = [
   "examples/llama-cpp/mtmd",
 
   # tests members
-  "tests/nodejs/integrations/*",
+  "integrations/nodejs/integrations/*",
 ]
 
 exclude = [
@@ -85,8 +87,10 @@ tracing-core = { version = "0.1" }
 
 thiserror = { version = "2"} 
 
+# specific for testing serially
+serial_test = "0.6.0"
+
 # examples and benchmarks
-hf-hub = { version = "0.4.3" }
 criterion = { version = "0.5.1" }
 pprof = { version = "0.13.0" }
 bindgen = { version = "0.72.1" }
@@ -112,3 +116,4 @@ opt-level = 0
 lto = true # link time optimizations
 # Enable to remove debug info from wasm files
 strip = "debuginfo"
+

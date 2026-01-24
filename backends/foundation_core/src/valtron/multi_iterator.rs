@@ -47,7 +47,7 @@ impl<T> MultiAsIterator<T> {
         Self(Box::new(t))
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn new(t: Box<dyn MultiIterator<Item = T>>) -> Self {
         Self(t)
     }

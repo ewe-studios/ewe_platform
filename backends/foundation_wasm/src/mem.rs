@@ -7,7 +7,7 @@
 use alloc::string::String;
 use alloc::sync::Arc;
 use alloc::vec::Vec;
-use foundation_nostd::spin::Mutex;
+use foundation_nostd::primitives::Mutex;
 
 use crate::{
     BinaryReaderResult, CompletedInstructions, MemoryAllocationError, MemoryAllocationResult,

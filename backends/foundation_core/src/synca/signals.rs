@@ -18,7 +18,7 @@ impl Default for OnSignal {
 }
 
 impl OnSignal {
-    #[must_use] 
+    #[must_use]
     pub fn new() -> Self {
         Self {
             state: AtomicUsize::new(0),
@@ -77,7 +77,7 @@ impl Default for ActivitySignal {
 }
 
 impl ActivitySignal {
-    #[must_use] 
+    #[must_use]
     pub fn new() -> Self {
         Self {
             state: AtomicUsize::new(0),

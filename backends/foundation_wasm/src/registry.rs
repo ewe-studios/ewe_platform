@@ -1,6 +1,6 @@
 use alloc::{boxed::Box, collections::btree_map::BTreeMap};
 
-use foundation_nostd::spin::Mutex;
+use foundation_nostd::primitives::Mutex;
 
 use crate::{InternalPointer, ReturnTypeHints, Returns, TaskResult, WrappedItem};
 

@@ -202,7 +202,7 @@ pub struct RustlsConnector(Arc<rustls::ClientConfig>);
 pub type RustTlsClientStream = RustlsStream<rustls::ClientConnection>;
 
 impl RustlsConnector {
-    #[must_use] 
+    #[must_use]
     pub fn create(endpoint: &Endpoint<Arc<rustls::ClientConfig>>) -> Self {
         match &endpoint {
             Endpoint::WithIdentity(_, identity) => {

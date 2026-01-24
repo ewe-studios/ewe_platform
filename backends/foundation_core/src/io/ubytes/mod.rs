@@ -14,7 +14,7 @@ pub struct Bytes<'a> {
 #[allow(missing_docs)]
 impl<'a> Bytes<'a> {
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn new(slice: &'a [u8]) -> Bytes<'a> {
         let start = slice.as_ptr();
         // SAFETY: obtain pointer to slice end; start points to slice start.
@@ -29,13 +29,13 @@ impl<'a> Bytes<'a> {
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn pos(&self) -> usize {
         self.cursor as usize - self.start as usize
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn peek(&self) -> Option<u8> {
         if self.cursor < self.end {
             // SAFETY:  bounds checked
@@ -46,7 +46,7 @@ impl<'a> Bytes<'a> {
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn peek_ahead(&self, n: usize) -> Option<u8> {
         // SAFETY: obtain a potentially OOB pointer that is later compared against the `self.end`
         // pointer.
@@ -60,7 +60,7 @@ impl<'a> Bytes<'a> {
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn peek_n<'b: 'a, U: TryFrom<&'a [u8]>>(&'b self, n: usize) -> Option<U> {
         // TODO: once we bump MSRC, use const generics to allow only [u8; N] reads
         // TODO: drop `n` arg in favour of const
@@ -90,13 +90,13 @@ impl<'a> Bytes<'a> {
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn len(&self) -> usize {
         self.end as usize - self.cursor as usize
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
@@ -138,19 +138,19 @@ impl<'a> Bytes<'a> {
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn as_ptr(&self) -> *const u8 {
         self.cursor
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn start(&self) -> *const u8 {
         self.start
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn end(&self) -> *const u8 {
         self.end
     }
@@ -209,7 +209,7 @@ pub struct BytesPointer<'a> {
 }
 
 impl<'a> BytesPointer<'a> {
-    #[must_use] 
+    #[must_use]
     pub fn new(content: &'a [u8]) -> Self {
         Self {
             content,
@@ -219,20 +219,20 @@ impl<'a> BytesPointer<'a> {
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn content(&self) -> &'a [u8] {
         self.content
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.content.is_empty()
     }
 
     /// Returns the total length of the string being accumulated on.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn len(&self) -> usize {
         self.content.len()
     }
@@ -240,7 +240,7 @@ impl<'a> BytesPointer<'a> {
     /// Returns the distance between the peek position and the actual cursor
     /// position.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn distance(&self) -> usize {
         self.peek_pos - self.pos
     }
@@ -248,7 +248,7 @@ impl<'a> BytesPointer<'a> {
     /// `peek_rem_len` returns the remaining count of strings
     /// left from the current peeks's cursor.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn peek_rem_len(&self) -> usize {
         (self.content[self.peek_pos..]).len()
     }
@@ -257,7 +257,7 @@ impl<'a> BytesPointer<'a> {
     /// left from the current position's cursor
     /// regardless of where the peek cursor is at.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn rem_len(&self) -> usize {
         (self.content[self.pos..]).len()
     }

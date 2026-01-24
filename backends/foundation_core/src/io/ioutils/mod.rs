@@ -815,7 +815,7 @@ pub struct ByteBufferPointer<T: Read> {
 // Constructors
 
 impl<T: Read> ByteBufferPointer<T> {
-    #[must_use] 
+    #[must_use]
     pub fn new(pull_amount: usize, reader: OwnedReader<T>) -> Self {
         Self {
             buffer: Vec::with_capacity(pull_amount),
@@ -861,30 +861,30 @@ impl<T: Read> ByteBufferPointer<T> {
     /// Returns the distance between the peek position and the actual cursor
     /// position.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn distance(&self) -> usize {
         self.peek_pos - self.pos
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn peek_cursor(&self) -> usize {
         self.peek_pos
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn data_cursor(&self) -> usize {
         self.pos
     }
 
     /// Returns the total length of the string being accumulated on.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn len(&self) -> usize {
         self.buffer.len()
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.buffer.len() == 0
     }
@@ -906,7 +906,7 @@ impl<T: Read> ByteBufferPointer<T> {
     /// `full_scan` returns the whole buffer as is, so you see the entire
     /// content regardless of cursors position.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn full_scan(&self) -> &[u8] {
         &self.buffer[..]
     }
@@ -914,13 +914,13 @@ impl<T: Read> ByteBufferPointer<T> {
     /// scan returns the whole string slice currently at the points of where
     /// the main pos (position) cursor till the end.
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn scan(&self) -> &[u8] {
         &self.buffer[self.pos..self.peek_pos]
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn greater_than_40_percent(&self) -> bool {
         // if we have not moved at all the ignore
         if self.pos == 0 {
@@ -1493,11 +1493,7 @@ impl<T: Read> ByteBufferPointer<T> {
     /// underlying data over.
     ///
     /// This moves the peek cursor forward.
-    pub fn next_bytes_until(
-        &mut self,
-        target: &[u8],
-        buf: &mut Vec<u8>,
-    ) -> std::io::Result<usize> {
+    pub fn next_bytes_until(&mut self, target: &[u8], buf: &mut Vec<u8>) -> std::io::Result<usize> {
         let read = match self.next_until(target) {
             Ok(inner) => match inner {
                 PeekState::Request(c) => {
@@ -1539,11 +1535,7 @@ impl<T: Read> ByteBufferPointer<T> {
     /// string and the cursor is consumed.
     ///
     /// This moves the peek cursor forward.
-    pub fn read_bytes_until(
-        &mut self,
-        target: &[u8],
-        buf: &mut Vec<u8>,
-    ) -> std::io::Result<usize> {
+    pub fn read_bytes_until(&mut self, target: &[u8], buf: &mut Vec<u8>) -> std::io::Result<usize> {
         let read = match self.next_until(target) {
             Ok(inner) => match inner {
                 PeekState::Request(c) => {

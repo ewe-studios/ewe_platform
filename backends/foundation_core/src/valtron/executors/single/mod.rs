@@ -9,9 +9,13 @@ use crate::{
 };
 
 use super::{
-    constants::{MAX_ROUNDS_IDLE_COUNT, MAX_ROUNDS_WHEN_SLEEPING_ENDS, BACK_OFF_THREAD_FACTOR, BACK_OFF_JITER, BACK_OFF_MIN_DURATION, BACK_OFF_MAX_DURATION}, BoxedSendExecutionIterator, ExecutionAction, ExecutionTaskIteratorBuilder,
-    LocalThreadExecutor, PriorityOrder, ProcessController, ProgressIndicator, TaskIterator,
-    TaskReadyResolver, TaskStatusMapper,
+    constants::{
+        BACK_OFF_JITER, BACK_OFF_MAX_DURATION, BACK_OFF_MIN_DURATION, BACK_OFF_THREAD_FACTOR,
+        MAX_ROUNDS_IDLE_COUNT, MAX_ROUNDS_WHEN_SLEEPING_ENDS,
+    },
+    BoxedSendExecutionIterator, ExecutionAction, ExecutionTaskIteratorBuilder, LocalThreadExecutor,
+    PriorityOrder, ProcessController, ProgressIndicator, TaskIterator, TaskReadyResolver,
+    TaskStatusMapper,
 };
 use concurrent_queue::ConcurrentQueue;
 
@@ -78,7 +82,7 @@ pub fn initialize(seed_for_rng: u64) {
 /// to do matters and you do not want a [`run_until_complete`]
 /// where the underlying point of stopping is not controlled
 /// by you.
-#[must_use] 
+#[must_use]
 pub fn run_once() -> ProgressIndicator {
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| match pool.get() {
         Some(pool) => pool.run_once(),
@@ -100,7 +104,7 @@ pub fn run_until_complete() {
 ///
 /// It expects you infer the type of `Task` and `Action` from the
 /// type implementing `TaskIterator`.
-#[must_use] 
+#[must_use]
 pub fn spawn<Task, Action>() -> ExecutionTaskIteratorBuilder<
     Task::Ready,
     Task::Pending,
@@ -125,7 +129,7 @@ where
 /// the underlying tasks to be scheduled into the global queue.
 ///
 /// It expects you to provide types for both Mapper and Resolver.
-#[must_use] 
+#[must_use]
 pub fn spawn2<Task, Action, Mapper, Resolver>(
 ) -> ExecutionTaskIteratorBuilder<Task::Ready, Task::Pending, Action, Mapper, Resolver, Task>
 where
@@ -151,7 +155,7 @@ mod single_threaded_tests {
 
     use crate::valtron::{
         single::{initialize, run_until_complete, spawn},
-        FnReady, NoSpawner, TaskIterator, TaskStatus,
+        FnReady, NoSpawner, Stream, TaskIterator, TaskStatus,
     };
 
     struct Counter(usize, Rc<RefCell<Vec<usize>>>);
@@ -248,6 +252,36 @@ mod single_threaded_tests {
         let complete: Vec<usize> = iter
             .map(|item| match item {
                 TaskStatus::Ready(value) => Some(value),
+                _ => None,
+            })
+            .take_while(|t| t.is_some())
+            .map(|t| t.unwrap())
+            .collect();
+
+        assert_eq!(complete, vec![1, 2, 3, 4, 5]);
+        assert_eq!(shared_list.borrow().clone(), vec![0, 1, 2, 3, 4]);
+    }
+
+    #[test]
+    #[traced_test]
+    fn can_queue_and_complete_stream_with_iterator() {
+        let seed = rand::rng().next_u64();
+
+        let shared_list = Rc::new(RefCell::new(Vec::new()));
+        let counter = Counter::new(5, shared_list.clone());
+
+        initialize(seed);
+
+        let iter = spawn()
+            .with_task(counter)
+            .stream_iter(std::time::Duration::from_nanos(50))
+            .expect("should deliver task");
+
+        run_until_complete();
+
+        let complete: Vec<usize> = iter
+            .map(|item| match item {
+                Stream::Next(value) => Some(value),
                 _ => None,
             })
             .take_while(|t| t.is_some())

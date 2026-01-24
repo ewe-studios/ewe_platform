@@ -3,7 +3,7 @@
 
 use alloc::string::String;
 use alloc::vec::Vec;
-use foundation_nostd::{raw_parts::RawParts, spin::Mutex};
+use foundation_nostd::{primitives::Mutex, raw_parts::RawParts};
 
 use crate::{
     BinaryReadError, BinaryReaderResult, CompletedInstructions, DoTask, ExternalPointer, FnDoTask,
@@ -43,7 +43,14 @@ pub mod internal_api {
 
     use crate::{FnCallback, MemoryAllocationResult, ReturnValues};
 
-    use super::{ReturnTypeHints, ThreeState, ReturnTypeId, Instructions, ALLOCATIONS, MemoryId, MemoryAllocation, Returns, internal_api, FromBinary, MemoryAllocationError, TaskErrorCode, MemoryReaderError, ANIMATION_FRAME_CALLBACKS, TickState, FnFrameCallback, FrameCallback, InternalPointer, SCHEDULED_CALLBACKS, FnDoTask, DoTask, RECURRING_INTERVAL_CALLBACKS, FnIntervalCallback, IntervalCallback, TaskResult, INTERNAL_CALLBACKS, InternalCallback, Vec, String};
+    use super::{
+        internal_api, DoTask, FnDoTask, FnFrameCallback, FnIntervalCallback, FrameCallback,
+        FromBinary, Instructions, InternalCallback, InternalPointer, IntervalCallback,
+        MemoryAllocation, MemoryAllocationError, MemoryId, MemoryReaderError, ReturnTypeHints,
+        ReturnTypeId, Returns, String, TaskErrorCode, TaskResult, ThreeState, TickState, Vec,
+        ALLOCATIONS, ANIMATION_FRAME_CALLBACKS, INTERNAL_CALLBACKS, RECURRING_INTERVAL_CALLBACKS,
+        SCHEDULED_CALLBACKS,
+    };
 
     static FAILED_RETURN_HINT: ReturnTypeHints =
         ReturnTypeHints::One(ThreeState::One(ReturnTypeId::ErrorCode));
@@ -411,7 +418,7 @@ pub mod internal_api {
 /// the system. These are functions the runtime exposes to the host to be able
 /// to make calls into the system or triggering processes.
 pub mod exposed_runtime {
-    use super::{ALLOCATIONS, internal_api, InternalPointer, MemoryId};
+    use super::{internal_api, InternalPointer, MemoryId, ALLOCATIONS};
 
     #[no_mangle]
     pub extern "C" fn create_allocation(size: u64) -> u64 {
@@ -503,7 +510,13 @@ pub mod exposed_runtime {
 /// and easier to interact with.
 #[allow(unused)]
 pub mod host_runtime {
-    use super::{ExternalPointer, DoTask, FrameCallback, FromBinary, InternalCallback, IntervalCallback, ToBinary, host_runtime, CompletedInstructions, internal_api, BinaryReaderResult, Vec, Returns, MemoryId, ALLOCATIONS, GroupReturnTypeHints, BinaryReadError, String, TickState, InternalPointer, JSEncoding, Params, RawParts, ReturnTypeHints, ThreeState, ReturnTypeId, ReturnValues, ReturnValueError, MemoryAllocationError};
+    use super::{
+        host_runtime, internal_api, BinaryReadError, BinaryReaderResult, CompletedInstructions,
+        DoTask, ExternalPointer, FrameCallback, FromBinary, GroupReturnTypeHints, InternalCallback,
+        InternalPointer, IntervalCallback, JSEncoding, MemoryAllocationError, MemoryId, Params,
+        RawParts, ReturnTypeHints, ReturnTypeId, ReturnValueError, ReturnValues, Returns, String,
+        ThreeState, TickState, ToBinary, Vec, ALLOCATIONS,
+    };
 
     pub const DOM_SELF: ExternalPointer = ExternalPointer::pointer(0);
     pub const DOM_THIS: ExternalPointer = ExternalPointer::pointer(1);
@@ -515,7 +528,13 @@ pub mod host_runtime {
     pub mod web {
         use crate::{CachedText, MemoryAllocationResult, MemoryReaderError, WasmRequestResult};
 
-        use super::{DoTask, FrameCallback, FromBinary, InternalCallback, IntervalCallback, ToBinary, ExternalPointer, host_runtime, CompletedInstructions, internal_api, BinaryReaderResult, Vec, Returns, MemoryId, ALLOCATIONS, GroupReturnTypeHints, BinaryReadError, String, TickState, InternalPointer, JSEncoding, Params, RawParts, ReturnTypeHints, ThreeState, ReturnTypeId, ReturnValues, ReturnValueError, MemoryAllocationError};
+        use super::{
+            host_runtime, internal_api, BinaryReadError, BinaryReaderResult, CompletedInstructions,
+            DoTask, ExternalPointer, FrameCallback, FromBinary, GroupReturnTypeHints,
+            InternalCallback, InternalPointer, IntervalCallback, JSEncoding, MemoryAllocationError,
+            MemoryId, Params, RawParts, ReturnTypeHints, ReturnTypeId, ReturnValueError,
+            ReturnValues, Returns, String, ThreeState, TickState, ToBinary, Vec, ALLOCATIONS,
+        };
 
         #[link(wasm_import_module = "abi")]
         extern "C" {
@@ -849,10 +868,13 @@ pub mod host_runtime {
 
             let mem_id = MemoryId::from_u64(return_id);
             let memory_result = ALLOCATIONS.lock().get(mem_id);
-            assert!(!memory_result.is_err(), 
-                    "batch_response: failed to get memory location: {:?} from {:?} with {:?}",
-                    mem_id, return_id, memory_result
-                );
+            assert!(
+                !memory_result.is_err(),
+                "batch_response: failed to get memory location: {:?} from {:?} with {:?}",
+                mem_id,
+                return_id,
+                memory_result
+            );
 
             if let Err(err) = memory_result {
                 return Err(err.into());
@@ -2805,10 +2827,13 @@ impl FromBinary for GroupReturnTypeHints {
             let mem_id = MemoryId::from_u64(alloc_id);
 
             let memory_result = ALLOCATIONS.lock().get(mem_id);
-            assert!(!memory_result.is_err(), 
-                    "GroupReturnTypeHints: Received memoryId: {:?} -> {:?} -- result: {:?}",
-                    &mem_id, &return_hint, &memory_result
-                );
+            assert!(
+                !memory_result.is_err(),
+                "GroupReturnTypeHints: Received memoryId: {:?} -> {:?} -- result: {:?}",
+                &mem_id,
+                &return_hint,
+                &memory_result
+            );
             if let Err(err) = memory_result {
                 return Err(err.into());
             }

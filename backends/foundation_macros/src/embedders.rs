@@ -136,7 +136,7 @@ fn get_attr(ast: &syn::DeriveInput, attr_name: &str) -> Option<String> {
     match attributed {
         Some(Meta::NameValue(item)) => match &item.value {
             Expr::Lit(lit) => match &lit.lit {
-                Lit::Str(inner) => Some(inner.value().to_string()),
+                Lit::Str(inner) => Some(inner.value().clone()),
                 _ => None,
             },
             _ => None,
