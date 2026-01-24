@@ -83,7 +83,7 @@ impl<T: 'static> Clone for Box<dyn CloneableIterator<Item = T>> {
 pub struct CanCloneIterator<T>(Box<dyn CloneableIterator<Item = T>>);
 
 impl<T> CanCloneIterator<T> {
-    #[must_use] 
+    #[must_use]
     pub fn new(elem: Box<dyn CloneableIterator<Item = T>>) -> Self {
         Self(elem)
     }
@@ -106,7 +106,7 @@ impl<T> Iterator for CanCloneIterator<T> {
 pub struct CanCloneSendIterator<T>(Box<dyn CloneableSendIterator<Item = T>>);
 
 impl<T> CanCloneSendIterator<T> {
-    #[must_use] 
+    #[must_use]
     pub fn new(elem: Box<dyn CloneableSendIterator<Item = T>>) -> Self {
         Self(elem)
     }
@@ -162,7 +162,7 @@ pub struct TransformSendIterator<T: Send, V: Send> {
 }
 
 impl<T: Send, V: Send> TransformSendIterator<T, V> {
-    #[must_use] 
+    #[must_use]
     pub fn new(
         tn: Box<dyn Fn(T) -> Option<V> + Send + 'static>,
         source: Box<dyn SendableIterator<T>>,
@@ -193,7 +193,7 @@ pub struct TransformIterator<T, V> {
 }
 
 impl<T, V> TransformIterator<T, V> {
-    #[must_use] 
+    #[must_use]
     pub fn new(tn: Box<dyn Fn(T) -> Option<V>>, source: BoxedIterator<T>) -> Self {
         Self {
             transformer: tn,
@@ -212,3 +212,25 @@ impl<T, V> Iterator for TransformIterator<T, V> {
         }
     }
 }
+
+pub enum Stream<D, P> {
+    // Indicative the stream is instantiating.
+    Init,
+
+    // Indicative of internal system operations occuring that should be ignored.
+    Ignore,
+
+    // Indicative that the stream next response will be delayed by this much duration
+    Delayed(std::time::Duration),
+
+    // Indicating that the stream is a pending state with giving context value.
+    Pending(P),
+
+    // Indicative the stream just issued its next value.
+    Next(D),
+}
+
+/// [StreamIterator] defines a type which implements an
+/// iterator that returns a stream stream
+/// of values.
+pub trait StreamIterator<D, P>: Iterator<Item = Stream<D, P>> {}

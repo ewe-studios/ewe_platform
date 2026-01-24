@@ -9,8 +9,9 @@ repository.workspace = true
 description = "Foundational nostd core implementation for the ewe_platform project"
 keywords = ["foundation_nostd"]
 
-[dependencies]
-spin = { version = "0.10", default-features = false, features = ["rwlock", "mutex", "spin_mutex"] }
+[features]
+default = []
+std = []
 
 [lints]
 workspace = true

@@ -10,7 +10,11 @@ use std::{
     time,
 };
 
-use crate::{compati::Mutex, synca::mpp::RecvIterator};
+use crate::{
+    compati::Mutex,
+    synca::mpp::{RecvIterator, StreamRecvIterator},
+    valtron::{Stream, StreamConsumingIter},
+};
 use concurrent_queue::ConcurrentQueue;
 use derive_more::derive::From;
 use rand_chacha::ChaCha8Rng;
@@ -145,7 +149,7 @@ where
 pub struct CanCloneExecutionIterator(Box<dyn CloneableExecutionIterator>);
 
 impl CanCloneExecutionIterator {
-    #[must_use] 
+    #[must_use]
     pub fn new(elem: Box<dyn CloneableExecutionIterator>) -> Self {
         Self(elem)
     }
@@ -293,7 +297,7 @@ impl<
         Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
     > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, Resolver, Task>
 {
-    #[must_use] 
+    #[must_use]
     pub fn new(engine: BoxedExecutionEngine) -> Self {
         Self {
             engine,
@@ -406,6 +410,36 @@ impl<
             .map(|()| RecvIterator::from_chan(iter_chan, wait_cycle))
     }
 
+    /// [`stream_iter`] adds a task into execution queue but instead of depending
+    /// on a [`TaskReadyResolver`] to process the final state instead allows you
+    /// to get back a wrapper iterator that allows you synchronously receive those
+    /// values from a [`StreamRecvIterator`] that implements the [`Iterator`] trait.
+    ///
+    /// This makes it possible to build synchronous experiences in a async world.
+    ///
+    /// This will schedule the task to the bottom of the queue by calling `schedule`
+    /// method to deliver a task to the bottom of the thread-local execution queue.
+    pub fn stream_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<StreamRecvIterator<Done, Pending>, ExecutorError> {
+        let iter_chan: Arc<ConcurrentQueue<Stream<Done, Pending>>> =
+            Arc::new(ConcurrentQueue::unbounded());
+
+        let boxed_task = match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (None, Some(mappers)) => StreamConsumingIter::new(task, mappers, iter_chan.clone()),
+                (None, None) => StreamConsumingIter::new(task, Vec::new(), iter_chan.clone()),
+                (_, _) => return Err(ExecutorError::NotSupported),
+            },
+            None => return Err(ExecutorError::TaskRequired),
+        };
+
+        self.engine
+            .schedule(boxed_task.into())
+            .map(|()| StreamRecvIterator::new(RecvIterator::from_chan(iter_chan, wait_cycle)))
+    }
+
     /// [`schedule_iter`] adds a task into execution queue but instead of depending
     /// on a [`TaskReadyResolver`] to process the final state instead allows you
     /// to get back a wrapper iterator that allows you synchronously receive those
@@ -465,6 +499,31 @@ impl<
         self.engine
             .lift(boxed_task.into(), parent)
             .map(|()| RecvIterator::from_chan(iter_chan, wait_cycle))
+    }
+
+    /// [`stream_lift_iter`] similar to [`lift_iter`] returns a [`StreamRecvIterator`]
+    /// which returns a simplified representatiopn without the complexity of the [`Action`]
+    /// type providing easier usage within logic blocks.
+    pub fn stream_lift_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<StreamRecvIterator<Done, Pending>, ExecutorError> {
+        let iter_chan: Arc<ConcurrentQueue<Stream<Done, Pending>>> =
+            Arc::new(ConcurrentQueue::unbounded());
+
+        let parent = self.parent;
+        let boxed_task = match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (None, Some(mappers)) => StreamConsumingIter::new(task, mappers, iter_chan.clone()),
+                (None, None) => StreamConsumingIter::new(task, Vec::new(), iter_chan.clone()),
+                (_, _) => return Err(ExecutorError::NotSupported),
+            },
+            None => return Err(ExecutorError::TaskRequired),
+        };
+
+        self.engine
+            .lift(boxed_task.into(), parent)
+            .map(|()| StreamRecvIterator::new(RecvIterator::from_chan(iter_chan, wait_cycle)))
     }
 
     /// [`lift`] delivers a task to the top of the thread-local execution queue.
@@ -537,6 +596,30 @@ impl<
         };
 
         self.engine.broadcast(task?)
+    }
+
+    /// [`stream_broadcast_iter`] similar to [`broasdcast_iter`] returns a [`StreamRecvIterator`]
+    /// which returns a simplified representatiopn without the complexity of the [`Action`]
+    /// type providing easier usage within logic blocks.
+    pub fn stream_broadcast_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<StreamRecvIterator<Done, Pending>, ExecutorError> {
+        let iter_chan: Arc<ConcurrentQueue<Stream<Done, Pending>>> =
+            Arc::new(ConcurrentQueue::unbounded());
+
+        let boxed_task = match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (None, Some(mappers)) => StreamConsumingIter::new(task, mappers, iter_chan.clone()),
+                (None, None) => StreamConsumingIter::new(task, Vec::new(), iter_chan.clone()),
+                (_, _) => return Err(ExecutorError::NotSupported),
+            },
+            None => return Err(ExecutorError::TaskRequired),
+        };
+
+        self.engine
+            .broadcast(boxed_task.into())
+            .map(|()| StreamRecvIterator::new(RecvIterator::from_chan(iter_chan, wait_cycle)))
     }
 
     /// [`broadcast_iter`] adds a task into execution queue but instead of depending
@@ -754,7 +837,7 @@ impl<Action, Done, Pending> NoResolving<Action, Done, Pending>
 where
     Action: ExecutionAction,
 {
-    #[must_use] 
+    #[must_use]
     pub fn new() -> Self {
         Self(PhantomData)
     }
@@ -1095,18 +1178,15 @@ where
             return None;
         }
 
-        match self.iter.next() {
-            Some(elem) => match elem {
-                TaskStatus::Delayed(dur) => Some(TaskStatus::Delayed(dur)),
-                TaskStatus::Spawn(inner) => Some(TaskStatus::Spawn(inner)),
-                TaskStatus::Pending(dur) => Some(TaskStatus::Pending(dur)),
-                TaskStatus::Init => Some(TaskStatus::Init),
-                TaskStatus::Ready(item) => {
-                    self.blocked = Some(());
-                    Some(TaskStatus::Ready(item))
-                }
-            },
-            None => None,
-        }
+        self.iter.next().map(|elem| match elem {
+            TaskStatus::Delayed(dur) => TaskStatus::Delayed(dur),
+            TaskStatus::Spawn(inner) => TaskStatus::Spawn(inner),
+            TaskStatus::Pending(dur) => TaskStatus::Pending(dur),
+            TaskStatus::Init => TaskStatus::Init,
+            TaskStatus::Ready(item) => {
+                self.blocked = Some(());
+                TaskStatus::Ready(item)
+            }
+        })
     }
 }

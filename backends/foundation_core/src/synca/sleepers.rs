@@ -4,12 +4,7 @@
 
 use std::{sync::Arc, time};
 
-#[cfg(not(target_arch = "wasm32"))]
-use std::sync::RwLock;
-
-#[cfg(target_arch = "wasm32")]
-use wasm_sync::RwLock;
-
+use super::compati::RwLock;
 use super::{Entry, EntryList};
 
 pub trait Waker {
@@ -43,7 +38,7 @@ impl<T> Default for DurationStore<T> {
 }
 
 impl<T> DurationStore<T> {
-    #[must_use] 
+    #[must_use]
     pub fn new() -> Self {
         Self {
             store: Arc::new(RwLock::new(EntryList::new())),
@@ -68,7 +63,7 @@ impl<T> DurationStore<T> {
     /// Removes a previously inserted sleeping ticker.
     ///
     /// Returns `true` if the ticker was notified.
-    #[must_use] 
+    #[must_use]
     pub fn remove(&self, handle: &Entry) -> Option<DurationWaker<T>> {
         self.store.write().unwrap().take(handle)
     }
@@ -82,12 +77,9 @@ impl<T> DurationStore<T> {
     }
 
     /// Returns the list of
-    #[must_use] 
+    #[must_use]
     pub fn get_matured(&self) -> Vec<DurationWaker<T>> {
-        self.store
-            .write()
-            .unwrap()
-            .select_take(Waiter::is_ready)
+        self.store.write().unwrap().select_take(Waiter::is_ready)
     }
 
     /// Returns the minimum duration of time of all entries in the
@@ -212,12 +204,7 @@ impl<T: Timeable + Waiter> Timing for Sleepers<T> {
 
 impl<T: Waker + Waiter> Waker for Sleepers<T> {
     fn wake(&self) {
-        for sleeper in &self
-            .sleepers
-            .write()
-            .unwrap()
-            .select_take(Waiter::is_ready)
-        {
+        for sleeper in &self.sleepers.write().unwrap().select_take(Waiter::is_ready) {
             sleeper.wake();
         }
     }
@@ -238,7 +225,7 @@ impl<T: Waiter> Default for Sleepers<T> {
 }
 
 impl<T: Waiter> Sleepers<T> {
-    #[must_use] 
+    #[must_use]
     pub fn new() -> Self {
         Self {
             sleepers: Arc::new(RwLock::new(EntryList::new())),
@@ -258,7 +245,7 @@ impl<T: Waiter> Sleepers<T> {
     /// Removes a previously inserted sleeping ticker.
     ///
     /// Returns `true` if the ticker was notified.
-    #[must_use] 
+    #[must_use]
     pub fn remove(&self, handle: &Entry) -> Option<T> {
         self.sleepers.write().unwrap().take(handle)
     }
@@ -272,11 +259,8 @@ impl<T: Waiter> Sleepers<T> {
     }
 
     /// Returns the list of
-    #[must_use] 
+    #[must_use]
     pub fn get_matured(&self) -> Vec<T> {
-        self.sleepers
-            .write()
-            .unwrap()
-            .select_take(Waiter::is_ready)
+        self.sleepers.write().unwrap().select_take(Waiter::is_ready)
     }
 }

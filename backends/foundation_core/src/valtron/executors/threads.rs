@@ -16,6 +16,7 @@ use std::{
     time::{self, Instant},
 };
 
+use crate::{synca::mpp::StreamRecvIterator, valtron::iterators::Stream};
 use concurrent_queue::{ConcurrentQueue, PushError};
 use derive_more::derive::From;
 use rand::{RngCore, SeedableRng};
@@ -33,9 +34,13 @@ use crate::{
 };
 
 use super::{
-    constants::{DEFAULT_OP_READ_TIME, MAX_ROUNDS_IDLE_COUNT, MAX_ROUNDS_WHEN_SLEEPING_ENDS, BACK_OFF_THREAD_FACTOR, BACK_OFF_JITER, BACK_OFF_MIN_DURATION, BACK_OFF_MAX_DURATION}, BoxedExecutionEngine, BoxedPanicHandler, BoxedSendExecutionIterator,
-    ConsumingIter, DoNext, ExecutionAction, ExecutionIterator, ExecutorError, FnMutReady, FnReady,
-    OnNext, PriorityOrder, ProcessController, ReadyConsumingIter, TaskIterator, TaskReadyResolver,
+    constants::{
+        BACK_OFF_JITER, BACK_OFF_MAX_DURATION, BACK_OFF_MIN_DURATION, BACK_OFF_THREAD_FACTOR,
+        DEFAULT_OP_READ_TIME, MAX_ROUNDS_IDLE_COUNT, MAX_ROUNDS_WHEN_SLEEPING_ENDS,
+    },
+    BoxedExecutionEngine, BoxedPanicHandler, BoxedSendExecutionIterator, ConsumingIter, DoNext,
+    ExecutionAction, ExecutionIterator, ExecutorError, FnMutReady, FnReady, OnNext, PriorityOrder,
+    ProcessController, ReadyConsumingIter, StreamConsumingIter, TaskIterator, TaskReadyResolver,
     TaskStatus, TaskStatusMapper,
 };
 
@@ -61,7 +66,10 @@ pub(crate) fn get_allocatable_thread_count() -> usize {
     let desired_threads = get_num_threads();
     tracing::debug!("Desired thread count: {desired_threads:}");
 
-    assert!((desired_threads <= max_threads), "Desired thread count cant be greater than maximum allowed threads {max_threads}");
+    assert!(
+        (desired_threads <= max_threads),
+        "Desired thread count cant be greater than maximum allowed threads {max_threads}"
+    );
 
     assert!((desired_threads != 0), "Desired thread count cant be zero");
 
@@ -87,12 +95,14 @@ pub(crate) fn get_allocatable_thread_count() -> usize {
 
 #[cfg(test)]
 mod test_allocatable_threads {
+    use serial_test::serial;
     use tracing_test::traced_test;
 
     use super::*;
 
     #[test]
     #[traced_test]
+    #[serial]
     fn get_allocatable_thread_count_as_far_as_1_remains() {
         let max_threads = get_max_threads();
         assert!(max_threads > 3);
@@ -109,6 +119,9 @@ mod test_allocatable_threads {
             new_thread_count_str
         );
 
+        // Very flaky, for now asset non-zero
+        // assert!(get_allocatable_thread_count() != 0);
+        //
         assert_eq!(get_allocatable_thread_count(), max_threads - 2);
     }
 }
@@ -254,7 +267,7 @@ impl ProcessController for ThreadYielder {
 pub struct ThreadId(Entry, String);
 
 impl ThreadId {
-    #[must_use] 
+    #[must_use]
     pub fn new(entry: Entry, name: String) -> Self {
         Self(entry, name)
     }
@@ -263,17 +276,17 @@ impl ThreadId {
         &mut self.0
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn get_ref(&self) -> &Entry {
         &self.0
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn get_cloned(&self) -> Entry {
         self.0
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn get_name(&self) -> &String {
         &self.1
     }
@@ -382,13 +395,13 @@ impl SharedThreadRegistry {
         Self(inner)
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn executor_count(&self) -> usize {
         let registry = self.0.read().unwrap();
         registry.threads.active_slots()
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn get_thread(&self, thread: ThreadId) -> ThreadRef {
         let registry = self.0.read().unwrap();
 
@@ -541,7 +554,7 @@ impl ThreadPool {
     /// [`ThreadPool::with_seed`] generates a `ThreadPool` using
     /// the provided seed and the default MAX threads allowed
     /// per Process using `get_num_threads()`.
-    #[must_use] 
+    #[must_use]
     pub fn with_seed(seed_from_rng: u64) -> Self {
         let num_threads = get_num_threads();
         Self::with_seed_and_threads(seed_from_rng, num_threads)
@@ -551,7 +564,7 @@ impl ThreadPool {
     /// threadPool which uses the default values (see Constants section)
     /// set out in this modules for all required configuration
     /// which provide what we considered sensible defaults
-    #[must_use] 
+    #[must_use]
     pub fn with_seed_and_threads(seed_from_rng: u64, num_threads: usize) -> Self {
         Self::new(
             seed_from_rng,
@@ -573,7 +586,7 @@ impl ThreadPool {
     /// within the total number of threads you provided via `num_threads`
     /// the threads are spawned and ready to take on work.
     #[allow(clippy::too_many_arguments)]
-    #[must_use] 
+    #[must_use]
     pub fn new(
         seed_for_rng: u64,
         num_threads: usize,
@@ -587,7 +600,10 @@ impl ThreadPool {
         thread_back_min_duration: time::Duration,
         thread_back_max_duration: time::Duration,
     ) -> Self {
-        assert!((num_threads >= 2), "Unable to create ThreadPool with 1 thread only, please specify >= 2");
+        assert!(
+            (num_threads >= 2),
+            "Unable to create ThreadPool with 1 thread only, please specify >= 2"
+        );
 
         assert!((num_threads <= THREADS_MAX), 
                 "Unable to create ThreadPool with thread numbers of {num_threads}, must no go past {THREADS_MAX}"
@@ -1191,8 +1207,7 @@ impl<
     ///
     /// This makes it possible to build synchronous experiences in a async world.
     ///
-    /// Following our naming: [`schedule_iter`] calls the `schedule` method to deliver
-    /// a task to the bottom of the thread-local execution queue.
+    /// This will deliver task to deliver the bottom of the thread-local execution queue.
     pub fn ready_iter(
         self,
         wait_cycle: time::Duration,
@@ -1225,6 +1240,52 @@ impl<
         }
     }
 
+    /// [`stream_iter`] adds a task into execution queue but instead of depending
+    /// on a [`TaskReadyResolver`] to process the state streams instead allows you
+    /// to get back a wrapper iterator that allows you synchronously receive those
+    /// values from a [`StreamRecvIterator`] that implements the [`Iterator`] trait.
+    ///
+    /// But unlike [`schedule_iter`] returns [`Stream`] values that hide way the underling
+    /// value types of [`TaskStatus`] which simplifies the trait types your usage
+    /// requires.
+    ///
+    /// This makes it possible to build synchronous experiences in a async world.
+    ///
+    /// This will deliver task to deliver the bottom of the thread-local execution queue.
+    pub fn stream_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<StreamRecvIterator<Done, Pending>, ExecutorError> {
+        let iter_chan: Arc<ConcurrentQueue<Stream<Done, Pending>>> =
+            Arc::new(ConcurrentQueue::unbounded());
+
+        let boxed_task = match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (None, Some(mappers)) => StreamConsumingIter::new(task, mappers, iter_chan.clone()),
+                (None, None) => StreamConsumingIter::new(task, Vec::new(), iter_chan.clone()),
+                (_, _) => return Err(ExecutorError::NotSupported),
+            },
+            None => return Err(ExecutorError::TaskRequired),
+        };
+
+        match self.tasks.push(boxed_task.into()) {
+            Ok(()) => {
+                match self.tasks.len() {
+                    1 => self.latch.signal_one(),
+                    _ => self.latch.signal_all(),
+                }
+
+                Ok(StreamRecvIterator::new(RecvIterator::from_chan(
+                    iter_chan, wait_cycle,
+                )))
+            }
+            Err(err) => match err {
+                PushError::Full(_) => Err(ExecutorError::QueueFull),
+                PushError::Closed(_) => Err(ExecutorError::QueueClosed),
+            },
+        }
+    }
+
     /// [`schedule_iter`] adds a task into execution queue but instead of depending
     /// on a [`TaskReadyResolver`] to process the final state instead allows you
     /// to get back a wrapper iterator that allows you synchronously receive those
@@ -1232,8 +1293,7 @@ impl<
     ///
     /// This makes it possible to build synchronous experiences in a async world.
     ///
-    /// Following our naming: [`schedule_iter`] calls the `schedule` method to deliver
-    /// a task to the bottom of the thread-local execution queue.
+    /// This will deliver task to deliver the bottom of the thread-local execution queue.
     pub fn schedule_iter(
         self,
         wait_cycle: time::Duration,

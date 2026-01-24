@@ -14,7 +14,7 @@ pub struct RetryState {
 }
 
 impl RetryState {
-    #[must_use] 
+    #[must_use]
     pub fn new(attempt: u32, total_allowed: u32, wait: Option<time::Duration>) -> Self {
         Self {
             wait,
@@ -23,7 +23,7 @@ impl RetryState {
         }
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn can_retry(&self) -> bool {
         self.attempt == self.total_allowed
     }

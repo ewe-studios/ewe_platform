@@ -1,5 +1,8 @@
 use std::{any::Any, time};
 
+use crate::valtron::Stream;
+use crate::valtron::StreamIterator;
+
 use super::ExecutionAction;
 
 /// The type for a panic handling closure. Note that this same closure
@@ -42,6 +45,18 @@ pub enum TaskStatus<D, P, S: ExecutionAction> {
     /// Ready is the final state where we consider the task
     /// has finished/ended with relevant result.
     Ready(D),
+}
+
+impl<D, P, S: ExecutionAction> Into<Stream<D, P>> for TaskStatus<D, P, S> {
+    fn into(self) -> Stream<D, P> {
+        match self {
+            TaskStatus::Init => Stream::Init,
+            TaskStatus::Spawn(_) => Stream::Ignore,
+            TaskStatus::Ready(inner) => Stream::Next(inner),
+            TaskStatus::Delayed(inner) => Stream::Delayed(inner),
+            TaskStatus::Pending(inner) => Stream::Pending(inner),
+        }
+    }
 }
 
 impl<D: PartialEq, P: PartialEq, S: ExecutionAction> Eq for TaskStatus<D, P, S> {}
@@ -130,6 +145,17 @@ pub trait TaskIterator {
     /// Advances the iterator and returns the next value.
     fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>>;
 
+    /// `into_stream_iter` consumes the implementation and wraps
+    /// it in an iterator type that emits
+    /// `TaskStatus<TaskIterator::Pending ,TaskIterator::Done>`
+    /// match the behavior desired for an iterator.
+    fn into_stream_iter(self) -> impl Iterator<Item = Stream<Self::Ready, Self::Pending>>
+    where
+        Self: Sized + 'static,
+    {
+        TaskAsStreamIterator(Box::new(self))
+    }
+
     /// `into_iter` consumes the implementation and wraps
     /// it in an iterator type that emits
     /// `TaskStatus<TaskIterator::Pending ,TaskIterator::Done>`
@@ -144,6 +170,31 @@ pub trait TaskIterator {
     }
 }
 
+pub struct TaskAsStreamIterator<D, P, S>(
+    Box<dyn TaskIterator<Ready = D, Pending = P, Spawner = S>>,
+);
+
+impl<D, P, S> TaskAsStreamIterator<D, P, S> {
+    pub fn from_impl(t: impl TaskIterator<Ready = D, Pending = P, Spawner = S> + 'static) -> Self {
+        Self(Box::new(t))
+    }
+
+    #[must_use]
+    pub fn new(t: Box<dyn TaskIterator<Ready = D, Pending = P, Spawner = S>>) -> Self {
+        Self(t)
+    }
+}
+
+impl<D, P, S: ExecutionAction> StreamIterator<D, P> for TaskAsStreamIterator<D, P, S> {}
+
+impl<D, P, S: ExecutionAction> Iterator for TaskAsStreamIterator<D, P, S> {
+    type Item = crate::valtron::Stream<D, P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next().map(|item| item.into())
+    }
+}
+
 pub struct TaskAsIterator<D, P, S>(Box<dyn TaskIterator<Ready = D, Pending = P, Spawner = S>>);
 
 impl<D, P, S> TaskAsIterator<D, P, S> {
@@ -151,7 +202,7 @@ impl<D, P, S> TaskAsIterator<D, P, S> {
         Self(Box::new(t))
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn new(t: Box<dyn TaskIterator<Ready = D, Pending = P, Spawner = S>>) -> Self {
         Self(t)
     }
