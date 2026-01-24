@@ -5,7 +5,7 @@
 use std::{sync::Arc, time};
 
 use super::{Entry, EntryList};
-use foundation_nostd::comp::RwLock;
+use foundation_nostd::comp::basic::RwLock;
 
 pub trait Waker {
     fn wake(&self);

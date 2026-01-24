@@ -1,6 +1,6 @@
 use alloc::{boxed::Box, collections::btree_map::BTreeMap};
 
-use foundation_nostd::comp::Mutex;
+use foundation_nostd::comp::basic::Mutex;
 
 use crate::{InternalPointer, ReturnTypeHints, Returns, TaskResult, WrappedItem};
 
@@ -59,7 +59,7 @@ impl InternalCallback for FnCallback {
     fn receive(&self, value: TaskResult<Returns>) {
         #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
         {
-            (self.0.lock().unwrap_or_else(foundation_nostd::comp::PoisonError::into_inner))(value);
+            (self.0.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner))(value);
         }
 
         #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
@@ -157,7 +157,7 @@ impl InternalReferenceRegistry {
     #[must_use]
     pub fn call(&self, id: InternalPointer, values: TaskResult<Returns>) -> Option<()> {
         if let Some((_, callback)) = self.tree.get(&id) {
-            callback.0.lock().unwrap_or_else(foundation_nostd::comp::PoisonError::into_inner).receive(values);
+            callback.0.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).receive(values);
             return Some(());
         }
         None
