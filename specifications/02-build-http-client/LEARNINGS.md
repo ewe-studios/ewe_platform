@@ -147,6 +147,15 @@ TaskStatus::Pending(())  // ✅ Semantic meaning preserved!
 
 **Simplicity**: No complex interception logic needed - DoNext handles it all.
 
+**Action Methods** (CRITICAL - 2026-01-24):
+Each Action type calls a different ExecutionEngine method:
+- **WrapAction**: `engine.schedule()` - local queue
+- **LiftAction**: `engine.lift(task, parent)` - with parent linkage
+- **ScheduleAction**: `engine.schedule()` - local queue
+- **BroadcastAction**: `engine.broadcast()` - global queue (any thread)
+
+This enables different execution strategies while keeping Actions simple.
+
 ## TLS Feature Conflict Resolution (2026-01-24)
 
 **Problem**: Default features included `ssl` which enabled `ssl-rustls`, causing conflicts when users tried to enable `ssl-openssl` or `ssl-native-tls`.

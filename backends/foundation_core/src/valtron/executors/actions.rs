@@ -2,8 +2,19 @@
 //!
 //! This module provides pre-built `ExecutionAction` implementations that can be
 //! composed and reused across different task types. These actions encapsulate
-//! common patterns like lifting iterators to tasks, scheduling callbacks, and
-//! broadcasting results.
+//! common patterns like wrapping iterators, scheduling callbacks, and
+//! broadcasting work.
+//!
+//! ## Action Types and Their Engine Methods
+//!
+//! Each action type calls a specific `ExecutionEngine` method:
+//!
+//! - **WrapAction**: Calls `engine.schedule()` - adds to local queue
+//! - **LiftAction**: Calls `engine.lift(task, parent)` - schedules with parent linkage
+//! - **ScheduleAction**: Calls `engine.schedule()` - adds to local queue
+//! - **BroadcastAction**: Calls `engine.broadcast()` - sends to global queue for any thread
+//!
+//! This enables different execution strategies through the Spawner type pattern.
 
 use super::{
     BoxedExecutionEngine, BoxedExecutionIterator, DoNext, ExecutionAction, NoAction, TaskIterator,
@@ -170,11 +181,12 @@ where
 
 /// Action that spawns a LiftTask that passes through TaskStatus items.
 ///
-/// WHY: Provides a reusable way to schedule TaskStatus iterators.
-/// WHAT: Creates a DoNext executor that preserves TaskStatus semantics.
+/// WHY: Provides a reusable way to schedule TaskStatus iterators with parent linkage.
+/// WHAT: Creates a DoNext executor and calls engine.lift() to link with parent task.
 ///
 /// Use this when your iterator already produces TaskStatus variants
-/// and you want to preserve their semantic meaning (Pending, Delayed, etc.).
+/// and you want to preserve their semantic meaning (Pending, Delayed, etc.)
+/// while maintaining task hierarchy through lift().
 pub struct LiftAction<I, D, P, S>
 where
     I: Iterator<Item = TaskStatus<D, P, S>> + 'static,
@@ -210,13 +222,14 @@ where
 {
     fn apply(
         mut self,
-        _key: crate::synca::Entry,
+        key: crate::synca::Entry,
         executor: BoxedExecutionEngine,
     ) -> GenericResult<()> {
         if let Some(iter) = self.iter.take() {
             let task = LiftTask::new(iter);
             let exec_iter: BoxedExecutionIterator = DoNext::new(task).into();
-            executor.schedule(exec_iter)?;
+            // Use lift() instead of schedule() - links task with parent
+            executor.lift(exec_iter, Some(key))?;
         }
         Ok(())
     }
@@ -314,9 +327,12 @@ where
 ///
 /// WHY: Allows notifying multiple listeners of a result.
 /// WHAT: Calls all callbacks with clones of the value.
+///
+/// Note: Requires Send bounds because BroadcastAction uses engine.broadcast()
+/// which sends tasks to the global queue for any thread to pick up.
 pub struct BroadcastTask<T>
 where
-    T: Clone,
+    T: Clone + Send,
 {
     value: Option<T>,
     callbacks: Vec<Box<dyn FnOnce(T) + Send>>,
@@ -324,7 +340,7 @@ where
 
 impl<T> BroadcastTask<T>
 where
-    T: Clone,
+    T: Clone + Send,
 {
     pub fn new(value: T, callbacks: Vec<Box<dyn FnOnce(T) + Send>>) -> Self {
         Self {
@@ -336,7 +352,7 @@ where
 
 impl<T> TaskIterator for BroadcastTask<T>
 where
-    T: Clone,
+    T: Clone + Send,
 {
     type Pending = ();
     type Ready = ();
@@ -357,8 +373,12 @@ where
 
 /// Action that broadcasts a value to multiple receivers.
 ///
-/// WHY: Reusable pattern for fan-out notifications.
-/// WHAT: Schedules a BroadcastTask that notifies all callbacks.
+/// WHY: Reusable pattern for fan-out notifications using global queue.
+/// WHAT: Schedules a BroadcastTask via engine.broadcast() for any thread to execute.
+///
+/// Unlike schedule() which adds to local queue, broadcast() sends the task
+/// to the global queue where any executor thread can pick it up. This enables
+/// work distribution across threads.
 pub struct BroadcastAction<T>
 where
     T: Clone + 'static,
@@ -381,7 +401,7 @@ where
 
 impl<T> ExecutionAction for BroadcastAction<T>
 where
-    T: Clone + 'static,
+    T: Clone + Send + 'static,
 {
     fn apply(
         mut self,
@@ -391,8 +411,10 @@ where
         if let (Some(value), true) = (self.value.take(), !self.callbacks.is_empty()) {
             let callbacks = std::mem::take(&mut self.callbacks);
             let task = BroadcastTask::new(value, callbacks);
-            let exec_iter: BoxedExecutionIterator = DoNext::new(task).into();
-            executor.schedule(exec_iter)?;
+            // Use broadcast() instead of schedule() - sends to global queue for any thread
+            // Note: Requires Send bound on T
+            let exec_iter: Box<dyn super::ExecutionIterator + Send> = Box::new(DoNext::new(task));
+            executor.broadcast(exec_iter)?;
         }
         Ok(())
     }
