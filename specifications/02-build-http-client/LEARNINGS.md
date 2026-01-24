@@ -130,3 +130,20 @@ TaskStatus::Ready(TaskStatus::Pending(()))  // ❌ Loses meaning!
 TaskStatus::Pending(())  // ✅ Semantic meaning preserved!
 ```
 
+### Spawner-Type Pattern (CLARITY - 2026-01-24)
+
+**Key Insight**: Each TaskIterator declares its spawning capability via `type Spawner`.
+
+**The Pattern**:
+1. **WrapTask**: `Spawner = NoAction` - Can't spawn subtasks
+2. **LiftTask**: `Spawner = S` (generic) - Preserves inner spawner type
+3. **Actions**: `ExecutionAction` implementations - Handle engine calls
+
+**Why This Works**:
+- Type system documents spawn behavior
+- DoNext intercepts `TaskStatus::Spawn` and calls `action.apply(engine)`
+- Actions (WrapAction, LiftAction, ScheduleAction, BroadcastAction) create tasks and schedule them
+- Clean separation: Task wrappers forward, Actions execute
+
+**Simplicity**: No complex interception logic needed - DoNext handles it all.
+
