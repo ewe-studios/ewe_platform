@@ -1,0 +1,16 @@
+[package]
+name = "ewe_platform_benches"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bench]]
+name = "condvar_bench"
+harness = false
+path = "condvar_bench.rs"
+
+[dependencies]
+foundation_nostd = { workspace = true, features = ["std"] }
+criterion = { workspace = true }
+
+[dev-dependencies]

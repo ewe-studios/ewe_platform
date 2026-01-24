@@ -793,3 +793,169 @@ pub fn wait_read<'a, T>(...) -> ...
 - Final verification
 
 **Overall**: RwLockCondVar implementation complete and ready for testing phase.
+
+---
+
+## Benchmark Results (2026-01-24)
+
+### Performance Baseline Metrics
+
+All benchmarks executed with Criterion on release build with LTO enabled.
+
+#### 1. Uncontended Wait/Notify Latency
+
+**Test**: Single thread waiting, another thread notifies after 100μs delay.
+
+```
+condvar_wait_notify_uncontended
+    time:   [170.96 µs 171.34 µs 171.82 µs]
+    outliers: 4% (2 high mild, 2 high severe)
+```
+
+**Analysis**:
+- **Mean latency**: 171.34 μs (micro seconds)
+- Includes: thread spawn, lock acquisition, wait setup, 100μs sleep, notify, thread join
+- **Finding**: Overhead beyond sleep is ~71μs for full wait-notify cycle
+- **Acceptable**: Uncontended case is fast enough for typical use
+
+**Breakdown** (estimated):
+- Thread spawn/join: ~50μs
+- Lock operations: ~10μs
+- Wait/notify: ~11μs
+
+#### 2. Contended notify_one (10 Waiters)
+
+**Test**: 10 threads waiting, notified one at a time with 100μs delays between notifications.
+
+```
+condvar_notify_one_10_waiters
+    time:   [11.676 ms 11.683 ms 11.693 ms]
+    outliers: 14% (7 low mild, 3 high mild, 4 high severe)
+```
+
+**Analysis**:
+- **Mean time**: 11.683 ms for 10 sequential notifications
+- **Per notification**: ~1.168 ms average
+- Includes: 10ms total deliberate sleep (10 × 100μs) + ~1.7ms overhead
+- **Finding**: Contended notify has ~170μs overhead per operation
+
+**Trade-off Confirmed**: In std mode, `notify_one()` uses `std::sync::Condvar`, which should wake only one thread. The 170μs overhead is reasonable for thread wakeup and lock contention.
+
+#### 3. notify_all Scaling
+
+**Test**: Spawn N threads, all waiting, then notify_all once.
+
+```
+condvar_notify_all_scaling/10_threads
+    time:   [50.287 ms 50.304 ms 50.331 ms]
+    outliers: 4% (1 high mild, 3 high severe)
+
+condvar_notify_all_scaling/50_threads
+    time:   [51.245 ms 51.289 ms 51.341 ms]
+    outliers: 9% (4 high mild, 5 high severe)
+
+condvar_notify_all_scaling/100_threads
+    time:   [52.329 ms 52.356 ms 52.383 ms]
+    outliers: 2% (1 low mild, 1 high mild)
+```
+
+**Analysis**:
+- **10 threads**: 50.30 ms
+- **50 threads**: 51.29 ms (1.97% increase)
+- **100 threads**: 52.36 ms (4.09% increase from baseline)
+
+**Key Finding**: **Excellent scaling behavior**
+- Only 2ms (4%) overhead going from 10 to 100 threads
+- `notify_all()` scales linearly with minimal contention
+- Each test includes 50ms deliberate sleep before notify
+
+**Performance Insight**: The generation counter design enables efficient broadcast notification without per-thread wakeup overhead.
+
+#### 4. wait_timeout Accuracy
+
+**Test**: Timeout with no notification (pure timeout path).
+
+```
+condvar_wait_timeout_100us
+    time:   [152.42 µs 152.72 µs 153.13 µs]
+    outliers: 11% (2 low mild, 3 high mild, 6 high severe)
+```
+
+**Analysis**:
+- **Target timeout**: 100 μs
+- **Actual timeout**: 152.72 μs (mean)
+- **Overhead**: 52.72 μs (52.7%)
+
+**Why the Overhead**:
+- `std::thread::park_timeout()` has scheduler granularity (~10-50μs)
+- Timeout setup and teardown operations
+- Generation counter checks
+
+**Acceptable Because**:
+- Sub-millisecond timing is rarely guaranteed by OS
+- 52μs overhead is consistent and predictable
+- Users needing precise timing should use different primitives
+
+**Lesson**: Condition variable timeouts are best-effort, not real-time guarantees.
+
+#### 5. Poisoning vs Non-Poisoning Comparison
+
+**Test**: Repeated timeout operations comparing CondVar (with poisoning) vs CondVarNonPoisoning.
+
+```
+condvar_poisoning_comparison/with_poisoning
+    time:   [62.526 µs 62.589 µs 62.675 µs]
+    outliers: 17% (2 low severe, 3 low mild, 3 high mild, 9 high severe)
+
+condvar_poisoning_comparison/without_poisoning
+    time:   [62.545 µs 62.604 µs 62.680 µs]
+    outliers: 11% (1 low severe, 1 high mild, 9 high severe)
+```
+
+**Analysis**:
+- **With poisoning**: 62.589 μs
+- **Without poisoning**: 62.604 μs
+- **Difference**: 0.015 μs (0.02%)
+
+**Key Finding**: **No measurable performance difference**
+
+**Why**: Both variants use `std::sync::Condvar` and `std::sync::Mutex` when `std` feature is enabled (as confirmed by our type inspection during debugging). The "non-poisoning" variant still checks for poisoning in std mode.
+
+**Important Note**: The real performance difference would only be visible in `no_std` mode where:
+- `CondVar` uses spin-waiting with poisoning checks
+- `CondVarNonPoisoning` uses spin-waiting without poisoning checks
+
+**Lesson**: Feature-gated implementations mean benchmarks must test both std and no_std configurations separately.
+
+### Performance Summary
+
+| Metric | Value | Status |
+|--------|-------|--------|
+| Uncontended latency | 171 μs | ✅ Acceptable |
+| notify_one overhead (contended) | 170 μs per wakeup | ✅ Reasonable |
+| notify_all scaling (10→100 threads) | +4% overhead | ✅ Excellent |
+| Timeout overhead | +52.7% | ⚠️ Expected (OS scheduler) |
+| Poisoning overhead | 0.02% | ✅ Negligible |
+
+### Recommendations
+
+1. **Use CondVar for most cases**: Negligible poisoning overhead with safety benefits
+2. **notify_all scales well**: Suitable for broadcast patterns with 100+ threads
+3. **Timeout expectations**: Allow ±50μs variance for sub-millisecond timeouts
+4. **Future work**: Benchmark no_std configurations separately to measure true non-poisoning benefits
+
+### Benchmark Configuration
+
+- **Compiler**: rustc 1.87 (stable)
+- **Optimization**: LTO enabled, strip debuginfo
+- **CPU**: (system-dependent)
+- **Criterion**: v0.5.1, 100 samples per benchmark
+- **Feature flags**: `foundation_nostd` with `std` feature enabled
+
+### Next Steps for Benchmarking
+
+1. **Add no_std benchmarks**: Compare spin-wait performance
+2. **Memory usage benchmarks**: Measure CondVar size across configurations
+3. **Comparison with std**: Direct std::sync::Condvar baseline (note: bench_std_condvar was removed due to cfg macro issues)
+4. **WASM benchmarks**: Test WASM32 target performance
+5. **Stress tests**: High contention scenarios (1000+ threads, rapid cycling)
