@@ -14,10 +14,7 @@ fn test_invalid_certificate_rejected() {
     let bad_cert = b"-----BEGIN CERTIFICATE-----\nINVALID\n-----END CERTIFICATE-----";
     let bad_key = b"-----BEGIN PRIVATE KEY-----\nINVALID\n-----END PRIVATE KEY-----";
 
-    let result = RustlsAcceptor::from_pem(
-        bad_cert.to_vec(),
-        Zeroizing::new(bad_key.to_vec()),
-    );
+    let result = RustlsAcceptor::from_pem(bad_cert.to_vec(), Zeroizing::new(bad_key.to_vec()));
 
     // Should fail with invalid PEM data
     assert!(result.is_err(), "Expected failure with invalid certificate");
@@ -42,10 +39,7 @@ fn test_mismatched_cert_and_key_rejected() {
     let cert = b"-----BEGIN CERTIFICATE-----\nMIIBkTCB+wIJAKHHCgVZU1W/MA0GCSqGSIb3DQEBCwUAMBExDzANBgNVBAMMBnVu\n-----END CERTIFICATE-----";
     let key = b"-----BEGIN PRIVATE KEY-----\nMIGEAgEAMBAGByqGSM49AgEGBSuBBAAKBG0wawIBAQQgVcB/UNPxalR9zDYAjQIf\n-----END PRIVATE KEY-----";
 
-    let result = RustlsAcceptor::from_pem(
-        cert.to_vec(),
-        Zeroizing::new(key.to_vec()),
-    );
+    let result = RustlsAcceptor::from_pem(cert.to_vec(), Zeroizing::new(key.to_vec()));
 
     // This should likely fail due to invalid certificate format
     // If it doesn't fail at creation, it would fail at TLS handshake

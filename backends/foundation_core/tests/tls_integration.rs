@@ -7,7 +7,7 @@
 
 #[cfg(feature = "ssl-rustls")]
 mod rustls_tests {
-    use foundation_core::netcap::ssl::rustls::{RustlsConnector, default_client_config};
+    use foundation_core::netcap::ssl::rustls::{default_client_config, RustlsConnector};
 
     #[test]
     fn test_rustls_connector_new() {
@@ -42,8 +42,7 @@ mod rustls_tests {
         let connector = RustlsConnector::new();
 
         // Connect to example.com:443
-        let tcp = TcpStream::connect("example.com:443")
-            .expect("Failed to connect to example.com");
+        let tcp = TcpStream::connect("example.com:443").expect("Failed to connect to example.com");
 
         let connection = Connection::Tcp(tcp);
 
@@ -53,12 +52,14 @@ mod rustls_tests {
 
         // Send a simple HTTP request
         let request = "GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n";
-        tls_stream.write_all(request.as_bytes())
+        tls_stream
+            .write_all(request.as_bytes())
             .expect("Failed to write request");
 
         // Read response
         let mut response = Vec::new();
-        tls_stream.read_to_end(&mut response)
+        tls_stream
+            .read_to_end(&mut response)
             .expect("Failed to read response");
 
         // Verify we got a valid HTTP response
@@ -97,10 +98,8 @@ mod openssl_tests {
             .build();
 
         let url = url::Url::parse("https://example.com:443").unwrap();
-        let endpoint = Endpoint::WithIdentity(
-            EndpointConfig::NoTimeout(url),
-            Arc::new(ssl_connector)
-        );
+        let endpoint =
+            Endpoint::WithIdentity(EndpointConfig::NoTimeout(url), Arc::new(ssl_connector));
 
         let connector = OpenSslConnector::create(&endpoint);
         let _connector2 = connector.clone();
@@ -113,10 +112,8 @@ mod openssl_tests {
             .build();
 
         let url = url::Url::parse("https://example.com:443").unwrap();
-        let endpoint = Endpoint::WithIdentity(
-            EndpointConfig::NoTimeout(url),
-            Arc::new(ssl_connector)
-        );
+        let endpoint =
+            Endpoint::WithIdentity(EndpointConfig::NoTimeout(url), Arc::new(ssl_connector));
 
         let connector1 = OpenSslConnector::create(&endpoint);
         let connector2 = connector1.clone();
@@ -138,16 +135,13 @@ mod openssl_tests {
             .build();
 
         let url = url::Url::parse("https://example.com:443").unwrap();
-        let endpoint = Endpoint::WithIdentity(
-            EndpointConfig::NoTimeout(url),
-            Arc::new(ssl_connector)
-        );
+        let endpoint =
+            Endpoint::WithIdentity(EndpointConfig::NoTimeout(url), Arc::new(ssl_connector));
 
         let connector = OpenSslConnector::create(&endpoint);
 
         // Connect to example.com
-        let tcp = TcpStream::connect("example.com:443")
-            .expect("Failed to connect to example.com");
+        let tcp = TcpStream::connect("example.com:443").expect("Failed to connect to example.com");
 
         let connection = Connection::Tcp(tcp);
 
@@ -157,12 +151,14 @@ mod openssl_tests {
 
         // Send a simple HTTP request
         let request = "GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n";
-        tls_stream.write_all(request.as_bytes())
+        tls_stream
+            .write_all(request.as_bytes())
             .expect("Failed to write request");
 
         // Read response
         let mut response = Vec::new();
-        tls_stream.read_to_end(&mut response)
+        tls_stream
+            .read_to_end(&mut response)
             .expect("Failed to read response");
 
         // Verify we got a valid HTTP response
@@ -180,14 +176,12 @@ mod native_tls_tests {
     #[test]
     fn test_native_tls_connector_creation() {
         // Verify native-tls connector can be created
-        let tls_connector = native_tls::TlsConnector::new()
-            .expect("Failed to create TLS connector");
+        let tls_connector =
+            native_tls::TlsConnector::new().expect("Failed to create TLS connector");
 
         let url = url::Url::parse("https://example.com:443").unwrap();
-        let endpoint = Endpoint::WithIdentity(
-            EndpointConfig::NoTimeout(url),
-            Arc::new(tls_connector)
-        );
+        let endpoint =
+            Endpoint::WithIdentity(EndpointConfig::NoTimeout(url), Arc::new(tls_connector));
 
         let connector = NativeTlsConnector::create(&endpoint);
         let _connector2 = connector.clone();
@@ -195,14 +189,12 @@ mod native_tls_tests {
 
     #[test]
     fn test_native_tls_connector_clone() {
-        let tls_connector = native_tls::TlsConnector::new()
-            .expect("Failed to create TLS connector");
+        let tls_connector =
+            native_tls::TlsConnector::new().expect("Failed to create TLS connector");
 
         let url = url::Url::parse("https://example.com:443").unwrap();
-        let endpoint = Endpoint::WithIdentity(
-            EndpointConfig::NoTimeout(url),
-            Arc::new(tls_connector)
-        );
+        let endpoint =
+            Endpoint::WithIdentity(EndpointConfig::NoTimeout(url), Arc::new(tls_connector));
 
         let connector1 = NativeTlsConnector::create(&endpoint);
         let connector2 = connector1.clone();
@@ -219,20 +211,17 @@ mod native_tls_tests {
         use std::io::{Read, Write};
         use std::net::TcpStream;
 
-        let tls_connector = native_tls::TlsConnector::new()
-            .expect("Failed to create TLS connector");
+        let tls_connector =
+            native_tls::TlsConnector::new().expect("Failed to create TLS connector");
 
         let url = url::Url::parse("https://example.com:443").unwrap();
-        let endpoint = Endpoint::WithIdentity(
-            EndpointConfig::NoTimeout(url),
-            Arc::new(tls_connector)
-        );
+        let endpoint =
+            Endpoint::WithIdentity(EndpointConfig::NoTimeout(url), Arc::new(tls_connector));
 
         let connector = NativeTlsConnector::create(&endpoint);
 
         // Connect to example.com
-        let tcp = TcpStream::connect("example.com:443")
-            .expect("Failed to connect to example.com");
+        let tcp = TcpStream::connect("example.com:443").expect("Failed to connect to example.com");
 
         let connection = Connection::Tcp(tcp);
 
@@ -242,12 +231,14 @@ mod native_tls_tests {
 
         // Send a simple HTTP request
         let request = "GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n";
-        tls_stream.write_all(request.as_bytes())
+        tls_stream
+            .write_all(request.as_bytes())
             .expect("Failed to write request");
 
         // Read response
         let mut response = Vec::new();
-        tls_stream.read_to_end(&mut response)
+        tls_stream
+            .read_to_end(&mut response)
             .expect("Failed to read response");
 
         // Verify we got a valid HTTP response
@@ -274,7 +265,10 @@ mod feature_tests {
     fn test_feature_mutual_exclusivity_documented() {
         // This test documents that feature conflicts are checked at compile time
         // The actual checks are in src/netcap/ssl/mod.rs via compile_error! macros
-        assert!(true, "Feature conflicts are enforced via compile_error! in mod.rs");
+        assert!(
+            true,
+            "Feature conflicts are enforced via compile_error! in mod.rs"
+        );
     }
 
     #[test]
@@ -299,8 +293,11 @@ mod feature_tests {
 
         // We expect exactly one backend to be enabled when running TLS tests
         if backend_count > 0 {
-            assert_eq!(backend_count, 1,
-                "Expected exactly one TLS backend to be enabled, found {}", backend_count);
+            assert_eq!(
+                backend_count, 1,
+                "Expected exactly one TLS backend to be enabled, found {}",
+                backend_count
+            );
         }
     }
 }

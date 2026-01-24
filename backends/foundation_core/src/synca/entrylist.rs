@@ -784,13 +784,7 @@ mod test_entry_list_edge_cases {
         list.insert(3);
         list.insert(4);
 
-        let evens: Vec<usize> = list.map_with(|&v| {
-            if v % 2 == 0 {
-                Some(v)
-            } else {
-                None
-            }
-        });
+        let evens: Vec<usize> = list.map_with(|&v| if v % 2 == 0 { Some(v) } else { None });
 
         assert_eq!(vec![2, 4], evens);
     }
@@ -1011,14 +1005,10 @@ mod test_thread_safe_entry {
 
         for i in 0..10 {
             let list_clone = safe_list.clone();
-            handles.push(thread::spawn(move || {
-                list_clone.insert(i)
-            }));
+            handles.push(thread::spawn(move || list_clone.insert(i)));
         }
 
-        let entries: Vec<Entry> = handles.into_iter()
-            .map(|h| h.join().unwrap())
-            .collect();
+        let entries: Vec<Entry> = handles.into_iter().map(|h| h.join().unwrap()).collect();
 
         assert_eq!(10, safe_list.active_slots());
         assert_eq!(10, entries.len());
@@ -1028,9 +1018,7 @@ mod test_thread_safe_entry {
     fn test_thread_safe_entry_concurrent_reads() {
         let safe_list = Arc::new(ThreadSafeEntry::<usize>::new());
 
-        let entries: Vec<Entry> = (0..5)
-            .map(|i| safe_list.insert(i * 10))
-            .collect();
+        let entries: Vec<Entry> = (0..5).map(|i| safe_list.insert(i * 10)).collect();
 
         let mut handles = vec![];
         for entry in entries {
@@ -1044,9 +1032,7 @@ mod test_thread_safe_entry {
             }));
         }
 
-        let results: Vec<Option<usize>> = handles.into_iter()
-            .map(|h| h.join().unwrap())
-            .collect();
+        let results: Vec<Option<usize>> = handles.into_iter().map(|h| h.join().unwrap()).collect();
 
         assert_eq!(5, results.iter().filter(|r| r.is_some()).count());
     }
@@ -1096,9 +1082,7 @@ mod test_thread_safe_entry {
         let safe_list = Arc::new(ThreadSafeEntry::<usize>::new());
 
         // Insert initial entries
-        let entries: Vec<Entry> = (0..20)
-            .map(|i| safe_list.insert(i))
-            .collect();
+        let entries: Vec<Entry> = (0..20).map(|i| safe_list.insert(i)).collect();
 
         let mut read_handles = vec![];
         let mut update_handles = vec![];
@@ -1120,9 +1104,7 @@ mod test_thread_safe_entry {
         for entry in entries.iter().skip(10) {
             let list_clone = safe_list.clone();
             let entry_copy = *entry;
-            update_handles.push(thread::spawn(move || {
-                list_clone.update(&entry_copy, 999)
-            }));
+            update_handles.push(thread::spawn(move || list_clone.update(&entry_copy, 999)));
         }
 
         // Wait for all operations
