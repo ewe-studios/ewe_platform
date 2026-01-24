@@ -403,3 +403,21 @@ Load from `.agents/stacks/`:
 ---
 *Created: 2026-01-18*
 *Last Updated: 2026-01-21 (Added Agent Rules Reference for self-contained specification)*
+
+---
+
+## File Organization Reminder
+
+ONLY these files allowed:
+1. requirements.md - Requirements with tasks
+2. LEARNINGS.md - All learnings
+3. REPORT.md - All reports
+4. VERIFICATION.md - Verification
+5. PROGRESS.md - Current status (delete at 100%)
+6. fundamentals/, features/, templates/ (optional)
+
+FORBIDDEN: Separate learning/report/verification files
+
+Consolidation: All learnings → LEARNINGS.md, All reports → REPORT.md
+
+See Rule 06 "File Organization" for complete policy.
