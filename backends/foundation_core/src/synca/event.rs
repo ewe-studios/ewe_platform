@@ -256,12 +256,18 @@ mod test_lock_signals {
         let signal = Arc::new(LockSignal::new());
         signal.lock();
 
+        let (tx, rx) = mpsc::channel();
         let signal_clone = signal.clone();
         let handle = thread::spawn(move || {
+            // Signal we're about to wait
+            tx.send(()).unwrap();
             signal_clone.wait();
         });
 
+        // Wait for thread to be ready
+        rx.recv().unwrap();
         thread::sleep(Duration::from_millis(50));
+
         signal.signal_one();
 
         handle.join().expect("Thread should complete");
@@ -273,12 +279,18 @@ mod test_lock_signals {
         let signal = Arc::new(LockSignal::new());
         signal.lock();
 
+        let (tx, rx) = mpsc::channel();
         let signal_clone = signal.clone();
         let handle = thread::spawn(move || {
+            // Signal we're about to wait
+            tx.send(()).unwrap();
             signal_clone.wait();
         });
 
+        // Wait for thread to be ready
+        rx.recv().unwrap();
         thread::sleep(Duration::from_millis(50));
+
         signal.signal_all();
 
         handle.join().expect("Thread should complete");
@@ -297,12 +309,18 @@ mod test_lock_signals {
     fn test_lock_and_wait() {
         let signal = Arc::new(LockSignal::new());
 
+        let (tx, rx) = mpsc::channel();
         let signal_clone = signal.clone();
         let handle = thread::spawn(move || {
+            // Signal we're about to lock and wait
+            tx.send(()).unwrap();
             signal_clone.lock_and_wait();
         });
 
-        thread::sleep(Duration::from_millis(50));
+        // Wait for thread to be ready
+        rx.recv().unwrap();
+        thread::sleep(Duration::from_millis(100));
+
         assert_eq!(LockState::Locked, signal.probe());
 
         signal.signal_all();
@@ -315,15 +333,25 @@ mod test_lock_signals {
         let signal = Arc::new(LockSignal::new());
         signal.lock();
 
+        let (tx, rx) = mpsc::channel();
         let mut handles = vec![];
+
         for _ in 0..3 {
             let signal_clone = signal.clone();
+            let tx_clone = tx.clone();
             handles.push(thread::spawn(move || {
+                // Signal we're about to wait
+                tx_clone.send(()).unwrap();
                 signal_clone.wait();
             }));
         }
 
+        // Wait for all threads to be ready
+        for _ in 0..3 {
+            rx.recv().unwrap();
+        }
         thread::sleep(Duration::from_millis(50));
+
         signal.signal_all();
 
         for handle in handles {
@@ -337,11 +365,16 @@ mod test_lock_signals {
         let signal = Arc::new(LockSignal::new());
         signal.lock();
 
+        let (tx, rx) = mpsc::channel();
         let signal_clone = signal.clone();
         let handle = thread::spawn(move || {
+            // Signal we're about to wait
+            tx.send(()).unwrap();
             signal_clone.wait();
         });
 
+        // Wait for thread to be ready
+        rx.recv().unwrap();
         thread::sleep(Duration::from_millis(50));
 
         // Use Waker trait method
@@ -382,13 +415,16 @@ mod test_lock_signals {
         signal.lock();
         assert_eq!(LockState::Locked, signal.probe());
 
-        // Locked -> Released (via signal)
+        // Locked -> Released (via signal) -> Free (after wait completes)
         let signal = Arc::new(signal);
+        let (tx, rx) = mpsc::channel();
         let signal_clone = signal.clone();
         let handle = thread::spawn(move || {
+            tx.send(()).unwrap();
             signal_clone.wait();
         });
 
+        rx.recv().unwrap();
         thread::sleep(Duration::from_millis(50));
         signal.signal_one();
         handle.join().expect("Thread should complete");
