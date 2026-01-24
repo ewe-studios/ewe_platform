@@ -959,3 +959,84 @@ condvar_poisoning_comparison/without_poisoning
 3. **Comparison with std**: Direct std::sync::Condvar baseline (note: bench_std_condvar was removed due to cfg macro issues)
 4. **WASM benchmarks**: Test WASM32 target performance
 5. **Stress tests**: High contention scenarios (1000+ threads, rapid cycling)
+
+---
+
+## API Consistency (2026-01-24)
+
+### 13. Aligning no_std and std APIs with Result Return Types
+
+**Challenge**: API inconsistency between std and no_std modes.
+
+**The Problem**:
+- In `std` mode: `RawCondVarMutex` is `std::sync::Mutex`, which returns `Result` from `lock()`
+- In `no_std` mode: `RawCondVarMutex::lock()` returned bare `Guard`
+- Code using `RawCondVarMutex` needed different handling:
+```rust
+#[cfg(feature = "std")]
+let guard = mutex.lock().unwrap();  // Result
+
+#[cfg(not(feature = "std"))]
+let guard = mutex.lock();  // Bare guard
+```
+
+**Solution**: Make no_std API match std by returning `LockResult<Guard>`
+
+**Implementation**:
+```rust
+// Before (no_std only):
+pub fn lock(&self) -> RawCondVarMutexGuard<'_, T>
+
+// After (matches std):
+pub fn lock(&self) -> LockResult<RawCondVarMutexGuard<'_, T>>
+```
+
+**Key Changes**:
+1. `RawCondVarMutex::lock()` → `LockResult<Guard>` (always returns `Ok`)
+2. `RawCondVarMutex::try_lock()` → `TryLockResult<Guard>` (was `Option<Guard>`)
+3. All `CondVarNonPoisoning` methods return `LockResult` types
+4. Debug impl updated to match `Ok/Err` pattern
+
+**Benefits**:
+- **Uniform API**: Same code works in both std and no_std modes
+- **Type Safety**: Result types make poisoning semantics explicit
+- **Documentation**: Doc comments clarify "never poisons, always returns Ok"
+- **Future Proof**: Easier to add actual poisoning support later if needed
+
+**Implementation Note - Avoiding Debug Trait Bounds**:
+```rust
+// Can't use .unwrap() because it requires T: Debug
+// let guard = mutex.lock().unwrap();  // Error!
+
+// Solution: explicit match with unreachable!()
+match mutex.lock() {
+    Ok(guard) => Ok((guard, WaitTimeoutResult::new(timed_out))),
+    Err(_) => unreachable!("RawCondVarMutex should never poison"),
+}
+```
+
+**Why unreachable!() Works**:
+- `unreachable!()` doesn't require `T: Debug` like `.unwrap()` does
+- Clearly documents that this branch should never execute
+- Panics with clear message if invariant is violated
+- Maintains generic nature of API (no trait bounds added)
+
+**Test Updates**:
+All test callsites updated to call `.unwrap()` on Result return values:
+```rust
+// Before:
+let guard = mutex.lock();
+
+// After:
+let guard = mutex.lock().unwrap();
+```
+
+**Verification**:
+- ✅ All 178 unit tests pass
+- ✅ All 14 integration tests pass
+- ✅ Benchmarks compile
+- ✅ Zero API breakage in public interface (internal implementation detail)
+
+**Lesson**: **API consistency across feature flags is critical**. Users should write the same code regardless of whether std is available. Type-based differences (Result vs bare value) create friction and violate the principle of least surprise.
+
+**Related Insight**: This aligns with Rust's philosophy that different platforms should have the same *interface*, even if the *implementation* differs. The `Result` type communicates "this operation could fail" even when it never actually fails in practice.
