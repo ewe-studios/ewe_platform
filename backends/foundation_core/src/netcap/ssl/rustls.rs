@@ -55,53 +55,53 @@ pub struct RustlsStream<T>(Arc<Mutex<rustls::StreamOwned<T, Connection>>>);
 
 impl<T> RustlsStream<T> {
     pub fn try_clone_connection(&self) -> std::io::Result<Connection> {
-        let guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.sock.try_clone()
     }
 
     pub fn read_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
-        let guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.sock.read_timeout()
     }
 
     pub fn write_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
-        let guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.sock.write_timeout()
     }
 
     pub fn set_write_timeout(&mut self, dur: Option<std::time::Duration>) -> std::io::Result<()> {
-        let mut guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let mut guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.sock.set_write_timeout(dur)
     }
 
     pub fn set_read_timeout(&mut self, dur: Option<std::time::Duration>) -> std::io::Result<()> {
-        let mut guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let mut guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.sock.set_read_timeout(dur)
     }
 }
 
 impl<T> RustlsStream<T> {
     pub fn local_addr(&self) -> std::io::Result<Option<SocketAddr>> {
-        let guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.sock.local_addr()
     }
 
     pub fn peer_addr(&self) -> std::io::Result<Option<SocketAddr>> {
-        let guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.sock.peer_addr()
     }
 
@@ -118,9 +118,9 @@ impl<T> RustlsStream<T> {
     }
 
     pub fn shutdown(&mut self, how: Shutdown) -> std::io::Result<()> {
-        let guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.sock.shutdown(how)
     }
 }
@@ -133,50 +133,50 @@ impl<T> Clone for RustlsStream<T> {
 
 impl Read for RustlsStream<rustls::ClientConnection> {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        let mut guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let mut guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.read(buf)
     }
 }
 
 impl Read for RustlsStream<rustls::ServerConnection> {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        let mut guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let mut guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.read(buf)
     }
 }
 
 impl Write for RustlsStream<rustls::ClientConnection> {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        let mut guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let mut guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.write(buf)
     }
 
     fn flush(&mut self) -> std::io::Result<()> {
-        let mut guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let mut guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.flush()
     }
 }
 
 impl Write for RustlsStream<rustls::ServerConnection> {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        let mut guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let mut guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.write(buf)
     }
 
     fn flush(&mut self) -> std::io::Result<()> {
-        let mut guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let mut guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.flush()
     }
 }
@@ -400,10 +400,8 @@ mod tests {
     fn test_rustls_connector_create_from_endpoint() {
         let custom_config = default_client_config();
         let url = url::Url::parse("https://example.com:443").unwrap();
-        let endpoint = Endpoint::WithIdentity(
-            EndpointConfig::NoTimeout(url),
-            custom_config.clone()
-        );
+        let endpoint =
+            Endpoint::WithIdentity(EndpointConfig::NoTimeout(url), custom_config.clone());
 
         let connector = RustlsConnector::create(&endpoint);
         // Verify the connector uses the custom config

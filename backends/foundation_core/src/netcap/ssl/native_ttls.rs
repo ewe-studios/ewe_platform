@@ -23,30 +23,30 @@ pub struct NativeTlsStream(Arc<Mutex<native_tls::TlsStream<Connection>>>);
 
 impl NativeTlsStream {
     pub fn read_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
-        let guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.get_ref().read_timeout()
     }
 
     pub fn write_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
-        let guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.get_ref().write_timeout()
     }
 
     pub fn set_write_timeout(&mut self, dur: Option<std::time::Duration>) -> std::io::Result<()> {
-        let mut guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let mut guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.get_mut().set_write_timeout(dur)
     }
 
     pub fn set_read_timeout(&mut self, dur: Option<std::time::Duration>) -> std::io::Result<()> {
-        let mut guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let mut guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.get_mut().set_read_timeout(dur)
     }
 }
@@ -54,23 +54,23 @@ impl NativeTlsStream {
 // These struct methods form the implict contract for swappable TLS implementations
 impl NativeTlsStream {
     pub fn try_clone_connection(&self) -> std::io::Result<Connection> {
-        let guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.get_ref().try_clone()
     }
 
     pub fn local_addr(&self) -> std::io::Result<Option<SocketAddr>> {
-        let mut guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let mut guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.get_mut().local_addr()
     }
 
     pub fn peer_addr(&self) -> std::io::Result<Option<SocketAddr>> {
-        let mut guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let mut guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.get_mut().peer_addr()
     }
 
@@ -87,43 +87,41 @@ impl NativeTlsStream {
     }
 
     pub fn shutdown(&mut self, how: Shutdown) -> std::io::Result<()> {
-        let mut guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let mut guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.get_mut().shutdown(how)
     }
 }
 
 impl PeekableReadStream for NativeTlsStream {
     fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError> {
-        let mut guard = self.0
-            .lock()
-            .map_err(|_| PeekError::LockAcquisitionError)?;
+        let mut guard = self.0.lock().map_err(|_| PeekError::LockAcquisitionError)?;
         guard.get_mut().peek(buf)
     }
 }
 
 impl Read for NativeTlsStream {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        let mut guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let mut guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.read(buf)
     }
 }
 
 impl Write for NativeTlsStream {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        let mut guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let mut guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.write(buf)
     }
 
     fn flush(&mut self) -> std::io::Result<()> {
-        let mut guard = self.0
-            .lock()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e)))?;
+        let mut guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
         guard.flush()
     }
 }

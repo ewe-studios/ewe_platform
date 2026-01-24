@@ -1,7 +1,7 @@
 // Implements an Lock notification primitive usable in threads.
 
+use foundation_nostd::comp::condvar_comp::{CondVar, Mutex};
 use std::panic::{RefUnwindSafe, UnwindSafe};
-use foundation_nostd::comp::condvar_comp::{Mutex, CondVar};
 
 use super::Waker;
 
@@ -398,7 +398,11 @@ mod test_lock_signals {
             let signal_clone = signal.clone();
             handles.push(thread::spawn(move || {
                 let state = signal_clone.probe();
-                assert!(state == LockState::Locked || state == LockState::Released || state == LockState::Free);
+                assert!(
+                    state == LockState::Locked
+                        || state == LockState::Released
+                        || state == LockState::Free
+                );
             }));
         }
 

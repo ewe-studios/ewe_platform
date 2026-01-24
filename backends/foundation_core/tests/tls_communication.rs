@@ -8,8 +8,8 @@
 
 use foundation_core::netcap::connection::Connection;
 use foundation_core::netcap::ssl::rustls::{RustlsAcceptor, RustlsConnector};
-use rustls::RootCertStore;
 use rustls::pki_types::pem::PemObject;
+use rustls::RootCertStore;
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::sync::Arc;
@@ -35,7 +35,11 @@ fn test_tls_acceptor_with_real_cert() {
     // Create acceptor with real certificate
     let acceptor = RustlsAcceptor::from_pem(cert, key);
 
-    assert!(acceptor.is_ok(), "Failed to create acceptor with valid certificate: {:?}", acceptor.err());
+    assert!(
+        acceptor.is_ok(),
+        "Failed to create acceptor with valid certificate: {:?}",
+        acceptor.err()
+    );
 }
 
 #[test]
@@ -43,13 +47,11 @@ fn test_tls_full_handshake_and_data_transfer() {
     let (cert, key) = load_test_cert();
 
     // Bind to localhost on a random port
-    let listener = TcpListener::bind("127.0.0.1:0")
-        .expect("Failed to bind to localhost");
+    let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind to localhost");
     let server_addr = listener.local_addr().unwrap();
 
     // Create acceptor with test certificate
-    let acceptor = RustlsAcceptor::from_pem(cert.clone(), key)
-        .expect("Failed to create acceptor");
+    let acceptor = RustlsAcceptor::from_pem(cert.clone(), key).expect("Failed to create acceptor");
 
     // Spawn server thread
     let server_handle = thread::spawn(move || -> Result<(), String> {
@@ -91,7 +93,9 @@ fn test_tls_full_handshake_and_data_transfer() {
         .expect("Failed to parse certificate");
 
     let mut root_store = RootCertStore::empty();
-    root_store.add(cert_der).expect("Failed to add test cert to root store");
+    root_store
+        .add(cert_der)
+        .expect("Failed to add test cert to root store");
 
     let client_config = rustls::ClientConfig::builder()
         .with_root_certificates(root_store)
@@ -100,8 +104,7 @@ fn test_tls_full_handshake_and_data_transfer() {
     let connector = RustlsConnector::with_config(Arc::new(client_config));
 
     // Connect to server
-    let tcp = TcpStream::connect(server_addr)
-        .expect("Failed to connect to server");
+    let tcp = TcpStream::connect(server_addr).expect("Failed to connect to server");
 
     let connection = Connection::Tcp(tcp);
 
@@ -113,21 +116,30 @@ fn test_tls_full_handshake_and_data_transfer() {
     let (mut tls_stream, _addr) = result.unwrap();
 
     // Send message to server
-    tls_stream.write_all(b"Hello from client")
+    tls_stream
+        .write_all(b"Hello from client")
         .expect("Failed to write to server");
     tls_stream.flush().expect("Failed to flush");
 
     // Read response from server
     let mut response = [0u8; 1024];
-    let n = tls_stream.read(&mut response)
+    let n = tls_stream
+        .read(&mut response)
         .expect("Failed to read from server");
 
     let response_str = String::from_utf8_lossy(&response[..n]);
-    assert_eq!(response_str, "Hello from server", "Unexpected response from server");
+    assert_eq!(
+        response_str, "Hello from server",
+        "Unexpected response from server"
+    );
 
     // Wait for server thread to complete
     let server_result = server_handle.join().expect("Server thread panicked");
-    assert!(server_result.is_ok(), "Server failed: {:?}", server_result.err());
+    assert!(
+        server_result.is_ok(),
+        "Server failed: {:?}",
+        server_result.err()
+    );
 }
 
 #[test]
@@ -135,15 +147,12 @@ fn test_multiple_tls_connections() {
     let (cert, key) = load_test_cert();
 
     // Bind to localhost on a random port
-    let listener = TcpListener::bind("127.0.0.1:0")
-        .expect("Failed to bind to localhost");
+    let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind to localhost");
     let server_addr = listener.local_addr().unwrap();
 
     // Create acceptor with test certificate
-    let acceptor = Arc::new(
-        RustlsAcceptor::from_pem(cert.clone(), key)
-            .expect("Failed to create acceptor")
-    );
+    let acceptor =
+        Arc::new(RustlsAcceptor::from_pem(cert.clone(), key).expect("Failed to create acceptor"));
 
     // Spawn server thread that handles multiple connections
     let server_handle = thread::spawn(move || {
@@ -183,12 +192,14 @@ fn test_multiple_tls_connections() {
         .expect("Failed to parse certificate");
 
     let mut root_store = RootCertStore::empty();
-    root_store.add(cert_der).expect("Failed to add test cert to root store");
+    root_store
+        .add(cert_der)
+        .expect("Failed to add test cert to root store");
 
     let client_config = Arc::new(
         rustls::ClientConfig::builder()
             .with_root_certificates(root_store)
-            .with_no_client_auth()
+            .with_no_client_auth(),
     );
 
     // Create multiple client connections
@@ -213,7 +224,10 @@ fn test_multiple_tls_connections() {
             if &response[..n] == b"ACK" {
                 Ok(())
             } else {
-                Err(std::io::Error::new(std::io::ErrorKind::Other, "Bad response"))
+                Err(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    "Bad response",
+                ))
             }
         });
 
@@ -223,7 +237,14 @@ fn test_multiple_tls_connections() {
     // Wait for all clients to complete
     let mut client_success = 0;
     for handle in handles {
-        if handle.join().unwrap_or(Err(std::io::Error::new(std::io::ErrorKind::Other, "Join failed"))).is_ok() {
+        if handle
+            .join()
+            .unwrap_or(Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "Join failed",
+            )))
+            .is_ok()
+        {
             client_success += 1;
         }
     }
@@ -247,8 +268,14 @@ fn test_certificate_verification() {
     // Add to root store
     let mut root_store = RootCertStore::empty();
     let result = root_store.add(cert_der.unwrap());
-    assert!(result.is_ok(), "Failed to add valid certificate to root store");
+    assert!(
+        result.is_ok(),
+        "Failed to add valid certificate to root store"
+    );
 
     // Verify root store is not empty
-    assert!(!root_store.is_empty(), "Root store should contain certificate");
+    assert!(
+        !root_store.is_empty(),
+        "Root store should contain certificate"
+    );
 }
