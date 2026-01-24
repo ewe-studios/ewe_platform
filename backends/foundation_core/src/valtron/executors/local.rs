@@ -41,6 +41,7 @@ pub enum PriorityOrder {
 
 /// `Sleepable` defines specific holders that help
 /// indicate the readiness of a task via it's entry.
+#[derive(Debug)]
 pub enum Sleepable {
     /// Timable are tasks that can sleep via duration and
     /// will communicate their readiness using when a duration

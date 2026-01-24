@@ -1,6 +1,7 @@
 // Implements an Lock notification primitive usable in threads.
 
-use foundation_nostd::comp::Mutex;
+use std::sync::Mutex;
+use std::panic::{RefUnwindSafe, UnwindSafe};
 use std::sync::Condvar;
 
 use super::Waker;
@@ -28,6 +29,12 @@ pub struct LockSignal {
     /// the lock signal.
     lock: Mutex<LockState>,
 }
+
+// SAFETY: LockSignal is safe to use across unwind boundaries.
+// The internal Mutex and Condvar are designed to maintain consistency
+// even in the presence of panics, and LockState is a simple enum.
+impl UnwindSafe for LockSignal {}
+impl RefUnwindSafe for LockSignal {}
 
 pub(crate) enum NotifyDirective {
     One,

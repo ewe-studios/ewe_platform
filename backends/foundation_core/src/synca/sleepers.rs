@@ -11,12 +11,14 @@ pub trait Waker {
     fn wake(&self);
 }
 
+#[derive(Debug)]
 pub struct DurationWaker<T> {
     pub handle: T,
     pub from: time::Instant,
     pub how_long: time::Duration,
 }
 
+#[derive(Debug)]
 pub struct DurationStore<T> {
     store: Arc<RwLock<EntryList<DurationWaker<T>>>>,
 }
@@ -49,7 +51,7 @@ impl<T> DurationStore<T> {
 // --- core implementation methods
 
 #[allow(unused)]
-impl<T> DurationStore<T> {
+impl<T: std::fmt::Debug> DurationStore<T> {
     /// Inserts a new Wakeable.
     pub fn insert(&self, wakeable: DurationWaker<T>) -> Entry {
         self.store.write().unwrap().insert(wakeable)
@@ -164,6 +166,7 @@ impl<T> DurationWaker<T> {
     }
 }
 
+#[derive(Debug)]
 pub struct Sleepers<T: Waiter> {
     /// the list of wakers pending to be processed.
     sleepers: Arc<RwLock<EntryList<T>>>,
@@ -174,7 +177,7 @@ pub trait Timing {
     fn max_duration(&self) -> Option<time::Duration>;
 }
 
-impl<T: Timeable + Waiter> Timing for Sleepers<T> {
+impl<T: Timeable + Waiter + std::fmt::Debug> Timing for Sleepers<T> {
     /// Returns the minimum duration of time of all entries in the
     /// sleeper, providing you the minimum time when one of the task is
     /// guaranteed to be ready for progress.
@@ -202,7 +205,7 @@ impl<T: Timeable + Waiter> Timing for Sleepers<T> {
     }
 }
 
-impl<T: Waker + Waiter> Waker for Sleepers<T> {
+impl<T: Waker + Waiter + std::fmt::Debug> Waker for Sleepers<T> {
     fn wake(&self) {
         for sleeper in &self.sleepers.write().unwrap().select_take(Waiter::is_ready) {
             sleeper.wake();
@@ -210,7 +213,7 @@ impl<T: Waker + Waiter> Waker for Sleepers<T> {
     }
 }
 
-impl<T: Waiter> Clone for Sleepers<T> {
+impl<T: Waiter + std::fmt::Debug> Clone for Sleepers<T> {
     fn clone(&self) -> Self {
         Self {
             sleepers: self.sleepers.clone(),
@@ -218,13 +221,13 @@ impl<T: Waiter> Clone for Sleepers<T> {
     }
 }
 
-impl<T: Waiter> Default for Sleepers<T> {
+impl<T: Waiter + std::fmt::Debug> Default for Sleepers<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T: Waiter> Sleepers<T> {
+impl<T: Waiter + std::fmt::Debug> Sleepers<T> {
     #[must_use]
     pub fn new() -> Self {
         Self {

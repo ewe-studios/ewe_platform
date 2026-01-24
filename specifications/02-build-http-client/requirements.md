@@ -18,8 +18,10 @@ metadata:
   tools:
   - Rust
   - cargo
-builds_on: []
-related_specs: []
+builds_on:
+  - ../04-condvar-primitives
+related_specs:
+  - ../03-wasm-friendly-sync-primitives
 has_features: true
 features:
 - valtron-utilities

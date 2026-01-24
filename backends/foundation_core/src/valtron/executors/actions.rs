@@ -907,7 +907,7 @@ mod tests {
             NoAction,
         >;
 
-        let schedule = SpawnWithSchedule::new(dummy_fn);
+        let schedule = SpawnWithSchedule::new(dummy_fn as fn());
         let composite: TestComposite = SpawnStrategy::Schedule(schedule);
         let _: Box<dyn ExecutionAction> = Box::new(composite);
     }
