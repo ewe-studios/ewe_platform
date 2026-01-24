@@ -1040,3 +1040,94 @@ let guard = mutex.lock().unwrap();
 **Lesson**: **API consistency across feature flags is critical**. Users should write the same code regardless of whether std is available. Type-based differences (Result vs bare value) create friction and violate the principle of least surprise.
 
 **Related Insight**: This aligns with Rust's philosophy that different platforms should have the same *interface*, even if the *implementation* differs. The `Result` type communicates "this operation could fail" even when it never actually fails in practice.
+
+---
+
+## Process Learnings (Consolidated from PROCESS_LEARNINGS.md)
+
+### Tasks.md Must Be Updated Continuously
+
+**What Happened**: Initially, tasks.md was created at the start but not updated until late in the process (went from 46% to 90% in one update).
+
+**Why This Matters**:
+- Tasks.md is the living progress tracker for specifications
+- Delayed updates hide progress from users and other agents
+- Makes it hard to understand current status mid-specification
+
+**Best Practice**: Update tasks.md at MINIMUM every 1-2 completed subtasks, not batched at the end.
+
+### Test Location Architecture Must Be Clear Early
+
+**What Happened**: Tests were initially placed in `foundation_testing/tests/` but should have been in workspace root `tests/`.
+
+**Why This Matters**:
+- Incorrect test placement creates confusing architecture
+- Requires refactoring work to move tests
+- Creates misunderstanding about crate purposes
+
+**Best Practice**: Clarify test organization upfront - Infrastructure crates provide tools, tested crate's tests/ directory contains actual tests.
+
+### External Blockers Should Be Identified Early
+
+**What Happened**: WASM tests couldn't run due to workspace configuration issue (backends/tests missing). Blocker wasn't discovered until late.
+
+**Why This Matters**:
+- External blockers are outside specification scope
+- Discovering them late creates ambiguity about "done"
+- Needs clear documentation of what's in vs out of scope
+
+**Best Practice**: Run workspace health checks before implementation. Document blockers as OUT OF SCOPE if external.
+
+### Agent Type Selection Must Be Explicit
+
+**What Happened**: Initially tried to spawn "Implementation Agent" but agent type didn't exist. Had to check .agents/agents/ directory.
+
+**Why This Matters**:
+- Spawning wrong agent type wastes time
+- Generic agents may not follow specialized workflows
+- Need to know which agents are available before spawning
+
+**Best Practice**: Check `.agents/agents/*.md` files before spawning. Use exact agent names from documentation.
+
+### Completion Criteria Should Account for Blockers
+
+**What Happened**: Spec completion seemed unclear: Is it 90.6% done? Is it blocked? Is it complete enough?
+
+**Why This Matters**:
+- "Complete" can mean different things
+- Blockers vs deferred work vs optional work need distinction
+- Users need clear understanding of what "done" means
+
+**Best Practice**: Define completion levels: Core (required), Full (desired but may be blocked), Polish (optional).
+
+### Verification Should Be Continuous, Not Just Final
+
+**What Happened**: Verification (clippy, tests, formatting) ran multiple times during implementation but wasn't formalized until the end.
+
+**Why This Matters**:
+- Early verification catches issues sooner
+- Prevents accumulation of technical debt
+- Makes final verification faster
+
+**Best Practice**: Verify at checkpoints (after features, commits, phases), not just at completion.
+
+### Process Anti-Patterns Discovered
+
+1. **"Big Bang Task Updates"**: Updating 50+ tasks at once after significant work
+   - **Fix**: Update tasks.md every 3-5 completed subtasks
+
+2. **"Assumed Architecture"**: Assuming test locations without asking user
+   - **Fix**: Ask architecture questions during requirements conversation
+
+3. **"Late Blocker Discovery"**: Finding workspace/environment issues during implementation
+   - **Fix**: Run environment checks before implementation starts
+
+4. **"Generic Agent Usage"**: Using general-purpose agent when specialized agent exists
+   - **Fix**: Check .agents/agents/ directory before spawning
+
+5. **"Binary Completion Status"**: Treating specification as either 0% or 100% done
+   - **Fix**: Define completion levels (core, full, polish)
+
+---
+
+**Process Learnings Source**: Originally documented in PROCESS_LEARNINGS.md (2026-01-23), consolidated here per Rule 06 file organization policy.
