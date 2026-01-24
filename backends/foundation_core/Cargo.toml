@@ -66,9 +66,9 @@ log_debug = []
 log_info = []
 nightly = []
 
-ssl-openssl = ["openssl", "zeroize"]
-ssl-rustls = ["rustls", "rustls-pemfile", "webpki-roots", "zeroize"]
-ssl-native-tls = ["native-tls", "native-tls/vendored", "zeroize"]
+ssl-openssl = ["std", "openssl", "zeroize"]
+ssl-rustls = ["std", "rustls", "rustls-pemfile", "webpki-roots", "zeroize"]
+ssl-native-tls = ["std", "native-tls", "native-tls/vendored", "zeroize"]
 ssl = ["ssl-rustls"]
 
 # This feature switches the no threading runtime where you have

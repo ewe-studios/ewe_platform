@@ -429,7 +429,7 @@ mod test_duration_store {
         let handle = MockHandle::new();
         let waker = DurationWaker::from_now(handle, time::Duration::from_secs(1));
 
-        let entry = store.insert(waker);
+        let _entry = store.insert(waker);
         assert_eq!(1, store.count());
         // Entry was successfully created
     }
@@ -579,7 +579,7 @@ mod test_sleepers {
         let sleepers = Sleepers::new();
         let waker = TestWaker::new(1, false);
 
-        let entry = sleepers.insert(waker);
+        let _entry = sleepers.insert(waker);
         assert_eq!(1, sleepers.count());
         // Entry was successfully created
     }
