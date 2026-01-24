@@ -1,19 +1,19 @@
 ---
 feature: foundation
 description: Error types (HttpClientError, DnsError) and DNS resolution with caching support
-status: pending
+status: completed
 priority: high
 depends_on:
   - tls-verification
 estimated_effort: small
 created: 2026-01-18
-last_updated: 2026-01-24
+last_updated: 2026-01-25
 author: Main Agent
 tasks:
-  completed: 0
-  uncompleted: 9
+  completed: 9
+  uncompleted: 0
   total: 9
-  completion_percentage: 0
+  completion_percentage: 100
 files_required:
   implementation_agent:
     rules:
@@ -194,15 +194,15 @@ struct CachedEntry {
 
 ## Success Criteria
 
-- [ ] `client/mod.rs` exists and compiles
-- [ ] `DnsError` implements `From`, `Debug`, `Display`, `std::error::Error`
-- [ ] `HttpClientError` implements `From`, `Debug`, `Display`, `std::error::Error`
-- [ ] `DnsResolver` trait is defined with generic support
-- [ ] `SystemDnsResolver` resolves hostnames correctly
-- [ ] `CachingDnsResolver<R>` caches results with TTL
-- [ ] `MockDnsResolver` works for testing
-- [ ] All unit tests pass
-- [ ] Code passes `cargo fmt` and `cargo clippy`
+- [x] `client/mod.rs` exists and compiles
+- [x] `DnsError` implements `From`, `Debug`, `Display`, `std::error::Error`
+- [x] `HttpClientError` implements `From`, `Debug`, `Display`, `std::error::Error`
+- [x] `DnsResolver` trait is defined with generic support
+- [x] `SystemDnsResolver` resolves hostnames correctly
+- [x] `CachingDnsResolver<R>` caches results with TTL
+- [x] `MockDnsResolver` works for testing
+- [x] All unit tests pass (20/20 tests passing)
+- [x] Code passes `cargo fmt` and `cargo clippy`
 
 ## Verification Commands
 

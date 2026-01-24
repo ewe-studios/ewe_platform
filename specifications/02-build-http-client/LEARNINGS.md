@@ -186,3 +186,168 @@ This enables different execution strategies while keeping Actions simple.
 
 **Result**: Clean compile-time errors instead of silent failures or confusing unresolved imports.
 
+## Foundation Feature Implementation (2026-01-24)
+
+### Error Type Design
+
+**Challenge**: Making DnsError cloneable for MockDnsResolver while std::io::Error doesn't implement Clone.
+
+**Solution**: Store io::Error as String representation:
+- DnsError::IoError(String) instead of DnsError::IoError(io::Error)
+- Manual From<io::Error> implementation converts to String
+- Manual Clone implementation for DnsError
+- Preserves error information while enabling Clone
+
+**Trade-off**: Loses the original io::Error object, but error message is preserved.
+
+**Rationale**:
+- MockDnsResolver needs to return cloned errors for testing
+- Error messages (not error objects) are what users need for debugging
+- This pattern matches existing code in the crate
+
+### DNS Resolver Architecture
+
+**Pattern**: Generic trait-based design with composition
+- DnsResolver trait provides pluggable abstraction
+- SystemDnsResolver uses std::net::ToSocketAddrs (default)
+- CachingDnsResolver<R: DnsResolver> wraps any resolver
+- MockDnsResolver for testing with configurable responses
+
+**Why Generic Type Parameters**:
+```rust
+// Preferred - Zero runtime overhead
+pub struct CachingDnsResolver<R: DnsResolver> {
+    inner: R,
+    // ...
+}
+
+// Avoided - Heap allocation and dynamic dispatch
+pub struct CachingDnsResolver {
+    inner: Box<dyn DnsResolver>,
+    // ...
+}
+```
+
+**Benefits**:
+- Compile-time monomorphization (no vtable overhead)
+- Type-safe composition
+- Users can stack resolvers: CachingDnsResolver<SystemDnsResolver>
+- Better for embedded/no_std environments
+
+### Cache Implementation Details
+
+**TTL-Based Expiration**:
+- Cache key: format!("{}:{}", host, port) - differentiates by port
+- CachedEntry stores addresses + expires_at (Instant)
+- Check expiration on every cache lookup
+- Expired entries are replaced (not proactively removed)
+
+**Thread Safety**:
+- Arc<Mutex<HashMap>> for shared cache
+- Lock contention is acceptable for DNS (infrequent operations)
+- Alternative considered: RwLock (rejected - HashMap mutations common)
+
+**Error Handling**:
+- Errors are NOT cached (avoids poisoning cache with transient failures)
+- Mutex poison is handled gracefully (continue on lock failure)
+- Cache size tracking works even if lock fails (returns 0)
+
+### Test-Driven Development Success
+
+**TDD Process Followed**:
+1. ✅ Wrote all tests FIRST before implementation
+2. ✅ Tests initially failed (as expected)
+3. ✅ Implemented code to make tests pass
+4. ✅ All 20 tests passing on first implementation pass
+
+**Test Coverage Achieved**:
+- Error type Display implementations (4 tests)
+- Error type conversions (3 tests)
+- SystemDnsResolver functionality (3 tests)
+- MockDnsResolver configuration (3 tests)
+- CachingDnsResolver behavior (5 tests)
+- Thread safety verification (1 test)
+- std::error::Error trait compliance (1 test)
+
+**Documentation in Tests**:
+- Every test has WHY comment (reason for test)
+- Every test has WHAT comment (what is being tested)
+- Follows implementation agent requirements exactly
+
+### Integration with Existing Codebase
+
+**BoxedError Type**:
+- Used `crate::extensions::result_ext::BoxedError` from existing code
+- Type alias: `Box<dyn std::error::Error + 'static>`
+- Matches pattern used in other error types in simple_http module
+
+**Error Pattern Consistency**:
+- Followed existing error.rs patterns from simple_http module
+- derive_more::From for error enum conversions
+- Manual Display implementation with descriptive messages
+- std::error::Error trait implementation
+
+**Module Organization**:
+- client/mod.rs - Module entry with re-exports
+- client/errors.rs - Error types
+- client/dns.rs - DNS resolver trait and implementations
+- client/tests.rs - Integration test placeholder
+- Matches existing simple_http module structure
+
+### Performance Considerations
+
+**DNS Caching Benefits**:
+- Reduces DNS queries for repeated connections
+- Configurable TTL (default 5 minutes)
+- Can clear cache manually when needed
+- Cache size inspection for monitoring
+
+**Memory Usage**:
+- HashMap grows with unique host:port combinations
+- No automatic cleanup of expired entries (only on access)
+- Trade-off: Memory for speed (acceptable for typical use)
+
+**Zero-Copy Where Possible**:
+- Resolver methods take &str (not String)
+- Avoids unnecessary string allocations
+- Generic types avoid boxing overhead
+
+### Future Improvements
+
+**Could Add Later**:
+1. Proactive cache expiration (background task to remove old entries)
+2. Cache size limits (LRU eviction policy)
+3. DNS query metrics (hit rate, miss rate)
+4. async DNS resolution (for async runtime)
+5. DNS-over-HTTPS support
+6. Custom DNS server configuration
+
+**Not Needed Now**:
+- Current implementation sufficient for HTTP 1.1 client
+- Simple, correct, and testable
+- Can be enhanced when needed
+
+### Lessons Learned
+
+**TDD Really Works**:
+- Writing tests first clarified requirements
+- Tests caught Clone issue with io::Error immediately
+- Implementation was straightforward after tests were written
+- No bugs found after implementation completed
+
+**Generic Type Parameters > Boxing**:
+- Zero runtime overhead
+- Better type safety
+- Easier to optimize
+- More idiomatic Rust
+
+**Error Messages Matter**:
+- Descriptive Display implementations crucial
+- Include context (hostname, port) in error messages
+- Users need actionable error information
+
+**Thread Safety by Design**:
+- Arc<Mutex<>> pattern works well
+- Lock poisoning handled gracefully
+- Send + Sync bounds enforced by trait
+
