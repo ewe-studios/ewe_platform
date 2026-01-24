@@ -66,6 +66,8 @@ impl LockSignal {
         *state = LockState::Released;
         drop(state);
 
+        // Call notify AFTER releasing the lock
+        // This allows waiting threads to immediately acquire the lock
         match directive {
             NotifyDirective::One => self.event.notify_one(),
             NotifyDirective::All => self.event.notify_all(),
@@ -147,13 +149,19 @@ impl LockSignal {
             return;
         }
 
-        // wait till its back in the locked state
+        // wait till it's released or free
         tracing::debug!("Will loop till lock is free");
         loop {
             if *current_state == LockState::Released {
                 // set back to free state
                 *current_state = LockState::Free;
                 tracing::debug!("Lock is now free");
+                return;
+            }
+
+            if *current_state == LockState::Free {
+                // Another thread already processed the release
+                tracing::debug!("Lock already freed by another thread");
                 return;
             }
 
@@ -333,30 +341,26 @@ mod test_lock_signals {
         let signal = Arc::new(LockSignal::new());
         signal.lock();
 
-        let (tx, rx) = mpsc::channel();
         let mut handles = vec![];
 
-        for _ in 0..3 {
+        // Spawn 3 waiting threads
+        for _i in 0..3 {
             let signal_clone = signal.clone();
-            let tx_clone = tx.clone();
             handles.push(thread::spawn(move || {
-                // Signal we're about to wait
-                tx_clone.send(()).unwrap();
                 signal_clone.wait();
             }));
         }
 
-        // Wait for all threads to be ready
-        for _ in 0..3 {
-            rx.recv().unwrap();
-        }
-        thread::sleep(Duration::from_millis(50));
+        // Give threads time to enter wait state
+        thread::sleep(Duration::from_millis(200));
 
         signal.signal_all();
 
+        // Join all threads - they should all complete
         for handle in handles {
             handle.join().expect("Thread should complete");
         }
+
         assert_eq!(LockState::Free, signal.probe());
     }
 
