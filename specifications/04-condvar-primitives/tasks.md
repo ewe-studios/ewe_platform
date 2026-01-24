@@ -5,7 +5,7 @@ created: 2026-01-23
 author: "Main Agent"
 metadata:
   version: "1.0"
-  last_updated: 2026-01-23
+  last_updated: 2026-01-24
   total_tasks: 149
   completion_percentage: 90.6
 tools:
@@ -157,11 +157,45 @@ See [PROGRESS.md](./PROGRESS.md) for detailed completion report.
 - [ ] Concurrent notify_one from multiple threads
 - [ ] High contention scenario (many waiters, many notifiers)
 
-### WASM-Specific Tests
-- [ ] Test single-threaded WASM context (notify is no-op, wait returns immediately or panics gracefully)
-- [ ] Test multi-threaded WASM with wasm32 target
-- [ ] Add conditional compilation tests for WASM-specific code paths
-- [ ] Verify memory usage in WASM context
+### WASM-Specific Behavior Tests (WITHOUT nodejs/wasmer/wasm-bindgen)
+
+**Approach**: Test single-threaded and multi-threaded behavior patterns directly, since WASM behavior mirrors these scenarios.
+
+**Single-Threaded Behavior Tests** (WASM without atomics):
+- [ ] Test CondVar in single-threaded context (simulate WASM single-threaded environment)
+  - [ ] Verify `notify_one()` with no waiters is no-op
+  - [ ] Verify `notify_all()` with no waiters is no-op
+  - [ ] Test wait operations use spin-wait (no thread parking)
+  - [ ] Verify timeout behavior with spin-counting
+  - [ ] Test that spurious wakeups are handled correctly with spin-wait
+- [ ] Test CondVarNonPoisoning in single-threaded context
+  - [ ] Same tests as above but without poisoning logic
+  - [ ] Verify no-op behavior for notifications
+  - [ ] Confirm spin-wait implementation active
+
+**Multi-Threaded Behavior Tests** (WASM with atomics enabled):
+- [ ] Test CondVar with multiple threads (simulates WASM with atomics)
+  - [ ] Verify atomic operations work correctly
+  - [ ] Test wait/notify coordination across threads
+  - [ ] Verify generation counter increments properly
+  - [ ] Test that all waiters can be woken (notify_all)
+  - [ ] Test state transitions with atomic operations
+- [ ] Test concurrent access patterns
+  - [ ] Multiple threads waiting and notifying
+  - [ ] Verify memory ordering (Acquire/Release semantics)
+  - [ ] Test race conditions don't occur
+
+**Primitive Selection Tests** (cfg-based):
+- [ ] With `std` feature: Verify uses `std::thread::park/unpark`
+- [ ] Without `std` feature: Verify uses spin-wait with backoff
+- [ ] Test both code paths compile and work correctly
+- [ ] Verify conditional compilation (`#[cfg(feature = "std")]`) correct
+
+**Memory and Performance** (applicable to WASM):
+- [ ] Verify minimal memory footprint (32-64 bytes per CondVar)
+- [ ] Test no heap allocations in hot paths
+- [ ] Verify stack-based data structures only
+- [ ] Test memory usage remains constant over time (no leaks)
 
 ### Stress Tests
 - [ ] High contention stress test (100+ threads waiting and notifying)
@@ -236,7 +270,7 @@ See [PROGRESS.md](./PROGRESS.md) for detailed completion report.
 - [x] Run `cargo clippy -- -D warnings` and fix all warnings (✅ 2026-01-23: Fixed 14 errors)
 - [x] Run `cargo test` and ensure 100% pass rate
 - [x] Run `cargo test --release` and verify performance
-- [ ] Run WASM tests: `cargo test --target wasm32-unknown-unknown` (NEXT)
+- [ ] Run WASM behavior tests (single-threaded and multi-threaded patterns) - No wasm32 target needed
 - [ ] Run stress tests from foundation_testing crate (IN PROGRESS)
 - [ ] Run benchmarks from foundation_testing crate and document results (PLANNED)
 - [ ] Verify 100% test coverage (use coverage tool)
@@ -262,16 +296,25 @@ See [PROGRESS.md](./PROGRESS.md) for detailed completion report.
 - [x] Run clippy and fix all warnings (zero warnings)
 - [x] Run tests and verify 100% pass rate (158 tests passing)
 
-### Step 2: WASM Testing (⚠️ BLOCKED - 2026-01-23)
-- [x] Install wasm32-unknown-unknown target if not present (already installed)
-- [x] Run existing tests with WASM target (BLOCKED - workspace configuration issue)
-- [x] Create WASM-specific tests for single-threaded behavior (tests created in foundation_nostd/tests/wasm_tests.rs)
-- [x] Create WASM-specific tests for multi-threaded behavior (tests exist)
-- [x] Document WASM test results (documented as blocked in LEARNINGS.md)
+### Step 2: WASM Behavior Testing (UPDATED APPROACH - 2026-01-24)
+- [x] Understand testing approach: Test behavior patterns, not actual wasm32 target
+- [ ] Create single-threaded behavior tests (simulates WASM without atomics)
+  - [ ] Test notify operations are no-op with no waiters
+  - [ ] Test wait operations use spin-wait (not thread parking)
+  - [ ] Test timeout behavior with spin-counting
+  - [ ] Test spurious wakeup handling with spin-wait
+- [ ] Create multi-threaded behavior tests (simulates WASM with atomics)
+  - [ ] Test atomic operations work correctly
+  - [ ] Test wait/notify coordination across threads
+  - [ ] Test generation counter increments properly
+  - [ ] Test all waiters can be woken (notify_all)
+- [ ] Test primitive selection (cfg-based)
+  - [ ] With `std` feature: verify uses std::thread::park/unpark
+  - [ ] Without `std` feature: verify uses spin-wait with backoff
+  - [ ] Test both code paths compile and work correctly
+- [ ] Document test results in LEARNINGS.md
 
-**BLOCKER**: Workspace Cargo.toml references non-existent `backends/tests` directory, preventing cargo test execution.
-**Status**: OUT OF SCOPE for Specification 04. Requires project-level workspace configuration fix.
-**Tests Available**: WASM integration tests exist in `backends/foundation_nostd/tests/wasm_tests.rs` but cannot execute due to workspace issue.
+**Rationale**: Full WASM integration tests require nodejs/wasmer/wasm-bindgen. Instead, we test the actual behavior patterns (single-threaded vs multi-threaded, spin-wait vs park) which covers WASM scenarios without needing wasm32 target compilation.
 
 ### Step 3: Foundation Testing Integration (✅ COMPLETE - 2026-01-23)
 - [x] Complete stress test implementations in foundation_testing (infrastructure exists)
@@ -330,10 +373,12 @@ Foundation_testing now provides infrastructure only (harnesses, scenarios, metri
 - Requires: `SpinMutex`, `RawSpinMutex`, `SpinRwLock`, thread parking primitives from spec 03
 - New crate: `foundation_testing` in `backends/` for reusable stress testing infrastructure
 
-### WASM Testing
-- Requires wasm32-unknown-unknown target installed: `rustup target add wasm32-unknown-unknown`
-- Some tests may need conditional compilation: `#[cfg(target_family = "wasm")]`
-- Single-threaded WASM may require special test setup
+### WASM Testing Approach (Updated 2026-01-24)
+- **No wasm32 target required**: Test behavior patterns instead of actual WASM compilation
+- **Single-threaded tests**: Simulate WASM without atomics (spin-wait, no thread parking)
+- **Multi-threaded tests**: Simulate WASM with atomics enabled (atomic operations work)
+- **Primitive selection tests**: Test both `std` (park/unpark) and `no_std` (spin-wait) code paths
+- **Rationale**: Full WASM integration requires nodejs/wasmer/wasm-bindgen. Testing behavior patterns covers all WASM scenarios without external dependencies.
 
 ### Memory Constraints (WASM)
 - Target per-CondVar overhead: 32-64 bytes
@@ -456,4 +501,4 @@ metadata:
 
 ---
 
-*Last Updated: 2026-01-23*
+*Last Updated: 2026-01-24*
