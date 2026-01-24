@@ -2,10 +2,40 @@
 feature: valtron-utilities
 description: Reusable ExecutionAction types, unified executor wrapper, state machine helpers, Future adapter, and retry/timeout wrappers
 status: pending
+priority: high
 depends_on: []
 estimated_effort: medium
 created: 2026-01-19
-last_updated: 2026-01-19
+last_updated: 2026-01-24
+author: Main Agent
+tasks:
+  completed: 0
+  uncompleted: 30
+  total: 30
+  completion_percentage: 0
+files_required:
+  implementation_agent:
+    rules:
+      - .agents/rules/01-rule-naming-and-structure.md
+      - .agents/rules/02-rules-directory-policy.md
+      - .agents/rules/03-dangerous-operations-safety.md
+      - .agents/rules/04-work-commit-and-push-rules.md
+      - .agents/rules/13-implementation-agent-guide.md
+      - .agents/stacks/rust.md
+    files:
+      - ../requirements.md
+      - ./feature.md
+  verification_agent:
+    rules:
+      - .agents/rules/01-rule-naming-and-structure.md
+      - .agents/rules/02-rules-directory-policy.md
+      - .agents/rules/03-dangerous-operations-safety.md
+      - .agents/rules/04-work-commit-and-push-rules.md
+      - .agents/rules/08-verification-workflow-complete-guide.md
+      - .agents/stacks/rust.md
+    files:
+      - ../requirements.md
+      - ./feature.md
 ---
 
 # Valtron Utilities Feature
