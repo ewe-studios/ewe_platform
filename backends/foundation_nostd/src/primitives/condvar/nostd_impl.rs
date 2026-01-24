@@ -282,7 +282,9 @@ impl<T> RawCondVarMutex<T> {
 
 impl<T: ?Sized> RawCondVarMutex<T> {
     /// Acquires the mutex, blocking until it becomes available.
-    pub fn lock(&self) -> RawCondVarMutexGuard<'_, T> {
+    ///
+    /// This variant never poisons, so it always returns `Ok`.
+    pub fn lock(&self) -> LockResult<RawCondVarMutexGuard<'_, T>> {
         let mut spin_wait = SpinWait::new();
         loop {
             if self
@@ -290,23 +292,25 @@ impl<T: ?Sized> RawCondVarMutex<T> {
                 .compare_exchange_weak(false, true, Ordering::Acquire, Ordering::Relaxed)
                 .is_ok()
             {
-                return RawCondVarMutexGuard { mutex: self };
+                return Ok(RawCondVarMutexGuard { mutex: self });
             }
             spin_wait.spin();
         }
     }
 
     /// Attempts to acquire the lock without blocking.
+    ///
+    /// This variant never poisons, so it returns `Ok` on success or `Err(TryLockError::WouldBlock)` if locked.
     #[inline]
-    pub fn try_lock(&self) -> Option<RawCondVarMutexGuard<'_, T>> {
+    pub fn try_lock(&self) -> TryLockResult<RawCondVarMutexGuard<'_, T>> {
         if self
             .locked
             .compare_exchange(false, true, Ordering::Acquire, Ordering::Relaxed)
             .is_ok()
         {
-            Some(RawCondVarMutexGuard { mutex: self })
+            Ok(RawCondVarMutexGuard { mutex: self })
         } else {
-            None
+            Err(TryLockError::WouldBlock)
         }
     }
 
@@ -371,8 +375,8 @@ impl<T: ?Sized + fmt::Debug> fmt::Debug for RawCondVarMutex<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut d = f.debug_struct("RawCondVarMutex");
         match self.try_lock() {
-            Some(guard) => d.field("data", &&*guard),
-            None => d.field("data", &format_args!("<locked>")),
+            Ok(guard) => d.field("data", &&*guard),
+            Err(_) => d.field("data", &format_args!("<locked>")),
         };
         d.finish_non_exhaustive()
     }
@@ -606,7 +610,12 @@ impl CondVarNonPoisoning {
     }
 
     /// Blocks the current thread until notified.
-    pub fn wait<'a, T>(&self, guard: RawCondVarMutexGuard<'a, T>) -> RawCondVarMutexGuard<'a, T> {
+    ///
+    /// This variant never poisons, so it always returns `Ok`.
+    pub fn wait<'a, T>(
+        &self,
+        guard: RawCondVarMutexGuard<'a, T>,
+    ) -> LockResult<RawCondVarMutexGuard<'a, T>> {
         let mutex = guard.mutex();
         self.state.fetch_add(1, Ordering::Relaxed);
         let gen = self.generation.load(Ordering::Acquire);
@@ -626,26 +635,30 @@ impl CondVarNonPoisoning {
     }
 
     /// Waits with a predicate.
+    ///
+    /// This variant never poisons, so it always returns `Ok`.
     pub fn wait_while<'a, T, F>(
         &self,
         mut guard: RawCondVarMutexGuard<'a, T>,
         mut condition: F,
-    ) -> RawCondVarMutexGuard<'a, T>
+    ) -> LockResult<RawCondVarMutexGuard<'a, T>>
     where
         F: FnMut(&mut T) -> bool,
     {
         while condition(&mut *guard) {
-            guard = self.wait(guard);
+            guard = self.wait(guard)?;
         }
-        guard
+        Ok(guard)
     }
 
     /// Waits with a timeout.
+    ///
+    /// This variant never poisons, so the Result is always `Ok`.
     pub fn wait_timeout<'a, T>(
         &self,
         guard: RawCondVarMutexGuard<'a, T>,
         dur: Duration,
-    ) -> (RawCondVarMutexGuard<'a, T>, WaitTimeoutResult) {
+    ) -> LockResult<(RawCondVarMutexGuard<'a, T>, WaitTimeoutResult)> {
         let mutex = guard.mutex();
         self.state.fetch_add(1, Ordering::Relaxed);
         let gen = self.generation.load(Ordering::Acquire);
@@ -654,8 +667,11 @@ impl CondVarNonPoisoning {
         let timed_out = self.wait_timeout_impl(gen, dur);
 
         self.state.fetch_sub(1, Ordering::Relaxed);
-        let guard = mutex.lock();
-        (guard, WaitTimeoutResult::new(timed_out))
+        // RawCondVarMutex never poisons, so this Ok branch is always taken
+        match mutex.lock() {
+            Ok(guard) => Ok((guard, WaitTimeoutResult::new(timed_out))),
+            Err(_) => unreachable!("RawCondVarMutex should never poison"),
+        }
     }
 
     fn wait_timeout_impl(&self, gen: usize, dur: Duration) -> bool {
@@ -675,30 +691,32 @@ impl CondVarNonPoisoning {
     }
 
     /// Waits with a timeout and predicate.
+    ///
+    /// This variant never poisons, so it always returns `Ok`.
     pub fn wait_timeout_while<'a, T, F>(
         &self,
         mut guard: RawCondVarMutexGuard<'a, T>,
         dur: Duration,
         mut condition: F,
-    ) -> (RawCondVarMutexGuard<'a, T>, WaitTimeoutResult)
+    ) -> LockResult<(RawCondVarMutexGuard<'a, T>, WaitTimeoutResult)>
     where
         F: FnMut(&mut T) -> bool,
     {
         loop {
             if !condition(&mut *guard) {
-                return (guard, WaitTimeoutResult::new(false));
+                return Ok((guard, WaitTimeoutResult::new(false)));
             }
 
             let remaining = dur;
             if remaining.as_nanos() == 0 {
-                return (guard, WaitTimeoutResult::new(true));
+                return Ok((guard, WaitTimeoutResult::new(true)));
             }
 
-            let (g, timeout_result) = self.wait_timeout(guard, remaining);
+            let (g, timeout_result) = self.wait_timeout(guard, remaining)?;
             guard = g;
 
             if timeout_result.timed_out() {
-                return (guard, timeout_result);
+                return Ok((guard, timeout_result));
             }
         }
     }
