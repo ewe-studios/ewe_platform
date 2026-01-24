@@ -54,13 +54,15 @@ Create the internal async machinery for the HTTP 1.1 client. This feature implem
 ## Dependencies
 
 This feature depends on:
-- `valtron-utilities` - Uses reusable ExecutionAction types, unified executor, state machine helpers
+- `valtron-utilities` - Uses SpawnWithLift, SpawnWithSchedule, SpawnWithBroadcast (reusable ExecutionAction types), unified executor, state machine helpers
 - `foundation` - Uses HttpClientError for errors
 - `connection` - Uses HttpClientConnection, ParsedUrl
 - `request-response` - Uses PreparedRequest, ResponseIntro
 
 This feature is required by:
 - `public-api` - Uses execute_task() internally
+
+**Note on Action Types**: This feature defines custom `ExecutionAction` implementations (RedirectAction, TlsUpgradeAction) specific to HTTP client needs. These are different from the reusable action types in valtron-utilities (SpawnWithLift, SpawnWithSchedule, SpawnWithBroadcast) which provide general-purpose spawning strategies. The HttpClientAction enum can compose both custom and reusable actions as needed.
 
 ## Valtron Integration
 
