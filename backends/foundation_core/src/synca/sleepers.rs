@@ -4,14 +4,14 @@
 
 use std::{sync::Arc, time};
 
-use foundation_nostd::comp::RwLock;
 use super::{Entry, EntryList};
+use foundation_nostd::comp::RwLock;
 
 pub trait Waker {
     fn wake(&self);
 }
 
-#[derive(Debug)]
+#[cfg_attr(feature = "std", derive(Debug))]
 pub struct DurationWaker<T> {
     pub handle: T,
     pub from: time::Instant,

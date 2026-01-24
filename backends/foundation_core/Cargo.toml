@@ -86,7 +86,7 @@ tokio_runtime = ["dep:tokio"]
 default = ["standard", "std"]
 
 # Valtron utilities features
-std = ["futures-core/std"]
+std = ["futures-core/std", "foundation_nostd/std"]
 alloc = ["futures-core/alloc"]
 multi = ["std"]  # Multi-threaded executor requires std
 
