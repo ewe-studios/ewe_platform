@@ -267,3 +267,467 @@ impl<T: Waiter + std::fmt::Debug> Sleepers<T> {
         self.sleepers.write().unwrap().select_take(Waiter::is_ready)
     }
 }
+#[cfg(test)]
+mod test_duration_waker {
+    use super::*;
+    use std::sync::{Arc, Mutex};
+    use std::thread;
+
+    #[derive(Debug, Clone)]
+    struct MockWaker {
+        woken: Arc<Mutex<bool>>,
+    }
+
+    impl MockWaker {
+        fn new() -> Self {
+            Self {
+                woken: Arc::new(Mutex::new(false)),
+            }
+        }
+
+        fn was_woken(&self) -> bool {
+            *self.woken.lock().unwrap()
+        }
+    }
+
+    impl Waker for MockWaker {
+        fn wake(&self) {
+            *self.woken.lock().unwrap() = true;
+        }
+    }
+
+    #[test]
+    fn test_duration_waker_new() {
+        let handle = MockWaker::new();
+        let start = time::Instant::now();
+        let duration = time::Duration::from_millis(100);
+
+        let waker = DurationWaker::new(handle, start, duration);
+
+        assert!(waker.remaining().is_some());
+    }
+
+    #[test]
+    fn test_duration_waker_from_now() {
+        let handle = MockWaker::new();
+        let duration = time::Duration::from_millis(100);
+
+        let waker = DurationWaker::from_now(handle, duration);
+
+        assert!(waker.remaining().is_some());
+    }
+
+    #[test]
+    fn test_duration_waker_is_ready_when_not_elapsed() {
+        let handle = MockWaker::new();
+        let duration = time::Duration::from_secs(10);
+
+        let waker = DurationWaker::from_now(handle, duration);
+
+        assert_eq!(Some(false), waker.try_is_ready());
+        assert!(!waker.is_ready());
+    }
+
+    #[test]
+    fn test_duration_waker_is_ready_when_elapsed() {
+        let handle = MockWaker::new();
+        let start = time::Instant::now() - time::Duration::from_secs(2);
+        let duration = time::Duration::from_secs(1);
+
+        let waker = DurationWaker::new(handle, start, duration);
+
+        assert_eq!(Some(true), waker.try_is_ready());
+        assert!(waker.is_ready());
+    }
+
+    #[test]
+    fn test_duration_waker_remaining_decreases() {
+        let handle = MockWaker::new();
+        let duration = time::Duration::from_millis(100);
+
+        let waker = DurationWaker::from_now(handle, duration);
+
+        let remaining1 = waker.remaining();
+        thread::sleep(time::Duration::from_millis(20));
+        let remaining2 = waker.remaining();
+
+        assert!(remaining1 > remaining2);
+    }
+
+    #[test]
+    fn test_duration_waker_remaining_none_when_elapsed() {
+        let handle = MockWaker::new();
+        let start = time::Instant::now() - time::Duration::from_secs(2);
+        let duration = time::Duration::from_secs(1);
+
+        let waker = DurationWaker::new(handle, start, duration);
+
+        assert_eq!(None, waker.remaining());
+    }
+
+    #[test]
+    fn test_duration_waker_wake() {
+        let handle = MockWaker::new();
+        let waker = DurationWaker::from_now(handle.clone(), time::Duration::from_secs(10));
+
+        assert!(!handle.was_woken());
+        waker.wake();
+        assert!(handle.was_woken());
+    }
+
+    #[test]
+    fn test_duration_waker_remaining_duration_trait() {
+        let handle = MockWaker::new();
+        let duration = time::Duration::from_secs(10);
+        let waker = DurationWaker::from_now(handle, duration);
+
+        let remaining = waker.remaining_duration();
+        assert!(remaining.is_some());
+        assert!(remaining.unwrap() <= duration);
+    }
+}
+
+#[cfg(test)]
+mod test_duration_store {
+    use super::*;
+    use std::sync::{Arc, Mutex};
+
+    #[derive(Debug, Clone)]
+    struct MockHandle {
+        woken: Arc<Mutex<bool>>,
+    }
+
+    impl MockHandle {
+        fn new() -> Self {
+            Self {
+                woken: Arc::new(Mutex::new(false)),
+            }
+        }
+    }
+
+    impl Waker for MockHandle {
+        fn wake(&self) {
+            *self.woken.lock().unwrap() = true;
+        }
+    }
+
+    #[test]
+    fn test_duration_store_new() {
+        let store: DurationStore<MockHandle> = DurationStore::new();
+        assert_eq!(0, store.count());
+    }
+
+    #[test]
+    fn test_duration_store_default() {
+        let store: DurationStore<MockHandle> = DurationStore::default();
+        assert_eq!(0, store.count());
+    }
+
+    #[test]
+    fn test_duration_store_insert() {
+        let store = DurationStore::new();
+        let handle = MockHandle::new();
+        let waker = DurationWaker::from_now(handle, time::Duration::from_secs(1));
+
+        let entry = store.insert(waker);
+        assert_eq!(1, store.count());
+        // Entry was successfully created
+    }
+
+    #[test]
+    fn test_duration_store_remove() {
+        let store = DurationStore::new();
+        let handle = MockHandle::new();
+        let waker = DurationWaker::from_now(handle, time::Duration::from_secs(1));
+
+        let entry = store.insert(waker);
+        assert_eq!(1, store.count());
+
+        let removed = store.remove(&entry);
+        assert!(removed.is_some());
+        assert_eq!(0, store.count());
+    }
+
+    #[test]
+    fn test_duration_store_update() {
+        let store = DurationStore::new();
+        let handle1 = MockHandle::new();
+        let waker1 = DurationWaker::from_now(handle1, time::Duration::from_secs(1));
+
+        let entry = store.insert(waker1);
+        assert_eq!(1, store.count());
+
+        let handle2 = MockHandle::new();
+        let waker2 = DurationWaker::from_now(handle2, time::Duration::from_secs(2));
+
+        let old = store.update(&entry, waker2);
+        assert!(old.is_some());
+        assert_eq!(1, store.count());
+    }
+
+    #[test]
+    fn test_duration_store_get_matured_empty() {
+        let store: DurationStore<MockHandle> = DurationStore::new();
+        let matured = store.get_matured();
+        assert_eq!(0, matured.len());
+    }
+
+    #[test]
+    fn test_duration_store_get_matured_with_ready() {
+        let store = DurationStore::new();
+
+        // Insert an already-elapsed waker
+        let handle1 = MockHandle::new();
+        let start = time::Instant::now() - time::Duration::from_secs(2);
+        let waker1 = DurationWaker::new(handle1, start, time::Duration::from_secs(1));
+        store.insert(waker1);
+
+        // Insert a not-yet-ready waker
+        let handle2 = MockHandle::new();
+        let waker2 = DurationWaker::from_now(handle2, time::Duration::from_secs(10));
+        store.insert(waker2);
+
+        assert_eq!(2, store.count());
+
+        let matured = store.get_matured();
+        assert_eq!(1, matured.len());
+        assert_eq!(1, store.count()); // One removed, one remains
+    }
+
+    #[test]
+    fn test_duration_store_has_pending_tasks() {
+        let store: DurationStore<MockHandle> = DurationStore::new();
+        assert!(!store.has_pending_tasks());
+
+        let handle = MockHandle::new();
+        let waker = DurationWaker::from_now(handle, time::Duration::from_secs(1));
+        store.insert(waker);
+
+        assert!(store.has_pending_tasks());
+    }
+
+    #[test]
+    fn test_duration_store_clone() {
+        let store = DurationStore::new();
+        let handle = MockHandle::new();
+        let waker = DurationWaker::from_now(handle, time::Duration::from_secs(1));
+
+        store.insert(waker);
+        assert_eq!(1, store.count());
+
+        let store_clone = store.clone();
+        assert_eq!(1, store_clone.count());
+    }
+}
+
+#[cfg(test)]
+mod test_sleepers {
+    use super::*;
+    use std::sync::{Arc, Mutex};
+
+    #[derive(Debug, Clone)]
+    struct TestWaker {
+        id: usize,
+        ready: Arc<Mutex<bool>>,
+        woken: Arc<Mutex<bool>>,
+    }
+
+    impl TestWaker {
+        fn new(id: usize, ready: bool) -> Self {
+            Self {
+                id,
+                ready: Arc::new(Mutex::new(ready)),
+                woken: Arc::new(Mutex::new(false)),
+            }
+        }
+
+        fn set_ready(&self, value: bool) {
+            *self.ready.lock().unwrap() = value;
+        }
+
+        fn was_woken(&self) -> bool {
+            *self.woken.lock().unwrap()
+        }
+    }
+
+    impl Waker for TestWaker {
+        fn wake(&self) {
+            *self.woken.lock().unwrap() = true;
+        }
+    }
+
+    impl Waiter for TestWaker {
+        fn is_ready(&self) -> bool {
+            *self.ready.lock().unwrap()
+        }
+    }
+
+    #[test]
+    fn test_sleepers_new() {
+        let sleepers: Sleepers<TestWaker> = Sleepers::new();
+        assert_eq!(0, sleepers.count());
+    }
+
+    #[test]
+    fn test_sleepers_default() {
+        let sleepers: Sleepers<TestWaker> = Sleepers::default();
+        assert_eq!(0, sleepers.count());
+    }
+
+    #[test]
+    fn test_sleepers_insert() {
+        let sleepers = Sleepers::new();
+        let waker = TestWaker::new(1, false);
+
+        let entry = sleepers.insert(waker);
+        assert_eq!(1, sleepers.count());
+        // Entry was successfully created
+    }
+
+    #[test]
+    fn test_sleepers_remove() {
+        let sleepers = Sleepers::new();
+        let waker = TestWaker::new(1, false);
+
+        let entry = sleepers.insert(waker);
+        assert_eq!(1, sleepers.count());
+
+        let removed = sleepers.remove(&entry);
+        assert!(removed.is_some());
+        assert_eq!(0, sleepers.count());
+    }
+
+    #[test]
+    fn test_sleepers_update() {
+        let sleepers = Sleepers::new();
+        let waker1 = TestWaker::new(1, false);
+
+        let entry = sleepers.insert(waker1);
+        assert_eq!(1, sleepers.count());
+
+        let waker2 = TestWaker::new(2, true);
+        let old = sleepers.update(&entry, waker2);
+
+        assert!(old.is_some());
+        assert_eq!(1, old.unwrap().id);
+        assert_eq!(1, sleepers.count());
+    }
+
+    #[test]
+    fn test_sleepers_get_matured_empty() {
+        let sleepers: Sleepers<TestWaker> = Sleepers::new();
+        let matured = sleepers.get_matured();
+        assert_eq!(0, matured.len());
+    }
+
+    #[test]
+    fn test_sleepers_get_matured_filters_ready() {
+        let sleepers = Sleepers::new();
+
+        // Insert ready waker
+        let waker1 = TestWaker::new(1, true);
+        sleepers.insert(waker1);
+
+        // Insert not-ready waker
+        let waker2 = TestWaker::new(2, false);
+        sleepers.insert(waker2);
+
+        assert_eq!(2, sleepers.count());
+
+        let matured = sleepers.get_matured();
+        assert_eq!(1, matured.len());
+        assert_eq!(1, matured[0].id);
+        assert_eq!(1, sleepers.count()); // One removed, one remains
+    }
+
+    #[test]
+    fn test_sleepers_has_pending_tasks() {
+        let sleepers: Sleepers<TestWaker> = Sleepers::new();
+        assert!(!sleepers.has_pending_tasks());
+
+        let waker = TestWaker::new(1, false);
+        sleepers.insert(waker);
+
+        assert!(sleepers.has_pending_tasks());
+    }
+
+    #[test]
+    fn test_sleepers_waker_trait() {
+        let sleepers = Sleepers::new();
+
+        // Insert multiple wakers, some ready
+        let waker1 = TestWaker::new(1, true);
+        sleepers.insert(waker1.clone());
+
+        let waker2 = TestWaker::new(2, false);
+        sleepers.insert(waker2.clone());
+
+        let waker3 = TestWaker::new(3, true);
+        sleepers.insert(waker3.clone());
+
+        assert_eq!(3, sleepers.count());
+        assert!(!waker1.was_woken());
+        assert!(!waker3.was_woken());
+
+        // Wake all ready wakers
+        sleepers.wake();
+
+        // Check that ready wakers were woken and removed
+        assert!(waker1.was_woken());
+        assert!(!waker2.was_woken());
+        assert!(waker3.was_woken());
+        assert_eq!(1, sleepers.count()); // Only non-ready remains
+    }
+
+    #[test]
+    fn test_sleepers_clone() {
+        let sleepers = Sleepers::new();
+        let waker = TestWaker::new(1, false);
+
+        sleepers.insert(waker);
+        assert_eq!(1, sleepers.count());
+
+        let sleepers_clone = sleepers.clone();
+        assert_eq!(1, sleepers_clone.count());
+    }
+
+    #[test]
+    fn test_sleepers_multiple_operations() {
+        let sleepers = Sleepers::new();
+
+        // Insert multiple wakers
+        let waker1 = TestWaker::new(1, false);
+        let _entry1 = sleepers.insert(waker1.clone());
+
+        let waker2 = TestWaker::new(2, false);
+        let entry2 = sleepers.insert(waker2.clone());
+
+        let waker3 = TestWaker::new(3, false);
+        let entry3 = sleepers.insert(waker3.clone());
+
+        assert_eq!(3, sleepers.count());
+
+        // Make waker1 ready
+        waker1.set_ready(true);
+
+        // Get matured should return waker1
+        let matured = sleepers.get_matured();
+        assert_eq!(1, matured.len());
+        assert_eq!(1, matured[0].id);
+        assert_eq!(2, sleepers.count());
+
+        // Remove waker2
+        let _ = sleepers.remove(&entry2);
+        assert_eq!(1, sleepers.count());
+
+        // Update waker3
+        let new_waker = TestWaker::new(4, true);
+        sleepers.update(&entry3, new_waker);
+
+        // Get matured should return updated waker
+        let matured = sleepers.get_matured();
+        assert_eq!(1, matured.len());
+        assert_eq!(4, matured[0].id);
+        assert_eq!(0, sleepers.count());
+    }
+}
