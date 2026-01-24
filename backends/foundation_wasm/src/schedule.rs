@@ -1,7 +1,7 @@
 use alloc::{boxed::Box, collections::btree_map::BTreeMap};
 
 use crate::{InternalPointer, WrappedItem};
-use foundation_nostd::primitives::Mutex;
+use foundation_nostd::comp::Mutex;
 
 #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
 pub trait DoTask {
@@ -58,7 +58,7 @@ impl DoTask for FnDoTask {
     fn perform(&self) {
         #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
         {
-            (self.0.lock())();
+            (self.0.lock().unwrap_or_else(foundation_nostd::comp::PoisonError::into_inner))();
         }
 
         #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
@@ -141,10 +141,10 @@ impl ScheduleRegistry {
         self.tree.is_empty()
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn call(&self, id: InternalPointer) -> Option<()> {
         if let Some(callback) = self.tree.get(&id) {
-            callback.0.lock().perform();
+            callback.0.lock().unwrap_or_else(foundation_nostd::comp::PoisonError::into_inner).perform();
             return Some(());
         }
         None
@@ -168,7 +168,7 @@ mod test_schedule_registry {
 
     use super::FnDoTask;
     use super::ScheduleRegistry;
-    use std::sync::Mutex;
+    use foundation_nostd::comp::Mutex;
 
     #[test]
     fn test_add() {

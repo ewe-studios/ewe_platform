@@ -45,7 +45,7 @@ pub struct FnFrameCallback(Box<dyn Fn(f64) -> TickState>);
 
 #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
 pub struct FnFrameCallback(
-    foundation_nostd::primitives::Mutex<Box<dyn Fn(f64) -> TickState + Send + 'static>>,
+    foundation_nostd::comp::Mutex<Box<dyn Fn(f64) -> TickState + Send + 'static>>,
 );
 
 impl FnFrameCallback {
@@ -66,9 +66,9 @@ impl FnFrameCallback {
     }
 
     #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
-    #[must_use] 
+    #[must_use]
     pub fn new(elem: Box<dyn Fn(f64) -> TickState + Send + 'static>) -> Self {
-        Self(foundation_nostd::primitives::Mutex::new(elem))
+        Self(foundation_nostd::comp::Mutex::new(elem))
     }
 
     #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
@@ -87,7 +87,7 @@ impl FrameCallback for FnFrameCallback {
     fn tick(&self, value: f64) -> TickState {
         #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
         {
-            (self.0.lock())(value)
+            (self.0.lock().unwrap_or_else(foundation_nostd::comp::PoisonError::into_inner))(value)
         }
 
         #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
@@ -195,7 +195,7 @@ mod test_frame_callback_registry {
     use alloc::sync::Arc;
 
     use super::*;
-    use std::sync::Mutex;
+    use foundation_nostd::comp::Mutex;
 
     #[test]
     fn test_add_when_requeued() {
