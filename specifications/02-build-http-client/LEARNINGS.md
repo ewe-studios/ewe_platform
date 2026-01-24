@@ -43,12 +43,7 @@ _To be populated with technical debt and improvement opportunities_
 
 **Reason**: New names better reflect their purpose of spawning child tasks with different strategies. The "SpawnWith*" prefix clarifies they are for spawning children from within a TaskIterator, not for initial task submission.
 
-**Backward Compatibility**: Deprecated type aliases provided:
-```rust
-#[deprecated(since = "3.0.0", note = "Use `SpawnWithLift` instead")]
-pub type LiftAction<I, D, P, S> = SpawnWithLift<I, D, P, S>;
-// ... (similar for other types)
-```
+**Migration Complete (2026-01-24)**: All references to old type names have been updated throughout the codebase. The deprecated type aliases have been removed - all code now uses the new names directly.
 
 **Send Bound Fix**: `SpawnStrategy` (formerly `CompositeAction`) now requires `V: Clone + Send + 'static` instead of `V: Clone + 'static`. This is necessary because the Broadcast variant uses `engine.broadcast()` which sends tasks to the global queue for cross-thread execution.
 

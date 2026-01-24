@@ -365,7 +365,7 @@ mod tests {
     /// WHAT: Machine can spawn child tasks
     #[test]
     fn test_state_transition_spawn() {
-        use crate::valtron::executors::ScheduleAction;
+        use crate::valtron::executors::SpawnWithSchedule;
 
         #[derive(Clone, Debug, PartialEq)]
         enum State {
@@ -380,7 +380,7 @@ mod tests {
             type State = State;
             type Output = String;
             type Error = ();
-            type Action = ScheduleAction<Box<dyn FnOnce() + Send>>;
+            type Action = SpawnWithSchedule<Box<dyn FnOnce() + Send>>;
 
             fn transition(
                 &mut self,
@@ -389,7 +389,7 @@ mod tests {
                 match state {
                     State::Start => {
                         let action =
-                            ScheduleAction::new(Box::new(|| {}) as Box<dyn FnOnce() + Send>);
+                            SpawnWithSchedule::new(Box::new(|| {}) as Box<dyn FnOnce() + Send>);
                         StateTransition::Spawn(action, State::Spawned)
                     }
                     State::Spawned => StateTransition::Complete("spawned task".to_string()),

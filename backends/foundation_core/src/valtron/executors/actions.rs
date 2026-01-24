@@ -474,43 +474,6 @@ where
 }
 
 // ============================================================================
-// Deprecated Type Aliases for Backward Compatibility
-// ============================================================================
-
-/// Deprecated: Use `SpawnWithLift` instead.
-///
-/// This type alias is provided for backward compatibility during migration.
-/// New code should use `SpawnWithLift` which better reflects its purpose
-/// of spawning child tasks with lift strategy.
-#[deprecated(since = "3.0.0", note = "Use `SpawnWithLift` instead")]
-pub type LiftAction<I, D, P, S> = SpawnWithLift<I, D, P, S>;
-
-/// Deprecated: Use `SpawnWithSchedule` instead.
-///
-/// This type alias is provided for backward compatibility during migration.
-/// New code should use `SpawnWithSchedule` which better reflects its purpose
-/// of spawning child tasks with schedule strategy.
-#[deprecated(since = "3.0.0", note = "Use `SpawnWithSchedule` instead")]
-pub type ScheduleAction<F> = SpawnWithSchedule<F>;
-
-/// Deprecated: Use `SpawnWithBroadcast` instead.
-///
-/// This type alias is provided for backward compatibility during migration.
-/// New code should use `SpawnWithBroadcast` which better reflects its purpose
-/// of spawning child tasks with broadcast strategy.
-#[deprecated(since = "3.0.0", note = "Use `SpawnWithBroadcast` instead")]
-pub type BroadcastAction<T> = SpawnWithBroadcast<T>;
-
-/// Deprecated: Use `SpawnStrategy` instead.
-///
-/// This type alias is provided for backward compatibility during migration.
-/// New code should use `SpawnStrategy` which better reflects that it's choosing
-/// a spawning strategy rather than composing actions.
-#[deprecated(since = "3.0.0", note = "Use `SpawnStrategy` instead")]
-pub type CompositeAction<IW, TW, IL, DL, PL, SL, F, V, C> =
-    SpawnStrategy<IW, TW, IL, DL, PL, SL, F, V, C>;
-
-// ============================================================================
 // Tests
 // ============================================================================
 
