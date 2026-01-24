@@ -1,7 +1,7 @@
 // Implements an Lock notification primitive usable in threads.
 
 use std::panic::{RefUnwindSafe, UnwindSafe};
-use foundation_nostd::comp::condvar_comp::{CondVarMutex as Mutex, CondVar};
+use foundation_nostd::comp::condvar_comp::{Mutex, CondVar};
 
 use super::Waker;
 

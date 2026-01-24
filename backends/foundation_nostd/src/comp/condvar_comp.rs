@@ -12,9 +12,9 @@
 //! # Examples
 //!
 //! ```no_run
-//! use foundation_nostd::comp::condvar_comp::{CondVarMutex, CondVar};
+//! use foundation_nostd::comp::condvar_comp::{Mutex, CondVar};
 //!
-//! let mutex = CondVarMutex::new(false);
+//! let mutex = Mutex::new(false);
 //! let condvar = CondVar::new();
 //!
 //! let mut guard = mutex.lock().unwrap();
@@ -32,28 +32,28 @@
 /// - With `std` feature: Uses `std::sync::Mutex`
 /// - Without `std` feature: Uses `foundation_nostd::primitives::CondVarMutex`
 #[cfg(feature = "std")]
-pub use std::sync::Mutex as CondVarMutex;
+pub use std::sync::Mutex;
 
 /// Mutex type for use with CondVar.
 ///
 /// - With `std` feature: Uses `std::sync::Mutex`
 /// - Without `std` feature: Uses `foundation_nostd::primitives::CondVarMutex`
 #[cfg(not(feature = "std"))]
-pub use crate::primitives::condvar::CondVarMutex;
+pub use crate::primitives::condvar::CondVarMutex as Mutex;
 
 /// Mutex guard type for use with CondVar.
 ///
 /// - With `std` feature: Uses `std::sync::MutexGuard`
 /// - Without `std` feature: Uses `foundation_nostd::primitives::CondVarMutexGuard`
 #[cfg(feature = "std")]
-pub use std::sync::MutexGuard as CondVarMutexGuard;
+pub use std::sync::MutexGuard;
 
 /// Mutex guard type for use with CondVar.
 ///
 /// - With `std` feature: Uses `std::sync::MutexGuard`
 /// - Without `std` feature: Uses `foundation_nostd::primitives::CondVarMutexGuard`
 #[cfg(not(feature = "std"))]
-pub use crate::primitives::condvar::CondVarMutexGuard;
+pub use crate::primitives::condvar::CondVarMutexGuard as MutexGuard;
 
 // ============================================================================
 // CondVar
