@@ -1,4 +1,4 @@
-//! Compatibility layer for std and no_std synchronization primitives.
+//! Compatibility layer for std and `no_std` synchronization primitives.
 //!
 //! This module provides type aliases that automatically select between `std` and `no_std`
 //! implementations based on the `std` feature flag. Users can enable the `std` feature

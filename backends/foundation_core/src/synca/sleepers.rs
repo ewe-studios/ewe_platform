@@ -4,7 +4,7 @@
 
 use std::{sync::Arc, time};
 
-use super::compati::RwLock;
+use foundation_nostd::comp::RwLock;
 use super::{Entry, EntryList};
 
 pub trait Waker {

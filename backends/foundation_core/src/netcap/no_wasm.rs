@@ -5,6 +5,7 @@ use derive_more::derive::From;
 
 use crate::io::ioutils::{BufferedReader, BufferedWriter, PeekError, PeekableReadStream};
 
+#[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
 use super::ssl::{ClientSSLStream, SSLConnector, ServerSSLStream};
 use super::{Endpoint, EndpointConfig};
 
@@ -41,10 +42,12 @@ pub enum RawStream {
         BufferedReader<BufferedWriter<Connection>>,
         super::DataStreamAddr,
     ),
+    #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
     AsServerTls(
         BufferedReader<BufferedWriter<ServerSSLStream>>,
         super::DataStreamAddr,
     ),
+    #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
     AsClientTls(
         BufferedReader<BufferedWriter<ClientSSLStream>>,
         super::DataStreamAddr,
@@ -87,6 +90,7 @@ impl RawStream {
     /// `from_server_tls` creates a `RawStream` from a server generated TLS Connection wrapped
     /// by the [`ServerSSLStream`] type. Generally this is generated from a [`Listener`]
     /// which outputs the necessary connection.
+    #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
     pub fn from_server_tls(conn: ServerSSLStream) -> super::DataStreamResult<Self> {
         let conn_addr = conn
             .stream_addr()
@@ -98,6 +102,7 @@ impl RawStream {
     /// `from_client_tls` creates a `RawStream` from a client generated TLS Connection wrapped
     /// by the [`ClientSSLStream`] type. Generally this is generated from [`TcpStream`] or equivalent
     /// that connects to a remote endpoint.
+    #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
     pub fn from_client_tls(conn: ClientSSLStream) -> super::DataStreamResult<Self> {
         let conn_addr = conn
             .stream_addr()
@@ -231,7 +236,9 @@ impl RawStream {
     pub fn read_timeout(&self) -> errors::TlsResult<Option<Duration>> {
         let result = match self {
             RawStream::AsPlain(inner, _) => inner.get_core_ref().read_timeout(),
+            #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
             RawStream::AsServerTls(inner, _) => inner.get_core_ref().read_timeout(),
+            #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
             RawStream::AsClientTls(inner, _) => inner.get_core_ref().read_timeout(),
         };
         result.map_err(|_| TlsError::Failed)
@@ -241,7 +248,9 @@ impl RawStream {
     pub fn write_timeout(&self) -> errors::TlsResult<Option<Duration>> {
         let result = match self {
             RawStream::AsPlain(inner, _) => inner.get_core_ref().write_timeout(),
+            #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
             RawStream::AsServerTls(inner, _) => inner.get_core_ref().write_timeout(),
+            #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
             RawStream::AsClientTls(inner, _) => inner.get_core_ref().write_timeout(),
         };
         result.map_err(|_| TlsError::Failed)
@@ -251,7 +260,9 @@ impl RawStream {
     pub fn set_write_timeout(&mut self, duration: Option<time::Duration>) -> errors::TlsResult<()> {
         let work = match self {
             RawStream::AsPlain(inner, _) => inner.get_core_mut().set_write_timeout(duration),
+            #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
             RawStream::AsServerTls(inner, _) => inner.get_core_mut().set_write_timeout(duration),
+            #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
             RawStream::AsClientTls(inner, _) => inner.get_core_mut().set_write_timeout(duration),
         };
 
@@ -265,7 +276,9 @@ impl RawStream {
     pub fn set_read_timeout(&mut self, duration: Option<time::Duration>) -> errors::TlsResult<()> {
         let work = match self {
             RawStream::AsPlain(inner, _) => inner.get_core_mut().set_read_timeout(duration),
+            #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
             RawStream::AsServerTls(inner, _) => inner.get_core_mut().set_read_timeout(duration),
+            #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
             RawStream::AsClientTls(inner, _) => inner.get_core_mut().set_read_timeout(duration),
         };
 
@@ -293,7 +306,9 @@ impl RawStream {
     pub fn addrs(&self) -> super::DataStreamAddr {
         match self {
             RawStream::AsPlain(inner, addr) => addr.clone(),
+            #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
             RawStream::AsServerTls(inner, addr) => addr.clone(),
+            #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
             RawStream::AsClientTls(inner, addr) => addr.clone(),
         }
     }
@@ -303,7 +318,9 @@ impl RawStream {
     pub fn peer_addr(&self) -> Option<SocketAddr> {
         match self {
             RawStream::AsPlain(inner, addr) => addr.peer_addr(),
+            #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
             RawStream::AsServerTls(inner, addr) => addr.peer_addr(),
+            #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
             RawStream::AsClientTls(inner, addr) => addr.peer_addr(),
         }
     }
@@ -313,7 +330,9 @@ impl RawStream {
     pub fn local_addr(&self) -> SocketAddr {
         match self {
             RawStream::AsPlain(inner, addr) => addr.local_addr(),
+            #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
             RawStream::AsServerTls(inner, addr) => addr.local_addr(),
+            #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
             RawStream::AsClientTls(inner, addr) => addr.local_addr(),
         }
     }
@@ -327,11 +346,13 @@ impl core::fmt::Debug for RawStream {
                 .field(&"_")
                 .field(addr)
                 .finish(),
+            #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
             Self::AsServerTls(_, addr) => f
                 .debug_tuple("RawStream::Server::TLS")
                 .field(&"_")
                 .field(addr)
                 .finish(),
+            #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
             Self::AsClientTls(_, addr) => f
                 .debug_tuple("RawStream::Client::TLS")
                 .field(&"_")
@@ -345,7 +366,9 @@ impl PeekableReadStream for RawStream {
     fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError> {
         match self {
             RawStream::AsPlain(inner, _addr) => inner.peek(buf),
+            #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
             RawStream::AsServerTls(inner, _addr) => inner.peek(buf),
+            #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
             RawStream::AsClientTls(inner, _addr) => inner.peek(buf),
         }
     }
@@ -356,7 +379,9 @@ impl std::io::Read for RawStream {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         match self {
             RawStream::AsPlain(inner, _addr) => inner.read(buf),
+            #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
             RawStream::AsServerTls(inner, _addr) => inner.read(buf),
+            #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
             RawStream::AsClientTls(inner, _addr) => inner.read(buf),
         }
     }
@@ -367,7 +392,9 @@ impl std::io::Write for RawStream {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         match self {
             RawStream::AsPlain(inner, _addr) => inner.write(buf),
+            #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
             RawStream::AsServerTls(inner, _addr) => inner.write(buf),
+            #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
             RawStream::AsClientTls(inner, _addr) => inner.write(buf),
         }
     }
@@ -376,7 +403,9 @@ impl std::io::Write for RawStream {
     fn flush(&mut self) -> std::io::Result<()> {
         match self {
             RawStream::AsPlain(inner, _addr) => inner.flush(),
+            #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
             RawStream::AsServerTls(inner, _addr) => inner.flush(),
+            #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
             RawStream::AsClientTls(inner, _addr) => inner.flush(),
         }
     }
