@@ -740,3 +740,112 @@ git status
 ---
 
 > **Final Verification**: See [VERIFICATION_SIGNOFF.md](./VERIFICATION_SIGNOFF.md) for verification results.
+
+---
+
+## CRITICAL REMINDER: Specification Work File Organization (MANDATORY)
+
+**ALL files used for specification work MUST exist ONLY in the `specifications/[spec-name]/` directory.**
+
+### What Goes Where
+
+**✅ ALLOWED in specifications/04-condvar-primitives/**:
+- `requirements.md` - Requirements documentation
+- `tasks.md` - Task tracking and completion
+- `PROGRESS.md` - Progress reports
+- `LEARNINGS.md` - Implementation insights and lessons
+- `PROCESS_LEARNINGS.md` - Process-specific learnings
+- `FINAL_REPORT.md` - Completion summary
+- `VERIFICATION_SIGNOFF.md` - Verification results
+- `fundamentals/` - User-facing documentation
+- `templates/` - Code templates (if needed)
+
+**❌ FORBIDDEN in actual code/crate/module directories**:
+- Progress tracking files
+- Learning documents
+- Task lists
+- Process notes
+- Agent work files
+- Temporary documentation
+
+**✅ REQUIRED: Use Existing Files**:
+- Use `tasks.md` for ALL task tracking
+- Use `requirements.md` for ALL requirements (update as discovered)
+- Use `LEARNINGS.md` for ALL insights and lessons
+- DO NOT create separate tracking files
+
+### Task and Requirements Updates (ZERO TOLERANCE)
+
+**IMMEDIATE updates required**:
+- ✅ Update `tasks.md` IMMEDIATELY after completing EACH task (no batching)
+- ✅ Update `requirements.md` IMMEDIATELY when new requirements discovered
+- ✅ Update frontmatter counts (completed/uncompleted/completion_percentage) IMMEDIATELY
+- ✅ Mark tasks as `[x]` the MOMENT you finish them (2-3 at a time during active work)
+- ❌ DO NOT wait until multiple tasks done to update
+- ❌ DO NOT create separate task tracking files
+- ❌ DO NOT batch updates at end of session
+
+### All Requirements and Tasks Are Mandatory (DEFAULT)
+
+**Unless user EXPLICITLY states otherwise**:
+- ✅ ALL requirements in requirements.md are MANDATORY
+- ✅ ALL tasks in tasks.md are MANDATORY
+- ✅ ALL items must be completed before marking specification complete
+- ❌ DO NOT assume requirements are optional
+- ❌ DO NOT skip tasks thinking "that can be done later"
+- ❌ DO NOT treat items as "nice-to-have" without explicit user confirmation
+
+**How user indicates optional**:
+- User explicitly says: "This requirement is optional"
+- User explicitly says: "This task can be skipped if needed"
+- Item is marked with "(OPTIONAL)" prefix
+- User provides priority levels and explicitly says lower priority items are optional
+
+**If in doubt**: ASK the user. Never assume something is optional.
+
+### Code Implementation Location
+
+**✅ Implementation code goes in**:
+- `backends/foundation_nostd/src/primitives/condvar.rs`
+- `backends/foundation_nostd/src/primitives/condvar_mutex.rs`
+- `backends/foundation_nostd/tests/` - Test files
+- `backends/foundation_testing/` - Testing infrastructure
+
+**❌ Specification work files DO NOT go in**:
+- Source code directories
+- Test directories
+- Module directories
+- Any location outside `specifications/04-condvar-primitives/`
+
+### User Visibility and Progress Tracking
+
+**User expects**:
+- Real-time visibility into task progress via `tasks.md`
+- Accurate completion percentage at all times
+- Requirements that match actual implementation
+- Single source of truth for all specification work
+
+**Agent must provide**:
+- Immediate task updates after each completion
+- Immediate requirements updates when discovered
+- Accurate frontmatter counts matching reality
+- All specification work in specification directory only
+
+### Enforcement
+
+**ZERO TOLERANCE violations**:
+- ❌ Creating progress files in code directories
+- ❌ Creating task lists outside specifications/ directory
+- ❌ Batching task updates instead of immediate updates
+- ❌ Not updating requirements.md when new requirements discovered
+- ❌ Skipping tasks/requirements without explicit user approval
+- ❌ Creating separate tracking files instead of using tasks.md
+
+**Consequences**:
+- User frustration from inaccurate progress visibility
+- Specification drift from reality
+- Lost work when updates not tracked immediately
+- Confusion from multiple tracking files
+- Trust erosion when user sees stale status
+
+---
