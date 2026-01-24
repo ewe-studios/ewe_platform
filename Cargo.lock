@@ -1066,6 +1066,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "ewe_platform_benches"
+version = "0.1.0"
+dependencies = [
+ "criterion",
+ "foundation_nostd",
+]
+
+[[package]]
+name = "ewe_platform_tests"
+version = "0.1.0"
+dependencies = [
+ "foundation_nostd",
+ "foundation_testing",
+]
+
+[[package]]
 name = "ewe_routing"
 version = "0.0.1"
 dependencies = [

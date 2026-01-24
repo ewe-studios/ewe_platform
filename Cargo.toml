@@ -7,6 +7,7 @@ members = [
   "backends/*",
   "infrastructure/*",
   "tests",  # Workspace integration tests
+  "benches",  # Workspace benchmarks
 
   # examples
   "examples/web/*",
@@ -115,3 +116,4 @@ opt-level = 0
 lto = true # link time optimizations
 # Enable to remove debug info from wasm files
 strip = "debuginfo"
+
