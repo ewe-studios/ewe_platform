@@ -1420,33 +1420,23 @@ git status
 
 ---
 
-## CRITICAL REMINDER: Specification File Organization (MANDATORY)
+## File Organization Reminder
 
-**ONLY these files are allowed in this specification directory:**
+ONLY these files allowed:
 
-1. ✅ `requirements.md` - Requirements with integrated tasks (permanent)
-2. ✅ `LEARNINGS.md` - ALL learnings consolidated here (permanent)
-3. ✅ `REPORT.md` - ALL reports consolidated here (permanent)
-4. ✅ `VERIFICATION.md` - Verification signoff (permanent)
-5. ✅ `PROGRESS.md` - Current status ONLY (ephemeral - delete at 100%)
-6. ✅ `fundamentals/` - User docs (if has_fundamentals: true)
-7. ✅ `features/` - Feature files (if has_features: true)
-8. ✅ `templates/` - Code templates (optional)
+1. requirements.md - Requirements with tasks
+2. LEARNINGS.md - All learnings
+3. REPORT.md - All reports
+4. VERIFICATION.md - Verification
+5. PROGRESS.md - Current status (delete at 100%)
+6. fundamentals/, features/, templates/ (optional)
 
-**FORBIDDEN - DO NOT CREATE:**
-- ❌ `PROCESS_LEARNINGS.md` - Use LEARNINGS.md
-- ❌ `WASM_TESTING_REPORT.md` - Add section to REPORT.md
-- ❌ `WORK_SESSION_SUMMARY.md` - Add section to REPORT.md
-- ❌ `VERIFICATION_SIGNOFF.md` - Use VERIFICATION.md
-- ❌ Any other report/learning/tracking files
+FORBIDDEN: Separate learning/report/verification files
 
-**Consolidation Rules:**
-- ALL learnings → LEARNINGS.md (add sections as needed)
-- ALL reports → REPORT.md (add sections as needed)
-- ALL verification → VERIFICATION.md (single file)
+Consolidation: All learnings → LEARNINGS.md, All reports → REPORT.md
 
-**See Rule 06 Section "Specification File Organization and Consolidation" for complete policy.**
+See Rule 06 "File Organization" for complete policy.
 
 ---
 
-*Last Updated: 2026-01-24*
+*Last Updated: 2026-01-25*

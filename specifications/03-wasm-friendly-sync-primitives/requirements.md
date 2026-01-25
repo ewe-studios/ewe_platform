@@ -590,27 +590,21 @@ cargo build --package foundation_nostd --target wasm32-unknown-unknown
 
 ## File Organization Reminder
 
-**IMPORTANT**: This specification follows the file organization policy defined in `.agents/rules/06-specifications-and-requirements.md`.
+ONLY these files allowed:
 
-### Required Files (Present in this spec)
-- ✅ **requirements.md** - This file (specification requirements and success criteria)
-- ✅ **LEARNINGS.md** - Implementation insights, patterns, and knowledge gained
-- ✅ **REPORT.md** - Completion report with timeline, statistics, and achievements
-- ✅ **VERIFICATION.md** - Final verification results (all checks passed)
-- ✅ **fundamentals/** - Directory containing 11 comprehensive documentation files
+1. requirements.md - Requirements with tasks
+2. LEARNINGS.md - All learnings
+3. REPORT.md - All reports
+4. VERIFICATION.md - Verification
+5. PROGRESS.md - Current status (delete at 100%)
+6. fundamentals/, features/, templates/ (optional)
 
-### Ephemeral Files (Deleted after completion)
-- ❌ **progress.md** - Deleted (spec is 100% complete, no longer needed)
-- ❌ **verification.md** - Deleted (initial failed verification, superseded by VERIFICATION.md)
-- ❌ **FINAL_VERIFICATION.md** - Deleted (intermediate verification, consolidated into VERIFICATION.md)
-- ❌ **FINAL_VERIFICATION_REPORT.md** - Deleted (final verification, consolidated into VERIFICATION.md)
+FORBIDDEN: Separate learning/report/verification files
 
-### Notes
-- All verification attempts were consolidated into a single VERIFICATION.md showing the complete verification history
-- The initial verification failed with 174 clippy warnings; all issues were resolved in subsequent fixes
-- Final verification passed with 0 warnings and 148/148 tests passing
-- This specification is now COMPLETED and PRODUCTION READY
+Consolidation: All learnings → LEARNINGS.md, All reports → REPORT.md
+
+See Rule 06 "File Organization" for complete policy.
 
 ---
 *Created: 2026-01-19*
-*Last Updated: 2026-01-24*
+*Last Updated: 2026-01-25*

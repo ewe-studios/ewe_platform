@@ -8,10 +8,14 @@ This directory contains all project specifications and requirements. Each specif
 1. **Requirements-First**: Before work begins, main agent discusses requirements with user
 2. **Documentation**: Requirements and tasks are documented in numbered specification directories
 3. **User Approval**: User must explicitly approve and request implementation
-4. **Agent Reading**: Agents MUST read requirements.md, tasks.md, and relevant feature files
+4. **Agent Reading**: Agents MUST read requirements.md and relevant feature.md files
 5. **Status Verification**: Agents MUST verify completion status by searching the codebase
-6. **Task Updates**: Agents MUST update tasks.md as work progresses
+6. **Task Updates**: Agents MUST update task tracking in requirements.md or feature.md files
 7. **Status Accuracy**: Agents MUST ensure status reflects actual implementation
+
+**Task Tracking:**
+- **Simple specs** (has_features: false): Tasks tracked in requirements.md
+- **Feature-based specs** (has_features: true): Tasks tracked in individual feature.md files
 
 ## All Specifications
 
@@ -22,7 +26,7 @@ This directory contains all project specifications and requirements. Each specif
 ---
 
 ### [02: Build HTTP Client](./02-build-http-client/)
-**Status:** ⏳ Pending
+**Status:** 🔄 In Progress
 **Description:** Create an HTTP 1.1 client using existing simple_http module structures with iterator-based patterns and valtron executors.
 **Has Features:** Yes (13 features)
 
@@ -93,8 +97,8 @@ This directory contains all project specifications and requirements. Each specif
 ### Summary
 - **Total Specifications:** 4
 - **Completed:** 3 (75%)
-- **In Progress:** 0 (0%)
-- **Pending:** 1 (25%)
+- **In Progress:** 1 (25%)
+- **Pending:** 0 (0%)
 
 ### Completed ✅
 - 01: Fix Rust Lints, Checks, and Styling
@@ -102,22 +106,26 @@ This directory contains all project specifications and requirements. Each specif
 - 04: CondVar Primitives
 
 ### In Progress 🔄
-- None currently
+- 02: Build HTTP Client
 
 ### Pending ⏳
-- 02: Build HTTP Client
+- None currently
 
 ## Specification Guidelines
 
 ### For Agents
 When working with specifications:
-1. **Read main files first**: requirements.md AND tasks.md
-2. **Check for features/**: If present, read relevant feature.md and tasks.md
-3. **Check for templates/**: Read any templates referenced in requirements
+1. **Read main files first**: requirements.md (always contains overview and context)
+2. **Check for features/**: If present, read relevant feature.md files for detailed requirements
+3. **Check for templates/**: Read any templates referenced in requirements or features
 4. **Verify before assuming**: Search the codebase to confirm task status
 5. **Update as you go**: Mark tasks complete only when truly done
-6. **Keep counts accurate**: Update frontmatter in tasks.md files
+6. **Keep counts accurate**: Update task tracking in requirements.md or feature.md frontmatter
 7. **Commit regularly**: Follow git workflow rules
+
+**Task Tracking Pattern:**
+- **has_features: false** → Tasks in requirements.md
+- **has_features: true** → Tasks in feature.md files (one per feature)
 
 ### For Users
 This dashboard provides:
@@ -128,4 +136,4 @@ This dashboard provides:
 - **Feature breakdown**: Understanding of complex specification structure
 
 ---
-*Last updated: 2026-01-24*
+*Last updated: 2026-01-25*
