@@ -408,6 +408,42 @@ impl Connection {
             Self::Unix(s) => s.try_clone().map(Self::from),
         }
     }
+
+    /// Reads bytes until a delimiter is found, returning the bytes including the delimiter.
+    pub fn take_until(&mut self, delimiter: &[u8], output: &mut Vec<u8>) -> std::io::Result<usize> {
+        let mut buf = [0u8; 4096];
+        let mut total_read = 0;
+
+        loop {
+            let bytes_read = self.read(&mut buf)?;
+            if bytes_read == 0 {
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::UnexpectedEof,
+                    "Connection closed before delimiter found",
+                ));
+            }
+
+            output.extend_from_slice(&buf[..bytes_read]);
+            total_read += bytes_read;
+
+            // Check if delimiter is in the output
+            if let Some(pos) = output.windows(delimiter.len()).position(|w| w == delimiter) {
+                // Remove the delimiter from output
+                output.truncate(pos);
+                return Ok(total_read);
+            }
+        }
+    }
+
+    /// Consumes the first `n` bytes from the read buffer.
+    pub fn consume(&mut self, n: usize) -> std::io::Result<()> {
+        // Since Connection doesn't have a buffer, we need to read and discard
+        let mut buf = vec![0u8; n];
+        if n > 0 {
+            self.read_exact(&mut buf)?;
+        }
+        Ok(())
+    }
 }
 
 impl From<TcpStream> for Connection {
