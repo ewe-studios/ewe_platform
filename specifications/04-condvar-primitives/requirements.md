@@ -6,8 +6,8 @@ priority: high
 created: 2026-01-23
 author: Main Agent
 metadata:
-  version: '1.0'
-  last_updated: 2026-01-24
+  version: '2.0'
+  last_updated: 2026-01-25
   estimated_effort: large
   tags:
   - no_std
@@ -34,6 +34,43 @@ tasks:
   uncompleted: 19
   total: 209
   completion_percentage: 90.9
+files_required:
+  main_agent:
+    rules:
+      - .agents/rules/01-rule-naming-and-structure.md
+      - .agents/rules/02-rules-directory-policy.md
+      - .agents/rules/03-dangerous-operations-safety.md
+      - .agents/rules/04-work-commit-and-push-rules.md
+      - .agents/rules/05-coding-practice-agent-orchestration.md
+      - .agents/rules/06-specifications-and-requirements.md
+    files:
+      - ./requirements.md
+      - ./LEARNINGS.md
+      - ./PROGRESS.md
+
+  implementation_agent:
+    rules:
+      - .agents/rules/01-rule-naming-and-structure.md
+      - .agents/rules/02-rules-directory-policy.md
+      - .agents/rules/03-dangerous-operations-safety.md
+      - .agents/rules/04-work-commit-and-push-rules.md
+      - .agents/rules/13-implementation-agent-guide.md
+      - .agents/rules/11-skills-usage.md
+      - .agents/stacks/rust.md
+    files:
+      - ./requirements.md
+      - ./fundamentals/*
+
+  verification_agent:
+    rules:
+      - .agents/rules/01-rule-naming-and-structure.md
+      - .agents/rules/02-rules-directory-policy.md
+      - .agents/rules/03-dangerous-operations-safety.md
+      - .agents/rules/04-work-commit-and-push-rules.md
+      - .agents/rules/08-verification-workflow-complete-guide.md
+      - .agents/stacks/rust.md
+    files:
+      - ./requirements.md
 ---
 
 # CondVar Primitives - Requirements
