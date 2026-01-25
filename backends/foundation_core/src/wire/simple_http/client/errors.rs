@@ -77,9 +77,25 @@ pub enum HttpClientError {
     #[from(ignore)]
     ConnectionFailed(String),
 
+    /// Connection timeout exceeded.
+    #[from(ignore)]
+    ConnectionTimeout(String),
+
+    /// TLS handshake failed.
+    #[from(ignore)]
+    TlsHandshakeFailed(String),
+
+    /// Invalid URL scheme (only HTTP and HTTPS are supported).
+    #[from(ignore)]
+    InvalidScheme(String),
+
     /// Invalid URL provided.
     #[from(ignore)]
     InvalidUrl(String),
+
+    /// I/O error during connection or communication.
+    #[from]
+    IoError(io::Error),
 
     /// Generic error with boxed error type.
     #[from(ignore)]
@@ -93,7 +109,15 @@ impl core::fmt::Display for HttpClientError {
         match self {
             Self::DnsError(err) => write!(f, "DNS error: {}", err),
             Self::ConnectionFailed(msg) => write!(f, "Connection failed: {}", msg),
+            Self::ConnectionTimeout(msg) => write!(f, "Connection timeout: {}", msg),
+            Self::TlsHandshakeFailed(msg) => write!(f, "TLS handshake failed: {}", msg),
+            Self::InvalidScheme(scheme) => write!(
+                f,
+                "Invalid URL scheme: {} (only HTTP and HTTPS are supported)",
+                scheme
+            ),
             Self::InvalidUrl(url) => write!(f, "Invalid URL: {}", url),
+            Self::IoError(err) => write!(f, "I/O error: {}", err),
             Self::Other(err) => write!(f, "HTTP client error: {}", err),
         }
     }
