@@ -6,10 +6,14 @@
 mod connection;
 mod dns;
 mod errors;
+mod intro;
+mod request;
 
 pub use connection::{HttpClientConnection, ParsedUrl, Scheme};
 pub use dns::{CachingDnsResolver, DnsResolver, MockDnsResolver, SystemDnsResolver};
 pub use errors::{DnsError, HttpClientError};
+pub use intro::{ResponseIntro, ResponseIntroHeaders};
+pub use request::{Body, ClientRequestBuilder, Headers, Method, PreparedRequest, Response};
 
 #[cfg(test)]
 mod tests;
