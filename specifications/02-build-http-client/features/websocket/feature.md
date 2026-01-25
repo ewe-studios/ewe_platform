@@ -23,6 +23,7 @@ files_required:
       - .agents/rules/03-dangerous-operations-safety.md
       - .agents/rules/04-work-commit-and-push-rules.md
       - .agents/rules/13-implementation-agent-guide.md
+      - .agents/rules/11-skills-usage.md
       - .agents/stacks/rust.md
     files:
       - ../requirements.md
