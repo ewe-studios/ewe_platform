@@ -77,24 +77,6 @@ Create an HTTP 1.1 client using existing `simple_http` module structures, levera
 
 ---
 
-## Known Issues
-
-### Pre-existing foundation_wasm Compilation Errors (OUT OF SCOPE)
-
-**Issue**: ~110 compilation errors in `foundation_wasm` package due to incorrect `SpinMutex::lock()` API usage
-
-**Root Cause**: Code calls `lock()` without unwrapping Result in frames.rs, intervals.rs, schedule.rs, registry.rs
-
-**Impact**:
-- Cannot run workspace-level commands (`cargo test --workspace`, `cargo clippy --workspace`)
-- Workaround: Use package-level commands (`cargo test --package foundation_core`)
-
-**Scope**: OUT OF SCOPE - pre-existing issue, requires separate fix
-
-**Decision**: All HTTP client code in `foundation_core` package. Verification uses package-level commands.
-
----
-
 ## Requirements Conversation Summary
 
 ### User's Initial Request
