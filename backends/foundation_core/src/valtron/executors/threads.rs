@@ -33,15 +33,19 @@ use crate::{
     valtron::{AnyResult, LocalThreadExecutor},
 };
 
-use super::{
-    constants::{
+use crate::valtron::{
+    BoxedExecutionEngine, BoxedPanicHandler, BoxedSendExecutionIterator, ExecutionAction,
+    ExecutionIterator, ExecutorError, FnMutReady, FnReady, OnNext, PriorityOrder,
+    ProcessController, ReadyConsumingIter, SharedTaskQueue, TaskIterator, TaskReadyResolver,
+    TaskStatus, TaskStatusMapper,
+};
+
+use crate::valtron::{
+    executors::constants::{
         BACK_OFF_JITER, BACK_OFF_MAX_DURATION, BACK_OFF_MIN_DURATION, BACK_OFF_THREAD_FACTOR,
         DEFAULT_OP_READ_TIME, MAX_ROUNDS_IDLE_COUNT, MAX_ROUNDS_WHEN_SLEEPING_ENDS,
     },
-    BoxedExecutionEngine, BoxedPanicHandler, BoxedSendExecutionIterator, ConsumingIter, DoNext,
-    ExecutionAction, ExecutionIterator, ExecutorError, FnMutReady, FnReady, OnNext, PriorityOrder,
-    ProcessController, ReadyConsumingIter, StreamConsumingIter, TaskIterator, TaskReadyResolver,
-    TaskStatus, TaskStatusMapper,
+    ConsumingIter, DoNext, StreamConsumingIter,
 };
 
 use crate::compati::{Mutex, RwLock};
@@ -438,7 +442,6 @@ impl SharedThreadRegistry {
     }
 }
 
-pub type SharedTaskQueue = sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>;
 pub type SharedActivityQueue = sync::Arc<ConcurrentQueue<ThreadActivity>>;
 pub type SharedThreadYielder = sync::Arc<ThreadYielder>;
 

@@ -2,25 +2,22 @@
 #![cfg(not(target_arch = "wasm32"))]
 
 use crate::{
-    compati::Mutex,
     extensions::result_ext::{SendableBoxedError, SendableBoxedResult},
     netcap::RawStream,
-    wire::simple_http::{http_streams, HTTPStreams, HttpReaderError, SimpleBody},
+    wire::simple_http::{http_streams, HttpReaderError, SimpleBody},
 };
 use derive_more::From;
 use std::{
     io::Write,
     net::{TcpListener, TcpStream},
     sync::mpsc,
-    sync::Arc,
     thread::{self, JoinHandle},
 };
 
 use crate::{
-    extensions::result_ext::{BoxedError, BoxedResult},
-    io::ioutils,
+    extensions::result_ext::BoxedError,
     wire::simple_http::{
-        self, Http11, IncomingRequestParts, Proto, RenderHttp, RequestDescriptor, ServiceAction,
+        self, Http11, IncomingRequestParts, RenderHttp, RequestDescriptor, ServiceAction,
         ServiceActionList, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
     },
 };

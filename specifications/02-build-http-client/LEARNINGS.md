@@ -713,3 +713,109 @@ client/
 - Document edge cases in tests
 - Keep error messages descriptive
 
+
+## Request-Response Feature Implementation (2026-01-25)
+
+### Context
+Implemented the request-response feature which provides:
+- `ResponseIntro` wrapper for response status/proto/reason
+- `PreparedRequest` for holding request data
+- `ClientRequestBuilder` for fluent API request building
+
+### Key Insights
+
+#### 1. Type Reuse is Critical
+**Problem**: Initial implementation tried to create custom types (Method, Headers, Body) instead of reusing existing `simple_http/impls.rs` types.
+
+**Solution**: Use existing types from `impls.rs`:
+- `SimpleMethod` instead of custom `Method`
+- `SimpleHeaders` (BTreeMap<SimpleHeader, Vec<String>>) instead of custom `Headers`
+- `SimpleBody` instead of custom `Body`
+- `SimpleHeader` enum with UPPERCASE variants (HOST, CONTENT_TYPE, etc.)
+
+**Why**: This avoids duplication, maintains consistency with the rest of the codebase, and works seamlessly with existing HTTP rendering infrastructure.
+
+#### 2. Http11RequestIterator Constructor is Private
+**Problem**: The feature spec requested `PreparedRequest::into_request_iterator() -> Http11RequestIterator`, but `Http11RequestIterator` has a private constructor.
+
+**Solution**: Changed approach:
+- `PreparedRequest::into_simple_incoming_request() -> Result<SimpleIncomingRequest, HttpClientError>`
+- Users can then call `Http11::request(req).http_render()` to get the iterator
+
+**Why**: The public API for getting an HTTP iterator is through `Http11::request().http_render()`, which returns a boxed iterator. Trying to work around private constructors would be unsafe and brittle.
+
+#### 3. SimpleIncomingRequest Builder Pattern
+**Pattern**: Use the builder pattern to create `SimpleIncomingRequest`:
+```rust
+SimpleIncomingRequest::builder()
+    .with_url(simple_url)
+    .with_method(method)
+    .with_proto(Proto::HTTP11)
+    .with_headers(headers)
+    .with_some_body(Some(body))
+    .build()?
+```
+
+**Why**: This is the intended, safe way to create requests that work with the HTTP rendering infrastructure.
+
+#### 4. URL Encoding for Form Data
+**Problem**: No `urlencoding` crate available in dependencies.
+
+**Solution**: Implemented simple percent-encoding inline:
+```rust
+fn urlencode(s: &str) -> String {
+    s.chars()
+        .map(|c| match c {
+            'A'..='Z' | 'a'..='z' | '0'..='9' | '-' | '_' | '.' | '~' => c.to_string(),
+            ' ' => "+".to_string(),
+            _ => format!("%{:02X}", c as u8),
+        })
+        .collect()
+}
+```
+
+**Why**: Keeps dependencies minimal and provides sufficient encoding for form data.
+
+#### 5. Header Name Convention
+**Important**: `SimpleHeader` enum uses UPPERCASE variants:
+- `SimpleHeader::HOST` (not `Host`)
+- `SimpleHeader::CONTENT_TYPE` (not `ContentType`)
+- `SimpleHeader::CONTENT_LENGTH` (not `ContentLength`)
+
+This caused initial compilation errors until corrected.
+
+### Implementation Summary
+
+**Files Created/Modified**:
+1. `backends/foundation_core/src/wire/simple_http/client/intro.rs` - ResponseIntro wrapper
+2. `backends/foundation_core/src/wire/simple_http/client/request.rs` - ClientRequestBuilder and PreparedRequest
+3. `backends/foundation_core/src/wire/simple_http/client/mod.rs` - Updated exports
+
+**Tests Added**:
+- 5 tests for `ResponseIntro` (tuple conversion, status codes, protocols)
+- 11 tests for `ClientRequestBuilder` (builder pattern, convenience methods, body types)
+- All tests pass ✅
+
+**Verification**:
+- ✅ `cargo fmt -- --check` passes
+- ✅ `cargo clippy -- -D warnings` passes (no warnings in our code)
+- ✅ `cargo test --package foundation_core -- intro` passes (5/5 tests)
+- ✅ `cargo test --package foundation_core -- request` passes (148/148 tests including existing)
+- ✅ `cargo build --package foundation_core` succeeds
+
+### Pragmatic Adaptations
+
+The feature specification requested `PreparedRequest::into_request_iterator() -> Http11RequestIterator`, but this was not feasible due to:
+1. `Http11RequestIterator` having a private constructor
+2. The intended public API being `Http11::request().http_render()`
+
+**Adaptation**: Changed to `into_simple_incoming_request()` which returns the intermediate type that can be converted to an iterator via the public API.
+
+**Justification**: This maintains the spirit of the specification (providing a way to convert PreparedRequest to an iterator) while working within the constraints of the existing codebase architecture.
+
+### Next Steps
+This feature provides the foundation for:
+- `auth-helpers` feature (can use ClientRequestBuilder to add auth headers)
+- `task-iterator` feature (can use PreparedRequest and ResponseIntro)
+- `public-api` feature (exposes ClientRequestBuilder and ResponseIntro to users)
+

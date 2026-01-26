@@ -3,6 +3,7 @@ mod executors;
 mod funcs;
 mod iterators;
 mod notifiers;
+mod task;
 mod types;
 
 // modules exported as is
@@ -14,4 +15,5 @@ pub use executors::*;
 pub use funcs::*;
 pub use iterators::*;
 pub use notifiers::*;
+pub use task::*;
 pub use types::*;

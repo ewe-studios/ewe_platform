@@ -1,7 +1,7 @@
 ---
 feature: valtron-utilities
 description: Reusable ExecutionAction types, unified executor wrapper, state machine helpers, Future adapter, and retry/timeout wrappers
-status: completed
+status: in-progress
 priority: high
 depends_on: []
 estimated_effort: medium
@@ -48,9 +48,11 @@ Create reusable valtron patterns that will be used by the task-iterator feature 
 ## Dependencies
 
 This feature depends on:
+
 - None (foundational feature)
 
 This feature is required by:
+
 - `task-iterator` - Uses state machine helpers and reusable action types
 - Future valtron-based features across the codebase
 
@@ -88,22 +90,24 @@ engine.spawn()
 
 #### Spawning Strategies Comparison
 
-| Action | Engine Method | Queue | Priority | Use When |
-|--------|--------------|-------|----------|----------|
-| `SpawnWithLift` | `engine.lift()` | Local (top) | High | Child must run before other queued work |
-| `SpawnWithSchedule` | `engine.schedule()` | Local (bottom) | Normal | Standard child task |
-| `SpawnWithBroadcast` | `engine.broadcast()` | Global | Background | Work can be picked up by any thread |
+| Action               | Engine Method        | Queue          | Priority   | Use When                                |
+| -------------------- | -------------------- | -------------- | ---------- | --------------------------------------- |
+| `SpawnWithLift`      | `engine.lift()`      | Local (top)    | High       | Child must run before other queued work |
+| `SpawnWithSchedule`  | `engine.schedule()`  | Local (bottom) | Normal     | Standard child task                     |
+| `SpawnWithBroadcast` | `engine.broadcast()` | Global         | Background | Work can be picked up by any thread     |
 
 #### SpawnWithLift (formerly LiftAction)
 
 **Purpose**: Spawns a child task with HIGH PRIORITY (top of local queue).
 
 **When to Use**:
+
 - The parent task needs the child to complete before continuing
 - The child task is a dependency for subsequent processing
 - You want to prioritize this child over other queued work
 
 **How It Works**:
+
 1. Wraps the child iterator in `DoNext` (converts `TaskIterator` → `ExecutionIterator`)
 2. Calls `engine.lift()` to add to **TOP** of local queue
 3. Links child to parent via the `parent_key`
@@ -195,11 +199,13 @@ where
 **Purpose**: Spawns a child task with NORMAL PRIORITY (bottom of local queue).
 
 **When to Use**:
+
 - Standard child task that doesn't need priority
 - Child task can wait for other queued work
 - Most common spawning pattern
 
 **How It Works**:
+
 1. Wraps the child closure in `ScheduleTask`
 2. Calls `engine.schedule()` to add to **BOTTOM** of local queue
 3. Child task processes after other queued work
@@ -302,11 +308,13 @@ where
 **Purpose**: Spawns a child task to GLOBAL QUEUE (any thread can pick up).
 
 **When to Use**:
+
 - Work can be distributed across threads
 - Task doesn't need to run on the same thread as parent
 - Background processing or parallel work distribution
 
 **How It Works**:
+
 1. Wraps the child task in `BroadcastTask`
 2. Calls `engine.broadcast()` to add to **GLOBAL** queue
 3. Any executor thread can pick up the task
@@ -421,6 +429,7 @@ where
 **Purpose**: Enum combining all action types plus a custom action slot, allowing a TaskIterator to use different spawning strategies dynamically.
 
 **When to Use**:
+
 - Your task needs to spawn children using different strategies at different times
 - You want flexibility in choosing spawn method at runtime
 - You need to combine standard actions with custom behavior
@@ -609,12 +618,12 @@ impl TaskIterator for MyTask {
 
 For backward compatibility during migration:
 
-| Old Name | New Name | Reason for Change |
-|----------|----------|-------------------|
-| `LiftAction` | `SpawnWithLift` | Clarifies this is for spawning children with lift strategy |
-| `ScheduleAction` | `SpawnWithSchedule` | Clarifies this is for spawning children with schedule strategy |
+| Old Name          | New Name             | Reason for Change                                               |
+| ----------------- | -------------------- | --------------------------------------------------------------- |
+| `LiftAction`      | `SpawnWithLift`      | Clarifies this is for spawning children with lift strategy      |
+| `ScheduleAction`  | `SpawnWithSchedule`  | Clarifies this is for spawning children with schedule strategy  |
 | `BroadcastAction` | `SpawnWithBroadcast` | Clarifies this is for spawning children with broadcast strategy |
-| `CompositeAction` | `SpawnStrategy` | Better reflects that it's choosing a spawning strategy |
+| `CompositeAction` | `SpawnStrategy`      | Better reflects that it's choosing a spawning strategy          |
 
 **Migration**: The implementation should provide deprecated type aliases:
 
@@ -952,7 +961,7 @@ Wrap any Rust `Future` and poll it through the TaskIterator pattern, enabling se
 
 #### FutureTask Wrapper
 
-```rust
+````rust
 use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll, Waker, RawWaker, RawWakerVTable};
@@ -1002,7 +1011,7 @@ where
         }
     }
 }
-```
+````
 
 #### Polling State
 
@@ -1087,7 +1096,7 @@ where
 
 #### Convenience Functions
 
-```rust
+````rust
 /// Wrap a future into a TaskIterator
 pub fn from_future<F>(future: F) -> FutureTask<F>
 where
@@ -1113,11 +1122,11 @@ where
     let task = FutureTask::new(future);
     execute(task)
 }
-```
+````
 
 #### Async Block Helper
 
-```rust
+````rust
 /// Macro for inline async execution (optional convenience)
 ///
 /// ```rust
@@ -1132,7 +1141,7 @@ macro_rules! valtron_async {
         $crate::valtron::executors::run_future(async { $($body)* })
     };
 }
-```
+````
 
 #### Stream Adapter (For Async Streams)
 
@@ -1228,11 +1237,11 @@ alloc = ["futures-core/alloc"]  # For no_std with alloc
 
 **Feature Configurations:**
 
-| Feature | Environment | Notes |
-|---------|-------------|-------|
-| `std` (default) | Standard library | Full functionality |
-| `alloc` | no_std + alloc | Heap allocation available |
-| (none) | Pure no_std | Limited functionality, no Box/Pin heap allocation |
+| Feature         | Environment      | Notes                                             |
+| --------------- | ---------------- | ------------------------------------------------- |
+| `std` (default) | Standard library | Full functionality                                |
+| `alloc`         | no_std + alloc   | Heap allocation available                         |
+| (none)          | Pure no_std      | Limited functionality, no Box/Pin heap allocation |
 
 **WASM Compatibility**: `futures-core` is a minimal, no-std compatible crate that works on all platforms including WASM. It only provides the `Future` and `Stream` traits without any runtime dependencies.
 
@@ -1681,6 +1690,7 @@ cargo build --package foundation_core --target wasm32-unknown-unknown --no-defau
 ## Notes for Agents
 
 ### Before Starting
+
 - **MUST READ** `valtron/executors/task.rs` for TaskIterator trait
 - **MUST READ** `valtron/executors/executor.rs` for ExecutionAction trait
 - **MUST READ** `valtron/executors/single/mod.rs` for single executor
@@ -1688,6 +1698,7 @@ cargo build --package foundation_core --target wasm32-unknown-unknown --no-defau
 - **MUST VERIFY** existing valtron patterns before adding new ones
 
 ### Implementation Guidelines
+
 - These utilities go in `valtron/executors/`, NOT in `simple_http/client/`
 - Use generic type parameters extensively
 - All types should be `Send + 'static` for executor compatibility
@@ -1696,11 +1707,13 @@ cargo build --package foundation_core --target wasm32-unknown-unknown --no-defau
 - Document all public types and functions
 
 ### Integration with task-iterator
+
 - The task-iterator feature will use these utilities
 - HttpRequestTask can use StateMachine trait if beneficial
 - HttpClientAction can extend CompositeAction if needed
 - FutureTask enables wrapping any async code for execution
 
 ---
-*Created: 2026-01-19*
-*Last Updated: 2026-01-19*
+
+_Created: 2026-01-19_
+_Last Updated: 2026-01-19_

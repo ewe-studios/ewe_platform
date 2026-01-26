@@ -14,6 +14,7 @@ use std::{
     time,
 };
 
+use crate::valtron::TaskIterator;
 use crate::{
     synca::{mpp, DurationWaker, Entry, EntryList, IdleMan, OnSignal, RunOnDrop, Sleepers, Waiter},
     valtron::{AnyResult, ExecutionEngine, ExecutionIterator, State},
@@ -26,9 +27,9 @@ use concurrent_queue::{ConcurrentQueue, PushError};
 #[allow(unused)]
 use crate::compati::Mutex;
 
-use super::{
+use crate::valtron::{
     BoxedExecutionEngine, BoxedExecutionIterator, BoxedSendExecutionIterator, ExecutionAction,
-    ExecutionTaskIteratorBuilder, ExecutorError, ProcessController, SharedTaskQueue, TaskIterator,
+    ExecutionTaskIteratorBuilder, ExecutorError, ProcessController, SharedTaskQueue,
     TaskReadyResolver, TaskStatusMapper, ThreadActivity,
 };
 
@@ -563,6 +564,12 @@ impl ExecutorState {
     /// `do_work` attempts to call the current iterator to progress
     /// executing the next operation internally till it's ready for
     /// work to begin.
+    ///
+    /// # Panics
+    ///
+    /// 1. Will panic if when popping from the processing queue, we fail to get the top entry
+    ///    as at this point work should be in queue before [`do_work`] is called.
+    ///
     #[inline]
     pub fn do_work(&self, engine: BoxedExecutionEngine) -> ProgressIndicator {
         let span = tracing::trace_span!("ThreadPool::do_work");
@@ -573,7 +580,7 @@ impl ExecutorState {
                 match inner {
                     ProgressIndicator::NoWork => return ProgressIndicator::NoWork,
                     ProgressIndicator::CanProgress => return ProgressIndicator::CanProgress,
-                    _ => unreachable!("check_processing_queue should never reach here"),
+                    ProgressIndicator::SpinWait(_) => unreachable!("check_processing_queue should never reach here"),
                 }
             }
 
@@ -1529,9 +1536,8 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                     }
                     ProgressIndicator::SpinWait(duration) => {
                         self.yielder.yield_for(duration);
-                        continue;
                     }
-                    ProgressIndicator::CanProgress => continue,
+                    ProgressIndicator::CanProgress => {}
                 }
             }
             self.yielder.yield_process();
@@ -1541,11 +1547,17 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     /// `block_on` usually should in a separate thread where it will block
     /// the thread until either a panic occurs or the kill signal is sent
     /// to the thread.
+    ///
+    /// # Panics
+    ///
+    /// 1. Will panic if [`self.kill_signal`] is not instantiated or set.
+    ///
     #[inline]
     pub fn block_on(&self) {
         let span = tracing::trace_span!("LocalThreadExecutor::kill");
         let _enter = span.enter();
 
+        /// panics: if [`kill_signal`] is not set or instantiated
         /// require `kill_signal` to be provided.
         let kill_signal = self.kill_signal
             .clone()
@@ -1573,7 +1585,6 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                             return;
                         }
                         self.yielder.yield_process();
-                        continue;
                     }
                     ProgressIndicator::SpinWait(duration) => {
                         if kill_signal.probe() {
@@ -1582,7 +1593,6 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                         }
 
                         self.yielder.yield_for(duration);
-                        continue;
                     }
                 }
             }

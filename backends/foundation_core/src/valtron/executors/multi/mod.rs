@@ -6,12 +6,12 @@ use std::sync::OnceLock;
 #[cfg(target_arch = "wasm32")]
 use foundation_nostd::primitives::OnceLock;
 
-use crate::valtron::get_allocatable_thread_count;
-
-use super::{
-    ExecutionAction, TaskIterator, TaskReadyResolver, TaskStatusMapper, ThreadPool,
-    ThreadPoolTaskBuilder,
+use crate::valtron::{
+    get_allocatable_thread_count, task::TaskIterator, ExecutionAction, TaskReadyResolver,
+    TaskStatusMapper,
 };
+
+use crate::valtron::{ThreadPool, ThreadPoolTaskBuilder};
 
 static CANCELATION_REGISTRATION: OnceLock<Option<()>> = OnceLock::new();
 static GLOBAL_THREAD_POOL: OnceLock<ThreadPool> = OnceLock::new();

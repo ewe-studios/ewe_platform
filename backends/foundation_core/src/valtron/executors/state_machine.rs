@@ -4,7 +4,7 @@
 //! using state machine patterns, making it easier to build complex async-like
 //! workflows.
 
-use super::{ExecutionAction, NoAction, TaskIterator, TaskStatus};
+use crate::valtron::{ExecutionAction, NoAction, TaskIterator, TaskStatus};
 use std::time::Duration;
 
 /// Result of a state machine transition.

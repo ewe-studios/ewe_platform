@@ -308,7 +308,7 @@ mod tests {
     type Result<T> = core::result::Result<T, Box<dyn std::error::Error>>; // For tests.
 
     #[test]
-    fn test_value_can_walk() -> Result<()> {
+    fn test_value_can_walk() {
         // -- Setup & Fixtures
         let mut value = json!({"tokens": 3, "hello": {"word": "hello"}});
 
@@ -317,39 +317,35 @@ mod tests {
             assert!(tree.contains_key(key));
             true
         }));
-        Ok(())
     }
 
     #[test]
-    fn test_value_insert_ok() -> Result<()> {
+    fn test_value_insert_ok() {
         // -- Setup & Fixtures
         let mut value = json!({"tokens": 3});
         let fx_node_value = "hello";
 
         // -- Exec
-        value.d_insert("/happy/word", fx_node_value)?;
+        value.d_insert("/happy/word", fx_node_value).unwrap();
 
         // -- Check
-        let actual_value: String = value.d_get("/happy/word")?;
+        let actual_value: String = value.d_get("/happy/word").unwrap();
         dbg!(&actual_value);
 
         assert_eq!(actual_value.as_str(), fx_node_value);
-
-        Ok(())
     }
 
     #[test]
-    fn test_value_can_take() -> Result<()> {
+    fn test_value_can_take() {
         // -- Setup & Fixtures
         let mut value = json!({"tokens": 3, "hello": {"word": "hello"}});
 
         // -- Exec
-        let content: String = value.d_take("/hello/word")?;
+        let content: String = value.d_take("/hello/word").unwrap();
         assert_eq!(&content, "hello");
 
         // Should
         assert!(value.d_get::<String>("hello").is_err());
         assert!(value.d_get::<String>("hello/word").is_err());
-        Ok(())
     }
 }

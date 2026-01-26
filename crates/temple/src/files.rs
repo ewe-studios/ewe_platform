@@ -156,12 +156,11 @@ impl<'a> Templater<'a> {
 mod tests {
     use super::{FileContent, FileResult, FileSystemCommand, Templater};
     use ewe_templates::{minijinja, tinytemplate::TinyTemplate};
+    use rand::distributions::{Alphanumeric, DistString};
     use serde_json::{json, Value};
     use std::{env, fs, io::Read, path, sync};
 
     fn random_directory_name(prefix: &str) -> String {
-        use rand::distributions::{Alphanumeric, DistString};
-
         format!(
             "{}_{}",
             prefix,
