@@ -1,0 +1,503 @@
+//! Custom builders for executors
+
+use crate::valtron::Stream;
+
+use std::{any::Any, marker::PhantomData, sync::Arc, time};
+
+use crate::{
+    synca::mpp::{RecvIterator, StreamRecvIterator},
+    valtron::StreamConsumingIter,
+};
+use concurrent_queue::ConcurrentQueue;
+
+use crate::{synca::Entry, valtron::AnyResult};
+
+use crate::valtron::{
+    BoxedExecutionEngine, BoxedPanicHandler, BoxedSendExecutionIterator, ConsumingIter, DoNext,
+    ExecutionAction, ExecutorError, FnMutReady, FnReady, OnNext, ReadyConsumingIter, TaskIterator,
+    TaskReadyResolver, TaskStatus, TaskStatusMapper,
+};
+
+pub struct ExecutionTaskIteratorBuilder<
+    Done,
+    Pending,
+    Action: ExecutionAction,
+    Mapper: TaskStatusMapper<Done, Pending, Action>,
+    Resolver: TaskReadyResolver<Action, Done, Pending>,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+> {
+    engine: BoxedExecutionEngine,
+    task: Option<Task>,
+    parent: Option<Entry>,
+    resolver: Option<Resolver>,
+    mappers: Option<Vec<Mapper>>,
+    panic_handler: Option<BoxedPanicHandler>,
+    _marker: PhantomData<(Done, Pending, Action)>,
+}
+
+impl<
+        Done: 'static,
+        Pending: 'static,
+        Action: ExecutionAction + 'static,
+        Mapper: TaskStatusMapper<Done, Pending, Action> + 'static,
+        Resolver: TaskReadyResolver<Action, Done, Pending> + 'static,
+        Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+    > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, Resolver, Task>
+{
+    #[must_use]
+    pub fn new(engine: BoxedExecutionEngine) -> Self {
+        Self {
+            engine,
+            task: None,
+            parent: None,
+            mappers: None,
+            resolver: None,
+            panic_handler: None,
+            _marker: PhantomData,
+        }
+    }
+
+    pub fn with_mappers(mut self, mapper: Mapper) -> Self {
+        let mut mappers = if self.mappers.is_some() {
+            self.mappers.take().unwrap()
+        } else {
+            Vec::new()
+        };
+
+        mappers.push(mapper);
+        self.mappers = Some(mappers);
+        self
+    }
+
+    pub fn with_panic_handler<T>(mut self, handler: T) -> Self
+    where
+        T: Fn(Box<dyn Any + Send>) + Send + Sync + 'static,
+    {
+        self.panic_handler = Some(Box::new(handler));
+        self
+    }
+
+    pub fn with_parent(mut self, parent: Entry) -> Self {
+        self.parent = Some(parent);
+        self
+    }
+
+    pub fn with_task(mut self, task: Task) -> Self {
+        self.task = Some(task);
+        self
+    }
+
+    pub fn with_resolver(mut self, resolver: Resolver) -> Self {
+        self.resolver = Some(resolver);
+        self
+    }
+
+    /// [`schedule_ready_iter`] adds a task into execution queue but instead of depending
+    /// on a [`TaskReadyResolver`] to process the final state instead allows you
+    /// to get back a wrapper iterator that allows you synchronously receive those
+    /// values from a [`RecvIterator`] that implements the [`Iterator`] trait.
+    ///
+    /// It only returns the values that are of the [`TaskStatus::Ready`] state.
+    ///
+    /// This makes it possible to build synchronous experiences in a async world.
+    ///
+    /// Following our naming: [`schedule_iter`] calls the `schedule` method to deliver
+    /// a task to the bottom of the thread-local execution queue.
+    pub fn schedule_ready_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<RecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
+        let iter_chan: Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(ConcurrentQueue::unbounded());
+
+        let boxed_task = match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (None, Some(mappers)) => ReadyConsumingIter::new(task, mappers, iter_chan.clone()),
+                (None, None) => ReadyConsumingIter::new(task, Vec::new(), iter_chan.clone()),
+                (_, _) => return Err(ExecutorError::NotSupported),
+            },
+            None => return Err(ExecutorError::TaskRequired),
+        };
+
+        self.engine
+            .schedule(boxed_task.into())
+            .map(|()| RecvIterator::from_chan(iter_chan, wait_cycle))
+    }
+
+    /// [`lift_ready_iter`] adds a task into execution queue but instead of depending
+    /// on a [`TaskReadyResolver`] to process the final state instead allows you
+    /// to get back a wrapper iterator that allows you synchronously receive those
+    /// values from a [`RecvIterator`] that implements the [`Iterator`] trait.
+    ///
+    /// It only returns the values that are of the [`TaskStatus::Ready`] state.
+    ///
+    /// This makes it possible to build synchronous experiences in a async world.
+    ///
+    /// Following our naming: [`lift_iter`] calls the `lift` method to deliver
+    /// a task to the top of the thread-local execution queue.
+    pub fn lift_ready_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<RecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
+        let iter_chan: Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(ConcurrentQueue::unbounded());
+
+        let parent = self.parent;
+        let boxed_task = match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (None, Some(mappers)) => ReadyConsumingIter::new(task, mappers, iter_chan.clone()),
+                (None, None) => ReadyConsumingIter::new(task, Vec::new(), iter_chan.clone()),
+                (_, _) => return Err(ExecutorError::NotSupported),
+            },
+            None => return Err(ExecutorError::TaskRequired),
+        };
+
+        self.engine
+            .lift(boxed_task.into(), parent)
+            .map(|()| RecvIterator::from_chan(iter_chan, wait_cycle))
+    }
+
+    /// [`stream_iter`] adds a task into execution queue but instead of depending
+    /// on a [`TaskReadyResolver`] to process the final state instead allows you
+    /// to get back a wrapper iterator that allows you synchronously receive those
+    /// values from a [`StreamRecvIterator`] that implements the [`Iterator`] trait.
+    ///
+    /// This makes it possible to build synchronous experiences in a async world.
+    ///
+    /// This will schedule the task to the bottom of the queue by calling `schedule`
+    /// method to deliver a task to the bottom of the thread-local execution queue.
+    pub fn stream_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<StreamRecvIterator<Done, Pending>, ExecutorError> {
+        let iter_chan: Arc<ConcurrentQueue<Stream<Done, Pending>>> =
+            Arc::new(ConcurrentQueue::unbounded());
+
+        let boxed_task = match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (None, Some(mappers)) => StreamConsumingIter::new(task, mappers, iter_chan.clone()),
+                (None, None) => StreamConsumingIter::new(task, Vec::new(), iter_chan.clone()),
+                (_, _) => return Err(ExecutorError::NotSupported),
+            },
+            None => return Err(ExecutorError::TaskRequired),
+        };
+
+        self.engine
+            .schedule(boxed_task.into())
+            .map(|()| StreamRecvIterator::new(RecvIterator::from_chan(iter_chan, wait_cycle)))
+    }
+
+    /// [`schedule_iter`] adds a task into execution queue but instead of depending
+    /// on a [`TaskReadyResolver`] to process the final state instead allows you
+    /// to get back a wrapper iterator that allows you synchronously receive those
+    /// values from a [`RecvIterator`] that implements the [`Iterator`] trait.
+    ///
+    /// This makes it possible to build synchronous experiences in a async world.
+    ///
+    /// Following our naming: [`schedule_iter`] calls the `schedule` method to deliver
+    /// a task to the bottom of the thread-local execution queue.
+    pub fn schedule_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<RecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
+        let iter_chan: Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(ConcurrentQueue::unbounded());
+
+        let boxed_task = match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (None, Some(mappers)) => ConsumingIter::new(task, mappers, iter_chan.clone()),
+                (None, None) => ConsumingIter::new(task, Vec::new(), iter_chan.clone()),
+                (_, _) => return Err(ExecutorError::NotSupported),
+            },
+            None => return Err(ExecutorError::TaskRequired),
+        };
+
+        self.engine
+            .schedule(boxed_task.into())
+            .map(|()| RecvIterator::from_chan(iter_chan, wait_cycle))
+    }
+
+    /// [`lift_iter`] adds a task into execution queue but instead of depending
+    /// on a [`TaskReadyResolver`] to process the final state instead allows you
+    /// to get back a wrapper iterator that allows you synchronously receive those
+    /// values from a [`RecvIterator`] that implements the [`Iterator`] trait.
+    ///
+    /// This makes it possible to build synchronous experiences in a async world.
+    ///
+    /// Following our naming: [`lift_iter`] calls the `lift` method to deliver
+    /// a task to the top of the thread-local execution queue.
+    pub fn lift_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<RecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
+        let iter_chan: Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(ConcurrentQueue::unbounded());
+
+        let parent = self.parent;
+        let boxed_task = match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (None, Some(mappers)) => ConsumingIter::new(task, mappers, iter_chan.clone()),
+                (None, None) => ConsumingIter::new(task, Vec::new(), iter_chan.clone()),
+                (_, _) => return Err(ExecutorError::NotSupported),
+            },
+            None => return Err(ExecutorError::TaskRequired),
+        };
+
+        self.engine
+            .lift(boxed_task.into(), parent)
+            .map(|()| RecvIterator::from_chan(iter_chan, wait_cycle))
+    }
+
+    /// [`stream_lift_iter`] similar to [`lift_iter`] returns a [`StreamRecvIterator`]
+    /// which returns a simplified representatiopn without the complexity of the [`Action`]
+    /// type providing easier usage within logic blocks.
+    pub fn stream_lift_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<StreamRecvIterator<Done, Pending>, ExecutorError> {
+        let iter_chan: Arc<ConcurrentQueue<Stream<Done, Pending>>> =
+            Arc::new(ConcurrentQueue::unbounded());
+
+        let parent = self.parent;
+        let boxed_task = match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (None, Some(mappers)) => StreamConsumingIter::new(task, mappers, iter_chan.clone()),
+                (None, None) => StreamConsumingIter::new(task, Vec::new(), iter_chan.clone()),
+                (_, _) => return Err(ExecutorError::NotSupported),
+            },
+            None => return Err(ExecutorError::TaskRequired),
+        };
+
+        self.engine
+            .lift(boxed_task.into(), parent)
+            .map(|()| StreamRecvIterator::new(RecvIterator::from_chan(iter_chan, wait_cycle)))
+    }
+
+    /// [`lift`] delivers a task to the top of the thread-local execution queue.
+    pub fn lift(self) -> AnyResult<(), ExecutorError> {
+        let parent = self.parent;
+        match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (Some(resolver), Some(mappers)) => {
+                    let task_iter = OnNext::new(task, resolver, mappers);
+                    self.engine.lift(task_iter.into(), parent)
+                }
+                (Some(resolver), None) => {
+                    let task_iter = OnNext::new(task, resolver, Vec::<Mapper>::new());
+                    self.engine.lift(Box::new(task_iter), parent)
+                }
+                (None, None) => {
+                    let task_iter = DoNext::new(task);
+                    self.engine.lift(Box::new(task_iter), parent)
+                }
+                (None, Some(_)) => Err(ExecutorError::FailedToCreate),
+            },
+            None => Err(ExecutorError::TaskRequired),
+        }
+    }
+
+    /// [`schedule`] delivers a task to the bottom of the thread-local execution queue.
+    pub fn schedule(self) -> AnyResult<(), ExecutorError> {
+        match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (Some(resolver), Some(mappers)) => {
+                    let task_iter = OnNext::new(task, resolver, mappers);
+                    self.engine.schedule(Box::new(task_iter))
+                }
+                (Some(resolver), None) => {
+                    let task_iter = OnNext::new(task, resolver, Vec::<Mapper>::new());
+                    self.engine.schedule(Box::new(task_iter))
+                }
+                (None, None) => {
+                    let task_iter = DoNext::new(task);
+                    self.engine.schedule(Box::new(task_iter))
+                }
+                (None, Some(_)) => Err(ExecutorError::FailedToCreate),
+            },
+            None => Err(ExecutorError::TaskRequired),
+        }
+    }
+}
+
+impl<
+        Done: Send + 'static,
+        Pending: Send + 'static,
+        Action: ExecutionAction + Send + 'static,
+        Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
+        Resolver: TaskReadyResolver<Action, Done, Pending> + Send + 'static,
+        Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
+    > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, Resolver, Task>
+{
+    /// [`broadcast`] delivers a task to the bottom of the global execution queue.
+    pub fn broadcast(self) -> AnyResult<(), ExecutorError> {
+        let task: AnyResult<BoxedSendExecutionIterator, ExecutorError> = match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (Some(resolver), Some(mappers)) => Ok(OnNext::new(task, resolver, mappers).into()),
+                (Some(resolver), None) => {
+                    Ok(OnNext::new(task, resolver, Vec::<Mapper>::new()).into())
+                }
+                (None, None) => Ok(DoNext::new(task).into()),
+                (None, Some(_)) => Err(ExecutorError::FailedToCreate),
+            },
+            None => Err(ExecutorError::TaskRequired),
+        };
+
+        self.engine.broadcast(task?)
+    }
+
+    /// [`stream_broadcast_iter`] similar to [`broasdcast_iter`] returns a [`StreamRecvIterator`]
+    /// which returns a simplified representatiopn without the complexity of the [`Action`]
+    /// type providing easier usage within logic blocks.
+    pub fn stream_broadcast_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<StreamRecvIterator<Done, Pending>, ExecutorError> {
+        let iter_chan: Arc<ConcurrentQueue<Stream<Done, Pending>>> =
+            Arc::new(ConcurrentQueue::unbounded());
+
+        let boxed_task = match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (None, Some(mappers)) => StreamConsumingIter::new(task, mappers, iter_chan.clone()),
+                (None, None) => StreamConsumingIter::new(task, Vec::new(), iter_chan.clone()),
+                (_, _) => return Err(ExecutorError::NotSupported),
+            },
+            None => return Err(ExecutorError::TaskRequired),
+        };
+
+        self.engine
+            .broadcast(boxed_task.into())
+            .map(|()| StreamRecvIterator::new(RecvIterator::from_chan(iter_chan, wait_cycle)))
+    }
+
+    /// [`broadcast_iter`] adds a task into execution queue but instead of depending
+    /// on a [`TaskReadyResolver`] to process the final state instead allows you
+    /// to get back a wrapper iterator that allows you synchronously receive those
+    /// values from a [`RecvIterator`] that implements the [`Iterator`] trait.
+    ///
+    /// This makes it possible to build synchronous experiences in a async world.
+    ///
+    /// Following our naming: [`broadcast_iter`] calls the `broadcast` method to deliver
+    /// a task to the bottom of the global execution queue.
+    pub fn broadcast_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<RecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
+        let iter_chan: Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(ConcurrentQueue::unbounded());
+
+        let boxed_task = match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (None, Some(mappers)) => ConsumingIter::new(task, mappers, iter_chan.clone()),
+                (None, None) => ConsumingIter::new(task, Vec::new(), iter_chan.clone()),
+                (_, _) => return Err(ExecutorError::NotSupported),
+            },
+            None => return Err(ExecutorError::TaskRequired),
+        };
+
+        self.engine
+            .broadcast(boxed_task.into())
+            .map(|()| RecvIterator::from_chan(iter_chan, wait_cycle))
+    }
+
+    /// [`broadcast_ready_iter`] adds a task into execution queue but instead of depending
+    /// on a [`TaskReadyResolver`] to process the final state instead allows you
+    /// to get back a wrapper iterator that allows you synchronously receive those
+    /// values from a [`RecvIterator`] that implements the [`Iterator`] trait.
+    ///
+    /// It only returns the values that are of the [`TaskStatus::Ready`] state.
+    ///
+    /// This makes it possible to build synchronous experiences in a async world.
+    ///
+    /// Following our naming: [`broadcast_iter`] calls the `broadcast` method to deliver
+    /// a task to the bottom of the global execution queue.
+    pub fn broadcast_ready_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<RecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
+        let iter_chan: Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(ConcurrentQueue::unbounded());
+
+        let boxed_task = match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (None, Some(mappers)) => ReadyConsumingIter::new(task, mappers, iter_chan.clone()),
+                (None, None) => ReadyConsumingIter::new(task, Vec::new(), iter_chan.clone()),
+                (_, _) => return Err(ExecutorError::NotSupported),
+            },
+            None => return Err(ExecutorError::TaskRequired),
+        };
+
+        self.engine
+            .broadcast(boxed_task.into())
+            .map(|()| RecvIterator::from_chan(iter_chan, wait_cycle))
+    }
+}
+
+impl<
+        F,
+        Done: 'static,
+        Pending: 'static,
+        Action: ExecutionAction + Send + 'static,
+        Mapper: TaskStatusMapper<Done, Pending, Action> + 'static,
+        Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+    > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, FnMutReady<F, Action>, Task>
+where
+    F: FnMut(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + 'static,
+{
+    pub fn on_next_mut(self, action: F) -> Self
+    where
+        F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + 'static,
+    {
+        self.with_resolver(FnMutReady::new(action))
+    }
+}
+
+impl<
+        F,
+        Done: 'static,
+        Pending: 'static,
+        Action: ExecutionAction + 'static,
+        Mapper: TaskStatusMapper<Done, Pending, Action> + 'static,
+        Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+    > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, FnReady<F, Action>, Task>
+where
+    F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + 'static,
+{
+    pub fn on_next(self, action: F) -> Self {
+        self.with_resolver(FnReady::new(action))
+    }
+}
+
+impl<
+        F,
+        Done: Send + 'static,
+        Pending: Send + 'static,
+        Action: ExecutionAction + Send + 'static,
+        Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
+        Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
+    > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, FnReady<F, Action>, Task>
+where
+    F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
+{
+    pub fn on_send_next(self, action: F) -> Self {
+        self.with_resolver(FnReady::new(action))
+    }
+}
+
+impl<
+        F,
+        Done: Send + 'static,
+        Pending: Send + 'static,
+        Action: ExecutionAction + Send + 'static,
+        Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
+        Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
+    > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, FnMutReady<F, Action>, Task>
+where
+    F: FnMut(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
+{
+    pub fn on_send_next_mut(self, action: F) -> Self
+    where
+        F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + 'static,
+    {
+        self.with_resolver(FnMutReady::new(action))
+    }
+}

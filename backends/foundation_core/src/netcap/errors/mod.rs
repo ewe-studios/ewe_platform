@@ -1,6 +1,6 @@
 use derive_more::From;
 
-use std::{error, fmt, io, net::AddrParseError};
+use std::{error, io, net::AddrParseError};
 
 pub type BoxedError = Box<dyn error::Error + Send + Sync + 'static>;
 

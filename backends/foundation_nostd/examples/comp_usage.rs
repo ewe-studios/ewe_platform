@@ -13,7 +13,8 @@
 //! cargo run --example comp_usage --no-default-features
 //! ```
 
-use foundation_nostd::comp::{Barrier, CondVar, CondVarMutex, Mutex, Once, OnceLock, RwLock};
+use foundation_nostd::comp::basic::{Barrier, Mutex, Once, OnceLock, RwLock};
+use foundation_nostd::comp::condvar_comp::{CondVar, CondVarMutex};
 use std::time::Duration;
 
 fn main() {

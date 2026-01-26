@@ -3,19 +3,19 @@
 use std::cell::OnceCell;
 use std::sync::Arc;
 
-use crate::{
-    retries::ExponentialBackoffDecider,
-    synca::{IdleMan, SleepyMan},
-};
-
-use super::{
-    constants::{
+use crate::valtron::{
+    executors::constants::{
         BACK_OFF_JITER, BACK_OFF_MAX_DURATION, BACK_OFF_MIN_DURATION, BACK_OFF_THREAD_FACTOR,
         MAX_ROUNDS_IDLE_COUNT, MAX_ROUNDS_WHEN_SLEEPING_ENDS,
     },
     BoxedSendExecutionIterator, ExecutionAction, ExecutionTaskIteratorBuilder, LocalThreadExecutor,
     PriorityOrder, ProcessController, ProgressIndicator, TaskIterator, TaskReadyResolver,
     TaskStatusMapper,
+};
+
+use crate::{
+    retries::ExponentialBackoffDecider,
+    synca::{IdleMan, SleepyMan},
 };
 use concurrent_queue::ConcurrentQueue;
 
@@ -82,6 +82,11 @@ pub fn initialize(seed_for_rng: u64) {
 /// to do matters and you do not want a [`run_until_complete`]
 /// where the underlying point of stopping is not controlled
 /// by you.
+///
+/// # Panics
+///
+/// 1. Will panic if no pool exists.
+///
 #[must_use]
 pub fn run_once() -> ProgressIndicator {
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| match pool.get() {
@@ -92,6 +97,11 @@ pub fn run_once() -> ProgressIndicator {
 
 /// `run_until_complete` calls the `LocalExecution` queue and processes
 /// all pending messages till they are completed.
+///
+/// # Panics
+///
+/// 1. Will panic if no pool exists.
+///
 pub fn run_until_complete() {
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| match pool.get() {
         Some(pool) => pool.block_until_finished(),
@@ -104,6 +114,11 @@ pub fn run_until_complete() {
 ///
 /// It expects you infer the type of `Task` and `Action` from the
 /// type implementing `TaskIterator`.
+///
+/// # Panics
+///
+/// 1. Will panic if no pool exists.
+///
 #[must_use]
 pub fn spawn<Task, Action>() -> ExecutionTaskIteratorBuilder<
     Task::Ready,
@@ -129,6 +144,11 @@ where
 /// the underlying tasks to be scheduled into the global queue.
 ///
 /// It expects you to provide types for both Mapper and Resolver.
+///
+/// # Panics
+///
+/// 1. Will panic if no pool exists.
+///
 #[must_use]
 pub fn spawn2<Task, Action, Mapper, Resolver>(
 ) -> ExecutionTaskIteratorBuilder<Task::Ready, Task::Pending, Action, Mapper, Resolver, Task>

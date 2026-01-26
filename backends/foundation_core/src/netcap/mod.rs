@@ -1,4 +1,3 @@
-#![allow(unused_imports)]
 #![allow(dead_code)]
 
 pub mod errors;
@@ -16,8 +15,6 @@ pub use connection::*;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod ssl;
 
-#[cfg(not(target_arch = "wasm32"))]
-pub use ssl::*;
 
 #[cfg(not(target_arch = "wasm32"))]
 mod no_wasm;

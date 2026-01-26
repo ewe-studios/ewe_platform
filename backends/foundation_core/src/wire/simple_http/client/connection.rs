@@ -250,7 +250,7 @@ impl HttpClientConnection {
 
         let (_tls_stream, _addr) = connector
             .from_tcp_stream(host.to_string(), connection)
-            .map_err(|e| HttpClientError::TlsHandshakeFailed(e.to_string()))?;
+            .map_err(|e: Box<dyn std::error::Error + Send + Sync>| HttpClientError::TlsHandshakeFailed(e.to_string()))?;
 
         // TODO: We need to convert RustTlsClientStream back to Connection
         // For now, this is a limitation of the current netcap design

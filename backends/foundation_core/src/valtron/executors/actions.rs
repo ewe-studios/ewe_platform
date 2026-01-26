@@ -16,11 +16,11 @@
 //!
 //! This enables different execution strategies through the Spawner type pattern.
 
-use super::{
-    BoxedExecutionEngine, BoxedExecutionIterator, DoNext, ExecutionAction, NoAction, TaskIterator,
-    TaskStatus,
-};
 use crate::valtron::GenericResult;
+use crate::valtron::{
+    BoxedExecutionEngine, BoxedExecutionIterator, DoNext, ExecutionAction, ExecutionIterator,
+    NoAction, TaskIterator, TaskStatus,
+};
 use std::marker::PhantomData;
 
 // ============================================================================
@@ -413,7 +413,7 @@ where
             let task = BroadcastTask::new(value, callbacks);
             // Use broadcast() instead of schedule() - sends to global queue for any thread
             // Note: Requires Send bound on T
-            let exec_iter: Box<dyn super::ExecutionIterator + Send> = Box::new(DoNext::new(task));
+            let exec_iter: Box<dyn ExecutionIterator + Send> = Box::new(DoNext::new(task));
             executor.broadcast(exec_iter)?;
         }
         Ok(())
@@ -669,9 +669,9 @@ mod tests {
         let mut timed = TimeoutTask::new(wrapped, Duration::from_secs(10));
 
         // Should get Ready states through the composition
-        assert!(matches!(timed.next(), Some(TaskStatus::Ready(1))));
-        assert!(matches!(timed.next(), Some(TaskStatus::Ready(2))));
-        assert!(matches!(timed.next(), Some(TaskStatus::Ready(3))));
+        assert_eq!(timed.next(), Some(TaskStatus::Ready(1.into())));
+        assert_eq!(timed.next(), Some(TaskStatus::Ready(2.into())));
+        assert_eq!(timed.next(), Some(TaskStatus::Ready(3.into())));
         assert!(timed.next().is_none());
     }
 
@@ -702,7 +702,7 @@ mod tests {
         }
 
         // Second should be Ready (forwarded as-is)
-        assert_eq!(timed.next(), Some(TaskStatus::Ready(42)));
+        assert_eq!(timed.next(), Some(TaskStatus::Ready(42.into())));
         assert!(timed.next().is_none());
     }
 

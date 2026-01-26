@@ -13,7 +13,7 @@
 //! cargo build --example cross_platform --target wasm32-unknown-unknown --release
 //! ```
 
-use foundation_nostd::comp::{Mutex, Once, OnceLock, RwLock};
+use foundation_nostd::comp::basic::{Mutex, Once, OnceLock, RwLock};
 
 #[cfg(not(target_arch = "wasm32"))]
 use std::thread;
@@ -97,7 +97,10 @@ fn main() {
     // Access global config
     if let Some(config_mutex) = GLOBAL_CONFIG.get() {
         let mut config = config_mutex.lock().unwrap();
-        println!("📋 Global config: name={}, value={}", config.name, config.value);
+        println!(
+            "📋 Global config: name={}, value={}",
+            config.name, config.value
+        );
         config.value += 50;
         println!("📋 Updated config value to: {}", config.value);
         drop(config);

@@ -1,12 +1,12 @@
-//! CondVar compatibility layer for std and no_std.
+//! `CondVar` compatibility layer for std and `no_std`.
 //!
-//! This module provides properly paired Mutex and CondVar types that work together
-//! in both std and no_std environments.
+//! This module provides properly paired Mutex and `CondVar` types that work together
+//! in both std and `no_std` environments.
 //!
 //! # Why This Module?
 //!
-//! The standard `comp::Mutex` uses SpinMutex in no_std mode, but CondVar requires
-//! CondVarMutex for guard type compatibility. This module ensures the types are
+//! The standard `comp::Mutex` uses `SpinMutex` in `no_std` mode, but `CondVar` requires
+//! `CondVarMutex` for guard type compatibility. This module ensures the types are
 //! properly paired.
 //!
 //! # Examples
@@ -27,28 +27,42 @@
 // CondVar-Compatible Mutex
 // ============================================================================
 
-/// Mutex type for use with CondVar.
+/// CondVarMutex type for use with `CondVar`.
+///
+/// - With `std` feature: Uses `std::sync::Mutex`
+/// - Without `std` feature: Uses `foundation_nostd::primitives::CondVarMutex`
+#[cfg(feature = "std")]
+pub use std::sync::Mutex as CondVarMutex;
+
+/// CondVarMutex type for use with `CondVar`.
+///
+/// - With `std` feature: Uses `std::sync::Mutex`
+/// - Without `std` feature: Uses `foundation_nostd::primitives::CondVarMutex`
+#[cfg(not(feature = "std"))]
+pub use crate::primitives::condvar::CondVarMutex;
+
+/// Mutex type for use with `CondVar`.
 ///
 /// - With `std` feature: Uses `std::sync::Mutex`
 /// - Without `std` feature: Uses `foundation_nostd::primitives::CondVarMutex`
 #[cfg(feature = "std")]
 pub use std::sync::Mutex;
 
-/// Mutex type for use with CondVar.
+/// Mutex type for use with `CondVar`.
 ///
 /// - With `std` feature: Uses `std::sync::Mutex`
 /// - Without `std` feature: Uses `foundation_nostd::primitives::CondVarMutex`
 #[cfg(not(feature = "std"))]
 pub use crate::primitives::condvar::CondVarMutex as Mutex;
 
-/// Mutex guard type for use with CondVar.
+/// Mutex guard type for use with `CondVar`.
 ///
 /// - With `std` feature: Uses `std::sync::MutexGuard`
 /// - Without `std` feature: Uses `foundation_nostd::primitives::CondVarMutexGuard`
 #[cfg(feature = "std")]
 pub use std::sync::MutexGuard;
 
-/// Mutex guard type for use with CondVar.
+/// Mutex guard type for use with `CondVar`.
 ///
 /// - With `std` feature: Uses `std::sync::MutexGuard`
 /// - Without `std` feature: Uses `foundation_nostd::primitives::CondVarMutexGuard`
@@ -59,28 +73,28 @@ pub use crate::primitives::condvar::CondVarMutexGuard as MutexGuard;
 // CondVar
 // ============================================================================
 
-/// Platform-appropriate CondVar type.
+/// Platform-appropriate `CondVar` type.
 ///
 /// - With `std` feature: Uses `std::sync::Condvar`
 /// - Without `std` feature: Uses `foundation_nostd::primitives::CondVar`
 #[cfg(feature = "std")]
 pub use std::sync::Condvar as CondVar;
 
-/// Platform-appropriate CondVar type.
+/// Platform-appropriate `CondVar` type.
 ///
 /// - With `std` feature: Uses `std::sync::Condvar`
 /// - Without `std` feature: Uses `foundation_nostd::primitives::CondVar`
 #[cfg(not(feature = "std"))]
 pub use crate::primitives::CondVar;
 
-/// Platform-appropriate WaitTimeoutResult type.
+/// Platform-appropriate `WaitTimeoutResult` type.
 ///
 /// - With `std` feature: Uses `std::sync::WaitTimeoutResult`
 /// - Without `std` feature: Uses `foundation_nostd::primitives::WaitTimeoutResult`
 #[cfg(feature = "std")]
 pub use std::sync::WaitTimeoutResult;
 
-/// Platform-appropriate WaitTimeoutResult type.
+/// Platform-appropriate `WaitTimeoutResult` type.
 ///
 /// - With `std` feature: Uses `std::sync::WaitTimeoutResult`
 /// - Without `std` feature: Uses `foundation_nostd::primitives::WaitTimeoutResult`

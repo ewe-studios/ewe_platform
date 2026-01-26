@@ -10,12 +10,12 @@
 //! - **Native without `multi` feature**: Uses `single` executor  
 //! - **Native with `multi` feature**: Uses `multi` executor
 
-use super::{single, ExecutionAction, TaskIterator, TaskStatus};
+use crate::valtron::{single, ExecutionAction, TaskIterator, TaskStatus};
 
 #[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
 use super::multi;
 
-use crate::valtron::GenericResult;
+use crate::{synca::mpp::RecvIterator, valtron::GenericResult};
 
 /// Execute a task using the appropriate executor for the current platform/features.
 ///
@@ -36,10 +36,13 @@ use crate::valtron::GenericResult;
 ///
 /// WHY: Provides single API that works across all platforms/configurations
 /// WHAT: Auto-selects executor based on compile-time configuration
-pub fn execute<T>(task: T) -> GenericResult<T::Ready>
+pub fn execute<T>(
+    task: T,
+) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
     T::Spawner: ExecutionAction + Send + 'static,
 {
     #[cfg(target_arch = "wasm32")]
@@ -65,7 +68,10 @@ where
 ///
 /// WHY: WASM and minimal builds need single-threaded execution
 /// WHAT: Schedules task, runs until complete, returns first Ready value
-fn execute_single<T>(task: T) -> GenericResult<T::Ready>
+#[allow(dead_code)]
+fn execute_single_complete<T>(
+    task: T,
+) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
@@ -76,19 +82,34 @@ where
     // Schedule task and get iterator
     let iter = single::spawn()
         .with_task(task)
-        .schedule_iter(Duration::from_nanos(1))?;
+        .schedule_iter(Duration::from_nanos(5))?;
 
     // Run executor until complete
     single::run_until_complete();
 
-    // Extract first Ready value
-    for status in iter {
-        if let TaskStatus::Ready(value) = status {
-            return Ok(value);
-        }
-    }
+    Ok(iter)
+}
 
-    Err("Task completed without producing Ready value".into())
+/// Execute using single-threaded executor.
+///
+/// WHY: WASM and minimal builds need single-threaded execution
+/// WHAT: Schedules task, runs until complete, returns first Ready value
+fn execute_single<T>(
+    task: T,
+) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    use std::time::Duration;
+
+    // Schedule task and get iterator
+    let iter = single::spawn()
+        .with_task(task)
+        .schedule_iter(Duration::from_nanos(5))?;
+
+    Ok(iter)
 }
 
 /// Execute using multi-threaded executor.
@@ -96,10 +117,13 @@ where
 /// WHY: Native builds can use multiple threads for better performance
 /// WHAT: Schedules task, runs until complete, returns first Ready value
 #[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
-fn execute_multi<T>(task: T) -> GenericResult<T::Ready>
+fn execute_multi<T>(
+    task: T,
+) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
     T::Spawner: ExecutionAction + Send + 'static,
 {
     use std::time::Duration;
@@ -109,23 +133,13 @@ where
         .with_task(task)
         .schedule_iter(Duration::from_nanos(1))?;
 
-    // Run executor until complete
-    multi::run_until_complete();
-
-    // Extract first Ready value
-    for status in iter {
-        if let TaskStatus::Ready(value) = status {
-            return Ok(value);
-        }
-    }
-
-    Err("Task completed without producing Ready value".into())
+    Ok(iter)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::valtron::executors::{NoAction, TaskStatus};
+    use crate::valtron::{NoAction, TaskStatus};
 
     /// Simple test task that yields a single value
     struct SimpleTask {
@@ -150,7 +164,9 @@ mod tests {
         let task = SimpleTask { value: Some(42) };
         // Just verify it compiles on WASM
         // Actual execution would require a WASM runtime
-        let _result: GenericResult<i32> = execute(task);
+        let values_iter = ReadyValues::new(execute(task).expect("should create task"));
+        let values: Vec<i32> = values_iter.flat_map(|item| item.inner()).collect();
+        assert_eq!(values, vec![42]);
     }
 
     /// WHY: execute() must work on native without multi feature (single executor)
@@ -159,8 +175,13 @@ mod tests {
     #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
     fn test_execute_uses_single_on_native_without_multi() {
         // Just verify compilation - actual execution requires runtime
+
+        use crate::valtron::ReadyValues;
         let task = SimpleTask { value: Some(42) };
-        let _result: GenericResult<i32> = execute(task);
+
+        let values_iter = ReadyValues::new(execute(task).expect("should create task"));
+        let values: Vec<i32> = values_iter.filter_map(|item| item.inner()).collect();
+        assert_eq!(values, vec![42]);
     }
 
     /// WHY: execute() must work on native with multi feature (multi executor)
@@ -170,7 +191,9 @@ mod tests {
     fn test_execute_uses_multi_on_native_with_feature() {
         // Just verify compilation - actual execution requires runtime
         let task = SimpleTask { value: Some(42) };
-        let _result: GenericResult<i32> = execute(task);
+        let values_iter = ReadyValues::new(execute(task).expect("should create task"));
+        let values: Vec<i32> = values_iter.flat_map(|item| item.inner()).collect();
+        assert_eq!(values, vec![42]);
     }
 
     /// WHY: execute() signature must match TaskIterator trait requirements

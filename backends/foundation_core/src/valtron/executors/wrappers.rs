@@ -3,7 +3,7 @@
 //! This module provides composable wrappers that add retry logic, timeouts,
 //! and backoff strategies to any TaskIterator, enabling robust task execution.
 
-use super::{TaskIterator, TaskStatus};
+use crate::valtron::{TaskIterator, TaskStatus};
 use std::time::Duration;
 
 // ============================================================================
@@ -26,6 +26,12 @@ pub enum TimeoutState<P> {
     TimedOut,
 }
 
+impl<P> From<P> for TimeoutState<P> {
+    fn from(value: P) -> Self {
+        Self::Inner(value)
+    }
+}
+
 /// Wraps a TaskIterator with a timeout.
 ///
 /// WHY: Tasks may hang indefinitely; need automatic timeout handling
@@ -40,6 +46,7 @@ where
     inner: T,
     timeout: Duration,
     started_at: Option<Instant>,
+    timed_out: Option<()>,
 }
 
 #[cfg(feature = "std")]
@@ -52,6 +59,7 @@ where
             inner,
             timeout,
             started_at: None,
+            timed_out: None,
         }
     }
 }
@@ -61,26 +69,30 @@ impl<T> TaskIterator for TimeoutTask<T>
 where
     T: TaskIterator,
 {
-    type Ready = T::Ready;
+    type Ready = TimeoutState<T::Ready>;
     type Pending = TimeoutState<T::Pending>;
     type Spawner = T::Spawner;
 
     fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        if self.timed_out.is_some() {
+            return None; // Task stops on timeout
+        }
+
         // Initialize start time on first poll
         if self.started_at.is_none() {
             self.started_at = Some(Instant::now());
         }
 
-        // Check if timed out
+        // Check if timed out and return timed out ready state
         if self.started_at.unwrap().elapsed() > self.timeout {
             tracing::warn!("Task timed out after {:?}", self.timeout);
-            return None; // Task stops on timeout
+            return Some(TaskStatus::Ready(TimeoutState::TimedOut));
         }
 
         // Poll inner task and wrap pending states
         self.inner.next().map(|status| match status {
             TaskStatus::Pending(p) => TaskStatus::Pending(TimeoutState::Inner(p)),
-            TaskStatus::Ready(r) => TaskStatus::Ready(r),
+            TaskStatus::Ready(r) => TaskStatus::Ready(TimeoutState::Inner(r)),
             TaskStatus::Delayed(d) => TaskStatus::Delayed(d),
             TaskStatus::Spawn(a) => TaskStatus::Spawn(a),
             TaskStatus::Init => TaskStatus::Init,
@@ -166,79 +178,6 @@ pub struct AlwaysRetry {
 impl<T> RetryDecider<T> for AlwaysRetry {
     fn should_retry(&self, _result: &T, attempt: u32) -> bool {
         attempt < self.max_attempts
-    }
-}
-
-/// Wraps a TaskIterator with retry logic.
-///
-/// WHY: Network calls and other operations may fail transiently
-/// WHAT: Replays the task logic up to max_retries times
-///
-/// Note: This wrapper tracks retry state but does NOT automatically recreate
-/// the inner task. For tasks that need to be recreated, use a state machine
-/// or factory pattern with StateMachine.
-pub struct RetryingTask<T, D>
-where
-    T: TaskIterator,
-    D: RetryDecider<T::Ready>,
-{
-    inner: T,
-    decider: D,
-    max_retries: u32,
-    current_attempt: u32,
-    last_result: Option<T::Ready>,
-}
-
-impl<T, D> RetryingTask<T, D>
-where
-    T: TaskIterator,
-    D: RetryDecider<T::Ready>,
-{
-    pub fn new(inner: T, decider: D, max_retries: u32) -> Self {
-        Self {
-            inner,
-            decider,
-            max_retries,
-            current_attempt: 0,
-            last_result: None,
-        }
-    }
-}
-
-impl<T, D> TaskIterator for RetryingTask<T, D>
-where
-    T: TaskIterator,
-    T::Ready: Clone,
-    D: RetryDecider<T::Ready>,
-{
-    type Ready = T::Ready;
-    type Pending = T::Pending;
-    type Spawner = T::Spawner;
-
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        // Note: This is a simplified retry wrapper that tracks attempts
-        // but doesn't automatically restart tasks. For full retry logic,
-        // use a state machine that can recreate the task on retry.
-
-        match self.inner.next() {
-            Some(TaskStatus::Ready(result)) => {
-                // Check if we should retry
-                if self.decider.should_retry(&result, self.current_attempt)
-                    && self.current_attempt < self.max_retries
-                {
-                    self.current_attempt += 1;
-                    tracing::debug!("Retry attempt {} of {} (result-based retry not implemented - returning result)",
-                                   self.current_attempt, self.max_retries);
-                    // NOTE: Can't actually retry without recreating the task
-                    // This wrapper just tracks retry attempts
-                    // For actual retry, use StateMachine with task recreation
-                    Some(TaskStatus::Ready(result))
-                } else {
-                    Some(TaskStatus::Ready(result))
-                }
-            }
-            other => other,
-        }
     }
 }
 
@@ -347,7 +286,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::valtron::executors::NoAction;
+    use crate::valtron::NoAction;
 
     struct SimpleTask {
         values: Vec<i32>,

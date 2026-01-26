@@ -1,4 +1,4 @@
-//! Basic synchronization primitives for std and no_std.
+//! Basic synchronization primitives for std and `no_std`.
 //!
 //! This module provides type aliases that automatically select between `std` and `no_std`
 //! implementations based on the `std` feature flag.

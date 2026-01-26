@@ -1,7 +1,6 @@
 #![cfg(not(target_arch = "wasm32"))]
 #![allow(clippy::missing_errors_doc)]
 
-use derive_more::derive::From;
 
 use crate::io::ioutils::{BufferedReader, BufferedWriter, PeekError, PeekableReadStream};
 
@@ -34,8 +33,6 @@ use super::ssl::rustls;
 ))]
 use super::ssl::native_ttls;
 
-use core::net;
-use std::sync::Arc;
 use std::time::Duration;
 use std::{net::TcpStream, time};
 
@@ -312,7 +309,7 @@ impl RawStream {
 
         match work {
             Ok(()) => Ok(()),
-            Err(err) => Err(err.into()),
+            Err(err) => Err(errors::TlsError::from(err)),
         }
     }
 
@@ -336,7 +333,7 @@ impl RawStream {
 
         match work {
             Ok(()) => Ok(()),
-            Err(err) => Err(err.into()),
+            Err(err) => Err(errors::TlsError::from(err)),
         }
     }
 

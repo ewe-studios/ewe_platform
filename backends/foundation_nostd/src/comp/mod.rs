@@ -6,8 +6,8 @@
 //!
 //! # Submodules
 //!
-//! - [`basic`]: Basic sync primitives (Mutex, RwLock, Barrier, Once, OnceLock)
-//! - [`condvar_comp`]: CondVar with properly paired Mutex types
+//! - [`basic`]: Basic sync primitives (Mutex, `RwLock`, Barrier, Once, `OnceLock`)
+//! - [`condvar_comp`]: `CondVar` with properly paired Mutex types
 //!
 //! # Feature Flags
 //!
@@ -48,7 +48,7 @@
 //! assert_eq!(*guard, 42);
 //! ```
 //!
-//! ## Using CondVar with proper Mutex pairing
+//! ## Using `CondVar` with proper Mutex pairing
 //!
 //! ```no_run
 //! use foundation_nostd::comp::condvar_comp::{Mutex, CondVar};
