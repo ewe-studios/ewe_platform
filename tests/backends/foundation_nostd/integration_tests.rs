@@ -229,7 +229,9 @@ fn test_producer_consumer_fairness() {
         for i in 0..num_items {
             queue_clone.push(i);
         }
+        println!("Pushed all items");
         done_clone.store(true, Ordering::Release);
+        println!("Updated done state to true");
     });
 
     // Consumers
@@ -237,12 +239,18 @@ fn test_producer_consumer_fairness() {
     for consumer_id in 0..num_consumers {
         let queue_clone = queue.clone();
         let done_clone = Arc::clone(&done_flag);
+
+        println!("Pull items for consumer: {:?}", consumer_id);
         handles.push(thread::spawn(move || {
             let mut count = 0;
             loop {
                 let done = done_clone.load(Ordering::Acquire);
                 let len = queue_clone.len();
 
+                println!(
+                    "Checking if done for consumer: consumer_id: {:?}, done: {:?}, len: {}",
+                    consumer_id, done, len
+                );
                 if done && len == 0 {
                     break;
                 }
@@ -251,7 +259,15 @@ fn test_producer_consumer_fairness() {
                     let _ = queue_clone.pop();
                     count += 1;
                 } else if !done {
+                    println!(
+                        "Yielding for consumer: consumer_id: {:?}, done: {:?}, len: {}",
+                        consumer_id, done, len
+                    );
                     thread::yield_now();
+                    println!(
+                        "Done yielding for consumer: consumer_id: {:?}, done: {:?}, len: {}",
+                        consumer_id, done, len
+                    );
                 }
             }
             println!("Consumer {} received {} items", consumer_id, count);
@@ -259,11 +275,15 @@ fn test_producer_consumer_fairness() {
         }));
     }
 
+    println!("Joining producer");
     producer.join().unwrap();
+    println!("Done joining producer");
 
     let mut counts = vec![];
     for handle in handles {
+        println!("collecting results from consumer handles");
         counts.push(handle.join().unwrap());
+        println!("collected results from consumer handles");
     }
 
     let total: usize = counts.iter().sum();

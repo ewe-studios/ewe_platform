@@ -84,10 +84,37 @@ impl<D: PartialEq, P: PartialEq, S: ExecutionAction> PartialEq for TaskStatus<D,
             (TaskStatus::Delayed(me), TaskStatus::Delayed(them)) => me == them,
             (TaskStatus::Pending(me), TaskStatus::Pending(them)) => me == them,
             (TaskStatus::Ready(me), TaskStatus::Ready(them)) => me == them,
-            (TaskStatus::Spawn(_), TaskStatus::Spawn(_)) => true,
-            (TaskStatus::Init, TaskStatus::Init) => true,
+            (TaskStatus::Spawn(_), TaskStatus::Spawn(_)) | (TaskStatus::Init, TaskStatus::Init) => {
+                true
+            }
             _ => false,
         }
+    }
+}
+
+impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::Display
+    for TaskStatus<D, P, S>
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        #[allow(unused)]
+        #[derive(Debug)]
+        enum TStatus<D, P> {
+            Delayed(time::Duration),
+            Pending(P),
+            Ready(D),
+            Init,
+            Spawn,
+        }
+
+        let debug_item = match self {
+            TaskStatus::Delayed(duration) => TStatus::Delayed(*duration),
+            TaskStatus::Pending(inner) => TStatus::Pending(inner),
+            TaskStatus::Ready(inner) => TStatus::Ready(inner),
+            TaskStatus::Spawn(_) => TStatus::Spawn,
+            TaskStatus::Init => TStatus::Init,
+        };
+
+        write!(f, "{debug_item:?}")
     }
 }
 

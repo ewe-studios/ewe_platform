@@ -725,7 +725,7 @@ impl Write for TcpStreamWrapper {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::net::{TcpListener, TcpStream};
+    use std::net::TcpListener;
     use std::time::Duration;
 
     #[test]

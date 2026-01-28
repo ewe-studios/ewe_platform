@@ -77,6 +77,9 @@ include = [
 
 [dependencies]
 
+[lints.clippy]
+unnecessary_transmute = "allow"
+
 [build-dependencies]
 bindgen = { workspace = true }
 cc = { workspace = true, features = ["parallel"] }

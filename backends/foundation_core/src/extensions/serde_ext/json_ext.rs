@@ -305,8 +305,6 @@ mod tests {
     use super::JsonValueExt;
     use serde_json::json;
 
-    type Result<T> = core::result::Result<T, Box<dyn std::error::Error>>; // For tests.
-
     #[test]
     fn test_value_can_walk() {
         // -- Setup & Fixtures
