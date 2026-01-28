@@ -59,7 +59,6 @@ macro_rules! error {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use tracing_test::traced_test;
 
     #[test]

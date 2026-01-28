@@ -132,6 +132,7 @@ where
     }
 }
 
+#[allow(dead_code)]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -211,6 +212,7 @@ mod tests {
     /// WHAT: Machine continues without yielding output
     #[test]
     fn test_state_transition_continue() {
+        #[allow(dead_code)]
         #[derive(Clone, Debug, PartialEq)]
         enum State {
             Init,
@@ -254,13 +256,13 @@ mod tests {
         // First next() should be Pending(Init) after Continue
         match task.next() {
             Some(TaskStatus::Pending(State::Init)) => {}
-            other => panic!("Expected Pending(Init), got {:?}", other),
+            other => panic!("Expected Ready(done), got {other:?}"),
         }
 
         // Next should complete
         match task.next() {
             Some(TaskStatus::Ready(ref s)) if s == "done" => {}
-            other => panic!("Expected Ready(done), got {:?}", other),
+            other => panic!("Expected Ready(done), got {other:?}"),
         }
 
         // Verify states were visited
@@ -272,6 +274,7 @@ mod tests {
     /// WHAT: Machine can request delayed continuation
     #[test]
     fn test_state_transition_delay() {
+        #[allow(dead_code)]
         #[derive(Clone, Debug, PartialEq)]
         enum State {
             Start,
@@ -325,6 +328,7 @@ mod tests {
     /// WHAT: Error transitions return None from next()
     #[test]
     fn test_state_transition_error_stops_task() {
+        #[allow(dead_code)]
         #[derive(Clone, Debug, PartialEq)]
         enum State {
             Start,
@@ -367,6 +371,7 @@ mod tests {
     fn test_state_transition_spawn() {
         use crate::valtron::executors::SpawnWithSchedule;
 
+        #[allow(dead_code)]
         #[derive(Clone, Debug, PartialEq)]
         enum State {
             Start,

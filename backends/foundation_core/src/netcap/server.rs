@@ -279,7 +279,7 @@ mod test_server_tests {
     use crate::{
         extensions::result_ext::BoxedResult,
         wire::simple_http::{
-            FuncSimpleServer, RequestDescriptor, SimpleBody, SimpleIncomingRequest, Status,
+            FuncSimpleServer, RequestDescriptor, SimpleBody, Status,
         },
     };
 

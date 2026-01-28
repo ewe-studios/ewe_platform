@@ -78,7 +78,6 @@ pub use nostd_impl::{
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::primitives::SpinRwLock;
 
     #[test]
     fn test_condvar_new() {
@@ -129,7 +128,9 @@ mod tests {
         let condvar = CondVarNonPoisoning::new();
 
         let guard = mutex.lock().unwrap();
-        let (_guard, result) = condvar.wait_timeout(guard, Duration::from_millis(1)).unwrap();
+        let (_guard, result) = condvar
+            .wait_timeout(guard, Duration::from_millis(1))
+            .unwrap();
         assert!(result.timed_out());
     }
 
@@ -751,8 +752,9 @@ mod tests {
 
         // Wait while value is 0 (will timeout)
         let guard = mutex.lock().unwrap();
-        let (_guard, result) =
-            condvar.wait_timeout_while(guard, Duration::from_millis(5), |val| *val == 0).unwrap();
+        let (_guard, result) = condvar
+            .wait_timeout_while(guard, Duration::from_millis(5), |val| *val == 0)
+            .unwrap();
         assert!(result.timed_out());
     }
 
@@ -766,7 +768,9 @@ mod tests {
         let condvar = CondVarNonPoisoning::new();
 
         let guard = mutex.lock().unwrap();
-        let (_guard, result) = condvar.wait_timeout(guard, Duration::from_millis(1)).unwrap();
+        let (_guard, result) = condvar
+            .wait_timeout(guard, Duration::from_millis(1))
+            .unwrap();
 
         // Should timeout, returns plain guard (not Result)
         assert!(result.timed_out());
