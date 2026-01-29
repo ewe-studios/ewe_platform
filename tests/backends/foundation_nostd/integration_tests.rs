@@ -244,6 +244,7 @@ fn test_producer_consumer_fairness() {
         handles.push(thread::spawn(move || {
             let mut count = 0;
             loop {
+                println!("Load thread state for: {}", consumer_id,);
                 let done = done_clone.load(Ordering::Acquire);
                 let len = queue_clone.len();
 
@@ -252,6 +253,7 @@ fn test_producer_consumer_fairness() {
                     consumer_id, done, len
                 );
                 if done && len == 0 {
+                    println!("Exiting consumer: {}", consumer_id,);
                     break;
                 }
 
@@ -285,6 +287,8 @@ fn test_producer_consumer_fairness() {
         counts.push(handle.join().unwrap());
         println!("collected results from consumer handles");
     }
+
+    println!("All received: {:?}", counts);
 
     let total: usize = counts.iter().sum();
     assert_eq!(total, num_items);

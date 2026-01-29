@@ -139,6 +139,7 @@ mod tests {
     #[cfg(not(feature = "std"))]
     mod rwlock_condvar_tests {
         use super::*;
+        use crate::primitives::SpinRwLock;
 
         /// WHY: Validates basic construction and notification of `RwLockCondVar`
         /// WHAT: Ensures `RwLockCondVar` can be created and notify operations don't panic
@@ -526,6 +527,7 @@ mod tests {
     #[cfg(not(feature = "std"))]
     mod rwlock_condvar_comprehensive_tests {
         use super::*;
+        use crate::primitives::SpinRwLock;
 
         /// WHY: Tests `notify_one` with mixed readers and writers
         /// WHAT: Should wake up one waiting thread (either reader or writer)
