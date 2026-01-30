@@ -2,6 +2,7 @@
 
 use foundation_nostd::primitives::{CondVar, CondVarMutex};
 use std::sync::Arc;
+use std::time::Duration;
 
 /// A thread-safe producer-consumer queue using condition variables.
 ///
@@ -37,25 +38,38 @@ pub struct ProducerConsumerQueue<T> {
     inner: Arc<Inner<T>>,
 }
 
+const DEFAULT_MAX_POP_WAIT: usize = 100;
+const DEFAULT_WAIT_DURATION: Duration = Duration::from_millis(100);
+
 struct Inner<T> {
     queue: CondVarMutex<Vec<T>>,
     not_empty: CondVar,
     not_full: CondVar,
     capacity: usize,
+    max_pop_wait: usize,
+    wait_duration: Duration,
 }
 
 impl<T> ProducerConsumerQueue<T> {
     /// Creates a new producer-consumer queue with the given capacity.
     #[must_use]
-    pub fn new(capacity: usize) -> Self {
+    pub fn with_max_loop(capacity: usize, max_pop_wait: usize, wait_duration: Duration) -> Self {
         Self {
             inner: Arc::new(Inner {
                 queue: CondVarMutex::new(Vec::with_capacity(capacity)),
                 not_empty: CondVar::new(),
                 not_full: CondVar::new(),
+                max_pop_wait,
+                wait_duration,
                 capacity,
             }),
         }
+    }
+
+    /// Creates a new producer-consumer queue with the given capacity.
+    #[must_use]
+    pub fn new(capacity: usize) -> Self {
+        Self::with_max_loop(capacity, DEFAULT_MAX_POP_WAIT, DEFAULT_WAIT_DURATION)
     }
 
     /// Pushes an item to the queue, blocking if the queue is full.
@@ -70,6 +84,7 @@ impl<T> ProducerConsumerQueue<T> {
         };
 
         // Wait while queue is full
+
         while guard.len() >= self.inner.capacity {
             guard = match self.inner.not_full.wait(guard) {
                 Ok(g) => g,
@@ -81,25 +96,45 @@ impl<T> ProducerConsumerQueue<T> {
 
         // Notify consumers that queue is not empty
         drop(guard);
-        self.inner.not_empty.notify_one();
+        self.inner.not_empty.notify_all();
     }
 
     /// Pops an item from the queue, blocking if the queue is empty.
     ///
+    /// Will loop until the maximum allowed loop runs and returns None
+    /// if no item is inserted within that period, this ensures we never loop
+    /// forever, blocking the thread, you can wrap this in a while loop to
+    /// get the forever looping semantics but you need to be careful to ensure
+    /// you can adequate exit such a state.
+    ///
     /// # Panics
     ///
     /// Panics if the mutex is poisoned.
-    pub fn pop(&self) -> T {
+    #[must_use]
+    pub fn pop(&self) -> Option<T> {
         let mut guard = match self.inner.queue.lock() {
             Ok(g) => g,
             Err(e) => e.into_inner(),
         };
 
         // Wait while queue is empty
+        let mut looped: usize = self.inner.max_pop_wait;
         while guard.is_empty() {
-            guard = match self.inner.not_empty.wait(guard) {
-                Ok(g) => g,
-                Err(e) => e.into_inner(),
+            if looped == 0 {
+                return None;
+            }
+
+            looped -= 1;
+            guard = match self
+                .inner
+                .not_empty
+                .wait_timeout(guard, self.inner.wait_duration)
+            {
+                Ok((g, _)) => g,
+                Err(e) => {
+                    let (g, _) = e.into_inner();
+                    g
+                }
             };
         }
 
@@ -107,9 +142,19 @@ impl<T> ProducerConsumerQueue<T> {
 
         // Notify producers that queue is not full
         drop(guard);
-        self.inner.not_full.notify_one();
+        self.inner.not_full.notify_all();
 
-        item
+        Some(item)
+    }
+
+    /// [`wake_one`] sends a wake signal to one threads.
+    pub fn wake_one(&self) {
+        self.inner.not_full.notify_one();
+    }
+
+    /// [`wake_all`] sends a wake signal to all threads.
+    pub fn wake_all(&self) {
+        self.inner.not_full.notify_all();
     }
 
     /// Returns the current number of items in the queue.
