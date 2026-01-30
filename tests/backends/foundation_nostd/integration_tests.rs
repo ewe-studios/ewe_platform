@@ -85,8 +85,9 @@ fn test_single_producer_multiple_consumers() {
                 }
 
                 if len > 0 {
-                    let _ = queue_clone.pop();
-                    consumed += 1;
+                    if let Some(_) = queue_clone.pop() {
+                        consumed += 1;
+                    }
                 } else if !done {
                     // Queue empty but producer still working
                     thread::yield_now();
@@ -229,66 +230,45 @@ fn test_producer_consumer_fairness() {
         for i in 0..num_items {
             queue_clone.push(i);
         }
-        println!("Pushed all items");
         done_clone.store(true, Ordering::Release);
-        println!("Updated done state to true");
     });
 
     // Consumers
     let mut handles = vec![];
-    for consumer_id in 0..num_consumers {
+    for _ in 0..num_consumers {
         let queue_clone = queue.clone();
         let done_clone = Arc::clone(&done_flag);
 
-        println!("Pull items for consumer: {:?}", consumer_id);
         handles.push(thread::spawn(move || {
             let mut count = 0;
             loop {
-                println!("Load thread state for: {}", consumer_id,);
                 let done = done_clone.load(Ordering::Acquire);
                 let len = queue_clone.len();
 
-                println!(
-                    "Checking if done for consumer: consumer_id: {:?}, done: {:?}, len: {}",
-                    consumer_id, done, len
-                );
                 if done && len == 0 {
-                    println!("Exiting consumer: {}", consumer_id,);
                     break;
                 }
 
                 if len > 0 {
-                    let _ = queue_clone.pop();
-                    count += 1;
+                    if queue_clone.pop().is_some() {
+                        count += 1;
+                    }
                 } else if !done {
-                    println!(
-                        "Yielding for consumer: consumer_id: {:?}, done: {:?}, len: {}",
-                        consumer_id, done, len
-                    );
                     thread::yield_now();
-                    println!(
-                        "Done yielding for consumer: consumer_id: {:?}, done: {:?}, len: {}",
-                        consumer_id, done, len
-                    );
                 }
             }
-            println!("Consumer {} received {} items", consumer_id, count);
             count
         }));
     }
 
-    println!("Joining producer");
     producer.join().unwrap();
-    println!("Done joining producer");
+
+    queue.wake_all();
 
     let mut counts = vec![];
     for handle in handles {
-        println!("collecting results from consumer handles");
         counts.push(handle.join().unwrap());
-        println!("collected results from consumer handles");
     }
-
-    println!("All received: {:?}", counts);
 
     let total: usize = counts.iter().sum();
     assert_eq!(total, num_items);
@@ -350,7 +330,9 @@ fn test_nested_synchronization() {
         // Consume 3 items from the shared pool
         let mut sum = 0;
         for _ in 0..3 {
-            sum += queue1.pop();
+            if let Some(v) = queue1.pop() {
+                sum += v;
+            }
         }
         sum
     });
@@ -369,7 +351,9 @@ fn test_nested_synchronization() {
         // Consume 3 items from the shared pool
         let mut sum = 0;
         for _ in 0..3 {
-            sum += queue2.pop();
+            if let Some(v) = queue2.pop() {
+                sum += v;
+            }
         }
         sum
     });
@@ -427,7 +411,9 @@ fn test_zero_capacity_queue() {
         thread::spawn(move || {
             let mut items = vec![];
             for _ in 0..5 {
-                items.push(queue.pop());
+                if let Some(v) = queue.pop() {
+                    items.push(v);
+                }
             }
             items
         })
