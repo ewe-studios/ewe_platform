@@ -74,6 +74,8 @@ impl<T> ProducerConsumerQueue<T> {
 
     /// Pushes an item to the queue, blocking if the queue is full.
     ///
+    /// It will block until it can push the item into the queue.
+    ///
     /// # Panics
     ///
     /// Panics if the mutex is poisoned.
