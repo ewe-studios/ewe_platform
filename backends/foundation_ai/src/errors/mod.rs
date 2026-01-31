@@ -11,6 +11,14 @@ pub enum GenerationError {
 pub type GenerationResult<T> = std::result::Result<T, GenerationError>;
 
 #[derive(From, Debug)]
+pub enum ModelRegistryErrors {
+    NotFound(String),
+    FailedFetching(BoxedError),
+}
+
+pub type ModelRegistryResult<T> = std::result::Result<T, ModelRegistryErrors>;
+
+#[derive(From, Debug)]
 pub enum ModelErrors {
     NotFound(String),
     FailedLoading(BoxedError),
@@ -18,11 +26,12 @@ pub enum ModelErrors {
 
 pub type ModelResult<T> = std::result::Result<T, ModelErrors>;
 
-/// A comprehensive enums representing all errors supported by package.
+/// A comprehensive types representing all errors supported by package.
 #[derive(From, Debug)]
 pub enum FoundationAIErrors {
     ModelErrors(ModelErrors),
     GenerationErrors(GenerationError),
+    RegistryErrors(ModelRegistryErrors),
 }
 
 pub type FoundationAIResult<T> = std::result::Result<T, FoundationAIErrors>;

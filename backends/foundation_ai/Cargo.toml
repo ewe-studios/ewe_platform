@@ -17,6 +17,8 @@ foundation_nostd = { workspace = true }
 foundation_macros = { workspace = true }
 foundation_core = { workspace = true }
 
+infrastructure_llama_cpp = { workspace = true }
+
 # -- Other dependencies
 derive_more = { version = "2.1", features = ["from", "debug", "error"] }
 serde = { version = "1", features = ["derive"] }
@@ -24,4 +26,26 @@ fastrand = { version = "2.3"}
 rand_chacha = { version = "0.9"}
 rand = { version = "0.9"}
 
-hf-hub = { version = "0.4.3" }
+# huggingface hub crate
+hf-hub = { version = "0.4" }
+
+[features]
+# vulkan + Apple Metal
+metal = ["infrastructure_llama_cpp/metal"]
+vulkan = ["infrastructure_llama_cpp/vulkan"]
+
+# cuda flags
+cuda = ["infrastructure_llama_cpp/cuda"]
+cuda_static = ["infrastructure_llama_cpp/cuda", "infrastructure_llama_cpp/cuda-no-vmm"]
+
+# Android
+android = ["infrastructure_llama_cpp/android-shared-stdcxx"]
+
+# OpenMP
+openmp = ["infrastructure_llama_cpp/openmp"]
+
+# MultiModel Model
+mtmd = ["infrastructure_llama_cpp/mtmd"]
+
+[lints]
+workspace = true
