@@ -166,7 +166,7 @@ pub type BoxedTaskIterator<D, P, S> = Box<dyn Iterator<Item = TaskStatus<D, P, S
 /// One thing to note is, the same restrictions apply with these iterators, you do
 /// not want to block the thread where this is executed or other processes and its always
 /// advised to finish early by moving long processes into other threads that allow you
-/// noify once next is called to notify if the task is done or still pending.
+/// notify once next is called to notify if the task is done or still pending.
 pub trait TaskIterator {
     /// The type to indicate pending operation, either can be a `time::Duration`
     /// to communicate time to completion or some other type you wish
@@ -582,10 +582,10 @@ pub trait ExecutionEngine {
     fn rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>>;
 }
 
-/// `TaskSpawner` represents a underlying type that can
-/// spawn some other task by using the provided executor.
+/// [`ExecutionAction`] represents a underlying action definition that can
+/// spawn some other task by using the provided execution engine and parent key.
 pub trait ExecutionAction {
-    fn apply(self, key: Entry, engine: BoxedExecutionEngine) -> GenericResult<()>;
+    fn apply(&mut self, key: Entry, engine: BoxedExecutionEngine) -> GenericResult<()>;
 }
 
 pub type NoSpawner = NoAction;
@@ -594,7 +594,7 @@ pub type NoSpawner = NoAction;
 pub struct NoAction;
 
 impl ExecutionAction for NoAction {
-    fn apply(self, _entry: Entry, _engine: BoxedExecutionEngine) -> GenericResult<()> {
+    fn apply(&mut self, _entry: Entry, _engine: BoxedExecutionEngine) -> GenericResult<()> {
         // do nothing
         Ok(())
     }
@@ -901,6 +901,7 @@ where
     }
 }
 
+#[derive(Debug)]
 pub enum ReadyValue<P> {
     Skip,
     Inner(P),

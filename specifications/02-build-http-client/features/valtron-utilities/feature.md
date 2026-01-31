@@ -323,7 +323,7 @@ where
 **Example**:
 
 ```rust
-use valtron::{TaskIterator, TaskStatus, SpawnWithBroadcast};
+use valtron::{spawn_builder, TaskIterator, TaskStatus, SpawnWithBroadcast};
 
 struct DataProcessor {
     chunks: Vec<DataChunk>,
@@ -416,8 +416,10 @@ where
             let callbacks = std::mem::take(&mut self.callbacks);
             let task = BroadcastTask::new(value, callbacks);
             // Use broadcast() - sends to GLOBAL queue for any thread
-            let exec_iter: Box<dyn super::ExecutionIterator + Send> = Box::new(DoNext::new(task));
-            executor.broadcast(exec_iter)?;
+            valtron::spawn_builder(executor)
+                .with_parent(key.clone())
+                .with_task(task)
+                .broadcast()?;
         }
         Ok(())
     }
@@ -654,7 +656,9 @@ Single entry point for executing tasks that auto-selects executor based on platf
 /// | WASM     | any     | `single`      |
 /// | Native   | none    | `single`      |
 /// | Native   | `multi` | `multi`       |
-pub fn execute<T>(task: T) -> Result<T::Ready, ExecutorError>
+pub fn execute<T>(
+    task: T
+) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
@@ -679,17 +683,25 @@ where
     }
 }
 
-fn execute_single<T>(task: T) -> Result<T::Ready, ExecutorError>
+fn execute_single<T>(
+    task: T
+) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
 where
     T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
 {
     single::spawn(task)
 }
 
 #[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
-fn execute_multi<T>(task: T) -> Result<T::Ready, ExecutorError>
+fn execute_multi<T>(
+    task: T
+) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
 where
     T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
 {
     multi::spawn(task)
 }

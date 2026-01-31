@@ -1,4 +1,3 @@
-#![allow(clippy::too_many_lines)]
 #![allow(clippy::type_complexity)]
 #![allow(clippy::return_self_not_must_use)]
 
@@ -2255,7 +2254,7 @@ mod test_local_thread_executor {
 
     impl ExecutionAction for DaemonSpawner {
         fn apply(
-            self,
+            &mut self,
             key: Entry,
             executor: BoxedExecutionEngine,
         ) -> crate::valtron::GenericResult<()> {

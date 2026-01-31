@@ -13,25 +13,6 @@ use std::time::Duration;
 #[cfg(feature = "std")]
 use std::time::Instant;
 
-/// State for timeout tracking.
-///
-/// WHY: Need to track both inner task state and timeout state
-/// WHAT: Wraps inner Pending type and adds TimedOut variant
-#[cfg(feature = "std")]
-#[derive(Debug, Clone, PartialEq)]
-pub enum TimeoutState<P> {
-    /// Inner task is pending
-    Inner(P),
-    /// Task has timed out
-    TimedOut,
-}
-
-impl<P> From<P> for TimeoutState<P> {
-    fn from(value: P) -> Self {
-        Self::Inner(value)
-    }
-}
-
 /// Wraps a TaskIterator with a timeout.
 ///
 /// WHY: Tasks may hang indefinitely; need automatic timeout handling
@@ -69,8 +50,8 @@ impl<T> TaskIterator for TimeoutTask<T>
 where
     T: TaskIterator,
 {
-    type Ready = TimeoutState<T::Ready>;
-    type Pending = TimeoutState<T::Pending>;
+    type Ready = T::Ready;
+    type Pending = T::Pending;
     type Spawner = T::Spawner;
 
     fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
@@ -86,13 +67,13 @@ where
         // Check if timed out and return timed out ready state
         if self.started_at.unwrap().elapsed() > self.timeout {
             tracing::warn!("Task timed out after {:?}", self.timeout);
-            return Some(TaskStatus::Ready(TimeoutState::TimedOut));
+            return None;
         }
 
         // Poll inner task and wrap pending states
         self.inner.next().map(|status| match status {
-            TaskStatus::Pending(p) => TaskStatus::Pending(TimeoutState::Inner(p)),
-            TaskStatus::Ready(r) => TaskStatus::Ready(TimeoutState::Inner(r)),
+            TaskStatus::Pending(p) => TaskStatus::Pending(p),
+            TaskStatus::Ready(r) => TaskStatus::Ready(r),
             TaskStatus::Delayed(d) => TaskStatus::Delayed(d),
             TaskStatus::Spawn(a) => TaskStatus::Spawn(a),
             TaskStatus::Init => TaskStatus::Init,
@@ -341,14 +322,15 @@ mod tests {
         let mut timeout_task = TimeoutTask::new(task, Duration::from_millis(200));
 
         // Poll a few times
-        for _ in 0..3 {
+        loop {
             if timeout_task.next().is_none() {
                 break;
             }
         }
 
         // Should eventually timeout
-        assert!(timeout_task.next().is_none());
+        let res = timeout_task.next();
+        assert!(res.is_none(), "Expected None but got: {res:?}");
     }
 
     /// WHY: PollLimitTask must stop after max polls

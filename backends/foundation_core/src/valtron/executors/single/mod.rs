@@ -44,7 +44,7 @@ thread_local! {
 /// execution engine, and is required to call this as your
 /// first call when using this in WebAssembly or `SingleThreaded`
 /// environment.
-pub fn initialize(seed_for_rng: u64) {
+pub fn initialize_pool(seed_for_rng: u64) {
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| {
         let _ = pool.get_or_init(|| {
             let tasks: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
@@ -174,7 +174,7 @@ mod single_threaded_tests {
     use tracing_test::traced_test;
 
     use crate::valtron::{
-        single::{initialize, run_until_complete, spawn},
+        single::{initialize_pool, run_until_complete, spawn},
         FnReady, NoSpawner, Stream, TaskIterator, TaskStatus,
     };
 
@@ -216,7 +216,7 @@ mod single_threaded_tests {
         let shared_list = Rc::new(RefCell::new(Vec::new()));
         let counter = Counter::new(5, shared_list.clone());
 
-        initialize(seed);
+        initialize_pool(seed);
 
         spawn()
             .with_task(counter)
@@ -237,7 +237,7 @@ mod single_threaded_tests {
         let shared_list = Rc::new(RefCell::new(Vec::new()));
         let counter = Counter::new(5, shared_list.clone());
 
-        initialize(seed);
+        initialize_pool(seed);
 
         spawn()
             .with_task(counter)
@@ -260,7 +260,7 @@ mod single_threaded_tests {
         let shared_list = Rc::new(RefCell::new(Vec::new()));
         let counter = Counter::new(5, shared_list.clone());
 
-        initialize(seed);
+        initialize_pool(seed);
 
         let iter = spawn()
             .with_task(counter)
@@ -290,7 +290,7 @@ mod single_threaded_tests {
         let shared_list = Rc::new(RefCell::new(Vec::new()));
         let counter = Counter::new(5, shared_list.clone());
 
-        initialize(seed);
+        initialize_pool(seed);
 
         let iter = spawn()
             .with_task(counter)

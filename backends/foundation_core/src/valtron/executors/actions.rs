@@ -16,9 +16,8 @@
 //!
 //! This enables different execution strategies through the Spawner type pattern.
 
-use crate::valtron::GenericResult;
 use crate::valtron::{
-    BoxedExecutionEngine, BoxedExecutionIterator, DoNext, ExecutionAction, ExecutionIterator,
+    spawn_broadcaster, spawn_builder, BoxedExecutionEngine, ExecutionAction, GenericResult,
     NoAction, TaskIterator, TaskStatus,
 };
 use std::marker::PhantomData;
@@ -162,14 +161,17 @@ where
     T: 'static,
 {
     fn apply(
-        mut self,
-        _key: crate::synca::Entry,
+        &mut self,
+        key: crate::synca::Entry,
         executor: BoxedExecutionEngine,
     ) -> GenericResult<()> {
         if let Some(iter) = self.iter.take() {
             let task = WrapTask::new(iter);
-            let exec_iter: BoxedExecutionIterator = DoNext::new(task).into();
-            executor.schedule(exec_iter)?;
+
+            spawn_builder(executor)
+                .with_parent(key.clone())
+                .with_task(task)
+                .schedule()?;
         }
         Ok(())
     }
@@ -221,15 +223,16 @@ where
     S: ExecutionAction + 'static,
 {
     fn apply(
-        mut self,
+        &mut self,
         key: crate::synca::Entry,
         executor: BoxedExecutionEngine,
     ) -> GenericResult<()> {
         if let Some(iter) = self.iter.take() {
             let task = LiftTask::new(iter);
-            let exec_iter: BoxedExecutionIterator = DoNext::new(task).into();
-            // Use lift() instead of schedule() - links task with parent
-            executor.lift(exec_iter, Some(key))?;
+            spawn_builder(executor)
+                .with_parent(key.clone())
+                .with_task(task)
+                .lift()?;
         }
         Ok(())
     }
@@ -306,14 +309,17 @@ where
     F: FnOnce() + 'static,
 {
     fn apply(
-        mut self,
-        _key: crate::synca::Entry,
+        &mut self,
+        key: crate::synca::Entry,
         executor: BoxedExecutionEngine,
     ) -> GenericResult<()> {
         if let Some(closure) = self.closure.take() {
             let task = ScheduleTask::new(closure);
-            let exec_iter: BoxedExecutionIterator = DoNext::new(task).into();
-            executor.schedule(exec_iter)?;
+
+            spawn_builder(executor)
+                .with_parent(key.clone())
+                .with_task(task)
+                .schedule()?;
         }
         Ok(())
     }
@@ -404,17 +410,20 @@ where
     T: Clone + Send + 'static,
 {
     fn apply(
-        mut self,
-        _key: crate::synca::Entry,
+        &mut self,
+        key: crate::synca::Entry,
         executor: BoxedExecutionEngine,
     ) -> GenericResult<()> {
         if let (Some(value), true) = (self.value.take(), !self.callbacks.is_empty()) {
             let callbacks = std::mem::take(&mut self.callbacks);
             let task = BroadcastTask::new(value, callbacks);
+
             // Use broadcast() instead of schedule() - sends to global queue for any thread
             // Note: Requires Send bound on T
-            let exec_iter: Box<dyn ExecutionIterator + Send> = Box::new(DoNext::new(task));
-            executor.broadcast(exec_iter)?;
+            spawn_broadcaster(executor)
+                .with_parent(key.clone())
+                .with_task(task)
+                .broadcast()?;
         }
         Ok(())
     }
@@ -461,7 +470,11 @@ where
     V: Clone + Send + 'static,
     C: ExecutionAction,
 {
-    fn apply(self, key: crate::synca::Entry, engine: BoxedExecutionEngine) -> GenericResult<()> {
+    fn apply(
+        &mut self,
+        key: crate::synca::Entry,
+        engine: BoxedExecutionEngine,
+    ) -> GenericResult<()> {
         match self {
             Self::None => Ok(()),
             Self::Wrap(action) => action.apply(key, engine),

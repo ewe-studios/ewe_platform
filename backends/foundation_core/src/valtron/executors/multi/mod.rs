@@ -33,7 +33,7 @@ pub fn block_on<F>(seed_from_rng: u64, thread_num: Option<usize>, setup: F)
 where
     F: FnOnce(&ThreadPool),
 {
-    let pool = thread_pool(seed_from_rng, thread_num);
+    let pool = initialize_pool(seed_from_rng, thread_num);
     tracing::debug!("Executing ThreadPool with block_on function");
     setup(pool);
     tracing::debug!("Initialize and call ThreadPool::run_until");
@@ -42,7 +42,7 @@ where
 
 /// [`thread_pool`] is the core function for initializing a thread pool which is
 /// then returned for scheduling tasks on the pool.
-pub fn thread_pool(pool_seed: u64, user_thread_num: Option<usize>) -> &'static ThreadPool {
+pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> &'static ThreadPool {
     // register thread pool
     let thread_pool = GLOBAL_THREAD_POOL.get_or_init(|| {
         let thread_num = match user_thread_num {
@@ -50,7 +50,7 @@ pub fn thread_pool(pool_seed: u64, user_thread_num: Option<usize>) -> &'static T
             Some(num) => num,
         };
 
-        ThreadPool::with_seed_and_threads(pool_seed, thread_num)
+        ThreadPool::with_seed_and_threads(seed_for_rng, thread_num)
     });
 
     // register cancellation handler
@@ -137,7 +137,7 @@ mod multi_threaded_tests {
     use super::{block_on, get_pool};
     use crate::{
         synca::mpp,
-        valtron::{multi::thread_pool, FnReady, NoSpawner, TaskIterator, TaskStatus},
+        valtron::{multi::initialize_pool, FnReady, NoSpawner, TaskIterator, TaskStatus},
     };
 
     struct DCounter(usize, Arc<Mutex<Vec<usize>>>);
@@ -319,7 +319,7 @@ mod multi_threaded_tests {
             let shared_list = Arc::new(Mutex::new(Vec::new()));
             let counter = DCounter::new(5, shared_list.clone());
 
-            let pool = thread_pool(seed, None);
+            let pool = initialize_pool(seed, None);
 
             let iter = pool
                 .spawn()
@@ -347,7 +347,7 @@ mod multi_threaded_tests {
             let shared_list = Arc::new(Mutex::new(Vec::new()));
             let counter = DCounter::new(5, shared_list.clone());
 
-            let pool = thread_pool(seed, None);
+            let pool = initialize_pool(seed, None);
 
             let iter = pool
                 .spawn()
