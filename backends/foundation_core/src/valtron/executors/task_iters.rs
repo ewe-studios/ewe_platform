@@ -135,7 +135,7 @@ where
         }
 
         Some(match previous_response.unwrap() {
-            TaskStatus::Spawn(action) => match action.apply(entry, executor) {
+            TaskStatus::Spawn(mut action) => match action.apply(entry, executor) {
                 Ok(()) => State::Progressed,
                 Err(err) => {
                     tracing::error!("Failed to to spawn action: {:?}", err);
@@ -312,7 +312,7 @@ where
         }
 
         Some(match previous_response.unwrap() {
-            TaskStatus::Spawn(action) => match action.apply(entry, executor) {
+            TaskStatus::Spawn(mut action) => match action.apply(entry, executor) {
                 Ok(()) => State::Progressed,
                 Err(err) => {
                     tracing::error!("Failed to to spawn action: {:?}", err);
@@ -488,7 +488,7 @@ where
         }
 
         Some(match previous_response.unwrap() {
-            TaskStatus::Spawn(action) => match action.apply(entry, executor) {
+            TaskStatus::Spawn(mut action) => match action.apply(entry, executor) {
                 Ok(()) => State::Progressed,
                 Err(err) => {
                     tracing::error!("Failed to to spawn action: {:?}", err);

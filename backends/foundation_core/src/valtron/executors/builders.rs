@@ -501,3 +501,49 @@ where
         self.with_resolver(FnMutReady::new(action))
     }
 }
+
+/// [`spawn_builder`] returns a new instance of the [`ExecutionTaskIteratorBuilder`]
+/// which maps the task mapper and resolver to boxed versions which will be heap allocated
+/// for easier usage.
+#[must_use]
+pub fn spawn_builder<Task, Action>(
+    engine: BoxedExecutionEngine,
+) -> ExecutionTaskIteratorBuilder<
+    Task::Ready,
+    Task::Pending,
+    Task::Spawner,
+    Box<dyn TaskStatusMapper<Task::Ready, Task::Pending, Task::Spawner> + 'static>,
+    Box<dyn TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + 'static>,
+    Task,
+>
+where
+    Task::Ready: 'static,
+    Task::Pending: 'static,
+    Task: TaskIterator<Spawner = Action> + 'static,
+    Action: ExecutionAction + 'static,
+{
+    ExecutionTaskIteratorBuilder::new(engine)
+}
+
+/// [`spawn_broadcaster`] returns a new instance of the [`ExecutionTaskIteratorBuilder`]
+/// which maps the task mapper and resolver to boxed versions which will be heap allocated
+/// for easier usage.
+#[must_use]
+pub fn spawn_broadcaster<Task, Action>(
+    engine: BoxedExecutionEngine,
+) -> ExecutionTaskIteratorBuilder<
+    Task::Ready,
+    Task::Pending,
+    Task::Spawner,
+    Box<dyn TaskStatusMapper<Task::Ready, Task::Pending, Task::Spawner> + Send + 'static>,
+    Box<dyn TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + Send + 'static>,
+    Task,
+>
+where
+    Task::Ready: Send + 'static,
+    Task::Pending: Send + 'static,
+    Task: TaskIterator<Spawner = Action> + Send + 'static,
+    Action: ExecutionAction + Send + 'static,
+{
+    ExecutionTaskIteratorBuilder::new(engine)
+}

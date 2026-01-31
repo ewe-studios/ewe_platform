@@ -17,6 +17,27 @@ use super::multi;
 
 use crate::{synca::mpp::RecvIterator, valtron::GenericResult};
 
+/// [`initialize_pool`]
+pub fn initialize_pool(seed_for_rng: u64, _user_thread_num: Option<usize>) {
+    #[cfg(target_arch = "wasm32")]
+    {
+        single::initialize_pool(seed_for_rng);
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        #[cfg(feature = "multi")]
+        {
+            multi::initialize_pool(seed_for_rng, _user_thread_num);
+        }
+
+        #[cfg(not(feature = "multi"))]
+        {
+            single::initialize_pool(seed_for_rng);
+        }
+    }
+}
+
 /// Execute a task using the appropriate executor for the current platform/features.
 ///
 /// ## Platform Selection
@@ -139,7 +160,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::valtron::{NoAction, TaskStatus};
+    use crate::valtron::{initialize_pool, NoAction, TaskStatus};
 
     /// Simple test task that yields a single value
     struct SimpleTask {
@@ -164,9 +185,36 @@ mod tests {
         let task = SimpleTask { value: Some(42) };
         // Just verify it compiles on WASM
         // Actual execution would require a WASM runtime
+        initialize_pool(20, None);
+
         let values_iter = ReadyValues::new(execute(task).expect("should create task"));
         let values: Vec<i32> = values_iter.flat_map(|item| item.inner()).collect();
         assert_eq!(values, vec![42]);
+    }
+
+    /// WHY: execute() must work on native without multi feature (single executor)
+    /// WHAT: Function compiles and uses single executor and  gets next value with
+    /// single::run_once())
+    #[test]
+    #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
+    fn test_execute_uses_single_on_native_without_multi_with_run_once() {
+        // Just verify compilation - actual execution requires runtime
+
+        use crate::valtron::single;
+        use crate::valtron::ReadyValues;
+
+        let task = SimpleTask { value: Some(42) };
+
+        initialize_pool(20, None);
+
+        let mut values_iter = ReadyValues::new(execute(task).expect("should create task"));
+
+        let _ = single::run_once();
+
+        let value = values_iter.next();
+        let inner = value.expect("get inner").inner();
+
+        assert_eq!(inner, Some(42));
     }
 
     /// WHY: execute() must work on native without multi feature (single executor)
@@ -176,10 +224,17 @@ mod tests {
     fn test_execute_uses_single_on_native_without_multi() {
         // Just verify compilation - actual execution requires runtime
 
+        use crate::valtron::single;
         use crate::valtron::ReadyValues;
+
         let task = SimpleTask { value: Some(42) };
 
+        initialize_pool(20, None);
+
         let values_iter = ReadyValues::new(execute(task).expect("should create task"));
+
+        single::run_until_complete();
+
         let values: Vec<i32> = values_iter.filter_map(|item| item.inner()).collect();
         assert_eq!(values, vec![42]);
     }
@@ -190,6 +245,9 @@ mod tests {
     #[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
     fn test_execute_uses_multi_on_native_with_feature() {
         // Just verify compilation - actual execution requires runtime
+
+        initialize_pool(20, None);
+
         let task = SimpleTask { value: Some(42) };
         let values_iter = ReadyValues::new(execute(task).expect("should create task"));
         let values: Vec<i32> = values_iter.flat_map(|item| item.inner()).collect();

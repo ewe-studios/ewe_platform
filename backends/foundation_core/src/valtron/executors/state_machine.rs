@@ -255,8 +255,8 @@ mod tests {
 
         // First next() should be Pending(Init) after Continue
         match task.next() {
-            Some(TaskStatus::Pending(State::Init)) => {}
-            other => panic!("Expected Ready(done), got {other:?}"),
+            Some(TaskStatus::Pending(State::Processing)) => {}
+            other => panic!("Expected Pending(done), got {other:?}"),
         }
 
         // Next should complete

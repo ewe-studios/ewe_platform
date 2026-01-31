@@ -4,12 +4,12 @@
 
 use std::{any::Any, marker::PhantomData};
 
+use crate::synca::Entry;
 use crate::valtron::{
     BoxedExecutionEngine, BoxedExecutionIterator, BoxedPanicHandler, BoxedSendExecutionIterator,
     ExecutionAction, ExecutionIterator, FnMutReady, FnReady, State, TaskIterator,
     TaskReadyResolver, TaskStatus, TaskStatusMapper,
 };
-use crate::synca::Entry;
 
 use crate::compati::Mutex;
 
@@ -182,7 +182,7 @@ where
                         TaskStatus::Delayed(dur) => State::Pending(Some(dur)),
                         TaskStatus::Pending(_) => State::Pending(None),
                         TaskStatus::Init => State::Pending(None),
-                        TaskStatus::Spawn(action) => match action.apply(entry, executor) {
+                        TaskStatus::Spawn(mut action) => match action.apply(entry, executor) {
                             Ok(()) => State::SpawnFinished,
                             Err(err) => {
                                 tracing::error!("Failed to apply ExecutionAction: {:?}", err);
