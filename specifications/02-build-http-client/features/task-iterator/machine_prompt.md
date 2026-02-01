@@ -37,11 +37,15 @@ HttpRequestState:enum[Init,Connecting,TlsHandshake,SendingRequest,ReceivingIntro
 
 ## EXECUTOR_WRAPPER
 execute<T:TaskIterator>()->GenericResult<RecvIterator<TaskStatus<T::Ready,T::Pending,T::Spawner>>>
-returns:RecvIterator NOT direct Ready value|users drive with run_once/run_until_complete
+returns:RecvIterator NOT direct Ready|users consume iterator differently by mode
 wasm:always single|native no multi:single|native with multi:multi
 execute_single:single::spawn().with_task(task).schedule_iter(Duration::from_nanos(5))
 execute_multi:multi::spawn().with_task(task).schedule_iter(Duration::from_nanos(1))|feature-gated
-usage:ReadyValues::new(iter) to filter Ready|single::run_once() for manual|run_until_complete() for auto
+
+CRITICAL_DRIVING:
+single mode (wasm OR multi=off):users MUST call single::run_once() or run_until_complete()
+multi mode (multi=on):threads run automatically|NO run_once needed|just consume iterator
+usage:ReadyValues::new(iter) to filter Ready values
 
 ## VALTRON_INTEGRATION
 TaskIterator:type Pending,Ready,Spawner|fn next()->Option<TaskStatus>

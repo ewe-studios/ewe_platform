@@ -410,37 +410,56 @@ where
 
 ### Usage Pattern (from unified.rs tests)
 
+**CRITICAL**: `single::run_once()` and `single::run_until_complete()` are **ONLY** for single executor mode:
+- ✅ WASM (always single executor)
+- ✅ Native with `multi` feature **OFF** (single executor)
+- ❌ **NEVER** with `multi` feature **ON** (multi executor runs threads automatically)
+
 **Returns RecvIterator** (not direct Ready value):
 ```rust
 use crate::valtron::ReadyValues;
-use crate::valtron::single;
 
 let task = HttpRequestTask::new(...);
 
 // Execute returns iterator over TaskStatus values
 let status_iter = execute(task)?;
 
-// Option 1: Drive manually with run_once()
-let mut ready_values = ReadyValues::new(status_iter);
-loop {
-    single::run_once();  // Make progress
-    if let Some(value) = ready_values.next() {
-        // Process ready value
-        break;
+// ONLY FOR SINGLE EXECUTOR MODE (WASM or multi=off):
+#[cfg(any(target_arch = "wasm32", not(feature = "multi")))]
+{
+    use crate::valtron::single;
+
+    // Option 1: Drive manually with run_once()
+    let mut ready_values = ReadyValues::new(status_iter);
+    loop {
+        single::run_once();  // Make progress in single-threaded mode
+        if let Some(value) = ready_values.next() {
+            break;
+        }
     }
+
+    // Option 2: Run until complete
+    single::run_until_complete();  // Drive to completion
+    let values: Vec<_> = ReadyValues::new(status_iter)
+        .filter_map(|item| item.inner())
+        .collect();
 }
 
-// Option 2: Run until complete
-let status_iter = execute(task)?;
-single::run_until_complete();  // Drive to completion
-let values: Vec<_> = ReadyValues::new(status_iter)
-    .filter_map(|item| item.inner())
-    .collect();
+// FOR MULTI EXECUTOR MODE (multi=on):
+#[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
+{
+    // Multi executor runs threads automatically - NO run_once/run_until_complete needed
+    // Just consume the iterator:
+    let values: Vec<_> = ReadyValues::new(status_iter)
+        .filter_map(|item| item.inner())
+        .collect();
+}
 ```
 
 **Key Points**:
 - `execute()` returns `RecvIterator<TaskStatus<...>>` (not `T::Ready`)
-- Users call `single::run_once()` or `single::run_until_complete()` to drive
+- **Single mode**: Users MUST call `single::run_once()` or `single::run_until_complete()` to drive
+- **Multi mode**: Threads run automatically, just consume iterator
 - Use `ReadyValues::new(iter)` wrapper to filter for Ready values
 - `.schedule_iter(Duration)` spawns task and returns iterator
 
