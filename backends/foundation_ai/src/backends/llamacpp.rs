@@ -18,6 +18,10 @@ pub enum LlamaBackends {
     LLamaMetal,
 }
 
+// ==================================
+// Constructors
+// ==================================
+
 impl ModelBackend for LlamaBackends {
     fn get_model<T: crate::types::Model>(
         &self,
@@ -26,3 +30,15 @@ impl ModelBackend for LlamaBackends {
         todo!()
     }
 }
+
+// ==================================
+// LLamaCPU implementation handler
+// ==================================
+
+// ==================================
+// LLamaGPU implementation handler
+// ==================================
+
+// ==================================
+// LLamaMetal implementation handler
+// ==================================
