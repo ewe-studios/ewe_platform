@@ -64,9 +64,9 @@ pub enum TaskStatus<D, P, S: ExecutionAction> {
     Ready(D),
 }
 
-impl<D, P, S: ExecutionAction> Into<Stream<D, P>> for TaskStatus<D, P, S> {
-    fn into(self) -> Stream<D, P> {
-        match self {
+impl<D, P, S: ExecutionAction> From<TaskStatus<D, P, S>> for Stream<D, P> {
+    fn from(val: TaskStatus<D, P, S>) -> Self {
+        match val {
             TaskStatus::Init => Stream::Init,
             TaskStatus::Spawn(_) => Stream::Ignore,
             TaskStatus::Ready(inner) => Stream::Next(inner),
@@ -214,7 +214,7 @@ pub trait TaskIterator {
     }
 
     /// [`into_asstream`] returns a [`AsStream`] instance which takes ownership
-    /// of implementer of TaskIterator directly without boxing the underlying type
+    /// of implementer of `TaskIterator` directly without boxing the underlying type
     /// within a [`Box`] essentially it is stack friendly but due to limitations for the
     /// iterator type, `self` is still boxed and wrapped with a [`TaskAsIterator`].
     ///
@@ -234,7 +234,7 @@ pub trait TaskIterator {
     }
 
     /// [`into_ready_values`] returns a [`ReadyValues`] iterator implementing instance
-    /// which takes ownership of implementer of TaskIterator directly without boxing
+    /// which takes ownership of implementer of `TaskIterator` directly without boxing
     /// the underlying type within a [`Box`] essentially it is stack friendly but
     /// due to limitations for the iterator type, `self` is still
     /// boxed and wrapped with a [`TaskAsIterator`].
@@ -276,7 +276,7 @@ impl<D, P, S: ExecutionAction> Iterator for TaskAsStreamIterator<D, P, S> {
     type Item = crate::valtron::Stream<D, P>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(|item| item.into())
+        self.0.next().map(std::convert::Into::into)
     }
 }
 

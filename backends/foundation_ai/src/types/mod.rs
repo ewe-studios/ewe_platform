@@ -5,7 +5,6 @@ use std::path::PathBuf;
 use foundation_core::valtron::StreamIterator;
 
 use crate::errors::GenerationResult;
-use crate::errors::ModelRegistryErrors;
 use crate::errors::ModelRegistryResult;
 use crate::errors::ModelResult;
 

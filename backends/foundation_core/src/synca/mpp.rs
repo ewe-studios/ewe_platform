@@ -236,6 +236,7 @@ impl<T> Iterator for RecvIterator<T> {
 pub struct StreamRecvIterator<D, P>(RecvIterator<Stream<D, P>>);
 
 impl<D, P> StreamRecvIterator<D, P> {
+    #[must_use] 
     pub fn new(iter: RecvIterator<Stream<D, P>>) -> Self {
         Self(iter)
     }

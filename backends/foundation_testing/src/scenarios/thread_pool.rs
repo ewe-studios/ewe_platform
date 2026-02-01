@@ -1,4 +1,4 @@
-//! Simple thread pool implementation using CondVar.
+//! Simple thread pool implementation using `CondVar`.
 
 use foundation_nostd::primitives::{CondVar, CondVarMutex};
 use std::sync::Arc;

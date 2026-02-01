@@ -57,7 +57,7 @@ impl ChunkedData {
                             .into_bytes(),
                     );
                 } else {
-                    chunk_data.extend(hexa_octet.to_string().into_bytes());
+                    chunk_data.extend(hexa_octet.clone().into_bytes());
                 }
 
                 chunk_data.append(data);
@@ -72,7 +72,7 @@ impl ChunkedData {
                             let v = value.clone().unwrap();
                             format!("{key}:{v}")
                         } else {
-                            key.to_string()
+                            key.clone()
                         }
                     })
                     .collect();
@@ -965,7 +965,7 @@ impl Status {
             Self::InsufficientStorage => "507 Insufficient Storage".into(),
             Self::NetworkAuthenticationRequired => "511 Network Authentication Required".into(),
             Self::Numbered(code, description) => format!("{code} {description}"),
-            Self::Text(description) => description.to_string(),
+            Self::Text(description) => description.clone(),
         }
     }
 }

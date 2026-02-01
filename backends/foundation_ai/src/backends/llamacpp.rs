@@ -2,6 +2,8 @@
 
 use crate::types::ModelBackend;
 
+
+
 /// [`LlamaBackends`] implements a model backend for different
 /// underlying local backends for interacting with Large Language Models.
 pub enum LlamaBackends {
@@ -25,7 +27,7 @@ pub enum LlamaBackends {
 impl ModelBackend for LlamaBackends {
     fn get_model<T: crate::types::Model>(
         &self,
-        model_spec: crate::types::ModelSpec,
+        _model_spec: crate::types::ModelSpec,
     ) -> crate::errors::ModelResult<T> {
         todo!()
     }
@@ -34,6 +36,17 @@ impl ModelBackend for LlamaBackends {
 // ==================================
 // LLamaCPU implementation handler
 // ==================================
+
+impl LlamaBackends {
+    fn get_llama_cpu_model<T: crate::types::Model>(
+        &self,
+        _model_spec: crate::types::ModelSpec,
+    ) -> crate::errors::ModelResult<T> {
+        // let llama_backend = LlamaBackend::init()?;
+        // let model_params = LlamaDefault::default();
+        todo!()
+    }
+}
 
 // ==================================
 // LLamaGPU implementation handler

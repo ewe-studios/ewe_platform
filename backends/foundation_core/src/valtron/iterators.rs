@@ -230,7 +230,7 @@ pub enum Stream<D, P> {
     Next(D),
 }
 
-/// [StreamIterator] defines a type which implements an
+/// [`StreamIterator`] defines a type which implements an
 /// iterator that returns a stream stream
 /// of values.
 pub trait StreamIterator<D, P>: Iterator<Item = Stream<D, P>> {}

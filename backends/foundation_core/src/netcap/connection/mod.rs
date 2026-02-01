@@ -158,7 +158,7 @@ impl<T: Clone> Endpoint<T> {
 
     #[inline]
     pub(crate) fn get_query_params(&self, endpoint_url: &url::Url) -> Option<String> {
-        endpoint_url.query().map(|q| String::from(q))
+        endpoint_url.query().map(String::from)
     }
 
     #[inline]

@@ -25,7 +25,7 @@ async fn main() -> std::result::Result<(), BoxedError> {
         Some(("generate", arguments)) => generate::run(arguments)?,
         Some(("watch", arguments)) => watchful::run(arguments)?,
         _ => {}
-    };
+    }
 
     Ok(())
 }

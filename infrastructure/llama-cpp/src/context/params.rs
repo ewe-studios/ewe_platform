@@ -685,9 +685,9 @@ impl LlamaContextParams {
         self.context_params.n_seq_max
     }
     /// Set the KV cache data type for K
-    /// use infrastructure_llama_cpp::context::params::{LlamaContextParams, KvCacheType};
-    /// let params = LlamaContextParams::default().with_type_k(KvCacheType::Q4_0);
-    /// assert_eq!(params.type_k(), KvCacheType::Q4_0);
+    /// use `infrastructure_llama_cpp::context::params::{LlamaContextParams`, `KvCacheType`};
+    /// let params = `LlamaContextParams::default().with_type_k(KvCacheType::Q4_0)`;
+    /// `assert_eq!(params.type_k()`, `KvCacheType::Q4_0`);
     /// ```
     #[must_use]
     pub fn with_type_k(mut self, type_k: KvCacheType) -> Self {

@@ -5,7 +5,7 @@ use std::panic::{RefUnwindSafe, UnwindSafe};
 
 use super::Waker;
 
-/// `LockState` defines the underlying state of a CondVar based
+/// `LockState` defines the underlying state of a `CondVar` based
 /// locks which will allow us sleep a thread silently without eating up
 /// CPU cycles.
 #[derive(Clone, Debug, PartialEq, Eq)]

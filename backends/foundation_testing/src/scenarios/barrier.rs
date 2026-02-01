@@ -1,4 +1,4 @@
-//! Barrier synchronization using CondVar.
+//! Barrier synchronization using `CondVar`.
 
 use foundation_nostd::primitives::{CondVar, CondVarMutex};
 use std::sync::Arc;
@@ -72,6 +72,7 @@ impl Barrier {
     /// # Panics
     ///
     /// Panics if the mutex or condition variable is poisoned.
+    #[must_use] 
     pub fn wait(&self) -> bool {
         let mut guard = match self.inner.state.lock() {
             Ok(g) => g,

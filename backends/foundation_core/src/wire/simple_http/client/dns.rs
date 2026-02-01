@@ -25,7 +25,7 @@ pub trait DnsResolver: Send + Sync {
     fn resolve(&self, host: &str, port: u16) -> Result<Vec<SocketAddr>, DnsError>;
 }
 
-/// System DNS resolver using std::net::ToSocketAddrs.
+/// System DNS resolver using `std::net::ToSocketAddrs`.
 ///
 /// This is the default resolver that uses the system's DNS resolver.
 #[derive(Debug, Clone, Default)]
@@ -33,6 +33,7 @@ pub struct SystemDnsResolver;
 
 impl SystemDnsResolver {
     /// Creates a new system DNS resolver.
+    #[must_use] 
     pub fn new() -> Self {
         Self
     }
@@ -44,10 +45,10 @@ impl DnsResolver for SystemDnsResolver {
             return Err(DnsError::InvalidHost(host.to_string()));
         }
 
-        let addr_str = format!("{}:{}", host, port);
+        let addr_str = format!("{host}:{port}");
         let addrs: Vec<SocketAddr> = addr_str
             .to_socket_addrs()
-            .map_err(|e| DnsError::from(e))?
+            .map_err(DnsError::from)?
             .collect();
 
         if addrs.is_empty() {
@@ -121,7 +122,7 @@ impl<R: DnsResolver> CachingDnsResolver<R> {
 
 impl<R: DnsResolver> DnsResolver for CachingDnsResolver<R> {
     fn resolve(&self, host: &str, port: u16) -> Result<Vec<SocketAddr>, DnsError> {
-        let cache_key = format!("{}:{}", host, port);
+        let cache_key = format!("{host}:{port}");
 
         // Check cache first
         if let Ok(cache) = self.cache.lock() {
@@ -160,6 +161,7 @@ pub struct MockDnsResolver {
 
 impl MockDnsResolver {
     /// Creates a new mock DNS resolver.
+    #[must_use] 
     pub fn new() -> Self {
         Self {
             responses: Arc::new(Mutex::new(HashMap::new())),
@@ -167,6 +169,7 @@ impl MockDnsResolver {
     }
 
     /// Configures a successful response for a hostname.
+    #[must_use] 
     pub fn with_response(self, host: &str, addrs: Vec<SocketAddr>) -> Self {
         if let Ok(mut responses) = self.responses.lock() {
             responses.insert(host.to_string(), Ok(addrs));
@@ -175,6 +178,7 @@ impl MockDnsResolver {
     }
 
     /// Configures an error response for a hostname.
+    #[must_use] 
     pub fn with_error(self, host: &str, error: DnsError) -> Self {
         if let Ok(mut responses) = self.responses.lock() {
             responses.insert(host.to_string(), Err(error));
