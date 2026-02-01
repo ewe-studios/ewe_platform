@@ -75,6 +75,56 @@ files_required:
 
 # CondVar Primitives - Requirements
 
+## 🔍 CRITICAL: Retrieval-Led Reasoning Required
+
+**ALL agents implementing this specification MUST use retrieval-led reasoning.**
+
+### Before Starting Implementation
+
+**YOU MUST** (in this order):
+1. ✅ **Search the codebase** for similar implementations using Grep/Glob
+2. ✅ **Read existing code** to understand project patterns and conventions
+3. ✅ **Check stack files** (`.agents/stacks/[language].md`) for language-specific patterns
+4. ✅ **Read module documentation** for modules you'll modify
+5. ✅ **Follow discovered patterns** - do NOT invent new patterns without justification
+6. ✅ **Verify all assumptions** by reading actual code
+
+### FORBIDDEN Approaches
+
+**YOU MUST NOT**:
+- ❌ Assume typical patterns without checking the codebase
+- ❌ Implement without searching for similar code first
+- ❌ Apply generic best practices without verifying project conventions
+- ❌ Guess file structures, naming conventions, or API patterns
+- ❌ Use pretraining knowledge without verification against project code
+
+### Retrieval Examples
+
+**Good Retrieval Approach** ✅:
+```
+"Let me search for existing API endpoints to understand the pattern..."
+→ Uses Grep to find similar endpoints
+→ Reads actual implementation files
+→ Follows discovered patterns (e.g., Axum with custom middleware)
+→ Implements consistently with existing code
+```
+
+**Bad Pretraining Approach** ❌:
+```
+"I'll create an API endpoint using Express middleware (standard approach)"
+→ Assumes Express without checking project
+→ Doesn't verify actual framework used
+→ Creates inconsistent code
+```
+
+### Enforcement
+
+- Agents will be asked to demonstrate retrieval steps
+- Implementation that doesn't match project patterns will be rejected
+- "I assumed..." is NOT acceptable - only "I found..." backed by code references
+
+---
+
 > **Specification Tracking**: Tasks are tracked inline below. See [LEARNINGS.md](./LEARNINGS.md) for implementation insights.
 
 ## Overview
