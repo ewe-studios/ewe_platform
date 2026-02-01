@@ -94,7 +94,7 @@ where
         }
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn from_pinned(future: Pin<Box<F>>) -> Self {
         Self {
             future,
@@ -446,7 +446,9 @@ where
     use super::unified;
     let task = FutureTask::new(future);
     let values_iter = ReadyValues::new(unified::execute(task)?);
-    let values: Vec<F::Output> = values_iter.filter_map(super::super::task::ReadyValue::inner).collect();
+    let values: Vec<F::Output> = values_iter
+        .filter_map(super::super::task::ReadyValue::inner)
+        .collect();
 
     Ok(values)
 }

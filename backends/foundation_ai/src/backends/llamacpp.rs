@@ -2,8 +2,6 @@
 
 use crate::types::ModelBackend;
 
-
-
 /// [`LlamaBackends`] implements a model backend for different
 /// underlying local backends for interacting with Large Language Models.
 pub enum LlamaBackends {

@@ -308,7 +308,7 @@ pub struct RustConfig {
 }
 
 impl RustConfig {
-    #[must_use] 
+    #[must_use]
     pub fn new(workspace_cargo: Option<PathBuf>, retain_lib_section: bool) -> Self {
         Self {
             workspace_cargo,
@@ -317,7 +317,7 @@ impl RustConfig {
     }
 
     #[allow(dead_code)]
-    #[must_use] 
+    #[must_use]
     pub fn standard(workspace_cargo: Option<PathBuf>) -> Self {
         Self::new(workspace_cargo, false)
     }

@@ -1482,6 +1482,10 @@ impl SimpleOutgoingResponseBuilder {
         self
     }
 
+    /// Builds the outgoing HTTP response.
+    ///
+    /// # Errors
+    /// Returns an error if the status is not set or if building fails.
     pub fn build(self) -> SimpleResponseResult<SimpleOutgoingResponse> {
         let status = match self.status {
             Some(inner) => inner,
@@ -1674,6 +1678,10 @@ impl SimpleIncomingRequestBuilder {
         self
     }
 
+    /// Builds the incoming HTTP request.
+    ///
+    /// # Errors
+    /// Returns an error if the URL is not provided or if building fails.
     pub fn build(self) -> SimpleRequestResult<SimpleIncomingRequest> {
         let request_url = match self.url {
             Some(inner) => inner,
@@ -3472,6 +3480,10 @@ pub enum LineFeed {
 }
 
 impl LineFeed {
+    /// Parses line feeds from a byte string.
+    ///
+    /// # Errors
+    /// Returns an error if parsing the line feeds fails.
     pub fn stream_line_feeds_from_string(chunk_text: &[u8]) -> Result<Self, LineFeedError> {
         let cursor = Cursor::new(chunk_text.to_vec());
         let reader = SharedByteBufferStream::rwrite(cursor);
@@ -3786,18 +3798,30 @@ impl ChunkState {
         }
     }
 
+    /// Parses an HTTP trailer chunk from bytes.
+    ///
+    /// # Errors
+    /// Returns an error if parsing the trailer chunk fails.
     pub fn parse_http_trailer_chunk(chunk_text: &[u8]) -> Result<Option<Self>, ChunkStateError> {
         let cursor = Cursor::new(chunk_text.to_vec());
         let reader = SharedByteBufferStream::ref_cell(cursor);
         Self::parse_http_trailer_from_pointer(reader)
     }
 
+    /// Parses an HTTP chunk from bytes.
+    ///
+    /// # Errors
+    /// Returns an error if parsing the chunk fails.
     pub fn parse_http_chunk(chunk_text: &[u8]) -> Result<Self, ChunkStateError> {
         let cursor = Cursor::new(chunk_text.to_vec());
         let reader = SharedByteBufferStream::ref_cell(cursor);
         Self::parse_http_chunk_from_pointer(reader)
     }
 
+    /// Gets the length of an HTTP chunk header from bytes.
+    ///
+    /// # Errors
+    /// Returns an error if getting the header length fails.
     pub fn get_http_chunk_header_length(chunk_text: &[u8]) -> Result<usize, ChunkStateError> {
         let cursor = Cursor::new(chunk_text.to_vec());
         let reader = SharedByteBufferStream::ref_cell(cursor);
@@ -4343,6 +4367,8 @@ impl ChunkState {
     /// This formulas ensure we can correctly map our hexadecimal octet string into
     /// the relevant value in numbers.
     ///
+    /// # Errors
+    /// Returns an error if the chunk size octet contains invalid hexadecimal characters.
     pub fn parse_chunk_octet(chunk_size_octet: &[u8]) -> Result<u64, ChunkStateError> {
         const RADIX: u64 = 16;
         let mut size: u64 = 0;
@@ -5117,6 +5143,10 @@ impl ServiceActionBuilder {
         self
     }
 
+    /// Builds the service action.
+    ///
+    /// # Errors
+    /// Returns an error if the route is not provided or if building fails.
     pub fn build(self) -> SimpleHttpResult<ServiceAction> {
         let route = match self.route {
             Some(inner) => inner,

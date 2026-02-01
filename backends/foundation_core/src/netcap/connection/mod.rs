@@ -257,12 +257,18 @@ impl From<unix_net::UnixListener> for Listener {
 }
 
 /// [`Connection`] is a unified connection. Either
-/// a [`TcpStream`] or [`std::os::unix::net::UnixStream`].
+/// a [`TcpStream`], [`std::os::unix::net::UnixStream`], or a TLS-encrypted stream.
 #[derive(Debug)]
 pub enum Connection {
     Tcp(TcpStream),
     #[cfg(unix)]
     Unix(unix_net::UnixStream),
+    #[cfg(feature = "ssl-rustls")]
+    Tls(crate::netcap::ssl::rustls::RustTlsClientStream),
+    #[cfg(feature = "ssl-openssl")]
+    Tls(crate::netcap::ssl::openssl::SplitOpenSslStream),
+    #[cfg(feature = "ssl-native-tls")]
+    Tls(crate::netcap::ssl::native_ttls::NativeTlsStream),
 }
 
 impl Connection {
@@ -286,6 +292,12 @@ impl Connection {
             Self::Tcp(t) => t.read_timeout(),
             #[cfg(unix)]
             Self::Unix(u) => u.read_timeout(),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(tls) => tls.read_timeout(),
         }
     }
 
@@ -294,6 +306,12 @@ impl Connection {
             Self::Tcp(t) => t.write_timeout(),
             #[cfg(unix)]
             Self::Unix(u) => u.write_timeout(),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(tls) => tls.write_timeout(),
         }
     }
 
@@ -302,6 +320,12 @@ impl Connection {
             Self::Tcp(t) => t.set_write_timeout(dur),
             #[cfg(unix)]
             Self::Unix(u) => u.set_write_timeout(dur),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(tls) => tls.set_write_timeout(dur),
         }
     }
 
@@ -310,6 +334,12 @@ impl Connection {
             Self::Tcp(t) => t.set_read_timeout(dur),
             #[cfg(unix)]
             Self::Unix(u) => u.set_read_timeout(dur),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(tls) => tls.set_read_timeout(dur),
         }
     }
 }
@@ -330,6 +360,13 @@ impl PeekableReadStream for Connection {
                 Ok(count) => Ok(count),
                 Err(err) => Err(PeekError::IOError(err)),
             },
+
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(_) => Err(PeekError::NotSupported),
         }
     }
 }
@@ -340,6 +377,12 @@ impl std::io::Read for Connection {
             Self::Tcp(s) => s.read(buf),
             #[cfg(unix)]
             Self::Unix(s) => s.read(buf),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(tls) => tls.read(buf),
         }
     }
 }
@@ -350,6 +393,12 @@ impl std::io::Write for Connection {
             Self::Tcp(s) => s.write(buf),
             #[cfg(unix)]
             Self::Unix(s) => s.write(buf),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(tls) => tls.write(buf),
         }
     }
 
@@ -358,6 +407,12 @@ impl std::io::Write for Connection {
             Self::Tcp(s) => s.flush(),
             #[cfg(unix)]
             Self::Unix(s) => s.flush(),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(tls) => tls.flush(),
         }
     }
 }
@@ -369,6 +424,12 @@ impl Connection {
             Self::Tcp(s) => s.peer_addr().map(SocketAddr::from).map(Some),
             #[cfg(unix)]
             Self::Unix(_) => Ok(None),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(tls) => tls.peer_addr(),
         }
     }
 
@@ -378,6 +439,12 @@ impl Connection {
             Self::Tcp(s) => s.local_addr().map(SocketAddr::from).map(Some),
             #[cfg(unix)]
             Self::Unix(u) => u.local_addr().map(SocketAddr::from).map(Some),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(tls) => tls.local_addr(),
         }
     }
 
@@ -398,6 +465,17 @@ impl Connection {
             Self::Tcp(s) => s.shutdown(how),
             #[cfg(unix)]
             Self::Unix(s) => s.shutdown(how),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(_tls) => {
+                // TLS streams need mutable access for shutdown, but we have &self
+                // This is a design limitation - for now, return Ok(())
+                // The underlying TCP connection will be closed when dropped
+                Ok(())
+            }
         }
     }
 
@@ -406,6 +484,12 @@ impl Connection {
             Self::Tcp(s) => s.try_clone().map(Self::from),
             #[cfg(unix)]
             Self::Unix(s) => s.try_clone().map(Self::from),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(tls) => Ok(Self::Tls(tls.clone())),
         }
     }
 
@@ -456,6 +540,27 @@ impl From<TcpStream> for Connection {
 impl From<unix_net::UnixStream> for Connection {
     fn from(s: unix_net::UnixStream) -> Self {
         Self::Unix(s)
+    }
+}
+
+#[cfg(feature = "ssl-rustls")]
+impl From<crate::netcap::ssl::rustls::RustTlsClientStream> for Connection {
+    fn from(s: crate::netcap::ssl::rustls::RustTlsClientStream) -> Self {
+        Self::Tls(s)
+    }
+}
+
+#[cfg(feature = "ssl-openssl")]
+impl From<crate::netcap::ssl::openssl::SplitOpenSslStream> for Connection {
+    fn from(s: crate::netcap::ssl::openssl::SplitOpenSslStream) -> Self {
+        Self::Tls(s)
+    }
+}
+
+#[cfg(feature = "ssl-native-tls")]
+impl From<crate::netcap::ssl::native_ttls::NativeTlsStream> for Connection {
+    fn from(s: crate::netcap::ssl::native_ttls::NativeTlsStream) -> Self {
+        Self::Tls(s)
     }
 }
 

@@ -75,12 +75,9 @@ pub(crate) fn watch_path(
             for event in events {
                 match event.kind {
                     EventKind::Create(_) | EventKind::Remove(_) | EventKind::Modify(_) => {
-                        if let Err(failed) = handler(
-                            config.clone(),
-                            event.time,
-                            event.kind,
-                            event.paths.clone(),
-                        ) {
+                        if let Err(failed) =
+                            handler(config.clone(), event.time, event.kind, event.paths.clone())
+                        {
                             error!("Failed execution of update: {}", failed);
                         }
                     }

@@ -214,8 +214,8 @@ mod tests {
 
         let task = SimpleTask { value: Some(42) };
 
-        /// never call this in code, user will call this themsevles
-        /// in the main function but we do this here since its a test
+        // never call this in code, user will call this themsevles
+        // in the main function but we do this here since its a test
         initialize_pool(20, None);
 
         let mut values_iter = ReadyValues::new(execute(task).expect("should create task"));
@@ -241,8 +241,8 @@ mod tests {
 
         let task = SimpleTask { value: Some(42) };
 
-        /// never call this in code, user will call this themsevles
-        /// in the main function but we do this here since its a test
+        // never call this in code, user will call this themsevles
+        // in the main function but we do this here since its a test
         initialize_pool(20, None);
 
         let values_iter = ReadyValues::new(execute(task).expect("should create task"));

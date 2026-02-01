@@ -123,7 +123,7 @@ pub struct Templater<'a> {
 }
 
 impl<'a> Templater<'a> {
-    #[must_use] 
+    #[must_use]
     pub fn new(dest: &'a str) -> Self {
         Self {
             dest: path::PathBuf::from_str(dest).expect("created PathBuf from str"),

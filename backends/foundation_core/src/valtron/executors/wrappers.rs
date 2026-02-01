@@ -187,7 +187,7 @@ impl BackoffStrategy {
     ///
     /// WHY: Need to compute delay for current retry attempt
     /// WHAT: Returns Duration clamped to `max_delay`
-    #[must_use] 
+    #[must_use]
     pub fn next_delay(&self, attempt: u32, max_delay: Duration) -> Duration {
         let next = match self {
             Self::Fixed(d) => *d,

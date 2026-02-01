@@ -33,7 +33,7 @@ mod rustls_tests {
     }
 
     #[test]
-    #[ignore] // Requires network access
+    #[cfg(feature = "ssl-rustls")]
     fn test_rustls_https_connection() {
         use foundation_core::netcap::connection::Connection;
         use std::io::{Read, Write};

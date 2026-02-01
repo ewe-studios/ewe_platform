@@ -50,9 +50,7 @@ async fn megatron_handler(req: Request) -> Response {
 
     match instance.request_utf8(relative_request_path.as_str()) {
         Some((file_content, file_info)) => {
-            if file_info
-                .is_some_and(|info| info.mime_type.is_some_and(|t| t == "text/html"))
-            {
+            if file_info.is_some_and(|info| info.mime_type.is_some_and(|t| t == "text/html")) {
                 return Html(file_content).into_response();
             }
 
@@ -94,9 +92,7 @@ async fn public_handler(req: Request) -> Response {
                 file_info,
             );
 
-            if file_info
-                .is_some_and(|info| info.mime_type.is_some_and(|t| t == "text/html"))
-            {
+            if file_info.is_some_and(|info| info.mime_type.is_some_and(|t| t == "text/html")) {
                 return Html(file_content).into_response();
             }
 
