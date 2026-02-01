@@ -43,6 +43,49 @@ files_required:
 
 # Connection Feature
 
+## 🔍 CRITICAL: Retrieval-Led Reasoning Required
+
+**ALL agents implementing this feature MUST use retrieval-led reasoning.**
+
+### Before Starting Implementation
+
+**YOU MUST** (in this order):
+1. ✅ **Search the codebase** for similar implementations using Grep/Glob
+2. ✅ **Read existing code** in related modules to understand patterns
+3. ✅ **Check stack files** (`.agents/stacks/[language].md`) for language-specific conventions
+4. ✅ **Read parent specification** (`../requirements.md`) for high-level context
+5. ✅ **Read module documentation** for modules this feature touches
+6. ✅ **Check dependencies** by reading other feature files referenced in `depends_on`
+7. ✅ **Follow discovered patterns** consistently with existing codebase
+
+### FORBIDDEN Approaches
+
+**YOU MUST NOT**:
+- ❌ Assume patterns based on typical practices without checking this codebase
+- ❌ Implement without searching for similar features first
+- ❌ Apply generic solutions without verifying project conventions
+- ❌ Guess at naming conventions, file structures, or patterns
+- ❌ Use pretraining knowledge without validating against actual project code
+
+### Retrieval Checklist
+
+Before implementing, answer these questions by reading code:
+- [ ] What similar features exist in this project? (use Grep to find)
+- [ ] What patterns do they follow? (read their implementations)
+- [ ] What naming conventions are used? (observed from existing code)
+- [ ] How are errors handled in similar code? (check error patterns)
+- [ ] What testing patterns exist? (read existing test files)
+- [ ] Are there existing helper functions I can reuse? (search thoroughly)
+
+### Enforcement
+
+- Show your retrieval steps in your work report
+- Reference specific files/patterns you discovered
+- Explain how your implementation matches existing patterns
+- "I assumed..." responses will be rejected - only "I found in [file]..." accepted
+
+---
+
 ## Overview
 
 Create the connection management layer for the HTTP 1.1 client. This feature handles URL parsing, TCP connection establishment, and TLS upgrade using the existing `netcap` infrastructure.
