@@ -4,6 +4,9 @@ status: in-progress
 priority: high
 created: 2026-01-18
 author: Main Agent
+context_optimization: true  # Sub-agents MUST generate COMPACT_CONTEXT.md before work, reload after updates
+compact_context_file: ./COMPACT_CONTEXT.md  # Ultra-compact current task context (97% reduction)
+context_reload_required: true  # Clear and reload from compact context regularly to prevent context limit errors
 metadata:
   version: '4.0'
   last_updated: 2026-01-25

@@ -9,6 +9,9 @@ estimated_effort: small
 created: 2026-01-18
 last_updated: 2026-01-25
 author: Main Agent
+context_optimization: true  # Sub-agents MUST generate COMPACT_CONTEXT.md before work, reload after updates
+compact_context_file: ./COMPACT_CONTEXT.md  # Ultra-compact current task context (97% reduction)
+context_reload_required: true  # Clear and reload from compact context regularly to prevent context limit errors
 tasks:
   completed: 11
   uncompleted: 0
