@@ -41,22 +41,22 @@ impl PerformanceReport {
         if !self.metrics.latencies.is_empty() {
             report.push_str("\nLatency (ns):\n");
             if let Some(min) = self.metrics.min_latency() {
-                report.push_str(&format!("  Min: {}\n", min));
+                report.push_str(&format!("  Min: {min}\n"));
             }
             if let Some(avg) = self.metrics.avg_latency() {
-                report.push_str(&format!("  Avg: {:.0}\n", avg));
+                report.push_str(&format!("  Avg: {avg:.0}\n"));
             }
             if let Some(median) = self.metrics.median_latency() {
-                report.push_str(&format!("  Median: {}\n", median));
+                report.push_str(&format!("  Median: {median}\n"));
             }
             if let Some(p95) = self.metrics.p95_latency() {
-                report.push_str(&format!("  P95: {}\n", p95));
+                report.push_str(&format!("  P95: {p95}\n"));
             }
             if let Some(p99) = self.metrics.p99_latency() {
-                report.push_str(&format!("  P99: {}\n", p99));
+                report.push_str(&format!("  P99: {p99}\n"));
             }
             if let Some(max) = self.metrics.max_latency() {
-                report.push_str(&format!("  Max: {}\n", max));
+                report.push_str(&format!("  Max: {max}\n"));
             }
         }
 

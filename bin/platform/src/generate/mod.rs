@@ -27,12 +27,12 @@ enum LanguageSupport {
     /// parsed over.
     Plain,
 
-    /// SimpleRust is your basic configuration setup where you get the generally
-    /// injected project setup with the expected environment variables like PROJECT_DIRECTORY
+    /// `SimpleRust` is your basic configuration setup where you get the generally
+    /// injected project setup with the expected environment variables like `PROJECT_DIRECTORY`
     /// ..etc. This should generate work for most cases.
     SimpleRust,
 
-    /// SimpleHTML is your standard configuration for a html project without any
+    /// `SimpleHTML` is your standard configuration for a html project without any
     /// underlying rust or webassembly support added.
     /// For now it just generates same configuration as if you used `LanguageSupport::Plain`.
     ///
@@ -254,7 +254,7 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
     )?;
 
     match packager.create(package_configurator) {
-        Ok(_) => Ok(()),
+        Ok(()) => Ok(()),
         Err(err) => Err(Box::new(err)),
     }
 }

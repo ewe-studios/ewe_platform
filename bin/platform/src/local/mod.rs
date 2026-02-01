@@ -96,7 +96,7 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
     let binary_name = if let Some(bin_name) = binary_name_ref {
         bin_name.clone()
     } else {
-        project_name.clone().to_owned()
+        project_name.clone().clone()
     };
 
     let service_addr = args

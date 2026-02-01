@@ -51,6 +51,7 @@ impl LlamaChatTemplate {
     }
 
     /// Accesses the template as a c string reference.
+    #[must_use] 
     pub fn as_c_str(&self) -> &CStr {
         &self.0
     }
@@ -471,21 +472,25 @@ impl LlamaModel {
     }
 
     /// Returns the total size of all the tensors in the model in bytes.
+    #[must_use] 
     pub fn size(&self) -> u64 {
         unsafe { infrastructure_llama_bindings::llama_model_size(self.model.as_ptr()) }
     }
 
     /// Returns the number of parameters in the model.
+    #[must_use] 
     pub fn n_params(&self) -> u64 {
         unsafe { infrastructure_llama_bindings::llama_model_n_params(self.model.as_ptr()) }
     }
 
     /// Returns whether the model is a recurrent network (Mamba, RWKV, etc)
+    #[must_use] 
     pub fn is_recurrent(&self) -> bool {
         unsafe { infrastructure_llama_bindings::llama_model_is_recurrent(self.model.as_ptr()) }
     }
 
     /// Returns the number of layers within the model.
+    #[must_use] 
     pub fn n_layer(&self) -> u32 {
         // It's never possible for this to panic because while the API interface is defined as an int32_t,
         // the field it's accessing is a uint32_t.
@@ -496,6 +501,7 @@ impl LlamaModel {
     }
 
     /// Returns the number of attention heads within the model.
+    #[must_use] 
     pub fn n_head(&self) -> u32 {
         // It's never possible for this to panic because while the API interface is defined as an int32_t,
         // the field it's accessing is a uint32_t.
@@ -506,6 +512,7 @@ impl LlamaModel {
     }
 
     /// Returns the number of KV attention heads.
+    #[must_use] 
     pub fn n_head_kv(&self) -> u32 {
         // It's never possible for this to panic because while the API interface is defined as an int32_t,
         // the field it's accessing is a uint32_t.
@@ -534,6 +541,7 @@ impl LlamaModel {
     }
 
     /// Get the number of metadata key/value pairs
+    #[must_use] 
     pub fn meta_count(&self) -> i32 {
         unsafe { infrastructure_llama_bindings::llama_model_meta_count(self.model.as_ptr()) }
     }
@@ -708,7 +716,7 @@ impl LlamaModel {
     /// Apply the models chat template to some messages.
     /// See <https://github.com/ggerganov/llama.cpp/wiki/Templates-supported-by-llama_chat_apply_template>
     ///
-    /// Unlike the llama.cpp `apply_chat_template` which just randomly uses the ChatML template when given
+    /// Unlike the llama.cpp `apply_chat_template` which just randomly uses the `ChatML` template when given
     /// a null pointer for the template, this requires an explicit template to be specified. If you want to
     /// use "chatml", then just do `LlamaChatTemplate::new("chatml")` or any other model name or template
     /// string.

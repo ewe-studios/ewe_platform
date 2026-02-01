@@ -49,16 +49,16 @@ impl core::fmt::Display for DnsError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::ResolutionFailed(host) => {
-                write!(f, "DNS resolution failed for host: {}", host)
+                write!(f, "DNS resolution failed for host: {host}")
             }
             Self::InvalidHost(host) => {
-                write!(f, "Invalid hostname: {}", host)
+                write!(f, "Invalid hostname: {host}")
             }
             Self::NoAddressesFound(host) => {
-                write!(f, "No addresses found for host: {}", host)
+                write!(f, "No addresses found for host: {host}")
             }
             Self::IoError(err) => {
-                write!(f, "I/O error during DNS resolution: {}", err)
+                write!(f, "I/O error during DNS resolution: {err}")
             }
         }
     }
@@ -107,18 +107,17 @@ impl std::error::Error for HttpClientError {}
 impl core::fmt::Display for HttpClientError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::DnsError(err) => write!(f, "DNS error: {}", err),
-            Self::ConnectionFailed(msg) => write!(f, "Connection failed: {}", msg),
-            Self::ConnectionTimeout(msg) => write!(f, "Connection timeout: {}", msg),
-            Self::TlsHandshakeFailed(msg) => write!(f, "TLS handshake failed: {}", msg),
+            Self::DnsError(err) => write!(f, "DNS error: {err}"),
+            Self::ConnectionFailed(msg) => write!(f, "Connection failed: {msg}"),
+            Self::ConnectionTimeout(msg) => write!(f, "Connection timeout: {msg}"),
+            Self::TlsHandshakeFailed(msg) => write!(f, "TLS handshake failed: {msg}"),
             Self::InvalidScheme(scheme) => write!(
                 f,
-                "Invalid URL scheme: {} (only HTTP and HTTPS are supported)",
-                scheme
+                "Invalid URL scheme: {scheme} (only HTTP and HTTPS are supported)"
             ),
-            Self::InvalidUrl(url) => write!(f, "Invalid URL: {}", url),
-            Self::IoError(err) => write!(f, "I/O error: {}", err),
-            Self::Other(err) => write!(f, "HTTP client error: {}", err),
+            Self::InvalidUrl(url) => write!(f, "Invalid URL: {url}"),
+            Self::IoError(err) => write!(f, "I/O error: {err}"),
+            Self::Other(err) => write!(f, "HTTP client error: {err}"),
         }
     }
 }

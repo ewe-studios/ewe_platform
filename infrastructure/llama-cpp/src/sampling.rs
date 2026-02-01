@@ -53,7 +53,7 @@ impl LlamaSampler {
     pub fn accept_many(&mut self, tokens: impl IntoIterator<Item = impl Borrow<LlamaToken>>) {
         for token in tokens {
             unsafe {
-                infrastructure_llama_bindings::llama_sampler_accept(self.sampler, token.borrow().0)
+                infrastructure_llama_bindings::llama_sampler_accept(self.sampler, token.borrow().0);
             }
         }
     }
@@ -81,7 +81,7 @@ impl LlamaSampler {
     /// Gets the random seed used by this sampler.
     ///
     /// Returns:
-    /// - For random samplers (dist, mirostat, mirostat_v2): returns their current seed
+    /// - For random samplers (dist, mirostat, `mirostat_v2)`: returns their current seed
     /// - For sampler chains: returns the first non-default seed found in reverse order
     /// - For all other samplers: returns 0xFFFFFFFF
     #[must_use]

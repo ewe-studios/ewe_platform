@@ -66,8 +66,8 @@ impl<T: EmbeddableDirectory + Default> PackageDirectorate for Directorate<T> {
             .filter(|item| item.is_directory)
             .filter(|item| !item.source_path.is_empty())
             .filter_map(|t| {
-                let parts: Vec<&str> = t.source_path.split("/").collect();
-                parts.get(0).map(|item| String::from(*item))
+                let parts: Vec<&str> = t.source_path.split('/').collect();
+                parts.first().map(|item| String::from(*item))
             })
             .collect();
 
@@ -167,7 +167,7 @@ mod directorate_tests {
     #[test]
     fn validate_can_read_top_directories() {
         let generator = Directorate::<Directory>::default();
-        let files: Vec<String> = generator.files();
+        let _files: Vec<String> = generator.files();
         let directories: Vec<String> = generator.root_directories();
         assert_eq!(directories, vec! {"docs", "schema"});
     }
@@ -308,6 +308,7 @@ pub struct RustConfig {
 }
 
 impl RustConfig {
+    #[must_use] 
     pub fn new(workspace_cargo: Option<PathBuf>, retain_lib_section: bool) -> Self {
         Self {
             workspace_cargo,
@@ -316,6 +317,7 @@ impl RustConfig {
     }
 
     #[allow(dead_code)]
+    #[must_use] 
     pub fn standard(workspace_cargo: Option<PathBuf>) -> Self {
         Self::new(workspace_cargo, false)
     }
@@ -396,7 +398,7 @@ impl PackageConfigurator for RustProjectConfigurator {
         self.package_config.directory()
     }
 
-    #[doc = r#"params returns a modified `serde_json::Map` where standard
+    #[doc = r"params returns a modified `serde_json::Map` where standard
 package information are added into the dictionary which are
 accessible in the supported template language (minijinja):
 
@@ -430,7 +432,7 @@ When not a workspace:
 - `ROOT_PACKAGE_RUST_DESCRIPTION`
 - `ROOT_PACKAGE_RUST_AUTHORS`
 - `ROOT_PACKAGE_RUST_KEYWORDS`
-"#]
+"]
     fn params(&self) -> serde_json::Map<String, serde_json::Value> {
         let mut params = self.package_config.params.clone();
 

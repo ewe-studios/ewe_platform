@@ -1,7 +1,7 @@
-//! Retry/timeout wrappers for TaskIterators.
+//! Retry/timeout wrappers for `TaskIterators`.
 //!
 //! This module provides composable wrappers that add retry logic, timeouts,
-//! and backoff strategies to any TaskIterator, enabling robust task execution.
+//! and backoff strategies to any `TaskIterator`, enabling robust task execution.
 
 use crate::valtron::{TaskIterator, TaskStatus};
 use std::time::Duration;
@@ -13,7 +13,7 @@ use std::time::Duration;
 #[cfg(feature = "std")]
 use std::time::Instant;
 
-/// Wraps a TaskIterator with a timeout.
+/// Wraps a `TaskIterator` with a timeout.
 ///
 /// WHY: Tasks may hang indefinitely; need automatic timeout handling
 /// WHAT: Stops task after specified duration, converts to None
@@ -85,12 +85,12 @@ where
 // PollLimitTask - Poll count based "timeout" for no_std
 // ============================================================================
 
-/// Wraps a TaskIterator with a maximum poll count limit.
+/// Wraps a `TaskIterator` with a maximum poll count limit.
 ///
-/// WHY: no_std lacks Instant; use poll count as proxy for "timeout"
+/// WHY: `no_std` lacks Instant; use poll count as proxy for "timeout"
 /// WHAT: Stops task after N polls to prevent infinite loops
 ///
-/// Available in all configurations (no_std compatible).
+/// Available in all configurations (`no_std` compatible).
 pub struct PollLimitTask<T>
 where
     T: TaskIterator,
@@ -151,7 +151,7 @@ pub trait RetryDecider<T> {
 /// Simple retry decider that always retries up to max attempts.
 ///
 /// WHY: Common case is to retry N times regardless of error
-/// WHAT: Returns true until max_attempts reached
+/// WHAT: Returns true until `max_attempts` reached
 pub struct AlwaysRetry {
     pub max_attempts: u32,
 }
@@ -186,7 +186,8 @@ impl BackoffStrategy {
     /// Calculate next delay based on strategy and attempt number.
     ///
     /// WHY: Need to compute delay for current retry attempt
-    /// WHAT: Returns Duration clamped to max_delay
+    /// WHAT: Returns Duration clamped to `max_delay`
+    #[must_use] 
     pub fn next_delay(&self, attempt: u32, max_delay: Duration) -> Duration {
         let next = match self {
             Self::Fixed(d) => *d,
@@ -199,7 +200,7 @@ impl BackoffStrategy {
     }
 }
 
-/// Wraps a TaskIterator with backoff delays.
+/// Wraps a `TaskIterator` with backoff delays.
 ///
 /// WHY: Retries should have delays to avoid overwhelming services
 /// WHAT: Inserts delays based on strategy before each retry

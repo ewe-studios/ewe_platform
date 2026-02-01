@@ -1,6 +1,6 @@
-//! State machine helpers for building TaskIterators.
+//! State machine helpers for building `TaskIterators`.
 //!
-//! This module provides traits and utilities for implementing TaskIterators
+//! This module provides traits and utilities for implementing `TaskIterators`
 //! using state machine patterns, making it easier to build complex async-like
 //! workflows.
 
@@ -36,8 +36,8 @@ where
 
 /// Trait for implementing state machine logic.
 ///
-/// WHY: Provides clean abstraction for state-based TaskIterator implementation
-/// WHAT: Define State, Output, Error types and transition() logic
+/// WHY: Provides clean abstraction for state-based `TaskIterator` implementation
+/// WHAT: Define State, Output, Error types and `transition()` logic
 pub trait StateMachine {
     /// The state type for this machine
     type State: Clone;
@@ -48,7 +48,7 @@ pub trait StateMachine {
     /// The error type for failures
     type Error;
 
-    /// The action type for spawning (use NoAction if not spawning)
+    /// The action type for spawning (use `NoAction` if not spawning)
     type Action: ExecutionAction;
 
     /// Perform one transition from the current state.
@@ -67,10 +67,10 @@ pub trait StateMachine {
     fn initial_state(&self) -> Self::State;
 }
 
-/// Wrapper that implements TaskIterator for any StateMachine.
+/// Wrapper that implements `TaskIterator` for any `StateMachine`.
 ///
-/// WHY: Adapts StateMachine trait to TaskIterator trait
-/// WHAT: Drives state machine by calling transition() on each next()
+/// WHY: Adapts `StateMachine` trait to `TaskIterator` trait
+/// WHAT: Drives state machine by calling `transition()` on each `next()`
 pub struct StateMachineTask<M: StateMachine> {
     machine: M,
     current_state: Option<M::State>,

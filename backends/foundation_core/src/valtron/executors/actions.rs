@@ -1,4 +1,4 @@
-//! Reusable ExecutionAction types for common task patterns.
+//! Reusable `ExecutionAction` types for common task patterns.
 //!
 //! This module provides pre-built `ExecutionAction` implementations that can be
 //! composed and reused across different task types. These actions encapsulate
@@ -9,15 +9,15 @@
 //!
 //! Each action type calls a specific `ExecutionEngine` method:
 //!
-//! - **WrapAction**: Calls `engine.schedule()` - adds to local queue
-//! - **SpawnWithLift**: Calls `engine.lift(task, parent)` - schedules with parent linkage
-//! - **SpawnWithSchedule**: Calls `engine.schedule()` - adds to local queue
-//! - **SpawnWithBroadcast**: Calls `engine.broadcast()` - sends to global queue for any thread
+//! - **`WrapAction`**: Calls `engine.schedule()` - adds to local queue
+//! - **`SpawnWithLift`**: Calls `engine.lift(task, parent)` - schedules with parent linkage
+//! - **`SpawnWithSchedule`**: Calls `engine.schedule()` - adds to local queue
+//! - **`SpawnWithBroadcast`**: Calls `engine.broadcast()` - sends to global queue for any thread
 //!
 //! This enables different execution strategies through the Spawner type pattern.
 
 use crate::valtron::{
-    spawn_broadcaster, spawn_builder, BoxedExecutionEngine, BoxedExecutionIterator, DoNext,
+    spawn_broadcaster, spawn_builder, BoxedExecutionEngine,
     ExecutionAction, GenericResult, NoAction, TaskIterator, TaskStatus,
 };
 use std::marker::PhantomData;
@@ -26,13 +26,13 @@ use std::marker::PhantomData;
 // WrapTask - Wrap plain values in TaskStatus::Ready
 // ============================================================================
 
-/// Task that wraps an iterator of plain values and yields items as TaskStatus::Ready.
+/// Task that wraps an iterator of plain values and yields items as `TaskStatus::Ready`.
 ///
-/// WHY: Allows standard iterators of plain values to be used as TaskIterators.
-/// WHAT: Each `next()` call wraps the iterator's item in TaskStatus::Ready.
+/// WHY: Allows standard iterators of plain values to be used as `TaskIterators`.
+/// WHAT: Each `next()` call wraps the iterator's item in `TaskStatus::Ready`.
 ///
-/// NOTE: If your iterator already produces TaskStatus variants, use LiftTask instead
-/// to avoid nesting like Ready(Pending(...)). WrapTask is ONLY for plain value iterators.
+/// NOTE: If your iterator already produces `TaskStatus` variants, use `LiftTask` instead
+/// to avoid nesting like Ready(Pending(...)). `WrapTask` is ONLY for plain value iterators.
 pub struct WrapTask<I, T>
 where
     I: Iterator<Item = T>,
@@ -66,14 +66,14 @@ where
 // LiftTask - Pass through TaskStatus from iterator
 // ============================================================================
 
-/// Task that passes through TaskStatus items from an iterator without wrapping.
+/// Task that passes through `TaskStatus` items from an iterator without wrapping.
 ///
-/// WHY: Allows iterators that already produce TaskStatus to be used directly,
+/// WHY: Allows iterators that already produce `TaskStatus` to be used directly,
 /// preserving their semantic meaning (Pending, Delayed, Ready, etc.).
-/// WHAT: Each `next()` call passes through the TaskStatus variant as-is.
+/// WHAT: Each `next()` call passes through the `TaskStatus` variant as-is.
 ///
 /// This prevents incorrect nesting like `Ready(Pending(...))` which would lose
-/// the semantic meaning of the original TaskStatus.
+/// the semantic meaning of the original `TaskStatus`.
 ///
 /// # Example
 ///
@@ -126,13 +126,13 @@ where
 // WrapAction - Action for wrapping plain value iterators
 // ============================================================================
 
-/// Action that spawns a WrapTask wrapping a plain value iterator.
+/// Action that spawns a `WrapTask` wrapping a plain value iterator.
 ///
 /// WHY: Provides a reusable way to schedule plain value iterators as tasks.
-/// WHAT: Creates a DoNext executor for the wrapped iterator.
+/// WHAT: Creates a `DoNext` executor for the wrapped iterator.
 ///
 /// Use this when your iterator produces plain values (i32, String, etc.)
-/// that need to be wrapped in TaskStatus::Ready.
+/// that need to be wrapped in `TaskStatus::Ready`.
 pub struct WrapAction<I, T>
 where
     I: Iterator<Item = T> + 'static,
@@ -181,14 +181,14 @@ where
 // SpawnWithLift - Action for TaskStatus iterators
 // ============================================================================
 
-/// Action that spawns a LiftTask that passes through TaskStatus items.
+/// Action that spawns a `LiftTask` that passes through `TaskStatus` items.
 ///
-/// WHY: Provides a reusable way to schedule TaskStatus iterators with parent linkage.
-/// WHAT: Creates a DoNext executor and calls engine.lift() to link with parent task.
+/// WHY: Provides a reusable way to schedule `TaskStatus` iterators with parent linkage.
+/// WHAT: Creates a `DoNext` executor and calls `engine.lift()` to link with parent task.
 ///
-/// Use this when your iterator already produces TaskStatus variants
+/// Use this when your iterator already produces `TaskStatus` variants
 /// and you want to preserve their semantic meaning (Pending, Delayed, etc.)
-/// while maintaining task hierarchy through lift().
+/// while maintaining task hierarchy through `lift()`.
 pub struct SpawnWithLift<I, D, P, S>
 where
     I: Iterator<Item = TaskStatus<D, P, S>> + 'static,
@@ -230,7 +230,7 @@ where
         if let Some(iter) = self.iter.take() {
             let task = LiftTask::new(iter);
             spawn_builder(executor)
-                .with_parent(key.clone())
+                .with_parent(key)
                 .with_task(task)
                 .lift()?;
         }
@@ -285,7 +285,7 @@ where
 /// Action that schedules a closure to run as a task.
 ///
 /// WHY: Provides reusable pattern for scheduling arbitrary code.
-/// WHAT: Wraps closure in a ScheduleTask and schedules it.
+/// WHAT: Wraps closure in a `ScheduleTask` and schedules it.
 pub struct SpawnWithSchedule<F>
 where
     F: FnOnce() + 'static,
@@ -317,7 +317,7 @@ where
             let task = ScheduleTask::new(closure);
 
             spawn_builder(executor)
-                .with_parent(key.clone())
+                .with_parent(key)
                 .with_task(task)
                 .schedule()?;
         }
@@ -334,7 +334,7 @@ where
 /// WHY: Allows notifying multiple listeners of a result.
 /// WHAT: Calls all callbacks with clones of the value.
 ///
-/// Note: Requires Send bounds because SpawnWithBroadcast uses engine.broadcast()
+/// Note: Requires Send bounds because `SpawnWithBroadcast` uses `engine.broadcast()`
 /// which sends tasks to the global queue for any thread to pick up.
 pub struct BroadcastTask<T>
 where
@@ -380,9 +380,9 @@ where
 /// Action that broadcasts a value to multiple receivers.
 ///
 /// WHY: Reusable pattern for fan-out notifications using global queue.
-/// WHAT: Schedules a BroadcastTask via engine.broadcast() for any thread to execute.
+/// WHAT: Schedules a `BroadcastTask` via `engine.broadcast()` for any thread to execute.
 ///
-/// Unlike schedule() which adds to local queue, broadcast() sends the task
+/// Unlike `schedule()` which adds to local queue, `broadcast()` sends the task
 /// to the global queue where any executor thread can pick it up. This enables
 /// work distribution across threads.
 pub struct SpawnWithBroadcast<T>
@@ -421,7 +421,7 @@ where
             // Use broadcast() instead of schedule() - sends to global queue for any thread
             // Note: Requires Send bound on T
             spawn_broadcaster(executor)
-                .with_parent(key.clone())
+                .with_parent(key)
                 .with_task(task)
                 .broadcast()?;
         }

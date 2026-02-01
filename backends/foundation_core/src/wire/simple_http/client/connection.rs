@@ -27,6 +27,7 @@ pub enum Scheme {
 
 impl Scheme {
     /// Returns the default port for this scheme.
+    #[must_use] 
     pub fn default_port(&self) -> u16 {
         match self {
             Scheme::Http => 80,
@@ -55,7 +56,7 @@ impl ParsedUrl {
     ///
     /// # Arguments
     ///
-    /// * `url` - The URL to parse (e.g., "http://example.com/path?query")
+    /// * `url` - The URL to parse (e.g., "<http://example.com/path?query>")
     ///
     /// # Returns
     ///
@@ -116,7 +117,7 @@ impl ParsedUrl {
             let port_str = &authority[colon_pos + 1..];
             let port = port_str
                 .parse::<u16>()
-                .map_err(|_| HttpClientError::InvalidUrl(format!("Invalid port: {}", port_str)))?;
+                .map_err(|_| HttpClientError::InvalidUrl(format!("Invalid port: {port_str}")))?;
             (host, port)
         } else {
             // Use default port
@@ -154,7 +155,7 @@ impl ParsedUrl {
     }
 }
 
-/// HTTP client connection wrapping netcap::Connection.
+/// HTTP client connection wrapping `netcap::Connection`.
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Debug)]
 pub struct HttpClientConnection {
@@ -216,9 +217,8 @@ impl HttpClientConnection {
                     // Step 3: Upgrade to TLS if HTTPS
                     if url.scheme == Scheme::Https {
                         return Self::upgrade_to_tls(connection, &url.host);
-                    } else {
-                        return Ok(HttpClientConnection { connection });
                     }
+                    return Ok(HttpClientConnection { connection });
                 }
                 Err(e) => {
                     last_error = Some(e);
@@ -288,12 +288,12 @@ impl HttpClientConnection {
     )))]
     fn upgrade_to_tls(_connection: Connection, host: &str) -> Result<Self, HttpClientError> {
         Err(HttpClientError::TlsHandshakeFailed(format!(
-            "HTTPS requested for {} but no TLS feature enabled",
-            host
+            "HTTPS requested for {host} but no TLS feature enabled"
         )))
     }
 
     /// Returns a reference to the underlying connection.
+    #[must_use] 
     pub fn connection(&self) -> &Connection {
         &self.connection
     }

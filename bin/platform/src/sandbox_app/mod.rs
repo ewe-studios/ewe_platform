@@ -23,7 +23,7 @@ type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 struct Public;
 
 async fn index_handler() -> Response {
-    let instance = Public::default();
+    let instance = Public;
     match instance.read_utf8_for("index.html") {
         Some(html_data) => {
             tracing::info!("Falling back to public index: public/index.html");
@@ -41,7 +41,7 @@ async fn megatron_handler(req: Request) -> Response {
         request_path
     );
 
-    let instance = AssetHostRuntimes::default();
+    let instance = AssetHostRuntimes;
     let relative_request_path = request_path.replace("/megatron/", "");
     tracing::info!(
         "[MegatronHandler] Pulling static file: {}",
@@ -51,8 +51,7 @@ async fn megatron_handler(req: Request) -> Response {
     match instance.request_utf8(relative_request_path.as_str()) {
         Some((file_content, file_info)) => {
             if file_info
-                .map(|info| info.mime_type.map(|t| t == "text/html").unwrap_or(false))
-                .unwrap_or(false)
+                .is_some_and(|info| info.mime_type.is_some_and(|t| t == "text/html"))
             {
                 return Html(file_content).into_response();
             }
@@ -80,7 +79,7 @@ async fn public_handler(req: Request) -> Response {
         request_path
     );
 
-    let instance = Public::default();
+    let instance = Public;
     let relative_request_path = request_path.replace("/public/", "");
     tracing::info!(
         "[PublicHandler] Pulling static file: {}",
@@ -96,8 +95,7 @@ async fn public_handler(req: Request) -> Response {
             );
 
             if file_info
-                .map(|info| info.mime_type.map(|t| t == "text/html").unwrap_or(false))
-                .unwrap_or(false)
+                .is_some_and(|info| info.mime_type.is_some_and(|t| t == "text/html"))
             {
                 return Html(file_content).into_response();
             }

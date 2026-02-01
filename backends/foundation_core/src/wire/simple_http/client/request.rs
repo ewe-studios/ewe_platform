@@ -123,7 +123,7 @@ impl ClientRequestBuilder {
     pub fn header(mut self, key: SimpleHeader, value: impl Into<String>) -> Self {
         self.headers
             .entry(key)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(value.into());
         self
     }
@@ -133,6 +133,7 @@ impl ClientRequestBuilder {
     /// # Arguments
     ///
     /// * `headers` - New headers to use
+    #[must_use] 
     pub fn headers(mut self, headers: SimpleHeaders) -> Self {
         self.headers = headers;
         self
@@ -166,6 +167,7 @@ impl ClientRequestBuilder {
     /// # Arguments
     ///
     /// * `bytes` - Binary content
+    #[must_use] 
     pub fn body_bytes(mut self, bytes: Vec<u8>) -> Self {
         let content_length = bytes.len().to_string();
 
@@ -213,6 +215,7 @@ impl ClientRequestBuilder {
     /// # Arguments
     ///
     /// * `params` - Form parameters as key-value pairs
+    #[must_use] 
     pub fn body_form(mut self, params: &[(String, String)]) -> Self {
         // Simple URL encoding (percent-encoding for form data)
         fn urlencode(s: &str) -> String {
@@ -224,7 +227,7 @@ impl ClientRequestBuilder {
                         let bytes = c.to_string().into_bytes();
                         bytes
                             .iter()
-                            .map(|b| format!("%{:02X}", b))
+                            .map(|b| format!("%{b:02X}"))
                             .collect::<String>()
                     }
                 })
@@ -252,6 +255,7 @@ impl ClientRequestBuilder {
     /// Builds the final prepared request.
     ///
     /// Consumes the builder and returns a `PreparedRequest` ready to send.
+    #[must_use] 
     pub fn build(self) -> PreparedRequest {
         PreparedRequest {
             method: self.method,

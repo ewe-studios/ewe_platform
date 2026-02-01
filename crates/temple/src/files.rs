@@ -123,6 +123,7 @@ pub struct Templater<'a> {
 }
 
 impl<'a> Templater<'a> {
+    #[must_use] 
     pub fn new(dest: &'a str) -> Self {
         Self {
             dest: path::PathBuf::from_str(dest).expect("created PathBuf from str"),
@@ -156,16 +157,17 @@ impl<'a> Templater<'a> {
 mod tests {
     use super::{FileContent, FileResult, FileSystemCommand, Templater};
     use ewe_templates::{minijinja, tinytemplate::TinyTemplate};
-    use rand::distributions::{Alphanumeric, DistString};
+    use rand::Rng;
     use serde_json::{json, Value};
     use std::{env, fs, io::Read, path, sync};
 
     fn random_directory_name(prefix: &str) -> String {
-        format!(
-            "{}_{}",
-            prefix,
-            Alphanumeric.sample_string(&mut rand::thread_rng(), 16)
-        )
+        let suffix: String = rand::rng()
+            .sample_iter(&rand::distr::Alphanumeric)
+            .take(16)
+            .map(char::from)
+            .collect();
+        format!("{}_{}", prefix, suffix)
     }
 
     fn clean_up_directory(target: path::PathBuf) {

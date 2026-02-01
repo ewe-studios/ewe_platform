@@ -22,7 +22,7 @@ use alloc::boxed::Box;
 /// Creates a no-op waker for use with Future polling.
 ///
 /// WHY: Valtron executor drives polling loop, no actual waking needed
-/// WHAT: Returns a Waker that does nothing when wake() is called
+/// WHAT: Returns a Waker that does nothing when `wake()` is called
 fn create_noop_waker() -> Waker {
     const VTABLE: RawWakerVTable = RawWakerVTable::new(
         |_| RAW_WAKER, // clone
@@ -36,16 +36,16 @@ fn create_noop_waker() -> Waker {
     unsafe { Waker::from_raw(RAW_WAKER) }
 }
 
-/// Get a no-op waker (cached with thread-local on std, created fresh on no_std).
+/// Get a no-op waker (cached with thread-local on std, created fresh on `no_std`).
 ///
-/// WHY: Reduce allocations on std by caching waker; no_std must create each time
-/// WHAT: Returns cached waker on std, new waker on no_std
+/// WHY: Reduce allocations on std by caching waker; `no_std` must create each time
+/// WHAT: Returns cached waker on std, new waker on `no_std`
 #[cfg(feature = "std")]
 fn get_noop_waker() -> Waker {
     thread_local! {
         static NOOP_WAKER: Waker = create_noop_waker();
     }
-    NOOP_WAKER.with(|w| w.clone())
+    NOOP_WAKER.with(std::clone::Clone::clone)
 }
 
 #[cfg(not(feature = "std"))]
@@ -59,18 +59,18 @@ fn get_noop_waker() -> Waker {
 
 /// State reported while future is being polled.
 ///
-/// WHY: TaskIterator needs a Pending type to communicate progress
+/// WHY: `TaskIterator` needs a Pending type to communicate progress
 /// WHAT: Simple enum indicating future is still pending
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FuturePollState {
-    /// Future returned Poll::Pending
+    /// Future returned `Poll::Pending`
     Pending,
 }
 
-/// Wraps a Future and implements TaskIterator to poll it.
+/// Wraps a Future and implements `TaskIterator` to poll it.
 ///
 /// WHY: Enables executing async code through valtron without async runtime
-/// WHAT: Polls the future on each next() call until Ready or exhausted
+/// WHAT: Polls the future on each `next()` call until Ready or exhausted
 ///
 /// Requires `std` or `alloc` feature for Box<Future>.
 #[cfg(any(feature = "std", feature = "alloc"))]
@@ -94,6 +94,7 @@ where
         }
     }
 
+    #[must_use] 
     pub fn from_pinned(future: Pin<Box<F>>) -> Self {
         Self {
             future,
@@ -164,10 +165,10 @@ where
 // Convenience Functions
 // ============================================================================
 
-/// Wrap a future into a TaskIterator (native - requires Send).
+/// Wrap a future into a `TaskIterator` (native - requires Send).
 ///
-/// WHY: Convenient helper to create FutureTask
-/// WHAT: Returns FutureTask wrapping the given future
+/// WHY: Convenient helper to create `FutureTask`
+/// WHAT: Returns `FutureTask` wrapping the given future
 #[cfg(all(any(feature = "std", feature = "alloc"), not(target_arch = "wasm32")))]
 pub fn from_future<F>(future: F) -> FutureTask<F>
 where
@@ -196,19 +197,19 @@ where
 
 /// State for stream polling.
 ///
-/// WHY: TaskIterator needs a Pending type for streams
+/// WHY: `TaskIterator` needs a Pending type for streams
 /// WHAT: Simple enum indicating stream is pending more items
 #[cfg(any(feature = "std", feature = "alloc"))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StreamPollState {
-    /// Stream returned Poll::Pending
+    /// Stream returned `Poll::Pending`
     Pending,
 }
 
-/// Wraps an async Stream and yields values through TaskIterator.
+/// Wraps an async Stream and yields values through `TaskIterator`.
 ///
 /// WHY: Enables processing async streams through valtron
-/// WHAT: Polls stream on each next(), yields Some(item) or None when exhausted
+/// WHAT: Polls stream on each `next()`, yields Some(item) or None when exhausted
 ///
 /// Requires `std` or `alloc` feature for Box<Stream>.
 #[cfg(any(feature = "std", feature = "alloc"))]
@@ -293,10 +294,10 @@ where
     }
 }
 
-/// Wrap a stream into a TaskIterator (native - requires Send).
+/// Wrap a stream into a `TaskIterator` (native - requires Send).
 ///
-/// WHY: Convenient helper to create StreamTask
-/// WHAT: Returns StreamTask wrapping the given stream
+/// WHY: Convenient helper to create `StreamTask`
+/// WHAT: Returns `StreamTask` wrapping the given stream
 #[cfg(all(any(feature = "std", feature = "alloc"), not(target_arch = "wasm32")))]
 pub fn from_stream<S>(stream: S) -> StreamTask<S>
 where
@@ -431,7 +432,7 @@ mod tests {
 /// Execute a future using the unified executor (native - requires Send).
 ///
 /// WHY: Simplest way to run async code through valtron
-/// WHAT: Wraps future in FutureTask and executes via unified executor
+/// WHAT: Wraps future in `FutureTask` and executes via unified executor
 ///
 /// Note: This requires the unified executor to be available and properly configured.
 #[cfg(all(any(feature = "std", feature = "alloc"), not(target_arch = "wasm32")))]
@@ -445,7 +446,7 @@ where
     use super::unified;
     let task = FutureTask::new(future);
     let values_iter = ReadyValues::new(unified::execute(task)?);
-    let values: Vec<F::Output> = values_iter.flat_map(|item| item.inner()).collect();
+    let values: Vec<F::Output> = values_iter.filter_map(super::super::task::ReadyValue::inner).collect();
 
     Ok(values)
 }

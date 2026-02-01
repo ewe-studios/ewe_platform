@@ -93,7 +93,7 @@ impl StressHarness {
     /// Runs a stress test with the given operation closure.
     ///
     /// The closure receives:
-    /// - `thread_id`: Index of the thread (0..thread_count)
+    /// - `thread_id`: Index of the thread (`0..thread_count`)
     /// - `iteration`: Iteration number for this thread
     ///
     /// Returns `true` on success, `false` on failure.

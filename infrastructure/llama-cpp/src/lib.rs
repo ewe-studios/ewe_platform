@@ -398,7 +398,7 @@ pub struct LlamaBackendDevice {
     pub index: usize,
     /// The name of the device (e.g. "Vulkan0")
     pub name: String,
-    /// A description of the device (e.g. "NVIDIA GeForce RTX 3080")
+    /// A description of the device (e.g. "NVIDIA `GeForce` RTX 3080")
     pub description: String,
     /// The backend of the device (e.g. "Vulkan", "CUDA", "CPU")
     pub backend: String,

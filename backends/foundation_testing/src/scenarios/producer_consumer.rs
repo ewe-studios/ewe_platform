@@ -1,4 +1,4 @@
-//! Producer-consumer queue implementation using CondVar.
+//! Producer-consumer queue implementation using `CondVar`.
 
 use foundation_nostd::primitives::{CondVar, CondVarMutex};
 use std::sync::Arc;
