@@ -1,22 +1,20 @@
 ---
-# === IDENTIFICATION ===
+# Identification
 spec_name: "02-build-http-client"
 spec_number: 02
 feature_name: "compression"
 feature_number: 3
 description: Automatic compression/decompression of HTTP bodies with gzip, deflate, and brotli support
 
-# === LOCATION CONTEXT ===
-# To find this file's location:
-# 1. Run: bash pwd  (gets current working directory = CWD)
-# 2. This file is at: CWD/specifications/02-build-http-client/features/compression/feature.md
-# 3. Workspace root: CWD (contains .agents/, specifications/, documentation/, backends/)
+# Location Context
+# How to find: Run `bash pwd` to get CWD, this file is at CWD/specifications/02-build-http-client/features/compression/feature.md
+# Workspace root is CWD and contains: .agents/, specifications/, documentation/, backends/
 workspace_name: "ewe_platform"
 spec_directory: "specifications/02-build-http-client"
 feature_directory: "specifications/02-build-http-client/features/compression"
 this_file: "specifications/02-build-http-client/features/compression/feature.md"
 
-# === STATUS ===
+# Status
 status: pending
 priority: medium
 depends_on:
@@ -26,19 +24,21 @@ created: 2026-01-19
 last_updated: 2026-02-02
 author: Main Agent
 
-# === CONTEXT OPTIMIZATION ===
-machine_optimized: true  # Main Agent MUST generate machine_prompt.md before spawning sub-agents
-machine_prompt_file: ./machine_prompt.md  # Sub-agents read this (NOT feature.md) for 58% token savings
-context_optimization: true  # Sub-agents MUST generate COMPACT_CONTEXT.md before work, reload after updates
-compact_context_file: ./COMPACT_CONTEXT.md  # Ultra-compact current task context (97% reduction)
-context_reload_required: true  # Clear and reload from compact context regularly to prevent context limit errors
+# Context Optimization
+machine_optimized: true
+machine_prompt_file: ./machine_prompt.md
+context_optimization: true
+compact_context_file: ./COMPACT_CONTEXT.md
+context_reload_required: true
 
-# === TASKS ===
+# Tasks
 tasks:
   completed: 0
   uncompleted: 14
   total: 14
   completion_percentage: 0
+
+# Files Required by Agents
 files_required:
   implementation_agent:
     rules:
