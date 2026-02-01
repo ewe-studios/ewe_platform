@@ -90,10 +90,9 @@ struct Worker {
 
 impl Worker {
     fn new(id: usize, queue: Arc<JobQueue>) -> Self {
-        let thread = thread::spawn(move || loop {
-            match queue.pop() {
-                Some(job) => job(),
-                None => break, // Shutdown
+        let thread = thread::spawn(move || {
+            while let Some(job) = queue.pop() {
+                job();
             }
         });
 

@@ -2,6 +2,7 @@
 
 use super::Metrics;
 use std::fmt;
+use std::fmt::Write;
 
 /// Performance report with formatted metrics.
 pub struct PerformanceReport {
@@ -30,33 +31,34 @@ impl PerformanceReport {
     pub fn to_string_pretty(&self) -> String {
         let mut report = String::new();
 
-        report.push_str(&format!("=== {} ===\n", self.title));
-        report.push_str(&format!("Operations: {}\n", self.metrics.operations));
-        report.push_str(&format!("Duration: {:?}\n", self.metrics.duration));
-        report.push_str(&format!(
-            "Throughput: {:.2} ops/sec\n",
+        let _ = writeln!(report, "=== {} ===", self.title);
+        let _ = writeln!(report, "Operations: {}", self.metrics.operations);
+        let _ = writeln!(report, "Duration: {:?}", self.metrics.duration);
+        let _ = writeln!(
+            report,
+            "Throughput: {:.2} ops/sec",
             self.metrics.throughput
-        ));
+        );
 
         if !self.metrics.latencies.is_empty() {
             report.push_str("\nLatency (ns):\n");
             if let Some(min) = self.metrics.min_latency() {
-                report.push_str(&format!("  Min: {min}\n"));
+                let _ = writeln!(report, "  Min: {min}");
             }
             if let Some(avg) = self.metrics.avg_latency() {
-                report.push_str(&format!("  Avg: {avg:.0}\n"));
+                let _ = writeln!(report, "  Avg: {avg:.0}");
             }
             if let Some(median) = self.metrics.median_latency() {
-                report.push_str(&format!("  Median: {median}\n"));
+                let _ = writeln!(report, "  Median: {median}");
             }
             if let Some(p95) = self.metrics.p95_latency() {
-                report.push_str(&format!("  P95: {p95}\n"));
+                let _ = writeln!(report, "  P95: {p95}");
             }
             if let Some(p99) = self.metrics.p99_latency() {
-                report.push_str(&format!("  P99: {p99}\n"));
+                let _ = writeln!(report, "  P99: {p99}");
             }
             if let Some(max) = self.metrics.max_latency() {
-                report.push_str(&format!("  Max: {max}\n"));
+                let _ = writeln!(report, "  Max: {max}");
             }
         }
 

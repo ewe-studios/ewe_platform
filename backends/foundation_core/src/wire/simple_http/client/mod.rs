@@ -3,6 +3,7 @@
 // This module provides an HTTP 1.1 client implementation using iterator-based
 // patterns and pluggable DNS resolution.
 
+mod actions;
 mod connection;
 mod dns;
 mod errors;

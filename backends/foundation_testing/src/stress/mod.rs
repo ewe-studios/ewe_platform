@@ -55,6 +55,7 @@ impl StressResult {
 
     /// Returns the success rate as a value between 0.0 and 1.0.
     #[must_use]
+    #[allow(clippy::cast_precision_loss)]
     pub fn success_rate(&self) -> f64 {
         if self.total_operations() == 0 {
             0.0
@@ -65,6 +66,7 @@ impl StressResult {
 
     /// Returns operations per second.
     #[must_use]
+    #[allow(clippy::cast_precision_loss)]
     pub fn operations_per_second(&self) -> f64 {
         let secs = self.duration.as_secs_f64();
         if secs == 0.0 {
@@ -118,6 +120,10 @@ impl StressHarness {
     /// assert_eq!(counter.load(Ordering::Relaxed), 400); // 4 threads * 100 iterations
     /// assert_eq!(result.successes, 400);
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if any worker thread panics during the stress test execution.
     pub fn run<F>(self, operation: F) -> StressResult
     where
         F: Fn(usize, usize) -> bool + Send + Sync + 'static,

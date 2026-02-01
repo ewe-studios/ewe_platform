@@ -172,6 +172,10 @@ pub trait DomainShell: Clone {
 
     /// Means of responding by others to received [`NamedRequest`] from
     /// the domain.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the response channel cannot be created.
     fn respond(
         &mut self,
         id: Id,
@@ -182,6 +186,10 @@ pub trait DomainShell: Clone {
     /// internal logic or use-cases.
     ///
     /// Hexagonal Architecture: Driven Side
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the request cannot be processed or the response channel cannot be created.
     fn do_request(
         &mut self,
         req: NamedRequest<Self::Requests>,
@@ -193,6 +201,10 @@ pub trait DomainShell: Clone {
     ///
     /// This allows us create inter-dependent work that
     /// depends on the readiness of response on a channel.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the task cannot be scheduled.
     fn schedule<Fut>(
         &self,
         receiver: mspc::ReceiveChannel<NamedEvent<Self::Events>>,
@@ -206,16 +218,28 @@ pub trait DomainShell: Clone {
     /// some underlying response from another work or processes.
     ///
     /// The focus is on the future itself and it's compeleness.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the task cannot be spawned.
     fn spawn(&self, fut: impl Future<Output = ()> + 'static + Send) -> DomainResult<()>;
 
     /// Retuns a new unique channel which the caller can use to listen to outgoing
     /// requests from the channel. Providing a broadcast semantic where the listener
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the request channel cannot be created.
     fn requests(&mut self)
         -> DomainResult<mspc::ReceiveChannel<Arc<NamedRequest<Self::Requests>>>>;
 
     /// listen to provide a receive channel that exists for the lifetime of
     /// the domain and allows you listen in, into all events occuring in
     /// [`Domain`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the event listener channel cannot be created.
     fn listen(&mut self) -> DomainResult<mspc::ReceiveChannel<Arc<NamedEvent<Self::Events>>>>;
 }
 
@@ -230,6 +254,10 @@ pub trait MasterShell: DomainShell {
     /// via [`DomainShell`].respond and [`DomainShell`].`send_events`.
     ///
     /// Hexagonal Architecture: Driving Side
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the event cannot be sent to listeners.
     fn send_others(&mut self, event: NamedEvent<Self::Events>)
         -> DomainOpsResult<(), Self::Events>;
 
@@ -242,6 +270,10 @@ pub trait MasterShell: DomainShell {
     /// via [`DomainShell`].respond and [`DomainShell`].`send_events`.
     ///
     /// Hexagonal Architecture: Driving Side
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the event cannot be sent to all listeners.
     fn send_all(&mut self, event: NamedEvent<Self::Events>) -> DomainOpsResult<(), Self::Events>;
 
     /// Delivers request to the shell to be sent to all relevant
@@ -251,6 +283,10 @@ pub trait MasterShell: DomainShell {
     /// need for operations not natively within it's boundaries.
     ///
     /// Hexagonal Architecture: Driving Side
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the request cannot be sent or the response channel cannot be created.
     fn send_request(
         &mut self,
         req: NamedRequest<Self::Requests>,
@@ -362,6 +398,11 @@ where
     S: DomainShell<Events = E, Requests = R, Platform = P>,
     U: UseCase<Event = E, Request = R, Platform = P>,
 {
+    /// Creates a new `UseCaseExecutor`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the request channel cannot be obtained from the shell provider.
     pub fn new(mut shell_provider: S, use_case: U) -> Self {
         Self {
             receiver: shell_provider.requests().expect("expected request channel"),

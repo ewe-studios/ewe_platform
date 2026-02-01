@@ -1,110 +1,107 @@
 # HTTP 1.1 Client - Progress Report
 
 > **⚠️ EPHEMERAL FILE**: This file tracks CURRENT work only. Cleared after completing each major feature, DELETED when specification complete.
->
-> **Purpose**: Track current feature progress. All permanent insights → LEARNINGS.md
->
-> **Commit Strategy**: Update this file during work. Commit happens AFTER feature verification passes (Rule 04).
 
 ---
 
-## Current Feature: request-response
+## Current Feature: task-iterator
 
 **Status**: In Progress - Starting Implementation
 **Started**: 2026-02-01
-**Tasks**: 0/10 (0%)
+**Tasks**: 0/11 (0%)
 
-**Progress**: 4/13 features completed (31%)
+**Progress**: 5/13 features completed (38%)
 
 **Feature Description**:
-Request builder API (ClientRequestBuilder), response types (ResponseIntro), and prepared request structure (PreparedRequest) for HTTP 1.1 client.
+Internal TaskIterator implementation for HTTP requests/responses, ExecutionAction spawners for child tasks (redirects, TLS upgrades), and feature-gated executor wrapper.
 
 ---
 
-## Current Task: Setup and Initial Implementation
+## Current Task: Implement TaskIterator Infrastructure
 
-**Objective**: Create ResponseIntro and ClientRequestBuilder with fluent API
+**Objective**: Create internal async machinery using valtron TaskIterator patterns
 
 **Tasks Breakdown**:
-1. [ ] Create intro.rs with ResponseIntro struct
-2. [ ] Implement From<tuple> for ResponseIntro
-3. [ ] Create request.rs with PreparedRequest and ClientRequestBuilder
-4. [ ] Implement ClientRequestBuilder::new (URL parsing)
-5. [ ] Implement header methods (header, headers)
-6. [ ] Implement body methods (text, bytes, json, form)
-7. [ ] Implement convenience methods (get, post, put, delete, etc.)
-8. [ ] Implement build() method
-9. [ ] Implement PreparedRequest::into_request_iterator
-10. [ ] Write comprehensive unit tests
+1. [ ] Create actions.rs with RedirectAction (ExecutionAction impl)
+2. [ ] Implement TlsUpgradeAction (ExecutionAction impl)
+3. [ ] Create HttpClientAction enum (combines all actions)
+4. [ ] Implement ExecutionAction for HttpClientAction (delegate)
+5. [ ] Create task.rs with HttpRequestState enum
+6. [ ] Create HttpRequestTask struct with generic resolver
+7. [ ] Implement TaskIterator for HttpRequestTask (state machine)
+8. [ ] Create executor.rs with execute_task wrapper
+9. [ ] Implement execute_single (valtron::single::spawn)
+10. [ ] Implement execute_multi (valtron::multi::spawn, feature-gated)
+11. [ ] Write comprehensive unit tests with WHY/WHAT docs
 
 **Dependencies Met**:
-- ✅ foundation feature complete (HttpClientError available)
-- ✅ connection feature complete (ParsedUrl available)
+- ✅ valtron-utilities (ExecutionAction types, unified executor)
+- ✅ foundation (HttpClientError)
+- ✅ connection (HttpClientConnection, ParsedUrl)
+- ✅ request-response (PreparedRequest, ResponseIntro)
 
-**Reusing Types From**:
-- simple_http/impls.rs: SimpleResponse, IncomingResponseParts, Status, Proto, SimpleHeaders, SimpleBody, SimpleMethod, SimpleHeader, Http11RequestIterator
+**Valtron Types to Use**:
+- TaskIterator trait, TaskStatus enum, ExecutionAction trait
+- NoSpawner/NoAction, DoNext wrapper
+- single::spawn(), multi::spawn()
+- spawn_builder with lift/schedule/broadcast
 
 ---
 
 ## Implementation Plan
 
-**Phase 1: Response Types** (Tasks 1-2)
-- Create intro.rs
-- Implement ResponseIntro wrapper
-- Add From conversion for tuple
+**Phase 1: ExecutionAction Implementations** (Tasks 1-4)
+- Create actions.rs
+- Implement RedirectAction (spawns redirect requests)
+- Implement TlsUpgradeAction (spawns TLS handshake)
+- Create HttpClientAction enum combining both
 
-**Phase 2: Request Builder Core** (Tasks 3-4)
-- Create request.rs
-- Implement PreparedRequest struct
-- Implement ClientRequestBuilder::new with URL parsing
+**Phase 2: TaskIterator State Machine** (Tasks 5-7)
+- Create task.rs
+- Define HttpRequestState enum (Init → Connecting → ... → Done)
+- Implement HttpRequestTask struct
+- Implement TaskIterator trait with state transitions
 
-**Phase 3: Fluent API** (Tasks 5-8)
-- Header methods (fluent, return Self)
-- Body methods (text, bytes, json, form)
-- Convenience methods (get, post, put, delete, etc.)
-- Build method (consumes builder)
+**Phase 3: Executor Wrapper** (Tasks 8-10)
+- Create executor.rs
+- Implement execute_task with feature gates
+- Implement execute_single (valtron::single)
+- Implement execute_multi (valtron::multi, feature-gated)
 
-**Phase 4: Request Rendering** (Task 9)
-- PreparedRequest::into_request_iterator
-- Integration with Http11RequestIterator
-
-**Phase 5: Testing** (Task 10)
+**Phase 4: Testing** (Task 11)
 - Comprehensive unit tests
 - WHY/WHAT documentation per test
-
----
-
-## Blockers/Issues
-
-None currently. All dependencies met.
+- Test all state transitions
+- Test executor selection logic
 
 ---
 
 ## Files to Create/Modify
 
 **New Files**:
-- `backends/foundation_core/src/wire/simple_http/client/intro.rs`
-- `backends/foundation_core/src/wire/simple_http/client/request.rs`
+- `backends/foundation_core/src/wire/simple_http/client/actions.rs`
+- `backends/foundation_core/src/wire/simple_http/client/task.rs`
+- `backends/foundation_core/src/wire/simple_http/client/executor.rs`
 
 **Modified Files**:
 - `backends/foundation_core/src/wire/simple_http/client/mod.rs` (add re-exports)
 
 ---
 
-## Completed Features (4/13)
+## Completed Features (5/13)
 
 - ✅ valtron-utilities (33/33 tasks, 100%)
 - ✅ tls-verification (48/48 tasks, 100%)
 - ✅ foundation (9/9 tasks, 100%)
 - ✅ connection (11/11 tasks, 100%)
+- ✅ request-response (10/10 tasks, 100%)
 
-## Remaining Features (9/13)
+## Remaining Features (8/13)
 
-- 🔄 request-response (0/10 tasks) ← CURRENT
+- 🔄 task-iterator (0/11 tasks) ← CURRENT (CRITICAL PATH)
 - ⏳ compression (0/14 tasks)
 - ⏳ proxy-support (0/13 tasks)
-- 🔒 auth-helpers (0/13 tasks) - needs request-response
-- 🔒 task-iterator (0/11 tasks) - needs request-response
+- 🔓 auth-helpers (0/13 tasks) - just unblocked
 - 🔒 public-api (0/17 tasks) - needs task-iterator
 - 🔒 cookie-jar (0/17 tasks) - needs public-api
 - 🔒 middleware (0/13 tasks) - needs public-api
@@ -112,34 +109,27 @@ None currently. All dependencies met.
 
 ---
 
-## Immediate Next Steps
+## Critical Notes for Implementation
 
-1. ✅ Generate machine_prompt.md (DONE)
-2. ✅ Update PROGRESS.md (DONE)
-3. ⏭️ Generate COMPACT_CONTEXT.md for implementation agent
-4. ⏭️ Spawn implementation agent with compact context
-5. ⏭️ Begin TDD implementation (test first, then code)
+**INTERNAL TYPES ONLY**:
+- All types in this feature are pub(crate) or private
+- Users should NOT see TaskIterator, TaskStatus, ExecutionAction
+- Public API will wrap this in next feature
 
----
+**NO ASYNC/AWAIT**:
+- Use valtron TaskIterator patterns
+- Iterator-based state machine
+- NO tokio, NO async functions
 
-## Notes for Implementation Agent
+**State Machine Pattern**:
+- Non-blocking transitions
+- Use TaskStatus::Spawn for child tasks
+- Redirects and TLS upgrades spawn via ExecutionAction
 
-**CRITICAL - Retrieval-Led Reasoning**:
-- MUST read simple_http/impls.rs to understand existing types
-- MUST check Http11RequestIterator implementation
-- MUST follow existing builder patterns in codebase
-- MUST verify all patterns before implementing
-
-**Implementation Guidelines**:
-- Reuse types from impls.rs (DO NOT duplicate)
-- Use fluent builder pattern (methods return Self)
-- PreparedRequest is pub(crate) (internal only)
-- ResponseIntro is public (user-facing)
-- All tests need WHY/WHAT documentation
-
-**Known Issues**:
-- foundation_wasm compilation errors (~110) - OUT OF SCOPE
-- Use foundation_core package only
+**Feature Gates**:
+- WASM always uses single executor
+- Native uses single by default
+- Native with "multi" feature uses multi executor
 
 ---
 

@@ -16,7 +16,7 @@ patterns:TaskIterator trait,ExecutionAction enum|executors:valtron single/multi 
 CRITICAL:NO async/await|NO tokio|NO hyper|pure iterator-based with valtron execution
 
 ## STRUCTURE
-type:feature-based|total_features:13|completed:4|remaining:9|completion:31%
+type:feature-based|total_features:13|completed:5|remaining:8|completion:38%
 location:wire/simple_http/client/|package:foundation_core|avoid:foundation_wasm
 
 ## FEATURES_COMPLETED
@@ -24,19 +24,19 @@ location:wire/simple_http/client/|package:foundation_core|avoid:foundation_wasm
 1:tls-verification|tasks:48/48|status:complete|backends:rustls,openssl,native-tls
 2:foundation|tasks:9/9|status:complete|errors:HttpClientError,DnsError|dns:caching
 4:connection|tasks:11/11|status:complete|tcp:yes|tls:upgrade|url:parsing
+6:request-response|tasks:10/10|status:complete|builder:ClientRequestBuilder|response:ResponseIntro
 
 ## FEATURES_READY
 3:compression|tasks:14|depends:foundation|desc:gzip,deflate,brotli
 5:proxy-support|tasks:13|depends:connection|desc:HTTP,HTTPS,SOCKS5
-6:request-response|tasks:10|depends:connection|desc:builder,response types
+7:auth-helpers|tasks:13|depends:request-response ✅|desc:Basic,Bearer,Digest
+8:task-iterator|tasks:11|depends:request-response ✅,valtron-utilities ✅|desc:TaskIterator,executors|RECOMMENDED NEXT
 
 ## FEATURES_BLOCKED
-7:auth-helpers|tasks:13|depends:request-response|desc:Basic,Bearer,Digest
-8:task-iterator|tasks:11|depends:request-response,valtron-utilities|desc:TaskIterator,executors
 9:public-api|tasks:17|depends:task-iterator|desc:SimpleHttpClient,integration
 10:cookie-jar|tasks:17|depends:public-api|desc:automatic cookie handling
 11:middleware|tasks:13|depends:public-api|desc:request/response interceptors
-12:websocket|tasks:17|depends:connection,public-api|desc:WebSocket client/server
+12:websocket|tasks:17|depends:connection ✅,public-api|desc:WebSocket client/server
 
 ## REQUIREMENTS_SUMMARY
 req1:iterator-based patterns|no async/await|TaskIterator trait internally
@@ -84,9 +84,9 @@ foundation_wasm:~110 compilation errors|status:OUT OF SCOPE|workaround:use found
 workspace:avoid foundation_wasm package|all HTTP client code in foundation_core
 
 ## PROGRESS_STATUS
-last_completed:connection feature|date:2026-01-25
-ready_to_start:compression,proxy-support,request-response|dependencies met
-next_step:user selects feature from ready list|agent implements selected feature
+last_completed:request-response feature|date:2026-02-01
+ready_to_start:compression,proxy-support,auth-helpers,task-iterator|dependencies met
+recommended_next:task-iterator|unlocks:public-api and 3 more features|critical path
 
 ## FILES_REQUIRED
 main_agent:[.agents/rules/01-06,14-15]|files:[requirements.md,LEARNINGS.md,PROGRESS.md]
