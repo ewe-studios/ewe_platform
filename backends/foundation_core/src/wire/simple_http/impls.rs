@@ -996,7 +996,7 @@ static CAPTURE_QUERY_KEY_VALUE: &str = r"((?P<qk>[^&]+)=(?P<qv>[^&]+))*";
 
 #[allow(unused)]
 impl SimpleUrl {
-    pub(crate) fn new(
+    pub fn new(
         url_only: bool,
         request_url: String,
         matcher: regex::Regex,
@@ -1159,12 +1159,12 @@ impl SimpleUrl {
         self.match_queries(target)
     }
 
-    pub(crate) fn match_queries(&self, target: &str) -> bool {
+    pub fn match_queries(&self, target: &str) -> bool {
         let target_queries = Self::capture_query_hashmap(target);
         self.match_queries_tree(&target_queries)
     }
 
-    pub(crate) fn match_queries_tree(
+    pub fn match_queries_tree(
         &self,
         target_queries: &Option<BTreeMap<String, String>>,
     ) -> bool {
@@ -4128,7 +4128,7 @@ impl ChunkState {
         })
     }
 
-    pub(crate) fn parse_http_chunk_extension<T: Read>(
+    pub fn parse_http_chunk_extension<T: Read>(
         acc: &mut ByteBufferPointer<T>,
     ) -> Result<(String, Option<String>), ChunkStateError> {
         // skip first extension starter

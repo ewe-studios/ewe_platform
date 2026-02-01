@@ -16,7 +16,7 @@ pub struct Entry {
 
 #[allow(dead_code)]
 impl Entry {
-    pub(crate) fn new(id: usize, gen: usize) -> Self {
+    pub fn new(id: usize, gen: usize) -> Self {
         Self { id, gen }
     }
 }
@@ -196,7 +196,7 @@ impl<T> EntryList<T> {
         }
     }
 
-    pub(crate) fn find_packed(&self, entry: &Entry) -> Option<usize> {
+    pub fn find_packed(&self, entry: &Entry) -> Option<usize> {
         for (index, item) in self.packed_entries.iter().enumerate() {
             if item == entry {
                 return Some(index);
@@ -206,7 +206,7 @@ impl<T> EntryList<T> {
     }
 
     #[inline]
-    pub(crate) fn update_packed(&mut self, entry: &Entry, item: T) -> Option<T> {
+    pub fn update_packed(&mut self, entry: &Entry, item: T) -> Option<T> {
         if let Some((gen, value)) = self.items.get_mut(entry.id) {
             if *gen == entry.gen && value.is_none() {
                 // collect old value
@@ -493,12 +493,12 @@ impl<T> ThreadSafeEntry<T> {
         self.0.write().unwrap().unpark(entry, item)
     }
 
-    pub(crate) fn find_packed(&self, entry: &Entry) -> Option<usize> {
+    pub fn find_packed(&self, entry: &Entry) -> Option<usize> {
         self.0.write().unwrap().find_packed(entry)
     }
 
     #[inline]
-    pub(crate) fn update_packed(&self, entry: &Entry, item: T) -> Option<T> {
+    pub fn update_packed(&self, entry: &Entry, item: T) -> Option<T> {
         self.0.write().unwrap().update_packed(entry, item)
     }
 

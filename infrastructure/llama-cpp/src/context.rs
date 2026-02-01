@@ -23,7 +23,7 @@ pub mod session;
 /// Safe wrapper around `llama_context`.
 #[allow(clippy::module_name_repetitions)]
 pub struct LlamaContext<'a> {
-    pub(crate) context: NonNull<infrastructure_llama_bindings::llama_context>,
+    pub context: NonNull<infrastructure_llama_bindings::llama_context>,
     /// a reference to the contexts model.
     pub model: &'a LlamaModel,
     initialized_logits: Vec<i32>,
@@ -39,7 +39,7 @@ impl Debug for LlamaContext<'_> {
 }
 
 impl<'model> LlamaContext<'model> {
-    pub(crate) fn new(
+    pub fn new(
         llama_model: &'model LlamaModel,
         llama_context: NonNull<infrastructure_llama_bindings::llama_context>,
         embeddings_enabled: bool,

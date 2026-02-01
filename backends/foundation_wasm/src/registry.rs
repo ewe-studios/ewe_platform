@@ -102,7 +102,7 @@ pub struct InternalReferenceRegistry {
 
 #[allow(unused)]
 impl InternalReferenceRegistry {
-    pub(crate) fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             id: 0,
             tree: BTreeMap::new(),

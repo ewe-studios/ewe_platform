@@ -63,7 +63,7 @@ impl Waiter for Sleepable {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub(crate) enum SpawnType {
+pub enum SpawnType {
     Lifted,
     LiftedWithParent,
     Broadcast,
@@ -83,19 +83,19 @@ pub(crate) enum SpawnType {
 /// allow you use [`std::panic::catch_unwind`].
 pub struct ExecutorState {
     /// what priority should waking task be placed.
-    pub(crate) priority: PriorityOrder,
+    pub priority: PriorityOrder,
 
     /// `global_tasks` are the shared tasks coming from the main thread
     /// they generally will always come in fifo order and will be processed
     /// in the order received.
-    pub(crate) global_tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
+    pub global_tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
 
     /// indicates to us which if any spawn operation occurred.
-    pub(crate) spawn_op: rc::Rc<cell::RefCell<Option<SpawnType>>>,
+    pub spawn_op: rc::Rc<cell::RefCell<Option<SpawnType>>>,
 
     /// indicates the current task currently being handled for
     /// safety checks.
-    pub(crate) current_task: rc::Rc<cell::RefCell<Option<Entry>>>,
+    pub current_task: rc::Rc<cell::RefCell<Option<Entry>>>,
 
     /// tasks owned by the executor which should be processed first
     /// before taking on the next task from the global queue,
@@ -104,15 +104,15 @@ pub struct ExecutorState {
     /// This allows us keep the overall execution of any async
     /// iterator within the same thread and keep a one thread
     /// execution.
-    pub(crate) local_tasks: rc::Rc<cell::RefCell<EntryList<BoxedExecutionIterator>>>,
+    pub local_tasks: rc::Rc<cell::RefCell<EntryList<BoxedExecutionIterator>>>,
 
     /// `task_graph` provides dependency mapping of a Task (Key) lifted
     /// by another Task (Value) allowing us to go from lifted task
     /// to it's tree of dependents.
-    pub(crate) task_graph: rc::Rc<cell::RefCell<HashMap<Entry, Entry>>>,
+    pub task_graph: rc::Rc<cell::RefCell<HashMap<Entry, Entry>>>,
 
     /// map used to identify that a task was packed.
-    pub(crate) packed_tasks: rc::Rc<cell::RefCell<HashMap<Entry, bool>>>,
+    pub packed_tasks: rc::Rc<cell::RefCell<HashMap<Entry, bool>>>,
 
     /// the queue used for performing perioritization, usually
     /// the global task taking will first be stored in the local
@@ -122,14 +122,14 @@ pub struct ExecutorState {
     /// the entries in this queue is empty, this ensures
     /// we can consistently complete every received tasks
     /// till it finishes.
-    pub(crate) processing: rc::Rc<cell::RefCell<VecDeque<Entry>>>,
+    pub processing: rc::Rc<cell::RefCell<VecDeque<Entry>>>,
 
     /// this provides consistent and repeatable random number generation
     /// this is exposed by the executor to it's callers via scopes
     /// or direct use that lets you borrow a random number that
     /// always produces the same sets of values when given the
     /// same seed for repeatability.
-    pub(crate) rng: rc::Rc<cell::RefCell<ChaCha8Rng>>,
+    pub rng: rc::Rc<cell::RefCell<ChaCha8Rng>>,
 
     /// sleepers contain a means to register tasks currently being executed
     /// as sleeping, forcing the executing to either in a single threaded environment
@@ -139,11 +139,11 @@ pub struct ExecutorState {
     /// Each executor may treat these differently in that they may process
     /// one task at a time until completion or concurrently process
     /// multiple tasks at a time with allotted time slot between them.
-    pub(crate) sleepers: Sleepers<Sleepable>,
+    pub sleepers: Sleepers<Sleepable>,
 
     /// sleepy provides a managed indicator of how many times we've been idle
     /// and recommends how much sleep should the executor take next.
-    pub(crate) idler: rc::Rc<cell::RefCell<IdleMan>>,
+    pub idler: rc::Rc<cell::RefCell<IdleMan>>,
 }
 
 // --- constructors
@@ -351,12 +351,12 @@ impl ExecutorState {
     }
 
     #[inline]
-    pub(crate) fn number_of_sleepers(&self) -> usize {
+    pub fn number_of_sleepers(&self) -> usize {
         self.sleepers.count()
     }
 
     #[inline]
-    pub(crate) fn has_sleeping_tasks(&self) -> bool {
+    pub fn has_sleeping_tasks(&self) -> bool {
         self.sleepers.has_pending_tasks()
     }
 
@@ -900,11 +900,11 @@ impl ReferencedExecutorState {
         Self { inner, activities }
     }
 
-    pub(crate) fn clone_queue(&self) -> SharedTaskQueue {
+    pub fn clone_queue(&self) -> SharedTaskQueue {
         self.inner.global_tasks.clone()
     }
 
-    pub(crate) fn clone_state(&self) -> rc::Rc<ExecutorState> {
+    pub fn clone_state(&self) -> rc::Rc<ExecutorState> {
         self.inner.clone()
     }
 
@@ -931,12 +931,12 @@ impl ReferencedExecutorState {
 
 impl ReferencedExecutorState {
     #[inline]
-    pub(crate) fn get_rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
+    pub fn get_rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
         self.inner.get_rng()
     }
 
     #[inline]
-    pub(crate) fn number_of_sleepers(&self) -> usize {
+    pub fn number_of_sleepers(&self) -> usize {
         self.inner.number_of_sleepers()
     }
 
@@ -1460,17 +1460,17 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     }
 
     #[inline]
-    pub(crate) fn number_of_sleepers(&self) -> usize {
+    pub fn number_of_sleepers(&self) -> usize {
         self.state.number_of_sleepers()
     }
 
     #[inline]
-    pub(crate) fn number_of_local_tasks(&self) -> usize {
+    pub fn number_of_local_tasks(&self) -> usize {
         self.state.number_of_local_tasks()
     }
 
     #[inline]
-    pub(crate) fn number_of_inprocess(&self) -> usize {
+    pub fn number_of_inprocess(&self) -> usize {
         self.state.number_of_inprocess()
     }
 }

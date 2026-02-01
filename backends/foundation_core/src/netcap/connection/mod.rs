@@ -132,7 +132,7 @@ impl<T: Clone> Endpoint<T> {
     }
 
     #[inline]
-    pub(crate) fn get_host_from(&self, endpoint_url: &url::Url) -> String {
+    pub fn get_host_from(&self, endpoint_url: &url::Url) -> String {
         let mut host = match endpoint_url.host_str() {
             Some(h) => String::from(h),
             None => String::from("localhost"),
@@ -157,7 +157,7 @@ impl<T: Clone> Endpoint<T> {
     }
 
     #[inline]
-    pub(crate) fn get_query_params(&self, endpoint_url: &url::Url) -> Option<String> {
+    pub fn get_query_params(&self, endpoint_url: &url::Url) -> Option<String> {
         endpoint_url.query().map(String::from)
     }
 
@@ -172,7 +172,7 @@ impl<T: Clone> Endpoint<T> {
     }
 
     #[inline]
-    pub(crate) fn get_path_with_query_params(&self, endpoint_url: &url::Url) -> String {
+    pub fn get_path_with_query_params(&self, endpoint_url: &url::Url) -> String {
         match endpoint_url.query() {
             Some(query) => format!("{}?{}", endpoint_url.path(), query),
             None => endpoint_url.path().to_owned(),
