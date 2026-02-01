@@ -55,12 +55,14 @@ Create the internal async machinery for the HTTP 1.1 client. This feature implem
 ## Dependencies
 
 This feature depends on:
+
 - `valtron-utilities` - Uses SpawnWithLift, SpawnWithSchedule, SpawnWithBroadcast (reusable ExecutionAction types), unified executor, state machine helpers
 - `foundation` - Uses HttpClientError for errors
 - `connection` - Uses HttpClientConnection, ParsedUrl
 - `request-response` - Uses PreparedRequest, ResponseIntro
 
 This feature is required by:
+
 - `public-api` - Uses execute_task() internally
 
 **Note on Action Types**: This feature defines custom `ExecutionAction` implementations (RedirectAction, TlsUpgradeAction) specific to HTTP client needs. These are different from the reusable action types in valtron-utilities (SpawnWithLift, SpawnWithSchedule, SpawnWithBroadcast) which provide general-purpose spawning strategies. The HttpClientAction enum can compose both custom and reusable actions as needed.
@@ -69,16 +71,16 @@ This feature is required by:
 
 Key Valtron types to use:
 
-| Type | Purpose |
-|------|---------|
-| `TaskIterator` | Core iterator trait for async-like tasks |
-| `TaskStatus` | Ready/Pending/Delayed/Spawn states |
-| `ExecutionAction` | Trait for spawnable actions |
-| `NoSpawner`/`NoAction` | Default no-op spawner type |
-| `DoNext` | Wrapper for TaskIterator as ExecutionIterator |
-| `single::spawn()` | Single-threaded task scheduling |
-| `multi::spawn()` | Multi-threaded task scheduling |
-| `ExecutionEngine.lift()` | Priority task scheduling |
+| Type                     | Purpose                                       |
+| ------------------------ | --------------------------------------------- |
+| `TaskIterator`           | Core iterator trait for async-like tasks      |
+| `TaskStatus`             | Ready/Pending/Delayed/Spawn states            |
+| `ExecutionAction`        | Trait for spawnable actions                   |
+| `NoSpawner`/`NoAction`   | Default no-op spawner type                    |
+| `DoNext`                 | Wrapper for TaskIterator as ExecutionIterator |
+| `single::spawn()`        | Single-threaded task scheduling               |
+| `multi::spawn()`         | Multi-threaded task scheduling                |
+| `ExecutionEngine.lift()` | Priority task scheduling                      |
 
 ## Requirements
 
@@ -97,7 +99,12 @@ pub struct RedirectAction<R: DnsResolver + Send + 'static> {
 impl<R: DnsResolver + Send + 'static> ExecutionAction for RedirectAction<R> {
     fn apply(self, parent_key: Entry, engine: BoxedExecutionEngine) -> GenericResult<()> {
         let redirect_task = HttpRequestTask::new_redirect(...);
-        engine.lift(Box::new(DoNext::new(redirect_task)), Some(parent_key))?;
+
+        spawn_builder(executor)
+            .with_parent(parent_key.clone())
+            .with_task(redirect_task)
+            .lift()?;
+
         Ok(())
     }
 }
@@ -115,7 +122,10 @@ pub struct TlsUpgradeAction {
 impl ExecutionAction for TlsUpgradeAction {
     fn apply(self, parent_key: Entry, engine: BoxedExecutionEngine) -> GenericResult<()> {
         let tls_task = TlsHandshakeTask::new(...);
-        engine.lift(Box::new(DoNext::new(tls_task)), Some(parent_key))?;
+        spawn_builder(executor)
+            .with_parent(parent_key.clone())
+            .with_task(tls_task)
+            .lift()?;
         Ok(())
     }
 }
@@ -195,11 +205,11 @@ where
 }
 ```
 
-| Platform | Feature | Executor Used |
-|----------|---------|---------------|
-| WASM | any | `single` (always) |
-| Native | none | `single` |
-| Native | `multi` | `multi` |
+| Platform | Feature | Executor Used     |
+| -------- | ------- | ----------------- |
+| WASM     | any     | `single` (always) |
+| Native   | none    | `single`          |
+| Native   | `multi` | `multi`           |
 
 ## Implementation Details
 
@@ -241,6 +251,7 @@ cargo build --package foundation_core --features multi
 ## Notes for Agents
 
 ### Before Starting
+
 - **MUST VERIFY** foundation, connection, request-response features are complete
 - **MUST READ** `valtron/executors/task.rs` for TaskIterator trait
 - **MUST READ** `valtron/executors/executor.rs` for ExecutionAction, TaskStatus
@@ -248,6 +259,7 @@ cargo build --package foundation_core --features multi
 - **MUST READ** `valtron/executors/multi/mod.rs` for multi::spawn() usage
 
 ### Implementation Guidelines
+
 - All types are INTERNAL (pub(crate) or private)
 - Use generic type parameters for DnsResolver
 - State machine must be non-blocking
@@ -255,5 +267,6 @@ cargo build --package foundation_core --features multi
 - Feature gates for multi-threaded executor
 
 ---
-*Created: 2026-01-18*
-*Last Updated: 2026-01-18*
+
+_Created: 2026-01-18_
+_Last Updated: 2026-01-18_

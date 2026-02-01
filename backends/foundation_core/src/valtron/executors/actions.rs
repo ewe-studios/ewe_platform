@@ -17,8 +17,8 @@
 //! This enables different execution strategies through the Spawner type pattern.
 
 use crate::valtron::{
-    spawn_broadcaster, spawn_builder, BoxedExecutionEngine, ExecutionAction, GenericResult,
-    NoAction, TaskIterator, TaskStatus,
+    spawn_broadcaster, spawn_builder, BoxedExecutionEngine, BoxedExecutionIterator, DoNext,
+    ExecutionAction, GenericResult, NoAction, TaskIterator, TaskStatus,
 };
 use std::marker::PhantomData;
 
@@ -169,7 +169,7 @@ where
             let task = WrapTask::new(iter);
 
             spawn_builder(executor)
-                .with_parent(key.clone())
+                .with_parent(key)
                 .with_task(task)
                 .schedule()?;
         }
