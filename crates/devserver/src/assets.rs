@@ -82,7 +82,7 @@ fn sse_endpoint_reloader(
 ///    inner function and therefore can not be reused on the next one.
 /// 3. Tokio's `broadcast::Sender<T>` implements Clone and we can create a new receiver
 ///    on each re-call.
-#[must_use] 
+#[must_use]
 pub fn create_sse_endpoint_handler(
     reload_notification: broadcast::Sender<FileChange>,
 ) -> sync::Arc<crate::types::HyperFunc> {

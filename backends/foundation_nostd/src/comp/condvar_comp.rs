@@ -27,14 +27,14 @@
 // CondVar-Compatible Mutex
 // ============================================================================
 
-/// CondVarMutex type for use with `CondVar`.
+/// `CondVarMutex` type for use with `CondVar`.
 ///
 /// - With `std` feature: Uses `std::sync::Mutex`
 /// - Without `std` feature: Uses `foundation_nostd::primitives::CondVarMutex`
 #[cfg(feature = "std")]
 pub use std::sync::Mutex as CondVarMutex;
 
-/// CondVarMutex type for use with `CondVar`.
+/// `CondVarMutex` type for use with `CondVar`.
 ///
 /// - With `std` feature: Uses `std::sync::Mutex`
 /// - Without `std` feature: Uses `foundation_nostd::primitives::CondVarMutex`

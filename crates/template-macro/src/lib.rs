@@ -11,7 +11,10 @@ use syn::{
 fn parse_template_stream(input: ParseStream) -> Result<(syn::Ident, syn::LitStr)> {
     assert!(!input.is_empty(), "Expected to see [..] content");
 
-    assert!(input.peek(token::Bracket), "Expected macro to start with {{ .. }}");
+    assert!(
+        input.peek(token::Bracket),
+        "Expected macro to start with {{ .. }}"
+    );
 
     let tml_content;
     _ = bracketed!(tml_content in input);
@@ -19,7 +22,10 @@ fn parse_template_stream(input: ParseStream) -> Result<(syn::Ident, syn::LitStr)
     let name: syn::Ident = syn::parse2(parse_until(&tml_content, token::Comma)?)?;
 
     // skip comma
-    assert!(skip_if(&tml_content, is_comma)?.is_some(), "Expected a comma after the language definition");
+    assert!(
+        skip_if(&tml_content, is_comma)?.is_some(),
+        "Expected a comma after the language definition"
+    );
 
     let content: syn::LitStr = syn::parse2(parse_until(&tml_content, token::Bracket)?)?;
 
@@ -149,7 +155,10 @@ impl ToTokens for TemplateTag {
 
 impl Parse for TemplateTag {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        assert!(!input.is_empty(), "Do not expect the ending of a the macro here");
+        assert!(
+            !input.is_empty(),
+            "Do not expect the ending of a the macro here"
+        );
 
         let lang_ident: syn::Ident = input.parse()?;
         let lang = lang_ident.to_string();
@@ -164,9 +173,15 @@ impl Parse for TemplateTag {
         }
 
         // skip comma
-        assert!(skip_if(input, is_comma)?.is_some(), "Expected a comma after the language definition");
+        assert!(
+            skip_if(input, is_comma)?.is_some(),
+            "Expected a comma after the language definition"
+        );
 
-        assert!(input.peek(token::Brace), "Expected macro to have template content in {{ .. }} after template type");
+        assert!(
+            input.peek(token::Brace),
+            "Expected macro to have template content in {{ .. }} after template type"
+        );
 
         let content;
         _ = braced!(content in input);

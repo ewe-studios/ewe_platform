@@ -26,7 +26,7 @@ pub struct SequentialOps {
 }
 
 impl SequentialOps {
-    #[must_use] 
+    #[must_use]
     pub fn new(items: Vec<Box<dyn Operator + Send + Sync>>) -> Self {
         Self {
             operators: sync::Arc::new(items),
@@ -59,7 +59,7 @@ pub struct ParrellelOps {
 }
 
 impl ParrellelOps {
-    #[must_use] 
+    #[must_use]
     pub fn new(items: Vec<Box<dyn Operator + Send + Sync>>) -> Self {
         Self {
             operators: sync::Arc::new(items),

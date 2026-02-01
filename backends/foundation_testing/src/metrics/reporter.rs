@@ -33,7 +33,10 @@ impl PerformanceReport {
         report.push_str(&format!("=== {} ===\n", self.title));
         report.push_str(&format!("Operations: {}\n", self.metrics.operations));
         report.push_str(&format!("Duration: {:?}\n", self.metrics.duration));
-        report.push_str(&format!("Throughput: {:.2} ops/sec\n", self.metrics.throughput));
+        report.push_str(&format!(
+            "Throughput: {:.2} ops/sec\n",
+            self.metrics.throughput
+        ));
 
         if !self.metrics.latencies.is_empty() {
             report.push_str("\nLatency (ns):\n");

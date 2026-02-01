@@ -19,7 +19,9 @@ impl<T> WrappedItem<T> {
 
         #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
         {
-            Self(alloc::sync::Arc::new(foundation_nostd::comp::basic::Mutex::new(f)))
+            Self(alloc::sync::Arc::new(
+                foundation_nostd::comp::basic::Mutex::new(f),
+            ))
         }
     }
 }

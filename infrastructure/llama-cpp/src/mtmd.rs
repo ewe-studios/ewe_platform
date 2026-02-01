@@ -214,7 +214,8 @@ impl MtmdContext {
     /// Returns None if audio is not supported.
     #[must_use]
     pub fn get_audio_bitrate(&self) -> Option<u32> {
-        let rate = unsafe { infrastructure_llama_bindings::mtmd_get_audio_bitrate(self.context.as_ptr()) };
+        let rate =
+            unsafe { infrastructure_llama_bindings::mtmd_get_audio_bitrate(self.context.as_ptr()) };
         (rate > 0).then_some(rate.unsigned_abs())
     }
 
@@ -309,7 +310,10 @@ impl MtmdContext {
     /// Returns `MtmdEncodeError::EncodeFailure` if encoding fails.
     pub fn encode_chunk(&self, chunk: &MtmdInputChunk) -> Result<(), MtmdEncodeError> {
         let result = unsafe {
-            infrastructure_llama_bindings::mtmd_encode_chunk(self.context.as_ptr(), chunk.chunk.as_ptr())
+            infrastructure_llama_bindings::mtmd_encode_chunk(
+                self.context.as_ptr(),
+                chunk.chunk.as_ptr(),
+            )
         };
 
         if result == 0 {
@@ -371,7 +375,8 @@ impl MtmdBitmap {
             return Err(MtmdBitmapError::InvalidDataSize);
         }
 
-        let bitmap = unsafe { infrastructure_llama_bindings::mtmd_bitmap_init(nx, ny, data.as_ptr()) };
+        let bitmap =
+            unsafe { infrastructure_llama_bindings::mtmd_bitmap_init(nx, ny, data.as_ptr()) };
 
         let bitmap = NonNull::new(bitmap).ok_or(MtmdBitmapError::NullResult)?;
         Ok(Self { bitmap })
@@ -405,8 +410,9 @@ impl MtmdBitmap {
     /// // Note: This will likely fail without proper MTMD context setup
     /// ```
     pub fn from_audio_data(data: &[f32]) -> Result<Self, MtmdBitmapError> {
-        let bitmap =
-            unsafe { infrastructure_llama_bindings::mtmd_bitmap_init_from_audio(data.len(), data.as_ptr()) };
+        let bitmap = unsafe {
+            infrastructure_llama_bindings::mtmd_bitmap_init_from_audio(data.len(), data.as_ptr())
+        };
 
         let bitmap = NonNull::new(bitmap).ok_or(MtmdBitmapError::NullResult)?;
         Ok(Self { bitmap })
@@ -501,8 +507,10 @@ impl MtmdBitmap {
     /// For audio: PCM F32 format with length `n_samples * 4`
     #[must_use]
     pub fn data(&self) -> &[u8] {
-        let ptr = unsafe { infrastructure_llama_bindings::mtmd_bitmap_get_data(self.bitmap.as_ptr()) };
-        let len = unsafe { infrastructure_llama_bindings::mtmd_bitmap_get_n_bytes(self.bitmap.as_ptr()) };
+        let ptr =
+            unsafe { infrastructure_llama_bindings::mtmd_bitmap_get_data(self.bitmap.as_ptr()) };
+        let len =
+            unsafe { infrastructure_llama_bindings::mtmd_bitmap_get_n_bytes(self.bitmap.as_ptr()) };
         unsafe { slice::from_raw_parts(ptr, len) }
     }
 
@@ -518,7 +526,8 @@ impl MtmdBitmap {
     /// based on a hash of the bitmap data.
     #[must_use]
     pub fn id(&self) -> Option<String> {
-        let ptr = unsafe { infrastructure_llama_bindings::mtmd_bitmap_get_id(self.bitmap.as_ptr()) };
+        let ptr =
+            unsafe { infrastructure_llama_bindings::mtmd_bitmap_get_id(self.bitmap.as_ptr()) };
         if ptr.is_null() {
             None
         } else {
@@ -555,7 +564,10 @@ impl MtmdBitmap {
     pub fn set_id(&self, id: &str) -> Result<(), std::ffi::NulError> {
         let id_cstr = CString::new(id)?;
         unsafe {
-            infrastructure_llama_bindings::mtmd_bitmap_set_id(self.bitmap.as_ptr(), id_cstr.as_ptr());
+            infrastructure_llama_bindings::mtmd_bitmap_set_id(
+                self.bitmap.as_ptr(),
+                id_cstr.as_ptr(),
+            );
         }
         Ok(())
     }
@@ -624,8 +636,9 @@ impl MtmdInputChunks {
             return None;
         }
 
-        let chunk_ptr =
-            unsafe { infrastructure_llama_bindings::mtmd_input_chunks_get(self.chunks.as_ptr(), index) };
+        let chunk_ptr = unsafe {
+            infrastructure_llama_bindings::mtmd_input_chunks_get(self.chunks.as_ptr(), index)
+        };
 
         // Note: We don't own this chunk, it's owned by the chunks collection
         NonNull::new(chunk_ptr.cast_mut()).map(|ptr| MtmdInputChunk {
@@ -731,7 +744,9 @@ impl MtmdInputChunk {
     /// Get the type of this chunk
     #[must_use]
     pub fn chunk_type(&self) -> MtmdInputChunkType {
-        let chunk_type = unsafe { infrastructure_llama_bindings::mtmd_input_chunk_get_type(self.chunk.as_ptr()) };
+        let chunk_type = unsafe {
+            infrastructure_llama_bindings::mtmd_input_chunk_get_type(self.chunk.as_ptr())
+        };
         MtmdInputChunkType::from(chunk_type)
     }
 
@@ -787,7 +802,8 @@ impl MtmdInputChunk {
     /// Returns `None` for text chunks, may return an ID for image/audio chunks.
     #[must_use]
     pub fn id(&self) -> Option<String> {
-        let ptr = unsafe { infrastructure_llama_bindings::mtmd_input_chunk_get_id(self.chunk.as_ptr()) };
+        let ptr =
+            unsafe { infrastructure_llama_bindings::mtmd_input_chunk_get_id(self.chunk.as_ptr()) };
         if ptr.is_null() {
             None
         } else {
@@ -812,7 +828,8 @@ impl MtmdInputChunk {
     ///
     /// Returns `MtmdInputChunkError::NullResult` if copying fails.
     pub fn copy(&self) -> Result<Self, MtmdInputChunkError> {
-        let chunk = unsafe { infrastructure_llama_bindings::mtmd_input_chunk_copy(self.chunk.as_ptr()) };
+        let chunk =
+            unsafe { infrastructure_llama_bindings::mtmd_input_chunk_copy(self.chunk.as_ptr()) };
         let chunk = NonNull::new(chunk).ok_or(MtmdInputChunkError::NullResult)?;
         Ok(Self { chunk, owned: true })
     }

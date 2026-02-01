@@ -23,7 +23,7 @@ pub enum ChannelError {
     ReceivedNoData,
 }
 
-#[must_use] 
+#[must_use]
 pub fn create<T>() -> (SendChannel<T>, ReceiveChannel<T>) {
     let (tx, rx) = async_channel::unbounded::<T>();
     let sender = SendChannel::new(tx);
@@ -47,7 +47,7 @@ impl<E> Clone for ChannelGroup<E> {
 }
 
 impl<E> ChannelGroup<E> {
-    #[must_use] 
+    #[must_use]
     pub fn new() -> Self {
         let (sender, receiver) = create::<E>();
         Self(Some(sender), Some(receiver))
@@ -92,7 +92,7 @@ impl<T> Clone for SendChannel<T> {
 }
 
 impl<T: 'static> SendChannel<T> {
-    #[must_use] 
+    #[must_use]
     pub fn send_only(self) -> Box<dyn SendOnlyChannel<T>> {
         Box::new(SendOnlyWrapper { channel: self })
     }

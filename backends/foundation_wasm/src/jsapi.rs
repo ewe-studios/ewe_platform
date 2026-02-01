@@ -130,13 +130,20 @@ pub mod internal_api {
 
     /// [`get_total_animation_callbacks`] returns total count of registered callbacks.
     pub fn get_total_animation_callbacks() -> usize {
-        ANIMATION_FRAME_CALLBACKS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).len()
+        ANIMATION_FRAME_CALLBACKS
+            .lock()
+            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+            .len()
     }
 
     /// [`run_animation_frames`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
     pub fn run_animation_frames(tick: f64) -> u8 {
-        ANIMATION_FRAME_CALLBACKS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).call(tick).into()
+        ANIMATION_FRAME_CALLBACKS
+            .lock()
+            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+            .call(tick)
+            .into()
     }
 
     /// [`register_animation_hook`] provides a method that will automatically
@@ -172,7 +179,10 @@ pub mod internal_api {
     where
         F: FrameCallback + 'static,
     {
-        ANIMATION_FRAME_CALLBACKS.lock().unwrap_or_else(|e| e.into_inner()).add(Box::new(f));
+        ANIMATION_FRAME_CALLBACKS
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .add(Box::new(f));
     }
 
     /// [`register_animation_interval_callback`] provides a more direct method for
@@ -182,7 +192,10 @@ pub mod internal_api {
     where
         F: FrameCallback + Send + Sync + 'static,
     {
-        ANIMATION_FRAME_CALLBACKS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).add(Box::new(f));
+        ANIMATION_FRAME_CALLBACKS
+            .lock()
+            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+            .add(Box::new(f));
     }
 
     // schedule function registration with the host.
@@ -200,7 +213,11 @@ pub mod internal_api {
     /// [`run_schedule_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
     pub fn run_schedule_callback(id: InternalPointer) -> crate::WasmRequestResult<()> {
-        match SCHEDULED_CALLBACKS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).call(id) {
+        match SCHEDULED_CALLBACKS
+            .lock()
+            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+            .call(id)
+        {
             Some(()) => Ok(()),
             None => Err(crate::WASMErrors::GuestError(
                 crate::GuestOperationError::UnknownInternalPointer(id),
@@ -241,7 +258,10 @@ pub mod internal_api {
     where
         F: DoTask + 'static,
     {
-        SCHEDULED_CALLBACKS.lock().unwrap_or_else(|e| e.into_inner()).add(Box::new(f))
+        SCHEDULED_CALLBACKS
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .add(Box::new(f))
     }
 
     /// [`register_schedule_callback`] provides a more direct method for
@@ -251,7 +271,10 @@ pub mod internal_api {
     where
         F: DoTask + Send + Sync + 'static,
     {
-        SCHEDULED_CALLBACKS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).add(Box::new(f))
+        SCHEDULED_CALLBACKS
+            .lock()
+            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+            .add(Box::new(f))
     }
 
     // interval function registration with the host.
@@ -259,7 +282,11 @@ pub mod internal_api {
     /// [`run_interval_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
     pub fn run_interval_callback(id: InternalPointer) -> crate::WasmRequestResult<TickState> {
-        match RECURRING_INTERVAL_CALLBACKS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).call(id) {
+        match RECURRING_INTERVAL_CALLBACKS
+            .lock()
+            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+            .call(id)
+        {
             Some(inner) => Ok(inner),
             None => Err(crate::WASMErrors::GuestError(
                 crate::GuestOperationError::UnknownInternalPointer(id),
@@ -310,7 +337,10 @@ pub mod internal_api {
     where
         F: IntervalCallback + 'static,
     {
-        RECURRING_INTERVAL_CALLBACKS.lock().unwrap_or_else(|e| e.into_inner()).add(Box::new(f))
+        RECURRING_INTERVAL_CALLBACKS
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .add(Box::new(f))
     }
 
     /// [`register_interval_callback`] provides a more direct method for
@@ -320,7 +350,10 @@ pub mod internal_api {
     where
         F: IntervalCallback + Send + Sync + 'static,
     {
-        RECURRING_INTERVAL_CALLBACKS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).add(Box::new(f))
+        RECURRING_INTERVAL_CALLBACKS
+            .lock()
+            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+            .add(Box::new(f))
     }
 
     // -- callback methods
@@ -358,7 +391,10 @@ pub mod internal_api {
     where
         F: InternalCallback + Send + Sync + 'static,
     {
-        INTERNAL_CALLBACKS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).add(returns, Box::new(f))
+        INTERNAL_CALLBACKS
+            .lock()
+            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+            .add(returns, Box::new(f))
     }
 
     /// [`register_internal_callback`] provides a more direct method for
@@ -368,7 +404,10 @@ pub mod internal_api {
     where
         F: InternalCallback + 'static,
     {
-        INTERNAL_CALLBACKS.lock().unwrap_or_else(|e| e.into_inner()).add(returns, Box::new(f))
+        INTERNAL_CALLBACKS
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .add(returns, Box::new(f))
     }
 
     pub fn unregister_internal_callback(addr: InternalPointer) {
@@ -413,7 +452,9 @@ pub mod internal_api {
     // -- extract methods
 
     pub fn extract_vec_from_memory(allocation_id: u64) -> Vec<u8> {
-        let allocations = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
+        let allocations = ALLOCATIONS
+            .lock()
+            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
         let mem = allocations
             .get(allocation_id.into())
             .expect("Allocation should be initialized");
@@ -421,7 +462,9 @@ pub mod internal_api {
     }
 
     pub fn extract_string_from_memory(allocation_id: u64) -> String {
-        let allocations = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
+        let allocations = ALLOCATIONS
+            .lock()
+            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
         let mem = allocations
             .get(allocation_id.into())
             .expect("Allocation should be initialized");
@@ -448,7 +491,9 @@ pub mod exposed_runtime {
 
     #[no_mangle]
     pub extern "C" fn allocation_start_pointer(mem_id: u64) -> *const u8 {
-        let allocations = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
+        let allocations = ALLOCATIONS
+            .lock()
+            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
         let memory = allocations
             .get(mem_id.into())
             .expect("Allocation should be initialized");
@@ -459,7 +504,9 @@ pub mod exposed_runtime {
 
     #[no_mangle]
     pub extern "C" fn allocation_length(allocation_id: u64) -> u64 {
-        let allocations = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
+        let allocations = ALLOCATIONS
+            .lock()
+            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
         let mem = allocations
             .get(allocation_id.into())
             .expect("Allocation should be initialized");
@@ -468,7 +515,9 @@ pub mod exposed_runtime {
 
     #[no_mangle]
     pub extern "C" fn dispose_allocation(allocation_id: u64) {
-        let mut allocations = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
+        let mut allocations = ALLOCATIONS
+            .lock()
+            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
         allocations
             .deallocate(allocation_id.into())
             .expect("Allocation should be initialized");
@@ -476,7 +525,9 @@ pub mod exposed_runtime {
 
     #[no_mangle]
     pub extern "C" fn clear_allocation(allocation_id: u64) {
-        let allocations = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
+        let allocations = ALLOCATIONS
+            .lock()
+            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
         let mem = allocations
             .get(allocation_id.into())
             .expect("Allocation should be initialized");
@@ -884,7 +935,10 @@ pub mod host_runtime {
             };
 
             let mem_id = MemoryId::from_u64(return_id);
-            let memory_result = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).get(mem_id);
+            let memory_result = ALLOCATIONS
+                .lock()
+                .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                .get(mem_id);
             assert!(
                 memory_result.is_ok(),
                 "batch_response: failed to get memory location: {mem_id:?} from {return_id:?} with {memory_result:?}"
@@ -905,7 +959,11 @@ pub mod host_runtime {
                 ))),
             };
 
-            if let Err(err) = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).deallocate(mem_id) {
+            if let Err(err) = ALLOCATIONS
+                .lock()
+                .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                .deallocate(mem_id)
+            {
                 return Err(err.into());
             }
 
@@ -1974,7 +2032,10 @@ impl ReturnValueParserIter<'_> {
                 let alloc_id = u64::from_le_bytes(section);
                 let mem_id = MemoryId::from_u64(alloc_id);
 
-                let memory_result = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).get(mem_id);
+                let memory_result = ALLOCATIONS
+                    .lock()
+                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                    .get(mem_id);
                 if let Err(err) = memory_result {
                     return Some(Err(err.into()));
                 }
@@ -1986,7 +2047,11 @@ impl ReturnValueParserIter<'_> {
                     ))));
                 }
 
-                if let Err(err) = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).deallocate(mem_id) {
+                if let Err(err) = ALLOCATIONS
+                    .lock()
+                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                    .deallocate(mem_id)
+                {
                     return Some(Err(err.into()));
                 }
 
@@ -2006,7 +2071,10 @@ impl ReturnValueParserIter<'_> {
                 let alloc_id = u64::from_le_bytes(section);
                 let mem_id = MemoryId::from_u64(alloc_id);
 
-                let memory_result = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).get(mem_id);
+                let memory_result = ALLOCATIONS
+                    .lock()
+                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                    .get(mem_id);
                 if let Err(err) = memory_result {
                     return Some(Err(err.into()));
                 }
@@ -2018,7 +2086,11 @@ impl ReturnValueParserIter<'_> {
                     ))));
                 }
 
-                if let Err(err) = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).deallocate(mem_id) {
+                if let Err(err) = ALLOCATIONS
+                    .lock()
+                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                    .deallocate(mem_id)
+                {
                     return Some(Err(err.into()));
                 }
 
@@ -2062,7 +2134,10 @@ impl ReturnValueParserIter<'_> {
                 let alloc_id = u64::from_le_bytes(section);
                 let mem_id = MemoryId::from_u64(alloc_id);
 
-                let memory_result = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).get(mem_id);
+                let memory_result = ALLOCATIONS
+                    .lock()
+                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                    .get(mem_id);
                 if let Err(err) = memory_result {
                     return Some(Err(err.into()));
                 }
@@ -2074,7 +2149,11 @@ impl ReturnValueParserIter<'_> {
                     ))));
                 }
 
-                if let Err(err) = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).deallocate(mem_id) {
+                if let Err(err) = ALLOCATIONS
+                    .lock()
+                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                    .deallocate(mem_id)
+                {
                     return Some(Err(err.into()));
                 }
 
@@ -2118,7 +2197,10 @@ impl ReturnValueParserIter<'_> {
                 let alloc_id = u64::from_le_bytes(section);
                 let mem_id = MemoryId::from_u64(alloc_id);
 
-                let memory_result = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).get(mem_id);
+                let memory_result = ALLOCATIONS
+                    .lock()
+                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                    .get(mem_id);
                 if let Err(err) = memory_result {
                     return Some(Err(err.into()));
                 }
@@ -2130,7 +2212,11 @@ impl ReturnValueParserIter<'_> {
                     ))));
                 }
 
-                if let Err(err) = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).deallocate(mem_id) {
+                if let Err(err) = ALLOCATIONS
+                    .lock()
+                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                    .deallocate(mem_id)
+                {
                     return Some(Err(err.into()));
                 }
 
@@ -2172,7 +2258,10 @@ impl ReturnValueParserIter<'_> {
                 let alloc_id = u64::from_le_bytes(section);
                 let mem_id = MemoryId::from_u64(alloc_id);
 
-                let memory_result = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).get(mem_id);
+                let memory_result = ALLOCATIONS
+                    .lock()
+                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                    .get(mem_id);
                 if let Err(err) = memory_result {
                     return Some(Err(err.into()));
                 }
@@ -2184,7 +2273,11 @@ impl ReturnValueParserIter<'_> {
                     ))));
                 }
 
-                if let Err(err) = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).deallocate(mem_id) {
+                if let Err(err) = ALLOCATIONS
+                    .lock()
+                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                    .deallocate(mem_id)
+                {
                     return Some(Err(err.into()));
                 }
 
@@ -2211,7 +2304,10 @@ impl ReturnValueParserIter<'_> {
                 let alloc_id = u64::from_le_bytes(section);
                 let mem_id = MemoryId::from_u64(alloc_id);
 
-                let memory_result = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).get(mem_id);
+                let memory_result = ALLOCATIONS
+                    .lock()
+                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                    .get(mem_id);
                 if let Err(err) = memory_result {
                     return Some(Err(err.into()));
                 }
@@ -2223,7 +2319,11 @@ impl ReturnValueParserIter<'_> {
                     ))));
                 }
 
-                if let Err(err) = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).deallocate(mem_id) {
+                if let Err(err) = ALLOCATIONS
+                    .lock()
+                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                    .deallocate(mem_id)
+                {
                     return Some(Err(err.into()));
                 }
 
@@ -2267,7 +2367,10 @@ impl ReturnValueParserIter<'_> {
                 let alloc_id = u64::from_le_bytes(section);
                 let mem_id = MemoryId::from_u64(alloc_id);
 
-                let memory_result = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).get(mem_id);
+                let memory_result = ALLOCATIONS
+                    .lock()
+                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                    .get(mem_id);
                 if let Err(err) = memory_result {
                     return Some(Err(err.into()));
                 }
@@ -2279,7 +2382,11 @@ impl ReturnValueParserIter<'_> {
                     ))));
                 }
 
-                if let Err(err) = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).deallocate(mem_id) {
+                if let Err(err) = ALLOCATIONS
+                    .lock()
+                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                    .deallocate(mem_id)
+                {
                     return Some(Err(err.into()));
                 }
 
@@ -2323,7 +2430,10 @@ impl ReturnValueParserIter<'_> {
                 let alloc_id = u64::from_le_bytes(section);
                 let mem_id = MemoryId::from_u64(alloc_id);
 
-                let memory_result = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).get(mem_id);
+                let memory_result = ALLOCATIONS
+                    .lock()
+                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                    .get(mem_id);
                 if let Err(err) = memory_result {
                     return Some(Err(err.into()));
                 }
@@ -2335,7 +2445,11 @@ impl ReturnValueParserIter<'_> {
                     ))));
                 }
 
-                if let Err(err) = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).deallocate(mem_id) {
+                if let Err(err) = ALLOCATIONS
+                    .lock()
+                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                    .deallocate(mem_id)
+                {
                     return Some(Err(err.into()));
                 }
 
@@ -2379,7 +2493,10 @@ impl ReturnValueParserIter<'_> {
                 let alloc_id = u64::from_le_bytes(section);
                 let mem_id = MemoryId::from_u64(alloc_id);
 
-                let memory_result = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).get(mem_id);
+                let memory_result = ALLOCATIONS
+                    .lock()
+                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                    .get(mem_id);
                 if let Err(err) = memory_result {
                     return Some(Err(err.into()));
                 }
@@ -2391,7 +2508,11 @@ impl ReturnValueParserIter<'_> {
                     ))));
                 }
 
-                if let Err(err) = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).deallocate(mem_id) {
+                if let Err(err) = ALLOCATIONS
+                    .lock()
+                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                    .deallocate(mem_id)
+                {
                     return Some(Err(err.into()));
                 }
 
@@ -2435,7 +2556,10 @@ impl ReturnValueParserIter<'_> {
                 let alloc_id = u64::from_le_bytes(section);
                 let mem_id = MemoryId::from_u64(alloc_id);
 
-                let memory_result = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).get(mem_id);
+                let memory_result = ALLOCATIONS
+                    .lock()
+                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                    .get(mem_id);
                 if let Err(err) = memory_result {
                     return Some(Err(err.into()));
                 }
@@ -2447,7 +2571,11 @@ impl ReturnValueParserIter<'_> {
                     ))));
                 }
 
-                if let Err(err) = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).deallocate(mem_id) {
+                if let Err(err) = ALLOCATIONS
+                    .lock()
+                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                    .deallocate(mem_id)
+                {
                     return Some(Err(err.into()));
                 }
 
@@ -2489,7 +2617,10 @@ impl ReturnValueParserIter<'_> {
                 let alloc_id = u64::from_le_bytes(section);
                 let mem_id = MemoryId::from_u64(alloc_id);
 
-                let memory_result = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).get(mem_id);
+                let memory_result = ALLOCATIONS
+                    .lock()
+                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                    .get(mem_id);
                 if let Err(err) = memory_result {
                     return Some(Err(err.into()));
                 }
@@ -2501,7 +2632,11 @@ impl ReturnValueParserIter<'_> {
                     ))));
                 }
 
-                if let Err(err) = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).deallocate(mem_id) {
+                if let Err(err) = ALLOCATIONS
+                    .lock()
+                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                    .deallocate(mem_id)
+                {
                     return Some(Err(err.into()));
                 }
 
@@ -2840,7 +2975,10 @@ impl FromBinary for GroupReturnTypeHints {
             let alloc_id = u64::from_le_bytes(section);
             let mem_id = MemoryId::from_u64(alloc_id);
 
-            let memory_result = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).get(mem_id);
+            let memory_result = ALLOCATIONS
+                .lock()
+                .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                .get(mem_id);
             assert!(
                 memory_result.is_ok(),
                 "GroupReturnTypeHints: Received memoryId: {:?} -> {:?} -- result: {:?}",
@@ -2882,7 +3020,11 @@ impl FromBinary for GroupReturnTypeHints {
                 }
             }
 
-            if let Err(err) = ALLOCATIONS.lock().unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner).deallocate(mem_id) {
+            if let Err(err) = ALLOCATIONS
+                .lock()
+                .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                .deallocate(mem_id)
+            {
                 return Err(err.into());
             }
         }

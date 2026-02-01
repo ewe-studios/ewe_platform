@@ -54,7 +54,7 @@ impl core::fmt::Display for Tunnel {
 }
 
 impl Tunnel {
-    #[must_use] 
+    #[must_use]
     pub fn new(source: ProxyRemoteConfig, destination: ProxyRemoteConfig) -> Self {
         Self {
             source,
@@ -82,7 +82,7 @@ pub struct Http1 {
 }
 
 impl Http1 {
-    #[must_use] 
+    #[must_use]
     pub fn new(
         source: ProxyRemoteConfig,
         destination: ProxyRemoteConfig,
@@ -126,7 +126,7 @@ pub struct Http2 {
 }
 
 impl Http2 {
-    #[must_use] 
+    #[must_use]
     pub fn new(
         source: ProxyRemoteConfig,
         destination: ProxyRemoteConfig,
@@ -171,7 +171,7 @@ pub struct Http3 {
 }
 
 impl Http3 {
-    #[must_use] 
+    #[must_use]
     pub fn new(
         source: ProxyRemoteConfig,
         destination: ProxyRemoteConfig,

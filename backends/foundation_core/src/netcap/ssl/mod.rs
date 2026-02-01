@@ -12,7 +12,6 @@ compile_error!("Cannot enable both `ssl-rustls` and `ssl-native-tls`. Choose one
 #[cfg(all(feature = "ssl-openssl", feature = "ssl-native-tls"))]
 compile_error!("Cannot enable both `ssl-openssl` and `ssl-native-tls`. Choose one TLS backend.");
 
-
 #[cfg(all(
     feature = "ssl-rustls",
     feature = "ssl-openssl",
