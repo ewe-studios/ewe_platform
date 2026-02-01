@@ -45,6 +45,8 @@ files_required:
       - .agents/rules/04-work-commit-and-push-rules.md
       - .agents/rules/05-coding-practice-agent-orchestration.md
       - .agents/rules/06-specifications-and-requirements.md
+      - .agents/rules/14-machine-optimized-prompts.md
+      - .agents/rules/15-instruction-compaction.md
     files:
       - ./requirements.md
       - ./LEARNINGS.md
@@ -69,9 +71,13 @@ files_required:
       - .agents/rules/03-dangerous-operations-safety.md
       - .agents/rules/04-work-commit-and-push-rules.md
       - .agents/rules/08-verification-workflow-complete-guide.md
+      - .agents/rules/14-machine-optimized-prompts.md
+      - .agents/rules/15-instruction-compaction.md
       - .agents/stacks/rust.md
     files:
       - ./requirements.md
+
+  # All agents MUST load Rules 14 & 15 for token/context optimization
 ---
 
 # Fix Rust Lints, Checks, and Styling - Requirements
@@ -130,7 +136,11 @@ files_required:
 
 **ALL agents implementing this specification MUST follow token and context optimization protocols.**
 
+**MANDATORY RULES**: [Rule 14](../../.agents/rules/14-machine-optimized-prompts.md) and [Rule 15](../../.agents/rules/15-instruction-compaction.md)
+
 ### Machine-Optimized Prompts (Rule 14)
+
+**Reference**: [.agents/rules/14-machine-optimized-prompts.md](../../.agents/rules/14-machine-optimized-prompts.md)
 
 **Main Agent MUST**:
 1. Generate `machine_prompt.md` from this file when specification finalized
@@ -144,32 +154,65 @@ files_required:
 - Parse DOCS_TO_READ section for files to load
 - 58% token savings
 
+**File Lifecycle**:
+- `requirements.md` (human-readable, permanent) → `machine_prompt.md` (machine-optimized, generated)
+- Both files committed together, stay in sync
+- Sub-agents use machine_prompt.md for instructions
+
 ### Context Compaction (Rule 15)
 
-**Sub-Agents MUST** (before starting work):
-1. Read machine_prompt.md and PROGRESS.md
-2. Generate `COMPACT_CONTEXT.md`:
-   - Embed machine_prompt.md content for current task
-   - Extract current status from PROGRESS.md
-   - List files for current task only (500-800 tokens)
-3. CLEAR entire context
-4. RELOAD from COMPACT_CONTEXT.md only
+**Reference**: [.agents/rules/15-instruction-compaction.md](../../.agents/rules/15-instruction-compaction.md)
+
+**Main Agent MUST** (before spawning sub-agents):
+1. Generate machine_prompt.md (Rule 14)
+2. Clear context and reload from machine_prompt.md
+3. Read/create PROGRESS.md
+4. Generate initial `COMPACT_CONTEXT.md`:
+   - Extract current task from machine_prompt.md
+   - EMBED machine_prompt content for current task
+   - Create ultra-compact self-contained file (500-800 tokens)
+5. Provide COMPACT_CONTEXT.md path to sub-agent
+
+**Sub-Agents MUST** (on startup):
+1. Receive COMPACT_CONTEXT.md from Main Agent (already generated)
+2. Read COMPACT_CONTEXT.md (self-contained with embedded machine_prompt)
+3. Read files from FILES section only
+4. Begin work with clean compact context (~5K tokens)
+
+**Sub-Agents MUST** (during work - after PROGRESS.md updates):
+1. Regenerate COMPACT_CONTEXT.md:
+   - Re-extract current task from machine_prompt.md
+   - Re-embed machine_prompt content for current task
+   - Update status from new PROGRESS.md
+   - Update FILES list and NEXT_ACTIONS
+2. CLEAR entire context (drop everything)
+3. RELOAD from COMPACT_CONTEXT.md only
+4. Continue work with refreshed minimal context
 5. Proceed with 97% context reduction (180K→5K tokens)
 
-**After PROGRESS.md Updates**:
-- Regenerate COMPACT_CONTEXT.md (re-embed machine_prompt content)
-- Clear and reload
-- Maintain minimal context
-
 **COMPACT_CONTEXT.md Lifecycle**:
-- Generated fresh per task
+- Generated fresh per task (Main Agent creates initial, Sub-Agent maintains)
 - Contains ONLY current task (no history)
-- Deleted when task completes
+- Embeds machine_prompt.md content (self-contained)
+- Regenerated after each PROGRESS.md update
+- Deleted when task completes (Main Agent cleanup)
 - Rewritten from scratch for next task
 
-**See**:
-- Rule 14: .agents/rules/14-machine-optimized-prompts.md
-- Rule 15: .agents/rules/15-instruction-compaction.md
+**Combined Token Flow**:
+```
+requirements.md (human, 2000 tokens)
+    ↓ [Rule 14: Generate]
+machine_prompt.md (machine, 900 tokens, 58% reduction)
+    ↓ [Rule 15: Extract + Embed]
+COMPACT_CONTEXT.md (ultra-compact, 500 tokens, 97% reduction)
+    ↓ [After context clear]
+Agent works with 500 tokens + FILES (~5K total)
+```
+
+**See Also**:
+- [Rule 14: Machine-Optimized Prompts](../../.agents/rules/14-machine-optimized-prompts.md)
+- [Rule 15: Instruction Compaction](../../.agents/rules/15-instruction-compaction.md)
+- [COMPACT_CONTEXT Template](../../.agents/templates/COMPACT_CONTEXT-template.md)
 
 ---
 
