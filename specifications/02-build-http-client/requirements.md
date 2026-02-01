@@ -1,15 +1,35 @@
 ---
+# === IDENTIFICATION ===
+spec_name: "02-build-http-client"
+spec_number: 02
 description: Create an HTTP 1.1 client using existing simple_http module structures with iterator-based patterns and valtron executors
+
+# === LOCATION CONTEXT ===
+# To find this file's location:
+# 1. Run: bash pwd  (gets current working directory = CWD)
+# 2. This file is at: CWD/specifications/02-build-http-client/requirements.md
+# 3. Workspace root: CWD (contains .agents/, specifications/, documentation/, backends/)
+workspace_name: "ewe_platform"
+spec_directory: "specifications/02-build-http-client"
+this_file: "specifications/02-build-http-client/requirements.md"
+
+# === STATUS ===
 status: in-progress
 priority: high
 created: 2026-01-18
 author: Main Agent
+
+# === CONTEXT OPTIMIZATION ===
+machine_optimized: true  # Main Agent MUST generate machine_prompt.md before spawning sub-agents
+machine_prompt_file: ./machine_prompt.md  # Sub-agents read this (NOT requirements.md) for 58% token savings
 context_optimization: true  # Sub-agents MUST generate COMPACT_CONTEXT.md before work, reload after updates
 compact_context_file: ./COMPACT_CONTEXT.md  # Ultra-compact current task context (97% reduction)
 context_reload_required: true  # Clear and reload from compact context regularly to prevent context limit errors
+
+# === METADATA ===
 metadata:
   version: '4.0'
-  last_updated: 2026-01-25
+  last_updated: 2026-02-02
   estimated_effort: large
   tags:
     - http-client
@@ -23,10 +43,14 @@ metadata:
   tools:
     - Rust
     - cargo
+
+# === DEPENDENCIES ===
 builds_on:
   - ../04-condvar-primitives
 related_specs:
   - ../03-wasm-friendly-sync-primitives
+
+# === STRUCTURE ===
 has_features: true
 has_fundamentals: true # HTTP client needs comprehensive user documentation
 features:
@@ -69,6 +93,50 @@ files_required:
 ---
 
 # HTTP 1.1 Client - Requirements
+
+## 📍 Location Reference
+
+**How to find your location**:
+1. Run `bash pwd` to get current working directory (CWD)
+2. This file is at: `CWD/specifications/02-build-http-client/requirements.md`
+3. Workspace root is CWD (contains `.agents/`, `specifications/`, `documentation/`, `backends/`)
+
+**Quick paths** (all relative to workspace root = CWD):
+- This specification: `specifications/02-build-http-client/`
+- This file: `specifications/02-build-http-client/requirements.md`
+- Features: `specifications/02-build-http-client/features/*/feature.md`
+- Machine prompt: `specifications/02-build-http-client/machine_prompt.md`
+- Progress: `specifications/02-build-http-client/PROGRESS.md`
+- Learnings: `specifications/02-build-http-client/LEARNINGS.md`
+- Agent rules: `.agents/rules/`
+- Stack files: `.agents/stacks/rust.md`
+- Documentation: `documentation/simple_http/doc.md`, `documentation/valtron/doc.md`, `documentation/netcap/doc.md`
+
+**Verification**: If you can read `.agents/AGENTS.md` from CWD, you're in the right place!
+
+**Quick Navigation Commands**:
+```bash
+# Verify you're in workspace root
+test -f .agents/AGENTS.md && echo "✓ In workspace root" || echo "✗ Wrong location"
+
+# List all specifications
+ls -d specifications/*/
+
+# Check this spec's features
+ls -d specifications/02-build-http-client/features/*/
+
+# View specification structure
+tree -L 2 specifications/02-build-http-client/
+
+# Find HTTP client code
+find backends/foundation_core/src/wire/simple_http/client/ -type f -name "*.rs"
+```
+
+---
+
+> **Specification Structure**: has_features: true → This file is HIGH-LEVEL OVERVIEW ONLY. Detailed requirements and tasks are in `features/*/feature.md` files.
+
+---
 
 ## 🔍 CRITICAL: Retrieval-Led Reasoning Required
 
