@@ -353,7 +353,8 @@ mod tests {
     fn cont_disabled_log() {
         let logger = create_logger(tracing::Level::INFO);
         let mut log_state = Box::new(State::new(Module::LlamaCpp, LogOptions::default()));
-        let log_ptr = std::ptr::from_mut::<State>(log_state.as_mut()).cast::<std::os::raw::c_void>();
+        let log_ptr =
+            std::ptr::from_mut::<State>(log_state.as_mut()).cast::<std::os::raw::c_void>();
 
         logs_to_trace(
             infrastructure_llama_bindings::GGML_LOG_LEVEL_DEBUG,
@@ -389,7 +390,8 @@ mod tests {
     fn cont_enabled_log() {
         let logger = create_logger(tracing::Level::INFO);
         let mut log_state = Box::new(State::new(Module::LlamaCpp, LogOptions::default()));
-        let log_ptr = std::ptr::from_mut::<State>(log_state.as_mut()).cast::<std::os::raw::c_void>();
+        let log_ptr =
+            std::ptr::from_mut::<State>(log_state.as_mut()).cast::<std::os::raw::c_void>();
 
         logs_to_trace(
             infrastructure_llama_bindings::GGML_LOG_LEVEL_INFO,
