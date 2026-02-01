@@ -1,32 +1,30 @@
 ---
-# === IDENTIFICATION ===
+# Identification
 spec_name: "02-build-http-client"
 spec_number: 02
 description: Create an HTTP 1.1 client using existing simple_http module structures with iterator-based patterns and valtron executors
 
-# === LOCATION CONTEXT ===
-# To find this file's location:
-# 1. Run: bash pwd  (gets current working directory = CWD)
-# 2. This file is at: CWD/specifications/02-build-http-client/requirements.md
-# 3. Workspace root: CWD (contains .agents/, specifications/, documentation/, backends/)
+# Location Context
+# How to find: Run `bash pwd` to get CWD, this file is at CWD/specifications/02-build-http-client/requirements.md
+# Workspace root is CWD and contains: .agents/, specifications/, documentation/, backends/
 workspace_name: "ewe_platform"
 spec_directory: "specifications/02-build-http-client"
 this_file: "specifications/02-build-http-client/requirements.md"
 
-# === STATUS ===
+# Status
 status: in-progress
 priority: high
 created: 2026-01-18
 author: Main Agent
 
-# === CONTEXT OPTIMIZATION ===
-machine_optimized: true  # Main Agent MUST generate machine_prompt.md before spawning sub-agents
-machine_prompt_file: ./machine_prompt.md  # Sub-agents read this (NOT requirements.md) for 58% token savings
-context_optimization: true  # Sub-agents MUST generate COMPACT_CONTEXT.md before work, reload after updates
-compact_context_file: ./COMPACT_CONTEXT.md  # Ultra-compact current task context (97% reduction)
-context_reload_required: true  # Clear and reload from compact context regularly to prevent context limit errors
+# Context Optimization
+machine_optimized: true
+machine_prompt_file: ./machine_prompt.md
+context_optimization: true
+compact_context_file: ./COMPACT_CONTEXT.md
+context_reload_required: true
 
-# === METADATA ===
+# Metadata
 metadata:
   version: '4.0'
   last_updated: 2026-02-02
@@ -44,20 +42,24 @@ metadata:
     - Rust
     - cargo
 
-# === DEPENDENCIES ===
+# Dependencies
 builds_on:
   - ../04-condvar-primitives
 related_specs:
   - ../03-wasm-friendly-sync-primitives
 
-# === STRUCTURE ===
+# Structure
 has_features: true
-has_fundamentals: true # HTTP client needs comprehensive user documentation
+has_fundamentals: true
+
+# Progress Tracking
 features:
   completed: 7
   uncompleted: 6
   total: 13
   completion_percentage: 54
+
+# Files Required by Agents
 files_required:
   main_agent:
     rules:
