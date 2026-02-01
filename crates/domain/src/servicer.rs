@@ -634,7 +634,7 @@ mod tests {
                         .expect("should notify interested parties on important change");
                 }
                 CounterRequests::Render(_) => {}
-            };
+            }
         }
 
         fn handle_event(

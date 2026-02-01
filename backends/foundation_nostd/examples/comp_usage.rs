@@ -74,11 +74,11 @@ fn main() {
     let mut counter = 0;
     INIT.call_once(|| {
         counter += 1;
-        println!("   Initialization called (counter = {})", counter);
+        println!("   Initialization called (counter = {counter})");
     });
     INIT.call_once(|| {
         counter += 1;
-        println!("   This should not print (counter would be {})", counter);
+        println!("   This should not print (counter would be {counter})");
     });
     println!("   ✓ Once initialization complete\n");
 

@@ -87,7 +87,7 @@ pub struct MtmdCliContext<'a> {
     pub chat: Vec<LlamaChatMessage>,
 }
 
-impl<'a> MtmdCliContext<'a> {
+impl MtmdCliContext<'_> {
     /// Creates a new MTMD CLI context
     ///
     /// # Errors

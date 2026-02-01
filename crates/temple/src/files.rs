@@ -167,7 +167,7 @@ mod tests {
             .take(16)
             .map(char::from)
             .collect();
-        format!("{}_{}", prefix, suffix)
+        format!("{prefix}_{suffix}")
     }
 
     fn clean_up_directory(target: path::PathBuf) {
