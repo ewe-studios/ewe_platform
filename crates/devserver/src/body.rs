@@ -1,6 +1,6 @@
 use http_body_util::{combinators::BoxBody, BodyExt, Empty, Full};
 
-pub(crate) fn host_addr(uri: &http::Uri) -> Option<String> {
+pub fn host_addr(uri: &http::Uri) -> Option<String> {
     uri.authority().map(std::string::ToString::to_string)
 }
 

@@ -12,7 +12,7 @@
 //! consumed via `take()` during `apply()`, making multiple `apply()` calls safe.
 //! Actions use `spawn_builder()` to spawn child tasks with parent linkage.
 
-use crate::netcap::Connection;
+use crate::netcap::RawStream;
 use crate::synca::mpp::Sender;
 use crate::synca::Entry;
 use crate::valtron::{BoxedExecutionEngine, ExecutionAction, GenericResult};
@@ -27,7 +27,7 @@ use crate::wire::simple_http::client::{DnsResolver, PreparedRequest};
 ///
 /// HOW: Uses Option<PreparedRequest> with `take()` to ensure idempotent `apply()`.
 /// Spawns using `lift()` for priority execution of redirects.
-pub(crate) struct RedirectAction<R>
+pub struct RedirectAction<R>
 where
     R: DnsResolver + Send + 'static,
 {
@@ -75,19 +75,19 @@ where
 /// WHY: HTTPS connections require TLS handshake after TCP connection is established.
 /// This action encapsulates the TLS upgrade spawning logic.
 ///
-/// WHAT: Holds a TCP connection and spawns a TLS handshake task when applied.
+/// WHAT: Holds a RawStream and spawns a TLS handshake task when applied.
 ///
-/// HOW: Uses Option<Connection> with `take()` to ensure idempotent `apply()`.
+/// HOW: Uses Option<RawStream> with `take()` to ensure idempotent `apply()`.
 /// Spawns using `lift()` for priority execution of TLS upgrades.
-/// Callbacks are invoked upon completion with the upgraded connection.
+/// Callbacks are invoked upon completion with the upgraded stream.
 #[cfg(not(target_arch = "wasm32"))]
-pub(crate) struct TlsUpgradeAction {
-    /// The TCP connection to upgrade (consumed on apply)
-    connection: Option<Connection>,
+pub struct TlsUpgradeAction {
+    /// The stream to upgrade (consumed on apply)
+    stream: Option<RawStream>,
     /// Server Name Indication (SNI) for TLS handshake
     sni: String,
     /// Callback endpoint for sending the result
-    on_complete: Option<Sender<Result<Connection, String>>>,
+    on_complete: Option<Sender<Result<RawStream, String>>>,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -96,16 +96,16 @@ impl TlsUpgradeAction {
     ///
     /// # Arguments
     ///
-    /// * `connection` - The TCP connection to upgrade to TLS
+    /// * `stream` - The stream to upgrade to TLS
     /// * `sni` - Server Name Indication (hostname for TLS)
     /// * `on_complete` - Endpoint to send result when TLS handshake completes
     pub fn new(
-        connection: Connection,
+        stream: RawStream,
         sni: String,
-        on_complete: Sender<Result<Connection, String>>,
+        on_complete: Sender<Result<RawStream, String>>,
     ) -> Self {
         Self {
-            connection: Some(connection),
+            stream: Some(stream),
             sni,
             on_complete: Some(on_complete),
         }
@@ -129,7 +129,7 @@ impl ExecutionAction for TlsUpgradeAction {
 /// WHAT: Enum combining all action types (redirects, TLS upgrades) plus a None variant.
 ///
 /// HOW: Delegates `apply()` to the inner action based on the variant.
-pub(crate) enum HttpClientAction<R>
+pub enum HttpClientAction<R>
 where
     R: DnsResolver + Send + 'static,
 {

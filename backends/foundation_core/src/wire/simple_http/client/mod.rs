@@ -19,7 +19,7 @@ pub use intro::ResponseIntro;
 pub use request::{ClientRequestBuilder, PreparedRequest};
 
 // Internal re-exports for use within the client module
-pub(crate) use actions::HttpClientAction;
+pub use actions::HttpClientAction;
 
 #[cfg(test)]
 mod tests;

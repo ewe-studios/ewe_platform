@@ -115,7 +115,7 @@ pub const LLAMA_CPP_MAX_DEVICES: usize = 16;
 /// A safe wrapper around `llama_model_params`.
 #[allow(clippy::module_name_repetitions)]
 pub struct LlamaModelParams {
-    pub(crate) params: infrastructure_llama_bindings::llama_model_params,
+    pub params: infrastructure_llama_bindings::llama_model_params,
     kv_overrides: Vec<infrastructure_llama_bindings::llama_model_kv_override>,
     buft_overrides: Vec<infrastructure_llama_bindings::llama_model_tensor_buft_override>,
     devices: Pin<Box<[infrastructure_llama_bindings::ggml_backend_dev_t; LLAMA_CPP_MAX_DEVICES]>>,

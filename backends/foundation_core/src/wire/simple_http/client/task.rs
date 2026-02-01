@@ -28,7 +28,7 @@ use crate::wire::simple_http::client::{
 /// HOW: State transitions occur in `HttpRequestTask::next()`. Each state
 /// determines the next action or state transition.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum HttpRequestState {
+pub enum HttpRequestState {
     /// Initial state - preparing to connect
     Init,
     /// Establishing TCP connection
@@ -65,7 +65,7 @@ pub(crate) enum HttpRequestState {
 /// # Type Parameters
 ///
 /// * `R` - DNS resolver type implementing `DnsResolver` trait
-pub(crate) struct HttpRequestTask<R>
+pub struct HttpRequestTask<R>
 where
     R: DnsResolver + Send + 'static,
 {

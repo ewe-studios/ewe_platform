@@ -22,7 +22,7 @@ static ARGUMENT_STARTER: &[u8] = &[ArgumentOperations::Start as u8];
 pub struct MemoryPointer(MemoryId, MemoryId);
 
 impl MemoryPointer {
-    pub(crate) fn new(texts: MemoryId, ops: MemoryId) -> Self {
+    pub fn new(texts: MemoryId, ops: MemoryId) -> Self {
         Self(texts, ops)
     }
 
@@ -2199,7 +2199,7 @@ impl Instructions {
     /// [`begin`] starts a new operation to be encoded into the Instructions set
     /// if a operation was not properly closed then an error
     /// [`MemoryWriterError::PreviousUnclosedOperation`] is returned.
-    pub(crate) fn begin(&self) -> MemoryWriterResult<()> {
+    pub fn begin(&self) -> MemoryWriterResult<()> {
         if self.in_free_state() {
             return Err(MemoryWriterError::PreviousUnclosedOperation);
         }
@@ -2548,13 +2548,13 @@ impl Instructions {
     }
 
     #[inline(always)]
-    pub(crate) fn encode_return_hints(&self, hint: ReturnTypeHints) -> MemoryWriterResult<()> {
+    pub fn encode_return_hints(&self, hint: ReturnTypeHints) -> MemoryWriterResult<()> {
         hint.encode(self, self.optimized)?;
         Ok(())
     }
 
     #[inline(always)]
-    pub(crate) fn encode_params<'a>(
+    pub fn encode_params<'a>(
         &self,
         params: Option<&'a [Params<'a>]>,
     ) -> MemoryWriterResult<()> {

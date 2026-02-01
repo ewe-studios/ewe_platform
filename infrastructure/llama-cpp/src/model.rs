@@ -25,7 +25,7 @@ pub mod params;
 #[repr(transparent)]
 #[allow(clippy::module_name_repetitions)]
 pub struct LlamaModel {
-    pub(crate) model: NonNull<infrastructure_llama_bindings::llama_model>,
+    pub model: NonNull<infrastructure_llama_bindings::llama_model>,
 }
 
 /// A safe wrapper around `llama_lora_adapter`.
@@ -33,7 +33,7 @@ pub struct LlamaModel {
 #[repr(transparent)]
 #[allow(clippy::module_name_repetitions)]
 pub struct LlamaLoraAdapter {
-    pub(crate) lora_adapter: NonNull<infrastructure_llama_bindings::llama_adapter_lora>,
+    pub lora_adapter: NonNull<infrastructure_llama_bindings::llama_adapter_lora>,
 }
 
 /// A performance-friendly wrapper around [`LlamaModel::chat_template`] which is then
@@ -125,7 +125,7 @@ unsafe impl Send for LlamaModel {}
 unsafe impl Sync for LlamaModel {}
 
 impl LlamaModel {
-    pub(crate) fn vocab_ptr(&self) -> *const infrastructure_llama_bindings::llama_vocab {
+    pub fn vocab_ptr(&self) -> *const infrastructure_llama_bindings::llama_vocab {
         unsafe { infrastructure_llama_bindings::llama_model_get_vocab(self.model.as_ptr()) }
     }
 

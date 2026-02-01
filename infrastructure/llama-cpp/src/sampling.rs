@@ -13,7 +13,7 @@ use crate::GrammarError;
 
 /// A safe wrapper around `llama_sampler`.
 pub struct LlamaSampler {
-    pub(crate) sampler: *mut infrastructure_llama_bindings::llama_sampler,
+    pub sampler: *mut infrastructure_llama_bindings::llama_sampler,
 }
 
 impl Debug for LlamaSampler {

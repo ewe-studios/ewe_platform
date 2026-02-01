@@ -16,13 +16,13 @@ use notify_debouncer_full::{new_debouncer, DebounceEventResult};
 use crate::config::{self, CommandExpectation};
 
 #[cfg(all(target_os = "macos", not(feature = "macos_kqueue")))]
-pub(crate) type NotifyWatcher = notify_debouncer_full::Debouncer<
+pub type NotifyWatcher = notify_debouncer_full::Debouncer<
     notify::fsevent::FsEventWatcher,
     notify_debouncer_full::FileIdMap,
 >;
 
 #[cfg(any(target_os = "linux", target_os = "android"))]
-pub(crate) type NotifyWatcher =
+pub type NotifyWatcher =
     notify_debouncer_full::Debouncer<notify::INotifyWatcher, notify_debouncer_full::FileIdMap>;
 
 #[cfg(any(
@@ -33,14 +33,14 @@ pub(crate) type NotifyWatcher =
     target_os = "ios",
     all(target_os = "macos", feature = "macos_kqueue")
 ))]
-pub(crate) type NotifyWatcher = notify_debouncer_full::Debouncer<
+pub type NotifyWatcher = notify_debouncer_full::Debouncer<
     notify::kqueue::KqueueWatcher,
     notify_debouncer_full::FileIdMap,
 >;
 
-pub(crate) struct WatchHandle<T>(pub JoinHandle<T>, pub NotifyWatcher);
+pub struct WatchHandle<T>(pub JoinHandle<T>, pub NotifyWatcher);
 
-pub(crate) fn create_notify_watcher(
+pub fn create_notify_watcher(
     target_path: &path::Path,
     debounce: u64,
     sender: std::sync::mpsc::Sender<DebounceEventResult>,
@@ -57,7 +57,7 @@ pub(crate) fn create_notify_watcher(
     Ok(watcher)
 }
 
-pub(crate) fn watch_path(
+pub fn watch_path(
     config: crate::config::Watcher,
     handler: crate::watcher::ChangeHandler,
 ) -> crate::watcher::Result<WatchHandle<()>> {
@@ -92,7 +92,7 @@ pub(crate) fn watch_path(
 
 type ExecResult<T> = std::result::Result<T, anyhow::Error>;
 
-pub(crate) fn execute_command(mut command: config::CommandDescription) -> ExecResult<()> {
+pub fn execute_command(mut command: config::CommandDescription) -> ExecResult<()> {
     let command_binary = command.command.first().unwrap().clone();
     let command_arguments = command.command.split_off(1);
 
@@ -139,7 +139,7 @@ pub(crate) fn execute_command(mut command: config::CommandDescription) -> ExecRe
     }
 }
 
-pub(crate) fn execute_commands(watcher: &config::Watcher) -> ExecResult<()> {
+pub fn execute_commands(watcher: &config::Watcher) -> ExecResult<()> {
     if let Some(watcher_commands) = watcher.commands() {
         for command in watcher_commands {
             execute_command(command)?;

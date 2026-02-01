@@ -819,3 +819,239 @@ This feature provides the foundation for:
 - `task-iterator` feature (can use PreparedRequest and ResponseIntro)
 - `public-api` feature (exposes ClientRequestBuilder and ResponseIntro to users)
 
+---
+
+## Connection Feature HTTPS/TLS Implementation (2026-02-01)
+
+### TLS Peek Support Limitation
+**Issue**: TLS streams don't support peek operations like raw TCP.
+
+**Why**: TLS encryption is stateful:
+- Reading data advances decryption state
+- Can't "un-decrypt" to re-read
+- Peek would require decrypting (consuming) then re-reading (impossible)
+
+**Solution**: Use `RawStream` which provides buffering layer:
+- `RawStream` wraps connections in `BufferedReader<BufferedWriter<T>>`
+- Buffering enables peek-like behavior
+- Works for TCP, Unix, and TLS connections uniformly
+
+**Pattern**: Always use `RawStream`, not raw `Connection`:
+```rust
+// ✅ CORRECT
+let conn = Connection::with_timeout(addr, timeout)?;
+let stream = RawStream::from_connection(conn)?;
+// Has buffering + peek + address tracking
+
+// ❌ INCORRECT
+let conn = Connection::with_timeout(addr, timeout)?;
+// No buffering, no peek, manual address tracking needed
+```
+
+### Connection::Tls Variant Implementation
+**Solution**: Add Tls variant to Connection enum:
+```rust
+pub enum Connection {
+    Tcp(TcpStream),
+    Unix(UnixStream),
+    Tls(RustTlsClientStream),  // NEW - enables HTTPS
+}
+```
+
+**Pattern**: Implement all traits by forwarding to inner type:
+- `Read`, `Write`, `PeekableReadStream`, etc.
+- Each Tls variant forwards to underlying TLS stream
+- Feature-gated per TLS backend (rustls, openssl, native-tls)
+
+**Result**: Clean abstraction over TCP and TLS with uniform API.
+
+### TLS Integration for HTTPS
+**Implementation**: `upgrade_to_tls()` method:
+```rust
+#[cfg(feature = "ssl-rustls")]
+fn upgrade_to_tls(conn, host) -> Result<Connection, TlsError> {
+    let config = default_client_config()?;
+    let connector = RustlsConnector::new(Arc::new(config));
+    let (tls_stream, _addr) = connector.from_tcp_stream(host, tcp_stream)?;
+    Ok(Connection::from(tls_stream))  // Wraps in Connection::Tls
+}
+```
+
+**Key Points**:
+- Use `from_tcp_stream()` API (SNI handled automatically)
+- Feature-gated for each TLS backend
+- Error handling converts TLS errors to HttpClientError
+- Pattern matches existing openssl/native-tls implementations
+
+### Testing HTTPS Connections
+**Pattern**: Real HTTPS tests against live servers:
+```rust
+#[test]
+#[cfg(feature = "ssl-rustls")]
+fn test_connection_https_real() {
+    let url = ParsedUrl::parse("https://httpbin.org/get").unwrap();
+    let conn = HttpClientConnection::connect(&url, &resolver, timeout);
+    assert!(conn.is_ok());  // Verifies full HTTPS stack works
+}
+```
+
+**Why**: Integration tests verify:
+- TLS handshake succeeds
+- SNI works correctly
+- Certificate validation passes
+- End-to-end HTTPS functionality
+
+---
+
+## Task-Iterator Feature Implementation (2026-02-01)
+
+### Public API Convention
+**Decision**: ALL types public by default (no `pub(crate)`).
+
+**Rationale**:
+- Simpler mental model (no visibility complexity)
+- Better API discoverability
+- Enables easier testing and extension
+- Follows "build libraries, not frameworks" principle
+
+**Pattern**: Use documentation to guide, not compiler:
+```rust
+// ✅ CORRECT - Public with documentation
+/// Internal implementation detail.
+/// Users should use the public API instead.
+pub struct InternalType { }
+
+// ❌ INCORRECT - Don't hide with pub(crate)
+pub(crate) struct InternalType { }  // NO!
+```
+
+**Changed**: Removed all `pub(crate)` from codebase (27 files, workspace-wide).
+
+### Task-Iterator Implementation Pattern
+**Architecture**: Three-layer design:
+1. **Actions** (`actions.rs`): ExecutionAction implementations
+   - `RedirectAction`: Spawns redirect requests
+   - `TlsUpgradeAction`: Spawns TLS handshake
+   - `HttpClientAction`: Combined action enum
+2. **Task** (`task.rs`): TaskIterator state machine
+   - `HttpRequestState`: 10 states for request lifecycle
+   - `HttpRequestTask`: Main task iterator
+3. **Executor** (`executor.rs`): Platform-specific wrapper
+   - `execute_task()`: Auto-selects single/multi executor
+   - Feature-gated for WASM vs native vs multi-threaded
+
+**Pattern**: State machine yields `TaskStatus` variants:
+- `Pending(state)`: Continue with current state
+- `Ready(output)`: Task complete with result
+- `Spawn(action)`: Spawn child task (redirect, TLS)
+- `Delayed(duration, state)`: Delay before continuing
+
+### Platform-Specific Execution
+**Critical**: Executor selection based on platform and features:
+```rust
+#[cfg(target_arch = "wasm32")]
+pub fn execute_task(task) -> RecvIterator<TaskStatus> {
+    single::spawn(DoNext::new(task))  // WASM always single
+}
+
+#[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
+pub fn execute_task(task) -> RecvIterator<TaskStatus> {
+    single::spawn(DoNext::new(task))  // Native single (default)
+    // Requires single::run_once() to drive
+}
+
+#[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
+pub fn execute_task(task) -> RecvIterator<TaskStatus> {
+    multi::spawn(DoNext::new(task))  // Native multi-threaded
+    // Auto-runs on worker threads
+}
+```
+
+**Why Matters**: Calling code must know whether to call `run_once()`:
+- Single mode: Requires manual driving
+- Multi mode: Auto-runs, no manual driving needed
+
+---
+
+## RawStream Refactoring (2026-02-01)
+
+### Use RawStream Over Connection
+**Decision**: HTTP client refactored to use `RawStream` instead of raw `Connection`.
+
+**Benefits Realized**:
+1. **Automatic Buffering**: No manual `BufferedReader`/`BufferedWriter`
+2. **Peek Support**: Built-in via buffering layer
+3. **Address Tracking**: Automatic `DataStreamAddr` included
+4. **Consistent API**: Same interface for TCP, Unix, TLS
+5. **40% Less Boilerplate**: Eliminated match statements
+
+**Pattern**: Use RawStream constructors:
+```rust
+// Plain connection
+let conn = Connection::with_timeout(addr, timeout)?;
+let stream = RawStream::from_connection(conn)?;
+
+// TLS connection
+let (tls_stream, _) = connector.from_tcp_stream(host, tcp)?;
+let stream = RawStream::from_client_tls(tls_stream)?;
+```
+
+**Files Changed**:
+- `wire/simple_http/client/connection.rs`: `HttpClientConnection` now wraps `RawStream`
+- `wire/simple_http/client/actions.rs`: `TlsUpgradeAction` uses `RawStream`
+
+**Result**: Cleaner architecture with better abstractions.
+
+### RawStream Variants
+**Types**: Three main variants:
+```rust
+pub enum RawStream {
+    AsPlain(BufferedReader<BufferedWriter<Connection>>, DataStreamAddr),
+    AsClientTls(BufferedReader<BufferedWriter<ClientSSLStream>>, DataStreamAddr),
+    AsServerTls(BufferedReader<BufferedWriter<ServerSSLStream>>, DataStreamAddr),
+}
+```
+
+**Usage Pattern**:
+- Client connections: Use `AsPlain` or `AsClientTls`
+- Server connections: Use `AsServerTls`
+- All variants provide: Read, Write, Peek, Address tracking
+
+---
+
+## Documentation Management (2026-02-01)
+
+### Specification Documentation Structure
+**Files in specifications/[NN-spec]/**:
+- `LEARNINGS.md`: Permanent learnings (this file)
+- `REPORT.md`: Implementation reports (permanent)
+- `VERIFICATION.md`: Verification records (permanent)
+- `PROGRESS.md`: Current status (ephemeral - deleted at 100%)
+- `requirements.md`: High-level spec
+- `features/*/feature.md`: Individual feature specs
+
+**Pattern**: Session summaries go in `LEARNINGS.md`, not separate files.
+
+### Learning Documentation Style
+**Guidelines** (from Rule 05):
+- ✅ Clear and concise (1-2 lines per entry)
+- ✅ Use bullet points, short sentences
+- ✅ Show code snippets (2-5 lines)
+- ✅ Include context (when/where matters)
+- ❌ No lengthy paragraphs
+- ❌ No obvious statements
+- ❌ No verbose explanations
+
+**Example**:
+```markdown
+// ✅ GOOD
+- TLS peek not supported: Encryption is stateful, can't un-decrypt
+- Solution: Use RawStream buffering layer for peek-like behavior
+
+// ❌ BAD (too verbose)
+- The TLS protocol maintains internal state during encryption and decryption operations, which means that once data has been decrypted and read from the stream, it cannot be "peeked" at again without...
+```
+
+---
+
+*Last Updated: 2026-02-01*

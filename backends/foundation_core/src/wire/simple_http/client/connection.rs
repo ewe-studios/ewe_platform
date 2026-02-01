@@ -2,7 +2,7 @@
 //!
 //! This module provides URL parsing and TCP/TLS connection establishment.
 
-use crate::netcap::Connection;
+use crate::netcap::{Connection, RawStream};
 use crate::wire::simple_http::client::dns::DnsResolver;
 use crate::wire::simple_http::client::errors::HttpClientError;
 use std::time::Duration;
@@ -155,11 +155,14 @@ impl ParsedUrl {
     }
 }
 
-/// HTTP client connection wrapping `netcap::Connection`.
+/// HTTP client connection wrapping `netcap::RawStream`.
+///
+/// Provides automatic buffering, address tracking, and convenient Read/Write traits
+/// over plain TCP or TLS connections.
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Debug)]
 pub struct HttpClientConnection {
-    connection: Connection,
+    stream: RawStream,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -178,7 +181,7 @@ impl HttpClientConnection {
     ///
     /// # Returns
     ///
-    /// An established `HttpClientConnection`.
+    /// An established `HttpClientConnection` with automatic buffering.
     ///
     /// # Errors
     ///
@@ -214,11 +217,14 @@ impl HttpClientConnection {
 
             match conn_result {
                 Ok(connection) => {
-                    // Step 3: Upgrade to TLS if HTTPS
+                    // Step 3: Upgrade to TLS if HTTPS, or create plain RawStream
                     if url.scheme == Scheme::Https {
                         return Self::upgrade_to_tls(connection, &url.host);
                     }
-                    return Ok(HttpClientConnection { connection });
+                    // Create plain RawStream from Connection
+                    let stream = RawStream::from_connection(connection)
+                        .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?;
+                    return Ok(HttpClientConnection { stream });
                 }
                 Err(e) => {
                     last_error = Some(e);
@@ -254,12 +260,11 @@ impl HttpClientConnection {
                 HttpClientError::TlsHandshakeFailed(e.to_string())
             })?;
 
-        // Wrap the TLS stream in Connection::Tls
-        let tls_connection = Connection::from(tls_stream);
+        // Create RawStream from ClientSSLStream (which is the return type from from_tcp_stream)
+        let stream = RawStream::from_client_tls(tls_stream)
+            .map_err(|e| HttpClientError::TlsHandshakeFailed(e.to_string()))?;
 
-        Ok(HttpClientConnection {
-            connection: tls_connection,
-        })
+        Ok(HttpClientConnection { stream })
     }
 
     #[cfg(all(feature = "ssl-openssl", not(feature = "ssl-rustls")))]
@@ -283,11 +288,11 @@ impl HttpClientConnection {
             .from_tcp_stream(host.to_string(), connection)
             .map_err(|e| HttpClientError::TlsHandshakeFailed(e.to_string()))?;
 
-        let tls_connection = Connection::from(tls_stream);
+        // Create RawStream from ClientSSLStream
+        let stream = RawStream::from_client_tls(tls_stream)
+            .map_err(|e| HttpClientError::TlsHandshakeFailed(e.to_string()))?;
 
-        Ok(HttpClientConnection {
-            connection: tls_connection,
-        })
+        Ok(HttpClientConnection { stream })
     }
 
     #[cfg(all(
@@ -313,15 +318,15 @@ impl HttpClientConnection {
         )))
     }
 
-    /// Returns a reference to the underlying connection.
+    /// Returns a reference to the underlying stream.
     #[must_use]
-    pub fn connection(&self) -> &Connection {
-        &self.connection
+    pub fn stream(&self) -> &RawStream {
+        &self.stream
     }
 
-    /// Returns a mutable reference to the underlying connection.
-    pub fn connection_mut(&mut self) -> &mut Connection {
-        &mut self.connection
+    /// Returns a mutable reference to the underlying stream.
+    pub fn stream_mut(&mut self) -> &mut RawStream {
+        &mut self.stream
     }
 }
 
