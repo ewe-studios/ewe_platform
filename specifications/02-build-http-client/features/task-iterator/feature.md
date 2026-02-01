@@ -183,46 +183,74 @@ Key Valtron types to use:
 
 ```rust
 pub struct RedirectAction<R: DnsResolver + Send + 'static> {
-    pub request: PreparedRequest,
+    pub request: Option<PreparedRequest>,
     pub resolver: R,
     pub remaining_redirects: u8,
     pub response_sender: Option<ResponseSender>,
 }
 
 impl<R: DnsResolver + Send + 'static> ExecutionAction for RedirectAction<R> {
-    fn apply(self, parent_key: Entry, engine: BoxedExecutionEngine) -> GenericResult<()> {
-        let redirect_task = HttpRequestTask::new_redirect(...);
+    fn apply(
+        &mut self,
+        parent_key: Entry,
+        engine: BoxedExecutionEngine,
+    ) -> GenericResult<()> {
+        if let Some(request) = self.request.take() {
+            let redirect_task = HttpRequestTask::new_redirect(
+                request,
+                self.resolver.clone(),
+                self.remaining_redirects,
+            );
 
-        spawn_builder(executor)
-            .with_parent(parent_key.clone())
-            .with_task(redirect_task)
-            .lift()?;
-
+            spawn_builder(engine)
+                .with_parent(parent_key)
+                .with_task(redirect_task)
+                .lift()?;
+        }
         Ok(())
     }
 }
 ```
+
+**Key Points**:
+- `&mut self` (not `self`) - allows multiple apply calls, idempotent via Option::take()
+- `engine: BoxedExecutionEngine` (not `executor`)
+- Fields use `Option` for take() pattern
+- Use `.lift()` for priority spawning
 
 #### TlsUpgradeAction
 
 ```rust
 pub struct TlsUpgradeAction {
-    pub connection: Connection,
+    pub connection: Option<Connection>,
     pub sni: String,
-    pub on_complete: TlsCompletionSender,
+    pub on_complete: Option<TlsCompletionSender>,
 }
 
 impl ExecutionAction for TlsUpgradeAction {
-    fn apply(self, parent_key: Entry, engine: BoxedExecutionEngine) -> GenericResult<()> {
-        let tls_task = TlsHandshakeTask::new(...);
-        spawn_builder(executor)
-            .with_parent(parent_key.clone())
-            .with_task(tls_task)
-            .lift()?;
+    fn apply(
+        &mut self,
+        parent_key: Entry,
+        engine: BoxedExecutionEngine,
+    ) -> GenericResult<()> {
+        if let (Some(connection), Some(sender)) = (self.connection.take(), self.on_complete.take()) {
+            let tls_task = TlsHandshakeTask::new(connection, self.sni.clone(), sender);
+
+            spawn_builder(engine)
+                .with_parent(parent_key)
+                .with_task(tls_task)
+                .lift()?;
+        }
         Ok(())
     }
 }
 ```
+
+**Key Points**:
+- `&mut self` (not `self`) - allows multiple apply calls
+- `engine: BoxedExecutionEngine` (not `executor`)
+- Fields use `Option` for take() pattern (idempotent)
+- Use `.lift()` for priority spawning
 
 #### HttpClientAction Enum
 
@@ -234,7 +262,11 @@ pub enum HttpClientAction<R: DnsResolver + Send + 'static> {
 }
 
 impl<R: DnsResolver + Send + 'static> ExecutionAction for HttpClientAction<R> {
-    fn apply(self, key: Entry, engine: BoxedExecutionEngine) -> GenericResult<()> {
+    fn apply(
+        &mut self,
+        key: Entry,
+        engine: BoxedExecutionEngine,
+    ) -> GenericResult<()> {
         match self {
             Self::None => Ok(()),
             Self::Redirect(action) => action.apply(key, engine),
@@ -353,13 +385,56 @@ cargo build --package foundation_core --features multi
 
 ### Implementation Guidelines
 
+**CRITICAL - ExecutionAction Signature** (Updated 2026-02-01):
+
+The correct `ExecutionAction::apply()` signature is:
+```rust
+fn apply(
+    &mut self,           // Mutable borrow (NOT self - allows reuse)
+    key: Entry,          // Parent task entry
+    engine: BoxedExecutionEngine,  // Execution engine (NOT executor)
+) -> GenericResult<()>
+```
+
+**Pattern**: Use `Option` fields with `.take()` for idempotent apply:
+```rust
+pub struct MyAction {
+    data: Option<SomeData>,  // Option allows take()
+}
+
+impl ExecutionAction for MyAction {
+    fn apply(&mut self, key: Entry, engine: BoxedExecutionEngine) -> GenericResult<()> {
+        if let Some(data) = self.data.take() {  // Take makes it idempotent
+            let task = SomeTask::new(data);
+            spawn_builder(engine)  // Use 'engine' parameter
+                .with_parent(key)
+                .with_task(task)
+                .lift()?;  // Or .schedule() or .broadcast()
+        }
+        Ok(())
+    }
+}
+```
+
+**Reference Implementation**: See `valtron/executors/actions.rs`:
+- `SpawnWithBroadcast::apply()` - uses `.broadcast()` for global queue
+- `SpawnWithSchedule::apply()` - uses `.schedule()` for local queue
+- Both use `&mut self`, `engine` parameter, `Option::take()` pattern
+
+**Spawn Methods**:
+- `.lift()` - Priority spawn (use for redirects, important tasks)
+- `.schedule()` - Normal spawn (use for regular tasks)
+- `.broadcast()` - Global queue spawn (use for cross-thread tasks)
+
+**Implementation Guidelines**:
 - All types are INTERNAL (pub(crate) or private)
 - Use generic type parameters for DnsResolver
 - State machine must be non-blocking
 - Redirects use TaskStatus::Spawn, not blocking loops
 - Feature gates for multi-threaded executor
+- Follow Option::take() pattern from valtron/executors/actions.rs
 
 ---
 
 _Created: 2026-01-18_
-_Last Updated: 2026-01-18_
+_Last Updated: 2026-02-01 (Updated ExecutionAction signatures with correct &mut self pattern)_
