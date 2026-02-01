@@ -99,6 +99,11 @@ pub struct Config {
 }
 
 impl Config {
+    /// Parses JSON string into Config.
+    ///
+    /// # Errors
+    ///
+    /// Returns `ConfigError::BadConfiguration` if JSON parsing fails.
     pub fn json(config_str: &str) -> Result<Config> {
         match serde_json::from_str(config_str) {
             Ok(config) => Result::Ok(config),
@@ -106,6 +111,11 @@ impl Config {
         }
     }
 
+    /// Serializes Config to JSON string.
+    ///
+    /// # Errors
+    ///
+    /// Returns `ConfigError::FailedDeserialization` if serialization fails.
     pub fn as_json(&self) -> Result<String> {
         match serde_json::to_string(&self) {
             Ok(val) => Result::Ok(val),

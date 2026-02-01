@@ -239,7 +239,7 @@ pub fn create_shell<
     R: Send + Clone + 'static,
     P: Default + Clone + 'static,
 >(
-    servicer: DServicer<App, E, R, P>,
+    servicer: &DServicer<App, E, R, P>,
 ) -> DShell<E, R, P>
 where
     App: domains::Domain<Events = E, Requests = R, Platform = P>,
@@ -284,7 +284,6 @@ where
                     .handle_event(request, self.domain_shell.clone());
                 Ok(())
             }
-            Err(ChannelError::ReceivedNoData) => Ok(()),
             Err(ChannelError::ReceiveFailed(_)) => Err(DomainErrors::ClosedRequestReceiver),
             _ => Ok(()),
         }
@@ -314,48 +313,51 @@ where
         self.response_registry.clear();
     }
 
+    /// Serves events and requests for the domain.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if event or request processing fails.
+    ///
+    /// # Panics
+    ///
+    /// Panics if event or request serving encounters an unexpected error.
     pub fn serve(&mut self) -> domains::DomainResult<()> {
-        self.serve_events().expect("served events");
-        self.serve_requests().expect("served requests");
+        self.serve_events();
+        self.serve_requests();
         Ok(())
     }
 
-    fn serve_events(&mut self) -> domains::DomainResult<()> {
+    fn serve_events(&mut self) {
         (match self.process_incoming_event() {
-            Ok(()) => Ok(()),
-            Err(DomainErrors::RequestSenderNotFound) => Err(DomainErrors::ProblematicState),
-            Err(DomainErrors::UnexpectedSenderClosure) => Err(DomainErrors::ProblematicState),
+            Err(DomainErrors::RequestSenderNotFound | DomainErrors::UnexpectedSenderClosure) => {
+                Err(DomainErrors::ProblematicState)
+            }
             _ => Ok(()),
         })
         .expect("event processing should have finished with no issues");
 
         (match self.execution_service.schedule_serve() {
-            Ok(()) => Ok(()),
             Err(executor::ExecutorError::Decommission) => Err(DomainErrors::ProblematicState),
             _ => Ok(()),
         })
         .expect("execution service should have ended better");
-
-        Ok(())
     }
 
-    fn serve_requests(&mut self) -> domains::DomainResult<()> {
+    fn serve_requests(&mut self) {
         (match self.process_incoming_request() {
-            Ok(()) => Ok(()),
-            Err(DomainErrors::RequestSenderNotFound) => Err(DomainErrors::ProblematicState),
-            Err(DomainErrors::UnexpectedSenderClosure) => Err(DomainErrors::ProblematicState),
+            Err(DomainErrors::RequestSenderNotFound | DomainErrors::UnexpectedSenderClosure) => {
+                Err(DomainErrors::ProblematicState)
+            }
             _ => Ok(()),
         })
         .expect("request processing should have finished with no issues");
 
         (match self.execution_service.schedule_serve() {
-            Ok(()) => Ok(()),
             Err(executor::ExecutorError::Decommission) => Err(DomainErrors::ProblematicState),
             _ => Ok(()),
         })
         .expect("execution service should have ended better");
-
-        Ok(())
     }
 }
 
@@ -384,7 +386,7 @@ mod tests {
     #[test]
     fn can_decrement_count_with_a_decrement_requests() {
         let (mut executor, server) = app::create::<CounterApp>();
-        let mut shell = servicer::create_shell(server);
+        let mut shell = servicer::create_shell(&server);
 
         let request = domains::NamedRequest::new("decrement_count", CounterRequests::Decrement);
 
@@ -427,7 +429,7 @@ mod tests {
     #[test]
     fn can_increment_count_with_an_increment_request() {
         let (mut executor, server) = app::create::<CounterApp>();
-        let mut shell = servicer::create_shell(server);
+        let mut shell = servicer::create_shell(&server);
 
         let increment_request =
             domains::NamedRequest::new("increment_count", CounterRequests::Increment);
@@ -473,7 +475,7 @@ mod tests {
     #[test]
     fn can_use_use_case_implementation_with_an_app() {
         let (mut executor, server) = app::create::<CounterApp>();
-        let mut shell = servicer::create_shell(server);
+        let mut shell = servicer::create_shell(&server);
 
         let increment_request =
             domains::NamedRequest::new("increment_count", CounterRequests::Increment);

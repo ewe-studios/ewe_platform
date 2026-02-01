@@ -36,9 +36,12 @@ HttpRequestTask:TaskIterator impl|state machine|fields:[state,resolver,request,r
 HttpRequestState:enum[Init,Connecting,TlsHandshake,SendingRequest,ReceivingIntro,ReceivingHeaders,ReceivingBody,AwaitingRedirect,Done,Error]
 
 ## EXECUTOR_WRAPPER
-execute_task<T:TaskIterator>()->Result<T::Ready>|feature-gated selection
-wasm32:always use single|native without multi:use single|native with multi:use multi
-execute_single:valtron::single::spawn()|execute_multi:valtron::multi::spawn()
+execute<T:TaskIterator>()->GenericResult<RecvIterator<TaskStatus<T::Ready,T::Pending,T::Spawner>>>
+returns:RecvIterator NOT direct Ready value|users drive with run_once/run_until_complete
+wasm:always single|native no multi:single|native with multi:multi
+execute_single:single::spawn().with_task(task).schedule_iter(Duration::from_nanos(5))
+execute_multi:multi::spawn().with_task(task).schedule_iter(Duration::from_nanos(1))|feature-gated
+usage:ReadyValues::new(iter) to filter Ready|single::run_once() for manual|run_until_complete() for auto
 
 ## VALTRON_INTEGRATION
 TaskIterator:type Pending,Ready,Spawner|fn next()->Option<TaskStatus>
@@ -87,14 +90,14 @@ execute_task selects correct executor|WASM uses single|multi feature works
 tests pass|fmt pass|clippy pass|build with multi feature
 
 ## RETRIEVAL_REQUIRED
-read:[valtron/executors/task.rs,valtron/executors/executor.rs]
-read:[valtron/executors/single/mod.rs,valtron/executors/multi/mod.rs]
-read:[valtron/executors/actions.rs for CORRECT ExecutionAction patterns]
-check:[SpawnWithBroadcast,SpawnWithSchedule impls]|verify:[&mut self,engine usage]
+read:[valtron/executors/unified.rs,valtron/executors/actions.rs] PRIMARY REFERENCES
+read:[valtron/executors/task.rs,executor.rs,single/mod.rs,multi/mod.rs]
+check:[SpawnWithBroadcast,SpawnWithSchedule impls]|verify:[&mut self,engine,Option::take]
+check:[execute() return type,schedule_iter usage,ReadyValues wrapper]
 patterns:[Option::take() for idempotent,spawn_builder usage,lift vs schedule]
 
 ## DOCS_TO_READ
-../requirements.md|./feature.md|valtron/executors/actions.rs (PRIMARY REFERENCE)|request.rs|connection.rs|errors.rs
+../requirements.md|./feature.md|valtron/executors/unified.rs (PRIMARY)|valtron/executors/actions.rs (PRIMARY)|request.rs|connection.rs|errors.rs
 
 ## CRITICAL_CONSTRAINTS
 NO async/await|NO tokio|use valtron executors only
@@ -104,5 +107,6 @@ visibility:pub(crate) INTERNAL types|users never see these
 state_machine:non-blocking iterator pattern|spawn children via TaskStatus::Spawn
 
 ---
-Token reduction: feature.md (~10KB) → machine_prompt.md (~3KB) = 70% savings
-CRITICAL UPDATE: ExecutionAction signature corrected per valtron/executors/actions.rs
+Token reduction: feature.md (~12KB) → machine_prompt.md (~3KB) = 75% savings
+CRITICAL UPDATES: ExecutionAction apply(&mut self,engine), execute() returns RecvIterator
+PRIMARY REFS: valtron/executors/unified.rs (execute pattern), actions.rs (ExecutionAction pattern)

@@ -30,6 +30,11 @@ impl CoreExecutor {
         Self::default()
     }
 
+    /// Runs all registered task executors.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the executor lock is poisoned.
     pub fn run_all(&mut self) {
         let mut executors = self.executors.lock().unwrap();
         for executor in executors.iter_mut() {
@@ -37,6 +42,11 @@ impl CoreExecutor {
         }
     }
 
+    /// Registers a new task executor.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the executor lock is poisoned.
     pub fn register(&mut self, executor: Box<dyn domains::TaskExecutor>) {
         let mut executors = self.executors.lock().unwrap();
         executors.push(executor);

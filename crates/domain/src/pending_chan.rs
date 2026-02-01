@@ -53,19 +53,34 @@ impl<E> PendingChannelsRegistry<E> {
         }
     }
 
-    pub fn has(&mut self, id: domains::Id) -> bool {
+    /// Checks if a pending channel exists for the given ID.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the pending registry lock is poisoned.
+    pub fn has(&mut self, id: &domains::Id) -> bool {
         let registry = self.pending.lock().unwrap();
-        registry.contains_key(&id)
+        registry.contains_key(id)
     }
 
-    pub fn retrieve(&mut self, id: domains::Id) -> Option<mspc::ChannelGroup<E>> {
+    /// Retrieves a pending channel group for the given ID.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the pending registry lock is poisoned.
+    pub fn retrieve(&mut self, id: &domains::Id) -> Option<mspc::ChannelGroup<E>> {
         let registry = self.pending.lock().unwrap();
-        if let Some(grp) = registry.get(&id) {
+        if let Some(grp) = registry.get(id) {
             return Some(grp.clone());
         }
         None
     }
 
+    /// Registers a new pending channel for the given ID.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the pending registry lock is poisoned.
     pub fn register(&mut self, id: domains::Id) -> mspc::ChannelGroup<E> {
         let group_channel = mspc::ChannelGroup::new();
 
@@ -75,10 +90,20 @@ impl<E> PendingChannelsRegistry<E> {
         group_channel
     }
 
+    /// Resolves and removes a pending channel for the given ID.
+    ///
+    /// # Errors
+    ///
+    /// Returns `PendingChannelError::NotFound` if no channel exists for the ID.
+    /// Returns `PendingChannelError::ClosedSender` if the sender has been closed.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the pending registry lock is poisoned.
     pub fn resolve(&mut self, id: domains::Id) -> PendingChannelResult<mspc::SendChannel<E>> {
         let mut registry = self.pending.lock().unwrap();
         if !registry.contains_key(&id) {
-            return PendingChannelResult::Err(PendingChannelError::NotFound(id.0.to_string()));
+            return PendingChannelResult::Err(PendingChannelError::NotFound(id.0.clone()));
         }
 
         if let Some((_, entry)) = registry.remove_entry(&id) {
@@ -90,6 +115,11 @@ impl<E> PendingChannelsRegistry<E> {
         PendingChannelResult::Err(PendingChannelError::ClosedSender(id))
     }
 
+    /// Clears all pending channels.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the pending registry lock is poisoned.
     pub fn clear(&mut self) {
         let mut registry = self.pending.lock().unwrap();
         for (_, mut entry) in registry.drain() {
@@ -115,11 +145,11 @@ mod tests {
 
         let grp = registry.register(target_id.clone());
 
-        assert!(registry.has(target_id.clone()));
+        assert!(registry.has(&target_id));
 
         registry.clear();
 
-        assert!(!registry.has(target_id));
+        assert!(!registry.has(&target_id));
 
         drop(grp);
     }
@@ -132,7 +162,7 @@ mod tests {
 
         _ = registry.register(target_id.clone());
 
-        assert!(registry.has(target_id));
+        assert!(registry.has(&target_id));
     }
 
     #[test]
@@ -143,9 +173,9 @@ mod tests {
 
         _ = registry.register(target_id.clone());
 
-        assert!(registry.has(target_id.clone()));
+        assert!(registry.has(&target_id));
 
-        assert!(registry.retrieve(target_id).is_some());
+        assert!(registry.retrieve(&target_id).is_some());
     }
 
     #[test]
@@ -156,7 +186,7 @@ mod tests {
 
         let grp = registry.register(target_id.clone());
 
-        assert!(registry.has(target_id.clone()));
+        assert!(registry.has(&target_id));
 
         let result = registry
             .resolve(target_id.clone())
@@ -167,6 +197,6 @@ mod tests {
 
         drop(grp);
 
-        assert!(!registry.has(target_id));
+        assert!(!registry.has(&target_id));
     }
 }

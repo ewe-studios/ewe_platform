@@ -193,6 +193,15 @@ mod tests {
     }
 
     /// WHY: execute() must work on native without multi feature (single executor)
+    /// where we run get the next ready value by executing  single::run_once when
+    /// executing in multi featured=off secrenario, we can call `single::run_once`
+    /// multiple times to get the task to make progress and check the values of `values_iter.next()`
+    /// to get the next status of the tasks, sometimes we may not even care about pending, and delayed and ]
+    /// only ready  `TaskStatus` and other times we might, but `single::run_once` in a
+    /// single threaded context ensures it makes progress before we pull the relevant result.
+    /// The nice part of this is we can use this in a single threaded context to pull just enough
+    /// result for our computation before making more progress for the task.
+    ///
     /// WHAT: Function compiles and uses single executor and  gets next value with
     /// single::run_once())
     #[test]
@@ -205,6 +214,8 @@ mod tests {
 
         let task = SimpleTask { value: Some(42) };
 
+        /// never call this in code, user will call this themsevles
+        /// in the main function but we do this here since its a test
         initialize_pool(20, None);
 
         let mut values_iter = ReadyValues::new(execute(task).expect("should create task"));
@@ -218,6 +229,7 @@ mod tests {
     }
 
     /// WHY: execute() must work on native without multi feature (single executor)
+    /// where the result should all be ready fully before we read it all out.
     /// WHAT: Function compiles and uses single executor
     #[test]
     #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
@@ -229,6 +241,8 @@ mod tests {
 
         let task = SimpleTask { value: Some(42) };
 
+        /// never call this in code, user will call this themsevles
+        /// in the main function but we do this here since its a test
         initialize_pool(20, None);
 
         let values_iter = ReadyValues::new(execute(task).expect("should create task"));

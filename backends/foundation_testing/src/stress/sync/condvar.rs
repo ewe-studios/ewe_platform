@@ -37,9 +37,8 @@ pub fn run_condvar_stress_test(config: StressConfig) -> StressResult {
         let condvar_clone = Arc::clone(&condvar);
 
         // Acquire lock
-        let mut guard = match mutex_clone.lock() {
-            Ok(g) => g,
-            Err(_) => return false,
+        let Ok(mut guard) = mutex_clone.lock() else {
+            return false;
         };
 
         // Increment counter
@@ -91,9 +90,8 @@ pub fn run_condvar_producer_consumer_stress(config: StressConfig) -> StressResul
 
         if is_producer {
             // Producer: Add item to queue
-            let mut guard = match queue_clone.lock() {
-                Ok(g) => g,
-                Err(_) => return false,
+            let Ok(mut guard) = queue_clone.lock() else {
+                return false;
             };
 
             // Wait if queue is full
@@ -114,9 +112,8 @@ pub fn run_condvar_producer_consumer_stress(config: StressConfig) -> StressResul
             true
         } else {
             // Consumer: Remove item from queue
-            let mut guard = match queue_clone.lock() {
-                Ok(g) => g,
-                Err(_) => return false,
+            let Ok(mut guard) = queue_clone.lock() else {
+                return false;
             };
 
             // Wait if queue is empty
@@ -157,9 +154,8 @@ pub fn run_condvar_high_contention_stress(config: StressConfig) -> StressResult 
         // Thread 0 is the notifier
         if thread_id == 0 {
             // Signal all waiters
-            let mut guard = match mutex_clone.lock() {
-                Ok(g) => g,
-                Err(_) => return false,
+            let Ok(mut guard) = mutex_clone.lock() else {
+                return false;
             };
             *guard = true;
             drop(guard);
@@ -168,9 +164,8 @@ pub fn run_condvar_high_contention_stress(config: StressConfig) -> StressResult 
 
             // Reset for next iteration
             std::thread::sleep(Duration::from_micros(100));
-            let mut guard = match mutex_clone.lock() {
-                Ok(g) => g,
-                Err(_) => return false,
+            let Ok(mut guard) = mutex_clone.lock() else {
+                return false;
             };
             *guard = false;
             drop(guard);
@@ -178,9 +173,8 @@ pub fn run_condvar_high_contention_stress(config: StressConfig) -> StressResult 
             true
         } else {
             // Wait for signal
-            let mut guard = match mutex_clone.lock() {
-                Ok(g) => g,
-                Err(_) => return false,
+            let Ok(mut guard) = mutex_clone.lock() else {
+                return false;
             };
 
             while !*guard {
@@ -210,16 +204,14 @@ pub fn run_condvar_timeout_stress(config: StressConfig) -> StressResult {
         let mutex_clone = Arc::clone(&mutex);
         let condvar_clone = Arc::clone(&condvar);
 
-        let guard = match mutex_clone.lock() {
-            Ok(g) => g,
-            Err(_) => return false,
+        let Ok(guard) = mutex_clone.lock() else {
+            return false;
         };
 
         // Wait with short timeout
         let timeout = Duration::from_micros(10 + (iteration % 100) as u64);
-        let (_guard, _result) = match condvar_clone.wait_timeout(guard, timeout) {
-            Ok(r) => r,
-            Err(_) => return false,
+        let Ok((_guard, _result)) = condvar_clone.wait_timeout(guard, timeout) else {
+            return false;
         };
 
         // Timeouts are expected and OK

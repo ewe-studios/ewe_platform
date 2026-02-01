@@ -71,26 +71,21 @@ pub(crate) fn watch_path(
 
     // listen for change events
     let join_handler = thread::spawn(move || {
-        for event_result in rx {
-            match event_result {
-                Ok(events) => {
-                    for event in events {
-                        match event.kind {
-                            EventKind::Create(_) | EventKind::Remove(_) | EventKind::Modify(_) => {
-                                if let Err(failed) = handler(
-                                    config.clone(),
-                                    event.time,
-                                    event.kind,
-                                    event.paths.clone(),
-                                ) {
-                                    error!("Failed execution of update: {}", failed);
-                                }
-                            }
-                            _ => continue,
+        for events in rx.into_iter().flatten() {
+            for event in events {
+                match event.kind {
+                    EventKind::Create(_) | EventKind::Remove(_) | EventKind::Modify(_) => {
+                        if let Err(failed) = handler(
+                            config.clone(),
+                            event.time,
+                            event.kind,
+                            event.paths.clone(),
+                        ) {
+                            error!("Failed execution of update: {}", failed);
                         }
                     }
+                    _ => {}
                 }
-                Err(_) => continue,
             }
         }
     });
@@ -147,7 +142,7 @@ pub(crate) fn execute_command(mut command: config::CommandDescription) -> ExecRe
     }
 }
 
-pub(crate) fn execute_commands(watcher: config::Watcher) -> ExecResult<()> {
+pub(crate) fn execute_commands(watcher: &config::Watcher) -> ExecResult<()> {
     if let Some(watcher_commands) = watcher.commands() {
         for command in watcher_commands {
             execute_command(command)?;
@@ -158,6 +153,19 @@ pub(crate) fn execute_commands(watcher: config::Watcher) -> ExecResult<()> {
     Ok(())
 }
 
+/// Loads configuration from file path.
+///
+/// # Errors
+///
+/// Returns `ConfigError` if:
+/// - File not found
+/// - Failed to read file
+/// - Unknown file format (only JSON supported)
+/// - JSON parsing fails
+///
+/// # Panics
+///
+/// Panics if file extension is not valid UTF-8.
 pub fn load_config(target: &path::Path) -> crate::config::Result<crate::config::Config> {
     let extension: &str = target.extension().unwrap().to_str().unwrap();
     match extension {

@@ -2,10 +2,17 @@
 
 ⚠️COMPACTED|RELOAD_AFTER_READING|GENERATED:2026-02-01|UPDATED:2026-02-01
 
-## CRITICAL_UPDATE
-ExecutionAction signature corrected|apply(&mut self, key, engine) NOT apply(self, parent_key, executor)
-reference:valtron/executors/actions.rs|SpawnWithBroadcast,SpawnWithSchedule patterns
-pattern:Option::take() for idempotent apply|fields as Option<T>
+# Compact Context: Task-Iterator Feature Implementation
+
+⚠️COMPACTED|RELOAD_AFTER_READING|GENERATED:2026-02-01|UPDATED:2026-02-01v2
+
+## CRITICAL_UPDATES
+1.ExecutionAction:apply(&mut self, key, engine) NOT apply(self, executor)
+2.execute() returns RecvIterator<TaskStatus> NOT direct Ready value
+3.use schedule_iter(Duration) to spawn and get iterator
+4.users call single::run_once() or run_until_complete() to drive
+5.use ReadyValues::new(iter) to filter for Ready values only
+references:valtron/executors/unified.rs (execute),actions.rs (ExecutionAction)
 
 ## CURRENT_TASK
 task:implement_task_iterator_feature|status:paused_for_update|started:2026-02-01|tasks:0/11
@@ -43,16 +50,27 @@ CORRECT ExecutionAction impl (from valtron/executors/actions.rs):
 ```rust
 impl ExecutionAction for MyAction {
     fn apply(&mut self, key: Entry, engine: BoxedExecutionEngine) -> GenericResult<()> {
-        if let Some(data) = self.data.take() {  // Option::take() for idempotent
-            let task = MyTask::new(data);
-            spawn_builder(engine)  // Use 'engine' NOT 'executor'
-                .with_parent(key)   // NOT key.clone()
-                .with_task(task)
-                .lift()?;           // Or .schedule() or .broadcast()
+        if let Some(data) = self.data.take() {
+            spawn_builder(engine).with_parent(key).with_task(task).lift()?;
         }
         Ok(())
     }
 }
+```
+
+CORRECT execute() wrapper (from valtron/executors/unified.rs):
+```rust
+fn execute<T>(task: T) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
+where T: TaskIterator + Send + 'static, ...
+{
+    let iter = single::spawn().with_task(task).schedule_iter(Duration::from_nanos(5))?;
+    Ok(iter)  // Returns iterator, NOT direct Ready value
+}
+
+// Usage:
+let status_iter = execute(task)?;
+single::run_once();  // or run_until_complete()
+let ready_values = ReadyValues::new(status_iter);
 ```
 
 ## DEPENDENCIES_MET
@@ -79,13 +97,16 @@ create:[backends/foundation_core/src/wire/simple_http/client/actions.rs]
 create:[backends/foundation_core/src/wire/simple_http/client/task.rs]
 create:[backends/foundation_core/src/wire/simple_http/client/executor.rs]
 update:[backends/foundation_core/src/wire/simple_http/client/mod.rs]
+PRIMARY_READ:[backends/foundation_core/src/valtron/executors/unified.rs]
 PRIMARY_READ:[backends/foundation_core/src/valtron/executors/actions.rs]
 read:[valtron/executors/task.rs,executor.rs,single/mod.rs,multi/mod.rs]
 
 ## RETRIEVAL_REQUIRED
-PRIMARY:read valtron/executors/actions.rs FIRST|SpawnWithBroadcast,SpawnWithSchedule patterns
+PRIMARY:read valtron/executors/unified.rs FIRST|execute() wrapper pattern
+PRIMARY:read valtron/executors/actions.rs SECOND|ExecutionAction patterns
+verify:execute() returns RecvIterator<TaskStatus>|NOT direct Ready
 verify:apply(&mut self, key, engine) signature|Option::take() pattern
-check:spawn_builder(engine) usage|lift() vs schedule() vs broadcast()
+check:schedule_iter usage|ReadyValues wrapper|run_once vs run_until_complete
 patterns:TaskStatus::Spawn usage|DoNext wrapper
 
 ## IMPLEMENTATION_NOTES
@@ -104,23 +125,24 @@ test_docs:MANDATORY WHY/WHAT on every test
 simplicity:max 2-3 nesting|clear code
 
 ## NEXT_ACTIONS
-1.READ valtron/executors/actions.rs (PRIMARY REFERENCE for correct patterns)
-2.study SpawnWithBroadcast impl (apply signature, Option::take, spawn_builder usage)
-3.study SpawnWithSchedule impl (verify patterns)
-4.write test for RedirectAction (TDD)
-5.implement RedirectAction following EXACT pattern from actions.rs
-6.continue TDD cycle
+1.READ valtron/executors/unified.rs (execute pattern, RecvIterator return, schedule_iter)
+2.READ valtron/executors/actions.rs (ExecutionAction apply signature, Option::take)
+3.study execute_single,execute_multi impls (schedule_iter usage, Duration params)
+4.study test examples (run_once vs run_until_complete, ReadyValues wrapper)
+5.write test for RedirectAction (TDD)
+6.implement RedirectAction following patterns
+7.continue TDD cycle
 
 ## BLOCKERS
-NONE - specification updated with correct patterns
+NONE - specification updated with correct patterns from unified.rs and actions.rs
 
 ## CONTEXT_REFS
 feature:[features/task-iterator/]
 machine_prompt:[./machine_prompt.md]
 progress:[../../PROGRESS.md]
-PRIMARY_REF:[valtron/executors/actions.rs]
+PRIMARY_REF:[valtron/executors/unified.rs,valtron/executors/actions.rs]
 stack:[.agents/stacks/rust.md]
 
 ---
-⚠️ SPECIFICATION UPDATED: ExecutionAction patterns corrected. Read actions.rs FIRST.
+⚠️ SPECIFICATION UPDATED v2: Execute wrapper patterns corrected. Read unified.rs FIRST.
 

@@ -57,7 +57,7 @@ impl Watchers {
                                 kind,
                                 changed,
                             );
-                            match crate::handlers::execute_commands(watcher_config.clone()) {
+                            match crate::handlers::execute_commands(&watcher_config) {
                                 Ok(()) => Ok(()),
                                 Err(err) => {
                                     tracing::error!(
@@ -93,22 +93,28 @@ impl ConfigWatcher {
         }
     }
 
+    /// Starts listening for configuration file changes.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The initial watcher configuration fails to load
+    /// - The configuration file watcher thread fails to join
     pub fn listen(&self) -> Result<()> {
         // start watcher with initial load of config
-        self.start_watcher()?;
+        self.start_watcher();
 
         // start listening for config changes
         self.listen_for_change()?;
         Ok(())
     }
 
-    fn start_watcher(&self) -> Result<()> {
+    fn start_watcher(&self) {
         let target_file = self.watcher_file.clone();
         let target_watcher = self.watcher.clone();
         let loaded_config =
             crate::handlers::load_config(&target_file).expect("should load config correctly");
         target_watcher.lock().unwrap().reload(loaded_config);
-        Ok(())
     }
 
     fn listen_for_change(&self) -> Result<()> {
@@ -133,7 +139,6 @@ impl ConfigWatcher {
                     }
                     Err(err) => {
                         tracing::error!("Error occured watching config file: {:?}", err);
-                        continue;
                     }
                 }
             }

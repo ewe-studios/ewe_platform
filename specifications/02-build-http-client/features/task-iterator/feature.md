@@ -311,23 +311,95 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for HttpRequestTask<R> {
 
 ### Feature-Gated Executor Wrapper
 
+**CORRECTED PATTERN** (from valtron/executors/unified.rs):
+
 ```rust
-pub(crate) fn execute_task<T>(task: T) -> Result<T::Ready, ExecutorError>
+use crate::synca::mpp::RecvIterator;
+use crate::valtron::{single, TaskIterator, TaskStatus, ExecutionAction, GenericResult};
+
+#[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
+use crate::valtron::multi;
+
+/// Execute a task using the appropriate executor for the current platform/features.
+///
+/// Returns an iterator over TaskStatus values. Users must drive execution by calling:
+/// - `single::run_once()` - Make progress once (for manual control)
+/// - `single::run_until_complete()` - Run until all tasks done
+///
+/// Use `ReadyValues::new(iter)` to filter for only Ready values.
+pub(crate) fn execute<T>(
+    task: T,
+) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
 where
     T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
 {
     #[cfg(target_arch = "wasm32")]
-    { execute_single(task) }
+    {
+        execute_single(task)
+    }
 
     #[cfg(not(target_arch = "wasm32"))]
     {
         #[cfg(feature = "multi")]
-        { execute_multi(task) }
+        {
+            execute_multi(task)
+        }
 
         #[cfg(not(feature = "multi"))]
-        { execute_single(task) }
+        {
+            execute_single(task)
+        }
     }
 }
+
+/// Execute using single-threaded executor.
+fn execute_single<T>(
+    task: T,
+) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    use std::time::Duration;
+
+    let iter = single::spawn()
+        .with_task(task)
+        .schedule_iter(Duration::from_nanos(5))?;
+
+    Ok(iter)
+}
+
+/// Execute using multi-threaded executor (feature-gated).
+#[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
+fn execute_multi<T>(
+    task: T,
+) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    use std::time::Duration;
+
+    let iter = multi::spawn()
+        .with_task(task)
+        .schedule_iter(Duration::from_nanos(1))?;
+
+    Ok(iter)
+}
+```
+
+**Key Points**:
+- Returns `RecvIterator<TaskStatus<...>>` (not direct Ready value)
+- Use `.schedule_iter(Duration)` to spawn task and get iterator
+- Users drive execution with `single::run_once()` or `single::run_until_complete()`
+- Use `ReadyValues::new(iter)` to filter for Ready values only
+- All functions are internal (pub(crate) or private)
 ```
 
 | Platform | Feature | Executor Used     |
@@ -335,6 +407,42 @@ where
 | WASM     | any     | `single` (always) |
 | Native   | none    | `single`          |
 | Native   | `multi` | `multi`           |
+
+### Usage Pattern (from unified.rs tests)
+
+**Returns RecvIterator** (not direct Ready value):
+```rust
+use crate::valtron::ReadyValues;
+use crate::valtron::single;
+
+let task = HttpRequestTask::new(...);
+
+// Execute returns iterator over TaskStatus values
+let status_iter = execute(task)?;
+
+// Option 1: Drive manually with run_once()
+let mut ready_values = ReadyValues::new(status_iter);
+loop {
+    single::run_once();  // Make progress
+    if let Some(value) = ready_values.next() {
+        // Process ready value
+        break;
+    }
+}
+
+// Option 2: Run until complete
+let status_iter = execute(task)?;
+single::run_until_complete();  // Drive to completion
+let values: Vec<_> = ReadyValues::new(status_iter)
+    .filter_map(|item| item.inner())
+    .collect();
+```
+
+**Key Points**:
+- `execute()` returns `RecvIterator<TaskStatus<...>>` (not `T::Ready`)
+- Users call `single::run_once()` or `single::run_until_complete()` to drive
+- Use `ReadyValues::new(iter)` wrapper to filter for Ready values
+- `.schedule_iter(Duration)` spawns task and returns iterator
 
 ## Implementation Details
 
@@ -378,6 +486,8 @@ cargo build --package foundation_core --features multi
 ### Before Starting
 
 - **MUST VERIFY** foundation, connection, request-response features are complete
+- **MUST READ** `valtron/executors/unified.rs` for execute() wrapper pattern (PRIMARY REFERENCE)
+- **MUST READ** `valtron/executors/actions.rs` for ExecutionAction patterns (PRIMARY REFERENCE)
 - **MUST READ** `valtron/executors/task.rs` for TaskIterator trait
 - **MUST READ** `valtron/executors/executor.rs` for ExecutionAction, TaskStatus
 - **MUST READ** `valtron/executors/single/mod.rs` for single::spawn() usage
@@ -437,4 +547,4 @@ impl ExecutionAction for MyAction {
 ---
 
 _Created: 2026-01-18_
-_Last Updated: 2026-02-01 (Updated ExecutionAction signatures with correct &mut self pattern)_
+_Last Updated: 2026-02-01 (Updated ExecutionAction signatures and executor wrapper with unified.rs patterns)_

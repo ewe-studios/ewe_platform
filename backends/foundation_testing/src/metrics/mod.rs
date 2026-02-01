@@ -33,6 +33,7 @@ impl Metrics {
 
     /// Calculates throughput from operations and duration.
     #[must_use]
+    #[allow(clippy::cast_precision_loss)]
     pub fn with_throughput(mut self) -> Self {
         let secs = self.duration.as_secs_f64();
         self.throughput = if secs > 0.0 {
@@ -64,6 +65,7 @@ impl Metrics {
 
     /// Returns the average latency in nanoseconds.
     #[must_use]
+    #[allow(clippy::cast_precision_loss)]
     pub fn avg_latency(&self) -> Option<f64> {
         if self.latencies.is_empty() {
             None
@@ -105,6 +107,7 @@ impl Metrics {
 
     /// Returns the latency at the given percentile (0.0 to 1.0).
     #[must_use]
+    #[allow(clippy::cast_precision_loss, clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     pub fn percentile_latency(&self, percentile: f64) -> Option<u64> {
         if self.latencies.is_empty() || !(0.0..=1.0).contains(&percentile) {
             return None;
