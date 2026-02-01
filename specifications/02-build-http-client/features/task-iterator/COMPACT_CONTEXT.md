@@ -10,8 +10,9 @@
 1.ExecutionAction:apply(&mut self, key, engine) NOT apply(self, executor)
 2.execute() returns RecvIterator<TaskStatus> NOT direct Ready value
 3.use schedule_iter(Duration) to spawn and get iterator
-4.users call single::run_once() or run_until_complete() to drive
-5.use ReadyValues::new(iter) to filter for Ready values only
+4.SINGLE MODE (wasm OR multi=off):users MUST call single::run_once() or run_until_complete()
+5.MULTI MODE (multi=on):threads auto-run, NO run_once needed, just consume iterator
+6.use ReadyValues::new(iter) to filter for Ready values only
 references:valtron/executors/unified.rs (execute),actions.rs (ExecutionAction)
 
 ## CURRENT_TASK
@@ -61,16 +62,26 @@ impl ExecutionAction for MyAction {
 CORRECT execute() wrapper (from valtron/executors/unified.rs):
 ```rust
 fn execute<T>(task: T) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
-where T: TaskIterator + Send + 'static, ...
 {
     let iter = single::spawn().with_task(task).schedule_iter(Duration::from_nanos(5))?;
     Ok(iter)  // Returns iterator, NOT direct Ready value
 }
 
-// Usage:
-let status_iter = execute(task)?;
-single::run_once();  // or run_until_complete()
-let ready_values = ReadyValues::new(status_iter);
+// SINGLE MODE Usage (WASM or multi=off):
+#[cfg(any(target_arch = "wasm32", not(feature = "multi")))]
+{
+    let status_iter = execute(task)?;
+    single::run_once();  // MUST call to drive execution
+    let ready_values = ReadyValues::new(status_iter);
+}
+
+// MULTI MODE Usage (multi=on):
+#[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
+{
+    let status_iter = execute(task)?;
+    // Threads run automatically - NO run_once needed
+    let ready_values = ReadyValues::new(status_iter);
+}
 ```
 
 ## DEPENDENCIES_MET
