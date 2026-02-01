@@ -5,10 +5,10 @@
 //! - Barriers
 //! - Thread pools
 
-pub mod producer_consumer;
 pub mod barrier;
+pub mod producer_consumer;
 pub mod thread_pool;
 
-pub use producer_consumer::ProducerConsumerQueue;
 pub use barrier::Barrier;
+pub use producer_consumer::ProducerConsumerQueue;
 pub use thread_pool::ThreadPool;

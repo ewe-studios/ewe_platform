@@ -438,10 +438,18 @@ pub fn list_llama_ggml_backend_devices() -> Vec<LlamaBackendDevice> {
         let memory_total = props.memory_total;
         let memory_free = props.memory_free;
         let device_type = match props.type_ {
-            infrastructure_llama_bindings::GGML_BACKEND_DEVICE_TYPE_CPU => LlamaBackendDeviceType::Cpu,
-            infrastructure_llama_bindings::GGML_BACKEND_DEVICE_TYPE_ACCEL => LlamaBackendDeviceType::Accelerator,
-            infrastructure_llama_bindings::GGML_BACKEND_DEVICE_TYPE_GPU => LlamaBackendDeviceType::Gpu,
-            infrastructure_llama_bindings::GGML_BACKEND_DEVICE_TYPE_IGPU => LlamaBackendDeviceType::IntegratedGpu,
+            infrastructure_llama_bindings::GGML_BACKEND_DEVICE_TYPE_CPU => {
+                LlamaBackendDeviceType::Cpu
+            }
+            infrastructure_llama_bindings::GGML_BACKEND_DEVICE_TYPE_ACCEL => {
+                LlamaBackendDeviceType::Accelerator
+            }
+            infrastructure_llama_bindings::GGML_BACKEND_DEVICE_TYPE_GPU => {
+                LlamaBackendDeviceType::Gpu
+            }
+            infrastructure_llama_bindings::GGML_BACKEND_DEVICE_TYPE_IGPU => {
+                LlamaBackendDeviceType::IntegratedGpu
+            }
             _ => LlamaBackendDeviceType::Unknown,
         };
         devices.push(LlamaBackendDevice {
@@ -532,7 +540,10 @@ pub fn send_logs_to_tracing(options: LogOptions) {
 
     unsafe {
         // GGML has to be set after llama since setting llama sets ggml as well.
-        infrastructure_llama_bindings::llama_log_set(Some(logs_to_trace), llama_heap_state as *mut _);
+        infrastructure_llama_bindings::llama_log_set(
+            Some(logs_to_trace),
+            llama_heap_state as *mut _,
+        );
         infrastructure_llama_bindings::ggml_log_set(Some(logs_to_trace), ggml_heap_state as *mut _);
     }
 }

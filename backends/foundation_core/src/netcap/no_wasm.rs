@@ -1,7 +1,6 @@
 #![cfg(not(target_arch = "wasm32"))]
 #![allow(clippy::missing_errors_doc)]
 
-
 use crate::io::ioutils::{BufferedReader, BufferedWriter, PeekError, PeekableReadStream};
 
 #[cfg(any(

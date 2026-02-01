@@ -105,7 +105,7 @@ impl<'a> Attribute<'a> {
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn name_lower(&self) -> Option<String> {
         if let Some(name) = self.name.clone() {
             return Some(name.as_lower(rc::Rc::clone(&self.encoding)));
@@ -114,19 +114,19 @@ impl<'a> Attribute<'a> {
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn value_bytes(&self) -> Option<Bytes<'a>> {
         self.value.clone()
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn name_bytes(&self) -> Option<Bytes<'a>> {
         self.name.clone()
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn name(&self) -> Option<String> {
         if let Some(name) = self.name.clone() {
             return Some(name.to_string(rc::Rc::clone(&self.encoding)));
@@ -135,7 +135,7 @@ impl<'a> Attribute<'a> {
     }
 
     #[inline]
-    #[must_use] 
+    #[must_use]
     pub fn value(&self) -> Option<String> {
         if let Some(value) = self.value.clone() {
             return Some(value.to_string(rc::Rc::clone(&self.encoding)));
@@ -561,17 +561,17 @@ impl<'a> Fragment<'a> {
         Ok(FragmentDef::HTML(Some(node)))
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn after_node_size(&self) -> usize {
         self.after.len()
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn before_node_size(&self) -> usize {
         self.before.len()
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn children_size(&self) -> usize {
         self.content.len()
     }

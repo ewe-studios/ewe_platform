@@ -33,7 +33,12 @@ pub struct StressResult {
 impl StressResult {
     /// Creates a new stress test result.
     #[must_use]
-    pub const fn new(successes: usize, failures: usize, duration: Duration, thread_count: usize) -> Self {
+    pub const fn new(
+        successes: usize,
+        failures: usize,
+        duration: Duration,
+        thread_count: usize,
+    ) -> Self {
         Self {
             successes,
             failures,

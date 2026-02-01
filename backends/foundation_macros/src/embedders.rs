@@ -151,18 +151,14 @@ fn find_root_cargo(
 ) -> Option<(PathBuf, PathBuf)> {
     if let Ok(true) = fs::exists(manifest_dir.join("Cargo.toml")) {
         return find_root_cargo(
-            manifest_dir
-                .parent()
-                .expect("path to have parent"),
+            manifest_dir.parent().expect("path to have parent"),
             Some(manifest_dir.to_owned()),
         );
     }
 
     if let Ok(true) = fs::exists(manifest_dir.join("cargo.toml")) {
         return find_root_cargo(
-            manifest_dir
-                .parent()
-                .expect("path to have parent"),
+            manifest_dir.parent().expect("path to have parent"),
             Some(manifest_dir.to_owned()),
         );
     }
@@ -678,8 +674,7 @@ fn impl_embeddable_directory(
         }
     };
 
-    let embedded_date_modified =
-        get_file_modified_date(&embed_directory_path);
+    let embedded_date_modified = get_file_modified_date(&embed_directory_path);
     let embedded_date_modified_tokens = if let Some(inner) = embedded_date_modified {
         quote! {
             Some(#inner)
@@ -1310,8 +1305,7 @@ fn visit_dirs(collected: &mut Vec<FsInfo>, dir: &Path, root_dir: &Path, index: u
         let root_parent = root_dir.parent().expect("get root dir");
         let dir_path_string = String::from(dir.to_str().expect("get string"));
         let dir_name = get_file_name(dir);
-        let dir_date_modified =
-            get_file_modified_date(dir);
+        let dir_date_modified = get_file_modified_date(dir);
 
         let directory_relative_path = dir
             .strip_prefix(root_dir)

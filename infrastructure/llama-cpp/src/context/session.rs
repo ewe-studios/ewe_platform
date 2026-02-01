@@ -73,7 +73,9 @@ impl LlamaContext<'_> {
             infrastructure_llama_bindings::llama_save_session_file(
                 self.context.as_ptr(),
                 cstr.as_ptr(),
-                tokens.as_ptr().cast::<infrastructure_llama_bindings::llama_token>(),
+                tokens
+                    .as_ptr()
+                    .cast::<infrastructure_llama_bindings::llama_token>(),
                 tokens.len(),
             )
         } {
@@ -109,7 +111,9 @@ impl LlamaContext<'_> {
         let mut n_out = 0;
 
         // SAFETY: cast is valid as LlamaToken is repr(transparent)
-        let tokens_out = tokens.as_mut_ptr().cast::<infrastructure_llama_bindings::llama_token>();
+        let tokens_out = tokens
+            .as_mut_ptr()
+            .cast::<infrastructure_llama_bindings::llama_token>();
 
         let load_session_success = unsafe {
             infrastructure_llama_bindings::llama_load_session_file(
@@ -159,6 +163,8 @@ impl LlamaContext<'_> {
     ///
     /// help wanted: not entirely sure what the safety requirements are here.
     pub unsafe fn set_state_data(&mut self, src: &[u8]) -> usize {
-        unsafe { infrastructure_llama_bindings::llama_set_state_data(self.context.as_ptr(), src.as_ptr()) }
+        unsafe {
+            infrastructure_llama_bindings::llama_set_state_data(self.context.as_ptr(), src.as_ptr())
+        }
     }
 }

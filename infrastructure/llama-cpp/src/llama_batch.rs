@@ -1,7 +1,9 @@
 //! Safe wrapper around `llama_batch`.
 
 use crate::token::LlamaToken;
-use infrastructure_llama_bindings::{llama_batch, llama_batch_free, llama_batch_init, llama_pos, llama_seq_id};
+use infrastructure_llama_bindings::{
+    llama_batch, llama_batch_free, llama_batch_init, llama_pos, llama_seq_id,
+};
 use std::marker::PhantomData;
 
 /// A safe wrapper around `llama_batch`.

@@ -41,7 +41,9 @@ impl DerefMut for LlamaTokenAttrs {
 impl TryFrom<infrastructure_llama_bindings::llama_token_type> for LlamaTokenAttrs {
     type Error = LlamaTokenTypeFromIntError;
 
-    fn try_from(value: infrastructure_llama_bindings::llama_vocab_type) -> Result<Self, Self::Error> {
+    fn try_from(
+        value: infrastructure_llama_bindings::llama_vocab_type,
+    ) -> Result<Self, Self::Error> {
         Ok(Self(BitFlags::from_bits(value as _).map_err(|e| {
             LlamaTokenTypeFromIntError::UnknownValue(e.invalid_bits())
         })?))

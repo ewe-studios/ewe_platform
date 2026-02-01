@@ -50,7 +50,7 @@ pub struct CargoShellBuilder {
 
 // constructors
 impl CargoShellBuilder {
-    #[must_use] 
+    #[must_use]
     pub fn shared(
         skip_check: bool,
         stop_on_failure: bool,
@@ -263,7 +263,7 @@ impl Clone for BinaryApp {
 
 // -- Constructor
 impl BinaryApp {
-    #[must_use] 
+    #[must_use]
     pub fn shared(
         project: ProjectDefinition,
         build_notifications: broadcast::Sender<()>,

@@ -136,7 +136,8 @@ impl LlamaModel {
     /// platforms due to llama.cpp returning a `c_int` (i32 on most platforms) which is almost certainly positive.
     #[must_use]
     pub fn n_ctx_train(&self) -> u32 {
-        let n_ctx_train = unsafe { infrastructure_llama_bindings::llama_n_ctx_train(self.model.as_ptr()) };
+        let n_ctx_train =
+            unsafe { infrastructure_llama_bindings::llama_n_ctx_train(self.model.as_ptr()) };
         u32::try_from(n_ctx_train).expect("n_ctx_train fits into an u32")
     }
 
@@ -180,8 +181,9 @@ impl LlamaModel {
     /// Get the decoder start token.
     #[must_use]
     pub fn decode_start_token(&self) -> LlamaToken {
-        let token =
-            unsafe { infrastructure_llama_bindings::llama_model_decoder_start_token(self.model.as_ptr()) };
+        let token = unsafe {
+            infrastructure_llama_bindings::llama_model_decoder_start_token(self.model.as_ptr())
+        };
         LlamaToken(token)
     }
 
@@ -296,7 +298,9 @@ impl LlamaModel {
                 self.vocab_ptr(),
                 c_string.as_ptr(),
                 c_int::try_from(c_string.as_bytes().len())?,
-                buffer.as_mut_ptr().cast::<infrastructure_llama_bindings::llama_token>(),
+                buffer
+                    .as_mut_ptr()
+                    .cast::<infrastructure_llama_bindings::llama_token>(),
                 buffer_capacity,
                 add_bos,
                 true,
@@ -312,7 +316,9 @@ impl LlamaModel {
                     self.vocab_ptr(),
                     c_string.as_ptr(),
                     c_int::try_from(c_string.as_bytes().len())?,
-                    buffer.as_mut_ptr().cast::<infrastructure_llama_bindings::llama_token>(),
+                    buffer
+                        .as_mut_ptr()
+                        .cast::<infrastructure_llama_bindings::llama_token>(),
                     -size,
                     add_bos,
                     true,
@@ -336,7 +342,8 @@ impl LlamaModel {
     /// If the token type is not known to this library.
     #[must_use]
     pub fn token_attr(&self, LlamaToken(id): LlamaToken) -> LlamaTokenAttrs {
-        let token_type = unsafe { infrastructure_llama_bindings::llama_token_get_attr(self.vocab_ptr(), id) };
+        let token_type =
+            unsafe { infrastructure_llama_bindings::llama_token_get_attr(self.vocab_ptr(), id) };
         LlamaTokenAttrs::try_from(token_type).expect("token type is valid")
     }
 
@@ -451,7 +458,8 @@ impl LlamaModel {
     #[must_use]
     pub fn vocab_type(&self) -> VocabType {
         // infrastructure_llama_bindings::llama_model_get_vocab
-        let vocab_type = unsafe { infrastructure_llama_bindings::llama_vocab_type(self.vocab_ptr()) };
+        let vocab_type =
+            unsafe { infrastructure_llama_bindings::llama_vocab_type(self.vocab_ptr()) };
         VocabType::try_from(vocab_type).expect("invalid vocab type")
     }
 
@@ -481,22 +489,30 @@ impl LlamaModel {
     pub fn n_layer(&self) -> u32 {
         // It's never possible for this to panic because while the API interface is defined as an int32_t,
         // the field it's accessing is a uint32_t.
-        u32::try_from(unsafe { infrastructure_llama_bindings::llama_model_n_layer(self.model.as_ptr()) }).unwrap()
+        u32::try_from(unsafe {
+            infrastructure_llama_bindings::llama_model_n_layer(self.model.as_ptr())
+        })
+        .unwrap()
     }
 
     /// Returns the number of attention heads within the model.
     pub fn n_head(&self) -> u32 {
         // It's never possible for this to panic because while the API interface is defined as an int32_t,
         // the field it's accessing is a uint32_t.
-        u32::try_from(unsafe { infrastructure_llama_bindings::llama_model_n_head(self.model.as_ptr()) }).unwrap()
+        u32::try_from(unsafe {
+            infrastructure_llama_bindings::llama_model_n_head(self.model.as_ptr())
+        })
+        .unwrap()
     }
 
     /// Returns the number of KV attention heads.
     pub fn n_head_kv(&self) -> u32 {
         // It's never possible for this to panic because while the API interface is defined as an int32_t,
         // the field it's accessing is a uint32_t.
-        u32::try_from(unsafe { infrastructure_llama_bindings::llama_model_n_head_kv(self.model.as_ptr()) })
-            .unwrap()
+        u32::try_from(unsafe {
+            infrastructure_llama_bindings::llama_model_n_head_kv(self.model.as_ptr())
+        })
+        .unwrap()
     }
 
     /// Get metadata value as a string by key name
@@ -589,8 +605,9 @@ impl LlamaModel {
             Some(Ok(name)) => name.as_ptr(),
             _ => std::ptr::null(),
         };
-        let result =
-            unsafe { infrastructure_llama_bindings::llama_model_chat_template(self.model.as_ptr(), name_ptr) };
+        let result = unsafe {
+            infrastructure_llama_bindings::llama_model_chat_template(self.model.as_ptr(), name_ptr)
+        };
 
         // Convert result to Rust String if not null
         if result.is_null() {
@@ -620,8 +637,9 @@ impl LlamaModel {
             .ok_or(LlamaModelLoadError::PathToStrError(path.to_path_buf()))?;
 
         let cstr = CString::new(path)?;
-        let llama_model =
-            unsafe { infrastructure_llama_bindings::llama_load_model_from_file(cstr.as_ptr(), params.params) };
+        let llama_model = unsafe {
+            infrastructure_llama_bindings::llama_load_model_from_file(cstr.as_ptr(), params.params)
+        };
 
         let model = NonNull::new(llama_model).ok_or(LlamaModelLoadError::NullResult)?;
 
@@ -648,8 +666,12 @@ impl LlamaModel {
             ))?;
 
         let cstr = CString::new(path)?;
-        let adapter =
-            unsafe { infrastructure_llama_bindings::llama_adapter_lora_init(self.model.as_ptr(), cstr.as_ptr()) };
+        let adapter = unsafe {
+            infrastructure_llama_bindings::llama_adapter_lora_init(
+                self.model.as_ptr(),
+                cstr.as_ptr(),
+            )
+        };
 
         let adapter = NonNull::new(adapter).ok_or(LlamaLoraAdapterInitError::NullResult)?;
 
@@ -673,7 +695,10 @@ impl LlamaModel {
     ) -> Result<LlamaContext<'a>, LlamaContextLoadError> {
         let context_params = params.context_params;
         let context = unsafe {
-            infrastructure_llama_bindings::llama_new_context_with_model(self.model.as_ptr(), context_params)
+            infrastructure_llama_bindings::llama_new_context_with_model(
+                self.model.as_ptr(),
+                context_params,
+            )
         };
         let context = NonNull::new(context).ok_or(LlamaContextLoadError::NullReturn)?;
 
@@ -815,7 +840,9 @@ pub enum LlamaTokenTypeFromIntError {
 impl TryFrom<infrastructure_llama_bindings::llama_vocab_type> for VocabType {
     type Error = LlamaTokenTypeFromIntError;
 
-    fn try_from(value: infrastructure_llama_bindings::llama_vocab_type) -> Result<Self, Self::Error> {
+    fn try_from(
+        value: infrastructure_llama_bindings::llama_vocab_type,
+    ) -> Result<Self, Self::Error> {
         match value {
             infrastructure_llama_bindings::LLAMA_VOCAB_TYPE_BPE => Ok(VocabType::BPE),
             infrastructure_llama_bindings::LLAMA_VOCAB_TYPE_SPM => Ok(VocabType::SPM),

@@ -80,8 +80,9 @@ impl<'model> LlamaContext<'model> {
     ///
     /// - the returned [`std::ffi::c_int`] from llama-cpp does not fit into a i32 (this should never happen on most systems)
     pub fn decode(&mut self, batch: &mut LlamaBatch) -> Result<(), DecodeError> {
-        let result =
-            unsafe { infrastructure_llama_bindings::llama_decode(self.context.as_ptr(), batch.llama_batch) };
+        let result = unsafe {
+            infrastructure_llama_bindings::llama_decode(self.context.as_ptr(), batch.llama_batch)
+        };
 
         match NonZeroI32::new(result) {
             None => {
@@ -103,8 +104,9 @@ impl<'model> LlamaContext<'model> {
     ///
     /// - the returned [`std::ffi::c_int`] from llama-cpp does not fit into a i32 (this should never happen on most systems)
     pub fn encode(&mut self, batch: &mut LlamaBatch) -> Result<(), EncodeError> {
-        let result =
-            unsafe { infrastructure_llama_bindings::llama_encode(self.context.as_ptr(), batch.llama_batch) };
+        let result = unsafe {
+            infrastructure_llama_bindings::llama_encode(self.context.as_ptr(), batch.llama_batch)
+        };
 
         match NonZeroI32::new(result) {
             None => {
@@ -141,7 +143,8 @@ impl<'model> LlamaContext<'model> {
             usize::try_from(self.model.n_embd()).expect("n_embd does not fit into a usize");
 
         unsafe {
-            let embedding = infrastructure_llama_bindings::llama_get_embeddings_seq(self.context.as_ptr(), i);
+            let embedding =
+                infrastructure_llama_bindings::llama_get_embeddings_seq(self.context.as_ptr(), i);
 
             // Technically also possible whenever `i >= max(batch.n_seq)`, but can't check that here.
             if embedding.is_null() {
@@ -177,7 +180,8 @@ impl<'model> LlamaContext<'model> {
             usize::try_from(self.model.n_embd()).expect("n_embd does not fit into a usize");
 
         unsafe {
-            let embedding = infrastructure_llama_bindings::llama_get_embeddings_ith(self.context.as_ptr(), i);
+            let embedding =
+                infrastructure_llama_bindings::llama_get_embeddings_ith(self.context.as_ptr(), i);
             // Technically also possible whenever `i >= batch.n_tokens`, but no good way of checking `n_tokens` here.
             if embedding.is_null() {
                 Err(EmbeddingsError::LogitsNotEnabled)
@@ -235,7 +239,8 @@ impl<'model> LlamaContext<'model> {
     /// - token data returned is null
     #[must_use]
     pub fn get_logits(&self) -> &[f32] {
-        let data = unsafe { infrastructure_llama_bindings::llama_get_logits(self.context.as_ptr()) };
+        let data =
+            unsafe { infrastructure_llama_bindings::llama_get_logits(self.context.as_ptr()) };
         assert!(!data.is_null(), "logits data for last token is null");
         let len = usize::try_from(self.model.n_vocab()).expect("n_vocab does not fit into a usize");
 
@@ -290,7 +295,9 @@ impl<'model> LlamaContext<'model> {
             i
         );
 
-        let data = unsafe { infrastructure_llama_bindings::llama_get_logits_ith(self.context.as_ptr(), i) };
+        let data = unsafe {
+            infrastructure_llama_bindings::llama_get_logits_ith(self.context.as_ptr(), i)
+        };
         let len = usize::try_from(self.model.n_vocab()).expect("n_vocab does not fit into a usize");
 
         unsafe { slice::from_raw_parts(data, len) }
@@ -303,7 +310,8 @@ impl<'model> LlamaContext<'model> {
 
     /// Returns the timings for the context.
     pub fn timings(&mut self) -> LlamaTimings {
-        let timings = unsafe { infrastructure_llama_bindings::llama_perf_context(self.context.as_ptr()) };
+        let timings =
+            unsafe { infrastructure_llama_bindings::llama_perf_context(self.context.as_ptr()) };
         LlamaTimings { timings }
     }
 

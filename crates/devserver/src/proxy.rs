@@ -82,8 +82,7 @@ impl ProxyType {
         match self {
             ProxyType::Http1(t) => {
                 let (client, client_addr) = connection;
-                streams::stream_http1(rt::TokioIo::new(client), client_addr, t.clone())
-                    .await?;
+                streams::stream_http1(rt::TokioIo::new(client), client_addr, t.clone()).await?;
                 ewe_trace::info!(
                     "Finished serving::http1 client: {} from {} to {}",
                     client_addr.clone(),
@@ -218,7 +217,7 @@ pub struct StreamTCPApp {
 // -- Constructor
 
 impl StreamTCPApp {
-    #[must_use] 
+    #[must_use]
     pub fn shared(wait_for_binary_secs: time::Duration, proxy_type: ProxyType) -> sync::Arc<Self> {
         sync::Arc::new(Self {
             wait_for_binary_secs,

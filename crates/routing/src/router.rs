@@ -401,9 +401,7 @@ mod router_tests {
             if let Some(message) = body.take() {
                 let MyRequests::Hello(content) = message;
                 return Ok(Response::from(
-                    Some(MyResponse::World(format!(
-                        "{content} World!",
-                    ))),
+                    Some(MyResponse::World(format!("{content} World!",))),
                     ResponseHead::standard(StatusCode::OK),
                 ));
             }

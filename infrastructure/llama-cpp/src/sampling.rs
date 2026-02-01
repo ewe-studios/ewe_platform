@@ -27,7 +27,11 @@ impl LlamaSampler {
     #[must_use]
     pub fn sample(&mut self, ctx: &LlamaContext, idx: i32) -> LlamaToken {
         let token = unsafe {
-            infrastructure_llama_bindings::llama_sampler_sample(self.sampler, ctx.context.as_ptr(), idx)
+            infrastructure_llama_bindings::llama_sampler_sample(
+                self.sampler,
+                ctx.context.as_ptr(),
+                idx,
+            )
         };
 
         LlamaToken(token)
@@ -48,7 +52,9 @@ impl LlamaSampler {
     /// certain samplers (e.g. grammar, repetition, etc.)
     pub fn accept_many(&mut self, tokens: impl IntoIterator<Item = impl Borrow<LlamaToken>>) {
         for token in tokens {
-            unsafe { infrastructure_llama_bindings::llama_sampler_accept(self.sampler, token.borrow().0) }
+            unsafe {
+                infrastructure_llama_bindings::llama_sampler_accept(self.sampler, token.borrow().0)
+            }
         }
     }
 
@@ -179,7 +185,9 @@ impl LlamaSampler {
     /// <https://arxiv.org/abs/2309.02772>.
     #[must_use]
     pub fn temp_ext(t: f32, delta: f32, exponent: f32) -> Self {
-        let sampler = unsafe { infrastructure_llama_bindings::llama_sampler_init_temp_ext(t, delta, exponent) };
+        let sampler = unsafe {
+            infrastructure_llama_bindings::llama_sampler_init_temp_ext(t, delta, exponent)
+        };
         Self { sampler }
     }
 
@@ -248,7 +256,8 @@ impl LlamaSampler {
     /// Locally Typical Sampling implementation described in the paper <https://arxiv.org/abs/2202.00666>.
     #[must_use]
     pub fn typical(p: f32, min_keep: usize) -> Self {
-        let sampler = unsafe { infrastructure_llama_bindings::llama_sampler_init_typical(p, min_keep) };
+        let sampler =
+            unsafe { infrastructure_llama_bindings::llama_sampler_init_typical(p, min_keep) };
         Self { sampler }
     }
 
@@ -256,21 +265,24 @@ impl LlamaSampler {
     /// <https://arxiv.org/abs/1904.09751>
     #[must_use]
     pub fn top_p(p: f32, min_keep: usize) -> Self {
-        let sampler = unsafe { infrastructure_llama_bindings::llama_sampler_init_top_p(p, min_keep) };
+        let sampler =
+            unsafe { infrastructure_llama_bindings::llama_sampler_init_top_p(p, min_keep) };
         Self { sampler }
     }
 
     /// Minimum P sampling as described in <https://github.com/ggerganov/llama.cpp/pull/3841>
     #[must_use]
     pub fn min_p(p: f32, min_keep: usize) -> Self {
-        let sampler = unsafe { infrastructure_llama_bindings::llama_sampler_init_min_p(p, min_keep) };
+        let sampler =
+            unsafe { infrastructure_llama_bindings::llama_sampler_init_min_p(p, min_keep) };
         Self { sampler }
     }
 
     /// XTC sampler as described in <https://github.com/oobabooga/text-generation-webui/pull/6335>
     #[must_use]
     pub fn xtc(p: f32, t: f32, min_keep: usize, seed: u32) -> Self {
-        let sampler = unsafe { infrastructure_llama_bindings::llama_sampler_init_xtc(p, t, min_keep, seed) };
+        let sampler =
+            unsafe { infrastructure_llama_bindings::llama_sampler_init_xtc(p, t, min_keep, seed) };
         Self { sampler }
     }
 
@@ -454,8 +466,9 @@ impl LlamaSampler {
     ///   it affects the performance of the algorithm.
     #[must_use]
     pub fn mirostat(n_vocab: i32, seed: u32, tau: f32, eta: f32, m: i32) -> Self {
-        let sampler =
-            unsafe { infrastructure_llama_bindings::llama_sampler_init_mirostat(n_vocab, seed, tau, eta, m) };
+        let sampler = unsafe {
+            infrastructure_llama_bindings::llama_sampler_init_mirostat(n_vocab, seed, tau, eta, m)
+        };
         Self { sampler }
     }
 
@@ -471,7 +484,9 @@ impl LlamaSampler {
     ///   updated more quickly, while a smaller learning rate will result in slower updates.
     #[must_use]
     pub fn mirostat_v2(seed: u32, tau: f32, eta: f32) -> Self {
-        let sampler = unsafe { infrastructure_llama_bindings::llama_sampler_init_mirostat_v2(seed, tau, eta) };
+        let sampler = unsafe {
+            infrastructure_llama_bindings::llama_sampler_init_mirostat_v2(seed, tau, eta)
+        };
         Self { sampler }
     }
 
@@ -530,10 +545,16 @@ impl LlamaSampler {
     /// ```
     #[must_use]
     pub fn logit_bias(n_vocab: i32, biases: &[LlamaLogitBias]) -> Self {
-        let data = biases.as_ptr().cast::<infrastructure_llama_bindings::llama_logit_bias>();
+        let data = biases
+            .as_ptr()
+            .cast::<infrastructure_llama_bindings::llama_logit_bias>();
 
         let sampler = unsafe {
-            infrastructure_llama_bindings::llama_sampler_init_logit_bias(n_vocab, biases.len() as i32, data)
+            infrastructure_llama_bindings::llama_sampler_init_logit_bias(
+                n_vocab,
+                biases.len() as i32,
+                data,
+            )
         };
 
         Self { sampler }

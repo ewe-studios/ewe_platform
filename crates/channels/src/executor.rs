@@ -41,7 +41,7 @@ impl<E: Send + 'static> ArcWake for Task<E> {
     }
 }
 
-#[must_use] 
+#[must_use]
 pub fn create<E: Send + 'static>() -> (ExecutionService<E>, Executor<E>) {
     let (sender, receiver) = async_channel::unbounded::<Arc<Task<E>>>();
     let (task_completed_sender, task_completed_receiver) = async_channel::unbounded::<()>();
@@ -98,7 +98,7 @@ impl<E: Send + 'static> ExecutionService<E> {
         self.completed_notification.close();
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn task_ready(&self) -> async_channel::Receiver<()> {
         self.completed_notification.clone()
     }

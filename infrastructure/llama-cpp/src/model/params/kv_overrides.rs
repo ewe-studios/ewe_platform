@@ -20,26 +20,40 @@ pub enum ParamOverrideValue {
 impl ParamOverrideValue {
     pub(crate) fn tag(&self) -> infrastructure_llama_bindings::llama_model_kv_override_type {
         match self {
-            ParamOverrideValue::Bool(_) => infrastructure_llama_bindings::LLAMA_KV_OVERRIDE_TYPE_BOOL,
-            ParamOverrideValue::Float(_) => infrastructure_llama_bindings::LLAMA_KV_OVERRIDE_TYPE_FLOAT,
+            ParamOverrideValue::Bool(_) => {
+                infrastructure_llama_bindings::LLAMA_KV_OVERRIDE_TYPE_BOOL
+            }
+            ParamOverrideValue::Float(_) => {
+                infrastructure_llama_bindings::LLAMA_KV_OVERRIDE_TYPE_FLOAT
+            }
             ParamOverrideValue::Int(_) => infrastructure_llama_bindings::LLAMA_KV_OVERRIDE_TYPE_INT,
             ParamOverrideValue::Str(_) => infrastructure_llama_bindings::LLAMA_KV_OVERRIDE_TYPE_STR,
         }
     }
 
-    pub(crate) fn value(&self) -> infrastructure_llama_bindings::llama_model_kv_override__bindgen_ty_1 {
+    pub(crate) fn value(
+        &self,
+    ) -> infrastructure_llama_bindings::llama_model_kv_override__bindgen_ty_1 {
         match self {
             ParamOverrideValue::Bool(value) => {
-                infrastructure_llama_bindings::llama_model_kv_override__bindgen_ty_1 { val_bool: *value }
+                infrastructure_llama_bindings::llama_model_kv_override__bindgen_ty_1 {
+                    val_bool: *value,
+                }
             }
             ParamOverrideValue::Float(value) => {
-                infrastructure_llama_bindings::llama_model_kv_override__bindgen_ty_1 { val_f64: *value }
+                infrastructure_llama_bindings::llama_model_kv_override__bindgen_ty_1 {
+                    val_f64: *value,
+                }
             }
             ParamOverrideValue::Int(value) => {
-                infrastructure_llama_bindings::llama_model_kv_override__bindgen_ty_1 { val_i64: *value }
+                infrastructure_llama_bindings::llama_model_kv_override__bindgen_ty_1 {
+                    val_i64: *value,
+                }
             }
             ParamOverrideValue::Str(c_string) => {
-                infrastructure_llama_bindings::llama_model_kv_override__bindgen_ty_1 { val_str: *c_string }
+                infrastructure_llama_bindings::llama_model_kv_override__bindgen_ty_1 {
+                    val_str: *c_string,
+                }
             }
         }
     }

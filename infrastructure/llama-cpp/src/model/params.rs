@@ -203,9 +203,10 @@ impl LlamaModelParams {
             .push(infrastructure_llama_bindings::llama_model_kv_override {
                 key: [0; 128],
                 tag: 0,
-                __bindgen_anon_1: infrastructure_llama_bindings::llama_model_kv_override__bindgen_ty_1 {
-                    val_i64: 0,
-                },
+                __bindgen_anon_1:
+                    infrastructure_llama_bindings::llama_model_kv_override__bindgen_ty_1 {
+                        val_i64: 0,
+                    },
             });
 
         // set the pointer to the (potentially) new vector
@@ -240,17 +241,19 @@ impl LlamaModelParams {
         }
 
         buft_override.pattern = key.as_ptr();
-        buft_override.buft = unsafe { infrastructure_llama_bindings::ggml_backend_cpu_buffer_type() };
+        buft_override.buft =
+            unsafe { infrastructure_llama_bindings::ggml_backend_cpu_buffer_type() };
 
         // set to null pointer for panic safety (as push may move the vector, invalidating the pointer)
         self.params.tensor_buft_overrides = null();
 
         // push the next one to ensure we maintain the iterator invariant of ending with a 0
-        self.buft_overrides
-            .push(infrastructure_llama_bindings::llama_model_tensor_buft_override {
+        self.buft_overrides.push(
+            infrastructure_llama_bindings::llama_model_tensor_buft_override {
                 pattern: std::ptr::null(),
                 buft: std::ptr::null_mut(),
-            });
+            },
+        );
 
         // set the pointer to the (potentially) new vector
         self.params.tensor_buft_overrides = self.buft_overrides.as_ptr();
@@ -423,14 +426,17 @@ impl Default for LlamaModelParams {
             kv_overrides: vec![infrastructure_llama_bindings::llama_model_kv_override {
                 key: [0; 128],
                 tag: 0,
-                __bindgen_anon_1: infrastructure_llama_bindings::llama_model_kv_override__bindgen_ty_1 {
-                    val_i64: 0,
+                __bindgen_anon_1:
+                    infrastructure_llama_bindings::llama_model_kv_override__bindgen_ty_1 {
+                        val_i64: 0,
+                    },
+            }],
+            buft_overrides: vec![
+                infrastructure_llama_bindings::llama_model_tensor_buft_override {
+                    pattern: std::ptr::null(),
+                    buft: std::ptr::null_mut(),
                 },
-            }],
-            buft_overrides: vec![infrastructure_llama_bindings::llama_model_tensor_buft_override {
-                pattern: std::ptr::null(),
-                buft: std::ptr::null_mut(),
-            }],
+            ],
             devices: Box::pin([std::ptr::null_mut(); 16]),
         }
     }

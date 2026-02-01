@@ -68,7 +68,7 @@ pub enum Watcher {
 }
 
 impl Watcher {
-    #[must_use] 
+    #[must_use]
     pub fn debounce(&self) -> u16 {
         match self {
             Watcher::File(file) => file.debounce,
@@ -76,7 +76,7 @@ impl Watcher {
         }
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn commands(&self) -> Option<Vec<CommandDescription>> {
         match self {
             Watcher::File(file) => file.after_change.clone(),
@@ -84,7 +84,7 @@ impl Watcher {
         }
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn path(&self) -> String {
         match self {
             Watcher::File(file) => file.file.clone(),
@@ -123,7 +123,8 @@ mod tests {
 
     #[test]
     fn test_watcher_config_parsing_should_fail_if_configuration_is_invalid() {
-        let candidates = [r#"
+        let candidates = [
+            r#"
 		{
             "watchers": [
                 {
@@ -168,7 +169,8 @@ mod tests {
                 }
             ]
         }
-        "#];
+        "#,
+        ];
 
         let results: Vec<Result<Config, ConfigError>> = candidates
             .iter()

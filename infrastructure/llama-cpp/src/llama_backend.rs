@@ -65,7 +65,9 @@ impl LlamaBackend {
     pub fn init_numa(strategy: NumaStrategy) -> crate::Result<LlamaBackend> {
         Self::mark_init()?;
         unsafe {
-            infrastructure_llama_bindings::llama_numa_init(infrastructure_llama_bindings::ggml_numa_strategy::from(strategy));
+            infrastructure_llama_bindings::llama_numa_init(
+                infrastructure_llama_bindings::ggml_numa_strategy::from(strategy),
+            );
         }
         Ok(LlamaBackend {})
     }
@@ -127,7 +129,9 @@ pub struct InvalidNumaStrategy(
 impl TryFrom<infrastructure_llama_bindings::ggml_numa_strategy> for NumaStrategy {
     type Error = InvalidNumaStrategy;
 
-    fn try_from(value: infrastructure_llama_bindings::ggml_numa_strategy) -> Result<Self, Self::Error> {
+    fn try_from(
+        value: infrastructure_llama_bindings::ggml_numa_strategy,
+    ) -> Result<Self, Self::Error> {
         match value {
             infrastructure_llama_bindings::GGML_NUMA_STRATEGY_DISABLED => Ok(Self::DISABLED),
             infrastructure_llama_bindings::GGML_NUMA_STRATEGY_DISTRIBUTE => Ok(Self::DISTRIBUTE),
@@ -144,7 +148,9 @@ impl From<NumaStrategy> for infrastructure_llama_bindings::ggml_numa_strategy {
     fn from(value: NumaStrategy) -> Self {
         match value {
             NumaStrategy::DISABLED => infrastructure_llama_bindings::GGML_NUMA_STRATEGY_DISABLED,
-            NumaStrategy::DISTRIBUTE => infrastructure_llama_bindings::GGML_NUMA_STRATEGY_DISTRIBUTE,
+            NumaStrategy::DISTRIBUTE => {
+                infrastructure_llama_bindings::GGML_NUMA_STRATEGY_DISTRIBUTE
+            }
             NumaStrategy::ISOLATE => infrastructure_llama_bindings::GGML_NUMA_STRATEGY_ISOLATE,
             NumaStrategy::NUMACTL => infrastructure_llama_bindings::GGML_NUMA_STRATEGY_NUMACTL,
             NumaStrategy::MIRROR => infrastructure_llama_bindings::GGML_NUMA_STRATEGY_MIRROR,

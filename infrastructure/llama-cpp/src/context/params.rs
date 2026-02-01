@@ -747,7 +747,8 @@ impl LlamaContextParams {
 /// ```
 impl Default for LlamaContextParams {
     fn default() -> Self {
-        let context_params = unsafe { infrastructure_llama_bindings::llama_context_default_params() };
+        let context_params =
+            unsafe { infrastructure_llama_bindings::llama_context_default_params() };
         Self { context_params }
     }
 }

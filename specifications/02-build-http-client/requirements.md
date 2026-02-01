@@ -30,10 +30,10 @@ related_specs:
 has_features: true
 has_fundamentals: true # HTTP client needs comprehensive user documentation
 features:
-  completed: 0
-  uncompleted: 13
+  completed: 5
+  uncompleted: 8
   total: 13
-  completion_percentage: 0
+  completion_percentage: 38
 files_required:
   main_agent:
     rules:
@@ -261,13 +261,13 @@ Build an HTTP 1.1 client that:
 
 | # | Feature | Description | Dependencies | Status |
 |---|---------|-------------|--------------|--------|
-| 0 | [valtron-utilities](./features/valtron-utilities/feature.md) | Reusable ExecutionAction types, unified executor, state machine helpers | None | ⬜ Pending |
-| 1 | [tls-verification](./features/tls-verification/feature.md) | Verify and fix TLS backends (rustls, openssl, native-tls) | 0 | ⬜ Pending |
-| 2 | [foundation](./features/foundation/feature.md) | Error types and DNS resolution | 1 | ⬜ Pending |
+| 0 | [valtron-utilities](./features/valtron-utilities/feature.md) | Reusable ExecutionAction types, unified executor, state machine helpers | None | ✅ Complete |
+| 1 | [tls-verification](./features/tls-verification/feature.md) | Verify and fix TLS backends (rustls, openssl, native-tls) | 0 | ✅ Complete |
+| 2 | [foundation](./features/foundation/feature.md) | Error types and DNS resolution | 1 | ✅ Complete |
 | 3 | [compression](./features/compression/feature.md) | gzip, deflate, brotli support | 2 | ⬜ Pending |
-| 4 | [connection](./features/connection/feature.md) | URL parsing, TCP, TLS | 2 | ⬜ Pending |
+| 4 | [connection](./features/connection/feature.md) | URL parsing, TCP, TLS | 2 | ✅ Complete |
 | 5 | [proxy-support](./features/proxy-support/feature.md) | HTTP/HTTPS/SOCKS5 proxy | 4 | ⬜ Pending |
-| 6 | [request-response](./features/request-response/feature.md) | Request builder, response types | 4 | ⬜ Pending |
+| 6 | [request-response](./features/request-response/feature.md) | Request builder, response types | 4 | ✅ Complete |
 | 7 | [auth-helpers](./features/auth-helpers/feature.md) | Basic, Bearer, Digest auth | 6 | ⬜ Pending |
 | 8 | [task-iterator](./features/task-iterator/feature.md) | TaskIterator, ExecutionAction, executors | 0, 6 | ⬜ Pending |
 | 9 | [public-api](./features/public-api/feature.md) | User-facing API, SimpleHttpClient, integration | 8 | ⬜ Pending |

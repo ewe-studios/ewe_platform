@@ -116,7 +116,11 @@ impl State {
         }
     }
 
-    fn generate_log(target: Module, level: infrastructure_llama_bindings::ggml_log_level, text: &str) {
+    fn generate_log(
+        target: Module,
+        level: infrastructure_llama_bindings::ggml_log_level,
+        text: &str,
+    ) {
         // Annoying but tracing requires that the provided target name is a string literal and
         // even &'static str isn't enough so we have to duplicate the generation AND we can't even
         // extract the interrior module within llama.cpp/ggml to be able to propagate it forward.
@@ -184,7 +188,11 @@ impl State {
     }
 
     /// Start buffering a message. Not the CONT log level and text is missing a newline.
-    pub(super) fn buffer_non_cont(&self, level: infrastructure_llama_bindings::ggml_log_level, text: &str) {
+    pub(super) fn buffer_non_cont(
+        &self,
+        level: infrastructure_llama_bindings::ggml_log_level,
+        text: &str,
+    ) {
         debug_assert!(!text.ends_with('\n'));
         debug_assert_ne!(level, infrastructure_llama_bindings::GGML_LOG_LEVEL_CONT);
 
@@ -210,7 +218,11 @@ impl State {
     }
 
     // Emit a normal unbuffered log message (not the CONT log level and the text ends with a newline).
-    pub(super) fn emit_non_cont_line(&self, level: infrastructure_llama_bindings::ggml_log_level, text: &str) {
+    pub(super) fn emit_non_cont_line(
+        &self,
+        level: infrastructure_llama_bindings::ggml_log_level,
+        text: &str,
+    ) {
         debug_assert!(text.ends_with('\n'));
         debug_assert_ne!(level, infrastructure_llama_bindings::GGML_LOG_LEVEL_CONT);
 
@@ -239,7 +251,9 @@ impl State {
             infrastructure_llama_bindings::GGML_LOG_LEVEL_DEBUG
             | infrastructure_llama_bindings::GGML_LOG_LEVEL_INFO
             | infrastructure_llama_bindings::GGML_LOG_LEVEL_WARN
-            | infrastructure_llama_bindings::GGML_LOG_LEVEL_ERROR => Self::generate_log(self.module, level, text),
+            | infrastructure_llama_bindings::GGML_LOG_LEVEL_ERROR => {
+                Self::generate_log(self.module, level, text)
+            }
             infrastructure_llama_bindings::GGML_LOG_LEVEL_CONT => unreachable!(),
             _ => {
                 tracing::warn!(
@@ -263,7 +277,10 @@ impl State {
     }
 
     /// Checks whether the given log level is enabled by the current tracing subscriber.
-    pub(super) fn is_enabled_for_level(&self, level: infrastructure_llama_bindings::ggml_log_level) -> bool {
+    pub(super) fn is_enabled_for_level(
+        &self,
+        level: infrastructure_llama_bindings::ggml_log_level,
+    ) -> bool {
         // CONT logs do not need to check if they are enabled.
         let level = if level == infrastructure_llama_bindings::GGML_LOG_LEVEL_CONT {
             self.previous_level

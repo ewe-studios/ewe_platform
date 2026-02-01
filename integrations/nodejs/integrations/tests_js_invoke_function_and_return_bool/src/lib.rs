@@ -1,8 +1,6 @@
 #![allow(unused_imports)]
 
-use foundation_wasm::{
-    self, exposed_runtime, host_runtime, internal_api, ExternalPointer, Params,
-};
+use foundation_wasm::{self, exposed_runtime, host_runtime, internal_api, ExternalPointer, Params};
 
 use foundation_nostd::*;
 
