@@ -359,6 +359,10 @@ impl core::fmt::Display for PeekError {
     }
 }
 
+/// Trait for read streams that support peeking ahead without consuming data.
+///
+/// # Errors
+/// Returns an error if peeking fails or the requested size exceeds buffer capacity.
 pub trait PeekableReadStream: Read {
     fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError>;
 }
@@ -424,6 +428,10 @@ impl<T: Read> OwnedReader<T> {
 }
 
 impl<T: Read> OwnedReader<T> {
+    /// Executes a function with a reference to the underlying reader.
+    ///
+    /// # Panics
+    /// Panics if the lock cannot be acquired.
     pub fn do_ref<F, V>(&self, caller: F) -> V
     where
         F: Fn(&T) -> V,
@@ -451,6 +459,10 @@ impl<T: Read> OwnedReader<T> {
         }
     }
 
+    /// Executes a function once with a reference to the underlying reader.
+    ///
+    /// # Panics
+    /// Panics if the lock cannot be acquired.
     pub fn do_once<F, V>(&self, caller: F) -> V
     where
         F: FnOnce(&T) -> V,
@@ -478,6 +490,10 @@ impl<T: Read> OwnedReader<T> {
         }
     }
 
+    /// Executes a function once with a mutable reference to the underlying reader.
+    ///
+    /// # Panics
+    /// Panics if the lock cannot be acquired.
     pub fn do_once_mut<F, V>(&self, caller: F) -> V
     where
         F: FnOnce(&mut T) -> V,
@@ -505,6 +521,10 @@ impl<T: Read> OwnedReader<T> {
         }
     }
 
+    /// Executes a mutable function with a mutable reference to the underlying reader.
+    ///
+    /// # Panics
+    /// Panics if the lock cannot be acquired.
     pub fn do_mut<F, V>(&self, mut caller: F) -> V
     where
         F: FnMut(&mut T) -> V,
@@ -970,6 +990,9 @@ impl<T: Read> ByteBufferPointer<T> {
     /// set of data which we match is right in the correct set of
     /// bytes until we indicate to the pointer to consume the data until
     /// the position cursor.
+    ///
+    /// # Errors
+    /// Returns an error if reading from the underlying reader fails.
     #[inline]
     pub fn fill_up(&mut self) -> std::io::Result<usize> {
         // truncate buffer if we have read most of it.
@@ -991,6 +1014,9 @@ impl<T: Read> ByteBufferPointer<T> {
     /// [`fill_all`] reads the whole underlying reader into the underlying
     /// buffer, allowing you to extract the remaining data within the stream
     /// as fully in-memory.
+    ///
+    /// # Errors
+    /// Returns an error if reading from the underlying reader fails.
     #[inline]
     pub fn fill_all(&mut self, read_limit: Option<usize>) -> std::io::Result<usize> {
         let mut total_read = 0;
@@ -1024,6 +1050,9 @@ impl<T: Read> ByteBufferPointer<T> {
     }
 
     /// Forward by 1 by calling the [`Self::forward_by`] method underneath.
+    ///
+    /// # Errors
+    /// Returns an error if forwarding fails.
     #[inline]
     pub fn forward(&mut self) -> std::io::Result<PeekState<'_>> {
         self.forward_by(1)
@@ -1033,6 +1062,9 @@ impl<T: Read> ByteBufferPointer<T> {
     /// Generally this is used external as the logic is generally backed into the
     /// `next*` and `read*` methods but in cases where you intend to progress the
     /// cursor your seek using the `peek*` methods this provides that surface.
+    ///
+    /// # Errors
+    /// Returns an error if forwarding fails.
     #[inline]
     pub fn forward_by(&mut self, by: usize) -> std::io::Result<PeekState<'_>> {
         let buffer_length = self.buffer.len();
@@ -1047,6 +1079,9 @@ impl<T: Read> ByteBufferPointer<T> {
     }
 
     /// Unforward by 1 by calling the [`Self::unforward_by`] method underneath.
+    ///
+    /// # Errors
+    /// Returns an error if unforwarding fails.
     #[inline]
     pub fn unforward(&mut self) -> std::io::Result<PeekState<'_>> {
         self.unforward_by(1)
@@ -1055,6 +1090,9 @@ impl<T: Read> ByteBufferPointer<T> {
     /// [`unforward_by`] moves your peek position backwards at which if it moves
     /// all the way back, will forever stay at the last know position of
     /// the actual data cursor.
+    ///
+    /// # Errors
+    /// Returns an error if unforwarding fails.
     #[inline]
     pub fn unforward_by(&mut self, by: usize) -> std::io::Result<PeekState<'_>> {
         let new_peek = self.peek_pos - by;
@@ -1090,6 +1128,9 @@ impl<T: Read> ByteBufferPointer<T> {
     /// [`consume`] consumes the amount of data that has been peeked over-so far, returning
     /// that to the caller, this also moves the position of the data cursor
     /// forward to the location of the skip cursor.
+    ///
+    /// # Errors
+    /// Returns an error if consuming fails.
     pub fn consume(&mut self) -> std::io::Result<Vec<u8>> {
         match self.consume_some() {
             Some(item) => Ok(item),
@@ -1111,6 +1152,9 @@ impl<T: Read> ByteBufferPointer<T> {
 
     /// [`peek`] peeks into the future by 1 position without actually permanently
     /// change the peek cursor's position.
+    ///
+    /// # Errors
+    /// Returns an error if peeking fails.
     #[inline]
     pub fn peek(&self) -> std::io::Result<PeekState<'_>> {
         self.peek_by(1)
@@ -1123,6 +1167,9 @@ impl<T: Read> ByteBufferPointer<T> {
     // or you may consume far less than intended. This is intended to let you peek forward
     /// without actual changes to peek cursor which is used in consume to extract the data
     /// already seen by calling all `next_*` methods.
+    ///
+    /// # Errors
+    /// Returns an error if peeking fails.
     #[inline]
     pub fn peek_by(&self, by: usize) -> std::io::Result<PeekState<'_>> {
         let until_pos = self.peek_pos + by;
@@ -1158,6 +1205,9 @@ impl<T: Read> ByteBufferPointer<T> {
     /// or you may consume far less than intended. This is intended to let you peek forward
     /// without actual changes to peek cursor which is used in consume to extract the data
     /// already seen by calling all `next_*` methods.
+    ///
+    /// # Errors
+    /// Returns an error if peeking or reading from the underlying reader fails.
     #[inline]
     pub fn peek_until<'a>(&'a mut self, signal: &[u8]) -> std::io::Result<PeekState<'a>> {
         if signal.is_empty() {
@@ -1213,6 +1263,9 @@ impl<T: Read> ByteBufferPointer<T> {
     /// or you may consume far less than intended. This is intended to let you peek forward
     /// without actual changes to peek cursor which is used in consume to extract the data
     /// already seen by calling all `next_*` methods.
+    ///
+    /// # Errors
+    /// Returns an error if peeking fails or if there's no data available.
     pub fn peekby2<'b>(&mut self, size: usize) -> std::io::Result<&[u8]> {
         self.peekby(size).map(|item| match item {
             PeekState::Request(inner) => Ok(inner),
@@ -1235,6 +1288,9 @@ impl<T: Read> ByteBufferPointer<T> {
     /// or you may consume far less than intended. This is intended to let you peek forward
     /// without actual changes to peek cursor which is used in consume to extract the data
     /// already seen by calling all `next_*` methods.
+    ///
+    /// # Errors
+    /// Returns an error if peeking or reading from the underlying reader fails.
     #[inline]
     pub fn peekby(&mut self, size: usize) -> std::io::Result<PeekState<'_>> {
         if size == 0 {
@@ -1281,6 +1337,9 @@ impl<T: Read> ByteBufferPointer<T> {
     /// since generally it means we have reached EOF from the internal readers perspective.
     ///
     /// This moves the peek cursor forward.
+    ///
+    /// # Errors
+    /// Returns an error if reading from the underlying reader fails.
     #[inline]
     pub fn nextby(&mut self, size: usize) -> std::io::Result<PeekState<'_>> {
         if size == 0 {
@@ -1331,6 +1390,9 @@ impl<T: Read> ByteBufferPointer<T> {
     /// all that is requested which moves both the peek cursor and the actual data cursor
     /// which means that part of the internal buffer read from the underlying reader will
     /// at some point be discarded as it should be.
+    ///
+    /// # Errors
+    /// Returns an error if reading from the underlying reader fails.
     pub fn read_size(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         let read = match self.nextby(buf.len()) {
             Ok(state) => match state {
@@ -1373,6 +1435,9 @@ impl<T: Read> ByteBufferPointer<T> {
 
     /// [`nextby`] provides a more friendly API ontop [`Self::next_size`] returning
     /// the slice `&[u8]` without the [`PeekState`] wrapper.
+    ///
+    /// # Errors
+    /// Returns an error if reading from the underlying reader fails or no data is available.
     pub fn nextby2(&mut self, size: usize) -> std::io::Result<&[u8]> {
         self.nextby(size).map(|item| match item {
             PeekState::Request(inner) => Ok(inner),
@@ -1390,6 +1455,9 @@ impl<T: Read> ByteBufferPointer<T> {
     /// It runs in a tight loop and ensures to acquire as much data as needed.
     ///
     /// This moves the peek cursor forward.
+    ///
+    /// # Errors
+    /// Returns an error if reading from the underlying reader fails.
     #[inline]
     pub fn next_until<'a>(&'a mut self, signal: &[u8]) -> std::io::Result<PeekState<'a>> {
         if signal.is_empty() {
@@ -1448,6 +1516,9 @@ impl<T: Read> ByteBufferPointer<T> {
     /// underlying data over.
     ///
     /// This moves the peek cursor forward.
+    ///
+    /// # Errors
+    /// Returns an error if reading from the underlying reader fails.
     pub fn next_line(&mut self, buf: &mut String) -> std::io::Result<usize> {
         const NEWLINE_SLICE: &[u8] = b"\n";
         let read = match self.next_until(NEWLINE_SLICE) {
@@ -1494,6 +1565,9 @@ impl<T: Read> ByteBufferPointer<T> {
     /// underlying data over.
     ///
     /// This moves the peek cursor forward.
+    ///
+    /// # Errors
+    /// Returns an error if reading from the underlying reader fails.
     pub fn next_bytes_until(&mut self, target: &[u8], buf: &mut Vec<u8>) -> std::io::Result<usize> {
         let read = match self.next_until(target) {
             Ok(inner) => match inner {
@@ -1536,6 +1610,9 @@ impl<T: Read> ByteBufferPointer<T> {
     /// string and the cursor is consumed.
     ///
     /// This moves the peek cursor forward.
+    ///
+    /// # Errors
+    /// Returns an error if reading from the underlying reader fails.
     pub fn read_bytes_until(&mut self, target: &[u8], buf: &mut Vec<u8>) -> std::io::Result<usize> {
         let read = match self.next_until(target) {
             Ok(inner) => match inner {
@@ -1579,6 +1656,9 @@ impl<T: Read> ByteBufferPointer<T> {
     /// string and the cursor is consumed.
     ///
     /// This moves the peek cursor forward.
+    ///
+    /// # Errors
+    /// Returns an error if reading from the underlying reader fails.
     pub fn read_line(&mut self, buf: &mut String) -> std::io::Result<usize> {
         const NEWLINE_SLICE: &[u8] = b"\n";
         let read = match self.next_until(NEWLINE_SLICE) {

@@ -27,7 +27,7 @@ pub enum Scheme {
 
 impl Scheme {
     /// Returns the default port for this scheme.
-    #[must_use] 
+    #[must_use]
     pub fn default_port(&self) -> u16 {
         match self {
             Scheme::Http => 80,
@@ -248,25 +248,46 @@ impl HttpClientConnection {
     fn upgrade_to_tls(connection: Connection, host: &str) -> Result<Self, HttpClientError> {
         let connector = RustlsConnector::new();
 
-        let (_tls_stream, _addr) = connector
+        let (tls_stream, _addr) = connector
             .from_tcp_stream(host.to_string(), connection)
             .map_err(|e: Box<dyn std::error::Error + Send + Sync>| {
                 HttpClientError::TlsHandshakeFailed(e.to_string())
             })?;
 
-        // TODO: We need to convert RustTlsClientStream back to Connection
-        // For now, this is a limitation of the current netcap design
-        Err(HttpClientError::TlsHandshakeFailed(
-            "TLS stream conversion not yet implemented".to_string(),
-        ))
+        // Wrap the TLS stream in Connection::Tls
+        let tls_connection = Connection::from(tls_stream);
+
+        Ok(HttpClientConnection {
+            connection: tls_connection,
+        })
     }
 
     #[cfg(all(feature = "ssl-openssl", not(feature = "ssl-rustls")))]
     fn upgrade_to_tls(connection: Connection, host: &str) -> Result<Self, HttpClientError> {
-        // TODO: Implement OpenSSL TLS upgrade
-        Err(HttpClientError::TlsHandshakeFailed(
-            "OpenSSL TLS not yet implemented".to_string(),
-        ))
+        use openssl::ssl::{SslConnector, SslMethod};
+        use std::sync::Arc;
+
+        let ssl_connector = SslConnector::builder(SslMethod::tls())
+            .map_err(|e| HttpClientError::TlsHandshakeFailed(e.to_string()))?
+            .build();
+
+        let connector = OpensslConnector::create(&crate::netcap::Endpoint::WithIdentity(
+            crate::netcap::EndpointConfig::NoTimeout(
+                url::Url::parse(&format!("https://{}:443", host))
+                    .map_err(|e| HttpClientError::TlsHandshakeFailed(e.to_string()))?,
+            ),
+            Arc::new(ssl_connector),
+        ));
+
+        let (tls_stream, _addr) = connector
+            .from_tcp_stream(host.to_string(), connection)
+            .map_err(|e| HttpClientError::TlsHandshakeFailed(e.to_string()))?;
+
+        let tls_connection = Connection::from(tls_stream);
+
+        Ok(HttpClientConnection {
+            connection: tls_connection,
+        })
     }
 
     #[cfg(all(
@@ -293,7 +314,7 @@ impl HttpClientConnection {
     }
 
     /// Returns a reference to the underlying connection.
-    #[must_use] 
+    #[must_use]
     pub fn connection(&self) -> &Connection {
         &self.connection
     }
@@ -497,7 +518,6 @@ mod tests {
         /// WHAT: Tests that connect() performs TLS handshake for HTTPS URLs
         /// IMPORTANCE: HTTPS is the primary use case for secure connections
         #[test]
-        #[ignore] // Requires actual network and TLS feature
         #[cfg(feature = "ssl-rustls")]
         fn test_connection_https_real() {
             let url = ParsedUrl::parse("https://httpbin.org").unwrap();

@@ -51,6 +51,7 @@ pub fn default_client_config() -> Arc<ClientConfig> {
 /// A wrapper around an owned Rustls connection and corresponding stream.
 ///
 /// Uses an internal Mutex to permit disparate reader & writer threads to access the stream independently.
+#[derive(Debug)]
 pub struct RustlsStream<T>(Arc<Mutex<rustls::StreamOwned<T, Connection>>>);
 
 impl<T> RustlsStream<T> {
