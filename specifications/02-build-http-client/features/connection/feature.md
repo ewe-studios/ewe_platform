@@ -89,6 +89,53 @@ Before implementing, answer these questions by reading code:
 
 ---
 
+## 🚀 CRITICAL: Token and Context Optimization
+
+**ALL agents implementing this specification/feature MUST follow token and context optimization protocols.**
+
+### Machine-Optimized Prompts (Rule 14)
+
+**Main Agent MUST**:
+1. Generate `machine_prompt.md` from this file when specification/feature finalized
+2. Use pipe-delimited compression (58% token reduction)
+3. Commit machine_prompt.md alongside human-readable file
+4. Regenerate when human file updates
+5. Provide machine_prompt.md path to sub-agents
+
+**Sub-Agents MUST**:
+- Read `machine_prompt.md` (NOT verbose human files)
+- Parse DOCS_TO_READ section for files to load
+- 58% token savings
+
+### Context Compaction (Rule 15)
+
+**Sub-Agents MUST** (before starting work):
+1. Read machine_prompt.md and PROGRESS.md
+2. Generate `COMPACT_CONTEXT.md`:
+   - Embed machine_prompt.md content for current task
+   - Extract current status from PROGRESS.md
+   - List files for current task only (500-800 tokens)
+3. CLEAR entire context
+4. RELOAD from COMPACT_CONTEXT.md only
+5. Proceed with 97% context reduction (180K→5K tokens)
+
+**After PROGRESS.md Updates**:
+- Regenerate COMPACT_CONTEXT.md (re-embed machine_prompt content)
+- Clear and reload
+- Maintain minimal context
+
+**COMPACT_CONTEXT.md Lifecycle**:
+- Generated fresh per task
+- Contains ONLY current task (no history)
+- Deleted when task completes
+- Rewritten from scratch for next task
+
+**See**:
+- Rule 14: .agents/rules/14-machine-optimized-prompts.md
+- Rule 15: .agents/rules/15-instruction-compaction.md
+
+---
+
 ## Overview
 
 Create the connection management layer for the HTTP 1.1 client. This feature handles URL parsing, TCP connection establishment, and TLS upgrade using the existing `netcap` infrastructure.
