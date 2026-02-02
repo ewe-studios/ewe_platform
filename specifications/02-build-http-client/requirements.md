@@ -340,7 +340,7 @@ Build an HTTP 1.1 client that:
 | 6 | [request-response](./features/request-response/feature.md) | Request builder, response types | 4 | ✅ Complete |
 | 7 | [auth-helpers](./features/auth-helpers/feature.md) | Basic, Bearer, Digest auth | 6 | ⬜ Pending |
 | 8 | [task-iterator](./features/task-iterator/feature.md) | TaskIterator, ExecutionAction, executors (types public) | 0, 6 | ✅ Complete |
-| 9 | [public-api](./features/public-api/feature.md) | User-facing API, SimpleHttpClient, integration | 8 | ⬜ Pending (UNBLOCKED) |
+| 9 | [public-api](./features/public-api/feature.md) | User-facing API, SimpleHttpClient, integration | 8 | ⬜ Pending |
 
 ### Extended Features (Optional)
 
