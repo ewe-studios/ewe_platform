@@ -1337,6 +1337,7 @@ dependencies = [
  "derive_more",
  "fastrand",
  "foundation_nostd",
+ "foundation_testing",
  "foundation_wasm",
  "futures-core",
  "memchr",
