@@ -1164,10 +1164,7 @@ impl SimpleUrl {
         self.match_queries_tree(&target_queries)
     }
 
-    pub fn match_queries_tree(
-        &self,
-        target_queries: &Option<BTreeMap<String, String>>,
-    ) -> bool {
+    pub fn match_queries_tree(&self, target_queries: &Option<BTreeMap<String, String>>) -> bool {
         if self.queries.is_none() && target_queries.is_none() {
             return true;
         }
@@ -3175,6 +3172,29 @@ where
             max_header_value_length: Some(max_header_value_length),
             state: HttpReadState::Intro,
         }
+    }
+
+    /// Returns a mutable reference to the underlying stream.
+    ///
+    /// WHY: Allows access to the stream for operations like writing additional
+    /// data or inspecting stream state while maintaining ownership in the reader.
+    ///
+    /// WHAT: Provides mutable access to the `SharedByteBufferStream` wrapped
+    /// by this reader.
+    ///
+    /// # Returns
+    ///
+    /// A mutable reference to the underlying `SharedByteBufferStream<T>`.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let mut reader = HttpResponseReader::new(stream, body_extractor);
+    /// let stream = reader.stream_mut();
+    /// // Can now write to or manipulate the stream
+    /// ```
+    pub fn stream_mut(&mut self) -> &mut SharedByteBufferStream<T> {
+        &mut self.reader
     }
 }
 

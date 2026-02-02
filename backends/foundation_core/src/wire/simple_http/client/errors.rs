@@ -1,4 +1,5 @@
 use crate::extensions::result_ext::BoxedError;
+use crate::wire::simple_http::url::InvalidUri;
 use derive_more::From;
 use std::io;
 
@@ -103,6 +104,12 @@ pub enum HttpClientError {
 }
 
 impl std::error::Error for HttpClientError {}
+
+impl From<InvalidUri> for HttpClientError {
+    fn from(err: InvalidUri) -> Self {
+        HttpClientError::InvalidUrl(err.to_string())
+    }
+}
 
 impl core::fmt::Display for HttpClientError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

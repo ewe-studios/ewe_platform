@@ -4,6 +4,7 @@
 // patterns and pluggable DNS resolution.
 
 mod actions;
+mod client;
 mod connection;
 mod dns;
 mod errors;
@@ -12,6 +13,7 @@ mod intro;
 mod request;
 mod task;
 
+pub use client::{ClientConfig, SimpleHttpClient};
 pub use connection::{HttpClientConnection, ParsedUrl, Scheme};
 pub use dns::{CachingDnsResolver, DnsResolver, MockDnsResolver, SystemDnsResolver};
 pub use errors::{DnsError, HttpClientError};
