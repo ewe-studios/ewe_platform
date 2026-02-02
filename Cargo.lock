@@ -1400,6 +1400,7 @@ name = "foundation_testing"
 version = "0.1.0"
 dependencies = [
  "criterion",
+ "foundation_core",
  "foundation_nostd",
 ]
 
