@@ -51,6 +51,10 @@ impl Authority {
     /// # Errors
     ///
     /// Returns `InvalidUri` if authority is malformed.
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic. Invalid authority components return `Err(InvalidUri)`.
     pub(crate) fn parse_with_remainder(s: &str) -> Result<(Option<Self>, &str), InvalidUri> {
         if s.is_empty() {
             return Ok((None, s));

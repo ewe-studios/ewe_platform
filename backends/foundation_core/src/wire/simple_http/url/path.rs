@@ -30,6 +30,10 @@ impl PathAndQuery {
     /// # Errors
     ///
     /// Returns `InvalidUri` if path contains invalid characters.
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic. Invalid path characters return `Err(InvalidUri)`.
     pub(crate) fn parse(s: &str) -> Result<Self, InvalidUri> {
         // Empty string is valid (becomes "/" in absolute URIs)
         if s.is_empty() {
