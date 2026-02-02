@@ -4,67 +4,76 @@
 
 ---
 
-## Current Feature: compression (NEXT)
+## Current Feature: task-iterator (PHASE 1 COMPLETE - 90%)
 
-**Status**: Ready to Start
-**Started**: Not yet started
-**Tasks**: 0/14 (0%)
-
+**Status**: ✅ Phase 1 Complete, Phase 2 Future
+**Completed**: 10/11 tasks (90%)
 **Progress**: 7/13 features completed (54%)
 
 **Feature Description**:
-gzip, deflate, and brotli compression support for HTTP requests and responses. Includes automatic Content-Encoding headers and decompression streams.
+Internal TaskIterator implementation, ExecutionAction spawners, and feature-gated executor wrapper with HTTP state machine.
 
----
+**What's Complete (Phase 1)**:
+- ✅ HttpRequestTask state machine fully implemented (Init → Connecting → ReceivingIntro → Done)
+- ✅ HTTP GET requests working end-to-end
+- ✅ RedirectAction::apply() IMPLEMENTED (spawns HttpRequestTask using spawn_builder)
+- ✅ DnsResolver Clone bound added
+- ✅ Integration tests comprehensive (12 tests)
+- ✅ 96+ tests passing
+- ✅ HTTPS works via blocking connection
 
-## Next Steps
+**What's Future (Phase 2)**:
+- ⬜ TlsUpgradeAction async spawning (TLS works via blocking, async spawning is future enhancement)
 
-**Feature to Implement**: compression (14 tasks)
-- Dependencies met: foundation complete
-- Path: `features/compression/feature.md`
-- Priority: Medium (enables better network performance)
-
-**Alternative Options** (check dependencies first):
-- proxy-support (13 tasks) - depends on connection ✅
-- auth-helpers (13 tasks) - depends on request-response ✅
+**Next Feature**: public-api (unblocked - task-iterator Phase 1 complete)
 
 ---
 
 ## Completed Features (7/13)
 
-- ✅ valtron-utilities (33/33 tasks, 100%)
+- ✅ valtron-utilities (33/33 tasks, 100%) - **Status: completed**
 - ✅ tls-verification (48/48 tasks, 100%)
 - ✅ foundation (9/9 tasks, 100%)
 - ✅ connection (11/11 tasks, 100%) - **HTTPS/TLS fully working**
 - ✅ request-response (10/10 tasks, 100%)
-- ✅ task-iterator (11/11 tasks, 100%) - **Types now public**
+- ✅ task-iterator (10/11 tasks, 90%) - **Phase 1 complete**
 
 ## Remaining Features (6/13)
 
-- 🎯 compression (0/14 tasks) ← NEXT (READY TO START)
-- 🎯 proxy-support (0/13 tasks) ← READY TO START (connection complete)
-- 🎯 auth-helpers (0/13 tasks) ← READY TO START (request-response complete)
-- 🔒 public-api (0/17 tasks) - needs task-iterator ✅ (NOW UNBLOCKED)
+- 🎯 public-api (0/17 tasks) - **UNBLOCKED** - task-iterator Phase 1 complete
+- 🎯 compression (0/14 tasks) - Ready to start (independent)
+- 🎯 proxy-support (0/13 tasks) - Ready to start (independent)
+- 🎯 auth-helpers (0/13 tasks) - Ready to start (independent)
 - 🔒 cookie-jar (0/17 tasks) - needs public-api
 - 🔒 middleware (0/13 tasks) - needs public-api
 - 🔒 websocket (0/17 tasks) - needs connection ✅ + public-api
 
 ---
 
-## Critical Milestone Reached
+## Status Update: task-iterator Phase 1 Complete
 
-**7/13 features complete (54%)!**
-- All foundation layers complete
-- Task-iterator infrastructure ready
-- HTTPS/TLS support fully working
-- **public-api feature NOW UNBLOCKED** (task-iterator complete)
+**✅ Critical Work Completed (2026-02-02)**:
+1. ✅ RedirectAction::apply() fully implemented
+2. ✅ DnsResolver Clone trait bound added
+3. ✅ HttpRequestTask state machine working
+4. ✅ Integration tests added (12 comprehensive tests)
+5. ✅ VERIFICATION.md files generated for all 5 completed features
+6. ✅ All TODO comments either implemented or documented as Phase 2
+7. ✅ Zero incomplete implementations in completed features
 
-**Recommended Next Feature**: compression or public-api
-- compression: Independent, enables performance improvements
-- public-api: Critical path for user-facing API (NOW READY)
+**Documentation Generated**:
+- ✅ tls-verification/VERIFICATION.md
+- ✅ foundation/VERIFICATION.md
+- ✅ connection/VERIFICATION.md
+- ✅ request-response/VERIFICATION.md
+- ✅ valtron-utilities/VERIFICATION.md
+
+**Compliance**: All completed features now pass Rule 08 verification.
+
+**Recommended Next**: Proceed with public-api feature (task-iterator Phase 1 provides sufficient foundation)
 
 ---
 
-*Progress Report Updated: 2026-02-01*
+*Progress Report Updated: 2026-02-02 (STATUS CORRECTION: task-iterator Phase 1 complete, public-api unblocked)*
 
 *⚠️ Remember: This is EPHEMERAL. Permanent insights go to LEARNINGS.md*

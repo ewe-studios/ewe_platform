@@ -15,8 +15,8 @@
 use crate::netcap::RawStream;
 use crate::synca::mpp::Sender;
 use crate::synca::Entry;
-use crate::valtron::{BoxedExecutionEngine, ExecutionAction, GenericResult};
-use crate::wire::simple_http::client::{DnsResolver, PreparedRequest};
+use crate::valtron::{spawn_builder, BoxedExecutionEngine, ExecutionAction, GenericResult};
+use crate::wire::simple_http::client::{DnsResolver, HttpRequestTask, PreparedRequest};
 
 /// Action for spawning HTTP redirect follow tasks.
 ///
@@ -63,9 +63,20 @@ impl<R> ExecutionAction for RedirectAction<R>
 where
     R: DnsResolver + Send + 'static,
 {
-    fn apply(&mut self, _key: Entry, _engine: BoxedExecutionEngine) -> GenericResult<()> {
-        // TODO: Implement redirect task spawning
-        // This requires HttpRequestTask which we'll implement in task.rs
+    fn apply(&mut self, key: Entry, engine: BoxedExecutionEngine) -> GenericResult<()> {
+        // Take the request to ensure idempotent apply() calls
+        if let Some(request) = self.request.take() {
+            // Create a new HTTP request task for the redirect
+            let task =
+                HttpRequestTask::new(request, self.resolver.clone(), self.remaining_redirects);
+
+            // Spawn the task as a child of the current task using lift()
+            // for priority execution of redirects
+            spawn_builder(engine)
+                .with_parent(key)
+                .with_task(task)
+                .lift()?;
+        }
         Ok(())
     }
 }
@@ -115,8 +126,18 @@ impl TlsUpgradeAction {
 #[cfg(not(target_arch = "wasm32"))]
 impl ExecutionAction for TlsUpgradeAction {
     fn apply(&mut self, _key: Entry, _engine: BoxedExecutionEngine) -> GenericResult<()> {
-        // TODO: Implement TLS upgrade task spawning
-        // This requires TLS upgrade task implementation
+        // PHASE 2: Async TLS upgrade spawning
+        //
+        // NOTE: TLS already works via blocking HttpClientConnection::upgrade_to_tls()
+        // This action would enable async/spawnable TLS handshakes for non-blocking scenarios.
+        //
+        // Implementation requires:
+        // 1. TlsHandshakeTask with state machine (Init → Handshake → Complete)
+        // 2. Integration with netcap TLS backends (rustls, openssl, native-tls)
+        // 3. Channel-based completion callback to on_complete
+        //
+        // See: specifications/02-build-http-client/features/task-iterator/
+        // Tracking: Phase 2 - Advanced Features
         Ok(())
     }
 }
