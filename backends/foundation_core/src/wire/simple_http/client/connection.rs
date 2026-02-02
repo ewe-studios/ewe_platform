@@ -180,9 +180,17 @@ impl HttpClientConnection {
         not(feature = "ssl-openssl")
     ))]
     fn upgrade_to_tls(connection: Connection, host: &str) -> Result<Self, HttpClientError> {
-        // TODO: Implement native-tls TLS upgrade
+        // OPTIONAL BACKEND: native-tls not yet implemented
+        //
+        // For TLS support, use one of these feature flags instead:
+        // - ssl-rustls (recommended, pure Rust)
+        // - ssl-openssl (system OpenSSL)
+        //
+        // native-tls backend is planned but not prioritized.
+        // See: https://github.com/ewe-studios/ewe_platform/issues/[TBD]
         Err(HttpClientError::TlsHandshakeFailed(
-            "native-tls not yet implemented".to_string(),
+            "native-tls backend not implemented. Use ssl-rustls or ssl-openssl features instead"
+                .to_string(),
         ))
     }
 

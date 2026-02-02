@@ -7,7 +7,7 @@ use std::time::{Duration, Instant};
 /// Trait for DNS resolution.
 ///
 /// Allows pluggable DNS resolvers for testing and customization.
-pub trait DnsResolver: Send + Sync {
+pub trait DnsResolver: Send + Sync + Clone {
     /// Resolves a hostname and port to socket addresses.
     ///
     /// # Arguments
@@ -80,7 +80,7 @@ impl CachedEntry {
 /// # Type Parameters
 ///
 /// * `R` - The inner resolver type
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CachingDnsResolver<R: DnsResolver> {
     inner: R,
     cache: Arc<Mutex<HashMap<String, CachedEntry>>>,
