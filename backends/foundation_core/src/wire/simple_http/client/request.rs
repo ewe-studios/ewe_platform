@@ -32,11 +32,11 @@ impl PreparedRequest {
     ///
     /// Returns `HttpClientError` if the request cannot be built.
     pub fn into_simple_incoming_request(self) -> Result<SimpleIncomingRequest, HttpClientError> {
-        // Convert ParsedUrl to SimpleUrl
-        let simple_url = if let Some(query) = &self.url.query {
-            SimpleUrl::url_with_query(format!("{}?{}", self.url.path, query))
+        // Convert Uri to SimpleUrl
+        let simple_url = if let Some(query) = self.url.query() {
+            SimpleUrl::url_with_query(format!("{}?{}", self.url.path(), query))
         } else {
-            SimpleUrl::url_only(self.url.path.clone())
+            SimpleUrl::url_only(self.url.path().to_string())
         };
 
         // Create SimpleIncomingRequest using builder
@@ -99,10 +99,14 @@ impl ClientRequestBuilder {
         let mut headers = BTreeMap::new();
 
         // Add required Host header
-        let host = if parsed_url.scheme.default_port() == parsed_url.port {
-            parsed_url.host.clone()
+        let host_str = parsed_url
+            .host_str()
+            .ok_or_else(|| HttpClientError::InvalidUrl("Missing host in URL".to_string()))?;
+
+        let host = if parsed_url.port().is_some() {
+            format!("{}:{}", host_str, parsed_url.port_or_default())
         } else {
-            format!("{}:{}", parsed_url.host, parsed_url.port)
+            host_str
         };
         headers.insert(SimpleHeader::HOST, vec![host]);
 
@@ -365,8 +369,8 @@ mod tests {
     #[test]
     fn test_client_request_builder_new() {
         let builder = ClientRequestBuilder::new(SimpleMethod::GET, "http://example.com").unwrap();
-        assert_eq!(builder.url.host, "example.com");
-        assert_eq!(builder.url.port, 80);
+        assert_eq!(builder.url.host_str().unwrap(), "example.com");
+        assert_eq!(builder.url.port_or_default(), 80);
         assert!(matches!(builder.method, SimpleMethod::GET));
     }
 
@@ -471,7 +475,7 @@ mod tests {
             .unwrap()
             .build();
 
-        assert_eq!(prepared.url.host, "example.com");
+        assert_eq!(prepared.url.host_str().unwrap(), "example.com");
         assert!(matches!(prepared.method, SimpleMethod::GET));
         assert!(matches!(prepared.body, SimpleBody::None));
     }

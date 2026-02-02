@@ -5,18 +5,26 @@
 //! without async/await.
 //!
 //! WHAT: Implements `HttpRequestTask` which processes HTTP requests through a series
-//! of states (connecting, TLS handshake, sending request, receiving response).
+//! of states (connecting, sending request, receiving response).
 //! Uses `TaskIterator` trait to yield `TaskStatus` variants.
 //!
 //! HOW: State machine pattern where each `next()` call advances through states.
-//! Spawns child tasks (redirects, TLS upgrades) via `TaskStatus::Spawn`.
-//! Uses `HttpClientAction` as the Spawner type for child task spawning.
+//! Phase 1 uses blocking connection for simplicity. Future phases will use
+//! non-blocking connection spawning and TLS support.
+//!
+//! PHASE 1 SCOPE: HTTP-only (no HTTPS), blocking connection, basic GET requests.
 
-use crate::synca::mpp::Receiver;
+use crate::io::ioutils::SharedByteBufferStream;
+use crate::netcap::RawStream;
 use crate::valtron::{TaskIterator, TaskStatus};
 use crate::wire::simple_http::client::{
-    DnsResolver, HttpClientAction, PreparedRequest, ResponseIntro,
+    DnsResolver, HttpClientAction, HttpClientConnection, PreparedRequest, ResponseIntro,
 };
+use crate::wire::simple_http::{
+    Http11, HttpResponseReader, IncomingResponseParts, RenderHttp, SimpleHttpBody,
+};
+use std::io::Write;
+use std::time::Duration;
 
 /// HTTP request processing states.
 ///
@@ -27,24 +35,16 @@ use crate::wire::simple_http::client::{
 ///
 /// HOW: State transitions occur in `HttpRequestTask::next()`. Each state
 /// determines the next action or state transition.
+///
+/// PHASE 1: Only Init, Connecting (which also sends), ReceivingIntro, Done, Error
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HttpRequestState {
     /// Initial state - preparing to connect
     Init,
-    /// Establishing TCP connection
+    /// Establishing TCP connection and sending request
     Connecting,
-    /// Performing TLS handshake (HTTPS only)
-    TlsHandshake,
-    /// Sending HTTP request
-    SendingRequest,
     /// Receiving response status line
     ReceivingIntro,
-    /// Receiving response headers
-    ReceivingHeaders,
-    /// Receiving response body
-    ReceivingBody,
-    /// Waiting for redirect decision
-    AwaitingRedirect,
     /// Request completed successfully
     Done,
     /// Request failed with error
@@ -60,7 +60,8 @@ pub enum HttpRequestState {
 /// Yields `TaskStatus` variants to indicate progress, completion, or spawn needs.
 ///
 /// HOW: Maintains internal state and advances through states on each `next()` call.
-/// Spawns child tasks (redirects, TLS) via `TaskStatus::Spawn` with actions.
+/// Phase 1 uses blocking connection for simplicity. HttpResponseReader owns the
+/// RawStream, avoiding lifetime issues.
 ///
 /// # Type Parameters
 ///
@@ -75,10 +76,12 @@ where
     resolver: R,
     /// The prepared request to send
     request: Option<PreparedRequest>,
-    /// Number of remaining redirects allowed
+    /// Number of remaining redirects allowed (Phase 1: unused)
     remaining_redirects: u8,
-    /// Receiver for redirect responses (if spawned)
-    redirect_receiver: Option<Receiver<Result<ResponseIntro, String>>>,
+    /// Connection timeout
+    timeout: Option<Duration>,
+    /// HTTP response reader (owns the RawStream after connection established)
+    response_reader: Option<HttpResponseReader<SimpleHttpBody, RawStream>>,
 }
 
 impl<R> HttpRequestTask<R>
@@ -91,7 +94,7 @@ where
     ///
     /// * `request` - The prepared HTTP request to execute
     /// * `resolver` - DNS resolver for hostname resolution
-    /// * `max_redirects` - Maximum number of redirects to follow (typically 5-10)
+    /// * `max_redirects` - Maximum number of redirects to follow (Phase 1: unused)
     ///
     /// # Returns
     ///
@@ -102,7 +105,8 @@ where
             resolver,
             request: Some(request),
             remaining_redirects: max_redirects,
-            redirect_receiver: None,
+            timeout: Some(Duration::from_secs(30)),
+            response_reader: None,
         }
     }
 }
@@ -118,39 +122,130 @@ where
     fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         match self.state {
             HttpRequestState::Init => {
-                // TODO: Implement initialization logic
-                // Transition to Connecting state
-                self.state = HttpRequestState::Connecting;
-                Some(TaskStatus::Pending(HttpRequestState::Init))
+                // Validate request exists and check for HTTPS (not supported in Phase 1)
+                if let Some(request) = &self.request {
+                    if request.url.scheme().is_https() {
+                        tracing::error!("HTTPS not supported in Phase 1");
+                        self.state = HttpRequestState::Error;
+                        return None;
+                    }
+                    // Transition to Connecting
+                    self.state = HttpRequestState::Connecting;
+                    Some(TaskStatus::Pending(HttpRequestState::Init))
+                } else {
+                    tracing::error!("No request to process");
+                    self.state = HttpRequestState::Error;
+                    None
+                }
             }
             HttpRequestState::Connecting => {
-                // TODO: Implement DNS resolution and TCP connection
-                // For now, return Pending
-                Some(TaskStatus::Pending(HttpRequestState::Connecting))
-            }
-            HttpRequestState::TlsHandshake => {
-                // TODO: Implement TLS handshake spawning
-                Some(TaskStatus::Pending(HttpRequestState::TlsHandshake))
-            }
-            HttpRequestState::SendingRequest => {
-                // TODO: Implement request sending
-                Some(TaskStatus::Pending(HttpRequestState::SendingRequest))
+                // Phase 1: Blocking connection and send request immediately
+                let request = match self.request.take() {
+                    Some(req) => req,
+                    None => {
+                        tracing::error!("Request disappeared during connecting");
+                        self.state = HttpRequestState::Error;
+                        return None;
+                    }
+                };
+
+                // Establish connection and get the RawStream
+                match HttpClientConnection::connect(&request.url, &self.resolver, self.timeout) {
+                    Ok(mut connection) => {
+                        let host = request
+                            .url
+                            .host_str()
+                            .unwrap_or_else(|| "unknown".to_string());
+                        tracing::debug!("Connected to {}", host);
+
+                        // Convert PreparedRequest to SimpleIncomingRequest for rendering
+                        let simple_request = match request.into_simple_incoming_request() {
+                            Ok(req) => req,
+                            Err(e) => {
+                                tracing::error!("Failed to convert request: {}", e);
+                                self.state = HttpRequestState::Error;
+                                return None;
+                            }
+                        };
+
+                        // Render HTTP request to string
+                        let request_string =
+                            match Http11::request(simple_request).http_render_string() {
+                                Ok(s) => s,
+                                Err(e) => {
+                                    tracing::error!("Failed to render request: {:?}", e);
+                                    self.state = HttpRequestState::Error;
+                                    return None;
+                                }
+                            };
+
+                        // Write request to connection stream BEFORE transferring ownership
+                        let stream = connection.stream_mut();
+                        if let Err(e) = stream.write_all(request_string.as_bytes()) {
+                            tracing::error!("Failed to write request: {}", e);
+                            self.state = HttpRequestState::Error;
+                            return None;
+                        }
+
+                        tracing::debug!("Request sent: {} bytes", request_string.len());
+
+                        // Now transfer ownership of the stream to HttpResponseReader
+                        let stream = connection.take_stream();
+                        let shared_stream = SharedByteBufferStream::rwrite(stream);
+                        let reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
+                            shared_stream,
+                            SimpleHttpBody,
+                        );
+
+                        self.response_reader = Some(reader);
+                        self.state = HttpRequestState::ReceivingIntro;
+                        Some(TaskStatus::Pending(HttpRequestState::Connecting))
+                    }
+                    Err(e) => {
+                        tracing::error!("Connection failed: {}", e);
+                        self.state = HttpRequestState::Error;
+                        None
+                    }
+                }
             }
             HttpRequestState::ReceivingIntro => {
-                // TODO: Implement response intro parsing
-                Some(TaskStatus::Pending(HttpRequestState::ReceivingIntro))
-            }
-            HttpRequestState::ReceivingHeaders => {
-                // TODO: Implement header parsing
-                Some(TaskStatus::Pending(HttpRequestState::ReceivingHeaders))
-            }
-            HttpRequestState::ReceivingBody => {
-                // TODO: Implement body handling
-                Some(TaskStatus::Pending(HttpRequestState::ReceivingBody))
-            }
-            HttpRequestState::AwaitingRedirect => {
-                // TODO: Implement redirect logic
-                Some(TaskStatus::Pending(HttpRequestState::AwaitingRedirect))
+                // Use HttpResponseReader to parse the response
+                let reader = match self.response_reader.as_mut() {
+                    Some(r) => r,
+                    None => {
+                        tracing::error!("No response reader in ReceivingIntro state");
+                        self.state = HttpRequestState::Error;
+                        return None;
+                    }
+                };
+
+                // Poll the reader for IncomingResponseParts
+                match reader.next() {
+                    Some(Ok(IncomingResponseParts::Intro(status, proto, reason))) => {
+                        tracing::debug!("Received response: {:?} {:?} {:?}", status, proto, reason);
+                        let intro = ResponseIntro {
+                            status,
+                            proto,
+                            reason,
+                        };
+                        self.state = HttpRequestState::Done;
+                        Some(TaskStatus::Ready(intro))
+                    }
+                    Some(Ok(_other)) => {
+                        // Not Intro yet, keep in ReceivingIntro state
+                        Some(TaskStatus::Pending(HttpRequestState::ReceivingIntro))
+                    }
+                    Some(Err(e)) => {
+                        tracing::error!("Failed to read response: {:?}", e);
+                        self.state = HttpRequestState::Error;
+                        None
+                    }
+                    None => {
+                        tracing::error!("Connection closed before receiving response");
+                        self.state = HttpRequestState::Error;
+                        None
+                    }
+                }
             }
             HttpRequestState::Done => {
                 // Request completed - no more values
@@ -174,19 +269,14 @@ mod tests {
     // HttpRequestState Tests
     // ========================================================================
 
-    /// WHY: Verify HttpRequestState enum has all expected states
-    /// WHAT: Tests that all state variants exist and are distinct
+    /// WHY: Verify HttpRequestState enum has all expected states (Phase 1)
+    /// WHAT: Tests that all Phase 1 state variants exist and are distinct
     #[test]
     fn test_http_request_state_variants() {
         let states = [
             HttpRequestState::Init,
             HttpRequestState::Connecting,
-            HttpRequestState::TlsHandshake,
-            HttpRequestState::SendingRequest,
             HttpRequestState::ReceivingIntro,
-            HttpRequestState::ReceivingHeaders,
-            HttpRequestState::ReceivingBody,
-            HttpRequestState::AwaitingRedirect,
             HttpRequestState::Done,
             HttpRequestState::Error,
         ];
@@ -231,7 +321,8 @@ mod tests {
         assert_eq!(task.state, HttpRequestState::Init);
         assert!(task.request.is_some());
         assert_eq!(task.remaining_redirects, 5);
-        assert!(task.redirect_receiver.is_none());
+        assert!(task.response_reader.is_none());
+        assert!(task.timeout.is_some());
     }
 
     /// WHY: Verify HttpRequestTask implements TaskIterator
@@ -273,7 +364,8 @@ mod tests {
     }
 
     /// WHY: Verify HttpRequestTask::next() handles Connecting state
-    /// WHAT: Tests that Connecting state returns Pending
+    /// WHAT: Tests that Connecting state attempts connection (Phase 1: blocking)
+    /// NOTE: Phase 1 uses blocking connection, so this will fail without a real server
     #[test]
     fn test_http_request_task_next_connecting() {
         let request = ClientRequestBuilder::get("http://example.com")
@@ -286,12 +378,12 @@ mod tests {
         // Advance to Connecting state
         let _ = task.next(); // Init -> Connecting
 
-        // Connecting should return Pending
+        // Phase 1: Connecting attempts real connection (blocking)
+        // MockDnsResolver returns empty addresses, so connection will fail
+        // This results in None (Error state)
         let status = task.next();
-        assert!(matches!(
-            status,
-            Some(TaskStatus::Pending(HttpRequestState::Connecting))
-        ));
+        assert!(status.is_none());
+        assert_eq!(task.state, HttpRequestState::Error);
     }
 
     /// WHY: Verify HttpRequestTask::next() handles Done state
