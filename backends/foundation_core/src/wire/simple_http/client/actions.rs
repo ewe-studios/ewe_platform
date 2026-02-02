@@ -12,11 +12,13 @@
 //! consumed via `take()` during `apply()`, making multiple `apply()` calls safe.
 //! Actions use `spawn_builder()` to spawn child tasks with parent linkage.
 
-use crate::netcap::RawStream;
+use crate::netcap::{Connection, RawStream};
 use crate::synca::mpp::Sender;
 use crate::synca::Entry;
 use crate::valtron::{spawn_builder, BoxedExecutionEngine, ExecutionAction, GenericResult};
-use crate::wire::simple_http::client::{DnsResolver, HttpRequestTask, PreparedRequest};
+use crate::wire::simple_http::client::{
+    DnsResolver, HttpRequestTask, PreparedRequest, TlsHandshakeTask,
+};
 
 /// Action for spawning HTTP redirect follow tasks.
 ///
@@ -84,17 +86,19 @@ where
 /// Action for spawning TLS upgrade tasks.
 ///
 /// WHY: HTTPS connections require TLS handshake after TCP connection is established.
-/// This action encapsulates the TLS upgrade spawning logic.
+/// This action encapsulates the TLS upgrade spawning logic, enabling non-blocking
+/// TLS handshakes.
 ///
-/// WHAT: Holds a RawStream and spawns a TLS handshake task when applied.
+/// WHAT: Holds a TCP Connection and spawns a TLS handshake task when applied.
+/// The task performs the TLS handshake and sends the upgraded stream via channel.
 ///
-/// HOW: Uses Option<RawStream> with `take()` to ensure idempotent `apply()`.
-/// Spawns using `lift()` for priority execution of TLS upgrades.
-/// Callbacks are invoked upon completion with the upgraded stream.
+/// HOW: Uses Option<Connection> with `take()` to ensure idempotent `apply()`.
+/// Spawns TlsHandshakeTask using `lift()` for priority execution of TLS upgrades.
+/// Callbacks are invoked upon completion with the upgraded TLS stream.
 #[cfg(not(target_arch = "wasm32"))]
 pub struct TlsUpgradeAction {
-    /// The stream to upgrade (consumed on apply)
-    stream: Option<RawStream>,
+    /// The TCP connection to upgrade (consumed on apply)
+    connection: Option<Connection>,
     /// Server Name Indication (SNI) for TLS handshake
     sni: String,
     /// Callback endpoint for sending the result
@@ -107,16 +111,16 @@ impl TlsUpgradeAction {
     ///
     /// # Arguments
     ///
-    /// * `stream` - The stream to upgrade to TLS
+    /// * `connection` - The TCP connection to upgrade to TLS
     /// * `sni` - Server Name Indication (hostname for TLS)
     /// * `on_complete` - Endpoint to send result when TLS handshake completes
     pub fn new(
-        stream: RawStream,
+        connection: Connection,
         sni: String,
         on_complete: Sender<Result<RawStream, String>>,
     ) -> Self {
         Self {
-            stream: Some(stream),
+            connection: Some(connection),
             sni,
             on_complete: Some(on_complete),
         }
@@ -125,19 +129,22 @@ impl TlsUpgradeAction {
 
 #[cfg(not(target_arch = "wasm32"))]
 impl ExecutionAction for TlsUpgradeAction {
-    fn apply(&mut self, _key: Entry, _engine: BoxedExecutionEngine) -> GenericResult<()> {
-        // PHASE 2: Async TLS upgrade spawning
-        //
-        // NOTE: TLS already works via blocking HttpClientConnection::upgrade_to_tls()
-        // This action would enable async/spawnable TLS handshakes for non-blocking scenarios.
-        //
-        // Implementation requires:
-        // 1. TlsHandshakeTask with state machine (Init → Handshake → Complete)
-        // 2. Integration with netcap TLS backends (rustls, openssl, native-tls)
-        // 3. Channel-based completion callback to on_complete
-        //
-        // See: specifications/02-build-http-client/features/task-iterator/
-        // Tracking: Phase 2 - Advanced Features
+    fn apply(&mut self, key: Entry, engine: BoxedExecutionEngine) -> GenericResult<()> {
+        // Extract connection and sender using Option::take() for idempotency
+        if let (Some(connection), Some(sender)) = (self.connection.take(), self.on_complete.take())
+        {
+            // Create TlsHandshakeTask
+            let tls_task = TlsHandshakeTask::new(connection, self.sni.clone(), sender);
+
+            // Spawn the task using spawn_builder with priority (lift)
+            spawn_builder(engine)
+                .with_parent(key)
+                .with_task(tls_task)
+                .lift()?;
+
+            tracing::debug!("Spawned TLS handshake task for {}", self.sni);
+        }
+
         Ok(())
     }
 }

@@ -12,6 +12,7 @@ mod executor;
 mod intro;
 mod request;
 mod task;
+mod tls_task;
 
 pub use client::{ClientConfig, SimpleHttpClient};
 pub use connection::{HttpClientConnection, ParsedUrl, Scheme};
@@ -23,6 +24,9 @@ pub use request::{ClientRequestBuilder, PreparedRequest};
 // Internal re-exports for use within the client module
 pub(crate) use actions::HttpClientAction;
 pub(crate) use task::HttpRequestTask;
+
+#[cfg(not(target_arch = "wasm32"))]
+pub use tls_task::{TlsHandshakeState, TlsHandshakeTask};
 
 #[cfg(test)]
 mod tests;
