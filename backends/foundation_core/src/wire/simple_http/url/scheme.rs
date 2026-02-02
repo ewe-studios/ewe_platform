@@ -48,6 +48,10 @@ impl Scheme {
     /// - No colon separator found
     /// - Scheme is empty
     /// - Scheme contains invalid characters
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic. Missing or invalid schemes return `Err(InvalidUri)`.
     pub(crate) fn parse_from_uri(uri: &str) -> Result<(Self, &str), InvalidUri> {
         // Find the colon separator
         let colon_pos = uri

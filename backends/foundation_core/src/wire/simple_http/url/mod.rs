@@ -23,6 +23,7 @@ mod scheme;
 pub use authority::{Authority, Host};
 pub use error::{InvalidUri, InvalidUriParts};
 pub use path::PathAndQuery;
+pub use query::{Query, QueryError};
 pub use scheme::Scheme;
 
 use std::fmt;
@@ -88,6 +89,10 @@ impl Uri {
     /// - Authority components are malformed
     /// - Port is out of range
     /// - Path contains invalid characters
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic. All parsing errors are returned as `Err(InvalidUri)`.
     ///
     /// # Examples
     ///

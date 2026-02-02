@@ -52,6 +52,7 @@ impl WaitTimeoutResult {
 
     /// Creates a new `WaitTimeoutResult`.
     #[inline]
+    #[must_use]
     #[cfg(any(not(feature = "std"), test))] // Used in no_std implementation and tests
     pub const fn new(timed_out: bool) -> Self {
         Self(timed_out)

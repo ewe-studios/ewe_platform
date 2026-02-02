@@ -31,6 +31,11 @@ pub struct InvalidUriParts {
 }
 
 impl InvalidUriParts {
+    /// Creates a new InvalidUriParts error.
+    ///
+    /// Note: This type is reserved for future URI builder functionality.
+    /// Currently unused but kept for API completeness.
+    #[allow(dead_code)]
     pub(crate) fn new(message: impl Into<String>) -> Self {
         Self {
             message: message.into(),
