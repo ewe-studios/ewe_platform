@@ -21,10 +21,63 @@ use crate::wire::simple_http::client::{
     DnsResolver, HttpClientAction, HttpClientConnection, PreparedRequest, ResponseIntro,
 };
 use crate::wire::simple_http::{
-    Http11, HttpResponseReader, IncomingResponseParts, RenderHttp, SimpleHttpBody,
+    Http11, HttpResponseReader, IncomingResponseParts, RenderHttp, SimpleHeaders, SimpleHttpBody,
 };
 use std::io::Write;
+use std::sync::atomic::{AtomicU8, Ordering};
+use std::sync::Arc;
 use std::time::Duration;
+
+// State constants for atomic coordination
+const STATE_NOT_STARTED: u8 = 0;
+const STATE_INTRO_READY: u8 = 1;
+const STATE_BODY_REQUESTED: u8 = 2;
+#[allow(dead_code)]
+const STATE_COMPLETED: u8 = 3;
+
+/// Shared control for coordinating between task and ClientRequest.
+///
+/// WHY: ClientRequest needs to signal when body reading is desired, and task
+/// needs to wait for that signal. Atomic coordination enables lock-free
+/// communication.
+///
+/// WHAT: Arc-wrapped atomic state that both task and ClientRequest can access.
+///
+/// HOW: Clone-able handle with atomic operations for state changes.
+#[derive(Clone)]
+pub struct RequestControl {
+    state: Arc<AtomicU8>,
+}
+
+impl RequestControl {
+    /// Creates a new request control in NOT_STARTED state.
+    pub fn new() -> Self {
+        Self {
+            state: Arc::new(AtomicU8::new(STATE_NOT_STARTED)),
+        }
+    }
+
+    /// Signals that intro/headers are ready.
+    pub fn set_intro_ready(&self) {
+        self.state.store(STATE_INTRO_READY, Ordering::Release);
+    }
+
+    /// Signals that body reading is requested.
+    pub fn set_body_requested(&self) {
+        self.state.store(STATE_BODY_REQUESTED, Ordering::Release);
+    }
+
+    /// Gets current state.
+    pub fn get_state(&self) -> u8 {
+        self.state.load(Ordering::Acquire)
+    }
+}
+
+impl Default for RequestControl {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 /// HTTP request processing states.
 ///
@@ -36,19 +89,41 @@ use std::time::Duration;
 /// HOW: State transitions occur in `HttpRequestTask::next()`. Each state
 /// determines the next action or state transition.
 ///
-/// PHASE 1: Only Init, Connecting (which also sends), ReceivingIntro, Done, Error
+/// PHASE 1: Only Init, Connecting (which also sends), ReceivingIntro,
+/// WaitingForBodyRequest, Done, Error
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HttpRequestState {
     /// Initial state - preparing to connect
     Init,
     /// Establishing TCP connection and sending request
     Connecting,
-    /// Receiving response status line
+    /// Receiving response status line and headers
     ReceivingIntro,
+    /// Paused state - waiting for user to request body
+    WaitingForBodyRequest,
     /// Request completed successfully
     Done,
     /// Request failed with error
     Error,
+}
+
+/// Values yielded by HttpRequestTask as Ready status.
+///
+/// WHY: Task needs to yield different types of values at different stages:
+/// first intro/headers, then stream ownership.
+///
+/// WHAT: Enum representing the two types of Ready values the task can yield.
+///
+/// HOW: IntroAndHeaders yields first, then task waits. When signaled,
+/// StreamOwnership is yielded.
+pub enum HttpTaskReady {
+    /// Response introduction and headers received.
+    IntroAndHeaders {
+        intro: ResponseIntro,
+        headers: SimpleHeaders,
+    },
+    /// Stream ownership transferred for body reading.
+    StreamOwnership(SharedByteBufferStream<RawStream>),
 }
 
 /// HTTP request task implementing `TaskIterator`.
@@ -77,11 +152,20 @@ where
     /// The prepared request to send
     request: Option<PreparedRequest>,
     /// Number of remaining redirects allowed (Phase 1: unused)
+    #[allow(dead_code)]
     remaining_redirects: u8,
     /// Connection timeout
     timeout: Option<Duration>,
-    /// HTTP response reader (owns the RawStream after connection established)
-    response_reader: Option<HttpResponseReader<SimpleHttpBody, RawStream>>,
+    /// Connection pool for reuse (optional)
+    pool: Option<Arc<super::pool::ConnectionPool>>,
+    /// Shared coordination with ClientRequest
+    control: RequestControl,
+    /// Stream holder for yielding ownership later
+    stream_holder: Option<SharedByteBufferStream<RawStream>>,
+    /// Host for pool return
+    host: Option<String>,
+    /// Port for pool return
+    port: Option<u16>,
 }
 
 impl<R> HttpRequestTask<R>
@@ -106,7 +190,45 @@ where
             request: Some(request),
             remaining_redirects: max_redirects,
             timeout: Some(Duration::from_secs(30)),
-            response_reader: None,
+            pool: None,
+            control: RequestControl::new(),
+            stream_holder: None,
+            host: None,
+            port: None,
+        }
+    }
+
+    /// Creates a new HTTP request task with connection pool and control.
+    ///
+    /// # Arguments
+    ///
+    /// * `request` - The prepared HTTP request to execute
+    /// * `resolver` - DNS resolver for hostname resolution
+    /// * `max_redirects` - Maximum number of redirects to follow
+    /// * `pool` - Optional connection pool for reuse
+    /// * `control` - Shared coordination with ClientRequest
+    ///
+    /// # Returns
+    ///
+    /// A new `HttpRequestTask` in the `Init` state.
+    pub fn with_control(
+        request: PreparedRequest,
+        resolver: R,
+        max_redirects: u8,
+        pool: Option<Arc<super::pool::ConnectionPool>>,
+        control: RequestControl,
+    ) -> Self {
+        Self {
+            state: HttpRequestState::Init,
+            resolver,
+            request: Some(request),
+            remaining_redirects: max_redirects,
+            timeout: Some(Duration::from_secs(30)),
+            pool,
+            control,
+            stream_holder: None,
+            host: None,
+            port: None,
         }
     }
 }
@@ -116,7 +238,7 @@ where
     R: DnsResolver + Send + 'static,
 {
     type Pending = HttpRequestState;
-    type Ready = ResponseIntro;
+    type Ready = HttpTaskReady;
     type Spawner = HttpClientAction<R>;
 
     fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
@@ -149,99 +271,176 @@ where
                     }
                 };
 
-                // Establish connection and get the RawStream
-                match HttpClientConnection::connect(&request.url, &self.resolver, self.timeout) {
-                    Ok(mut connection) => {
-                        let host = request
-                            .url
-                            .host_str()
-                            .unwrap_or_else(|| "unknown".to_string());
-                        tracing::debug!("Connected to {}", host);
+                // Extract host and port for pool return
+                self.host = Some(
+                    request
+                        .url
+                        .host_str()
+                        .unwrap_or_else(|| "unknown".to_string()),
+                );
+                self.port = Some(request.url.port().unwrap_or(80));
 
-                        // Convert PreparedRequest to SimpleIncomingRequest for rendering
-                        let simple_request = match request.into_simple_incoming_request() {
-                            Ok(req) => req,
-                            Err(e) => {
-                                tracing::error!("Failed to convert request: {}", e);
-                                self.state = HttpRequestState::Error;
-                                return None;
-                            }
-                        };
+                // Try to get connection from pool first
+                let mut stream = if let Some(pool) = &self.pool {
+                    pool.checkout(self.host.as_ref().unwrap(), self.port.unwrap())
+                } else {
+                    None
+                };
 
-                        // Render HTTP request to string
-                        let request_string =
-                            match Http11::request(simple_request).http_render_string() {
-                                Ok(s) => s,
+                // If no pooled connection, establish new connection
+                if stream.is_none() {
+                    match HttpClientConnection::connect(&request.url, &self.resolver, self.timeout)
+                    {
+                        Ok(mut connection) => {
+                            tracing::debug!("Connected to {}", self.host.as_ref().unwrap());
+
+                            // Convert PreparedRequest to SimpleIncomingRequest for rendering
+                            let simple_request = match request.into_simple_incoming_request() {
+                                Ok(req) => req,
                                 Err(e) => {
-                                    tracing::error!("Failed to render request: {:?}", e);
+                                    tracing::error!("Failed to convert request: {}", e);
                                     self.state = HttpRequestState::Error;
                                     return None;
                                 }
                             };
 
-                        // Write request to connection stream BEFORE transferring ownership
-                        let stream = connection.stream_mut();
-                        if let Err(e) = stream.write_all(request_string.as_bytes()) {
-                            tracing::error!("Failed to write request: {}", e);
+                            // Render HTTP request to string
+                            let request_string =
+                                match Http11::request(simple_request).http_render_string() {
+                                    Ok(s) => s,
+                                    Err(e) => {
+                                        tracing::error!("Failed to render request: {:?}", e);
+                                        self.state = HttpRequestState::Error;
+                                        return None;
+                                    }
+                                };
+
+                            // Write request to connection stream BEFORE transferring ownership
+                            let raw_stream = connection.stream_mut();
+                            if let Err(e) = raw_stream.write_all(request_string.as_bytes()) {
+                                tracing::error!("Failed to write request: {}", e);
+                                self.state = HttpRequestState::Error;
+                                return None;
+                            }
+
+                            tracing::debug!("Request sent: {} bytes", request_string.len());
+
+                            // Transfer ownership of the stream
+                            let raw_stream = connection.take_stream();
+                            stream = Some(SharedByteBufferStream::rwrite(raw_stream));
+                        }
+                        Err(e) => {
+                            tracing::error!("Connection failed: {}", e);
                             self.state = HttpRequestState::Error;
                             return None;
                         }
-
-                        tracing::debug!("Request sent: {} bytes", request_string.len());
-
-                        // Now transfer ownership of the stream to HttpResponseReader
-                        let stream = connection.take_stream();
-                        let shared_stream = SharedByteBufferStream::rwrite(stream);
-                        let reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
-                            shared_stream,
-                            SimpleHttpBody,
-                        );
-
-                        self.response_reader = Some(reader);
-                        self.state = HttpRequestState::ReceivingIntro;
-                        Some(TaskStatus::Pending(HttpRequestState::Connecting))
-                    }
-                    Err(e) => {
-                        tracing::error!("Connection failed: {}", e);
-                        self.state = HttpRequestState::Error;
-                        None
                     }
                 }
+
+                // Store stream and transition to receiving intro
+                self.stream_holder = stream;
+                self.state = HttpRequestState::ReceivingIntro;
+                Some(TaskStatus::Pending(HttpRequestState::Connecting))
             }
             HttpRequestState::ReceivingIntro => {
-                // Use HttpResponseReader to parse the response
-                let reader = match self.response_reader.as_mut() {
-                    Some(r) => r,
+                // Use HttpResponseReader to parse intro and headers
+                let shared_stream = match self.stream_holder.as_ref() {
+                    Some(s) => s.clone(),
                     None => {
-                        tracing::error!("No response reader in ReceivingIntro state");
+                        tracing::error!("No stream in ReceivingIntro state");
                         self.state = HttpRequestState::Error;
                         return None;
                     }
                 };
 
-                // Poll the reader for IncomingResponseParts
-                match reader.next() {
+                // Create temporary reader (not stored)
+                let mut reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
+                    shared_stream,
+                    SimpleHttpBody,
+                );
+
+                // Read intro
+                let intro = match reader.next() {
                     Some(Ok(IncomingResponseParts::Intro(status, proto, reason))) => {
                         tracing::debug!("Received response: {:?} {:?} {:?}", status, proto, reason);
-                        let intro = ResponseIntro {
+                        ResponseIntro {
                             status,
                             proto,
                             reason,
-                        };
-                        self.state = HttpRequestState::Done;
-                        Some(TaskStatus::Ready(intro))
+                        }
                     }
                     Some(Ok(_other)) => {
-                        // Not Intro yet, keep in ReceivingIntro state
-                        Some(TaskStatus::Pending(HttpRequestState::ReceivingIntro))
+                        // Not Intro yet, keep waiting
+                        return Some(TaskStatus::Pending(HttpRequestState::ReceivingIntro));
                     }
                     Some(Err(e)) => {
-                        tracing::error!("Failed to read response: {:?}", e);
+                        tracing::error!("Failed to read intro: {:?}", e);
                         self.state = HttpRequestState::Error;
-                        None
+                        return None;
                     }
                     None => {
-                        tracing::error!("Connection closed before receiving response");
+                        tracing::error!("Connection closed before receiving intro");
+                        self.state = HttpRequestState::Error;
+                        return None;
+                    }
+                };
+
+                // Read headers
+                let headers = match reader.next() {
+                    Some(Ok(IncomingResponseParts::Headers(headers))) => {
+                        tracing::debug!("Received headers: {} entries", headers.len());
+                        headers
+                    }
+                    Some(Ok(_other)) => {
+                        // Expected headers, got something else
+                        tracing::warn!("Expected headers, got different part");
+                        SimpleHeaders::default()
+                    }
+                    Some(Err(e)) => {
+                        tracing::error!("Failed to read headers: {:?}", e);
+                        self.state = HttpRequestState::Error;
+                        return None;
+                    }
+                    None => {
+                        // No headers - use empty
+                        SimpleHeaders::default()
+                    }
+                };
+
+                // Signal that intro/headers are ready
+                self.control.set_intro_ready();
+                self.state = HttpRequestState::WaitingForBodyRequest;
+
+                // Yield intro and headers
+                Some(TaskStatus::Ready(HttpTaskReady::IntroAndHeaders {
+                    intro,
+                    headers,
+                }))
+            }
+            HttpRequestState::WaitingForBodyRequest => {
+                // Check atomic flag to see if body is requested
+                match self.control.get_state() {
+                    STATE_INTRO_READY => {
+                        // Still waiting - delay to yield control
+                        Some(TaskStatus::Delayed(Duration::from_nanos(10)))
+                    }
+                    STATE_BODY_REQUESTED => {
+                        // User wants body - yield stream ownership
+                        let stream = match self.stream_holder.take() {
+                            Some(s) => s,
+                            None => {
+                                tracing::error!("No stream to yield in WaitingForBodyRequest");
+                                self.state = HttpRequestState::Error;
+                                return None;
+                            }
+                        };
+
+                        self.state = HttpRequestState::Done;
+                        Some(TaskStatus::Ready(HttpTaskReady::StreamOwnership(stream)))
+                    }
+                    _ => {
+                        // Invalid state
+                        tracing::error!("Invalid control state in WaitingForBodyRequest");
                         self.state = HttpRequestState::Error;
                         None
                     }
@@ -277,6 +476,7 @@ mod tests {
             HttpRequestState::Init,
             HttpRequestState::Connecting,
             HttpRequestState::ReceivingIntro,
+            HttpRequestState::WaitingForBodyRequest,
             HttpRequestState::Done,
             HttpRequestState::Error,
         ];
@@ -321,7 +521,7 @@ mod tests {
         assert_eq!(task.state, HttpRequestState::Init);
         assert!(task.request.is_some());
         assert_eq!(task.remaining_redirects, 5);
-        assert!(task.response_reader.is_none());
+        assert!(task.stream_holder.is_none());
         assert!(task.timeout.is_some());
     }
 
@@ -440,7 +640,7 @@ mod tests {
         where
             T: TaskIterator<
                 Pending = HttpRequestState,
-                Ready = ResponseIntro,
+                Ready = HttpTaskReady,
                 Spawner = HttpClientAction<MockDnsResolver>,
             >,
         {

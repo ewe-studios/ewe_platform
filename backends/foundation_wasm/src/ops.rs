@@ -2554,10 +2554,7 @@ impl Instructions {
     }
 
     #[inline(always)]
-    pub fn encode_params<'a>(
-        &self,
-        params: Option<&'a [Params<'a>]>,
-    ) -> MemoryWriterResult<()> {
+    pub fn encode_params<'a>(&self, params: Option<&'a [Params<'a>]>) -> MemoryWriterResult<()> {
         if let Some(pm) = params {
             pm.encode(self, self.optimized)?;
         }

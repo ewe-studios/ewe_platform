@@ -183,8 +183,8 @@ impl TestHttpServer {
     where
         F: Fn(&HttpRequest) -> HttpResponse + Send + 'static,
     {
-        let listener = TcpListener::bind("127.0.0.1:0")
-            .expect("Failed to bind test HTTP server to localhost");
+        let listener =
+            TcpListener::bind("127.0.0.1:0").expect("Failed to bind test HTTP server to localhost");
         let addr = format!("http://{}", listener.local_addr().unwrap());
 
         let running = Arc::new(AtomicBool::new(true));

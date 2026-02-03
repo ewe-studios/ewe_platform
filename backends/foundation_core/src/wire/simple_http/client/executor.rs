@@ -113,6 +113,7 @@ where
 ///
 /// CRITICAL: Caller MUST call `single::run_once()` or `single::run_until_complete()`
 /// to actually drive the executor forward. Without this, the task will not progress.
+#[allow(dead_code)]
 fn execute_single<T>(
     task: T,
 ) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
