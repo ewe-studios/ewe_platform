@@ -31,9 +31,7 @@ impl ParamOverrideValue {
         }
     }
 
-    pub fn value(
-        &self,
-    ) -> infrastructure_llama_bindings::llama_model_kv_override__bindgen_ty_1 {
+    pub fn value(&self) -> infrastructure_llama_bindings::llama_model_kv_override__bindgen_ty_1 {
         match self {
             ParamOverrideValue::Bool(value) => {
                 infrastructure_llama_bindings::llama_model_kv_override__bindgen_ty_1 {

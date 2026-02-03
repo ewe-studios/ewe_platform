@@ -260,11 +260,15 @@ mod tests {
     fn test_execute_uses_multi_on_native_with_feature() {
         // Just verify compilation - actual execution requires runtime
 
+        use crate::valtron::ReadyValues;
+
         initialize_pool(20, None);
 
         let task = SimpleTask { value: Some(42) };
         let values_iter = ReadyValues::new(execute(task).expect("should create task"));
-        let values: Vec<i32> = values_iter.flat_map(|item| item.inner()).collect();
+        let values: Vec<i32> = values_iter
+            .flat_map(|item: crate::valtron::ReadyValue<_>| item.inner())
+            .collect();
         assert_eq!(values, vec![42]);
     }
 
