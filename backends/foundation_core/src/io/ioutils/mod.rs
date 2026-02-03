@@ -825,6 +825,19 @@ impl<T: Read> std::io::Read for SharedByteBufferStream<T> {
     }
 }
 
+// SAFETY: SharedByteBufferStream is Send when T is Send AND it uses Arc-based synchronization.
+//
+// The HTTP client creates SharedByteBufferStream via rwrite() which uses Arc<RwLock<T>>.
+// Arc<RwLock<T>> is Send when T: Send. The RefCell variant (Rc<RefCell<T>>) is only
+// used in single-threaded contexts and never crosses thread boundaries.
+//
+// In HttpRequestTask:
+//   - stream_holder stores SharedByteBufferStream<RawStream>
+//   - Created via SharedByteBufferStream::rwrite() (task.rs:194)
+//   - RawStream is Send, RWrite uses Arc<RwLock<_>>
+//   - Therefore safe to send across threads
+unsafe impl<T: Read + Send> Send for SharedByteBufferStream<T> {}
+
 pub struct ByteBufferPointer<T: Read> {
     reader: OwnedReader<T>,
     pull_amount: usize,

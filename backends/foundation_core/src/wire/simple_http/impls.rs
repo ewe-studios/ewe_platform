@@ -5,7 +5,8 @@ use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
 use crate::io::ioutils::{self, ByteBufferPointer, SharedByteBufferStream};
 use crate::io::ubytes::{self};
 use crate::valtron::{
-    BoxedResultIterator, CloneableFn, SendVecIterator, StringBoxedIterator, TransformIterator,
+    BoxedResultIterator, BoxedSendableIterator, CloneableFn, SendVecIterator, StringBoxedIterator,
+    TransformIterator,
 };
 use crate::wire::simple_http::errors::{
     ChunkStateError, Http11RenderError, HttpReaderError, LineFeedError, Result, SimpleHttpError,
@@ -249,6 +250,103 @@ impl core::fmt::Display for SimpleBody {
                 Some(_) => write!(f, "ChunkedStream(CloneableIterator<T>)"),
                 None => write!(f, "ChunkedStream(None)"),
             },
+        }
+    }
+}
+
+/// Send-safe body type for requests and other Send contexts.
+///
+/// Unlike SimpleBody which supports non-Send iterator variants for responses,
+/// SendSafeBody only supports Send-safe variants and can be safely sent across threads.
+///
+/// Uses BoxedSendableIterator (which is Send) instead of BoxedResultIterator (which is not).
+pub enum SendSafeBody {
+    None,
+    Text(String),
+    Bytes(Vec<u8>),
+    // Send-safe iterator variants using BoxedSendableIterator which requires Send
+    Stream(Option<SendVecIterator<BoxedError>>),
+    ChunkedStream(Option<BoxedSendableIterator<ChunkedData, BoxedError>>),
+    LineFeedStream(Option<BoxedSendableIterator<LineFeed, BoxedError>>),
+}
+
+impl Eq for SendSafeBody {}
+
+// PartialEq implementation matching SimpleBody's logic
+#[allow(clippy::match_like_matches_macro)]
+impl PartialEq for SendSafeBody {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::None, Self::None) => true,
+            (Self::Text(me), Self::Text(other)) => me == other,
+            (Self::Bytes(me), Self::Bytes(other)) => me == other,
+            (Self::Stream(me), Self::Stream(other)) => match (me, other) {
+                (Some(_), Some(_)) => true,
+                (None, None) => true,
+                _ => false,
+            },
+            (Self::ChunkedStream(me), Self::ChunkedStream(other)) => match (me, other) {
+                (Some(_), Some(_)) => true,
+                (None, None) => true,
+                _ => false,
+            },
+            (Self::LineFeedStream(me), Self::LineFeedStream(other)) => match (me, other) {
+                (Some(_), Some(_)) => true,
+                (None, None) => true,
+                _ => false,
+            },
+            _ => false,
+        }
+    }
+}
+
+// Debug implementation matching SimpleBody's logic
+impl core::fmt::Debug for SendSafeBody {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        #[allow(dead_code)]
+        #[derive(Debug)]
+        enum SendSafeBodyRepr<'a> {
+            None,
+            Text(&'a str),
+            Bytes(&'a [u8]),
+            Stream(Option<()>),
+            ChunkedStream(Option<()>),
+            LineFeedStream(Option<()>),
+        }
+
+        let repr = match self {
+            Self::None => SendSafeBodyRepr::None,
+            Self::Text(s) => SendSafeBodyRepr::Text(s),
+            Self::Bytes(b) => SendSafeBodyRepr::Bytes(b),
+            Self::Stream(Some(_)) => SendSafeBodyRepr::Stream(Some(())),
+            Self::Stream(None) => SendSafeBodyRepr::Stream(None),
+            Self::ChunkedStream(Some(_)) => SendSafeBodyRepr::ChunkedStream(Some(())),
+            Self::ChunkedStream(None) => SendSafeBodyRepr::ChunkedStream(None),
+            Self::LineFeedStream(Some(_)) => SendSafeBodyRepr::LineFeedStream(Some(())),
+            Self::LineFeedStream(None) => SendSafeBodyRepr::LineFeedStream(None),
+        };
+
+        write!(f, "{:?}", repr)
+    }
+}
+
+// Conversion from SendSafeBody -> SimpleBody (for rendering)
+// BoxedSendableIterator (Box<dyn Iterator + Send>) can coerce to
+// BoxedResultIterator (Box<dyn Iterator>) by forgetting the Send bound.
+impl From<SendSafeBody> for SimpleBody {
+    fn from(value: SendSafeBody) -> Self {
+        match value {
+            SendSafeBody::None => SimpleBody::None,
+            SendSafeBody::Text(s) => SimpleBody::Text(s),
+            SendSafeBody::Bytes(b) => SimpleBody::Bytes(b),
+            SendSafeBody::Stream(iter) => SimpleBody::Stream(iter),
+            // Cast Box<dyn Iterator + Send> to Box<dyn Iterator> by forgetting Send bound
+            SendSafeBody::ChunkedStream(iter) => {
+                SimpleBody::ChunkedStream(iter.map(|i| i as ChunkedVecIterator<BoxedError>))
+            }
+            SendSafeBody::LineFeedStream(iter) => {
+                SimpleBody::LineFeedStream(iter.map(|i| i as LineFeedVecIterator<BoxedError>))
+            }
         }
     }
 }
