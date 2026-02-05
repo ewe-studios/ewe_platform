@@ -53,6 +53,16 @@ publish:
 	$(foreach var,$(PACKAGES), cargo publish --package $(var);)
 
 # ============================================================================
+# Git development commands
+# ============================================================================
+
+update_submodules:
+	git submodule update .agents
+	git submodule update tools/dawn
+	git submodule update tools/emsdk
+	git submodule update infrastructure/llama-bindings/llama.cpp/
+
+# ============================================================================
 # Development Environment Setup
 # ============================================================================
 
