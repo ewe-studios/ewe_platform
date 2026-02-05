@@ -205,7 +205,7 @@ pub enum ProgressIndicator {
     NoWork,
 
     /// Indicates work is available and can be progressed
-    CanProgress,
+    CanProgress(Option<State>),
 
     /// Indicates it needs to wait for some period of time
     /// before progress can be made.
@@ -444,20 +444,20 @@ impl ExecutorState {
         span.in_scope(|| {
             if self.has_active_tasks() {
                 tracing::debug!("Still have active tasks");
-                return ProgressIndicator::CanProgress;
+                return ProgressIndicator::CanProgress(None);
             }
 
             match self.schedule_next() {
                 ScheduleOutcome::GlobalTaskAcquired => {
                     tracing::debug!("Successfully acquired new tasks for processing");
-                    ProgressIndicator::CanProgress
+                    ProgressIndicator::CanProgress(None)
                 }
                 ScheduleOutcome::NoTaskRunningOrAcquired => {
                     if self.has_sleeping_tasks() {
                         tracing::debug!(
                             "No new tasks, but we have sleeping tasks, so we can make progress"
                         );
-                        return ProgressIndicator::CanProgress;
+                        return ProgressIndicator::CanProgress(None);
                     }
 
                     tracing::debug!("No new tasks, no need to perform work");
@@ -478,7 +478,7 @@ impl ExecutorState {
         let span = tracing::trace_span!("ThreadPool::schedule_and_do_work");
         span.in_scope(|| {
             match self.request_global_task() {
-                ProgressIndicator::CanProgress => {}
+                ProgressIndicator::CanProgress(_) => {}
                 ProgressIndicator::NoWork => {
                     return ProgressIndicator::NoWork;
                 }
@@ -495,10 +495,10 @@ impl ExecutorState {
             });
 
             match self.do_work(engine) {
-                ProgressIndicator::CanProgress => {
+                ProgressIndicator::CanProgress(state) => {
                     tracing::debug!("Received CanProgress indicator from task");
                     // TODO: I feel like I am missing something here
-                    ProgressIndicator::CanProgress
+                    ProgressIndicator::CanProgress(state)
                 }
                 ProgressIndicator::NoWork => {
                     tracing::debug!("Received NoWork indicator from task");
@@ -515,7 +515,7 @@ impl ExecutorState {
                     tracing::debug!("Received SpinWait({:?}) indicator from task", &duration);
 
                     if self.has_inflight_task() {
-                        return ProgressIndicator::CanProgress;
+                        return ProgressIndicator::CanProgress(None);
                     }
 
                     // empty the current task marker
@@ -529,7 +529,7 @@ impl ExecutorState {
                             tracing::debug!(
                                 "Global task indicate we can make progress, possible acquired task"
                             );
-                            ProgressIndicator::CanProgress
+                            ProgressIndicator::CanProgress(None)
                         }
                         ScheduleOutcome::NoTaskRunningOrAcquired => {
                             tracing::debug!("No new task from global queue");
@@ -553,7 +553,7 @@ impl ExecutorState {
         if handle.is_empty() {
             tracing::debug!("Task queue is empty: {:?}", handle.is_empty());
             if has_sleeping_tasks {
-                return Some(ProgressIndicator::CanProgress);
+                return Some(ProgressIndicator::CanProgress(None));
             }
             return Some(ProgressIndicator::NoWork);
         }
@@ -578,7 +578,7 @@ impl ExecutorState {
             if let Some(inner) = self.check_processing_queue() {
                 match inner {
                     ProgressIndicator::NoWork => return ProgressIndicator::NoWork,
-                    ProgressIndicator::CanProgress => return ProgressIndicator::CanProgress,
+                    ProgressIndicator::CanProgress(inner) => return ProgressIndicator::CanProgress(inner),
                     ProgressIndicator::SpinWait(_) => unreachable!("check_processing_queue should never reach here"),
                 }
             }
@@ -587,7 +587,7 @@ impl ExecutorState {
             let remaining_tasks = self.processing.borrow().len();
 
             if self.is_packed(&top_entry) {
-                return ProgressIndicator::CanProgress;
+                return ProgressIndicator::CanProgress(None);
             }
 
             self.current_task.borrow_mut().replace(top_entry);
@@ -617,7 +617,7 @@ impl ExecutorState {
                                 if remaining_tasks == 0 {
                                     ProgressIndicator::NoWork
                                 } else {
-                                    ProgressIndicator::CanProgress
+                                    ProgressIndicator::CanProgress(None)
                                 }
                             }
                             State::SpawnFinished => {
@@ -652,7 +652,7 @@ impl ExecutorState {
                                 }
 
                                 // no need to push entry since it must have
-                                ProgressIndicator::CanProgress
+                                ProgressIndicator::CanProgress(None)
                             }
                             State::Done => {
                                 tracing::debug!(
@@ -675,7 +675,7 @@ impl ExecutorState {
                                 if remaining_tasks == 0 {
                                     ProgressIndicator::NoWork
                                 } else {
-                                    ProgressIndicator::CanProgress
+                                    ProgressIndicator::CanProgress(None)
                                 }
                             }
                             State::Progressed => {
@@ -685,7 +685,7 @@ impl ExecutorState {
 
                                 // push entry back into processing mut
                                 self.processing.borrow_mut().push_front(top_entry);
-                                ProgressIndicator::CanProgress
+                                ProgressIndicator::CanProgress(None)
                             }
                             State::Pending(duration) => {
                                 tracing::debug!(
@@ -716,7 +716,7 @@ impl ExecutorState {
                                     ));
 
                                     if !self.processing.borrow().is_empty() {
-                                        return ProgressIndicator::CanProgress;
+                                        return ProgressIndicator::CanProgress(None);
                                     }
 
                                     ProgressIndicator::SpinWait(inner)
@@ -726,7 +726,7 @@ impl ExecutorState {
 
                                     // push back to top
                                     self.processing.borrow_mut().push_front(top_entry);
-                                    ProgressIndicator::CanProgress
+                                    ProgressIndicator::CanProgress(None)
                                 };
 
                                 tracing::debug!("Sending out state: {:?}", &final_state);
@@ -743,7 +743,7 @@ impl ExecutorState {
                                 // add back task into queue
                                 self.processing.borrow_mut().push_back(top_entry);
 
-                                ProgressIndicator::CanProgress
+                                ProgressIndicator::CanProgress(None)
                             }
                         }
                     } else {
@@ -755,7 +755,7 @@ impl ExecutorState {
                         if remaining_tasks == 0 {
                             ProgressIndicator::NoWork
                         } else {
-                            ProgressIndicator::CanProgress
+                            ProgressIndicator::CanProgress(None)
                         }
                     }
                 }
@@ -1536,7 +1536,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                     ProgressIndicator::SpinWait(duration) => {
                         self.yielder.yield_for(duration);
                     }
-                    ProgressIndicator::CanProgress => {}
+                    ProgressIndicator::CanProgress(_) => {}
                 }
             }
             self.yielder.yield_process();
@@ -1575,7 +1575,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                 }
 
                 match self.run_once() {
-                    ProgressIndicator::CanProgress => continue,
+                    ProgressIndicator::CanProgress(_) => continue,
                     ProgressIndicator::NoWork => {
                         if kill_signal.probe() {
                             tracing::debug!(

@@ -15,10 +15,12 @@ use foundation_core::wire::simple_http::client::{
 };
 use foundation_core::wire::simple_http::{IncomingResponseParts, SimpleBody};
 use foundation_testing::http::{HttpResponse, TestHttpServer};
+use tracing_test::traced_test;
 
 /// WHY: Verify we can read response body using introduction() + body() pattern
 /// WHAT: Tests atomic coordination flow with real HTTP server
 #[test]
+#[traced_test]
 fn test_body_reading_with_introduction_and_body() {
     // Initialize valtron pool with default settings
     valtron::initialize_pool(0, None);
@@ -38,6 +40,8 @@ fn test_body_reading_with_introduction_and_body() {
         ClientConfig::default(),
         None,
     );
+
+    tracing::info!("Get the introduction of the request");
 
     // Step 1: Get introduction and headers
     let (intro, headers) = request.introduction().expect("Failed to get introduction");
@@ -152,6 +156,7 @@ fn test_parts_iterator_reads_complete_response() {
 /// WHY: Verify send() method returns complete response with body
 /// WHAT: Tests one-shot send() convenience method
 #[test]
+#[traced_test]
 fn test_send_returns_complete_response_with_body() {
     // Initialize valtron pool
     valtron::initialize_pool(0, None);
@@ -177,7 +182,7 @@ fn test_send_returns_complete_response_with_body() {
     );
 
     // Use send() to get complete response
-    let response = request.send().expect("Failed to send request");
+    let mut response = request.send().expect("Failed to send request");
 
     println!("Response status: {:?}", response.get_status());
     assert!(matches!(
@@ -186,14 +191,14 @@ fn test_send_returns_complete_response_with_body() {
     ));
 
     // Verify body
-    match response.get_body() {
+    match response.get_body_mut() {
         SimpleBody::Text(text) => {
-            println!("Response body: {}", text);
+            println!("Response body: {text:}");
             assert_eq!(text, test_body);
         }
         SimpleBody::Bytes(data) => {
-            let body_str = String::from_utf8_lossy(data);
-            println!("Response body (bytes): {}", body_str);
+            let body_str = String::from_utf8_lossy(&data);
+            println!("Response body (bytes): {body_str:}");
             assert_eq!(body_str, test_body);
         }
         SimpleBody::None => {

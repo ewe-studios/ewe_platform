@@ -15,7 +15,7 @@
 use crate::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
 use crate::synca::mpp::RecvIterator;
-use crate::valtron::{ReadyValues, TaskStatus};
+use crate::valtron::{self, ReadyValues, TaskStatus};
 use crate::wire::simple_http::client::{
     executor::execute_task, ClientConfig, ClientRequestBuilder, ConnectionPool, DnsResolver,
     HttpClientAction, HttpClientError, HttpRequestState, HttpRequestTask, HttpTaskReady,
@@ -26,6 +26,8 @@ use crate::wire::simple_http::{
     SimpleResponse,
 };
 use std::sync::Arc;
+
+const DEFAULT_BODY_WAIT_DURATION: time::Duration = time::Duration::from_nanos(500);
 
 /// Internal state for progressive request reading.
 ///
@@ -54,6 +56,25 @@ enum ClientRequestState<R: DnsResolver + 'static> {
     },
     /// Request completed (terminal state)
     Completed,
+}
+
+impl<R: DnsResolver + 'static> core::fmt::Debug for ClientRequestState<R> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::NotStarted => write!(f, "NotStarted"),
+            Self::Completed => write!(f, "Completed"),
+            Self::Executing {
+                iter,
+                intro,
+                headers,
+                stream,
+            } => f
+                .debug_struct("Executing")
+                .field("intro", intro)
+                .field("headers", headers)
+                .finish(),
+        }
+    }
 }
 
 /// User-facing HTTP request execution handle.
@@ -137,7 +158,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// # Returns
     ///
     /// A new `ClientRequest` ready to execute.
-    pub(crate) fn new(
+    pub fn new(
         prepared: PreparedRequest,
         resolver: R,
         config: ClientConfig,
@@ -187,20 +208,29 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// let (intro, headers) = request.introduction()?;
     /// println!("Status: {}", intro.status);
     /// ```
+    #[tracing::instrument(skip(self))]
     pub fn introduction(&mut self) -> Result<(ResponseIntro, SimpleHeaders), HttpClientError> {
+        println!("Get current state");
+
         // Take state to check current phase
         let state = self
             .task_state
             .take()
             .ok_or_else(|| HttpClientError::Other("Request state missing".into()))?;
 
+        println!("Running introduction process: {:?}", &state);
+
         match state {
             ClientRequestState::NotStarted => {
+                println!("Entering not started state, starting execution");
+                // tracing::info!("Entering not started state, starting execution");
                 // First call - need to start execution
                 self.start_execution()?;
 
                 // Recursively call to process Executing state
                 self.introduction()
+
+                // Err(HttpClientError::Other("bad state".into()))
             }
             ClientRequestState::Executing {
                 mut iter,
@@ -208,6 +238,8 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                 headers,
                 stream,
             } => {
+                tracing::info!("Entering executing state");
+
                 // Check if we already have intro and headers
                 if let (Some(intro_val), Some(headers_val)) = (&intro, &headers) {
                     self.task_state = Some(ClientRequestState::Executing {
@@ -219,16 +251,16 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                     return Ok((intro_val.clone(), headers_val.clone()));
                 }
 
+                println!("Try to get the headers");
+
                 // Need to collect intro and/or headers from iterator
                 let mut collected_intro = intro;
                 let mut collected_headers = headers;
 
                 // Drive executor
-                #[cfg(any(target_arch = "wasm32", not(feature = "multi")))]
-                {
-                    use crate::valtron::single;
-                    single::run_until_complete();
-                }
+                valtron::run_until_complete();
+
+                println!("completed execution");
 
                 // Collect from ReadyValues iterator
                 for ready_item in ReadyValues::new(&mut iter) {
@@ -241,6 +273,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                     }
                 }
 
+                println!("prepapre url and port");
                 // Extract host and port from URL for pool return
                 self.host = self.prepared_request.url.host_str().map(|s| s.to_string());
                 self.port = Some(self.prepared_request.url.port().unwrap_or(80));
@@ -268,6 +301,8 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                 Ok((intro, headers))
             }
             ClientRequestState::Completed => {
+                tracing::debug!("Entering completed state");
+
                 self.task_state = Some(ClientRequestState::Completed);
                 Err(HttpClientError::Other("Request already completed".into()))
             }
@@ -302,6 +337,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// let (intro, headers) = request.introduction()?;
     /// let body = request.body()?;
     /// ```
+    #[tracing::instrument(skip(self))]
     pub fn body(&mut self) -> Result<SimpleBody, HttpClientError> {
         // Signal task that we want the body
         if let Some(control) = &self.control {
@@ -320,18 +356,17 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
 
         match state {
             ClientRequestState::NotStarted => {
+                tracing::info!("Request in not started state");
                 self.task_state = Some(ClientRequestState::NotStarted);
                 Err(HttpClientError::Other(
                     "Must call introduction() before body()".into(),
                 ))
             }
             ClientRequestState::Executing { mut iter, .. } => {
+                tracing::info!("Starting executing state");
+
                 // Drive executor to get stream ownership
-                #[cfg(any(target_arch = "wasm32", not(feature = "multi")))]
-                {
-                    use crate::valtron::single;
-                    single::run_until_complete();
-                }
+                crate::valtron::run_until_complete();
 
                 // Get stream from task
                 for ready_item in ReadyValues::new(&mut iter) {
@@ -527,6 +562,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     ///
     /// HOW: Takes PreparedRequest, creates task with resolver and config,
     /// spawns using platform-appropriate executor, stores iterator in state.
+    #[tracing::instrument(skip(self))]
     fn start_execution(&mut self) -> Result<(), HttpClientError> {
         // Take the prepared request to avoid cloning
         let request = std::mem::replace(
@@ -623,6 +659,9 @@ impl<R: DnsResolver + 'static> Iterator for PartsIterator<R> {
                         return Some(Ok(IncomingResponseParts::Headers(headers)));
                     }
 
+                    // Drive executor (platform-aware)
+                    crate::valtron::run_once();
+
                     // Read next part from reader
                     match reader.next() {
                         Some(Ok(part)) => return Some(Ok(part)),
@@ -636,11 +675,7 @@ impl<R: DnsResolver + 'static> Iterator for PartsIterator<R> {
                 }
 
                 // Drive executor (platform-aware)
-                #[cfg(any(target_arch = "wasm32", not(feature = "multi")))]
-                {
-                    use crate::valtron::single;
-                    single::run_once();
-                }
+                valtron::run_once();
 
                 // Get next ready value from task
                 for ready_item in ReadyValues::new(&mut inner.iter).take(1) {

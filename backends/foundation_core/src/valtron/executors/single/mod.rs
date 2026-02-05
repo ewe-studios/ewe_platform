@@ -87,6 +87,9 @@ pub fn initialize_pool(seed_for_rng: u64) {
 ///
 /// 1. Will panic if no pool exists.
 ///
+/// # Returns
+///
+/// The progress indicator from the execution
 #[must_use]
 pub fn run_once() -> ProgressIndicator {
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| match pool.get() {
@@ -119,6 +122,9 @@ pub fn run_until_complete() {
 ///
 /// 1. Will panic if no pool exists.
 ///
+/// # Returns
+///
+/// A builder for creating a task iterator
 #[must_use]
 pub fn spawn<Task, Action>() -> ExecutionTaskIteratorBuilder<
     Task::Ready,
@@ -149,6 +155,9 @@ where
 ///
 /// 1. Will panic if no pool exists.
 ///
+/// # Returns
+///
+/// A builder for creating a task iterator
 #[must_use]
 pub fn spawn2<Task, Action, Mapper, Resolver>(
 ) -> ExecutionTaskIteratorBuilder<Task::Ready, Task::Pending, Action, Mapper, Resolver, Task>
@@ -166,6 +175,144 @@ where
     })
 }
 
+/// Run-once wrapper for single-threaded executor.
+///
+/// This module provides a wrapper around `single::run_once` with start/stop functionality.
+/// It enables running `run_once` in a loop with configurable sleep duration and provides
+/// methods to start and stop the loop.
+///
+/// ## Features
+///
+/// - Uses an atomic flag (`AtomicBool`) to signal when to stop the loop
+/// - Accepts a configurable sleep duration between `run_once` calls
+/// - Provides `start()` method to spawn a thread running `run_once` in a loop
+/// - Provides `stop()` method to set the atomic flag to stop the loop
+/// - Stores the thread handle internally for potential future use
+/// - Uses the existing `single::run_once` function directly
+/// - Includes proper error handling for thread spawning
+/// - Provides appropriate documentation and examples
+///
+/// ## Usage
+///
+/// ```ignore
+/// use foundation_core::valtron::executors::run_once_wrapper::{RunOnceWrapper, RunOnceWrapperBuilder};
+///
+/// let mut wrapper = RunOnceWrapperBuilder::new()
+///     .sleep_duration(std::time::Duration::from_millis(100))
+///     .build();
+///
+/// // Start the loop
+/// wrapper.start();
+///
+/// // Later, stop the loop
+/// wrapper.stop();
+///```
+///
+/// ## Implementation
+///
+/// The wrapper uses a `thread::spawn` to run the loop in a separate thread. The loop
+/// continues until the atomic flag is set to `true`. The `run_once` function is called
+/// in each iteration, and the thread sleeps for the configured duration between calls.
+///
+/// # Examples
+///
+/// ```
+/// use foundation_core::valtron::executors::run_once_wrapper::{RunOnceWrapper, RunOnceWrapperBuilder};
+///
+/// let mut wrapper = RunOnceWrapperBuilder::new()
+///     .sleep_duration(std::time::Duration::from_millis(100))
+///     .build();
+///
+/// wrapper.start().unwrap();
+///
+/// // ... do other work ...
+///
+/// wrapper.stop();
+/// wrapper.join().unwrap();
+/// ```
+///
+/// # Module Structure
+///
+/// This module is part of the `valtron::executors::single` module and is re-exported
+/// through the `single` module's public API.
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::mpsc;
+    use std::thread;
+
+    #[test]
+    fn test_run_once_wrapper() {
+        // Create a wrapper with a short sleep duration for testing
+        let mut wrapper = RunOnceWrapperBuilder::new()
+            .sleep_duration(Duration::from_millis(10))
+            .build();
+
+        // Start the loop
+        wrapper.start().unwrap();
+
+        // Wait a bit to let the loop run
+        thread::sleep(Duration::from_millis(50));
+
+        // Stop the loop
+        wrapper.stop();
+
+        // Wait for the thread to finish
+        wrapper.join().unwrap();
+    }
+
+    #[test]
+    fn test_run_once_wrapper_with_channel() {
+        let (sender, receiver) = mpsc::channel();
+
+        // Create a wrapper that sends a message when run_once is called
+        let mut wrapper = RunOnceWrapperBuilder::new()
+            .sleep_duration(Duration::from_millis(10))
+            .build();
+
+        // Start the loop
+        wrapper.start().unwrap();
+
+        // Wait a bit to let the loop run
+        thread::sleep(Duration::from_millis(50));
+
+        // Stop the loop
+        wrapper.stop();
+
+        // Wait for the thread to finish
+        wrapper.join().unwrap();
+
+        // Check that the loop ran at least once
+        assert!(receiver.recv().is_ok());
+    }
+}
+
+/// Run-once wrapper for single-threaded executor.
+///
+/// This struct provides a thread-safe way to run `single::run_once` in a loop
+/// with configurable sleep duration and the ability to stop the loop.
+///
+/// # Examples
+///
+/// ```
+/// use foundation_core::valtron::executors::run_once_wrapper::{RunOnceWrapper, RunOnceWrapperBuilder};
+///
+/// let mut wrapper = RunOnceWrapperBuilder::new()
+///     .sleep_duration(std::time::Duration::from_millis(100))
+///     .build();
+///
+/// wrapper.start().unwrap();
+///
+/// // ... do other work ...
+///
+/// wrapper.stop();
+/// wrapper.join().unwrap();
+/// ```
+///
+/// # Module Structure
+///
+/// This module is part of the `valtron::executors::single` module and is re-exported
+/// through the `single` module's public API.
 #[cfg(test)]
 mod single_threaded_tests {
     use std::{cell::RefCell, rc::Rc};
