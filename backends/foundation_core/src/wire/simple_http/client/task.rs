@@ -44,7 +44,7 @@ const STATE_COMPLETED: u8 = 3;
 /// WHAT: Arc-wrapped atomic state that both task and ClientRequest can access.
 ///
 /// HOW: Clone-able handle with atomic operations for state changes.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct RequestControl {
     state: Arc<AtomicU8>,
 }
@@ -242,6 +242,10 @@ where
     type Spawner = HttpClientAction<R>;
 
     fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        println!(
+            "Iterator through HttpRequestTask with state: {:?}",
+            &self.state
+        );
         match self.state {
             HttpRequestState::Init => {
                 // Validate request exists and check for HTTPS (not supported in Phase 1)
@@ -323,6 +327,12 @@ where
                                 return None;
                             }
 
+                            if let Err(e) = raw_stream.flush() {
+                                tracing::error!("Failed to write request: {}", e);
+                                self.state = HttpRequestState::Error;
+                                return None;
+                            }
+
                             tracing::debug!("Request sent: {} bytes", request_string.len());
 
                             // Transfer ownership of the stream
@@ -359,6 +369,8 @@ where
                     SimpleHttpBody,
                 );
 
+                tracing::debug!("Read intro from stream reader");
+
                 // Read intro
                 let intro = match reader.next() {
                     Some(Ok(IncomingResponseParts::Intro(status, proto, reason))) => {
@@ -369,7 +381,8 @@ where
                             reason,
                         }
                     }
-                    Some(Ok(_other)) => {
+                    Some(Ok(other)) => {
+                        tracing::debug!("Read other response: {:?}", &other);
                         // Not Intro yet, keep waiting
                         return Some(TaskStatus::Pending(HttpRequestState::ReceivingIntro));
                     }
@@ -384,6 +397,8 @@ where
                         return None;
                     }
                 };
+
+                tracing::debug!("Read headers from stream reader");
 
                 // Read headers
                 let headers = match reader.next() {
@@ -422,7 +437,7 @@ where
                 match self.control.get_state() {
                     STATE_INTRO_READY => {
                         // Still waiting - delay to yield control
-                        Some(TaskStatus::Delayed(Duration::from_nanos(10)))
+                        Some(TaskStatus::Delayed(Duration::from_nanos(500)))
                     }
                     STATE_BODY_REQUESTED => {
                         // User wants body - yield stream ownership

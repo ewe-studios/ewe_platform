@@ -1103,7 +1103,7 @@ pub mod host_runtime {
 
         // interval function registration with the host.
 
-        pub fn unregister_internal<F>(id: InternalPointer) {
+        pub fn unregister_interval<F>(id: InternalPointer) {
             unsafe {
                 host_runtime::web::unschedule_interval(id.into_inner());
             };

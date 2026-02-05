@@ -10,14 +10,15 @@ description = "central crate for all foundation crates for the ewe-platform proj
 keywords = ["foundations_core", "ewe-platform-core"]
 
 [dependencies]
-futures-core = { version = "0.3", default-features = false }
 
 # -- Workspace dependencies
 
 foundation_wasm = {workspace = true }
 foundation_nostd = {workspace = true }
 
+
 # -- Other dependencies
+futures-core = { version = "0.3", default-features = false }
 derive_more = { version = "2.0", features = ["from", "debug", "error"] }
 serde = { version = "1", features = ["derive"] }
 concurrent-queue = { version = "2.5.0" }

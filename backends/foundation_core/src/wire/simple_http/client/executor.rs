@@ -72,6 +72,7 @@ use crate::valtron::multi;
 /// // Threads run automatically - just consume iterator
 /// let ready_values = ReadyValues::new(iter);
 /// ```
+#[tracing::instrument(skip(task))]
 pub fn execute_task<T>(
     task: T,
 ) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>

@@ -280,18 +280,6 @@ mod tests {
             fn _assert_is_execution_action<T: ExecutionAction>() {}
             _assert_is_execution_action::<TlsUpgradeAction>();
         }
-
-        /// WHY: Verify TlsUpgradeAction fields use Option::take() pattern
-        /// WHAT: Tests the idempotent design pattern at compile time
-        #[test]
-        fn test_tls_upgrade_action_uses_option_pattern() {
-            // This test verifies the pattern exists in the type structure
-            // The actual runtime test would require a real connection which
-            // we can't easily mock in this context
-
-            // Compile-time verification that the pattern is correct
-            // Real integration tests will verify the runtime behavior
-        }
     }
 
     // ========================================================================

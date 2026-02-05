@@ -203,7 +203,8 @@ impl TestHttpServer {
 
             while running_clone.load(Ordering::Relaxed) {
                 match listener.accept() {
-                    Ok((stream, _)) => {
+                    Ok((stream, sock_addr)) => {
+                        println!("Got a client connection: {:?}", sock_addr);
                         let handler = Arc::clone(&handler_clone);
                         // Handle each connection in separate thread
                         thread::spawn(move || {
@@ -276,9 +277,13 @@ impl TestHttpServer {
         // Parse minimal HTTP request (method, path, version)
         let mut reader = BufReader::new(stream.try_clone()?);
         let mut request_line = String::new();
+
+        println!("Read a line on connection!");
+
         reader.read_line(&mut request_line)?;
 
         let parts: Vec<&str> = request_line.trim().split_whitespace().collect();
+        println!("Got parts: {:?}", &parts);
         if parts.len() < 3 {
             return Err("Invalid HTTP request line".into());
         }
@@ -302,6 +307,7 @@ impl TestHttpServer {
             }
         }
 
+        println!("Got request");
         let request = HttpRequest {
             method,
             path,
@@ -316,9 +322,11 @@ impl TestHttpServer {
         };
 
         // Send response
+        println!("render response");
         let rendered = response.render();
         stream.write_all(&rendered)?;
         stream.flush()?;
+        println!("flush response");
 
         Ok(())
     }

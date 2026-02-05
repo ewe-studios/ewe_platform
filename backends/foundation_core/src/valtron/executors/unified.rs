@@ -7,7 +7,7 @@
 //! ## Selection Logic
 //!
 //! - **WASM**: Always uses `single` executor (no threading support)
-//! - **Native without `multi` feature**: Uses `single` executor  
+//! - **Native without `multi` feature**: Uses `single` executor
 //! - **Native with `multi` feature**: Uses `multi` executor
 
 use crate::valtron::{single, ExecutionAction, TaskIterator, TaskStatus};
@@ -17,7 +17,8 @@ use super::multi;
 
 use crate::{synca::mpp::RecvIterator, valtron::GenericResult};
 
-/// [`initialize_pool`]
+/// [`initialize_pool`] provides a unified method to initialize the underlying
+/// thread pool for both the single and multi-threaded instances.
 pub fn initialize_pool(seed_for_rng: u64, _user_thread_num: Option<usize>) {
     #[cfg(target_arch = "wasm32")]
     {
@@ -38,6 +39,47 @@ pub fn initialize_pool(seed_for_rng: u64, _user_thread_num: Option<usize>) {
     }
 }
 
+/// [`run_until_complete`] provides a unified method to attempt to execute the run_until_complete.
+/// in a non cfg way by encapsulating that call and configuration into this method.
+///
+/// This really only apply for single threaded and wasm context.
+pub fn run_until_complete() {
+    #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
+    {
+        println!("run completion");
+        use crate::valtron::single;
+        single::run_until_complete();
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        println!("run completion");
+        use crate::valtron::single;
+        single::run_until_complete();
+    }
+}
+
+/// [`run_once`] provides a unified method to attempt to execute the run_once.
+/// in a non cfg way by encapsulating that call and configuration into this method.
+///
+/// This really only apply for single threaded and wasm context.
+pub fn run_once() {
+    #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
+    {
+        use crate::valtron::single;
+        single::run_once();
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        use crate::valtron::single;
+        single::run_once();
+    }
+}
+
+// pub type RecvIter<T> = RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>;
+// pub type RecvIterResult<T> = GenericResult<RecvIter<T>>;
+
 /// Execute a task using the appropriate executor for the current platform/features.
 ///
 /// ## Platform Selection
@@ -57,6 +99,7 @@ pub fn initialize_pool(seed_for_rng: u64, _user_thread_num: Option<usize>) {
 ///
 /// WHY: Provides single API that works across all platforms/configurations
 /// WHAT: Auto-selects executor based on compile-time configuration
+#[allow(clippy::type_complexity)]
 pub fn execute<T>(
     task: T,
 ) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
@@ -89,6 +132,7 @@ where
 ///
 /// WHY: WASM and minimal builds need single-threaded execution
 /// WHAT: Schedules task, runs until complete, returns first Ready value
+#[allow(clippy::type_complexity)]
 #[allow(dead_code)]
 fn execute_single_complete<T>(
     task: T,
@@ -115,6 +159,7 @@ where
 ///
 /// WHY: WASM and minimal builds need single-threaded execution
 /// WHAT: Schedules task, runs until complete, returns first Ready value
+#[allow(clippy::type_complexity)]
 fn execute_single<T>(
     task: T,
 ) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
