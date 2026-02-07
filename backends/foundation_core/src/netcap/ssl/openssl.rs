@@ -59,6 +59,13 @@ impl Write for OpenSslStream {
 /// An OpenSSL stream which has been split into two mutually exclusive streams (e.g. for read / write)
 pub struct SplitOpenSslStream(Arc<Mutex<OpenSslStream>>);
 
+impl core::fmt::Debug for SplitOpenSslStream {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("SplitOpenSslStream(Arc<Mutex<OpenSslStream>>)")
+            .finish()
+    }
+}
+
 impl SplitOpenSslStream {
     pub fn read_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
         let guard = self.0.lock().map_err(|e| {
@@ -199,10 +206,21 @@ impl OpenSslAcceptor {
     }
 }
 
+#[must_use]
+pub fn default_ssl_connector(
+) -> Result<Arc<openssl::ssl::SslConnector>, Box<dyn Error + Send + Sync + 'static>> {
+    let connector = openssl::ssl::SslConnector::builder(openssl::ssl::SslMethod::tls())?.build();
+    Ok(Arc::new(connector))
+}
+
 #[derive(Clone)]
 pub struct OpenSslConnector(Arc<openssl::ssl::SslConnector>);
 
 impl OpenSslConnector {
+    pub fn new() -> Self {
+        Self(default_ssl_connector().expect("should get ssl connector successfully"))
+    }
+
     pub fn create(endpoint: &Endpoint<Arc<openssl::ssl::SslConnector>>) -> Self {
         match &endpoint {
             Endpoint::WithIdentity(_, identity) => {
@@ -210,6 +228,13 @@ impl OpenSslConnector {
             }
             _ => unreachable!("You generally won't call this method with Endpoint::NoIdentity since its left to you to generate")
         }
+    }
+
+    pub fn client_tls_from_endpoint(
+        endpoint: &Endpoint<Arc<openssl::ssl::SslConnector>>,
+    ) -> Result<(SplitOpenSslStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
+        let connector = Self::create(endpoint);
+        connector.from_endpoint(endpoint)
     }
 
     pub fn from_tcp_stream(

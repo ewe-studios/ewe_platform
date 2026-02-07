@@ -172,6 +172,11 @@ impl NativeTlsAcceptor {
 pub struct NativeTlsConnector(Arc<native_tls::TlsConnector>);
 
 impl NativeTlsConnector {
+    pub fn new() -> Self {
+        let connector = TlsConnector::new().expect("should generate tls connector");
+        Self(std::sync::Arc::new(connector))
+    }
+
     pub fn create(endpoint: &Endpoint<Arc<native_tls::TlsConnector>>) -> Self {
         match &endpoint {
             Endpoint::WithIdentity(_config, identity) => {
@@ -179,6 +184,13 @@ impl NativeTlsConnector {
             }
             _ => unreachable!("You generally won't call this method with Endpoint::NoIdentity since its left to you to generate")
         }
+    }
+
+    pub fn client_tls_from_endpoint(
+        endpoint: &Endpoint<Arc<native_tls::TlsConnector>>,
+    ) -> Result<(NativeTlsStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
+        let connector = Self::create(endpoint);
+        connector.from_endpoint(endpoint)
     }
 
     pub fn from_tcp_stream(

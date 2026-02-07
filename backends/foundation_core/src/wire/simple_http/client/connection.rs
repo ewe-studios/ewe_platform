@@ -8,14 +8,7 @@ use crate::wire::simple_http::client::errors::HttpClientError;
 use crate::wire::simple_http::url::Uri;
 use std::time::Duration;
 
-#[cfg(feature = "ssl-rustls")]
-use crate::netcap::ssl::rustls::{default_client_config, RustlsConnector};
-
-#[cfg(feature = "ssl-openssl")]
-use crate::netcap::ssl::openssl::OpensslConnector;
-
-#[cfg(feature = "ssl-native-tls")]
-use crate::netcap::ssl::native_tls::NativeTlsConnector;
+use crate::netcap::ssl::SSLConnector;
 
 // Re-export Uri as ParsedUrl for backward compatibility
 /// Backward compatibility alias for Uri.
@@ -129,10 +122,13 @@ impl HttpClientConnection {
         )))
     }
 
-    #[cfg(feature = "ssl-rustls")]
+    #[cfg(any(
+        feature = "ssl-rustls",
+        feature = "ssl-openssl",
+        feature = "ssl-native-tls"
+    ))]
     fn upgrade_to_tls(connection: Connection, host: &str) -> Result<Self, HttpClientError> {
-        let connector = RustlsConnector::new();
-
+        let connector = SSLConnector::new();
         let (tls_stream, _addr) = connector
             .from_tcp_stream(host.to_string(), connection)
             .map_err(|e: Box<dyn std::error::Error + Send + Sync>| {
@@ -146,63 +142,13 @@ impl HttpClientConnection {
         Ok(HttpClientConnection { stream })
     }
 
-    #[cfg(all(feature = "ssl-openssl", not(feature = "ssl-rustls")))]
-    fn upgrade_to_tls(connection: Connection, host: &str) -> Result<Self, HttpClientError> {
-        use openssl::ssl::{SslConnector, SslMethod};
-        use std::sync::Arc;
-
-        let ssl_connector = SslConnector::builder(SslMethod::tls())
-            .map_err(|e| HttpClientError::TlsHandshakeFailed(e.to_string()))?
-            .build();
-
-        let connector = OpensslConnector::create(&crate::netcap::Endpoint::WithIdentity(
-            crate::netcap::EndpointConfig::NoTimeout(
-                url::Url::parse(&format!("https://{}:443", host))
-                    .map_err(|e| HttpClientError::TlsHandshakeFailed(e.to_string()))?,
-            ),
-            Arc::new(ssl_connector),
-        ));
-
-        let (tls_stream, _addr) = connector
-            .from_tcp_stream(host.to_string(), connection)
-            .map_err(|e| HttpClientError::TlsHandshakeFailed(e.to_string()))?;
-
-        // Create RawStream from ClientSSLStream
-        let stream = RawStream::from_client_tls(tls_stream)
-            .map_err(|e| HttpClientError::TlsHandshakeFailed(e.to_string()))?;
-
-        Ok(HttpClientConnection { stream })
-    }
-
-    #[cfg(all(
-        feature = "ssl-native-tls",
-        not(feature = "ssl-rustls"),
-        not(feature = "ssl-openssl")
-    ))]
-    fn upgrade_to_tls(connection: Connection, host: &str) -> Result<Self, HttpClientError> {
-        // OPTIONAL BACKEND: native-tls not yet implemented
-        //
-        // For TLS support, use one of these feature flags instead:
-        // - ssl-rustls (recommended, pure Rust)
-        // - ssl-openssl (system OpenSSL)
-        //
-        // native-tls backend is planned but not prioritized.
-        // See: https://github.com/ewe-studios/ewe_platform/issues/[TBD]
-        Err(HttpClientError::TlsHandshakeFailed(
-            "native-tls backend not implemented. Use ssl-rustls or ssl-openssl features instead"
-                .to_string(),
-        ))
-    }
-
     #[cfg(not(any(
         feature = "ssl-rustls",
         feature = "ssl-openssl",
         feature = "ssl-native-tls"
     )))]
-    fn upgrade_to_tls(_connection: Connection, host: &str) -> Result<Self, HttpClientError> {
-        Err(HttpClientError::TlsHandshakeFailed(format!(
-            "HTTPS requested for {host} but no TLS feature enabled"
-        )))
+    fn upgrade_to_tls(_connection: Connection, _host: &str) -> Result<Self, HttpClientError> {
+        Err(HttpClientError::NotSupported)
     }
 
     /// Returns a reference to the underlying stream.

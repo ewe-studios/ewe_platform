@@ -27,8 +27,6 @@ use crate::wire::simple_http::{
 };
 use std::sync::Arc;
 
-const DEFAULT_BODY_WAIT_DURATION: time::Duration = time::Duration::from_nanos(500);
-
 /// Internal state for progressive request reading.
 ///
 /// WHY: ClientRequest supports both progressive reading (introduction, then body)
@@ -64,9 +62,11 @@ impl<R: DnsResolver + 'static> core::fmt::Debug for ClientRequestState<R> {
             Self::NotStarted => write!(f, "NotStarted"),
             Self::Completed => write!(f, "Completed"),
             Self::Executing {
+                #[allow(unused_variables)]
                 iter,
                 intro,
                 headers,
+                #[allow(unused_variables)]
                 stream,
             } => f
                 .debug_struct("Executing")

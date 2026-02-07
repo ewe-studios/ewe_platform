@@ -279,6 +279,13 @@ impl RustlsConnector {
         }
     }
 
+    pub fn client_tls_from_endpoint(
+        endpoint: &Endpoint<Arc<rustls::ClientConfig>>,
+    ) -> Result<(RustTlsClientStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
+        let connector = Self::create(endpoint);
+        connector.from_endpoint(endpoint)
+    }
+
     pub fn from_tcp_stream(
         &self,
         sni: String,

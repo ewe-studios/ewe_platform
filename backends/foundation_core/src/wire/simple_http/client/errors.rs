@@ -70,6 +70,9 @@ impl core::fmt::Display for DnsError {
 /// These errors can occur during HTTP client operations.
 #[derive(From, Debug)]
 pub enum HttpClientError {
+    NotImplemented,
+    NotSupported,
+
     /// DNS resolution error.
     #[from]
     DnsError(DnsError),
@@ -114,6 +117,8 @@ impl From<InvalidUri> for HttpClientError {
 impl core::fmt::Display for HttpClientError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::NotImplemented => write!(f, "Functionality not implemented"),
+            Self::NotSupported => write!(f, "Operation not implemented"),
             Self::DnsError(err) => write!(f, "DNS error: {err}"),
             Self::ConnectionFailed(msg) => write!(f, "Connection failed: {msg}"),
             Self::ConnectionTimeout(msg) => write!(f, "Connection timeout: {msg}"),

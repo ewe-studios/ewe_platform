@@ -10,7 +10,19 @@
 //!
 //! This component is essential for ensuring secure and reliable HTTPS connections.
 
-use crate::netcap::ssl::{OpenSslAcceptor, OpenSslConnector, RustlsAcceptor, RustlsConnector, NativeTlsAcceptor, NativeTlsConnector};
+#[cfg(feature = "ssl-openssl")]
+use crate::netcap::ssl::openssl::{OpenSslAcceptor, OpenSslConnector};
+
+#[cfg(feature = "ssl-native-tls")]
+use crate::netcap::ssl::native_ttls::{NativeTlsAcceptor, NativeTlsConnector};
+
+#[cfg(all(
+    feature = "ssl-rustls",
+    not(feature = "ssl-openssl"),
+    not(feature = "ssl-native-tls")
+))]
+use crate::netcap::ssl::rustls::{RustlsAcceptor, RustlsConnector};
+
 use crate::netcap::{Endpoint, EndpointConfig, SocketAddr};
 use std::error::Error;
 use std::sync::{Arc, Mutex};
@@ -65,7 +77,9 @@ impl std::fmt::Display for TlsVerificationError {
             TlsVerificationError::PrivateKeyError(msg) => write!(f, "Private key error: {}", msg),
             TlsVerificationError::BackendError(msg) => write!(f, "TLS backend error: {}", msg),
             TlsVerificationError::TimeoutError(msg) => write!(f, "Timeout error: {}", msg),
-            TlsVerificationError::InvalidConfigError(msg) => write!(f, "Invalid configuration: {}", msg),
+            TlsVerificationError::InvalidConfigError(msg) => {
+                write!(f, "Invalid configuration: {}", msg)
+            }
         }
     }
 }
@@ -86,7 +100,7 @@ impl TlsVerificationService {
         // Validate configuration
         if config.custom_roots.is_some() && !config.use_default_roots {
             return Err(TlsVerificationError::InvalidConfigError(
-                "Custom roots cannot be used without setting use_default_roots to true".to_string()
+                "Custom roots cannot be used without setting use_default_roots to true".to_string(),
             ));
         }
 
@@ -94,21 +108,39 @@ impl TlsVerificationService {
         let backend = match config.backend {
             TlsBackend::Rustls => {
                 #[cfg(feature = "ssl-rustls")]
-                { TlsBackend::Rustls }
+                {
+                    TlsBackend::Rustls
+                }
                 #[cfg(not(feature = "ssl-rustls"))]
-                { return Err(TlsVerificationError::BackendError("Rustls backend is not available".to_string())); }
+                {
+                    return Err(TlsVerificationError::BackendError(
+                        "Rustls backend is not available".to_string(),
+                    ));
+                }
             }
             TlsBackend::Openssl => {
                 #[cfg(feature = "ssl-openssl")]
-                { TlsBackend::Openssl }
+                {
+                    TlsBackend::Openssl
+                }
                 #[cfg(not(feature = "ssl-openssl"))]
-                { return Err(TlsVerificationError::BackendError("OpenSSL backend is not available".to_string())); }
+                {
+                    return Err(TlsVerificationError::BackendError(
+                        "OpenSSL backend is not available".to_string(),
+                    ));
+                }
             }
             TlsBackend::NativeTls => {
                 #[cfg(feature = "ssl-native-tls")]
-                { TlsBackend::NativeTls }
+                {
+                    TlsBackend::NativeTls
+                }
                 #[cfg(not(feature = "ssl-native-tls"))]
-                { return Err(TlsVerificationError::BackendError("Native TLS backend is not available".to_string())); }
+                {
+                    return Err(TlsVerificationError::BackendError(
+                        "Native TLS backend is not available".to_string(),
+                    ));
+                }
             }
         };
 
@@ -131,27 +163,44 @@ impl TlsVerificationService {
         let endpoint = match &self.backend {
             TlsBackend::Rustls => {
                 let config = if self.config.use_default_roots {
-                    Arc::new(rustls::ClientConfig::builder()
-                        .with_root_certificates(rustls::RootCertStore::empty())
-                        .with_no_client_auth())
+                    Arc::new(
+                        rustls::ClientConfig::builder()
+                            .with_root_certificates(rustls::RootCertStore::empty())
+                            .with_no_client_auth(),
+                    )
                 } else {
-                    Arc::new(rustls::ClientConfig::builder()
-                        .with_root_certificates(rustls::RootCertStore::empty())
-                        .with_no_client_auth())
+                    Arc::new(
+                        rustls::ClientConfig::builder()
+                            .with_root_certificates(rustls::RootCertStore::empty())
+                            .with_no_client_auth(),
+                    )
                 };
                 Endpoint::WithIdentity(EndpointConfig::NoTimeout(test_socket_addr), config)
             }
             TlsBackend::Openssl => {
-                let config = openssl::ssl::SslContext::builder(openssl::ssl::SslMethod::tls()).map_err(|e| {
-                    TlsVerificationError::BackendError(format!("Failed to create OpenSSL context: {}", e))
-                })?;
-                Endpoint::WithIdentity(EndpointConfig::NoTimeout(test_socket_addr), Arc::new(config))
+                let config = openssl::ssl::SslContext::builder(openssl::ssl::SslMethod::tls())
+                    .map_err(|e| {
+                        TlsVerificationError::BackendError(format!(
+                            "Failed to create OpenSSL context: {}",
+                            e
+                        ))
+                    })?;
+                Endpoint::WithIdentity(
+                    EndpointConfig::NoTimeout(test_socket_addr),
+                    Arc::new(config),
+                )
             }
             TlsBackend::NativeTls => {
                 let config = native_tls::TlsConnector::new().map_err(|e| {
-                    TlsVerificationError::BackendError(format!("Failed to create Native TLS connector: {}", e))
+                    TlsVerificationError::BackendError(format!(
+                        "Failed to create Native TLS connector: {}",
+                        e
+                    ))
                 })?;
-                Endpoint::WithIdentity(EndpointConfig::NoTimeout(test_socket_addr), Arc::new(config))
+                Endpoint::WithIdentity(
+                    EndpointConfig::NoTimeout(test_socket_addr),
+                    Arc::new(config),
+                )
             }
         };
 
@@ -161,21 +210,27 @@ impl TlsVerificationService {
                 let connector = RustlsConnector::create(&endpoint);
                 let result = connector.from_endpoint(&endpoint);
                 if result.is_err() {
-                    return Err(TlsVerificationError::BackendError("Failed to establish TLS connection with Rustls backend".to_string()));
+                    return Err(TlsVerificationError::BackendError(
+                        "Failed to establish TLS connection with Rustls backend".to_string(),
+                    ));
                 }
             }
             TlsBackend::Openssl => {
                 let connector = OpenSslConnector::create(&endpoint);
                 let result = connector.from_endpoint(&endpoint);
                 if result.is_err() {
-                    return Err(TlsVerificationError::BackendError("Failed to establish TLS connection with OpenSSL backend".to_string()));
+                    return Err(TlsVerificationError::BackendError(
+                        "Failed to establish TLS connection with OpenSSL backend".to_string(),
+                    ));
                 }
             }
             TlsBackend::NativeTls => {
                 let connector = NativeTlsConnector::create(&endpoint);
                 let result = connector.from_endpoint(&endpoint);
                 if result.is_err() {
-                    return Err(TlsVerificationError::BackendError("Failed to establish TLS connection with Native TLS backend".to_string()));
+                    return Err(TlsVerificationError::BackendError(
+                        "Failed to establish TLS connection with Native TLS backend".to_string(),
+                    ));
                 }
             }
         }
@@ -199,7 +254,9 @@ impl TlsVerificationService {
                     root_store.extend(webpki_roots::TLS_SERVER_ROOTS.iter().cloned());
                     // Verify that we can load the root certificates
                     if root_store.is_empty() {
-                        return Err(TlsVerificationError::BackendError("Failed to load default root certificates".to_string()));
+                        return Err(TlsVerificationError::BackendError(
+                            "Failed to load default root certificates".to_string(),
+                        ));
                     }
                 }
                 TlsBackend::Openssl => {
@@ -217,21 +274,30 @@ impl TlsVerificationService {
         if let Some(certificates) = &self.config.custom_roots {
             match &self.backend {
                 TlsBackend::Rustls => {
-                    let result = rustls::pki_types::CertificateDer::pem_slice_iter(certificates.as_slice()).collect::<Result<Vec<_>, _>>();
+                    let result =
+                        rustls::pki_types::CertificateDer::pem_slice_iter(certificates.as_slice())
+                            .collect::<Result<Vec<_>, _>>();
                     if result.is_err() {
-                        return Err(TlsVerificationError::CertificateError("Failed to parse custom certificates".to_string()));
+                        return Err(TlsVerificationError::CertificateError(
+                            "Failed to parse custom certificates".to_string(),
+                        ));
                     }
                 }
                 TlsBackend::Openssl => {
                     let result = openssl::x509::X509::stack_from_pem(certificates);
                     if result.is_err() {
-                        return Err(TlsVerificationError::CertificateError("Failed to parse custom certificates".to_string()));
+                        return Err(TlsVerificationError::CertificateError(
+                            "Failed to parse custom certificates".to_string(),
+                        ));
                     }
                 }
                 TlsBackend::NativeTls => {
-                    let result = native_tls::Identity::from_pkcs8(certificates, &Zeroizing::new(vec![]));
+                    let result =
+                        native_tls::Identity::from_pkcs8(certificates, &Zeroizing::new(vec![]));
                     if result.is_err() {
-                        return Err(TlsVerificationError::CertificateError("Failed to parse custom certificates".to_string()));
+                        return Err(TlsVerificationError::CertificateError(
+                            "Failed to parse custom certificates".to_string(),
+                        ));
                     }
                 }
             }
@@ -243,19 +309,26 @@ impl TlsVerificationService {
                 TlsBackend::Rustls => {
                     let result = rustls::pki_types::PrivateKeyDer::from_pem_slice(private_key);
                     if result.is_err() {
-                        return Err(TlsVerificationError::PrivateKeyError("Failed to parse private key".to_string()));
+                        return Err(TlsVerificationError::PrivateKeyError(
+                            "Failed to parse private key".to_string(),
+                        ));
                     }
                 }
                 TlsBackend::Openssl => {
                     let result = openssl::pkey::PKey::private_key_from_pem(private_key);
                     if result.is_err() {
-                        return Err(TlsVerificationError::PrivateKeyError("Failed to parse private key".to_string()));
+                        return Err(TlsVerificationError::PrivateKeyError(
+                            "Failed to parse private key".to_string(),
+                        ));
                     }
                 }
                 TlsBackend::NativeTls => {
-                    let result = native_tls::Identity::from_pkcs8(private_key, &Zeroizing::new(vec![]));
+                    let result =
+                        native_tls::Identity::from_pkcs8(private_key, &Zeroizing::new(vec![]));
                     if result.is_err() {
-                        return Err(TlsVerificationError::PrivateKeyError("Failed to parse private key".to_string()));
+                        return Err(TlsVerificationError::PrivateKeyError(
+                            "Failed to parse private key".to_string(),
+                        ));
                     }
                 }
             }
@@ -283,28 +356,44 @@ impl TlsVerificationService {
     /// Creates a new Rustls connector.
     pub fn create_rustls_connector(&self) -> Result<RustlsConnector, TlsVerificationError> {
         let config = if self.config.use_default_roots {
-            Arc::new(rustls::ClientConfig::builder()
-                .with_root_certificates(rustls::RootCertStore::empty())
-                .with_no_client_auth())
+            Arc::new(
+                rustls::ClientConfig::builder()
+                    .with_root_certificates(rustls::RootCertStore::empty())
+                    .with_no_client_auth(),
+            )
         } else {
-            Arc::new(rustls::ClientConfig::builder()
-                .with_root_certificates(rustls::RootCertStore::empty())
-                .with_no_client_auth())
+            Arc::new(
+                rustls::ClientConfig::builder()
+                    .with_root_certificates(rustls::RootCertStore::empty())
+                    .with_no_client_auth(),
+            )
         };
 
         Ok(RustlsConnector::with_config(config))
     }
 
     /// Creates a new Rustls acceptor.
-    pub fn create_rustls_acceptor(&self, certificates: Vec<u8>, private_key: Zeroizing<Vec<u8>>) -> Result<RustlsAcceptor, TlsVerificationError> {
-        let certs_result: Result<Vec<rustls::pki_types::CertificateDer<'static>>, _> = rustls::pki_types::CertificateDer::pem_slice_iter(certificates.as_slice()).collect();
-        let certs = certs_result.map_err(|e| TlsVerificationError::CertificateError(format!("Failed to parse certificates: {}", e)))?;
-        let p_key = rustls::pki_types::PrivateKeyDer::from_pem_slice(private_key.as_slice()).map_err(|e| TlsVerificationError::PrivateKeyError(format!("Failed to parse private key: {}", e)))?;
+    pub fn create_rustls_acceptor(
+        &self,
+        certificates: Vec<u8>,
+        private_key: Zeroizing<Vec<u8>>,
+    ) -> Result<RustlsAcceptor, TlsVerificationError> {
+        let certs_result: Result<Vec<rustls::pki_types::CertificateDer<'static>>, _> =
+            rustls::pki_types::CertificateDer::pem_slice_iter(certificates.as_slice()).collect();
+        let certs = certs_result.map_err(|e| {
+            TlsVerificationError::CertificateError(format!("Failed to parse certificates: {}", e))
+        })?;
+        let p_key = rustls::pki_types::PrivateKeyDer::from_pem_slice(private_key.as_slice())
+            .map_err(|e| {
+                TlsVerificationError::PrivateKeyError(format!("Failed to parse private key: {}", e))
+            })?;
 
         let tls_conf = rustls::ServerConfig::builder()
             .with_no_client_auth()
             .with_single_cert(certs, p_key)
-            .map_err(|e| TlsVerificationError::BackendError(format!("Failed to create server config: {}", e)))?;
+            .map_err(|e| {
+                TlsVerificationError::BackendError(format!("Failed to create server config: {}", e))
+            })?;
 
         Ok(RustlsAcceptor(Arc::new(tls_conf)))
     }
@@ -315,21 +404,47 @@ impl TlsVerificationService {
 impl TlsVerificationService {
     /// Creates a new OpenSSL connector.
     pub fn create_openssl_connector(&self) -> Result<OpenSslConnector, TlsVerificationError> {
-        let config = openssl::ssl::SslContext::builder(openssl::ssl::SslMethod::tls()).map_err(|e| TlsVerificationError::BackendError(format!("Failed to create OpenSSL context: {}", e)))?;
+        let config =
+            openssl::ssl::SslContext::builder(openssl::ssl::SslMethod::tls()).map_err(|e| {
+                TlsVerificationError::BackendError(format!(
+                    "Failed to create OpenSSL context: {}",
+                    e
+                ))
+            })?;
 
         Ok(OpenSslConnector(Arc::new(config)))
     }
 
     /// Creates a new OpenSSL acceptor.
-    pub fn create_openssl_acceptor(&self, certificates: Vec<u8>, private_key: Zeroizing<Vec<u8>>) -> Result<OpenSslAcceptor, TlsVerificationError> {
-        let certificate_chain = openssl::x509::X509::stack_from_pem(&certificates).map_err(|e| TlsVerificationError::CertificateError(format!("Failed to parse certificates: {}", e)))?;
+    pub fn create_openssl_acceptor(
+        &self,
+        certificates: Vec<u8>,
+        private_key: Zeroizing<Vec<u8>>,
+    ) -> Result<OpenSslAcceptor, TlsVerificationError> {
+        let certificate_chain =
+            openssl::x509::X509::stack_from_pem(&certificates).map_err(|e| {
+                TlsVerificationError::CertificateError(format!(
+                    "Failed to parse certificates: {}",
+                    e
+                ))
+            })?;
         if certificate_chain.is_empty() {
-            return Err(TlsVerificationError::CertificateError("Certificate chain is empty".to_string()));
+            return Err(TlsVerificationError::CertificateError(
+                "Certificate chain is empty".to_string(),
+            ));
         }
 
-        let key = openssl::pkey::PKey::private_key_from_pem(&private_key).map_err(|e| TlsVerificationError::PrivateKeyError(format!("Failed to parse private key: {}", e)))?;
+        let key = openssl::pkey::PKey::private_key_from_pem(&private_key).map_err(|e| {
+            TlsVerificationError::PrivateKeyError(format!("Failed to parse private key: {}", e))
+        })?;
 
-        let mut ctx = openssl::ssl::SslContext::builder(openssl::ssl::SslMethod::tls()).map_err(|e| TlsVerificationError::BackendError(format!("Failed to create OpenSSL context: {}", e)))?;
+        let mut ctx =
+            openssl::ssl::SslContext::builder(openssl::ssl::SslMethod::tls()).map_err(|e| {
+                TlsVerificationError::BackendError(format!(
+                    "Failed to create OpenSSL context: {}",
+                    e
+                ))
+            })?;
         ctx.set_cipher_list("DEFAULT")?;
         ctx.set_certificate(&certificate_chain[0])?;
         for chain_cert in certificate_chain.into_iter().skip(1) {
@@ -348,14 +463,26 @@ impl TlsVerificationService {
 impl TlsVerificationService {
     /// Creates a new Native TLS connector.
     pub fn create_native_tls_connector(&self) -> Result<NativeTlsConnector, TlsVerificationError> {
-        let config = native_tls::TlsConnector::new().map_err(|e| TlsVerificationError::BackendError(format!("Failed to create Native TLS connector: {}", e)))?;
+        let config = native_tls::TlsConnector::new().map_err(|e| {
+            TlsVerificationError::BackendError(format!(
+                "Failed to create Native TLS connector: {}",
+                e
+            ))
+        })?;
 
         Ok(NativeTlsConnector(Arc::new(config)))
     }
 
     /// Creates a new Native TLS acceptor.
-    pub fn create_native_tls_acceptor(&self, certificates: Vec<u8>, private_key: Zeroizing<Vec<u8>>) -> Result<NativeTlsAcceptor, TlsVerificationError> {
-        let identity = native_tls::Identity::from_pkcs8(&certificates, &private_key).map_err(|e| TlsVerificationError::CertificateError(format!("Failed to create identity: {}", e)))?;
+    pub fn create_native_tls_acceptor(
+        &self,
+        certificates: Vec<u8>,
+        private_key: Zeroizing<Vec<u8>>,
+    ) -> Result<NativeTlsAcceptor, TlsVerificationError> {
+        let identity =
+            native_tls::Identity::from_pkcs8(&certificates, &private_key).map_err(|e| {
+                TlsVerificationError::CertificateError(format!("Failed to create identity: {}", e))
+            })?;
 
         Ok(NativeTlsAcceptor::from_identity(identity))
     }
@@ -431,7 +558,9 @@ mod tests {
         let result = TlsVerificationService::new(config);
         assert!(result.is_err());
         if let Err(e) = result {
-            assert!(e.to_string().contains("Custom roots cannot be used without setting use_default_roots to true"));
+            assert!(e
+                .to_string()
+                .contains("Custom roots cannot be used without setting use_default_roots to true"));
         }
     }
 
@@ -458,3 +587,4 @@ mod tests {
         }
     }
 }
+
