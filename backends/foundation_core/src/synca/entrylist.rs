@@ -183,7 +183,7 @@ impl<T> EntryList<T> {
 
     /// unpack helps you to re-allocate the provided value
     /// back into the packed entry, if the entry was truly
-    /// packaed then true is returned to validate that
+    /// packed then true is returned to validate that
     /// the entry was indeed found and updated.
     pub fn unpark(&mut self, entry: &Entry, item: T) -> bool {
         match self.find_packed(entry) {

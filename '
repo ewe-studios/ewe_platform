@@ -168,34 +168,19 @@ impl RawStream {
                 not(feature = "ssl-openssl"),
                 not(feature = "ssl-native-tls")
             ))]
-            ClientEndpoint::Tls(endpoint) => {
-                let (connection, addr) =
-                    rustls::RustlsConnector::client_tls_from_endpoint(endpoint)?;
-                let reader = BufferedReader::new(BufferedWriter::new(connection));
-                Ok(RawStream::AsClientTls(reader, addr))
-            }
+            ClientEndpoint::Tls(endpoint) => Self::client_tls_from_endpoint(endpoint),
             #[cfg(all(
                 feature = "ssl-openssl",
                 not(feature = "ssl-rustls"),
                 not(feature = "ssl-native-tls")
             ))]
-            ClientEndpoint::Tls(endpoint) => {
-                let (connection, addr) =
-                    openssl::OpenSslConnector::client_tls_from_endpoint(endpoint)?;
-                let reader = BufferedReader::new(BufferedWriter::new(connection));
-                Ok(RawStream::AsClientTls(reader, addr))
-            }
+            ClientEndpoint::Tls(endpoint) => Self::client_tls_from_endpoint(endpoint),
             #[cfg(all(
                 feature = "ssl-native-tls",
                 not(feature = "ssl-rustls"),
                 not(feature = "ssl-openssl")
             ))]
-            ClientEndpoint::Tls(endpoint) => {
-                let (connection, addr) =
-                    native_ttls::NativeTlsConnector::client_tls_from_endpoint(endpoint)?;
-                let reader = BufferedReader::new(BufferedWriter::new(connection));
-                Ok(RawStream::AsClientTls(reader, addr))
-            }
+            ClientEndpoint::Tls(endpoint) => Self::client_tls_from_endpoint(endpoint),
         }
     }
 
@@ -215,6 +200,47 @@ impl RawStream {
         }?;
 
         Self::from_connection(plain_stream)
+    }
+
+    #[cfg(all(
+        feature = "ssl-rustls",
+        not(feature = "ssl-openssl"),
+        not(feature = "ssl-native-tls")
+    ))]
+    pub fn client_tls_from_endpoint(
+        endpoint: &Endpoint<Arc<rustls::ClientConfig>>,
+    ) -> super::DataStreamResult<Self> {
+        let connector = rustls::RustlsConnector::create(endpoint);
+        let (connection, addr) = connector.from_endpoint(endpoint)?;
+        let reader = BufferedReader::new(BufferedWriter::new(connection));
+        Ok(RawStream::AsClientTls(reader, addr))
+    }
+
+    #[cfg(all(
+        feature = "ssl-openssl",
+        not(feature = "ssl-rustls"),
+        not(feature = "ssl-native-tls")
+    ))]
+    pub fn client_tls_from_endpoint(
+        endpoint: &Endpoint<Arc<openssl::SslConnector>>,
+    ) -> super::DataStreamResult<Self> {
+        let (connection, addr) = openssl::OpenSslConnector::client_tls_from_endpoint(endpoint)?;
+        let reader = BufferedReader::new(BufferedWriter::new(connection));
+        Ok(RawStream::AsClientTls(reader, addr))
+    }
+
+    #[cfg(all(
+        feature = "ssl-native-tls",
+        not(feature = "ssl-rustls"),
+        not(feature = "ssl-openssl")
+    ))]
+    pub fn client_tls_from_endpoint(
+        endpoint: &Endpoint<Arc<native_ttls::TlsConnector>>,
+    ) -> super::DataStreamResult<Self> {
+        let (connection, addr) =
+            native_ttls::NativeTlsConnector::client_tls_from_endpoint(endpoint)?;
+        let reader = BufferedReader::new(BufferedWriter::new(connection));
+        Ok(RawStream::AsClientTls(reader, addr))
     }
 }
 

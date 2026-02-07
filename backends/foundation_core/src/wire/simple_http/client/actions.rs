@@ -52,6 +52,7 @@ where
     /// * `request` - The prepared request for the redirect URL
     /// * `resolver` - DNS resolver instance
     /// * `remaining_redirects` - Number of remaining redirects allowed
+    #[allow(dead_code)]
     pub fn new(request: PreparedRequest, resolver: R, remaining_redirects: u8) -> Self {
         Self {
             request: Some(request),

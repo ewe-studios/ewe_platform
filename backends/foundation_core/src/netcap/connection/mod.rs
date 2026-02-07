@@ -263,11 +263,23 @@ pub enum Connection {
     Tcp(TcpStream),
     #[cfg(unix)]
     Unix(unix_net::UnixStream),
-    #[cfg(feature = "ssl-rustls")]
+    #[cfg(all(
+        feature = "ssl-rustls",
+        not(feature = "ssl-openssl"),
+        not(feature = "ssl-native-tls")
+    ))]
     Tls(crate::netcap::ssl::rustls::RustTlsClientStream),
-    #[cfg(feature = "ssl-openssl")]
+    #[cfg(all(
+        feature = "ssl-openssl",
+        not(feature = "ssl-rustls"),
+        not(feature = "ssl-native-tls")
+    ))]
     Tls(crate::netcap::ssl::openssl::SplitOpenSslStream),
-    #[cfg(feature = "ssl-native-tls")]
+    #[cfg(all(
+        feature = "ssl-native-tls",
+        not(feature = "ssl-rustls"),
+        not(feature = "ssl-openssl")
+    ))]
     Tls(crate::netcap::ssl::native_ttls::NativeTlsStream),
 }
 
@@ -543,21 +555,33 @@ impl From<unix_net::UnixStream> for Connection {
     }
 }
 
-#[cfg(feature = "ssl-rustls")]
+#[cfg(all(
+    feature = "ssl-rustls",
+    not(feature = "ssl-openssl"),
+    not(feature = "ssl-native-tls")
+))]
 impl From<crate::netcap::ssl::rustls::RustTlsClientStream> for Connection {
     fn from(s: crate::netcap::ssl::rustls::RustTlsClientStream) -> Self {
         Self::Tls(s)
     }
 }
 
-#[cfg(feature = "ssl-openssl")]
+#[cfg(all(
+    feature = "ssl-openssl",
+    not(feature = "ssl-rustls"),
+    not(feature = "ssl-native-tls")
+))]
 impl From<crate::netcap::ssl::openssl::SplitOpenSslStream> for Connection {
     fn from(s: crate::netcap::ssl::openssl::SplitOpenSslStream) -> Self {
         Self::Tls(s)
     }
 }
 
-#[cfg(feature = "ssl-native-tls")]
+#[cfg(all(
+    feature = "ssl-native-tls",
+    not(feature = "ssl-rustls"),
+    not(feature = "ssl-openssl")
+))]
 impl From<crate::netcap::ssl::native_ttls::NativeTlsStream> for Connection {
     fn from(s: crate::netcap::ssl::native_ttls::NativeTlsStream) -> Self {
         Self::Tls(s)

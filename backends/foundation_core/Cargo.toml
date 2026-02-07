@@ -75,6 +75,8 @@ ssl-openssl = ["std", "openssl", "zeroize"]
 ssl-rustls = ["std", "rustls", "rustls-pemfile", "webpki-roots", "zeroize"]
 ssl-native-tls = ["std", "native-tls", "native-tls/vendored", "zeroize"]
 ssl = ["ssl-rustls"]
+# ssl = ["ssl-openssl"]
+# ssl = ["ssl-native-tls"]
 
 # This feature switches the no threading runtime where you have
 # specified control over when the Executor actually executes tasks
@@ -88,7 +90,7 @@ nothread_runtime = []
 tokio_runtime = ["dep:tokio"]
 
 # default flags (removed ssl to avoid conflicts - users must explicitly choose TLS backend)
-default = ["standard", "std"]
+default = ["standard", "std", "ssl"]
 
 # Valtron utilities features
 std = ["futures-core/std", "foundation_nostd/std"]

@@ -18,10 +18,7 @@ use crate::netcap::{Connection, RawStream};
 use crate::synca::mpp::Sender;
 use crate::valtron::{NoAction, TaskIterator, TaskStatus};
 
-#[cfg(all(feature = "ssl-openssl", not(feature = "ssl-rustls")))]
-use crate::netcap::OpensslConnector;
-#[cfg(feature = "ssl-rustls")]
-use crate::netcap::RustlsConnector;
+use crate::netcap::ssl::SSLConnector;
 
 /// TLS handshake processing states.
 ///
@@ -56,6 +53,8 @@ pub enum TlsHandshakeState {
 /// Performs actual TLS handshake using netcap connectors. Sends result via channel
 /// on completion or error.
 pub struct TlsHandshakeTask {
+    /// SSL connector
+    connector: SSLConnector,
     /// Current state of the handshake
     state: TlsHandshakeState,
     /// TCP connection to upgrade to TLS
@@ -85,6 +84,7 @@ impl TlsHandshakeTask {
     ) -> Self {
         Self {
             state: TlsHandshakeState::Init,
+            connector: SSLConnector::new(),
             connection: Some(connection),
             sni,
             sender: Some(sender),
@@ -105,68 +105,14 @@ impl TlsHandshakeTask {
             .take()
             .ok_or_else(|| "No connection to upgrade".to_string())?;
 
-        #[cfg(feature = "ssl-rustls")]
-        {
-            self.perform_rustls_handshake(connection)
-        }
-
-        #[cfg(all(feature = "ssl-openssl", not(feature = "ssl-rustls")))]
-        {
-            self.perform_openssl_handshake(connection)
-        }
-
-        #[cfg(all(
-            feature = "ssl-native-tls",
-            not(feature = "ssl-rustls"),
-            not(feature = "ssl-openssl")
-        ))]
-        {
-            Err("native-tls backend not implemented. Use ssl-rustls or ssl-openssl features instead".to_string())
-        }
-
-        #[cfg(not(any(
-            feature = "ssl-rustls",
-            feature = "ssl-openssl",
-            feature = "ssl-native-tls"
-        )))]
-        {
-            Err(format!(
-                "HTTPS requested for {} but no TLS feature enabled",
-                self.sni
-            ))
-        }
+        self.perform_rustls_handshake(connection)
     }
 
-    #[cfg(feature = "ssl-rustls")]
     fn perform_rustls_handshake(&self, connection: Connection) -> Result<RawStream, String> {
-        let connector = RustlsConnector::new();
-
-        let (tls_stream, _addr) = connector
+        let (tls_stream, _addr) = self
+            .connector
             .from_tcp_stream(self.sni.clone(), connection)
             .map_err(|e: Box<dyn std::error::Error + Send + Sync>| e.to_string())?;
-
-        RawStream::from_client_tls(tls_stream).map_err(|e| e.to_string())
-    }
-
-    #[cfg(all(feature = "ssl-openssl", not(feature = "ssl-rustls")))]
-    fn perform_openssl_handshake(&self, connection: Connection) -> Result<RawStream, String> {
-        use openssl::ssl::{SslConnector, SslMethod};
-        use std::sync::Arc;
-
-        let ssl_connector = SslConnector::builder(SslMethod::tls())
-            .map_err(|e| e.to_string())?
-            .build();
-
-        let connector = OpensslConnector::create(&crate::netcap::Endpoint::WithIdentity(
-            crate::netcap::EndpointConfig::NoTimeout(
-                url::Url::parse(&format!("https://{}:443", self.sni)).map_err(|e| e.to_string())?,
-            ),
-            Arc::new(ssl_connector),
-        ));
-
-        let (tls_stream, _addr) = connector
-            .from_tcp_stream(self.sni.clone(), connection)
-            .map_err(|e| e.to_string())?;
 
         RawStream::from_client_tls(tls_stream).map_err(|e| e.to_string())
     }
