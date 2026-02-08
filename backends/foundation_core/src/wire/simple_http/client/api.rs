@@ -15,7 +15,7 @@
 use crate::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
 use crate::synca::mpp::RecvIterator;
-use crate::valtron::{self, ReadyValues, TaskStatus};
+use crate::valtron::{self, ReadyValue, ReadyValues, TaskStatus};
 use crate::wire::simple_http::client::{
     executor::execute_task, ClientConfig, ClientRequestBuilder, ConnectionPool, DnsResolver,
     HttpClientAction, HttpClientError, HttpRequestState, HttpRequestTask, HttpTaskReady,
@@ -607,36 +607,6 @@ impl<R: DnsResolver + 'static> Drop for ClientRequest<R> {
     }
 }
 
-// Iterator adapter for `.parts()` method.
-///
-/// WHY: Need custom iterator type to handle initialization errors and drive
-/// the underlying TaskIterator.
-///
-/// WHAT: Wraps TaskIterator, translates TaskStatus to IncomingResponseParts.
-///
-/// HOW: Enum with Active and Error variants. Active drives executor on each
-/// next() call.
-enum PartsIterator<R: DnsResolver + 'static> {
-    /// starting state where the underlying connection is read for the pieces.
-    Start(PartsIteratorInner<R>),
-
-    /// State to get the intro of the parts
-    GetIntro(PartsIteratorInner<R>),
-
-    /// State to get the headers next.
-    GetHeaders(PartsIteratorInner<R>),
-
-    /// State to return the underlying read stream/connection.
-    GetStream(PartsIteratorInner<R>),
-
-    /// Error state indicating no follow up state apart from
-    /// done can proceed. Reading this will lead to Done state.
-    HadError(Option<HttpClientError>),
-
-    /// Done state that indicates no more parts to read.
-    Done,
-}
-
 /// Inner active iterator implementation.
 struct PartsIteratorInner<R: DnsResolver + 'static> {
     iter: RecvIterator<TaskStatus<HttpTaskReady, HttpRequestState, HttpClientAction<R>>>,
@@ -649,75 +619,51 @@ impl<R: DnsResolver + 'static> Iterator for PartsIterator<R> {
     type Item = Result<IncomingResponseParts, HttpClientError>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        todo!()
-        // match self {
-        //     PartsIterator::Start(inner) => {
-        //         // // If we have a reader, continue reading from it
-        //         // if let Some(reader) = &mut inner.reader {
-        //         //     // First check if we have cached headers to yield
-        //         //     if !inner.intro_yielded && inner.headers_cache.is_some() {
-        //         //         inner.intro_yielded = true;
-        //         //         let headers = inner.headers_cache.take().unwrap();
-        //         //
-        //         //         return Some(Ok(IncomingResponseParts::Headers(headers)));
-        //         //     }
-        //         //
-        //         //     // Drive executor (platform-aware)
-        //         //     crate::valtron::run_until_complete();
-        //         //
-        //         //     // Read next part from reader
-        //         //     match reader.next() {
-        //         //         Some(Ok(part)) => return Some(Ok(part)),
-        //         //         Some(Err(e)) => {
-        //         //             return Some(Err(HttpClientError::Other(
-        //         //                 format!("Failed to read response part: {:?}", e).into(),
-        //         //             )))
-        //         //         }
-        //         //         None => return None,
-        //         //     }
-        //         // }
-        //
-        //         // Drive executor (platform-aware)
-        //         crate::valtron::run_until_complete();
-        //
-        //         // Get next ready value from task
-        //         for ready_item in ReadyValues::new(&mut inner.iter).take(1) {
-        //             if let Some(ready) = ready_item.inner() {
-        //                 match ready {
-        //                     HttpTaskReady::Ready {
-        //                         intro,
-        //                         headers,
-        //                         stream,
-        //                     } => {
-        //                         // Cache headers for next call, return intro first
-        //                         inner.headers_cache = Some(headers);
-        //
-        //                         // Create reader from stream
-        //                         let reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
-        //                             stream,
-        //                             SimpleHttpBody,
-        //                         );
-        //                         inner.reader = Some(reader);
-        //
-        //                         return Some(Ok(IncomingResponseParts::Intro(
-        //                             intro.status,
-        //                             intro.proto,
-        //                             intro.reason,
-        //                         )));
-        //                     }
-        //                     HttpTaskReady::Error(failed_error) => {
-        //                         return Some(Err(HttpClientError::Other(
-        //                             format!("Failed to read response part: {:?}", e).into(),
-        //                         )))
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //
-        //         None
-        //     }
-        //     PartsIterator::Error(err) => err.take().map(Err),
-        // }
+        match self {
+            PartsIterator::GetIntro(mut inner) => {
+                // Drive executor (platform-aware)
+                crate::valtron::run_until_complete();
+
+                // Get next ready value from task
+                let ready_items = ReadyValues::new(&mut inner.iter);
+                for ready_item in ready_items {
+                    match ready_item {
+                        ReadyValue::Skip => continue,
+                        ReadyValue::Inner(inner) => {
+                            match inner {
+                                HttpTaskReady::Ready {
+                                    intro,
+                                    headers,
+                                    stream,
+                                } => {
+                                    // Create reader from stream
+                                    let reader =
+                                        HttpResponseReader::<SimpleHttpBody, RawStream>::new(
+                                            stream,
+                                            SimpleHttpBody,
+                                        );
+
+                                    return Some(Ok(IncomingResponseParts::Intro(
+                                        intro.status,
+                                        intro.proto,
+                                        intro.reason,
+                                    )));
+                                }
+                                HttpTaskReady::Error(failed_error) => {
+                                    return Some(Err(HttpClientError::Other(
+                                        format!("Failed to read response part: {:?}", failed_error)
+                                            .into(),
+                                    )))
+                                }
+                            }
+                        }
+                    }
+                }
+
+                None
+            }
+            PartsIterator::Error(err) => err.take().map(Err),
+        }
     }
 }
 

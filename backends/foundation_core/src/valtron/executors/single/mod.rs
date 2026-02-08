@@ -74,7 +74,7 @@ pub fn initialize_pool(seed_for_rng: u64) {
     });
 }
 
-/// `run_until` calls the `LocalExecution` queue and processes
+/// `run_until` calls the [`LocalExecution`] queue and processes
 /// the next pending message by moving it forward just until
 /// the provided function returns true indicating it should stop.
 ///

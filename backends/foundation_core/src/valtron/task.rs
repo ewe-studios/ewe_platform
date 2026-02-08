@@ -905,7 +905,7 @@ where
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum ReadyValue<P> {
     Skip,
     Inner(P),
