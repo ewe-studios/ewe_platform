@@ -17,8 +17,8 @@
 //! This enables different execution strategies through the Spawner type pattern.
 
 use crate::valtron::{
-    spawn_broadcaster, spawn_builder, BoxedExecutionEngine,
-    ExecutionAction, GenericResult, NoAction, TaskIterator, TaskStatus,
+    spawn_broadcaster, spawn_builder, BoxedExecutionEngine, ExecutionAction, GenericResult,
+    NoAction, TaskIterator, TaskStatus,
 };
 use std::marker::PhantomData;
 

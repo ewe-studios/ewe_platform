@@ -3,6 +3,12 @@
 pub mod errors;
 pub use errors::*;
 
+// #[cfg(not(target_arch = "wasm32"))]
+// mod tls_verification;
+//
+// #[cfg(not(target_arch = "wasm32"))]
+// pub use tls_verification::*;
+
 mod core;
 pub use core::*;
 

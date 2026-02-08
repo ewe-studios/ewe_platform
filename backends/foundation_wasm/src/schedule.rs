@@ -88,7 +88,7 @@ pub struct ScheduleRegistry {
 
 #[allow(unused)]
 impl ScheduleRegistry {
-    pub(crate) fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             id: 0,
             tree: BTreeMap::new(),

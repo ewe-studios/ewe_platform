@@ -199,6 +199,14 @@ impl<T> RecvIter<T> {
 }
 
 /// [`RecvIterator`] implements an iterator for the [`RecvIter`] type.
+///
+/// The [`time::Duration`] received indicates how long it will block to get
+/// the next value upon which it will yield, if no value is received before
+/// that period the RecvIterator returns `None` if there was any error or if the internal
+/// receiver's channel was closed.
+///
+/// Which provides a sensible polling functionality yielding the threading when the timeout hits
+/// and no data is received.
 pub struct RecvIterator<T>(RecvIter<T>, time::Duration);
 
 /// [`DEFAULT_BLOCK_DURATION`] is the default wait time used by the [`RecvIter`]
@@ -236,7 +244,7 @@ impl<T> Iterator for RecvIterator<T> {
 pub struct StreamRecvIterator<D, P>(RecvIterator<Stream<D, P>>);
 
 impl<D, P> StreamRecvIterator<D, P> {
-    #[must_use] 
+    #[must_use]
     pub fn new(iter: RecvIterator<Stream<D, P>>) -> Self {
         Self(iter)
     }

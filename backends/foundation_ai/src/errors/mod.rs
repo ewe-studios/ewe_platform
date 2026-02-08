@@ -1,4 +1,4 @@
-//! Error definitions for the foundation_ai project
+//! Error definitions for the `foundation_ai` project
 
 use derive_more::From;
 use foundation_core::extensions::result_ext::BoxedError;

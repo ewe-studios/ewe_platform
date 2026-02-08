@@ -72,7 +72,7 @@ impl Barrier {
     /// # Panics
     ///
     /// Panics if the mutex or condition variable is poisoned.
-    #[must_use] 
+    #[must_use]
     pub fn wait(&self) -> bool {
         let mut guard = match self.inner.state.lock() {
             Ok(g) => g,

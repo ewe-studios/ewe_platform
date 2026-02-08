@@ -7,7 +7,8 @@
 use crate::wire::simple_http::client::connection::ParsedUrl;
 use crate::wire::simple_http::client::errors::HttpClientError;
 use crate::wire::simple_http::{
-    Proto, SimpleBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod, SimpleUrl,
+    Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
+    SimpleUrl,
 };
 use serde::Serialize;
 use std::collections::BTreeMap;
@@ -20,7 +21,7 @@ pub struct PreparedRequest {
     pub method: SimpleMethod,
     pub url: ParsedUrl,
     pub headers: SimpleHeaders,
-    pub body: SimpleBody,
+    pub body: SendSafeBody,
 }
 
 impl PreparedRequest {
@@ -32,11 +33,11 @@ impl PreparedRequest {
     ///
     /// Returns `HttpClientError` if the request cannot be built.
     pub fn into_simple_incoming_request(self) -> Result<SimpleIncomingRequest, HttpClientError> {
-        // Convert ParsedUrl to SimpleUrl
-        let simple_url = if let Some(query) = &self.url.query {
-            SimpleUrl::url_with_query(format!("{}?{}", self.url.path, query))
+        // Convert Uri to SimpleUrl
+        let simple_url = if let Some(query) = self.url.query() {
+            SimpleUrl::url_with_query(format!("{}?{}", self.url.path(), query))
         } else {
-            SimpleUrl::url_only(self.url.path.clone())
+            SimpleUrl::url_only(self.url.path().to_string())
         };
 
         // Create SimpleIncomingRequest using builder
@@ -45,7 +46,7 @@ impl PreparedRequest {
             .with_method(self.method)
             .with_proto(Proto::HTTP11)
             .with_headers(self.headers)
-            .with_some_body(Some(self.body))
+            .with_some_body(Some(self.body.into()))
             .build()
             .map_err(|e| HttpClientError::Other(Box::new(e)))?;
 
@@ -76,7 +77,7 @@ pub struct ClientRequestBuilder {
     method: SimpleMethod,
     url: ParsedUrl,
     headers: SimpleHeaders,
-    body: Option<SimpleBody>,
+    body: Option<SendSafeBody>,
 }
 
 impl ClientRequestBuilder {
@@ -99,10 +100,14 @@ impl ClientRequestBuilder {
         let mut headers = BTreeMap::new();
 
         // Add required Host header
-        let host = if parsed_url.scheme.default_port() == parsed_url.port {
-            parsed_url.host.clone()
+        let host_str = parsed_url
+            .host_str()
+            .ok_or_else(|| HttpClientError::InvalidUrl("Missing host in URL".to_string()))?;
+
+        let host = if parsed_url.port().is_some() {
+            format!("{}:{}", host_str, parsed_url.port_or_default())
         } else {
-            format!("{}:{}", parsed_url.host, parsed_url.port)
+            host_str
         };
         headers.insert(SimpleHeader::HOST, vec![host]);
 
@@ -121,10 +126,7 @@ impl ClientRequestBuilder {
     /// * `key` - Header name
     /// * `value` - Header value
     pub fn header(mut self, key: SimpleHeader, value: impl Into<String>) -> Self {
-        self.headers
-            .entry(key)
-            .or_default()
-            .push(value.into());
+        self.headers.entry(key).or_default().push(value.into());
         self
     }
 
@@ -133,7 +135,7 @@ impl ClientRequestBuilder {
     /// # Arguments
     ///
     /// * `headers` - New headers to use
-    #[must_use] 
+    #[must_use]
     pub fn headers(mut self, headers: SimpleHeaders) -> Self {
         self.headers = headers;
         self
@@ -156,7 +158,7 @@ impl ClientRequestBuilder {
         self.headers
             .insert(SimpleHeader::CONTENT_LENGTH, vec![content_length]);
 
-        self.body = Some(SimpleBody::Text(text_string));
+        self.body = Some(SendSafeBody::Text(text_string));
         self
     }
 
@@ -167,7 +169,7 @@ impl ClientRequestBuilder {
     /// # Arguments
     ///
     /// * `bytes` - Binary content
-    #[must_use] 
+    #[must_use]
     pub fn body_bytes(mut self, bytes: Vec<u8>) -> Self {
         let content_length = bytes.len().to_string();
 
@@ -177,7 +179,7 @@ impl ClientRequestBuilder {
         self.headers
             .insert(SimpleHeader::CONTENT_LENGTH, vec![content_length]);
 
-        self.body = Some(SimpleBody::Bytes(bytes));
+        self.body = Some(SendSafeBody::Bytes(bytes));
         self
     }
 
@@ -204,7 +206,7 @@ impl ClientRequestBuilder {
         self.headers
             .insert(SimpleHeader::CONTENT_LENGTH, vec![content_length]);
 
-        self.body = Some(SimpleBody::Text(json_string));
+        self.body = Some(SendSafeBody::Text(json_string));
         Ok(self)
     }
 
@@ -215,7 +217,7 @@ impl ClientRequestBuilder {
     /// # Arguments
     ///
     /// * `params` - Form parameters as key-value pairs
-    #[must_use] 
+    #[must_use]
     pub fn body_form(mut self, params: &[(String, String)]) -> Self {
         // Simple URL encoding (percent-encoding for form data)
         fn urlencode(s: &str) -> String {
@@ -248,20 +250,20 @@ impl ClientRequestBuilder {
         self.headers
             .insert(SimpleHeader::CONTENT_LENGTH, vec![content_length]);
 
-        self.body = Some(SimpleBody::Text(form_string));
+        self.body = Some(SendSafeBody::Text(form_string));
         self
     }
 
     /// Builds the final prepared request.
     ///
     /// Consumes the builder and returns a `PreparedRequest` ready to send.
-    #[must_use] 
+    #[must_use]
     pub fn build(self) -> PreparedRequest {
         PreparedRequest {
             method: self.method,
             url: self.url,
             headers: self.headers,
-            body: self.body.unwrap_or(SimpleBody::None),
+            body: self.body.unwrap_or(SendSafeBody::None),
         }
     }
 
@@ -368,8 +370,8 @@ mod tests {
     #[test]
     fn test_client_request_builder_new() {
         let builder = ClientRequestBuilder::new(SimpleMethod::GET, "http://example.com").unwrap();
-        assert_eq!(builder.url.host, "example.com");
-        assert_eq!(builder.url.port, 80);
+        assert_eq!(builder.url.host_str().unwrap(), "example.com");
+        assert_eq!(builder.url.port_or_default(), 80);
         assert!(matches!(builder.method, SimpleMethod::GET));
     }
 
@@ -404,7 +406,7 @@ mod tests {
             .unwrap()
             .body_text("Hello, World!");
 
-        assert!(matches!(builder.body, Some(SimpleBody::Text(_))));
+        assert!(matches!(builder.body, Some(SendSafeBody::Text(_))));
         assert!(builder.headers.contains_key(&SimpleHeader::CONTENT_LENGTH));
         assert!(builder.headers.contains_key(&SimpleHeader::CONTENT_TYPE));
     }
@@ -417,7 +419,7 @@ mod tests {
             .unwrap()
             .body_bytes(vec![1, 2, 3, 4]);
 
-        assert!(matches!(builder.body, Some(SimpleBody::Bytes(_))));
+        assert!(matches!(builder.body, Some(SendSafeBody::Bytes(_))));
         assert!(builder.headers.contains_key(&SimpleHeader::CONTENT_LENGTH));
     }
 
@@ -439,8 +441,8 @@ mod tests {
             .body_json(&data)
             .unwrap();
 
-        assert!(matches!(builder.body, Some(SimpleBody::Text(_))));
-        if let Some(SimpleBody::Text(json)) = &builder.body {
+        assert!(matches!(builder.body, Some(SendSafeBody::Text(_))));
+        if let Some(SendSafeBody::Text(json)) = &builder.body {
             assert!(json.contains("\"key\""));
             assert!(json.contains("\"value\""));
         }
@@ -459,8 +461,8 @@ mod tests {
             .unwrap()
             .body_form(&params);
 
-        assert!(matches!(builder.body, Some(SimpleBody::Text(_))));
-        if let Some(SimpleBody::Text(form)) = &builder.body {
+        assert!(matches!(builder.body, Some(SendSafeBody::Text(_))));
+        if let Some(SendSafeBody::Text(form)) = &builder.body {
             assert!(form.contains("key1=value1"));
             assert!(form.contains("key2=value2"));
         }
@@ -474,9 +476,9 @@ mod tests {
             .unwrap()
             .build();
 
-        assert_eq!(prepared.url.host, "example.com");
+        assert_eq!(prepared.url.host_str().unwrap(), "example.com");
         assert!(matches!(prepared.method, SimpleMethod::GET));
-        assert!(matches!(prepared.body, SimpleBody::None));
+        assert!(matches!(prepared.body, SendSafeBody::None));
     }
 
     /// WHY: Verify convenience methods create correct builders
@@ -546,5 +548,13 @@ mod tests {
 
         let simple_request = prepared.into_simple_incoming_request().unwrap();
         assert!(simple_request.request_url.url.contains("?foo=bar"));
+    }
+
+    /// WHY: Verify PreparedRequest is Send
+    /// WHAT: Compile-time test that PreparedRequest can be sent across threads
+    #[test]
+    fn test_prepared_request_is_send() {
+        fn assert_send<T: Send>() {}
+        assert_send::<PreparedRequest>();
     }
 }

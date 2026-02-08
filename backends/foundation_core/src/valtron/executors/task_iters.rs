@@ -180,7 +180,7 @@ where
             }
             TaskStatus::Ready(inner) => {
                 if let Ok(()) = self.channel.push(Stream::Next(inner)) {
-                    State::Progressed
+                    State::ReadyValue(entry.clone())
                 } else {
                     tracing::error!("Failed to deliver status to channel, closing task");
 

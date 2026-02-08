@@ -7,7 +7,7 @@ use std::time::{Duration, Instant};
 /// Trait for DNS resolution.
 ///
 /// Allows pluggable DNS resolvers for testing and customization.
-pub trait DnsResolver: Send + Sync {
+pub trait DnsResolver: Send + Sync + Clone {
     /// Resolves a hostname and port to socket addresses.
     ///
     /// # Arguments
@@ -33,7 +33,7 @@ pub struct SystemDnsResolver;
 
 impl SystemDnsResolver {
     /// Creates a new system DNS resolver.
-    #[must_use] 
+    #[must_use]
     pub fn new() -> Self {
         Self
     }
@@ -80,7 +80,7 @@ impl CachedEntry {
 /// # Type Parameters
 ///
 /// * `R` - The inner resolver type
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CachingDnsResolver<R: DnsResolver> {
     inner: R,
     cache: Arc<Mutex<HashMap<String, CachedEntry>>>,
@@ -161,7 +161,7 @@ pub struct MockDnsResolver {
 
 impl MockDnsResolver {
     /// Creates a new mock DNS resolver.
-    #[must_use] 
+    #[must_use]
     pub fn new() -> Self {
         Self {
             responses: Arc::new(Mutex::new(HashMap::new())),
@@ -169,7 +169,7 @@ impl MockDnsResolver {
     }
 
     /// Configures a successful response for a hostname.
-    #[must_use] 
+    #[must_use]
     pub fn with_response(self, host: &str, addrs: Vec<SocketAddr>) -> Self {
         if let Ok(mut responses) = self.responses.lock() {
             responses.insert(host.to_string(), Ok(addrs));
@@ -178,7 +178,7 @@ impl MockDnsResolver {
     }
 
     /// Configures an error response for a hostname.
-    #[must_use] 
+    #[must_use]
     pub fn with_error(self, host: &str, error: DnsError) -> Self {
         if let Ok(mut responses) = self.responses.lock() {
             responses.insert(host.to_string(), Err(error));

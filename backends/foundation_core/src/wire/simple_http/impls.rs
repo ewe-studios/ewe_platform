@@ -5,7 +5,8 @@ use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
 use crate::io::ioutils::{self, ByteBufferPointer, SharedByteBufferStream};
 use crate::io::ubytes::{self};
 use crate::valtron::{
-    BoxedResultIterator, CloneableFn, SendVecIterator, StringBoxedIterator, TransformIterator,
+    BoxedResultIterator, BoxedSendableIterator, CloneableFn, SendVecIterator, StringBoxedIterator,
+    TransformIterator,
 };
 use crate::wire::simple_http::errors::{
     ChunkStateError, Http11RenderError, HttpReaderError, LineFeedError, Result, SimpleHttpError,
@@ -249,6 +250,103 @@ impl core::fmt::Display for SimpleBody {
                 Some(_) => write!(f, "ChunkedStream(CloneableIterator<T>)"),
                 None => write!(f, "ChunkedStream(None)"),
             },
+        }
+    }
+}
+
+/// Send-safe body type for requests and other Send contexts.
+///
+/// Unlike SimpleBody which supports non-Send iterator variants for responses,
+/// SendSafeBody only supports Send-safe variants and can be safely sent across threads.
+///
+/// Uses BoxedSendableIterator (which is Send) instead of BoxedResultIterator (which is not).
+pub enum SendSafeBody {
+    None,
+    Text(String),
+    Bytes(Vec<u8>),
+    // Send-safe iterator variants using BoxedSendableIterator which requires Send
+    Stream(Option<SendVecIterator<BoxedError>>),
+    ChunkedStream(Option<BoxedSendableIterator<ChunkedData, BoxedError>>),
+    LineFeedStream(Option<BoxedSendableIterator<LineFeed, BoxedError>>),
+}
+
+impl Eq for SendSafeBody {}
+
+// PartialEq implementation matching SimpleBody's logic
+#[allow(clippy::match_like_matches_macro)]
+impl PartialEq for SendSafeBody {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::None, Self::None) => true,
+            (Self::Text(me), Self::Text(other)) => me == other,
+            (Self::Bytes(me), Self::Bytes(other)) => me == other,
+            (Self::Stream(me), Self::Stream(other)) => match (me, other) {
+                (Some(_), Some(_)) => true,
+                (None, None) => true,
+                _ => false,
+            },
+            (Self::ChunkedStream(me), Self::ChunkedStream(other)) => match (me, other) {
+                (Some(_), Some(_)) => true,
+                (None, None) => true,
+                _ => false,
+            },
+            (Self::LineFeedStream(me), Self::LineFeedStream(other)) => match (me, other) {
+                (Some(_), Some(_)) => true,
+                (None, None) => true,
+                _ => false,
+            },
+            _ => false,
+        }
+    }
+}
+
+// Debug implementation matching SimpleBody's logic
+impl core::fmt::Debug for SendSafeBody {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        #[allow(dead_code)]
+        #[derive(Debug)]
+        enum SendSafeBodyRepr<'a> {
+            None,
+            Text(&'a str),
+            Bytes(&'a [u8]),
+            Stream(Option<()>),
+            ChunkedStream(Option<()>),
+            LineFeedStream(Option<()>),
+        }
+
+        let repr = match self {
+            Self::None => SendSafeBodyRepr::None,
+            Self::Text(s) => SendSafeBodyRepr::Text(s),
+            Self::Bytes(b) => SendSafeBodyRepr::Bytes(b),
+            Self::Stream(Some(_)) => SendSafeBodyRepr::Stream(Some(())),
+            Self::Stream(None) => SendSafeBodyRepr::Stream(None),
+            Self::ChunkedStream(Some(_)) => SendSafeBodyRepr::ChunkedStream(Some(())),
+            Self::ChunkedStream(None) => SendSafeBodyRepr::ChunkedStream(None),
+            Self::LineFeedStream(Some(_)) => SendSafeBodyRepr::LineFeedStream(Some(())),
+            Self::LineFeedStream(None) => SendSafeBodyRepr::LineFeedStream(None),
+        };
+
+        write!(f, "{:?}", repr)
+    }
+}
+
+// Conversion from SendSafeBody -> SimpleBody (for rendering)
+// BoxedSendableIterator (Box<dyn Iterator + Send>) can coerce to
+// BoxedResultIterator (Box<dyn Iterator>) by forgetting the Send bound.
+impl From<SendSafeBody> for SimpleBody {
+    fn from(value: SendSafeBody) -> Self {
+        match value {
+            SendSafeBody::None => SimpleBody::None,
+            SendSafeBody::Text(s) => SimpleBody::Text(s),
+            SendSafeBody::Bytes(b) => SimpleBody::Bytes(b),
+            SendSafeBody::Stream(iter) => SimpleBody::Stream(iter),
+            // Cast Box<dyn Iterator + Send> to Box<dyn Iterator> by forgetting Send bound
+            SendSafeBody::ChunkedStream(iter) => {
+                SimpleBody::ChunkedStream(iter.map(|i| i as ChunkedVecIterator<BoxedError>))
+            }
+            SendSafeBody::LineFeedStream(iter) => {
+                SimpleBody::LineFeedStream(iter.map(|i| i as LineFeedVecIterator<BoxedError>))
+            }
         }
     }
 }
@@ -996,7 +1094,7 @@ static CAPTURE_QUERY_KEY_VALUE: &str = r"((?P<qk>[^&]+)=(?P<qv>[^&]+))*";
 
 #[allow(unused)]
 impl SimpleUrl {
-    pub(crate) fn new(
+    pub fn new(
         url_only: bool,
         request_url: String,
         matcher: regex::Regex,
@@ -1159,15 +1257,12 @@ impl SimpleUrl {
         self.match_queries(target)
     }
 
-    pub(crate) fn match_queries(&self, target: &str) -> bool {
+    pub fn match_queries(&self, target: &str) -> bool {
         let target_queries = Self::capture_query_hashmap(target);
         self.match_queries_tree(&target_queries)
     }
 
-    pub(crate) fn match_queries_tree(
-        &self,
-        target_queries: &Option<BTreeMap<String, String>>,
-    ) -> bool {
+    pub fn match_queries_tree(&self, target_queries: &Option<BTreeMap<String, String>>) -> bool {
         if self.queries.is_none() && target_queries.is_none() {
             return true;
         }
@@ -1482,6 +1577,10 @@ impl SimpleOutgoingResponseBuilder {
         self
     }
 
+    /// Builds the outgoing HTTP response.
+    ///
+    /// # Errors
+    /// Returns an error if the status is not set or if building fails.
     pub fn build(self) -> SimpleResponseResult<SimpleOutgoingResponse> {
         let status = match self.status {
             Some(inner) => inner,
@@ -1674,6 +1773,10 @@ impl SimpleIncomingRequestBuilder {
         self
     }
 
+    /// Builds the incoming HTTP request.
+    ///
+    /// # Errors
+    /// Returns an error if the URL is not provided or if building fails.
     pub fn build(self) -> SimpleRequestResult<SimpleIncomingRequest> {
         let request_url = match self.url {
             Some(inner) => inner,
@@ -3168,6 +3271,29 @@ where
             state: HttpReadState::Intro,
         }
     }
+
+    /// Returns a mutable reference to the underlying stream.
+    ///
+    /// WHY: Allows access to the stream for operations like writing additional
+    /// data or inspecting stream state while maintaining ownership in the reader.
+    ///
+    /// WHAT: Provides mutable access to the `SharedByteBufferStream` wrapped
+    /// by this reader.
+    ///
+    /// # Returns
+    ///
+    /// A mutable reference to the underlying `SharedByteBufferStream<T>`.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let mut reader = HttpResponseReader::new(stream, body_extractor);
+    /// let stream = reader.stream_mut();
+    /// // Can now write to or manipulate the stream
+    /// ```
+    pub fn stream_mut(&mut self) -> &mut SharedByteBufferStream<T> {
+        &mut self.reader
+    }
 }
 
 impl<F, T> Iterator for HttpResponseReader<F, T>
@@ -3472,6 +3598,10 @@ pub enum LineFeed {
 }
 
 impl LineFeed {
+    /// Parses line feeds from a byte string.
+    ///
+    /// # Errors
+    /// Returns an error if parsing the line feeds fails.
     pub fn stream_line_feeds_from_string(chunk_text: &[u8]) -> Result<Self, LineFeedError> {
         let cursor = Cursor::new(chunk_text.to_vec());
         let reader = SharedByteBufferStream::rwrite(cursor);
@@ -3786,18 +3916,30 @@ impl ChunkState {
         }
     }
 
+    /// Parses an HTTP trailer chunk from bytes.
+    ///
+    /// # Errors
+    /// Returns an error if parsing the trailer chunk fails.
     pub fn parse_http_trailer_chunk(chunk_text: &[u8]) -> Result<Option<Self>, ChunkStateError> {
         let cursor = Cursor::new(chunk_text.to_vec());
         let reader = SharedByteBufferStream::ref_cell(cursor);
         Self::parse_http_trailer_from_pointer(reader)
     }
 
+    /// Parses an HTTP chunk from bytes.
+    ///
+    /// # Errors
+    /// Returns an error if parsing the chunk fails.
     pub fn parse_http_chunk(chunk_text: &[u8]) -> Result<Self, ChunkStateError> {
         let cursor = Cursor::new(chunk_text.to_vec());
         let reader = SharedByteBufferStream::ref_cell(cursor);
         Self::parse_http_chunk_from_pointer(reader)
     }
 
+    /// Gets the length of an HTTP chunk header from bytes.
+    ///
+    /// # Errors
+    /// Returns an error if getting the header length fails.
     pub fn get_http_chunk_header_length(chunk_text: &[u8]) -> Result<usize, ChunkStateError> {
         let cursor = Cursor::new(chunk_text.to_vec());
         let reader = SharedByteBufferStream::ref_cell(cursor);
@@ -4104,7 +4246,7 @@ impl ChunkState {
         })
     }
 
-    pub(crate) fn parse_http_chunk_extension<T: Read>(
+    pub fn parse_http_chunk_extension<T: Read>(
         acc: &mut ByteBufferPointer<T>,
     ) -> Result<(String, Option<String>), ChunkStateError> {
         // skip first extension starter
@@ -4343,6 +4485,8 @@ impl ChunkState {
     /// This formulas ensure we can correctly map our hexadecimal octet string into
     /// the relevant value in numbers.
     ///
+    /// # Errors
+    /// Returns an error if the chunk size octet contains invalid hexadecimal characters.
     pub fn parse_chunk_octet(chunk_size_octet: &[u8]) -> Result<u64, ChunkStateError> {
         const RADIX: u64 = 16;
         let mut size: u64 = 0;
@@ -5117,6 +5261,10 @@ impl ServiceActionBuilder {
         self
     }
 
+    /// Builds the service action.
+    ///
+    /// # Errors
+    /// Returns an error if the route is not provided or if building fails.
     pub fn build(self) -> SimpleHttpResult<ServiceAction> {
         let route = match self.route {
             Some(inner) => inner,

@@ -24,7 +24,7 @@ use std::time::Duration;
 /// // Should complete successfully with high success rate
 /// assert!(result.success_rate() > 0.99);
 /// ```
-#[must_use] 
+#[must_use]
 pub fn run_condvar_stress_test(config: StressConfig) -> StressResult {
     let mutex = Arc::new(CondVarMutex::new(0u64));
     let condvar = Arc::new(CondVar::new());
@@ -73,7 +73,7 @@ pub fn run_condvar_stress_test(config: StressConfig) -> StressResult {
 ///
 /// assert!(result.success_rate() > 0.99);
 /// ```
-#[must_use] 
+#[must_use]
 pub fn run_condvar_producer_consumer_stress(config: StressConfig) -> StressResult {
     let queue = Arc::new(CondVarMutex::new(Vec::<u64>::new()));
     let condvar = Arc::new(CondVar::new());
@@ -140,7 +140,7 @@ pub fn run_condvar_producer_consumer_stress(config: StressConfig) -> StressResul
 /// Spawns many threads that all wait on the same condition,
 /// then wakes them all repeatedly. Tests `notify_all()` performance
 /// under extreme contention.
-#[must_use] 
+#[must_use]
 pub fn run_condvar_high_contention_stress(config: StressConfig) -> StressResult {
     let mutex = Arc::new(CondVarMutex::new(false));
     let condvar = Arc::new(CondVar::new());
@@ -193,7 +193,7 @@ pub fn run_condvar_high_contention_stress(config: StressConfig) -> StressResult 
 /// Runs a timeout stress test.
 ///
 /// Tests `wait_timeout()` under contention with various timeout durations.
-#[must_use] 
+#[must_use]
 pub fn run_condvar_timeout_stress(config: StressConfig) -> StressResult {
     let mutex = Arc::new(CondVarMutex::new(0u64));
     let condvar = Arc::new(CondVar::new());

@@ -2,6 +2,24 @@
 
 #![cfg(not(target_arch = "wasm32"))]
 
+#[cfg(not(any(
+    feature = "ssl-rustls",
+    feature = "ssl-openssl",
+    feature = "ssl-native-tls"
+)))]
+mod nossl;
+
+#[cfg(not(any(
+    feature = "ssl-rustls",
+    feature = "ssl-openssl",
+    feature = "ssl-native-tls"
+)))]
+#[allow(unused_imports)]
+pub use nossl::*;
+
+mod config;
+pub use config::*;
+
 // Compile-time checks to ensure only one TLS backend is enabled
 #[cfg(all(feature = "ssl-rustls", feature = "ssl-openssl"))]
 compile_error!("Cannot enable both `ssl-rustls` and `ssl-openssl`. Choose one TLS backend.");
@@ -18,30 +36,35 @@ compile_error!("Cannot enable both `ssl-openssl` and `ssl-native-tls`. Choose on
     feature = "ssl-native-tls"
 ))]
 compile_error!("Cannot enable all three TLS backends simultaneously. Choose only one: ssl-rustls, ssl-openssl, or ssl-native-tls.");
+
 #[cfg(all(
     feature = "ssl-openssl",
     not(feature = "ssl-rustls"),
     not(feature = "ssl-native-tls")
 ))]
 pub mod openssl;
+
 #[cfg(all(
     feature = "ssl-openssl",
     not(feature = "ssl-rustls"),
     not(feature = "ssl-native-tls")
 ))]
 pub use self::openssl::OpenSslAcceptor as SSLAcceptor;
+
 #[cfg(all(
     feature = "ssl-openssl",
     not(feature = "ssl-rustls"),
     not(feature = "ssl-native-tls")
 ))]
 pub use self::openssl::OpenSslConnector as SSLConnector;
+
 #[cfg(all(
     feature = "ssl-openssl",
     not(feature = "ssl-rustls"),
     not(feature = "ssl-native-tls")
 ))]
 pub use self::openssl::SplitOpenSslStream as ServerSSLStream;
+
 #[cfg(all(
     feature = "ssl-openssl",
     not(feature = "ssl-rustls"),

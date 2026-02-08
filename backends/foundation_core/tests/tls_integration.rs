@@ -33,7 +33,7 @@ mod rustls_tests {
     }
 
     #[test]
-    #[ignore] // Requires network access
+    #[cfg(feature = "ssl-rustls")]
     fn test_rustls_https_connection() {
         use foundation_core::netcap::connection::Connection;
         use std::io::{Read, Write};
@@ -289,14 +289,13 @@ mod feature_tests {
         #[cfg(not(feature = "ssl-native-tls"))]
         const HAS_NATIVE_TLS: bool = false;
 
-        let backend_count = HAS_RUSTLS as u8 + HAS_OPENSSL as u8 + HAS_NATIVE_TLS as u8;
+        let backend_count = u8::from(HAS_RUSTLS) + u8::from(HAS_OPENSSL) + u8::from(HAS_NATIVE_TLS);
 
         // We expect exactly one backend to be enabled when running TLS tests
         if backend_count > 0 {
             assert_eq!(
                 backend_count, 1,
-                "Expected exactly one TLS backend to be enabled, found {}",
-                backend_count
+                "Expected exactly one TLS backend to be enabled, found {backend_count}"
             );
         }
     }

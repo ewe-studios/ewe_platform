@@ -51,6 +51,7 @@ pub fn default_client_config() -> Arc<ClientConfig> {
 /// A wrapper around an owned Rustls connection and corresponding stream.
 ///
 /// Uses an internal Mutex to permit disparate reader & writer threads to access the stream independently.
+#[derive(Debug)]
 pub struct RustlsStream<T>(Arc<Mutex<rustls::StreamOwned<T, Connection>>>);
 
 impl<T> RustlsStream<T> {
@@ -278,6 +279,13 @@ impl RustlsConnector {
         }
     }
 
+    pub fn client_tls_from_endpoint(
+        endpoint: &Endpoint<Arc<rustls::ClientConfig>>,
+    ) -> Result<(RustTlsClientStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
+        let connector = Self::create(endpoint);
+        connector.from_endpoint(endpoint)
+    }
+
     pub fn from_tcp_stream(
         &self,
         sni: String,
@@ -403,7 +411,8 @@ mod tests {
         let endpoint =
             Endpoint::WithIdentity(EndpointConfig::NoTimeout(url), custom_config.clone());
 
-        let connector = RustlsConnector::create(&endpoint);
+        let _ = RustlsConnector::create(&endpoint);
+
         // Verify the connector uses the custom config
         assert!(Arc::strong_count(&custom_config) >= 2);
     }

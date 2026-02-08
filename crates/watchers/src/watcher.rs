@@ -30,7 +30,7 @@ impl Watchers {
         }
     }
 
-    pub(crate) fn reload(&mut self, config: crate::config::Config) {
+    pub fn reload(&mut self, config: crate::config::Config) {
         self.close_watchers();
         self.config.replace(config);
         self.start_watchers();

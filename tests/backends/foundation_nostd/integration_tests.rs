@@ -85,7 +85,7 @@ fn test_single_producer_multiple_consumers() {
                 }
 
                 if len > 0 {
-                    if let Some(_) = queue_clone.pop() {
+                    if queue_clone.pop().is_some() {
                         consumed += 1;
                     }
                 } else if !done {

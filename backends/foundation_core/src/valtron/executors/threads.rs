@@ -64,7 +64,7 @@ const THREADS_MAX: usize = (1 << THREADS_BITS) - 1;
 /// less 1 as the 1 thread will be used for waiting for kill signal and the remaining
 /// for task execution in situations where on 2 threads can be created apart from the current
 /// process.
-pub(crate) fn get_allocatable_thread_count() -> usize {
+pub fn get_allocatable_thread_count() -> usize {
     let max_threads = get_max_threads();
     tracing::debug!("Max available threads: {max_threads:}");
     let desired_threads = get_num_threads();
@@ -132,7 +132,7 @@ mod test_allocatable_threads {
 
 /// [`get_max_threads`] returns the max threads allowed
 /// in the current system.
-pub(crate) fn get_max_threads() -> usize {
+pub fn get_max_threads() -> usize {
     let system_value = std::thread::available_parallelism()
         .ok()
         .map_or(1, std::num::NonZero::get);
@@ -144,7 +144,7 @@ pub(crate) fn get_max_threads() -> usize {
 /// from the either the environment variable `VALTRON_NUM_THREADS`
 /// or gets the maximum allowed thread from the platform
 /// via [`std::thread::available_parallelism`];
-pub(crate) fn get_num_threads() -> usize {
+pub fn get_num_threads() -> usize {
     let thread_num = match env::var("VALTRON_NUM_THREADS")
         .ok()
         .and_then(|s| usize::from_str(&s).ok())
@@ -497,7 +497,7 @@ pub struct ThreadPoolRegistryInner {
 }
 
 impl ThreadPoolRegistryInner {
-    pub(crate) fn new() -> SharedThreadRegistry {
+    pub fn new() -> SharedThreadRegistry {
         SharedThreadRegistry::new(sync::Arc::new(RwLock::new(ThreadPoolRegistryInner {
             threads: EntryList::new(),
         })))
@@ -685,7 +685,7 @@ impl ThreadPool {
     #[allow(clippy::too_many_lines)]
     /// [`create_thread_executor`] creates a new thread into the thread pool spawning
     /// a [`LocalThreadExecutor`] into a owned thread that is managed by the executor.
-    pub(crate) fn create_thread_executor(&self) -> ThreadExecutionResult<ThreadRef> {
+    pub fn create_thread_executor(&self) -> ThreadExecutionResult<ThreadRef> {
         let span = tracing::trace_span!("ThreadPool::create_thread_executor");
         let _enter = span.enter();
 
@@ -914,7 +914,7 @@ impl ThreadPool {
 
     /// pulls all relevant threads `JoinHandle`
     /// joining them all till they all have finished and exited.
-    pub(crate) fn await_threads(&self) {
+    pub fn await_threads(&self) {
         let span = tracing::trace_span!("ThreadPool::await_threads");
         let _enter = span.enter();
 
@@ -1156,7 +1156,7 @@ impl<
         Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
     > ThreadPoolTaskBuilder<Done, Pending, Action, Mapper, Resolver, Task>
 {
-    pub(crate) fn new(tasks: SharedTaskQueue, latch: Arc<LockSignal>) -> Self {
+    pub fn new(tasks: SharedTaskQueue, latch: Arc<LockSignal>) -> Self {
         Self {
             tasks,
             latch,

@@ -1,4 +1,4 @@
-//! Cross-platform example demonstrating automatic std/no_std selection.
+//! Cross-platform example demonstrating automatic `std/no_std` selection.
 //!
 //! This example shows how to write code once that automatically uses:
 //! - `std::sync` types on native platforms
@@ -39,7 +39,7 @@ impl Config {
     }
 }
 
-/// Shared counter using RwLock for efficient concurrent reads
+/// Shared counter using `RwLock` for efficient concurrent reads
 struct SharedCounter {
     inner: RwLock<i32>,
 }
@@ -137,7 +137,7 @@ fn main() {
                 for _ in 0..100 {
                     counter.increment();
                 }
-                println!("   Thread {} completed", thread_id);
+                println!("   Thread {thread_id} completed");
             });
             handles.push(handle);
         }
