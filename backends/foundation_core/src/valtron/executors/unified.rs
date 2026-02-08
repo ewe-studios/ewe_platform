@@ -10,7 +10,7 @@
 //! - **Native without `multi` feature**: Uses `single` executor
 //! - **Native with `multi` feature**: Uses `multi` executor
 
-use crate::valtron::{single, ExecutionAction, TaskIterator, TaskStatus};
+use crate::valtron::{single, ExecutionAction, ProgressIndicator, TaskIterator, TaskStatus};
 
 #[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
 use super::multi;
@@ -39,6 +39,27 @@ pub fn initialize_pool(seed_for_rng: u64, _user_thread_num: Option<usize>) {
     }
 }
 
+/// [`run_until`] provides a unified method to attempt to execute the run_until.
+/// in a non cfg way by encapsulating that call and configuration into this method.
+///
+/// This really only apply for single threaded and wasm context.
+pub fn run_until<T>(checker: T)
+where
+    T: Fn(&ProgressIndicator) -> bool,
+{
+    #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
+    {
+        use crate::valtron::single;
+        single::run_until(checker);
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        use crate::valtron::single;
+        single::run_until(checker);
+    }
+}
+
 /// [`run_until_complete`] provides a unified method to attempt to execute the run_until_complete.
 /// in a non cfg way by encapsulating that call and configuration into this method.
 ///
@@ -46,14 +67,12 @@ pub fn initialize_pool(seed_for_rng: u64, _user_thread_num: Option<usize>) {
 pub fn run_until_complete() {
     #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
     {
-        println!("run completion");
         use crate::valtron::single;
         single::run_until_complete();
     }
 
     #[cfg(target_arch = "wasm32")]
     {
-        println!("run completion");
         use crate::valtron::single;
         single::run_until_complete();
     }
