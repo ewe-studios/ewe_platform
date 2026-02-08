@@ -14,6 +14,7 @@
 //!
 //! PHASE 1 SCOPE: HTTP-only (no HTTPS), blocking connection, basic GET requests.
 
+use crate::extensions::result_ext::SendableBoxedError;
 use crate::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
 use crate::valtron::{TaskIterator, TaskStatus};
@@ -24,60 +25,8 @@ use crate::wire::simple_http::{
     Http11, HttpResponseReader, IncomingResponseParts, RenderHttp, SimpleHeaders, SimpleHttpBody,
 };
 use std::io::Write;
-use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
-
-// State constants for atomic coordination
-const STATE_NOT_STARTED: u8 = 0;
-const STATE_INTRO_READY: u8 = 1;
-const STATE_BODY_REQUESTED: u8 = 2;
-#[allow(dead_code)]
-const STATE_COMPLETED: u8 = 3;
-
-/// Shared control for coordinating between task and ClientRequest.
-///
-/// WHY: ClientRequest needs to signal when body reading is desired, and task
-/// needs to wait for that signal. Atomic coordination enables lock-free
-/// communication.
-///
-/// WHAT: Arc-wrapped atomic state that both task and ClientRequest can access.
-///
-/// HOW: Clone-able handle with atomic operations for state changes.
-#[derive(Clone, Debug)]
-pub struct RequestControl {
-    state: Arc<AtomicU8>,
-}
-
-impl RequestControl {
-    /// Creates a new request control in NOT_STARTED state.
-    pub fn new() -> Self {
-        Self {
-            state: Arc::new(AtomicU8::new(STATE_NOT_STARTED)),
-        }
-    }
-
-    /// Signals that intro/headers are ready.
-    pub fn set_intro_ready(&self) {
-        self.state.store(STATE_INTRO_READY, Ordering::Release);
-    }
-
-    /// Signals that body reading is requested.
-    pub fn set_body_requested(&self) {
-        self.state.store(STATE_BODY_REQUESTED, Ordering::Release);
-    }
-
-    /// Gets current state.
-    pub fn get_state(&self) -> u8 {
-        self.state.load(Ordering::Acquire)
-    }
-}
-
-impl Default for RequestControl {
-    fn default() -> Self {
-        Self::new()
-    }
-}
 
 /// HTTP request processing states.
 ///
@@ -99,12 +48,8 @@ pub enum HttpRequestState {
     Connecting,
     /// Receiving response status line and headers
     ReceivingIntro,
-    /// Paused state - waiting for user to request body
-    WaitingForBodyRequest,
-    /// Request completed successfully
+    /// Done: no more work to do
     Done,
-    /// Request failed with error
-    Error,
 }
 
 /// Values yielded by HttpRequestTask as Ready status.
@@ -117,13 +62,12 @@ pub enum HttpRequestState {
 /// HOW: IntroAndHeaders yields first, then task waits. When signaled,
 /// StreamOwnership is yielded.
 pub enum HttpTaskReady {
-    /// Response introduction and headers received.
-    IntroAndHeaders {
+    Ready {
         intro: ResponseIntro,
         headers: SimpleHeaders,
+        stream: SharedByteBufferStream<RawStream>,
     },
-    /// Stream ownership transferred for body reading.
-    StreamOwnership(SharedByteBufferStream<RawStream>),
+    Err(SendableBoxedError),
 }
 
 /// HTTP request task implementing `TaskIterator`.
@@ -158,8 +102,6 @@ where
     timeout: Option<Duration>,
     /// Connection pool for reuse (optional)
     pool: Option<Arc<super::pool::ConnectionPool>>,
-    /// Shared coordination with ClientRequest
-    control: RequestControl,
     /// Stream holder for yielding ownership later
     stream_holder: Option<SharedByteBufferStream<RawStream>>,
     /// Host for pool return
@@ -191,14 +133,13 @@ where
             remaining_redirects: max_redirects,
             timeout: Some(Duration::from_secs(30)),
             pool: None,
-            control: RequestControl::new(),
             stream_holder: None,
             host: None,
             port: None,
         }
     }
 
-    /// Creates a new HTTP request task with connection pool and control.
+    /// Creates a new HTTP request task with connection pool.
     ///
     /// # Arguments
     ///
@@ -206,29 +147,26 @@ where
     /// * `resolver` - DNS resolver for hostname resolution
     /// * `max_redirects` - Maximum number of redirects to follow
     /// * `pool` - Optional connection pool for reuse
-    /// * `control` - Shared coordination with ClientRequest
     ///
     /// # Returns
     ///
     /// A new `HttpRequestTask` in the `Init` state.
-    pub fn with_control(
+    pub fn with_pool(
         request: PreparedRequest,
         resolver: R,
         max_redirects: u8,
         pool: Option<Arc<super::pool::ConnectionPool>>,
-        control: RequestControl,
     ) -> Self {
         Self {
-            state: HttpRequestState::Init,
             resolver,
-            request: Some(request),
-            remaining_redirects: max_redirects,
-            timeout: Some(Duration::from_secs(30)),
             pool,
-            control,
-            stream_holder: None,
             host: None,
             port: None,
+            stream_holder: None,
+            request: Some(request),
+            state: HttpRequestState::Init,
+            remaining_redirects: max_redirects,
+            timeout: Some(Duration::from_secs(30)),
         }
     }
 }
@@ -252,7 +190,7 @@ where
                 if let Some(request) = &self.request {
                     if request.url.scheme().is_https() {
                         tracing::error!("HTTPS not supported in Phase 1");
-                        self.state = HttpRequestState::Error;
+                        self.state = HttpRequestState::Done;
                         return None;
                     }
                     // Transition to Connecting
@@ -260,7 +198,7 @@ where
                     Some(TaskStatus::Pending(HttpRequestState::Init))
                 } else {
                     tracing::error!("No request to process");
-                    self.state = HttpRequestState::Error;
+                    self.state = HttpRequestState::Done;
                     None
                 }
             }
@@ -270,7 +208,7 @@ where
                     Some(req) => req,
                     None => {
                         tracing::error!("Request disappeared during connecting");
-                        self.state = HttpRequestState::Error;
+                        self.state = HttpRequestState::Done;
                         return None;
                     }
                 };
@@ -303,7 +241,7 @@ where
                                 Ok(req) => req,
                                 Err(e) => {
                                     tracing::error!("Failed to convert request: {}", e);
-                                    self.state = HttpRequestState::Error;
+                                    self.state = HttpRequestState::Done;
                                     return None;
                                 }
                             };
@@ -314,7 +252,7 @@ where
                                     Ok(s) => s,
                                     Err(e) => {
                                         tracing::error!("Failed to render request: {:?}", e);
-                                        self.state = HttpRequestState::Error;
+                                        self.state = HttpRequestState::Done;
                                         return None;
                                     }
                                 };
@@ -323,13 +261,13 @@ where
                             let raw_stream = connection.stream_mut();
                             if let Err(e) = raw_stream.write_all(request_string.as_bytes()) {
                                 tracing::error!("Failed to write request: {}", e);
-                                self.state = HttpRequestState::Error;
+                                self.state = HttpRequestState::Done;
                                 return None;
                             }
 
                             if let Err(e) = raw_stream.flush() {
                                 tracing::error!("Failed to write request: {}", e);
-                                self.state = HttpRequestState::Error;
+                                self.state = HttpRequestState::Done;
                                 return None;
                             }
 
@@ -341,7 +279,7 @@ where
                         }
                         Err(e) => {
                             tracing::error!("Connection failed: {}", e);
-                            self.state = HttpRequestState::Error;
+                            self.state = HttpRequestState::Done;
                             return None;
                         }
                     }
@@ -358,7 +296,7 @@ where
                     Some(s) => s.clone(),
                     None => {
                         tracing::error!("No stream in ReceivingIntro state");
-                        self.state = HttpRequestState::Error;
+                        self.state = HttpRequestState::Done;
                         return None;
                     }
                 };
@@ -388,12 +326,12 @@ where
                     }
                     Some(Err(e)) => {
                         tracing::error!("Failed to read intro: {:?}", e);
-                        self.state = HttpRequestState::Error;
+                        self.state = HttpRequestState::Done;
                         return None;
                     }
                     None => {
                         tracing::error!("Connection closed before receiving intro");
-                        self.state = HttpRequestState::Error;
+                        self.state = HttpRequestState::Done;
                         return None;
                     }
                 };
@@ -413,7 +351,7 @@ where
                     }
                     Some(Err(e)) => {
                         tracing::error!("Failed to read headers: {:?}", e);
-                        self.state = HttpRequestState::Error;
+                        self.state = HttpRequestState::Done;
                         return None;
                     }
                     None => {
@@ -423,52 +361,28 @@ where
                 };
 
                 // Signal that intro/headers are ready
-                self.control.set_intro_ready();
-                self.state = HttpRequestState::WaitingForBodyRequest;
+                self.state = HttpRequestState::Done;
+
+                // User wants body - yield stream ownership
+                let stream = match self.stream_holder.take() {
+                    Some(s) => {
+                        tracing::debug!("Returning stream");
+                        s
+                    }
+                    None => {
+                        tracing::error!("No stream to yield");
+                        return None;
+                    }
+                };
 
                 // Yield intro and headers
-                Some(TaskStatus::Ready(HttpTaskReady::IntroAndHeaders {
+                Some(TaskStatus::Ready(HttpTaskReady::Ready {
                     intro,
                     headers,
+                    stream,
                 }))
             }
-            HttpRequestState::WaitingForBodyRequest => {
-                // Check atomic flag to see if body is requested
-                match self.control.get_state() {
-                    STATE_INTRO_READY => {
-                        // Still waiting - delay to yield control
-                        Some(TaskStatus::Delayed(Duration::from_nanos(500)))
-                    }
-                    STATE_BODY_REQUESTED => {
-                        // User wants body - yield stream ownership
-                        let stream = match self.stream_holder.take() {
-                            Some(s) => s,
-                            None => {
-                                tracing::error!("No stream to yield in WaitingForBodyRequest");
-                                self.state = HttpRequestState::Error;
-                                return None;
-                            }
-                        };
-
-                        self.state = HttpRequestState::Done;
-                        Some(TaskStatus::Ready(HttpTaskReady::StreamOwnership(stream)))
-                    }
-                    _ => {
-                        // Invalid state
-                        tracing::error!("Invalid control state in WaitingForBodyRequest");
-                        self.state = HttpRequestState::Error;
-                        None
-                    }
-                }
-            }
-            HttpRequestState::Done => {
-                // Request completed - no more values
-                None
-            }
-            HttpRequestState::Error => {
-                // Error occurred - terminate iteration
-                None
-            }
+            HttpRequestState::Done => None,
         }
     }
 }
@@ -491,9 +405,7 @@ mod tests {
             HttpRequestState::Init,
             HttpRequestState::Connecting,
             HttpRequestState::ReceivingIntro,
-            HttpRequestState::WaitingForBodyRequest,
             HttpRequestState::Done,
-            HttpRequestState::Error,
         ];
 
         // Verify each state is unique
@@ -598,7 +510,7 @@ mod tests {
         // This results in None (Error state)
         let status = task.next();
         assert!(status.is_none());
-        assert_eq!(task.state, HttpRequestState::Error);
+        assert_eq!(task.state, HttpRequestState::Done);
     }
 
     /// WHY: Verify HttpRequestTask::next() handles Done state
@@ -632,7 +544,7 @@ mod tests {
         let mut task = HttpRequestTask::new(request, resolver, 5);
 
         // Manually set state to Error
-        task.state = HttpRequestState::Error;
+        task.state = HttpRequestState::Done;
 
         // Error state should return None
         let status = task.next();

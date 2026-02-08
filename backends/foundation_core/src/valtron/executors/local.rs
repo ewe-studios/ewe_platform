@@ -396,6 +396,12 @@ impl ExecutorState {
         self.sleepers.count()
     }
 
+    /// Returns the total in queue regardless of sleeping or in-progress.
+    #[must_use]
+    pub fn total_tasks(&self) -> usize {
+        self.local_tasks.borrow().active_slots()
+    }
+
     /// Returns the total remaining tasks that are
     /// active and not sleeping.
     pub fn total_active_tasks(&self) -> usize {
@@ -496,7 +502,7 @@ impl ExecutorState {
 
             match self.do_work(engine) {
                 ProgressIndicator::CanProgress(state) => {
-                    tracing::debug!("Received CanProgress indicator from task");
+                    tracing::debug!("Received CanProgress indicator from task: state={state:?}");
                     // TODO: I feel like I am missing something here
                     ProgressIndicator::CanProgress(state)
                 }
@@ -678,6 +684,15 @@ impl ExecutorState {
                                     ProgressIndicator::CanProgress(None)
                                 }
                             }
+                            State::ReadyValue(entry_id) => {
+                                tracing::debug!("Task is has seen a ready value");
+                                // unpack the entry in the task list
+                                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+
+                                // push entry back into processing mut
+                                self.processing.borrow_mut().push_front(top_entry);
+                                ProgressIndicator::CanProgress(Some(State::ReadyValue(entry_id)))
+                            }
                             State::Progressed => {
                                 tracing::debug!("Task is progressing with State::Progressed");
                                 // unpack the entry in the task list
@@ -685,7 +700,7 @@ impl ExecutorState {
 
                                 // push entry back into processing mut
                                 self.processing.borrow_mut().push_front(top_entry);
-                                ProgressIndicator::CanProgress(None)
+                                ProgressIndicator::CanProgress(Some(State::Progressed))
                             }
                             State::Pending(duration) => {
                                 tracing::debug!(
@@ -938,6 +953,11 @@ impl ReferencedExecutorState {
     #[inline]
     pub fn number_of_sleepers(&self) -> usize {
         self.inner.number_of_sleepers()
+    }
+
+    #[inline]
+    pub fn total_tasks(&self) -> usize {
+        self.inner.total_tasks()
     }
 
     /// Returns true/false if processing queue has task.
@@ -1510,6 +1530,41 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         self.state.schedule_and_do_work(Box::new(local_executor))
     }
 
+    /// [`run_until`] provides a fine-grained of the executor which allows
+    /// you to loop the executor until it reaches a giving [`ProgressIndicator`]
+    /// state upon which you wish it to stop.
+    ///
+    /// This keeps executing the [`schedule_and_do_work`] until the condition
+    /// with the function is true.
+    #[inline]
+    pub fn run_until<S>(&self, checker: S)
+    where
+        S: Fn(&ProgressIndicator) -> bool,
+    {
+        let span = tracing::trace_span!("LocalThreadExecutor::run_until");
+        let _enter = span.enter();
+
+        loop {
+            let local_executor = self.state.local_engine();
+
+            let response = self.state.schedule_and_do_work(Box::new(local_executor));
+            tracing::debug!(
+                "run_until: received response from schedule_and_do_work: {:?}",
+                response
+            );
+            if checker(&response) {
+                break;
+            }
+            // break as well if no work remains and there are zero tasks.
+            if let ProgressIndicator::NoWork = response {
+                if self.state.total_tasks() == 0 {
+                    break;
+                }
+            }
+            self.yielder.yield_process();
+        }
+    }
+
     /// [`block_until_finished`] defers from [`block_on`] in that it will
     /// continue to execute the executor till the task is ideally finished
     /// and no more work remains in this task.
@@ -1790,7 +1845,10 @@ mod test_local_thread_executor {
             .on_next(move |next, _| count_clone.lock().unwrap().push(next))
             .broadcast());
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(Some(State::Progressed))
+        );
 
         let thread_handle = thread::spawn(move || {
             tracing::debug!("Starting sleep timer for 100ms to kill executor");
@@ -1841,8 +1899,14 @@ mod test_local_thread_executor {
 
         panic_if_failed!(global.push(on_next.into()));
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(Some(State::Progressed))
+        );
+        assert_eq!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(Some(State::Progressed))
+        );
         assert_eq!(executor.run_once(), ProgressIndicator::NoWork);
         assert_eq!(executor.number_of_sleepers(), 0);
 
@@ -1884,8 +1948,14 @@ mod test_local_thread_executor {
             .on_next(move |next, _| count_clone.lock().unwrap().push(next))
             .broadcast());
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(Some(State::Progressed))
+        );
+        assert_eq!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(Some(State::Progressed))
+        );
         assert_eq!(executor.run_once(), ProgressIndicator::NoWork);
         assert_eq!(executor.number_of_sleepers(), 0);
 
@@ -1928,7 +1998,10 @@ mod test_local_thread_executor {
             None,
         ))));
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(counts.lock().unwrap().clone(), vec![TaskStatus::Ready(11),]);
 
         assert_eq!(
@@ -1940,12 +2013,18 @@ mod test_local_thread_executor {
         // wait for 5ms and validate we made progress
         thread::sleep(time::Duration::from_millis(5));
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![TaskStatus::Ready(11), TaskStatus::Ready(13),]
         );
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
 
         assert_eq!(
             counts.lock().unwrap().clone(),
@@ -1999,14 +2078,20 @@ mod test_local_thread_executor {
             .into()
         ));
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
 
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![("Counter1", TaskStatus::Ready(1)),]
         );
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
 
         assert_eq!(
             counts.lock().unwrap().clone(),
@@ -2015,7 +2100,10 @@ mod test_local_thread_executor {
 
         assert_eq!(executor.number_of_sleepers(), 1);
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
@@ -2024,7 +2112,10 @@ mod test_local_thread_executor {
             ]
         );
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
@@ -2040,7 +2131,10 @@ mod test_local_thread_executor {
         tracing::debug!("Finished sleeping thread for 5ms");
 
         // Counter1 is brought back in as priority
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
@@ -2052,7 +2146,10 @@ mod test_local_thread_executor {
         );
 
         // Counter1 finishes and removed from queue, so count is same.
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
@@ -2063,7 +2160,10 @@ mod test_local_thread_executor {
             ]
         );
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
@@ -2074,7 +2174,10 @@ mod test_local_thread_executor {
                 ("Counter2", TaskStatus::Ready(3)),
             ]
         );
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
@@ -2133,14 +2236,20 @@ mod test_local_thread_executor {
             .into()
         ));
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
 
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![("Counter1", TaskStatus::Ready(1)),]
         );
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
 
         assert_eq!(
             counts.lock().unwrap().clone(),
@@ -2149,7 +2258,10 @@ mod test_local_thread_executor {
 
         assert_eq!(executor.number_of_sleepers(), 1);
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
@@ -2158,7 +2270,10 @@ mod test_local_thread_executor {
             ]
         );
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
@@ -2174,7 +2289,10 @@ mod test_local_thread_executor {
         tracing::debug!("Finished sleeping thread for 5ms");
 
         // Counter1 is brought back in as priority
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
@@ -2185,7 +2303,10 @@ mod test_local_thread_executor {
             ]
         );
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
@@ -2198,7 +2319,10 @@ mod test_local_thread_executor {
         );
 
         // Counter2 triggers Done signal
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
@@ -2210,7 +2334,10 @@ mod test_local_thread_executor {
             ]
         );
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
@@ -2223,7 +2350,7 @@ mod test_local_thread_executor {
             ]
         );
 
-        assert_eq!(executor.run_once(), ProgressIndicator::NoWork);
+        assert!(matches!(executor.run_once(), ProgressIndicator::NoWork));
 
         assert_eq!(
             counts.lock().unwrap().clone(),
@@ -2389,7 +2516,7 @@ mod test_local_thread_executor {
             .on_next(move |next, _| count_clone.lock().unwrap().push(("DaemonCounter", next)))
             .broadcast());
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress(None));
 
         assert_eq!(counts.lock().unwrap().clone(), vec![]);
 
@@ -2398,7 +2525,10 @@ mod test_local_thread_executor {
 
         gen_state.store(1, Ordering::SeqCst);
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(Some(State::Progressed))
+        );
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![("DaemonCounter", TaskStatus::Ready(())),]
@@ -2409,7 +2539,7 @@ mod test_local_thread_executor {
 
         gen_state.store(2, Ordering::SeqCst);
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress(None));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![("DaemonCounter", TaskStatus::Ready(())),]
@@ -2418,21 +2548,21 @@ mod test_local_thread_executor {
         assert_eq!(executor.number_of_sleepers(), 0);
         assert_eq!(executor.number_of_local_tasks(), 2);
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress(None));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![("DaemonCounter", TaskStatus::Ready(())),]
         );
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress(None));
+        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress(None));
 
         assert_eq!(executor.number_of_sleepers(), 0);
         assert_eq!(executor.number_of_local_tasks(), 5);
 
         gen_state.store(0, Ordering::SeqCst);
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress(None));
         assert_eq!(executor.number_of_sleepers(), 0);
         assert_eq!(executor.number_of_local_tasks(), 5);
     }
@@ -2471,7 +2601,7 @@ mod test_local_thread_executor {
             .on_next(move |next, _| count_clone.lock().unwrap().push(("DaemonCounter", next)))
             .broadcast());
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress(None));
 
         assert_eq!(counts.lock().unwrap().clone(), vec![]);
 
@@ -2480,7 +2610,10 @@ mod test_local_thread_executor {
 
         gen_state.store(1, Ordering::SeqCst);
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(Some(State::Progressed))
+        );
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![("DaemonCounter", TaskStatus::Ready(())),]
@@ -2491,7 +2624,7 @@ mod test_local_thread_executor {
 
         gen_state.store(3, Ordering::SeqCst);
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress(None));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![("DaemonCounter", TaskStatus::Ready(())),]
@@ -2500,15 +2633,21 @@ mod test_local_thread_executor {
         assert_eq!(executor.number_of_sleepers(), 0);
         assert_eq!(executor.number_of_local_tasks(), 2);
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(Some(State::ReadyValue(_)))
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
-            vec![("DaemonCounter", TaskStatus::Ready(())),]
+            vec![("DaemonCounter", TaskStatus::Ready(()))]
         );
 
         gen_state.store(1, Ordering::SeqCst);
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(Some(State::ReadyValue(_)))
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![("DaemonCounter", TaskStatus::Ready(())),]
@@ -2518,11 +2657,20 @@ mod test_local_thread_executor {
         assert_eq!(executor.number_of_inprocess(), 2);
         assert_eq!(executor.number_of_local_tasks(), 2);
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         tracing::debug!("Before: Checking tasks counts");
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         tracing::debug!("After: Checking tasks counts");
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
 
         assert_eq!(
             counts.lock().unwrap().clone(),
@@ -2543,14 +2691,23 @@ mod test_local_thread_executor {
         assert_eq!(executor.number_of_local_tasks(), 2);
 
         tracing::debug!("Wake up tasks from sleep");
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
 
         assert_eq!(executor.number_of_sleepers(), 0);
         assert_eq!(executor.number_of_inprocess(), 2);
         assert_eq!(executor.number_of_local_tasks(), 2);
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
 
         assert_eq!(executor.number_of_sleepers(), 0);
         assert_eq!(executor.number_of_inprocess(), 1);
@@ -2568,14 +2725,21 @@ mod test_local_thread_executor {
         tracing::debug!("Task A is now spawns task to global queue but still continues");
         gen_state.store(4, Ordering::SeqCst);
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
 
         assert_eq!(executor.number_of_sleepers(), 0);
         assert_eq!(executor.number_of_inprocess(), 1);
         assert_eq!(executor.number_of_local_tasks(), 1);
 
         gen_state.store(1, Ordering::SeqCst);
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
+
         tracing::debug!("Task A emits another state");
         assert_eq!(
             counts.lock().unwrap().clone(),
@@ -2583,6 +2747,214 @@ mod test_local_thread_executor {
                 ("DaemonCounter", TaskStatus::Ready(())),
                 ("DaemonCounter", TaskStatus::Ready(())),
                 ("DaemonCounter", TaskStatus::Ready(())),
+            ]
+        );
+    }
+
+    #[test]
+    #[traced_test]
+    fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condition_hits() {
+        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+            Arc::new(ConcurrentQueue::bounded(10));
+
+        let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
+            Arc::new(Mutex::new(Vec::new()));
+
+        let seed = rand::rng().next_u64();
+
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            global.clone(),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            NoYielder,
+            None,
+            None,
+        );
+
+        let count_clone = Arc::clone(&counts);
+        panic_if_failed!(global.push(
+            OnNext::on_next(
+                Counter("Counter1", 0, 4, 2),
+                move |next, _| count_clone.lock().unwrap().push(("Counter1", next)),
+                None
+            )
+            .into()
+        ));
+
+        let count_clone2 = Arc::clone(&counts);
+        panic_if_failed!(global.push(
+            OnNext::on_next(
+                Counter("Counter2", 0, 5, 10),
+                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next)),
+                None
+            )
+            .into()
+        ));
+
+        let count_clone3 = Arc::clone(&counts);
+        executor.run_until(move |_| {
+            let items = count_clone3.lock().unwrap();
+
+            if items.len() >= 6 {
+                return true;
+            }
+            false
+        });
+
+        assert_eq!(
+            counts.lock().unwrap().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+                ("Counter2", TaskStatus::Ready(3)),
+                ("Counter2", TaskStatus::Ready(4)),
+                ("Counter1", TaskStatus::Ready(3)),
+            ]
+        );
+
+        assert_eq!(executor.run_once(), ProgressIndicator::NoWork);
+    }
+
+    #[test]
+    #[traced_test]
+    fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condition_doesnt_hits(
+    ) {
+        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+            Arc::new(ConcurrentQueue::bounded(10));
+
+        let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
+            Arc::new(Mutex::new(Vec::new()));
+
+        let seed = rand::rng().next_u64();
+
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            global.clone(),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            NoYielder,
+            None,
+            None,
+        );
+
+        let count_clone = Arc::clone(&counts);
+        panic_if_failed!(global.push(
+            OnNext::on_next(
+                Counter("Counter1", 0, 4, 2),
+                move |next, _| count_clone.lock().unwrap().push(("Counter1", next)),
+                None
+            )
+            .into()
+        ));
+
+        let count_clone2 = Arc::clone(&counts);
+        panic_if_failed!(global.push(
+            OnNext::on_next(
+                Counter("Counter2", 0, 5, 10),
+                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next)),
+                None
+            )
+            .into()
+        ));
+
+        let count_clone3 = Arc::clone(&counts);
+        executor.run_until(move |_| {
+            let items = count_clone3.lock().unwrap();
+
+            // should be 6 but intentionally setting to 7 to validate it
+            // never loops forever
+            if items.len() >= 7 {
+                return true;
+            }
+            false
+        });
+
+        assert_eq!(
+            counts.lock().unwrap().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+                ("Counter2", TaskStatus::Ready(3)),
+                ("Counter2", TaskStatus::Ready(4)),
+                ("Counter1", TaskStatus::Ready(3)),
+            ]
+        );
+
+        assert_eq!(executor.run_once(), ProgressIndicator::NoWork);
+    }
+
+    #[test]
+    #[traced_test]
+    fn scenario_6_can_run_until_ready_signal_is_seen_with_pending_work() {
+        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+            Arc::new(ConcurrentQueue::bounded(10));
+
+        let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
+            Arc::new(Mutex::new(Vec::new()));
+
+        let seed = rand::rng().next_u64();
+
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            global.clone(),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            NoYielder,
+            None,
+            None,
+        );
+
+        let count_clone = Arc::clone(&counts);
+        panic_if_failed!(global.push(
+            OnNext::on_next(
+                Counter("Counter1", 0, 4, 2),
+                move |next, _| count_clone.lock().unwrap().push(("Counter1", next)),
+                None
+            )
+            .into()
+        ));
+
+        let count_clone2 = Arc::clone(&counts);
+        panic_if_failed!(global.push(
+            OnNext::on_next(
+                Counter("Counter2", 0, 5, 10),
+                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next)),
+                None
+            )
+            .into()
+        ));
+
+        let count_clone3 = Arc::clone(&counts);
+        executor.run_until(move |_| {
+            let items = count_clone3.lock().unwrap();
+            if items.len() >= 4 {
+                return true;
+            }
+            false
+        });
+
+        assert_eq!(
+            counts.lock().unwrap().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+                ("Counter2", TaskStatus::Ready(3)),
             ]
         );
     }

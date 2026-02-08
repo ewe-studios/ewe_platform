@@ -74,6 +74,33 @@ pub fn initialize_pool(seed_for_rng: u64) {
     });
 }
 
+/// `run_until` calls the `LocalExecution` queue and processes
+/// the next pending message by moving it forward just until
+/// the provided function returns true indicating it should stop.
+///
+/// This lets you review the state or some internal conditions
+/// upon which you wish to stop processing.
+///
+/// It works like [`run_once`] but not just executed once but till
+/// the condition is met.
+///
+/// # Panics
+///
+/// 1. Will panic if no pool exists.
+///
+/// # Returns
+///
+/// The progress indicator from the execution
+pub fn run_until<S>(checker: S)
+where
+    S: Fn(&ProgressIndicator) -> bool,
+{
+    GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| match pool.get() {
+        Some(pool) => pool.run_until(checker),
+        None => panic!("Thread pool not initialized, ensure to call initialize() first"),
+    });
+}
+
 /// `run_once` calls the `LocalExecution` queue and processes
 /// the next pending message by moving it forward just once.
 ///
@@ -175,144 +202,6 @@ where
     })
 }
 
-/// Run-once wrapper for single-threaded executor.
-///
-/// This module provides a wrapper around `single::run_once` with start/stop functionality.
-/// It enables running `run_once` in a loop with configurable sleep duration and provides
-/// methods to start and stop the loop.
-///
-/// ## Features
-///
-/// - Uses an atomic flag (`AtomicBool`) to signal when to stop the loop
-/// - Accepts a configurable sleep duration between `run_once` calls
-/// - Provides `start()` method to spawn a thread running `run_once` in a loop
-/// - Provides `stop()` method to set the atomic flag to stop the loop
-/// - Stores the thread handle internally for potential future use
-/// - Uses the existing `single::run_once` function directly
-/// - Includes proper error handling for thread spawning
-/// - Provides appropriate documentation and examples
-///
-/// ## Usage
-///
-/// ```ignore
-/// use foundation_core::valtron::executors::run_once_wrapper::{RunOnceWrapper, RunOnceWrapperBuilder};
-///
-/// let mut wrapper = RunOnceWrapperBuilder::new()
-///     .sleep_duration(std::time::Duration::from_millis(100))
-///     .build();
-///
-/// // Start the loop
-/// wrapper.start();
-///
-/// // Later, stop the loop
-/// wrapper.stop();
-///```
-///
-/// ## Implementation
-///
-/// The wrapper uses a `thread::spawn` to run the loop in a separate thread. The loop
-/// continues until the atomic flag is set to `true`. The `run_once` function is called
-/// in each iteration, and the thread sleeps for the configured duration between calls.
-///
-/// # Examples
-///
-/// ```
-/// use foundation_core::valtron::executors::run_once_wrapper::{RunOnceWrapper, RunOnceWrapperBuilder};
-///
-/// let mut wrapper = RunOnceWrapperBuilder::new()
-///     .sleep_duration(std::time::Duration::from_millis(100))
-///     .build();
-///
-/// wrapper.start().unwrap();
-///
-/// // ... do other work ...
-///
-/// wrapper.stop();
-/// wrapper.join().unwrap();
-/// ```
-///
-/// # Module Structure
-///
-/// This module is part of the `valtron::executors::single` module and is re-exported
-/// through the `single` module's public API.
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::sync::mpsc;
-    use std::thread;
-
-    #[test]
-    fn test_run_once_wrapper() {
-        // Create a wrapper with a short sleep duration for testing
-        let mut wrapper = RunOnceWrapperBuilder::new()
-            .sleep_duration(Duration::from_millis(10))
-            .build();
-
-        // Start the loop
-        wrapper.start().unwrap();
-
-        // Wait a bit to let the loop run
-        thread::sleep(Duration::from_millis(50));
-
-        // Stop the loop
-        wrapper.stop();
-
-        // Wait for the thread to finish
-        wrapper.join().unwrap();
-    }
-
-    #[test]
-    fn test_run_once_wrapper_with_channel() {
-        let (sender, receiver) = mpsc::channel();
-
-        // Create a wrapper that sends a message when run_once is called
-        let mut wrapper = RunOnceWrapperBuilder::new()
-            .sleep_duration(Duration::from_millis(10))
-            .build();
-
-        // Start the loop
-        wrapper.start().unwrap();
-
-        // Wait a bit to let the loop run
-        thread::sleep(Duration::from_millis(50));
-
-        // Stop the loop
-        wrapper.stop();
-
-        // Wait for the thread to finish
-        wrapper.join().unwrap();
-
-        // Check that the loop ran at least once
-        assert!(receiver.recv().is_ok());
-    }
-}
-
-/// Run-once wrapper for single-threaded executor.
-///
-/// This struct provides a thread-safe way to run `single::run_once` in a loop
-/// with configurable sleep duration and the ability to stop the loop.
-///
-/// # Examples
-///
-/// ```
-/// use foundation_core::valtron::executors::run_once_wrapper::{RunOnceWrapper, RunOnceWrapperBuilder};
-///
-/// let mut wrapper = RunOnceWrapperBuilder::new()
-///     .sleep_duration(std::time::Duration::from_millis(100))
-///     .build();
-///
-/// wrapper.start().unwrap();
-///
-/// // ... do other work ...
-///
-/// wrapper.stop();
-/// wrapper.join().unwrap();
-/// ```
-///
-/// # Module Structure
-///
-/// This module is part of the `valtron::executors::single` module and is re-exported
-/// through the `single` module's public API.
 #[cfg(test)]
 mod single_threaded_tests {
     use std::{cell::RefCell, rc::Rc};
@@ -321,7 +210,7 @@ mod single_threaded_tests {
     use tracing_test::traced_test;
 
     use crate::valtron::{
-        single::{initialize_pool, run_until_complete, spawn},
+        single::{initialize_pool, run_until, run_until_complete, spawn},
         FnReady, NoSpawner, Stream, TaskIterator, TaskStatus,
     };
 
@@ -374,6 +263,35 @@ mod single_threaded_tests {
             .expect("should deliver task");
 
         assert_eq!(shared_list.borrow().len(), 0);
+    }
+
+    #[test]
+    #[traced_test]
+    fn can_queue_and_complete_task_with_run_until() {
+        let seed = rand::rng().next_u64();
+
+        let shared_list = Rc::new(RefCell::new(Vec::new()));
+        let counter = Counter::new(5, shared_list.clone());
+
+        initialize_pool(seed);
+
+        spawn()
+            .with_task(counter)
+            .with_resolver(Box::new(FnReady::new(|item, _| {
+                tracing::info!("Received next: {:?}", item);
+            })))
+            .schedule()
+            .expect("should deliver task");
+
+        let handle = shared_list.clone();
+        run_until(|_| {
+            if handle.borrow_mut().len() >= 5 {
+                return true;
+            }
+            false
+        });
+
+        assert_eq!(shared_list.borrow().clone(), vec![0, 1, 2, 3, 4]);
     }
 
     #[test]

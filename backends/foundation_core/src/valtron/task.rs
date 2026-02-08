@@ -334,6 +334,10 @@ pub enum State {
     /// in relation to this.
     Progressed,
 
+    /// Indicate that the state saw a ready value from one of the
+    /// task executors, and provides the entry id for the task.
+    ReadyValue(Entry),
+
     /// Done indicates that the iterator has finished (when it returns None)
     /// and no further execution is required for giving iterator.
     Done,

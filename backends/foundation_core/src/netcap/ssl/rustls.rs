@@ -411,7 +411,8 @@ mod tests {
         let endpoint =
             Endpoint::WithIdentity(EndpointConfig::NoTimeout(url), custom_config.clone());
 
-        let connector = RustlsConnector::create(&endpoint);
+        let _ = RustlsConnector::create(&endpoint);
+
         // Verify the connector uses the custom config
         assert!(Arc::strong_count(&custom_config) >= 2);
     }
