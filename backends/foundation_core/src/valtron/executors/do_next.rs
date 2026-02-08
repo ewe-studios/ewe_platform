@@ -101,7 +101,7 @@ where
                         State::SpawnFailed
                     }
                 },
-                TaskStatus::Ready(_) => State::Progressed,
+                TaskStatus::Ready(_) => State::ReadyValue(entry.clone()),
             },
             None => State::Done,
         })

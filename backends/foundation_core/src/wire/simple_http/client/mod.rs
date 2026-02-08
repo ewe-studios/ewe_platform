@@ -7,6 +7,7 @@ mod actions;
 mod api;
 mod client;
 mod connection;
+mod control;
 mod dns;
 mod errors;
 mod executor;
@@ -24,10 +25,12 @@ pub use errors::{DnsError, HttpClientError};
 pub use intro::ResponseIntro;
 pub use request::{ClientRequestBuilder, PreparedRequest};
 
+pub use control::*;
+
 // Internal re-exports for use within the client module
-pub(crate) use actions::HttpClientAction;
-pub(crate) use pool::ConnectionPool;
-pub(crate) use task::{HttpRequestState, HttpRequestTask, HttpTaskReady, RequestControl};
+pub use actions::HttpClientAction;
+pub use pool::ConnectionPool;
+pub use task::{HttpRequestState, HttpRequestTask, HttpTaskReady};
 
 #[cfg(not(target_arch = "wasm32"))]
 pub use tls_task::{TlsHandshakeState, TlsHandshakeTask};

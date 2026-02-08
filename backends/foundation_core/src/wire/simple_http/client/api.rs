@@ -22,8 +22,8 @@ use crate::wire::simple_http::client::{
     PreparedRequest, RequestControl, ResponseIntro,
 };
 use crate::wire::simple_http::{
-    HttpResponseReader, IncomingResponseParts, SimpleBody, SimpleHeaders, SimpleHttpBody,
-    SimpleResponse,
+    HttpResponseReader, IncomingResponseParts, Proto, SimpleBody, SimpleHeaders, SimpleHttpBody,
+    SimpleResponse, Status,
 };
 use std::sync::Arc;
 
@@ -212,101 +212,102 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     pub fn introduction(&mut self) -> Result<(ResponseIntro, SimpleHeaders), HttpClientError> {
         println!("Get current state");
 
-        // Take state to check current phase
-        let state = self
-            .task_state
-            .take()
-            .ok_or_else(|| HttpClientError::Other("Request state missing".into()))?;
-
-        println!("Running introduction process: {:?}", &state);
-
-        match state {
-            ClientRequestState::NotStarted => {
-                println!("Entering not started state, starting execution");
-                // tracing::info!("Entering not started state, starting execution");
-                // First call - need to start execution
-                self.start_execution()?;
-
-                // Recursively call to process Executing state
-                self.introduction()
-
-                // Err(HttpClientError::Other("bad state".into()))
-            }
-            ClientRequestState::Executing {
-                mut iter,
-                intro,
-                headers,
-                stream,
-            } => {
-                tracing::info!("Entering executing state");
-
-                // Check if we already have intro and headers
-                if let (Some(intro_val), Some(headers_val)) = (&intro, &headers) {
-                    self.task_state = Some(ClientRequestState::Executing {
-                        iter,
-                        intro: Some(intro_val.clone()),     // Consumed
-                        headers: Some(headers_val.clone()), // Consumed
-                        stream,
-                    });
-                    return Ok((intro_val.clone(), headers_val.clone()));
-                }
-
-                println!("Try to get the headers");
-
-                // Need to collect intro and/or headers from iterator
-                let mut collected_intro = intro;
-                let mut collected_headers = headers;
-
-                // Drive executor
-                valtron::run_until_complete();
-
-                println!("completed execution");
-
-                // Collect from ReadyValues iterator
-                for ready_item in ReadyValues::new(&mut iter) {
-                    if let Some(HttpTaskReady::IntroAndHeaders { intro, headers }) =
-                        ready_item.inner()
-                    {
-                        collected_intro = Some(intro);
-                        collected_headers = Some(headers);
-                        break;
-                    }
-                }
-
-                println!("prepapre url and port");
-                // Extract host and port from URL for pool return
-                self.host = self.prepared_request.url.host_str().map(|s| s.to_string());
-                self.port = Some(self.prepared_request.url.port().unwrap_or(80));
-
-                // Check if we got both
-                if collected_intro.is_none() || collected_headers.is_none() {
-                    self.task_state = Some(ClientRequestState::Completed);
-                    return Err(HttpClientError::Other(
-                        "Failed to receive response introduction/headers".into(),
-                    ));
-                }
-
-                let intro = collected_intro.unwrap();
-                let headers = collected_headers.unwrap();
-
-                // Store state for potential body() call
-                // Keep iter for body() to continue
-                self.task_state = Some(ClientRequestState::Executing {
-                    iter,
-                    intro: Some(intro.clone()),
-                    headers: Some(headers.clone()),
-                    stream,
-                });
-
-                Ok((intro, headers))
-            }
-            ClientRequestState::Completed => {
-                tracing::debug!("Entering completed state");
-
-                self.task_state = Some(ClientRequestState::Completed);
-                Err(HttpClientError::Other("Request already completed".into()))
-            }
-        }
+        // // Take state to check current phase
+        // let state = self
+        //     .task_state
+        //     .take()
+        //     .ok_or_else(|| HttpClientError::Other("Request state missing".into()))?;
+        //
+        // println!("Running introduction process: {:?}", &state);
+        //
+        // match state {
+        //     ClientRequestState::NotStarted => {
+        //         println!("Entering not started state, starting execution");
+        //         // tracing::info!("Entering not started state, starting execution");
+        //         // First call - need to start execution
+        //         self.start_execution()?;
+        //
+        //         // Recursively call to process Executing state
+        //         self.introduction()
+        //
+        //         // Err(HttpClientError::Other("bad state".into()))
+        //     }
+        //     ClientRequestState::Executing {
+        //         mut iter,
+        //         intro,
+        //         headers,
+        //         stream,
+        //     } => {
+        //         tracing::info!("Entering executing state");
+        //
+        //         // Check if we already have intro and headers
+        //         if let (Some(intro_val), Some(headers_val)) = (&intro, &headers) {
+        //             self.task_state = Some(ClientRequestState::Executing {
+        //                 iter,
+        //                 intro: Some(intro_val.clone()),     // Consumed
+        //                 headers: Some(headers_val.clone()), // Consumed
+        //                 stream,
+        //             });
+        //             return Ok((intro_val.clone(), headers_val.clone()));
+        //         }
+        //
+        //         println!("Try to get the headers");
+        //
+        //         // Need to collect intro and/or headers from iterator
+        //         let mut collected_intro = intro;
+        //         let mut collected_headers = headers;
+        //
+        //         // Drive executor
+        //         valtron::run_until_complete();
+        //
+        //         println!("completed execution");
+        //
+        //         // Collect from ReadyValues iterator
+        //         for ready_item in ReadyValues::new(&mut iter) {
+        //             if let Some(HttpTaskReady::IntroAndHeaders { intro, headers }) =
+        //                 ready_item.inner()
+        //             {
+        //                 collected_intro = Some(intro);
+        //                 collected_headers = Some(headers);
+        //                 break;
+        //             }
+        //         }
+        //
+        //         println!("prepapre url and port");
+        //         // Extract host and port from URL for pool return
+        //         self.host = self.prepared_request.url.host_str().map(|s| s.to_string());
+        //         self.port = Some(self.prepared_request.url.port().unwrap_or(80));
+        //
+        //         // Check if we got both
+        //         if collected_intro.is_none() || collected_headers.is_none() {
+        //             self.task_state = Some(ClientRequestState::Completed);
+        //             return Err(HttpClientError::Other(
+        //                 "Failed to receive response introduction/headers".into(),
+        //             ));
+        //         }
+        //
+        //         let intro = collected_intro.unwrap();
+        //         let headers = collected_headers.unwrap();
+        //
+        //         // Store state for potential body() call
+        //         // Keep iter for body() to continue
+        //         self.task_state = Some(ClientRequestState::Executing {
+        //             iter,
+        //             intro: Some(intro.clone()),
+        //             headers: Some(headers.clone()),
+        //             stream,
+        //         });
+        //
+        //         Ok((intro, headers))
+        //     }
+        //     ClientRequestState::Completed => {
+        //         tracing::debug!("Entering completed state");
+        //
+        //         self.task_state = Some(ClientRequestState::Completed);
+        //         Err(HttpClientError::Other("Request already completed".into()))
+        //     }
+        // }
+        todo!()
     }
 
     /// Continues execution to read response body.
@@ -340,83 +341,84 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     #[tracing::instrument(skip(self))]
     pub fn body(&mut self) -> Result<SimpleBody, HttpClientError> {
         // Signal task that we want the body
-        if let Some(control) = &self.control {
-            control.set_body_requested();
-        } else {
-            return Err(HttpClientError::Other(
-                "Must call introduction() before body()".into(),
-            ));
-        }
+        // if let Some(control) = &self.control {
+        //     control.set_body_requested();
+        // } else {
+        //     return Err(HttpClientError::Other(
+        //         "Must call introduction() before body()".into(),
+        //     ));
+        // }
 
-        // Take state
-        let state = self
-            .task_state
-            .take()
-            .ok_or_else(|| HttpClientError::Other("Request state missing".into()))?;
-
-        match state {
-            ClientRequestState::NotStarted => {
-                tracing::info!("Request in not started state");
-                self.task_state = Some(ClientRequestState::NotStarted);
-                Err(HttpClientError::Other(
-                    "Must call introduction() before body()".into(),
-                ))
-            }
-            ClientRequestState::Executing { mut iter, .. } => {
-                tracing::info!("Starting executing state");
-
-                // Drive executor to get stream ownership
-                crate::valtron::run_until_complete();
-
-                // Get stream from task
-                for ready_item in ReadyValues::new(&mut iter) {
-                    if let Some(HttpTaskReady::StreamOwnership(stream)) = ready_item.inner() {
-                        self.stream = Some(stream.clone());
-
-                        // Read body from stream using HttpResponseReader
-                        let mut reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
-                            stream,
-                            SimpleHttpBody,
-                        );
-
-                        // Collect body parts
-                        let mut body = SimpleBody::None;
-                        for part_result in &mut reader {
-                            match part_result {
-                                Ok(IncomingResponseParts::SizedBody(sized_body)) => {
-                                    body = sized_body;
-                                    break;
-                                }
-                                Ok(IncomingResponseParts::StreamedBody(streamed_body)) => {
-                                    body = streamed_body;
-                                    break;
-                                }
-                                Ok(_) => {
-                                    // Skip other parts (intro, headers already processed)
-                                    continue;
-                                }
-                                Err(e) => {
-                                    self.task_state = Some(ClientRequestState::Completed);
-                                    return Err(HttpClientError::Other(
-                                        format!("Failed to read body: {:?}", e).into(),
-                                    ));
-                                }
-                            }
-                        }
-
-                        self.task_state = Some(ClientRequestState::Completed);
-                        return Ok(body);
-                    }
-                }
-
-                self.task_state = Some(ClientRequestState::Completed);
-                Err(HttpClientError::Other("Failed to receive stream".into()))
-            }
-            ClientRequestState::Completed => {
-                self.task_state = Some(ClientRequestState::Completed);
-                Err(HttpClientError::Other("Request already completed".into()))
-            }
-        }
+        // // Take state
+        // let state = self
+        //     .task_state
+        //     .take()
+        //     .ok_or_else(|| HttpClientError::Other("Request state missing".into()))?;
+        //
+        // match state {
+        //     ClientRequestState::NotStarted => {
+        //         tracing::info!("Request in not started state");
+        //         self.task_state = Some(ClientRequestState::NotStarted);
+        //         Err(HttpClientError::Other(
+        //             "Must call introduction() before body()".into(),
+        //         ))
+        //     }
+        //     ClientRequestState::Executing { mut iter, .. } => {
+        //         tracing::info!("Starting executing state");
+        //
+        //         // Drive executor to get stream ownership
+        //         crate::valtron::run_until_complete();
+        //
+        //         // Get stream from task
+        //         for ready_item in ReadyValues::new(&mut iter) {
+        //             if let Some(HttpTaskReady::StreamOwnership(stream)) = ready_item.inner() {
+        //                 self.stream = Some(stream.clone());
+        //
+        //                 // Read body from stream using HttpResponseReader
+        //                 let mut reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
+        //                     stream,
+        //                     SimpleHttpBody,
+        //                 );
+        //
+        //                 // Collect body parts
+        //                 let mut body = SimpleBody::None;
+        //                 for part_result in &mut reader {
+        //                     match part_result {
+        //                         Ok(IncomingResponseParts::SizedBody(sized_body)) => {
+        //                             body = sized_body;
+        //                             break;
+        //                         }
+        //                         Ok(IncomingResponseParts::StreamedBody(streamed_body)) => {
+        //                             body = streamed_body;
+        //                             break;
+        //                         }
+        //                         Ok(_) => {
+        //                             // Skip other parts (intro, headers already processed)
+        //                             continue;
+        //                         }
+        //                         Err(e) => {
+        //                             self.task_state = Some(ClientRequestState::Completed);
+        //                             return Err(HttpClientError::Other(
+        //                                 format!("Failed to read body: {:?}", e).into(),
+        //                             ));
+        //                         }
+        //                     }
+        //                 }
+        //
+        //                 self.task_state = Some(ClientRequestState::Completed);
+        //                 return Ok(body);
+        //             }
+        //         }
+        //
+        //         self.task_state = Some(ClientRequestState::Completed);
+        //         Err(HttpClientError::Other("Failed to receive stream".into()))
+        //     }
+        //     ClientRequestState::Completed => {
+        //         self.task_state = Some(ClientRequestState::Completed);
+        //         Err(HttpClientError::Other("Request already completed".into()))
+        //     }
+        // }
+        todo!()
     }
 
     /// Executes complete request and returns full response.
@@ -499,26 +501,24 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         if matches!(self.task_state, Some(ClientRequestState::NotStarted) | None) {
             if let Err(e) = self.start_execution() {
                 // Return error iterator
-                return PartsIterator::Error(Some(e));
+                return PartsIterator::HadError(Some(e));
             }
         }
-
-        // Extract control for signaling
-        let control = self.control.clone();
 
         // Extract iterator from state
         let state = self.task_state.take();
         match state {
             Some(ClientRequestState::Executing { iter, .. }) => {
-                PartsIterator::Active(PartsIteratorInner {
+                PartsIterator::Start(PartsIteratorInner {
                     iter,
                     reader: None,
-                    intro_yielded: false,
-                    headers_cache: None,
-                    control,
+                    intro: None,
+                    headers: None,
                 })
             }
-            _ => PartsIterator::Error(Some(HttpClientError::Other("Invalid request state".into()))),
+            _ => PartsIterator::HadError(Some(HttpClientError::Other(
+                "Invalid request state".into(),
+            ))),
         }
     }
 
@@ -572,24 +572,17 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                 .build(),
         );
 
-        // Create shared control
-        let control = RequestControl::new();
-
         // Create HttpRequestTask with pool and control
-        let task = HttpRequestTask::with_control(
+        let task = HttpRequestTask::with_pool(
             request,
             self.resolver.clone(),
             self.config.max_redirects,
             self.pool.clone(),
-            control.clone(),
         );
 
         // Spawn task via execute_task
         let iter = execute_task(task)
             .map_err(|e| HttpClientError::Other(format!("Failed to spawn task: {}", e).into()))?;
-
-        // Store control for later signaling
-        self.control = Some(control);
 
         // Transition to Executing state
         self.task_state = Some(ClientRequestState::Executing {
@@ -624,91 +617,107 @@ impl<R: DnsResolver + 'static> Drop for ClientRequest<R> {
 /// HOW: Enum with Active and Error variants. Active drives executor on each
 /// next() call.
 enum PartsIterator<R: DnsResolver + 'static> {
-    Active(PartsIteratorInner<R>),
-    Error(Option<HttpClientError>),
+    /// starting state where the underlying connection is read for the pieces.
+    Start(PartsIteratorInner<R>),
+
+    /// State to get the intro of the parts
+    GetIntro(PartsIteratorInner<R>),
+
+    /// State to get the headers next.
+    GetHeaders(PartsIteratorInner<R>),
+
+    /// State to return the underlying read stream/connection.
+    GetStream(PartsIteratorInner<R>),
+
+    /// Error state indicating no follow up state apart from
+    /// done can proceed. Reading this will lead to Done state.
+    HadError(Option<HttpClientError>),
+
+    /// Done state that indicates no more parts to read.
+    Done,
 }
 
 /// Inner active iterator implementation.
 struct PartsIteratorInner<R: DnsResolver + 'static> {
     iter: RecvIterator<TaskStatus<HttpTaskReady, HttpRequestState, HttpClientAction<R>>>,
     reader: Option<HttpResponseReader<SimpleHttpBody, RawStream>>,
-    intro_yielded: bool,
-    headers_cache: Option<SimpleHeaders>,
-    control: Option<RequestControl>,
+    intro: Option<(Status, Proto, Option<String>)>,
+    headers: Option<SimpleHeaders>,
 }
 
 impl<R: DnsResolver + 'static> Iterator for PartsIterator<R> {
     type Item = Result<IncomingResponseParts, HttpClientError>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self {
-            PartsIterator::Active(inner) => {
-                // If we have a reader, continue reading from it
-                if let Some(reader) = &mut inner.reader {
-                    // First check if we have cached headers to yield
-                    if !inner.intro_yielded && inner.headers_cache.is_some() {
-                        inner.intro_yielded = true;
-                        let headers = inner.headers_cache.take().unwrap();
-
-                        // After yielding headers, signal task to provide stream
-                        // (Do this after headers but before reading body)
-                        if let Some(control) = &inner.control {
-                            control.set_body_requested();
-                        }
-
-                        return Some(Ok(IncomingResponseParts::Headers(headers)));
-                    }
-
-                    // Drive executor (platform-aware)
-                    crate::valtron::run_once();
-
-                    // Read next part from reader
-                    match reader.next() {
-                        Some(Ok(part)) => return Some(Ok(part)),
-                        Some(Err(e)) => {
-                            return Some(Err(HttpClientError::Other(
-                                format!("Failed to read response part: {:?}", e).into(),
-                            )))
-                        }
-                        None => return None,
-                    }
-                }
-
-                // Drive executor (platform-aware)
-                valtron::run_once();
-
-                // Get next ready value from task
-                for ready_item in ReadyValues::new(&mut inner.iter).take(1) {
-                    if let Some(ready) = ready_item.inner() {
-                        match ready {
-                            HttpTaskReady::IntroAndHeaders { intro, headers } => {
-                                // Cache headers for next call, return intro first
-                                inner.headers_cache = Some(headers);
-                                return Some(Ok(IncomingResponseParts::Intro(
-                                    intro.status,
-                                    intro.proto,
-                                    intro.reason,
-                                )));
-                            }
-                            HttpTaskReady::StreamOwnership(stream) => {
-                                // Create reader from stream
-                                let reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
-                                    stream,
-                                    SimpleHttpBody,
-                                );
-                                inner.reader = Some(reader);
-
-                                // Recursively call to start reading from reader
-                                return self.next();
-                            }
-                        }
-                    }
-                }
-
-                None
-            }
-            PartsIterator::Error(err) => err.take().map(Err),
-        }
+        todo!()
+        // match self {
+        //     PartsIterator::Start(inner) => {
+        //         // // If we have a reader, continue reading from it
+        //         // if let Some(reader) = &mut inner.reader {
+        //         //     // First check if we have cached headers to yield
+        //         //     if !inner.intro_yielded && inner.headers_cache.is_some() {
+        //         //         inner.intro_yielded = true;
+        //         //         let headers = inner.headers_cache.take().unwrap();
+        //         //
+        //         //         return Some(Ok(IncomingResponseParts::Headers(headers)));
+        //         //     }
+        //         //
+        //         //     // Drive executor (platform-aware)
+        //         //     crate::valtron::run_until_complete();
+        //         //
+        //         //     // Read next part from reader
+        //         //     match reader.next() {
+        //         //         Some(Ok(part)) => return Some(Ok(part)),
+        //         //         Some(Err(e)) => {
+        //         //             return Some(Err(HttpClientError::Other(
+        //         //                 format!("Failed to read response part: {:?}", e).into(),
+        //         //             )))
+        //         //         }
+        //         //         None => return None,
+        //         //     }
+        //         // }
+        //
+        //         // Drive executor (platform-aware)
+        //         crate::valtron::run_until_complete();
+        //
+        //         // Get next ready value from task
+        //         for ready_item in ReadyValues::new(&mut inner.iter).take(1) {
+        //             if let Some(ready) = ready_item.inner() {
+        //                 match ready {
+        //                     HttpTaskReady::Ready {
+        //                         intro,
+        //                         headers,
+        //                         stream,
+        //                     } => {
+        //                         // Cache headers for next call, return intro first
+        //                         inner.headers_cache = Some(headers);
+        //
+        //                         // Create reader from stream
+        //                         let reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
+        //                             stream,
+        //                             SimpleHttpBody,
+        //                         );
+        //                         inner.reader = Some(reader);
+        //
+        //                         return Some(Ok(IncomingResponseParts::Intro(
+        //                             intro.status,
+        //                             intro.proto,
+        //                             intro.reason,
+        //                         )));
+        //                     }
+        //                     HttpTaskReady::Error(failed_error) => {
+        //                         return Some(Err(HttpClientError::Other(
+        //                             format!("Failed to read response part: {:?}", e).into(),
+        //                         )))
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //
+        //         None
+        //     }
+        //     PartsIterator::Error(err) => err.take().map(Err),
+        // }
     }
 }
 
