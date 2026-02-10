@@ -1,9 +1,9 @@
-
 use crate::synca::Entry;
 use crate::valtron::{
     BoxedExecutionEngine, BoxedExecutionIterator, ExecutionIterator, SpawnInfo, State, TaskIterator,
 };
 
+#[allow(dead_code)]
 pub(crate) struct DependentLiftedTaskInner {
     pub info: SpawnInfo,
     pub parent: Option<BoxedExecutionIterator>,
@@ -15,7 +15,8 @@ pub(crate) struct DependentLiftedTaskInner {
 /// method requires a execution of the parent's [`ExecutionIterator::next`].
 ///
 /// This allows us created an interlinked sequential process where progress in one means progress
-/// in the
+/// in the child will cause progress in the parent, returning the state of the child ignoring that
+/// of the parent until the child is exhausted, leaving only the parent to continue operating.
 ///
 pub struct DependentLiftedTask(DependentLiftedTaskInner);
 
