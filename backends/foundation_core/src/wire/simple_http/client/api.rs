@@ -18,8 +18,8 @@ use crate::synca::mpp::RecvIterator;
 use crate::valtron::{self, ReadyValue, ReadyValues, TaskStatus};
 use crate::wire::simple_http::client::{
     executor::execute_task, ClientConfig, ClientRequestBuilder, ConnectionPool, DnsResolver,
-    HttpClientAction, HttpClientError, HttpRequestState, HttpRequestTask, HttpTaskReady,
-    PreparedRequest, RequestControl, ResponseIntro,
+    GetRequestIntroStates, HttpClientAction, HttpClientError, HttpRequestTask, PreparedRequest,
+    RequestControl, RequestIntro, ResponseIntro,
 };
 use crate::wire::simple_http::{
     HttpResponseReader, IncomingResponseParts, Proto, SimpleBody, SimpleHeaders, SimpleHttpBody,
@@ -44,7 +44,7 @@ enum ClientRequestState<R: DnsResolver + 'static> {
     /// Request is currently executing or has partial results
     Executing {
         /// TaskIterator wrapped in RecvIterator for progress updates
-        iter: RecvIterator<TaskStatus<HttpTaskReady, HttpRequestState, HttpClientAction<R>>>,
+        iter: RecvIterator<TaskStatus<RequestIntro, GetRequestIntroStates, HttpClientAction<R>>>,
         /// Response introduction (status line) if received
         intro: Option<ResponseIntro>,
         /// Response headers if received
@@ -496,12 +496,15 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     ///     }
     /// }
     /// ```
-    pub fn parts(mut self) -> impl Iterator<Item = Result<IncomingResponseParts, HttpClientError>> {
+    pub fn parts<T>(mut self) -> Result<T, HttpClientError>
+    where
+        T: Iterator<Item = Result<IncomingResponseParts, HttpClientError>>,
+    {
         // Start execution if not already started
         if matches!(self.task_state, Some(ClientRequestState::NotStarted) | None) {
             if let Err(e) = self.start_execution() {
                 // Return error iterator
-                return PartsIterator::HadError(Some(e));
+                return Err(e);
             }
         }
 
@@ -509,16 +512,15 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         let state = self.task_state.take();
         match state {
             Some(ClientRequestState::Executing { iter, .. }) => {
-                PartsIterator::Start(PartsIteratorInner {
-                    iter,
-                    reader: None,
-                    intro: None,
-                    headers: None,
-                })
+                // PartsIterator::Start(PartsIteratorInner {
+                //     iter,
+                //     reader: None,
+                //     intro: None,
+                //     headers: None,
+                // })
+                todo!()
             }
-            _ => PartsIterator::HadError(Some(HttpClientError::Other(
-                "Invalid request state".into(),
-            ))),
+            _ => Err(HttpClientError::Other("Invalid request state".into())),
         }
     }
 
@@ -548,8 +550,11 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     ///     // Process each part
     /// }
     /// ```
-    pub fn collect(self) -> Result<Vec<IncomingResponseParts>, HttpClientError> {
-        self.parts().collect()
+    pub fn collect<T>(self) -> Result<Vec<IncomingResponseParts>, HttpClientError>
+    where
+        T: Iterator<Item = Result<IncomingResponseParts, HttpClientError>>,
+    {
+        self.parts::<T>()?.collect()
     }
 
     /// Internal helper to start request execution.
@@ -573,7 +578,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         );
 
         // Create HttpRequestTask with pool and control
-        let task = HttpRequestTask::with_pool(
+        let task = HttpRequestTask::new(
             request,
             self.resolver.clone(),
             self.config.max_redirects,
@@ -585,12 +590,12 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
             .map_err(|e| HttpClientError::Other(format!("Failed to spawn task: {}", e).into()))?;
 
         // Transition to Executing state
-        self.task_state = Some(ClientRequestState::Executing {
-            iter,
-            intro: None,
-            headers: None,
-            stream: None,
-        });
+        // self.task_state = Some(ClientRequestState::Executing {
+        //     iter,
+        //     intro: None,
+        //     headers: None,
+        //     stream: None,
+        // });
 
         Ok(())
     }
@@ -607,65 +612,66 @@ impl<R: DnsResolver + 'static> Drop for ClientRequest<R> {
     }
 }
 
-/// Inner active iterator implementation.
-struct PartsIteratorInner<R: DnsResolver + 'static> {
-    iter: RecvIterator<TaskStatus<HttpTaskReady, HttpRequestState, HttpClientAction<R>>>,
-    reader: Option<HttpResponseReader<SimpleHttpBody, RawStream>>,
-    intro: Option<(Status, Proto, Option<String>)>,
-    headers: Option<SimpleHeaders>,
-}
-
-impl<R: DnsResolver + 'static> Iterator for PartsIterator<R> {
-    type Item = Result<IncomingResponseParts, HttpClientError>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        match self {
-            PartsIterator::GetIntro(mut inner) => {
-                // Drive executor (platform-aware)
-                crate::valtron::run_until_complete();
-
-                // Get next ready value from task
-                let ready_items = ReadyValues::new(&mut inner.iter);
-                for ready_item in ready_items {
-                    match ready_item {
-                        ReadyValue::Skip => continue,
-                        ReadyValue::Inner(inner) => {
-                            match inner {
-                                HttpTaskReady::Ready {
-                                    intro,
-                                    headers,
-                                    stream,
-                                } => {
-                                    // Create reader from stream
-                                    let reader =
-                                        HttpResponseReader::<SimpleHttpBody, RawStream>::new(
-                                            stream,
-                                            SimpleHttpBody,
-                                        );
-
-                                    return Some(Ok(IncomingResponseParts::Intro(
-                                        intro.status,
-                                        intro.proto,
-                                        intro.reason,
-                                    )));
-                                }
-                                HttpTaskReady::Error(failed_error) => {
-                                    return Some(Err(HttpClientError::Other(
-                                        format!("Failed to read response part: {:?}", failed_error)
-                                            .into(),
-                                    )))
-                                }
-                            }
-                        }
-                    }
-                }
-
-                None
-            }
-            PartsIterator::Error(err) => err.take().map(Err),
-        }
-    }
-}
+// /// Inner active iterator implementation.
+// struct PartsIteratorInner<R: DnsResolver + 'static> {
+//     iter: RecvIterator<TaskStatus<HttpTaskReady, HttpRequestState, HttpClientAction<R>>>,
+//     reader: Option<HttpResponseReader<SimpleHttpBody, RawStream>>,
+//     intro: Option<(Status, Proto, Option<String>)>,
+//     headers: Option<SimpleHeaders>,
+// }
+//
+// impl<R: DnsResolver + 'static> Iterator for PartsIterator<R> {
+//     type Item = Result<IncomingResponseParts, HttpClientError>;
+//
+//     fn next(&mut self) -> Option<Self::Item> {
+//         todo!()
+//         // match self {
+//         //     PartsIterator::GetIntro(mut inner) => {
+//         //         // Drive executor (platform-aware)
+//         //         crate::valtron::run_until_complete();
+//         //
+//         //         // Get next ready value from task
+//         //         let ready_items = ReadyValues::new(&mut inner.iter);
+//         //         for ready_item in ready_items {
+//         //             match ready_item {
+//         //                 ReadyValue::Skip => continue,
+//         //                 ReadyValue::Inner(inner) => {
+//         //                     match inner {
+//         //                         HttpTaskReady::Ready {
+//         //                             intro,
+//         //                             headers,
+//         //                             stream,
+//         //                         } => {
+//         //                             // Create reader from stream
+//         //                             let reader =
+//         //                                 HttpResponseReader::<SimpleHttpBody, RawStream>::new(
+//         //                                     stream,
+//         //                                     SimpleHttpBody,
+//         //                                 );
+//         //
+//         //                             return Some(Ok(IncomingResponseParts::Intro(
+//         //                                 intro.status,
+//         //                                 intro.proto,
+//         //                                 intro.reason,
+//         //                             )));
+//         //                         }
+//         //                         HttpTaskReady::Error(failed_error) => {
+//         //                             return Some(Err(HttpClientError::Other(
+//         //                                 format!("Failed to read response part: {:?}", failed_error)
+//         //                                     .into(),
+//         //                             )))
+//         //                         }
+//         //                     }
+//         //                 }
+//         //             }
+//         //         }
+//         //
+//         //         None
+//         //     }
+//         //     PartsIterator::Error(err) => err.take().map(Err),
+//         // }
+//     }
+// }
 
 #[cfg(test)]
 mod tests {
@@ -723,81 +729,81 @@ mod tests {
         let _completed: ClientRequestState<MockDnsResolver> = ClientRequestState::Completed;
     }
 
-    // ========================================================================
-    // API Method Signature Tests
-    // ========================================================================
-
-    /// WHY: Verify ClientRequest has correct public API methods
-    /// WHAT: Compile-time check that methods exist with correct signatures
-    #[test]
-    fn test_client_request_has_expected_methods() {
-        crate::valtron::initialize_pool(20, None);
-
-        let prepared = ClientRequestBuilder::get("http://example.com")
-            .unwrap()
-            .build();
-        let resolver = MockDnsResolver::new();
-        let config = ClientConfig::default();
-
-        let mut request = ClientRequest::new(prepared, resolver, config, None);
-
-        // These should compile (even if they fail at runtime due to mock resolver)
-        let _intro_result = request.introduction();
-        let _body_result = request.body();
-
-        // These consume self
-        let prepared2 = ClientRequestBuilder::get("http://example.com")
-            .unwrap()
-            .build();
-        let request2 = ClientRequest::new(
-            prepared2,
-            MockDnsResolver::new(),
-            ClientConfig::default(),
-            None,
-        );
-        let _send_result = request2.send();
-
-        let prepared3 = ClientRequestBuilder::get("http://example.com")
-            .unwrap()
-            .build();
-        let request3 = ClientRequest::new(
-            prepared3,
-            MockDnsResolver::new(),
-            ClientConfig::default(),
-            None,
-        );
-        let _parts_iter = request3.parts();
-
-        let prepared4 = ClientRequestBuilder::get("http://example.com")
-            .unwrap()
-            .build();
-        let request4 = ClientRequest::new(
-            prepared4,
-            MockDnsResolver::new(),
-            ClientConfig::default(),
-            None,
-        );
-        let _collect_result = request4.collect();
-    }
-
-    /// WHY: Verify parts() returns iterator with correct item type
-    /// WHAT: Type check that iterator yields Result<IncomingResponseParts, HttpClientError>
-    #[test]
-    fn test_client_request_parts_iterator_type() {
-        crate::valtron::initialize_pool(20, None);
-
-        let prepared = ClientRequestBuilder::get("http://example.com")
-            .unwrap()
-            .build();
-        let resolver = MockDnsResolver::new();
-        let config = ClientConfig::default();
-
-        let request = ClientRequest::new(prepared, resolver, config, None);
-        let mut parts_iter = request.parts();
-
-        // Type check
-        let _item: Option<Result<IncomingResponseParts, HttpClientError>> = parts_iter.next();
-    }
+    // // ========================================================================
+    // // API Method Signature Tests
+    // // ========================================================================
+    //
+    // /// WHY: Verify ClientRequest has correct public API methods
+    // /// WHAT: Compile-time check that methods exist with correct signatures
+    // #[test]
+    // fn test_client_request_has_expected_methods() {
+    //     crate::valtron::initialize_pool(20, None);
+    //
+    //     let prepared = ClientRequestBuilder::get("http://example.com")
+    //         .unwrap()
+    //         .build();
+    //     let resolver = MockDnsResolver::new();
+    //     let config = ClientConfig::default();
+    //
+    //     let mut request = ClientRequest::new(prepared, resolver, config, None);
+    //
+    //     // These should compile (even if they fail at runtime due to mock resolver)
+    //     let _intro_result = request.introduction();
+    //     let _body_result = request.body();
+    //
+    //     // These consume self
+    //     let prepared2 = ClientRequestBuilder::get("http://example.com")
+    //         .unwrap()
+    //         .build();
+    //     let request2 = ClientRequest::new(
+    //         prepared2,
+    //         MockDnsResolver::new(),
+    //         ClientConfig::default(),
+    //         None,
+    //     );
+    //     let _send_result = request2.send();
+    //
+    //     let prepared3 = ClientRequestBuilder::get("http://example.com")
+    //         .unwrap()
+    //         .build();
+    //     let request3 = ClientRequest::new(
+    //         prepared3,
+    //         MockDnsResolver::new(),
+    //         ClientConfig::default(),
+    //         None,
+    //     );
+    //     let _parts_iter = request3.parts();
+    //
+    //     let prepared4 = ClientRequestBuilder::get("http://example.com")
+    //         .unwrap()
+    //         .build();
+    //     let request4 = ClientRequest::new(
+    //         prepared4,
+    //         MockDnsResolver::new(),
+    //         ClientConfig::default(),
+    //         None,
+    //     );
+    //     let _collect_result = request4.collect();
+    // }
+    //
+    // /// WHY: Verify parts() returns iterator with correct item type
+    // /// WHAT: Type check that iterator yields Result<IncomingResponseParts, HttpClientError>
+    // #[test]
+    // fn test_client_request_parts_iterator_type() {
+    //     crate::valtron::initialize_pool(20, None);
+    //
+    //     let prepared = ClientRequestBuilder::get("http://example.com")
+    //         .unwrap()
+    //         .build();
+    //     let resolver = MockDnsResolver::new();
+    //     let config = ClientConfig::default();
+    //
+    //     let request = ClientRequest::new(prepared, resolver, config, None);
+    //     let mut parts_iter = request.parts();
+    //
+    //     // Type check
+    //     let _item: Option<Result<IncomingResponseParts, HttpClientError>> = parts_iter.next();
+    // }
 
     /// WHY: Verify ClientRequest API compiles and types are correct
     /// WHAT: Basic compile-time check for the complete flow

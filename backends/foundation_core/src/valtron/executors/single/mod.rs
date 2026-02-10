@@ -93,7 +93,7 @@ pub fn initialize_pool(seed_for_rng: u64) {
 /// The progress indicator from the execution
 pub fn run_until<S>(checker: S)
 where
-    S: Fn(&ProgressIndicator) -> bool,
+    S: Fn(ProgressIndicator) -> bool,
 {
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| match pool.get() {
         Some(pool) => pool.run_until(checker),

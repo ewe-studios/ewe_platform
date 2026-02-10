@@ -50,8 +50,7 @@ impl EndpointConfig {
     #[must_use]
     pub fn url(&self) -> url::Url {
         match self {
-            Self::NoTimeout(inner) => inner.clone(),
-            Self::WithTimeout(inner, _) => inner.clone(),
+            Self::NoTimeout(inner) | Self::WithTimeout(inner, _) => inner.clone(),
         }
     }
 }

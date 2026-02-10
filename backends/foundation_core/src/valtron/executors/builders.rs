@@ -1,6 +1,6 @@
 //! Custom builders for executors
 
-use crate::valtron::Stream;
+use crate::valtron::{SpawnInfo, Stream};
 
 use std::{any::Any, marker::PhantomData, sync::Arc, time};
 
@@ -77,6 +77,11 @@ impl<
         self
     }
 
+    pub fn maybe_parent(mut self, parent: Option<Entry>) -> Self {
+        self.parent = parent;
+        self
+    }
+
     pub fn with_parent(mut self, parent: Entry) -> Self {
         self.parent = Some(parent);
         self
@@ -121,7 +126,7 @@ impl<
 
         self.engine
             .schedule(boxed_task.into())
-            .map(|()| RecvIterator::from_chan(iter_chan, wait_cycle))
+            .map(|_| RecvIterator::from_chan(iter_chan, wait_cycle))
     }
 
     /// [`lift_ready_iter`] adds a task into execution queue but instead of depending
@@ -154,7 +159,7 @@ impl<
 
         self.engine
             .lift(boxed_task.into(), parent)
-            .map(|()| RecvIterator::from_chan(iter_chan, wait_cycle))
+            .map(|_| RecvIterator::from_chan(iter_chan, wait_cycle))
     }
 
     /// [`stream_iter`] adds a task into execution queue but instead of depending
@@ -184,7 +189,7 @@ impl<
 
         self.engine
             .schedule(boxed_task.into())
-            .map(|()| StreamRecvIterator::new(RecvIterator::from_chan(iter_chan, wait_cycle)))
+            .map(|_| StreamRecvIterator::new(RecvIterator::from_chan(iter_chan, wait_cycle)))
     }
 
     /// [`schedule_iter`] adds a task into execution queue but instead of depending
@@ -214,7 +219,7 @@ impl<
 
         self.engine
             .schedule(boxed_task.into())
-            .map(|()| RecvIterator::from_chan(iter_chan, wait_cycle))
+            .map(|_| RecvIterator::from_chan(iter_chan, wait_cycle))
     }
 
     /// [`lift_iter`] adds a task into execution queue but instead of depending
@@ -245,7 +250,7 @@ impl<
 
         self.engine
             .lift(boxed_task.into(), parent)
-            .map(|()| RecvIterator::from_chan(iter_chan, wait_cycle))
+            .map(|_| RecvIterator::from_chan(iter_chan, wait_cycle))
     }
 
     /// [`stream_lift_iter`] similar to [`lift_iter`] returns a [`StreamRecvIterator`]
@@ -270,11 +275,11 @@ impl<
 
         self.engine
             .lift(boxed_task.into(), parent)
-            .map(|()| StreamRecvIterator::new(RecvIterator::from_chan(iter_chan, wait_cycle)))
+            .map(|_| StreamRecvIterator::new(RecvIterator::from_chan(iter_chan, wait_cycle)))
     }
 
     /// [`lift`] delivers a task to the top of the thread-local execution queue.
-    pub fn lift(self) -> AnyResult<(), ExecutorError> {
+    pub fn lift(self) -> AnyResult<SpawnInfo, ExecutorError> {
         let parent = self.parent;
         match self.task {
             Some(task) => match (self.resolver, self.mappers) {
@@ -297,7 +302,7 @@ impl<
     }
 
     /// [`schedule`] delivers a task to the bottom of the thread-local execution queue.
-    pub fn schedule(self) -> AnyResult<(), ExecutorError> {
+    pub fn schedule(self) -> AnyResult<SpawnInfo, ExecutorError> {
         match self.task {
             Some(task) => match (self.resolver, self.mappers) {
                 (Some(resolver), Some(mappers)) => {
@@ -329,7 +334,7 @@ impl<
     > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, Resolver, Task>
 {
     /// [`broadcast`] delivers a task to the bottom of the global execution queue.
-    pub fn broadcast(self) -> AnyResult<(), ExecutorError> {
+    pub fn broadcast(self) -> AnyResult<SpawnInfo, ExecutorError> {
         let task: AnyResult<BoxedSendExecutionIterator, ExecutorError> = match self.task {
             Some(task) => match (self.resolver, self.mappers) {
                 (Some(resolver), Some(mappers)) => Ok(OnNext::new(task, resolver, mappers).into()),
@@ -366,7 +371,7 @@ impl<
 
         self.engine
             .broadcast(boxed_task.into())
-            .map(|()| StreamRecvIterator::new(RecvIterator::from_chan(iter_chan, wait_cycle)))
+            .map(|_| StreamRecvIterator::new(RecvIterator::from_chan(iter_chan, wait_cycle)))
     }
 
     /// [`broadcast_iter`] adds a task into execution queue but instead of depending
@@ -396,7 +401,7 @@ impl<
 
         self.engine
             .broadcast(boxed_task.into())
-            .map(|()| RecvIterator::from_chan(iter_chan, wait_cycle))
+            .map(|_| RecvIterator::from_chan(iter_chan, wait_cycle))
     }
 
     /// [`broadcast_ready_iter`] adds a task into execution queue but instead of depending
@@ -428,7 +433,7 @@ impl<
 
         self.engine
             .broadcast(boxed_task.into())
-            .map(|()| RecvIterator::from_chan(iter_chan, wait_cycle))
+            .map(|_| RecvIterator::from_chan(iter_chan, wait_cycle))
     }
 }
 
@@ -506,6 +511,7 @@ where
 /// which maps the task mapper and resolver to boxed versions which will be heap allocated
 /// for easier usage.
 #[must_use]
+#[allow(clippy::type_complexity)]
 pub fn spawn_builder<Task, Action>(
     engine: BoxedExecutionEngine,
 ) -> ExecutionTaskIteratorBuilder<
@@ -529,6 +535,7 @@ where
 /// which maps the task mapper and resolver to boxed versions which will be heap allocated
 /// for easier usage.
 #[must_use]
+#[allow(clippy::type_complexity)]
 pub fn spawn_broadcaster<Task, Action>(
     engine: BoxedExecutionEngine,
 ) -> ExecutionTaskIteratorBuilder<

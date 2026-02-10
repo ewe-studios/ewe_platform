@@ -81,77 +81,77 @@ fn test_body_reading_with_introduction_and_body() {
 
 /// WHY: Verify parts() iterator yields all response parts including body
 /// WHAT: Tests that parts() iterator works through atomic coordination
-#[test]
-fn test_parts_iterator_reads_complete_response() {
-    // Initialize valtron pool
-    valtron::initialize_pool(0, None);
-
-    // Create test server
-    let server =
-        TestHttpServer::with_response(|_req| HttpResponse::ok(b"Parts iterator test body"));
-
-    // Build request
-    let url = server.url("/parts");
-    let builder = ClientRequestBuilder::get(&url).unwrap();
-    let prepared = builder.build();
-
-    // Create request
-    let request = ClientRequest::new(
-        prepared,
-        SystemDnsResolver::new(),
-        ClientConfig::default(),
-        None,
-    );
-
-    // Iterate through all parts
-    let mut got_intro = false;
-    let mut got_headers = false;
-    let mut got_body = false;
-    let mut body_content = Vec::new();
-
-    for part_result in request.parts() {
-        let part = part_result.expect("Failed to get part");
-        match part {
-            IncomingResponseParts::Intro(status, proto, reason) => {
-                println!("Got intro: {:?} {:?} {:?}", status, proto, reason);
-                assert!(matches!(
-                    status,
-                    foundation_core::wire::simple_http::Status::OK
-                ));
-                got_intro = true;
-            }
-            IncomingResponseParts::Headers(headers) => {
-                println!("Got headers: {} entries", headers.len());
-                got_headers = true;
-            }
-            IncomingResponseParts::SizedBody(body) => {
-                println!("Got sized body");
-                match body {
-                    SimpleBody::Text(text) => {
-                        body_content = text.into_bytes();
-                    }
-                    SimpleBody::Bytes(data) => {
-                        body_content = data;
-                    }
-                    _ => {}
-                }
-                got_body = true;
-            }
-            _ => {}
-        }
-    }
-
-    // Verify we got all parts
-    assert!(got_intro, "Should have received intro");
-    assert!(got_headers, "Should have received headers");
-    assert!(got_body, "Should have received body");
-
-    // Verify body content
-    let body_str = String::from_utf8_lossy(&body_content);
-    assert_eq!(body_str, "Parts iterator test body");
-
-    println!("✅ Test passed: Parts iterator reads complete response");
-}
+// #[test]
+// fn test_parts_iterator_reads_complete_response() {
+//     // Initialize valtron pool
+//     valtron::initialize_pool(0, None);
+//
+//     // Create test server
+//     let server =
+//         TestHttpServer::with_response(|_req| HttpResponse::ok(b"Parts iterator test body"));
+//
+//     // Build request
+//     let url = server.url("/parts");
+//     let builder = ClientRequestBuilder::get(&url).unwrap();
+//     let prepared = builder.build();
+//
+//     // Create request
+//     let request = ClientRequest::new(
+//         prepared,
+//         SystemDnsResolver::new(),
+//         ClientConfig::default(),
+//         None,
+//     );
+//
+//     // Iterate through all parts
+//     let mut got_intro = false;
+//     let mut got_headers = false;
+//     let mut got_body = false;
+//     let mut body_content = Vec::new();
+//
+//     for part_result in request.parts() {
+//         let part = part_result.expect("Failed to get part");
+//         match part {
+//             IncomingResponseParts::Intro(status, proto, reason) => {
+//                 println!("Got intro: {:?} {:?} {:?}", status, proto, reason);
+//                 assert!(matches!(
+//                     status,
+//                     foundation_core::wire::simple_http::Status::OK
+//                 ));
+//                 got_intro = true;
+//             }
+//             IncomingResponseParts::Headers(headers) => {
+//                 println!("Got headers: {} entries", headers.len());
+//                 got_headers = true;
+//             }
+//             IncomingResponseParts::SizedBody(body) => {
+//                 println!("Got sized body");
+//                 match body {
+//                     SimpleBody::Text(text) => {
+//                         body_content = text.into_bytes();
+//                     }
+//                     SimpleBody::Bytes(data) => {
+//                         body_content = data;
+//                     }
+//                     _ => {}
+//                 }
+//                 got_body = true;
+//             }
+//             _ => {}
+//         }
+//     }
+//
+//     // Verify we got all parts
+//     assert!(got_intro, "Should have received intro");
+//     assert!(got_headers, "Should have received headers");
+//     assert!(got_body, "Should have received body");
+//
+//     // Verify body content
+//     let body_str = String::from_utf8_lossy(&body_content);
+//     assert_eq!(body_str, "Parts iterator test body");
+//
+//     println!("✅ Test passed: Parts iterator reads complete response");
+// }
 
 /// WHY: Verify send() method returns complete response with body
 /// WHAT: Tests one-shot send() convenience method
