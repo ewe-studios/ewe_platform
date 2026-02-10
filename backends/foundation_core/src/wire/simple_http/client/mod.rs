@@ -17,23 +17,20 @@ mod request;
 mod task;
 mod tls_task;
 
-pub use api::ClientRequest;
-pub use client::{ClientConfig, SimpleHttpClient};
-pub use connection::{HttpClientConnection, ParsedUrl, Scheme};
-pub use dns::{CachingDnsResolver, DnsResolver, MockDnsResolver, SystemDnsResolver};
-pub use errors::{DnsError, HttpClientError};
-pub use intro::ResponseIntro;
-pub use request::{ClientRequestBuilder, PreparedRequest};
-
+pub use actions::*;
+pub use api::*;
+pub use client::*;
+pub use connection::*;
 pub use control::*;
-
-// Internal re-exports for use within the client module
-pub use actions::HttpClientAction;
-pub use pool::ConnectionPool;
-pub use task::{HttpRequestState, HttpRequestTask, HttpTaskReady};
+pub use dns::*;
+pub use errors::*;
+pub use intro::*;
+pub use pool::*;
+pub use request::*;
+pub use task::*;
 
 #[cfg(not(target_arch = "wasm32"))]
-pub use tls_task::{TlsHandshakeState, TlsHandshakeTask};
+pub use tls_task::*;
 
 #[cfg(test)]
 mod tests;

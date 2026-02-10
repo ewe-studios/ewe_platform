@@ -2479,6 +2479,10 @@ impl<T> SimpleResponse<T> {
 
 pub type Protocol = String;
 
+/// [`HttpResponseIntro`] represents the definition properties a http response message
+/// has at the start.
+pub type HttpResponseIntro = (Status, Proto, Option<String>);
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum IncomingResponseParts {
     SKIP,
@@ -2503,6 +2507,10 @@ impl core::fmt::Display for IncomingResponseParts {
         }
     }
 }
+
+/// [`HttpRequestIntro`] represents the definition properties a http request message
+/// has at the start.
+pub type HttpRequestIntro = (SimpleMethod, SimpleUrl, Proto);
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum IncomingRequestParts {

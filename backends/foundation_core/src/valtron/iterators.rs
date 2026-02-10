@@ -1,5 +1,8 @@
 use super::types::AnyResult;
 
+pub use crate::synca::mpp::Stream;
+pub use crate::synca::mpp::StreamIterator;
+
 /// `CloneableBoxIterator` is a type definition for an Iterator that can safely be
 /// sent across threads safely and easily. Requiring the underlying generic
 /// type to be `Send` but not `Sync`.
@@ -219,25 +222,3 @@ impl<T, V> Iterator for TransformIterator<T, V> {
         }
     }
 }
-
-pub enum Stream<D, P> {
-    // Indicative the stream is instantiating.
-    Init,
-
-    // Indicative of internal system operations occuring that should be ignored.
-    Ignore,
-
-    // Indicative that the stream next response will be delayed by this much duration
-    Delayed(std::time::Duration),
-
-    // Indicating that the stream is a pending state with giving context value.
-    Pending(P),
-
-    // Indicative the stream just issued its next value.
-    Next(D),
-}
-
-/// [`StreamIterator`] defines a type which implements an
-/// iterator that returns a stream stream
-/// of values.
-pub trait StreamIterator<D, P>: Iterator<Item = Stream<D, P>> {}

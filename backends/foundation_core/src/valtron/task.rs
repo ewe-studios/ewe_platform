@@ -1,5 +1,6 @@
 #![allow(clippy::type_complexity)]
 
+use crate::extensions::result_ext::BoxedError;
 use crate::valtron::Stream;
 use crate::valtron::StreamIterator;
 use concurrent_queue::ConcurrentQueue;
@@ -27,6 +28,39 @@ use crate::{
 pub type PanicHandler = dyn Fn(Box<dyn Any + Send>) + Send + Sync;
 
 pub type BoxedPanicHandler = Box<PanicHandler>;
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum SpawnType {
+    Lifted,
+    LiftedWithParent,
+    Broadcast,
+    Scheduled,
+    None,
+}
+
+/// [`SpawnInfo`] returns detailed information about
+/// the request to spawn a given task with the
+/// parent of said tasks the last entry if present.
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct SpawnInfo(SpawnType, Option<Entry>, Option<Entry>);
+
+impl SpawnInfo {
+    pub fn new(st: SpawnType, task: Option<Entry>, parent: Option<Entry>) -> Self {
+        Self(st, task, parent)
+    }
+
+    pub fn spawn_type(&self) -> SpawnType {
+        self.0
+    }
+
+    pub fn task(&self) -> Option<Entry> {
+        self.1
+    }
+
+    pub fn parent(&self) -> Option<Entry> {
+        self.2
+    }
+}
 
 /// completed and delivered from the iterator.
 #[derive(Clone)]
@@ -318,10 +352,10 @@ pub enum State {
     /// The state is sent out when there was an attempt to spawn
     /// a task from another and that failed which is not a desired
     /// or wanted state to be in ever.
-    SpawnFailed,
+    SpawnFailed(Entry),
 
     /// The state indicating a spawn action succeeded.
-    SpawnFinished,
+    SpawnFinished(SpawnInfo),
 
     /// Reschedule indicates we want to reschedule the underlying
     /// task leaving the performance of that to the underlying
@@ -564,19 +598,19 @@ pub trait ExecutionEngine {
         &self,
         task: BoxedExecutionIterator,
         parent: Option<Entry>,
-    ) -> AnyResult<(), ExecutorError>;
+    ) -> AnyResult<SpawnInfo, ExecutorError>;
 
     /// [`schedule`] adds provided incoming task to the bottom of the local
     /// execution queue which pauses all processing task till that
     /// point till the new task is done or goes to sleep (dependent on
     /// the internals of the `ExecutionEngine`).
-    fn schedule(&self, task: BoxedExecutionIterator) -> AnyResult<(), ExecutorError>;
+    fn schedule(&self, task: BoxedExecutionIterator) -> AnyResult<SpawnInfo, ExecutorError>;
 
     /// [`broadcast`] allows you to deliver a task to the global execution queue
     /// which then lets the giving task to be sent of to the same or another
     /// executor in another thread for processing, which requires the type to be
     /// `Send` safe.
-    fn broadcast(&self, task: BoxedSendExecutionIterator) -> AnyResult<(), ExecutorError>;
+    fn broadcast(&self, task: BoxedSendExecutionIterator) -> AnyResult<SpawnInfo, ExecutorError>;
 
     /// [`shared_queue`] returns access to the global queue.
     fn shared_queue(&self) -> SharedTaskQueue;
@@ -586,10 +620,59 @@ pub trait ExecutionEngine {
     fn rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>>;
 }
 
+pub type BoxedExecutionAction = Box<dyn ExecutionAction>;
+pub type BoxedSendExecutionAction = Box<dyn ExecutionAction + Send + 'static>;
+
 /// [`ExecutionAction`] represents a underlying action definition that can
 /// spawn some other task by using the provided execution engine and parent key.
+///
+/// Returns:
+///     A result indicating success or failure with the error that caused said failure.
 pub trait ExecutionAction {
-    fn apply(&mut self, key: Entry, engine: BoxedExecutionEngine) -> GenericResult<()>;
+    fn apply(
+        &mut self,
+        key: Option<Entry>,
+        engine: BoxedExecutionEngine,
+    ) -> GenericResult<SpawnInfo>;
+}
+
+impl<M> ExecutionAction for Box<M>
+where
+    M: ExecutionAction + ?Sized,
+{
+    fn apply(
+        &mut self,
+        key: Option<Entry>,
+        engine: BoxedExecutionEngine,
+    ) -> GenericResult<SpawnInfo> {
+        (**self).apply(key, engine)
+    }
+}
+
+pub trait IntoBoxedSendExecutionAction {
+    fn into_box_send_execution_action(self) -> Box<dyn ExecutionAction + Send + 'static>;
+}
+
+impl<F> IntoBoxedSendExecutionAction for F
+where
+    F: ExecutionAction + Send + 'static,
+{
+    fn into_box_send_execution_action(self) -> Box<dyn ExecutionAction + Send + 'static> {
+        Box::new(self)
+    }
+}
+
+pub trait IntoBoxedExecutionAction {
+    fn into_box_execution_action(self) -> Box<dyn ExecutionAction>;
+}
+
+impl<F> IntoBoxedExecutionAction for F
+where
+    F: ExecutionAction + 'static,
+{
+    fn into_box_execution_action(self) -> Box<dyn ExecutionAction> {
+        Box::new(self)
+    }
 }
 
 pub type NoSpawner = NoAction;
@@ -598,13 +681,19 @@ pub type NoSpawner = NoAction;
 pub struct NoAction;
 
 impl ExecutionAction for NoAction {
-    fn apply(&mut self, _entry: Entry, _engine: BoxedExecutionEngine) -> GenericResult<()> {
+    fn apply(
+        &mut self,
+        _entry: Option<Entry>,
+        _engine: BoxedExecutionEngine,
+    ) -> GenericResult<SpawnInfo> {
         // do nothing
-        Ok(())
+        Ok(SpawnInfo::new(SpawnType::None, None, None))
     }
 }
 
 pub type BoxedTaskReadyResolver<S, D, P> = Box<dyn TaskReadyResolver<S, D, P>>;
+
+pub type BoxedSendTaskReadyResolver<S, D, P> = Box<dyn TaskReadyResolver<S, D, P> + Send + 'static>;
 
 /// `TaskResolver` are types implementing this trait to
 /// perform final resolution of a task when the task emits
@@ -616,6 +705,38 @@ pub type BoxedTaskReadyResolver<S, D, P> = Box<dyn TaskReadyResolver<S, D, P>>;
 /// it's readiness via the `TaskStatus::Ready` state.
 pub trait TaskReadyResolver<S: ExecutionAction, D, P> {
     fn handle(&self, item: TaskStatus<D, P, S>, engine: BoxedExecutionEngine);
+}
+
+pub trait IntoBoxedSendTaskReadyResolver<S: ExecutionAction, D, P> {
+    fn into_box_send_task_ready_resolver(
+        self,
+    ) -> Box<dyn TaskReadyResolver<S, D, P> + Send + 'static>;
+}
+
+impl<F, S, D, P> IntoBoxedSendTaskReadyResolver<S, D, P> for F
+where
+    S: ExecutionAction,
+    F: TaskReadyResolver<S, D, P> + Send + 'static,
+{
+    fn into_box_send_task_ready_resolver(
+        self,
+    ) -> Box<dyn TaskReadyResolver<S, D, P> + Send + 'static> {
+        Box::new(self)
+    }
+}
+
+pub trait IntoBoxedTaskReadyResolver<S: ExecutionAction, D, P> {
+    fn into_box_task_ready_resolver(self) -> Box<dyn TaskReadyResolver<S, D, P>>;
+}
+
+impl<F, S, D, P> IntoBoxedTaskReadyResolver<S, D, P> for F
+where
+    S: ExecutionAction,
+    F: TaskReadyResolver<S, D, P> + Send + 'static,
+{
+    fn into_box_task_ready_resolver(self) -> Box<dyn TaskReadyResolver<S, D, P>> {
+        Box::new(self)
+    }
 }
 
 pub type NoResolver<Action, Done, Pending> = NoResolving<Action, Done, Pending>;
@@ -713,11 +834,54 @@ where
     }
 }
 
+pub type BoxedTaskStatusMapper<Done, Pending, Action> =
+    Box<dyn TaskStatusMapper<Done, Pending, Action>>;
+
+pub type BoxedSendTaskStatusMapper<Done, Pending, Action> =
+    Box<dyn TaskStatusMapper<Done, Pending, Action> + Send + 'static>;
+
 /// [`TaskStatusMapper`] are types implementing this trait to
 /// perform unique operations on the underlying `TaskStatus`
 /// received, possibly generating a new `TaskStatus`.
 pub trait TaskStatusMapper<D, P, S: ExecutionAction> {
     fn map(&mut self, item: Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>>;
+}
+
+pub trait IntoBoxedSendTaskStatusMapper<D, P, S: ExecutionAction> {
+    fn into_box_send_task_mapper(self) -> Box<dyn TaskStatusMapper<D, P, S> + Send + 'static>;
+}
+
+impl<F, S, D, P> IntoBoxedSendTaskStatusMapper<D, P, S> for F
+where
+    S: ExecutionAction,
+    F: TaskStatusMapper<D, P, S> + Send + 'static,
+{
+    fn into_box_send_task_mapper(self) -> Box<dyn TaskStatusMapper<D, P, S> + Send + 'static> {
+        Box::new(self)
+    }
+}
+
+pub trait IntoBoxedTaskStatusMapper<D, P, S: ExecutionAction> {
+    fn into_box_task_mapper(self) -> Box<dyn TaskStatusMapper<D, P, S>>;
+}
+
+impl<F, D, P, S> IntoBoxedTaskStatusMapper<D, P, S> for F
+where
+    S: ExecutionAction,
+    F: TaskStatusMapper<D, P, S> + Send + 'static,
+{
+    fn into_box_task_mapper(self) -> Box<dyn TaskStatusMapper<D, P, S>> {
+        Box::new(self)
+    }
+}
+
+#[derive(Default, Clone)]
+pub struct ZeroMapping<D, P, S: ExecutionAction>(PhantomData<(D, P, S)>);
+
+impl<D, P, S: ExecutionAction> TaskStatusMapper<D, P, S> for ZeroMapping<D, P, S> {
+    fn map(&mut self, item: Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>> {
+        item
+    }
 }
 
 #[allow(clippy::extra_unused_lifetimes)]
@@ -803,7 +967,7 @@ mod test_fn_mapper {
     }
 }
 
-/// `OnceCache` implements a `TaskStatus` iterator that wraps
+/// [`OnceCache`] implements a [`TaskStatus`] iterator that wraps
 /// a provided iterator and provides a onetime read semantic
 /// on the iterator, where it ends its operation once the first
 /// value the iterator is received and returns None from then on.

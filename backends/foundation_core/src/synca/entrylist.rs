@@ -10,8 +10,8 @@ pub use foundation_nostd::primtivies::RwLock;
 /// used list items in an efficient list.
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub struct Entry {
-    id: usize,
-    gen: usize,
+    pub id: usize,
+    pub gen: usize,
 }
 
 #[allow(dead_code)]
@@ -567,7 +567,7 @@ mod test_entry_list {
     fn entry_list_insert_reference() {
         let mut list: EntryList<&usize> = EntryList::new();
         let entry = list.insert(&1);
-        assert_eq!(entry, Entry { id: 0, gen: 0 });
+        assert_eq!(entry, Entry::new(0, 0));
 
         assert_eq!(Some(&&1), list.get(&entry));
         assert_eq!(Some(&mut &1), list.get_mut(&entry));
@@ -577,16 +577,16 @@ mod test_entry_list {
     fn entry_list_multi_insert_reference() {
         let mut list: EntryList<&usize> = EntryList::new();
         let entry = list.insert(&1);
-        assert_eq!(entry, Entry { id: 0, gen: 0 });
+        assert_eq!(entry, Entry::new(0, 0));
 
         assert_eq!(Some(&&1), list.get(&entry));
         assert_eq!(Some(&mut &1), list.get_mut(&entry));
 
         let entry2 = list.insert(&2);
-        assert_eq!(entry2, Entry { id: 1, gen: 0 });
+        assert_eq!(entry, Entry::new(1, 0));
 
         let entry3 = list.insert(&3);
-        assert_eq!(entry3, Entry { id: 2, gen: 0 });
+        assert_eq!(entry, Entry::new(2, 0));
     }
 
     #[test]
@@ -611,7 +611,7 @@ mod test_entry_list {
     fn entry_list_can_park_entry() {
         let mut list: EntryList<usize> = EntryList::new();
         let entry = list.insert(1);
-        assert_eq!(entry, Entry { id: 0, gen: 0 });
+        assert_eq!(entry, Entry::new(0, 0));
 
         assert_eq!(Some(&1), list.get(&entry));
         assert_eq!(Some(&mut 1), list.get_mut(&entry));
@@ -636,7 +636,7 @@ mod test_entry_list {
     fn entry_list_can_take_entry() {
         let mut list: EntryList<usize> = EntryList::new();
         let entry = list.insert(1);
-        assert_eq!(entry, Entry { id: 0, gen: 0 });
+        assert_eq!(entry, Entry::new(0, 0));
 
         assert_eq!(Some(&1), list.get(&entry));
         assert_eq!(Some(&mut 1), list.get_mut(&entry));
@@ -651,7 +651,7 @@ mod test_entry_list {
     fn entry_list_insert_value() {
         let mut list: EntryList<usize> = EntryList::new();
         let entry = list.insert(1);
-        assert_eq!(entry, Entry { id: 0, gen: 0 });
+        assert_eq!(entry, Entry::new(0, 0));
 
         assert_eq!(Some(&1), list.get(&entry));
         assert_eq!(Some(&mut 1), list.get_mut(&entry));
@@ -661,7 +661,7 @@ mod test_entry_list {
     fn entry_list_can_vacate_entry() {
         let mut list: EntryList<usize> = EntryList::new();
         let entry = list.insert(1);
-        assert_eq!(entry, Entry { id: 0, gen: 0 });
+        assert_eq!(entry, Entry::new(0, 0));
 
         assert_eq!(Some(&1), list.get(&entry));
         list.vacate(&entry);
@@ -676,7 +676,7 @@ mod test_entry_list {
     fn entry_list_can_check_entry_validity() {
         let mut list: EntryList<usize> = EntryList::new();
         let entry = list.insert(1);
-        assert_eq!(entry, Entry { id: 0, gen: 0 });
+        assert_eq!(entry, Entry::new(0, 0));
 
         assert_eq!(Some(&1), list.get(&entry));
 
@@ -687,7 +687,7 @@ mod test_entry_list {
     fn entry_list_can_check_if_is_invalid_entry() {
         let mut list: EntryList<usize> = EntryList::new();
         let entry = list.insert(1);
-        assert_eq!(entry, Entry { id: 0, gen: 0 });
+        assert_eq!(entry, Entry::new(0, 0));
 
         assert_eq!(Some(&1), list.get(&entry));
 
@@ -701,12 +701,12 @@ mod test_entry_list {
     fn entry_list_can_replace_entry() {
         let mut list: EntryList<usize> = EntryList::new();
         let entry = list.insert(1);
-        assert_eq!(entry, Entry { id: 0, gen: 0 });
+        assert_eq!(entry, Entry::new(0, 0));
 
         assert_eq!(Some(&1), list.get(&entry));
 
         let (new_entry, old_value) = list.replace(&entry, 2).expect("should have value");
-        assert_eq!(new_entry, Entry { id: 0, gen: 1 });
+        assert_eq!(entry, Entry::new(0, 1));
         assert_eq!(1, old_value);
 
         assert_eq!(None, list.get(&entry));
@@ -718,7 +718,7 @@ mod test_entry_list {
     fn entry_list_can_update_entry() {
         let mut list: EntryList<usize> = EntryList::new();
         let entry = list.insert(1);
-        assert_eq!(entry, Entry { id: 0, gen: 0 });
+        assert_eq!(entry, Entry::new(0, 0));
 
         assert_eq!(Some(&1), list.get(&entry));
         assert_eq!(Some(1), list.update(&entry, 2));
@@ -729,7 +729,7 @@ mod test_entry_list {
     fn entry_list_can_modify_entry() {
         let mut list: EntryList<usize> = EntryList::new();
         let entry = list.insert(1);
-        assert_eq!(entry, Entry { id: 0, gen: 0 });
+        assert_eq!(entry, Entry::new(0, 0));
 
         assert_eq!(Some(&1), list.get(&entry));
 

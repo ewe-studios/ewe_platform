@@ -182,13 +182,15 @@ where
                         TaskStatus::Delayed(dur) => State::Pending(Some(dur)),
                         TaskStatus::Pending(_) => State::Pending(None),
                         TaskStatus::Init => State::Pending(None),
-                        TaskStatus::Spawn(mut action) => match action.apply(entry, executor) {
-                            Ok(()) => State::SpawnFinished,
-                            Err(err) => {
-                                tracing::error!("Failed to apply ExecutionAction: {:?}", err);
-                                State::SpawnFailed
+                        TaskStatus::Spawn(mut action) => {
+                            match action.apply(Some(entry), executor) {
+                                Ok(info) => State::SpawnFinished(info),
+                                Err(err) => {
+                                    tracing::error!("Failed to apply ExecutionAction: {:?}", err);
+                                    State::SpawnFailed(entry)
+                                }
                             }
-                        },
+                        }
                         TaskStatus::Ready(content) => {
                             self.resolver.handle(TaskStatus::Ready(content), executor);
                             State::Progressed

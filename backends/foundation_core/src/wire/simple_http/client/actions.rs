@@ -12,12 +12,17 @@
 //! consumed via `take()` during `apply()`, making multiple `apply()` calls safe.
 //! Actions use `spawn_builder()` to spawn child tasks with parent linkage.
 
+use std::sync::Arc;
+
+use crate::extensions::result_ext::BoxedError;
 use crate::netcap::{Connection, RawStream};
 use crate::synca::mpp::Sender;
 use crate::synca::Entry;
-use crate::valtron::{spawn_builder, BoxedExecutionEngine, ExecutionAction, GenericResult};
+use crate::valtron::{
+    spawn_builder, BoxedExecutionEngine, ExecutionAction, GenericResult, SpawnInfo, SpawnType,
+};
 use crate::wire::simple_http::client::{
-    DnsResolver, HttpRequestTask, PreparedRequest, TlsHandshakeTask,
+    DnsResolver, GetRequestIntroTask, HttpRequestTask, PreparedRequest, TlsHandshakeTask,
 };
 
 /// Action for spawning HTTP redirect follow tasks.
@@ -33,6 +38,8 @@ pub struct RedirectAction<R>
 where
     R: DnsResolver + Send + 'static,
 {
+    /// Connection pool for reuse (optional)
+    pub pool: Option<Arc<super::pool::ConnectionPool>>,
     /// The prepared request for the redirect (consumed on apply)
     request: Option<PreparedRequest>,
     /// DNS resolver for the redirected request
@@ -53,9 +60,15 @@ where
     /// * `resolver` - DNS resolver instance
     /// * `remaining_redirects` - Number of remaining redirects allowed
     #[allow(dead_code)]
-    pub fn new(request: PreparedRequest, resolver: R, remaining_redirects: u8) -> Self {
+    pub fn new(
+        request: PreparedRequest,
+        resolver: R,
+        remaining_redirects: u8,
+        pool: Option<Arc<super::pool::ConnectionPool>>,
+    ) -> Self {
         Self {
             request: Some(request),
+            pool,
             resolver,
             remaining_redirects,
         }
@@ -66,21 +79,39 @@ impl<R> ExecutionAction for RedirectAction<R>
 where
     R: DnsResolver + Send + 'static,
 {
-    fn apply(&mut self, key: Entry, engine: BoxedExecutionEngine) -> GenericResult<()> {
+    fn apply(
+        &mut self,
+        key: Option<Entry>,
+        engine: BoxedExecutionEngine,
+    ) -> GenericResult<SpawnInfo> {
         // Take the request to ensure idempotent apply() calls
         if let Some(request) = self.request.take() {
             // Create a new HTTP request task for the redirect
-            let task =
-                HttpRequestTask::new(request, self.resolver.clone(), self.remaining_redirects);
+            let task = if let Some(pool) = self.pool.take() {
+                HttpRequestTask::new(
+                    request,
+                    self.resolver.clone(),
+                    self.remaining_redirects,
+                    Some(pool),
+                )
+            } else {
+                HttpRequestTask::new(
+                    request,
+                    self.resolver.clone(),
+                    self.remaining_redirects,
+                    None,
+                )
+            };
 
             // Spawn the task as a child of the current task using lift()
             // for priority execution of redirects
-            spawn_builder(engine)
-                .with_parent(key)
+            return spawn_builder(engine)
+                .maybe_parent(key)
                 .with_task(task)
-                .lift()?;
+                .lift()
+                .map_err(Into::into);
         }
-        Ok(())
+        Ok(SpawnInfo::new(SpawnType::None, None, None))
     }
 }
 
@@ -130,23 +161,28 @@ impl TlsUpgradeAction {
 
 #[cfg(not(target_arch = "wasm32"))]
 impl ExecutionAction for TlsUpgradeAction {
-    fn apply(&mut self, key: Entry, engine: BoxedExecutionEngine) -> GenericResult<()> {
+    fn apply(
+        &mut self,
+        key: Option<Entry>,
+        engine: BoxedExecutionEngine,
+    ) -> GenericResult<SpawnInfo> {
         // Extract connection and sender using Option::take() for idempotency
         if let (Some(connection), Some(sender)) = (self.connection.take(), self.on_complete.take())
         {
             // Create TlsHandshakeTask
             let tls_task = TlsHandshakeTask::new(connection, self.sni.clone(), sender);
 
-            // Spawn the task using spawn_builder with priority (lift)
-            spawn_builder(engine)
-                .with_parent(key)
-                .with_task(tls_task)
-                .lift()?;
-
             tracing::debug!("Spawned TLS handshake task for {}", self.sni);
+
+            // Spawn the task using spawn_builder with priority (lift)
+            return spawn_builder(engine)
+                .maybe_parent(key)
+                .with_task(tls_task)
+                .lift()
+                .map_err(Into::into);
         }
 
-        Ok(())
+        Ok(SpawnInfo::new(SpawnType::None, None, None))
     }
 }
 
@@ -175,9 +211,13 @@ impl<R> ExecutionAction for HttpClientAction<R>
 where
     R: DnsResolver + Send + 'static,
 {
-    fn apply(&mut self, key: Entry, engine: BoxedExecutionEngine) -> GenericResult<()> {
+    fn apply(
+        &mut self,
+        key: Option<Entry>,
+        engine: BoxedExecutionEngine,
+    ) -> GenericResult<SpawnInfo> {
         match self {
-            HttpClientAction::None => Ok(()),
+            HttpClientAction::None => Ok(SpawnInfo::new(SpawnType::None, None, None)),
             HttpClientAction::Redirect(action) => action.apply(key, engine),
             #[cfg(not(target_arch = "wasm32"))]
             HttpClientAction::TlsUpgrade(action) => action.apply(key, engine),
@@ -204,7 +244,7 @@ mod tests {
             .build();
         let resolver = MockDnsResolver::new();
 
-        let action = RedirectAction::new(request, resolver, 5);
+        let action = RedirectAction::new(request, resolver, 5, None);
 
         assert!(action.request.is_some());
         assert_eq!(action.remaining_redirects, 5);
@@ -219,7 +259,7 @@ mod tests {
             .build();
         let resolver = MockDnsResolver::new();
 
-        let action = RedirectAction::new(request, resolver, 3);
+        let action = RedirectAction::new(request, resolver, 3, None);
 
         // Type check - ensure it can be boxed as ExecutionAction
         let _boxed: Box<dyn ExecutionAction> = Box::new(action);
@@ -234,7 +274,7 @@ mod tests {
             .build();
         let resolver = MockDnsResolver::new();
 
-        let mut action = RedirectAction::new(request, resolver, 3);
+        let mut action = RedirectAction::new(request, resolver, 3, None);
 
         // First apply should consume the request
         assert!(action.request.is_some());
@@ -307,7 +347,7 @@ mod tests {
             .build();
         let resolver = MockDnsResolver::new();
 
-        let redirect_action = RedirectAction::new(request, resolver, 3);
+        let redirect_action = RedirectAction::new(request, resolver, 3, None);
         let action = HttpClientAction::Redirect(redirect_action);
 
         // Type check

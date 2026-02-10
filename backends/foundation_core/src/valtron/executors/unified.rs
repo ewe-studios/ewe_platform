@@ -45,7 +45,7 @@ pub fn initialize_pool(seed_for_rng: u64, _user_thread_num: Option<usize>) {
 /// This really only apply for single threaded and wasm context.
 pub fn run_until<T>(checker: T)
 where
-    T: Fn(&ProgressIndicator) -> bool,
+    T: Fn(ProgressIndicator) -> bool,
 {
     #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
     {

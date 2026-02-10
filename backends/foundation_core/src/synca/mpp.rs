@@ -6,8 +6,6 @@ use std::{
 use concurrent_queue::{ConcurrentQueue, ForcePushError, PopError, PushError, TryIter};
 use derive_more::derive::From;
 
-use crate::valtron::{Stream, StreamIterator};
-
 pub struct Receiver<T> {
     chan: Arc<ConcurrentQueue<T>>,
 }
@@ -240,6 +238,28 @@ impl<T> Iterator for RecvIterator<T> {
         self.0.block_recv(self.1).ok()
     }
 }
+
+pub enum Stream<D, P> {
+    // Indicative the stream is instantiating.
+    Init,
+
+    // Indicative of internal system operations occuring that should be ignored.
+    Ignore,
+
+    // Indicative that the stream next response will be delayed by this much duration
+    Delayed(std::time::Duration),
+
+    // Indicating that the stream is a pending state with giving context value.
+    Pending(P),
+
+    // Indicative the stream just issued its next value.
+    Next(D),
+}
+
+/// [`StreamIterator`] defines a type which implements an
+/// iterator that returns a stream stream
+/// of values.
+pub trait StreamIterator<D, P>: Iterator<Item = Stream<D, P>> {}
 
 pub struct StreamRecvIterator<D, P>(RecvIterator<Stream<D, P>>);
 
