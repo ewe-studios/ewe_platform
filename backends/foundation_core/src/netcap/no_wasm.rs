@@ -15,7 +15,7 @@ use super::{Endpoint, EndpointConfig};
     feature = "ssl-openssl",
     feature = "ssl-native-tls"
 ))]
-use super::ssl::{ClientSSLStream, SSLConnector, ServerSSLStream};
+use super::ssl::{ClientSSLStream, ServerSSLStream};
 
 #[cfg(all(
     feature = "ssl-openssl",

@@ -1,9 +1,7 @@
-use std::{any::Any, marker::PhantomData};
 
 use crate::synca::Entry;
 use crate::valtron::{
-    BoxedExecutionEngine, BoxedExecutionIterator, BoxedPanicHandler, BoxedSendExecutionIterator,
-    ExecutionAction, ExecutionIterator, SpawnInfo, State, TaskIterator, TaskStatus,
+    BoxedExecutionEngine, BoxedExecutionIterator, ExecutionIterator, SpawnInfo, State, TaskIterator,
 };
 
 pub(crate) struct DependentLiftedTaskInner {

@@ -3,7 +3,6 @@
 #![cfg(not(target_arch = "wasm32"))]
 
 use crate::netcap::connection::Connection;
-use crate::netcap::errors::BoxedError;
 use crate::netcap::{
     DataStreamAddr, DataStreamError, DataStreamResult, Endpoint, EndpointConfig, SocketAddr,
 };

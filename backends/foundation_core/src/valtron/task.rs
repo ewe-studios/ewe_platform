@@ -1,6 +1,5 @@
 #![allow(clippy::type_complexity)]
 
-use crate::extensions::result_ext::BoxedError;
 use crate::valtron::Stream;
 use crate::valtron::StreamIterator;
 use concurrent_queue::ConcurrentQueue;

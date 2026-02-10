@@ -582,10 +582,10 @@ mod test_entry_list {
         assert_eq!(Some(&&1), list.get(&entry));
         assert_eq!(Some(&mut &1), list.get_mut(&entry));
 
-        let entry2 = list.insert(&2);
+        let _entry2 = list.insert(&2);
         assert_eq!(entry, Entry::new(1, 0));
 
-        let entry3 = list.insert(&3);
+        let _entry3 = list.insert(&3);
         assert_eq!(entry, Entry::new(2, 0));
     }
 

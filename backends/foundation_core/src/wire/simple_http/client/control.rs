@@ -2,7 +2,6 @@
 
 use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::Arc;
-use std::time::Duration;
 
 // State constants for atomic coordination
 const STATE_NOT_STARTED: u8 = 0;

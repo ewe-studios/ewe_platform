@@ -15,7 +15,7 @@ use std::{
 
 use crate::valtron::TaskIterator;
 use crate::{
-    synca::{mpp, DurationWaker, Entry, EntryList, IdleMan, OnSignal, RunOnDrop, Sleepers, Waiter},
+    synca::{mpp, DurationWaker, Entry, EntryList, IdleMan, OnSignal, Sleepers, Waiter},
     valtron::{AnyResult, ExecutionEngine, ExecutionIterator, State},
 };
 use rand::SeedableRng;
@@ -1799,10 +1799,8 @@ mod test_local_thread_executor {
         retries::ExponentialBackoffDecider,
         synca::{mpp::RecvIterator, SleepyMan},
         valtron::{
-            BoxedExecutionAction, BoxedSendExecutionAction, ExecutionAction, InlineAction,
-            InlineActionBehaviour, InlineSendAction, InlineSendActionBehaviour,
-            IntoBoxedExecutionAction, IntoBoxedSendExecutionAction, NoSpawner, OnNext,
-            ProcessController, TaskIterator, TaskStatus, WrapTask, ZeroMapping,
+            BoxedSendExecutionAction, ExecutionAction, InlineSendAction, InlineSendActionBehaviour, IntoBoxedSendExecutionAction, NoSpawner, OnNext,
+            ProcessController, TaskIterator, TaskStatus, WrapTask,
         },
     };
 

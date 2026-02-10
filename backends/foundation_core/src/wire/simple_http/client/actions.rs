@@ -14,7 +14,6 @@
 
 use std::sync::Arc;
 
-use crate::extensions::result_ext::BoxedError;
 use crate::netcap::{Connection, RawStream};
 use crate::synca::mpp::Sender;
 use crate::synca::Entry;
@@ -22,7 +21,7 @@ use crate::valtron::{
     spawn_builder, BoxedExecutionEngine, ExecutionAction, GenericResult, SpawnInfo, SpawnType,
 };
 use crate::wire::simple_http::client::{
-    DnsResolver, GetRequestIntroTask, HttpRequestTask, PreparedRequest, TlsHandshakeTask,
+    DnsResolver, HttpRequestTask, PreparedRequest, TlsHandshakeTask,
 };
 
 /// Action for spawning HTTP redirect follow tasks.
