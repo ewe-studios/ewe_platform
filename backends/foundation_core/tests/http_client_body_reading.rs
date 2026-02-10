@@ -13,7 +13,7 @@ use foundation_core::valtron;
 use foundation_core::wire::simple_http::client::{
     ClientConfig, ClientRequest, ClientRequestBuilder, SystemDnsResolver,
 };
-use foundation_core::wire::simple_http::{IncomingResponseParts, SimpleBody};
+use foundation_core::wire::simple_http::SimpleBody;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use tracing_test::traced_test;
 

@@ -15,15 +15,15 @@
 use crate::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
 use crate::synca::mpp::RecvIterator;
-use crate::valtron::{self, ReadyValue, ReadyValues, TaskStatus};
+use crate::valtron::TaskStatus;
 use crate::wire::simple_http::client::{
     executor::execute_task, ClientConfig, ClientRequestBuilder, ConnectionPool, DnsResolver,
     GetRequestIntroStates, HttpClientAction, HttpClientError, HttpRequestTask, PreparedRequest,
     RequestControl, RequestIntro, ResponseIntro,
 };
 use crate::wire::simple_http::{
-    HttpResponseReader, IncomingResponseParts, Proto, SimpleBody, SimpleHeaders, SimpleHttpBody,
-    SimpleResponse, Status,
+    IncomingResponseParts, SimpleBody, SimpleHeaders,
+    SimpleResponse,
 };
 use std::sync::Arc;
 
@@ -511,7 +511,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         // Extract iterator from state
         let state = self.task_state.take();
         match state {
-            Some(ClientRequestState::Executing { iter, .. }) => {
+            Some(ClientRequestState::Executing { iter: _, .. }) => {
                 // PartsIterator::Start(PartsIteratorInner {
                 //     iter,
                 //     reader: None,
@@ -586,7 +586,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         );
 
         // Spawn task via execute_task
-        let iter = execute_task(task)
+        let _iter = execute_task(task)
             .map_err(|e| HttpClientError::Other(format!("Failed to spawn task: {}", e).into()))?;
 
         // Transition to Executing state

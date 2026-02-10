@@ -14,18 +14,15 @@
 //!
 //! PHASE 1 SCOPE: HTTP-only (no HTTPS), blocking connection, basic GET requests.
 
-use crate::extensions::result_ext::SendableBoxedError;
 use crate::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
-use crate::valtron::{NoSpawner, SpawnWithLift, TaskIterator, TaskStatus};
+use crate::valtron::{NoSpawner, TaskIterator, TaskStatus};
 use crate::wire::simple_http::client::{
-    DnsResolver, HttpClientAction, HttpClientConnection, PreparedRequest, ResponseIntro,
+    DnsResolver, HttpClientAction, HttpClientConnection, PreparedRequest,
 };
 use crate::wire::simple_http::{
-    ClientRequestErrors, Http11, HttpResponseIntro, HttpResponseReader, IncomingResponseParts,
-    Proto, RenderHttp, SimpleHeader, SimpleHeaders, SimpleHttpBody, Status,
+    ClientRequestErrors, Http11, HttpResponseIntro, RenderHttp, SimpleHeader,
 };
-use foundation_nostd::comp::basic::Mutex;
 use std::io::Write;
 use std::sync::Arc;
 use std::time::Duration;
@@ -206,7 +203,7 @@ where
                 self.0.port = Some(request.url.port().unwrap_or(80));
 
                 // Try to get connection from pool first
-                let mut stream = if let Some(pool) = &self.0.pool {
+                let stream = if let Some(pool) = &self.0.pool {
                     pool.checkout(self.0.host.as_ref().unwrap(), self.0.port.unwrap())
                 } else {
                     match HttpClientConnection::connect(
