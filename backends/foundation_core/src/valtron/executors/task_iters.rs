@@ -534,9 +534,8 @@ where
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
-        if self.alive.is_none() {
-            return None;
-        }
+        self.alive?;
+
         let task_response = match std::panic::catch_unwind(|| self.task.lock().unwrap().next()) {
             Ok(inner) => inner,
             Err(panic_error) => {
@@ -584,8 +583,7 @@ where
                 }
             },
             TaskStatus::Delayed(dur) => State::Pending(Some(dur)),
-            TaskStatus::Pending(_) => State::Pending(None),
-            TaskStatus::Init => State::Pending(None),
+            TaskStatus::Init | TaskStatus::Pending(_) => State::Pending(None),
             TaskStatus::Ready(inner) => {
                 if let Ok(()) = self.channel.push(TaskStatus::Ready(inner)) {
                     State::ReadyValue(entry)

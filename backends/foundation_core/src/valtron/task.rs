@@ -612,6 +612,9 @@ pub trait ExecutionEngine {
     /// `Send` safe.
     fn broadcast(&self, task: BoxedSendExecutionIterator) -> AnyResult<SpawnInfo, ExecutorError>;
 
+    /// [`boxed_engine`] returns a instance of the engine as a [`BoxedExecutionEngine`].
+    fn boxed_engine(&self) -> BoxedExecutionEngine;
+
     /// [`shared_queue`] returns access to the global queue.
     fn shared_queue(&self) -> SharedTaskQueue;
 
