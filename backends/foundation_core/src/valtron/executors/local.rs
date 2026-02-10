@@ -82,9 +82,6 @@ pub struct ExecutorState {
     /// in the order received.
     pub global_tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
 
-    /// indicates to us which if any spawn operation occurred.
-    pub spawn_op: rc::Rc<cell::RefCell<Option<SpawnType>>>,
-
     /// indicates the current task currently being handled for
     /// safety checks.
     pub current_task: rc::Rc<cell::RefCell<Option<Entry>>>,
@@ -155,7 +152,6 @@ impl ExecutorState {
             sleepers: Sleepers::new(),
             rng: rc::Rc::new(cell::RefCell::new(rng)),
             idler: rc::Rc::new(cell::RefCell::new(idler)),
-            spawn_op: rc::Rc::new(cell::RefCell::new(None)),
             current_task: rc::Rc::new(cell::RefCell::new(None)),
             task_graph: rc::Rc::new(cell::RefCell::new(HashMap::new())),
             packed_tasks: rc::Rc::new(cell::RefCell::new(HashMap::new())),
@@ -213,7 +209,6 @@ impl Clone for ExecutorState {
             idler: self.idler.clone(),
             sleepers: self.sleepers.clone(),
             priority: self.priority.clone(),
-            spawn_op: self.spawn_op.clone(),
             current_task: self.current_task.clone(),
             global_tasks: self.global_tasks.clone(),
             local_tasks: self.local_tasks.clone(),
@@ -487,10 +482,10 @@ impl ExecutorState {
 
             self.wakeup_ready_sleepers();
 
-            // reset the spawn_ops to None
-            RunOnDrop::new(|| {
-                self.spawn_op.borrow_mut().take();
-            });
+            // // reset the spawn_ops to None
+            // RunOnDrop::new(|| {
+            //     self.spawn_op.borrow_mut().take();
+            // });
 
             match self.do_work(engine) {
                 ProgressIndicator::CanProgress(state) => {
@@ -662,17 +657,10 @@ impl ExecutorState {
                         self.local_tasks.borrow_mut().unpark(&top_entry, iter);
 
                         // unless we just lifted with a parent then add entry back.
-                        if let Some(op) = self.spawn_op.borrow().as_ref() {
-                            tracing::info!("Spawned process with op: {:?}", op);
-                            if op != &SpawnType::LiftedWithParent {
-                                // push entry back into processing mut
-                                tracing::info!(
-                                    "Adding task {:?} back into top of queue: {:?}",
-                                    top_entry,
-                                    op
-                                );
-                                self.processing.borrow_mut().push_front(top_entry);
-                            }
+                        if info.spawn_type() != SpawnType::LiftedWithParent {
+                            tracing::info!("Spawned process without parent: {:?}", info);
+                            // push entry back into processing mut
+                            self.processing.borrow_mut().push_front(top_entry);
                         }
 
                         // no need to push entry since it must have
@@ -842,12 +830,6 @@ impl ExecutorState {
         // task will be the lifted task just right after parent.
         if let Some(parent_handle) = &parent {
             self.processing.borrow_mut().push_front(*parent_handle);
-
-            self.spawn_op
-                .borrow_mut()
-                .replace(SpawnType::LiftedWithParent);
-        } else {
-            self.spawn_op.borrow_mut().replace(SpawnType::Lifted);
         }
 
         tracing::debug!(
@@ -896,7 +878,6 @@ impl ExecutorState {
     pub fn schedule(&self, task: BoxedExecutionIterator) -> AnyResult<SpawnInfo, ExecutorError> {
         let task_entry = self.local_tasks.borrow_mut().insert(task);
         self.processing.borrow_mut().push_back(task_entry);
-        self.spawn_op.borrow_mut().replace(SpawnType::Scheduled);
         Ok(SpawnInfo::new(SpawnType::Scheduled, Some(task_entry), None))
     }
 }
@@ -910,10 +891,7 @@ impl ExecutorState {
         task: BoxedSendExecutionIterator,
     ) -> AnyResult<SpawnInfo, ExecutorError> {
         match self.global_tasks.push(task) {
-            Ok(()) => {
-                self.spawn_op.borrow_mut().replace(SpawnType::Broadcast);
-                Ok(SpawnInfo::new(SpawnType::Broadcast, None, None))
-            }
+            Ok(()) => Ok(SpawnInfo::new(SpawnType::Broadcast, None, None)),
             Err(err) => match err {
                 PushError::Full(_) => Err(ExecutorError::QueueFull),
                 PushError::Closed(_) => Err(ExecutorError::QueueClosed),
@@ -1067,6 +1045,10 @@ impl<'a> ExecutionEngine for Box<&'a LocalExecutionEngine> {
         (**self).shared_queue()
     }
 
+    fn boxed_engine(&self) -> BoxedExecutionEngine {
+        (**self).boxed_engine()
+    }
+
     fn rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
         (**self).rng()
     }
@@ -1091,6 +1073,10 @@ impl ExecutionEngine for Box<LocalExecutionEngine> {
 
     fn shared_queue(&self) -> SharedTaskQueue {
         (**self).shared_queue()
+    }
+
+    fn boxed_engine(&self) -> BoxedExecutionEngine {
+        (**self).boxed_engine()
     }
 
     fn rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
@@ -1132,6 +1118,10 @@ impl ExecutionEngine for LocalExecutionEngine {
             }
         }
         Ok(info)
+    }
+
+    fn boxed_engine(&self) -> BoxedExecutionEngine {
+        Box::new(self.clone())
     }
 
     /// `shared_queue` returns access to the global queue.

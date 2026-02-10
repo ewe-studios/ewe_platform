@@ -57,6 +57,7 @@ impl<
         }
     }
 
+    #[must_use]
     pub fn with_mappers(mut self, mapper: Mapper) -> Self {
         let mut mappers = if self.mappers.is_some() {
             self.mappers.take().unwrap()
@@ -69,6 +70,7 @@ impl<
         self
     }
 
+    #[must_use]
     pub fn with_panic_handler<T>(mut self, handler: T) -> Self
     where
         T: Fn(Box<dyn Any + Send>) + Send + Sync + 'static,
@@ -77,21 +79,25 @@ impl<
         self
     }
 
+    #[must_use]
     pub fn maybe_parent(mut self, parent: Option<Entry>) -> Self {
         self.parent = parent;
         self
     }
 
+    #[must_use]
     pub fn with_parent(mut self, parent: Entry) -> Self {
         self.parent = Some(parent);
         self
     }
 
+    #[must_use]
     pub fn with_task(mut self, task: Task) -> Self {
         self.task = Some(task);
         self
     }
 
+    #[must_use]
     pub fn with_resolver(mut self, resolver: Resolver) -> Self {
         self.resolver = Some(resolver);
         self
@@ -108,6 +114,7 @@ impl<
     ///
     /// Following our naming: [`schedule_iter`] calls the `schedule` method to deliver
     /// a task to the bottom of the thread-local execution queue.
+    #[must_use]
     pub fn schedule_ready_iter(
         self,
         wait_cycle: time::Duration,
@@ -148,6 +155,10 @@ impl<
             Arc::new(ConcurrentQueue::unbounded());
 
         let parent = self.parent;
+        if parent.is_some() {
+            tracing::warn!("You should be careful not to use this in another task or executor iterator has this blocks until the ready value is received and may deadlock your parent child sequence");
+        }
+
         let boxed_task = match self.task {
             Some(task) => match (self.resolver, self.mappers) {
                 (None, Some(mappers)) => ReadyConsumingIter::new(task, mappers, iter_chan.clone()),
