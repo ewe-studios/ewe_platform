@@ -18,9 +18,9 @@ pub(crate) struct DependentLiftedTaskInner {
 /// in the child will cause progress in the parent, returning the state of the child ignoring that
 /// of the parent until the child is exhausted, leaving only the parent to continue operating.
 ///
-pub struct DependentLiftedTask(DependentLiftedTaskInner);
+pub struct SequentiallyLinkedTasks(DependentLiftedTaskInner);
 
-impl DependentLiftedTask {
+impl SequentiallyLinkedTasks {
     #[must_use]
     pub fn new(
         info: SpawnInfo,
@@ -35,7 +35,7 @@ impl DependentLiftedTask {
     }
 }
 
-impl ExecutionIterator for DependentLiftedTask {
+impl ExecutionIterator for SequentiallyLinkedTasks {
     fn next(&mut self, parent_id: Entry, engine: BoxedExecutionEngine) -> Option<State> {
         if let Some(mut child) = self.0.child.take() {
             if let Some(child_state) = child.next(parent_id, engine.boxed_engine()) {
