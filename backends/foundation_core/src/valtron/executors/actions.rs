@@ -22,8 +22,8 @@ use crate::{
     synca::mpp::RecvIterator,
     valtron::{
         spawn_broadcaster, spawn_builder, BoxedExecutionEngine, ConsumingIter, ExecutionAction,
-        ExecutorError, GenericResult, NoAction, ReadyConsumingIter, SpawnInfo, SpawnType,
-        TaskIterator, TaskStatus, TaskStatusMapper,
+        ExecutorError, GenericResult, NoAction, SpawnInfo, SpawnType, TaskIterator, TaskStatus,
+        TaskStatusMapper,
     },
 };
 use std::{marker::PhantomData, sync::Arc};
@@ -64,14 +64,7 @@ where
     type Spawner = NoAction;
 
     fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        println!("Get next value of wrapped task");
-        match self.iter.next().map(TaskStatus::Ready) {
-            Some(v) => {
-                println!("Gotten next value of wrapped task");
-                Some(v)
-            }
-            None => None,
-        }
+        self.iter.next().map(TaskStatus::Ready)
     }
 }
 
@@ -243,11 +236,11 @@ where
     ) -> GenericResult<SpawnInfo> {
         if let Some(iter) = self.iter.take() {
             let task = LiftTask::new(iter);
-            spawn_builder(executor)
+            return spawn_builder(executor)
                 .maybe_parent(key)
                 .with_task(task)
                 .lift()
-                .map_err(Box::new);
+                .map_err(Into::into);
         }
         Ok(SpawnInfo::new(SpawnType::None, None, None))
     }

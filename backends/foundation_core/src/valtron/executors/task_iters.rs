@@ -434,12 +434,6 @@ where
             TaskStatus::Ready(inner) => {
                 tracing::debug!("Got ready value");
                 let send_result = self.channel.push(TaskStatus::Ready(inner));
-                println!(
-                    "Sent result into channel: ok={:?}, err={:?} -> total items: {}",
-                    send_result.is_ok(),
-                    send_result.is_err(),
-                    self.channel.len(),
-                );
                 if let Ok(()) = send_result {
                     tracing::debug!("Written TaskStatus::Ready into receiving channel");
                     State::ReadyValue(entry)
