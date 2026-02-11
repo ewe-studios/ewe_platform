@@ -38,8 +38,8 @@ use std::time::Duration;
 /// HOW: State transitions occur in `HttpRequestTask::next()`. Each state
 /// determines the next action or state transition.
 ///
-/// PHASE 1: Only Init, Connecting (which also sends), ReceivingIntro,
-/// WaitingForBodyRequest, Done, Error
+/// PHASE 1: Only Init, Connecting (which also sends), `ReceivingIntro`,
+/// `WaitingForBodyRequest`, Done, Error
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GetHttpStreamState {
     /// Initial state - preparing to connect
@@ -50,15 +50,15 @@ pub enum GetHttpStreamState {
     Done,
 }
 
-/// Values yielded by GetHttpRequestStreamTask as Ready status.
+/// Values yielded by `GetHttpRequestStreamTask` as Ready status.
 ///
 /// WHY: Task needs to yield different types of values at different stages:
 /// first intro/headers, then stream ownership.
 ///
 /// WHAT: Enum representing the two types of Ready values the task can yield.
 ///
-/// HOW: IntroAndHeaders yields first, then task waits. When signaled,
-/// StreamOwnership is yielded.
+/// HOW: `IntroAndHeaders` yields first, then task waits. When signaled,
+/// `StreamOwnership` is yielded.
 pub enum HttpStreamReady {
     Done(SharedByteBufferStream<RawStream>),
     Error(ClientRequestErrors),
@@ -183,13 +183,10 @@ where
             }
             GetHttpStreamState::Connecting => {
                 // Phase 1: Blocking connection and send request immediately
-                let request = match self.0.request.take() {
-                    Some(req) => req,
-                    None => {
-                        tracing::error!("Request disappeared during connecting");
-                        self.0.state = GetHttpStreamState::Done;
-                        return None;
-                    }
+                let request = if let Some(req) = self.0.request.take() { req } else {
+                    tracing::error!("Request disappeared during connecting");
+                    self.0.state = GetHttpStreamState::Done;
+                    return None;
                 };
 
                 // Extract host and port for pool return
@@ -302,11 +299,11 @@ pub struct RequestIntro {
 
 impl From<GetRequestInner> for RequestIntro {
     fn from(value: GetRequestInner) -> Self {
-        return Self {
+        Self {
             stream: value.stream.expect("request stream is provided"),
             intro: value.intro.expect("request intro is provided"),
             headers: value.headers.expect("request headers is provided"),
-        };
+        }
     }
 }
 
@@ -325,6 +322,7 @@ pub enum GetRequestIntroStates {
 pub struct GetRequestIntroTask(GetRequestIntroState);
 
 impl GetRequestIntroTask {
+    #[must_use] 
     pub fn new(stream: SharedByteBufferStream<RawStream>) -> Self {
         Self(GetRequestIntroState::Init(GetRequestInner {
             stream: Some(stream),

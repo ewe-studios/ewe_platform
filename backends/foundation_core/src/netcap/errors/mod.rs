@@ -136,12 +136,12 @@ pub enum TlsVerificationError {
 impl std::fmt::Display for TlsVerificationError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            TlsVerificationError::CertificateError(msg) => write!(f, "Certificate error: {}", msg),
-            TlsVerificationError::PrivateKeyError(msg) => write!(f, "Private key error: {}", msg),
-            TlsVerificationError::BackendError(msg) => write!(f, "TLS backend error: {}", msg),
-            TlsVerificationError::TimeoutError(msg) => write!(f, "Timeout error: {}", msg),
+            TlsVerificationError::CertificateError(msg) => write!(f, "Certificate error: {msg}"),
+            TlsVerificationError::PrivateKeyError(msg) => write!(f, "Private key error: {msg}"),
+            TlsVerificationError::BackendError(msg) => write!(f, "TLS backend error: {msg}"),
+            TlsVerificationError::TimeoutError(msg) => write!(f, "Timeout error: {msg}"),
             TlsVerificationError::InvalidConfigError(msg) => {
-                write!(f, "Invalid configuration: {}", msg)
+                write!(f, "Invalid configuration: {msg}")
             }
         }
     }

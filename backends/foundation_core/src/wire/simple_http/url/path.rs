@@ -68,7 +68,7 @@ impl PathAndQuery {
             }
         } else {
             // Relative path - prepend '/'
-            format!("/{}", path_str)
+            format!("/{path_str}")
         };
 
         Ok(PathAndQuery { path, query })
@@ -101,7 +101,7 @@ impl PathAndQuery {
                 || c == '%')
             // pct-encoded
             {
-                return Err(InvalidUri::new(format!("invalid path character: {}", c)));
+                return Err(InvalidUri::new(format!("invalid path character: {c}")));
             }
         }
         Ok(())
@@ -124,7 +124,7 @@ impl fmt::Display for PathAndQuery {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.path)?;
         if let Some(query) = &self.query {
-            write!(f, "?{}", query)?;
+            write!(f, "?{query}")?;
         }
         Ok(())
     }

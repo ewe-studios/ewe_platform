@@ -1,6 +1,6 @@
 //! High-level HTTP client with clean public API.
 //!
-//! WHY: Provides user-facing API that hides all TaskIterator complexity.
+//! WHY: Provides user-facing API that hides all `TaskIterator` complexity.
 //! Users interact with a simple, ergonomic interface.
 //!
 //! WHAT: Implements `SimpleHttpClient` with generic DNS resolver parameter,
@@ -22,7 +22,7 @@ use std::time::Duration;
 ///
 /// WHAT: Holds timeouts, redirect settings, default headers, and connection pool settings.
 ///
-/// HOW: Created via Default or explicit construction. Passed to SimpleHttpClient
+/// HOW: Created via Default or explicit construction. Passed to `SimpleHttpClient`
 /// via builder pattern.
 #[derive(Debug, Clone)]
 pub struct ClientConfig {
@@ -64,13 +64,13 @@ impl Default for ClientConfig {
 
 /// High-level HTTP client with clean API.
 ///
-/// WHY: Provides user-facing API that completely hides TaskIterator complexity.
+/// WHY: Provides user-facing API that completely hides `TaskIterator` complexity.
 /// Users work with simple methods like `.get(url).send()`.
 ///
 /// WHAT: Generic HTTP client with pluggable DNS resolver. Supports all HTTP methods,
 /// configurable timeouts/redirects, optional connection pooling.
 ///
-/// HOW: Wraps ClientRequestBuilder and TaskIterator execution. Builder pattern
+/// HOW: Wraps `ClientRequestBuilder` and `TaskIterator` execution. Builder pattern
 /// for configuration. Generic type parameter for DNS resolver flexibility.
 ///
 /// # Type Parameters
@@ -102,7 +102,7 @@ impl SimpleHttpClient<SystemDnsResolver> {
     ///
     /// WHY: Most users want system DNS resolution. This provides zero-config usage.
     ///
-    /// WHAT: Creates client with SystemDnsResolver and default configuration.
+    /// WHAT: Creates client with `SystemDnsResolver` and default configuration.
     ///
     /// # Returns
     ///
@@ -244,7 +244,7 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     ///
     /// WHY: GET is the most common HTTP method. Convenience method for ergonomics.
     ///
-    /// WHAT: Creates ClientRequestBuilder for GET method.
+    /// WHAT: Creates `ClientRequestBuilder` for GET method.
     ///
     /// # Arguments
     ///
@@ -261,7 +261,7 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     ///
     /// WHY: POST is common for form submissions and API calls.
     ///
-    /// WHAT: Creates ClientRequestBuilder for POST method.
+    /// WHAT: Creates `ClientRequestBuilder` for POST method.
     ///
     /// # Arguments
     ///
@@ -278,7 +278,7 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     ///
     /// WHY: PUT is common for resource updates.
     ///
-    /// WHAT: Creates ClientRequestBuilder for PUT method.
+    /// WHAT: Creates `ClientRequestBuilder` for PUT method.
     ///
     /// # Arguments
     ///
@@ -295,7 +295,7 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     ///
     /// WHY: DELETE is common for resource removal.
     ///
-    /// WHAT: Creates ClientRequestBuilder for DELETE method.
+    /// WHAT: Creates `ClientRequestBuilder` for DELETE method.
     ///
     /// # Arguments
     ///
@@ -312,7 +312,7 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     ///
     /// WHY: PATCH is common for partial resource updates.
     ///
-    /// WHAT: Creates ClientRequestBuilder for PATCH method.
+    /// WHAT: Creates `ClientRequestBuilder` for PATCH method.
     ///
     /// # Arguments
     ///
@@ -329,7 +329,7 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     ///
     /// WHY: HEAD is useful for checking resource existence without downloading body.
     ///
-    /// WHAT: Creates ClientRequestBuilder for HEAD method.
+    /// WHAT: Creates `ClientRequestBuilder` for HEAD method.
     ///
     /// # Arguments
     ///
@@ -346,7 +346,7 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     ///
     /// WHY: OPTIONS is used for CORS preflight and capability discovery.
     ///
-    /// WHAT: Creates ClientRequestBuilder for OPTIONS method.
+    /// WHAT: Creates `ClientRequestBuilder` for OPTIONS method.
     ///
     /// # Arguments
     ///
@@ -363,11 +363,11 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     ///
     /// # Transitional Implementation
     ///
-    /// Currently returns ClientRequestBuilder as-is pending api.rs implementation.
-    /// Once task-iterator feature completes, this will return ClientRequest with
-    /// .execute() method for running HTTP requests.
+    /// Currently returns `ClientRequestBuilder` as-is pending api.rs implementation.
+    /// Once task-iterator feature completes, this will return `ClientRequest` with
+    /// .`execute()` method for running HTTP requests.
     ///
-    /// WHY: Advanced users may want full control via ClientRequestBuilder.
+    /// WHY: Advanced users may want full control via `ClientRequestBuilder`.
     ///
     /// WHAT: Takes a pre-configured builder and prepares it for execution.
     ///

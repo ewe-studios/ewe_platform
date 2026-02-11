@@ -39,7 +39,7 @@ pub fn initialize_pool(seed_for_rng: u64, _user_thread_num: Option<usize>) {
     }
 }
 
-/// [`run_until`] provides a unified method to attempt to execute the run_until.
+/// [`run_until`] provides a unified method to attempt to execute the `run_until`.
 /// in a non cfg way by encapsulating that call and configuration into this method.
 ///
 /// This really only apply for single threaded and wasm context.
@@ -60,7 +60,7 @@ where
     }
 }
 
-/// [`run_until_complete`] provides a unified method to attempt to execute the run_until_complete.
+/// [`run_until_complete`] provides a unified method to attempt to execute the `run_until_complete`.
 /// in a non cfg way by encapsulating that call and configuration into this method.
 ///
 /// This really only apply for single threaded and wasm context.
@@ -78,7 +78,7 @@ pub fn run_until_complete() {
     }
 }
 
-/// [`run_once`] provides a unified method to attempt to execute the run_once.
+/// [`run_once`] provides a unified method to attempt to execute the `run_once`.
 /// in a non cfg way by encapsulating that call and configuration into this method.
 ///
 /// This really only apply for single threaded and wasm context.

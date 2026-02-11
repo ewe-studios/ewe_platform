@@ -124,7 +124,7 @@ where
 /// The task performs the TLS handshake and sends the upgraded stream via channel.
 ///
 /// HOW: Uses Option<Connection> with `take()` to ensure idempotent `apply()`.
-/// Spawns TlsHandshakeTask using `lift()` for priority execution of TLS upgrades.
+/// Spawns `TlsHandshakeTask` using `lift()` for priority execution of TLS upgrades.
 /// Callbacks are invoked upon completion with the upgraded TLS stream.
 #[cfg(not(target_arch = "wasm32"))]
 pub struct TlsUpgradeAction {
@@ -145,6 +145,7 @@ impl TlsUpgradeAction {
     /// * `connection` - The TCP connection to upgrade to TLS
     /// * `sni` - Server Name Indication (hostname for TLS)
     /// * `on_complete` - Endpoint to send result when TLS handshake completes
+    #[must_use] 
     pub fn new(
         connection: Connection,
         sni: String,

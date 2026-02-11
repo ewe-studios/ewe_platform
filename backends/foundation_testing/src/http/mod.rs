@@ -5,7 +5,7 @@
 //!
 //! WHAT: `TestHttpServer` for integration testing HTTP clients.
 //!
-//! HOW: Uses stdlib's TcpListener with manually crafted HTTP responses.
+//! HOW: Uses stdlib's `TcpListener` with manually crafted HTTP responses.
 //! Simple implementation suitable for basic HTTP client testing.
 
 mod server;

@@ -75,7 +75,7 @@ impl Uri {
     ///
     /// # Arguments (WHAT)
     ///
-    /// * `uri` - The URI string to parse (e.g., "https://example.com/path?query")
+    /// * `uri` - The URI string to parse (e.g., "<https://example.com/path?query>")
     ///
     /// # Returns (HOW)
     ///
@@ -110,8 +110,7 @@ impl Uri {
         let (scheme, rest) = Scheme::parse_from_uri(uri)?;
 
         // 2. Check for authority (starts with //)
-        let (authority, rest) = if rest.starts_with("//") {
-            let after_slashes = &rest[2..];
+        let (authority, rest) = if let Some(after_slashes) = rest.strip_prefix("//") {
             Authority::parse_with_remainder(after_slashes)?
         } else {
             (None, rest)
@@ -199,7 +198,7 @@ impl Uri {
     /// ```
     #[must_use]
     pub fn host_enum(&self) -> Option<&Host> {
-        self.authority.as_ref().map(|a| a.host())
+        self.authority.as_ref().map(authority::Authority::host)
     }
 
     /// Returns the port component if present.
@@ -214,7 +213,7 @@ impl Uri {
     /// ```
     #[must_use]
     pub fn port(&self) -> Option<u16> {
-        self.authority.as_ref().and_then(|a| a.port())
+        self.authority.as_ref().and_then(authority::Authority::port)
     }
 
     /// Returns the port or the default port for the scheme.
@@ -300,7 +299,7 @@ impl fmt::Display for Uri {
 
         // //authority
         if let Some(auth) = &self.authority {
-            write!(f, "//{}", auth)?;
+            write!(f, "//{auth}")?;
         }
 
         // path?query
@@ -308,7 +307,7 @@ impl fmt::Display for Uri {
 
         // #fragment
         if let Some(frag) = &self.fragment {
-            write!(f, "#{}", frag)?;
+            write!(f, "#{frag}")?;
         }
 
         Ok(())

@@ -39,6 +39,7 @@ impl Debug for LlamaContext<'_> {
 }
 
 impl<'model> LlamaContext<'model> {
+    #[must_use] 
     pub fn new(
         llama_model: &'model LlamaModel,
         llama_context: NonNull<infrastructure_llama_bindings::llama_context>,

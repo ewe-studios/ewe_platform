@@ -185,7 +185,7 @@ where
                 .maybe_parent(key)
                 .with_task(task)
                 .schedule()
-                .map_err(|err| err.into());
+                .map_err(std::convert::Into::into);
         }
         Ok(SpawnInfo::new(SpawnType::None, None, None))
     }
@@ -247,7 +247,7 @@ where
                 .maybe_parent(key)
                 .with_task(task)
                 .lift()
-                .map_err(|err| Box::new(err));
+                .map_err(Box::new);
         }
         Ok(SpawnInfo::new(SpawnType::None, None, None))
     }
@@ -335,7 +335,7 @@ where
                 .maybe_parent(key)
                 .with_task(task)
                 .schedule()
-                .map_err(|err| err.into());
+                .map_err(std::convert::Into::into);
         }
         Ok(SpawnInfo::new(SpawnType::None, None, None))
     }
@@ -711,7 +711,7 @@ where
                 .maybe_parent(key)
                 .with_task(task)
                 .broadcast()
-                .map_err(|err| err.into());
+                .map_err(std::convert::Into::into);
         }
         Ok(SpawnInfo::new(SpawnType::None, None, None))
     }

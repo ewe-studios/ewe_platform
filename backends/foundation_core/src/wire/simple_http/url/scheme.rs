@@ -67,8 +67,7 @@ impl Scheme {
         // Validate scheme characters (RFC 3986: ALPHA *( ALPHA / DIGIT / "+" / "-" / "." ))
         if !Self::is_valid_scheme(scheme_str) {
             return Err(InvalidUri::new(format!(
-                "invalid scheme characters: {}",
-                scheme_str
+                "invalid scheme characters: {scheme_str}"
             )));
         }
 
@@ -99,7 +98,7 @@ impl Scheme {
         let mut chars = s.chars();
 
         // First character must be alphabetic
-        if !chars.next().map_or(false, |c| c.is_ascii_alphabetic()) {
+        if !chars.next().is_some_and(|c| c.is_ascii_alphabetic()) {
             return false;
         }
 

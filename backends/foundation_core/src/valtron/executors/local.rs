@@ -338,11 +338,13 @@ impl ExecutorState {
     }
 
     #[inline]
+    #[must_use] 
     pub fn number_of_sleepers(&self) -> usize {
         self.sleepers.count()
     }
 
     #[inline]
+    #[must_use] 
     pub fn has_sleeping_tasks(&self) -> bool {
         self.sleepers.has_pending_tasks()
     }
@@ -592,9 +594,7 @@ impl ExecutorState {
             self.current_task.borrow_mut().replace(top_entry);
 
             let iter_container = self.local_tasks.borrow_mut().park(&top_entry);
-            if iter_container.is_none() {
-                panic!("An entry must always have a task attached");
-            }
+            assert!(iter_container.is_some(),"An entry must always have a task attached");
 
             let mut iter = iter_container.unwrap();
             let next_result = iter.next(top_entry, engine);
@@ -935,10 +935,12 @@ impl ReferencedExecutorState {
         Self { inner, activities }
     }
 
+    #[must_use] 
     pub fn clone_queue(&self) -> SharedTaskQueue {
         self.inner.global_tasks.clone()
     }
 
+    #[must_use] 
     pub fn clone_state(&self) -> rc::Rc<ExecutorState> {
         self.inner.clone()
     }
@@ -966,16 +968,19 @@ impl ReferencedExecutorState {
 
 impl ReferencedExecutorState {
     #[inline]
+    #[must_use] 
     pub fn get_rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
         self.inner.get_rng()
     }
 
     #[inline]
+    #[must_use] 
     pub fn number_of_sleepers(&self) -> usize {
         self.inner.number_of_sleepers()
     }
 
     #[inline]
+    #[must_use] 
     pub fn total_tasks(&self) -> usize {
         self.inner.total_tasks()
     }
@@ -1799,8 +1804,9 @@ mod test_local_thread_executor {
         retries::ExponentialBackoffDecider,
         synca::{mpp::RecvIterator, SleepyMan},
         valtron::{
-            BoxedSendExecutionAction, ExecutionAction, InlineSendAction, InlineSendActionBehaviour, IntoBoxedSendExecutionAction, NoSpawner, OnNext,
-            ProcessController, TaskIterator, TaskStatus, WrapTask,
+            BoxedSendExecutionAction, ExecutionAction, InlineSendAction, InlineSendActionBehaviour,
+            IntoBoxedSendExecutionAction, NoSpawner, OnNext, ProcessController, TaskIterator,
+            TaskStatus, WrapTask,
         },
     };
 

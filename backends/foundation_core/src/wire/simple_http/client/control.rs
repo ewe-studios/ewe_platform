@@ -10,13 +10,13 @@ const STATE_BODY_REQUESTED: u8 = 2;
 #[allow(dead_code)]
 const STATE_COMPLETED: u8 = 3;
 
-/// Shared control for coordinating between task and ClientRequest.
+/// Shared control for coordinating between task and `ClientRequest`.
 ///
-/// WHY: ClientRequest needs to signal when body reading is desired, and task
+/// WHY: `ClientRequest` needs to signal when body reading is desired, and task
 /// needs to wait for that signal. Atomic coordination enables lock-free
 /// communication.
 ///
-/// WHAT: Arc-wrapped atomic state that both task and ClientRequest can access.
+/// WHAT: Arc-wrapped atomic state that both task and `ClientRequest` can access.
 ///
 /// HOW: Clone-able handle with atomic operations for state changes.
 #[derive(Clone, Debug)]
@@ -25,7 +25,8 @@ pub struct RequestControl {
 }
 
 impl RequestControl {
-    /// Creates a new request control in NOT_STARTED state.
+    /// Creates a new request control in `NOT_STARTED` state.
+    #[must_use] 
     pub fn new() -> Self {
         Self {
             state: Arc::new(AtomicU8::new(STATE_NOT_STARTED)),
@@ -43,6 +44,7 @@ impl RequestControl {
     }
 
     /// Gets current state.
+    #[must_use] 
     pub fn get_state(&self) -> u8 {
         self.state.load(Ordering::Acquire)
     }
