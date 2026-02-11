@@ -200,7 +200,7 @@ impl<T> RecvIter<T> {
 ///
 /// The [`time::Duration`] received indicates how long it will block to get
 /// the next value upon which it will yield, if no value is received before
-/// that period the RecvIterator returns `None` if there was any error or if the internal
+/// that period the `RecvIterator` returns `None` if there was any error or if the internal
 /// receiver's channel was closed.
 ///
 /// Which provides a sensible polling functionality yielding the threading when the timeout hits

@@ -256,10 +256,10 @@ impl core::fmt::Display for SimpleBody {
 
 /// Send-safe body type for requests and other Send contexts.
 ///
-/// Unlike SimpleBody which supports non-Send iterator variants for responses,
-/// SendSafeBody only supports Send-safe variants and can be safely sent across threads.
+/// Unlike `SimpleBody` which supports non-Send iterator variants for responses,
+/// `SendSafeBody` only supports Send-safe variants and can be safely sent across threads.
 ///
-/// Uses BoxedSendableIterator (which is Send) instead of BoxedResultIterator (which is not).
+/// Uses `BoxedSendableIterator` (which is Send) instead of `BoxedResultIterator` (which is not).
 pub enum SendSafeBody {
     None,
     Text(String),
@@ -326,7 +326,7 @@ impl core::fmt::Debug for SendSafeBody {
             Self::LineFeedStream(None) => SendSafeBodyRepr::LineFeedStream(None),
         };
 
-        write!(f, "{:?}", repr)
+        write!(f, "{repr:?}")
     }
 }
 
@@ -1094,6 +1094,7 @@ static CAPTURE_QUERY_KEY_VALUE: &str = r"((?P<qk>[^&]+)=(?P<qv>[^&]+))*";
 
 #[allow(unused)]
 impl SimpleUrl {
+    #[must_use] 
     pub fn new(
         url_only: bool,
         request_url: String,
@@ -1257,11 +1258,13 @@ impl SimpleUrl {
         self.match_queries(target)
     }
 
+    #[must_use] 
     pub fn match_queries(&self, target: &str) -> bool {
         let target_queries = Self::capture_query_hashmap(target);
         self.match_queries_tree(&target_queries)
     }
 
+    #[must_use] 
     pub fn match_queries_tree(&self, target_queries: &Option<BTreeMap<String, String>>) -> bool {
         if self.queries.is_none() && target_queries.is_none() {
             return true;

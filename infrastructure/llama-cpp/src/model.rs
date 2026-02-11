@@ -125,6 +125,7 @@ unsafe impl Send for LlamaModel {}
 unsafe impl Sync for LlamaModel {}
 
 impl LlamaModel {
+    #[must_use] 
     pub fn vocab_ptr(&self) -> *const infrastructure_llama_bindings::llama_vocab {
         unsafe { infrastructure_llama_bindings::llama_model_get_vocab(self.model.as_ptr()) }
     }

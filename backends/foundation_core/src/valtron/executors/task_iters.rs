@@ -104,9 +104,7 @@ where
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
-        if self.alive.is_none() {
-            return None;
-        }
+        self.alive?;
 
         let task_response = match std::panic::catch_unwind(|| self.task.lock().unwrap().next()) {
             Ok(inner) => inner,
@@ -201,7 +199,7 @@ where
             }
             TaskStatus::Ready(inner) => {
                 if let Ok(()) = self.channel.push(Stream::Next(inner)) {
-                    State::ReadyValue(entry.clone())
+                    State::ReadyValue(entry)
                 } else {
                     tracing::error!("Failed to deliver status to channel, closing task");
 
@@ -307,9 +305,7 @@ where
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
         tracing::debug!("Are ConsumingIter alive?: {:?} -> {:?}", &self.alive, entry);
 
-        if self.alive.is_none() {
-            return None;
-        }
+        self.alive?;
 
         tracing::debug!("Get next value from consuming iter: {entry:?}");
         let task_response = match std::panic::catch_unwind(|| self.task.lock().unwrap().next()) {

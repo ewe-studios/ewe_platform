@@ -110,7 +110,7 @@ impl Authority {
             let ipv6_str = &s[1..close_bracket];
             let ipv6: Ipv6Addr = ipv6_str
                 .parse()
-                .map_err(|_| InvalidUri::new(format!("invalid IPv6 address: {}", ipv6_str)))?;
+                .map_err(|_| InvalidUri::new(format!("invalid IPv6 address: {ipv6_str}")))?;
 
             // Check for port after bracket
             let after_bracket = &s[close_bracket + 1..];
@@ -164,7 +164,7 @@ impl Authority {
     /// Parses a port string.
     fn parse_port(s: &str) -> Result<u16, InvalidUri> {
         s.parse::<u16>()
-            .map_err(|_| InvalidUri::new(format!("invalid port: {}", s)))
+            .map_err(|_| InvalidUri::new(format!("invalid port: {s}")))
     }
 
     /// Validates a reg-name (domain name) according to RFC 3986.
@@ -193,7 +193,7 @@ impl Authority {
                 || c == '%')
             // pct-encoded
             {
-                return Err(InvalidUri::new(format!("invalid host character: {}", c)));
+                return Err(InvalidUri::new(format!("invalid host character: {c}")));
             }
         }
         Ok(())
@@ -275,14 +275,14 @@ impl Host {
     ///
     /// WHAT: Returns a formatted string representation suitable for URIs:
     /// - IPv4: "192.168.1.1"
-    /// - IPv6: "[::1]" (with brackets for URI)
-    /// - RegName: "example.com"
+    /// - IPv6: "[`::1`]" (with brackets for URI)
+    /// - `RegName`: "example.com"
     ///
     /// HOW: Uses Rust's built-in Display implementations for IP addresses.
     pub(crate) fn to_string_for_display(&self) -> String {
         match self {
             Host::Ipv4(addr) => addr.to_string(),
-            Host::Ipv6(addr) => format!("[{}]", addr),
+            Host::Ipv6(addr) => format!("[{addr}]"),
             Host::RegName(name) => name.clone(),
         }
     }
@@ -291,13 +291,13 @@ impl Host {
 impl fmt::Display for Authority {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(userinfo) = &self.userinfo {
-            write!(f, "{}@", userinfo)?;
+            write!(f, "{userinfo}@")?;
         }
 
         write!(f, "{}", self.host.to_string_for_display())?;
 
         if let Some(port) = self.port {
-            write!(f, ":{}", port)?;
+            write!(f, ":{port}")?;
         }
 
         Ok(())

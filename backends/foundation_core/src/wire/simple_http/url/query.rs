@@ -253,9 +253,9 @@ fn percent_decode(s: &str) -> Result<String, QueryError> {
                     QueryError::new("incomplete percent-encoding (missing second hex digit)")
                 })?;
 
-                let hex_str = format!("{}{}", hex1, hex2);
+                let hex_str = format!("{hex1}{hex2}");
                 let byte = u8::from_str_radix(&hex_str, 16).map_err(|_| {
-                    QueryError::new(format!("invalid percent-encoding: %{}", hex_str))
+                    QueryError::new(format!("invalid percent-encoding: %{hex_str}"))
                 })?;
 
                 result.push(byte as char);
@@ -289,7 +289,7 @@ fn percent_encode(s: &str) -> String {
             b' ' => result.push('+'),
             _ => {
                 result.push('%');
-                result.push_str(&format!("{:02X}", byte));
+                result.push_str(&format!("{byte:02X}"));
             }
         }
     }

@@ -87,7 +87,14 @@ pub struct ScheduleRegistry {
 // -- Constructors
 
 #[allow(unused)]
+impl Default for ScheduleRegistry {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ScheduleRegistry {
+    #[must_use] 
     pub fn new() -> Self {
         Self {
             id: 0,

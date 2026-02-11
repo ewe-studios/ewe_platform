@@ -3,13 +3,13 @@
 //! WHY: Provides real HTTP server for integration tests without external dependencies.
 //! Built on stdlib TCP with hand-crafted HTTP responses for simplicity.
 //!
-//! WHAT: TestHttpServer that listens on localhost, accepts requests, and sends responses.
+//! WHAT: `TestHttpServer` that listens on localhost, accepts requests, and sends responses.
 //!
-//! HOW: Uses stdlib's TcpListener and threading with manually crafted HTTP/1.1 responses.
+//! HOW: Uses stdlib's `TcpListener` and threading with manually crafted HTTP/1.1 responses.
 //! Simple implementation suitable for basic HTTP client testing.
 //!
 //! NOTE: This is a simplified test server. For production HTTP parsing/rendering,
-//! use foundation_core::wire::simple_http types directly.
+//! use `foundation_core::wire::simple_http` types directly.
 
 use std::io::{BufRead, BufReader, Write};
 use std::net::{TcpListener, TcpStream};
@@ -91,7 +91,7 @@ impl HttpResponse {
         let mut response = format!("HTTP/1.1 {} {}\r\n", self.status, self.status_text);
 
         for (key, value) in &self.headers {
-            response.push_str(&format!("{}: {}\r\n", key, value));
+            response.push_str(&format!("{key}: {value}\r\n"));
         }
 
         response.push_str("\r\n");
@@ -139,7 +139,7 @@ impl TestHttpServer {
     ///
     /// # Returns
     ///
-    /// A running TestHttpServer that will respond with 200 OK to all requests.
+    /// A running `TestHttpServer` that will respond with 200 OK to all requests.
     ///
     /// # Examples
     ///
@@ -204,7 +204,7 @@ impl TestHttpServer {
             while running_clone.load(Ordering::Relaxed) {
                 match listener.accept() {
                     Ok((stream, sock_addr)) => {
-                        println!("Got a client connection: {:?}", sock_addr);
+                        println!("Got a client connection: {sock_addr:?}");
                         let handler = Arc::clone(&handler_clone);
                         // Handle each connection in separate thread
                         thread::spawn(move || {
@@ -241,7 +241,7 @@ impl TestHttpServer {
     ///
     /// # Returns
     ///
-    /// Full URL string (e.g., "http://127.0.0.1:54321/test")
+    /// Full URL string (e.g., "<http://127.0.0.1:54321/test>")
     ///
     /// # Examples
     ///
@@ -261,7 +261,7 @@ impl TestHttpServer {
     ///
     /// # Returns
     ///
-    /// Base URL without path (e.g., "http://127.0.0.1:54321")
+    /// Base URL without path (e.g., "<http://127.0.0.1:54321>")
     #[must_use]
     pub fn base_url(&self) -> &str {
         &self.addr
@@ -282,7 +282,7 @@ impl TestHttpServer {
 
         reader.read_line(&mut request_line)?;
 
-        let parts: Vec<&str> = request_line.trim().split_whitespace().collect();
+        let parts: Vec<&str> = request_line.split_whitespace().collect();
         println!("Got parts: {:?}", &parts);
         if parts.len() < 3 {
             return Err("Invalid HTTP request line".into());

@@ -240,7 +240,14 @@ pub struct IntervalRegistry {
 // -- Constructors
 
 #[allow(unused)]
+impl Default for IntervalRegistry {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl IntervalRegistry {
+    #[must_use] 
     pub fn new() -> Self {
         Self {
             id: 0,

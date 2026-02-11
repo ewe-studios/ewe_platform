@@ -44,18 +44,22 @@ pub enum SpawnType {
 pub struct SpawnInfo(SpawnType, Option<Entry>, Option<Entry>);
 
 impl SpawnInfo {
+    #[must_use] 
     pub fn new(st: SpawnType, task: Option<Entry>, parent: Option<Entry>) -> Self {
         Self(st, task, parent)
     }
 
+    #[must_use] 
     pub fn spawn_type(&self) -> SpawnType {
         self.0
     }
 
+    #[must_use] 
     pub fn task(&self) -> Option<Entry> {
         self.1
     }
 
+    #[must_use] 
     pub fn parent(&self) -> Option<Entry> {
         self.2
     }

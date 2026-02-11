@@ -16,6 +16,7 @@ pub struct Entry {
 
 #[allow(dead_code)]
 impl Entry {
+    #[must_use] 
     pub fn new(id: usize, gen: usize) -> Self {
         Self { id, gen }
     }
@@ -196,6 +197,7 @@ impl<T> EntryList<T> {
         }
     }
 
+    #[must_use] 
     pub fn find_packed(&self, entry: &Entry) -> Option<usize> {
         for (index, item) in self.packed_entries.iter().enumerate() {
             if item == entry {
@@ -493,6 +495,7 @@ impl<T> ThreadSafeEntry<T> {
         self.0.write().unwrap().unpark(entry, item)
     }
 
+    #[must_use] 
     pub fn find_packed(&self, entry: &Entry) -> Option<usize> {
         self.0.write().unwrap().find_packed(entry)
     }

@@ -1,6 +1,6 @@
 //! User-facing API for HTTP client request execution.
 //!
-//! WHY: Provides clean, ergonomic API that completely hides TaskIterator complexity.
+//! WHY: Provides clean, ergonomic API that completely hides `TaskIterator` complexity.
 //! Users interact with simple methods like `.introduction()`, `.body()`, and `.send()`
 //! without needing to understand the underlying executor mechanics.
 //!
@@ -29,21 +29,21 @@ use std::sync::Arc;
 
 /// Internal state for progressive request reading.
 ///
-/// WHY: ClientRequest supports both progressive reading (introduction, then body)
+/// WHY: `ClientRequest` supports both progressive reading (introduction, then body)
 /// and one-shot reading (send). This requires tracking execution state between
 /// method calls.
 ///
 /// WHAT: State machine tracking request lifecycle. Stores iterator and partial
 /// results (intro, headers, stream) for progressive consumption.
 ///
-/// HOW: Transitions from NotStarted -> Executing -> Completed. Executing state
+/// HOW: Transitions from `NotStarted` -> Executing -> Completed. Executing state
 /// holds all intermediate data needed for progressive reading.
 enum ClientRequestState<R: DnsResolver + 'static> {
     /// Request hasn't been executed yet
     NotStarted,
     /// Request is currently executing or has partial results
     Executing {
-        /// TaskIterator wrapped in RecvIterator for progress updates
+        /// `TaskIterator` wrapped in `RecvIterator` for progress updates
         iter: RecvIterator<TaskStatus<RequestIntro, GetRequestIntroStates, HttpClientAction<R>>>,
         /// Response introduction (status line) if received
         intro: Option<ResponseIntro>,
@@ -80,7 +80,7 @@ impl<R: DnsResolver + 'static> core::fmt::Debug for ClientRequestState<R> {
 /// User-facing HTTP request execution handle.
 ///
 /// WHY: Provides ergonomic API for executing HTTP requests with multiple consumption
-/// patterns. Hides all TaskIterator and executor complexity from users.
+/// patterns. Hides all `TaskIterator` and executor complexity from users.
 ///
 /// WHAT: Wrapper around HTTP request execution that supports:
 /// - Progressive reading: `.introduction()` then `.body()`
@@ -140,10 +140,10 @@ pub struct ClientRequest<R: DnsResolver + 'static> {
 impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// Creates a new client request (internal constructor).
     ///
-    /// WHY: SimpleHttpClient needs to construct ClientRequest instances from
-    /// PreparedRequest. This constructor is internal to the client module.
+    /// WHY: `SimpleHttpClient` needs to construct `ClientRequest` instances from
+    /// `PreparedRequest`. This constructor is internal to the client module.
     ///
-    /// WHAT: Initializes request in NotStarted state with all necessary data.
+    /// WHAT: Initializes request in `NotStarted` state with all necessary data.
     ///
     /// HOW: Stores all parameters for later execution. Doesn't start execution
     /// until user calls a consumption method.
@@ -182,10 +182,10 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// WHY: Some use cases need to inspect status and headers before reading body
     /// (e.g., conditional body processing, header validation).
     ///
-    /// WHAT: Executes HTTP request, drives executor until ResponseIntro and Headers
+    /// WHAT: Executes HTTP request, drives executor until `ResponseIntro` and Headers
     /// are received, returns both. Leaves request state ready for `.body()` call.
     ///
-    /// HOW: Creates HttpRequestTask, spawns via execute_task(), drives executor
+    /// HOW: Creates `HttpRequestTask`, spawns via `execute_task()`, drives executor
     /// (platform-aware), collects intro and headers from iterator, stores state
     /// for subsequent calls.
     ///
@@ -318,7 +318,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// `SimpleBody`.
     ///
     /// HOW: Drives iterator from state stored by `.introduction()`, collects body
-    /// parts, constructs SimpleBody.
+    /// parts, constructs `SimpleBody`.
     ///
     /// # Returns
     ///
@@ -427,11 +427,11 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// ergonomic API for typical HTTP requests.
     ///
     /// WHAT: Executes HTTP request, drives executor to completion, collects all
-    /// parts (intro, headers, body), constructs SimpleResponse, returns stream
+    /// parts (intro, headers, body), constructs `SimpleResponse`, returns stream
     /// to pool if enabled.
     ///
-    /// HOW: Creates and spawns HttpRequestTask, drives executor (platform-aware),
-    /// collects all IncomingResponseParts, assembles SimpleResponse, handles
+    /// HOW: Creates and spawns `HttpRequestTask`, drives executor (platform-aware),
+    /// collects all `IncomingResponseParts`, assembles `SimpleResponse`, handles
     /// connection pooling if configured.
     ///
     /// # Returns
@@ -471,8 +471,8 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// WHAT: Returns iterator adapter that yields `IncomingResponseParts` as they
     /// are received from the server.
     ///
-    /// HOW: Wraps internal TaskIterator, drives executor on each `next()` call,
-    /// translates TaskStatus to IncomingResponseParts.
+    /// HOW: Wraps internal `TaskIterator`, drives executor on each `next()` call,
+    /// translates `TaskStatus` to `IncomingResponseParts`.
     ///
     /// # Returns
     ///
@@ -502,10 +502,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     {
         // Start execution if not already started
         if matches!(self.task_state, Some(ClientRequestState::NotStarted) | None) {
-            if let Err(e) = self.start_execution() {
-                // Return error iterator
-                return Err(e);
-            }
+            self.start_execution()?
         }
 
         // Extract iterator from state
@@ -529,7 +526,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// WHY: Convenience method for users who want all parts but don't want to
     /// manually iterate.
     ///
-    /// WHAT: Drives request to completion, collects all IncomingResponseParts
+    /// WHAT: Drives request to completion, collects all `IncomingResponseParts`
     /// into Vec.
     ///
     /// HOW: Uses `.parts()` iterator and collects all results.
@@ -562,10 +559,10 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// WHY: Multiple methods need to start execution if not already started.
     /// Centralizes the logic.
     ///
-    /// WHAT: Creates HttpRequestTask, spawns via execute_task(), transitions
+    /// WHAT: Creates `HttpRequestTask`, spawns via `execute_task()`, transitions
     /// state to Executing.
     ///
-    /// HOW: Takes PreparedRequest, creates task with resolver and config,
+    /// HOW: Takes `PreparedRequest`, creates task with resolver and config,
     /// spawns using platform-appropriate executor, stores iterator in state.
     #[tracing::instrument(skip(self))]
     fn start_execution(&mut self) -> Result<(), HttpClientError> {
@@ -587,7 +584,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
 
         // Spawn task via execute_task
         let _iter = execute_task(task)
-            .map_err(|e| HttpClientError::Other(format!("Failed to spawn task: {}", e).into()))?;
+            .map_err(|e| HttpClientError::Other(format!("Failed to spawn task: {e}").into()))?;
 
         // Transition to Executing state
         // self.task_state = Some(ClientRequestState::Executing {

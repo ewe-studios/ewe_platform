@@ -72,8 +72,7 @@ impl HttpClientConnection {
 
         if addrs.is_empty() {
             return Err(HttpClientError::ConnectionFailed(format!(
-                "No addresses resolved for {}",
-                host
+                "No addresses resolved for {host}"
             )));
         }
 
@@ -109,16 +108,14 @@ impl HttpClientConnection {
         if let Some(err) = last_error {
             if err.to_string().contains("timeout") || err.to_string().contains("timed out") {
                 return Err(HttpClientError::ConnectionTimeout(format!(
-                    "Connection to {}:{} timed out",
-                    host, port
+                    "Connection to {host}:{port} timed out"
                 )));
             }
             return Err(HttpClientError::ConnectionFailed(err.to_string()));
         }
 
         Err(HttpClientError::ConnectionFailed(format!(
-            "Failed to connect to {}:{}",
-            host, port
+            "Failed to connect to {host}:{port}"
         )))
     }
 
@@ -164,10 +161,10 @@ impl HttpClientConnection {
 
     /// Takes ownership of the underlying stream, consuming the connection.
     ///
-    /// WHY: Allows transferring stream ownership to other components (e.g., HttpResponseReader)
+    /// WHY: Allows transferring stream ownership to other components (e.g., `HttpResponseReader`)
     /// without lifetime issues.
     ///
-    /// WHAT: Consumes the connection and returns the owned RawStream.
+    /// WHAT: Consumes the connection and returns the owned `RawStream`.
     ///
     /// # Returns
     ///

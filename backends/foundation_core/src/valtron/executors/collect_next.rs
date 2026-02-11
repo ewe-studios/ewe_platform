@@ -106,7 +106,7 @@ where
                 },
                 TaskStatus::Ready(next) => {
                     self.list.push(TaskStatus::Ready(next));
-                    State::ReadyValue(entry.clone())
+                    State::ReadyValue(entry)
                 }
             },
             None => State::Done,

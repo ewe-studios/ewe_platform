@@ -20,10 +20,10 @@ use std::time::Duration;
 /// WHY: Reusing connections avoids TCP handshake overhead for multiple requests
 /// to the same server.
 ///
-/// WHAT: Placeholder stub that provides the minimal API needed by HttpRequestTask.
+/// WHAT: Placeholder stub that provides the minimal API needed by `HttpRequestTask`.
 /// Currently does not actually pool connections.
 ///
-/// HOW: Will be implemented with Arc<Mutex<HashMap<String, VecDeque<PooledStream>>>>
+/// HOW: Will be implemented with Arc<Mutex<`HashMap`<String, `VecDeque`<PooledStream>>>>
 /// for thread-safe connection management.
 ///
 /// TODO: Implement full pooling logic per PLAN.md Phase 1
@@ -37,13 +37,14 @@ pub struct ConnectionPool {
 impl ConnectionPool {
     /// Creates a new connection pool (stub).
     ///
-    /// TODO: Initialize internal HashMap and configure limits
+    /// TODO: Initialize internal `HashMap` and configure limits
     ///
     /// # Arguments
     ///
     /// * `max_per_host` - Maximum connections to pool per host
     /// * `max_idle_time` - Maximum time a connection can be idle before cleanup
     #[allow(dead_code)]
+    #[must_use] 
     pub fn new(max_per_host: usize, max_idle_time: Duration) -> Self {
         Self {
             max_per_host,
@@ -53,7 +54,7 @@ impl ConnectionPool {
 
     /// Attempts to checkout a pooled connection (stub).
     ///
-    /// TODO: Implement actual checkout logic - check HashMap, validate staleness
+    /// TODO: Implement actual checkout logic - check `HashMap`, validate staleness
     ///
     /// # Arguments
     ///
@@ -65,6 +66,7 @@ impl ConnectionPool {
     /// `Some(stream)` if a valid pooled connection exists, `None` otherwise.
     /// Currently always returns `None` (no pooling).
     #[allow(dead_code)]
+    #[must_use] 
     pub fn checkout(&self, _host: &str, _port: u16) -> Option<SharedByteBufferStream<RawStream>> {
         // TODO: Implement checkout logic
         None
@@ -72,7 +74,7 @@ impl ConnectionPool {
 
     /// Returns a connection to the pool (stub).
     ///
-    /// TODO: Implement checkin logic - add to HashMap, enforce limits, LRU eviction
+    /// TODO: Implement checkin logic - add to `HashMap`, enforce limits, LRU eviction
     ///
     /// # Arguments
     ///
@@ -86,7 +88,7 @@ impl ConnectionPool {
 
     /// Cleans up stale connections (stub).
     ///
-    /// TODO: Implement cleanup - iterate pools, remove entries older than max_idle_time
+    /// TODO: Implement cleanup - iterate pools, remove entries older than `max_idle_time`
     #[allow(dead_code)]
     pub fn cleanup_stale(&self) {
         // TODO: Implement cleanup logic

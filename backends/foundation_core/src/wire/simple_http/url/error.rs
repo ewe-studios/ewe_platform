@@ -31,7 +31,7 @@ pub struct InvalidUriParts {
 }
 
 impl InvalidUriParts {
-    /// Creates a new InvalidUriParts error.
+    /// Creates a new `InvalidUriParts` error.
     ///
     /// Note: This type is reserved for future URI builder functionality.
     /// Currently unused but kept for API completeness.

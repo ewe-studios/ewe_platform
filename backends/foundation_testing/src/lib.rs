@@ -1,7 +1,7 @@
 //! Reusable testing infrastructure for Foundation crates.
 //!
 //! This crate provides:
-//! - **HTTP test server**: Real HTTP server built on foundation_core's simple_http types
+//! - **HTTP test server**: Real HTTP server built on `foundation_core`'s `simple_http` types
 //! - **Stress test framework**: Configurable high-contention testing
 //! - **Common scenarios**: Producer-consumer, barriers, thread pools
 //! - **Performance metrics**: Latency, throughput, scalability measurements
