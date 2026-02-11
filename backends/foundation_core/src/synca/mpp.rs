@@ -194,20 +194,16 @@ impl<T> RecvIter<T> {
                 Ok(value) => return Ok(value),
                 Err(err) => match err {
                     PopError::Empty => {
-                        println!("Is empty");
                         if yield_now {
                             yield_now = false;
-                            println!("Yielding thread for later");
                             std::thread::yield_now();
                             continue;
                         }
 
-                        println!("Park thread for x time");
                         std::thread::park_timeout(block_ts);
                         yield_now = true;
                     }
                     PopError::Closed => {
-                        println!("Chan has closed");
                         return Err(ReceiverError::Closed(err));
                     }
                 },
@@ -381,10 +377,7 @@ impl<T> Sender<T> {
 
     pub fn send(&self, value: T) -> Result<(), SenderError<T>> {
         match self.chan.push(value) {
-            Ok(v) => {
-                println!("Safely sent values");
-                Ok(v)
-            }
+            Ok(v) => Ok(v),
             Err(err) => Err(SenderError::SendError(err)),
         }
     }

@@ -2310,12 +2310,6 @@ mod test_local_thread_executor {
 
         executor.run_until(|state| ProgressIndicator::NoWork == state);
 
-        println!(
-            "===Get all the items from the receiver: len={}, is_empty={}",
-            receiver.len(),
-            receiver.is_empty()
-        );
-
         let all_response: Vec<TaskStatus<usize, (), BoxedSendExecutionAction>> = receiver.collect();
 
         assert_eq!(
