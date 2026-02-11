@@ -502,7 +502,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     {
         // Start execution if not already started
         if matches!(self.task_state, Some(ClientRequestState::NotStarted) | None) {
-            self.start_execution()?
+            self.start_execution()?;
         }
 
         // Extract iterator from state
