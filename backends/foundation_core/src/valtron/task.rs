@@ -30,9 +30,10 @@ pub type BoxedPanicHandler = Box<PanicHandler>;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum SpawnType {
+    Sequenced,
     Lifted,
     LiftedWithParent,
-    Broadcast,
+    Broadcasted,
     Scheduled,
     None,
 }
@@ -44,24 +45,29 @@ pub enum SpawnType {
 pub struct SpawnInfo(SpawnType, Option<Entry>, Option<Entry>);
 
 impl SpawnInfo {
-    #[must_use] 
+    #[must_use]
     pub fn new(st: SpawnType, task: Option<Entry>, parent: Option<Entry>) -> Self {
         Self(st, task, parent)
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn spawn_type(&self) -> SpawnType {
         self.0
     }
 
-    #[must_use] 
-    pub fn task(&self) -> Option<Entry> {
+    #[must_use]
+    pub fn child(&self) -> Option<Entry> {
         self.1
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn parent(&self) -> Option<Entry> {
         self.2
+    }
+
+    #[must_use]
+    pub fn has_parent_and_child(&self) -> bool {
+        self.1.is_some() && self.2.is_some()
     }
 }
 
@@ -375,8 +381,8 @@ pub enum State {
     /// task executors, and provides the entry id for the task.
     ReadyValue(Entry),
 
-    /// Done indicates that the iterator has finished (when it returns None)
-    /// and no further execution is required for giving iterator.
+    /// Done indicates that the iterator has finished can also be when it returns None
+    /// but generally this means we should not in anyway process it further.
     Done,
 }
 
@@ -575,6 +581,7 @@ pub enum ExecutorError {
 
     #[from(ignore)]
     FailedToSendThreadActivity,
+    ParentMustBeSupplied,
 }
 
 impl std::error::Error for ExecutorError {}
@@ -590,6 +597,19 @@ impl core::fmt::Display for ExecutorError {
 /// of a thread which the user/caller create to manage execution within the
 /// thread.
 pub trait ExecutionEngine {
+    /// [`sequenced`] prioritizes an incoming task to the top of the local
+    /// execution queue as a sequential operation that links both this task
+    /// and parent into a execution loop where one execution of the task
+    /// must lead to the execution of the parent as well.
+    ///
+    /// If `parent` is provided then a dependency connection is made
+    /// with the relevant parent's identified by the `Entry` key.
+    fn sequenced(
+        &self,
+        task: BoxedExecutionIterator,
+        parent: Entry,
+    ) -> AnyResult<SpawnInfo, ExecutorError>;
+
     /// [`lift`] prioritizes an incoming task to the top of the local
     /// execution queue which pauses all processing task till that
     /// point till the new task is done or goes to sleep (dependent on
@@ -597,6 +617,10 @@ pub trait ExecutionEngine {
     ///
     /// If `parent` is provided then a dependency connection is made
     /// with the relevant parent's identified by the `Entry` key.
+    /// We expect that such connection will have the task executed
+    /// to completion before the parent is scheduled immediately
+    /// to process the result or continue its opration.
+    ///
     fn lift(
         &self,
         task: BoxedExecutionIterator,

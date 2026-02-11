@@ -1,6 +1,6 @@
 use crate::synca::Entry;
 use crate::valtron::{
-    BoxedExecutionEngine, BoxedExecutionIterator, ExecutionIterator, SpawnInfo, State, TaskIterator,
+    BoxedExecutionEngine, BoxedExecutionIterator, ExecutionIterator, SpawnInfo, State,
 };
 
 #[allow(dead_code)]
@@ -18,9 +18,9 @@ pub(crate) struct LinkedParentChildTaskInner {
 /// in the child will cause progress in the parent, returning the state of the child ignoring that
 /// of the parent until the child is exhausted, leaving only the parent to continue operating.
 ///
-pub struct DualSequeunceLiftedLinkedTask(LinkedParentChildTaskInner);
+pub struct DualSequeunceChildAndParentLinkedTask(LinkedParentChildTaskInner);
 
-impl DualSequeunceLiftedLinkedTask {
+impl DualSequeunceChildAndParentLinkedTask {
     #[must_use]
     pub fn new(
         info: SpawnInfo,
@@ -35,21 +35,23 @@ impl DualSequeunceLiftedLinkedTask {
     }
 }
 
-impl ExecutionIterator for DualSequeunceLiftedLinkedTask {
+impl ExecutionIterator for DualSequeunceChildAndParentLinkedTask {
     fn next(&mut self, parent_id: Entry, engine: BoxedExecutionEngine) -> Option<State> {
         if let Some(mut child) = self.0.child.take() {
             if let Some(child_state) = child.next(parent_id, engine.boxed_engine()) {
-                self.0.child = Some(child);
+                if child_state != State::Done {
+                    self.0.child = Some(child);
 
-                // get the parent and also perform next
-                if let Some(mut parent) = self.0.parent.take() {
-                    // if the parent outputs Some then reset the parent
-                    if parent.next(parent_id, engine).is_some() {
-                        self.0.parent = Some(parent);
+                    // get the parent and also perform next
+                    if let Some(mut parent) = self.0.parent.take() {
+                        // if the parent outputs Some then reset the parent
+                        if parent.next(parent_id, engine).is_some() {
+                            self.0.parent = Some(parent);
+                        }
                     }
-                }
 
-                return Some(child_state);
+                    return Some(child_state);
+                }
             }
         }
 
@@ -79,9 +81,9 @@ impl ExecutionIterator for DualSequeunceLiftedLinkedTask {
 /// This allows us created an interlinked sequential process we encapsulate this relationship
 /// into a new task type that will own this too and reduce coordination at a larger level.
 ///
-pub struct FinishLiftedBeforeLifterTask(LinkedParentChildTaskInner);
+pub struct FinishChildBeforeParentTask(LinkedParentChildTaskInner);
 
-impl FinishLiftedBeforeLifterTask {
+impl FinishChildBeforeParentTask {
     #[must_use]
     pub fn new(
         info: SpawnInfo,
@@ -96,12 +98,14 @@ impl FinishLiftedBeforeLifterTask {
     }
 }
 
-impl ExecutionIterator for FinishLiftedBeforeLifterTask {
+impl ExecutionIterator for FinishChildBeforeParentTask {
     fn next(&mut self, parent_id: Entry, engine: BoxedExecutionEngine) -> Option<State> {
         if let Some(mut child) = self.0.child.take() {
             if let Some(child_state) = child.next(parent_id, engine.boxed_engine()) {
-                self.0.child = Some(child);
-                return Some(child_state);
+                if child_state != State::Done {
+                    self.0.child = Some(child);
+                    return Some(child_state);
+                }
             }
         }
 

@@ -497,7 +497,7 @@ pub struct ThreadPoolRegistryInner {
 }
 
 impl ThreadPoolRegistryInner {
-    #[must_use] 
+    #[must_use]
     pub fn new() -> SharedThreadRegistry {
         SharedThreadRegistry::new(sync::Arc::new(RwLock::new(ThreadPoolRegistryInner {
             threads: EntryList::new(),

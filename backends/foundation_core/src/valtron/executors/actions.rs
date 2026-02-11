@@ -22,8 +22,8 @@ use crate::{
     synca::mpp::RecvIterator,
     valtron::{
         spawn_broadcaster, spawn_builder, BoxedExecutionEngine, ConsumingIter, ExecutionAction,
-        GenericResult, NoAction, ReadyConsumingIter, SpawnInfo, SpawnType, TaskIterator,
-        TaskStatus, TaskStatusMapper,
+        ExecutorError, GenericResult, NoAction, ReadyConsumingIter, SpawnInfo, SpawnType,
+        TaskIterator, TaskStatus, TaskStatusMapper,
     },
 };
 use std::{marker::PhantomData, sync::Arc};
@@ -347,18 +347,16 @@ where
 // ============================================================================
 
 pub enum InlineSendActionBehaviour {
+    /// [`Sequenced`] indicates we wish to sequenced the task with a [`ConsumingIter`].
+    Sequenced,
     /// [`Lift`] indicates we wish to lift the task with a [`ConsumingIter`].
     Lift,
+    /// [`LiftWithParent`] indicates we wish to lift the task with a [`ConsumingIter`].
+    LiftWithParent,
     /// [`Schedule`] indicates we wish to schedule the task with a [`ConsumingIter`].
     Schedule,
     /// [`Broadcast`] indicates we wish to broadcast the task with a [`ConsumingIter`].
     Broadcast,
-    /// [`Lift`] indicates we wish to lift the task with a [`ReadyConsumingIter`].
-    ReadyLift,
-    /// [`ReadySchedule`] indicates we wish to schedule the task with a [`ReadyConsumingIter`].
-    ReadySchedule,
-    /// [`Broadcast`] indicates we wish to broadcast the task with a [`ReadyConsumingIter`].
-    ReadyBroadcast,
 }
 
 #[allow(clippy::type_complexity)]
@@ -443,6 +441,30 @@ where
     ) -> GenericResult<SpawnInfo> {
         if let Some((behaviour, task, mappers, channel)) = self.0.take() {
             match behaviour {
+                InlineSendActionBehaviour::Sequenced => {
+                    tracing::debug!("Sequence action for InlineAction");
+
+                    let Some(parent) = key else {
+                        return Err(Box::new(ExecutorError::ParentMustBeSupplied));
+                    };
+
+                    let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
+                    executor
+                        .sequenced(consuming_iter.into(), parent)
+                        .map_err(Into::into)
+                }
+                InlineSendActionBehaviour::LiftWithParent => {
+                    tracing::debug!("Lift action for InlineAction");
+
+                    let Some(parent) = key else {
+                        return Err(Box::new(ExecutorError::ParentMustBeSupplied));
+                    };
+
+                    let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
+                    executor
+                        .lift(consuming_iter.into(), Some(parent))
+                        .map_err(Into::into)
+                }
                 InlineSendActionBehaviour::Lift => {
                     tracing::debug!("Lift action for InlineSendAction");
                     let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
@@ -462,25 +484,6 @@ where
                         .broadcast(consuming_iter.into())
                         .map_err(Into::into)
                 }
-                InlineSendActionBehaviour::ReadyLift => {
-                    tracing::debug!("ReadyLift action for InlineSendAction");
-                    let consuming_iter = ReadyConsumingIter::new(task, mappers, channel.clone());
-                    executor
-                        .lift(consuming_iter.into(), key)
-                        .map_err(Into::into)
-                }
-                InlineSendActionBehaviour::ReadySchedule => {
-                    tracing::debug!("ReadySchedule action for InlineSendAction");
-                    let consuming_iter = ReadyConsumingIter::new(task, mappers, channel.clone());
-                    executor.schedule(consuming_iter.into()).map_err(Into::into)
-                }
-                InlineSendActionBehaviour::ReadyBroadcast => {
-                    tracing::debug!("ReadyBroadcast action for InlineSendAction");
-                    let consuming_iter = ReadyConsumingIter::new(task, mappers, channel.clone());
-                    executor
-                        .broadcast(consuming_iter.into())
-                        .map_err(Into::into)
-                }
             }
         } else {
             Err("Action has being used up".into())
@@ -489,14 +492,14 @@ where
 }
 
 pub enum InlineActionBehaviour {
+    /// [`Sequenced`] indicates we wish to sequenced the task with a [`ConsumingIter`].
+    Sequenced,
     /// [`Lift`] indicates we wish to lift the task with a [`ConsumingIter`].
     Lift,
+    /// [`LiftWithParent`] indicates we wish to lift the task with a [`ConsumingIter`].
+    LiftWithParent,
     /// [`Schedule`] indicates we wish to schedule the task with a [`ConsumingIter`].
     Schedule,
-    /// [`Lift indicates we wish to lift the task with a [`ReadyConsumingIter`].
-    ReadyLift,
-    /// [`ReadySchedule`] indicates we wish to schedule the task with a [`ReadyConsumingIter`].
-    ReadySchedule,
 }
 
 #[allow(clippy::type_complexity)]
@@ -581,28 +584,40 @@ where
     ) -> GenericResult<SpawnInfo> {
         if let Some((behaviour, task, mappers, channel)) = self.0.take() {
             match behaviour {
+                InlineActionBehaviour::Sequenced => {
+                    tracing::debug!("Sequence action for InlineAction");
+
+                    let Some(parent) = key else {
+                        return Err(Box::new(ExecutorError::ParentMustBeSupplied));
+                    };
+
+                    let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
+                    executor
+                        .sequenced(consuming_iter.into(), parent)
+                        .map_err(Into::into)
+                }
+                InlineActionBehaviour::LiftWithParent => {
+                    tracing::debug!("Lift action for InlineAction");
+
+                    let Some(parent) = key else {
+                        return Err(Box::new(ExecutorError::ParentMustBeSupplied));
+                    };
+
+                    let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
+                    executor
+                        .lift(consuming_iter.into(), Some(parent))
+                        .map_err(Into::into)
+                }
                 InlineActionBehaviour::Lift => {
                     tracing::debug!("Lift action for InlineAction");
                     let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
                     executor
-                        .lift(consuming_iter.into(), key)
+                        .lift(consuming_iter.into(), None)
                         .map_err(Into::into)
                 }
                 InlineActionBehaviour::Schedule => {
                     tracing::debug!("Schedule action for InlineAction");
                     let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
-                    executor.schedule(consuming_iter.into()).map_err(Into::into)
-                }
-                InlineActionBehaviour::ReadyLift => {
-                    tracing::debug!("ReadyLift action for InlineAction");
-                    let consuming_iter = ReadyConsumingIter::new(task, mappers, channel.clone());
-                    executor
-                        .lift(consuming_iter.into(), key)
-                        .map_err(Into::into)
-                }
-                InlineActionBehaviour::ReadySchedule => {
-                    tracing::debug!("ReadySchedule action for InlineAction");
-                    let consuming_iter = ReadyConsumingIter::new(task, mappers, channel.clone());
                     executor.schedule(consuming_iter.into()).map_err(Into::into)
                 }
             }

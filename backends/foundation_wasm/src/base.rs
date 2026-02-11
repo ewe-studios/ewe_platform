@@ -432,8 +432,7 @@ impl ReturnTypeHints {
         match self {
             Self::None => None,
             Self::Multi(v) => Some(v.clone()),
-            Self::One(v) => Some(alloc::vec![v.clone()]),
-            Self::List(v) => Some(alloc::vec![v.clone()]),
+            Self::One(v) | Self::List(v) => Some(alloc::vec![v.clone()]),
         }
     }
 }
