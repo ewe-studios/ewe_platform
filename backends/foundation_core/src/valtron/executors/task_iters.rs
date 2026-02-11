@@ -104,7 +104,11 @@ where
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
-        self.alive?;
+        if self.alive.is_none() {
+            tracing::debug!("Returning none going forward for consumer: {entry:?}");
+
+            return None;
+        }
 
         let task_response = match std::panic::catch_unwind(|| self.task.lock().unwrap().next()) {
             Ok(inner) => inner,
@@ -305,7 +309,11 @@ where
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
         tracing::debug!("Are ConsumingIter alive?: {:?} -> {:?}", &self.alive, entry);
 
-        self.alive?;
+        if self.alive.is_none() {
+            tracing::debug!("Returning none going forward for consumer: {entry:?}");
+
+            return None;
+        }
 
         tracing::debug!("Get next value from consuming iter: {entry:?}");
         let task_response = match std::panic::catch_unwind(|| self.task.lock().unwrap().next()) {
@@ -335,18 +343,12 @@ where
             return Some(State::Done);
         }
 
-        tracing::debug!("Unwrap the value: {entry:?}");
-
         let inner = task_response.unwrap();
         let mut previous_response = Some(inner);
         for mapper in &mut self.local_mappers {
             previous_response = mapper.map(previous_response);
         }
 
-        tracing::debug!(
-            "Mapping operation has value?: {:?}",
-            previous_response.is_some()
-        );
         if previous_response.is_none() {
             // close the queue
             self.channel.close();
@@ -375,12 +377,14 @@ where
             TaskStatus::Delayed(inner) => {
                 tracing::debug!("Got  delayed: {entry:?}");
                 if let Ok(()) = self.channel.push(TaskStatus::Delayed(inner)) {
+                    tracing::debug!("Written TaskStatus::Delayed into receiving channel");
                     State::Pending(Some(inner))
                 } else {
                     tracing::error!("Failed to deliver status to channel, closing task",);
 
                     // close the queue
                     self.channel.close();
+                    tracing::debug!("Closed task channel");
 
                     // set alive signal to empty.
                     self.alive.take();
@@ -392,12 +396,14 @@ where
             TaskStatus::Init => {
                 tracing::debug!("Got init: {entry:?}");
                 if let Ok(()) = self.channel.push(TaskStatus::Init) {
+                    tracing::debug!("Written TaskStatus::Init into receiving channel");
                     State::Pending(None)
                 } else {
                     tracing::error!("Failed to deliver status to channel, closing task",);
 
                     // close the queue
                     self.channel.close();
+                    tracing::debug!("Closed task channel");
 
                     // set alive signal to empty.
                     self.alive.take();
@@ -409,12 +415,14 @@ where
             TaskStatus::Pending(inner) => {
                 tracing::debug!("Got pending value");
                 if let Ok(()) = self.channel.push(TaskStatus::Pending(inner)) {
+                    tracing::debug!("Written TaskStatus::Pending into receiving channel");
                     State::Pending(None)
                 } else {
                     tracing::error!("Failed to deliver status to channel, closing task",);
 
                     // close the queue
                     self.channel.close();
+                    tracing::debug!("Closed task channel");
 
                     // set alive signal to empty.
                     self.alive.take();
@@ -425,13 +433,22 @@ where
             }
             TaskStatus::Ready(inner) => {
                 tracing::debug!("Got ready value");
-                if let Ok(()) = self.channel.push(TaskStatus::Ready(inner)) {
+                let send_result = self.channel.push(TaskStatus::Ready(inner));
+                println!(
+                    "Sent result into channel: ok={:?}, err={:?} -> total items: {}",
+                    send_result.is_ok(),
+                    send_result.is_err(),
+                    self.channel.len(),
+                );
+                if let Ok(()) = send_result {
+                    tracing::debug!("Written TaskStatus::Ready into receiving channel");
                     State::ReadyValue(entry)
                 } else {
                     tracing::error!("Failed to deliver status to channel, closing task");
 
                     // close the queue
                     self.channel.close();
+                    tracing::debug!("Closed task channel");
 
                     // set alive signal to empty.
                     self.alive.take();

@@ -359,7 +359,7 @@ mod single_threaded_tests {
 
         let iter = spawn()
             .with_task(counter)
-            .stream_iter(std::time::Duration::from_nanos(50))
+            .scheduled_stream_iter(std::time::Duration::from_nanos(50))
             .expect("should deliver task");
 
         run_until_complete();

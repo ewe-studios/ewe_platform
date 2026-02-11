@@ -157,6 +157,21 @@ impl<T> RecvIter<T> {
         RecvIterator::new(self, dur)
     }
 
+    #[must_use]
+    pub fn is_closed(&self) -> bool {
+        self.chan.is_closed()
+    }
+
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.chan.is_empty()
+    }
+
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.chan.len()
+    }
+
     /// [`recv`] returns a Result of the value from the underlying channel if
     /// there is a value or if empty or closed.
     pub fn recv(&self) -> Result<T, ReceiverError> {
@@ -179,17 +194,22 @@ impl<T> RecvIter<T> {
                 Ok(value) => return Ok(value),
                 Err(err) => match err {
                     PopError::Empty => {
+                        println!("Is empty");
                         if yield_now {
                             yield_now = false;
+                            println!("Yielding thread for later");
                             std::thread::yield_now();
                             continue;
                         }
 
+                        println!("Park thread for x time");
                         std::thread::park_timeout(block_ts);
                         yield_now = true;
-                        continue;
                     }
-                    PopError::Closed => return Err(ReceiverError::Closed(err)),
+                    PopError::Closed => {
+                        println!("Chan has closed");
+                        return Err(ReceiverError::Closed(err));
+                    }
                 },
             };
         }
@@ -228,6 +248,21 @@ impl<T> RecvIterator<T> {
     #[must_use]
     pub fn new(item: RecvIter<T>, dur: time::Duration) -> Self {
         Self(item, dur)
+    }
+
+    #[must_use]
+    pub fn is_closed(&self) -> bool {
+        self.0.is_closed()
+    }
+
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.0.len()
     }
 }
 
@@ -346,7 +381,10 @@ impl<T> Sender<T> {
 
     pub fn send(&self, value: T) -> Result<(), SenderError<T>> {
         match self.chan.push(value) {
-            Ok(v) => Ok(v),
+            Ok(v) => {
+                println!("Safely sent values");
+                Ok(v)
+            }
             Err(err) => Err(SenderError::SendError(err)),
         }
     }
