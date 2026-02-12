@@ -10,7 +10,6 @@ mod connection;
 mod control;
 mod dns;
 mod errors;
-mod executor;
 mod intro;
 mod pool;
 mod request;

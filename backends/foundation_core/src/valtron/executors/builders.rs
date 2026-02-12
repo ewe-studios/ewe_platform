@@ -142,6 +142,7 @@ impl<
     ///
     /// Following our naming: [`schedule_iter`] calls the `schedule` method to deliver
     /// a task to the bottom of the thread-local execution queue.
+    #[must_use]
     pub fn schedule_iter(
         self,
         wait_cycle: time::Duration,
@@ -164,6 +165,7 @@ impl<
     }
 
     /// [`schedule`] delivers a task to the bottom of the thread-local execution queue.
+    #[must_use]
     pub fn schedule(self) -> AnyResult<SpawnInfo, ExecutorError> {
         match self.task {
             Some(task) => match (self.resolver, self.mappers) {
@@ -194,6 +196,7 @@ impl<
     ///
     /// Following our naming: [`lift_iter`] calls the `lift` method to deliver
     /// a task to the top of the thread-local execution queue.
+    #[must_use]
     pub fn lift_iter(
         self,
         wait_cycle: time::Duration,
@@ -219,6 +222,7 @@ impl<
     /// [`stream_lift_iter`] similar to [`lift_iter`] returns a [`StreamRecvIterator`]
     /// which returns a simplified representatiopn without the complexity of the [`Action`]
     /// type providing easier usage within logic blocks.
+    #[must_use]
     pub fn stream_lift_iter(
         self,
         wait_cycle: time::Duration,
@@ -242,6 +246,7 @@ impl<
     }
 
     /// [`lift`] delivers a task to the top of the thread-local execution queue.
+    #[must_use]
     pub fn lift(self) -> AnyResult<SpawnInfo, ExecutorError> {
         let parent = self.parent;
         match self.task {
@@ -266,6 +271,7 @@ impl<
 
     /// [`sequenced_iter`] creates a iterator from a sequenced task allowing you
     /// to use that to get the result.
+    #[must_use]
     pub fn sequenced_iter(
         self,
         wait_cycle: time::Duration,
@@ -296,6 +302,7 @@ impl<
     /// Returns:
     ///
     ///     The [`SpawnInfo`] for the result of the operation else an error.
+    #[must_use]
     pub fn stream_sequenced_iter(
         self,
         wait_cycle: time::Duration,
@@ -327,6 +334,7 @@ impl<
     /// Returns:
     ///
     ///     The [`SpawnInfo`] for the result of the operation else an error.
+    #[must_use]
     pub fn sequenced(self) -> AnyResult<SpawnInfo, ExecutorError> {
         let Some(parent) = self.parent else {
             return Err(ExecutorError::ParentMustBeSupplied);
@@ -363,6 +371,7 @@ impl<
     > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, Resolver, Task>
 {
     /// [`broadcast`] delivers a task to the bottom of the global execution queue.
+    #[must_use]
     pub fn broadcast(self) -> AnyResult<SpawnInfo, ExecutorError> {
         let task: AnyResult<BoxedSendExecutionIterator, ExecutorError> = match self.task {
             Some(task) => match (self.resolver, self.mappers) {
@@ -382,6 +391,7 @@ impl<
     /// [`stream_broadcast_iter`] similar to [`broasdcast_iter`] returns a [`StreamRecvIterator`]
     /// which returns a simplified representatiopn without the complexity of the [`Action`]
     /// type providing easier usage within logic blocks.
+    #[must_use]
     pub fn stream_broadcast_iter(
         self,
         wait_cycle: time::Duration,
@@ -412,6 +422,7 @@ impl<
     ///
     /// Following our naming: [`broadcast_iter`] calls the `broadcast` method to deliver
     /// a task to the bottom of the global execution queue.
+    #[must_use]
     pub fn broadcast_iter(
         self,
         wait_cycle: time::Duration,
@@ -445,6 +456,7 @@ impl<
 where
     F: FnMut(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + 'static,
 {
+    #[must_use]
     pub fn on_next_mut(self, action: F) -> Self
     where
         F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + 'static,
@@ -464,6 +476,7 @@ impl<
 where
     F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + 'static,
 {
+    #[must_use]
     pub fn on_next(self, action: F) -> Self {
         self.with_resolver(FnReady::new(action))
     }
@@ -480,6 +493,7 @@ impl<
 where
     F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
 {
+    #[must_use]
     pub fn on_send_next(self, action: F) -> Self {
         self.with_resolver(FnReady::new(action))
     }
@@ -496,6 +510,7 @@ impl<
 where
     F: FnMut(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
 {
+    #[must_use]
     pub fn on_send_next_mut(self, action: F) -> Self
     where
         F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + 'static,

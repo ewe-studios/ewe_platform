@@ -60,7 +60,7 @@ impl Timeable for Sleepable {
     fn remaining_duration(&self) -> Option<time::Duration> {
         match self {
             Sleepable::Timable(inner) => inner.remaining(),
-            Sleepable::Atomic(inner, _) => None,
+            Sleepable::Atomic(_, _) => None,
         }
     }
 }

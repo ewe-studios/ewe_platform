@@ -14,6 +14,7 @@
 //!
 //! PHASE 1 SCOPE: HTTP-only (no HTTPS), blocking connection, basic GET requests.
 
+use crate::extensions::result_ext::BoxedError;
 use crate::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
 use crate::valtron::{NoSpawner, TaskIterator, TaskStatus};
@@ -21,7 +22,8 @@ use crate::wire::simple_http::client::{
     DnsResolver, HttpClientAction, HttpClientConnection, PreparedRequest,
 };
 use crate::wire::simple_http::{
-    ClientRequestErrors, Http11, HttpResponseIntro, RenderHttp, SimpleHeader,
+    ClientRequestErrors, Http11, HttpReaderError, HttpResponseIntro, HttpResponseReader,
+    RenderHttp, SimpleHeader, SimpleHeaders, SimpleHttpBody,
 };
 use std::io::Write;
 use std::sync::Arc;
@@ -183,7 +185,7 @@ where
             }
             GetHttpStreamState::Connecting => {
                 // Phase 1: Blocking connection and send request immediately
-                let request = if let Some(req) = self.0.request.take() { req } else {
+                let Some(request) = self.0.request.take() else {
                     tracing::error!("Request disappeared during connecting");
                     self.0.state = GetHttpStreamState::Done;
                     return None;
@@ -281,64 +283,97 @@ where
     }
 }
 
-pub struct GetRequestInner {
-    stream: Option<SharedByteBufferStream<RawStream>>,
-    /// intro options  for a http response
-    intro: Option<HttpResponseIntro>,
-    /// headers retrieved from the stream.
-    headers: Option<SimpleHeader>,
-}
+pub enum RequestIntro {
+    Success {
+        stream: HttpResponseReader<SimpleHttpBody, RawStream>,
+        /// intro options  for a http response
+        intro: HttpResponseIntro,
+        /// headers retrieved from the stream.
+        headers: SimpleHeaders,
+    },
 
-pub struct RequestIntro {
-    stream: SharedByteBufferStream<RawStream>,
-    /// intro options  for a http response
-    intro: HttpResponseIntro,
-    /// headers retrieved from the stream.
-    headers: SimpleHeader,
-}
-
-impl From<GetRequestInner> for RequestIntro {
-    fn from(value: GetRequestInner) -> Self {
-        Self {
-            stream: value.stream.expect("request stream is provided"),
-            intro: value.intro.expect("request intro is provided"),
-            headers: value.headers.expect("request headers is provided"),
-        }
-    }
+    Failed(HttpReaderError),
 }
 
 pub enum GetRequestIntroState {
-    Init(GetRequestInner),
-    GetStream(GetRequestInner),
-    GetIntro(GetRequestInner),
+    Init(Option<SharedByteBufferStream<RawStream>>),
+    WithIntro(
+        Option<(
+            HttpResponseReader<SimpleHttpBody, RawStream>,
+            HttpResponseIntro,
+        )>,
+    ),
 }
 
-pub enum GetRequestIntroStates {
-    Init,
-    GetSStream,
-    GetIntro,
-}
-
-pub struct GetRequestIntroTask(GetRequestIntroState);
+pub struct GetRequestIntroTask(Option<GetRequestIntroState>);
 
 impl GetRequestIntroTask {
-    #[must_use] 
+    #[must_use]
     pub fn new(stream: SharedByteBufferStream<RawStream>) -> Self {
-        Self(GetRequestIntroState::Init(GetRequestInner {
-            stream: Some(stream),
-            headers: None,
-            intro: None,
-        }))
+        Self(Some(GetRequestIntroState::Init(Some(stream))))
     }
 }
 
 impl TaskIterator for GetRequestIntroTask {
-    type Pending = GetRequestIntroStates;
+    type Pending = ();
     type Ready = RequestIntro;
     type Spawner = NoSpawner;
 
     fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        todo!()
+        match self.0.take()? {
+            GetRequestIntroState::Init(inner) => match inner {
+                Some(stream) => {
+                    let mut reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
+                        stream,
+                        SimpleHttpBody,
+                    );
+
+                    let intro = match reader.next()? {
+                        Ok(inner) => inner,
+                        Err(err) => return Some(TaskStatus::Ready(RequestIntro::Failed(err))),
+                    };
+
+                    let crate::wire::simple_http::IncomingResponseParts::Intro(status, proto, text) =
+                        intro
+                    else {
+                        return Some(TaskStatus::Ready(RequestIntro::Failed(
+                            HttpReaderError::ReadFailed,
+                        )));
+                    };
+
+                    let _ = self.0.replace(GetRequestIntroState::WithIntro(Some((
+                        reader,
+                        (status, proto, text),
+                    ))));
+
+                    return Some(TaskStatus::Pending(()));
+                }
+                None => None,
+            },
+            GetRequestIntroState::WithIntro(inner) => match inner {
+                Some((mut reader, intro)) => {
+                    let header_response = match reader.next()? {
+                        Ok(inner) => inner,
+                        Err(err) => return Some(TaskStatus::Ready(RequestIntro::Failed(err))),
+                    };
+
+                    let crate::wire::simple_http::IncomingResponseParts::Headers(headers) =
+                        header_response
+                    else {
+                        return Some(TaskStatus::Ready(RequestIntro::Failed(
+                            HttpReaderError::ReadFailed,
+                        )));
+                    };
+
+                    return Some(TaskStatus::Ready(RequestIntro::Success {
+                        stream: reader,
+                        intro,
+                        headers,
+                    }));
+                }
+                None => None,
+            },
+        }
     }
 }
 
@@ -346,7 +381,7 @@ pub enum HttpRequestTaskState<R>
 where
     R: DnsResolver + Send + 'static,
 {
-    Init(GetHttpRequestStreamInner<R>),
+    Init(Box<GetHttpRequestStreamInner<R>>),
     GetStream(SharedByteBufferStream<RawStream>),
     Done,
 }
@@ -370,20 +405,25 @@ where
         max_redirects: u8,
         pool: Option<Arc<super::pool::ConnectionPool>>,
     ) -> Self {
-        Self(HttpRequestTaskState::Init(GetHttpRequestStreamInner::new(
-            request,
-            resolver,
-            max_redirects,
-            pool,
+        Self(HttpRequestTaskState::Init(Box::new(
+            GetHttpRequestStreamInner::new(request, resolver, max_redirects, pool),
         )))
     }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd)]
+pub enum HttpRequestPending {
+    Connect,
+    GetIntro,
+    GetHeaders,
+    Done,
 }
 
 impl<R> TaskIterator for HttpRequestTask<R>
 where
     R: DnsResolver + Send + 'static,
 {
-    type Pending = GetRequestIntroStates;
+    type Pending = HttpRequestPending;
     type Ready = RequestIntro;
     type Spawner = NoSpawner;
 
