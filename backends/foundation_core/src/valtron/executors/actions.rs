@@ -339,8 +339,10 @@ where
 // to acces the resources.
 // ============================================================================
 
+#[derive(Clone, Copy, Default)]
 pub enum InlineSendActionBehaviour {
     /// [`Sequenced`] indicates we wish to sequenced the task with a [`ConsumingIter`].
+    #[default]
     Sequenced,
     /// [`Lift`] indicates we wish to lift the task with a [`ConsumingIter`].
     Lift,
@@ -484,8 +486,10 @@ where
     }
 }
 
+#[derive(Clone, Copy, Default)]
 pub enum InlineActionBehaviour {
     /// [`Sequenced`] indicates we wish to sequenced the task with a [`ConsumingIter`].
+    #[default]
     Sequenced,
     /// [`Lift`] indicates we wish to lift the task with a [`ConsumingIter`].
     Lift,

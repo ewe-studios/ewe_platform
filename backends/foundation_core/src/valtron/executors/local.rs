@@ -2171,7 +2171,7 @@ mod test_local_thread_executor {
         Done,
     }
 
-    struct ListItems(Option<ListItemInner>);
+    struct ListItems(InlineSendActionBehaviour, Option<ListItemInner>);
 
     impl TaskIterator for ListItems {
         type Ready = usize;
@@ -2179,33 +2179,34 @@ mod test_local_thread_executor {
         type Spawner = BoxedSendExecutionAction;
 
         fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-            match self.0.take() {
+            match self.1.take() {
                 Some(val) => match val {
                     ListItemInner::List(mut items) => {
                         if let Some(inner) = items.take() {
                             let task = WrapTask::new(inner.into_iter());
 
                             let (inline_action, receiver) = InlineSendAction::boxed_mapper(
-                                InlineSendActionBehaviour::Lift,
+                                self.0,
                                 Vec::new(),
                                 task,
                                 std::time::Duration::from_millis(100),
                             );
 
-                            self.0 = Some(ListItemInner::Response(receiver));
+                            self.1 = Some(ListItemInner::Response(receiver));
 
                             return Some(TaskStatus::Spawn(
                                 inline_action.into_box_send_execution_action(),
                             ));
                         }
 
-                        self.0 = Some(ListItemInner::Done);
+                        self.1 = Some(ListItemInner::Done);
                         None
                     }
                     ListItemInner::Response(mut iter) => {
                         let val_next = iter.next();
+                        tracing::debug!("Get the next value from the iterator: {:?}", val_next);
 
-                        self.0 = Some(ListItemInner::Response(iter));
+                        self.1 = Some(ListItemInner::Response(iter));
 
                         match val_next {
                             Some(inner) => match inner {
@@ -2305,7 +2306,98 @@ mod test_local_thread_executor {
         );
 
         let receiver = panic_if_failed!(send_any_task(executor.boxed_engine())
-            .with_task(ListItems(Some(ListItemInner::List(Some(vec![1, 2, 3])))))
+            .with_task(ListItems(
+                InlineSendActionBehaviour::Lift,
+                Some(ListItemInner::List(Some(vec![1, 2, 3])))
+            ))
+            .schedule_iter(std::time::Duration::from_millis(100)));
+
+        executor.run_until(|state| ProgressIndicator::NoWork == state);
+
+        let all_response: Vec<TaskStatus<usize, (), BoxedSendExecutionAction>> = receiver.collect();
+
+        assert_eq!(
+            all_response,
+            vec![
+                TaskStatus::Ready(1),
+                TaskStatus::Ready(2),
+                TaskStatus::Ready(3),
+            ]
+        );
+    }
+
+    #[test]
+    #[traced_test]
+    fn test_task_line_send_action_for_parent_lifted() {
+        let seed = rand::rng().next_u64();
+        let kill_signal = Arc::new(OnSignal::new());
+
+        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+            Arc::new(ConcurrentQueue::bounded(10));
+
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            global.clone(),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            NoYielder,
+            Some(kill_signal.clone()),
+            None,
+        );
+
+        let receiver = panic_if_failed!(send_any_task(executor.boxed_engine())
+            .with_task(ListItems(
+                InlineSendActionBehaviour::LiftWithParent,
+                Some(ListItemInner::List(Some(vec![1, 2, 3])))
+            ))
+            .schedule_iter(std::time::Duration::from_millis(100)));
+
+        executor.run_until(|state| ProgressIndicator::NoWork == state);
+
+        let all_response: Vec<TaskStatus<usize, (), BoxedSendExecutionAction>> = receiver.collect();
+
+        assert_eq!(
+            all_response,
+            vec![
+                TaskStatus::Ready(1),
+                TaskStatus::Ready(2),
+                TaskStatus::Ready(3),
+            ]
+        );
+    }
+
+    #[test]
+    #[traced_test]
+    fn test_task_line_send_action_for_sequenced() {
+        let seed = rand::rng().next_u64();
+        let kill_signal = Arc::new(OnSignal::new());
+
+        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+            Arc::new(ConcurrentQueue::bounded(10));
+
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            global.clone(),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            NoYielder,
+            Some(kill_signal.clone()),
+            None,
+        );
+
+        let receiver = panic_if_failed!(send_any_task(executor.boxed_engine())
+            .with_task(ListItems(
+                InlineSendActionBehaviour::Sequenced,
+                Some(ListItemInner::List(Some(vec![1, 2, 3])))
+            ))
             .schedule_iter(std::time::Duration::from_millis(100)));
 
         executor.run_until(|state| ProgressIndicator::NoWork == state);
@@ -2878,18 +2970,13 @@ mod test_local_thread_executor {
         );
     }
 
-    #[derive(Clone)]
+    #[derive(Clone, Default)]
     enum DaemonSpawner {
+        #[default]
         NoSpawning,
         InThread,
         TopOfThread,
         OutofThread,
-    }
-
-    impl Default for DaemonSpawner {
-        fn default() -> Self {
-            Self::NoSpawning
-        }
     }
 
     impl ExecutionAction for DaemonSpawner {
