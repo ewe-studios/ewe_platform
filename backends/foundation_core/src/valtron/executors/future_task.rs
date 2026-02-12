@@ -445,7 +445,7 @@ where
 
     use super::unified;
     let task = FutureTask::new(future);
-    let values_iter = ReadyValues::new(unified::execute(task)?);
+    let values_iter = ReadyValues::new(unified::execute(task, None)?);
     let values: Vec<F::Output> = values_iter
         .filter_map(super::super::task::ReadyValue::inner)
         .collect();

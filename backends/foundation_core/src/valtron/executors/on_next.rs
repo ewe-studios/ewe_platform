@@ -180,8 +180,7 @@ where
                 match previous_response {
                     Some(value) => match value {
                         TaskStatus::Delayed(dur) => State::Pending(Some(dur)),
-                        TaskStatus::Pending(_) => State::Pending(None),
-                        TaskStatus::Init => State::Pending(None),
+                        TaskStatus::Init | TaskStatus::Pending(_) => State::Pending(None),
                         TaskStatus::Spawn(mut action) => {
                             match action.apply(Some(entry), executor) {
                                 Ok(info) => State::SpawnFinished(info),

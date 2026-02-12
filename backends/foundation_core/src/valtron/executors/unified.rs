@@ -12,10 +12,9 @@
 
 use crate::valtron::{single, ExecutionAction, ProgressIndicator, TaskIterator, TaskStatus};
 
-#[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
-use super::multi;
-
 use crate::{synca::mpp::RecvIterator, valtron::GenericResult};
+
+pub const DEFAULT_WAIT_CYCLE: std::time::Duration = std::time::Duration::from_millis(10);
 
 /// [`initialize_pool`] provides a unified method to initialize the underlying
 /// thread pool for both the single and multi-threaded instances.
@@ -29,6 +28,7 @@ pub fn initialize_pool(seed_for_rng: u64, _user_thread_num: Option<usize>) {
     {
         #[cfg(feature = "multi")]
         {
+            use crate::valtron::multi;
             multi::initialize_pool(seed_for_rng, _user_thread_num);
         }
 
@@ -121,6 +121,7 @@ pub fn run_once() {
 #[allow(clippy::type_complexity)]
 pub fn execute<T>(
     task: T,
+    wait_cycle: Option<std::time::Duration>,
 ) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
 where
     T: TaskIterator + Send + 'static,
@@ -130,19 +131,19 @@ where
 {
     #[cfg(target_arch = "wasm32")]
     {
-        execute_single(task)
+        execute_single(task, wait_cycle)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
     {
         #[cfg(feature = "multi")]
         {
-            execute_multi(task)
+            execute_multi(task, wait_cycle)
         }
 
         #[cfg(not(feature = "multi"))]
         {
-            execute_single(task)
+            execute_single(task, wait_cycle)
         }
     }
 }
@@ -155,18 +156,17 @@ where
 #[allow(dead_code)]
 fn execute_single_complete<T>(
     task: T,
+    wait_cycle: Option<std::time::Duration>,
 ) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
     T::Spawner: ExecutionAction + Send + 'static,
 {
-    use std::time::Duration;
-
     // Schedule task and get iterator
     let iter = single::spawn()
         .with_task(task)
-        .schedule_iter(Duration::from_nanos(5))?;
+        .schedule_iter(wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE))?;
 
     // Run executor until complete
     single::run_until_complete();
@@ -181,18 +181,17 @@ where
 #[allow(clippy::type_complexity)]
 fn execute_single<T>(
     task: T,
+    wait_cycle: Option<std::time::Duration>,
 ) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
     T::Spawner: ExecutionAction + Send + 'static,
 {
-    use std::time::Duration;
-
     // Schedule task and get iterator
     let iter = single::spawn()
         .with_task(task)
-        .schedule_iter(Duration::from_nanos(5))?;
+        .schedule_iter(wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE))?;
 
     Ok(iter)
 }
@@ -204,6 +203,7 @@ where
 #[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
 fn execute_multi<T>(
     task: T,
+    wait_cycle: Option<std::time::Duration>,
 ) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
 where
     T: TaskIterator + Send + 'static,
@@ -211,12 +211,12 @@ where
     T::Pending: Send + 'static,
     T::Spawner: ExecutionAction + Send + 'static,
 {
-    use std::time::Duration;
+    use crate::valtron::multi;
 
     // Schedule task and get iterator
     let iter = multi::spawn()
         .with_task(task)
-        .schedule_iter(Duration::from_nanos(1))?;
+        .schedule_iter(wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE))?;
 
     Ok(iter)
 }
@@ -251,7 +251,7 @@ mod tests {
         // Actual execution would require a WASM runtime
         initialize_pool(20, None);
 
-        let values_iter = ReadyValues::new(execute(task).expect("should create task"));
+        let values_iter = ReadyValues::new(execute(task, None).expect("should create task"));
         let values: Vec<i32> = values_iter.flat_map(|item| item.inner()).collect();
         assert_eq!(values, vec![42]);
     }
@@ -282,7 +282,7 @@ mod tests {
         // in the main function but we do this here since its a test
         initialize_pool(20, None);
 
-        let mut values_iter = ReadyValues::new(execute(task).expect("should create task"));
+        let mut values_iter = ReadyValues::new(execute(task, None).expect("should create task"));
 
         let _ = single::run_once();
 
@@ -309,7 +309,7 @@ mod tests {
         // in the main function but we do this here since its a test
         initialize_pool(20, None);
 
-        let values_iter = ReadyValues::new(execute(task).expect("should create task"));
+        let values_iter = ReadyValues::new(execute(task, None).expect("should create task"));
 
         single::run_until_complete();
 
@@ -329,7 +329,7 @@ mod tests {
         initialize_pool(20, None);
 
         let task = SimpleTask { value: Some(42) };
-        let values_iter = ReadyValues::new(execute(task).expect("should create task"));
+        let values_iter = ReadyValues::new(execute(task, None).expect("should create task"));
         let values: Vec<i32> = values_iter
             .flat_map(|item: crate::valtron::ReadyValue<_>| item.inner())
             .collect();

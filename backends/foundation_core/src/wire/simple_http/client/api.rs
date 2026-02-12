@@ -15,16 +15,13 @@
 use crate::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
 use crate::synca::mpp::RecvIterator;
-use crate::valtron::TaskStatus;
+use crate::valtron::{self, TaskStatus};
 use crate::wire::simple_http::client::{
-    executor::execute_task, ClientConfig, ClientRequestBuilder, ConnectionPool, DnsResolver,
-    GetRequestIntroStates, HttpClientAction, HttpClientError, HttpRequestTask, PreparedRequest,
-    RequestControl, RequestIntro, ResponseIntro,
+    ClientConfig, ClientRequestBuilder, ConnectionPool, DnsResolver, GetRequestIntroStates,
+    HttpClientAction, HttpClientError, HttpRequestTask, PreparedRequest, RequestIntro,
+    ResponseIntro,
 };
-use crate::wire::simple_http::{
-    IncomingResponseParts, SimpleBody, SimpleHeaders,
-    SimpleResponse,
-};
+use crate::wire::simple_http::{IncomingResponseParts, SimpleBody, SimpleHeaders, SimpleResponse};
 use std::sync::Arc;
 
 /// Internal state for progressive request reading.
@@ -125,8 +122,6 @@ pub struct ClientRequest<R: DnsResolver + 'static> {
     config: ClientConfig,
     /// Connection pool for reuse
     pool: Option<Arc<ConnectionPool>>,
-    /// Shared coordination with task
-    control: Option<RequestControl>,
     /// Internal state machine for progressive reading
     task_state: Option<ClientRequestState<R>>,
     /// Stream for body reading and pool return
@@ -169,11 +164,10 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
             resolver,
             config,
             pool,
-            control: None,
-            task_state: Some(ClientRequestState::NotStarted),
             stream: None,
             host: None,
             port: None,
+            task_state: Some(ClientRequestState::NotStarted),
         }
     }
 
@@ -583,7 +577,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         );
 
         // Spawn task via execute_task
-        let _iter = execute_task(task)
+        let _iter = valtron::execute(task, None)
             .map_err(|e| HttpClientError::Other(format!("Failed to spawn task: {e}").into()))?;
 
         // Transition to Executing state
