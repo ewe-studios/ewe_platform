@@ -61,6 +61,7 @@ where
         }
     }
 
+    #[must_use]
     pub fn with_panic_handler<T>(mut self, handler: T) -> Self
     where
         T: Fn(Box<dyn Any + Send>) + Send + Sync + 'static,
@@ -264,6 +265,7 @@ where
         }
     }
 
+    #[must_use]
     pub fn with_panic_handler<T>(mut self, handler: T) -> Self
     where
         T: Fn(Box<dyn Any + Send>) + Send + Sync + 'static,
@@ -338,7 +340,6 @@ where
             // set alive signal to empty.
             self.alive.take();
 
-            tracing::debug!("Marking as done: {entry:?}");
             // send State::Done
             return Some(State::Done);
         }
@@ -355,8 +356,6 @@ where
 
             // set alive signal to empty.
             self.alive.take();
-
-            tracing::debug!("Marking as done: {entry:?}");
 
             // send State::Done
             return Some(State::Done);
@@ -377,19 +376,16 @@ where
             TaskStatus::Delayed(inner) => {
                 tracing::debug!("Got  delayed: {entry:?}");
                 if let Ok(()) = self.channel.push(TaskStatus::Delayed(inner)) {
-                    tracing::debug!("Written TaskStatus::Delayed into receiving channel");
                     State::Pending(Some(inner))
                 } else {
                     tracing::error!("Failed to deliver status to channel, closing task",);
 
                     // close the queue
                     self.channel.close();
-                    tracing::debug!("Closed task channel");
 
                     // set alive signal to empty.
                     self.alive.take();
 
-                    tracing::debug!("Marking as done: {entry:?}");
                     State::Done
                 }
             }
@@ -403,31 +399,26 @@ where
 
                     // close the queue
                     self.channel.close();
-                    tracing::debug!("Closed task channel");
 
                     // set alive signal to empty.
                     self.alive.take();
 
-                    tracing::debug!("Marking as done");
                     State::Done
                 }
             }
             TaskStatus::Pending(inner) => {
                 tracing::debug!("Got pending value");
                 if let Ok(()) = self.channel.push(TaskStatus::Pending(inner)) {
-                    tracing::debug!("Written TaskStatus::Pending into receiving channel");
                     State::Pending(None)
                 } else {
                     tracing::error!("Failed to deliver status to channel, closing task",);
 
                     // close the queue
                     self.channel.close();
-                    tracing::debug!("Closed task channel");
 
                     // set alive signal to empty.
                     self.alive.take();
 
-                    tracing::debug!("Marking as done");
                     State::Done
                 }
             }
@@ -442,12 +433,10 @@ where
 
                     // close the queue
                     self.channel.close();
-                    tracing::debug!("Closed task channel");
 
                     // set alive signal to empty.
                     self.alive.take();
 
-                    tracing::debug!("Marking as done");
                     State::Done
                 }
             }
@@ -498,6 +487,7 @@ where
         }
     }
 
+    #[must_use]
     pub fn with_panic_handler<T>(mut self, handler: T) -> Self
     where
         T: Fn(Box<dyn Any + Send>) + Send + Sync + 'static,
