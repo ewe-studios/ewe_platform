@@ -1,4 +1,4 @@
-use crate::extensions::result_ext::BoxedError;
+use crate::extensions::result_ext::{BoxedError, SendableBoxedError};
 use derive_more::From;
 use std::{
     string::{FromUtf16Error, FromUtf8Error},
@@ -16,13 +16,13 @@ pub enum HttpReaderError {
     UnknownLine(String),
 
     #[from(ignore)]
-    BodyBuildFailed(BoxedError),
+    BodyBuildFailed(SendableBoxedError),
 
     #[from(ignore)]
-    ProtoBuildFailed(BoxedError),
+    ProtoBuildFailed(SendableBoxedError),
 
     #[from(ignore)]
-    LineReadFailed(BoxedError),
+    LineReadFailed(SendableBoxedError),
 
     #[from(ignore)]
     InvalidContentSizeValue(Box<std::num::ParseIntError>),

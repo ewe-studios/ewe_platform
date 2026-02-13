@@ -17,8 +17,8 @@ use crate::netcap::RawStream;
 use crate::synca::mpp::RecvIterator;
 use crate::valtron::{self, TaskStatus};
 use crate::wire::simple_http::client::{
-    ClientConfig, ClientRequestBuilder, ConnectionPool, DnsResolver, GetRequestIntroStates,
-    HttpClientAction, HttpClientError, HttpRequestTask, PreparedRequest, RequestIntro,
+    ClientConfig, ClientRequestBuilder, ConnectionPool, DnsResolver, HttpClientAction,
+    HttpClientError, HttpRequestPending, HttpRequestTask, PreparedRequest, RequestIntro,
     ResponseIntro,
 };
 use crate::wire::simple_http::{IncomingResponseParts, SimpleBody, SimpleHeaders, SimpleResponse};
@@ -41,7 +41,7 @@ enum ClientRequestState<R: DnsResolver + 'static> {
     /// Request is currently executing or has partial results
     Executing {
         /// `TaskIterator` wrapped in `RecvIterator` for progress updates
-        iter: RecvIterator<TaskStatus<RequestIntro, GetRequestIntroStates, HttpClientAction<R>>>,
+        iter: RecvIterator<TaskStatus<RequestIntro, HttpRequestPending, HttpClientAction<R>>>,
         /// Response introduction (status line) if received
         intro: Option<ResponseIntro>,
         /// Response headers if received
