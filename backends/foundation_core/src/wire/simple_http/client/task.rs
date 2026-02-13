@@ -17,7 +17,11 @@
 use crate::extensions::result_ext::BoxedError;
 use crate::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
-use crate::valtron::{NoSpawner, TaskIterator, TaskStatus};
+use crate::synca::mpp::RecvIterator;
+use crate::valtron::{
+    BoxedSendExecutionAction, InlineSendAction, IntoBoxedSendExecutionAction, NoSpawner,
+    TaskIterator, TaskStatus,
+};
 use crate::wire::simple_http::client::{
     DnsResolver, HttpClientAction, HttpClientConnection, PreparedRequest,
 };
@@ -156,6 +160,12 @@ where
             max_redirects,
             pool,
         ))
+    }
+
+    /// Creates a new HTTP request task with connection pool
+    /// from the provided [`GetHttpRequestStreamInner`].
+    pub fn from_data(data: GetHttpRequestStreamInner<R>) -> Self {
+        Self(data)
     }
 }
 
@@ -381,17 +391,20 @@ pub enum HttpRequestTaskState<R>
 where
     R: DnsResolver + Send + 'static,
 {
-    Init(Box<GetHttpRequestStreamInner<R>>),
-    GetStream(SharedByteBufferStream<RawStream>),
-    Done,
+    /// Init starts out with the request based on the provided [`GetHttpRequestStreamInner`]
+    /// which then moves to [`Self::Connecting`] and then [`Self::Pull`]
+    /// to get the actual request response.
+    Init(Option<Box<GetHttpRequestStreamInner<R>>>),
+
+    /// [`Connecting`] contains the read iterator to read the  response from the connection.
+    Connecting(RecvIterator<TaskStatus<HttpStreamReady, GetHttpStreamState, HttpClientAction<R>>>),
+
+    /// [`Reading`] reads the introduction information from (Status + Headers) from the connection.
+    Reading(RecvIterator<TaskStatus<RequestIntro, (), NoSpawner>>),
+    // TODO: implement state for redirection where response indicates we should reconnect to another server
 }
 
-pub enum HttpRequestTaskPendingState {
-    Init,
-    Connecting,
-}
-
-pub struct HttpRequestTask<R>(HttpRequestTaskState<R>)
+pub struct HttpRequestTask<R>(Option<HttpRequestTaskState<R>>)
 where
     R: DnsResolver + Send + 'static;
 
@@ -405,29 +418,119 @@ where
         max_redirects: u8,
         pool: Option<Arc<super::pool::ConnectionPool>>,
     ) -> Self {
-        Self(HttpRequestTaskState::Init(Box::new(
+        Self(Some(HttpRequestTaskState::Init(Some(Box::new(
             GetHttpRequestStreamInner::new(request, resolver, max_redirects, pool),
-        )))
+        )))))
     }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd)]
 pub enum HttpRequestPending {
-    Connect,
-    GetIntro,
-    GetHeaders,
-    Done,
+    WaitingForStream,
+    WaitingIntroAndHeaders,
 }
 
 impl<R> TaskIterator for HttpRequestTask<R>
 where
     R: DnsResolver + Send + 'static,
 {
-    type Pending = HttpRequestPending;
     type Ready = RequestIntro;
-    type Spawner = NoSpawner;
+    type Pending = HttpRequestPending;
+    type Spawner = BoxedSendExecutionAction;
 
     fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        todo!()
+        match self.0.take()? {
+            HttpRequestTaskState::Init(mut inner) => match inner.take() {
+                Some(req) => {
+                    let (get_stream_action, get_stream_receiver) = InlineSendAction::boxed_mapper(
+                        crate::valtron::InlineSendActionBehaviour::LiftWithParent,
+                        Vec::new(),
+                        GetHttpRequestStreamTask::from_data(*req),
+                        std::time::Duration::from_millis(100),
+                    );
+
+                    self.0 = Some(HttpRequestTaskState::Connecting(get_stream_receiver));
+
+                    Some(TaskStatus::Spawn(
+                        get_stream_action.into_box_send_execution_action(),
+                    ))
+                }
+                None => None,
+            },
+            HttpRequestTaskState::Connecting(mut recv_iter) => {
+                let next_value = recv_iter.next();
+
+                self.0 = Some(HttpRequestTaskState::Connecting(recv_iter));
+
+                if next_value.is_none() {
+                    self.0.take();
+                    return Some(TaskStatus::Ready(RequestIntro::Failed(
+                        HttpReaderError::ReadFailed,
+                    )));
+                }
+
+                match next_value.unwrap() {
+                    TaskStatus::Init => Some(TaskStatus::Init),
+                    TaskStatus::Delayed(dur) => Some(TaskStatus::Delayed(dur)),
+                    TaskStatus::Pending(_) => {
+                        Some(TaskStatus::Pending(HttpRequestPending::WaitingForStream))
+                    }
+                    TaskStatus::Spawn(action) => {
+                        Some(TaskStatus::Spawn(action.into_box_send_execution_action()))
+                    }
+                    TaskStatus::Ready(item) => match item {
+                        HttpStreamReady::Done(stream) => {
+                            let (get_intro_stream_action, get_intro_receiver) =
+                                InlineSendAction::boxed_mapper(
+                                    crate::valtron::InlineSendActionBehaviour::LiftWithParent,
+                                    Vec::new(),
+                                    GetRequestIntroTask::new(stream),
+                                    std::time::Duration::from_millis(100),
+                                );
+
+                            self.0 = Some(HttpRequestTaskState::Reading(get_intro_receiver));
+
+                            Some(TaskStatus::Spawn(
+                                get_intro_stream_action.into_box_send_execution_action(),
+                            ))
+                        }
+                        HttpStreamReady::Error(_) => {
+                            self.0.take();
+
+                            Some(TaskStatus::Ready(RequestIntro::Failed(
+                                HttpReaderError::ReadFailed,
+                            )))
+                        }
+                    },
+                }
+            }
+            HttpRequestTaskState::Reading(mut intro_recv) => {
+                let next_value = intro_recv.next();
+
+                self.0 = Some(HttpRequestTaskState::Reading(intro_recv));
+
+                if next_value.is_none() {
+                    self.0.take();
+                    return Some(TaskStatus::Ready(RequestIntro::Failed(
+                        HttpReaderError::ReadFailed,
+                    )));
+                }
+
+                match next_value.unwrap() {
+                    TaskStatus::Init => Some(TaskStatus::Init),
+                    TaskStatus::Delayed(dur) => Some(TaskStatus::Delayed(dur)),
+                    TaskStatus::Pending(_) => {
+                        Some(TaskStatus::Pending(HttpRequestPending::WaitingForStream))
+                    }
+                    TaskStatus::Spawn(action) => {
+                        Some(TaskStatus::Spawn(action.into_box_send_execution_action()))
+                    }
+                    TaskStatus::Ready(item) => {
+                        self.0.take();
+                        Some(TaskStatus::Ready(item))
+                    }
+                }
+            }
+        }
     }
 }

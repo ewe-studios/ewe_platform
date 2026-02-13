@@ -1,6 +1,6 @@
 #![allow(clippy::type_complexity)]
 
-use crate::extensions::result_ext::BoxedError;
+use crate::extensions::result_ext::{BoxedError, SendableBoxedError};
 use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
 use crate::io::ioutils::{self, ByteBufferPointer, SharedByteBufferStream};
 use crate::io::ubytes::{self};
@@ -1094,7 +1094,7 @@ static CAPTURE_QUERY_KEY_VALUE: &str = r"((?P<qk>[^&]+)=(?P<qv>[^&]+))*";
 
 #[allow(unused)]
 impl SimpleUrl {
-    #[must_use] 
+    #[must_use]
     pub fn new(
         url_only: bool,
         request_url: String,
@@ -1258,13 +1258,13 @@ impl SimpleUrl {
         self.match_queries(target)
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn match_queries(&self, target: &str) -> bool {
         let target_queries = Self::capture_query_hashmap(target);
         self.match_queries_tree(&target_queries)
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn match_queries_tree(&self, target_queries: &Option<BTreeMap<String, String>>) -> bool {
         if self.queries.is_none() && target_queries.is_none() {
             return true;
@@ -2552,7 +2552,7 @@ pub trait BodyExtractor {
         &self,
         body: Body,
         stream: SharedByteBufferStream<T>,
-    ) -> Result<SimpleBody, BoxedError>;
+    ) -> Result<SimpleBody, SendableBoxedError>;
 }
 
 const CHUNKED_VALUE: &str = "chunked";
@@ -4829,7 +4829,7 @@ impl BodyExtractor for SimpleHttpBody {
         &self,
         body: Body,
         stream: SharedByteBufferStream<T>,
-    ) -> Result<SimpleBody, BoxedError> {
+    ) -> Result<SimpleBody, SendableBoxedError> {
         match body {
             Body::LineFeedBody(headers) => {
                 let line_feed_iterator = Box::new(SimpleLineFeedIterator::new(headers, stream));
