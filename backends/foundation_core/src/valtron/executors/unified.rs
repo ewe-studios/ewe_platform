@@ -10,6 +10,7 @@
 //! - **Native without `multi` feature**: Uses `single` executor
 //! - **Native with `multi` feature**: Uses `multi` executor
 
+use crate::synca::mpp::StreamRecvIterator;
 use crate::valtron::{single, ExecutionAction, ProgressIndicator, TaskIterator, TaskStatus};
 
 use crate::{synca::mpp::RecvIterator, valtron::GenericResult};
@@ -148,6 +149,40 @@ where
     }
 }
 
+/// [`execute_stream`] unlike [`execute`] returns a [`StreamIterator`]
+/// which hides away the underlying mechanics of dealing with a [`TaskStatus`]
+/// with a type of [`ExecutionIterator`] which will properly manage the different
+/// task status, sending the needed spawn events to the executor as needed and
+/// providing a simpler representation of the results for the caller.
+pub fn execute_stream<T>(
+    task: T,
+    wait_cycle: Option<std::time::Duration>,
+) -> GenericResult<StreamRecvIterator<T::Ready, T::Pending>>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    #[cfg(target_arch = "wasm32")]
+    {
+        execute_single_stream(task, wait_cycle)
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        #[cfg(feature = "multi")]
+        {
+            execute_multi_stream(task, wait_cycle)
+        }
+
+        #[cfg(not(feature = "multi"))]
+        {
+            execute_single_stream(task, wait_cycle)
+        }
+    }
+}
+
 /// Execute using single-threaded executor.
 ///
 /// WHY: WASM and minimal builds need single-threaded execution
@@ -196,6 +231,28 @@ where
     Ok(iter)
 }
 
+/// Execute using single-threaded executor returning a stream iterator.
+///
+/// WHY: WASM and minimal builds need single-threaded execution
+/// WHAT: Schedules task, returns a stream iterator.
+#[allow(clippy::type_complexity)]
+fn execute_single_stream<T>(
+    task: T,
+    wait_cycle: Option<std::time::Duration>,
+) -> GenericResult<StreamRecvIterator<T::Ready, T::Pending>>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    // Schedule task and get iterator
+    let iter = single::spawn()
+        .with_task(task)
+        .scheduled_stream_iter(wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE))?;
+
+    Ok(iter)
+}
+
 /// Execute using multi-threaded executor.
 ///
 /// WHY: Native builds can use multiple threads for better performance
@@ -217,6 +274,31 @@ where
     let iter = multi::spawn()
         .with_task(task)
         .schedule_iter(wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE))?;
+
+    Ok(iter)
+}
+
+/// Execute using multi-threaded executor.
+///
+/// WHY: Native builds can use multiple threads for better performance
+/// WHAT: Schedules task, runs until complete, returns first Ready value
+#[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
+fn execute_multi_stream<T>(
+    task: T,
+    wait_cycle: Option<std::time::Duration>,
+) -> GenericResult<StreamRecvIterator<T::Ready, T::Pending>>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    use crate::valtron::multi;
+
+    // Schedule task and get iterator
+    let iter = multi::spawn()
+        .with_task(task)
+        .stream_iter(wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE))?;
 
     Ok(iter)
 }
