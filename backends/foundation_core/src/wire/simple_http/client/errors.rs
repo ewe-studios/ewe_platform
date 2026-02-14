@@ -1,5 +1,6 @@
 use crate::extensions::result_ext::BoxedError;
 use crate::wire::simple_http::url::InvalidUri;
+use crate::wire::simple_http::HttpReaderError;
 use derive_more::From;
 use std::io;
 
@@ -72,10 +73,16 @@ impl core::fmt::Display for DnsError {
 pub enum HttpClientError {
     NotImplemented,
     NotSupported,
+    NoRequestToSend,
+    FailedExecution,
 
     /// DNS resolution error.
     #[from]
     DnsError(DnsError),
+
+    /// HttpReader error.
+    #[from(ignore)]
+    ReaderError(HttpReaderError),
 
     /// Connection failed.
     #[from(ignore)]
@@ -117,8 +124,11 @@ impl From<InvalidUri> for HttpClientError {
 impl core::fmt::Display for HttpClientError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::ReaderError(error) => write!(f, "Failed to read http from reader: {error:?}"),
             Self::NotImplemented => write!(f, "Functionality not implemented"),
             Self::NotSupported => write!(f, "Operation not implemented"),
+            Self::NoRequestToSend => write!(f, "Operation failed: no request was sent"),
+            Self::FailedExecution => write!(f, "Operation failed: request execution failed"),
             Self::DnsError(err) => write!(f, "DNS error: {err}"),
             Self::ConnectionFailed(msg) => write!(f, "Connection failed: {msg}"),
             Self::ConnectionTimeout(msg) => write!(f, "Connection timeout: {msg}"),

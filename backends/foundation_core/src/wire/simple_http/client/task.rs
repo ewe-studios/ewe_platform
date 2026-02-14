@@ -519,7 +519,7 @@ where
                 match next_value.unwrap() {
                     TaskStatus::Init => Some(TaskStatus::Init),
                     TaskStatus::Delayed(dur) => Some(TaskStatus::Delayed(dur)),
-                    TaskStatus::Pending(_) => {
+                    TaskStatus::Pending(()) => {
                         Some(TaskStatus::Pending(HttpRequestPending::WaitingForStream))
                     }
                     TaskStatus::Spawn(action) => {
