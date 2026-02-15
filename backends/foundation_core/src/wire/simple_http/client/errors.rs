@@ -72,9 +72,12 @@ impl core::fmt::Display for DnsError {
 #[derive(From, Debug)]
 pub enum HttpClientError {
     NotImplemented,
+    InvalidRequestState,
     NotSupported,
     NoRequestToSend,
     FailedExecution,
+    FailedToReadBody,
+    InvalidReadState,
 
     /// DNS resolution error.
     #[from]
@@ -124,6 +127,16 @@ impl From<InvalidUri> for HttpClientError {
 impl core::fmt::Display for HttpClientError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::InvalidReadState => {
+                write!(
+                    f,
+                    "Invalid read state found from reader, please investigate"
+                )
+            }
+            Self::FailedToReadBody => {
+                write!(f, "Failed to read body from reader, please investigate")
+            }
+            Self::InvalidRequestState => write!(f, "Invalid state found, please investigate"),
             Self::ReaderError(error) => write!(f, "Failed to read http from reader: {error:?}"),
             Self::NotImplemented => write!(f, "Functionality not implemented"),
             Self::NotSupported => write!(f, "Operation not implemented"),
