@@ -87,7 +87,7 @@ impl Waiter for Sleepable {
 /// allow you use [`std::panic::catch_unwind`].
 pub struct ExecutorState {
     /// what priority should waking task be placed.
-    pub priority: PriorityOrder,
+    pub wakeup_priority: PriorityOrder,
 
     /// `global_tasks` are the shared tasks coming from the main thread
     /// they generally will always come in fifo order and will be processed
@@ -154,12 +154,12 @@ static DEQUEUE_CAPACITY: usize = 10;
 impl ExecutorState {
     pub fn new(
         global_tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
-        priority: PriorityOrder,
+        wakeup_priority: PriorityOrder,
         rng: ChaCha8Rng,
         idler: IdleMan,
     ) -> Self {
         Self {
-            priority,
+            wakeup_priority,
             global_tasks,
             sleepers: Sleepers::new(),
             rng: rc::Rc::new(cell::RefCell::new(rng)),
@@ -220,7 +220,7 @@ impl Clone for ExecutorState {
             rng: self.rng.clone(),
             idler: self.idler.clone(),
             sleepers: self.sleepers.clone(),
-            priority: self.priority.clone(),
+            wakeup_priority: self.wakeup_priority.clone(),
             current_task: self.current_task.clone(),
             global_tasks: self.global_tasks.clone(),
             local_tasks: self.local_tasks.clone(),
@@ -234,7 +234,7 @@ impl Clone for ExecutorState {
 impl core::fmt::Debug for ExecutorState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ExecutorState")
-            .field("priority", &self.priority)
+            .field("priority", &self.wakeup_priority)
             .field("global_tasks", &self.global_tasks)
             .field("current_task", &self.current_task)
             .field("local_tasks", &self.local_tasks.borrow().allocated_slots())
@@ -334,7 +334,7 @@ impl ExecutorState {
         // remove packed registry
         self.packed_tasks.borrow_mut().remove(&target);
 
-        match self.priority {
+        match self.wakeup_priority {
             PriorityOrder::Top => {
                 for dependent in deps.into_iter().rev() {
                     self.packed_tasks.borrow_mut().remove(&dependent);
@@ -400,6 +400,11 @@ impl ExecutorState {
     #[must_use]
     pub fn has_inflight_task(&self) -> bool {
         !self.processing.borrow().is_empty()
+    }
+
+    #[must_use]
+    pub fn has_incoming_global_tasks(&self) -> bool {
+        !self.global_tasks.is_empty()
     }
 
     /// Returns totla
@@ -548,6 +553,15 @@ impl ExecutorState {
                 tracing::debug!("Received SpinWait({:?}) indicator from task", &duration);
 
                 if self.has_inflight_task() {
+                    return ProgressIndicator::CanProgress(None);
+                }
+
+                // if there is other work to be done, lets
+                // not waste CPU time, we can return CanProgress here
+                // to allow process work on other tasks
+                // since our process will always wakeup sleepers
+                // first anyway.
+                if self.has_incoming_global_tasks() {
                     return ProgressIndicator::CanProgress(None);
                 }
 
@@ -818,7 +832,7 @@ impl ExecutorState {
                         let child_entry = info.child().unwrap();
 
                         tracing::debug!(
-                            "Retreive parent id={:?} and child={:?}",
+                            "Retrieve parent id={:?} and child={:?}",
                             parent_entry,
                             child_entry
                         );
@@ -964,6 +978,10 @@ impl ExecutorState {
                     "Task indicates it is in pending state: State::Pending({:?})",
                     &duration
                 );
+
+                // unpack the entry in the task list
+                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+
                 // if we have a duration then we check if
                 // we have other tasks pending, and if so
                 // we indicate we can make progress else we
@@ -975,9 +993,6 @@ impl ExecutorState {
                 // sleepers (which monitors task that are sleeping).
                 let final_state = if let Some(inner) = duration {
                     tracing::debug!("Task provided duration: {:?}", &inner);
-
-                    // unpack the entry in the task list
-                    self.local_tasks.borrow_mut().unpark(&top_entry, iter);
 
                     // pack this entry and it's dependents into our packed registry.
                     self.pack_task_and_dependents(top_entry);
@@ -993,11 +1008,11 @@ impl ExecutorState {
                         return ProgressIndicator::CanProgress(Some(State::Pending(duration)));
                     }
 
+                    // We will send SpinWait but the engine will decide
+                    // if it really wants to spin wait or work on other
+                    // tasks if CPU thread becomes free.
                     ProgressIndicator::SpinWait(inner)
                 } else {
-                    // unpack the entry in the task list
-                    self.local_tasks.borrow_mut().unpark(&top_entry, iter);
-
                     // push back to top
                     self.processing.borrow_mut().push_front(top_entry);
                     ProgressIndicator::CanProgress(None)
