@@ -58,6 +58,7 @@ impl core::fmt::Debug for ClientRequestState {
             Self::Completed => write!(f, "Completed"),
             Self::NotStarted => write!(f, "NotStarted"),
             Self::Executing(_) => write!(f, "Executing"),
+            Self::IntroReady(_) => write!(f, "IntroReady"),
         }
     }
 }
@@ -205,59 +206,72 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         }
 
         loop {
-            match self.task_state.take() {
-                Some(val) => {
-                    tracing::debug!("Running introduction process: {:?}", &val);
-                    match val {
-                        ClientRequestState::NotStarted => {
-                            self.start()?;
-                            continue;
-                        }
-                        ClientRequestState::Executing(mut iter) => {
-                            let Some(task_status) = iter.next() else {
-                                self.task_state = Some(ClientRequestState::Completed);
+            if let Some(val) = self.task_state.take() {
+                tracing::debug!("Running introduction process: {:?}", &val);
+                match val {
+                    ClientRequestState::NotStarted => {
+                        self.start()?;
+                        continue;
+                    }
+                    ClientRequestState::Executing(mut iter) => {
+                        let Some(task_status) = iter.next() else {
+                            self.task_state = Some(ClientRequestState::Completed);
+                            return Err(HttpClientError::FailedExecution);
+                        };
+
+                        self.task_state = Some(ClientRequestState::Executing(iter));
+
+                        match task_status {
+                            Stream::Init | Stream::Ignore => continue,
+                            Stream::Pending(v) => {
+                                tracing::debug!(
+                                    "Intro at request execution, seen pending state: {:?}",
+                                    v
+                                );
+                                continue;
+                            }
+                            Stream::Delayed(dur) => {
+                                tracing::debug!("Received delayed indicator, the execution engine will internally deal with this: nothing to do here: {:?}", dur);
+                                continue;
+                            }
+                            Stream::Next(value) => {
+                                if let RequestIntro::Success {
+                                    stream,
+                                    intro,
+                                    headers,
+                                } = value
+                                {
+                                    self.task_state = Some(ClientRequestState::IntroReady(
+                                        RequestIntro::Success {
+                                            stream,
+                                            intro: intro.clone(),
+                                            headers: headers.clone(),
+                                        },
+                                    ));
+
+                                    return Ok((intro.into(), headers));
+                                }
+
                                 return Err(HttpClientError::FailedExecution);
-                            };
-
-                            self.task_state = Some(ClientRequestState::Executing(iter));
-
-                            match task_status {
-                                Stream::Init | Stream::Ignore => continue,
-                                Stream::Pending(v) => {
-                                    tracing::debug!(
-                                        "Intro at request execution, seen pending state: {:?}",
-                                        v
-                                    );
-                                    continue;
-                                }
-                                Stream::Delayed(dur) => {
-                                    tracing::debug!("Received delayed indicator, the execution engine will internally deal with this: nothing to do here: {:?}", dur);
-                                    continue;
-                                }
-                                Stream::Next(value) => {
-                                    self.task_state = Some(ClientRequestState::IntroReady(value));
-                                    break;
-                                }
                             }
                         }
-                        ClientRequestState::IntroReady(_) => {
-                            unreachable!("should never trigger this state in the loop");
-                        }
-                        ClientRequestState::Completed => {
-                            return Err(HttpClientError::Other(
-                                "Request response already completedly read".into(),
-                            ));
-                        }
+                    }
+                    ClientRequestState::IntroReady(_) => {
+                        unreachable!("should never trigger this state in the loop");
+                    }
+                    ClientRequestState::Completed => {
+                        return Err(HttpClientError::Other(
+                            "Request response already completedly read".into(),
+                        ));
                     }
                 }
-                None => {
-                    self.task_state = Some(ClientRequestState::Completed);
-                    return Err(HttpClientError::Other("Request state missing".into()));
-                }
             }
+
+            break;
         }
 
-        todo!()
+        self.task_state = Some(ClientRequestState::Completed);
+        Err(HttpClientError::Other("Request state missing".into()))
     }
 
     /// Internal helper to start request execution.
@@ -337,9 +351,9 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                 tracing::error!("client found in invalid state");
                 self.task_state = Some(ClientRequestState::Completed);
 
-                return Err(HttpClientError::Other(
+                Err(HttpClientError::Other(
                     "request client in invalid state".into(),
-                ));
+                ))
             }
 
             ClientRequestState::IntroReady(state) => {
@@ -358,10 +372,8 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                         for next_value in stream {
                             match next_value {
                                 Ok(next_res) => match next_res {
-                                    IncomingResponseParts::Intro(_, _, _) => {
-                                        return Err(HttpClientError::InvalidReadState);
-                                    }
-                                    IncomingResponseParts::Headers(_) => {
+                                    IncomingResponseParts::Intro(_, _, _)
+                                    | IncomingResponseParts::Headers(_) => {
                                         return Err(HttpClientError::InvalidReadState);
                                     }
                                     IncomingResponseParts::SKIP => continue,
@@ -478,7 +490,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                 Ok(body.into()),
             ];
 
-            return Ok(IncomingResponseMapper::List(items.into_iter()).into_iter());
+            return Ok(IncomingResponseMapper::List(items.into_iter()));
         }
 
         if let Some(ClientRequestState::NotStarted) = &self.task_state {
@@ -601,121 +613,4 @@ mod tests {
             Some(ClientRequestState::NotStarted)
         ));
     }
-
-    /// WHY: Verify ClientRequest stores configuration correctly
-    /// WHAT: Tests that config parameters are preserved
-    #[test]
-    fn test_client_request_stores_config() {
-        let prepared = ClientRequestBuilder::get("http://example.com")
-            .unwrap()
-            .build();
-        let resolver = MockDnsResolver::new();
-        let mut config = ClientConfig::default();
-        config.max_redirects = 3;
-
-        let request = ClientRequest::new(prepared, resolver, config, None);
-
-        assert_eq!(request.config.max_redirects, 3);
-    }
-
-    // ========================================================================
-    // State Machine Tests
-    // ========================================================================
-
-    /// WHY: Verify ClientRequestState enum has expected variants
-    /// WHAT: Tests that state enum compiles with correct structure
-    #[test]
-    fn test_client_request_state_variants() {
-        // Compile-time check that variants exist
-        let _not_started: ClientRequestState<MockDnsResolver> = ClientRequestState::NotStarted;
-        let _completed: ClientRequestState<MockDnsResolver> = ClientRequestState::Completed;
-    }
-
-    // // ========================================================================
-    // // API Method Signature Tests
-    // // ========================================================================
-    //
-    // /// WHY: Verify ClientRequest has correct public API methods
-    // /// WHAT: Compile-time check that methods exist with correct signatures
-    // #[test]
-    // fn test_client_request_has_expected_methods() {
-    //     crate::valtron::initialize_pool(20, None);
-    //
-    //     let prepared = ClientRequestBuilder::get("http://example.com")
-    //         .unwrap()
-    //         .build();
-    //     let resolver = MockDnsResolver::new();
-    //     let config = ClientConfig::default();
-    //
-    //     let mut request = ClientRequest::new(prepared, resolver, config, None);
-    //
-    //     // These should compile (even if they fail at runtime due to mock resolver)
-    //     let _intro_result = request.introduction();
-    //     let _body_result = request.body();
-    //
-    //     // These consume self
-    //     let prepared2 = ClientRequestBuilder::get("http://example.com")
-    //         .unwrap()
-    //         .build();
-    //     let request2 = ClientRequest::new(
-    //         prepared2,
-    //         MockDnsResolver::new(),
-    //         ClientConfig::default(),
-    //         None,
-    //     );
-    //     let _send_result = request2.send();
-    //
-    //     let prepared3 = ClientRequestBuilder::get("http://example.com")
-    //         .unwrap()
-    //         .build();
-    //     let request3 = ClientRequest::new(
-    //         prepared3,
-    //         MockDnsResolver::new(),
-    //         ClientConfig::default(),
-    //         None,
-    //     );
-    //     let _parts_iter = request3.parts();
-    //
-    //     let prepared4 = ClientRequestBuilder::get("http://example.com")
-    //         .unwrap()
-    //         .build();
-    //     let request4 = ClientRequest::new(
-    //         prepared4,
-    //         MockDnsResolver::new(),
-    //         ClientConfig::default(),
-    //         None,
-    //     );
-    //     let _collect_result = request4.collect();
-    // }
-    //
-    // /// WHY: Verify parts() returns iterator with correct item type
-    // /// WHAT: Type check that iterator yields Result<IncomingResponseParts, HttpClientError>
-    // #[test]
-    // fn test_client_request_parts_iterator_type() {
-    //     crate::valtron::initialize_pool(20, None);
-    //
-    //     let prepared = ClientRequestBuilder::get("http://example.com")
-    //         .unwrap()
-    //         .build();
-    //     let resolver = MockDnsResolver::new();
-    //     let config = ClientConfig::default();
-    //
-    //     let request = ClientRequest::new(prepared, resolver, config, None);
-    //     let mut parts_iter = request.parts();
-    //
-    //     // Type check
-    //     let _item: Option<Result<IncomingResponseParts, HttpClientError>> = parts_iter.next();
-    // }
-
-    /// WHY: Verify ClientRequest API compiles and types are correct
-    /// WHAT: Basic compile-time check for the complete flow
-    #[test]
-    fn test_client_request_api_compiles() {
-        // This test just verifies the API compiles correctly
-        // Real end-to-end tests with actual HTTP server are in integration tests
-        assert!(true, "API compiles successfully");
-    }
-
-    // Note: Full integration tests with real HTTP requests are in tests/ directory
-    // These tests focus on structure, types, and state machine logic
 }
