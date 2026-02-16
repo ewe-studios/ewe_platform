@@ -51,13 +51,13 @@ where
     #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
     {
         use crate::valtron::single;
-        single::run_until(checker);
+        let _ = single::run_until(checker);
     }
 
     #[cfg(target_arch = "wasm32")]
     {
         use crate::valtron::single;
-        single::run_until(checker);
+        let _ = single::run_until(checker);
     }
 }
 
@@ -87,13 +87,13 @@ pub fn run_once() {
     #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
     {
         use crate::valtron::single;
-        single::run_once();
+        let _ = single::run_once();
     }
 
     #[cfg(target_arch = "wasm32")]
     {
         use crate::valtron::single;
-        single::run_once();
+        let _ = single::run_once();
     }
 }
 

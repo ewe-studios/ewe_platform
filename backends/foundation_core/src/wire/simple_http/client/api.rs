@@ -588,7 +588,7 @@ impl<R: DnsResolver + 'static> Drop for ClientRequest<R> {
 }
 
 #[cfg(test)]
-mod tests {
+mod api_tests {
     use super::*;
     use crate::wire::simple_http::client::{ClientRequestBuilder, MockDnsResolver};
 
