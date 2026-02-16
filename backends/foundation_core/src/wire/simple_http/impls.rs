@@ -2535,6 +2535,16 @@ impl core::fmt::Display for IncomingResponseParts {
     }
 }
 
+// pub struct ResponseAsIterator<T>(Vec<Result<T, HttpReaderError>>);
+
+// impl<T> Iterator for ResponseAsIterator<T> {
+//     type Item = Result<IncomingResponseParts, HttpReaderError>;
+
+//     fn next(&mut self) -> Option<Self::Item> {
+//         self.0.next()
+//     }
+// }
+
 /// [`HttpRequestIntro`] represents the definition properties a http request message
 /// has at the start.
 pub type HttpRequestIntro = (SimpleMethod, SimpleUrl, Proto);
