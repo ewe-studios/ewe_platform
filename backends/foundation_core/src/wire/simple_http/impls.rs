@@ -168,6 +168,30 @@ pub enum SimpleBody {
     LineFeedStream(Option<LineFeedVecIterator<BoxedError>>),
 }
 
+impl Into<IncomingResponseParts> for SimpleBody {
+    fn into(self) -> IncomingResponseParts {
+        match &self {
+            SimpleBody::None => IncomingResponseParts::NoBody,
+            SimpleBody::Text(_) | SimpleBody::Bytes(_) => IncomingResponseParts::SizedBody(self),
+            SimpleBody::Stream(_)
+            | SimpleBody::LineFeedStream(_)
+            | SimpleBody::ChunkedStream(_) => IncomingResponseParts::StreamedBody(self),
+        }
+    }
+}
+
+impl Into<IncomingRequestParts> for SimpleBody {
+    fn into(self) -> IncomingRequestParts {
+        match &self {
+            SimpleBody::None => IncomingRequestParts::NoBody,
+            SimpleBody::Text(_) | SimpleBody::Bytes(_) => IncomingRequestParts::SizedBody(self),
+            SimpleBody::Stream(_)
+            | SimpleBody::LineFeedStream(_)
+            | SimpleBody::ChunkedStream(_) => IncomingRequestParts::StreamedBody(self),
+        }
+    }
+}
+
 impl Eq for SimpleBody {}
 
 // PartialEq is implemented but threads the `Self::Stream` and `Self::ChunkedStream`
