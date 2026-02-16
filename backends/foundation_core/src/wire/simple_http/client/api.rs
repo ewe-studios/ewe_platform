@@ -22,6 +22,7 @@ use crate::wire::simple_http::client::{
     ResponseIntro,
 };
 use crate::wire::simple_http::{IncomingResponseParts, SimpleBody, SimpleHeaders, SimpleResponse};
+use std::result::IntoIter;
 use std::sync::Arc;
 
 /// Internal state for progressive request reading.
@@ -328,7 +329,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
             ClientRequestState::NotStarted
             | ClientRequestState::Executing(_)
             | ClientRequestState::Completed => {
-                tracing::debug!("client found in invalid state");
+                tracing::error!("client found in invalid state");
                 self.task_state = Some(ClientRequestState::Completed);
 
                 return Err(HttpClientError::Other(
@@ -458,10 +459,32 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     where
         T: Iterator<Item = Result<IncomingResponseParts, HttpClientError>>,
     {
-        // Start execution if not already started
-        // if matches!(self.task_state, Some(ClientRequestState::NotStarted) | None) {
-        //     self.start_execution()?;
-        // }
+        if let Some(ClientRequestState::IntroReady(_)) = &self.task_state {
+            let (intro, headers) = self.introduction()?;
+            let body = self.body()?;
+
+            let items: Vec<Result<IncomingResponseParts, HttpClientError>> = vec![
+                Ok(IncomingResponseParts::Intro(
+                    intro.status,
+                    intro.proto,
+                    intro.reason,
+                )),
+                Ok(body.into()),
+            ];
+
+            struct IncomingResponsePartsIter(IntoIter<Result<IncomingResponseParts, HttpClientError>>);
+            impl Iterator for IncomingResponsePartsIter {
+                type Item = Result<IncomingResponseParts, HttpClientError>;
+
+                fn next(&mut self) -> Option<Self::Item> {
+                    self.0.next()
+                }
+            }
+
+            let values: T = IncomingResponsePartsIter(items.into_iter())
+
+            return Ok(values);
+        }
 
         // Extract iterator from state
         let state = self.task_state.take();
