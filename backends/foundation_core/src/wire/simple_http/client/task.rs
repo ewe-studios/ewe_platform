@@ -14,7 +14,6 @@
 //!
 //! PHASE 1 SCOPE: HTTP-only (no HTTPS), blocking connection, basic GET requests.
 
-use crate::extensions::result_ext::BoxedError;
 use crate::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
 use crate::synca::mpp::RecvIterator;
@@ -23,11 +22,11 @@ use crate::valtron::{
     TaskIterator, TaskStatus,
 };
 use crate::wire::simple_http::client::{
-    DnsResolver, HttpClientAction, HttpClientConnection, PreparedRequest,
+    DnsResolver, HttpClientAction, HttpClientConnection, HttpClientError, PreparedRequest,
 };
 use crate::wire::simple_http::{
     ClientRequestErrors, Http11, HttpReaderError, HttpResponseIntro, HttpResponseReader,
-    RenderHttp, SimpleHeader, SimpleHeaders, SimpleHttpBody,
+    IncomingResponseParts, RenderHttp, SimpleHeaders, SimpleHttpBody,
 };
 use std::io::Write;
 use std::sync::Arc;
@@ -531,6 +530,42 @@ where
                     }
                 }
             }
+        }
+    }
+}
+
+/// [`IncomingResponseMapper`] implements an iterator wrapper for the [`HttpResponseReader<SimpleHttpBody, RawStream>`]
+/// returning the type that matches client response.
+pub enum IncomingResponseMapper {
+    Reader(HttpResponseReader<SimpleHttpBody, RawStream>),
+    List(std::vec::IntoIter<Result<IncomingResponseParts, HttpClientError>>),
+}
+
+impl IncomingResponseMapper {
+    pub fn from_reader(reader: HttpResponseReader<SimpleHttpBody, RawStream>) -> Self {
+        Self::Reader(reader)
+    }
+
+    pub fn from_list(
+        items: std::vec::IntoIter<Result<IncomingResponseParts, HttpClientError>>,
+    ) -> Self {
+        Self::List(items)
+    }
+}
+
+impl Iterator for IncomingResponseMapper {
+    type Item = Result<IncomingResponseParts, HttpClientError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self {
+            Self::List(inner) => match inner.next()? {
+                Ok(inner) => Some(Ok(inner)),
+                Err(err) => Some(Err(err)),
+            },
+            Self::Reader(inner) => match inner.next()? {
+                Ok(inner) => Some(Ok(inner)),
+                Err(err) => Some(Err(HttpClientError::ReaderError(err))),
+            },
         }
     }
 }

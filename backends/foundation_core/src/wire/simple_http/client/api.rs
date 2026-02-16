@@ -12,16 +12,21 @@
 //! to track progress through request lifecycle. Platform-aware executor driving
 //! (single-threaded on WASM/multi=off, multi-threaded with multi=on).
 
+use foundation_nostd::primitives::wait_duration;
+
 use crate::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
 use crate::synca::mpp::{RecvIterator, StreamRecvIterator};
 use crate::valtron::{self, BoxedSendExecutionAction, Stream, TaskStatus};
 use crate::wire::simple_http::client::{
-    ClientConfig, ClientRequestBuilder, ConnectionPool, DnsResolver, HttpClientAction,
-    HttpClientError, HttpRequestPending, HttpRequestTask, PreparedRequest, RequestIntro,
-    ResponseIntro,
+    ClientConfig, ClientRequestBuilder, ConnectionPool, DnsResolver, GetHttpRequestStreamTask,
+    HttpClientAction, HttpClientError, HttpRequestPending, HttpRequestTask, HttpStreamReady,
+    IncomingResponseMapper, PreparedRequest, RequestIntro, ResponseIntro,
 };
-use crate::wire::simple_http::{IncomingResponseParts, SimpleBody, SimpleHeaders, SimpleResponse};
+use crate::wire::simple_http::{
+    HttpResponseReader, IncomingResponseParts, SimpleBody, SimpleHeaders, SimpleHttpBody,
+    SimpleResponse,
+};
 use std::result::IntoIter;
 use std::sync::Arc;
 
@@ -455,9 +460,9 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// }
     /// ```
     #[tracing::instrument(skip(self))]
-    pub fn parts<T>(mut self) -> Result<T, HttpClientError>
-    where
-        T: Iterator<Item = Result<IncomingResponseParts, HttpClientError>>,
+    pub fn parts(
+        mut self,
+    ) -> Result<impl Iterator<Item = Result<IncomingResponseParts, HttpClientError>>, HttpClientError>
     {
         if let Some(ClientRequestState::IntroReady(_)) = &self.task_state {
             let (intro, headers) = self.introduction()?;
@@ -469,37 +474,62 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                     intro.proto,
                     intro.reason,
                 )),
+                Ok(IncomingResponseParts::Headers(headers)),
                 Ok(body.into()),
             ];
 
-            struct IncomingResponsePartsIter(IntoIter<Result<IncomingResponseParts, HttpClientError>>);
-            impl Iterator for IncomingResponsePartsIter {
-                type Item = Result<IncomingResponseParts, HttpClientError>;
+            return Ok(IncomingResponseMapper::List(items.into_iter()).into_iter());
+        }
 
-                fn next(&mut self) -> Option<Self::Item> {
-                    self.0.next()
+        if let Some(ClientRequestState::NotStarted) = &self.task_state {
+            // Take the prepared request to avoid cloning
+            let Some(request) = self.prepared_request.take() else {
+                return Err(HttpClientError::NoRequestToSend);
+            };
+
+            // Create GetHttpRequestStreamTask with pool if provided
+            // which will get us the http stream which we can then
+            // wrap in a ResponseReader.
+            let task = GetHttpRequestStreamTask::new(
+                request,
+                self.resolver.clone(),
+                self.config.max_redirects,
+                self.pool.clone(),
+            );
+
+            // Spawn task via execute_task
+            let iter = valtron::execute_stream(task, None)
+                .map_err(|e| HttpClientError::Other(format!("Failed to spawn task: {e}").into()))?;
+
+            for next_value in iter {
+                match next_value {
+                    Stream::Init | Stream::Ignore | Stream::Pending(_) => continue,
+                    Stream::Delayed(inner) => {
+                        wait_duration(inner);
+                    }
+                    Stream::Next(inner) => match inner {
+                        HttpStreamReady::Error(_) => {
+                            self.task_state = Some(ClientRequestState::Completed);
+                            return Err(HttpClientError::FailedExecution);
+                        }
+                        HttpStreamReady::Done(stream) => {
+                            let items = IncomingResponseMapper::from_reader(HttpResponseReader::<
+                                SimpleHttpBody,
+                                RawStream,
+                            >::new(
+                                stream,
+                                SimpleHttpBody,
+                            ));
+
+                            return Ok(items.into_iter());
+                        }
+                    },
                 }
             }
-
-            let values: T = IncomingResponsePartsIter(items.into_iter())
-
-            return Ok(values);
         }
 
-        // Extract iterator from state
-        let state = self.task_state.take();
-        match state {
-            Some(ClientRequestState::Executing { iter: _, .. }) => {
-                // PartsIterator::Start(PartsIteratorInner {
-                //     iter,
-                //     reader: None,
-                //     intro: None,
-                //     headers: None,
-                // })
-                todo!()
-            }
-            _ => Err(HttpClientError::Other("Invalid request state".into())),
-        }
+        self.task_state = Some(ClientRequestState::Completed);
+        Err(HttpClientError::InvalidReadState)
     }
 
     /// Collects all response parts into a vector.
@@ -529,11 +559,8 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// }
     /// ```
     #[tracing::instrument(skip(self))]
-    pub fn collect<T>(self) -> Result<Vec<IncomingResponseParts>, HttpClientError>
-    where
-        T: Iterator<Item = Result<IncomingResponseParts, HttpClientError>>,
-    {
-        self.parts::<T>()?.collect()
+    pub fn collect(self) -> Result<Vec<IncomingResponseParts>, HttpClientError> {
+        self.parts()?.collect()
     }
 }
 
@@ -547,67 +574,6 @@ impl<R: DnsResolver + 'static> Drop for ClientRequest<R> {
         }
     }
 }
-
-// /// Inner active iterator implementation.
-// struct PartsIteratorInner<R: DnsResolver + 'static> {
-//     iter: RecvIterator<TaskStatus<HttpTaskReady, HttpRequestState, HttpClientAction<R>>>,
-//     reader: Option<HttpResponseReader<SimpleHttpBody, RawStream>>,
-//     intro: Option<(Status, Proto, Option<String>)>,
-//     headers: Option<SimpleHeaders>,
-// }
-//
-// impl<R: DnsResolver + 'static> Iterator for PartsIterator<R> {
-//     type Item = Result<IncomingResponseParts, HttpClientError>;
-//
-//     fn next(&mut self) -> Option<Self::Item> {
-//         todo!()
-//         // match self {
-//         //     PartsIterator::GetIntro(mut inner) => {
-//         //         // Drive executor (platform-aware)
-//         //         crate::valtron::run_until_complete();
-//         //
-//         //         // Get next ready value from task
-//         //         let ready_items = ReadyValues::new(&mut inner.iter);
-//         //         for ready_item in ready_items {
-//         //             match ready_item {
-//         //                 ReadyValue::Skip => continue,
-//         //                 ReadyValue::Inner(inner) => {
-//         //                     match inner {
-//         //                         HttpTaskReady::Ready {
-//         //                             intro,
-//         //                             headers,
-//         //                             stream,
-//         //                         } => {
-//         //                             // Create reader from stream
-//         //                             let reader =
-//         //                                 HttpResponseReader::<SimpleHttpBody, RawStream>::new(
-//         //                                     stream,
-//         //                                     SimpleHttpBody,
-//         //                                 );
-//         //
-//         //                             return Some(Ok(IncomingResponseParts::Intro(
-//         //                                 intro.status,
-//         //                                 intro.proto,
-//         //                                 intro.reason,
-//         //                             )));
-//         //                         }
-//         //                         HttpTaskReady::Error(failed_error) => {
-//         //                             return Some(Err(HttpClientError::Other(
-//         //                                 format!("Failed to read response part: {:?}", failed_error)
-//         //                                     .into(),
-//         //                             )))
-//         //                         }
-//         //                     }
-//         //                 }
-//         //             }
-//         //         }
-//         //
-//         //         None
-//         //     }
-//         //     PartsIterator::Error(err) => err.take().map(Err),
-//         // }
-//     }
-// }
 
 #[cfg(test)]
 mod tests {
