@@ -1908,7 +1908,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             );
             if checker(response.clone()) {
                 tracing::debug!(
-                    "run_until: condition returned true on response: {:?}, existing loop",
+                    "run_until: condition returned true on: {:?}, exiting loop",
                     response
                 );
                 break;
@@ -1928,6 +1928,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             }
             self.yielder.yield_process();
         }
+        tracing::debug!("run_until: exited loop");
     }
 
     /// [`block_until_finished`] defers from [`block_on`] in that it will

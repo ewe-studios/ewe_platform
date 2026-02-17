@@ -1433,6 +1433,7 @@ dependencies = [
  "criterion",
  "foundation_core",
  "foundation_nostd",
+ "tracing",
 ]
 
 [[package]]

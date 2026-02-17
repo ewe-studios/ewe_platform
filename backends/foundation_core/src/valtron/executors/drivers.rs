@@ -47,10 +47,51 @@ pub fn initialize_pool(seed_for_rng: u64, _user_thread_num: Option<usize>) {
 /// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
 #[tracing::instrument()]
 pub fn run_until_next_state() {
+    run_until_next_acceptable_state(|candidate| {
+        !matches!(
+            candidate,
+            State::SpawnFailed(_) | State::SpawnFinished(_) | State::Reschedule
+        )
+    });
+}
+
+/// [`run_until_next_acceptable_state`] this is a no-op in multi-threaded situations (i.e multi feature flag is on), but
+/// under multi=off or wasm execution, this will  executing the execution engine until the next valid
+/// state within the provided `checker` function is seen to indicate task has reported progress as [`State`].
+///
+/// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
+pub fn run_until_next_acceptable_state<T>(checker: T)
+where
+    T: Fn(&State) -> bool,
+{
     run_until(|indicator: ProgressIndicator| {
         if let ProgressIndicator::CanProgress(Some(state)) = indicator {
-            tracing::debug!("Valtron: Seen new state value from state={state:?}");
-            true
+            if checker(&state) {
+                tracing::debug!("Valtron: checker returned true for state={state:?}");
+                true
+            } else {
+                false
+            }
+        } else {
+            false
+        }
+    });
+}
+
+/// [`run_until_next_state_within`] this is a no-op in multi-threaded situations (i.e multi feature flag is on), but
+/// under multi=off or wasm execution, this will  executing the execution engine until the next valid
+/// state within the provided `target_states` is seen to indicate task has reported progress as [`State`].
+///
+/// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
+pub fn run_until_next_state_within(target_states: &[State]) {
+    run_until(|indicator: ProgressIndicator| {
+        if let ProgressIndicator::CanProgress(Some(state)) = indicator {
+            if target_states.contains(&state) {
+                tracing::debug!("Valtron: Seen new state value from state={state:?}");
+                true
+            } else {
+                false
+            }
         } else {
             false
         }
@@ -72,6 +113,84 @@ pub fn run_until_ready_state() {
             false
         }
     });
+}
+
+/// [`run_until_receiver_has_value`] with a reciever object until the receiver object has a value(s)
+/// to report or the.
+///
+/// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
+#[tracing::instrument(skip(stream, checker))]
+pub fn run_until_receiver_has_value<T, S>(
+    stream: RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>,
+    checker: S,
+) -> RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>
+where
+    S: Fn(ProgressIndicator) -> bool,
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
+    {
+        use crate::valtron::single;
+
+        tracing::debug!("Executing as a single-threaded stream in no-wasm");
+        while stream.is_empty() {
+            single::run_until(&checker);
+        }
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        use crate::valtron::single;
+
+        tracing::debug!("Executing as a single stream in wasm");
+        while stream.is_empty() {
+            single::run_until(&checker);
+        }
+    }
+
+    stream
+}
+
+/// [`run_until_stream_has_value`] with a stream object until the stream object has a value(s)
+/// to report or the.
+///
+/// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
+#[tracing::instrument(skip(stream, checker))]
+pub fn run_until_stream_has_value<T, S>(
+    stream: StreamRecvIterator<T::Ready, T::Pending>,
+    checker: S,
+) -> StreamRecvIterator<T::Ready, T::Pending>
+where
+    S: Fn(ProgressIndicator) -> bool,
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
+    {
+        use crate::valtron::single;
+
+        tracing::debug!("Executing as a single-threaded stream in no-wasm");
+        while stream.is_empty() {
+            single::run_until(&checker);
+        }
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        use crate::valtron::single;
+
+        tracing::debug!("Executing as a single stream in wasm");
+        while stream.is_empty() {
+            single::run_until(&checker);
+        }
+    }
+
+    stream
 }
 
 /// [`run_until`] provides a unified method to attempt to execute the `run_until`.
@@ -289,10 +408,16 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
+            tracing::debug!("Run: run_until_next_state");
             // execute the execution engine until the next state is ready.
             run_until_next_state();
 
+            tracing::debug!("Get the next value from inner iterator");
             let next_value = task_iterator.next();
+            tracing::debug!(
+                "Gotten next value from inner iterator: is_some: {}",
+                next_value.is_some()
+            );
 
             // if the next value is Some(_) then set back the
             // executor for the next call.
@@ -346,10 +471,16 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
+            tracing::debug!("Run: run_until_next_state");
             // execute the execution engine until the next state is ready.
             run_until_next_state();
 
+            tracing::debug!("Get the next value from inner iterator");
             let next_value = task_iterator.next();
+            tracing::debug!(
+                "Gotten next value from inner iterator: is_some: {}",
+                next_value.is_some()
+            );
 
             // if the next value is Some(_) then set back the
             // executor for the next call.
@@ -395,10 +526,16 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
+            tracing::debug!("Run: run_until_next_state");
             // execute the execution engine until the next state is ready.
             run_until_next_state();
 
+            tracing::debug!("Get the next value from inner iterator");
             let next_value = task_iterator.next();
+            tracing::debug!(
+                "Gotten next value from inner iterator: is_some: {}",
+                next_value.is_some()
+            );
 
             // if the next value is Some(_) then set back the
             // executor for the next call.
@@ -453,10 +590,31 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
-            // execute the execution engine until the next state is ready.
-            run_until_next_state();
+            tracing::debug!("Run: run_until_next_state");
 
+            // execute the execution engine until the next state is ready.
+            task_iterator = run_until_stream_has_value::<T, _>(task_iterator, |indicator| {
+                if let ProgressIndicator::CanProgress(Some(state)) = indicator {
+                    if matches!(
+                        state,
+                        State::SpawnFailed(_) | State::SpawnFinished(_) | State::Reschedule
+                    ) {
+                        false
+                    } else {
+                        tracing::debug!("Valtron: checker returned true for state={state:?}");
+                        true
+                    }
+                } else {
+                    false
+                }
+            });
+
+            tracing::debug!("Get the next value from inner iterator");
             let next_value = task_iterator.next();
+            tracing::debug!(
+                "Gotten next value from inner iterator: is_some: {}",
+                next_value.is_some()
+            );
 
             // if the next value is Some(_) then set back the
             // executor for the next call.
@@ -515,10 +673,31 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
-            // execute the execution engine until the next state is ready.
-            run_until_next_state();
+            tracing::debug!("Run: run_until_next_state");
 
+            // execute the execution engine until the next state is ready.
+            task_iterator = run_until_receiver_has_value::<T, _>(task_iterator, |indicator| {
+                if let ProgressIndicator::CanProgress(Some(state)) = indicator {
+                    if matches!(
+                        state,
+                        State::SpawnFailed(_) | State::SpawnFinished(_) | State::Reschedule
+                    ) {
+                        false
+                    } else {
+                        tracing::debug!("Valtron: checker returned true for state={state:?}");
+                        true
+                    }
+                } else {
+                    false
+                }
+            });
+
+            tracing::debug!("Get the next value from inner iterator");
             let next_value = task_iterator.next();
+            tracing::debug!(
+                "Gotten next value from inner iterator: is_some: {}",
+                next_value.is_some()
+            );
 
             // if the next value is Some(_) then set back the
             // executor for the next call.
@@ -566,10 +745,17 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
+            tracing::debug!("Run: run_until_next_state");
+
             // execute the execution engine until the next state is ready.
             run_until_next_state();
 
+            tracing::debug!("Get the next value from inner iterator");
             let next_value = task_iterator.next();
+            tracing::debug!(
+                "Gotten next value from inner iterator: is_some: {}",
+                next_value.is_some()
+            );
 
             // if the next value is Some(_) then set back the
             // executor for the next call.

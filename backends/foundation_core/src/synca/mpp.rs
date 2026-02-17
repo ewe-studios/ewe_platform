@@ -296,6 +296,18 @@ pub struct StreamRecvIterator<D, P>(RecvIterator<Stream<D, P>>);
 
 impl<D, P> StreamRecvIterator<D, P> {
     #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+}
+
+impl<D, P> StreamRecvIterator<D, P> {
+    #[must_use]
     pub fn new(iter: RecvIterator<Stream<D, P>>) -> Self {
         Self(iter)
     }
