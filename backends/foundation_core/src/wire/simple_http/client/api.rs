@@ -16,18 +16,17 @@ use foundation_nostd::primitives::wait_duration;
 
 use crate::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
-use crate::synca::mpp::{RecvIterator, StreamRecvIterator};
-use crate::valtron::{self, BoxedSendExecutionAction, Stream, TaskStatus};
+use crate::synca::mpp::StreamRecvIterator;
+use crate::valtron::{self, Stream};
 use crate::wire::simple_http::client::{
-    ClientConfig, ClientRequestBuilder, ConnectionPool, DnsResolver, GetHttpRequestStreamTask,
-    HttpClientAction, HttpClientError, HttpRequestPending, HttpRequestTask, HttpStreamReady,
-    IncomingResponseMapper, PreparedRequest, RequestIntro, ResponseIntro,
+    ClientConfig, ConnectionPool, DnsResolver, GetHttpRequestStreamTask, HttpClientError,
+    HttpRequestPending, HttpRequestTask, HttpStreamReady, IncomingResponseMapper, PreparedRequest,
+    RequestIntro, ResponseIntro,
 };
 use crate::wire::simple_http::{
     HttpResponseReader, IncomingResponseParts, SimpleBody, SimpleHeaders, SimpleHttpBody,
     SimpleResponse,
 };
-use std::result::IntoIter;
 use std::sync::Arc;
 
 /// Internal state for progressive request reading.
@@ -206,6 +205,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         }
 
         loop {
+            tracing::debug!("Get next state");
             if let Some(val) = self.task_state.take() {
                 tracing::debug!("Running introduction process: {:?}", &val);
                 match val {
@@ -214,12 +214,18 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                         continue;
                     }
                     ClientRequestState::Executing(mut iter) => {
+                        tracing::debug!("Running execution state with iterator");
+
+                        valtron::run_until_next_state();
+
                         let Some(task_status) = iter.next() else {
+                            tracing::debug!("Execution state ends with failure");
                             self.task_state = Some(ClientRequestState::Completed);
                             return Err(HttpClientError::FailedExecution);
                         };
 
                         self.task_state = Some(ClientRequestState::Executing(iter));
+                        tracing::debug!("Set next state and check status");
 
                         match task_status {
                             Stream::Init | Stream::Ignore => continue,
@@ -376,7 +382,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                                     | IncomingResponseParts::Headers(_) => {
                                         return Err(HttpClientError::InvalidReadState);
                                     }
-                                    IncomingResponseParts::SKIP => continue,
+                                    IncomingResponseParts::SKIP => {}
                                     IncomingResponseParts::NoBody => {
                                         return Ok(SimpleBody::None);
                                     }
