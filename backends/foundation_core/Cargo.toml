@@ -55,12 +55,8 @@ tokio = { version = "1.44", features = ["sync", "time"], optional = true }
 
 [dev-dependencies]
 serial_test = { workspace = true }
-tracing-test = { version = "0.2.5" }
+tracing-test = { version = "0.2",  features = ["no-env-filter"] }
 reqwest = { version = "0.12.15", features = ["blocking"] }
-foundation_testing = { path = "../foundation_testing" }
-# Note: This is NOT a cyclical dependency - foundation_testing depends on
-# foundation_core (production), and foundation_core tests depend on foundation_testing (dev-only).
-# Dev-dependencies don't create cycles because they're only used for tests.
 
 [features]
 debug_trace = ["standard", "log_debug"]

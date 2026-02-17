@@ -10,8 +10,10 @@
 //! - **Native without `multi` feature**: Uses `single` executor
 //! - **Native with `multi` feature**: Uses `multi` executor
 
+#![allow(clippy::type_complexity)]
+
 use crate::synca::mpp::StreamRecvIterator;
-use crate::valtron::{single, ExecutionAction, ProgressIndicator, TaskIterator, TaskStatus};
+use crate::valtron::{single, ExecutionAction, ProgressIndicator, State, TaskIterator, TaskStatus};
 
 use crate::{synca::mpp::RecvIterator, valtron::GenericResult};
 
@@ -40,10 +42,46 @@ pub fn initialize_pool(seed_for_rng: u64, _user_thread_num: Option<usize>) {
     }
 }
 
+// ===========================================
+// Execution Methods
+// ===========================================
+
+/// [`run_until_next_state`] this is a no-op in multi-threaded situations (i.e multi feature flag is on), but
+/// under multi=off or wasm execution, this will  executing the execution engine until the next valid
+/// state is seen to indicate task has reported progress as [`State`].
+///
+/// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
+pub fn run_until_next_state() {
+    run_until(|indicator: ProgressIndicator| {
+        if let ProgressIndicator::CanProgress(Some(state)) = indicator {
+            tracing::debug!("Valtron: Seen new state value from state={state:?}");
+            true
+        } else {
+            false
+        }
+    });
+}
+
+/// [`run_until_ready_state`] this is a no-op in multi-threaded situations (i.e multi feature flag is on), but
+/// under multi=off or wasm execution, this will  executing the execution engine until the next valid
+/// state ready is seen to indicate task has reported progress as [`State::ReadyValue`].
+///
+/// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
+pub fn run_until_ready_state() {
+    run_until(|indicator: ProgressIndicator| {
+        if let ProgressIndicator::CanProgress(Some(State::ReadyValue(task_id))) = indicator {
+            tracing::debug!("Valtron: Seen ready value from task id={task_id:?}");
+            true
+        } else {
+            false
+        }
+    });
+}
+
 /// [`run_until`] provides a unified method to attempt to execute the `run_until`.
 /// in a non cfg way by encapsulating that call and configuration into this method.
 ///
-/// This really only apply for single threaded and wasm context.
+/// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
 pub fn run_until<T>(checker: T)
 where
     T: Fn(ProgressIndicator) -> bool,
@@ -51,30 +89,38 @@ where
     #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
     {
         use crate::valtron::single;
-        let _ = single::run_until(checker);
+
+        tracing::debug!("Executing as a single-threaded stream in no-wasm");
+        single::run_until(checker);
     }
 
     #[cfg(target_arch = "wasm32")]
     {
         use crate::valtron::single;
-        let _ = single::run_until(checker);
+
+        tracing::debug!("Executing as a single stream in wasm");
+        single::run_until(checker);
     }
 }
 
 /// [`run_until_complete`] provides a unified method to attempt to execute the `run_until_complete`.
 /// in a non cfg way by encapsulating that call and configuration into this method.
 ///
-/// This really only apply for single threaded and wasm context.
+/// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
 pub fn run_until_complete() {
     #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
     {
         use crate::valtron::single;
+
+        tracing::debug!("Executing as a single-threaded stream in no-wasm");
         single::run_until_complete();
     }
 
     #[cfg(target_arch = "wasm32")]
     {
         use crate::valtron::single;
+
+        tracing::debug!("Executing as a single stream in wasm");
         single::run_until_complete();
     }
 }
@@ -82,23 +128,24 @@ pub fn run_until_complete() {
 /// [`run_once`] provides a unified method to attempt to execute the `run_once`.
 /// in a non cfg way by encapsulating that call and configuration into this method.
 ///
-/// This really only apply for single threaded and wasm context.
+/// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
 pub fn run_once() {
     #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
     {
         use crate::valtron::single;
+
+        tracing::debug!("Executing as a single-threaded stream in no-wasm");
         let _ = single::run_once();
     }
 
     #[cfg(target_arch = "wasm32")]
     {
         use crate::valtron::single;
+
+        tracing::debug!("Executing as a single stream in wasm");
         let _ = single::run_once();
     }
 }
-
-// pub type RecvIter<T> = RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>;
-// pub type RecvIterResult<T> = GenericResult<RecvIter<T>>;
 
 /// Execute a task using the appropriate executor for the current platform/features.
 ///
@@ -132,6 +179,7 @@ where
 {
     #[cfg(target_arch = "wasm32")]
     {
+        tracing::debug!("Executing as a single stream in wasm");
         execute_single(task, wait_cycle)
     }
 
@@ -139,11 +187,13 @@ where
     {
         #[cfg(feature = "multi")]
         {
+            tracing::debug!("Executing as a multi-threaded stream in no-wasm");
             execute_multi(task, wait_cycle)
         }
 
         #[cfg(not(feature = "multi"))]
         {
+            tracing::debug!("Executing as a single-threaded stream in no-wasm");
             execute_single(task, wait_cycle)
         }
     }
@@ -166,6 +216,7 @@ where
 {
     #[cfg(target_arch = "wasm32")]
     {
+        tracing::debug!("Executing as a single stream in wasm");
         execute_single_stream(task, wait_cycle)
     }
 
@@ -173,40 +224,16 @@ where
     {
         #[cfg(feature = "multi")]
         {
+            tracing::debug!("Executing as a multi-threaded stream in no-wasm");
             execute_multi_stream(task, wait_cycle)
         }
 
         #[cfg(not(feature = "multi"))]
         {
+            tracing::debug!("Executing as a single-threaded stream in no-wasm");
             execute_single_stream(task, wait_cycle)
         }
     }
-}
-
-/// Execute using single-threaded executor.
-///
-/// WHY: WASM and minimal builds need single-threaded execution
-/// WHAT: Schedules task, runs until complete, returns first Ready value
-#[allow(clippy::type_complexity)]
-#[allow(dead_code)]
-fn execute_single_complete<T>(
-    task: T,
-    wait_cycle: Option<std::time::Duration>,
-) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
-where
-    T: TaskIterator + Send + 'static,
-    T::Ready: Send + 'static,
-    T::Spawner: ExecutionAction + Send + 'static,
-{
-    // Schedule task and get iterator
-    let iter = single::spawn()
-        .with_task(task)
-        .schedule_iter(wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE))?;
-
-    // Run executor until complete
-    single::run_until_complete();
-
-    Ok(iter)
 }
 
 /// Execute using single-threaded executor.
