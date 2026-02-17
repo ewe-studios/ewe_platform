@@ -221,6 +221,10 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                             return Err(HttpClientError::FailedExecution);
                         };
 
+                        tracing::debug!(
+                            "Resetting state before review of status after getting status"
+                        );
+
                         self.task_state = Some(ClientRequestState::Executing(iter));
                         tracing::debug!("Set next state and check status");
 
@@ -238,12 +242,20 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                                 continue;
                             }
                             Stream::Next(value) => {
+                                tracing::debug!(
+                                    "Stream::Next: Received next value state from stream"
+                                );
                                 if let RequestIntro::Success {
                                     stream,
                                     intro,
                                     headers,
                                 } = value
                                 {
+                                    tracing::debug!(
+                                        "RequestIntro::Success received response: intro={:?}",
+                                        intro
+                                    );
+
                                     self.task_state = Some(ClientRequestState::IntroReady(Some(
                                         Box::new(RequestIntro::Success {
                                             stream,
@@ -255,6 +267,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                                     return Ok((intro.into(), headers));
                                 }
 
+                                tracing::debug!("RequestIntro::Failed during execution");
                                 return Err(HttpClientError::FailedExecution);
                             }
                         }
@@ -342,10 +355,13 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// ```
     #[tracing::instrument(skip(self))]
     pub fn body(&mut self) -> Result<SimpleBody, HttpClientError> {
+        tracing::debug!("Requesting response body next");
         // Take the prepared request to avoid cloning
         let Some(state) = self.task_state.take() else {
             return Err(HttpClientError::InvalidRequestState);
         };
+
+        tracing::debug!("Reading request processing state: {state:?}");
 
         match state {
             ClientRequestState::NotStarted
@@ -359,7 +375,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                 ))
             }
 
-            ClientRequestState::IntroReady(mut state) => {
+            ClientRequestState::IntroReady(state) => {
                 tracing::info!("Pulling body from state");
 
                 // complete the state since we've finally requested for the body.
@@ -376,25 +392,41 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                         intro: _,
                         headers: _,
                     } => {
+                        tracing::info!("Seen RequestIntro::Success state and attmepting to read from response stream");
+
                         for next_value in stream {
                             match next_value {
-                                Ok(next_res) => match next_res {
-                                    IncomingResponseParts::Intro(_, _, _)
-                                    | IncomingResponseParts::Headers(_) => {
-                                        return Err(HttpClientError::InvalidReadState);
+                                Ok(next_res) => {
+                                    match next_res {
+                                        IncomingResponseParts::Intro(_, _, _)
+                                        | IncomingResponseParts::Headers(_) => {
+                                            tracing::debug!("IncomingResponseParts::Intro or Headers invalid state");
+                                            return Err(HttpClientError::InvalidReadState);
+                                        }
+                                        IncomingResponseParts::SKIP => {
+                                            tracing::debug!("IncomingResponseParts::Skip seen");
+                                        }
+                                        IncomingResponseParts::NoBody => {
+                                            tracing::debug!("IncomingResponseParts::NoBody seen");
+                                            return Ok(SimpleBody::None);
+                                        }
+                                        IncomingResponseParts::SizedBody(inner)
+                                        | IncomingResponseParts::StreamedBody(inner) => {
+                                            tracing::debug!(
+                                                "IncomingResponseParts::Sized/Streamed body seen"
+                                            );
+                                            return Ok(inner);
+                                        }
                                     }
-                                    IncomingResponseParts::SKIP => {}
-                                    IncomingResponseParts::NoBody => {
-                                        return Ok(SimpleBody::None);
-                                    }
-                                    IncomingResponseParts::SizedBody(inner)
-                                    | IncomingResponseParts::StreamedBody(inner) => {
-                                        return Ok(inner);
-                                    }
-                                },
-                                Err(err) => return Err(HttpClientError::ReaderError(err)),
+                                }
+                                Err(err) => {
+                                    tracing::debug!("Body retrieved failed with error: {err:?}");
+                                    return Err(HttpClientError::ReaderError(err));
+                                }
                             }
                         }
+
+                        tracing::debug!("Body retrieved failed and exhausted attempts");
                         Err(HttpClientError::FailedToReadBody)
                     }
                 }
@@ -456,10 +488,6 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// HOW: Wraps internal `TaskIterator`, drives executor on each `next()` call,
     /// translates `TaskStatus` to `IncomingResponseParts`.
     ///
-    /// # Returns
-    ///
-    /// Iterator yielding `Result<IncomingResponseParts, HttpClientError>`.
-    ///
     /// # Examples
     ///
     /// ```ignore
@@ -478,6 +506,11 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     ///     }
     /// }
     /// ```
+    ///
+    /// # Returns
+    ///
+    /// Iterator yielding `Result<IncomingResponseParts, HttpClientError>`.
+    ///
     #[tracing::instrument(skip(self))]
     pub fn parts(
         mut self,

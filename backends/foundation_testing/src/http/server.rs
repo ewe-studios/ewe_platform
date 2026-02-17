@@ -147,7 +147,7 @@ impl TestHttpServer {
     /// use foundation_testing::http::TestHttpServer;
     ///
     /// let server = TestHttpServer::start();
-    /// println!("Server running at: {}", server.url("/"));
+    /// tracing::info!("Server running at: {}", server.url("/"));
     /// ```
     #[must_use]
     pub fn start() -> Self {
@@ -204,12 +204,12 @@ impl TestHttpServer {
             while running_clone.load(Ordering::Relaxed) {
                 match listener.accept() {
                     Ok((stream, sock_addr)) => {
-                        println!("Got a client connection: {sock_addr:?}");
+                        tracing::info!("Got a client connection: {sock_addr:?}");
                         let handler = Arc::clone(&handler_clone);
                         // Handle each connection in separate thread
                         thread::spawn(move || {
                             if let Err(e) = Self::handle_connection(stream, &handler) {
-                                eprintln!("TestHttpServer connection error: {e}");
+                                tracing::info!("TestHttpServer connection error: {e}");
                             }
                         });
                     }
@@ -218,7 +218,7 @@ impl TestHttpServer {
                         thread::sleep(std::time::Duration::from_millis(10));
                     }
                     Err(e) => {
-                        eprintln!("TestHttpServer accept error: {e}");
+                        tracing::info!("TestHttpServer accept error: {e}");
                         break;
                     }
                 }
@@ -278,12 +278,12 @@ impl TestHttpServer {
         let mut reader = BufReader::new(stream.try_clone()?);
         let mut request_line = String::new();
 
-        println!("Read a line on connection!");
+        tracing::info!("Read a line on connection!");
 
         reader.read_line(&mut request_line)?;
 
         let parts: Vec<&str> = request_line.split_whitespace().collect();
-        println!("Got parts: {:?}", &parts);
+        tracing::info!("Got parts: {:?}", &parts);
         if parts.len() < 3 {
             return Err("Invalid HTTP request line".into());
         }
@@ -307,7 +307,7 @@ impl TestHttpServer {
             }
         }
 
-        println!("Got request");
+        tracing::info!("Got request");
         let request = HttpRequest {
             method,
             path,
@@ -322,11 +322,11 @@ impl TestHttpServer {
         };
 
         // Send response
-        println!("render response");
+        tracing::info!("render response");
         let rendered = response.render();
         stream.write_all(&rendered)?;
         stream.flush()?;
-        println!("flush response");
+        tracing::info!("flush response");
 
         Ok(())
     }
