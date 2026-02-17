@@ -145,7 +145,7 @@ impl TlsUpgradeAction {
     /// * `connection` - The TCP connection to upgrade to TLS
     /// * `sni` - Server Name Indication (hostname for TLS)
     /// * `on_complete` - Endpoint to send result when TLS handshake completes
-    #[must_use] 
+    #[must_use]
     pub fn new(
         connection: Connection,
         sni: String,
@@ -229,7 +229,7 @@ where
 mod tests {
     use super::*;
     use crate::wire::simple_http::client::dns::MockDnsResolver;
-    use crate::wire::simple_http::client::ClientRequestBuilder;
+    use crate::wire::simple_http::client::{ClientRequestBuilder, StaticSocketAddr};
 
     // ========================================================================
     // RedirectAction Tests
@@ -239,9 +239,12 @@ mod tests {
     /// WHAT: Tests that new() creates action with expected initial state
     #[test]
     fn test_redirect_action_new() {
-        let request = ClientRequestBuilder::get("http://example.com")
-            .unwrap()
-            .build();
+        let request = ClientRequestBuilder::get(
+            StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+            "http://example.com",
+        )
+        .unwrap()
+        .build();
         let resolver = MockDnsResolver::new();
 
         let action = RedirectAction::new(request, resolver, 5, None);
@@ -254,9 +257,12 @@ mod tests {
     /// WHAT: Tests that RedirectAction implements ExecutionAction trait
     #[test]
     fn test_redirect_action_is_execution_action() {
-        let request = ClientRequestBuilder::get("http://example.com")
-            .unwrap()
-            .build();
+        let request = ClientRequestBuilder::get(
+            StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+            "http://example.com",
+        )
+        .unwrap()
+        .build();
         let resolver = MockDnsResolver::new();
 
         let action = RedirectAction::new(request, resolver, 3, None);
@@ -269,9 +275,12 @@ mod tests {
     /// WHAT: Tests that calling apply() multiple times doesn't cause issues
     #[test]
     fn test_redirect_action_apply_idempotent() {
-        let request = ClientRequestBuilder::get("http://example.com")
-            .unwrap()
-            .build();
+        let request = ClientRequestBuilder::get(
+            StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+            "http://example.com",
+        )
+        .unwrap()
+        .build();
         let resolver = MockDnsResolver::new();
 
         let mut action = RedirectAction::new(request, resolver, 3, None);
@@ -342,9 +351,12 @@ mod tests {
     /// WHAT: Tests that Redirect variant wraps RedirectAction properly
     #[test]
     fn test_http_client_action_redirect() {
-        let request = ClientRequestBuilder::get("http://example.com")
-            .unwrap()
-            .build();
+        let request = ClientRequestBuilder::get(
+            StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+            "http://example.com",
+        )
+        .unwrap()
+        .build();
         let resolver = MockDnsResolver::new();
 
         let redirect_action = RedirectAction::new(request, resolver, 3, None);

@@ -4,6 +4,7 @@ use crate::extensions::result_ext::{BoxedError, SendableBoxedError};
 use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
 use crate::io::ioutils::{self, ByteBufferPointer, SharedByteBufferStream};
 use crate::io::ubytes::{self};
+use crate::netcap::SocketAddr;
 use crate::valtron::{
     BoxedResultIterator, BoxedSendableIterator, CloneableFn, SendVecIterator, StringBoxedIterator,
     TransformIterator,
@@ -1689,6 +1690,9 @@ pub struct SimpleIncomingRequest {
     pub body: Option<SimpleBody>,
     pub headers: SimpleHeaders,
     pub method: SimpleMethod,
+    pub host_address: Option<String>,
+    pub host_port: Option<u16>,
+    pub socket_addrs: Option<Vec<SocketAddr>>,
 }
 
 impl SimpleIncomingRequest {
@@ -1715,6 +1719,9 @@ pub struct SimpleIncomingRequestBuilder {
     body: Option<SimpleBody>,
     method: Option<SimpleMethod>,
     headers: Option<SimpleHeaders>,
+    host_address: Option<String>,
+    host_port: Option<u16>,
+    socket_addrs: Option<Vec<SocketAddr>>,
 }
 
 impl SimpleIncomingRequestBuilder {
@@ -1725,6 +1732,44 @@ impl SimpleIncomingRequestBuilder {
 
     pub fn with_parsed_url<S: Into<String>>(mut self, url: S) -> Self {
         self.url = Some(SimpleUrl::url_with_query(url.into()));
+        self
+    }
+
+    #[must_use]
+    pub fn with_socket_addrs(mut self, socket_address: Vec<SocketAddr>) -> Self {
+        self.socket_addrs = Some(socket_address);
+        self
+    }
+
+    #[must_use]
+    pub fn with_socket_addr(mut self, socket_address: std::net::SocketAddr) -> Self {
+        if let Some(addresses) = &mut self.socket_addrs {
+            addresses.push(SocketAddr::Tcp(socket_address));
+        } else {
+            self.socket_addrs = Some(vec![SocketAddr::Tcp(socket_address)]);
+        }
+        self
+    }
+
+    #[must_use]
+    pub fn with_socket_address(mut self, socket_address: SocketAddr) -> Self {
+        if let Some(addresses) = &mut self.socket_addrs {
+            addresses.push(socket_address);
+        } else {
+            self.socket_addrs = Some(vec![socket_address]);
+        }
+        self
+    }
+
+    #[must_use]
+    pub fn with_port(mut self, port: u16) -> Self {
+        self.host_port = Some(port);
+        self
+    }
+
+    #[must_use]
+    pub fn with_address(mut self, address: String) -> Self {
+        self.host_address = Some(address);
         self
     }
 
@@ -1804,7 +1849,7 @@ impl SimpleIncomingRequestBuilder {
     ///
     /// # Errors
     /// Returns an error if the URL is not provided or if building fails.
-    pub fn build(self) -> SimpleRequestResult<SimpleIncomingRequest> {
+    pub fn build(mut self) -> SimpleRequestResult<SimpleIncomingRequest> {
         let request_url = match self.url {
             Some(inner) => inner,
             None => return Err(SimpleRequestError::NoURLProvided),
@@ -1848,6 +1893,9 @@ impl SimpleIncomingRequestBuilder {
 
         Ok(SimpleIncomingRequest {
             body: Some(body),
+            host_port: self.host_port.take(),
+            host_address: self.host_address.take(),
+            socket_addrs: self.socket_addrs.take(),
             proto,
             request_url,
             method,

@@ -5,8 +5,146 @@
 
 use crate::{
     synca::mpp::{RecvIterator, Stream, StreamRecvIterator},
-    valtron::{executors::unified, ExecutionAction, TaskIterator, TaskStatus},
+    valtron::{ExecutionAction, ProgressIndicator, State, TaskIterator, TaskStatus},
 };
+
+// ===========================================
+// Pool initializers
+// ===========================================
+
+/// [`initialize_pool`] provides a unified method to initialize the underlying
+/// thread pool for both the single and multi-threaded instances.
+pub fn initialize_pool(seed_for_rng: u64, _user_thread_num: Option<usize>) {
+    #[cfg(target_arch = "wasm32")]
+    {
+        single::initialize_pool(seed_for_rng);
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        #[cfg(feature = "multi")]
+        {
+            use crate::valtron::multi;
+            multi::initialize_pool(seed_for_rng, _user_thread_num);
+        }
+
+        #[cfg(not(feature = "multi"))]
+        {
+            use crate::valtron::single;
+            single::initialize_pool(seed_for_rng);
+        }
+    }
+}
+
+// ===========================================
+// Runner Methods
+// ===========================================
+
+/// [`run_until_next_state`] this is a no-op in multi-threaded situations (i.e multi feature flag is on), but
+/// under multi=off or wasm execution, this will  executing the execution engine until the next valid
+/// state is seen to indicate task has reported progress as [`State`].
+///
+/// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
+#[tracing::instrument()]
+pub fn run_until_next_state() {
+    run_until(|indicator: ProgressIndicator| {
+        if let ProgressIndicator::CanProgress(Some(state)) = indicator {
+            tracing::debug!("Valtron: Seen new state value from state={state:?}");
+            true
+        } else {
+            false
+        }
+    });
+}
+
+/// [`run_until_ready_state`] this is a no-op in multi-threaded situations (i.e multi feature flag is on), but
+/// under multi=off or wasm execution, this will  executing the execution engine until the next valid
+/// state ready is seen to indicate task has reported progress as [`State::ReadyValue`].
+///
+/// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
+#[tracing::instrument()]
+pub fn run_until_ready_state() {
+    run_until(|indicator: ProgressIndicator| {
+        if let ProgressIndicator::CanProgress(Some(State::ReadyValue(task_id))) = indicator {
+            tracing::debug!("Valtron: Seen ready value from task id={task_id:?}");
+            true
+        } else {
+            false
+        }
+    });
+}
+
+/// [`run_until`] provides a unified method to attempt to execute the `run_until`.
+/// in a non cfg way by encapsulating that call and configuration into this method.
+///
+/// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
+#[tracing::instrument(skip(checker))]
+pub fn run_until<T>(checker: T)
+where
+    T: Fn(ProgressIndicator) -> bool,
+{
+    #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
+    {
+        use crate::valtron::single;
+
+        tracing::debug!("Executing as a single-threaded stream in no-wasm");
+        single::run_until(checker);
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        use crate::valtron::single;
+
+        tracing::debug!("Executing as a single stream in wasm");
+        single::run_until(checker);
+    }
+}
+
+/// [`run_until_complete`] provides a unified method to attempt to execute the `run_until_complete`.
+/// in a non cfg way by encapsulating that call and configuration into this method.
+///
+/// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
+#[tracing::instrument()]
+pub fn run_until_complete() {
+    #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
+    {
+        use crate::valtron::single;
+
+        tracing::debug!("Executing as a single-threaded stream in no-wasm");
+        single::run_until_complete();
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        use crate::valtron::single;
+
+        tracing::debug!("Executing as a single stream in wasm");
+        single::run_until_complete();
+    }
+}
+
+/// [`run_once`] provides a unified method to attempt to execute the `run_once`.
+/// in a non cfg way by encapsulating that call and configuration into this method.
+///
+/// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
+#[tracing::instrument()]
+pub fn run_once() {
+    #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
+    {
+        use crate::valtron::single;
+
+        tracing::debug!("Executing as a single-threaded stream in no-wasm");
+        let _ = single::run_once();
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        use crate::valtron::single;
+
+        tracing::debug!("Executing as a single stream in wasm");
+        let _ = single::run_once();
+    }
+}
 
 // ===========================================
 // Iterator execution methods
@@ -17,6 +155,7 @@ use crate::{
 /// calls the execution methods in the situations of single threaded
 /// or wasm context will auto-drive the execution engine.
 #[must_use]
+#[tracing::instrument(skip(incoming))]
 pub fn drive_non_send_iterator<T>(incoming: T) -> DrivenNonSendTaskIterator<T>
 where
     T: TaskIterator + 'static,
@@ -32,6 +171,7 @@ where
 /// calls the execution methods in the situations of single threaded
 /// or wasm context will auto-drive the execution engine.
 #[must_use]
+#[tracing::instrument(skip(incoming))]
 pub fn drive_iterator<T>(incoming: T) -> DrivenSendTaskIterator<T>
 where
     T: TaskIterator + Send + 'static,
@@ -47,6 +187,7 @@ where
 /// calls the execution methods in the situations of single threaded
 /// or wasm context will auto-drive the execution engine.
 #[must_use]
+#[tracing::instrument(skip(incoming))]
 pub fn drive_non_send_receiver<T>(
     incoming: RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>,
 ) -> DrivenNonSendRecvIterator<T>
@@ -64,6 +205,7 @@ where
 /// calls the execution methods in the situations of single threaded
 /// or wasm context will auto-drive the execution engine.
 #[must_use]
+#[tracing::instrument(skip(incoming))]
 pub fn drive_receiver<T>(
     incoming: RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>,
 ) -> DrivenRecvIterator<T>
@@ -81,6 +223,7 @@ where
 /// calls the execution methods in the situations of single threaded
 /// or wasm context will auto-drive the execution engine.
 #[must_use]
+#[tracing::instrument(skip(incoming))]
 pub fn drive_non_send_stream<T>(
     incoming: StreamRecvIterator<T::Ready, T::Pending>,
 ) -> DrivenNonSendStreamIterator<T>
@@ -98,6 +241,7 @@ where
 /// calls the execution methods in the situations of single threaded
 /// or wasm context will auto-drive the execution engine.
 #[must_use]
+#[tracing::instrument(skip(incoming))]
 pub fn drive_stream<T>(
     incoming: StreamRecvIterator<T::Ready, T::Pending>,
 ) -> DrivenStreamIterator<T>
@@ -146,7 +290,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
             // execute the execution engine until the next state is ready.
-            unified::run_until_next_state();
+            run_until_next_state();
 
             let next_value = task_iterator.next();
 
@@ -182,6 +326,15 @@ where
     }
 }
 
+unsafe impl<T> Send for DrivenSendTaskIterator<T>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+}
+
 impl<T> Iterator for DrivenSendTaskIterator<T>
 where
     T: TaskIterator + Send + 'static,
@@ -194,7 +347,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
             // execute the execution engine until the next state is ready.
-            unified::run_until_next_state();
+            run_until_next_state();
 
             let next_value = task_iterator.next();
 
@@ -243,7 +396,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
             // execute the execution engine until the next state is ready.
-            unified::run_until_next_state();
+            run_until_next_state();
 
             let next_value = task_iterator.next();
 
@@ -280,6 +433,15 @@ where
     }
 }
 
+unsafe impl<T> Send for DrivenStreamIterator<T>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+}
+
 impl<T> Iterator for DrivenStreamIterator<T>
 where
     T: TaskIterator + Send + 'static,
@@ -292,7 +454,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
             // execute the execution engine until the next state is ready.
-            unified::run_until_next_state();
+            run_until_next_state();
 
             let next_value = task_iterator.next();
 
@@ -331,6 +493,17 @@ where
     }
 }
 
+// This is safe to send since it contains a type [`RecvIterator`]
+// which is safe to send.
+unsafe impl<T> Send for DrivenRecvIterator<T>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+}
+
 impl<T> Iterator for DrivenRecvIterator<T>
 where
     T: TaskIterator + Send + 'static,
@@ -343,7 +516,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
             // execute the execution engine until the next state is ready.
-            unified::run_until_next_state();
+            run_until_next_state();
 
             let next_value = task_iterator.next();
 
@@ -394,7 +567,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
             // execute the execution engine until the next state is ready.
-            unified::run_until_next_state();
+            run_until_next_state();
 
             let next_value = task_iterator.next();
 

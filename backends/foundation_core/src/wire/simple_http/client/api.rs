@@ -16,12 +16,11 @@ use foundation_nostd::primitives::wait_duration;
 
 use crate::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
-use crate::synca::mpp::StreamRecvIterator;
-use crate::valtron::{self, Stream};
+use crate::valtron::{self, DrivenStreamIterator, Stream};
 use crate::wire::simple_http::client::{
     ClientConfig, ConnectionPool, DnsResolver, GetHttpRequestStreamTask, HttpClientError,
-    HttpRequestPending, HttpRequestTask, HttpStreamReady, IncomingResponseMapper, PreparedRequest,
-    RequestIntro, ResponseIntro,
+    HttpRequestTask, HttpStreamReady, IncomingResponseMapper, PreparedRequest, RequestIntro,
+    ResponseIntro,
 };
 use crate::wire::simple_http::{
     HttpResponseReader, IncomingResponseParts, SimpleBody, SimpleHeaders, SimpleHttpBody,
@@ -40,18 +39,18 @@ use std::sync::Arc;
 ///
 /// HOW: Transitions from `NotStarted` -> Executing -> Completed. Executing state
 /// holds all intermediate data needed for progressive reading.
-enum ClientRequestState {
+enum ClientRequestState<R: DnsResolver + 'static> {
     /// Request hasn't been executed yet
     NotStarted,
     /// Request is currently executing or has partial results
-    Executing(StreamRecvIterator<RequestIntro, HttpRequestPending>),
+    Executing(Box<DrivenStreamIterator<HttpRequestTask<R>>>),
     /// Now we've acquired the necessary request introduction and reader.
-    IntroReady(RequestIntro),
+    IntroReady(Option<Box<RequestIntro>>),
     /// Request completed (terminal state)
     Completed,
 }
 
-impl core::fmt::Debug for ClientRequestState {
+impl<R: DnsResolver + 'static> core::fmt::Debug for ClientRequestState<R> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Completed => write!(f, "Completed"),
@@ -111,7 +110,7 @@ pub struct ClientRequest<R: DnsResolver + 'static> {
     /// Connection pool for reuse
     pool: Option<Arc<ConnectionPool>>,
     /// Internal state machine for progressive reading
-    task_state: Option<ClientRequestState>,
+    task_state: Option<ClientRequestState<R>>,
     /// Stream for body reading and pool return
     stream: Option<SharedByteBufferStream<RawStream>>,
     /// Host for pool return
@@ -192,8 +191,8 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// ```
     #[tracing::instrument(skip(self))]
     pub fn introduction(&mut self) -> Result<(ResponseIntro, SimpleHeaders), HttpClientError> {
-        if let Some(ClientRequestState::IntroReady(inner)) = &self.task_state {
-            return match inner {
+        if let Some(ClientRequestState::IntroReady(Some(inner))) = &self.task_state {
+            return match inner.as_ref() {
                 RequestIntro::Success {
                     #[allow(unused)]
                     stream,
@@ -215,8 +214,6 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                     }
                     ClientRequestState::Executing(mut iter) => {
                         tracing::debug!("Running execution state with iterator");
-
-                        valtron::run_until_next_state();
 
                         let Some(task_status) = iter.next() else {
                             tracing::debug!("Execution state ends with failure");
@@ -247,13 +244,13 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                                     headers,
                                 } = value
                                 {
-                                    self.task_state = Some(ClientRequestState::IntroReady(
-                                        RequestIntro::Success {
+                                    self.task_state = Some(ClientRequestState::IntroReady(Some(
+                                        Box::new(RequestIntro::Success {
                                             stream,
                                             intro: intro.clone(),
                                             headers: headers.clone(),
-                                        },
-                                    ));
+                                        }),
+                                    )));
 
                                     return Ok((intro.into(), headers));
                                 }
@@ -306,11 +303,11 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         );
 
         // Spawn task via execute_task
-        let iter = valtron::execute_stream(task, None)
+        let iter: DrivenStreamIterator<HttpRequestTask<R>> = valtron::execute_stream(task, None)
             .map_err(|e| HttpClientError::Other(format!("Failed to spawn task: {e}").into()))?;
 
         // Transition to Executing state
-        self.task_state = Some(ClientRequestState::Executing(iter));
+        self.task_state = Some(ClientRequestState::Executing(Box::new(iter)));
 
         Ok(())
     }
@@ -362,13 +359,17 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                 ))
             }
 
-            ClientRequestState::IntroReady(state) => {
+            ClientRequestState::IntroReady(mut state) => {
                 tracing::info!("Pulling body from state");
 
                 // complete the state since we've finally requested for the body.
                 self.task_state = Some(ClientRequestState::Completed);
 
-                match state {
+                let Some(request_intro) = state else {
+                    return Err(HttpClientError::FailedExecution);
+                };
+
+                match *request_intro {
                     RequestIntro::Failed(err) => Err(HttpClientError::ReaderError(err)),
                     RequestIntro::Success {
                         stream,
@@ -596,7 +597,9 @@ impl<R: DnsResolver + 'static> Drop for ClientRequest<R> {
 #[cfg(test)]
 mod api_tests {
     use super::*;
-    use crate::wire::simple_http::client::{ClientRequestBuilder, MockDnsResolver};
+    use crate::wire::simple_http::client::{
+        ClientRequestBuilder, MockDnsResolver, StaticSocketAddr,
+    };
 
     // ========================================================================
     // ClientRequest Construction Tests
@@ -606,9 +609,12 @@ mod api_tests {
     /// WHAT: Tests that constructor initializes correctly
     #[test]
     fn test_client_request_new() {
-        let prepared = ClientRequestBuilder::get("http://example.com")
-            .unwrap()
-            .build();
+        let prepared = ClientRequestBuilder::get(
+            StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+            "http://example.com",
+        )
+        .unwrap()
+        .build();
         let resolver = MockDnsResolver::new();
         let config = ClientConfig::default();
 
