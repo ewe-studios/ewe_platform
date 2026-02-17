@@ -1,7 +1,7 @@
 ---
 feature: tls-verification
 description: Verify and fix TLS module to ensure all SSL backends work correctly with proper feature gating
-status: completed
+status: pending
 priority: high
 depends_on:
   - valtron-utilities

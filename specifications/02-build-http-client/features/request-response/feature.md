@@ -1,7 +1,7 @@
 ---
 feature: request-response
 description: Request builder (ClientRequestBuilder), response types (ResponseIntro), and prepared request structure
-status: completed
+status: pending
 priority: high
 depends_on:
   - foundation
