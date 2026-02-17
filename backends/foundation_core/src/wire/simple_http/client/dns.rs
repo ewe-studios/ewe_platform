@@ -25,6 +25,34 @@ pub trait DnsResolver: Send + Sync + Clone {
     fn resolve(&self, host: &str, port: u16) -> Result<Vec<SocketAddr>, DnsError>;
 }
 
+/// StaticSocketAddrResolver returns a static `std::net::ToSocketAddrs`.
+///
+/// Useful for testing scenarios where a specific IP address is required.
+#[derive(Debug, Clone)]
+pub struct StaticSocketAddr(std::net::SocketAddr);
+
+impl Default for StaticSocketAddr {
+    /// Creates a new `StaticSocketAddr` with default values.
+    /// It returns the localhost address as default.
+    fn default() -> Self {
+        Self(std::net::SocketAddr::from(([127, 0, 0, 1], 80)))
+    }
+}
+
+impl StaticSocketAddr {
+    /// Creates a new system DNS resolver.
+    #[must_use]
+    pub fn new(addr: SocketAddr) -> Self {
+        Self(addr)
+    }
+}
+
+impl DnsResolver for StaticSocketAddr {
+    fn resolve(&self, _host: &str, _port: u16) -> Result<Vec<SocketAddr>, DnsError> {
+        Ok(vec![self.0])
+    }
+}
+
 /// System DNS resolver using `std::net::ToSocketAddrs`.
 ///
 /// This is the default resolver that uses the system's DNS resolver.

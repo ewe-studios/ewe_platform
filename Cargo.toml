@@ -50,6 +50,7 @@ infrastructure_llama_cpp = { path = "./infrastructure/llama-cpp", version = "0.0
 
 # --- foundation crates
 foundation_macros = { path = "./backends/foundation_macros", version = "0.0.4" }
+foundation_testing = { path = "./backends/foundation_testing", version = "0.0.1" }
 foundation_nostd = { path = "./backends/foundation_nostd", version = "0.0.4" }
 foundation_wasm = { path = "./backends/foundation_wasm", version = "0.0.2" }
 foundation_core = { path = "./backends/foundation_core", version = "0.0.3" }
@@ -85,7 +86,7 @@ derive_more = { version = ">=2.0", features = ["full"] }
 tracing = { version = "0.1" }
 tracing-core = { version = "0.1" }
 
-thiserror = { version = "2"} 
+thiserror = { version = "2"}
 
 # specific for testing serially
 serial_test = "0.6.0"
@@ -100,8 +101,8 @@ encoding_rs = { version = "0.8.35" }
 tracing-subscriber = { version = "0.3", features = ["json"] }
 
 [workspace.lints.rust]
-missing_docs = { level = "allow" } 
-missing_debug_implementations = { level = "allow" } 
+missing_docs = { level = "allow" }
+missing_debug_implementations = { level = "allow" }
 
 [workspace.lints.clippy]
 pedantic = { level = "warn" }
@@ -116,4 +117,3 @@ opt-level = 0
 lto = true # link time optimizations
 # Enable to remove debug info from wasm files
 strip = "debuginfo"
-

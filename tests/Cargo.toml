@@ -9,6 +9,18 @@ path = "mod.rs"
 
 [dependencies]
 foundation_nostd = { workspace = true }
-foundation_testing = { path = "../backends/foundation_testing" }
+foundation_core = { workspace = true }
+foundation_testing = { workspace = true }
+
+tracing = { workspace = true}
 
 [dev-dependencies]
+serial_test = { workspace = true }
+tracing-test = { version = "0.2.5",  features = ["no-env-filter"] }
+reqwest = { version = "0.13", features = ["blocking"] }
+
+[features]
+std = ["foundation_core/std"]
+multi = ["foundation_core/multi"]
+alloc = ["foundation_core/alloc"]
+default  = ["std"]

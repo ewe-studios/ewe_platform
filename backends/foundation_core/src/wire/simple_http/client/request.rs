@@ -4,8 +4,10 @@
 //! - `PreparedRequest` - Internal type holding all request data
 //! - `ClientRequestBuilder` - Fluent API for building requests
 
+use crate::netcap::SocketAddr;
 use crate::wire::simple_http::client::connection::ParsedUrl;
 use crate::wire::simple_http::client::errors::HttpClientError;
+use crate::wire::simple_http::client::DnsResolver;
 use crate::wire::simple_http::{
     Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
     SimpleUrl,
@@ -22,6 +24,7 @@ pub struct PreparedRequest {
     pub url: ParsedUrl,
     pub headers: SimpleHeaders,
     pub body: SendSafeBody,
+    pub socket_addrs: Vec<SocketAddr>,
 }
 
 impl PreparedRequest {
@@ -46,6 +49,7 @@ impl PreparedRequest {
             .with_method(self.method)
             .with_proto(Proto::HTTP11)
             .with_headers(self.headers)
+            .with_socket_addrs(self.socket_addrs)
             .with_some_body(Some(self.body.into()))
             .build()
             .map_err(|e| HttpClientError::Other(Box::new(e)))?;
@@ -73,14 +77,16 @@ impl PreparedRequest {
 ///     .body_text("{\"key\": \"value\"}")
 ///     .build();
 /// ```
-pub struct ClientRequestBuilder {
+pub struct ClientRequestBuilder<R: DnsResolver + 'static> {
     method: SimpleMethod,
     url: ParsedUrl,
+    resolver: R,
     headers: SimpleHeaders,
     body: Option<SendSafeBody>,
+    socket_addrs: Option<Vec<SocketAddr>>,
 }
 
-impl ClientRequestBuilder {
+impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     /// Creates a new request builder with the given method and URL.
     ///
     /// # Arguments
@@ -94,12 +100,18 @@ impl ClientRequestBuilder {
     ///
     /// # Errors
     ///
+    ///
+    /// # Panics
+    ///
+    /// If the relevant socket address is not valid or provided.
+    ///
     /// Returns `HttpClientError` if the URL is invalid.
-    pub fn new(method: SimpleMethod, url: &str) -> Result<Self, HttpClientError> {
+    pub fn new(resolver: R, method: SimpleMethod, url: &str) -> Result<Self, HttpClientError> {
         let parsed_url = ParsedUrl::parse(url)?;
         let mut headers = BTreeMap::new();
 
         // Add required Host header
+        let host_port = parsed_url.port_or_default();
         let host_str = parsed_url
             .host_str()
             .ok_or_else(|| HttpClientError::InvalidUrl("Missing host in URL".to_string()))?;
@@ -107,15 +119,22 @@ impl ClientRequestBuilder {
         let host = if parsed_url.port().is_some() {
             format!("{}:{}", host_str, parsed_url.port_or_default())
         } else {
-            host_str
+            host_str.clone()
         };
         headers.insert(SimpleHeader::HOST, vec![host]);
 
+        let socket_addrs = resolver
+            .resolve(host_str.as_str(), host_port)
+            .map(|addrs| addrs.into_iter().map(SocketAddr::Tcp).collect())
+            .map_err(HttpClientError::DnsError)?;
+
         Ok(Self {
             method,
-            url: parsed_url,
             headers,
+            resolver,
+            url: parsed_url,
             body: None,
+            socket_addrs: Some(socket_addrs),
         })
     }
 
@@ -125,6 +144,7 @@ impl ClientRequestBuilder {
     ///
     /// * `key` - Header name
     /// * `value` - Header value
+    #[must_use]
     pub fn header(mut self, key: SimpleHeader, value: impl Into<String>) -> Self {
         self.headers.entry(key).or_default().push(value.into());
         self
@@ -141,6 +161,12 @@ impl ClientRequestBuilder {
         self
     }
 
+    #[must_use]
+    pub fn socket_addrs(mut self, addrs: Vec<SocketAddr>) -> Self {
+        self.socket_addrs = Some(addrs);
+        self
+    }
+
     /// Sets the body as plain text.
     ///
     /// Automatically sets Content-Type to text/plain if not already set.
@@ -148,6 +174,7 @@ impl ClientRequestBuilder {
     /// # Arguments
     ///
     /// * `text` - Text content
+    #[must_use]
     pub fn body_text(mut self, text: impl Into<String>) -> Self {
         let text_string = text.into();
         let content_length = text_string.len().to_string();
@@ -264,6 +291,7 @@ impl ClientRequestBuilder {
             url: self.url,
             headers: self.headers,
             body: self.body.unwrap_or(SendSafeBody::None),
+            socket_addrs: self.socket_addrs.expect("Expected socket addr"),
         }
     }
 
@@ -278,8 +306,8 @@ impl ClientRequestBuilder {
     /// # Errors
     ///
     /// Returns `HttpClientError` if the URL is invalid.
-    pub fn get(url: &str) -> Result<Self, HttpClientError> {
-        Self::new(SimpleMethod::GET, url)
+    pub fn get(resolver: R, url: &str) -> Result<Self, HttpClientError> {
+        Self::new(resolver, SimpleMethod::GET, url)
     }
 
     /// Creates a POST request builder.
@@ -291,8 +319,8 @@ impl ClientRequestBuilder {
     /// # Errors
     ///
     /// Returns `HttpClientError` if the URL is invalid.
-    pub fn post(url: &str) -> Result<Self, HttpClientError> {
-        Self::new(SimpleMethod::POST, url)
+    pub fn post(resolver: R, url: &str) -> Result<Self, HttpClientError> {
+        Self::new(resolver, SimpleMethod::POST, url)
     }
 
     /// Creates a PUT request builder.
@@ -304,8 +332,8 @@ impl ClientRequestBuilder {
     /// # Errors
     ///
     /// Returns `HttpClientError` if the URL is invalid.
-    pub fn put(url: &str) -> Result<Self, HttpClientError> {
-        Self::new(SimpleMethod::PUT, url)
+    pub fn put(resolver: R, url: &str) -> Result<Self, HttpClientError> {
+        Self::new(resolver, SimpleMethod::PUT, url)
     }
 
     /// Creates a DELETE request builder.
@@ -317,8 +345,8 @@ impl ClientRequestBuilder {
     /// # Errors
     ///
     /// Returns `HttpClientError` if the URL is invalid.
-    pub fn delete(url: &str) -> Result<Self, HttpClientError> {
-        Self::new(SimpleMethod::DELETE, url)
+    pub fn delete(resolver: R, url: &str) -> Result<Self, HttpClientError> {
+        Self::new(resolver, SimpleMethod::DELETE, url)
     }
 
     /// Creates a PATCH request builder.
@@ -330,8 +358,8 @@ impl ClientRequestBuilder {
     /// # Errors
     ///
     /// Returns `HttpClientError` if the URL is invalid.
-    pub fn patch(url: &str) -> Result<Self, HttpClientError> {
-        Self::new(SimpleMethod::PATCH, url)
+    pub fn patch(resolver: R, url: &str) -> Result<Self, HttpClientError> {
+        Self::new(resolver, SimpleMethod::PATCH, url)
     }
 
     /// Creates a HEAD request builder.
@@ -343,8 +371,8 @@ impl ClientRequestBuilder {
     /// # Errors
     ///
     /// Returns `HttpClientError` if the URL is invalid.
-    pub fn head(url: &str) -> Result<Self, HttpClientError> {
-        Self::new(SimpleMethod::HEAD, url)
+    pub fn head(resolver: R, url: &str) -> Result<Self, HttpClientError> {
+        Self::new(resolver, SimpleMethod::HEAD, url)
     }
 
     /// Creates an OPTIONS request builder.
@@ -356,20 +384,27 @@ impl ClientRequestBuilder {
     /// # Errors
     ///
     /// Returns `HttpClientError` if the URL is invalid.
-    pub fn options(url: &str) -> Result<Self, HttpClientError> {
-        Self::new(SimpleMethod::OPTIONS, url)
+    pub fn options(resolver: R, url: &str) -> Result<Self, HttpClientError> {
+        Self::new(resolver, SimpleMethod::OPTIONS, url)
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::wire::simple_http::client::StaticSocketAddr;
+
     use super::*;
 
     /// WHY: Verify ClientRequestBuilder::new creates builder
     /// WHAT: Tests that new creates a request builder with URL and method
     #[test]
     fn test_client_request_builder_new() {
-        let builder = ClientRequestBuilder::new(SimpleMethod::GET, "http://example.com").unwrap();
+        let builder = ClientRequestBuilder::new(
+            StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+            SimpleMethod::GET,
+            "http://example.com",
+        )
+        .unwrap();
         assert_eq!(builder.url.host_str().unwrap(), "example.com");
         assert_eq!(builder.url.port_or_default(), 80);
         assert!(matches!(builder.method, SimpleMethod::GET));
@@ -379,7 +414,11 @@ mod tests {
     /// WHAT: Tests that invalid URLs return error
     #[test]
     fn test_client_request_builder_new_invalid_url() {
-        let result = ClientRequestBuilder::new(SimpleMethod::GET, "not a url");
+        let result = ClientRequestBuilder::new(
+            StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+            SimpleMethod::GET,
+            "not a url",
+        );
         assert!(result.is_err());
     }
 
@@ -387,9 +426,12 @@ mod tests {
     /// WHAT: Tests that header method adds header to request
     #[test]
     fn test_client_request_builder_header() {
-        let builder = ClientRequestBuilder::get("http://example.com")
-            .unwrap()
-            .header(SimpleHeader::CONTENT_TYPE, "application/json");
+        let builder = ClientRequestBuilder::get(
+            StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+            "http://example.com",
+        )
+        .unwrap()
+        .header(SimpleHeader::CONTENT_TYPE, "application/json");
 
         assert!(builder.headers.contains_key(&SimpleHeader::CONTENT_TYPE));
         assert_eq!(
@@ -402,9 +444,12 @@ mod tests {
     /// WHAT: Tests that body_text sets body and content headers
     #[test]
     fn test_client_request_builder_body_text() {
-        let builder = ClientRequestBuilder::post("http://example.com")
-            .unwrap()
-            .body_text("Hello, World!");
+        let builder = ClientRequestBuilder::post(
+            StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+            "http://example.com",
+        )
+        .unwrap()
+        .body_text("Hello, World!");
 
         assert!(matches!(builder.body, Some(SendSafeBody::Text(_))));
         assert!(builder.headers.contains_key(&SimpleHeader::CONTENT_LENGTH));
@@ -415,9 +460,12 @@ mod tests {
     /// WHAT: Tests that body_bytes sets body and content headers
     #[test]
     fn test_client_request_builder_body_bytes() {
-        let builder = ClientRequestBuilder::post("http://example.com")
-            .unwrap()
-            .body_bytes(vec![1, 2, 3, 4]);
+        let builder = ClientRequestBuilder::post(
+            StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+            "http://example.com",
+        )
+        .unwrap()
+        .body_bytes(vec![1, 2, 3, 4]);
 
         assert!(matches!(builder.body, Some(SendSafeBody::Bytes(_))));
         assert!(builder.headers.contains_key(&SimpleHeader::CONTENT_LENGTH));
@@ -436,10 +484,13 @@ mod tests {
             key: "value".to_string(),
         };
 
-        let builder = ClientRequestBuilder::post("http://example.com")
-            .unwrap()
-            .body_json(&data)
-            .unwrap();
+        let builder = ClientRequestBuilder::post(
+            StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+            "http://example.com",
+        )
+        .unwrap()
+        .body_json(&data)
+        .unwrap();
 
         assert!(matches!(builder.body, Some(SendSafeBody::Text(_))));
         if let Some(SendSafeBody::Text(json)) = &builder.body {
@@ -457,9 +508,12 @@ mod tests {
             ("key2".to_string(), "value2".to_string()),
         ];
 
-        let builder = ClientRequestBuilder::post("http://example.com")
-            .unwrap()
-            .body_form(&params);
+        let builder = ClientRequestBuilder::post(
+            StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+            "http://example.com",
+        )
+        .unwrap()
+        .body_form(&params);
 
         assert!(matches!(builder.body, Some(SendSafeBody::Text(_))));
         if let Some(SendSafeBody::Text(form)) = &builder.body {
@@ -472,7 +526,8 @@ mod tests {
     /// WHAT: Tests that build consumes builder and creates prepared request
     #[test]
     fn test_client_request_builder_build() {
-        let prepared = ClientRequestBuilder::get("http://example.com")
+        let resolver = StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80)));
+        let prepared = ClientRequestBuilder::get(resolver, "http://example.com")
             .unwrap()
             .build();
 
@@ -485,25 +540,53 @@ mod tests {
     /// WHAT: Tests get, post, put, delete, patch, head, options methods
     #[test]
     fn test_client_request_builder_convenience_methods() {
-        let get = ClientRequestBuilder::get("http://example.com").unwrap();
+        let get = ClientRequestBuilder::get(
+            StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+            "http://example.com",
+        )
+        .unwrap();
         assert!(matches!(get.method, SimpleMethod::GET));
 
-        let post = ClientRequestBuilder::post("http://example.com").unwrap();
+        let post = ClientRequestBuilder::post(
+            StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+            "http://example.com",
+        )
+        .unwrap();
         assert!(matches!(post.method, SimpleMethod::POST));
 
-        let put = ClientRequestBuilder::put("http://example.com").unwrap();
+        let put = ClientRequestBuilder::put(
+            StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+            "http://example.com",
+        )
+        .unwrap();
         assert!(matches!(put.method, SimpleMethod::PUT));
 
-        let delete = ClientRequestBuilder::delete("http://example.com").unwrap();
+        let delete = ClientRequestBuilder::delete(
+            StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+            "http://example.com",
+        )
+        .unwrap();
         assert!(matches!(delete.method, SimpleMethod::DELETE));
 
-        let patch = ClientRequestBuilder::patch("http://example.com").unwrap();
+        let patch = ClientRequestBuilder::patch(
+            StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+            "http://example.com",
+        )
+        .unwrap();
         assert!(matches!(patch.method, SimpleMethod::PATCH));
 
-        let head = ClientRequestBuilder::head("http://example.com").unwrap();
+        let head = ClientRequestBuilder::head(
+            StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+            "http://example.com",
+        )
+        .unwrap();
         assert!(matches!(head.method, SimpleMethod::HEAD));
 
-        let options = ClientRequestBuilder::options("http://example.com").unwrap();
+        let options = ClientRequestBuilder::options(
+            StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+            "http://example.com",
+        )
+        .unwrap();
         assert!(matches!(options.method, SimpleMethod::OPTIONS));
     }
 
@@ -511,14 +594,22 @@ mod tests {
     /// WHAT: Tests that Host header is set from URL
     #[test]
     fn test_client_request_builder_auto_host_header() {
-        let builder = ClientRequestBuilder::get("http://example.com").unwrap();
+        let builder = ClientRequestBuilder::get(
+            StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+            "http://example.com",
+        )
+        .unwrap();
         assert!(builder.headers.contains_key(&SimpleHeader::HOST));
         assert_eq!(
             builder.headers.get(&SimpleHeader::HOST).unwrap()[0],
             "example.com"
         );
 
-        let builder2 = ClientRequestBuilder::get("http://example.com:8080").unwrap();
+        let builder2 = ClientRequestBuilder::get(
+            StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+            "http://example.com:8080",
+        )
+        .unwrap();
         assert_eq!(
             builder2.headers.get(&SimpleHeader::HOST).unwrap()[0],
             "example.com:8080"
@@ -529,9 +620,12 @@ mod tests {
     /// WHAT: Tests that prepared request can be converted to SimpleIncomingRequest
     #[test]
     fn test_prepared_request_into_simple_incoming_request() {
-        let prepared = ClientRequestBuilder::get("http://example.com/path")
-            .unwrap()
-            .build();
+        let prepared = ClientRequestBuilder::get(
+            StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+            "http://example.com/path",
+        )
+        .unwrap()
+        .build();
 
         let simple_request = prepared.into_simple_incoming_request().unwrap();
         assert_eq!(simple_request.method, SimpleMethod::GET);
@@ -542,9 +636,12 @@ mod tests {
     /// WHAT: Tests that query strings are preserved
     #[test]
     fn test_prepared_request_with_query() {
-        let prepared = ClientRequestBuilder::get("http://example.com/path?foo=bar")
-            .unwrap()
-            .build();
+        let prepared = ClientRequestBuilder::get(
+            StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+            "http://example.com/path?foo=bar",
+        )
+        .unwrap()
+        .build();
 
         let simple_request = prepared.into_simple_incoming_request().unwrap();
         assert!(simple_request.request_url.url.contains("?foo=bar"));

@@ -12,140 +12,14 @@
 
 #![allow(clippy::type_complexity)]
 
-use crate::synca::mpp::StreamRecvIterator;
-use crate::valtron::{single, ExecutionAction, ProgressIndicator, State, TaskIterator, TaskStatus};
+use crate::valtron::{
+    drive_receiver, drive_stream, single, DrivenRecvIterator, DrivenStreamIterator,
+    ExecutionAction, TaskIterator,
+};
 
-use crate::{synca::mpp::RecvIterator, valtron::GenericResult};
+use crate::valtron::GenericResult;
 
 pub const DEFAULT_WAIT_CYCLE: std::time::Duration = std::time::Duration::from_millis(10);
-
-/// [`initialize_pool`] provides a unified method to initialize the underlying
-/// thread pool for both the single and multi-threaded instances.
-pub fn initialize_pool(seed_for_rng: u64, _user_thread_num: Option<usize>) {
-    #[cfg(target_arch = "wasm32")]
-    {
-        single::initialize_pool(seed_for_rng);
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        #[cfg(feature = "multi")]
-        {
-            use crate::valtron::multi;
-            multi::initialize_pool(seed_for_rng, _user_thread_num);
-        }
-
-        #[cfg(not(feature = "multi"))]
-        {
-            single::initialize_pool(seed_for_rng);
-        }
-    }
-}
-
-// ===========================================
-// Execution Methods
-// ===========================================
-
-/// [`run_until_next_state`] this is a no-op in multi-threaded situations (i.e multi feature flag is on), but
-/// under multi=off or wasm execution, this will  executing the execution engine until the next valid
-/// state is seen to indicate task has reported progress as [`State`].
-///
-/// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
-pub fn run_until_next_state() {
-    run_until(|indicator: ProgressIndicator| {
-        if let ProgressIndicator::CanProgress(Some(state)) = indicator {
-            tracing::debug!("Valtron: Seen new state value from state={state:?}");
-            true
-        } else {
-            false
-        }
-    });
-}
-
-/// [`run_until_ready_state`] this is a no-op in multi-threaded situations (i.e multi feature flag is on), but
-/// under multi=off or wasm execution, this will  executing the execution engine until the next valid
-/// state ready is seen to indicate task has reported progress as [`State::ReadyValue`].
-///
-/// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
-pub fn run_until_ready_state() {
-    run_until(|indicator: ProgressIndicator| {
-        if let ProgressIndicator::CanProgress(Some(State::ReadyValue(task_id))) = indicator {
-            tracing::debug!("Valtron: Seen ready value from task id={task_id:?}");
-            true
-        } else {
-            false
-        }
-    });
-}
-
-/// [`run_until`] provides a unified method to attempt to execute the `run_until`.
-/// in a non cfg way by encapsulating that call and configuration into this method.
-///
-/// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
-pub fn run_until<T>(checker: T)
-where
-    T: Fn(ProgressIndicator) -> bool,
-{
-    #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
-    {
-        use crate::valtron::single;
-
-        tracing::debug!("Executing as a single-threaded stream in no-wasm");
-        single::run_until(checker);
-    }
-
-    #[cfg(target_arch = "wasm32")]
-    {
-        use crate::valtron::single;
-
-        tracing::debug!("Executing as a single stream in wasm");
-        single::run_until(checker);
-    }
-}
-
-/// [`run_until_complete`] provides a unified method to attempt to execute the `run_until_complete`.
-/// in a non cfg way by encapsulating that call and configuration into this method.
-///
-/// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
-pub fn run_until_complete() {
-    #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
-    {
-        use crate::valtron::single;
-
-        tracing::debug!("Executing as a single-threaded stream in no-wasm");
-        single::run_until_complete();
-    }
-
-    #[cfg(target_arch = "wasm32")]
-    {
-        use crate::valtron::single;
-
-        tracing::debug!("Executing as a single stream in wasm");
-        single::run_until_complete();
-    }
-}
-
-/// [`run_once`] provides a unified method to attempt to execute the `run_once`.
-/// in a non cfg way by encapsulating that call and configuration into this method.
-///
-/// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
-pub fn run_once() {
-    #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
-    {
-        use crate::valtron::single;
-
-        tracing::debug!("Executing as a single-threaded stream in no-wasm");
-        let _ = single::run_once();
-    }
-
-    #[cfg(target_arch = "wasm32")]
-    {
-        use crate::valtron::single;
-
-        tracing::debug!("Executing as a single stream in wasm");
-        let _ = single::run_once();
-    }
-}
 
 /// Execute a task using the appropriate executor for the current platform/features.
 ///
@@ -166,11 +40,52 @@ pub fn run_once() {
 ///
 /// WHY: Provides single API that works across all platforms/configurations
 /// WHAT: Auto-selects executor based on compile-time configuration
-#[allow(clippy::type_complexity)]
+///
+/// This function selects the correct executor at compile time:
+/// - On `wasm32` targets it uses the single-threaded executor.
+/// - On native targets without the `multi` feature it uses the single-threaded executor.
+/// - On native targets with the `multi` feature it uses the multi-threaded executor.
+///
+/// # Arguments
+///
+/// - `task`: The task to execute. It must implement the [`TaskIterator`] trait and satisfy the
+///   required `Send + 'static` bounds for the selected executor.
+/// - `wait_cycle`: Optional polling/wait duration used by the executor when creating the iterator.
+///   If `None` the function uses [`DEFAULT_WAIT_CYCLE`].
+///
+/// # Returns
+///
+/// Returns a [`GenericResult`] wrapping a [`RecvIterator`] over [`TaskStatus`]. On success the
+/// `Ok` variant contains an iterator that yields `TaskStatus::Ready` / `TaskStatus::Pending`
+/// values produced by the scheduled task. On error the `Err` variant contains an error from the
+/// underlying scheduling/spawn operation.
+///
+/// # Errors
+///
+/// This function returns an error if scheduling the task with the chosen executor fails. Possible
+/// reasons include executor initialization issues or errors returned by the spawn builder
+/// (`schedule_iter` implementation). The concrete error type is the one used by [`GenericResult`]
+/// in this crate and will contain additional context about the failure.
+///
+/// # Panics
+///
+/// This function does not panic under normal operation. However, panics can occur if:
+/// - The provided task implementation panics when polled or when executed by the executor.
+/// - The underlying executor implementation or thread pool panics internally.
+/// In general, avoid panics in task implementations to prevent terminating worker threads or the
+/// host process.
+///
+/// # Type bounds
+///
+/// The required trait bounds ensure the task and produced values are safe to send between
+/// threads when the multi-threaded executor is selected.
+///
+/// WHY: Provides single API that works across all platforms/configurations
+/// WHAT: Auto-selects executor based on compile-time configuration
 pub fn execute<T>(
     task: T,
     wait_cycle: Option<std::time::Duration>,
-) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
+) -> GenericResult<DrivenRecvIterator<T>>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
@@ -199,15 +114,71 @@ where
     }
 }
 
-/// [`execute_stream`] unlike [`execute`] returns a [`StreamIterator`]
-/// which hides away the underlying mechanics of dealing with a [`TaskStatus`]
-/// with a type of [`ExecutionIterator`] which will properly manage the different
-/// task status, sending the needed spawn events to the executor as needed and
-/// providing a simpler representation of the results for the caller.
+/// [`execute_stream`] unlike [`execute`] returns a [`StreamRecvIterator`]
+/// which hides the underlying mechanics of handling [`TaskStatus`]. The stream
+/// iterator will internally manage different task states, send any required
+/// spawn events to the executor as tasks request additional work, and present a
+/// simpler, higher-level sequence of produced values to the caller.
+///
+/// This function follows the same platform/feature selection as [`execute`]:
+/// - On `wasm32` targets it uses the single-threaded executor.
+/// - On native targets without the `multi` feature it uses the single-threaded executor.
+/// - On native targets with the `multi` feature it uses the multi-threaded executor.
+///
+/// # Arguments
+///
+/// - `task`: The task to execute. Must implement [`TaskIterator`] and satisfy the
+///   required `Send + 'static` bounds for the selected executor.
+/// - `wait_cycle`: Optional polling/wait duration used by the executor when
+///   creating the stream iterator. If `None`, the function uses
+///   [`DEFAULT_WAIT_CYCLE`]. This value controls how long the executor will
+///   wait/poll between checks for task progress in single-threaded modes
+///   (and may be used by multi-threaded executors to control scheduling
+///   behavior).
+///
+/// # Returns
+///
+/// Returns a [`GenericResult`] wrapping a [`StreamRecvIterator`] over the task's
+/// produced values. On success the `Ok` variant contains a stream-style
+/// iterator that yields ready values (and may represent pending/ready events
+/// internally). On error the `Err` variant contains an error from the
+/// underlying scheduling/spawn operation.
+///
+/// # Errors
+///
+/// This function returns an error if scheduling the task with the chosen
+/// executor fails. Possible reasons include:
+/// - Executor or thread pool initialization problems.
+/// - Errors returned by the spawn/schedule builder used by the executor
+///   (for example failures constructing the iterator).
+/// The concrete error type is the one used by [`GenericResult`] in this crate
+/// and will contain additional context about the failure.
+///
+/// # Panics
+///
+/// This function does not intentionally panic. However, panics may occur if:
+/// - The provided task implementation panics while being polled or executed by
+///   the executor.
+/// - The underlying executor implementation or thread pool panics internally.
+/// Avoid panics in task implementations to prevent terminating worker threads
+/// or the host process.
+///
+/// # Type bounds
+///
+/// The required trait bounds ensure the task and produced values are safe to
+/// send between threads when the multi-threaded executor is selected:
+/// - `T: TaskIterator + Send + 'static`
+/// - `T::Ready: Send + 'static`
+/// - `T::Pending: Send + 'static`
+/// - `T::Spawner: ExecutionAction + Send + 'static`
+///
+/// WHY: Provides single API that works across all platforms/configurations.
+/// WHAT: Auto-selects executor based on compile-time configuration and returns a
+/// higher-level stream iterator that simplifies consuming produced values.
 pub fn execute_stream<T>(
     task: T,
     wait_cycle: Option<std::time::Duration>,
-) -> GenericResult<StreamRecvIterator<T::Ready, T::Pending>>
+) -> GenericResult<DrivenStreamIterator<T>>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
@@ -244,10 +215,11 @@ where
 fn execute_single<T>(
     task: T,
     wait_cycle: Option<std::time::Duration>,
-) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
+) -> GenericResult<DrivenRecvIterator<T>>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
     T::Spawner: ExecutionAction + Send + 'static,
 {
     // Schedule task and get iterator
@@ -255,7 +227,7 @@ where
         .with_task(task)
         .schedule_iter(wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE))?;
 
-    Ok(iter)
+    Ok(drive_receiver(iter))
 }
 
 /// Execute using single-threaded executor returning a stream iterator.
@@ -266,10 +238,11 @@ where
 fn execute_single_stream<T>(
     task: T,
     wait_cycle: Option<std::time::Duration>,
-) -> GenericResult<StreamRecvIterator<T::Ready, T::Pending>>
+) -> GenericResult<DrivenStreamIterator<T>>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
     T::Spawner: ExecutionAction + Send + 'static,
 {
     // Schedule task and get iterator
@@ -277,7 +250,7 @@ where
         .with_task(task)
         .scheduled_stream_iter(wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE))?;
 
-    Ok(iter)
+    Ok(drive_stream(iter))
 }
 
 /// Execute using multi-threaded executor.
@@ -288,7 +261,7 @@ where
 fn execute_multi<T>(
     task: T,
     wait_cycle: Option<std::time::Duration>,
-) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
+) -> GenericResult<DrivenRecvIterator<T>>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
@@ -302,7 +275,7 @@ where
         .with_task(task)
         .schedule_iter(wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE))?;
 
-    Ok(iter)
+    Ok(drive_receiver(iter))
 }
 
 /// Execute using multi-threaded executor.
@@ -313,7 +286,7 @@ where
 fn execute_multi_stream<T>(
     task: T,
     wait_cycle: Option<std::time::Duration>,
-) -> GenericResult<StreamRecvIterator<T::Ready, T::Pending>>
+) -> GenericResult<DrivenStreamIterator<T>>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
@@ -327,136 +300,5 @@ where
         .with_task(task)
         .stream_iter(wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE))?;
 
-    Ok(iter)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::valtron::{initialize_pool, NoAction, TaskStatus};
-
-    /// Simple test task that yields a single value
-    struct SimpleTask {
-        value: Option<i32>,
-    }
-
-    impl TaskIterator for SimpleTask {
-        type Pending = ();
-        type Ready = i32;
-        type Spawner = NoAction;
-
-        fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-            self.value.take().map(TaskStatus::Ready)
-        }
-    }
-
-    /// WHY: execute() must work on WASM (single executor only)
-    /// WHAT: Function compiles and has correct signature for WASM
-    #[test]
-    #[cfg(target_arch = "wasm32")]
-    fn test_execute_available_on_wasm() {
-        let task = SimpleTask { value: Some(42) };
-        // Just verify it compiles on WASM
-        // Actual execution would require a WASM runtime
-        initialize_pool(20, None);
-
-        let values_iter = ReadyValues::new(execute(task, None).expect("should create task"));
-        let values: Vec<i32> = values_iter.flat_map(|item| item.inner()).collect();
-        assert_eq!(values, vec![42]);
-    }
-
-    /// WHY: execute() must work on native without multi feature (single executor)
-    /// where we run get the next ready value by executing  single::run_once when
-    /// executing in multi featured=off secrenario, we can call `single::run_once`
-    /// multiple times to get the task to make progress and check the values of `values_iter.next()`
-    /// to get the next status of the tasks, sometimes we may not even care about pending, and delayed and ]
-    /// only ready  `TaskStatus` and other times we might, but `single::run_once` in a
-    /// single threaded context ensures it makes progress before we pull the relevant result.
-    /// The nice part of this is we can use this in a single threaded context to pull just enough
-    /// result for our computation before making more progress for the task.
-    ///
-    /// WHAT: Function compiles and uses single executor and  gets next value with
-    /// single::run_once())
-    #[test]
-    #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
-    fn test_execute_uses_single_on_native_without_multi_with_run_once() {
-        // Just verify compilation - actual execution requires runtime
-
-        use crate::valtron::single;
-        use crate::valtron::ReadyValues;
-
-        let task = SimpleTask { value: Some(42) };
-
-        // never call this in code, user will call this themsevles
-        // in the main function but we do this here since its a test
-        initialize_pool(20, None);
-
-        let mut values_iter = ReadyValues::new(execute(task, None).expect("should create task"));
-
-        let _ = single::run_once();
-
-        let value = values_iter.next();
-        let inner = value.expect("get inner").inner();
-
-        assert_eq!(inner, Some(42));
-    }
-
-    /// WHY: execute() must work on native without multi feature (single executor)
-    /// where the result should all be ready fully before we read it all out.
-    /// WHAT: Function compiles and uses single executor
-    #[test]
-    #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
-    fn test_execute_uses_single_on_native_without_multi() {
-        // Just verify compilation - actual execution requires runtime
-
-        use crate::valtron::single;
-        use crate::valtron::ReadyValues;
-
-        let task = SimpleTask { value: Some(42) };
-
-        // never call this in code, user will call this themsevles
-        // in the main function but we do this here since its a test
-        initialize_pool(20, None);
-
-        let values_iter = ReadyValues::new(execute(task, None).expect("should create task"));
-
-        single::run_until_complete();
-
-        let values: Vec<i32> = values_iter.filter_map(|item| item.inner()).collect();
-        assert_eq!(values, vec![42]);
-    }
-
-    /// WHY: execute() must work on native with multi feature (multi executor)
-    /// WHAT: Function compiles and uses multi executor
-    #[test]
-    #[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
-    fn test_execute_uses_multi_on_native_with_feature() {
-        // Just verify compilation - actual execution requires runtime
-
-        use crate::valtron::ReadyValues;
-
-        initialize_pool(20, None);
-
-        let task = SimpleTask { value: Some(42) };
-        let values_iter = ReadyValues::new(execute(task, None).expect("should create task"));
-        let values: Vec<i32> = values_iter
-            .flat_map(|item: crate::valtron::ReadyValue<_>| item.inner())
-            .collect();
-        assert_eq!(values, vec![42]);
-    }
-
-    /// WHY: execute() signature must match TaskIterator trait requirements
-    /// WHAT: Verify Send + 'static bounds are correct
-    #[test]
-    fn test_execute_signature_accepts_task_iterator() {
-        // This is a compile-time test
-        fn _assert_compiles<T>(_task: T)
-        where
-            T: TaskIterator + Send + 'static,
-            T::Ready: Send + 'static,
-            T::Spawner: ExecutionAction + Send + 'static,
-        {
-            // execute() should accept this
-        }
-    }
+    Ok(drive_stream(iter))
 }
