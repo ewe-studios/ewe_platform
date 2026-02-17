@@ -1,7 +1,7 @@
 ---
 feature: connection
 description: URL parsing, TCP connection establishment, and TLS upgrade with full HTTPS/TLS support
-status: completed
+status: pending
 priority: high
 depends_on:
   - foundation

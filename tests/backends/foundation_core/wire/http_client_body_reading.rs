@@ -11,7 +11,7 @@
 
 use foundation_core::valtron;
 use foundation_core::wire::simple_http::client::{
-    ClientConfig, ClientRequest, ClientRequestBuilder, SystemDnsResolver,
+    ClientConfig, ClientRequest, ClientRequestBuilder, StaticSocketAddr, SystemDnsResolver,
 };
 use foundation_core::wire::simple_http::SimpleBody;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
@@ -30,7 +30,11 @@ fn test_body_reading_with_introduction_and_body() {
 
     // Build request
     let url = server.url("/test");
-    let builder = ClientRequestBuilder::get(&url).unwrap();
+    let builder = ClientRequestBuilder::get(
+        StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+        &url,
+    )
+    .unwrap();
     let prepared = builder.build();
 
     // Create request with system resolver
@@ -170,7 +174,11 @@ fn test_send_returns_complete_response_with_body() {
 
     // Build request
     let url = server.url("/send");
-    let builder = ClientRequestBuilder::get(&url).unwrap();
+    let builder = ClientRequestBuilder::get(
+        StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+        &url,
+    )
+    .unwrap();
     let prepared = builder.build();
 
     // Create request
@@ -228,7 +236,11 @@ fn test_large_body_reading() {
 
     // Build request
     let url = server.url("/large");
-    let builder = ClientRequestBuilder::get(&url).unwrap();
+    let builder = ClientRequestBuilder::get(
+        StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
+        &url,
+    )
+    .unwrap();
     let prepared = builder.build();
 
     // Create request

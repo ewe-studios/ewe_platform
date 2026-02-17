@@ -1,7 +1,7 @@
 ---
 feature: valtron-utilities
 description: Reusable ExecutionAction types, unified executor wrapper, state machine helpers, Future adapter, and retry/timeout wrappers
-status: completed
+status: pending
 priority: high
 depends_on: []
 estimated_effort: medium
