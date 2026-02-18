@@ -1,14 +1,14 @@
-//! Implementation of a duration-waiting function that uses std::thread::park_timeout
+//! Implementation of a duration-waiting function that uses `std::thread::park_timeout`
 //! when the std feature is enabled and a spin loop when it's disabled.
 //!
 //! This module provides a function that waits for a specified duration, using
 //! the appropriate implementation based on the presence of the std feature.
 //!
-//! When the std feature is enabled, it uses std::thread::park_timeout for efficient
+//! When the std feature is enabled, it uses `std::thread::park_timeout` for efficient
 //! waiting with low CPU usage.
 //!
 //! When the std feature is disabled, it uses a spin loop with exponential backoff
-//! to wait for the duration, which is suitable for no_std environments.
+//! to wait for the duration, which is suitable for `no_std` environments.
 //!
 //! # Examples
 //!
@@ -24,7 +24,7 @@ use core::time::Duration;
 
 /// Waits for the specified duration.
 ///
-/// This function waits for the given duration, using std::thread::park_timeout
+/// This function waits for the given duration, using `std::thread::park_timeout`
 /// when the std feature is enabled and a spin loop when it's disabled.
 ///
 /// # Arguments

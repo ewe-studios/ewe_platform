@@ -410,7 +410,36 @@ where
 
     /// [`Reading`] reads the introduction information from (Status + Headers) from the connection.
     Reading(DrivenRecvIterator<GetRequestIntroTask>),
-    // TODO: implement state for redirection where response indicates we should reconnect to another server
+    /*
+    TODO (public-api): Implement redirect handling state and transitions.
+
+    Rationale:
+    - Some HTTP responses (3xx) include a Location header that requires the
+      client to reconnect to a different endpoint. The current `Reading`
+      state must be able to transition to an explicit redirect-handling state
+      rather than leaving inline `TODO` comments which block verification.
+    - The implementation must respect `max_redirects` passed into the task
+      and map failures to appropriate `HttpClientError` variants.
+
+    Action items (small, testable steps):
+    - [ ] Add a `Redirecting` variant to `HttpRequestTaskState`, for example:
+          `Redirecting { attempts: u8, location: ParsedUrl, inner: Option<...> }`
+    - [ ] On detecting a redirect during `Reading`, transition to `Redirecting`
+          and spawn/connect to the new target as required, incrementing attempts.
+    - [ ] Ensure `max_redirects` limits are enforced and produce a clear error
+          when exceeded.
+    - [ ] Add unit tests that exercise:
+          - single redirect followed by success
+          - multiple redirects up to `max_redirects`
+          - invalid Location header handling
+    - [ ] Document the flow and add a spec-linked comment pointing to:
+          `specifications/02-build-http-client/features/public-api/feature.md`
+
+    Note: Keep the initial implementation conservative — add the state variant and
+    a simple transition path that is easy to test. More advanced behavior
+    (e.g., relative-URL resolution edge-cases, method rewriting) can be
+    implemented in follow-up tasks.
+    */
 }
 
 pub struct HttpRequestTask<R>(Option<HttpRequestTaskState<R>>)

@@ -37,10 +37,20 @@ pub type ConfigResult<T> = std::result::Result<T, ConfigError>;
 /// `value_from_path` returns the regular `toml::Value` object which implements the
 /// `serde::DeserializeOwned` trait which allows you to directly manipulate the value object
 /// instead of a defined type.
+///
+/// # Errors
+///
+/// Returns `ConfigError` if reading the configuration file fails or the TOML
+/// content cannot be parsed into a `toml::Value`.
 pub fn value_from_path<V: Into<std::path::PathBuf>>(target: V) -> ConfigResult<toml::Value> {
     from_path(target)
 }
 
+/// # Errors
+///
+/// Returns `ConfigError` if:
+/// - the file cannot be read from disk, or
+/// - the file contents cannot be deserialized into the requested type `T`.
 pub fn from_path<T, V>(target: V) -> ConfigResult<T>
 where
     T: DeserializeOwned,

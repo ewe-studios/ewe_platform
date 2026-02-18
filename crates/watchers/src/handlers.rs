@@ -40,6 +40,12 @@ pub type NotifyWatcher = notify_debouncer_full::Debouncer<
 
 pub struct WatchHandle<T>(pub JoinHandle<T>, pub NotifyWatcher);
 
+/// Creates a debounced notify watcher for the given `target_path`.
+///
+/// # Errors
+///
+/// Returns an error if the underlying notify debouncer fails to be created
+/// or if adding the watch to the underlying watcher fails.
 pub fn create_notify_watcher(
     target_path: &path::Path,
     debounce: u64,
@@ -57,6 +63,12 @@ pub fn create_notify_watcher(
     Ok(watcher)
 }
 
+/// Create and run a watcher for the given configuration.
+///
+/// # Errors
+///
+/// Returns an error if the underlying notify watcher cannot be created or
+/// initialized (propagates errors from `create_notify_watcher`).
 pub fn watch_path(
     config: crate::config::Watcher,
     handler: crate::watcher::ChangeHandler,
@@ -92,6 +104,18 @@ pub fn watch_path(
 
 type ExecResult<T> = std::result::Result<T, anyhow::Error>;
 
+/// Execute a configured command description.
+///
+/// # Panics
+///
+/// This function will panic if `command.command` is empty because it calls
+/// `first().unwrap()` to obtain the command binary.
+///
+/// # Errors
+///
+/// Returns an error if spawning or executing the command fails, or if the
+/// command completes with a non-success status that is considered a failure
+/// by `CommandExpectation`.
 pub fn execute_command(mut command: config::CommandDescription) -> ExecResult<()> {
     let command_binary = command.command.first().unwrap().clone();
     let command_arguments = command.command.split_off(1);
@@ -139,6 +163,11 @@ pub fn execute_command(mut command: config::CommandDescription) -> ExecResult<()
     }
 }
 
+/// Execute all configured commands for the provided watcher.
+///
+/// # Errors
+///
+/// Returns an error if any individual command execution returns an error.
 pub fn execute_commands(watcher: &config::Watcher) -> ExecResult<()> {
     if let Some(watcher_commands) = watcher.commands() {
         for command in watcher_commands {
