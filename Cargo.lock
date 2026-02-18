@@ -1431,9 +1431,12 @@ name = "foundation_testing"
 version = "0.0.1"
 dependencies = [
  "criterion",
+ "derive_more",
  "foundation_core",
  "foundation_nostd",
+ "serial_test",
  "tracing",
+ "tracing-test",
 ]
 
 [[package]]

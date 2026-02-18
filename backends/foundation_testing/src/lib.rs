@@ -54,10 +54,12 @@
 
 pub mod http;
 pub mod metrics;
+pub mod netcap;
 pub mod scenarios;
 pub mod stress;
 
 // Re-export commonly used items
 pub use http::TestHttpServer;
 pub use metrics::{Metrics, PerformanceReport};
+pub use netcap::TestHTTPActionServer;
 pub use stress::{StressConfig, StressHarness, StressResult};

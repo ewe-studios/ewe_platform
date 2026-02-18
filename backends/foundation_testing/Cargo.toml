@@ -15,9 +15,15 @@ categories = ["development-tools::testing"]
 foundation_nostd = { workspace = true, features = ["std"] }
 foundation_core = { workspace = true }
 tracing = { workspace = true }
+derive_more = { workspace = true }
 
 # Criterion for benchmarking (only allowed external dependency for testing)
 criterion = { version = "0.5", features = ["html_reports"] }
+
+[dev-dependencies]
+serial_test = { workspace = true }
+tracing-test = { version = "0.2.5",  features = ["no-env-filter"] }
+
 
 [features]
 default = ["std"]
