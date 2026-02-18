@@ -84,7 +84,6 @@ pub struct ClientRequestBuilder<R: DnsResolver + 'static> {
     headers: SimpleHeaders,
     body: Option<SendSafeBody>,
     socket_addrs: Option<Vec<SocketAddr>>,
-    _resolver_usage: std::marker::PhantomData<R>,
 }
 
 impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
@@ -112,7 +111,6 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
         let mut headers = BTreeMap::new();
 
         // Add required Host header
-        let host_port = parsed_url.port_or_default();
         let host_str = parsed_url
             .host_str()
             .ok_or_else(|| HttpClientError::InvalidUrl("Missing host in URL".to_string()))?;
@@ -124,19 +122,13 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
         };
         headers.insert(SimpleHeader::HOST, vec![host]);
 
-        let socket_addrs = resolver
-            .resolve(host_str.as_str(), host_port)
-            .map(|addrs| addrs.into_iter().map(SocketAddr::Tcp).collect())
-            .map_err(HttpClientError::DnsError)?;
-
         Ok(Self {
             method,
             headers,
             resolver,
             url: parsed_url,
             body: None,
-            socket_addrs: Some(socket_addrs),
-            _resolver_usage: std::marker::PhantomData::default(),
+            socket_addrs: None,
         })
     }
 
@@ -160,6 +152,16 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     #[must_use]
     pub fn headers(mut self, headers: SimpleHeaders) -> Self {
         self.headers = headers;
+        self
+    }
+
+    #[must_use]
+    pub fn socket_addr(mut self, addr: SocketAddr) -> Self {
+        if let Some(addrs) = &mut self.socket_addrs {
+            addrs.push(addr);
+        } else {
+            self.socket_addrs = Some(vec![addr]);
+        }
         self
     }
 
@@ -287,14 +289,29 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     ///
     /// Consumes the builder and returns a `PreparedRequest` ready to send.
     #[must_use]
-    pub fn build(self) -> PreparedRequest {
-        PreparedRequest {
+    pub fn build(mut self) -> Result<PreparedRequest, HttpClientError> {
+        let host_port = self.url.port_or_default();
+        let host_str = self
+            .url
+            .host_str()
+            .ok_or_else(|| HttpClientError::InvalidUrl("Missing host in URL".to_string()))?;
+
+        let socket_addrs = if let Some(addrs) = self.socket_addrs.take() {
+            addrs
+        } else {
+            self.resolver
+                .resolve(host_str.as_str(), host_port)
+                .map(|addrs| addrs.into_iter().map(SocketAddr::Tcp).collect())
+                .map_err(HttpClientError::DnsError)?
+        };
+
+        Ok(PreparedRequest {
+            socket_addrs,
             method: self.method,
             url: self.url,
             headers: self.headers,
             body: self.body.unwrap_or(SendSafeBody::None),
-            socket_addrs: self.socket_addrs.expect("Expected socket addr"),
-        }
+        })
     }
 
     // Convenience methods for common HTTP methods

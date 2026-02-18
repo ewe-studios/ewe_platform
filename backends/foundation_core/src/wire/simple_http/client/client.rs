@@ -150,7 +150,7 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
     /// Creates a GET request and returns a `ClientRequest` ready to execute.
     pub fn get(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
         let builder = ClientRequestBuilder::get(self.resolver.clone(), url)?;
-        let prepared = builder.build();
+        let prepared = builder.build()?;
         Ok(ClientRequest::new(
             prepared,
             self.resolver.clone(),
@@ -162,7 +162,7 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
     /// Creates a POST request and returns a `ClientRequest` ready to execute.
     pub fn post(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
         let builder = ClientRequestBuilder::post(self.resolver.clone(), url)?;
-        let prepared = builder.build();
+        let prepared = builder.build()?;
         Ok(ClientRequest::new(
             prepared,
             self.resolver.clone(),
@@ -174,7 +174,7 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
     /// Creates a PUT request and returns a `ClientRequest` ready to execute.
     pub fn put(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
         let builder = ClientRequestBuilder::put(self.resolver.clone(), url)?;
-        let prepared = builder.build();
+        let prepared = builder.build()?;
         Ok(ClientRequest::new(
             prepared,
             self.resolver.clone(),
@@ -186,7 +186,7 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
     /// Creates a DELETE request and returns a `ClientRequest` ready to execute.
     pub fn delete(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
         let builder = ClientRequestBuilder::delete(self.resolver.clone(), url)?;
-        let prepared = builder.build();
+        let prepared = builder.build()?;
         Ok(ClientRequest::new(
             prepared,
             self.resolver.clone(),
@@ -198,7 +198,7 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
     /// Creates a PATCH request and returns a `ClientRequest` ready to execute.
     pub fn patch(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
         let builder = ClientRequestBuilder::patch(self.resolver.clone(), url)?;
-        let prepared = builder.build();
+        let prepared = builder.build()?;
         Ok(ClientRequest::new(
             prepared,
             self.resolver.clone(),
@@ -210,7 +210,7 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
     /// Creates a HEAD request and returns a `ClientRequest` ready to execute.
     pub fn head(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
         let builder = ClientRequestBuilder::head(self.resolver.clone(), url)?;
-        let prepared = builder.build();
+        let prepared = builder.build()?;
         Ok(ClientRequest::new(
             prepared,
             self.resolver.clone(),
@@ -222,7 +222,7 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
     /// Creates an OPTIONS request and returns a `ClientRequest` ready to execute.
     pub fn options(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
         let builder = ClientRequestBuilder::options(self.resolver.clone(), url)?;
-        let prepared = builder.build();
+        let prepared = builder.build()?;
         Ok(ClientRequest::new(
             prepared,
             self.resolver.clone(),
@@ -363,7 +363,7 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
         &self,
         builder: ClientRequestBuilder<R>,
     ) -> Result<ClientRequest<R>, HttpClientError> {
-        let prepared = builder.build();
+        let prepared = builder.build()?;
         Ok(ClientRequest::new(
             prepared,
             self.resolver.clone(),
