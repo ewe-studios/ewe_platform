@@ -84,6 +84,7 @@ pub struct ClientRequestBuilder<R: DnsResolver + 'static> {
     headers: SimpleHeaders,
     body: Option<SendSafeBody>,
     socket_addrs: Option<Vec<SocketAddr>>,
+    _resolver_usage: std::marker::PhantomData<R>,
 }
 
 impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
@@ -135,6 +136,7 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
             url: parsed_url,
             body: None,
             socket_addrs: Some(socket_addrs),
+            _resolver_usage: std::marker::PhantomData::default(),
         })
     }
 

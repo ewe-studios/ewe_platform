@@ -523,7 +523,6 @@ mod tests {
     /// WHAT: Tests that get() returns ClientRequestBuilder for GET
     #[test]
     fn test_simple_http_client_get() {
-        let client = SimpleHttpClient::from_system();
         let builder =
             ClientRequestBuilder::get(SystemDnsResolver::new(), "http://example.com").unwrap();
 
@@ -535,7 +534,6 @@ mod tests {
     /// WHAT: Tests that get() returns error for invalid URL
     #[test]
     fn test_simple_http_client_get_invalid_url() {
-        let client = SimpleHttpClient::from_system();
         let result = ClientRequestBuilder::get(SystemDnsResolver::new(), "not a url");
 
         assert!(result.is_err());
@@ -545,7 +543,6 @@ mod tests {
     /// WHAT: Tests that post() returns ClientRequestBuilder for POST
     #[test]
     fn test_simple_http_client_post() {
-        let client = SimpleHttpClient::from_system();
         let builder =
             ClientRequestBuilder::post(SystemDnsResolver::new(), "http://example.com").unwrap();
 
@@ -557,7 +554,6 @@ mod tests {
     /// WHAT: Tests that put() returns ClientRequestBuilder for PUT
     #[test]
     fn test_simple_http_client_put() {
-        let client = SimpleHttpClient::from_system();
         let builder =
             ClientRequestBuilder::put(SystemDnsResolver::new(), "http://example.com").unwrap();
 
@@ -569,7 +565,6 @@ mod tests {
     /// WHAT: Tests that delete() returns ClientRequestBuilder for DELETE
     #[test]
     fn test_simple_http_client_delete() {
-        let client = SimpleHttpClient::from_system();
         let builder =
             ClientRequestBuilder::delete(SystemDnsResolver::new(), "http://example.com").unwrap();
 
@@ -581,7 +576,6 @@ mod tests {
     /// WHAT: Tests that patch() returns ClientRequestBuilder for PATCH
     #[test]
     fn test_simple_http_client_patch() {
-        let client = SimpleHttpClient::from_system();
         let builder =
             ClientRequestBuilder::patch(SystemDnsResolver::new(), "http://example.com").unwrap();
 
@@ -593,7 +587,6 @@ mod tests {
     /// WHAT: Tests that head() returns ClientRequestBuilder for HEAD
     #[test]
     fn test_simple_http_client_head() {
-        let client = SimpleHttpClient::from_system();
         let builder =
             ClientRequestBuilder::head(SystemDnsResolver::new(), "http://example.com").unwrap();
 
@@ -605,7 +598,6 @@ mod tests {
     /// WHAT: Tests that options() returns ClientRequestBuilder for OPTIONS
     #[test]
     fn test_simple_http_client_options() {
-        let client = SimpleHttpClient::from_system();
         let builder =
             ClientRequestBuilder::options(SystemDnsResolver::new(), "http://example.com").unwrap();
 
