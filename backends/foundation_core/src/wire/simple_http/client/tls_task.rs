@@ -77,7 +77,7 @@ impl TlsHandshakeTask {
     /// # Returns
     ///
     /// A new `TlsHandshakeTask` in the `Init` state.
-    #[must_use] 
+    #[must_use]
     pub fn new(
         connection: Connection,
         sni: String,

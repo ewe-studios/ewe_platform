@@ -70,12 +70,12 @@ impl<T: std::fmt::Debug> DurationStore<T> {
         self.store.write().unwrap().take(handle)
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn has_pending_tasks(&self) -> bool {
         self.store.read().unwrap().active_slots() > 0
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn count(&self) -> usize {
         self.store.read().unwrap().active_slots()
     }
@@ -255,12 +255,12 @@ impl<T: Waiter + std::fmt::Debug> Sleepers<T> {
         self.sleepers.write().unwrap().take(handle)
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn has_pending_tasks(&self) -> bool {
         self.sleepers.read().unwrap().active_slots() > 0
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn count(&self) -> usize {
         self.sleepers.read().unwrap().active_slots()
     }
