@@ -244,7 +244,8 @@ mod tests {
             "http://example.com",
         )
         .unwrap()
-        .build();
+        .build()
+        .unwrap();
         let resolver = MockDnsResolver::new();
 
         let action = RedirectAction::new(request, resolver, 5, None);
@@ -262,7 +263,8 @@ mod tests {
             "http://example.com",
         )
         .unwrap()
-        .build();
+        .build()
+        .unwrap();
         let resolver = MockDnsResolver::new();
 
         let action = RedirectAction::new(request, resolver, 3, None);
@@ -280,7 +282,8 @@ mod tests {
             "http://example.com",
         )
         .unwrap()
-        .build();
+        .build()
+        .unwrap();
         let resolver = MockDnsResolver::new();
 
         let mut action = RedirectAction::new(request, resolver, 3, None);
@@ -356,7 +359,8 @@ mod tests {
             "http://example.com",
         )
         .unwrap()
-        .build();
+        .build()
+        .unwrap();
         let resolver = MockDnsResolver::new();
 
         let redirect_action = RedirectAction::new(request, resolver, 3, None);

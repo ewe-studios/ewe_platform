@@ -526,7 +526,7 @@ mod tests {
         let builder =
             ClientRequestBuilder::get(SystemDnsResolver::new(), "http://example.com").unwrap();
 
-        let request = builder.build();
+        let request = builder.build().unwrap();
         assert_eq!(request.url.host_str().unwrap(), "example.com");
     }
 
@@ -546,7 +546,7 @@ mod tests {
         let builder =
             ClientRequestBuilder::post(SystemDnsResolver::new(), "http://example.com").unwrap();
 
-        let request = builder.build();
+        let request = builder.build().unwrap();
         assert_eq!(request.url.host_str().unwrap(), "example.com");
     }
 
@@ -557,7 +557,7 @@ mod tests {
         let builder =
             ClientRequestBuilder::put(SystemDnsResolver::new(), "http://example.com").unwrap();
 
-        let request = builder.build();
+        let request = builder.build().unwrap();
         assert_eq!(request.url.host_str().unwrap(), "example.com");
     }
 
@@ -568,7 +568,7 @@ mod tests {
         let builder =
             ClientRequestBuilder::delete(SystemDnsResolver::new(), "http://example.com").unwrap();
 
-        let request = builder.build();
+        let request = builder.build().unwrap();
         assert_eq!(request.url.host_str().unwrap(), "example.com");
     }
 
@@ -579,7 +579,7 @@ mod tests {
         let builder =
             ClientRequestBuilder::patch(SystemDnsResolver::new(), "http://example.com").unwrap();
 
-        let request = builder.build();
+        let request = builder.build().unwrap();
         assert_eq!(request.url.host_str().unwrap(), "example.com");
     }
 
@@ -590,7 +590,7 @@ mod tests {
         let builder =
             ClientRequestBuilder::head(SystemDnsResolver::new(), "http://example.com").unwrap();
 
-        let request = builder.build();
+        let request = builder.build().unwrap();
         assert_eq!(request.url.host_str().unwrap(), "example.com");
     }
 
@@ -601,7 +601,7 @@ mod tests {
         let builder =
             ClientRequestBuilder::options(SystemDnsResolver::new(), "http://example.com").unwrap();
 
-        let request = builder.build();
+        let request = builder.build().unwrap();
         assert_eq!(request.url.host_str().unwrap(), "example.com");
     }
 

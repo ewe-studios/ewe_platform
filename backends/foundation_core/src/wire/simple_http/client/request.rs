@@ -548,7 +548,8 @@ mod tests {
         let resolver = StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80)));
         let prepared = ClientRequestBuilder::get(resolver, "http://example.com")
             .unwrap()
-            .build();
+            .build()
+            .unwrap();
 
         assert_eq!(prepared.url.host_str().unwrap(), "example.com");
         assert!(matches!(prepared.method, SimpleMethod::GET));
@@ -644,7 +645,8 @@ mod tests {
             "http://example.com/path",
         )
         .unwrap()
-        .build();
+        .build()
+        .unwrap();
 
         let simple_request = prepared.into_simple_incoming_request().unwrap();
         assert_eq!(simple_request.method, SimpleMethod::GET);
@@ -660,7 +662,8 @@ mod tests {
             "http://example.com/path?foo=bar",
         )
         .unwrap()
-        .build();
+        .build()
+        .unwrap();
 
         let simple_request = prepared.into_simple_incoming_request().unwrap();
         assert!(simple_request.request_url.url.contains("?foo=bar"));

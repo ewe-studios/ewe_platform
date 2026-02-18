@@ -647,7 +647,8 @@ mod api_tests {
             "http://example.com",
         )
         .unwrap()
-        .build();
+        .build()
+        .unwrap();
         let resolver = MockDnsResolver::new();
         let config = ClientConfig::default();
 
