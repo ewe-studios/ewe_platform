@@ -18,16 +18,20 @@
 // External HTTP Server Validation Tests
 // ========================================================================
 
+use foundation_core::wire::simple_http::client::SimpleHttpClient;
+
 /// WHY: Verify HTTP client works with real external HTTP server
 /// WHAT: Tests basic GET request against httpbin.org
 #[test]
 #[ignore] // Run with: cargo test test_external_httpbin_get -- --ignored
 fn test_external_httpbin_get() {
-    // TODO: Uncomment when SimpleHttpClient has execute() method
-    // let client = SimpleHttpClient::new();
-    // let response = client.get("http://httpbin.org/get").execute().unwrap();
-    // assert_eq!(response.status(), 200);
-    // assert!(response.body_text().unwrap().contains("\"url\": \"http://httpbin.org/get\""));
+    let client = SimpleHttpClient::from_system();
+    let response = client.get("http://httpbin.org/get").execute().unwrap();
+    assert_eq!(response.status(), 200);
+    assert!(response
+        .body_text()
+        .unwrap()
+        .contains("\"url\": \"http://httpbin.org/get\""));
 }
 
 /// WHY: Verify HTTP client follows redirects with real server
