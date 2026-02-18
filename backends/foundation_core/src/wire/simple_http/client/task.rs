@@ -16,9 +16,8 @@
 
 use crate::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
-use crate::synca::mpp::RecvIterator;
 use crate::valtron::{
-    drive_receiver, BoxedSendExecutionAction, DrivenRecvIterator, InlineSendAction,
+    drive_receiver, inlined_task, BoxedSendExecutionAction, DrivenRecvIterator, InlineSendAction,
     IntoBoxedSendExecutionAction, NoSpawner, TaskIterator, TaskStatus,
 };
 use crate::wire::simple_http::client::{
@@ -452,16 +451,14 @@ where
         match self.0.take()? {
             HttpRequestTaskState::Init(mut inner) => match inner.take() {
                 Some(req) => {
-                    let (get_stream_action, get_stream_receiver) = InlineSendAction::boxed_mapper(
+                    let (get_stream_action, get_stream_receiver) = inlined_task(
                         crate::valtron::InlineSendActionBehaviour::LiftWithParent,
                         Vec::new(),
                         GetHttpRequestStreamTask::from_data(*req),
                         std::time::Duration::from_millis(100),
                     );
 
-                    self.0 = Some(HttpRequestTaskState::Connecting(drive_receiver(
-                        get_stream_receiver,
-                    )));
+                    self.0 = Some(HttpRequestTaskState::Connecting(get_stream_receiver));
 
                     tracing::debug!(
                         "HttpRequestTaskState::Init: Spawned task to get HTTP request stream"
