@@ -26,7 +26,6 @@ pub use drivers::*;
 pub use future_task::*;
 pub use local::*;
 pub use on_next::*;
-pub use rand::SeedableRng;
 pub use state_machine::*;
 pub use task_iters::*;
 pub use threads::*;
@@ -35,3 +34,6 @@ pub use wrappers::*;
 
 pub mod multi;
 pub mod single;
+
+// re-exported external libraries
+pub use rand::SeedableRng;
