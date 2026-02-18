@@ -16,7 +16,7 @@ pub struct Entry {
 
 #[allow(dead_code)]
 impl Entry {
-    #[must_use] 
+    #[must_use]
     pub fn new(id: usize, gen: usize) -> Self {
         Self { id, gen }
     }
@@ -197,7 +197,7 @@ impl<T> EntryList<T> {
         }
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn find_packed(&self, entry: &Entry) -> Option<usize> {
         for (index, item) in self.packed_entries.iter().enumerate() {
             if item == entry {
@@ -324,9 +324,16 @@ impl<T> EntryList<T> {
                 if value.is_some() {
                     // collect old value
                     let previous_value = value.take();
+                    tracing::debug!(
+                        "Current entry with gen: {} going to new gen: {} for id: {}",
+                        gen,
+                        new_gen,
+                        entry.id,
+                    );
 
                     // replace gen
                     *gen = new_gen;
+                    tracing::debug!("Update gen to: {} for id: {}", new_gen, entry.id);
 
                     // replace value
                     *value = Some(item);
@@ -495,7 +502,7 @@ impl<T> ThreadSafeEntry<T> {
         self.0.write().unwrap().unpark(entry, item)
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn find_packed(&self, entry: &Entry) -> Option<usize> {
         self.0.write().unwrap().find_packed(entry)
     }
@@ -564,6 +571,8 @@ impl<T> ThreadSafeEntry<T> {
 
 #[cfg(test)]
 mod test_entry_list {
+    use tracing_test::traced_test;
+
     use super::*;
 
     #[test]
@@ -585,11 +594,11 @@ mod test_entry_list {
         assert_eq!(Some(&&1), list.get(&entry));
         assert_eq!(Some(&mut &1), list.get_mut(&entry));
 
-        let _entry2 = list.insert(&2);
-        assert_eq!(entry, Entry::new(1, 0));
+        let entry2 = list.insert(&2);
+        assert_eq!(entry2, Entry::new(1, 0));
 
-        let _entry3 = list.insert(&3);
-        assert_eq!(entry, Entry::new(2, 0));
+        let entry3 = list.insert(&3);
+        assert_eq!(entry3, Entry::new(2, 0));
     }
 
     #[test]
@@ -701,6 +710,7 @@ mod test_entry_list {
     }
 
     #[test]
+    #[traced_test]
     fn entry_list_can_replace_entry() {
         let mut list: EntryList<usize> = EntryList::new();
         let entry = list.insert(1);
@@ -709,7 +719,7 @@ mod test_entry_list {
         assert_eq!(Some(&1), list.get(&entry));
 
         let (new_entry, old_value) = list.replace(&entry, 2).expect("should have value");
-        assert_eq!(entry, Entry::new(0, 1));
+        assert_eq!(new_entry, Entry::new(0, 1));
         assert_eq!(1, old_value);
 
         assert_eq!(None, list.get(&entry));

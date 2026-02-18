@@ -26,7 +26,7 @@ pub struct RequestControl {
 
 impl RequestControl {
     /// Creates a new request control in `NOT_STARTED` state.
-    #[must_use] 
+    #[must_use]
     pub fn new() -> Self {
         Self {
             state: Arc::new(AtomicU8::new(STATE_NOT_STARTED)),
@@ -44,7 +44,7 @@ impl RequestControl {
     }
 
     /// Gets current state.
-    #[must_use] 
+    #[must_use]
     pub fn get_state(&self) -> u8 {
         self.state.load(Ordering::Acquire)
     }

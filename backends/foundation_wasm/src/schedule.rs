@@ -94,7 +94,7 @@ impl Default for ScheduleRegistry {
 }
 
 impl ScheduleRegistry {
-    #[must_use] 
+    #[must_use]
     pub fn new() -> Self {
         Self {
             id: 0,

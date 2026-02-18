@@ -247,7 +247,7 @@ impl Default for IntervalRegistry {
 }
 
 impl IntervalRegistry {
-    #[must_use] 
+    #[must_use]
     pub fn new() -> Self {
         Self {
             id: 0,

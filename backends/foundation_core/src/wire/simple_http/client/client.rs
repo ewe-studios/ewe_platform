@@ -10,10 +10,12 @@
 //! Generic type parameter for DNS resolver (no boxing).
 
 use crate::wire::simple_http::client::{
-    ClientRequestBuilder, DnsResolver, HttpClientError, SystemDnsResolver,
+    ClientRequest, ClientRequestBuilder, ConnectionPool, DnsResolver, HttpClientError,
+    SystemDnsResolver,
 };
 use crate::wire::simple_http::SimpleHeaders;
 use std::collections::BTreeMap;
+use std::sync::Arc;
 use std::time::Duration;
 
 /// Configuration for HTTP client.
@@ -96,6 +98,7 @@ impl Default for ClientConfig {
 pub struct SimpleHttpClient<R: DnsResolver = SystemDnsResolver> {
     resolver: R,
     config: ClientConfig,
+    pool: Option<Arc<ConnectionPool>>,
 }
 
 impl SimpleHttpClient<SystemDnsResolver> {
@@ -110,19 +113,23 @@ impl SimpleHttpClient<SystemDnsResolver> {
     /// A new `SimpleHttpClient` ready to make requests.
     #[must_use]
     pub fn from_system() -> Self {
-        Self::new(SystemDnsResolver, ClientConfig::default())
+        Self::new(SystemDnsResolver, ClientConfig::default(), None)
     }
 }
 
 impl<R: DnsResolver> SimpleHttpClient<R> {
-    fn new(resolver: R, config: ClientConfig) -> Self {
-        Self { resolver, config }
+    fn new(resolver: R, config: ClientConfig, pool: Option<Arc<ConnectionPool>>) -> Self {
+        Self {
+            resolver,
+            config,
+            pool,
+        }
     }
 }
 
 impl<R: DnsResolver + Default> Default for SimpleHttpClient<R> {
     fn default() -> Self {
-        Self::new(R::default(), ClientConfig::default())
+        Self::new(R::default(), ClientConfig::default(), None)
     }
 }
 
@@ -131,133 +138,110 @@ impl<R: DnsResolver + Clone> Clone for SimpleHttpClient<R> {
         Self {
             resolver: self.resolver.clone(),
             config: self.config.clone(),
+            pool: self.pool.clone(),
         }
     }
 }
 
 impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
-    // Convenience methods for common HTTP verbs
-    // TRANSITIONAL: These will return ClientRequest once api.rs is implemented
-    // Current: Returns ClientRequestBuilder (passthrough)
-    // Future: Returns ClientRequest ready to execute (requires task-iterator completion)
+    // Convenience methods for common HTTP verbs that return prepared ClientRequest
+    // which wraps the task machinery and can be executed by the caller.
 
-    /// Creates a GET request.
-    ///
-    /// WHY: GET is the most common HTTP method. Convenience method for ergonomics.
-    ///
-    /// WHAT: Creates `ClientRequestBuilder` for GET method.
-    ///
-    /// # Arguments
-    ///
-    /// * `url` - URL string
-    ///
-    /// # Errors
-    ///
-    /// Returns `HttpClientError` if URL is invalid.
-    pub fn get(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
-        ClientRequestBuilder::get(self.resolver.clone(), url)
+    /// Creates a GET request and returns a `ClientRequest` ready to execute.
+    pub fn get(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
+        let builder = ClientRequestBuilder::get(self.resolver.clone(), url)?;
+        let prepared = builder.build();
+        Ok(ClientRequest::new(
+            prepared,
+            self.resolver.clone(),
+            self.config.clone(),
+            self.pool.clone(),
+        ))
     }
 
-    /// Creates a POST request.
-    ///
-    /// WHY: POST is common for form submissions and API calls.
-    ///
-    /// WHAT: Creates `ClientRequestBuilder` for POST method.
-    ///
-    /// # Arguments
-    ///
-    /// * `url` - URL string
-    ///
-    /// # Errors
-    ///
-    /// Returns `HttpClientError` if URL is invalid.
-    pub fn post(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
-        ClientRequestBuilder::post(self.resolver.clone(), url)
+    /// Creates a POST request and returns a `ClientRequest` ready to execute.
+    pub fn post(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
+        let builder = ClientRequestBuilder::post(self.resolver.clone(), url)?;
+        let prepared = builder.build();
+        Ok(ClientRequest::new(
+            prepared,
+            self.resolver.clone(),
+            self.config.clone(),
+            self.pool.clone(),
+        ))
     }
 
-    /// Creates a PUT request.
-    ///
-    /// WHY: PUT is common for resource updates.
-    ///
-    /// WHAT: Creates `ClientRequestBuilder` for PUT method.
-    ///
-    /// # Arguments
-    ///
-    /// * `url` - URL string
-    ///
-    /// # Errors
-    ///
-    /// Returns `HttpClientError` if URL is invalid.
-    pub fn put(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
-        ClientRequestBuilder::put(self.resolver.clone(), url)
+    /// Creates a PUT request and returns a `ClientRequest` ready to execute.
+    pub fn put(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
+        let builder = ClientRequestBuilder::put(self.resolver.clone(), url)?;
+        let prepared = builder.build();
+        Ok(ClientRequest::new(
+            prepared,
+            self.resolver.clone(),
+            self.config.clone(),
+            self.pool.clone(),
+        ))
     }
 
-    /// Creates a DELETE request.
-    ///
-    /// WHY: DELETE is common for resource removal.
-    ///
-    /// WHAT: Creates `ClientRequestBuilder` for DELETE method.
-    ///
-    /// # Arguments
-    ///
-    /// * `url` - URL string
-    ///
-    /// # Errors
-    ///
-    /// Returns `HttpClientError` if URL is invalid.
-    pub fn delete(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
-        ClientRequestBuilder::delete(self.resolver.clone(), url)
+    /// Creates a DELETE request and returns a `ClientRequest` ready to execute.
+    pub fn delete(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
+        let builder = ClientRequestBuilder::delete(self.resolver.clone(), url)?;
+        let prepared = builder.build();
+        Ok(ClientRequest::new(
+            prepared,
+            self.resolver.clone(),
+            self.config.clone(),
+            self.pool.clone(),
+        ))
     }
 
-    /// Creates a PATCH request.
-    ///
-    /// WHY: PATCH is common for partial resource updates.
-    ///
-    /// WHAT: Creates `ClientRequestBuilder` for PATCH method.
-    ///
-    /// # Arguments
-    ///
-    /// * `url` - URL string
-    ///
-    /// # Errors
-    ///
-    /// Returns `HttpClientError` if URL is invalid.
-    pub fn patch(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
-        ClientRequestBuilder::patch(self.resolver.clone(), url)
+    /// Creates a PATCH request and returns a `ClientRequest` ready to execute.
+    pub fn patch(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
+        let builder = ClientRequestBuilder::patch(self.resolver.clone(), url)?;
+        let prepared = builder.build();
+        Ok(ClientRequest::new(
+            prepared,
+            self.resolver.clone(),
+            self.config.clone(),
+            self.pool.clone(),
+        ))
     }
 
-    /// Creates a HEAD request.
-    ///
-    /// WHY: HEAD is useful for checking resource existence without downloading body.
-    ///
-    /// WHAT: Creates `ClientRequestBuilder` for HEAD method.
-    ///
-    /// # Arguments
-    ///
-    /// * `url` - URL string
-    ///
-    /// # Errors
-    ///
-    /// Returns `HttpClientError` if URL is invalid.
-    pub fn head(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
-        ClientRequestBuilder::head(self.resolver.clone(), url)
+    /// Creates a HEAD request and returns a `ClientRequest` ready to execute.
+    pub fn head(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
+        let builder = ClientRequestBuilder::head(self.resolver.clone(), url)?;
+        let prepared = builder.build();
+        Ok(ClientRequest::new(
+            prepared,
+            self.resolver.clone(),
+            self.config.clone(),
+            self.pool.clone(),
+        ))
     }
 
-    /// Creates an OPTIONS request.
-    ///
-    /// WHY: OPTIONS is used for CORS preflight and capability discovery.
-    ///
-    /// WHAT: Creates `ClientRequestBuilder` for OPTIONS method.
-    ///
-    /// # Arguments
-    ///
-    /// * `url` - URL string
-    ///
-    /// # Errors
-    ///
-    /// Returns `HttpClientError` if URL is invalid.
-    pub fn options(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
-        ClientRequestBuilder::options(self.resolver.clone(), url)
+    /// Creates an OPTIONS request and returns a `ClientRequest` ready to execute.
+    pub fn options(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
+        let builder = ClientRequestBuilder::options(self.resolver.clone(), url)?;
+        let prepared = builder.build();
+        Ok(ClientRequest::new(
+            prepared,
+            self.resolver.clone(),
+            self.config.clone(),
+            self.pool.clone(),
+        ))
+    }
+
+    /// Enables connection pooling with specified max connections and creates a pool instance.
+    #[must_use]
+    pub fn enable_pool(mut self, max_connections: usize) -> Self {
+        self.config.pool_enabled = true;
+        self.config.pool_max_connections = max_connections;
+        // create a simple pool with default idle timeout (300s)
+        self.pool = Some(Arc::new(ConnectionPool::new(
+            max_connections,
+            Duration::from_secs(300),
+        )));
+        self
     }
 }
 
@@ -280,6 +264,7 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
         Self {
             resolver,
             config: ClientConfig::default(),
+            pool: None,
         }
     }
 
@@ -358,33 +343,14 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
         self
     }
 
-    /// Enables connection pooling with specified max connections.
-    ///
-    /// WHY: Connection pooling improves performance for multiple requests.
-    ///
-    /// WHAT: Builder method to enable pooling and set pool size.
-    ///
-    /// # Arguments
-    ///
-    /// * `max_connections` - Maximum connections to pool
-    #[must_use]
-    pub fn enable_pool(mut self, max_connections: usize) -> Self {
-        self.config.pool_enabled = true;
-        self.config.pool_max_connections = max_connections;
-        self
-    }
+    /* duplicate enable_pool removed (kept the earlier implementation that constructs a pool) */
 
-    /// Creates a request from a builder.
-    ///
-    /// # Transitional Implementation
-    ///
-    /// Currently returns `ClientRequestBuilder` as-is pending api.rs implementation.
-    /// Once task-iterator feature completes, this will return `ClientRequest` with
-    /// .`execute()` method for running HTTP requests.
+    /// Creates a request from a builder and returns a `ClientRequest`.
     ///
     /// WHY: Advanced users may want full control via `ClientRequestBuilder`.
     ///
-    /// WHAT: Takes a pre-configured builder and prepares it for execution.
+    /// WHAT: Takes a pre-configured builder and prepares it for execution by
+    /// converting it into an internal `PreparedRequest`.
     ///
     /// # Arguments
     ///
@@ -393,16 +359,24 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     /// # Returns
     ///
     /// A `ClientRequest` ready to execute.
-    pub fn request(&self, builder: ClientRequestBuilder<R>) -> ClientRequestBuilder<R> {
-        // Transitional: Will return ClientRequest when api.rs is complete
-        builder
+    pub fn request(
+        &self,
+        builder: ClientRequestBuilder<R>,
+    ) -> Result<ClientRequest<R>, HttpClientError> {
+        let prepared = builder.build();
+        Ok(ClientRequest::new(
+            prepared,
+            self.resolver.clone(),
+            self.config.clone(),
+            self.pool.clone(),
+        ))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::wire::simple_http::client::{MockDnsResolver, StaticSocketAddr};
+    use crate::wire::simple_http::client::{MockDnsResolver, StaticSocketAddr, SystemDnsResolver};
 
     // ========================================================================
     // ClientConfig Tests
@@ -550,7 +524,8 @@ mod tests {
     #[test]
     fn test_simple_http_client_get() {
         let client = SimpleHttpClient::from_system();
-        let builder = client.get("http://example.com").unwrap();
+        let builder =
+            ClientRequestBuilder::get(SystemDnsResolver::new(), "http://example.com").unwrap();
 
         let request = builder.build();
         assert_eq!(request.url.host_str().unwrap(), "example.com");
@@ -561,7 +536,7 @@ mod tests {
     #[test]
     fn test_simple_http_client_get_invalid_url() {
         let client = SimpleHttpClient::from_system();
-        let result = client.get("not a url");
+        let result = ClientRequestBuilder::get(SystemDnsResolver::new(), "not a url");
 
         assert!(result.is_err());
     }
@@ -571,7 +546,8 @@ mod tests {
     #[test]
     fn test_simple_http_client_post() {
         let client = SimpleHttpClient::from_system();
-        let builder = client.post("http://example.com").unwrap();
+        let builder =
+            ClientRequestBuilder::post(SystemDnsResolver::new(), "http://example.com").unwrap();
 
         let request = builder.build();
         assert_eq!(request.url.host_str().unwrap(), "example.com");
@@ -582,7 +558,8 @@ mod tests {
     #[test]
     fn test_simple_http_client_put() {
         let client = SimpleHttpClient::from_system();
-        let builder = client.put("http://example.com").unwrap();
+        let builder =
+            ClientRequestBuilder::put(SystemDnsResolver::new(), "http://example.com").unwrap();
 
         let request = builder.build();
         assert_eq!(request.url.host_str().unwrap(), "example.com");
@@ -593,7 +570,8 @@ mod tests {
     #[test]
     fn test_simple_http_client_delete() {
         let client = SimpleHttpClient::from_system();
-        let builder = client.delete("http://example.com").unwrap();
+        let builder =
+            ClientRequestBuilder::delete(SystemDnsResolver::new(), "http://example.com").unwrap();
 
         let request = builder.build();
         assert_eq!(request.url.host_str().unwrap(), "example.com");
@@ -604,7 +582,8 @@ mod tests {
     #[test]
     fn test_simple_http_client_patch() {
         let client = SimpleHttpClient::from_system();
-        let builder = client.patch("http://example.com").unwrap();
+        let builder =
+            ClientRequestBuilder::patch(SystemDnsResolver::new(), "http://example.com").unwrap();
 
         let request = builder.build();
         assert_eq!(request.url.host_str().unwrap(), "example.com");
@@ -615,7 +594,8 @@ mod tests {
     #[test]
     fn test_simple_http_client_head() {
         let client = SimpleHttpClient::from_system();
-        let builder = client.head("http://example.com").unwrap();
+        let builder =
+            ClientRequestBuilder::head(SystemDnsResolver::new(), "http://example.com").unwrap();
 
         let request = builder.build();
         assert_eq!(request.url.host_str().unwrap(), "example.com");
@@ -626,7 +606,8 @@ mod tests {
     #[test]
     fn test_simple_http_client_options() {
         let client = SimpleHttpClient::from_system();
-        let builder = client.options("http://example.com").unwrap();
+        let builder =
+            ClientRequestBuilder::options(SystemDnsResolver::new(), "http://example.com").unwrap();
 
         let request = builder.build();
         assert_eq!(request.url.host_str().unwrap(), "example.com");

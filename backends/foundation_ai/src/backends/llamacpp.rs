@@ -1,7 +1,5 @@
 //! `LlamaCPP` `ModelBackend` implementations.
 
-
-
 use crate::types::ModelBackend;
 
 /// [`LlamaBackends`] implements a model backend for different
