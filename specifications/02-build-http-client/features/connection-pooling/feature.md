@@ -324,12 +324,12 @@ pub fn clear(&self) {
 impl HttpClient {
     /// Send HTTP GET request using pooled connection if available.
 
-    pub async fn get(&self, url: &str) -> Result<Response> {
+    pub fn get(&self, url: &str) -> Result<Response> {
         let parsed = ParsedUrl::parse(url)?;
         let (host, port) = (parsed.host.clone(), parsed.port);
 
         // Checkout attempt - returns existing idle stream or None
-        match self.pool.checkout(host.as_str(), port).await? {
+        match self.pool.checkout(host.as_str(), port)? {
             Some(stream) => { /* use pooled connection */ }
             None => create_fresh_connection(&parsed),  // Fallback path
         };

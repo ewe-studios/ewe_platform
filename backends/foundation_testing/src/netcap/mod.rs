@@ -1,12 +1,12 @@
 #![allow(clippy::type_complexity)]
 #![cfg(not(target_arch = "wasm32"))]
 
-use crate::{
+use derive_more::From;
+use foundation_core::{
     extensions::result_ext::{SendableBoxedError, SendableBoxedResult},
     netcap::RawStream,
     wire::simple_http::{http_streams, HttpReaderError, SimpleBody},
 };
-use derive_more::From;
 use std::{
     io::Write,
     net::{TcpListener, TcpStream},
@@ -14,7 +14,7 @@ use std::{
     thread::{self, JoinHandle},
 };
 
-use crate::{
+use foundation_core::{
     extensions::result_ext::BoxedError,
     wire::simple_http::{
         self, Http11, IncomingRequestParts, RenderHttp, RequestDescriptor, ServiceAction,
@@ -37,13 +37,13 @@ impl core::fmt::Display for TestServerError {
     }
 }
 
-pub struct TestServer {
+pub struct TestHTTPActionServer {
     port: usize,
     address: String,
     actions: Vec<ServiceAction>,
 }
 
-impl TestServer {
+impl TestHTTPActionServer {
     #[must_use]
     pub fn new(port: usize, address: String, actions: Vec<ServiceAction>) -> Self {
         Self {
@@ -57,11 +57,11 @@ impl TestServer {
         let port = self.port;
         let address = self.address.clone();
         let mut client = TcpStream::connect(format!("{address}:{port}"))
-            .map_err(super::super::extensions::result_ext::BoxedResult::into_boxed_error)?;
+            .map_err(foundation_core::extensions::result_ext::BoxedResult::into_boxed_error)?;
 
         client
             .write(b"CLOSE\r\n")
-            .map_err(super::super::extensions::result_ext::BoxedResult::into_boxed_error)
+            .map_err(foundation_core::extensions::result_ext::BoxedResult::into_boxed_error)
             .map(|_| ())
     }
 
@@ -127,16 +127,17 @@ impl TestServer {
                 // fetch the intro portion and validate we have resources for processing request
                 // if not, just break and return an error
                 let request_reader = request_streams.next_request();
+                tracing::debug!("Pulled next request");
 
                 let parts: Result<Vec<IncomingRequestParts>, HttpReaderError> = request_reader
                     .into_iter()
                     .filter(|item| match item {
                         Ok(IncomingRequestParts::SKIP) => false,
-                        Ok(_) => true,
-                        Err(_) => true,
+                        Ok(_) | Err(_) => true,
                     })
                     .collect();
 
+                tracing::debug!("Collected all parts of request");
                 if let Err(part_err) = parts {
                     tracing::error!("Failed to read requests from reader due to: {:?}", part_err);
                     break;
@@ -174,6 +175,7 @@ impl TestServer {
                 // }
 
                 let Some(resource) = action_list.get_one_matching2(&url, method.clone()) else {
+                    tracing::debug!("No matching resource found");
                     break;
                 };
 
@@ -218,15 +220,23 @@ impl TestServer {
                         Ok(renderer) => {
                             for part in renderer {
                                 match part {
-                                    Ok(data) => match write_stream.write(&data) {
-                                        Ok(_) => continue,
-                                        Err(_) => return,
-                                    },
-                                    Err(_) => return,
+                                    Ok(data) => {
+                                        if write_stream.write(&data).is_err() {
+                                            break;
+                                        }
+                                    }
+                                    Err(_) => break,
                                 }
                             }
+                            tracing::info!("Finished sending response to: {:?}", &url);
+                            return;
                         }
-                        Err(_) => {
+                        Err(err) => {
+                            tracing::info!(
+                                "Failed to send response to: {:?} dueto err={:?}",
+                                &url,
+                                err
+                            );
                             return;
                         }
                     }
@@ -257,7 +267,7 @@ impl TestServer {
     }
 
     fn internal_server_error_response(
-        err: crate::extensions::result_ext::BoxedError,
+        err: foundation_core::extensions::result_ext::BoxedError,
     ) -> SimpleOutgoingResponse {
         SimpleOutgoingResponse::builder()
             .with_status(Status::InternalServerError)
@@ -276,14 +286,14 @@ mod test_server_tests {
 
     use tracing_test::traced_test;
 
-    use crate::{
+    use foundation_core::{
         extensions::result_ext::BoxedResult,
         wire::simple_http::{FuncSimpleServer, RequestDescriptor, SimpleBody, Status},
     };
 
     use super::{
         simple_http::{ServiceAction, SimpleHeader, SimpleMethod, SimpleOutgoingResponse},
-        TestServer,
+        TestHTTPActionServer,
     };
 
     macro_rules! t {
@@ -326,7 +336,7 @@ mod test_server_tests {
             .build()
             .expect("should generate service action");
 
-        let test_server = TestServer::new(8889, "127.0.0.1".into(), vec![resource]);
+        let test_server = TestHTTPActionServer::new(8889, "127.0.0.1".into(), vec![resource]);
         let (handler, requests, workers) = test_server.serve();
 
         let message = "\
@@ -406,7 +416,7 @@ Hello world!";
             .build()
             .expect("should generate service action");
 
-        let test_server = TestServer::new(9889, "127.0.0.1".into(), vec![resource]);
+        let test_server = TestHTTPActionServer::new(9889, "127.0.0.1".into(), vec![resource]);
         let (handler, requests, workers) = test_server.serve();
 
         let message = "\
