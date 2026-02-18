@@ -52,6 +52,7 @@ where
         }
     }
 
+    #[must_use]
     pub fn with_panic_handler<T>(mut self, handler: T) -> Self
     where
         T: Fn(Box<dyn Any + Send>) + Send + Sync + 'static,
@@ -60,6 +61,7 @@ where
         self
     }
 
+    #[must_use]
     pub fn add_mapper(mut self, mapper: Mapper) -> Self {
         self.local_mappers.push(mapper);
         self

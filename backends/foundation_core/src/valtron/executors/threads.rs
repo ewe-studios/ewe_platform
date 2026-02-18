@@ -64,6 +64,11 @@ const THREADS_MAX: usize = (1 << THREADS_BITS) - 1;
 /// less 1 as the 1 thread will be used for waiting for kill signal and the remaining
 /// for task execution in situations where on 2 threads can be created apart from the current
 /// process.
+///
+/// # Panics
+///
+/// Panics if the desired thread count is greater than the maximum allowed threads.
+/// Panics if the desired thread count is zero.
 pub fn get_allocatable_thread_count() -> usize {
     let max_threads = get_max_threads();
     tracing::debug!("Max available threads: {max_threads:}");
