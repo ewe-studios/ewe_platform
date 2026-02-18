@@ -44,7 +44,7 @@ impl ConnectionPool {
     /// * `max_per_host` - Maximum connections to pool per host
     /// * `max_idle_time` - Maximum time a connection can be idle before cleanup
     #[allow(dead_code)]
-    #[must_use] 
+    #[must_use]
     pub fn new(max_per_host: usize, max_idle_time: Duration) -> Self {
         Self {
             max_per_host,
@@ -66,7 +66,7 @@ impl ConnectionPool {
     /// `Some(stream)` if a valid pooled connection exists, `None` otherwise.
     /// Currently always returns `None` (no pooling).
     #[allow(dead_code)]
-    #[must_use] 
+    #[must_use]
     pub fn checkout(&self, _host: &str, _port: u16) -> Option<SharedByteBufferStream<RawStream>> {
         // TODO: Implement checkout logic
         None
