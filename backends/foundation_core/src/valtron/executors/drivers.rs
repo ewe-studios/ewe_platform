@@ -3,9 +3,20 @@
 
 #![allow(clippy::type_complexity)]
 
+use core::future::Future;
+
+#[cfg(any(feature = "std", feature = "alloc"))]
+use crate::valtron::FutureTask;
+#[cfg(any(feature = "std", feature = "alloc"))]
+use crate::valtron::StreamTask;
+
 use crate::{
     synca::mpp::{RecvIterator, Stream, StreamRecvIterator},
-    valtron::{ExecutionAction, ProgressIndicator, State, TaskIterator, TaskStatus},
+    valtron::{
+        ExecutionAction, InlineAction, InlineActionBehaviour, InlineSendAction,
+        InlineSendActionBehaviour, ProgressIndicator, State, TaskIterator, TaskStatus,
+        TaskStatusMapper,
+    },
 };
 
 // ===========================================
@@ -266,7 +277,211 @@ pub fn run_once() {
 }
 
 // ===========================================
-// Iterator execution methods
+// Future based iterators methods
+// ===========================================
+
+/// [`from_future`] creates a new [`DrivenSendTaskIterator<FutureTask<S>>`]
+/// task iterator which will internally drive the state of the stream in single threaded
+/// environments or rely on the multi-threaded executor in multi-threaded environments.
+///
+/// This makes it easy to hide away the need to litter your project codebase with [`run_until`]
+/// types of function calls and abstract out that portion.
+///
+/// It relies on the [`drive_iter`] method to drive the state of the stream which internally
+/// uses the [`run_until_next_state`] function.
+#[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
+pub fn drive_future<F>(future: F) -> DrivenNonSendTaskIterator<FutureTask<F>>
+where
+    F: Future + 'static,
+    F::Output: 'static,
+{
+    drive_non_send_iterator(crate::valtron::from_future(future))
+}
+
+/// [`from_future`] creates a new [`DrivenSendTaskIterator<FutureTask<S>>`]
+/// task iterator which will internally drive the state of the stream in single threaded
+/// environments or rely on the multi-threaded executor in multi-threaded environments.
+///
+/// This makes it easy to hide away the need to litter your project codebase with [`run_until`]
+/// types of function calls and abstract out that portion.
+///
+/// It relies on the [`drive_iter`] method to drive the state of the stream which internally
+/// uses the [`run_until_next_state`] function.
+#[cfg(all(any(feature = "std", feature = "alloc"), not(target_arch = "wasm32")))]
+pub fn drive_future<F>(future: F) -> DrivenSendTaskIterator<FutureTask<F>>
+where
+    F: Future + Send + 'static,
+    F::Output: Send + 'static,
+{
+    drive_iterator(crate::valtron::from_future(future))
+}
+
+/// [`from_future_stream`] creates a new [`DrivenSendTaskIterator<StreamTask<S>>`]
+/// task iterator which will internally drive the state of the stream in single threaded
+/// environments or rely on the multi-threaded executor in multi-threaded environments.
+///
+/// This makes it easy to hide away the need to litter your project codebase with [`run_until`]
+/// types of function calls and abstract out that portion.
+///
+/// It relies on the [`drive_iter`] method to drive the state of the stream which internally
+/// uses the [`run_until_next_state`] function.
+#[cfg(all(any(feature = "std", feature = "alloc"), not(target_arch = "wasm32")))]
+pub fn drive_future_stream<S>(stream: S) -> DrivenSendTaskIterator<StreamTask<S>>
+where
+    S: futures_core::Stream + Send + 'static,
+    S::Item: Send + 'static,
+{
+    drive_iterator(crate::valtron::from_stream(stream))
+}
+
+/// [`from_future`] creates a new [`DrivenNonSendTaskIterator<FutureTask<S>>`]
+/// task iterator which will internally drive the state of the stream in single threaded
+/// environments or rely on the multi-threaded executor in multi-threaded environments.
+///
+/// This makes it easy to hide away the need to litter your project codebase with [`run_until`]
+/// types of function calls and abstract out that portion.
+///
+/// It relies on the [`drive_iter`] method to drive the state of the stream which internally
+/// uses the [`run_until_next_state`] function.
+#[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
+pub fn drive_future_stream<S>(stream: S) -> DrivenNonSendTaskIterator<StreamTask<S>>
+where
+    S: futures_core::Stream + 'static,
+    S::Item: 'static,
+{
+    drive_non_send_iterator(crate::valtron::from_stream(future))
+}
+
+// ===========================================
+// inline iterator creation methods
+// ===========================================
+
+/// [`inlined_non_send_mapped_task`] creates an inlined task you can use within another task that
+/// lets you forward the task as a action your main task can send for execution
+/// as part of it's process, allowing you to define the Spawner type for the parent
+/// task in a specific type or using [`BoxedTaskAction`]
+///
+/// You then are able to receive the output of that task from the returned
+/// channel [`RecvIterator<TaskStatus<Done, Pending, Action>>`].
+///
+/// This is predominantly when you specifically do not want a Send action and receiver type.
+pub fn inlined_non_send_mapped_task<Done, Pending, Action, Task, Mapper>(
+    behaviour: InlineActionBehaviour,
+    mappers: Vec<Mapper>,
+    task: Task,
+    wait_cycle: std::time::Duration,
+) -> (
+    InlineAction<Done, Pending, Action, Task, Mapper>,
+    DrivenNonSendRecvIterator<Task>,
+)
+where
+    Done: 'static,
+    Pending: 'static,
+    Action: ExecutionAction + 'static,
+    Mapper: TaskStatusMapper<Done, Pending, Action> + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+{
+    let (task_action, task_receiver) = InlineAction::new(behaviour, mappers, task, wait_cycle);
+    (task_action, drive_non_send_receiver(task_receiver))
+}
+
+/// [`inlined_non_send_task`] creates an inlined task you can use within another task that
+/// lets you forward the task as a action your main task can send for execution
+/// as part of it's process, allowing you to define the Spawner type for the parent
+/// task in a specific type or using boxed [`TaskStatusMapper`].
+///
+/// You then are able to receive the output of that task from the returned
+/// channel [`RecvIterator<TaskStatus<Done, Pending, Action>>`].
+///
+/// This is predominantly when you specifically do not want a Send action and receiver type.
+pub fn inlined_non_send_task<Done, Pending, Action, Task>(
+    behaviour: InlineActionBehaviour,
+    mappers: Vec<Box<dyn TaskStatusMapper<Done, Pending, Action> + 'static>>,
+    task: Task,
+    wait_cycle: std::time::Duration,
+) -> (
+    InlineAction<
+        Done,
+        Pending,
+        Action,
+        Task,
+        Box<dyn TaskStatusMapper<Done, Pending, Action> + 'static>,
+    >,
+    DrivenNonSendRecvIterator<Task>,
+)
+where
+    Done: 'static,
+    Pending: 'static,
+    Action: ExecutionAction + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+{
+    let (task_action, task_receiver) =
+        InlineAction::boxed_mapper(behaviour, mappers, task, wait_cycle);
+    (task_action, drive_non_send_receiver(task_receiver))
+}
+
+/// [`inlined_mapped_task`] creates an inlined task you can use within another task that
+/// lets you forward the task as a action your main task can send for execution
+/// as part of it's process, allowing you to define the Spawner type for the parent
+/// task in a specific type or using [`BoxedTaskAction`]
+///
+/// You then are able to receive the output of that task from the returned
+/// channel [`RecvIterator<TaskStatus<Done, Pending, Action>>`].
+pub fn inlined_mapped_task<Done, Pending, Action, Task, Mapper>(
+    behaviour: InlineSendActionBehaviour,
+    mappers: Vec<Mapper>,
+    task: Task,
+    wait_cycle: std::time::Duration,
+) -> (
+    InlineSendAction<Done, Pending, Action, Task, Mapper>,
+    DrivenRecvIterator<Task>,
+)
+where
+    Done: Send + 'static,
+    Pending: Send + 'static,
+    Action: ExecutionAction + Send + 'static,
+    Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
+{
+    let (task_action, task_receiver) = InlineSendAction::new(behaviour, mappers, task, wait_cycle);
+    (task_action, drive_receiver(task_receiver))
+}
+
+/// [`inlined_task`] creates an inlined task you can use within another task that
+/// lets you forward the task as a action your main task can send for execution
+/// as part of it's process, allowing you to define the Spawner type for the parent
+/// task in a specific type or using boxed [`TaskStatusMapper`].
+///
+/// You then are able to receive the output of that task from the returned
+/// channel [`RecvIterator<TaskStatus<Done, Pending, Action>>`].
+pub fn inlined_task<Done, Pending, Action, Task>(
+    behaviour: InlineSendActionBehaviour,
+    mappers: Vec<Box<dyn TaskStatusMapper<Done, Pending, Action> + Send + 'static>>,
+    task: Task,
+    wait_cycle: std::time::Duration,
+) -> (
+    InlineSendAction<
+        Done,
+        Pending,
+        Action,
+        Task,
+        Box<dyn TaskStatusMapper<Done, Pending, Action> + Send + 'static>,
+    >,
+    DrivenRecvIterator<Task>,
+)
+where
+    Done: Send + 'static,
+    Pending: Send + 'static,
+    Action: ExecutionAction + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
+{
+    let (task_action, task_receiver) =
+        InlineSendAction::boxed_mapper(behaviour, mappers, task, wait_cycle);
+    (task_action, drive_receiver(task_receiver))
+}
+
+// ===========================================
+// Iterator driver methods
 // ===========================================
 
 /// [`drive_non_send_iterator`] provides a convenient function to
@@ -409,6 +624,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
             tracing::debug!("Run: run_until_next_state");
+
             // execute the execution engine until the next state is ready.
             run_until_next_state();
 
@@ -432,6 +648,10 @@ where
     }
 }
 
+///[`DrivenSendTaskIterator`] is a wrapper around a [`TaskIterator`] that drives the state of the stream.
+/// This is good for send-safe types you want to be send-safe.
+///
+/// It internally uses the [`run_until_next_state`] function.
 pub struct DrivenSendTaskIterator<T>(Option<T>)
 where
     T: TaskIterator + Send + 'static,
@@ -472,6 +692,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
             tracing::debug!("Run: run_until_next_state");
+
             // execute the execution engine until the next state is ready.
             run_until_next_state();
 
@@ -495,6 +716,10 @@ where
     }
 }
 
+///[`DrivenSendTaskIterator`] is a wrapper around a [`TaskIterator`] that drives the state of the stream.
+/// This is good for non send-safe types you want to use in non-send contexts.
+///
+/// It internally uses the [`run_until_next_state`] function.
 pub struct DrivenNonSendStreamIterator<T>(Option<StreamRecvIterator<T::Ready, T::Pending>>)
 where
     T: TaskIterator + 'static,

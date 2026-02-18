@@ -59,14 +59,11 @@ impl<
 
     #[must_use]
     pub fn with_mappers(mut self, mapper: Mapper) -> Self {
-        let mut mappers = if self.mappers.is_some() {
-            self.mappers.take().unwrap()
+        if let Some(mappers) = &mut self.mappers {
+            mappers.push(mapper);
         } else {
-            Vec::new()
-        };
-
-        mappers.push(mapper);
-        self.mappers = Some(mappers);
+            self.mappers = Some(vec![mapper]);
+        }
         self
     }
 
