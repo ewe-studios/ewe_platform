@@ -1,22 +1,44 @@
 ---
-feature: compression
+# Identification
+spec_name: "02-build-http-client"
+spec_number: 02
+feature_name: "compression"
+feature_number: 3
 description: Automatic compression/decompression of HTTP bodies with gzip, deflate, and brotli support
+
+# Location Context
+# How to find: Run `bash pwd` to get CWD, this file is at CWD/specifications/02-build-http-client/features/compression/feature.md
+# Workspace root is CWD and contains: .agents/, specifications/, documentation/, backends/
+workspace_name: "ewe_platform"
+spec_directory: "specifications/02-build-http-client"
+feature_directory: "specifications/02-build-http-client/features/compression"
+this_file: "specifications/02-build-http-client/features/compression/feature.md"
+
+# Status
 status: pending
 priority: medium
 depends_on:
   - foundation
 estimated_effort: small
 created: 2026-01-19
-last_updated: 2026-01-24
+last_updated: 2026-02-02
 author: Main Agent
-context_optimization: true  # Sub-agents MUST generate COMPACT_CONTEXT.md before work, reload after updates
-compact_context_file: ./COMPACT_CONTEXT.md  # Ultra-compact current task context (97% reduction)
-context_reload_required: true  # Clear and reload from compact context regularly to prevent context limit errors
+
+# Context Optimization
+machine_optimized: true
+machine_prompt_file: ./machine_prompt.md
+context_optimization: true
+compact_context_file: ./COMPACT_CONTEXT.md
+context_reload_required: true
+
+# Tasks
 tasks:
   completed: 0
   uncompleted: 14
   total: 14
   completion_percentage: 0
+
+# Files Required by Agents
 files_required:
   implementation_agent:
     rules:
@@ -44,6 +66,49 @@ files_required:
 ---
 
 # Compression Feature
+
+## 📍 Location Reference
+
+**How to find your location**:
+1. Run `bash pwd` to get current working directory (CWD)
+2. This file is at: `CWD/specifications/02-build-http-client/features/compression/feature.md`
+3. Workspace root is CWD (contains `.agents/`, `specifications/`, `documentation/`, `backends/`)
+
+**Quick paths** (all relative to workspace root = CWD):
+- Parent spec: `specifications/02-build-http-client/requirements.md`
+- This feature: `specifications/02-build-http-client/features/compression/`
+- This file: `specifications/02-build-http-client/features/compression/feature.md`
+- Machine prompt: `specifications/02-build-http-client/features/compression/machine_prompt.md`
+- Parent progress: `specifications/02-build-http-client/PROGRESS.md`
+- Parent learnings: `specifications/02-build-http-client/LEARNINGS.md`
+- Agent rules: `.agents/rules/`
+- Stack files: `.agents/stacks/rust.md`
+- HTTP client code: `backends/foundation_core/src/wire/simple_http/client/`
+
+**Verification**: If you can read `.agents/AGENTS.md` from CWD, you're in the right place!
+
+**Quick Navigation Commands**:
+```bash
+# Verify you're in workspace root
+test -f .agents/AGENTS.md && echo "✓ In workspace root" || echo "✗ Wrong location"
+
+# View parent spec
+cat specifications/02-build-http-client/requirements.md
+
+# List all features in parent spec
+ls -d specifications/02-build-http-client/features/*/
+
+# Check foundation feature (dependency)
+cat specifications/02-build-http-client/features/foundation/feature.md
+
+# View this feature's structure
+tree specifications/02-build-http-client/features/compression/
+
+# Find HTTP client code
+find backends/foundation_core/src/wire/simple_http/client/ -type f -name "*.rs"
+```
+
+---
 
 ## 🔍 CRITICAL: Retrieval-Led Reasoning Required
 

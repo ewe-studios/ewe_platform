@@ -35,7 +35,7 @@ pub struct LockSignal {
 impl UnwindSafe for LockSignal {}
 impl RefUnwindSafe for LockSignal {}
 
-pub(crate) enum NotifyDirective {
+pub enum NotifyDirective {
     One,
     All,
 }
@@ -61,7 +61,7 @@ impl LockSignal {
         }
     }
 
-    pub(crate) fn signal(&self, directive: NotifyDirective) {
+    pub fn signal(&self, directive: NotifyDirective) {
         let mut state = self.lock.lock().unwrap();
         *state = LockState::Released;
         drop(state);

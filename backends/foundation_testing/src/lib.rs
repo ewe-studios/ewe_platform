@@ -1,12 +1,24 @@
-//! Reusable stress testing infrastructure for Foundation synchronization primitives.
+//! Reusable testing infrastructure for Foundation crates.
 //!
 //! This crate provides:
+//! - **HTTP test server**: Real HTTP server built on `foundation_core`'s `simple_http` types
 //! - **Stress test framework**: Configurable high-contention testing
 //! - **Common scenarios**: Producer-consumer, barriers, thread pools
 //! - **Performance metrics**: Latency, throughput, scalability measurements
 //! - **Criterion benchmarks**: Comparative performance testing
 //!
 //! # Examples
+//!
+//! ## HTTP Test Server
+//!
+//! ```rust
+//! use foundation_testing::http::TestHttpServer;
+//!
+//! let server = TestHttpServer::start();
+//! // Use server.url("/") in your HTTP client tests
+//! ```
+//!
+//! ## Stress Testing
 //!
 //! ```rust
 //! use foundation_testing::stress::{StressConfig, StressHarness};
@@ -40,10 +52,12 @@
 #![warn(clippy::pedantic)]
 #![allow(clippy::module_name_repetitions)] // Common for testing crates
 
+pub mod http;
 pub mod metrics;
 pub mod scenarios;
 pub mod stress;
 
 // Re-export commonly used items
+pub use http::TestHttpServer;
 pub use metrics::{Metrics, PerformanceReport};
 pub use stress::{StressConfig, StressHarness, StressResult};

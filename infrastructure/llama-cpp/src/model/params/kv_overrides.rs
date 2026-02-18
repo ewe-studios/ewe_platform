@@ -18,7 +18,8 @@ pub enum ParamOverrideValue {
 }
 
 impl ParamOverrideValue {
-    pub(crate) fn tag(&self) -> infrastructure_llama_bindings::llama_model_kv_override_type {
+    #[must_use] 
+    pub fn tag(&self) -> infrastructure_llama_bindings::llama_model_kv_override_type {
         match self {
             ParamOverrideValue::Bool(_) => {
                 infrastructure_llama_bindings::LLAMA_KV_OVERRIDE_TYPE_BOOL
@@ -31,9 +32,8 @@ impl ParamOverrideValue {
         }
     }
 
-    pub(crate) fn value(
-        &self,
-    ) -> infrastructure_llama_bindings::llama_model_kv_override__bindgen_ty_1 {
+    #[must_use] 
+    pub fn value(&self) -> infrastructure_llama_bindings::llama_model_kv_override__bindgen_ty_1 {
         match self {
             ParamOverrideValue::Bool(value) => {
                 infrastructure_llama_bindings::llama_model_kv_override__bindgen_ty_1 {

@@ -1,15 +1,33 @@
 ---
+# Identification
+spec_name: "02-build-http-client"
+spec_number: 02
 description: Create an HTTP 1.1 client using existing simple_http module structures with iterator-based patterns and valtron executors
+
+# Location Context
+# How to find: Run `bash pwd` to get CWD, this file is at CWD/specifications/02-build-http-client/requirements.md
+# Workspace root is CWD and contains: .agents/, specifications/, documentation/, backends/
+workspace_name: "ewe_platform"
+spec_directory: "specifications/02-build-http-client"
+this_file: "specifications/02-build-http-client/requirements.md"
+
+# Status
 status: in-progress
 priority: high
 created: 2026-01-18
 author: Main Agent
-context_optimization: true  # Sub-agents MUST generate COMPACT_CONTEXT.md before work, reload after updates
-compact_context_file: ./COMPACT_CONTEXT.md  # Ultra-compact current task context (97% reduction)
-context_reload_required: true  # Clear and reload from compact context regularly to prevent context limit errors
+
+# Context Optimization
+machine_optimized: true
+machine_prompt_file: ./machine_prompt.md
+context_optimization: true
+compact_context_file: ./COMPACT_CONTEXT.md
+context_reload_required: true
+
+# Metadata
 metadata:
   version: '4.0'
-  last_updated: 2026-01-25
+  last_updated: 2026-02-02
   estimated_effort: large
   tags:
     - http-client
@@ -23,17 +41,25 @@ metadata:
   tools:
     - Rust
     - cargo
+
+# Dependencies
 builds_on:
   - ../04-condvar-primitives
 related_specs:
   - ../03-wasm-friendly-sync-primitives
+
+# Structure
 has_features: true
-has_fundamentals: true # HTTP client needs comprehensive user documentation
+has_fundamentals: true
+
+# Progress Tracking
 features:
-  completed: 5
-  uncompleted: 8
+  completed: 7
+  uncompleted: 6
   total: 13
-  completion_percentage: 38
+  completion_percentage: 54
+
+# Files Required by Agents
 files_required:
   main_agent:
     rules:
@@ -69,6 +95,50 @@ files_required:
 ---
 
 # HTTP 1.1 Client - Requirements
+
+## 📍 Location Reference
+
+**How to find your location**:
+1. Run `bash pwd` to get current working directory (CWD)
+2. This file is at: `CWD/specifications/02-build-http-client/requirements.md`
+3. Workspace root is CWD (contains `.agents/`, `specifications/`, `documentation/`, `backends/`)
+
+**Quick paths** (all relative to workspace root = CWD):
+- This specification: `specifications/02-build-http-client/`
+- This file: `specifications/02-build-http-client/requirements.md`
+- Features: `specifications/02-build-http-client/features/*/feature.md`
+- Machine prompt: `specifications/02-build-http-client/machine_prompt.md`
+- Progress: `specifications/02-build-http-client/PROGRESS.md`
+- Learnings: `specifications/02-build-http-client/LEARNINGS.md`
+- Agent rules: `.agents/rules/`
+- Stack files: `.agents/stacks/rust.md`
+- Documentation: `documentation/simple_http/doc.md`, `documentation/valtron/doc.md`, `documentation/netcap/doc.md`
+
+**Verification**: If you can read `.agents/AGENTS.md` from CWD, you're in the right place!
+
+**Quick Navigation Commands**:
+```bash
+# Verify you're in workspace root
+test -f .agents/AGENTS.md && echo "✓ In workspace root" || echo "✗ Wrong location"
+
+# List all specifications
+ls -d specifications/*/
+
+# Check this spec's features
+ls -d specifications/02-build-http-client/features/*/
+
+# View specification structure
+tree -L 2 specifications/02-build-http-client/
+
+# Find HTTP client code
+find backends/foundation_core/src/wire/simple_http/client/ -type f -name "*.rs"
+```
+
+---
+
+> **Specification Structure**: has_features: true → This file is HIGH-LEVEL OVERVIEW ONLY. Detailed requirements and tasks are in `features/*/feature.md` files.
+
+---
 
 ## 🔍 CRITICAL: Retrieval-Led Reasoning Required
 
@@ -265,11 +335,11 @@ Build an HTTP 1.1 client that:
 | 1 | [tls-verification](./features/tls-verification/feature.md) | Verify and fix TLS backends (rustls, openssl, native-tls) | 0 | ✅ Complete |
 | 2 | [foundation](./features/foundation/feature.md) | Error types and DNS resolution | 1 | ✅ Complete |
 | 3 | [compression](./features/compression/feature.md) | gzip, deflate, brotli support | 2 | ⬜ Pending |
-| 4 | [connection](./features/connection/feature.md) | URL parsing, TCP, TLS | 2 | ✅ Complete |
+| 4 | [connection](./features/connection/feature.md) | URL parsing, TCP, TLS (HTTPS fully working) | 2 | ✅ Complete |
 | 5 | [proxy-support](./features/proxy-support/feature.md) | HTTP/HTTPS/SOCKS5 proxy | 4 | ⬜ Pending |
 | 6 | [request-response](./features/request-response/feature.md) | Request builder, response types | 4 | ✅ Complete |
 | 7 | [auth-helpers](./features/auth-helpers/feature.md) | Basic, Bearer, Digest auth | 6 | ⬜ Pending |
-| 8 | [task-iterator](./features/task-iterator/feature.md) | TaskIterator, ExecutionAction, executors | 0, 6 | ⬜ Pending |
+| 8 | [task-iterator](./features/task-iterator/feature.md) | TaskIterator, ExecutionAction, executors (types public) | 0, 6 | ✅ Complete |
 | 9 | [public-api](./features/public-api/feature.md) | User-facing API, SimpleHttpClient, integration | 8 | ⬜ Pending |
 
 ### Extended Features (Optional)

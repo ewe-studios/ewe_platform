@@ -432,8 +432,7 @@ impl ReturnTypeHints {
         match self {
             Self::None => None,
             Self::Multi(v) => Some(v.clone()),
-            Self::One(v) => Some(alloc::vec![v.clone()]),
-            Self::List(v) => Some(alloc::vec![v.clone()]),
+            Self::One(v) | Self::List(v) => Some(alloc::vec![v.clone()]),
         }
     }
 }
@@ -1959,7 +1958,7 @@ const BIT_MASK: u64 = 0xFFFF_FFFF;
 /// the length of the value.
 ///
 #[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord)]
-pub struct MemoryLocation(pub(crate) *const u8, pub(crate) u64);
+pub struct MemoryLocation(pub *const u8, pub u64);
 
 impl MemoryLocation {
     #[must_use]
@@ -1990,7 +1989,7 @@ impl MemoryLocation {
 /// Second Elem - is the generation
 ///
 #[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord)]
-pub struct MemoryId(pub(crate) u32, pub(crate) u32);
+pub struct MemoryId(pub u32, pub u32);
 
 impl MemoryId {
     #[must_use]

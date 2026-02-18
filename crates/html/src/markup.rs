@@ -577,7 +577,8 @@ impl<'a> Fragment<'a> {
     }
 
     #[allow(unused)]
-    pub(crate) fn next_child_index(&self) -> usize {
+    #[must_use] 
+    pub fn next_child_index(&self) -> usize {
         self.content.len()
     }
 

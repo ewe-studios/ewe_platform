@@ -37,7 +37,8 @@ impl<E: Send + 'static> Clone for Broadcast<E> {
 }
 
 impl<E: Send + 'static> Broadcast<E> {
-    pub(crate) fn new(initial_subscribers_capacity: usize) -> Self {
+    #[must_use] 
+    pub fn new(initial_subscribers_capacity: usize) -> Self {
         let (message_sender, message_receiver) = mspc::create::<E>();
 
         Self {

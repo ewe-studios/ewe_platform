@@ -1,6 +1,6 @@
 [package]
 name = "foundation_testing"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2021"
 rust-version = "1.75"
 authors = ["Foundation AI Team"]
@@ -12,7 +12,9 @@ categories = ["development-tools::testing"]
 
 [dependencies]
 # Foundation primitives being tested
-foundation_nostd = { path = "../foundation_nostd", features = ["std"] }
+foundation_nostd = { workspace = true, features = ["std"] }
+foundation_core = { workspace = true }
+tracing = { workspace = true }
 
 # Criterion for benchmarking (only allowed external dependency for testing)
 criterion = { version = "0.5", features = ["html_reports"] }

@@ -101,8 +101,15 @@ pub struct InternalReferenceRegistry {
 // -- Constructors
 
 #[allow(unused)]
+impl Default for InternalReferenceRegistry {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl InternalReferenceRegistry {
-    pub(crate) fn new() -> Self {
+    #[must_use] 
+    pub fn new() -> Self {
         Self {
             id: 0,
             tree: BTreeMap::new(),

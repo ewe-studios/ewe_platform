@@ -1,4 +1,4 @@
-use crate::extensions::result_ext::BoxedError;
+use crate::extensions::result_ext::{BoxedError, SendableBoxedError};
 use derive_more::From;
 use std::{
     string::{FromUtf16Error, FromUtf8Error},
@@ -16,13 +16,13 @@ pub enum HttpReaderError {
     UnknownLine(String),
 
     #[from(ignore)]
-    BodyBuildFailed(BoxedError),
+    BodyBuildFailed(SendableBoxedError),
 
     #[from(ignore)]
-    ProtoBuildFailed(BoxedError),
+    ProtoBuildFailed(SendableBoxedError),
 
     #[from(ignore)]
-    LineReadFailed(BoxedError),
+    LineReadFailed(SendableBoxedError),
 
     #[from(ignore)]
     InvalidContentSizeValue(Box<std::num::ParseIntError>),
@@ -235,6 +235,33 @@ impl core::fmt::Display for LineFeedError {
 }
 
 #[derive(From, Debug)]
+pub enum ClientRequestErrors {
+    InvalidState,
+    Unsupported,
+    ReadError,
+}
+
+impl<T> From<PoisonError<T>> for ClientRequestErrors {
+    fn from(_: PoisonError<T>) -> Self {
+        Self::ReadError
+    }
+}
+
+impl From<std::io::Error> for ClientRequestErrors {
+    fn from(_: std::io::Error) -> Self {
+        Self::ReadError
+    }
+}
+
+impl std::error::Error for ClientRequestErrors {}
+
+impl core::fmt::Display for ClientRequestErrors {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
+
+#[derive(From, Debug)]
 pub enum WireErrors {
     LineFeeds(LineFeedError),
     ChunkState(ChunkStateError),
@@ -242,4 +269,5 @@ pub enum WireErrors {
     RenderError(RenderHttpError),
     Http11Render(Http11RenderError),
     HttpReaderError(HttpReaderError),
+    HttpClientError(ClientRequestErrors),
 }

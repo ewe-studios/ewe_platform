@@ -1,7 +1,7 @@
 ---
 feature: request-response
 description: Request builder (ClientRequestBuilder), response types (ResponseIntro), and prepared request structure
-status: completed
+status: pending
 priority: high
 depends_on:
   - foundation
@@ -11,9 +11,9 @@ created: 2026-01-18
 last_updated: 2026-02-01
 completed_date: 2026-02-01
 author: Main Agent
-context_optimization: true  # Sub-agents MUST generate COMPACT_CONTEXT.md before work, reload after updates
-compact_context_file: ./COMPACT_CONTEXT.md  # Ultra-compact current task context (97% reduction)
-context_reload_required: true  # Clear and reload from compact context regularly to prevent context limit errors
+context_optimization: true # Sub-agents MUST generate COMPACT_CONTEXT.md before work, reload after updates
+compact_context_file: ./COMPACT_CONTEXT.md # Ultra-compact current task context (97% reduction)
+context_reload_required: true # Clear and reload from compact context regularly to prevent context limit errors
 tasks:
   completed: 10
   uncompleted: 0
@@ -55,6 +55,7 @@ files_required:
 ### Before Starting Implementation
 
 **YOU MUST** (in this order):
+
 1. ✅ **Search the codebase** for similar implementations using Grep/Glob
 2. ✅ **Read existing code** in related modules to understand patterns
 3. ✅ **Check stack files** (`.agents/stacks/[language].md`) for language-specific conventions
@@ -66,6 +67,7 @@ files_required:
 ### FORBIDDEN Approaches
 
 **YOU MUST NOT**:
+
 - ❌ Assume patterns based on typical practices without checking this codebase
 - ❌ Implement without searching for similar features first
 - ❌ Apply generic solutions without verifying project conventions
@@ -75,6 +77,7 @@ files_required:
 ### Retrieval Checklist
 
 Before implementing, answer these questions by reading code:
+
 - [ ] What similar features exist in this project? (use Grep to find)
 - [ ] What patterns do they follow? (read their implementations)
 - [ ] What naming conventions are used? (observed from existing code)
@@ -98,6 +101,7 @@ Before implementing, answer these questions by reading code:
 ### Machine-Optimized Prompts (Rule 14)
 
 **Main Agent MUST**:
+
 1. Generate `machine_prompt.md` from this file when specification/feature finalized
 2. Use pipe-delimited compression (58% token reduction)
 3. Commit machine_prompt.md alongside human-readable file
@@ -105,6 +109,7 @@ Before implementing, answer these questions by reading code:
 5. Provide machine_prompt.md path to sub-agents
 
 **Sub-Agents MUST**:
+
 - Read `machine_prompt.md` (NOT verbose human files)
 - Parse DOCS_TO_READ section for files to load
 - 58% token savings
@@ -112,6 +117,7 @@ Before implementing, answer these questions by reading code:
 ### Context Compaction (Rule 15)
 
 **Sub-Agents MUST** (before starting work):
+
 1. Read machine_prompt.md and PROGRESS.md
 2. Generate `COMPACT_CONTEXT.md`:
    - Embed machine_prompt.md content for current task
@@ -122,17 +128,20 @@ Before implementing, answer these questions by reading code:
 5. Proceed with 97% context reduction (180K→5K tokens)
 
 **After PROGRESS.md Updates**:
+
 - Regenerate COMPACT_CONTEXT.md (re-embed machine_prompt content)
 - Clear and reload
 - Maintain minimal context
 
 **COMPACT_CONTEXT.md Lifecycle**:
+
 - Generated fresh per task
 - Contains ONLY current task (no history)
 - Deleted when task completes
 - Rewritten from scratch for next task
 
 **See**:
+
 - Rule 14: .agents/rules/14-machine-optimized-prompts.md
 - Rule 15: .agents/rules/15-instruction-compaction.md
 
@@ -145,10 +154,12 @@ Create the request building and response type infrastructure for the HTTP 1.1 cl
 ## Dependencies
 
 This feature depends on:
+
 - `foundation` - Uses HttpClientError for errors
 - `connection` - Uses ParsedUrl for URL handling
 
 This feature is required by:
+
 - `task-iterator` - Uses PreparedRequest and ResponseIntro
 - `public-api` - Exposes ClientRequestBuilder and ResponseIntro
 
@@ -156,17 +167,17 @@ This feature is required by:
 
 The client reuses existing types from `simple_http/impls.rs`:
 
-| Existing Type | Usage in Client |
-|---------------|-----------------|
-| `SimpleResponse<T>` | Final collected response: `SimpleResponse<SimpleBody>` |
-| `IncomingResponseParts` | Iterator yields these parts |
-| `Status` | HTTP status codes |
-| `Proto` | HTTP protocol version |
-| `SimpleHeaders` | Header collections |
-| `SimpleBody` | Body variants |
-| `SimpleMethod` | HTTP methods |
-| `SimpleHeader` | Header keys |
-| `Http11RequestIterator` | Renders request to bytes |
+| Existing Type           | Usage in Client                                        |
+| ----------------------- | ------------------------------------------------------ |
+| `SimpleResponse<T>`     | Final collected response: `SimpleResponse<SimpleBody>` |
+| `IncomingResponseParts` | Iterator yields these parts                            |
+| `Status`                | HTTP status codes                                      |
+| `Proto`                 | HTTP protocol version                                  |
+| `SimpleHeaders`         | Header collections                                     |
+| `SimpleBody`            | Body variants                                          |
+| `SimpleMethod`          | HTTP methods                                           |
+| `SimpleHeader`          | Header keys                                            |
+| `Http11RequestIterator` | Renders request to bytes                               |
 
 ## Requirements
 
@@ -184,6 +195,7 @@ pub struct ResponseIntro {
 impl From<(Status, Proto, Option<String>)> for ResponseIntro {
     fn from((status, proto, reason): (Status, Proto, Option<String>)) -> Self {
         Self { status, proto, reason }
+      k,
     }
 }
 ```
@@ -286,16 +298,19 @@ cargo build --package foundation_core
 ## Notes for Agents
 
 ### Before Starting
+
 - **MUST VERIFY** foundation and connection features are complete
 - **MUST READ** `simple_http/impls.rs` for existing HTTP structures
 - **MUST READ** `Http11RequestIterator` implementation
 
 ### Implementation Guidelines
+
 - Reuse existing types from impls.rs (DO NOT duplicate)
 - Use fluent builder pattern
 - Keep PreparedRequest as internal (pub(crate))
 - ResponseIntro is public (user-facing)
 
 ---
-*Created: 2026-01-18*
-*Last Updated: 2026-01-18*
+
+_Created: 2026-01-18_
+_Last Updated: 2026-01-18_

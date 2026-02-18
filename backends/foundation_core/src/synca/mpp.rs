@@ -6,8 +6,6 @@ use std::{
 use concurrent_queue::{ConcurrentQueue, ForcePushError, PopError, PushError, TryIter};
 use derive_more::derive::From;
 
-use crate::valtron::{Stream, StreamIterator};
-
 pub struct Receiver<T> {
     chan: Arc<ConcurrentQueue<T>>,
 }
@@ -159,6 +157,21 @@ impl<T> RecvIter<T> {
         RecvIterator::new(self, dur)
     }
 
+    #[must_use]
+    pub fn is_closed(&self) -> bool {
+        self.chan.is_closed()
+    }
+
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.chan.is_empty()
+    }
+
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.chan.len()
+    }
+
     /// [`recv`] returns a Result of the value from the underlying channel if
     /// there is a value or if empty or closed.
     pub fn recv(&self) -> Result<T, ReceiverError> {
@@ -189,9 +202,10 @@ impl<T> RecvIter<T> {
 
                         std::thread::park_timeout(block_ts);
                         yield_now = true;
-                        continue;
                     }
-                    PopError::Closed => return Err(ReceiverError::Closed(err)),
+                    PopError::Closed => {
+                        return Err(ReceiverError::Closed(err));
+                    }
                 },
             };
         }
@@ -199,6 +213,14 @@ impl<T> RecvIter<T> {
 }
 
 /// [`RecvIterator`] implements an iterator for the [`RecvIter`] type.
+///
+/// The [`time::Duration`] received indicates how long it will block to get
+/// the next value upon which it will yield, if no value is received before
+/// that period the `RecvIterator` returns `None` if there was any error or if the internal
+/// receiver's channel was closed.
+///
+/// Which provides a sensible polling functionality yielding the threading when the timeout hits
+/// and no data is received.
 pub struct RecvIterator<T>(RecvIter<T>, time::Duration);
 
 /// [`DEFAULT_BLOCK_DURATION`] is the default wait time used by the [`RecvIter`]
@@ -223,6 +245,21 @@ impl<T> RecvIterator<T> {
     pub fn new(item: RecvIter<T>, dur: time::Duration) -> Self {
         Self(item, dur)
     }
+
+    #[must_use]
+    pub fn is_closed(&self) -> bool {
+        self.0.is_closed()
+    }
+
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
 }
 
 impl<T> Iterator for RecvIterator<T> {
@@ -233,10 +270,44 @@ impl<T> Iterator for RecvIterator<T> {
     }
 }
 
+pub enum Stream<D, P> {
+    // Indicative the stream is instantiating.
+    Init,
+
+    // Indicative of internal system operations occuring that should be ignored.
+    Ignore,
+
+    // Indicative that the stream next response will be delayed by this much duration
+    Delayed(std::time::Duration),
+
+    // Indicating that the stream is a pending state with giving context value.
+    Pending(P),
+
+    // Indicative the stream just issued its next value.
+    Next(D),
+}
+
+/// [`StreamIterator`] defines a type which implements an
+/// iterator that returns a stream stream
+/// of values.
+pub trait StreamIterator<D, P>: Iterator<Item = Stream<D, P>> {}
+
 pub struct StreamRecvIterator<D, P>(RecvIterator<Stream<D, P>>);
 
 impl<D, P> StreamRecvIterator<D, P> {
-    #[must_use] 
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+}
+
+impl<D, P> StreamRecvIterator<D, P> {
+    #[must_use]
     pub fn new(iter: RecvIterator<Stream<D, P>>) -> Self {
         Self(iter)
     }

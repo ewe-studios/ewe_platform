@@ -10,14 +10,15 @@ description = "central crate for all foundation crates for the ewe-platform proj
 keywords = ["foundations_core", "ewe-platform-core"]
 
 [dependencies]
-futures-core = { version = "0.3", default-features = false }
 
 # -- Workspace dependencies
 
 foundation_wasm = {workspace = true }
 foundation_nostd = {workspace = true }
 
+
 # -- Other dependencies
+futures-core = { version = "0.3", default-features = false }
 derive_more = { version = "2.0", features = ["from", "debug", "error"] }
 serde = { version = "1", features = ["derive"] }
 concurrent-queue = { version = "2.5.0" }
@@ -54,7 +55,7 @@ tokio = { version = "1.44", features = ["sync", "time"], optional = true }
 
 [dev-dependencies]
 serial_test = { workspace = true }
-tracing-test = { version = "0.2.5" }
+tracing-test = { version = "0.2",  features = ["no-env-filter"] }
 reqwest = { version = "0.12.15", features = ["blocking"] }
 
 [features]
@@ -70,6 +71,8 @@ ssl-openssl = ["std", "openssl", "zeroize"]
 ssl-rustls = ["std", "rustls", "rustls-pemfile", "webpki-roots", "zeroize"]
 ssl-native-tls = ["std", "native-tls", "native-tls/vendored", "zeroize"]
 ssl = ["ssl-rustls"]
+# ssl = ["ssl-openssl"]
+# ssl = ["ssl-native-tls"]
 
 # This feature switches the no threading runtime where you have
 # specified control over when the Executor actually executes tasks
@@ -83,7 +86,7 @@ nothread_runtime = []
 tokio_runtime = ["dep:tokio"]
 
 # default flags (removed ssl to avoid conflicts - users must explicitly choose TLS backend)
-default = ["standard", "std"]
+default = ["standard", "std", "ssl"]
 
 # Valtron utilities features
 std = ["futures-core/std", "foundation_nostd/std"]
