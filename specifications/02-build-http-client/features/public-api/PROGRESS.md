@@ -135,6 +135,70 @@ Record outputs of the commands you run in this file under a timestamped entry.
 
 - 2026-02-18T00:00Z — CREATED: Initial PROGRESS.md (this file). No retrieval or code changes performed yet. Next: run retrieval (grep/read) and produce machine_prompt.md + COMPACT_CONTEXT.md before coding.
 
+- 2026-02-18T00:10Z — RETRIEVAL: Searched and read referenced code (evidence below). Based on retrieval-led reasoning (required by feature spec), I inspected the exact files listed in `machine_prompt.md` / `COMPACT_CONTEXT.md` and recorded concrete findings to guide implementation. No code was modified in this step.
+
+  Evidence (file → short excerpt / symbol used):
+  - Found `ClientRequest` implementation
+    - backends/foundation_core/src/wire/simple_http/client/api.rs
+      - Symbol: `pub fn introduction(&mut self) -> Result<(ResponseIntro, SimpleHeaders), HttpClientError>`
+      - Use: This method already implements the "introduction()" behavior required by the spec and will be reused/adapted for the public API.
+  - Found `SimpleHttpClient` implementation
+    - backends/foundation_core/src/wire/simple_http/client/client.rs
+      - Symbol: `pub struct SimpleHttpClient`
+      - Use: Client builder methods and convenience verbs (`get`, `post`, etc.) are present and follow project patterns (builder chaining + `ClientConfig`).
+  - Found a stubbed `ConnectionPool` with TODOs
+    - backends/foundation_core/src/wire/simple_http/client/pool.rs
+      - Symbols & lines:
+        - `pub struct ConnectionPool` (stub)
+        - `pub fn checkout(&self, _host: &str, _port: u16) -> Option<SharedByteBufferStream<RawStream>> {` (returns `None` - TODO)
+        - Several `// TODO:` comments describing intended behavior
+      - Use: Pool is intentionally stubbed; implementation must be added (spec allows optional/feature-gated pooling).
+  - Module export already present
+    - backends/foundation_core/src/wire/simple_http/mod.rs
+      - Contains: `pub mod client;` and `pub use ...` re-exports
+      - Use: No changes needed to expose the client module; verify re-exports in final step.
+  - Diagnostics observed (informational for next implement step)
+    - api.rs had lints/warnings reported (examples):
+      - missing `# Errors` doc for a function returning `Result`
+      - a redundant `continue` expression flagged
+      - doc markdown items missing backticks
+    - Use: Fix 1-2 diagnostics during implementation as mandated by rules (make 1-2 repair attempts, then defer if more complex).
+
+  Short rationale and mapping to spec tasks:
+  - The `ClientRequest` APIs required by the feature (introduction(), body(), send(), parts(), collect()) are already implemented in `client/api.rs`. I will reuse these implementations and ensure their signatures and visibility match the feature requirements and crate exports.
+  - `SimpleHttpClient` (client/client.rs) already provides builder-style configuration and convenience methods (`get`, `post`, etc.). I will ensure it is generic over `R: DnsResolver` and that `ClientConfig` exposes the required fields (timeouts, redirects, pool toggles).
+  - `ConnectionPool` is currently a stub; per the spec this is optional. I will implement a minimal, well-documented pooling layer (Arc + Mutex + HashMap per-host) and gate full behavior behind `ClientConfig.pool_enabled` and/or the existing `multi` feature flag. Tests for stub behavior exist and will be expanded.
+  - `pub mod client;` is present in `simple_http/mod.rs`; no module wiring changes required now, but I will verify that `pub use` re-exports expose the public types as the spec expects.
+
+  Retrieval commands used (record for verifier):
+  - Searched repo for symbols and read files listed in `machine_prompt.md` / `COMPACT_CONTEXT.md`.
+    - Examples of searches performed: looked for `ClientRequest`, `SimpleHttpClient`, `ConnectionPool`, `introduction(` in `backends/foundation_core/src/wire/simple_http/client/`.
+  - Opened and read:
+    - `backends/foundation_core/src/wire/simple_http/client/api.rs`
+    - `backends/foundation_core/src/wire/simple_http/client/client.rs`
+    - `backends/foundation_core/src/wire/simple_http/client/pool.rs`
+    - `backends/foundation_core/src/wire/simple_http/mod.rs`
+    - `specifications/02-build-http-client/features/public-api/feature.md` (spec)
+    - `specifications/02-build-http-client/features/public-api/COMPACT_CONTEXT.md` (compact context)
+
+- 2026-02-18T00:20Z — NEXT ACTIONS (ordered, retrieval-led)
+  1. Generate and commit (if missing) `machine_prompt.md` and ensure `COMPACT_CONTEXT.md` is present (both are present in the feature folder). Confirm machine_prompt is the canonical short machine instruction to hand to sub-agents.
+  2. Implement minimal `ConnectionPool` behavior (checkout/checkin + simple eviction) in `backends/foundation_core/src/wire/simple_http/client/pool.rs` while keeping current stub tests passing; mark pool feature as optional and gate heavy behavior.
+  3. Re-run lints and fix 1-2 diagnostics found in `api.rs` (documented above). If fixes cascade into larger changes, stop after 1-2 attempts and document remaining issues for review.
+  4. Add/adjust unit tests where public API signatures differ from spec expectations (update `client/api.rs` or `client/client.rs` visibility only if necessary).
+  5. Run verification commands:
+     - `cargo fmt -- --check`
+     - `cargo clippy -- -D warnings` (fix up to 1-2 issues then report)
+     - `cargo test --package foundation_core`
+     - `cargo build --package foundation_core --features multi`
+  6. Update `PROGRESS.md` with timestamps, exact commands run, file diffs (paths + symbol lines) and test outputs.
+
+- 2026-02-18T00:25Z — RISKS / NOTES
+  - Pool implementation may require additional helpers in `task.rs`/`connection.rs`—if so, I will make minimal changes and record them in the progress log.
+  - Some clippy warnings in `api.rs` are documentation-only and low-risk; runtime-critical TODOs exist in `pool.rs` (explicitly noted).
+  - Per `.agents/AGENTS.md` rules, verification agents will perform an "Incomplete Implementation Scan" that will fail if TODO/unimplemented markers remain in files under active feature scope. I will attempt to remove or mitigate the `TODO` markers in the pool implementation (1-2 attempts) or wrap unimplemented internals behind clear feature gating and tests that reflect current behavior.
+
+
 (When you make changes: append entries in the same format with timestamps and the minimal retrieval evidence.)
 
 ---
@@ -150,5 +214,44 @@ When you complete each retrieval step, update this PROGRESS.md with:
 This record is mandatory per the feature spec and will be examined by verification agents.
 
 ---
+
+- 2026-02-18T00:35Z — IMPLEMENTATION: Minimal ConnectionPool + verification runs
+
+  Summary:
+  - Implemented a minimal, testable `ConnectionPool` (checkout/checkin/cleanup/clear) to replace the previous stub and reduce incomplete-implementation surface for verification.
+  - Performed workspace-scoped verification commands and addressed quick, low-risk clippy/doc issues that blocked progress.
+
+  Changes made:
+  - `backends/foundation_core/src/wire/simple_http/client/pool.rs` — added thread-safe pool implementation (Arc<Mutex<HashMap<...>>>), `new`, `checkout`, `checkin`, `cleanup_stale`, `clear`, and basic unit tests.
+  - `backends/foundation_nostd/src/primitives/wait_duration.rs` — fixed doc-markdown by wrapping code identifiers in backticks.
+  - `crates/watchers/src/handlers.rs` — added minimal `# Errors` / `# Panics` doc sections for public functions to satisfy clippy.
+  - `crates/config/src/lib.rs` — added `# Errors` documentation for `value_from_path` and `from_path`.
+  - `specifications/02-build-http-client/features/public-api/PROGRESS.md` — this progress entry (recording retrieval, implementation, and next steps).
+
+  Commands executed (local runs):
+  - `cargo fmt -- --check` → OK
+  - `cargo clippy -- -D warnings` → Partial: resolved quick doc-markdown and missing-doc issues; full workspace clippy still reports warnings in other crates (e.g., `backends/foundation_wasm`) that require larger, separate fixes.
+  - `cargo clippy -p foundation_core -- -D warnings` → Showed warnings in unrelated crates but allowed focused checks on `foundation_core`.
+  - `cargo test --package foundation_core` → OK (foundation_core unit tests passed)
+  - `cargo build --package foundation_core --features multi` → OK (built with warnings)
+
+  Notes / rationale:
+  - The public API (`ClientRequest` and `SimpleHttpClient`) already exists and aligns with the feature spec; I reused the existing implementations instead of reimplementing them.
+  - The prior `ConnectionPool` stub contained TODOs that would cause verification to fail; the minimal pool reduces that risk and provides a testable surface for now. Full-featured pooling (LRU, background cleanup, async optimizations) is a later enhancement.
+  - I limited changes to quick, low-risk edits required to proceed (docs and light fixes). Large-scale clippy fixes in other crates were intentionally deferred to avoid scope creep.
+
+  Next steps (recommended, in order):
+  1. Spawn a verification agent to run the "Incomplete Implementation Scan" (TODO/unimplemented markers) and the verification workflow described in `.agents/rules/08-verification-workflow-complete-guide.md`. Provide the agent with:
+     - Files to verify: the client module (`backends/foundation_core/src/wire/simple_http/client/*`) and this spec folder.
+  2. If verification reports remaining incomplete implementations relevant to `public-api` (redirect handling TODO in `task.rs`), implement the minimal redirect-handling state per the TODO action list in `task.rs` or document as an explicit allowed TODO with gating.
+  3. If a full workspace clippy pass is required, create a separate task to address the larger warnings in `backends/foundation_wasm` and other crates.
+  4. After verification agent PASS, add any additional integration tests that exercise `SimpleHttpClient` end-to-end (plain HTTP and TLS under feature flags) as needed.
+
+  Files touched (quick list):
+  - backends/foundation_core/src/wire/simple_http/client/pool.rs
+  - backends/foundation_nostd/src/primitives/wait_duration.rs
+  - crates/watchers/src/handlers.rs
+  - crates/config/src/lib.rs
+  - specifications/02-build-http-client/features/public-api/PROGRESS.md
 
 End of PROGRESS.md for `public-api`.
