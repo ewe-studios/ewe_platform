@@ -40,12 +40,13 @@ impl PreparedRequest {
         let simple_url = if let Some(query) = self.url.query() {
             SimpleUrl::url_with_query(format!("{}?{}", self.url.path(), query))
         } else {
-            SimpleUrl::url_only(self.url.path().to_string())
+            SimpleUrl::url_only(self.url.to_string())
         };
 
         // Create SimpleIncomingRequest using builder
         let request = SimpleIncomingRequest::builder()
             .with_url(simple_url)
+            .with_uri(self.url)
             .with_method(self.method)
             .with_proto(Proto::HTTP11)
             .with_headers(self.headers)

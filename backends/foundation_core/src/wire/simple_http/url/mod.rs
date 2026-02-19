@@ -292,6 +292,13 @@ impl Uri {
     }
 }
 
+#[allow(clippy::from_over_into)]
+impl Into<String> for Uri {
+    fn into(self) -> String {
+        format!("{self:}")
+    }
+}
+
 impl fmt::Display for Uri {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // scheme:

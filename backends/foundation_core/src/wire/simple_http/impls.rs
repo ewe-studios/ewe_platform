@@ -13,6 +13,7 @@ use crate::wire::simple_http::errors::{
     ChunkStateError, Http11RenderError, HttpReaderError, LineFeedError, Result, SimpleHttpError,
     SimpleHttpResult, StringHandlingError,
 };
+use crate::wire::simple_http::url::{InvalidUri, Uri};
 use derive_more::From;
 use regex::{self, Regex};
 use std::collections::HashSet;
@@ -1664,6 +1665,7 @@ pub type SimpleRequestResult<T> = std::result::Result<T, SimpleRequestError>;
 #[derive(From, Debug)]
 pub enum SimpleRequestError {
     NoURLProvided,
+    InvalidURI(InvalidUri),
     StringConversion(TryIntoStringError),
 }
 
@@ -1679,6 +1681,7 @@ impl core::fmt::Display for SimpleRequestError {
 pub struct RequestDescriptor {
     pub proto: Proto,
     pub request_url: SimpleUrl,
+    pub request_uri: Uri,
     pub headers: SimpleHeaders,
     pub method: SimpleMethod,
 }
@@ -1686,12 +1689,11 @@ pub struct RequestDescriptor {
 #[derive(Debug)]
 pub struct SimpleIncomingRequest {
     pub proto: Proto,
+    pub request_uri: Uri,
     pub request_url: SimpleUrl,
     pub body: Option<SimpleBody>,
     pub headers: SimpleHeaders,
     pub method: SimpleMethod,
-    pub host_address: Option<String>,
-    pub host_port: Option<u16>,
     pub socket_addrs: Option<Vec<SocketAddr>>,
 }
 
@@ -1706,6 +1708,7 @@ impl SimpleIncomingRequest {
         RequestDescriptor {
             proto: self.proto.clone(),
             request_url: self.request_url.clone(),
+            request_uri: self.request_uri.clone(),
             headers: self.headers.clone(),
             method: self.method.clone(),
         }
@@ -1715,6 +1718,7 @@ impl SimpleIncomingRequest {
 #[derive(Default)]
 pub struct SimpleIncomingRequestBuilder {
     proto: Option<Proto>,
+    req_uri: Option<Uri>,
     url: Option<SimpleUrl>,
     body: Option<SimpleBody>,
     method: Option<SimpleMethod>,
@@ -1770,6 +1774,12 @@ impl SimpleIncomingRequestBuilder {
     #[must_use]
     pub fn with_address(mut self, address: String) -> Self {
         self.host_address = Some(address);
+        self
+    }
+
+    #[must_use]
+    pub fn with_uri(mut self, uri: Uri) -> Self {
+        self.req_uri = Some(uri);
         self
     }
 
@@ -1855,6 +1865,12 @@ impl SimpleIncomingRequestBuilder {
             None => return Err(SimpleRequestError::NoURLProvided),
         };
 
+        let req_uri = if let Some(uri) = self.req_uri {
+            uri
+        } else {
+            Uri::parse(request_url.url.as_str()).map_err(SimpleRequestError::InvalidURI)?
+        };
+
         let mut headers = self.headers.unwrap_or_default();
         let proto = self.proto.unwrap_or(Proto::HTTP11);
         let method = self.method.unwrap_or(SimpleMethod::GET);
@@ -1893,9 +1909,8 @@ impl SimpleIncomingRequestBuilder {
 
         Ok(SimpleIncomingRequest {
             body: Some(body),
-            host_port: self.host_port.take(),
-            host_address: self.host_address.take(),
             socket_addrs: self.socket_addrs.take(),
+            request_uri: req_uri,
             proto,
             request_url,
             method,
@@ -2244,7 +2259,7 @@ pub enum Http11ReqState {
 pub struct Http11RequestIterator(Option<Http11ReqState>);
 
 impl Http11RequestIterator {
-    pub fn new(request: Http11Request) -> Self {
+    pub fn new(request: SimpleIncomingRequest) -> Self {
         Self(Some(Http11ReqState::Intro(request)))
     }
 }
