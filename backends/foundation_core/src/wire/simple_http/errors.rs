@@ -120,6 +120,7 @@ pub enum Http11RenderError {
 
     HeadersRequired,
     InvalidSituationUsedIterator,
+    InvalidState(String),
 }
 
 impl From<BoxedError> for Http11RenderError {

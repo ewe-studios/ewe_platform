@@ -1904,6 +1904,79 @@ impl SimpleIncomingRequestBuilder {
     }
 }
 
+pub enum Http11RequestDescriptorState {
+    /// Stating variant of the rendering of a HTTP 1.1 request
+    /// when this starts it renders the starting line of your request.
+    /// e.g GET location:port HTTP/1.1
+    ///
+    /// Once done it moves state to the `Http11ReqState::Headers` variant.
+    Intro(RequestDescriptor),
+
+    /// Second state which renders the headers of a request to the iterator
+    /// as the next value.
+    ///
+    /// Once done it moves state to the `Http11ReqState::Body` variant.
+    Headers(RequestDescriptor),
+
+    /// The final state of the rendering which once read ends the iterator.
+    End,
+}
+
+/// [`Http11RequestDescriptorIterator`] represents the rendering of a `HTTP`
+/// request via an Iterator pattern that supports both sync and async
+/// contexts.
+pub struct Http11RequestDescriptorIterator(Option<Http11RequestDescriptorState>);
+
+impl Iterator for Http11RequestDescriptorIterator {
+    type Item = Result<Vec<u8>, Http11RenderError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.0.take()? {
+            Http11RequestDescriptorState::Intro(request) => {
+                let method = request.method.clone();
+                let url = request.request_url.url.clone();
+                // switch state to headers
+                self.0 = Some(Http11RequestDescriptorState::Headers(request));
+
+                // generate HTTP 1.1 intro
+                let http_intro_string = format!("{method} {url} HTTP/1.1\r\n",);
+
+                Some(Ok(http_intro_string.into_bytes()))
+            }
+            Http11RequestDescriptorState::Headers(request) => {
+                // HTTP 1.1 requires atleast 1 header in the request being generated
+                let borrowed_headers = &request.headers;
+                if borrowed_headers.is_empty() {
+                    // tell the iterator we want it to end
+                    self.0 = Some(Http11RequestDescriptorState::End);
+
+                    return Some(Err(Http11RenderError::HeadersRequired));
+                }
+
+                let mut encoded_headers: Vec<String> = borrowed_headers
+                    .iter()
+                    .map(|(key, value)| {
+                        let joined_value = value.join(", ");
+                        format!("{key}: {joined_value}\r\n")
+                    })
+                    .collect();
+
+                // add CLRF for ending header
+                encoded_headers.push("\r\n".into());
+
+                // switch state to body rendering next
+                self.0 = Some(Http11RequestDescriptorState::End);
+
+                // join all intermediate with CLRF (last
+                // element does not get it hence why we do it above)
+                Some(Ok(encoded_headers.join("").into_bytes()))
+            }
+            // Ends the iterator
+            Http11RequestDescriptorState::End => None,
+        }
+    }
+}
+
 /// [`Http11ReqState`] is an interesting pattern I am playing with
 /// where instead of forcing async where I want chunked process instead
 /// we can use rust typed state pattern where we define an enum of a singular
@@ -2405,10 +2478,16 @@ impl Iterator for Http11ResponseIterator {
 
 pub enum Http11 {
     Request(SimpleIncomingRequest),
+    RequestDescriptor(RequestDescriptor),
     Response(SimpleOutgoingResponse),
 }
 
 impl Http11 {
+    #[must_use]
+    pub fn request_descriptor(req: RequestDescriptor) -> Self {
+        Self::RequestDescriptor(req)
+    }
+
     #[must_use]
     pub fn request(req: SimpleIncomingRequest) -> Self {
         Self::Request(req)
@@ -2427,6 +2506,9 @@ impl RenderHttp for Http11 {
         self,
     ) -> std::result::Result<BoxedResultIterator<Vec<u8>, Self::Error>, Self::Error> {
         match self {
+            Http11::RequestDescriptor(request) => Ok(Box::new(Http11RequestDescriptorIterator(
+                Some(Http11RequestDescriptorState::Intro(request)),
+            ))),
             Http11::Request(request) => Ok(Box::new(Http11RequestIterator(Some(
                 Http11ReqState::Intro(request),
             )))),
@@ -2440,6 +2522,26 @@ impl RenderHttp for Http11 {
 #[cfg(test)]
 mod simple_incoming_tests {
     use super::*;
+
+    #[test]
+    fn should_convert_to_get_request_header_without_body_for_descriptor() {
+        let prepared = SimpleIncomingRequest::builder()
+            .with_plain_url("/")
+            .with_method(SimpleMethod::GET)
+            .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
+            .add_header(SimpleHeader::HOST, "localhost:8000")
+            .add_header(SimpleHeader::Custom("X-VILLA".into()), "YES")
+            .with_body_string("Hello")
+            .build()
+            .unwrap();
+
+        let request = Http11::request_descriptor(prepared.descriptor());
+
+        assert_eq!(
+            request.http_render_string().unwrap(),
+            "GET / HTTP/1.1\r\nCONTENT-LENGTH: 5\r\nCONTENT-TYPE: application/json\r\nHOST: localhost:8000\r\nX-VILLA: YES\r\n\r\n"
+        );
+    }
 
     #[test]
     fn should_convert_to_get_request_with_custom_header() {
