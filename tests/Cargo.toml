@@ -11,6 +11,7 @@ path = "mod.rs"
 foundation_nostd = { workspace = true }
 foundation_core = { workspace = true }
 foundation_testing = { workspace = true }
+serde = { version = "1.0", features = ["derive"] }
 
 tracing = { workspace = true}
 

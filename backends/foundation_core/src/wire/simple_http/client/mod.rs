@@ -28,8 +28,8 @@ pub use pool::*;
 pub use request::*;
 pub use task::*;
 
+// Re-export ExecutionAction from valtron so tests and helpers can reference it
+pub use crate::valtron::ExecutionAction;
+
 #[cfg(not(target_arch = "wasm32"))]
 pub use tls_task::*;
-
-#[cfg(test)]
-mod tests;

@@ -1107,6 +1107,7 @@ dependencies = [
  "foundation_nostd",
  "foundation_testing",
  "reqwest 0.13.2",
+ "serde",
  "serial_test",
  "tracing",
  "tracing-test",

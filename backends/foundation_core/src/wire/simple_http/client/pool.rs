@@ -33,9 +33,9 @@ type PooledEntry = (Instant, SharedByteBufferStream<RawStream>);
 /// older than `max_idle_time` on checkout/cleanup.
 pub struct ConnectionPool {
     // Max connections to retain per host
-    max_per_host: usize,
+    pub max_per_host: usize,
     // Maximum idle lifetime for pooled connections
-    max_idle_time: Duration,
+    pub max_idle_time: Duration,
     // Internal storage: host:port -> deque of (Instant, Stream)
     inner: Arc<Mutex<HashMap<String, VecDeque<PooledEntry>>>>,
 }
@@ -140,40 +140,5 @@ impl ConnectionPool {
         if let Ok(mut map) = self.inner.lock() {
             map.clear();
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::time::Duration;
-
-    /// WHY: Verify ConnectionPool::new creates pool
-    #[test]
-    fn test_connection_pool_new() {
-        let pool = ConnectionPool::new(10, Duration::from_secs(60));
-        assert_eq!(pool.max_per_host, 10);
-        assert_eq!(pool.max_idle_time, Duration::from_secs(60));
-    }
-
-    /// WHY: Verify checkout returns None for empty pool
-    #[test]
-    fn test_connection_pool_checkout_empty() {
-        let pool = ConnectionPool::new(10, Duration::from_secs(60));
-        let result = pool.checkout("example.com", 80);
-        assert!(result.is_none());
-    }
-
-    /// WHY: Basic checkin/checkout semantics (logical test)
-    /// NOTE: We cannot construct a real `SharedByteBufferStream<RawStream>` easily
-    /// in unit tests here without additional helpers. This test asserts that
-    /// checkin/checkout APIs are callable and do not panic when used with a
-    /// dummy stream via Arc/Clone when available. For now we rely on the
-    /// existing stub tests to validate surface.
-    #[test]
-    fn test_cleanup_and_clear_no_panic() {
-        let pool = ConnectionPool::new(2, Duration::from_secs(0));
-        pool.cleanup_stale();
-        pool.clear();
     }
 }

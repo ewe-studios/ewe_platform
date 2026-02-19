@@ -20,11 +20,11 @@ mod path;
 mod query;
 mod scheme;
 
-pub use authority::{Authority, Host};
-pub use error::{InvalidUri, InvalidUriParts};
-pub use path::PathAndQuery;
-pub use query::{Query, QueryError};
-pub use scheme::Scheme;
+pub use authority::*;
+pub use error::*;
+pub use path::*;
+pub use query::*;
+pub use scheme::*;
 
 use std::fmt;
 
@@ -48,7 +48,7 @@ use std::fmt;
 /// // Parse from string
 /// let uri = Uri::parse("https://user:pass@example.com:8080/path?key=value#section").unwrap();
 /// assert_eq!(uri.scheme().as_str(), "https");
-/// assert_eq!(uri.host().unwrap(), "example.com");
+/// assert_eq!(uri.host_str().unwrap(), "example.com");
 /// assert_eq!(uri.port().unwrap(), 8080);
 /// assert_eq!(uri.path(), "/path");
 /// assert_eq!(uri.query().unwrap(), "key=value");
@@ -68,42 +68,40 @@ pub struct Uri {
 impl Uri {
     /// Parses a URI from a string.
     ///
-    /// # Purpose (WHY)
+    /// This parser accepts two shapes of input:
+    /// 1. Absolute URIs with a scheme (e.g. "http://example.com/path")
+    /// 2. Path-only inputs that start with '/' (e.g. "/path?query") — these are
+    ///    treated as a path + query with a default scheme of `http` and no authority.
     ///
-    /// URIs come in many formats and need robust parsing with proper validation
-    /// to prevent security issues and ensure correct HTTP operations.
+    /// Rationale: server-side code and many internal tests construct requests
+    /// using path-only URLs ("/"). Treating leading-slash inputs as a valid,
+    /// path-only URI simplifies callers and keeps `Uri::parse` useful in both
+    /// contexts while still rejecting ambiguous inputs like "example.com/path"
+    /// that lack a scheme and a leading slash.
     ///
-    /// # Arguments (WHAT)
+    /// # Arguments
     ///
-    /// * `uri` - The URI string to parse (e.g., "<https://example.com/path?query>")
-    ///
-    /// # Returns (HOW)
-    ///
-    /// A validated `Uri` with all components properly parsed.
+    /// * `uri` - The URI string to parse
     ///
     /// # Errors
     ///
     /// Returns `InvalidUri` if:
-    /// - URI format is invalid
-    /// - Scheme is missing or invalid
-    /// - Authority components are malformed
-    /// - Port is out of range
-    /// - Path contains invalid characters
-    ///
-    /// # Panics
-    ///
-    /// This function does not panic. All parsing errors are returned as `Err(InvalidUri)`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use foundation_core::wire::simple_http::url::Uri;
-    ///
-    /// let uri = Uri::parse("http://example.com/path").unwrap();
-    /// assert_eq!(uri.scheme().as_str(), "http");
-    /// assert_eq!(uri.host().unwrap(), "example.com");
-    /// ```
+    /// - URI format is invalid for absolute URIs
+    /// - For path-only form, path parsing fails
     pub fn parse(uri: &str) -> Result<Self, InvalidUri> {
+        // Accept path-only URIs (starting with '/'). These are common for server
+        // side request representations and tests that pass only the path.
+        if uri.starts_with('/') {
+            let path_and_query = PathAndQuery::parse(uri)?;
+            return Ok(Uri {
+                scheme: Scheme::HTTP,
+                authority: None,
+                path_and_query,
+                fragment: None,
+            });
+        }
+
+        // Otherwise require an explicit scheme as before.
         // URI format: scheme:[//authority]path[?query][#fragment]
 
         // 1. Parse scheme (required)
@@ -318,71 +316,5 @@ impl fmt::Display for Uri {
         }
 
         Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_uri_parse_simple_http() {
-        let uri = Uri::parse("http://example.com").unwrap();
-        assert_eq!(uri.scheme().as_str(), "http");
-        assert_eq!(uri.host_str().unwrap(), "example.com");
-        assert_eq!(uri.port_or_default(), 80);
-        assert_eq!(uri.path(), "/");
-        assert!(uri.query().is_none());
-    }
-
-    #[test]
-    fn test_uri_parse_with_port() {
-        let uri = Uri::parse("https://example.com:8443/path").unwrap();
-        assert_eq!(uri.scheme().as_str(), "https");
-        assert_eq!(uri.host_str().unwrap(), "example.com");
-        assert_eq!(uri.port().unwrap(), 8443);
-        assert_eq!(uri.path(), "/path");
-    }
-
-    #[test]
-    fn test_uri_parse_with_query() {
-        let uri = Uri::parse("http://example.com/path?key=value&foo=bar").unwrap();
-        assert_eq!(uri.path(), "/path");
-        assert_eq!(uri.query().unwrap(), "key=value&foo=bar");
-    }
-
-    #[test]
-    fn test_uri_parse_with_fragment() {
-        let uri = Uri::parse("http://example.com/path#section").unwrap();
-        assert_eq!(uri.path(), "/path");
-        assert_eq!(uri.fragment().unwrap(), "section");
-    }
-
-    #[test]
-    fn test_uri_parse_complete() {
-        let uri = Uri::parse("https://user:pass@example.com:8080/path?key=value#section").unwrap();
-        assert_eq!(uri.scheme().as_str(), "https");
-        assert_eq!(uri.host_str().unwrap(), "example.com");
-        assert_eq!(uri.port().unwrap(), 8080);
-        assert_eq!(uri.path(), "/path");
-        assert_eq!(uri.query().unwrap(), "key=value");
-        assert_eq!(uri.fragment().unwrap(), "section");
-    }
-
-    #[test]
-    fn test_uri_display() {
-        let original = "http://example.com:8080/path?query#fragment";
-        let uri = Uri::parse(original).unwrap();
-        assert_eq!(uri.to_string(), original);
-    }
-
-    #[test]
-    fn test_uri_parse_missing_scheme() {
-        assert!(Uri::parse("example.com/path").is_err());
-    }
-
-    #[test]
-    fn test_uri_parse_invalid_port() {
-        assert!(Uri::parse("http://example.com:99999/path").is_err());
     }
 }
