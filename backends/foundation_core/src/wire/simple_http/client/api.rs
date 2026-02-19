@@ -39,7 +39,7 @@ use std::sync::Arc;
 ///
 /// HOW: Transitions from `NotStarted` -> Executing -> Completed. Executing state
 /// holds all intermediate data needed for progressive reading.
-enum ClientRequestState<R: DnsResolver + 'static> {
+pub enum ClientRequestState<R: DnsResolver + 'static> {
     /// Request hasn't been executed yet
     NotStarted,
     /// Request is currently executing or has partial results
@@ -110,7 +110,7 @@ pub struct ClientRequest<R: DnsResolver + 'static> {
     /// Connection pool for reuse
     pool: Option<Arc<ConnectionPool>>,
     /// Internal state machine for progressive reading
-    task_state: Option<ClientRequestState<R>>,
+    pub task_state: Option<ClientRequestState<R>>,
     /// Stream for body reading and pool return
     stream: Option<SharedByteBufferStream<RawStream>>,
     /// Host for pool return
@@ -624,39 +624,5 @@ impl<R: DnsResolver + 'static> Drop for ClientRequest<R> {
         {
             pool.checkin(host, *port, stream.clone());
         }
-    }
-}
-
-#[cfg(test)]
-mod api_tests {
-    use super::*;
-    use crate::wire::simple_http::client::{
-        ClientRequestBuilder, MockDnsResolver, StaticSocketAddr,
-    };
-
-    // ========================================================================
-    // ClientRequest Construction Tests
-    // ========================================================================
-
-    /// WHY: Verify ClientRequest::new creates request in NotStarted state
-    /// WHAT: Tests that constructor initializes correctly
-    #[test]
-    fn test_client_request_new() {
-        let prepared = ClientRequestBuilder::get(
-            StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
-            "http://example.com",
-        )
-        .unwrap()
-        .build()
-        .unwrap();
-        let resolver = MockDnsResolver::new();
-        let config = ClientConfig::default();
-
-        let request = ClientRequest::new(prepared, resolver, config, None);
-
-        assert!(matches!(
-            request.task_state,
-            Some(ClientRequestState::NotStarted)
-        ));
     }
 }

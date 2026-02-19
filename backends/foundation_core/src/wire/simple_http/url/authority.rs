@@ -55,7 +55,7 @@ impl Authority {
     /// # Panics
     ///
     /// This function does not panic. Invalid authority components return `Err(InvalidUri)`.
-    pub(crate) fn parse_with_remainder(s: &str) -> Result<(Option<Self>, &str), InvalidUri> {
+    pub fn parse_with_remainder(s: &str) -> Result<(Option<Self>, &str), InvalidUri> {
         if s.is_empty() {
             return Ok((None, s));
         }
@@ -75,7 +75,7 @@ impl Authority {
     }
 
     /// Parses just the authority component.
-    fn parse(s: &str) -> Result<Self, InvalidUri> {
+    pub fn parse(s: &str) -> Result<Self, InvalidUri> {
         // Split off userinfo if present (before last @)
         let (userinfo, host_port) = if let Some(at_pos) = s.rfind('@') {
             let userinfo = &s[..at_pos];
@@ -100,7 +100,7 @@ impl Authority {
     }
 
     /// Parses host:port component.
-    fn parse_host_port(s: &str) -> Result<(Host, Option<u16>), InvalidUri> {
+    pub fn parse_host_port(s: &str) -> Result<(Host, Option<u16>), InvalidUri> {
         // Check for IPv6 (enclosed in brackets)
         if s.starts_with('[') {
             let close_bracket = s
@@ -162,7 +162,7 @@ impl Authority {
     }
 
     /// Parses a port string.
-    fn parse_port(s: &str) -> Result<u16, InvalidUri> {
+    pub fn parse_port(s: &str) -> Result<u16, InvalidUri> {
         s.parse::<u16>()
             .map_err(|_| InvalidUri::new(format!("invalid port: {s}")))
     }
@@ -279,7 +279,7 @@ impl Host {
     /// - `RegName`: "example.com"
     ///
     /// HOW: Uses Rust's built-in Display implementations for IP addresses.
-    pub(crate) fn to_string_for_display(&self) -> String {
+    pub fn to_string_for_display(&self) -> String {
         match self {
             Host::Ipv4(addr) => addr.to_string(),
             Host::Ipv6(addr) => format!("[{addr}]"),
@@ -307,80 +307,5 @@ impl fmt::Display for Authority {
 impl fmt::Display for Host {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.to_string_for_display())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_authority_parse_domain() {
-        let auth = Authority::parse("example.com").unwrap();
-        assert!(matches!(auth.host(), Host::RegName(_)));
-        assert_eq!(auth.port(), None);
-        assert_eq!(auth.userinfo(), None);
-    }
-
-    #[test]
-    fn test_authority_parse_domain_with_port() {
-        let auth = Authority::parse("example.com:8080").unwrap();
-        assert_eq!(auth.port(), Some(8080));
-    }
-
-    #[test]
-    fn test_authority_parse_ipv4() {
-        let auth = Authority::parse("192.168.1.1").unwrap();
-        assert!(matches!(auth.host(), Host::Ipv4(_)));
-        assert_eq!(auth.port(), None);
-    }
-
-    #[test]
-    fn test_authority_parse_ipv4_with_port() {
-        let auth = Authority::parse("192.168.1.1:8080").unwrap();
-        assert!(matches!(auth.host(), Host::Ipv4(_)));
-        assert_eq!(auth.port(), Some(8080));
-    }
-
-    #[test]
-    fn test_authority_parse_ipv6() {
-        let auth = Authority::parse("[::1]").unwrap();
-        assert!(matches!(auth.host(), Host::Ipv6(_)));
-        assert_eq!(auth.port(), None);
-    }
-
-    #[test]
-    fn test_authority_parse_ipv6_with_port() {
-        let auth = Authority::parse("[2001:db8::1]:8080").unwrap();
-        assert!(matches!(auth.host(), Host::Ipv6(_)));
-        assert_eq!(auth.port(), Some(8080));
-    }
-
-    #[test]
-    fn test_authority_parse_with_userinfo() {
-        let auth = Authority::parse("user:pass@example.com:8080").unwrap();
-        assert_eq!(auth.userinfo(), Some("user:pass"));
-        assert_eq!(auth.port(), Some(8080));
-    }
-
-    #[test]
-    fn test_authority_parse_invalid_port() {
-        assert!(Authority::parse("example.com:99999").is_err());
-        assert!(Authority::parse("example.com:abc").is_err());
-    }
-
-    #[test]
-    fn test_authority_parse_invalid_ipv6() {
-        assert!(Authority::parse("[not::valid").is_err()); // Unclosed bracket
-        assert!(Authority::parse("[zzz::1]").is_err()); // Invalid IPv6
-    }
-
-    #[test]
-    fn test_authority_display() {
-        let auth = Authority::parse("user@example.com:8080").unwrap();
-        assert_eq!(auth.to_string(), "user@example.com:8080");
-
-        let auth = Authority::parse("[::1]:443").unwrap();
-        assert_eq!(auth.to_string(), "[::1]:443");
     }
 }

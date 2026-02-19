@@ -34,7 +34,7 @@ impl PathAndQuery {
     /// # Panics
     ///
     /// This function does not panic. Invalid path characters return `Err(InvalidUri)`.
-    pub(crate) fn parse(s: &str) -> Result<Self, InvalidUri> {
+    pub fn parse(s: &str) -> Result<Self, InvalidUri> {
         // Empty string is valid (becomes "/" in absolute URIs)
         if s.is_empty() {
             return Ok(PathAndQuery {
@@ -127,80 +127,5 @@ impl fmt::Display for PathAndQuery {
             write!(f, "?{query}")?;
         }
         Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_path_and_query_empty() {
-        let pq = PathAndQuery::parse("").unwrap();
-        assert_eq!(pq.path(), "/");
-        assert_eq!(pq.query(), None);
-    }
-
-    #[test]
-    fn test_path_and_query_root() {
-        let pq = PathAndQuery::parse("/").unwrap();
-        assert_eq!(pq.path(), "/");
-        assert_eq!(pq.query(), None);
-    }
-
-    #[test]
-    fn test_path_and_query_path_only() {
-        let pq = PathAndQuery::parse("/path/to/resource").unwrap();
-        assert_eq!(pq.path(), "/path/to/resource");
-        assert_eq!(pq.query(), None);
-    }
-
-    #[test]
-    fn test_path_and_query_with_query() {
-        let pq = PathAndQuery::parse("/path?key=value").unwrap();
-        assert_eq!(pq.path(), "/path");
-        assert_eq!(pq.query(), Some("key=value"));
-    }
-
-    #[test]
-    fn test_path_and_query_with_complex_query() {
-        let pq = PathAndQuery::parse("/path?key=value&foo=bar&baz").unwrap();
-        assert_eq!(pq.path(), "/path");
-        assert_eq!(pq.query(), Some("key=value&foo=bar&baz"));
-    }
-
-    #[test]
-    fn test_path_and_query_empty_query() {
-        let pq = PathAndQuery::parse("/path?").unwrap();
-        assert_eq!(pq.path(), "/path");
-        assert_eq!(pq.query(), None); // Empty query is treated as no query
-    }
-
-    #[test]
-    fn test_path_and_query_relative_path() {
-        let pq = PathAndQuery::parse("path/to/resource").unwrap();
-        assert_eq!(pq.path(), "/path/to/resource"); // Prepends /
-    }
-
-    #[test]
-    fn test_path_and_query_display() {
-        let pq = PathAndQuery::parse("/path?key=value").unwrap();
-        assert_eq!(pq.to_string(), "/path?key=value");
-    }
-
-    #[test]
-    fn test_path_validation() {
-        // Valid paths
-        assert!(PathAndQuery::parse("/path/to/resource").is_ok());
-        assert!(PathAndQuery::parse("/path-with-dash").is_ok());
-        assert!(PathAndQuery::parse("/path_with_underscore").is_ok());
-        assert!(PathAndQuery::parse("/path.with.dots").is_ok());
-        assert!(PathAndQuery::parse("/path~tilde").is_ok());
-        assert!(PathAndQuery::parse("/path:colon").is_ok());
-        assert!(PathAndQuery::parse("/path@at").is_ok());
-
-        // Invalid paths - uncomment when strict validation is needed
-        // assert!(PathAndQuery::parse("/path with space").is_err());
-        // assert!(PathAndQuery::parse("/path<bracket>").is_err());
     }
 }
