@@ -1927,6 +1927,12 @@ pub enum Http11RequestDescriptorState {
 /// contexts.
 pub struct Http11RequestDescriptorIterator(Option<Http11RequestDescriptorState>);
 
+impl Http11RequestDescriptorIterator {
+    pub fn new(request: RequestDescriptor) -> Self {
+        Self(Some(Http11RequestDescriptorState::Intro(request)))
+    }
+}
+
 impl Iterator for Http11RequestDescriptorIterator {
     type Item = Result<Vec<u8>, Http11RenderError>;
 
@@ -1977,44 +1983,14 @@ impl Iterator for Http11RequestDescriptorIterator {
     }
 }
 
-/// [`Http11ReqState`] is an interesting pattern I am playing with
-/// where instead of forcing async where I want chunked process instead
-/// we can use rust typed state pattern where we define an enum of a singular
-/// type with it's multiple iterations where each defines a possible state
-/// though we loose the benefit where a state can't be returned to since
-/// we would use different structs in a true typedstate pattern.
-/// I am not sure what to call this maybe the switching enum option state
-/// pattern.
-///
-/// The benefit is that now I can represent different states of the rendering
-/// of a HTTP 1.1 Request object via enum's options/variants where the iterator
-/// [`Http11RequestIterator`] can swap out the state and use this to decide
-/// it's internal state with just use of the Iterator.
-/// The idea is this pattern will work regardless of whether sync or async
-/// because you can wrap the iterator in an async iterator if you want which is nice
-/// as iterator are pulled based nor pushed based, you need to call `Iterator::next` to
-/// get the next data anyway which in my view fits great with such a pattern.
-pub enum Http11ReqState {
-    /// Stating variant of the rendering of a HTTP 1.1 request
-    /// when this starts it renders the starting line of your request.
-    /// e.g GET location:port HTTP/1.1
-    ///
-    /// Once done it moves state to the `Http11ReqState::Headers` variant.
-    Intro(SimpleIncomingRequest),
-
-    /// Second state which renders the headers of a request to the iterator
-    /// as the next value.
-    ///
-    /// Once done it moves state to the `Http11ReqState::Body` variant.
-    Headers(SimpleIncomingRequest),
-
-    /// Third state which starts rendering the body of the request
+pub enum Http11RequestBodyState {
+    /// Start state which starts rendering the body of the request
     /// this variant is unique because depending on the body type it can
     /// go to the End variant or the `BodyStreaming` variant.
     ///
     /// Once done it moves state to the `Http11ReqState::BodyStream`
     ///  or `Http11ReqState::End` variant.
-    Body(SimpleIncomingRequest),
+    Intro(SimpleIncomingRequest),
 
     /// Fourth state which starts or continues rendering of the body in
     /// the case of a streaming equivalent where we can accept an Iterator
@@ -2048,59 +2024,26 @@ pub enum Http11ReqState {
     End,
 }
 
-/// [`Http11RequestIterator`] represents the rendering of a `HTTP`
+/// [`Http11RequestBodyIterator`] represents the rendering of a `HTTP`
 /// request via an Iterator pattern that supports both sync and async
 /// contexts.
-pub struct Http11RequestIterator(Option<Http11ReqState>);
+pub struct Http11RequestBodyIterator(Option<Http11RequestBodyState>);
 
-impl Iterator for Http11RequestIterator {
+impl Http11RequestBodyIterator {
+    pub fn new(request: SimpleIncomingRequest) -> Self {
+        Self(Some(Http11RequestBodyState::Intro(request)))
+    }
+}
+
+impl Iterator for Http11RequestBodyIterator {
     type Item = Result<Vec<u8>, Http11RenderError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.0.take()? {
-            Http11ReqState::Intro(request) => {
-                let method = request.method.clone();
-                let url = request.request_url.url.clone();
-                // switch state to headers
-                self.0 = Some(Http11ReqState::Headers(request));
-
-                // generate HTTP 1.1 intro
-                let http_intro_string = format!("{method} {url} HTTP/1.1\r\n",);
-
-                Some(Ok(http_intro_string.into_bytes()))
-            }
-            Http11ReqState::Headers(request) => {
-                // HTTP 1.1 requires atleast 1 header in the request being generated
-                let borrowed_headers = &request.headers;
-                if borrowed_headers.is_empty() {
-                    // tell the iterator we want it to end
-                    self.0 = Some(Http11ReqState::End);
-
-                    return Some(Err(Http11RenderError::HeadersRequired));
-                }
-
-                let mut encoded_headers: Vec<String> = borrowed_headers
-                    .iter()
-                    .map(|(key, value)| {
-                        let joined_value = value.join(", ");
-                        format!("{key}: {joined_value}\r\n")
-                    })
-                    .collect();
-
-                // add CLRF for ending header
-                encoded_headers.push("\r\n".into());
-
-                // switch state to body rendering next
-                self.0 = Some(Http11ReqState::Body(request));
-
-                // join all intermediate with CLRF (last
-                // element does not get it hence why we do it above)
-                Some(Ok(encoded_headers.join("").into_bytes()))
-            }
-            Http11ReqState::Body(mut request) => {
+            Http11RequestBodyState::Intro(mut request) => {
                 if request.body.is_none() {
                     // tell the iterator we want it to end
-                    self.0 = Some(Http11ReqState::End);
+                    self.0 = Some(Http11RequestBodyState::End);
 
                     return Some(Err(Http11RenderError::InvalidSituationUsedIterator));
                 }
@@ -2109,136 +2052,239 @@ impl Iterator for Http11RequestIterator {
                 match body {
                     SimpleBody::None => {
                         // tell the iterator we want it to end
-                        self.0 = Some(Http11ReqState::End);
+                        self.0 = Some(Http11RequestBodyState::End);
                         Some(Ok(b"".to_vec()))
                     }
                     SimpleBody::Text(inner) => {
                         // tell the iterator we want it to end
-                        self.0 = Some(Http11ReqState::End);
+                        self.0 = Some(Http11RequestBodyState::End);
                         Some(Ok(inner.into_bytes()))
                     }
                     SimpleBody::Bytes(inner) => {
                         // tell the iterator we want it to end
-                        self.0 = Some(Http11ReqState::End);
+                        self.0 = Some(Http11RequestBodyState::End);
                         Some(Ok(inner.clone()))
                     }
                     SimpleBody::ChunkedStream(mut streamer_container) => {
                         if let Some(inner) = streamer_container.take() {
-                            self.0 = Some(Http11ReqState::ChunkedBodyStreaming(Some(inner)));
+                            self.0 =
+                                Some(Http11RequestBodyState::ChunkedBodyStreaming(Some(inner)));
                             Some(Ok(b"".to_vec()))
                         } else {
                             // tell the iterator we want it to end
-                            self.0 = Some(Http11ReqState::End);
+                            self.0 = Some(Http11RequestBodyState::End);
                             Some(Ok(b"\r\n".to_vec()))
                         }
                     }
                     SimpleBody::Stream(mut streamer_container) => {
                         if let Some(inner) = streamer_container.take() {
-                            self.0 = Some(Http11ReqState::BodyStreaming(Some(inner)));
+                            self.0 = Some(Http11RequestBodyState::BodyStreaming(Some(inner)));
                             Some(Ok(b"".to_vec()))
                         } else {
                             // tell the iterator we want it to end
-                            self.0 = Some(Http11ReqState::End);
+                            self.0 = Some(Http11RequestBodyState::End);
                             Some(Ok(b"\r\n".to_vec()))
                         }
                     }
                     SimpleBody::LineFeedStream(mut streamer_container) => {
                         if let Some(inner) = streamer_container.take() {
-                            self.0 = Some(Http11ReqState::LineFeedStreaming(Some(inner)));
+                            self.0 = Some(Http11RequestBodyState::LineFeedStreaming(Some(inner)));
                             Some(Ok(b"".to_vec()))
                         } else {
                             // tell the iterator we want it to end
-                            self.0 = Some(Http11ReqState::End);
+                            self.0 = Some(Http11RequestBodyState::End);
                             Some(Ok(b"\r\n".to_vec()))
                         }
                     }
                 }
             }
-            Http11ReqState::LineFeedStreaming(container) => {
+            Http11RequestBodyState::LineFeedStreaming(container) => {
                 if let Some(mut body_iterator) = container {
                     if let Some(collected) = body_iterator.next() {
                         match collected {
                             Ok(inner) => {
-                                self.0 =
-                                    Some(Http11ReqState::LineFeedStreaming(Some(body_iterator)));
+                                self.0 = Some(Http11RequestBodyState::LineFeedStreaming(Some(
+                                    body_iterator,
+                                )));
 
                                 match inner {
                                     LineFeed::Line(content) => Some(Ok(content.into_bytes())),
                                     LineFeed::SKIP => Some(Ok(b"".to_vec())),
                                     LineFeed::END => {
                                         // tell the iterator we want it to end
-                                        self.0 = Some(Http11ReqState::End);
+                                        self.0 = Some(Http11RequestBodyState::End);
                                         None
                                     }
                                 }
                             }
                             Err(err) => {
                                 // tell the iterator we want it to end
-                                self.0 = Some(Http11ReqState::End);
+                                self.0 = Some(Http11RequestBodyState::End);
                                 Some(Err(err.into()))
                             }
                         }
                     } else {
                         // tell the iterator we want it to end
-                        self.0 = Some(Http11ReqState::End);
+                        self.0 = Some(Http11RequestBodyState::End);
                         Some(Ok(b"".to_vec()))
                     }
                 } else {
                     // tell the iterator we want it to end
-                    self.0 = Some(Http11ReqState::End);
+                    self.0 = Some(Http11RequestBodyState::End);
                     Some(Ok(b"".to_vec()))
                 }
             }
-            Http11ReqState::ChunkedBodyStreaming(container) => {
+            Http11RequestBodyState::ChunkedBodyStreaming(container) => {
                 if let Some(mut body_iterator) = container {
                     if let Some(collected) = body_iterator.next() {
                         match collected {
                             Ok(mut inner) => {
-                                self.0 =
-                                    Some(Http11ReqState::ChunkedBodyStreaming(Some(body_iterator)));
+                                self.0 = Some(Http11RequestBodyState::ChunkedBodyStreaming(Some(
+                                    body_iterator,
+                                )));
                                 Some(Ok(inner.into_bytes()))
                             }
                             Err(err) => {
                                 // tell the iterator we want it to end
-                                self.0 = Some(Http11ReqState::End);
+                                self.0 = Some(Http11RequestBodyState::End);
                                 Some(Err(err.into()))
                             }
                         }
                     } else {
                         // tell the iterator we want it to end
-                        self.0 = Some(Http11ReqState::End);
+                        self.0 = Some(Http11RequestBodyState::End);
                         Some(Ok(b"".to_vec()))
                     }
                 } else {
                     // tell the iterator we want it to end
-                    self.0 = Some(Http11ReqState::End);
+                    self.0 = Some(Http11RequestBodyState::End);
                     Some(Ok(b"".to_vec()))
                 }
             }
-            Http11ReqState::BodyStreaming(container) => {
+            Http11RequestBodyState::BodyStreaming(container) => {
                 if let Some(mut body_iterator) = container {
                     if let Some(collected) = body_iterator.next() {
                         match collected {
                             Ok(inner) => {
-                                self.0 = Some(Http11ReqState::BodyStreaming(Some(body_iterator)));
+                                self.0 = Some(Http11RequestBodyState::BodyStreaming(Some(
+                                    body_iterator,
+                                )));
                                 Some(Ok(inner))
                             }
                             Err(err) => {
                                 // tell the iterator we want it to end
-                                self.0 = Some(Http11ReqState::End);
+                                self.0 = Some(Http11RequestBodyState::End);
                                 Some(Err(err.into()))
                             }
                         }
                     } else {
                         // tell the iterator we want it to end
-                        self.0 = Some(Http11ReqState::End);
+                        self.0 = Some(Http11RequestBodyState::End);
                         Some(Ok(b"".to_vec()))
                     }
                 } else {
                     // tell the iterator we want it to end
-                    self.0 = Some(Http11ReqState::End);
+                    self.0 = Some(Http11RequestBodyState::End);
                     Some(Ok(b"".to_vec()))
                 }
+            }
+
+            // Ends the iterator
+            Http11RequestBodyState::End => None,
+        }
+    }
+}
+
+/// [`Http11ReqState`] is an interesting pattern I am playing with
+/// where instead of forcing async where I want chunked process instead
+/// we can use rust typed state pattern where we define an enum of a singular
+/// type with it's multiple iterations where each defines a possible state
+/// though we loose the benefit where a state can't be returned to since
+/// we would use different structs in a true typedstate pattern.
+/// I am not sure what to call this maybe the switching enum option state
+/// pattern.
+///
+/// The benefit is that now I can represent different states of the rendering
+/// of a HTTP 1.1 Request object via enum's options/variants where the iterator
+/// [`Http11RequestIterator`] can swap out the state and use this to decide
+/// it's internal state with just use of the Iterator.
+/// The idea is this pattern will work regardless of whether sync or async
+/// because you can wrap the iterator in an async iterator if you want which is nice
+/// as iterator are pulled based nor pushed based, you need to call `Iterator::next` to
+/// get the next data anyway which in my view fits great with such a pattern.
+pub enum Http11ReqState {
+    /// Stating variant of the rendering of a HTTP 1.1 request
+    /// when this starts it renders the starting line of your request.
+    /// e.g GET location:port HTTP/1.1
+    ///
+    /// Once done it moves state to the `Http11ReqState::Headers` variant.
+    Intro(SimpleIncomingRequest),
+
+    /// Second state which renders the headers of a request to the iterator
+    /// as the next value.
+    ///
+    /// Once done it moves state to the `Http11ReqState::Body` variant.
+    Descriptor((SimpleIncomingRequest, Http11RequestDescriptorIterator)),
+
+    /// Third state which starts rendering the body of the request
+    /// this variant is unique because depending on the body type it can
+    /// go to the End variant or the `BodyStreaming` variant.
+    ///
+    /// Once done it moves state to the `Http11ReqState::BodyStream`
+    ///  or `Http11ReqState::End` variant.
+    Body(Http11RequestBodyIterator),
+
+    /// The final state of the rendering which once read ends the iterator.
+    End,
+}
+
+/// [`Http11RequestIterator`] represents the rendering of a `HTTP`
+/// request via an Iterator pattern that supports both sync and async
+/// contexts.
+pub struct Http11RequestIterator(Option<Http11ReqState>);
+
+impl Http11RequestIterator {
+    pub fn new(request: Http11Request) -> Self {
+        Self(Some(Http11ReqState::Intro(request)))
+    }
+}
+
+impl Iterator for Http11RequestIterator {
+    type Item = Result<Vec<u8>, Http11RenderError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.0.take()? {
+            Http11ReqState::Intro(request) => {
+                let desc_iterator = Http11RequestDescriptorIterator::new(request.descriptor());
+
+                // switch state to headers
+                self.0 = Some(Http11ReqState::Descriptor((request, desc_iterator)));
+
+                Some(Ok(vec![]))
+            }
+            Http11ReqState::Descriptor((request, mut descriptor_iterator)) => {
+                let next = descriptor_iterator.next();
+                if next.is_none() {
+                    self.0 = Some(Http11ReqState::Body(Http11RequestBodyIterator::new(
+                        request,
+                    )));
+                    return Some(Ok(vec![]));
+                }
+
+                self.0 = Some(Http11ReqState::Descriptor((request, descriptor_iterator)));
+
+                next
+            }
+            Http11ReqState::Body(mut request) => {
+                let next = request.next();
+                if next.is_none() {
+                    self.0 = Some(Http11ReqState::End);
+                    return Some(Ok(vec![]));
+                }
+
+                self.0 = Some(Http11ReqState::Body(request));
+
+                next
             }
 
             // Ends the iterator
@@ -2260,6 +2306,12 @@ pub enum Http11ResState {
 }
 
 pub struct Http11ResponseIterator(Option<Http11ResState>);
+
+impl Http11ResponseIterator {
+    pub fn new(response: SimpleOutgoingResponse) -> Self {
+        Http11ResponseIterator(Some(Http11ResState::Intro(response)))
+    }
+}
 
 /// We want to implement an iterator that generates valid HTTP response
 /// message like:
@@ -2479,6 +2531,7 @@ impl Iterator for Http11ResponseIterator {
 pub enum Http11 {
     Request(SimpleIncomingRequest),
     RequestDescriptor(RequestDescriptor),
+    RequestBody(SimpleIncomingRequest),
     Response(SimpleOutgoingResponse),
 }
 
@@ -2486,6 +2539,11 @@ impl Http11 {
     #[must_use]
     pub fn request_descriptor(req: RequestDescriptor) -> Self {
         Self::RequestDescriptor(req)
+    }
+
+    #[must_use]
+    pub fn request_body(req: SimpleIncomingRequest) -> Self {
+        Self::RequestBody(req)
     }
 
     #[must_use]
@@ -2506,15 +2564,12 @@ impl RenderHttp for Http11 {
         self,
     ) -> std::result::Result<BoxedResultIterator<Vec<u8>, Self::Error>, Self::Error> {
         match self {
-            Http11::RequestDescriptor(request) => Ok(Box::new(Http11RequestDescriptorIterator(
-                Some(Http11RequestDescriptorState::Intro(request)),
-            ))),
-            Http11::Request(request) => Ok(Box::new(Http11RequestIterator(Some(
-                Http11ReqState::Intro(request),
-            )))),
-            Http11::Response(response) => Ok(Box::new(Http11ResponseIterator(Some(
-                Http11ResState::Intro(response),
-            )))),
+            Http11::RequestDescriptor(request) => {
+                Ok(Box::new(Http11RequestDescriptorIterator::new(request)))
+            }
+            Http11::RequestBody(request) => Ok(Box::new(Http11RequestBodyIterator::new(request))),
+            Http11::Request(request) => Ok(Box::new(Http11RequestIterator::new(request))),
+            Http11::Response(response) => Ok(Box::new(Http11ResponseIterator::new(response))),
         }
     }
 }
