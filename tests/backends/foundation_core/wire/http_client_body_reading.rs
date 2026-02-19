@@ -31,7 +31,7 @@ fn test_body_reading_with_introduction_and_body() {
     // Build request
     let url = server.url("/test");
     let builder = ClientRequestBuilder::get(SystemDnsResolver::new(), &url).unwrap();
-    let prepared = builder.build();
+    let prepared = builder.build().expect("get request");
 
     // Create request with system resolver
     let mut request = ClientRequest::new(
@@ -94,7 +94,7 @@ fn test_parts_iterator_reads_complete_response() {
     // Build request
     let url = server.url("/parts");
     let builder = ClientRequestBuilder::get(SystemDnsResolver::new(), &url).unwrap();
-    let prepared = builder.build();
+    let prepared = builder.build().expect("get request");
 
     // Create request
     let request = ClientRequest::new(
@@ -176,7 +176,7 @@ fn test_send_returns_complete_response_with_body() {
         &url,
     )
     .unwrap();
-    let prepared = builder.build();
+    let prepared = builder.build().expect("get request");
 
     // Create request
     let request = ClientRequest::new(
@@ -239,7 +239,7 @@ fn test_large_body_reading() {
         &url,
     )
     .unwrap();
-    let prepared = builder.build();
+    let prepared = builder.build().expect("get request");
 
     // Create request
     let mut request = ClientRequest::new(
