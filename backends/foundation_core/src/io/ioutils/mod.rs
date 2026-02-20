@@ -653,7 +653,7 @@ impl<T: Read + Write> Write for OwnedReader<T> {
     }
 }
 
-impl<T: ReadTimeoutInto + Write> ReadTimeoutInto for OwnedReader<T> {
+impl<T: ReadTimeoutInto> ReadTimeoutInto for OwnedReader<T> {
     fn read_timeout_into(
         &mut self,
         buf: &mut [u8],
@@ -948,6 +948,17 @@ impl<T: Read + Write> std::io::Write for SharedByteBufferStream<T> {
     }
 }
 
+impl<T: ReadTimeoutInto> ReadTimeoutInto for SharedByteBufferStream<T> {
+    fn read_timeout_into(
+        &mut self,
+        buf: &mut [u8],
+        timeout: std::time::Duration,
+    ) -> std::result::Result<usize, std::io::Error> {
+        self.0
+            .do_once_mut(|binding| binding.read_timeout_into(buf, timeout))
+    }
+}
+
 impl<T: Read> std::io::Read for SharedByteBufferStream<T> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         self.0.do_once_mut(|binding| binding.read(buf))
@@ -1013,6 +1024,16 @@ impl<T: Read> ByteBufferPointer<T> {
     pub fn reader(reader: T) -> Self {
         let wrapped_reader = OwnedReader::rwrite(Arc::new(RwLock::new(reader)));
         Self::new(DEFAULT_READ_SIZE, wrapped_reader)
+    }
+}
+
+impl<T: ReadTimeoutInto> ReadTimeoutInto for ByteBufferPointer<T> {
+    fn read_timeout_into(
+        &mut self,
+        buf: &mut [u8],
+        timeout: std::time::Duration,
+    ) -> std::result::Result<usize, std::io::Error> {
+        self.reader.read_timeout_into(buf, timeout)
     }
 }
 
