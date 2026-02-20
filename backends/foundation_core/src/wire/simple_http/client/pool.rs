@@ -40,6 +40,47 @@ pub struct ConnectionPool {
     inner: Arc<Mutex<HashMap<String, VecDeque<PooledEntry>>>>,
 }
 
+impl std::fmt::Debug for ConnectionPool {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // Try to acquire lock to inspect the inner map. If the lock is poisoned,
+        // avoid panicking and instead represent the pools as "<poisoned>".
+        match self.inner.lock() {
+            Ok(map) => {
+                // Build a compact representation: host -> connection count
+                let pools: Vec<(String, usize)> = map
+                    .iter()
+                    .map(|(host, q)| (host.clone(), q.len()))
+                    .collect();
+
+                f.debug_struct("ConnectionPool")
+                    .field("max_per_host", &self.max_per_host)
+                    .field("max_idle_time", &self.max_idle_time)
+                    .field("pools", &pools)
+                    .finish()
+            }
+            Err(_) => f
+                .debug_struct("ConnectionPool")
+                .field("max_per_host", &self.max_per_host)
+                .field("max_idle_time", &self.max_idle_time)
+                .field("pools", &"<poisoned>")
+                .finish(),
+        }
+    }
+}
+
+const MAX_PER_HOST: usize = 10;
+const MAX_IDLE_TIME: Duration = Duration::from_secs(300);
+
+impl Default for ConnectionPool {
+    fn default() -> Self {
+        Self {
+            max_per_host: MAX_PER_HOST,
+            max_idle_time: MAX_IDLE_TIME,
+            inner: Arc::new(Mutex::new(HashMap::new())),
+        }
+    }
+}
+
 impl ConnectionPool {
     /// Creates a new connection pool.
     ///

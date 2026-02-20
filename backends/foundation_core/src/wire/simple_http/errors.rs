@@ -240,6 +240,7 @@ pub enum ClientRequestErrors {
     InvalidState,
     Unsupported,
     ReadError,
+    Reason(String),
 }
 
 impl<T> From<PoisonError<T>> for ClientRequestErrors {

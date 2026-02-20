@@ -564,6 +564,56 @@ impl<T: Read> Clone for OwnedReader<T> {
     }
 }
 
+impl<T: Read + Write> Write for OwnedReader<T> {
+    fn write(&mut self, buf: &[u8]) -> Result<usize> {
+        match self {
+            Self::Atomic(core) => {
+                let ptr = core.load(std::sync::atomic::Ordering::Acquire);
+                unsafe {
+                    let atomic_reader: &mut T = &mut *ptr;
+                    atomic_reader.write(buf)
+                }
+            }
+            Self::Sync(core) => {
+                let mut guard = core.lock().expect("can acquire");
+                guard.write(buf)
+            }
+            Self::RWrite(core) => {
+                let mut guard = core.write().expect("can acquire");
+                guard.write(buf)
+            }
+            Self::RefCell(core) => {
+                let mut guard = core.borrow_mut();
+                guard.write(buf)
+            }
+        }
+    }
+
+    fn flush(&mut self) -> Result<()> {
+        match self {
+            Self::Atomic(core) => {
+                let ptr = core.load(std::sync::atomic::Ordering::Acquire);
+                unsafe {
+                    let atomic_reader: &mut T = &mut *ptr;
+                    atomic_reader.flush()
+                }
+            }
+            Self::Sync(core) => {
+                let mut guard = core.lock().expect("can acquire");
+                guard.flush()
+            }
+            Self::RWrite(core) => {
+                let mut guard = core.write().expect("can acquire");
+                guard.flush()
+            }
+            Self::RefCell(core) => {
+                let mut guard = core.borrow_mut();
+                guard.flush()
+            }
+        }
+    }
+}
+
 impl<T: Read> Read for OwnedReader<T> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         match self {
@@ -698,6 +748,22 @@ pub const DEFAULT_READ_SIZE: usize = if cfg!(target_os = "espidf") {
 /// a underlying buffered stream.
 pub struct SharedByteBufferStream<T: Read>(OwnedReader<ByteBufferPointer<T>>);
 
+impl<T: Read> core::fmt::Debug for SharedByteBufferStream<T> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        // Use the internal OwnedReader to borrow the inner ByteBufferPointer
+        // and produce a concise debug representation without requiring `T: Debug`.
+        self.0.do_once_mut(|inner| {
+            f.debug_struct("SharedByteBufferStream")
+                .field("pull_amount", &inner.pull_amount)
+                .field("buffer_len", &inner.buffer.len())
+                .field("pos", &inner.pos)
+                .field("peek_pos", &inner.peek_pos)
+                .field("distance", &inner.distance())
+                .finish()
+        })
+    }
+}
+
 impl<T: Read> SharedByteBufferStream<T> {
     pub fn do_ref<F, V>(&self, caller: F) -> V
     where
@@ -800,6 +866,16 @@ impl<T: Read> PeekableReadStream for SharedByteBufferStream<T> {
                 },
                 Err(err) => Err(PeekError::IOError(err)),
             })
+    }
+}
+
+impl<T: Read + Write> std::io::Write for SharedByteBufferStream<T> {
+    fn write(&mut self, buf: &[u8]) -> Result<usize> {
+        self.0.do_once_mut(|binding| binding.write(buf))
+    }
+
+    fn flush(&mut self) -> Result<()> {
+        self.0.do_once_mut(|binding| binding.flush())
     }
 }
 
@@ -1750,6 +1826,16 @@ impl<T: Read> ByteBufferPointer<T> {
         self.skip();
 
         Ok(slice_length)
+    }
+}
+
+impl<T: Read + Write> Write for ByteBufferPointer<T> {
+    fn write(&mut self, buf: &[u8]) -> Result<usize> {
+        self.reader.write(buf)
+    }
+
+    fn flush(&mut self) -> Result<()> {
+        self.reader.flush()
     }
 }
 

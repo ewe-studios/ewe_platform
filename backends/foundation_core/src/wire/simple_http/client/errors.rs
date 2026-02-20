@@ -71,6 +71,7 @@ impl core::fmt::Display for DnsError {
 /// These errors can occur during HTTP client operations.
 #[derive(From, Debug)]
 pub enum HttpClientError {
+    NoPool,
     NotImplemented,
     InvalidRequestState,
     NotSupported,
@@ -143,6 +144,12 @@ impl core::fmt::Display for HttpClientError {
                 write!(
                     f,
                     "Invalid read state found from reader, please investigate"
+                )
+            }
+            Self::NoPool => {
+                write!(
+                    f,
+                    "Failed becaue no connection pool was provided, please investigate"
                 )
             }
             Self::FailedToReadBody => {

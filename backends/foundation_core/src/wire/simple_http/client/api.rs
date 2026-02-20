@@ -18,9 +18,9 @@ use crate::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
 use crate::valtron::{self, DrivenStreamIterator, Stream};
 use crate::wire::simple_http::client::{
-    ClientConfig, ConnectionPool, DnsResolver, GetHttpRequestStreamTask, HttpClientError,
-    HttpRequestTask, HttpStreamReady, IncomingResponseMapper, PreparedRequest, RequestIntro,
-    ResponseIntro,
+    ClientConfig, ConnectionPool, DnsResolver, GetHttpRequestStreamTask, HttpClientConnection,
+    HttpClientError, HttpConnectionPool, HttpRequestTask, HttpStreamReady, IncomingResponseMapper,
+    PreparedRequest, RequestIntro, ResponseIntro,
 };
 use crate::wire::simple_http::{
     HttpResponseReader, IncomingResponseParts, SimpleBody, SimpleHeaders, SimpleHttpBody,
@@ -103,20 +103,14 @@ impl<R: DnsResolver + 'static> core::fmt::Debug for ClientRequestState<R> {
 pub struct ClientRequest<R: DnsResolver + 'static> {
     /// The prepared HTTP request to execute
     prepared_request: Option<PreparedRequest>,
-    /// DNS resolver for hostname resolution
-    resolver: R,
     /// Client configuration (timeouts, redirects, etc.)
     config: ClientConfig,
     /// Connection pool for reuse
-    pool: Option<Arc<ConnectionPool>>,
+    pool: Option<Arc<HttpConnectionPool<R>>>,
     /// Internal state machine for progressive reading
-    pub task_state: Option<ClientRequestState<R>>,
+    task_state: Option<ClientRequestState<R>>,
     /// Stream for body reading and pool return
-    stream: Option<SharedByteBufferStream<RawStream>>,
-    /// Host for pool return
-    host: Option<String>,
-    /// Port for pool return
-    port: Option<u16>,
+    stream: Option<HttpClientConnection>,
 }
 
 impl<R: DnsResolver + 'static> ClientRequest<R> {
@@ -142,18 +136,14 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// A new `ClientRequest` ready to execute.
     pub fn new(
         prepared: PreparedRequest,
-        resolver: R,
         config: ClientConfig,
-        pool: Option<Arc<ConnectionPool>>,
+        pool: Arc<HttpConnectionPool<R>>,
     ) -> Self {
         Self {
             prepared_request: Some(prepared),
-            resolver,
             config,
-            pool,
             stream: None,
-            host: None,
-            port: None,
+            pool: Some(pool),
             task_state: Some(ClientRequestState::NotStarted),
         }
     }
@@ -191,14 +181,22 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// ```
     #[tracing::instrument(skip(self))]
     pub fn introduction(&mut self) -> Result<(ResponseIntro, SimpleHeaders), HttpClientError> {
+        self.introduction_with_connection()
+            .map(|(_, intro, headers)| (intro, headers))
+    }
+
+    #[tracing::instrument(skip(self))]
+    pub fn introduction_with_connection(
+        &mut self,
+    ) -> Result<(HttpClientConnection, ResponseIntro, SimpleHeaders), HttpClientError> {
         if let Some(ClientRequestState::IntroReady(Some(inner))) = &self.task_state {
             return match inner.as_ref() {
                 RequestIntro::Success {
-                    #[allow(unused)]
-                    stream,
+                    stream: _,
+                    conn,
                     intro,
                     headers,
-                } => Ok((intro.clone().into(), headers.clone())),
+                } => Ok((conn.clone(), intro.clone().into(), headers.clone())),
                 RequestIntro::Failed(_) => Err(HttpClientError::FailedExecution),
             };
         }
@@ -247,6 +245,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                                 );
                                 if let RequestIntro::Success {
                                     stream,
+                                    conn,
                                     intro,
                                     headers,
                                 } = value
@@ -259,12 +258,13 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                                     self.task_state = Some(ClientRequestState::IntroReady(Some(
                                         Box::new(RequestIntro::Success {
                                             stream,
+                                            conn: conn.clone(),
                                             intro: intro.clone(),
                                             headers: headers.clone(),
                                         }),
                                     )));
 
-                                    return Ok((intro.into(), headers));
+                                    return Ok((conn, intro.into(), headers));
                                 }
 
                                 tracing::debug!("RequestIntro::Failed during execution");
@@ -302,6 +302,10 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// spawns using platform-appropriate executor, stores iterator in state.
     #[tracing::instrument(skip(self))]
     fn start(&mut self) -> Result<(), HttpClientError> {
+        if self.pool.is_none() {
+            return Err(HttpClientError::NoPool);
+        }
+
         // Take the prepared request to avoid cloning
         let Some(request) = self.prepared_request.take() else {
             return Err(HttpClientError::NoRequestToSend);
@@ -310,9 +314,8 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         // Create HttpRequestTask with pool and control
         let task = HttpRequestTask::new(
             request,
-            self.resolver.clone(),
             self.config.max_redirects,
-            self.pool.clone(),
+            self.pool.clone().expect("Pool should be initialized"),
         );
 
         // Spawn task via execute_task
@@ -389,6 +392,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                     RequestIntro::Failed(err) => Err(HttpClientError::ReaderError(err)),
                     RequestIntro::Success {
                         stream,
+                        conn: _,
                         intro: _,
                         headers: _,
                     } => {
@@ -514,10 +518,19 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     #[tracing::instrument(skip(self))]
     pub fn parts(
         mut self,
-    ) -> Result<impl Iterator<Item = Result<IncomingResponseParts, HttpClientError>>, HttpClientError>
-    {
-        if let Some(ClientRequestState::IntroReady(_)) = &self.task_state {
-            let (intro, headers) = self.introduction()?;
+    ) -> Result<
+        (
+            impl Iterator<Item = Result<IncomingResponseParts, HttpClientError>>,
+            HttpClientConnection,
+        ),
+        HttpClientError,
+    > {
+        if self.pool.is_none() {
+            return Err(HttpClientError::NoPool);
+        }
+
+        if let Some(ClientRequestState::IntroReady(Some(_))) = &self.task_state {
+            let (conn, intro, headers) = self.introduction_with_connection()?;
             let body = self.body()?;
 
             let items: Vec<Result<IncomingResponseParts, HttpClientError>> = vec![
@@ -530,7 +543,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                 Ok(body.into()),
             ];
 
-            return Ok(IncomingResponseMapper::List(items.into_iter()));
+            return Ok((IncomingResponseMapper::List(items.into_iter()), conn));
         }
 
         if let Some(ClientRequestState::NotStarted) = &self.task_state {
@@ -544,9 +557,8 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
             // wrap in a ResponseReader.
             let task = GetHttpRequestStreamTask::new(
                 request,
-                self.resolver.clone(),
                 self.config.max_redirects,
-                self.pool.clone(),
+                self.pool.clone().expect("Pool must be initialized"),
             );
 
             // Spawn task via execute_task
@@ -569,11 +581,11 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                                 SimpleHttpBody,
                                 RawStream,
                             >::new(
-                                stream,
+                                stream.clone_stream(),
                                 SimpleHttpBody,
                             ));
 
-                            return Ok(items.into_iter());
+                            return Ok((items.into_iter(), stream));
                         }
                     },
                 }
@@ -612,17 +624,16 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// ```
     #[tracing::instrument(skip(self))]
     pub fn collect(self) -> Result<Vec<IncomingResponseParts>, HttpClientError> {
-        self.parts()?.collect()
+        let (iter, _) = self.parts()?;
+        iter.collect()
     }
 }
 
 impl<R: DnsResolver + 'static> Drop for ClientRequest<R> {
     fn drop(&mut self) {
         // Return stream to pool if we have one
-        if let (Some(pool), Some(stream), Some(host), Some(port)) =
-            (&self.pool, &self.stream, &self.host, &self.port)
-        {
-            pool.checkin(host, *port, stream.clone());
+        if let (Some(pool), Some(stream)) = (self.pool.take(), self.stream.take()) {
+            pool.return_to_pool(stream);
         }
     }
 }

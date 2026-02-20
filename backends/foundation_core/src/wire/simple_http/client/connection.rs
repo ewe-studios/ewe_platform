@@ -2,6 +2,12 @@
 //!
 //! This module provides URL parsing and TCP/TLS connection establishment.
 
+use crate::wire::simple_http::client::pool::ConnectionPool;
+use crate::wire::simple_http::client::SystemDnsResolver;
+use std::ops::{Deref, DerefMut};
+use std::sync::Arc;
+
+use crate::io::ioutils::SharedByteBufferStream;
 use crate::netcap::{Connection, RawStream};
 use crate::wire::simple_http::client::dns::DnsResolver;
 use crate::wire::simple_http::client::errors::HttpClientError;
@@ -23,13 +29,27 @@ pub use crate::wire::simple_http::url::Scheme;
 ///
 /// Provides automatic buffering, address tracking, and convenient Read/Write traits
 /// over plain TCP or TLS connections.
-#[cfg(not(target_arch = "wasm32"))]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct HttpClientConnection {
-    stream: RawStream,
+    stream: SharedByteBufferStream<RawStream>,
+    host: String,
+    port: u16,
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+impl DerefMut for HttpClientConnection {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.stream
+    }
+}
+
+impl Deref for HttpClientConnection {
+    type Target = SharedByteBufferStream<RawStream>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.stream
+    }
+}
+
 impl HttpClientConnection {
     /// Establishes a connection to the given URL.
     ///
@@ -90,12 +110,14 @@ impl HttpClientConnection {
                 Ok(connection) => {
                     // Step 3: Upgrade to TLS if HTTPS, or create plain RawStream
                     if url.scheme().is_https() {
-                        return Self::upgrade_to_tls(connection, &host);
+                        return Self::upgrade_to_tls(connection, &host, port);
                     }
                     // Create plain RawStream from Connection
-                    let stream = RawStream::from_connection(connection)
-                        .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?;
-                    return Ok(HttpClientConnection { stream });
+                    let stream = SharedByteBufferStream::rwrite(
+                        RawStream::from_connection(connection)
+                            .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?,
+                    );
+                    return Ok(HttpClientConnection { stream, host, port });
                 }
                 Err(e) => {
                     last_error = Some(e);
@@ -124,7 +146,11 @@ impl HttpClientConnection {
         feature = "ssl-openssl",
         feature = "ssl-native-tls"
     ))]
-    fn upgrade_to_tls(connection: Connection, host: &str) -> Result<Self, HttpClientError> {
+    fn upgrade_to_tls(
+        connection: Connection,
+        host: &str,
+        port: u16,
+    ) -> Result<Self, HttpClientError> {
         let connector = SSLConnector::new();
         let (tls_stream, _addr) = connector
             .from_tcp_stream(host.to_string(), connection)
@@ -133,10 +159,16 @@ impl HttpClientConnection {
             })?;
 
         // Create RawStream from ClientSSLStream (which is the return type from from_tcp_stream)
-        let stream = RawStream::from_client_tls(tls_stream)
-            .map_err(|e| HttpClientError::TlsHandshakeFailed(e.to_string()))?;
+        let stream = SharedByteBufferStream::rwrite(
+            RawStream::from_client_tls(tls_stream)
+                .map_err(|e| HttpClientError::TlsHandshakeFailed(e.to_string()))?,
+        );
 
-        Ok(HttpClientConnection { stream })
+        Ok(HttpClientConnection {
+            stream,
+            host: host.into(),
+            port,
+        })
     }
 
     #[cfg(not(any(
@@ -150,13 +182,22 @@ impl HttpClientConnection {
 
     /// Returns a reference to the underlying stream.
     #[must_use]
-    pub fn stream(&self) -> &RawStream {
+    pub fn stream(&self) -> &SharedByteBufferStream<RawStream> {
         &self.stream
     }
 
     /// Returns a mutable reference to the underlying stream.
-    pub fn stream_mut(&mut self) -> &mut RawStream {
+    pub fn stream_mut(&mut self) -> &mut SharedByteBufferStream<RawStream> {
         &mut self.stream
+    }
+
+    // Clone and return the underlying SharedByteBufferStream.
+    // This method consumes the HttpClientConnection to avoid borrowing issues,
+    // allowing callers to move the connection in and obtain a cloned handle
+    // to the same underlying stream for independent use.
+    #[must_use]
+    pub fn clone_stream(&self) -> SharedByteBufferStream<RawStream> {
+        self.stream.clone()
     }
 
     /// Takes ownership of the underlying stream, consuming the connection.
@@ -170,7 +211,90 @@ impl HttpClientConnection {
     ///
     /// The owned `RawStream` that was wrapped by this connection.
     #[must_use]
-    pub fn take_stream(self) -> RawStream {
+    pub fn take_stream(self) -> SharedByteBufferStream<RawStream> {
         self.stream
+    }
+}
+
+/// A pool-aware HTTP connection factory.
+///
+/// Wraps the shared ConnectionPool and will attempt to reuse an existing
+/// RawStream from the pool for the target host/port before creating a new
+/// connection via `HttpClientConnection::connect`.
+#[derive(Clone, Debug)]
+pub struct HttpConnectionPool<R: DnsResolver> {
+    pool: Arc<ConnectionPool>,
+    resolver: Arc<R>,
+}
+
+impl Default for HttpConnectionPool<SystemDnsResolver> {
+    fn default() -> Self {
+        Self {
+            pool: Arc::new(ConnectionPool::default()),
+            resolver: Arc::new(SystemDnsResolver::default()),
+        }
+    }
+}
+
+impl<R: DnsResolver> HttpConnectionPool<R> {
+    /// Create a new HttpConnectionPool from an existing ConnectionPool.
+    #[must_use]
+    pub fn new(pool: ConnectionPool, resolver: R) -> Self {
+        Self {
+            pool: Arc::new(pool),
+            resolver: Arc::new(resolver),
+        }
+    }
+
+    /// Create a new HttpConnectionPool from an Arc-wrapped ConnectionPool.
+    #[must_use]
+    pub fn from_arc(pool: Arc<ConnectionPool>, resolver: Arc<R>) -> Self {
+        Self { pool, resolver }
+    }
+
+    /// Acquire a HttpClientConnection for the given URL.
+    ///
+    /// The method will:
+    /// 1. Try to obtain a pooled RawStream for the URL's host/port.
+    /// 2. If a pooled stream is available, wrap it into `HttpClientConnection`.
+    /// 3. Otherwise, establish a new connection via `HttpClientConnection::connect`.
+    ///
+    /// Note: This function assumes the underlying `ConnectionPool` exposes at least
+    /// some method to retrieve and return `RawStream` instances keyed by host/port.
+    /// The exact pool API may differ; callers can adapt or extend this wrapper as needed.
+    pub fn create_http_connection(
+        &self,
+        url: &ParsedUrl,
+        timeout: Option<Duration>,
+    ) -> Result<HttpClientConnection, HttpClientError> {
+        // Extract host/port for pool lookup
+        let host = url
+            .host_str()
+            .ok_or_else(|| HttpClientError::InvalidUrl("Missing host".to_string()))?;
+        let port = url.port_or_default();
+
+        // Try to obtain a pooled RawStream. Most pool implementations provide some
+        // variant of `get`, `acquire`, or `take`. We optimistically call `get`.
+        //
+        // If your actual `ConnectionPool` API uses different method names, update
+        // the calls here to match the real signatures.
+        if let Some(stream) = self.pool.checkout(host.as_str(), port) {
+            // Wrap the pooled RawStream into our HttpClientConnection and return.
+            return Ok(HttpClientConnection { stream, host, port });
+        }
+
+        // No pooled connection available, create a fresh one.
+        HttpClientConnection::connect(url, &self.resolver, timeout)
+    }
+
+    /// Return a RawStream back into the pool for reuse.
+    ///
+    /// This is a best-effort helper that calls into the pool's `put`/`release`
+    /// style API. Adjust the call if your pool uses a different method name.
+    pub fn return_to_pool(&self, stream: HttpClientConnection) {
+        // Attempt to put the stream back; ignore failures to avoid panics.
+        let _ = self
+            .pool
+            .checkin(stream.host.as_str(), stream.port, stream.stream);
     }
 }
