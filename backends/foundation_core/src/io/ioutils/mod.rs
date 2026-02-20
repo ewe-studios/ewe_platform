@@ -14,7 +14,7 @@ use derive_more::derive::From;
 ///
 /// # Errors
 /// Returns an error if reading fails or the requested size exceeds buffer capacity.
-pub trait ReadTimeoutInto: Read {
+pub trait ReadTimeoutOperations: Read {
     /// Reads data from the stream with a timeout.
     ///
     /// # Returns
@@ -27,6 +27,11 @@ pub trait ReadTimeoutInto: Read {
         buf: &mut [u8],
         timeout: std::time::Duration,
     ) -> std::result::Result<usize, std::io::Error>;
+
+    fn set_read_timeout_as(
+        &mut self,
+        timeout: std::time::Duration,
+    ) -> std::result::Result<(), std::io::Error>;
 }
 
 // BufferCapacity Trait
@@ -72,13 +77,20 @@ impl<T: Read + Write> BufferedReader<BufferedWriter<T>> {
     }
 }
 
-impl<T: ReadTimeoutInto> ReadTimeoutInto for BufferedReader<T> {
+impl<T: ReadTimeoutOperations> ReadTimeoutOperations for BufferedReader<T> {
     fn read_timeout_into(
         &mut self,
         buf: &mut [u8],
         timeout: std::time::Duration,
     ) -> std::result::Result<usize, std::io::Error> {
         self.inner.get_mut().read_timeout_into(buf, timeout)
+    }
+
+    fn set_read_timeout_as(
+        &mut self,
+        timeout: std::time::Duration,
+    ) -> std::result::Result<(), std::io::Error> {
+        self.inner.get_mut().set_read_timeout_as(timeout)
     }
 }
 
@@ -220,13 +232,20 @@ impl<T: Write> BufferedWriter<T> {
     }
 }
 
-impl<T: ReadTimeoutInto + Write> ReadTimeoutInto for BufferedWriter<T> {
+impl<T: ReadTimeoutOperations + Write> ReadTimeoutOperations for BufferedWriter<T> {
     fn read_timeout_into(
         &mut self,
         buf: &mut [u8],
         timeout: std::time::Duration,
     ) -> std::result::Result<usize, std::io::Error> {
         self.inner.get_mut().read_timeout_into(buf, timeout)
+    }
+
+    fn set_read_timeout_as(
+        &mut self,
+        timeout: std::time::Duration,
+    ) -> std::result::Result<(), std::io::Error> {
+        self.inner.get_mut().set_read_timeout_as(timeout)
     }
 }
 
@@ -677,7 +696,7 @@ impl<T: Read + Write> Write for OwnedReader<T> {
     }
 }
 
-impl<T: ReadTimeoutInto> ReadTimeoutInto for OwnedReader<T> {
+impl<T: ReadTimeoutOperations> ReadTimeoutOperations for OwnedReader<T> {
     fn read_timeout_into(
         &mut self,
         buf: &mut [u8],
@@ -702,6 +721,33 @@ impl<T: ReadTimeoutInto> ReadTimeoutInto for OwnedReader<T> {
             Self::RefCell(core) => {
                 let mut guard = core.borrow_mut();
                 guard.read_timeout_into(buf, timeout)
+            }
+        }
+    }
+
+    fn set_read_timeout_as(
+        &mut self,
+        timeout: std::time::Duration,
+    ) -> std::result::Result<(), std::io::Error> {
+        match self {
+            Self::Atomic(core) => {
+                let ptr = core.load(std::sync::atomic::Ordering::Acquire);
+                unsafe {
+                    let atomic_reader: &mut T = &mut *ptr;
+                    atomic_reader.set_read_timeout_as(timeout)
+                }
+            }
+            Self::Sync(core) => {
+                let mut guard = core.lock().expect("can acquire");
+                guard.set_read_timeout_as(timeout)
+            }
+            Self::RWrite(core) => {
+                let mut guard = core.write().expect("can acquire");
+                guard.set_read_timeout_as(timeout)
+            }
+            Self::RefCell(core) => {
+                let mut guard = core.borrow_mut();
+                guard.set_read_timeout_as(timeout)
             }
         }
     }
@@ -972,7 +1018,7 @@ impl<T: Read + Write> std::io::Write for SharedByteBufferStream<T> {
     }
 }
 
-impl<T: ReadTimeoutInto> ReadTimeoutInto for SharedByteBufferStream<T> {
+impl<T: ReadTimeoutOperations> ReadTimeoutOperations for SharedByteBufferStream<T> {
     fn read_timeout_into(
         &mut self,
         buf: &mut [u8],
@@ -980,6 +1026,14 @@ impl<T: ReadTimeoutInto> ReadTimeoutInto for SharedByteBufferStream<T> {
     ) -> std::result::Result<usize, std::io::Error> {
         self.0
             .do_once_mut(|binding| binding.read_timeout_into(buf, timeout))
+    }
+
+    fn set_read_timeout_as(
+        &mut self,
+        timeout: std::time::Duration,
+    ) -> std::result::Result<(), std::io::Error> {
+        self.0
+            .do_once_mut(|binding| binding.set_read_timeout_as(timeout))
     }
 }
 
@@ -1051,13 +1105,20 @@ impl<T: Read> ByteBufferPointer<T> {
     }
 }
 
-impl<T: ReadTimeoutInto> ReadTimeoutInto for ByteBufferPointer<T> {
+impl<T: ReadTimeoutOperations> ReadTimeoutOperations for ByteBufferPointer<T> {
     fn read_timeout_into(
         &mut self,
         buf: &mut [u8],
         timeout: std::time::Duration,
     ) -> std::result::Result<usize, std::io::Error> {
         self.reader.read_timeout_into(buf, timeout)
+    }
+
+    fn set_read_timeout_as(
+        &mut self,
+        timeout: std::time::Duration,
+    ) -> std::result::Result<(), std::io::Error> {
+        self.reader.set_read_timeout_as(timeout)
     }
 }
 
