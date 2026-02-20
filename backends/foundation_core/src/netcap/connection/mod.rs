@@ -333,6 +333,15 @@ impl ReadTimeoutOperations for Connection {
 }
 
 impl Connection {
+    /// Returns the current read timeout for this connection.
+    ///
+    /// The result is `Ok(Some(duration))` if a read timeout is set, `Ok(None)` if no timeout
+    /// is configured, and `Err` if obtaining the timeout fails.
+    ///
+    /// # Errors
+    ///
+    /// This function returns an `std::io::Error` when the underlying platform call to query
+    /// the socket timeout fails.
     pub fn read_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
         match self {
             Self::Tcp(t) => t.read_timeout(),
@@ -347,6 +356,15 @@ impl Connection {
         }
     }
 
+    /// Returns the current write timeout for this connection.
+    ///
+    /// The result is `Ok(Some(duration))` if a write timeout is set, `Ok(None)` if no timeout
+    /// is configured, and `Err` if obtaining the timeout fails.
+    ///
+    /// # Errors
+    ///
+    /// This function returns an `std::io::Error` when the underlying platform call to query
+    /// the socket timeout fails.
     pub fn write_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
         match self {
             Self::Tcp(t) => t.write_timeout(),
@@ -361,6 +379,14 @@ impl Connection {
         }
     }
 
+    /// Sets the write timeout for this connection.
+    ///
+    /// Pass `Some(duration)` to set a timeout or `None` to disable timeouts.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `std::io::Error` if the underlying platform call to set the socket
+    /// write timeout fails.
     pub fn set_write_timeout(&mut self, dur: Option<std::time::Duration>) -> std::io::Result<()> {
         match self {
             Self::Tcp(t) => t.set_write_timeout(dur),
@@ -375,6 +401,14 @@ impl Connection {
         }
     }
 
+    /// Sets the read timeout for this connection.
+    ///
+    /// Pass `Some(duration)` to set a timeout or `None` to disable timeouts.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `std::io::Error` if the underlying platform call to set the socket
+    /// read timeout fails.
     pub fn set_read_timeout(&mut self, dur: Option<std::time::Duration>) -> std::io::Result<()> {
         match self {
             Self::Tcp(t) => t.set_read_timeout(dur),
