@@ -63,6 +63,38 @@ pub enum RawStream {
     ),
 }
 
+impl core::fmt::Debug for RawStream {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::AsPlain(_, addr) => f
+                .debug_tuple("RawStream::Plain")
+                .field(&"_")
+                .field(addr)
+                .finish(),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::AsServerTls(_, addr) => f
+                .debug_tuple("RawStream::Server::TLS")
+                .field(&"_")
+                .field(addr)
+                .finish(),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::AsClientTls(_, addr) => f
+                .debug_tuple("RawStream::Client::TLS")
+                .field(&"_")
+                .field(addr)
+                .finish(),
+        }
+    }
+}
+
 // -- Basic constructors
 
 impl RawStream {
@@ -380,38 +412,6 @@ impl RawStream {
                 feature = "ssl-native-tls"
             ))]
             RawStream::AsClientTls(inner, addr) => addr.local_addr(),
-        }
-    }
-}
-
-impl core::fmt::Debug for RawStream {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::AsPlain(_, addr) => f
-                .debug_tuple("RawStream::Plain")
-                .field(&"_")
-                .field(addr)
-                .finish(),
-            #[cfg(any(
-                feature = "ssl-rustls",
-                feature = "ssl-openssl",
-                feature = "ssl-native-tls"
-            ))]
-            Self::AsServerTls(_, addr) => f
-                .debug_tuple("RawStream::Server::TLS")
-                .field(&"_")
-                .field(addr)
-                .finish(),
-            #[cfg(any(
-                feature = "ssl-rustls",
-                feature = "ssl-openssl",
-                feature = "ssl-native-tls"
-            ))]
-            Self::AsClientTls(_, addr) => f
-                .debug_tuple("RawStream::Client::TLS")
-                .field(&"_")
-                .field(addr)
-                .finish(),
         }
     }
 }

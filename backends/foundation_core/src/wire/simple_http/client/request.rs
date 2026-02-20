@@ -7,13 +7,14 @@
 use crate::netcap::SocketAddr;
 use crate::wire::simple_http::client::connection::ParsedUrl;
 use crate::wire::simple_http::client::errors::HttpClientError;
-use crate::wire::simple_http::client::DnsResolver;
+use crate::wire::simple_http::client::{DnsResolver, HttpConnectionPool};
 use crate::wire::simple_http::{
     Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
     SimpleUrl,
 };
 use serde::Serialize;
 use std::collections::BTreeMap;
+use std::sync::Arc;
 
 /// Prepared HTTP request ready to send.
 ///
@@ -24,7 +25,6 @@ pub struct PreparedRequest {
     pub url: ParsedUrl,
     pub headers: SimpleHeaders,
     pub body: SendSafeBody,
-    pub socket_addrs: Vec<SocketAddr>,
 }
 
 impl PreparedRequest {
@@ -50,7 +50,6 @@ impl PreparedRequest {
             .with_method(self.method)
             .with_proto(Proto::HTTP11)
             .with_headers(self.headers)
-            .with_socket_addrs(self.socket_addrs)
             .with_some_body(Some(self.body.into()))
             .build()
             .map_err(|e| HttpClientError::Other(Box::new(e)))?;
@@ -82,10 +81,10 @@ impl PreparedRequest {
 pub struct ClientRequestBuilder<R: DnsResolver + 'static> {
     method: SimpleMethod,
     url: ParsedUrl,
-    resolver: R,
     headers: SimpleHeaders,
     body: Option<SendSafeBody>,
     socket_addrs: Option<Vec<SocketAddr>>,
+    pool: Option<Arc<HttpConnectionPool<R>>>,
 }
 
 impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
@@ -108,7 +107,11 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     /// If the relevant socket address is not valid or provided.
     ///
     /// Returns `HttpClientError` if the URL is invalid.
-    pub fn new(resolver: R, method: SimpleMethod, url: &str) -> Result<Self, HttpClientError> {
+    pub fn new(
+        pool: Option<Arc<HttpConnectionPool<R>>>,
+        method: SimpleMethod,
+        url: &str,
+    ) -> Result<Self, HttpClientError> {
         let parsed_url = ParsedUrl::parse(url)?;
         let mut headers = BTreeMap::new();
 
@@ -127,7 +130,7 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
         Ok(Self {
             method,
             headers,
-            resolver,
+            pool,
             url: parsed_url,
             body: None,
             socket_addrs: None,
@@ -291,24 +294,8 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     ///
     /// Consumes the builder and returns a `PreparedRequest` ready to send.
     #[must_use]
-    pub fn build(mut self) -> Result<PreparedRequest, HttpClientError> {
-        let host_port = self.url.port_or_default();
-        let host_str = self
-            .url
-            .host_str()
-            .ok_or_else(|| HttpClientError::InvalidUrl("Missing host in URL".to_string()))?;
-
-        let socket_addrs = if let Some(addrs) = self.socket_addrs.take() {
-            addrs
-        } else {
-            self.resolver
-                .resolve(host_str.as_str(), host_port)
-                .map(|addrs| addrs.into_iter().map(SocketAddr::Tcp).collect())
-                .map_err(HttpClientError::DnsError)?
-        };
-
+    pub fn build(self) -> Result<PreparedRequest, HttpClientError> {
         Ok(PreparedRequest {
-            socket_addrs,
             method: self.method,
             url: self.url,
             headers: self.headers,
@@ -327,8 +314,11 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     /// # Errors
     ///
     /// Returns `HttpClientError` if the URL is invalid.
-    pub fn get(resolver: R, url: &str) -> Result<Self, HttpClientError> {
-        Self::new(resolver, SimpleMethod::GET, url)
+    pub fn get(
+        pool: Option<Arc<HttpConnectionPool<R>>>,
+        url: &str,
+    ) -> Result<Self, HttpClientError> {
+        Self::new(pool, SimpleMethod::GET, url)
     }
 
     /// Creates a POST request builder.
@@ -340,8 +330,11 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     /// # Errors
     ///
     /// Returns `HttpClientError` if the URL is invalid.
-    pub fn post(resolver: R, url: &str) -> Result<Self, HttpClientError> {
-        Self::new(resolver, SimpleMethod::POST, url)
+    pub fn post(
+        pool: Option<Arc<HttpConnectionPool<R>>>,
+        url: &str,
+    ) -> Result<Self, HttpClientError> {
+        Self::new(pool, SimpleMethod::POST, url)
     }
 
     /// Creates a PUT request builder.
@@ -353,8 +346,11 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     /// # Errors
     ///
     /// Returns `HttpClientError` if the URL is invalid.
-    pub fn put(resolver: R, url: &str) -> Result<Self, HttpClientError> {
-        Self::new(resolver, SimpleMethod::PUT, url)
+    pub fn put(
+        pool: Option<Arc<HttpConnectionPool<R>>>,
+        url: &str,
+    ) -> Result<Self, HttpClientError> {
+        Self::new(pool, SimpleMethod::PUT, url)
     }
 
     /// Creates a DELETE request builder.
@@ -366,8 +362,11 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     /// # Errors
     ///
     /// Returns `HttpClientError` if the URL is invalid.
-    pub fn delete(resolver: R, url: &str) -> Result<Self, HttpClientError> {
-        Self::new(resolver, SimpleMethod::DELETE, url)
+    pub fn delete(
+        pool: Option<Arc<HttpConnectionPool<R>>>,
+        url: &str,
+    ) -> Result<Self, HttpClientError> {
+        Self::new(pool, SimpleMethod::DELETE, url)
     }
 
     /// Creates a PATCH request builder.
@@ -379,8 +378,11 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     /// # Errors
     ///
     /// Returns `HttpClientError` if the URL is invalid.
-    pub fn patch(resolver: R, url: &str) -> Result<Self, HttpClientError> {
-        Self::new(resolver, SimpleMethod::PATCH, url)
+    pub fn patch(
+        pool: Option<Arc<HttpConnectionPool<R>>>,
+        url: &str,
+    ) -> Result<Self, HttpClientError> {
+        Self::new(pool, SimpleMethod::PATCH, url)
     }
 
     /// Creates a HEAD request builder.
@@ -392,8 +394,11 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     /// # Errors
     ///
     /// Returns `HttpClientError` if the URL is invalid.
-    pub fn head(resolver: R, url: &str) -> Result<Self, HttpClientError> {
-        Self::new(resolver, SimpleMethod::HEAD, url)
+    pub fn head(
+        pool: Option<Arc<HttpConnectionPool<R>>>,
+        url: &str,
+    ) -> Result<Self, HttpClientError> {
+        Self::new(pool, SimpleMethod::HEAD, url)
     }
 
     /// Creates an OPTIONS request builder.
@@ -405,7 +410,10 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     /// # Errors
     ///
     /// Returns `HttpClientError` if the URL is invalid.
-    pub fn options(resolver: R, url: &str) -> Result<Self, HttpClientError> {
-        Self::new(resolver, SimpleMethod::OPTIONS, url)
+    pub fn options(
+        pool: Option<Arc<HttpConnectionPool<R>>>,
+        url: &str,
+    ) -> Result<Self, HttpClientError> {
+        Self::new(pool, SimpleMethod::OPTIONS, url)
     }
 }

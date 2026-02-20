@@ -1399,7 +1399,7 @@ pub struct SimpleOutgoingResponse {
     pub proto: Proto,
     pub status: Status,
     pub headers: SimpleHeaders,
-    pub body: Option<SimpleBody>,
+    pub body: Option<SendSafeBody>,
 }
 
 impl SimpleOutgoingResponse {
@@ -1423,7 +1423,7 @@ pub struct SimpleOutgoingResponseBuilder {
     proto: Option<Proto>,
     status: Option<Status>,
     headers: Option<SimpleHeaders>,
-    body: Option<SimpleBody>,
+    body: Option<SendSafeBody>,
 }
 
 pub type SimpleResponseResult<T> = std::result::Result<T, SimpleResponseError>;
@@ -1455,24 +1455,24 @@ impl SimpleOutgoingResponseBuilder {
     }
 
     #[must_use]
-    pub fn with_body(mut self, body: SimpleBody) -> Self {
+    pub fn with_body(mut self, body: SendSafeBody) -> Self {
         self.body = Some(body);
         self
     }
 
     #[must_use]
     pub fn with_body_stream(mut self, body: SendVecIterator<BoxedError>) -> Self {
-        self.body = Some(SimpleBody::Stream(Some(body)));
+        self.body = Some(SendSafeBody::Stream(Some(body)));
         self
     }
 
     pub fn with_body_bytes<S: Into<Vec<u8>>>(mut self, body: S) -> Self {
-        self.body = Some(SimpleBody::Bytes(body.into()));
+        self.body = Some(SendSafeBody::Bytes(body.into()));
         self
     }
 
     pub fn with_body_string<S: Into<String>>(mut self, body: S) -> Self {
-        self.body = Some(SimpleBody::Text(body.into()));
+        self.body = Some(SendSafeBody::Text(body.into()));
         self
     }
 
@@ -1508,13 +1508,13 @@ impl SimpleOutgoingResponseBuilder {
 
         let mut headers = self.headers.unwrap_or_default();
         let proto = self.proto.unwrap_or(Proto::HTTP11);
-        let body = self.body.unwrap_or(SimpleBody::None);
+        let body = self.body.unwrap_or(SendSafeBody::None);
 
         match &body {
-            SimpleBody::None => {
+            SendSafeBody::None => {
                 headers.insert(SimpleHeader::CONTENT_LENGTH, vec![String::from("0")]);
             }
-            SimpleBody::Bytes(inner) => {
+            SendSafeBody::Bytes(inner) => {
                 let content_length = inner
                     .len()
                     .try_into_string()
@@ -1526,7 +1526,7 @@ impl SimpleOutgoingResponseBuilder {
                     headers.insert(SimpleHeader::CONTENT_LENGTH, vec![content_length]);
                 }
             }
-            SimpleBody::Text(inner) => {
+            SendSafeBody::Text(inner) => {
                 let content_length = inner
                     .len()
                     .try_into_string()
@@ -1581,10 +1581,9 @@ pub struct SimpleIncomingRequest {
     pub proto: Proto,
     pub request_uri: Uri,
     pub request_url: SimpleUrl,
-    pub body: Option<SimpleBody>,
+    pub body: Option<SendSafeBody>,
     pub headers: SimpleHeaders,
     pub method: SimpleMethod,
-    pub socket_addrs: Option<Vec<SocketAddr>>,
 }
 
 impl SimpleIncomingRequest {
@@ -1610,12 +1609,9 @@ pub struct SimpleIncomingRequestBuilder {
     proto: Option<Proto>,
     req_uri: Option<Uri>,
     url: Option<SimpleUrl>,
-    body: Option<SimpleBody>,
+    body: Option<SendSafeBody>,
     method: Option<SimpleMethod>,
     headers: Option<SimpleHeaders>,
-    host_address: Option<String>,
-    host_port: Option<u16>,
-    socket_addrs: Option<Vec<SocketAddr>>,
 }
 
 impl SimpleIncomingRequestBuilder {
@@ -1626,44 +1622,6 @@ impl SimpleIncomingRequestBuilder {
 
     pub fn with_parsed_url<S: Into<String>>(mut self, url: S) -> Self {
         self.url = Some(SimpleUrl::url_with_query(url.into()));
-        self
-    }
-
-    #[must_use]
-    pub fn with_socket_addrs(mut self, socket_address: Vec<SocketAddr>) -> Self {
-        self.socket_addrs = Some(socket_address);
-        self
-    }
-
-    #[must_use]
-    pub fn with_socket_addr(mut self, socket_address: std::net::SocketAddr) -> Self {
-        if let Some(addresses) = &mut self.socket_addrs {
-            addresses.push(SocketAddr::Tcp(socket_address));
-        } else {
-            self.socket_addrs = Some(vec![SocketAddr::Tcp(socket_address)]);
-        }
-        self
-    }
-
-    #[must_use]
-    pub fn with_socket_address(mut self, socket_address: SocketAddr) -> Self {
-        if let Some(addresses) = &mut self.socket_addrs {
-            addresses.push(socket_address);
-        } else {
-            self.socket_addrs = Some(vec![socket_address]);
-        }
-        self
-    }
-
-    #[must_use]
-    pub fn with_port(mut self, port: u16) -> Self {
-        self.host_port = Some(port);
-        self
-    }
-
-    #[must_use]
-    pub fn with_address(mut self, address: String) -> Self {
-        self.host_address = Some(address);
         self
     }
 
@@ -1680,7 +1638,7 @@ impl SimpleIncomingRequestBuilder {
     }
 
     #[must_use]
-    pub fn with_some_body(mut self, body: Option<SimpleBody>) -> Self {
+    pub fn with_some_body(mut self, body: Option<SendSafeBody>) -> Self {
         self.body = body;
         self
     }
@@ -1692,24 +1650,24 @@ impl SimpleIncomingRequestBuilder {
     }
 
     #[must_use]
-    pub fn with_body(mut self, body: SimpleBody) -> Self {
+    pub fn with_body(mut self, body: SendSafeBody) -> Self {
         self.body = Some(body);
         self
     }
 
     #[must_use]
     pub fn with_body_stream(mut self, body: SendVecIterator<BoxedError>) -> Self {
-        self.body = Some(SimpleBody::Stream(Some(body)));
+        self.body = Some(SendSafeBody::Stream(Some(body)));
         self
     }
 
     pub fn with_body_bytes<S: Into<Vec<u8>>>(mut self, body: S) -> Self {
-        self.body = Some(SimpleBody::Bytes(body.into()));
+        self.body = Some(SendSafeBody::Bytes(body.into()));
         self
     }
 
     pub fn with_body_string<S: Into<String>>(mut self, body: S) -> Self {
-        self.body = Some(SimpleBody::Text(body.into()));
+        self.body = Some(SendSafeBody::Text(body.into()));
         self
     }
 
@@ -1764,13 +1722,13 @@ impl SimpleIncomingRequestBuilder {
         let mut headers = self.headers.unwrap_or_default();
         let proto = self.proto.unwrap_or(Proto::HTTP11);
         let method = self.method.unwrap_or(SimpleMethod::GET);
-        let body = self.body.unwrap_or(SimpleBody::None);
+        let body = self.body.unwrap_or(SendSafeBody::None);
 
         match &body {
-            SimpleBody::None => {
+            SendSafeBody::None => {
                 headers.insert(SimpleHeader::CONTENT_LENGTH, vec![String::from("0")]);
             }
-            SimpleBody::Bytes(inner) => {
+            SendSafeBody::Bytes(inner) => {
                 let content_length = inner
                     .len()
                     .try_into_string()
@@ -1782,7 +1740,7 @@ impl SimpleIncomingRequestBuilder {
                     headers.insert(SimpleHeader::CONTENT_LENGTH, vec![content_length]);
                 }
             }
-            SimpleBody::Text(inner) => {
+            SendSafeBody::Text(inner) => {
                 let content_length = inner
                     .len()
                     .try_into_string()
@@ -1799,7 +1757,6 @@ impl SimpleIncomingRequestBuilder {
 
         Ok(SimpleIncomingRequest {
             body: Some(body),
-            socket_addrs: self.socket_addrs.take(),
             request_uri: req_uri,
             proto,
             request_url,
@@ -1955,22 +1912,22 @@ impl Iterator for Http11RequestBodyIterator {
 
                 let body = request.body.take().unwrap();
                 match body {
-                    SimpleBody::None => {
+                    SendSafeBody::None => {
                         // tell the iterator we want it to end
                         self.0 = Some(Http11RequestBodyState::End);
                         Some(Ok(b"".to_vec()))
                     }
-                    SimpleBody::Text(inner) => {
+                    SendSafeBody::Text(inner) => {
                         // tell the iterator we want it to end
                         self.0 = Some(Http11RequestBodyState::End);
                         Some(Ok(inner.into_bytes()))
                     }
-                    SimpleBody::Bytes(inner) => {
+                    SendSafeBody::Bytes(inner) => {
                         // tell the iterator we want it to end
                         self.0 = Some(Http11RequestBodyState::End);
                         Some(Ok(inner.clone()))
                     }
-                    SimpleBody::ChunkedStream(mut streamer_container) => {
+                    SendSafeBody::ChunkedStream(mut streamer_container) => {
                         if let Some(inner) = streamer_container.take() {
                             self.0 =
                                 Some(Http11RequestBodyState::ChunkedBodyStreaming(Some(inner)));
@@ -1981,7 +1938,7 @@ impl Iterator for Http11RequestBodyIterator {
                             Some(Ok(b"\r\n".to_vec()))
                         }
                     }
-                    SimpleBody::Stream(mut streamer_container) => {
+                    SendSafeBody::Stream(mut streamer_container) => {
                         if let Some(inner) = streamer_container.take() {
                             self.0 = Some(Http11RequestBodyState::BodyStreaming(Some(inner)));
                             Some(Ok(b"".to_vec()))
@@ -1991,7 +1948,7 @@ impl Iterator for Http11RequestBodyIterator {
                             Some(Ok(b"\r\n".to_vec()))
                         }
                     }
-                    SimpleBody::LineFeedStream(mut streamer_container) => {
+                    SendSafeBody::LineFeedStream(mut streamer_container) => {
                         if let Some(inner) = streamer_container.take() {
                             self.0 = Some(Http11RequestBodyState::LineFeedStreaming(Some(inner)));
                             Some(Ok(b"".to_vec()))
@@ -2287,22 +2244,22 @@ impl Iterator for Http11ResponseIterator {
 
                 let body = response.body.take().unwrap();
                 match body {
-                    SimpleBody::None => {
+                    SendSafeBody::None => {
                         // tell the iterator we want it to end
                         self.0 = Some(Http11ResState::End);
                         Some(Ok(b"".to_vec()))
                     }
-                    SimpleBody::Text(inner) => {
+                    SendSafeBody::Text(inner) => {
                         // tell the iterator we want it to end
                         self.0 = Some(Http11ResState::End);
                         Some(Ok(inner.into_bytes()))
                     }
-                    SimpleBody::Bytes(inner) => {
+                    SendSafeBody::Bytes(inner) => {
                         // tell the iterator we want it to end
                         self.0 = Some(Http11ResState::End);
                         Some(Ok(inner.clone()))
                     }
-                    SimpleBody::ChunkedStream(mut streamer_container) => {
+                    SendSafeBody::ChunkedStream(mut streamer_container) => {
                         if let Some(inner) = streamer_container.take() {
                             self.0 = Some(Http11ResState::ChunkedBodyStreaming(Some(inner)));
                             Some(Ok(b"".to_vec()))
@@ -2312,7 +2269,7 @@ impl Iterator for Http11ResponseIterator {
                             Some(Ok(b"".to_vec()))
                         }
                     }
-                    SimpleBody::Stream(mut streamer_container) => {
+                    SendSafeBody::Stream(mut streamer_container) => {
                         if let Some(inner) = streamer_container.take() {
                             self.0 = Some(Http11ResState::BodyStreaming(Some(inner)));
                             Some(Ok(b"".to_vec()))
@@ -2322,7 +2279,7 @@ impl Iterator for Http11ResponseIterator {
                             Some(Ok(b"".to_vec()))
                         }
                     }
-                    SimpleBody::LineFeedStream(mut streamer_container) => {
+                    SendSafeBody::LineFeedStream(mut streamer_container) => {
                         if let Some(inner) = streamer_container.take() {
                             self.0 = Some(Http11ResState::LineFeedStreaming(Some(inner)));
                             Some(Ok(b"".to_vec()))

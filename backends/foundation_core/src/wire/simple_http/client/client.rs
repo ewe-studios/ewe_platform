@@ -11,7 +11,7 @@
 
 use crate::wire::simple_http::client::{
     ClientRequest, ClientRequestBuilder, ConnectionPool, DnsResolver, HttpClientError,
-    SystemDnsResolver,
+    HttpConnectionPool, SystemDnsResolver,
 };
 use crate::wire::simple_http::SimpleHeaders;
 use std::collections::BTreeMap;
@@ -96,9 +96,8 @@ impl Default for ClientConfig {
 ///     .max_redirects(3);
 /// ```
 pub struct SimpleHttpClient<R: DnsResolver = SystemDnsResolver> {
-    resolver: R,
     config: ClientConfig,
-    pool: Option<Arc<ConnectionPool>>,
+    pool: Option<Arc<HttpConnectionPool<R>>>,
 }
 
 impl SimpleHttpClient<SystemDnsResolver> {
@@ -113,30 +112,37 @@ impl SimpleHttpClient<SystemDnsResolver> {
     /// A new `SimpleHttpClient` ready to make requests.
     #[must_use]
     pub fn from_system() -> Self {
-        Self::new(SystemDnsResolver, ClientConfig::default(), None)
+        Self::new(
+            ClientConfig::default(),
+            Arc::new(HttpConnectionPool::default()),
+        )
     }
 }
 
 impl<R: DnsResolver> SimpleHttpClient<R> {
-    fn new(resolver: R, config: ClientConfig, pool: Option<Arc<ConnectionPool>>) -> Self {
+    fn new(config: ClientConfig, pool: Arc<HttpConnectionPool<R>>) -> Self {
         Self {
-            resolver,
             config,
-            pool,
+            pool: Some(pool),
         }
     }
 }
 
 impl<R: DnsResolver + Default> Default for SimpleHttpClient<R> {
     fn default() -> Self {
-        Self::new(R::default(), ClientConfig::default(), None)
+        Self::new(
+            ClientConfig::default(),
+            Arc::new(HttpConnectionPool::new(
+                ConnectionPool::default(),
+                R::default(),
+            )),
+        )
     }
 }
 
 impl<R: DnsResolver + Clone> Clone for SimpleHttpClient<R> {
     fn clone(&self) -> Self {
         Self {
-            resolver: self.resolver.clone(),
             config: self.config.clone(),
             pool: self.pool.clone(),
         }
@@ -149,128 +155,114 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
     }
 }
 
-impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
-    // Convenience methods for common HTTP verbs that return prepared ClientRequest
-    // which wraps the task machinery and can be executed by the caller.
-
-    /// Creates a GET request and returns a `ClientRequest` ready to execute.
-    pub fn get(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
-        let builder = ClientRequestBuilder::get(self.resolver.clone(), url)?;
-        let prepared = builder.build()?;
-        Ok(ClientRequest::new(
-            prepared,
-            self.resolver.clone(),
-            self.config.clone(),
-            self.pool.clone(),
-        ))
-    }
-
-    /// Creates a POST request and returns a `ClientRequest` ready to execute.
-    pub fn post(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
-        let builder = ClientRequestBuilder::post(self.resolver.clone(), url)?;
-        let prepared = builder.build()?;
-        Ok(ClientRequest::new(
-            prepared,
-            self.resolver.clone(),
-            self.config.clone(),
-            self.pool.clone(),
-        ))
-    }
-
-    /// Creates a PUT request and returns a `ClientRequest` ready to execute.
-    pub fn put(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
-        let builder = ClientRequestBuilder::put(self.resolver.clone(), url)?;
-        let prepared = builder.build()?;
-        Ok(ClientRequest::new(
-            prepared,
-            self.resolver.clone(),
-            self.config.clone(),
-            self.pool.clone(),
-        ))
-    }
-
-    /// Creates a DELETE request and returns a `ClientRequest` ready to execute.
-    pub fn delete(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
-        let builder = ClientRequestBuilder::delete(self.resolver.clone(), url)?;
-        let prepared = builder.build()?;
-        Ok(ClientRequest::new(
-            prepared,
-            self.resolver.clone(),
-            self.config.clone(),
-            self.pool.clone(),
-        ))
-    }
-
-    /// Creates a PATCH request and returns a `ClientRequest` ready to execute.
-    pub fn patch(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
-        let builder = ClientRequestBuilder::patch(self.resolver.clone(), url)?;
-        let prepared = builder.build()?;
-        Ok(ClientRequest::new(
-            prepared,
-            self.resolver.clone(),
-            self.config.clone(),
-            self.pool.clone(),
-        ))
-    }
-
-    /// Creates a HEAD request and returns a `ClientRequest` ready to execute.
-    pub fn head(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
-        let builder = ClientRequestBuilder::head(self.resolver.clone(), url)?;
-        let prepared = builder.build()?;
-        Ok(ClientRequest::new(
-            prepared,
-            self.resolver.clone(),
-            self.config.clone(),
-            self.pool.clone(),
-        ))
-    }
-
-    /// Creates an OPTIONS request and returns a `ClientRequest` ready to execute.
-    pub fn options(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
-        let builder = ClientRequestBuilder::options(self.resolver.clone(), url)?;
-        let prepared = builder.build()?;
-        Ok(ClientRequest::new(
-            prepared,
-            self.resolver.clone(),
-            self.config.clone(),
-            self.pool.clone(),
-        ))
-    }
-
+impl<R: DnsResolver + Default + Clone> SimpleHttpClient<R> {
     /// Enables connection pooling with specified max connections and creates a pool instance.
     #[must_use]
     pub fn enable_pool(mut self, max_connections: usize) -> Self {
         self.config.pool_enabled = true;
         self.config.pool_max_connections = max_connections;
         // create a simple pool with default idle timeout (300s)
-        self.pool = Some(Arc::new(ConnectionPool::new(
-            max_connections,
-            Duration::from_secs(300),
+        self.pool = Some(Arc::new(HttpConnectionPool::new(
+            ConnectionPool::default(),
+            R::default(),
         )));
         self
     }
 }
 
+impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
+    // Convenience methods for common HTTP verbs that return prepared ClientRequest
+    // which wraps the task machinery and can be executed by the caller.
+
+    /// Creates a GET request and returns a `ClientRequest` ready to execute.
+    pub fn get(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
+        let builder = ClientRequestBuilder::get(self.pool.clone(), url)?;
+        let prepared = builder.build()?;
+        Ok(ClientRequest::new(
+            prepared,
+            self.config.clone(),
+            self.pool.clone().expect("Pool should be initialized"),
+        ))
+    }
+
+    /// Creates a POST request and returns a `ClientRequest` ready to execute.
+    pub fn post(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
+        let builder = ClientRequestBuilder::post(self.pool.clone(), url)?;
+        let prepared = builder.build()?;
+        Ok(ClientRequest::new(
+            prepared,
+            self.config.clone(),
+            self.pool.clone().expect("Pool should be initialized"),
+        ))
+    }
+
+    /// Creates a PUT request and returns a `ClientRequest` ready to execute.
+    pub fn put(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
+        let builder = ClientRequestBuilder::put(self.pool.clone(), url)?;
+        let prepared = builder.build()?;
+        Ok(ClientRequest::new(
+            prepared,
+            self.config.clone(),
+            self.pool.clone().expect("Pool should be initialized"),
+        ))
+    }
+
+    /// Creates a DELETE request and returns a `ClientRequest` ready to execute.
+    pub fn delete(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
+        let builder = ClientRequestBuilder::delete(self.pool.clone(), url)?;
+        let prepared = builder.build()?;
+        Ok(ClientRequest::new(
+            prepared,
+            self.config.clone(),
+            self.pool.clone().expect("Pool should be initialized"),
+        ))
+    }
+
+    /// Creates a PATCH request and returns a `ClientRequest` ready to execute.
+    pub fn patch(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
+        let builder = ClientRequestBuilder::patch(self.pool.clone(), url)?;
+        let prepared = builder.build()?;
+        Ok(ClientRequest::new(
+            prepared,
+            self.config.clone(),
+            self.pool.clone().expect("Pool should be initialized"),
+        ))
+    }
+
+    /// Creates a HEAD request and returns a `ClientRequest` ready to execute.
+    pub fn head(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
+        let builder = ClientRequestBuilder::head(self.pool.clone(), url)?;
+        let prepared = builder.build()?;
+        Ok(ClientRequest::new(
+            prepared,
+            self.config.clone(),
+            self.pool.clone().expect("Pool should be initialized"),
+        ))
+    }
+
+    /// Creates an OPTIONS request and returns a `ClientRequest` ready to execute.
+    pub fn options(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
+        let builder = ClientRequestBuilder::options(self.pool.clone(), url)?;
+        let prepared = builder.build()?;
+        Ok(ClientRequest::new(
+            prepared,
+            self.config.clone(),
+            self.pool.clone().expect("Pool should be initialized"),
+        ))
+    }
+}
+
 impl<R: DnsResolver> SimpleHttpClient<R> {
-    /// Creates a new HTTP client with custom DNS resolver.
-    ///
-    /// WHY: Advanced users may need custom DNS (caching, mock for testing, etc.).
-    ///
-    /// WHAT: Creates client with provided resolver and default configuration.
-    ///
-    /// # Arguments
-    ///
-    /// * `resolver` - DNS resolver implementing `DnsResolver` trait
+    /// Creates a new HTTP client with provided pool.
     ///
     /// # Returns
     ///
     /// A new `SimpleHttpClient` using the provided resolver.
     #[must_use]
-    pub fn with_resolver(resolver: R) -> Self {
+    pub fn with_pool(pool: Arc<HttpConnectionPool<R>>) -> Self {
         Self {
-            resolver,
+            pool: Some(pool),
             config: ClientConfig::default(),
-            pool: None,
         }
     }
 
@@ -372,9 +364,8 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
         let prepared = builder.build()?;
         Ok(ClientRequest::new(
             prepared,
-            self.resolver.clone(),
             self.config.clone(),
-            self.pool.clone(),
+            self.pool.clone().expect("should have pool"),
         ))
     }
 }

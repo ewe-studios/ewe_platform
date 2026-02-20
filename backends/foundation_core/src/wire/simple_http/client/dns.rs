@@ -25,6 +25,12 @@ pub trait DnsResolver: Send + Sync + Clone {
     fn resolve(&self, host: &str, port: u16) -> Result<Vec<SocketAddr>, DnsError>;
 }
 
+impl<T: DnsResolver> DnsResolver for Arc<T> {
+    fn resolve(&self, host: &str, port: u16) -> Result<Vec<SocketAddr>, DnsError> {
+        self.as_ref().resolve(host, port)
+    }
+}
+
 /// StaticSocketAddrResolver returns a static `std::net::ToSocketAddrs`.
 ///
 /// Useful for testing scenarios where a specific IP address is required.
