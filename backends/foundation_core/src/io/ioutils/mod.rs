@@ -402,7 +402,31 @@ impl core::fmt::Display for PeekError {
 ///
 /// # Errors
 /// Returns an error if peeking fails or the requested size exceeds buffer capacity.
+/// Trait for read streams that support peeking ahead without consuming data.
+///
+/// Implementors provide a way to inspect upcoming bytes from the stream without
+/// advancing the stream's read cursor.
+///
+/// Methods on this trait may return a `PeekError` when the peek operation
+/// fails (for example due to an I/O error) or when the requested size is not
+/// supported by the underlying buffer.
 pub trait PeekableReadStream: Read {
+    /// Peeks data from the stream into `buf` without consuming it.
+    ///
+    /// Copies up to `buf.len()` bytes of upcoming data into `buf`. The returned
+    /// value is the number of bytes actually written into `buf`. The stream's
+    /// read position is not advanced by this operation.
+    ///
+    /// # Errors
+    ///
+    /// Returns `PeekError::BiggerThanCapacity` if the requested buffer length
+    /// exceeds the read buffer capacity of the underlying stream.
+    ///
+    /// Returns `PeekError::IOError(e)` if an underlying I/O error occurs while
+    /// attempting to fill or inspect the buffer.
+    ///
+    /// Other `PeekError` variants may be returned for implementation-specific
+    /// error conditions (for example locking failures or unsupported operations).
     fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError>;
 }
 
@@ -944,7 +968,7 @@ impl<T: Read + Write> std::io::Write for SharedByteBufferStream<T> {
     }
 
     fn flush(&mut self) -> Result<()> {
-        self.0.do_once_mut(|binding| binding.flush())
+        self.0.do_once_mut(Write::flush)
     }
 }
 
@@ -1090,7 +1114,7 @@ impl<T: Read> ByteBufferPointer<T> {
     }
 
     #[inline]
-    pub fn uncapture(&mut self, by: usize) {
+    pub fn uncapture(&mut self) {
         self.uncapture_by(1);
     }
 
