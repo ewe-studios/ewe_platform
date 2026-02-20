@@ -66,6 +66,24 @@ impl core::fmt::Debug for SplitOpenSslStream {
     }
 }
 
+impl ReadTimeoutInto for SplitOpenSslStream {
+    fn read_timeout_into(
+        &mut self,
+        buf: &mut [u8],
+        timeout: std::time::Duration,
+    ) -> std::result::Result<usize, std::io::Error> {
+        let current_timeout = self.read_timeout()?;
+
+        self.set_read_timeout(Some(timeout))?;
+
+        let read_result = self.read(buf);
+
+        self.set_read_timeout(current_timeout)?;
+
+        read_result
+    }
+}
+
 impl SplitOpenSslStream {
     pub fn read_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
         let guard = self.0.lock().map_err(|e| {

@@ -10,6 +10,25 @@ use std::sync::Arc;
 use crate::err;
 use derive_more::derive::From;
 
+/// Trait for read streams that support reading with a timeout.
+///
+/// # Errors
+/// Returns an error if reading fails or the requested size exceeds buffer capacity.
+pub trait ReadTimeoutInto: Read {
+    /// Reads data from the stream with a timeout.
+    ///
+    /// # Returns
+    /// The number of bytes read, or an error if reading fails or the requested size exceeds buffer capacity.
+    ///
+    /// # Errors
+    /// Returns an error if reading fails or the requested size exceeds buffer capacity.
+    fn read_timeout_into(
+        &mut self,
+        buf: &mut [u8],
+        timeout: std::time::Duration,
+    ) -> std::result::Result<usize, std::io::Error>;
+}
+
 // BufferCapacity Trait
 
 pub trait BufferCapacity {
@@ -50,6 +69,16 @@ impl<T: Read + Write> BufferedReader<BufferedWriter<T>> {
 
     pub fn get_core_mut(&mut self) -> &mut T {
         self.inner.get_mut().get_inner_mut()
+    }
+}
+
+impl<T: ReadTimeoutInto> ReadTimeoutInto for BufferedReader<T> {
+    fn read_timeout_into(
+        &mut self,
+        buf: &mut [u8],
+        timeout: std::time::Duration,
+    ) -> std::result::Result<usize, std::io::Error> {
+        self.inner.get_mut().read_timeout_into(buf, timeout)
     }
 }
 
@@ -188,6 +217,16 @@ impl<T: Write> BufferedWriter<T> {
         Self {
             inner: BufWriter::with_capacity(capacity, inner),
         }
+    }
+}
+
+impl<T: ReadTimeoutInto + Write> ReadTimeoutInto for BufferedWriter<T> {
+    fn read_timeout_into(
+        &mut self,
+        buf: &mut [u8],
+        timeout: std::time::Duration,
+    ) -> std::result::Result<usize, std::io::Error> {
+        self.inner.get_mut().read_timeout_into(buf, timeout)
     }
 }
 
@@ -609,6 +648,36 @@ impl<T: Read + Write> Write for OwnedReader<T> {
             Self::RefCell(core) => {
                 let mut guard = core.borrow_mut();
                 guard.flush()
+            }
+        }
+    }
+}
+
+impl<T: ReadTimeoutInto + Write> ReadTimeoutInto for OwnedReader<T> {
+    fn read_timeout_into(
+        &mut self,
+        buf: &mut [u8],
+        timeout: std::time::Duration,
+    ) -> std::result::Result<usize, std::io::Error> {
+        match self {
+            Self::Atomic(core) => {
+                let ptr = core.load(std::sync::atomic::Ordering::Acquire);
+                unsafe {
+                    let atomic_reader: &mut T = &mut *ptr;
+                    atomic_reader.read_timeout_into(buf, timeout)
+                }
+            }
+            Self::Sync(core) => {
+                let mut guard = core.lock().expect("can acquire");
+                guard.read_timeout_into(buf, timeout)
+            }
+            Self::RWrite(core) => {
+                let mut guard = core.write().expect("can acquire");
+                guard.read_timeout_into(buf, timeout)
+            }
+            Self::RefCell(core) => {
+                let mut guard = core.borrow_mut();
+                guard.read_timeout_into(buf, timeout)
             }
         }
     }
