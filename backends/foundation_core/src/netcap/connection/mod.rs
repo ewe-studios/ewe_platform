@@ -1,7 +1,7 @@
 //! Taken from the tiny-http project <https://github.com/tiny-http/tiny-http>/
 //! Abstractions of Tcp and Unix socket types
 
-use crate::io::ioutils::{PeekError, PeekableReadStream};
+use crate::io::ioutils::{PeekError, PeekableReadStream, ReadTimeoutInto};
 #[cfg(unix)]
 use std::os::unix::net as unix_net;
 use std::{
@@ -294,6 +294,24 @@ impl Connection {
         timeout: Duration,
     ) -> std::result::Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
         Ok(Self::Tcp(TcpStream::connect_timeout(&addr, timeout)?))
+    }
+}
+
+impl ReadTimeoutInto for Connection {
+    fn read_timeout_into(
+        &mut self,
+        buf: &mut [u8],
+        timeout: std::time::Duration,
+    ) -> std::result::Result<usize, std::io::Error> {
+        let previous_read_timeout = self.read_timeout()?;
+
+        // set new read timeout
+        self.set_read_timeout(Some(timeout))?;
+        let result = self.read(buf);
+
+        // set back old timeout
+        self.set_read_timeout(previous_read_timeout)?;
+        result
     }
 }
 

@@ -5,7 +5,9 @@ use std::sync::Arc;
 use std::time::Duration;
 use std::{net::TcpStream, time};
 
-use crate::io::ioutils::{BufferedReader, BufferedWriter, PeekError, PeekableReadStream};
+use crate::io::ioutils::{
+    BufferedReader, BufferedWriter, PeekError, PeekableReadStream, ReadTimeoutInto,
+};
 
 use super::{errors, Connection, DataStreamError, SocketAddr, TlsError};
 use super::{Endpoint, EndpointConfig};
@@ -432,6 +434,30 @@ impl PeekableReadStream for RawStream {
                 feature = "ssl-native-tls"
             ))]
             RawStream::AsClientTls(inner, _addr) => inner.peek(buf),
+        }
+    }
+}
+
+impl ReadTimeoutInto for RawStream {
+    fn read_timeout_into(
+        &mut self,
+        buf: &mut [u8],
+        timeout: std::time::Duration,
+    ) -> std::result::Result<usize, std::io::Error> {
+        match self {
+            RawStream::AsPlain(inner, _addr) => inner.read_timeout_into(buf, timeout),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            RawStream::AsServerTls(inner, _addr) => inner.read_timeout_into(buf, timeout),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            RawStream::AsClientTls(inner, _addr) => inner.read_timeout_into(buf, timeout),
         }
     }
 }

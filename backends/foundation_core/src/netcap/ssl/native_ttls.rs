@@ -51,6 +51,24 @@ impl NativeTlsStream {
     }
 }
 
+impl ReadTimeoutInto for NativeTlsStream {
+    fn read_timeout_into(
+        &mut self,
+        buf: &mut [u8],
+        timeout: std::time::Duration,
+    ) -> std::result::Result<usize, std::io::Error> {
+        let current_timeout = self.read_timeout()?;
+
+        self.set_read_timeout(Some(timeout))?;
+
+        let read_result = self.read(buf);
+
+        self.set_read_timeout(current_timeout)?;
+
+        read_result
+    }
+}
+
 // These struct methods form the implict contract for swappable TLS implementations
 impl NativeTlsStream {
     pub fn try_clone_connection(&self) -> std::io::Result<Connection> {
