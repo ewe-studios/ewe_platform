@@ -98,12 +98,16 @@ The logic to implement is:
   `let request_string = Http11::request_descriptor(&descriptor).http_render_string()?;`
 - Write the request string to the connection's stream and flush.
 
-**Reading the response intro and headers:**
-- Create a `HttpResponseReader` using the connection's stream.
+**Reading the response intro and headers (with timeout):**
+- Use the `ReadTimeoutInto` trait on the stream to read the intro and headers with a timeout.
 - Example:  
-  `let mut reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(connection.clone_stream(), SimpleHttpBody);`
-- Call `.next()` to get the status line (intro), then `.next()` again to get the headers.
-- Both should be performed within the timeout from `OpTimeout`.
+  ```rust
+  let mut buf = [0u8; 4096];
+  let n = connection.stream_mut().read_timeout_into(&mut buf, timeout)?;
+  // Parse the intro and headers from buf[..n]
+  ```
+- If using `HttpResponseReader`, simply set the read timeout on the connection before reading. The reader will automatically honor the timeout for all reads.
+- No need to wrap or modify `HttpResponseReader` itself.
 
 **Redirect detection and handling:**
 - After reading intro and headers, check if the status code is 3xx and a `Location` header is present.
@@ -120,10 +124,10 @@ let request_string = Http11::request_descriptor(&descriptor).http_render_string(
 connection.stream_mut().write_all(request_string.as_bytes())?;
 connection.stream_mut().flush()?;
 
-// 3. Read response intro and headers
-let mut reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(connection.clone_stream(), SimpleHttpBody);
-let intro = reader.next().ok_or(Error::ReadFailed)??; // status line
-let headers = reader.next().ok_or(Error::ReadFailed)??; // headers
+// 3. Read response intro and headers with timeout
+let mut buf = [0u8; 4096];
+let n = connection.stream_mut().read_timeout_into(&mut buf, timeout)?;
+let (intro, headers) = parse_intro_and_headers(&buf[..n]); // parse as needed
 
 // 4. Check for redirect
 if is_redirect(&intro, &headers) {
@@ -132,6 +136,12 @@ if is_redirect(&intro, &headers) {
     // write body if needed, return Done
 }
 ```
+
++## ReadTimeoutInto integration plan
++
++- All response intro/header reads in the redirect-capable task should use `ReadTimeoutInto` with the timeout from `OpTimeout`.
++- If using `HttpResponseReader`, simply set the read timeout on the connection before reading. The reader will automatically honor the timeout for all reads.
++- This prevents indefinite blocking and ensures robust timeout handling for all HTTP response reads.
 
 ## Concrete next steps (break into small PR-friendly tasks)
 

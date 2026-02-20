@@ -2,7 +2,7 @@
 
 #![cfg(not(target_arch = "wasm32"))]
 
-use crate::io::ioutils::ReadTimeoutInto;
+use crate::io::ioutils::ReadTimeoutOperations;
 use crate::netcap::connection::Connection;
 use crate::netcap::{
     DataStreamAddr, DataStreamError, DataStreamResult, Endpoint, EndpointConfig, SocketAddr,
@@ -140,7 +140,7 @@ impl<T> Clone for RustlsStream<T> {
     }
 }
 
-impl ReadTimeoutInto for RustlsStream<rustls::ClientConnection> {
+impl ReadTimeoutOperations for RustlsStream<rustls::ClientConnection> {
     fn read_timeout_into(
         &mut self,
         buf: &mut [u8],
@@ -156,9 +156,16 @@ impl ReadTimeoutInto for RustlsStream<rustls::ClientConnection> {
 
         read_result
     }
+
+    fn set_read_timeout_as(
+        &mut self,
+        timeout: std::time::Duration,
+    ) -> std::result::Result<(), std::io::Error> {
+        self.set_read_timeout(Some(timeout))
+    }
 }
 
-impl ReadTimeoutInto for RustlsStream<rustls::ServerConnection> {
+impl ReadTimeoutOperations for RustlsStream<rustls::ServerConnection> {
     fn read_timeout_into(
         &mut self,
         buf: &mut [u8],
@@ -173,6 +180,13 @@ impl ReadTimeoutInto for RustlsStream<rustls::ServerConnection> {
         self.set_read_timeout(current_timeout)?;
 
         read_result
+    }
+
+    fn set_read_timeout_as(
+        &mut self,
+        timeout: std::time::Duration,
+    ) -> std::result::Result<(), std::io::Error> {
+        self.set_read_timeout(Some(timeout))
     }
 }
 
