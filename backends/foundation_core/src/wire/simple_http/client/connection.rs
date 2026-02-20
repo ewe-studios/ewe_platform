@@ -121,7 +121,6 @@ impl HttpClientConnection {
                 }
                 Err(e) => {
                     last_error = Some(e);
-                    continue; // Try next address
                 }
             }
         }
@@ -231,13 +230,13 @@ impl Default for HttpConnectionPool<SystemDnsResolver> {
     fn default() -> Self {
         Self {
             pool: Arc::new(ConnectionPool::default()),
-            resolver: Arc::new(SystemDnsResolver::default()),
+            resolver: Arc::new(SystemDnsResolver::new()),
         }
     }
 }
 
 impl<R: DnsResolver> HttpConnectionPool<R> {
-    /// Create a new HttpConnectionPool from an existing ConnectionPool.
+    /// Create a new `HttpConnectionPool` from an existing `ConnectionPool`.
     #[must_use]
     pub fn new(pool: ConnectionPool, resolver: R) -> Self {
         Self {
@@ -246,22 +245,29 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         }
     }
 
-    /// Create a new HttpConnectionPool from an Arc-wrapped ConnectionPool.
+    /// Create a new `HttpConnectionPool` from an `Arc<ConnectionPool>`.
     #[must_use]
     pub fn from_arc(pool: Arc<ConnectionPool>, resolver: Arc<R>) -> Self {
         Self { pool, resolver }
     }
 
-    /// Acquire a HttpClientConnection for the given URL.
+    /// Acquire a `HttpClientConnection` for the given URL.
     ///
     /// The method will:
-    /// 1. Try to obtain a pooled RawStream for the URL's host/port.
+    /// 1. Try to obtain a pooled `RawStream` for the URL's host/port.
     /// 2. If a pooled stream is available, wrap it into `HttpClientConnection`.
     /// 3. Otherwise, establish a new connection via `HttpClientConnection::connect`.
     ///
     /// Note: This function assumes the underlying `ConnectionPool` exposes at least
     /// some method to retrieve and return `RawStream` instances keyed by host/port.
     /// The exact pool API may differ; callers can adapt or extend this wrapper as needed.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `Err(HttpClientError)` when:
+    /// - the provided `url` is invalid (missing host),
+    /// - DNS resolution fails,
+    /// - establishing a new TCP/TLS connection fails or times out.
     pub fn create_http_connection(
         &self,
         url: &ParsedUrl,
@@ -274,7 +280,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         let port = url.port_or_default();
 
         // Try to obtain a pooled RawStream. Most pool implementations provide some
-        // variant of `get`, `acquire`, or `take`. We optimistically call `get`.
+        // variant of `get`, `acquire`, or `take`. We optimistically call `checkout`.
         //
         // If your actual `ConnectionPool` API uses different method names, update
         // the calls here to match the real signatures.
@@ -284,17 +290,17 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         }
 
         // No pooled connection available, create a fresh one.
-        HttpClientConnection::connect(url, &self.resolver, timeout)
+        HttpClientConnection::connect(url, &*self.resolver, timeout)
     }
 
-    /// Return a RawStream back into the pool for reuse.
+    /// Return a `RawStream` back into the pool for reuse.
     ///
     /// This is a best-effort helper that calls into the pool's `put`/`release`
     /// style API. Adjust the call if your pool uses a different method name.
-    pub fn return_to_pool(&self, stream: HttpClientConnection) {
+    pub fn return_to_pool(&self, conn: HttpClientConnection) {
+        // Destructure to move fields out without partially borrowing `conn`.
+        let HttpClientConnection { host, port, stream } = conn;
         // Attempt to put the stream back; ignore failures to avoid panics.
-        let _ = self
-            .pool
-            .checkin(stream.host.as_str(), stream.port, stream.stream);
+        self.pool.checkin(host.as_str(), port, stream);
     }
 }
