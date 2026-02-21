@@ -14,18 +14,18 @@
 
 use foundation_nostd::primitives::wait_duration;
 
-use crate::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
 use crate::valtron::{self, DrivenStreamIterator, Stream};
 use crate::wire::simple_http::client::{
-    ClientConfig, ConnectionPool, DnsResolver, GetHttpRequestStreamTask, HttpClientConnection,
-    HttpClientError, HttpConnectionPool, HttpRequestTask, HttpStreamReady, IncomingResponseMapper,
-    PreparedRequest, RequestIntro, ResponseIntro,
+    ClientConfig, DnsResolver, GetHttpRequestRedirectTask, HttpClientConnection, HttpClientError, HttpConnectionPool,
+    HttpRequestRedirectResponse, IncomingResponseMapper, PreparedRequest,
+    RequestIntro, ResponseIntro, SendRequestTask,
 };
 use crate::wire::simple_http::{
     HttpResponseReader, IncomingResponseParts, SimpleBody, SimpleHeaders, SimpleHttpBody,
     SimpleResponse,
 };
+use std::io::Write;
 use std::sync::Arc;
 
 /// Internal state for progressive request reading.
@@ -43,7 +43,7 @@ pub enum ClientRequestState<R: DnsResolver + 'static> {
     /// Request hasn't been executed yet
     NotStarted,
     /// Request is currently executing or has partial results
-    Executing(Box<DrivenStreamIterator<HttpRequestTask<R>>>),
+    Executing(Box<DrivenStreamIterator<SendRequestTask<R>>>),
     /// Now we've acquired the necessary request introduction and reader.
     IntroReady(Option<Box<RequestIntro>>),
     /// Request completed (terminal state)
@@ -312,14 +312,15 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         };
 
         // Create HttpRequestTask with pool and control
-        let task = HttpRequestTask::new(
+        let task = SendRequestTask::new(
             request,
             self.config.max_redirects,
             self.pool.clone().expect("Pool should be initialized"),
+            Some(self.config.get_op_timeout()),
         );
 
         // Spawn task via execute_task
-        let iter: DrivenStreamIterator<HttpRequestTask<R>> = valtron::execute_stream(task, None)
+        let iter: DrivenStreamIterator<SendRequestTask<R>> = valtron::execute_stream(task, None)
             .map_err(|e| HttpClientError::Other(format!("Failed to spawn task: {e}").into()))?;
 
         // Transition to Executing state
@@ -555,10 +556,19 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
             // Create GetHttpRequestStreamTask with pool if provided
             // which will get us the http stream which we can then
             // wrap in a ResponseReader.
-            let task = GetHttpRequestStreamTask::new(
-                request,
+            let Ok(into_incoming) = request.into_simple_incoming_request() else {
+                return Err(HttpClientError::FailedExecution);
+            };
+
+            let Some(pool) = self.pool.clone() else {
+                return Err(HttpClientError::NoPoolProvided);
+            };
+
+            let task = GetHttpRequestRedirectTask::new(
+                into_incoming,
+                Some(self.config.get_op_timeout()),
+                pool,
                 self.config.max_redirects,
-                self.pool.clone().expect("Pool must be initialized"),
             );
 
             // Spawn task via execute_task
@@ -572,20 +582,42 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                         wait_duration(inner);
                     }
                     Stream::Next(inner) => match inner {
-                        HttpStreamReady::Error(_) => {
+                        HttpRequestRedirectResponse::Error(err) => {
+                            tracing::error!("Request failed with error: {}", err);
+
                             self.task_state = Some(ClientRequestState::Completed);
                             return Err(HttpClientError::FailedExecution);
                         }
-                        HttpStreamReady::Done(stream) => {
+                        HttpRequestRedirectResponse::Done(conn) => {
                             let items = IncomingResponseMapper::from_reader(HttpResponseReader::<
                                 SimpleHttpBody,
                                 RawStream,
                             >::new(
-                                stream.clone_stream(),
+                                conn.clone_stream(),
                                 SimpleHttpBody,
                             ));
 
-                            return Ok((items.into_iter(), stream));
+                            return Ok((items.into_iter(), conn));
+                        }
+                        HttpRequestRedirectResponse::FlushFailed(mut conn, err) => {
+                            tracing::error!("Failed to flush request: {}", err);
+
+                            if let Err(flush_err) = conn.stream_mut().flush() {
+                                tracing::error!(
+                                    "Failed to re-attempt flush connection: {}",
+                                    flush_err
+                                );
+                            }
+
+                            let items = IncomingResponseMapper::from_reader(HttpResponseReader::<
+                                SimpleHttpBody,
+                                RawStream,
+                            >::new(
+                                conn.clone_stream(),
+                                SimpleHttpBody,
+                            ));
+
+                            return Ok((items.into_iter(), conn));
                         }
                     },
                 }

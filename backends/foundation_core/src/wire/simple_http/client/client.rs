@@ -11,7 +11,7 @@
 
 use crate::wire::simple_http::client::{
     ClientRequest, ClientRequestBuilder, ConnectionPool, DnsResolver, HttpClientError,
-    HttpConnectionPool, SystemDnsResolver,
+    HttpConnectionPool, OpTimeout, SystemDnsResolver,
 };
 use crate::wire::simple_http::SimpleHeaders;
 use std::collections::BTreeMap;
@@ -43,6 +43,20 @@ pub struct ClientConfig {
     pub pool_enabled: bool,
     /// Maximum connections in pool (if pooling enabled)
     pub pool_max_connections: usize,
+}
+
+impl ClientConfig {
+    pub fn get_op_timeout(&self) -> OpTimeout {
+        if self.connect_timeout.is_some() && self.read_timeout.is_some() {
+            OpTimeout::new(
+                self.connect_timeout.unwrap(),
+                self.read_timeout.unwrap(),
+                self.write_timeout.unwrap(),
+            )
+        } else {
+            OpTimeout::default()
+        }
+    }
 }
 
 impl Default for ClientConfig {
@@ -176,7 +190,7 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
 
     /// Creates a GET request and returns a `ClientRequest` ready to execute.
     pub fn get(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
-        let builder = ClientRequestBuilder::get(self.pool.clone(), url)?;
+        let builder = ClientRequestBuilder::get(url)?;
         let prepared = builder.build()?;
         Ok(ClientRequest::new(
             prepared,
@@ -187,7 +201,7 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
 
     /// Creates a POST request and returns a `ClientRequest` ready to execute.
     pub fn post(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
-        let builder = ClientRequestBuilder::post(self.pool.clone(), url)?;
+        let builder = ClientRequestBuilder::post(url)?;
         let prepared = builder.build()?;
         Ok(ClientRequest::new(
             prepared,
@@ -198,7 +212,7 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
 
     /// Creates a PUT request and returns a `ClientRequest` ready to execute.
     pub fn put(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
-        let builder = ClientRequestBuilder::put(self.pool.clone(), url)?;
+        let builder = ClientRequestBuilder::put(url)?;
         let prepared = builder.build()?;
         Ok(ClientRequest::new(
             prepared,
@@ -209,7 +223,7 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
 
     /// Creates a DELETE request and returns a `ClientRequest` ready to execute.
     pub fn delete(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
-        let builder = ClientRequestBuilder::delete(self.pool.clone(), url)?;
+        let builder = ClientRequestBuilder::delete(url)?;
         let prepared = builder.build()?;
         Ok(ClientRequest::new(
             prepared,
@@ -220,7 +234,7 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
 
     /// Creates a PATCH request and returns a `ClientRequest` ready to execute.
     pub fn patch(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
-        let builder = ClientRequestBuilder::patch(self.pool.clone(), url)?;
+        let builder = ClientRequestBuilder::patch(url)?;
         let prepared = builder.build()?;
         Ok(ClientRequest::new(
             prepared,
@@ -231,7 +245,7 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
 
     /// Creates a HEAD request and returns a `ClientRequest` ready to execute.
     pub fn head(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
-        let builder = ClientRequestBuilder::head(self.pool.clone(), url)?;
+        let builder = ClientRequestBuilder::head(url)?;
         let prepared = builder.build()?;
         Ok(ClientRequest::new(
             prepared,
@@ -242,7 +256,7 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
 
     /// Creates an OPTIONS request and returns a `ClientRequest` ready to execute.
     pub fn options(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
-        let builder = ClientRequestBuilder::options(self.pool.clone(), url)?;
+        let builder = ClientRequestBuilder::options(url)?;
         let prepared = builder.build()?;
         Ok(ClientRequest::new(
             prepared,
@@ -359,7 +373,7 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     /// A `ClientRequest` ready to execute.
     pub fn request(
         &self,
-        builder: ClientRequestBuilder<R>,
+        builder: ClientRequestBuilder,
     ) -> Result<ClientRequest<R>, HttpClientError> {
         let prepared = builder.build()?;
         Ok(ClientRequest::new(

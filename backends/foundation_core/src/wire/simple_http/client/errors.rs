@@ -79,6 +79,7 @@ pub enum HttpClientError {
     FailedExecution,
     FailedToReadBody,
     InvalidReadState,
+    NoPoolProvided,
 
     /// DNS resolution error.
     #[from]
@@ -155,6 +156,10 @@ impl core::fmt::Display for HttpClientError {
             Self::FailedToReadBody => {
                 write!(f, "Failed to read body from reader, please investigate")
             }
+            Self::NoPoolProvided => write!(
+                f,
+                "Expected connection pool to be provided, please investigate"
+            ),
             Self::InvalidRequestState => write!(f, "Invalid state found, please investigate"),
             Self::ReaderError(error) => write!(f, "Failed to read http from reader: {error:?}"),
             Self::NotImplemented => write!(f, "Functionality not implemented"),

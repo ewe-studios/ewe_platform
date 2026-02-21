@@ -4,7 +4,6 @@ use crate::extensions::result_ext::{BoxedError, SendableBoxedError};
 use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
 use crate::io::ioutils::{self, ByteBufferPointer, SharedByteBufferStream};
 use crate::io::ubytes::{self};
-use crate::netcap::SocketAddr;
 use crate::valtron::{
     BoxedResultIterator, BoxedSendableIterator, CloneableFn, SendVecIterator, StringBoxedIterator,
     TransformIterator,
@@ -999,12 +998,16 @@ impl core::fmt::Display for Status {
     }
 }
 
-// Implement Into<usize> for Status
+impl Status {
+    pub fn into_usize(self) -> usize {
+        self.into()
+    }
+}
 
 impl Into<usize> for Status {
     fn into(self) -> usize {
         match self {
-            Self::Text(code) => 0,
+            Self::Text(_) => 0,
             Self::Numbered(code, _) => code,
             Self::Accepted => 202,
             Self::Continue => 100,
