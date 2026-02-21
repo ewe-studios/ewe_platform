@@ -9,11 +9,14 @@
 //! HOW: Uses foundation_testing::TestHttpServer to create real HTTP responses,
 //! then validates all three consumption patterns work end-to-end.
 
+use std::sync::Arc;
+
 use foundation_core::valtron;
 use foundation_core::wire::simple_http::client::{
-    ClientConfig, ClientRequest, ClientRequestBuilder, StaticSocketAddr, SystemDnsResolver,
+    ClientConfig, ClientRequest, ClientRequestBuilder, HttpConnectionPool, StaticSocketAddr,
+    SystemDnsResolver,
 };
-use foundation_core::wire::simple_http::{IncomingResponseParts, SimpleBody};
+use foundation_core::wire::simple_http::{IncomingResponseParts, SendSafeBody};
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use tracing_test::traced_test;
 
@@ -30,16 +33,12 @@ fn test_body_reading_with_introduction_and_body() {
 
     // Build request
     let url = server.url("/test");
-    let builder = ClientRequestBuilder::get(SystemDnsResolver::new(), &url).unwrap();
+    let builder = ClientRequestBuilder::get(&url).unwrap();
     let prepared = builder.build().expect("get request");
 
     // Create request with system resolver
-    let mut request = ClientRequest::new(
-        prepared,
-        SystemDnsResolver::new(),
-        ClientConfig::default(),
-        None,
-    );
+    let pool = Arc::new(HttpConnectionPool::default());
+    let mut request = ClientRequest::new(prepared, ClientConfig::default(), pool.clone());
 
     tracing::info!("Get the introduction of the request");
 
@@ -59,16 +58,16 @@ fn test_body_reading_with_introduction_and_body() {
 
     // Step 3: Verify body content
     match body {
-        SimpleBody::Text(text) => {
+        SendSafeBody::Text(text) => {
             println!("Received text body: {}", text);
             assert_eq!(text, "Hello from server!", "Body content mismatch");
         }
-        SimpleBody::Bytes(data) => {
+        SendSafeBody::Bytes(data) => {
             let body_str = String::from_utf8_lossy(&data);
             println!("Received bytes body: {}", body_str);
             assert_eq!(body_str, "Hello from server!", "Body content mismatch");
         }
-        SimpleBody::None => {
+        SendSafeBody::None => {
             panic!("Expected body content, got None");
         }
         _ => {
@@ -93,16 +92,12 @@ fn test_parts_iterator_reads_complete_response() {
 
     // Build request
     let url = server.url("/parts");
-    let builder = ClientRequestBuilder::get(SystemDnsResolver::new(), &url).unwrap();
+    let builder = ClientRequestBuilder::get(&url).unwrap();
     let prepared = builder.build().expect("get request");
 
     // Create request
-    let request = ClientRequest::new(
-        prepared,
-        SystemDnsResolver::new(),
-        ClientConfig::default(),
-        None,
-    );
+    let pool = Arc::new(HttpConnectionPool::default());
+    let request = ClientRequest::new(prepared, ClientConfig::default(), pool.clone());
 
     // Iterate through all parts
     let mut got_intro = false;
@@ -110,7 +105,9 @@ fn test_parts_iterator_reads_complete_response() {
     let mut got_body = false;
     let mut body_content = Vec::new();
 
-    for part_result in request.parts().expect("get iterator") {
+    let (part_iter, _) = request.parts().expect("get iterator");
+
+    for part_result in part_iter {
         let part = part_result.expect("Failed to get part");
         match part {
             IncomingResponseParts::Intro(status, proto, reason) => {
@@ -128,10 +125,10 @@ fn test_parts_iterator_reads_complete_response() {
             IncomingResponseParts::SizedBody(body) => {
                 println!("Got sized body");
                 match body {
-                    SimpleBody::Text(text) => {
+                    SendSafeBody::Text(text) => {
                         body_content = text.into_bytes();
                     }
-                    SimpleBody::Bytes(data) => {
+                    SendSafeBody::Bytes(data) => {
                         body_content = data;
                     }
                     _ => {}
@@ -171,20 +168,12 @@ fn test_send_returns_complete_response_with_body() {
 
     // Build request
     let url = server.url("/send");
-    let builder = ClientRequestBuilder::get(
-        StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
-        &url,
-    )
-    .unwrap();
+    let builder = ClientRequestBuilder::get(&url).unwrap();
     let prepared = builder.build().expect("get request");
 
     // Create request
-    let request = ClientRequest::new(
-        prepared,
-        SystemDnsResolver::new(),
-        ClientConfig::default(),
-        None,
-    );
+    let pool = Arc::new(HttpConnectionPool::default());
+    let request = ClientRequest::new(prepared, ClientConfig::default(), pool.clone());
 
     // Use send() to get complete response
     let mut response = request.send().expect("Failed to send request");
@@ -197,16 +186,16 @@ fn test_send_returns_complete_response_with_body() {
 
     // Verify body
     match response.get_body_mut() {
-        SimpleBody::Text(text) => {
+        SendSafeBody::Text(text) => {
             println!("Response body: {text:}");
             assert_eq!(text, test_body);
         }
-        SimpleBody::Bytes(data) => {
+        SendSafeBody::Bytes(data) => {
             let body_str = String::from_utf8_lossy(&data);
             println!("Response body (bytes): {body_str:}");
             assert_eq!(body_str, test_body);
         }
-        SimpleBody::None => {
+        SendSafeBody::None => {
             panic!("Expected body content, got None");
         }
         _ => {
@@ -234,20 +223,12 @@ fn test_large_body_reading() {
 
     // Build request
     let url = server.url("/large");
-    let builder = ClientRequestBuilder::get(
-        StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
-        &url,
-    )
-    .unwrap();
+    let builder = ClientRequestBuilder::get(&url).unwrap();
     let prepared = builder.build().expect("get request");
 
     // Create request
-    let mut request = ClientRequest::new(
-        prepared,
-        SystemDnsResolver::new(),
-        ClientConfig::default(),
-        None,
-    );
+    let pool = Arc::new(HttpConnectionPool::default());
+    let mut request = ClientRequest::new(prepared, ClientConfig::default(), pool.clone());
 
     // Get response
     let (_intro, _headers) = request.introduction().expect("Failed to get intro");
@@ -255,15 +236,15 @@ fn test_large_body_reading() {
 
     // Verify large body
     match body {
-        SimpleBody::Text(text) => {
+        SendSafeBody::Text(text) => {
             assert_eq!(text.len(), 10000, "Body size mismatch");
             assert_eq!(&text[..100], &"x".repeat(100), "Body content mismatch");
         }
-        SimpleBody::Bytes(data) => {
+        SendSafeBody::Bytes(data) => {
             assert_eq!(data.len(), 10000, "Body size mismatch");
             assert_eq!(&data[..100], &vec![b'x'; 100][..], "Body content mismatch");
         }
-        SimpleBody::None => {
+        SendSafeBody::None => {
             panic!("Expected body content, got None");
         }
         _ => {

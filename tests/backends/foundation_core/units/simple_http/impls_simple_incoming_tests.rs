@@ -17,8 +17,7 @@ use std::net::SocketAddr as StdSocketAddr;
 /// a `SimpleIncomingRequest` with the expected method and protocol.
 #[test]
 fn should_convert_prepared_request_to_simple_incoming() {
-    let resolver = StaticSocketAddr::new(StdSocketAddr::from(([127, 0, 0, 1], 80)));
-    let prepared = ClientRequestBuilder::get(resolver, "http://example.com/path")
+    let prepared = ClientRequestBuilder::get("http://example.com/path")
         .unwrap()
         .build()
         .unwrap();
@@ -34,8 +33,7 @@ fn should_convert_prepared_request_to_simple_incoming() {
 /// `SimpleIncomingRequest`.
 #[test]
 fn should_preserve_headers_on_simple_incoming_request() {
-    let resolver = StaticSocketAddr::new(StdSocketAddr::from(([127, 0, 0, 1], 80)));
-    let builder = ClientRequestBuilder::post(resolver, "http://example.com/upload")
+    let builder = ClientRequestBuilder::post("http://example.com/upload")
         .unwrap()
         .header(SimpleHeader::CONTENT_TYPE, "application/json")
         .body_text("{\"ok\":true}");
@@ -57,8 +55,7 @@ fn should_preserve_headers_on_simple_incoming_request() {
 /// `SimpleIncomingRequest` request URL rendering.
 #[test]
 fn should_preserve_query_in_request_url() {
-    let resolver = StaticSocketAddr::new(StdSocketAddr::from(([127, 0, 0, 1], 80)));
-    let prepared = ClientRequestBuilder::get(resolver, "http://example.com/search?q=test&limit=10")
+    let prepared = ClientRequestBuilder::get("http://example.com/search?q=test&limit=10")
         .unwrap()
         .build()
         .unwrap();
