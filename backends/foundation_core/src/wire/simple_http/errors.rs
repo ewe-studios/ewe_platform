@@ -241,6 +241,9 @@ pub enum ClientRequestErrors {
     Unsupported,
     ReadError,
     Reason(String),
+    ConnectionFailed,
+    WriteFailed,
+    Timeout,
 }
 
 impl<T> From<PoisonError<T>> for ClientRequestErrors {

@@ -330,6 +330,22 @@ impl ReadTimeoutOperations for Connection {
             Self::Tls(tls) => tls.set_read_timeout(Some(timeout)),
         }
     }
+
+    fn get_current_read_timeout(
+        &self,
+    ) -> std::result::Result<Option<std::time::Duration>, std::io::Error> {
+        match self {
+            Self::Tcp(t) => t.read_timeout(),
+            #[cfg(unix)]
+            Self::Unix(u) => u.read_timeout(),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(tls) => tls.read_timeout(),
+        }
+    }
 }
 
 impl Connection {
