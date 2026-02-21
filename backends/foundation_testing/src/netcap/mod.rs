@@ -5,7 +5,7 @@ use derive_more::From;
 use foundation_core::{
     extensions::result_ext::{SendableBoxedError, SendableBoxedResult},
     netcap::RawStream,
-    wire::simple_http::{http_streams, HttpReaderError, SimpleBody},
+    wire::simple_http::{http_streams, HttpReaderError, SendSafeBody, SimpleBody},
 };
 use std::{
     io::Write,
@@ -192,7 +192,7 @@ impl TestHTTPActionServer {
                 }
 
                 let body = match body_part {
-                    IncomingRequestParts::NoBody => SimpleBody::None,
+                    IncomingRequestParts::NoBody => SendSafeBody::None,
                     IncomingRequestParts::SizedBody(inner) => inner,
                     IncomingRequestParts::StreamedBody(inner) => inner,
                     _ => unreachable!("should never trigger this clause"),
@@ -271,7 +271,7 @@ impl TestHTTPActionServer {
     ) -> SimpleOutgoingResponse {
         SimpleOutgoingResponse::builder()
             .with_status(Status::InternalServerError)
-            .with_body(simple_http::SimpleBody::Text(format!("{err:?}")))
+            .with_body(simple_http::SendSafeBody::Text(format!("{err:?}")))
             .build()
             .expect("should generate request")
     }
@@ -288,7 +288,9 @@ mod test_server_tests {
 
     use foundation_core::{
         extensions::result_ext::BoxedResult,
-        wire::simple_http::{FuncSimpleServer, RequestDescriptor, SimpleBody, Status},
+        wire::simple_http::{
+            FuncSimpleServer, RequestDescriptor, SendSafeBody, SimpleBody, Status,
+        },
     };
 
     use super::{
@@ -313,7 +315,7 @@ mod test_server_tests {
             .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
             .with_method(SimpleMethod::POST)
             .with_body(FuncSimpleServer::new(|req| match req.body {
-                Some(SimpleBody::Bytes(body)) => match String::from_utf8(body.to_vec()) {
+                Some(SendSafeBody::Bytes(body)) => match String::from_utf8(body.to_vec()) {
                     Ok(content) => SimpleOutgoingResponse::builder()
                         .with_status(Status::OK)
                         .with_body_bytes(
@@ -323,7 +325,7 @@ mod test_server_tests {
                         .map_err(|err| err.into_boxed_error()),
                     Err(err) => Err(err.into_boxed_error()),
                 },
-                Some(SimpleBody::Text(body)) => SimpleOutgoingResponse::builder()
+                Some(SendSafeBody::Text(body)) => SimpleOutgoingResponse::builder()
                     .with_status(Status::OK)
                     .with_body_string(format!(r#"{{"name": "alex", "body": {body} }}"#))
                     .build()
@@ -393,7 +395,7 @@ Hello world!";
             .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
             .with_method(SimpleMethod::POST)
             .with_body(FuncSimpleServer::new(|req| match req.body {
-                Some(SimpleBody::Bytes(body)) => match String::from_utf8(body.to_vec()) {
+                Some(SendSafeBody::Bytes(body)) => match String::from_utf8(body.to_vec()) {
                     Ok(content) => SimpleOutgoingResponse::builder()
                         .with_status(Status::OK)
                         .with_body_bytes(
@@ -403,7 +405,7 @@ Hello world!";
                         .map_err(|err| err.into_boxed_error()),
                     Err(err) => Err(err.into_boxed_error()),
                 },
-                Some(SimpleBody::Text(body)) => SimpleOutgoingResponse::builder()
+                Some(SendSafeBody::Text(body)) => SimpleOutgoingResponse::builder()
                     .with_status(Status::OK)
                     .with_body_string(format!(r#"{{"name": "alex", "body": {body} }}"#))
                     .build()

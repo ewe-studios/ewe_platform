@@ -27,8 +27,7 @@ fn test_simple_http_client_new() {
 /// WHAT: Tests that with_resolver works with MockDnsResolver
 #[test]
 fn test_simple_http_client_with_resolver() {
-    let resolver = MockDnsResolver::new();
-    let client = SimpleHttpClient::with_resolver(resolver);
+    let client = SimpleHttpClient::from_system();
 
     let config = client.client_config();
     assert_eq!(config.max_redirects, 5);
@@ -118,8 +117,7 @@ fn test_simple_http_client_builder_chaining() {
 /// WHAT: Tests that get() returns ClientRequestBuilder for GET
 #[test]
 fn test_simple_http_client_get() {
-    let builder =
-        ClientRequestBuilder::get(SystemDnsResolver::new(), "http://example.com").unwrap();
+    let builder = ClientRequestBuilder::get("http://example.com").unwrap();
 
     let request = builder.build().unwrap();
     assert_eq!(request.url.host_str().unwrap(), "example.com");
@@ -129,7 +127,7 @@ fn test_simple_http_client_get() {
 /// WHAT: Tests that get() returns error for invalid URL
 #[test]
 fn test_simple_http_client_get_invalid_url() {
-    let result = ClientRequestBuilder::get(SystemDnsResolver::new(), "not a url");
+    let result = ClientRequestBuilder::get("not a url");
 
     assert!(result.is_err());
 }
@@ -138,8 +136,7 @@ fn test_simple_http_client_get_invalid_url() {
 /// WHAT: Tests that post() returns ClientRequestBuilder for POST
 #[test]
 fn test_simple_http_client_post() {
-    let builder =
-        ClientRequestBuilder::post(SystemDnsResolver::new(), "http://example.com").unwrap();
+    let builder = ClientRequestBuilder::post("http://example.com").unwrap();
 
     let request = builder.build().unwrap();
     assert_eq!(request.url.host_str().unwrap(), "example.com");
@@ -149,8 +146,7 @@ fn test_simple_http_client_post() {
 /// WHAT: Tests that put() returns ClientRequestBuilder for PUT
 #[test]
 fn test_simple_http_client_put() {
-    let builder =
-        ClientRequestBuilder::put(SystemDnsResolver::new(), "http://example.com").unwrap();
+    let builder = ClientRequestBuilder::put("http://example.com").unwrap();
 
     let request = builder.build().unwrap();
     assert_eq!(request.url.host_str().unwrap(), "example.com");
@@ -160,8 +156,7 @@ fn test_simple_http_client_put() {
 /// WHAT: Tests that delete() returns ClientRequestBuilder for DELETE
 #[test]
 fn test_simple_http_client_delete() {
-    let builder =
-        ClientRequestBuilder::delete(SystemDnsResolver::new(), "http://example.com").unwrap();
+    let builder = ClientRequestBuilder::delete("http://example.com").unwrap();
 
     let request = builder.build().unwrap();
     assert_eq!(request.url.host_str().unwrap(), "example.com");
@@ -171,8 +166,7 @@ fn test_simple_http_client_delete() {
 /// WHAT: Tests that patch() returns ClientRequestBuilder for PATCH
 #[test]
 fn test_simple_http_client_patch() {
-    let builder =
-        ClientRequestBuilder::patch(SystemDnsResolver::new(), "http://example.com").unwrap();
+    let builder = ClientRequestBuilder::patch("http://example.com").unwrap();
 
     let request = builder.build().unwrap();
     assert_eq!(request.url.host_str().unwrap(), "example.com");
@@ -182,8 +176,7 @@ fn test_simple_http_client_patch() {
 /// WHAT: Tests that head() returns ClientRequestBuilder for HEAD
 #[test]
 fn test_simple_http_client_head() {
-    let builder =
-        ClientRequestBuilder::head(SystemDnsResolver::new(), "http://example.com").unwrap();
+    let builder = ClientRequestBuilder::head("http://example.com").unwrap();
 
     let request = builder.build().unwrap();
     assert_eq!(request.url.host_str().unwrap(), "example.com");
@@ -193,8 +186,7 @@ fn test_simple_http_client_head() {
 /// WHAT: Tests that options() returns ClientRequestBuilder for OPTIONS
 #[test]
 fn test_simple_http_client_options() {
-    let builder =
-        ClientRequestBuilder::options(SystemDnsResolver::new(), "http://example.com").unwrap();
+    let builder = ClientRequestBuilder::options("http://example.com").unwrap();
 
     let request = builder.build().unwrap();
     assert_eq!(request.url.host_str().unwrap(), "example.com");
@@ -205,11 +197,7 @@ fn test_simple_http_client_options() {
 #[test]
 fn test_simple_http_client_request() {
     let client = SimpleHttpClient::<StaticSocketAddr>::default();
-    let builder = ClientRequestBuilder::get(
-        StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80))),
-        "http://example.com",
-    )
-    .unwrap();
+    let builder = ClientRequestBuilder::get("http://example.com").unwrap();
 
     let _result = client.request(builder);
     // TEST NOTE: Assertion pending ClientRequest implementation

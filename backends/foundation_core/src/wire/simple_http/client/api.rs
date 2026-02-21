@@ -17,13 +17,13 @@ use foundation_nostd::primitives::wait_duration;
 use crate::netcap::RawStream;
 use crate::valtron::{self, DrivenStreamIterator, Stream};
 use crate::wire::simple_http::client::{
-    ClientConfig, DnsResolver, GetHttpRequestRedirectTask, HttpClientConnection, HttpClientError, HttpConnectionPool,
-    HttpRequestRedirectResponse, IncomingResponseMapper, PreparedRequest,
+    ClientConfig, DnsResolver, GetHttpRequestRedirectTask, HttpClientConnection, HttpClientError,
+    HttpConnectionPool, HttpRequestRedirectResponse, IncomingResponseMapper, PreparedRequest,
     RequestIntro, ResponseIntro, SendRequestTask,
 };
 use crate::wire::simple_http::{
-    HttpResponseReader, IncomingResponseParts, SimpleBody, SimpleHeaders, SimpleHttpBody,
-    SimpleResponse,
+    HttpResponseReader, IncomingResponseParts, SendSafeBody, SimpleBody, SimpleHeaders,
+    SimpleHttpBody, SimpleResponse,
 };
 use std::io::Write;
 use std::sync::Arc;
@@ -358,7 +358,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// let body = request.body()?;
     /// ```
     #[tracing::instrument(skip(self))]
-    pub fn body(&mut self) -> Result<SimpleBody, HttpClientError> {
+    pub fn body(&mut self) -> Result<SendSafeBody, HttpClientError> {
         tracing::debug!("Requesting response body next");
         // Take the prepared request to avoid cloning
         let Some(state) = self.task_state.take() else {
@@ -413,7 +413,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                                         }
                                         IncomingResponseParts::NoBody => {
                                             tracing::debug!("IncomingResponseParts::NoBody seen");
-                                            return Ok(SimpleBody::None);
+                                            return Ok(SendSafeBody::None);
                                         }
                                         IncomingResponseParts::SizedBody(inner)
                                         | IncomingResponseParts::StreamedBody(inner) => {
@@ -471,7 +471,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// assert_eq!(response.get_status(), Status::OK);
     /// ```
     #[tracing::instrument(skip(self))]
-    pub fn send(mut self) -> Result<SimpleResponse<SimpleBody>, HttpClientError> {
+    pub fn send(mut self) -> Result<SimpleResponse<SendSafeBody>, HttpClientError> {
         // Get intro and headers first
         let (intro, headers) = self.introduction()?;
 

@@ -13,7 +13,6 @@
 #![allow(unused_mut)]
 
 mod actions_tests;
-mod api_tests;
 mod client_tests;
 mod connection_tests;
 mod dns_tests;

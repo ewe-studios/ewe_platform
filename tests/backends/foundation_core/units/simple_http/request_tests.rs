@@ -14,12 +14,7 @@ use std::net::SocketAddr as StdSocketAddr;
 /// WHAT: Tests that new creates a request builder with URL and method
 #[test]
 fn test_client_request_builder_new() {
-    let builder = ClientRequestBuilder::new(
-        StaticSocketAddr::new(StdSocketAddr::from(([127, 0, 0, 1], 80))),
-        SimpleMethod::GET,
-        "http://example.com",
-    )
-    .unwrap();
+    let builder = ClientRequestBuilder::new(SimpleMethod::GET, "http://example.com").unwrap();
 
     // Consume the builder into a PreparedRequest which exposes public fields for assertions
     let prepared = builder.build().unwrap();
@@ -33,11 +28,7 @@ fn test_client_request_builder_new() {
 /// WHAT: Tests that invalid URLs return error
 #[test]
 fn test_client_request_builder_new_invalid_url() {
-    let result = ClientRequestBuilder::new(
-        StaticSocketAddr::new(StdSocketAddr::from(([127, 0, 0, 1], 80))),
-        SimpleMethod::GET,
-        "not a url",
-    );
+    let result = ClientRequestBuilder::new(SimpleMethod::GET, "not a url");
     assert!(result.is_err());
 }
 
@@ -45,12 +36,9 @@ fn test_client_request_builder_new_invalid_url() {
 /// WHAT: Tests that header method adds header to request
 #[test]
 fn test_client_request_builder_header() {
-    let builder = ClientRequestBuilder::get(
-        StaticSocketAddr::new(StdSocketAddr::from(([127, 0, 0, 1], 80))),
-        "http://example.com",
-    )
-    .unwrap()
-    .header(SimpleHeader::CONTENT_TYPE, "application/json");
+    let builder = ClientRequestBuilder::get("http://example.com")
+        .unwrap()
+        .header(SimpleHeader::CONTENT_TYPE, "application/json");
 
     // Build to obtain a PreparedRequest with public `headers` for assertions
     let prepared = builder.build().unwrap();
@@ -66,12 +54,9 @@ fn test_client_request_builder_header() {
 /// WHAT: Tests that body_text sets body and content headers
 #[test]
 fn test_client_request_builder_body_text() {
-    let builder = ClientRequestBuilder::post(
-        StaticSocketAddr::new(StdSocketAddr::from(([127, 0, 0, 1], 80))),
-        "http://example.com",
-    )
-    .unwrap()
-    .body_text("Hello, World!");
+    let builder = ClientRequestBuilder::post("http://example.com")
+        .unwrap()
+        .body_text("Hello, World!");
 
     // Build to get PreparedRequest with concrete `body` and `headers`
     let prepared = builder.build().unwrap();
@@ -85,12 +70,9 @@ fn test_client_request_builder_body_text() {
 /// WHAT: Tests that body_bytes sets body and content headers
 #[test]
 fn test_client_request_builder_body_bytes() {
-    let builder = ClientRequestBuilder::post(
-        StaticSocketAddr::new(StdSocketAddr::from(([127, 0, 0, 1], 80))),
-        "http://example.com",
-    )
-    .unwrap()
-    .body_bytes(vec![1, 2, 3, 4]);
+    let builder = ClientRequestBuilder::post("http://example.com")
+        .unwrap()
+        .body_bytes(vec![1, 2, 3, 4]);
 
     let prepared = builder.build().unwrap();
 
@@ -111,13 +93,10 @@ fn test_client_request_builder_body_json() {
         key: "value".to_string(),
     };
 
-    let builder = ClientRequestBuilder::post(
-        StaticSocketAddr::new(StdSocketAddr::from(([127, 0, 0, 1], 80))),
-        "http://example.com",
-    )
-    .unwrap()
-    .body_json(&data)
-    .unwrap();
+    let builder = ClientRequestBuilder::post("http://example.com")
+        .unwrap()
+        .body_json(&data)
+        .unwrap();
 
     let prepared = builder.build().unwrap();
 
@@ -137,12 +116,9 @@ fn test_client_request_builder_body_form() {
         ("key2".to_string(), "value2".to_string()),
     ];
 
-    let builder = ClientRequestBuilder::post(
-        StaticSocketAddr::new(StdSocketAddr::from(([127, 0, 0, 1], 80))),
-        "http://example.com",
-    )
-    .unwrap()
-    .body_form(&params);
+    let builder = ClientRequestBuilder::post("http://example.com")
+        .unwrap()
+        .body_form(&params);
 
     let prepared = builder.build().unwrap();
 
@@ -157,8 +133,7 @@ fn test_client_request_builder_body_form() {
 /// WHAT: Tests that build consumes builder and creates prepared request
 #[test]
 fn test_client_request_builder_build() {
-    let resolver = StaticSocketAddr::new(StdSocketAddr::from(([127, 0, 0, 1], 80)));
-    let prepared = ClientRequestBuilder::get(resolver, "http://example.com")
+    let prepared = ClientRequestBuilder::get("http://example.com")
         .unwrap()
         .build()
         .unwrap();
@@ -172,59 +147,31 @@ fn test_client_request_builder_build() {
 /// WHAT: Tests get, post, put, delete, patch, head, options methods
 #[test]
 fn test_client_request_builder_convenience_methods() {
-    let get = ClientRequestBuilder::get(
-        StaticSocketAddr::new(StdSocketAddr::from(([127, 0, 0, 1], 80))),
-        "http://example.com",
-    )
-    .unwrap();
+    let get = ClientRequestBuilder::get("http://example.com").unwrap();
     let prepared_get = get.build().unwrap();
     assert!(matches!(prepared_get.method, SimpleMethod::GET));
 
-    let post = ClientRequestBuilder::post(
-        StaticSocketAddr::new(StdSocketAddr::from(([127, 0, 0, 1], 80))),
-        "http://example.com",
-    )
-    .unwrap();
+    let post = ClientRequestBuilder::post("http://example.com").unwrap();
     let prepared_post = post.build().unwrap();
     assert!(matches!(prepared_post.method, SimpleMethod::POST));
 
-    let put = ClientRequestBuilder::put(
-        StaticSocketAddr::new(StdSocketAddr::from(([127, 0, 0, 1], 80))),
-        "http://example.com",
-    )
-    .unwrap();
+    let put = ClientRequestBuilder::put("http://example.com").unwrap();
     let prepared_put = put.build().unwrap();
     assert!(matches!(prepared_put.method, SimpleMethod::PUT));
 
-    let delete = ClientRequestBuilder::delete(
-        StaticSocketAddr::new(StdSocketAddr::from(([127, 0, 0, 1], 80))),
-        "http://example.com",
-    )
-    .unwrap();
+    let delete = ClientRequestBuilder::delete("http://example.com").unwrap();
     let prepared_delete = delete.build().unwrap();
     assert!(matches!(prepared_delete.method, SimpleMethod::DELETE));
 
-    let patch = ClientRequestBuilder::patch(
-        StaticSocketAddr::new(StdSocketAddr::from(([127, 0, 0, 1], 80))),
-        "http://example.com",
-    )
-    .unwrap();
+    let patch = ClientRequestBuilder::patch("http://example.com").unwrap();
     let prepared_patch = patch.build().unwrap();
     assert!(matches!(prepared_patch.method, SimpleMethod::PATCH));
 
-    let head = ClientRequestBuilder::head(
-        StaticSocketAddr::new(StdSocketAddr::from(([127, 0, 0, 1], 80))),
-        "http://example.com",
-    )
-    .unwrap();
+    let head = ClientRequestBuilder::head("http://example.com").unwrap();
     let prepared_head = head.build().unwrap();
     assert!(matches!(prepared_head.method, SimpleMethod::HEAD));
 
-    let options = ClientRequestBuilder::options(
-        StaticSocketAddr::new(StdSocketAddr::from(([127, 0, 0, 1], 80))),
-        "http://example.com",
-    )
-    .unwrap();
+    let options = ClientRequestBuilder::options("http://example.com").unwrap();
     let prepared_options = options.build().unwrap();
     assert!(matches!(prepared_options.method, SimpleMethod::OPTIONS));
 }
@@ -233,11 +180,7 @@ fn test_client_request_builder_convenience_methods() {
 /// WHAT: Tests that Host header is set from URL
 #[test]
 fn test_client_request_builder_auto_host_header() {
-    let builder = ClientRequestBuilder::get(
-        StaticSocketAddr::new(StdSocketAddr::from(([127, 0, 0, 1], 80))),
-        "http://example.com",
-    )
-    .unwrap();
+    let builder = ClientRequestBuilder::get("http://example.com").unwrap();
     let prepared = builder.build().unwrap();
     assert!(prepared.headers.contains_key(&SimpleHeader::HOST));
     assert_eq!(
@@ -245,11 +188,7 @@ fn test_client_request_builder_auto_host_header() {
         "example.com"
     );
 
-    let builder2 = ClientRequestBuilder::get(
-        StaticSocketAddr::new(StdSocketAddr::from(([127, 0, 0, 1], 80))),
-        "http://example.com:8080",
-    )
-    .unwrap();
+    let builder2 = ClientRequestBuilder::get("http://example.com:8080").unwrap();
     let prepared2 = builder2.build().unwrap();
     assert_eq!(
         prepared2.headers.get(&SimpleHeader::HOST).unwrap()[0],
@@ -261,13 +200,10 @@ fn test_client_request_builder_auto_host_header() {
 /// WHAT: Tests that prepared request can be converted to SimpleIncomingRequest
 #[test]
 fn test_prepared_request_into_simple_incoming_request() {
-    let prepared = ClientRequestBuilder::get(
-        StaticSocketAddr::new(StdSocketAddr::from(([127, 0, 0, 1], 80))),
-        "http://example.com/path",
-    )
-    .unwrap()
-    .build()
-    .unwrap();
+    let prepared = ClientRequestBuilder::get("http://example.com/path")
+        .unwrap()
+        .build()
+        .unwrap();
 
     let simple_request = prepared.into_simple_incoming_request().unwrap();
     assert_eq!(simple_request.method, SimpleMethod::GET);
@@ -278,13 +214,10 @@ fn test_prepared_request_into_simple_incoming_request() {
 /// WHAT: Tests that query strings are preserved
 #[test]
 fn test_prepared_request_with_query() {
-    let prepared = ClientRequestBuilder::get(
-        StaticSocketAddr::new(StdSocketAddr::from(([127, 0, 0, 1], 80))),
-        "http://example.com/path?foo=bar",
-    )
-    .unwrap()
-    .build()
-    .unwrap();
+    let prepared = ClientRequestBuilder::get("http://example.com/path?foo=bar")
+        .unwrap()
+        .build()
+        .unwrap();
 
     let simple_request = prepared.into_simple_incoming_request().unwrap();
     // `request_url` is an internal field on SimpleIncomingRequest that contains the rendered URL.

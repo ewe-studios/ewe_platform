@@ -17,6 +17,7 @@ use derive_more::From;
 use regex::{self, Regex};
 use std::collections::HashSet;
 use std::io::Cursor;
+use std::ops::{Deref, DerefMut};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::{
@@ -169,26 +170,28 @@ pub enum SimpleBody {
     LineFeedStream(Option<LineFeedVecIterator<BoxedError>>),
 }
 
-impl Into<IncomingResponseParts> for SimpleBody {
+impl Into<IncomingResponseParts> for SendSafeBody {
     fn into(self) -> IncomingResponseParts {
         match &self {
-            SimpleBody::None => IncomingResponseParts::NoBody,
-            SimpleBody::Text(_) | SimpleBody::Bytes(_) => IncomingResponseParts::SizedBody(self),
-            SimpleBody::Stream(_)
-            | SimpleBody::LineFeedStream(_)
-            | SimpleBody::ChunkedStream(_) => IncomingResponseParts::StreamedBody(self),
+            SendSafeBody::None => IncomingResponseParts::NoBody,
+            SendSafeBody::Text(_) | SendSafeBody::Bytes(_) => {
+                IncomingResponseParts::SizedBody(self)
+            }
+            SendSafeBody::Stream(_)
+            | SendSafeBody::LineFeedStream(_)
+            | SendSafeBody::ChunkedStream(_) => IncomingResponseParts::StreamedBody(self),
         }
     }
 }
 
-impl Into<IncomingRequestParts> for SimpleBody {
+impl Into<IncomingRequestParts> for SendSafeBody {
     fn into(self) -> IncomingRequestParts {
         match &self {
-            SimpleBody::None => IncomingRequestParts::NoBody,
-            SimpleBody::Text(_) | SimpleBody::Bytes(_) => IncomingRequestParts::SizedBody(self),
-            SimpleBody::Stream(_)
-            | SimpleBody::LineFeedStream(_)
-            | SimpleBody::ChunkedStream(_) => IncomingRequestParts::StreamedBody(self),
+            SendSafeBody::None => IncomingRequestParts::NoBody,
+            SendSafeBody::Text(_) | SendSafeBody::Bytes(_) => IncomingRequestParts::SizedBody(self),
+            SendSafeBody::Stream(_)
+            | SendSafeBody::LineFeedStream(_)
+            | SendSafeBody::ChunkedStream(_) => IncomingRequestParts::StreamedBody(self),
         }
     }
 }
@@ -2598,8 +2601,8 @@ pub enum IncomingResponseParts {
     NoBody,
     Intro(Status, Proto, Option<String>),
     Headers(SimpleHeaders),
-    SizedBody(SimpleBody),
-    StreamedBody(SimpleBody),
+    SizedBody(SendSafeBody),
+    StreamedBody(SendSafeBody),
 }
 
 impl core::fmt::Display for IncomingResponseParts {
@@ -2637,8 +2640,8 @@ pub enum IncomingRequestParts {
     NoBody,
     Intro(SimpleMethod, SimpleUrl, Proto),
     Headers(SimpleHeaders),
-    SizedBody(SimpleBody),
-    StreamedBody(SimpleBody),
+    SizedBody(SendSafeBody),
+    StreamedBody(SendSafeBody),
 }
 
 impl core::fmt::Display for IncomingRequestParts {
@@ -2664,11 +2667,11 @@ pub trait BodyExtractor {
     /// This allows custom implementation of Tcp/Http body extractors.
     ///
     /// See sample implementation in `SimpleHttpBody`.
-    fn extract<T: Read + 'static>(
+    fn extract<T: Read + Send + 'static>(
         &self,
         body: Body,
         stream: SharedByteBufferStream<T>,
-    ) -> Result<SimpleBody, SendableBoxedError>;
+    ) -> Result<SendSafeBody, SendableBoxedError>;
 }
 
 const CHUNKED_VALUE: &str = "chunked";
@@ -2967,6 +2970,43 @@ pub struct HttpRequestReader<F: BodyExtractor, T: std::io::Read> {
     max_header_values_count: Option<usize>,
 }
 
+#[derive(Clone)]
+pub struct HttpSendRequestReader<F: BodyExtractor, T: std::io::Read + Send + 'static>(
+    HttpRequestReader<F, T>,
+);
+
+impl<F, T> From<HttpRequestReader<F, T>> for HttpSendRequestReader<F, T>
+where
+    F: BodyExtractor,
+    T: std::io::Read + Send + 'static,
+{
+    fn from(value: HttpRequestReader<F, T>) -> Self {
+        Self(value)
+    }
+}
+
+impl<F, T> DerefMut for HttpSendRequestReader<F, T>
+where
+    F: BodyExtractor,
+    T: std::io::Read + Send + 'static,
+{
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl<F, T> Deref for HttpSendRequestReader<F, T>
+where
+    F: BodyExtractor,
+    T: std::io::Read + Send + 'static,
+{
+    type Target = HttpRequestReader<F, T>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 impl<F, T> HttpRequestReader<F, T>
 where
     F: BodyExtractor,
@@ -3043,7 +3083,7 @@ static NO_BODY_METHODS: &[SimpleMethod] = &[SimpleMethod::HEAD, SimpleMethod::CO
 impl<F, T> Iterator for HttpRequestReader<F, T>
 where
     F: BodyExtractor,
-    T: std::io::Read + 'static,
+    T: std::io::Read + Send + 'static,
 {
     type Item = Result<IncomingRequestParts, HttpReaderError>;
 
@@ -3285,26 +3325,26 @@ where
                         self.state = HttpReadState::Finished;
 
                         match generated_body {
-                            SimpleBody::None => Some(Ok(IncomingRequestParts::NoBody)),
-                            SimpleBody::LineFeedStream(inner) => {
+                            SendSafeBody::None => Some(Ok(IncomingRequestParts::NoBody)),
+                            SendSafeBody::LineFeedStream(inner) => {
                                 Some(Ok(IncomingRequestParts::StreamedBody(
-                                    SimpleBody::LineFeedStream(inner),
+                                    SendSafeBody::LineFeedStream(inner),
                                 )))
                             }
-                            SimpleBody::Stream(inner) => Some(Ok(
-                                IncomingRequestParts::StreamedBody(SimpleBody::Stream(inner)),
+                            SendSafeBody::Stream(inner) => Some(Ok(
+                                IncomingRequestParts::StreamedBody(SendSafeBody::Stream(inner)),
                             )),
-                            SimpleBody::ChunkedStream(inner) => {
+                            SendSafeBody::ChunkedStream(inner) => {
                                 Some(Ok(IncomingRequestParts::StreamedBody(
-                                    SimpleBody::ChunkedStream(inner),
+                                    SendSafeBody::ChunkedStream(inner),
                                 )))
                             }
-                            SimpleBody::Bytes(inner) => Some(Ok(IncomingRequestParts::SizedBody(
-                                SimpleBody::Bytes(inner),
+                            SendSafeBody::Bytes(inner) => Some(Ok(
+                                IncomingRequestParts::SizedBody(SendSafeBody::Bytes(inner)),
+                            )),
+                            SendSafeBody::Text(inner) => Some(Ok(IncomingRequestParts::SizedBody(
+                                SendSafeBody::Text(inner),
                             ))),
-                            SimpleBody::Text(inner) => {
-                                Some(Ok(IncomingRequestParts::SizedBody(SimpleBody::Text(inner))))
-                            }
                         }
                     }
                     Err(err) => {
@@ -3327,6 +3367,43 @@ pub struct HttpResponseReader<F: BodyExtractor, T: std::io::Read + 'static> {
     max_header_key_length: Option<usize>,
     max_header_value_length: Option<usize>,
     max_header_values_count: Option<usize>,
+}
+
+#[derive(Clone)]
+pub struct HttpSendResponseReader<F: BodyExtractor, T: std::io::Read + Send + 'static>(
+    HttpResponseReader<F, T>,
+);
+
+impl<F, T> From<HttpResponseReader<F, T>> for HttpSendResponseReader<F, T>
+where
+    F: BodyExtractor,
+    T: std::io::Read + Send + 'static,
+{
+    fn from(value: HttpResponseReader<F, T>) -> Self {
+        Self(value)
+    }
+}
+
+impl<F, T> DerefMut for HttpSendResponseReader<F, T>
+where
+    F: BodyExtractor,
+    T: std::io::Read + Send + 'static,
+{
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl<F, T> Deref for HttpSendResponseReader<F, T>
+where
+    F: BodyExtractor,
+    T: std::io::Read + Send + 'static,
+{
+    type Target = HttpResponseReader<F, T>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
 impl<F, T> HttpResponseReader<F, T>
@@ -3426,7 +3503,7 @@ where
 impl<F, T> Iterator for HttpResponseReader<F, T>
 where
     F: BodyExtractor,
-    T: std::io::Read + 'static,
+    T: std::io::Read + Send + 'static,
 {
     type Item = Result<IncomingResponseParts, HttpReaderError>;
 
@@ -3682,26 +3759,26 @@ where
                         self.state = HttpReadState::Finished;
 
                         match generated_body {
-                            SimpleBody::None => Some(Ok(IncomingResponseParts::NoBody)),
-                            SimpleBody::Stream(inner) => Some(Ok(
-                                IncomingResponseParts::StreamedBody(SimpleBody::Stream(inner)),
+                            SendSafeBody::None => Some(Ok(IncomingResponseParts::NoBody)),
+                            SendSafeBody::Stream(inner) => Some(Ok(
+                                IncomingResponseParts::StreamedBody(SendSafeBody::Stream(inner)),
                             )),
-                            SimpleBody::LineFeedStream(inner) => {
+                            SendSafeBody::LineFeedStream(inner) => {
                                 Some(Ok(IncomingResponseParts::StreamedBody(
-                                    SimpleBody::LineFeedStream(inner),
+                                    SendSafeBody::LineFeedStream(inner),
                                 )))
                             }
-                            SimpleBody::ChunkedStream(inner) => {
+                            SendSafeBody::ChunkedStream(inner) => {
                                 Some(Ok(IncomingResponseParts::StreamedBody(
-                                    SimpleBody::ChunkedStream(inner),
+                                    SendSafeBody::ChunkedStream(inner),
                                 )))
                             }
-                            SimpleBody::Bytes(inner) => Some(Ok(IncomingResponseParts::SizedBody(
-                                SimpleBody::Bytes(inner),
-                            ))),
-                            SimpleBody::Text(inner) => Some(Ok(IncomingResponseParts::SizedBody(
-                                SimpleBody::Text(inner),
-                            ))),
+                            SendSafeBody::Bytes(inner) => Some(Ok(
+                                IncomingResponseParts::SizedBody(SendSafeBody::Bytes(inner)),
+                            )),
+                            SendSafeBody::Text(inner) => Some(Ok(
+                                IncomingResponseParts::SizedBody(SendSafeBody::Text(inner)),
+                            )),
                         }
                     }
                     Err(err) => {
@@ -4588,22 +4665,25 @@ impl ChunkState {
     }
 }
 
-pub struct SimpleLineFeedIterator<T: std::io::Read>(SimpleHeaders, SharedByteBufferStream<T>);
+pub struct SimpleLineFeedIterator<T: std::io::Read + Send>(
+    SimpleHeaders,
+    SharedByteBufferStream<T>,
+);
 
-impl<T: std::io::Read> Clone for SimpleLineFeedIterator<T> {
+impl<T: std::io::Read + Send> Clone for SimpleLineFeedIterator<T> {
     fn clone(&self) -> Self {
         Self(self.0.clone(), self.1.clone())
     }
 }
 
-impl<T: std::io::Read> SimpleLineFeedIterator<T> {
+impl<T: std::io::Read + Send> SimpleLineFeedIterator<T> {
     #[must_use]
     pub fn new(headers: SimpleHeaders, stream: SharedByteBufferStream<T>) -> Self {
         Self(headers, stream)
     }
 }
 
-impl<T: std::io::Read> Iterator for SimpleLineFeedIterator<T> {
+impl<T: std::io::Read + Send> Iterator for SimpleLineFeedIterator<T> {
     type Item = Result<LineFeed, BoxedError>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -4620,14 +4700,14 @@ impl<T: std::io::Read> Iterator for SimpleLineFeedIterator<T> {
     }
 }
 
-pub struct SimpleHttpChunkIterator<T: std::io::Read>(
+pub struct SimpleHttpChunkIterator<T: std::io::Read + Send>(
     Vec<String>,
     SimpleHeaders,
     SharedByteBufferStream<T>,
     Arc<AtomicBool>,
 );
 
-impl<T: std::io::Read> Clone for SimpleHttpChunkIterator<T> {
+impl<T: std::io::Read + Send> Clone for SimpleHttpChunkIterator<T> {
     fn clone(&self) -> Self {
         Self(
             self.0.clone(),
@@ -4638,7 +4718,7 @@ impl<T: std::io::Read> Clone for SimpleHttpChunkIterator<T> {
     }
 }
 
-impl<T: std::io::Read> SimpleHttpChunkIterator<T> {
+impl<T: std::io::Read + Send> SimpleHttpChunkIterator<T> {
     #[must_use]
     pub fn new(
         transfer_encoding: Vec<String>,
@@ -4654,7 +4734,7 @@ impl<T: std::io::Read> SimpleHttpChunkIterator<T> {
     }
 }
 
-impl<T: std::io::Read> Iterator for SimpleHttpChunkIterator<T> {
+impl<T: std::io::Read + Send> Iterator for SimpleHttpChunkIterator<T> {
     type Item = Result<ChunkedData, BoxedError>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -4749,22 +4829,22 @@ impl<T: std::io::Read> Iterator for SimpleHttpChunkIterator<T> {
 pub struct SimpleHttpBody;
 
 impl BodyExtractor for SimpleHttpBody {
-    fn extract<T: std::io::Read + 'static>(
+    fn extract<T: std::io::Read + Send + 'static>(
         &self,
         body: Body,
         stream: SharedByteBufferStream<T>,
-    ) -> Result<SimpleBody, SendableBoxedError> {
+    ) -> Result<SendSafeBody, SendableBoxedError> {
         match body {
             Body::LineFeedBody(headers) => {
                 let line_feed_iterator = Box::new(SimpleLineFeedIterator::new(headers, stream));
-                Ok(SimpleBody::LineFeedStream(Some(line_feed_iterator)))
+                Ok(SendSafeBody::LineFeedStream(Some(line_feed_iterator)))
             }
             Body::FullBody(_, optional_max_body_size) => {
                 match stream.do_once_mut(|borrowed_stream| {
                     let mut body_content = Vec::with_capacity(1024);
                     borrowed_stream
                         .read_all(&mut body_content, optional_max_body_size)
-                        .map(|_| SimpleBody::Bytes(body_content))
+                        .map(|_| SendSafeBody::Bytes(body_content))
                 }) {
                     Ok(inner) => Ok(inner),
                     Err(err) => Err(Box::new(err)),
@@ -4779,7 +4859,7 @@ impl BodyExtractor for SimpleHttpBody {
                     let mut body_content = vec![0; content_length as usize];
                     borrowed_stream
                         .read_exact(&mut body_content)
-                        .map(|()| SimpleBody::Bytes(body_content))
+                        .map(|()| SendSafeBody::Bytes(body_content))
                 }) {
                     Ok(inner) => Ok(inner),
                     Err(err) => Err(Box::new(err)),
@@ -4791,13 +4871,13 @@ impl BodyExtractor for SimpleHttpBody {
                     headers,
                     stream,
                 ));
-                Ok(SimpleBody::ChunkedStream(Some(chunked_iterator)))
+                Ok(SendSafeBody::ChunkedStream(Some(chunked_iterator)))
             }
         }
     }
 }
 
-impl<T: std::io::Read + 'static> HttpRequestReader<SimpleHttpBody, T> {
+impl<T: std::io::Read + Send + 'static> HttpRequestReader<SimpleHttpBody, T> {
     #[must_use]
     pub fn simple_tcp_stream(
         reader: SharedByteBufferStream<T>,
@@ -4806,7 +4886,7 @@ impl<T: std::io::Read + 'static> HttpRequestReader<SimpleHttpBody, T> {
     }
 }
 
-impl<T: std::io::Read + 'static> HttpResponseReader<SimpleHttpBody, T> {
+impl<T: std::io::Read + Send + 'static> HttpResponseReader<SimpleHttpBody, T> {
     #[must_use]
     pub fn simple_tcp_stream(
         reader: SharedByteBufferStream<T>,
@@ -4859,7 +4939,8 @@ impl<T: std::io::Read + Send + 'static> HTTPStreams<T> {
 
 pub mod http_streams {
     use super::{
-        ioutils, HTTPStreams, HttpRequestReader, HttpResponseReader, Read, SimpleHttpBody,
+        ioutils, HTTPStreams, HttpRequestReader, HttpResponseReader, HttpSendRequestReader,
+        HttpSendResponseReader, Read, SimpleHttpBody,
     };
 
     pub mod no_send {
@@ -4888,25 +4969,27 @@ pub mod http_streams {
     }
 
     pub mod send {
+
         use super::{
-            ioutils, HTTPStreams, HttpRequestReader, HttpResponseReader, Read, SimpleHttpBody,
+            ioutils, HTTPStreams, HttpRequestReader, HttpResponseReader, HttpSendRequestReader,
+            HttpSendResponseReader, Read, SimpleHttpBody,
         };
 
-        pub fn request_reader<T: Read + 'static>(
+        pub fn request_reader<T: Read + Send + 'static>(
             reader: T,
-        ) -> HttpRequestReader<SimpleHttpBody, T> {
+        ) -> HttpSendRequestReader<SimpleHttpBody, T> {
             let byte_reader = ioutils::SharedByteBufferStream::rwrite(reader);
-            HttpRequestReader::<SimpleHttpBody, T>::new(byte_reader, SimpleHttpBody)
+            HttpRequestReader::<SimpleHttpBody, T>::new(byte_reader, SimpleHttpBody).into()
         }
 
-        pub fn response_reader<T: Read + 'static>(
+        pub fn response_reader<T: Read + Send + 'static>(
             reader: T,
-        ) -> HttpResponseReader<SimpleHttpBody, T> {
+        ) -> HttpSendResponseReader<SimpleHttpBody, T> {
             let byte_reader = ioutils::SharedByteBufferStream::rwrite(reader);
-            HttpResponseReader::<SimpleHttpBody, T>::new(byte_reader, SimpleHttpBody)
+            HttpResponseReader::<SimpleHttpBody, T>::new(byte_reader, SimpleHttpBody).into()
         }
 
-        pub fn http_streams<T: Read + 'static>(reader: T) -> HTTPStreams<T> {
+        pub fn http_streams<T: Read + Send + 'static>(reader: T) -> HTTPStreams<T> {
             let source = ioutils::SharedByteBufferStream::rwrite(reader);
             HTTPStreams::new(source)
         }
