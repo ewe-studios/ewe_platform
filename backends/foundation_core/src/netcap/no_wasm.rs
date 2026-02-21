@@ -481,6 +481,26 @@ impl ReadTimeoutOperations for RawStream {
             RawStream::AsClientTls(inner, _addr) => inner.set_read_timeout_as(timeout),
         }
     }
+
+    fn get_current_read_timeout(
+        &self,
+    ) -> std::result::Result<Option<std::time::Duration>, std::io::Error> {
+        match self {
+            RawStream::AsPlain(inner, _addr) => inner.get_current_read_timeout(),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            RawStream::AsServerTls(inner, _addr) => inner.get_current_read_timeout(),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            RawStream::AsClientTls(inner, _addr) => inner.get_current_read_timeout(),
+        }
+    }
 }
 
 impl std::io::Read for RawStream {

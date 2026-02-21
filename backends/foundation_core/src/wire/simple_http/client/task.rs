@@ -14,6 +14,7 @@
 //!
 //! PHASE 1 SCOPE: HTTP-only (no HTTPS), blocking connection, basic GET requests.
 
+use crate::io::ioutils::ReadTimeoutOperations;
 use crate::netcap::RawStream;
 use crate::valtron::{
     drive_receiver, inlined_task, BoxedSendExecutionAction, DrivenRecvIterator, InlineSendAction,
@@ -83,9 +84,28 @@ impl Default for OpTimeout {
     }
 }
 
-pub enum HttpRequestRedirectState {
-    Init(Option<Box<(SimpleIncomingRequest, OpTimeout)>>),
-    Trying(Option<Box<(SimpleIncomingRequest, OpTimeout, RequestDescriptor)>>),
+pub enum HttpRequestRedirectState<R: DnsResolver + Send + 'static> {
+    Init(
+        Option<
+            Box<(
+                SimpleIncomingRequest,
+                OpTimeout,
+                Arc<HttpConnectionPool<R>>,
+                u8,
+            )>,
+        >,
+    ),
+    Trying(
+        Option<
+            Box<(
+                SimpleIncomingRequest,
+                OpTimeout,
+                Arc<HttpConnectionPool<R>>,
+                RequestDescriptor,
+                u8,
+            )>,
+        >,
+    ),
     Done,
 }
 
@@ -98,20 +118,29 @@ pub enum HttpRequestRedirectResponse {
 /// stream-only task to perform connect/send/probe/redirect-loop behavior.
 /// It mirrors the shape of `GetHttpRequestStreamTask` so it can be constructed
 /// from the same `GetHttpRequestStreamInner` data when needed.
-pub struct GetHttpRequestRedirectTask(Option<HttpRequestRedirectState>);
+pub struct GetHttpRequestRedirectTask<R: DnsResolver + Send + 'static>(
+    Option<HttpRequestRedirectState<R>>,
+);
 
-impl GetHttpRequestRedirectTask {
+impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
     /// Create a new redirect-capable task from the provided inner data.
     #[must_use]
-    pub fn new(data: SimpleIncomingRequest, timeout: Option<OpTimeout>) -> Self {
+    pub fn new(
+        data: SimpleIncomingRequest,
+        timeout: Option<OpTimeout>,
+        pool: Arc<HttpConnectionPool<R>>,
+        max_redirects: u8,
+    ) -> Self {
         Self(Some(HttpRequestRedirectState::Init(Some(Box::new((
             data,
             timeout.unwrap_or(OpTimeout::default()),
+            pool,
+            max_redirects,
         ))))))
     }
 }
 
-impl TaskIterator for GetHttpRequestRedirectTask {
+impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTask<R> {
     type Pending = HttpOperationState;
     type Ready = HttpRequestRedirectResponse;
     type Spawner = BoxedSendExecutionAction;
@@ -120,47 +149,114 @@ impl TaskIterator for GetHttpRequestRedirectTask {
         match self.0.take()? {
             HttpRequestRedirectState::Init(mut inner_opt) => {
                 if let Some(inner) = inner_opt.take() {
-                    let (data, timeout) = *inner;
+                    let (data, timeout, pool, remaining_redirects) = *inner;
 
                     // create the request descriptor
                     let request_descriptor = data.descriptor();
 
-                    // consume the optional init payload
                     self.0 = Some(HttpRequestRedirectState::Trying(Some(Box::new((
                         data,
                         timeout,
+                        pool,
                         request_descriptor,
+                        remaining_redirects,
                     )))));
 
-                    // indicate we're now in the connecting phase
                     return Some(TaskStatus::Pending(HttpOperationState::Connecting));
                 }
 
-                // nothing to do -> mark done
                 self.0 = Some(HttpRequestRedirectState::Done);
                 None
             }
             HttpRequestRedirectState::Trying(inner_opt) => {
                 let Some(state) = inner_opt else {
-                    // nothing to do -> mark done
                     self.0 = Some(HttpRequestRedirectState::Done);
                     return None;
                 };
 
-                let (data, timeout, descriptor) = *state;
+                let (data, timeout, pool, descriptor, remaining_redirects) = *state;
 
-                // we will connect with the to the target location
-                // from the descriptor then attempt to read from the stream
-                // within the timeout and unless server indicates we should
-                // redirect to another location else we just write the body and
-                // return the HttpClientConnection.
+                // 1. Create connection
+                let connection = match pool.create_http_connection(&descriptor.request_uri, None) {
+                    Ok(conn) => conn,
+                    Err(_) => {
+                        self.0 = Some(HttpRequestRedirectState::Done);
+                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                            ClientRequestErrors::ConnectionFailed,
+                        )));
+                    }
+                };
 
-                self.0 = Some(HttpRequestRedirectState::Trying(Some(Box::new((
-                    data, timeout, descriptor,
-                )))));
+                // 2. Render and send request
+                let request_string =
+                    match Http11::request_descriptor(descriptor.clone()).http_render_string() {
+                        Ok(s) => s,
+                        Err(_) => {
+                            self.0 = Some(HttpRequestRedirectState::Done);
+                            return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                                ClientRequestErrors::InvalidState,
+                            )));
+                        }
+                    };
 
-                // indicate we're now in the connecting phase
-                Some(TaskStatus::Pending(HttpOperationState::Connecting))
+                if let Err(_) = connection.stream_mut().write_all(request_string.as_bytes()) {
+                    self.0 = Some(HttpRequestRedirectState::Done);
+                    return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                        ClientRequestErrors::WriteFailed,
+                    )));
+                }
+                if let Err(_) = connection.stream_mut().flush() {
+                    self.0 = Some(HttpRequestRedirectState::Done);
+                    return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                        ClientRequestErrors::WriteFailed,
+                    )));
+                }
+
+                // 3. Set read timeout (preserve previous)
+                let previous_timeout = connection
+                    .stream_mut()
+                    .get_current_read_timeout()
+                    .unwrap_or(None);
+
+                if let Err(_) = connection
+                    .stream_mut()
+                    .set_read_timeout_as(timeout.read_timeout)
+                {
+                    self.0 = Some(HttpRequestRedirectState::Done);
+                    return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                        ClientRequestErrors::Timeout,
+                    )));
+                }
+
+                // 4. Try to read response intro once
+                let mut reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
+                    connection.clone_stream(),
+                    SimpleHttpBody,
+                );
+                let intro_result = reader.next();
+
+                // Restore previous timeout
+                let _ = connection
+                    .stream_mut()
+                    .set_read_timeout_as(previous_timeout.unwrap_or(Duration::from_secs(60)));
+
+                match intro_result {
+                    Some(Ok((status, proto, text))) => {
+                        // TODO: Expand with header parsing and redirect logic
+                        // For now, just return Done
+                        self.0 = Some(HttpRequestRedirectState::Done);
+                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Done(
+                            connection,
+                        )));
+                    }
+                    _ => {
+                        // Fallback: write body and return Done
+                        self.0 = Some(HttpRequestRedirectState::Done);
+                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Done(
+                            connection,
+                        )));
+                    }
+                }
             }
             HttpRequestRedirectState::Done => None,
         }

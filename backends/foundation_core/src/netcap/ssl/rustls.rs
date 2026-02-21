@@ -163,6 +163,12 @@ impl ReadTimeoutOperations for RustlsStream<rustls::ClientConnection> {
     ) -> std::result::Result<(), std::io::Error> {
         self.set_read_timeout(Some(timeout))
     }
+
+    fn get_current_read_timeout(
+        &self,
+    ) -> std::result::Result<Option<std::time::Duration>, std::io::Error> {
+        self.read_timeout()
+    }
 }
 
 impl ReadTimeoutOperations for RustlsStream<rustls::ServerConnection> {
@@ -187,6 +193,12 @@ impl ReadTimeoutOperations for RustlsStream<rustls::ServerConnection> {
         timeout: std::time::Duration,
     ) -> std::result::Result<(), std::io::Error> {
         self.set_read_timeout(Some(timeout))
+    }
+
+    fn get_current_read_timeout(
+        &self,
+    ) -> std::result::Result<Option<std::time::Duration>, std::io::Error> {
+        self.read_timeout()
     }
 }
 

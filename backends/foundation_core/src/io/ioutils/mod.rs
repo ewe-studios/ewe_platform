@@ -32,6 +32,10 @@ pub trait ReadTimeoutOperations: Read {
         &mut self,
         timeout: std::time::Duration,
     ) -> std::result::Result<(), std::io::Error>;
+
+    fn get_current_read_timeout(
+        &self,
+    ) -> std::result::Result<Option<std::time::Duration>, std::io::Error>;
 }
 
 // BufferCapacity Trait
@@ -91,6 +95,12 @@ impl<T: ReadTimeoutOperations> ReadTimeoutOperations for BufferedReader<T> {
         timeout: std::time::Duration,
     ) -> std::result::Result<(), std::io::Error> {
         self.inner.get_mut().set_read_timeout_as(timeout)
+    }
+
+    fn get_current_read_timeout(
+        &self,
+    ) -> std::result::Result<Option<std::time::Duration>, std::io::Error> {
+        self.inner.get_ref().get_current_read_timeout()
     }
 }
 
@@ -246,6 +256,12 @@ impl<T: ReadTimeoutOperations + Write> ReadTimeoutOperations for BufferedWriter<
         timeout: std::time::Duration,
     ) -> std::result::Result<(), std::io::Error> {
         self.inner.get_mut().set_read_timeout_as(timeout)
+    }
+
+    fn get_current_read_timeout(
+        &self,
+    ) -> std::result::Result<Option<std::time::Duration>, std::io::Error> {
+        self.inner.get_ref().get_current_read_timeout()
     }
 }
 
@@ -751,6 +767,32 @@ impl<T: ReadTimeoutOperations> ReadTimeoutOperations for OwnedReader<T> {
             }
         }
     }
+
+    fn get_current_read_timeout(
+        &self,
+    ) -> std::result::Result<Option<std::time::Duration>, std::io::Error> {
+        match self {
+            Self::Atomic(core) => {
+                let ptr = core.load(std::sync::atomic::Ordering::Acquire);
+                unsafe {
+                    let atomic_reader: &mut T = &mut *ptr;
+                    atomic_reader.get_current_read_timeout()
+                }
+            }
+            Self::Sync(core) => {
+                let guard = core.lock().expect("can acquire");
+                guard.get_current_read_timeout()
+            }
+            Self::RWrite(core) => {
+                let guard = core.write().expect("can acquire");
+                guard.get_current_read_timeout()
+            }
+            Self::RefCell(core) => {
+                let guard = core.borrow_mut();
+                guard.get_current_read_timeout()
+            }
+        }
+    }
 }
 
 impl<T: Read> Read for OwnedReader<T> {
@@ -1035,6 +1077,13 @@ impl<T: ReadTimeoutOperations> ReadTimeoutOperations for SharedByteBufferStream<
         self.0
             .do_once_mut(|binding| binding.set_read_timeout_as(timeout))
     }
+
+    fn get_current_read_timeout(
+        &self,
+    ) -> std::result::Result<Option<std::time::Duration>, std::io::Error> {
+        self.0
+            .do_once_mut(|binding| binding.get_current_read_timeout())
+    }
 }
 
 impl<T: Read> std::io::Read for SharedByteBufferStream<T> {
@@ -1119,6 +1168,12 @@ impl<T: ReadTimeoutOperations> ReadTimeoutOperations for ByteBufferPointer<T> {
         timeout: std::time::Duration,
     ) -> std::result::Result<(), std::io::Error> {
         self.reader.set_read_timeout_as(timeout)
+    }
+
+    fn get_current_read_timeout(
+        &self,
+    ) -> std::result::Result<Option<std::time::Duration>, std::io::Error> {
+        self.reader.get_current_read_timeout()
     }
 }
 
