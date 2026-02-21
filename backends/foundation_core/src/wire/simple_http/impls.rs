@@ -381,13 +381,61 @@ impl From<SendSafeBody> for SimpleBody {
 /// http protocol which makes it easily for more structured types.
 #[allow(unused)]
 pub trait RenderHttp {
-    type Error: From<FromUtf8Error> + From<BoxedError> + 'static;
+    type Error: From<FromUtf8Error> + From<BoxedError> + From<std::io::Error> + 'static;
 
     fn http_render(
         self,
     ) -> std::result::Result<BoxedResultIterator<Vec<u8>, Self::Error>, Self::Error>
     where
         Self: Sized;
+
+    fn http_render_to_writer<W>(self, writer: &mut W) -> std::result::Result<usize, Self::Error>
+    where
+        W: std::io::Write,
+        Self: Sized,
+    {
+        let render_bytes = self.http_render()?;
+
+        let mut total_bytes = 0;
+        for next_bytes in render_bytes {
+            match next_bytes {
+                Ok(mut bytes) => {
+                    writer.write_all(&mut bytes)?;
+                    total_bytes += bytes.len();
+                }
+                Err(err) => return Err(err),
+            }
+        }
+        Ok(total_bytes)
+    }
+
+    fn http_render_encoded_to_writer<E, W>(
+        self,
+        writer: &mut W,
+        encoder: E,
+    ) -> std::result::Result<usize, Self::Error>
+    where
+        W: std::io::Write,
+        E: Fn(Result<Vec<u8>, Self::Error>) -> Option<Result<Vec<u8>, Self::Error>>
+            + Send
+            + 'static,
+        Self: Sized,
+    {
+        let render_bytes = self.http_render()?;
+        let transformed = TransformIterator::new(Box::new(encoder), render_bytes);
+
+        let mut total_bytes = 0;
+        for next_bytes in transformed {
+            match next_bytes {
+                Ok(mut bytes) => {
+                    writer.write_all(&mut bytes)?;
+                    total_bytes += bytes.len();
+                }
+                Err(err) => return Err(err),
+            }
+        }
+        Ok(total_bytes)
+    }
 
     /// `http_render_encoded_string` attempts to render the results of calling
     /// `RenderHttp::http_render()` as a custom encoded strings.
@@ -947,6 +995,70 @@ impl core::fmt::Display for Status {
             Self::Numbered(code, desc) => write!(f, "{code:} {desc:}"),
             Self::Text(code) => write!(f, "{code:}"),
             _ => write!(f, "{self:}"),
+        }
+    }
+}
+
+// Implement Into<usize> for Status
+
+impl Into<usize> for Status {
+    fn into(self) -> usize {
+        match self {
+            Self::Text(code) => 0,
+            Self::Numbered(code, _) => code,
+            Self::Accepted => 202,
+            Self::Continue => 100,
+            Self::SwitchingProtocols => 101,
+            Self::Processing => 102,
+            Self::OK => 200,
+            Self::Created => 201,
+            Self::NonAuthoritativeInformation => 203,
+            Self::NoContent => 204,
+            Self::ResetContent => 205,
+            Self::PartialContent => 206,
+            Self::MultiStatus => 207,
+            Self::MultipleChoices => 300,
+            Self::MovedPermanently => 301,
+            Self::Found => 302,
+            Self::SeeOther => 303,
+            Self::NotModified => 304,
+            Self::UseProxy => 305,
+            Self::TemporaryRedirect => 307,
+            Self::PermanentRedirect => 308,
+            Self::BadRequest => 400,
+            Self::Unauthorized => 401,
+            Self::PaymentRequired => 402,
+            Self::Forbidden => 403,
+            Self::NotFound => 404,
+            Self::MethodNotAllowed => 405,
+            Self::NotAcceptable => 406,
+            Self::ProxyAuthenticationRequired => 407,
+            Self::RequestTimeout => 408,
+            Self::Conflict => 409,
+            Self::Gone => 410,
+            Self::LengthRequired => 411,
+            Self::PreconditionFailed => 412,
+            Self::PayloadTooLarge => 413,
+            Self::UriTooLong => 414,
+            Self::UnsupportedMediaType => 415,
+            Self::RangeNotSatisfiable => 416,
+            Self::ExpectationFailed => 417,
+            Self::ImATeapot => 418,
+            Self::UnprocessableEntity => 422,
+            Self::Locked => 423,
+            Self::FailedDependency => 424,
+            Self::UpgradeRequired => 426,
+            Self::PreconditionRequired => 428,
+            Self::TooManyRequests => 429,
+            Self::RequestHeaderFieldsTooLarge => 431,
+            Self::InternalServerError => 500,
+            Self::NotImplemented => 501,
+            Self::BadGateway => 502,
+            Self::ServiceUnavailable => 503,
+            Self::GatewayTimeout => 504,
+            Self::HttpVersionNotSupported => 505,
+            Self::InsufficientStorage => 507,
+            Self::NetworkAuthenticationRequired => 511,
         }
     }
 }
@@ -1707,7 +1819,7 @@ impl SimpleIncomingRequestBuilder {
     ///
     /// # Errors
     /// Returns an error if the URL is not provided or if building fails.
-    pub fn build(mut self) -> SimpleRequestResult<SimpleIncomingRequest> {
+    pub fn build(self) -> SimpleRequestResult<SimpleIncomingRequest> {
         let request_url = match self.url {
             Some(inner) => inner,
             None => return Err(SimpleRequestError::NoURLProvided),

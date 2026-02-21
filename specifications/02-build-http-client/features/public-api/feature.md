@@ -236,6 +236,17 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
 }
 ```
 
+### Where do tests go? 
+
+Tests are placed in tests/backends/foundation_core directory.
+
+Selecting the appropriate location for unit tests and integrations tests for the relevant crate/module. 
+
+Ensure to update the relevant `Cargo.toml` file and `mod.rs` with the new tests files so they are included in the tests runs.
+
+When writing tests do selective tests execution for the tests you are currently working on to not waste time running unrelated  tests 
+let verification handle that part.
+
 ### Method Mapping to Internal Logic
 
 | User Method | Internal Behavior |

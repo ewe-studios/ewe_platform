@@ -94,6 +94,9 @@ pub enum RenderHttpError {
     UTF16Error(FromUtf16Error),
 
     #[from(ignore)]
+    IOFailed(std::io::Error),
+
+    #[from(ignore)]
     EncodingError(BoxedError),
 
     InvalidHttpType,
@@ -118,6 +121,9 @@ pub enum Http11RenderError {
     #[from(ignore)]
     Failed(BoxedError),
 
+    #[from(ignore)]
+    IOFailed(std::io::Error),
+
     HeadersRequired,
     InvalidSituationUsedIterator,
     InvalidState(String),
@@ -126,6 +132,12 @@ pub enum Http11RenderError {
 impl From<BoxedError> for Http11RenderError {
     fn from(value: BoxedError) -> Self {
         Self::Failed(value)
+    }
+}
+
+impl From<std::io::Error> for Http11RenderError {
+    fn from(value: std::io::Error) -> Self {
+        Self::IOFailed(value)
     }
 }
 
@@ -244,6 +256,8 @@ pub enum ClientRequestErrors {
     ConnectionFailed,
     WriteFailed,
     Timeout,
+    InvalidLocation,
+    FailedWith(SendableBoxedError),
 }
 
 impl<T> From<PoisonError<T>> for ClientRequestErrors {

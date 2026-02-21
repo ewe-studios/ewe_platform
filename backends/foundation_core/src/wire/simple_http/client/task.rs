@@ -21,12 +21,13 @@ use crate::valtron::{
     IntoBoxedSendExecutionAction, NoSpawner, TaskIterator, TaskStatus,
 };
 use crate::wire::simple_http::client::{
-    DnsResolver, HttpClientConnection, HttpClientError, HttpConnectionPool, PreparedRequest,
+    redirects, DnsResolver, HttpClientConnection, HttpClientError, HttpConnectionPool,
+    PreparedRequest,
 };
 use crate::wire::simple_http::{
     ClientRequestErrors, Http11, HttpReaderError, HttpResponseIntro, HttpResponseReader,
-    IncomingResponseParts, RenderHttp, RequestDescriptor, SimpleHeaders, SimpleHttpBody,
-    SimpleIncomingRequest,
+    IncomingResponseParts, RenderHttp, RequestDescriptor, SimpleHeader, SimpleHeaders,
+    SimpleHttpBody, SimpleIncomingRequest,
 };
 use std::io::Write;
 use std::sync::Arc;
@@ -106,12 +107,22 @@ pub enum HttpRequestRedirectState<R: DnsResolver + Send + 'static> {
             )>,
         >,
     ),
+    WriteBody(
+        Option<
+            Box<(
+                SimpleIncomingRequest,
+                Arc<HttpConnectionPool<R>>,
+                HttpClientConnection,
+            )>,
+        >,
+    ),
     Done,
 }
 
 pub enum HttpRequestRedirectResponse {
     Done(HttpClientConnection),
     Error(ClientRequestErrors),
+    FlushFailed(HttpClientConnection, std::io::Error),
 }
 
 /// Redirect-capable variant: small task wrapper that can be spawned in place of the
@@ -177,15 +188,16 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                 let (data, timeout, pool, descriptor, remaining_redirects) = *state;
 
                 // 1. Create connection
-                let connection = match pool.create_http_connection(&descriptor.request_uri, None) {
-                    Ok(conn) => conn,
-                    Err(_) => {
-                        self.0 = Some(HttpRequestRedirectState::Done);
-                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                            ClientRequestErrors::ConnectionFailed,
-                        )));
-                    }
-                };
+                let mut connection =
+                    match pool.create_http_connection(&descriptor.request_uri, None) {
+                        Ok(conn) => conn,
+                        Err(_) => {
+                            self.0 = Some(HttpRequestRedirectState::Done);
+                            return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                                ClientRequestErrors::ConnectionFailed,
+                            )));
+                        }
+                    };
 
                 // 2. Render and send request
                 let request_string =
@@ -233,30 +245,141 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     connection.clone_stream(),
                     SimpleHttpBody,
                 );
+
                 let intro_result = reader.next();
+
+                // Flattened: check intro and headers one by one, fallback to WriteBody if either missing
+                let intro_result = reader.next();
+                if !matches!(
+                    &intro_result,
+                    Some(Ok(IncomingResponseParts::Intro(_, _, _)))
+                ) {
+                    self.0 = Some(HttpRequestRedirectState::WriteBody(Some(Box::new((
+                        data, pool, connection,
+                    )))));
+                    return Some(TaskStatus::Pending(HttpOperationState::Connecting));
+                }
+
+                let headers_result = reader.next();
+                if !matches!(&headers_result, Some(Ok(IncomingResponseParts::Headers(_)))) {
+                    self.0 = Some(HttpRequestRedirectState::WriteBody(Some(Box::new((
+                        data, pool, connection,
+                    )))));
+                    return Some(TaskStatus::Pending(HttpOperationState::Connecting));
+                }
 
                 // Restore previous timeout
                 let _ = connection
                     .stream_mut()
                     .set_read_timeout_as(previous_timeout.unwrap_or(Duration::from_secs(60)));
 
-                match intro_result {
-                    Some(Ok((status, proto, text))) => {
-                        // TODO: Expand with header parsing and redirect logic
-                        // For now, just return Done
-                        self.0 = Some(HttpRequestRedirectState::Done);
-                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Done(
-                            connection,
-                        )));
+                // Both intro and headers are present
+                let (status, proto, text) = match intro_result {
+                    Some(Ok(IncomingResponseParts::Intro(status, proto, text))) => {
+                        tracing::debug!("Received HTTP intro: status={}, proto={}, text={:?}", status, proto, text);
+                        (status, proto, text)
                     }
-                    _ => {
-                        // Fallback: write body and return Done
-                        self.0 = Some(HttpRequestRedirectState::Done);
-                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Done(
-                            connection,
-                        )));
+                    _ => unreachable!("Intro must be present here due to prior matches! check; fallback to WriteBody if missing."),
+                };
+                let headers = match headers_result {
+                    Some(Ok(IncomingResponseParts::Headers(ref h))) => {
+                        tracing::debug!("Received HTTP headers: {:?}", h);
+                        h
                     }
+                    _ => unreachable!("Headers must be present here due to prior matches! check; fallback to WriteBody if missing."),
+                };
+
+                let is_redirect = (300..400).contains(&status.into());
+                let location_header = headers.get(&SimpleHeader::LOCATION).and_then(|v| v.get(0));
+
+                if is_redirect && location_header.is_some() && remaining_redirects > 0 {
+                    tracing::info!(
+                        "Redirect detected: status {} with Location header {:?}",
+                        status,
+                        location_header
+                    );
+
+                    let location = location_header.unwrap();
+                    let new_url =
+                        match redirects::resolve_location(&descriptor.request_uri, location) {
+                            Ok(url) => url,
+                            Err(e) => {
+                                tracing::error!("Failed to resolve redirect location: {}", e);
+                                self.0 = Some(HttpRequestRedirectState::Done);
+                                return Some(TaskStatus::Ready(
+                                    HttpRequestRedirectResponse::Error(
+                                        ClientRequestErrors::InvalidLocation,
+                                    ),
+                                ));
+                            }
+                        };
+
+                    let new_descriptor =
+                        match redirects::build_followup_request_from_request_descriptor(
+                            &descriptor,
+                            new_url,
+                        ) {
+                            Ok(desc) => desc,
+                            Err(e) => {
+                                tracing::error!(
+                                    "Failed to build follow-up request descriptor: {}",
+                                    e
+                                );
+                                self.0 = Some(HttpRequestRedirectState::Done);
+                                return Some(TaskStatus::Ready(
+                                    HttpRequestRedirectResponse::Error(
+                                        ClientRequestErrors::InvalidState,
+                                    ),
+                                ));
+                            }
+                        };
+
+                    tracing::debug!("Following redirect to new URL: {}", new_url);
+                    self.0 = Some(HttpRequestRedirectState::Trying(Some(Box::new((
+                        data,
+                        timeout,
+                        pool,
+                        new_descriptor,
+                        remaining_redirects - 1,
+                    )))));
+                    return Some(TaskStatus::Pending(HttpOperationState::Connecting));
                 }
+
+                tracing::info!(
+                    "No redirect detected, transitioning to WriteBody state to send request body."
+                );
+                self.0 = Some(HttpRequestRedirectState::WriteBody(Some(Box::new((
+                    data, pool, connection,
+                )))));
+                return Some(TaskStatus::Pending(HttpOperationState::Connecting));
+            }
+            HttpRequestRedirectState::WriteBody(mut inner_opt) => {
+                if let Some(inner) = inner_opt.take() {
+                    let (data, _pool, mut connection) = *inner;
+                    let body_renderer = Http11::request_body(data);
+
+                    if let Err(err) = body_renderer.http_render_to_writer(connection.stream_mut()) {
+                        tracing::error!("Failed to write request body: {}", err);
+
+                        self.0 = Some(HttpRequestRedirectState::Done);
+                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                            ClientRequestErrors::WriteFailed,
+                        )));
+                    }
+
+                    self.0 = Some(HttpRequestRedirectState::Done);
+                    return match connection.stream_mut().flush() {
+                        Ok(()) => Some(TaskStatus::Ready(HttpRequestRedirectResponse::Done(
+                            connection,
+                        ))),
+                        Err(e) => Some(TaskStatus::Ready(
+                            HttpRequestRedirectResponse::FlushFailed(connection, e),
+                        )),
+                    };
+                }
+
+                self.0 = Some(HttpRequestRedirectState::Done);
+                None
             }
             HttpRequestRedirectState::Done => None,
         }
