@@ -13,7 +13,7 @@ mod intro;
 mod pool;
 mod redirects;
 mod request;
-mod task;
+mod tasks;
 mod tls_task;
 
 pub use api::*;
@@ -26,7 +26,7 @@ pub use intro::*;
 pub use pool::*;
 pub use redirects::*;
 pub use request::*;
-pub use task::*;
+pub use tasks::*;
 
 // Re-export ExecutionAction from valtron so tests and helpers can reference it
 pub use crate::valtron::ExecutionAction;
