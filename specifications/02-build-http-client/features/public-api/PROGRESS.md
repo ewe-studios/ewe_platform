@@ -106,7 +106,8 @@ The logic to implement is:
   let n = connection.stream_mut().read_timeout_into(&mut buf, timeout)?;
   // Parse the intro and headers from buf[..n]
   ```
-- If using `HttpResponseReader`, simply set the read timeout on the connection before reading. The reader will automatically honor the timeout for all reads.
+- With the new `ReadTimeoutOperations` trait, you can set the read timeout directly on any stream or connection using `set_read_timeout_as(timeout)`.
+- If using `HttpResponseReader`, simply call `set_read_timeout_as(timeout)` on the connection before reading. The reader will automatically honor the timeout for all reads.
 - No need to wrap or modify `HttpResponseReader` itself.
 
 **Redirect detection and handling:**
@@ -137,11 +138,27 @@ if is_redirect(&intro, &headers) {
 }
 ```
 
-+## ReadTimeoutInto integration plan
-+
-+- All response intro/header reads in the redirect-capable task should use `ReadTimeoutInto` with the timeout from `OpTimeout`.
-+- If using `HttpResponseReader`, simply set the read timeout on the connection before reading. The reader will automatically honor the timeout for all reads.
-+- This prevents indefinite blocking and ensures robust timeout handling for all HTTP response reads.
+## ReadTimeoutOperations integration plan
+
+- All response intro/header reads in the redirect-capable task should use `ReadTimeoutOperations` with the timeout from `OpTimeout`.
+- Before reading the response intro and headers, call `set_read_timeout_as(timeout)` on the connection or stream.
+- All subsequent reads (including those by `HttpResponseReader`) will respect this timeout.
+- When reading directly, use `read_timeout_into` for explicit timeout-gated reads.
+- This prevents indefinite blocking and ensures robust timeout handling for all HTTP response reads.
+
+**Example:**
+```rust
+connection.set_read_timeout_as(timeout)?;
+// All reads via HttpResponseReader or direct reads will respect this timeout.
+let mut reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(connection.clone_stream(), SimpleHttpBody);
+let intro = reader.next()?; // Will timeout if server stalls
+```
+
+**Direct read example:**
+```rust
+let mut buf = [0u8; 4096];
+let n = connection.read_timeout_into(&mut buf, timeout)?;
+```
 
 ## Concrete next steps (break into small PR-friendly tasks)
 

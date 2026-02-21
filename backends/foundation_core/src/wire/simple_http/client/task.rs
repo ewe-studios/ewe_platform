@@ -282,22 +282,12 @@ where
                     return None;
                 };
 
-                // Extract host and port for pool return
-                let request_port = request.url.port().unwrap_or(80);
-                let Some(request_host) = request.url.host_str() else {
-                    tracing::error!("Request host is missing");
-                    self.0.state = HttpOperationState::Done;
-                    return Some(TaskStatus::Ready(HttpStreamReady::Error(
-                        ClientRequestErrors::InvalidState,
-                    )));
-                };
-
                 // Try to get connection from pool first
                 let stream = self.0.pool.create_http_connection(&request.url, None);
 
                 match stream {
                     Ok(mut connection) => {
-                        tracing::debug!("Connected to {}", request_host.as_str());
+                        tracing::debug!("Connected to {}", &request.url);
 
                         // Convert PreparedRequest to SimpleIncomingRequest for rendering
                         let simple_request = match request.into_simple_incoming_request() {
