@@ -2,12 +2,14 @@
 //! This test spins up a local HTTP server that responds with 302 (redirect)
 //! and checks that the client triggers TooManyRedirects when max_redirects is exceeded.
 
+#![cfg(test)]
+
 use foundation_core::wire::simple_http::client::*;
 use foundation_core::wire::simple_http::*;
-use std::net::{TcpListener, TcpStream};
-use std::thread;
 use std::io::{Read, Write};
+use std::net::{TcpListener, TcpStream};
 use std::sync::Arc;
+use std::thread;
 use std::time::Duration;
 
 fn spawn_redirect_server() -> u16 {
@@ -56,7 +58,11 @@ fn redirect_limit_triggers_too_many_redirects() {
     use foundation_core::wire::simple_http::client::HttpClientError;
     if let Err(err) = send_result {
         println!("Actual error: {:?}", err);
-        assert!(matches!(err, HttpClientError::TooManyRedirects(_)), "Expected TooManyRedirects error, got: {:?}", err);
+        assert!(
+            matches!(err, HttpClientError::TooManyRedirects(_)),
+            "Expected TooManyRedirects error, got: {:?}",
+            err
+        );
     } else {
         panic!("Expected error due to too many redirects, but got Ok");
     }
