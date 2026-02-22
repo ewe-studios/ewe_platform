@@ -3,15 +3,16 @@
 #[cfg(test)]
 mod test_http_reader {
 
-    use crate::io::ioutils;
-    use crate::netcap::RawStream;
-    use crate::panic_if_failed;
-    use crate::wire::simple_http::{
+    use foundation_core::io::ioutils;
+    use foundation_core::netcap::RawStream;
+    // use foundation_core::panic_if_failed;
+    // Or comment out if not present in foundation_core
+    use foundation_core::wire::simple_http::{
         http_streams, ChunkedData, HTTPStreams, HttpReaderError, HttpResponseReader,
         IncomingRequestParts, IncomingResponseParts, SimpleBody, SimpleHeader, SimpleMethod,
         SimpleUrl, Status,
     };
-    use regex::Regex;
+    use regex::Regex; // add to Cargo.toml if missing
 
     use std::collections::BTreeMap;
     use std::io::Write;
@@ -211,16 +212,17 @@ Hello world!";
 #[cfg(test)]
 mod http_response_compliance {
     use super::*;
-    use crate::extensions::result_ext::BoxedError;
-    use crate::io::ioutils;
-    use crate::netcap::RawStream;
-    use crate::panic_if_failed;
-    use crate::wire::simple_http::{
+    use foundation_core::extensions::result_ext::BoxedError;
+    use foundation_core::io::ioutils;
+    use foundation_core::netcap::RawStream;
+    // use foundation_core::panic_if_failed;
+    // Or comment out if not present in foundation_core
+    use foundation_core::wire::simple_http::{
         http_streams, ChunkedData, HTTPStreams, HttpReaderError, HttpResponseReader,
         IncomingRequestParts, IncomingResponseParts, SimpleBody, SimpleHeader, SimpleMethod,
         SimpleUrl, Status,
     };
-    use regex::Regex;
+    use regex::Regex; // add to Cargo.toml if missing
 
     use std::collections::BTreeMap;
     use std::io::Write;
@@ -232,7 +234,7 @@ mod http_response_compliance {
     mod transfer_encoding {
         use tracing_test::traced_test;
 
-        use crate::wire::simple_http::ChunkStateError;
+        use foundation_core::wire::simple_http::ChunkStateError;
 
         use super::*;
 
@@ -1819,7 +1821,7 @@ mod http_response_compliance {
     mod text_event_stream {
         use tracing_test::traced_test;
 
-        use crate::wire::simple_http::{ChunkStateError, LineFeed};
+        use foundation_core::wire::simple_http::{ChunkStateError, LineFeed};
 
         use super::*;
 
@@ -2075,7 +2077,7 @@ mod http_response_compliance {
     mod sample_responses {
         use tracing_test::traced_test;
 
-        use crate::wire::simple_http::ChunkStateError;
+        use foundation_core::wire::simple_http::ChunkStateError;
 
         use super::*;
 
@@ -2715,7 +2717,7 @@ mod http_response_compliance {
     mod pipelining {
         use tracing_test::traced_test;
 
-        use crate::wire::simple_http::ChunkStateError;
+        use foundation_core::wire::simple_http::ChunkStateError;
 
         use super::*;
 
@@ -2753,7 +2755,7 @@ mod http_response_compliance {
     mod finish {
         use tracing_test::traced_test;
 
-        use crate::wire::simple_http::ChunkStateError;
+        use foundation_core::wire::simple_http::ChunkStateError;
 
         use super::*;
 
@@ -2791,7 +2793,7 @@ mod http_response_compliance {
     mod content_length_header {
         use tracing_test::traced_test;
 
-        use crate::wire::simple_http::ChunkStateError;
+        use foundation_core::wire::simple_http::ChunkStateError;
 
         use super::*;
 
@@ -2890,7 +2892,7 @@ mod http_response_compliance {
     mod invalid_responses {
         use tracing_test::traced_test;
 
-        use crate::wire::simple_http::ChunkStateError;
+        use foundation_core::wire::simple_http::ChunkStateError;
 
         use super::*;
 
@@ -3411,16 +3413,17 @@ mod http_response_compliance {
 #[cfg(test)]
 mod http_requests_compliance {
     use super::*;
-    use crate::extensions::result_ext::BoxedError;
-    use crate::io::ioutils;
-    use crate::netcap::RawStream;
-    use crate::panic_if_failed;
-    use crate::wire::simple_http::{
+    use foundation_core::extensions::result_ext::BoxedError;
+    use foundation_core::io::ioutils;
+    use foundation_core::netcap::RawStream;
+    // use foundation_core::panic_if_failed;
+    // Or comment out if not present in foundation_core
+    use foundation_core::wire::simple_http::{
         http_streams, ChunkedData, HTTPStreams, HttpReaderError, HttpResponseReader,
         IncomingRequestParts, IncomingResponseParts, SimpleBody, SimpleHeader, SimpleMethod,
         SimpleUrl, Status,
     };
-    use regex::Regex;
+    use regex::Regex; // add to Cargo.toml if missing
 
     use std::collections::BTreeMap;
     use std::io::Write;
@@ -3899,7 +3902,7 @@ Hello world!";
     mod text_event_stream {
         use tracing_test::traced_test;
 
-        use crate::wire::simple_http::{ChunkStateError, LineFeed};
+        use foundation_core::wire::simple_http::{ChunkStateError, LineFeed};
 
         use super::*;
 
@@ -4195,7 +4198,7 @@ Hello world!";
     mod transfer_encoding {
         use tracing_test::traced_test;
 
-        use crate::wire::simple_http::ChunkStateError;
+        use foundation_core::wire::simple_http::ChunkStateError;
 
         use super::*;
 
@@ -5990,7 +5993,7 @@ Hello world!";
     mod sample_requests {
         use tracing_test::traced_test;
 
-        use crate::wire::simple_http::ChunkStateError;
+        use foundation_core::wire::simple_http::ChunkStateError;
 
         use super::*;
 
@@ -6195,9 +6198,9 @@ Hello world!";
                     (
                         SimpleHeader::ACCEPT,
                         vec![
-                            "text/html".into(), 
+                            "text/html".into(),
                             "application/xhtml+xml".into(),
-                            "application/xml;q=0.9".into(), 
+                            "application/xml;q=0.9".into(),
                             "*/*;q=0.8".into(),
                         ],
                     ),
@@ -6782,7 +6785,7 @@ Hello world!";
     mod extended_characters {
         use tracing_test::traced_test;
 
-        use crate::wire::simple_http::ChunkStateError;
+        use foundation_core::wire::simple_http::ChunkStateError;
 
         use super::*;
 
@@ -6839,7 +6842,7 @@ Hello world!";
     mod ascii_255_in_header_value {
         use tracing_test::traced_test;
 
-        use crate::wire::simple_http::ChunkStateError;
+        use foundation_core::wire::simple_http::ChunkStateError;
 
         use super::*;
 
@@ -6903,7 +6906,7 @@ Hello world!";
     mod x_ssl_nonsense {
         use tracing_test::traced_test;
 
-        use crate::wire::simple_http::ChunkStateError;
+        use foundation_core::wire::simple_http::ChunkStateError;
 
         use super::*;
 
@@ -6947,37 +6950,37 @@ Hello world!";
                 IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
                     SimpleHeader::Custom(String::from("X-SSL-Nonsense")),
                     vec![
-                            "-----BEGIN CERTIFICATE-----".into(), 
-                            "MIIFbTCCBFWgAwIBAgICH4cwDQYJKoZIhvcNAQEFBQAwcDELMAkGA1UEBhMCVUsx".into(), 
-                            "ETAPBgNVBAoTCGVTY2llbmNlMRIwEAYDVQQLEwlBdXRob3JpdHkxCzAJBgNVBAMT".into(), 
-                            "AkNBMS0wKwYJKoZIhvcNAQkBFh5jYS1vcGVyYXRvckBncmlkLXN1cHBvcnQuYWMu".into(), 
-                            "dWswHhcNMDYwNzI3MTQxMzI4WhcNMDcwNzI3MTQxMzI4WjBbMQswCQYDVQQGEwJV".into(), 
-                            "SzERMA8GA1UEChMIZVNjaWVuY2UxEzARBgNVBAsTCk1hbmNoZXN0ZXIxCzAJBgNV".into(), 
-                            "BAcTmrsogriqMWLAk1DMRcwFQYDVQQDEw5taWNoYWVsIHBhcmQYJKoZIhvcNAQEB".into(), 
-                            "BQADggEPADCCAQoCggEBANPEQBgl1IaKdSS1TbhF3hEXSl72G9J+WC/1R64fAcEF".into(), 
-                            "W51rEyFYiIeZGx/BVzwXbeBoNUK41OK65sxGuflMo5gLflbwJtHBRIEKAfVVp3YR".into(), 
-                            "gW7cMA/s/XKgL1GEC7rQw8lIZT8RApukCGqOVHSi/F1SiFlPDxuDfmdiNzL31+sL".into(), 
-                            "0iwHDdNkGjy5pyBSB8Y79dsSJtCW/iaLB0/n8Sj7HgvvZJ7x0fr+RQjYOUUfrePP".into(), 
-                            "u2MSpFyf+9BbC/aXgaZuiCvSR+8Snv3xApQY+fULK/xY8h8Ua51iXoQ5jrgu2SqR".into(), 
-                            "wgA7BUi3G8LFzMBl8FRCDYGUDy7M6QaHXx1ZWIPWNKsCAwEAAaOCAiQwggIgMAwG".into(), 
-                            "A1UdEwEB/wQCMAAwEQYJYIZIAYb4QgHTTPAQDAgWgMA4GA1UdDwEB/wQEAwID6DAs".into(), 
-                            "BglghkgBhvhCAQ0EHxYdVUsgZS1TY2llbmNlIFVzZXIgQ2VydGlmaWNhdGUwHQYD".into(), 
-                            "VR0OBBYEFDTt/sf9PeMaZDHkUIldrDYMNTBZMIGaBgNVHSMEgZIwgY+AFAI4qxGj".into(), 
-                            "loCLDdMVKwiljjDastqooXSkcjBwMQswCQYDVQQGEwJVSzERMA8GA1UEChMIZVNj".into(), 
-                            "aWVuY2UxEjAQBgNVBAsTCUF1dGhvcml0eTELMAkGA1UEAxMCQ0ExLTArBgkqhkiG".into(), 
-                            "9w0BCQEWHmNhLW9wZXJhdG9yQGdyaWQtc3VwcG9ydC5hYy51a4IBADApBgNVHRIE".into(), 
-                            "IjAggR5jYS1vcGVyYXRvckBncmlkLXN1cHBvcnQuYWMudWswGQYDVR0gBBIwEDAO".into(), 
-                            "BgwrBgEEAdkvAQEBAQYwPQYJYIZIAYb4QgEEBDAWLmh0dHA6Ly9jYS5ncmlkLXN1".into(), 
-                            "cHBvcnQuYWMudmT4sopwqlBWsvcHViL2NybC9jYWNybC5jcmwwPQYJYIZIAYb4QgEDBDAWLmh0".into(), 
-                            "dHA6Ly9jYS5ncmlkLXN1cHBvcnQuYWMudWsvcHViL2NybC9jYWNybC5jcmwwPwYD".into(), 
-                            "VR0fBDgwNjA0oDKgMIYuaHR0cDovL2NhLmdyaWQt5hYy51ay9wdWIv".into(), 
-                            "Y3JsL2NhY3JsLmNybDANBgkqhkiG9w0BAQUFAAOCAQEAS/U4iiooBENGW/Hwmmd3".into(), 
-                            "XCy6Zrt08YjKCzGNjorT98g8uGsqYjSxv/hmi0qlnlHs+k/3Iobc3LjS5AMYr5L8".into(), 
-                            "UO7OSkgFFlLHQyC9JzPfmLCAugvzEbyv4Olnsr8hbxF1MbKZoQxUZtMVu29wjfXk".into(), 
-                            "hTeApBv7eaKCWpSp7MCbvgzm74izKhu3vlDk9w6qVrxePfGgpKPqfHiOoGhFnbTK".into(), 
-                            "wTC6o2xq5y0qZ03JonF7OJspEd3I5zKY3E+ov7/ZhW6DqT8UFvsAdjvQbXyhV8Eu".into(), 
-                            "Yhixw1aKEPzNjNowuIseVogKOLXxWI5vAi5HgXdS0/ES5gDGsABo4fqovUKlgop3".into(), 
-                            "RA==".into(), 
+                            "-----BEGIN CERTIFICATE-----".into(),
+                            "MIIFbTCCBFWgAwIBAgICH4cwDQYJKoZIhvcNAQEFBQAwcDELMAkGA1UEBhMCVUsx".into(),
+                            "ETAPBgNVBAoTCGVTY2llbmNlMRIwEAYDVQQLEwlBdXRob3JpdHkxCzAJBgNVBAMT".into(),
+                            "AkNBMS0wKwYJKoZIhvcNAQkBFh5jYS1vcGVyYXRvckBncmlkLXN1cHBvcnQuYWMu".into(),
+                            "dWswHhcNMDYwNzI3MTQxMzI4WhcNMDcwNzI3MTQxMzI4WjBbMQswCQYDVQQGEwJV".into(),
+                            "SzERMA8GA1UEChMIZVNjaWVuY2UxEzARBgNVBAsTCk1hbmNoZXN0ZXIxCzAJBgNV".into(),
+                            "BAcTmrsogriqMWLAk1DMRcwFQYDVQQDEw5taWNoYWVsIHBhcmQYJKoZIhvcNAQEB".into(),
+                            "BQADggEPADCCAQoCggEBANPEQBgl1IaKdSS1TbhF3hEXSl72G9J+WC/1R64fAcEF".into(),
+                            "W51rEyFYiIeZGx/BVzwXbeBoNUK41OK65sxGuflMo5gLflbwJtHBRIEKAfVVp3YR".into(),
+                            "gW7cMA/s/XKgL1GEC7rQw8lIZT8RApukCGqOVHSi/F1SiFlPDxuDfmdiNzL31+sL".into(),
+                            "0iwHDdNkGjy5pyBSB8Y79dsSJtCW/iaLB0/n8Sj7HgvvZJ7x0fr+RQjYOUUfrePP".into(),
+                            "u2MSpFyf+9BbC/aXgaZuiCvSR+8Snv3xApQY+fULK/xY8h8Ua51iXoQ5jrgu2SqR".into(),
+                            "wgA7BUi3G8LFzMBl8FRCDYGUDy7M6QaHXx1ZWIPWNKsCAwEAAaOCAiQwggIgMAwG".into(),
+                            "A1UdEwEB/wQCMAAwEQYJYIZIAYb4QgHTTPAQDAgWgMA4GA1UdDwEB/wQEAwID6DAs".into(),
+                            "BglghkgBhvhCAQ0EHxYdVUsgZS1TY2llbmNlIFVzZXIgQ2VydGlmaWNhdGUwHQYD".into(),
+                            "VR0OBBYEFDTt/sf9PeMaZDHkUIldrDYMNTBZMIGaBgNVHSMEgZIwgY+AFAI4qxGj".into(),
+                            "loCLDdMVKwiljjDastqooXSkcjBwMQswCQYDVQQGEwJVSzERMA8GA1UEChMIZVNj".into(),
+                            "aWVuY2UxEjAQBgNVBAsTCUF1dGhvcml0eTELMAkGA1UEAxMCQ0ExLTArBgkqhkiG".into(),
+                            "9w0BCQEWHmNhLW9wZXJhdG9yQGdyaWQtc3VwcG9ydC5hYy51a4IBADApBgNVHRIE".into(),
+                            "IjAggR5jYS1vcGVyYXRvckBncmlkLXN1cHBvcnQuYWMudWswGQYDVR0gBBIwEDAO".into(),
+                            "BgwrBgEEAdkvAQEBAQYwPQYJYIZIAYb4QgEEBDAWLmh0dHA6Ly9jYS5ncmlkLXN1".into(),
+                            "cHBvcnQuYWMudmT4sopwqlBWsvcHViL2NybC9jYWNybC5jcmwwPQYJYIZIAYb4QgEDBDAWLmh0".into(),
+                            "dHA6Ly9jYS5ncmlkLXN1cHBvcnQuYWMudWsvcHViL2NybC9jYWNybC5jcmwwPwYD".into(),
+                            "VR0fBDgwNjA0oDKgMIYuaHR0cDovL2NhLmdyaWQt5hYy51ay9wdWIv".into(),
+                            "Y3JsL2NhY3JsLmNybDANBgkqhkiG9w0BAQUFAAOCAQEAS/U4iiooBENGW/Hwmmd3".into(),
+                            "XCy6Zrt08YjKCzGNjorT98g8uGsqYjSxv/hmi0qlnlHs+k/3Iobc3LjS5AMYr5L8".into(),
+                            "UO7OSkgFFlLHQyC9JzPfmLCAugvzEbyv4Olnsr8hbxF1MbKZoQxUZtMVu29wjfXk".into(),
+                            "hTeApBv7eaKCWpSp7MCbvgzm74izKhu3vlDk9w6qVrxePfGgpKPqfHiOoGhFnbTK".into(),
+                            "wTC6o2xq5y0qZ03JonF7OJspEd3I5zKY3E+ov7/ZhW6DqT8UFvsAdjvQbXyhV8Eu".into(),
+                            "Yhixw1aKEPzNjNowuIseVogKOLXxWI5vAi5HgXdS0/ES5gDGsABo4fqovUKlgop3".into(),
+                            "RA==".into(),
                             "-----END CERTIFICATE-----".into(),
                         ],
                 )])),
@@ -6993,7 +6996,7 @@ Hello world!";
     mod pipelining {
         use tracing_test::traced_test;
 
-        use crate::wire::simple_http::ChunkStateError;
+        use foundation_core::wire::simple_http::ChunkStateError;
 
         use super::*;
 
@@ -7108,7 +7111,7 @@ Hello world!";
     mod methods {
         use tracing_test::traced_test;
 
-        use crate::wire::simple_http::ChunkStateError;
+        use foundation_core::wire::simple_http::ChunkStateError;
 
         use super::*;
 
@@ -7684,7 +7687,7 @@ Hello world!";
     mod lenient_http_version_parsing {
         use tracing_test::traced_test;
 
-        use crate::wire::simple_http::ChunkStateError;
+        use foundation_core::wire::simple_http::ChunkStateError;
 
         use super::*;
 
@@ -7720,7 +7723,7 @@ Hello world!";
     mod finish {
         use tracing_test::traced_test;
 
-        use crate::wire::simple_http::ChunkStateError;
+        use foundation_core::wire::simple_http::ChunkStateError;
 
         use super::*;
 
@@ -7816,7 +7819,7 @@ Hello world!";
     mod content_length_header {
         use tracing_test::traced_test;
 
-        use crate::wire::simple_http::ChunkStateError;
+        use foundation_core::wire::simple_http::ChunkStateError;
 
         use super::*;
 
@@ -8318,7 +8321,7 @@ Hello world!";
     mod connection_header {
         use tracing_test::traced_test;
 
-        use crate::wire::simple_http::ChunkStateError;
+        use foundation_core::wire::simple_http::ChunkStateError;
 
         use super::*;
 
@@ -8931,7 +8934,7 @@ Hello world!";
     mod invalid_requests {
         use tracing_test::traced_test;
 
-        use crate::wire::simple_http::ChunkStateError;
+        use foundation_core::wire::simple_http::ChunkStateError;
 
         use super::*;
 
