@@ -15,12 +15,15 @@
 //! PHASE 1 SCOPE: HTTP-only (no HTTPS), blocking connection, basic GET requests.
 //! PHASE 2 SCOPE: HTTPS support, non-blocking connection, advanced request handling.
 
+use crate::netcap::RawStream;
 use crate::valtron::{
     drive_receiver, inlined_task, BoxedSendExecutionAction, DrivenRecvIterator, InlineSendAction,
     IntoBoxedSendExecutionAction, TaskIterator, TaskStatus,
 };
 use crate::wire::simple_http::client::{DnsResolver, HttpConnectionPool, PreparedRequest};
-use crate::wire::simple_http::HttpReaderError;
+use crate::wire::simple_http::{
+    HttpReaderError, HttpResponseReader, IncomingResponseParts, SimpleHttpBody,
+};
 use std::io::Write;
 use std::sync::Arc;
 
@@ -43,6 +46,11 @@ where
 
     /// [`Reading`] reads the introduction information from (Status + Headers) from the connection.
     Reading(DrivenRecvIterator<GetRequestIntroTask>),
+
+    /// [`SkipReading`] skips the attempt to read the intro from the stream
+    /// as indicates the request intro has just being read already
+    /// and provides the request response.
+    SkipReading(Option<RequestIntro>),
 
     /// No more work to do
     Done,
@@ -164,10 +172,67 @@ where
                         );
 
                         match item {
-                            HttpRequestRedirectResponse::Done(stream) => {
+                            HttpRequestRedirectResponse::Done(
+                                stream,
+                                reader,
+                                optional_starters,
+                            ) => {
                                 tracing::debug!(
                                     "HttpRequestTaskState::Connecting::HttpStreamReady::Done(stream): Send next action -> GetRequestIntroTask"
                                 );
+
+                                if let Some(starter_array) = optional_starters {
+                                    tracing::debug!("HttpRequestRedirectResponse::Done: received intro from redirect process");
+
+                                    let [first, second] = starter_array;
+
+                                    let intro = if let IncomingResponseParts::Intro(
+                                        status,
+                                        proto,
+                                        text,
+                                    ) = first
+                                    {
+                                        (status, proto, text)
+                                    } else {
+                                        self.0.take();
+
+                                        tracing::debug!(
+                                            "First item in optional_starters is not an IncomingResponseParts::Intro"
+                                        );
+                                        return Some(TaskStatus::Ready(RequestIntro::Failed(
+                                            HttpReaderError::ReadFailed,
+                                        )));
+                                    };
+
+                                    let headers = if let IncomingResponseParts::Headers(inner) =
+                                        second
+                                    {
+                                        inner
+                                    } else {
+                                        self.0.take();
+
+                                        tracing::debug!(
+                                            "Second item in optional_starters is not an IncomingResponseParts::Headers"
+                                        );
+                                        return Some(TaskStatus::Ready(RequestIntro::Failed(
+                                            HttpReaderError::ReadFailed,
+                                        )));
+                                    };
+
+                                    self.0 = Some(SendRequestState::SkipReading(Some(
+                                        RequestIntro::Success {
+                                            stream: reader,
+                                            conn: stream,
+                                            intro,
+                                            headers,
+                                        },
+                                    )));
+
+                                    return Some(TaskStatus::Pending(
+                                        HttpRequestPending::WaitingIntroAndHeaders,
+                                    ));
+                                }
+
                                 let (get_intro_stream_action, get_intro_receiver) =
                                     InlineSendAction::boxed_mapper(
                                         crate::valtron::InlineSendActionBehaviour::LiftWithParent,
@@ -222,6 +287,20 @@ where
                         }
                     }
                 }
+            }
+            SendRequestState::SkipReading(None) => {
+                tracing::debug!("HttpRequestTaskState::Reading: received intro already");
+
+                Some(TaskStatus::Ready(RequestIntro::Failed(
+                    HttpReaderError::ReadFailed,
+                )))
+            }
+            SendRequestState::SkipReading(Some(container)) => {
+                tracing::debug!(
+                    "HttpRequestTaskState::Reading: received intro already, forwarding"
+                );
+
+                Some(TaskStatus::Ready(container))
             }
             SendRequestState::Reading(mut intro_recv) => {
                 tracing::debug!(

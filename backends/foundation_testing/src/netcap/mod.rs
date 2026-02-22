@@ -37,13 +37,20 @@ impl core::fmt::Display for TestServerError {
     }
 }
 
-pub struct TestHTTPActionServer {
+/**
+ A lightweight HTTP server used in tests that serves a collection of predefined
+ ServiceAction resources on a given address and port.
+
+ This server is intended for test scenarios where you need to simulate HTTP
+ endpoints and capture incoming request descriptors.
+*/
+pub struct ResourcesHttpServer {
     port: usize,
     address: String,
     actions: Vec<ServiceAction>,
 }
 
-impl TestHTTPActionServer {
+impl ResourcesHttpServer {
     #[must_use]
     pub fn new(port: usize, address: String, actions: Vec<ServiceAction>) -> Self {
         Self {
@@ -295,7 +302,7 @@ mod test_server_tests {
 
     use super::{
         simple_http::{ServiceAction, SimpleHeader, SimpleMethod, SimpleOutgoingResponse},
-        TestHTTPActionServer,
+        ResourcesHttpServer,
     };
 
     macro_rules! t {
@@ -338,7 +345,7 @@ mod test_server_tests {
             .build()
             .expect("should generate service action");
 
-        let test_server = TestHTTPActionServer::new(8889, "127.0.0.1".into(), vec![resource]);
+        let test_server = ResourcesHttpServer::new(8889, "127.0.0.1".into(), vec![resource]);
         let (handler, requests, workers) = test_server.serve();
 
         let message = "\
@@ -418,7 +425,7 @@ Hello world!";
             .build()
             .expect("should generate service action");
 
-        let test_server = TestHTTPActionServer::new(9889, "127.0.0.1".into(), vec![resource]);
+        let test_server = ResourcesHttpServer::new(9889, "127.0.0.1".into(), vec![resource]);
         let (handler, requests, workers) = test_server.serve();
 
         let message = "\

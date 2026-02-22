@@ -588,16 +588,37 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                             self.task_state = Some(ClientRequestState::Completed);
                             return Err(HttpClientError::FailedExecution);
                         }
-                        HttpRequestRedirectResponse::Done(conn) => {
-                            let items = IncomingResponseMapper::from_reader(HttpResponseReader::<
-                                SimpleHttpBody,
-                                RawStream,
-                            >::new(
-                                conn.clone_stream(),
-                                SimpleHttpBody,
-                            ));
+                        HttpRequestRedirectResponse::Done(conn, reader, optional_intro) => {
+                            if let Some(intro) = optional_intro {
+                                tracing::debug!("Received intro message already");
 
-                            return Ok((items.into_iter(), conn));
+                                let [first, second] = intro;
+
+                                let mut contents: Vec<
+                                    Result<IncomingResponseParts, HttpClientError>,
+                                > = vec![Ok(first), Ok(second)];
+
+                                for item in reader {
+                                    match item {
+                                        Ok(part) => contents.push(Ok(part)),
+                                        Err(err) => {
+                                            tracing::error!(
+                                                "Failed to read response part: {}",
+                                                err
+                                            );
+                                            contents.push(Err(HttpClientError::FailedExecution));
+                                        }
+                                    }
+                                }
+
+                                return Ok((
+                                    IncomingResponseMapper::List(contents.into_iter()),
+                                    conn,
+                                ));
+                            }
+
+                            let reader = IncomingResponseMapper::from_reader(reader);
+                            return Ok((reader.into_iter(), conn));
                         }
                         HttpRequestRedirectResponse::FlushFailed(mut conn, err) => {
                             tracing::error!("Failed to flush request: {}", err);
