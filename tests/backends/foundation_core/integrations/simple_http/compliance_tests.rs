@@ -2720,7 +2720,7 @@ mod http_response_compliance {
     mod pipelining {
         use tracing_test::traced_test;
 
-        use foundation_core::wire::simple_http::ChunkStateError;
+        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
 
         use super::*;
 
