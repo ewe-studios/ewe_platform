@@ -1,4 +1,4 @@
-#![allow(unused)]
+#![cfg(test)]
 
 #[cfg(test)]
 mod test_http_reader {
