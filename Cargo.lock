@@ -1106,6 +1106,7 @@ dependencies = [
  "foundation_core",
  "foundation_nostd",
  "foundation_testing",
+ "regex",
  "reqwest 0.13.2",
  "serde",
  "serial_test",

@@ -249,6 +249,7 @@ impl core::fmt::Display for LineFeedError {
 
 #[derive(From, Debug)]
 pub enum ClientRequestErrors {
+    TooManyRedirects,
     InvalidState,
     Unsupported,
     ReadError,

@@ -117,13 +117,10 @@ fn test_error_mapping_too_many_redirects() {
     let send_result = request.send();
 
     // Assert that sending fails with TooManyRedirects error
+    use foundation_core::wire::simple_http::client::HttpClientError;
     if let Err(err) = send_result {
-        let err_str = format!("{:?}", err);
-        assert!(
-            err_str.contains("TooManyRedirects") || err_str.contains("redirect"),
-            "Expected TooManyRedirects error, got: {}",
-            err_str
-        );
+        println!("Actual error: {:?}", err);
+        assert!(matches!(err, HttpClientError::TooManyRedirects(_)), "Expected TooManyRedirects error, got: {:?}", err);
     } else {
         panic!("Expected error due to too many redirects, but got Ok");
     }

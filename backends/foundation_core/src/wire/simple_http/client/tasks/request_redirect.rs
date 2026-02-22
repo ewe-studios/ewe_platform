@@ -268,7 +268,17 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                 let location_header = headers.get(&SimpleHeader::LOCATION).and_then(|v| v.first());
                 tracing::debug!("Location header: {:?}", location_header);
 
-                if is_redirect && location_header.is_some() && remaining_redirects > 0 {
+                if is_redirect && location_header.is_some() {
+                    if remaining_redirects == 0 {
+                        tracing::error!(
+                            "Redirect limit exceeded ({} redirects)",
+                            remaining_redirects
+                        );
+                        self.0 = Some(HttpRequestRedirectState::Done);
+                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                            ClientRequestErrors::TooManyRedirects,
+                        )));
+                    }
                     tracing::info!(
                         "Redirect detected: status {} with Location header {:?}",
                         status,
