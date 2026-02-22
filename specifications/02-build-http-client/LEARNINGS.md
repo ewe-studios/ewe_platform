@@ -13,7 +13,10 @@ _To be populated as issues are encountered and resolved_
 _To be populated as integration points are discovered_
 
 ## Testing Insights
-_To be populated as testing patterns emerge_
+- Tests must not access private fields; only public API is valid for unit/integration tests.
+- Valtron executor must be initialized for tests that trigger request execution, otherwise thread pool errors will occur.
+- Unit tests should focus on request-building, configuration, and public method behavior.
+- Integration tests may require mock servers or infrastructure to simulate network and redirect scenarios.
 
 ## Future Considerations
 _To be populated with technical debt and improvement opportunities_

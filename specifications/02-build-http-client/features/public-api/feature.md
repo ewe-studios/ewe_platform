@@ -1,7 +1,14 @@
 ---
-feature: public-api
-description: User-facing API (ClientRequest, SimpleHttpClient), optional connection pooling, and module integration
-status: pending
+spec_name: "02-build-http-client"
+spec_number: 02
+feature_name: "public-api"
+feature_number: 1
+description: User-facing API for HTTP client, including redirect-capable connection loop, ergonomic request handling, and integration with connection pooling.
+workspace_name: "ewe_platform"
+spec_directory: "specifications/02-build-http-client"
+feature_directory: "specifications/02-build-http-client/features/public-api"
+this_file: "specifications/02-build-http-client/features/public-api/feature.md"
+status: in-progress
 priority: high
 depends_on:
   - foundation
@@ -10,15 +17,17 @@ depends_on:
   - task-iterator
 estimated_effort: medium
 created: 2026-01-18
-last_updated: 2026-01-24
+last_updated: 2026-02-21
 author: Main Agent
-context_optimization: true  # Sub-agents MUST generate COMPACT_CONTEXT.md before work, reload after updates
-compact_context_file: ./COMPACT_CONTEXT.md  # Ultra-compact current task context (97% reduction)
-context_reload_required: true  # Clear and reload from compact context regularly to prevent context limit errors
+machine_optimized: true
+machine_prompt_file: ./machine_prompt.md
+context_optimization: true
+compact_context_file: ./COMPACT_CONTEXT.md
+context_reload_required: true
 tasks:
   completed: 0
-  uncompleted: 17
-  total: 17
+  uncompleted: 0
+  total: 0
   completion_percentage: 0
 files_required:
   implementation_agent:
@@ -49,309 +58,343 @@ files_required:
 
 # Public API Feature
 
-## 🔍 CRITICAL: Retrieval-Led Reasoning Required
+---
 
-**ALL agents implementing this feature MUST use retrieval-led reasoning.**
+## Concrete Patterns & Processes
 
-### Before Starting Implementation
+### State Machine Pattern
+- The redirect-capable connection loop is implemented as a state machine in `client/tasks/request_redirect.rs`.
+- States: `Init`, `Trying`, `WriteBody`, `Done`.
+- Each state transition is explicit and logged with `tracing` for observability.
+- The state machine is flattened for clarity and maintainability.
 
-**YOU MUST** (in this order):
-1. ✅ **Search the codebase** for similar implementations using Grep/Glob
-2. ✅ **Read existing code** in related modules to understand patterns
-3. ✅ **Check stack files** (`.agents/stacks/[language].md`) for language-specific conventions
-4. ✅ **Read parent specification** (`../requirements.md`) for high-level context
-5. ✅ **Read module documentation** for modules this feature touches
-6. ✅ **Check dependencies** by reading other feature files referenced in `depends_on`
-7. ✅ **Follow discovered patterns** consistently with existing codebase
+### Error Handling
+- All errors are surfaced via `HttpRequestRedirectResponse` (variants: `Done`, `Error`, `FlushFailed`).
+- Error mapping is robust: connection, write, flush, and redirect resolution errors are handled and surfaced.
+- Errors are mapped to `HttpClientError` in the public API (`client/api.rs`).
 
-### FORBIDDEN Approaches
+### Header Stripping for Redirects
+- Sensitive headers (e.g., `Authorization`) are stripped when the host changes during a redirect.
+- Logic is implemented in `client/redirects.rs` via `strip_sensitive_headers_for_redirect`.
+- Ensures security and compliance with redirect policies.
 
-**YOU MUST NOT**:
-- ❌ Assume patterns based on typical practices without checking this codebase
-- ❌ Implement without searching for similar features first
-- ❌ Apply generic solutions without verifying project conventions
-- ❌ Guess at naming conventions, file structures, or patterns
-- ❌ Use pretraining knowledge without validating against actual project code
+### POST→GET Semantics
+- When a redirect occurs, follow-up requests default to `GET` with no body.
+- Content headers are removed, and sensitive headers are stripped if the host changes.
+- Implemented in `client/redirects.rs` and used in redirect task logic.
 
-### Retrieval Checklist
+### Integration with Connection Pool
+- All redirects use `HttpConnectionPool` for connection reuse.
+- Pool integration ensures efficient connection management and resource utilization.
+- Implemented in `client/pool.rs` and integrated throughout the redirect task and public API.
 
-Before implementing, answer these questions by reading code:
-- [ ] What similar features exist in this project? (use Grep to find)
-- [ ] What patterns do they follow? (read their implementations)
-- [ ] What naming conventions are used? (observed from existing code)
-- [ ] How are errors handled in similar code? (check error patterns)
-- [ ] What testing patterns exist? (read existing test files)
-- [ ] Are there existing helper functions I can reuse? (search thoroughly)
+### Test-Driven Development (TDD)
+- All new functionality is developed using TDD.
+- Tests are written first for state transitions, error handling, header stripping, POST→GET, and connection pooling.
+- Unit tests: `tests/backends/foundation_core/units/simple_http/http_redirect_task.rs`
+- Integration tests: `tests/backends/foundation_core/integrations/simple_http/http_redirect_flow.rs`
+- WHY/WHAT comments are included in all tests for clarity and traceability.
 
-### Enforcement
+### Verification & Acceptance
+- Verification agent checks for zero incomplete implementations (NO TODO, FIXME, unimplemented!(), todo!(), stub methods).
+- All verification commands must pass: `cargo fmt`, `cargo clippy`, tests, build, security, coverage.
+- User approval is required before marking the feature complete.
 
-- Show your retrieval steps in your work report
-- Reference specific files/patterns you discovered
-- Explain how your implementation matches existing patterns
-- "I assumed..." responses will be rejected - only "I found in [file]..." accepted
+### Reference Code Files
+- State machine: `backends/foundation_core/src/wire/simple_http/client/tasks/request_redirect.rs`
+- Error handling: `backends/foundation_core/src/wire/simple_http/client/api.rs`
+- Header stripping & POST→GET: `backends/foundation_core/src/wire/simple_http/client/redirects.rs`
+- Connection pool: `backends/foundation_core/src/wire/simple_http/client/pool.rs`
+- Unit tests: `tests/backends/foundation_core/units/simple_http/http_redirect_task.rs`
+- Integration tests: `tests/backends/foundation_core/integrations/simple_http/http_redirect_flow.rs`
 
 ---
 
-## 🚀 CRITICAL: Token and Context Optimization
+These patterns and processes ensure the feature is robust, maintainable, and compliant with project standards and rules.
 
-**ALL agents implementing this specification/feature MUST follow token and context optimization protocols.**
+## 📍 Location Reference
 
-### Machine-Optimized Prompts (Rule 14)
+- Parent spec: `specifications/02-build-http-client/requirements.md`
+- This feature: `specifications/02-build-http-client/features/public-api/`
+- This file: `specifications/02-build-http-client/features/public-api/feature.md`
+- Machine prompt: `specifications/02-build-http-client/features/public-api/machine_prompt.md`
+- Templates: `specifications/02-build-http-client/features/public-api/templates/`
+- Progress: `specifications/02-build-http-client/features/public-api/PROGRESS.md`
+- Learnings: `specifications/02-build-http-client/LEARNINGS.md`
+- Agent rules: `.agents/rules/`
+- Stack files: `.agents/stacks/`
 
-**Main Agent MUST**:
-1. Generate `machine_prompt.md` from this file when specification/feature finalized
-2. Use pipe-delimited compression (58% token reduction)
-3. Commit machine_prompt.md alongside human-readable file
-4. Regenerate when human file updates
-5. Provide machine_prompt.md path to sub-agents
+## 🔍 Retrieval-Led Reasoning (MANDATORY)
 
-**Sub-Agents MUST**:
-- Read `machine_prompt.md` (NOT verbose human files)
-- Parse DOCS_TO_READ section for files to load
-- 58% token savings
+**Before implementation, agents MUST:**
+1. Search the codebase for similar features and patterns (use Grep/Glob).
+2. Read existing code in related modules:
+   - [ClientRequest API](backends/foundation_core/src/wire/simple_http/client/api.rs)
+   - [SimpleHttpClient](backends/foundation_core/src/wire/simple_http/client/client.rs)
+   - [Redirect Task](backends/foundation_core/src/wire/simple_http/client/tasks/request_redirect.rs)
+   - [Redirects Helper](backends/foundation_core/src/wire/simple_http/client/redirects.rs)
+   - [SendRequest Task](backends/foundation_core/src/wire/simple_http/client/tasks/send_request.rs)
+3. Check stack files for language conventions: `.agents/stacks/rust.md`
+4. Read parent specification for context: `../requirements.md`
+5. Read module documentation for affected modules.
+6. Check dependencies by reading other feature files referenced in `depends_on`.
+7. Follow discovered patterns consistently.
 
-### Context Compaction (Rule 15)
+**FORBIDDEN:**
+- Assuming patterns based on typical practices without checking this codebase.
+- Implementing without searching for similar features first.
+- Applying generic solutions without verifying project conventions.
+- Guessing at naming conventions, file structures, or patterns.
+- Using pretraining knowledge without validating against actual project code.
 
-**Sub-Agents MUST** (before starting work):
-1. Read machine_prompt.md and PROGRESS.md
-2. Generate `COMPACT_CONTEXT.md`:
-   - Embed machine_prompt.md content for current task
-   - Extract current status from PROGRESS.md
-   - List files for current task only (500-800 tokens)
-3. CLEAR entire context
-4. RELOAD from COMPACT_CONTEXT.md only
-5. Proceed with 97% context reduction (180K→5K tokens)
+**Retrieval Checklist:**
+- [ ] What similar features exist in this project? (use Grep)
+- [ ] What patterns do they follow? (read implementations)
+- [ ] What naming conventions are used? (observe code)
+- [ ] How are errors handled? (check error patterns)
+- [ ] What testing patterns exist? (read test files)
+- [ ] Are there helper functions to reuse? (search thoroughly)
 
-**After PROGRESS.md Updates**:
-- Regenerate COMPACT_CONTEXT.md (re-embed machine_prompt content)
-- Clear and reload
-- Maintain minimal context
+## 🚀 Token and Context Optimization
 
-**COMPACT_CONTEXT.md Lifecycle**:
-- Generated fresh per task
-- Contains ONLY current task (no history)
-- Deleted when task completes
-- Rewritten from scratch for next task
-
-**See**:
-- Rule 14: .agents/rules/14-machine-optimized-prompts.md
-- Rule 15: .agents/rules/15-instruction-compaction.md
-
----
+- Main Agent generates `machine_prompt.md` from this file.
+- Sub-agents read `machine_prompt.md` (NOT verbose feature.md).
+- 58% token savings.
+- Regenerate `machine_prompt.md` when feature.md updates.
+- Generate `COMPACT_CONTEXT.md` before starting any task.
+- Embed machine_prompt.md content for current task in COMPACT_CONTEXT.md.
+- Regenerate COMPACT_CONTEXT.md after updating PROGRESS.md.
+- Clear and reload context from COMPACT_CONTEXT.md only (97% reduction).
 
 ## Overview
 
-Create the user-facing API for the HTTP 1.1 client. This feature implements the clean public API that hides all TaskIterator complexity, the main `SimpleHttpClient` entry point, optional connection pooling, and final module integration.
+This feature implements the user-facing API for the HTTP client, including:
+- Clean ergonomic request handling (progressive reading, one-shot, streaming).
+- Redirect-capable connection loop.
+- Integration with connection pooling.
+- Hides internal TaskIterator complexity from users.
 
 ## Dependencies
 
-This feature depends on:
-- `foundation` - DnsResolver, errors
-- `connection` - HttpClientConnection, ParsedUrl
-- `request-response` - ClientRequestBuilder, ResponseIntro
-- `task-iterator` - execute_task(), HttpRequestTask
-
-This feature is required by:
-- None (final feature)
-
-## Design Principle: Hide Internal Complexity
-
-The internal `TaskIterator` machinery **MUST** be hidden from the user. Users interact with a clean, simple API.
+- foundation: DnsResolver, errors
+- connection: HttpClientConnection, ParsedUrl
+- request-response: ClientRequestBuilder, ResponseIntro
+- task-iterator: execute_task(), HttpRequestTask
 
 ## Requirements
 
-### User-Facing API
+### Functional Requirements
 
-```rust
-// Create client
-let http_client = SimpleHttpClient::new();
+1. Provide ergonomic API for HTTP requests (intro, body, send, parts).
+2. Support redirect-capable connection loop (handles 3xx, Location header, redirect limits).
+3. Integrate with connection pooling for connection reuse.
+4. Surface all relevant errors (connection, write, flush, redirect resolution).
+5. Strip sensitive headers (e.g., Authorization) when host changes during redirect.
+6. Support POST→GET semantics for redirects.
+7. Ensure robust tracing/logging for state transitions and errors.
 
-// Option 1: Get just the intro and headers
-let mut request = http_client.get("http://google.com");
-let (intro, headers) = request.introduction()?;
-let body = request.body()?;
+### Technical Requirements
 
-// Option 2: Get everything at once
-let response = http_client.get("http://google.com").send()?;
-
-// Option 3: Iterate over parts (power user)
-for part in http_client.get("http://google.com").parts() { ... }
-```
-
-### ClientRequest
-
-```rust
-pub struct ClientRequest {
-    // Internal: prepared request, client config, etc.
-}
-
-impl ClientRequest {
-    pub fn introduction(&mut self) -> Result<(ResponseIntro, SimpleHeaders), HttpClientError>;
-    pub fn body(&mut self) -> Result<SimpleBody, HttpClientError>;
-    pub fn send(self) -> Result<SimpleResponse<SimpleBody>, HttpClientError>;
-    pub fn parts(self) -> impl Iterator<Item = Result<IncomingResponseParts, HttpClientError>>;
-    pub fn collect(self) -> Result<Vec<IncomingResponseParts>, HttpClientError>;
-}
-```
-
-### SimpleHttpClient
-
-```rust
-pub struct SimpleHttpClient<R: DnsResolver = SystemDnsResolver> {
-    resolver: R,
-    config: ClientConfig,
-    pool: Option<ConnectionPool>,
-}
-
-pub struct ClientConfig {
-    pub connect_timeout: Option<Duration>,
-    pub read_timeout: Option<Duration>,
-    pub write_timeout: Option<Duration>,
-    pub max_redirects: u8,
-    pub default_headers: SimpleHeaders,
-    pub pool_enabled: bool,
-    pub pool_max_connections: usize,
-}
-
-impl SimpleHttpClient {
-    pub fn new() -> Self;
-}
-
-impl<R: DnsResolver> SimpleHttpClient<R> {
-    pub fn with_resolver(resolver: R) -> Self;
-    pub fn config(self, config: ClientConfig) -> Self;
-    pub fn connect_timeout(self, timeout: Duration) -> Self;
-    pub fn max_redirects(self, max: u8) -> Self;
-    pub fn enable_pool(self, max_connections: usize) -> Self;
-
-    pub fn get(&self, url: &str) -> Result<ClientRequest, HttpClientError>;
-    pub fn post(&self, url: &str) -> Result<ClientRequest, HttpClientError>;
-    pub fn put(&self, url: &str) -> Result<ClientRequest, HttpClientError>;
-    pub fn delete(&self, url: &str) -> Result<ClientRequest, HttpClientError>;
-    pub fn patch(&self, url: &str) -> Result<ClientRequest, HttpClientError>;
-    pub fn head(&self, url: &str) -> Result<ClientRequest, HttpClientError>;
-    pub fn options(&self, url: &str) -> Result<ClientRequest, HttpClientError>;
-
-    pub fn request(&self, builder: ClientRequestBuilder) -> ClientRequest;
-}
-```
-
-### Where do tests go? 
-
-Tests are placed in tests/backends/foundation_core directory.
-
-Selecting the appropriate location for unit tests and integrations tests for the relevant crate/module. 
-
-Ensure to update the relevant `Cargo.toml` file and `mod.rs` with the new tests files so they are included in the tests runs.
-
-When writing tests do selective tests execution for the tests you are currently working on to not waste time running unrelated  tests 
-let verification handle that part.
-
-### Method Mapping to Internal Logic
-
-| User Method | Internal Behavior |
-|-------------|-------------------|
-| `request.introduction()` | Executes TaskIterator until Intro+Headers received |
-| `request.body()` | Continues TaskIterator to read body |
-| `request.send()` | Executes full TaskIterator, returns complete response |
-| `request.parts()` | Returns iterator wrapper that drives TaskIterator |
-
-### ConnectionPool (Optional)
-
-```rust
-pub struct ConnectionPool {
-    connections: HashMap<PoolKey, Vec<PooledConnection>>,
-    max_connections: usize,
-}
-```
-
-### Feature Flags
-
-Add to `Cargo.toml`:
-
-```toml
-[features]
-default = []
-multi = []
-ssl-rustls = ["rustls", "webpki-roots"]
-ssl-openssl = ["openssl"]
-ssl-native-tls = ["native-tls"]
-```
+- State machine pattern: `Init`, `Trying`, `WriteBody`, `Done` states in `request_redirect.rs`.
+- Error handling: All errors surfaced via `HttpRequestRedirectResponse` (`FlushFailed`, `TooManyRedirects`, `InvalidLocation`, etc.).
+- Header stripping: `strip_sensitive_headers_for_redirect` in `redirects.rs`.
+- POST→GET semantics: Follow-up requests default to GET, content headers removed, sensitive headers stripped if host changes.
+- Integration with pool: All redirects use `HttpConnectionPool` for connection reuse.
 
 ## Implementation Details
 
-### File Structure
+### Key Structures
 
+- `ClientRequest` (API): `backends/foundation_core/src/wire/simple_http/client/api.rs`
+- `SimpleHttpClient`: `backends/foundation_core/src/wire/simple_http/client/client.rs`
+- `GetHttpRequestRedirectTask`: `backends/foundation_core/src/wire/simple_http/client/tasks/request_redirect.rs`
+- `HttpConnectionPool`: `backends/foundation_core/src/wire/simple_http/client/pool.rs`
+
+### Key Functions
+
+| Function | Purpose | Location |
+|----------|---------|----------|
+| `ClientRequest::introduction()` | Get intro and headers | `client/api.rs` |
+| `ClientRequest::body()` | Get response body | `client/api.rs` |
+| `ClientRequest::send()` | One-shot request | `client/api.rs` |
+| `ClientRequest::parts()` | Streaming parts | `client/api.rs` |
+| `GetHttpRequestRedirectTask::next()` | State machine for redirects | `client/tasks/request_redirect.rs` |
+| `strip_sensitive_headers_for_redirect()` | Header stripping | `client/redirects.rs` |
+
+### Templates
+
+See `templates/` directory for:
+- `example-struct.rs` - Base structure template
+- `example-impl.rs` - Implementation template
+
+---
+
+### Complete Code Example: Public API Usage
+
+Below is a concrete example showing how the public API is used, based on actual code patterns:
+
+```rust
+use foundation_core::wire::simple_http::client::{
+    SimpleHttpClient, ClientConfig, HttpConnectionPool, SystemDnsResolver,
+};
+use foundation_core::wire::simple_http::{SendSafeBody, IncomingResponseParts};
+
+fn main() {
+    // Create a client with default config and system DNS resolver
+    let client = SimpleHttpClient::<SystemDnsResolver>::new();
+
+    // Option 1: Progressive reading (intro, headers, then body)
+    let mut request = client.get("http://example.com").expect("Failed to build request");
+    let (intro, headers) = request.introduction().expect("Failed to get intro and headers");
+    let body = request.body().expect("Failed to get body");
+    match body {
+        SendSafeBody::Text(text) => println!("Body: {}", text),
+        SendSafeBody::Bytes(bytes) => println!("Body (bytes): {:?}", bytes),
+        _ => println!("No body"),
+    }
+
+    // Option 2: One-shot execution
+    let response = client.get("http://example.com").expect("Failed to build request").send().expect("Failed to send request");
+    println!("Status: {:?}", response.get_status());
+    match response.get_body_mut() {
+        SendSafeBody::Text(text) => println!("Response body: {}", text),
+        SendSafeBody::Bytes(bytes) => println!("Response body (bytes): {:?}", bytes),
+        _ => println!("No body"),
+    }
+
+    // Option 3: Streaming parts (iterator)
+    let request = client.get("http://example.com").expect("Failed to build request");
+    let (part_iter, _) = request.parts().expect("Failed to get parts iterator");
+    for part_result in part_iter {
+        let part = part_result.expect("Failed to get part");
+        match part {
+            IncomingResponseParts::Intro(status, proto, reason) => {
+                println!("Intro: {:?} {:?} {:?}", status, proto, reason);
+            }
+            IncomingResponseParts::Headers(headers) => {
+                println!("Headers: {:?}", headers);
+            }
+            IncomingResponseParts::SizedBody(body) => {
+                match body {
+                    SendSafeBody::Text(text) => println!("Body: {}", text),
+                    SendSafeBody::Bytes(bytes) => println!("Body (bytes): {:?}", bytes),
+                    _ => println!("No body"),
+                }
+            }
+            _ => {}
+        }
+    }
+
+    // Option 4: Custom config and connection pool
+    let config = ClientConfig {
+        max_redirects: 3,
+        ..Default::default()
+    };
+    let pool = HttpConnectionPool::default();
+    let client = SimpleHttpClient::with_resolver(SystemDnsResolver)
+        .config(config)
+        .enable_pool(10);
+
+    let request = client.get("http://example.com").expect("Failed to build request");
+    let response = request.send().expect("Failed to send request");
+    println!("Status: {:?}", response.get_status());
+}
 ```
-client/
-├── api.rs       (NEW - ClientRequest)
-├── client.rs    (NEW - SimpleHttpClient)
-├── pool.rs      (NEW - ConnectionPool, optional)
-└── ...
-```
 
-### Public vs Internal
+This example demonstrates:
+- Progressive reading (intro, headers, body)
+- One-shot execution (`send`)
+- Streaming parts with iterator
+- Custom configuration and connection pooling
+- Handling of response bodies and headers
 
-| File | Visibility | Purpose |
-|------|------------|---------|
-| `client.rs` | **Public** | `SimpleHttpClient` |
-| `api.rs` | **Public** | `ClientRequest` |
-| `request.rs` | **Public** | `ClientRequestBuilder` |
-| `intro.rs` | **Public** | `ResponseIntro` |
-| `errors.rs` | **Public** | Error types |
-| `dns.rs` | **Public** | `DnsResolver` trait |
-| `task.rs` | Internal | `HttpRequestTask` |
-| `actions.rs` | Internal | `ExecutionAction` implementations |
-| `executor.rs` | Internal | Executor selection |
-| `connection.rs` | Internal | Connection management |
-| `pool.rs` | Internal | Connection pooling |
+---
+
+## Tasks
+
+> **Task Tracking:** Mark tasks as `[x]` after completing AND verifying each task. Update frontmatter counts immediately. Commit after task completion + verification pass (Rule 04).
+
+### Implementation Tasks
+- [ ] Implement core API structures and methods.
+- [ ] Integrate redirect-capable connection loop.
+- [ ] Add header stripping logic for redirects.
+- [ ] Integrate connection pooling.
+- [ ] Implement POST→GET semantics for redirects.
+
+### Testing Tasks
+- [ ] Write unit tests for state machine transitions and error handling.
+- [ ] Write integration tests for redirect chains, edge cases, header stripping, POST→GET, flush failures.
+- [ ] Run verification commands.
+- [ ] Execute HTTP client tests with:
+      ```
+      cargo test --package ewe_platform_tests --features std -- http_client_body_reading
+      ```
+
+### Documentation Tasks
+- [ ] Document public APIs.
+- [ ] Add usage examples.
+- [ ] Document architectural decisions in LEARNINGS.md.
 
 ## Success Criteria
 
-- [ ] `ClientRequest.introduction()` returns ResponseIntro and SimpleHeaders
-- [ ] `ClientRequest.body()` returns SimpleBody
-- [ ] `ClientRequest.send()` returns SimpleResponse<SimpleBody>
-- [ ] `ClientRequest.parts()` returns iterator over IncomingResponseParts
-- [ ] `SimpleHttpClient::new()` creates default client
-- [ ] `SimpleHttpClient::with_resolver()` accepts custom resolver
-- [ ] All convenience methods (get, post, etc.) work
-- [ ] Builder methods (config, timeout, etc.) work
-- [ ] Connection pooling works when enabled
-- [ ] Redirect following works (configurable)
-- [ ] `pub mod client` added to `simple_http/mod.rs`
-- [ ] Feature flag `multi` added to Cargo.toml
-- [ ] Plain HTTP requests work end-to-end
-- [ ] HTTPS requests work (with TLS feature)
-- [ ] All unit tests pass
-- [ ] All integration tests pass
-- [ ] Code passes `cargo fmt` and `cargo clippy`
+- [ ] Ergonomic API for HTTP requests (intro, body, send, parts).
+- [ ] Redirect-capable connection loop integrated and tested.
+- [ ] All relevant errors surfaced and mapped.
+- [ ] Sensitive headers stripped on host change.
+- [ ] POST→GET semantics for redirects implemented.
+- [ ] All unit and integration tests pass.
+- [ ] Code passes `cargo fmt` and `cargo clippy`.
+- [ ] Documentation updated.
+- [ ] All verification requirements met.
+
+## Verification Requirements for Completion
+
+- [ ] Zero incomplete implementations (NO TODO, FIXME, unimplemented!(), todo!(), stub methods).
+- [ ] All verification checks pass (format, lint, type, tests, build, security, coverage).
+- [ ] All tasks and success criteria checked off.
+- [ ] Integration with dependent features verified.
+- [ ] Documentation complete.
+- [ ] Explicit user approval to mark feature complete.
 
 ## Verification Commands
 
 ```bash
 cargo fmt -- --check
 cargo clippy -- -D warnings
-cargo test --package foundation_core
+cargo test --package foundation_core --features multi
 cargo build --package foundation_core
-cargo build --package foundation_core --features multi
-cargo build --package foundation_core --features ssl-rustls
-cargo build --package foundation_core --all-features
 ```
 
-## Notes for Agents
+## Agent Instructions
 
-### Before Starting
-- **MUST VERIFY** all previous features are complete
-- **MUST READ** existing `simple_http/mod.rs` for module pattern
-- **MUST READ** `simple_http/impls.rs` for types to reuse
+### Main Agent
 
-### Implementation Guidelines
-- Public API should be clean and simple
-- Hide all TaskIterator complexity
-- Reuse existing types (SimpleResponse, IncomingResponseParts, etc.)
-- Use generic type parameters for DnsResolver
-- Connection pooling is optional (configurable)
+- Load all rules specified in files_required.main_agent.rules.
+- Work autonomously, make informed decisions based on loaded context and rules.
+- Review current implementation status before starting.
+- Do NOT ask unnecessary questions if feature is clearly defined.
+- Only ask when genuinely ambiguous or blocking.
+
+### Implementation Agent
+
+- Load role-specific rules from files_required.implementation_agent.rules.
+- Read required context: parent requirements.md, this feature.md, templates, stack files.
+- Verify dependent features are complete.
+- Follow TDD: Write tests FIRST, verify they fail, then implement.
+- Self-review before reporting completion.
+- Document learnings in LEARNINGS.md.
+- Do NOT commit code directly; report completion to Main Agent.
+
+### Verification Agent
+
+- Load role-specific rules from files_required.verification_agent.rules.
+- Read required context: parent requirements.md, this feature.md, templates, stack files.
+- Verify dependent features are complete.
+- Run all verification commands.
+- Ensure zero incomplete implementations.
+- Present verification report to user for approval.
 
 ---
+
 *Created: 2026-01-18*
-*Last Updated: 2026-01-18*
+*Last Updated: 2026-02-21*
