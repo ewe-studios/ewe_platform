@@ -26,6 +26,7 @@ mod intro_tests;
 mod pool_tests;
 mod request_tests;
 mod simple_http_client_tests;
+mod http_redirect_edge_cases_tests;
 mod tls_task_tests;
 mod tls_tests;
 mod url_authority_tests;
