@@ -8555,6 +8555,8 @@ Hello world!";
         }
 
         mod close {
+            use foundation_core::panic_if_failed;
+
             use super::*;
 
             #[test]
@@ -8646,6 +8648,8 @@ Hello world!";
         }
 
         mod parsing_multiple_tokens {
+            use foundation_core::panic_if_failed;
+
             use super::*;
 
             #[test]
