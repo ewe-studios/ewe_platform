@@ -174,9 +174,7 @@ impl From<SendSafeBody> for IncomingResponseParts {
     fn from(val: SendSafeBody) -> Self {
         match &val {
             SendSafeBody::None => IncomingResponseParts::NoBody,
-            SendSafeBody::Text(_) | SendSafeBody::Bytes(_) => {
-                IncomingResponseParts::SizedBody(val)
-            }
+            SendSafeBody::Text(_) | SendSafeBody::Bytes(_) => IncomingResponseParts::SizedBody(val),
             SendSafeBody::Stream(_)
             | SendSafeBody::LineFeedStream(_)
             | SendSafeBody::ChunkedStream(_) => IncomingResponseParts::StreamedBody(val),
@@ -1910,7 +1908,7 @@ pub enum Http11RequestDescriptorState {
 pub struct Http11RequestDescriptorIterator(Option<Http11RequestDescriptorState>);
 
 impl Http11RequestDescriptorIterator {
-    #[must_use] 
+    #[must_use]
     pub fn new(request: RequestDescriptor) -> Self {
         Self(Some(Http11RequestDescriptorState::Intro(request)))
     }
@@ -2013,7 +2011,7 @@ pub enum Http11RequestBodyState {
 pub struct Http11RequestBodyIterator(Option<Http11RequestBodyState>);
 
 impl Http11RequestBodyIterator {
-    #[must_use] 
+    #[must_use]
     pub fn new(request: SimpleIncomingRequest) -> Self {
         Self(Some(Http11RequestBodyState::Intro(request)))
     }
@@ -2228,7 +2226,7 @@ pub enum Http11ReqState {
 pub struct Http11RequestIterator(Option<Http11ReqState>);
 
 impl Http11RequestIterator {
-    #[must_use] 
+    #[must_use]
     pub fn new(request: SimpleIncomingRequest) -> Self {
         Self(Some(Http11ReqState::Intro(request)))
     }
@@ -2293,7 +2291,7 @@ pub enum Http11ResState {
 pub struct Http11ResponseIterator(Option<Http11ResState>);
 
 impl Http11ResponseIterator {
-    #[must_use] 
+    #[must_use]
     pub fn new(response: SimpleOutgoingResponse) -> Self {
         Http11ResponseIterator(Some(Http11ResState::Intro(response)))
     }
@@ -3013,6 +3011,18 @@ where
     }
 }
 
+impl<F, T> Iterator for HttpSendRequestReader<F, T>
+where
+    F: BodyExtractor,
+    T: std::io::Read + Send + 'static,
+{
+    type Item = Result<IncomingRequestParts, HttpReaderError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next()
+    }
+}
+
 impl<F, T> HttpRequestReader<F, T>
 where
     F: BodyExtractor,
@@ -3403,6 +3413,18 @@ where
 {
     fn from(value: HttpResponseReader<F, T>) -> Self {
         Self(value)
+    }
+}
+
+impl<F, T> Iterator for HttpSendResponseReader<F, T>
+where
+    F: BodyExtractor,
+    T: std::io::Read + Send + 'static,
+{
+    type Item = Result<IncomingResponseParts, HttpReaderError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next()
     }
 }
 
