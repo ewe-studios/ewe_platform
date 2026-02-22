@@ -1821,7 +1821,10 @@ mod http_response_compliance {
     mod text_event_stream {
         use tracing_test::traced_test;
 
-        use foundation_core::wire::simple_http::{ChunkStateError, LineFeed};
+        use foundation_core::{
+            panic_if_failed,
+            wire::simple_http::{ChunkStateError, LineFeed},
+        };
 
         use super::*;
 
@@ -2077,7 +2080,7 @@ mod http_response_compliance {
     mod sample_responses {
         use tracing_test::traced_test;
 
-        use foundation_core::wire::simple_http::ChunkStateError;
+        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
 
         use super::*;
 
@@ -2755,7 +2758,7 @@ mod http_response_compliance {
     mod finish {
         use tracing_test::traced_test;
 
-        use foundation_core::wire::simple_http::ChunkStateError;
+        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
 
         use super::*;
 
@@ -2793,7 +2796,7 @@ mod http_response_compliance {
     mod content_length_header {
         use tracing_test::traced_test;
 
-        use foundation_core::wire::simple_http::ChunkStateError;
+        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
 
         use super::*;
 
@@ -2892,7 +2895,7 @@ mod http_response_compliance {
     mod invalid_responses {
         use tracing_test::traced_test;
 
-        use foundation_core::wire::simple_http::ChunkStateError;
+        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
 
         use super::*;
 
@@ -3434,6 +3437,8 @@ mod http_requests_compliance {
 
     mod hello_request {
 
+        use foundation_core::panic_if_failed;
+
         use super::*;
 
         #[test]
@@ -3514,6 +3519,8 @@ Hello world!";
     }
 
     mod uri {
+        use foundation_core::panic_if_failed;
+
         use super::*;
 
         // Test function for "Quotes in URI"
@@ -3902,7 +3909,10 @@ Hello world!";
     mod text_event_stream {
         use tracing_test::traced_test;
 
-        use foundation_core::wire::simple_http::{ChunkStateError, LineFeed};
+        use foundation_core::{
+            panic_if_failed,
+            wire::simple_http::{ChunkStateError, LineFeed},
+        };
 
         use super::*;
 
@@ -4198,7 +4208,7 @@ Hello world!";
     mod transfer_encoding {
         use tracing_test::traced_test;
 
-        use foundation_core::wire::simple_http::ChunkStateError;
+        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
 
         use super::*;
 
@@ -5993,7 +6003,7 @@ Hello world!";
     mod sample_requests {
         use tracing_test::traced_test;
 
-        use foundation_core::wire::simple_http::ChunkStateError;
+        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
 
         use super::*;
 
@@ -6785,7 +6795,7 @@ Hello world!";
     mod extended_characters {
         use tracing_test::traced_test;
 
-        use foundation_core::wire::simple_http::ChunkStateError;
+        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
 
         use super::*;
 
@@ -6842,7 +6852,7 @@ Hello world!";
     mod ascii_255_in_header_value {
         use tracing_test::traced_test;
 
-        use foundation_core::wire::simple_http::ChunkStateError;
+        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
 
         use super::*;
 
@@ -6906,7 +6916,7 @@ Hello world!";
     mod x_ssl_nonsense {
         use tracing_test::traced_test;
 
-        use foundation_core::wire::simple_http::ChunkStateError;
+        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
 
         use super::*;
 
@@ -6996,7 +7006,7 @@ Hello world!";
     mod pipelining {
         use tracing_test::traced_test;
 
-        use foundation_core::wire::simple_http::ChunkStateError;
+        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
 
         use super::*;
 
@@ -7113,7 +7123,7 @@ Hello world!";
     mod methods {
         use tracing_test::traced_test;
 
-        use foundation_core::wire::simple_http::ChunkStateError;
+        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
 
         use super::*;
 
@@ -7689,7 +7699,7 @@ Hello world!";
     mod lenient_http_version_parsing {
         use tracing_test::traced_test;
 
-        use foundation_core::wire::simple_http::ChunkStateError;
+        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
 
         use super::*;
 
@@ -7725,7 +7735,7 @@ Hello world!";
     mod finish {
         use tracing_test::traced_test;
 
-        use foundation_core::wire::simple_http::ChunkStateError;
+        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
 
         use super::*;
 
@@ -7821,7 +7831,7 @@ Hello world!";
     mod content_length_header {
         use tracing_test::traced_test;
 
-        use foundation_core::wire::simple_http::ChunkStateError;
+        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
 
         use super::*;
 
@@ -8328,6 +8338,8 @@ Hello world!";
         use super::*;
 
         mod keep_alive {
+            use foundation_core::panic_if_failed;
+
             use super::*;
 
             #[test]
@@ -8813,6 +8825,8 @@ Hello world!";
         }
 
         mod upgrade {
+            use foundation_core::panic_if_failed;
+
             use super::*;
 
             #[test]
@@ -8936,7 +8950,7 @@ Hello world!";
     mod invalid_requests {
         use tracing_test::traced_test;
 
-        use foundation_core::wire::simple_http::ChunkStateError;
+        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
 
         use super::*;
 
