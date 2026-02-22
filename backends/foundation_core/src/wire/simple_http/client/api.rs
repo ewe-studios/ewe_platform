@@ -22,7 +22,7 @@ use crate::wire::simple_http::client::{
     RequestIntro, ResponseIntro, SendRequestTask,
 };
 use crate::wire::simple_http::{
-    HttpResponseReader, IncomingResponseParts, SendSafeBody, SimpleBody, SimpleHeaders,
+    HttpResponseReader, IncomingResponseParts, SendSafeBody, SimpleHeaders,
     SimpleHttpBody, SimpleResponse,
 };
 use std::io::Write;
@@ -134,6 +134,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// # Returns
     ///
     /// A new `ClientRequest` ready to execute.
+    #[must_use] 
     pub fn new(
         prepared: PreparedRequest,
         config: ClientConfig,

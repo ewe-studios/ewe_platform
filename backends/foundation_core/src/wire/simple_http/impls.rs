@@ -170,28 +170,28 @@ pub enum SimpleBody {
     LineFeedStream(Option<LineFeedVecIterator<BoxedError>>),
 }
 
-impl Into<IncomingResponseParts> for SendSafeBody {
-    fn into(self) -> IncomingResponseParts {
-        match &self {
+impl From<SendSafeBody> for IncomingResponseParts {
+    fn from(val: SendSafeBody) -> Self {
+        match &val {
             SendSafeBody::None => IncomingResponseParts::NoBody,
             SendSafeBody::Text(_) | SendSafeBody::Bytes(_) => {
-                IncomingResponseParts::SizedBody(self)
+                IncomingResponseParts::SizedBody(val)
             }
             SendSafeBody::Stream(_)
             | SendSafeBody::LineFeedStream(_)
-            | SendSafeBody::ChunkedStream(_) => IncomingResponseParts::StreamedBody(self),
+            | SendSafeBody::ChunkedStream(_) => IncomingResponseParts::StreamedBody(val),
         }
     }
 }
 
-impl Into<IncomingRequestParts> for SendSafeBody {
-    fn into(self) -> IncomingRequestParts {
-        match &self {
+impl From<SendSafeBody> for IncomingRequestParts {
+    fn from(val: SendSafeBody) -> Self {
+        match &val {
             SendSafeBody::None => IncomingRequestParts::NoBody,
-            SendSafeBody::Text(_) | SendSafeBody::Bytes(_) => IncomingRequestParts::SizedBody(self),
+            SendSafeBody::Text(_) | SendSafeBody::Bytes(_) => IncomingRequestParts::SizedBody(val),
             SendSafeBody::Stream(_)
             | SendSafeBody::LineFeedStream(_)
-            | SendSafeBody::ChunkedStream(_) => IncomingRequestParts::StreamedBody(self),
+            | SendSafeBody::ChunkedStream(_) => IncomingRequestParts::StreamedBody(val),
         }
     }
 }
@@ -402,7 +402,7 @@ pub trait RenderHttp {
         for next_bytes in render_bytes {
             match next_bytes {
                 Ok(mut bytes) => {
-                    writer.write_all(&mut bytes)?;
+                    writer.write_all(&bytes)?;
                     total_bytes += bytes.len();
                 }
                 Err(err) => return Err(err),
@@ -430,7 +430,7 @@ pub trait RenderHttp {
         for next_bytes in transformed {
             match next_bytes {
                 Ok(mut bytes) => {
-                    writer.write_all(&mut bytes)?;
+                    writer.write_all(&bytes)?;
                     total_bytes += bytes.len();
                 }
                 Err(err) => return Err(err),
@@ -1910,6 +1910,7 @@ pub enum Http11RequestDescriptorState {
 pub struct Http11RequestDescriptorIterator(Option<Http11RequestDescriptorState>);
 
 impl Http11RequestDescriptorIterator {
+    #[must_use] 
     pub fn new(request: RequestDescriptor) -> Self {
         Self(Some(Http11RequestDescriptorState::Intro(request)))
     }
@@ -2012,6 +2013,7 @@ pub enum Http11RequestBodyState {
 pub struct Http11RequestBodyIterator(Option<Http11RequestBodyState>);
 
 impl Http11RequestBodyIterator {
+    #[must_use] 
     pub fn new(request: SimpleIncomingRequest) -> Self {
         Self(Some(Http11RequestBodyState::Intro(request)))
     }
@@ -2226,6 +2228,7 @@ pub enum Http11ReqState {
 pub struct Http11RequestIterator(Option<Http11ReqState>);
 
 impl Http11RequestIterator {
+    #[must_use] 
     pub fn new(request: SimpleIncomingRequest) -> Self {
         Self(Some(Http11ReqState::Intro(request)))
     }
@@ -2290,6 +2293,7 @@ pub enum Http11ResState {
 pub struct Http11ResponseIterator(Option<Http11ResState>);
 
 impl Http11ResponseIterator {
+    #[must_use] 
     pub fn new(response: SimpleOutgoingResponse) -> Self {
         Http11ResponseIterator(Some(Http11ResState::Intro(response)))
     }

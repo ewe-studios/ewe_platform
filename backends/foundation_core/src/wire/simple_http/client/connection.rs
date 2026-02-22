@@ -217,8 +217,8 @@ impl HttpClientConnection {
 
 /// A pool-aware HTTP connection factory.
 ///
-/// Wraps the shared ConnectionPool and will attempt to reuse an existing
-/// RawStream from the pool for the target host/port before creating a new
+/// Wraps the shared `ConnectionPool` and will attempt to reuse an existing
+/// `RawStream` from the pool for the target host/port before creating a new
 /// connection via `HttpClientConnection::connect`.
 #[derive(Clone, Debug)]
 pub struct HttpConnectionPool<R: DnsResolver> {

@@ -278,6 +278,7 @@ pub fn percent_decode(s: &str) -> Result<String, QueryError> {
 /// # Panics
 ///
 /// This function does not panic.
+#[must_use] 
 pub fn percent_encode(s: &str) -> String {
     let mut result = String::with_capacity(s.len() * 3);
 

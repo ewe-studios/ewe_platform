@@ -15,14 +15,13 @@
 //! PHASE 1 SCOPE: HTTP-only (no HTTPS), blocking connection, basic GET requests.
 //! PHASE 2 SCOPE: HTTPS support, non-blocking connection, advanced request handling.
 
-use crate::netcap::RawStream;
 use crate::valtron::{
     drive_receiver, inlined_task, BoxedSendExecutionAction, DrivenRecvIterator, InlineSendAction,
     IntoBoxedSendExecutionAction, TaskIterator, TaskStatus,
 };
 use crate::wire::simple_http::client::{DnsResolver, HttpConnectionPool, PreparedRequest};
 use crate::wire::simple_http::{
-    HttpReaderError, HttpResponseReader, IncomingResponseParts, SimpleHttpBody,
+    HttpReaderError, IncomingResponseParts,
 };
 use std::io::Write;
 use std::sync::Arc;
@@ -64,6 +63,7 @@ impl<R> SendRequestTask<R>
 where
     R: DnsResolver + Send + 'static,
 {
+    #[must_use] 
     pub fn new(
         request: PreparedRequest,
         max_redirects: u8,
