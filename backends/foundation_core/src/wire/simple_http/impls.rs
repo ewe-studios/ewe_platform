@@ -996,17 +996,19 @@ impl core::fmt::Display for Status {
         match self {
             Self::Numbered(code, desc) => write!(f, "{code:} {desc:}"),
             Self::Text(code) => write!(f, "{code:}"),
-            _ => write!(f, "{self:}"),
+            _ => write!(f, "{:}", self.status_line()),
         }
     }
 }
 
 impl Status {
+    #[must_use]
     pub fn into_usize(self) -> usize {
         self.into()
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<usize> for Status {
     fn into(self) -> usize {
         match self {
@@ -3024,6 +3026,22 @@ where
         }
     }
 
+    pub fn from_state(
+        read_state: HttpReadState,
+        reader: SharedByteBufferStream<T>,
+        bodies: F,
+    ) -> Self {
+        Self {
+            bodies,
+            max_body_length: None,
+            max_header_key_length: None,
+            max_header_value_length: None,
+            max_header_values_count: None,
+            state: read_state,
+            reader,
+        }
+    }
+
     pub fn limited_body(
         reader: SharedByteBufferStream<T>,
         bodies: F,
@@ -3419,6 +3437,22 @@ where
             max_header_value_length: None,
             max_header_values_count: None,
             state: HttpReadState::Intro,
+            reader,
+        }
+    }
+
+    pub fn from_state(
+        read_state: HttpReadState,
+        reader: SharedByteBufferStream<T>,
+        bodies: F,
+    ) -> Self {
+        Self {
+            bodies,
+            max_body_length: None,
+            max_header_key_length: None,
+            max_header_value_length: None,
+            max_header_values_count: None,
+            state: read_state,
             reader,
         }
     }

@@ -61,5 +61,5 @@ pub mod stress;
 // Re-export commonly used items
 pub use http::TestHttpServer;
 pub use metrics::{Metrics, PerformanceReport};
-pub use netcap::TestHTTPActionServer;
+pub use netcap::ResourcesHttpServer;
 pub use stress::{StressConfig, StressHarness, StressResult};

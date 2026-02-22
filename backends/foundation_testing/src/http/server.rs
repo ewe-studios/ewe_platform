@@ -17,19 +17,27 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
+use foundation_core::netcap::RawStream;
+use foundation_core::wire::simple_http::{
+    http_streams, HttpReaderError, HttpResponseReader, IncomingRequestParts, Proto, SendSafeBody,
+    SimpleHeaders, SimpleMethod, SimpleUrl,
+};
+
 type ResponseHandler = Arc<Mutex<Box<dyn Fn(&HttpRequest) -> HttpResponse + Send>>>;
 
 /// Simple HTTP request representation for testing.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct HttpRequest {
     /// HTTP method (GET, POST, etc.)
-    pub method: String,
+    pub method: SimpleMethod,
     /// Request path (e.g., "/test")
-    pub path: String,
+    pub path: SimpleUrl,
     /// HTTP version (e.g., "HTTP/1.1")
-    pub version: String,
+    pub proto: Proto,
     /// Request headers
-    pub headers: Vec<(String, String)>,
+    pub headers: SimpleHeaders,
+    /// Body of the request
+    pub body: SendSafeBody,
 }
 
 /// Simple HTTP response representation for testing.
@@ -275,44 +283,83 @@ impl TestHttpServer {
         handler: &ResponseHandler,
     ) -> Result<(), Box<dyn std::error::Error>> {
         // Parse minimal HTTP request (method, path, version)
-        let mut reader = BufReader::new(stream.try_clone()?);
-        let mut request_line = String::new();
+        let conn = RawStream::from_tcp(stream.try_clone()?).expect("should wrap tcp stream");
+        let request_streams = http_streams::send::http_streams(conn);
 
         tracing::info!("Read a line on connection!");
 
-        reader.read_line(&mut request_line)?;
+        // fetch the intro portion and validate we have resources for processing request
+        // if not, just break and return an error
+        let request_reader = request_streams.next_request();
+        tracing::debug!("Pulled next request");
 
-        let parts: Vec<&str> = request_line.split_whitespace().collect();
-        tracing::info!("Got parts: {:?}", &parts);
-        if parts.len() < 3 {
-            return Err("Invalid HTTP request line".into());
+        let parts: Result<Vec<IncomingRequestParts>, HttpReaderError> = request_reader
+            .into_iter()
+            .filter(|item| match item {
+                Ok(IncomingRequestParts::SKIP) => false,
+                Ok(_) | Err(_) => true,
+            })
+            .collect();
+
+        tracing::debug!("Collected all parts of request");
+        if let Err(part_err) = parts {
+            tracing::error!("Failed to read requests from reader due to: {:?}", part_err);
+            return Ok(());
         }
 
-        let method = parts[0].to_string();
-        let path = parts[1].to_string();
-        let version = parts[2].to_string();
-
-        // Read headers (simple parsing)
-        let mut headers = Vec::new();
-        loop {
-            let mut line = String::new();
-            reader.read_line(&mut line)?;
-            if line.trim().is_empty() {
-                break;
-            }
-            if let Some(colon_pos) = line.find(':') {
-                let key = line[..colon_pos].trim().to_string();
-                let value = line[colon_pos + 1..].trim().to_string();
-                headers.push((key, value));
-            }
+        tracing::debug!("Unwrap into request parts");
+        let mut request_parts = parts.unwrap();
+        if request_parts.len() != 3 {
+            tracing::error!(
+                "Failed to receive expected request parts of 3: {:?}",
+                &request_parts
+            );
+            return Ok(());
         }
+
+        let body_part = request_parts.pop().unwrap();
+        let headers_part = request_parts.pop().unwrap();
+        let intros_part = request_parts.pop().unwrap();
+
+        tracing::debug!("Deconstruct request parts");
+
+        let IncomingRequestParts::Intro(method, url, proto) = intros_part else {
+            tracing::error!("Failed to receive a IncomingRequestParts::Intro(_, _, _)");
+            return Ok(());
+        };
+
+        let IncomingRequestParts::Headers(headers) = headers_part else {
+            tracing::error!("Failed to receive a IncomingRequestParts::Headers(_)");
+            return Ok(());
+        };
+
+        tracing::debug!("Reviewing body part: {:?}", body_part);
+
+        let body = match body_part {
+            IncomingRequestParts::NoBody => SendSafeBody::None,
+            IncomingRequestParts::SizedBody(body) | IncomingRequestParts::StreamedBody(body) => {
+                body
+            }
+            _ => {
+                tracing::error!("Failed to receive a IncomingRequestParts::Body(_)");
+                return Ok(());
+            }
+        };
+
+        tracing::info!(
+            "Received new http request for proto: method: {:?}, url: {:?}, proto: {:?}",
+            method,
+            url,
+            proto,
+        );
 
         tracing::info!("Got request");
         let request = HttpRequest {
+            path: url,
             method,
-            path,
-            version,
+            proto,
             headers,
+            body,
         };
 
         // Call user's handler to get response
@@ -358,7 +405,7 @@ mod tests {
     #[test]
     fn test_custom_response() {
         let server = TestHttpServer::with_response(|req| {
-            if req.path == "/redirect" {
+            if req.path.url.as_str() == "/redirect" {
                 HttpResponse::redirect("/target")
             } else {
                 HttpResponse::status(201, "Created")

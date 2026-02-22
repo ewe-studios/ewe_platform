@@ -56,9 +56,11 @@ pub enum HttpRequestRedirectState<R: DnsResolver + Send + 'static> {
     WriteBody(
         Option<
             Box<(
+                Option<[IncomingResponseParts; 2]>,
                 SimpleIncomingRequest,
                 Arc<HttpConnectionPool<R>>,
                 HttpClientConnection,
+                HttpResponseReader<SimpleHttpBody, RawStream>,
             )>,
         >,
     ),
@@ -66,7 +68,11 @@ pub enum HttpRequestRedirectState<R: DnsResolver + Send + 'static> {
 }
 
 pub enum HttpRequestRedirectResponse {
-    Done(HttpClientConnection),
+    Done(
+        HttpClientConnection,
+        HttpResponseReader<SimpleHttpBody, RawStream>,
+        Option<[IncomingResponseParts; 2]>,
+    ),
     Error(ClientRequestErrors),
     FlushFailed(HttpClientConnection, std::io::Error),
 }
@@ -142,6 +148,8 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     )));
                 };
 
+                tracing::debug!("Adding EXPECT: 100-continue header");
+
                 // add Expect header for 100-continue
                 descriptor
                     .headers
@@ -180,6 +188,8 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     .get_current_read_timeout()
                     .unwrap_or(None);
 
+                tracing::debug!("Set read timeout to {:?}", timeout.read_timeout);
+
                 if let Err(err) = connection
                     .stream_mut()
                     .set_read_timeout_as(timeout.read_timeout)
@@ -191,11 +201,15 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     )));
                 }
 
+                tracing::debug!("Get response reader from stream");
+
                 // 4. Try to read response intro once
                 let mut reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
                     connection.clone_stream(),
                     SimpleHttpBody,
                 );
+
+                tracing::debug!("Read the request response intro");
 
                 // Flattened: check intro and headers one by one, fallback to WriteBody if either missing
                 let intro_result = reader.next();
@@ -203,34 +217,42 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     &intro_result,
                     Some(Ok(IncomingResponseParts::Intro(_, _, _)))
                 ) {
+                    tracing::debug!("Failed to read intro, considering we should just write body");
+
                     self.0 = Some(HttpRequestRedirectState::WriteBody(Some(Box::new((
-                        data, pool, connection,
+                        None, data, pool, connection, reader,
                     )))));
                     return Some(TaskStatus::Pending(HttpOperationState::Connecting));
                 }
 
+                tracing::debug!("Read the request response headers");
                 let headers_result = reader.next();
                 if !matches!(&headers_result, Some(Ok(IncomingResponseParts::Headers(_)))) {
-                    self.0 = Some(HttpRequestRedirectState::WriteBody(Some(Box::new((
-                        data, pool, connection,
-                    )))));
-                    return Some(TaskStatus::Pending(HttpOperationState::Connecting));
+                    tracing::debug!("Failed to read header, failing connection");
+
+                    self.0 = Some(HttpRequestRedirectState::Done);
+                    return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                        ClientRequestErrors::Timeout,
+                    )));
                 }
 
+                tracing::debug!("Restore previous timeout");
                 // Restore previous timeout
                 let _ = connection
                     .stream_mut()
                     .set_read_timeout_as(previous_timeout.unwrap_or(Duration::from_secs(60)));
 
+                tracing::debug!("Recevied request response intro: {:?}", &intro_result);
+
                 // Both intro and headers are present
-                let (status, _proto, _text) = match intro_result {
+                let (status, _proto, _text) = match &intro_result {
                     Some(Ok(IncomingResponseParts::Intro(status, proto, text))) => {
                         tracing::debug!("Received HTTP intro: status={}, proto={}, text={:?}", status, proto, text);
                         (status, proto, text)
                     }
                     _ => unreachable!("Intro must be present here due to prior matches! check; fallback to WriteBody if missing."),
                 };
-                let headers = match headers_result {
+                let headers = match &headers_result {
                     Some(Ok(IncomingResponseParts::Headers(ref h))) => {
                         tracing::debug!("Received HTTP headers: {:?}", h);
                         h
@@ -238,8 +260,13 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     _ => unreachable!("Headers must be present here due to prior matches! check; fallback to WriteBody if missing."),
                 };
 
+                tracing::debug!("Check if response is a redirect");
+
                 let is_redirect = (300..400).contains(&status.clone().into_usize());
+                tracing::debug!("Is redirect: {}", is_redirect);
+
                 let location_header = headers.get(&SimpleHeader::LOCATION).and_then(|v| v.first());
+                tracing::debug!("Location header: {:?}", location_header);
 
                 if is_redirect && location_header.is_some() && remaining_redirects > 0 {
                     tracing::info!(
@@ -269,7 +296,10 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                             &descriptor,
                             new_url.clone(),
                         ) {
-                            Ok(desc) => desc,
+                            Ok(desc) => {
+                                tracing::info!("Redirected to new location: {:?}", &desc);
+                                desc
+                            }
                             Err(e) => {
                                 tracing::error!(
                                     "Failed to build follow-up request descriptor: {}",
@@ -292,6 +322,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         new_descriptor,
                         remaining_redirects - 1,
                     )))));
+
                     return Some(TaskStatus::Pending(HttpOperationState::Connecting));
                 }
 
@@ -299,13 +330,22 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     "No redirect detected, transitioning to WriteBody state to send request body."
                 );
                 self.0 = Some(HttpRequestRedirectState::WriteBody(Some(Box::new((
-                    data, pool, connection,
+                    Some([
+                        intro_result.expect("get inner").expect("should have intro"),
+                        headers_result
+                            .expect("get inner")
+                            .expect("should have headers"),
+                    ]),
+                    data,
+                    pool,
+                    connection,
+                    reader,
                 )))));
                 Some(TaskStatus::Pending(HttpOperationState::Connecting))
             }
             HttpRequestRedirectState::WriteBody(mut inner_opt) => {
                 if let Some(inner) = inner_opt.take() {
-                    let (data, _pool, mut connection) = *inner;
+                    let (optional_starters, data, _pool, mut connection, reader) = *inner;
                     let body_renderer = Http11::request_body(data);
 
                     if let Err(err) = body_renderer.http_render_to_writer(connection.stream_mut()) {
@@ -321,6 +361,8 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     return match connection.stream_mut().flush() {
                         Ok(()) => Some(TaskStatus::Ready(HttpRequestRedirectResponse::Done(
                             connection,
+                            reader,
+                            optional_starters,
                         ))),
                         Err(e) => Some(TaskStatus::Ready(
                             HttpRequestRedirectResponse::FlushFailed(connection, e),
@@ -329,7 +371,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                 }
 
                 self.0 = Some(HttpRequestRedirectState::Done);
-                Some(TaskStatus::Pending(HttpOperationState::Connecting))
+                Some(TaskStatus::Pending(HttpOperationState::Done))
             }
             HttpRequestRedirectState::Done => None,
         }
