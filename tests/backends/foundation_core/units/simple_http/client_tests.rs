@@ -129,6 +129,30 @@ fn test_error_mapping_too_many_redirects() {
     }
 }
 
+/// WHAT: Tests error mapping for InvalidLocation using the public API.
+/// WHY: Ensures that the client surfaces InvalidLocation error when a request is made to an invalid URL,
+///      validating robust error handling and user feedback.
+#[test]
+fn test_error_mapping_invalid_location() {
+    use foundation_core::valtron::single::initialize_pool;
+    initialize_pool(45);
+
+    // Setup: Create a client with default config
+    let client = SimpleHttpClient::from_system();
+
+    // Build a GET request to an invalid URL
+    let request_result = client.get("http://");
+    assert!(request_result.is_err());
+
+    // Assert that the error is InvalidLocation or similar
+    let err_str = format!("{:?}", request_result.unwrap_err());
+    assert!(
+        err_str.contains("InvalidLocation") || err_str.contains("invalid"),
+        "Expected InvalidLocation error, got: {}",
+        err_str
+    );
+}
+
 #[test]
 fn test_client_config_clone() {
     let config = ClientConfig::default();
