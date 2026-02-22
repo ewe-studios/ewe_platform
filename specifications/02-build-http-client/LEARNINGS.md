@@ -18,6 +18,10 @@ _To be populated as integration points are discovered_
 - Unit tests should focus on request-building, configuration, and public method behavior.
 - Integration tests may require mock servers or infrastructure to simulate network and redirect scenarios.
 
+### POST→GET Redirect Test
+**WHAT:** Tests POST→GET redirect configuration and builder logic using the public API.
+**WHY:** Ensures the client can build a POST request with redirect settings, and that execution does not panic even when no real server is present. Validates public API usage and proper initialization of the Valtron executor.
+
 ## Future Considerations
 _To be populated with technical debt and improvement opportunities_
 
