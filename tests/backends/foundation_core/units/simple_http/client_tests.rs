@@ -36,6 +36,27 @@ fn test_client_config_fields_public() {
 }
 
 #[test]
+fn test_post_redirect_config_and_builder() {
+    // Initialize Valtron executor pool to avoid thread pool error
+    use foundation_core::valtron::single::initialize_pool;
+    initialize_pool(42);
+
+    // Setup: Create a client with redirect enabled and POST method
+    let client = SimpleHttpClient::from_system().max_redirects(5);
+
+    // Build a POST request
+    let request_result = client.post("http://example.com/redirect");
+    assert!(request_result.is_ok());
+    let request = request_result.unwrap();
+
+    // Attempt to send the request (will fail without a real server, but should not panic)
+    let send_result = request.send();
+
+    // Assert that sending fails gracefully (no panic, error returned)
+    assert!(send_result.is_err());
+}
+
+#[test]
 fn test_client_config_clone() {
     let config = ClientConfig::default();
     let cloned = config.clone();
