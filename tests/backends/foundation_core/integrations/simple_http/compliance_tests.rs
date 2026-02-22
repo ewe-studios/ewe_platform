@@ -5,11 +5,11 @@ mod test_http_reader {
 
     use foundation_core::io::ioutils;
     use foundation_core::netcap::RawStream;
-    // use foundation_core::panic_if_failed;
+    use foundation_core::panic_if_failed;
     // Or comment out if not present in foundation_core
     use foundation_core::wire::simple_http::{
         http_streams, ChunkedData, HTTPStreams, HttpReaderError, HttpResponseReader,
-        IncomingRequestParts, IncomingResponseParts, SimpleBody, SimpleHeader, SimpleMethod,
+        IncomingRequestParts, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleMethod,
         SimpleUrl, Status,
     };
     use regex::Regex; // add to Cargo.toml if missing
@@ -90,7 +90,7 @@ Hello world!";
                     vec!["Apache/2.2.8 (Ubuntu) mod_ssl/2.2.8 OpenSSL/0.9.8g".into()],
                 ),
             ])),
-            IncomingRequestParts::SizedBody(SimpleBody::Bytes(vec![
+            IncomingRequestParts::SizedBody(SendSafeBody::Bytes(vec![
                 72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33,
             ])),
         ];
@@ -142,7 +142,7 @@ Hello world!";
                 ),
                 (SimpleHeader::HOST, vec!["127.0.0.1:7889".into()]),
             ])),
-            IncomingRequestParts::SizedBody(SimpleBody::Bytes(vec![
+            IncomingRequestParts::SizedBody(SendSafeBody::Bytes(vec![
                 104, 101, 108, 108, 111, 61, 119, 111, 114, 108, 100, 38, 115, 101, 97, 110, 61,
                 109, 111, 110, 115, 116, 97, 114,
             ])),
@@ -198,7 +198,7 @@ Hello world!";
                 ),
                 (SimpleHeader::HOST, vec!["127.0.0.1:7887".into()]),
             ])),
-            IncomingRequestParts::SizedBody(SimpleBody::Bytes(vec![
+            IncomingRequestParts::SizedBody(SendSafeBody::Bytes(vec![
                 104, 101, 108, 108, 111, 61, 119, 111, 114, 108, 100, 38, 115, 101, 97, 110, 61,
                 109, 111, 110, 115, 116, 97, 114,
             ])),
@@ -219,7 +219,7 @@ mod http_response_compliance {
     // Or comment out if not present in foundation_core
     use foundation_core::wire::simple_http::{
         http_streams, ChunkedData, HTTPStreams, HttpReaderError, HttpResponseReader,
-        IncomingRequestParts, IncomingResponseParts, SimpleBody, SimpleHeader, SimpleMethod,
+        IncomingRequestParts, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleMethod,
         SimpleUrl, Status,
     };
     use regex::Regex; // add to Cargo.toml if missing
@@ -234,7 +234,7 @@ mod http_response_compliance {
     mod transfer_encoding {
         use tracing_test::traced_test;
 
-        use foundation_core::wire::simple_http::ChunkStateError;
+        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
 
         use super::*;
 
@@ -277,10 +277,10 @@ mod http_response_compliance {
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -340,10 +340,10 @@ mod http_response_compliance {
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -403,10 +403,10 @@ mod http_response_compliance {
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -465,10 +465,10 @@ mod http_response_compliance {
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -527,10 +527,10 @@ mod http_response_compliance {
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -593,10 +593,10 @@ mod http_response_compliance {
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -659,10 +659,10 @@ mod http_response_compliance {
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -725,10 +725,10 @@ mod http_response_compliance {
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -797,10 +797,10 @@ mod http_response_compliance {
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -851,10 +851,10 @@ mod http_response_compliance {
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -904,10 +904,10 @@ mod http_response_compliance {
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -983,10 +983,10 @@ mod http_response_compliance {
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -1271,10 +1271,10 @@ mod http_response_compliance {
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -1335,10 +1335,10 @@ mod http_response_compliance {
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -1425,10 +1425,10 @@ mod http_response_compliance {
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -1479,10 +1479,10 @@ mod http_response_compliance {
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -1562,10 +1562,10 @@ mod http_response_compliance {
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -1616,10 +1616,10 @@ mod http_response_compliance {
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -1670,10 +1670,10 @@ mod http_response_compliance {
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -1732,10 +1732,10 @@ mod http_response_compliance {
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -1794,10 +1794,10 @@ mod http_response_compliance {
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -1864,10 +1864,10 @@ mod http_response_compliance {
             let mut feed_stream = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &feed_stream,
-                IncomingResponseParts::StreamedBody(SimpleBody::LineFeedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::LineFeedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::LineFeedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::LineFeedStream(Some(body_iter))) =
                 feed_stream
             else {
                 panic!("Not a LineFeedStream")
@@ -1928,10 +1928,10 @@ mod http_response_compliance {
             let mut feed_stream = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &feed_stream,
-                IncomingResponseParts::StreamedBody(SimpleBody::LineFeedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::LineFeedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::LineFeedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::LineFeedStream(Some(body_iter))) =
                 feed_stream
             else {
                 panic!("Not a LineFeedStream")
@@ -1992,10 +1992,10 @@ mod http_response_compliance {
             let mut feed_stream = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &feed_stream,
-                IncomingResponseParts::StreamedBody(SimpleBody::LineFeedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::LineFeedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::LineFeedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::LineFeedStream(Some(body_iter))) =
                 feed_stream
             else {
                 panic!("Not a LineFeedStream")
@@ -2052,10 +2052,10 @@ mod http_response_compliance {
             let mut feed_stream = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &feed_stream,
-                IncomingResponseParts::StreamedBody(SimpleBody::LineFeedStream(Some(_)))
+                IncomingResponseParts::StreamedBody(SendSafeBody::LineFeedStream(Some(_)))
             ));
 
-            let IncomingResponseParts::StreamedBody(SimpleBody::LineFeedStream(Some(body_iter))) =
+            let IncomingResponseParts::StreamedBody(SendSafeBody::LineFeedStream(Some(body_iter))) =
                 feed_stream
             else {
                 panic!("Not a LineFeedStream")
@@ -3357,7 +3357,7 @@ mod http_response_compliance {
                     (SimpleHeader::Custom("Foo".into()), vec!["abc".into()]),
                     (SimpleHeader::Custom("Bar".into()), vec!["def".into()]),
                 ])),
-                IncomingResponseParts::SizedBody(SimpleBody::Bytes(vec![66, 79, 68, 89, 10])),
+                IncomingResponseParts::SizedBody(SendSafeBody::Bytes(vec![66, 79, 68, 89, 10])),
             ];
 
             assert_eq!(response_parts, expected_parts);
@@ -3400,7 +3400,7 @@ mod http_response_compliance {
                     (SimpleHeader::Custom("Foo".into()), vec!["abc".into()]),
                     (SimpleHeader::Custom("Bar".into()), vec!["def".into()]),
                 ])),
-                IncomingResponseParts::SizedBody(SimpleBody::Bytes(vec![66, 79, 68, 89, 10])),
+                IncomingResponseParts::SizedBody(SendSafeBody::Bytes(vec![66, 79, 68, 89, 10])),
             ];
 
             assert_eq!(response_parts, expected_parts);
@@ -3420,7 +3420,7 @@ mod http_requests_compliance {
     // Or comment out if not present in foundation_core
     use foundation_core::wire::simple_http::{
         http_streams, ChunkedData, HTTPStreams, HttpReaderError, HttpResponseReader,
-        IncomingRequestParts, IncomingResponseParts, SimpleBody, SimpleHeader, SimpleMethod,
+        IncomingRequestParts, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleMethod,
         SimpleUrl, Status,
     };
     use regex::Regex; // add to Cargo.toml if missing
@@ -3503,7 +3503,7 @@ Hello world!";
                         vec!["Apache/2.2.8 (Ubuntu) mod_ssl/2.2.8 OpenSSL/0.9.8g".into()],
                     ),
                 ])),
-                IncomingRequestParts::SizedBody(SimpleBody::Bytes(vec![
+                IncomingRequestParts::SizedBody(SendSafeBody::Bytes(vec![
                     72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33,
                 ])),
             ];
@@ -3955,10 +3955,10 @@ Hello world!";
             let mut feed_stream = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &feed_stream,
-                IncomingRequestParts::StreamedBody(SimpleBody::LineFeedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::LineFeedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::LineFeedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::LineFeedStream(Some(body_iter))) =
                 feed_stream
             else {
                 panic!("Not a LineFeedStream")
@@ -4029,10 +4029,10 @@ Hello world!";
             let mut feed_stream = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &feed_stream,
-                IncomingRequestParts::StreamedBody(SimpleBody::LineFeedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::LineFeedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::LineFeedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::LineFeedStream(Some(body_iter))) =
                 feed_stream
             else {
                 panic!("Not a LineFeedStream")
@@ -4103,10 +4103,10 @@ Hello world!";
             let mut feed_stream = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &feed_stream,
-                IncomingRequestParts::StreamedBody(SimpleBody::LineFeedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::LineFeedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::LineFeedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::LineFeedStream(Some(body_iter))) =
                 feed_stream
             else {
                 panic!("Not a LineFeedStream")
@@ -4173,10 +4173,10 @@ Hello world!";
             let mut feed_stream = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &feed_stream,
-                IncomingRequestParts::StreamedBody(SimpleBody::LineFeedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::LineFeedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::LineFeedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::LineFeedStream(Some(body_iter))) =
                 feed_stream
             else {
                 panic!("Not a LineFeedStream")
@@ -4251,10 +4251,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -4324,10 +4324,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -4397,10 +4397,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -4469,10 +4469,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -4541,10 +4541,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -4617,10 +4617,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -4693,10 +4693,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -4769,10 +4769,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -4851,10 +4851,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -4914,10 +4914,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -4977,10 +4977,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -5066,10 +5066,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -5362,10 +5362,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -5436,10 +5436,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -5536,10 +5536,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -5600,10 +5600,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -5694,10 +5694,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -5758,10 +5758,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -5822,10 +5822,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -5894,10 +5894,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -5966,10 +5966,10 @@ Hello world!";
             let mut chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
-                IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(_)))
+                IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
             ));
 
-            let IncomingRequestParts::StreamedBody(SimpleBody::ChunkedStream(Some(body_iter))) =
+            let IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(body_iter))) =
                 chunked_body
             else {
                 panic!("Not a ChunkedStream")
@@ -7042,7 +7042,7 @@ Hello world!";
                         SimpleHeader::CONTENT_LENGTH,
                         vec!["3".into()],
                     )])),
-                    IncomingRequestParts::SizedBody(SimpleBody::Bytes("AAA".as_bytes().to_vec())),
+                    IncomingRequestParts::SizedBody(SendSafeBody::Bytes("AAA".as_bytes().to_vec())),
                 ]
             );
 
@@ -7070,7 +7070,9 @@ Hello world!";
                         SimpleHeader::CONTENT_LENGTH,
                         vec!["4".into()],
                     )])),
-                    IncomingRequestParts::SizedBody(SimpleBody::Bytes("BBBB".as_bytes().to_vec())),
+                    IncomingRequestParts::SizedBody(SendSafeBody::Bytes(
+                        "BBBB".as_bytes().to_vec()
+                    )),
                 ]
             );
 
@@ -7098,7 +7100,7 @@ Hello world!";
                         SimpleHeader::CONTENT_LENGTH,
                         vec!["5".into()],
                     )])),
-                    IncomingRequestParts::SizedBody(SimpleBody::Bytes(
+                    IncomingRequestParts::SizedBody(SendSafeBody::Bytes(
                         "CCCC\n".as_bytes().to_vec()
                     )),
                 ]
