@@ -5,7 +5,7 @@ use derive_more::From;
 use foundation_core::{
     extensions::result_ext::{SendableBoxedError, SendableBoxedResult},
     netcap::RawStream,
-    wire::simple_http::{http_streams, HttpReaderError, SendSafeBody, SimpleBody},
+    wire::simple_http::{http_streams, HttpReaderError, SendSafeBody},
 };
 use std::{
     io::Write,
@@ -39,7 +39,7 @@ impl core::fmt::Display for TestServerError {
 
 /**
  A lightweight HTTP server used in tests that serves a collection of predefined
- ServiceAction resources on a given address and port.
+ `ServiceAction` resources on a given address and port.
 
  This server is intended for test scenarios where you need to simulate HTTP
  endpoints and capture incoming request descriptors.

@@ -31,7 +31,7 @@ impl<T: DnsResolver> DnsResolver for Arc<T> {
     }
 }
 
-/// StaticSocketAddrResolver returns a static `std::net::ToSocketAddrs`.
+/// `StaticSocketAddrResolver` returns a static `std::net::ToSocketAddrs`.
 ///
 /// Useful for testing scenarios where a specific IP address is required.
 #[derive(Debug, Clone)]

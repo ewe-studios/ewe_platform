@@ -92,6 +92,7 @@ where
     /// # Returns
     ///
     /// A new `HttpRequestTask` in the `Init` state.
+    #[must_use] 
     pub fn new(
         request: PreparedRequest,
         max_redirects: u8,
@@ -130,10 +131,12 @@ pub enum IncomingResponseMapper {
 }
 
 impl IncomingResponseMapper {
+    #[must_use] 
     pub fn from_reader(reader: HttpResponseReader<SimpleHttpBody, RawStream>) -> Self {
         Self::Reader(reader)
     }
 
+    #[must_use] 
     pub fn from_list(
         items: std::vec::IntoIter<Result<IncomingResponseParts, HttpClientError>>,
     ) -> Self {

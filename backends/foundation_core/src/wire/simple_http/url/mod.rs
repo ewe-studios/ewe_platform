@@ -69,7 +69,7 @@ impl Uri {
     /// Parses a URI from a string.
     ///
     /// This parser accepts two shapes of input:
-    /// 1. Absolute URIs with a scheme (e.g. "http://example.com/path")
+    /// 1. Absolute URIs with a scheme (e.g. "<http://example.com/path>")
     /// 2. Path-only inputs that start with '/' (e.g. "/path?query") — these are
     ///    treated as a path + query with a default scheme of `http` and no authority.
     ///

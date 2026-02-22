@@ -11,7 +11,7 @@
 //! NOTE: This is a simplified test server. For production HTTP parsing/rendering,
 //! use `foundation_core::wire::simple_http` types directly.
 
-use std::io::{BufRead, BufReader, Write};
+use std::io::Write;
 use std::net::{TcpListener, TcpStream};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
@@ -19,7 +19,7 @@ use std::thread;
 
 use foundation_core::netcap::RawStream;
 use foundation_core::wire::simple_http::{
-    http_streams, HttpReaderError, HttpResponseReader, IncomingRequestParts, Proto, SendSafeBody,
+    http_streams, HttpReaderError, IncomingRequestParts, Proto, SendSafeBody,
     SimpleHeaders, SimpleMethod, SimpleUrl,
 };
 

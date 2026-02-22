@@ -279,6 +279,7 @@ impl Host {
     /// - `RegName`: "example.com"
     ///
     /// HOW: Uses Rust's built-in Display implementations for IP addresses.
+    #[must_use] 
     pub fn to_string_for_display(&self) -> String {
         match self {
             Host::Ipv4(addr) => addr.to_string(),

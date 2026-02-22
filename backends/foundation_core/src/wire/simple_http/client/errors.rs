@@ -85,7 +85,7 @@ pub enum HttpClientError {
     #[from]
     DnsError(DnsError),
 
-    /// HttpReader error.
+    /// `HttpReader` error.
     #[from(ignore)]
     ReaderError(HttpReaderError),
 

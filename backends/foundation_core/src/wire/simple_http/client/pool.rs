@@ -20,7 +20,7 @@ use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-/// Entry stored in per-host queue: (last_used_instant, stream)
+/// Entry stored in per-host queue: (`last_used_instant`, stream)
 type PooledEntry = (Instant, SharedByteBufferStream<RawStream>);
 
 /// Connection pool for reusing HTTP connections.
@@ -28,7 +28,7 @@ type PooledEntry = (Instant, SharedByteBufferStream<RawStream>);
 /// WHY: Reusing connections avoids TCP handshake overhead for multiple requests
 /// to the same server.
 ///
-/// WHAT: A simple thread-safe pool keyed by `host:port` storing a VecDeque of
+/// WHAT: A simple thread-safe pool keyed by `host:port` storing a `VecDeque` of
 /// `PooledEntry`. The pool enforces `max_per_host` limit and expires entries
 /// older than `max_idle_time` on checkout/cleanup.
 pub struct ConnectionPool {
@@ -103,7 +103,7 @@ impl ConnectionPool {
     /// exists and is not stale. Otherwise returns `None`.
     #[must_use]
     pub fn checkout(&self, host: &str, port: u16) -> Option<SharedByteBufferStream<RawStream>> {
-        let key = format!("{}:{}", host, port);
+        let key = format!("{host}:{port}");
         let now = Instant::now();
 
         let mut map = match self.inner.lock() {
@@ -133,7 +133,7 @@ impl ConnectionPool {
     /// If the per-host buffer exceeds `max_per_host`, the oldest entry is
     /// dropped to maintain the limit.
     pub fn checkin(&self, host: &str, port: u16, stream: SharedByteBufferStream<RawStream>) {
-        let key = format!("{}:{}", host, port);
+        let key = format!("{host}:{port}");
         let mut map = match self.inner.lock() {
             Ok(m) => m,
             Err(_) => return, // poisoned lock; drop stream

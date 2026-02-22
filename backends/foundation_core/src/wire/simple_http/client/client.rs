@@ -46,6 +46,7 @@ pub struct ClientConfig {
 }
 
 impl ClientConfig {
+    #[must_use] 
     pub fn get_op_timeout(&self) -> OpTimeout {
         if self.connect_timeout.is_some() && self.read_timeout.is_some() {
             OpTimeout::new(
@@ -164,6 +165,7 @@ impl<R: DnsResolver + Clone> Clone for SimpleHttpClient<R> {
 }
 
 impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
+    #[must_use] 
     pub fn client_config(&self) -> ClientConfig {
         self.config.clone()
     }

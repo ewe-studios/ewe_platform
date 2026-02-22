@@ -295,7 +295,7 @@ impl<
     }
 
     /// Creates a stream from a sequenced task, allowing iteration to retrieve results.
-    /// Returns: The SpawnInfo for the result of the operation, or an error.
+    /// Returns: The `SpawnInfo` for the result of the operation, or an error.
     #[must_use]
     pub fn stream_sequenced_iter(
         self,
@@ -324,7 +324,7 @@ impl<
 
     /// Places a task at the head of the thread-local execution queue with the given parent.
     ///
-    /// Returns: The SpawnInfo for the result of the operation, or an error.
+    /// Returns: The `SpawnInfo` for the result of the operation, or an error.
     #[must_use]
     pub fn sequenced(self) -> AnyResult<SpawnInfo, ExecutorError> {
         let Some(parent) = self.parent else {

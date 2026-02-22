@@ -207,7 +207,7 @@ impl<T> RecvIter<T> {
                         return Err(ReceiverError::Closed(err));
                     }
                 },
-            };
+            }
         }
     }
 }
