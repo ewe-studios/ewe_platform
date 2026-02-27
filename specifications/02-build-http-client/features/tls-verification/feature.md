@@ -1,13 +1,23 @@
 ---
-feature: tls-verification
-description: Verify and fix TLS module to ensure all SSL backends work correctly with proper feature gating
+workspace_name: "ewe_platform"
+spec_directory: "specifications/02-build-http-client"
+feature_directory: "specifications/02-build-http-client/features/tls-verification"
+this_file: "specifications/02-build-http-client/features/tls-verification/feature.md"
+
 status: pending
+priority: medium
+created: 2026-02-28
+
 depends_on:
   - valtron-utilities
-estimated_effort: medium
-created: 2026-01-18
-last_updated: 2026-01-19
+
+tasks:
+  completed: 0
+  uncompleted: 0
+  total: 0
+  completion_percentage: 0
 ---
+
 
 # TLS Verification Feature
 
