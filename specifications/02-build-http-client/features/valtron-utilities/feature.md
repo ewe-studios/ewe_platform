@@ -1,12 +1,22 @@
 ---
-feature: valtron-utilities
-description: Reusable ExecutionAction types, unified executor wrapper, state machine helpers, Future adapter, and retry/timeout wrappers
+workspace_name: "ewe_platform"
+spec_directory: "specifications/02-build-http-client"
+feature_directory: "specifications/02-build-http-client/features/valtron-utilities"
+this_file: "specifications/02-build-http-client/features/valtron-utilities/feature.md"
+
 status: pending
+priority: medium
+created: 2026-02-28
+
 depends_on: []
-estimated_effort: medium
-created: 2026-01-19
-last_updated: 2026-01-19
+
+tasks:
+  completed: 0
+  uncompleted: 0
+  total: 0
+  completion_percentage: 0
 ---
+
 
 # Valtron Utilities Feature
 

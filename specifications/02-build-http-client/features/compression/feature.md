@@ -1,13 +1,23 @@
 ---
-feature: compression
-description: Automatic compression/decompression of HTTP bodies with gzip, deflate, and brotli support
+workspace_name: "ewe_platform"
+spec_directory: "specifications/02-build-http-client"
+feature_directory: "specifications/02-build-http-client/features/compression"
+this_file: "specifications/02-build-http-client/features/compression/feature.md"
+
 status: pending
+priority: high
+created: 2026-02-28
+
 depends_on:
   - foundation
-estimated_effort: small
-created: 2026-01-19
-last_updated: 2026-01-19
+
+tasks:
+  completed: 0
+  uncompleted: 0
+  total: 0
+  completion_percentage: 0
 ---
+
 
 # Compression Feature
 

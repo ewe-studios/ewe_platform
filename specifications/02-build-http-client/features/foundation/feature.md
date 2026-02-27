@@ -1,13 +1,23 @@
 ---
-feature: foundation
-description: Error types (HttpClientError, DnsError) and DNS resolution with caching support
+workspace_name: "ewe_platform"
+spec_directory: "specifications/02-build-http-client"
+feature_directory: "specifications/02-build-http-client/features/foundation"
+this_file: "specifications/02-build-http-client/features/foundation/feature.md"
+
 status: pending
+priority: high
+created: 2026-02-28
+
 depends_on:
   - tls-verification
-estimated_effort: small
-created: 2026-01-18
-last_updated: 2026-01-18
+
+tasks:
+  completed: 0
+  uncompleted: 0
+  total: 0
+  completion_percentage: 0
 ---
+
 
 # Foundation Feature
 

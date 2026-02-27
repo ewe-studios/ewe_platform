@@ -1,16 +1,26 @@
 ---
-feature: public-api
-description: User-facing API (ClientRequest, SimpleHttpClient), optional connection pooling, and module integration
+workspace_name: "ewe_platform"
+spec_directory: "specifications/02-build-http-client"
+feature_directory: "specifications/02-build-http-client/features/public-api"
+this_file: "specifications/02-build-http-client/features/public-api/feature.md"
+
 status: pending
+priority: medium
+created: 2026-02-28
+
 depends_on:
   - foundation
   - connection
   - request-response
   - task-iterator
-estimated_effort: medium
-created: 2026-01-18
-last_updated: 2026-01-18
+
+tasks:
+  completed: 0
+  uncompleted: 0
+  total: 0
+  completion_percentage: 0
 ---
+
 
 # Public API Feature
 

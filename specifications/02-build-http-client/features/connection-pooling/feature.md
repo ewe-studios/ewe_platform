@@ -1,60 +1,21 @@
 ---
-# Identification
-spec_name: "02-build-http-client"
-spec_number: 2
-feature_name: connection-pooling
-feature_number: 11
+workspace_name: "ewe_platform"
+spec_directory: "specifications/02-build-http-client"
+feature_directory: "specifications/02-build-http-client/features/connection-pooling"
+this_file: "specifications/02-build-http-client/features/connection-pooling/feature.md"
 
-# Location Context
-workspace_root: ewe_platform (CWD)
-this_file: specifications/02-build-http-client/features/connection-pooling/feature.md
-
-# Status
 status: pending
 priority: medium
+created: 2026-02-28
+
 depends_on:
   - connection
-estimated_effort: small-medium
-created: 2026-02-18
-last_updated: 4/18/2026
-author: Claude Opus AI with user decisions applied
 
----
-
-*Created: 2026-02-18*
-*Updated: 4/18/2026 with complete design specification and user decisions applied (PooledConnection public, case-insensitive keys, conservative defaults)*
-
-# Context Optimization
-machine_optimized: true
-context_optimization: true
-
-# Tasks
 tasks:
   completed: 0
-  uncompleted: 8
-  total: 8
+  uncompleted: 0
+  total: 0
   completion_percentage: 0
-
-# Files Required by Agents
-files_required:
-  implementation_agent:
-    rules:
-      - .agents/rules/01-rule-naming-and-structure.md
-      - .agents/rules/02-rules-directory-policy.md
-      - .agents/rules/03-dangerous-operations-safety.md
-      - .agents/rules/04-work-commit-and-push-rules.md
-      - .agents/rules/13-implementation-agent-guide.md
-    files:
-      - ../requirements.md
-
-  verification_agent:
-    rules:
-      - .agents/rules/01-rule-naming-and-structure.md
-      - .agents/rules/02-rules-directory-policy.md
-      - .agents/rules/03-dangerous-operations-safety.md
-      - .agents/rules/04-work-commit-and-push-rules.md
-      - .agents/rules/08-verification-workflow-complete-guide.md
-
 ---
 
 # Connection Pooling Feature

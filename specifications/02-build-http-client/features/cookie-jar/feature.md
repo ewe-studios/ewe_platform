@@ -1,13 +1,23 @@
 ---
-feature: cookie-jar
-description: Automatic cookie storage, sending, and lifecycle management
+workspace_name: "ewe_platform"
+spec_directory: "specifications/02-build-http-client"
+feature_directory: "specifications/02-build-http-client/features/cookie-jar"
+this_file: "specifications/02-build-http-client/features/cookie-jar/feature.md"
+
 status: pending
+priority: medium
+created: 2026-02-28
+
 depends_on:
   - public-api
-estimated_effort: medium
-created: 2026-01-19
-last_updated: 2026-01-19
+
+tasks:
+  completed: 0
+  uncompleted: 0
+  total: 0
+  completion_percentage: 0
 ---
+
 
 # Cookie Jar Feature
 
