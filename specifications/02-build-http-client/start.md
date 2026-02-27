@@ -10,13 +10,13 @@ created: 2026-02-28
 ## Agent Workflow
 
 1. Read `requirements.md` (high-level overview + feature index)
-2. Identify which feature you're working on from the Feature Index
-3. Navigate to `features/[feature-name]/start.md` and follow that feature's workflow
-4. Read `LEARNINGS.md` (past discoveries and mistakes)
+2. Read `LEARNINGS.md` (past discoveries and mistakes)
+3. Identify which feature you're working on from the Feature Index
+4. Navigate to `features/[feature-name]/start.md` and follow that feature's workflow
 
 ---
 
-**Workflow:** Requirements → Select Feature → Feature start.md → Follow feature workflow
+**Workflow:** Requirements → Learnings → Select Feature → Feature start.md → Follow feature workflow
 
 ---
 
