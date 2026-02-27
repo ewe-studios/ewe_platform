@@ -10,10 +10,10 @@
 //! Generic type parameter for DNS resolver (no boxing).
 
 use crate::wire::simple_http::client::{
-    ClientRequest, ClientRequestBuilder, ConnectionPool, DnsResolver, HttpClientError,
-    HttpConnectionPool, OpTimeout, SystemDnsResolver,
+    ClientRequest, ClientRequestBuilder, ConnectionPool, DnsResolver, HttpConnectionPool,
+    OpTimeout, SystemDnsResolver,
 };
-use crate::wire::simple_http::SimpleHeaders;
+use crate::wire::simple_http::{HttpClientError, SimpleHeaders};
 use std::collections::BTreeMap;
 use std::sync::Arc;
 use std::time::Duration;
@@ -46,7 +46,7 @@ pub struct ClientConfig {
 }
 
 impl ClientConfig {
-    #[must_use] 
+    #[must_use]
     pub fn get_op_timeout(&self) -> OpTimeout {
         if self.connect_timeout.is_some() && self.read_timeout.is_some() {
             OpTimeout::new(
@@ -165,7 +165,7 @@ impl<R: DnsResolver + Clone> Clone for SimpleHttpClient<R> {
 }
 
 impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
-    #[must_use] 
+    #[must_use]
     pub fn client_config(&self) -> ClientConfig {
         self.config.clone()
     }

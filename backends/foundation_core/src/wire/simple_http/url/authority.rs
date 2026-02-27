@@ -1,8 +1,9 @@
 //! URI authority component (userinfo@host:port).
 
-use super::error::InvalidUri;
 use std::fmt;
 use std::net::{Ipv4Addr, Ipv6Addr};
+
+use crate::wire::simple_http::InvalidUri;
 
 /// URI authority component.
 ///
@@ -279,7 +280,7 @@ impl Host {
     /// - `RegName`: "example.com"
     ///
     /// HOW: Uses Rust's built-in Display implementations for IP addresses.
-    #[must_use] 
+    #[must_use]
     pub fn to_string_for_display(&self) -> String {
         match self {
             Host::Ipv4(addr) => addr.to_string(),

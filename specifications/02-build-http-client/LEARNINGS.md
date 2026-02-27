@@ -17,6 +17,7 @@ _To be populated as integration points are discovered_
 - Valtron executor must be initialized for tests that trigger request execution, otherwise thread pool errors will occur.
 - Unit tests should focus on request-building, configuration, and public method behavior.
 - Integration tests may require mock servers or infrastructure to simulate network and redirect scenarios.
+- **Test feature flag:** Public API and unit tests require `--features std` (not `multi`). Using `multi` may cause some test files (e.g., `client_tests.rs`) to be undiscovered or skipped.
 
 ### POST→GET Redirect Test
 **WHAT:** Tests POST→GET redirect configuration and builder logic using the public API.

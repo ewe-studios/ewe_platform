@@ -12,7 +12,8 @@ use crate::wire::simple_http::errors::{
     ChunkStateError, Http11RenderError, HttpReaderError, LineFeedError, Result, SimpleHttpError,
     SimpleHttpResult, StringHandlingError,
 };
-use crate::wire::simple_http::url::{InvalidUri, Uri};
+use crate::wire::simple_http::url::Uri;
+use crate::wire::simple_http::InvalidUri;
 use derive_more::From;
 use regex::{self, Regex};
 use std::collections::HashSet;

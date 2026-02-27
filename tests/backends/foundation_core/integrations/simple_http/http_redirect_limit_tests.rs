@@ -4,13 +4,14 @@
 
 #![cfg(test)]
 
+use foundation_core::valtron;
 use foundation_core::wire::simple_http::client::*;
-use foundation_core::wire::simple_http::*;
+use foundation_core::wire::simple_http::HttpClientError;
 use std::io::{Read, Write};
-use std::net::{TcpListener, TcpStream};
-use std::sync::Arc;
+use std::net::TcpListener;
 use std::thread;
 use std::time::Duration;
+use tracing_test::traced_test;
 
 fn spawn_redirect_server() -> u16 {
     // Bind to an available port
@@ -35,7 +36,11 @@ fn spawn_redirect_server() -> u16 {
 }
 
 #[test]
+#[traced_test]
 fn redirect_limit_triggers_too_many_redirects() {
+    // Initialize Valtron executor for HTTP client concurrency
+    valtron::initialize_pool(42, None);
+
     // Spin up local redirect server
     let port = spawn_redirect_server();
 
@@ -55,11 +60,10 @@ fn redirect_limit_triggers_too_many_redirects() {
     // Send the request – should fail with TooManyRedirects
     let send_result = request.send();
 
-    use foundation_core::wire::simple_http::client::HttpClientError;
     if let Err(err) = send_result {
         println!("Actual error: {:?}", err);
         assert!(
-            matches!(err, HttpClientError::TooManyRedirects(_)),
+            matches!(err, HttpClientError::TooManyRedirects),
             "Expected TooManyRedirects error, got: {:?}",
             err
         );

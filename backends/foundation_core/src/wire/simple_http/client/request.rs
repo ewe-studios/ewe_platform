@@ -5,7 +5,7 @@
 //! - `ClientRequestBuilder` - Fluent API for building requests
 
 use crate::wire::simple_http::client::connection::ParsedUrl;
-use crate::wire::simple_http::client::errors::HttpClientError;
+use crate::wire::simple_http::HttpClientError;
 use crate::wire::simple_http::{
     Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
     SimpleUrl,
@@ -49,7 +49,7 @@ impl PreparedRequest {
             .with_headers(self.headers)
             .with_some_body(Some(self.body))
             .build()
-            .map_err(|e| HttpClientError::Other(Box::new(e)))?;
+            .map_err(|e| HttpClientError::FailedWith(Box::new(e)))?;
 
         Ok(request)
     }
@@ -220,7 +220,7 @@ impl ClientRequestBuilder {
     /// Returns `HttpClientError` if JSON serialization fails.
     pub fn body_json<T: Serialize>(mut self, value: &T) -> Result<Self, HttpClientError> {
         let json_string =
-            serde_json::to_string(value).map_err(|e| HttpClientError::Other(Box::new(e)))?;
+            serde_json::to_string(value).map_err(|e| HttpClientError::FailedWith(Box::new(e)))?;
         let content_length = json_string.len().to_string();
 
         self.headers.insert(
