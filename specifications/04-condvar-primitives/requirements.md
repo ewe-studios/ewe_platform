@@ -37,41 +37,6 @@ tasks:
   uncompleted: 19
   total: 209
   completion_percentage: 90.9
-files_required:
-  main_agent:
-    rules:
-    files:
-      - ./requirements.md
-      - ./LEARNINGS.md
-      - ./PROGRESS.md
-
-  implementation_agent:
-    rules:
-      - .agents/rules/01-rule-naming-and-structure.md
-      - .agents/rules/02-rules-directory-policy.md
-      - .agents/rules/03-dangerous-operations-safety.md
-      - .agents/rules/04-work-commit-and-push-rules.md
-      - .agents/rules/13-implementation-agent-guide.md
-      - .agents/rules/11-skills-usage.md
-      - .agents/stacks/rust.md
-    files:
-      - ./requirements.md
-      - ./fundamentals/*
-
-  verification_agent:
-    rules:
-      - .agents/rules/01-rule-naming-and-structure.md
-      - .agents/rules/02-rules-directory-policy.md
-      - .agents/rules/03-dangerous-operations-safety.md
-      - .agents/rules/04-work-commit-and-push-rules.md
-      - .agents/rules/08-verification-workflow-complete-guide.md
-      - .agents/rules/14-machine-optimized-prompts.md
-      - .agents/rules/15-instruction-compaction.md
-      - .agents/stacks/rust.md
-    files:
-      - ./requirements.md
-
-  # All agents MUST load Rules 14 & 15 for token/context optimization
 ---
 
 # CondVar Primitives - Requirements
