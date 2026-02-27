@@ -11,7 +11,7 @@
 use foundation_core::wire::simple_http::client::{
     CachingDnsResolver, DnsResolver, MockDnsResolver, StaticSocketAddr, SystemDnsResolver,
 };
-use foundation_core::wire::simple_http::client::{DnsError, HttpClientError};
+use foundation_core::wire::simple_http::{DnsError, HttpClientError};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::time::Duration;
 use std::{io, thread};

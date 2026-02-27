@@ -13,8 +13,8 @@
 #![allow(clippy::type_complexity)]
 
 use crate::valtron::{
-    drive_receiver, drive_stream, single, DrivenRecvIterator, DrivenStreamIterator,
-    ExecutionAction, TaskIterator,
+    drive_receiver, drive_stream, DrivenRecvIterator, DrivenStreamIterator, ExecutionAction,
+    TaskIterator,
 };
 
 use crate::valtron::GenericResult;
@@ -222,6 +222,8 @@ where
     T::Pending: Send + 'static,
     T::Spawner: ExecutionAction + Send + 'static,
 {
+    use super::single;
+
     // Schedule task and get iterator
     let iter = single::spawn()
         .with_task(task)
@@ -245,6 +247,7 @@ where
     T::Pending: Send + 'static,
     T::Spawner: ExecutionAction + Send + 'static,
 {
+    use super::single;
     // Schedule task and get iterator
     let iter = single::spawn()
         .with_task(task)

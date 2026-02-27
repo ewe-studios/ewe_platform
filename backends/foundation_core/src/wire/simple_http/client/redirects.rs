@@ -1,6 +1,7 @@
 use crate::wire::simple_http::{
-    client::{HttpClientError, ParsedUrl, PreparedRequest},
-    RequestDescriptor, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod, SimpleUrl,
+    client::{ParsedUrl, PreparedRequest},
+    HttpClientError, RequestDescriptor, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
+    SimpleUrl,
 };
 
 /// Resolve a `Location` header value against a base `ParsedUrl` (Uri).

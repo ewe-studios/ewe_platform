@@ -1,9 +1,9 @@
 use crate::netcap::RawStream;
 use crate::wire::simple_http::client::{
-    DnsResolver, HttpClientConnection, HttpClientError, HttpConnectionPool, PreparedRequest,
+    DnsResolver, HttpClientConnection, HttpConnectionPool, PreparedRequest,
 };
 use crate::wire::simple_http::{
-    ClientRequestErrors, HttpResponseReader, IncomingResponseParts, SimpleHttpBody,
+    HttpClientError, HttpResponseReader, IncomingResponseParts, SimpleHttpBody,
 };
 use std::sync::Arc;
 
@@ -92,7 +92,7 @@ where
     /// # Returns
     ///
     /// A new `HttpRequestTask` in the `Init` state.
-    #[must_use] 
+    #[must_use]
     pub fn new(
         request: PreparedRequest,
         max_redirects: u8,
@@ -120,7 +120,7 @@ where
 pub enum HttpStreamReady {
     /// Done returns an optional intro (if probe read an intro) and the owned stream
     Done(HttpClientConnection),
-    Error(ClientRequestErrors),
+    Error(HttpClientError),
 }
 
 /// [`IncomingResponseMapper`] implements an iterator wrapper for the [`HttpResponseReader<SimpleHttpBody, RawStream>`]
@@ -131,12 +131,12 @@ pub enum IncomingResponseMapper {
 }
 
 impl IncomingResponseMapper {
-    #[must_use] 
+    #[must_use]
     pub fn from_reader(reader: HttpResponseReader<SimpleHttpBody, RawStream>) -> Self {
         Self::Reader(reader)
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn from_list(
         items: std::vec::IntoIter<Result<IncomingResponseParts, HttpClientError>>,
     ) -> Self {

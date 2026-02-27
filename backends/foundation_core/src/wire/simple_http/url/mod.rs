@@ -15,18 +15,18 @@
 //! and proper validation at each component level.
 
 mod authority;
-mod error;
 mod path;
 mod query;
 mod scheme;
 
 pub use authority::*;
-pub use error::*;
 pub use path::*;
 pub use query::*;
 pub use scheme::*;
 
 use std::fmt;
+
+use crate::wire::simple_http::InvalidUri;
 
 /// A parsed URI with all components.
 ///

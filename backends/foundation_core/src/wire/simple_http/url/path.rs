@@ -1,7 +1,8 @@
 //! URI path and query components.
 
-use super::error::InvalidUri;
 use std::fmt;
+
+use crate::wire::simple_http::InvalidUri;
 
 /// Path and query component of a URI.
 ///

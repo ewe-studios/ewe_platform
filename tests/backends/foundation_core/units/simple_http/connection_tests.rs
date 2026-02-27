@@ -7,8 +7,9 @@
 
 use super::*;
 use foundation_core::wire::simple_http::client::{
-    HttpClientConnection, HttpClientError, MockDnsResolver, SystemDnsResolver,
+    HttpClientConnection, MockDnsResolver, SystemDnsResolver,
 };
+use foundation_core::wire::simple_http::HttpClientError;
 
 use foundation_core::wire::simple_http::{client::ParsedUrl, url::Scheme};
 use std::{

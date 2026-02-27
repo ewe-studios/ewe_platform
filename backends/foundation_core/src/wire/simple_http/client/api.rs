@@ -17,12 +17,12 @@ use foundation_nostd::primitives::wait_duration;
 use crate::netcap::RawStream;
 use crate::valtron::{self, DrivenStreamIterator, Stream};
 use crate::wire::simple_http::client::{
-    ClientConfig, DnsResolver, GetHttpRequestRedirectTask, HttpClientConnection, HttpClientError,
+    ClientConfig, DnsResolver, GetHttpRequestRedirectTask, HttpClientConnection,
     HttpConnectionPool, HttpRequestRedirectResponse, IncomingResponseMapper, PreparedRequest,
     RequestIntro, ResponseIntro, SendRequestTask,
 };
 use crate::wire::simple_http::{
-    HttpResponseReader, IncomingResponseParts, SendSafeBody, SimpleHeaders,
+    HttpClientError, HttpResponseReader, IncomingResponseParts, SendSafeBody, SimpleHeaders,
     SimpleHttpBody, SimpleResponse,
 };
 use std::io::Write;
@@ -134,7 +134,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// # Returns
     ///
     /// A new `ClientRequest` ready to execute.
-    #[must_use] 
+    #[must_use]
     pub fn new(
         prepared: PreparedRequest,
         config: ClientConfig,
@@ -244,32 +244,37 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                                 tracing::debug!(
                                     "Stream::Next: Received next value state from stream"
                                 );
-                                if let RequestIntro::Success {
-                                    stream,
-                                    conn,
-                                    intro,
-                                    headers,
-                                } = value
-                                {
-                                    tracing::debug!(
-                                        "RequestIntro::Success received response: intro={:?}",
-                                        intro
-                                    );
 
-                                    self.task_state = Some(ClientRequestState::IntroReady(Some(
-                                        Box::new(RequestIntro::Success {
-                                            stream,
-                                            conn: conn.clone(),
-                                            intro: intro.clone(),
-                                            headers: headers.clone(),
-                                        }),
-                                    )));
+                                match value {
+                                    RequestIntro::Success {
+                                        stream,
+                                        conn,
+                                        intro,
+                                        headers,
+                                    } => {
+                                        tracing::debug!(
+                                            "RequestIntro::Success received response: intro={:?}",
+                                            intro
+                                        );
 
-                                    return Ok((conn, intro.into(), headers));
+                                        self.task_state = Some(ClientRequestState::IntroReady(
+                                            Some(Box::new(RequestIntro::Success {
+                                                stream,
+                                                conn: conn.clone(),
+                                                intro: intro.clone(),
+                                                headers: headers.clone(),
+                                            })),
+                                        ));
+
+                                        return Ok((conn, intro.into(), headers));
+                                    }
+                                    RequestIntro::Failed(err) => {
+                                        tracing::debug!(
+                                            "RequestIntro::Failed during execution: {err:?}"
+                                        );
+                                        return Err(err);
+                                    }
                                 }
-
-                                tracing::debug!("RequestIntro::Failed during execution");
-                                return Err(HttpClientError::FailedExecution);
                             }
                         }
                     }
@@ -277,7 +282,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                         unreachable!("should never trigger this state in the loop");
                     }
                     ClientRequestState::Completed => {
-                        return Err(HttpClientError::Other(
+                        return Err(HttpClientError::FailedWith(
                             "Request response already completedly read".into(),
                         ));
                     }
@@ -288,7 +293,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         }
 
         self.task_state = Some(ClientRequestState::Completed);
-        Err(HttpClientError::Other("Request state missing".into()))
+        Err(HttpClientError::FailedWith("Request state missing".into()))
     }
 
     /// Internal helper to start request execution.
@@ -322,7 +327,9 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
 
         // Spawn task via execute_task
         let iter: DrivenStreamIterator<SendRequestTask<R>> = valtron::execute_stream(task, None)
-            .map_err(|e| HttpClientError::Other(format!("Failed to spawn task: {e}").into()))?;
+            .map_err(|e| {
+                HttpClientError::FailedWith(format!("Failed to spawn task: {e}").into())
+            })?;
 
         // Transition to Executing state
         self.task_state = Some(ClientRequestState::Executing(Box::new(iter)));
@@ -375,7 +382,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                 tracing::error!("client found in invalid state");
                 self.task_state = Some(ClientRequestState::Completed);
 
-                Err(HttpClientError::Other(
+                Err(HttpClientError::FailedWith(
                     "request client in invalid state".into(),
                 ))
             }
@@ -391,14 +398,14 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                 };
 
                 match *request_intro {
-                    RequestIntro::Failed(err) => Err(HttpClientError::ReaderError(err)),
+                    RequestIntro::Failed(err) => Err(err),
                     RequestIntro::Success {
                         stream,
                         conn: _,
                         intro: _,
                         headers: _,
                     } => {
-                        tracing::info!("Seen RequestIntro::Success state and attmepting to read from response stream");
+                        tracing::info!("Seen RequestIntro::Success state and attempting to read from response stream");
 
                         for next_value in stream {
                             match next_value {
@@ -573,8 +580,9 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
             );
 
             // Spawn task via execute_task
-            let iter = valtron::execute_stream(task, None)
-                .map_err(|e| HttpClientError::Other(format!("Failed to spawn task: {e}").into()))?;
+            let iter = valtron::execute_stream(task, None).map_err(|e| {
+                HttpClientError::FailedWith(format!("Failed to spawn task: {e}").into())
+            })?;
 
             for next_value in iter {
                 match next_value {

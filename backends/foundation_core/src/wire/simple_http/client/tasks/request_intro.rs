@@ -15,13 +15,17 @@
 //! PHASE 1 SCOPE: HTTP-only (no HTTPS), blocking connection, basic GET requests.
 //! PHASE 2 SCOPE: HTTPS support, non-blocking connection, advanced request handling.
 
+use derive_more::From;
+
 use crate::netcap::RawStream;
 use crate::valtron::{NoSpawner, TaskIterator, TaskStatus};
 use crate::wire::simple_http::client::HttpClientConnection;
 use crate::wire::simple_http::{
-    HttpReaderError, HttpResponseIntro, HttpResponseReader, SimpleHeaders, SimpleHttpBody,
+    HttpClientError, HttpReaderError, HttpResponseIntro, HttpResponseReader, SimpleHeaders,
+    SimpleHttpBody,
 };
 
+#[derive(From)]
 pub enum RequestIntro {
     Success {
         stream: HttpResponseReader<SimpleHttpBody, RawStream>,
@@ -33,7 +37,13 @@ pub enum RequestIntro {
         headers: SimpleHeaders,
     },
 
-    Failed(HttpReaderError),
+    Failed(HttpClientError),
+}
+
+impl From<HttpReaderError> for RequestIntro {
+    fn from(error: HttpReaderError) -> Self {
+        RequestIntro::Failed(HttpClientError::ReaderError(error))
+    }
 }
 
 pub enum GetRequestIntroState {
@@ -74,7 +84,7 @@ impl TaskIterator for GetRequestIntroTask {
                     tracing::info!("Get intro from stream");
                     let intro = match reader.next()? {
                         Ok(inner) => inner,
-                        Err(err) => return Some(TaskStatus::Ready(RequestIntro::Failed(err))),
+                        Err(err) => return Some(TaskStatus::Ready(err.into())),
                     };
 
                     let crate::wire::simple_http::IncomingResponseParts::Intro(status, proto, text) =
@@ -82,7 +92,7 @@ impl TaskIterator for GetRequestIntroTask {
                     else {
                         tracing::info!("Failed to read intro from stream");
                         return Some(TaskStatus::Ready(RequestIntro::Failed(
-                            HttpReaderError::ReadFailed,
+                            HttpReaderError::ReadFailed.into(),
                         )));
                     };
 
@@ -103,7 +113,9 @@ impl TaskIterator for GetRequestIntroTask {
                     tracing::info!("Read request header from stream");
                     let header_response = match reader.next()? {
                         Ok(inner) => inner,
-                        Err(err) => return Some(TaskStatus::Ready(RequestIntro::Failed(err))),
+                        Err(err) => {
+                            return Some(TaskStatus::Ready(RequestIntro::Failed(err.into())))
+                        }
                     };
 
                     let crate::wire::simple_http::IncomingResponseParts::Headers(headers) =
@@ -111,7 +123,7 @@ impl TaskIterator for GetRequestIntroTask {
                     else {
                         tracing::info!("No header received or failed reading");
                         return Some(TaskStatus::Ready(RequestIntro::Failed(
-                            HttpReaderError::ReadFailed,
+                            HttpReaderError::ReadFailed.into(),
                         )));
                     };
 

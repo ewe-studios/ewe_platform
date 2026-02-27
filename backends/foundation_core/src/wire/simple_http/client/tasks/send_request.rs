@@ -20,9 +20,7 @@ use crate::valtron::{
     IntoBoxedSendExecutionAction, TaskIterator, TaskStatus,
 };
 use crate::wire::simple_http::client::{DnsResolver, HttpConnectionPool, PreparedRequest};
-use crate::wire::simple_http::{
-    HttpReaderError, IncomingResponseParts,
-};
+use crate::wire::simple_http::{HttpClientError, IncomingResponseParts};
 use std::io::Write;
 use std::sync::Arc;
 
@@ -63,7 +61,7 @@ impl<R> SendRequestTask<R>
 where
     R: DnsResolver + Send + 'static,
 {
-    #[must_use] 
+    #[must_use]
     pub fn new(
         request: PreparedRequest,
         max_redirects: u8,
@@ -101,7 +99,7 @@ where
                         self.0 = Some(SendRequestState::Done);
 
                         return Some(TaskStatus::Ready(RequestIntro::Failed(
-                            HttpReaderError::ReadFailed,
+                            HttpClientError::ReadError,
                         )));
                     }
 
@@ -110,7 +108,7 @@ where
                         self.0 = Some(SendRequestState::Done);
 
                         return Some(TaskStatus::Ready(RequestIntro::Failed(
-                            HttpReaderError::ReadFailed,
+                            HttpClientError::ReadError,
                         )));
                     };
 
@@ -151,7 +149,7 @@ where
 
                     tracing::debug!("HttpRequestTaskState::Connecting: failed execution");
                     return Some(TaskStatus::Ready(RequestIntro::Failed(
-                        HttpReaderError::ReadFailed,
+                        HttpClientError::ReadError,
                     )));
                 }
 
@@ -200,7 +198,7 @@ where
                                             "First item in optional_starters is not an IncomingResponseParts::Intro"
                                         );
                                         return Some(TaskStatus::Ready(RequestIntro::Failed(
-                                            HttpReaderError::ReadFailed,
+                                            HttpClientError::ReadError,
                                         )));
                                     };
 
@@ -215,7 +213,7 @@ where
                                             "Second item in optional_starters is not an IncomingResponseParts::Headers"
                                         );
                                         return Some(TaskStatus::Ready(RequestIntro::Failed(
-                                            HttpReaderError::ReadFailed,
+                                            HttpClientError::ReadError,
                                         )));
                                     };
 
@@ -280,9 +278,7 @@ where
                                 tracing::debug!(
                                     "HttpRequestTaskState::Connecting::HttpStreamReady::Error({err:?}): Failed and returning read failure"
                                 );
-                                Some(TaskStatus::Ready(RequestIntro::Failed(
-                                    HttpReaderError::ReadFailed,
-                                )))
+                                Some(TaskStatus::Ready(RequestIntro::Failed(err)))
                             }
                         }
                     }
@@ -292,7 +288,7 @@ where
                 tracing::debug!("HttpRequestTaskState::Reading: received intro already");
 
                 Some(TaskStatus::Ready(RequestIntro::Failed(
-                    HttpReaderError::ReadFailed,
+                    HttpClientError::ReadError,
                 )))
             }
             SendRequestState::SkipReading(Some(container)) => {
@@ -316,7 +312,7 @@ where
 
                     tracing::debug!("HttpRequestTaskState::Reading: failed to read from iterator");
                     return Some(TaskStatus::Ready(RequestIntro::Failed(
-                        HttpReaderError::ReadFailed,
+                        HttpClientError::ReadError,
                     )));
                 }
 

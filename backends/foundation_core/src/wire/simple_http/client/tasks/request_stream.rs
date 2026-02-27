@@ -17,7 +17,7 @@
 
 use crate::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use crate::wire::simple_http::client::{DnsResolver, HttpConnectionPool, PreparedRequest};
-use crate::wire::simple_http::{ClientRequestErrors, Http11, RenderHttp};
+use crate::wire::simple_http::{Http11, HttpClientError, RenderHttp};
 use std::io::Write;
 use std::sync::Arc;
 
@@ -80,7 +80,7 @@ where
 
                     self.0 = Some(HttpOperationState::Done);
                     return Some(TaskStatus::Ready(super::HttpStreamReady::Error(
-                        ClientRequestErrors::InvalidState,
+                        HttpClientError::InvalidState,
                     )));
                 }
 
@@ -95,7 +95,7 @@ where
 
                     self.0 = Some(HttpOperationState::Done);
                     return Some(TaskStatus::Ready(super::HttpStreamReady::Error(
-                        ClientRequestErrors::InvalidState,
+                        HttpClientError::InvalidState,
                     )));
                 }
 
@@ -116,7 +116,7 @@ where
                                 tracing::error!("Failed to convert request: {}", e);
                                 self.0 = Some(HttpOperationState::Done);
                                 return Some(TaskStatus::Ready(super::HttpStreamReady::Error(
-                                    ClientRequestErrors::InvalidState,
+                                    HttpClientError::InvalidState,
                                 )));
                             }
                         };
@@ -129,7 +129,7 @@ where
                                     tracing::error!("Failed to render request: {:?}", e);
                                     self.0 = Some(HttpOperationState::Done);
                                     return Some(TaskStatus::Ready(HttpStreamReady::Error(
-                                        ClientRequestErrors::InvalidState,
+                                        HttpClientError::InvalidState,
                                     )));
                                 }
                             };
@@ -140,7 +140,7 @@ where
                             tracing::error!("Failed to write request: {}", e);
                             self.0 = Some(HttpOperationState::Done);
                             return Some(TaskStatus::Ready(HttpStreamReady::Error(
-                                ClientRequestErrors::InvalidState,
+                                HttpClientError::InvalidState,
                             )));
                         }
 
@@ -148,7 +148,7 @@ where
                             tracing::error!("Failed to write request: {}", e);
                             self.0 = Some(HttpOperationState::Done);
                             return Some(TaskStatus::Ready(HttpStreamReady::Error(
-                                ClientRequestErrors::InvalidState,
+                                HttpClientError::InvalidState,
                             )));
                         }
 
@@ -167,7 +167,7 @@ where
                         self.0 = Some(HttpOperationState::Done);
 
                         Some(TaskStatus::Ready(HttpStreamReady::Error(
-                            ClientRequestErrors::InvalidState,
+                            HttpClientError::InvalidState,
                         )))
                     }
                 }

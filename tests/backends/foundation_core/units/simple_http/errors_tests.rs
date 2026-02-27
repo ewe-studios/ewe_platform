@@ -1,5 +1,6 @@
-use foundation_core::wire::simple_http::client::{DnsError, HttpClientError};
 use std::io;
+
+use foundation_core::wire::simple_http::{DnsError, HttpClientError};
 
 #[test]
 fn test_dns_error_resolution_failed_display() {

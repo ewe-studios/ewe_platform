@@ -41,7 +41,7 @@ pub fn initialize_pool(seed_for_rng: u64, _user_thread_num: Option<usize>) {
 
         #[cfg(not(feature = "multi"))]
         {
-            use crate::valtron::single;
+            use super::single;
             single::initialize_pool(seed_for_rng);
         }
     }
@@ -144,7 +144,7 @@ where
 {
     #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
     {
-        use crate::valtron::single;
+        use super::single;
 
         tracing::debug!("Executing as a single-threaded stream in no-wasm");
         while stream.is_empty() {
@@ -183,7 +183,7 @@ where
 {
     #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
     {
-        use crate::valtron::single;
+        use super::single;
 
         tracing::debug!("Executing as a single-threaded stream in no-wasm");
         while stream.is_empty() {
@@ -215,7 +215,7 @@ where
 {
     #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
     {
-        use crate::valtron::single;
+        use super::single;
 
         tracing::debug!("Executing as a single-threaded stream in no-wasm");
         single::run_until(checker);
@@ -238,7 +238,7 @@ where
 pub fn run_until_complete() {
     #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
     {
-        use crate::valtron::single;
+        use super::single;
 
         tracing::debug!("Executing as a single-threaded stream in no-wasm");
         single::run_until_complete();
@@ -261,7 +261,7 @@ pub fn run_until_complete() {
 pub fn run_once() {
     #[cfg(all(not(target_arch = "wasm32"), not(feature = "multi")))]
     {
-        use crate::valtron::single;
+        use super::single;
 
         tracing::debug!("Executing as a single-threaded stream in no-wasm");
         let _ = single::run_once();

@@ -10,8 +10,8 @@ use std::sync::Arc;
 use crate::io::ioutils::SharedByteBufferStream;
 use crate::netcap::{Connection, RawStream};
 use crate::wire::simple_http::client::dns::DnsResolver;
-use crate::wire::simple_http::client::errors::HttpClientError;
 use crate::wire::simple_http::url::Uri;
+use crate::wire::simple_http::HttpClientError;
 use std::time::Duration;
 
 use crate::netcap::ssl::SSLConnector;

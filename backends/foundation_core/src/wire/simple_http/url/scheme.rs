@@ -1,7 +1,8 @@
 //! URI scheme component.
 
-use super::error::InvalidUri;
 use std::fmt;
+
+use crate::wire::simple_http::InvalidUri;
 
 /// URI scheme (http, https, etc.).
 ///

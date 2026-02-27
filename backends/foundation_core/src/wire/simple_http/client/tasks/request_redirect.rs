@@ -22,7 +22,7 @@ use crate::wire::simple_http::client::{
     redirects, DnsResolver, HttpClientConnection, HttpConnectionPool,
 };
 use crate::wire::simple_http::{
-    ClientRequestErrors, Http11, HttpResponseReader, IncomingResponseParts, RenderHttp,
+    Http11, HttpClientError, HttpResponseReader, IncomingResponseParts, RenderHttp,
     RequestDescriptor, SimpleHeader, SimpleHttpBody, SimpleIncomingRequest,
 };
 use std::io::Write;
@@ -73,7 +73,7 @@ pub enum HttpRequestRedirectResponse {
         HttpResponseReader<SimpleHttpBody, RawStream>,
         Option<[IncomingResponseParts; 2]>,
     ),
-    Error(ClientRequestErrors),
+    Error(HttpClientError),
     FlushFailed(HttpClientConnection, std::io::Error),
 }
 
@@ -109,281 +109,284 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
     type Spawner = BoxedSendExecutionAction;
 
     fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        match self.0.take()? {
-            HttpRequestRedirectState::Init(mut inner_opt) => {
-                if let Some(inner) = inner_opt.take() {
-                    let (data, timeout, pool, remaining_redirects) = *inner;
+        let trace_span = tracing::info_span!("GetHttpRequestRedirectTask");
+        trace_span.in_scope(|| {
+            match self.0.take()? {
+                HttpRequestRedirectState::Init(mut inner_opt) => {
+                    if let Some(inner) = inner_opt.take() {
+                        let (data, timeout, pool, remaining_redirects) = *inner;
 
-                    // create the request descriptor
-                    let request_descriptor = data.descriptor();
+                        // create the request descriptor
+                        let request_descriptor = data.descriptor();
 
-                    self.0 = Some(HttpRequestRedirectState::Trying(Some(Box::new((
-                        data,
-                        timeout,
-                        pool,
-                        request_descriptor,
-                        remaining_redirects,
-                    )))));
+                        self.0 = Some(HttpRequestRedirectState::Trying(Some(Box::new((
+                            data,
+                            timeout,
+                            pool,
+                            request_descriptor,
+                            remaining_redirects,
+                        )))));
 
-                    return Some(TaskStatus::Pending(HttpOperationState::Connecting));
-                }
-
-                self.0 = Some(HttpRequestRedirectState::Done);
-                None
-            }
-            HttpRequestRedirectState::Trying(inner_opt) => {
-                let Some(state) = inner_opt else {
-                    self.0 = Some(HttpRequestRedirectState::Done);
-                    return None;
-                };
-
-                let (data, timeout, pool, mut descriptor, remaining_redirects) = *state;
-
-                // 1. Create connection
-                let Ok(mut connection) = pool.create_http_connection(&descriptor.request_uri, None)
-                else {
-                    self.0 = Some(HttpRequestRedirectState::Done);
-                    return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                        ClientRequestErrors::ConnectionFailed,
-                    )));
-                };
-
-                tracing::debug!("Adding EXPECT: 100-continue header");
-
-                // add Expect header for 100-continue
-                descriptor
-                    .headers
-                    .insert(SimpleHeader::EXPECT, vec!["100-continue".into()]);
-
-                // 2. Render and send request
-                let Ok(request_string) =
-                    Http11::request_descriptor(descriptor.clone()).http_render_string()
-                else {
-                    self.0 = Some(HttpRequestRedirectState::Done);
-                    return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                        ClientRequestErrors::InvalidState,
-                    )));
-                };
-
-                if let Err(err) = connection.stream_mut().write_all(request_string.as_bytes()) {
-                    tracing::error!("Failed to write request: {}", err);
-
-                    self.0 = Some(HttpRequestRedirectState::Done);
-                    return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                        ClientRequestErrors::WriteFailed,
-                    )));
-                }
-
-                if let Err(err) = connection.stream_mut().flush() {
-                    tracing::error!("Failed to write request: {}", err);
-                    self.0 = Some(HttpRequestRedirectState::Done);
-                    return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                        ClientRequestErrors::WriteFailed,
-                    )));
-                }
-
-                // 3. Set read timeout (preserve previous)
-                let previous_timeout = connection
-                    .stream_mut()
-                    .get_current_read_timeout()
-                    .unwrap_or(None);
-
-                tracing::debug!("Set read timeout to {:?}", timeout.read_timeout);
-
-                if let Err(err) = connection
-                    .stream_mut()
-                    .set_read_timeout_as(timeout.read_timeout)
-                {
-                    tracing::error!("Failed to set read timeout: {}", err);
-                    self.0 = Some(HttpRequestRedirectState::Done);
-                    return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                        ClientRequestErrors::Timeout,
-                    )));
-                }
-
-                tracing::debug!("Get response reader from stream");
-
-                // 4. Try to read response intro once
-                let mut reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
-                    connection.clone_stream(),
-                    SimpleHttpBody,
-                );
-
-                tracing::debug!("Read the request response intro");
-
-                // Flattened: check intro and headers one by one, fallback to WriteBody if either missing
-                let intro_result = reader.next();
-                if !matches!(
-                    &intro_result,
-                    Some(Ok(IncomingResponseParts::Intro(_, _, _)))
-                ) {
-                    tracing::debug!("Failed to read intro, considering we should just write body");
-
-                    self.0 = Some(HttpRequestRedirectState::WriteBody(Some(Box::new((
-                        None, data, pool, connection, reader,
-                    )))));
-                    return Some(TaskStatus::Pending(HttpOperationState::Connecting));
-                }
-
-                tracing::debug!("Read the request response headers");
-                let headers_result = reader.next();
-                if !matches!(&headers_result, Some(Ok(IncomingResponseParts::Headers(_)))) {
-                    tracing::debug!("Failed to read header, failing connection");
-
-                    self.0 = Some(HttpRequestRedirectState::Done);
-                    return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                        ClientRequestErrors::Timeout,
-                    )));
-                }
-
-                tracing::debug!("Restore previous timeout");
-                // Restore previous timeout
-                let _ = connection
-                    .stream_mut()
-                    .set_read_timeout_as(previous_timeout.unwrap_or(Duration::from_secs(60)));
-
-                tracing::debug!("Recevied request response intro: {:?}", &intro_result);
-
-                // Both intro and headers are present
-                let (status, _proto, _text) = match &intro_result {
-                    Some(Ok(IncomingResponseParts::Intro(status, proto, text))) => {
-                        tracing::debug!("Received HTTP intro: status={}, proto={}, text={:?}", status, proto, text);
-                        (status, proto, text)
+                        return Some(TaskStatus::Pending(HttpOperationState::Connecting));
                     }
-                    _ => unreachable!("Intro must be present here due to prior matches! check; fallback to WriteBody if missing."),
-                };
-                let headers = match &headers_result {
-                    Some(Ok(IncomingResponseParts::Headers(ref h))) => {
-                        tracing::debug!("Received HTTP headers: {:?}", h);
-                        h
-                    }
-                    _ => unreachable!("Headers must be present here due to prior matches! check; fallback to WriteBody if missing."),
-                };
 
-                tracing::debug!("Check if response is a redirect");
+                    self.0 = Some(HttpRequestRedirectState::Done);
+                    None
+                }
+                HttpRequestRedirectState::Trying(inner_opt) => {
+                    let Some(state) = inner_opt else {
+                        self.0 = Some(HttpRequestRedirectState::Done);
+                        return None;
+                    };
 
-                let is_redirect = (300..400).contains(&status.clone().into_usize());
-                tracing::debug!("Is redirect: {}", is_redirect);
+                    let (data, timeout, pool, mut descriptor, remaining_redirects) = *state;
 
-                let location_header = headers.get(&SimpleHeader::LOCATION).and_then(|v| v.first());
-                tracing::debug!("Location header: {:?}", location_header);
-
-                if is_redirect && location_header.is_some() {
-                    if remaining_redirects == 0 {
-                        tracing::error!(
-                            "Redirect limit exceeded ({} redirects)",
-                            remaining_redirects
-                        );
+                    // 1. Create connection
+                    let Ok(mut connection) = pool.create_http_connection(&descriptor.request_uri, None)
+                    else {
                         self.0 = Some(HttpRequestRedirectState::Done);
                         return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                            ClientRequestErrors::TooManyRedirects,
+                            HttpClientError::ConnectionError,
+                        )));
+                    };
+
+                    tracing::debug!("Adding EXPECT: 100-continue header");
+
+                    // add Expect header for 100-continue
+                    descriptor
+                        .headers
+                        .insert(SimpleHeader::EXPECT, vec!["100-continue".into()]);
+
+                    // 2. Render and send request
+                    let Ok(request_string) =
+                        Http11::request_descriptor(descriptor.clone()).http_render_string()
+                    else {
+                        self.0 = Some(HttpRequestRedirectState::Done);
+                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                            HttpClientError::InvalidState,
+                        )));
+                    };
+
+                    if let Err(err) = connection.stream_mut().write_all(request_string.as_bytes()) {
+                        tracing::error!("Failed to write request: {}", err);
+
+                        self.0 = Some(HttpRequestRedirectState::Done);
+                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                            HttpClientError::WriteFailed,
                         )));
                     }
-                    tracing::info!(
-                        "Redirect detected: status {} with Location header {:?}",
-                        status,
-                        location_header
+
+                    if let Err(err) = connection.stream_mut().flush() {
+                        tracing::error!("Failed to write request: {}", err);
+                        self.0 = Some(HttpRequestRedirectState::Done);
+                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                            HttpClientError::WriteFailed,
+                        )));
+                    }
+
+                    // 3. Set read timeout (preserve previous)
+                    let previous_timeout = connection
+                        .stream_mut()
+                        .get_current_read_timeout()
+                        .unwrap_or(None);
+
+                    tracing::debug!("Set read timeout to {:?}", timeout.read_timeout);
+
+                    if let Err(err) = connection
+                        .stream_mut()
+                        .set_read_timeout_as(timeout.read_timeout)
+                    {
+                        tracing::error!("Failed to set read timeout: {}", err);
+                        self.0 = Some(HttpRequestRedirectState::Done);
+                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                            HttpClientError::Timeout,
+                        )));
+                    }
+
+                    tracing::debug!("Get response reader from stream");
+
+                    // 4. Try to read response intro once
+                    let mut reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
+                        connection.clone_stream(),
+                        SimpleHttpBody,
                     );
 
-                    #[allow(clippy::unnecessary_unwrap)]
-                    let location = location_header.expect("Location header is missing");
-                    let new_url =
-                        match redirects::resolve_location(&descriptor.request_uri, location) {
-                            Ok(url) => url,
-                            Err(e) => {
-                                tracing::error!("Failed to resolve redirect location: {}", e);
-                                self.0 = Some(HttpRequestRedirectState::Done);
-                                return Some(TaskStatus::Ready(
-                                    HttpRequestRedirectResponse::Error(
-                                        ClientRequestErrors::InvalidLocation,
-                                    ),
-                                ));
-                            }
-                        };
+                    tracing::debug!("Read the request response intro");
 
-                    let new_descriptor =
-                        match redirects::build_followup_request_from_request_descriptor(
-                            &descriptor,
-                            new_url.clone(),
-                        ) {
-                            Ok(desc) => {
-                                tracing::info!("Redirected to new location: {:?}", &desc);
-                                desc
-                            }
-                            Err(e) => {
-                                tracing::error!(
-                                    "Failed to build follow-up request descriptor: {}",
-                                    e
-                                );
-                                self.0 = Some(HttpRequestRedirectState::Done);
-                                return Some(TaskStatus::Ready(
-                                    HttpRequestRedirectResponse::Error(
-                                        ClientRequestErrors::InvalidState,
-                                    ),
-                                ));
-                            }
-                        };
+                    // Flattened: check intro and headers one by one, fallback to WriteBody if either missing
+                    let intro_result = reader.next();
+                    if !matches!(
+                        &intro_result,
+                        Some(Ok(IncomingResponseParts::Intro(_, _, _)))
+                    ) {
+                        tracing::debug!("Failed to read intro, considering we should just write body");
 
-                    tracing::debug!("Following redirect to new URL: {}", new_url);
-                    self.0 = Some(HttpRequestRedirectState::Trying(Some(Box::new((
-                        data,
-                        timeout,
-                        pool,
-                        new_descriptor,
-                        remaining_redirects - 1,
-                    )))));
+                        self.0 = Some(HttpRequestRedirectState::WriteBody(Some(Box::new((
+                            None, data, pool, connection, reader,
+                        )))));
+                        return Some(TaskStatus::Pending(HttpOperationState::Connecting));
+                    }
 
-                    return Some(TaskStatus::Pending(HttpOperationState::Connecting));
-                }
-
-                tracing::info!(
-                    "No redirect detected, transitioning to WriteBody state to send request body."
-                );
-                self.0 = Some(HttpRequestRedirectState::WriteBody(Some(Box::new((
-                    Some([
-                        intro_result.expect("get inner").expect("should have intro"),
-                        headers_result
-                            .expect("get inner")
-                            .expect("should have headers"),
-                    ]),
-                    data,
-                    pool,
-                    connection,
-                    reader,
-                )))));
-                Some(TaskStatus::Pending(HttpOperationState::Connecting))
-            }
-            HttpRequestRedirectState::WriteBody(mut inner_opt) => {
-                if let Some(inner) = inner_opt.take() {
-                    let (optional_starters, data, _pool, mut connection, reader) = *inner;
-                    let body_renderer = Http11::request_body(data);
-
-                    if let Err(err) = body_renderer.http_render_to_writer(connection.stream_mut()) {
-                        tracing::error!("Failed to write request body: {}", err);
+                    tracing::debug!("Read the request response headers");
+                    let headers_result = reader.next();
+                    if !matches!(&headers_result, Some(Ok(IncomingResponseParts::Headers(_)))) {
+                        tracing::debug!("Failed to read header, failing connection");
 
                         self.0 = Some(HttpRequestRedirectState::Done);
                         return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                            ClientRequestErrors::WriteFailed,
+                            HttpClientError::Timeout,
                         )));
                     }
 
-                    self.0 = Some(HttpRequestRedirectState::Done);
-                    return match connection.stream_mut().flush() {
-                        Ok(()) => Some(TaskStatus::Ready(HttpRequestRedirectResponse::Done(
-                            connection,
-                            reader,
-                            optional_starters,
-                        ))),
-                        Err(e) => Some(TaskStatus::Ready(
-                            HttpRequestRedirectResponse::FlushFailed(connection, e),
-                        )),
-                    };
-                }
+                    tracing::debug!("Restore previous timeout");
+                    // Restore previous timeout
+                    let _ = connection
+                        .stream_mut()
+                        .set_read_timeout_as(previous_timeout.unwrap_or(Duration::from_secs(60)));
 
-                self.0 = Some(HttpRequestRedirectState::Done);
-                Some(TaskStatus::Pending(HttpOperationState::Done))
+                    tracing::debug!("Recevied request response intro: {:?}", &intro_result);
+
+                    // Both intro and headers are present
+                    let (status, _proto, _text) = match &intro_result {
+                        Some(Ok(IncomingResponseParts::Intro(status, proto, text))) => {
+                            tracing::debug!("Received HTTP intro: status={}, proto={}, text={:?}", status, proto, text);
+                            (status, proto, text)
+                        }
+                        _ => unreachable!("Intro must be present here due to prior matches! check; fallback to WriteBody if missing."),
+                    };
+                    let headers = match &headers_result {
+                        Some(Ok(IncomingResponseParts::Headers(ref h))) => {
+                            tracing::debug!("Received HTTP headers: {:?}", h);
+                            h
+                        }
+                        _ => unreachable!("Headers must be present here due to prior matches! check; fallback to WriteBody if missing."),
+                    };
+
+                    tracing::debug!("Check if response is a redirect");
+
+                    let is_redirect = (300..400).contains(&status.clone().into_usize());
+                    tracing::debug!("Is redirect: {}", is_redirect);
+
+                    let location_header = headers.get(&SimpleHeader::LOCATION).and_then(|v| v.first());
+                    tracing::debug!("Location header: {:?}", location_header);
+
+                    if is_redirect && location_header.is_some() {
+                        if remaining_redirects == 0 {
+                            tracing::error!(
+                                "Redirect limit exceeded ({} redirects)",
+                                remaining_redirects
+                            );
+                            self.0 = Some(HttpRequestRedirectState::Done);
+                            return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                                HttpClientError::TooManyRedirects,
+                            )));
+                        }
+                        tracing::info!(
+                            "Redirect detected: status {} with Location header {:?}",
+                            status,
+                            location_header
+                        );
+
+                        #[allow(clippy::unnecessary_unwrap)]
+                        let location = location_header.expect("Location header is missing");
+                        let new_url =
+                            match redirects::resolve_location(&descriptor.request_uri, location) {
+                                Ok(url) => url,
+                                Err(e) => {
+                                    tracing::error!("Failed to resolve redirect location: {}", e);
+                                    self.0 = Some(HttpRequestRedirectState::Done);
+                                    return Some(TaskStatus::Ready(
+                                        HttpRequestRedirectResponse::Error(
+                                            HttpClientError::InvalidLocation(location.clone()),
+                                        ),
+                                    ));
+                                }
+                            };
+
+                        let new_descriptor =
+                            match redirects::build_followup_request_from_request_descriptor(
+                                &descriptor,
+                                new_url.clone(),
+                            ) {
+                                Ok(desc) => {
+                                    tracing::info!("Redirected to new location: {:?}", &desc);
+                                    desc
+                                }
+                                Err(e) => {
+                                    tracing::error!(
+                                        "Failed to build follow-up request descriptor: {}",
+                                        e
+                                    );
+                                    self.0 = Some(HttpRequestRedirectState::Done);
+                                    return Some(TaskStatus::Ready(
+                                        HttpRequestRedirectResponse::Error(
+                                            HttpClientError::InvalidState,
+                                        ),
+                                    ));
+                                }
+                            };
+
+                        tracing::debug!("Following redirect to new URL: {}", new_url);
+                        self.0 = Some(HttpRequestRedirectState::Trying(Some(Box::new((
+                            data,
+                            timeout,
+                            pool,
+                            new_descriptor,
+                            remaining_redirects - 1,
+                        )))));
+
+                        return Some(TaskStatus::Pending(HttpOperationState::Connecting));
+                    }
+
+                    tracing::info!(
+                        "No redirect detected, transitioning to WriteBody state to send request body."
+                    );
+                    self.0 = Some(HttpRequestRedirectState::WriteBody(Some(Box::new((
+                        Some([
+                            intro_result.expect("get inner").expect("should have intro"),
+                            headers_result
+                                .expect("get inner")
+                                .expect("should have headers"),
+                        ]),
+                        data,
+                        pool,
+                        connection,
+                        reader,
+                    )))));
+                    Some(TaskStatus::Pending(HttpOperationState::Connecting))
+                }
+                HttpRequestRedirectState::WriteBody(mut inner_opt) => {
+                    if let Some(inner) = inner_opt.take() {
+                        let (optional_starters, data, _pool, mut connection, reader) = *inner;
+                        let body_renderer = Http11::request_body(data);
+
+                        if let Err(err) = body_renderer.http_render_to_writer(connection.stream_mut()) {
+                            tracing::error!("Failed to write request body: {}", err);
+
+                            self.0 = Some(HttpRequestRedirectState::Done);
+                            return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                                HttpClientError::WriteFailed,
+                            )));
+                        }
+
+                        self.0 = Some(HttpRequestRedirectState::Done);
+                        return match connection.stream_mut().flush() {
+                            Ok(()) => Some(TaskStatus::Ready(HttpRequestRedirectResponse::Done(
+                                connection,
+                                reader,
+                                optional_starters,
+                            ))),
+                            Err(e) => Some(TaskStatus::Ready(
+                                HttpRequestRedirectResponse::FlushFailed(connection, e),
+                            )),
+                        };
+                    }
+
+                    self.0 = Some(HttpRequestRedirectState::Done);
+                    Some(TaskStatus::Pending(HttpOperationState::Done))
+                }
+                HttpRequestRedirectState::Done => None,
             }
-            HttpRequestRedirectState::Done => None,
-        }
+        })
     }
 }

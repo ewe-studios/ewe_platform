@@ -1,4 +1,4 @@
-use crate::wire::simple_http::client::errors::DnsError;
+use crate::wire::simple_http::DnsError;
 use std::collections::HashMap;
 use std::net::{SocketAddr, ToSocketAddrs};
 use std::sync::{Arc, Mutex};
