@@ -63,17 +63,16 @@ impl PreparedRequest {
 /// # Examples
 ///
 /// ```
-/// use foundation_core::wire::simple_http::client::{ClientRequestBuilder, StaticSocketAddr};
-/// use foundation_core::wire::simple_http::SimpleHeader;
+/// use foundation_core::wire::simple_http::{ClientRequestBuilder, SimpleMethod};
 ///
-/// // Provide a resolver (StaticSocketAddr implements the DnsResolver trait).
-/// let resolver = StaticSocketAddr::new(std::net::SocketAddr::from(([127, 0, 0, 1], 80)));
-///
-/// let request = ClientRequestBuilder::get(resolver, "http://example.com/api")
+/// // Build a GET request
+/// let request = ClientRequestBuilder::get("http://example.com/api")
 ///     .unwrap()
-///     .header(SimpleHeader::HOST, "example.com")
-///     .body_text("{\"key\": \"value\"}")
-///     .build();
+///     .header(SimpleHeader::HOST, "example.com");
+///
+/// if let Ok(prepared) = request.build() {
+///     println!("Built request: {:?}", prepared);
+/// }
 /// ```
 pub struct ClientRequestBuilder {
     method: SimpleMethod,

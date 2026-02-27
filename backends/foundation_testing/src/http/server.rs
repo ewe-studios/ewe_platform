@@ -19,8 +19,8 @@ use std::thread;
 
 use foundation_core::netcap::RawStream;
 use foundation_core::wire::simple_http::{
-    http_streams, HttpReaderError, IncomingRequestParts, Proto, SendSafeBody,
-    SimpleHeaders, SimpleMethod, SimpleUrl,
+    http_streams, HttpReaderError, IncomingRequestParts, Proto, SendSafeBody, SimpleHeaders,
+    SimpleMethod, SimpleUrl,
 };
 
 type ResponseHandler = Arc<Mutex<Box<dyn Fn(&HttpRequest) -> HttpResponse + Send>>>;
