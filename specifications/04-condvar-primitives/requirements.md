@@ -40,14 +40,6 @@ tasks:
 files_required:
   main_agent:
     rules:
-      - .agents/rules/01-rule-naming-and-structure.md
-      - .agents/rules/02-rules-directory-policy.md
-      - .agents/rules/03-dangerous-operations-safety.md
-      - .agents/rules/04-work-commit-and-push-rules.md
-      - .agents/rules/05-coding-practice-agent-orchestration.md
-      - .agents/rules/06-specifications-and-requirements.md
-      - .agents/rules/14-machine-optimized-prompts.md
-      - .agents/rules/15-instruction-compaction.md
     files:
       - ./requirements.md
       - ./LEARNINGS.md

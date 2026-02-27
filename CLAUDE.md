@@ -19,7 +19,7 @@ The primary configuration file for all AI agents (including Claude) has been mov
 **MANDATORY:** Before performing any tasks or operations on this project, you **MUST**:
 
 1. **Load `AGENTS.md`** - This is the central configuration file containing all agent rules and guidelines
-2. **Follow all instructions** in `.agents/AGENTS.md`, including loading project-specific rules from `.agents/rules/*`
+2. **Follow all instructions** in `.agents/AGENTS.md`.
 
 ---
 
@@ -29,7 +29,7 @@ If you're referencing `CLAUDE.md`:
 
 - Please update your workflows to reference `.agents/AGENTS.md` instead
 - `CLAUDE.md` may be deprecated in future versions
-- All new rules and updates will be added to `.agents/AGENTS.md` and `.agents/rules/*`
+- All new rules and updates will be added to `.agents/AGENTS.md`.
 
 ---
 
