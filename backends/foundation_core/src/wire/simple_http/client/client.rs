@@ -135,7 +135,7 @@ impl SimpleHttpClient<SystemDnsResolver> {
 }
 
 impl<R: DnsResolver> SimpleHttpClient<R> {
-    fn new(config: ClientConfig, pool: Arc<HttpConnectionPool<R>>) -> Self {
+    pub fn new(config: ClientConfig, pool: Arc<HttpConnectionPool<R>>) -> Self {
         Self {
             config,
             pool: Some(pool),
@@ -191,80 +191,66 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
     // which wraps the task machinery and can be executed by the caller.
 
     /// Creates a GET request and returns a `ClientRequest` ready to execute.
-    pub fn get(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
-        let builder = ClientRequestBuilder::get(url)?;
-        let prepared = builder.build()?;
-        Ok(ClientRequest::new(
-            prepared,
-            self.config.clone(),
-            self.pool.clone().expect("Pool should be initialized"),
-        ))
+    pub fn get(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
+        ClientRequestBuilder::get(url).map(|builder| {
+            builder
+                .client_config(self.config.clone())
+                .with_pool(self.pool.clone())
+        })
     }
 
     /// Creates a POST request and returns a `ClientRequest` ready to execute.
-    pub fn post(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
-        let builder = ClientRequestBuilder::post(url)?;
-        let prepared = builder.build()?;
-        Ok(ClientRequest::new(
-            prepared,
-            self.config.clone(),
-            self.pool.clone().expect("Pool should be initialized"),
-        ))
+    pub fn post(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
+        ClientRequestBuilder::post(url).map(|builder| {
+            builder
+                .client_config(self.config.clone())
+                .with_pool(self.pool.clone())
+        })
     }
 
     /// Creates a PUT request and returns a `ClientRequest` ready to execute.
-    pub fn put(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
-        let builder = ClientRequestBuilder::put(url)?;
-        let prepared = builder.build()?;
-        Ok(ClientRequest::new(
-            prepared,
-            self.config.clone(),
-            self.pool.clone().expect("Pool should be initialized"),
-        ))
+    pub fn put(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
+        ClientRequestBuilder::put(url).map(|builder| {
+            builder
+                .client_config(self.config.clone())
+                .with_pool(self.pool.clone())
+        })
     }
 
     /// Creates a DELETE request and returns a `ClientRequest` ready to execute.
-    pub fn delete(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
-        let builder = ClientRequestBuilder::delete(url)?;
-        let prepared = builder.build()?;
-        Ok(ClientRequest::new(
-            prepared,
-            self.config.clone(),
-            self.pool.clone().expect("Pool should be initialized"),
-        ))
+    pub fn delete(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
+        ClientRequestBuilder::delete(url).map(|builder| {
+            builder
+                .client_config(self.config.clone())
+                .with_pool(self.pool.clone())
+        })
     }
 
     /// Creates a PATCH request and returns a `ClientRequest` ready to execute.
-    pub fn patch(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
-        let builder = ClientRequestBuilder::patch(url)?;
-        let prepared = builder.build()?;
-        Ok(ClientRequest::new(
-            prepared,
-            self.config.clone(),
-            self.pool.clone().expect("Pool should be initialized"),
-        ))
+    pub fn patch(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
+        ClientRequestBuilder::patch(url).map(|builder| {
+            builder
+                .client_config(self.config.clone())
+                .with_pool(self.pool.clone())
+        })
     }
 
     /// Creates a HEAD request and returns a `ClientRequest` ready to execute.
-    pub fn head(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
-        let builder = ClientRequestBuilder::head(url)?;
-        let prepared = builder.build()?;
-        Ok(ClientRequest::new(
-            prepared,
-            self.config.clone(),
-            self.pool.clone().expect("Pool should be initialized"),
-        ))
+    pub fn head(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
+        ClientRequestBuilder::head(url).map(|builder| {
+            builder
+                .client_config(self.config.clone())
+                .with_pool(self.pool.clone())
+        })
     }
 
     /// Creates an OPTIONS request and returns a `ClientRequest` ready to execute.
-    pub fn options(&self, url: &str) -> Result<ClientRequest<R>, HttpClientError> {
-        let builder = ClientRequestBuilder::options(url)?;
-        let prepared = builder.build()?;
-        Ok(ClientRequest::new(
-            prepared,
-            self.config.clone(),
-            self.pool.clone().expect("Pool should be initialized"),
-        ))
+    pub fn options(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
+        ClientRequestBuilder::options(url).map(|builder| {
+            builder
+                .client_config(self.config.clone())
+                .with_pool(self.pool.clone())
+        })
     }
 }
 
@@ -375,7 +361,7 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     /// A `ClientRequest` ready to execute.
     pub fn request(
         &self,
-        builder: ClientRequestBuilder,
+        builder: ClientRequestBuilder<R>,
     ) -> Result<ClientRequest<R>, HttpClientError> {
         let prepared = builder.build()?;
         Ok(ClientRequest::new(

@@ -114,10 +114,10 @@ fn test_simple_http_client_builder_chaining() {
 }
 
 /// WHY: Verify SimpleHttpClient::get creates GET request builder
-/// WHAT: Tests that get() returns ClientRequestBuilder for GET
+/// WHAT: Tests that get() returns ClientRequestBuilder::<SystemDnsResolver> for GET
 #[test]
 fn test_simple_http_client_get() {
-    let builder = ClientRequestBuilder::get("http://example.com").unwrap();
+    let builder = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com").unwrap();
 
     let request = builder.build().unwrap();
     assert_eq!(request.url.host_str().unwrap(), "example.com");
@@ -127,81 +127,69 @@ fn test_simple_http_client_get() {
 /// WHAT: Tests that get() returns error for invalid URL
 #[test]
 fn test_simple_http_client_get_invalid_url() {
-    let result = ClientRequestBuilder::get("not a url");
+    let result = ClientRequestBuilder::<SystemDnsResolver>::get("not a url");
 
     assert!(result.is_err());
 }
 
 /// WHY: Verify SimpleHttpClient::post creates POST request builder
-/// WHAT: Tests that post() returns ClientRequestBuilder for POST
+/// WHAT: Tests that post() returns ClientRequestBuilder::<SystemDnsResolver> for POST
 #[test]
 fn test_simple_http_client_post() {
-    let builder = ClientRequestBuilder::post("http://example.com").unwrap();
+    let builder = ClientRequestBuilder::<SystemDnsResolver>::post("http://example.com").unwrap();
 
     let request = builder.build().unwrap();
     assert_eq!(request.url.host_str().unwrap(), "example.com");
 }
 
 /// WHY: Verify SimpleHttpClient::put creates PUT request builder
-/// WHAT: Tests that put() returns ClientRequestBuilder for PUT
+/// WHAT: Tests that put() returns ClientRequestBuilder::<SystemDnsResolver> for PUT
 #[test]
 fn test_simple_http_client_put() {
-    let builder = ClientRequestBuilder::put("http://example.com").unwrap();
+    let builder = ClientRequestBuilder::<SystemDnsResolver>::put("http://example.com").unwrap();
 
     let request = builder.build().unwrap();
     assert_eq!(request.url.host_str().unwrap(), "example.com");
 }
 
 /// WHY: Verify SimpleHttpClient::delete creates DELETE request builder
-/// WHAT: Tests that delete() returns ClientRequestBuilder for DELETE
+/// WHAT: Tests that delete() returns ClientRequestBuilder::<SystemDnsResolver> for DELETE
 #[test]
 fn test_simple_http_client_delete() {
-    let builder = ClientRequestBuilder::delete("http://example.com").unwrap();
+    let builder = ClientRequestBuilder::<SystemDnsResolver>::delete("http://example.com").unwrap();
 
     let request = builder.build().unwrap();
     assert_eq!(request.url.host_str().unwrap(), "example.com");
 }
 
 /// WHY: Verify SimpleHttpClient::patch creates PATCH request builder
-/// WHAT: Tests that patch() returns ClientRequestBuilder for PATCH
+/// WHAT: Tests that patch() returns ClientRequestBuilder::<SystemDnsResolver> for PATCH
 #[test]
 fn test_simple_http_client_patch() {
-    let builder = ClientRequestBuilder::patch("http://example.com").unwrap();
+    let builder = ClientRequestBuilder::<SystemDnsResolver>::patch("http://example.com").unwrap();
 
     let request = builder.build().unwrap();
     assert_eq!(request.url.host_str().unwrap(), "example.com");
 }
 
 /// WHY: Verify SimpleHttpClient::head creates HEAD request builder
-/// WHAT: Tests that head() returns ClientRequestBuilder for HEAD
+/// WHAT: Tests that head() returns ClientRequestBuilder::<SystemDnsResolver> for HEAD
 #[test]
 fn test_simple_http_client_head() {
-    let builder = ClientRequestBuilder::head("http://example.com").unwrap();
+    let builder = ClientRequestBuilder::<SystemDnsResolver>::head("http://example.com").unwrap();
 
     let request = builder.build().unwrap();
     assert_eq!(request.url.host_str().unwrap(), "example.com");
 }
 
 /// WHY: Verify SimpleHttpClient::options creates OPTIONS request builder
-/// WHAT: Tests that options() returns ClientRequestBuilder for OPTIONS
+/// WHAT: Tests that options() returns ClientRequestBuilder::<SystemDnsResolver> for OPTIONS
 #[test]
 fn test_simple_http_client_options() {
-    let builder = ClientRequestBuilder::options("http://example.com").unwrap();
+    let builder = ClientRequestBuilder::<SystemDnsResolver>::options("http://example.com").unwrap();
 
     let request = builder.build().unwrap();
     assert_eq!(request.url.host_str().unwrap(), "example.com");
-}
-
-/// WHY: Verify SimpleHttpClient::request accepts pre-built builder
-/// WHAT: Tests that request() can take ClientRequestBuilder
-#[test]
-fn test_simple_http_client_request() {
-    let client = SimpleHttpClient::<StaticSocketAddr>::default();
-    let builder = ClientRequestBuilder::get("http://example.com").unwrap();
-
-    let _result = client.request(builder);
-    // TEST NOTE: Assertion pending ClientRequest implementation
-    // Once api.rs is complete, assert on ClientRequest type and .execute() method
 }
 
 /// WHY: Verify SimpleHttpClient implements Default

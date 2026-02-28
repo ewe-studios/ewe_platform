@@ -6,7 +6,9 @@
 // fast, deterministic unit tests that exercise the public builder conversion
 // surface exposed by `PreparedRequest::into_simple_incoming_request()`.
 
-use foundation_core::wire::simple_http::client::{ClientRequestBuilder, StaticSocketAddr};
+use foundation_core::wire::simple_http::client::{
+    ClientRequestBuilder, StaticSocketAddr, SystemDnsResolver,
+};
 use foundation_core::wire::simple_http::{
     Http11, Proto, RenderHttp, SimpleHeader, SimpleIncomingRequest, SimpleMethod,
     SimpleOutgoingResponse, Status,
@@ -17,7 +19,7 @@ use std::net::SocketAddr as StdSocketAddr;
 /// a `SimpleIncomingRequest` with the expected method and protocol.
 #[test]
 fn should_convert_prepared_request_to_simple_incoming() {
-    let prepared = ClientRequestBuilder::get("http://example.com/path")
+    let prepared = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com/path")
         .unwrap()
         .build()
         .unwrap();
@@ -33,7 +35,7 @@ fn should_convert_prepared_request_to_simple_incoming() {
 /// `SimpleIncomingRequest`.
 #[test]
 fn should_preserve_headers_on_simple_incoming_request() {
-    let builder = ClientRequestBuilder::post("http://example.com/upload")
+    let builder = ClientRequestBuilder::<SystemDnsResolver>::post("http://example.com/upload")
         .unwrap()
         .header(SimpleHeader::CONTENT_TYPE, "application/json")
         .body_text("{\"ok\":true}");
@@ -55,10 +57,11 @@ fn should_preserve_headers_on_simple_incoming_request() {
 /// `SimpleIncomingRequest` request URL rendering.
 #[test]
 fn should_preserve_query_in_request_url() {
-    let prepared = ClientRequestBuilder::get("http://example.com/search?q=test&limit=10")
-        .unwrap()
-        .build()
-        .unwrap();
+    let prepared =
+        ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com/search?q=test&limit=10")
+            .unwrap()
+            .build()
+            .unwrap();
 
     let simple_request = prepared.into_simple_incoming_request().unwrap();
 

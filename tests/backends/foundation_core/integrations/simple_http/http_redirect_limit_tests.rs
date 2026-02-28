@@ -53,9 +53,7 @@ fn redirect_limit_triggers_too_many_redirects() {
     let url = format!("http://127.0.0.1:{}/redirect", port);
 
     // Create a request
-    let request_result = client.get(&url);
-    assert!(request_result.is_ok(), "Failed to build request");
-    let request = request_result.unwrap();
+    let request = client.get(&url).unwrap().build_client().unwrap();
 
     // Send the request – should fail with TooManyRedirects
     let send_result = request.send();

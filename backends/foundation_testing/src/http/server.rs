@@ -143,6 +143,42 @@ pub struct TestHttpServer {
 }
 
 impl TestHttpServer {
+    /// Create a server that sequentially returns provided (status, location/body) for each request.
+    /// For 3xx status: 'location' is Location header, for 2xx: body. Repeats last for further requests.
+    pub fn redirect_chain(steps: Vec<(u16, &str)>) -> Self {
+        use std::sync::{Arc, Mutex};
+        let step_count = Arc::new(Mutex::new(0usize));
+        let total = steps.len();
+        let handler_steps = steps
+            .into_iter()
+            .map(|s| (s.0, s.1.to_string()))
+            .collect::<Vec<_>>();
+        let progress = Arc::clone(&step_count);
+        Self::with_response(move |_req| {
+            let mut idx = progress.lock().unwrap();
+            let step = if *idx < handler_steps.len() {
+                *idx
+            } else {
+                handler_steps.len() - 1
+            };
+            *idx += 1;
+            let (status, val) = &handler_steps[step];
+            match *status {
+                301 | 302 | 303 | 307 | 308 => HttpResponse {
+                    status: *status,
+                    status_text: "Redirect".to_string(),
+                    headers: vec![
+                        ("Location".to_string(), val.clone()),
+                        ("Content-Length".to_string(), "0".to_string()),
+                    ],
+                    body: Vec::new(),
+                },
+                200 | 201 | 204 => HttpResponse::ok(val.as_bytes()),
+                code => HttpResponse::status(code, val),
+            }
+        })
+    }
+
     /// Start a new test HTTP server on random port.
     ///
     /// # Returns

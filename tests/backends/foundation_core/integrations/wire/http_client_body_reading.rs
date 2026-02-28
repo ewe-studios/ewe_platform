@@ -13,8 +13,7 @@ use std::sync::Arc;
 
 use foundation_core::valtron;
 use foundation_core::wire::simple_http::client::{
-    ClientConfig, ClientRequest, ClientRequestBuilder, HttpConnectionPool, StaticSocketAddr,
-    SystemDnsResolver,
+    ClientConfig, ClientRequest, ClientRequestBuilder, HttpConnectionPool, SystemDnsResolver,
 };
 use foundation_core::wire::simple_http::{IncomingResponseParts, SendSafeBody};
 use foundation_testing::http::{HttpResponse, TestHttpServer};
@@ -33,13 +32,13 @@ fn test_body_reading_with_introduction_and_body() {
 
     // Build request
     let url = server.url("/test");
-    let builder = ClientRequestBuilder::get(&url).unwrap();
-    let prepared = builder.build().expect("get request");
+
+    let mut request = ClientRequestBuilder::<SystemDnsResolver>::get(&url)
+        .unwrap()
+        .build_client()
+        .unwrap();
 
     // Create request with system resolver
-    let pool = Arc::new(HttpConnectionPool::default());
-    let mut request = ClientRequest::new(prepared, ClientConfig::default(), pool.clone());
-
     tracing::info!("Get the introduction of the request");
 
     // Step 1: Get introduction and headers
@@ -92,12 +91,10 @@ fn test_parts_iterator_reads_complete_response() {
 
     // Build request
     let url = server.url("/parts");
-    let builder = ClientRequestBuilder::get(&url).unwrap();
-    let prepared = builder.build().expect("get request");
-
-    // Create request
-    let pool = Arc::new(HttpConnectionPool::default());
-    let request = ClientRequest::new(prepared, ClientConfig::default(), pool.clone());
+    let request = ClientRequestBuilder::<SystemDnsResolver>::get(&url)
+        .unwrap()
+        .build_client()
+        .unwrap();
 
     // Iterate through all parts
     let mut got_intro = false;
@@ -168,12 +165,10 @@ fn test_send_returns_complete_response_with_body() {
 
     // Build request
     let url = server.url("/send");
-    let builder = ClientRequestBuilder::get(&url).unwrap();
-    let prepared = builder.build().expect("get request");
-
-    // Create request
-    let pool = Arc::new(HttpConnectionPool::default());
-    let request = ClientRequest::new(prepared, ClientConfig::default(), pool.clone());
+    let request = ClientRequestBuilder::<SystemDnsResolver>::get(&url)
+        .unwrap()
+        .build_client()
+        .unwrap();
 
     // Use send() to get complete response
     let mut response = request.send().expect("Failed to send request");
@@ -223,12 +218,10 @@ fn test_large_body_reading() {
 
     // Build request
     let url = server.url("/large");
-    let builder = ClientRequestBuilder::get(&url).unwrap();
-    let prepared = builder.build().expect("get request");
-
-    // Create request
-    let pool = Arc::new(HttpConnectionPool::default());
-    let mut request = ClientRequest::new(prepared, ClientConfig::default(), pool.clone());
+    let mut request = ClientRequestBuilder::<SystemDnsResolver>::get(&url)
+        .unwrap()
+        .build_client()
+        .unwrap();
 
     // Get response
     let (_intro, _headers) = request.introduction().expect("Failed to get intro");
