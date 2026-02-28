@@ -11,6 +11,16 @@
 - The foundational Cargo feature in this project is “std.” If you need to pass a --features flag, it should be --features std, not sync.
 
 ## Testing Insights
+- TestHttpServer::redirect_chain helper makes writing sequential redirect tests much simpler and reusable. Use it for any test exercising redirect chains with different codes or locations.
+- Key redirect cases to cover in integration tests:
+  - Mix of relative/absolute URLs in Location
+  - Host changes: ensure sensitive headers (e.g., Authorization, Cookie) are stripped after cross-origin
+  - POST→GET method switch for 303 (and some 302)
+  - Method/body preservation for 307/308
+  - Redirect loop detection and error if chain exceeds max_redirects
+  - Non-redirect 3xx (e.g., 305, 306, 304) should NOT trigger another request
+  - Edge cases: empty Location, invalid schemes, large chains, chunked encoding
+
 - This project uses a dedicated test crate: ewe_platform_tests (defined in /tests/Cargo.toml). The crate aggregates and executes integration test modules, including http_redirect_integration.rs, from the /tests hierarchy.
 - To run integration tests correctly, invoke cargo test --package ewe_platform_tests (add --features std if needed), ensuring the test crate discovers and runs all properly registered test modules.
 - Test module discovery relies on mod.rs files registering test modules within the crate hierarchy. Verify mod.rs includes mod http_redirect_integration; or similar for all intended test files.

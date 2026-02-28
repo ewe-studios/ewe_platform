@@ -30,7 +30,7 @@ fn test_redirect_chain_resolves_successfully() {
         .unwrap()
         .send();
 
-    assert!(matches!(res, Ok(_)));
+    assert!(res.is_ok());
 }
 
 #[test]
