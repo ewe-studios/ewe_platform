@@ -3,10 +3,8 @@
 // WHAT: Ensure correct status transitions, header/semantic mutability, limit enforcement, and sensitive header stripping per sync-only project mandate
 
 use foundation_core::valtron;
-use foundation_core::wire::simple_http::client::{
-    ClientRequestBuilder, SimpleHttpClient, SystemDnsResolver,
-};
-use foundation_core::wire::simple_http::{HttpClientError, SimpleHeader};
+use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::HttpClientError;
 use foundation_testing::TestHttpServer;
 use tracing_test::traced_test;
 
@@ -82,38 +80,4 @@ fn test_post_without_redirect() {
     let url = server.url("/step1");
     let request_result = client.post(url.as_str());
     assert!(request_result.is_ok());
-}
-
-/// WHAT: Tests header stripping logic for redirects using the public API.
-/// WHY: Ensures that sensitive headers (e.g., Authorization) are stripped during redirects,
-///      complying with security and HTTP standards.
-#[test]
-fn test_redirect_strips_sensitive_headers() {
-    use foundation_core::valtron::single::initialize_pool;
-    initialize_pool(43);
-
-    let server = TestHttpServer::redirect_chain(vec![(200, "OK")]);
-
-    // Build a POST request with Authorization header
-    let url = server.url("/step1");
-    let prepared = ClientRequestBuilder::<SystemDnsResolver>::post(url.as_str())
-        .unwrap()
-        .header(SimpleHeader::AUTHORIZATION, "Bearer secret_token")
-        .header(SimpleHeader::CONTENT_TYPE, "application/json")
-        .body_text("{\"foo\":\"bar\"}")
-        .build()
-        .unwrap();
-
-    // Simulate redirect logic: headers should be stripped for sensitive keys
-    // (In real redirect, this would be handled internally, but we check builder logic)
-    let mut headers = prepared.headers.clone();
-    if headers.contains_key(&SimpleHeader::AUTHORIZATION) {
-        // Simulate header stripping
-        headers.remove(&SimpleHeader::AUTHORIZATION);
-    }
-
-    // Assert that Authorization header is stripped
-    assert!(!headers.contains_key(&SimpleHeader::AUTHORIZATION));
-    // Assert that Content-Type header remains
-    assert!(headers.contains_key(&SimpleHeader::CONTENT_TYPE));
 }
