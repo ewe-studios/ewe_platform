@@ -94,9 +94,6 @@ fn test_redirect_strips_sensitive_headers() {
 
     let server = TestHttpServer::redirect_chain(vec![(200, "OK")]);
 
-    // Setup: Create a client with redirect enabled
-    let client = SimpleHttpClient::from_system().max_redirects(5);
-
     // Build a POST request with Authorization header
     let url = server.url("/step1");
     let prepared = ClientRequestBuilder::<SystemDnsResolver>::post(url.as_str())
