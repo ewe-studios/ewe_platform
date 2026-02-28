@@ -226,8 +226,17 @@ pub struct HttpConnectionPool<R: DnsResolver> {
     resolver: Arc<R>,
 }
 
-impl Default for HttpConnectionPool<SystemDnsResolver> {
+impl<R: DnsResolver + Default> Default for HttpConnectionPool<R> {
     fn default() -> Self {
+        Self {
+            pool: Arc::new(ConnectionPool::default()),
+            resolver: Arc::new(R::default()),
+        }
+    }
+}
+
+impl HttpConnectionPool<SystemDnsResolver> {
+    fn system() -> Self {
         Self {
             pool: Arc::new(ConnectionPool::default()),
             resolver: Arc::new(SystemDnsResolver::new()),

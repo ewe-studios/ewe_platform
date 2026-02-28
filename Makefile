@@ -8,7 +8,7 @@ TEST_PACKAGE ?= $(notdir $(TEST_DIRECTORY))
 TARGET_TEST ?= tests_callfunction
 
 nextest:
-	bacon -j nextest 
+	bacon -j nextest
 
 test_foundation_core:
 	bacon -j test_foundation_core
@@ -57,10 +57,10 @@ publish:
 # ============================================================================
 
 update_submodules:
-	git submodule update .agents
-	git submodule update tools/dawn
-	git submodule update tools/emsdk
-	git submodule update infrastructure/llama-bindings/llama.cpp/
+	git submodule update --remote .agents
+	git submodule update --remote tools/dawn
+	git submodule update --remote tools/emsdk
+	git submodule update --remote infrastructure/llama-bindings/llama.cpp/
 
 # ============================================================================
 # Development Environment Setup

@@ -5,6 +5,9 @@
 //! - `ClientRequestBuilder` - Fluent API for building requests
 
 use crate::wire::simple_http::client::connection::ParsedUrl;
+use crate::wire::simple_http::client::{
+    ClientConfig, ClientRequest, DnsResolver, HttpConnectionPool, SystemDnsResolver,
+};
 use crate::wire::simple_http::HttpClientError;
 use crate::wire::simple_http::{
     Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
@@ -12,6 +15,7 @@ use crate::wire::simple_http::{
 };
 use serde::Serialize;
 use std::collections::BTreeMap;
+use std::sync::Arc;
 
 /// Prepared HTTP request ready to send.
 ///
@@ -63,25 +67,26 @@ impl PreparedRequest {
 /// # Examples
 ///
 /// ```
-/// use foundation_core::wire::simple_http::{ClientRequestBuilder, SimpleMethod};
+/// use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHeader};
 ///
 /// // Build a GET request
 /// let request = ClientRequestBuilder::get("http://example.com/api")
 ///     .unwrap()
 ///     .header(SimpleHeader::HOST, "example.com");
 ///
-/// if let Ok(prepared) = request.build() {
-///     println!("Built request: {:?}", prepared);
-/// }
+/// // Can build the request
+/// assert!(request.build().is_ok());
 /// ```
-pub struct ClientRequestBuilder {
+pub struct ClientRequestBuilder<R: DnsResolver + 'static> {
     method: SimpleMethod,
     url: ParsedUrl,
     headers: SimpleHeaders,
     body: Option<SendSafeBody>,
+    config: Option<ClientConfig>,
+    pool: Option<Arc<HttpConnectionPool<R>>>,
 }
 
-impl ClientRequestBuilder {
+impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     /// Builds the final prepared request.
     ///
     /// Consumes the builder and returns a `PreparedRequest` ready to send.
@@ -96,7 +101,33 @@ impl ClientRequestBuilder {
     }
 }
 
-impl ClientRequestBuilder {
+impl ClientRequestBuilder<SystemDnsResolver> {
+    #[must_use]
+    pub fn system_client(self) -> Result<ClientRequest<SystemDnsResolver>, HttpClientError> {
+        self.build_client()
+    }
+}
+
+impl<R: DnsResolver + Default + 'static> ClientRequestBuilder<R> {
+    /// Builds the final prepared request.
+    ///
+    /// Consumes the builder and returns a `PreparedRequest` ready to send.
+    #[must_use]
+    pub fn build_client(self) -> Result<ClientRequest<R>, HttpClientError> {
+        let prepared = PreparedRequest {
+            method: self.method,
+            url: self.url,
+            headers: self.headers,
+            body: self.body.unwrap_or(SendSafeBody::None),
+        };
+
+        let pool = self.pool.unwrap_or_default();
+        let config = self.config.unwrap_or_default();
+        Ok(ClientRequest::new(prepared, config, pool))
+    }
+}
+
+impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     /// Creates a new request builder with the given method and URL.
     ///
     /// # Arguments
@@ -137,7 +168,24 @@ impl ClientRequestBuilder {
             headers,
             url: parsed_url,
             body: None,
+            pool: None,
+            config: None,
         })
+    }
+
+    pub fn with_pool(mut self, pool: Option<Arc<HttpConnectionPool<R>>>) -> Self {
+        self.pool = pool;
+        self
+    }
+
+    pub fn pool(mut self, pool: Arc<HttpConnectionPool<R>>) -> Self {
+        self.pool = Some(pool);
+        self
+    }
+
+    pub fn client_config(mut self, config: ClientConfig) -> Self {
+        self.config = Some(config);
+        self
     }
 
     /// Adds a single header to the request.
@@ -149,6 +197,15 @@ impl ClientRequestBuilder {
     #[must_use]
     pub fn header(mut self, key: SimpleHeader, value: impl Into<String>) -> Self {
         self.headers.entry(key).or_default().push(value.into());
+        self
+    }
+
+    #[must_use]
+    pub fn add_header(mut self, key: impl Into<SimpleHeader>, value: impl Into<String>) -> Self {
+        self.headers
+            .entry(key.into())
+            .or_default()
+            .push(value.into());
         self
     }
 

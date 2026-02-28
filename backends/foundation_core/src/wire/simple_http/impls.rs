@@ -2561,6 +2561,24 @@ impl RenderHttp for Http11 {
 
 pub struct SimpleResponse<T>(Status, SimpleHeaders, T);
 
+impl<T> core::fmt::Display for SimpleResponse<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SimpleResponse")
+            .field("status", &self.0)
+            .field("headers", &self.1)
+            .finish()
+    }
+}
+
+impl<T> core::fmt::Debug for SimpleResponse<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SimpleResponse")
+            .field("status", &self.0)
+            .field("headers", &self.1)
+            .finish()
+    }
+}
+
 impl SimpleResponse<()> {
     #[must_use]
     pub fn no_body(status: Status, headers: SimpleHeaders) -> Self {

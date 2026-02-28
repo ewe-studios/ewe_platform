@@ -1,20 +1,24 @@
 //! Unit tests for `client::request` moved into the canonical units test tree.
 //!
 //! These tests are non-destructive copies of the original in-crate `#[cfg(test)]`
-//! module. They exercise `ClientRequestBuilder`, `PreparedRequest` and the
+//! module. They exercise `ClientRequestBuilder::<SystemDnsResolver>`, `PreparedRequest` and the
 //! request-building surface in a fast, deterministic manner suitable for unit
 //! test execution under `tests/backends/foundation_core/units/simple_http/`.
 
-use foundation_core::wire::simple_http::client::{ClientRequestBuilder, StaticSocketAddr};
+use foundation_core::wire::simple_http::client::{
+    ClientRequestBuilder, StaticSocketAddr, SystemDnsResolver,
+};
 use foundation_core::wire::simple_http::{Proto, SendSafeBody, SimpleHeader, SimpleMethod};
 use serde::Serialize;
 use std::net::SocketAddr as StdSocketAddr;
 
-/// WHY: Verify ClientRequestBuilder::new creates builder
+/// WHY: Verify ClientRequestBuilder::<SystemDnsResolver>::new creates builder
 /// WHAT: Tests that new creates a request builder with URL and method
 #[test]
 fn test_client_request_builder_new() {
-    let builder = ClientRequestBuilder::new(SimpleMethod::GET, "http://example.com").unwrap();
+    let builder =
+        ClientRequestBuilder::<SystemDnsResolver>::new(SimpleMethod::GET, "http://example.com")
+            .unwrap();
 
     // Consume the builder into a PreparedRequest which exposes public fields for assertions
     let prepared = builder.build().unwrap();
@@ -24,19 +28,19 @@ fn test_client_request_builder_new() {
     assert!(matches!(prepared.method, SimpleMethod::GET));
 }
 
-/// WHY: Verify ClientRequestBuilder::new validates URL
+/// WHY: Verify ClientRequestBuilder::<SystemDnsResolver>::new validates URL
 /// WHAT: Tests that invalid URLs return error
 #[test]
 fn test_client_request_builder_new_invalid_url() {
-    let result = ClientRequestBuilder::new(SimpleMethod::GET, "not a url");
+    let result = ClientRequestBuilder::<SystemDnsResolver>::new(SimpleMethod::GET, "not a url");
     assert!(result.is_err());
 }
 
-/// WHY: Verify ClientRequestBuilder::header adds header
+/// WHY: Verify ClientRequestBuilder::<SystemDnsResolver>::header adds header
 /// WHAT: Tests that header method adds header to request
 #[test]
 fn test_client_request_builder_header() {
-    let builder = ClientRequestBuilder::get("http://example.com")
+    let builder = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com")
         .unwrap()
         .header(SimpleHeader::CONTENT_TYPE, "application/json");
 
@@ -50,11 +54,11 @@ fn test_client_request_builder_header() {
     );
 }
 
-/// WHY: Verify ClientRequestBuilder::body_text sets text body
+/// WHY: Verify ClientRequestBuilder::<SystemDnsResolver>::body_text sets text body
 /// WHAT: Tests that body_text sets body and content headers
 #[test]
 fn test_client_request_builder_body_text() {
-    let builder = ClientRequestBuilder::post("http://example.com")
+    let builder = ClientRequestBuilder::<SystemDnsResolver>::post("http://example.com")
         .unwrap()
         .body_text("Hello, World!");
 
@@ -66,11 +70,11 @@ fn test_client_request_builder_body_text() {
     assert!(prepared.headers.contains_key(&SimpleHeader::CONTENT_TYPE));
 }
 
-/// WHY: Verify ClientRequestBuilder::body_bytes sets binary body
+/// WHY: Verify ClientRequestBuilder::<SystemDnsResolver>::body_bytes sets binary body
 /// WHAT: Tests that body_bytes sets body and content headers
 #[test]
 fn test_client_request_builder_body_bytes() {
-    let builder = ClientRequestBuilder::post("http://example.com")
+    let builder = ClientRequestBuilder::<SystemDnsResolver>::post("http://example.com")
         .unwrap()
         .body_bytes(vec![1, 2, 3, 4]);
 
@@ -80,7 +84,7 @@ fn test_client_request_builder_body_bytes() {
     assert!(prepared.headers.contains_key(&SimpleHeader::CONTENT_LENGTH));
 }
 
-/// WHY: Verify ClientRequestBuilder::body_json serializes to JSON
+/// WHY: Verify ClientRequestBuilder::<SystemDnsResolver>::body_json serializes to JSON
 /// WHAT: Tests that body_json creates JSON body
 #[test]
 fn test_client_request_builder_body_json() {
@@ -93,7 +97,7 @@ fn test_client_request_builder_body_json() {
         key: "value".to_string(),
     };
 
-    let builder = ClientRequestBuilder::post("http://example.com")
+    let builder = ClientRequestBuilder::<SystemDnsResolver>::post("http://example.com")
         .unwrap()
         .body_json(&data)
         .unwrap();
@@ -107,7 +111,7 @@ fn test_client_request_builder_body_json() {
     }
 }
 
-/// WHY: Verify ClientRequestBuilder::body_form encodes form data
+/// WHY: Verify ClientRequestBuilder::<SystemDnsResolver>::body_form encodes form data
 /// WHAT: Tests that body_form creates URL-encoded body
 #[test]
 fn test_client_request_builder_body_form() {
@@ -116,7 +120,7 @@ fn test_client_request_builder_body_form() {
         ("key2".to_string(), "value2".to_string()),
     ];
 
-    let builder = ClientRequestBuilder::post("http://example.com")
+    let builder = ClientRequestBuilder::<SystemDnsResolver>::post("http://example.com")
         .unwrap()
         .body_form(&params);
 
@@ -129,11 +133,11 @@ fn test_client_request_builder_body_form() {
     }
 }
 
-/// WHY: Verify ClientRequestBuilder::build creates PreparedRequest
+/// WHY: Verify ClientRequestBuilder::<SystemDnsResolver>::build creates PreparedRequest
 /// WHAT: Tests that build consumes builder and creates prepared request
 #[test]
 fn test_client_request_builder_build() {
-    let prepared = ClientRequestBuilder::get("http://example.com")
+    let prepared = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com")
         .unwrap()
         .build()
         .unwrap();
@@ -147,31 +151,31 @@ fn test_client_request_builder_build() {
 /// WHAT: Tests get, post, put, delete, patch, head, options methods
 #[test]
 fn test_client_request_builder_convenience_methods() {
-    let get = ClientRequestBuilder::get("http://example.com").unwrap();
+    let get = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com").unwrap();
     let prepared_get = get.build().unwrap();
     assert!(matches!(prepared_get.method, SimpleMethod::GET));
 
-    let post = ClientRequestBuilder::post("http://example.com").unwrap();
+    let post = ClientRequestBuilder::<SystemDnsResolver>::post("http://example.com").unwrap();
     let prepared_post = post.build().unwrap();
     assert!(matches!(prepared_post.method, SimpleMethod::POST));
 
-    let put = ClientRequestBuilder::put("http://example.com").unwrap();
+    let put = ClientRequestBuilder::<SystemDnsResolver>::put("http://example.com").unwrap();
     let prepared_put = put.build().unwrap();
     assert!(matches!(prepared_put.method, SimpleMethod::PUT));
 
-    let delete = ClientRequestBuilder::delete("http://example.com").unwrap();
+    let delete = ClientRequestBuilder::<SystemDnsResolver>::delete("http://example.com").unwrap();
     let prepared_delete = delete.build().unwrap();
     assert!(matches!(prepared_delete.method, SimpleMethod::DELETE));
 
-    let patch = ClientRequestBuilder::patch("http://example.com").unwrap();
+    let patch = ClientRequestBuilder::<SystemDnsResolver>::patch("http://example.com").unwrap();
     let prepared_patch = patch.build().unwrap();
     assert!(matches!(prepared_patch.method, SimpleMethod::PATCH));
 
-    let head = ClientRequestBuilder::head("http://example.com").unwrap();
+    let head = ClientRequestBuilder::<SystemDnsResolver>::head("http://example.com").unwrap();
     let prepared_head = head.build().unwrap();
     assert!(matches!(prepared_head.method, SimpleMethod::HEAD));
 
-    let options = ClientRequestBuilder::options("http://example.com").unwrap();
+    let options = ClientRequestBuilder::<SystemDnsResolver>::options("http://example.com").unwrap();
     let prepared_options = options.build().unwrap();
     assert!(matches!(prepared_options.method, SimpleMethod::OPTIONS));
 }
@@ -180,7 +184,7 @@ fn test_client_request_builder_convenience_methods() {
 /// WHAT: Tests that Host header is set from URL
 #[test]
 fn test_client_request_builder_auto_host_header() {
-    let builder = ClientRequestBuilder::get("http://example.com").unwrap();
+    let builder = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com").unwrap();
     let prepared = builder.build().unwrap();
     assert!(prepared.headers.contains_key(&SimpleHeader::HOST));
     assert_eq!(
@@ -188,7 +192,8 @@ fn test_client_request_builder_auto_host_header() {
         "example.com"
     );
 
-    let builder2 = ClientRequestBuilder::get("http://example.com:8080").unwrap();
+    let builder2 =
+        ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com:8080").unwrap();
     let prepared2 = builder2.build().unwrap();
     assert_eq!(
         prepared2.headers.get(&SimpleHeader::HOST).unwrap()[0],
@@ -200,7 +205,7 @@ fn test_client_request_builder_auto_host_header() {
 /// WHAT: Tests that prepared request can be converted to SimpleIncomingRequest
 #[test]
 fn test_prepared_request_into_simple_incoming_request() {
-    let prepared = ClientRequestBuilder::get("http://example.com/path")
+    let prepared = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com/path")
         .unwrap()
         .build()
         .unwrap();
@@ -214,10 +219,11 @@ fn test_prepared_request_into_simple_incoming_request() {
 /// WHAT: Tests that query strings are preserved
 #[test]
 fn test_prepared_request_with_query() {
-    let prepared = ClientRequestBuilder::get("http://example.com/path?foo=bar")
-        .unwrap()
-        .build()
-        .unwrap();
+    let prepared =
+        ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com/path?foo=bar")
+            .unwrap()
+            .build()
+            .unwrap();
 
     let simple_request = prepared.into_simple_incoming_request().unwrap();
     // `request_url` is an internal field on SimpleIncomingRequest that contains the rendered URL.

@@ -140,6 +140,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     };
 
                     let (data, timeout, pool, mut descriptor, remaining_redirects) = *state;
+                    tracing::info!("REDIRECTIONS: Remaining redirects: {}", remaining_redirects);
 
                     // 1. Create connection
                     let Ok(mut connection) = pool.create_http_connection(&descriptor.request_uri, None)

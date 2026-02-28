@@ -1,4 +1,4 @@
-use foundation_core::wire::simple_http::HttpClientError;
+use foundation_core::wire::simple_http::{client::SystemDnsResolver, HttpClientError};
 
 /// WHY: Validate redirect edge cases - chain, header stripping, POST→GET, invalid Location, redirect limit
 /// WHAT: Asserts client handles redirects correctly and surfaces errors (no panic)
@@ -8,11 +8,12 @@ fn test_redirect_edge_cases() {
     use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, SimpleMethod};
 
     let client = SimpleHttpClient::from_system().max_redirects(2);
-    let builder = ClientRequestBuilder::post("http://host1.com/redirect")
+    let request = ClientRequestBuilder::<SystemDnsResolver>::post("http://host1.com/redirect")
         .unwrap()
         .header(SimpleHeader::AUTHORIZATION, "Bearer secret_token")
-        .body_text("payload");
-    let request = builder.build().unwrap();
+        .body_text("payload")
+        .build()
+        .unwrap();
 
     // Simulate redirect 1: Host switch, header stripping
     let mut headers = request.headers.clone();
@@ -36,7 +37,8 @@ fn test_redirect_edge_cases() {
 
     // Simulate invalid Location header
     let invalid_location = "not-a-url";
-    let result = ClientRequestBuilder::new(SimpleMethod::GET, invalid_location);
+    let result =
+        ClientRequestBuilder::<SystemDnsResolver>::new(SimpleMethod::GET, invalid_location);
     assert!(result.is_err(), "Invalid Location should return error");
 
     // Simulate too many redirects
