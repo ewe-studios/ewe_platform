@@ -27,6 +27,9 @@
 - Integration tests should not rely on async test setups. Use only synchronous test helpers from test infrastructure.
 - Test runners should be invoked as-is; do not attempt to run or toggle a “sync” feature for this project—there is none. Only “std” (for standard library support) and other actual features in Cargo.toml are permitted.
 
+- Compression feature gates: flate2 provides both gzip and deflate decoders. Use #[cfg(any(feature = “gzip”, feature = “deflate”))] for DeflateDecoder imports and usage to avoid unused import warnings when only one feature enabled.
+- Brotli decompressor needs buffer size parameter (4096 works well): BrotliDecoder::new(inner, 4096)
+
 ## Dependencies and Interactions
 - This project is strictly synchronous per stack standards; async/await dependencies must be disallowed at review.
 
