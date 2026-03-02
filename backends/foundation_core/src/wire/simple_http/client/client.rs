@@ -48,10 +48,10 @@ pub struct ClientConfig {
 impl ClientConfig {
     /// Returns operation timeout configuration.
     ///
-    /// WHY: Converts optional timeout durations into OpTimeout struct used by internal tasks.
+    /// WHY: Converts optional timeout durations into `OpTimeout` struct used by internal tasks.
     ///
-    /// WHAT: If all timeouts are configured, creates OpTimeout with specified values.
-    /// Otherwise returns default OpTimeout.
+    /// WHAT: If all timeouts are configured, creates `OpTimeout` with specified values.
+    /// Otherwise returns default `OpTimeout`.
     ///
     /// # Returns
     ///
@@ -140,6 +140,7 @@ impl SimpleHttpClient<SystemDnsResolver> {
 }
 
 impl<R: DnsResolver> SimpleHttpClient<R> {
+    #[must_use]
     pub fn new(config: ClientConfig, pool: Arc<HttpConnectionPool<R>>) -> Self {
         Self {
             config,

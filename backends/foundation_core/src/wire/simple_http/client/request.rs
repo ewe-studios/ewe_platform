@@ -95,7 +95,7 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     /// # Errors
     ///
     /// Currently always returns `Ok`. Returns `Result` for future extensibility.
-    #[must_use]
+    #[must_use = "builder must be consumed to produce a PreparedRequest"]
     pub fn build(self) -> Result<PreparedRequest, HttpClientError> {
         Ok(PreparedRequest {
             method: self.method,
@@ -112,7 +112,7 @@ impl ClientRequestBuilder<SystemDnsResolver> {
     /// # Errors
     ///
     /// Returns `HttpClientError::NoPool` if connection pool is not set.
-    #[must_use]
+    #[must_use = "builder must be consumed to produce a ClientRequest"]
     pub fn system_client(self) -> Result<ClientRequest<SystemDnsResolver>, HttpClientError> {
         self.build_client()
     }
@@ -126,7 +126,7 @@ impl<R: DnsResolver + Default + 'static> ClientRequestBuilder<R> {
     /// # Errors
     ///
     /// Returns `HttpClientError::NoPool` if connection pool is not configured.
-    #[must_use]
+    #[must_use = "builder must be consumed to produce a ClientRequest"]
     pub fn build_client(self) -> Result<ClientRequest<R>, HttpClientError> {
         let prepared = PreparedRequest {
             method: self.method,
@@ -187,16 +187,19 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
         })
     }
 
+    #[must_use]
     pub fn with_pool(mut self, pool: Option<Arc<HttpConnectionPool<R>>>) -> Self {
         self.pool = pool;
         self
     }
 
+    #[must_use]
     pub fn pool(mut self, pool: Arc<HttpConnectionPool<R>>) -> Self {
         self.pool = Some(pool);
         self
     }
 
+    #[must_use]
     pub fn client_config(mut self, config: ClientConfig) -> Self {
         self.config = Some(config);
         self

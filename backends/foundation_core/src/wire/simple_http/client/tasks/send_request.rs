@@ -47,7 +47,7 @@ where
     /// [`SkipReading`] skips the attempt to read the intro from the stream
     /// as indicates the request intro has just being read already
     /// and provides the request response.
-    SkipReading(Option<RequestIntro>),
+    SkipReading(Box<Option<RequestIntro>>),
 
     /// No more work to do
     Done,
@@ -88,6 +88,7 @@ where
     type Pending = HttpRequestPending;
     type Spawner = BoxedSendExecutionAction;
 
+    #[allow(clippy::too_many_lines)]
     fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         match self.0.take()? {
             SendRequestState::Init(mut inner) => match inner.take() {
@@ -161,11 +162,9 @@ where
 
                 tracing::debug!("HttpRequestTaskState::Connecting: processing next value");
                 match next_value {
-                    None => {
-                        return Some(TaskStatus::Ready(RequestIntro::Failed(
-                            HttpClientError::ReadError,
-                        )));
-                    }
+                    None => Some(TaskStatus::Ready(RequestIntro::Failed(
+                        HttpClientError::ReadError,
+                    ))),
                     Some(TaskStatus::Init) => Some(TaskStatus::Init),
                     Some(TaskStatus::Delayed(dur)) => Some(TaskStatus::Delayed(dur)),
                     Some(TaskStatus::Pending(_)) => {
@@ -184,13 +183,13 @@ where
                             HttpRequestRedirectResponse::Done(
                                 stream,
                                 reader,
-                                optional_starters,
+                                boxed_optional_starters,
                             ) => {
                                 tracing::debug!(
                                     "HttpRequestTaskState::Connecting::HttpStreamReady::Done(stream): Send next action -> GetRequestIntroTask"
                                 );
 
-                                if let Some(starter_array) = optional_starters {
+                                if let Some(starter_array) = *boxed_optional_starters {
                                     tracing::debug!("HttpRequestRedirectResponse::Done: received intro from redirect process");
 
                                     let [first, second] = starter_array;
@@ -213,11 +212,7 @@ where
                                         )));
                                     };
 
-                                    let headers = if let IncomingResponseParts::Headers(inner) =
-                                        second
-                                    {
-                                        inner
-                                    } else {
+                                    let IncomingResponseParts::Headers(headers) = second else {
                                         self.0.take();
 
                                         tracing::debug!(
@@ -228,14 +223,14 @@ where
                                         )));
                                     };
 
-                                    self.0 = Some(SendRequestState::SkipReading(Some(
+                                    self.0 = Some(SendRequestState::SkipReading(Box::new(Some(
                                         RequestIntro::Success {
-                                            stream: reader,
+                                            stream: Box::new(reader),
                                             conn: stream,
                                             intro,
                                             headers,
                                         },
-                                    )));
+                                    ))));
 
                                     return Some(TaskStatus::Pending(
                                         HttpRequestPending::WaitingIntroAndHeaders,
@@ -295,20 +290,22 @@ where
                     }
                 }
             }
-            SendRequestState::SkipReading(None) => {
-                tracing::debug!("HttpRequestTaskState::Reading: received intro already");
+            SendRequestState::SkipReading(boxed) => match *boxed {
+                None => {
+                    tracing::debug!("HttpRequestTaskState::Reading: received intro already");
 
-                Some(TaskStatus::Ready(RequestIntro::Failed(
-                    HttpClientError::ReadError,
-                )))
-            }
-            SendRequestState::SkipReading(Some(container)) => {
-                tracing::debug!(
-                    "HttpRequestTaskState::Reading: received intro already, forwarding"
-                );
+                    Some(TaskStatus::Ready(RequestIntro::Failed(
+                        HttpClientError::ReadError,
+                    )))
+                }
+                Some(container) => {
+                    tracing::debug!(
+                        "HttpRequestTaskState::Reading: received intro already, forwarding"
+                    );
 
-                Some(TaskStatus::Ready(container))
-            }
+                    Some(TaskStatus::Ready(container))
+                }
+            },
             SendRequestState::Reading(mut intro_recv) => {
                 tracing::debug!(
                     "HttpRequestTaskState::Reading: Reading next state from http request reciever"
@@ -328,11 +325,9 @@ where
                 }
 
                 match next_value {
-                    None => {
-                        return Some(TaskStatus::Ready(RequestIntro::Failed(
-                            HttpClientError::ReadError,
-                        )));
-                    }
+                    None => Some(TaskStatus::Ready(RequestIntro::Failed(
+                        HttpClientError::ReadError,
+                    ))),
                     Some(TaskStatus::Init) => Some(TaskStatus::Init),
                     Some(TaskStatus::Delayed(dur)) => Some(TaskStatus::Delayed(dur)),
                     Some(TaskStatus::Pending(())) => {
