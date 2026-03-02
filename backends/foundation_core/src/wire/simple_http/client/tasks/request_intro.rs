@@ -28,7 +28,7 @@ use crate::wire::simple_http::{
 #[derive(From)]
 pub enum RequestIntro {
     Success {
-        stream: HttpResponseReader<SimpleHttpBody, RawStream>,
+        stream: Box<HttpResponseReader<SimpleHttpBody, RawStream>>,
         /// Connection
         conn: HttpClientConnection,
         /// intro options  for a http response
@@ -46,15 +46,18 @@ impl From<HttpReaderError> for RequestIntro {
     }
 }
 
+// Type alias for complex WithIntro data
+type WithIntroData = Box<
+    Option<(
+        HttpResponseReader<SimpleHttpBody, RawStream>,
+        HttpResponseIntro,
+        HttpClientConnection,
+    )>,
+>;
+
 pub enum GetRequestIntroState {
     Init(Option<HttpClientConnection>),
-    WithIntro(
-        Option<(
-            HttpResponseReader<SimpleHttpBody, RawStream>,
-            HttpResponseIntro,
-            HttpClientConnection,
-        )>,
-    ),
+    WithIntro(WithIntroData),
 }
 
 pub struct GetRequestIntroTask(Option<GetRequestIntroState>);
@@ -98,17 +101,19 @@ impl TaskIterator for GetRequestIntroTask {
 
                     tracing::info!("Received intro for request: {:?}", (&status, &proto, &text));
 
-                    let _ = self.0.replace(GetRequestIntroState::WithIntro(Some((
-                        reader,
-                        (status, proto, text),
-                        stream,
-                    ))));
+                    let _ = self
+                        .0
+                        .replace(GetRequestIntroState::WithIntro(Box::new(Some((
+                            reader,
+                            (status, proto, text),
+                            stream,
+                        )))));
 
                     Some(TaskStatus::Pending(()))
                 }
                 None => None,
             },
-            GetRequestIntroState::WithIntro(inner) => match inner {
+            GetRequestIntroState::WithIntro(inner) => match *inner {
                 Some((mut reader, intro, conn)) => {
                     tracing::info!("Read request header from stream");
                     let header_response = match reader.next()? {
@@ -129,7 +134,7 @@ impl TaskIterator for GetRequestIntroTask {
 
                     tracing::info!("Received headers and setting success state");
                     Some(TaskStatus::Ready(RequestIntro::Success {
-                        stream: reader,
+                        stream: Box::new(reader),
                         conn,
                         intro,
                         headers,

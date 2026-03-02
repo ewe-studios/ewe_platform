@@ -4,6 +4,9 @@ use std::net::{SocketAddr, ToSocketAddrs};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
+/// Type alias for mock DNS response storage
+type MockDnsResponses = Arc<Mutex<HashMap<String, Result<Vec<SocketAddr>, DnsError>>>>;
+
 /// Trait for DNS resolution.
 ///
 /// Allows pluggable DNS resolvers for testing and customization.
@@ -190,7 +193,7 @@ impl<R: DnsResolver> DnsResolver for CachingDnsResolver<R> {
 /// Allows configuring responses for specific hostnames.
 #[derive(Debug, Clone)]
 pub struct MockDnsResolver {
-    responses: Arc<Mutex<HashMap<String, Result<Vec<SocketAddr>, DnsError>>>>,
+    responses: MockDnsResponses,
 }
 
 impl MockDnsResolver {

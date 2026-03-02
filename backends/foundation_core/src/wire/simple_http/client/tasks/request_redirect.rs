@@ -31,39 +31,34 @@ use std::time::Duration;
 
 use super::{HttpOperationState, OpTimeout};
 
+// Type aliases for complex enum variant data
+type InitData<R> = Box<(
+    SimpleIncomingRequest,
+    OpTimeout,
+    Arc<HttpConnectionPool<R>>,
+    u8,
+)>;
+
+type TryingData<R> = Box<(
+    SimpleIncomingRequest,
+    OpTimeout,
+    Arc<HttpConnectionPool<R>>,
+    RequestDescriptor,
+    u8,
+)>;
+
+type WriteBodyData<R> = Box<(
+    Option<[IncomingResponseParts; 2]>,
+    SimpleIncomingRequest,
+    Arc<HttpConnectionPool<R>>,
+    HttpClientConnection,
+    HttpResponseReader<SimpleHttpBody, RawStream>,
+)>;
+
 pub enum HttpRequestRedirectState<R: DnsResolver + Send + 'static> {
-    Init(
-        Option<
-            Box<(
-                SimpleIncomingRequest,
-                OpTimeout,
-                Arc<HttpConnectionPool<R>>,
-                u8,
-            )>,
-        >,
-    ),
-    Trying(
-        Option<
-            Box<(
-                SimpleIncomingRequest,
-                OpTimeout,
-                Arc<HttpConnectionPool<R>>,
-                RequestDescriptor,
-                u8,
-            )>,
-        >,
-    ),
-    WriteBody(
-        Option<
-            Box<(
-                Option<[IncomingResponseParts; 2]>,
-                SimpleIncomingRequest,
-                Arc<HttpConnectionPool<R>>,
-                HttpClientConnection,
-                HttpResponseReader<SimpleHttpBody, RawStream>,
-            )>,
-        >,
-    ),
+    Init(Option<InitData<R>>),
+    Trying(Option<TryingData<R>>),
+    WriteBody(Option<WriteBodyData<R>>),
     Done,
 }
 
@@ -71,7 +66,7 @@ pub enum HttpRequestRedirectResponse {
     Done(
         HttpClientConnection,
         HttpResponseReader<SimpleHttpBody, RawStream>,
-        Option<[IncomingResponseParts; 2]>,
+        Box<Option<[IncomingResponseParts; 2]>>,
     ),
     Error(HttpClientError),
     FlushFailed(HttpClientConnection, std::io::Error),
@@ -108,6 +103,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
     type Ready = HttpRequestRedirectResponse;
     type Spawner = BoxedSendExecutionAction;
 
+    #[allow(clippy::too_many_lines)]
     fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         let trace_span = tracing::info_span!("GetHttpRequestRedirectTask");
         trace_span.in_scope(|| {
@@ -347,24 +343,18 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         "No redirect detected, transitioning to WriteBody state to send request body."
                     );
 
-                    let intro = match intro_result.and_then(|r| r.ok()) {
-                        Some(i) => i,
-                        None => {
-                            self.0 = Some(HttpRequestRedirectState::Done);
-                            return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                                HttpClientError::FailedWith("Missing intro".into())
-                            )));
-                        }
+                    let Some(intro) = intro_result.and_then(std::result::Result::ok) else {
+                        self.0 = Some(HttpRequestRedirectState::Done);
+                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                            HttpClientError::FailedWith("Missing intro".into())
+                        )));
                     };
 
-                    let headers = match headers_result.and_then(|r| r.ok()) {
-                        Some(h) => h,
-                        None => {
-                            self.0 = Some(HttpRequestRedirectState::Done);
-                            return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                                HttpClientError::FailedWith("Missing headers".into())
-                            )));
-                        }
+                    let Some(headers) = headers_result.and_then(std::result::Result::ok) else {
+                        self.0 = Some(HttpRequestRedirectState::Done);
+                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                            HttpClientError::FailedWith("Missing headers".into())
+                        )));
                     };
 
                     self.0 = Some(HttpRequestRedirectState::WriteBody(Some(Box::new((
@@ -395,7 +385,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                             Ok(()) => Some(TaskStatus::Ready(HttpRequestRedirectResponse::Done(
                                 connection,
                                 reader,
-                                optional_starters,
+                                Box::new(optional_starters),
                             ))),
                             Err(e) => Some(TaskStatus::Ready(
                                 HttpRequestRedirectResponse::FlushFailed(connection, e),

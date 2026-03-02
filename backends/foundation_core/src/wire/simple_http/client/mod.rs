@@ -4,6 +4,7 @@
 // patterns and pluggable DNS resolution.
 
 mod api;
+#[allow(clippy::module_inception)]
 mod client;
 mod connection;
 mod control;

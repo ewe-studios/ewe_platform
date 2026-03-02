@@ -106,10 +106,9 @@ impl ConnectionPool {
         let key = format!("{host}:{port}");
         let now = Instant::now();
 
-        let mut map = match self.inner.lock() {
-            Ok(m) => m,
-            Err(_) => return None, // poisoned lock; treat as empty pool
-        };
+        let Ok(mut map) = self.inner.lock() else {
+            return None;
+        }; // poisoned lock; treat as empty pool
 
         if let Some(queue) = map.get_mut(&key) {
             // Pop from the back (LIFO reuse) until we find a valid non-stale stream
@@ -134,10 +133,9 @@ impl ConnectionPool {
     /// dropped to maintain the limit.
     pub fn checkin(&self, host: &str, port: u16, stream: SharedByteBufferStream<RawStream>) {
         let key = format!("{host}:{port}");
-        let mut map = match self.inner.lock() {
-            Ok(m) => m,
-            Err(_) => return, // poisoned lock; drop stream
-        };
+        let Ok(mut map) = self.inner.lock() else {
+            return;
+        }; // poisoned lock; drop stream
 
         let queue = map.entry(key).or_insert_with(VecDeque::new);
 
@@ -156,9 +154,8 @@ impl ConnectionPool {
     /// heavy allocation periods.
     pub fn cleanup_stale(&self) {
         let now = Instant::now();
-        let mut map = match self.inner.lock() {
-            Ok(m) => m,
-            Err(_) => return,
+        let Ok(mut map) = self.inner.lock() else {
+            return;
         };
 
         let mut remove_keys = Vec::new();

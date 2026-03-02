@@ -191,7 +191,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// WHY: Internal method that provides both the connection and response intro.
     /// Used by `parts()` to return the connection for pool management.
     ///
-    /// WHAT: Same as `introduction()` but also returns the HttpClientConnection
+    /// WHAT: Same as `introduction()` but also returns the `HttpClientConnection`
     /// for connection pooling.
     ///
     /// # Returns
@@ -610,7 +610,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
 
             for next_value in iter {
                 match next_value {
-                    Stream::Init | Stream::Ignore | Stream::Pending(_) => continue,
+                    Stream::Init | Stream::Ignore | Stream::Pending(_) => {}
                     Stream::Delayed(inner) => {
                         wait_duration(inner);
                     }
@@ -621,8 +621,8 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                             self.task_state = Some(ClientRequestState::Completed);
                             return Err(HttpClientError::FailedExecution);
                         }
-                        HttpRequestRedirectResponse::Done(conn, reader, optional_intro) => {
-                            if let Some(intro) = optional_intro {
+                        HttpRequestRedirectResponse::Done(conn, reader, boxed_optional_intro) => {
+                            if let Some(intro) = *boxed_optional_intro {
                                 tracing::debug!("Received intro message already");
 
                                 let [first, second] = intro;
