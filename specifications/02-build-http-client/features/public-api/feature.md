@@ -4,9 +4,10 @@ spec_directory: "specifications/02-build-http-client"
 feature_directory: "specifications/02-build-http-client/features/public-api"
 this_file: "specifications/02-build-http-client/features/public-api/feature.md"
 
-status: pending
+status: completed
 priority: medium
 created: 2026-02-28
+completed: 2026-03-02
 
 depends_on:
   - foundation

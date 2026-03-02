@@ -6,7 +6,7 @@ created: 2026-01-18
 author: "Main Agent"
 metadata:
   version: "5.4"
-  last_updated: 2026-02-28
+  last_updated: 2026-03-02
   estimated_effort: "medium"
   tags:
     - http-client
@@ -24,10 +24,10 @@ builds_on: "specifications/04-condvar-primitives"
 related_specs:
   - "specifications/03-wasm-friendly-sync-primitives"
 features:
-  completed: 6
-  uncompleted: 8
+  completed: 7
+  uncompleted: 7
   total: 14
-  completion_percentage: 43
+  completion_percentage: 50
 ---
 
 # Overview
@@ -73,7 +73,7 @@ The HTTP client implementation is divided into features with clear dependencies.
 | 6  | [request-response](./features/request-response/feature.md) | Request builder, response types, headers and body handling | 4 | ✅ Complete |
 | 7  | [auth-helpers](./features/auth-helpers/feature.md) | Basic, Bearer, Digest auth helpers and flows | 6 | ⬜ Pending |
 | 8  | [task-iterator](./features/task-iterator/feature.md) | TaskIterator, ExecutionAction types and executor integration | 0, 6 | ✅ Complete |
-| 9  | [public-api](./features/public-api/feature.md) | User-facing API (SimpleHttpClient), ergonomics and integration | 8 | ⬜ Pending |
+| 9  | [public-api](./features/public-api/feature.md) | User-facing API (SimpleHttpClient), ergonomics and integration | 8 | ✅ Complete |
 | 10 | [connection-pooling](./features/connection-pooling/feature.md) | Connection pool design, checkout/checkin, cleanup and metrics | 4 | ⬜ Pending |
 | 11 | [cookie-jar](./features/cookie-jar/feature.md) | Automatic cookie storage and policy handling | 9 | ⬜ Pending |
 | 12 | [middleware](./features/middleware/feature.md) | Request/response interceptors and middleware pipeline | 9 | ⬜ Pending |
