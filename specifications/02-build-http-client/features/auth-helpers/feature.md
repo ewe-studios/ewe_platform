@@ -4,9 +4,10 @@ spec_directory: "specifications/02-build-http-client"
 feature_directory: "specifications/02-build-http-client/features/auth-helpers"
 this_file: "specifications/02-build-http-client/features/auth-helpers/feature.md"
 
-status: pending
+status: completed
 priority: high
 created: 2026-02-28
+completed: 2026-03-03
 
 depends_on:
   - request-response
