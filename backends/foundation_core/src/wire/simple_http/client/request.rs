@@ -67,10 +67,11 @@ impl PreparedRequest {
 /// # Examples
 ///
 /// ```
-/// use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHeader};
+/// use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SystemDnsResolver};
+/// use foundation_core::wire::simple_http::SimpleHeader;
 ///
 /// // Build a GET request
-/// let request = ClientRequestBuilder::get("http://example.com/api")
+/// let request = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com/api")
 ///     .unwrap()
 ///     .header(SimpleHeader::HOST, "example.com");
 ///
@@ -90,6 +91,10 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     /// Builds the final prepared request.
     ///
     /// Consumes the builder and returns a `PreparedRequest` ready to send.
+    ///
+    /// # Errors
+    ///
+    /// Currently always returns `Ok`. Returns `Result` for future extensibility.
     #[must_use]
     pub fn build(self) -> Result<PreparedRequest, HttpClientError> {
         Ok(PreparedRequest {
@@ -102,6 +107,11 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
 }
 
 impl ClientRequestBuilder<SystemDnsResolver> {
+    /// Builds a client request with system DNS resolver.
+    ///
+    /// # Errors
+    ///
+    /// Returns `HttpClientError::NoPool` if connection pool is not set.
     #[must_use]
     pub fn system_client(self) -> Result<ClientRequest<SystemDnsResolver>, HttpClientError> {
         self.build_client()
@@ -109,9 +119,13 @@ impl ClientRequestBuilder<SystemDnsResolver> {
 }
 
 impl<R: DnsResolver + Default + 'static> ClientRequestBuilder<R> {
-    /// Builds the final prepared request.
+    /// Builds the final prepared request with a client wrapper.
     ///
-    /// Consumes the builder and returns a `PreparedRequest` ready to send.
+    /// Consumes the builder and returns a `ClientRequest` ready to execute.
+    ///
+    /// # Errors
+    ///
+    /// Returns `HttpClientError::NoPool` if connection pool is not configured.
     #[must_use]
     pub fn build_client(self) -> Result<ClientRequest<R>, HttpClientError> {
         let prepared = PreparedRequest {
@@ -141,12 +155,12 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     ///
     /// # Errors
     ///
+    /// Returns `HttpClientError::InvalidUrl` if the URL cannot be parsed.
+    /// Returns `HttpClientError::UnsupportedScheme` if the URL scheme is not http or https.
     ///
     /// # Panics
     ///
-    /// If the relevant socket address is not valid or provided.
-    ///
-    /// Returns `HttpClientError` if the URL is invalid.
+    /// Panics if the socket address cannot be determined from the URL.
     pub fn new(method: SimpleMethod, url: &str) -> Result<Self, HttpClientError> {
         let parsed_url = ParsedUrl::parse(url)?;
         let mut headers = BTreeMap::new();

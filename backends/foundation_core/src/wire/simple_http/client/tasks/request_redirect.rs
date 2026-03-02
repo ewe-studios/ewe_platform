@@ -288,8 +288,12 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                             location_header
                         );
 
-                        #[allow(clippy::unnecessary_unwrap)]
-                        let location = location_header.expect("Location header is missing");
+                        let Some(location) = location_header else {
+                            self.0 = Some(HttpRequestRedirectState::Done);
+                            return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                                HttpClientError::FailedWith("Location header missing in redirect".into())
+                            )));
+                        };
                         let new_url =
                             match redirects::resolve_location(&descriptor.request_uri, location) {
                                 Ok(url) => url,
@@ -342,13 +346,29 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     tracing::info!(
                         "No redirect detected, transitioning to WriteBody state to send request body."
                     );
+
+                    let intro = match intro_result.and_then(|r| r.ok()) {
+                        Some(i) => i,
+                        None => {
+                            self.0 = Some(HttpRequestRedirectState::Done);
+                            return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                                HttpClientError::FailedWith("Missing intro".into())
+                            )));
+                        }
+                    };
+
+                    let headers = match headers_result.and_then(|r| r.ok()) {
+                        Some(h) => h,
+                        None => {
+                            self.0 = Some(HttpRequestRedirectState::Done);
+                            return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                                HttpClientError::FailedWith("Missing headers".into())
+                            )));
+                        }
+                    };
+
                     self.0 = Some(HttpRequestRedirectState::WriteBody(Some(Box::new((
-                        Some([
-                            intro_result.expect("get inner").expect("should have intro"),
-                            headers_result
-                                .expect("get inner")
-                                .expect("should have headers"),
-                        ]),
+                        Some([intro, headers]),
                         data,
                         pool,
                         connection,

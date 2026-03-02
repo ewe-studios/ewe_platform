@@ -186,6 +186,23 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
             .map(|(_, intro, headers)| (intro, headers))
     }
 
+    /// Executes request and returns connection, introduction, and headers.
+    ///
+    /// WHY: Internal method that provides both the connection and response intro.
+    /// Used by `parts()` to return the connection for pool management.
+    ///
+    /// WHAT: Same as `introduction()` but also returns the HttpClientConnection
+    /// for connection pooling.
+    ///
+    /// # Returns
+    ///
+    /// Tuple of `(HttpClientConnection, ResponseIntro, SimpleHeaders)` on success.
+    ///
+    /// # Errors
+    ///
+    /// Returns `HttpClientError::FailedExecution` if request execution fails.
+    /// Returns `HttpClientError::InvalidRequestState` if called in wrong state.
+    /// Returns `HttpClientError` variants for DNS, connection, or parsing errors.
     #[tracing::instrument(skip(self))]
     pub fn introduction_with_connection(
         &mut self,
@@ -321,7 +338,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         let task = SendRequestTask::new(
             request,
             self.config.max_redirects,
-            self.pool.clone().expect("Pool should be initialized"),
+            self.pool.clone().ok_or(HttpClientError::NoPool)?,
             Some(self.config.get_op_timeout()),
         );
 
@@ -523,6 +540,13 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// # Returns
     ///
     /// Iterator yielding `Result<IncomingResponseParts, HttpClientError>`.
+    ///
+    /// # Errors
+    ///
+    /// Returns `HttpClientError::NoPool` if connection pool is not initialized.
+    /// Returns `HttpClientError::NoRequestToSend` if request was already executed.
+    /// Returns `HttpClientError::FailedExecution` if request execution fails.
+    /// Returns `HttpClientError` variants for DNS, connection, or parsing errors.
     ///
     #[tracing::instrument(skip(self))]
     pub fn parts(

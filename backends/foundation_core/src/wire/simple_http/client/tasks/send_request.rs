@@ -103,7 +103,13 @@ where
                         )));
                     }
 
-                    let incoming_request = send_request.request.expect("Request is missing");
+                    let Some(incoming_request) = send_request.request else {
+                        self.0 = Some(SendRequestState::Done);
+                        return Some(TaskStatus::Ready(RequestIntro::Failed(
+                            HttpClientError::NoRequestToSend,
+                        )));
+                    };
+
                     let Ok(into_incoming) = incoming_request.into_simple_incoming_request() else {
                         self.0 = Some(SendRequestState::Done);
 
@@ -154,17 +160,22 @@ where
                 }
 
                 tracing::debug!("HttpRequestTaskState::Connecting: processing next value");
-                match next_value.unwrap() {
-                    TaskStatus::Init => Some(TaskStatus::Init),
-                    TaskStatus::Delayed(dur) => Some(TaskStatus::Delayed(dur)),
-                    TaskStatus::Pending(_) => {
+                match next_value {
+                    None => {
+                        return Some(TaskStatus::Ready(RequestIntro::Failed(
+                            HttpClientError::ReadError,
+                        )));
+                    }
+                    Some(TaskStatus::Init) => Some(TaskStatus::Init),
+                    Some(TaskStatus::Delayed(dur)) => Some(TaskStatus::Delayed(dur)),
+                    Some(TaskStatus::Pending(_)) => {
                         Some(TaskStatus::Pending(HttpRequestPending::WaitingForStream))
                     }
-                    TaskStatus::Spawn(action) => {
+                    Some(TaskStatus::Spawn(action)) => {
                         tracing::debug!("HttpRequestTaskState::Connecting: spawn new action");
                         Some(TaskStatus::Spawn(action.into_box_send_execution_action()))
                     }
-                    TaskStatus::Ready(item) => {
+                    Some(TaskStatus::Ready(item)) => {
                         tracing::debug!(
                             "HttpRequestTaskState::Connecting: received TaskStats::Ready(_)"
                         );
@@ -316,16 +327,21 @@ where
                     )));
                 }
 
-                match next_value.unwrap() {
-                    TaskStatus::Init => Some(TaskStatus::Init),
-                    TaskStatus::Delayed(dur) => Some(TaskStatus::Delayed(dur)),
-                    TaskStatus::Pending(()) => {
+                match next_value {
+                    None => {
+                        return Some(TaskStatus::Ready(RequestIntro::Failed(
+                            HttpClientError::ReadError,
+                        )));
+                    }
+                    Some(TaskStatus::Init) => Some(TaskStatus::Init),
+                    Some(TaskStatus::Delayed(dur)) => Some(TaskStatus::Delayed(dur)),
+                    Some(TaskStatus::Pending(())) => {
                         Some(TaskStatus::Pending(HttpRequestPending::WaitingForStream))
                     }
-                    TaskStatus::Spawn(action) => {
+                    Some(TaskStatus::Spawn(action)) => {
                         Some(TaskStatus::Spawn(action.into_box_send_execution_action()))
                     }
-                    TaskStatus::Ready(item) => {
+                    Some(TaskStatus::Ready(item)) => {
                         self.0.take();
 
                         tracing::debug!(

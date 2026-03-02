@@ -46,16 +46,21 @@ pub struct ClientConfig {
 }
 
 impl ClientConfig {
+    /// Returns operation timeout configuration.
+    ///
+    /// WHY: Converts optional timeout durations into OpTimeout struct used by internal tasks.
+    ///
+    /// WHAT: If all timeouts are configured, creates OpTimeout with specified values.
+    /// Otherwise returns default OpTimeout.
+    ///
+    /// # Returns
+    ///
+    /// `OpTimeout` with configured or default timeout values.
     #[must_use]
     pub fn get_op_timeout(&self) -> OpTimeout {
-        if self.connect_timeout.is_some() && self.read_timeout.is_some() {
-            OpTimeout::new(
-                self.connect_timeout.unwrap(),
-                self.read_timeout.unwrap(),
-                self.write_timeout.unwrap(),
-            )
-        } else {
-            OpTimeout::default()
+        match (self.connect_timeout, self.read_timeout, self.write_timeout) {
+            (Some(connect), Some(read), Some(write)) => OpTimeout::new(connect, read, write),
+            _ => OpTimeout::default(),
         }
     }
 }
@@ -190,7 +195,12 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
     // Convenience methods for common HTTP verbs that return prepared ClientRequest
     // which wraps the task machinery and can be executed by the caller.
 
-    /// Creates a GET request and returns a `ClientRequest` ready to execute.
+    /// Creates a GET request and returns a `ClientRequestBuilder` ready to execute.
+    ///
+    /// # Errors
+    ///
+    /// Returns `HttpClientError::InvalidUrl` if the URL cannot be parsed.
+    /// Returns `HttpClientError::UnsupportedScheme` if the URL scheme is not http or https.
     pub fn get(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
         ClientRequestBuilder::get(url).map(|builder| {
             builder
@@ -199,7 +209,12 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
         })
     }
 
-    /// Creates a POST request and returns a `ClientRequest` ready to execute.
+    /// Creates a POST request and returns a `ClientRequestBuilder` ready to execute.
+    ///
+    /// # Errors
+    ///
+    /// Returns `HttpClientError::InvalidUrl` if the URL cannot be parsed.
+    /// Returns `HttpClientError::UnsupportedScheme` if the URL scheme is not http or https.
     pub fn post(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
         ClientRequestBuilder::post(url).map(|builder| {
             builder
@@ -208,7 +223,12 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
         })
     }
 
-    /// Creates a PUT request and returns a `ClientRequest` ready to execute.
+    /// Creates a PUT request and returns a `ClientRequestBuilder` ready to execute.
+    ///
+    /// # Errors
+    ///
+    /// Returns `HttpClientError::InvalidUrl` if the URL cannot be parsed.
+    /// Returns `HttpClientError::UnsupportedScheme` if the URL scheme is not http or https.
     pub fn put(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
         ClientRequestBuilder::put(url).map(|builder| {
             builder
@@ -217,7 +237,12 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
         })
     }
 
-    /// Creates a DELETE request and returns a `ClientRequest` ready to execute.
+    /// Creates a DELETE request and returns a `ClientRequestBuilder` ready to execute.
+    ///
+    /// # Errors
+    ///
+    /// Returns `HttpClientError::InvalidUrl` if the URL cannot be parsed.
+    /// Returns `HttpClientError::UnsupportedScheme` if the URL scheme is not http or https.
     pub fn delete(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
         ClientRequestBuilder::delete(url).map(|builder| {
             builder
@@ -226,7 +251,12 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
         })
     }
 
-    /// Creates a PATCH request and returns a `ClientRequest` ready to execute.
+    /// Creates a PATCH request and returns a `ClientRequestBuilder` ready to execute.
+    ///
+    /// # Errors
+    ///
+    /// Returns `HttpClientError::InvalidUrl` if the URL cannot be parsed.
+    /// Returns `HttpClientError::UnsupportedScheme` if the URL scheme is not http or https.
     pub fn patch(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
         ClientRequestBuilder::patch(url).map(|builder| {
             builder
@@ -235,7 +265,12 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
         })
     }
 
-    /// Creates a HEAD request and returns a `ClientRequest` ready to execute.
+    /// Creates a HEAD request and returns a `ClientRequestBuilder` ready to execute.
+    ///
+    /// # Errors
+    ///
+    /// Returns `HttpClientError::InvalidUrl` if the URL cannot be parsed.
+    /// Returns `HttpClientError::UnsupportedScheme` if the URL scheme is not http or https.
     pub fn head(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
         ClientRequestBuilder::head(url).map(|builder| {
             builder
@@ -244,7 +279,12 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
         })
     }
 
-    /// Creates an OPTIONS request and returns a `ClientRequest` ready to execute.
+    /// Creates an OPTIONS request and returns a `ClientRequestBuilder` ready to execute.
+    ///
+    /// # Errors
+    ///
+    /// Returns `HttpClientError::InvalidUrl` if the URL cannot be parsed.
+    /// Returns `HttpClientError::UnsupportedScheme` if the URL scheme is not http or https.
     pub fn options(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
         ClientRequestBuilder::options(url).map(|builder| {
             builder
@@ -359,15 +399,17 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     /// # Returns
     ///
     /// A `ClientRequest` ready to execute.
+    ///
+    /// # Errors
+    ///
+    /// Returns `HttpClientError::InvalidUrl` if the URL in the builder is invalid.
+    /// Returns `HttpClientError::NoPool` if the connection pool is not initialized.
     pub fn request(
         &self,
         builder: ClientRequestBuilder<R>,
     ) -> Result<ClientRequest<R>, HttpClientError> {
         let prepared = builder.build()?;
-        Ok(ClientRequest::new(
-            prepared,
-            self.config.clone(),
-            self.pool.clone().expect("should have pool"),
-        ))
+        let pool = self.pool.clone().ok_or(HttpClientError::NoPool)?;
+        Ok(ClientRequest::new(prepared, self.config.clone(), pool))
     }
 }
