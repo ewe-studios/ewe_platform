@@ -236,6 +236,7 @@ impl<R: DnsResolver + Default> Default for HttpConnectionPool<R> {
 }
 
 impl HttpConnectionPool<SystemDnsResolver> {
+    #[allow(dead_code)]
     fn system() -> Self {
         Self {
             pool: Arc::new(ConnectionPool::default()),
