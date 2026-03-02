@@ -24,10 +24,10 @@ builds_on: "specifications/04-condvar-primitives"
 related_specs:
   - "specifications/03-wasm-friendly-sync-primitives"
 features:
-  completed: 8
-  uncompleted: 6
+  completed: 9
+  uncompleted: 5
   total: 14
-  completion_percentage: 57
+  completion_percentage: 64
 ---
 
 # Overview
@@ -71,7 +71,7 @@ The HTTP client implementation is divided into features with clear dependencies.
 | 4  | [connection](./features/connection/feature.md) | URL parsing, TCP, TLS handshakes (HTTP/HTTPS connection layer) | 2 | ✅ Complete |
 | 5  | [proxy-support](./features/proxy-support/feature.md) | HTTP/HTTPS/SOCKS5 proxy handling and configuration | 4 | ⬜ Pending |
 | 6  | [request-response](./features/request-response/feature.md) | Request builder, response types, headers and body handling | 4 | ✅ Complete |
-| 7  | [auth-helpers](./features/auth-helpers/feature.md) | Basic, Bearer, Digest auth helpers and flows | 6 | ⬜ Pending |
+| 7  | [auth-helpers](./features/auth-helpers/feature.md) | Basic, Bearer, Digest auth helpers and flows | 6 | ✅ Complete |
 | 8  | [task-iterator](./features/task-iterator/feature.md) | TaskIterator, ExecutionAction types and executor integration | 0, 6 | ✅ Complete |
 | 9  | [public-api](./features/public-api/feature.md) | User-facing API (SimpleHttpClient), ergonomics and integration | 8 | ✅ Complete |
 | 10 | [connection-pooling](./features/connection-pooling/feature.md) | Connection pool design, checkout/checkin, cleanup and metrics | 4 | ⬜ Pending |
