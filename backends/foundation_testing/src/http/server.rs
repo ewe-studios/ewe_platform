@@ -145,10 +145,17 @@ pub struct TestHttpServer {
 impl TestHttpServer {
     /// Create a server that sequentially returns provided (status, location/body) for each request.
     /// For 3xx status: 'location' is Location header, for 2xx: body. Repeats last for further requests.
-    pub fn redirect_chain(steps: Vec<(u16, &str)>) -> Self {
+    ///
+    /// # Panics
+    ///
+    /// This function may panic in the following situations:
+    /// - If the provided `steps` vector is empty, the handler will attempt to index `handler_steps.len() - 1`
+    ///   when selecting the last response, which will underflow and panic.
+    /// - If the mutex used to track progress is poisoned, the call to `Mutex::lock().unwrap()` will panic.
+    #[must_use]
+    pub fn http_chain(steps: Vec<(u16, &str)>) -> Self {
         use std::sync::{Arc, Mutex};
         let step_count = Arc::new(Mutex::new(0usize));
-        let total = steps.len();
         let handler_steps = steps
             .into_iter()
             .map(|s| (s.0, s.1.to_string()))
@@ -222,6 +229,12 @@ impl TestHttpServer {
     ///     }
     /// });
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function may panic in the following situations:
+    /// - If binding to the chosen local address fails (the call to `TcpListener::bind` uses `expect`).
+    /// - If retrieving the listener's local address via `local_addr().unwrap()` fails.
     #[must_use]
     pub fn with_response<F>(handler: F) -> Self
     where

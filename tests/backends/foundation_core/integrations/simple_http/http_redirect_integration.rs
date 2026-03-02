@@ -14,7 +14,7 @@ fn test_redirect_chain_resolves_successfully() {
     // Initialize Valtron executor for HTTP client concurrency
     valtron::initialize_pool(42, None);
 
-    let server = TestHttpServer::redirect_chain(vec![
+    let server = TestHttpServer::http_chain(vec![
         (301, "/step2"),
         (302, "/step3"),
         (307, "/final"),
@@ -39,7 +39,7 @@ fn test_redirect_chain_limit_enforced() {
     // Initialize Valtron executor for HTTP client concurrency
     valtron::initialize_pool(42, None);
 
-    let server = TestHttpServer::redirect_chain(vec![
+    let server = TestHttpServer::http_chain(vec![
         (301, "/step2"),
         (302, "/step3"),
         (307, "/final"),
@@ -71,7 +71,7 @@ fn test_post_without_redirect() {
     use foundation_core::valtron::single::initialize_pool;
     initialize_pool(42);
 
-    let server = TestHttpServer::redirect_chain(vec![(200, "OK")]);
+    let server = TestHttpServer::http_chain(vec![(200, "OK")]);
 
     // Setup: Create a client with redirect enabled and POST method
     let client = SimpleHttpClient::from_system().max_redirects(5);
