@@ -6,6 +6,7 @@
 mod api;
 #[allow(clippy::module_inception)]
 mod client;
+mod compression;
 mod connection;
 mod control;
 mod dns;
@@ -18,6 +19,7 @@ mod tls_task;
 
 pub use api::*;
 pub use client::*;
+pub use compression::*;
 pub use connection::*;
 pub use control::*;
 pub use dns::*;
@@ -30,5 +32,4 @@ pub use tasks::*;
 // Re-export ExecutionAction from valtron so tests and helpers can reference it
 pub use crate::valtron::ExecutionAction;
 
-#[cfg(not(target_arch = "wasm32"))]
 pub use tls_task::*;

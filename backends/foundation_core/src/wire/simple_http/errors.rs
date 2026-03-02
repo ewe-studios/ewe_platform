@@ -193,6 +193,16 @@ pub enum HttpClientError {
     /// Contains the raw Location value or a brief diagnostic.
     #[from(ignore)]
     InvalidLocation(String),
+
+    /// Decompression of response body failed.
+    /// Contains error message from decompression library.
+    #[from(ignore)]
+    DecompressionFailed(String),
+
+    /// Unsupported Content-Encoding encountered.
+    /// Contains the encoding name that is not supported.
+    #[from(ignore)]
+    UnsupportedEncoding(String),
 }
 
 impl std::error::Error for HttpClientError {}
@@ -274,6 +284,10 @@ impl core::fmt::Display for HttpClientError {
             Self::InvalidLocation(inner) => write!(f, "Invalid location: {inner:}"),
             Self::RedirectDisallowed(inner) => write!(f, "Redirection disallowed: {inner:}"),
             Self::TooManyRedirects => write!(f, "Too many redirects"),
+            Self::DecompressionFailed(msg) => write!(f, "Decompression failed: {msg}"),
+            Self::UnsupportedEncoding(encoding) => {
+                write!(f, "Unsupported content encoding: {encoding}")
+            }
         }
     }
 }
