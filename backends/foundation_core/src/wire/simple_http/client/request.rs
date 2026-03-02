@@ -13,6 +13,7 @@ use crate::wire::simple_http::{
     Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
     SimpleUrl,
 };
+use base64::prelude::*;
 use serde::Serialize;
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -441,5 +442,402 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     /// Returns `HttpClientError` if the URL is invalid.
     pub fn options(url: &str) -> Result<Self, HttpClientError> {
         Self::new(SimpleMethod::OPTIONS, url)
+    }
+
+    // Authentication helper methods
+
+    /// Sets HTTP Basic Authentication header.
+    ///
+    /// # Purpose (WHY)
+    ///
+    /// Provides convenient API for HTTP Basic Authentication (RFC 7617).
+    /// Automatically encodes username:password in base64 and sets the
+    /// Authorization header.
+    ///
+    /// # Arguments (WHAT)
+    ///
+    /// * `username` - Username for authentication
+    /// * `password` - Password for authentication
+    ///
+    /// # Returns (HOW)
+    ///
+    /// Returns self for method chaining.
+    ///
+    /// # Panics
+    ///
+    /// This function cannot panic.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use foundation_core::wire::simple_http::client::ClientRequestBuilder;
+    /// use foundation_core::wire::simple_http::client::SystemDnsResolver;
+    ///
+    /// let request = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com")
+    ///     .unwrap()
+    ///     .basic_auth("username", "password");
+    /// ```
+    #[must_use]
+    pub fn basic_auth(self, username: &str, password: &str) -> Self {
+        let credentials = format!("{}:{}", username, password);
+        let encoded = BASE64_STANDARD.encode(credentials.as_bytes());
+        self.header(SimpleHeader::AUTHORIZATION, format!("Basic {}", encoded))
+    }
+
+    /// Sets HTTP Basic Authentication header with optional password.
+    ///
+    /// # Purpose (WHY)
+    ///
+    /// Provides API for Basic Authentication when password is optional.
+    /// If password is None, uses empty string (per RFC 7617 section 2).
+    ///
+    /// # Arguments (WHAT)
+    ///
+    /// * `username` - Username for authentication
+    /// * `password` - Optional password (empty string if None)
+    ///
+    /// # Returns (HOW)
+    ///
+    /// Returns self for method chaining.
+    ///
+    /// # Panics
+    ///
+    /// This function cannot panic.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use foundation_core::wire::simple_http::client::ClientRequestBuilder;
+    /// use foundation_core::wire::simple_http::client::SystemDnsResolver;
+    ///
+    /// // With password
+    /// let request = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com")
+    ///     .unwrap()
+    ///     .basic_auth_opt("username", Some("password"));
+    ///
+    /// // Without password (empty string)
+    /// let request2 = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com")
+    ///     .unwrap()
+    ///     .basic_auth_opt("username", None);
+    /// ```
+    #[must_use]
+    pub fn basic_auth_opt(self, username: &str, password: Option<&str>) -> Self {
+        self.basic_auth(username, password.unwrap_or(""))
+    }
+
+    /// Sets HTTP Bearer Token Authentication header.
+    ///
+    /// # Purpose (WHY)
+    ///
+    /// Provides convenient API for OAuth 2.0 Bearer Token authentication (RFC 6750).
+    /// Automatically formats the token with Bearer prefix and sets the
+    /// Authorization header.
+    ///
+    /// # Arguments (WHAT)
+    ///
+    /// * `token` - Bearer token (JWT, OAuth token, etc.)
+    ///
+    /// # Returns (HOW)
+    ///
+    /// Returns self for method chaining.
+    ///
+    /// # Panics
+    ///
+    /// This function cannot panic.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use foundation_core::wire::simple_http::client::ClientRequestBuilder;
+    /// use foundation_core::wire::simple_http::client::SystemDnsResolver;
+    ///
+    /// let request = ClientRequestBuilder::<SystemDnsResolver>::get("http://api.example.com")
+    ///     .unwrap()
+    ///     .bearer_token("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...");
+    /// ```
+    #[must_use]
+    pub fn bearer_token(self, token: &str) -> Self {
+        self.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
+    }
+
+    /// Alias for `bearer_token()`.
+    ///
+    /// # Purpose (WHY)
+    ///
+    /// Provides alternative method name for Bearer authentication.
+    /// Some users prefer "bearer_auth" naming convention.
+    ///
+    /// # Arguments (WHAT)
+    ///
+    /// * `token` - Bearer token (JWT, OAuth token, etc.)
+    ///
+    /// # Returns (HOW)
+    ///
+    /// Returns self for method chaining.
+    ///
+    /// # Panics
+    ///
+    /// This function cannot panic.
+    #[must_use]
+    pub fn bearer_auth(self, token: &str) -> Self {
+        self.bearer_token(token)
+    }
+
+    /// Sets a custom API key header.
+    ///
+    /// # Purpose (WHY)
+    ///
+    /// Provides convenient API for custom API key authentication.
+    /// Many REST APIs use custom headers like X-API-Key, X-Auth-Token, etc.
+    ///
+    /// # Arguments (WHAT)
+    ///
+    /// * `header_name` - Name of the custom header (e.g., "X-API-Key")
+    /// * `key` - API key value
+    ///
+    /// # Returns (HOW)
+    ///
+    /// Returns self for method chaining.
+    ///
+    /// # Panics
+    ///
+    /// This function cannot panic.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use foundation_core::wire::simple_http::client::ClientRequestBuilder;
+    /// use foundation_core::wire::simple_http::client::SystemDnsResolver;
+    ///
+    /// let request = ClientRequestBuilder::<SystemDnsResolver>::get("http://api.example.com")
+    ///     .unwrap()
+    ///     .api_key("X-API-Key", "secret-key-123");
+    /// ```
+    #[must_use]
+    pub fn api_key(self, header_name: &str, key: &str) -> Self {
+        self.add_header(header_name.to_string(), key.to_string())
+    }
+
+    /// Sets the X-API-Key header.
+    ///
+    /// # Purpose (WHY)
+    ///
+    /// Convenience method for the common X-API-Key header pattern.
+    /// Many REST APIs use X-API-Key as the standard header name.
+    ///
+    /// # Arguments (WHAT)
+    ///
+    /// * `key` - API key value
+    ///
+    /// # Returns (HOW)
+    ///
+    /// Returns self for method chaining.
+    ///
+    /// # Panics
+    ///
+    /// This function cannot panic.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use foundation_core::wire::simple_http::client::ClientRequestBuilder;
+    /// use foundation_core::wire::simple_http::client::SystemDnsResolver;
+    ///
+    /// let request = ClientRequestBuilder::<SystemDnsResolver>::get("http://api.example.com")
+    ///     .unwrap()
+    ///     .x_api_key("secret-key-123");
+    /// ```
+    #[must_use]
+    pub fn x_api_key(self, key: &str) -> Self {
+        self.api_key("X-API-Key", key)
+    }
+
+    /// Sets Authorization header with custom scheme and credentials.
+    ///
+    /// # Purpose (WHY)
+    ///
+    /// Provides flexible API for non-standard authentication schemes.
+    /// Allows using custom authentication schemes beyond Basic/Bearer.
+    ///
+    /// # Arguments (WHAT)
+    ///
+    /// * `scheme` - Authentication scheme (e.g., "Digest", "HOBA", "AWS4-HMAC-SHA256")
+    /// * `credentials` - Credentials or token for the scheme
+    ///
+    /// # Returns (HOW)
+    ///
+    /// Returns self for method chaining.
+    ///
+    /// # Panics
+    ///
+    /// This function cannot panic.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use foundation_core::wire::simple_http::client::ClientRequestBuilder;
+    /// use foundation_core::wire::simple_http::client::SystemDnsResolver;
+    ///
+    /// // Custom auth scheme
+    /// let request = ClientRequestBuilder::<SystemDnsResolver>::get("http://api.example.com")
+    ///     .unwrap()
+    ///     .authorization("CustomScheme", "token123");
+    /// ```
+    #[must_use]
+    pub fn authorization(self, scheme: &str, credentials: &str) -> Self {
+        self.header(
+            SimpleHeader::AUTHORIZATION,
+            format!("{} {}", scheme, credentials),
+        )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::wire::simple_http::client::SystemDnsResolver;
+
+    /// WHY: Basic auth must encode credentials correctly per RFC 7617
+    /// WHAT: Test that basic_auth() creates proper Authorization header with base64 encoding
+    #[test]
+    fn test_basic_auth_encodes_credentials() {
+        let builder = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com")
+            .unwrap()
+            .basic_auth("username", "password");
+
+        let prepared = builder.build().unwrap();
+        let auth_header = prepared
+            .headers
+            .get(&SimpleHeader::AUTHORIZATION)
+            .expect("Authorization header should be present");
+
+        // "username:password" encodes to "dXNlcm5hbWU6cGFzc3dvcmQ="
+        assert_eq!(auth_header, &vec!["Basic dXNlcm5hbWU6cGFzc3dvcmQ="]);
+    }
+
+    /// WHY: Bearer token auth must format token correctly per RFC 6750
+    /// WHAT: Test that bearer_token() creates proper Authorization header with Bearer prefix
+    #[test]
+    fn test_bearer_token_formats_correctly() {
+        let builder = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com")
+            .unwrap()
+            .bearer_token("my-jwt-token-123");
+
+        let prepared = builder.build().unwrap();
+        let auth_header = prepared
+            .headers
+            .get(&SimpleHeader::AUTHORIZATION)
+            .expect("Authorization header should be present");
+
+        assert_eq!(auth_header, &vec!["Bearer my-jwt-token-123"]);
+    }
+
+    /// WHY: bearer_auth is an alias for bearer_token for convenience
+    /// WHAT: Test that bearer_auth() works identically to bearer_token()
+    #[test]
+    fn test_bearer_auth_alias() {
+        let builder = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com")
+            .unwrap()
+            .bearer_auth("alias-token");
+
+        let prepared = builder.build().unwrap();
+        let auth_header = prepared
+            .headers
+            .get(&SimpleHeader::AUTHORIZATION)
+            .expect("Authorization header should be present");
+
+        assert_eq!(auth_header, &vec!["Bearer alias-token"]);
+    }
+
+    /// WHY: API key authentication is common pattern for REST APIs
+    /// WHAT: Test that api_key() sets custom header with key value
+    #[test]
+    fn test_api_key_custom_header() {
+        let builder = ClientRequestBuilder::<SystemDnsResolver>::get("http://api.example.com")
+            .unwrap()
+            .api_key("X-API-Key", "secret-key-123");
+
+        let prepared = builder.build().unwrap();
+
+        // Check the custom header exists
+        let headers_map = &prepared.headers;
+        let custom_header = SimpleHeader::from("X-API-Key".to_string());
+        let key_header = headers_map
+            .get(&custom_header)
+            .expect("X-API-Key header should be present");
+
+        assert_eq!(key_header, &vec!["secret-key-123"]);
+    }
+
+    /// WHY: X-API-Key is very common header name for API authentication
+    /// WHAT: Test that x_api_key() convenience method sets X-API-Key header
+    #[test]
+    fn test_x_api_key_convenience() {
+        let builder = ClientRequestBuilder::<SystemDnsResolver>::get("http://api.example.com")
+            .unwrap()
+            .x_api_key("my-key");
+
+        let prepared = builder.build().unwrap();
+
+        let custom_header = SimpleHeader::from("X-API-Key".to_string());
+        let key_header = prepared
+            .headers
+            .get(&custom_header)
+            .expect("X-API-Key header should be present");
+
+        assert_eq!(key_header, &vec!["my-key"]);
+    }
+
+    /// WHY: Custom auth schemes like Digest, AWS4-HMAC-SHA256 need flexible format
+    /// WHAT: Test that authorization() formats custom scheme and credentials correctly
+    #[test]
+    fn test_authorization_custom_scheme() {
+        let builder = ClientRequestBuilder::<SystemDnsResolver>::get("http://api.example.com")
+            .unwrap()
+            .authorization("CustomScheme", "token123");
+
+        let prepared = builder.build().unwrap();
+        let auth_header = prepared
+            .headers
+            .get(&SimpleHeader::AUTHORIZATION)
+            .expect("Authorization header should be present");
+
+        assert_eq!(auth_header, &vec!["CustomScheme token123"]);
+    }
+
+    /// WHY: Basic auth should handle optional password (empty string if None per RFC 7617)
+    /// WHAT: Test that basic_auth_opt() works with Some password
+    #[test]
+    fn test_basic_auth_opt_with_password() {
+        let builder = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com")
+            .unwrap()
+            .basic_auth_opt("user", Some("pass"));
+
+        let prepared = builder.build().unwrap();
+        let auth_header = prepared
+            .headers
+            .get(&SimpleHeader::AUTHORIZATION)
+            .expect("Authorization header should be present");
+
+        // "user:pass" encodes to "dXNlcjpwYXNz"
+        assert_eq!(auth_header, &vec!["Basic dXNlcjpwYXNz"]);
+    }
+
+    /// WHY: Basic auth with None password should use empty string per RFC 7617
+    /// WHAT: Test that basic_auth_opt() with None password encodes as "username:"
+    #[test]
+    fn test_basic_auth_opt_without_password() {
+        let builder = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com")
+            .unwrap()
+            .basic_auth_opt("user", None);
+
+        let prepared = builder.build().unwrap();
+        let auth_header = prepared
+            .headers
+            .get(&SimpleHeader::AUTHORIZATION)
+            .expect("Authorization header should be present");
+
+        // "user:" encodes to "dXNlcjo="
+        assert_eq!(auth_header, &vec!["Basic dXNlcjo="]);
     }
 }
