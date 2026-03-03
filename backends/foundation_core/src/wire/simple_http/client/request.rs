@@ -55,6 +55,7 @@ impl PreparedRequest {
             .with_proto(Proto::HTTP11)
             .with_headers(self.headers)
             .with_some_body(Some(self.body))
+            .with_extensions(self.extensions)
             .build()
             .map_err(|e| HttpClientError::FailedWith(Box::new(e)))?;
 

@@ -8,6 +8,7 @@ use crate::valtron::{
     BoxedResultIterator, BoxedSendableIterator, CloneableFn, SendVecIterator, StringBoxedIterator,
     TransformIterator,
 };
+use crate::wire::simple_http::client::Extensions as ClientExtensions;
 use crate::wire::simple_http::errors::{
     ChunkStateError, Http11RenderError, HttpReaderError, LineFeedError, Result, SimpleHttpError,
     SimpleHttpResult, StringHandlingError,
@@ -1703,6 +1704,7 @@ pub struct SimpleIncomingRequest {
     pub body: Option<SendSafeBody>,
     pub headers: SimpleHeaders,
     pub method: SimpleMethod,
+    pub extensions: Option<ClientExtensions>,
 }
 
 impl SimpleIncomingRequest {
@@ -1731,6 +1733,7 @@ pub struct SimpleIncomingRequestBuilder {
     body: Option<SendSafeBody>,
     method: Option<SimpleMethod>,
     headers: Option<SimpleHeaders>,
+    extensions: Option<ClientExtensions>,
 }
 
 impl SimpleIncomingRequestBuilder {
@@ -1822,6 +1825,12 @@ impl SimpleIncomingRequestBuilder {
         self
     }
 
+    #[must_use]
+    pub fn with_extensions(mut self, extensions: ClientExtensions) -> Self {
+        self.extensions = Some(extensions);
+        self
+    }
+
     /// Builds the incoming HTTP request.
     ///
     /// # Errors
@@ -1881,6 +1890,7 @@ impl SimpleIncomingRequestBuilder {
             request_url,
             method,
             headers,
+            extensions: self.extensions,
         })
     }
 }
