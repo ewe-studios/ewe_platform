@@ -14,6 +14,7 @@
 
 mod actions_tests;
 mod client_tests;
+mod compression_tests;
 mod connection_tests;
 mod dns_tests;
 mod errors_tests;

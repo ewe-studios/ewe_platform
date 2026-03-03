@@ -241,3 +241,148 @@ fn test_prepared_request_is_send() {
     fn assert_send<T: Send>() {}
     assert_send::<foundation_core::wire::simple_http::client::PreparedRequest>();
 }
+
+/// WHY: Basic auth must encode credentials correctly per RFC 7617
+/// WHAT: Test that basic_auth() creates proper Authorization header with base64 encoding
+#[test]
+fn test_basic_auth_encodes_credentials() {
+    let builder = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com")
+        .unwrap()
+        .basic_auth("username", "password");
+
+    let prepared = builder.build().unwrap();
+    let auth_header = prepared
+        .headers
+        .get(&SimpleHeader::AUTHORIZATION)
+        .expect("Authorization header should be present");
+
+    // "username:password" encodes to "dXNlcm5hbWU6cGFzc3dvcmQ="
+    assert_eq!(auth_header, &vec!["Basic dXNlcm5hbWU6cGFzc3dvcmQ="]);
+}
+
+/// WHY: Bearer token auth must format token correctly per RFC 6750
+/// WHAT: Test that bearer_token() creates proper Authorization header with Bearer prefix
+#[test]
+fn test_bearer_token_formats_correctly() {
+    let builder = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com")
+        .unwrap()
+        .bearer_token("my-jwt-token-123");
+
+    let prepared = builder.build().unwrap();
+    let auth_header = prepared
+        .headers
+        .get(&SimpleHeader::AUTHORIZATION)
+        .expect("Authorization header should be present");
+
+    assert_eq!(auth_header, &vec!["Bearer my-jwt-token-123"]);
+}
+
+/// WHY: bearer_auth is an alias for bearer_token for convenience
+/// WHAT: Test that bearer_auth() works identically to bearer_token()
+#[test]
+fn test_bearer_auth_alias() {
+    let builder = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com")
+        .unwrap()
+        .bearer_auth("alias-token");
+
+    let prepared = builder.build().unwrap();
+    let auth_header = prepared
+        .headers
+        .get(&SimpleHeader::AUTHORIZATION)
+        .expect("Authorization header should be present");
+
+    assert_eq!(auth_header, &vec!["Bearer alias-token"]);
+}
+
+/// WHY: API key authentication is common pattern for REST APIs
+/// WHAT: Test that api_key() sets custom header with key value
+#[test]
+fn test_api_key_custom_header() {
+    let builder = ClientRequestBuilder::<SystemDnsResolver>::get("http://api.example.com")
+        .unwrap()
+        .api_key("X-API-Key", "secret-key-123");
+
+    let prepared = builder.build().unwrap();
+
+    // Check the custom header exists
+    let headers_map = &prepared.headers;
+    let custom_header = SimpleHeader::from("X-API-Key".to_string());
+    let key_header = headers_map
+        .get(&custom_header)
+        .expect("X-API-Key header should be present");
+
+    assert_eq!(key_header, &vec!["secret-key-123"]);
+}
+
+/// WHY: X-API-Key is very common header name for API authentication
+/// WHAT: Test that x_api_key() convenience method sets X-API-Key header
+#[test]
+fn test_x_api_key_convenience() {
+    let builder = ClientRequestBuilder::<SystemDnsResolver>::get("http://api.example.com")
+        .unwrap()
+        .x_api_key("my-key");
+
+    let prepared = builder.build().unwrap();
+
+    let custom_header = SimpleHeader::from("X-API-Key".to_string());
+    let key_header = prepared
+        .headers
+        .get(&custom_header)
+        .expect("X-API-Key header should be present");
+
+    assert_eq!(key_header, &vec!["my-key"]);
+}
+
+/// WHY: Custom auth schemes like Digest, AWS4-HMAC-SHA256 need flexible format
+/// WHAT: Test that authorization() formats custom scheme and credentials correctly
+#[test]
+fn test_authorization_custom_scheme() {
+    let builder = ClientRequestBuilder::<SystemDnsResolver>::get("http://api.example.com")
+        .unwrap()
+        .authorization("CustomScheme", "token123");
+
+    let prepared = builder.build().unwrap();
+    let auth_header = prepared
+        .headers
+        .get(&SimpleHeader::AUTHORIZATION)
+        .expect("Authorization header should be present");
+
+    assert_eq!(auth_header, &vec!["CustomScheme token123"]);
+}
+
+/// WHY: Basic auth should handle optional password (empty string if None per RFC 7617)
+/// WHAT: Test that basic_auth_opt() works with Some password
+#[test]
+fn test_basic_auth_opt_with_password() {
+    let builder = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com")
+        .unwrap()
+        .basic_auth_opt("user", Some("pass"));
+
+    let prepared = builder.build().unwrap();
+    let auth_header = prepared
+        .headers
+        .get(&SimpleHeader::AUTHORIZATION)
+        .expect("Authorization header should be present");
+
+    // "user:pass" encodes to "dXNlcjpwYXNz"
+    assert_eq!(auth_header, &vec!["Basic dXNlcjpwYXNz"]);
+}
+
+/// WHY: Basic auth with None password should use empty string per RFC 7617
+/// WHAT: Test that basic_auth_opt() with None password encodes as "username:"
+#[test]
+fn test_basic_auth_opt_without_password() {
+    let builder = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com")
+        .unwrap()
+        .basic_auth_opt("user", None);
+
+    let prepared = builder.build().unwrap();
+    let auth_header = prepared
+        .headers
+        .get(&SimpleHeader::AUTHORIZATION)
+        .expect("Authorization header should be present");
+
+    // "user:" encodes to "dXNlcjo="
+    assert_eq!(auth_header, &vec!["Basic dXNlcjo="]);
+}
+
