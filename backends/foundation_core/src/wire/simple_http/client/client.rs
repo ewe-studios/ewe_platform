@@ -11,7 +11,7 @@
 
 use crate::wire::simple_http::client::{
     ClientRequest, ClientRequestBuilder, ConnectionPool, DnsResolver, HttpConnectionPool,
-    OpTimeout, SystemDnsResolver,
+    MiddlewareChain, OpTimeout, SystemDnsResolver,
 };
 use crate::wire::simple_http::{HttpClientError, SimpleHeaders};
 use std::collections::BTreeMap;
@@ -118,6 +118,7 @@ impl Default for ClientConfig {
 pub struct SimpleHttpClient<R: DnsResolver = SystemDnsResolver> {
     config: ClientConfig,
     pool: Option<Arc<HttpConnectionPool<R>>>,
+    middleware_chain: Arc<MiddlewareChain>,
 }
 
 impl SimpleHttpClient<SystemDnsResolver> {
@@ -145,7 +146,25 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
         Self {
             config,
             pool: Some(pool),
+            middleware_chain: Arc::new(MiddlewareChain::new()),
         }
+    }
+
+    /// Sets custom middleware chain for this client.
+    ///
+    /// WHY: Allow users to configure request/response interception.
+    ///
+    /// WHAT: Replaces current middleware chain with provided one.
+    ///
+    /// HOW: Wraps chain in Arc, returns self for builder pattern.
+    ///
+    /// # Panics
+    ///
+    /// Never panics.
+    #[must_use]
+    pub fn middleware(mut self, chain: MiddlewareChain) -> Self {
+        self.middleware_chain = Arc::new(chain);
+        self
     }
 }
 
@@ -166,6 +185,7 @@ impl<R: DnsResolver + Clone> Clone for SimpleHttpClient<R> {
         Self {
             config: self.config.clone(),
             pool: self.pool.clone(),
+            middleware_chain: self.middleware_chain.clone(),
         }
     }
 }
@@ -207,6 +227,7 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
             builder
                 .client_config(self.config.clone())
                 .with_pool(self.pool.clone())
+                .with_middleware(self.middleware_chain.clone())
         })
     }
 
@@ -221,6 +242,7 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
             builder
                 .client_config(self.config.clone())
                 .with_pool(self.pool.clone())
+                .with_middleware(self.middleware_chain.clone())
         })
     }
 
@@ -235,6 +257,7 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
             builder
                 .client_config(self.config.clone())
                 .with_pool(self.pool.clone())
+                .with_middleware(self.middleware_chain.clone())
         })
     }
 
@@ -249,6 +272,7 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
             builder
                 .client_config(self.config.clone())
                 .with_pool(self.pool.clone())
+                .with_middleware(self.middleware_chain.clone())
         })
     }
 
@@ -263,6 +287,7 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
             builder
                 .client_config(self.config.clone())
                 .with_pool(self.pool.clone())
+                .with_middleware(self.middleware_chain.clone())
         })
     }
 
@@ -277,6 +302,7 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
             builder
                 .client_config(self.config.clone())
                 .with_pool(self.pool.clone())
+                .with_middleware(self.middleware_chain.clone())
         })
     }
 
@@ -291,6 +317,7 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
             builder
                 .client_config(self.config.clone())
                 .with_pool(self.pool.clone())
+                .with_middleware(self.middleware_chain.clone())
         })
     }
 }
@@ -306,6 +333,7 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
         Self {
             pool: Some(pool),
             config: ClientConfig::default(),
+            middleware_chain: Arc::new(MiddlewareChain::new()),
         }
     }
 
@@ -411,6 +439,11 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     ) -> Result<ClientRequest<R>, HttpClientError> {
         let prepared = builder.build()?;
         let pool = self.pool.clone().ok_or(HttpClientError::NoPool)?;
-        Ok(ClientRequest::new(prepared, self.config.clone(), pool))
+        Ok(ClientRequest::new(
+            prepared,
+            self.config.clone(),
+            pool,
+            self.middleware_chain.clone(),
+        ))
     }
 }

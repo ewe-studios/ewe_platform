@@ -6,7 +6,8 @@
 
 use crate::wire::simple_http::client::connection::ParsedUrl;
 use crate::wire::simple_http::client::{
-    ClientConfig, ClientRequest, DnsResolver, HttpConnectionPool, SystemDnsResolver,
+    ClientConfig, ClientRequest, DnsResolver, Extensions, HttpConnectionPool, MiddlewareChain,
+    SystemDnsResolver,
 };
 use crate::wire::simple_http::HttpClientError;
 use crate::wire::simple_http::{
@@ -27,6 +28,7 @@ pub struct PreparedRequest {
     pub url: ParsedUrl,
     pub headers: SimpleHeaders,
     pub body: SendSafeBody,
+    pub extensions: Extensions,
 }
 
 impl PreparedRequest {
@@ -86,6 +88,7 @@ pub struct ClientRequestBuilder<R: DnsResolver + 'static> {
     body: Option<SendSafeBody>,
     config: Option<ClientConfig>,
     pool: Option<Arc<HttpConnectionPool<R>>>,
+    middleware_chain: Option<Arc<MiddlewareChain>>,
 }
 
 impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
@@ -103,6 +106,7 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
             url: self.url,
             headers: self.headers,
             body: self.body.unwrap_or(SendSafeBody::None),
+            extensions: Extensions::new(),
         })
     }
 }
@@ -134,11 +138,15 @@ impl<R: DnsResolver + Default + 'static> ClientRequestBuilder<R> {
             url: self.url,
             headers: self.headers,
             body: self.body.unwrap_or(SendSafeBody::None),
+            extensions: Extensions::new(),
         };
 
         let pool = self.pool.unwrap_or_default();
         let config = self.config.unwrap_or_default();
-        Ok(ClientRequest::new(prepared, config, pool))
+        let middleware_chain = self
+            .middleware_chain
+            .unwrap_or_else(|| Arc::new(MiddlewareChain::new()));
+        Ok(ClientRequest::new(prepared, config, pool, middleware_chain))
     }
 }
 
@@ -185,12 +193,19 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
             body: None,
             pool: None,
             config: None,
+            middleware_chain: None,
         })
     }
 
     #[must_use]
     pub fn with_pool(mut self, pool: Option<Arc<HttpConnectionPool<R>>>) -> Self {
         self.pool = pool;
+        self
+    }
+
+    #[must_use]
+    pub fn with_middleware(mut self, chain: Arc<MiddlewareChain>) -> Self {
+        self.middleware_chain = Some(chain);
         self
     }
 

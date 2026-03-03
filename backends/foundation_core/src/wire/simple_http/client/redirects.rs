@@ -1,5 +1,5 @@
 use crate::wire::simple_http::{
-    client::{ParsedUrl, PreparedRequest},
+    client::{Extensions, ParsedUrl, PreparedRequest},
     HttpClientError, RequestDescriptor, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
     SimpleUrl,
 };
@@ -146,6 +146,7 @@ pub fn build_followup_request_from(
         url: new_url,
         headers,
         body: SendSafeBody::None,
+        extensions: Extensions::new(),
     }
 }
 

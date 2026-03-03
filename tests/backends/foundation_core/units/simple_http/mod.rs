@@ -26,6 +26,7 @@ mod impls_service_action_tests;
 mod impls_simple_incoming_tests;
 mod impls_simple_url_tests;
 mod intro_tests;
+mod middleware_tests;
 mod pool_tests;
 mod request_tests;
 mod simple_http_client_tests;
