@@ -251,6 +251,100 @@ State::Init((req, timeout, pool, redirects, config)) => {
 
 ---
 
+## WebSocket Feature Specification (2026-03-03)
+
+### 8. Request Builder Selection - Use the Right Abstraction Level
+
+**Key Insight**: When building HTTP requests for established connections, use the low-level `SimpleIncomingRequestBuilder` instead of the high-level `ClientRequestBuilder`.
+
+**What Happened**:
+- Initial WebSocket specification used `ClientRequestBuilder` for upgrade handshake
+- User questioned: “There is a SimpleIncomingRequestBuilder so why go use ClientRequestBuilder?”
+- This revealed incorrect abstraction level in the spec
+
+**Problem with ClientRequestBuilder**:
+```rust
+// WRONG: ClientRequestBuilder does URL parsing, DNS resolution, connection management
+let request = ClientRequestBuilder::<SystemDnsResolver>::get(url)?
+    .header(SimpleHeader::UPGRADE, “websocket”)
+    .build()?;
+let simple_request = request.into_simple_incoming_request()?; // Unnecessary conversion
+```
+
+**Correct with SimpleIncomingRequestBuilder**:
+```rust
+// RIGHT: Direct HTTP request building for established connection
+let request = SimpleIncomingRequestBuilder::get(uri.path_and_query())
+    .header(SimpleHeader::HOST, uri.host_with_port())
+    .header(SimpleHeader::UPGRADE, “websocket”)
+    .build()?;
+// No conversion needed, ready for Http11::request(&request).http_render()
+```
+
+**Key Differences**:
+
+| Aspect | ClientRequestBuilder | SimpleIncomingRequestBuilder |
+|--------|---------------------|------------------------------|
+| **Purpose** | High-level client requests | Low-level HTTP message building |
+| **Connection** | Creates new connections | Works with existing connection |
+| **DNS Resolution** | Handles DNS lookup | No DNS involvement |
+| **URL Handling** | Parses full URLs | Takes path/query directly |
+| **Output** | `Request` (needs conversion) | `SimpleIncomingRequest` (direct) |
+| **Use Case** | New HTTP requests | Protocol upgrades, tunneling |
+
+**When to Use Each**:
+
+**Use ClientRequestBuilder**:
+- Making new HTTP client requests (GET, POST, etc.)
+- Need automatic connection management
+- Need DNS resolution
+- Building complete request from URL
+
+**Use SimpleIncomingRequestBuilder**:
+- WebSocket upgrade handshake (connection already established)
+- HTTP CONNECT proxy tunneling (building CONNECT request)
+- Protocol switching scenarios
+- Direct HTTP message construction
+- Server-side request building
+
+**Additional Details**:
+- `SimpleIncomingRequestBuilder` requires explicit `HOST` header for HTTP/1.1
+- Direct integration with `Http11::request().http_render()` (no conversion)
+- Part of `simple_http/impls.rs` core types
+- Follows the principle: use lowest abstraction level that works
+
+**Pattern for WebSocket Handshake**:
+```rust
+// 1. Connection already established
+let mut conn = HttpClientConnection::connect(&uri, &resolver, timeout)?;
+
+// 2. Build upgrade request at low level
+let request = SimpleIncomingRequestBuilder::get(uri.path_and_query())
+    .header(SimpleHeader::HOST, uri.host_with_port())
+    .header(SimpleHeader::UPGRADE, “websocket”)
+    .header(SimpleHeader::CONNECTION, “Upgrade”)
+    .header(SimpleHeader::SEC_WEBSOCKET_KEY, &key)
+    .header(SimpleHeader::SEC_WEBSOCKET_VERSION, “13”)
+    .build()?;
+
+// 3. Render using RenderHttp
+let request_bytes = Http11::request(&request).http_render()?;
+
+// 4. Write to existing connection
+for chunk in request_bytes {
+    conn.write_all(&chunk?)?;
+}
+```
+
+**Lesson**: Always choose the request builder that matches your abstraction level:
+- Already have a connection? Use `SimpleIncomingRequestBuilder`
+- Need to create a connection? Use `ClientRequestBuilder`
+- Building responses? Use `SimpleIncomingResponse`
+
+This applies to other protocol upgrade scenarios (HTTP/2 upgrade, tunneling, etc.).
+
+---
+
 *2026-02-28: Added a reminder from .agents/skills/rust-clean-code/implementation/skill.md—SYNC ONLY: Do not use async/await or tokio in client or test code for this spec. All patterns must follow synchronous design and Rust Clean Code rules only.*
 
 *2026-02-28: “sync” is not a Cargo feature for this project. The codebase is synchronous by design and standards; never attempt to toggle or test with a sync feature. All code, tests, and runners assume sync-by-default.*
@@ -258,3 +352,5 @@ State::Init((req, timeout, pool, redirects, config)) => {
 *2026-02-28: The correct Cargo feature to pass (where needed) is “std” for standard library support, not “sync.”*
 
 *2026-03-03: Added comprehensive HTTP proxy support learnings covering multiple connection paths, architecture patterns, TLS upgrade reuse, environment variables, and state machine configuration.*
+
+*2026-03-03: Added WebSocket request builder selection learning covering the distinction between ClientRequestBuilder (high-level, connection management) and SimpleIncomingRequestBuilder (low-level, message building).*
