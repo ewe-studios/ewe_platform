@@ -24,10 +24,10 @@ builds_on: "specifications/04-condvar-primitives"
 related_specs:
   - "specifications/03-wasm-friendly-sync-primitives"
 features:
-  completed: 10
-  uncompleted: 4
+  completed: 11
+  uncompleted: 3
   total: 14
-  completion_percentage: 71
+  completion_percentage: 79
 ---
 
 # Overview
@@ -76,7 +76,7 @@ The HTTP client implementation is divided into features with clear dependencies.
 | 9  | [public-api](./features/public-api/feature.md) | User-facing API (SimpleHttpClient), ergonomics and integration | 8 | ✅ Complete |
 | 10 | [connection-pooling](./features/connection-pooling/feature.md) | Connection pool design, checkout/checkin, cleanup and metrics | 4 | ⬜ Pending |
 | 11 | [cookie-jar](./features/cookie-jar/feature.md) | Automatic cookie storage and policy handling | 9 | ✅ Complete |
-| 12 | [middleware](./features/middleware/feature.md) | Request/response interceptors and middleware pipeline | 9 | ⬜ Pending |
+| 12 | [middleware](./features/middleware/feature.md) | Request/response interceptors and middleware pipeline | 9 | ✅ Complete |
 | 13 | [websocket](./features/websocket/feature.md) | WebSocket client and server | 4, 9 | ⬜ Pending |
 
 Status Key: ⬜ Pending | 🔄 In Progress | ✅ Complete
