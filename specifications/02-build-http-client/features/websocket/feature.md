@@ -163,7 +163,7 @@ impl WebSocketFrame {
 
 ### Client Handshake
 
-HTTP upgrade handshake:
+HTTP upgrade handshake using existing RenderHttp infrastructure:
 
 ```rust
 // Client sends:
@@ -183,38 +183,49 @@ HTTP upgrade handshake:
 
 impl WebSocketClient {
     pub fn handshake(
-        conn: &mut Connection,
+        conn: &mut HttpClientConnection,
         url: &ParsedUrl,
         options: &WebSocketOptions,
     ) -> Result<Self, WebSocketError> {
         // Generate random key
         let key = generate_websocket_key();
 
-        // Send upgrade request
-        let request = format!(
-            "GET {} HTTP/1.1\r\n\
-             Host: {}\r\n\
-             Upgrade: websocket\r\n\
-             Connection: Upgrade\r\n\
-             Sec-WebSocket-Key: {}\r\n\
-             Sec-WebSocket-Version: 13\r\n\
-             {}\r\n",
-            url.path_and_query(),
-            url.host_with_port(),
-            key,
-            options.subprotocol.as_ref().map(|p| format!("Sec-WebSocket-Protocol: {}\r\n", p)).unwrap_or_default()
-        );
-        conn.write_all(request.as_bytes())?;
+        // Build upgrade request using ClientRequestBuilder
+        let mut builder = ClientRequestBuilder::<SystemDnsResolver>::get(url)?
+            .header(SimpleHeader::UPGRADE, "websocket")
+            .header(SimpleHeader::CONNECTION, "Upgrade")
+            .header(SimpleHeader::SEC_WEBSOCKET_KEY, &key)
+            .header(SimpleHeader::SEC_WEBSOCKET_VERSION, "13");
 
-        // Read response
-        let response = read_http_response(conn)?;
-        if response.status != 101 {
-            return Err(WebSocketError::UpgradeFailed(response.status));
+        // Add subprotocol if provided
+        if let Some(subprotocol) = &options.subprotocol {
+            builder = builder.header(SimpleHeader::SEC_WEBSOCKET_PROTOCOL, subprotocol);
+        }
+
+        let request = builder.build()?;
+
+        // Render and send request using RenderHttp
+        let request_bytes = Http11::request(request.into_simple_incoming_request()?)
+            .http_render()?;
+
+        for chunk in request_bytes {
+            conn.write_all(&chunk?)?;
+        }
+
+        // Read response using HttpResponseReader
+        let mut response_reader = HttpResponseReader::new(conn)?;
+        let response = response_reader.read_response()?;
+
+        if response.status != Status::SwitchingProtocols {
+            return Err(WebSocketError::UpgradeFailed(response.status.code()));
         }
 
         // Verify accept key
         let expected_accept = compute_accept_key(&key);
-        if response.headers.get("Sec-WebSocket-Accept") != Some(&expected_accept) {
+        let actual_accept = response.headers.get(SimpleHeader::SEC_WEBSOCKET_ACCEPT)
+            .ok_or(WebSocketError::MissingAcceptKey)?;
+
+        if actual_accept != expected_accept {
             return Err(WebSocketError::InvalidAcceptKey);
         }
 
@@ -225,42 +236,51 @@ impl WebSocketClient {
 
 ### Server Upgrade
 
-Accept upgrade request:
+Accept upgrade request using existing RenderHttp infrastructure:
 
 ```rust
 pub struct WebSocketUpgrade;
 
 impl WebSocketUpgrade {
     pub fn is_upgrade_request(request: &IncomingRequest) -> bool {
-        request.headers.get("Upgrade").map(|v| v.eq_ignore_ascii_case("websocket")).unwrap_or(false)
-            && request.headers.get("Connection").map(|v| v.to_lowercase().contains("upgrade")).unwrap_or(false)
+        request.headers.get(SimpleHeader::UPGRADE)
+            .map(|v| v.eq_ignore_ascii_case("websocket"))
+            .unwrap_or(false)
+            && request.headers.get(SimpleHeader::CONNECTION)
+                .map(|v| v.to_lowercase().contains("upgrade"))
+                .unwrap_or(false)
     }
 
     pub fn accept(
         request: IncomingRequest,
-        mut conn: Connection,
+        conn: &mut HttpClientConnection,
     ) -> Result<WebSocketConnection, WebSocketError> {
         // Extract key
-        let key = request.headers.get("Sec-WebSocket-Key")
+        let key = request.headers.get(SimpleHeader::SEC_WEBSOCKET_KEY)
             .ok_or(WebSocketError::MissingKey)?;
 
         // Compute accept
         let accept = compute_accept_key(key);
 
         // Get negotiated subprotocol
-        let subprotocol = request.headers.get("Sec-WebSocket-Protocol");
+        let subprotocol = request.headers.get(SimpleHeader::SEC_WEBSOCKET_PROTOCOL);
 
-        // Send response
-        let response = format!(
-            "HTTP/1.1 101 Switching Protocols\r\n\
-             Upgrade: websocket\r\n\
-             Connection: Upgrade\r\n\
-             Sec-WebSocket-Accept: {}\r\n\
-             {}\r\n",
-            accept,
-            subprotocol.map(|p| format!("Sec-WebSocket-Protocol: {}\r\n", p)).unwrap_or_default()
-        );
-        conn.write_all(response.as_bytes())?;
+        // Build 101 Switching Protocols response
+        let mut response = SimpleIncomingResponse::new(Status::SwitchingProtocols);
+        response.headers.insert(SimpleHeader::UPGRADE, "websocket");
+        response.headers.insert(SimpleHeader::CONNECTION, "Upgrade");
+        response.headers.insert(SimpleHeader::SEC_WEBSOCKET_ACCEPT, accept);
+
+        if let Some(protocol) = subprotocol {
+            response.headers.insert(SimpleHeader::SEC_WEBSOCKET_PROTOCOL, protocol);
+        }
+
+        // Render and send response using RenderHttp
+        let response_bytes = Http11::response(&response).http_render()?;
+
+        for chunk in response_bytes {
+            conn.write_all(&chunk?)?;
+        }
 
         Ok(WebSocketConnection::new(conn, Role::Server))
     }
@@ -427,6 +447,9 @@ pub enum WebSocketError {
     /// Invalid Sec-WebSocket-Accept header
     InvalidAcceptKey,
 
+    /// Missing Sec-WebSocket-Accept header
+    MissingAcceptKey,
+
     /// Missing Sec-WebSocket-Key header
     MissingKey,
 
@@ -484,10 +507,12 @@ backends/foundation_core/src/wire/
          .header(SimpleHeader::CONNECTION, "Upgrade")
          .header(SimpleHeader::SEC_WEBSOCKET_KEY, &key)
          .header(SimpleHeader::SEC_WEBSOCKET_VERSION, "13")
+         .build()?
      ```
+   - Render request using `Http11::request().http_render()` (RenderHttp trait)
    - Parse 101 response using existing `HttpResponseReader`
    - Validate `Sec-WebSocket-Accept` header
-   - Return `HttpClientConnection` on success
+   - Return `WebSocketConnection` on success (takes ownership of stream)
 
 3. **URL scheme extension**
    - Extend `simple_http/url/scheme.rs` to support `ws://` and `wss://` schemes
@@ -744,7 +769,8 @@ Before starting implementation, **MUST**:
 - `HttpConnectionPool` - Connection reuse (optional)
 
 **Do NOT re-implement**:
-- HTTP request building (use `ClientRequestBuilder`)
+- HTTP request formatting (use `ClientRequestBuilder` + `Http11::request().http_render()`)
+- HTTP response formatting (use `SimpleIncomingResponse` + `Http11::response().http_render()`)
 - HTTP response parsing (use `HttpResponseReader`)
 - TLS handshake (use `HttpClientConnection::connect()`)
 - DNS resolution (use `DnsResolver`)
