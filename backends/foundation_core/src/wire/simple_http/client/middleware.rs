@@ -15,6 +15,7 @@ use crate::wire::simple_http::{
     HttpClientError, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleResponse,
 };
 use std::sync::Arc;
+use tracing::{debug, info};
 
 /// Middleware trait for request/response interception.
 ///
@@ -239,12 +240,11 @@ impl std::fmt::Debug for MiddlewareChain {
 /// WHY: Developers need visibility into HTTP traffic for debugging without
 /// adding logging code throughout the client.
 ///
-/// WHAT: Provides structure for request/response logging. Does not modify
-/// requests or responses. Actual logging output can be added based on project's
-/// logging infrastructure.
+/// WHAT: Logs request and response details using tracing at info and debug levels.
+/// Does not modify requests or responses.
 ///
-/// HOW: Implements Middleware trait with no-op handle methods (can be extended
-/// with actual logging when logging infrastructure is available).
+/// HOW: Implements Middleware trait, logging method/URL/headers at info level,
+/// and full header details at debug level using tracing infrastructure.
 ///
 /// # Examples
 ///
@@ -281,19 +281,46 @@ impl Default for LoggingMiddleware {
 }
 
 impl Middleware for LoggingMiddleware {
-    fn handle_request(&self, _request: &mut PreparedRequest) -> Result<(), HttpClientError> {
-        // TODO: Add actual logging when project logging infrastructure is available
-        // For now, this is a pass-through that demonstrates the middleware pattern
+    fn handle_request(&self, request: &mut PreparedRequest) -> Result<(), HttpClientError> {
+        let headers_count = request.headers.len();
+        info!(
+            method = %request.method,
+            url = %request.url,
+            headers_count = headers_count,
+            "HTTP request"
+        );
+
+        debug!(
+            method = %request.method,
+            url = %request.url,
+            headers = ?request.headers,
+            "HTTP request headers"
+        );
+
         Ok(())
     }
 
     fn handle_response(
         &self,
-        _request: &PreparedRequest,
-        _response: &mut SimpleResponse<SendSafeBody>,
+        request: &PreparedRequest,
+        response: &mut SimpleResponse<SendSafeBody>,
     ) -> Result<(), HttpClientError> {
-        // TODO: Add actual logging when project logging infrastructure is available
-        // For now, this is a pass-through that demonstrates the middleware pattern
+        let headers_count = response.get_headers_ref().len();
+        let status = response.get_status();
+        info!(
+            status = %status,
+            url = %request.url,
+            headers_count = headers_count,
+            "HTTP response"
+        );
+
+        debug!(
+            status = %status,
+            url = %request.url,
+            headers = ?response.get_headers_ref(),
+            "HTTP response headers"
+        );
+
         Ok(())
     }
 }
@@ -303,11 +330,11 @@ impl Middleware for LoggingMiddleware {
 /// WHY: Performance monitoring requires measuring how long requests take
 /// without adding timing code throughout the client.
 ///
-/// WHAT: Records start time in handle_request, calculates duration in
+/// WHAT: Records start time in handle_request, calculates and logs duration in
 /// handle_response. Stores Instant in request extensions.
 ///
 /// HOW: Uses std::time::Instant for timing. Stores start time with type-safe
-/// Extensions in request.
+/// Extensions in request. Logs duration using tracing::info.
 ///
 /// # Examples
 ///
@@ -355,11 +382,14 @@ impl Middleware for TimingMiddleware {
         request: &PreparedRequest,
         _response: &mut SimpleResponse<SendSafeBody>,
     ) -> Result<(), HttpClientError> {
-        // Calculate duration if start time exists
+        // Calculate and log duration if start time exists
         if let Some(start) = request.extensions.get::<std::time::Instant>() {
-            let _duration = start.elapsed();
-            // TODO: Log or store duration when logging infrastructure is available
-            // For now, calculation demonstrates the pattern
+            let duration = start.elapsed();
+            info!(
+                url = %request.url,
+                duration_ms = duration.as_millis(),
+                "HTTP request completed"
+            );
         }
         Ok(())
     }
