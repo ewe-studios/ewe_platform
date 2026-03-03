@@ -62,24 +62,79 @@ The HTTP client implementation is divided into features with clear dependencies.
 - Each feature contains complete requirements and tasks
 - Refer to individual feature.md files for detailed specifications
 
-| #  | Feature | Description | Dependencies | Status |
-|----|---------|-------------|--------------|--------|
-| 0  | [valtron-utilities](./features/valtron-utilities/feature.md) | Reusable ExecutionAction types, unified executor, and state machine helpers | None | ✅ Complete |
-| 1  | [tls-verification](./features/tls-verification/feature.md) | Verify and fix TLS backends (rustls, openssl, native-tls) | 0 | ✅ Complete |
-| 2  | [foundation](./features/foundation/feature.md) | Error types, DNS resolution, and common foundations | 1 | ✅ Complete |
-| 3  | [compression](./features/compression/feature.md) | gzip, deflate, brotli support and streaming integration | 2 | ✅ Complete |
-| 4  | [connection](./features/connection/feature.md) | URL parsing, TCP, TLS handshakes (HTTP/HTTPS connection layer) | 2 | ✅ Complete |
-| 5  | [proxy-support](./features/proxy-support/feature.md) | HTTP/HTTPS/SOCKS5 proxy handling and configuration | 4 | ✅ Complete |
-| 6  | [request-response](./features/request-response/feature.md) | Request builder, response types, headers and body handling | 4 | ✅ Complete |
-| 7  | [auth-helpers](./features/auth-helpers/feature.md) | Basic, Bearer, Digest auth helpers and flows | 6 | ✅ Complete |
-| 8  | [task-iterator](./features/task-iterator/feature.md) | TaskIterator, ExecutionAction types and executor integration | 0, 6 | ✅ Complete |
-| 9  | [public-api](./features/public-api/feature.md) | User-facing API (SimpleHttpClient), ergonomics and integration | 8 | ✅ Complete |
-| 10 | [connection-pooling](./features/connection-pooling/feature.md) | Connection pool design, checkout/checkin, cleanup and metrics | 4 | ✅ Complete |
-| 11 | [cookie-jar](./features/cookie-jar/feature.md) | Automatic cookie storage and policy handling | 9 | ✅ Complete |
-| 12 | [middleware](./features/middleware/feature.md) | Request/response interceptors and middleware pipeline | 9 | ✅ Complete |
-| 13 | [websocket](./features/websocket/feature.md) | WebSocket client and server | 4, 9 | ⬜ Pending |
+### Completed Features (14/14 - 100%)
 
-Status Key: ⬜ Pending | 🔄 In Progress | ✅ Complete
+1. **[valtron-utilities](./features/valtron-utilities/feature.md)** ✅
+   - Description: Reusable ExecutionAction types, unified executor, and state machine helpers
+   - Dependencies: None
+   - Status: Complete
+
+2. **[tls-verification](./features/tls-verification/feature.md)** ✅
+   - Description: Verify and fix TLS backends (rustls, openssl, native-tls)
+   - Dependencies: #0
+   - Status: Complete
+
+3. **[foundation](./features/foundation/feature.md)** ✅
+   - Description: Error types, DNS resolution, and common foundations
+   - Dependencies: #1
+   - Status: Complete
+
+4. **[compression](./features/compression/feature.md)** ✅
+   - Description: gzip, deflate, brotli support and streaming integration
+   - Dependencies: #2
+   - Status: Complete
+
+5. **[connection](./features/connection/feature.md)** ✅
+   - Description: URL parsing, TCP, TLS handshakes (HTTP/HTTPS connection layer)
+   - Dependencies: #2
+   - Status: Complete
+
+6. **[proxy-support](./features/proxy-support/feature.md)** ✅
+   - Description: HTTP/HTTPS/SOCKS5 proxy handling and configuration
+   - Dependencies: #4
+   - Status: Complete
+
+7. **[request-response](./features/request-response/feature.md)** ✅
+   - Description: Request builder, response types, headers and body handling
+   - Dependencies: #4
+   - Status: Complete
+
+8. **[auth-helpers](./features/auth-helpers/feature.md)** ✅
+   - Description: Basic, Bearer, Digest auth helpers and flows
+   - Dependencies: #6
+   - Status: Complete
+
+9. **[task-iterator](./features/task-iterator/feature.md)** ✅
+   - Description: TaskIterator, ExecutionAction types and executor integration
+   - Dependencies: #0, #6
+   - Status: Complete
+
+10. **[public-api](./features/public-api/feature.md)** ✅
+    - Description: User-facing API (SimpleHttpClient), ergonomics and integration
+    - Dependencies: #8
+    - Status: Complete
+
+11. **[connection-pooling](./features/connection-pooling/feature.md)** ✅
+    - Description: Connection pool design, checkout/checkin, cleanup and metrics
+    - Dependencies: #4
+    - Status: Complete
+
+12. **[cookie-jar](./features/cookie-jar/feature.md)** ✅
+    - Description: Automatic cookie storage and policy handling
+    - Dependencies: #9
+    - Status: Complete
+
+13. **[middleware](./features/middleware/feature.md)** ✅
+    - Description: Request/response interceptors and middleware pipeline
+    - Dependencies: #9
+    - Status: Complete
+
+### Pending Features (0/14)
+
+14. **[websocket](./features/websocket/feature.md)** ⬜
+    - Description: WebSocket client and server
+    - Dependencies: #4, #9
+    - Status: Pending
 
 ## Requirements Conversation Summary
 
