@@ -451,7 +451,7 @@ backends/foundation_core/src/wire/
 ```
 websocket::WebSocketConnection
     ├─> websocket::WebSocketHandshake
-    │       ├─> simple_http::client::ClientRequestBuilder  (for HTTP upgrade)
+    │       ├─> simple_http::SimpleIncomingRequestBuilder  (for HTTP upgrade)
     │       └─> simple_http::HttpResponseReader            (for reading 101 response)
     │
     ├─> websocket::Frame                                   (encode/decode frames)
@@ -471,7 +471,7 @@ websocket::WebSocketConnection
 | `ParsedUrl` (Uri) | `simple_http/url/mod.rs` | ws:// and wss:// parsing |
 | `DnsResolver` | `simple_http/client/dns.rs` | Hostname resolution |
 | `HttpConnectionPool` | `simple_http/client/pool.rs` | Connection reuse (optional) |
-| `ClientRequestBuilder` | `simple_http/client/request.rs` | Build upgrade request |
+| `SimpleIncomingRequestBuilder` | `simple_http/impls.rs` | Build upgrade request |
 | `TaskIterator` | `valtron/task.rs` | Non-blocking operations |
 
 ### 4.4 URL Scheme Handling
@@ -848,7 +848,7 @@ impl MessageAssembler {
 
 2. **WebSocket handshake** (`handshake.rs`)
    - Implement `compute_accept_key()` using SHA-1
-   - Build HTTP upgrade request using `ClientRequestBuilder`
+   - Build HTTP upgrade request using `SimpleIncomingRequestBuilder`
    - Parse 101 response and validate headers
    - Return `HttpClientConnection` on success
 
@@ -959,8 +959,9 @@ impl WebSocketHandshake {
         // Generate random key
         let key = generate_websocket_key();
 
-        // Build HTTP upgrade request
-        let request = ClientRequestBuilder::<SystemDnsResolver>::get(url)?
+        // Build HTTP upgrade request using SimpleIncomingRequestBuilder
+        let request = SimpleIncomingRequestBuilder::get(uri.path_and_query())
+            .header(SimpleHeader::HOST, &uri.host_with_port())
             .header(SimpleHeader::UPGRADE, "websocket")
             .header(SimpleHeader::CONNECTION, "Upgrade")
             .header(SimpleHeader::SEC_WEBSOCKET_KEY, &key)
@@ -969,8 +970,7 @@ impl WebSocketHandshake {
 
         // Connect and send request
         let mut conn = HttpClientConnection::connect(&uri, &SystemDnsResolver, None)?;
-        let request_bytes = Http11::request(request.into_simple_incoming_request()?)
-            .http_render()?;
+        let request_bytes = Http11::request(&request).http_render()?;
 
         for chunk in request_bytes {
             conn.write_all(&chunk?)?;
