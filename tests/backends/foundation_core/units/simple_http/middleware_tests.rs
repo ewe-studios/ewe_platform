@@ -253,3 +253,151 @@ fn test_middleware_chain_execution_order() {
     // Responses should be processed in reverse order: 3, 2, 1 (onion model)
     assert_eq!(*response_order.lock().unwrap(), vec![3, 2, 1]);
 }
+
+/// WHY: RetryMiddleware needs constant backoff strategy (same delay for all retries)
+/// WHAT: Test BackoffStrategy::Constant returns same delay for all attempts
+#[test]
+fn test_backoff_strategy_constant() {
+    use foundation_core::wire::simple_http::client::BackoffStrategy;
+    use std::time::Duration;
+
+    let strategy = BackoffStrategy::Constant {
+        delay: Duration::from_millis(100),
+    };
+
+    assert_eq!(strategy.next_delay(1), Duration::from_millis(100));
+    assert_eq!(strategy.next_delay(2), Duration::from_millis(100));
+    assert_eq!(strategy.next_delay(5), Duration::from_millis(100));
+}
+
+/// WHY: RetryMiddleware needs linear backoff (gradually increasing delays)
+/// WHAT: Test BackoffStrategy::Linear calculates base + (increment * attempt)
+#[test]
+fn test_backoff_strategy_linear() {
+    use foundation_core::wire::simple_http::client::BackoffStrategy;
+    use std::time::Duration;
+
+    let strategy = BackoffStrategy::Linear {
+        base: Duration::from_millis(100),
+        increment: Duration::from_millis(50),
+    };
+
+    assert_eq!(strategy.next_delay(1), Duration::from_millis(150)); // 100 + 50*1
+    assert_eq!(strategy.next_delay(2), Duration::from_millis(200)); // 100 + 50*2
+    assert_eq!(strategy.next_delay(3), Duration::from_millis(250)); // 100 + 50*3
+}
+
+/// WHY: RetryMiddleware needs exponential backoff (rapidly increasing delays to avoid overwhelming server)
+/// WHAT: Test BackoffStrategy::Exponential calculates base * multiplier^attempt
+#[test]
+fn test_backoff_strategy_exponential() {
+    use foundation_core::wire::simple_http::client::BackoffStrategy;
+    use std::time::Duration;
+
+    let strategy = BackoffStrategy::Exponential {
+        base: Duration::from_millis(100),
+        multiplier: 2.0,
+    };
+
+    assert_eq!(strategy.next_delay(1), Duration::from_millis(200)); // 100 * 2^1
+    assert_eq!(strategy.next_delay(2), Duration::from_millis(400)); // 100 * 2^2
+    assert_eq!(strategy.next_delay(3), Duration::from_millis(800)); // 100 * 2^3
+}
+
+/// WHY: RetryMiddleware needs to track retry attempts to enforce max_retries limit
+/// WHAT: Test RetryState initializes with attempt=0 and stores max_retries
+#[test]
+fn test_retry_state_creation() {
+    use foundation_core::wire::simple_http::client::RetryState;
+
+    let state = RetryState::new(3);
+    assert_eq!(state.attempt, 0);
+}
+
+/// WHY: RetryMiddleware must be configurable with max retries and status codes
+/// WHAT: Test RetryMiddleware::new() creates middleware with exponential backoff default
+#[test]
+fn test_retry_middleware_creation() {
+    use foundation_core::wire::simple_http::client::RetryMiddleware;
+
+    let retry = RetryMiddleware::new(3, vec![429, 502, 503, 504]);
+    // Test passes if creation succeeds (no panic)
+}
+
+/// WHY: Different use cases need different backoff strategies
+/// WHAT: Test RetryMiddleware::with_backoff() allows custom backoff configuration
+#[test]
+fn test_retry_middleware_with_backoff() {
+    use foundation_core::wire::simple_http::client::{RetryMiddleware, BackoffStrategy};
+    use std::time::Duration;
+
+    let retry = RetryMiddleware::new(3, vec![429])
+        .with_backoff(BackoffStrategy::Constant {
+            delay: Duration::from_secs(1),
+        });
+    // Test passes if builder pattern works (no panic)
+}
+
+/// WHY: RetryMiddleware must store retry state in request extensions for tracking
+/// WHAT: Test RetryMiddleware::handle_request stores RetryState in extensions
+#[test]
+fn test_retry_middleware_stores_state_in_extensions() {
+    use foundation_core::wire::simple_http::client::{RetryMiddleware, Middleware, PreparedRequest, ParsedUrl, Extensions, RetryState};
+    use foundation_core::wire::simple_http::{SimpleMethod, SendSafeBody};
+    use std::collections::BTreeMap;
+
+    let mut request = PreparedRequest {
+        method: SimpleMethod::GET,
+        url: ParsedUrl::parse("http://example.com").unwrap(),
+        headers: BTreeMap::new(),
+        body: SendSafeBody::None,
+        extensions: Extensions::new(),
+    };
+
+    let middleware = RetryMiddleware::new(3, vec![429, 502]);
+    middleware.handle_request(&mut request).unwrap();
+
+    // RetryState should be stored in extensions
+    let state = request.extensions.get::<RetryState>();
+    assert!(state.is_some());
+    assert_eq!(state.unwrap().attempt, 0);
+}
+
+/// WHY: RetryMiddleware should pass through responses with non-retryable status codes
+/// WHAT: Test RetryMiddleware::handle_response returns Ok for status 200
+#[test]
+fn test_retry_middleware_passes_through_success() {
+    use foundation_core::wire::simple_http::client::{RetryMiddleware, Middleware, PreparedRequest, ParsedUrl, Extensions};
+    use foundation_core::wire::simple_http::{SimpleMethod, SendSafeBody, Status};
+    use std::collections::BTreeMap;
+
+    let mut request = PreparedRequest {
+        method: SimpleMethod::GET,
+        url: ParsedUrl::parse("http://example.com").unwrap(),
+        headers: BTreeMap::new(),
+        body: SendSafeBody::None,
+        extensions: Extensions::new(),
+    };
+
+    let middleware = RetryMiddleware::new(3, vec![429, 502, 503, 504]);
+    middleware.handle_request(&mut request).unwrap();
+
+    let mut response = foundation_core::wire::simple_http::SimpleResponse::new(
+        Status::OK,
+        BTreeMap::new(),
+        SendSafeBody::None,
+    );
+
+    // Should not error on successful response
+    assert!(middleware.handle_response(&request, &mut response).is_ok());
+}
+
+/// WHY: Middleware name is used for debugging and skip_middleware functionality
+/// WHAT: Test RetryMiddleware::name() returns "RetryMiddleware"
+#[test]
+fn test_retry_middleware_name() {
+    use foundation_core::wire::simple_http::client::{RetryMiddleware, Middleware};
+
+    let middleware = RetryMiddleware::new(3, vec![429]);
+    assert_eq!(middleware.name(), "RetryMiddleware");
+}

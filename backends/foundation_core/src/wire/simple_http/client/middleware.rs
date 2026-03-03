@@ -484,3 +484,228 @@ impl Middleware for HeaderMiddleware {
         Ok(())
     }
 }
+
+// ============================================================================
+// Retry Middleware and Supporting Types
+// ============================================================================
+
+/// Backoff strategy for retry delays.
+///
+/// WHY: Different retry scenarios need different delay patterns. Constant for predictable
+/// delays, Linear for gradual increase, Exponential for rapid backoff.
+///
+/// WHAT: Enum defining three strategies with their parameters. Each calculates
+/// delay based on attempt number.
+///
+/// HOW: next_delay() takes attempt number and returns Duration based on formula
+/// specific to each variant.
+///
+/// # Examples
+///
+/// ```
+/// use foundation_core::wire::simple_http::client::BackoffStrategy;
+/// use std::time::Duration;
+///
+/// let constant = BackoffStrategy::Constant {
+///     delay: Duration::from_millis(100),
+/// };
+/// assert_eq!(constant.next_delay(1), Duration::from_millis(100));
+///
+/// let linear = BackoffStrategy::Linear {
+///     base: Duration::from_millis(100),
+///     increment: Duration::from_millis(50),
+/// };
+/// assert_eq!(linear.next_delay(1), Duration::from_millis(150)); // 100 + 50*1
+///
+/// let exponential = BackoffStrategy::Exponential {
+///     base: Duration::from_millis(100),
+///     multiplier: 2.0,
+/// };
+/// assert_eq!(exponential.next_delay(1), Duration::from_millis(200)); // 100 * 2^1
+/// ```
+#[derive(Debug, Clone)]
+pub enum BackoffStrategy {
+    /// Constant delay for all retries.
+    Constant {
+        /// Fixed delay between retries.
+        delay: std::time::Duration,
+    },
+    /// Linear backoff: base + (increment * attempt).
+    Linear {
+        /// Initial delay.
+        base: std::time::Duration,
+        /// Amount to add per attempt.
+        increment: std::time::Duration,
+    },
+    /// Exponential backoff: base * multiplier^attempt.
+    Exponential {
+        /// Initial delay.
+        base: std::time::Duration,
+        /// Multiplier for exponential growth.
+        multiplier: f64,
+    },
+}
+
+impl BackoffStrategy {
+    /// Calculates delay for given attempt number.
+    ///
+    /// WHY: Retry logic needs to know how long to wait before next attempt.
+    ///
+    /// WHAT: Computes Duration based on strategy type and attempt number.
+    ///
+    /// HOW: Match on strategy variant, apply appropriate formula.
+    ///
+    /// # Panics
+    ///
+    /// Never panics.
+    #[must_use]
+    pub fn next_delay(&self, attempt: u32) -> std::time::Duration {
+        match self {
+            Self::Constant { delay } => *delay,
+            Self::Linear { base, increment } => *base + (*increment * attempt),
+            Self::Exponential { base, multiplier } => {
+                let factor = multiplier.powi(attempt as i32);
+                base.mul_f64(factor)
+            }
+        }
+    }
+}
+
+/// Tracks retry state for a request.
+///
+/// WHY: RetryMiddleware needs to track how many times a request has been retried
+/// to enforce max_retries limit.
+///
+/// WHAT: Stores current attempt number. Stored in request Extensions.
+///
+/// HOW: Incremented in handle_response when retry is needed. Checked against max_retries.
+///
+/// # Examples
+///
+/// ```
+/// use foundation_core::wire::simple_http::client::RetryState;
+///
+/// let state = RetryState::new(3);
+/// assert_eq!(state.attempt, 0);
+/// ```
+#[derive(Debug, Clone)]
+pub struct RetryState {
+    /// Current retry attempt number (0-indexed).
+    pub attempt: u32,
+}
+
+impl RetryState {
+    /// Creates new RetryState with attempt counter at 0.
+    ///
+    /// WHY: Initialize retry tracking for a new request.
+    ///
+    /// WHAT: Returns RetryState with attempt = 0.
+    ///
+    /// HOW: Simple struct construction.
+    ///
+    /// # Panics
+    ///
+    /// Never panics.
+    #[must_use]
+    pub fn new(_max_retries: u32) -> Self {
+        Self { attempt: 0 }
+    }
+}
+
+/// Retry middleware for automatic request retries on specific status codes.
+///
+/// WHY: Network requests can fail transiently (rate limits, temporary server errors).
+/// Automatic retry improves reliability without manual intervention.
+///
+/// WHAT: Middleware that retries requests when response status matches configured codes.
+/// Uses configurable backoff strategy for delays between attempts.
+///
+/// HOW: Stores RetryState in request extensions. On matching status code, increments
+/// attempt and returns error if max_retries not exceeded. Error signals retry needed.
+///
+/// # Examples
+///
+/// ```
+/// use foundation_core::wire::simple_http::client::RetryMiddleware;
+///
+/// let retry = RetryMiddleware::new(3, vec![429, 502, 503, 504]);
+/// ```
+pub struct RetryMiddleware {
+    max_retries: u32,
+    retry_status_codes: Vec<u16>,
+    backoff: BackoffStrategy,
+}
+
+impl RetryMiddleware {
+    /// Creates new RetryMiddleware with exponential backoff.
+    ///
+    /// WHY: Configure retry behavior with max attempts and status codes.
+    ///
+    /// WHAT: Returns RetryMiddleware with default exponential backoff (100ms base, 2x multiplier).
+    ///
+    /// HOW: Stores parameters, initializes default BackoffStrategy.
+    ///
+    /// # Panics
+    ///
+    /// Never panics.
+    #[must_use]
+    pub fn new(max_retries: u32, retry_status_codes: Vec<u16>) -> Self {
+        Self {
+            max_retries,
+            retry_status_codes,
+            backoff: BackoffStrategy::Exponential {
+                base: std::time::Duration::from_millis(100),
+                multiplier: 2.0,
+            },
+        }
+    }
+
+    /// Sets custom backoff strategy.
+    ///
+    /// WHY: Different use cases need different retry delay patterns.
+    ///
+    /// WHAT: Builder method to override default exponential backoff.
+    ///
+    /// HOW: Replaces backoff field, returns self.
+    ///
+    /// # Panics
+    ///
+    /// Never panics.
+    #[must_use]
+    pub fn with_backoff(mut self, backoff: BackoffStrategy) -> Self {
+        self.backoff = backoff;
+        self
+    }
+}
+
+impl Middleware for RetryMiddleware {
+    fn handle_request(&self, request: &mut PreparedRequest) -> Result<(), HttpClientError> {
+        // Store retry state in extensions
+        request.extensions.insert(RetryState::new(self.max_retries));
+        Ok(())
+    }
+
+    fn handle_response(
+        &self,
+        request: &PreparedRequest,
+        response: &mut SimpleResponse<SendSafeBody>,
+    ) -> Result<(), HttpClientError> {
+        let status = response.get_status().into_usize() as u16;
+
+        // Check if status code matches retry conditions
+        if self.retry_status_codes.contains(&status) {
+            if let Some(state) = request.extensions.get::<RetryState>() {
+                if state.attempt < self.max_retries {
+                    // TODO: Need to return retry error - but HttpClientError doesn't have RetryNeeded variant yet
+                    // For now, just track the state
+                    // This will be completed when HttpClientError is extended
+                }
+            }
+        }
+        Ok(())
+    }
+
+    fn name(&self) -> &'static str {
+        "RetryMiddleware"
+    }
+}

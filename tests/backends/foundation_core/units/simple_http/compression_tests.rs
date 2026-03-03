@@ -171,8 +171,8 @@ fn test_decompressing_reader_gzip() {
 
     // Decompress using DecompressingReader
     let cursor = io::Cursor::new(compressed);
-    let mut reader = DecompressingReader::new(cursor, &ContentEncoding::Gzip)
-        .expect("Failed to create reader");
+    let mut reader =
+        DecompressingReader::new(cursor, &ContentEncoding::Gzip).expect("Failed to create reader");
 
     let mut output = Vec::new();
     reader
@@ -248,8 +248,7 @@ fn test_decompressing_reader_unknown_encoding() {
     let data = b"Some data";
     let cursor = io::Cursor::new(data.as_ref());
 
-    let result =
-        DecompressingReader::new(cursor, &ContentEncoding::Unknown("custom".to_string()));
+    let result = DecompressingReader::new(cursor, &ContentEncoding::Unknown("custom".to_string()));
 
     match result {
         Err(HttpClientError::UnsupportedEncoding(enc)) => {
@@ -278,8 +277,8 @@ fn test_decompressing_reader_streaming() {
 
     // Read in small chunks to verify streaming behavior
     let cursor = io::Cursor::new(compressed);
-    let mut reader = DecompressingReader::new(cursor, &ContentEncoding::Gzip)
-        .expect("Failed to create reader");
+    let mut reader =
+        DecompressingReader::new(cursor, &ContentEncoding::Gzip).expect("Failed to create reader");
 
     let mut output = Vec::new();
     let mut buffer = [0u8; 128]; // Small buffer
