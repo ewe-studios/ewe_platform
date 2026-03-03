@@ -696,9 +696,15 @@ impl Middleware for RetryMiddleware {
         if self.retry_status_codes.contains(&status) {
             if let Some(state) = request.extensions.get::<RetryState>() {
                 if state.attempt < self.max_retries {
-                    // TODO: Need to return retry error - but HttpClientError doesn't have RetryNeeded variant yet
-                    // For now, just track the state
-                    // This will be completed when HttpClientError is extended
+                    // Calculate delay for this attempt
+                    let delay = self.backoff.next_delay(state.attempt);
+
+                    // Return RetryNeeded error to signal retry should happen
+                    return Err(HttpClientError::RetryNeeded {
+                        attempt: state.attempt,
+                        delay,
+                        status_code: Some(status),
+                    });
                 }
             }
         }

@@ -4,6 +4,7 @@ use derive_more::From;
 use std::{
     string::{FromUtf16Error, FromUtf8Error},
     sync::PoisonError,
+    time::Duration,
 };
 
 pub type Result<T, E> = std::result::Result<T, E>;
@@ -203,6 +204,15 @@ pub enum HttpClientError {
     /// Contains the encoding name that is not supported.
     #[from(ignore)]
     UnsupportedEncoding(String),
+
+    /// Retry needed for transient failure.
+    /// Contains current attempt number, calculated delay, and optional status code.
+    #[from(ignore)]
+    RetryNeeded {
+        attempt: u32,
+        delay: Duration,
+        status_code: Option<u16>,
+    },
 }
 
 impl std::error::Error for HttpClientError {}
@@ -287,6 +297,28 @@ impl core::fmt::Display for HttpClientError {
             Self::DecompressionFailed(msg) => write!(f, "Decompression failed: {msg}"),
             Self::UnsupportedEncoding(encoding) => {
                 write!(f, "Unsupported content encoding: {encoding}")
+            }
+            Self::RetryNeeded {
+                attempt,
+                delay,
+                status_code,
+            } => {
+                if let Some(code) = status_code {
+                    write!(
+                        f,
+                        "Retry needed: attempt {}, delay {}ms, status code {}",
+                        attempt,
+                        delay.as_millis(),
+                        code
+                    )
+                } else {
+                    write!(
+                        f,
+                        "Retry needed: attempt {}, delay {}ms",
+                        attempt,
+                        delay.as_millis()
+                    )
+                }
             }
         }
     }
