@@ -134,6 +134,7 @@ where
                             Some(send_request.timeouts),
                             send_request.pool.clone(),
                             send_request.remaining_redirects,
+                            send_request.config.clone(),
                         ),
                         std::time::Duration::from_millis(100),
                     );

@@ -37,6 +37,7 @@ type InitData<R> = Box<(
     OpTimeout,
     Arc<HttpConnectionPool<R>>,
     u8,
+    Option<crate::wire::simple_http::client::ClientConfig>,
 )>;
 
 type TryingData<R> = Box<(
@@ -45,6 +46,7 @@ type TryingData<R> = Box<(
     Arc<HttpConnectionPool<R>>,
     RequestDescriptor,
     u8,
+    Option<crate::wire::simple_http::client::ClientConfig>,
 )>;
 
 type WriteBodyData<R> = Box<(
@@ -88,12 +90,14 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
         timeout: Option<OpTimeout>,
         pool: Arc<HttpConnectionPool<R>>,
         max_redirects: u8,
+        config: Option<crate::wire::simple_http::client::ClientConfig>,
     ) -> Self {
         Self(Some(HttpRequestRedirectState::Init(Some(Box::new((
             data,
             timeout.unwrap_or_default(),
             pool,
             max_redirects,
+            config,
         ))))))
     }
 }
@@ -110,7 +114,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
             match self.0.take()? {
                 HttpRequestRedirectState::Init(mut inner_opt) => {
                     if let Some(inner) = inner_opt.take() {
-                        let (data, timeout, pool, remaining_redirects) = *inner;
+                        let (data, timeout, pool, remaining_redirects, config) = *inner;
 
                         // create the request descriptor
                         let request_descriptor = data.descriptor();
@@ -121,6 +125,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                             pool,
                             request_descriptor,
                             remaining_redirects,
+                            config,
                         )))));
 
                         return Some(TaskStatus::Pending(HttpOperationState::Connecting));
@@ -135,11 +140,29 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         return None;
                     };
 
-                    let (data, timeout, pool, mut descriptor, remaining_redirects) = *state;
+                    let (data, timeout, pool, mut descriptor, remaining_redirects, config) = *state;
                     tracing::info!("REDIRECTIONS: Remaining redirects: {}", remaining_redirects);
 
-                    // 1. Create connection
-                    let Ok(mut connection) = pool.create_http_connection(&descriptor.request_uri, None)
+                    // Determine effective proxy configuration
+                    let env_proxy = if let Some(ref cfg) = config {
+                        if cfg.proxy_from_env {
+                            crate::wire::simple_http::client::ProxyConfig::from_env(
+                                descriptor.request_uri.scheme(),
+                            )
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    };
+
+                    let proxy_config = env_proxy.as_ref().or_else(|| {
+                        config.as_ref().and_then(|cfg| cfg.proxy.as_ref())
+                    });
+
+                    // 1. Create connection (with proxy support)
+                    let Ok(mut connection) =
+                        pool.create_connection_with_proxy(&descriptor.request_uri, proxy_config, None)
                     else {
                         self.0 = Some(HttpRequestRedirectState::Done);
                         return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
@@ -334,6 +357,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                             pool,
                             new_descriptor,
                             remaining_redirects - 1,
+                            config,
                         )))));
 
                         return Some(TaskStatus::Pending(HttpOperationState::Connecting));
