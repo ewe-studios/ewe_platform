@@ -454,23 +454,43 @@ backends/foundation_core/src/wire/event_source/
 - ✅ Can connect and receive events (blocking)
 - ✅ Can send events (server-side)
 - ✅ All tests pass
+- ✅ **LEARNINGS.md updated** with insights
 
 **Phase 2 Complete When**:
 - ✅ Auto-reconnection works
 - ✅ Last-Event-ID tracking works
 - ✅ Server retry field honored
+- ✅ **LEARNINGS.md updated** with insights
 
 **Phase 3 Complete When**:
 - ✅ Non-blocking event consumption works
 - ✅ Valtron executor integration works
+- ✅ **LEARNINGS.md updated** with insights
 
 **Feature Complete When**:
 - ✅ All 3 phases complete
 - ✅ Documentation complete
 - ✅ All verification commands pass
 - ✅ Integration tests pass
+- ✅ **LEARNINGS.md updated** with final insights
+
+---
+
+## ⚠️ IMPORTANT REMINDER ⚠️
+
+**ALWAYS UPDATE LEARNINGS.md AFTER EACH MILESTONE/TASK COMPLETION**
+
+After completing each phase or significant task:
+1. Document what was learned
+2. Capture design decisions and rationale
+3. Note any challenges and solutions
+4. Record patterns discovered
+5. Update `specifications/02-build-http-client/LEARNINGS.md`
+
+**DO NOT FORGET**: Learnings are critical for future development and knowledge transfer.
 
 ---
 
 *Created: 2026-03-03*
 *Quick Start - Begin with ARCHITECTURE.md sections 1-2, then implement Phase 1*
+*Remember: Update LEARNINGS.md after each phase!*
