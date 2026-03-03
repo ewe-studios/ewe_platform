@@ -190,8 +190,9 @@ impl WebSocketClient {
         // Generate random key
         let key = generate_websocket_key();
 
-        // Build upgrade request using ClientRequestBuilder
-        let mut builder = ClientRequestBuilder::<SystemDnsResolver>::get(url)?
+        // Build upgrade request using SimpleIncomingRequestBuilder
+        let mut builder = SimpleIncomingRequestBuilder::get(url.path_and_query())
+            .header(SimpleHeader::HOST, url.host_with_port())
             .header(SimpleHeader::UPGRADE, "websocket")
             .header(SimpleHeader::CONNECTION, "Upgrade")
             .header(SimpleHeader::SEC_WEBSOCKET_KEY, &key)
@@ -205,8 +206,7 @@ impl WebSocketClient {
         let request = builder.build()?;
 
         // Render and send request using RenderHttp
-        let request_bytes = Http11::request(request.into_simple_incoming_request()?)
-            .http_render()?;
+        let request_bytes = Http11::request(&request).http_render()?;
 
         for chunk in request_bytes {
             conn.write_all(&chunk?)?;
@@ -500,9 +500,10 @@ backends/foundation_core/src/wire/
 2. **WebSocket handshake** (`handshake.rs`)
    - Implement `compute_accept_key(client_key)` using SHA-1 + base64
    - Implement `generate_websocket_key()` (16 random bytes, base64 encoded)
-   - Build HTTP upgrade request using existing `ClientRequestBuilder`:
+   - Build HTTP upgrade request using existing `SimpleIncomingRequestBuilder`:
      ```rust
-     ClientRequestBuilder::get(url)?
+     SimpleIncomingRequestBuilder::get(url.path_and_query())
+         .header(SimpleHeader::HOST, url.host_with_port())
          .header(SimpleHeader::UPGRADE, "websocket")
          .header(SimpleHeader::CONNECTION, "Upgrade")
          .header(SimpleHeader::SEC_WEBSOCKET_KEY, &key)
@@ -735,8 +736,9 @@ Before starting implementation, **MUST**:
 - Close payload: 2-byte code (big-endian) + optional UTF-8 reason
 
 **HTTP Upgrade Handshake**:
-- Use existing `ClientRequestBuilder` to build request
+- Use existing `SimpleIncomingRequestBuilder` to build request
 - Add required headers: `Upgrade`, `Connection`, `Sec-WebSocket-Key`, `Sec-WebSocket-Version`
+- Render request using `Http11::request().http_render()` (RenderHttp trait)
 - Read response using existing `HttpResponseReader`
 - Validate `Status::SwitchingProtocols` (101)
 - Compute and verify `Sec-WebSocket-Accept` header
@@ -762,14 +764,17 @@ Before starting implementation, **MUST**:
 - `Status::SwitchingProtocols` - 101 status code
 - `HttpClientConnection` - TCP/TLS connection wrapper
 - `SharedByteBufferStream<RawStream>` - Buffered Read/Write stream
-- `ClientRequestBuilder` - Build HTTP upgrade request
+- `SimpleIncomingRequestBuilder` - Build HTTP upgrade request
+- `SimpleIncomingResponse` - Build HTTP upgrade response
 - `HttpResponseReader` - Parse HTTP response
+- `Http11::request().http_render()` - Render HTTP request
+- `Http11::response().http_render()` - Render HTTP response
 - `TaskIterator` - Non-blocking state machine pattern (Phase 2)
 - `DnsResolver` - Hostname resolution
 - `HttpConnectionPool` - Connection reuse (optional)
 
 **Do NOT re-implement**:
-- HTTP request formatting (use `ClientRequestBuilder` + `Http11::request().http_render()`)
+- HTTP request formatting (use `SimpleIncomingRequestBuilder` + `Http11::request().http_render()`)
 - HTTP response formatting (use `SimpleIncomingResponse` + `Http11::response().http_render()`)
 - HTTP response parsing (use `HttpResponseReader`)
 - TLS handshake (use `HttpClientConnection::connect()`)
