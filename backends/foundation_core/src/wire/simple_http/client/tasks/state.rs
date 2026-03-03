@@ -74,6 +74,8 @@ where
     pub request: Option<PreparedRequest>,
     /// Connection pool for reuse (optional)
     pub pool: Arc<HttpConnectionPool<R>>,
+    /// Client configuration (for proxy support)
+    pub config: Option<crate::wire::simple_http::client::ClientConfig>,
 }
 
 impl<R> SendRequest<R>
@@ -98,12 +100,14 @@ where
         max_redirects: u8,
         pool: Arc<HttpConnectionPool<R>>,
         timeouts: OpTimeout,
+        config: Option<crate::wire::simple_http::client::ClientConfig>,
     ) -> Self {
         Self {
             pool,
             timeouts,
             request: Some(request),
             remaining_redirects: max_redirects,
+            config,
         }
     }
 }

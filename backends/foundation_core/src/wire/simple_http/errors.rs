@@ -213,6 +213,34 @@ pub enum HttpClientError {
         delay: Duration,
         status_code: Option<u16>,
     },
+
+    /// Proxy connection failed.
+    /// Contains error message describing connection failure.
+    #[from(ignore)]
+    ProxyConnectionFailed(String),
+
+    /// Proxy authentication failed (407 Proxy Authentication Required).
+    /// Contains error message or reason.
+    #[from(ignore)]
+    ProxyAuthenticationFailed(String),
+
+    /// Proxy tunnel establishment failed.
+    /// Contains HTTP status code and error message from proxy.
+    #[from(ignore)]
+    ProxyTunnelFailed {
+        status: u16,
+        message: String,
+    },
+
+    /// Invalid proxy URL format.
+    /// Contains parsing error message.
+    #[from(ignore)]
+    InvalidProxyUrl(String),
+
+    /// SOCKS5 protocol error.
+    /// Contains error message from SOCKS5 handshake.
+    #[from(ignore)]
+    Socks5Error(String),
 }
 
 impl std::error::Error for HttpClientError {}
@@ -320,6 +348,15 @@ impl core::fmt::Display for HttpClientError {
                     )
                 }
             }
+            Self::ProxyConnectionFailed(msg) => write!(f, "Proxy connection failed: {msg}"),
+            Self::ProxyAuthenticationFailed(msg) => {
+                write!(f, "Proxy authentication failed: {msg}")
+            }
+            Self::ProxyTunnelFailed { status, message } => {
+                write!(f, "Proxy tunnel failed with status {status}: {message}")
+            }
+            Self::InvalidProxyUrl(msg) => write!(f, "Invalid proxy URL: {msg}"),
+            Self::Socks5Error(msg) => write!(f, "SOCKS5 error: {msg}"),
         }
     }
 }
