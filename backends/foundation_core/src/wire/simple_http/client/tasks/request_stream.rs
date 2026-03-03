@@ -49,10 +49,17 @@ where
         max_redirects: u8,
         pool: Arc<HttpConnectionPool<R>>,
         timeouts: Option<super::OpTimeout>,
+        config: Option<crate::wire::simple_http::client::ClientConfig>,
     ) -> Self {
         Self(
             Some(HttpOperationState::Init),
-            SendRequest::new(request, max_redirects, pool, timeouts.unwrap_or_default()),
+            SendRequest::new(
+                request,
+                max_redirects,
+                pool,
+                timeouts.unwrap_or_default(),
+                config,
+            ),
         )
     }
 
@@ -102,8 +109,33 @@ where
                 // request
                 let request = self.1.request.take()?;
 
-                // Try to get connection from pool first
-                let stream = self.1.pool.create_http_connection(&request.url, None);
+                // Determine effective proxy configuration
+                // First check if proxy_from_env is set and try environment
+                let env_proxy = if let Some(ref config) = self.1.config {
+                    if config.proxy_from_env {
+                        crate::wire::simple_http::client::ProxyConfig::from_env(
+                            request.url.scheme(),
+                        )
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                };
+
+                // Use env proxy if found, otherwise use configured proxy
+                let proxy_config = env_proxy.as_ref().or_else(|| {
+                    self.1
+                        .config
+                        .as_ref()
+                        .and_then(|config| config.proxy.as_ref())
+                });
+
+                // Try to get connection from pool or create new one (with proxy support)
+                let stream =
+                    self.1
+                        .pool
+                        .create_connection_with_proxy(&request.url, proxy_config, None);
 
                 match stream {
                     Ok(mut connection) => {

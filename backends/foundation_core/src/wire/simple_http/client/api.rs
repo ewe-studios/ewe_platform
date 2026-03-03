@@ -359,6 +359,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
             self.config.max_redirects,
             self.pool.clone().ok_or(HttpClientError::NoPool)?,
             Some(self.config.get_op_timeout()),
+            Some(self.config.clone()),
         );
 
         // Spawn task via execute_task

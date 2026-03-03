@@ -67,9 +67,16 @@ where
         max_redirects: u8,
         pool: Arc<HttpConnectionPool<R>>,
         timeouts: Option<OpTimeout>,
+        config: Option<crate::wire::simple_http::client::ClientConfig>,
     ) -> Self {
         Self(Some(SendRequestState::Init(Some(Box::new(
-            SendRequest::new(request, max_redirects, pool, timeouts.unwrap_or_default()),
+            SendRequest::new(
+                request,
+                max_redirects,
+                pool,
+                timeouts.unwrap_or_default(),
+                config,
+            ),
         )))))
     }
 }

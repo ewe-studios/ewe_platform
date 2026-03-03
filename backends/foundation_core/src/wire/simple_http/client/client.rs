@@ -11,7 +11,7 @@
 
 use crate::wire::simple_http::client::{
     ClientRequest, ClientRequestBuilder, ConnectionPool, DnsResolver, HttpConnectionPool,
-    MiddlewareChain, OpTimeout, SystemDnsResolver,
+    MiddlewareChain, OpTimeout, ProxyConfig, SystemDnsResolver,
 };
 use crate::wire::simple_http::{HttpClientError, SimpleHeaders};
 use std::collections::BTreeMap;
@@ -23,7 +23,8 @@ use std::time::Duration;
 /// WHY: Centralizes all client configuration in one place. Makes it easy to
 /// share configuration across requests or customize per-instance.
 ///
-/// WHAT: Holds timeouts, redirect settings, default headers, and connection pool settings.
+/// WHAT: Holds timeouts, redirect settings, default headers, connection pool settings,
+/// and proxy configuration.
 ///
 /// HOW: Created via Default or explicit construction. Passed to `SimpleHttpClient`
 /// via builder pattern.
@@ -43,6 +44,10 @@ pub struct ClientConfig {
     pub pool_enabled: bool,
     /// Maximum connections in pool (if pooling enabled)
     pub pool_max_connections: usize,
+    /// Optional proxy configuration
+    pub proxy: Option<ProxyConfig>,
+    /// Whether to automatically detect proxy from environment variables
+    pub proxy_from_env: bool,
 }
 
 impl ClientConfig {
@@ -71,7 +76,7 @@ impl Default for ClientConfig {
     /// WHY: Sensible defaults for most use cases. Users can customize via builder.
     ///
     /// WHAT: Default timeouts (30s connect, 30s read, 30s write), 5 redirects,
-    /// no default headers, pooling disabled.
+    /// no default headers, pooling disabled, no proxy.
     fn default() -> Self {
         Self {
             connect_timeout: Some(Duration::from_secs(30)),
@@ -81,6 +86,8 @@ impl Default for ClientConfig {
             max_redirects: 5,
             pool_enabled: false,
             pool_max_connections: 10,
+            proxy: None,
+            proxy_from_env: false,
         }
     }
 }
@@ -409,6 +416,116 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     #[must_use]
     pub fn max_redirects(mut self, max: u8) -> Self {
         self.config.max_redirects = max;
+        self
+    }
+
+    /// Sets proxy from URL.
+    ///
+    /// WHY: Users need to configure HTTP/HTTPS/SOCKS5 proxy for their requests.
+    ///
+    /// WHAT: Parses proxy URL and sets it in client configuration.
+    ///
+    /// HOW: Parses URL with `ProxyConfig::parse()`, supports authentication
+    /// in URL format (http://user:pass@proxy.com:8080).
+    ///
+    /// # Arguments
+    ///
+    /// * `proxy_url` - Proxy URL (e.g., "http://proxy.example.com:8080")
+    ///
+    /// # Returns
+    ///
+    /// Self for builder pattern chaining.
+    ///
+    /// # Errors
+    ///
+    /// Returns `HttpClientError::InvalidProxyUrl` if URL parsing fails.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let client = SimpleHttpClient::from_system()
+    ///     .proxy("http://proxy.example.com:8080")?;
+    ///
+    /// // With authentication
+    /// let client = SimpleHttpClient::from_system()
+    ///     .proxy("http://user:pass@proxy.example.com:8080")?;
+    /// ```
+    pub fn proxy(mut self, proxy_url: &str) -> Result<Self, HttpClientError> {
+        let proxy_config = ProxyConfig::parse(proxy_url)?;
+        self.config.proxy = Some(proxy_config);
+        Ok(self)
+    }
+
+    /// Sets proxy authentication credentials.
+    ///
+    /// WHY: Users may want to configure proxy auth separately from URL.
+    ///
+    /// WHAT: Sets username and password for existing proxy configuration.
+    ///
+    /// HOW: Updates auth field on existing proxy config. If no proxy is configured,
+    /// this method does nothing (proxy must be set first via `.proxy()`).
+    ///
+    /// # Arguments
+    ///
+    /// * `username` - Proxy username
+    /// * `password` - Proxy password
+    ///
+    /// # Returns
+    ///
+    /// Self for builder pattern chaining.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let client = SimpleHttpClient::from_system()
+    ///     .proxy("http://proxy.example.com:8080")?
+    ///     .proxy_auth("user", "password");
+    /// ```
+    #[must_use]
+    pub fn proxy_auth(mut self, username: impl Into<String>, password: impl Into<String>) -> Self {
+        if let Some(ref mut proxy) = self.config.proxy {
+            proxy.auth = Some(crate::wire::simple_http::client::ProxyAuth::new(
+                username, password,
+            ));
+        }
+        self
+    }
+
+    /// Enables automatic proxy detection from environment variables.
+    ///
+    /// WHY: Users often configure proxies via HTTP_PROXY/HTTPS_PROXY environment variables.
+    ///
+    /// WHAT: Sets flag to automatically detect proxy from environment for each request.
+    ///
+    /// HOW: When enabled, client checks HTTP_PROXY/HTTPS_PROXY/NO_PROXY environment
+    /// variables per-request based on target URL scheme.
+    ///
+    /// # Returns
+    ///
+    /// Self for builder pattern chaining.
+    ///
+    /// # Environment Variables
+    ///
+    /// - `HTTP_PROXY` / `http_proxy` - Proxy for HTTP requests
+    /// - `HTTPS_PROXY` / `https_proxy` - Proxy for HTTPS requests
+    /// - `NO_PROXY` / `no_proxy` - Comma-separated list of hosts to bypass
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// // Set environment variables
+    /// std::env::set_var("HTTP_PROXY", "http://proxy.example.com:8080");
+    /// std::env::set_var("NO_PROXY", "localhost,.internal.com");
+    ///
+    /// let client = SimpleHttpClient::from_system()
+    ///     .proxy_from_env();
+    ///
+    /// // Client will automatically use proxy from environment
+    /// let response = client.get("http://example.com")?.send()?;
+    /// ```
+    #[must_use]
+    pub fn proxy_from_env(mut self) -> Self {
+        self.config.proxy_from_env = true;
         self
     }
 
