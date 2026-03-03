@@ -16,6 +16,7 @@ mod actions_tests;
 mod client_tests;
 mod compression_tests;
 mod connection_tests;
+mod cookie_tests;
 mod dns_tests;
 mod errors_tests;
 mod http_redirect_edge_cases_tests;
