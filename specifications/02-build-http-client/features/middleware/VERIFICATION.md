@@ -1,437 +1,339 @@
 # Middleware Feature Verification Report
 
-**Date**: 2026-03-03
-**Feature**: Middleware System for HTTP Client
+**Feature**: HTTP Client Middleware System
 **Specification**: specifications/02-build-http-client/features/middleware/feature.md
+**Date**: 2026-03-03
 **Verified By**: Rust Verification Agent
 
 ---
 
 ## Executive Summary
 
-**Status**: ❌ **FAIL**
+**STATUS: ❌ FAILED - INCOMPLETE IMPLEMENTATION**
 
-The middleware feature implementation is functionally complete but has **critical code quality violations** that must be fixed before this feature can be marked as complete:
+The middleware feature implementation has **1 CRITICAL FAILURE** that prevents it from being marked as complete:
 
-1. **Format Check**: FAIL - Code formatting issues
-2. **Lint Check**: FAIL - Clippy warnings including dead code and doc formatting
-3. **Incomplete Implementation Check**: CONDITIONAL PASS - TODOs are documented future enhancements, not blocking issues
+### CRITICAL ISSUES
 
-All other checks passed successfully.
+1. **INCOMPLETE IMPLEMENTATION**: RetryMiddleware is missing core retry functionality
+   - Location: `backends/foundation_core/src/wire/simple_http/client/middleware.rs:699`
+   - Issue: TODO comment indicates missing `HttpClientError::RetryNeeded` variant
+   - Impact: RetryMiddleware cannot signal retry requests, making it non-functional
+
+### ADDITIONAL ISSUES
+
+2. **FORMAT FAILURES**: Test file needs formatting (17 locations)
+3. **DOCUMENTATION ISSUES**: Missing backticks in doc comments (clippy warnings)
 
 ---
 
-## Verification Results
+## Verification Checklist
 
-### 1. Incomplete Implementation Check ⚠️ CONDITIONAL PASS
+### ✅ = PASS | ❌ = FAIL | ⚠️ = WARNING
 
-**Status**: CONDITIONAL PASS (with notes)
+| # | Check | Status | Details |
+|---|-------|--------|---------|
+| 1 | Incomplete Implementation | ❌ FAIL | TODO comment in RetryMiddleware.handle_response() |
+| 2 | Format Check | ❌ FAIL | Test file needs cargo fmt |
+| 3 | Lint Check | ⚠️ WARN | Clippy warnings (non-blocking, doc issues) |
+| 4 | Tests | ✅ PASS | 17/17 tests passed |
+| 5 | Build (default) | ✅ PASS | foundation_core builds successfully |
+| 6 | Build (--features std) | ✅ PASS | foundation_core builds with std feature |
+| 7 | Build (--all-features) | ❌ FAIL | Pre-existing netcap issues (not middleware related) |
+| 8 | Documentation | ✅ PASS | All public APIs documented with WHY/WHAT/HOW |
+| 9 | Standards Compliance | ✅ PASS | No unwrap/expect, proper Send+Sync |
 
-**TODOs Found**: 3 instances
+---
 
-All TODOs are explicitly documented as future enhancements for logging infrastructure integration. The middleware implementations are **functionally complete** for their current purpose:
+## Detailed Findings
 
-```rust
-// middleware.rs:302
-// TODO: Add actual logging when project logging infrastructure is available
-// For now, this is a pass-through that demonstrates the middleware pattern
+### 1. Incomplete Implementation Check (MANDATORY FIRST) ❌
 
-// middleware.rs:312
-// TODO: Add actual logging when project logging infrastructure is available
-// For now, this is a pass-through that demonstrates the middleware pattern
+**Result**: FAIL - CRITICAL
 
-// middleware.rs:378
-// TODO: Log or store duration when logging infrastructure is available
-// For now, calculation demonstrates the pattern
+**Found Issues**:
+
+```
+File: backends/foundation_core/src/wire/simple_http/client/middleware.rs
+Line: 699
+Issue: TODO: Need to return retry error - but HttpClientError doesn't have RetryNeeded variant yet
 ```
 
 **Analysis**:
-- LoggingMiddleware implements the middleware trait correctly but doesn't output logs (waiting for project logging infrastructure)
-- TimingMiddleware calculates duration correctly but doesn't report it (waiting for logging infrastructure)
-- Both middleware demonstrate the middleware pattern and are usable
-- Tests validate the middleware chain execution correctly
-- The TODOs represent future enhancements, not incomplete implementations
 
-**Decision**: These TODOs should be documented as known limitations but do not block feature completion. The middleware system is functional and the pattern is correctly implemented.
+The RetryMiddleware's `handle_response()` method contains a TODO comment indicating incomplete implementation. According to the feature specification (feature.md:300-302), RetryMiddleware should return `HttpClientError::RetryNeeded` to signal retry:
+
+```rust
+// Expected (from spec):
+return Err(HttpClientError::RetryNeeded {
+    attempt: state.attempt,
+    delay: self.backoff.next_delay(state.attempt),
+});
+
+// Current implementation:
+if state.attempt < self.max_retries {
+    // TODO: Need to return retry error - but HttpClientError doesn't have RetryNeeded variant yet
+    // For now, just track the state
+    // This will be completed when HttpClientError is extended
+}
+```
+
+**Verification**:
+Checked `backends/foundation_core/src/wire/simple_http/errors.rs` - confirmed `HttpClientError::RetryNeeded` variant does NOT exist.
+
+**Impact**:
+- RetryMiddleware cannot actually trigger retries
+- Feature requirement "RetryMiddleware retries on configured status codes" is NOT met
+- Tests pass because they don't validate actual retry behavior
+
+**Required Fix**:
+1. Add `RetryNeeded { attempt: u32, delay: Duration }` variant to `HttpClientError` enum
+2. Complete the TODO implementation in `middleware.rs:699`
+3. Update error handling in client request execution to handle retry logic
+4. Add integration tests that validate retry actually occurs
 
 ---
 
-### 2. Format Check ❌ FAIL
+### 2. Format Check ❌
 
-**Command**: `cargo fmt --package foundation_core -- --check`
+**Command**: `cargo fmt --check`
 
-**Status**: FAIL
+**Result**: FAIL
 
-**Issues Found**: 5 formatting violations
+**Issues Found**: 17 formatting violations in test file
 
-**Details**:
-1. `api.rs:527` - Multi-line chain needs reformatting
-2. `extensions.rs:24` - Extra blank line after doc comment
-3. `middleware.rs:10` - Extra blank line after doc comment
-4. `middleware.rs:14` - Use statement needs reformatting
-5. `middleware.rs:471` - Extra trailing blank line
+**File**: `tests/backends/foundation_core/units/simple_http/middleware_tests.rs`
 
-**Files Affected**:
-- `backends/foundation_core/src/wire/simple_http/client/api.rs`
-- `backends/foundation_core/src/wire/simple_http/client/extensions.rs`
-- `backends/foundation_core/src/wire/simple_http/client/middleware.rs`
-- `backends/foundation_core/src/wire/simple_http/client/request.rs`
+**Sample violations**:
+- Line 32: Long import statements need multi-line formatting
+- Line 40: Long function signatures need line breaks
+- Line 65: Chained method calls need proper indentation
+- Line 226-228: Struct initialization needs proper formatting
 
-**Fix Required**: Run `cargo fmt --package foundation_core` to auto-fix all formatting issues.
+**Fix Required**: Run `cargo fmt` on test file
 
 ---
 
-### 3. Lint Check ❌ FAIL
+### 3. Lint Check ⚠️
 
 **Command**: `cargo clippy --package foundation_core --no-deps -- -D warnings`
 
-**Status**: FAIL
+**Result**: WARNING (non-blocking for middleware feature, but should be fixed)
 
-**Errors Found**: 3 clippy errors
+**Middleware-Specific Issues**:
 
-**Critical Issues**:
+#### Documentation Missing Backticks
 
-#### Error 1: Empty Line After Doc Comments (2 instances)
-```
-error: empty line after doc comment
-  --> backends/foundation_core/src/wire/simple_http/client/extensions.rs:26:1
-  --> backends/foundation_core/src/wire/simple_http/client/middleware.rs:12:1
-```
-**Impact**: Doc comments are incorrectly formatted
-**Fix**: Remove blank lines between doc comments and code
+**File**: `backends/foundation_core/src/wire/simple_http/client/extensions.rs`
 
-#### Error 2: Dead Code - Unused Field
-```
-error: field `log_body` is never read
-  --> backends/foundation_core/src/wire/simple_http/client/middleware.rs:257:5
-```
-**Impact**: LoggingMiddleware has an unused `log_body` field
-**Fix**: Either use the field or remove it. Since logging infrastructure is pending, recommend marking with `#[allow(dead_code)]` or removing until logging is implemented.
+- Line 2: `TimingMiddleware` should be `` `TimingMiddleware` ``
+- Line 2: `RetryMiddleware` should be `` `RetryMiddleware` ``
+- Line 2: `RetryState` should be `` `RetryState` ``
+- Line 4: `TypeId` should be `` `TypeId` ``
+- Line 7-8: Various types need backticks
 
-**Additional Warnings** (from other modules):
-- Missing `# Errors` documentation in extensions/serde_ext (not middleware-related)
-- Missing `# Errors` documentation in extensions/strings_ext (not middleware-related)
+**File**: `backends/foundation_core/src/wire/simple_http/client/middleware.rs`
+
+- Line 4-8: Various types and method names need backticks
+
+**Impact**: Documentation rendering will have improper formatting
+
+**Fix**: Add backticks around code references in doc comments
 
 ---
 
-### 4. Tests ✅ PASS
+### 4. Tests ✅
 
 **Command**: `cargo test --package ewe_platform_tests --features std -- middleware`
 
-**Status**: PASS
+**Result**: PASS ✅
 
-**Results**:
-- Total Tests: 8
-- Passed: 8
+**Test Summary**:
+- Total Tests: 17
+- Passed: 17
 - Failed: 0
 - Duration: 0.01s
 
-**Test Coverage**:
+**Tests Executed**:
 
-| Test | Purpose | Status |
-|------|---------|--------|
-| `test_extensions_insert_and_get` | Verify type-safe extension storage | ✅ PASS |
-| `test_extensions_get_mut` | Verify mutable extension access | ✅ PASS |
-| `test_middleware_trait_basic` | Verify custom middleware implementation | ✅ PASS |
-| `test_logging_middleware_passthrough` | Verify LoggingMiddleware doesn't modify requests | ✅ PASS |
-| `test_timing_middleware_records_duration` | Verify TimingMiddleware timing logic | ✅ PASS |
-| `test_header_middleware_adds_headers` | Verify HeaderMiddleware adds headers | ✅ PASS |
-| `test_header_middleware_respects_existing_headers` | Verify HeaderMiddleware doesn't overwrite | ✅ PASS |
-| `test_middleware_chain_execution_order` | Verify onion model (forward/reverse) | ✅ PASS |
+| Test | Status | Description |
+|------|--------|-------------|
+| test_extensions_insert_and_get | ✅ PASS | Extensions can store and retrieve typed values |
+| test_extensions_get_mut | ✅ PASS | Extensions supports mutable value access |
+| test_middleware_trait_basic | ✅ PASS | Custom middleware can modify requests |
+| test_logging_middleware_passthrough | ✅ PASS | LoggingMiddleware doesn't modify requests |
+| test_timing_middleware_records_duration | ✅ PASS | TimingMiddleware stores timing data |
+| test_header_middleware_adds_headers | ✅ PASS | HeaderMiddleware adds default headers |
+| test_header_middleware_respects_existing_headers | ✅ PASS | HeaderMiddleware doesn't overwrite existing headers |
+| test_middleware_chain_execution_order | ✅ PASS | Onion model execution (forward/reverse) |
+| test_backoff_strategy_constant | ✅ PASS | Constant backoff returns same delay |
+| test_backoff_strategy_linear | ✅ PASS | Linear backoff increases linearly |
+| test_backoff_strategy_exponential | ✅ PASS | Exponential backoff grows exponentially |
+| test_retry_state_creation | ✅ PASS | RetryState initializes correctly |
+| test_retry_middleware_creation | ✅ PASS | RetryMiddleware can be created |
+| test_retry_middleware_with_backoff | ✅ PASS | RetryMiddleware supports custom backoff |
+| test_retry_middleware_stores_state_in_extensions | ✅ PASS | RetryMiddleware stores state in extensions |
+| test_retry_middleware_passes_through_success | ✅ PASS | RetryMiddleware passes through successful responses |
+| test_retry_middleware_name | ✅ PASS | RetryMiddleware.name() returns correct value |
 
-**Test Quality**: Excellent
-- All tests use real implementations (no mocking)
-- Tests validate both success and edge cases
-- Onion model execution order verified explicitly
-- Extensions type safety validated
-- Middleware pattern correctly tested
-
-**Test Location**: ✅ Correct
-- Tests located in: `tests/backends/foundation_core/units/simple_http/middleware_tests.rs`
-- No inline `#[cfg(test)]` modules found in source files
+**CRITICAL NOTE**: Tests do NOT validate actual retry execution because the retry logic is incomplete. Tests only verify that RetryMiddleware doesn't error on retryable status codes, not that it actually triggers retries.
 
 ---
 
-### 5. Build ✅ PASS (with warnings)
+### 5. Build Check ✅
 
 **Command**: `cargo build --package foundation_core`
 
-**Status**: PASS
+**Result**: PASS ✅
 
-**Build Time**: 6.46s
+**Command**: `cargo build --package foundation_core --features std`
 
-**Warnings**:
-- `warning: field 'log_body' is never read` (same as clippy issue)
+**Result**: PASS ✅
 
-**Build Artifacts**: Successfully generated
+**Command**: `cargo build --package foundation_core --all-features`
 
----
+**Result**: FAIL ❌ (PRE-EXISTING ISSUES)
 
-### 6. Documentation ✅ PASS
-
-**Command**: `cargo doc --no-deps` (on foundation_core)
-
-**Status**: PASS
-
-**Documentation Quality**: Excellent
-
-**Coverage**:
-- ✅ All public types documented (Middleware, MiddlewareChain, Extensions)
-- ✅ All built-in middleware documented (LoggingMiddleware, TimingMiddleware, HeaderMiddleware)
-- ✅ WHY/WHAT/HOW pattern followed consistently
-- ✅ Examples provided for all public APIs
-- ✅ Panics sections documented
-- ✅ Errors sections documented
-
-**Notable Documentation Warnings**:
-- Unresolved link warnings are from other modules (buffer management), not middleware-related
+**Analysis**: Failures are in `netcap/connection/mod.rs`, NOT related to middleware feature.
 
 ---
 
-### 7. Standards Compliance ⚠️ PARTIAL PASS
+### 6. Documentation Check ✅
 
-**Rust Clean Code Standards Check**:
+**Result**: PASS ✅
 
-| Standard | Status | Notes |
-|----------|--------|-------|
-| No `unwrap()` or `expect()` | ✅ PASS | All error handling uses Result types |
-| Proper documentation | ✅ PASS | WHY/WHAT/HOW pattern followed |
-| `# Panics` sections | ✅ PASS | All functions documented |
-| `# Errors` sections | ✅ PASS | All Result-returning functions documented |
-| No inline tests | ✅ PASS | All tests in separate test crate |
-| Send + Sync bounds | ✅ PASS | Middleware trait properly bounded |
-| Type safety | ✅ PASS | Extensions use TypeId for type-safe storage |
-| Dead code | ❌ FAIL | Unused `log_body` field |
-| Code formatting | ❌ FAIL | Multiple formatting issues |
+**Public APIs Documented**:
+
+**extensions.rs**: All public APIs have WHY/WHAT/HOW documentation ✅
+
+**middleware.rs**: All public APIs have WHY/WHAT/HOW documentation ✅
+
+**Documentation Quality**: EXCELLENT
 
 ---
 
-### 8. Test Location ✅ PASS
+### 7. Standards Compliance Check ✅
 
-**Requirement**: No inline `#[cfg(test)]` modules in source code
+**Result**: PASS ✅
 
-**Status**: PASS
+**Findings**:
+- ✅ No unwrap/expect in production code
+- ✅ Middleware trait requires Send + Sync
+- ✅ Extensions properly constrained
+- ✅ Tests in separate test crate
+- ✅ Proper error handling
 
-**Verification**:
-```bash
-$ grep -rn "#\[cfg(test)\]" backends/foundation_core/src/wire/simple_http/client/
-No inline test modules found
-```
+---
 
-**Test File Location**: `tests/backends/foundation_core/units/simple_http/middleware_tests.rs` (correct location)
+## Feature Requirements Verification
+
+Based on `specifications/02-build-http-client/features/middleware/feature.md`:
+
+| Requirement | Status | Evidence |
+|-------------|--------|----------|
+| **Middleware Trait** | ✅ PASS | Trait defined with handle_request/handle_response |
+| **Send + Sync** | ✅ PASS | Trait requires Send + Sync bounds |
+| **Middleware Chain** | ✅ PASS | MiddlewareChain implemented with Vec<Arc<dyn Middleware>> |
+| **Onion Model Execution** | ✅ PASS | process_request forward, process_response reverse |
+| **LoggingMiddleware** | ✅ PASS | Logs requests/responses (using tracing) |
+| **TimingMiddleware** | ✅ PASS | Records request duration in extensions |
+| **RetryMiddleware** | ❌ FAIL | Created but cannot actually retry (missing error variant) |
+| **HeaderMiddleware** | ✅ PASS | Adds default headers without overwriting |
+| **Request Extensions** | ✅ PASS | Type-safe storage implemented |
+| **Configuration API** | ✅ PASS | SimpleHttpClient.middleware() method exists |
+| **Per-request skip** | ⚠️ NOT IMPLEMENTED | skip_middleware() and no_middleware() methods missing |
 
 ---
 
 ## Files Verified
 
-### New Files (2)
-- ✅ `backends/foundation_core/src/wire/simple_http/client/extensions.rs` (122 lines)
-- ✅ `backends/foundation_core/src/wire/simple_http/client/middleware.rs` (475 lines)
+### Implementation Files
 
-### Modified Files (5)
-- ✅ `backends/foundation_core/src/wire/simple_http/client/mod.rs` (middleware/extensions exports added)
-- ✅ `backends/foundation_core/src/wire/simple_http/client/client.rs` (middleware integration)
-- ✅ `backends/foundation_core/src/wire/simple_http/client/request.rs` (extensions field added)
-- ✅ `backends/foundation_core/src/wire/simple_http/client/api.rs` (middleware chain processing)
-- ✅ `backends/foundation_core/src/wire/simple_http/client/redirects.rs` (extensions support)
+1. ✅ `backends/foundation_core/src/wire/simple_http/client/extensions.rs` (121 lines)
+2. ❌ `backends/foundation_core/src/wire/simple_http/client/middleware.rs` (712 lines) - INCOMPLETE
+3. ✅ `backends/foundation_core/src/wire/simple_http/client/request.rs` - Extensions integrated
+4. ✅ `backends/foundation_core/src/wire/simple_http/client/client.rs` - middleware_chain added
+5. ✅ `backends/foundation_core/src/wire/simple_http/client/api.rs` - Middleware calls integrated
+6. ✅ `backends/foundation_core/src/wire/simple_http/client/mod.rs` - Exports correct
 
-### Test Files (1)
-- ✅ `tests/backends/foundation_core/units/simple_http/middleware_tests.rs` (255 lines, 8 tests)
+### Test Files
 
----
-
-## Feature Requirements Validation
-
-Based on `specifications/02-build-http-client/features/middleware/feature.md`:
-
-| Requirement | Status | Notes |
-|-------------|--------|-------|
-| Middleware trait defined | ✅ PASS | Send + Sync, handle_request/handle_response |
-| MiddlewareChain with onion model | ✅ PASS | Forward for requests, reverse for responses |
-| Extensions type-safe storage | ✅ PASS | TypeId-based HashMap with downcast |
-| LoggingMiddleware | ✅ PASS | Structure complete, logging pending infrastructure |
-| TimingMiddleware | ✅ PASS | Timing calculation complete, reporting pending |
-| HeaderMiddleware | ✅ PASS | Adds headers, respects existing |
-| Middleware chain execution | ✅ PASS | Onion model verified in tests |
-| Request extensions | ✅ PASS | insert/get/get_mut implemented |
-| All unit tests pass | ✅ PASS | 8/8 tests passing |
-| Code passes cargo fmt | ❌ FAIL | Formatting issues present |
-| Code passes cargo clippy | ❌ FAIL | 3 clippy errors |
+7. ❌ `tests/backends/foundation_core/units/simple_http/middleware_tests.rs` (404 lines) - NEEDS FORMATTING
 
 ---
 
-## Critical Issues Requiring Fix
+## Compliance with Specification
 
-### Priority 1: Code Formatting (BLOCKING)
+**Status**: PARTIAL ⚠️
 
-**Impact**: Prevents commit
+### Implemented Per Spec ✅
 
-**Fix**:
-```bash
-cargo fmt --package foundation_core
-```
+- [x] Middleware trait with handle_request/handle_response
+- [x] MiddlewareChain with onion model execution
+- [x] LoggingMiddleware (using tracing)
+- [x] TimingMiddleware
+- [x] HeaderMiddleware
+- [x] Request Extensions
+- [x] BackoffStrategy (Constant/Linear/Exponential)
+- [x] SimpleHttpClient.middleware() API
 
-**Estimated Time**: < 1 minute
+### Missing from Spec ❌
 
----
-
-### Priority 2: Dead Code Warning (BLOCKING)
-
-**Issue**: `log_body` field in LoggingMiddleware is unused
-
-**Impact**: Fails clippy with `-D warnings`
-
-**Fix Options**:
-
-Option A (Recommended): Remove unused functionality until logging infrastructure is ready
-```rust
-pub struct LoggingMiddleware;
-
-impl LoggingMiddleware {
-    pub fn new() -> Self {
-        Self
-    }
-}
-```
-
-Option B: Document as future enhancement
-```rust
-#[allow(dead_code)]
-pub struct LoggingMiddleware {
-    log_body: bool,
-}
-```
-
-**Estimated Time**: 2-5 minutes
-
----
-
-### Priority 3: Empty Line After Doc Comments (BLOCKING)
-
-**Issue**: Blank lines between doc comments and use statements
-
-**Fix**: Remove blank lines in:
-- `extensions.rs:26`
-- `middleware.rs:12`
-
-**Estimated Time**: 1 minute
+- [ ] HttpClientError::RetryNeeded variant
+- [ ] Functional RetryMiddleware retry logic
+- [ ] skip_middleware() per-request API
+- [ ] no_middleware() per-request API
 
 ---
 
 ## Recommendations
 
-### Immediate Actions (Required for PASS status)
+### CRITICAL (Must Fix Before Completion)
 
-1. ✅ Run `cargo fmt --package foundation_core` to fix all formatting issues
-2. ✅ Fix `log_body` dead code warning (remove or annotate with `#[allow(dead_code)]`)
-3. ✅ Remove empty lines after doc comments in extensions.rs and middleware.rs
-4. ✅ Re-run all verification checks to confirm PASS status
+1. **Complete RetryMiddleware Implementation**
+   - Add `HttpClientError::RetryNeeded { attempt: u32, delay: Duration }` variant to `errors.rs`
+   - Implement TODO at `middleware.rs:699`
+   - Add client-side retry logic to handle RetryNeeded error
+   - Add integration test validating actual retry behavior
 
-### Future Enhancements (Non-blocking)
+### HIGH PRIORITY (Should Fix)
 
-1. **Logging Integration**: When project logging infrastructure is available, implement actual logging in LoggingMiddleware and TimingMiddleware
-2. **RetryMiddleware**: Implement retry logic as described in feature spec (currently not implemented)
-3. **Per-request Middleware Skip**: Add `skip_middleware()` and `no_middleware()` to request builder (currently not implemented)
-4. **Middleware Name Method**: Currently uses default type_name, consider custom names for built-in middleware
+2. **Fix Formatting**
+   - Run `cargo fmt` on `middleware_tests.rs`
 
-### Documentation Updates Needed
+3. **Fix Documentation Backticks**
+   - Add backticks to code references in doc comments per clippy warnings
 
-1. ✅ Update feature status in `requirements.md` from "Pending" to "In Progress" or "Complete" after fixes
-2. ✅ Document known limitations (logging pending) in feature.md
-3. ✅ Add middleware examples to user documentation
+### MEDIUM PRIORITY (Nice to Have)
 
----
+4. **Implement Skip Middleware API**
+   - Add `skip_middleware(name: &str)` and `no_middleware()` methods
 
-## Success Criteria Status
-
-From `specifications/02-build-http-client/features/middleware/feature.md`:
-
-| Criteria | Status |
-|----------|--------|
-| `middleware.rs` exists and compiles | ✅ PASS |
-| `extensions.rs` exists and compiles | ✅ PASS |
-| `Middleware` trait defined correctly | ✅ PASS |
-| `MiddlewareChain` executes in correct order | ✅ PASS (verified by tests) |
-| `LoggingMiddleware` implemented | ⚠️ PARTIAL (structure complete, logging pending) |
-| `TimingMiddleware` implemented | ⚠️ PARTIAL (timing complete, reporting pending) |
-| `HeaderMiddleware` implemented | ✅ PASS |
-| Request extensions work | ✅ PASS |
-| All unit tests pass | ✅ PASS (8/8) |
-| Code passes `cargo fmt` | ❌ FAIL |
-| Code passes `cargo clippy` | ❌ FAIL |
-
-**Overall Success**: 8/11 PASS, 2/11 PARTIAL, 2/11 FAIL
-
----
-
-## Learnings and Design Decisions
-
-### Positive Design Choices
-
-1. **Type-safe Extensions**: Using TypeId for type-erased storage provides excellent type safety
-2. **Onion Model**: Correctly implemented with forward iteration for requests, reverse for responses
-3. **Send + Sync Bounds**: Properly ensures thread safety across executors
-4. **No unwrap/expect**: All error handling uses Result types
-5. **Test Quality**: Excellent real-world tests with no mocking
-
-### Areas of Concern
-
-1. **Incomplete Built-in Middleware**: LoggingMiddleware and TimingMiddleware are structural stubs
-2. **Missing Features**: RetryMiddleware not implemented (mentioned in spec)
-3. **Missing API**: `skip_middleware()` and `no_middleware()` not implemented
-
-### Recommendations for Future Implementation
-
-1. Consider feature-gating built-in middleware that depends on external infrastructure
-2. Document middleware limitations clearly in user-facing documentation
-3. Add integration tests once logging infrastructure is available
-
----
-
-## Verification Command Summary
-
-```bash
-# 1. Incomplete implementation check
-grep -rn "TODO\|FIXME\|unimplemented!\|todo!\|panic!(\"not implemented\")" backends/foundation_core/src/wire/simple_http/client/
-
-# 2. Format check
-cargo fmt --package foundation_core -- --check
-
-# 3. Lint check
-cargo clippy --package foundation_core --no-deps -- -D warnings
-
-# 4. Tests
-cargo test --package ewe_platform_tests --features std -- middleware
-
-# 5. Build
-cargo build --package foundation_core
-
-# 6. Documentation
-cd backends/foundation_core && cargo doc --no-deps
-
-# 7. Test location check
-grep -rn "#\[cfg(test)\]" backends/foundation_core/src/wire/simple_http/client/
-```
+5. **Add Integration Tests**
+   - Test middleware with actual HTTP requests
+   - Test retry middleware triggers actual retries
 
 ---
 
 ## Conclusion
 
-The middleware feature implementation is **architecturally sound and functionally complete** for its core purpose, but has **code quality violations that must be fixed** before marking as complete.
+The middleware feature implementation is **SUBSTANTIALLY COMPLETE** but has **1 CRITICAL BLOCKER**:
 
-**Next Steps**:
-1. Fix formatting issues (run `cargo fmt`)
-2. Address dead code warning in LoggingMiddleware
-3. Remove empty lines after doc comments
-4. Re-run verification to achieve PASS status
-5. Update feature status in requirements.md
+**BLOCKER**: RetryMiddleware cannot actually retry requests due to missing `HttpClientError::RetryNeeded` variant. This is explicitly documented as a TODO in the code.
 
-**Estimated Time to Fix**: 5-10 minutes
+**POSITIVE ASPECTS**:
+- ✅ Architecture is sound (Middleware trait, MiddlewareChain, Extensions)
+- ✅ Three middleware (Logging, Timing, Header) are fully functional
+- ✅ Code quality is high (well documented, proper Send+Sync)
+- ✅ Tests pass (though retry tests don't validate actual retry behavior)
+- ✅ Builds successfully with std feature
+- ✅ Thread-safe design
 
-Once these issues are resolved, the middleware feature will be ready for completion.
+**RECOMMENDATION**: **DO NOT MARK FEATURE AS COMPLETE** until RetryMiddleware is fully functional. The current implementation is a "stub" that compiles and passes tests but doesn't actually retry requests.
 
 ---
 
-**Verification Completed**: 2026-03-03
-**Agent**: Rust Verification Agent
-**Report Version**: 1.0
+**Report Generated**: 2026-03-03
+**Agent**: Rust Verification Agent v2.0
+**Verification Time**: ~10 minutes
+**Files Analyzed**: 7 implementation files, 1 test file
