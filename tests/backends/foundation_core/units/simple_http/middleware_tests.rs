@@ -32,22 +32,32 @@ fn test_extensions_get_mut() {
 /// WHAT: Test that a basic middleware can modify request headers
 #[test]
 fn test_middleware_trait_basic() {
-    use foundation_core::wire::simple_http::client::{Middleware, PreparedRequest, ParsedUrl, Extensions};
-    use foundation_core::wire::simple_http::{SimpleMethod, SendSafeBody, SimpleHeader};
+    use foundation_core::wire::simple_http::client::{
+        Extensions, Middleware, ParsedUrl, PreparedRequest,
+    };
+    use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, SimpleMethod};
     use std::collections::BTreeMap;
 
     struct TestMiddleware;
 
     impl Middleware for TestMiddleware {
-        fn handle_request(&self, request: &mut PreparedRequest) -> Result<(), foundation_core::wire::simple_http::HttpClientError> {
-            request.headers.insert(SimpleHeader::Custom("X-Test-Header".to_string()), vec!["test-value".to_string()]);
+        fn handle_request(
+            &self,
+            request: &mut PreparedRequest,
+        ) -> Result<(), foundation_core::wire::simple_http::HttpClientError> {
+            request.headers.insert(
+                SimpleHeader::Custom("X-Test-Header".to_string()),
+                vec!["test-value".to_string()],
+            );
             Ok(())
         }
 
         fn handle_response(
             &self,
             _request: &PreparedRequest,
-            _response: &mut foundation_core::wire::simple_http::SimpleResponse<foundation_core::wire::simple_http::SendSafeBody>,
+            _response: &mut foundation_core::wire::simple_http::SimpleResponse<
+                foundation_core::wire::simple_http::SendSafeBody,
+            >,
         ) -> Result<(), foundation_core::wire::simple_http::HttpClientError> {
             Ok(())
         }
@@ -65,7 +75,9 @@ fn test_middleware_trait_basic() {
     middleware.handle_request(&mut request).unwrap();
 
     assert_eq!(
-        request.headers.get(&SimpleHeader::Custom("X-Test-Header".to_string())),
+        request
+            .headers
+            .get(&SimpleHeader::Custom("X-Test-Header".to_string())),
         Some(&vec!["test-value".to_string()])
     );
 }
@@ -74,8 +86,10 @@ fn test_middleware_trait_basic() {
 /// WHAT: Test that LoggingMiddleware doesn't change request
 #[test]
 fn test_logging_middleware_passthrough() {
-    use foundation_core::wire::simple_http::client::{LoggingMiddleware, Middleware, PreparedRequest, ParsedUrl, Extensions};
-    use foundation_core::wire::simple_http::{SimpleMethod, SendSafeBody};
+    use foundation_core::wire::simple_http::client::{
+        Extensions, LoggingMiddleware, Middleware, ParsedUrl, PreparedRequest,
+    };
+    use foundation_core::wire::simple_http::{SendSafeBody, SimpleMethod};
     use std::collections::BTreeMap;
 
     let mut request = PreparedRequest {
@@ -99,8 +113,10 @@ fn test_logging_middleware_passthrough() {
 /// WHAT: Test that TimingMiddleware records timing in extensions
 #[test]
 fn test_timing_middleware_records_duration() {
-    use foundation_core::wire::simple_http::client::{TimingMiddleware, Middleware, PreparedRequest, ParsedUrl, Extensions};
-    use foundation_core::wire::simple_http::{SimpleMethod, SendSafeBody, Status};
+    use foundation_core::wire::simple_http::client::{
+        Extensions, Middleware, ParsedUrl, PreparedRequest, TimingMiddleware,
+    };
+    use foundation_core::wire::simple_http::{SendSafeBody, SimpleMethod, Status};
     use std::collections::BTreeMap;
     use std::time::Duration;
 
@@ -134,8 +150,10 @@ fn test_timing_middleware_records_duration() {
 /// WHAT: Test that HeaderMiddleware adds headers only if not present
 #[test]
 fn test_header_middleware_adds_headers() {
-    use foundation_core::wire::simple_http::client::{HeaderMiddleware, Middleware, PreparedRequest, ParsedUrl, Extensions};
-    use foundation_core::wire::simple_http::{SimpleMethod, SendSafeBody, SimpleHeader};
+    use foundation_core::wire::simple_http::client::{
+        Extensions, HeaderMiddleware, Middleware, ParsedUrl, PreparedRequest,
+    };
+    use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, SimpleMethod};
     use std::collections::BTreeMap;
 
     let mut request = PreparedRequest {
@@ -146,8 +164,8 @@ fn test_header_middleware_adds_headers() {
         extensions: Extensions::new(),
     };
 
-    let middleware = HeaderMiddleware::new()
-        .with_header(SimpleHeader::USER_AGENT, "test-agent".to_string());
+    let middleware =
+        HeaderMiddleware::new().with_header(SimpleHeader::USER_AGENT, "test-agent".to_string());
 
     middleware.handle_request(&mut request).unwrap();
 
@@ -162,8 +180,10 @@ fn test_header_middleware_adds_headers() {
 /// WHAT: Test that HeaderMiddleware respects existing headers
 #[test]
 fn test_header_middleware_respects_existing_headers() {
-    use foundation_core::wire::simple_http::client::{HeaderMiddleware, Middleware, PreparedRequest, ParsedUrl, Extensions};
-    use foundation_core::wire::simple_http::{SimpleMethod, SendSafeBody, SimpleHeader};
+    use foundation_core::wire::simple_http::client::{
+        Extensions, HeaderMiddleware, Middleware, ParsedUrl, PreparedRequest,
+    };
+    use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, SimpleMethod};
     use std::collections::BTreeMap;
 
     let mut request = PreparedRequest {
@@ -178,8 +198,8 @@ fn test_header_middleware_respects_existing_headers() {
         extensions: Extensions::new(),
     };
 
-    let middleware = HeaderMiddleware::new()
-        .with_header(SimpleHeader::USER_AGENT, "test-agent".to_string());
+    let middleware =
+        HeaderMiddleware::new().with_header(SimpleHeader::USER_AGENT, "test-agent".to_string());
 
     middleware.handle_request(&mut request).unwrap();
 
@@ -194,8 +214,10 @@ fn test_header_middleware_respects_existing_headers() {
 /// WHAT: Test middleware execution order
 #[test]
 fn test_middleware_chain_execution_order() {
-    use foundation_core::wire::simple_http::client::{MiddlewareChain, Middleware, PreparedRequest, ParsedUrl, Extensions};
-    use foundation_core::wire::simple_http::{SimpleMethod, SendSafeBody, SimpleHeader, Status};
+    use foundation_core::wire::simple_http::client::{
+        Extensions, Middleware, MiddlewareChain, ParsedUrl, PreparedRequest,
+    };
+    use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, SimpleMethod, Status};
     use std::collections::BTreeMap;
     use std::sync::{Arc, Mutex};
 
@@ -210,7 +232,10 @@ fn test_middleware_chain_execution_order() {
     }
 
     impl Middleware for OrderMiddleware {
-        fn handle_request(&self, _request: &mut PreparedRequest) -> Result<(), foundation_core::wire::simple_http::HttpClientError> {
+        fn handle_request(
+            &self,
+            _request: &mut PreparedRequest,
+        ) -> Result<(), foundation_core::wire::simple_http::HttpClientError> {
             self.request_order.lock().unwrap().push(self.id);
             Ok(())
         }
@@ -218,7 +243,9 @@ fn test_middleware_chain_execution_order() {
         fn handle_response(
             &self,
             _request: &PreparedRequest,
-            _response: &mut foundation_core::wire::simple_http::SimpleResponse<foundation_core::wire::simple_http::SendSafeBody>,
+            _response: &mut foundation_core::wire::simple_http::SimpleResponse<
+                foundation_core::wire::simple_http::SendSafeBody,
+            >,
         ) -> Result<(), foundation_core::wire::simple_http::HttpClientError> {
             self.response_order.lock().unwrap().push(self.id);
             Ok(())
@@ -226,9 +253,21 @@ fn test_middleware_chain_execution_order() {
     }
 
     let mut chain = MiddlewareChain::new();
-    chain.add(OrderMiddleware { id: 1, request_order: request_order.clone(), response_order: response_order.clone() });
-    chain.add(OrderMiddleware { id: 2, request_order: request_order.clone(), response_order: response_order.clone() });
-    chain.add(OrderMiddleware { id: 3, request_order: request_order.clone(), response_order: response_order.clone() });
+    chain.add(OrderMiddleware {
+        id: 1,
+        request_order: request_order.clone(),
+        response_order: response_order.clone(),
+    });
+    chain.add(OrderMiddleware {
+        id: 2,
+        request_order: request_order.clone(),
+        response_order: response_order.clone(),
+    });
+    chain.add(OrderMiddleware {
+        id: 3,
+        request_order: request_order.clone(),
+        response_order: response_order.clone(),
+    });
 
     let mut request = PreparedRequest {
         method: SimpleMethod::GET,
@@ -328,13 +367,12 @@ fn test_retry_middleware_creation() {
 /// WHAT: Test RetryMiddleware::with_backoff() allows custom backoff configuration
 #[test]
 fn test_retry_middleware_with_backoff() {
-    use foundation_core::wire::simple_http::client::{RetryMiddleware, BackoffStrategy};
+    use foundation_core::wire::simple_http::client::{BackoffStrategy, RetryMiddleware};
     use std::time::Duration;
 
-    let retry = RetryMiddleware::new(3, vec![429])
-        .with_backoff(BackoffStrategy::Constant {
-            delay: Duration::from_secs(1),
-        });
+    let retry = RetryMiddleware::new(3, vec![429]).with_backoff(BackoffStrategy::Constant {
+        delay: Duration::from_secs(1),
+    });
     // Test passes if builder pattern works (no panic)
 }
 
@@ -342,8 +380,10 @@ fn test_retry_middleware_with_backoff() {
 /// WHAT: Test RetryMiddleware::handle_request stores RetryState in extensions
 #[test]
 fn test_retry_middleware_stores_state_in_extensions() {
-    use foundation_core::wire::simple_http::client::{RetryMiddleware, Middleware, PreparedRequest, ParsedUrl, Extensions, RetryState};
-    use foundation_core::wire::simple_http::{SimpleMethod, SendSafeBody};
+    use foundation_core::wire::simple_http::client::{
+        Extensions, Middleware, ParsedUrl, PreparedRequest, RetryMiddleware, RetryState,
+    };
+    use foundation_core::wire::simple_http::{SendSafeBody, SimpleMethod};
     use std::collections::BTreeMap;
 
     let mut request = PreparedRequest {
@@ -367,8 +407,10 @@ fn test_retry_middleware_stores_state_in_extensions() {
 /// WHAT: Test RetryMiddleware::handle_response returns Ok for status 200
 #[test]
 fn test_retry_middleware_passes_through_success() {
-    use foundation_core::wire::simple_http::client::{RetryMiddleware, Middleware, PreparedRequest, ParsedUrl, Extensions};
-    use foundation_core::wire::simple_http::{SimpleMethod, SendSafeBody, Status};
+    use foundation_core::wire::simple_http::client::{
+        Extensions, Middleware, ParsedUrl, PreparedRequest, RetryMiddleware,
+    };
+    use foundation_core::wire::simple_http::{SendSafeBody, SimpleMethod, Status};
     use std::collections::BTreeMap;
 
     let mut request = PreparedRequest {
@@ -396,8 +438,53 @@ fn test_retry_middleware_passes_through_success() {
 /// WHAT: Test RetryMiddleware::name() returns "RetryMiddleware"
 #[test]
 fn test_retry_middleware_name() {
-    use foundation_core::wire::simple_http::client::{RetryMiddleware, Middleware};
+    use foundation_core::wire::simple_http::client::{Middleware, RetryMiddleware};
 
     let middleware = RetryMiddleware::new(3, vec![429]);
     assert_eq!(middleware.name(), "RetryMiddleware");
+}
+
+/// WHY: RetryMiddleware must signal retry needed via error for matching status codes
+/// WHAT: Test RetryMiddleware::handle_response returns RetryNeeded error for status 429
+#[test]
+fn test_retry_middleware_returns_retry_error_for_matching_status() {
+    use foundation_core::wire::simple_http::client::{
+        Extensions, Middleware, ParsedUrl, PreparedRequest, RetryMiddleware,
+    };
+    use foundation_core::wire::simple_http::{HttpClientError, SendSafeBody, SimpleMethod, Status};
+    use std::collections::BTreeMap;
+
+    let mut request = PreparedRequest {
+        method: SimpleMethod::GET,
+        url: ParsedUrl::parse("http://example.com").unwrap(),
+        headers: BTreeMap::new(),
+        body: SendSafeBody::None,
+        extensions: Extensions::new(),
+    };
+
+    let middleware = RetryMiddleware::new(3, vec![429, 502, 503, 504]);
+    middleware.handle_request(&mut request).unwrap();
+
+    let mut response = foundation_core::wire::simple_http::SimpleResponse::new(
+        Status::TooManyRequests,
+        BTreeMap::new(),
+        SendSafeBody::None,
+    );
+
+    // Should return RetryNeeded error for retryable status code
+    let result = middleware.handle_response(&request, &mut response);
+    assert!(result.is_err());
+
+    if let Err(HttpClientError::RetryNeeded {
+        attempt,
+        delay,
+        status_code,
+    }) = result
+    {
+        assert_eq!(attempt, 0);
+        assert!(delay.as_millis() > 0);
+        assert_eq!(status_code, Some(429));
+    } else {
+        panic!("Expected RetryNeeded error variant");
+    }
 }
