@@ -25,9 +25,9 @@ related_specs:
   - "specifications/03-wasm-friendly-sync-primitives"
 features:
   completed: 14
-  uncompleted: 0
-  total: 14
-  completion_percentage: 100
+  uncompleted: 2
+  total: 16
+  completion_percentage: 87.5
 ---
 
 # Overview
@@ -129,11 +129,16 @@ The HTTP client implementation is divided into features with clear dependencies.
     - Dependencies: #9
     - Status: Complete
 
-### Pending Features (0/14)
+### Pending Features (2/16)
 
 14. **[websocket](./features/websocket/feature.md)** ⬜
     - Description: WebSocket client and server
     - Dependencies: #4, #9
+    - Status: Pending
+
+15. **[server-sent-events](./features/server-sent-events/feature.md)** ⬜
+    - Description: Server-Sent Events (SSE/EventSource) client and server
+    - Dependencies: #4, #6, #8
     - Status: Pending
 
 ## Requirements Conversation Summary
