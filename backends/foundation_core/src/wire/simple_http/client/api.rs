@@ -629,6 +629,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                 Some(self.config.get_op_timeout()),
                 pool,
                 self.config.max_redirects,
+                Some(self.config.clone()),
             );
 
             // Spawn task via execute_task
