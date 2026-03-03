@@ -24,10 +24,10 @@ builds_on: "specifications/04-condvar-primitives"
 related_specs:
   - "specifications/03-wasm-friendly-sync-primitives"
 features:
-  completed: 12
-  uncompleted: 2
+  completed: 14
+  uncompleted: 0
   total: 14
-  completion_percentage: 86
+  completion_percentage: 100
 ---
 
 # Overview
@@ -69,7 +69,7 @@ The HTTP client implementation is divided into features with clear dependencies.
 | 2  | [foundation](./features/foundation/feature.md) | Error types, DNS resolution, and common foundations | 1 | ✅ Complete |
 | 3  | [compression](./features/compression/feature.md) | gzip, deflate, brotli support and streaming integration | 2 | ✅ Complete |
 | 4  | [connection](./features/connection/feature.md) | URL parsing, TCP, TLS handshakes (HTTP/HTTPS connection layer) | 2 | ✅ Complete |
-| 5  | [proxy-support](./features/proxy-support/feature.md) | HTTP/HTTPS/SOCKS5 proxy handling and configuration | 4 | ⬜ Pending |
+| 5  | [proxy-support](./features/proxy-support/feature.md) | HTTP/HTTPS/SOCKS5 proxy handling and configuration | 4 | ✅ Complete |
 | 6  | [request-response](./features/request-response/feature.md) | Request builder, response types, headers and body handling | 4 | ✅ Complete |
 | 7  | [auth-helpers](./features/auth-helpers/feature.md) | Basic, Bearer, Digest auth helpers and flows | 6 | ✅ Complete |
 | 8  | [task-iterator](./features/task-iterator/feature.md) | TaskIterator, ExecutionAction types and executor integration | 0, 6 | ✅ Complete |
