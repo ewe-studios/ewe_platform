@@ -385,4 +385,3 @@ fn test_basic_auth_opt_without_password() {
     // "user:" encodes to "dXNlcjo="
     assert_eq!(auth_header, &vec!["Basic dXNlcjo="]);
 }
-
