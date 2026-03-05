@@ -4,9 +4,9 @@
 
 This document provides a comprehensive architectural analysis for implementing Server-Sent Events (SSE / EventSource) support in the `foundation_core` wire module. It is based on thorough exploration of the existing codebase infrastructure, particularly the `simple_http`, `http_stream`, `retries`, and `valtron` modules.
 
-**Status**: Draft
-**Last Updated**: 2026-03-03
-**Version**: 1.0
+**Status**: Draft - Updated for TaskIterator-First Design
+**Last Updated**: 2026-03-04
+**Version**: 2.0
 
 ---
 
@@ -68,33 +68,47 @@ The `foundation_core` wire module provides **exceptional infrastructure** for SS
 - ✅ Module skeleton (event_source/)
 
 **What needs implementation**:
-- ❌ SSE protocol parser (field parsing, line handling)
-- ❌ Event types (Event, SseEvent)
-- ❌ EventSource client (blocking iterator)
-- ❌ EventWriter server-side
-- ❌ Last-Event-ID tracking
-- ❌ Non-blocking TaskIterator wrapper
+- SSE protocol parser (field parsing, line handling) - internal plain iterator
+- Event types (Event, SseEvent)
+- EventSourceTask (TaskIterator - PRIMARY API)
+- ReconnectingEventSourceTask (TaskIterator with reconnection)
+- EventWriter server-side
+- Last-Event-ID tracking
+- Blocking wrapper (convenience API only)
 
 **Estimated effort**: 2-3 weeks for complete implementation
 
-### Recommended Approach
+### Recommended Approach: TaskIterator with DrivenSendTaskIterator Wrappers
 
-**Phase 1: Core SSE Protocol (1-2 weeks)** - Blocking I/O
-- Implement SSE message parser following W3C spec
-- Create Event and SseEvent types
-- Build EventSource client (blocking iterator)
-- Build EventWriter for server-side
-- Leverage existing HttpResponseReader for streaming
+**CRITICAL ARCHITECTURAL PRINCIPLE:** All SSE client implementations MUST use TaskIterator as the core pattern with `DrivenSendTaskIterator` for blocking wrappers. The TaskIterator is a pure state machine with NO loops - execution driving happens in the wrapper.
 
-**Phase 2: Reconnection Integration (3-5 days)**
-- Integrate with existing ReconnectingStream
-- Add Last-Event-ID header management
-- Respect server `retry:` field
+**Design Hierarchy:**
+1. **TaskIterator (Core)** - Pure state machine, ONE step per `next()` call, NO loops
+2. **Plain Iterator (Internal)** - Used internally for parsing (SseParser), wrapped by TaskIterator
+3. **DrivenSendTaskIterator (Wrapper)** - Handles execution driving via `run_until_next_state()`
+4. **Blocking Iterator API (Convenience)** - Wraps DrivenSendTaskIterator, extracts Ready values
 
-**Phase 3: TaskIterator Wrapper (3-5 days)**
-- Create EventSourceTask state machine
-- Non-blocking event consumption
-- Integration with valtron executor
+**Phase 1: Core SSE Protocol with TaskIterator (1-2 weeks)**
+- Implement `EventSourceTask` following valtron TaskIterator pattern
+- State machine: Init → Connecting → Reading → Closed
+- SSE parser is internal (plain iterator), wrapped by TaskIterator
+- Blocking wrapper uses `DrivenSendTaskIterator` - execution driving in wrapper, not TaskIterator
+
+**Phase 2: ReconnectingEventSourceTask (3-5 days)**
+- Wrap `EventSourceTask` with `ReconnectingEventSourceTask`
+- Use existing `ExponentialBackoffDecider` for backoff
+- Auto-send `Last-Event-ID` on reconnect
+- TaskIterator-based reconnection state machine
+
+**Phase 3: Advanced Features (3-5 days)**
+- Event filtering with callbacks
+- Full valtron executor integration
+- Performance optimizations
+
+**Phase 3: Advanced Features (3-5 days)**
+- Event filtering with callbacks
+- Full valtron executor integration
+- Performance optimizations
 
 ---
 
@@ -234,28 +248,47 @@ impl Iterator for ReconnectingStream {
 - Thread-safe state (Arc<Mutex<>>)
 - Pluggable retry deciders
 
-**SSE Usage Pattern**:
-```rust
-// Create reconnecting stream for SSE endpoint
-let endpoint = ClientEndpoint::from_url("https://api.example.com/events")?;
-let reconnector = ReconnectingStream::from_endpoint(endpoint);
+**SSE Usage Pattern (TaskIterator-First)**:
 
-for status in reconnector {
-    match status? {
-        ReconnectionStatus::Ready(stream) => {
-            // Connected, start reading SSE events
-            let sse_stream = EventSource::from_stream(stream);
-            for event in sse_stream {
-                handle_event(event?);
-            }
+```rust
+// Phase 1: EventSourceTask (TaskIterator)
+let mut task = EventSourceTask::connect("https://api.example.com/events")?;
+
+loop {
+    match task.next() {
+        Some(TaskStatus::Ready(event)) => {
+            handle_event(event?);
         }
-        ReconnectionStatus::Waiting(duration) => {
+        Some(TaskStatus::Pending(progress)) => {
+            // Do other work while waiting
+        }
+        Some(TaskStatus::Delayed(duration)) => {
             println!("Reconnecting in {:?}", duration);
         }
-        ReconnectionStatus::NoMoreWaiting => {
-            break; // Ready to reconnect now
-        }
+        None => break,
     }
+}
+
+// Phase 2: ReconnectingEventSourceTask
+let mut task = ReconnectingEventSourceTask::connect(url)?
+    .with_max_retries(10);
+
+loop {
+    match task.next() {
+        Some(TaskStatus::Ready(event)) => {
+            handle_event(event?);
+        }
+        Some(TaskStatus::Delayed(duration)) => {
+            // Backing off before reconnect
+        }
+        None => break, // Max retries exceeded
+    }
+}
+
+// Blocking wrapper (convenience only)
+let event_source = EventSource::connect(url)?;
+for event in event_source {
+    handle_event(event?);
 }
 ```
 
@@ -400,7 +433,7 @@ let request = SimpleIncomingRequestBuilder::get("/events")
     .build()?;
 ```
 
-#### 2.2.6 TaskIterator Framework
+#### 2.2.6 TaskIterator Framework - PRIMARY PATTERN FOR SSE
 
 **TaskIterator** (`valtron/types.rs`)
 
@@ -422,30 +455,125 @@ pub enum TaskStatus<R, P, S> {
 }
 ```
 
-**SSE State Machine**:
+**SSE State Machine (EventSourceTask)**:
+
 ```rust
+use crate::valtron::{TaskIterator, TaskStatus, BoxedSendExecutionAction, DrivenRecvIterator};
+
 pub struct EventSourceTask {
-    state: EventSourceState,
+    state: Option<EventSourceState>,
 }
 
 enum EventSourceState {
     Init(EventSourceConfig),
-    Connecting(HttpConnectTask),
-    Reading(EventSourceStream),
-    Reconnecting(Duration, RetryState),
+    Connecting(DrivenRecvIterator<HttpConnectTask>),
+    Reading(EventSourceStreamReader),
     Closed,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum EventSourcePending {
+    Connecting,
+    Reading,
+}
+
 impl TaskIterator for EventSourceTask {
-    type Ready = Event;
-    type Pending = EventSourceProgress;
+    type Ready = Result<Event, EventSourceError>;
+    type Pending = EventSourcePending;
     type Spawner = BoxedSendExecutionAction;
 
-    fn next(&mut self) -> Option<TaskStatus<Event, EventSourceProgress, Self::Spawner>> {
-        // State machine transitions
+    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        match self.state.take()? {
+            EventSourceState::Init(config) => {
+                // Spawn connection task
+                let (action, recv) = spawn_connect_task(config);
+                self.state = Some(EventSourceState::Connecting(recv));
+                Some(TaskStatus::Spawn(action))
+            }
+            EventSourceState::Connecting(mut recv) => {
+                match recv.next() {
+                    Some(TaskStatus::Ready(Ok(connection))) => {
+                        // Connected, start reading SSE events
+                        let reader = EventSourceStreamReader::new(connection);
+                        self.state = Some(EventSourceState::Reading(reader));
+                        Some(TaskStatus::Pending(EventSourcePending::Reading))
+                    }
+                    Some(TaskStatus::Ready(Err(e))) => {
+                        self.state = Some(EventSourceState::Closed);
+                        Some(TaskStatus::Ready(Err(e)))
+                    }
+                    Some(TaskStatus::Pending(_)) => {
+                        self.state = Some(EventSourceState::Connecting(recv));
+                        Some(TaskStatus::Pending(EventSourcePending::Connecting))
+                    }
+                    _ => None,
+                }
+            }
+            EventSourceState::Reading(mut reader) => {
+                match reader.next_event() {
+                    Ok(event) => {
+                        self.state = Some(EventSourceState::Reading(reader));
+                        Some(TaskStatus::Ready(Ok(event)))
+                    }
+                    Err(EventSourceError::ConnectionClosed) => {
+                        self.state = Some(EventSourceState::Closed);
+                        None // Task complete, reconnection handled by wrapper
+                    }
+                    Err(e) => {
+                        self.state = Some(EventSourceState::Reading(reader));
+                        Some(TaskStatus::Ready(Err(e)))
+                    }
+                }
+            }
+            EventSourceState::Closed => None,
+        }
     }
 }
 ```
+
+**Blocking Wrapper with DrivenSendTaskIterator**:
+
+```rust
+use crate::valtron::{drive_iterator, DrivenSendTaskIterator};
+
+// Blocking wrapper using DrivenSendTaskIterator
+pub struct EventSourceIterator {
+    driven: DrivenSendTaskIterator<EventSourceTask>,
+}
+
+impl EventSourceIterator {
+    pub fn connect(url: impl Into<String>) -> Result<Self, EventSourceError> {
+        let task = EventSourceTask::connect(url)?;
+        Ok(Self {
+            driven: drive_iterator(task),
+        })
+    }
+}
+
+impl Iterator for EventSourceIterator {
+    type Item = Result<Event, EventSourceError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // DrivenSendTaskIterator handles execution driving
+        // Calls run_until_next_state() then task.next() ONCE
+        // NO LOOPS in TaskIterator - execution driving is external
+        match self.driven.next() {
+            Some(TaskStatus::Ready(result)) => Some(result),
+            Some(TaskStatus::Delayed(_)) => None,  // Reconnection backoff
+            Some(TaskStatus::Pending(_)) => self.next(),  // Continue driving
+            Some(TaskStatus::Spawn(_)) => self.next(),  // Spawn handled by executor
+            Some(TaskStatus::Init) => self.next(),
+            None => None,
+        }
+    }
+}
+```
+
+**Key Points**:
+- TaskIterator remains pure - NO loops in `next()`
+- DrivenSendTaskIterator handles execution driving via `run_until_next_state()`
+- Blocking Iterator wrapper extracts Ready values from TaskStatus
+- Tail recursion for Pending/Spawn/Init - not a loop in TaskIterator
 
 ### 2.3 HTTP Headers for SSE
 

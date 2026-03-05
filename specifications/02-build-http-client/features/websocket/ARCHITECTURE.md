@@ -55,24 +55,27 @@ The `foundation_core` wire module provides **excellent infrastructure** for WebS
    - `SharedByteBufferStream` (buffered Read/Write wrapper)
    - `BufferedReader`/`BufferedWriter` for I/O buffering
 
-### Recommended Approach
+### Recommended Approach: TaskIterator with DrivenSendTaskIterator Wrappers
 
-**Phase 1: Foundation (Blocking)**
-- Implement WebSocket frame encoding/decoding
-- Implement handshake using existing HTTP client
-- Create `WebSocketConnection` with blocking I/O
-- Support both `ws://` and `wss://` schemes
+**CRITICAL ARCHITECTURAL PRINCIPLE:** All WebSocket client implementations MUST use TaskIterator as the core pattern with `DrivenSendTaskIterator` for blocking wrappers. The TaskIterator is a pure state machine with NO loops - execution driving happens in the wrapper.
 
-**Phase 2: TaskIterator Integration (Non-Blocking)**
-- Implement `TaskIterator` for `WebSocketConnection`
-- Non-blocking frame reading/writing
-- Integration with valtron executor
+**Design Hierarchy:**
+1. **TaskIterator (Core)** - Pure state machine, ONE step per `next()` call, NO loops
+2. **Plain Iterator (Internal)** - Used internally for frame parsing, wrapped by TaskIterator
+3. **DrivenSendTaskIterator (Wrapper)** - Handles execution driving via `run_until_next_state()`
+4. **Blocking Iterator API (Convenience)** - Wraps DrivenSendTaskIterator, extracts Ready values
 
-**Phase 3: Advanced Features**
-- Message fragmentation handling
-- Per-message deflate extension
+**Phase 1: Core WebSocket with TaskIterator (1-2 weeks)**
+- Implement `WebSocketTask` following valtron TaskIterator pattern
+- State machine: Init → Connecting → Handshake → Open → Closed
+- Frame parser is internal (plain iterator), wrapped by TaskIterator
+- Blocking wrapper uses `DrivenSendTaskIterator` - execution driving in wrapper, not TaskIterator
+
+**Phase 2: Advanced Features (1 week)**
+- `ReconnectingWebSocketTask` with auto-reconnection
 - Subprotocol negotiation
 - Server-side WebSocket support
+- Performance optimizations
 
 ---
 
@@ -214,6 +217,84 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for SendRequestTask<R> {
 3. **Spawning sub-tasks** via `TaskStatus::Spawn`
 4. **Receiving sub-task results** via `DrivenRecvIterator`
 5. **Non-blocking** - each `next()` call does minimal work
+6. **Option wrapper** - `struct Task(Option<State>)` for termination
+7. **Data carrying** - State variants hold `Option<Box<...>>`
+
+**Blocking Wrapper Pattern (DrivenSendTaskIterator)**:
+
+For blocking Iterator API, use `DrivenSendTaskIterator` which handles execution driving externally:
+
+```rust
+use crate::valtron::{drive_iterator, DrivenSendTaskIterator};
+
+// Blocking wrapper using DrivenSendTaskIterator
+pub struct WebSocketConnection {
+    driven: DrivenSendTaskIterator<WebSocketTask>,
+}
+
+impl WebSocketConnection {
+    pub fn connect(url: &str) -> Result<Self, WebSocketError> {
+        let task = WebSocketTask::connect(url)?;
+        Ok(Self {
+            driven: drive_iterator(task),
+        })
+    }
+}
+
+impl Iterator for WebSocketConnection {
+    type Item = Result<WebSocketMessage, WebSocketError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // DrivenSendTaskIterator handles execution driving
+        // Calls run_until_next_state() then task.next() ONCE
+        // NO LOOPS in TaskIterator - execution driving is external
+        match self.driven.next() {
+            Some(TaskStatus::Ready(result)) => Some(result),
+            Some(TaskStatus::Delayed(_)) => None,  // Reconnection backoff
+            Some(TaskStatus::Pending(_)) => self.next(),  // Continue driving (tail recursion)
+            Some(TaskStatus::Spawn(_)) => self.next(),  // Spawn handled by executor
+            Some(TaskStatus::Init) => self.next(),
+            None => None,
+        }
+    }
+}
+```
+
+**DrivenSendTaskIterator implementation** (from `valtron/executors/task_iters.rs`):
+
+```rust
+pub struct DrivenSendTaskIterator<T>(Option<T>)
+where
+    T: TaskIterator + Send + 'static;
+
+impl<T> Iterator for DrivenSendTaskIterator<T> {
+    type Item = TaskStatus<T::Ready, T::Pending, T::Spawner>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(mut task_iterator) = self.0.take() {
+            // Drive execution externally - calls run_until_next_state()
+            run_until_next_state();
+
+            // Get ONE result from TaskIterator - NO LOOPS
+            let next_value = task_iterator.next();
+
+            // Restore task for next call
+            if next_value.is_some() {
+                self.0.replace(task_iterator);
+            }
+            next_value
+        } else {
+            None
+        }
+    }
+}
+```
+
+**Key Points**:
+- TaskIterator remains pure - NO loops in `next()`
+- DrivenSendTaskIterator handles execution driving via `run_until_next_state()`
+- Blocking Iterator wrapper extracts Ready values from TaskStatus
+- Tail recursion for Pending/Spawn/Init - not a loop in TaskIterator
 
 ### 2.4 HTTP Request/Response Flow
 
