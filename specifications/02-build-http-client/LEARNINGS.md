@@ -493,10 +493,11 @@ let bytes = Http11::request(&request).http_render()?;
 - **Benefit**: SSE gets production-ready reconnection for free
 - **Pattern**: Leverage existing state machines
 
-**Decision 3: TaskIterator for Non-Blocking (Phase 3)**
+**Decision 3: TaskIterator for Non-Blocking (Phase 1 - FOUNDATION)**
 - **Why**: Valtron infrastructure already supports non-blocking I/O
 - **Benefit**: SSE can be non-blocking without async/await
-- **Pattern**: EventSourceTask wraps EventSource with TaskIterator
+- **Pattern**: EventSourceTask is the PRIMARY API (not Phase 3)
+- **Correction**: TaskIterator is Phase 1 foundation, not Phase 3 add-on
 
 **Documentation Strategy**:
 
@@ -509,7 +510,7 @@ Created comprehensive ARCHITECTURE.md (10,000+ lines) covering:
 6. **Client Implementation** - Wrapping existing HttpResponseReader
 7. **Server Implementation** - Simple event formatter
 8. **Reconnection Strategy** - Wrapping ReconnectingStream
-9. **TaskIterator Integration** - Non-blocking wrapper
+9. **TaskIterator Integration** - Non-blocking wrapper (PRIMARY - Phase 1)
 10. **Technical Design Details** - File structure, dependencies, testing
 
 **Feature Specification Strategy**:
@@ -517,9 +518,9 @@ Created comprehensive ARCHITECTURE.md (10,000+ lines) covering:
 Created detailed feature.md with:
 - **Requirements**: Client and server API examples
 - **Implementation Phases**:
-  - Phase 1: Core SSE (1-2 weeks) - Blocking I/O
-  - Phase 2: Reconnection (3-5 days) - Integrate ReconnectingStream
-  - Phase 3: TaskIterator (3-5 days) - Non-blocking wrapper
+  - Phase 1: Core SSE with TaskIterator (1-2 weeks) - TaskIterator-first design
+  - Phase 2: ReconnectingEventSourceTask (3-5 days) - Integrate ReconnectingStream
+  - Phase 3: Advanced Features (3-5 days) - Filtering, compression, optimization
 - **Success Criteria**: Per-phase validation
 - **Notes for Implementers**: What to reuse, what NOT to reimplement
 
@@ -537,7 +538,8 @@ Created detailed feature.md with:
 2. **Identify Patterns**: Look for similar features (WebSocket did HTTP upgrade, SSE does streaming)
 3. **Compose, Don't Duplicate**: Wrap existing components rather than reimplementing
 4. **Document Discoveries**: ARCHITECTURE.md captures infrastructure analysis
-5. **Phase by Composition**: Phase 1 uses existing components, Phase 2 adds reconnection wrapper, Phase 3 adds TaskIterator wrapper
+5. **Phase by Composition**: Phase 1 uses existing components with TaskIterator-first, Phase 2 adds reconnection wrapper, Phase 3 adds advanced features
+6. **TaskIterator-First**: Core design pattern is TaskIterator from Phase 1, plain iterators are internal only
 
 **Grep Commands Used**:
 ```bash
@@ -585,17 +587,38 @@ pub struct SseClient {
 }
 ```
 
-✅ **Compose existing infrastructure**:
+❌ **Plain Iterator as Primary API** (INCORRECT):
 ```rust
-// DO: Use existing components
+// DON'T: Make plain Iterator the primary API
 pub struct EventSourceStream {
-    response_reader: HttpResponseReader<...>, // Existing HTTP streaming
-    parser: SseParser,                        // Only new code: SSE parsing
+    reader: HttpResponseReader<...>,
+    parser: SseParser,
 }
 
-pub struct ReconnectingEventSource {
-    reconnection_stream: ReconnectingStream,  // Existing reconnection
-    current_stream: Option<EventSourceStream>,
+impl Iterator for EventSourceStream {
+    // This should NOT be the primary API
+}
+```
+
+✅ **Compose existing infrastructure with TaskIterator-first**:
+```rust
+// DO: TaskIterator is the PRIMARY API
+pub struct EventSourceTask {
+    state: Option<EventSourceState>,
+}
+
+impl TaskIterator for EventSourceTask {
+    type Ready = Result<Event, EventSourceError>;
+    // TaskIterator is the foundation, not an add-on
+}
+
+// Blocking wrapper for convenience ONLY
+pub struct EventSource {
+    task: EventSourceTask,
+}
+
+impl Iterator for EventSource {
+    // Convenience wrapper around TaskIterator
 }
 ```
 
@@ -614,3 +637,154 @@ This approach reduced implementation from 6-8 weeks to 2-3 weeks by discovering 
 *2026-03-03: Added WebSocket request builder selection learning covering the distinction between ClientRequestBuilder (high-level, connection management) and SimpleIncomingRequestBuilder (low-level, message building).*
 
 *2026-03-03: Added Server-Sent Events feature creation learning covering infrastructure audit methodology, component discovery, composition over duplication, and effort reduction from 6-8 weeks to 2-3 weeks through 80% code reuse.*
+
+*2026-03-04: Added TaskIterator-First Architecture learning - all SSE client implementations must use TaskIterator as primary pattern, with plain iterators only as internal implementation details. Reference: simple_http/client/tasks/*.
+
+*2026-03-05: CORRECTION - TaskIterator-ONLY with DrivenSendTaskIterator wrappers. After deep review of simple_http/client/tasks/*.rs and valtron/executors/task_iters.rs:
+- TaskIterator IS the core API - pure state machine with NO loops in next()
+- Blocking wrappers use DrivenSendTaskIterator - execution driving happens in wrapper
+- DrivenSendTaskIterator calls run_until_next_state() then task.next() ONCE
+- This way we support blocking Iterator API without loops in TaskIterator
+
+### 11. TaskIterator-ONLY with DrivenSendTaskIterator - Correct Pattern (2026-03-05)
+
+**Key Insight:** After deep review of simple_http/client/tasks/*.rs and valtron/executors/task_iters.rs, the correct pattern is:
+- **TaskIterator**: Pure state machine, NO loops in `next()`, ONE step per call
+- **DrivenSendTaskIterator**: Wrapper that handles execution driving externally
+- **Blocking Iterator API**: Uses DrivenSendTaskIterator, NOT loops in TaskIterator
+
+**What Happened:**
+- Initial updates said "TaskIterator-first" with "blocking wrappers for convenience"
+- User corrected: NO blocking wrappers - TaskIterator IS the API
+- Further correction: Blocking wrappers ARE fine, but use `DrivenSendTaskIterator`
+- The DrivenSendTaskIterator wrapper handles execution driving, not TaskIterator
+
+**Correct Pattern:**
+
+```rust
+// TaskIterator: Pure state machine - NO loops, ONE step per next()
+pub struct EventSourceTask(Option<EventSourceState>);
+
+impl TaskIterator for EventSourceTask {
+    type Ready = Result<Event, EventSourceError>;
+    type Pending = EventSourcePending;
+    type Spawner = BoxedSendExecutionAction;
+
+    fn next(&mut self) -> Option<TaskStatus<...>> {
+        // ONE step only - NO LOOPS
+        match self.0.take()? {
+            // State transitions...
+        }
+    }
+}
+
+// Blocking wrapper using DrivenSendTaskIterator
+pub struct EventSourceIterator {
+    driven: DrivenSendTaskIterator<EventSourceTask>,
+}
+
+impl Iterator for EventSourceIterator {
+    type Item = Result<Event, EventSourceError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // DrivenSendTaskIterator handles execution driving
+        // Calls run_until_next_state() then task.next() ONCE
+        match self.driven.next() {
+            Some(TaskStatus::Ready(result)) => Some(result),
+            // Handle other TaskStatus variants...
+        }
+    }
+}
+
+// DrivenSendTaskIterator implementation (from valtron/executors/task_iters.rs)
+impl<T> Iterator for DrivenSendTaskIterator<T>
+where
+    T: TaskIterator + Send + 'static,
+{
+    type Item = TaskStatus<T::Ready, T::Pending, T::Spawner>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(mut task_iterator) = self.0.take() {
+            // Drive execution externally
+            run_until_next_state();
+
+            // Get ONE result from TaskIterator - NO LOOPS
+            let next_value = task_iterator.next();
+
+            // Restore task for next call
+            if next_value.is_some() {
+                self.0.replace(task_iterator);
+            }
+            next_value
+        } else {
+            None
+        }
+    }
+}
+```
+
+**Key Pattern Points:**
+1. `struct Task(Option<State>)` - Option wrapper for termination
+2. State variants hold `Option<Box<...>>` - Data carried between states
+3. `self.0.take()?` - Take state, return None if already None (done)
+4. `self.0 = Some(...)` - Restore state after processing ONE step
+5. NO LOOPS in TaskIterator `next()` - State machine is step-wise
+6. DrivenSendTaskIterator handles execution driving - calls `run_until_next_state()`
+7. Data moved between states - Not cloned, moved
+
+**Blocking Iterator Options:**
+
+1. **DrivenSendTaskIterator** - Direct wrapper:
+```rust
+let task = EventSourceTask::connect(url)?;
+let driven = drive_iterator(task);  // DrivenSendTaskIterator
+for status in driven {
+    match status {
+        TaskStatus::Ready(event) => println!("Event: {:?}", event),
+        TaskStatus::Delayed(dur) => println!("Reconnecting in {:?}", dur),
+        _ => {}
+    }
+}
+```
+
+2. **ReadyConsumingIter** - Filters to only Ready values:
+```rust
+use crate::valtron::{ReadyConsumingIter, TaskStatusMapper};
+
+// Create mapper that extracts only Ready values
+pub struct EventReadyMapper;
+impl TaskStatusMapper for EventReadyMapper {
+    fn map(&self, status: Option<TaskStatus<...>>) -> Option<TaskStatus<...>> {
+        match status {
+            Some(TaskStatus::Ready(event)) => Some(TaskStatus::Ready(event)),
+            _ => None, // Ignore Pending, Spawn, Delayed
+        }
+    }
+}
+
+// Usage
+let task = EventSourceTask::connect(url)?;
+let ready_iter = ReadyConsumingIter::new(task, vec![EventReadyMapper], channel);
+for event in ready_iter {
+    println!("Event: {:?}", event);  // Only Ready values
+}
+```
+
+**What NOT to Do:**
+- ❌ No loops in TaskIterator `next()`
+- ❌ No state without Option wrapper
+- ❌ No data cloning - move data between states
+- ❌ No `struct Task { state: State }` - must be `struct Task(Option<State>)`
+- ❌ No execution driving in TaskIterator - that's DrivenSendTaskIterator's job
+
+**Reference Files:**
+- `wire/simple_http/client/tasks/send_request.rs` - Full TaskIterator pattern
+- `wire/simple_http/client/tasks/request_redirect.rs` - Redirect handling
+- `wire/simple_http/client/tasks/request_intro.rs` - Intro reading pattern
+- `valtron/executors/task_iters.rs` - DrivenSendTaskIterator, drive_iterator()
+- `valtron/executors/drivers.rs` - ReadyConsumingIter, StreamConsumingIter
+- `valtron/executors/unified.rs` - Unified executor patterns
+
+---
+
+*2026-03-05: WebSocket feature specification updated with TaskIterator + DrivenSendTaskIterator pattern - same architectural approach as SSE feature.*
