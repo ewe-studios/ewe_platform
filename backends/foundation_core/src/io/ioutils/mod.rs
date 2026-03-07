@@ -973,6 +973,14 @@ impl<T: Read> SharedByteBufferStream<T> {
     {
         self.0.do_mut(caller)
     }
+
+    /// Read a line from the stream into the provided buffer.
+    ///
+    /// Delegates to the inner ByteBufferPointer's read_line method.
+    /// Returns the number of bytes read, or an error if reading fails.
+    pub fn read_line(&mut self, buf: &mut String) -> std::io::Result<usize> {
+        self.0.do_once_mut(|inner| inner.read_line(buf))
+    }
 }
 
 // Implement cloning for the [`SharedByteBufferStream`].
@@ -1008,6 +1016,12 @@ impl<T: Read> SharedByteBufferStream<T> {
         let byte_reader = ByteBufferPointer::new(capacity, wrapped_reader);
         Self(OwnedReader::rwrite(Arc::new(RwLock::new(byte_reader))))
     }
+
+    pub fn sync(reader: Arc<Mutex<T>>) -> Self {
+        let wrapped_reader = OwnedReader::sync(Arc::clone(&reader));
+        let byte_reader = ByteBufferPointer::new(DEFAULT_READ_SIZE, wrapped_reader);
+        Self(OwnedReader::sync(Arc::new(Mutex::new(byte_reader))))
+    }
 }
 
 impl<T: Read> SharedByteBufferStream<BufferedReader<T>> {
@@ -1028,7 +1042,7 @@ impl<T: Read> SharedByteBufferStream<BufferedReader<T>> {
 impl<T: Read> PeekableReadStream for SharedByteBufferStream<T> {
     fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError> {
         self.0
-            .do_once_mut(|binding| match binding.nextby(buf.len()) {
+            .do_once_mut(|binding| match binding.peekby(buf.len()) {
                 Ok(state) => match state {
                     PeekState::Request(data) => {
                         let ending = if buf.len() > data.len() {
@@ -2099,6 +2113,16 @@ impl<T: Read> PeekableReadStream for ByteBufferPointer<T> {
     }
 }
 
+impl<T: Read> BufferCapacity for ByteBufferPointer<T> {
+    fn read_buffer(&self) -> &[u8] {
+        &self.buffer
+    }
+
+    fn read_capacity(&self) -> usize {
+        self.pull_amount
+    }
+}
+
 #[cfg(test)]
 mod byte_buffered_buffer_pointer {
     use std::io::Cursor;
@@ -2689,6 +2713,304 @@ impl<T> BufferedCapacityCursor<T> {
     /// of the wrapped `Cursor<T>`.
     pub fn get_inner_mut(&mut self) -> &mut T {
         self.0.get_mut()
+    }
+}
+
+// ============================================================================
+// SharedBuffer - Thread-safe shared buffer for producer-consumer patterns
+// ============================================================================
+
+/// Writer handle for `SharedBuffer`.
+///
+/// Holds a clone of the `Arc<Mutex<Vec<u8>>>` and implements `Write`.
+pub struct SharedBufferWriter {
+    inner: Arc<Mutex<Vec<u8>>>,
+}
+
+impl Clone for SharedBufferWriter {
+    fn clone(&self) -> Self {
+        Self {
+            inner: Arc::clone(&self.inner),
+        }
+    }
+}
+
+impl std::io::Write for SharedBufferWriter {
+    fn write(&mut self, buf: &[u8]) -> Result<usize> {
+        let mut guard = self.inner.lock().expect("SharedBuffer lock poisoned");
+        guard.extend_from_slice(buf);
+        Ok(buf.len())
+    }
+
+    fn flush(&mut self) -> Result<()> {
+        Ok(())
+    }
+}
+
+/// Reader handle for `SharedBuffer`.
+///
+/// Holds a clone of the `Arc<Mutex<Vec<u8>>>` and implements `Read`.
+pub struct SharedBufferReader {
+    inner: Arc<Mutex<Vec<u8>>>,
+    position: usize,
+}
+
+impl Clone for SharedBufferReader {
+    fn clone(&self) -> Self {
+        Self {
+            inner: Arc::clone(&self.inner),
+            position: self.position,
+        }
+    }
+}
+
+impl std::io::Read for SharedBufferReader {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
+        let guard = self.inner.lock().expect("SharedBuffer lock poisoned");
+        let available = guard.len().saturating_sub(self.position);
+        if available == 0 {
+            return Ok(0);
+        }
+        let to_read = buf.len().min(available);
+        buf[..to_read].copy_from_slice(&guard[self.position..self.position + to_read]);
+        drop(guard);
+        self.position += to_read;
+        Ok(to_read)
+    }
+}
+
+impl SharedBufferReader {
+    /// Convert this reader into a `SharedByteBufferStream` for buffered reading.
+    ///
+    /// # Returns
+    /// A `SharedByteBufferStream` that wraps the same underlying buffer.
+    pub fn into_buffered_stream(self) -> SharedByteBufferStream<SharedBufferReadStream> {
+        SharedByteBufferStream::rwrite(SharedBufferReadStream {
+            inner: Arc::clone(&self.inner),
+            position: self.position,
+        })
+    }
+}
+
+/// A readable stream that wraps `SharedBuffer` for use with `SharedByteBufferStream`.
+pub struct SharedBufferReadStream {
+    inner: Arc<Mutex<Vec<u8>>>,
+    position: usize,
+}
+
+impl std::io::Read for SharedBufferReadStream {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
+        let guard = self.inner.lock().expect("SharedBuffer lock poisoned");
+        let available = guard.len().saturating_sub(self.position);
+        if available == 0 {
+            return Ok(0);
+        }
+        let to_read = buf.len().min(available);
+        buf[..to_read].copy_from_slice(&guard[self.position..self.position + to_read]);
+        drop(guard);
+        self.position += to_read;
+        Ok(to_read)
+    }
+}
+
+// ============================================================================
+// SharedWriteReader - Thread-safe shared Read+Write handle
+// ============================================================================
+
+/// A thread-safe shared handle that supports both Read and Write operations.
+///
+/// WHY: Some use cases require a single handle that can be shared across threads
+/// where both reading and writing operations are needed on the same underlying resource.
+///
+/// WHAT: This type wraps any `T: Read + Write` with `Arc<Mutex<>>` for thread-safe access.
+///
+/// HOW: Provides cloneable handles that share the same underlying Read+Write resource.
+pub struct SharedWriteReader<T: Read + Write> {
+    inner: Arc<Mutex<T>>,
+}
+
+impl<T: Read + Write> Clone for SharedWriteReader<T> {
+    fn clone(&self) -> Self {
+        Self {
+            inner: Arc::clone(&self.inner),
+        }
+    }
+}
+
+impl<T: Read + Write> SharedWriteReader<T> {
+    /// Create a new SharedWriteReader from a Read+Write type.
+    ///
+    /// # Returns
+    /// A SharedWriteReader that owns the wrapped value.
+    pub fn new(inner: T) -> Self {
+        Self {
+            inner: Arc::new(Mutex::new(inner)),
+        }
+    }
+
+    /// Create a new SharedWriteReader from an existing Arc<Mutex<T>>.
+    ///
+    /// # Returns
+    /// A SharedWriteReader wrapping the provided Arc.
+    pub fn from_arc(arc: Arc<Mutex<T>>) -> Self {
+        Self { inner: arc }
+    }
+
+    /// Clone the underlying Arc reference.
+    pub fn clone_arc(&self) -> Arc<Mutex<T>> {
+        Arc::clone(&self.inner)
+    }
+}
+
+impl<T: Read + Write> Read for SharedWriteReader<T> {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
+        let mut guard = self.inner.lock().expect("SharedWriteReader lock poisoned");
+        guard.read(buf)
+    }
+
+    fn read_exact(&mut self, buf: &mut [u8]) -> Result<()> {
+        let mut guard = self.inner.lock().expect("SharedWriteReader lock poisoned");
+        guard.read_exact(buf)
+    }
+
+    fn read_to_end(&mut self, buf: &mut Vec<u8>) -> Result<usize> {
+        let mut guard = self.inner.lock().expect("SharedWriteReader lock poisoned");
+        guard.read_to_end(buf)
+    }
+
+    fn read_to_string(&mut self, buf: &mut String) -> Result<usize> {
+        let mut guard = self.inner.lock().expect("SharedWriteReader lock poisoned");
+        guard.read_to_string(buf)
+    }
+
+    fn read_vectored(&mut self, bufs: &mut [IoSliceMut<'_>]) -> Result<usize> {
+        let mut guard = self.inner.lock().expect("SharedWriteReader lock poisoned");
+        guard.read_vectored(bufs)
+    }
+}
+
+impl<T: Read + Write> Write for SharedWriteReader<T> {
+    fn write(&mut self, buf: &[u8]) -> Result<usize> {
+        let mut guard = self.inner.lock().expect("SharedWriteReader lock poisoned");
+        guard.write(buf)
+    }
+
+    fn write_all(&mut self, buf: &[u8]) -> Result<()> {
+        let mut guard = self.inner.lock().expect("SharedWriteReader lock poisoned");
+        guard.write_all(buf)
+    }
+
+    fn write_vectored(&mut self, bufs: &[IoSlice<'_>]) -> Result<usize> {
+        let mut guard = self.inner.lock().expect("SharedWriteReader lock poisoned");
+        guard.write_vectored(bufs)
+    }
+
+    fn flush(&mut self) -> Result<()> {
+        let mut guard = self.inner.lock().expect("SharedWriteReader lock poisoned");
+        guard.flush()
+    }
+}
+
+unsafe impl<T: Read + Write + Send> Send for SharedWriteReader<T> {}
+unsafe impl<T: Read + Write + Send + Sync> Sync for SharedWriteReader<T> {}
+
+// ============================================================================
+// Tests
+// ============================================================================
+
+#[cfg(test)]
+mod shared_write_reader_tests {
+    use super::*;
+    use std::io::Cursor;
+
+    #[test]
+    fn test_shared_write_reader_write_and_read_position() {
+        let cursor = Cursor::new(Vec::new());
+        let shared = SharedWriteReader::new(cursor);
+
+        let mut writer = shared.clone();
+        writer
+            .write_all(b"hello world")
+            .expect("write should succeed");
+
+        let inner = shared.inner.lock().expect("lock should not be poisoned");
+        assert_eq!(inner.get_ref(), b"hello world");
+    }
+
+    #[test]
+    fn test_shared_write_reader_multiple_writers() {
+        let cursor = Cursor::new(Vec::new());
+        let shared = SharedWriteReader::new(cursor);
+
+        let mut w1 = shared.clone();
+        let mut w2 = shared.clone();
+
+        w1.write_all(b"hello ").expect("write should succeed");
+        w2.write_all(b"world").expect("write should succeed");
+
+        let inner = shared.inner.lock().expect("lock should not be poisoned");
+        let data = inner.get_ref();
+        assert_eq!(data, b"hello world");
+    }
+
+    #[test]
+    fn test_shared_write_reader_from_arc() {
+        let arc = Arc::new(Mutex::new(Cursor::new(Vec::new())));
+        let shared = SharedWriteReader::from_arc(arc.clone());
+
+        let mut writer = shared.clone();
+        writer
+            .write_all(b"test data")
+            .expect("write should succeed");
+
+        let guard = arc.lock().expect("lock should not be poisoned");
+        let data = guard.get_ref();
+        assert_eq!(data, b"test data");
+    }
+}
+
+#[cfg(test)]
+mod shared_byte_buffer_stream_tests {
+    use super::*;
+
+    #[test]
+    fn test_shared_write_reader_with_cursor() {
+        let cursor = Cursor::new(Vec::new());
+        let shared = SharedWriteReader::new(cursor);
+
+        let mut w1 = shared.clone();
+        w1.write_all(b"hello").expect("write should succeed");
+
+        let mut r1 = shared.clone();
+        let inner = r1.inner.lock().expect("lock not poisoned");
+        assert_eq!(inner.get_ref(), b"hello");
+    }
+
+    #[test]
+    fn test_shared_write_reader_threaded() {
+        let cursor = Cursor::new(Vec::new());
+        let shared = SharedWriteReader::new(cursor);
+
+        let mut handles = vec![];
+        for i in 0..3 {
+            let s = shared.clone();
+            let handle = std::thread::spawn(move || {
+                let mut writer = s.clone();
+                let msg = format!("thread_{}", i);
+                writer
+                    .write_all(msg.as_bytes())
+                    .expect("write should succeed");
+            });
+            handles.push(handle);
+        }
+
+        for handle in handles {
+            handle.join().expect("thread should join");
+        }
+
+        let inner = shared.inner.lock().expect("lock not poisoned");
+        let data = inner.get_ref();
+        assert!(data.starts_with(b"thread_"));
     }
 }
 
