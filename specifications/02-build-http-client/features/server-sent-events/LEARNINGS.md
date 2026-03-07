@@ -138,3 +138,36 @@ Following strict TDD with ONE test at a time:
 10. Fixed match arm to use explicit `()` pattern: `TaskStatus::Pending(())`
 
 **Result**: All 22 tests passing, no clippy warnings in event_source module, formatting clean.
+
+---
+
+## SseParser Iterator Refactor (2026-03-07)
+
+### Refactored `SseParser` to Implement `Iterator` Trait
+
+**Key Insight**: Using `Iterator` trait directly is more idiomatic Rust than returning `Vec<Event>` from `parse()`. Eliminates intermediate allocations and simplifies `EventSourceStreamReader`.
+
+**Changes Made**:
+1. Added `event_queue: Vec<Event>` field to `SseParser`
+2. Renamed `parse(&mut self, chunk: &str) -> Vec<Event>` to `feed(&mut self, chunk: &str)`
+3. Implemented `Iterator for SseParser` with `next()` pulling from queue
+4. Removed `event_queue` from `EventSourceStreamReader` - now delegates directly to parser
+5. Updated all parser tests to use `feed()` + `collect()` pattern
+
+**Before**:
+```rust
+let events = parser.parse("data: hello\n\n");  // Returns Vec<Event>
+```
+
+**After**:
+```rust
+parser.feed("data: hello\n\n");
+let event = parser.next();  // Iterator yields one Event at a time
+// Or: let events: Vec<Event> = parser.collect();
+```
+
+**Benefits**:
+- More idiomatic Rust (uses standard Iterator trait)
+- Eliminates intermediate `Vec` allocation in `EventSourceStreamReader`
+- Cleaner separation: `feed()` inputs data, `Iterator` outputs events
+- Tests can still `collect()` into `Vec` for assertions

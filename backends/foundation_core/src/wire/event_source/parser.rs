@@ -1,7 +1,7 @@
 //! SSE message parser following W3C specification.
 //!
 //! WHY: SSE protocol requires parsing incoming data according to specific rules.
-//! WHAT: Implements streaming SSE parser that handles field types, multi-line data, and line endings.
+//! WHAT: Implements streaming SSE parser as an Iterator that handles field types, multi-line data, and line endings.
 //!
 //! Reference: W3C Server-Sent Events specification (<https://html.spec.whatwg.org/multipage/server-sent-events.html>)
 
@@ -10,13 +10,14 @@ use crate::wire::event_source::Event;
 /// [`SseParser`] parses incoming SSE data according to W3C specification.
 ///
 /// WHY: SSE protocol has specific parsing rules for fields, line endings, and multi-line data.
-/// WHAT: Stateful parser that accumulates data and dispatches complete events.
+/// WHAT: Stateful iterator that accumulates data and yields complete events one at a time.
 pub struct SseParser {
     buffer: String,
     current_id: Option<String>,
     current_event: Option<String>,
     current_data: Vec<String>,
     current_retry: Option<u64>,
+    event_queue: Vec<Event>,
 }
 
 impl SseParser {
@@ -32,16 +33,15 @@ impl SseParser {
             current_event: None,
             current_data: Vec::new(),
             current_retry: None,
+            event_queue: Vec::new(),
         }
     }
 
-    /// Parse incoming chunk and yield complete events.
+    /// Feed incoming chunk to the parser.
     ///
-    /// WHY: SSE streams arrive in chunks; each chunk may contain multiple events.
-    /// WHAT: Processes chunk line-by-line, returns vector of complete events.
-    pub fn parse(&mut self, chunk: &str) -> Vec<Event> {
-        let mut events = Vec::new();
-
+    /// WHY: SSE streams arrive in chunks; parser accumulates data until complete events are formed.
+    /// WHAT: Processes chunk line-by-line, queues complete events for iteration.
+    pub fn feed(&mut self, chunk: &str) {
         self.buffer.push_str(chunk);
 
         // Process complete lines
@@ -58,31 +58,31 @@ impl SseParser {
                     // Strip carriage return if present (\r\n)
                     let line = line.strip_suffix('\r').unwrap_or(&line);
 
-                    // Parse line
-                    if let Some(event) = self.parse_line(line) {
-                        events.push(event);
-                    }
+                    // Parse line and queue event if complete
+                    self.parse_line(line);
                 }
             }
         }
-
-        events
     }
 
     /// Parse a single line and update state.
     ///
     /// WHY: Each line in SSE has specific meaning (field, comment, empty).
-    /// WHAT: Returns Event if line completes an event, otherwise updates internal state.
-    fn parse_line(&mut self, line: &str) -> Option<Event> {
+    /// WHAT: Updates internal state or queues complete events.
+    fn parse_line(&mut self, line: &str) {
         // Empty line dispatches event
         if line.is_empty() {
-            return self.dispatch_event();
+            if let Some(event) = self.dispatch_event() {
+                self.event_queue.push(event);
+            }
+            return;
         }
 
         // Comment (starts with :)
         if line.starts_with(':') {
             let comment = line.strip_prefix(':').unwrap_or("").trim_start();
-            return Some(Event::Comment(comment.to_string()));
+            self.event_queue.push(Event::Comment(comment.to_string()));
+            return;
         }
 
         // Field line
@@ -115,8 +115,6 @@ impl SseParser {
                 _ => {}
             }
         }
-
-        None
     }
 
     /// Dispatch the current accumulated data as an event.
@@ -163,10 +161,31 @@ impl SseParser {
     pub fn last_event_id(&self) -> Option<&str> {
         self.current_id.as_deref()
     }
+
+    /// Check if there are more events to iterate.
+    ///
+    /// WHY: Caller may want to check if parser has buffered events.
+    /// WHAT: Returns true if event queue has events.
+    #[must_use]
+    pub fn has_events(&self) -> bool {
+        !self.event_queue.is_empty()
+    }
 }
 
 impl Default for SseParser {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl Iterator for SseParser {
+    type Item = Event;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.event_queue.is_empty() {
+            None
+        } else {
+            Some(self.event_queue.remove(0))
+        }
     }
 }

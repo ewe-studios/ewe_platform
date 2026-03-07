@@ -7,7 +7,9 @@ use foundation_core::wire::event_source::{Event, SseParser};
 #[test]
 fn test_parser_single_event() {
     let mut parser = SseParser::new();
-    let events = parser.parse("data: hello\n\n");
+    parser.feed("data: hello\n\n");
+
+    let events: Vec<Event> = parser.collect();
 
     assert_eq!(events.len(), 1);
     match &events[0] {
@@ -19,7 +21,9 @@ fn test_parser_single_event() {
 #[test]
 fn test_parser_event_type() {
     let mut parser = SseParser::new();
-    let events = parser.parse("event: user_joined\ndata: alice\n\n");
+    parser.feed("event: user_joined\ndata: alice\n\n");
+
+    let events: Vec<Event> = parser.collect();
 
     assert_eq!(events.len(), 1);
     match &events[0] {
@@ -36,7 +40,9 @@ fn test_parser_event_type() {
 #[test]
 fn test_parser_multiline_data() {
     let mut parser = SseParser::new();
-    let events = parser.parse("data: Line 1\ndata: Line 2\ndata: Line 3\n\n");
+    parser.feed("data: Line 1\ndata: Line 2\ndata: Line 3\n\n");
+
+    let events: Vec<Event> = parser.collect();
 
     assert_eq!(events.len(), 1);
     match &events[0] {
@@ -48,7 +54,9 @@ fn test_parser_multiline_data() {
 #[test]
 fn test_parser_event_id() {
     let mut parser = SseParser::new();
-    let events = parser.parse("id: 123\ndata: hello\n\n");
+    parser.feed("id: 123\ndata: hello\n\n");
+
+    let events: Vec<Event> = parser.collect();
 
     assert_eq!(events.len(), 1);
     match &events[0] {
@@ -60,7 +68,9 @@ fn test_parser_event_id() {
 #[test]
 fn test_parser_retry() {
     let mut parser = SseParser::new();
-    let events = parser.parse("retry: 5000\ndata: hello\n\n");
+    parser.feed("retry: 5000\ndata: hello\n\n");
+
+    let events: Vec<Event> = parser.collect();
 
     assert_eq!(events.len(), 1);
     match &events[0] {
@@ -72,7 +82,9 @@ fn test_parser_retry() {
 #[test]
 fn test_parser_comment() {
     let mut parser = SseParser::new();
-    let events = parser.parse(": This is a comment\n");
+    parser.feed(": This is a comment\n");
+
+    let events: Vec<Event> = parser.collect();
 
     assert_eq!(events.len(), 1);
     match &events[0] {
@@ -84,7 +96,9 @@ fn test_parser_comment() {
 #[test]
 fn test_parser_multiple_events() {
     let mut parser = SseParser::new();
-    let events = parser.parse("data: first\n\nid: 2\ndata: second\n\n");
+    parser.feed("data: first\n\nid: 2\ndata: second\n\n");
+
+    let events: Vec<Event> = parser.collect();
 
     assert_eq!(events.len(), 2);
     match &events[0] {
