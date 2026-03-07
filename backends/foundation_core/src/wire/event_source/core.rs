@@ -1,1 +1,166 @@
+//! Core SSE types: [`Event`] and [`SseEvent`].
+//!
+//! WHY: Server-Sent Events require standardized types for consuming and producing events.
+//! WHAT: Defines the [`Event`] enum for received events and [`SseEvent`] builder for sending events.
+//!
+//! Reference: W3C Server-Sent Events specification (<https://html.spec.whatwg.org/multipage/server-sent-events.html>)
 
+/// Event represents a parsed SSE event received from the server.
+///
+/// WHY: SSE protocol defines specific event types (message, comment, reconnect) with fields.
+/// WHAT: Enum capturing all possible SSE event types with their associated data.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Event {
+    /// A message event with optional id, event type, data, and retry interval.
+    Message {
+        id: Option<String>,
+        event_type: Option<String>,
+        data: String,
+        retry: Option<u64>,
+    },
+    /// A comment (keep-alive) - ignored by clients but useful for debugging.
+    Comment(String),
+    /// Reconnection signal - used internally to indicate reconnection needed.
+    Reconnect,
+}
+
+/// [`SseEvent`] represents an SSE event to be sent to clients (server-side).
+///
+/// WHY: Server needs to format events according to SSE specification.
+/// WHAT: Builder pattern for constructing SSE events with all fields.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SseEvent {
+    id: Option<String>,
+    event_type: Option<String>,
+    data: Vec<String>,
+    retry: Option<u64>,
+}
+
+impl SseEvent {
+    /// Create a simple message event with just data.
+    ///
+    /// WHY: Most common use case - send a simple message.
+    /// WHAT: Convenience constructor for single-line data events.
+    pub fn message(data: impl Into<String>) -> Self {
+        Self {
+            id: None,
+            event_type: None,
+            data: vec![data.into()],
+            retry: None,
+        }
+    }
+
+    /// Create a new [`SseEvent`] builder.
+    ///
+    /// WHY: Allow building events with all fields (id, event, data, retry).
+    /// WHAT: Returns a builder for fluent construction.
+    #[must_use]
+    #[allow(clippy::new_ret_no_self)]
+    pub fn new() -> SseEventBuilder {
+        SseEventBuilder {
+            id: None,
+            event_type: None,
+            data: Vec::new(),
+        }
+    }
+
+    /// Create a retry event to set the reconnection interval.
+    ///
+    /// WHY: Server can control client reconnection timing.
+    /// WHAT: Creates an event that sets the retry field on the client.
+    #[must_use]
+    pub fn retry(milliseconds: u64) -> Self {
+        Self {
+            id: None,
+            event_type: None,
+            data: Vec::new(),
+            retry: Some(milliseconds),
+        }
+    }
+
+    /// Get the event ID.
+    #[must_use]
+    pub fn id(&self) -> Option<&str> {
+        self.id.as_deref()
+    }
+
+    /// Get the event type.
+    #[must_use]
+    pub fn event_type(&self) -> Option<&str> {
+        self.event_type.as_deref()
+    }
+
+    /// Get the data lines.
+    #[must_use]
+    pub fn data_lines(&self) -> &[String] {
+        &self.data
+    }
+
+    /// Get the retry interval in milliseconds.
+    #[must_use]
+    pub fn retry_ms(&self) -> Option<u64> {
+        self.retry
+    }
+}
+
+impl Default for SseEvent {
+    fn default() -> Self {
+        SseEvent::new().build()
+    }
+}
+
+/// Builder for [`SseEvent`].
+///
+/// WHY: Fluent API for constructing SSE events with multiple fields.
+/// WHAT: Allows chaining field setters and building the final event.
+pub struct SseEventBuilder {
+    id: Option<String>,
+    event_type: Option<String>,
+    data: Vec<String>,
+}
+
+impl SseEventBuilder {
+    /// Set the event ID.
+    ///
+    /// WHY: Clients track event IDs for reconnection resume.
+    /// WHAT: Sets the id field that becomes `Last-Event-ID` header on reconnect.
+    #[must_use]
+    pub fn id(mut self, id: impl Into<String>) -> Self {
+        self.id = Some(id.into());
+        self
+    }
+
+    /// Set the event type.
+    ///
+    /// WHY: Allows clients to filter events by type.
+    /// WHAT: Sets the event field (default is "message" if not specified).
+    #[must_use]
+    pub fn event(mut self, event_type: impl Into<String>) -> Self {
+        self.event_type = Some(event_type.into());
+        self
+    }
+
+    /// Add a data line.
+    ///
+    /// WHY: SSE supports multi-line data (each line prefixed with "data: ").
+    /// WHAT: Adds a line to the data field. Multiple calls create multi-line events.
+    #[must_use]
+    pub fn data(mut self, data: impl Into<String>) -> Self {
+        self.data.push(data.into());
+        self
+    }
+
+    /// Build the [`SseEvent`].
+    ///
+    /// WHY: Finalize the builder and create the event.
+    /// WHAT: Returns the constructed [`SseEvent`] ready for sending.
+    #[must_use]
+    pub fn build(self) -> SseEvent {
+        SseEvent {
+            id: self.id,
+            event_type: self.event_type,
+            data: self.data,
+            retry: None,
+        }
+    }
+}

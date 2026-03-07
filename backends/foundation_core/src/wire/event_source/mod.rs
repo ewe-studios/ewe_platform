@@ -1,12 +1,15 @@
 extern crate url;
 
 mod core;
+mod error;
+mod parser;
+mod response;
+mod task;
+mod writer;
 
-#[cfg(not(target_arch = "wasm32"))]
-mod no_wasm;
-
-#[cfg(target_arch = "wasm32")]
-mod wasm;
-
-#[cfg(target_arch = "wasm32")]
-pub use wasm::*;
+pub use core::{Event, SseEvent, SseEventBuilder};
+pub use error::EventSourceError;
+pub use parser::SseParser;
+pub use response::SseResponse;
+pub use task::{EventSourceConfig, EventSourceProgress, EventSourceStreamReader, EventSourceTask};
+pub use writer::EventWriter;
