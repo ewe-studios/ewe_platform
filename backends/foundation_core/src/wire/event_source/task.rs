@@ -160,7 +160,6 @@ where
 /// [`EventSourceStreamReader`] wraps [`SseParser`] for SSE event consumption.
 pub struct EventSourceStreamReader {
     parser: SseParser,
-    event_queue: Vec<Event>,
     done: bool,
 }
 
@@ -169,23 +168,18 @@ impl EventSourceStreamReader {
     pub fn new() -> Self {
         Self {
             parser: SseParser::new(),
-            event_queue: Vec::new(),
             done: false,
         }
     }
 
     pub fn feed(&mut self, bytes: &[u8]) {
         if let Ok(text) = std::str::from_utf8(bytes) {
-            let events = self.parser.parse(text);
-            self.event_queue.extend(events);
+            self.parser.feed(text);
         }
     }
 
     pub fn next_event(&mut self) -> Option<Result<Event, EventSourceError>> {
-        if self.event_queue.is_empty() {
-            return None;
-        }
-        Some(Ok(self.event_queue.remove(0)))
+        self.parser.next().map(Ok)
     }
 
     pub fn mark_done(&mut self) {
