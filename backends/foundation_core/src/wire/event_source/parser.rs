@@ -1,91 +1,67 @@
 //! SSE message parser following W3C specification.
 //!
 //! WHY: SSE protocol requires parsing incoming data according to specific rules.
-//! WHAT: Implements streaming SSE parser as an Iterator that handles field types, multi-line data, and line endings.
+//! WHAT: Streaming SSE parser that reads lines and accumulates state until complete events.
+//!
+//! NOTE: This parser uses internal state accumulation (`current_data`, `current_id`, etc.)
+//! to build events across multiple lines - this is REQUIRED by SSE spec.
 //!
 //! Reference: W3C Server-Sent Events specification (<https://html.spec.whatwg.org/multipage/server-sent-events.html>)
 
+use crate::io::ioutils::SharedByteBufferStream;
 use crate::wire::event_source::Event;
+use std::io::Read;
 
 /// [`SseParser`] parses incoming SSE data according to W3C specification.
 ///
 /// WHY: SSE protocol has specific parsing rules for fields, line endings, and multi-line data.
-/// WHAT: Stateful iterator that accumulates data and yields complete events one at a time.
-pub struct SseParser {
-    buffer: String,
+/// WHAT: Stateful parser wrapping a `Read`er, reading lines and accumulating state until complete events.
+///
+/// NOTE: Generic over any `Read` type wrapped in `SharedByteBufferStream`.
+/// The parser uses `BufRead` to efficiently read lines from the buffered stream.
+pub struct SseParser<R: Read> {
+    buffer: SharedByteBufferStream<R>,
     current_id: Option<String>,
     current_event: Option<String>,
     current_data: Vec<String>,
     current_retry: Option<u64>,
-    event_queue: Vec<Event>,
 }
 
-impl SseParser {
-    /// Create a new SSE parser.
+impl<R: Read> SseParser<R> {
+    /// Create a new SSE parser with a buffer.
     ///
-    /// WHY: Parser needs to start with empty state.
-    /// WHAT: Returns a parser with default empty state.
-    #[must_use]
-    pub fn new() -> Self {
+    /// WHY: Parser needs a buffer to read from.
+    /// WHAT: Returns a parser that reads from the provided `SharedByteBufferStream`.
+    ///
+    /// NOTE: External code writes to the buffer; this parser only reads from it.
+    pub fn new(buffer: SharedByteBufferStream<R>) -> Self {
         Self {
-            buffer: String::new(),
+            buffer,
             current_id: None,
             current_event: None,
             current_data: Vec::new(),
             current_retry: None,
-            event_queue: Vec::new(),
-        }
-    }
-
-    /// Feed incoming chunk to the parser.
-    ///
-    /// WHY: SSE streams arrive in chunks; parser accumulates data until complete events are formed.
-    /// WHAT: Processes chunk line-by-line, queues complete events for iteration.
-    pub fn feed(&mut self, chunk: &str) {
-        self.buffer.push_str(chunk);
-
-        // Process complete lines
-        loop {
-            // Find next line ending (LF or CRLF)
-            let line_end = self.buffer.find('\n').or_else(|| self.buffer.find("\r\n"));
-
-            match line_end {
-                None => break, // No complete line yet
-                Some(end) => {
-                    let line = self.buffer[..end].to_string();
-                    self.buffer.drain(..=end);
-
-                    // Strip carriage return if present (\r\n)
-                    let line = line.strip_suffix('\r').unwrap_or(&line);
-
-                    // Parse line and queue event if complete
-                    self.parse_line(line);
-                }
-            }
         }
     }
 
     /// Parse a single line and update state.
     ///
     /// WHY: Each line in SSE has specific meaning (field, comment, empty).
-    /// WHAT: Updates internal state or queues complete events.
-    fn parse_line(&mut self, line: &str) {
+    /// WHAT: Returns `Some(Event)` for comments or completed events,
+    ///       `None` for field lines that need more data.
+    fn parse_line(&mut self, line: &str) -> Option<Event> {
         // Empty line dispatches event
         if line.is_empty() {
-            if let Some(event) = self.dispatch_event() {
-                self.event_queue.push(event);
-            }
-            return;
+            return self.dispatch_event();
         }
 
-        // Comment (starts with :)
+        // Comment (starts with :) - immediate single-line event
         if line.starts_with(':') {
             let comment = line.strip_prefix(':').unwrap_or("").trim_start();
-            self.event_queue.push(Event::Comment(comment.to_string()));
-            return;
+            return Some(Event::Comment(comment.to_string()));
         }
 
-        // Field line
+        // Field line - accumulate state, event comes later
         if let Some(colon_pos) = line.find(':') {
             let field = &line[..colon_pos];
             let value = line.get(colon_pos + 1..).unwrap_or("");
@@ -115,6 +91,44 @@ impl SseParser {
                 _ => {}
             }
         }
+
+        // Field line - no event yet, still accumulating
+        None
+    }
+
+    /// Read and parse one line from the buffer.
+    ///
+    /// WHY: Each line in SSE has specific meaning (field, comment, empty).
+    /// WHAT: Reads a line into a String using the higher-level `read_line` method,
+    ///       parses it, returns event if complete.
+    ///
+    /// NOTE: Uses `read_line` which internally handles `next_until` and state management.
+    /// After extracting the line, identifies event type and either:
+    /// - Returns `Some(Event)` for comments
+    /// - Accumulates state and returns `None` for field lines
+    /// - Dispatches event for empty lines
+    fn read_and_parse_line(&mut self) -> Option<Event> {
+        let mut line = String::new();
+
+        // Read line using higher-level read_line method
+        match self.buffer.read_line(&mut line) {
+            Ok(0) => return None, // EOF or empty line read
+            Ok(_) => {}
+            Err(_) => return None, // Read error, stop iteration
+        }
+
+        // Remove the newline byte from the end (read_line includes it)
+        if line.ends_with('\n') {
+            line.pop();
+        }
+
+        // Handle CRLF - strip trailing \r if present
+        if line.ends_with('\r') {
+            line.pop();
+        }
+
+        // Parse line and return event if complete
+        self.parse_line(&line)
     }
 
     /// Dispatch the current accumulated data as an event.
@@ -162,30 +176,30 @@ impl SseParser {
         self.current_id.as_deref()
     }
 
-    /// Check if there are more events to iterate.
+    /// Parse next available line and return event if complete.
     ///
-    /// WHY: Caller may want to check if parser has buffered events.
-    /// WHAT: Returns true if event queue has events.
-    #[must_use]
-    pub fn has_events(&self) -> bool {
-        !self.event_queue.is_empty()
+    /// WHY: Combined method for single-step parsing.
+    /// WHAT: Reads line, parses it, returns event or None.
+    pub fn parse_next(&mut self) -> Option<Event> {
+        self.read_and_parse_line()
     }
 }
 
-impl Default for SseParser {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl Iterator for SseParser {
+impl<R: Read> Iterator for SseParser<R> {
     type Item = Event;
 
+    /// Get next event from parser.
+    ///
+    /// WHY: Provide standard Iterator interface for SSE event consumption.
+    /// WHAT: Reads and parses one line, returns event if produced.
+    ///
+    /// NOTE: Returns `None` when:
+    /// - Buffer is empty (no complete line to extract)
+    /// - Line was a field (accumulates state, event comes later)
+    ///
+    /// This does NOT mean the iterator is exhausted - caller should
+    /// `feed()` more data or wait for more data from the reader, then call `next()` again.
     fn next(&mut self) -> Option<Self::Item> {
-        if self.event_queue.is_empty() {
-            None
-        } else {
-            Some(self.event_queue.remove(0))
-        }
+        self.parse_next()
     }
 }

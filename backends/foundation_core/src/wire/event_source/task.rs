@@ -14,6 +14,7 @@
 //! PHASE 1 SCOPE: Basic SSE client with `TaskIterator` pattern.
 //! PHASE 2 SCOPE: Automatic reconnection with exponential backoff.
 
+use crate::io::ioutils::{SharedBufferReadStream, SharedBufferWriter};
 use crate::valtron::{
     inlined_task, BoxedSendExecutionAction, DrivenRecvIterator, IntoBoxedSendExecutionAction,
     TaskIterator, TaskStatus,
@@ -46,7 +47,6 @@ where
     Connecting(DrivenRecvIterator<HttpConnectTask<R>>),
     Reading(EventSourceStreamReader),
     Closed,
-    _Phantom(PhantomData<R>),
 }
 
 pub struct EventSourceTask<R>
@@ -158,28 +158,31 @@ where
 }
 
 /// [`EventSourceStreamReader`] wraps [`SseParser`] for SSE event consumption.
+///
+/// Uses `SharedBuffer` to separate write (external) from read (parser) access.
 pub struct EventSourceStreamReader {
-    parser: SseParser,
+    writer: SharedBufferWriter,
+    parser: SseParser<SharedBufferReadStream>,
     done: bool,
 }
 
 impl EventSourceStreamReader {
     #[must_use]
     pub fn new() -> Self {
-        Self {
-            parser: SseParser::new(),
-            done: false,
-        }
+        todo!()
     }
 
-    pub fn feed(&mut self, bytes: &[u8]) {
-        if let Ok(text) = std::str::from_utf8(bytes) {
-            self.parser.feed(text);
-        }
+    /// Get a writer handle to write data to the buffer.
+    ///
+    /// NOTE: Parser reads from the buffer; external code writes via this handle.
+    pub fn writer(&self) -> SharedBufferWriter {
+        self.writer.clone()
     }
 
     pub fn next_event(&mut self) -> Option<Result<Event, EventSourceError>> {
-        self.parser.next().map(Ok)
+        // Drive parser until we get an event or buffer is exhausted
+        // Parser returns Some(Event) for complete events, None for field lines or EOF
+        todo!()
     }
 
     pub fn mark_done(&mut self) {
@@ -278,7 +281,7 @@ where
                 }
             },
 
-            EventSourceState::Closed | EventSourceState::_Phantom(_) => None,
+            EventSourceState::Closed => None,
         }
     }
 }

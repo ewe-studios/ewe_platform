@@ -72,6 +72,7 @@ log_debug = []
 log_info = []
 nightly = []
 
+socks5 = []
 ssl-openssl = ["std", "openssl", "zeroize"]
 ssl-rustls = ["std", "rustls", "rustls-pemfile", "webpki-roots", "zeroize"]
 ssl-native-tls = ["std", "native-tls", "native-tls/vendored", "zeroize"]
