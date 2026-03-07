@@ -1864,7 +1864,9 @@ impl<T: Read> ByteBufferPointer<T> {
                     Ok(c.len())
                 }
                 PeekState::EndOfFile => Ok(0),
-                PeekState::ZeroLengthInput => Ok(0),
+                PeekState::ZeroLengthInput => {
+                    Err(crate::err!(WriteZero, "Provided zero size request"))
+                }
                 _ => unreachable!("Should never trigger"),
             },
             Err(err) => return Err(err),
@@ -1911,7 +1913,9 @@ impl<T: Read> ByteBufferPointer<T> {
                     Ok(c.len())
                 }
                 PeekState::EndOfFile => Ok(0),
-                PeekState::ZeroLengthInput => Ok(0),
+                PeekState::ZeroLengthInput => {
+                    Err(crate::err!(WriteZero, "Provided zero size request"))
+                }
                 _ => unreachable!("Should never trigger"),
             },
             Err(err) => return Err(err),
@@ -1956,7 +1960,9 @@ impl<T: Read> ByteBufferPointer<T> {
                     Ok(c.len())
                 }
                 PeekState::EndOfFile => Ok(0),
-                PeekState::ZeroLengthInput => Ok(0),
+                PeekState::ZeroLengthInput => {
+                    Err(crate::err!(WriteZero, "Provided zero size request"))
+                }
                 _ => unreachable!("Should never trigger"),
             },
             Err(err) => return Err(err),
@@ -2017,7 +2023,9 @@ impl<T: Read> ByteBufferPointer<T> {
                     }
                 }
                 PeekState::EndOfFile => Ok(0),
-                PeekState::ZeroLengthInput => Ok(0),
+                PeekState::ZeroLengthInput => {
+                    Err(err!(InvalidInput, "Zero length input not allowed"))
+                }
                 _ => unreachable!("Should never trigger"),
             },
             Err(err) => return Err(err),
@@ -2105,7 +2113,7 @@ impl<T: Read> PeekableReadStream for ByteBufferPointer<T> {
                     }
                     Ok(data.len())
                 }
-                PeekState::ZeroLengthInput => Ok(0),
+                PeekState::ZeroLengthInput => Err(PeekError::ZeroLengthNotAllowed),
                 _ => unreachable!("We should never hit this state"),
             },
             Err(err) => Err(PeekError::IOError(err)),
