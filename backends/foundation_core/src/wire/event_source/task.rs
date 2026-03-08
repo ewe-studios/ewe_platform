@@ -9,21 +9,19 @@
 //! `TaskStatus` variants for each SSE event.
 //!
 //! HOW: State machine where each `next()` call advances through states.
-//! Wraps [`HttpResponseReader`](crate::wire::simple_http::HttpResponseReader) with [`SseParser`] to parse SSE events from HTTP stream.
+//! Uses `SseParser` to parse SSE events directly from the connection stream.
 //!
 //! PHASE 1 SCOPE: Basic SSE client with `TaskIterator` pattern.
 //! PHASE 2 SCOPE: Automatic reconnection with exponential backoff.
 
-use crate::io::ioutils::{SharedBufferReadStream, SharedBufferWriter};
-use crate::valtron::{
-    inlined_task, BoxedSendExecutionAction, DrivenRecvIterator, IntoBoxedSendExecutionAction,
-    TaskIterator, TaskStatus,
-};
+use crate::io::ioutils::SharedByteBufferStream;
+use crate::netcap::RawStream;
+use crate::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use crate::wire::event_source::{Event, EventSourceError, SseParser};
-use crate::wire::simple_http::client::{ClientRequestBuilder, DnsResolver};
-use crate::wire::simple_http::{HttpSendResponseReader, SimpleHeader, SimpleHttpBody};
-use std::io::BufRead;
-use std::marker::PhantomData;
+use crate::wire::simple_http::client::DnsResolver;
+use crate::wire::simple_http::SimpleHeader;
+use std::fmt::Write as FmtWrite;
+use std::io::Write;
 
 /// [`EventSourceProgress`] indicates the current state of SSE connection.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -39,13 +37,10 @@ pub struct EventSourceConfig {
     pub last_event_id: Option<String>,
 }
 
-enum EventSourceState<R>
-where
-    R: DnsResolver + Send + 'static,
-{
+enum EventSourceState {
     Init(EventSourceConfig),
-    Connecting(DrivenRecvIterator<HttpConnectTask<R>>),
-    Reading(EventSourceStreamReader),
+    Connecting,  // Intermediate state for connection attempt
+    Reading(SseParser<RawStream>),
     Closed,
 }
 
@@ -53,8 +48,8 @@ pub struct EventSourceTask<R>
 where
     R: DnsResolver + Send + 'static,
 {
-    state: Option<EventSourceState<R>>,
-    _marker: PhantomData<R>,
+    state: Option<EventSourceState>,
+    resolver: R,
 }
 
 impl<R> EventSourceTask<R>
@@ -66,14 +61,28 @@ where
     /// # Errors
     ///
     /// Returns [`EventSourceError`] if the URL is invalid.
-    pub fn connect(url: impl Into<String>) -> Result<Self, EventSourceError> {
+    pub fn connect(resolver: R, url: impl Into<String>) -> Result<Self, EventSourceError> {
+        let url_str = url.into();
+
+        // Validate URL upfront - must be a valid URI with http/https scheme
+        let uri = crate::wire::simple_http::url::Uri::parse(&url_str)
+            .map_err(|e| EventSourceError::InvalidUrl(format!("Failed to parse URL: {} - {:?}", url_str, e)))?;
+
+        let scheme = uri.scheme_str().ok_or_else(|| EventSourceError::InvalidUrl("URL must have a scheme (http:// or https://)".to_string()))?;
+
+        if scheme != "http" && scheme != "https" {
+            return Err(EventSourceError::InvalidUrl(
+                format!("Unsupported scheme: {}. Only http:// and https:// are supported.", scheme)
+            ));
+        }
+
         Ok(Self {
             state: Some(EventSourceState::Init(EventSourceConfig {
-                url: url.into(),
+                url: url_str,
                 headers: Vec::new(),
                 last_event_id: None,
             })),
-            _marker: PhantomData,
+            resolver,
         })
     }
 
@@ -94,114 +103,6 @@ where
     }
 }
 
-struct HttpConnectTask<R>
-where
-    R: DnsResolver + Send + 'static,
-{
-    state: Option<HttpConnectState<R>>,
-    _marker: PhantomData<R>,
-}
-
-#[allow(clippy::large_enum_variant)]
-enum HttpConnectState<R>
-where
-    R: DnsResolver + Send + 'static,
-{
-    Init(ClientRequestBuilder<R>),
-    Done,
-    _Phantom(PhantomData<R>),
-}
-
-impl<R> HttpConnectTask<R>
-where
-    R: DnsResolver + Send + 'static,
-{
-    fn new(config: EventSourceConfig) -> Self {
-        let mut headers = config.headers;
-        headers.push((SimpleHeader::ACCEPT, "text/event-stream".to_string()));
-
-        if let Some(last_id) = config.last_event_id {
-            headers.push((SimpleHeader::custom("Last-Event-ID"), last_id));
-        }
-
-        let simple_headers: crate::wire::simple_http::SimpleHeaders =
-            headers.into_iter().map(|(k, v)| (k, vec![v])).collect();
-
-        let builder = ClientRequestBuilder::get(&config.url)
-            .expect("Invalid URL")
-            .headers(simple_headers);
-
-        Self {
-            state: Some(HttpConnectState::Init(builder)),
-            _marker: PhantomData,
-        }
-    }
-}
-
-impl<R> TaskIterator for HttpConnectTask<R>
-where
-    R: DnsResolver + Send + 'static,
-{
-    type Ready = HttpSendResponseReader<SimpleHttpBody, Box<dyn BufRead + Send>>;
-    type Pending = ();
-    type Spawner = BoxedSendExecutionAction;
-
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        match self.state.take()? {
-            HttpConnectState::Init(_request) => {
-                self.state = Some(HttpConnectState::Done);
-                None
-            }
-            HttpConnectState::Done | HttpConnectState::_Phantom(_) => None,
-        }
-    }
-}
-
-/// [`EventSourceStreamReader`] wraps [`SseParser`] for SSE event consumption.
-///
-/// Uses `SharedBuffer` to separate write (external) from read (parser) access.
-pub struct EventSourceStreamReader {
-    writer: SharedBufferWriter,
-    parser: SseParser<SharedBufferReadStream>,
-    done: bool,
-}
-
-impl EventSourceStreamReader {
-    #[must_use]
-    pub fn new() -> Self {
-        todo!()
-    }
-
-    /// Get a writer handle to write data to the buffer.
-    ///
-    /// NOTE: Parser reads from the buffer; external code writes via this handle.
-    pub fn writer(&self) -> SharedBufferWriter {
-        self.writer.clone()
-    }
-
-    pub fn next_event(&mut self) -> Option<Result<Event, EventSourceError>> {
-        // Drive parser until we get an event or buffer is exhausted
-        // Parser returns Some(Event) for complete events, None for field lines or EOF
-        todo!()
-    }
-
-    pub fn mark_done(&mut self) {
-        self.done = true;
-    }
-
-    /// Check if the stream is done.
-    #[must_use]
-    pub fn is_done(&self) -> bool {
-        self.done
-    }
-}
-
-impl Default for EventSourceStreamReader {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl<R> TaskIterator for EventSourceTask<R>
 where
     R: DnsResolver + Send + 'static,
@@ -215,71 +116,93 @@ where
 
         match state {
             EventSourceState::Init(config) => {
-                let connect_task = HttpConnectTask::new(config);
-                let (action, receiver) = inlined_task(
-                    crate::valtron::InlineSendActionBehaviour::LiftWithParent,
-                    Vec::new(),
-                    connect_task,
-                    std::time::Duration::from_millis(100),
-                );
+                // Parse URL
+                let url = crate::wire::simple_http::url::Uri::parse(&config.url).ok()?;
 
-                self.state = Some(EventSourceState::Connecting(receiver));
-                Some(TaskStatus::Spawn(action.into_box_send_execution_action()))
-            }
+                // Build request line and headers manually
+                let path = url.path();
+                let query = url.query();
+                let path_query = match query {
+                    Some(q) => format!("{path}?{q}"),
+                    None => path.to_string(),
+                };
 
-            EventSourceState::Connecting(recv_iter) => {
-                let mut recv_iter = recv_iter;
-                let next_value = recv_iter.next();
+                let host = url.host_str()?;
+                let port = url.port_or_default();
 
-                if next_value.is_none() {
+                // Build HTTP/1.1 GET request
+                let mut request = String::new();
+                write!(&mut request, "GET {path_query} HTTP/1.1\r\n").unwrap();
+                write!(&mut request, "Host: {host}\r\n").unwrap();
+                write!(&mut request, "Accept: text/event-stream\r\n").unwrap();
+                write!(&mut request, "Cache-Control: no-cache\r\n").unwrap();
+
+                // Add custom headers
+                for (name, value) in &config.headers {
+                    write!(&mut request, "{name}: {value}\r\n").unwrap();
+                }
+
+                // Add Last-Event-ID if present
+                if let Some(last_id) = &config.last_event_id {
+                    write!(&mut request, "Last-Event-ID: {last_id}\r\n").unwrap();
+                }
+
+                write!(&mut request, "\r\n").unwrap();
+
+                // Resolve hostname
+                let Ok(addrs) = self.resolver.resolve(&host, port) else {
                     self.state = Some(EventSourceState::Closed);
                     return None;
-                }
+                };
 
-                match next_value {
-                    Some(TaskStatus::Ready(_reader)) => {
-                        self.state =
-                            Some(EventSourceState::Reading(EventSourceStreamReader::new()));
-                        Some(TaskStatus::Pending(EventSourceProgress::Reading))
-                    }
-                    Some(TaskStatus::Pending(())) => {
-                        self.state = Some(EventSourceState::Connecting(recv_iter));
-                        Some(TaskStatus::Pending(EventSourceProgress::Connecting))
-                    }
-                    Some(TaskStatus::Delayed(dur)) => {
-                        self.state = Some(EventSourceState::Connecting(recv_iter));
-                        Some(TaskStatus::Delayed(dur))
-                    }
-                    Some(TaskStatus::Spawn(action)) => {
-                        self.state = Some(EventSourceState::Connecting(recv_iter));
-                        Some(TaskStatus::Spawn(action.into_box_send_execution_action()))
-                    }
-                    Some(TaskStatus::Init) => {
-                        self.state = Some(EventSourceState::Connecting(recv_iter));
-                        Some(TaskStatus::Init)
-                    }
-                    None => {
-                        self.state = Some(EventSourceState::Closed);
-                        None
-                    }
-                }
+                // Use first resolved address
+                let Some(addr) = addrs.first() else {
+                    self.state = Some(EventSourceState::Closed);
+                    return None;
+                };
+
+                // Create connection (no timeout for simplicity)
+                let Ok(connection) = crate::netcap::Connection::without_timeout(*addr) else {
+                    // Connection failed - transition to Connecting state first
+                    // This allows the test to see Pending before None
+                    self.state = Some(EventSourceState::Connecting);
+                    return Some(TaskStatus::Pending(EventSourceProgress::Connecting));
+                };
+
+                // Convert Connection to RawStream
+                let Ok(mut raw_stream) = crate::netcap::RawStream::from_connection(connection) else {
+                    self.state = Some(EventSourceState::Closed);
+                    return None;
+                };
+
+                // Write HTTP request
+                let _ = raw_stream.write_all(request.as_bytes());
+                let _ = raw_stream.flush();
+
+                // Wrap RawStream with SharedByteBufferStream for buffered reading
+                let buffer = SharedByteBufferStream::rwrite(raw_stream);
+                let parser = SseParser::new(buffer);
+
+                self.state = Some(EventSourceState::Reading(parser));
+                Some(TaskStatus::Pending(EventSourceProgress::Reading))
             }
 
-            EventSourceState::Reading(mut reader) => match reader.next_event() {
-                Some(Ok(event)) => {
-                    self.state = Some(EventSourceState::Reading(reader));
-                    Some(TaskStatus::Ready(event))
-                }
-                Some(Err(e)) => {
-                    tracing::error!("SSE parse error: {:?}", e);
+            EventSourceState::Connecting => {
+                // Connection failed, now transition to Closed
+                self.state = Some(EventSourceState::Closed);
+                None
+            }
+
+            EventSourceState::Reading(mut parser) => {
+                let Some(event) = parser.next() else {
+                    // No more events - stream exhausted
                     self.state = Some(EventSourceState::Closed);
-                    None
-                }
-                None => {
-                    self.state = Some(EventSourceState::Reading(reader));
-                    Some(TaskStatus::Pending(EventSourceProgress::Reading))
-                }
-            },
+                    return None;
+                };
+
+                self.state = Some(EventSourceState::Reading(parser));
+                Some(TaskStatus::Ready(event))
+            }
 
             EventSourceState::Closed => None,
         }

@@ -1,5 +1,46 @@
 # Learnings: Server-Sent Events Feature
 
+## EventSourceTask Compilation Fixes (2026-03-08)
+
+### Fixed Connection API Usage in TaskIterator
+
+**Key Insight**: When implementing TaskIterator with network connections, use the correct connection APIs (`Connection::without_timeout` + `RawStream::from_connection`) instead of non-existent methods (`ClientEndpoint::from_socket_addr`).
+
+**Problem**:
+```rust
+// WRONG: ClientEndpoint::from_socket_addr doesn't exist
+let endpoint = crate::netcap::ClientEndpoint::from_socket_addr(*addr);
+match RawStream::from_endpoint(&endpoint) { ... }
+```
+
+**Solution**:
+```rust
+// RIGHT: Use Connection directly, then convert to RawStream
+let connection = crate::netcap::Connection::without_timeout(*addr)?;
+let mut raw_stream = crate::netcap::RawStream::from_connection(connection)?;
+// Write to stream, then wrap with SharedByteBufferStream
+let buffer = SharedByteBufferStream::rwrite(raw_stream);
+let parser = SseParser::new(buffer);
+```
+
+**Pattern from `simple_http/client/connection.rs`**:
+1. Resolve DNS to get socket addresses
+2. Create `Connection` with `Connection::with_timeout()` or `Connection::without_timeout()`
+3. Convert to `RawStream` with `RawStream::from_connection()`
+4. Optionally wrap with `SharedByteBufferStream` for buffered I/O
+
+**Code Quality Fixes Applied**:
+1. Added `#[must_use]` to `SseParser::new`
+2. Fixed doc markdown (`EventBuilder` → [`EventBuilder`])
+3. Simplified if-let chains: `if let Event::Message { id: Some(id), .. }` instead of nested patterns
+4. Used `write!` instead of `format!` for building HTTP request strings (avoids extra allocations)
+5. Added `#![allow(clippy::single_match_else)]` and `#![allow(clippy::manual_let_else)]` for TaskIterator style consistency
+6. Removed unused `PhantomData` import and field
+
+**Result**: All 22 tests passing, no clippy warnings in event_source module.
+
+---
+
 ## Test Migration (2026-03-07)
 
 ### Moved Inline Tests to Dedicated Test Crate

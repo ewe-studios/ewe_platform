@@ -3,7 +3,7 @@ workspace_name: "ewe_platform"
 spec_directory: "specifications/02-build-http-client"
 feature_directory: "specifications/02-build-http-client/features/server-sent-events"
 this_file: "specifications/02-build-http-client/features/server-sent-events/PROGRESS.md"
-last_updated: 2026-03-07 (Phase 1 complete - SseParser refactored to Iterator)
+last_updated: 2026-03-08 (Phase 1 complete - EventSourceTask compilation fixes)
 ---
 
 # Progress: Server-Sent Events Feature
@@ -47,11 +47,11 @@ last_updated: 2026-03-07 (Phase 1 complete - SseParser refactored to Iterator)
 
 **Task 6: EventSourceTask (`task.rs`)** ✅
 - TaskIterator implementation for SSE client
-- State machine: Init → Connecting → Reading → Closed
-- EventSourceStreamReader with SseParser integration
-- feed() method for byte input
-- next_event() method returning one event per call
-- Integration with valtron executor via inlined_task
+- State machine: Init → Reading → Closed
+- HTTP request building and connection handling
+- SseParser integration with SharedByteBufferStream
+- DNS resolution support via generic DnsResolver
+- Header building including Last-Event-ID support
 
 **Task 7: Test Migration** ✅ (2026-03-07)
 - Moved all inline tests to dedicated test crate
@@ -61,13 +61,15 @@ last_updated: 2026-03-07 (Phase 1 complete - SseParser refactored to Iterator)
 
 **Total: 22 passing tests in test crate, all code formatted, no clippy warnings**
 
-**Code Quality Fixes Applied** (2026-03-07):
-- Added backticks around type names in documentation
-- Added `#[must_use]` attributes to builder methods
-- Added `# Errors` and `# Panics` documentation sections
-- Fixed format strings to use direct interpolation
-- Changed `send()` to take reference instead of ownership
-- Suppressed legitimate clippy warnings with allow attributes
+**Code Quality Fixes Applied** (2026-03-08):
+- Fixed EventSourceTask compilation errors (ClientEndpoint API usage)
+- Changed from RawStream::from_endpoint to Connection::without_timeout + RawStream::from_connection
+- Added #[must_use] to SseParser::new
+- Fixed doc markdown (EventBuilder → [`EventBuilder`])
+- Simplified if-let chains for id pattern matching
+- Used write! instead of format! for request building
+- Added #![allow(clippy::single_match_else)] and #![allow(clippy::manual_let_else)] for TaskIterator style
+- Removed unused PhantomData import
 
 ---
 
@@ -121,4 +123,4 @@ Phase 1 is complete. Ready to proceed to Phase 2 (ReconnectingEventSourceTask) o
 ---
 
 *Created: 2026-03-05*
-*Last Updated: 2026-03-07*
+*Last Updated: 2026-03-08*
