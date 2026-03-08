@@ -747,29 +747,6 @@ for status in driven {
 }
 ```
 
-2. **ReadyConsumingIter** - Filters to only Ready values:
-```rust
-use crate::valtron::{ReadyConsumingIter, TaskStatusMapper};
-
-// Create mapper that extracts only Ready values
-pub struct EventReadyMapper;
-impl TaskStatusMapper for EventReadyMapper {
-    fn map(&self, status: Option<TaskStatus<...>>) -> Option<TaskStatus<...>> {
-        match status {
-            Some(TaskStatus::Ready(event)) => Some(TaskStatus::Ready(event)),
-            _ => None, // Ignore Pending, Spawn, Delayed
-        }
-    }
-}
-
-// Usage
-let task = EventSourceTask::connect(url)?;
-let ready_iter = ReadyConsumingIter::new(task, vec![EventReadyMapper], channel);
-for event in ready_iter {
-    println!("Event: {:?}", event);  // Only Ready values
-}
-```
-
 **What NOT to Do:**
 - ❌ No loops in TaskIterator `next()`
 - ❌ No state without Option wrapper
@@ -777,13 +754,14 @@ for event in ready_iter {
 - ❌ No `struct Task { state: State }` - must be `struct Task(Option<State>)`
 - ❌ No execution driving in TaskIterator - that's DrivenSendTaskIterator's job
 
+**Note:** Custom `TaskStatusMapper` implementations (like `ReadyConsumingIter`) are ONLY needed when you require special transformation or filtering of `TaskStatus` variants. For most consumer wrappers, simply use `unified::execute_stream()` which returns `DrivenStreamIterator` that already presents a simplified `Stream<Ready, Pending>` interface.
+
 **Reference Files:**
 - `wire/simple_http/client/tasks/send_request.rs` - Full TaskIterator pattern
 - `wire/simple_http/client/tasks/request_redirect.rs` - Redirect handling
 - `wire/simple_http/client/tasks/request_intro.rs` - Intro reading pattern
 - `valtron/executors/task_iters.rs` - DrivenSendTaskIterator, drive_iterator()
-- `valtron/executors/drivers.rs` - ReadyConsumingIter, StreamConsumingIter
-- `valtron/executors/unified.rs` - Unified executor patterns
+- `valtron/executors/unified.rs` - Unified executor patterns (`execute()`, `execute_stream()`)
 
 ---
 
