@@ -9,7 +9,7 @@
 //! Reference: W3C Server-Sent Events specification (<https://html.spec.whatwg.org/multipage/server-sent-events.html>)
 
 use crate::io::ioutils::SharedByteBufferStream;
-use crate::wire::event_source::Event;
+use crate::wire::event_source::{Event, EventSourceError};
 use std::io::Read;
 
 /// Accumulator for building a single SSE event from parsed lines.
@@ -116,28 +116,27 @@ impl<R: Read> SseParser<R> {
     /// WHY: SSE events span multiple lines - need to accumulate until empty line or comment.
     /// WHAT: Reads lines in a loop, accumulating into an [`EventBuilder`], returns complete events.
     ///
-    /// NOTE: Returns `None` only when EOF is reached with no more data.
-    /// Field lines accumulate locally; empty lines dispatch; comments return immediately.
-    pub fn parse_next(&mut self) -> Option<Event> {
+    /// Returns:
+    /// - `Ok(Some(event))` when a complete event is parsed.
+    /// - `Ok(None)` when EOF is reached with no more data.
+    /// - `Err(EventSourceError)` on I/O read failure.
+    ///
+    /// NOTE: Field lines accumulate locally; empty lines dispatch; comments return immediately.
+    pub fn parse_next(&mut self) -> Result<Option<Event>, EventSourceError> {
         let mut builder = EventBuilder::new();
 
         loop {
             let mut line = String::new();
 
-            match self.buffer.read_line(&mut line) {
-                Ok(0) => {
-                    // EOF - dispatch any accumulated data before returning
-                    if let Some(event) = builder.build() {
-                        // Persist last event ID
-                        if let Event::Message { id: Some(id), .. } = &event {
-                            self.last_event_id = Some(id.clone());
-                        }
-                        return Some(event);
-                    }
-                    return None;
+            let bytes_read = self.buffer.read_line(&mut line)?;
+
+            if bytes_read == 0 {
+                // EOF - dispatch any accumulated data before returning
+                if let Some(event) = builder.build() {
+                    self.persist_event_id(&event);
+                    return Ok(Some(event));
                 }
-                Ok(_) => {}
-                Err(_) => return None, // Error
+                return Ok(None);
             }
 
             // Remove the newline byte from the end (read_line includes it)
@@ -153,12 +152,9 @@ impl<R: Read> SseParser<R> {
             // Empty line - dispatch accumulated event
             if line.is_empty() {
                 if let Some(event) = builder.build() {
-                    // Persist last event ID
-                    if let Event::Message { id: Some(id), .. } = &event {
-                        self.last_event_id = Some(id.clone());
-                    }
+                    self.persist_event_id(&event);
                     builder.reset();
-                    return Some(event);
+                    return Ok(Some(event));
                 }
                 builder.reset();
                 continue;
@@ -167,7 +163,7 @@ impl<R: Read> SseParser<R> {
             // Comment line - return immediately
             if line.starts_with(':') {
                 let comment = line.strip_prefix(':').unwrap_or("").trim_start();
-                return Some(Event::Comment(comment.to_string()));
+                return Ok(Some(Event::Comment(comment.to_string())));
             }
 
             // Field line - accumulate
@@ -183,18 +179,30 @@ impl<R: Read> SseParser<R> {
             // Lines without colon are ignored per spec
         }
     }
+
+    /// Persist the last event ID from a message event.
+    fn persist_event_id(&mut self, event: &Event) {
+        if let Event::Message { id: Some(id), .. } = event {
+            self.last_event_id = Some(id.clone());
+        }
+    }
 }
 
 impl<R: Read> Iterator for SseParser<R> {
-    type Item = Event;
+    type Item = Result<Event, EventSourceError>;
 
     /// Get next event from parser.
     ///
     /// WHY: Provide standard Iterator interface for SSE event consumption.
-    /// WHAT: Parses and returns complete events.
+    /// WHAT: Parses and returns complete events, propagating errors to callers.
     ///
     /// NOTE: Returns `None` only when EOF is reached.
+    /// Returns `Some(Err(...))` on I/O or parse errors.
     fn next(&mut self) -> Option<Self::Item> {
-        self.parse_next()
+        match self.parse_next() {
+            Ok(Some(event)) => Some(Ok(event)),
+            Ok(None) => None,
+            Err(e) => Some(Err(e)),
+        }
     }
 }

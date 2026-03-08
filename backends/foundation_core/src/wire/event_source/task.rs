@@ -39,7 +39,7 @@ pub struct EventSourceConfig {
 
 enum EventSourceState {
     Init(EventSourceConfig),
-    Connecting,  // Intermediate state for connection attempt
+    Connecting, // Intermediate state for connection attempt
     Reading(SseParser<RawStream>),
     Closed,
 }
@@ -65,15 +65,16 @@ where
         let url_str = url.into();
 
         // Validate URL upfront - must be a valid URI with http/https scheme
-        let uri = crate::wire::simple_http::url::Uri::parse(&url_str)
-            .map_err(|e| EventSourceError::InvalidUrl(format!("Failed to parse URL: {} - {:?}", url_str, e)))?;
+        let uri = crate::wire::simple_http::url::Uri::parse(&url_str).map_err(|e| {
+            EventSourceError::InvalidUrl(format!("Failed to parse URL: {} - {:?}", url_str, e))
+        })?;
 
-        let scheme = uri.scheme_str().ok_or_else(|| EventSourceError::InvalidUrl("URL must have a scheme (http:// or https://)".to_string()))?;
-
-        if scheme != "http" && scheme != "https" {
-            return Err(EventSourceError::InvalidUrl(
-                format!("Unsupported scheme: {}. Only http:// and https:// are supported.", scheme)
-            ));
+        // Check scheme is http or https using Scheme methods
+        if !uri.scheme().is_http() && !uri.scheme().is_https() {
+            return Err(EventSourceError::InvalidUrl(format!(
+                "Unsupported scheme: {}. Only http:// and https:// are supported.",
+                uri.scheme()
+            )));
         }
 
         Ok(Self {
@@ -170,7 +171,8 @@ where
                 };
 
                 // Convert Connection to RawStream
-                let Ok(mut raw_stream) = crate::netcap::RawStream::from_connection(connection) else {
+                let Ok(mut raw_stream) = crate::netcap::RawStream::from_connection(connection)
+                else {
                     self.state = Some(EventSourceState::Closed);
                     return None;
                 };
@@ -194,14 +196,22 @@ where
             }
 
             EventSourceState::Reading(mut parser) => {
-                let Some(event) = parser.next() else {
-                    // No more events - stream exhausted
-                    self.state = Some(EventSourceState::Closed);
-                    return None;
-                };
-
-                self.state = Some(EventSourceState::Reading(parser));
-                Some(TaskStatus::Ready(event))
+                match parser.next() {
+                    Some(Ok(event)) => {
+                        self.state = Some(EventSourceState::Reading(parser));
+                        Some(TaskStatus::Ready(event))
+                    }
+                    Some(Err(_)) => {
+                        // I/O or parse error - close the connection
+                        self.state = Some(EventSourceState::Closed);
+                        None
+                    }
+                    None => {
+                        // EOF - stream exhausted
+                        self.state = Some(EventSourceState::Closed);
+                        None
+                    }
+                }
             }
 
             EventSourceState::Closed => None,

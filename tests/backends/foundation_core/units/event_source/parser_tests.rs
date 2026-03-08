@@ -18,9 +18,13 @@ use std::io::Write;
 fn collect_complete_events(mut parser: SseParser<SharedBufferReadStream>) -> Vec<Event> {
     let mut events = Vec::new();
 
-    // First drain any events already in the buffer
-    while let Some(event) = parser.parse_next() {
-        events.push(event);
+    // Drain all events from the buffer, unwrapping errors in tests
+    loop {
+        match parser.parse_next() {
+            Ok(Some(event)) => events.push(event),
+            Ok(None) => break,
+            Err(e) => panic!("Unexpected parse error: {e}"),
+        }
     }
 
     events
