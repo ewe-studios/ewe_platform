@@ -884,3 +884,114 @@ pub fn connect(resolver: R, url: impl Into<String>) -> Result<Self, EventSourceE
 ---
 
 *2026-03-08: Added TaskIterator state machine pattern for handling connection failures - use intermediate states to allow tests to observe failure progression.*
+
+### 13. Valtron Executor Boundary - Correct Consumer Integration (2026-03-08)
+
+**Key Insight:** TaskIterators MUST NOT be wrapped in `impl Iterator` directly. The ONLY correct boundaries for consuming TaskIterators are `unified::execute()` and `unified::execute_stream()` which schedule the task into the valtron executor.
+
+**What Happened:**
+- Initial documentation showed incorrect patterns with `impl Iterator for EventSourceIterator` that wrapped TaskIterators directly
+- User corrected: This bypasses the executor's handling of `TaskStatus::Spawn`, `TaskStatus::Delayed`, and other variants
+- The correct pattern: Use `unified::execute_stream()` or `unified::execute()` at the boundary
+
+**Correct Architecture:**
+
+```
+TaskIterator (EventSourceTask, ReconnectingEventSourceTask)
+    ↓
+unified::execute_stream() / unified::execute()
+    ↓
+DrivenStreamIterator / DrivenRecvIterator (executor-driven)
+    ↓
+Consumer wrapper (optional - encapsulates valtron details)
+```
+
+**WRONG Pattern (DO NOT FOLLOW):**
+```rust
+// WRONG: Wrapping TaskIterator directly bypasses executor
+pub struct EventSourceIterator {
+    task: EventSourceTask,
+}
+
+impl Iterator for EventSourceIterator {
+    type Item = Result<Event, EventSourceError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.task.next() {  // BYPASSES EXECUTOR!
+            Some(TaskStatus::Ready(result)) => Some(result),
+            Some(TaskStatus::Delayed(_)) => self.next(),  // Recursive loop!
+            Some(TaskStatus::Pending(_)) => self.next(),
+            Some(TaskStatus::Spawn(_)) => self.next(),
+            _ => None,
+        }
+    }
+}
+```
+
+**CORRECT Pattern (Executor Boundary):**
+```rust
+use foundation_core::valtron::executors::unified;
+use foundation_core::valtron::Stream;
+
+// TaskIterator - NO impl Iterator
+pub struct EventSourceTask { ... }
+impl TaskIterator for EventSourceTask { ... }
+
+// Consumer wrapper uses unified::execute_stream() internally
+pub struct EventSourceClient {
+    inner: DrivenStreamIterator<EventSourceTask>,
+}
+
+impl EventSourceClient {
+    pub fn connect(...) -> Result<Self, EventSourceError> {
+        let task = EventSourceTask::connect(...)?;
+        // CORRECT: unified::execute_stream() spawns task into executor
+        let inner = unified::execute_stream(task, None)?;
+        Ok(Self { inner })
+    }
+}
+
+// VALID: Wrapping DrivenStreamIterator (already executor-driven)
+impl Iterator for EventSourceClient {
+    type Item = Result<Event, EventSourceError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.inner.next() {
+            Some(Stream::Next(event)) => Some(Ok(event)),
+            Some(Stream::Pending(_)) => self.next(),  // Executor handles internals
+            Some(Stream::Delayed(_)) => self.next(),
+            Some(Stream::Ignore) => self.next(),
+            Some(Stream::Init) => self.next(),
+            None => None,
+        }
+    }
+}
+```
+
+**Key Distinctions:**
+
+| Pattern | Correct? | Why |
+|---------|----------|-----|
+| `impl Iterator` wrapping raw `TaskIterator` | ❌ NO | Bypasses executor's Spawn/Delayed handling |
+| `impl Iterator` wrapping `DrivenStreamIterator` | ✅ YES | Executor already handles all TaskStatus internals |
+| Consumer using `unified::execute_stream()` directly | ✅ YES | Direct boundary usage |
+| TaskIterator wrapping another TaskIterator | ✅ YES | Properly forwards all TaskStatus variants |
+
+**Why This Matters:**
+
+1. **Spawn Handling**: Executor schedules sub-tasks via `TaskStatus::Spawn` - manual wrappers can't handle this
+2. **Delayed Timing**: Executor respects `TaskStatus::Delayed(duration)` - manual wrappers would busy-loop
+3. **Pending State**: Executor polls efficiently - manual wrappers waste CPU
+4. **Composition**: TaskIterators compose via `inlined_task()` - only executor can manage this
+
+**Files Updated:**
+- `specifications/02-build-http-client/features/server-sent-events/feature.md` - Corrected consumer wrapper pattern
+- `specifications/02-build-http-client/features/server-sent-events/ARCHITECTURE.md` - Added warnings and correct pattern examples
+
+**Reference Files:**
+- `valtron/executors/unified.rs` - `execute()`, `execute_stream()` boundary functions
+- `valtron/executors/drivers.rs` - `DrivenRecvIterator`, `DrivenStreamIterator` implementations
+- `valtron/task.rs` - `TaskIterator` trait, `TaskStatus` variants
+- `wire/simple_http/client/tasks/send_request.rs` - Canonical TaskIterator composition pattern
+
+---
