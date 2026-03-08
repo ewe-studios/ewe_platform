@@ -117,7 +117,7 @@ Users consume SSE events through simplified wrappers that internally use `unifie
 
 **Recommended: `execute_stream()` — simplified Stream interface**
 
-For users who don't need to handle `TaskStatus` variants directly, `execute_stream()` returns a `DrivenStreamIterator` that encapsulates the internal mechanics and presents a simpler `Stream` type:
+For users who consume SSE events (i.e., do NOT implement TaskIterators themselves), `execute_stream()` returns a `DrivenStreamIterator` that encapsulates the internal mechanics and presents a simpler `Stream` type:
 
 ```rust
 use foundation_core::valtron::executors::unified;
@@ -140,7 +140,7 @@ for item in stream {
 }
 ```
 
-**Key point:** `unified::execute_stream()` is the standard boundary for consuming TaskIterators. External users should NEVER handle `TaskStatus` directly — that's only for internal TaskIterator implementations.
+**Key point:** `unified::execute_stream()` is the standard boundary for consuming TaskIterators. External users (who do NOT implement TaskIterators) should NEVER handle `TaskStatus` directly — `TaskStatus` is only for internal TaskIterator implementations.
 
 ### Server-Side SSE Production
 
@@ -387,7 +387,8 @@ cargo test --manifest-path tests/Cargo.toml -- event_source
 2. **The boundary to `Iterator` is `unified::execute_stream()`**
    - This function schedules the TaskIterator into the executor engine
    - It returns `DrivenStreamIterator` which implements `Iterator` over `Stream<Ready, Pending>`
-   - External users NEVER see `TaskStatus` — that's only for internal TaskIterator implementations
+   - External users (who do NOT implement TaskIterators) NEVER see `TaskStatus`
+   - `TaskStatus` is ONLY for internal TaskIterator implementations
 
 3. **Sub-task composition uses `inlined_task()` + `TaskStatus::Spawn`**
    - Creates `(InlineSendAction, RecvIterator)` pair
