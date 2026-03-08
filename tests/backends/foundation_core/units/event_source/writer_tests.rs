@@ -3,7 +3,6 @@
 //! Tests EventWriter functionality for SSE event formatting.
 
 use foundation_core::wire::event_source::{EventWriter, SseEvent};
-use std::io::Write;
 
 /// WHY: EventWriter must format simple messages correctly.
 /// WHAT: Verify message() writes "data: <text>" followed by empty line.
