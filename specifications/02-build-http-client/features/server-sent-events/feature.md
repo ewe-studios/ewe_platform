@@ -356,9 +356,8 @@ backends/foundation_core/src/wire/event_source/
    - **WRONG:** `impl Iterator` that wraps a raw `TaskIterator` directly — bypasses executor
    - **CORRECT:** `impl Iterator` that wraps `DrivenStreamIterator` (from `unified::execute_stream()`) — executor handles all internals
 
-2. **Event Filtering** — filter events by type with callbacks
-3. **Compression Support** — handle `Content-Encoding: gzip` in SSE responses
-4. **Performance Optimizations** — buffer pooling, zero-copy parsing
+2. **Compression Support** — handle `Content-Encoding: gzip` in SSE responses
+3. **Performance Optimizations** — buffer pooling, zero-copy parsing
 
 ## Success Criteria
 
