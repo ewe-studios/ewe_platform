@@ -113,11 +113,11 @@ ParentState::WaitingForChild(mut recv) => {
 
 ### Executor Boundary (Where TaskIterator Becomes Iterator)
 
-Users consume SSE events by scheduling the task into the valtron executor. The executor handles all internal TaskStatus mechanics (Spawn, Delayed, etc.) and presents a simpler interface.
+Users consume SSE events through simplified wrappers that internally use `unified::execute_stream()`. The executor handles all internal TaskStatus mechanics (Spawn, Delayed, Pending) and presents a simple `Iterator` or `Stream` interface.
 
 **Recommended: `execute_stream()` — simplified Stream interface**
 
-For users who don't need to handle `TaskStatus` variants directly, `execute_stream()` returns a `DrivenStreamIterator` that encapsulates away the internal mechanics and presents a simpler `Stream` type:
+For users who don't need to handle `TaskStatus` variants directly, `execute_stream()` returns a `DrivenStreamIterator` that encapsulates the internal mechanics and presents a simpler `Stream` type:
 
 ```rust
 use foundation_core::valtron::executors::unified;
@@ -140,30 +140,7 @@ for item in stream {
 }
 ```
 
-**Advanced: `execute()` — full TaskStatus control**
-
-For advanced consumers that need to handle `TaskStatus::Spawn` or other variants:
-
-```rust
-use foundation_core::valtron::executors::unified;
-
-let task = EventSourceTask::connect(resolver, url)?;
-
-// execute() returns DrivenRecvIterator with full TaskStatus visibility
-let mut iter = unified::execute(task, None)?;
-
-for status in iter {
-    match status {
-        TaskStatus::Ready(Event::Message { data, .. }) => println!("{data}"),
-        TaskStatus::Pending(_) => { /* executor is working */ }
-        TaskStatus::Delayed(d) => { /* backoff wait */ }
-        TaskStatus::Spawn(_) => { /* sub-task spawned */ }
-        _ => {}
-    }
-}
-```
-
-**Key point:** `unified::execute()` and `unified::execute_stream()` are the ONLY correct boundaries for converting a TaskIterator into a consumable Iterator. Do NOT manually wrap TaskIterators in `impl Iterator`.
+**Key point:** `unified::execute_stream()` is the standard boundary for consuming TaskIterators. External users should NEVER handle `TaskStatus` directly — that's only for internal TaskIterator implementations.
 
 ### Server-Side SSE Production
 
@@ -407,10 +384,10 @@ cargo test --manifest-path tests/Cargo.toml -- event_source
    - `Iterator` cannot forward `Spawn`, `Delayed`, or other executor signals
    - The executor needs these signals to schedule sub-tasks and manage timing
 
-2. **The boundary to `Iterator` is `unified::execute()` / `unified::execute_stream()`**
-   - These functions schedule the TaskIterator into the executor engine
-   - They return `DrivenRecvIterator` / `DrivenStreamIterator` which implement `Iterator`
-   - This is the ONLY correct way to get an Iterator from a TaskIterator
+2. **The boundary to `Iterator` is `unified::execute_stream()`**
+   - This function schedules the TaskIterator into the executor engine
+   - It returns `DrivenStreamIterator` which implements `Iterator` over `Stream<Ready, Pending>`
+   - External users NEVER see `TaskStatus` — that's only for internal TaskIterator implementations
 
 3. **Sub-task composition uses `inlined_task()` + `TaskStatus::Spawn`**
    - Creates `(InlineSendAction, RecvIterator)` pair
@@ -423,11 +400,11 @@ cargo test --manifest-path tests/Cargo.toml -- event_source
    - The wrapper forwards all TaskStatus variants properly
    - This maintains the executor's ability to handle Spawn/Delayed
 
-5. **Consumer wrappers CAN implement `Iterator` at the extreme boundaries**
-   - Wrappers that encapsulate valtron details are encouraged
-   - The wrapper MUST use `unified::execute_stream()` or `unified::execute()` internally
-   - The wrapper wraps the `DrivenStreamIterator` / `DrivenRecvIterator`, NOT the raw TaskIterator
-   - This is correct because the executor already handles all TaskStatus internals
+5. **Consumer wrappers encapsulate valtron details**
+   - Wrappers use `unified::execute_stream()` internally
+   - They wrap `DrivenStreamIterator`, NOT raw `TaskIterator`
+   - They present simple `Iterator<Item = Result<Event, EventSourceError>>` to users
+   - Users NEVER see `TaskStatus`, `DrivenStreamIterator`, or other valtron internals
 
 ### SSE Protocol Rules
 
