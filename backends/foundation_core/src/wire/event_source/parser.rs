@@ -94,6 +94,7 @@ impl<R: Read> SseParser<R> {
     /// WHAT: Returns a parser that reads from the provided `SharedByteBufferStream`.
     ///
     /// NOTE: External code writes to the buffer; this parser only reads from it.
+    #[must_use]
     pub fn new(buffer: SharedByteBufferStream<R>) -> Self {
         Self {
             buffer,
@@ -113,7 +114,7 @@ impl<R: Read> SseParser<R> {
     /// Parse next complete event from the stream.
     ///
     /// WHY: SSE events span multiple lines - need to accumulate until empty line or comment.
-    /// WHAT: Reads lines in a loop, accumulating into an EventBuilder, returns complete events.
+    /// WHAT: Reads lines in a loop, accumulating into an [`EventBuilder`], returns complete events.
     ///
     /// NOTE: Returns `None` only when EOF is reached with no more data.
     /// Field lines accumulate locally; empty lines dispatch; comments return immediately.
@@ -128,10 +129,8 @@ impl<R: Read> SseParser<R> {
                     // EOF - dispatch any accumulated data before returning
                     if let Some(event) = builder.build() {
                         // Persist last event ID
-                        if let Event::Message { id, .. } = &event {
-                            if let Some(id) = id {
-                                self.last_event_id = Some(id.clone());
-                            }
+                        if let Event::Message { id: Some(id), .. } = &event {
+                            self.last_event_id = Some(id.clone());
                         }
                         return Some(event);
                     }
@@ -155,10 +154,8 @@ impl<R: Read> SseParser<R> {
             if line.is_empty() {
                 if let Some(event) = builder.build() {
                     // Persist last event ID
-                    if let Event::Message { id, .. } = &event {
-                        if let Some(id) = id {
-                            self.last_event_id = Some(id.clone());
-                        }
+                    if let Event::Message { id: Some(id), .. } = &event {
+                        self.last_event_id = Some(id.clone());
                     }
                     builder.reset();
                     return Some(event);
