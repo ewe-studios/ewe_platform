@@ -33,16 +33,9 @@ fn test_parser_single_event() {
     let (mut writer, reader): (SharedBufferWriter, _) = SharedBuffer::split();
     writer.write_all(b"data: hello\n\n").unwrap();
 
-    // Debug: check what's in the buffer
-    println!(
-        "Buffer after write: {:?}",
-        writer.clone_arc().lock().unwrap()
-    );
-
     let parser = SseParser::new(reader.into_buffered_stream());
 
     let events = collect_complete_events(parser);
-    println!("Events collected: {}", events.len());
 
     assert_eq!(events.len(), 1);
     match &events[0] {
