@@ -120,65 +120,132 @@ impl OpenAIClient {
     ) -> Result<ChatCompletionStream, ApiError> {
         // Set stream: true in request
         // Send HTTP request
-        // Return stream parser
+        // Return stream parser wrapped in ChatCompletionStream
+    }
+
+    /// Send a streaming Responses API request.
+    ///
+    /// Returns a stream iterator that yields response events.
+    pub fn responses_stream(
+        &self,
+        request: ResponseRequest,
+    ) -> Result<ResponseStream, ApiError> {
+        // Set stream: true in request
+        // Send HTTP request to /v1/responses
+        // Return stream parser wrapped in ResponseStream
     }
 }
 ```
 
+### SSE to Event Mapping
+
+**Chat Completions SSE events**:
+```
+data: {"id":"cmpl-xxx","choices":[{"delta":{"role":"assistant"}}]}
+data: {"id":"cmpl-xxx","choices":[{"delta":{"content":"Hello"}}]}
+data: [DONE]
+```
+
+Maps to:
+- `SseEvent::Message { data }` → Parse JSON → `ChatCompletionChunk`
+- `data == "[DONE]"` → End of stream (return `None`)
+
+**Responses API SSE events**:
+```
+data: {"type":"response.created","response":{"id":"resp_xxx",...}}
+data: {"type":"response.output_text.delta","delta":"Hello"}
+data: {"type":"response.completed","response":{...}}
+```
+
+Maps to:
+- `SseEvent::Message { data }` → Parse JSON → `ResponseEvent`
+- Event type determined by `type` field in JSON
+
 ### SSE Parser Integration
 
-Check if `foundation_core` has existing SSE support:
-- `backends/foundation_core/src/wire/event_source/`
+**VERIFIED**: `foundation_core` has existing SSE support:
 
-If available, reuse existing SSE parser.
-If not, implement minimal SSE parser:
+- `foundation_core::event_source::SseParser<R: Read>` - Streaming SSE parser
+- `foundation_core::event_source::SseEvent` - Parsed SSE event type
+- `foundation_core::event_source::Event` - Alternative event type
 
+The existing parser:
+- Implements `Iterator<Item = Result<Event, EventSourceError>>`
+- Handles W3C SSE specification parsing
+- Supports `data:`, `event:`, `id:`, `retry:` fields
+- Returns `Event::Message { id, event_type, data, retry }` or `Event::Comment`
+
+**Integration approach**:
 ```rust
-struct SseParser {
-    buffer: String,
+use foundation_core::event_source::{SseParser, Event as SseEvent};
+
+pub struct ChatCompletionStream<R: Read> {
+    parser: SseParser<R>,
 }
 
-impl SseParser {
-    fn feed(&mut self, data: &[u8]) -> Vec<SseEvent> { ... }
-}
+impl<R: Read> Iterator for ChatCompletionStream<R> {
+    type Item = Result<ChatCompletionChunk, StreamingError>;
 
-enum SseEvent {
-    Data(String),
-    Done,
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.parser.next() {
+            Some(Ok(SseEvent::Message { data, .. })) => {
+                if data == "[DONE]" {
+                    return None;  // End of stream
+                }
+                match serde_json::from_str::<ChatCompletionChunk>(&data) {
+                    Ok(chunk) => Some(Ok(chunk)),
+                    Err(e) => Some(Err(StreamingError::ParseError(e))),
+                }
+            }
+            Some(Ok(SseEvent::Comment(_))) => {
+                // Ignore comments, get next event
+                self.next()
+            }
+            Some(Err(e)) => Some(Err(StreamingError::SseError(e))),
+            None => None,  // EOF
+        }
+    }
 }
 ```
 
 ## Tasks
 
-1. **Check for existing SSE support**
-   - [ ] Review `foundation_core/src/wire/event_source/`
-   - [ ] Reuse existing SSE parser if available
-   - [ ] Otherwise, implement minimal SSE parser
+1. **Create streaming types**
+   - [ ] Define `ChatCompletionChunk` in `chat/types.rs`
+   - [ ] Define `ChoiceDelta` in `chat/types.rs`
+   - [ ] Define `StreamingError` enum in `errors.rs`
+   - [ ] Define `ResponseEvent` in `responses/types.rs`
 
-2. **Create streaming types**
-   - [ ] Define `ChatCompletionChunk`
-   - [ ] Define `ChoiceDelta`
-   - [ ] Define `StreamingError` type
+2. **Create ChatCompletionStream**
+   - [ ] Create `backends/foundation_ai/src/openai/chat/stream.rs`
+   - [ ] Wrap `foundation_core::SseParser` with type-safe iterator
+   - [ ] Implement `Iterator` trait for `ChatCompletionStream`
+   - [ ] Handle `[DONE]` marker detection
+   - [ ] Parse JSON chunks from SSE data events
 
-3. **Implement stream iterator**
-   - [ ] Create `ChatCompletionStream` struct
-   - [ ] Implement `Iterator` or custom `next()` method
-   - [ ] Handle SSE parsing
+3. **Create ResponseStream**
+   - [ ] Create `backends/foundation_ai/src/openai/responses/stream.rs`
+   - [ ] Wrap `foundation_core::SseParser` for Responses API
+   - [ ] Implement `Iterator` trait for `ResponseStream`
+   - [ ] Parse `ResponseEvent` types from SSE data
 
-4. **Add streaming client method**
+4. **Add streaming client methods**
    - [ ] Add `chat_completions_stream()` to `OpenAIClient`
+   - [ ] Add `responses_stream()` to `OpenAIClient`
    - [ ] Configure request with `stream: true`
-   - [ ] Return stream parser
+   - [ ] Return appropriate stream type
 
-5. **Handle stream completion**
-   - [ ] Detect `[DONE]` marker
+5. **Handle stream errors**
+   - [ ] Handle SSE parsing errors
+   - [ ] Handle JSON deserialization errors
    - [ ] Handle incomplete stream errors
-   - [ ] Clean up resources
+   - [ ] Handle HTTP connection errors
 
 6. **Write streaming tests**
    - [ ] Test chunk reception
    - [ ] Test stream completion
    - [ ] Test error handling mid-stream
+   - [ ] Test with mock SSE server
 
 7. **Add documentation**
    - [ ] Document streaming API

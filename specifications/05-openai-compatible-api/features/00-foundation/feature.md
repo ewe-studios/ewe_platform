@@ -106,9 +106,14 @@ impl core::fmt::Display for ApiError {
    pub struct OpenAIClient {
        http_client: SimpleHttpClient,
        base_url: String,
-       api_key: Secret<String>,  // Use foundation_core::Secret for sensitive data
+       api_key: String,  // NOTE: Use String; consider zeroize crate for production
    }
    ```
+
+   **Note**: `foundation_core` does not have a `Secret` type. API key should be handled carefully:
+   - Clear documentation about secure handling
+   - Consider adding `zeroize` crate dependency for secure string clearing
+   - Never log API keys in error messages
 
 2. **Builder pattern**
    ```rust
@@ -229,47 +234,58 @@ pub struct CommonParams {
    - [ ] Define `Content` and `ContentPart` types
    - [ ] Define `Message` struct
    - [ ] Define `Usage` struct
+   - [ ] Define `CommonParams` struct
 
 3. **Create HTTP client wrapper**
    - [ ] Create `backends/foundation_ai/src/openai/client.rs`
    - [ ] Define `OpenAIClient` struct
    - [ ] Implement builder pattern
-   - [ ] Add API key handling with `Secret` type
+   - [ ] Add API key handling (use String, document secure handling)
    - [ ] Configure default timeouts
 
-4. **Create common parameters type**
-   - [ ] Add `CommonParams` struct to `types.rs`
-   - [ ] Implement `Default` trait
-   - [ ] Add builder methods for ergonomic construction
+4. **Create error response types**
+   - [ ] Add `OpenAiErrorResponse` struct for API error parsing
+   - [ ] Add `OpenAiError` struct with message, type, code fields
+   - [ ] Add helper to convert to `ApiError`
 
-5. **Add serde dependencies**
+5. **Create streaming error type**
+   - [ ] Define `StreamingError` enum for stream-specific errors
+   - [ ] Include `Done` variant for end-of-stream
+   - [ ] Include `ParseError` for SSE parsing failures
+   - [ ] Include `IncompleteStream` for unexpected termination
+
+6. **Add serde dependencies**
    - [ ] Update `backends/foundation_ai/Cargo.toml` if needed
    - [ ] Ensure `serde` and `serde_json` are available
+   - [ ] Consider adding `zeroize` crate for secure API key handling
 
-6. **Create module structure**
+7. **Create module structure**
    - [ ] Create `backends/foundation_ai/src/openai/mod.rs`
    - [ ] Export public types
    - [ ] Update `backends/foundation_ai/src/lib.rs`
 
-7. **Write unit tests**
+8. **Write unit tests**
    - [ ] Test error type conversions
    - [ ] Test serialization/deserialization of base types
    - [ ] Test client builder
+   - [ ] Test error response parsing
 
-8. **Update documentation**
+9. **Update documentation**
    - [ ] Add module-level documentation to `mod.rs`
    - [ ] Document all public types with examples
 
 ## Implementation Notes
 
 - Use `derive_more` crate for `From` implementations (already in dependencies)
-- Use `foundation_core::Secret` for API key storage
+- No `Secret` type in foundation_core - use String with secure handling documentation
+- Consider `zeroize` crate for production API key handling
 - Reuse `foundation_core::simple_http::client::SimpleHttpClient`
+- Reuse `foundation_core::event_source::SseParser` for SSE streaming
 - Follow existing error handling patterns from `foundation_core`
 
 ## Success Criteria
 
-- [ ] All 8 tasks completed
+- [ ] All 9 tasks completed
 - [ ] `cargo check` passes with no warnings
 - [ ] `cargo clippy -- -D warnings` passes
 - [ ] Unit tests pass

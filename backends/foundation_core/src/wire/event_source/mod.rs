@@ -8,7 +8,7 @@ mod response;
 mod task;
 mod writer;
 
-pub use core::{Event, SseEvent, SseEventBuilder};
+pub use core::{Event, ParseResult, SseEvent, SseEventBuilder};
 pub use error::EventSourceError;
 pub use parser::SseParser;
 pub use reconnecting_task::{ReconnectingEventSourceTask, ReconnectingProgress};

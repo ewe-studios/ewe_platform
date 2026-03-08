@@ -7,7 +7,7 @@
 //! Tests use parse_next() directly or collect_complete_events() helper.
 
 use foundation_core::io::ioutils::SharedBufferReadStream;
-use foundation_core::wire::event_source::{Event, SseParser};
+use foundation_core::wire::event_source::{Event, ParseResult, SseParser};
 use foundation_testing::io::{SharedBuffer, SharedBufferWriter};
 use std::io::Write;
 
@@ -21,7 +21,7 @@ fn collect_complete_events(mut parser: SseParser<SharedBufferReadStream>) -> Vec
     // Drain all events from the buffer, unwrapping errors in tests
     loop {
         match parser.parse_next() {
-            Ok(Some(event)) => events.push(event),
+            Ok(Some(ParseResult { event, .. })) => events.push(event),
             Ok(None) => break,
             Err(e) => panic!("Unexpected parse error: {e}"),
         }
