@@ -2,7 +2,7 @@
 //!
 //! Tests SseEvent and SseEventBuilder functionality.
 
-use foundation_core::wire::event_source::{Event, SseEvent};
+use foundation_core::wire::event_source::SseEvent;
 
 #[test]
 fn test_sse_event_message_creates_simple_message() {

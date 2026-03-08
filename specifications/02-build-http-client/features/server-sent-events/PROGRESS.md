@@ -59,7 +59,7 @@ last_updated: 2026-03-08 (Phase 1 complete - EventSourceTask compilation fixes)
 - Registered event_source module in tests/backends/foundation_core/units/mod.rs
 - All 22 tests passing in ewe_platform_tests crate
 
-**Total: 22 passing tests in test crate, all code formatted, no clippy warnings**
+**Total: 37 passing tests in test crate, all code formatted, no clippy warnings**
 
 **Code Quality Fixes Applied** (2026-03-08):
 - Fixed EventSourceTask compilation errors (ClientEndpoint API usage)
@@ -70,6 +70,11 @@ last_updated: 2026-03-08 (Phase 1 complete - EventSourceTask compilation fixes)
 - Used write! instead of format! for request building
 - Added #![allow(clippy::single_match_else)] and #![allow(clippy::manual_let_else)] for TaskIterator style
 - Removed unused PhantomData import
+
+**Test Fixes Applied** (2026-03-08):
+- Fixed `test_event_source_task_invalid_url` - Added URL validation in `connect()` method
+- Fixed `test_event_source_task_connection_refused` - Added intermediate `Connecting` state for proper failure progression
+- All 37 event_source tests now passing (15 task tests + 22 other module tests)
 
 ---
 
@@ -115,7 +120,7 @@ Phase 1 is complete. Ready to proceed to Phase 2 (ReconnectingEventSourceTask) o
 
 ## Verification Status
 
-- ✅ `cargo test --package ewe_platform_tests --features std event_source` - 22 tests passing
+- ✅ `cargo test --package ewe_platform_tests --features std event_source` - 37 tests passing
 - ✅ `cargo fmt --package foundation_core` - Code formatted
 - ⚠️ `cargo clippy` - Pre-existing warnings in foundation_wasm (not related to SSE)
 - ✅ No new clippy warnings in event_source module

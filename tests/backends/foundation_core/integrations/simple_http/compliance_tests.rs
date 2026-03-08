@@ -3,14 +3,14 @@
 #[cfg(test)]
 mod test_http_reader {
 
-    use foundation_core::io::ioutils;
+    
     use foundation_core::netcap::RawStream;
     use foundation_core::panic_if_failed;
     // Or comment out if not present in foundation_core
     use foundation_core::wire::simple_http::{
-        http_streams, ChunkedData, HTTPStreams, HttpReaderError, HttpResponseReader,
-        IncomingRequestParts, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleMethod,
-        SimpleUrl, Status,
+        http_streams, HttpReaderError,
+        IncomingRequestParts, SendSafeBody, SimpleHeader, SimpleMethod,
+        SimpleUrl,
     };
     use regex::Regex; // add to Cargo.toml if missing
 
@@ -211,18 +211,16 @@ Hello world!";
 
 #[cfg(test)]
 mod http_response_compliance {
-    use super::*;
+    
     use foundation_core::extensions::result_ext::BoxedError;
-    use foundation_core::io::ioutils;
+    
     use foundation_core::netcap::RawStream;
     // use foundation_core::panic_if_failed;
     // Or comment out if not present in foundation_core
     use foundation_core::wire::simple_http::{
-        http_streams, ChunkedData, HTTPStreams, HttpReaderError, HttpResponseReader,
-        IncomingRequestParts, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleMethod,
-        SimpleUrl, Status,
+        http_streams, ChunkedData, HttpReaderError, IncomingResponseParts, SendSafeBody, SimpleHeader, Status,
     };
-    use regex::Regex; // add to Cargo.toml if missing
+     // add to Cargo.toml if missing
 
     use std::collections::BTreeMap;
     use std::io::Write;
@@ -234,7 +232,7 @@ mod http_response_compliance {
     mod transfer_encoding {
         use tracing_test::traced_test;
 
-        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
+        use foundation_core::panic_if_failed;
 
         use super::*;
 
@@ -274,7 +272,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -337,7 +335,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -400,7 +398,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -462,7 +460,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -524,7 +522,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -590,7 +588,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -656,7 +654,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -722,7 +720,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -794,7 +792,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -848,7 +846,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -901,7 +899,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -980,7 +978,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -1018,7 +1016,7 @@ mod http_response_compliance {
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::response_reader(reader);
 
-            let mut request_parts_result = request_reader
+            let request_parts_result = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
@@ -1047,7 +1045,7 @@ mod http_response_compliance {
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::response_reader(reader);
 
-            let mut request_parts_result = request_reader
+            let request_parts_result = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
@@ -1076,7 +1074,7 @@ mod http_response_compliance {
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::response_reader(reader);
 
-            let mut request_parts_result = request_reader
+            let request_parts_result = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
@@ -1104,7 +1102,7 @@ mod http_response_compliance {
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::response_reader(reader);
 
-            let mut request_parts_result = request_reader
+            let request_parts_result = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
@@ -1133,7 +1131,7 @@ mod http_response_compliance {
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::response_reader(reader);
 
-            let mut request_parts_result = request_reader
+            let request_parts_result = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
@@ -1161,7 +1159,7 @@ mod http_response_compliance {
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::response_reader(reader);
 
-            let mut request_parts_result = request_reader
+            let request_parts_result = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
@@ -1190,7 +1188,7 @@ mod http_response_compliance {
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::response_reader(reader);
 
-            let mut request_parts_result = request_reader
+            let request_parts_result = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
@@ -1219,7 +1217,7 @@ mod http_response_compliance {
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::response_reader(reader);
 
-            let mut request_parts_result = request_reader
+            let request_parts_result = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
@@ -1268,7 +1266,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -1332,7 +1330,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -1376,7 +1374,7 @@ mod http_response_compliance {
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::response_reader(reader);
 
-            let mut request_parts_result = request_reader
+            let request_parts_result = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
@@ -1422,7 +1420,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -1476,7 +1474,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -1512,7 +1510,7 @@ mod http_response_compliance {
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::response_reader(reader);
 
-            let mut request_parts_result = request_reader
+            let request_parts_result = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingResponseParts>, HttpReaderError>>();
 
@@ -1559,7 +1557,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -1613,7 +1611,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -1667,7 +1665,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -1729,7 +1727,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -1791,7 +1789,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -1823,7 +1821,7 @@ mod http_response_compliance {
 
         use foundation_core::{
             panic_if_failed,
-            wire::simple_http::{ChunkStateError, LineFeed},
+            wire::simple_http::LineFeed,
         };
 
         use super::*;
@@ -1864,7 +1862,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut feed_stream = request_parts.pop().expect("retrieved body");
+            let feed_stream = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &feed_stream,
                 IncomingResponseParts::StreamedBody(SendSafeBody::LineFeedStream(Some(_)))
@@ -1928,7 +1926,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut feed_stream = request_parts.pop().expect("retrieved body");
+            let feed_stream = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &feed_stream,
                 IncomingResponseParts::StreamedBody(SendSafeBody::LineFeedStream(Some(_)))
@@ -1992,7 +1990,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut feed_stream = request_parts.pop().expect("retrieved body");
+            let feed_stream = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &feed_stream,
                 IncomingResponseParts::StreamedBody(SendSafeBody::LineFeedStream(Some(_)))
@@ -2052,7 +2050,7 @@ mod http_response_compliance {
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut feed_stream = request_parts.pop().expect("retrieved body");
+            let feed_stream = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &feed_stream,
                 IncomingResponseParts::StreamedBody(SendSafeBody::LineFeedStream(Some(_)))
@@ -2080,7 +2078,7 @@ mod http_response_compliance {
     mod sample_responses {
         use tracing_test::traced_test;
 
-        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
+        use foundation_core::panic_if_failed;
 
         use super::*;
 
@@ -2720,7 +2718,7 @@ mod http_response_compliance {
     mod pipelining {
         use tracing_test::traced_test;
 
-        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
+        use foundation_core::panic_if_failed;
 
         use super::*;
 
@@ -2758,7 +2756,7 @@ mod http_response_compliance {
     mod finish {
         use tracing_test::traced_test;
 
-        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
+        use foundation_core::panic_if_failed;
 
         use super::*;
 
@@ -2796,7 +2794,7 @@ mod http_response_compliance {
     mod content_length_header {
         use tracing_test::traced_test;
 
-        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
+        use foundation_core::panic_if_failed;
 
         use super::*;
 
@@ -2895,7 +2893,7 @@ mod http_response_compliance {
     mod invalid_responses {
         use tracing_test::traced_test;
 
-        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
+        use foundation_core::panic_if_failed;
 
         use super::*;
 
@@ -3415,16 +3413,16 @@ mod http_response_compliance {
 
 #[cfg(test)]
 mod http_requests_compliance {
-    use super::*;
+    
     use foundation_core::extensions::result_ext::BoxedError;
-    use foundation_core::io::ioutils;
+    
     use foundation_core::netcap::RawStream;
     // use foundation_core::panic_if_failed;
     // Or comment out if not present in foundation_core
     use foundation_core::wire::simple_http::{
-        http_streams, ChunkedData, HTTPStreams, HttpReaderError, HttpResponseReader,
-        IncomingRequestParts, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleMethod,
-        SimpleUrl, Status,
+        http_streams, ChunkedData, HttpReaderError,
+        IncomingRequestParts, SendSafeBody, SimpleHeader, SimpleMethod,
+        SimpleUrl,
     };
     use regex::Regex; // add to Cargo.toml if missing
 
@@ -3911,7 +3909,7 @@ Hello world!";
 
         use foundation_core::{
             panic_if_failed,
-            wire::simple_http::{ChunkStateError, LineFeed},
+            wire::simple_http::LineFeed,
         };
 
         use super::*;
@@ -3962,7 +3960,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut feed_stream = request_parts.pop().expect("retrieved body");
+            let feed_stream = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &feed_stream,
                 IncomingRequestParts::StreamedBody(SendSafeBody::LineFeedStream(Some(_)))
@@ -4036,7 +4034,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut feed_stream = request_parts.pop().expect("retrieved body");
+            let feed_stream = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &feed_stream,
                 IncomingRequestParts::StreamedBody(SendSafeBody::LineFeedStream(Some(_)))
@@ -4110,7 +4108,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut feed_stream = request_parts.pop().expect("retrieved body");
+            let feed_stream = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &feed_stream,
                 IncomingRequestParts::StreamedBody(SendSafeBody::LineFeedStream(Some(_)))
@@ -4180,7 +4178,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut feed_stream = request_parts.pop().expect("retrieved body");
+            let feed_stream = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &feed_stream,
                 IncomingRequestParts::StreamedBody(SendSafeBody::LineFeedStream(Some(_)))
@@ -4208,7 +4206,7 @@ Hello world!";
     mod transfer_encoding {
         use tracing_test::traced_test;
 
-        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
+        use foundation_core::panic_if_failed;
 
         use super::*;
 
@@ -4258,7 +4256,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -4331,7 +4329,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -4404,7 +4402,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -4476,7 +4474,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -4548,7 +4546,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -4624,7 +4622,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -4700,7 +4698,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -4776,7 +4774,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -4858,7 +4856,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -4921,7 +4919,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -4984,7 +4982,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -5073,7 +5071,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -5111,7 +5109,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts_result = request_reader
+            let request_parts_result = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5140,7 +5138,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts_result = request_reader
+            let request_parts_result = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5169,7 +5167,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts_result = request_reader
+            let request_parts_result = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5197,7 +5195,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts_result = request_reader
+            let request_parts_result = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5225,7 +5223,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts_result = request_reader
+            let request_parts_result = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5253,7 +5251,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts_result = request_reader
+            let request_parts_result = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5281,7 +5279,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts_result = request_reader
+            let request_parts_result = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5310,7 +5308,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts_result = request_reader
+            let request_parts_result = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5369,7 +5367,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -5443,7 +5441,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -5487,7 +5485,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts_result = request_reader
+            let request_parts_result = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5543,7 +5541,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -5607,7 +5605,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -5644,7 +5642,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts_result = request_reader
+            let request_parts_result = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -5701,7 +5699,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -5765,7 +5763,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -5829,7 +5827,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -5901,7 +5899,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -5973,7 +5971,7 @@ Hello world!";
 
             assert_eq!(&request_parts[0..2], expected_parts);
 
-            let mut chunked_body = request_parts.pop().expect("retrieved body");
+            let chunked_body = request_parts.pop().expect("retrieved body");
             assert!(matches!(
                 &chunked_body,
                 IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_)))
@@ -6003,7 +6001,7 @@ Hello world!";
     mod sample_requests {
         use tracing_test::traced_test;
 
-        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
+        use foundation_core::panic_if_failed;
 
         use super::*;
 
@@ -6025,7 +6023,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts = request_reader
+            let request_parts = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
@@ -6080,7 +6078,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts = request_reader
+            let request_parts = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
@@ -6126,7 +6124,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts = request_reader
+            let request_parts = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
@@ -6185,7 +6183,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts = request_reader
+            let request_parts = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
@@ -6270,7 +6268,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts = request_reader
+            let request_parts = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
@@ -6319,7 +6317,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts = request_reader
+            let request_parts = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
@@ -6367,7 +6365,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts = request_reader
+            let request_parts = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
@@ -6416,7 +6414,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts = request_reader
+            let request_parts = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
@@ -6466,7 +6464,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts = request_reader
+            let request_parts = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
@@ -6513,7 +6511,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts = request_reader
+            let request_parts = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
@@ -6559,7 +6557,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts = request_reader
+            let request_parts = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
@@ -6627,7 +6625,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts = request_reader
+            let request_parts = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
@@ -6701,7 +6699,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts = request_reader
+            let request_parts = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -6730,7 +6728,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts = request_reader
+            let request_parts = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
@@ -6759,7 +6757,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts = request_reader
+            let request_parts = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
@@ -6795,7 +6793,7 @@ Hello world!";
     mod extended_characters {
         use tracing_test::traced_test;
 
-        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
+        use foundation_core::panic_if_failed;
 
         use super::*;
 
@@ -6817,7 +6815,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts = request_reader
+            let request_parts = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
@@ -6852,7 +6850,7 @@ Hello world!";
     mod ascii_255_in_header_value {
         use tracing_test::traced_test;
 
-        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
+        use foundation_core::panic_if_failed;
 
         use super::*;
 
@@ -6875,7 +6873,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts = request_reader
+            let request_parts = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
@@ -6916,7 +6914,7 @@ Hello world!";
     mod x_ssl_nonsense {
         use tracing_test::traced_test;
 
-        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
+        use foundation_core::panic_if_failed;
 
         use super::*;
 
@@ -6938,7 +6936,7 @@ Hello world!";
             let reader = RawStream::from_tcp(client_stream).expect("should create stream");
             let request_reader = http_streams::send::request_reader(reader);
 
-            let mut request_parts = request_reader
+            let request_parts = request_reader
                 .into_iter()
                 .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
                 .expect("should generate output");
@@ -7006,7 +7004,7 @@ Hello world!";
     mod pipelining {
         use tracing_test::traced_test;
 
-        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
+        use foundation_core::panic_if_failed;
 
         use super::*;
 
@@ -7123,7 +7121,7 @@ Hello world!";
     mod methods {
         use tracing_test::traced_test;
 
-        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
+        use foundation_core::panic_if_failed;
 
         use super::*;
 
@@ -7699,7 +7697,7 @@ Hello world!";
     mod lenient_http_version_parsing {
         use tracing_test::traced_test;
 
-        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
+        use foundation_core::panic_if_failed;
 
         use super::*;
 
@@ -7735,7 +7733,7 @@ Hello world!";
     mod finish {
         use tracing_test::traced_test;
 
-        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
+        use foundation_core::panic_if_failed;
 
         use super::*;
 
@@ -7831,7 +7829,7 @@ Hello world!";
     mod content_length_header {
         use tracing_test::traced_test;
 
-        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
+        use foundation_core::panic_if_failed;
 
         use super::*;
 
@@ -8333,7 +8331,7 @@ Hello world!";
     mod connection_header {
         use tracing_test::traced_test;
 
-        use foundation_core::wire::simple_http::ChunkStateError;
+        
 
         use super::*;
 
@@ -8954,7 +8952,7 @@ Hello world!";
     mod invalid_requests {
         use tracing_test::traced_test;
 
-        use foundation_core::{panic_if_failed, wire::simple_http::ChunkStateError};
+        use foundation_core::panic_if_failed;
 
         use super::*;
 

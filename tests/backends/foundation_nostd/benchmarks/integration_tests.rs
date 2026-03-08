@@ -293,7 +293,7 @@ fn test_barrier_with_uneven_thread_arrival() {
                 thread::yield_now();
             }
 
-            barrier_clone.wait();
+            let _ = barrier_clone.wait();
         }));
     }
 
@@ -325,7 +325,7 @@ fn test_nested_synchronization() {
         }
 
         // Wait for both threads to finish producing
-        barrier1.wait();
+        let _ = barrier1.wait();
 
         // Consume 3 items from the shared pool
         let mut sum = 0;
@@ -346,7 +346,7 @@ fn test_nested_synchronization() {
         }
 
         // Wait for both threads to finish producing
-        barrier2.wait();
+        let _ = barrier2.wait();
 
         // Consume 3 items from the shared pool
         let mut sum = 0;
