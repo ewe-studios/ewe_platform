@@ -1,9 +1,41 @@
-//! Core SSE types: [`Event`] and [`SseEvent`].
+//! Core SSE types: [`Event`], [`SseEvent`], and [`ParseResult`].
 //!
 //! WHY: Server-Sent Events require standardized types for consuming and producing events.
-//! WHAT: Defines the [`Event`] enum for received events and [`SseEvent`] builder for sending events.
+//! WHAT: Defines the [`Event`] enum for received events, [`SseEvent`] builder for sending events,
+//! and [`ParseResult`] which pairs parsed events with their last known event ID.
 //!
 //! Reference: W3C Server-Sent Events specification (<https://html.spec.whatwg.org/multipage/server-sent-events.html>)
+
+/// ParseResult represents a parsed SSE event with explicit last_known_id.
+///
+/// WHY: Reconnection logic needs last known event ID. Instead of hidden
+/// parser state, we return it explicitly with each event.
+/// WHAT: Tuple-like struct with event and last_known_id.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParseResult {
+    /// The parsed event.
+    pub event: Event,
+    /// Last known event ID after parsing this event.
+    /// - `None` if no ID has ever been seen
+    /// - `Some(id)` if the current or a previous event had an ID
+    /// Updated when the parsed event contains an `id:` field.
+    pub last_known_id: Option<String>,
+}
+
+impl ParseResult {
+    /// Create a new ParseResult.
+    ///
+    /// # Arguments
+    /// * `event` - The parsed SSE event
+    /// * `last_known_id` - The last known event ID (updated if this event has an ID)
+    #[must_use]
+    pub fn new(event: Event, last_known_id: Option<String>) -> Self {
+        Self {
+            event,
+            last_known_id,
+        }
+    }
+}
 
 /// Event represents a parsed SSE event received from the server.
 ///
@@ -22,6 +54,35 @@ pub enum Event {
     Comment(String),
     /// Reconnection signal - used internally to indicate reconnection needed.
     Reconnect,
+}
+
+impl Event {
+    /// Get the event ID (if this is a Message event with an ID).
+    #[must_use]
+    pub fn id(&self) -> Option<&str> {
+        match self {
+            Self::Message { id, .. } => id.as_deref(),
+            _ => None,
+        }
+    }
+
+    /// Get the event type (if this is a Message event with a type).
+    #[must_use]
+    pub fn event_type(&self) -> Option<&str> {
+        match self {
+            Self::Message { event_type, .. } => event_type.as_deref(),
+            _ => None,
+        }
+    }
+
+    /// Get the event data (if this is a Message event).
+    #[must_use]
+    pub fn data(&self) -> Option<&str> {
+        match self {
+            Self::Message { data, .. } => Some(data.as_str()),
+            _ => None,
+        }
+    }
 }
 
 /// [`SseEvent`] represents an SSE event to be sent to clients (server-side).

@@ -1,5 +1,155 @@
 # Learnings: Server-Sent Events Feature
 
+## Tracing and Observability Requirements (2026-03-08)
+
+### Comprehensive Tracing Added to Specification
+
+**Key Insight:** Production systems need proper observability. The `tracing` crate provides structured logging that enables debugging, monitoring, and incident response.
+
+**Decision:** All SSE components and `simple_http` client code MUST use `tracing` for logging.
+
+**Tracing Levels:**
+
+| Level | Usage | Examples |
+|-------|-------|----------|
+| `trace!` | Very detailed, noisy debugging | Raw byte reads, individual field parsing |
+| `debug!` | Diagnostic information | State transitions, connection events |
+| `info!` | Normal operational messages | Connection established, reconnection attempt |
+| `warn!` | Unexpected but recoverable | Retry attempt, slow response |
+| `error!` | Error conditions | Connection failure, parse error, max retries |
+
+**Instrumentation Pattern:**
+```rust
+use tracing::{debug, error, info, instrument, trace};
+
+#[instrument(skip(self, resolver), fields(url = %url))]
+pub fn connect(resolver: R, url: impl Into<String>) -> Result<Self, EventSourceError> {
+    info!("Connecting to SSE endpoint");
+    // ...
+}
+```
+
+**Testing with tracing_test:**
+
+All tests MUST use `#[traced_test]` attribute to capture and display logs:
+
+```rust
+use tracing_test::traced_test;
+
+#[test]
+#[traced_test]
+fn test_event_source_task_dns_failure() {
+    // Test code...
+    // Logs automatically appear in test output:
+    // [DEBUG] Resolving DNS
+    // [ERROR] DNS resolution failed host="invalid.invalid"
+}
+```
+
+**Benefits:**
+1. Logs appear in test output without manual setup
+2. Helps identify issues quickly during development
+3. Documents expected behavior through log assertions
+4. No RUST_LOG interference with `no-env-filter` feature
+
+**Files to Instrument:**
+- `event_source/task.rs` - EventSourceTask
+- `event_source/reconnecting_task.rs` - ReconnectingEventSourceTask
+- `event_source/parser.rs` - SseParser
+- `event_source/writer.rs` - EventWriter
+- `event_source/response.rs` - SseResponse
+- `simple_http/client/*.rs` - HttpClientConnection, DnsResolver
+
+**Checklist:**
+- [ ] Add `use tracing::{...}` to all modules
+- [ ] Add `#[instrument]` to all public methods
+- [ ] Add logging at state transitions (debug!)
+- [ ] Add logging at errors (error!)
+- [ ] Add logging at operational events (info!)
+- [ ] Add `#[traced_test]` to all tests
+- [ ] Verify logs appear in test output
+
+---
+
+## Specification Completeness Update (2026-03-08)
+
+### Gap Analysis and Fixes
+
+**Key Insight:** During specification review, several gaps were identified and fixed:
+
+1. **DNS Failure Observability** - Original spec had 4 states (Init → Connecting → Reading → Closed), but DNS failures went directly to Closed without observation. Fixed by adding 5th state:
+   ```
+   Init → Resolving → Connecting → Reading → Closed
+   ```
+   Now both DNS failures and connection failures transition through intermediate states that return `TaskStatus::Pending` before `Closed`, allowing tests and consumers to observe the failure progression.
+
+2. **Last-Event-ID Tracking** - Original design had hidden parser state with `last_event_id()` getter. Fixed by introducing `ParseResult`:
+   ```rust
+   pub struct ParseResult {
+       pub event: Event,
+       pub last_known_id: Option<String>,
+   }
+   ```
+   This makes the last known ID explicit in the return value - no hidden state, no stale getters.
+
+3. **Idle Timeout Missing** - No mechanism to detect dead connections. Phase 3 requires:
+   - `with_idle_timeout(Duration)` configuration
+   - Track `last_activity` timestamp in `Reading` state
+   - Return `TaskStatus::Delayed(timeout)` when idle period exceeded
+
+4. **Max Reconnect Duration Missing** - Only max retries was tracked. Phase 3 requires:
+   - `with_max_reconnect_duration(Duration)` configuration
+   - Track `start_time` of first connection attempt
+   - Transition to `Exhausted` when duration exceeded
+
+5. **Parser Documentation Mismatch** - Spec showed character-by-character parsing, but implementation uses simpler line-based `read_line()`. Updated spec to match implementation.
+
+### Mermaid Diagrams Added
+
+Added visual architecture diagrams to specification:
+- EventSourceTask state machine (5 states)
+- ReconnectingEventSourceTask state machine
+- Last-Event-ID flow sequence diagram
+- Complete SSE connection flow chart
+
+### ParseResult Design Decision
+
+**Problem:** How to propagate `last_known_id` from parser to reconnection logic without hidden state.
+
+**Rejected Approaches:**
+
+| Approach | Why Rejected |
+|----------|--------------|
+| Hidden state + `last_event_id()` getter | Caller must remember to call getter; state can be stale; parser and task can have divergent IDs |
+| Return tuple `(Event, Option<String>)` | Unnamed fields less clear; harder to extend |
+
+**Chosen: `ParseResult` struct**
+```rust
+pub struct ParseResult {
+    pub event: Event,
+    pub last_known_id: Option<String>,
+}
+```
+
+**Benefits:**
+- Explicit - ID is part of return type, can't be forgotten
+- Named fields - clear semantics
+- Extensible - can add more fields later without breaking API
+- Immutable - passed by value, no mutation concerns
+
+**Flow:**
+```
+SseParser::parse_next() → ParseResult
+    ↓
+EventSourceTask reads last_known_id
+    ↓
+ReconnectingEventSourceTask caches ID
+    ↓
+On reconnect: apply cached ID via with_last_event_id()
+```
+
+---
+
 ## EventSourceTask Compilation Fixes (2026-03-08)
 
 ### Fixed Connection API Usage in TaskIterator

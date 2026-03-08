@@ -9,7 +9,7 @@
 use foundation_core::valtron::TaskIterator;
 use foundation_core::valtron::TaskStatus;
 use foundation_core::wire::event_source::{
-    Event, ReconnectingEventSourceTask, ReconnectingProgress,
+    Event, ParseResult, ReconnectingEventSourceTask, ReconnectingProgress,
 };
 use foundation_core::wire::simple_http::client::StaticSocketAddr;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
@@ -58,7 +58,7 @@ fn test_reconnecting_task_receives_events() {
 
     while let Some(status) = task.next() {
         match status {
-            TaskStatus::Ready(Event::Message { ref data, .. }) => {
+            TaskStatus::Ready(ParseResult { event: Event::Message { ref data, .. }, .. }) => {
                 assert_eq!(data, "hello");
                 got_event = true;
                 break;
@@ -93,7 +93,7 @@ fn test_reconnecting_task_tracks_event_id() {
     let mut steps = 0;
 
     while let Some(status) = task.next() {
-        if let TaskStatus::Ready(Event::Message { id: Some(id), .. }) = status {
+        if let TaskStatus::Ready(ParseResult { event: Event::Message { id: Some(id), .. }, .. }) = status {
             event_ids.push(id);
         }
         steps += 1;
@@ -158,7 +158,7 @@ fn test_reconnecting_task_multiple_events() {
     let mut steps = 0;
 
     while let Some(status) = task.next() {
-        if let TaskStatus::Ready(Event::Message { data, .. }) = status {
+        if let TaskStatus::Ready(ParseResult { event: Event::Message { data, .. }, .. }) = status {
             data_values.push(data);
         }
         steps += 1;
@@ -192,11 +192,11 @@ fn test_reconnecting_task_passes_comments() {
 
     while let Some(status) = task.next() {
         match status {
-            TaskStatus::Ready(Event::Comment(c)) => {
+            TaskStatus::Ready(ParseResult { event: Event::Comment(c), .. }) => {
                 assert_eq!(c, "keep-alive");
                 saw_comment = true;
             }
-            TaskStatus::Ready(Event::Message { ref data, .. }) => {
+            TaskStatus::Ready(ParseResult { event: Event::Message { ref data, .. }, .. }) => {
                 assert_eq!(data, "after comment");
                 saw_message = true;
             }

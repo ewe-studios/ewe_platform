@@ -13,7 +13,7 @@
 
 use crate::retries::{ExponentialBackoffDecider, RetryDecider, RetryState};
 use crate::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
-use crate::wire::event_source::{Event, EventSourceProgress, EventSourceTask};
+use crate::wire::event_source::{Event, EventSourceProgress, EventSourceTask, ParseResult};
 use crate::wire::simple_http::client::DnsResolver;
 use crate::wire::simple_http::SimpleHeader;
 use std::time::Duration;
@@ -169,20 +169,18 @@ where
         Some(task)
     }
 
-    /// Track the last event ID from a received event.
-    fn track_event_id(&mut self, event: &Event) {
-        if let Event::Message {
-            id: Some(id),
-            retry,
-            ..
-        } = event
-        {
+    /// Track the last event ID from a received ParseResult.
+    fn track_event_id(&mut self, parse_result: &ParseResult) {
+        if let Some(ref id) = parse_result.last_known_id {
             self.last_event_id = Some(id.clone());
+        }
 
-            // Respect server retry field
-            if let Some(ms) = retry {
-                self.config.server_retry = Some(Duration::from_millis(*ms));
-            }
+        // Also check the event itself for retry field
+        if let Event::Message {
+            retry: Some(ms), ..
+        } = &parse_result.event
+        {
+            self.config.server_retry = Some(Duration::from_millis(*ms));
         }
     }
 }
@@ -191,7 +189,7 @@ impl<R> TaskIterator for ReconnectingEventSourceTask<R>
 where
     R: DnsResolver + Clone + Send + 'static,
 {
-    type Ready = Event;
+    type Ready = ParseResult;
     type Pending = ReconnectingProgress;
     type Spawner = BoxedSendExecutionAction;
 
@@ -201,20 +199,18 @@ where
         match state {
             ReconnectingState::Connected(mut inner) => {
                 match inner.next() {
-                    Some(TaskStatus::Ready(event)) => {
-                        self.track_event_id(&event);
+                    Some(TaskStatus::Ready(parse_result)) => {
+                        self.track_event_id(&parse_result);
                         // Reset retry state on successful event
-                        self.retry_state =
-                            RetryState::new(0, self.config.max_retries, None);
+                        self.retry_state = RetryState::new(0, self.config.max_retries, None);
                         self.state = Some(ReconnectingState::Connected(inner));
-                        Some(TaskStatus::Ready(event))
+                        Some(TaskStatus::Ready(parse_result))
                     }
                     Some(TaskStatus::Pending(progress)) => {
                         self.state = Some(ReconnectingState::Connected(inner));
                         let mapped = match progress {
-                            EventSourceProgress::Connecting => {
-                                ReconnectingProgress::Connecting
-                            }
+                            EventSourceProgress::Resolving => ReconnectingProgress::Connecting,
+                            EventSourceProgress::Connecting => ReconnectingProgress::Connecting,
                             EventSourceProgress::Reading => ReconnectingProgress::Reading,
                         };
                         Some(TaskStatus::Pending(mapped))
@@ -237,17 +233,12 @@ where
                         let next_state = self.backoff.decide(self.retry_state.clone());
 
                         if let Some(next_retry) = next_state {
-                            let wait = self
-                                .config
-                                .server_retry
-                                .unwrap_or_else(|| {
-                                    next_retry.wait.unwrap_or(Duration::from_secs(1))
-                                });
+                            let wait = self.config.server_retry.unwrap_or_else(|| {
+                                next_retry.wait.unwrap_or(Duration::from_secs(1))
+                            });
                             self.retry_state = next_retry;
                             self.state = Some(ReconnectingState::Waiting(wait));
-                            Some(TaskStatus::Pending(
-                                ReconnectingProgress::Reconnecting,
-                            ))
+                            Some(TaskStatus::Pending(ReconnectingProgress::Reconnecting))
                         } else {
                             // Max retries exhausted
                             self.state = Some(ReconnectingState::Exhausted);

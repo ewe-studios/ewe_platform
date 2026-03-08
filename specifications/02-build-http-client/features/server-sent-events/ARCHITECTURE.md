@@ -4,9 +4,9 @@
 
 This document provides a comprehensive architectural analysis for implementing Server-Sent Events (SSE / EventSource) support in the `foundation_core` wire module. It is based on thorough exploration of the existing codebase infrastructure, particularly the `simple_http`, `http_stream`, `retries`, and `valtron` modules.
 
-**Status**: Updated - Corrected valtron integration patterns
+**Status**: Complete - All required features specified with explicit state machines
 **Last Updated**: 2026-03-08
-**Version**: 3.0
+**Version**: 5.0 - Added tracing instrumentation requirements
 
 ---
 
@@ -16,12 +16,14 @@ This document provides a comprehensive architectural analysis for implementing S
 2. [Existing Infrastructure Analysis](#existing-infrastructure-analysis)
 3. [SSE Protocol Overview](#sse-protocol-overview)
 4. [Integration Strategy](#integration-strategy)
-5. [Parser Design](#parser-design)
+5. [Parser Design - Line-Based](#parser-design---line-based)
 6. [Client Implementation](#client-implementation)
 7. [Server Implementation](#server-implementation)
 8. [Reconnection Strategy](#reconnection-strategy)
 9. [TaskIterator Integration](#taskiterator-integration)
 10. [Technical Design Details](#technical-design-details)
+11. [Architecture Diagrams](#architecture-diagrams)
+12. [Tracing and Observability](#tracing-and-observability)
 
 ---
 
@@ -77,10 +79,11 @@ The `foundation_core` wire module provides **exceptional infrastructure** for SS
 - ✅ Last-Event-ID tracking across reconnections
 - ✅ Error types with From<io::Error>
 
-**What remains** (Phase 3):
-- Event filtering with callbacks
-- Compression support
-- Performance optimizations
+**What remains** (Phase 3 - Required Completeness):
+- Idle timeout support
+- Max reconnect duration support
+- DNS state observability (5-state machine)
+- Explicit TLS/chunked encoding documentation
 
 ### Recommended Approach: TaskIterator with Executor Boundaries
 
@@ -800,201 +803,265 @@ Consumer boundary (NOT part of SSE module):
 
 ---
 
-## 5. Parser Design
+## 5. Parser Design - Line-Based
 
-### 5.1 SseParser Structure
+### 5.1 Design Decision: Line-Based vs Character-Based
+
+**CHOSEN: Line-Based Parsing** using `SharedByteBufferStream::read_line()`
+
+The implementation uses **line-based parsing** which is simpler and more efficient than character-by-character parsing:
+
+| Aspect | Character-Based | Line-Based (CHOSEN) |
+|--------|-----------------|---------------------|
+| Complexity | Higher - manual char buffering | Lower - delegate to `read_line()` |
+| Memory | Per-char allocation | Full line allocation |
+| Code clarity | More loops, state tracking | Simple loop, clear logic |
+| I/O pattern | Multiple small reads | Buffered line reads |
+
+### 5.2 ParseResult - Explicit Last-Event-ID
+
+**CRITICAL DESIGN:** The parser returns `ParseResult` which ALWAYS includes both the event AND the last known event ID:
 
 ```rust
-pub struct SseParser {
-    // Buffering
-    line_buffer: String,
-
-    // Current event accumulation
-    current_id: Option<String>,
-    current_event: Option<String>,
-    current_data: Vec<String>,
-    current_retry: Option<u64>,
-
-    // State
-    last_event_id: Option<String>,
-    bom_seen: bool,
+/// Result of parsing a single SSE event.
+///
+/// WHY: Reconnection logic needs last known event ID. Instead of hidden
+/// parser state, we return it explicitly with each event.
+/// WHAT: Tuple-like struct with event and last_known_id.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParseResult {
+    /// The parsed event.
+    pub event: Event,
+    /// Last known event ID after parsing this event.
+    /// - `None` if no ID has ever been seen
+    /// - `Some(id)` if the current or a previous event had an ID
+    /// Updated when the parsed event contains an `id:` field.
+    pub last_known_id: Option<String>,
 }
 
-impl SseParser {
-    pub fn new() -> Self {
+impl ParseResult {
+    /// Create a new ParseResult.
+    pub fn new(event: Event, last_known_id: Option<String>) -> Self {
+        Self { event, last_known_id }
+    }
+}
+
+/// Parser return type alias for clarity.
+pub type ParseOutput = Result<Option<ParseResult>, EventSourceError>;
+```
+
+**Why This Design?**
+
+| Approach | Pros | Cons |
+|----------|------|------|
+| **Hidden state + getter** | Simple API | Caller must remember to call getter; state can be stale |
+| **Return tuple `(Event, Option<String>)`** | Explicit, no hidden state | Unnamed fields, less clear |
+| **Return `ParseResult` struct** (CHOSEN) | Explicit, named fields, extensible | Minimal overhead |
+
+### 5.3 SseParser Structure
+
+```rust
+use crate::io::ioutils::SharedByteBufferStream;
+use std::io::Read;
+
+/// Accumulator for building a single SSE event from parsed lines.
+struct EventBuilder {
+    id: Option<String>,
+    event_type: Option<String>,
+    data: Vec<String>,
+    retry: Option<u64>,
+}
+
+impl EventBuilder {
+    fn new() -> Self {
         Self {
-            line_buffer: String::new(),
-            current_id: None,
-            current_event: None,
-            current_data: Vec::new(),
-            current_retry: None,
-            last_event_id: None,
-            bom_seen: false,
-        }
-    }
-
-    /// Parse incoming chunk, yield complete events
-    pub fn parse(&mut self, chunk: &str) -> Vec<Event> {
-        let mut events = Vec::new();
-
-        for ch in chunk.chars() {
-            // Handle BOM
-            if !self.bom_seen && ch == '\u{FEFF}' {
-                self.bom_seen = true;
-                continue;
-            }
-
-            // Accumulate line
-            if ch == '\n' || ch == '\r' {
-                if !self.line_buffer.is_empty() {
-                    self.process_line(&mut events);
-                    self.line_buffer.clear();
-                }
-            } else {
-                self.line_buffer.push(ch);
-            }
-        }
-
-        events
-    }
-
-    fn process_line(&mut self, events: &mut Vec<Event>) {
-        let line = self.line_buffer.trim_end_matches('\r');
-
-        // Empty line → dispatch event
-        if line.is_empty() {
-            if let Some(event) = self.dispatch_event() {
-                events.push(event);
-            }
-            return;
-        }
-
-        // Comment line
-        if line.starts_with(':') {
-            events.push(Event::Comment(line[1..].trim_start().to_string()));
-            return;
-        }
-
-        // Parse field
-        if let Some((field, value)) = self.parse_field(line) {
-            self.process_field(field, value);
-        }
-    }
-
-    fn parse_field<'a>(&self, line: &'a str) -> Option<(&'a str, &'a str)> {
-        if let Some(colon_pos) = line.find(':') {
-            let field = &line[..colon_pos];
-            let value = &line[colon_pos + 1..];
-            // Strip optional leading space
-            let value = value.strip_prefix(' ').unwrap_or(value);
-            Some((field, value))
-        } else {
-            // No colon → field with empty value
-            Some((line, ""))
+            id: None,
+            event_type: None,
+            data: Vec::new(),
+            retry: None,
         }
     }
 
     fn process_field(&mut self, field: &str, value: &str) {
         match field {
-            "event" => self.current_event = Some(value.to_string()),
-            "data" => self.current_data.push(value.to_string()),
             "id" => {
-                // Ignore if contains null byte
+                // Ignore if value contains null byte
                 if !value.contains('\0') {
-                    self.current_id = Some(value.to_string());
+                    self.id = Some(value.to_string());
                 }
+            }
+            "event" => {
+                self.event_type = Some(value.to_string());
+            }
+            "data" => {
+                self.data.push(value.to_string());
             }
             "retry" => {
-                // Parse as integer, ignore if invalid
                 if let Ok(ms) = value.parse::<u64>() {
-                    self.current_retry = Some(ms);
+                    self.retry = Some(ms);
                 }
             }
-            _ => {} // Unknown field → ignore
+            // Unknown fields are ignored
+            _ => {}
         }
     }
 
-    fn dispatch_event(&mut self) -> Option<Event> {
-        // No data → no event
-        if self.current_data.is_empty() {
+    fn build(&self) -> Option<Event> {
+        if self.data.is_empty() {
             return None;
         }
 
-        // Join data lines with \n
-        let data = self.current_data.join("\n");
-
-        // Update last event ID if present
-        if let Some(id) = &self.current_id {
-            self.last_event_id = Some(id.clone());
-        }
-
-        let event = Event::Message {
-            id: self.current_id.clone(),
-            event_type: self.current_event.clone(),
-            data,
-            retry: self.current_retry,
-        };
-
-        // Reset buffer (but keep last_event_id)
-        self.current_id = None;
-        self.current_event = None;
-        self.current_data.clear();
-        self.current_retry = None;
-
-        Some(event)
+        Some(Event::Message {
+            id: self.id.clone(),
+            event_type: self.event_type.clone(),
+            data: self.data.join("\n"),
+            retry: self.retry,
+        })
     }
 
-    pub fn last_event_id(&self) -> Option<&str> {
-        self.last_event_id.as_deref()
+    fn reset(&mut self) {
+        self.id = None;
+        self.event_type = None;
+        self.data = Vec::new();
+        self.retry = None;
+    }
+}
+
+/// [`SseParser`] parses incoming SSE data according to W3C specification.
+///
+/// WHY: SSE protocol has specific parsing rules for fields, line endings, and multi-line data.
+/// WHAT: Parser wrapping a `Read`er, reading lines and yielding complete events.
+///
+/// NOTE: Generic over any `Read` type wrapped in `SharedByteBufferStream`.
+/// Accumulation happens locally in `parse_next`, only `last_event_id` persists in ParseResult.
+pub struct SseParser<R: Read> {
+    buffer: SharedByteBufferStream<R>,
+}
+
+impl<R: Read> SseParser<R> {
+    /// Create a new SSE parser with a buffer.
+    ///
+    /// WHY: Parser needs a buffer to read from.
+    /// WHAT: Returns a parser that reads from the provided `SharedByteBufferStream`.
+    ///
+    /// NOTE: External code writes to the buffer; this parser only reads from it.
+    #[must_use]
+    pub fn new(buffer: SharedByteBufferStream<R>) -> Self {
+        Self { buffer }
+    }
+
+    /// Parse next event from the stream, returning ParseResult.
+    ///
+    /// WHY: SSE events span multiple lines - need to accumulate until empty line or comment.
+    /// WHAT: Reads lines in a loop, accumulating into an [`EventBuilder`], returns ParseResult.
+    ///
+    /// Returns:
+    /// - `Ok(Some(ParseResult))` when a complete event is parsed (includes last_known_id)
+    /// - `Ok(None)` when EOF is reached with no more data
+    /// - `Err(EventSourceError)` on I/O read failure
+    ///
+    /// NOTE: Field lines accumulate locally; empty lines dispatch; comments return immediately.
+    pub fn parse_next(&mut self) -> ParseOutput {
+        let mut builder = EventBuilder::new();
+
+        loop {
+            let mut line = String::new();
+
+            let bytes_read = self.buffer.read_line(&mut line)?;
+
+            if bytes_read == 0 {
+                // EOF - dispatch any accumulated data before returning
+                if let Some(event) = builder.build() {
+                    let last_known_id = event.id().map(String::from);
+                    return Ok(Some(ParseResult::new(event, last_known_id)));
+                }
+                return Ok(None);
+            }
+
+            // Remove the newline byte from the end (read_line includes it)
+            if line.ends_with('\n') {
+                line.pop();
+            }
+
+            // Handle CRLF - strip trailing \r if present
+            if line.ends_with('\r') {
+                line.pop();
+            }
+
+            // Empty line - dispatch accumulated event
+            if line.is_empty() {
+                if let Some(event) = builder.build() {
+                    let last_known_id = event.id().map(String::from);
+                    return Ok(Some(ParseResult::new(event, last_known_id)));
+                }
+                builder.reset();
+                continue;
+            }
+
+            // Comment line - return immediately
+            if line.starts_with(':') {
+                let comment = line.strip_prefix(':').unwrap_or("").trim_start();
+                return Ok(Some(ParseResult::new(
+                    Event::Comment(comment.to_string()),
+                    None, // Comments don't affect last_known_id
+                )));
+            }
+
+            // Field line - accumulate
+            if let Some(colon_pos) = line.find(':') {
+                let field = &line[..colon_pos];
+                let value = line.get(colon_pos + 1..).unwrap_or("");
+
+                // Strip leading space if present (optional per spec)
+                let value = value.strip_prefix(' ').unwrap_or(value);
+
+                builder.process_field(field, value);
+            }
+            // Lines without colon are ignored per spec
+        }
+    }
+}
+
+impl<R: Read> Iterator for SseParser<R> {
+    type Item = Result<ParseResult, EventSourceError>;
+
+    /// Get next event from parser.
+    ///
+    /// WHY: Provide standard Iterator interface for SSE event consumption.
+    /// WHAT: Parses and returns complete events as ParseResult, propagating errors.
+    ///
+    /// NOTE: Returns `None` only when EOF is reached.
+    /// Returns `Some(Err(...))` on I/O or parse errors.
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.parse_next() {
+            Ok(Some(result)) => Some(Ok(result)),
+            Ok(None) => None,
+            Err(e) => Some(Err(e)),
+        }
     }
 }
 ```
 
-### 5.2 Event Types
+### 5.4 Event Types
 
 ```rust
+/// Event represents a parsed SSE event received from the server.
+///
+/// WHY: SSE protocol defines specific event types (message, comment, reconnect) with fields.
+/// WHAT: Enum capturing all possible SSE event types with their associated data.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Event {
+    /// A message event with optional id, event type, data, and retry interval.
     Message {
         id: Option<String>,
         event_type: Option<String>,
         data: String,
         retry: Option<u64>,
     },
+    /// A comment (keep-alive) - ignored by clients but useful for debugging.
     Comment(String),
+    /// Reconnection signal - used internally to indicate reconnection needed.
     Reconnect,
-}
-
-impl Event {
-    pub fn message(data: impl Into<String>) -> Self {
-        Self::Message {
-            id: None,
-            event_type: None,
-            data: data.into(),
-            retry: None,
-        }
-    }
-
-    pub fn id(&self) -> Option<&str> {
-        match self {
-            Self::Message { id, .. } => id.as_deref(),
-            _ => None,
-        }
-    }
-
-    pub fn event_type(&self) -> Option<&str> {
-        match self {
-            Self::Message { event_type, .. } => event_type.as_deref(),
-            _ => None,
-        }
-    }
-
-    pub fn data(&self) -> Option<&str> {
-        match self {
-            Self::Message { data, .. } => Some(data.as_str()),
-            _ => None,
-        }
-    }
 }
 ```
 
@@ -1862,6 +1929,151 @@ let mut iter = unified::execute(task, None)?;
 
 ---
 
+## 11. Architecture Diagrams
+
+### 11.1 EventSourceTask State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> Init: connect()
+
+    Init --> Resolving: DNS lookup started
+    Resolving --> Connecting: DNS resolved
+    Resolving --> Closed: DNS failed
+
+    Connecting --> Reading: TCP/TLS connected
+    Connecting --> Closed: Connection failed
+
+    Reading --> Reading: Event parsed (Ready)
+    Reading --> Closed: EOF/Error
+
+    Closed --> [*]: Task complete
+
+    note right of Init
+        Parse URL, validate scheme
+        Return Pending for observability
+    end note
+
+    note right of Resolving
+        DNS resolution in progress
+        Returns: Pending(Resolving)
+        On failure → Connecting → Closed
+        (allows test observation)
+    end note
+
+    note right of Connecting
+        TCP handshake / TLS upgrade
+        Returns: Pending(Connecting)
+        On failure → Closed
+    end note
+
+    note right of Reading
+        Streaming SSE events
+        Returns: Ready(ParseResult)
+        ParseResult contains:
+        - Event
+        - last_known_id
+    end note
+```
+
+### 11.2 ReconnectingEventSourceTask State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> Connected: connect()
+
+    Connected --> Connected: Event received (forward)
+    Connected --> Waiting: Inner task closed
+
+    Waiting --> Reconnecting: Backoff complete
+    Waiting --> Waiting: Still backing off
+
+    Reconnecting --> Connected: New inner task created
+    Reconnecting --> Exhausted: Failed to create task
+
+    Connected --> Exhausted: Max retries exceeded
+    Connected --> Exhausted: Max duration exceeded
+
+    Exhausted --> [*]: Task complete
+
+    note right of Connected
+        Forwarding events from inner
+        EventSourceTask
+        Track last_known_id from
+        ParseResult
+    end note
+
+    note right of Waiting
+        Exponential backoff active
+        Returns: Delayed(duration)
+        Respects server retry: field
+    end note
+
+    note right of Reconnecting
+        Creating new EventSourceTask
+        Applying last_known_id
+        Via Last-Event-ID header
+    end note
+```
+
+### 11.3 Last-Event-ID Flow
+
+```mermaid
+sequenceDiagram
+    participant Server
+    participant Parser as SseParser
+    participant Task as EventSourceTask
+    participant Reconnect as ReconnectingEventSourceTask
+
+    Server->>Parser: "id: 42\ndata: hello\n\n"
+    Parser->>Parser: Parse event
+    Parser-->>Task: ParseResult{event, last_known_id: "42"}
+    Task->>Task: Store last_event_id = "42"
+    Task-->>Reconnect: Forward event + ID
+    Reconnect->>Reconnect: Cache last_event_id = "42"
+
+    Note over Server,Reconnect: Connection drops
+
+    Reconnect->>Reconnect: Create new EventSourceTask
+    Reconnect->>Task: with_last_event_id("42")
+    Task->>Server: GET /events Last-Event-ID: 42
+    Server->>Task: Resume from event 42
+```
+
+### 11.4 Complete SSE Connection Flow
+
+```mermaid
+flowchart TD
+    A[Client calls connect] --> B[EventSourceTask::Init]
+    B --> C{DNS Resolve}
+    C -->|Success| D{TCP Connect}
+    C -->|Failure| E[Transition to Closed]
+
+    D -->|Success| F[Reading State]
+    D -->|Failure| E
+
+    F --> G{Parse SSE Line}
+    G -->|Comment| H[Return Comment event]
+    G -->|Field| I[Accumulate in EventBuilder]
+    G -->|Empty Line| J{Dispatch Event}
+
+    J -->|Has data| K[Return ParseResult{event, last_known_id}]
+    J -->|No data| F
+
+    K --> L[ReconnectingEventSource caches ID]
+    L --> F
+
+    F -->|EOF/Error| M{Retry?}
+    M -->|Yes, under limit| N[Backoff Delay]
+    M -->|No, exhausted| O[Exhausted - Done]
+
+    N --> P[Create new EventSourceTask]
+    P --> Q[Apply cached last_event_id]
+    Q --> D
+```
+
+---
+
 ## 10. Technical Design Details
 
 ### 10.1 File Structure (Actual)
@@ -1869,10 +2081,10 @@ let mut iter = unified::execute(task, None)?;
 ```
 backends/foundation_core/src/wire/event_source/
 ├── mod.rs                  # Public API and re-exports
-├── core.rs                 # Event, SseEvent, SseEventBuilder types
-├── parser.rs               # SseParser (Iterator<Item = Result<Event, EventSourceError>>)
-├── task.rs                 # EventSourceTask (TaskIterator - single connection)
-├── reconnecting_task.rs    # ReconnectingEventSourceTask (TaskIterator - with reconnection)
+├── core.rs                 # Event, SseEvent, SseEventBuilder, ParseResult types
+├── parser.rs               # SseParser (line-based, returns ParseResult)
+├── task.rs                 # EventSourceTask (TaskIterator - 5 states)
+├── reconnecting_task.rs    # ReconnectingEventSourceTask (TaskIterator - reconnection)
 ├── writer.rs               # EventWriter (server-side event formatting)
 ├── response.rs             # SseResponse builder (HTTP response headers)
 └── error.rs                # EventSourceError enum
@@ -1892,7 +2104,7 @@ mod response;
 mod task;
 mod writer;
 
-pub use core::{Event, SseEvent, SseEventBuilder};
+pub use core::{Event, SseEvent, SseEventBuilder, ParseResult};
 pub use error::EventSourceError;
 pub use parser::SseParser;
 pub use reconnecting_task::{ReconnectingEventSourceTask, ReconnectingProgress};
@@ -1922,13 +2134,13 @@ All required functionality exists:
    - Parse multi-line data
    - Parse all field types (event, data, id, retry)
    - Handle different line endings (\n, \r, \r\n)
-   - Handle UTF-8 BOM
    - Handle comments
    - Ignore invalid retry values
    - Ignore IDs with null bytes
    - Test vectors from W3C spec
+   - Verify `ParseResult.last_known_id` is correctly populated
 
-2. **Event builder tests** (`writer.rs`):
+2. **Event builder tests** (`core.rs`):
    - Build simple event
    - Build event with all fields
    - Multi-line data formatting
@@ -1939,6 +2151,21 @@ All required functionality exists:
    - Handle multi-line data
    - Send comments
    - Verify flush after each event
+
+4. **Task tests** (`task.rs`):
+   - State transitions (Init → Resolving → Connecting → Reading → Closed)
+   - DNS failure observability
+   - Connection failure observability
+   - Event parsing and forwarding
+   - Last-Event-ID tracking
+
+5. **Reconnecting task tests** (`reconnecting_task.rs`):
+   - Reconnection on inner task close
+   - Exponential backoff timing
+   - Last-Event-ID applied on reconnect
+   - Max retries honored
+   - Server `retry:` field respected
+   - Idle timeout triggering
 
 **Integration Tests**:
 
@@ -1967,62 +2194,621 @@ All required functionality exists:
 - Minimize allocations (reuse buffers where possible)
 
 **String Operations**:
-- `line_buffer: String` - reused for each line
-- `current_data: Vec<String>` - collected data lines
-- Join operation only on event dispatch
+- `read_line()` delegates to buffered stream
+- `EventBuilder.data: Vec<String>` - collected data lines
+- Join operation only on event dispatch (`data.join("\n")`)
 
 **Reconnection**:
 - Exponential backoff prevents server overload
 - Jitter prevents thundering herd
 - Connection reuse via pool (future optimization)
 
----
-
-## Appendix A: Implementation Checklist
-
-### Phase 1: Core SSE (Blocking)
-
-- [ ] `core.rs` - Event and SseEvent types
-- [ ] `parser.rs` - SseParser with W3C spec compliance
-- [ ] `client.rs` - EventSource and EventSourceStream
-- [ ] `writer.rs` - EventWriter and SseEventBuilder
-- [ ] `error.rs` - EventSourceError
-- [ ] Unit tests for parser (all test vectors)
-- [ ] Unit tests for writer
-- [ ] Integration test with simple server
-
-### Phase 2: Reconnection
-
-- [ ] `reconnecting.rs` - ReconnectingEventSource
-- [ ] Last-Event-ID header management
-- [ ] Server retry field handling
-- [ ] Integration test for reconnection
-
-### Phase 3: TaskIterator
-
-- [ ] `task.rs` - EventSourceTask
-- [ ] Non-blocking state machine
-- [ ] Integration with valtron executor
-- [ ] Performance benchmarks
-
-### Phase 4: Documentation
-
-- [ ] API documentation (doc comments)
-- [ ] Usage examples
-- [ ] Integration guide
-- [ ] Update wire/mod.rs exports
+**Idle Timeout**:
+- Track `last_activity` timestamp in `Reading` state
+- Check elapsed time on each `next()` call
+- Return `TaskStatus::Delayed(timeout)` when idle period exceeded
 
 ---
 
-## Appendix B: References
+## 12. Tracing and Observability
+
+### 12.1 Tracing Infrastructure
+
+**CRITICAL:** All SSE components and `simple_http` client code MUST use the `tracing` crate for structured logging. This enables debugging, monitoring, and observability in production systems.
+
+**Tracing is already available in `foundation_core`:**
+```toml
+# backends/foundation_core/Cargo.toml
+tracing = { version = "0.1.41" }
+```
+
+### 12.2 Tracing Levels
+
+| Level | Usage | Examples |
+|-------|-------|----------|
+| `tracing::trace!` | Very detailed, noisy debugging | Raw byte reads, individual field parsing, state machine polling |
+| `tracing::debug!` | Diagnostic information | State transitions, connection events, header values |
+| `tracing::info!` | Normal operational messages | Connection established, reconnection attempt, stream started |
+| `tracing::warn!` | Unexpected but recoverable | Deprecated field, slow response, retry attempt |
+| `tracing::error!` | Error conditions | Connection failure, parse error, max retries exhausted |
+
+### 12.3 Instrumentation Requirements
+
+**All public methods** must have `#[tracing::instrument]` macro with appropriate fields:
+
+```rust
+use tracing::{debug, error, info, instrument, trace, warn};
+
+// Instrument methods with key identifying fields
+#[instrument(skip(self, resolver), fields(url = %url))]
+pub fn connect(resolver: R, url: impl Into<String>) -> Result<Self, EventSourceError> {
+    info!("Connecting to SSE endpoint");
+    // ...
+}
+
+// Instrument TaskIterator implementations
+#[instrument(skip(self), fields(state))]
+fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    // ...
+}
+```
+
+### 12.4 Component-Specific Tracing
+
+#### EventSourceTask
+
+```rust
+use tracing::{debug, error, info, instrument, trace};
+
+impl<R> EventSourceTask<R>
+where
+    R: DnsResolver + Send + 'static,
+{
+    /// Connect to an SSE endpoint.
+    #[instrument(skip(resolver), fields(url = %url), ret, err)]
+    pub fn connect(resolver: R, url: impl Into<String>) -> Result<Self, EventSourceError> {
+        info!("Connecting to SSE endpoint");
+
+        // Validate URL
+        let uri = Uri::parse(&url_str).map_err(|e| {
+            error!(url = %url_str, error = ?e, "Failed to parse URL");
+            EventSourceError::InvalidUrl(format!("Failed to parse URL: {} - {:?}", url_str, e))
+        })?;
+
+        debug!(scheme = ?uri.scheme(), host = %uri.host_str(), "URL validated");
+        // ...
+    }
+
+    #[must_use]
+    #[instrument(skip(self), fields(header = %name))]
+    pub fn with_header(mut self, name: SimpleHeader, value: impl Into<String>) -> Self {
+        debug!("Adding custom header");
+        // ...
+    }
+
+    #[must_use]
+    #[instrument(skip(self), fields(last_event_id = %last_event_id))]
+    pub fn with_last_event_id(mut self, last_event_id: impl Into<String>) -> Self {
+        debug!("Setting Last-Event-ID");
+        // ...
+    }
+}
+
+impl<R> TaskIterator for EventSourceTask<R> {
+    #[instrument(skip(self), fields(state))]
+    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        let state = self.state.take()?;
+
+        match state {
+            EventSourceState::Init(config) => {
+                debug!(state = "Init", "Resolving DNS");
+
+                let Ok(addrs) = self.resolver.resolve(&host, port) else {
+                    error!(host = %host, "DNS resolution failed");
+                    self.state = Some(EventSourceState::Closed);
+                    return None;
+                };
+
+                debug!(state = "Resolving", "DNS resolved, connecting");
+                self.state = Some(EventSourceState::Resolving);
+                return Some(TaskStatus::Pending(EventSourceProgress::Resolving));
+            }
+
+            EventSourceState::Resolving => {
+                debug!(state = "Resolving", "Transitioning to Connecting");
+                // ...
+            }
+
+            EventSourceState::Connecting => {
+                debug!(state = "Connecting", "TCP/TLS handshake");
+                // ...
+            }
+
+            EventSourceState::Reading(mut parser) => {
+                trace!(state = "Reading", "Polling for SSE events");
+
+                match parser.next() {
+                    Some(Ok(ParseResult { event, last_known_id })) => {
+                        trace!(event_type = ?event, "Received SSE event");
+                        // ...
+                    }
+                    Some(Err(e)) => {
+                        error!(error = ?e, "SSE parse error");
+                        // ...
+                    }
+                    None => {
+                        debug!(state = "Reading", "Stream EOF");
+                        // ...
+                    }
+                }
+            }
+
+            EventSourceState::Closed => {
+                trace!(state = "Closed", "Task complete");
+                None
+            }
+        }
+    }
+}
+```
+
+#### ReconnectingEventSourceTask
+
+```rust
+impl<R> ReconnectingEventSourceTask<R>
+where
+    R: DnsResolver + Clone + Send + 'static,
+{
+    #[instrument(skip(resolver), fields(url = %url, max_retries), ret, err)]
+    pub fn connect(
+        resolver: R,
+        url: impl Into<String>,
+    ) -> Result<Self, EventSourceError> {
+        info!("Creating reconnecting SSE client");
+        // ...
+    }
+
+    #[instrument(skip(self), fields(max_retries))]
+    #[must_use]
+    pub fn with_max_retries(mut self, max_retries: u32) -> Self {
+        debug!(max_retries, "Setting max retries");
+        // ...
+    }
+
+    #[instrument(skip(self), fields(last_event_id))]
+    #[must_use]
+    pub fn with_last_event_id(mut self, last_event_id: impl Into<String>) -> Self {
+        debug!(last_event_id = %last_event_id, "Setting initial Last-Event-ID");
+        // ...
+    }
+}
+
+impl<R> TaskIterator for ReconnectingEventSourceTask<R> {
+    #[instrument(skip(self), fields(state, last_event_id))]
+    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        let state = self.state.take()?;
+
+        match state {
+            ReconnectingState::Connected(mut inner) => {
+                trace!(state = "Connected", "Forwarding from inner task");
+
+                match inner.next() {
+                    Some(TaskStatus::Ready(event)) => {
+                        trace!("Event received, tracking ID");
+                        // Track event ID
+                        if let Some(id) = event.id() {
+                            debug!(last_event_id = %id, "Tracking event ID");
+                        }
+                        // ...
+                    }
+                    None => {
+                        warn!("Inner task closed, attempting reconnection");
+                        // Reconnection logic
+                    }
+                    // ...
+                }
+            }
+
+            ReconnectingState::Waiting(duration) => {
+                debug!(state = "Waiting", backoff_ms = ?duration, "Backoff delay");
+                // ...
+            }
+
+            ReconnectingState::Reconnecting => {
+                info!(
+                    last_event_id = ?self.last_event_id,
+                    attempt = self.retry_state.attempt,
+                    "Reconnecting with Last-Event-ID"
+                );
+                // ...
+            }
+
+            ReconnectingState::Exhausted => {
+                error!("Max retries exhausted, giving up");
+                None
+            }
+        }
+    }
+}
+```
+
+#### SseParser
+
+```rust
+impl<R: Read> SseParser<R> {
+    #[instrument(skip(self), ret)]
+    pub fn parse_next(&mut self) -> ParseOutput {
+        let mut builder = EventBuilder::new();
+
+        loop {
+            let mut line = String::new();
+            let bytes_read = self.buffer.read_line(&mut line)?;
+
+            if bytes_read == 0 {
+                trace!("EOF reached");
+                // ...
+            }
+
+            trace!(%line, "Parsing SSE line");
+
+            // Empty line - dispatch
+            if line.is_empty() {
+                debug!("Dispatching SSE event");
+                // ...
+            }
+
+            // Comment line
+            if line.starts_with(':') {
+                trace!(comment = %line, "SSE comment");
+                // ...
+            }
+
+            // Field line
+            if let Some(colon_pos) = line.find(':') {
+                let field = &line[..colon_pos];
+                let value = line.get(colon_pos + 1..).unwrap_or("");
+                trace!(field, value, "Parsing SSE field");
+                // ...
+            }
+        }
+    }
+}
+```
+
+#### EventWriter
+
+```rust
+impl<W> EventWriter<W>
+where
+    W: Write,
+{
+    #[instrument(skip(self, event), err)]
+    pub fn send(&mut self, event: &SseEvent) -> Result<(), std::io::Error> {
+        trace!("Sending SSE event");
+
+        if let Some(event_type) = event.event_type() {
+            debug!(event_type, "Writing event type");
+            // ...
+        }
+
+        if let Some(id) = event.id() {
+            debug!(id, "Writing event ID");
+            // ...
+        }
+
+        // Write data
+        for data_line in event.data_lines() {
+            trace!(data_line, "Writing data line");
+            // ...
+        }
+
+        info!("SSE event sent");
+        Ok(())
+    }
+
+    #[instrument(skip(self, comment), err)]
+    pub fn comment(&mut self, comment: &str) -> Result<(), std::io::Error> {
+        trace!(comment, "Sending keep-alive comment");
+        // ...
+    }
+}
+```
+
+### 12.5 Tracing in simple_http Client
+
+**All HTTP client components must also be instrumented:**
+
+#### HttpClientConnection
+
+```rust
+impl HttpClientConnection {
+    #[instrument(skip(resolver), fields(host = %uri.host_str(), port = uri.port_or_default()), err)]
+    pub fn connect(
+        uri: &Uri,
+        resolver: &impl DnsResolver,
+        timeout: Option<Duration>,
+    ) -> Result<Self, HttpClientError> {
+        info!("Establishing HTTP connection");
+        // ...
+    }
+
+    #[instrument(skip(self), ret)]
+    pub fn upgrade_to_tls(
+        connection: Connection,
+        host: &str,
+        port: u16,
+    ) -> Result<Self, HttpClientError> {
+        info!("Upgrading connection to TLS");
+        // ...
+    }
+}
+```
+
+#### DnsResolver
+
+```rust
+impl SystemDnsResolver {
+    #[instrument(skip(self), fields(host, port), ret, err)]
+    fn resolve(&self, host: &str, port: u16) -> Result<Vec<SocketAddr>, DnsError> {
+        debug!("Resolving hostname");
+        // ...
+    }
+}
+```
+
+### 12.6 Summary: Required Instrumentation
+
+| Component | Method | Instrument | Log Level |
+|-----------|--------|------------|-----------|
+| **EventSourceTask** | `connect()` | `#[instrument]` | `info!` |
+| | `with_header()` | `#[instrument]` | `debug!` |
+| | `with_last_event_id()` | `#[instrument]` | `debug!` |
+| | `next()` - Init | - | `debug!` (DNS) |
+| | `next()` - Resolving | - | `debug!` (transition) |
+| | `next()` - Connecting | - | `debug!` (handshake) |
+| | `next()` - Reading | - | `trace!` (poll), `debug!` (event) |
+| | `next()` - DNS fail | - | `error!` |
+| | `next()` - Connect fail | - | `error!` |
+| **ReconnectingEventSourceTask** | `connect()` | `#[instrument]` | `info!` |
+| | `with_max_retries()` | `#[instrument]` | `debug!` |
+| | `with_last_event_id()` | `#[instrument]` | `debug!` |
+| | `next()` - Reconnecting | - | `info!` |
+| | `next()` - Waiting | - | `debug!` (backoff) |
+| | `next()` - Exhausted | - | `error!` |
+| **SseParser** | `parse_next()` | `#[instrument]` | `trace!` (line), `debug!` (dispatch) |
+| **EventWriter** | `send()` | `#[instrument]` | `trace!` (write), `info!` (sent) |
+| | `comment()` | `#[instrument]` | `trace!` |
+| **SseResponse** | `build()` | `#[instrument]` | `debug!` (headers) |
+| **HttpClientConnection** | `connect()` | `#[instrument]` | `info!` |
+| | `upgrade_to_tls()` | `#[instrument]` | `info!` |
+
+### 12.7 Testing with tracing_test
+
+**CRITICAL:** All tests MUST use the `tracing_test` crate to capture and display logs during test execution. This helps identify issues quickly.
+
+**tracing_test is already available in `foundation_core`:**
+```toml
+# backends/foundation_core/Cargo.toml
+tracing-test = { version = "0.2", features = ["no-env-filter"] }
+```
+
+**Test Pattern:**
+```rust
+use tracing_test::traced_test;
+
+#[test]
+#[traced_test]
+fn test_event_source_task_connects_to_server() {
+    // Arrange
+    let resolver = MockDnsResolver::with_localhost();
+    let task = EventSourceTask::connect(resolver, "http://localhost:8080/events")
+        .expect("Failed to create task");
+
+    // Act
+    let status = task.next();
+
+    // Assert
+    assert!(matches!(status, Some(TaskStatus::Pending(_))));
+
+    // Logs are automatically captured and displayed:
+    // Example output:
+    // [INFO] Creating reconnecting SSE client
+    // [DEBUG] Resolving DNS
+    // [DEBUG] DNS resolved, connecting
+    // [DEBUG] TCP/TLS handshake
+}
+
+#[test]
+#[traced_test]
+fn test_event_source_task_dns_failure() {
+    // Arrange
+    let resolver = MockDnsResolver::with_failure();
+    let mut task = EventSourceTask::connect(resolver, "http://invalid.invalid/events")
+        .expect("Failed to create task");
+
+    // Act & Assert
+    // First call: Pending(Resolving) - DNS lookup started
+    assert!(matches!(
+        task.next(),
+        Some(TaskStatus::Pending(EventSourceProgress::Resolving))
+    ));
+
+    // Second call: None - DNS failed
+    assert!(task.next().is_none());
+
+    // Logs show the failure:
+    // [DEBUG] Resolving DNS
+    // [ERROR] DNS resolution failed host="invalid.invalid"
+}
+
+#[test]
+#[traced_test]
+fn test_reconnecting_task_exhausts_after_max_retries() {
+    // Arrange - server that immediately closes
+    let server = TestHttpServer::new(|_req| {
+        // Return response then close immediately
+    });
+    let mut task = ReconnectingEventSourceTask::connect(
+        SystemDnsResolver,
+        server.url("/events"),
+    )
+    .expect("Failed to create task")
+    .with_max_retries(3);
+
+    // Act - exhaust retries
+    for _ in 0..10 {
+        match task.next() {
+            None => break, // Exhausted
+            _ => {}
+        }
+    }
+
+    // Assert
+    assert!(matches!(task.state, Some(ReconnectingState::Exhausted)));
+
+    // Logs show reconnection attempts:
+    // [INFO] Creating reconnecting SSE client
+    // [WARN] Inner task closed, attempting reconnection
+    // [INFO] Reconnecting with Last-Event-ID
+    // [DEBUG] Backoff delay backoff_ms=1000
+    // [WARN] Inner task closed, attempting reconnection
+    // [INFO] Reconnecting with Last-Event-ID
+    // [DEBUG] Backoff delay backoff_ms=3000
+    // [ERROR] Max retries exhausted, giving up
+}
+```
+
+**Benefits of tracing_test:**
+
+1. **Automatic log capture** - No manual subscriber setup needed
+2. **Logs in test output** - See exactly what happened during test
+3. **Filtering** - Can filter by log level if needed
+4. **Assertion support** - Can assert on log contents (optional)
+5. **No env filter** - The `no-env-filter` feature prevents RUST_LOG interference
+
+**Asserting on logs (optional):**
+```rust
+use tracing_test::traced_test;
+
+#[test]
+#[traced_test]
+fn test_reconnecting_task_logs_reconnection() {
+    // ... test code ...
+
+    // Optional: assert that specific log messages occurred
+    assert!(logs_contain("Reconnecting with Last-Event-ID"));
+    assert!(logs_contain("Max retries exhausted"));
+}
+```
+
+**Test File Structure:**
+```rust
+// tests/backends/foundation_core/units/event_source/task_tests.rs
+
+#![cfg(test)]
+use foundation_core::wire::event_source::{EventSourceTask, EventSourceProgress};
+use foundation_testing::netcap::{TestHttpServer, MockDnsResolver};
+use tracing_test::traced_test;
+
+mod dns_failure {
+    use super::*;
+
+    #[test]
+    #[traced_test]
+    fn test_invalid_hostname() {
+        // Test with full log output
+    }
+}
+
+mod connection_failure {
+    use super::*;
+
+    #[test]
+    #[traced_test]
+    fn test_connection_refused() {
+        // Test with full log output
+    }
+}
+```
+
+---
+
+## 13. Implementation Checklist - ALL REQUIRED (No Future Phases)
+
+### Phase 1: Core SSE Protocol ✅ COMPLETE
+
+- [x] `core.rs` - Event, SseEvent, SseEventBuilder, ParseResult types
+- [x] `parser.rs` - SseParser with line-based parsing, W3C spec compliance
+- [x] `task.rs` - EventSourceTask with 5-state machine (Init, Resolving, Connecting, Reading, Closed)
+- [x] `writer.rs` - EventWriter and SseEventBuilder
+- [x] `response.rs` - SseResponse builder
+- [x] `error.rs` - EventSourceError
+- [x] Unit tests for parser (all test vectors)
+- [x] Unit tests for writer
+- [x] Integration test with simple server
+
+### Phase 2: Reconnection ✅ COMPLETE
+
+- [x] `reconnecting_task.rs` - ReconnectingEventSourceTask
+- [x] Last-Event-ID tracking via ParseResult
+- [x] Server retry field handling
+- [x] Exponential backoff with jitter
+- [x] Max retries honored
+- [x] Integration test for reconnection
+
+### Phase 3: Required Completeness - TO IMPLEMENT
+
+- [ ] `task.rs` - Add `with_idle_timeout(Duration)` method
+- [ ] `task.rs` - Track `last_activity` timestamp in Reading state
+- [ ] `task.rs` - Return `TaskStatus::Delayed(timeout)` on idle timeout
+- [ ] `task.rs` - Split Init state into Init → Resolving → Connecting (5 states)
+- [ ] `task.rs` - DNS failure observability (Resolving → Connecting → Closed)
+- [ ] `reconnecting_task.rs` - Add `with_max_reconnect_duration(Duration)` method
+- [ ] `reconnecting_task.rs` - Track `start_time` of first connection
+- [ ] `reconnecting_task.rs` - Check elapsed time before reconnection
+- [ ] `reconnecting_task.rs` - Transition to Exhausted on duration exceeded
+
+### Phase 4: Documentation ✅ COMPLETE
+
+- [x] API documentation (doc comments)
+- [x] Usage examples
+- [x] Mermaid diagrams (state machines, flows)
+- [x] ParseResult design documented
+- [x] Line-based parser documented
+- [ ] Update wire/mod.rs exports (verify ParseResult is exported)
+
+### Phase 5: Tracing - TO IMPLEMENT
+
+- [ ] `event_source/` - Add `use tracing::{...}` to all modules
+- [ ] `task.rs` - Add `#[instrument]` to `connect()`, `with_header()`, `with_last_event_id()`
+- [ ] `task.rs` - Add tracing to `next()` state transitions (debug!, info!, error!)
+- [ ] `reconnecting_task.rs` - Add `#[instrument]` to public methods
+- [ ] `reconnecting_task.rs` - Add tracing to `next()` (info! for reconnect, error! for exhausted)
+- [ ] `parser.rs` - Add `#[instrument]` to `parse_next()`
+- [ ] `parser.rs` - Add trace! for line parsing, debug! for event dispatch
+- [ ] `writer.rs` - Add `#[instrument]` to `send()`, `comment()`
+- [ ] `writer.rs` - Add trace! for field writing, info! for event sent
+- [ ] `response.rs` - Add `#[instrument]` to `build()`
+- [ ] `response.rs` - Add debug! for header logging
+- [ ] `simple_http/client/` - Add tracing to HttpClientConnection methods
+- [ ] `simple_http/client/` - Add tracing to DnsResolver methods
+- [ ] All tests - Add `#[traced_test]` attribute
+- [ ] All tests - Verify logs appear in test output
+- [ ] Verify tracing-test is in dev-dependencies
+
+---
+
+## Appendix A: References
 
 - [W3C Server-Sent Events Specification](https://html.spec.whatwg.org/multipage/server-sent-events.html)
 - [MDN EventSource](https://developer.mozilla.org/en-US/docs/Web/API/EventSource)
 - [RFC 2616 - HTTP/1.1](https://tools.ietf.org/html/rfc2616)
 - [SSE Test Server](https://sse.dev/test)
+- [tracing crate documentation](https://docs.rs/tracing)
+- [tracing-test crate documentation](https://docs.rs/tracing-test)
 
 ---
 
 *Created: 2026-03-03*
-*Last Updated: 2026-03-03*
-*Version: 1.0*
+*Last Updated: 2026-03-08*
+*Version: 5.0 - Added comprehensive tracing instrumentation requirements*

@@ -7,7 +7,7 @@ this_file: "specifications/02-build-http-client/features/server-sent-events/feat
 status: in-progress
 priority: medium
 created: 2026-03-03
-updated: 2026-03-08
+updated: 2026-03-08 - Added tracing requirements
 
 depends_on:
   - connection
@@ -82,6 +82,148 @@ TaskIterators are the core execution unit in valtron. They yield `TaskStatus` va
 3. **The boundary to `Iterator` is `unified::execute()` / `unified::execute_stream()`** — these schedule the task into the executor engine and return a driven iterator
 4. **State carries ALL data** — state enum variants hold the data needed for each phase
 5. **`Option<State>` wrapper** — task wraps state in `Option` for termination
+
+### Tracing and Logging Requirements
+
+**CRITICAL:** All SSE components MUST use `tracing` crate for structured logging. This enables debugging, monitoring, and observability in production systems.
+
+**Tracing Levels:**
+
+| Level | Usage | Examples |
+|-------|-------|----------|
+| `tracing::trace!` | Very detailed, noisy debugging | Raw byte reads, individual field parsing |
+| `tracing::debug!` | Diagnostic information | State transitions, connection events |
+| `tracing::info!` | Normal operational messages | Connection established, reconnection attempt |
+| `tracing::warn!` | Unexpected but recoverable | Deprecated field, slow response |
+| `tracing::error!` | Error conditions | Connection failure, parse error, max retries |
+
+**Instrumentation Requirements:**
+
+1. **All public methods** must have `#[tracing::instrument]` macro
+2. **State transitions** must log at `debug!` level
+3. **Errors** must log at `error!` level before returning
+4. **Reconnection events** must log at `info!` level
+5. **Backoff delays** must log at `debug!` level with duration
+
+**Example Pattern:**
+```rust
+use tracing::{debug, error, info, instrument};
+
+#[instrument(skip(self), fields(url = %self.config.url))]
+pub fn connect(resolver: R, url: impl Into<String>) -> Result<Self, EventSourceError> {
+    info!("Connecting to SSE endpoint");
+    // ...
+}
+
+impl<R> TaskIterator for EventSourceTask<R> {
+    fn next(&mut self) -> Option<TaskStatus<...>> {
+        match state {
+            EventSourceState::Init(config) => {
+                debug!(state = "Init", "Transitioning to Resolving");
+                // ...
+            }
+            EventSourceState::Resolving => {
+                debug!(state = "Resolving", "DNS resolution in progress");
+                // ...
+            }
+            EventSourceState::Connecting => {
+                debug!(state = "Connecting", "TCP/TLS handshake in progress");
+                // ...
+            }
+            EventSourceState::Reading(_) => {
+                debug!(state = "Reading", "Streaming SSE events");
+                // ...
+            }
+        }
+    }
+}
+```
+
+**Required Instrumentation by Component:**
+
+**EventSourceTask:**
+- `connect()` - Instrument with URL field
+- `with_header()` - Instrument with header name
+- `with_last_event_id()` - Instrument with ID
+- State transitions in `next()` - Log at `debug!` level
+- DNS resolution - Log at `debug!` level
+- Connection establishment - Log at `info!` level
+- Connection failure - Log at `error!` level
+- Event received - Log at `trace!` level (can be noisy)
+
+**ReconnectingEventSourceTask:**
+- `connect()` - Instrument with URL and max_retries fields
+- `with_max_retries()` - Instrument with retries value
+- `with_last_event_id()` - Instrument with ID
+- Reconnection attempt - Log at `info!` level
+- Backoff delay - Log at `debug!` level with duration
+- Max retries exhausted - Log at `error!` level
+- Last-Event-ID applied - Log at `debug!` level
+
+**SseParser:**
+- `new()` - Optional instrumentation
+- `parse_next()` - Instrument, log field parsing at `trace!` level
+- Event dispatch - Log at `debug!` level with event type
+- Parse error - Log at `error!` level with error details
+
+**EventWriter:**
+- `new()` - Optional instrumentation
+- `send()` - Instrument, log event type at `trace!` level
+- `comment()` - Instrument at `trace!` level
+- Write error - Log at `error!` level
+
+**SseResponse:**
+- `new()` - Optional instrumentation
+- `build()` - Instrument, log headers at `debug!` level
+
+### State Machine Requirements - Explicit and Complete
+
+**EventSourceTask MUST have these states (no shortcuts):**
+
+```
+Init → Resolving → Connecting → Reading → Closed
+         ↓             ↓
+      Closed       Closed
+```
+
+**Why 5 states (not 4)?** DNS resolution and TCP connection are SEPARATE operations that can fail independently. Observability requires distinct states:
+
+| State | Purpose | Failure Transition |
+|-------|---------|-------------------|
+| `Init` | Parse URL, prepare config | N/A (validation in `connect()`) |
+| `Resolving` | DNS lookup in progress | `Closed` on DNS failure |
+| `Connecting` | TCP/TLS handshake in progress | `Closed` on connection failure |
+| `Reading` | Streaming SSE events | `Closed` on EOF/error |
+| `Closed` | Terminal state | N/A |
+
+**CRITICAL:** Both `Resolving` and `Connecting` MUST return `TaskStatus::Pending` before transitioning to `Closed` on failure. This allows:
+- Tests to observe the failure progression
+- Consumers to see "attempting..." state
+- Consistent behavior with other TaskIterators in `simple_http/client/tasks/`
+
+**ReconnectingEventSourceTask MUST have these states:**
+
+```
+Connected → Waiting → Reconnecting → Connected (loop) → Exhausted
+    ↓
+Exhausted (on unrecoverable error)
+```
+
+### Complete Feature Requirements - ALL Mandatory
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Client: Connect and consume SSE streams | Required | Via `EventSourceTask` |
+| Client: Automatic reconnection with backoff | Required | Via `ReconnectingEventSourceTask` |
+| Client: Last-Event-ID tracking | Required | Across reconnections |
+| Client: Configurable idle timeout | Required | Reconnect if no data for N seconds |
+| Client: DNS failure observability | Required | Via `Resolving` state |
+| Client: Connection failure observability | Required | Via `Connecting` state |
+| Client: TLS support (https://) | Required | Via `RawStream` |
+| Client: Custom headers | Required | Auth, etc. |
+| Server: Send SSE events | Required | Via `EventWriter` |
+| Server: Build SSE response | Required | Via `SseResponse` |
+| Server: Respect `retry:` field | Required | Client honors server retry suggestion |
 
 ### Sub-Task Composition Pattern
 
@@ -166,10 +308,45 @@ fn handle_sse_connection(mut stream: impl Write) -> Result<(), Error> {
 }
 ```
 
-### Automatic Reconnection
+### ReconnectingEventSourceTask - Complete Requirements
 
 `ReconnectingEventSourceTask` wraps `EventSourceTask` with reconnection logic.
 It is itself a `TaskIterator` (NOT an Iterator) and properly forwards all TaskStatus variants.
+
+**Mandatory Features:**
+
+1. **Exponential backoff** - Uses `ExponentialBackoffDecider` with configurable:
+   - `min_duration` - Minimum wait between retries (default: 1s)
+   - `max_duration` - Maximum wait cap (default: 30s)
+   - `factor` - Exponential growth factor (default: 3)
+   - `jitter` - Randomization factor 0.0-1.0 (default: 0.6)
+
+2. **Max retries** - Configurable limit (default: 5), transitions to `Exhausted` when exceeded
+
+3. **Max reconnect duration** - Optional total time limit (e.g., "give up after 5 minutes")
+   - If set, overrides max_retries when duration is exceeded
+   - Tracked from first connection attempt
+
+4. **Server `retry:` field** - When server sends `retry: <ms>` in an event:
+   - Overrides backoff for NEXT reconnection only
+   - Backoff resumes normal pattern after successful reconnect
+
+5. **Last-Event-ID tracking** - Updated from every message event with `id` field
+   - Sent as `Last-Event-ID` header on reconnection
+   - Configurable initial ID via `with_last_event_id()`
+
+6. **Idle timeout** - Reconnect if no data received for N seconds
+   - Configurable via `with_idle_timeout(Duration)`
+   - Disabled by default (wait forever)
+   - Resets on every event received (including comments)
+
+7. **State forwarding** - All `TaskStatus` variants from inner task MUST be forwarded:
+   - `Ready(event)` → Track ID, reset idle timer, forward
+   - `Pending(progress)` → Map to `ReconnectingProgress`, forward
+   - `Delayed(duration)` → Forward unchanged
+   - `Spawn(action)` → Forward unchanged
+   - `Init` → Forward unchanged
+   - `None` → Trigger reconnection logic
 
 ```rust
 use foundation_core::wire::event_source::ReconnectingEventSourceTask;
@@ -178,6 +355,8 @@ use foundation_core::valtron::Stream;
 
 let task = ReconnectingEventSourceTask::connect(resolver, url)?
     .with_max_retries(10)
+    .with_max_reconnect_duration(Duration::from_secs(300))  // 5 minutes total
+    .with_idle_timeout(Duration::from_secs(60))  // Reconnect if idle 60s
     .with_last_event_id("42");
 
 // Use execute_stream() for simplified consumption
@@ -199,7 +378,7 @@ for item in stream {
 }
 ```
 
-## Implementation Phases
+## Implementation Phases - ALL REQUIRED (No Future Phases)
 
 ### Phase 1: Core SSE Protocol ✅ COMPLETE
 
@@ -208,8 +387,8 @@ for item in stream {
 backends/foundation_core/src/wire/event_source/
 ├── mod.rs              # Public API and re-exports
 ├── core.rs             # Event and SseEvent types
-├── parser.rs           # SSE message parser (internal, wraps SharedByteBufferStream)
-├── task.rs             # EventSourceTask (TaskIterator)
+├── parser.rs           # SSE message parser (line-based, wraps SharedByteBufferStream)
+├── task.rs             # EventSourceTask (TaskIterator with 5 states)
 ├── writer.rs           # EventWriter (server-side)
 ├── response.rs         # SseResponse builder
 └── error.rs            # EventSourceError
@@ -230,7 +409,7 @@ backends/foundation_core/src/wire/event_source/
 
 3. **EventSource Task** (`task.rs`) ✅ — **Core TaskIterator**
    - Implements `TaskIterator` (NOT Iterator)
-   - State machine: Init → Connecting → Reading → Closed
+   - State machine: Init → Resolving → Connecting → Reading → Closed
    - DNS resolution, HTTP request building, SSE parsing
 
 4. **SSE Server Writer** (`writer.rs`) ✅
@@ -255,7 +434,7 @@ backends/foundation_core/src/wire/event_source/
 
 **Total: 44 passing tests (unit + integration)**
 
-### Phase 3: Simplified Consumer APIs + Advanced Features (Future)
+### Phase 3: Simplified Consumer APIs + Advanced Features
 
 1. **Simplified Consumer Wrappers**
    - Convenience functions that properly use `unified::execute()` / `unified::execute_stream()` internally
@@ -336,14 +515,17 @@ backends/foundation_core/src/wire/event_source/
 2. **Compression Support** — handle `Content-Encoding: gzip` in SSE responses
 3. **Performance Optimizations** — buffer pooling, zero-copy parsing
 
-## Success Criteria
+## Success Criteria - ALL REQUIRED
 
-**Phase 1 (Core with TaskIterator)** ✅:
+**Phase 1 (Core SSE Protocol)** ✅:
 - [x] `event_source/` module exists and compiles
 - [x] `EventSourceTask` implements `TaskIterator` correctly
-- [x] State machine follows valtron pattern
+- [x] State machine has 5 states: Init → Resolving → Connecting → Reading → Closed
+- [x] DNS failure observability: Resolving state returns Pending before Closed
+- [x] Connection failure observability: Connecting state returns Pending before Closed
+- [x] `SseParser` returns `ParseResult { event, last_known_id }`
 - [x] `SseParser` correctly parses all SSE field types
-- [x] `SseParser::Iterator` returns `Result<Event, EventSourceError>` (not swallowing errors)
+- [x] `SseParser::Iterator` returns `Result<ParseResult, EventSourceError>` (not swallowing errors)
 - [x] `EventWriter` formats events correctly
 - [x] `SseResponse` builds correct HTTP response headers
 - [x] All unit tests pass
@@ -354,14 +536,21 @@ backends/foundation_core/src/wire/event_source/
 - [x] Properly forwards all `TaskStatus` variants from inner task
 - [x] Auto-reconnects on connection loss
 - [x] Respects server `retry:` field
+- [x] Uses `last_known_id` from `ParseResult` for reconnection
 - [x] Sends `Last-Event-ID` on reconnect
 - [x] Exponential backoff works
 - [x] Max retries honored
 - [x] Retry state resets on successful event receipt
 
-**Phase 3 (Advanced Features)**:
-- [ ] Event filtering works
-- [ ] Compression support works
+**Phase 3 (Required Completeness)**:
+- [ ] `EventSourceTask::with_idle_timeout(Duration)` - Idle timeout configuration
+- [ ] Idle timeout tracking in `Reading` state
+- [ ] `ReconnectingEventSourceTask::with_max_reconnect_duration(Duration)` - Total reconnect time limit
+- [ ] Elapsed time tracking from first connection attempt
+- [ ] TLS handling documented explicitly
+- [ ] Chunked transfer encoding handling documented
+- [ ] Mermaid diagrams in ARCHITECTURE.md
+- [ ] Parser logic documented as line-based (not character-based)
 
 ## Verification Commands
 
@@ -432,6 +621,124 @@ field: value\n
 6. If `id:` contains null byte (`\0`), ignore the field
 7. `retry:` must be valid integer, otherwise ignore
 
+**Parser Return Type - Explicit Last-Event-ID**:
+
+The parser returns `ParseResult` which ALWAYS includes the last known event ID alongside the parsed event:
+
+```rust
+/// Result of parsing a single SSE event.
+///
+/// WHY: Reconnection logic needs last known event ID. Instead of hidden
+/// parser state, we return it explicitly with each event.
+/// WHAT: Tuple-like struct with event and last_known_id.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParseResult {
+    /// The parsed event.
+    pub event: Event,
+    /// Last known event ID after parsing this event (None if no ID ever seen).
+    /// Updated when the event contains an `id:` field.
+    pub last_known_id: Option<String>,
+}
+
+impl ParseResult {
+    /// Create a new ParseResult.
+    pub fn new(event: Event, last_known_id: Option<String>) -> Self {
+        Self { event, last_known_id }
+    }
+}
+
+/// Parser return type alias for clarity.
+pub type ParseOutput = Result<Option<ParseResult>, EventSourceError>;
+```
+
+**Why This Design?**
+
+| Approach | Pros | Cons |
+|----------|------|------|
+| **Hidden state + getter** | Simple API | Caller must remember to call getter; state can be stale |
+| **Return tuple (Event, Option<String>)** | Explicit, no hidden state | Slightly more verbose |
+| **Return ParseResult struct** (CHOSEN) | Explicit, named fields, extensible | Minimal overhead |
+
+**Parser Implementation Pattern**:
+
+```rust
+impl<R: Read> SseParser<R> {
+    /// Parse next event, returning both event and last_known_id.
+    ///
+    /// WHY: Caller needs event AND last_known_id for reconnection.
+    /// WHAT: Returns ParseResult with both values.
+    pub fn parse_next(&mut self) -> ParseOutput {
+        let mut builder = EventBuilder::new();
+
+        loop {
+            // ... read and process lines ...
+
+            // When dispatching event:
+            if let Some(event) = builder.build() {
+                // Update last_known_id from this event
+                let new_id = match &event {
+                    Event::Message { id, .. } => id.clone(),
+                    _ => None,
+                };
+                // Return BOTH event and updated ID
+                return Ok(Some(ParseResult::new(event, new_id)));
+            }
+        }
+    }
+}
+
+impl<R: Read> Iterator for SseParser<R> {
+    type Item = Result<ParseResult, EventSourceError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.parse_next() {
+            Ok(Some(result)) => Some(Ok(result)),
+            Ok(None) => None,
+            Err(e) => Some(Err(e)),
+        }
+    }
+}
+```
+
+**Usage in EventSourceTask**:
+
+```rust
+EventSourceState::Reading(mut parser) => {
+    match parser.next() {
+        Some(Ok(ParseResult { event, last_known_id })) => {
+            // Store ID for reconnection
+            self.last_event_id = last_known_id;
+            self.state = Some(EventSourceState::Reading(parser));
+            Some(TaskStatus::Ready(Ok(event)))
+        }
+        // ... handle errors/EOF ...
+    }
+}
+```
+
+**Usage in ReconnectingEventSourceTask**:
+
+```rust
+ReconnectingState::Connected(mut inner) => {
+    match inner.next() {
+        Some(TaskStatus::Ready(Ok(event))) => {
+            // ID already tracked by EventSourceTask, forwarded via last_event_id field
+            // ReconnectingTask maintains its own copy for reconnection
+            if let Some(id) = inner.last_event_id() {
+                self.last_event_id = Some(id);
+            }
+            // ... forward event ...
+        }
+        None => {
+            // Connection closed - reconnect with last_known_id
+            let new_inner = EventSourceTask::connect(...)
+                .with_last_event_id(self.last_event_id.clone());
+            // ... transition to reconnection state ...
+        }
+    }
+}
+```
+
 ### HTTP Headers
 
 **Client Request**:
@@ -449,6 +756,151 @@ HTTP/1.1 200 OK
 Content-Type: text/event-stream
 Cache-Control: no-cache
 Connection: keep-alive
+```
+
+---
+
+## Architecture Diagrams
+
+### EventSourceTask State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> Init: connect()
+
+    Init --> Resolving: DNS lookup started
+    Resolving --> Connecting: DNS resolved
+    Resolving --> Closed: DNS failed
+
+    Connecting --> Reading: TCP/TLS connected
+    Connecting --> Closed: Connection failed
+
+    Reading --> Reading: Event parsed (Ready)
+    Reading --> Closed: EOF/Error
+
+    Closed --> [*]: Task complete
+
+    note right of Init
+        Parse URL, validate scheme
+        Return Pending for observability
+    end note
+
+    note right of Resolving
+        DNS resolution in progress
+        Returns: Pending(Resolving)
+        On failure → Connecting → Closed
+        (allows test observation)
+    end note
+
+    note right of Connecting
+        TCP handshake / TLS upgrade
+        Returns: Pending(Connecting)
+        On failure → Closed
+    end note
+
+    note right of Reading
+        Streaming SSE events
+        Returns: Ready(ParseResult)
+        ParseResult contains:
+        - Event
+        - last_known_id
+    end note
+```
+
+### ReconnectingEventSourceTask State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> Connected: connect()
+
+    Connected --> Connected: Event received (forward)
+    Connected --> Waiting: Inner task closed
+
+    Waiting --> Reconnecting: Backoff complete
+    Waiting --> Waiting: Still backing off
+
+    Reconnecting --> Connected: New inner task created
+    Reconnecting --> Exhausted: Failed to create task
+
+    Connected --> Exhausted: Max retries exceeded
+    Connected --> Exhausted: Max duration exceeded
+
+    Exhausted --> [*]: Task complete
+
+    note right of Connected
+        Forwarding events from inner
+        EventSourceTask
+        Track last_known_id from
+        ParseResult
+    end note
+
+    note right of Waiting
+        Exponential backoff active
+        Returns: Delayed(duration)
+        Respects server retry: field
+    end note
+
+    note right of Reconnecting
+        Creating new EventSourceTask
+        Applying last_known_id
+        Via Last-Event-ID header
+    end note
+```
+
+### Last-Event-ID Flow
+
+```mermaid
+sequenceDiagram
+    participant Server
+    participant Parser as SseParser
+    participant Task as EventSourceTask
+    participant Reconnect as ReconnectingEventSourceTask
+
+    Server->>Parser: "id: 42\\ndata: hello\\n\\n"
+    Parser->>Parser: Parse event
+    Parser-->>Task: ParseResult{event, last_known_id: "42"}
+    Task->>Task: Store last_event_id = "42"
+    Task-->>Reconnect: Forward event + ID
+    Reconnect->>Reconnect: Cache last_event_id = "42"
+
+    Note over Server,Reconnect: Connection drops
+
+    Reconnect->>Reconnect: Create new EventSourceTask
+    Reconnect->>Task: with_last_event_id("42")
+    Task->>Server: GET /events Last-Event-ID: 42
+    Server->>Task: Resume from event 42
+```
+
+### Complete SSE Connection Flow
+
+```mermaid
+flowchart TD
+    A[Client calls connect] --> B[EventSourceTask::Init]
+    B --> C{DNS Resolve}
+    C -->|Success| D{TCP Connect}
+    C -->|Failure| E[Transition to Closed]
+
+    D -->|Success| F[Reading State]
+    D -->|Failure| E
+
+    F --> G{Parse SSE Line}
+    G -->|Comment| H[Return Comment event]
+    G -->|Field| I[Accumulate in EventBuilder]
+    G -->|Empty Line| J{Dispatch Event}
+
+    J -->|Has data| K[Return ParseResult{event, last_known_id}]
+    J -->|No data| F
+
+    K --> L[ReconnectingEventSource caches ID]
+    L --> F
+
+    F -->|EOF/Error| M{Retry?}
+    M -->|Yes, under limit| N[Backoff Delay]
+    M -->|No, exhausted| O[Exhausted - Done]
+
+    N --> P[Create new EventSourceTask]
+    P --> Q[Apply cached last_event_id]
+    Q --> D
 ```
 
 ---
