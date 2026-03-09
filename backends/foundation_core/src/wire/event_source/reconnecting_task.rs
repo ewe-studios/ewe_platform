@@ -10,13 +10,16 @@
 //! HOW: State machine: Connected → Waiting → Reconnecting → Connected (loop).
 //! Uses [`ExponentialBackoffDecider`] for backoff timing. Tracks `last_event_id`
 //! from received events. Respects server `retry:` field.
+//!
+//! PHASE 3 SCOPE: Max reconnect duration support.
 
 use crate::retries::{ExponentialBackoffDecider, RetryDecider, RetryState};
 use crate::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use crate::wire::event_source::{Event, EventSourceProgress, EventSourceTask, ParseResult};
 use crate::wire::simple_http::client::DnsResolver;
 use crate::wire::simple_http::SimpleHeader;
-use std::time::Duration;
+use std::time::{Duration, Instant};
+use tracing::{debug, error, info, instrument, trace, warn};
 
 /// Configuration for reconnecting SSE client.
 pub struct ReconnectingConfig {
@@ -24,6 +27,7 @@ pub struct ReconnectingConfig {
     headers: Vec<(SimpleHeader, String)>,
     max_retries: u32,
     server_retry: Option<Duration>,
+    max_reconnect_duration: Option<Duration>,
 }
 
 impl ReconnectingConfig {
@@ -33,6 +37,7 @@ impl ReconnectingConfig {
             headers: Vec::new(),
             max_retries: 5,
             server_retry: None,
+            max_reconnect_duration: None,
         }
     }
 }
@@ -74,6 +79,7 @@ pub struct ReconnectingEventSourceTask<R: DnsResolver + Clone + Send + 'static> 
     last_event_id: Option<String>,
     retry_state: RetryState,
     backoff: ExponentialBackoffDecider,
+    start_time: Option<Instant>, // Track when first connection started
 }
 
 impl<R> ReconnectingEventSourceTask<R>
@@ -85,14 +91,17 @@ where
     /// # Errors
     ///
     /// Returns [`super::EventSourceError`] if the URL is invalid.
+    #[instrument(skip(resolver, url), err)]
     pub fn connect(
         resolver: R,
         url: impl Into<String>,
     ) -> Result<Self, crate::wire::event_source::EventSourceError> {
         let url_str = url.into();
+        info!(url = %url_str, "Creating reconnecting SSE client");
 
         // Validate URL upfront (same as EventSourceTask)
         let uri = crate::wire::simple_http::url::Uri::parse(&url_str).map_err(|e| {
+            error!(url = %url_str, error = ?e, "Failed to parse URL");
             crate::wire::event_source::EventSourceError::InvalidUrl(format!(
                 "Failed to parse URL: {url_str} - {e:?}"
             ))
@@ -107,8 +116,12 @@ where
             ));
         }
 
+        debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
+
         let inner = EventSourceTask::connect(resolver.clone(), &url_str)?;
         let config = ReconnectingConfig::new(url_str);
+
+        info!("Reconnecting SSE client created");
 
         Ok(Self {
             state: Some(ReconnectingState::Connected(inner)),
@@ -120,20 +133,39 @@ where
                 Duration::from_secs(1),
                 Some(Duration::from_secs(30)),
             ),
+            start_time: Some(Instant::now()),
         })
     }
 
     /// Set the maximum number of reconnection attempts.
     #[must_use]
     pub fn with_max_retries(mut self, max_retries: u32) -> Self {
+        debug!(max_retries, "Setting max retries");
         self.config.max_retries = max_retries;
         self.retry_state = RetryState::new(0, max_retries, None);
+        self
+    }
+
+    /// Set the maximum duration for reconnection attempts.
+    ///
+    /// WHY: Long-running SSE clients should give up after a certain total duration
+    /// to avoid infinite reconnection loops in production systems.
+    /// WHAT: Returns Self with max_reconnect_duration configured.
+    ///
+    /// # Parameters
+    ///
+    /// * `duration` - Total duration allowed for reconnection attempts
+    #[must_use]
+    pub fn with_max_reconnect_duration(mut self, duration: Duration) -> Self {
+        debug!(duration_secs = ?duration.as_secs(), "Setting max reconnect duration");
+        self.config.max_reconnect_duration = Some(duration);
         self
     }
 
     /// Set a custom backoff decider.
     #[must_use]
     pub fn with_backoff(mut self, backoff: ExponentialBackoffDecider) -> Self {
+        debug!("Setting custom backoff decider");
         self.backoff = backoff;
         self
     }
@@ -141,6 +173,7 @@ where
     /// Add a custom header (applied to all connections including reconnections).
     #[must_use]
     pub fn with_header(mut self, name: SimpleHeader, value: impl Into<String>) -> Self {
+        debug!("Adding custom header");
         self.config.headers.push((name, value.into()));
         self
     }
@@ -148,7 +181,9 @@ where
     /// Set initial Last-Event-ID for resuming from a known position.
     #[must_use]
     pub fn with_last_event_id(mut self, last_event_id: impl Into<String>) -> Self {
-        self.last_event_id = Some(last_event_id.into());
+        let id_string = last_event_id.into();
+        debug!(last_event_id = %id_string, "Setting initial Last-Event-ID");
+        self.last_event_id = Some(id_string);
         self
     }
 
@@ -172,6 +207,7 @@ where
     /// Track the last event ID from a received ParseResult.
     fn track_event_id(&mut self, parse_result: &ParseResult) {
         if let Some(ref id) = parse_result.last_known_id {
+            debug!(last_event_id = %id, "Tracking event ID");
             self.last_event_id = Some(id.clone());
         }
 
@@ -180,6 +216,7 @@ where
             retry: Some(ms), ..
         } = &parse_result.event
         {
+            trace!(retry_ms = ms, "Server sent retry field");
             self.config.server_retry = Some(Duration::from_millis(*ms));
         }
     }
@@ -198,8 +235,11 @@ where
 
         match state {
             ReconnectingState::Connected(mut inner) => {
+                trace!(state = "Connected", "Forwarding from inner task");
+
                 match inner.next() {
                     Some(TaskStatus::Ready(parse_result)) => {
+                        trace!("Event received from inner task");
                         self.track_event_id(&parse_result);
                         // Reset retry state on successful event
                         self.retry_state = RetryState::new(0, self.config.max_retries, None);
@@ -228,7 +268,24 @@ where
                         Some(TaskStatus::Init)
                     }
                     None => {
-                        // Inner task closed — attempt reconnection
+                        warn!("Inner task closed, attempting reconnection");
+
+                        // Check max reconnect duration first
+                        if let Some(max_duration) = self.config.max_reconnect_duration {
+                            if let Some(start) = self.start_time {
+                                if start.elapsed() > max_duration {
+                                    error!(
+                                        elapsed_secs = ?start.elapsed().as_secs(),
+                                        max_secs = ?max_duration.as_secs(),
+                                        "Max reconnect duration exceeded"
+                                    );
+                                    // Max duration exceeded - exhaust
+                                    self.state = Some(ReconnectingState::Exhausted);
+                                    return None;
+                                }
+                            }
+                        }
+
                         // Use server retry duration if set, otherwise use backoff
                         let next_state = self.backoff.decide(self.retry_state.clone());
 
@@ -240,6 +297,11 @@ where
                             self.state = Some(ReconnectingState::Waiting(wait));
                             Some(TaskStatus::Pending(ReconnectingProgress::Reconnecting))
                         } else {
+                            error!(
+                                attempt = self.retry_state.attempt,
+                                max_retries = self.config.max_retries,
+                                "Max retries exhausted"
+                            );
                             // Max retries exhausted
                             self.state = Some(ReconnectingState::Exhausted);
                             None
@@ -249,24 +311,34 @@ where
             }
 
             ReconnectingState::Waiting(duration) => {
+                debug!(state = "Waiting", backoff_ms = ?duration.as_millis(), "Backoff delay");
                 // Signal backoff delay to executor, then transition to Reconnecting
                 self.state = Some(ReconnectingState::Reconnecting);
                 Some(TaskStatus::Delayed(duration))
             }
 
             ReconnectingState::Reconnecting => {
+                info!(
+                    last_event_id = ?self.last_event_id,
+                    attempt = self.retry_state.attempt,
+                    "Reconnecting with Last-Event-ID"
+                );
                 // Create new inner task
                 if let Some(inner) = self.create_inner_task() {
                     self.state = Some(ReconnectingState::Connected(inner));
                     Some(TaskStatus::Pending(ReconnectingProgress::Connecting))
                 } else {
+                    error!("Failed to create inner task");
                     // Failed to create task — exhaust
                     self.state = Some(ReconnectingState::Exhausted);
                     None
                 }
             }
 
-            ReconnectingState::Exhausted => None,
+            ReconnectingState::Exhausted => {
+                trace!(state = "Exhausted", "Task exhausted");
+                None
+            }
         }
     }
 }
