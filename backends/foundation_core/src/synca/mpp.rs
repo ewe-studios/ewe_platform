@@ -304,6 +304,11 @@ impl<D, P> StreamRecvIterator<D, P> {
     pub fn len(&self) -> usize {
         self.0.len()
     }
+
+    #[must_use]
+    pub fn is_closed(&self) -> bool {
+        self.0.is_closed()
+    }
 }
 
 impl<D, P> StreamRecvIterator<D, P> {

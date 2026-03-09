@@ -74,11 +74,12 @@ All phases complete! SSE feature is production-ready with:
 - Presents Iterator<Item = Result<Event, EventSourceError>>
 
 **Task 9: Test Suite** ✅
-- 44 passing tests (unit + integration)
-- Unit tests: parser, writer, response, task, reconnecting_task
-- Integration tests: real server connections, reconnection scenarios
+- 52 passing tests (unit + integration)
+- Unit tests: parser, writer, response, task, reconnecting_task, consumer
+- Integration tests: real server connections, reconnection scenarios, consumer API
+- Consumer tests: SseStreamEvent variants, From impl, Debug, Clone + integration with real HTTP server
 
-**Total: 44 passing tests in test crate, all code formatted**
+**Total: 52 passing tests in test crate, all code formatted**
 
 ---
 
