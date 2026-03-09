@@ -306,7 +306,149 @@ Following strict TDD with ONE test at a time:
 ---
 
 *Created: 2026-03-05*
-*Last Updated: 2026-03-07*
+*Last Updated: 2026-03-09 - Feature Complete*
+
+---
+
+## HttpConnectionPool Integration (2026-03-09)
+
+### Decision: Use HttpConnectionPool Instead of Manual DNS/Connection
+
+**Key Insight:** Leveraging existing `HttpConnectionPool::create_http_connection()` simplifies EventSourceTask implementation significantly.
+
+**Original Design (5 states):**
+```
+Init → Resolving → Connecting → Reading → Closed
+```
+
+**Refactored Design (4 states via HttpConnectionPool):**
+```
+Init → Connecting → Reading → Closed
+```
+
+**Benefits:**
+1. **Code Reduction:** ~100 lines removed from EventSourceTask
+2. **TLS Handling:** Automatic via pool's connection logic
+3. **Connection Pooling:** Optional reuse of connections across requests
+4. **DNS Caching:** Pool handles DNS resolution caching
+5. **Simpler State Machine:** Fewer states to maintain and test
+
+**Trade-offs:**
+- DNS resolution is internal to pool (no separate `Resolving` state)
+- Connection failures still observable via `Connecting` state
+- Less granular control over DNS vs TCP connection phases
+
+**Implementation Pattern:**
+```rust
+// Old: Manual DNS + Connection
+let addrs = resolver.resolve(&host, port)?;
+let connection = Connection::without_timeout(addrs[0])?;
+let raw_stream = RawStream::from_connection(connection)?;
+
+// New: Pool handles everything
+let connection = pool.create_http_connection(&url, None)?;
+let stream = connection.clone_stream();  // Clone for parser
+```
+
+**Key Method:** `HttpClientConnection::clone_stream()`
+- Returns `SharedByteBufferStream<RawStream>` for parser
+- Keeps original connection handle for potential pool return
+- Enables separate read/write handles on same underlying stream
+
+---
+
+## Consumer API Design (2026-03-09)
+
+### Simplified Iterator-Based Consumer API
+
+**Problem:** TaskIterator pattern is powerful but complex for simple use cases. Users just want to consume SSE events without managing executor mechanics.
+
+**Solution:** `SseStream` and `ReconnectingSseStream` wrapper types that:
+1. Use `unified::execute_stream()` internally
+2. Filter out internal states (Init, Ignore, Delayed, Pending)
+3. Present simple `Iterator<Item = Result<Event, EventSourceError>>` interface
+
+**Design Decision: Loop in next()**
+
+The `Iterator::next()` implementation uses a loop to filter internal states:
+
+```rust
+fn next(&mut self) -> Option<Self::Item> {
+    loop {
+        match self.inner.next()? {
+            Stream::Init | Stream::Ignore => continue,
+            Stream::Delayed(_) | Stream::Pending(_) => continue,
+            Stream::Next(parse_result) => return Some(Ok(parse_result.event)),
+        }
+    }
+}
+```
+
+**Why Loop is Correct:**
+- `DrivenStreamIterator` already handles blocking internally (channel recv)
+- Loop only filters internal states, doesn't add blocking
+- Returns immediately when Next value found or stream exhausted
+- Standard pattern for filtering iterator adapters
+
+**Design Decision: Return `Event` not `ParseResult`**
+
+Consumer API returns `Iterator<Item = Result<Event, EventSourceError>>`:
+- Users typically just want the event data
+- `last_known_id` is internal to reconnection logic
+- Simpler type signature for common use cases
+- Advanced users can use TaskIterator directly for full control
+
+**Usage Example:**
+```rust
+// Simple: Just consume events
+let stream = SseStream::connect(resolver, url)?;
+for event in stream {
+    match event {
+        Ok(Event::Message { data, .. }) => println!("{data}"),
+        Err(e) => eprintln!("Error: {}", e),
+    }
+}
+
+// Advanced: Full TaskIterator control
+let task = EventSourceTask::connect(resolver, url)?;
+let iter = execute(task, None)?;
+for status in iter {
+    match status {
+        TaskStatus::Ready(ParseResult { event, last_known_id }) => { ... }
+        TaskStatus::Pending(progress) => { ... }
+        TaskStatus::Delayed(d) => { ... }
+        _ => {}
+    }
+}
+```
+
+---
+
+## Module Exports Update (2026-03-09)
+
+### Wildcard Exports for Cleaner mod.rs
+
+Changed from explicit exports to wildcard exports:
+
+```rust
+// Before
+pub use core::{Event, ParseResult, SseEvent, SseEventBuilder};
+pub use error::EventSourceError;
+// ... many more explicit exports
+
+// After
+pub use consumer::*;
+pub use core::*;
+pub use error::*;
+// ... simple wildcard exports
+```
+
+**Benefits:**
+- Less boilerplate in mod.rs
+- New types automatically exported
+- Cleaner, more maintainable
+
+---
 
 ---
 

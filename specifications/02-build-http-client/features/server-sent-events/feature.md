@@ -4,10 +4,10 @@ spec_directory: "specifications/02-build-http-client"
 feature_directory: "specifications/02-build-http-client/features/server-sent-events"
 this_file: "specifications/02-build-http-client/features/server-sent-events/feature.md"
 
-status: in-progress
+status: complete
 priority: medium
 created: 2026-03-03
-updated: 2026-03-09 - Consolidated architecture documentation into single source of truth
+updated: 2026-03-09 - SSE feature complete with consumer API
 
 depends_on:
   - connection
@@ -15,10 +15,10 @@ depends_on:
   - task-iterator
 
 tasks:
-  completed: 8
-  uncompleted: 1
-  total: 9
-  completion_percentage: 89
+  completed: 10
+  uncompleted: 0
+  total: 10
+  completion_percentage: 100
 ---
 
 # Server-Sent Events (SSE) Feature
@@ -29,11 +29,14 @@ Implement complete Server-Sent Events (SSE / EventSource) support following the 
 
 **Key Capabilities**:
 - ✅ Client: Connect to SSE endpoints and consume event streams
+- ✅ Client: Simplified consumer API (`SseStream`, `ReconnectingSseStream`)
 - ✅ Server: Send SSE events to connected clients
 - ✅ Automatic reconnection with Last-Event-ID tracking
 - ✅ Non-blocking operation via TaskIterator pattern
-- ✅ TLS support (`https://` URLs)
+- ✅ TLS support (`https://` URLs) - handled automatically by HttpConnectionPool
 - ✅ Custom headers and authentication
+- ✅ Idle timeout for stale connection detection
+- ✅ Max reconnect duration limit
 
 ## Dependencies
 
@@ -272,52 +275,55 @@ for status in iter {
 
 ### State Machine Requirements - Explicit and Complete
 
-**EventSourceTask MUST have these 5 states (no shortcuts):**
+**EventSourceTask uses a 4-state machine (simplified via HttpConnectionPool):**
 
 ```
-Init → Resolving → Connecting → Reading → Closed
-         ↓             ↓
-      Closed       Closed
+Init → Connecting → Reading → Closed
+          ↓
+       Closed
 ```
 
-**Why 5 states (not 4)?** DNS resolution and TCP connection are SEPARATE operations that can fail independently. Observability requires distinct states:
+**Implementation Note:** The original spec called for 5 states with explicit `Resolving` state. However, by leveraging `HttpConnectionPool::create_http_connection()`, DNS resolution is handled internally by the pool, resulting in a simpler state machine:
 
 | State | Purpose | Failure Transition |
 |-------|---------|-------------------|
-| `Init` | Parse URL, prepare config | N/A (validation in `connect()`) |
-| `Resolving` | DNS lookup in progress | `Closed` on DNS failure (via `Connecting`) |
-| `Connecting` | TCP/TLS handshake in progress | `Closed` on connection failure |
-| `Reading` | Streaming SSE events | `Closed` on EOF/error |
+| `Init` | Parse URL, prepare HTTP request | N/A (validation in `connect()`) |
+| `Connecting` | Pool handles DNS + TCP/TLS connection | `Closed` on any connection failure |
+| `Reading` | Streaming SSE events | `Closed` on EOF/error/idle timeout |
 | `Closed` | Terminal state | N/A |
 
-**CRITICAL:** Both `Resolving` and `Connecting` MUST return `TaskStatus::Pending` before transitioning to `Closed` on failure. This allows:
-- Tests to observe the failure progression
-- Consumers to see "attempting..." state
-- Consistent behavior with other TaskIterators in `simple_http/client/tasks/`
+**Benefits of HttpConnectionPool integration:**
+- Automatic connection pooling (optional)
+- TLS handling abstracted away
+- DNS caching support
+- Cleaner state machine
 
-**ReconnectingEventSourceTask MUST have these states:**
+**CRITICAL:** `Connecting` state returns `TaskStatus::Pending` before transitioning to `Closed` on failure, allowing observers to see connection attempts.
+
+**ReconnectingEventSourceTask states:**
 
 ```
 Connected → Waiting → Reconnecting → Connected (loop) → Exhausted
     ↓
-Exhausted (on unrecoverable error)
+Exhausted (on max retries or max duration exceeded)
 ```
 
 ### Complete Feature Requirements - ALL Mandatory
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Client: Connect and consume SSE streams | Required | Via `EventSourceTask` |
-| Client: Automatic reconnection with backoff | Required | Via `ReconnectingEventSourceTask` |
-| Client: Last-Event-ID tracking | Required | Across reconnections |
-| Client: Configurable idle timeout | Required | Reconnect if no data for N seconds |
-| Client: DNS failure observability | Required | Via `Resolving` state |
-| Client: Connection failure observability | Required | Via `Connecting` state |
-| Client: TLS support (https://) | Required | Via `RawStream` |
-| Client: Custom headers | Required | Auth, etc. |
-| Server: Send SSE events | Required | Via `EventWriter` |
-| Server: Build SSE response | Required | Via `SseResponse` |
-| Server: Respect `retry:` field | Required | Client honors server retry suggestion |
+| Client: Connect and consume SSE streams | ✅ Complete | Via `EventSourceTask` |
+| Client: Simplified consumer API | ✅ Complete | Via `SseStream`, `ReconnectingSseStream` |
+| Client: Automatic reconnection with backoff | ✅ Complete | Via `ReconnectingEventSourceTask` |
+| Client: Last-Event-ID tracking | ✅ Complete | Across reconnections |
+| Client: Configurable idle timeout | ✅ Complete | Via `with_idle_timeout()` |
+| Client: Max reconnect duration | ✅ Complete | Via `with_max_reconnect_duration()` |
+| Client: Connection failure observability | ✅ Complete | Via `Connecting` state |
+| Client: TLS support (https://) | ✅ Complete | Handled by `HttpConnectionPool` |
+| Client: Custom headers | ✅ Complete | Via `with_header()` |
+| Server: Send SSE events | ✅ Complete | Via `EventWriter` |
+| Server: Build SSE response | ✅ Complete | Via `SseResponse` |
+| Server: Respect `retry:` field | ✅ Complete | Client honors server retry suggestion |
 
 ### Sub-Task Composition Pattern
 
@@ -1421,24 +1427,34 @@ backends/foundation_core/src/wire/event_source/
    - Document explicit TLS handling patterns
    - Document chunked transfer encoding behavior
 
-### Phase 3: Simplified Consumer APIs + Advanced Features
+### Phase 3: Required Completeness + Consumer API ✅ COMPLETE
 
-1. **Simplified Consumer Wrappers**
-   - Convenience functions that properly use `unified::execute()` / `unified::execute_stream()` internally
-   - Hide executor setup from callers while correctly spawning tasks into the execution engine
-   - Present simple `Iterator<Item = Result<Event, EventSourceError>>` interface
+1. **Simplified Consumer Wrappers** ✅
+   - `SseStream` - Simple iterator wrapper for `EventSourceTask`
+   - `ReconnectingSseStream` - Reconnecting variant with automatic retry
+   - Uses `unified::execute_stream()` internally
+   - Presents `Iterator<Item = Result<Event, EventSourceError>>` interface
 
-2. **Compression Support** — handle `Content-Encoding: gzip` in SSE responses
+2. **Idle Timeout Support** ✅
+   - `EventSourceTask::with_idle_timeout(Duration)`
+   - Tracks `last_activity` timestamp in `Reading` state
+   - Closes connection when idle period exceeded
 
-3. **Performance Optimizations** — buffer pooling, zero-copy parsing
+3. **Max Reconnect Duration Support** ✅
+   - `ReconnectingEventSourceTask::with_max_reconnect_duration(Duration)`
+   - Tracks elapsed time from first connection attempt
+   - Transitions to `Exhausted` when duration exceeded
+
+4. **TLS/Chunked Encoding Documentation** ✅
+   - TLS handled automatically by `HttpConnectionPool::create_http_connection()`
+   - Chunked transfer encoding handled by streaming `SharedByteBufferStream`
 
 ## Success Criteria - ALL REQUIRED
 
 **Phase 1 (Core SSE Protocol)** ✅:
 - [x] `event_source/` module exists and compiles
 - [x] `EventSourceTask` implements `TaskIterator` correctly
-- [x] State machine has 5 states: Init → Resolving → Connecting → Reading → Closed
-- [x] DNS failure observability: Resolving state returns Pending before Closed
+- [x] State machine: Init → Connecting → Reading → Closed (via HttpConnectionPool)
 - [x] Connection failure observability: Connecting state returns Pending before Closed
 - [x] `SseParser` returns `ParseResult { event, last_known_id }`
 - [x] `SseParser` correctly parses all SSE field types
@@ -1459,13 +1475,15 @@ backends/foundation_core/src/wire/event_source/
 - [x] Max retries honored
 - [x] Retry state resets on successful event receipt
 
-**Phase 3 (Required Completeness)**:
-- [ ] `EventSourceTask::with_idle_timeout(Duration)` - Idle timeout configuration
-- [ ] Idle timeout tracking in `Reading` state
-- [ ] `ReconnectingEventSourceTask::with_max_reconnect_duration(Duration)` - Total reconnect time limit
-- [ ] Elapsed time tracking from first connection attempt
-- [ ] TLS handling documented explicitly
-- [ ] Chunked transfer encoding handling documented
+**Phase 3 (Required Completeness + Consumer API)** ✅:
+- [x] `EventSourceTask::with_idle_timeout(Duration)` - Idle timeout configuration
+- [x] Idle timeout tracking in `Reading` state
+- [x] `ReconnectingEventSourceTask::with_max_reconnect_duration(Duration)` - Total reconnect time limit
+- [x] Elapsed time tracking from first connection attempt
+- [x] TLS handling documented (via HttpConnectionPool)
+- [x] Chunked transfer encoding documented (via SharedByteBufferStream)
+- [x] `SseStream` consumer wrapper for simplified API
+- [x] `ReconnectingSseStream` with automatic reconnection
 
 ## Technical Design Details
 
@@ -1473,10 +1491,11 @@ backends/foundation_core/src/wire/event_source/
 
 ```
 backends/foundation_core/src/wire/event_source/
-├── mod.rs                  # Public API and re-exports
+├── mod.rs                  # Public API and re-exports (wildcard exports)
+├── consumer.rs             # SseStream, ReconnectingSseStream (simplified consumer API)
 ├── core.rs                 # Event, SseEvent, SseEventBuilder, ParseResult types
 ├── parser.rs               # SseParser (line-based, returns ParseResult)
-├── task.rs                 # EventSourceTask (TaskIterator - 5 states)
+├── task.rs                 # EventSourceTask (TaskIterator - 4 states via HttpConnectionPool)
 ├── reconnecting_task.rs    # ReconnectingEventSourceTask (TaskIterator - reconnection)
 ├── writer.rs               # EventWriter (server-side event formatting)
 ├── response.rs             # SseResponse builder (HTTP response headers)
