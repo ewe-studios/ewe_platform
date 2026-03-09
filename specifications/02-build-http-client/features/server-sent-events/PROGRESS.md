@@ -79,7 +79,7 @@ All phases complete! SSE feature is production-ready with:
 - Integration tests: real server connections, reconnection scenarios, consumer API
 - Consumer tests: SseStreamEvent variants, From impl, Debug, Clone + integration with real HTTP server
 
-**Total: 52 passing tests in test crate, all code formatted**
+**Total: 57 passing tests in test crate, all code formatted**
 
 ---
 
@@ -124,7 +124,7 @@ All components use `tracing` crate:
 
 ## Verification Status
 
-- ✅ `cargo test --package ewe_platform_tests event_source` - 44 tests passing
+- ✅ `cargo test --package ewe_platform_tests event_source` - 57 tests passing
 - ✅ `cargo fmt --package foundation_core` - Code formatted
 - ✅ `cargo build --package foundation_core` - Compiles without errors
 - ⚠️ `cargo clippy` - Pre-existing warnings in other crates (not event_source)
