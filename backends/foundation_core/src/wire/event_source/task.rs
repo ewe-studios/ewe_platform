@@ -20,8 +20,8 @@ use crate::netcap::RawStream;
 use crate::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use crate::wire::event_source::{EventSourceError, ParseResult, SseParser};
 use crate::wire::simple_http::client::DnsResolver;
-use crate::wire::simple_http::client::HttpConnectionPool;
 use crate::wire::simple_http::client::HttpClientConnection;
+use crate::wire::simple_http::client::HttpConnectionPool;
 use crate::wire::simple_http::url::Uri;
 use crate::wire::simple_http::SimpleHeader;
 use std::fmt::Write as FmtWrite;
@@ -125,7 +125,10 @@ where
     ///
     /// Returns [`EventSourceError`] if the URL is invalid.
     #[instrument(skip(pool, url), err)]
-    pub fn connect_with_pool(url: impl Into<String>, pool: Arc<HttpConnectionPool<R>>) -> Result<Self, EventSourceError> {
+    pub fn connect_with_pool(
+        url: impl Into<String>,
+        pool: Arc<HttpConnectionPool<R>>,
+    ) -> Result<Self, EventSourceError> {
         let url_str = url.into();
         info!(url = %url_str, "Connecting to SSE endpoint with pool");
 
@@ -284,7 +287,10 @@ where
                     return None;
                 };
 
-                debug!(state = "Connecting", "Connection established, sending request");
+                debug!(
+                    state = "Connecting",
+                    "Connection established, sending request"
+                );
 
                 // Clone the stream for the parser (keeps connection handle for pool return)
                 let stream = connection.clone_stream();
