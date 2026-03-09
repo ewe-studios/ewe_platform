@@ -37,6 +37,19 @@ pub enum EventSourceProgress {
     Reading,
 }
 
+/// [`EventSourceCloseReason`] indicates why an SSE connection was closed.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum EventSourceCloseReason {
+    /// Server closed the connection normally (EOF).
+    Eof,
+    /// Parse error occurred.
+    ParseError,
+    /// Idle timeout exceeded.
+    IdleTimeout,
+    /// Connection error.
+    ConnectionError,
+}
+
 /// [`EventSourceConfig`] holds the configuration for an SSE connection.
 pub struct EventSourceConfig {
     pub url: String,
@@ -56,7 +69,7 @@ enum EventSourceState {
         parser: SseParser<RawStream>,
         last_activity: Instant,
     },
-    Closed,
+    Closed(EventSourceCloseReason),
 }
 
 pub struct EventSourceTask<R>
@@ -213,6 +226,18 @@ where
     fn idle_timeout(&self) -> Option<Duration> {
         self.idle_timeout
     }
+
+    /// Get the close reason if the task is closed.
+    ///
+    /// WHY: Reconnecting task needs to know if closure was legitimate EOF or error.
+    /// WHAT: Returns close reason if task is in Closed state.
+    #[must_use]
+    pub fn close_reason(&self) -> Option<EventSourceCloseReason> {
+        match &self.state {
+            Some(EventSourceState::Closed(reason)) => Some(*reason),
+            _ => None,
+        }
+    }
 }
 
 impl<R> TaskIterator for EventSourceTask<R>
@@ -283,7 +308,7 @@ where
                 // Use HttpConnectionPool to establish connection (handles DNS + TLS)
                 let Ok(connection) = self.pool.create_http_connection(&url, None) else {
                     error!("Failed to establish HTTP connection");
-                    self.state = Some(EventSourceState::Closed);
+                    self.state = Some(EventSourceState::Closed(EventSourceCloseReason::ConnectionError));
                     return None;
                 };
 
@@ -327,7 +352,7 @@ where
                             "Idle timeout exceeded"
                         );
                         // Idle timeout exceeded - close connection for reconnection
-                        self.state = Some(EventSourceState::Closed);
+                        self.state = Some(EventSourceState::Closed(EventSourceCloseReason::IdleTimeout));
                         return None;
                     }
                 }
@@ -351,20 +376,20 @@ where
                     Some(Err(e)) => {
                         error!(error = ?e, "SSE parse error");
                         // I/O or parse error - close the connection
-                        self.state = Some(EventSourceState::Closed);
+                        self.state = Some(EventSourceState::Closed(EventSourceCloseReason::ParseError));
                         None
                     }
                     None => {
                         debug!(state = "Reading", "Stream EOF");
                         // EOF - stream exhausted
-                        self.state = Some(EventSourceState::Closed);
+                        self.state = Some(EventSourceState::Closed(EventSourceCloseReason::Eof));
                         None
                     }
                 }
             }
 
-            EventSourceState::Closed => {
-                trace!(state = "Closed", "Task complete");
+            EventSourceState::Closed(reason) => {
+                trace!(state = "Closed", reason = ?reason, "Task complete");
                 None
             }
         }
