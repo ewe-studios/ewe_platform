@@ -1,5 +1,6 @@
 extern crate url;
 
+mod consumer;
 mod core;
 mod error;
 mod parser;
@@ -8,10 +9,11 @@ mod response;
 mod task;
 mod writer;
 
-pub use core::{Event, ParseResult, SseEvent, SseEventBuilder};
-pub use error::EventSourceError;
-pub use parser::SseParser;
-pub use reconnecting_task::{ReconnectingEventSourceTask, ReconnectingProgress};
-pub use response::SseResponse;
-pub use task::{EventSourceConfig, EventSourceProgress, EventSourceTask};
-pub use writer::EventWriter;
+pub use consumer::*;
+pub use core::*;
+pub use error::*;
+pub use parser::*;
+pub use reconnecting_task::*;
+pub use response::*;
+pub use task::*;
+pub use writer::*;
