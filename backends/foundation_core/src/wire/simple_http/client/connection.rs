@@ -31,7 +31,7 @@ pub use crate::wire::simple_http::url::Scheme;
 /// over plain TCP or TLS connections.
 #[derive(Debug, Clone)]
 pub struct HttpClientConnection {
-    stream: SharedByteBufferStream<RawStream>,
+    pub stream: SharedByteBufferStream<RawStream>,
     host: String,
     port: u16,
 }

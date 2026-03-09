@@ -249,7 +249,6 @@ where
                     Some(TaskStatus::Pending(progress)) => {
                         self.state = Some(ReconnectingState::Connected(inner));
                         let mapped = match progress {
-                            EventSourceProgress::Resolving => ReconnectingProgress::Connecting,
                             EventSourceProgress::Connecting => ReconnectingProgress::Connecting,
                             EventSourceProgress::Reading => ReconnectingProgress::Reading,
                         };
