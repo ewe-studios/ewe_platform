@@ -49,18 +49,18 @@ fn test_event_source_task_connects_to_server() {
 
     let mut task = EventSourceTask::connect(resolver, &url).unwrap();
 
-    // First call: Init → Resolving, returns Pending(Resolving)
+    // First call: Init → Connecting, returns Pending(Connecting)
     let first = task.next();
     assert_eq!(
         first.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
             _ => None,
         }),
-        Some(Some(EventSourceProgress::Resolving)),
-        "First next() should return Pending(Resolving)"
+        Some(Some(EventSourceProgress::Connecting)),
+        "First next() should return Pending(Connecting)"
     );
 
-    // Second call: Resolving → Reading, returns Pending(Reading)
+    // Second call: Connecting → Reading, returns Pending(Reading)
     let second = task.next();
     assert_eq!(
         second.as_ref().map(|s| match s {
@@ -105,18 +105,18 @@ fn test_event_source_task_dns_resolves_to_server() {
         EventSourceTask::connect(resolver, &format!("http://sse.test:{}/events", addr.port()))
             .unwrap();
 
-    // First call: Init → Resolving, returns Pending(Resolving)
+    // First call: Init → Connecting (pool handles DNS internally)
     let first = task.next();
     assert_eq!(
         first.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
             _ => None,
         }),
-        Some(Some(EventSourceProgress::Resolving)),
-        "First next() should return Pending(Resolving) for DNS lookup"
+        Some(Some(EventSourceProgress::Connecting)),
+        "First next() should return Pending(Connecting)"
     );
 
-    // Second call: Resolving → Reading, returns Pending(Reading)
+    // Second call: Connecting → Reading, returns Pending(Reading)
     let second = task.next();
     assert_eq!(
         second.as_ref().map(|s| match s {
@@ -149,18 +149,18 @@ fn test_event_source_task_url_with_query() {
 
     let mut task = EventSourceTask::connect(resolver, &url).unwrap();
 
-    // First call: Init → Resolving
+    // First call: Init → Connecting
     let first = task.next();
     assert_eq!(
         first.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
             _ => None,
         }),
-        Some(Some(EventSourceProgress::Resolving)),
-        "Should transition to Resolving first"
+        Some(Some(EventSourceProgress::Connecting)),
+        "Should transition to Connecting first"
     );
 
-    // Second call: Resolving → Reading
+    // Second call: Connecting → Reading
     let second = task.next();
     assert_eq!(
         second.as_ref().map(|s| match s {
@@ -193,18 +193,18 @@ fn test_event_source_task_localhost_url() {
 
     let mut task = EventSourceTask::connect(resolver, &url).unwrap();
 
-    // First call: Init → Resolving
+    // First call: Init → Connecting
     let first = task.next();
     assert_eq!(
         first.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
             _ => None,
         }),
-        Some(Some(EventSourceProgress::Resolving)),
-        "Should transition to Resolving first"
+        Some(Some(EventSourceProgress::Connecting)),
+        "Should transition to Connecting first"
     );
 
-    // Second call: Resolving → Reading
+    // Second call: Connecting → Reading
     let second = task.next();
     assert_eq!(
         second.as_ref().map(|s| match s {
@@ -226,7 +226,7 @@ fn test_event_source_task_localhost_url() {
 }
 
 /// WHY: EventSourceTask should handle connection refused gracefully.
-/// WHAT: Verify task returns Pending(Resolving) → Pending(Connecting) then closes when no server is listening.
+/// WHAT: Verify task returns Pending(Connecting) then None when no server is listening.
 #[test]
 fn test_event_source_task_connection_refused() {
     // Bind and immediately drop to get a port that's guaranteed unused
@@ -239,31 +239,20 @@ fn test_event_source_task_connection_refused() {
     let mut task =
         EventSourceTask::connect(resolver, &format!("http://{}:{}/events", addr.ip(), addr.port())).unwrap();
 
-    // First call: Init → Resolving, returns Pending(Resolving)
+    // First call: Init → Connecting, returns Pending(Connecting)
     let first = task.next();
     assert_eq!(
         first.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
             _ => None,
         }),
-        Some(Some(EventSourceProgress::Resolving)),
-        "First next() should return Pending(Resolving)"
-    );
-
-    // Second call: Resolving → Connecting (connection fails), returns Pending(Connecting)
-    let second = task.next();
-    assert_eq!(
-        second.as_ref().map(|s| match s {
-            TaskStatus::Pending(p) => Some(*p),
-            _ => None,
-        }),
         Some(Some(EventSourceProgress::Connecting)),
-        "Connection refused should return Pending(Connecting)"
+        "First next() should return Pending(Connecting)"
     );
 
-    // Third call: Connecting state → None (Closed)
-    let third = task.next();
-    assert!(third.is_none(), "Should close after failed connection attempt");
+    // Second call: Connection fails → Closed → None
+    let second = task.next();
+    assert!(second.is_none(), "Connection refused should return None (Closed)");
 }
 
 /// WHY: EventSourceTask should fully exhaust after server closes connection.
@@ -278,14 +267,14 @@ fn test_event_source_task_stream_exhaust() {
 
     let mut task = EventSourceTask::connect(resolver, &url).unwrap();
 
-    let mut got_pending_resolving = false;
+    let mut got_pending_connecting = false;
     let mut got_pending_reading = false;
     let mut got_event = false;
 
     while let Some(status) = task.next() {
         match status {
-            TaskStatus::Pending(EventSourceProgress::Resolving) => {
-                got_pending_resolving = true;
+            TaskStatus::Pending(EventSourceProgress::Connecting) => {
+                got_pending_connecting = true;
             }
             TaskStatus::Pending(EventSourceProgress::Reading) => {
                 got_pending_reading = true;
@@ -298,7 +287,7 @@ fn test_event_source_task_stream_exhaust() {
         }
     }
 
-    assert!(got_pending_resolving, "Should have seen Pending(Resolving) during lifecycle");
+    assert!(got_pending_connecting, "Should have seen Pending(Connecting) during lifecycle");
     assert!(got_pending_reading, "Should have seen Pending(Reading) during lifecycle");
     assert!(got_event, "Should have received at least one event before exhaustion");
 
