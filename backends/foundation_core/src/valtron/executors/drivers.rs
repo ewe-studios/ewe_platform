@@ -61,7 +61,7 @@ pub fn run_until_next_state() {
     run_until_next_acceptable_state(|candidate| {
         !matches!(
             candidate,
-            State::SpawnFailed(_) | State::SpawnFinished(_) | State::Reschedule
+            State::SpawnFailed(_) | State::SpawnFinished(_) | State::Reschedule | State::Done
         )
     });
 }
@@ -186,7 +186,7 @@ where
         use super::single;
 
         tracing::debug!("Executing as a single-threaded stream in no-wasm");
-        while stream.is_empty() {
+        while stream.is_empty() && !stream.is_closed() {
             single::run_until(&checker);
         }
     }
@@ -196,7 +196,7 @@ where
         use crate::valtron::single;
 
         tracing::debug!("Executing as a single stream in wasm");
-        while stream.is_empty() {
+        while stream.is_empty() && !stream.is_closed() {
             single::run_until(&checker);
         }
     }
@@ -822,7 +822,10 @@ where
                 if let ProgressIndicator::CanProgress(Some(state)) = indicator {
                     if matches!(
                         state,
-                        State::SpawnFailed(_) | State::SpawnFinished(_) | State::Reschedule
+                        State::SpawnFailed(_)
+                            | State::SpawnFinished(_)
+                            | State::Reschedule
+                            | State::Done
                     ) {
                         false
                     } else {

@@ -9,7 +9,7 @@
 use foundation_core::valtron::TaskIterator;
 use foundation_core::valtron::TaskStatus;
 use foundation_core::wire::event_source::{
-    Event, ParseResult, ReconnectingEventSourceTask, ReconnectingProgress,
+    Event, ParseResult, ReconnectingEventSourceTask,
 };
 use foundation_core::wire::simple_http::client::StaticSocketAddr;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
