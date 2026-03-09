@@ -13,6 +13,7 @@
 //!
 //! PHASE 1 SCOPE: Basic SSE client with `TaskIterator` pattern.
 //! PHASE 2 SCOPE: Automatic reconnection with exponential backoff.
+//! PHASE 3 SCOPE: Idle timeout support.
 
 use crate::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
@@ -22,6 +23,8 @@ use crate::wire::simple_http::client::DnsResolver;
 use crate::wire::simple_http::SimpleHeader;
 use std::fmt::Write as FmtWrite;
 use std::io::Write;
+use std::time::{Duration, Instant};
+use tracing::{debug, error, info, instrument, trace, warn};
 
 /// [`EventSourceProgress`] indicates the current state of SSE connection.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -36,13 +39,17 @@ pub struct EventSourceConfig {
     pub url: String,
     pub headers: Vec<(SimpleHeader, String)>,
     pub last_event_id: Option<String>,
+    pub idle_timeout: Option<Duration>,
 }
 
 enum EventSourceState {
     Init(EventSourceConfig),
     Resolving(ResolvingState), // DNS lookup in progress
     Connecting, // TCP/TLS handshake in progress (intermediate state for observability)
-    Reading(SseParser<RawStream>),
+    Reading {
+        parser: SseParser<RawStream>,
+        last_activity: Instant,
+    },
     Closed,
 }
 
@@ -60,6 +67,7 @@ where
     state: Option<EventSourceState>,
     resolver: R,
     last_event_id: Option<String>, // Track last event ID for reconnection
+    idle_timeout: Option<Duration>, // Track idle timeout configuration
 }
 
 impl<R> EventSourceTask<R>
@@ -71,11 +79,14 @@ where
     /// # Errors
     ///
     /// Returns [`EventSourceError`] if the URL is invalid.
+    #[instrument(skip(resolver, url), err)]
     pub fn connect(resolver: R, url: impl Into<String>) -> Result<Self, EventSourceError> {
         let url_str = url.into();
+        info!(url = %url_str, "Connecting to SSE endpoint");
 
         // Validate URL upfront - must be a valid URI with http/https scheme
         let uri = crate::wire::simple_http::url::Uri::parse(&url_str).map_err(|e| {
+            error!(url = %url_str, error = ?e, "Failed to parse URL");
             EventSourceError::InvalidUrl(format!("Failed to parse URL: {} - {:?}", url_str, e))
         })?;
 
@@ -87,19 +98,24 @@ where
             )));
         }
 
+        debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
+
         Ok(Self {
             state: Some(EventSourceState::Init(EventSourceConfig {
                 url: url_str,
                 headers: Vec::new(),
                 last_event_id: None,
+                idle_timeout: None,
             })),
             resolver,
             last_event_id: None,
+            idle_timeout: None,
         })
     }
 
     #[must_use]
     pub fn with_header(mut self, name: SimpleHeader, value: impl Into<String>) -> Self {
+        debug!("Adding custom header");
         if let Some(EventSourceState::Init(ref mut config)) = self.state {
             config.headers.push((name, value.into()));
         }
@@ -109,6 +125,7 @@ where
     #[must_use]
     pub fn with_last_event_id(mut self, last_event_id: impl Into<String>) -> Self {
         let id_string = last_event_id.into();
+        debug!(last_event_id = %id_string, "Setting Last-Event-ID");
         if let Some(EventSourceState::Init(ref mut config)) = self.state {
             config.last_event_id = Some(id_string.clone());
         }
@@ -123,6 +140,30 @@ where
     #[must_use]
     pub fn last_event_id(&self) -> Option<&str> {
         self.last_event_id.as_deref()
+    }
+
+    /// Set idle timeout for the SSE connection.
+    ///
+    /// WHY: Long-lived SSE connections may become stale if server stops sending events.
+    /// Idle timeout triggers reconnection if no data received for specified duration.
+    /// WHAT: Returns Self with idle_timeout configured.
+    ///
+    /// # Parameters
+    ///
+    /// * `timeout` - Duration of inactivity before triggering reconnection
+    #[must_use]
+    pub fn with_idle_timeout(mut self, timeout: Duration) -> Self {
+        debug!("Setting idle timeout");
+        if let Some(EventSourceState::Init(ref mut config)) = self.state {
+            config.idle_timeout = Some(timeout);
+        }
+        self.idle_timeout = Some(timeout);
+        self
+    }
+
+    /// Get the configured idle timeout.
+    fn idle_timeout(&self) -> Option<Duration> {
+        self.idle_timeout
     }
 }
 
@@ -139,6 +180,8 @@ where
 
         match state {
             EventSourceState::Init(config) => {
+                debug!(state = "Init", "Resolving DNS");
+
                 // Parse URL
                 let url = crate::wire::simple_http::url::Uri::parse(&config.url).ok()?;
 
@@ -177,6 +220,11 @@ where
                     self.last_event_id = Some(id);
                 }
 
+                // Store idle_timeout from config for initial connection
+                if let Some(timeout) = config.idle_timeout {
+                    self.idle_timeout = Some(timeout);
+                }
+
                 // Transition to Resolving state - DNS lookup starting
                 self.state = Some(EventSourceState::Resolving(ResolvingState {
                     request,
@@ -187,8 +235,11 @@ where
             }
 
             EventSourceState::Resolving(resolving) => {
+                debug!(state = "Resolving", host = %resolving.host, port = resolving.port, "DNS resolution");
+
                 // DNS resolution
                 let Ok(addrs) = self.resolver.resolve(&resolving.host, resolving.port) else {
+                    error!(host = %resolving.host, "DNS resolution failed");
                     // DNS failed - transition to Connecting then Closed for observability
                     self.state = Some(EventSourceState::Connecting);
                     return Some(TaskStatus::Pending(EventSourceProgress::Connecting));
@@ -196,12 +247,16 @@ where
 
                 // Use first resolved address
                 let Some(addr) = addrs.first() else {
+                    error!(host = %resolving.host, "No addresses resolved");
                     self.state = Some(EventSourceState::Connecting);
                     return Some(TaskStatus::Pending(EventSourceProgress::Connecting));
                 };
 
+                debug!(state = "Resolving", addr = ?addr, "DNS resolved, connecting");
+
                 // Create connection (no timeout for simplicity)
                 let Ok(connection) = crate::netcap::Connection::without_timeout(*addr) else {
+                    error!(addr = ?addr, "Connection failed");
                     // Connection failed - transition to Connecting state first for observability
                     self.state = Some(EventSourceState::Connecting);
                     return Some(TaskStatus::Pending(EventSourceProgress::Connecting));
@@ -210,6 +265,7 @@ where
                 // Convert Connection to RawStream
                 let Ok(mut raw_stream) = crate::netcap::RawStream::from_connection(connection)
                 else {
+                    error!("Failed to create RawStream");
                     self.state = Some(EventSourceState::Connecting);
                     return Some(TaskStatus::Pending(EventSourceProgress::Connecting));
                 };
@@ -218,37 +274,69 @@ where
                 let _ = raw_stream.write_all(resolving.request.as_bytes());
                 let _ = raw_stream.flush();
 
+                debug!(state = "Connecting", "Request sent, reading response");
+
                 // Wrap RawStream with SharedByteBufferStream for buffered reading
                 let buffer = SharedByteBufferStream::rwrite(raw_stream);
                 let parser = SseParser::new(buffer);
 
-                self.state = Some(EventSourceState::Reading(parser));
+                self.state = Some(EventSourceState::Reading {
+                    parser,
+                    last_activity: Instant::now(),
+                });
+                debug!(state = "Reading", "Connected, streaming events");
                 Some(TaskStatus::Pending(EventSourceProgress::Reading))
             }
 
             EventSourceState::Connecting => {
                 // Connection failed, now transition to Closed
                 // This state provides observability - caller sees Pending before None
+                debug!(state = "Connecting", "Connection failed, closing");
                 self.state = Some(EventSourceState::Closed);
                 None
             }
 
-            EventSourceState::Reading(mut parser) => {
+            EventSourceState::Reading {
+                mut parser,
+                last_activity,
+            } => {
+                // Check for idle timeout
+                if let Some(timeout) = self.idle_timeout() {
+                    if last_activity.elapsed() > timeout {
+                        warn!(
+                            elapsed_secs = ?last_activity.elapsed().as_secs(),
+                            timeout_secs = ?timeout.as_secs(),
+                            "Idle timeout exceeded"
+                        );
+                        // Idle timeout exceeded - close connection for reconnection
+                        self.state = Some(EventSourceState::Closed);
+                        return None;
+                    }
+                }
+
+                trace!(state = "Reading", "Polling for SSE events");
+
                 match parser.next() {
                     Some(Ok(parse_result)) => {
                         // Track last event ID from ParseResult
                         if parse_result.last_known_id.is_some() {
                             self.last_event_id = parse_result.last_known_id.clone();
                         }
-                        self.state = Some(EventSourceState::Reading(parser));
+                        // Reset activity timestamp on successful event
+                        self.state = Some(EventSourceState::Reading {
+                            parser,
+                            last_activity: Instant::now(),
+                        });
                         Some(TaskStatus::Ready(parse_result))
                     }
-                    Some(Err(_)) => {
+                    Some(Err(e)) => {
+                        error!(error = ?e, "SSE parse error");
                         // I/O or parse error - close the connection
                         self.state = Some(EventSourceState::Closed);
                         None
                     }
                     None => {
+                        debug!(state = "Reading", "Stream EOF");
                         // EOF - stream exhausted
                         self.state = Some(EventSourceState::Closed);
                         None
@@ -256,7 +344,10 @@ where
                 }
             }
 
-            EventSourceState::Closed => None,
+            EventSourceState::Closed => {
+                trace!(state = "Closed", "Task complete");
+                None
+            }
         }
     }
 }
