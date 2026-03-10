@@ -10,7 +10,43 @@
 - Trying to enable a nonexistent “sync” feature or run with --features sync is incorrect; project is strictly synchronous by default, no gate or feature toggle. Synchronous is the enforced norm.
 - The foundational Cargo feature in this project is “std.” If you need to pass a --features flag, it should be --features std, not sync.
 
+## Design and Specification Review Process
+
+**CRITICAL: When things look unsound or missing, DO NOT make implementation changes immediately.**
+
+1. **Stop and think from fundamentals** - Review what the actual problem is
+2. **Review the specification** - Identify gaps between spec and requirements
+3. **Stop all implementation work** - Do not write code until design is clear
+4. **Discuss with user** - Articulate the problem, what's missing, potential solutions
+5. **Update the specification first** - Fill in design gaps with user input
+6. **Then resume implementation** - Only after spec is updated and clear
+
+**Example: WebSocket send/receive architecture**
+- Initial thought: Add `connect()` method to `WebSocketConnection` that somehow extracts stream from task
+- Problem: This bypasses executor, breaks TaskIterator pattern, is architecturally unsound
+- Correct approach:
+  1. Review spec - realize `WebSocketClient` is receive-only iterator
+  2. Identify gap - need send capability for testing
+  3. Design solution - `MessageDelivery` using existing `ConcurrentQueue` from valtron
+  4. Update spec with full design before coding
+  5. Implement to spec
+
+**Key insight:** The specification is the source of truth. If implementation seems blocked by architectural gaps, the spec needs updating, not hacky code.
+
 ## Testing Insights
+
+**When writing integration tests:**
+- Test infrastructure must support the test cases, not the other way around
+- If tests are hard to write, enhance test infrastructure first
+- Example: WebSocket test server with pre-prepared messages simplifies receive testing
+
+**Test server design for WebSocket:**
+- Pre-prepared messages: Server sends configured messages after handshake completes
+- Echo mode: Server echoes received messages back
+- Custom handlers: Allow test-specific message processing
+- All servers must support graceful shutdown, concurrent connections, subprotocol negotiation
+
+- TestHttpServer::redirect_chain helper makes writing sequential redirect tests much simpler and reusable. Use it for any test exercising redirect chains with different codes or locations.
 - TestHttpServer::redirect_chain helper makes writing sequential redirect tests much simpler and reusable. Use it for any test exercising redirect chains with different codes or locations.
 - Key redirect cases to cover in integration tests:
   - Mix of relative/absolute URLs in Location

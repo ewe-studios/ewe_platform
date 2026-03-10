@@ -722,24 +722,34 @@ for status in iter {
 }
 ```
 
-### 5.2 Consumer API (Blocking Convenience Wrapper)
+### 5.2 Consumer API (Blocking Convenience Wrapper with Send/Receive)
 
 ```rust
-use foundation_core::wire::websocket::{WebSocketConnection, WebSocketMessage};
+use foundation_core::wire::websocket::{WebSocketClient, WebSocketClientBuilder, WebSocketMessage, MessageDelivery};
+use std::time::Duration;
 
-// Connect (uses unified::execute_stream() internally)
-let mut ws = WebSocketConnection::connect("wss://example.com/ws")?;
+// Simple connect - returns BOTH client and delivery handle for sending messages
+let (mut ws, delivery) = WebSocketClient::connect("wss://example.com/ws")?;
 
-// Send messages
-ws.send(WebSocketMessage::Text("hello".into()))?;
-ws.send(WebSocketMessage::Binary(vec![1, 2, 3]))?;
+// OR use builder for customization (read timeout, etc.)
+let (mut ws, delivery) = WebSocketClient::builder("wss://example.com/ws")
+    .read_timeout(Duration::from_secs(5))  // Timeout for recv() calls
+    .subprotocol("graphql-ws")
+    .connect()?;
 
-// Receive messages (wraps DrivenStreamIterator, not raw TaskIterator)
-for message in ws.messages() {
-    match message? {
+// Send messages via delivery handle (Clone + Send + 'static, can be shared)
+delivery.send(WebSocketMessage::Text("hello".into()))?;
+delivery.send(WebSocketMessage::Binary(vec![1, 2, 3]))?;
+
+// Receive messages via client iterator
+for event in ws.messages() {
+    match event? {
         WebSocketMessage::Text(text) => println!("{}", text),
         WebSocketMessage::Binary(data) => handle_binary(data),
-        WebSocketMessage::Ping(data) => ws.pong(data)?,
+        WebSocketMessage::Ping(data) => {
+            // Auto-pong handled internally, but user sees the Ping
+            delivery.pong(data)?;  // Manual pong if needed
+        }
         WebSocketMessage::Pong(_) => {},
         WebSocketMessage::Close(code, reason) => {
             println!("Closed: {} - {}", code, reason);
@@ -749,8 +759,165 @@ for message in ws.messages() {
 }
 
 // Graceful close
-ws.close(1000, "goodbye")?;
+delivery.close(1000, "goodbye")?;
 ```
+
+**Architecture (WHY this design):**
+
+The `WebSocketClient` uses an internal `ConcurrentQueue` channel to decouple sending from receiving while maintaining the TaskIterator pattern:
+
+```
+User Code
+    │
+    ├─> delivery.send(msg) ──> MessageDelivery ──> ConcurrentQueue<WebSocketMessage>
+    │                                                      │
+    │                                                      v
+    │                                          WebSocketTask reads queue
+    │                                                      │
+    │                                                      v
+    │                                          sends frame to connection
+    │
+    └─> ws.messages() <── WebSocketClient iterator <── receives from connection
+```
+
+**MessageDelivery design:**
+- Wrapper around `Arc<ConcurrentQueue<WebSocketMessage>>`
+- `Clone + Send + 'static` - can be shared across threads
+- Provides `send()`, `pong()`, and `close()` methods
+- Created together with `WebSocketClient` - cannot exist independently
+
+**WebSocketClientBuilder:**
+```rust
+pub struct WebSocketClientBuilder {
+    url: String,
+    subprotocols: Option<String>,
+    extra_headers: Vec<(SimpleHeader, String)>,
+    read_timeout: Duration,  // Default: 1 second
+}
+
+impl WebSocketClientBuilder {
+    pub fn new(url: impl Into<String>) -> Self {
+        Self {
+            url: url.into(),
+            subprotocols: None,
+            extra_headers: Vec::new(),
+            read_timeout: Duration::from_secs(1),  // Default
+        }
+    }
+
+    pub fn read_timeout(mut self, timeout: Duration) -> Self {
+        self.read_timeout = timeout;
+        self
+    }
+
+    pub fn subprotocol(mut self, protocol: impl Into<String>) -> Self {
+        self.subprotocols = Some(protocol.into());
+        self
+    }
+
+    pub fn header(mut self, key: SimpleHeader, value: impl Into<String>) -> Self {
+        self.extra_headers.push((key, value.into()));
+        self
+    }
+
+    pub fn connect<R: DnsResolver + Send + 'static>(
+        self,
+    ) -> Result<(WebSocketClient<R>, MessageDelivery), WebSocketError> {
+        WebSocketClient::with_options(self.url, self.subprotocols, self.extra_headers, self.read_timeout)
+    }
+}
+```
+
+**WebSocketClient internal loop:**
+```rust
+use concurrent_queue::ConcurrentQueue;
+use std::sync::Arc;
+
+pub struct WebSocketClient<R: DnsResolver + Send + 'static> {
+    inner: DrivenStreamIterator<WebSocketTask<R>>,
+    delivery: MessageDelivery,
+    read_timeout: Duration,
+}
+
+pub struct MessageDelivery {
+    queue: Arc<ConcurrentQueue<WebSocketMessage>>,
+}
+
+impl MessageDelivery {
+    pub fn send(&self, msg: WebSocketMessage) -> Result<(), WebSocketError> {
+        self.queue.push(msg).map_err(|_| WebSocketError::ConnectionClosed)?;
+        Ok(())
+    }
+
+    pub fn close(&self, code: u16, reason: &str) -> Result<(), WebSocketError> {
+        self.send(WebSocketMessage::Close(code, reason.to_string()))
+    }
+
+    pub fn pong(&self, data: Vec<u8>) -> Result<(), WebSocketError> {
+        self.send(WebSocketMessage::Pong(data))
+    }
+}
+```
+
+**WebSocketTask reads from delivery queue:**
+```rust
+impl TaskIterator for WebSocketTask<R> {
+    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        match self.state {
+            // ... handshake states ...
+
+            WebSocketState::Open { ref mut stream, ref delivery_queue, read_timeout } => {
+                // 1. Check delivery queue for outgoing messages (non-blocking)
+                if let Ok(msg) = delivery_queue.pop() {
+                    // Encode and send frame
+                    let frame = msg.into_frame(Role::Client);
+                    match stream.write_all(frame.encode()) {
+                        Ok(_) => {
+                            self.state = Some(WebSocketState::Open { stream, delivery_queue, read_timeout });
+                            return Some(TaskStatus::Pending(())); // Yield, try again next call
+                        }
+                        Err(e) => {
+                            self.state = Some(WebSocketState::Closed(Some(e.into())));
+                            return None;
+                        }
+                    }
+                }
+
+                // 2. Read incoming frame from connection (uses configurable timeout)
+                stream.set_read_timeout(read_timeout).ok()?;
+                match WebSocketFrame::decode(&mut *stream) {
+                    Ok(frame) => {
+                        // Validate and process frame
+                        let result = frame.validate()
+                            .map_err(Into::into)
+                            .and_then(|_| Ok(frame.into_message()?));
+                        self.state = Some(WebSocketState::Open { stream, delivery_queue, read_timeout });
+                        return Some(TaskStatus::Ready(result));
+                    }
+                    Err(WebSocketError::IoError(ref e)) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                        // No incoming message, continue checking delivery next call
+                        self.state = Some(WebSocketState::Open { stream, delivery_queue, read_timeout });
+                        return Some(TaskStatus::Pending(()));
+                    }
+                    Err(e) => {
+                        self.state = Some(WebSocketState::Closed(Some(e)));
+                        return None;
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+**Key benefits:**
+1. Uses existing `ConcurrentQueue` from valtron infrastructure - no new dependencies
+2. Maintains TaskIterator purity - no loops, one step per `next()` call
+3. Full-duplex simulation - delivery queue checked each iteration
+4. Send handle is shareable - multiple threads can send to same connection
+5. Clean API separation - send via `MessageDelivery`, receive via iterator
+6. Configurable read timeout - user can tune for their use case
+7. No executor bypass - all through `unified::execute_stream()`
 
 ### 5.3 With Subprotocol and Options
 
@@ -761,6 +928,57 @@ let mut ws = WebSocketConnection::builder("wss://example.com/ws")
     .header("Authorization", "Bearer token123")
     .connect()?;
 ```
+
+### 5.4 Connection Pooling Integration
+
+**WHY:** WebSocket connections can benefit from the existing `HttpConnectionPool` infrastructure for:
+- DNS resolution caching
+- TCP connection reuse (for rapid reconnections)
+- Unified connection management
+
+**WHAT:** `HttpConnectionPool` provides the underlying TCP/TLS connection, and WebSocket performs its handshake on top.
+
+**HOW:** The pool's `create_http_connection()` method returns an `HttpClientConnection` with an established TCP/TLS connection. WebSocket then performs its HTTP upgrade handshake over this connection.
+
+```rust
+use std::sync::Arc;
+use crate::wire::simple_http::client::HttpConnectionPool;
+
+// Using connection pool
+let pool = Arc::new(HttpConnectionPool::default());
+let (mut ws, delivery) = WebSocketClient::with_pool("ws://example.com/ws", pool)?;
+```
+
+### 5.5 Pool Architecture for WebSocket Connections
+
+**Design Rationale:**
+
+The existing `HttpConnectionPool` is designed for short-lived HTTP request/response cycles. WebSocket connections are long-lived, full-duplex connections that stay open for extended periods. This requires a different pooling strategy:
+
+1. **HTTP Pooling Pattern** (existing):
+   - Connections are checked out, used for a request, and returned to pool
+   - Idle timeout ~300s, max 10 per host
+   - Many short-lived connections per host
+
+2. **WebSocket Pooling Pattern** (new):
+   - Connections are checked out and NOT returned (long-lived)
+   - Pool serves as connection factory with DNS caching
+   - Few long-lived connections per host
+
+**Implementation Strategy:**
+
+The `HttpConnectionPool` is reused as-is for WebSocket connections. The key difference is semantic:
+- For HTTP: `checkout()` → request → `checkin()`
+- For WebSocket: `checkout()` → upgrade to WebSocket → connection stays open (never checked back in)
+
+This means WebSocket connections effectively bypass the pooling aspect but still benefit from:
+- DNS resolution caching via the pool's resolver
+- Any existing pooled connections (if WebSocket upgrades quickly)
+- Unified connection creation logic
+
+**Future Enhancement (Optional):**
+
+A dedicated `WebSocketConnectionPool` could be added for managing pools of idle WebSocket connections (e.g., for connection warm-up or multiplexing scenarios). This is out of scope for Phase 1.
 
 ---
 
@@ -1666,15 +1884,20 @@ pub struct WebSocketMessageIterator<'a> {
 }
 
 // VALID: wrapping DrivenStreamIterator (already executor-driven)
+// Caller controls the loop - Skip variant signals to call next() again
 impl<'a> Iterator for WebSocketMessageIterator<'a> {
-    type Item = Result<WebSocketMessage, WebSocketError>;
+    type Item = Result<WebSocketEvent, WebSocketError>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            match self.client.inner.next()? {
-                Stream::Next(result) => return Some(result),
-                Stream::Init | Stream::Ignore => continue,
-                Stream::Delayed(_) | Stream::Pending(_) => continue,
+        match self.client.inner.next()? {
+            Stream::Next(result) => {
+                match result {
+                    Ok(WebSocketMessage::ConnectionEstablished) => Some(Ok(WebSocketEvent::Skip)),
+                    other => Some(other.map(WebSocketEvent::Message)),
+                }
+            }
+            Stream::Init | Stream::Ignore | Stream::Pending(_) | Stream::Delayed(_) => {
+                Some(Ok(WebSocketEvent::Skip))
             }
         }
     }
@@ -1739,6 +1962,183 @@ WebSocketClient (consumer wrapper)
 ---
 
 ## 9. Implementation Phases
+
+### 9.1 Tracing and Logging Requirements
+
+All WebSocket code MUST use the `tracing` crate for structured logging. This is mandatory for debugging production issues and test failures.
+
+**Tracing levels:**
+- `trace!` - Frame-level details (bytes sent/received, opcode, payload length)
+- `debug!` - State transitions, handshake steps
+- `info!` - Connection lifecycle (connected, closed, errors)
+- `warn!` - Protocol violations, recoverable errors
+- `error!` - Unrecoverable errors, connection failures
+
+**Instrumentation requirements:**
+
+1. **All public methods** must be instrumented with `#[instrument]` macro:
+```rust
+use tracing::{debug, error, info, instrument, trace, warn};
+
+impl WebSocketClient<R: DnsResolver + Send + 'static> {
+    #[instrument(name = "websocket_connect", skip(resolver), fields(url = %url))]
+    pub fn connect(resolver: R, url: impl Into<String>) -> Result<(Self, MessageDelivery), WebSocketError> {
+        // Implementation
+    }
+
+    #[instrument(name = "websocket_send", skip(self), fields(message_type = %message.variant_name()))]
+    pub fn send(&mut self, message: WebSocketMessage) -> Result<(), WebSocketError> {
+        // Implementation
+    }
+}
+```
+
+2. **State machine transitions** must log state changes:
+```rust
+impl TaskIterator for WebSocketTask<R> {
+    fn next(&mut self) -> Option<TaskStatus<...>> {
+        let old_state = format!("{:?}", self.state);
+        // ... state transition ...
+        debug!(from = %old_state, to = format!("{:?}", self.state), "State transition");
+    }
+}
+```
+
+3. **Frame-level tracing** for debugging:
+```rust
+#[instrument(name = "websocket_frame_encode", skip(frame),
+             fields(fin = frame.fin, opcode = %frame.opcode, payload_len = frame.payload.len()))]
+pub fn encode(&self) -> Vec<u8> {
+    trace!("Encoding WebSocket frame");
+    // ... frame encoding ...
+}
+```
+
+4. **Handshake tracing**:
+```rust
+#[instrument(name = "websocket_handshake", skip(conn, options),
+             fields(host = %uri.host(), path = %uri.path()))]
+pub fn handshake(...) -> Result<(), WebSocketError> {
+    debug!("Sending WebSocket upgrade request");
+    // ... handshake ...
+    info!(accept_key = %accept_key, "Handshake completed");
+}
+```
+
+5. **Error context** must include relevant fields:
+```rust
+Err(e) => {
+    error!(error = ?e, state = ?self.state, "WebSocket error");
+    self.state = Some(WebSocketState::Closed(Some(e)));
+    None
+}
+```
+
+**Test tracing requirements:**
+- All tests must use `#[traced_test]` attribute
+- Tests should assert on log output where appropriate
+- Integration tests should enable `trace!` level for debugging
+
+---
+
+### 9.2 Test Server Enhancements (foundation_testing)
+
+The WebSocket test server in `foundation_testing` MUST support the following for integration testing:
+
+**Pre-prepared message delivery:**
+```rust
+/// WebSocket test server with pre-prepared messages.
+///
+/// WHEN: A client connects and handshake completes
+/// THEN: Server immediately sends pre-configured messages
+/// USE: Testing client receive logic without manual send
+pub struct WebSocketServerWithMessages {
+    addr: String,
+    _handle: thread::JoinHandle<()>,
+    running: Arc<AtomicBool>,
+}
+
+impl WebSocketServerWithMessages {
+    /// Create server that sends predefined messages to each new connection.
+    ///
+    /// # Arguments
+    ///
+    /// * `messages` - Vec of messages to send (in order) after handshake
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use foundation_testing::http::WebSocketServerWithMessages;
+    /// use foundation_core::wire::websocket::WebSocketMessage;
+    ///
+    /// let messages = vec![
+    ///     WebSocketMessage::Text("hello".to_string()),
+    ///     WebSocketMessage::Binary(vec![1, 2, 3]),
+    /// ];
+    ///
+    /// let server = WebSocketServerWithMessages::new(messages);
+    /// let url = server.ws_url("/test");
+    ///
+    /// // Connect client - it will receive messages automatically
+    /// let (mut client, _delivery) = WebSocketClient::connect(url)?;
+    ///
+    /// for event in client.messages() {
+    ///     // Receives "hello", then binary [1,2,3]
+    /// }
+    /// ```
+    pub fn new(messages: Vec<WebSocketMessage>) -> Self {
+        // Implementation
+    }
+
+    /// Get WebSocket URL for a path on this test server.
+    #[must_use]
+    pub fn ws_url(&self, path: &str) -> String {
+        format!("{}{}", self.addr, path)
+    }
+}
+```
+
+**Echo server (existing):**
+- Echoes received messages back to client
+- Responds to Ping with Pong
+- Handles close handshake
+
+**Custom handler server:**
+```rust
+/// Server with custom message handler callback.
+pub struct WebSocketServerWithHandler<F>
+where
+    F: Fn(WebSocketMessage) -> Option<WebSocketMessage> + Send + 'static,
+{
+    // ...
+    handler: Arc<F>,
+}
+
+impl<F> WebSocketServerWithHandler<F>
+where
+    F: Fn(WebSocketMessage) -> Option<WebSocketMessage> + Send + 'static,
+{
+    /// Create server with custom handler.
+    ///
+    /// Handler is called for each received message.
+    /// If handler returns Some(msg), that message is sent back.
+    /// If handler returns None, no response is sent.
+    pub fn with_handler(handler: F) -> Self {
+        // Implementation
+    }
+}
+```
+
+**Test server requirements:**
+1. Must run on random available port (no port conflicts)
+2. Must handle multiple concurrent connections
+3. Must support graceful shutdown (Drop impl)
+4. Must log all received frames via `tracing`
+5. Pre-prepared messages sent AFTER handshake completes
+6. Must support subprotocol negotiation for testing
+7. Must echo close frames for proper close handshake testing
+
+---
 
 ### Phase 1: Core WebSocket with TaskIterator
 

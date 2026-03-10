@@ -239,6 +239,12 @@ dependencies = [
 
 [[package]]
 name = "base64"
+version = "0.21.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9d297deb1925b89f2ccc13d7635fa0714f12c87adce1c75356b39ca9b7178567"
+
+[[package]]
+name = "base64"
 version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
@@ -1098,6 +1104,7 @@ dependencies = [
 name = "ewe_platform_tests"
 version = "0.1.0"
 dependencies = [
+ "base64 0.21.7",
  "foundation_core",
  "foundation_nostd",
  "foundation_testing",
@@ -1360,7 +1367,7 @@ name = "foundation_core"
 version = "0.0.3"
 dependencies = [
  "async-trait",
- "base64",
+ "base64 0.22.1",
  "brotli 6.0.0",
  "concurrent-queue",
  "ctrlc",
@@ -1431,11 +1438,13 @@ dependencies = [
 name = "foundation_testing"
 version = "0.0.1"
 dependencies = [
+ "base64 0.21.7",
  "criterion",
  "derive_more",
  "foundation_core",
  "foundation_nostd",
  "serial_test",
+ "sha1",
  "tracing",
  "tracing-test",
 ]
@@ -1806,7 +1815,7 @@ version = "0.1.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "52e9a2a24dc5c6821e71a7030e1e14b7b632acac55c40e9d2e082c621261bb56"
 dependencies = [
- "base64",
+ "base64 0.22.1",
  "bytes",
  "futures-channel",
  "futures-core",
@@ -2971,7 +2980,7 @@ version = "0.12.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9d0946410b9f7b082a427e4ef5c8ff541a88b357bc6c637c40db3a68ac70a36f"
 dependencies = [
- "base64",
+ "base64 0.22.1",
  "bytes",
  "encoding_rs",
  "futures-channel",
@@ -3340,7 +3349,7 @@ version = "3.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "10574371d41b0d9b2cff89418eda27da52bcaff2cc8741db26382a77c29131f1"
 dependencies = [
- "base64",
+ "base64 0.22.1",
  "chrono",
  "hex",
  "indexmap 1.9.3",
@@ -4311,7 +4320,7 @@ version = "2.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "02d1a66277ed75f640d608235660df48c8e3c19f3b4edb6a263315626cc3c01d"
 dependencies = [
- "base64",
+ "base64 0.22.1",
  "flate2",
  "log",
  "native-tls",
