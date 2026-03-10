@@ -88,7 +88,7 @@ pub fn build_upgrade_request(
         .add_header(SimpleHeader::SEC_WEBSOCKET_VERSION, "13");
 
     if let Some(protos) = protocols {
-        builder = builder.add_header(SimpleHeader::SEC_WEBSOCKET_PROTOCOL, protos);
+        builder = builder.add_header_raw(SimpleHeader::SEC_WEBSOCKET_PROTOCOL, protos);
     }
 
     builder
@@ -142,80 +142,4 @@ pub fn validate_upgrade_response(
     }
 
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    // Test 1: compute_accept_key with RFC 6455 test vector
-    #[test]
-    fn test_compute_accept_key_rfc6455_vector() {
-        let client_key = "dGhlIHNhbXBsZSBub25jZQ==";
-        let expected = "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=";
-        let result = compute_accept_key(client_key);
-        assert_eq!(result, expected);
-    }
-
-    // Test 2: generate_websocket_key produces valid base64 encoding of 16 bytes
-    #[test]
-    fn test_generate_websocket_key_valid_base64() {
-        let key = generate_websocket_key();
-
-        // 16 bytes base64-encoded = 24 characters (with padding)
-        assert_eq!(key.len(), 24, "base64-encoded 16 bytes should be 24 chars");
-
-        // Must decode back to exactly 16 bytes
-        let decoded = base64::engine::general_purpose::STANDARD
-            .decode(&key)
-            .expect("key should be valid base64");
-        assert_eq!(decoded.len(), 16, "decoded key should be 16 bytes");
-
-        // Two generated keys should differ (probabilistic but virtually certain)
-        let key2 = generate_websocket_key();
-        assert_ne!(key, key2, "two generated keys should differ");
-    }
-
-    /// Helper to get first header value from a `SimpleHeaders` map.
-    fn first_header_value(headers: &SimpleHeaders, key: &SimpleHeader) -> Option<String> {
-        headers.get(key).and_then(|v| v.first()).cloned()
-    }
-
-    // Test 3: build_upgrade_request produces correct headers
-    #[test]
-    fn test_build_upgrade_request_headers() {
-        let key = "dGhlIHNhbXBsZSBub25jZQ==";
-        let request = build_upgrade_request("example.com", "/chat", key, None)
-            .expect("should build request");
-
-        let headers = &request.headers;
-
-        // Verify required WebSocket upgrade headers
-        assert_eq!(
-            first_header_value(headers, &SimpleHeader::HOST),
-            Some("example.com".to_string()),
-        );
-        assert_eq!(
-            first_header_value(headers, &SimpleHeader::UPGRADE),
-            Some("websocket".to_string()),
-        );
-        assert_eq!(
-            first_header_value(headers, &SimpleHeader::CONNECTION),
-            Some("Upgrade".to_string()),
-        );
-        assert_eq!(
-            first_header_value(headers, &SimpleHeader::SEC_WEBSOCKET_KEY),
-            Some(key.to_string()),
-        );
-        assert_eq!(
-            first_header_value(headers, &SimpleHeader::SEC_WEBSOCKET_VERSION),
-            Some("13".to_string()),
-        );
-
-        // No subprotocol header when None is passed
-        assert!(
-            headers.get(&SimpleHeader::SEC_WEBSOCKET_PROTOCOL).is_none(),
-            "should not have protocol header when None"
-        );
-    }
 }

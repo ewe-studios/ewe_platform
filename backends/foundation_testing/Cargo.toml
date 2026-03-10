@@ -20,6 +20,10 @@ derive_more = { workspace = true }
 # Criterion for benchmarking (only allowed external dependency for testing)
 criterion = { version = "0.5", features = ["html_reports"] }
 
+# WebSocket test server dependencies
+base64 = "0.21"
+sha1 = { version = "0.10", features = ["std"] }
+
 [dev-dependencies]
 serial_test = { workspace = true }
 tracing-test = { version = "0.2.5",  features = ["no-env-filter"] }

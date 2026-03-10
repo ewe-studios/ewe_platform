@@ -21,8 +21,10 @@ use crate::wire::simple_http::url::Uri;
 use crate::wire::simple_http::{
     Http11, HttpResponseReader, RenderHttp, SimpleHeader, SimpleHttpBody, Status,
 };
+use concurrent_queue::ConcurrentQueue;
 use std::io::Write;
 use std::sync::Arc;
+use std::time::Duration;
 use tracing::{debug, error, info, instrument, trace, warn};
 
 use super::error::WebSocketError;
@@ -43,9 +45,12 @@ pub struct WebSocketConnectInfo {
     pub url: String,
     pub subprotocols: Option<String>,
     pub extra_headers: Vec<(SimpleHeader, String)>,
+    pub delivery_queue: Option<Arc<ConcurrentQueue<WebSocketMessage>>>,
+    pub read_timeout: Duration,
 }
 
 /// [`WebSocketState`] represents the state machine states.
+#[allow(dead_code)] // Some fields used in Phase 2
 enum WebSocketState {
     Init(Option<Box<WebSocketConnectInfo>>),
     Connecting {
@@ -53,6 +58,8 @@ enum WebSocketState {
         ws_key: String,
         subprotocols: Option<String>,
         extra_headers: Vec<(SimpleHeader, String)>,
+        delivery_queue: Option<Arc<ConcurrentQueue<WebSocketMessage>>>,
+        read_timeout: Duration,
     },
     HandshakeSending {
         connection: HttpClientConnection,
@@ -60,21 +67,29 @@ enum WebSocketState {
         current_chunk: usize,
         ws_key: String,
         subprotocols: Option<String>,
+        delivery_queue: Option<Arc<ConcurrentQueue<WebSocketMessage>>>,
+        read_timeout: Duration,
     },
     HandshakeReading {
         connection: HttpClientConnection,
         reader: HttpResponseReader<SimpleHttpBody, RawStream>,
         ws_key: String,
         subprotocols: Option<String>,
+        delivery_queue: Option<Arc<ConcurrentQueue<WebSocketMessage>>>,
+        read_timeout: Duration,
     },
     HandshakeValidating {
         connection: HttpClientConnection,
         headers: crate::wire::simple_http::SimpleHeaders,
         ws_key: String,
         subprotocols: Option<String>,
+        delivery_queue: Option<Arc<ConcurrentQueue<WebSocketMessage>>>,
+        read_timeout: Duration,
     },
     Open {
         stream: crate::io::ioutils::SharedByteBufferStream<RawStream>,
+        delivery_queue: Arc<ConcurrentQueue<WebSocketMessage>>,
+        read_timeout: Duration,
     },
     Closed(Option<WebSocketError>),
 }
@@ -137,6 +152,8 @@ where
                 url: url_str,
                 subprotocols: None,
                 extra_headers: Vec::new(),
+                delivery_queue: None,
+                read_timeout: Duration::from_secs(1),
             })))),
             pool,
         })
@@ -174,6 +191,108 @@ where
                 url: url_str,
                 subprotocols: None,
                 extra_headers: Vec::new(),
+                delivery_queue: None,
+                read_timeout: Duration::from_secs(1),
+            })))),
+            pool,
+        })
+    }
+
+    /// Connect to a WebSocket endpoint with delivery queue for sending messages.
+    ///
+    /// # Arguments
+    ///
+    /// * `resolver` - DNS resolver
+    /// * `url` - WebSocket URL
+    /// * `subprotocols` - Optional comma-separated subprotocols
+    /// * `extra_headers` - Additional headers for handshake
+    /// * `delivery` - MessageDelivery queue for sending messages
+    /// * `read_timeout` - Timeout for read operations
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WebSocketError`] if the URL is invalid.
+    #[instrument(skip(resolver, extra_headers, delivery, _url), err, fields(url = %_url))]
+    pub fn connect_with_delivery(
+        resolver: R,
+        _url: String,
+        subprotocols: Option<String>,
+        extra_headers: Vec<(SimpleHeader, String)>,
+        delivery: Arc<ConcurrentQueue<WebSocketMessage>>,
+        read_timeout: Duration,
+    ) -> Result<Self, WebSocketError> {
+        let url_str = _url;
+        info!(url = %url_str, "Connecting to WebSocket endpoint with delivery queue");
+
+        let uri = Uri::parse(&url_str).map_err(|e| {
+            error!(url = %url_str, error = ?e, "Failed to parse URL");
+            WebSocketError::InvalidUrl(format!("Failed to parse URL: {} - {:?}", url_str, e))
+        })?;
+
+        if !uri.scheme().is_ws() && !uri.scheme().is_wss() {
+            return Err(WebSocketError::InvalidUrl(format!(
+                "Unsupported scheme: {}. Only ws:// and wss:// are supported.",
+                uri.scheme()
+            )));
+        }
+
+        debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
+
+        let pool = Arc::new(HttpConnectionPool::new(
+            crate::wire::simple_http::client::ConnectionPool::default(),
+            resolver,
+        ));
+
+        Ok(Self {
+            state: Some(WebSocketState::Init(Some(Box::new(WebSocketConnectInfo {
+                url: url_str,
+                subprotocols,
+                extra_headers,
+                delivery_queue: Some(delivery),
+                read_timeout,
+            })))),
+            pool,
+        })
+    }
+
+    /// Connect to a WebSocket endpoint with delivery queue using existing pool.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WebSocketError`] if the URL is invalid.
+    #[instrument(skip(pool, extra_headers, delivery, _url), err, fields(url = %_url))]
+    pub fn connect_with_pool_and_delivery(
+        _url: String,
+        pool: Arc<HttpConnectionPool<R>>,
+        subprotocols: Option<String>,
+        extra_headers: Vec<(SimpleHeader, String)>,
+        delivery: Arc<ConcurrentQueue<WebSocketMessage>>,
+        read_timeout: Duration,
+    ) -> Result<Self, WebSocketError> {
+        let url_str = _url;
+        info!(url = %url_str, "Connecting to WebSocket endpoint with pool and delivery queue");
+
+        let uri = Uri::parse(&url_str).map_err(|e| {
+            error!(url = %url_str, error = ?e, "Failed to parse URL");
+            WebSocketError::InvalidUrl(format!("Failed to parse URL: {} - {:?}", url_str, e))
+        })?;
+
+        if !uri.scheme().is_ws() && !uri.scheme().is_wss() {
+            return Err(WebSocketError::InvalidUrl(format!(
+                "Unsupported scheme: {}. Only ws:// and wss:// are supported.",
+                uri.scheme()
+            )));
+        }
+
+        debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
+
+        Ok(Self {
+            state: Some(WebSocketState::Init(Some(Box::new(WebSocketConnectInfo {
+                url: url_str,
+                subprotocols,
+                extra_headers,
+                delivery_queue: Some(delivery),
+                read_timeout,
             })))),
             pool,
         })
@@ -243,12 +362,14 @@ where
 
                 debug!(ws_key = %ws_key, "Generated WebSocket key");
 
-                // Transition to Connecting state
+                // Transition to Connecting state, carrying delivery_queue and read_timeout
                 self.state = Some(WebSocketState::Connecting {
                     url,
                     ws_key,
                     subprotocols: info.subprotocols,
                     extra_headers: info.extra_headers,
+                    delivery_queue: info.delivery_queue,
+                    read_timeout: info.read_timeout,
                 });
                 Some(TaskStatus::Pending(WebSocketProgress::Connecting))
             }
@@ -258,6 +379,8 @@ where
                 ws_key,
                 subprotocols,
                 extra_headers: _,
+                delivery_queue,
+                read_timeout,
             } => {
                 debug!(
                     state = "Connecting",
@@ -303,13 +426,15 @@ where
                 };
                 let request_bytes: Vec<Vec<u8>> = request_bytes_vec.into_bytes().into_iter().map(|b| vec![b]).collect();
 
-                // Transition to HandshakeSending
+                // Transition to HandshakeSending, carrying delivery_queue and read_timeout
                 self.state = Some(WebSocketState::HandshakeSending {
                     connection,
                     request_bytes,
                     current_chunk: 0,
                     ws_key,
                     subprotocols,
+                    delivery_queue,
+                    read_timeout,
                 });
                 Some(TaskStatus::Pending(WebSocketProgress::Handshaking))
             }
@@ -320,6 +445,8 @@ where
                 mut current_chunk,
                 ws_key,
                 subprotocols,
+                delivery_queue,
+                read_timeout,
             } => {
                 // Send ONE chunk per next() call
                 if current_chunk < request_bytes.len() {
@@ -333,6 +460,8 @@ where
                         current_chunk,
                         ws_key,
                         subprotocols,
+                        delivery_queue,
+                        read_timeout,
                     });
                     Some(TaskStatus::Pending(WebSocketProgress::Handshaking))
                 } else {
@@ -350,16 +479,20 @@ where
                         reader,
                         ws_key,
                         subprotocols,
+                        delivery_queue,
+                        read_timeout,
                     });
                     Some(TaskStatus::Pending(WebSocketProgress::Handshaking))
                 }
             }
 
             WebSocketState::HandshakeReading {
-                mut connection,
+                connection,
                 mut reader,
                 ws_key,
                 subprotocols,
+                delivery_queue,
+                read_timeout,
             } => {
                 // Read ONE IncomingResponseParts per next() call
                 match reader.next() {
@@ -386,6 +519,8 @@ where
                                     reader,
                                     ws_key,
                                     subprotocols,
+                                    delivery_queue,
+                                    read_timeout,
                                 });
                                 Some(TaskStatus::Pending(WebSocketProgress::Handshaking))
                             }
@@ -396,6 +531,8 @@ where
                                     headers,
                                     ws_key,
                                     subprotocols,
+                                    delivery_queue,
+                                    read_timeout,
                                 });
                                 Some(TaskStatus::Pending(WebSocketProgress::Handshaking))
                             }
@@ -406,6 +543,8 @@ where
                                     reader,
                                     ws_key,
                                     subprotocols,
+                                    delivery_queue,
+                                    read_timeout,
                                 });
                                 Some(TaskStatus::Pending(WebSocketProgress::Handshaking))
                             }
@@ -433,6 +572,8 @@ where
                 headers,
                 ws_key,
                 subprotocols: _subprotocols,
+                delivery_queue,
+                read_timeout,
             } => {
                 debug!(state = "HandshakeValidating", "Validating upgrade response");
 
@@ -459,9 +600,17 @@ where
 
                                 debug!("Accept key validated, WebSocket connection established");
 
-                                // Success - transition to Open state
+                                // Success - transition to Open state with delivery queue and read_timeout
                                 let stream = connection.clone_stream();
-                                self.state = Some(WebSocketState::Open { stream });
+
+                                // Use provided delivery_queue or create new unbounded queue
+                                let queue = delivery_queue.unwrap_or_else(|| Arc::new(ConcurrentQueue::unbounded()));
+
+                                self.state = Some(WebSocketState::Open {
+                                    stream,
+                                    delivery_queue: queue,
+                                    read_timeout,
+                                });
 
                                 // Return connection established message
                                 Some(TaskStatus::Ready(Ok(WebSocketMessage::ConnectionEstablished)))
@@ -481,8 +630,63 @@ where
                 }
             }
 
-            WebSocketState::Open { mut stream } => {
+            WebSocketState::Open { mut stream, ref delivery_queue, ref read_timeout } => {
                 trace!(state = "Open", "Reading WebSocket frame");
+
+                // Check for outgoing messages in delivery queue first
+                if let Ok(outgoing) = delivery_queue.pop() {
+                    // Send outgoing message
+                    let frame = match outgoing {
+                        WebSocketMessage::ConnectionEstablished => None, // No frame to send
+                        WebSocketMessage::Text(text) => Some(WebSocketFrame {
+                            fin: true,
+                            opcode: Opcode::Text,
+                            mask: None,
+                            payload: text.into_bytes(),
+                        }),
+                        WebSocketMessage::Binary(data) => Some(WebSocketFrame {
+                            fin: true,
+                            opcode: Opcode::Binary,
+                            mask: None,
+                            payload: data,
+                        }),
+                        WebSocketMessage::Ping(data) => Some(WebSocketFrame {
+                            fin: true,
+                            opcode: Opcode::Ping,
+                            mask: None,
+                            payload: data,
+                        }),
+                        WebSocketMessage::Pong(data) => Some(WebSocketFrame {
+                            fin: true,
+                            opcode: Opcode::Pong,
+                            mask: None,
+                            payload: data,
+                        }),
+                        WebSocketMessage::Close(code, reason) => {
+                            let mut payload = code.to_be_bytes().to_vec();
+                            payload.extend_from_slice(reason.as_bytes());
+                            Some(WebSocketFrame {
+                                fin: true,
+                                opcode: Opcode::Close,
+                                mask: None,
+                                payload,
+                            })
+                        }
+                    };
+
+                    if let Some(frame) = frame {
+                        let _ = stream.write_all(&frame.encode());
+                        let _ = stream.flush();
+                    }
+
+                    // Stay in Open state
+                    self.state = Some(WebSocketState::Open {
+                        stream,
+                        delivery_queue: delivery_queue.clone(),
+                        read_timeout: *read_timeout,
+                    });
+                    return Some(TaskStatus::Pending(WebSocketProgress::Reading));
+                }
 
                 // Read ONE frame per next() call
                 match WebSocketFrame::decode(&mut stream) {
@@ -490,7 +694,11 @@ where
                         // Validate frame
                         if let Err(e) = frame.validate() {
                             error!(error = ?e, "Invalid frame");
-                            self.state = Some(WebSocketState::Open { stream });
+                            self.state = Some(WebSocketState::Open {
+                                stream,
+                                delivery_queue: delivery_queue.clone(),
+                                read_timeout: *read_timeout,
+                            });
                             return Some(TaskStatus::Ready(Err(e)));
                         }
 
@@ -522,14 +730,22 @@ where
                                     let pong_bytes = pong_frame.encode();
                                     let _ = stream.write_all(&pong_bytes);
                                     let _ = stream.flush();
-                                    self.state = Some(WebSocketState::Open { stream });
+                                    self.state = Some(WebSocketState::Open {
+                                        stream,
+                                        delivery_queue: delivery_queue.clone(),
+                                        read_timeout: *read_timeout,
+                                    });
                                     return Some(TaskStatus::Ready(Ok(
                                         WebSocketMessage::Ping(frame.payload)
                                     )));
                                 }
                                 Opcode::Pong => {
                                     debug!("Received Pong");
-                                    self.state = Some(WebSocketState::Open { stream });
+                                    self.state = Some(WebSocketState::Open {
+                                        stream,
+                                        delivery_queue: delivery_queue.clone(),
+                                        read_timeout: *read_timeout,
+                                    });
                                     return Some(TaskStatus::Ready(Ok(
                                         WebSocketMessage::Pong(frame.payload)
                                     )));
@@ -545,7 +761,11 @@ where
                                 }
                                 _ => {
                                     warn!(opcode = ?frame.opcode, "Unknown control frame");
-                                    self.state = Some(WebSocketState::Open { stream });
+                                    self.state = Some(WebSocketState::Open {
+                                        stream,
+                                        delivery_queue: delivery_queue.clone(),
+                                        read_timeout: *read_timeout,
+                                    });
                                     return Some(TaskStatus::Ready(Err(
                                         WebSocketError::ProtocolError("Unknown control frame".to_string())
                                     )));
@@ -558,7 +778,11 @@ where
                         // TODO: Handle fragmentation with MessageAssembler
                         if !frame.fin {
                             warn!("Received fragmented message (not yet supported)");
-                            self.state = Some(WebSocketState::Open { stream });
+                            self.state = Some(WebSocketState::Open {
+                                stream,
+                                delivery_queue: delivery_queue.clone(),
+                                read_timeout: *read_timeout,
+                            });
                             return Some(TaskStatus::Ready(Err(
                                 WebSocketError::ProtocolError("Fragmented messages not yet supported".to_string())
                             )));
@@ -568,29 +792,49 @@ where
                             Opcode::Text => {
                                 match String::from_utf8(frame.payload.clone()) {
                                     Ok(text) => {
-                                        self.state = Some(WebSocketState::Open { stream });
+                                        self.state = Some(WebSocketState::Open {
+                                            stream,
+                                            delivery_queue: delivery_queue.clone(),
+                                            read_timeout: *read_timeout,
+                                        });
                                         Some(TaskStatus::Ready(Ok(WebSocketMessage::Text(text))))
                                     }
                                     Err(e) => {
-                                        self.state = Some(WebSocketState::Open { stream });
+                                        self.state = Some(WebSocketState::Open {
+                                            stream,
+                                            delivery_queue: delivery_queue.clone(),
+                                            read_timeout: *read_timeout,
+                                        });
                                         Some(TaskStatus::Ready(Err(WebSocketError::InvalidUtf8(e))))
                                     }
                                 }
                             }
                             Opcode::Binary => {
-                                self.state = Some(WebSocketState::Open { stream });
+                                self.state = Some(WebSocketState::Open {
+                                    stream,
+                                    delivery_queue: delivery_queue.clone(),
+                                    read_timeout: *read_timeout,
+                                });
                                 Some(TaskStatus::Ready(Ok(WebSocketMessage::Binary(frame.payload))))
                             }
                             Opcode::Continuation => {
                                 warn!("Unexpected continuation frame");
-                                self.state = Some(WebSocketState::Open { stream });
+                                self.state = Some(WebSocketState::Open {
+                                    stream,
+                                    delivery_queue: delivery_queue.clone(),
+                                    read_timeout: *read_timeout,
+                                });
                                 Some(TaskStatus::Ready(Err(
                                     WebSocketError::ProtocolError("Unexpected continuation frame".to_string())
                                 )))
                             }
                             _ => {
                                 warn!(opcode = ?frame.opcode, "Unknown data frame");
-                                self.state = Some(WebSocketState::Open { stream });
+                                self.state = Some(WebSocketState::Open {
+                                    stream,
+                                    delivery_queue: delivery_queue.clone(),
+                                    read_timeout: *read_timeout,
+                                });
                                 Some(TaskStatus::Ready(Err(
                                     WebSocketError::ProtocolError("Unknown data frame opcode".to_string())
                                 )))

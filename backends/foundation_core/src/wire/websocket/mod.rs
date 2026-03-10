@@ -3,12 +3,14 @@
 //! WHY: Provides synchronous WebSocket support for the `ewe_platform` project.
 //! WHAT: Frame encoding/decoding, message types, and error handling per RFC 6455.
 
+mod connection;
 mod error;
 mod frame;
 mod handshake;
 mod message;
 mod task;
 
+pub use connection::*;
 pub use error::*;
 pub use frame::*;
 pub use handshake::*;

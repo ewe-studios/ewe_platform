@@ -1819,6 +1819,26 @@ impl SimpleIncomingRequestBuilder {
         self
     }
 
+    /// Adds a header with a raw string value without splitting on commas.
+    ///
+    /// Use this for headers that contain comma-separated values as a single string
+    /// (e.g., Sec-WebSocket-Protocol).
+    pub fn add_header_raw<H: Into<SimpleHeader>, S: Into<String>>(mut self, key: H, value: S) -> Self {
+        let mut headers = self.headers.unwrap_or_default();
+
+        let actual_key = key.into();
+        let actual_value: String = value.into();
+
+        if let Some(values) = headers.get_mut(&actual_key) {
+            values.push(actual_value);
+        } else {
+            headers.insert(actual_key, vec![actual_value]);
+        }
+
+        self.headers = Some(headers);
+        self
+    }
+
     #[must_use]
     pub fn with_method(mut self, method: SimpleMethod) -> Self {
         self.method = Some(method);
