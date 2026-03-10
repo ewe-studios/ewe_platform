@@ -39,6 +39,7 @@ url = "2.5"
 regex = "1.12.2"
 ctrlc = { version = "3.4" }
 base64 = "0.22"
+sha1 = "0.10"
 
 # rust-embed
 rust-embed = { version = "8.7.0", features = ["mime-guess", "interpolate-folder-path"]}
