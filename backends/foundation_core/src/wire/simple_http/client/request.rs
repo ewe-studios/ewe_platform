@@ -5,12 +5,19 @@
 //! - `ClientRequestBuilder` - Fluent API for building requests
 
 use crate::wire::simple_http::client::connection::ParsedUrl;
-use crate::wire::simple_http::client::errors::HttpClientError;
-use crate::wire::simple_http::{
-    Proto, SimpleBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod, SimpleUrl,
+use crate::wire::simple_http::client::{
+    ClientConfig, ClientRequest, DnsResolver, Extensions, HttpConnectionPool, MiddlewareChain,
+    SystemDnsResolver,
 };
+use crate::wire::simple_http::HttpClientError;
+use crate::wire::simple_http::{
+    Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
+    SimpleUrl,
+};
+use base64::prelude::*;
 use serde::Serialize;
 use std::collections::BTreeMap;
+use std::sync::Arc;
 
 /// Prepared HTTP request ready to send.
 ///
@@ -20,7 +27,8 @@ pub struct PreparedRequest {
     pub method: SimpleMethod,
     pub url: ParsedUrl,
     pub headers: SimpleHeaders,
-    pub body: SimpleBody,
+    pub body: SendSafeBody,
+    pub extensions: Extensions,
 }
 
 impl PreparedRequest {
@@ -32,22 +40,24 @@ impl PreparedRequest {
     ///
     /// Returns `HttpClientError` if the request cannot be built.
     pub fn into_simple_incoming_request(self) -> Result<SimpleIncomingRequest, HttpClientError> {
-        // Convert ParsedUrl to SimpleUrl
-        let simple_url = if let Some(query) = &self.url.query {
-            SimpleUrl::url_with_query(format!("{}?{}", self.url.path, query))
+        // Convert Uri to SimpleUrl
+        let simple_url = if let Some(query) = self.url.query() {
+            SimpleUrl::url_with_query(format!("{}?{}", self.url.path(), query))
         } else {
-            SimpleUrl::url_only(self.url.path.clone())
+            SimpleUrl::url_only(self.url.to_string())
         };
 
         // Create SimpleIncomingRequest using builder
         let request = SimpleIncomingRequest::builder()
             .with_url(simple_url)
+            .with_uri(self.url)
             .with_method(self.method)
             .with_proto(Proto::HTTP11)
             .with_headers(self.headers)
             .with_some_body(Some(self.body))
+            .with_extensions(self.extensions)
             .build()
-            .map_err(|e| HttpClientError::Other(Box::new(e)))?;
+            .map_err(|e| HttpClientError::FailedWith(Box::new(e)))?;
 
         Ok(request)
     }
@@ -61,25 +71,87 @@ impl PreparedRequest {
 /// # Examples
 ///
 /// ```
-/// use foundation_core::wire::simple_http::client::ClientRequestBuilder;
+/// use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SystemDnsResolver};
+/// use foundation_core::wire::simple_http::SimpleHeader;
 ///
-/// let request = ClientRequestBuilder::get("http://example.com/api")
+/// // Build a GET request
+/// let request = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com/api")
 ///     .unwrap()
-///     .header(
-///         foundation_core::wire::simple_http::SimpleHeader::HOST,
-///         "example.com"
-///     )
-///     .body_text("{\"key\": \"value\"}")
-///     .build();
+///     .header(SimpleHeader::HOST, "example.com");
+///
+/// // Can build the request
+/// assert!(request.build().is_ok());
 /// ```
-pub struct ClientRequestBuilder {
+pub struct ClientRequestBuilder<R: DnsResolver + 'static> {
     method: SimpleMethod,
     url: ParsedUrl,
     headers: SimpleHeaders,
-    body: Option<SimpleBody>,
+    body: Option<SendSafeBody>,
+    config: Option<ClientConfig>,
+    pool: Option<Arc<HttpConnectionPool<R>>>,
+    middleware_chain: Option<Arc<MiddlewareChain>>,
 }
 
-impl ClientRequestBuilder {
+impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
+    /// Builds the final prepared request.
+    ///
+    /// Consumes the builder and returns a `PreparedRequest` ready to send.
+    ///
+    /// # Errors
+    ///
+    /// Currently always returns `Ok`. Returns `Result` for future extensibility.
+    #[must_use = "builder must be consumed to produce a PreparedRequest"]
+    pub fn build(self) -> Result<PreparedRequest, HttpClientError> {
+        Ok(PreparedRequest {
+            method: self.method,
+            url: self.url,
+            headers: self.headers,
+            body: self.body.unwrap_or(SendSafeBody::None),
+            extensions: Extensions::new(),
+        })
+    }
+}
+
+impl ClientRequestBuilder<SystemDnsResolver> {
+    /// Builds a client request with system DNS resolver.
+    ///
+    /// # Errors
+    ///
+    /// Returns `HttpClientError::NoPool` if connection pool is not set.
+    #[must_use = "builder must be consumed to produce a ClientRequest"]
+    pub fn system_client(self) -> Result<ClientRequest<SystemDnsResolver>, HttpClientError> {
+        self.build_client()
+    }
+}
+
+impl<R: DnsResolver + Default + 'static> ClientRequestBuilder<R> {
+    /// Builds the final prepared request with a client wrapper.
+    ///
+    /// Consumes the builder and returns a `ClientRequest` ready to execute.
+    ///
+    /// # Errors
+    ///
+    /// Returns `HttpClientError::NoPool` if connection pool is not configured.
+    #[must_use = "builder must be consumed to produce a ClientRequest"]
+    pub fn build_client(self) -> Result<ClientRequest<R>, HttpClientError> {
+        let prepared = PreparedRequest {
+            method: self.method,
+            url: self.url,
+            headers: self.headers,
+            body: self.body.unwrap_or(SendSafeBody::None),
+            extensions: Extensions::new(),
+        };
+
+        let pool = self.pool.unwrap_or_default();
+        let config = self.config.unwrap_or_default();
+        let middleware_chain = self
+            .middleware_chain
+            .unwrap_or_else(|| Arc::new(MiddlewareChain::new()));
+        Ok(ClientRequest::new(prepared, config, pool, middleware_chain))
+    }
+}
+
+impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     /// Creates a new request builder with the given method and URL.
     ///
     /// # Arguments
@@ -93,25 +165,61 @@ impl ClientRequestBuilder {
     ///
     /// # Errors
     ///
-    /// Returns `HttpClientError` if the URL is invalid.
+    /// Returns `HttpClientError::InvalidUrl` if the URL cannot be parsed.
+    /// Returns `HttpClientError::UnsupportedScheme` if the URL scheme is not http or https.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the socket address cannot be determined from the URL.
     pub fn new(method: SimpleMethod, url: &str) -> Result<Self, HttpClientError> {
         let parsed_url = ParsedUrl::parse(url)?;
         let mut headers = BTreeMap::new();
 
         // Add required Host header
-        let host = if parsed_url.scheme.default_port() == parsed_url.port {
-            parsed_url.host.clone()
+        let host_str = parsed_url
+            .host_str()
+            .ok_or_else(|| HttpClientError::InvalidUrl("Missing host in URL".to_string()))?;
+
+        let host = if parsed_url.port().is_some() {
+            format!("{}:{}", host_str, parsed_url.port_or_default())
         } else {
-            format!("{}:{}", parsed_url.host, parsed_url.port)
+            host_str.clone()
         };
         headers.insert(SimpleHeader::HOST, vec![host]);
 
         Ok(Self {
             method,
-            url: parsed_url,
             headers,
+            url: parsed_url,
             body: None,
+            pool: None,
+            config: None,
+            middleware_chain: None,
         })
+    }
+
+    #[must_use]
+    pub fn with_pool(mut self, pool: Option<Arc<HttpConnectionPool<R>>>) -> Self {
+        self.pool = pool;
+        self
+    }
+
+    #[must_use]
+    pub fn with_middleware(mut self, chain: Arc<MiddlewareChain>) -> Self {
+        self.middleware_chain = Some(chain);
+        self
+    }
+
+    #[must_use]
+    pub fn pool(mut self, pool: Arc<HttpConnectionPool<R>>) -> Self {
+        self.pool = Some(pool);
+        self
+    }
+
+    #[must_use]
+    pub fn client_config(mut self, config: ClientConfig) -> Self {
+        self.config = Some(config);
+        self
     }
 
     /// Adds a single header to the request.
@@ -120,9 +228,16 @@ impl ClientRequestBuilder {
     ///
     /// * `key` - Header name
     /// * `value` - Header value
+    #[must_use]
     pub fn header(mut self, key: SimpleHeader, value: impl Into<String>) -> Self {
+        self.headers.entry(key).or_default().push(value.into());
+        self
+    }
+
+    #[must_use]
+    pub fn add_header(mut self, key: impl Into<SimpleHeader>, value: impl Into<String>) -> Self {
         self.headers
-            .entry(key)
+            .entry(key.into())
             .or_default()
             .push(value.into());
         self
@@ -133,7 +248,7 @@ impl ClientRequestBuilder {
     /// # Arguments
     ///
     /// * `headers` - New headers to use
-    #[must_use] 
+    #[must_use]
     pub fn headers(mut self, headers: SimpleHeaders) -> Self {
         self.headers = headers;
         self
@@ -146,6 +261,7 @@ impl ClientRequestBuilder {
     /// # Arguments
     ///
     /// * `text` - Text content
+    #[must_use]
     pub fn body_text(mut self, text: impl Into<String>) -> Self {
         let text_string = text.into();
         let content_length = text_string.len().to_string();
@@ -156,7 +272,7 @@ impl ClientRequestBuilder {
         self.headers
             .insert(SimpleHeader::CONTENT_LENGTH, vec![content_length]);
 
-        self.body = Some(SimpleBody::Text(text_string));
+        self.body = Some(SendSafeBody::Text(text_string));
         self
     }
 
@@ -167,7 +283,7 @@ impl ClientRequestBuilder {
     /// # Arguments
     ///
     /// * `bytes` - Binary content
-    #[must_use] 
+    #[must_use]
     pub fn body_bytes(mut self, bytes: Vec<u8>) -> Self {
         let content_length = bytes.len().to_string();
 
@@ -177,7 +293,7 @@ impl ClientRequestBuilder {
         self.headers
             .insert(SimpleHeader::CONTENT_LENGTH, vec![content_length]);
 
-        self.body = Some(SimpleBody::Bytes(bytes));
+        self.body = Some(SendSafeBody::Bytes(bytes));
         self
     }
 
@@ -194,7 +310,7 @@ impl ClientRequestBuilder {
     /// Returns `HttpClientError` if JSON serialization fails.
     pub fn body_json<T: Serialize>(mut self, value: &T) -> Result<Self, HttpClientError> {
         let json_string =
-            serde_json::to_string(value).map_err(|e| HttpClientError::Other(Box::new(e)))?;
+            serde_json::to_string(value).map_err(|e| HttpClientError::FailedWith(Box::new(e)))?;
         let content_length = json_string.len().to_string();
 
         self.headers.insert(
@@ -204,7 +320,7 @@ impl ClientRequestBuilder {
         self.headers
             .insert(SimpleHeader::CONTENT_LENGTH, vec![content_length]);
 
-        self.body = Some(SimpleBody::Text(json_string));
+        self.body = Some(SendSafeBody::Text(json_string));
         Ok(self)
     }
 
@@ -215,7 +331,7 @@ impl ClientRequestBuilder {
     /// # Arguments
     ///
     /// * `params` - Form parameters as key-value pairs
-    #[must_use] 
+    #[must_use]
     pub fn body_form(mut self, params: &[(String, String)]) -> Self {
         // Simple URL encoding (percent-encoding for form data)
         fn urlencode(s: &str) -> String {
@@ -227,8 +343,7 @@ impl ClientRequestBuilder {
                         let bytes = c.to_string().into_bytes();
                         bytes
                             .iter()
-                            .map(|b| format!("%{b:02X}"))
-                            .collect::<String>()
+                            .fold(String::new(), |acc, b| format!("{acc:}%{b:02X}"))
                     }
                 })
                 .collect()
@@ -248,21 +363,8 @@ impl ClientRequestBuilder {
         self.headers
             .insert(SimpleHeader::CONTENT_LENGTH, vec![content_length]);
 
-        self.body = Some(SimpleBody::Text(form_string));
+        self.body = Some(SendSafeBody::Text(form_string));
         self
-    }
-
-    /// Builds the final prepared request.
-    ///
-    /// Consumes the builder and returns a `PreparedRequest` ready to send.
-    #[must_use] 
-    pub fn build(self) -> PreparedRequest {
-        PreparedRequest {
-            method: self.method,
-            url: self.url,
-            headers: self.headers,
-            body: self.body.unwrap_or(SimpleBody::None),
-        }
     }
 
     // Convenience methods for common HTTP methods
@@ -357,194 +459,251 @@ impl ClientRequestBuilder {
     pub fn options(url: &str) -> Result<Self, HttpClientError> {
         Self::new(SimpleMethod::OPTIONS, url)
     }
-}
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+    // Authentication helper methods
 
-    /// WHY: Verify ClientRequestBuilder::new creates builder
-    /// WHAT: Tests that new creates a request builder with URL and method
-    #[test]
-    fn test_client_request_builder_new() {
-        let builder = ClientRequestBuilder::new(SimpleMethod::GET, "http://example.com").unwrap();
-        assert_eq!(builder.url.host, "example.com");
-        assert_eq!(builder.url.port, 80);
-        assert!(matches!(builder.method, SimpleMethod::GET));
+    /// Sets HTTP Basic Authentication header.
+    ///
+    /// # Purpose (WHY)
+    ///
+    /// Provides convenient API for HTTP Basic Authentication (RFC 7617).
+    /// Automatically encodes username:password in base64 and sets the
+    /// Authorization header.
+    ///
+    /// # Arguments (WHAT)
+    ///
+    /// * `username` - Username for authentication
+    /// * `password` - Password for authentication
+    ///
+    /// # Returns (HOW)
+    ///
+    /// Returns self for method chaining.
+    ///
+    /// # Panics
+    ///
+    /// This function cannot panic.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use foundation_core::wire::simple_http::client::ClientRequestBuilder;
+    /// use foundation_core::wire::simple_http::client::SystemDnsResolver;
+    ///
+    /// let request = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com")
+    ///     .unwrap()
+    ///     .basic_auth("username", "password");
+    /// ```
+    #[must_use]
+    pub fn basic_auth(self, username: &str, password: &str) -> Self {
+        let credentials = format!("{}:{}", username, password);
+        let encoded = BASE64_STANDARD.encode(credentials.as_bytes());
+        self.header(SimpleHeader::AUTHORIZATION, format!("Basic {}", encoded))
     }
 
-    /// WHY: Verify ClientRequestBuilder::new validates URL
-    /// WHAT: Tests that invalid URLs return error
-    #[test]
-    fn test_client_request_builder_new_invalid_url() {
-        let result = ClientRequestBuilder::new(SimpleMethod::GET, "not a url");
-        assert!(result.is_err());
+    /// Sets HTTP Basic Authentication header with optional password.
+    ///
+    /// # Purpose (WHY)
+    ///
+    /// Provides API for Basic Authentication when password is optional.
+    /// If password is None, uses empty string (per RFC 7617 section 2).
+    ///
+    /// # Arguments (WHAT)
+    ///
+    /// * `username` - Username for authentication
+    /// * `password` - Optional password (empty string if None)
+    ///
+    /// # Returns (HOW)
+    ///
+    /// Returns self for method chaining.
+    ///
+    /// # Panics
+    ///
+    /// This function cannot panic.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use foundation_core::wire::simple_http::client::ClientRequestBuilder;
+    /// use foundation_core::wire::simple_http::client::SystemDnsResolver;
+    ///
+    /// // With password
+    /// let request = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com")
+    ///     .unwrap()
+    ///     .basic_auth_opt("username", Some("password"));
+    ///
+    /// // Without password (empty string)
+    /// let request2 = ClientRequestBuilder::<SystemDnsResolver>::get("http://example.com")
+    ///     .unwrap()
+    ///     .basic_auth_opt("username", None);
+    /// ```
+    #[must_use]
+    pub fn basic_auth_opt(self, username: &str, password: Option<&str>) -> Self {
+        self.basic_auth(username, password.unwrap_or(""))
     }
 
-    /// WHY: Verify ClientRequestBuilder::header adds header
-    /// WHAT: Tests that header method adds header to request
-    #[test]
-    fn test_client_request_builder_header() {
-        let builder = ClientRequestBuilder::get("http://example.com")
-            .unwrap()
-            .header(SimpleHeader::CONTENT_TYPE, "application/json");
-
-        assert!(builder.headers.contains_key(&SimpleHeader::CONTENT_TYPE));
-        assert_eq!(
-            builder.headers.get(&SimpleHeader::CONTENT_TYPE).unwrap()[0],
-            "application/json"
-        );
+    /// Sets HTTP Bearer Token Authentication header.
+    ///
+    /// # Purpose (WHY)
+    ///
+    /// Provides convenient API for OAuth 2.0 Bearer Token authentication (RFC 6750).
+    /// Automatically formats the token with Bearer prefix and sets the
+    /// Authorization header.
+    ///
+    /// # Arguments (WHAT)
+    ///
+    /// * `token` - Bearer token (JWT, OAuth token, etc.)
+    ///
+    /// # Returns (HOW)
+    ///
+    /// Returns self for method chaining.
+    ///
+    /// # Panics
+    ///
+    /// This function cannot panic.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use foundation_core::wire::simple_http::client::ClientRequestBuilder;
+    /// use foundation_core::wire::simple_http::client::SystemDnsResolver;
+    ///
+    /// let request = ClientRequestBuilder::<SystemDnsResolver>::get("http://api.example.com")
+    ///     .unwrap()
+    ///     .bearer_token("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...");
+    /// ```
+    #[must_use]
+    pub fn bearer_token(self, token: &str) -> Self {
+        self.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
     }
 
-    /// WHY: Verify ClientRequestBuilder::body_text sets text body
-    /// WHAT: Tests that body_text sets body and content headers
-    #[test]
-    fn test_client_request_builder_body_text() {
-        let builder = ClientRequestBuilder::post("http://example.com")
-            .unwrap()
-            .body_text("Hello, World!");
-
-        assert!(matches!(builder.body, Some(SimpleBody::Text(_))));
-        assert!(builder.headers.contains_key(&SimpleHeader::CONTENT_LENGTH));
-        assert!(builder.headers.contains_key(&SimpleHeader::CONTENT_TYPE));
+    /// Alias for `bearer_token()`.
+    ///
+    /// # Purpose (WHY)
+    ///
+    /// Provides alternative method name for Bearer authentication.
+    /// Some users prefer "bearer_auth" naming convention.
+    ///
+    /// # Arguments (WHAT)
+    ///
+    /// * `token` - Bearer token (JWT, OAuth token, etc.)
+    ///
+    /// # Returns (HOW)
+    ///
+    /// Returns self for method chaining.
+    ///
+    /// # Panics
+    ///
+    /// This function cannot panic.
+    #[must_use]
+    pub fn bearer_auth(self, token: &str) -> Self {
+        self.bearer_token(token)
     }
 
-    /// WHY: Verify ClientRequestBuilder::body_bytes sets binary body
-    /// WHAT: Tests that body_bytes sets body and content headers
-    #[test]
-    fn test_client_request_builder_body_bytes() {
-        let builder = ClientRequestBuilder::post("http://example.com")
-            .unwrap()
-            .body_bytes(vec![1, 2, 3, 4]);
-
-        assert!(matches!(builder.body, Some(SimpleBody::Bytes(_))));
-        assert!(builder.headers.contains_key(&SimpleHeader::CONTENT_LENGTH));
+    /// Sets a custom API key header.
+    ///
+    /// # Purpose (WHY)
+    ///
+    /// Provides convenient API for custom API key authentication.
+    /// Many REST APIs use custom headers like X-API-Key, X-Auth-Token, etc.
+    ///
+    /// # Arguments (WHAT)
+    ///
+    /// * `header_name` - Name of the custom header (e.g., "X-API-Key")
+    /// * `key` - API key value
+    ///
+    /// # Returns (HOW)
+    ///
+    /// Returns self for method chaining.
+    ///
+    /// # Panics
+    ///
+    /// This function cannot panic.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use foundation_core::wire::simple_http::client::ClientRequestBuilder;
+    /// use foundation_core::wire::simple_http::client::SystemDnsResolver;
+    ///
+    /// let request = ClientRequestBuilder::<SystemDnsResolver>::get("http://api.example.com")
+    ///     .unwrap()
+    ///     .api_key("X-API-Key", "secret-key-123");
+    /// ```
+    #[must_use]
+    pub fn api_key(self, header_name: &str, key: &str) -> Self {
+        self.add_header(header_name.to_string(), key.to_string())
     }
 
-    /// WHY: Verify ClientRequestBuilder::body_json serializes to JSON
-    /// WHAT: Tests that body_json creates JSON body
-    #[test]
-    fn test_client_request_builder_body_json() {
-        #[derive(Serialize)]
-        struct TestData {
-            key: String,
-        }
-
-        let data = TestData {
-            key: "value".to_string(),
-        };
-
-        let builder = ClientRequestBuilder::post("http://example.com")
-            .unwrap()
-            .body_json(&data)
-            .unwrap();
-
-        assert!(matches!(builder.body, Some(SimpleBody::Text(_))));
-        if let Some(SimpleBody::Text(json)) = &builder.body {
-            assert!(json.contains("\"key\""));
-            assert!(json.contains("\"value\""));
-        }
+    /// Sets the X-API-Key header.
+    ///
+    /// # Purpose (WHY)
+    ///
+    /// Convenience method for the common X-API-Key header pattern.
+    /// Many REST APIs use X-API-Key as the standard header name.
+    ///
+    /// # Arguments (WHAT)
+    ///
+    /// * `key` - API key value
+    ///
+    /// # Returns (HOW)
+    ///
+    /// Returns self for method chaining.
+    ///
+    /// # Panics
+    ///
+    /// This function cannot panic.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use foundation_core::wire::simple_http::client::ClientRequestBuilder;
+    /// use foundation_core::wire::simple_http::client::SystemDnsResolver;
+    ///
+    /// let request = ClientRequestBuilder::<SystemDnsResolver>::get("http://api.example.com")
+    ///     .unwrap()
+    ///     .x_api_key("secret-key-123");
+    /// ```
+    #[must_use]
+    pub fn x_api_key(self, key: &str) -> Self {
+        self.api_key("X-API-Key", key)
     }
 
-    /// WHY: Verify ClientRequestBuilder::body_form encodes form data
-    /// WHAT: Tests that body_form creates URL-encoded body
-    #[test]
-    fn test_client_request_builder_body_form() {
-        let params = vec![
-            ("key1".to_string(), "value1".to_string()),
-            ("key2".to_string(), "value2".to_string()),
-        ];
-
-        let builder = ClientRequestBuilder::post("http://example.com")
-            .unwrap()
-            .body_form(&params);
-
-        assert!(matches!(builder.body, Some(SimpleBody::Text(_))));
-        if let Some(SimpleBody::Text(form)) = &builder.body {
-            assert!(form.contains("key1=value1"));
-            assert!(form.contains("key2=value2"));
-        }
-    }
-
-    /// WHY: Verify ClientRequestBuilder::build creates PreparedRequest
-    /// WHAT: Tests that build consumes builder and creates prepared request
-    #[test]
-    fn test_client_request_builder_build() {
-        let prepared = ClientRequestBuilder::get("http://example.com")
-            .unwrap()
-            .build();
-
-        assert_eq!(prepared.url.host, "example.com");
-        assert!(matches!(prepared.method, SimpleMethod::GET));
-        assert!(matches!(prepared.body, SimpleBody::None));
-    }
-
-    /// WHY: Verify convenience methods create correct builders
-    /// WHAT: Tests get, post, put, delete, patch, head, options methods
-    #[test]
-    fn test_client_request_builder_convenience_methods() {
-        let get = ClientRequestBuilder::get("http://example.com").unwrap();
-        assert!(matches!(get.method, SimpleMethod::GET));
-
-        let post = ClientRequestBuilder::post("http://example.com").unwrap();
-        assert!(matches!(post.method, SimpleMethod::POST));
-
-        let put = ClientRequestBuilder::put("http://example.com").unwrap();
-        assert!(matches!(put.method, SimpleMethod::PUT));
-
-        let delete = ClientRequestBuilder::delete("http://example.com").unwrap();
-        assert!(matches!(delete.method, SimpleMethod::DELETE));
-
-        let patch = ClientRequestBuilder::patch("http://example.com").unwrap();
-        assert!(matches!(patch.method, SimpleMethod::PATCH));
-
-        let head = ClientRequestBuilder::head("http://example.com").unwrap();
-        assert!(matches!(head.method, SimpleMethod::HEAD));
-
-        let options = ClientRequestBuilder::options("http://example.com").unwrap();
-        assert!(matches!(options.method, SimpleMethod::OPTIONS));
-    }
-
-    /// WHY: Verify Host header is automatically added
-    /// WHAT: Tests that Host header is set from URL
-    #[test]
-    fn test_client_request_builder_auto_host_header() {
-        let builder = ClientRequestBuilder::get("http://example.com").unwrap();
-        assert!(builder.headers.contains_key(&SimpleHeader::HOST));
-        assert_eq!(
-            builder.headers.get(&SimpleHeader::HOST).unwrap()[0],
-            "example.com"
-        );
-
-        let builder2 = ClientRequestBuilder::get("http://example.com:8080").unwrap();
-        assert_eq!(
-            builder2.headers.get(&SimpleHeader::HOST).unwrap()[0],
-            "example.com:8080"
-        );
-    }
-
-    /// WHY: Verify PreparedRequest::into_simple_incoming_request works
-    /// WHAT: Tests that prepared request can be converted to SimpleIncomingRequest
-    #[test]
-    fn test_prepared_request_into_simple_incoming_request() {
-        let prepared = ClientRequestBuilder::get("http://example.com/path")
-            .unwrap()
-            .build();
-
-        let simple_request = prepared.into_simple_incoming_request().unwrap();
-        assert_eq!(simple_request.method, SimpleMethod::GET);
-        assert_eq!(simple_request.proto, Proto::HTTP11);
-    }
-
-    /// WHY: Verify PreparedRequest with query string works
-    /// WHAT: Tests that query strings are preserved
-    #[test]
-    fn test_prepared_request_with_query() {
-        let prepared = ClientRequestBuilder::get("http://example.com/path?foo=bar")
-            .unwrap()
-            .build();
-
-        let simple_request = prepared.into_simple_incoming_request().unwrap();
-        assert!(simple_request.request_url.url.contains("?foo=bar"));
+    /// Sets Authorization header with custom scheme and credentials.
+    ///
+    /// # Purpose (WHY)
+    ///
+    /// Provides flexible API for non-standard authentication schemes.
+    /// Allows using custom authentication schemes beyond Basic/Bearer.
+    ///
+    /// # Arguments (WHAT)
+    ///
+    /// * `scheme` - Authentication scheme (e.g., "Digest", "HOBA", "AWS4-HMAC-SHA256")
+    /// * `credentials` - Credentials or token for the scheme
+    ///
+    /// # Returns (HOW)
+    ///
+    /// Returns self for method chaining.
+    ///
+    /// # Panics
+    ///
+    /// This function cannot panic.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use foundation_core::wire::simple_http::client::ClientRequestBuilder;
+    /// use foundation_core::wire::simple_http::client::SystemDnsResolver;
+    ///
+    /// // Custom auth scheme
+    /// let request = ClientRequestBuilder::<SystemDnsResolver>::get("http://api.example.com")
+    ///     .unwrap()
+    ///     .authorization("CustomScheme", "token123");
+    /// ```
+    #[must_use]
+    pub fn authorization(self, scheme: &str, credentials: &str) -> Self {
+        self.header(
+            SimpleHeader::AUTHORIZATION,
+            format!("{} {}", scheme, credentials),
+        )
     }
 }

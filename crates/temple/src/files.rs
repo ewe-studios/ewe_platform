@@ -123,7 +123,7 @@ pub struct Templater<'a> {
 }
 
 impl<'a> Templater<'a> {
-    #[must_use] 
+    #[must_use]
     pub fn new(dest: &'a str) -> Self {
         Self {
             dest: path::PathBuf::from_str(dest).expect("created PathBuf from str"),
@@ -167,7 +167,7 @@ mod tests {
             .take(16)
             .map(char::from)
             .collect();
-        format!("{}_{}", prefix, suffix)
+        format!("{prefix}_{suffix}")
     }
 
     fn clean_up_directory(target: path::PathBuf) {

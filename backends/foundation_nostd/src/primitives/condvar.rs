@@ -52,8 +52,9 @@ impl WaitTimeoutResult {
 
     /// Creates a new `WaitTimeoutResult`.
     #[inline]
+    #[must_use]
     #[cfg(any(not(feature = "std"), test))] // Used in no_std implementation and tests
-    pub(crate) const fn new(timed_out: bool) -> Self {
+    pub const fn new(timed_out: bool) -> Self {
         Self(timed_out)
     }
 }
@@ -411,7 +412,7 @@ mod tests {
         use std::thread;
 
         /// WHY: Tests poisoning on panic during wait
-        /// WHAT: If a thread panics while holding the mutex, CondVar should detect poisoning
+        /// WHAT: If a thread panics while holding the mutex, `CondVar` should detect poisoning
         #[test]
         fn test_condvar_poisoning_on_panic_during_wait() {
             let mutex = Arc::new(CondVarMutex::new(false));
@@ -437,8 +438,8 @@ mod tests {
             assert!(result.is_err(), "Mutex should be poisoned after panic");
         }
 
-        /// WHY: Tests PoisonError recovery method `into_inner()`
-        /// WHAT: Should be able to extract guard from PoisonError and recover
+        /// WHY: Tests `PoisonError` recovery method `into_inner()`
+        /// WHAT: Should be able to extract guard from `PoisonError` and recover
         #[test]
         fn test_poison_error_into_inner() {
             let mutex = Arc::new(CondVarMutex::new(42));
@@ -465,8 +466,8 @@ mod tests {
             }
         }
 
-        /// WHY: Tests PoisonError recovery method `get_ref()`
-        /// WHAT: Should be able to get reference to guard from PoisonError
+        /// WHY: Tests `PoisonError` recovery method `get_ref()`
+        /// WHAT: Should be able to get reference to guard from `PoisonError`
         #[test]
         fn test_poison_error_get_ref() {
             let mutex = Arc::new(CondVarMutex::new(100));
@@ -493,8 +494,8 @@ mod tests {
             }
         }
 
-        /// WHY: Tests PoisonError recovery method `get_mut()`
-        /// WHAT: Should be able to get mutable reference to guard from PoisonError
+        /// WHY: Tests `PoisonError` recovery method `get_mut()`
+        /// WHAT: Should be able to get mutable reference to guard from `PoisonError`
         #[test]
         fn test_poison_error_get_mut() {
             let mutex = Arc::new(CondVarMutex::new(200));
@@ -694,7 +695,7 @@ mod tests {
         condvar.notify_all();
     }
 
-    /// WHY: Tests concurrent notify_one from multiple threads
+    /// WHY: Tests concurrent `notify_one` from multiple threads
     /// WHAT: Should safely handle concurrent notifications
     #[cfg(feature = "std")]
     #[test]

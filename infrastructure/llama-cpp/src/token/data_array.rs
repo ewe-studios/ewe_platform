@@ -78,7 +78,7 @@ impl LlamaTokenDataArray {
     /// initialized token data and the length must be less than the capacity of this array's data
     /// buffer.
     /// if the data is not sorted, sorted must be false.
-    pub(crate) unsafe fn modify_as_c_llama_token_data_array<T>(
+    pub unsafe fn modify_as_c_llama_token_data_array<T>(
         &mut self,
         modify: impl FnOnce(&mut infrastructure_llama_bindings::llama_token_data_array) -> T,
     ) -> T {

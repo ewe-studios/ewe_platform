@@ -1,138 +1,24 @@
 ---
-feature: valtron-utilities
-description: Reusable ExecutionAction types, unified executor wrapper, state machine helpers, Future adapter, and retry/timeout wrappers
-status: in-progress
-priority: high
+workspace_name: "ewe_platform"
+spec_directory: "specifications/02-build-http-client"
+feature_directory: "specifications/02-build-http-client/features/valtron-utilities"
+this_file: "specifications/02-build-http-client/features/valtron-utilities/feature.md"
+
+status: pending
+priority: medium
+created: 2026-02-28
+
 depends_on: []
-estimated_effort: medium
-created: 2026-01-19
-last_updated: 2026-01-24
-author: Main Agent
-context_optimization: true  # Sub-agents MUST generate COMPACT_CONTEXT.md before work, reload after updates
-compact_context_file: ./COMPACT_CONTEXT.md  # Ultra-compact current task context (97% reduction)
-context_reload_required: true  # Clear and reload from compact context regularly to prevent context limit errors
+
 tasks:
-  completed: 33
+  completed: 0
   uncompleted: 0
-  total: 33
-  completion_percentage: 100
-files_required:
-  implementation_agent:
-    rules:
-      - .agents/rules/01-rule-naming-and-structure.md
-      - .agents/rules/02-rules-directory-policy.md
-      - .agents/rules/03-dangerous-operations-safety.md
-      - .agents/rules/04-work-commit-and-push-rules.md
-      - .agents/rules/13-implementation-agent-guide.md
-      - .agents/rules/11-skills-usage.md
-      - .agents/stacks/rust.md
-    files:
-      - ../requirements.md
-      - ./feature.md
-  verification_agent:
-    rules:
-      - .agents/rules/01-rule-naming-and-structure.md
-      - .agents/rules/02-rules-directory-policy.md
-      - .agents/rules/03-dangerous-operations-safety.md
-      - .agents/rules/04-work-commit-and-push-rules.md
-      - .agents/rules/08-verification-workflow-complete-guide.md
-      - .agents/stacks/rust.md
-    files:
-      - ../requirements.md
-      - ./feature.md
+  total: 0
+  completion_percentage: 0
 ---
+
 
 # Valtron Utilities Feature
-
-## 🔍 CRITICAL: Retrieval-Led Reasoning Required
-
-**ALL agents implementing this feature MUST use retrieval-led reasoning.**
-
-### Before Starting Implementation
-
-**YOU MUST** (in this order):
-1. ✅ **Search the codebase** for similar implementations using Grep/Glob
-2. ✅ **Read existing code** in related modules to understand patterns
-3. ✅ **Check stack files** (`.agents/stacks/[language].md`) for language-specific conventions
-4. ✅ **Read parent specification** (`../requirements.md`) for high-level context
-5. ✅ **Read module documentation** for modules this feature touches
-6. ✅ **Check dependencies** by reading other feature files referenced in `depends_on`
-7. ✅ **Follow discovered patterns** consistently with existing codebase
-
-### FORBIDDEN Approaches
-
-**YOU MUST NOT**:
-- ❌ Assume patterns based on typical practices without checking this codebase
-- ❌ Implement without searching for similar features first
-- ❌ Apply generic solutions without verifying project conventions
-- ❌ Guess at naming conventions, file structures, or patterns
-- ❌ Use pretraining knowledge without validating against actual project code
-
-### Retrieval Checklist
-
-Before implementing, answer these questions by reading code:
-- [ ] What similar features exist in this project? (use Grep to find)
-- [ ] What patterns do they follow? (read their implementations)
-- [ ] What naming conventions are used? (observed from existing code)
-- [ ] How are errors handled in similar code? (check error patterns)
-- [ ] What testing patterns exist? (read existing test files)
-- [ ] Are there existing helper functions I can reuse? (search thoroughly)
-
-### Enforcement
-
-- Show your retrieval steps in your work report
-- Reference specific files/patterns you discovered
-- Explain how your implementation matches existing patterns
-- "I assumed..." responses will be rejected - only "I found in [file]..." accepted
-
----
-
-## 🚀 CRITICAL: Token and Context Optimization
-
-**ALL agents implementing this specification/feature MUST follow token and context optimization protocols.**
-
-### Machine-Optimized Prompts (Rule 14)
-
-**Main Agent MUST**:
-1. Generate `machine_prompt.md` from this file when specification/feature finalized
-2. Use pipe-delimited compression (58% token reduction)
-3. Commit machine_prompt.md alongside human-readable file
-4. Regenerate when human file updates
-5. Provide machine_prompt.md path to sub-agents
-
-**Sub-Agents MUST**:
-- Read `machine_prompt.md` (NOT verbose human files)
-- Parse DOCS_TO_READ section for files to load
-- 58% token savings
-
-### Context Compaction (Rule 15)
-
-**Sub-Agents MUST** (before starting work):
-1. Read machine_prompt.md and PROGRESS.md
-2. Generate `COMPACT_CONTEXT.md`:
-   - Embed machine_prompt.md content for current task
-   - Extract current status from PROGRESS.md
-   - List files for current task only (500-800 tokens)
-3. CLEAR entire context
-4. RELOAD from COMPACT_CONTEXT.md only
-5. Proceed with 97% context reduction (180K→5K tokens)
-
-**After PROGRESS.md Updates**:
-- Regenerate COMPACT_CONTEXT.md (re-embed machine_prompt content)
-- Clear and reload
-- Maintain minimal context
-
-**COMPACT_CONTEXT.md Lifecycle**:
-- Generated fresh per task
-- Contains ONLY current task (no history)
-- Deleted when task completes
-- Rewritten from scratch for next task
-
-**See**:
-- Rule 14: .agents/rules/14-machine-optimized-prompts.md
-- Rule 15: .agents/rules/15-instruction-compaction.md
-
----
 
 ## Overview
 
@@ -141,11 +27,9 @@ Create reusable valtron patterns that will be used by the task-iterator feature 
 ## Dependencies
 
 This feature depends on:
-
 - None (foundational feature)
 
 This feature is required by:
-
 - `task-iterator` - Uses state machine helpers and reusable action types
 - Future valtron-based features across the codebase
 
@@ -164,464 +48,108 @@ backends/foundation_core/src/valtron/executors/
 
 ## Requirements
 
-### A. Reusable ExecutionAction Types for Spawning Child Tasks
+### A. Reusable ExecutionAction Types
 
-**Purpose**: These action types are used by `TaskIterator`s to spawn child tasks during execution. When a TaskIterator returns `TaskStatus::Spawn(action)`, the executor calls `action.apply(parent_key, engine)` to schedule the child task.
+Generic action types that can be reused across different TaskIterator implementations:
 
-**CRITICAL DISTINCTION**: These are NOT for initial task submission. They are ONLY for spawning children from within a running task.
+#### LiftAction
 
-```rust,ignore
-// ❌ WRONG - Don't use actions for initial submission
-let action = SpawnWithLift::new(my_task);
-// ... nowhere to call action.apply()
-
-// ✅ RIGHT - Use builder for initial submission
-engine.spawn()
-    .with_task(my_task)
-    .lift()  // or .schedule() or .broadcast()
-```
-
-#### Spawning Strategies Comparison
-
-| Action               | Engine Method        | Queue          | Priority   | Use When                                |
-| -------------------- | -------------------- | -------------- | ---------- | --------------------------------------- |
-| `SpawnWithLift`      | `engine.lift()`      | Local (top)    | High       | Child must run before other queued work |
-| `SpawnWithSchedule`  | `engine.schedule()`  | Local (bottom) | Normal     | Standard child task                     |
-| `SpawnWithBroadcast` | `engine.broadcast()` | Global         | Background | Work can be picked up by any thread     |
-
-#### SpawnWithLift (formerly LiftAction)
-
-**Purpose**: Spawns a child task with HIGH PRIORITY (top of local queue).
-
-**When to Use**:
-
-- The parent task needs the child to complete before continuing
-- The child task is a dependency for subsequent processing
-- You want to prioritize this child over other queued work
-
-**How It Works**:
-
-1. Wraps the child iterator in `DoNext` (converts `TaskIterator` → `ExecutionIterator`)
-2. Calls `engine.lift()` to add to **TOP** of local queue
-3. Links child to parent via the `parent_key`
-4. Child task processes before other queued work
-
-**Example**:
+Lifts a task to the top of the local queue (priority scheduling):
 
 ```rust
-use valtron::{TaskIterator, TaskStatus, SpawnWithLift};
-
-struct ParentTask {
-    needs_config: bool,
+pub struct LiftAction<T: TaskIterator + Send + 'static> {
+    task: T,
 }
 
-struct FetchConfigTask;
-
-impl TaskIterator for ParentTask {
-    type Ready = ProcessedData;
-    type Pending = ();
-    type Spawner = SpawnWithLift<FetchConfigTask>;
-
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        if self.needs_config {
-            self.needs_config = false;
-            // Spawn high-priority child to fetch config
-            Some(TaskStatus::Spawn(SpawnWithLift::new(FetchConfigTask)))
-        } else {
-            // Process data using config
-            Some(TaskStatus::Ready(self.process()))
-        }
-    }
-}
-```
-
-**Implementation Signature**:
-
-```rust
-pub struct SpawnWithLift<I, D, P, S>
-where
-    I: Iterator<Item = TaskStatus<D, P, S>> + 'static,
-    D: 'static,
-    P: 'static,
-    S: ExecutionAction + 'static,
-{
-    iter: Option<I>,
-    _marker: PhantomData<(D, P, S)>,
-}
-
-impl<I, D, P, S> SpawnWithLift<I, D, P, S>
-where
-    I: Iterator<Item = TaskStatus<D, P, S>> + 'static,
-    D: 'static,
-    P: 'static,
-    S: ExecutionAction + 'static,
-{
-    pub fn new(iter: I) -> Self {
-        Self {
-            iter: Some(iter),
-            _marker: PhantomData,
-        }
+impl<T: TaskIterator + Send + 'static> LiftAction<T> {
+    pub fn new(task: T) -> Self {
+        Self { task }
     }
 }
 
-impl<I, D, P, S> ExecutionAction for SpawnWithLift<I, D, P, S>
-where
-    I: Iterator<Item = TaskStatus<D, P, S>> + 'static,
-    D: 'static,
-    P: 'static,
-    S: ExecutionAction + 'static,
-{
-    fn apply(
-        mut self,
-        key: crate::synca::Entry,
-        executor: BoxedExecutionEngine,
-    ) -> GenericResult<()> {
-        if let Some(iter) = self.iter.take() {
-            let task = LiftTask::new(iter);
-            let exec_iter: BoxedExecutionIterator = DoNext::new(task).into();
-            // Use lift() - adds to TOP of queue and links to parent
-            executor.lift(exec_iter, Some(key))?;
-        }
+impl<T: TaskIterator + Send + 'static> ExecutionAction for LiftAction<T> {
+    fn apply(self, parent_key: Entry, engine: BoxedExecutionEngine) -> GenericResult<()> {
+        engine.lift(Box::new(DoNext::new(self.task)), Some(parent_key))?;
         Ok(())
     }
 }
 ```
 
-#### SpawnWithSchedule (formerly ScheduleAction)
+#### ScheduleAction
 
-**Purpose**: Spawns a child task with NORMAL PRIORITY (bottom of local queue).
-
-**When to Use**:
-
-- Standard child task that doesn't need priority
-- Child task can wait for other queued work
-- Most common spawning pattern
-
-**How It Works**:
-
-1. Wraps the child closure in `ScheduleTask`
-2. Calls `engine.schedule()` to add to **BOTTOM** of local queue
-3. Child task processes after other queued work
-4. No parent linkage required
-
-**Example**:
+Schedules a task to the bottom of the local queue (normal scheduling):
 
 ```rust
-use valtron::{TaskIterator, TaskStatus, SpawnWithSchedule};
-
-struct ParentTask {
-    needs_cleanup: bool,
+pub struct ScheduleAction<T: TaskIterator + Send + 'static> {
+    task: T,
 }
 
-impl TaskIterator for ParentTask {
-    type Ready = Result;
-    type Pending = ();
-    type Spawner = SpawnWithSchedule<CleanupTask>;
-
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        if self.needs_cleanup {
-            self.needs_cleanup = false;
-            // Spawn normal-priority cleanup task
-            Some(TaskStatus::Spawn(SpawnWithSchedule::new(CleanupTask::new())))
-        } else {
-            Some(TaskStatus::Ready(self.get_result()))
-        }
-    }
-}
-```
-
-**Implementation Signature**:
-
-```rust
-pub struct ScheduleTask<F>
-where
-    F: FnOnce(),
-{
-    closure: Option<F>,
-}
-
-impl<F> TaskIterator for ScheduleTask<F>
-where
-    F: FnOnce(),
-{
-    type Pending = ();
-    type Ready = ();
-    type Spawner = NoAction;
-
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        if let Some(closure) = self.closure.take() {
-            closure();
-            Some(TaskStatus::Ready(()))
-        } else {
-            None
-        }
+impl<T: TaskIterator + Send + 'static> ScheduleAction<T> {
+    pub fn new(task: T) -> Self {
+        Self { task }
     }
 }
 
-pub struct SpawnWithSchedule<F>
-where
-    F: FnOnce() + 'static,
-{
-    closure: Option<F>,
-}
-
-impl<F> SpawnWithSchedule<F>
-where
-    F: FnOnce() + 'static,
-{
-    pub fn new(closure: F) -> Self {
-        Self {
-            closure: Some(closure),
-        }
-    }
-}
-
-impl<F> ExecutionAction for SpawnWithSchedule<F>
-where
-    F: FnOnce() + 'static,
-{
-    fn apply(
-        mut self,
-        _key: crate::synca::Entry,
-        executor: BoxedExecutionEngine,
-    ) -> GenericResult<()> {
-        if let Some(closure) = self.closure.take() {
-            let task = ScheduleTask::new(closure);
-            let exec_iter: BoxedExecutionIterator = DoNext::new(task).into();
-            // Use schedule() - adds to BOTTOM of queue
-            executor.schedule(exec_iter)?;
-        }
+impl<T: TaskIterator + Send + 'static> ExecutionAction for ScheduleAction<T> {
+    fn apply(self, _parent_key: Entry, engine: BoxedExecutionEngine) -> GenericResult<()> {
+        engine.schedule(Box::new(DoNext::new(self.task)))?;
         Ok(())
     }
 }
 ```
 
-#### SpawnWithBroadcast (formerly BroadcastAction)
+#### BroadcastAction
 
-**Purpose**: Spawns a child task to GLOBAL QUEUE (any thread can pick up).
-
-**When to Use**:
-
-- Work can be distributed across threads
-- Task doesn't need to run on the same thread as parent
-- Background processing or parallel work distribution
-
-**How It Works**:
-
-1. Wraps the child task in `BroadcastTask`
-2. Calls `engine.broadcast()` to add to **GLOBAL** queue
-3. Any executor thread can pick up the task
-4. Enables cross-thread work distribution
-
-**Example**:
+Broadcasts a task to the global queue (cross-thread scheduling):
 
 ```rust
-use valtron::{spawn_builder, TaskIterator, TaskStatus, SpawnWithBroadcast};
-
-struct DataProcessor {
-    chunks: Vec<DataChunk>,
-    current: usize,
+pub struct BroadcastAction<T: TaskIterator + Send + 'static> {
+    task: T,
 }
 
-impl TaskIterator for DataProcessor {
-    type Ready = ProcessedData;
-    type Pending = ();
-    type Spawner = SpawnWithBroadcast<ProcessChunkTask>;
-
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        if self.current < self.chunks.len() {
-            let chunk = self.chunks[self.current].clone();
-            self.current += 1;
-
-            // Spawn child task to global queue for any thread to process
-            Some(TaskStatus::Spawn(
-                SpawnWithBroadcast::new(ProcessChunkTask::new(chunk))
-            ))
-        } else {
-            None // All chunks spawned
-        }
-    }
-}
-```
-
-**Implementation Signature**:
-
-```rust
-pub struct BroadcastTask<T>
-where
-    T: Clone + Send,
-{
-    value: Option<T>,
-    callbacks: Vec<Box<dyn FnOnce(T) + Send>>,
-}
-
-impl<T> TaskIterator for BroadcastTask<T>
-where
-    T: Clone + Send,
-{
-    type Pending = ();
-    type Ready = ();
-    type Spawner = NoAction;
-
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        if let Some(value) = self.value.take() {
-            // Call each callback with a clone
-            for callback in self.callbacks.drain(..) {
-                callback(value.clone());
-            }
-            Some(TaskStatus::Ready(()))
-        } else {
-            None
-        }
+impl<T: TaskIterator + Send + 'static> BroadcastAction<T> {
+    pub fn new(task: T) -> Self {
+        Self { task }
     }
 }
 
-pub struct SpawnWithBroadcast<T>
-where
-    T: Clone + 'static,
-{
-    value: Option<T>,
-    callbacks: Vec<Box<dyn FnOnce(T) + Send>>,
-}
-
-impl<T> SpawnWithBroadcast<T>
-where
-    T: Clone + 'static,
-{
-    pub fn new(value: T, callbacks: Vec<Box<dyn FnOnce(T) + Send>>) -> Self {
-        Self {
-            value: Some(value),
-            callbacks,
-        }
-    }
-}
-
-impl<T> ExecutionAction for SpawnWithBroadcast<T>
-where
-    T: Clone + Send + 'static,
-{
-    fn apply(
-        mut self,
-        _key: crate::synca::Entry,
-        executor: BoxedExecutionEngine,
-    ) -> GenericResult<()> {
-        if let (Some(value), true) = (self.value.take(), !self.callbacks.is_empty()) {
-            let callbacks = std::mem::take(&mut self.callbacks);
-            let task = BroadcastTask::new(value, callbacks);
-            // Use broadcast() - sends to GLOBAL queue for any thread
-            valtron::spawn_builder(executor)
-                .with_parent(key.clone())
-                .with_task(task)
-                .broadcast()?;
-        }
+impl<T: TaskIterator + Send + 'static> ExecutionAction for BroadcastAction<T> {
+    fn apply(self, _parent_key: Entry, engine: BoxedExecutionEngine) -> GenericResult<()> {
+        engine.broadcast(Box::new(DoNext::new(self.task)))?;
         Ok(())
     }
 }
 ```
 
-#### SpawnStrategy (formerly CompositeAction)
+#### CompositeAction
 
-**Purpose**: Enum combining all action types plus a custom action slot, allowing a TaskIterator to use different spawning strategies dynamically.
-
-**When to Use**:
-
-- Your task needs to spawn children using different strategies at different times
-- You want flexibility in choosing spawn method at runtime
-- You need to combine standard actions with custom behavior
-
-**Example**:
+Enum combining all action types plus a custom action slot:
 
 ```rust
-use valtron::{TaskIterator, TaskStatus, SpawnStrategy};
-
-struct FlexibleTask {
-    phase: Phase,
-}
-
-enum Phase {
-    FetchData,
-    ProcessLocal,
-    BroadcastResults,
-}
-
-impl TaskIterator for FlexibleTask {
-    type Ready = Result;
-    type Pending = ();
-    type Spawner = SpawnStrategy<
-        std::vec::IntoIter<TaskStatus<i32, (), NoAction>>,  // For Lift
-        i32,
-        (),
-        NoAction,
-        fn(),  // For Schedule
-        i32,   // For Broadcast
-        NoAction,  // For Custom
-    >;
-
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        match self.phase {
-            Phase::FetchData => {
-                // Use lift for high-priority fetch
-                Some(TaskStatus::Spawn(SpawnStrategy::Lift(
-                    SpawnWithLift::new(fetch_iter())
-                )))
-            }
-            Phase::ProcessLocal => {
-                // Use schedule for normal processing
-                Some(TaskStatus::Spawn(SpawnStrategy::Schedule(
-                    SpawnWithSchedule::new(|| process())
-                )))
-            }
-            Phase::BroadcastResults => {
-                // Use broadcast for distribution
-                Some(TaskStatus::Spawn(SpawnStrategy::Broadcast(
-                    SpawnWithBroadcast::new(results, callbacks)
-                )))
-            }
-        }
-    }
-}
-```
-
-**Implementation Signature**:
-
-```rust
-pub enum SpawnStrategy<IW, TW, IL, DL, PL, SL, F, V, C>
+pub enum CompositeAction<L, S, B, C>
 where
-    IW: Iterator<Item = TW> + 'static,
-    TW: 'static,
-    IL: Iterator<Item = TaskStatus<DL, PL, SL>> + 'static,
-    DL: 'static,
-    PL: 'static,
-    SL: ExecutionAction + 'static,
-    F: FnOnce() + 'static,
-    V: Clone + 'static,
+    L: TaskIterator + Send + 'static,
+    S: TaskIterator + Send + 'static,
+    B: TaskIterator + Send + 'static,
     C: ExecutionAction,
 {
     None,
-    Wrap(WrapAction<IW, TW>),
-    Lift(SpawnWithLift<IL, DL, PL, SL>),
-    Schedule(SpawnWithSchedule<F>),
-    Broadcast(SpawnWithBroadcast<V>),
+    Lift(LiftAction<L>),
+    Schedule(ScheduleAction<S>),
+    Broadcast(BroadcastAction<B>),
     Custom(C),
 }
 
-impl<IW, TW, IL, DL, PL, SL, F, V, C> ExecutionAction
-    for SpawnStrategy<IW, TW, IL, DL, PL, SL, F, V, C>
+impl<L, S, B, C> ExecutionAction for CompositeAction<L, S, B, C>
 where
-    IW: Iterator<Item = TW> + 'static,
-    TW: 'static,
-    IL: Iterator<Item = TaskStatus<DL, PL, SL>> + 'static,
-    DL: 'static,
-    PL: 'static,
-    SL: ExecutionAction + 'static,
-    F: FnOnce() + 'static,
-    V: Clone + 'static,
+    L: TaskIterator + Send + 'static,
+    S: TaskIterator + Send + 'static,
+    B: TaskIterator + Send + 'static,
     C: ExecutionAction,
 {
-    fn apply(self, key: crate::synca::Entry, engine: BoxedExecutionEngine) -> GenericResult<()> {
+    fn apply(self, key: Entry, engine: BoxedExecutionEngine) -> GenericResult<()> {
         match self {
             Self::None => Ok(()),
-            Self::Wrap(action) => action.apply(key, engine),
             Self::Lift(action) => action.apply(key, engine),
             Self::Schedule(action) => action.apply(key, engine),
             Self::Broadcast(action) => action.apply(key, engine),
@@ -629,112 +157,6 @@ where
         }
     }
 }
-```
-
-#### Anti-Patterns and Common Mistakes
-
-**❌ WRONG: Using actions for initial task submission**
-
-```rust
-// This doesn't work - actions need to be applied with a parent_key and engine
-let action = SpawnWithLift::new(my_task);
-// ... but we have no executor context to call action.apply()
-```
-
-**✅ RIGHT: Use builder pattern for initial submission**
-
-```rust
-engine.spawn()
-    .with_task(my_task)
-    .lift()  // This is the builder method, not the action
-```
-
-**❌ WRONG: Confusing lift/schedule/broadcast builder methods with actions**
-
-```rust
-// These are builder methods on SpawnBuilder, not actions:
-engine.spawn().lift()       // Builder method
-engine.spawn().schedule()   // Builder method
-engine.spawn().broadcast()  // Builder method
-
-// These are actions for spawning from within tasks:
-SpawnWithLift::new(child)      // Action for TaskStatus::Spawn()
-SpawnWithSchedule::new(child)  // Action for TaskStatus::Spawn()
-SpawnWithBroadcast::new(child) // Action for TaskStatus::Spawn()
-```
-
-**❌ WRONG: Trying to use actions outside of TaskIterator**
-
-```rust
-fn some_function(engine: BoxedExecutionEngine) {
-    let action = SpawnWithLift::new(task);
-    // This won't compile - where does parent_key come from?
-    action.apply(???, engine)?;
-}
-```
-
-**✅ RIGHT: Actions are ONLY for use within TaskIterator::next()**
-
-```rust
-impl TaskIterator for MyTask {
-    type Spawner = SpawnWithLift<ChildTask>;
-
-    fn next(&mut self) -> Option<TaskStatus<...>> {
-        // Inside here, return TaskStatus::Spawn with an action
-        Some(TaskStatus::Spawn(SpawnWithLift::new(child_task)))
-    }
-}
-```
-
-**❌ WRONG: Manually calling action.apply()**
-
-```rust
-impl TaskIterator for MyTask {
-    fn next(&mut self) -> Option<TaskStatus<...>> {
-        let action = SpawnWithLift::new(child);
-        action.apply(self.parent_key?, self.engine.clone())?;  // DON'T DO THIS
-        Some(TaskStatus::Ready(result))
-    }
-}
-```
-
-**✅ RIGHT: Return TaskStatus::Spawn and let executor handle it**
-
-```rust
-impl TaskIterator for MyTask {
-    fn next(&mut self) -> Option<TaskStatus<...>> {
-        // Just return the Spawn status - executor calls apply() for you
-        Some(TaskStatus::Spawn(SpawnWithLift::new(child)))
-    }
-}
-```
-
-#### Legacy Names (Deprecated)
-
-For backward compatibility during migration:
-
-| Old Name          | New Name             | Reason for Change                                               |
-| ----------------- | -------------------- | --------------------------------------------------------------- |
-| `LiftAction`      | `SpawnWithLift`      | Clarifies this is for spawning children with lift strategy      |
-| `ScheduleAction`  | `SpawnWithSchedule`  | Clarifies this is for spawning children with schedule strategy  |
-| `BroadcastAction` | `SpawnWithBroadcast` | Clarifies this is for spawning children with broadcast strategy |
-| `CompositeAction` | `SpawnStrategy`      | Better reflects that it's choosing a spawning strategy          |
-
-**Migration**: The implementation should provide deprecated type aliases:
-
-```rust
-#[deprecated(since = "0.x.0", note = "Use `SpawnWithLift` instead")]
-pub type LiftAction<I, D, P, S> = SpawnWithLift<I, D, P, S>;
-
-#[deprecated(since = "0.x.0", note = "Use `SpawnWithSchedule` instead")]
-pub type ScheduleAction<F> = SpawnWithSchedule<F>;
-
-#[deprecated(since = "0.x.0", note = "Use `SpawnWithBroadcast` instead")]
-pub type BroadcastAction<T> = SpawnWithBroadcast<T>;
-
-#[deprecated(since = "0.x.0", note = "Use `SpawnStrategy` instead")]
-pub type CompositeAction<IW, TW, IL, DL, PL, SL, F, V, C> =
-    SpawnStrategy<IW, TW, IL, DL, PL, SL, F, V, C>;
 ```
 
 ### B. Feature-Gated Unified Executor
@@ -749,9 +171,7 @@ Single entry point for executing tasks that auto-selects executor based on platf
 /// | WASM     | any     | `single`      |
 /// | Native   | none    | `single`      |
 /// | Native   | `multi` | `multi`       |
-pub fn execute<T>(
-    task: T
-) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
+pub fn execute<T>(task: T) -> Result<T::Ready, ExecutorError>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
@@ -776,25 +196,17 @@ where
     }
 }
 
-fn execute_single<T>(
-    task: T
-) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
+fn execute_single<T>(task: T) -> Result<T::Ready, ExecutorError>
 where
     T: TaskIterator + Send + 'static,
-    T::Ready: Send + 'static,
-    T::Spawner: ExecutionAction + Send + 'static,
 {
     single::spawn(task)
 }
 
 #[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
-fn execute_multi<T>(
-    task: T
-) -> GenericResult<RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>
+fn execute_multi<T>(task: T) -> Result<T::Ready, ExecutorError>
 where
     T: TaskIterator + Send + 'static,
-    T::Ready: Send + 'static,
-    T::Spawner: ExecutionAction + Send + 'static,
 {
     multi::spawn(task)
 }
@@ -1066,7 +478,7 @@ Wrap any Rust `Future` and poll it through the TaskIterator pattern, enabling se
 
 #### FutureTask Wrapper
 
-````rust
+```rust
 use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll, Waker, RawWaker, RawWakerVTable};
@@ -1116,7 +528,7 @@ where
         }
     }
 }
-````
+```
 
 #### Polling State
 
@@ -1201,7 +613,7 @@ where
 
 #### Convenience Functions
 
-````rust
+```rust
 /// Wrap a future into a TaskIterator
 pub fn from_future<F>(future: F) -> FutureTask<F>
 where
@@ -1227,11 +639,11 @@ where
     let task = FutureTask::new(future);
     execute(task)
 }
-````
+```
 
 #### Async Block Helper
 
-````rust
+```rust
 /// Macro for inline async execution (optional convenience)
 ///
 /// ```rust
@@ -1246,7 +658,7 @@ macro_rules! valtron_async {
         $crate::valtron::executors::run_future(async { $($body)* })
     };
 }
-````
+```
 
 #### Stream Adapter (For Async Streams)
 
@@ -1342,11 +754,11 @@ alloc = ["futures-core/alloc"]  # For no_std with alloc
 
 **Feature Configurations:**
 
-| Feature         | Environment      | Notes                                             |
-| --------------- | ---------------- | ------------------------------------------------- |
-| `std` (default) | Standard library | Full functionality                                |
-| `alloc`         | no_std + alloc   | Heap allocation available                         |
-| (none)          | Pure no_std      | Limited functionality, no Box/Pin heap allocation |
+| Feature | Environment | Notes |
+|---------|-------------|-------|
+| `std` (default) | Standard library | Full functionality |
+| `alloc` | no_std + alloc | Heap allocation available |
+| (none) | Pure no_std | Limited functionality, no Box/Pin heap allocation |
 
 **WASM Compatibility**: `futures-core` is a minimal, no-std compatible crate that works on all platforms including WASM. It only provides the `Future` and `Stream` traits without any runtime dependencies.
 
@@ -1730,44 +1142,36 @@ let task = StreamTask::new(stream);
 
 ## Success Criteria
 
-- [x] `actions.rs` exists with SpawnWithLift, SpawnWithSchedule, SpawnWithBroadcast (previously LiftAction, ScheduleAction, BroadcastAction)
-- [x] `SpawnStrategy` enum combines all action types with custom slot (previously CompositeAction)
-- [x] All action types implement ExecutionAction correctly
-- [x] Deprecated type aliases provided for backward compatibility (LiftAction, ScheduleAction, BroadcastAction, CompositeAction)
-- [x] Comprehensive documentation explains when to use each action type
-- [x] Anti-patterns section clearly shows what NOT to do
-- [x] Examples demonstrate correct usage within TaskIterator::next()
-- [x] Clear distinction between actions (for spawning children) and builder pattern (for initial submission)
-- [x] `unified.rs` exists with feature-gated execute() function
-- [x] WASM always uses single executor
-- [x] Native uses single by default, multi with feature flag
-- [x] `StateTransition` enum covers all transition types
-- [x] `StateMachine` trait is defined with associated types
-- [x] `StateMachineTask` wrapper implements TaskIterator
-- [x] `FutureTask` wraps Future and implements TaskIterator (std/alloc)
-- [x] `FutureTaskRef` provides stack-pinned variant (pure no_std)
-- [x] `FuturePollState` enum defined for pending state
-- [x] No-op waker uses only `core` types (no_std compatible)
-- [x] Thread-local waker cache used with `std` feature
-- [x] `from_future()` convenience function works
-- [x] `run_future()` executes futures through unified executor
-- [x] WASM build works with relaxed Send bounds
-- [x] Native build requires Send bounds
-- [x] `StreamTask` wraps async Stream and implements TaskIterator
-- [x] `from_stream()` convenience function works
-- [x] `futures-core` uses `default-features = false`
-- [x] `std` feature enables full functionality
-- [x] `alloc` feature enables heap allocation without std
-- [x] Pure no_std build compiles (no std, no alloc)
-- [x] `TimeoutTask` available only with `std` feature
-- [x] `PollLimitTask` available in all configurations
-- [x] `RetryingTask` wraps TaskIterator with retry logic
-- [x] `BackoffTask` supports fixed/exponential/linear strategies
-- [x] Type names updated: LiftAction→SpawnWithLift, ScheduleAction→SpawnWithSchedule, BroadcastAction→SpawnWithBroadcast, CompositeAction→SpawnStrategy
-- [x] Backward-compatible deprecated type aliases added for old names
-- [x] Send bound added to BroadcastTask<T> for thread safety
-- [x] All unit tests pass
-- [x] Code passes `cargo fmt` and `cargo clippy`
+- [ ] `actions.rs` exists with LiftAction, ScheduleAction, BroadcastAction
+- [ ] `CompositeAction` enum combines all action types with custom slot
+- [ ] All action types implement ExecutionAction correctly
+- [ ] `unified.rs` exists with feature-gated execute() function
+- [ ] WASM always uses single executor
+- [ ] Native uses single by default, multi with feature flag
+- [ ] `StateTransition` enum covers all transition types
+- [ ] `StateMachine` trait is defined with associated types
+- [ ] `StateMachineTask` wrapper implements TaskIterator
+- [ ] `FutureTask` wraps Future and implements TaskIterator (std/alloc)
+- [ ] `FutureTaskRef` provides stack-pinned variant (pure no_std)
+- [ ] `FuturePollState` enum defined for pending state
+- [ ] No-op waker uses only `core` types (no_std compatible)
+- [ ] Thread-local waker cache used with `std` feature
+- [ ] `from_future()` convenience function works
+- [ ] `run_future()` executes futures through unified executor
+- [ ] WASM build works with relaxed Send bounds
+- [ ] Native build requires Send bounds
+- [ ] `StreamTask` wraps async Stream and implements TaskIterator
+- [ ] `from_stream()` convenience function works
+- [ ] `futures-core` uses `default-features = false`
+- [ ] `std` feature enables full functionality
+- [ ] `alloc` feature enables heap allocation without std
+- [ ] Pure no_std build compiles (no std, no alloc)
+- [ ] `TimeoutTask` available only with `std` feature
+- [ ] `PollLimitTask` available in all configurations
+- [ ] `RetryingTask` wraps TaskIterator with retry logic
+- [ ] `BackoffTask` supports fixed/exponential/linear strategies
+- [ ] All unit tests pass
+- [ ] Code passes `cargo fmt` and `cargo clippy`
 
 ## Verification Commands
 
@@ -1795,7 +1199,6 @@ cargo build --package foundation_core --target wasm32-unknown-unknown --no-defau
 ## Notes for Agents
 
 ### Before Starting
-
 - **MUST READ** `valtron/executors/task.rs` for TaskIterator trait
 - **MUST READ** `valtron/executors/executor.rs` for ExecutionAction trait
 - **MUST READ** `valtron/executors/single/mod.rs` for single executor
@@ -1803,7 +1206,6 @@ cargo build --package foundation_core --target wasm32-unknown-unknown --no-defau
 - **MUST VERIFY** existing valtron patterns before adding new ones
 
 ### Implementation Guidelines
-
 - These utilities go in `valtron/executors/`, NOT in `simple_http/client/`
 - Use generic type parameters extensively
 - All types should be `Send + 'static` for executor compatibility
@@ -1812,13 +1214,11 @@ cargo build --package foundation_core --target wasm32-unknown-unknown --no-defau
 - Document all public types and functions
 
 ### Integration with task-iterator
-
 - The task-iterator feature will use these utilities
 - HttpRequestTask can use StateMachine trait if beneficial
 - HttpClientAction can extend CompositeAction if needed
 - FutureTask enables wrapping any async code for execution
 
 ---
-
-_Created: 2026-01-19_
-_Last Updated: 2026-01-19_
+*Created: 2026-01-19*
+*Last Updated: 2026-01-19*

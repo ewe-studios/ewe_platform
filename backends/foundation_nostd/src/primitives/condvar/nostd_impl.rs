@@ -35,7 +35,7 @@ unsafe impl<T: ?Sized + Send> Sync for CondVarMutex<T> {}
 
 /// RAII guard for `CondVarMutex`.
 pub struct CondVarMutexGuard<'a, T: ?Sized + 'a> {
-    pub(crate) mutex: &'a CondVarMutex<T>,
+    pub mutex: &'a CondVarMutex<T>,
 }
 
 unsafe impl<T: ?Sized + Sync> Sync for CondVarMutexGuard<'_, T> {}
@@ -157,7 +157,7 @@ impl<T: ?Sized> CondVarMutex<T> {
     ///
     /// This must only be called by the thread that currently holds the lock.
     #[inline]
-    pub(crate) unsafe fn unlock(&self) {
+    pub unsafe fn unlock(&self) {
         let state = self.state.load(Ordering::Relaxed);
         self.state.store(state & !LOCKED, Ordering::Release);
     }
@@ -252,7 +252,7 @@ unsafe impl<T: ?Sized + Send> Sync for RawCondVarMutex<T> {}
 
 /// RAII guard for `RawCondVarMutex`.
 pub struct RawCondVarMutexGuard<'a, T: ?Sized + 'a> {
-    pub(crate) mutex: &'a RawCondVarMutex<T>,
+    pub mutex: &'a RawCondVarMutex<T>,
 }
 
 unsafe impl<T: ?Sized + Sync> Sync for RawCondVarMutexGuard<'_, T> {}
@@ -330,7 +330,7 @@ impl<T: ?Sized> RawCondVarMutex<T> {
     ///
     /// This must only be called by the thread that currently holds the lock.
     #[inline]
-    pub(crate) unsafe fn unlock(&self) {
+    pub unsafe fn unlock(&self) {
         self.locked.store(false, Ordering::Release);
     }
 }

@@ -18,6 +18,7 @@ pub mod reader_spin_rwlock;
 pub mod spin_mutex;
 pub mod spin_rwlock;
 pub mod spin_wait;
+pub mod wait_duration;
 
 // Re-export poison types
 pub use poison::{LockResult, PoisonError, TryLockError, TryLockResult};
@@ -51,6 +52,9 @@ pub use condvar::{
     CondVar, CondVarMutex, CondVarMutexGuard, CondVarNonPoisoning, RawCondVarMutex,
     RawCondVarMutexGuard, RwLockCondVar, WaitTimeoutResult,
 };
+
+// Re-export wait_duration function
+pub use wait_duration::wait_duration;
 
 // Platform-specific type aliases
 // For single-threaded WASM, use no-op primitives

@@ -16,11 +16,17 @@
 //!
 //! This enables different execution strategies through the Spawner type pattern.
 
-use crate::valtron::{
-    spawn_broadcaster, spawn_builder, BoxedExecutionEngine,
-    ExecutionAction, GenericResult, NoAction, TaskIterator, TaskStatus,
+use concurrent_queue::ConcurrentQueue;
+
+use crate::{
+    synca::mpp::RecvIterator,
+    valtron::{
+        spawn_broadcaster, spawn_builder, BoxedExecutionEngine, ConsumingIter, ExecutionAction,
+        ExecutorError, GenericResult, NoAction, SpawnInfo, SpawnType, TaskIterator, TaskStatus,
+        TaskStatusMapper,
+    },
 };
-use std::marker::PhantomData;
+use std::{marker::PhantomData, sync::Arc};
 
 // ============================================================================
 // WrapTask - Wrap plain values in TaskStatus::Ready
@@ -162,18 +168,19 @@ where
 {
     fn apply(
         &mut self,
-        key: crate::synca::Entry,
+        key: Option<crate::synca::Entry>,
         executor: BoxedExecutionEngine,
-    ) -> GenericResult<()> {
+    ) -> GenericResult<SpawnInfo> {
         if let Some(iter) = self.iter.take() {
             let task = WrapTask::new(iter);
 
-            spawn_builder(executor)
-                .with_parent(key)
+            return spawn_builder(executor)
+                .maybe_parent(key)
                 .with_task(task)
-                .schedule()?;
+                .schedule()
+                .map_err(std::convert::Into::into);
         }
-        Ok(())
+        Ok(SpawnInfo::new(SpawnType::None, None, None))
     }
 }
 
@@ -224,17 +231,18 @@ where
 {
     fn apply(
         &mut self,
-        key: crate::synca::Entry,
+        key: Option<crate::synca::Entry>,
         executor: BoxedExecutionEngine,
-    ) -> GenericResult<()> {
+    ) -> GenericResult<SpawnInfo> {
         if let Some(iter) = self.iter.take() {
             let task = LiftTask::new(iter);
-            spawn_builder(executor)
-                .with_parent(key)
+            return spawn_builder(executor)
+                .maybe_parent(key)
                 .with_task(task)
-                .lift()?;
+                .lift()
+                .map_err(Into::into);
         }
-        Ok(())
+        Ok(SpawnInfo::new(SpawnType::None, None, None))
     }
 }
 
@@ -310,18 +318,309 @@ where
 {
     fn apply(
         &mut self,
-        key: crate::synca::Entry,
+        key: Option<crate::synca::Entry>,
         executor: BoxedExecutionEngine,
-    ) -> GenericResult<()> {
+    ) -> GenericResult<SpawnInfo> {
         if let Some(closure) = self.closure.take() {
             let task = ScheduleTask::new(closure);
 
-            spawn_builder(executor)
-                .with_parent(key)
+            return spawn_builder(executor)
+                .maybe_parent(key)
                 .with_task(task)
-                .schedule()?;
+                .schedule()
+                .map_err(std::convert::Into::into);
         }
-        Ok(())
+        Ok(SpawnInfo::new(SpawnType::None, None, None))
+    }
+}
+
+// ============================================================================
+// InlineAction - Action type that spawn other tasks for you and returns: RecvIterator or StreamRecvIterator
+// to acces the resources.
+// ============================================================================
+
+#[derive(Clone, Copy, Default)]
+pub enum InlineSendActionBehaviour {
+    /// [`Sequenced`] indicates we wish to sequenced the task with a [`ConsumingIter`].
+    #[default]
+    Sequenced,
+    /// [`Lift`] indicates we wish to lift the task with a [`ConsumingIter`].
+    Lift,
+    /// [`LiftWithParent`] indicates we wish to lift the task with a [`ConsumingIter`].
+    LiftWithParent,
+    /// [`Schedule`] indicates we wish to schedule the task with a [`ConsumingIter`].
+    Schedule,
+    /// [`Broadcast`] indicates we wish to broadcast the task with a [`ConsumingIter`].
+    Broadcast,
+}
+
+#[allow(clippy::type_complexity)]
+pub struct InlineSendAction<Done, Pending, Action, Task, Mapper>(
+    Option<(
+        InlineSendActionBehaviour,
+        Task,
+        Vec<Mapper>,
+        Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>>,
+    )>,
+)
+where
+    Action: ExecutionAction + Send + 'static,
+    Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static;
+
+impl<Done, Pending, Action, Task, Mapper> InlineSendAction<Done, Pending, Action, Task, Mapper>
+where
+    Done: Send + 'static,
+    Pending: Send + 'static,
+    Action: ExecutionAction + Send + 'static,
+    Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
+{
+    pub fn new(
+        behaviour: InlineSendActionBehaviour,
+        mappers: Vec<Mapper>,
+        task: Task,
+        wait_cycle: std::time::Duration,
+    ) -> (Self, RecvIterator<TaskStatus<Done, Pending, Action>>) {
+        let iter_chan: Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(ConcurrentQueue::unbounded());
+        (
+            Self(Some((behaviour, task, mappers, iter_chan.clone()))),
+            RecvIterator::from_chan(iter_chan, wait_cycle),
+        )
+    }
+}
+
+impl<Done, Pending, Action, Task>
+    InlineSendAction<
+        Done,
+        Pending,
+        Action,
+        Task,
+        Box<dyn TaskStatusMapper<Done, Pending, Action> + Send + 'static>,
+    >
+where
+    Done: Send + 'static,
+    Pending: Send + 'static,
+    Action: ExecutionAction + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
+{
+    pub fn boxed_mapper(
+        behaviour: InlineSendActionBehaviour,
+        mappers: Vec<Box<dyn TaskStatusMapper<Done, Pending, Action> + Send + 'static>>,
+        task: Task,
+        wait_cycle: std::time::Duration,
+    ) -> (Self, RecvIterator<TaskStatus<Done, Pending, Action>>) {
+        let iter_chan: Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(ConcurrentQueue::unbounded());
+        (
+            Self(Some((behaviour, task, mappers, iter_chan.clone()))),
+            RecvIterator::from_chan(iter_chan, wait_cycle),
+        )
+    }
+}
+
+impl<Done, Pending, Action, Task, Mapper> ExecutionAction
+    for InlineSendAction<Done, Pending, Action, Task, Mapper>
+where
+    Done: Send + 'static,
+    Pending: Send + 'static,
+    Action: ExecutionAction + Send + 'static,
+    Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
+{
+    fn apply(
+        &mut self,
+        key: Option<crate::synca::Entry>,
+        executor: BoxedExecutionEngine,
+    ) -> GenericResult<SpawnInfo> {
+        if let Some((behaviour, task, mappers, channel)) = self.0.take() {
+            match behaviour {
+                InlineSendActionBehaviour::Sequenced => {
+                    tracing::debug!("Sequence action for InlineAction");
+
+                    let Some(parent) = key else {
+                        return Err(Box::new(ExecutorError::ParentMustBeSupplied));
+                    };
+
+                    let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
+                    executor
+                        .sequenced(consuming_iter.into(), parent)
+                        .map_err(Into::into)
+                }
+                InlineSendActionBehaviour::LiftWithParent => {
+                    tracing::debug!("Lift action for InlineAction");
+
+                    let Some(parent) = key else {
+                        return Err(Box::new(ExecutorError::ParentMustBeSupplied));
+                    };
+
+                    let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
+                    executor
+                        .lift(consuming_iter.into(), Some(parent))
+                        .map_err(Into::into)
+                }
+                InlineSendActionBehaviour::Lift => {
+                    tracing::debug!("Lift action for InlineSendAction");
+                    let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
+                    executor
+                        .lift(consuming_iter.into(), key)
+                        .map_err(Into::into)
+                }
+                InlineSendActionBehaviour::Schedule => {
+                    tracing::debug!("Schedule action for InlineSendAction");
+                    let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
+                    executor.schedule(consuming_iter.into()).map_err(Into::into)
+                }
+                InlineSendActionBehaviour::Broadcast => {
+                    tracing::debug!("Broadcast action for InlineSendAction");
+                    let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
+                    executor
+                        .broadcast(consuming_iter.into())
+                        .map_err(Into::into)
+                }
+            }
+        } else {
+            Err("Action has being used up".into())
+        }
+    }
+}
+
+#[derive(Clone, Copy, Default)]
+pub enum InlineActionBehaviour {
+    /// [`Sequenced`] indicates we wish to sequenced the task with a [`ConsumingIter`].
+    #[default]
+    Sequenced,
+    /// [`Lift`] indicates we wish to lift the task with a [`ConsumingIter`].
+    Lift,
+    /// [`LiftWithParent`] indicates we wish to lift the task with a [`ConsumingIter`].
+    LiftWithParent,
+    /// [`Schedule`] indicates we wish to schedule the task with a [`ConsumingIter`].
+    Schedule,
+}
+
+#[allow(clippy::type_complexity)]
+pub struct InlineAction<Done, Pending, Action, Task, Mapper>(
+    Option<(
+        InlineActionBehaviour,
+        Task,
+        Vec<Mapper>,
+        Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>>,
+    )>,
+)
+where
+    Action: ExecutionAction,
+    Mapper: TaskStatusMapper<Done, Pending, Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>;
+
+impl<Done, Pending, Action, Task, Mapper> InlineAction<Done, Pending, Action, Task, Mapper>
+where
+    Done: 'static,
+    Pending: 'static,
+    Action: ExecutionAction + 'static,
+    Mapper: TaskStatusMapper<Done, Pending, Action> + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+{
+    pub fn new(
+        behaviour: InlineActionBehaviour,
+        mappers: Vec<Mapper>,
+        task: Task,
+        wait_cycle: std::time::Duration,
+    ) -> (Self, RecvIterator<TaskStatus<Done, Pending, Action>>) {
+        let iter_chan: Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(ConcurrentQueue::unbounded());
+        (
+            Self(Some((behaviour, task, mappers, iter_chan.clone()))),
+            RecvIterator::from_chan(iter_chan, wait_cycle),
+        )
+    }
+}
+
+impl<Done, Pending, Action, Task>
+    InlineAction<
+        Done,
+        Pending,
+        Action,
+        Task,
+        Box<dyn TaskStatusMapper<Done, Pending, Action> + 'static>,
+    >
+where
+    Done: 'static,
+    Pending: 'static,
+    Action: ExecutionAction + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+{
+    pub fn boxed_mapper(
+        behaviour: InlineActionBehaviour,
+        mappers: Vec<Box<dyn TaskStatusMapper<Done, Pending, Action> + 'static>>,
+        task: Task,
+        wait_cycle: std::time::Duration,
+    ) -> (Self, RecvIterator<TaskStatus<Done, Pending, Action>>) {
+        let iter_chan: Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(ConcurrentQueue::unbounded());
+        (
+            Self(Some((behaviour, task, mappers, iter_chan.clone()))),
+            RecvIterator::from_chan(iter_chan, wait_cycle),
+        )
+    }
+}
+
+impl<Done, Pending, Action, Task, Mapper> ExecutionAction
+    for InlineAction<Done, Pending, Action, Task, Mapper>
+where
+    Done: 'static,
+    Pending: 'static,
+    Action: ExecutionAction + 'static,
+    Mapper: TaskStatusMapper<Done, Pending, Action> + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+{
+    fn apply(
+        &mut self,
+        key: Option<crate::synca::Entry>,
+        executor: BoxedExecutionEngine,
+    ) -> GenericResult<SpawnInfo> {
+        if let Some((behaviour, task, mappers, channel)) = self.0.take() {
+            match behaviour {
+                InlineActionBehaviour::Sequenced => {
+                    tracing::debug!("Sequence action for InlineAction");
+
+                    let Some(parent) = key else {
+                        return Err(Box::new(ExecutorError::ParentMustBeSupplied));
+                    };
+
+                    let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
+                    executor
+                        .sequenced(consuming_iter.into(), parent)
+                        .map_err(Into::into)
+                }
+                InlineActionBehaviour::LiftWithParent => {
+                    tracing::debug!("Lift action for InlineAction");
+
+                    let Some(parent) = key else {
+                        return Err(Box::new(ExecutorError::ParentMustBeSupplied));
+                    };
+
+                    let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
+                    executor
+                        .lift(consuming_iter.into(), Some(parent))
+                        .map_err(Into::into)
+                }
+                InlineActionBehaviour::Lift => {
+                    tracing::debug!("Lift action for InlineAction");
+                    let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
+                    executor
+                        .lift(consuming_iter.into(), None)
+                        .map_err(Into::into)
+                }
+                InlineActionBehaviour::Schedule => {
+                    tracing::debug!("Schedule action for InlineAction");
+                    let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
+                    executor.schedule(consuming_iter.into()).map_err(Into::into)
+                }
+            }
+        } else {
+            Err("Action has being used up".into())
+        }
     }
 }
 
@@ -411,21 +710,22 @@ where
 {
     fn apply(
         &mut self,
-        key: crate::synca::Entry,
+        key: Option<crate::synca::Entry>,
         executor: BoxedExecutionEngine,
-    ) -> GenericResult<()> {
+    ) -> GenericResult<SpawnInfo> {
         if let (Some(value), true) = (self.value.take(), !self.callbacks.is_empty()) {
             let callbacks = std::mem::take(&mut self.callbacks);
             let task = BroadcastTask::new(value, callbacks);
 
             // Use broadcast() instead of schedule() - sends to global queue for any thread
             // Note: Requires Send bound on T
-            spawn_broadcaster(executor)
-                .with_parent(key)
+            return spawn_broadcaster(executor)
+                .maybe_parent(key)
                 .with_task(task)
-                .broadcast()?;
+                .broadcast()
+                .map_err(std::convert::Into::into);
         }
-        Ok(())
+        Ok(SpawnInfo::new(SpawnType::None, None, None))
     }
 }
 
@@ -472,11 +772,11 @@ where
 {
     fn apply(
         &mut self,
-        key: crate::synca::Entry,
+        key: Option<crate::synca::Entry>,
         engine: BoxedExecutionEngine,
-    ) -> GenericResult<()> {
+    ) -> GenericResult<SpawnInfo> {
         match self {
-            Self::None => Ok(()),
+            Self::None => Ok(SpawnInfo::new(SpawnType::None, None, None)),
             Self::Wrap(action) => action.apply(key, engine),
             Self::Lift(action) => action.apply(key, engine),
             Self::Schedule(action) => action.apply(key, engine),

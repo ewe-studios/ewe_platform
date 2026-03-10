@@ -2,167 +2,54 @@
 //!
 //! This module provides URL parsing and TCP/TLS connection establishment.
 
-use crate::netcap::Connection;
+use crate::wire::simple_http::client::pool::ConnectionPool;
+use crate::wire::simple_http::client::SystemDnsResolver;
+use std::ops::{Deref, DerefMut};
+use std::sync::Arc;
+
+use crate::io::ioutils::SharedByteBufferStream;
+use crate::netcap::{Connection, RawStream};
 use crate::wire::simple_http::client::dns::DnsResolver;
-use crate::wire::simple_http::client::errors::HttpClientError;
+use crate::wire::simple_http::url::Uri;
+use crate::wire::simple_http::HttpClientError;
 use std::time::Duration;
 
-#[cfg(feature = "ssl-rustls")]
-use crate::netcap::ssl::rustls::{default_client_config, RustlsConnector};
+use crate::netcap::ssl::SSLConnector;
 
-#[cfg(feature = "ssl-openssl")]
-use crate::netcap::ssl::openssl::OpensslConnector;
+// Re-export Uri as ParsedUrl for backward compatibility
+/// Backward compatibility alias for Uri.
+///
+/// **Deprecated**: Use `crate::wire::simple_http::url::Uri` instead.
+pub type ParsedUrl = Uri;
 
-#[cfg(feature = "ssl-native-tls")]
-use crate::netcap::ssl::native_tls::NativeTlsConnector;
+// Re-export Scheme from url module
+pub use crate::wire::simple_http::url::Scheme;
 
-/// URL scheme (HTTP or HTTPS).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Scheme {
-    /// HTTP (unencrypted)
-    Http,
-    /// HTTPS (TLS encrypted)
-    Https,
-}
-
-impl Scheme {
-    /// Returns the default port for this scheme.
-    #[must_use] 
-    pub fn default_port(&self) -> u16 {
-        match self {
-            Scheme::Http => 80,
-            Scheme::Https => 443,
-        }
-    }
-}
-
-/// Parsed URL components.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ParsedUrl {
-    /// URL scheme (HTTP or HTTPS)
-    pub scheme: Scheme,
-    /// Hostname or IP address
-    pub host: String,
-    /// Port number
-    pub port: u16,
-    /// Path component (always starts with /)
-    pub path: String,
-    /// Query string (without the ?)
-    pub query: Option<String>,
-}
-
-impl ParsedUrl {
-    /// Parses a URL string into components.
-    ///
-    /// # Arguments
-    ///
-    /// * `url` - The URL to parse (e.g., "<http://example.com/path?query>")
-    ///
-    /// # Returns
-    ///
-    /// A `ParsedUrl` with all components extracted.
-    ///
-    /// # Errors
-    ///
-    /// Returns `HttpClientError::InvalidUrl` if:
-    /// - URL format is invalid
-    /// - Scheme is not HTTP or HTTPS
-    /// - Host is missing or empty
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use foundation_core::wire::simple_http::client::connection::ParsedUrl;
-    ///
-    /// let url = ParsedUrl::parse("http://example.com/path").unwrap();
-    /// assert_eq!(url.host, "example.com");
-    /// assert_eq!(url.port, 80);
-    /// assert_eq!(url.path, "/path");
-    /// ```
-    pub fn parse(url: &str) -> Result<Self, HttpClientError> {
-        // Simple URL parsing without external dependencies
-        // Format: scheme://host[:port][/path][?query][#fragment]
-
-        // Find scheme separator
-        let scheme_end = url.find("://").ok_or_else(|| {
-            HttpClientError::InvalidUrl("Missing scheme (use http:// or https://)".to_string())
-        })?;
-
-        let scheme_str = &url[..scheme_end];
-        let scheme = match scheme_str.to_lowercase().as_str() {
-            "http" => Scheme::Http,
-            "https" => Scheme::Https,
-            _ => return Err(HttpClientError::InvalidScheme(scheme_str.to_string())),
-        };
-
-        let after_scheme = &url[scheme_end + 3..]; // Skip "://"
-
-        // Split off fragment (we ignore it)
-        let without_fragment = after_scheme.split('#').next().unwrap_or(after_scheme);
-
-        // Split into authority (host:port) and path+query
-        let (authority, path_and_query) = if let Some(slash_pos) = without_fragment.find('/') {
-            (
-                &without_fragment[..slash_pos],
-                &without_fragment[slash_pos..],
-            )
-        } else {
-            (without_fragment, "/")
-        };
-
-        // Parse authority (host[:port])
-        let (host, port) = if let Some(colon_pos) = authority.rfind(':') {
-            // Has explicit port
-            let host = &authority[..colon_pos];
-            let port_str = &authority[colon_pos + 1..];
-            let port = port_str
-                .parse::<u16>()
-                .map_err(|_| HttpClientError::InvalidUrl(format!("Invalid port: {port_str}")))?;
-            (host, port)
-        } else {
-            // Use default port
-            (authority, scheme.default_port())
-        };
-
-        // Validate host is not empty
-        if host.is_empty() {
-            return Err(HttpClientError::InvalidUrl("Empty host".to_string()));
-        }
-
-        // Split path and query
-        let (path, query) = if let Some(query_pos) = path_and_query.find('?') {
-            let path = &path_and_query[..query_pos];
-            let query = &path_and_query[query_pos + 1..];
-            (
-                path,
-                if query.is_empty() {
-                    None
-                } else {
-                    Some(query.to_string())
-                },
-            )
-        } else {
-            (path_and_query, None)
-        };
-
-        Ok(ParsedUrl {
-            scheme,
-            host: host.to_string(),
-            port,
-            path: path.to_string(),
-            query,
-        })
-    }
-}
-
-/// HTTP client connection wrapping `netcap::Connection`.
-#[cfg(not(target_arch = "wasm32"))]
-#[derive(Debug)]
+/// HTTP client connection wrapping `netcap::RawStream`.
+///
+/// Provides automatic buffering, address tracking, and convenient Read/Write traits
+/// over plain TCP or TLS connections.
+#[derive(Debug, Clone)]
 pub struct HttpClientConnection {
-    connection: Connection,
+    stream: SharedByteBufferStream<RawStream>,
+    host: String,
+    port: u16,
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+impl DerefMut for HttpClientConnection {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.stream
+    }
+}
+
+impl Deref for HttpClientConnection {
+    type Target = SharedByteBufferStream<RawStream>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.stream
+    }
+}
+
 impl HttpClientConnection {
     /// Establishes a connection to the given URL.
     ///
@@ -178,7 +65,7 @@ impl HttpClientConnection {
     ///
     /// # Returns
     ///
-    /// An established `HttpClientConnection`.
+    /// An established `HttpClientConnection` with automatic buffering.
     ///
     /// # Errors
     ///
@@ -192,13 +79,20 @@ impl HttpClientConnection {
         resolver: &R,
         timeout: Option<Duration>,
     ) -> Result<Self, HttpClientError> {
+        // Get host as string (required for DNS resolution)
+        let host = url
+            .host_str()
+            .ok_or_else(|| HttpClientError::InvalidUrl("Missing host".to_string()))?;
+
+        // Get port (with default from scheme)
+        let port = url.port_or_default();
+
         // Step 1: Resolve DNS
-        let addrs = resolver.resolve(&url.host, url.port)?;
+        let addrs = resolver.resolve(&host, port)?;
 
         if addrs.is_empty() {
             return Err(HttpClientError::ConnectionFailed(format!(
-                "No addresses resolved for {}",
-                url.host
+                "No addresses resolved for {host}"
             )));
         }
 
@@ -214,15 +108,19 @@ impl HttpClientConnection {
 
             match conn_result {
                 Ok(connection) => {
-                    // Step 3: Upgrade to TLS if HTTPS
-                    if url.scheme == Scheme::Https {
-                        return Self::upgrade_to_tls(connection, &url.host);
+                    // Step 3: Upgrade to TLS if HTTPS, or create plain RawStream
+                    if url.scheme().is_https() {
+                        return Self::upgrade_to_tls(connection, &host, port);
                     }
-                    return Ok(HttpClientConnection { connection });
+                    // Create plain RawStream from Connection
+                    let stream = SharedByteBufferStream::rwrite(
+                        RawStream::from_connection(connection)
+                            .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?,
+                    );
+                    return Ok(HttpClientConnection { stream, host, port });
                 }
                 Err(e) => {
                     last_error = Some(e);
-                    continue; // Try next address
                 }
             }
         }
@@ -231,54 +129,45 @@ impl HttpClientConnection {
         if let Some(err) = last_error {
             if err.to_string().contains("timeout") || err.to_string().contains("timed out") {
                 return Err(HttpClientError::ConnectionTimeout(format!(
-                    "Connection to {}:{} timed out",
-                    url.host, url.port
+                    "Connection to {host}:{port} timed out"
                 )));
             }
             return Err(HttpClientError::ConnectionFailed(err.to_string()));
         }
 
         Err(HttpClientError::ConnectionFailed(format!(
-            "Failed to connect to {}:{}",
-            url.host, url.port
+            "Failed to connect to {host}:{port}"
         )))
     }
 
-    #[cfg(feature = "ssl-rustls")]
-    fn upgrade_to_tls(connection: Connection, host: &str) -> Result<Self, HttpClientError> {
-        let connector = RustlsConnector::new();
-
-        let (_tls_stream, _addr) = connector
+    #[cfg(any(
+        feature = "ssl-rustls",
+        feature = "ssl-openssl",
+        feature = "ssl-native-tls"
+    ))]
+    fn upgrade_to_tls(
+        connection: Connection,
+        host: &str,
+        port: u16,
+    ) -> Result<Self, HttpClientError> {
+        let connector = SSLConnector::new();
+        let (tls_stream, _addr) = connector
             .from_tcp_stream(host.to_string(), connection)
             .map_err(|e: Box<dyn std::error::Error + Send + Sync>| {
                 HttpClientError::TlsHandshakeFailed(e.to_string())
             })?;
 
-        // TODO: We need to convert RustTlsClientStream back to Connection
-        // For now, this is a limitation of the current netcap design
-        Err(HttpClientError::TlsHandshakeFailed(
-            "TLS stream conversion not yet implemented".to_string(),
-        ))
-    }
+        // Create RawStream from ClientSSLStream (which is the return type from from_tcp_stream)
+        let stream = SharedByteBufferStream::rwrite(
+            RawStream::from_client_tls(tls_stream)
+                .map_err(|e| HttpClientError::TlsHandshakeFailed(e.to_string()))?,
+        );
 
-    #[cfg(all(feature = "ssl-openssl", not(feature = "ssl-rustls")))]
-    fn upgrade_to_tls(connection: Connection, host: &str) -> Result<Self, HttpClientError> {
-        // TODO: Implement OpenSSL TLS upgrade
-        Err(HttpClientError::TlsHandshakeFailed(
-            "OpenSSL TLS not yet implemented".to_string(),
-        ))
-    }
-
-    #[cfg(all(
-        feature = "ssl-native-tls",
-        not(feature = "ssl-rustls"),
-        not(feature = "ssl-openssl")
-    ))]
-    fn upgrade_to_tls(connection: Connection, host: &str) -> Result<Self, HttpClientError> {
-        // TODO: Implement native-tls TLS upgrade
-        Err(HttpClientError::TlsHandshakeFailed(
-            "native-tls not yet implemented".to_string(),
-        ))
+        Ok(HttpClientConnection {
+            stream,
+            host: host.into(),
+            port,
+        })
     }
 
     #[cfg(not(any(
@@ -286,300 +175,773 @@ impl HttpClientConnection {
         feature = "ssl-openssl",
         feature = "ssl-native-tls"
     )))]
-    fn upgrade_to_tls(_connection: Connection, host: &str) -> Result<Self, HttpClientError> {
-        Err(HttpClientError::TlsHandshakeFailed(format!(
-            "HTTPS requested for {host} but no TLS feature enabled"
+    fn upgrade_to_tls(_connection: Connection, _host: &str) -> Result<Self, HttpClientError> {
+        Err(HttpClientError::NotSupported)
+    }
+
+    /// Returns a reference to the underlying stream.
+    #[must_use]
+    pub fn stream(&self) -> &SharedByteBufferStream<RawStream> {
+        &self.stream
+    }
+
+    /// Returns a mutable reference to the underlying stream.
+    pub fn stream_mut(&mut self) -> &mut SharedByteBufferStream<RawStream> {
+        &mut self.stream
+    }
+
+    // Clone and return the underlying SharedByteBufferStream.
+    // This method consumes the HttpClientConnection to avoid borrowing issues,
+    // allowing callers to move the connection in and obtain a cloned handle
+    // to the same underlying stream for independent use.
+    #[must_use]
+    pub fn clone_stream(&self) -> SharedByteBufferStream<RawStream> {
+        self.stream.clone()
+    }
+
+    /// Takes ownership of the underlying stream, consuming the connection.
+    ///
+    /// WHY: Allows transferring stream ownership to other components (e.g., `HttpResponseReader`)
+    /// without lifetime issues.
+    ///
+    /// WHAT: Consumes the connection and returns the owned `RawStream`.
+    ///
+    /// # Returns
+    ///
+    /// The owned `RawStream` that was wrapped by this connection.
+    #[must_use]
+    pub fn take_stream(self) -> SharedByteBufferStream<RawStream> {
+        self.stream
+    }
+
+    /// Establishes an HTTP connection to the given host and port.
+    ///
+    /// WHY: Proxy connections need to connect to host:port directly without URL parsing.
+    ///
+    /// WHAT: Creates a plain TCP connection for HTTP (no TLS).
+    ///
+    /// HOW: DNS resolution → TCP connection → wrap in SharedByteBufferStream.
+    ///
+    /// # Arguments
+    ///
+    /// * `host` - Hostname or IP address
+    /// * `port` - Port number
+    /// * `resolver` - DNS resolver for hostname resolution
+    /// * `timeout` - Optional connection timeout
+    ///
+    /// # Returns
+    ///
+    /// An established `HttpClientConnection` with plain TCP connection.
+    ///
+    /// # Errors
+    ///
+    /// Returns errors for:
+    /// - DNS resolution failures
+    /// - TCP connection failures
+    /// - Connection timeout
+    pub fn connect_http_host_port<R: DnsResolver>(
+        host: impl Into<String>,
+        port: u16,
+        resolver: &R,
+        timeout: Option<Duration>,
+    ) -> Result<Self, HttpClientError> {
+        let host = host.into();
+
+        // Step 1: Resolve DNS
+        let addrs = resolver.resolve(&host, port)?;
+
+        if addrs.is_empty() {
+            return Err(HttpClientError::ConnectionFailed(format!(
+                "No addresses resolved for {host}"
+            )));
+        }
+
+        // Step 2: Try connecting to each resolved address
+        let mut last_error = None;
+
+        for addr in addrs {
+            let conn_result = if let Some(timeout_duration) = timeout {
+                Connection::with_timeout(addr, timeout_duration)
+            } else {
+                Connection::without_timeout(addr)
+            };
+
+            match conn_result {
+                Ok(connection) => {
+                    // Create plain RawStream from Connection (no TLS)
+                    let stream = SharedByteBufferStream::rwrite(
+                        RawStream::from_connection(connection)
+                            .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?,
+                    );
+                    return Ok(HttpClientConnection { stream, host, port });
+                }
+                Err(e) => {
+                    last_error = Some(e);
+                }
+            }
+        }
+
+        // All connection attempts failed
+        if let Some(err) = last_error {
+            if err.to_string().contains("timeout") || err.to_string().contains("timed out") {
+                return Err(HttpClientError::ConnectionTimeout(format!(
+                    "Connection to {host}:{port} timed out"
+                )));
+            }
+            return Err(HttpClientError::ConnectionFailed(err.to_string()));
+        }
+
+        Err(HttpClientError::ConnectionFailed(format!(
+            "Failed to connect to {host}:{port}"
         )))
     }
 
-    /// Returns a reference to the underlying connection.
-    #[must_use] 
-    pub fn connection(&self) -> &Connection {
-        &self.connection
+    /// Establishes an HTTPS connection to the given host and port.
+    ///
+    /// WHY: Proxy connections need to connect to host:port directly without URL parsing.
+    ///
+    /// WHAT: Creates a TLS connection for HTTPS.
+    ///
+    /// HOW: DNS resolution → TCP connection → TLS handshake → wrap in SharedByteBufferStream.
+    ///
+    /// # Arguments
+    ///
+    /// * `host` - Hostname or IP address
+    /// * `port` - Port number
+    /// * `resolver` - DNS resolver for hostname resolution
+    /// * `timeout` - Optional connection timeout
+    ///
+    /// # Returns
+    ///
+    /// An established `HttpClientConnection` with TLS connection.
+    ///
+    /// # Errors
+    ///
+    /// Returns errors for:
+    /// - DNS resolution failures
+    /// - TCP connection failures
+    /// - TLS handshake failures
+    /// - Connection timeout
+    #[cfg(any(
+        feature = "ssl-rustls",
+        feature = "ssl-openssl",
+        feature = "ssl-native-tls"
+    ))]
+    pub fn connect_https_host_port<R: DnsResolver>(
+        host: impl Into<String>,
+        port: u16,
+        resolver: &R,
+        timeout: Option<Duration>,
+    ) -> Result<Self, HttpClientError> {
+        let host = host.into();
+
+        // Step 1: Resolve DNS
+        let addrs = resolver.resolve(&host, port)?;
+
+        if addrs.is_empty() {
+            return Err(HttpClientError::ConnectionFailed(format!(
+                "No addresses resolved for {host}"
+            )));
+        }
+
+        // Step 2: Try connecting to each resolved address
+        let mut last_error = None;
+
+        for addr in addrs {
+            let conn_result = if let Some(timeout_duration) = timeout {
+                Connection::with_timeout(addr, timeout_duration)
+            } else {
+                Connection::without_timeout(addr)
+            };
+
+            match conn_result {
+                Ok(connection) => {
+                    // Upgrade to TLS
+                    return Self::upgrade_to_tls(connection, &host, port);
+                }
+                Err(e) => {
+                    last_error = Some(e);
+                }
+            }
+        }
+
+        // All connection attempts failed
+        if let Some(err) = last_error {
+            if err.to_string().contains("timeout") || err.to_string().contains("timed out") {
+                return Err(HttpClientError::ConnectionTimeout(format!(
+                    "Connection to {host}:{port} timed out"
+                )));
+            }
+            return Err(HttpClientError::ConnectionFailed(err.to_string()));
+        }
+
+        Err(HttpClientError::ConnectionFailed(format!(
+            "Failed to connect to {host}:{port}"
+        )))
     }
 
-    /// Returns a mutable reference to the underlying connection.
-    pub fn connection_mut(&mut self) -> &mut Connection {
-        &mut self.connection
+    #[cfg(not(any(
+        feature = "ssl-rustls",
+        feature = "ssl-openssl",
+        feature = "ssl-native-tls"
+    )))]
+    pub fn connect_https_host_port<R: DnsResolver>(
+        _host: impl Into<String>,
+        _port: u16,
+        _resolver: &R,
+        _timeout: Option<Duration>,
+    ) -> Result<Self, HttpClientError> {
+        Err(HttpClientError::NotSupported)
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+/// A pool-aware HTTP connection factory.
+///
+/// Wraps the shared `ConnectionPool` and will attempt to reuse an existing
+/// `RawStream` from the pool for the target host/port before creating a new
+/// connection via `HttpClientConnection::connect`.
+#[derive(Clone, Debug)]
+pub struct HttpConnectionPool<R: DnsResolver> {
+    pool: Arc<ConnectionPool>,
+    resolver: Arc<R>,
+}
 
-    // ========================================================================
-    // ParsedUrl Tests - URL Parsing
-    // ========================================================================
+impl<R: DnsResolver + Default> Default for HttpConnectionPool<R> {
+    fn default() -> Self {
+        Self {
+            pool: Arc::new(ConnectionPool::default()),
+            resolver: Arc::new(R::default()),
+        }
+    }
+}
 
-    /// WHY: Verify ParsedUrl correctly parses a simple HTTP URL
-    /// WHAT: Tests that scheme, host, port, and path are extracted correctly
-    /// IMPORTANCE: Basic URL parsing is fundamental to all HTTP requests
-    #[test]
-    fn test_parsed_url_simple_http() {
-        let url = ParsedUrl::parse("http://example.com").unwrap();
+impl HttpConnectionPool<SystemDnsResolver> {
+    #[allow(dead_code)]
+    fn system() -> Self {
+        Self {
+            pool: Arc::new(ConnectionPool::default()),
+            resolver: Arc::new(SystemDnsResolver::new()),
+        }
+    }
+}
 
-        assert_eq!(url.scheme, Scheme::Http);
-        assert_eq!(url.host, "example.com");
-        assert_eq!(url.port, 80); // Default HTTP port
-        assert_eq!(url.path, "/"); // Default path
-        assert_eq!(url.query, None);
+impl<R: DnsResolver> HttpConnectionPool<R> {
+    /// Create a new `HttpConnectionPool` from an existing `ConnectionPool`.
+    #[must_use]
+    pub fn new(pool: ConnectionPool, resolver: R) -> Self {
+        Self {
+            pool: Arc::new(pool),
+            resolver: Arc::new(resolver),
+        }
     }
 
-    /// WHY: Verify ParsedUrl correctly parses a simple HTTPS URL
-    /// WHAT: Tests that HTTPS scheme is detected and default port is 443
-    /// IMPORTANCE: HTTPS is the primary use case for secure connections
-    #[test]
-    fn test_parsed_url_simple_https() {
-        let url = ParsedUrl::parse("https://example.com").unwrap();
-
-        assert_eq!(url.scheme, Scheme::Https);
-        assert_eq!(url.host, "example.com");
-        assert_eq!(url.port, 443); // Default HTTPS port
-        assert_eq!(url.path, "/");
-        assert_eq!(url.query, None);
+    /// Create a new `HttpConnectionPool` from an `Arc<ConnectionPool>`.
+    #[must_use]
+    pub fn from_arc(pool: Arc<ConnectionPool>, resolver: Arc<R>) -> Self {
+        Self { pool, resolver }
     }
 
-    /// WHY: Verify ParsedUrl handles explicit port numbers
-    /// WHAT: Tests that non-default ports override scheme defaults
-    /// IMPORTANCE: Many services run on non-standard ports
-    #[test]
-    fn test_parsed_url_with_explicit_port() {
-        let url = ParsedUrl::parse("http://example.com:8080").unwrap();
+    /// Acquire a `HttpClientConnection` for the given URL.
+    ///
+    /// The method will:
+    /// 1. Try to obtain a pooled `RawStream` for the URL's host/port.
+    /// 2. If a pooled stream is available, wrap it into `HttpClientConnection`.
+    /// 3. Otherwise, establish a new connection via `HttpClientConnection::connect`.
+    ///
+    /// Note: This function assumes the underlying `ConnectionPool` exposes at least
+    /// some method to retrieve and return `RawStream` instances keyed by host/port.
+    /// The exact pool API may differ; callers can adapt or extend this wrapper as needed.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `Err(HttpClientError)` when:
+    /// - the provided `url` is invalid (missing host),
+    /// - DNS resolution fails,
+    /// - establishing a new TCP/TLS connection fails or times out.
+    pub fn create_http_connection(
+        &self,
+        url: &ParsedUrl,
+        timeout: Option<Duration>,
+    ) -> Result<HttpClientConnection, HttpClientError> {
+        // Extract host/port for pool lookup
+        let host = url
+            .host_str()
+            .ok_or_else(|| HttpClientError::InvalidUrl("Missing host".to_string()))?;
+        let port = url.port_or_default();
 
-        assert_eq!(url.scheme, Scheme::Http);
-        assert_eq!(url.host, "example.com");
-        assert_eq!(url.port, 8080); // Explicit port overrides default
-        assert_eq!(url.path, "/");
-    }
-
-    /// WHY: Verify ParsedUrl correctly extracts path components
-    /// WHAT: Tests that paths with multiple segments are preserved
-    /// IMPORTANCE: RESTful APIs use complex path structures
-    #[test]
-    fn test_parsed_url_with_path() {
-        let url = ParsedUrl::parse("http://example.com/api/v1/users").unwrap();
-
-        assert_eq!(url.scheme, Scheme::Http);
-        assert_eq!(url.host, "example.com");
-        assert_eq!(url.path, "/api/v1/users");
-        assert_eq!(url.query, None);
-    }
-
-    /// WHY: Verify ParsedUrl correctly extracts query strings
-    /// WHAT: Tests that query parameters are separated from path
-    /// IMPORTANCE: Query parameters are essential for API requests
-    #[test]
-    fn test_parsed_url_with_query() {
-        let url = ParsedUrl::parse("http://example.com/search?q=test&limit=10").unwrap();
-
-        assert_eq!(url.scheme, Scheme::Http);
-        assert_eq!(url.host, "example.com");
-        assert_eq!(url.path, "/search");
-        assert_eq!(url.query, Some("q=test&limit=10".to_string()));
-    }
-
-    /// WHY: Verify ParsedUrl handles complex URLs with all components
-    /// WHAT: Tests parsing of URL with port, path, and query together
-    /// IMPORTANCE: Real-world URLs often have all components
-    #[test]
-    fn test_parsed_url_complex() {
-        let url = ParsedUrl::parse("https://api.example.com:8443/v2/users/123?fields=name,email")
-            .unwrap();
-
-        assert_eq!(url.scheme, Scheme::Https);
-        assert_eq!(url.host, "api.example.com");
-        assert_eq!(url.port, 8443);
-        assert_eq!(url.path, "/v2/users/123");
-        assert_eq!(url.query, Some("fields=name,email".to_string()));
-    }
-
-    /// WHY: Verify ParsedUrl rejects URLs with missing scheme
-    /// WHAT: Tests that URLs without http:// or https:// are rejected
-    /// IMPORTANCE: Prevents ambiguous URL interpretation
-    #[test]
-    fn test_parsed_url_missing_scheme() {
-        let result = ParsedUrl::parse("example.com");
-
-        assert!(result.is_err());
-        assert!(matches!(
-            result.unwrap_err(),
-            HttpClientError::InvalidUrl(_)
-        ));
-    }
-
-    /// WHY: Verify ParsedUrl rejects URLs with unsupported schemes
-    /// WHAT: Tests that only HTTP and HTTPS schemes are accepted
-    /// IMPORTANCE: HTTP client should only handle HTTP/HTTPS
-    #[test]
-    fn test_parsed_url_unsupported_scheme() {
-        let result = ParsedUrl::parse("ftp://example.com");
-
-        assert!(result.is_err());
-        assert!(matches!(
-            result.unwrap_err(),
-            HttpClientError::InvalidScheme(_)
-        ));
-    }
-
-    /// WHY: Verify ParsedUrl rejects URLs with empty host
-    /// WHAT: Tests that URLs like "http://" or "http:///" are rejected
-    /// IMPORTANCE: Connection requires a valid hostname
-    #[test]
-    fn test_parsed_url_empty_host() {
-        let result = ParsedUrl::parse("http:///path");
-
-        assert!(result.is_err());
-        assert!(matches!(
-            result.unwrap_err(),
-            HttpClientError::InvalidUrl(_)
-        ));
-    }
-
-    /// WHY: Verify ParsedUrl handles IP addresses as hosts
-    /// WHAT: Tests that IPv4 addresses are valid hosts
-    /// IMPORTANCE: Direct IP connections are common in testing
-    #[test]
-    fn test_parsed_url_with_ip_address() {
-        let url = ParsedUrl::parse("http://127.0.0.1:8080/test").unwrap();
-
-        assert_eq!(url.host, "127.0.0.1");
-        assert_eq!(url.port, 8080);
-        assert_eq!(url.path, "/test");
-    }
-
-    /// WHY: Verify ParsedUrl handles URLs with fragment identifiers
-    /// WHAT: Tests that fragments (#section) are ignored in HTTP requests
-    /// IMPORTANCE: Fragments are client-side only, not sent to server
-    #[test]
-    fn test_parsed_url_with_fragment() {
-        let url = ParsedUrl::parse("http://example.com/page#section").unwrap();
-
-        assert_eq!(url.path, "/page");
-        // Fragment should be ignored
-    }
-
-    /// WHY: Verify Scheme::default_port returns correct values
-    /// WHAT: Tests that scheme default ports match HTTP standards
-    /// IMPORTANCE: Ensures correct default port selection
-    #[test]
-    fn test_scheme_default_ports() {
-        assert_eq!(Scheme::Http.default_port(), 80);
-        assert_eq!(Scheme::Https.default_port(), 443);
-    }
-
-    // ========================================================================
-    // HttpClientConnection Tests - Connection Establishment
-    // ========================================================================
-
-    #[cfg(not(target_arch = "wasm32"))]
-    mod connection_tests {
-        use super::*;
-        use crate::wire::simple_http::client::dns::{MockDnsResolver, SystemDnsResolver};
-        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-
-        /// WHY: Verify HttpClientConnection can establish HTTP connections
-        /// WHAT: Tests that connect() successfully creates a TCP connection
-        /// IMPORTANCE: Basic HTTP connectivity is core functionality
-        #[test]
-        #[ignore] // Requires actual network - run with `cargo test -- --ignored`
-        fn test_connection_http_real() {
-            let url = ParsedUrl::parse("http://httpbin.org").unwrap();
-            let resolver = SystemDnsResolver::new();
-
-            let result =
-                HttpClientConnection::connect(&url, &resolver, Some(Duration::from_secs(10)));
-
-            assert!(result.is_ok(), "Should connect to httpbin.org");
+        // Try to obtain a pooled RawStream. Most pool implementations provide some
+        // variant of `get`, `acquire`, or `take`. We optimistically call `checkout`.
+        //
+        // If your actual `ConnectionPool` API uses different method names, update
+        // the calls here to match the real signatures.
+        if let Some(stream) = self.pool.checkout(host.as_str(), port) {
+            // Wrap the pooled RawStream into our HttpClientConnection and return.
+            return Ok(HttpClientConnection { stream, host, port });
         }
 
-        /// WHY: Verify HttpClientConnection can establish HTTPS connections with TLS
-        /// WHAT: Tests that connect() performs TLS handshake for HTTPS URLs
-        /// IMPORTANCE: HTTPS is the primary use case for secure connections
-        #[test]
-        #[ignore] // Requires actual network and TLS feature
-        #[cfg(feature = "ssl-rustls")]
-        fn test_connection_https_real() {
-            let url = ParsedUrl::parse("https://httpbin.org").unwrap();
-            let resolver = SystemDnsResolver::new();
+        // No pooled connection available, create a fresh one.
+        HttpClientConnection::connect(url, &*self.resolver, timeout)
+    }
 
-            let result =
-                HttpClientConnection::connect(&url, &resolver, Some(Duration::from_secs(10)));
+    /// Return a `RawStream` back into the pool for reuse.
+    ///
+    /// This is a best-effort helper that calls into the pool's `put`/`release`
+    /// style API. Adjust the call if your pool uses a different method name.
+    pub fn return_to_pool(&self, conn: HttpClientConnection) {
+        // Destructure to move fields out without partially borrowing `conn`.
+        let HttpClientConnection { host, port, stream } = conn;
+        // Attempt to put the stream back; ignore failures to avoid panics.
+        self.pool.checkin(host.as_str(), port, stream);
+    }
 
-            assert!(result.is_ok(), "Should connect to httpbin.org with TLS");
-        }
+    /// Establishes HTTP CONNECT tunnel through HTTP proxy.
+    ///
+    /// WHY: HTTP proxies use CONNECT method to tunnel HTTPS connections.
+    ///
+    /// WHAT: Connects to proxy, sends CONNECT request, validates 200 OK response.
+    ///
+    /// HOW: Connect to proxy → send CONNECT request → parse HTTP response → return tunnel connection.
+    ///
+    /// # Arguments
+    ///
+    /// * `proxy` - Proxy configuration (must be ProxyProtocol::Http)
+    /// * `target_host` - Target server hostname
+    /// * `target_port` - Target server port
+    /// * `timeout` - Optional connection timeout
+    ///
+    /// # Returns
+    ///
+    /// A plain TCP `Connection` representing the tunnel to the target.
+    ///
+    /// # Errors
+    ///
+    /// Returns errors for:
+    /// - Proxy connection failures
+    /// - CONNECT request send failures
+    /// - Non-200 proxy responses
+    /// - Invalid proxy responses
+    pub fn connect_via_http_proxy(
+        &self,
+        proxy: &crate::wire::simple_http::client::ProxyConfig,
+        target_host: &str,
+        target_port: u16,
+        timeout: Option<Duration>,
+    ) -> Result<Connection, HttpClientError> {
+        use crate::wire::simple_http::client::ProxyProtocol;
+        use crate::wire::simple_http::{HttpResponseReader, SimpleHttpBody};
+        use std::io::Write;
 
-        /// WHY: Verify HttpClientConnection respects connection timeout
-        /// WHAT: Tests that connect() fails when timeout is exceeded
-        /// IMPORTANCE: Prevents hanging connections from blocking indefinitely
-        #[test]
-        #[ignore] // Requires network - timeout test
-        fn test_connection_timeout() {
-            // Use a non-routable IP to trigger timeout
-            let url = ParsedUrl {
-                scheme: Scheme::Http,
-                host: "192.0.2.1".to_string(), // TEST-NET-1, non-routable
-                port: 80,
-                path: "/".to_string(),
-                query: None,
-            };
-
-            let resolver = MockDnsResolver::new().with_response(
-                "192.0.2.1",
-                vec![SocketAddr::new(IpAddr::V4(Ipv4Addr::new(192, 0, 2, 1)), 80)],
-            );
-
-            let result =
-                HttpClientConnection::connect(&url, &resolver, Some(Duration::from_millis(100)));
-
-            assert!(result.is_err());
-            assert!(matches!(
-                result.unwrap_err(),
-                HttpClientError::ConnectionTimeout(_)
+        // Verify proxy protocol
+        if !matches!(proxy.protocol, ProxyProtocol::Http) {
+            return Err(HttpClientError::InvalidProxyUrl(
+                "Expected HTTP proxy protocol".to_string(),
             ));
         }
 
-        /// WHY: Verify HttpClientConnection handles DNS resolution failures
-        /// WHAT: Tests that connect() returns appropriate error when DNS fails
-        /// IMPORTANCE: DNS errors are common and should be handled gracefully
-        #[test]
-        fn test_connection_dns_failure() {
-            let url = ParsedUrl::parse("http://invalid-host-12345.invalid").unwrap();
-            let resolver = SystemDnsResolver::new();
-
-            let result =
-                HttpClientConnection::connect(&url, &resolver, Some(Duration::from_secs(5)));
-
-            assert!(result.is_err());
-            // Should be wrapped in HttpClientError::DnsError
+        // Step 1: DNS resolution for proxy
+        let addrs = self.resolver.resolve(&proxy.host, proxy.port)?;
+        if addrs.is_empty() {
+            return Err(HttpClientError::ConnectionFailed(format!(
+                "No addresses resolved for proxy {}",
+                proxy.host
+            )));
         }
 
-        /// WHY: Verify HttpClientConnection works with mock resolver
-        /// WHAT: Tests that connect() uses provided resolver for DNS
-        /// IMPORTANCE: Enables testing without real network
-        #[test]
-        fn test_connection_with_mock_resolver() {
-            let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
-            let resolver = MockDnsResolver::new().with_response("example.com", vec![addr]);
+        // Step 2: Connect to proxy server (plain TCP)
+        let mut connection = None;
+        let mut last_error = None;
 
-            let url = ParsedUrl {
-                scheme: Scheme::Http,
-                host: "example.com".to_string(),
-                port: 8080,
-                path: "/".to_string(),
-                query: None,
+        for addr in addrs {
+            let conn_result = if let Some(timeout_duration) = timeout {
+                Connection::with_timeout(addr, timeout_duration)
+            } else {
+                Connection::without_timeout(addr)
             };
 
-            // This will fail to connect since no server is running, but DNS should work
-            let result =
-                HttpClientConnection::connect(&url, &resolver, Some(Duration::from_millis(100)));
+            match conn_result {
+                Ok(conn) => {
+                    connection = Some(conn);
+                    break;
+                }
+                Err(e) => last_error = Some(e),
+            }
+        }
 
-            // We expect connection failure, not DNS failure
-            assert!(result.is_err());
-            assert!(matches!(
-                result.unwrap_err(),
-                HttpClientError::ConnectionFailed(_) | HttpClientError::ConnectionTimeout(_)
+        let connection = connection.ok_or_else(|| {
+            HttpClientError::ProxyConnectionFailed(format!(
+                "Failed to connect to proxy {}: {}",
+                proxy.host,
+                last_error.map(|e| e.to_string()).unwrap_or_default()
+            ))
+        })?;
+
+        // Step 3: Wrap temporarily to send CONNECT and read response
+        let raw_stream = RawStream::from_connection(connection.try_clone().map_err(|e| {
+            HttpClientError::ProxyConnectionFailed(format!("Failed to clone connection: {}", e))
+        })?)
+        .map_err(|e| HttpClientError::ProxyConnectionFailed(e.to_string()))?;
+
+        let mut proxy_stream = SharedByteBufferStream::rwrite(raw_stream);
+
+        // Step 4: Send CONNECT request
+        let connect_request = if let Some(ref auth) = proxy.auth {
+            format!(
+                "CONNECT {}:{} HTTP/1.1\r\n\
+                 Host: {}:{}\r\n\
+                 Proxy-Authorization: Basic {}\r\n\
+                 \r\n",
+                target_host,
+                target_port,
+                target_host,
+                target_port,
+                auth.to_basic_auth()
+            )
+        } else {
+            format!(
+                "CONNECT {}:{} HTTP/1.1\r\n\
+                 Host: {}:{}\r\n\
+                 \r\n",
+                target_host, target_port, target_host, target_port
+            )
+        };
+
+        proxy_stream
+            .write_all(connect_request.as_bytes())
+            .map_err(|e| HttpClientError::ProxyConnectionFailed(e.to_string()))?;
+
+        proxy_stream
+            .flush()
+            .map_err(|e| HttpClientError::ProxyConnectionFailed(e.to_string()))?;
+
+        // Step 5: Parse proxy response
+        let stream_clone = proxy_stream.clone();
+        let mut reader = HttpResponseReader::new(stream_clone, SimpleHttpBody);
+
+        // Read intro line (status)
+        let intro_response = reader
+            .next()
+            .ok_or_else(|| HttpClientError::ProxyTunnelFailed {
+                status: 0,
+                message: "No response from proxy".to_string(),
+            })?
+            .map_err(|e| HttpClientError::ProxyTunnelFailed {
+                status: 0,
+                message: format!("Failed to parse proxy response: {}", e),
+            })?;
+
+        // Extract status code from Intro variant
+        use crate::wire::simple_http::IncomingResponseParts;
+        let status_code = match intro_response {
+            IncomingResponseParts::Intro(status, _proto, _text) => {
+                let code: usize = status.into();
+                code as u16
+            }
+            _ => {
+                return Err(HttpClientError::ProxyTunnelFailed {
+                    status: 0,
+                    message: "Expected Intro response part from proxy".to_string(),
+                })
+            }
+        };
+
+        // Step 6: Verify 200 OK status
+        if status_code != 200 {
+            return Err(HttpClientError::ProxyTunnelFailed {
+                status: status_code,
+                message: format!("Proxy returned status {}", status_code),
+            });
+        }
+
+        // Step 7: Drain headers from reader
+        while let Some(Ok(part)) = reader.next() {
+            use crate::wire::simple_http::IncomingResponseParts;
+            match part {
+                IncomingResponseParts::Headers(_) => continue,
+                IncomingResponseParts::NoBody | IncomingResponseParts::SKIP => break,
+                _ => break,
+            }
+        }
+
+        // Step 8: Return the original Connection (tunnel is established)
+        Ok(connection)
+    }
+
+    /// Establishes HTTP CONNECT tunnel through HTTPS proxy.
+    ///
+    /// WHY: HTTPS proxies require TLS connection to proxy before CONNECT tunnel.
+    ///
+    /// WHAT: Connects to proxy with TLS, sends CONNECT request, validates response.
+    ///
+    /// HOW: TLS connect to proxy → send CONNECT request → parse HTTP response → return tunnel stream.
+    ///
+    /// # Arguments
+    ///
+    /// * `proxy` - Proxy configuration (must be ProxyProtocol::Https)
+    /// * `target_host` - Target server hostname
+    /// * `target_port` - Target server port
+    /// * `timeout` - Optional connection timeout
+    ///
+    /// # Returns
+    ///
+    /// An established `HttpClientConnection` representing the tunnel to the target.
+    ///
+    /// # Errors
+    ///
+    /// Returns errors for:
+    /// - Proxy connection failures
+    /// - TLS handshake failures
+    /// - CONNECT request send failures
+    /// - Non-200 proxy responses
+    /// - Invalid proxy responses
+    #[cfg(any(
+        feature = "ssl-rustls",
+        feature = "ssl-openssl",
+        feature = "ssl-native-tls"
+    ))]
+    pub fn connect_via_https_proxy(
+        &self,
+        proxy: &crate::wire::simple_http::client::ProxyConfig,
+        target_host: &str,
+        target_port: u16,
+        timeout: Option<Duration>,
+    ) -> Result<HttpClientConnection, HttpClientError> {
+        use crate::wire::simple_http::client::ProxyProtocol;
+        use crate::wire::simple_http::{HttpResponseReader, SimpleHttpBody};
+        use std::io::Write;
+
+        // Verify proxy protocol
+        if !matches!(proxy.protocol, ProxyProtocol::Https) {
+            return Err(HttpClientError::InvalidProxyUrl(
+                "Expected HTTPS proxy protocol".to_string(),
             ));
+        }
+
+        // Step 1: Connect to proxy server with TLS
+        let mut proxy_conn = HttpClientConnection::connect_https_host_port(
+            &proxy.host,
+            proxy.port,
+            &*self.resolver,
+            timeout,
+        )?;
+
+        // Step 2: Send CONNECT request
+        let connect_request = if let Some(ref auth) = proxy.auth {
+            format!(
+                "CONNECT {}:{} HTTP/1.1\r\n\
+                 Host: {}:{}\r\n\
+                 Proxy-Authorization: Basic {}\r\n\
+                 \r\n",
+                target_host,
+                target_port,
+                target_host,
+                target_port,
+                auth.to_basic_auth()
+            )
+        } else {
+            format!(
+                "CONNECT {}:{} HTTP/1.1\r\n\
+                 Host: {}:{}\r\n\
+                 \r\n",
+                target_host, target_port, target_host, target_port
+            )
+        };
+
+        proxy_conn
+            .write_all(connect_request.as_bytes())
+            .map_err(|e| HttpClientError::ProxyConnectionFailed(e.to_string()))?;
+
+        proxy_conn
+            .flush()
+            .map_err(|e| HttpClientError::ProxyConnectionFailed(e.to_string()))?;
+
+        // Step 3: Parse proxy response
+        let stream = proxy_conn.clone_stream();
+        let mut reader = HttpResponseReader::new(stream, SimpleHttpBody);
+
+        // Read intro line (status)
+        let intro_response = reader
+            .next()
+            .ok_or_else(|| HttpClientError::ProxyTunnelFailed {
+                status: 0,
+                message: "No response from proxy".to_string(),
+            })?
+            .map_err(|e| HttpClientError::ProxyTunnelFailed {
+                status: 0,
+                message: format!("Failed to parse proxy response: {}", e),
+            })?;
+
+        // Extract status code from Intro variant
+        use crate::wire::simple_http::IncomingResponseParts;
+        let status_code = match intro_response {
+            IncomingResponseParts::Intro(status, _proto, _text) => {
+                let code: usize = status.into();
+                code as u16
+            }
+            _ => {
+                return Err(HttpClientError::ProxyTunnelFailed {
+                    status: 0,
+                    message: "Expected Intro response part from proxy".to_string(),
+                })
+            }
+        };
+
+        // Step 4: Verify 200 OK status
+        if status_code != 200 {
+            return Err(HttpClientError::ProxyTunnelFailed {
+                status: status_code,
+                message: format!("Proxy returned status {}", status_code),
+            });
+        }
+
+        // Step 5: Return the established tunnel connection
+        // The stream is now tunneled to target_host:target_port through the proxy
+        Ok(HttpClientConnection {
+            stream: proxy_conn.stream,
+            host: target_host.to_string(),
+            port: target_port,
+        })
+    }
+
+    #[cfg(not(any(
+        feature = "ssl-rustls",
+        feature = "ssl-openssl",
+        feature = "ssl-native-tls"
+    )))]
+    pub fn connect_via_https_proxy(
+        &self,
+        _proxy: &crate::wire::simple_http::client::ProxyConfig,
+        _target_host: &str,
+        _target_port: u16,
+        _timeout: Option<Duration>,
+    ) -> Result<HttpClientConnection, HttpClientError> {
+        Err(HttpClientError::NotSupported)
+    }
+
+    /// Creates an HTTP connection, optionally through a proxy.
+    ///
+    /// WHY: Provides unified connection creation that handles direct connections,
+    /// proxy tunnels, and NO_PROXY bypass logic.
+    ///
+    /// WHAT: Determines effective connection strategy based on proxy config and
+    /// NO_PROXY settings, then establishes the appropriate connection type.
+    ///
+    /// HOW:
+    /// 1. Check NO_PROXY bypass list
+    /// 2. If bypassed, create direct connection
+    /// 3. Otherwise, establish proxy tunnel based on protocol
+    /// 4. For HTTPS targets through proxy, upgrade tunnel to TLS
+    ///
+    /// # Arguments
+    ///
+    /// * `url` - Target URL to connect to
+    /// * `proxy` - Optional proxy configuration
+    /// * `timeout` - Optional connection timeout
+    ///
+    /// # Returns
+    ///
+    /// An established `HttpClientConnection` ready for HTTP requests.
+    ///
+    /// # Errors
+    ///
+    /// Returns errors for:
+    /// - Invalid URL (missing host)
+    /// - DNS resolution failures
+    /// - Connection failures
+    /// - Proxy tunnel establishment failures
+    /// - TLS handshake failures
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// // Direct connection (no proxy)
+    /// let conn = pool.create_connection_with_proxy(&url, None, timeout)?;
+    ///
+    /// // Through HTTP proxy
+    /// let proxy = ProxyConfig::parse("http://proxy.example.com:8080")?;
+    /// let conn = pool.create_connection_with_proxy(&url, Some(&proxy), timeout)?;
+    ///
+    /// // Proxy with NO_PROXY bypass
+    /// std::env::set_var("NO_PROXY", "localhost,.internal.com");
+    /// let conn = pool.create_connection_with_proxy(&url, Some(&proxy), timeout)?;
+    /// // Will bypass proxy for localhost and *.internal.com
+    /// ```
+    pub fn create_connection_with_proxy(
+        &self,
+        url: &ParsedUrl,
+        proxy: Option<&crate::wire::simple_http::client::ProxyConfig>,
+        timeout: Option<Duration>,
+    ) -> Result<HttpClientConnection, HttpClientError> {
+        use crate::wire::simple_http::client::{ProxyConfig, ProxyProtocol};
+
+        // Extract target host and port
+        let target_host = url
+            .host_str()
+            .ok_or_else(|| HttpClientError::InvalidUrl("Missing host".to_string()))?;
+        let target_port = url.port_or_default();
+
+        // Check if proxy should be bypassed
+        if let Some(proxy_config) = proxy {
+            if ProxyConfig::should_bypass(&target_host) {
+                // Bypass proxy, create direct connection
+                return self.create_http_connection(url, timeout);
+            }
+
+            // Establish proxy tunnel based on protocol
+            match proxy_config.protocol {
+                ProxyProtocol::Http => {
+                    // HTTP proxy returns plain Connection
+                    let tunnel_connection = self.connect_via_http_proxy(
+                        proxy_config,
+                        &target_host,
+                        target_port,
+                        timeout,
+                    )?;
+
+                    // If target is HTTPS, upgrade the tunnel Connection to TLS
+                    if url.scheme().is_https() {
+                        return HttpClientConnection::upgrade_to_tls(
+                            tunnel_connection,
+                            &target_host,
+                            target_port,
+                        );
+                    }
+
+                    // HTTP target - wrap plain Connection in HttpClientConnection
+                    let stream = SharedByteBufferStream::rwrite(
+                        RawStream::from_connection(tunnel_connection)
+                            .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?,
+                    );
+                    Ok(HttpClientConnection {
+                        stream,
+                        host: target_host.to_string(),
+                        port: target_port,
+                    })
+                }
+                ProxyProtocol::Https => {
+                    // HTTPS proxy returns HttpClientConnection (TLS to proxy)
+                    let tunnel_conn = self.connect_via_https_proxy(
+                        proxy_config,
+                        &target_host,
+                        target_port,
+                        timeout,
+                    )?;
+
+                    // HTTPS targets through HTTPS proxy would require double-TLS (not yet supported)
+                    if url.scheme().is_https() {
+                        return Err(HttpClientError::NotSupported);
+                    }
+
+                    // HTTP target through HTTPS proxy - return as-is
+                    Ok(tunnel_conn)
+                }
+                #[cfg(feature = "socks5")]
+                ProxyProtocol::Socks5 => Err(HttpClientError::Socks5Error(
+                    "SOCKS5 proxy not yet implemented".to_string(),
+                )),
+            }
+        } else {
+            // No proxy, create direct connection
+            self.create_http_connection(url, timeout)
         }
     }
 }

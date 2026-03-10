@@ -1186,11 +1186,11 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
     }
 
     #[allow(unused)]
-    pub(crate) fn root() -> Self {
+    pub fn root() -> Self {
         Self::with_segment(SegmentType::Root)
     }
 
-    pub(crate) fn with_segment(segment: SegmentType<'a>) -> Self {
+    pub fn with_segment(segment: SegmentType<'a>) -> Self {
         Self {
             segment,
             dynamic_routes: Vec::new(),
@@ -1201,7 +1201,7 @@ impl<'a, R: Send + Clone, S: Send + Clone, Server: Servicer<R, S>> RouteSegment<
         }
     }
 
-    pub(crate) fn empty(segment: SegmentType<'a>) -> Self {
+    pub fn empty(segment: SegmentType<'a>) -> Self {
         Self {
             segment,
             dynamic_routes: Vec::new(),
