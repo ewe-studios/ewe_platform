@@ -632,60 +632,68 @@ where
 
             WebSocketState::Open { mut stream, ref delivery_queue, ref read_timeout } => {
                 trace!(state = "Open", "Reading WebSocket frame");
+                debug!("Delivery queue len: {}", delivery_queue.len());
 
                 // Check for outgoing messages in delivery queue first
-                if let Ok(outgoing) = delivery_queue.pop() {
-                    // Send outgoing message
-                    let frame = match outgoing {
-                        WebSocketMessage::ConnectionEstablished => None, // No frame to send
-                        WebSocketMessage::Text(text) => Some(WebSocketFrame {
-                            fin: true,
-                            opcode: Opcode::Text,
-                            mask: None,
-                            payload: text.into_bytes(),
-                        }),
-                        WebSocketMessage::Binary(data) => Some(WebSocketFrame {
-                            fin: true,
-                            opcode: Opcode::Binary,
-                            mask: None,
-                            payload: data,
-                        }),
-                        WebSocketMessage::Ping(data) => Some(WebSocketFrame {
-                            fin: true,
-                            opcode: Opcode::Ping,
-                            mask: None,
-                            payload: data,
-                        }),
-                        WebSocketMessage::Pong(data) => Some(WebSocketFrame {
-                            fin: true,
-                            opcode: Opcode::Pong,
-                            mask: None,
-                            payload: data,
-                        }),
-                        WebSocketMessage::Close(code, reason) => {
-                            let mut payload = code.to_be_bytes().to_vec();
-                            payload.extend_from_slice(reason.as_bytes());
-                            Some(WebSocketFrame {
+                match delivery_queue.pop() {
+                    Ok(outgoing) => {
+                        debug!("Popped message from delivery queue: {:?}", outgoing);
+                        // Send outgoing message
+                        let frame = match outgoing {
+                            WebSocketMessage::ConnectionEstablished => None, // No frame to send
+                            WebSocketMessage::Text(text) => Some(WebSocketFrame {
                                 fin: true,
-                                opcode: Opcode::Close,
+                                opcode: Opcode::Text,
                                 mask: None,
-                                payload,
-                            })
+                                payload: text.into_bytes(),
+                            }),
+                            WebSocketMessage::Binary(data) => Some(WebSocketFrame {
+                                fin: true,
+                                opcode: Opcode::Binary,
+                                mask: None,
+                                payload: data,
+                            }),
+                            WebSocketMessage::Ping(data) => Some(WebSocketFrame {
+                                fin: true,
+                                opcode: Opcode::Ping,
+                                mask: None,
+                                payload: data,
+                            }),
+                            WebSocketMessage::Pong(data) => Some(WebSocketFrame {
+                                fin: true,
+                                opcode: Opcode::Pong,
+                                mask: None,
+                                payload: data,
+                            }),
+                            WebSocketMessage::Close(code, reason) => {
+                                let mut payload = code.to_be_bytes().to_vec();
+                                payload.extend_from_slice(reason.as_bytes());
+                                Some(WebSocketFrame {
+                                    fin: true,
+                                    opcode: Opcode::Close,
+                                    mask: None,
+                                    payload,
+                                })
+                            }
+                        };
+
+                        if let Some(frame) = frame {
+                            let _ = stream.write_all(&frame.encode());
+                            let _ = stream.flush();
+                            debug!("Sent frame to server: opcode={:?}", frame.opcode);
                         }
-                    };
 
-                    if let Some(frame) = frame {
-                        let _ = stream.write_all(&frame.encode());
-                        let _ = stream.flush();
+                        // Stay in Open state
+                        self.state = Some(WebSocketState::Open {
+                            stream,
+                            delivery_queue: delivery_queue.clone(),
+                            read_timeout: *read_timeout,
+                        });
+                        return Some(TaskStatus::Pending(WebSocketProgress::Reading));
                     }
-
-                    // Stay in Open state
-                    self.state = Some(WebSocketState::Open {
-                        stream,
-                        delivery_queue: delivery_queue.clone(),
-                        read_timeout: *read_timeout,
-                    });
-                    return Some(TaskStatus::Pending(WebSocketProgress::Reading));
+                    Err(_) => {
+                        debug!("Delivery queue empty or disconnected");
+                    }
                 }
 
                 // Read ONE frame per next() call
