@@ -308,7 +308,9 @@ where
                 // Use HttpConnectionPool to establish connection (handles DNS + TLS)
                 let Ok(connection) = self.pool.create_http_connection(&url, None) else {
                     error!("Failed to establish HTTP connection");
-                    self.state = Some(EventSourceState::Closed(EventSourceCloseReason::ConnectionError));
+                    self.state = Some(EventSourceState::Closed(
+                        EventSourceCloseReason::ConnectionError,
+                    ));
                     return None;
                 };
 
@@ -352,7 +354,9 @@ where
                             "Idle timeout exceeded"
                         );
                         // Idle timeout exceeded - close connection for reconnection
-                        self.state = Some(EventSourceState::Closed(EventSourceCloseReason::IdleTimeout));
+                        self.state = Some(EventSourceState::Closed(
+                            EventSourceCloseReason::IdleTimeout,
+                        ));
                         return None;
                     }
                 }
@@ -376,7 +380,8 @@ where
                     Some(Err(e)) => {
                         error!(error = ?e, "SSE parse error");
                         // I/O or parse error - close the connection
-                        self.state = Some(EventSourceState::Closed(EventSourceCloseReason::ParseError));
+                        self.state =
+                            Some(EventSourceState::Closed(EventSourceCloseReason::ParseError));
                         None
                     }
                     None => {

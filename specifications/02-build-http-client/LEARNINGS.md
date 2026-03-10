@@ -30,6 +30,153 @@
 - Compression feature gates: flate2 provides both gzip and deflate decoders. Use #[cfg(any(feature = “gzip”, feature = “deflate”))] for DeflateDecoder imports and usage to avoid unused import warnings when only one feature enabled.
 - Brotli decompressor needs buffer size parameter (4096 works well): BrotliDecoder::new(inner, 4096)
 
+## Valtron TaskIterator Patterns
+
+### Core Principle: TaskIterator-ONLY with Executor Boundaries
+
+All client features (SSE, WebSocket, etc.) MUST use `TaskIterator` as the core API. TaskIterator is a pure state machine — NO loops in `next()`, ONE step per call.
+
+**Correct architecture:**
+```
+TaskIterator (pure state machine)
+    ↓
+unified::execute_stream() / unified::execute()  ← EXECUTOR BOUNDARY
+    ↓
+DrivenStreamIterator / DrivenRecvIterator (executor-driven)
+    ↓
+Consumer wrapper (optional - encapsulates valtron details)
+```
+
+### State Machine Pattern
+
+```rust
+// Task wraps state in Option for termination
+pub struct MyTask(Option<MyState>);
+
+enum MyState {
+    Init(Option<Box<MyConfig>>),
+    Working(WorkingData),
+    Closed,
+}
+
+impl TaskIterator for MyTask {
+    type Ready = Result<MyOutput, MyError>;
+    type Pending = MyPending;
+    type Spawner = BoxedSendExecutionAction;
+
+    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        match self.0.take()? {
+            // ONE step only - NO LOOPS
+            // Data moved between states, not cloned
+        }
+    }
+}
+```
+
+**Key rules:**
+1. `struct Task(Option<State>)` — Option wrapper for termination
+2. State variants hold `Option<Box<...>>` — data carried between states
+3. `self.0.take()?` — take state, return None if done
+4. NO LOOPS in `next()` — state machine is step-wise
+5. Data MOVED between states — not cloned
+
+### Consumer Wrapper Pattern (Executor Boundary)
+
+**WRONG — bypasses executor:**
+```rust
+// DO NOT wrap TaskIterator directly in impl Iterator
+impl Iterator for MyWrapper {
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.task.next() { ... }  // BYPASSES EXECUTOR!
+    }
+}
+```
+
+**CORRECT — use unified::execute_stream():**
+```rust
+pub struct MyClient {
+    inner: DrivenStreamIterator<MyTask>,
+}
+
+impl MyClient {
+    pub fn connect(...) -> Result<Self, MyError> {
+        let task = MyTask::connect(...)?;
+        let inner = unified::execute_stream(task, None)?;
+        Ok(Self { inner })
+    }
+}
+
+// Wrapping DrivenStreamIterator is VALID (already executor-driven)
+impl Iterator for MyClient {
+    type Item = Result<MyOutput, MyError>;
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            match self.inner.next()? {
+                Stream::Next(result) => return Some(Ok(result)),
+                Stream::Init | Stream::Ignore => continue,
+                Stream::Delayed(_) | Stream::Pending(_) => continue,
+            }
+        }
+    }
+}
+```
+
+**Why the executor boundary matters:**
+- `TaskStatus::Spawn` — executor schedules sub-tasks; manual wrappers can't handle this
+- `TaskStatus::Delayed(duration)` — executor respects timing; manual wrappers busy-loop
+- `TaskStatus::Pending` — executor polls efficiently; manual wrappers waste CPU
+
+### Connection Failure Handling
+
+Connection failures must transition through intermediate states so tests can observe the failure progression:
+
+```rust
+// WRONG: Return None immediately on failure
+let Ok(conn) = Connection::without_timeout(*addr) else {
+    return None;  // Test can't observe the attempt
+};
+
+// CORRECT: Transition to intermediate state, return Pending first
+let Ok(conn) = Connection::without_timeout(*addr) else {
+    self.0 = Some(MyState::Connecting);
+    return Some(TaskStatus::Pending(MyPending::Connecting));
+};
+```
+
+### Reference Files
+
+- `wire/simple_http/client/tasks/send_request.rs` — canonical TaskIterator pattern
+- `wire/simple_http/client/tasks/request_redirect.rs` — redirect handling
+- `valtron/executors/unified.rs` — `execute()`, `execute_stream()` boundary functions
+- `valtron/executors/drivers.rs` — `DrivenRecvIterator`, `DrivenStreamIterator`
+- `valtron/task.rs` — `TaskIterator` trait, `TaskStatus` variants
+
+### HttpConnectionPool Integration
+
+Use `HttpConnectionPool::create_http_connection()` instead of manual DNS/Connection:
+```rust
+// Instead of manual: resolver.resolve() → Connection::without_timeout() → RawStream
+let connection = pool.create_http_connection(&url, None)?;
+let stream = connection.clone_stream();
+```
+
+Benefits: code reduction, automatic TLS handling, DNS caching, connection pooling.
+
+### Request Builder Selection
+
+- **`SimpleIncomingRequestBuilder`** — for protocol upgrades (WebSocket, SSE) where connection is already established
+- **`ClientRequestBuilder`** — for new HTTP client requests needing connection management and DNS
+
+### Tracing Requirements
+
+All components MUST use the `tracing` crate:
+- `trace!` — raw byte reads, field parsing
+- `debug!` — state transitions, connection events
+- `info!` — connection established, reconnection attempt
+- `warn!` — retry attempt, slow response
+- `error!` — connection failure, parse error
+- All tests MUST use `#[traced_test]` attribute
+
 ## Dependencies and Interactions
 - This project is strictly synchronous per stack standards; async/await dependencies must be disallowed at review.
 
@@ -626,6 +773,217 @@ This approach reduced implementation from 6-8 weeks to 2-3 weeks by discovering 
 
 ---
 
+## WebSocket Feature Implementation (2026-03-10)
+
+### 10. Comprehensive Protocol Documentation - Leave No Detail Unclear
+
+**Key Insight**: Protocol implementations require exhaustive documentation of every byte, state transition, and error condition. Ambiguity leads to bugs.
+
+**What We Did**:
+- Created comprehensive `feature.md` with complete RFC 6455 specification reference
+- Added byte-level frame format documentation with exact bit positions
+- Included test vectors from RFC 6455 Section 1.3
+- Documented all close codes with sendable/not-sendable distinctions
+- Added complete error recovery matrix specifying exact behavior for each error type
+
+**Documentation Structure**:
+1. **Protocol Overview** — Key characteristics, compliance requirements table
+2. **Existing Infrastructure** — What can be reused (~80% exists)
+3. **Architectural Principles** — TaskIterator pattern, executor boundary
+4. **Protocol Reference** — Complete RFC 6455 section-by-section breakdown
+5. **Type Definitions** — All structs, enums, error types
+6. **Implementation Details** — Code examples for encoding/decoding
+7. **Implementation Phases** — Phased rollout with success criteria
+8. **Testing Strategy** — Unit and integration test coverage
+9. **References** — RFC sections, test vectors, implementation resources
+10. **Appendix** — Byte-level specs, state transitions, threading model
+
+**Why This Matters**:
+- WebSocket has subtle requirements (masking, fragmentation, control frame rules)
+- Protocol violations cause interoperability failures
+- Clear documentation prevents re-implementation and second-guessing
+- Test vectors ensure correct implementation from the start
+
+### 11. TaskIterator State Machine Design — Critical Rules
+
+**Key Insight**: TaskIterator implementations MUST follow strict patterns. Violations cause executor bypass, busy-loops, or broken sub-task handling.
+
+**Critical Rules**:
+
+1. **NO LOOPS in `next()`**
+```rust
+// WRONG: Loop violates TaskIterator contract
+fn next(&mut self) -> Option<TaskStatus<...>> {
+    loop {  // DO NOT DO THIS
+        match frame.decode() {
+            Ok(msg) => return Some(TaskStatus::Ready(msg)),
+            Err(WouldBlock) => continue,
+        }
+    }
+}
+
+// CORRECT: ONE step per call
+fn next(&mut self) -> Option<TaskStatus<...>> {
+    match self.state.take()? {
+        State::Reading => {
+            match frame.decode() {
+                Ok(msg) => {
+                    self.state = Some(State::Reading);
+                    return Some(TaskStatus::Ready(msg));
+                }
+                Err(WouldBlock) => {
+                    self.state = Some(State::Reading);
+                    return Some(TaskStatus::Pending(WebSocketPending::Reading));
+                }
+            }
+        }
+    }
+}
+```
+
+2. **Executor Boundary via `execute_stream()`**
+```rust
+// WRONG: Direct wrapping bypasses executor
+pub struct BadWrapper {
+    task: WebSocketTask,
+}
+impl Iterator for BadWrapper { /* bypasses executor */ }
+
+// CORRECT: Use executor boundary
+pub struct WebSocketClient {
+    inner: DrivenStreamIterator<WebSocketTask>,
+}
+impl WebSocketClient {
+    pub fn connect(url: &str) -> Result<Self, WebSocketError> {
+        let task = WebSocketTask::connect(url)?;
+        let inner = execute_stream(task, None)?;  // Executor boundary
+        Ok(Self { inner })
+    }
+}
+```
+
+3. **State Carries ALL Data**
+```rust
+// State variants hold Option<Box<...>> to carry data
+enum WebSocketState {
+    Init(Option<Box<ConnectInfo>>),
+    Connecting(Box<ConnectingData>),
+    Handshake(Box<HandshakeState>),
+    Open(WebSocketStream),
+    Closed,
+}
+
+// Data moves between states, not cloned
+HandshakeState::BuildingRequest(info) => {
+    // info is MOVED, not cloned
+    let request_bytes = build_request(info)?;
+    return Some(TaskStatus::Pending(HandshakeSending));
+}
+```
+
+4. **Connection Failure Pattern — Use Intermediate States**
+```rust
+// WRONG: Return None immediately, test can't observe failure
+let Ok(conn) = pool.create_http_connection(&url) else {
+    return None;  // Can't observe this in tests
+};
+
+// CORRECT: Transition through intermediate state
+let Ok(conn) = pool.create_http_connection(&url) else {
+    self.state = Some(WebSocketState::ConnectionFailed);
+    return Some(TaskStatus::Pending(WebSocketPending::Connecting));
+};
+```
+
+### 12. WebSocket-Specific Protocol Requirements
+
+**Masking — Non-Negotiable**:
+- Clients MUST mask all outgoing frames (XOR with random 4-byte key)
+- Servers MUST reject unmasked client frames with Close 1002
+- Servers MUST NOT mask outgoing frames
+- Clients MUST reject masked server frames
+- Masking is its own inverse: `apply_mask(apply_mask(data, mask), mask) == data`
+
+**Fragmentation Rules**:
+- Data frames CAN be fragmented (FIN=0 for non-final fragments)
+- Control frames MUST NOT be fragmented (FIN must always be 1)
+- Control frames can be interleaved between data fragments
+- First data frame has opcode (Text/Binary), continuations use Continuation (0x0)
+
+**UTF-8 Validation**:
+- Text frames MUST contain valid UTF-8
+- Invalid UTF-8 → Close with 1007, no need to wait for response
+- Validate on RECEPTION, not transmission (sender may not validate)
+
+**Close Handshake**:
+- Close frame contains 2-byte big-endian code + optional UTF-8 reason
+- After sending Close, MUST NOT send data frames (control frames OK)
+- After receiving Close, MUST send Close response (echo code if possible)
+- Sender of first Close should let receiver close TCP connection
+- Timeout waiting for Close response is acceptable (force TCP close)
+
+**Close Code Restrictions**:
+- 1004, 1005, 1006, 1015 MUST NOT be sent in Close frames
+- 1005 = "No Status Received" (internal use only)
+- 1006 = "Abnormal Closure" (internal use only)
+- 1015 = "TLS Handshake Failure" (internal use only)
+
+### 13. Reusable Infrastructure Discovery
+
+**Already Available**:
+- `SimpleHeader::SEC_WEBSOCKET_*` — All WebSocket headers defined
+- `Status::SwitchingProtocols` — 101 status code
+- `HttpClientConnection` — TCP/TLS connection wrapper
+- `SharedByteBufferStream` — Cloneable, buffered Read/Write
+- `SimpleIncomingRequestBuilder` — Build upgrade request
+- `HttpResponseReader` — Parse 101 response
+- `HttpConnectionPool` — Connection management, DNS caching
+- `TaskIterator` — State machine pattern
+- `execute_stream()` — Executor boundary
+- `ExponentialBackoffDecider` — Reconnection backoff (Phase 2)
+
+**New Dependencies**:
+- `sha1 = "0.10"` — Accept key computation
+- `rand = "0.8"` — Masking key generation
+- `base64 = "0.21"` — Key encoding
+
+**URL Scheme Extension Required**:
+```rust
+// Add to simple_http/url/scheme.rs
+pub enum Scheme {
+    Http,
+    Https,
+    Ws,    // NEW - ws://
+    Wss,   // NEW - wss://
+    Custom(String),
+}
+```
+
+### 14. Testing Requirements
+
+**All Tests Must**:
+- Use `#[traced_test]` attribute for logging
+- Test with `cargo test --package ewe_platform_tests -- websocket`
+- Cover both `ws://` and `wss://` schemes
+- Validate masking behavior (client masks, server doesn't)
+- Test fragmentation (single-frame and multi-frame messages)
+- Test control frame interleaving
+- Test close handshake (both directions)
+- Test UTF-8 validation (accept valid, reject invalid)
+
+**Test Coverage Matrix**:
+
+| Test Category | Specific Tests |
+|---------------|----------------|
+| Frame encode/decode | All opcodes, 3 payload lengths, masked/unmasked |
+| Control frames | Ping/Pong auto-response, Close parsing |
+| Fragmentation | Single, multi-frame, interleaved control |
+| Handshake | Key generation, accept validation, header checks |
+| Errors | Invalid frames, UTF-8, masking violations |
+| Integration | Echo server, TLS, large messages |
+
+---
+
 *2026-02-28: Added a reminder from .agents/skills/rust-clean-code/implementation/skill.md—SYNC ONLY: Do not use async/await or tokio in client or test code for this spec. All patterns must follow synchronous design and Rust Clean Code rules only.*
 
 *2026-02-28: "sync" is not a Cargo feature for this project. The codebase is synchronous by design and standards; never attempt to toggle or test with a sync feature. All code, tests, and runners assume sync-by-default.*
@@ -635,6 +993,8 @@ This approach reduced implementation from 6-8 weeks to 2-3 weeks by discovering 
 *2026-03-03: Added comprehensive HTTP proxy support learnings covering multiple connection paths, architecture patterns, TLS upgrade reuse, environment variables, and state machine configuration.*
 
 *2026-03-03: Added WebSocket request builder selection learning covering the distinction between ClientRequestBuilder (high-level, connection management) and SimpleIncomingRequestBuilder (low-level, message building).*
+
+*2026-03-10: Added comprehensive WebSocket feature implementation learnings covering protocol documentation, TaskIterator patterns, masking requirements, fragmentation rules, close handshake, and testing requirements.*
 
 *2026-03-03: Added Server-Sent Events feature creation learning covering infrastructure audit methodology, component discovery, composition over duplication, and effort reduction from 6-8 weeks to 2-3 weeks through 80% code reuse.*
 

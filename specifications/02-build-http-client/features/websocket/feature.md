@@ -4,134 +4,737 @@ spec_directory: "specifications/02-build-http-client"
 feature_directory: "specifications/02-build-http-client/features/websocket"
 this_file: "specifications/02-build-http-client/features/websocket/feature.md"
 
-status: pending
+status: in_progress
 priority: low
 created: 2026-02-28
-updated: 2026-03-03
+updated: 2026-03-10
 
 depends_on:
   - connection
   - public-api
 
 tasks:
-  completed: 0
+  completed: 4
   uncompleted: 3
-  total: 3
-  completion_percentage: 0
+  total: 7
+  completion_percentage: 57
 ---
 
+# WebSocket Feature Specification (RFC 6455)
 
-# WebSocket Feature
+## Table of Contents
 
-## Overview
+1. [Overview](#1-overview)
+2. [Dependencies and Existing Infrastructure](#2-dependencies-and-existing-infrastructure)
+3. [Architectural Principles](#3-architectural-principles)
+4. [WebSocket Protocol Reference (RFC 6455)](#4-websocket-protocol-reference-rfc-6455)
+5. [Client API](#5-client-api)
+6. [Server API](#6-server-api)
+7. [Type Definitions](#7-type-definitions)
+8. [Implementation Details](#8-implementation-details)
+9. [Implementation Phases](#9-implementation-phases)
+10. [Testing Strategy](#10-testing-strategy)
+11. [Notes for Implementation Agents](#11-notes-for-implementation-agents)
+12. [References](#12-references)
 
-Add WebSocket protocol support (RFC 6455) to the HTTP client, including both client (connect to WebSocket servers) and server (accept WebSocket upgrades) capabilities. This feature implements the WebSocket handshake, frame-based messaging, and integrates with the existing TLS infrastructure.
+---
 
-**IMPORTANT**: See [ARCHITECTURE.md](./ARCHITECTURE.md) for comprehensive analysis of existing infrastructure, design patterns, and detailed implementation guidance.
+## 1. Overview
 
-## Dependencies
+Add WebSocket protocol support (RFC 6455) to the `foundation_core` wire module, including both client (connect to WebSocket servers) and server (accept WebSocket upgrades) capabilities. WebSocket provides full-duplex communication over a single TCP connection through:
 
-This feature depends on:
-- `connection` - Uses `HttpClientConnection` for TCP/TLS connections
-- `public-api` - Uses client infrastructure (`ClientRequestBuilder`, response handling)
-- **Existing infrastructure** (already available):
-  - `SimpleHeader::SEC_WEBSOCKET_*` headers (already defined in `simple_http/impls.rs`)
-  - `Status::SwitchingProtocols` (101 status code already defined)
-  - `SharedByteBufferStream<RawStream>` for frame I/O
-  - `Uri` URL parsing (needs extension for `ws://` and `wss://` schemes)
-  - `TaskIterator` trait from `valtron` (for Phase 2 non-blocking operations)
+1. **Opening Handshake** — HTTP/1.1 Upgrade mechanism with key exchange
+2. **Data Transfer** — Frame-based binary protocol with masking and fragmentation
+3. **Closing Handshake** — Bidirectional close frame exchange
 
-This feature is required by:
-- None (end-user feature)
+### Key Characteristics
+
+- **Full-duplex**: Both endpoints can send and receive simultaneously
+- **Framed protocol**: Messages are split into frames with explicit boundaries
+- **Masked**: Client-to-server frames MUST be masked (XOR with random 4-byte key)
+- **Fragmentation support**: Large messages can span multiple frames
+- **Control frames**: Ping/Pong for keepalive, Close for graceful shutdown
+- **Subprotocol negotiation**: Optional application-layer protocol selection
+- **Extension support**: Optional compression and other extensions
+
+### RFC 6455 Compliance Requirements
+
+| Requirement | Client | Server |
+|-------------|--------|--------|
+| Mask outgoing frames | MUST | MUST NOT |
+| Reject unmasked incoming | MUST | MUST (close 1002) |
+| Reject masked incoming | MUST (close 1002) | MUST NOT receive |
+| Support fragmentation | MUST | MUST |
+| Auto-respond to Ping | MUST | MUST |
+| Send Pong with same data | MUST | MUST |
+| Validate UTF-8 in Text | MUST | MUST |
+| Close on invalid UTF-8 | MUST (1007) | MUST (1007) |
+| Support close codes | MUST | MUST |
+| Validate Upgrade header | MUST | MUST |
+| Compute Accept key | Client computes & validates | Server computes |
+
+---
+
+## 2. Dependencies and Existing Infrastructure
+
+### Feature Dependencies
+
+- `connection` — Uses `HttpClientConnection` for TCP/TLS connections
+- `public-api` — Uses client infrastructure
+
+### Existing Infrastructure Analysis
+
+The `foundation_core` wire module provides excellent infrastructure for WebSocket implementation. ~80% of required infrastructure already exists.
+
+#### 2.1 Connection Stack
+
+```
+HttpClientConnection
+    └─> SharedByteBufferStream<RawStream>
+            └─> RawStream (enum)
+                    ├─> TCP (std::net::TcpStream)
+                    └─> TLS (ClientSSLStream)
+```
+
+**Key characteristics:**
+- `SharedByteBufferStream` provides `Arc<Mutex<BufferedStream<T>>>` for cloneable, thread-safe access
+- Implements `Read + Write + BufRead`
+- Supports setting read/write timeouts via `ReadTimeoutOperations` trait
+- Can be used directly for WebSocket frame I/O after handshake
+- Clone stream allows parallel read/write operations
+
+#### 2.2 Wire Module Structure
+
+```
+backends/foundation_core/src/wire/
+├── mod.rs                  # Module exports
+├── simple_http/            # HTTP/1.1 implementation
+│   ├── mod.rs
+│   ├── errors.rs           # Error types
+│   ├── impls.rs            # Core types (SimpleHeader, SimpleMethod, Status, Body)
+│   ├── url/                # URL parsing (Uri, Scheme, Authority)
+│   └── client/             # HTTP client implementation
+│       ├── connection.rs   # HttpClientConnection, TLS upgrade
+│       ├── pool.rs         # Connection pooling
+│       ├── dns.rs          # DNS resolution
+│       ├── request.rs      # Request building
+│       ├── tasks/          # TaskIterator-based request execution
+│       │   ├── send_request.rs    # Main request task (CANONICAL EXAMPLE)
+│       │   └── ...
+│       └── tls_task.rs     # TLS handshake tasks
+├── event_source/           # Server-Sent Events — REFERENCE IMPLEMENTATION
+└── websocket/              # WebSocket protocol (NEW)
+    ├── mod.rs              # Public API
+    ├── frame.rs            # Frame encoding/decoding
+    ├── handshake.rs        # HTTP upgrade handshake
+    ├── task.rs             # WebSocketTask (TaskIterator)
+    ├── connection.rs       # WebSocketConnection + WebSocketClient
+    ├── message.rs          # WebSocketMessage + MessageAssembler
+    └── error.rs            # WebSocketError + FrameError
+```
+
+#### 2.3 Reusable Components
+
+| Component | Source File | WebSocket Usage |
+|-----------|-------------|-----------------|
+| `SimpleHeader::SEC_WEBSOCKET_ACCEPT` | `simple_http/impls.rs` | Handshake validation |
+| `SimpleHeader::SEC_WEBSOCKET_EXTENSIONS` | `simple_http/impls.rs` | Extension negotiation |
+| `SimpleHeader::SEC_WEBSOCKET_KEY` | `simple_http/impls.rs` | Client key header |
+| `SimpleHeader::SEC_WEBSOCKET_PROTOCOL` | `simple_http/impls.rs` | Subprotocol negotiation |
+| `SimpleHeader::SEC_WEBSOCKET_VERSION` | `simple_http/impls.rs` | Version header |
+| `SimpleHeader::UPGRADE` | `simple_http/impls.rs` | Upgrade header |
+| `SimpleHeader::CONNECTION` | `simple_http/impls.rs` | Connection header |
+| `SimpleHeader::HOST` | `simple_http/impls.rs` | Host header |
+| `Status::SwitchingProtocols` | `simple_http/impls.rs` | 101 status validation |
+| `HttpClientConnection` | `simple_http/client/connection.rs` | TCP/TLS connection wrapper |
+| `SharedByteBufferStream<RawStream>` | `io/ioutils/mod.rs` | Frame I/O after handshake |
+| `SimpleIncomingRequestBuilder` | `simple_http/impls.rs` | Build HTTP upgrade request |
+| `SimpleIncomingResponse` | `simple_http/impls.rs` | Build HTTP upgrade response (server) |
+| `HttpResponseReader` | `simple_http/impls.rs` | Parse 101 response |
+| `Http11::request().http_render()` | `simple_http/impls.rs` | Render HTTP request bytes |
+| `Http11::response().http_render()` | `simple_http/impls.rs` | Render HTTP response bytes |
+| `HttpConnectionPool` | `simple_http/client/pool.rs` | Connection management, DNS caching |
+| `Uri` | `simple_http/url/mod.rs` | URL parsing (extend for `ws://`/`wss://`) |
+| `Scheme` | `simple_http/url/scheme.rs` | Extend for Ws, Wss variants |
+| `DnsResolver` | `simple_http/client/dns.rs` | Hostname resolution |
+| `TaskIterator` | `valtron/task.rs` | Core state machine pattern |
+| `TaskStatus` | `valtron/task.rs` | State machine return type |
+| `Stream` | `synca/mpp.rs` | Simplified stream values |
+| `execute_stream()` | `valtron/executors/unified.rs` | Executor boundary function |
+| `DrivenStreamIterator` | `valtron/executors/drivers.rs` | Executor-driven iterator |
+| `ExponentialBackoffDecider` | `retries/exponential.rs` | Reconnection backoff |
+| `BoxedSendExecutionAction` | `valtron/task.rs` | Spawner type for sub-tasks |
+
+#### 2.4 HTTP Response Reading
+
+Responses are read as an iterator over `IncomingResponseParts`:
+
+```rust
+pub enum IncomingResponseParts {
+    Intro(Status, Proto, String),  // Status line
+    Headers(SimpleHeaders),         // Headers
+    SizedBody(SendSafeBody),       // Content-Length body
+    StreamedBody(SendSafeBody),    // Chunked/streamed body
+    NoBody,
+    SKIP,
+}
+```
+
+**Critical insight for WebSocket**: After receiving `Status::SwitchingProtocols` (101) and validating headers, we take ownership of the underlying `SharedByteBufferStream<RawStream>` and use it directly for WebSocket frame I/O.
+
+#### 2.5 TLS Support
+
+From `client/connection.rs`:
+
+```rust
+#[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
+fn upgrade_to_tls(
+    connection: Connection,
+    host: &str,
+    port: u16,
+) -> Result<HttpClientConnection, HttpClientError> {
+    let connector = SSLConnector::new();
+    let (tls_stream, _addr) = connector
+        .from_tcp_stream(host.to_string(), connection)
+        .map_err(|e| HttpClientError::TlsHandshakeFailed(e.to_string()))?;
+
+    let stream = SharedByteBufferStream::rwrite(
+        RawStream::from_client_tls(tls_stream)?
+    );
+
+    Ok(HttpClientConnection { stream, host, port })
+}
+```
+
+**Key takeaway for `wss://`**: TLS handshake happens BEFORE WebSocket handshake:
+1. Connect TCP
+2. Upgrade to TLS (reuse existing `HttpClientConnection` infrastructure)
+3. Perform HTTP upgrade handshake over TLS connection
+4. Start WebSocket framing over the TLS stream
 
 ### New Dependencies Required
 
-Add to `Cargo.toml`:
 ```toml
 [dependencies]
-sha1 = "0.10"          # For Sec-WebSocket-Accept computation
+sha1 = "0.10"          # For Sec-WebSocket-Accept computation (SHA-1 hash)
 rand = "0.8"           # For masking key generation (client frames)
 base64 = "0.21"        # For base64 encoding/decoding of keys
 ```
 
-## Requirements
+**Why these specific versions:**
+- `sha1 = "0.10"`: Provides `Sha1::digest()` and `Digest` trait
+- `rand = "0.8"`: Provides `rand::random()` for cryptographically-secure random bytes
+- `base64 = "0.21"`: Provides `Engine` trait with `STANDARD` encoding
 
-### Architectural Principle: TaskIterator with DrivenSendTaskIterator Wrappers
+---
 
-**CRITICAL:** All WebSocket client implementations MUST use TaskIterator as the core pattern with `DrivenSendTaskIterator` for blocking wrappers. The TaskIterator is a pure state machine with NO loops - execution driving happens in the wrapper.
+## 3. Architectural Principles
 
-**Design Hierarchy:**
-1. **TaskIterator (Core)** - Pure state machine, ONE step per `next()` call, NO loops
-2. **Plain Iterator (Internal)** - Used internally for frame parsing, wrapped by TaskIterator
-3. **DrivenSendTaskIterator (Wrapper)** - Handles execution driving via `run_until_next_state()`
-4. **Blocking Iterator API (Convenience)** - Wraps DrivenSendTaskIterator, extracts Ready values
+### 3.1 TaskIterator with Executor Boundary
 
-### WebSocket Client (TaskIterator - Core API)
+**CRITICAL**: All WebSocket client implementations MUST use `TaskIterator` as the core pattern with `unified::execute_stream()` as the executor boundary. See `specifications/02-build-http-client/LEARNINGS.md` for full valtron pattern reference.
 
-Connect to WebSocket servers using TaskIterator:
+#### Exact Valtron Types (from source)
 
+**TaskIterator trait** (`valtron/task.rs`):
 ```rust
-use foundation_core::wire::websocket::WebSocketTask;
-use foundation_core::valtron::{TaskIterator, TaskStatus};
+pub trait TaskIterator {
+    type Pending;                    // State during async operations
+    type Ready;                      // Completed result type
+    type Spawner: ExecutionAction;   // For spawning sub-tasks
 
-// Create WebSocket task - this is the core API
-let mut task = WebSocketTask::connect("wss://example.com/ws")?
-    .subprotocol("graphql-ws");
+    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>>;
+}
+```
 
-// Use with valtron executor
-loop {
-    match task.next() {
-        Some(TaskStatus::Ready(result)) => {
-            match result {
-                Ok(WebSocketMessage::Text(text)) => println!("{}", text),
-                Ok(WebSocketMessage::Binary(data)) => handle_binary(data),
-                Ok(WebSocketMessage::Ping(data)) => {
-                    // Auto-respond with pong
-                    task.pong(data)?;
-                }
-                Ok(WebSocketMessage::Close(code, reason)) => {
-                    println!("Closed: {} - {}", code, reason);
-                    break;
-                }
-                Err(e) => eprintln!("WebSocket Error: {:?}", e),
-            }
-        }
-        Some(TaskStatus::Pending(progress)) => {
-            // Task is working - do other work or wait
-        }
-        Some(TaskStatus::Delayed(duration)) => {
-            // Reconnection backoff - executor handles delay
-        }
-        Some(TaskStatus::Spawn(action)) => {
-            // Executor spawns sub-task (e.g., connection task)
-            executor.spawn(action)?;
-        }
-        None => {
-            // Task complete (connection closed)
-            break;
+**TaskStatus enum** (`valtron/task.rs`):
+```rust
+pub enum TaskStatus<D, P, S: ExecutionAction> {
+    /// Delay continued operation.
+    Delayed(time::Duration),
+    /// Spawn a new sub-task.
+    Spawn(S),
+    /// Still processing, not ready yet.
+    Pending(P),
+    /// Middle-point state (e.g. reconnecting).
+    Init,
+    /// Result available.
+    Ready(D),
+}
+```
+
+**Stream enum** (`synca/mpp.rs`) — what `DrivenStreamIterator` yields:
+```rust
+pub enum Stream<D, P> {
+    Init,                        // Stream is instantiating
+    Ignore,                      // Internal system operations (mapped from Spawn)
+    Delayed(std::time::Duration), // Next response delayed
+    Pending(P),                  // Stream in pending state
+    Next(D),                     // Stream issued its next value (mapped from Ready)
+}
+```
+
+**TaskStatus → Stream conversion** (automatic in valtron):
+```rust
+impl<D, P, S: ExecutionAction> From<TaskStatus<D, P, S>> for Stream<D, P> {
+    fn from(val: TaskStatus<D, P, S>) -> Self {
+        match val {
+            TaskStatus::Init => Stream::Init,
+            TaskStatus::Spawn(_) => Stream::Ignore,  // Spawn → Ignore
+            TaskStatus::Ready(inner) => Stream::Next(inner),
+            TaskStatus::Delayed(inner) => Stream::Delayed(inner),
+            TaskStatus::Pending(inner) => Stream::Pending(inner),
         }
     }
 }
 ```
 
-### WebSocket Client (Blocking Iterator - Convenience API)
+**execute_stream()** (`valtron/executors/unified.rs`):
+```rust
+pub fn execute_stream<T>(
+    task: T,
+    wait_cycle: Option<std::time::Duration>,
+) -> GenericResult<DrivenStreamIterator<T>>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+```
 
-For simple use cases, a blocking iterator wrapper is provided using `DrivenSendTaskIterator`:
+**DrivenStreamIterator** (`valtron/executors/drivers.rs`):
+```rust
+pub struct DrivenStreamIterator<T>(Option<StreamRecvIterator<T::Ready, T::Pending>>)
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static;
+
+// Yields Stream<T::Ready, T::Pending>
+impl<T> Iterator for DrivenStreamIterator<T> { ... }
+```
+
+#### Architecture Flow
+
+```
+WebSocketTask (TaskIterator)
+    │  Pure state machine, ONE step per next()
+    │  Returns TaskStatus<Ready, Pending, Spawner>
+    ↓
+unified::execute_stream(task, None)  ← EXECUTOR BOUNDARY
+    │  Schedules task into valtron executor
+    │  Handles Spawn, Delayed, threading
+    │  Returns DrivenStreamIterator<WebSocketTask>
+    ↓
+DrivenStreamIterator
+    │  Yields Stream<Ready, Pending>
+    │  Spawn → Ignore (handled by executor)
+    │  Ready → Next
+    ↓
+WebSocketClient / WebSocketConnection (consumer wrapper)
+    │  Wraps DrivenStreamIterator
+    │  Filters Init/Ignore/Pending/Delayed
+    │  Returns only meaningful events (Next)
+    ↓
+User code: for msg in ws.messages() { ... }
+```
+
+#### Reference: SseStream Consumer Pattern (from `wire/event_source/consumer.rs`)
+
+This is the canonical consumer wrapper pattern used in SSE and MUST be followed for WebSocket:
+
+```rust
+use crate::valtron::{execute_stream, DrivenStreamIterator, Stream};
+
+pub struct SseStream<R: DnsResolver + Send + 'static> {
+    inner: DrivenStreamIterator<EventSourceTask<R>>,
+}
+
+impl<R: DnsResolver + Send + 'static> SseStream<R> {
+    pub fn connect(resolver: R, url: impl Into<String>) -> Result<Self, EventSourceError> {
+        let task = EventSourceTask::connect(resolver, url)?;
+        let inner = execute_stream(task, None)
+            .map_err(|e| EventSourceError::Http(format!("Executor error: {}", e)))?;
+        Ok(Self { inner })
+    }
+}
+
+impl<R: DnsResolver + Send + 'static> Iterator for SseStream<R> {
+    type Item = Result<SseStreamEvent, EventSourceError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.inner.next() {
+            Some(Stream::Next(parse_result)) => Some(Ok(SseStreamEvent::Event(parse_result.event))),
+            Some(Stream::Pending(_)) => Some(Ok(SseStreamEvent::Skip)),
+            Some(Stream::Delayed(_)) => Some(Ok(SseStreamEvent::Skip)),
+            Some(Stream::Init) | Some(Stream::Ignore) => Some(Ok(SseStreamEvent::Skip)),
+            None => None,
+        }
+    }
+}
+```
+
+### 3.2 What NOT to Do
+
+**WRONG — wrapping TaskIterator directly bypasses executor:**
+```rust
+// DO NOT: This bypasses executor's Spawn/Delayed/threading handling
+pub struct BrokenWrapper {
+    task: WebSocketTask,
+}
+
+impl Iterator for BrokenWrapper {
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.task.next() {  // BYPASSES EXECUTOR
+            Some(TaskStatus::Ready(r)) => Some(r),
+            Some(TaskStatus::Spawn(_)) => self.next(), // Can't handle spawns
+            Some(TaskStatus::Delayed(_)) => self.next(), // Busy-loops instead of waiting
+            _ => None,
+        }
+    }
+}
+```
+
+**Why this matters:**
+- `TaskStatus::Spawn` — executor schedules sub-tasks; manual wrappers can't handle this
+- `TaskStatus::Delayed(duration)` — executor respects timing; manual wrappers busy-loop or ignore
+- `TaskStatus::Pending` — executor polls efficiently; manual wrappers waste CPU
+- Threading — executor manages task across threads; direct wrapping is single-threaded
+
+### 3.3 TaskIterator State Machine Pattern
+
+From `simple_http/client/tasks/send_request.rs` (canonical example):
+
+```rust
+// 1. Task wraps state in Option for termination
+pub struct SendRequestTask<R> {
+    state: Option<SendRequestState<R>>,
+}
+
+// 2. State enum carries ALL data between transitions
+pub enum SendRequestState<R> {
+    Init(Option<Box<SendRequest<R>>>),
+    Connecting(DrivenRecvIterator<GetHttpRequestRedirectTask<R>>),
+    Reading(DrivenRecvIterator<GetRequestIntroTask>),
+    SkipReading(Box<Option<RequestIntro>>),
+    Done,
+}
+
+// 3. TaskIterator impl — ONE step per next(), NO loops
+impl<R: DnsResolver + Send + 'static> TaskIterator for SendRequestTask<R> {
+    type Ready = RequestIntro;
+    type Pending = HttpRequestPending;
+    type Spawner = BoxedSendExecutionAction;
+
+    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        // Pattern: take state, process ONE step, restore state
+        match self.state.take()? {
+            SendRequestState::Init(data) => { /* transition */ }
+            SendRequestState::Connecting(recv) => { /* ONE step */ }
+            // ...
+        }
+    }
+}
+```
+
+**Key rules:**
+1. `struct Task(Option<State>)` or `struct Task { state: Option<State> }` — Option wrapper for termination
+2. State variants hold `Option<Box<...>>` — data carried between states
+3. `self.state.take()?` or `self.0.take()?` — take state, return None if done
+4. NO LOOPS in `next()` — state machine is step-wise, ONE transition per call
+5. Data MOVED between states — not cloned
+6. Sub-tasks composed via `DrivenRecvIterator` — receive results from spawned tasks
+
+### 3.4 Connection Failure Handling
+
+Connection failures must transition through intermediate states so tests can observe the failure progression:
+
+```rust
+// WRONG: Return None immediately on failure
+let Ok(conn) = Connection::without_timeout(*addr) else {
+    return None;  // Test can't observe the attempt
+};
+
+// CORRECT: Transition to intermediate state, return Pending first
+let Ok(conn) = Connection::without_timeout(*addr) else {
+    self.state = Some(MyState::Connecting);
+    return Some(TaskStatus::Pending(MyPending::Connecting));
+};
+```
+
+---
+
+## 4. WebSocket Protocol Reference (RFC 6455)
+
+### 4.1 Opening Handshake (Sections 4.1, 4.2)
+
+#### Client Request
+
+The client sends an HTTP/1.1 GET request with upgrade headers:
+
+```http
+GET /chat HTTP/1.1
+Host: server.example.com
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+Sec-WebSocket-Version: 13
+Sec-WebSocket-Protocol: chat, superchat  (optional)
+Origin: http://example.com               (optional)
+```
+
+**Required headers (Section 4.1):**
+- `Host` — MUST be present (HTTP/1.1 requirement)
+- `Upgrade: websocket` — MUST be present, case-insensitive value
+- `Connection: Upgrade` — MUST include "Upgrade" token
+- `Sec-WebSocket-Key` — MUST be a base64-encoded 16-byte random value (nonce)
+- `Sec-WebSocket-Version: 13` — MUST be exactly "13"
+
+**Optional headers:**
+- `Sec-WebSocket-Protocol` — comma-separated list of requested subprotocols
+- `Sec-WebSocket-Extensions` — requested extensions (e.g., per-message deflate)
+- `Origin` — browser origin for CORS-like checking
+
+**Requirements:**
+- HTTP method MUST be GET
+- HTTP version MUST be >= 1.1
+- The `Sec-WebSocket-Key` value MUST be a nonce consisting of a randomly selected 16-byte value, base64-encoded (RFC 4648). A new random value MUST be chosen for each connection.
+
+#### Server Response
+
+```http
+HTTP/1.1 101 Switching Protocols
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
+Sec-WebSocket-Protocol: chat  (optional — MUST be a value from client's list)
+```
+
+**Required response headers (Section 4.2.2):**
+- Status MUST be `101 Switching Protocols`
+- `Upgrade: websocket` — MUST be present
+- `Connection: Upgrade` — MUST be present
+- `Sec-WebSocket-Accept` — MUST be the correctly computed accept value
+
+**Sec-WebSocket-Accept computation:**
+```rust
+use sha1::{Digest, Sha1};
+use base64::Engine;
+
+fn compute_accept_key(client_key: &str) -> String {
+    // The GUID is defined in RFC 6455 Section 4.2.2
+    const GUID: &str = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+    let mut hasher = Sha1::new();
+    hasher.update(client_key.as_bytes());
+    hasher.update(GUID.as_bytes());
+    let hash = hasher.finalize();
+    base64::engine::general_purpose::STANDARD.encode(hash)
+}
+```
+
+**Test vector (Section 1.3):**
+```
+Client key: dGhlIHNhbXBsZSBub25jZQ==
+Expected accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
+```
+
+**Client validation after receiving response:**
+1. Status code MUST be 101
+2. `Upgrade` header MUST be present with case-insensitive value "websocket"
+3. `Connection` header MUST contain "Upgrade" token (case-insensitive)
+4. `Sec-WebSocket-Accept` MUST match `compute_accept_key(client_key)`
+5. If subprotocol was requested, `Sec-WebSocket-Protocol` MUST be one of the requested values
+6. If the server returns a different subprotocol or extension, client MUST fail the connection
+
+### 4.2 Frame Structure (Section 5.2)
+
+```
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-------+-+-------------+-------------------------------+
+|F|R|R|R| opcode|M| Payload len |    Extended payload length    |
+|I|S|S|S|  (4)  |A|     (7)     |             (16/64)           |
+|N|V|V|V|       |S|             |   (if payload len==126/127)   |
+| |1|2|3|       |K|             |                               |
++-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +
+|     Extended payload length continued, if payload len == 127  |
++ - - - - - - - - - - - - - - - +-------------------------------+
+|                               |Masking-key, if MASK set to 1  |
++-------------------------------+-------------------------------+
+| Masking-key (continued)       |          Payload Data         |
++-------------------------------- - - - - - - - - - - - - - - - +
+:                     Payload Data continued ...                :
++ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +
+|                     Payload Data continued ...                |
++---------------------------------------------------------------+
+```
+
+**Field details:**
+
+- **FIN** (1 bit): `1` if this is the final fragment of a message, `0` for continuation
+- **RSV1, RSV2, RSV3** (1 bit each): MUST be `0` unless an extension is negotiated that defines non-zero values. If a non-zero value is received and no extension defines it, the receiving endpoint MUST fail the connection.
+- **Opcode** (4 bits): Frame type (see opcodes table)
+- **MASK** (1 bit): `1` if payload is masked. Client-to-server frames MUST set this to `1`. Server-to-client frames MUST set this to `0`.
+- **Payload length** (7 bits): Determines how to read the actual length:
+  - `0-125`: This IS the payload length
+  - `126`: The following 2 bytes (unsigned, big-endian) are the payload length
+  - `127`: The following 8 bytes (unsigned, big-endian) are the payload length. The most significant bit MUST be 0 (max length is 2^63).
+- **Masking-key** (4 bytes): Only present if MASK is `1`. Used to XOR the payload.
+- **Payload Data**: Extension data (if any) followed by Application data.
+
+### 4.3 Opcodes (Section 5.2)
+
+| Opcode | Name | Type | Description |
+|--------|------|------|-------------|
+| `0x0` | Continuation | Data | Continuation frame for fragmented message |
+| `0x1` | Text | Data | UTF-8 text message (MUST be valid UTF-8) |
+| `0x2` | Binary | Data | Binary data message |
+| `0x3-0x7` | Reserved | Data | Reserved for future non-control frames |
+| `0x8` | Close | Control | Connection close |
+| `0x9` | Ping | Control | Ping (heartbeat/keepalive) |
+| `0xA` | Pong | Control | Pong (response to Ping) |
+| `0xB-0xF` | Reserved | Control | Reserved for future control frames |
+
+### 4.4 Masking (Section 5.3)
+
+**Why masking exists:** To prevent cache poisoning attacks where a malicious client could trick intermediary proxies into caching WebSocket frames as HTTP responses.
+
+**Algorithm:**
+```rust
+fn apply_mask(data: &mut [u8], mask: [u8; 4]) {
+    for (i, byte) in data.iter_mut().enumerate() {
+        *byte ^= mask[i % 4];
+    }
+}
+```
+
+**Rules:**
+- Client-to-server frames **MUST** be masked with a fresh random 4-byte mask per frame
+- Server-to-client frames **MUST NOT** be masked
+- The masking key MUST be unpredictable; implementations SHOULD use a strong source of randomness
+- If a server receives an unmasked frame from a client: **MUST fail the connection** and send Close with status code 1002 (Protocol Error)
+- If a client receives a masked frame from a server: **MUST fail the connection**
+- The masking operation is its own inverse — same function is used for masking and unmasking
+
+### 4.5 Message Fragmentation (Section 5.4)
+
+Large messages can be split across multiple frames:
+
+```
+Message = Frame₁(FIN=0, op=Text/Binary) + Frame₂(FIN=0, op=Continuation) + ... + FrameN(FIN=1, op=Continuation)
+```
+
+**Rules:**
+- First frame: `FIN=0`, opcode = `Text` (0x1) or `Binary` (0x2)
+- Middle frames: `FIN=0`, opcode = `Continuation` (0x0)
+- Last frame: `FIN=1`, opcode = `Continuation` (0x0)
+- Single-frame (unfragmented) message: `FIN=1`, opcode = `Text` or `Binary`
+- Control frames (Ping/Pong/Close) **MUST NOT** be fragmented
+- Control frames **CAN** be interleaved between data fragments — receivers MUST handle this
+- An intermediary MAY coalesce or split data fragments (but MUST NOT change the opcode)
+- An endpoint MUST NOT send a new data message until the current fragmented message is complete
+
+### 4.6 Control Frames (Section 5.5)
+
+**General rules for ALL control frames:**
+- MUST NOT be fragmented (FIN MUST be 1)
+- MUST have payload length ≤ 125 bytes
+- CAN be injected between fragments of a data message
+
+#### Close Frame (Section 5.5.1)
+
+- MAY contain a body with a 2-byte unsigned big-endian status code followed by optional UTF-8 reason text
+- Total body ≤ 125 bytes, so reason text ≤ 123 bytes
+- After sending a Close frame, the endpoint MUST NOT send any more data frames
+- After receiving a Close frame, the peer MUST send a Close frame in response (echo the status code)
+- After both sides have sent and received Close, the TCP connection SHOULD be closed
+- The endpoint that initiated the Close (first sender) SHOULD let the other side close the TCP connection
+- If a Close frame is not received within a reasonable time after sending one, the endpoint MAY close the TCP connection
+
+#### Ping Frame (Section 5.5.2)
+
+- MAY include application data (≤ 125 bytes)
+- Upon receiving a Ping, the endpoint MUST send a Pong as soon as practical with the same application data
+- If an endpoint receives a Ping before sending Pong for a previous Ping, it MAY send Pong only for the most recent Ping
+- Used for keep-alive and RTT measurement
+
+#### Pong Frame (Section 5.5.3)
+
+- MUST contain the same application data as the Ping it responds to
+- Unsolicited Pong frames (sent without a preceding Ping) serve as unidirectional heartbeats — the recipient MUST ignore them (no error, no response)
+
+### 4.7 Close Status Codes (Section 7.4)
+
+| Code | Name | Description | Sendable? |
+|------|------|-------------|-----------|
+| 1000 | Normal Closure | Normal shutdown | Yes |
+| 1001 | Going Away | Server shutting down or browser navigating away | Yes |
+| 1002 | Protocol Error | Terminated due to protocol error | Yes |
+| 1003 | Unsupported Data | Received data type it cannot accept (e.g., text-only endpoint got binary) | Yes |
+| 1004 | Reserved | Reserved for future use | **NO** — MUST NOT be set as status code |
+| 1005 | No Status Received | Indicates no status code was present in Close frame | **NO** — MUST NOT be sent |
+| 1006 | Abnormal Closure | Connection closed without a Close frame | **NO** — MUST NOT be sent |
+| 1007 | Invalid Frame Payload Data | Received non-UTF-8 data in a text message | Yes |
+| 1008 | Policy Violation | Generic policy violation when no other code applies | Yes |
+| 1009 | Message Too Big | Message too large to process | Yes |
+| 1010 | Mandatory Extension | Client expected server to negotiate extension(s) | Yes |
+| 1011 | Internal Error | Server encountered unexpected condition | Yes |
+| 1015 | TLS Handshake | TLS handshake failure (e.g., certificate error) | **NO** — MUST NOT be sent |
+| 3000-3999 | Library/Framework | Reserved for libraries, frameworks, and applications. Must be registered with IANA. | Context-dependent |
+| 4000-4999 | Private Use | Available for applications. NOT registered. | Yes |
+
+### 4.8 Security Considerations (Section 10)
+
+- **Origin checking**: Servers SHOULD verify the `Origin` header to prevent cross-site WebSocket hijacking
+- **Masking rationale**: Prevents cache poisoning via intermediary confusion (attacker can't predict frame bytes to craft cacheable responses)
+- **UTF-8 validation**: Text frames MUST contain valid UTF-8 — invalid data MUST trigger close with code 1007
+- **Frame size limits**: Implementations SHOULD enforce maximum frame/message size to prevent DoS (recommend configurable, default 16MB)
+- **Close codes**: Use standard codes (1000-1011) — don't expose internal errors. Reserved codes (1004, 1005, 1006, 1015) MUST NOT be sent in Close frames.
+- **Random masking**: Use cryptographically secure random for mask generation (client-side) to prevent prediction attacks
+
+---
+
+## 5. Client API
+
+### 5.1 Core API (TaskIterator via Executor)
+
+```rust
+use foundation_core::wire::websocket::WebSocketTask;
+use foundation_core::valtron::{TaskIterator, TaskStatus, Stream};
+use foundation_core::valtron::executors::unified;
+
+// Create task and schedule into executor
+let task = WebSocketTask::connect("wss://example.com/ws")?;
+let iter = unified::execute_stream(task, None)?;
+
+for status in iter {
+    match status {
+        Stream::Next(Ok(WebSocketMessage::Text(text))) => println!("{}", text),
+        Stream::Next(Ok(WebSocketMessage::Binary(data))) => handle_binary(data),
+        Stream::Next(Ok(WebSocketMessage::Ping(data))) => { /* auto-pong handled internally */ }
+        Stream::Next(Ok(WebSocketMessage::Close(code, reason))) => {
+            println!("Closed: {} - {}", code, reason);
+            break;
+        }
+        Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Ignore => continue,
+    }
+}
+```
+
+### 5.2 Consumer API (Blocking Convenience Wrapper)
 
 ```rust
 use foundation_core::wire::websocket::{WebSocketConnection, WebSocketMessage};
 
-// Connect to WebSocket (blocking convenience wrapper)
-let mut ws = WebSocketConnection::connect("wss://example.com/ws")?
-    .subprotocol("graphql-ws")
-    .connect();
+// Connect (uses unified::execute_stream() internally)
+let mut ws = WebSocketConnection::connect("wss://example.com/ws")?;
 
 // Send messages
 ws.send(WebSocketMessage::Text("hello".into()))?;
 ws.send(WebSocketMessage::Binary(vec![1, 2, 3]))?;
 
-// Receive messages (blocking iterator - uses DrivenSendTaskIterator internally)
-// NO LOOPS in TaskIterator - execution driving is in DrivenSendTaskIterator
+// Receive messages (wraps DrivenStreamIterator, not raw TaskIterator)
 for message in ws.messages() {
     match message? {
         WebSocketMessage::Text(text) => println!("{}", text),
@@ -149,15 +752,24 @@ for message in ws.messages() {
 ws.close(1000, "goodbye")?;
 ```
 
-**Implementation Note:** The blocking `WebSocketConnection` wrapper uses `DrivenSendTaskIterator` which handles execution driving externally via `run_until_next_state()`. The TaskIterator itself has NO loops.
-
-### WebSocket Server
-
-Accept WebSocket upgrade requests:
+### 5.3 With Subprotocol and Options
 
 ```rust
-// Within HTTP server handler
-fn handle_request(request: IncomingRequest, conn: Connection) -> Result<(), Error> {
+let mut ws = WebSocketConnection::builder("wss://example.com/ws")
+    .subprotocol("graphql-ws")
+    .subprotocols(&["chat", "superchat"])
+    .header("Authorization", "Bearer token123")
+    .connect()?;
+```
+
+---
+
+## 6. Server API
+
+### 6.1 Accept WebSocket Upgrade
+
+```rust
+fn handle_request(request: IncomingRequest, conn: &mut HttpClientConnection) -> Result<(), Error> {
     if WebSocketUpgrade::is_upgrade_request(&request) {
         let ws = WebSocketUpgrade::accept(request, conn)?;
         handle_websocket(ws)
@@ -166,139 +778,15 @@ fn handle_request(request: IncomingRequest, conn: Connection) -> Result<(), Erro
     }
 }
 
-fn handle_websocket(ws: WebSocketConnection) -> Result<(), Error> {
+fn handle_websocket(mut ws: WebSocketConnection) -> Result<(), Error> {
     for message in ws.messages() {
-        // Echo server
-        ws.send(message?)?;
+        ws.send(message?)?; // Echo server
     }
     Ok(())
 }
 ```
 
-### Message Types
-
-```rust
-pub enum WebSocketMessage {
-    /// UTF-8 text message
-    Text(String),
-
-    /// Binary data message
-    Binary(Vec<u8>),
-
-    /// Ping frame (must respond with Pong)
-    Ping(Vec<u8>),
-
-    /// Pong frame (response to Ping)
-    Pong(Vec<u8>),
-
-    /// Close frame with status code and reason
-    Close(u16, String),
-}
-```
-
-### Frame Protocol
-
-WebSocket frame structure:
-
-```rust
-pub struct WebSocketFrame {
-    pub fin: bool,
-    pub opcode: Opcode,
-    pub mask: Option<[u8; 4]>,
-    pub payload: Vec<u8>,
-}
-
-pub enum Opcode {
-    Continuation = 0x0,
-    Text = 0x1,
-    Binary = 0x2,
-    Close = 0x8,
-    Ping = 0x9,
-    Pong = 0xA,
-}
-
-impl WebSocketFrame {
-    pub fn encode(&self) -> Vec<u8>;
-    pub fn decode(reader: &mut impl Read) -> Result<Self, WebSocketError>;
-}
-```
-
-### Client Handshake
-
-HTTP upgrade handshake using existing RenderHttp infrastructure:
-
-```rust
-// Client sends:
-// GET /ws HTTP/1.1
-// Host: example.com
-// Upgrade: websocket
-// Connection: Upgrade
-// Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
-// Sec-WebSocket-Version: 13
-// Sec-WebSocket-Protocol: graphql-ws (optional)
-
-// Server responds:
-// HTTP/1.1 101 Switching Protocols
-// Upgrade: websocket
-// Connection: Upgrade
-// Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
-
-impl WebSocketClient {
-    pub fn handshake(
-        conn: &mut HttpClientConnection,
-        url: &ParsedUrl,
-        options: &WebSocketOptions,
-    ) -> Result<Self, WebSocketError> {
-        // Generate random key
-        let key = generate_websocket_key();
-
-        // Build upgrade request using SimpleIncomingRequestBuilder
-        let mut builder = SimpleIncomingRequestBuilder::get(url.path_and_query())
-            .header(SimpleHeader::HOST, url.host_with_port())
-            .header(SimpleHeader::UPGRADE, "websocket")
-            .header(SimpleHeader::CONNECTION, "Upgrade")
-            .header(SimpleHeader::SEC_WEBSOCKET_KEY, &key)
-            .header(SimpleHeader::SEC_WEBSOCKET_VERSION, "13");
-
-        // Add subprotocol if provided
-        if let Some(subprotocol) = &options.subprotocol {
-            builder = builder.header(SimpleHeader::SEC_WEBSOCKET_PROTOCOL, subprotocol);
-        }
-
-        let request = builder.build()?;
-
-        // Render and send request using RenderHttp
-        let request_bytes = Http11::request(&request).http_render()?;
-
-        for chunk in request_bytes {
-            conn.write_all(&chunk?)?;
-        }
-
-        // Read response using HttpResponseReader
-        let mut response_reader = HttpResponseReader::new(conn)?;
-        let response = response_reader.read_response()?;
-
-        if response.status != Status::SwitchingProtocols {
-            return Err(WebSocketError::UpgradeFailed(response.status.code()));
-        }
-
-        // Verify accept key
-        let expected_accept = compute_accept_key(&key);
-        let actual_accept = response.headers.get(SimpleHeader::SEC_WEBSOCKET_ACCEPT)
-            .ok_or(WebSocketError::MissingAcceptKey)?;
-
-        if actual_accept != expected_accept {
-            return Err(WebSocketError::InvalidAcceptKey);
-        }
-
-        Ok(Self::new(conn, Role::Client))
-    }
-}
-```
-
-### Server Upgrade
-
-Accept upgrade request using existing RenderHttp infrastructure:
+### 6.2 Server Upgrade Implementation
 
 ```rust
 pub struct WebSocketUpgrade;
@@ -317,14 +805,14 @@ impl WebSocketUpgrade {
         request: IncomingRequest,
         conn: &mut HttpClientConnection,
     ) -> Result<WebSocketConnection, WebSocketError> {
-        // Extract key
+        // Extract client key
         let key = request.headers.get(SimpleHeader::SEC_WEBSOCKET_KEY)
             .ok_or(WebSocketError::MissingKey)?;
 
-        // Compute accept
+        // Compute accept key
         let accept = compute_accept_key(key);
 
-        // Get negotiated subprotocol
+        // Get negotiated subprotocol (pick first supported)
         let subprotocol = request.headers.get(SimpleHeader::SEC_WEBSOCKET_PROTOCOL);
 
         // Build 101 Switching Protocols response
@@ -339,94 +827,640 @@ impl WebSocketUpgrade {
 
         // Render and send response using RenderHttp
         let response_bytes = Http11::response(&response).http_render()?;
-
         for chunk in response_bytes {
             conn.write_all(&chunk?)?;
         }
+        conn.flush()?;
 
+        // Server MUST NOT mask outgoing frames
         Ok(WebSocketConnection::new(conn, Role::Server))
     }
 }
 ```
 
-### WebSocket Connection
+---
 
-Unified client/server WebSocket connection:
+## 7. Type Definitions
+
+### 7.1 Message Types
+
+```rust
+pub enum WebSocketMessage {
+    /// UTF-8 text message (MUST be valid UTF-8, validated on receive)
+    Text(String),
+    /// Binary data message
+    Binary(Vec<u8>),
+    /// Ping frame (receiver must respond with Pong containing same payload)
+    Ping(Vec<u8>),
+    /// Pong frame (response to Ping, or unsolicited heartbeat)
+    Pong(Vec<u8>),
+    /// Close frame with status code and reason
+    Close(u16, String),
+}
+```
+
+### 7.2 Frame Types
+
+```rust
+pub struct WebSocketFrame {
+    pub fin: bool,
+    pub rsv1: bool,       // MUST be 0 unless extension defines it
+    pub rsv2: bool,       // MUST be 0 unless extension defines it
+    pub rsv3: bool,       // MUST be 0 unless extension defines it
+    pub opcode: Opcode,
+    pub mask: Option<[u8; 4]>,  // Some for client frames, None for server frames
+    pub payload: Vec<u8>,
+}
+
+#[repr(u8)]
+pub enum Opcode {
+    Continuation = 0x0,
+    Text = 0x1,
+    Binary = 0x2,
+    Close = 0x8,
+    Ping = 0x9,
+    Pong = 0xA,
+}
+
+impl Opcode {
+    pub fn is_control(&self) -> bool {
+        matches!(self, Self::Close | Self::Ping | Self::Pong)
+    }
+
+    pub fn is_data(&self) -> bool {
+        matches!(self, Self::Text | Self::Binary | Self::Continuation)
+    }
+
+    pub fn from_u8(value: u8) -> Result<Self, WebSocketError> {
+        match value {
+            0x0 => Ok(Self::Continuation),
+            0x1 => Ok(Self::Text),
+            0x2 => Ok(Self::Binary),
+            0x8 => Ok(Self::Close),
+            0x9 => Ok(Self::Ping),
+            0xA => Ok(Self::Pong),
+            other => Err(WebSocketError::InvalidOpcode(other)),
+        }
+    }
+}
+```
+
+### 7.3 Connection Types
 
 ```rust
 pub struct WebSocketConnection {
-    conn: Connection,
+    stream: SharedByteBufferStream<RawStream>,
     role: Role,
-    closed: bool,
-    fragmented_message: Option<FragmentedMessage>,
+    state: ConnectionState,
+    assembler: MessageAssembler,
 }
 
 pub enum Role {
-    Client,
-    Server,
+    Client,  // MUST mask outgoing frames
+    Server,  // MUST NOT mask outgoing frames
 }
 
+enum ConnectionState {
+    Open,
+    Closing { close_sent: bool, close_received: bool },
+    Closed,
+}
+```
+
+### 7.4 Subprotocol and Options
+
+```rust
+pub struct WebSocketOptions {
+    pub subprotocols: Vec<String>,
+    pub extensions: Vec<String>,
+    pub extra_headers: Vec<(String, String)>,
+}
+```
+
+### 7.5 Error Types
+
+```rust
+#[derive(Debug)]
+pub enum WebSocketError {
+    /// Upgrade request failed (non-101 status)
+    UpgradeFailed(u16),
+    /// Invalid Sec-WebSocket-Accept header value
+    InvalidAcceptKey,
+    /// Missing Sec-WebSocket-Accept header in response
+    MissingAcceptKey,
+    /// Missing Sec-WebSocket-Key header in request (server-side)
+    MissingKey,
+    /// Missing Upgrade header in response
+    MissingUpgradeHeader,
+    /// Invalid Upgrade header value (not "websocket")
+    InvalidUpgradeHeader,
+    /// Missing Connection header in response
+    MissingConnectionHeader,
+    /// Invalid Connection header (doesn't contain "Upgrade")
+    InvalidConnectionHeader,
+    /// Missing response headers entirely
+    MissingHeaders,
+    /// Invalid URL scheme (not ws:// or wss://)
+    InvalidScheme,
+    /// Invalid frame format
+    InvalidFrame(String),
+    /// Invalid opcode received
+    InvalidOpcode(u8),
+    /// Control frame too large (> 125 bytes)
+    ControlFrameTooLarge,
+    /// Control frame is fragmented (FIN=0)
+    FragmentedControlFrame,
+    /// Unexpected continuation frame (no fragmented message in progress)
+    UnexpectedContinuation,
+    /// Expected continuation but got new data frame
+    ExpectedContinuation,
+    /// Invalid UTF-8 in text message
+    InvalidUtf8(std::string::FromUtf8Error),
+    /// Received unmasked frame from client (server-side)
+    UnmaskedClientFrame,
+    /// Received masked frame from server (client-side)
+    MaskedServerFrame,
+    /// Non-zero RSV bit without negotiated extension
+    UnexpectedRsvBit,
+    /// Connection closed unexpectedly
+    ConnectionClosed,
+    /// Handshake failed
+    HandshakeFailed(String),
+    /// Protocol error
+    ProtocolError(String),
+    /// HTTP-level error during handshake
+    HttpError(String),
+    /// IO error
+    IoError(std::io::Error),
+    /// Connection establishment failed
+    ConnectionFailed(String),
+    /// Message exceeds maximum size
+    MessageTooLarge(usize),
+}
+
+pub enum FrameError {
+    InvalidOpcode(u8),
+    ControlFrameTooLarge,
+    FragmentedControlFrame,
+    UnexpectedContinuation,
+    ExpectedContinuation,
+    InvalidUtf8,
+    InvalidClosePayload,
+    IoError(std::io::Error),
+}
+```
+
+---
+
+## 8. Implementation Details
+
+### 8.1 Frame Encoding
+
+```rust
+impl WebSocketFrame {
+    pub fn encode(&self) -> Vec<u8> {
+        let mut buf = Vec::new();
+
+        // Byte 0: FIN, RSV, Opcode
+        let byte0 = (self.fin as u8) << 7
+                  | (self.rsv1 as u8) << 6
+                  | (self.rsv2 as u8) << 5
+                  | (self.rsv3 as u8) << 4
+                  | (self.opcode as u8);
+        buf.push(byte0);
+
+        // Byte 1+: MASK, Payload length
+        let payload_len = self.payload.len();
+        let mask_bit = if self.mask.is_some() { 0x80 } else { 0x00 };
+
+        if payload_len < 126 {
+            buf.push(mask_bit | (payload_len as u8));
+        } else if payload_len <= 65535 {
+            buf.push(mask_bit | 126);
+            buf.extend_from_slice(&(payload_len as u16).to_be_bytes());
+        } else {
+            buf.push(mask_bit | 127);
+            buf.extend_from_slice(&(payload_len as u64).to_be_bytes());
+        }
+
+        // Masking key (if present)
+        if let Some(mask) = self.mask {
+            buf.extend_from_slice(&mask);
+        }
+
+        // Payload (apply mask if needed)
+        if let Some(mask) = self.mask {
+            let mut masked_payload = self.payload.clone();
+            apply_mask(&mut masked_payload, mask);
+            buf.extend_from_slice(&masked_payload);
+        } else {
+            buf.extend_from_slice(&self.payload);
+        }
+
+        buf
+    }
+}
+```
+
+### 8.2 Frame Decoding
+
+```rust
+impl WebSocketFrame {
+    pub fn decode(reader: &mut impl Read) -> Result<Self, WebSocketError> {
+        // Read byte 0 (FIN, RSV, Opcode)
+        let byte0 = read_u8(reader)?;
+        let fin = (byte0 & 0x80) != 0;
+        let rsv1 = (byte0 & 0x40) != 0;
+        let rsv2 = (byte0 & 0x20) != 0;
+        let rsv3 = (byte0 & 0x10) != 0;
+        let opcode = Opcode::from_u8(byte0 & 0x0F)?;
+
+        // Read byte 1 (MASK, Payload length)
+        let byte1 = read_u8(reader)?;
+        let mask_bit = (byte1 & 0x80) != 0;
+        let mut payload_len = (byte1 & 0x7F) as u64;
+
+        // Extended payload length
+        if payload_len == 126 {
+            payload_len = read_u16(reader)? as u64;
+        } else if payload_len == 127 {
+            payload_len = read_u64(reader)?;
+            // MSB MUST be 0 (Section 5.2)
+            if payload_len >> 63 != 0 {
+                return Err(FrameError::InvalidPayloadLength);
+            }
+        }
+
+        // Validate control frame payload length
+        if opcode.is_control() && payload_len > 125 {
+            return Err(FrameError::ControlFrameTooLarge);
+        }
+
+        // Validate control frame FIN bit
+        if opcode.is_control() && !fin {
+            return Err(FrameError::FragmentedControlFrame);
+        }
+
+        // Read masking key
+        let mask = if mask_bit {
+            let mut mask_bytes = [0u8; 4];
+            reader.read_exact(&mut mask_bytes)?;
+            Some(mask_bytes)
+        } else {
+            None
+        };
+
+        // Read payload
+        let mut payload = vec![0u8; payload_len as usize];
+        reader.read_exact(&mut payload)?;
+
+        // Unmask payload
+        if let Some(mask) = mask {
+            apply_mask(&mut payload, mask);
+        }
+
+        Ok(WebSocketFrame { fin, rsv1, rsv2, rsv3, opcode, mask, payload })
+    }
+}
+```
+
+### 8.3 Message Assembly
+
+```rust
+pub struct MessageAssembler {
+    fragments: Vec<Vec<u8>>,
+    opcode: Option<Opcode>,
+}
+
+impl MessageAssembler {
+    pub fn push_frame(&mut self, frame: WebSocketFrame) -> Result<Option<WebSocketMessage>, WebSocketError> {
+        // Control frames are NEVER fragmented — handle immediately
+        if frame.opcode.is_control() {
+            return Ok(Some(WebSocketMessage::from_control_frame(frame)?));
+        }
+
+        // First data frame
+        if self.opcode.is_none() {
+            if frame.opcode == Opcode::Continuation {
+                return Err(WebSocketError::UnexpectedContinuation);
+            }
+            self.opcode = Some(frame.opcode);
+        } else {
+            // Continuation frame
+            if frame.opcode != Opcode::Continuation {
+                return Err(WebSocketError::ExpectedContinuation);
+            }
+        }
+
+        self.fragments.push(frame.payload);
+
+        // Final frame?
+        if frame.fin {
+            let opcode = self.opcode.take().unwrap();
+            let data: Vec<u8> = self.fragments.drain(..).flatten().collect();
+
+            let message = match opcode {
+                Opcode::Text => {
+                    let text = String::from_utf8(data)
+                        .map_err(|_| WebSocketError::InvalidUtf8)?;
+                    WebSocketMessage::Text(text)
+                }
+                Opcode::Binary => WebSocketMessage::Binary(data),
+                _ => return Err(WebSocketError::InvalidOpcode(opcode as u8)),
+            };
+
+            Ok(Some(message))
+        } else {
+            Ok(None)  // More fragments needed
+        }
+    }
+}
+```
+
+### 8.4 Close Payload Parsing
+
+```rust
+fn parse_close_payload(payload: &[u8]) -> Result<(u16, String), WebSocketError> {
+    if payload.is_empty() {
+        return Ok((1005, String::new()));  // No status code present
+    }
+    if payload.len() == 1 {
+        return Err(WebSocketError::InvalidClosePayload);  // Must be 0 or >= 2 bytes
+    }
+
+    let code = u16::from_be_bytes([payload[0], payload[1]]);
+    let reason = if payload.len() > 2 {
+        String::from_utf8(payload[2..].to_vec())
+            .map_err(|_| WebSocketError::InvalidUtf8)?
+    } else {
+        String::new()
+    };
+
+    Ok((code, reason))
+}
+```
+
+### 8.5 WebSocket Handshake (Client)
+
+Using `SimpleIncomingRequestBuilder` (NOT `ClientRequestBuilder` — connection is already established):
+
+```rust
+pub fn handshake(
+    conn: &mut HttpClientConnection,
+    uri: &Uri,
+    options: &WebSocketOptions,
+) -> Result<(), WebSocketError> {
+    // Generate random 16-byte key, base64 encoded
+    let key = generate_websocket_key();
+
+    // Build HTTP upgrade request using SimpleIncomingRequestBuilder
+    let mut builder = SimpleIncomingRequestBuilder::get(uri.path_and_query())
+        .header(SimpleHeader::HOST, uri.host_with_port())
+        .header(SimpleHeader::UPGRADE, "websocket")
+        .header(SimpleHeader::CONNECTION, "Upgrade")
+        .header(SimpleHeader::SEC_WEBSOCKET_KEY, &key)
+        .header(SimpleHeader::SEC_WEBSOCKET_VERSION, "13");
+
+    // Add subprotocol if requested
+    if !options.subprotocols.is_empty() {
+        let protocols = options.subprotocols.join(", ");
+        builder = builder.header(SimpleHeader::SEC_WEBSOCKET_PROTOCOL, &protocols);
+    }
+
+    // Add extra headers
+    for (name, value) in &options.extra_headers {
+        builder = builder.header(SimpleHeader::custom(name), value);
+    }
+
+    let request = builder.build()?;
+
+    // Render and send using RenderHttp
+    let request_bytes = Http11::request(&request).http_render()?;
+    for chunk in request_bytes {
+        conn.write_all(&chunk?)?;
+    }
+    conn.flush()?;
+
+    // Read response using HttpResponseReader
+    let reader = HttpResponseReader::new(conn.clone_stream(), SimpleHttpBody);
+    let mut headers = None;
+
+    for part in reader {
+        match part? {
+            IncomingResponseParts::Intro(status, _proto, _text) => {
+                if status != Status::SwitchingProtocols {
+                    return Err(WebSocketError::UpgradeFailed(status.into_usize()));
+                }
+            }
+            IncomingResponseParts::Headers(h) => {
+                headers = Some(h);
+                break;
+            }
+            _ => {}
+        }
+    }
+
+    let headers = headers.ok_or(WebSocketError::MissingHeaders)?;
+
+    // Validate response headers
+    validate_upgrade_response(&headers, &key)?;
+
+    Ok(())
+}
+
+fn generate_websocket_key() -> String {
+    use base64::Engine;
+    let random_bytes: [u8; 16] = rand::random();
+    base64::engine::general_purpose::STANDARD.encode(random_bytes)
+}
+
+fn validate_upgrade_response(headers: &SimpleHeaders, key: &str) -> Result<(), WebSocketError> {
+    // Check Upgrade header
+    let upgrade = headers.get(&SimpleHeader::UPGRADE)
+        .and_then(|v| v.first())
+        .ok_or(WebSocketError::MissingUpgradeHeader)?;
+    if !upgrade.eq_ignore_ascii_case("websocket") {
+        return Err(WebSocketError::InvalidUpgradeHeader);
+    }
+
+    // Check Connection header
+    let connection = headers.get(&SimpleHeader::CONNECTION)
+        .and_then(|v| v.first())
+        .ok_or(WebSocketError::MissingConnectionHeader)?;
+    if !connection.to_lowercase().contains("upgrade") {
+        return Err(WebSocketError::InvalidConnectionHeader);
+    }
+
+    // Validate Sec-WebSocket-Accept
+    let accept = headers.get(&SimpleHeader::SEC_WEBSOCKET_ACCEPT)
+        .and_then(|v| v.first())
+        .ok_or(WebSocketError::MissingAcceptKey)?;
+    let expected_accept = compute_accept_key(key);
+    if accept != &expected_accept {
+        return Err(WebSocketError::InvalidAcceptKey);
+    }
+
+    Ok(())
+}
+```
+
+### 8.6 WebSocket Connection API (Blocking)
+
+```rust
 impl WebSocketConnection {
-    /// Send a message
     pub fn send(&mut self, message: WebSocketMessage) -> Result<(), WebSocketError> {
         let frame = match message {
             WebSocketMessage::Text(text) => WebSocketFrame {
-                fin: true,
+                fin: true, rsv1: false, rsv2: false, rsv3: false,
                 opcode: Opcode::Text,
                 mask: self.generate_mask(),
                 payload: text.into_bytes(),
             },
-            // ... other message types
+            WebSocketMessage::Binary(data) => WebSocketFrame {
+                fin: true, rsv1: false, rsv2: false, rsv3: false,
+                opcode: Opcode::Binary,
+                mask: self.generate_mask(),
+                payload: data,
+            },
+            WebSocketMessage::Ping(data) => WebSocketFrame {
+                fin: true, rsv1: false, rsv2: false, rsv3: false,
+                opcode: Opcode::Ping,
+                mask: self.generate_mask(),
+                payload: data,
+            },
+            WebSocketMessage::Pong(data) => WebSocketFrame {
+                fin: true, rsv1: false, rsv2: false, rsv3: false,
+                opcode: Opcode::Pong,
+                mask: self.generate_mask(),
+                payload: data,
+            },
+            WebSocketMessage::Close(code, reason) => {
+                let mut payload = code.to_be_bytes().to_vec();
+                payload.extend_from_slice(reason.as_bytes());
+                WebSocketFrame {
+                    fin: true, rsv1: false, rsv2: false, rsv3: false,
+                    opcode: Opcode::Close,
+                    mask: self.generate_mask(),
+                    payload,
+                }
+            }
         };
         self.send_frame(frame)
     }
 
-    /// Receive next message
-    pub fn receive(&mut self) -> Result<WebSocketMessage, WebSocketError> {
+    pub fn recv(&mut self) -> Result<WebSocketMessage, WebSocketError> {
         loop {
-            let frame = WebSocketFrame::decode(&mut self.conn)?;
+            let frame = WebSocketFrame::decode(&mut self.stream)?;
 
-            match frame.opcode {
-                Opcode::Text if frame.fin => {
-                    let text = String::from_utf8(frame.payload)?;
-                    return Ok(WebSocketMessage::Text(text));
+            // Validate masking based on role
+            match self.role {
+                Role::Client if frame.mask.is_some() => {
+                    return Err(WebSocketError::MaskedServerFrame);
                 }
-                Opcode::Binary if frame.fin => {
-                    return Ok(WebSocketMessage::Binary(frame.payload));
+                Role::Server if frame.mask.is_none() => {
+                    return Err(WebSocketError::UnmaskedClientFrame);
                 }
-                Opcode::Ping => {
-                    // Auto-respond with pong
-                    self.pong(frame.payload.clone())?;
-                    return Ok(WebSocketMessage::Ping(frame.payload));
-                }
-                Opcode::Close => {
-                    let (code, reason) = parse_close_payload(&frame.payload);
-                    self.closed = true;
-                    return Ok(WebSocketMessage::Close(code, reason));
-                }
-                // Handle fragmentation...
                 _ => {}
+            }
+
+            // Validate RSV bits (no extensions negotiated)
+            if frame.rsv1 || frame.rsv2 || frame.rsv3 {
+                return Err(WebSocketError::UnexpectedRsvBit);
+            }
+
+            // Handle control frames immediately (even between data fragments)
+            if frame.opcode.is_control() {
+                return self.handle_control_frame(frame);
+            }
+
+            // Assemble message from data frames
+            if let Some(message) = self.assembler.push_frame(frame)? {
+                return Ok(message);
             }
         }
     }
 
-    /// Iterator over incoming messages
-    pub fn messages(&mut self) -> MessageIterator<'_> {
-        MessageIterator { ws: self }
+    fn handle_control_frame(&mut self, frame: WebSocketFrame) -> Result<WebSocketMessage, WebSocketError> {
+        match frame.opcode {
+            Opcode::Ping => {
+                // Auto-respond with Pong (same payload)
+                let pong_frame = WebSocketFrame {
+                    fin: true, rsv1: false, rsv2: false, rsv3: false,
+                    opcode: Opcode::Pong,
+                    mask: self.generate_mask(),
+                    payload: frame.payload.clone(),
+                };
+                self.send_frame(pong_frame)?;
+                Ok(WebSocketMessage::Ping(frame.payload))
+            }
+            Opcode::Pong => Ok(WebSocketMessage::Pong(frame.payload)),
+            Opcode::Close => {
+                let (code, reason) = parse_close_payload(&frame.payload)?;
+
+                // Send Close response if we haven't already
+                if let ConnectionState::Open = self.state {
+                    self.state = ConnectionState::Closing {
+                        close_sent: false,
+                        close_received: true,
+                    };
+                    self.close(code, &reason)?;
+                }
+
+                Ok(WebSocketMessage::Close(code, reason))
+            }
+            _ => Err(WebSocketError::InvalidOpcode(frame.opcode as u8)),
+        }
     }
 
-    /// Send pong response
-    pub fn pong(&mut self, data: Vec<u8>) -> Result<(), WebSocketError>;
+    pub fn close(&mut self, code: u16, reason: &str) -> Result<(), WebSocketError> {
+        match self.state {
+            ConnectionState::Closed => return Ok(()),
+            ConnectionState::Closing { close_sent: true, .. } => return Ok(()),
+            _ => {}
+        }
 
-    /// Close connection
-    pub fn close(&mut self, code: u16, reason: &str) -> Result<(), WebSocketError>;
+        let mut payload = code.to_be_bytes().to_vec();
+        payload.extend_from_slice(reason.as_bytes());
+
+        let frame = WebSocketFrame {
+            fin: true, rsv1: false, rsv2: false, rsv3: false,
+            opcode: Opcode::Close,
+            mask: self.generate_mask(),
+            payload,
+        };
+        self.send_frame(frame)?;
+
+        self.state = match self.state {
+            ConnectionState::Open => ConnectionState::Closing {
+                close_sent: true,
+                close_received: false,
+            },
+            ConnectionState::Closing { close_received, .. } => ConnectionState::Closing {
+                close_sent: true,
+                close_received,
+            },
+            ConnectionState::Closed => ConnectionState::Closed,
+        };
+
+        Ok(())
+    }
+
+    fn send_frame(&mut self, frame: WebSocketFrame) -> Result<(), WebSocketError> {
+        let encoded = frame.encode()?;
+        self.stream.write_all(&encoded)?;
+        self.stream.flush()?;
+        Ok(())
+    }
 
     fn generate_mask(&self) -> Option<[u8; 4]> {
-        // Clients MUST mask, servers MUST NOT mask
         match self.role {
-            Role::Client => Some(rand::random()),
-            Role::Server => None,
+            Role::Client => Some(rand::random()),   // Clients MUST mask
+            Role::Server => None,                     // Servers MUST NOT mask
         }
+    }
+
+    pub fn messages(&mut self) -> MessageIterator<'_> {
+        MessageIterator { ws: self }
     }
 }
 
@@ -438,721 +1472,784 @@ impl<'a> Iterator for MessageIterator<'a> {
     type Item = Result<WebSocketMessage, WebSocketError>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.ws.closed {
+        if let ConnectionState::Closed = self.ws.state {
             return None;
         }
-        Some(self.ws.receive())
+        Some(self.ws.recv())
     }
 }
 ```
 
-### TLS Support (wss://)
+### 8.7 WebSocket Task (TaskIterator)
 
-WebSocket over TLS:
+The core TaskIterator-based state machine. Follows `send_request.rs` pattern exactly.
 
 ```rust
-impl SimpleHttpClient {
-    pub fn websocket(&self, url: &str) -> WebSocketBuilder {
-        WebSocketBuilder::new(url)
-    }
+pub struct WebSocketTask(Option<WebSocketState>);
+
+enum WebSocketState {
+    Init(Option<Box<WebSocketConnectInfo>>),
+    Connecting(Box<ConnectingData>),
+    Handshake(Box<HandshakeState>),
+    Open(WebSocketStream),
+    Closed,
 }
 
-impl WebSocketBuilder {
-    pub fn connect(self) -> Result<WebSocketConnection, WebSocketError> {
-        let url = ParsedUrl::parse(&self.url)?;
+// Handshake sub-states for step-wise HTTP upgrade
+enum HandshakeState {
+    BuildingRequest(Box<WebSocketConnectInfo>),
+    SendingRequest {
+        connection: HttpClientConnection,
+        request_bytes: Vec<Vec<u8>>,
+        current_chunk: usize,
+        ws_key: String,
+    },
+    ReadingResponse {
+        connection: HttpClientConnection,
+        reader: HttpResponseReader<SimpleHttpBody, RawStream>,
+        ws_key: String,
+    },
+    ValidatingResponse {
+        connection: HttpClientConnection,
+        headers: SimpleHeaders,
+        ws_key: String,
+    },
+}
 
-        // Connect TCP
-        let mut conn = TcpStream::connect((url.host.as_str(), url.port))?;
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum WebSocketPending {
+    Connecting,
+    HandshakeSending,
+    HandshakeReading,
+    Reading,
+}
 
-        // TLS for wss://
-        if url.scheme == Scheme::Wss {
-            let tls_config = create_tls_config();
-            conn = upgrade_to_tls(conn, &url.host, tls_config)?;
+impl TaskIterator for WebSocketTask {
+    type Ready = Result<WebSocketMessage, WebSocketError>;
+    type Pending = WebSocketPending;
+    type Spawner = BoxedSendExecutionAction;
+
+    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        // Pattern: take state, process ONE step, restore state
+        match self.0.take()? {
+            WebSocketState::Init(mut info_opt) => {
+                match info_opt.take() {
+                    Some(info) => {
+                        // Use HttpConnectionPool to create connection
+                        // Transition to Connecting
+                        // Return Pending(Connecting)
+                    }
+                    None => {
+                        self.0 = Some(WebSocketState::Closed);
+                        None
+                    }
+                }
+            }
+
+            WebSocketState::Connecting(data) => {
+                // ONE step: check if connection established
+                // On success → Handshake::BuildingRequest
+                // On failure → return Pending then Closed (intermediate state pattern)
+            }
+
+            WebSocketState::Handshake(state) => {
+                match *state {
+                    HandshakeState::BuildingRequest(info) => {
+                        // Generate WebSocket key
+                        // Build upgrade request via SimpleIncomingRequestBuilder
+                        // Render to bytes via Http11::request().http_render()
+                        // Transition to SendingRequest
+                        // Return Pending(HandshakeSending)
+                    }
+
+                    HandshakeState::SendingRequest {
+                        mut connection, request_bytes, mut current_chunk, ws_key,
+                    } => {
+                        // Send ONE chunk per next() call
+                        if current_chunk < request_bytes.len() {
+                            // Write chunk, increment index
+                            // Return Pending(HandshakeSending)
+                        } else {
+                            // All chunks sent, flush
+                            // Create HttpResponseReader
+                            // Transition to ReadingResponse
+                            // Return Pending(HandshakeReading)
+                        }
+                    }
+
+                    HandshakeState::ReadingResponse {
+                        mut connection, mut reader, ws_key,
+                    } => {
+                        // Read ONE IncomingResponseParts per next() call
+                        // On Intro: validate Status::SwitchingProtocols
+                        // On Headers: transition to ValidatingResponse
+                        // Return Pending(HandshakeReading)
+                    }
+
+                    HandshakeState::ValidatingResponse {
+                        connection, headers, ws_key,
+                    } => {
+                        // Validate Sec-WebSocket-Accept
+                        // On success: create WebSocketStream, transition to Open
+                        // Return Ready(Ok(WebSocketMessage::ConnectionEstablished))
+                        // On failure: transition to Closed
+                        // Return Ready(Err(WebSocketError::...))
+                    }
+                }
+            }
+
+            WebSocketState::Open(mut stream) => {
+                // ONE step: read ONE frame
+                match stream.next_frame() {
+                    Ok(frame) => {
+                        self.0 = Some(WebSocketState::Open(stream));
+                        Some(TaskStatus::Ready(Ok(frame.to_message()?)))
+                    }
+                    Err(WebSocketError::ConnectionClosed) => {
+                        self.0 = Some(WebSocketState::Closed);
+                        None
+                    }
+                    Err(e) => {
+                        self.0 = Some(WebSocketState::Open(stream));
+                        Some(TaskStatus::Ready(Err(e)))
+                    }
+                }
+            }
+
+            WebSocketState::Closed => None,
         }
-
-        // Perform WebSocket handshake
-        WebSocketClient::handshake(&mut conn, &url, &self.options)
     }
 }
 ```
 
-### Subprotocol Negotiation
+### 8.8 Consumer Wrapper (Executor Boundary)
+
+Following the `SseStream` pattern from `wire/event_source/consumer.rs`:
 
 ```rust
-pub struct WebSocketOptions {
-    pub subprotocols: Vec<String>,
-    pub extensions: Vec<String>,
-    pub extra_headers: Vec<(String, String)>,
+use crate::valtron::{execute_stream, DrivenStreamIterator, Stream};
+
+pub struct WebSocketClient {
+    inner: DrivenStreamIterator<WebSocketTask>,
 }
 
-impl WebSocketBuilder {
-    pub fn subprotocol(mut self, protocol: &str) -> Self {
-        self.options.subprotocols.push(protocol.to_string());
-        self
+impl WebSocketClient {
+    pub fn connect(url: impl Into<String>) -> Result<Self, WebSocketError> {
+        let task = WebSocketTask::connect(url)?;
+        let inner = execute_stream(task, None)
+            .map_err(|e| WebSocketError::ConnectionFailed(format!("Executor error: {}", e)))?;
+        Ok(Self { inner })
     }
 
-    pub fn subprotocols(mut self, protocols: &[&str]) -> Self {
-        self.options.subprotocols.extend(protocols.iter().map(|s| s.to_string()));
-        self
+    pub fn with_pool(
+        url: impl Into<String>,
+        pool: Arc<HttpConnectionPool<impl DnsResolver + Send + 'static>>,
+    ) -> Result<Self, WebSocketError> {
+        let task = WebSocketTask::connect_with_pool(url, pool)?;
+        let inner = execute_stream(task, None)
+            .map_err(|e| WebSocketError::ConnectionFailed(format!("Executor error: {}", e)))?;
+        Ok(Self { inner })
+    }
+
+    pub fn send(&mut self, message: WebSocketMessage) -> Result<(), WebSocketError> {
+        // Send via underlying stream (requires access to the stream inside the task)
+        todo!()
+    }
+
+    pub fn messages(&mut self) -> WebSocketMessageIterator<'_> {
+        WebSocketMessageIterator { client: self }
+    }
+}
+
+pub struct WebSocketMessageIterator<'a> {
+    client: &'a mut WebSocketClient,
+}
+
+// VALID: wrapping DrivenStreamIterator (already executor-driven)
+impl<'a> Iterator for WebSocketMessageIterator<'a> {
+    type Item = Result<WebSocketMessage, WebSocketError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            match self.client.inner.next()? {
+                Stream::Next(result) => return Some(result),
+                Stream::Init | Stream::Ignore => continue,
+                Stream::Delayed(_) | Stream::Pending(_) => continue,
+            }
+        }
     }
 }
 ```
 
-### Error Handling
+### 8.9 URL Scheme Extension
+
+Add to `simple_http/url/scheme.rs`:
 
 ```rust
-#[derive(Debug)]
-pub enum WebSocketError {
-    /// Upgrade request failed
-    UpgradeFailed(u16),
+pub enum Scheme {
+    Http,
+    Https,
+    Ws,    // NEW
+    Wss,   // NEW
+    Custom(String),
+}
 
-    /// Invalid Sec-WebSocket-Accept header
-    InvalidAcceptKey,
+impl Scheme {
+    pub fn is_websocket(&self) -> bool {
+        matches!(self, Self::Ws | Self::Wss)
+    }
 
-    /// Missing Sec-WebSocket-Accept header
-    MissingAcceptKey,
+    pub fn is_secure_websocket(&self) -> bool {
+        matches!(self, Self::Wss)
+    }
 
-    /// Missing Sec-WebSocket-Key header
-    MissingKey,
+    /// Returns true if the scheme requires TLS (https:// or wss://)
+    pub fn requires_tls(&self) -> bool {
+        matches!(self, Self::Https | Self::Wss)
+    }
 
-    /// Invalid frame format
-    InvalidFrame(String),
-
-    /// Invalid UTF-8 in text message
-    InvalidUtf8(std::string::FromUtf8Error),
-
-    /// Connection closed unexpectedly
-    ConnectionClosed,
-
-    /// Protocol error
-    ProtocolError(String),
-
-    /// IO error
-    IoError(std::io::Error),
+    pub fn default_port(&self) -> u16 {
+        match self {
+            Self::Http | Self::Ws => 80,
+            Self::Https | Self::Wss => 443,
+            Self::Custom(_) => 0,
+        }
+    }
 }
 ```
 
-## Implementation Phases
+### 8.10 Dependency Graph
 
-### Phase 1: Core WebSocket (Blocking I/O) with TaskIterator
-
-**Duration**: 1-2 weeks
-**Goal**: Working WebSocket client with TaskIterator and DrivenSendTaskIterator wrapper
-
-**File structure**:
 ```
-backends/foundation_core/src/wire/
-└── websocket/                  # NEW module
-    ├── mod.rs                  # Public API and re-exports
-    ├── frame.rs                # Frame encoding/decoding
-    ├── handshake.rs            # HTTP upgrade handshake
-    ├── task.rs                 # WebSocketTask (TaskIterator - core API)
-    ├── connection.rs           # WebSocketConnection (DrivenSendTaskIterator wrapper)
-    ├── message.rs              # WebSocketMessage enum
-    └── error.rs                # WebSocketError
+WebSocketClient (consumer wrapper)
+    └─> DrivenStreamIterator<WebSocketTask> (via execute_stream)
+            └─> WebSocketTask (TaskIterator)
+                    ├─> WebSocketHandshake
+                    │       ├─> SimpleIncomingRequestBuilder  (for HTTP upgrade request)
+                    │       ├─> Http11::request().http_render() (render request bytes)
+                    │       └─> HttpResponseReader             (parse 101 response)
+                    │
+                    ├─> WebSocketFrame (encode/decode WebSocket frames)
+                    │       └─> MessageAssembler (fragment reassembly)
+                    │
+                    └─> HttpClientConnection (established via HttpConnectionPool)
+                            └─> SharedByteBufferStream<RawStream> (direct Read/Write for frames)
 ```
 
-**Tasks**:
-1. **Frame encoding/decoding** (`frame.rs`)
-   - Implement `Frame` struct with FIN, RSV, opcode, mask, payload fields
-   - Implement `encode()` method (handle payload lengths: <126, 126-65535, ≥65536)
-   - Implement `decode()` method (read from `impl Read`)
-   - Add `apply_mask()` helper function
-   - Unit tests for all opcodes and payload lengths
+---
 
-2. **WebSocket handshake** (`handshake.rs`)
-   - Implement `compute_accept_key(client_key)` using SHA-1 + base64
-   - Implement `generate_websocket_key()` (16 random bytes, base64 encoded)
-   - Build HTTP upgrade request using existing `SimpleIncomingRequestBuilder`
-   - Render request using `Http11::request().http_render()` (RenderHttp trait)
-   - Parse 101 response using existing `HttpResponseReader`
-   - Validate `Sec-WebSocket-Accept` header
-   - Return `WebSocketConnection` on success (takes ownership of stream)
+## 9. Implementation Phases
 
-3. **URL scheme extension**
-   - Extend `simple_http/url/scheme.rs` to support `ws://` and `wss://` schemes
-   - Add `is_websocket()` and `is_secure_websocket()` methods
+### Phase 1: Core WebSocket with TaskIterator
 
-4. **WebSocket Task** (`task.rs`) - **Core TaskIterator**
-   - Follow pattern from `simple_http/client/tasks/send_request.rs`
-   - State enum with `Option<Box<...>>` for data carrying
-   - State machine: Init → Connecting → Handshake → Open → Closed
-   - NO loops in `next()` - ONE step per call
+**Goal:** Working WebSocket client with TaskIterator as core API and consumer wrapper.
 
-   ```rust
-   use crate::valtron::{TaskIterator, TaskStatus, BoxedSendExecutionAction, DrivenRecvIterator};
-
-   // Task wraps state in Option for termination
-   pub struct WebSocketTask(Option<WebSocketState>);
-
-   // State carries ALL data - follows send_request.rs pattern
-   enum WebSocketState {
-       Init(Option<Box<WebSocketConnectInfo>>),
-       Connecting(DrivenRecvIterator<HttpConnectTask>),
-       Handshake(Box<HandshakeState>),
-       Open(WebSocketStream),
-       Closed,
-   }
-
-   // Handshake state machine - detailed sub-states for HTTP upgrade
-   enum HandshakeState {
-       BuildingRequest(Box<WebSocketConnectInfo>),
-       SendingRequest {
-           connection: HttpClientConnection,
-           request_bytes: Vec<Vec<u8>>,
-           current_chunk: usize,
-       },
-       ReadingResponse {
-           connection: HttpClientConnection,
-           reader: HttpResponseReader<SimpleHttpBody, RawStream>,
-       },
-       ValidatingResponse {
-           connection: HttpClientConnection,
-           status: Status,
-           headers: SimpleHeaders,
-       },
-   }
-
-   #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-   pub enum WebSocketPending {
-       Connecting,
-       HandshakeSending,
-       HandshakeReading,
-       Reading,
-   }
-
-   impl TaskIterator for WebSocketTask {
-       type Ready = Result<WebSocketMessage, WebSocketError>;
-       type Pending = WebSocketPending;
-       type Spawner = BoxedSendExecutionAction;
-
-       fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-           // Pattern: take state, process ONE step, restore state
-           match self.0.take()? {
-               WebSocketState::Init(mut info_opt) => match info_opt.take() {
-                   Some(info) => {
-                       // Spawn TCP/TLS connection sub-task
-                       let (action, recv) = spawn_connect_task(&info.url);
-                       self.0 = Some(WebSocketState::Connecting(recv));
-                       Some(TaskStatus::Spawn(action))
-                   }
-                   None => {
-                       self.0 = Some(WebSocketState::Closed);
-                       None
-                   }
-               }
-               WebSocketState::Connecting(mut recv) => {
-                   // ONE step: call next() on receiver
-                   let result = recv.next();
-                   self.0 = Some(WebSocketState::Connecting(recv));
-                   match result {
-                       Some(TaskStatus::Ready(Ok(conn))) => {
-                           // Connection established, start handshake
-                           // Transition to Handshake::BuildingRequest
-                           let info = extract_connect_info(); // Extract from previous state
-                           self.0 = Some(WebSocketState::Handshake(Box::new(
-                               HandshakeState::BuildingRequest(Box::new(info))
-                           )));
-                           Some(TaskStatus::Pending(WebSocketPending::HandshakeSending))
-                       }
-                       Some(TaskStatus::Ready(Err(e))) => {
-                           self.0 = Some(WebSocketState::Closed);
-                           Some(TaskStatus::Ready(Err(WebSocketError::ConnectionFailed(e))))
-                       }
-                       Some(TaskStatus::Pending(_)) => {
-                           Some(TaskStatus::Pending(WebSocketPending::Connecting))
-                       }
-                       Some(TaskStatus::Delayed(duration)) => {
-                           Some(TaskStatus::Delayed(duration))
-                       }
-                       Some(TaskStatus::Spawn(action)) => {
-                           Some(TaskStatus::Spawn(action))
-                       }
-                       None => {
-                           self.0 = Some(WebSocketState::Closed);
-                           Some(TaskStatus::Ready(Err(WebSocketError::ConnectionClosed)))
-                       }
-                   }
-               }
-               WebSocketState::Handshake(mut handshake_state) => {
-                   // Handle detailed handshake sub-states
-                   match *handshake_state {
-                       HandshakeState::BuildingRequest(mut info) => {
-                           // Generate random WebSocket key
-                           let ws_key = generate_websocket_key();
-
-                           // Build HTTP upgrade request
-                           let mut builder = SimpleIncomingRequestBuilder::get(info.path.clone())
-                               .header(SimpleHeader::HOST, info.host.clone())
-                               .header(SimpleHeader::UPGRADE, "websocket")
-                               .header(SimpleHeader::CONNECTION, "Upgrade")
-                               .header(SimpleHeader::SEC_WEBSOCKET_KEY, &ws_key)
-                               .header(SimpleHeader::SEC_WEBSOCKET_VERSION, "13");
-
-                           // Add subprotocol if requested
-                           if let Some(ref protocol) = info.subprotocol {
-                               builder = builder.header(SimpleHeader::SEC_WEBSOCKET_PROTOCOL, protocol);
-                           }
-
-                           // Add extra headers
-                           for (name, value) in info.extra_headers.iter() {
-                               builder = builder.header(name.clone(), value.clone());
-                           }
-
-                           let request = builder.build()?;
-
-                           // Render request to bytes using RenderHttp
-                           let request_bytes = Http11::request(&request).http_render()?;
-
-                           // Transition to SendingRequest
-                           self.0 = Some(WebSocketState::Handshake(Box::new(
-                               HandshakeState::SendingRequest {
-                                   connection: info.connection.take().unwrap(),
-                                   request_bytes,
-                                   current_chunk: 0,
-                               }
-                           )));
-                           Some(TaskStatus::Pending(WebSocketPending::HandshakeSending))
-                       }
-                       HandshakeState::SendingRequest {
-                           mut connection,
-                           request_bytes,
-                           mut current_chunk,
-                       } => {
-                           // Send ONE chunk of request bytes
-                           if current_chunk < request_bytes.len() {
-                               let chunk = &request_bytes[current_chunk];
-                               match connection.stream_mut().write(chunk) {
-                                   Ok(0) => {
-                                       // Connection closed during write
-                                       self.0 = Some(WebSocketState::Closed);
-                                       Some(TaskStatus::Ready(Err(WebSocketError::ConnectionClosed)))
-                                   }
-                                   Ok(_) => {
-                                       current_chunk += 1;
-                                       self.0 = Some(WebSocketState::Handshake(Box::new(
-                                           HandshakeState::SendingRequest {
-                                               connection,
-                                               request_bytes,
-                                               current_chunk,
-                                           }
-                                       )));
-                                       Some(TaskStatus::Pending(WebSocketPending::HandshakeSending))
-                                   }
-                                   Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
-                                       // Socket not ready, try again
-                                       self.0 = Some(WebSocketState::Handshake(Box::new(
-                                           HandshakeState::SendingRequest {
-                                               connection,
-                                               request_bytes,
-                                               current_chunk,
-                                           }
-                                       )));
-                                       Some(TaskStatus::Pending(WebSocketPending::HandshakeSending))
-                                   }
-                                   Err(e) => {
-                                       self.0 = Some(WebSocketState::Closed);
-                                       Some(TaskStatus::Ready(Err(WebSocketError::IoError(e))))
-                                   }
-                               }
-                           } else {
-                               // All chunks sent, flush and transition to reading
-                               match connection.stream_mut().flush() {
-                                   Ok(()) => {
-                                       // Create response reader
-                                       let reader = HttpResponseReader::new(
-                                           connection.clone_stream(),
-                                           SimpleHttpBody,
-                                       );
-                                       self.0 = Some(WebSocketState::Handshake(Box::new(
-                                           HandshakeState::ReadingResponse {
-                                               connection,
-                                               reader,
-                                           }
-                                       )));
-                                       Some(TaskStatus::Pending(WebSocketPending::HandshakeReading))
-                                   }
-                                   Err(e) => {
-                                       self.0 = Some(WebSocketState::Closed);
-                                       Some(TaskStatus::Ready(Err(WebSocketError::IoError(e))))
-                                   }
-                               }
-                           }
-                       }
-                       HandshakeState::ReadingResponse {
-                           mut connection,
-                           mut reader,
-                       } => {
-                           // Read ONE part of response
-                           match reader.next() {
-                               Some(Ok(IncomingResponseParts::Intro(status, _proto, _text))) => {
-                                   // Check if 101 Switching Protocols
-                                   if status != Status::SwitchingProtocols {
-                                       self.0 = Some(WebSocketState::Closed);
-                                       return Some(TaskStatus::Ready(Err(
-                                           WebSocketError::UpgradeFailed(status.into_usize())
-                                       )));
-                                   }
-                                   // Store status, continue reading headers
-                                   self.0 = Some(WebSocketState::Handshake(Box::new(
-                                       HandshakeState::ReadingResponse {
-                                           connection,
-                                           reader,
-                                       }
-                                   )));
-                                   Some(TaskStatus::Pending(WebSocketPending::HandshakeReading))
-                               }
-                               Some(Ok(IncomingResponseParts::Headers(headers))) => {
-                                   // Got headers, transition to validation
-                                   self.0 = Some(WebSocketState::Handshake(Box::new(
-                                       HandshakeState::ValidatingResponse {
-                                           connection,
-                                           status: Status::SwitchingProtocols,
-                                           headers,
-                                       }
-                                   )));
-                                   Some(TaskStatus::Pending(WebSocketPending::HandshakeReading))
-                               }
-                               Some(Ok(IncomingResponseParts::Body(_))) => {
-                                   // Body in handshake response - unexpected but continue
-                                   self.0 = Some(WebSocketState::Handshake(Box::new(
-                                       HandshakeState::ReadingResponse {
-                                           connection,
-                                           reader,
-                                       }
-                                   )));
-                                   Some(TaskStatus::Pending(WebSocketPending::HandshakeReading))
-                               }
-                               Some(Err(e)) => {
-                                   self.0 = Some(WebSocketState::Closed);
-                                   Some(TaskStatus::Ready(Err(WebSocketError::HttpError(e))))
-                               }
-                               None => {
-                                   // Reader exhausted without headers
-                                   self.0 = Some(WebSocketState::Closed);
-                                   Some(TaskStatus::Ready(Err(WebSocketError::HandshakeFailed(
-                                       "Response ended before headers".into()
-                                   ))))
-                               }
-                           }
-                       }
-                       HandshakeState::ValidatingResponse {
-                           connection,
-                           status: _,
-                           headers,
-                       } => {
-                           // Validate Sec-WebSocket-Accept header
-                           let expected_accept = compute_accept_key(&self.stored_ws_key);
-                           let actual_accept = headers
-                               .get(&SimpleHeader::SEC_WEBSOCKET_ACCEPT)
-                               .and_then(|v| v.first())
-                               .map(|s| s.as_str());
-
-                           match actual_accept {
-                               Some(accept) if accept == expected_accept => {
-                                   // Handshake successful!
-                                   // Extract subprotocol if negotiated
-                                   let negotiated_protocol = headers
-                                       .get(&SimpleHeader::SEC_WEBSOCKET_PROTOCOL)
-                                       .and_then(|v| v.first())
-                                       .cloned();
-
-                                   // Create WebSocket stream
-                                   let ws_stream = WebSocketStream::new(
-                                       connection,
-                                       Role::Client,
-                                       negotiated_protocol,
-                                   );
-
-                                   self.0 = Some(WebSocketState::Open(ws_stream));
-                                   Some(TaskStatus::Ready(Ok(WebSocketMessage::ConnectionEstablished)))
-                               }
-                               Some(accept) => {
-                                   // Invalid accept key
-                                   self.0 = Some(WebSocketState::Closed);
-                                   Some(TaskStatus::Ready(Err(
-                                       WebSocketError::InvalidAcceptKey {
-                                           expected: expected_accept,
-                                           actual: accept.to_string(),
-                                       }
-                                   )))
-                               }
-                               None => {
-                                   // Missing accept key
-                                   self.0 = Some(WebSocketState::Closed);
-                                   Some(TaskStatus::Ready(Err(
-                                       WebSocketError::MissingAcceptKey
-                                   )))
-                               }
-                           }
-                       }
-                   }
-               }
-               WebSocketState::Open(mut stream) => {
-                   // ONE step: read ONE frame from stream
-                   match stream.next_frame() {
-                       Ok(frame) => {
-                           self.0 = Some(WebSocketState::Open(stream));
-                           Some(TaskStatus::Ready(Ok(frame.to_message()?)))
-                       }
-                       Err(WebSocketError::ConnectionClosed) => {
-                           self.0 = Some(WebSocketState::Closed);
-                           None  // Task done
-                       }
-                       Err(e) => {
-                           self.0 = Some(WebSocketState::Open(stream));
-                           Some(TaskStatus::Ready(Err(e)))
-                       }
-                   }
-               }
-               WebSocketState::Closed => None,
-           }
-       }
-   }
-   ```
-
-   **Key Handshake Implementation Details:**
-
-   1. **BuildingRequest State:**
-      - Stores `WebSocketConnectInfo` with URL, headers, subprotocol preferences
-      - Generates random 16-byte WebSocket key, base64 encoded
-      - Uses `SimpleIncomingRequestBuilder` to construct HTTP GET request
-      - Adds mandatory WebSocket headers: Upgrade, Connection, Sec-WebSocket-Key, Sec-WebSocket-Version
-      - Optionally adds Sec-WebSocket-Protocol for subprotocol negotiation
-
-   2. **SendingRequest State:**
-      - Stores rendered request bytes as `Vec<Vec<u8>>` (chunks from `http_render()`)
-      - Tracks `current_chunk` index for incremental sending
-      - Writes ONE chunk per `next()` call
-      - Handles `WouldBlock` by retrying same chunk
-      - Flushes after all chunks sent
-
-   3. **ReadingResponse State:**
-      - Uses `HttpResponseReader<SimpleHttpBody, RawStream>` for response parsing
-      - Reads ONE `IncomingResponseParts` per `next()` call
-      - Expects: Intro → Headers → (optional Body)
-      - Validates Status::SwitchingProtocols (101) on Intro
-
-   4. **ValidatingResponse State:**
-      - Extracts Sec-WebSocket-Accept from headers
-      - Computes expected accept: `base64(sha1(client_key + GUID))`
-      - Compares expected vs actual accept
-      - Extracts negotiated subprotocol from Sec-WebSocket-Protocol header
-      - On success: creates WebSocketStream, transitions to Open state
-
-   **Handshake Error Handling:**
-   - Connection failure during SendingRequest → ConnectionClosed
-   - Non-101 status → UpgradeFailed(status_code)
-   - Missing Sec-WebSocket-Accept → MissingAcceptKey
-   - Invalid Sec-WebSocket-Accept → InvalidAcceptKey { expected, actual }
-   - Response ends before headers → HandshakeFailed(message)
-   - I/O errors → IoError(inner_error)
-
-5. **WebSocket Connection** (`connection.rs`) - **DrivenSendTaskIterator Wrapper**
-   - Wraps `WebSocketTask` with `DrivenSendTaskIterator`
-   - Provides simple blocking API for simple use cases
-   - NO loops in TaskIterator - execution driving handled by wrapper
-
-   ```rust
-   use crate::valtron::{drive_iterator, DrivenSendTaskIterator};
-
-   // Blocking wrapper using DrivenSendTaskIterator
-   pub struct WebSocketConnection {
-       driven: DrivenSendTaskIterator<WebSocketTask>,
-   }
-
-   impl WebSocketConnection {
-       pub fn connect(url: &str) -> Result<Self, WebSocketError> {
-           let task = WebSocketTask::connect(url)?;
-           Ok(Self {
-               driven: drive_iterator(task),
-           })
-       }
-
-       pub fn send(&mut self, message: WebSocketMessage) -> Result<(), WebSocketError> {
-           // Send via TaskIterator
-           // Implementation detail
-       }
-
-       pub fn messages(&mut self) -> MessageIterator<'_> {
-           MessageIterator { conn: self }
-       }
-   }
-
-   pub struct MessageIterator<'a> {
-       conn: &'a mut WebSocketConnection,
-   }
-
-   impl<'a> Iterator for MessageIterator<'a> {
-       type Item = Result<WebSocketMessage, WebSocketError>;
-
-       fn next(&mut self) -> Option<Self::Item> {
-           // DrivenSendTaskIterator handles execution driving
-           // Calls run_until_next_state() then task.next() ONCE
-           // NO LOOPS in TaskIterator
-           match self.conn.driven.next() {
-               Some(TaskStatus::Ready(result)) => Some(result),
-               Some(TaskStatus::Delayed(_)) => None,  // Reconnection backoff
-               Some(TaskStatus::Pending(_)) => self.next(),  // Continue driving (tail recursion)
-               Some(TaskStatus::Spawn(_)) => self.next(),  // Spawn handled by executor
-               Some(TaskStatus::Init) => self.next(),
-               None => None,
-           }
-       }
-   }
-   ```
-
-6. **Message types** (`message.rs`)
-   - Define `WebSocketMessage` enum (Text, Binary, Ping, Pong, Close)
-   - Implement `MessageAssembler` for fragment handling
-   - Conversion helpers
-
-7. **Error handling** (`error.rs`)
-   - Define `WebSocketError` enum
-   - Conversions from `io::Error`, `FromUtf8Error`, etc.
-
-**Success Criteria**:
-- [ ] `WebSocketTask` implements `TaskIterator` correctly
-- [ ] State machine follows valtron pattern (Init → Connecting → Handshake → Open → Closed)
-- [ ] State carries ALL data between transitions (Option<Box<...>> pattern)
-- [ ] NO LOOPS in `next()` - each call does ONE step
-- [ ] `TaskStatus` variants used correctly (Ready, Pending, Delayed, Spawn)
-- [ ] `Frame` struct correctly encodes/decodes all frame types
-- [ ] Frame encoding handles payload lengths: <126, 126-65535, ≥65536
-- [ ] Client masking is correct (clients MUST mask all outgoing frames)
-- [ ] `compute_accept_key()` generates correct SHA-1 + base64 hashes
-- [ ] Client handshake works with `ws://` URLs (plain TCP)
-- [ ] Client handshake works with `wss://` URLs (TLS)
-- [ ] `DrivenSendTaskIterator` wrapper works for blocking use cases
-- [ ] `WebSocketConnection` (blocking wrapper) sends/receives messages correctly
-- [ ] Can send Text and Binary messages
-- [ ] Can receive Text and Binary messages
-- [ ] Ping/Pong auto-response works (receiver must respond with Pong)
-- [ ] Close handshake works correctly (bidirectional)
-- [ ] Message fragmentation works (multi-frame messages with FIN flag)
-- [ ] Control frames are never fragmented (per RFC 6455)
-- [ ] All unit tests pass
-- [ ] Code passes `cargo fmt` and `cargo clippy`
-- [ ] Integration test with public echo server passes
-
-### Phase 2: Advanced TaskIterator Features
-
-**Duration**: 1 week
-**Goal**: Full valtron executor integration and advanced features
-
-**File structure** (additions):
+**File structure:**
 ```
 backends/foundation_core/src/wire/websocket/
-└── Reconnecting_task.rs        # ReconnectingWebSocketTask (TaskIterator)
+├── mod.rs              # Public API and re-exports
+├── frame.rs            # Frame encoding/decoding + apply_mask
+├── handshake.rs        # HTTP upgrade handshake (compute_accept_key, generate_key, validate)
+├── task.rs             # WebSocketTask (TaskIterator — core API)
+├── connection.rs       # WebSocketConnection (blocking API) + WebSocketClient (consumer wrapper)
+├── message.rs          # WebSocketMessage enum + MessageAssembler
+└── error.rs            # WebSocketError + FrameError
 ```
 
-**Tasks**:
+**Tasks (in TDD order):**
+
+1. **Frame encoding/decoding** (`frame.rs`)
+   - Implement `WebSocketFrame` struct with FIN, RSV1-3, opcode, mask, payload
+   - Implement `Opcode` enum with `from_u8()`, `is_control()`, `is_data()`
+   - Implement `apply_mask()` helper
+   - Implement `encode()` — handle 3 payload length formats
+   - Implement `decode(reader: &impl Read)` — with all validations
+   - Unit tests: all opcodes, payload lengths (<126, 126-65535, ≥65536), masking/unmasking, control frame size validation, RSV bit validation
+
+2. **Message types and assembly** (`message.rs`)
+   - Define `WebSocketMessage` enum (Text, Binary, Ping, Pong, Close)
+   - Implement `MessageAssembler` with `push_frame()` for fragment handling
+   - Implement `parse_close_payload()` for Close frame body
+   - Unit tests: single-frame messages, fragmented messages, control frame interleaving, UTF-8 validation, error cases
+
+3. **Error handling** (`error.rs`)
+   - Define `WebSocketError` enum with all variants
+   - Define `FrameError` enum
+   - `From<std::io::Error>`, `From<FromUtf8Error>` conversions
+   - `Display` and `Error` implementations
+
+4. **URL scheme extension**
+   - Extend `simple_http/url/scheme.rs` for `ws://` and `wss://`
+   - Add `is_websocket()`, `is_secure_websocket()`, `requires_tls()`
+   - Map default ports (ws → 80, wss → 443)
+
+5. **WebSocket handshake** (`handshake.rs`)
+   - Implement `compute_accept_key()` using SHA-1 + base64
+   - Implement `generate_websocket_key()` (16 random bytes, base64)
+   - Implement `validate_upgrade_response()` (check Upgrade, Connection, Accept)
+   - Build upgrade request via `SimpleIncomingRequestBuilder`
+   - Render via `Http11::request().http_render()`
+   - Parse response via `HttpResponseReader`
+   - Unit tests: accept key computation (RFC test vector), header validation
+
+6. **WebSocket Task** (`task.rs`) — Core TaskIterator
+   - State machine: Init → Connecting → Handshake → Open → Closed
+   - Handshake sub-states: BuildingRequest → SendingRequest → ReadingResponse → ValidatingResponse
+   - Follow `send_request.rs` pattern exactly
+   - NO loops in `next()` — ONE step per call
+   - Use `HttpConnectionPool` for connection establishment
+
+7. **WebSocket Connection + Client** (`connection.rs`)
+   - `WebSocketConnection` — blocking send/recv/close/messages API
+   - `WebSocketClient` — consumer wrapper via `execute_stream()`
+   - `MessageIterator` — wraps `DrivenStreamIterator`, filters Stream variants
+
+**Phase 1 Success Criteria:**
+
+- [ ] `WebSocketTask` implements `TaskIterator` correctly
+- [ ] State machine: Init → Connecting → Handshake → Open → Closed
+- [ ] State carries ALL data (Option<Box<...>> pattern)
+- [ ] NO LOOPS in `next()` — each call does ONE step
+- [ ] `TaskStatus` variants used correctly (Ready, Pending, Delayed, Spawn)
+- [ ] Consumer wrapper uses `unified::execute_stream()` (NOT raw TaskIterator)
+- [ ] Frame encoding handles all payload lengths (<126, 126-65535, ≥65536)
+- [ ] Frame decoding validates: control frame size, control frame FIN, RSV bits, payload length MSB
+- [ ] Client masking correct (clients MUST mask, servers MUST NOT)
+- [ ] Masking validation: server rejects unmasked client frames (1002), client rejects masked server frames
+- [ ] `compute_accept_key()` passes RFC 6455 test vector
+- [ ] Client handshake works with `ws://` (plain TCP)
+- [ ] Client handshake works with `wss://` (TLS via existing infrastructure)
+- [ ] Send/receive Text and Binary messages
+- [ ] UTF-8 validation on Text messages
+- [ ] Ping/Pong auto-response works (Pong echoes Ping payload)
+- [ ] Close handshake works (bidirectional — send Close, receive Close response)
+- [ ] Close frame payload correctly encoded/decoded (2-byte big-endian code + UTF-8 reason)
+- [ ] Message fragmentation works (multi-frame messages with FIN flag)
+- [ ] Control frames never fragmented
+- [ ] Control frames handled between data fragments
+- [ ] All tests pass, `cargo fmt`, `cargo clippy` clean
+- [ ] All tests use `#[traced_test]` attribute
+- [ ] Tracing instrumentation on all public methods
+
+### Phase 2: Reconnection and Server Support
+
+**Goal:** Auto-reconnection, subprotocol negotiation, server-side WebSocket.
+
+**Additional files:**
+```
+backends/foundation_core/src/wire/websocket/
+├── reconnecting_task.rs   # ReconnectingWebSocketTask (TaskIterator)
+└── server.rs              # Server-side WebSocket upgrade
+```
+
+**Tasks:**
 
 1. **ReconnectingWebSocketTask** (`reconnecting_task.rs`)
-   - Wrap `WebSocketTask` with reconnection logic
-   - Follow pattern from `send_request.rs` - state carries ALL data
-   - Use existing `ExponentialBackoffDecider` for backoff
+   - TaskIterator wrapping `WebSocketTask` with reconnection logic
+   - Use `ExponentialBackoffDecider` for backoff with jitter
+   - State: Init → Connecting → Open → Reconnecting → Exhausted
    - Auto-reconnect on connection loss
-   - TaskIterator state machine
-
-   ```rust
-   use crate::valtron::{TaskIterator, TaskStatus, BoxedSendExecutionAction};
-
-   // Task wraps state in Option for termination
-   pub struct ReconnectingWebSocketTask(Option<ReconnectingWebSocketState>);
-
-   enum ReconnectingWebSocketState {
-       Init(Option<Box<WebSocketConnectInfo>>),
-       Connecting(WebSocketTask),
-       Open(WebSocketTask),
-       Reconnecting(Box<(Duration, RetryState, WebSocketConnectInfo)>),
-       Exhausted,
-   }
-
-   impl TaskIterator for ReconnectingWebSocketTask {
-       type Ready = Result<WebSocketMessage, WebSocketError>;
-       type Pending = WebSocketPending;
-       type Spawner = BoxedSendExecutionAction;
-
-       fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-           match self.0.take()? {
-               // Handle reconnection state machine
-               // On connection loss: transition to Reconnecting state
-               // On reconnect: re-establish WebSocket connection
-               // Respect backoff duration
-           }
-       }
-   }
-   ```
+   - Max retries and max reconnect duration
 
 2. **Subprotocol negotiation**
-   - Support `Sec-WebSocket-Protocol` header in handshake
-   - Validate negotiated subprotocol in response
+   - `Sec-WebSocket-Protocol` in handshake request
+   - Validate server's chosen subprotocol is from client's list
+   - Expose negotiated protocol in connection info
 
 3. **Server-side WebSocket** (`server.rs`)
-   - Implement `WebSocketUpgrade::is_upgrade_request()`
-   - Implement `WebSocketUpgrade::accept()` (compute accept key, send 101 response)
-   - Server-side connection handling (must NOT mask frames)
+   - `WebSocketUpgrade::is_upgrade_request()` — check Upgrade/Connection headers
+   - `WebSocketUpgrade::accept()` — compute accept key, send 101, return connection
+   - Server Role: MUST NOT mask outgoing frames
 
 4. **Performance optimizations**
    - Zero-copy frame parsing where possible
    - Buffer pooling for frames
    - Batch frame writing
 
-**Success Criteria**:
+**Phase 2 Success Criteria:**
+
 - [ ] `ReconnectingWebSocketTask` implements `TaskIterator` correctly
-- [ ] State carries ALL data (Option<Box<...>> pattern)
-- [ ] NO LOOPS in `next()` - each call does ONE step
-- [ ] Auto-reconnects on connection loss via TaskIterator state machine
-- [ ] Exponential backoff works via `ExponentialBackoffDecider`
-- [ ] Max retries honored
+- [ ] Auto-reconnects on connection loss with exponential backoff
+- [ ] Max retries and max duration honored
 - [ ] Subprotocol negotiation works correctly
 - [ ] Server-side upgrade handling works
-- [ ] Server does NOT mask outgoing frames (per RFC 6455)
-- [ ] Performance optimizations implemented
+- [ ] Server does NOT mask outgoing frames
+- [ ] Server rejects unmasked client frames with Close 1002
 - [ ] Full integration with valtron executors
-- [ ] Performance benchmarks pass
 
-## Success Criteria
+---
 
-**Phase 1 (Core with TaskIterator)**:
-- [ ] `websocket/` module exists and compiles
-- [ ] `WebSocketTask` implements `TaskIterator` trait correctly
-- [ ] State machine follows valtron pattern (Init → Connecting → Handshake → Open → Closed)
-- [ ] State carries ALL data between transitions (Option<Box<...>> pattern)
-- [ ] NO LOOPS in `next()` - each call does ONE step
-- [ ] `TaskStatus` variants used correctly (Ready, Pending, Delayed, Spawn)
-- [ ] `Frame` struct correctly encodes/decodes all frame types
-- [ ] Frame encoding handles payload lengths: <126, 126-65535, ≥65536
-- [ ] Client masking is correct (clients MUST mask all outgoing frames)
-- [ ] `compute_accept_key()` generates correct SHA-1 + base64 hashes
-- [ ] Client handshake works with `ws://` URLs (plain TCP)
-- [ ] Client handshake works with `wss://` URLs (TLS)
-- [ ] `DrivenSendTaskIterator` wrapper works for blocking use cases
-- [ ] `WebSocketConnection` (blocking wrapper) sends/receives messages correctly
-- [ ] Can send Text and Binary messages
-- [ ] Can receive Text and Binary messages
-- [ ] Ping/Pong auto-response works (receiver must respond with Pong)
-- [ ] Close handshake works correctly (bidirectional)
-- [ ] Message fragmentation works (multi-frame messages with FIN flag)
-- [ ] Control frames are never fragmented (per RFC 6455)
-- [ ] All unit tests pass
-- [ ] Code passes `cargo fmt` and `cargo clippy`
-- [ ] Integration test with public echo server passes
+## 10. Testing Strategy
 
-**Phase 2 (Advanced Features)**:
-- [ ] `ReconnectingWebSocketTask` implements `TaskIterator` correctly
-- [ ] State carries ALL data (Option<Box<...>> pattern)
-- [ ] NO LOOPS in `next()` - each call does ONE step
-- [ ] Auto-reconnects on connection loss via TaskIterator state machine
-- [ ] Exponential backoff works via `ExponentialBackoffDecider`
-- [ ] Max retries honored
-- [ ] Subprotocol negotiation works correctly
-- [ ] Server-side upgrade handling works
-- [ ] Server does NOT mask outgoing frames (per RFC 6455)
-- [ ] Performance optimizations implemented
-- [ ] Full integration with valtron executors
-- [ ] Performance benchmarks pass
+### Unit Tests
+
+Tests live in `ewe_platform_tests` crate, NOT inline. All tests MUST use `#[traced_test]`.
+
+```
+tests/backends/foundation_core/units/websocket/
+├── mod.rs                # Module registration
+├── frame_tests.rs        # Frame encoding/decoding
+├── message_tests.rs      # Message types and assembly
+├── handshake_tests.rs    # Handshake key computation and validation
+├── error_tests.rs        # Error Display tests
+└── task_tests.rs         # WebSocketTask state machine tests
+```
+
+**Frame tests:**
+- Encode/decode all opcodes (Text, Binary, Close, Ping, Pong, Continuation)
+- Payload lengths: 0, 1, 125 (max control), 126, 127, 65535, 65536, large
+- Masking/unmasking roundtrip
+- Reject control frame > 125 bytes
+- Reject fragmented control frame (FIN=0 + control opcode)
+- Reject non-zero RSV bits without extension
+- 64-bit payload length MSB must be 0
+
+**Message assembly tests:**
+- Single-frame Text message
+- Single-frame Binary message
+- Fragmented Text message (3 frames)
+- Control frame interleaved between data fragments
+- Reject unexpected Continuation frame
+- Reject new data frame during fragmentation
+- UTF-8 validation on reassembled Text message
+
+**Handshake tests:**
+- `compute_accept_key()` with RFC 6455 test vector
+- `generate_websocket_key()` produces 24-char base64 string
+- Validate correct response headers
+- Reject missing Upgrade header
+- Reject wrong Upgrade value
+- Reject missing Connection header
+- Reject missing Sec-WebSocket-Accept
+- Reject incorrect Sec-WebSocket-Accept value
+- Reject non-101 status code
+
+**TaskIterator tests:**
+- Init → Connecting transition
+- Connection failure → Pending then Closed (intermediate state pattern)
+- Handshake state progression
+- Open state frame reading
+- Close handshake via task
+
+### Integration Tests
+
+```
+tests/backends/foundation_core/integration/websocket/
+├── echo_tests.rs         # Echo server tests
+└── tls_tests.rs          # TLS connection tests
+```
+
+1. Connect to WebSocket echo server, send text, verify echo
+2. Send binary message, verify echo
+3. Test ping/pong exchange
+4. Test close handshake (client-initiated, server-initiated)
+5. Test large message fragmentation
+6. Connect via `wss://` — verify TLS works
+7. Test subprotocol negotiation
+
+---
+
+## 11. Notes for Implementation Agents
+
+### Critical Pre-Checks
+
+Before starting, **MUST**:
+1. Verify `connection` and `public-api` features are complete
+2. Read `specifications/02-build-http-client/LEARNINGS.md` — especially valtron patterns
+3. Read RFC 6455 (The WebSocket Protocol)
+4. Study existing TaskIterator implementations:
+   - `wire/simple_http/client/tasks/send_request.rs` — canonical TaskIterator pattern
+   - `wire/event_source/task.rs` — recent TaskIterator implementation
+   - `wire/event_source/consumer.rs` — consumer wrapper pattern with `execute_stream()`
+   - `valtron/executors/unified.rs` — `execute_stream()` function
+   - `valtron/task.rs` — `TaskIterator` trait, `TaskStatus` enum
+
+### DO NOT Re-implement
+
+- HTTP request building → use `SimpleIncomingRequestBuilder` + `Http11::request().http_render()`
+- HTTP response parsing → use `HttpResponseReader`
+- TLS handshake → use `HttpClientConnection` / `HttpConnectionPool`
+- DNS resolution → use `DnsResolver`
+- Executor boundary → use `unified::execute_stream()`
+- Reconnection backoff → use `ExponentialBackoffDecider`
+
+### Common Pitfalls
+
+1. **Masking errors**: Forgetting to mask client frames or masking server frames. Both are protocol violations.
+2. **Missing fragmentation support**: Assuming all messages fit in one frame. Must handle Continuation frames.
+3. **Not responding to Ping**: Must auto-respond with Pong containing same payload.
+4. **Not validating UTF-8**: Text frames MUST contain valid UTF-8. Invalid data → Close with code 1007.
+5. **Fragmenting control frames**: Control frames MUST be single-frame (FIN=1, payload ≤ 125).
+6. **Wrong byte order**: Extended payload length MUST be big-endian (network byte order).
+7. **Wrong close handshake**: Both sides MUST send Close frame. After sending Close, MUST NOT send data frames.
+8. **Re-implementing HTTP parsing**: Use existing `SimpleIncomingRequestBuilder` + `HttpResponseReader`.
+9. **Using loops in TaskIterator::next()**: State machine must be step-wise, one transition per call.
+10. **Wrapping TaskIterator directly**: Use `unified::execute_stream()` as executor boundary, not raw wrapping.
+11. **Sending reserved close codes**: Codes 1004, 1005, 1006, 1015 MUST NOT be sent in Close frames.
+12. **Ignoring RSV bits**: Non-zero RSV without negotiated extension MUST fail the connection.
+
+---
+
+## 12. References
+
+### Primary Specifications
+
+- [RFC 6455 — The WebSocket Protocol](https://datatracker.ietf.org/doc/html/rfc6455) — Core protocol specification
+- [RFC 7692 — Compression Extensions for WebSocket](https://datatracker.ietf.org/doc/html/rfc7692) — Per-message deflate extension
+- [IANA WebSocket Close Codes](https://www.iana.org/assignments/websocket/websocket.xml) — Registered close codes
+- [IANA WebSocket Subprotocols](https://www.iana.org/assignments/websocket/websocket.xml#subprotocol) — Registered subprotocols
+
+### RFC 6455 Section Reference
+
+| Section | Topic | Relevance |
+|---------|-------|-----------|
+| 1.1 | Background | Context on HTTP upgrade mechanism |
+| 1.2 | Terminology | Defines client, server, frame, message, endpoint |
+| 1.3 | Opening Handshake | Test vectors for key exchange |
+| 1.4 | Upgrading from HTTP | Connection establishment flow |
+| 1.5 | Subprotocols | Application protocol negotiation |
+| 1.6 | Compression | Extension framework overview |
+| 1.7 | Using WebSocket | JavaScript API (for reference) |
+| 2 | Conformance Requirements | MUST/SHOULD/MAY definitions |
+| 3 | WebSocket URIs | `ws://` and `wss://` scheme definition |
+| 4 | Opening Handshake | Client request and server response format |
+| 4.1 | Client Requirements | Required client headers and validation |
+| 4.2 | Server Requirements | Required server response and validation |
+| 5 | Framing | Frame format, opcodes, masking |
+| 5.1 | Overview | Frame structure diagram |
+| 5.2 | Base Framing Protocol | FIN, RSV, opcode, payload length, mask |
+| 5.3 | Client-to-Server Masking | XOR masking algorithm |
+| 5.4 | Fragmentation | Message fragmentation and reassembly |
+| 5.5 | Control Frames | Ping, Pong, Close frame rules |
+| 5.6 | Data Frames | Text and Binary frame handling |
+| 5.7 | Examples | Frame encoding examples |
+| 6 | Data Integrity | UTF-8 validation, masking security |
+| 7 | Closing | Close handshake and status codes |
+| 7.1 | Close Definition | Close frame format |
+| 7.2 | Status Codes | Registered close codes |
+| 7.3 | Abnormal Closure | Connection without close frame |
+| 7.4 | Status Code Ranges | Code ranges and registration |
+| 8 | Error Handling | Error recovery and reporting |
+| 9 | Extensibility | Extensions and subprotocols |
+| 10 | Security | Origin, masking, DoS prevention |
+| 11 | IANA | Registry considerations |
+
+### Implementation Resources
+
+- [WebSocket Frame Visualizer](https://www.websocket.org/echo.html) — Test frame encoding/decoding
+- [MDN WebSocket API](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) — JavaScript reference
+- [canihazwebsocket.com](https://canihazwebsocket.com) — WebSocket test servers
+
+### Test Vectors (RFC 6455 Section 1.3)
+
+**Handshake:**
+```
+Client Request:
+GET /chat HTTP/1.1
+Host: server.example.com
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+Sec-WebSocket-Version: 13
+
+Server Response:
+HTTP/1.1 101 Switching Protocols
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
+```
+
+**Masking Example (Section 5.3):**
+```
+Masking-key: 0x37 0xFA 0x21 0x3D
+Unmasked payload: 0x48 0x65 0x6C 0x6C 0x6F ("Hello")
+Masked payload:   0x7F 0x9F 0x4D 0x51 0x5B
+```
+
+**Frame Encoding Examples (Section 5.7):**
+
+Single-frame text message "Hello" (unmasked, from server):
+```
+0x81 0x05 0x48 0x65 0x6C 0x6C 0x6F
+│    │    └─────────────────────── payload ("Hello")
+│    └──────────────────────────── payload length (5)
+└───────────────────────────────── FIN=1, opcode=Text (0x1)
+```
+
+126-byte text message (unmasked):
+```
+0x81 0x7E 0x00 0x7E [126 bytes...]
+│    │    └─────── 16-bit length (126, big-endian)
+│    └──────────── extended length marker
+└───────────────── FIN=1, opcode=Text
+```
+
+66KB text message (unmasked):
+```
+0x81 0x7F 0x00 0x00 0x00 0x00 0x00 0x01 0x02 0x20 [66560 bytes...]
+│    │    └──────────────────────────── 64-bit length (big-endian)
+│    └───────────────────────────────── extended length marker
+└────────────────────────────────────── FIN=1, opcode=Text
+```
+
+Ping frame with "Hello" payload (unmasked):
+```
+0x89 0x05 0x48 0x65 0x6C 0x6C 0x6F
+│    │    └─────────────────────── payload ("Hello")
+│    └──────────────────────────── payload length (5)
+└───────────────────────────────── FIN=1, opcode=Ping (0x9)
+```
+
+Text message "Hello" masked with key 0x37FA213D:
+```
+0x81 0x85 0x37 0xFA 0x21 0x3D 0x7F 0x9F 0x4D 0x51 0x5B
+│    │    └───────────────┐    └────────────────────── masked payload
+│    └───────────┐        │
+│                └── mask bit set (0x80)              │
+└───────────────────────────────────────────────────── FIN=1, opcode=Text
+         masking-key (4 bytes)
+```
+
+---
+
+## 13. Appendix: Complete Byte-Level Specification
+
+### 13.1 Frame Header Byte Layout
+
+```
+Byte 0: [FIN:1][RSV1:1][RSV2:1][RSV3:1][Opcode:4]
+  - Bit 7: FIN (1 = final fragment, 0 = more fragments coming)
+  - Bit 6: RSV1 (must be 0 unless extension negotiated)
+  - Bit 5: RSV2 (must be 0 unless extension negotiated)
+  - Bit 4: RSV3 (must be 0 unless extension negotiated)
+  - Bits 0-3: Opcode (frame type)
+
+Byte 1: [MASK:1][Payload Length:7]
+  - Bit 7: MASK (1 = masked payload, 0 = unmasked)
+  - Bits 0-6: Payload length (0-125) or marker (126/127)
+
+Bytes 2-N: Extended Payload Length (if applicable)
+  - If length == 126: next 2 bytes = 16-bit unsigned length (big-endian)
+  - If length == 127: next 8 bytes = 64-bit unsigned length (big-endian, MSB must be 0)
+
+After extended length: Masking Key (if MASK=1)
+  - Always 4 bytes
+
+After masking key: Payload Data
+  - Length determined by payload length field
+  - XOR'd with masking key if MASK=1
+```
+
+### 13.2 Opcode Values
+
+| Binary | Hex | Decimal | Name | Type |
+|--------|-----|---------|------|------|
+| 0000 | 0x0 | 0 | Continuation | Data |
+| 0001 | 0x1 | 1 | Text | Data |
+| 0010 | 0x2 | 2 | Binary | Data |
+| 0011 | 0x3 | 3 | Reserved | Data |
+| 0100 | 0x4 | 4 | Reserved | Data |
+| 0101 | 0x5 | 5 | Reserved | Data |
+| 0110 | 0x6 | 6 | Reserved | Data |
+| 0111 | 0x7 | 7 | Reserved | Data |
+| 1000 | 0x8 | 8 | Close | Control |
+| 1001 | 0x9 | 9 | Ping | Control |
+| 1010 | 0xA | 10 | Pong | Control |
+| 1011 | 0xB | 11 | Reserved | Control |
+| 1100 | 0xC | 12 | Reserved | Control |
+| 1101 | 0xD | 13 | Reserved | Control |
+| 1110 | 0xE | 14 | Reserved | Control |
+| 1111 | 0xF | 15 | Reserved | Control |
+
+### 13.3 Close Code Ranges
+
+| Range | Meaning | Status |
+|-------|---------|--------|
+| 0-999 | Unused | Reserved |
+| 1000-1999 | Standard codes | Defined by RFC 6455 and IANA |
+| 1000 | Normal closure | Sendable |
+| 1001 | Going away | Sendable |
+| 1002 | Protocol error | Sendable |
+| 1003 | Unsupported data | Sendable |
+| 1004 | Reserved | MUST NOT be sent |
+| 1005 | No status received | MUST NOT be sent (internal use only) |
+| 1006 | Abnormal closure | MUST NOT be sent (internal use only) |
+| 1007 | Invalid payload data | Sendable |
+| 1008 | Policy violation | Sendable |
+| 1009 | Message too big | Sendable |
+| 1010 | Mandatory extension | Sendable |
+| 1011 | Internal server error | Sendable |
+| 1012-1014 | Reserved | IANA |
+| 1015 | TLS handshake failure | MUST NOT be sent |
+| 2000-2999 | Reserved | IANA |
+| 3000-3999 | Library/Framework | Registered with IANA |
+| 4000-4999 | Private use | Application-specific |
+| 5000+ | Unused | Reserved |
+
+### 13.4 Valid State Transitions
+
+**Client State Machine:**
+```
+[New] → [Connecting] → [HandshakeSending] → [HandshakeReading] → [Open] → [Closing] → [Closed]
+                                    ↓              ↓
+                              [HandshakeFailed]  [Closed]
+```
+
+**Server State Machine:**
+```
+[New] → [UpgradeReceived] → [Open] → [Closing] → [Closed]
+                                 ↓
+                           [UpgradeFailed]
+```
+
+### 13.5 Complete Error Recovery Matrix
+
+| Error Type | Action | Close Code | Send Close? | Wait for Response? |
+|------------|--------|------------|-------------|-------------------|
+| Invalid UTF-8 in Text | Close immediately | 1007 | Yes | No |
+| Control frame > 125 bytes | Close immediately | 1009 | Yes | No |
+| Fragmented control frame | Close immediately | 1002 | Yes | No |
+| Reserved opcode | Close immediately | 1002 | Yes | No |
+| Non-zero RSV (no extension) | Close immediately | 1002 | Yes | No |
+| Unmasked client frame (server receives) | Close immediately | 1002 | Yes | No |
+| Masked server frame (client receives) | Close immediately | 1002 | Yes | No |
+| Invalid close payload (1 byte) | Close immediately | 1002 | Yes | No |
+| Unexpected continuation | Close immediately | 1002 | Yes | No |
+| Message too large | Close | 1009 | Yes | Optional |
+| Policy violation | Close | 1008 | Yes | Optional |
+| Normal shutdown | Close | 1000 | Yes | Yes |
+| Going away (server shutdown) | Close | 1001 | Yes | No |
+| TCP connection lost | Cleanup | 1006 (internal) | No | N/A |
+| TLS handshake failure | Cleanup | 1015 (internal) | No | N/A |
+
+### 13.6 Threading Model
+
+```
+Thread 1 (Main/Event Loop)
+    └─> DrivenStreamIterator (executor-managed)
+            └─> WebSocketTask (state machine)
+
+Thread 2 (I/O Worker - optional, executor-managed)
+    └─> TcpStream read/write operations
+
+Shared State:
+    └─> SharedByteBufferStream<RawStream> (Arc<Mutex<BufferedStream<T>>>)
+            └─> Thread-safe via Mutex
+```
+
+**Key Points:**
+- `SharedByteBufferStream` is `Clone` — clones share the same underlying `Arc<Mutex<...>>`
+- Reader and writer can operate concurrently on cloned handles
+- `TaskIterator` itself is NOT `Send` by default — executor manages thread boundaries
+- Consumer wrappers (`WebSocketClient`) are typically single-threaded
+- For multi-threaded access, use `Arc<Mutex<WebSocketClient>>`
+
+---
+
+*Created: 2026-02-28*
+*Last Updated: 2026-03-10 (Comprehensive update with full protocol details, byte-level specs, and test vectors)*
+
+---
 
 ## Verification Commands
 
@@ -1164,197 +2261,21 @@ cargo fmt -- --check
 cargo clippy --package foundation_core --features ssl-rustls -- -D warnings
 
 # Unit tests
-cargo test --package foundation_core -- websocket
+cargo test --package ewe_platform_tests -- websocket
 
 # Build without TLS
 cargo build --package foundation_core
 
-# Build with TLS (rustls)
+# Build with TLS (all backends)
 cargo build --package foundation_core --features ssl-rustls
-
-# Build with TLS (OpenSSL)
 cargo build --package foundation_core --features ssl-openssl
-
-# Build with TLS (native-tls)
 cargo build --package foundation_core --features ssl-native-tls
 
-# Integration test with echo server (requires network)
-cargo test --package foundation_core --features ssl-rustls -- websocket::integration --ignored
+# Integration tests (requires network)
+cargo test --package ewe_platform_tests --features ssl-rustls -- websocket::integration --ignored
 ```
-
-## Notes for Implementation Agents
-
-### CRITICAL: TaskIterator with DrivenSendTaskIterator Wrappers
-
-**MANDATORY:** All WebSocket client implementations MUST follow the TaskIterator with DrivenSendTaskIterator design pattern:
-
-1. **TaskIterator: Pure state machine** - NO loops in `next()`, ONE step per call
-2. **State carries ALL data** - Use `Option<State>` wrapper, state variants hold `Option<Box<...>>`
-3. **Blocking wrappers use DrivenSendTaskIterator** - Execution driving happens in wrapper, NOT in TaskIterator
-4. **Data moved between states** - Extract from one variant, move to next
-
-**DO NOT:**
-- Use loops inside `next()` in TaskIterator - state machine must be step-wise
-- Store state without `Option` wrapper (task must be able to terminate)
-- Put execution driving logic in TaskIterator - that's what DrivenSendTaskIterator is for
-- Ignore valtron state machine patterns
-
-**DO:**
-- Follow `send_request.rs` pattern exactly for TaskIterator
-- Wrap task state in `Option<...>`
-- Carry data in state variants using `Option<Box<...>>`
-- Return `None` from `next()` when task is done
-- Use `TaskStatus` variants correctly (Ready, Pending, Delayed, Spawn)
-- Use `DrivenSendTaskIterator` for blocking Iterator wrappers
-- Use `TaskStatusMapper` to filter/transform TaskStatus values
-
-### Pattern Summary
-
-```
-TaskIterator (WebSocketTask)
-    ↓ (pure state machine, ONE step per next())
-DrivenSendTaskIterator (wraps TaskIterator)
-    ↓ (calls run_until_next_state() then task.next() ONCE)
-Iterator::next() -> TaskStatus<Ready, Pending, Spawner>
-    ↓ (optional: map/filter with TaskStatusMapper)
-Ready values only (for blocking Iterator API)
-```
-
-### TaskIterator Pattern Reference
-
-Study these existing implementations:
-- `wire/simple_http/client/tasks/send_request.rs` - `SendRequestTask` state machine
-- `wire/simple_http/client/tasks/request_stream.rs` - `GetHttpRequestStreamTask`
-- `wire/simple_http/client/tasks/state.rs` - State machine patterns
-- `valtron/executors/task_iters.rs` - `DrivenSendTaskIterator` implementation
-- `valtron/executors/drivers.rs` - `ReadyConsumingIter` for Ready-only extraction
-
-### Critical Pre-Checks
-
-Before starting implementation, **MUST**:
-1. **Verify dependencies**: `connection` and `public-api` features are complete
-2. **Read RFC 6455** - The WebSocket Protocol specification
-3. **Explore existing code**:
-   - `simple_http/impls.rs` - WebSocket headers already defined
-   - `simple_http/client/connection.rs` - TCP/TLS connection patterns
-   - `simple_http/client/tasks/send_request.rs` - TaskIterator example
-   - `io/ioutils/mod.rs` - Stream abstractions
-
-### Key Implementation Rules
-
-**Masking (RFC 6455 Section 5.3)**:
-- Clients **MUST** mask all outgoing frames (use random 4-byte mask)
-- Servers **MUST NOT** mask outgoing frames
-- Violation of this rule will cause connection failures
-
-**Frame Encoding**:
-- Payload length: 7 bits for <126, 7+16 bits for 126-65535, 7+64 bits for ≥65536
-- Extended length is big-endian
-- Masking key is sent before payload (if MASK bit set)
-- Apply mask: `payload[i] ^= mask[i % 4]`
-
-**Control Frames (RFC 6455 Section 5.5)**:
-- **MUST NOT** be fragmented (FIN=1 always)
-- **MUST** have payload ≤125 bytes
-- Can be injected between fragmented message frames
-- Ping **MUST** be answered with Pong (same payload)
-
-**Message Fragmentation**:
-- First frame: FIN=0, opcode=Text/Binary
-- Middle frames: FIN=0, opcode=Continuation
-- Last frame: FIN=1, opcode=Continuation
-- Control frames can appear between fragments
-
-**Close Handshake**:
-- Initiator sends Close frame
-- Receiver responds with Close frame
-- Both sides close TCP connection
-- Close payload: 2-byte code (big-endian) + optional UTF-8 reason
-
-**HTTP Upgrade Handshake**:
-- Use existing `SimpleIncomingRequestBuilder` to build request
-- Add required headers: `Upgrade`, `Connection`, `Sec-WebSocket-Key`, `Sec-WebSocket-Version`
-- Render request using `Http11::request().http_render()` (RenderHttp trait)
-- Read response using existing `HttpResponseReader`
-- Validate `Status::SwitchingProtocols` (101)
-- Compute and verify `Sec-WebSocket-Accept` header
-- After handshake, take ownership of stream for frame I/O
-
-**TLS Support**:
-- For `wss://` URLs, TLS handshake happens **before** WebSocket handshake
-- Reuse existing TLS infrastructure (no new TLS code needed)
-- `HttpClientConnection::connect()` already handles TLS for `https://`
-- Extend URL scheme support to recognize `wss://` as secure
-
-### Security Considerations
-
-- **Validate UTF-8**: Text frames must contain valid UTF-8 (use `String::from_utf8()`)
-- **Limit sizes**: Enforce max frame size (e.g., 16MB) to prevent DoS
-- **Close codes**: Use standard codes (1000-1011), don't expose internal errors
-- **Random masking**: Use cryptographically secure random for mask (client-side)
-
-### Reusable Components
-
-**From existing codebase**:
-- `SimpleHeader::SEC_WEBSOCKET_*` - Headers already defined
-- `Status::SwitchingProtocols` - 101 status code
-- `HttpClientConnection` - TCP/TLS connection wrapper
-- `SharedByteBufferStream<RawStream>` - Buffered Read/Write stream
-- `SimpleIncomingRequestBuilder` - Build HTTP upgrade request
-- `SimpleIncomingResponse` - Build HTTP upgrade response
-- `HttpResponseReader` - Parse HTTP response
-- `Http11::request().http_render()` - Render HTTP request
-- `Http11::response().http_render()` - Render HTTP response
-- `TaskIterator` - Non-blocking state machine pattern
-- `DrivenSendTaskIterator` - Blocking wrapper pattern
-- `DnsResolver` - Hostname resolution
-- `HttpConnectionPool` - Connection reuse (optional)
-
-**Do NOT re-implement**:
-- HTTP request formatting (use `SimpleIncomingRequestBuilder` + `Http11::request().http_render()`)
-- HTTP response formatting (use `SimpleIncomingResponse` + `Http11::response().http_render()`)
-- HTTP response parsing (use `HttpResponseReader`)
-- TLS handshake (use `HttpClientConnection::connect()`)
-- DNS resolution (use `DnsResolver`)
-- Execution driving (use `DrivenSendTaskIterator`)
-
-### Testing Strategy
-
-**Unit Tests**:
-1. Frame encoding/decoding (all opcodes, payload lengths)
-2. Masking/unmasking
-3. Message assembly (single-frame, fragmented)
-4. Accept key computation (test vectors from RFC 6455)
-5. Error handling
-
-**Integration Tests**:
-1. Connect to public echo server (e.g., `wss://echo.websocket.org`)
-2. Send text message, verify echo
-3. Send binary message, verify echo
-4. Test ping/pong
-5. Test close handshake
-6. Test large messages (fragmentation)
-
-**Test Vectors (RFC 6455 Section 1.3)**:
-```
-Client key: dGhlIHNhbXBsZSBub25jZQ==
-Expected accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
-```
-
-### Common Pitfalls to Avoid
-
-1. **Forgetting to mask** (client frames) or **masking when you shouldn't** (server frames)
-2. **Not handling fragmentation** (assuming all messages fit in one frame)
-3. **Not responding to Ping** (must auto-respond with Pong)
-4. **Not validating UTF-8** in Text frames
-5. **Fragmenting control frames** (they must be single-frame)
-6. **Wrong byte order** for extended payload length (must be big-endian)
-7. **Wrong close handshake** (both sides must send Close frame)
-8. **Re-implementing HTTP parsing** (use existing infrastructure)
-9. **Using loops in TaskIterator::next()** - use state machine, not loops
-10. **Not using Option<State> wrapper** - task must be able to terminate
 
 ---
+
 *Created: 2026-02-28*
-*Last Updated: 2026-03-03*
-*See [ARCHITECTURE.md](./ARCHITECTURE.md) for comprehensive design documentation*
+*Last Updated: 2026-03-10 (Comprehensive update with full protocol details)*
