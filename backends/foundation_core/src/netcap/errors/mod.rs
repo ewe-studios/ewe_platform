@@ -53,6 +53,8 @@ pub enum DataStreamError {
     ConnectionFailed,
     ReconnectionError,
     FailedToAcquireAddrs,
+    NotImplemented,
+    NotSupported,
 
     #[from(ignore)]
     Boxed(BoxedError),
@@ -115,3 +117,34 @@ impl core::fmt::Display for DataStreamError {
         write!(f, "{self:?}")
     }
 }
+
+/// Error type for TLS verification.
+#[derive(Debug)]
+pub enum TlsVerificationError {
+    /// Error related to certificate parsing
+    CertificateError(String),
+    /// Error related to private key parsing
+    PrivateKeyError(String),
+    /// Error related to TLS backend initialization
+    BackendError(String),
+    /// Error related to connection timeout
+    TimeoutError(String),
+    /// Error related to invalid configuration
+    InvalidConfigError(String),
+}
+
+impl std::fmt::Display for TlsVerificationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TlsVerificationError::CertificateError(msg) => write!(f, "Certificate error: {msg}"),
+            TlsVerificationError::PrivateKeyError(msg) => write!(f, "Private key error: {msg}"),
+            TlsVerificationError::BackendError(msg) => write!(f, "TLS backend error: {msg}"),
+            TlsVerificationError::TimeoutError(msg) => write!(f, "Timeout error: {msg}"),
+            TlsVerificationError::InvalidConfigError(msg) => {
+                write!(f, "Invalid configuration: {msg}")
+            }
+        }
+    }
+}
+
+impl error::Error for TlsVerificationError {}

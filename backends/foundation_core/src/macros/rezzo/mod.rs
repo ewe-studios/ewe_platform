@@ -107,7 +107,6 @@ macro_rules! is_ok {
                         result = true;
                         break;
                     }
-                    continue;
                 }
                 result
             },

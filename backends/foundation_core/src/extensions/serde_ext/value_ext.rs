@@ -18,10 +18,16 @@ pub trait PointerValueExt {
     type Item;
     type Error;
 
-    // get_path returns a reference to the underlying type identified by `PointerValueExt::Item`.
+    /// Returns a reference to the underlying type identified by `PointerValueExt::Item`.
+    ///
+    /// # Errors
+    /// Returns an error if the path is invalid or the value cannot be retrieved.
     fn get_path(&self, name_or_pointer: &str) -> ValueResult<&Self::Item, Self::Error>;
 
-    // get_path returns a reference to the underlying type identified by `PointerValueExt::Item`.
+    /// Returns a reference to the underlying type identified by `PointerValueExt::Item`.
+    ///
+    /// # Errors
+    /// Returns an error if the path is invalid or the value cannot be taken.
     fn take_path(&mut self, name_or_pointer: &str) -> ValueResult<Self::Item, Self::Error>;
 }
 
@@ -39,10 +45,16 @@ pub trait DynamicValueExt {
 
     /// Returns an owned type `T` for a given name or pointer path.
     /// - `name_or_pointer`: Can be a direct name or a pointer path (path starting with `/`),
+    ///
+    /// # Errors
+    /// Returns an error if the path is invalid or deserialization fails.
     fn d_get<T: DeserializeOwned>(&self, name_or_pointer: &str) -> ValueResult<T, Self::Error>;
 
     /// Returns an reference of type `T` (or value for copy type) for a given name or pointer path.
     /// - `name_or_pointer`: Can be a direct name or a pointer path (path starting with `/`),
+    ///
+    /// # Errors
+    /// Returns an error if the path is invalid or type conversion fails.
     fn d_get_as<'a, V: AsType<'a, Self::Item>>(
         &'a self,
         name_or_pointer: &str,
@@ -50,11 +62,17 @@ pub trait DynamicValueExt {
 
     /// Returns an owned type `T` for a given name or pointer path replacing with `Null`.
     /// - `name_or_pointer`: Can be a direct name or a pointer path (path starting with `/`),
+    ///
+    /// # Errors
+    /// Returns an error if the path is invalid or deserialization fails.
     fn d_take<T: DeserializeOwned>(&mut self, name_or_pointer: &str)
         -> ValueResult<T, Self::Error>;
 
     /// Inserts a new value of type `T` at the specified name or pointer path.
     /// It creates a missing `Value::Object` entries as needed.
+    ///
+    /// # Errors
+    /// Returns an error if the path is invalid or serialization fails.
     fn d_insert<T: Serialize>(
         &mut self,
         name_or_pointer: &str,
@@ -62,5 +80,8 @@ pub trait DynamicValueExt {
     ) -> ValueResult<(), Self::Error>;
 
     /// Returns a pretty-printed string representation of the JSON value.
+    ///
+    /// # Errors
+    /// Returns an error if pretty-printing fails.
     fn d_pretty(&self) -> ValueResult<String, Self::Error>;
 }

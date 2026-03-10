@@ -33,6 +33,7 @@ where
     Task: TaskIterator,
 {
     task: Mutex<Task>,
+    alive: Option<()>,
     local_mappers: Vec<Mapper>,
     panic_handler: Option<BoxedPanicHandler>,
     channel: std::sync::Arc<ConcurrentQueue<Stream<Done, Pending>>>,
@@ -52,6 +53,7 @@ where
     ) -> Self {
         Self {
             channel: chan,
+            alive: Some(()),
             panic_handler: None,
             local_mappers: mappers,
             task: Mutex::new(iter),
@@ -59,6 +61,7 @@ where
         }
     }
 
+    #[must_use]
     pub fn with_panic_handler<T>(mut self, handler: T) -> Self
     where
         T: Fn(Box<dyn Any + Send>) + Send + Sync + 'static,
@@ -102,6 +105,12 @@ where
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
+        if self.alive.is_none() {
+            tracing::debug!("Returning none going forward for consumer: {entry:?}");
+
+            return None;
+        }
+
         let task_response = match std::panic::catch_unwind(|| self.task.lock().unwrap().next()) {
             Ok(inner) => inner,
             Err(panic_error) => {
@@ -115,6 +124,9 @@ where
         if task_response.is_none() {
             // close the queue
             self.channel.close();
+
+            // set alive signal to empty.
+            self.alive.take();
 
             // send State::Done
             return Some(State::Done);
@@ -130,16 +142,19 @@ where
             // close the queue
             self.channel.close();
 
+            // set alive signal to empty.
+            self.alive.take();
+
             // send State::Done
             return Some(State::Done);
         }
 
         Some(match previous_response.unwrap() {
-            TaskStatus::Spawn(mut action) => match action.apply(entry, executor) {
-                Ok(()) => State::Progressed,
+            TaskStatus::Spawn(mut action) => match action.apply(Some(entry), executor) {
+                Ok(info) => State::SpawnFinished(info),
                 Err(err) => {
                     tracing::error!("Failed to to spawn action: {:?}", err);
-                    State::SpawnFailed
+                    State::SpawnFailed(entry)
                 }
             },
             TaskStatus::Delayed(inner) => {
@@ -150,6 +165,9 @@ where
 
                     // close the queue
                     self.channel.close();
+
+                    // set alive signal to empty.
+                    self.alive.take();
 
                     State::Done
                 }
@@ -163,6 +181,9 @@ where
                     // close the queue
                     self.channel.close();
 
+                    // set alive signal to empty.
+                    self.alive.take();
+
                     State::Done
                 }
             }
@@ -175,17 +196,23 @@ where
                     // close the queue
                     self.channel.close();
 
+                    // set alive signal to empty.
+                    self.alive.take();
+
                     State::Done
                 }
             }
             TaskStatus::Ready(inner) => {
                 if let Ok(()) = self.channel.push(Stream::Next(inner)) {
-                    State::Progressed
+                    State::ReadyValue(entry)
                 } else {
                     tracing::error!("Failed to deliver status to channel, closing task");
 
                     // close the queue
                     self.channel.close();
+
+                    // set alive signal to empty.
+                    self.alive.take();
 
                     State::Done
                 }
@@ -210,6 +237,7 @@ where
     Task: TaskIterator,
 {
     task: Mutex<Task>,
+    alive: Option<()>,
     local_mappers: Vec<Mapper>,
     panic_handler: Option<BoxedPanicHandler>,
     channel: std::sync::Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>>,
@@ -229,6 +257,7 @@ where
     ) -> Self {
         Self {
             channel: chan,
+            alive: Some(()),
             panic_handler: None,
             local_mappers: mappers,
             task: Mutex::new(iter),
@@ -236,6 +265,7 @@ where
         }
     }
 
+    #[must_use]
     pub fn with_panic_handler<T>(mut self, handler: T) -> Self
     where
         T: Fn(Box<dyn Any + Send>) + Send + Sync + 'static,
@@ -279,6 +309,15 @@ where
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
+        tracing::debug!("Are ConsumingIter alive?: {:?} -> {:?}", &self.alive, entry);
+
+        if self.alive.is_none() {
+            tracing::debug!("Returning none going forward for consumer: {entry:?}");
+
+            return None;
+        }
+
+        tracing::debug!("Get next value from consuming iter: {entry:?}");
         let task_response = match std::panic::catch_unwind(|| self.task.lock().unwrap().next()) {
             Ok(inner) => inner,
             Err(panic_error) => {
@@ -289,9 +328,17 @@ where
             }
         };
 
+        tracing::debug!(
+            "Response for next value: {entry:?} with value?: {}",
+            task_response.is_some()
+        );
+
         if task_response.is_none() {
             // close the queue
             self.channel.close();
+
+            // set alive signal to empty.
+            self.alive.take();
 
             // send State::Done
             return Some(State::Done);
@@ -307,19 +354,27 @@ where
             // close the queue
             self.channel.close();
 
+            // set alive signal to empty.
+            self.alive.take();
+
             // send State::Done
             return Some(State::Done);
         }
 
         Some(match previous_response.unwrap() {
-            TaskStatus::Spawn(mut action) => match action.apply(entry, executor) {
-                Ok(()) => State::Progressed,
-                Err(err) => {
-                    tracing::error!("Failed to to spawn action: {:?}", err);
-                    State::SpawnFailed
+            TaskStatus::Spawn(mut action) => {
+                tracing::debug!("Received spawned action: {entry:?}");
+
+                match action.apply(Some(entry), executor) {
+                    Ok(info) => State::SpawnFinished(info),
+                    Err(err) => {
+                        tracing::error!("Failed to to spawn action: {:?}", err);
+                        State::SpawnFailed(entry)
+                    }
                 }
-            },
+            }
             TaskStatus::Delayed(inner) => {
+                tracing::debug!("Got  delayed: {entry:?}");
                 if let Ok(()) = self.channel.push(TaskStatus::Delayed(inner)) {
                     State::Pending(Some(inner))
                 } else {
@@ -328,11 +383,16 @@ where
                     // close the queue
                     self.channel.close();
 
+                    // set alive signal to empty.
+                    self.alive.take();
+
                     State::Done
                 }
             }
             TaskStatus::Init => {
+                tracing::debug!("Got init: {entry:?}");
                 if let Ok(()) = self.channel.push(TaskStatus::Init) {
+                    tracing::debug!("Written TaskStatus::Init into receiving channel");
                     State::Pending(None)
                 } else {
                     tracing::error!("Failed to deliver status to channel, closing task",);
@@ -340,10 +400,14 @@ where
                     // close the queue
                     self.channel.close();
 
+                    // set alive signal to empty.
+                    self.alive.take();
+
                     State::Done
                 }
             }
             TaskStatus::Pending(inner) => {
+                tracing::debug!("Got pending value");
                 if let Ok(()) = self.channel.push(TaskStatus::Pending(inner)) {
                     State::Pending(None)
                 } else {
@@ -352,17 +416,26 @@ where
                     // close the queue
                     self.channel.close();
 
+                    // set alive signal to empty.
+                    self.alive.take();
+
                     State::Done
                 }
             }
             TaskStatus::Ready(inner) => {
-                if let Ok(()) = self.channel.push(TaskStatus::Ready(inner)) {
-                    State::Progressed
+                tracing::debug!("Got ready value");
+                let send_result = self.channel.push(TaskStatus::Ready(inner));
+                if let Ok(()) = send_result {
+                    tracing::debug!("Written TaskStatus::Ready into receiving channel");
+                    State::ReadyValue(entry)
                 } else {
                     tracing::error!("Failed to deliver status to channel, closing task");
 
                     // close the queue
                     self.channel.close();
+
+                    // set alive signal to empty.
+                    self.alive.take();
 
                     State::Done
                 }
@@ -371,7 +444,7 @@ where
     }
 }
 
-/// [`ReadyConsumingIter`] provides an implementer of `ExecutionIterator` which is focused
+/// [`ReadyConsumingIter`] provides an implementer of `ExecutionIterator` which is focused on
 /// consuming the produced [`TaskStatus::Ready`] output values from the execution of actual tasks.
 ///
 /// This means unlike the [`ConsumingIter`] you will only ever get the values from a [`TaskStatus::Ready`]
@@ -386,6 +459,7 @@ where
     Task: TaskIterator,
 {
     task: Mutex<Task>,
+    alive: Option<()>,
     mappers: Vec<Mapper>,
     panic_handler: Option<BoxedPanicHandler>,
     channel: std::sync::Arc<ConcurrentQueue<TaskStatus<Done, Pending, Action>>>,
@@ -405,6 +479,7 @@ where
     ) -> Self {
         Self {
             mappers,
+            alive: Some(()),
             channel: chan,
             panic_handler: None,
             task: Mutex::new(iter),
@@ -412,6 +487,7 @@ where
         }
     }
 
+    #[must_use]
     pub fn with_panic_handler<T>(mut self, handler: T) -> Self
     where
         T: Fn(Box<dyn Any + Send>) + Send + Sync + 'static,
@@ -455,6 +531,8 @@ where
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
+        self.alive?;
+
         let task_response = match std::panic::catch_unwind(|| self.task.lock().unwrap().next()) {
             Ok(inner) => inner,
             Err(panic_error) => {
@@ -468,6 +546,9 @@ where
         if task_response.is_none() {
             // close the queue
             self.channel.close();
+
+            // set alive signal to empty.
+            self.alive.take();
 
             // send State::Done
             return Some(State::Done);
@@ -483,29 +564,34 @@ where
             // close the queue
             self.channel.close();
 
+            // set alive signal to empty.
+            self.alive.take();
+
             // send State::Done
             return Some(State::Done);
         }
 
         Some(match previous_response.unwrap() {
-            TaskStatus::Spawn(mut action) => match action.apply(entry, executor) {
-                Ok(()) => State::Progressed,
+            TaskStatus::Spawn(mut action) => match action.apply(Some(entry), executor) {
+                Ok(info) => State::SpawnFinished(info),
                 Err(err) => {
                     tracing::error!("Failed to to spawn action: {:?}", err);
-                    State::SpawnFailed
+                    State::SpawnFailed(entry)
                 }
             },
             TaskStatus::Delayed(dur) => State::Pending(Some(dur)),
-            TaskStatus::Pending(_) => State::Pending(None),
-            TaskStatus::Init => State::Pending(None),
+            TaskStatus::Init | TaskStatus::Pending(_) => State::Pending(None),
             TaskStatus::Ready(inner) => {
                 if let Ok(()) = self.channel.push(TaskStatus::Ready(inner)) {
-                    State::Progressed
+                    State::ReadyValue(entry)
                 } else {
                     tracing::error!("Failed to deliver status to channel, closing task");
 
                     // close the queue
                     self.channel.close();
+
+                    // set alive signal to empty.
+                    self.alive.take();
 
                     State::Done
                 }

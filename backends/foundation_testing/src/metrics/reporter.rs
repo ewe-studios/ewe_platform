@@ -34,11 +34,7 @@ impl PerformanceReport {
         let _ = writeln!(report, "=== {} ===", self.title);
         let _ = writeln!(report, "Operations: {}", self.metrics.operations);
         let _ = writeln!(report, "Duration: {:?}", self.metrics.duration);
-        let _ = writeln!(
-            report,
-            "Throughput: {:.2} ops/sec",
-            self.metrics.throughput
-        );
+        let _ = writeln!(report, "Throughput: {:.2} ops/sec", self.metrics.throughput);
 
         if !self.metrics.latencies.is_empty() {
             report.push_str("\nLatency (ns):\n");

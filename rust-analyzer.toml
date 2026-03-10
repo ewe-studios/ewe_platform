@@ -4,11 +4,6 @@
 # Enable proc-macro support for better completions
 [procMacro]
 enable = true
-ignored = {}
-
-# Configure rustc to use rustup's wrapper (ensures rust-toolchain.toml is respected)
-[rustc]
-source = "discover"
 
 # Configure cargo settings
 [cargo]
@@ -16,25 +11,8 @@ source = "discover"
 allFeatures = false
 # Load out-of-tree sources (needed for generated bindings)
 loadOutDirsFromCheck = true
-# Run build scripts to generate C++ bindings
-runBuildScripts = true
 # Set build script overrides if needed
 buildScripts.enable = true
-# Use rustup run to ensure the correct toolchain sysroot is used
-sysroot = "discover"
-# Use explicit sysroot source path to the active toolchain
-# The rust-toolchain.toml includes rust-src component
-sysrootSrc = "discover"
-# sysrootSrc = "/home/darkvoid/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library"
-# Ensure rust-analyzer uses rustup's toolchain (set in rust-toolchain.toml)
-# This prevents it from using system rustc at /usr/src/debug/
-# extraEnv = { "RUSTUP_TOOLCHAIN" = "stable" }
-#
-# OR
-#
-# Just uninstall rustc from your system, so rustup is the only one usable
-#
-# e.g archlinux: sudo pacman -Rs rust
 
 # Configure check on save
 [check]

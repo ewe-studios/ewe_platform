@@ -10,13 +10,14 @@ pub use foundation_nostd::primtivies::RwLock;
 /// used list items in an efficient list.
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub struct Entry {
-    id: usize,
-    gen: usize,
+    pub id: usize,
+    pub gen: usize,
 }
 
 #[allow(dead_code)]
 impl Entry {
-    pub(crate) fn new(id: usize, gen: usize) -> Self {
+    #[must_use]
+    pub fn new(id: usize, gen: usize) -> Self {
         Self { id, gen }
     }
 }
@@ -183,7 +184,7 @@ impl<T> EntryList<T> {
 
     /// unpack helps you to re-allocate the provided value
     /// back into the packed entry, if the entry was truly
-    /// packaed then true is returned to validate that
+    /// packed then true is returned to validate that
     /// the entry was indeed found and updated.
     pub fn unpark(&mut self, entry: &Entry, item: T) -> bool {
         match self.find_packed(entry) {
@@ -196,7 +197,8 @@ impl<T> EntryList<T> {
         }
     }
 
-    pub(crate) fn find_packed(&self, entry: &Entry) -> Option<usize> {
+    #[must_use]
+    pub fn find_packed(&self, entry: &Entry) -> Option<usize> {
         for (index, item) in self.packed_entries.iter().enumerate() {
             if item == entry {
                 return Some(index);
@@ -206,7 +208,7 @@ impl<T> EntryList<T> {
     }
 
     #[inline]
-    pub(crate) fn update_packed(&mut self, entry: &Entry, item: T) -> Option<T> {
+    pub fn update_packed(&mut self, entry: &Entry, item: T) -> Option<T> {
         if let Some((gen, value)) = self.items.get_mut(entry.id) {
             if *gen == entry.gen && value.is_none() {
                 // collect old value
@@ -322,9 +324,16 @@ impl<T> EntryList<T> {
                 if value.is_some() {
                     // collect old value
                     let previous_value = value.take();
+                    tracing::debug!(
+                        "Current entry with gen: {} going to new gen: {} for id: {}",
+                        gen,
+                        new_gen,
+                        entry.id,
+                    );
 
                     // replace gen
                     *gen = new_gen;
+                    tracing::debug!("Update gen to: {} for id: {}", new_gen, entry.id);
 
                     // replace value
                     *value = Some(item);
@@ -493,12 +502,13 @@ impl<T> ThreadSafeEntry<T> {
         self.0.write().unwrap().unpark(entry, item)
     }
 
-    pub(crate) fn find_packed(&self, entry: &Entry) -> Option<usize> {
+    #[must_use]
+    pub fn find_packed(&self, entry: &Entry) -> Option<usize> {
         self.0.write().unwrap().find_packed(entry)
     }
 
     #[inline]
-    pub(crate) fn update_packed(&self, entry: &Entry, item: T) -> Option<T> {
+    pub fn update_packed(&self, entry: &Entry, item: T) -> Option<T> {
         self.0.write().unwrap().update_packed(entry, item)
     }
 
@@ -561,13 +571,15 @@ impl<T> ThreadSafeEntry<T> {
 
 #[cfg(test)]
 mod test_entry_list {
+    use tracing_test::traced_test;
+
     use super::*;
 
     #[test]
     fn entry_list_insert_reference() {
         let mut list: EntryList<&usize> = EntryList::new();
         let entry = list.insert(&1);
-        assert_eq!(entry, Entry { id: 0, gen: 0 });
+        assert_eq!(entry, Entry::new(0, 0));
 
         assert_eq!(Some(&&1), list.get(&entry));
         assert_eq!(Some(&mut &1), list.get_mut(&entry));
@@ -577,16 +589,16 @@ mod test_entry_list {
     fn entry_list_multi_insert_reference() {
         let mut list: EntryList<&usize> = EntryList::new();
         let entry = list.insert(&1);
-        assert_eq!(entry, Entry { id: 0, gen: 0 });
+        assert_eq!(entry, Entry::new(0, 0));
 
         assert_eq!(Some(&&1), list.get(&entry));
         assert_eq!(Some(&mut &1), list.get_mut(&entry));
 
         let entry2 = list.insert(&2);
-        assert_eq!(entry2, Entry { id: 1, gen: 0 });
+        assert_eq!(entry2, Entry::new(1, 0));
 
         let entry3 = list.insert(&3);
-        assert_eq!(entry3, Entry { id: 2, gen: 0 });
+        assert_eq!(entry3, Entry::new(2, 0));
     }
 
     #[test]
@@ -611,7 +623,7 @@ mod test_entry_list {
     fn entry_list_can_park_entry() {
         let mut list: EntryList<usize> = EntryList::new();
         let entry = list.insert(1);
-        assert_eq!(entry, Entry { id: 0, gen: 0 });
+        assert_eq!(entry, Entry::new(0, 0));
 
         assert_eq!(Some(&1), list.get(&entry));
         assert_eq!(Some(&mut 1), list.get_mut(&entry));
@@ -636,7 +648,7 @@ mod test_entry_list {
     fn entry_list_can_take_entry() {
         let mut list: EntryList<usize> = EntryList::new();
         let entry = list.insert(1);
-        assert_eq!(entry, Entry { id: 0, gen: 0 });
+        assert_eq!(entry, Entry::new(0, 0));
 
         assert_eq!(Some(&1), list.get(&entry));
         assert_eq!(Some(&mut 1), list.get_mut(&entry));
@@ -651,7 +663,7 @@ mod test_entry_list {
     fn entry_list_insert_value() {
         let mut list: EntryList<usize> = EntryList::new();
         let entry = list.insert(1);
-        assert_eq!(entry, Entry { id: 0, gen: 0 });
+        assert_eq!(entry, Entry::new(0, 0));
 
         assert_eq!(Some(&1), list.get(&entry));
         assert_eq!(Some(&mut 1), list.get_mut(&entry));
@@ -661,7 +673,7 @@ mod test_entry_list {
     fn entry_list_can_vacate_entry() {
         let mut list: EntryList<usize> = EntryList::new();
         let entry = list.insert(1);
-        assert_eq!(entry, Entry { id: 0, gen: 0 });
+        assert_eq!(entry, Entry::new(0, 0));
 
         assert_eq!(Some(&1), list.get(&entry));
         list.vacate(&entry);
@@ -676,7 +688,7 @@ mod test_entry_list {
     fn entry_list_can_check_entry_validity() {
         let mut list: EntryList<usize> = EntryList::new();
         let entry = list.insert(1);
-        assert_eq!(entry, Entry { id: 0, gen: 0 });
+        assert_eq!(entry, Entry::new(0, 0));
 
         assert_eq!(Some(&1), list.get(&entry));
 
@@ -687,7 +699,7 @@ mod test_entry_list {
     fn entry_list_can_check_if_is_invalid_entry() {
         let mut list: EntryList<usize> = EntryList::new();
         let entry = list.insert(1);
-        assert_eq!(entry, Entry { id: 0, gen: 0 });
+        assert_eq!(entry, Entry::new(0, 0));
 
         assert_eq!(Some(&1), list.get(&entry));
 
@@ -698,15 +710,16 @@ mod test_entry_list {
     }
 
     #[test]
+    #[traced_test]
     fn entry_list_can_replace_entry() {
         let mut list: EntryList<usize> = EntryList::new();
         let entry = list.insert(1);
-        assert_eq!(entry, Entry { id: 0, gen: 0 });
+        assert_eq!(entry, Entry::new(0, 0));
 
         assert_eq!(Some(&1), list.get(&entry));
 
         let (new_entry, old_value) = list.replace(&entry, 2).expect("should have value");
-        assert_eq!(new_entry, Entry { id: 0, gen: 1 });
+        assert_eq!(new_entry, Entry::new(0, 1));
         assert_eq!(1, old_value);
 
         assert_eq!(None, list.get(&entry));
@@ -718,7 +731,7 @@ mod test_entry_list {
     fn entry_list_can_update_entry() {
         let mut list: EntryList<usize> = EntryList::new();
         let entry = list.insert(1);
-        assert_eq!(entry, Entry { id: 0, gen: 0 });
+        assert_eq!(entry, Entry::new(0, 0));
 
         assert_eq!(Some(&1), list.get(&entry));
         assert_eq!(Some(1), list.update(&entry, 2));
@@ -729,7 +742,7 @@ mod test_entry_list {
     fn entry_list_can_modify_entry() {
         let mut list: EntryList<usize> = EntryList::new();
         let entry = list.insert(1);
-        assert_eq!(entry, Entry { id: 0, gen: 0 });
+        assert_eq!(entry, Entry::new(0, 0));
 
         assert_eq!(Some(&1), list.get(&entry));
 

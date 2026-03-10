@@ -13,10 +13,13 @@ use std::{
     time,
 };
 
-use crate::valtron::TaskIterator;
 use crate::{
-    synca::{mpp, DurationWaker, Entry, EntryList, IdleMan, OnSignal, RunOnDrop, Sleepers, Waiter},
+    synca::{mpp, DurationWaker, Entry, EntryList, IdleMan, OnSignal, Sleepers, Waiter},
     valtron::{AnyResult, ExecutionEngine, ExecutionIterator, State},
+};
+use crate::{
+    synca::{Timeable, Timing},
+    valtron::{DualSequeunceChildAndParentLinkedTask, FinishChildBeforeParentTask, TaskIterator},
 };
 use rand::SeedableRng;
 use rand_chacha::ChaCha8Rng;
@@ -28,8 +31,8 @@ use crate::compati::Mutex;
 
 use crate::valtron::{
     BoxedExecutionEngine, BoxedExecutionIterator, BoxedSendExecutionIterator, ExecutionAction,
-    ExecutionTaskIteratorBuilder, ExecutorError, ProcessController, SharedTaskQueue,
-    TaskReadyResolver, TaskStatusMapper, ThreadActivity,
+    ExecutionTaskIteratorBuilder, ExecutorError, ProcessController, SharedTaskQueue, SpawnInfo,
+    SpawnType, TaskReadyResolver, TaskStatusMapper, ThreadActivity,
 };
 
 /// `PriorityOrder` defines how wake up tasks should placed once woken up.
@@ -53,6 +56,15 @@ pub enum Sleepable {
     Atomic(sync::Arc<AtomicBool>, Entry),
 }
 
+impl Timeable for Sleepable {
+    fn remaining_duration(&self) -> Option<time::Duration> {
+        match self {
+            Sleepable::Timable(inner) => inner.remaining(),
+            Sleepable::Atomic(_, _) => None,
+        }
+    }
+}
+
 impl Waiter for Sleepable {
     fn is_ready(&self) -> bool {
         match self {
@@ -60,14 +72,6 @@ impl Waiter for Sleepable {
             Sleepable::Atomic(inner, _) => inner.load(atomic::Ordering::SeqCst),
         }
     }
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub(crate) enum SpawnType {
-    Lifted,
-    LiftedWithParent,
-    Broadcast,
-    Scheduled,
 }
 
 /// Underlying state of an executor.
@@ -83,19 +87,16 @@ pub(crate) enum SpawnType {
 /// allow you use [`std::panic::catch_unwind`].
 pub struct ExecutorState {
     /// what priority should waking task be placed.
-    pub(crate) priority: PriorityOrder,
+    pub wakeup_priority: PriorityOrder,
 
     /// `global_tasks` are the shared tasks coming from the main thread
     /// they generally will always come in fifo order and will be processed
     /// in the order received.
-    pub(crate) global_tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
-
-    /// indicates to us which if any spawn operation occurred.
-    pub(crate) spawn_op: rc::Rc<cell::RefCell<Option<SpawnType>>>,
+    pub global_tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
 
     /// indicates the current task currently being handled for
     /// safety checks.
-    pub(crate) current_task: rc::Rc<cell::RefCell<Option<Entry>>>,
+    pub current_task: rc::Rc<cell::RefCell<Option<Entry>>>,
 
     /// tasks owned by the executor which should be processed first
     /// before taking on the next task from the global queue,
@@ -104,15 +105,15 @@ pub struct ExecutorState {
     /// This allows us keep the overall execution of any async
     /// iterator within the same thread and keep a one thread
     /// execution.
-    pub(crate) local_tasks: rc::Rc<cell::RefCell<EntryList<BoxedExecutionIterator>>>,
+    pub local_tasks: rc::Rc<cell::RefCell<EntryList<BoxedExecutionIterator>>>,
 
     /// `task_graph` provides dependency mapping of a Task (Key) lifted
     /// by another Task (Value) allowing us to go from lifted task
     /// to it's tree of dependents.
-    pub(crate) task_graph: rc::Rc<cell::RefCell<HashMap<Entry, Entry>>>,
+    pub task_graph: rc::Rc<cell::RefCell<HashMap<Entry, Entry>>>,
 
     /// map used to identify that a task was packed.
-    pub(crate) packed_tasks: rc::Rc<cell::RefCell<HashMap<Entry, bool>>>,
+    pub packed_tasks: rc::Rc<cell::RefCell<HashMap<Entry, bool>>>,
 
     /// the queue used for performing perioritization, usually
     /// the global task taking will first be stored in the local
@@ -122,14 +123,14 @@ pub struct ExecutorState {
     /// the entries in this queue is empty, this ensures
     /// we can consistently complete every received tasks
     /// till it finishes.
-    pub(crate) processing: rc::Rc<cell::RefCell<VecDeque<Entry>>>,
+    pub processing: rc::Rc<cell::RefCell<VecDeque<Entry>>>,
 
     /// this provides consistent and repeatable random number generation
     /// this is exposed by the executor to it's callers via scopes
     /// or direct use that lets you borrow a random number that
     /// always produces the same sets of values when given the
     /// same seed for repeatability.
-    pub(crate) rng: rc::Rc<cell::RefCell<ChaCha8Rng>>,
+    pub rng: rc::Rc<cell::RefCell<ChaCha8Rng>>,
 
     /// sleepers contain a means to register tasks currently being executed
     /// as sleeping, forcing the executing to either in a single threaded environment
@@ -139,11 +140,11 @@ pub struct ExecutorState {
     /// Each executor may treat these differently in that they may process
     /// one task at a time until completion or concurrently process
     /// multiple tasks at a time with allotted time slot between them.
-    pub(crate) sleepers: Sleepers<Sleepable>,
+    pub sleepers: Sleepers<Sleepable>,
 
     /// sleepy provides a managed indicator of how many times we've been idle
     /// and recommends how much sleep should the executor take next.
-    pub(crate) idler: rc::Rc<cell::RefCell<IdleMan>>,
+    pub idler: rc::Rc<cell::RefCell<IdleMan>>,
 }
 
 // --- constructors
@@ -153,17 +154,16 @@ static DEQUEUE_CAPACITY: usize = 10;
 impl ExecutorState {
     pub fn new(
         global_tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,
-        priority: PriorityOrder,
+        wakeup_priority: PriorityOrder,
         rng: ChaCha8Rng,
         idler: IdleMan,
     ) -> Self {
         Self {
-            priority,
+            wakeup_priority,
             global_tasks,
             sleepers: Sleepers::new(),
             rng: rc::Rc::new(cell::RefCell::new(rng)),
             idler: rc::Rc::new(cell::RefCell::new(idler)),
-            spawn_op: rc::Rc::new(cell::RefCell::new(None)),
             current_task: rc::Rc::new(cell::RefCell::new(None)),
             task_graph: rc::Rc::new(cell::RefCell::new(HashMap::new())),
             packed_tasks: rc::Rc::new(cell::RefCell::new(HashMap::new())),
@@ -205,7 +205,7 @@ pub enum ProgressIndicator {
     NoWork,
 
     /// Indicates work is available and can be progressed
-    CanProgress,
+    CanProgress(Option<State>),
 
     /// Indicates it needs to wait for some period of time
     /// before progress can be made.
@@ -220,8 +220,7 @@ impl Clone for ExecutorState {
             rng: self.rng.clone(),
             idler: self.idler.clone(),
             sleepers: self.sleepers.clone(),
-            priority: self.priority.clone(),
-            spawn_op: self.spawn_op.clone(),
+            wakeup_priority: self.wakeup_priority.clone(),
             current_task: self.current_task.clone(),
             global_tasks: self.global_tasks.clone(),
             local_tasks: self.local_tasks.clone(),
@@ -229,6 +228,23 @@ impl Clone for ExecutorState {
             packed_tasks: self.packed_tasks.clone(),
             processing: self.processing.clone(),
         }
+    }
+}
+
+impl core::fmt::Debug for ExecutorState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ExecutorState")
+            .field("priority", &self.wakeup_priority)
+            .field("global_tasks", &self.global_tasks)
+            .field("current_task", &self.current_task)
+            .field("local_tasks", &self.local_tasks.borrow().allocated_slots())
+            .field("task_graph", &self.task_graph)
+            .field("packed_tasks", &self.packed_tasks)
+            .field("processing", &self.processing)
+            .field("rng", &self.rng)
+            .field("sleepers", &self.sleepers)
+            .field("idler", &self.idler.borrow().count())
+            .finish()
     }
 }
 
@@ -262,7 +278,6 @@ impl ExecutorState {
                 Some(dep) => {
                     deps.push(*dep);
                     previous = Some(*dep);
-                    continue;
                 }
                 None => break,
             }
@@ -319,7 +334,7 @@ impl ExecutorState {
         // remove packed registry
         self.packed_tasks.borrow_mut().remove(&target);
 
-        match self.priority {
+        match self.wakeup_priority {
             PriorityOrder::Top => {
                 for dependent in deps.into_iter().rev() {
                     self.packed_tasks.borrow_mut().remove(&dependent);
@@ -351,12 +366,14 @@ impl ExecutorState {
     }
 
     #[inline]
-    pub(crate) fn number_of_sleepers(&self) -> usize {
+    #[must_use]
+    pub fn number_of_sleepers(&self) -> usize {
         self.sleepers.count()
     }
 
     #[inline]
-    pub(crate) fn has_sleeping_tasks(&self) -> bool {
+    #[must_use]
+    pub fn has_sleeping_tasks(&self) -> bool {
         self.sleepers.has_pending_tasks()
     }
 
@@ -385,6 +402,11 @@ impl ExecutorState {
         !self.processing.borrow().is_empty()
     }
 
+    #[must_use]
+    pub fn has_incoming_global_tasks(&self) -> bool {
+        !self.global_tasks.is_empty()
+    }
+
     /// Returns totla
     #[must_use]
     pub fn total_inprocess_tasks(&self) -> usize {
@@ -394,6 +416,12 @@ impl ExecutorState {
     #[must_use]
     pub fn total_sleeping_tasks(&self) -> usize {
         self.sleepers.count()
+    }
+
+    /// Returns the total in queue regardless of sleeping or in-progress.
+    #[must_use]
+    pub fn total_tasks(&self) -> usize {
+        self.local_tasks.borrow().active_slots()
     }
 
     /// Returns the total remaining tasks that are
@@ -444,20 +472,20 @@ impl ExecutorState {
         span.in_scope(|| {
             if self.has_active_tasks() {
                 tracing::debug!("Still have active tasks");
-                return ProgressIndicator::CanProgress;
+                return ProgressIndicator::CanProgress(None);
             }
 
             match self.schedule_next() {
                 ScheduleOutcome::GlobalTaskAcquired => {
                     tracing::debug!("Successfully acquired new tasks for processing");
-                    ProgressIndicator::CanProgress
+                    ProgressIndicator::CanProgress(None)
                 }
                 ScheduleOutcome::NoTaskRunningOrAcquired => {
                     if self.has_sleeping_tasks() {
                         tracing::debug!(
                             "No new tasks, but we have sleeping tasks, so we can make progress"
                         );
-                        return ProgressIndicator::CanProgress;
+                        return ProgressIndicator::CanProgress(None);
                     }
 
                     tracing::debug!("No new tasks, no need to perform work");
@@ -474,86 +502,116 @@ impl ExecutorState {
     }
 
     #[inline]
+    #[tracing::instrument(skip(self, engine))]
     pub fn schedule_and_do_work(&self, engine: BoxedExecutionEngine) -> ProgressIndicator {
-        let span = tracing::trace_span!("ThreadPool::schedule_and_do_work");
-        span.in_scope(|| {
-            match self.request_global_task() {
-                ProgressIndicator::CanProgress => {}
-                ProgressIndicator::NoWork => {
-                    return ProgressIndicator::NoWork;
+        match self.request_global_task() {
+            ProgressIndicator::CanProgress(_) => {}
+            ProgressIndicator::NoWork => {
+                tracing::debug!("[request_global_task] Received NoWork indicator from task");
+                return ProgressIndicator::NoWork;
+            }
+            ProgressIndicator::SpinWait(_) => {
+                unreachable!("Requesting global task should never spin wait")
+            }
+        }
+
+        self.wakeup_ready_sleepers();
+
+        match self.do_work(engine) {
+            ProgressIndicator::CanProgress(state) => {
+                tracing::debug!("Received CanProgress indicator from task: state={state:?}");
+                // TODO: I feel like I am missing something here
+                ProgressIndicator::CanProgress(state)
+            }
+            ProgressIndicator::NoWork => {
+                tracing::debug!("[DoWork] Received NoWork indicator from task");
+
+                if self.has_sleeping_tasks() {
+                    if let Some(max_sleep_dur) = self.sleepers.max_duration() {
+                        tracing::debug!(
+                            "[DoWork] still has sleepers and recommend sleep: {:?}",
+                            max_sleep_dur
+                        );
+                        return ProgressIndicator::SpinWait(max_sleep_dur);
+                    }
+
+                    tracing::debug!(
+                        "[DoWork] still has sleepers - returning with CanProgress(None)"
+                    );
+                    return ProgressIndicator::CanProgress(None);
                 }
-                ProgressIndicator::SpinWait(_) => {
-                    unreachable!("Requesting global task should never spin wait")
+
+                // empty the current task marker
+                self.current_task.borrow_mut().take();
+
+                match self.idler.borrow_mut().increment() {
+                    Some(next_dur) => ProgressIndicator::SpinWait(next_dur),
+                    None => ProgressIndicator::NoWork,
                 }
             }
+            ProgressIndicator::SpinWait(duration) => {
+                tracing::debug!("Received SpinWait({:?}) indicator from task", &duration);
 
-            self.wakeup_ready_sleepers();
-
-            // reset the spawn_ops to None
-            RunOnDrop::new(|| {
-                self.spawn_op.borrow_mut().take();
-            });
-
-            match self.do_work(engine) {
-                ProgressIndicator::CanProgress => {
-                    tracing::debug!("Received CanProgress indicator from task");
-                    // TODO: I feel like I am missing something here
-                    ProgressIndicator::CanProgress
+                if self.has_inflight_task() {
+                    return ProgressIndicator::CanProgress(None);
                 }
-                ProgressIndicator::NoWork => {
-                    tracing::debug!("Received NoWork indicator from task");
 
-                    // empty the current task marker
-                    self.current_task.borrow_mut().take();
-
-                    match self.idler.borrow_mut().increment() {
-                        Some(next_dur) => ProgressIndicator::SpinWait(next_dur),
-                        None => ProgressIndicator::NoWork,
-                    }
+                // if there is other work to be done, lets
+                // not waste CPU time, we can return CanProgress here
+                // to allow process work on other tasks
+                // since our process will always wakeup sleepers
+                // first anyway.
+                if self.has_incoming_global_tasks() {
+                    return ProgressIndicator::CanProgress(None);
                 }
-                ProgressIndicator::SpinWait(duration) => {
-                    tracing::debug!("Received SpinWait({:?}) indicator from task", &duration);
 
-                    if self.has_inflight_task() {
-                        return ProgressIndicator::CanProgress;
+                // empty the current task marker
+                self.current_task.borrow_mut().take();
+
+                // if the current task indicates it wants to spin wait,
+                // attempt to get global task else return
+                // duration as is.
+                match self.schedule_next() {
+                    ScheduleOutcome::GlobalTaskAcquired => {
+                        tracing::debug!(
+                            "Global task indicate we can make progress, possible acquired task"
+                        );
+                        ProgressIndicator::CanProgress(None)
                     }
-
-                    // empty the current task marker
-                    self.current_task.borrow_mut().take();
-
-                    // if the current task indicates it wants to spin wait,
-                    // attempt to get global task else return
-                    // duration as is.
-                    match self.schedule_next() {
-                        ScheduleOutcome::GlobalTaskAcquired => {
-                            tracing::debug!(
-                                "Global task indicate we can make progress, possible acquired task"
-                            );
-                            ProgressIndicator::CanProgress
-                        }
-                        ScheduleOutcome::NoTaskRunningOrAcquired => {
-                            tracing::debug!("No new task from global queue");
-                            ProgressIndicator::SpinWait(duration)
-                        }
-                        ScheduleOutcome::LocalTaskRunning => {
-                            tracing::debug!("Unexpected state with local task available");
-                            unreachable!("global task never spinWaits")
-                        }
+                    ScheduleOutcome::NoTaskRunningOrAcquired => {
+                        tracing::debug!("No new task from global queue");
+                        ProgressIndicator::SpinWait(duration)
+                    }
+                    ScheduleOutcome::LocalTaskRunning => {
+                        tracing::debug!("Unexpected state with local task available");
+                        unreachable!("global task never spinWaits")
                     }
                 }
             }
-        })
+        }
     }
 
+    #[tracing::instrument(skip(self))]
     pub fn check_processing_queue(&self) -> Option<ProgressIndicator> {
+        let total_sleepers = self.sleepers.count();
         let has_sleeping_tasks = self.has_sleeping_tasks();
         let handle = self.processing.borrow_mut();
+        let has_current_task = self.current_task.borrow().iter().len() > 0;
+
+        tracing::debug!(
+            "check_processing_queue: sleep_task: {} (total={}), processing_tasks: {} and has_current_task: {}",
+            has_sleeping_tasks,
+            total_sleepers,
+            handle.len(),
+            has_current_task,
+        );
+
         // if after wake up, no task still enters
         // the processing queue then no work is available
         if handle.is_empty() {
             tracing::debug!("Task queue is empty: {:?}", handle.is_empty());
             if has_sleeping_tasks {
-                return Some(ProgressIndicator::CanProgress);
+                return Some(ProgressIndicator::CanProgress(None));
             }
             return Some(ProgressIndicator::NoWork);
         }
@@ -570,198 +628,411 @@ impl ExecutorState {
     ///    as at this point work should be in queue before [`do_work`] is called.
     ///
     #[inline]
+    #[tracing::instrument(skip(self, engine))]
     pub fn do_work(&self, engine: BoxedExecutionEngine) -> ProgressIndicator {
-        let span = tracing::trace_span!("ThreadPool::do_work");
-        span.in_scope(|| {
-            // if after wake up, no task still enters
-            // the processing queue then no work is available
-            if let Some(inner) = self.check_processing_queue() {
-                match inner {
-                    ProgressIndicator::NoWork => return ProgressIndicator::NoWork,
-                    ProgressIndicator::CanProgress => return ProgressIndicator::CanProgress,
-                    ProgressIndicator::SpinWait(_) => unreachable!("check_processing_queue should never reach here"),
+        // if after wake up, no task still enters
+        // the processing queue then no work is available
+        if let Some(inner) = self.check_processing_queue() {
+            match inner {
+                ProgressIndicator::NoWork => return ProgressIndicator::NoWork,
+                ProgressIndicator::CanProgress(inner) => {
+                    return ProgressIndicator::CanProgress(inner)
+                }
+                ProgressIndicator::SpinWait(_) => {
+                    unreachable!("check_processing_queue should never reach here")
                 }
             }
+        }
 
-            let top_entry = self.processing.borrow_mut().pop_front().unwrap();
-            let remaining_tasks = self.processing.borrow().len();
+        let active_tasks = self.total_active_tasks();
+        tracing::debug!(
+            "Processing entries: {:?} (active_tasks={})",
+            self.processing.borrow(),
+            active_tasks
+        );
 
-            if self.is_packed(&top_entry) {
-                return ProgressIndicator::CanProgress;
+        let top_entry = self.processing.borrow_mut().pop_front().unwrap();
+
+        let remaining_tasks = self.processing.borrow().len();
+        tracing::debug!(
+            "Top entry: {:?} with remaining: {}",
+            top_entry,
+            remaining_tasks
+        );
+
+        if self.is_packed(&top_entry) {
+            tracing::debug!(
+                "Top entry: {:?} is parked with queue: {:?}",
+                top_entry,
+                self.processing.borrow()
+            );
+            return ProgressIndicator::CanProgress(None);
+        }
+
+        tracing::debug!(
+            "Current top task = {:?} | processing: {:?}",
+            self.current_task.borrow(),
+            self.processing.borrow(),
+        );
+
+        self.current_task.borrow_mut().replace(top_entry);
+
+        tracing::debug!(
+            "Current task with top: {:?} -> {:?} | processing: {:?}",
+            top_entry,
+            self.current_task.borrow(),
+            self.processing.borrow(),
+        );
+
+        let iter_container = self.local_tasks.borrow_mut().park(&top_entry);
+        assert!(
+            iter_container.is_some(),
+            "An entry must always have a task attached"
+        );
+
+        let mut iter = iter_container.unwrap();
+        let next_result = iter.next(top_entry, engine);
+
+        // if result is none
+        if next_result.is_none() {
+            tracing::debug!(
+                "Task returned None (has finished) (rem_tasks: {})",
+                remaining_tasks
+            );
+
+            // remove task from queue
+            self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+            self.local_tasks.borrow_mut().take(&top_entry);
+
+            // Task Iterator is really done
+            if remaining_tasks == 0 {
+                return ProgressIndicator::NoWork;
             }
 
-            self.current_task.borrow_mut().replace(top_entry);
+            return ProgressIndicator::CanProgress(None);
+        }
 
-            let iter_container = self.local_tasks.borrow_mut().park(&top_entry);
-            match iter_container {
-                Some(mut iter) => {
-                    if let Some(state) = iter.next(top_entry, engine) {
-                        tracing::debug!("Task delivered state: {:?}", &state);
-                        match state {
-                            State::SpawnFailed => {
-                                unreachable!("Executor should never fail to spawn a task");
-                            }
-                            State::Panicked => {
-                                tracing::debug!(
-                                    "Task just panicked and communicated that with State::Panicked, will remove immediately"
-                                );
+        tracing::debug!("Task delivered state: {:?}", &next_result);
+        match next_result.unwrap() {
+            State::SpawnFailed(parent_key) => {
+                tracing::debug!(
+                        "Task just failed to spawn next work which might mean it cant make progress, to be safe we should remove immediately"
+                    );
 
-                                // unpack the entry in the task list
-                                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
-                                self.local_tasks.borrow_mut().take(&top_entry);
+                // unpack the entry in the task list
+                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+                self.local_tasks.borrow_mut().take(&top_entry);
 
-                                // no need to push entry since it must have
-                                tracing::debug!("Task is removed from queue due to panic");
+                // no need to push entry since it must have
+                tracing::debug!("Task is removed from queue due to spawn failed");
 
-                                // Task Iterator is really done
-                                if remaining_tasks == 0 {
-                                    ProgressIndicator::NoWork
-                                } else {
-                                    ProgressIndicator::CanProgress
-                                }
-                            }
-                            State::SpawnFinished => {
-                                let active_tasks = self.total_active_tasks();
-                                let sleeping_tasks = self.total_active_tasks();
-                                let in_process_tasks = self.total_inprocess_tasks();
+                // Task Iterator is really done
+                if remaining_tasks == 0 {
+                    ProgressIndicator::NoWork
+                } else {
+                    ProgressIndicator::CanProgress(Some(State::SpawnFailed(parent_key)))
+                }
+            }
+            State::Panicked => {
+                tracing::debug!(
+                        "Task just panicked and communicated that with State::Panicked, will remove immediately"
+                    );
 
-                                tracing::debug!(
-                                    "Spawned new task successfully over current {:?} (rem_tasks: {}, active_tasks: {}, sleeping_tasks: {}, in_process_tasks: {})",
-                                    &top_entry,
-                                    remaining_tasks,
-                                    active_tasks,
-                                    sleeping_tasks,
-                                    in_process_tasks,
-                                );
+                // unpack the entry in the task list
+                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+                self.local_tasks.borrow_mut().take(&top_entry);
 
-                                // unpack the entry in the task list
-                                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+                // no need to push entry since it must have
+                tracing::debug!("Task is removed from queue due to panic");
 
-                                // unless we just lifted with a parent then add entry back.
-                                if let Some(op) = self.spawn_op.borrow().as_ref() {
-                                    tracing::info!("Spawned process with op: {:?}", op);
-                                    if op != &SpawnType::LiftedWithParent {
-                                        // push entry back into processing mut
-                                        tracing::info!(
-                                            "Adding task {:?} back into top of queue: {:?}",
-                                            top_entry,
-                                            op
-                                        );
-                                        self.processing.borrow_mut().push_front(top_entry);
-                                    }
-                                }
+                // Task Iterator is really done
+                if remaining_tasks == 0 {
+                    ProgressIndicator::NoWork
+                } else {
+                    ProgressIndicator::CanProgress(Some(State::Panicked))
+                }
+            }
+            State::SpawnFinished(info) => {
+                let active_tasks = self.total_active_tasks();
+                let in_process_tasks = self.total_inprocess_tasks();
 
-                                // no need to push entry since it must have
-                                ProgressIndicator::CanProgress
-                            }
-                            State::Done => {
-                                tracing::debug!(
-                                    "Task as finished with State::Done (task: {:?}, rem_tasks: {})",
-                                    &top_entry,
-                                    remaining_tasks
-                                );
+                tracing::debug!(
+                        "Spawned successfully over current {:?}, info: {:?} (rem_tasks: {}, active_tasks: {}, in_process_tasks: {})",
+                        &top_entry,
+                        info,
+                        remaining_tasks,
+                        active_tasks,
+                        in_process_tasks,
+                    );
 
-                                // now unpack and take entry out of local tasks
-                                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
-                                self.local_tasks.borrow_mut().take(&top_entry);
+                tracing::debug!("Unparking task after spawn success: {:?}", info);
 
-                                tracing::debug!(
-                                    "Finished unparking and taking task (task: {:?}, rem_tasks: {})",
-                                    &top_entry,
-                                    remaining_tasks
-                                );
+                // unpack the entry in the task list
+                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
 
-                                // Task Iterator is really done
-                                if remaining_tasks == 0 {
-                                    ProgressIndicator::NoWork
-                                } else {
-                                    ProgressIndicator::CanProgress
-                                }
-                            }
-                            State::Progressed => {
-                                tracing::debug!("Task is progressing with State::Progressed");
-                                // unpack the entry in the task list
-                                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+                // create a new task for spawn information where both parent and child tag exists.
 
-                                // push entry back into processing mut
-                                self.processing.borrow_mut().push_front(top_entry);
-                                ProgressIndicator::CanProgress
-                            }
-                            State::Pending(duration) => {
-                                tracing::debug!(
-                                    "Task indicates it is in pending state: State::Pending({:?})",
-                                    &duration
-                                );
-                                // if we have a duration then we check if
-                                // we have other tasks pending, and if so
-                                // we indicate we can make progress else we
-                                // tell the executor to pause us for that duration
-                                // till the task is ready.
-                                //
-                                // The task that wants to sleep gets removed from
-                                // the processing queue and gets registered with the
-                                // sleepers (which monitors task that are sleeping).
-                                let final_state = if let Some(inner) = duration {
-                                    tracing::debug!("Task provided duration: {:?}", &inner);
+                if !info.has_parent_and_child() {
+                    tracing::debug!("Spawned task has no parent info just child: {:?}", info);
+                    return match info.spawn_type() {
+                        SpawnType::Lifted => {
+                            let child_entry = info.parent().unwrap();
 
-                                    // unpack the entry in the task list
-                                    self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+                            // get the parent task - i.e top_entry
+                            let parent_task = self
+                                .local_tasks
+                                .borrow_mut()
+                                .take(&top_entry)
+                                .expect("get parent task");
+                            let child_task = self
+                                .local_tasks
+                                .borrow_mut()
+                                .take(&child_entry)
+                                .expect("get child task");
 
-                                    // pack this entry and it's dependents into our packed registry.
-                                    self.pack_task_and_dependents(top_entry);
+                            tracing::debug!("Combining parent task and new task into FinishChildBeforeParentTask executor: {:?}", info);
+                            let task =
+                                FinishChildBeforeParentTask::new(info, parent_task, child_task);
 
-                                    // I do not think I need to use the sleeper entry.
-                                    let _ = self.sleepers.insert(Sleepable::Timable(
-                                        DurationWaker::from_now(top_entry, inner),
-                                    ));
+                            let new_task_id = self.local_tasks.borrow_mut().insert(Box::new(task));
+                            tracing::debug!("registered new task: {:?}", new_task_id);
 
-                                    if !self.processing.borrow().is_empty() {
-                                        return ProgressIndicator::CanProgress;
-                                    }
+                            // push entry back into processing mut
+                            self.processing.borrow_mut().push_front(new_task_id);
 
-                                    ProgressIndicator::SpinWait(inner)
-                                } else {
-                                    // unpack the entry in the task list
-                                    self.local_tasks.borrow_mut().unpark(&top_entry, iter);
-
-                                    // push back to top
-                                    self.processing.borrow_mut().push_front(top_entry);
-                                    ProgressIndicator::CanProgress
-                                };
-
-                                tracing::debug!("Sending out state: {:?}", &final_state);
-                                final_state
-                            }
-                            State::Reschedule => {
-                                tracing::debug!(
-                                    "Task is wishes to reschedule with State::Reschedule"
-                                );
-
-                                // unpack the entry in the task list
-                                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
-
-                                // add back task into queue
-                                self.processing.borrow_mut().push_back(top_entry);
-
-                                ProgressIndicator::CanProgress
-                            }
+                            // no need to push entry since it must have
+                            ProgressIndicator::CanProgress(Some(State::SpawnFinished(
+                                SpawnInfo::new(SpawnType::Lifted, Some(new_task_id), None),
+                            )))
                         }
-                    } else {
-                        tracing::debug!(
-                            "Task returned None (has finished) (rem_tasks: {})",
-                            remaining_tasks
+                        SpawnType::Broadcasted | SpawnType::None | SpawnType::Scheduled => {
+                            tracing::info!("Spawned process without parent, adding back to queue: {:?} - id: {:?}", info, top_entry);
+
+                            // push entry back into processing mut
+                            self.processing.borrow_mut().push_front(top_entry);
+
+                            // no need to push entry since it must have
+                            ProgressIndicator::CanProgress(Some(State::SpawnFinished(info)))
+                        }
+                        SpawnType::LiftedWithParent | SpawnType::Sequenced => {
+                            unreachable!("This state must always come with a parent");
+                        }
+                    };
+                }
+
+                tracing::debug!("Spawned task has both parent and child: {:?}", info);
+                match info.spawn_type() {
+                    SpawnType::LiftedWithParent => {
+                        assert!(
+                            top_entry == info.parent().unwrap(),
+                            "Parent entry id must be the same as top entry"
                         );
-                        // Task Iterator is really done
-                        if remaining_tasks == 0 {
-                            ProgressIndicator::NoWork
-                        } else {
-                            ProgressIndicator::CanProgress
-                        }
+
+                        let parent_entry = info.parent().unwrap();
+                        let child_entry = info.child().unwrap();
+
+                        tracing::debug!(
+                            "Retrieve parent id={:?} and child={:?}",
+                            parent_entry,
+                            child_entry
+                        );
+
+                        // get the parent task - i.e top_entry
+                        let parent_task = self
+                            .local_tasks
+                            .borrow_mut()
+                            .take(&parent_entry)
+                            .expect("get parent task");
+
+                        let child_task = self
+                            .local_tasks
+                            .borrow_mut()
+                            .take(&child_entry)
+                            .expect("get child task");
+
+                        tracing::debug!("Combining parent task and new task into FinishChildBeforeParentTask executor: {:?}", info);
+                        let task = FinishChildBeforeParentTask::new(info, parent_task, child_task);
+
+                        let new_task_id = self.local_tasks.borrow_mut().insert(Box::new(task));
+                        tracing::debug!("registered new task: {:?}", new_task_id);
+
+                        // push entry back into processing mut
+                        self.processing.borrow_mut().push_front(new_task_id);
+
+                        tracing::debug!(
+                            "Created new task from: {:?} to {:?} -> processing queue: {:?}",
+                            info,
+                            new_task_id,
+                            self.processing.borrow()
+                        );
+
+                        // no need to push entry since it must have
+                        ProgressIndicator::CanProgress(Some(State::SpawnFinished(SpawnInfo::new(
+                            SpawnType::Lifted,
+                            Some(new_task_id),
+                            None,
+                        ))))
+                    }
+                    SpawnType::Sequenced => {
+                        assert!(
+                            top_entry == info.parent().unwrap(),
+                            "Parent entry id must be the same as top entry"
+                        );
+
+                        let parent_entry = info.parent().unwrap();
+                        let child_entry = info.child().unwrap();
+
+                        // get the parent task - i.e top_entry
+                        let parent_task = self
+                            .local_tasks
+                            .borrow_mut()
+                            .take(&parent_entry)
+                            .expect("get parent task");
+                        let child_task = self
+                            .local_tasks
+                            .borrow_mut()
+                            .take(&child_entry)
+                            .expect("get child task");
+
+                        tracing::debug!("Combining parent task and new task into DualSequeunceChildAndParentLinkedTask executor: {:?}", info);
+                        let task = DualSequeunceChildAndParentLinkedTask::new(
+                            info,
+                            parent_task,
+                            child_task,
+                        );
+
+                        let new_task_id = self.local_tasks.borrow_mut().insert(Box::new(task));
+                        tracing::debug!("registered new task: {:?}", new_task_id);
+
+                        // push entry back into processing mut
+                        self.processing.borrow_mut().push_front(new_task_id);
+
+                        tracing::debug!("Created new task from: {:?} to {:?}", info, new_task_id);
+
+                        // no need to push entry since it must have
+                        ProgressIndicator::CanProgress(Some(State::SpawnFinished(SpawnInfo::new(
+                            SpawnType::Lifted,
+                            Some(new_task_id),
+                            None,
+                        ))))
+                    }
+                    _ => {
+                        tracing::info!(
+                            "Spawned process without parent, adding back to queue: {:?} - id: {:?}",
+                            info,
+                            top_entry
+                        );
+
+                        // push entry back into processing mut
+                        self.processing.borrow_mut().push_front(top_entry);
+
+                        // no need to push entry since it must have
+                        ProgressIndicator::CanProgress(Some(State::SpawnFinished(info)))
                     }
                 }
-                None => unreachable!("An entry must always have a task attached"),
             }
-        })
+            State::Done => {
+                tracing::debug!(
+                    "Task as finished with State::Done (task: {:?}, rem_tasks: {})",
+                    &top_entry,
+                    remaining_tasks
+                );
+
+                // now unpack and take entry out of local tasks
+                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+                self.local_tasks.borrow_mut().take(&top_entry);
+
+                tracing::debug!(
+                    "Finished unparking and taking task (task: {:?}, rem_tasks: {})",
+                    &top_entry,
+                    remaining_tasks
+                );
+
+                // Task Iterator is really done
+                if remaining_tasks == 0 {
+                    ProgressIndicator::NoWork
+                } else {
+                    ProgressIndicator::CanProgress(Some(State::Done))
+                }
+            }
+            State::ReadyValue(entry_id) => {
+                tracing::debug!("Task is has seen a ready value");
+                // unpack the entry in the task list
+                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+
+                // push entry back into processing mut
+                self.processing.borrow_mut().push_front(top_entry);
+                ProgressIndicator::CanProgress(Some(State::ReadyValue(entry_id)))
+            }
+            State::Progressed => {
+                tracing::debug!("Task is progressing with State::Progressed");
+                // unpack the entry in the task list
+                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+
+                // push entry back into processing mut
+                self.processing.borrow_mut().push_front(top_entry);
+                ProgressIndicator::CanProgress(Some(State::Progressed))
+            }
+            State::Pending(duration) => {
+                tracing::debug!(
+                    "Task indicates it is in pending state: State::Pending({:?})",
+                    &duration
+                );
+
+                // unpack the entry in the task list
+                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+
+                // if we have a duration then we check if
+                // we have other tasks pending, and if so
+                // we indicate we can make progress else we
+                // tell the executor to pause us for that duration
+                // till the task is ready.
+                //
+                // The task that wants to sleep gets removed from
+                // the processing queue and gets registered with the
+                // sleepers (which monitors task that are sleeping).
+                let final_state = if let Some(inner) = duration {
+                    tracing::debug!("Task provided duration: {:?}", &inner);
+
+                    // pack this entry and it's dependents into our packed registry.
+                    self.pack_task_and_dependents(top_entry);
+
+                    // I do not think I need to use the sleeper entry.
+                    let _ = self
+                        .sleepers
+                        .insert(Sleepable::Timable(DurationWaker::from_now(
+                            top_entry, inner,
+                        )));
+
+                    if !self.processing.borrow().is_empty() {
+                        return ProgressIndicator::CanProgress(Some(State::Pending(duration)));
+                    }
+
+                    // We will send SpinWait but the engine will decide
+                    // if it really wants to spin wait or work on other
+                    // tasks if CPU thread becomes free.
+                    ProgressIndicator::SpinWait(inner)
+                } else {
+                    // push back to top
+                    self.processing.borrow_mut().push_front(top_entry);
+                    ProgressIndicator::CanProgress(None)
+                };
+
+                tracing::debug!("Sending out state: {:?}", &final_state);
+                final_state
+            }
+            State::Reschedule => {
+                tracing::debug!("Task is wishes to reschedule with State::Reschedule");
+
+                // unpack the entry in the task list
+                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+
+                // add back task into queue
+                self.processing.borrow_mut().push_back(top_entry);
+
+                ProgressIndicator::CanProgress(Some(State::Reschedule))
+            }
+        }
     }
 }
 
@@ -770,10 +1041,73 @@ impl ExecutorState {
 // --- Task spawn methods: Lift, Schedule & Broadcast
 
 impl ExecutorState {
+    /// sequenced defers from the [`ExecutorState::lift`] method
+    /// where instead we create a co-linked sequential loop between
+    /// the parent (via its entry id) creating this task and itself.
+    ///
+    /// Where the parent will be pulled and used to create a [`DualSequeunceChildAndParentLinkedTask`]
+    /// executor which will trigger the child then the parent in sequence.
+    ///
+    /// This means the currently processed task that might have
+    /// called [`ExecutorState::lift`] since the executor will only
+    /// ever execute a singular task each time (even if it concurrently)
+    /// processes them (based on their operating semantics).
+    ///
+    /// But even if its from outside a task, understand the new task
+    /// will take priority till it's done.
+    ///
+    /// Returns:
+    ///
+    /// The result of the spawn operation with the [`SpawnInfo`] containing the
+    /// key details of parent and child and what type of operation was performed.
+    #[inline]
+    pub fn sequenced(
+        &self,
+        task: BoxedExecutionIterator,
+        parent: Entry,
+    ) -> AnyResult<SpawnInfo, ExecutorError> {
+        // if there is a parent then you need to be
+        // the top of the executing set.
+        match *self.current_task.borrow() {
+            Some(current_task) => {
+                tracing::debug!("Who is lifting: {:?} -> {:?}", current_task, parent);
+                if !current_task.eq(&parent) {
+                    return Err(ExecutorError::ParentMustBeExecutingToLift);
+                }
+            }
+            None => unreachable!("Parent task should never truly be empty at this point"),
+        }
+
+        let task_entry = self.local_tasks.borrow_mut().insert(task);
+
+        tracing::debug!(
+            "Processing list-before: {:?} with new task: {:?}",
+            self.processing.borrow(),
+            task_entry
+        );
+
+        tracing::debug!(
+            "Sequenced: new task {:?} for parent: {:?} with processing: {:?}",
+            task_entry,
+            parent,
+            self.processing.borrow()
+        );
+
+        Ok(SpawnInfo::new(
+            SpawnType::Sequenced,
+            Some(task_entry),
+            Some(parent),
+        ))
+    }
+
     /// lift defers from the [`ExecutorState::schedule`] method
     /// where instead when adding the task into the local queue
     /// but also lifts the task as the highest priority task
     /// to be processed.
+    ///
+    /// This if the parent is supplied should create a [`FinishChildBeforeParentTask`]
+    /// executor which will process the child until its done then move to
+    /// the parent in sequence.
     ///
     /// This means the currently processed task that might have
     /// called [`ExecutorState::lift`] since the executor will only
@@ -787,12 +1121,13 @@ impl ExecutorState {
         &self,
         task: BoxedExecutionIterator,
         parent: Option<Entry>,
-    ) -> AnyResult<Entry, ExecutorError> {
+    ) -> AnyResult<SpawnInfo, ExecutorError> {
         // if there is a parent then you need to be
         // the top of the executing set.
         if let Some(parent_handle) = &parent {
             match *self.current_task.borrow() {
                 Some(current_task) => {
+                    tracing::debug!("Who is lifting: {:?} -> {:?}", current_task, parent_handle);
                     if !current_task.eq(parent_handle) {
                         return Err(ExecutorError::ParentMustBeExecutingToLift);
                     }
@@ -803,30 +1138,20 @@ impl ExecutorState {
 
         let task_entry = self.local_tasks.borrow_mut().insert(task);
 
-        // if we have parent then queue parent as well
-        // as next before current task, so that the next queue
-        // task will be the lifted task just right after parent.
-        if let Some(parent_handle) = &parent {
-            self.processing.borrow_mut().push_front(*parent_handle);
+        tracing::debug!(
+            "Lift: new task {:?} for parent: {:?} with processing: {:?}",
+            task_entry,
+            parent,
+            self.processing.borrow()
+        );
 
-            self.spawn_op
-                .borrow_mut()
-                .replace(SpawnType::LiftedWithParent);
+        Ok(if parent.is_some() {
+            SpawnInfo::new(SpawnType::LiftedWithParent, Some(task_entry), parent)
         } else {
-            self.spawn_op.borrow_mut().replace(SpawnType::Lifted);
-        }
+            self.processing.borrow_mut().push_front(task_entry);
 
-        self.processing.borrow_mut().push_front(task_entry);
-
-        // create dependent graph map.
-        if let Some(parent_handle) = &parent {
-            self.task_graph
-                .borrow_mut()
-                .insert(task_entry, *parent_handle);
-        }
-
-        tracing::debug!("Lift: new task {:?} for parent: {:?}", task_entry, parent);
-        Ok(task_entry)
+            SpawnInfo::new(SpawnType::Lifted, Some(task_entry), parent)
+        })
     }
 
     /// schedule appends the provided task into the
@@ -839,11 +1164,10 @@ impl ExecutorState {
     /// any task can schedule new task to the executor
     /// and it never affects its execution or priority.
     #[inline]
-    pub fn schedule(&self, task: BoxedExecutionIterator) -> AnyResult<Entry, ExecutorError> {
+    pub fn schedule(&self, task: BoxedExecutionIterator) -> AnyResult<SpawnInfo, ExecutorError> {
         let task_entry = self.local_tasks.borrow_mut().insert(task);
         self.processing.borrow_mut().push_back(task_entry);
-        self.spawn_op.borrow_mut().replace(SpawnType::Scheduled);
-        Ok(task_entry)
+        Ok(SpawnInfo::new(SpawnType::Scheduled, Some(task_entry), None))
     }
 }
 
@@ -851,12 +1175,12 @@ impl ExecutorState {
     /// Delivers a task (Iterator) type to the global execution queue
     /// and in such a case you do not have an handle to the task as we
     /// no more have control as to where it gets allocated.
-    pub fn broadcast(&self, task: BoxedSendExecutionIterator) -> AnyResult<(), ExecutorError> {
+    pub fn broadcast(
+        &self,
+        task: BoxedSendExecutionIterator,
+    ) -> AnyResult<SpawnInfo, ExecutorError> {
         match self.global_tasks.push(task) {
-            Ok(()) => {
-                self.spawn_op.borrow_mut().replace(SpawnType::Broadcast);
-                Ok(())
-            }
+            Ok(()) => Ok(SpawnInfo::new(SpawnType::Broadcasted, None, None)),
             Err(err) => match err {
                 PushError::Full(_) => Err(ExecutorError::QueueFull),
                 PushError::Closed(_) => Err(ExecutorError::QueueClosed),
@@ -900,11 +1224,13 @@ impl ReferencedExecutorState {
         Self { inner, activities }
     }
 
-    pub(crate) fn clone_queue(&self) -> SharedTaskQueue {
+    #[must_use]
+    pub fn clone_queue(&self) -> SharedTaskQueue {
         self.inner.global_tasks.clone()
     }
 
-    pub(crate) fn clone_state(&self) -> rc::Rc<ExecutorState> {
+    #[must_use]
+    pub fn clone_state(&self) -> rc::Rc<ExecutorState> {
         self.inner.clone()
     }
 
@@ -931,13 +1257,21 @@ impl ReferencedExecutorState {
 
 impl ReferencedExecutorState {
     #[inline]
-    pub(crate) fn get_rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
+    #[must_use]
+    pub fn get_rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
         self.inner.get_rng()
     }
 
     #[inline]
-    pub(crate) fn number_of_sleepers(&self) -> usize {
+    #[must_use]
+    pub fn number_of_sleepers(&self) -> usize {
         self.inner.number_of_sleepers()
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn total_tasks(&self) -> usize {
+        self.inner.total_tasks()
     }
 
     /// Returns true/false if processing queue has task.
@@ -989,20 +1323,32 @@ impl<'a> ExecutionEngine for Box<&'a LocalExecutionEngine> {
         &self,
         task: BoxedExecutionIterator,
         parent: Option<Entry>,
-    ) -> AnyResult<(), ExecutorError> {
+    ) -> AnyResult<SpawnInfo, ExecutorError> {
         (**self).lift(task, parent)
     }
 
-    fn schedule(&self, task: BoxedExecutionIterator) -> AnyResult<(), ExecutorError> {
+    fn sequenced(
+        &self,
+        task: BoxedExecutionIterator,
+        parent: Entry,
+    ) -> AnyResult<SpawnInfo, ExecutorError> {
+        (**self).sequenced(task, parent)
+    }
+
+    fn schedule(&self, task: BoxedExecutionIterator) -> AnyResult<SpawnInfo, ExecutorError> {
         (**self).schedule(task)
     }
 
-    fn broadcast(&self, task: BoxedSendExecutionIterator) -> AnyResult<(), ExecutorError> {
+    fn broadcast(&self, task: BoxedSendExecutionIterator) -> AnyResult<SpawnInfo, ExecutorError> {
         (**self).broadcast(task)
     }
 
     fn shared_queue(&self) -> SharedTaskQueue {
         (**self).shared_queue()
+    }
+
+    fn boxed_engine(&self) -> BoxedExecutionEngine {
+        (**self).boxed_engine()
     }
 
     fn rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
@@ -1011,24 +1357,36 @@ impl<'a> ExecutionEngine for Box<&'a LocalExecutionEngine> {
 }
 
 impl ExecutionEngine for Box<LocalExecutionEngine> {
+    fn sequenced(
+        &self,
+        task: BoxedExecutionIterator,
+        parent: Entry,
+    ) -> AnyResult<SpawnInfo, ExecutorError> {
+        (**self).sequenced(task, parent)
+    }
+
     fn lift(
         &self,
         task: BoxedExecutionIterator,
         parent: Option<Entry>,
-    ) -> AnyResult<(), ExecutorError> {
+    ) -> AnyResult<SpawnInfo, ExecutorError> {
         (**self).lift(task, parent)
     }
 
-    fn schedule(&self, task: BoxedExecutionIterator) -> AnyResult<(), ExecutorError> {
+    fn schedule(&self, task: BoxedExecutionIterator) -> AnyResult<SpawnInfo, ExecutorError> {
         (**self).schedule(task)
     }
 
-    fn broadcast(&self, task: BoxedSendExecutionIterator) -> AnyResult<(), ExecutorError> {
+    fn broadcast(&self, task: BoxedSendExecutionIterator) -> AnyResult<SpawnInfo, ExecutorError> {
         (**self).broadcast(task)
     }
 
     fn shared_queue(&self) -> SharedTaskQueue {
         (**self).shared_queue()
+    }
+
+    fn boxed_engine(&self) -> BoxedExecutionEngine {
+        (**self).boxed_engine()
     }
 
     fn rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
@@ -1037,28 +1395,42 @@ impl ExecutionEngine for Box<LocalExecutionEngine> {
 }
 
 impl ExecutionEngine for LocalExecutionEngine {
+    fn sequenced(
+        &self,
+        task: BoxedExecutionIterator,
+        parent: Entry,
+    ) -> AnyResult<SpawnInfo, ExecutorError> {
+        let entry = self.inner.sequenced(task, parent)?;
+        tracing::debug!(
+            "Sequenced: new task with entry: {:?} from parent: {:?}",
+            entry,
+            parent
+        );
+        Ok(entry)
+    }
+
     fn lift(
         &self,
         task: BoxedExecutionIterator,
         parent: Option<Entry>,
-    ) -> AnyResult<(), ExecutorError> {
+    ) -> AnyResult<SpawnInfo, ExecutorError> {
         let entry = self.inner.lift(task, parent)?;
         tracing::debug!(
             "Lifted: new task with entry: {:?} from parent: {:?}",
             entry,
             parent
         );
-        Ok(())
+        Ok(entry)
     }
 
-    fn schedule(&self, task: BoxedExecutionIterator) -> AnyResult<(), ExecutorError> {
+    fn schedule(&self, task: BoxedExecutionIterator) -> AnyResult<SpawnInfo, ExecutorError> {
         let entry = self.inner.schedule(task)?;
         tracing::debug!("schedule: new task into Executor with entry: {:?}", entry);
-        Ok(())
+        Ok(entry)
     }
 
-    fn broadcast(&self, task: Box<dyn ExecutionIterator + Send>) -> AnyResult<(), ExecutorError> {
-        self.inner.broadcast(task)?;
+    fn broadcast(&self, task: BoxedSendExecutionIterator) -> AnyResult<SpawnInfo, ExecutorError> {
+        let info = self.inner.broadcast(task)?;
         tracing::debug!("broadcast: new task into Executor");
         if let Some(sender) = &self.activities {
             if let Err(err) = sender.send(ThreadActivity::BroadcastedTask) {
@@ -1066,7 +1438,11 @@ impl ExecutionEngine for LocalExecutionEngine {
                 return Err(ExecutorError::FailedToSendThreadActivity);
             }
         }
-        Ok(())
+        Ok(info)
+    }
+
+    fn boxed_engine(&self) -> BoxedExecutionEngine {
+        Box::new(self.clone())
     }
 
     /// `shared_queue` returns access to the global queue.
@@ -1460,17 +1836,17 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     }
 
     #[inline]
-    pub(crate) fn number_of_sleepers(&self) -> usize {
+    pub fn number_of_sleepers(&self) -> usize {
         self.state.number_of_sleepers()
     }
 
     #[inline]
-    pub(crate) fn number_of_local_tasks(&self) -> usize {
+    pub fn number_of_local_tasks(&self) -> usize {
         self.state.number_of_local_tasks()
     }
 
     #[inline]
-    pub(crate) fn number_of_inprocess(&self) -> usize {
+    pub fn number_of_inprocess(&self) -> usize {
         self.state.number_of_inprocess()
     }
 }
@@ -1510,6 +1886,51 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         self.state.schedule_and_do_work(Box::new(local_executor))
     }
 
+    /// [`run_until`] provides a fine-grained of the executor which allows
+    /// you to loop the executor until it reaches a giving [`ProgressIndicator`]
+    /// state upon which you wish it to stop.
+    ///
+    /// This keeps executing the [`schedule_and_do_work`] until the condition
+    /// with the function is true.
+    #[inline]
+    #[tracing::instrument(skip(self, checker))]
+    pub fn run_until<S>(&self, checker: S)
+    where
+        S: Fn(ProgressIndicator) -> bool,
+    {
+        loop {
+            let local_executor = self.state.local_engine();
+
+            let response = self.state.schedule_and_do_work(Box::new(local_executor));
+            tracing::debug!(
+                "run_until: received response from schedule_and_do_work: {:?}",
+                response
+            );
+            if checker(response.clone()) {
+                tracing::debug!(
+                    "run_until: condition returned true on: {:?}, exiting loop",
+                    response
+                );
+                break;
+            }
+
+            // if we get recommended spin duration then lets spin that long
+            if let ProgressIndicator::SpinWait(spin_duration) = response {
+                self.yielder.yield_for(spin_duration);
+                continue;
+            }
+
+            // break as well if no work remains and there are zero tasks.
+            if let ProgressIndicator::NoWork = response {
+                if self.state.total_tasks() == 0 {
+                    break;
+                }
+            }
+            self.yielder.yield_process();
+        }
+        tracing::debug!("run_until: exited loop");
+    }
+
     /// [`block_until_finished`] defers from [`block_on`] in that it will
     /// continue to execute the executor till the task is ideally finished
     /// and no more work remains in this task.
@@ -1536,7 +1957,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                     ProgressIndicator::SpinWait(duration) => {
                         self.yielder.yield_for(duration);
                     }
-                    ProgressIndicator::CanProgress => {}
+                    ProgressIndicator::CanProgress(_) => {}
                 }
             }
             self.yielder.yield_process();
@@ -1575,7 +1996,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                 }
 
                 match self.run_once() {
-                    ProgressIndicator::CanProgress => continue,
+                    ProgressIndicator::CanProgress(_) => {}
                     ProgressIndicator::NoWork => {
                         if kill_signal.probe() {
                             tracing::debug!(
@@ -1707,9 +2128,11 @@ mod test_local_thread_executor {
     use crate::{
         panic_if_failed,
         retries::ExponentialBackoffDecider,
-        synca::SleepyMan,
+        synca::{mpp::RecvIterator, SleepyMan},
         valtron::{
-            ExecutionAction, NoSpawner, OnNext, ProcessController, TaskIterator, TaskStatus,
+            BoxedSendExecutionAction, ExecutionAction, InlineSendAction, InlineSendActionBehaviour,
+            IntoBoxedSendExecutionAction, NoSpawner, OnNext, ProcessController, TaskIterator,
+            TaskStatus, WrapTask,
         },
     };
 
@@ -1758,6 +2181,259 @@ mod test_local_thread_executor {
         }
     }
 
+    enum ListItemInner {
+        List(Option<Vec<usize>>),
+        Response(RecvIterator<TaskStatus<usize, (), NoSpawner>>),
+        Done,
+    }
+
+    struct ListItems(InlineSendActionBehaviour, Option<ListItemInner>);
+
+    impl TaskIterator for ListItems {
+        type Ready = usize;
+        type Pending = ();
+        type Spawner = BoxedSendExecutionAction;
+
+        fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+            match self.1.take() {
+                Some(val) => match val {
+                    ListItemInner::List(mut items) => {
+                        if let Some(inner) = items.take() {
+                            let task = WrapTask::new(inner.into_iter());
+
+                            let (inline_action, receiver) = InlineSendAction::boxed_mapper(
+                                self.0,
+                                Vec::new(),
+                                task,
+                                std::time::Duration::from_millis(100),
+                            );
+
+                            self.1 = Some(ListItemInner::Response(receiver));
+
+                            return Some(TaskStatus::Spawn(
+                                inline_action.into_box_send_execution_action(),
+                            ));
+                        }
+
+                        self.1 = Some(ListItemInner::Done);
+                        None
+                    }
+                    ListItemInner::Response(mut iter) => {
+                        let val_next = iter.next();
+                        tracing::debug!("Get the next value from the iterator: {:?}", val_next);
+
+                        self.1 = Some(ListItemInner::Response(iter));
+
+                        match val_next {
+                            Some(inner) => match inner {
+                                TaskStatus::Init => Some(TaskStatus::Init),
+                                TaskStatus::Delayed(dur) => Some(TaskStatus::Delayed(dur)),
+                                TaskStatus::Pending(dur) => Some(TaskStatus::Pending(dur)),
+                                TaskStatus::Ready(item) => Some(TaskStatus::Ready(item)),
+                                TaskStatus::Spawn(action) => {
+                                    Some(TaskStatus::Spawn(action.into_box_send_execution_action()))
+                                }
+                            },
+                            None => None,
+                        }
+                    }
+                    ListItemInner::Done => None,
+                },
+                None => None,
+            }
+        }
+    }
+
+    // ============================================================================
+    // PHASE 0: InlineAction and InlineSendAction tests
+    // ============================================================================
+
+    #[test]
+    #[traced_test]
+    fn test_task_line_action_directly() {
+        let seed = rand::rng().next_u64();
+        let kill_signal = Arc::new(OnSignal::new());
+
+        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+            Arc::new(ConcurrentQueue::bounded(10));
+
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            global.clone(),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            NoYielder,
+            Some(kill_signal.clone()),
+            None,
+        );
+
+        let item_list = vec![1, 2, 3];
+        let task = WrapTask::new(item_list.into_iter());
+
+        let (mut inline_action, receiver) = InlineSendAction::boxed_mapper(
+            InlineSendActionBehaviour::Lift,
+            Vec::new(),
+            task,
+            std::time::Duration::from_millis(10),
+        );
+
+        inline_action
+            .apply(None, executor.boxed_engine())
+            .expect("should deliver event");
+
+        executor.run_until(|state| ProgressIndicator::NoWork == state);
+
+        let all_response: Vec<_> = receiver.collect();
+        assert_eq!(
+            all_response,
+            vec![
+                TaskStatus::Ready(1),
+                TaskStatus::Ready(2),
+                TaskStatus::Ready(3),
+            ]
+        );
+    }
+
+    #[test]
+    #[traced_test]
+    fn test_task_line_send_action() {
+        let seed = rand::rng().next_u64();
+        let kill_signal = Arc::new(OnSignal::new());
+
+        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+            Arc::new(ConcurrentQueue::bounded(10));
+
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            global.clone(),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            NoYielder,
+            Some(kill_signal.clone()),
+            None,
+        );
+
+        let receiver = panic_if_failed!(send_any_task(executor.boxed_engine())
+            .with_task(ListItems(
+                InlineSendActionBehaviour::Lift,
+                Some(ListItemInner::List(Some(vec![1, 2, 3])))
+            ))
+            .schedule_iter(std::time::Duration::from_millis(100)));
+
+        executor.run_until(|state| ProgressIndicator::NoWork == state);
+
+        let all_response: Vec<TaskStatus<usize, (), BoxedSendExecutionAction>> = receiver.collect();
+
+        assert_eq!(
+            all_response,
+            vec![
+                TaskStatus::Ready(1),
+                TaskStatus::Ready(2),
+                TaskStatus::Ready(3),
+            ]
+        );
+    }
+
+    #[test]
+    #[traced_test]
+    fn test_task_line_send_action_for_parent_lifted() {
+        let seed = rand::rng().next_u64();
+        let kill_signal = Arc::new(OnSignal::new());
+
+        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+            Arc::new(ConcurrentQueue::bounded(10));
+
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            global.clone(),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            NoYielder,
+            Some(kill_signal.clone()),
+            None,
+        );
+
+        let receiver = panic_if_failed!(send_any_task(executor.boxed_engine())
+            .with_task(ListItems(
+                InlineSendActionBehaviour::LiftWithParent,
+                Some(ListItemInner::List(Some(vec![1, 2, 3])))
+            ))
+            .schedule_iter(std::time::Duration::from_millis(100)));
+
+        executor.run_until(|state| ProgressIndicator::NoWork == state);
+
+        let all_response: Vec<TaskStatus<usize, (), BoxedSendExecutionAction>> = receiver.collect();
+
+        assert_eq!(
+            all_response,
+            vec![
+                TaskStatus::Ready(1),
+                TaskStatus::Ready(2),
+                TaskStatus::Ready(3),
+            ]
+        );
+    }
+
+    #[test]
+    #[traced_test]
+    fn test_task_line_send_action_for_sequenced() {
+        let seed = rand::rng().next_u64();
+        let kill_signal = Arc::new(OnSignal::new());
+
+        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+            Arc::new(ConcurrentQueue::bounded(10));
+
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            global.clone(),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            NoYielder,
+            Some(kill_signal.clone()),
+            None,
+        );
+
+        let receiver = panic_if_failed!(send_any_task(executor.boxed_engine())
+            .with_task(ListItems(
+                InlineSendActionBehaviour::Sequenced,
+                Some(ListItemInner::List(Some(vec![1, 2, 3])))
+            ))
+            .schedule_iter(std::time::Duration::from_millis(100)));
+
+        executor.run_until(|state| ProgressIndicator::NoWork == state);
+
+        let all_response: Vec<TaskStatus<usize, (), BoxedSendExecutionAction>> = receiver.collect();
+
+        assert_eq!(
+            all_response,
+            vec![
+                TaskStatus::Ready(1),
+                TaskStatus::Ready(2),
+                TaskStatus::Ready(3),
+            ]
+        );
+    }
+
+    // ============================================================================
+    // PHASE 1: Local Executor tests
+    // ============================================================================
+
     #[test]
     #[traced_test]
     fn scenario_0_can_kill_local_executor_via_kill_signal() {
@@ -1790,7 +2466,10 @@ mod test_local_thread_executor {
             .on_next(move |next, _| count_clone.lock().unwrap().push(next))
             .broadcast());
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(Some(State::Progressed))
+        );
 
         let thread_handle = thread::spawn(move || {
             tracing::debug!("Starting sleep timer for 100ms to kill executor");
@@ -1841,8 +2520,14 @@ mod test_local_thread_executor {
 
         panic_if_failed!(global.push(on_next.into()));
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(Some(State::Progressed))
+        );
+        assert_eq!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(Some(State::Progressed))
+        );
         assert_eq!(executor.run_once(), ProgressIndicator::NoWork);
         assert_eq!(executor.number_of_sleepers(), 0);
 
@@ -1884,8 +2569,14 @@ mod test_local_thread_executor {
             .on_next(move |next, _| count_clone.lock().unwrap().push(next))
             .broadcast());
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(Some(State::Progressed))
+        );
+        assert_eq!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(Some(State::Progressed))
+        );
         assert_eq!(executor.run_once(), ProgressIndicator::NoWork);
         assert_eq!(executor.number_of_sleepers(), 0);
 
@@ -1928,7 +2619,10 @@ mod test_local_thread_executor {
             None,
         ))));
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(counts.lock().unwrap().clone(), vec![TaskStatus::Ready(11),]);
 
         assert_eq!(
@@ -1940,12 +2634,18 @@ mod test_local_thread_executor {
         // wait for 5ms and validate we made progress
         thread::sleep(time::Duration::from_millis(5));
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![TaskStatus::Ready(11), TaskStatus::Ready(13),]
         );
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
 
         assert_eq!(
             counts.lock().unwrap().clone(),
@@ -1999,14 +2699,20 @@ mod test_local_thread_executor {
             .into()
         ));
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
 
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![("Counter1", TaskStatus::Ready(1)),]
         );
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
 
         assert_eq!(
             counts.lock().unwrap().clone(),
@@ -2015,7 +2721,10 @@ mod test_local_thread_executor {
 
         assert_eq!(executor.number_of_sleepers(), 1);
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
@@ -2024,7 +2733,10 @@ mod test_local_thread_executor {
             ]
         );
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
@@ -2040,7 +2752,10 @@ mod test_local_thread_executor {
         tracing::debug!("Finished sleeping thread for 5ms");
 
         // Counter1 is brought back in as priority
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
@@ -2052,7 +2767,10 @@ mod test_local_thread_executor {
         );
 
         // Counter1 finishes and removed from queue, so count is same.
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
@@ -2063,7 +2781,10 @@ mod test_local_thread_executor {
             ]
         );
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
@@ -2074,7 +2795,10 @@ mod test_local_thread_executor {
                 ("Counter2", TaskStatus::Ready(3)),
             ]
         );
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
@@ -2133,14 +2857,20 @@ mod test_local_thread_executor {
             .into()
         ));
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
 
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![("Counter1", TaskStatus::Ready(1)),]
         );
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
 
         assert_eq!(
             counts.lock().unwrap().clone(),
@@ -2149,7 +2879,10 @@ mod test_local_thread_executor {
 
         assert_eq!(executor.number_of_sleepers(), 1);
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
@@ -2158,7 +2891,10 @@ mod test_local_thread_executor {
             ]
         );
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
@@ -2174,7 +2910,10 @@ mod test_local_thread_executor {
         tracing::debug!("Finished sleeping thread for 5ms");
 
         // Counter1 is brought back in as priority
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
@@ -2185,7 +2924,10 @@ mod test_local_thread_executor {
             ]
         );
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
@@ -2198,7 +2940,10 @@ mod test_local_thread_executor {
         );
 
         // Counter2 triggers Done signal
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
@@ -2210,7 +2955,10 @@ mod test_local_thread_executor {
             ]
         );
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(_)
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
@@ -2223,7 +2971,7 @@ mod test_local_thread_executor {
             ]
         );
 
-        assert_eq!(executor.run_once(), ProgressIndicator::NoWork);
+        assert!(matches!(executor.run_once(), ProgressIndicator::NoWork));
 
         assert_eq!(
             counts.lock().unwrap().clone(),
@@ -2238,56 +2986,51 @@ mod test_local_thread_executor {
         );
     }
 
-    #[derive(Clone)]
+    #[derive(Clone, Default)]
     enum DaemonSpawner {
+        #[default]
         NoSpawning,
         InThread,
         TopOfThread,
         OutofThread,
     }
 
-    impl Default for DaemonSpawner {
-        fn default() -> Self {
-            Self::NoSpawning
-        }
-    }
-
     impl ExecutionAction for DaemonSpawner {
         fn apply(
             &mut self,
-            key: Entry,
+            key: Option<Entry>,
             executor: BoxedExecutionEngine,
-        ) -> crate::valtron::GenericResult<()> {
+        ) -> crate::valtron::GenericResult<SpawnInfo> {
             match self {
-                DaemonSpawner::NoSpawning => Ok(()),
+                DaemonSpawner::NoSpawning => Ok(SpawnInfo::new(SpawnType::None, None, key)),
                 DaemonSpawner::TopOfThread => {
                     tracing::debug!("Spawning task as TopOfThread");
                     match any_task(executor)
-                        .with_parent(key)
+                        .maybe_parent(key)
                         .with_task(SimpleCounter("SubTask1", 0, 5))
                         .lift()
                     {
-                        Ok(_) => Ok(()),
+                        Ok(info) => Ok(info),
                         Err(err) => Err(Box::new(err)),
                     }
                 }
                 DaemonSpawner::InThread => {
                     tracing::debug!("Spawning task as InThread");
                     match any_task(executor)
-                        .with_task(SimpleCounter("SubTask1", 0, 5))
+                        .with_task(SimpleCounter("SubTask2", 0, 5))
                         .schedule()
                     {
-                        Ok(_) => Ok(()),
+                        Ok(info) => Ok(info),
                         Err(err) => Err(Box::new(err)),
                     }
                 }
                 DaemonSpawner::OutofThread => {
                     tracing::debug!("Spawning task as OutOfThread");
                     match send_any_task(executor)
-                        .with_task(SimpleCounter("SubTask2", 0, 5))
+                        .with_task(SimpleCounter("SubTask3", 0, 5))
                         .broadcast()
                     {
-                        Ok(_) => Ok(()),
+                        Ok(info) => Ok(info),
                         Err(err) => Err(Box::new(err)),
                     }
                 }
@@ -2303,6 +3046,7 @@ mod test_local_thread_executor {
 
         fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             let current = self.0.load(Ordering::SeqCst);
+            println!("Current state: {:?}", current);
             if current == 0 {
                 return Some(TaskStatus::Pending(()));
             }
@@ -2319,6 +3063,11 @@ mod test_local_thread_executor {
                 return Some(TaskStatus::Spawn(DaemonSpawner::TopOfThread));
             }
 
+            if current == 5 {
+                return None;
+            }
+
+            println!("Spawn out of thread task");
             Some(TaskStatus::Spawn(DaemonSpawner::OutofThread))
         }
     }
@@ -2389,7 +3138,7 @@ mod test_local_thread_executor {
             .on_next(move |next, _| count_clone.lock().unwrap().push(("DaemonCounter", next)))
             .broadcast());
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress(None));
 
         assert_eq!(counts.lock().unwrap().clone(), vec![]);
 
@@ -2398,7 +3147,10 @@ mod test_local_thread_executor {
 
         gen_state.store(1, Ordering::SeqCst);
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert_eq!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(Some(State::Progressed))
+        );
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![("DaemonCounter", TaskStatus::Ready(())),]
@@ -2409,7 +3161,10 @@ mod test_local_thread_executor {
 
         gen_state.store(2, Ordering::SeqCst);
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(Some(_))
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![("DaemonCounter", TaskStatus::Ready(())),]
@@ -2418,21 +3173,33 @@ mod test_local_thread_executor {
         assert_eq!(executor.number_of_sleepers(), 0);
         assert_eq!(executor.number_of_local_tasks(), 2);
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(Some(_))
+        ));
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![("DaemonCounter", TaskStatus::Ready(())),]
         );
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(Some(_))
+        ));
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(Some(_))
+        ));
 
         assert_eq!(executor.number_of_sleepers(), 0);
         assert_eq!(executor.number_of_local_tasks(), 5);
 
         gen_state.store(0, Ordering::SeqCst);
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert!(matches!(
+            executor.run_once(),
+            ProgressIndicator::CanProgress(None)
+        ));
         assert_eq!(executor.number_of_sleepers(), 0);
         assert_eq!(executor.number_of_local_tasks(), 5);
     }
@@ -2471,7 +3238,7 @@ mod test_local_thread_executor {
             .on_next(move |next, _| count_clone.lock().unwrap().push(("DaemonCounter", next)))
             .broadcast());
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress(None));
 
         assert_eq!(counts.lock().unwrap().clone(), vec![]);
 
@@ -2480,109 +3247,265 @@ mod test_local_thread_executor {
 
         gen_state.store(1, Ordering::SeqCst);
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
-        assert_eq!(
-            counts.lock().unwrap().clone(),
-            vec![("DaemonCounter", TaskStatus::Ready(())),]
-        );
+        let mut count = 5;
 
-        assert_eq!(executor.number_of_sleepers(), 0);
+        while count > 0 {
+            executor.run_once();
+            count -= 1;
+        }
+
         assert_eq!(executor.number_of_local_tasks(), 1);
+        assert_eq!(executor.number_of_sleepers(), 0);
+
+        gen_state.store(2, Ordering::SeqCst);
+
+        count = 5;
+        while count > 0 {
+            executor.run_once();
+            count -= 1;
+        }
 
         gen_state.store(3, Ordering::SeqCst);
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
-        assert_eq!(
-            counts.lock().unwrap().clone(),
-            vec![("DaemonCounter", TaskStatus::Ready(())),]
-        );
+        count = 5;
+        while count > 0 {
+            executor.run_once();
+            count -= 1;
+        }
 
+        gen_state.store(4, Ordering::SeqCst);
+
+        count = 2;
+        while count > 0 {
+            executor.run_once();
+            count -= 1;
+        }
+
+        gen_state.store(5, Ordering::SeqCst);
+
+        std::thread::sleep(std::time::Duration::from_millis(100 * 6));
+
+        executor.run_until(|state| state == ProgressIndicator::NoWork);
+
+        assert_eq!(executor.number_of_local_tasks(), 0);
         assert_eq!(executor.number_of_sleepers(), 0);
-        assert_eq!(executor.number_of_local_tasks(), 2);
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
-        assert_eq!(
-            counts.lock().unwrap().clone(),
-            vec![("DaemonCounter", TaskStatus::Ready(())),]
-        );
-
-        gen_state.store(1, Ordering::SeqCst);
-
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
-        assert_eq!(
-            counts.lock().unwrap().clone(),
-            vec![("DaemonCounter", TaskStatus::Ready(())),]
-        );
-
-        assert_eq!(executor.number_of_sleepers(), 0);
-        assert_eq!(executor.number_of_inprocess(), 2);
-        assert_eq!(executor.number_of_local_tasks(), 2);
-
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
-        tracing::debug!("Before: Checking tasks counts");
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
-        tracing::debug!("After: Checking tasks counts");
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
-
-        assert_eq!(
-            counts.lock().unwrap().clone(),
-            vec![("DaemonCounter", TaskStatus::Ready(())),]
-        );
-
-        tracing::debug!("Checking tasks counts");
-        assert_eq!(executor.number_of_sleepers(), 1);
-        assert_eq!(executor.number_of_inprocess(), 0);
-        assert_eq!(executor.number_of_local_tasks(), 2);
-
-        tracing::debug!("Sleep for 10ms");
-        thread::sleep(time::Duration::from_millis(10));
-        tracing::debug!("Finished sleeping for 10ms");
-
-        assert_eq!(executor.number_of_sleepers(), 1);
-        assert_eq!(executor.number_of_inprocess(), 0);
-        assert_eq!(executor.number_of_local_tasks(), 2);
-
-        tracing::debug!("Wake up tasks from sleep");
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
-
-        assert_eq!(executor.number_of_sleepers(), 0);
-        assert_eq!(executor.number_of_inprocess(), 2);
-        assert_eq!(executor.number_of_local_tasks(), 2);
-
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
-
-        assert_eq!(executor.number_of_sleepers(), 0);
-        assert_eq!(executor.number_of_inprocess(), 1);
-        assert_eq!(executor.number_of_local_tasks(), 1);
-
-        tracing::debug!("Task A is now ready to continue");
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
+                ("DaemonCounter", TaskStatus::Ready(())),
+                ("DaemonCounter", TaskStatus::Ready(())),
+                ("DaemonCounter", TaskStatus::Ready(())),
                 ("DaemonCounter", TaskStatus::Ready(())),
                 ("DaemonCounter", TaskStatus::Ready(())),
             ]
         );
+    }
 
-        tracing::debug!("Task A is now spawns task to global queue but still continues");
-        gen_state.store(4, Ordering::SeqCst);
+    #[test]
+    #[traced_test]
+    fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condition_hits() {
+        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+            Arc::new(ConcurrentQueue::bounded(10));
 
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
+        let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
+            Arc::new(Mutex::new(Vec::new()));
 
-        assert_eq!(executor.number_of_sleepers(), 0);
-        assert_eq!(executor.number_of_inprocess(), 1);
-        assert_eq!(executor.number_of_local_tasks(), 1);
+        let seed = rand::rng().next_u64();
 
-        gen_state.store(1, Ordering::SeqCst);
-        assert_eq!(executor.run_once(), ProgressIndicator::CanProgress);
-        tracing::debug!("Task A emits another state");
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            global.clone(),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            NoYielder,
+            None,
+            None,
+        );
+
+        let count_clone = Arc::clone(&counts);
+        panic_if_failed!(global.push(
+            OnNext::on_next(
+                Counter("Counter1", 0, 4, 2),
+                move |next, _| count_clone.lock().unwrap().push(("Counter1", next)),
+                None
+            )
+            .into()
+        ));
+
+        let count_clone2 = Arc::clone(&counts);
+        panic_if_failed!(global.push(
+            OnNext::on_next(
+                Counter("Counter2", 0, 5, 10),
+                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next)),
+                None
+            )
+            .into()
+        ));
+
+        let count_clone3 = Arc::clone(&counts);
+        executor.run_until(move |_| {
+            let items = count_clone3.lock().unwrap();
+
+            if items.len() >= 6 {
+                return true;
+            }
+            false
+        });
+
         assert_eq!(
             counts.lock().unwrap().clone(),
             vec![
-                ("DaemonCounter", TaskStatus::Ready(())),
-                ("DaemonCounter", TaskStatus::Ready(())),
-                ("DaemonCounter", TaskStatus::Ready(())),
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+                ("Counter2", TaskStatus::Ready(3)),
+                ("Counter2", TaskStatus::Ready(4)),
+                ("Counter1", TaskStatus::Ready(3)),
+            ]
+        );
+
+        assert_eq!(executor.run_once(), ProgressIndicator::NoWork);
+    }
+
+    #[test]
+    #[traced_test]
+    fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condition_doesnt_hits(
+    ) {
+        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+            Arc::new(ConcurrentQueue::bounded(10));
+
+        let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
+            Arc::new(Mutex::new(Vec::new()));
+
+        let seed = rand::rng().next_u64();
+
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            global.clone(),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            NoYielder,
+            None,
+            None,
+        );
+
+        let count_clone = Arc::clone(&counts);
+        panic_if_failed!(global.push(
+            OnNext::on_next(
+                Counter("Counter1", 0, 4, 2),
+                move |next, _| count_clone.lock().unwrap().push(("Counter1", next)),
+                None
+            )
+            .into()
+        ));
+
+        let count_clone2 = Arc::clone(&counts);
+        panic_if_failed!(global.push(
+            OnNext::on_next(
+                Counter("Counter2", 0, 5, 10),
+                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next)),
+                None
+            )
+            .into()
+        ));
+
+        let count_clone3 = Arc::clone(&counts);
+        executor.run_until(move |_| {
+            let items = count_clone3.lock().unwrap();
+
+            // should be 6 but intentionally setting to 7 to validate it
+            // never loops forever
+            if items.len() >= 7 {
+                return true;
+            }
+            false
+        });
+
+        assert_eq!(
+            counts.lock().unwrap().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+                ("Counter2", TaskStatus::Ready(3)),
+                ("Counter2", TaskStatus::Ready(4)),
+                ("Counter1", TaskStatus::Ready(3)),
+            ]
+        );
+
+        assert_eq!(executor.run_once(), ProgressIndicator::NoWork);
+    }
+
+    #[test]
+    #[traced_test]
+    fn scenario_6_can_run_until_ready_signal_is_seen_with_pending_work() {
+        let global: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+            Arc::new(ConcurrentQueue::bounded(10));
+
+        let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
+            Arc::new(Mutex::new(Vec::new()));
+
+        let seed = rand::rng().next_u64();
+
+        let executor = LocalThreadExecutor::from_seed(
+            seed,
+            global.clone(),
+            IdleMan::new(
+                3,
+                None,
+                SleepyMan::new(3, ExponentialBackoffDecider::default()),
+            ),
+            PriorityOrder::Bottom,
+            NoYielder,
+            None,
+            None,
+        );
+
+        let count_clone = Arc::clone(&counts);
+        panic_if_failed!(global.push(
+            OnNext::on_next(
+                Counter("Counter1", 0, 4, 2),
+                move |next, _| count_clone.lock().unwrap().push(("Counter1", next)),
+                None
+            )
+            .into()
+        ));
+
+        let count_clone2 = Arc::clone(&counts);
+        panic_if_failed!(global.push(
+            OnNext::on_next(
+                Counter("Counter2", 0, 5, 10),
+                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next)),
+                None
+            )
+            .into()
+        ));
+
+        let count_clone3 = Arc::clone(&counts);
+        executor.run_until(move |_| {
+            let items = count_clone3.lock().unwrap();
+            if items.len() >= 4 {
+                return true;
+            }
+            false
+        });
+
+        assert_eq!(
+            counts.lock().unwrap().clone(),
+            vec![
+                ("Counter1", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(1)),
+                ("Counter2", TaskStatus::Ready(2)),
+                ("Counter2", TaskStatus::Ready(3)),
             ]
         );
     }

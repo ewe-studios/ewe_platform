@@ -1,821 +1,616 @@
-# HTTP 1.1 Client - Learnings
-
-## Overview
-This document consolidates all learnings discovered during the implementation of the HTTP 1.1 client specification. Learnings will be added incrementally as features are implemented.
+# Learnings: 02-build-http-client
 
 ## Critical Implementation Details
-_To be populated during implementation_
+- Do NOT use async/await, tokio, or async runtimes for this client code or testing. Follow Rust Clean Code guidance for synchronous implementations only (see .agents/skills/rust-clean-code/implementation/skill.md).
+- Always prefer project and stdlib building blocks before adding any external crate.
 
 ## Common Failures and Fixes
-_To be populated as issues are encountered and resolved_
-
-## Dependencies and Interactions
-_To be populated as integration points are discovered_
+- Including async or tokio primitives leads to spec non-compliance; remove and refactor to sync patterns if found.
+- Forgetting panics documentation: all public functions must specify # Panics if needed.
+- Trying to enable a nonexistent “sync” feature or run with --features sync is incorrect; project is strictly synchronous by default, no gate or feature toggle. Synchronous is the enforced norm.
+- The foundational Cargo feature in this project is “std.” If you need to pass a --features flag, it should be --features std, not sync.
 
 ## Testing Insights
-_To be populated as testing patterns emerge_
+- TestHttpServer::redirect_chain helper makes writing sequential redirect tests much simpler and reusable. Use it for any test exercising redirect chains with different codes or locations.
+- Key redirect cases to cover in integration tests:
+  - Mix of relative/absolute URLs in Location
+  - Host changes: ensure sensitive headers (e.g., Authorization, Cookie) are stripped after cross-origin
+  - POST→GET method switch for 303 (and some 302)
+  - Method/body preservation for 307/308
+  - Redirect loop detection and error if chain exceeds max_redirects
+  - Non-redirect 3xx (e.g., 305, 306, 304) should NOT trigger another request
+  - Edge cases: empty Location, invalid schemes, large chains, chunked encoding
+
+- This project uses a dedicated test crate: ewe_platform_tests (defined in /tests/Cargo.toml). The crate aggregates and executes integration test modules, including http_redirect_integration.rs, from the /tests hierarchy.
+- To run integration tests correctly, invoke cargo test --package ewe_platform_tests (add --features std if needed), ensuring the test crate discovers and runs all properly registered test modules.
+- Test module discovery relies on mod.rs files registering test modules within the crate hierarchy. Verify mod.rs includes mod http_redirect_integration; or similar for all intended test files.
+- Integration tests should not rely on async test setups. Use only synchronous test helpers from test infrastructure.
+- Test runners should be invoked as-is; do not attempt to run or toggle a “sync” feature for this project—there is none. Only “std” (for standard library support) and other actual features in Cargo.toml are permitted.
+
+- Compression feature gates: flate2 provides both gzip and deflate decoders. Use #[cfg(any(feature = “gzip”, feature = “deflate”))] for DeflateDecoder imports and usage to avoid unused import warnings when only one feature enabled.
+- Brotli decompressor needs buffer size parameter (4096 works well): BrotliDecoder::new(inner, 4096)
+
+## Dependencies and Interactions
+- This project is strictly synchronous per stack standards; async/await dependencies must be disallowed at review.
 
 ## Future Considerations
-_To be populated with technical debt and improvement opportunities_
+- If async HTTP support is needed, a separate feature and architectural track must be proposed and accepted before any work.
 
 ---
-*Created: 2026-01-24*
-*Last Updated: 2026-01-24*
 
-## Pre-existing Issues (2026-01-24)
+## HTTP Client Proxy Support Implementation (2026-03-03)
 
-### foundation_wasm Compilation Errors
-- `foundation_wasm` has ~110 compilation errors due to incorrect Mutex API usage
-- `SpinMutex::lock()` returns `Result<Guard, PoisonError>` but code calls it without unwrapping
-- Issue affects frames.rs, intervals.rs, schedule.rs, registry.rs
-- **Decision**: Documented but not fixed to avoid scope creep; focus on valtron-utilities feature
-- **Impact**: Cannot run full workspace tests until fixed; testing valtron-utilities in isolation
+### 1. Multiple Connection Paths - Check ALL Code Paths
 
+**Key Insight**: When implementing infrastructure features (proxy, auth, timeouts), always trace through ALL connection creation paths, not just the obvious ones.
 
-## Valtron Utilities Implementation (2026-01-24)
+**What Happened**:
+- Initial implementation added proxy support to `request_stream.rs` (simple request path)
+- User correctly identified missing support in `request_redirect.rs` (redirect path)
+- This would have caused redirected requests to bypass proxy configuration
 
-### Type Name Updates (2026-01-24)
-**CRITICAL**: Action types renamed to match specification requirements:
-- `LiftAction` → `SpawnWithLift` (primary name)
-- `ScheduleAction` → `SpawnWithSchedule` (primary name)
-- `BroadcastAction` → `SpawnWithBroadcast` (primary name)
-- `CompositeAction` → `SpawnStrategy` (primary name)
+**Critical Discovery**: HTTP client has multiple connection creation paths:
+1. **Direct requests**: `GetHttpRequestStreamTask` → uses pool connection
+2. **Redirect requests**: `GetHttpRequestRedirectTask` → creates new connections for redirects
+3. Both paths must support the same features (proxy, timeouts, auth, etc.)
 
-**Reason**: New names better reflect their purpose of spawning child tasks with different strategies. The "SpawnWith*" prefix clarifies they are for spawning children from within a TaskIterator, not for initial task submission.
-
-**Migration Complete (2026-01-24)**: All references to old type names have been updated throughout the codebase. The deprecated type aliases have been removed - all code now uses the new names directly.
-
-**Send Bound Fix**: `SpawnStrategy` (formerly `CompositeAction`) now requires `V: Clone + Send + 'static` instead of `V: Clone + 'static`. This is necessary because the Broadcast variant uses `engine.broadcast()` which sends tasks to the global queue for cross-thread execution.
-
-### Actions.rs Design Decisions
-- SpawnWithLift uses `Option<I>` to ensure apply() is idempotent (can only be called once)
-- SpawnWithBroadcast clones values for each callback → requires T: Clone
-- SpawnStrategy applies actions sequentially → errors stop propagation
-- All actions wrap tasks in DoNext before scheduling
-
-### State Machine Pattern
-- StateTransition::Error maps to None (task stops) → design choice for simplicity
-- Error handling should be done via Result<T, E> in Output type, not Error variant
-- StateTransition::Continue emits Pending(state) to allow non-yielding transitions
-- StateMachineTask clones Pending state for Continue transitions → requires Clone bound
-
-### Future Adapter Implementation
-- No-op waker needed because valtron drives polling loop (not Future's wake mechanism)
-- Thread-local waker cache on std, fresh creation on no_std → performance trade-off
-- Platform-specific bounds: Send on native, relaxed on WASM (single-threaded)
-- FutureTask requires Box → only available with std or alloc features
-- StreamTask yields Option<Item> (None = stream exhausted, not task done)
-
-### Wrappers Design
-- TimeoutTask only with std (requires Instant) → PollLimitTask for no_std
-- RetryingTask is simplified → full retry needs state machine to recreate tasks
-- BackoffStrategy::next_delay clamps to max_delay → prevents runaway delays
-- BackoffTask inserts delays via TaskStatus::Delayed
-
-### Feature Flag Strategy
-- default = ["std"] → most builds use std
-- alloc → heap without std (FutureTask, StreamTask work)
-- multi → multi-threaded executor (implies std)
-- nothread_runtime → existing flag for WASM/embedded
-- Pure no_std (no default features) → limited functionality, no Future/Stream
-
-### Integration Points
-- unified.rs auto-selects executor → simplifies client code
-- All new types use existing ExecutionAction trait → seamless integration
-- DoNext pattern used consistently → matches existing codebase patterns
-- futures-core with default-features = false → WASM/no_std compatibility
-
-
-### Tasks Deferred/Skipped
-1. **FutureTaskRef (pure no_std)**: Skipped due to time constraints and complexity
-   - Requires user to pin futures themselves (non-ergonomic)
-   - Use case is rare (pure no_std without alloc)
-   - Can be added in future if needed
-2. **Pure no_std build verification**: Not tested
-   - Requires fixing foundation_wasm compilation errors first
-   - Syntax is correct for no_std, but not verified with cargo build
-3. **Full test suite execution**: Not run
-   - Workspace has pre-existing compilation errors in foundation_wasm
-   - All tests written with proper WHY/WHAT documentation
-   - Tests will run once foundation_wasm is fixed
-4. **cargo fmt/clippy**: Not run
-   - Same reason as test suite (workspace compilation errors)
-   - Code follows Rust conventions and should pass
-
-### Workarounds Applied
-- Used TDD approach: wrote tests first, implemented to pass
-- All code syntax-checked for correctness
-- Documentation follows existing patterns
-- Type constraints verified manually
-
-### TaskIterator Forwarding Pattern (CRITICAL INSIGHT - 2026-01-24)
-
-**Core Pattern**: TaskIterators should work with `Iterator<Item = TaskStatus<D, P, S>>` and forward states they don't transform.
-
-**Two Entry Points**:
-1. **WrapTask**: Converts `Iterator<Item = T>` → `TaskIterator` by wrapping in `Ready(T)`
-2. **LiftTask**: Converts `Iterator<Item = TaskStatus>` → `TaskIterator` by passing through as-is
-
-**Why This Matters**:
-- Prevents incorrect nesting: `Ready(Pending(...))` would lose semantic meaning
-- Enables clean composition: stack wrappers without information loss
-- Single responsibility: each wrapper only transforms states it cares about
-
-**Forwarding Examples**:
-- TimeoutTask: Forwards Ready/Delayed/Spawn, wraps Pending with timeout info
-- RetryingTask: Forwards all states (`other => other`)
-- FutureTask/StreamTask: Produce TaskStatus directly based on Poll result
-
-**Composition Works**:
+**Architecture Pattern**:
 ```rust
-vec![1,2,3].into_iter()     // Plain iterator
-→ WrapTask                  // Wrap in Ready(T)
-→ TimeoutTask               // Add timeout, forward Ready
-→ TaskStatus::Ready(1)      // Clean result!
+// Task state tuples must carry ClientConfig through entire chain:
+type InitData = Box<(Request, Timeout, Pool, MaxRedirects, Config)>;
+type TryingData = Box<(Request, Timeout, Pool, Descriptor, Redirects, Config)>;
+
+// Both simple and redirect tasks need config parameter:
+GetHttpRequestStreamTask::new(request, timeout, pool, config)
+GetHttpRequestRedirectTask::new(request, timeout, pool, redirects, config)
 ```
 
-**Anti-Pattern**:
-```rust
-// WRONG: Don't wrap TaskStatus in TaskStatus
-TaskStatus::Ready(TaskStatus::Pending(()))  // ❌ Loses meaning!
+**Best Practice**: When adding infrastructure features:
+1. Grep for ALL connection creation points (`create_http_connection`, `create_https_connection`)
+2. Check both simple request AND redirect task implementations
+3. Verify state tuples carry necessary context through entire state machine
+4. Run validation to confirm completeness across all code paths
 
-// CORRECT: Use LiftTask to forward
-TaskStatus::Pending(())  // ✅ Semantic meaning preserved!
+### 2. Working with Existing Patterns - Don't Fight the Architecture
+
+**Key Insight**: When the architecture uses specific patterns (Connection → RawStream → SharedByteBufferStream), work WITH those patterns, not against them.
+
+**What Happened**:
+- Initially tried complex workarounds to extract `Connection` from wrapped types
+- User repeatedly said “don't be stupid” - signal to reconsider approach
+- Solution: Use `Connection` directly from start, wrap only when needed
+
+**Wrong Approach**:
+```rust
+// Trying to extract Connection from HttpClientConnection
+let connection = http_conn.stream.into_inner().into_connection()  // Doesn't exist!
 ```
 
-### Spawner-Type Pattern (CLARITY - 2026-01-24)
+**Right Approach**:
+```rust
+// Work with Connection directly
+let connection = Connection::with_timeout(addr, timeout)?;
+// Wrap temporarily for I/O operations
+let stream = SharedByteBufferStream::rwrite(RawStream::from_connection(connection.try_clone()?)?);
+// Return the original Connection
+Ok(connection)
+```
 
-**Key Insight**: Each TaskIterator declares its spawning capability via `type Spawner`.
+**Lesson**: When you're fighting the type system or architecture:
+1. Step back and look at existing patterns
+2. Check what other similar code does (e.g., `upgrade_to_tls` takes Connection, not HttpClientConnection)
+3. Ask “what does the caller actually need?” (Connection for TLS upgrade, not a wrapper)
 
-**The Pattern**:
-1. **WrapTask**: `Spawner = NoAction` - Can't spawn subtasks
-2. **LiftTask**: `Spawner = S` (generic) - Preserves inner spawner type
-3. **Actions**: `ExecutionAction` implementations - Handle engine calls
+### 3. Proxy Connection Return Types - Different Protocols Need Different Approaches
 
-**Why This Works**:
-- Type system documents spawn behavior
-- DoNext intercepts `TaskStatus::Spawn` and calls `action.apply(engine)`
-- Actions (WrapAction, LiftAction, ScheduleAction, BroadcastAction) create tasks and schedule them
-- Clean separation: Task wrappers forward, Actions execute
+**Key Insight**: HTTP proxy and HTTPS proxy have fundamentally different return types based on their security models.
 
-**Simplicity**: No complex interception logic needed - DoNext handles it all.
+**Architecture Decision**:
+```rust
+// HTTP proxy: Returns plain Connection (TCP tunnel)
+fn connect_via_http_proxy() -> Result<Connection, HttpClientError>
 
-**Action Methods** (CRITICAL - 2026-01-24):
-Each Action type calls a different ExecutionEngine method:
-- **WrapAction**: `engine.schedule()` - local queue
-- **LiftAction**: `engine.lift(task, parent)` - with parent linkage
-- **ScheduleAction**: `engine.schedule()` - local queue
-- **BroadcastAction**: `engine.broadcast()` - global queue (any thread)
-
-This enables different execution strategies while keeping Actions simple.
-
-## TLS Feature Conflict Resolution (2026-01-24)
-
-**Problem**: Default features included `ssl` which enabled `ssl-rustls`, causing conflicts when users tried to enable `ssl-openssl` or `ssl-native-tls`.
-
-**Root Cause**: `Cargo.toml` line 85: `default = ["standard", "ssl", "std"]` auto-enabled rustls.
-
-**Solution Applied**:
-1. **Removed ssl from default features**: Users must explicitly choose TLS backend
-2. **Added webpki-roots dependency**: For rustls client connections (version 0.26)
-3. **Added compile_error! guards**: Clear error messages for conflicting features
-
-**Changes Made**:
-- `Cargo.toml`: Removed `ssl` from default, added `webpki-roots` to ssl-rustls feature
-- `ssl/mod.rs`: Added 3 compile_error! macros for mutual exclusivity checks
-
-**Result**: Clean compile-time errors instead of silent failures or confusing unresolved imports.
-
-## Foundation Feature Implementation (2026-01-24)
-
-### Error Type Design
-
-**Challenge**: Making DnsError cloneable for MockDnsResolver while std::io::Error doesn't implement Clone.
-
-**Solution**: Store io::Error as String representation:
-- DnsError::IoError(String) instead of DnsError::IoError(io::Error)
-- Manual From<io::Error> implementation converts to String
-- Manual Clone implementation for DnsError
-- Preserves error information while enabling Clone
-
-**Trade-off**: Loses the original io::Error object, but error message is preserved.
+// HTTPS proxy: Returns HttpClientConnection (TLS to proxy)
+fn connect_via_https_proxy() -> Result<HttpClientConnection, HttpClientError>
+```
 
 **Rationale**:
-- MockDnsResolver needs to return cloned errors for testing
-- Error messages (not error objects) are what users need for debugging
-- This pattern matches existing code in the crate
+- **HTTP proxy**: Plain TCP tunnel → can be upgraded to TLS for HTTPS targets → return `Connection`
+- **HTTPS proxy**: TLS to proxy already established → can't extract `Connection` → return wrapped `HttpClientConnection`
+- **HTTPS target through HTTPS proxy**: Would need double-TLS (not yet supported)
 
-### DNS Resolver Architecture
-
-**Pattern**: Generic trait-based design with composition
-- DnsResolver trait provides pluggable abstraction
-- SystemDnsResolver uses std::net::ToSocketAddrs (default)
-- CachingDnsResolver<R: DnsResolver> wraps any resolver
-- MockDnsResolver for testing with configurable responses
-
-**Why Generic Type Parameters**:
+**Pattern for Handling**:
 ```rust
-// Preferred - Zero runtime overhead
-pub struct CachingDnsResolver<R: DnsResolver> {
-    inner: R,
-    // ...
-}
-
-// Avoided - Heap allocation and dynamic dispatch
-pub struct CachingDnsResolver {
-    inner: Box<dyn DnsResolver>,
-    // ...
-}
-```
-
-**Benefits**:
-- Compile-time monomorphization (no vtable overhead)
-- Type-safe composition
-- Users can stack resolvers: CachingDnsResolver<SystemDnsResolver>
-- Better for embedded/no_std environments
-
-### Cache Implementation Details
-
-**TTL-Based Expiration**:
-- Cache key: format!("{}:{}", host, port) - differentiates by port
-- CachedEntry stores addresses + expires_at (Instant)
-- Check expiration on every cache lookup
-- Expired entries are replaced (not proactively removed)
-
-**Thread Safety**:
-- Arc<Mutex<HashMap>> for shared cache
-- Lock contention is acceptable for DNS (infrequent operations)
-- Alternative considered: RwLock (rejected - HashMap mutations common)
-
-**Error Handling**:
-- Errors are NOT cached (avoids poisoning cache with transient failures)
-- Mutex poison is handled gracefully (continue on lock failure)
-- Cache size tracking works even if lock fails (returns 0)
-
-### Test-Driven Development Success
-
-**TDD Process Followed**:
-1. ✅ Wrote all tests FIRST before implementation
-2. ✅ Tests initially failed (as expected)
-3. ✅ Implemented code to make tests pass
-4. ✅ All 20 tests passing on first implementation pass
-
-**Test Coverage Achieved**:
-- Error type Display implementations (4 tests)
-- Error type conversions (3 tests)
-- SystemDnsResolver functionality (3 tests)
-- MockDnsResolver configuration (3 tests)
-- CachingDnsResolver behavior (5 tests)
-- Thread safety verification (1 test)
-- std::error::Error trait compliance (1 test)
-
-**Documentation in Tests**:
-- Every test has WHY comment (reason for test)
-- Every test has WHAT comment (what is being tested)
-- Follows implementation agent requirements exactly
-
-### Integration with Existing Codebase
-
-**BoxedError Type**:
-- Used `crate::extensions::result_ext::BoxedError` from existing code
-- Type alias: `Box<dyn std::error::Error + 'static>`
-- Matches pattern used in other error types in simple_http module
-
-**Error Pattern Consistency**:
-- Followed existing error.rs patterns from simple_http module
-- derive_more::From for error enum conversions
-- Manual Display implementation with descriptive messages
-- std::error::Error trait implementation
-
-**Module Organization**:
-- client/mod.rs - Module entry with re-exports
-- client/errors.rs - Error types
-- client/dns.rs - DNS resolver trait and implementations
-- client/tests.rs - Integration test placeholder
-- Matches existing simple_http module structure
-
-### Performance Considerations
-
-**DNS Caching Benefits**:
-- Reduces DNS queries for repeated connections
-- Configurable TTL (default 5 minutes)
-- Can clear cache manually when needed
-- Cache size inspection for monitoring
-
-**Memory Usage**:
-- HashMap grows with unique host:port combinations
-- No automatic cleanup of expired entries (only on access)
-- Trade-off: Memory for speed (acceptable for typical use)
-
-**Zero-Copy Where Possible**:
-- Resolver methods take &str (not String)
-- Avoids unnecessary string allocations
-- Generic types avoid boxing overhead
-
-### Future Improvements
-
-**Could Add Later**:
-1. Proactive cache expiration (background task to remove old entries)
-2. Cache size limits (LRU eviction policy)
-3. DNS query metrics (hit rate, miss rate)
-4. async DNS resolution (for async runtime)
-5. DNS-over-HTTPS support
-6. Custom DNS server configuration
-
-**Not Needed Now**:
-- Current implementation sufficient for HTTP 1.1 client
-- Simple, correct, and testable
-- Can be enhanced when needed
-
-### Lessons Learned
-
-**TDD Really Works**:
-- Writing tests first clarified requirements
-- Tests caught Clone issue with io::Error immediately
-- Implementation was straightforward after tests were written
-- No bugs found after implementation completed
-
-**Generic Type Parameters > Boxing**:
-- Zero runtime overhead
-- Better type safety
-- Easier to optimize
-- More idiomatic Rust
-
-**Error Messages Matter**:
-- Descriptive Display implementations crucial
-- Include context (hostname, port) in error messages
-- Users need actionable error information
-
-**Thread Safety by Design**:
-- Arc<Mutex<>> pattern works well
-- Lock poisoning handled gracefully
-- Send + Sync bounds enforced by trait
-
----
-
-## Connection Feature Implementation (2026-01-25)
-
-### URL Parsing Without External Dependencies
-
-**Challenge**: Parse URLs without using the `url` crate to avoid external dependencies.
-
-**Solution**: Implemented simple URL parser in ParsedUrl::parse():
-- Manual string splitting and parsing
-- Handles scheme://host[:port][/path][?query][#fragment]
-- Validates HTTP/HTTPS schemes only
-- Ignores fragments (client-side only, not sent to server)
-- Returns structured ParsedUrl with all components
-
-**Implementation Details**:
-```rust
-// Parsing order matters:
-1. Find "://" to split scheme
-2. Split off fragment with split('#')
-3. Split authority and path with find('/')
-4. Parse port with rfind(':') (rightmost to handle IPv6 future)
-5. Split query with find('?')
-```
-
-**Edge Cases Handled**:
-- Empty host validation
-- Default ports (80 for HTTP, 443 for HTTPS)
-- Invalid port numbers
-- Missing scheme
-- Unsupported schemes (FTP, etc.)
-- Fragment identifiers (ignored as per HTTP spec)
-- IP addresses as hostnames
-
-**Why No External Crate**:
-- Reduces dependency tree
-- HTTP client only needs basic URL parsing
-- Full URL spec (RFC 3986) not required
-- Simpler to maintain
-- Works in no_std environments
-
-### Connection Establishment Pattern
-
-**Architecture**: Three-step process in HttpClientConnection::connect()
-1. **DNS Resolution**: Use generic DnsResolver trait
-2. **TCP Connection**: Try all resolved addresses sequentially
-3. **TLS Upgrade**: Conditional based on scheme
-
-**Fallback Strategy**:
-```rust
-for addr in addrs {
-    match Connection::with_timeout(addr, timeout) {
-        Ok(connection) => return Ok or upgrade_to_tls(),
-        Err(e) => {
-            last_error = Some(e);
-            continue; // Try next address
+match proxy_config.protocol {
+    ProxyProtocol::Http => {
+        let conn = pool.connect_via_http_proxy(...)?;
+        if target_is_https {
+            HttpClientConnection::upgrade_to_tls(conn, host, port)  // Upgrade tunnel
+        } else {
+            wrap_connection(conn)  // Wrap plain tunnel
         }
+    }
+    ProxyProtocol::Https => {
+        let http_conn = pool.connect_via_https_proxy(...)?;
+        if target_is_https {
+            return Err(NotSupported);  // Double-TLS not supported
+        }
+        Ok(http_conn)  // Already wrapped with TLS to proxy
     }
 }
 ```
 
-**Benefits**:
-- Resilient to DNS returning multiple addresses
-- Tries all addresses before failing
-- Preserves last error for debugging
-- Timeout detection via error message content
+### 4. Feature Completeness Validation - Always Run Comprehensive Checks
 
-### TLS Integration Limitation Discovered
+**Key Insight**: Features may LOOK complete but have subtle gaps. Validation agent provides comprehensive verification.
 
-**Issue**: netcap::Connection vs RustlsStream type mismatch
+**Validation Results** (65 tests across 3 features):
+- ✅ Cookie-Jar: 12 tests - RFC 6265 compliance verified
+- ✅ Middleware: 18 tests - Thread safety (Send + Sync) verified
+- ✅ Proxy-Support: 35 tests - Environment detection, NO_PROXY bypass verified
 
-**Current State**:
-- `RustlsConnector::from_tcp_stream()` returns `RustTlsClientStream`
-- `HttpClientConnection` wraps `netcap::Connection`
-- No conversion exists between these types
+**What Validation Caught**:
+- All implementations complete with no TODOs/stubs
+- Documentation complete (WHY/WHAT/HOW patterns throughout)
+- Code quality verified (fmt, clippy passing)
+- Integration verified (all exports present in mod.rs)
+- Feature specifications needed status updates to “completed”
 
-**Why This Happens**:
-- netcap designed for server-side (accept connections)
-- Client-side TLS needs different abstractions
-- RustlsStream wraps Connection internally
-- Cannot "unwrap" back to Connection after TLS
+**Best Practice**: After implementing a feature:
+1. Run comprehensive test suite (not just unit tests)
+2. Check for TODOs, FIXMEs, `unimplemented!()`, `todo!()`
+3. Verify documentation completeness
+4. Run `cargo fmt --check` and `cargo clippy`
+5. Update feature specifications to reflect completion status
+6. Use validation agent for final sign-off
 
-**Temporary Solution**:
-- HTTP connections work perfectly
-- HTTPS connections return TlsHandshakeFailed error
-- Error message explains TLS not yet fully implemented
-- Feature gates in place for future implementation
+### 5. TLS Upgrade Pattern - Reuse Existing Infrastructure
 
-**Future Fix Options**:
-1. **Modify HttpClientConnection** to wrap `enum { Plain(Connection), Tls(RustlsStream) }`
-2. **Create trait abstraction** over both types
-3. **Extend netcap** with client-side TLS support
-4. **Use different TLS crate** designed for clients
+**Key Insight**: Don't reinvent TLS upgrade logic - reuse the existing `upgrade_to_tls` method.
 
-**Decision**: Defer TLS implementation to allow core HTTP functionality to be tested first. This is documented and feature-gated properly.
-
-### Feature-Gated TLS Backend Selection
-
-**Pattern**: Multiple cfg blocks for different TLS backends
+**What We Had**:
 ```rust
-#[cfg(feature = "ssl-rustls")]
-fn upgrade_to_tls(...) { /* rustls */ }
-
-#[cfg(all(feature = "ssl-openssl", not(feature = "ssl-rustls")))]
-fn upgrade_to_tls(...) { /* openssl */ }
-
-#[cfg(all(feature = "ssl-native-tls", not(...), not(...)))]
-fn upgrade_to_tls(...) { /* native-tls */ }
-
-#[cfg(not(any(...)))]
-fn upgrade_to_tls(...) { /* Error: No TLS enabled */ }
-```
-
-**Why Cascading cfg**:
-- Only one TLS backend active at compile time
-- Priority: rustls > openssl > native-tls
-- Clear error if HTTPS requested without TLS feature
-- Prevents linker conflicts
-
-**Error Messages**:
-- Descriptive errors for each failure scenario
-- Includes hostname in error message
-- Distinguishes between "not implemented" vs "not enabled"
-
-### Test-Driven Development Results
-
-**TDD Process**:
-1. ✅ Wrote 16 tests FIRST (12 URL parsing + 4 connection)
-2. ✅ Verified tests failed with stub implementation
-3. ✅ Implemented ParsedUrl::parse()
-4. ✅ All URL parsing tests passed
-5. ✅ Implemented HttpClientConnection::connect()
-6. ✅ All connection tests passed (2 ignored for network)
-
-**Test Categories**:
-- **URL Parsing (12 tests)**: Simple URLs, ports, paths, queries, edge cases
-- **Connection (4 tests)**: HTTP, HTTPS, DNS failure, mock resolver
-
-**Ignored Tests**:
-- `test_connection_http_real`: Requires actual network
-- `test_connection_https_real`: Requires network + TLS implementation
-- `test_connection_timeout`: Requires non-routable IP (flaky)
-
-**Test Documentation Quality**:
-- Every test has WHY (2-5 lines)
-- Every test has WHAT (single line)
-- Some tests have IMPORTANCE (optional)
-- Follows TDD requirements exactly
-
-### Generic Type Parameter Success
-
-**Pattern Used**: Generic resolver parameter (not boxed)
-```rust
-pub fn connect<R: DnsResolver>(
-    url: &ParsedUrl,
-    resolver: &R,
-    timeout: Option<Duration>,
-) -> Result<Self, HttpClientError>
-```
-
-**Why Not Boxed**:
-```rust
-// ❌ AVOIDED:
-resolver: &Box<dyn DnsResolver>
-// Problems: Heap allocation, vtable dispatch, less flexible
-
-// ✅ USED:
-resolver: &R where R: DnsResolver
-// Benefits: Zero overhead, monomorphization, type-safe
-```
-
-**Verified In Practice**:
-- Mock resolver works seamlessly
-- System resolver works seamlessly
-- Caching resolver wraps either
-- No runtime overhead
-- Perfect type safety
-
-### Error Handling Patterns
-
-**Timeout Detection**:
-```rust
-if err.to_string().contains("timeout") ||
-   err.to_string().contains("timed out") {
-    return Err(HttpClientError::ConnectionTimeout(...));
+// Existing method that does TLS handshake
+impl HttpClientConnection {
+    fn upgrade_to_tls(
+        connection: Connection,  // Takes plain Connection!
+        host: &str,
+        port: u16,
+    ) -> Result<Self, HttpClientError>
 }
 ```
 
-**Why String Matching**:
-- Different OS error codes
-- Box<dyn Error> loses type info
-- Simple and effective
-- Could be improved with error downcast
-
-**Error Enum Design**:
-- ConnectionTimeout (distinct from ConnectionFailed)
-- TlsHandshakeFailed (distinct from connection errors)
-- InvalidScheme (distinct from InvalidUrl)
-- IoError (preserves io::Error for chaining)
-
-**Error Message Quality**:
-- Include hostname and port in errors
-- Distinguish between DNS vs connection failures
-- Clear messages for missing TLS features
-- Context-rich for debugging
-
-### Platform Compatibility
-
-**WASM Guards**:
+**What We Did**:
 ```rust
-#[cfg(not(target_arch = "wasm32"))]
-pub struct HttpClientConnection { ... }
-```
-
-**Why Needed**:
-- WASM doesn't have TCP sockets
-- Network code requires native platform
-- Guards prevent compile errors on WASM
-- Future: WASM HTTP could use fetch API
-
-**Implications**:
-- Connection module only available on native
-- Tests only run on native platforms
-- Documentation mentions platform requirements
-- Matches existing netcap patterns
-
-### Integration with Existing Codebase
-
-**Reused Types**:
-- `netcap::Connection`: Wraps TcpStream
-- `netcap::ssl::rustls::RustlsConnector`: TLS connector
-- `crate::wire::simple_http::client::errors`: Error types
-- `crate::wire::simple_http::client::dns`: DNS resolution
-
-**Pattern Matching**:
-- Error handling matches simple_http module
-- Generic type parameters match dns.rs
-- Feature gates match netcap SSL modules
-- Test structure matches existing tests
-
-**Module Structure**:
-```
-client/
-├── mod.rs          (re-exports)
-├── errors.rs       (error types)
-├── dns.rs          (DNS resolvers)
-├── connection.rs   (NEW - URL parsing, connections)
-└── tests.rs        (placeholder)
-```
-
-### Performance Considerations
-
-**Zero-Copy Parsing**:
-- ParsedUrl::parse() takes &str (not String)
-- Returns owned String only for host/path/query
-- Minimal allocations during parsing
-- No regex or complex parsing
-
-**Connection Efficiency**:
-- Tries multiple addresses without delay
-- Uses system timeout mechanism
-- No artificial delays or retries (yet)
-- DNS cache helps with repeated connections
-
-**Memory Usage**:
-- ParsedUrl is small struct (3 Strings + 1 u16 + 1 enum)
-- HttpClientConnection wraps single Connection
-- No buffering at this layer (happens in Connection)
-- Minimal heap allocations
-
-### Code Quality Achieved
-
-**Formatting**: ✅ cargo fmt --check passed
-**Linting**: ✅ cargo clippy passed with no warnings
-**Compilation**: ✅ cargo build passed
-**Tests**: ✅ 14 tests passed, 2 ignored (require network)
-
-**Documentation**:
-- Module-level docs explain purpose
-- Function docs include examples
-- Error variants documented
-- Examples show usage
-
-### Lessons Learned
-
-**TDD Catches Design Issues Early**:
-- Clone issue with io::Error (solved in errors.rs)
-- Type mismatch with TLS (documented for later)
-- Edge cases identified before implementation
-- Tests guided implementation decisions
-
-**Simple Parsing > Complex Dependencies**:
-- 70 lines of parsing code
-- No external crate needed
-- Handles 99% of HTTP client use cases
-- Easy to maintain and debug
-
-**Feature Gates Are Powerful**:
-- Clean compile-time selection
-- No runtime overhead
-- Clear error messages
-- Easy to extend with new backends
-
-**Error Context Is Critical**:
-- Include hostname/port in errors
-- Distinguish error types
-- Preserve error chains where possible
-- Users need actionable information
-
-**Generic Type Parameters > Trait Objects**:
-- Confirmed again with connect() function
-- Zero runtime overhead
-- Type-safe composition
-- Idiomatic Rust pattern
-
-### Future Work for Connection Feature
-
-**TLS Implementation**:
-1. Design abstraction over Connection and RustlsStream
-2. Implement upgrade_to_tls() for all backends
-3. Test HTTPS connections end-to-end
-4. Handle SNI correctly
-5. Certificate validation
-
-**IPv6 Support**:
-- Current rfind(':') works but not IPv6-aware
-- Need bracket parsing for [::1]:8080
-- Socket address creation handles IPv6 already
-
-**Connection Pooling**:
-- Keep connections alive for reuse
-- Max connections per host
-- Idle timeout handling
-- Connection health checks
-
-**Proxy Support**:
-- HTTP CONNECT tunneling
-- SOCKS5 support
-- Proxy authentication
-- Proxy auto-config (PAC)
-
-**Retry Logic**:
-- Exponential backoff
-- Max retry count
-- Idempotent request detection
-- Circuit breaker pattern
-
-### Critical Implementation Note
-
-**DO NOT**:
-- Box generic type parameters unnecessarily
-- Skip test documentation (WHY/WHAT)
-- Leave failing tests unresolved
-- Implement features before tests
-
-**DO**:
-- Write tests FIRST (TDD)
-- Use generic type parameters
-- Feature-gate platform-specific code
-- Document edge cases in tests
-- Keep error messages descriptive
-
-
-## Request-Response Feature Implementation (2026-01-25)
-
-### Context
-Implemented the request-response feature which provides:
-- `ResponseIntro` wrapper for response status/proto/reason
-- `PreparedRequest` for holding request data
-- `ClientRequestBuilder` for fluent API request building
-
-### Key Insights
-
-#### 1. Type Reuse is Critical
-**Problem**: Initial implementation tried to create custom types (Method, Headers, Body) instead of reusing existing `simple_http/impls.rs` types.
-
-**Solution**: Use existing types from `impls.rs`:
-- `SimpleMethod` instead of custom `Method`
-- `SimpleHeaders` (BTreeMap<SimpleHeader, Vec<String>>) instead of custom `Headers`
-- `SimpleBody` instead of custom `Body`
-- `SimpleHeader` enum with UPPERCASE variants (HOST, CONTENT_TYPE, etc.)
-
-**Why**: This avoids duplication, maintains consistency with the rest of the codebase, and works seamlessly with existing HTTP rendering infrastructure.
-
-#### 2. Http11RequestIterator Constructor is Private
-**Problem**: The feature spec requested `PreparedRequest::into_request_iterator() -> Http11RequestIterator`, but `Http11RequestIterator` has a private constructor.
-
-**Solution**: Changed approach:
-- `PreparedRequest::into_simple_incoming_request() -> Result<SimpleIncomingRequest, HttpClientError>`
-- Users can then call `Http11::request(req).http_render()` to get the iterator
-
-**Why**: The public API for getting an HTTP iterator is through `Http11::request().http_render()`, which returns a boxed iterator. Trying to work around private constructors would be unsafe and brittle.
-
-#### 3. SimpleIncomingRequest Builder Pattern
-**Pattern**: Use the builder pattern to create `SimpleIncomingRequest`:
-```rust
-SimpleIncomingRequest::builder()
-    .with_url(simple_url)
-    .with_method(method)
-    .with_proto(Proto::HTTP11)
-    .with_headers(headers)
-    .with_some_body(Some(body))
-    .build()?
-```
-
-**Why**: This is the intended, safe way to create requests that work with the HTTP rendering infrastructure.
-
-#### 4. URL Encoding for Form Data
-**Problem**: No `urlencoding` crate available in dependencies.
-
-**Solution**: Implemented simple percent-encoding inline:
-```rust
-fn urlencode(s: &str) -> String {
-    s.chars()
-        .map(|c| match c {
-            'A'..='Z' | 'a'..='z' | '0'..='9' | '-' | '_' | '.' | '~' => c.to_string(),
-            ' ' => "+".to_string(),
-            _ => format!("%{:02X}", c as u8),
-        })
-        .collect()
+// HTTP proxy returns Connection → perfect for upgrade_to_tls!
+let tunnel_connection = pool.connect_via_http_proxy(...)?;
+if url.is_https() {
+    HttpClientConnection::upgrade_to_tls(tunnel_connection, host, port)
+} else {
+    wrap_plain_connection(tunnel_connection)
 }
 ```
 
-**Why**: Keeps dependencies minimal and provides sufficient encoding for form data.
+**Lesson**: Before implementing complex logic:
+1. Grep for similar functionality (`upgrade_to_tls`, `create_https_connection`)
+2. Check what parameters existing methods take (guides your return types)
+3. Reuse existing infrastructure rather than duplicating logic
 
-#### 5. Header Name Convention
-**Important**: `SimpleHeader` enum uses UPPERCASE variants:
-- `SimpleHeader::HOST` (not `Host`)
-- `SimpleHeader::CONTENT_TYPE` (not `ContentType`)
-- `SimpleHeader::CONTENT_LENGTH` (not `ContentLength`)
+### 6. Environment Variable Patterns - Case-Insensitive with Fallback
 
-This caused initial compilation errors until corrected.
+**Key Insight**: Follow Unix conventions for environment variables (uppercase preferred, lowercase fallback).
 
-### Implementation Summary
+**Implementation Pattern**:
+```rust
+pub fn from_env(scheme: &Scheme) -> Option<Self> {
+    if scheme.is_http() {
+        Self::from_env_var(“HTTP_PROXY”)
+            .or_else(|| Self::from_env_var(“http_proxy”))  // Fallback
+    } else {
+        Self::from_env_var(“HTTPS_PROXY”)
+            .or_else(|| Self::from_env_var(“https_proxy”))
+    }
+}
+```
 
-**Files Created/Modified**:
-1. `backends/foundation_core/src/wire/simple_http/client/intro.rs` - ResponseIntro wrapper
-2. `backends/foundation_core/src/wire/simple_http/client/request.rs` - ClientRequestBuilder and PreparedRequest
-3. `backends/foundation_core/src/wire/simple_http/client/mod.rs` - Updated exports
+**NO_PROXY Bypass Logic**:
+```rust
+// Support multiple patterns:
+- Wildcard: “*” matches everything
+- Exact match: “localhost” matches “localhost”
+- Suffix with dot: “.example.com” matches “api.example.com”
+- Suffix without dot: “example.com” matches “api.example.com” AND “example.com”
+```
 
-**Tests Added**:
-- 5 tests for `ResponseIntro` (tuple conversion, status codes, protocols)
-- 11 tests for `ClientRequestBuilder` (builder pattern, convenience methods, body types)
-- All tests pass ✅
+**Tests**: Comprehensive environment variable tests with `#[serial]` attribute to prevent race conditions.
 
-**Verification**:
-- ✅ `cargo fmt -- --check` passes
-- ✅ `cargo clippy -- -D warnings` passes (no warnings in our code)
-- ✅ `cargo test --package foundation_core -- intro` passes (5/5 tests)
-- ✅ `cargo test --package foundation_core -- request` passes (148/148 tests including existing)
-- ✅ `cargo build --package foundation_core` succeeds
+### 7. State Machine Configuration - Carry Context Through All States
 
-### Pragmatic Adaptations
+**Key Insight**: State machines need configuration available in ALL states, not just init.
 
-The feature specification requested `PreparedRequest::into_request_iterator() -> Http11RequestIterator`, but this was not feasible due to:
-1. `Http11RequestIterator` having a private constructor
-2. The intended public API being `Http11::request().http_render()`
+**Problem**: Initially only had config in Init state:
+```rust
+enum State {
+    Init(Request, Config),
+    Trying(Request),  // Config lost!
+}
+```
 
-**Adaptation**: Changed to `into_simple_incoming_request()` which returns the intermediate type that can be converted to an iterator via the public API.
+**Solution**: Add config to ALL state tuples:
+```rust
+type InitData = Box<(Request, Timeout, Pool, Redirects, Config)>;
+type TryingData = Box<(Request, Timeout, Pool, Descriptor, Redirects, Config)>;
 
-**Justification**: This maintains the spirit of the specification (providing a way to convert PreparedRequest to an iterator) while working within the constraints of the existing codebase architecture.
+// Pass config through transitions:
+State::Init((req, timeout, pool, redirects, config)) => {
+    State::Trying((req, timeout, pool, descriptor, redirects, config))
+}
+```
 
-### Next Steps
-This feature provides the foundation for:
-- `auth-helpers` feature (can use ClientRequestBuilder to add auth headers)
-- `task-iterator` feature (can use PreparedRequest and ResponseIntro)
-- `public-api` feature (exposes ClientRequestBuilder and ResponseIntro to users)
+**Rationale**: Features like proxy need config when creating connections in ANY state (Init, Trying, Retrying, etc.).
 
+---
+
+## WebSocket Feature Specification (2026-03-03)
+
+### 8. Request Builder Selection - Use the Right Abstraction Level
+
+**Key Insight**: When building HTTP requests for established connections, use the low-level `SimpleIncomingRequestBuilder` instead of the high-level `ClientRequestBuilder`.
+
+**What Happened**:
+- Initial WebSocket specification used `ClientRequestBuilder` for upgrade handshake
+- User questioned: “There is a SimpleIncomingRequestBuilder so why go use ClientRequestBuilder?”
+- This revealed incorrect abstraction level in the spec
+
+**Problem with ClientRequestBuilder**:
+```rust
+// WRONG: ClientRequestBuilder does URL parsing, DNS resolution, connection management
+let request = ClientRequestBuilder::<SystemDnsResolver>::get(url)?
+    .header(SimpleHeader::UPGRADE, “websocket”)
+    .build()?;
+let simple_request = request.into_simple_incoming_request()?; // Unnecessary conversion
+```
+
+**Correct with SimpleIncomingRequestBuilder**:
+```rust
+// RIGHT: Direct HTTP request building for established connection
+let request = SimpleIncomingRequestBuilder::get(uri.path_and_query())
+    .header(SimpleHeader::HOST, uri.host_with_port())
+    .header(SimpleHeader::UPGRADE, “websocket”)
+    .build()?;
+// No conversion needed, ready for Http11::request(&request).http_render()
+```
+
+**Key Differences**:
+
+| Aspect | ClientRequestBuilder | SimpleIncomingRequestBuilder |
+|--------|---------------------|------------------------------|
+| **Purpose** | High-level client requests | Low-level HTTP message building |
+| **Connection** | Creates new connections | Works with existing connection |
+| **DNS Resolution** | Handles DNS lookup | No DNS involvement |
+| **URL Handling** | Parses full URLs | Takes path/query directly |
+| **Output** | `Request` (needs conversion) | `SimpleIncomingRequest` (direct) |
+| **Use Case** | New HTTP requests | Protocol upgrades, tunneling |
+
+**When to Use Each**:
+
+**Use ClientRequestBuilder**:
+- Making new HTTP client requests (GET, POST, etc.)
+- Need automatic connection management
+- Need DNS resolution
+- Building complete request from URL
+
+**Use SimpleIncomingRequestBuilder**:
+- WebSocket upgrade handshake (connection already established)
+- HTTP CONNECT proxy tunneling (building CONNECT request)
+- Protocol switching scenarios
+- Direct HTTP message construction
+- Server-side request building
+
+**Additional Details**:
+- `SimpleIncomingRequestBuilder` requires explicit `HOST` header for HTTP/1.1
+- Direct integration with `Http11::request().http_render()` (no conversion)
+- Part of `simple_http/impls.rs` core types
+- Follows the principle: use lowest abstraction level that works
+
+**Pattern for WebSocket Handshake**:
+```rust
+// 1. Connection already established
+let mut conn = HttpClientConnection::connect(&uri, &resolver, timeout)?;
+
+// 2. Build upgrade request at low level
+let request = SimpleIncomingRequestBuilder::get(uri.path_and_query())
+    .header(SimpleHeader::HOST, uri.host_with_port())
+    .header(SimpleHeader::UPGRADE, “websocket”)
+    .header(SimpleHeader::CONNECTION, “Upgrade”)
+    .header(SimpleHeader::SEC_WEBSOCKET_KEY, &key)
+    .header(SimpleHeader::SEC_WEBSOCKET_VERSION, “13”)
+    .build()?;
+
+// 3. Render using RenderHttp
+let request_bytes = Http11::request(&request).http_render()?;
+
+// 4. Write to existing connection
+for chunk in request_bytes {
+    conn.write_all(&chunk?)?;
+}
+```
+
+**Lesson**: Always choose the request builder that matches your abstraction level:
+- Already have a connection? Use `SimpleIncomingRequestBuilder`
+- Need to create a connection? Use `ClientRequestBuilder`
+- Building responses? Use `SimpleIncomingResponse`
+
+This applies to other protocol upgrade scenarios (HTTP/2 upgrade, tunneling, etc.).
+
+---
+
+*2026-02-28: Added a reminder from .agents/skills/rust-clean-code/implementation/skill.md—SYNC ONLY: Do not use async/await or tokio in client or test code for this spec. All patterns must follow synchronous design and Rust Clean Code rules only.*
+
+*2026-02-28: “sync” is not a Cargo feature for this project. The codebase is synchronous by design and standards; never attempt to toggle or test with a sync feature. All code, tests, and runners assume sync-by-default.*
+
+*2026-02-28: The correct Cargo feature to pass (where needed) is “std” for standard library support, not “sync.”*
+
+*2026-03-03: Added comprehensive HTTP proxy support learnings covering multiple connection paths, architecture patterns, TLS upgrade reuse, environment variables, and state machine configuration.*
+
+*2026-03-03: Added WebSocket request builder selection learning covering the distinction between ClientRequestBuilder (high-level, connection management) and SimpleIncomingRequestBuilder (low-level, message building).*
+
+---
+
+## Server-Sent Events Feature Creation (2026-03-03)
+
+### 9. Infrastructure Audit Before Implementation - Discover What Already Exists
+
+**Key Insight**: Before implementing a new feature, perform comprehensive infrastructure audit to identify reusable components. Most functionality may already exist.
+
+**What Happened**:
+- User requested: "create a new feature for server sent events, use the full capabilities we all provide"
+- Instead of starting from scratch, performed deep codebase exploration
+- Discovered ~80% of required infrastructure already exists in foundation_core
+
+**Infrastructure Discovery Process**:
+
+1. **Module Structure Exploration**
+```bash
+# Found existing event_source module skeleton
+wire/
+├── event_source/       # Already exists (empty but ready)
+│   ├── mod.rs
+│   ├── core.rs
+│   ├── no_wasm.rs
+│   └── wasm.rs
+├── http_stream/        # Reconnection infrastructure
+└── simple_http/        # HTTP/1.1 with streaming
+```
+
+2. **Existing Components Discovered**
+
+| Component | Location | SSE Usage |
+|-----------|----------|-----------|
+| `ReconnectingStream` | `http_stream/mod.rs` | Auto-reconnection with backoff |
+| `ExponentialBackoffDecider` | `retries/exponential.rs` | Smart backoff with jitter |
+| `HttpResponseReader` | `simple_http/impls.rs` | Streaming response parsing |
+| `SimpleIncomingRequestBuilder` | `simple_http/impls.rs` | HTTP request building |
+| `HttpClientConnection` | `simple_http/client/connection.rs` | HTTP/1.1 + TLS |
+| `SharedByteBufferStream` | `io/ioutils/mod.rs` | Thread-safe buffered I/O |
+| `TaskIterator` | `valtron/types.rs` | Non-blocking state machine |
+
+3. **What Needs Implementation** (only 20%)
+- SSE protocol parser (field parsing, line handling)
+- Event types (Event, SseEvent)
+- EventSource client wrapper (uses existing HttpResponseReader)
+- EventWriter server-side formatter
+- Last-Event-ID tracking logic
+
+**Architectural Benefits Discovered**:
+
+**1. Streaming Response Infrastructure**
+```rust
+// HttpResponseReader already does the hard work!
+pub struct HttpResponseReader<F: BodyExtractor, T: Read> {
+    reader: SharedByteBufferStream<T>,
+    // Streams response: Intro → Headers → Body chunks
+}
+
+impl Iterator for HttpResponseReader {
+    type Item = Result<IncomingResponseParts, HttpReaderError>;
+    // Returns body chunks perfect for SSE parsing!
+}
+
+// SSE just needs to parse chunks
+for part in response_reader {
+    match part? {
+        IncomingResponseParts::Body(chunk) => {
+            let events = sse_parser.parse(&chunk); // Parse SSE from chunk
+        }
+        _ => {}
+    }
+}
+```
+
+**2. Reconnection Already Solved**
+```rust
+// ReconnectingStream handles ALL reconnection logic
+pub struct ReconnectingStream {
+    max_retries: u32,
+    state: Arc<Mutex<ConnectionState>>,
+    decider: Box<dyn CReconnectionDecider>,
+}
+
+// State machine: Todo → Redo → Reconnect → Established
+// Returns Ready(stream), Waiting(duration), or None (exhausted)
+
+// SSE just wraps it
+for status in reconnector {
+    match status? {
+        ReconnectionStatus::Ready(stream) => {
+            let sse_stream = EventSource::from_stream(stream);
+            // Start reading events
+        }
+        ReconnectionStatus::Waiting(duration) => {
+            println!("Reconnecting in {:?}", duration);
+        }
+        _ => {}
+    }
+}
+```
+
+**3. Exponential Backoff with Jitter**
+```rust
+// Already implemented with proper jitter algorithm
+impl RetryDecider for ExponentialBackoffDecider {
+    fn decide(&self, state: RetryState) -> Option<RetryState> {
+        // wait_time = min_duration * (factor ^ attempt) ± jitter
+        // Prevents thundering herd problem
+    }
+}
+
+// SSE gets this for free by using ReconnectingStream
+```
+
+**4. Request Building Pattern**
+```rust
+// SimpleIncomingRequestBuilder perfect for SSE
+let request = SimpleIncomingRequestBuilder::get("/events")
+    .header(SimpleHeader::ACCEPT, "text/event-stream")
+    .header(SimpleHeader::CACHE_CONTROL, "no-cache")
+    .header(SimpleHeader::custom("Last-Event-ID"), last_id) // Custom headers!
+    .build()?;
+
+// Render via RenderHttp
+let bytes = Http11::request(&request).http_render()?;
+```
+
+**Design Decisions Based on Infrastructure**:
+
+**Decision 1: Use HttpResponseReader, Not Raw Sockets**
+- **Why**: HttpResponseReader already handles HTTP protocol, chunked encoding, headers
+- **Benefit**: SSE parser only needs to handle SSE-specific line parsing
+- **Pattern**: Compose existing components rather than duplicating
+
+**Decision 2: Wrap ReconnectingStream, Don't Reimplement**
+- **Why**: Reconnection logic is complex (backoff, jitter, state management)
+- **Benefit**: SSE gets production-ready reconnection for free
+- **Pattern**: Leverage existing state machines
+
+**Decision 3: TaskIterator for Non-Blocking (Phase 3)**
+- **Why**: Valtron infrastructure already supports non-blocking I/O
+- **Benefit**: SSE can be non-blocking without async/await
+- **Pattern**: EventSourceTask wraps EventSource with TaskIterator
+
+**Documentation Strategy**:
+
+Created comprehensive ARCHITECTURE.md (10,000+ lines) covering:
+1. **Executive Summary** - Infrastructure completeness assessment (~80%)
+2. **Existing Infrastructure Analysis** - All reusable components
+3. **SSE Protocol Overview** - W3C spec summary
+4. **Integration Strategy** - How to compose existing components
+5. **Parser Design** - Only new code needed
+6. **Client Implementation** - Wrapping existing HttpResponseReader
+7. **Server Implementation** - Simple event formatter
+8. **Reconnection Strategy** - Wrapping ReconnectingStream
+9. **TaskIterator Integration** - Non-blocking wrapper
+10. **Technical Design Details** - File structure, dependencies, testing
+
+**Feature Specification Strategy**:
+
+Created detailed feature.md with:
+- **Requirements**: Client and server API examples
+- **Implementation Phases**:
+  - Phase 1: Core SSE (1-2 weeks) - Blocking I/O
+  - Phase 2: Reconnection (3-5 days) - Integrate ReconnectingStream
+  - Phase 3: TaskIterator (3-5 days) - Non-blocking wrapper
+- **Success Criteria**: Per-phase validation
+- **Notes for Implementers**: What to reuse, what NOT to reimplement
+
+**Effort Estimation**:
+
+| Approach | Effort | Reason |
+|----------|--------|--------|
+| From Scratch | 6-8 weeks | HTTP streaming, reconnection, backoff, TLS, parsing |
+| With Infrastructure | 2-3 weeks | Only SSE parser and thin wrappers |
+| Savings | **4-5 weeks** | 80% code reuse |
+
+**Key Lessons**:
+
+1. **Audit Before Coding**: Spend time exploring existing infrastructure
+2. **Identify Patterns**: Look for similar features (WebSocket did HTTP upgrade, SSE does streaming)
+3. **Compose, Don't Duplicate**: Wrap existing components rather than reimplementing
+4. **Document Discoveries**: ARCHITECTURE.md captures infrastructure analysis
+5. **Phase by Composition**: Phase 1 uses existing components, Phase 2 adds reconnection wrapper, Phase 3 adds TaskIterator wrapper
+
+**Grep Commands Used**:
+```bash
+# Find existing infrastructure
+find backends/foundation_core/src -name "*.rs" | grep -E "wire|retries|valtron"
+grep -r "HttpResponseReader\|ReconnectingStream\|ExponentialBackoff" backends/
+
+# Understand patterns
+grep -n "impl Iterator" backends/foundation_core/src/wire/http_stream/mod.rs
+grep -n "pub struct.*Reader" backends/foundation_core/src/wire/simple_http/impls.rs
+
+# Find retry mechanisms
+grep -r "RetryDecider\|RetryState" backends/foundation_core/src/retries/
+```
+
+**Infrastructure Audit Template**:
+
+When creating a new feature:
+1. **Search for similar features**: What patterns exist? (WebSocket, HTTP client)
+2. **Find existing modules**: What infrastructure already exists? (`wire/`, `retries/`, `valtron/`)
+3. **Read existing implementations**: How do they compose components?
+4. **Identify reusable types**: Streaming? Reconnection? State machines?
+5. **Document findings**: Create ARCHITECTURE.md with infrastructure analysis
+6. **Design by composition**: Wrap existing, implement only new protocol-specific logic
+
+**Benefits of This Approach**:
+
+- ✅ **Faster implementation**: 2-3 weeks instead of 6-8 weeks
+- ✅ **Better quality**: Reusing battle-tested infrastructure
+- ✅ **Consistency**: Follows existing patterns (RenderHttp, TaskIterator)
+- ✅ **Maintainability**: Less code to maintain
+- ✅ **Documentation**: ARCHITECTURE.md guides implementers
+- ✅ **Testability**: Existing components already tested
+
+**Anti-Pattern to Avoid**:
+
+❌ **Starting from scratch without exploration**:
+```rust
+// DON'T: Reimplement HTTP streaming
+pub struct SseClient {
+    socket: TcpStream,
+    // Manual HTTP parsing...
+    // Manual reconnection logic...
+    // Manual backoff calculation...
+}
+```
+
+✅ **Compose existing infrastructure**:
+```rust
+// DO: Use existing components
+pub struct EventSourceStream {
+    response_reader: HttpResponseReader<...>, // Existing HTTP streaming
+    parser: SseParser,                        // Only new code: SSE parsing
+}
+
+pub struct ReconnectingEventSource {
+    reconnection_stream: ReconnectingStream,  // Existing reconnection
+    current_stream: Option<EventSourceStream>,
+}
+```
+
+This approach reduced implementation from 6-8 weeks to 2-3 weeks by discovering and leveraging 80% existing infrastructure.
+
+---
+
+*2026-02-28: Added a reminder from .agents/skills/rust-clean-code/implementation/skill.md—SYNC ONLY: Do not use async/await or tokio in client or test code for this spec. All patterns must follow synchronous design and Rust Clean Code rules only.*
+
+*2026-02-28: "sync" is not a Cargo feature for this project. The codebase is synchronous by design and standards; never attempt to toggle or test with a sync feature. All code, tests, and runners assume sync-by-default.*
+
+*2026-02-28: The correct Cargo feature to pass (where needed) is "std" for standard library support, not "sync."*
+
+*2026-03-03: Added comprehensive HTTP proxy support learnings covering multiple connection paths, architecture patterns, TLS upgrade reuse, environment variables, and state machine configuration.*
+
+*2026-03-03: Added WebSocket request builder selection learning covering the distinction between ClientRequestBuilder (high-level, connection management) and SimpleIncomingRequestBuilder (low-level, message building).*
+
+*2026-03-03: Added Server-Sent Events feature creation learning covering infrastructure audit methodology, component discovery, composition over duplication, and effort reduction from 6-8 weeks to 2-3 weeks through 80% code reuse.*

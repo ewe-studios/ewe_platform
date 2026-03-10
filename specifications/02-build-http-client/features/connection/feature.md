@@ -1,140 +1,25 @@
 ---
-feature: connection
-description: URL parsing, TCP connection establishment, and TLS upgrade
-status: completed
+workspace_name: "ewe_platform"
+spec_directory: "specifications/02-build-http-client"
+feature_directory: "specifications/02-build-http-client/features/connection"
+this_file: "specifications/02-build-http-client/features/connection/feature.md"
+
+status: pending
 priority: high
+created: 2026-02-28
+
 depends_on:
   - foundation
-estimated_effort: small
-created: 2026-01-18
-last_updated: 2026-01-25
-author: Main Agent
-context_optimization: true  # Sub-agents MUST generate COMPACT_CONTEXT.md before work, reload after updates
-compact_context_file: ./COMPACT_CONTEXT.md  # Ultra-compact current task context (97% reduction)
-context_reload_required: true  # Clear and reload from compact context regularly to prevent context limit errors
+
 tasks:
-  completed: 11
+  completed: 0
   uncompleted: 0
-  total: 11
-  completion_percentage: 100
-files_required:
-  implementation_agent:
-    rules:
-      - .agents/rules/01-rule-naming-and-structure.md
-      - .agents/rules/02-rules-directory-policy.md
-      - .agents/rules/03-dangerous-operations-safety.md
-      - .agents/rules/04-work-commit-and-push-rules.md
-      - .agents/rules/13-implementation-agent-guide.md
-      - .agents/rules/11-skills-usage.md
-      - .agents/stacks/rust.md
-    files:
-      - ../requirements.md
-      - ./feature.md
-      - ./templates/
-  verification_agent:
-    rules:
-      - .agents/rules/01-rule-naming-and-structure.md
-      - .agents/rules/02-rules-directory-policy.md
-      - .agents/rules/03-dangerous-operations-safety.md
-      - .agents/rules/04-work-commit-and-push-rules.md
-      - .agents/rules/08-verification-workflow-complete-guide.md
-      - .agents/stacks/rust.md
-    files:
-      - ../requirements.md
-      - ./feature.md
+  total: 0
+  completion_percentage: 0
 ---
+
 
 # Connection Feature
-
-## 🔍 CRITICAL: Retrieval-Led Reasoning Required
-
-**ALL agents implementing this feature MUST use retrieval-led reasoning.**
-
-### Before Starting Implementation
-
-**YOU MUST** (in this order):
-1. ✅ **Search the codebase** for similar implementations using Grep/Glob
-2. ✅ **Read existing code** in related modules to understand patterns
-3. ✅ **Check stack files** (`.agents/stacks/[language].md`) for language-specific conventions
-4. ✅ **Read parent specification** (`../requirements.md`) for high-level context
-5. ✅ **Read module documentation** for modules this feature touches
-6. ✅ **Check dependencies** by reading other feature files referenced in `depends_on`
-7. ✅ **Follow discovered patterns** consistently with existing codebase
-
-### FORBIDDEN Approaches
-
-**YOU MUST NOT**:
-- ❌ Assume patterns based on typical practices without checking this codebase
-- ❌ Implement without searching for similar features first
-- ❌ Apply generic solutions without verifying project conventions
-- ❌ Guess at naming conventions, file structures, or patterns
-- ❌ Use pretraining knowledge without validating against actual project code
-
-### Retrieval Checklist
-
-Before implementing, answer these questions by reading code:
-- [ ] What similar features exist in this project? (use Grep to find)
-- [ ] What patterns do they follow? (read their implementations)
-- [ ] What naming conventions are used? (observed from existing code)
-- [ ] How are errors handled in similar code? (check error patterns)
-- [ ] What testing patterns exist? (read existing test files)
-- [ ] Are there existing helper functions I can reuse? (search thoroughly)
-
-### Enforcement
-
-- Show your retrieval steps in your work report
-- Reference specific files/patterns you discovered
-- Explain how your implementation matches existing patterns
-- "I assumed..." responses will be rejected - only "I found in [file]..." accepted
-
----
-
-## 🚀 CRITICAL: Token and Context Optimization
-
-**ALL agents implementing this specification/feature MUST follow token and context optimization protocols.**
-
-### Machine-Optimized Prompts (Rule 14)
-
-**Main Agent MUST**:
-1. Generate `machine_prompt.md` from this file when specification/feature finalized
-2. Use pipe-delimited compression (58% token reduction)
-3. Commit machine_prompt.md alongside human-readable file
-4. Regenerate when human file updates
-5. Provide machine_prompt.md path to sub-agents
-
-**Sub-Agents MUST**:
-- Read `machine_prompt.md` (NOT verbose human files)
-- Parse DOCS_TO_READ section for files to load
-- 58% token savings
-
-### Context Compaction (Rule 15)
-
-**Sub-Agents MUST** (before starting work):
-1. Read machine_prompt.md and PROGRESS.md
-2. Generate `COMPACT_CONTEXT.md`:
-   - Embed machine_prompt.md content for current task
-   - Extract current status from PROGRESS.md
-   - List files for current task only (500-800 tokens)
-3. CLEAR entire context
-4. RELOAD from COMPACT_CONTEXT.md only
-5. Proceed with 97% context reduction (180K→5K tokens)
-
-**After PROGRESS.md Updates**:
-- Regenerate COMPACT_CONTEXT.md (re-embed machine_prompt content)
-- Clear and reload
-- Maintain minimal context
-
-**COMPACT_CONTEXT.md Lifecycle**:
-- Generated fresh per task
-- Contains ONLY current task (no history)
-- Deleted when task completes
-- Rewritten from scratch for next task
-
-**See**:
-- Rule 14: .agents/rules/14-machine-optimized-prompts.md
-- Rule 15: .agents/rules/15-instruction-compaction.md
-
----
 
 ## Overview
 
@@ -241,67 +126,17 @@ IoError(std::io::Error),
 
 ## Success Criteria
 
-- [x] `ParsedUrl` correctly parses HTTP URLs
-- [x] `ParsedUrl` correctly parses HTTPS URLs
-- [x] `ParsedUrl` handles default ports (80/443)
-- [x] `ParsedUrl` handles explicit ports
-- [x] `ParsedUrl` handles paths and query strings
-- [x] `HttpClientConnection::connect()` works for HTTP
-- [⏳] `HttpClientConnection::connect()` works for HTTPS (with TLS feature) - **DEFERRED: TLS type mismatch**
-- [x] Connection timeout works
-- [⏳] TLS SNI is set correctly - **DEFERRED: With HTTPS support**
-- [x] All unit tests pass (34/34)
-- [⚠️] Code passes `cargo fmt` and `cargo clippy` - **Clippy failed due to external foundation_nostd issues**
-
-## Implementation Notes
-
-### ✅ HTTP Client Code: EXCELLENT Quality
-
-**Files Created**:
-- `backends/foundation_core/src/wire/simple_http/client/connection.rs` (584 lines)
-
-**Files Modified**:
-- `backends/foundation_core/src/wire/simple_http/client/errors.rs` (added 4 error variants)
-- `backends/foundation_core/src/wire/simple_http/client/mod.rs` (added connection exports)
-
-**Accomplishments**:
-1. ✅ Implemented `Scheme` enum (Http, Https)
-2. ✅ Implemented `ParsedUrl` with comprehensive URL parsing
-3. ✅ Implemented `HttpClientConnection` with generic resolver support
-4. ✅ HTTP connection establishment working perfectly
-5. ✅ Connection timeout support implemented
-6. ✅ 34 comprehensive unit tests (all passing)
-7. ✅ Code quality: Clean, well-documented, follows patterns
-
-### ⏳ TLS Support: Intentionally Deferred
-
-**Issue**: Type mismatch in `RustlsConnector::upgrade()`
-```rust
-Expected: &mut dyn RawStream
-Found:    Connection<TcpStream>
-```
-
-**Root Cause**: `netcap::ssl::rustls::RustlsConnector::upgrade()` signature doesn't match Connection type properly
-
-**Decision**: HTTPS support deferred - requires TLS connector API fixes in netcap module
-
-**Impact**: HTTP works perfectly, HTTPS will be completed when TLS infrastructure is fixed
-
-### ⚠️ Clippy Issues: External Package (foundation_nostd)
-
-**Issue**: Clippy failed with errors in `foundation_nostd` package
-```
-error: field `0` is never read
-  --> backends/foundation_nostd/src/stack.rs:2:17
-error: type `VecStack` is never constructed
-  --> backends/foundation_nostd/src/stack.rs:27:12
-```
-
-**Root Cause**: Pre-existing issues in `foundation_nostd` package (outside this specification's scope)
-
-**Workaround**: Connection code itself is clippy-clean - verified by targeted analysis
-
-**Decision**: Marked as partial pass - connection code quality is excellent, external package issues don't reflect on this feature
+- [ ] `ParsedUrl` correctly parses HTTP URLs
+- [ ] `ParsedUrl` correctly parses HTTPS URLs
+- [ ] `ParsedUrl` handles default ports (80/443)
+- [ ] `ParsedUrl` handles explicit ports
+- [ ] `ParsedUrl` handles paths and query strings
+- [ ] `HttpClientConnection::connect()` works for HTTP
+- [ ] `HttpClientConnection::connect()` works for HTTPS (with TLS feature)
+- [ ] Connection timeout works
+- [ ] TLS SNI is set correctly
+- [ ] All unit tests pass
+- [ ] Code passes `cargo fmt` and `cargo clippy`
 
 ## Verification Commands
 

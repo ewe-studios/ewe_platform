@@ -52,6 +52,7 @@ where
         }
     }
 
+    #[must_use]
     pub fn with_panic_handler<T>(mut self, handler: T) -> Self
     where
         T: Fn(Box<dyn Any + Send>) + Send + Sync + 'static,
@@ -60,6 +61,7 @@ where
         self
     }
 
+    #[must_use]
     pub fn add_mapper(mut self, mapper: Mapper) -> Self {
         self.local_mappers.push(mapper);
         self
@@ -180,15 +182,16 @@ where
                 match previous_response {
                     Some(value) => match value {
                         TaskStatus::Delayed(dur) => State::Pending(Some(dur)),
-                        TaskStatus::Pending(_) => State::Pending(None),
-                        TaskStatus::Init => State::Pending(None),
-                        TaskStatus::Spawn(mut action) => match action.apply(entry, executor) {
-                            Ok(()) => State::SpawnFinished,
-                            Err(err) => {
-                                tracing::error!("Failed to apply ExecutionAction: {:?}", err);
-                                State::SpawnFailed
+                        TaskStatus::Init | TaskStatus::Pending(_) => State::Pending(None),
+                        TaskStatus::Spawn(mut action) => {
+                            match action.apply(Some(entry), executor) {
+                                Ok(info) => State::SpawnFinished(info),
+                                Err(err) => {
+                                    tracing::error!("Failed to apply ExecutionAction: {:?}", err);
+                                    State::SpawnFailed(entry)
+                                }
                             }
-                        },
+                        }
                         TaskStatus::Ready(content) => {
                             self.resolver.handle(TaskStatus::Ready(content), executor);
                             State::Progressed
