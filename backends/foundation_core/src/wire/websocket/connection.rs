@@ -516,53 +516,6 @@ impl<R: DnsResolver + Send + 'static> WebSocketClient<R> {
     pub fn messages(&mut self) -> WebSocketMessageIterator<'_, R> {
         WebSocketMessageIterator { client: self }
     }
-
-    /// Send a WebSocket message (convenience wrapper around delivery.send()).
-    ///
-    /// # Errors
-    ///
-    /// Returns [`WebSocketError`] if the message cannot be sent.
-    pub fn send(&self, message: WebSocketMessage) -> Result<(), WebSocketError> {
-        self.delivery.send(message)
-    }
-
-    /// Receive a WebSocket message (blocking).
-    ///
-    /// # Errors
-    ///
-    /// Returns [`WebSocketError`] if the message cannot be received.
-    pub fn recv(&mut self) -> Result<WebSocketMessage, WebSocketError> {
-        loop {
-            match self.inner.next() {
-                Some(Stream::Next(result)) => {
-                    match result {
-                        Ok(WebSocketMessage::ConnectionEstablished) => continue, // Skip connection established
-                        other => return other,
-                    }
-                }
-                Some(Stream::Init) | Some(Stream::Ignore) | Some(Stream::Pending(_)) | Some(Stream::Delayed(_)) => {
-                    continue; // Keep waiting
-                }
-                None => return Err(WebSocketError::ConnectionClosed),
-            }
-        }
-    }
-
-    /// Close the WebSocket connection (convenience wrapper around delivery.close()).
-    ///
-    /// # Errors
-    ///
-    /// Returns [`WebSocketError`] if the close message cannot be sent.
-    pub fn close(&self, code: u16, reason: &str) -> Result<(), WebSocketError> {
-        self.delivery.close(code, reason)
-    }
-
-    /// Check if the connection is still open.
-    pub fn is_open(&self) -> bool {
-        // The client is considered "open" if we can still send messages
-        // The actual connection state is managed by the WebSocketTask
-        true
-    }
 }
 
 /// Iterator over messages from a WebSocketClient.

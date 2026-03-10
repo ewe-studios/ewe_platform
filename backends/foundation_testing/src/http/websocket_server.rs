@@ -57,10 +57,6 @@ impl Opcode {
             _ => None,
         }
     }
-
-    fn is_control(&self) -> bool {
-        matches!(self, Opcode::Close | Opcode::Ping | Opcode::Pong)
-    }
 }
 
 /// Decode a WebSocket frame from the stream.
@@ -464,14 +460,22 @@ impl WebSocketEchoServer {
     }
 
     /// Handle WebSocket frames - echo back messages, respond to pings.
+    ///
+    /// The server never proactively closes the connection. It only exits when:
+    /// 1. Client sends a Close frame (graceful shutdown)
+    /// 2. Client disconnects (read error/EOF)
+    /// 3. The `running` flag is set to false (test harness shutdown)
     fn handle_websocket_frames(
         stream: &mut TcpStream,
         running: &AtomicBool,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        while running.load(Ordering::Relaxed) {
-            // Set read timeout to allow checking running flag
-            stream.set_read_timeout(Some(std::time::Duration::from_millis(100)))?;
+        // No read timeout - server should wait indefinitely for client messages
+        // during tests. The running flag is only checked after a complete frame
+        // is received, so it can be used for graceful shutdown without affecting
+        // connection lifetime.
+        stream.set_read_timeout(None)?;
 
+        while running.load(Ordering::Relaxed) {
             match decode_frame(stream) {
                 Some((fin, opcode, _mask, payload)) => {
                     match opcode {
@@ -488,7 +492,7 @@ impl WebSocketEchoServer {
                             stream.flush()?;
                         }
                         Opcode::Close => {
-                            // Echo close frame back
+                            // Echo close frame back and exit
                             let response = encode_frame(true, Opcode::Close, None, &payload);
                             stream.write_all(&response)?;
                             stream.flush()?;
@@ -500,7 +504,7 @@ impl WebSocketEchoServer {
                     }
                 }
                 None => {
-                    // Client disconnected or error reading
+                    // Client disconnected or error reading - exit cleanly
                     break;
                 }
             }

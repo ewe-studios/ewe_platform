@@ -5,32 +5,41 @@
 use foundation_core::wire::websocket::{WebSocketClient, WebSocketEvent, WebSocketMessage};
 use foundation_core::wire::simple_http::client::SystemDnsResolver;
 use foundation_testing::http::WebSocketEchoServer;
+use tracing_test::traced_test;
 
 /// Test basic text message echo.
 #[test]
+#[traced_test]
 fn test_text_message_echo() {
+    foundation_core::valtron::initialize_pool(42, None);
+
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
     let (mut client, delivery) = WebSocketClient::connect(SystemDnsResolver::default(), url).expect("should connect");
 
-    // Send text message
+    // Send text message via MessageDelivery
     delivery.send(WebSocketMessage::Text("Hello, WebSocket!".to_string())).expect("should send");
 
-    // Receive echoed message
-    let response = client.recv().expect("should receive");
-
-    match response {
-        WebSocketMessage::Text(text) => {
-            assert_eq!(text, "Hello, WebSocket!");
+    // Receive echoed message via iterator
+    for event in client.messages() {
+        match event.expect("should receive event") {
+            WebSocketEvent::Skip => continue,
+            WebSocketEvent::Message(WebSocketMessage::Text(text)) => {
+                assert_eq!(text, "Hello, WebSocket!");
+                break;
+            }
+            WebSocketEvent::Message(other) => panic!("expected Text message, got: {:?}", other),
         }
-        other => panic!("expected Text message, got: {:?}", other),
     }
 }
 
 /// Test binary message echo.
 #[test]
+#[traced_test]
 fn test_binary_message_echo() {
+    foundation_core::valtron::initialize_pool(42, None);
+
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
@@ -41,19 +50,24 @@ fn test_binary_message_echo() {
     delivery.send(WebSocketMessage::Binary(binary_data.clone())).expect("should send");
 
     // Receive echoed message
-    let response = client.recv().expect("should receive");
-
-    match response {
-        WebSocketMessage::Binary(data) => {
-            assert_eq!(data, binary_data);
+    for event in client.messages() {
+        match event.expect("should receive event") {
+            WebSocketEvent::Skip => continue,
+            WebSocketEvent::Message(WebSocketMessage::Binary(data)) => {
+                assert_eq!(data, binary_data);
+                break;
+            }
+            WebSocketEvent::Message(other) => panic!("expected Binary message, got: {:?}", other),
         }
-        other => panic!("expected Binary message, got: {:?}", other),
     }
 }
 
 /// Test multiple messages in sequence.
 #[test]
+#[traced_test]
 fn test_multiple_messages_sequence() {
+    foundation_core::valtron::initialize_pool(42, None);
+
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
@@ -69,20 +83,25 @@ fn test_multiple_messages_sequence() {
     for msg in &messages {
         delivery.send(WebSocketMessage::Text(msg.to_string())).expect("should send");
 
-        let response = client.recv().expect("should receive");
-
-        match response {
-            WebSocketMessage::Text(text) => {
-                assert_eq!(&text, msg);
+        for event in client.messages() {
+            match event.expect("should receive event") {
+                WebSocketEvent::Skip => continue,
+                WebSocketEvent::Message(WebSocketMessage::Text(text)) => {
+                    assert_eq!(&text, msg);
+                    break;
+                }
+                WebSocketEvent::Message(other) => panic!("expected Text message, got: {:?}", other),
             }
-            other => panic!("expected Text message, got: {:?}", other),
         }
     }
 }
 
 /// Test ping/pong exchange.
 #[test]
+#[traced_test]
 fn test_ping_pong_exchange() {
+    foundation_core::valtron::initialize_pool(42, None);
+
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
@@ -93,19 +112,24 @@ fn test_ping_pong_exchange() {
     delivery.send(WebSocketMessage::Ping(ping_data.clone())).expect("should send ping");
 
     // Receive pong response
-    let response = client.recv().expect("should receive");
-
-    match response {
-        WebSocketMessage::Pong(data) => {
-            assert_eq!(data, ping_data);
+    for event in client.messages() {
+        match event.expect("should receive event") {
+            WebSocketEvent::Skip => continue,
+            WebSocketEvent::Message(WebSocketMessage::Pong(data)) => {
+                assert_eq!(data, ping_data);
+                break;
+            }
+            WebSocketEvent::Message(other) => panic!("expected Pong message, got: {:?}", other),
         }
-        other => panic!("expected Pong message, got: {:?}", other),
     }
 }
 
 /// Test client-initiated close handshake.
 #[test]
+#[traced_test]
 fn test_client_initiated_close() {
+    foundation_core::valtron::initialize_pool(42, None);
+
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
@@ -115,20 +139,25 @@ fn test_client_initiated_close() {
     delivery.close(1000, "goodbye").expect("should send close");
 
     // Server echoes close frame back, we should receive it
-    let response = client.recv().expect("should receive close response");
-
-    match response {
-        WebSocketMessage::Close(code, reason) => {
-            assert_eq!(code, 1000);
-            assert_eq!(reason, "goodbye");
+    for event in client.messages() {
+        match event.expect("should receive event") {
+            WebSocketEvent::Skip => continue,
+            WebSocketEvent::Message(WebSocketMessage::Close(code, reason)) => {
+                assert_eq!(code, 1000);
+                assert_eq!(reason, "goodbye");
+                break;
+            }
+            WebSocketEvent::Message(other) => panic!("expected Close message, got: {:?}", other),
         }
-        other => panic!("expected Close message, got: {:?}", other),
     }
 }
 
 /// Test large message handling.
 #[test]
+#[traced_test]
 fn test_large_message_echo() {
+    foundation_core::valtron::initialize_pool(42, None);
+
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
@@ -139,20 +168,25 @@ fn test_large_message_echo() {
     delivery.send(WebSocketMessage::Text(large_text.clone())).expect("should send");
 
     // Receive echoed message
-    let response = client.recv().expect("should receive");
-
-    match response {
-        WebSocketMessage::Text(text) => {
-            assert_eq!(text, large_text);
-            assert_eq!(text.len(), 500);
+    for event in client.messages() {
+        match event.expect("should receive event") {
+            WebSocketEvent::Skip => continue,
+            WebSocketEvent::Message(WebSocketMessage::Text(text)) => {
+                assert_eq!(text, large_text);
+                assert_eq!(text.len(), 500);
+                break;
+            }
+            WebSocketEvent::Message(other) => panic!("expected Text message, got: {:?}", other),
         }
-        other => panic!("expected Text message, got: {:?}", other),
     }
 }
 
 /// Test very large message (4-byte extended length).
 #[test]
+#[traced_test]
 fn test_very_large_message_echo() {
+    foundation_core::valtron::initialize_pool(42, None);
+
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
@@ -163,20 +197,25 @@ fn test_very_large_message_echo() {
     delivery.send(WebSocketMessage::Text(large_text.clone())).expect("should send");
 
     // Receive echoed message
-    let response = client.recv().expect("should receive");
-
-    match response {
-        WebSocketMessage::Text(text) => {
-            assert_eq!(text, large_text);
-            assert_eq!(text.len(), 70_000);
+    for event in client.messages() {
+        match event.expect("should receive event") {
+            WebSocketEvent::Skip => continue,
+            WebSocketEvent::Message(WebSocketMessage::Text(text)) => {
+                assert_eq!(text, large_text);
+                assert_eq!(text.len(), 70_000);
+                break;
+            }
+            WebSocketEvent::Message(other) => panic!("expected Text message, got: {:?}", other),
         }
-        other => panic!("expected Text message, got: {:?}", other),
     }
 }
 
 /// Test UTF-8 validation.
 #[test]
+#[traced_test]
 fn test_utf8_text_messages() {
+    foundation_core::valtron::initialize_pool(42, None);
+
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
@@ -193,20 +232,25 @@ fn test_utf8_text_messages() {
     for msg in &utf8_messages {
         delivery.send(WebSocketMessage::Text(msg.to_string())).expect("should send");
 
-        let response = client.recv().expect("should receive");
-
-        match response {
-            WebSocketMessage::Text(text) => {
-                assert_eq!(&text, msg, "UTF-8 message should echo correctly");
+        for event in client.messages() {
+            match event.expect("should receive event") {
+                WebSocketEvent::Skip => continue,
+                WebSocketEvent::Message(WebSocketMessage::Text(text)) => {
+                    assert_eq!(&text, msg, "UTF-8 message should echo correctly");
+                    break;
+                }
+                WebSocketEvent::Message(other) => panic!("expected Text message, got: {:?}", other),
             }
-            other => panic!("expected Text message, got: {:?}", other),
         }
     }
 }
 
 /// Test message iterator.
 #[test]
+#[traced_test]
 fn test_message_iterator() {
+    foundation_core::valtron::initialize_pool(42, None);
+
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
@@ -220,14 +264,16 @@ fn test_message_iterator() {
 
     // Use iterator to receive messages
     let mut received = Vec::new();
-    for result in client.messages().take(9) { // Take more to account for Skip events
-        match result.expect("should receive") {
-            WebSocketEvent::Message(WebSocketMessage::Text(text)) => received.push(text),
-            WebSocketEvent::Message(other) => panic!("expected Text message, got: {:?}", other),
+    for event in client.messages() {
+        match event.expect("should receive event") {
             WebSocketEvent::Skip => continue,
-        }
-        if received.len() >= messages.len() {
-            break;
+            WebSocketEvent::Message(WebSocketMessage::Text(text)) => {
+                received.push(text);
+                if received.len() >= messages.len() {
+                    break;
+                }
+            }
+            WebSocketEvent::Message(other) => panic!("expected Text message, got: {:?}", other),
         }
     }
 
