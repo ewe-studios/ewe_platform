@@ -24,10 +24,10 @@ builds_on: "specifications/04-condvar-primitives"
 related_specs:
   - "specifications/03-wasm-friendly-sync-primitives"
 features:
-  completed: 14
-  uncompleted: 2
+  completed: 16
+  uncompleted: 0
   total: 16
-  completion_percentage: 87.5
+  completion_percentage: 100
 ---
 
 # Overview
@@ -62,7 +62,7 @@ The HTTP client implementation is divided into features with clear dependencies.
 - Each feature contains complete requirements and tasks
 - Refer to individual feature.md files for detailed specifications
 
-### Completed Features (14/14 - 100%)
+### Completed Features (16/16 - 100%)
 
 1. **[valtron-utilities](./features/valtron-utilities/feature.md)** ✅
    - Description: Reusable ExecutionAction types, unified executor, and state machine helpers
@@ -129,17 +129,15 @@ The HTTP client implementation is divided into features with clear dependencies.
     - Dependencies: #9
     - Status: Complete
 
-### Pending Features (2/16)
-
-14. **[websocket](./features/websocket/feature.md)** ⬜
-    - Description: WebSocket client and server
+14. **[websocket](./features/websocket/feature.md)** ✅
+    - Description: WebSocket client and server (RFC 6455)
     - Dependencies: #4, #9
-    - Status: Pending
+    - Status: Complete
 
-15. **[server-sent-events](./features/server-sent-events/feature.md)** ⬜
+15. **[server-sent-events](./features/server-sent-events/feature.md)** ✅
     - Description: Server-Sent Events (SSE/EventSource) client and server
     - Dependencies: #4, #6, #8
-    - Status: Pending
+    - Status: Complete
 
 ## Requirements Conversation Summary
 
