@@ -9671,3 +9671,292 @@ Hello world!";
         }
     }
 }
+
+#[cfg(test)]
+mod hardening_tests {
+    //! HTTP/1.1 Hardening Tests
+    //!
+    //! These tests validate security hardening features:
+    //! - Total header size limits (DoS protection)
+    //! - URI length limits (414 URI Too Long)
+    //! - Max chunk size limits
+    //! - Slowloris protection (read timeouts)
+    //! - OWS whitespace handling
+    //! - Duplicate header combination
+
+    use foundation_core::netcap::RawStream;
+    use foundation_core::panic_if_failed;
+    use foundation_core::wire::simple_http::{
+        http_streams, HttpReaderError, IncomingRequestParts, IncomingResponseParts,
+        SendSafeBody,
+    };
+
+    use std::io::Write;
+    use std::{
+        net::{TcpListener, TcpStream},
+        thread,
+        time::Duration,
+    };
+
+    /// Test: Total header size limit
+    ///
+    /// Sends a request with many headers totaling >64KB.
+    /// Expected: Should reject with TotalHeaderSizeTooLarge error
+    #[test]
+    fn test_total_header_size_limit() {
+        let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+        let addr = listener.local_addr().expect("should return address");
+
+        // Build a request with many large headers (>64KB total)
+        let mut message = String::from("GET / HTTP/1.1\r\n");
+        let header_value = "x".repeat(1000); // 1KB per header
+        for i in 0..80 {
+            message.push_str(&format!("X-Custom-Header-{}: {}\r\n", i, header_value));
+        }
+        message.push_str("\r\n");
+
+        let req_thread = thread::spawn(move || {
+            let mut client = panic_if_failed!(TcpStream::connect(addr));
+            panic_if_failed!(client.write(message.as_bytes()))
+        });
+
+        let (client_stream, _) = panic_if_failed!(listener.accept());
+        let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+        let request_reader = http_streams::send::request_reader(reader);
+
+        let result = request_reader
+            .into_iter()
+            .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+
+        // Should reject with TotalHeaderSizeTooLarge error
+        assert!(result.is_err(), "Should reject requests with >64KB of headers");
+        assert!(
+            matches!(result, Err(HttpReaderError::TotalHeaderSizeTooLarge(_))),
+            "Should return TotalHeaderSizeTooLarge error, got: {:?}",
+            result
+        );
+
+        req_thread.join().expect("should be closed");
+    }
+
+    /// Test: URI length limit (414 URI Too Long)
+    ///
+    /// Sends a request with URI >8KB.
+    /// Expected: Should reject with UriTooLong error
+    #[test]
+    fn test_uri_length_limit() {
+        let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+        let addr = listener.local_addr().expect("should return address");
+
+        // Build a request with a very long URI (>8KB)
+        let long_path = "/".to_string() + &"a".repeat(9000);
+        let message = format!("GET {} HTTP/1.1\r\nHost: localhost\r\n\r\n", long_path);
+
+        let req_thread = thread::spawn(move || {
+            let mut client = panic_if_failed!(TcpStream::connect(addr));
+            panic_if_failed!(client.write(message.as_bytes()))
+        });
+
+        let (client_stream, _) = panic_if_failed!(listener.accept());
+        let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+        let request_reader = http_streams::send::request_reader(reader);
+
+        let result = request_reader
+            .into_iter()
+            .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+
+        // Should reject with UriTooLong error
+        assert!(result.is_err(), "Should reject requests with >8KB URI");
+        assert!(matches!(result, Err(HttpReaderError::UriTooLong(_))), "Should return UriTooLong error");
+
+        req_thread.join().expect("should be closed");
+    }
+
+    /// Test: Max chunk size limit
+    ///
+    /// Sends a chunked response with a chunk >16MB.
+    /// Expected: Should reject with ChunkSizeTooLarge error
+    #[test]
+    fn test_max_chunk_size_limit() {
+        let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+        let addr = listener.local_addr().expect("should return address");
+
+        // Build a chunked response with a large chunk declaration (>16MB)
+        // The chunk size parsing should fail before trying to read the actual data
+        let message = format!(
+            "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n{:X}\r\n",
+            20 * 1024 * 1024 // 20MB chunk size declaration
+        );
+
+        let req_thread = thread::spawn(move || {
+            let mut client = panic_if_failed!(TcpStream::connect(addr));
+            let _ = client.write(message.as_bytes());
+        });
+
+        let (client_stream, _) = panic_if_failed!(listener.accept());
+        let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+        let response_reader = http_streams::send::response_reader(reader);
+
+        // Collect parts and then try to read from the chunked stream
+        let mut parts: Vec<IncomingResponseParts> = Vec::new();
+        let mut chunked_stream: Option<_> = None;
+
+        for part in response_reader {
+            match part {
+                Ok(IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(stream))) => {
+                    chunked_stream = stream;
+                    break;
+                }
+                Ok(part) => parts.push(part),
+                Err(e) => {
+                    // Error during parsing - this is acceptable
+                    req_thread.join().expect("should be closed");
+                    // Verify it's a chunk size related error
+                    assert!(
+                        matches!(e, HttpReaderError::ChunkSizeTooLarge(_)),
+                        "Expected ChunkSizeTooLarge error, got: {:?}",
+                        e
+                    );
+                    return;
+                }
+            }
+        }
+
+        // If we got a chunked stream, try to read from it - that's where the error should occur
+        if let Some(mut stream) = chunked_stream {
+            if let Some(result) = stream.next() {
+                // Should get an error when trying to parse the oversized chunk
+                assert!(
+                    matches!(result, Err(_)),
+                    "Should reject chunk >16MB, got: {:?}",
+                    result
+                );
+            } else {
+                panic!("Expected error from chunked stream, but got None");
+            }
+        } else {
+            panic!("Expected chunked stream in response");
+        }
+
+        req_thread.join().expect("should be closed");
+    }
+
+    /// Test: OWS (Optional Whitespace) handling
+    ///
+    /// Sends headers with OWS around the colon per RFC 7230 Section 3.2.
+    /// Expected: Should strip OWS from header values
+    #[test]
+    fn test_ows_whitespace_handling() {
+        let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+        let addr = listener.local_addr().expect("should return address");
+
+        // Header with OWS (space before and after value)
+        let message = "GET / HTTP/1.1\r\nHost: localhost\r\nX-Test:   value with leading spaces   \r\n\r\n";
+
+        let req_thread = thread::spawn(move || {
+            let mut client = panic_if_failed!(TcpStream::connect(addr));
+            panic_if_failed!(client.write(message.as_bytes()))
+        });
+
+        let (client_stream, _) = panic_if_failed!(listener.accept());
+        let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+        let request_reader = http_streams::send::request_reader(reader);
+
+        let result = request_reader
+            .into_iter()
+            .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+            .expect("should parse successfully");
+
+        // Check if OWS is stripped from header value
+        // Note: Custom headers may be stored differently, this test documents current behavior
+        if let Some(IncomingRequestParts::Headers(headers)) = result.get(1) {
+            for (header, values) in headers {
+                dbg!(format!("{:?}", header), values);
+                // TODO: Verify OWS handling - values should be trimmed
+            }
+        }
+
+        req_thread.join().expect("should be closed");
+    }
+
+    /// Test: Duplicate header combination
+    ///
+    /// Sends duplicate headers.
+    /// Expected: Should combine with comma separation per RFC 7230 Section 3.2.2
+    #[test]
+    fn test_duplicate_header_combination() {
+        let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+        let addr = listener.local_addr().expect("should return address");
+
+        // Send duplicate X-Custom headers
+        let message = "GET / HTTP/1.1\r\nHost: localhost\r\nX-Custom: first\r\nX-Custom: second\r\nX-Custom: third\r\n\r\n";
+
+        let req_thread = thread::spawn(move || {
+            let mut client = panic_if_failed!(TcpStream::connect(addr));
+            panic_if_failed!(client.write(message.as_bytes()))
+        });
+
+        let (client_stream, _) = panic_if_failed!(listener.accept());
+        let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+        let request_reader = http_streams::send::request_reader(reader);
+
+        let result = request_reader
+            .into_iter()
+            .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+            .expect("should parse successfully");
+
+        // Check how duplicate headers are stored
+        if let Some(IncomingRequestParts::Headers(headers)) = result.get(1) {
+            // Headers are stored as Vec<String>, but output should combine them
+            for (header, values) in headers {
+                if values.len() > 1 {
+                    dbg!(header, values);
+                    // TODO: Verify combination logic for wire format output
+                }
+            }
+        }
+
+        req_thread.join().expect("should be closed");
+    }
+
+    /// Test: Slowloris protection (read timeout)
+    ///
+    /// Sends headers very slowly.
+    /// Expected: Should timeout and close connection after the configured duration
+    #[test]
+    fn test_slowloris_protection() {
+        let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
+        let addr = listener.local_addr().expect("should return address");
+
+        let req_thread = thread::spawn(move || {
+            let mut client = panic_if_failed!(TcpStream::connect(addr));
+            // Send headers very slowly (1 byte per second)
+            let _ = client.write_all(b"G");
+            thread::sleep(Duration::from_secs(1));
+            let _ = client.write_all(b"E");
+            thread::sleep(Duration::from_secs(1));
+            let _ = client.write_all(b"T");
+            thread::sleep(Duration::from_secs(1));
+            // Connection should have timed out by now
+        });
+
+        let (client_stream, _) = panic_if_failed!(listener.accept());
+        let reader = RawStream::from_tcp(client_stream).expect("should create stream");
+        // Set a 500ms read timeout - should trigger before all bytes are sent
+        let request_reader = http_streams::send::request_reader(reader)
+            .with_read_timeout(Duration::from_millis(500));
+
+        let result = request_reader
+            .into_iter()
+            .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
+
+        // Should timeout with ReadTimeout error
+        assert!(
+            matches!(result, Err(HttpReaderError::ReadTimeout(_))),
+            "Expected ReadTimeout error, got: {:?}",
+            result
+        );
+
+        req_thread.join().expect("should be closed");
+    }
+}

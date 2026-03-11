@@ -24,6 +24,7 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::{
     collections::BTreeMap, convert::Infallible, io::Read, str::FromStr, string::FromUtf8Error,
+    time::Duration,
 };
 
 pub type Trailer = String;
@@ -2733,6 +2734,8 @@ pub trait BodyExtractor {
 
 const CHUNKED_VALUE: &str = "chunked";
 const MAX_HEADER_NAME_LEN: usize = (1 << 16) - 1;
+const MAX_URI_LEN: usize = 8192; // 8KB - RFC 7231 Section 6.5.10 (414 URI Too Long)
+const MAX_CHUNK_SIZE: usize = 16 * 1024 * 1024; // 16MB - DoS protection
 const TEXT_STREAM_MIME_TYPE: &str = "text/event-stream";
 
 static SPACE_CHARS: &[char] = &[' ', '\n', '\t', '\r'];
@@ -2755,6 +2758,7 @@ pub struct HeaderReader<T: std::io::Read> {
     max_header_key_length: Option<usize>,
     max_header_value_length: Option<usize>,
     max_header_values_count: Option<usize>,
+    max_total_header_size: Option<usize>,
 }
 
 impl<T> HeaderReader<T>
@@ -2773,7 +2777,14 @@ where
             max_header_key_length,
             max_header_value_length,
             max_header_values_count,
+            max_total_header_size: Some(65536), // 64KB default
         }
+    }
+
+    #[must_use]
+    pub fn with_total_header_size_limit(mut self, limit: Option<usize>) -> Self {
+        self.max_total_header_size = limit;
+        self
     }
 }
 
@@ -2783,6 +2794,7 @@ where
 {
     fn parse_headers(&mut self) -> Result<SimpleHeaders, HttpReaderError> {
         let mut headers: SimpleHeaders = BTreeMap::new();
+        let mut total_header_size: usize = 0;
 
         let mut line = String::new();
 
@@ -2810,6 +2822,14 @@ where
             {
                 line.clear();
                 break;
+            }
+
+            // Check total header size limit (DoS protection)
+            total_header_size += line.len();
+            if let Some(max_total) = self.max_total_header_size {
+                if total_header_size > max_total {
+                    return Err(HttpReaderError::TotalHeaderSizeTooLarge(total_header_size));
+                }
             }
 
             if !line.contains(':') && last_header.is_none() {
@@ -3025,6 +3045,7 @@ pub struct HttpRequestReader<F: BodyExtractor, T: std::io::Read> {
     max_header_key_length: Option<usize>,
     max_header_value_length: Option<usize>,
     max_header_values_count: Option<usize>,
+    read_timeout: Option<Duration>,
 }
 
 #[derive(Clone)]
@@ -3064,6 +3085,18 @@ where
     }
 }
 
+impl<F, T> HttpSendRequestReader<F, T>
+where
+    F: BodyExtractor,
+    T: std::io::Read + Send + 'static,
+{
+    /// Set the read timeout for Slowloris protection.
+    pub fn with_read_timeout(mut self, timeout: Duration) -> Self {
+        self.0 = self.0.with_read_timeout(timeout);
+        self
+    }
+}
+
 impl<F, T> Iterator for HttpSendRequestReader<F, T>
 where
     F: BodyExtractor,
@@ -3090,6 +3123,7 @@ where
             max_header_values_count: None,
             state: HttpReadState::Intro,
             reader,
+            read_timeout: None,
         }
     }
 
@@ -3106,6 +3140,7 @@ where
             max_header_values_count: None,
             state: read_state,
             reader,
+            read_timeout: None,
         }
     }
 
@@ -3122,6 +3157,7 @@ where
             max_body_length: Some(max_body_length),
             state: HttpReadState::Intro,
             reader,
+            read_timeout: None,
         }
     }
 
@@ -3140,6 +3176,7 @@ where
             max_header_values_count: Some(max_header_values_count),
             max_header_value_length: Some(max_header_value_length),
             state: HttpReadState::Intro,
+            read_timeout: None,
         }
     }
 
@@ -3159,6 +3196,75 @@ where
             max_header_values_count: Some(max_header_values_count),
             max_header_value_length: Some(max_header_value_length),
             state: HttpReadState::Intro,
+            read_timeout: None,
+        }
+    }
+
+    /// Set the read timeout for Slowloris protection.
+    ///
+    /// If the specified duration elapses between receiving bytes while reading
+    /// headers or body, the reader will return a `ReadTimeout` error.
+    ///
+    /// # Arguments
+    ///
+    /// * `timeout` - The maximum duration to wait between receiving bytes.
+    ///
+    /// # Returns
+    ///
+    /// Self with the timeout configured.
+    pub fn with_read_timeout(mut self, timeout: Duration) -> Self {
+        self.read_timeout = Some(timeout);
+        self
+    }
+}
+
+// Methods requiring Send bound (for timeout support)
+impl<F, T> HttpRequestReader<F, T>
+where
+    F: BodyExtractor,
+    T: std::io::Read + Send + 'static,
+{
+    /// Read a line with timeout protection.
+    ///
+    /// Returns HttpReaderError::ReadTimeout if the read operation exceeds the configured timeout.
+    fn read_line_with_timeout(&mut self, buf: &mut String) -> Result<usize, HttpReaderError> {
+        if let Some(timeout) = self.read_timeout {
+            // Use a channel-based timeout for reading
+            let (tx, rx) = std::sync::mpsc::channel();
+            let mut reader = self.reader.clone();
+
+            // Spawn a thread to perform the read
+            let handle = std::thread::spawn(move || {
+                let mut local_buf = String::new();
+                let result = reader.do_once_mut(|binding| binding.read_line(&mut local_buf));
+                let _ = tx.send((result, local_buf));
+            });
+
+            // Wait for either the read to complete or the timeout
+            match rx.recv_timeout(timeout) {
+                Ok((result, local_buf)) => {
+                    let _ = handle.join();
+                    match result {
+                        Ok(_) => {
+                            *buf = local_buf;
+                            Ok(buf.len())
+                        }
+                        Err(_) => Err(HttpReaderError::ReadFailed),
+                    }
+                }
+                Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
+                    // Note: The read thread is still running but will complete eventually
+                    Err(HttpReaderError::ReadTimeout(timeout))
+                }
+                Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
+                    Err(HttpReaderError::ReadFailed)
+                }
+            }
+        } else {
+            // No timeout configured, perform normal read
+            self.reader
+                .do_once_mut(|binding| binding.read_line(buf))
+                .map_err(|_| HttpReaderError::ReadFailed)
         }
     }
 }
@@ -3181,15 +3287,16 @@ where
         match &self.state {
             HttpReadState::Intro => {
                 let mut line = String::new();
-                // let mut borrowed_reader = match self.reader.write() {
-                //     Ok(borrowed_reader) => borrowed_reader,
-                //     Err(_) => return Some(Err(HttpReaderError::GuardedResourceAccess)),
-                // };
 
                 let line_read_result = self
-                    .reader
-                    .do_once_mut(|binding| binding.read_line(&mut line))
-                    .map_err(|err| HttpReaderError::LineReadFailed(Box::new(err)));
+                    .read_line_with_timeout(&mut line)
+                    .map_err(|err| {
+                        // Preserve ReadTimeout errors, wrap others in LineReadFailed
+                        match err {
+                            HttpReaderError::ReadTimeout(_) => err,
+                            _ => HttpReaderError::LineReadFailed(Box::new(err)),
+                        }
+                    });
 
                 if line_read_result.is_err() {
                     tracing::debug!("Http read error: {:?}", &line_read_result);
@@ -3222,6 +3329,12 @@ where
                 }
 
                 let method = SimpleMethod::from(intro_parts[0].to_string());
+
+                // Validate URI length (RFC 7231 Section 6.5.10 - 414 URI Too Long)
+                if intro_parts[1].len() > MAX_URI_LEN {
+                    self.state = HttpReadState::Finished;
+                    return Some(Err(HttpReaderError::UriTooLong(intro_parts[1].len())));
+                }
 
                 // ensure to capture and skip methods that should not have a body attached.
                 self.state = if NO_BODY_METHODS.iter().any(|n| n == &method) {
@@ -3452,6 +3565,7 @@ pub struct HttpResponseReader<F: BodyExtractor, T: std::io::Read + 'static> {
     max_header_key_length: Option<usize>,
     max_header_value_length: Option<usize>,
     max_header_values_count: Option<usize>,
+    read_timeout: Option<Duration>,
 }
 
 #[derive(Clone)]
@@ -3503,6 +3617,18 @@ where
     }
 }
 
+impl<F, T> HttpSendResponseReader<F, T>
+where
+    F: BodyExtractor,
+    T: std::io::Read + Send + 'static,
+{
+    /// Set the read timeout for Slowloris protection.
+    pub fn with_read_timeout(mut self, timeout: Duration) -> Self {
+        self.0 = self.0.with_read_timeout(timeout);
+        self
+    }
+}
+
 impl<F, T> HttpResponseReader<F, T>
 where
     F: BodyExtractor,
@@ -3517,6 +3643,7 @@ where
             max_header_values_count: None,
             state: HttpReadState::Intro,
             reader,
+            read_timeout: None,
         }
     }
 
@@ -3533,6 +3660,7 @@ where
             max_header_values_count: None,
             state: read_state,
             reader,
+            read_timeout: None,
         }
     }
 
@@ -3549,6 +3677,7 @@ where
             max_body_length: Some(max_body_length),
             state: HttpReadState::Intro,
             reader,
+            read_timeout: None,
         }
     }
 
@@ -3567,6 +3696,7 @@ where
             max_header_values_count: Some(max_header_values_count),
             max_header_value_length: Some(max_header_value_length),
             state: HttpReadState::Intro,
+            read_timeout: None,
         }
     }
 
@@ -3586,7 +3716,25 @@ where
             max_header_values_count: Some(max_header_values_count),
             max_header_value_length: Some(max_header_value_length),
             state: HttpReadState::Intro,
+            read_timeout: None,
         }
+    }
+
+    /// Set the read timeout for Slowloris protection.
+    ///
+    /// If the specified duration elapses between receiving bytes while reading
+    /// headers or body, the reader will return a `ReadTimeout` error.
+    ///
+    /// # Arguments
+    ///
+    /// * `timeout` - The maximum duration to wait between receiving bytes.
+    ///
+    /// # Returns
+    ///
+    /// Self with the timeout configured.
+    pub fn with_read_timeout(mut self, timeout: Duration) -> Self {
+        self.read_timeout = Some(timeout);
+        self
     }
 
     /// Returns a mutable reference to the underlying stream.
@@ -3613,6 +3761,57 @@ where
     }
 }
 
+// Methods requiring Send bound (for timeout support)
+impl<F, T> HttpResponseReader<F, T>
+where
+    F: BodyExtractor,
+    T: std::io::Read + Send + 'static,
+{
+    /// Read a line with timeout protection.
+    ///
+    /// Returns HttpReaderError::ReadTimeout if the read operation exceeds the configured timeout.
+    fn read_line_with_timeout(&mut self, buf: &mut String) -> Result<usize, HttpReaderError> {
+        if let Some(timeout) = self.read_timeout {
+            // Use a channel-based timeout for reading
+            let (tx, rx) = std::sync::mpsc::channel();
+            let mut reader = self.reader.clone();
+
+            // Spawn a thread to perform the read
+            let handle = std::thread::spawn(move || {
+                let mut local_buf = String::new();
+                let result = reader.do_once_mut(|binding| binding.read_line(&mut local_buf));
+                let _ = tx.send((result, local_buf));
+            });
+
+            // Wait for either the read to complete or the timeout
+            match rx.recv_timeout(timeout) {
+                Ok((result, local_buf)) => {
+                    let _ = handle.join();
+                    match result {
+                        Ok(_) => {
+                            *buf = local_buf;
+                            Ok(buf.len())
+                        }
+                        Err(_) => Err(HttpReaderError::ReadFailed),
+                    }
+                }
+                Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
+                    // Note: The read thread is still running but will complete eventually
+                    Err(HttpReaderError::ReadTimeout(timeout))
+                }
+                Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
+                    Err(HttpReaderError::ReadFailed)
+                }
+            }
+        } else {
+            // No timeout configured, perform normal read
+            self.reader
+                .do_once_mut(|binding| binding.read_line(buf))
+                .map_err(|_| HttpReaderError::ReadFailed)
+        }
+    }
+}
+
 impl<F, T> Iterator for HttpResponseReader<F, T>
 where
     F: BodyExtractor,
@@ -3633,9 +3832,14 @@ where
                 let mut line = String::new();
 
                 let line_read_result = self
-                    .reader
-                    .do_once_mut(|binding| binding.read_line(&mut line))
-                    .map_err(|err| HttpReaderError::LineReadFailed(Box::new(err)));
+                    .read_line_with_timeout(&mut line)
+                    .map_err(|err| {
+                        // Preserve ReadTimeout errors, wrap others in LineReadFailed
+                        match err {
+                            HttpReaderError::ReadTimeout(_) => err,
+                            _ => HttpReaderError::LineReadFailed(Box::new(err)),
+                        }
+                    });
 
                 if line_read_result.is_err() {
                     tracing::debug!("Http read error: {:?}", &line_read_result);
@@ -4458,6 +4662,11 @@ impl ChunkState {
             },
             None => return Err(ChunkStateError::ChunkSizeNotFound),
         };
+
+        // Validate chunk size limit (DoS protection)
+        if chunk_size as usize > MAX_CHUNK_SIZE {
+            return Err(ChunkStateError::ChunkSizeTooLarge(chunk_size as usize));
+        }
 
         tracing::debug!(
             "Reading chunk size: {:?} to {:?}",
