@@ -2,8 +2,10 @@
 
 //! WebSocket integration tests using real echo server.
 
-use foundation_core::wire::websocket::{WebSocketClient, WebSocketEvent, WebSocketMessage};
+use std::time::Duration;
+
 use foundation_core::wire::simple_http::client::SystemDnsResolver;
+use foundation_core::wire::websocket::{WebSocketClient, WebSocketEvent, WebSocketMessage};
 use foundation_testing::http::WebSocketEchoServer;
 use tracing_test::traced_test;
 
@@ -16,10 +18,14 @@ fn test_text_message_echo() {
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
-    let (mut client, delivery) = WebSocketClient::connect(SystemDnsResolver::default(), url).expect("should connect");
+    let (mut client, delivery) =
+        WebSocketClient::connect(SystemDnsResolver::default(), url, Duration::from_secs(1))
+            .expect("should connect");
 
     // Send text message via MessageDelivery
-    delivery.send(WebSocketMessage::Text("Hello, WebSocket!".to_string())).expect("should send");
+    delivery
+        .send(WebSocketMessage::Text("Hello, WebSocket!".to_string()))
+        .expect("should send");
 
     // Receive echoed message via iterator
     for event in client.messages() {
@@ -43,11 +49,15 @@ fn test_binary_message_echo() {
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
-    let (mut client, delivery) = WebSocketClient::connect(SystemDnsResolver::default(), url).expect("should connect");
+    let (mut client, delivery) =
+        WebSocketClient::connect(SystemDnsResolver::default(), url, Duration::from_secs(1))
+            .expect("should connect");
 
     // Send binary message
     let binary_data = vec![0x01, 0x02, 0x03, 0x04, 0xFF, 0xFE, 0xFD];
-    delivery.send(WebSocketMessage::Binary(binary_data.clone())).expect("should send");
+    delivery
+        .send(WebSocketMessage::Binary(binary_data.clone()))
+        .expect("should send");
 
     // Receive echoed message
     for event in client.messages() {
@@ -71,7 +81,9 @@ fn test_multiple_messages_sequence() {
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
-    let (mut client, delivery) = WebSocketClient::connect(SystemDnsResolver::default(), url).expect("should connect");
+    let (mut client, delivery) =
+        WebSocketClient::connect(SystemDnsResolver::default(), url, Duration::from_secs(1))
+            .expect("should connect");
 
     let messages = vec![
         "First message",
@@ -81,7 +93,9 @@ fn test_multiple_messages_sequence() {
     ];
 
     for msg in &messages {
-        delivery.send(WebSocketMessage::Text(msg.to_string())).expect("should send");
+        delivery
+            .send(WebSocketMessage::Text(msg.to_string()))
+            .expect("should send");
 
         for event in client.messages() {
             match event.expect("should receive event") {
@@ -105,11 +119,15 @@ fn test_ping_pong_exchange() {
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
-    let (mut client, delivery) = WebSocketClient::connect(SystemDnsResolver::default(), url).expect("should connect");
+    let (mut client, delivery) =
+        WebSocketClient::connect(SystemDnsResolver::default(), url, Duration::from_secs(1))
+            .expect("should connect");
 
     // Send ping
     let ping_data = vec![0x01, 0x02, 0x03];
-    delivery.send(WebSocketMessage::Ping(ping_data.clone())).expect("should send ping");
+    delivery
+        .send(WebSocketMessage::Ping(ping_data.clone()))
+        .expect("should send ping");
 
     // Receive pong response
     for event in client.messages() {
@@ -133,7 +151,9 @@ fn test_client_initiated_close() {
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
-    let (mut client, delivery) = WebSocketClient::connect(SystemDnsResolver::default(), url).expect("should connect");
+    let (mut client, delivery) =
+        WebSocketClient::connect(SystemDnsResolver::default(), url, Duration::from_secs(1))
+            .expect("should connect");
 
     // Send close frame
     delivery.close(1000, "goodbye").expect("should send close");
@@ -161,11 +181,15 @@ fn test_large_message_echo() {
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
-    let (mut client, delivery) = WebSocketClient::connect(SystemDnsResolver::default(), url).expect("should connect");
+    let (mut client, delivery) =
+        WebSocketClient::connect(SystemDnsResolver::default(), url, Duration::from_secs(1))
+            .expect("should connect");
 
     // Send large message (triggers 2-byte extended length)
     let large_text = "A".repeat(500);
-    delivery.send(WebSocketMessage::Text(large_text.clone())).expect("should send");
+    delivery
+        .send(WebSocketMessage::Text(large_text.clone()))
+        .expect("should send");
 
     // Receive echoed message
     for event in client.messages() {
@@ -190,11 +214,15 @@ fn test_very_large_message_echo() {
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
-    let (mut client, delivery) = WebSocketClient::connect(SystemDnsResolver::default(), url).expect("should connect");
+    let (mut client, delivery) =
+        WebSocketClient::connect(SystemDnsResolver::default(), url, Duration::from_secs(1))
+            .expect("should connect");
 
     // Send very large message (triggers 4-byte extended length, > 65535 bytes)
     let large_text = "B".repeat(70_000);
-    delivery.send(WebSocketMessage::Text(large_text.clone())).expect("should send");
+    delivery
+        .send(WebSocketMessage::Text(large_text.clone()))
+        .expect("should send");
 
     // Receive echoed message
     for event in client.messages() {
@@ -219,18 +247,22 @@ fn test_utf8_text_messages() {
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
-    let (mut client, delivery) = WebSocketClient::connect(SystemDnsResolver::default(), url).expect("should connect");
+    let (mut client, delivery) =
+        WebSocketClient::connect(SystemDnsResolver::default(), url, Duration::from_secs(1))
+            .expect("should connect");
 
     let utf8_messages = vec![
         "Hello, world!",
-        "Unicode: \u{4F00}\u{540D}\u{66F8}",  // Chinese characters
-        "Emoji: \u{1F600}\u{1F601}\u{1F602}",  // Emojis
-        "Accents: \u{00E9}\u{00E8}\u{00EA}",   // French accents
+        "Unicode: \u{4F00}\u{540D}\u{66F8}", // Chinese characters
+        "Emoji: \u{1F600}\u{1F601}\u{1F602}", // Emojis
+        "Accents: \u{00E9}\u{00E8}\u{00EA}", // French accents
         "Mixed: Hello \u{4E16}\u{754C} \u{1F30D}!", // Mixed script
     ];
 
     for msg in &utf8_messages {
-        delivery.send(WebSocketMessage::Text(msg.to_string())).expect("should send");
+        delivery
+            .send(WebSocketMessage::Text(msg.to_string()))
+            .expect("should send");
 
         for event in client.messages() {
             match event.expect("should receive event") {
@@ -254,22 +286,37 @@ fn test_message_iterator() {
     let server = WebSocketEchoServer::start();
     let url = server.ws_url("/echo");
 
-    let (mut client, delivery) = WebSocketClient::connect(SystemDnsResolver::default(), url).expect("should connect");
+    let (mut client, delivery) =
+        WebSocketClient::connect(SystemDnsResolver::default(), url, Duration::from_secs(2))
+            .expect("should connect");
 
     // Send a few messages
     let messages = vec!["msg1", "msg2", "msg3"];
     for msg in &messages {
-        delivery.send(WebSocketMessage::Text(msg.to_string())).expect("should send");
+        delivery
+            .send(WebSocketMessage::Text(msg.to_string()))
+            .expect("should send");
     }
 
-    // Use iterator to receive messages
+    // Use iterator to receive messages with time-based timeout
     let mut received = Vec::new();
+    let timeout = std::time::Duration::from_secs(180); // 3 minute timeout
+    let start = std::time::Instant::now();
+
     for event in client.messages() {
+        // Check for timeout first
+        if start.elapsed() > timeout {
+            tracing::warn!("Timeout elapsed ({:?}), breaking", timeout);
+            break;
+        }
+
         match event.expect("should receive event") {
             WebSocketEvent::Skip => continue,
             WebSocketEvent::Message(WebSocketMessage::Text(text)) => {
+                tracing::info!("Received text: {}", text);
                 received.push(text);
                 if received.len() >= messages.len() {
+                    tracing::info!("Received all {} messages, breaking", received.len());
                     break;
                 }
             }
@@ -277,5 +324,11 @@ fn test_message_iterator() {
         }
     }
 
+    tracing::info!(
+        "Final: received {:?}, expected {:?}, elapsed: {:?}",
+        received,
+        messages,
+        start.elapsed()
+    );
     assert_eq!(received, messages);
 }

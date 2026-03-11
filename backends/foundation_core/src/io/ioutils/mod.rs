@@ -94,6 +94,10 @@ impl<T: ReadTimeoutOperations> ReadTimeoutOperations for BufferedReader<T> {
         &mut self,
         timeout: std::time::Duration,
     ) -> std::result::Result<(), std::io::Error> {
+        tracing::debug!(
+            "BufferedReader::set_read_timeout_as: Received instruction to set read timeout to: {:?}",
+            &timeout,
+        );
         self.inner.get_mut().set_read_timeout_as(timeout)
     }
 
@@ -463,6 +467,10 @@ pub trait PeekableReadStream: Read {
     /// Other `PeekError` variants may be returned for implementation-specific
     /// error conditions (for example locking failures or unsupported operations).
     fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError>;
+}
+
+pub trait SplitReadStream: Read + Sized {
+    fn split_connection(&self) -> std::io::Result<Self>;
 }
 
 impl<T: Read> PeekableReadStream for BufferedReader<T> {
@@ -1631,10 +1639,11 @@ impl<T: Read> ByteBufferPointer<T> {
         }
 
         loop {
-            let buffer_len = self.buffer.len() as isize;
-            let rem = (size as isize) - buffer_len;
+            // Check remaining unconsumed data from peek_pos, not total buffer length.
+            let available = (self.buffer.len() as isize) - (self.peek_pos as isize);
+            let rem = (size as isize) - available;
 
-            if rem < 0 {
+            if rem <= 0 {
                 break;
             }
 
@@ -1680,10 +1689,14 @@ impl<T: Read> ByteBufferPointer<T> {
         }
 
         loop {
-            let buffer_len = self.buffer.len() as isize;
-            let rem = (size as isize) - buffer_len;
+            // Check remaining unconsumed data (from peek_pos to end of buffer),
+            // not total buffer length. After prior reads consume data, peek_pos
+            // advances but buffer.len() stays the same until truncation. We must
+            // compare against what's actually available to read.
+            let available = (self.buffer.len() as isize) - (self.peek_pos as isize);
+            let rem = (size as isize) - available;
 
-            if rem < 0 {
+            if rem <= 0 {
                 break;
             }
 

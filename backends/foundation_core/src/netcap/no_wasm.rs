@@ -322,6 +322,10 @@ impl RawStream {
 
     #[inline]
     pub fn set_read_timeout(&mut self, duration: Option<time::Duration>) -> errors::TlsResult<()> {
+        tracing::debug!(
+            "set_read_timeout: Received instruction to set read timeout to: {:?}",
+            &duration
+        );
         let work = match self {
             RawStream::AsPlain(inner, _) => inner.get_core_mut().set_read_timeout(duration),
             #[cfg(any(
@@ -345,12 +349,12 @@ impl RawStream {
     }
 
     // #[inline]
-    // pub fn clone(&self) -> errors::TlsResult<TcpStream> {
+    // pub fn clone_stream(&self) -> errors::TlsResult<Self> {
     //     let work = match self {
-    //         RawStream::AsPlain(inner, _) => inner.clone(),
+    //         RawStream::AsPlain(inner, addr) => Self::AsPlain(inner.try_clone(), addr.clone()),
     //         RawStream::AsTls(inner, _) => inner.get_inner_ref().get_ref().clone(),
     //     };
-    //
+
     //     match work {
     //         Ok(inner) => Ok(inner),
     //         Err(err) => Err(err.into()),
@@ -465,6 +469,10 @@ impl ReadTimeoutOperations for RawStream {
         &mut self,
         timeout: std::time::Duration,
     ) -> std::result::Result<(), std::io::Error> {
+        tracing::debug!(
+            "set_read_timeout_as: Received instruction to set read timeout to: {:?}",
+            &timeout,
+        );
         match self {
             RawStream::AsPlain(inner, _addr) => inner.set_read_timeout_as(timeout),
             #[cfg(any(

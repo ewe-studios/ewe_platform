@@ -12,6 +12,7 @@
 //! Uses `HttpConnectionPool` for connection management with pooling support.
 //! Uses WebSocket frame decoding for message parsing.
 
+use crate::io::ioutils::ReadTimeoutOperations;
 use crate::netcap::RawStream;
 use crate::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use crate::wire::simple_http::client::DnsResolver;
@@ -28,9 +29,11 @@ use std::time::Duration;
 use tracing::{debug, error, info, instrument, trace, warn};
 
 use super::error::WebSocketError;
-use super::frame::{WebSocketFrame, Opcode};
+use super::frame::{generate_mask, Opcode, WebSocketFrame};
 use super::handshake::{build_upgrade_request, compute_accept_key, generate_websocket_key};
 use super::message::WebSocketMessage;
+
+const DEFAULT_READ_TIMEOUT: Duration = Duration::from_secs(5);
 
 /// [`WebSocketProgress`] indicates the current state of WebSocket connection.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -153,7 +156,7 @@ where
                 subprotocols: None,
                 extra_headers: Vec::new(),
                 delivery_queue: None,
-                read_timeout: Duration::from_secs(1),
+                read_timeout: DEFAULT_READ_TIMEOUT,
             })))),
             pool,
         })
@@ -192,7 +195,7 @@ where
                 subprotocols: None,
                 extra_headers: Vec::new(),
                 delivery_queue: None,
-                read_timeout: Duration::from_secs(1),
+                read_timeout: DEFAULT_READ_TIMEOUT,
             })))),
             pool,
         })
@@ -212,16 +215,16 @@ where
     /// # Errors
     ///
     /// Returns [`WebSocketError`] if the URL is invalid.
-    #[instrument(skip(resolver, extra_headers, delivery, _url), err, fields(url = %_url))]
+    #[instrument(skip(resolver, extra_headers, delivery, url), err, fields(url_string = %url))]
     pub fn connect_with_delivery(
         resolver: R,
-        _url: String,
+        url: String,
         subprotocols: Option<String>,
         extra_headers: Vec<(SimpleHeader, String)>,
         delivery: Arc<ConcurrentQueue<WebSocketMessage>>,
         read_timeout: Duration,
     ) -> Result<Self, WebSocketError> {
-        let url_str = _url;
+        let url_str = url;
         info!(url = %url_str, "Connecting to WebSocket endpoint with delivery queue");
 
         let uri = Uri::parse(&url_str).map_err(|e| {
@@ -314,7 +317,10 @@ where
     /// Add subprotocols to the connection.
     #[must_use]
     pub fn with_subprotocols(mut self, subprotocols: &[impl AsRef<str>]) -> Self {
-        let protocols: Vec<String> = subprotocols.iter().map(|s| s.as_ref().to_string()).collect();
+        let protocols: Vec<String> = subprotocols
+            .iter()
+            .map(|s| s.as_ref().to_string())
+            .collect();
         let protocols_str = protocols.join(", ");
         debug!(protocols = %protocols_str, "Adding subprotocols");
         if let Some(WebSocketState::Init(ref mut info_opt)) = self.state {
@@ -408,23 +414,29 @@ where
                     None => path.to_string(),
                 };
 
-                let Ok(request) = build_upgrade_request(&host, &path_query, &ws_key, subprotocols.as_deref()) else {
+                let Ok(request) =
+                    build_upgrade_request(&host, &path_query, &ws_key, subprotocols.as_deref())
+                else {
                     error!("Failed to build upgrade request");
-                    self.state = Some(WebSocketState::Closed(Some(
-                        WebSocketError::InvalidUrl("Failed to build upgrade request".to_string()),
-                    )));
+                    self.state = Some(WebSocketState::Closed(Some(WebSocketError::InvalidUrl(
+                        "Failed to build upgrade request".to_string(),
+                    ))));
                     return None;
                 };
 
                 // Render request to bytes
                 let Ok(request_bytes_vec) = Http11::request(request).http_render_string() else {
                     error!("Failed to render upgrade request");
-                    self.state = Some(WebSocketState::Closed(Some(
-                        WebSocketError::InvalidUrl("Failed to render upgrade request".to_string()),
-                    )));
+                    self.state = Some(WebSocketState::Closed(Some(WebSocketError::InvalidUrl(
+                        "Failed to render upgrade request".to_string(),
+                    ))));
                     return None;
                 };
-                let request_bytes: Vec<Vec<u8>> = request_bytes_vec.into_bytes().into_iter().map(|b| vec![b]).collect();
+                let request_bytes: Vec<Vec<u8>> = request_bytes_vec
+                    .into_bytes()
+                    .into_iter()
+                    .map(|b| vec![b])
+                    .collect();
 
                 // Transition to HandshakeSending, carrying delivery_queue and read_timeout
                 self.state = Some(WebSocketState::HandshakeSending {
@@ -508,7 +520,7 @@ where
                                     error!(?status, "Upgrade failed - not 101 Switching Protocols");
                                     self.state = Some(WebSocketState::Closed(Some(
                                         WebSocketError::UpgradeFailed(
-                                            status.clone().into_usize() as u16,
+                                            status.clone().into_usize() as u16
                                         ),
                                     )));
                                     return None;
@@ -587,7 +599,8 @@ where
 
                 match accept_values {
                     Ok(accept_list) => {
-                        let accept_value = accept_list.first().ok_or(WebSocketError::MissingAcceptKey);
+                        let accept_value =
+                            accept_list.first().ok_or(WebSocketError::MissingAcceptKey);
                         match accept_value {
                             Ok(accept) => {
                                 if accept != &expected_accept {
@@ -603,8 +616,10 @@ where
                                 // Success - transition to Open state with delivery queue and read_timeout
                                 let stream = connection.clone_stream();
 
-                                // Use provided delivery_queue or create new unbounded queue
-                                let queue = delivery_queue.unwrap_or_else(|| Arc::new(ConcurrentQueue::unbounded()));
+                                // delivery_queue must always be provided - panic if missing as this
+                                // is a programming error (queue should be created before connect)
+                                let queue =
+                                    delivery_queue.expect("delivery_queue must be provided");
 
                                 self.state = Some(WebSocketState::Open {
                                     stream,
@@ -613,7 +628,9 @@ where
                                 });
 
                                 // Return connection established message
-                                Some(TaskStatus::Ready(Ok(WebSocketMessage::ConnectionEstablished)))
+                                Some(TaskStatus::Ready(Ok(
+                                    WebSocketMessage::ConnectionEstablished,
+                                )))
                             }
                             Err(e) => {
                                 error!(error = ?e, "Missing accept key");
@@ -630,7 +647,11 @@ where
                 }
             }
 
-            WebSocketState::Open { mut stream, ref delivery_queue, ref read_timeout } => {
+            WebSocketState::Open {
+                mut stream,
+                ref delivery_queue,
+                ref read_timeout,
+            } => {
                 trace!(state = "Open", "Reading WebSocket frame");
                 debug!("Delivery queue len: {}", delivery_queue.len());
 
@@ -638,48 +659,63 @@ where
                 match delivery_queue.pop() {
                     Ok(outgoing) => {
                         debug!("Popped message from delivery queue: {:?}", outgoing);
-                        // Send outgoing message
+                        // Send outgoing message - client MUST mask frames per RFC 6455
                         let frame = match outgoing {
-                            WebSocketMessage::ConnectionEstablished => None, // No frame to send
+                            WebSocketMessage::ConnectionEstablished => {
+                                debug!("ConnectionEstablished and sending None");
+                                // No frame to send
+                                None
+                            }
                             WebSocketMessage::Text(text) => Some(WebSocketFrame {
                                 fin: true,
                                 opcode: Opcode::Text,
-                                mask: None,
+                                mask: Some(generate_mask()),
                                 payload: text.into_bytes(),
                             }),
                             WebSocketMessage::Binary(data) => Some(WebSocketFrame {
                                 fin: true,
                                 opcode: Opcode::Binary,
-                                mask: None,
+                                mask: Some(generate_mask()),
                                 payload: data,
                             }),
                             WebSocketMessage::Ping(data) => Some(WebSocketFrame {
                                 fin: true,
                                 opcode: Opcode::Ping,
-                                mask: None,
+                                mask: Some(generate_mask()),
                                 payload: data,
                             }),
                             WebSocketMessage::Pong(data) => Some(WebSocketFrame {
                                 fin: true,
                                 opcode: Opcode::Pong,
-                                mask: None,
+                                mask: Some(generate_mask()),
                                 payload: data,
                             }),
                             WebSocketMessage::Close(code, reason) => {
+                                tracing::debug!(
+                                    "Received closed signal from incoming messages: {}",
+                                    &code
+                                );
+
                                 let mut payload = code.to_be_bytes().to_vec();
                                 payload.extend_from_slice(reason.as_bytes());
                                 Some(WebSocketFrame {
                                     fin: true,
                                     opcode: Opcode::Close,
-                                    mask: None,
+                                    mask: Some(generate_mask()),
                                     payload,
                                 })
                             }
                         };
 
                         if let Some(frame) = frame {
-                            let _ = stream.write_all(&frame.encode());
-                            let _ = stream.flush();
+                            let encoded = frame.encode();
+
+                            debug!("Sending {} bytes to stream", encoded.len());
+                            let _ = stream.write_all(&encoded);
+
+                            if let Err(err) = stream.flush() {
+                                tracing::error!("Failed to flush stream due to: {:?}", err);
+                            }
                             debug!("Sent frame to server: opcode={:?}", frame.opcode);
                         }
 
@@ -691,15 +727,34 @@ where
                         });
                         return Some(TaskStatus::Pending(WebSocketProgress::Reading));
                     }
-                    Err(_) => {
-                        debug!("Delivery queue empty or disconnected");
+                    Err(err) => {
+                        debug!("Delivery queue empty or disconnected due to: {:?}", err);
                     }
                 }
 
+                if let Err(err) = stream.flush() {
+                    tracing::error!("Failed to flush stream due to: {:?}", err);
+                }
+
                 // Read ONE frame per next() call
+                debug!("Attempting to decode WebSocket frame from stream");
+
+                // Set read timeout before reading
+                let _ = stream.set_read_timeout_as(*read_timeout);
+                debug!(
+                    "Read timeout set to {:?} as {:?}",
+                    read_timeout,
+                    stream.get_current_read_timeout()
+                );
+
                 match WebSocketFrame::decode(&mut stream) {
                     Ok(frame) => {
                         // Validate frame
+                        debug!(
+                            "Successfully decoded WebSocket frame: opcode={:?}, len={}",
+                            frame.opcode,
+                            frame.payload.len()
+                        );
                         if let Err(e) = frame.validate() {
                             error!(error = ?e, "Invalid frame");
                             self.state = Some(WebSocketState::Open {
@@ -713,9 +768,10 @@ where
                         // Validate masking based on client role (client receives unmasked frames)
                         if frame.mask.is_some() {
                             error!("Received masked frame from server (protocol violation)");
-                            self.state = Some(WebSocketState::Closed(Some(
-                                WebSocketError::ProtocolError("Received masked frame from server".to_string()),
-                            )));
+                            self.state =
+                                Some(WebSocketState::Closed(Some(WebSocketError::ProtocolError(
+                                    "Received masked frame from server".to_string(),
+                                ))));
                             return None;
                         }
 
@@ -743,9 +799,9 @@ where
                                         delivery_queue: delivery_queue.clone(),
                                         read_timeout: *read_timeout,
                                     });
-                                    return Some(TaskStatus::Ready(Ok(
-                                        WebSocketMessage::Ping(frame.payload)
-                                    )));
+                                    return Some(TaskStatus::Ready(Ok(WebSocketMessage::Ping(
+                                        frame.payload,
+                                    ))));
                                 }
                                 Opcode::Pong => {
                                     debug!("Received Pong");
@@ -754,18 +810,18 @@ where
                                         delivery_queue: delivery_queue.clone(),
                                         read_timeout: *read_timeout,
                                     });
-                                    return Some(TaskStatus::Ready(Ok(
-                                        WebSocketMessage::Pong(frame.payload)
-                                    )));
+                                    return Some(TaskStatus::Ready(Ok(WebSocketMessage::Pong(
+                                        frame.payload,
+                                    ))));
                                 }
                                 Opcode::Close => {
                                     debug!("Received Close");
                                     // Parse close payload
                                     let (code, reason) = parse_close_payload(&frame.payload);
                                     self.state = Some(WebSocketState::Closed(None));
-                                    return Some(TaskStatus::Ready(Ok(
-                                        WebSocketMessage::Close(code, reason)
-                                    )));
+                                    return Some(TaskStatus::Ready(Ok(WebSocketMessage::Close(
+                                        code, reason,
+                                    ))));
                                 }
                                 _ => {
                                     warn!(opcode = ?frame.opcode, "Unknown control frame");
@@ -775,7 +831,9 @@ where
                                         read_timeout: *read_timeout,
                                     });
                                     return Some(TaskStatus::Ready(Err(
-                                        WebSocketError::ProtocolError("Unknown control frame".to_string())
+                                        WebSocketError::ProtocolError(
+                                            "Unknown control frame".to_string(),
+                                        ),
                                     )));
                                 }
                             }
@@ -791,13 +849,14 @@ where
                                 delivery_queue: delivery_queue.clone(),
                                 read_timeout: *read_timeout,
                             });
-                            return Some(TaskStatus::Ready(Err(
-                                WebSocketError::ProtocolError("Fragmented messages not yet supported".to_string())
-                            )));
+                            return Some(TaskStatus::Ready(Err(WebSocketError::ProtocolError(
+                                "Fragmented messages not yet supported".to_string(),
+                            ))));
                         }
 
                         match frame.opcode {
                             Opcode::Text => {
+                                debug!("Received Text frame: {} bytes", frame.payload.len());
                                 match String::from_utf8(frame.payload.clone()) {
                                     Ok(text) => {
                                         self.state = Some(WebSocketState::Open {
@@ -823,7 +882,9 @@ where
                                     delivery_queue: delivery_queue.clone(),
                                     read_timeout: *read_timeout,
                                 });
-                                Some(TaskStatus::Ready(Ok(WebSocketMessage::Binary(frame.payload))))
+                                Some(TaskStatus::Ready(Ok(WebSocketMessage::Binary(
+                                    frame.payload,
+                                ))))
                             }
                             Opcode::Continuation => {
                                 warn!("Unexpected continuation frame");
@@ -832,9 +893,9 @@ where
                                     delivery_queue: delivery_queue.clone(),
                                     read_timeout: *read_timeout,
                                 });
-                                Some(TaskStatus::Ready(Err(
-                                    WebSocketError::ProtocolError("Unexpected continuation frame".to_string())
-                                )))
+                                Some(TaskStatus::Ready(Err(WebSocketError::ProtocolError(
+                                    "Unexpected continuation frame".to_string(),
+                                ))))
                             }
                             _ => {
                                 warn!(opcode = ?frame.opcode, "Unknown data frame");
@@ -843,21 +904,37 @@ where
                                     delivery_queue: delivery_queue.clone(),
                                     read_timeout: *read_timeout,
                                 });
-                                Some(TaskStatus::Ready(Err(
-                                    WebSocketError::ProtocolError("Unknown data frame opcode".to_string())
-                                )))
+                                Some(TaskStatus::Ready(Err(WebSocketError::ProtocolError(
+                                    "Unknown data frame opcode".to_string(),
+                                ))))
                             }
                         }
                     }
-                    Err(WebSocketError::IoError(ref e)) if e.kind() == std::io::ErrorKind::UnexpectedEof => {
-                        debug!("Connection closed (EOF)");
+                    Err(WebSocketError::IoError(ref e))
+                        if e.kind() == std::io::ErrorKind::UnexpectedEof =>
+                    {
+                        error!("Connection closed (EOF) - error details: {:?}", e);
                         self.state = Some(WebSocketState::Closed(None));
                         None
+                    }
+                    Err(WebSocketError::IoError(ref e))
+                        if e.kind() == std::io::ErrorKind::WouldBlock
+                            || e.kind() == std::io::ErrorKind::TimedOut =>
+                    {
+                        // Read timeout - not an error, just no data available yet
+                        // Stay in Open state and delay before retrying to avoid busy-spinning
+                        debug!("Read timeout - no data available yet, will retry after delay");
+                        self.state = Some(WebSocketState::Open {
+                            stream,
+                            delivery_queue: delivery_queue.clone(),
+                            read_timeout: *read_timeout,
+                        });
+                        Some(TaskStatus::Delayed(Duration::from_millis(5)))
                     }
                     Err(e) => {
                         error!(error = ?e, "Frame decode error");
                         self.state = Some(WebSocketState::Closed(Some(
-                            WebSocketError::ProtocolError(format!("Frame decode error: {e}"))
+                            WebSocketError::ProtocolError(format!("Frame decode error: {e}")),
                         )));
                         Some(TaskStatus::Ready(Err(e)))
                     }
