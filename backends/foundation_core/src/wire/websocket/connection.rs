@@ -17,10 +17,10 @@ use crate::wire::simple_http::client::DnsResolver;
 use crate::wire::simple_http::client::HttpConnectionPool;
 use crate::wire::simple_http::SimpleHeader;
 use concurrent_queue::ConcurrentQueue;
-use std::io::Write;
 use std::sync::Arc;
 use std::time::Duration;
 
+use super::batch_writer::BatchFrameWriter;
 use super::error::WebSocketError;
 use super::frame::{Opcode, WebSocketFrame};
 use super::message::WebSocketMessage;
@@ -31,8 +31,10 @@ use super::task::WebSocketTask;
 /// WHAT: High-level WebSocket connection with send/recv/close methods.
 ///
 /// HOW: Wraps the shared stream and manages connection state.
+/// Uses BatchFrameWriter for efficient frame writing.
 pub struct WebSocketConnection {
     stream: SharedByteBufferStream<RawStream>,
+    writer: BatchFrameWriter<SharedByteBufferStream<RawStream>>,
     state: ConnectionState,
 }
 
@@ -53,8 +55,10 @@ impl WebSocketConnection {
     /// WHAT: Wraps the stream for frame-based communication.
     #[must_use]
     pub fn new(stream: SharedByteBufferStream<RawStream>) -> Self {
+        let writer = BatchFrameWriter::with_defaults(stream.clone());
         Self {
             stream,
+            writer,
             state: ConnectionState::Open,
         }
     }
@@ -109,7 +113,9 @@ impl WebSocketConnection {
             }
         };
 
-        self.send_frame(frame)
+        self.send_frame(frame)?;
+        // Flush after sending a complete message to ensure timely delivery
+        self.writer.flush()
     }
 
     /// Receive a WebSocket message.
@@ -121,6 +127,9 @@ impl WebSocketConnection {
         if matches!(self.state, ConnectionState::Closed) {
             return Err(WebSocketError::ConnectionClosed);
         }
+
+        // Flush any pending frames before reading to ensure queued data is sent
+        self.writer.flush()?;
 
         let frame = WebSocketFrame::decode(&mut self.stream)?;
 
@@ -216,6 +225,9 @@ impl WebSocketConnection {
             _ => {}
         }
 
+        // Flush any pending frames before sending close
+        self.writer.flush()?;
+
         let mut payload = code.to_be_bytes().to_vec();
         payload.extend_from_slice(reason.as_bytes());
 
@@ -243,10 +255,13 @@ impl WebSocketConnection {
     }
 
     fn send_frame(&mut self, frame: WebSocketFrame) -> Result<(), WebSocketError> {
-        let encoded = frame.encode();
-        self.stream.write_all(&encoded)?;
-        self.stream.flush()?;
-        Ok(())
+        // Control frames (Pong, Close) should be sent immediately
+        // to avoid buffering delays for time-sensitive responses
+        if frame.opcode.is_control() {
+            self.writer.write_immediate(frame)
+        } else {
+            self.writer.queue_frame(frame)
+        }
     }
 
     /// Get an iterator over incoming messages.
@@ -258,6 +273,23 @@ impl WebSocketConnection {
     #[must_use]
     pub fn is_open(&self) -> bool {
         matches!(self.state, ConnectionState::Open)
+    }
+
+    /// Flush any pending frames in the batch writer.
+    ///
+    /// WHY: Ensures queued frames are immediately transmitted.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WebSocketError`] if the flush fails.
+    pub fn flush(&mut self) -> Result<(), WebSocketError> {
+        self.writer.flush()
+    }
+
+    /// Get writer statistics (if batch writing is enabled).
+    #[must_use]
+    pub fn writer_stats(&self) -> crate::wire::websocket::BatchWriterStats {
+        self.writer.stats()
     }
 }
 
@@ -393,6 +425,7 @@ pub enum WebSocketEvent {
 pub struct WebSocketClient<R: DnsResolver + Send + 'static> {
     inner: DrivenStreamIterator<WebSocketTask<R>>,
     delivery: MessageDelivery,
+    #[allow(dead_code)] // Stored for potential future use; timeout is carried by WebSocketTask
     read_timeout: Duration,
 }
 
