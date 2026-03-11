@@ -4,20 +4,20 @@ spec_directory: "specifications/02-build-http-client"
 feature_directory: "specifications/02-build-http-client/features/websocket"
 this_file: "specifications/02-build-http-client/features/websocket/feature.md"
 
-status: in_progress
+status: complete
 priority: low
 created: 2026-02-28
-updated: 2026-03-11
+updated: 2026-03-11 - WebSocket feature complete (Phases 1-3)
 
 depends_on:
   - connection
   - public-api
 
 tasks:
-  completed: 6
-  uncompleted: 8
+  completed: 14
+  uncompleted: 0
   total: 14
-  completion_percentage: 43
+  completion_percentage: 100
 ---
 
 # WebSocket Feature Specification (RFC 6455)
