@@ -7,6 +7,7 @@
 use std::io::Read;
 
 use super::error::WebSocketError;
+use bytes::BytesMut;
 
 /// WHY: RFC 6455 defines specific opcodes for different frame types.
 ///
@@ -375,5 +376,138 @@ impl WebSocketFrame {
                 ))
             }
         }
+    }
+
+    /// Decode a WebSocket frame using a provided buffer for zero-copy reads.
+    ///
+    /// WHY: Reduces allocation overhead by reusing buffers for frame payloads.
+    ///
+    /// WHAT: Same as `decode()` but uses caller-supplied buffer for payload storage.
+    ///
+    /// HOW: Reads header, then reads payload directly into the provided buffer.
+    ///
+    /// # Arguments
+    ///
+    /// * `reader` - The stream to read from
+    /// * `payload_buf` - Buffer to store payload (cleared before use)
+    ///
+    /// # Returns
+    ///
+    /// Decoded WebSocketFrame with payload in the provided buffer.
+    ///
+    /// # Errors
+    ///
+    /// Same as `decode()`.
+    ///
+    /// # Panics
+    /// Never panics.
+    pub fn decode_with_buffer(
+        reader: &mut impl Read,
+        payload_buf: &mut BytesMut,
+    ) -> Result<Self, WebSocketError> {
+        // Read the first header byte using `read` (not `read_exact`) to preserve
+        // WouldBlock/TimedOut errors.
+        let mut header = [0u8; 2];
+        let first_byte_read = match reader.read(&mut header[..1]) {
+            Ok(0) => {
+                tracing::debug!("Received Ok(0) — no data available yet on TCP stream, signal retry");
+                return Err(WebSocketError::IoError(std::io::Error::new(
+                    std::io::ErrorKind::WouldBlock,
+                    "zero bytes read from stream, retry later",
+                )));
+            }
+            Ok(n) => {
+                tracing::debug!(
+                    "Read first header byte: {:#04x} (read {} bytes)",
+                    header[0],
+                    n
+                );
+                true
+            }
+            Err(e) => {
+                tracing::debug!("Error occurred reading data into buf: {:?}", e);
+                return Err(WebSocketError::IoError(e));
+            }
+        };
+        debug_assert!(first_byte_read);
+
+        // Helper macro for partial read errors
+        let map_partial_read_err = |e: WebSocketError| -> WebSocketError {
+            match &e {
+                WebSocketError::IoError(io_err)
+                    if io_err.kind() == std::io::ErrorKind::WouldBlock
+                        || io_err.kind() == std::io::ErrorKind::TimedOut =>
+                {
+                    tracing::error!(
+                        "I/O error during partial frame read (stream corrupted): {:?}",
+                        io_err
+                    );
+                    WebSocketError::ProtocolError(format!(
+                        "Partial frame read interrupted by I/O error (stream corrupted): {}",
+                        io_err
+                    ))
+                }
+                _ => e,
+            }
+        };
+
+        // Read the second header byte
+        reader.read_exact(&mut header[1..2]).map_err(|e| map_partial_read_err(e.into()))?;
+        tracing::debug!(
+            "Read second header byte: {:#04x}, full header: [{:#04x}, {:#04x}]",
+            header[1],
+            header[0],
+            header[1]
+        );
+
+        let fin = (header[0] & 0x80) != 0;
+        let opcode = Opcode::from_byte(header[0] & 0x0F)?;
+        let masked = (header[1] & 0x80) != 0;
+        let length_byte = header[1] & 0x7F;
+
+        // Determine payload length
+        let payload_len: usize = match length_byte {
+            126 => {
+                let mut buf = [0u8; 2];
+                reader.read_exact(&mut buf).map_err(|e| map_partial_read_err(e.into()))?;
+                u16::from_be_bytes(buf) as usize
+            }
+            127 => {
+                let mut buf = [0u8; 8];
+                reader.read_exact(&mut buf).map_err(|e| map_partial_read_err(e.into()))?;
+                #[allow(clippy::cast_possible_truncation)]
+                let len = u64::from_be_bytes(buf) as usize;
+                len
+            }
+            n => n as usize,
+        };
+
+        // Read masking key if present
+        let mask = if masked {
+            let mut key = [0u8; 4];
+            reader.read_exact(&mut key).map_err(|e| map_partial_read_err(e.into()))?;
+            Some(key)
+        } else {
+            None
+        };
+
+        // Read payload into provided buffer
+        payload_buf.clear();
+        payload_buf.resize(payload_len, 0);
+        reader.read_exact(&mut payload_buf[..]).map_err(|e| map_partial_read_err(e.into()))?;
+
+        // Unmask payload if masked
+        if let Some(mask_key) = mask {
+            for (i, byte) in payload_buf.iter_mut().enumerate() {
+                *byte ^= mask_key[i % 4];
+            }
+        }
+
+        Ok(WebSocketFrame {
+            fin,
+            opcode,
+            mask,
+            payload: payload_buf.to_vec(),
+        })
     }
 }

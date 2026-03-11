@@ -56,11 +56,17 @@ pub struct WebSocketConnectInfo {
 ///
 /// WHY: Extract Open state data into a separate struct to avoid cloning
 /// when transitioning Open→Open. Uses Option.take() for zero-copy moves.
+///
+/// Added buffer pool and reusable buffer for zero-copy frame parsing.
 pub struct WebSocketOpenState {
     pub stream: crate::io::ioutils::SharedByteBufferStream<RawStream>,
     pub delivery_queue: Arc<ConcurrentQueue<WebSocketMessage>>,
     pub read_timeout: Duration,
     pub assembler: super::assembler::MessageAssembler,
+    /// Buffer pool for zero-copy frame reading
+    pub buffer_pool: Arc<crate::io::buffer_pool::BytesPool>,
+    /// Reusable buffer for frame payload reading
+    pub frame_buffer: bytes::BytesMut,
 }
 
 /// Connecting state data.
@@ -596,11 +602,16 @@ where
                                 let queue =
                                     state.delivery_queue.expect("delivery_queue must be provided");
 
+                                // Create buffer pool for zero-copy frame reading (8KB buffers, 4 pre-allocated)
+                                let buffer_pool = Arc::new(crate::io::buffer_pool::BytesPool::new(8192, 4));
+
                                 self.state = Some(WebSocketState::Open(Some(Box::new(WebSocketOpenState {
                                     stream,
                                     delivery_queue: queue,
                                     read_timeout: state.read_timeout,
                                     assembler: super::assembler::MessageAssembler::default(),
+                                    buffer_pool,
+                                    frame_buffer: bytes::BytesMut::new(),
                                 }))));
 
                                 // Return connection established message
@@ -716,7 +727,8 @@ where
                     open_state.stream.get_current_read_timeout()
                 );
 
-                match WebSocketFrame::decode(&mut open_state.stream) {
+                // Use pooled buffer for zero-copy frame reading
+                match WebSocketFrame::decode_with_buffer(&mut open_state.stream, &mut open_state.frame_buffer) {
                     Ok(frame) => {
                         // Validate frame
                         debug!(
