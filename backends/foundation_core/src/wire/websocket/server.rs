@@ -10,8 +10,8 @@
 use crate::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
 use crate::wire::simple_http::{Http11, RenderHttp, SimpleHeader, SimpleOutgoingResponse, SimpleIncomingRequest, Status};
-use std::io::Write;
 
+use super::batch_writer::BatchFrameWriter;
 use super::error::WebSocketError;
 use super::frame::{Opcode, WebSocketFrame};
 use super::handshake::compute_accept_key;
@@ -47,7 +47,7 @@ impl WebSocketUpgrade {
             .headers
             .get(&SimpleHeader::UPGRADE)
             .and_then(|values| values.first())
-            .map_or(false, |v| v.eq_ignore_ascii_case("websocket"));
+            .is_some_and(|v| v.eq_ignore_ascii_case("websocket"));
 
         if !upgrade_valid {
             return false;
@@ -57,14 +57,14 @@ impl WebSocketUpgrade {
         let connection_valid = request
             .headers
             .get(&SimpleHeader::CONNECTION)
-            .map_or(false, |values| values.iter().any(|v| v.eq_ignore_ascii_case("upgrade")));
+            .is_some_and(|values| values.iter().any(|v| v.eq_ignore_ascii_case("upgrade")));
 
         if !connection_valid {
             return false;
         }
 
         // Check Sec-WebSocket-Key is present
-        if request.headers.get(&SimpleHeader::SEC_WEBSOCKET_KEY).is_none() {
+        if !request.headers.contains_key(&SimpleHeader::SEC_WEBSOCKET_KEY) {
             return false;
         }
 
@@ -73,7 +73,7 @@ impl WebSocketUpgrade {
             .headers
             .get(&SimpleHeader::SEC_WEBSOCKET_VERSION)
             .and_then(|values| values.first())
-            .map_or(false, |v| v == "13");
+            .is_some_and(|v| v == "13");
 
         if !version_valid {
             return false;
@@ -169,8 +169,10 @@ impl WebSocketUpgrade {
 ///
 /// HOW: Wraps `SharedByteBufferStream<RawStream>` and manages connection state.
 /// Outgoing frames are encoded without masking.
+/// Uses BatchFrameWriter for efficient frame writing.
 pub struct WebSocketServerConnection {
     stream: SharedByteBufferStream<RawStream>,
+    writer: BatchFrameWriter<SharedByteBufferStream<RawStream>>,
     state: ServerConnectionState,
 }
 
@@ -192,8 +194,10 @@ impl WebSocketServerConnection {
     /// * `stream` - The shared byte buffer stream after successful handshake
     #[must_use]
     pub fn new(stream: SharedByteBufferStream<RawStream>) -> Self {
+        let writer = BatchFrameWriter::with_defaults(stream.clone());
         Self {
             stream,
+            writer,
             state: ServerConnectionState::Open,
         }
     }
@@ -211,10 +215,13 @@ impl WebSocketServerConnection {
         // Server MUST NOT mask outgoing frames (RFC 6455 Section 5.3)
         frame.mask = None;
 
-        let encoded = frame.encode();
-        self.stream.write_all(&encoded)?;
-        self.stream.flush()?;
-        Ok(())
+        // Control frames (Pong, Close) should be sent immediately
+        // to avoid buffering delays for time-sensitive responses
+        if frame.opcode.is_control() {
+            self.writer.write_immediate(frame)
+        } else {
+            self.writer.queue_frame(frame)
+        }
     }
 
     /// Send a WebSocket message (convenience wrapper around send_frame).
@@ -262,7 +269,9 @@ impl WebSocketServerConnection {
                 }
             }
         };
-        self.send_frame(frame)
+        self.send_frame(frame)?;
+        // Flush after sending a complete message to ensure timely delivery
+        self.writer.flush()
     }
 
     /// Receive the next WebSocket frame.
@@ -274,6 +283,9 @@ impl WebSocketServerConnection {
         if matches!(self.state, ServerConnectionState::Closed) {
             return Err(WebSocketError::ConnectionClosed);
         }
+
+        // Flush any pending frames before reading
+        self.writer.flush()?;
 
         let frame = WebSocketFrame::decode(&mut self.stream)?;
 
@@ -322,6 +334,9 @@ impl WebSocketServerConnection {
             _ => {}
         }
 
+        // Flush any pending frames before sending close
+        self.writer.flush()?;
+
         let mut payload = code.to_be_bytes().to_vec();
         payload.extend_from_slice(reason.as_bytes());
 
@@ -359,6 +374,23 @@ impl WebSocketServerConnection {
     #[must_use]
     pub fn is_open(&self) -> bool {
         matches!(self.state, ServerConnectionState::Open)
+    }
+
+    /// Flush any pending frames in the batch writer.
+    ///
+    /// WHY: Ensures queued frames are immediately transmitted.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WebSocketError`] if the flush fails.
+    pub fn flush(&mut self) -> Result<(), WebSocketError> {
+        self.writer.flush()
+    }
+
+    /// Get writer statistics (if batch writing is enabled).
+    #[must_use]
+    pub fn writer_stats(&self) -> crate::wire::websocket::BatchWriterStats {
+        self.writer.stats()
     }
 
     /// Get the underlying stream for advanced operations.

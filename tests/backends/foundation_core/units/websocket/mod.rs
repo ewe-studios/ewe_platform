@@ -1,5 +1,7 @@
 #![cfg(test)]
 
+mod assembler_tests;
+mod batch_writer_tests;
 mod frame_tests;
 mod handshake_tests;
 mod message_tests;
