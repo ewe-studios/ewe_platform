@@ -63,14 +63,19 @@ impl Opcode {
 fn decode_frame(stream: &mut TcpStream) -> Option<(bool, Opcode, Option<[u8; 4]>, Vec<u8>)> {
     // Read first 2 bytes
     let mut header = [0u8; 2];
+    tracing::info!("WebSocketEchoServer: decode_frame - attempting to read header");
     if stream.read_exact(&mut header).is_err() {
+        tracing::info!("WebSocketEchoServer: decode_frame - failed to read header");
         return None;
     }
+    tracing::info!("WebSocketEchoServer: decode_frame - read header: [{:#04x}, {:#04x}]", header[0], header[1]);
 
     let fin = (header[0] & 0x80) != 0;
     let opcode = Opcode::from_byte(header[0] & 0x0F)?;
     let masked = (header[1] & 0x80) != 0;
     let length_byte = header[1] & 0x7F;
+
+    tracing::info!("WebSocketEchoServer: decode_frame - fin={}, opcode={:?}, masked={}, len={}", fin, opcode, masked, length_byte);
 
     // Determine payload length
     let payload_len: usize = match length_byte {
@@ -478,12 +483,15 @@ impl WebSocketEchoServer {
         while running.load(Ordering::Relaxed) {
             match decode_frame(stream) {
                 Some((fin, opcode, _mask, payload)) => {
+                    tracing::info!("WebSocketEchoServer: received opcode={:?}, payload_len={}", opcode, payload.len());
                     match opcode {
                         Opcode::Text | Opcode::Binary => {
                             // Echo back the message
                             let response = encode_frame(fin, opcode, None, &payload);
+                            tracing::info!("WebSocketEchoServer: echoing {} bytes", response.len());
                             stream.write_all(&response)?;
                             stream.flush()?;
+                            tracing::info!("WebSocketEchoServer: echo sent");
                         }
                         Opcode::Ping => {
                             // Respond with Pong (same payload)

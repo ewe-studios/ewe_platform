@@ -409,8 +409,9 @@ impl<R: DnsResolver + Send + 'static> WebSocketClient<R> {
     pub fn connect(
         resolver: R,
         url: impl Into<String>,
+        read_timeout: Duration,
     ) -> Result<(Self, MessageDelivery), WebSocketError> {
-        Self::with_options(resolver, url, None, Vec::new(), Duration::from_secs(1))
+        Self::with_options(resolver, url, None, Vec::new(), read_timeout)
     }
 
     /// Connect to a WebSocket endpoint with custom options.
@@ -536,6 +537,7 @@ impl<'a, R: DnsResolver + Send + 'static> Iterator for WebSocketMessageIterator<
                 }
             }
             Stream::Init | Stream::Ignore | Stream::Pending(_) | Stream::Delayed(_) => {
+                tracing::debug!("Stream got Init/Ignore/Pending/Delayed to be skipped");
                 Some(Ok(WebSocketEvent::Skip))
             }
         }

@@ -1823,7 +1823,11 @@ impl SimpleIncomingRequestBuilder {
     ///
     /// Use this for headers that contain comma-separated values as a single string
     /// (e.g., Sec-WebSocket-Protocol).
-    pub fn add_header_raw<H: Into<SimpleHeader>, S: Into<String>>(mut self, key: H, value: S) -> Self {
+    pub fn add_header_raw<H: Into<SimpleHeader>, S: Into<String>>(
+        mut self,
+        key: H,
+        value: S,
+    ) -> Self {
         let mut headers = self.headers.unwrap_or_default();
 
         let actual_key = key.into();
@@ -3617,10 +3621,12 @@ where
     type Item = Result<IncomingResponseParts, HttpReaderError>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let no_body = match &self.state {
-            HttpReadState::OnlyHeaders => true,
-            _ => false,
-        };
+        let no_body = matches!(&self.state, HttpReadState::OnlyHeaders);
+        tracing::debug!(
+            "Current state of HttpResponseReader: {:?} -> should handle as no_body={}",
+            &self.state,
+            no_body
+        );
 
         match &self.state {
             HttpReadState::Intro => {
@@ -3676,7 +3682,14 @@ where
                 );
 
                 // ensure to capture and skip methods that should not have a body attached.
-                self.state = HttpReadState::Headers;
+                self.state = if status == Status::SwitchingProtocols {
+                    tracing::debug!(
+                        "Identified a SwitchingProtocols status code, setting as no header"
+                    );
+                    HttpReadState::OnlyHeaders
+                } else {
+                    HttpReadState::Headers
+                };
 
                 // this means no protocol is provided, by default use HTTP11
                 let third_line: Option<String> = if intro_parts.len() == 3 {
@@ -3856,6 +3869,7 @@ where
                 }
             }
             HttpReadState::NoBody => {
+                tracing::debug!("No body for response, finishing response reader");
                 self.state = HttpReadState::Finished;
                 Some(Ok(IncomingResponseParts::NoBody))
             }
