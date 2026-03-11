@@ -32,3 +32,25 @@ pub enum WebSocketMessage {
     /// Close control message with status code and reason.
     Close(u16, String),
 }
+
+impl WebSocketMessage {
+    /// WHY: Tracing and logging need human-readable message type names.
+    ///
+    /// WHAT: Returns the variant name as a string.
+    ///
+    /// HOW: Matches on self and returns static string for each variant.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[must_use]
+    pub fn variant_name(&self) -> &'static str {
+        match self {
+            WebSocketMessage::ConnectionEstablished => "connection_established",
+            WebSocketMessage::Text(_) => "text",
+            WebSocketMessage::Binary(_) => "binary",
+            WebSocketMessage::Ping(_) => "ping",
+            WebSocketMessage::Pong(_) => "pong",
+            WebSocketMessage::Close(_, _) => "close",
+        }
+    }
+}

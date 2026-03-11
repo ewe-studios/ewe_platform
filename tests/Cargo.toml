@@ -16,6 +16,7 @@ serde = { version = "1.0", features = ["derive"] }
 regex = { workspace = true}
 tracing = { workspace = true}
 base64 = "0.21"
+sha1 = { version = "0.10", features = ["std"] }
 
 [dev-dependencies]
 serial_test = { workspace = true }

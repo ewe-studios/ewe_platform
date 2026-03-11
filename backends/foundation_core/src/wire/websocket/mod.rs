@@ -8,6 +8,8 @@ mod error;
 mod frame;
 mod handshake;
 mod message;
+mod reconnecting_task;
+mod server;
 mod task;
 
 pub use connection::*;
@@ -15,4 +17,6 @@ pub use error::*;
 pub use frame::*;
 pub use handshake::*;
 pub use message::*;
+pub use reconnecting_task::*;
+pub use server::*;
 pub use task::*;

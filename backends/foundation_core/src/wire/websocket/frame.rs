@@ -327,4 +327,53 @@ impl WebSocketFrame {
         }
         Ok(())
     }
+
+    /// WHY: After decoding a frame, callers need to convert it to a high-level message.
+    ///
+    /// WHAT: Converts this frame into a [`WebSocketMessage`] variant.
+    ///
+    /// HOW: Matches on opcode and extracts payload. For Close frames, parses the
+    /// 2-byte status code and UTF-8 reason. For Text frames, validates UTF-8.
+    ///
+    /// # Errors
+    /// Returns [`WebSocketError::InvalidUtf8`] if Text payload is not valid UTF-8.
+    /// Returns [`WebSocketError::InvalidFrame`] for unexpected Continuation frames.
+    ///
+    /// # Panics
+    /// Never panics.
+    pub fn to_message(self) -> Result<super::message::WebSocketMessage, WebSocketError> {
+        use super::message::WebSocketMessage;
+
+        match self.opcode {
+            Opcode::Text => {
+                let text = String::from_utf8(self.payload)?;
+                Ok(WebSocketMessage::Text(text))
+            }
+            Opcode::Binary => Ok(WebSocketMessage::Binary(self.payload)),
+            Opcode::Ping => Ok(WebSocketMessage::Ping(self.payload)),
+            Opcode::Pong => Ok(WebSocketMessage::Pong(self.payload)),
+            Opcode::Close => {
+                if self.payload.is_empty() {
+                    Ok(WebSocketMessage::Close(1005, String::new()))
+                } else if self.payload.len() == 1 {
+                    // Invalid close payload (must be 0 or >=2 bytes)
+                    Ok(WebSocketMessage::Close(1002, "Invalid close payload".to_string()))
+                } else {
+                    let code = u16::from_be_bytes([self.payload[0], self.payload[1]]);
+                    let reason = if self.payload.len() > 2 {
+                        String::from_utf8_lossy(&self.payload[2..]).to_string()
+                    } else {
+                        String::new()
+                    };
+                    Ok(WebSocketMessage::Close(code, reason))
+                }
+            }
+            Opcode::Continuation => {
+                // Continuation frames should be handled by MessageAssembler, not directly
+                Err(WebSocketError::InvalidFrame(
+                    "unexpected Continuation frame (use MessageAssembler for fragmented messages)".to_string()
+                ))
+            }
+        }
+    }
 }
