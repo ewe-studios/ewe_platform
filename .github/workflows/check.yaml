@@ -64,8 +64,8 @@ jobs:
       - name: Checkout llama.cpp
         run: |
           git submodule update --init --depth=1 infrastructure/llama-bindings/llama.cpp
-      - name: Remove .git to avoid submodule issues in Docker
-        run: rm -rf .git
+      - name: Remove .git and tools/dawn to avoid submodule issues in Docker
+        run: rm -rf .git tools/dawn tools/emsdk .agents
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v3
         with:
