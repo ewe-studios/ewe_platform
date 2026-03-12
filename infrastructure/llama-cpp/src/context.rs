@@ -326,11 +326,14 @@ impl<'model> LlamaContext<'model> {
         adapter: &mut LlamaLoraAdapter,
         scale: f32,
     ) -> Result<(), LlamaLoraAdapterSetError> {
+        let mut adapters = [adapter.lora_adapter.as_ptr()];
+        let mut scales = [scale];
         let err_code = unsafe {
-            infrastructure_llama_bindings::llama_set_adapter_lora(
+            infrastructure_llama_bindings::llama_set_adapters_lora(
                 self.context.as_ptr(),
-                adapter.lora_adapter.as_ptr(),
-                scale,
+                adapters.as_mut_ptr(),
+                adapters.len(),
+                scales.as_mut_ptr(),
             )
         };
         if err_code != 0 {
@@ -350,10 +353,15 @@ impl<'model> LlamaContext<'model> {
         &self,
         adapter: &mut LlamaLoraAdapter,
     ) -> Result<(), LlamaLoraAdapterRemoveError> {
+        // Clear LoRA adapter by setting scale to 0
+        let mut adapters = [adapter.lora_adapter.as_ptr()];
+        let mut scales = [0.0f32];
         let err_code = unsafe {
-            infrastructure_llama_bindings::llama_rm_adapter_lora(
+            infrastructure_llama_bindings::llama_set_adapters_lora(
                 self.context.as_ptr(),
-                adapter.lora_adapter.as_ptr(),
+                adapters.as_mut_ptr(),
+                adapters.len(),
+                scales.as_mut_ptr(),
             )
         };
         if err_code != 0 {

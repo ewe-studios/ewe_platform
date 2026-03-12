@@ -57,9 +57,10 @@ jobs:
         with:
           submodules: true
           fetch-depth: 1
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Checkout llama.cpp
         run: |
-          ./scripts/modules.sh
+          git submodule update --init --depth=1 --recursive infrastructure/llama-bindings/llama.cpp
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v3
         with:
@@ -94,7 +95,7 @@ jobs:
         with:
           components: clippy, rustfmt
       - name: Build
-        run: cargo build --workspace
+        run: cargo build --workspace --features infrastructure_llama_cpp/sampler
   windows:
     name: "Windows - Run rust checks"
     runs-on: windows-latest
@@ -114,6 +115,6 @@ jobs:
         with:
           components: clippy, rustfmt
       - name: Build
-        run: cargo build --workspace
+        run: cargo build --workspace --features infrastructure_llama_cpp/sampler
       - name: Test
         run: cargo test --workspace --features infrastructure_llama_cpp/sampler
