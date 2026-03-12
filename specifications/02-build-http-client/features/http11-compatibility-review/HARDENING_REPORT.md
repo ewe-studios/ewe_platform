@@ -72,96 +72,36 @@ impl From<ChunkStateError> for HttpReaderError {
 
 **Purpose**: Prevent slow-read DoS attacks by enforcing maximum time between bytes
 
-**Implementation**:
+**Implementation Approach**:
+
+Read timeouts are configured at the **transport layer** (TCP stream) before wrapping with the HTTP reader, not at the HTTP parsing layer. This is the correct architectural approach because:
+
+1. **Timeouts are a transport-layer concern** - The TCP stream is responsible for I/O operations
+2. **No overhead** - No thread spawning or channel allocation required
+3. **Cleaner API** - Timeout configured once at connection setup
+4. **Standard practice** - Consistent with how other stream-based protocols handle timeouts
+
+**Usage Example**:
 ```rust
-// impls.rs - Added to HttpRequestReader and HttpResponseReader
-pub struct HttpResponseReader<F: BodyExtractor, T: std::io::Read + 'static> {
-    reader: SharedByteBufferStream<T>,
-    state: HttpReadState,
-    bodies: F,
-    max_body_length: Option<usize>,
-    max_header_key_length: Option<usize>,
-    max_header_value_length: Option<usize>,
-    max_header_values_count: Option<usize>,
-    read_timeout: Option<Duration>,  // NEW
-}
+let tcp_stream = TcpStream::connect("example.com:80")?;
+// Configure timeout at transport layer
+tcp_stream.set_read_timeout(Some(Duration::from_secs(30)))?;
+// Wrap with HTTP reader - timeout is automatically respected
+let reader = RawStream::from_tcp(tcp_stream)?;
+let request_reader = http_streams::send::request_reader(reader);
 ```
 
-**Builder Method**:
+**Error Type**:
 ```rust
-/// Set the read timeout for Slowloris protection.
-pub fn with_read_timeout(mut self, timeout: Duration) -> Self {
-    self.read_timeout = Some(timeout);
-    self
-}
-```
-
-**Timeout Implementation**:
-```rust
-fn read_line_with_timeout(&mut self, buf: &mut String) -> Result<usize, HttpReaderError> {
-    if let Some(timeout) = self.read_timeout {
-        let (tx, rx) = std::sync::mpsc::channel();
-        let mut reader = self.reader.clone();
-
-        // Spawn thread for read operation
-        let handle = std::thread::spawn(move || {
-            let mut local_buf = String::new();
-            let result = reader.do_once_mut(|binding| binding.read_line(&mut local_buf));
-            let _ = tx.send((result, local_buf));
-        });
-
-        // Wait for read or timeout
-        match rx.recv_timeout(timeout) {
-            Ok((result, local_buf)) => {
-                let _ = handle.join();
-                match result {
-                    Ok(_) => {
-                        *buf = local_buf;
-                        Ok(buf.len())
-                    }
-                    Err(_) => Err(HttpReaderError::ReadFailed),
-                }
-            }
-            Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
-                Err(HttpReaderError::ReadTimeout(timeout))
-            }
-            Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
-                Err(HttpReaderError::ReadFailed)
-            }
-        }
-    } else {
-        // Normal read without timeout
-        self.reader
-            .do_once_mut(|binding| binding.read_line(buf))
-            .map_err(|_| HttpReaderError::ReadFailed)
-    }
-}
-```
-
-**Wrapper Support**:
-```rust
-impl<F, T> HttpSendRequestReader<F, T> {
-    pub fn with_read_timeout(mut self, timeout: Duration) -> Self {
-        self.0 = self.0.with_read_timeout(timeout);
-        self
-    }
-}
-
-impl<F, T> HttpSendResponseReader<F, T> {
-    pub fn with_read_timeout(mut self, timeout: Duration) -> Self {
-        self.0 = self.0.with_read_timeout(timeout);
-        self
-    }
-}
-```
-
-**Error Type Added**:
-```rust
-// errors.rs
+// errors.rs - ReadTimeout error variant retained for documentation
+// Note: Modern implementation uses transport-layer timeouts instead
 pub enum HttpReaderError {
     #[from(ignore)]
-    ReadTimeout(Duration),
+    ReadTimeout(Duration),  // Retained for compatibility
 }
+```
+
+**Test**: `test_slowloris_protection` - Validates TCP-level timeout enforcement
 ```
 
 **Usage Example**:
@@ -248,19 +188,9 @@ impl From<ChunkStateError> for HttpReaderError {
 }
 ```
 
-#### 2.3 Error Preservation in Iterator
+#### 2.3 Error Handling
 
-```rust
-// Preserve ReadTimeout errors instead of wrapping in LineReadFailed
-let line_read_result = self
-    .read_line_with_timeout(&mut line)
-    .map_err(|err| {
-        match err {
-            HttpReaderError::ReadTimeout(_) => err,
-            _ => HttpReaderError::LineReadFailed(Box::new(err)),
-        }
-    });
-```
+The `ReadTimeout` error variant is retained in `HttpReaderError` for compatibility and documentation purposes, though the modern implementation uses transport-layer timeouts. When TCP stream timeouts are configured, read operations will return standard I/O errors that propagate through the HTTP reader naturally.
 
 ---
 
@@ -358,26 +288,15 @@ mod hardening_tests {
 
 ### Public API Additions
 
+**Note**: The `with_read_timeout()` methods were removed in a refactoring on 2026-03-12.
+Read timeouts should be configured at the transport layer (TCP stream) instead:
+
 ```rust
-// HttpRequestReader and HttpResponseReader
-impl<F, T> HttpRequestReader<F, T> {
-    /// Set the read timeout for Slowloris protection.
-    pub fn with_read_timeout(self, timeout: Duration) -> Self;
-}
-
-impl<F, T> HttpResponseReader<F, T> {
-    /// Set the read timeout for Slowloris protection.
-    pub fn with_read_timeout(self, timeout: Duration) -> Self;
-}
-
-// Wrapper types
-impl<F, T> HttpSendRequestReader<F, T> {
-    pub fn with_read_timeout(self, timeout: Duration) -> Self;
-}
-
-impl<F, T> HttpSendResponseReader<F, T> {
-    pub fn with_read_timeout(self, timeout: Duration) -> Self;
-}
+// Configure timeout on TCP stream before wrapping with HTTP reader
+let tcp_stream = TcpStream::connect("example.com:80")?;
+tcp_stream.set_read_timeout(Some(Duration::from_secs(30)))?;
+let reader = RawStream::from_tcp(tcp_stream)?;
+let request_reader = http_streams::send::request_reader(reader);
 ```
 
 ### Configuration Defaults
@@ -387,7 +306,7 @@ impl<F, T> HttpSendResponseReader<F, T> {
 | Max URI Length | 8KB | No (constant) |
 | Max Total Header Size | 64KB | Yes (builder) |
 | Max Chunk Size | 16MB | No (constant) |
-| Read Timeout | None | Yes (builder) |
+| Read Timeout | None | Yes (via TCP stream `set_read_timeout()`) |
 | Max Header Key Length | Configurable | Yes (builder) |
 | Max Header Value Length | Configurable | Yes (builder) |
 
@@ -419,11 +338,11 @@ impl<F, T> HttpSendResponseReader<F, T> {
 
 ### Read Timeout Overhead
 
-The timeout implementation uses a channel-based approach:
+**None** - Timeouts are configured at the TCP stream level using `set_read_timeout()`:
 
-- **Memory**: Minimal (one mpsc channel per read operation)
-- **CPU**: Low (thread spawn only when timeout configured)
-- **Latency**: No impact when timeout not configured
+- **Memory**: Zero overhead (no additional allocations)
+- **CPU**: Zero overhead (no thread spawning)
+- **Latency**: No impact - uses native TCP timeout
 - **Default behavior**: Unchanged (timeout is opt-in)
 
 ### Chunk Size Validation
@@ -437,11 +356,26 @@ The timeout implementation uses a channel-based approach:
 
 ### Breaking Changes
 
-**None** - All changes are additive:
+**Refactoring on 2026-03-12**: Removed `with_read_timeout()` methods from HTTP readers.
 
-- New error variants don't affect existing pattern matching (use wildcard)
-- Timeout is opt-in via builder method
-- Default behavior unchanged when not configured
+Timeout configuration moved to transport layer:
+
+```rust
+// OLD (removed):
+let reader = http_streams::send::request_reader(stream)
+    .with_read_timeout(Duration::from_secs(30));
+
+// NEW (correct approach):
+let tcp_stream = TcpStream::connect("example.com:80")?;
+tcp_stream.set_read_timeout(Some(Duration::from_secs(30)))?;
+let reader = RawStream::from_tcp(tcp_stream)?;
+let request_reader = http_streams::send::request_reader(reader);
+```
+
+**Rationale**: Timeouts are a transport-layer concern. The new approach:
+- Eliminates thread/channel overhead
+- Provides cleaner separation of concerns
+- Follows standard practice for stream-based protocols
 
 ### Migration Guide
 
@@ -463,7 +397,7 @@ let reader = http_streams::send::request_reader(stream)
 - [x] All 6 hardening tests pass
 - [x] All 218 compliance tests pass
 - [x] All 749 integration tests pass
-- [x] No breaking API changes
+- [x] Timeout refactoring complete (transport-layer approach)
 - [x] Documentation updated
 - [x] Gap analysis complete (0 gaps remaining)
 - [x] Security audit complete (0 critical issues)
@@ -473,6 +407,7 @@ let reader = http_streams::send::request_reader(stream)
 ## Git History
 
 ```
+6ee2248 - Refactor: Remove HTTP reader timeout, use transport layer timeouts
 f8b6890 - docs: Update GAPS.md and add HTTP/2 feature specification
 8cc3899 - HTTP/1.1 Hardening: Complete all security hardening tasks
 ```

@@ -261,7 +261,7 @@ All previously identified gaps have been remediated:
 1. **Total Header Size Limit** - Added `max_total_header_size` configuration (64KB default)
 2. **URI Length Limit** - Added `MAX_URI_LEN` constant (8KB) with 414 response
 3. **Max Chunk Size Limit** - Added `MAX_CHUNK_SIZE` constant (16MB)
-4. **Slowloris Protection** - Added `read_timeout` configuration with channel-based timeout
+4. **Slowloris Protection** - Configured via TCP stream `set_read_timeout()` (refactored 2026-03-12)
 5. **OWS Whitespace** - Verified existing `.trim()` behavior is RFC-compliant
 6. **Duplicate Headers** - Verified `Vec<String>` storage is correct
 
@@ -270,6 +270,8 @@ All previously identified gaps have been remediated:
 - 218 compliance tests passing
 - 6 new hardening tests added
 - All tests verify correct error responses
+
+**Note on Slowloris Protection**: The initial implementation used channel-based timeouts in the HTTP reader. This was refactored on 2026-03-12 to use TCP stream-level timeouts via `set_read_timeout()`, which is the correct architectural approach - no thread spawning, zero overhead, and proper separation of concerns.
 
 ---
 
