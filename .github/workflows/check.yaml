@@ -18,10 +18,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 1
       - name: Pull the accompany tools
         run: |
-          ./scripts/modules.sh
+          git submodule update --init --depth=1 --recursive tools/emsdk
+          git submodule update --init --depth=1 tools/dawn
+          git submodule update --init --depth=1 --recursive infrastructure/llama-bindings/llama.cpp
       - name: Install native dependencies
         env:
           DEBIAN_FRONTEND: noninteractive
@@ -50,7 +55,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+          submodules: true
+          fetch-depth: 1
+      - name: Checkout llama.cpp
+        run: |
+          ./scripts/modules.sh
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v3
         with:
@@ -73,10 +82,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+          submodules: true
+          fetch-depth: 1
       - name: Pull the accompany tools
         run: |
-          ./scripts/modules.sh
+          git submodule update --init --depth=1 --recursive tools/emsdk
+          git submodule update --init --depth=1 tools/dawn
+          git submodule update --init --depth=1 --recursive infrastructure/llama-bindings/llama.cpp
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -90,10 +102,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+          submodules: true
+          fetch-depth: 1
       - name: Pull the accompany tools
         run: |
-          ./scripts/modules.sh
+          git submodule update --init --depth=1 --recursive tools/emsdk
+          git submodule update --init --depth=1 tools/dawn
+          git submodule update --init --depth=1 --recursive infrastructure/llama-bindings/llama.cpp
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
