@@ -13,4 +13,4 @@
 	url = https://github.com/ggml-org/llama.cpp
 [submodule ".agents"]
 	path = .agents
-	url = git@github.com:ewe-studios/agentic-coding-starter.git
+	url = https://github.com/ewe-studios/agentic-coding-starter.git
