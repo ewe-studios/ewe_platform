@@ -290,7 +290,7 @@ Complete 1xx-5xx status code coverage including:
 3. **High**: Add max chunk size limit (16MB) - **DONE**
 4. **Medium**: Document OWS handling - **VERIFIED** (existing behavior correct)
 5. **Medium**: Add duplicate header combination - **VERIFIED** (existing behavior correct)
-6. **Medium**: Add Slowloris protection (10s timeout) - **DONE**
+6. **Medium**: Add Slowloris protection (read timeout) - **DONE** (refactored to transport layer)
 7. **Low**: HTTP version strictness (currently permissive by design - no action required)
 
 ---
@@ -305,6 +305,7 @@ _Last Updated: 2026-03-12_
 All 6 tasks completed. The HTTP/1.1 compatibility review is finished with the following outcomes:
 
 - **218 compliance tests** verified and passing (212 original + 6 hardening tests)
+- **749 total integration tests** passing
 - **0 critical issues** found
 - **All high-priority hardening items** completed:
   - Total header size limit (64KB)
@@ -313,7 +314,9 @@ All 6 tasks completed. The HTTP/1.1 compatibility review is finished with the fo
 - **All medium-priority improvements** completed:
   - OWS whitespace handling (verified existing behavior)
   - Duplicate header combination (verified existing behavior)
-  - Slowloris protection (read timeout) - implemented with configurable timeout
+  - Slowloris protection (read timeout) - **refactored to TCP stream layer on 2026-03-12**
 - **1 low-priority note** (HTTP version flexibility is intentional)
 
 The `simple_http` implementation is **RFC 7230-7235 compliant** with robust attack vector protection.
+
+**Note on Timeout Implementation**: The Slowloris protection was refactored on 2026-03-12 to use transport-layer (TCP stream) timeouts instead of HTTP-reader-level timeouts. This is the correct architectural approach - timeouts belong at the transport layer where I/O operations occur, eliminating thread/channel overhead.

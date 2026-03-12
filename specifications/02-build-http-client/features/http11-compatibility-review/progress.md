@@ -3,8 +3,9 @@
 ## Current Status
 
 **Overall**: 100% complete (6/6 tasks)
-**Status**: complete - all hardening items implemented
+**Status**: complete - all hardening items implemented and validated
 **Last Updated**: 2026-03-12
+**Validation**: 218 compliance tests passing, 749 total integration tests passing
 
 ---
 
@@ -22,6 +23,16 @@
 ---
 
 ## Recent Activity
+
+### 2026-03-12 - Timeout Refactoring Complete
+
+**Changes:**
+- Removed channel/thread-based timeout implementation from HTTP readers
+- Timeout configuration moved to transport layer (TCP stream) where it belongs
+- Simplified API - no `with_read_timeout()` methods on HTTP readers
+- Updated `test_slowloris_protection` to validate TCP-level timeout behavior
+
+**Rationale:** Read timeouts are a transport-layer concern. Configuring timeouts on the TCP stream before wrapping with the HTTP reader is cleaner, more efficient (no thread spawning), and follows standard practice.
 
 ### 2026-03-11 - Audit Complete
 
@@ -206,9 +217,11 @@ Before implementing fixes, we will add tests that verify the current behavior (v
 | `test_max_chunk_size_limit` | ✅ **FIXED** | Rejects >16MB chunks | Should reject >16MB | ✅ **Done** |
 | `test_ows_whitespace_handling` | ✅ **FIXED** | Trims OWS | Should trim OWS | ✅ **Done** |
 | `test_duplicate_header_combination` | ✅ **FIXED** | Combines headers | Should combine for output | ✅ **Done** |
-| `test_slowloris_protection` | ✅ **FIXED** | Times out after configured duration | Should timeout | ✅ **Done** |
+| `test_slowloris_protection` | ✅ **VALIDATED** | TCP timeout enforced | Should timeout | ✅ **Done** |
 
 **Total tests**: 218 passing (212 original + 6 new hardening tests)
+
+**Note on Slowloris Protection**: The timeout is now configured at the transport layer (TCP stream) using `set_read_timeout()` before wrapping with the HTTP reader. This is the correct approach as timeouts are a transport-layer concern.
 
 After tests demonstrate the gaps, implement fixes one at a time.
 
