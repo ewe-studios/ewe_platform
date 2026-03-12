@@ -23,6 +23,8 @@ pub struct Scheme {
 enum SchemeInner {
     Http,
     Https,
+    Ws,
+    Wss,
     Custom(String),
 }
 
@@ -35,6 +37,16 @@ impl Scheme {
     /// HTTPS scheme constant.
     pub const HTTPS: Scheme = Scheme {
         inner: SchemeInner::Https,
+    };
+
+    /// WS scheme constant.
+    pub const WS: Scheme = Scheme {
+        inner: SchemeInner::Ws,
+    };
+
+    /// WSS scheme constant.
+    pub const WSS: Scheme = Scheme {
+        inner: SchemeInner::Wss,
     };
 
     /// Parses a scheme from the beginning of a URI string.
@@ -84,6 +96,8 @@ impl Scheme {
         match lower.as_str() {
             "http" => Self::HTTP,
             "https" => Self::HTTPS,
+            "ws" => Self::WS,
+            "wss" => Self::WSS,
             _ => Scheme {
                 inner: SchemeInner::Custom(lower),
             },
@@ -113,6 +127,8 @@ impl Scheme {
         match &self.inner {
             SchemeInner::Http => "http",
             SchemeInner::Https => "https",
+            SchemeInner::Ws => "ws",
+            SchemeInner::Wss => "wss",
             SchemeInner::Custom(s) => s,
         }
     }
@@ -132,6 +148,8 @@ impl Scheme {
         match &self.inner {
             SchemeInner::Http => 80,
             SchemeInner::Https => 443,
+            SchemeInner::Ws => 80,
+            SchemeInner::Wss => 443,
             SchemeInner::Custom(_) => 0, // No default for custom schemes
         }
     }
@@ -146,6 +164,18 @@ impl Scheme {
     #[must_use]
     pub fn is_https(&self) -> bool {
         matches!(self.inner, SchemeInner::Https)
+    }
+
+    /// Returns true if this is the WS scheme.
+    #[must_use]
+    pub fn is_ws(&self) -> bool {
+        matches!(self.inner, SchemeInner::Ws)
+    }
+
+    /// Returns true if this is the WSS scheme.
+    #[must_use]
+    pub fn is_wss(&self) -> bool {
+        matches!(self.inner, SchemeInner::Wss)
     }
 }
 

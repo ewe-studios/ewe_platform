@@ -94,6 +94,10 @@ impl<T: ReadTimeoutOperations> ReadTimeoutOperations for BufferedReader<T> {
         &mut self,
         timeout: std::time::Duration,
     ) -> std::result::Result<(), std::io::Error> {
+        tracing::debug!(
+            "BufferedReader::set_read_timeout_as: Received instruction to set read timeout to: {:?}",
+            &timeout,
+        );
         self.inner.get_mut().set_read_timeout_as(timeout)
     }
 
@@ -463,6 +467,10 @@ pub trait PeekableReadStream: Read {
     /// Other `PeekError` variants may be returned for implementation-specific
     /// error conditions (for example locking failures or unsupported operations).
     fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError>;
+}
+
+pub trait SplitReadStream: Read + Sized {
+    fn split_connection(&self) -> std::io::Result<Self>;
 }
 
 impl<T: Read> PeekableReadStream for BufferedReader<T> {
@@ -973,6 +981,14 @@ impl<T: Read> SharedByteBufferStream<T> {
     {
         self.0.do_mut(caller)
     }
+
+    /// Read a line from the stream into the provided buffer.
+    ///
+    /// Delegates to the inner ByteBufferPointer's read_line method.
+    /// Returns the number of bytes read, or an error if reading fails.
+    pub fn read_line(&mut self, buf: &mut String) -> std::io::Result<usize> {
+        self.0.do_once_mut(|inner| inner.read_line(buf))
+    }
 }
 
 // Implement cloning for the [`SharedByteBufferStream`].
@@ -1008,6 +1024,12 @@ impl<T: Read> SharedByteBufferStream<T> {
         let byte_reader = ByteBufferPointer::new(capacity, wrapped_reader);
         Self(OwnedReader::rwrite(Arc::new(RwLock::new(byte_reader))))
     }
+
+    pub fn sync(reader: Arc<Mutex<T>>) -> Self {
+        let wrapped_reader = OwnedReader::sync(Arc::clone(&reader));
+        let byte_reader = ByteBufferPointer::new(DEFAULT_READ_SIZE, wrapped_reader);
+        Self(OwnedReader::sync(Arc::new(Mutex::new(byte_reader))))
+    }
 }
 
 impl<T: Read> SharedByteBufferStream<BufferedReader<T>> {
@@ -1028,7 +1050,7 @@ impl<T: Read> SharedByteBufferStream<BufferedReader<T>> {
 impl<T: Read> PeekableReadStream for SharedByteBufferStream<T> {
     fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError> {
         self.0
-            .do_once_mut(|binding| match binding.nextby(buf.len()) {
+            .do_once_mut(|binding| match binding.peekby(buf.len()) {
                 Ok(state) => match state {
                     PeekState::Request(data) => {
                         let ending = if buf.len() > data.len() {
@@ -1617,10 +1639,11 @@ impl<T: Read> ByteBufferPointer<T> {
         }
 
         loop {
-            let buffer_len = self.buffer.len() as isize;
-            let rem = (size as isize) - buffer_len;
+            // Check remaining unconsumed data from peek_pos, not total buffer length.
+            let available = (self.buffer.len() as isize) - (self.peek_pos as isize);
+            let rem = (size as isize) - available;
 
-            if rem < 0 {
+            if rem <= 0 {
                 break;
             }
 
@@ -1666,10 +1689,14 @@ impl<T: Read> ByteBufferPointer<T> {
         }
 
         loop {
-            let buffer_len = self.buffer.len() as isize;
-            let rem = (size as isize) - buffer_len;
+            // Check remaining unconsumed data (from peek_pos to end of buffer),
+            // not total buffer length. After prior reads consume data, peek_pos
+            // advances but buffer.len() stays the same until truncation. We must
+            // compare against what's actually available to read.
+            let available = (self.buffer.len() as isize) - (self.peek_pos as isize);
+            let rem = (size as isize) - available;
 
-            if rem < 0 {
+            if rem <= 0 {
                 break;
             }
 
@@ -1850,7 +1877,9 @@ impl<T: Read> ByteBufferPointer<T> {
                     Ok(c.len())
                 }
                 PeekState::EndOfFile => Ok(0),
-                PeekState::ZeroLengthInput => Ok(0),
+                PeekState::ZeroLengthInput => {
+                    Err(crate::err!(WriteZero, "Provided zero size request"))
+                }
                 _ => unreachable!("Should never trigger"),
             },
             Err(err) => return Err(err),
@@ -1897,7 +1926,9 @@ impl<T: Read> ByteBufferPointer<T> {
                     Ok(c.len())
                 }
                 PeekState::EndOfFile => Ok(0),
-                PeekState::ZeroLengthInput => Ok(0),
+                PeekState::ZeroLengthInput => {
+                    Err(crate::err!(WriteZero, "Provided zero size request"))
+                }
                 _ => unreachable!("Should never trigger"),
             },
             Err(err) => return Err(err),
@@ -1942,7 +1973,9 @@ impl<T: Read> ByteBufferPointer<T> {
                     Ok(c.len())
                 }
                 PeekState::EndOfFile => Ok(0),
-                PeekState::ZeroLengthInput => Ok(0),
+                PeekState::ZeroLengthInput => {
+                    Err(crate::err!(WriteZero, "Provided zero size request"))
+                }
                 _ => unreachable!("Should never trigger"),
             },
             Err(err) => return Err(err),
@@ -2003,7 +2036,9 @@ impl<T: Read> ByteBufferPointer<T> {
                     }
                 }
                 PeekState::EndOfFile => Ok(0),
-                PeekState::ZeroLengthInput => Ok(0),
+                PeekState::ZeroLengthInput => {
+                    Err(err!(InvalidInput, "Zero length input not allowed"))
+                }
                 _ => unreachable!("Should never trigger"),
             },
             Err(err) => return Err(err),
@@ -2091,11 +2126,21 @@ impl<T: Read> PeekableReadStream for ByteBufferPointer<T> {
                     }
                     Ok(data.len())
                 }
-                PeekState::ZeroLengthInput => Ok(0),
+                PeekState::ZeroLengthInput => Err(PeekError::ZeroLengthNotAllowed),
                 _ => unreachable!("We should never hit this state"),
             },
             Err(err) => Err(PeekError::IOError(err)),
         }
+    }
+}
+
+impl<T: Read> BufferCapacity for ByteBufferPointer<T> {
+    fn read_buffer(&self) -> &[u8] {
+        &self.buffer
+    }
+
+    fn read_capacity(&self) -> usize {
+        self.pull_amount
     }
 }
 
@@ -2689,6 +2734,686 @@ impl<T> BufferedCapacityCursor<T> {
     /// of the wrapped `Cursor<T>`.
     pub fn get_inner_mut(&mut self) -> &mut T {
         self.0.get_mut()
+    }
+}
+
+// ============================================================================
+// SharedBuffer - Thread-safe shared buffer for producer-consumer patterns
+// ============================================================================
+
+/// Writer handle for `SharedBuffer`.
+///
+/// Holds a clone of the `Arc<Mutex<Vec<u8>>>` and implements `Write`.
+///
+/// # Thread Safety
+/// This type is `Send + Sync` and can be safely shared across threads.
+#[derive(Clone)]
+pub struct SharedBufferWriter {
+    inner: Arc<Mutex<Vec<u8>>>,
+}
+
+impl Write for SharedBufferWriter {
+    fn write(&mut self, buf: &[u8]) -> Result<usize> {
+        let mut guard = self.inner.lock().expect("SharedBufferWriter lock poisoned");
+        guard.extend_from_slice(buf);
+        Ok(buf.len())
+    }
+
+    fn flush(&mut self) -> Result<()> {
+        Ok(())
+    }
+}
+
+impl SharedBufferWriter {
+    /// Create a new writer from a shared Arc<Mutex<Vec<u8>>>.
+    pub fn new(inner: Arc<Mutex<Vec<u8>>>) -> Self {
+        Self { inner }
+    }
+
+    /// Get a clone of the underlying Arc.
+    pub fn clone_arc(&self) -> Arc<Mutex<Vec<u8>>> {
+        Arc::clone(&self.inner)
+    }
+}
+
+/// Reader handle for `SharedBuffer`.
+///
+/// Holds a clone of the `Arc<Mutex<Vec<u8>>>` and implements `Read`.
+/// Tracks read position independently from writers.
+///
+/// # Thread Safety
+/// This type is `Send + Sync` and can be safely shared across threads.
+#[derive(Clone)]
+pub struct SharedBufferReader {
+    inner: Arc<Mutex<Vec<u8>>>,
+    position: usize,
+}
+
+impl Read for SharedBufferReader {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
+        let guard = self.inner.lock().expect("SharedBufferReader lock poisoned");
+        let available = guard.len().saturating_sub(self.position);
+        if available == 0 {
+            return Ok(0);
+        }
+        let to_read = buf.len().min(available);
+        buf[..to_read].copy_from_slice(&guard[self.position..self.position + to_read]);
+        drop(guard);
+        self.position += to_read;
+        Ok(to_read)
+    }
+}
+
+impl SharedBufferReader {
+    /// Create a new reader from a shared Arc<Mutex<Vec<u8>>>.
+    pub fn new(inner: Arc<Mutex<Vec<u8>>>) -> Self {
+        Self { inner, position: 0 }
+    }
+
+    /// Create a new reader with a specific starting position.
+    pub fn with_position(inner: Arc<Mutex<Vec<u8>>>, position: usize) -> Self {
+        Self { inner, position }
+    }
+
+    /// Get the current read position.
+    pub fn position(&self) -> usize {
+        self.position
+    }
+
+    /// Convert this reader into a `SharedByteBufferStream`.
+    pub fn into_buffered_stream(self) -> SharedByteBufferStream<SharedBufferReadStream> {
+        SharedByteBufferStream::rwrite(SharedBufferReadStream::new(
+            Arc::clone(&self.inner),
+            self.position,
+        ))
+    }
+}
+
+/// A readable stream that wraps `SharedBuffer` for use with `SharedByteBufferStream`.
+pub struct SharedBufferReadStream {
+    inner: Arc<Mutex<Vec<u8>>>,
+    position: usize,
+}
+
+impl SharedBufferReadStream {
+    /// Create a new `SharedBufferReadStream` from a shared buffer.
+    ///
+    /// # Arguments
+    /// * `inner` - The shared buffer
+    /// * `position` - The starting read position
+    ///
+    /// # Returns
+    /// A `SharedBufferReadStream` that reads from the shared buffer.
+    pub fn new(inner: Arc<Mutex<Vec<u8>>>, position: usize) -> Self {
+        Self { inner, position }
+    }
+}
+
+impl std::io::Read for SharedBufferReadStream {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
+        let guard = self.inner.lock().expect("SharedBuffer lock poisoned");
+        let available = guard.len().saturating_sub(self.position);
+        if available == 0 {
+            return Ok(0);
+        }
+        let to_read = buf.len().min(available);
+        buf[..to_read].copy_from_slice(&guard[self.position..self.position + to_read]);
+        drop(guard);
+        self.position += to_read;
+        Ok(to_read)
+    }
+}
+
+/// A thread-safe shared buffer for producer-consumer patterns.
+///
+/// This type provides a convenient way to create a shared buffer with
+/// separate writer and reader handles. The buffer is wrapped in
+/// `Arc<Mutex<>>` for thread-safe access.
+///
+/// # Examples
+///
+/// ```rust
+/// use crate::io::ioutils::SharedBuffer;
+/// use std::io::Write;
+///
+/// // Create writer and reader handles
+/// let (mut writer, reader) = SharedBuffer::split();
+///
+/// // Write data
+/// writer.write_all(b"hello").unwrap();
+///
+/// // Read data
+/// let mut buf = [0u8; 5];
+/// reader.read_exact(&mut buf).unwrap();
+/// assert_eq!(&buf, b"hello");
+/// ```
+pub struct SharedBuffer {
+    inner: Arc<Mutex<Vec<u8>>>,
+}
+
+impl SharedBuffer {
+    /// Create a new SharedBuffer with separate writer and reader handles.
+    ///
+    /// # Returns
+    /// A tuple of `(SharedBufferWriter, SharedBufferReader)` that share
+    /// the same underlying buffer.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use crate::io::ioutils::SharedBuffer;
+    /// use std::io::Write;
+    ///
+    /// let (mut writer, mut reader) = SharedBuffer::split();
+    /// writer.write_all(b"hello").unwrap();
+    /// let mut buf = [0u8; 5];
+    /// reader.read_exact(&mut buf).unwrap();
+    /// assert_eq!(&buf, b"hello");
+    /// ```
+    pub fn split() -> (SharedBufferWriter, SharedBufferReader) {
+        let inner = Arc::new(Mutex::new(Vec::new()));
+        let writer = SharedBufferWriter::new(Arc::clone(&inner));
+        let reader = SharedBufferReader::new(inner);
+        (writer, reader)
+    }
+
+    /// Create a new SharedBuffer with initial content.
+    ///
+    /// # Arguments
+    /// * `initial` - Initial bytes to populate the buffer with
+    ///
+    /// # Returns
+    /// A `SharedBuffer` containing the initial data.
+    pub fn with_initial(initial: &[u8]) -> Self {
+        let inner = Arc::new(Mutex::new(initial.to_vec()));
+        Self { inner }
+    }
+
+    /// Get the current length of the buffer.
+    ///
+    /// # Returns
+    /// The number of bytes currently in the buffer.
+    pub fn len(&self) -> usize {
+        let guard = self.inner.lock().expect("SharedBuffer lock poisoned");
+        guard.len()
+    }
+
+    /// Check if the buffer is empty.
+    ///
+    /// # Returns
+    /// `true` if the buffer contains no bytes, `false` otherwise.
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+}
+
+impl Default for SharedBuffer {
+    fn default() -> Self {
+        Self {
+            inner: Arc::new(Mutex::new(Vec::new())),
+        }
+    }
+}
+
+// ============================================================================
+// SharedWriteReader - Thread-safe shared Read+Write handle
+// ============================================================================
+
+/// A thread-safe shared handle that supports both Read and Write operations.
+///
+/// WHY: Some use cases require a single handle that can be shared across threads
+/// where both reading and writing operations are needed on the same underlying resource.
+///
+/// WHAT: This type wraps any `T: Read + Write` with `Arc<Mutex<>>` for thread-safe access.
+///
+/// HOW: Provides cloneable handles that share the same underlying Read+Write resource.
+pub struct SharedWriteReader<T: Read + Write> {
+    inner: Arc<Mutex<T>>,
+}
+
+impl<T: Read + Write> Clone for SharedWriteReader<T> {
+    fn clone(&self) -> Self {
+        Self {
+            inner: Arc::clone(&self.inner),
+        }
+    }
+}
+
+impl<T: Read + Write> SharedWriteReader<T> {
+    /// Create a new SharedWriteReader from a Read+Write type.
+    ///
+    /// # Returns
+    /// A SharedWriteReader that owns the wrapped value.
+    pub fn new(inner: T) -> Self {
+        Self {
+            inner: Arc::new(Mutex::new(inner)),
+        }
+    }
+
+    /// Create a new SharedWriteReader from an existing Arc<Mutex<T>>.
+    ///
+    /// # Returns
+    /// A SharedWriteReader wrapping the provided Arc.
+    pub fn from_arc(arc: Arc<Mutex<T>>) -> Self {
+        Self { inner: arc }
+    }
+
+    /// Clone the underlying Arc reference.
+    pub fn clone_arc(&self) -> Arc<Mutex<T>> {
+        Arc::clone(&self.inner)
+    }
+}
+
+impl<T: Read + Write> Read for SharedWriteReader<T> {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
+        let mut guard = self.inner.lock().expect("SharedWriteReader lock poisoned");
+        guard.read(buf)
+    }
+
+    fn read_exact(&mut self, buf: &mut [u8]) -> Result<()> {
+        let mut guard = self.inner.lock().expect("SharedWriteReader lock poisoned");
+        guard.read_exact(buf)
+    }
+
+    fn read_to_end(&mut self, buf: &mut Vec<u8>) -> Result<usize> {
+        let mut guard = self.inner.lock().expect("SharedWriteReader lock poisoned");
+        guard.read_to_end(buf)
+    }
+
+    fn read_to_string(&mut self, buf: &mut String) -> Result<usize> {
+        let mut guard = self.inner.lock().expect("SharedWriteReader lock poisoned");
+        guard.read_to_string(buf)
+    }
+
+    fn read_vectored(&mut self, bufs: &mut [IoSliceMut<'_>]) -> Result<usize> {
+        let mut guard = self.inner.lock().expect("SharedWriteReader lock poisoned");
+        guard.read_vectored(bufs)
+    }
+}
+
+impl<T: Read + Write> Write for SharedWriteReader<T> {
+    fn write(&mut self, buf: &[u8]) -> Result<usize> {
+        let mut guard = self.inner.lock().expect("SharedWriteReader lock poisoned");
+        guard.write(buf)
+    }
+
+    fn write_all(&mut self, buf: &[u8]) -> Result<()> {
+        let mut guard = self.inner.lock().expect("SharedWriteReader lock poisoned");
+        guard.write_all(buf)
+    }
+
+    fn write_vectored(&mut self, bufs: &[IoSlice<'_>]) -> Result<usize> {
+        let mut guard = self.inner.lock().expect("SharedWriteReader lock poisoned");
+        guard.write_vectored(bufs)
+    }
+
+    fn flush(&mut self) -> Result<()> {
+        let mut guard = self.inner.lock().expect("SharedWriteReader lock poisoned");
+        guard.flush()
+    }
+}
+
+unsafe impl<T: Read + Write + Send> Send for SharedWriteReader<T> {}
+unsafe impl<T: Read + Write + Send + Sync> Sync for SharedWriteReader<T> {}
+
+// ============================================================================
+// Tests
+// ============================================================================
+
+#[cfg(test)]
+mod shared_write_reader_tests {
+    use super::*;
+    use std::io::Cursor;
+
+    #[test]
+    fn test_shared_write_reader_write_and_read_position() {
+        let cursor = Cursor::new(Vec::new());
+        let shared = SharedWriteReader::new(cursor);
+
+        let mut writer = shared.clone();
+        writer
+            .write_all(b"hello world")
+            .expect("write should succeed");
+
+        let inner = shared.inner.lock().expect("lock should not be poisoned");
+        assert_eq!(inner.get_ref(), b"hello world");
+    }
+
+    #[test]
+    fn test_shared_write_reader_multiple_writers() {
+        let cursor = Cursor::new(Vec::new());
+        let shared = SharedWriteReader::new(cursor);
+
+        let mut w1 = shared.clone();
+        let mut w2 = shared.clone();
+
+        w1.write_all(b"hello ").expect("write should succeed");
+        w2.write_all(b"world").expect("write should succeed");
+
+        let inner = shared.inner.lock().expect("lock should not be poisoned");
+        let data = inner.get_ref();
+        assert_eq!(data, b"hello world");
+    }
+
+    #[test]
+    fn test_shared_write_reader_from_arc() {
+        let arc = Arc::new(Mutex::new(Cursor::new(Vec::new())));
+        let shared = SharedWriteReader::from_arc(arc.clone());
+
+        let mut writer = shared.clone();
+        writer
+            .write_all(b"test data")
+            .expect("write should succeed");
+
+        let guard = arc.lock().expect("lock should not be poisoned");
+        let data = guard.get_ref();
+        assert_eq!(data, b"test data");
+    }
+}
+
+#[cfg(test)]
+mod shared_byte_buffer_stream_tests {
+    use super::*;
+
+    #[test]
+    fn test_shared_write_reader_with_cursor() {
+        let cursor = Cursor::new(Vec::new());
+        let shared = SharedWriteReader::new(cursor);
+
+        let mut w1 = shared.clone();
+        w1.write_all(b"hello").expect("write should succeed");
+
+        let mut r1 = shared.clone();
+        let inner = r1.inner.lock().expect("lock not poisoned");
+        assert_eq!(inner.get_ref(), b"hello");
+    }
+
+    #[test]
+    fn test_shared_write_reader_threaded() {
+        let cursor = Cursor::new(Vec::new());
+        let shared = SharedWriteReader::new(cursor);
+
+        let mut handles = vec![];
+        for i in 0..3 {
+            let s = shared.clone();
+            let handle = std::thread::spawn(move || {
+                let mut writer = s.clone();
+                let msg = format!("thread_{}", i);
+                writer
+                    .write_all(msg.as_bytes())
+                    .expect("write should succeed");
+            });
+            handles.push(handle);
+        }
+
+        for handle in handles {
+            handle.join().expect("thread should join");
+        }
+
+        let inner = shared.inner.lock().expect("lock not poisoned");
+        let data = inner.get_ref();
+        assert!(data.starts_with(b"thread_"));
+    }
+}
+
+// ============================================================================
+// SharedBuffer Tests
+// ============================================================================
+
+#[cfg(test)]
+mod shared_buffer_tests {
+    use super::*;
+
+    #[test]
+    fn test_shared_buffer_write_and_read() {
+        let (mut writer, mut reader) = SharedBuffer::split();
+
+        writer.write_all(b"hello").unwrap();
+
+        let mut buf = [0u8; 5];
+        reader.read_exact(&mut buf).unwrap();
+
+        assert_eq!(&buf, b"hello");
+    }
+
+    #[test]
+    fn test_shared_buffer_empty_read() {
+        let (_, mut reader) = SharedBuffer::split();
+
+        let mut buf = [0u8; 5];
+        let bytes_read = reader.read(&mut buf).unwrap();
+
+        assert_eq!(bytes_read, 0);
+    }
+
+    #[test]
+    fn test_shared_buffer_multiple_writes() {
+        let (mut writer, mut reader) = SharedBuffer::split();
+
+        writer.write_all(b"hello").unwrap();
+        writer.write_all(b" ").unwrap();
+        writer.write_all(b"world").unwrap();
+
+        let mut buf = [0u8; 11];
+        reader.read_exact(&mut buf).unwrap();
+
+        assert_eq!(&buf, b"hello world");
+    }
+
+    #[test]
+    fn test_shared_buffer_partial_read() {
+        let (mut writer, mut reader) = SharedBuffer::split();
+
+        writer.write_all(b"hello world").unwrap();
+
+        let mut buf = [0u8; 5];
+        reader.read_exact(&mut buf).unwrap();
+        assert_eq!(&buf, b"hello");
+
+        reader.read_exact(&mut buf).unwrap();
+        assert_eq!(&buf, b" worl");
+    }
+
+    #[test]
+    fn test_shared_buffer_clone_writer() {
+        let (mut writer, mut reader) = SharedBuffer::split();
+        let mut writer2 = writer.clone();
+
+        writer.write_all(b"hello").unwrap();
+        writer2.write_all(b" ").unwrap();
+        writer.write_all(b"world").unwrap();
+
+        let mut buf = [0u8; 11];
+        reader.read_exact(&mut buf).unwrap();
+
+        assert_eq!(&buf, b"hello world");
+    }
+
+    #[test]
+    fn test_shared_buffer_clone_reader() {
+        let (mut writer, mut reader) = SharedBuffer::split();
+        let mut reader2 = reader.clone();
+
+        writer.write_all(b"hello").unwrap();
+
+        let mut buf1 = [0u8; 5];
+        let mut buf2 = [0u8; 5];
+
+        reader.read_exact(&mut buf1).unwrap();
+        reader2.read_exact(&mut buf2).unwrap();
+
+        assert_eq!(&buf1, b"hello");
+        assert_eq!(&buf2, b"hello");
+    }
+
+    #[test]
+    fn test_shared_buffer_with_initial() {
+        let buffer = SharedBuffer::with_initial(b"initial data");
+        let (_, mut reader) = (
+            SharedBufferWriter::new(buffer.inner.clone()),
+            SharedBufferReader::new(buffer.inner),
+        );
+
+        let mut buf = [0u8; 12];
+        reader.read_exact(&mut buf).unwrap();
+
+        assert_eq!(&buf, b"initial data");
+    }
+
+    #[test]
+    fn test_shared_buffer_len() {
+        let buffer = SharedBuffer::with_initial(b"hello");
+        assert_eq!(buffer.len(), 5);
+
+        let (mut writer, _) = SharedBuffer::split();
+        assert_eq!(writer.inner.lock().unwrap().len(), 0);
+
+        writer.write_all(b"test").unwrap();
+        assert_eq!(writer.inner.lock().unwrap().len(), 4);
+    }
+
+    #[test]
+    fn test_shared_buffer_threaded() {
+        use std::thread;
+
+        let (mut writer, mut reader) = SharedBuffer::split();
+
+        let handle = thread::spawn(move || {
+            writer.write_all(b"from thread").unwrap();
+        });
+
+        thread::sleep(std::time::Duration::from_millis(10));
+
+        let mut buf = [0u8; 11];
+        reader.read_exact(&mut buf).unwrap();
+
+        handle.join().unwrap();
+
+        assert_eq!(&buf, b"from thread");
+    }
+
+    // ========================================================================
+    // Tests for into_buffered_stream() - SharedByteBufferStream integration
+    // ========================================================================
+
+    #[test]
+    fn test_into_buffered_stream_read() {
+        let (mut writer, reader) = SharedBuffer::split();
+        writer.write_all(b"hello world").unwrap();
+
+        let mut stream = reader.into_buffered_stream();
+
+        let mut buf = [0u8; 11];
+        let bytes_read = stream.read(&mut buf).unwrap();
+
+        assert_eq!(bytes_read, 11);
+        assert_eq!(&buf, b"hello world");
+    }
+
+    #[test]
+    fn test_into_buffered_stream_read_line() {
+        let (mut writer, reader) = SharedBuffer::split();
+        writer.write_all(b"line 1\nline 2\nline 3\n").unwrap();
+
+        let mut stream = reader.into_buffered_stream();
+
+        let mut line = String::new();
+        let bytes_read = stream.read_line(&mut line).unwrap();
+        assert_eq!(bytes_read, 7); // "line 1\n"
+        assert_eq!(line, "line 1\n");
+
+        line.clear();
+        let bytes_read = stream.read_line(&mut line).unwrap();
+        assert_eq!(bytes_read, 7); // "line 2\n"
+        assert_eq!(line, "line 2\n");
+
+        line.clear();
+        let bytes_read = stream.read_line(&mut line).unwrap();
+        assert_eq!(bytes_read, 7); // "line 3\n"
+        assert_eq!(line, "line 3\n");
+    }
+
+    #[test]
+    fn test_into_buffered_stream_sse_format() {
+        // Simulate SSE format: "data: hello\n\n"
+        let (mut writer, reader) = SharedBuffer::split();
+        writer.write_all(b"data: hello\n\n").unwrap();
+
+        let mut stream = reader.into_buffered_stream();
+
+        // Read all data
+        let mut buf = Vec::new();
+        stream.read_to_end(&mut buf).unwrap();
+
+        assert_eq!(buf, b"data: hello\n\n");
+    }
+
+    #[test]
+    fn test_into_buffered_stream_multiple_lines() {
+        let (mut writer, reader) = SharedBuffer::split();
+        writer.write_all(b"event: test\ndata: payload\n\n").unwrap();
+
+        let mut stream = reader.into_buffered_stream();
+
+        // Read line by line
+        let mut line = String::new();
+
+        stream.read_line(&mut line).unwrap();
+        assert_eq!(line, "event: test\n");
+
+        line.clear();
+        stream.read_line(&mut line).unwrap();
+        assert_eq!(line, "data: payload\n");
+
+        line.clear();
+        stream.read_line(&mut line).unwrap();
+        assert_eq!(line, "\n");
+    }
+
+    #[test]
+    fn test_into_buffered_stream_empty_buffer() {
+        let (_, reader) = SharedBuffer::split();
+        let mut stream = reader.into_buffered_stream();
+
+        let mut buf = [0u8; 5];
+        let bytes_read = stream.read(&mut buf).unwrap();
+
+        assert_eq!(bytes_read, 0);
+    }
+
+    #[test]
+    fn test_into_buffered_stream_partial_reads() {
+        let (mut writer, reader) = SharedBuffer::split();
+        writer.write_all(b"hello world").unwrap();
+
+        let mut stream = reader.into_buffered_stream();
+
+        // Read in chunks
+        let mut buf = [0u8; 5];
+        let bytes_read = stream.read(&mut buf).unwrap();
+        assert_eq!(bytes_read, 5);
+        assert_eq!(&buf, b"hello");
+
+        let bytes_read = stream.read(&mut buf).unwrap();
+        assert_eq!(bytes_read, 5);
+        assert_eq!(&buf, b" worl");
+
+        let bytes_read = stream.read(&mut buf).unwrap();
+        assert_eq!(bytes_read, 1);
+        assert_eq!(&buf[0..1], b"d");
+    }
+
+    #[test]
+    fn test_into_buffered_stream_read_exact() {
+        let (mut writer, reader) = SharedBuffer::split();
+        writer.write_all(b"exact data").unwrap();
+
+        let mut stream = reader.into_buffered_stream();
+
+        let mut buf = [0u8; 10];
+        stream.read_exact(&mut buf).unwrap();
+
+        assert_eq!(&buf, b"exact data");
     }
 }
 

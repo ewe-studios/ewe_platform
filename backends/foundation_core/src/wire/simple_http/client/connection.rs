@@ -31,7 +31,7 @@ pub use crate::wire::simple_http::url::Scheme;
 /// over plain TCP or TLS connections.
 #[derive(Debug, Clone)]
 pub struct HttpClientConnection {
-    stream: SharedByteBufferStream<RawStream>,
+    pub stream: SharedByteBufferStream<RawStream>,
     host: String,
     port: u16,
 }
@@ -108,11 +108,11 @@ impl HttpClientConnection {
 
             match conn_result {
                 Ok(connection) => {
-                    // Step 3: Upgrade to TLS if HTTPS, or create plain RawStream
-                    if url.scheme().is_https() {
+                    // Step 3: Upgrade to TLS if HTTPS or WSS, or create plain RawStream
+                    if url.scheme().is_https() || url.scheme().is_wss() {
                         return Self::upgrade_to_tls(connection, &host, port);
                     }
-                    // Create plain RawStream from Connection
+                    // Create plain RawStream from Connection (for http:// and ws://)
                     let stream = SharedByteBufferStream::rwrite(
                         RawStream::from_connection(connection)
                             .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?,

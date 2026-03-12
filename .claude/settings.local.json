@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout:*)",
+      "Bash(done:*)",
+      "Bash(ls:*)",
+      "Bash(cargo:*)",
+      "Bash(wc:*)",
+      "Bash(for:*)",
+      "Bash(do:*)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(git:*)",
+      "Bash(grep:*)",
+      "Bash(rm:*)",
+      "Bash(rg:*)",
+      "Bash(/tmp/clean_features.py:*)",
+      "WebSearch",
+      "WebFetch(domain:platform.openai.com)",
+      "WebFetch(domain:cookbook.openai.com)",
+      "WebFetch(domain:github.com)",
+      "Bash(wget:*)"
+    ]
+  }
+}

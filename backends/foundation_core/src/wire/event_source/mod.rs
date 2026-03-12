@@ -1,12 +1,19 @@
 extern crate url;
 
+mod consumer;
 mod core;
+mod error;
+mod parser;
+mod reconnecting_task;
+mod response;
+mod task;
+mod writer;
 
-#[cfg(not(target_arch = "wasm32"))]
-mod no_wasm;
-
-#[cfg(target_arch = "wasm32")]
-mod wasm;
-
-#[cfg(target_arch = "wasm32")]
-pub use wasm::*;
+pub use consumer::*;
+pub use core::*;
+pub use error::*;
+pub use parser::*;
+pub use reconnecting_task::*;
+pub use response::*;
+pub use task::*;
+pub use writer::*;

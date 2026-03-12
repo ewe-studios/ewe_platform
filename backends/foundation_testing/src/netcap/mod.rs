@@ -22,10 +22,13 @@ use foundation_core::{
     },
 };
 
+/// Result type for test server operations.
 pub type TestServerResult<T> = std::result::Result<T, TestServerError>;
 
+/// Errors that can occur when setting up a test server.
 #[derive(From, Debug)]
 pub enum TestServerError {
+    /// The TCP listener failed to bind to the requested address.
     FailedListenerSetup,
 }
 
@@ -51,6 +54,7 @@ pub struct ResourcesHttpServer {
 }
 
 impl ResourcesHttpServer {
+    /// Create a new test server with the given port, address, and service actions.
     #[must_use]
     pub fn new(port: usize, address: String, actions: Vec<ServiceAction>) -> Self {
         Self {

@@ -39,6 +39,8 @@ url = "2.5"
 regex = "1.12.2"
 ctrlc = { version = "3.4" }
 base64 = "0.22"
+sha1 = "0.10"
+bytes = "1.5"
 
 # rust-embed
 rust-embed = { version = "8.7.0", features = ["mime-guess", "interpolate-folder-path"]}
@@ -72,6 +74,7 @@ log_debug = []
 log_info = []
 nightly = []
 
+socks5 = []
 ssl-openssl = ["std", "openssl", "zeroize"]
 ssl-rustls = ["std", "rustls", "rustls-pemfile", "webpki-roots", "zeroize"]
 ssl-native-tls = ["std", "native-tls", "native-tls/vendored", "zeroize"]

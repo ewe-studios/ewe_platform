@@ -10,7 +10,43 @@
 - Trying to enable a nonexistent “sync” feature or run with --features sync is incorrect; project is strictly synchronous by default, no gate or feature toggle. Synchronous is the enforced norm.
 - The foundational Cargo feature in this project is “std.” If you need to pass a --features flag, it should be --features std, not sync.
 
+## Design and Specification Review Process
+
+**CRITICAL: When things look unsound or missing, DO NOT make implementation changes immediately.**
+
+1. **Stop and think from fundamentals** - Review what the actual problem is
+2. **Review the specification** - Identify gaps between spec and requirements
+3. **Stop all implementation work** - Do not write code until design is clear
+4. **Discuss with user** - Articulate the problem, what's missing, potential solutions
+5. **Update the specification first** - Fill in design gaps with user input
+6. **Then resume implementation** - Only after spec is updated and clear
+
+**Example: WebSocket send/receive architecture**
+- Initial thought: Add `connect()` method to `WebSocketConnection` that somehow extracts stream from task
+- Problem: This bypasses executor, breaks TaskIterator pattern, is architecturally unsound
+- Correct approach:
+  1. Review spec - realize `WebSocketClient` is receive-only iterator
+  2. Identify gap - need send capability for testing
+  3. Design solution - `MessageDelivery` using existing `ConcurrentQueue` from valtron
+  4. Update spec with full design before coding
+  5. Implement to spec
+
+**Key insight:** The specification is the source of truth. If implementation seems blocked by architectural gaps, the spec needs updating, not hacky code.
+
 ## Testing Insights
+
+**When writing integration tests:**
+- Test infrastructure must support the test cases, not the other way around
+- If tests are hard to write, enhance test infrastructure first
+- Example: WebSocket test server with pre-prepared messages simplifies receive testing
+
+**Test server design for WebSocket:**
+- Pre-prepared messages: Server sends configured messages after handshake completes
+- Echo mode: Server echoes received messages back
+- Custom handlers: Allow test-specific message processing
+- All servers must support graceful shutdown, concurrent connections, subprotocol negotiation
+
+- TestHttpServer::redirect_chain helper makes writing sequential redirect tests much simpler and reusable. Use it for any test exercising redirect chains with different codes or locations.
 - TestHttpServer::redirect_chain helper makes writing sequential redirect tests much simpler and reusable. Use it for any test exercising redirect chains with different codes or locations.
 - Key redirect cases to cover in integration tests:
   - Mix of relative/absolute URLs in Location
@@ -29,6 +65,153 @@
 
 - Compression feature gates: flate2 provides both gzip and deflate decoders. Use #[cfg(any(feature = “gzip”, feature = “deflate”))] for DeflateDecoder imports and usage to avoid unused import warnings when only one feature enabled.
 - Brotli decompressor needs buffer size parameter (4096 works well): BrotliDecoder::new(inner, 4096)
+
+## Valtron TaskIterator Patterns
+
+### Core Principle: TaskIterator-ONLY with Executor Boundaries
+
+All client features (SSE, WebSocket, etc.) MUST use `TaskIterator` as the core API. TaskIterator is a pure state machine — NO loops in `next()`, ONE step per call.
+
+**Correct architecture:**
+```
+TaskIterator (pure state machine)
+    ↓
+unified::execute_stream() / unified::execute()  ← EXECUTOR BOUNDARY
+    ↓
+DrivenStreamIterator / DrivenRecvIterator (executor-driven)
+    ↓
+Consumer wrapper (optional - encapsulates valtron details)
+```
+
+### State Machine Pattern
+
+```rust
+// Task wraps state in Option for termination
+pub struct MyTask(Option<MyState>);
+
+enum MyState {
+    Init(Option<Box<MyConfig>>),
+    Working(WorkingData),
+    Closed,
+}
+
+impl TaskIterator for MyTask {
+    type Ready = Result<MyOutput, MyError>;
+    type Pending = MyPending;
+    type Spawner = BoxedSendExecutionAction;
+
+    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        match self.0.take()? {
+            // ONE step only - NO LOOPS
+            // Data moved between states, not cloned
+        }
+    }
+}
+```
+
+**Key rules:**
+1. `struct Task(Option<State>)` — Option wrapper for termination
+2. State variants hold `Option<Box<...>>` — data carried between states
+3. `self.0.take()?` — take state, return None if done
+4. NO LOOPS in `next()` — state machine is step-wise
+5. Data MOVED between states — not cloned
+
+### Consumer Wrapper Pattern (Executor Boundary)
+
+**WRONG — bypasses executor:**
+```rust
+// DO NOT wrap TaskIterator directly in impl Iterator
+impl Iterator for MyWrapper {
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.task.next() { ... }  // BYPASSES EXECUTOR!
+    }
+}
+```
+
+**CORRECT — use unified::execute_stream():**
+```rust
+pub struct MyClient {
+    inner: DrivenStreamIterator<MyTask>,
+}
+
+impl MyClient {
+    pub fn connect(...) -> Result<Self, MyError> {
+        let task = MyTask::connect(...)?;
+        let inner = unified::execute_stream(task, None)?;
+        Ok(Self { inner })
+    }
+}
+
+// Wrapping DrivenStreamIterator is VALID (already executor-driven)
+impl Iterator for MyClient {
+    type Item = Result<MyOutput, MyError>;
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            match self.inner.next()? {
+                Stream::Next(result) => return Some(Ok(result)),
+                Stream::Init | Stream::Ignore => continue,
+                Stream::Delayed(_) | Stream::Pending(_) => continue,
+            }
+        }
+    }
+}
+```
+
+**Why the executor boundary matters:**
+- `TaskStatus::Spawn` — executor schedules sub-tasks; manual wrappers can't handle this
+- `TaskStatus::Delayed(duration)` — executor respects timing; manual wrappers busy-loop
+- `TaskStatus::Pending` — executor polls efficiently; manual wrappers waste CPU
+
+### Connection Failure Handling
+
+Connection failures must transition through intermediate states so tests can observe the failure progression:
+
+```rust
+// WRONG: Return None immediately on failure
+let Ok(conn) = Connection::without_timeout(*addr) else {
+    return None;  // Test can't observe the attempt
+};
+
+// CORRECT: Transition to intermediate state, return Pending first
+let Ok(conn) = Connection::without_timeout(*addr) else {
+    self.0 = Some(MyState::Connecting);
+    return Some(TaskStatus::Pending(MyPending::Connecting));
+};
+```
+
+### Reference Files
+
+- `wire/simple_http/client/tasks/send_request.rs` — canonical TaskIterator pattern
+- `wire/simple_http/client/tasks/request_redirect.rs` — redirect handling
+- `valtron/executors/unified.rs` — `execute()`, `execute_stream()` boundary functions
+- `valtron/executors/drivers.rs` — `DrivenRecvIterator`, `DrivenStreamIterator`
+- `valtron/task.rs` — `TaskIterator` trait, `TaskStatus` variants
+
+### HttpConnectionPool Integration
+
+Use `HttpConnectionPool::create_http_connection()` instead of manual DNS/Connection:
+```rust
+// Instead of manual: resolver.resolve() → Connection::without_timeout() → RawStream
+let connection = pool.create_http_connection(&url, None)?;
+let stream = connection.clone_stream();
+```
+
+Benefits: code reduction, automatic TLS handling, DNS caching, connection pooling.
+
+### Request Builder Selection
+
+- **`SimpleIncomingRequestBuilder`** — for protocol upgrades (WebSocket, SSE) where connection is already established
+- **`ClientRequestBuilder`** — for new HTTP client requests needing connection management and DNS
+
+### Tracing Requirements
+
+All components MUST use the `tracing` crate:
+- `trace!` — raw byte reads, field parsing
+- `debug!` — state transitions, connection events
+- `info!` — connection established, reconnection attempt
+- `warn!` — retry attempt, slow response
+- `error!` — connection failure, parse error
+- All tests MUST use `#[traced_test]` attribute
 
 ## Dependencies and Interactions
 - This project is strictly synchronous per stack standards; async/await dependencies must be disallowed at review.
@@ -493,10 +676,11 @@ let bytes = Http11::request(&request).http_render()?;
 - **Benefit**: SSE gets production-ready reconnection for free
 - **Pattern**: Leverage existing state machines
 
-**Decision 3: TaskIterator for Non-Blocking (Phase 3)**
+**Decision 3: TaskIterator for Non-Blocking (Phase 1 - FOUNDATION)**
 - **Why**: Valtron infrastructure already supports non-blocking I/O
 - **Benefit**: SSE can be non-blocking without async/await
-- **Pattern**: EventSourceTask wraps EventSource with TaskIterator
+- **Pattern**: EventSourceTask is the PRIMARY API (not Phase 3)
+- **Correction**: TaskIterator is Phase 1 foundation, not Phase 3 add-on
 
 **Documentation Strategy**:
 
@@ -509,7 +693,7 @@ Created comprehensive ARCHITECTURE.md (10,000+ lines) covering:
 6. **Client Implementation** - Wrapping existing HttpResponseReader
 7. **Server Implementation** - Simple event formatter
 8. **Reconnection Strategy** - Wrapping ReconnectingStream
-9. **TaskIterator Integration** - Non-blocking wrapper
+9. **TaskIterator Integration** - Non-blocking wrapper (PRIMARY - Phase 1)
 10. **Technical Design Details** - File structure, dependencies, testing
 
 **Feature Specification Strategy**:
@@ -517,9 +701,9 @@ Created comprehensive ARCHITECTURE.md (10,000+ lines) covering:
 Created detailed feature.md with:
 - **Requirements**: Client and server API examples
 - **Implementation Phases**:
-  - Phase 1: Core SSE (1-2 weeks) - Blocking I/O
-  - Phase 2: Reconnection (3-5 days) - Integrate ReconnectingStream
-  - Phase 3: TaskIterator (3-5 days) - Non-blocking wrapper
+  - Phase 1: Core SSE with TaskIterator (1-2 weeks) - TaskIterator-first design
+  - Phase 2: ReconnectingEventSourceTask (3-5 days) - Integrate ReconnectingStream
+  - Phase 3: Advanced Features (3-5 days) - Filtering, compression, optimization
 - **Success Criteria**: Per-phase validation
 - **Notes for Implementers**: What to reuse, what NOT to reimplement
 
@@ -537,7 +721,8 @@ Created detailed feature.md with:
 2. **Identify Patterns**: Look for similar features (WebSocket did HTTP upgrade, SSE does streaming)
 3. **Compose, Don't Duplicate**: Wrap existing components rather than reimplementing
 4. **Document Discoveries**: ARCHITECTURE.md captures infrastructure analysis
-5. **Phase by Composition**: Phase 1 uses existing components, Phase 2 adds reconnection wrapper, Phase 3 adds TaskIterator wrapper
+5. **Phase by Composition**: Phase 1 uses existing components with TaskIterator-first, Phase 2 adds reconnection wrapper, Phase 3 adds advanced features
+6. **TaskIterator-First**: Core design pattern is TaskIterator from Phase 1, plain iterators are internal only
 
 **Grep Commands Used**:
 ```bash
@@ -585,21 +770,253 @@ pub struct SseClient {
 }
 ```
 
-✅ **Compose existing infrastructure**:
+❌ **Plain Iterator as Primary API** (INCORRECT):
 ```rust
-// DO: Use existing components
+// DON'T: Make plain Iterator the primary API
 pub struct EventSourceStream {
-    response_reader: HttpResponseReader<...>, // Existing HTTP streaming
-    parser: SseParser,                        // Only new code: SSE parsing
+    reader: HttpResponseReader<...>,
+    parser: SseParser,
 }
 
-pub struct ReconnectingEventSource {
-    reconnection_stream: ReconnectingStream,  // Existing reconnection
-    current_stream: Option<EventSourceStream>,
+impl Iterator for EventSourceStream {
+    // This should NOT be the primary API
+}
+```
+
+✅ **Compose existing infrastructure with TaskIterator-first**:
+```rust
+// DO: TaskIterator is the PRIMARY API
+pub struct EventSourceTask {
+    state: Option<EventSourceState>,
+}
+
+impl TaskIterator for EventSourceTask {
+    type Ready = Result<Event, EventSourceError>;
+    // TaskIterator is the foundation, not an add-on
+}
+
+// Blocking wrapper for convenience ONLY
+pub struct EventSource {
+    task: EventSourceTask,
+}
+
+impl Iterator for EventSource {
+    // Convenience wrapper around TaskIterator
 }
 ```
 
 This approach reduced implementation from 6-8 weeks to 2-3 weeks by discovering and leveraging 80% existing infrastructure.
+
+---
+
+## WebSocket Feature Implementation (2026-03-10)
+
+### 10. Comprehensive Protocol Documentation - Leave No Detail Unclear
+
+**Key Insight**: Protocol implementations require exhaustive documentation of every byte, state transition, and error condition. Ambiguity leads to bugs.
+
+**What We Did**:
+- Created comprehensive `feature.md` with complete RFC 6455 specification reference
+- Added byte-level frame format documentation with exact bit positions
+- Included test vectors from RFC 6455 Section 1.3
+- Documented all close codes with sendable/not-sendable distinctions
+- Added complete error recovery matrix specifying exact behavior for each error type
+
+**Documentation Structure**:
+1. **Protocol Overview** — Key characteristics, compliance requirements table
+2. **Existing Infrastructure** — What can be reused (~80% exists)
+3. **Architectural Principles** — TaskIterator pattern, executor boundary
+4. **Protocol Reference** — Complete RFC 6455 section-by-section breakdown
+5. **Type Definitions** — All structs, enums, error types
+6. **Implementation Details** — Code examples for encoding/decoding
+7. **Implementation Phases** — Phased rollout with success criteria
+8. **Testing Strategy** — Unit and integration test coverage
+9. **References** — RFC sections, test vectors, implementation resources
+10. **Appendix** — Byte-level specs, state transitions, threading model
+
+**Why This Matters**:
+- WebSocket has subtle requirements (masking, fragmentation, control frame rules)
+- Protocol violations cause interoperability failures
+- Clear documentation prevents re-implementation and second-guessing
+- Test vectors ensure correct implementation from the start
+
+### 11. TaskIterator State Machine Design — Critical Rules
+
+**Key Insight**: TaskIterator implementations MUST follow strict patterns. Violations cause executor bypass, busy-loops, or broken sub-task handling.
+
+**Critical Rules**:
+
+1. **NO LOOPS in `next()`**
+```rust
+// WRONG: Loop violates TaskIterator contract
+fn next(&mut self) -> Option<TaskStatus<...>> {
+    loop {  // DO NOT DO THIS
+        match frame.decode() {
+            Ok(msg) => return Some(TaskStatus::Ready(msg)),
+            Err(WouldBlock) => continue,
+        }
+    }
+}
+
+// CORRECT: ONE step per call
+fn next(&mut self) -> Option<TaskStatus<...>> {
+    match self.state.take()? {
+        State::Reading => {
+            match frame.decode() {
+                Ok(msg) => {
+                    self.state = Some(State::Reading);
+                    return Some(TaskStatus::Ready(msg));
+                }
+                Err(WouldBlock) => {
+                    self.state = Some(State::Reading);
+                    return Some(TaskStatus::Pending(WebSocketPending::Reading));
+                }
+            }
+        }
+    }
+}
+```
+
+2. **Executor Boundary via `execute_stream()`**
+```rust
+// WRONG: Direct wrapping bypasses executor
+pub struct BadWrapper {
+    task: WebSocketTask,
+}
+impl Iterator for BadWrapper { /* bypasses executor */ }
+
+// CORRECT: Use executor boundary
+pub struct WebSocketClient {
+    inner: DrivenStreamIterator<WebSocketTask>,
+}
+impl WebSocketClient {
+    pub fn connect(url: &str) -> Result<Self, WebSocketError> {
+        let task = WebSocketTask::connect(url)?;
+        let inner = execute_stream(task, None)?;  // Executor boundary
+        Ok(Self { inner })
+    }
+}
+```
+
+3. **State Carries ALL Data**
+```rust
+// State variants hold Option<Box<...>> to carry data
+enum WebSocketState {
+    Init(Option<Box<ConnectInfo>>),
+    Connecting(Box<ConnectingData>),
+    Handshake(Box<HandshakeState>),
+    Open(WebSocketStream),
+    Closed,
+}
+
+// Data moves between states, not cloned
+HandshakeState::BuildingRequest(info) => {
+    // info is MOVED, not cloned
+    let request_bytes = build_request(info)?;
+    return Some(TaskStatus::Pending(HandshakeSending));
+}
+```
+
+4. **Connection Failure Pattern — Use Intermediate States**
+```rust
+// WRONG: Return None immediately, test can't observe failure
+let Ok(conn) = pool.create_http_connection(&url) else {
+    return None;  // Can't observe this in tests
+};
+
+// CORRECT: Transition through intermediate state
+let Ok(conn) = pool.create_http_connection(&url) else {
+    self.state = Some(WebSocketState::ConnectionFailed);
+    return Some(TaskStatus::Pending(WebSocketPending::Connecting));
+};
+```
+
+### 12. WebSocket-Specific Protocol Requirements
+
+**Masking — Non-Negotiable**:
+- Clients MUST mask all outgoing frames (XOR with random 4-byte key)
+- Servers MUST reject unmasked client frames with Close 1002
+- Servers MUST NOT mask outgoing frames
+- Clients MUST reject masked server frames
+- Masking is its own inverse: `apply_mask(apply_mask(data, mask), mask) == data`
+
+**Fragmentation Rules**:
+- Data frames CAN be fragmented (FIN=0 for non-final fragments)
+- Control frames MUST NOT be fragmented (FIN must always be 1)
+- Control frames can be interleaved between data fragments
+- First data frame has opcode (Text/Binary), continuations use Continuation (0x0)
+
+**UTF-8 Validation**:
+- Text frames MUST contain valid UTF-8
+- Invalid UTF-8 → Close with 1007, no need to wait for response
+- Validate on RECEPTION, not transmission (sender may not validate)
+
+**Close Handshake**:
+- Close frame contains 2-byte big-endian code + optional UTF-8 reason
+- After sending Close, MUST NOT send data frames (control frames OK)
+- After receiving Close, MUST send Close response (echo code if possible)
+- Sender of first Close should let receiver close TCP connection
+- Timeout waiting for Close response is acceptable (force TCP close)
+
+**Close Code Restrictions**:
+- 1004, 1005, 1006, 1015 MUST NOT be sent in Close frames
+- 1005 = "No Status Received" (internal use only)
+- 1006 = "Abnormal Closure" (internal use only)
+- 1015 = "TLS Handshake Failure" (internal use only)
+
+### 13. Reusable Infrastructure Discovery
+
+**Already Available**:
+- `SimpleHeader::SEC_WEBSOCKET_*` — All WebSocket headers defined
+- `Status::SwitchingProtocols` — 101 status code
+- `HttpClientConnection` — TCP/TLS connection wrapper
+- `SharedByteBufferStream` — Cloneable, buffered Read/Write
+- `SimpleIncomingRequestBuilder` — Build upgrade request
+- `HttpResponseReader` — Parse 101 response
+- `HttpConnectionPool` — Connection management, DNS caching
+- `TaskIterator` — State machine pattern
+- `execute_stream()` — Executor boundary
+- `ExponentialBackoffDecider` — Reconnection backoff (Phase 2)
+
+**New Dependencies**:
+- `sha1 = "0.10"` — Accept key computation
+- `rand = "0.8"` — Masking key generation
+- `base64 = "0.21"` — Key encoding
+
+**URL Scheme Extension Required**:
+```rust
+// Add to simple_http/url/scheme.rs
+pub enum Scheme {
+    Http,
+    Https,
+    Ws,    // NEW - ws://
+    Wss,   // NEW - wss://
+    Custom(String),
+}
+```
+
+### 14. Testing Requirements
+
+**All Tests Must**:
+- Use `#[traced_test]` attribute for logging
+- Test with `cargo test --package ewe_platform_tests -- websocket`
+- Cover both `ws://` and `wss://` schemes
+- Validate masking behavior (client masks, server doesn't)
+- Test fragmentation (single-frame and multi-frame messages)
+- Test control frame interleaving
+- Test close handshake (both directions)
+- Test UTF-8 validation (accept valid, reject invalid)
+
+**Test Coverage Matrix**:
+
+| Test Category | Specific Tests |
+|---------------|----------------|
+| Frame encode/decode | All opcodes, 3 payload lengths, masked/unmasked |
+| Control frames | Ping/Pong auto-response, Close parsing |
+| Fragmentation | Single, multi-frame, interleaved control |
+| Handshake | Key generation, accept validation, header checks |
+| Errors | Invalid frames, UTF-8, masking violations |
+| Integration | Echo server, TLS, large messages |
 
 ---
 
@@ -613,4 +1030,342 @@ This approach reduced implementation from 6-8 weeks to 2-3 weeks by discovering 
 
 *2026-03-03: Added WebSocket request builder selection learning covering the distinction between ClientRequestBuilder (high-level, connection management) and SimpleIncomingRequestBuilder (low-level, message building).*
 
+*2026-03-10: Added comprehensive WebSocket feature implementation learnings covering protocol documentation, TaskIterator patterns, masking requirements, fragmentation rules, close handshake, and testing requirements.*
+
 *2026-03-03: Added Server-Sent Events feature creation learning covering infrastructure audit methodology, component discovery, composition over duplication, and effort reduction from 6-8 weeks to 2-3 weeks through 80% code reuse.*
+
+*2026-03-04: Added TaskIterator-First Architecture learning - all SSE client implementations must use TaskIterator as primary pattern, with plain iterators only as internal implementation details. Reference: simple_http/client/tasks/*.
+
+*2026-03-05: CORRECTION - TaskIterator-ONLY with DrivenSendTaskIterator wrappers. After deep review of simple_http/client/tasks/*.rs and valtron/executors/task_iters.rs:
+- TaskIterator IS the core API - pure state machine with NO loops in next()
+- Blocking wrappers use DrivenSendTaskIterator - execution driving happens in wrapper
+- DrivenSendTaskIterator calls run_until_next_state() then task.next() ONCE
+- This way we support blocking Iterator API without loops in TaskIterator
+
+### 11. TaskIterator-ONLY with DrivenSendTaskIterator - Correct Pattern (2026-03-05)
+
+**Key Insight:** After deep review of simple_http/client/tasks/*.rs and valtron/executors/task_iters.rs, the correct pattern is:
+- **TaskIterator**: Pure state machine, NO loops in `next()`, ONE step per call
+- **DrivenSendTaskIterator**: Wrapper that handles execution driving externally
+- **Blocking Iterator API**: Uses DrivenSendTaskIterator, NOT loops in TaskIterator
+
+**What Happened:**
+- Initial updates said "TaskIterator-first" with "blocking wrappers for convenience"
+- User corrected: NO blocking wrappers - TaskIterator IS the API
+- Further correction: Blocking wrappers ARE fine, but use `DrivenSendTaskIterator`
+- The DrivenSendTaskIterator wrapper handles execution driving, not TaskIterator
+
+**Correct Pattern:**
+
+```rust
+// TaskIterator: Pure state machine - NO loops, ONE step per next()
+pub struct EventSourceTask(Option<EventSourceState>);
+
+impl TaskIterator for EventSourceTask {
+    type Ready = Result<Event, EventSourceError>;
+    type Pending = EventSourcePending;
+    type Spawner = BoxedSendExecutionAction;
+
+    fn next(&mut self) -> Option<TaskStatus<...>> {
+        // ONE step only - NO LOOPS
+        match self.0.take()? {
+            // State transitions...
+        }
+    }
+}
+
+// Blocking wrapper using DrivenSendTaskIterator
+pub struct EventSourceIterator {
+    driven: DrivenSendTaskIterator<EventSourceTask>,
+}
+
+impl Iterator for EventSourceIterator {
+    type Item = Result<Event, EventSourceError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // DrivenSendTaskIterator handles execution driving
+        // Calls run_until_next_state() then task.next() ONCE
+        match self.driven.next() {
+            Some(TaskStatus::Ready(result)) => Some(result),
+            // Handle other TaskStatus variants...
+        }
+    }
+}
+
+// DrivenSendTaskIterator implementation (from valtron/executors/task_iters.rs)
+impl<T> Iterator for DrivenSendTaskIterator<T>
+where
+    T: TaskIterator + Send + 'static,
+{
+    type Item = TaskStatus<T::Ready, T::Pending, T::Spawner>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(mut task_iterator) = self.0.take() {
+            // Drive execution externally
+            run_until_next_state();
+
+            // Get ONE result from TaskIterator - NO LOOPS
+            let next_value = task_iterator.next();
+
+            // Restore task for next call
+            if next_value.is_some() {
+                self.0.replace(task_iterator);
+            }
+            next_value
+        } else {
+            None
+        }
+    }
+}
+```
+
+**Key Pattern Points:**
+1. `struct Task(Option<State>)` - Option wrapper for termination
+2. State variants hold `Option<Box<...>>` - Data carried between states
+3. `self.0.take()?` - Take state, return None if already None (done)
+4. `self.0 = Some(...)` - Restore state after processing ONE step
+5. NO LOOPS in TaskIterator `next()` - State machine is step-wise
+6. DrivenSendTaskIterator handles execution driving - calls `run_until_next_state()`
+7. Data moved between states - Not cloned, moved
+
+**Blocking Iterator Options:**
+
+1. **DrivenSendTaskIterator** - Direct wrapper:
+```rust
+let task = EventSourceTask::connect(url)?;
+let driven = drive_iterator(task);  // DrivenSendTaskIterator
+for status in driven {
+    match status {
+        TaskStatus::Ready(event) => println!("Event: {:?}", event),
+        TaskStatus::Delayed(dur) => println!("Reconnecting in {:?}", dur),
+        _ => {}
+    }
+}
+```
+
+**What NOT to Do:**
+- ❌ No loops in TaskIterator `next()`
+- ❌ No state without Option wrapper
+- ❌ No data cloning - move data between states
+- ❌ No `struct Task { state: State }` - must be `struct Task(Option<State>)`
+- ❌ No execution driving in TaskIterator - that's DrivenSendTaskIterator's job
+
+**Note:** Custom `TaskStatusMapper` implementations (like `ReadyConsumingIter`) are ONLY needed when you require special transformation or filtering of `TaskStatus` variants. For most consumer wrappers, simply use `unified::execute_stream()` which returns `DrivenStreamIterator` that already presents a simplified `Stream<Ready, Pending>` interface.
+
+**Reference Files:**
+- `wire/simple_http/client/tasks/send_request.rs` - Full TaskIterator pattern
+- `wire/simple_http/client/tasks/request_redirect.rs` - Redirect handling
+- `wire/simple_http/client/tasks/request_intro.rs` - Intro reading pattern
+- `valtron/executors/task_iters.rs` - DrivenSendTaskIterator, drive_iterator()
+- `valtron/executors/unified.rs` - Unified executor patterns (`execute()`, `execute_stream()`)
+
+---
+
+*2026-03-05: WebSocket feature specification updated with TaskIterator + DrivenSendTaskIterator pattern - same architectural approach as SSE feature.*
+
+---
+
+## Server-Sent Events TaskIterator Implementation (2026-03-08)
+
+### 12. TaskIterator State Machine Pattern - Handle Failures Gracefully
+
+**Key Insight:** When implementing TaskIterator-based state machines, connection failures must transition through intermediate states to allow tests to observe the failure progression, rather than returning `None` immediately.
+
+**What Happened:**
+- Initial implementation returned `None` (Closed state) immediately when `Connection::without_timeout()` failed
+- Tests expected: first call → `Pending`, second call → `None`
+- Fix: Added intermediate `Connecting` state to signal connection attempt before failure
+
+**Correct Pattern for Connection Failures:**
+
+```rust
+enum EventSourceState {
+    Init(EventSourceConfig),
+    Connecting,  // Intermediate state for connection attempt
+    Reading(SseParser<RawStream>),
+    Closed,
+}
+
+impl TaskIterator for EventSourceTask {
+    fn next(&mut self) -> Option<TaskStatus<...>> {
+        match state {
+            EventSourceState::Init(config) => {
+                // ... DNS resolution ...
+
+                // Create connection
+                let Ok(connection) = Connection::without_timeout(*addr) else {
+                    // DON'T: return None immediately
+                    // DO: Transition to intermediate state, return Pending
+                    self.state = Some(EventSourceState::Connecting);
+                    return Some(TaskStatus::Pending(EventSourceProgress::Connecting));
+                };
+
+                // Success path...
+            }
+
+            EventSourceState::Connecting => {
+                // Previous connection attempt failed
+                // Now transition to Closed
+                self.state = Some(EventSourceState::Closed);
+                None
+            }
+
+            // ... other states ...
+        }
+    }
+}
+```
+
+**Benefits:**
+1. Tests can verify connection attempt was made (`Pending` on first call)
+2. Tests can verify failure handling (`None` on second call)
+3. Matches real-world async behavior (attempt → failure → cleanup)
+4. Consistent with other TaskIterator implementations in `simple_http/client/tasks/`
+
+**URL Validation Pattern:**
+
+Validate URLs in `connect()` method, not lazily in `next()`:
+
+```rust
+pub fn connect(resolver: R, url: impl Into<String>) -> Result<Self, EventSourceError> {
+    let url_str = url.into();
+
+    // Validate upfront - fail fast
+    let uri = Uri::parse(&url_str)
+        .map_err(|e| EventSourceError::InvalidUrl(format!("...")))?;
+
+    // Check scheme using type-safe methods
+    if !uri.scheme().is_http() && !uri.scheme().is_https() {
+        return Err(EventSourceError::InvalidUrl(...));
+    }
+
+    Ok(Self { ... })
+}
+```
+
+**Benefits:**
+1. Fail fast - errors caught at construction time
+2. Clear error messages with context
+3. Use type-safe scheme checking (`uri.scheme().is_http()`) instead of string comparison
+
+**Files Modified:**
+- `backends/foundation_core/src/wire/event_source/task.rs` - Fixed URL validation and connection failure handling
+
+**Tests Fixed:**
+- `test_event_source_task_invalid_url` - Now properly validates URLs in `connect()`
+- `test_event_source_task_connection_refused` - Now properly transitions through `Connecting` state
+
+---
+
+*2026-03-08: Added TaskIterator state machine pattern for handling connection failures - use intermediate states to allow tests to observe failure progression.*
+
+### 13. Valtron Executor Boundary - Correct Consumer Integration (2026-03-08)
+
+**Key Insight:** TaskIterators MUST NOT be wrapped in `impl Iterator` directly. The ONLY correct boundaries for consuming TaskIterators are `unified::execute()` and `unified::execute_stream()` which schedule the task into the valtron executor.
+
+**What Happened:**
+- Initial documentation showed incorrect patterns with `impl Iterator for EventSourceIterator` that wrapped TaskIterators directly
+- User corrected: This bypasses the executor's handling of `TaskStatus::Spawn`, `TaskStatus::Delayed`, and other variants
+- The correct pattern: Use `unified::execute_stream()` or `unified::execute()` at the boundary
+
+**Correct Architecture:**
+
+```
+TaskIterator (EventSourceTask, ReconnectingEventSourceTask)
+    ↓
+unified::execute_stream() / unified::execute()
+    ↓
+DrivenStreamIterator / DrivenRecvIterator (executor-driven)
+    ↓
+Consumer wrapper (optional - encapsulates valtron details)
+```
+
+**WRONG Pattern (DO NOT FOLLOW):**
+```rust
+// WRONG: Wrapping TaskIterator directly bypasses executor
+pub struct EventSourceIterator {
+    task: EventSourceTask,
+}
+
+impl Iterator for EventSourceIterator {
+    type Item = Result<Event, EventSourceError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.task.next() {  // BYPASSES EXECUTOR!
+            Some(TaskStatus::Ready(result)) => Some(result),
+            Some(TaskStatus::Delayed(_)) => self.next(),  // Recursive loop!
+            Some(TaskStatus::Pending(_)) => self.next(),
+            Some(TaskStatus::Spawn(_)) => self.next(),
+            _ => None,
+        }
+    }
+}
+```
+
+**CORRECT Pattern (Executor Boundary):**
+```rust
+use foundation_core::valtron::executors::unified;
+use foundation_core::valtron::Stream;
+
+// TaskIterator - NO impl Iterator
+pub struct EventSourceTask { ... }
+impl TaskIterator for EventSourceTask { ... }
+
+// Consumer wrapper uses unified::execute_stream() internally
+pub struct EventSourceClient {
+    inner: DrivenStreamIterator<EventSourceTask>,
+}
+
+impl EventSourceClient {
+    pub fn connect(...) -> Result<Self, EventSourceError> {
+        let task = EventSourceTask::connect(...)?;
+        // CORRECT: unified::execute_stream() spawns task into executor
+        let inner = unified::execute_stream(task, None)?;
+        Ok(Self { inner })
+    }
+}
+
+// VALID: Wrapping DrivenStreamIterator (already executor-driven)
+impl Iterator for EventSourceClient {
+    type Item = Result<Event, EventSourceError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.inner.next() {
+            Some(Stream::Next(event)) => Some(Ok(event)),
+            Some(Stream::Pending(_)) => self.next(),  // Executor handles internals
+            Some(Stream::Delayed(_)) => self.next(),
+            Some(Stream::Ignore) => self.next(),
+            Some(Stream::Init) => self.next(),
+            None => None,
+        }
+    }
+}
+```
+
+**Key Distinctions:**
+
+| Pattern | Correct? | Why |
+|---------|----------|-----|
+| `impl Iterator` wrapping raw `TaskIterator` | ❌ NO | Bypasses executor's Spawn/Delayed handling |
+| `impl Iterator` wrapping `DrivenStreamIterator` | ✅ YES | Executor already handles all TaskStatus internals |
+| Consumer using `unified::execute_stream()` directly | ✅ YES | Direct boundary usage |
+| TaskIterator wrapping another TaskIterator | ✅ YES | Properly forwards all TaskStatus variants |
+
+**Why This Matters:**
+
+1. **Spawn Handling**: Executor schedules sub-tasks via `TaskStatus::Spawn` - manual wrappers can't handle this
+2. **Delayed Timing**: Executor respects `TaskStatus::Delayed(duration)` - manual wrappers would busy-loop
+3. **Pending State**: Executor polls efficiently - manual wrappers waste CPU
+4. **Composition**: TaskIterators compose via `inlined_task()` - only executor can manage this
+
+**Files Updated:**
+- `specifications/02-build-http-client/features/server-sent-events/feature.md` - Corrected consumer wrapper pattern
+- `specifications/02-build-http-client/features/server-sent-events/ARCHITECTURE.md` - Added warnings and correct pattern examples
+
+**Reference Files:**
+- `valtron/executors/unified.rs` - `execute()`, `execute_stream()` boundary functions
+- `valtron/executors/drivers.rs` - `DrivenRecvIterator`, `DrivenStreamIterator` implementations
+- `valtron/task.rs` - `TaskIterator` trait, `TaskStatus` variants
+- `wire/simple_http/client/tasks/send_request.rs` - Canonical TaskIterator composition pattern
+
+---

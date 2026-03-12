@@ -53,6 +53,7 @@
 #![allow(clippy::module_name_repetitions)] // Common for testing crates
 
 pub mod http;
+pub mod io;
 pub mod metrics;
 pub mod netcap;
 pub mod scenarios;
@@ -60,6 +61,7 @@ pub mod stress;
 
 // Re-export commonly used items
 pub use http::TestHttpServer;
+pub use io::{SharedBuffer, SharedBufferReader, SharedBufferWriter};
 pub use metrics::{Metrics, PerformanceReport};
 pub use netcap::ResourcesHttpServer;
 pub use stress::{StressConfig, StressHarness, StressResult};
