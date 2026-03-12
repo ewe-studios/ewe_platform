@@ -24,7 +24,6 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::{
     collections::BTreeMap, convert::Infallible, io::Read, str::FromStr, string::FromUtf8Error,
-    time::Duration,
 };
 
 pub type Trailer = String;
@@ -3045,7 +3044,6 @@ pub struct HttpRequestReader<F: BodyExtractor, T: std::io::Read> {
     max_header_key_length: Option<usize>,
     max_header_value_length: Option<usize>,
     max_header_values_count: Option<usize>,
-    read_timeout: Option<Duration>,
 }
 
 #[derive(Clone)]
@@ -3085,18 +3083,6 @@ where
     }
 }
 
-impl<F, T> HttpSendRequestReader<F, T>
-where
-    F: BodyExtractor,
-    T: std::io::Read + Send + 'static,
-{
-    /// Set the read timeout for Slowloris protection.
-    pub fn with_read_timeout(mut self, timeout: Duration) -> Self {
-        self.0 = self.0.with_read_timeout(timeout);
-        self
-    }
-}
-
 impl<F, T> Iterator for HttpSendRequestReader<F, T>
 where
     F: BodyExtractor,
@@ -3123,7 +3109,6 @@ where
             max_header_values_count: None,
             state: HttpReadState::Intro,
             reader,
-            read_timeout: None,
         }
     }
 
@@ -3140,7 +3125,6 @@ where
             max_header_values_count: None,
             state: read_state,
             reader,
-            read_timeout: None,
         }
     }
 
@@ -3157,7 +3141,6 @@ where
             max_body_length: Some(max_body_length),
             state: HttpReadState::Intro,
             reader,
-            read_timeout: None,
         }
     }
 
@@ -3176,7 +3159,6 @@ where
             max_header_values_count: Some(max_header_values_count),
             max_header_value_length: Some(max_header_value_length),
             state: HttpReadState::Intro,
-            read_timeout: None,
         }
     }
 
@@ -3196,76 +3178,12 @@ where
             max_header_values_count: Some(max_header_values_count),
             max_header_value_length: Some(max_header_value_length),
             state: HttpReadState::Intro,
-            read_timeout: None,
         }
     }
 
-    /// Set the read timeout for Slowloris protection.
-    ///
-    /// If the specified duration elapses between receiving bytes while reading
-    /// headers or body, the reader will return a `ReadTimeout` error.
-    ///
-    /// # Arguments
-    ///
-    /// * `timeout` - The maximum duration to wait between receiving bytes.
-    ///
-    /// # Returns
-    ///
-    /// Self with the timeout configured.
-    pub fn with_read_timeout(mut self, timeout: Duration) -> Self {
-        self.read_timeout = Some(timeout);
-        self
-    }
-}
-
-// Methods requiring Send bound (for timeout support)
-impl<F, T> HttpRequestReader<F, T>
-where
-    F: BodyExtractor,
-    T: std::io::Read + Send + 'static,
-{
-    /// Read a line with timeout protection.
-    ///
-    /// Returns HttpReaderError::ReadTimeout if the read operation exceeds the configured timeout.
-    fn read_line_with_timeout(&mut self, buf: &mut String) -> Result<usize, HttpReaderError> {
-        if let Some(timeout) = self.read_timeout {
-            // Use a channel-based timeout for reading
-            let (tx, rx) = std::sync::mpsc::channel();
-            let mut reader = self.reader.clone();
-
-            // Spawn a thread to perform the read
-            let handle = std::thread::spawn(move || {
-                let mut local_buf = String::new();
-                let result = reader.do_once_mut(|binding| binding.read_line(&mut local_buf));
-                let _ = tx.send((result, local_buf));
-            });
-
-            // Wait for either the read to complete or the timeout
-            match rx.recv_timeout(timeout) {
-                Ok((result, local_buf)) => {
-                    let _ = handle.join();
-                    match result {
-                        Ok(_) => {
-                            *buf = local_buf;
-                            Ok(buf.len())
-                        }
-                        Err(_) => Err(HttpReaderError::ReadFailed),
-                    }
-                }
-                Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
-                    // Note: The read thread is still running but will complete eventually
-                    Err(HttpReaderError::ReadTimeout(timeout))
-                }
-                Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
-                    Err(HttpReaderError::ReadFailed)
-                }
-            }
-        } else {
-            // No timeout configured, perform normal read
-            self.reader
-                .do_once_mut(|binding| binding.read_line(buf))
-                .map_err(|_| HttpReaderError::ReadFailed)
-        }
+    /// Returns a mutable reference to the underlying stream.
+    pub fn stream_mut(&mut self) -> &mut SharedByteBufferStream<T> {
+        &mut self.reader
     }
 }
 
@@ -3289,14 +3207,9 @@ where
                 let mut line = String::new();
 
                 let line_read_result = self
-                    .read_line_with_timeout(&mut line)
-                    .map_err(|err| {
-                        // Preserve ReadTimeout errors, wrap others in LineReadFailed
-                        match err {
-                            HttpReaderError::ReadTimeout(_) => err,
-                            _ => HttpReaderError::LineReadFailed(Box::new(err)),
-                        }
-                    });
+                    .reader
+                    .do_once_mut(|binding| binding.read_line(&mut line))
+                    .map_err(|err| HttpReaderError::LineReadFailed(Box::new(err)));
 
                 if line_read_result.is_err() {
                     tracing::debug!("Http read error: {:?}", &line_read_result);
@@ -3565,7 +3478,6 @@ pub struct HttpResponseReader<F: BodyExtractor, T: std::io::Read + 'static> {
     max_header_key_length: Option<usize>,
     max_header_value_length: Option<usize>,
     max_header_values_count: Option<usize>,
-    read_timeout: Option<Duration>,
 }
 
 #[derive(Clone)]
@@ -3617,18 +3529,6 @@ where
     }
 }
 
-impl<F, T> HttpSendResponseReader<F, T>
-where
-    F: BodyExtractor,
-    T: std::io::Read + Send + 'static,
-{
-    /// Set the read timeout for Slowloris protection.
-    pub fn with_read_timeout(mut self, timeout: Duration) -> Self {
-        self.0 = self.0.with_read_timeout(timeout);
-        self
-    }
-}
-
 impl<F, T> HttpResponseReader<F, T>
 where
     F: BodyExtractor,
@@ -3643,7 +3543,6 @@ where
             max_header_values_count: None,
             state: HttpReadState::Intro,
             reader,
-            read_timeout: None,
         }
     }
 
@@ -3660,7 +3559,6 @@ where
             max_header_values_count: None,
             state: read_state,
             reader,
-            read_timeout: None,
         }
     }
 
@@ -3677,7 +3575,6 @@ where
             max_body_length: Some(max_body_length),
             state: HttpReadState::Intro,
             reader,
-            read_timeout: None,
         }
     }
 
@@ -3696,7 +3593,6 @@ where
             max_header_values_count: Some(max_header_values_count),
             max_header_value_length: Some(max_header_value_length),
             state: HttpReadState::Intro,
-            read_timeout: None,
         }
     }
 
@@ -3716,99 +3612,12 @@ where
             max_header_values_count: Some(max_header_values_count),
             max_header_value_length: Some(max_header_value_length),
             state: HttpReadState::Intro,
-            read_timeout: None,
         }
-    }
-
-    /// Set the read timeout for Slowloris protection.
-    ///
-    /// If the specified duration elapses between receiving bytes while reading
-    /// headers or body, the reader will return a `ReadTimeout` error.
-    ///
-    /// # Arguments
-    ///
-    /// * `timeout` - The maximum duration to wait between receiving bytes.
-    ///
-    /// # Returns
-    ///
-    /// Self with the timeout configured.
-    pub fn with_read_timeout(mut self, timeout: Duration) -> Self {
-        self.read_timeout = Some(timeout);
-        self
     }
 
     /// Returns a mutable reference to the underlying stream.
-    ///
-    /// WHY: Allows access to the stream for operations like writing additional
-    /// data or inspecting stream state while maintaining ownership in the reader.
-    ///
-    /// WHAT: Provides mutable access to the `SharedByteBufferStream` wrapped
-    /// by this reader.
-    ///
-    /// # Returns
-    ///
-    /// A mutable reference to the underlying `SharedByteBufferStream<T>`.
-    ///
-    /// # Examples
-    ///
-    /// ```ignore
-    /// let mut reader = HttpResponseReader::new(stream, body_extractor);
-    /// let stream = reader.stream_mut();
-    /// // Can now write to or manipulate the stream
-    /// ```
     pub fn stream_mut(&mut self) -> &mut SharedByteBufferStream<T> {
         &mut self.reader
-    }
-}
-
-// Methods requiring Send bound (for timeout support)
-impl<F, T> HttpResponseReader<F, T>
-where
-    F: BodyExtractor,
-    T: std::io::Read + Send + 'static,
-{
-    /// Read a line with timeout protection.
-    ///
-    /// Returns HttpReaderError::ReadTimeout if the read operation exceeds the configured timeout.
-    fn read_line_with_timeout(&mut self, buf: &mut String) -> Result<usize, HttpReaderError> {
-        if let Some(timeout) = self.read_timeout {
-            // Use a channel-based timeout for reading
-            let (tx, rx) = std::sync::mpsc::channel();
-            let mut reader = self.reader.clone();
-
-            // Spawn a thread to perform the read
-            let handle = std::thread::spawn(move || {
-                let mut local_buf = String::new();
-                let result = reader.do_once_mut(|binding| binding.read_line(&mut local_buf));
-                let _ = tx.send((result, local_buf));
-            });
-
-            // Wait for either the read to complete or the timeout
-            match rx.recv_timeout(timeout) {
-                Ok((result, local_buf)) => {
-                    let _ = handle.join();
-                    match result {
-                        Ok(_) => {
-                            *buf = local_buf;
-                            Ok(buf.len())
-                        }
-                        Err(_) => Err(HttpReaderError::ReadFailed),
-                    }
-                }
-                Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
-                    // Note: The read thread is still running but will complete eventually
-                    Err(HttpReaderError::ReadTimeout(timeout))
-                }
-                Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
-                    Err(HttpReaderError::ReadFailed)
-                }
-            }
-        } else {
-            // No timeout configured, perform normal read
-            self.reader
-                .do_once_mut(|binding| binding.read_line(buf))
-                .map_err(|_| HttpReaderError::ReadFailed)
-        }
     }
 }
 
@@ -3832,14 +3641,9 @@ where
                 let mut line = String::new();
 
                 let line_read_result = self
-                    .read_line_with_timeout(&mut line)
-                    .map_err(|err| {
-                        // Preserve ReadTimeout errors, wrap others in LineReadFailed
-                        match err {
-                            HttpReaderError::ReadTimeout(_) => err,
-                            _ => HttpReaderError::LineReadFailed(Box::new(err)),
-                        }
-                    });
+                    .reader
+                    .do_once_mut(|binding| binding.read_line(&mut line))
+                    .map_err(|err| HttpReaderError::LineReadFailed(Box::new(err)));
 
                 if line_read_result.is_err() {
                     tracing::debug!("Http read error: {:?}", &line_read_result);
