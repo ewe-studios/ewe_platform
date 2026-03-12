@@ -3,9 +3,10 @@ ARG UBUNTU_VERSION=22.04
 FROM nvcr.io/nvidia/cuda:${CUDA_VERSION}-devel-ubuntu${UBUNTU_VERSION} AS base-cuda
 
 # Install requirements for rustup install + bindgen: https://rust-lang.github.io/rust-bindgen/requirements.html
-RUN DEBIAN_FRONTEND=noninteractive apt update -y && apt install -y curl llvm-dev libclang-dev clang pkg-config libssl-dev cmake git
+RUN DEBIAN_FRONTEND=noninteractive apt update -y && apt install -y curl llvm-dev libclang-dev clang pkg-config libssl-dev cmake git mold
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
 ENV PATH=/root/.cargo/bin:$PATH
+ENV CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=mold
 
 COPY . .
 RUN cargo build --bin simple --features cuda
