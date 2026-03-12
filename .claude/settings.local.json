@@ -19,7 +19,8 @@
       "WebFetch(domain:platform.openai.com)",
       "WebFetch(domain:cookbook.openai.com)",
       "WebFetch(domain:github.com)",
-      "Bash(wget:*)"
+      "Bash(wget:*)",
+      "Bash(./scripts/modules.sh 2>&1)"
     ]
   }
 }

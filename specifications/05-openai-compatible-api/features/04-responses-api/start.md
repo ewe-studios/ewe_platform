@@ -6,6 +6,8 @@ created: 2026-03-08
 
 # Responses API Feature Workflow
 
+**Important**: Place tests in correct location - follow language testing skill or project test structure.
+
 ## Tasks Summary
 
 1. Create Responses API types module

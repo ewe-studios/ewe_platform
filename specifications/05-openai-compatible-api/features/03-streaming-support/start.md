@@ -6,6 +6,8 @@ created: 2026-03-08
 
 # Streaming Support Feature Workflow
 
+**Important**: Place tests in correct location - follow language testing skill or project test structure.
+
 ## Tasks Summary
 
 1. Check for existing SSE support in foundation_core
