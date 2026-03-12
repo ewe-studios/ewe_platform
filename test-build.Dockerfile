@@ -8,7 +8,8 @@ RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
 ENV PATH=/root/.cargo/bin:$PATH
 
 COPY . .
-RUN git submodule update --init --depth=1 --recursive infrastructure/llama-bindings/llama.cpp
+RUN rm -rf .git && git init && git remote add origin https://github.com/ewe-studios/ewe_platform.git
+RUN git submodule update --init --depth=1 infrastructure/llama-bindings/llama.cpp
 RUN cargo build --bin simple --features cuda
 
 FROM nvcr.io/nvidia/cuda:${CUDA_VERSION}-runtime-ubuntu${UBUNTU_VERSION} AS base-cuda-runtime
