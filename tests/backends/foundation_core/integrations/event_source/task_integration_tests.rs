@@ -8,7 +8,9 @@
 
 use foundation_core::valtron::TaskIterator;
 use foundation_core::valtron::TaskStatus;
-use foundation_core::wire::event_source::{Event, EventSourceProgress, EventSourceTask, ParseResult};
+use foundation_core::wire::event_source::{
+    Event, EventSourceProgress, EventSourceTask, ParseResult,
+};
 use foundation_core::wire::simple_http::client::{MockDnsResolver, StaticSocketAddr};
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use std::net::SocketAddr;
@@ -74,7 +76,10 @@ fn test_event_source_task_connects_to_server() {
     // Third call: Reading → parse event → Ready(ParseResult)
     let third = task.next();
     match third {
-        Some(TaskStatus::Ready(ParseResult { event: Event::Message { data, .. }, .. })) => {
+        Some(TaskStatus::Ready(ParseResult {
+            event: Event::Message { data, .. },
+            ..
+        })) => {
             assert_eq!(data, "hello", "Event data should be 'hello'");
         }
         other => panic!(
@@ -130,10 +135,15 @@ fn test_event_source_task_dns_resolves_to_server() {
     // Third call: should yield the event
     let third = task.next();
     match third {
-        Some(TaskStatus::Ready(ParseResult { event: Event::Message { data, .. }, .. })) => {
+        Some(TaskStatus::Ready(ParseResult {
+            event: Event::Message { data, .. },
+            ..
+        })) => {
             assert_eq!(data, "resolved");
         }
-        other => panic!("Expected Ready(ParseResult with Event::Message) with 'resolved', got {other:?}"),
+        other => {
+            panic!("Expected Ready(ParseResult with Event::Message) with 'resolved', got {other:?}")
+        }
     }
 }
 
@@ -174,10 +184,15 @@ fn test_event_source_task_url_with_query() {
     // Third call: should receive the event
     let third = task.next();
     match third {
-        Some(TaskStatus::Ready(ParseResult { event: Event::Message { data, .. }, .. })) => {
+        Some(TaskStatus::Ready(ParseResult {
+            event: Event::Message { data, .. },
+            ..
+        })) => {
             assert_eq!(data, "with-query");
         }
-        other => panic!("Expected Ready(ParseResult with Event::Message) with 'with-query', got {other:?}"),
+        other => panic!(
+            "Expected Ready(ParseResult with Event::Message) with 'with-query', got {other:?}"
+        ),
     }
 }
 
@@ -218,10 +233,15 @@ fn test_event_source_task_localhost_url() {
     // Third call: should receive the event
     let third = task.next();
     match third {
-        Some(TaskStatus::Ready(ParseResult { event: Event::Message { data, .. }, .. })) => {
+        Some(TaskStatus::Ready(ParseResult {
+            event: Event::Message { data, .. },
+            ..
+        })) => {
             assert_eq!(data, "localhost");
         }
-        other => panic!("Expected Ready(ParseResult with Event::Message) with 'localhost', got {other:?}"),
+        other => panic!(
+            "Expected Ready(ParseResult with Event::Message) with 'localhost', got {other:?}"
+        ),
     }
 }
 
@@ -236,8 +256,11 @@ fn test_event_source_task_connection_refused() {
 
     let resolver = StaticSocketAddr::new(addr);
 
-    let mut task =
-        EventSourceTask::connect(resolver, &format!("http://{}:{}/events", addr.ip(), addr.port())).unwrap();
+    let mut task = EventSourceTask::connect(
+        resolver,
+        &format!("http://{}:{}/events", addr.ip(), addr.port()),
+    )
+    .unwrap();
 
     // First call: Init → Connecting, returns Pending(Connecting)
     let first = task.next();
@@ -252,7 +275,10 @@ fn test_event_source_task_connection_refused() {
 
     // Second call: Connection fails → Closed → None
     let second = task.next();
-    assert!(second.is_none(), "Connection refused should return None (Closed)");
+    assert!(
+        second.is_none(),
+        "Connection refused should return None (Closed)"
+    );
 }
 
 /// WHY: EventSourceTask should fully exhaust after server closes connection.
@@ -279,7 +305,10 @@ fn test_event_source_task_stream_exhaust() {
             TaskStatus::Pending(EventSourceProgress::Reading) => {
                 got_pending_reading = true;
             }
-            TaskStatus::Ready(ParseResult { event: Event::Message { ref data, .. }, .. }) => {
+            TaskStatus::Ready(ParseResult {
+                event: Event::Message { ref data, .. },
+                ..
+            }) => {
                 assert_eq!(data, "done", "Event data should be 'done'");
                 got_event = true;
             }
@@ -287,10 +316,22 @@ fn test_event_source_task_stream_exhaust() {
         }
     }
 
-    assert!(got_pending_connecting, "Should have seen Pending(Connecting) during lifecycle");
-    assert!(got_pending_reading, "Should have seen Pending(Reading) during lifecycle");
-    assert!(got_event, "Should have received at least one event before exhaustion");
+    assert!(
+        got_pending_connecting,
+        "Should have seen Pending(Connecting) during lifecycle"
+    );
+    assert!(
+        got_pending_reading,
+        "Should have seen Pending(Reading) during lifecycle"
+    );
+    assert!(
+        got_event,
+        "Should have received at least one event before exhaustion"
+    );
 
     // Task should be exhausted (Closed state is terminal)
-    assert!(task.next().is_none(), "Exhausted task should keep returning None");
+    assert!(
+        task.next().is_none(),
+        "Exhausted task should keep returning None"
+    );
 }

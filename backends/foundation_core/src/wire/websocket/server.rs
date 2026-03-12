@@ -9,7 +9,9 @@
 
 use crate::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
-use crate::wire::simple_http::{Http11, RenderHttp, SimpleHeader, SimpleOutgoingResponse, SimpleIncomingRequest, Status};
+use crate::wire::simple_http::{
+    Http11, RenderHttp, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
+};
 
 use super::batch_writer::BatchFrameWriter;
 use super::error::WebSocketError;
@@ -64,7 +66,10 @@ impl WebSocketUpgrade {
         }
 
         // Check Sec-WebSocket-Key is present
-        if !request.headers.contains_key(&SimpleHeader::SEC_WEBSOCKET_KEY) {
+        if !request
+            .headers
+            .contains_key(&SimpleHeader::SEC_WEBSOCKET_KEY)
+        {
             return false;
         }
 
@@ -142,14 +147,16 @@ impl WebSocketUpgrade {
             builder = builder.add_header(SimpleHeader::SEC_WEBSOCKET_PROTOCOL, protocol);
         }
 
-        let response = builder
-            .build()
-            .map_err(|e| WebSocketError::ProtocolError(format!("Failed to build response: {}", e)))?;
+        let response = builder.build().map_err(|e| {
+            WebSocketError::ProtocolError(format!("Failed to build response: {}", e))
+        })?;
 
         // Render response to bytes
         let response_bytes_vec = Http11::response(response)
             .http_render_string()
-            .map_err(|e| WebSocketError::ProtocolError(format!("Failed to render response: {}", e)))?;
+            .map_err(|e| {
+                WebSocketError::ProtocolError(format!("Failed to render response: {}", e))
+            })?;
 
         let response_bytes: Vec<Vec<u8>> = response_bytes_vec
             .into_bytes()

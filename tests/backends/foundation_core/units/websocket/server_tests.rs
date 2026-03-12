@@ -2,8 +2,8 @@
 
 //! WebSocket server-side upgrade tests (RFC 6455 Section 4.2).
 
-use foundation_core::wire::websocket::{WebSocketUpgrade, WebSocketServerConnection};
 use foundation_core::wire::simple_http::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
+use foundation_core::wire::websocket::{WebSocketServerConnection, WebSocketUpgrade};
 use tracing_test::traced_test;
 
 // Helper to build a mock incoming request for testing
@@ -35,7 +35,10 @@ fn test_is_upgrade_request_valid() {
         vec![
             (SimpleHeader::UPGRADE, vec!["websocket".to_string()]),
             (SimpleHeader::CONNECTION, vec!["Upgrade".to_string()]),
-            (SimpleHeader::SEC_WEBSOCKET_KEY, vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()]),
+            (
+                SimpleHeader::SEC_WEBSOCKET_KEY,
+                vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()],
+            ),
             (SimpleHeader::SEC_WEBSOCKET_VERSION, vec!["13".to_string()]),
         ],
     );
@@ -53,7 +56,10 @@ fn test_is_upgrade_request_missing_upgrade() {
         "/chat",
         vec![
             (SimpleHeader::CONNECTION, vec!["Upgrade".to_string()]),
-            (SimpleHeader::SEC_WEBSOCKET_KEY, vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()]),
+            (
+                SimpleHeader::SEC_WEBSOCKET_KEY,
+                vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()],
+            ),
             (SimpleHeader::SEC_WEBSOCKET_VERSION, vec!["13".to_string()]),
         ],
     );
@@ -72,7 +78,10 @@ fn test_is_upgrade_request_case_insensitive_upgrade() {
         vec![
             (SimpleHeader::UPGRADE, vec!["WebSocket".to_string()]),
             (SimpleHeader::CONNECTION, vec!["Upgrade".to_string()]),
-            (SimpleHeader::SEC_WEBSOCKET_KEY, vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()]),
+            (
+                SimpleHeader::SEC_WEBSOCKET_KEY,
+                vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()],
+            ),
             (SimpleHeader::SEC_WEBSOCKET_VERSION, vec!["13".to_string()]),
         ],
     );
@@ -91,7 +100,10 @@ fn test_is_upgrade_request_wrong_method() {
         vec![
             (SimpleHeader::UPGRADE, vec!["websocket".to_string()]),
             (SimpleHeader::CONNECTION, vec!["Upgrade".to_string()]),
-            (SimpleHeader::SEC_WEBSOCKET_KEY, vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()]),
+            (
+                SimpleHeader::SEC_WEBSOCKET_KEY,
+                vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()],
+            ),
             (SimpleHeader::SEC_WEBSOCKET_VERSION, vec!["13".to_string()]),
         ],
     );
@@ -128,13 +140,19 @@ fn test_is_upgrade_request_wrong_version() {
         vec![
             (SimpleHeader::UPGRADE, vec!["websocket".to_string()]),
             (SimpleHeader::CONNECTION, vec!["Upgrade".to_string()]),
-            (SimpleHeader::SEC_WEBSOCKET_KEY, vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()]),
+            (
+                SimpleHeader::SEC_WEBSOCKET_KEY,
+                vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()],
+            ),
             (SimpleHeader::SEC_WEBSOCKET_VERSION, vec!["12".to_string()]),
         ],
     );
 
     let result = WebSocketUpgrade::is_upgrade_request(&request);
-    assert!(!result, "should reject request with wrong Sec-WebSocket-Version");
+    assert!(
+        !result,
+        "should reject request with wrong Sec-WebSocket-Version"
+    );
 }
 
 // Test 7: is_upgrade_request accepts case-insensitive Connection value
@@ -147,7 +165,10 @@ fn test_is_upgrade_request_case_insensitive_connection() {
         vec![
             (SimpleHeader::UPGRADE, vec!["websocket".to_string()]),
             (SimpleHeader::CONNECTION, vec!["UPGRADE".to_string()]),
-            (SimpleHeader::SEC_WEBSOCKET_KEY, vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()]),
+            (
+                SimpleHeader::SEC_WEBSOCKET_KEY,
+                vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()],
+            ),
             (SimpleHeader::SEC_WEBSOCKET_VERSION, vec!["13".to_string()]),
         ],
     );
@@ -166,7 +187,10 @@ fn test_extract_key() {
         vec![
             (SimpleHeader::UPGRADE, vec!["websocket".to_string()]),
             (SimpleHeader::CONNECTION, vec!["Upgrade".to_string()]),
-            (SimpleHeader::SEC_WEBSOCKET_KEY, vec!["test-key-123".to_string()]),
+            (
+                SimpleHeader::SEC_WEBSOCKET_KEY,
+                vec!["test-key-123".to_string()],
+            ),
             (SimpleHeader::SEC_WEBSOCKET_VERSION, vec!["13".to_string()]),
         ],
     );
@@ -203,9 +227,15 @@ fn test_extract_subprotocols() {
         vec![
             (SimpleHeader::UPGRADE, vec!["websocket".to_string()]),
             (SimpleHeader::CONNECTION, vec!["Upgrade".to_string()]),
-            (SimpleHeader::SEC_WEBSOCKET_KEY, vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()]),
+            (
+                SimpleHeader::SEC_WEBSOCKET_KEY,
+                vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()],
+            ),
             (SimpleHeader::SEC_WEBSOCKET_VERSION, vec!["13".to_string()]),
-            (SimpleHeader::SEC_WEBSOCKET_PROTOCOL, vec!["chat, superchat".to_string()]),
+            (
+                SimpleHeader::SEC_WEBSOCKET_PROTOCOL,
+                vec!["chat, superchat".to_string()],
+            ),
         ],
     );
 
@@ -223,13 +253,19 @@ fn test_extract_subprotocols_missing() {
         vec![
             (SimpleHeader::UPGRADE, vec!["websocket".to_string()]),
             (SimpleHeader::CONNECTION, vec!["Upgrade".to_string()]),
-            (SimpleHeader::SEC_WEBSOCKET_KEY, vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()]),
+            (
+                SimpleHeader::SEC_WEBSOCKET_KEY,
+                vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()],
+            ),
             (SimpleHeader::SEC_WEBSOCKET_VERSION, vec!["13".to_string()]),
         ],
     );
 
     let protocols = WebSocketUpgrade::extract_subprotocols(&request);
-    assert!(protocols.is_none(), "should return None for missing protocol header");
+    assert!(
+        protocols.is_none(),
+        "should return None for missing protocol header"
+    );
 }
 
 // Test 12: accept builds 101 response with correct accept key
@@ -242,7 +278,10 @@ fn test_accept_builds_response() {
         vec![
             (SimpleHeader::UPGRADE, vec!["websocket".to_string()]),
             (SimpleHeader::CONNECTION, vec!["Upgrade".to_string()]),
-            (SimpleHeader::SEC_WEBSOCKET_KEY, vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()]),
+            (
+                SimpleHeader::SEC_WEBSOCKET_KEY,
+                vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()],
+            ),
             (SimpleHeader::SEC_WEBSOCKET_VERSION, vec!["13".to_string()]),
         ],
     );
@@ -251,20 +290,42 @@ fn test_accept_builds_response() {
     assert!(result.is_ok(), "should build 101 response");
 
     let (response_bytes, accept_key) = result.unwrap();
-    assert!(!response_bytes.is_empty(), "response bytes should not be empty");
+    assert!(
+        !response_bytes.is_empty(),
+        "response bytes should not be empty"
+    );
 
     // RFC 6455 example: key "dGhlIHNhbXBsZSBub25jZQ==" should produce accept "s3pPLMBiTxaQ9kYGzzhZRbK+xOo="
-    assert_eq!(accept_key, "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=", "accept key should match RFC 6455 example");
+    assert_eq!(
+        accept_key, "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=",
+        "accept key should match RFC 6455 example"
+    );
 
     // Verify response contains expected headers
-    let response_str: String = response_bytes.iter()
+    let response_str: String = response_bytes
+        .iter()
         .flat_map(|chunk| chunk.iter().map(|&b| b as char))
         .collect();
-    assert!(response_str.contains("101"), "response should contain 101 status");
-    assert!(response_str.contains("Switching Protocols"), "response should contain Switching Protocols text");
-    assert!(response_str.contains("websocket"), "response should contain websocket upgrade");
-    assert!(response_str.contains("Upgrade"), "response should contain Connection Upgrade");
-    assert!(response_str.contains("s3pPLMBiTxaQ9kYGzzhZRbK+xOo="), "response should contain accept key");
+    assert!(
+        response_str.contains("101"),
+        "response should contain 101 status"
+    );
+    assert!(
+        response_str.contains("Switching Protocols"),
+        "response should contain Switching Protocols text"
+    );
+    assert!(
+        response_str.contains("websocket"),
+        "response should contain websocket upgrade"
+    );
+    assert!(
+        response_str.contains("Upgrade"),
+        "response should contain Connection Upgrade"
+    );
+    assert!(
+        response_str.contains("s3pPLMBiTxaQ9kYGzzhZRbK+xOo="),
+        "response should contain accept key"
+    );
 }
 
 // Test 13: accept with subprotocol includes it in response
@@ -277,7 +338,10 @@ fn test_accept_with_subprotocol() {
         vec![
             (SimpleHeader::UPGRADE, vec!["websocket".to_string()]),
             (SimpleHeader::CONNECTION, vec!["Upgrade".to_string()]),
-            (SimpleHeader::SEC_WEBSOCKET_KEY, vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()]),
+            (
+                SimpleHeader::SEC_WEBSOCKET_KEY,
+                vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()],
+            ),
             (SimpleHeader::SEC_WEBSOCKET_VERSION, vec!["13".to_string()]),
         ],
     );
@@ -286,10 +350,14 @@ fn test_accept_with_subprotocol() {
     assert!(result.is_ok(), "should build response with subprotocol");
 
     let (response_bytes, _) = result.unwrap();
-    let response_str: String = response_bytes.iter()
+    let response_str: String = response_bytes
+        .iter()
         .flat_map(|chunk| chunk.iter().map(|&b| b as char))
         .collect();
-    assert!(response_str.contains("chat"), "response should contain selected subprotocol");
+    assert!(
+        response_str.contains("chat"),
+        "response should contain selected subprotocol"
+    );
 }
 
 // Test 14: accept returns error for missing key
@@ -314,7 +382,7 @@ fn test_accept_missing_key_error() {
 #[test]
 #[traced_test]
 fn test_server_connection_send_frame_no_mask() {
-    use foundation_core::wire::websocket::{WebSocketFrame, Opcode};
+    use foundation_core::wire::websocket::{Opcode, WebSocketFrame};
 
     // Create a frame with mask (simulating client-style frame)
     let frame = WebSocketFrame {
@@ -360,8 +428,9 @@ fn test_connection_state_tracking() {
     // Verify WebSocketServerConnection has is_open method
     // Actual stream setup requires more complex test infrastructure
     // This test verifies the API exists and compiles
-    let _new_fn: fn(foundation_core::io::ioutils::SharedByteBufferStream<foundation_core::netcap::RawStream>) -> WebSocketServerConnection
-        = WebSocketServerConnection::new;
+    let _new_fn: fn(
+        foundation_core::io::ioutils::SharedByteBufferStream<foundation_core::netcap::RawStream>,
+    ) -> WebSocketServerConnection = WebSocketServerConnection::new;
 
     // The actual is_open() method is tested through integration tests
     // since it requires a valid stream
@@ -376,14 +445,23 @@ fn test_connection_header_multiple_values() {
         "/chat",
         vec![
             (SimpleHeader::UPGRADE, vec!["websocket".to_string()]),
-            (SimpleHeader::CONNECTION, vec!["keep-alive".to_string(), "Upgrade".to_string()]),
-            (SimpleHeader::SEC_WEBSOCKET_KEY, vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()]),
+            (
+                SimpleHeader::CONNECTION,
+                vec!["keep-alive".to_string(), "Upgrade".to_string()],
+            ),
+            (
+                SimpleHeader::SEC_WEBSOCKET_KEY,
+                vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()],
+            ),
             (SimpleHeader::SEC_WEBSOCKET_VERSION, vec!["13".to_string()]),
         ],
     );
 
     let result = WebSocketUpgrade::is_upgrade_request(&request);
-    assert!(result, "should detect Upgrade in multiple Connection values");
+    assert!(
+        result,
+        "should detect Upgrade in multiple Connection values"
+    );
 }
 
 // Test 19: Reject request with only "keep-alive" in Connection
@@ -396,13 +474,19 @@ fn test_connection_header_only_keepalive() {
         vec![
             (SimpleHeader::UPGRADE, vec!["websocket".to_string()]),
             (SimpleHeader::CONNECTION, vec!["keep-alive".to_string()]),
-            (SimpleHeader::SEC_WEBSOCKET_KEY, vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()]),
+            (
+                SimpleHeader::SEC_WEBSOCKET_KEY,
+                vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()],
+            ),
             (SimpleHeader::SEC_WEBSOCKET_VERSION, vec!["13".to_string()]),
         ],
     );
 
     let result = WebSocketUpgrade::is_upgrade_request(&request);
-    assert!(!result, "should reject request without Upgrade in Connection header");
+    assert!(
+        !result,
+        "should reject request without Upgrade in Connection header"
+    );
 }
 
 // Test 20: Empty subprotocol string handling
@@ -415,12 +499,19 @@ fn test_empty_subprotocol() {
         vec![
             (SimpleHeader::UPGRADE, vec!["websocket".to_string()]),
             (SimpleHeader::CONNECTION, vec!["Upgrade".to_string()]),
-            (SimpleHeader::SEC_WEBSOCKET_KEY, vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()]),
+            (
+                SimpleHeader::SEC_WEBSOCKET_KEY,
+                vec!["dGhlIHNhbXBsZSBub25jZQ==".to_string()],
+            ),
             (SimpleHeader::SEC_WEBSOCKET_VERSION, vec!["13".to_string()]),
             (SimpleHeader::SEC_WEBSOCKET_PROTOCOL, vec!["".to_string()]),
         ],
     );
 
     let protocols = WebSocketUpgrade::extract_subprotocols(&request);
-    assert_eq!(protocols, Some("".to_string()), "should return empty string if header present but empty");
+    assert_eq!(
+        protocols,
+        Some("".to_string()),
+        "should return empty string if header present but empty"
+    );
 }

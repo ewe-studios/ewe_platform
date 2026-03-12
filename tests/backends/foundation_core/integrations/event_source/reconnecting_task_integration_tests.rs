@@ -8,9 +8,7 @@
 
 use foundation_core::valtron::TaskIterator;
 use foundation_core::valtron::TaskStatus;
-use foundation_core::wire::event_source::{
-    Event, ParseResult, ReconnectingEventSourceTask,
-};
+use foundation_core::wire::event_source::{Event, ParseResult, ReconnectingEventSourceTask};
 use foundation_core::wire::simple_http::client::StaticSocketAddr;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use std::net::SocketAddr;
@@ -58,7 +56,10 @@ fn test_reconnecting_task_receives_events() {
 
     while let Some(status) = task.next() {
         match status {
-            TaskStatus::Ready(ParseResult { event: Event::Message { ref data, .. }, .. }) => {
+            TaskStatus::Ready(ParseResult {
+                event: Event::Message { ref data, .. },
+                ..
+            }) => {
                 assert_eq!(data, "hello");
                 got_event = true;
                 break;
@@ -93,7 +94,11 @@ fn test_reconnecting_task_tracks_event_id() {
     let mut steps = 0;
 
     while let Some(status) = task.next() {
-        if let TaskStatus::Ready(ParseResult { event: Event::Message { id: Some(id), .. }, .. }) = status {
+        if let TaskStatus::Ready(ParseResult {
+            event: Event::Message { id: Some(id), .. },
+            ..
+        }) = status
+        {
             event_ids.push(id);
         }
         steps += 1;
@@ -158,7 +163,11 @@ fn test_reconnecting_task_multiple_events() {
     let mut steps = 0;
 
     while let Some(status) = task.next() {
-        if let TaskStatus::Ready(ParseResult { event: Event::Message { data, .. }, .. }) = status {
+        if let TaskStatus::Ready(ParseResult {
+            event: Event::Message { data, .. },
+            ..
+        }) = status
+        {
             data_values.push(data);
         }
         steps += 1;
@@ -192,11 +201,17 @@ fn test_reconnecting_task_passes_comments() {
 
     while let Some(status) = task.next() {
         match status {
-            TaskStatus::Ready(ParseResult { event: Event::Comment(c), .. }) => {
+            TaskStatus::Ready(ParseResult {
+                event: Event::Comment(c),
+                ..
+            }) => {
                 assert_eq!(c, "keep-alive");
                 saw_comment = true;
             }
-            TaskStatus::Ready(ParseResult { event: Event::Message { ref data, .. }, .. }) => {
+            TaskStatus::Ready(ParseResult {
+                event: Event::Message { ref data, .. },
+                ..
+            }) => {
                 assert_eq!(data, "after comment");
                 saw_message = true;
             }
@@ -236,7 +251,10 @@ fn test_reconnecting_task_eof_does_not_retry() {
 
     while let Some(status) = task.next() {
         match status {
-            TaskStatus::Ready(ParseResult { event: Event::Message { ref data, .. }, .. }) => {
+            TaskStatus::Ready(ParseResult {
+                event: Event::Message { ref data, .. },
+                ..
+            }) => {
                 assert_eq!(data, "hello");
                 received_events += 1;
             }
@@ -363,9 +381,7 @@ fn test_reconnecting_task_max_reconnect_duration() {
 #[test]
 fn test_reconnecting_task_respects_server_retry() {
     // Server sends retry: 10 (10ms) then closes
-    let server = TestHttpServer::with_response(|_req| {
-        sse_response(b"retry: 10\ndata: hello\n\n")
-    });
+    let server = TestHttpServer::with_response(|_req| sse_response(b"retry: 10\ndata: hello\n\n"));
 
     let addr = server_addr(&server);
     let resolver = StaticSocketAddr::new(addr);
@@ -379,7 +395,11 @@ fn test_reconnecting_task_respects_server_retry() {
     let mut steps = 0;
 
     while let Some(status) = task.next() {
-        if let TaskStatus::Ready(ParseResult { event: Event::Message { ref data, .. }, .. }) = status {
+        if let TaskStatus::Ready(ParseResult {
+            event: Event::Message { ref data, .. },
+            ..
+        }) = status
+        {
             received_data.push(data.clone());
         }
         steps += 1;

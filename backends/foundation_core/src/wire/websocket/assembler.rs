@@ -139,7 +139,10 @@ impl MessageAssembler {
     /// # Panics
     ///
     /// Never panics.
-    pub fn process_frame(&mut self, frame: WebSocketFrame) -> Result<Option<WebSocketMessage>, WebSocketError> {
+    pub fn process_frame(
+        &mut self,
+        frame: WebSocketFrame,
+    ) -> Result<Option<WebSocketMessage>, WebSocketError> {
         // Validate control frames are not fragmented
         if frame.opcode.is_control() {
             if !frame.fin {
@@ -175,10 +178,8 @@ impl MessageAssembler {
 
                 // Update UTF-8 validation state for text messages
                 if state.opcode == Opcode::Text {
-                    state.utf8_valid_up_to = validate_utf8_incremental(
-                        &state.payload,
-                        state.utf8_valid_up_to,
-                    )?;
+                    state.utf8_valid_up_to =
+                        validate_utf8_incremental(&state.payload, state.utf8_valid_up_to)?;
                 }
 
                 // Check if this is the final fragment
@@ -341,7 +342,7 @@ fn validate_utf8_incremental(data: &[u8], valid_up_to: usize) -> Result<usize, W
             if e.error_len().is_some() {
                 // Invalid bytes in middle - create a FromUtf8Error by trying to convert invalid bytes
                 return Err(WebSocketError::InvalidUtf8(
-                    String::from_utf8(suffix.to_vec()).unwrap_err()
+                    String::from_utf8(suffix.to_vec()).unwrap_err(),
                 ));
             }
             // Incomplete sequence at end - return valid length
@@ -350,4 +351,3 @@ fn validate_utf8_incremental(data: &[u8], valid_up_to: usize) -> Result<usize, W
         }
     }
 }
-

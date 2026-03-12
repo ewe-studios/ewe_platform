@@ -29,7 +29,11 @@ fn test_switching_protocols_from_string() {
 fn test_switching_protocols_status_line() {
     let status = Status::SwitchingProtocols;
     let line = status.status_line();
-    assert!(line.contains("101"), "Status line should contain '101', got: {}", line);
+    assert!(
+        line.contains("101"),
+        "Status line should contain '101', got: {}",
+        line
+    );
     assert!(
         line.to_lowercase().contains("switching"),
         "Status line should contain 'Switching', got: {}",
@@ -111,11 +115,9 @@ fn test_all_1xx_status_codes() {
     for (status, expected) in codes {
         let actual = status.into_usize();
         assert_eq!(
-            actual,
-            expected,
+            actual, expected,
             "Status should be {}, got {}",
-            expected,
-            actual
+            expected, actual
         );
     }
 }
@@ -128,10 +130,16 @@ fn test_no_body_status_codes_are_distinct() {
     let body_codes = vec![200, 201, 202, 400, 404, 500];
 
     for code in &no_body_codes {
-        assert!(*code < 200 || *code == 204 || *code == 304, "1xx, 204, 304 should not have body");
+        assert!(
+            *code < 200 || *code == 204 || *code == 304,
+            "1xx, 204, 304 should not have body"
+        );
     }
 
     for code in &body_codes {
-        assert!(*code >= 200 && *code != 204 && *code != 304, "2xx (except 204) should have body");
+        assert!(
+            *code >= 200 && *code != 204 && *code != 304,
+            "2xx (except 204) should have body"
+        );
     }
 }

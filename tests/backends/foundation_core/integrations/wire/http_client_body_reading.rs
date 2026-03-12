@@ -9,11 +9,8 @@
 //! HOW: Uses foundation_testing::TestHttpServer to create real HTTP responses,
 //! then validates all three consumption patterns work end-to-end.
 
-
 use foundation_core::valtron;
-use foundation_core::wire::simple_http::client::{
-    ClientRequestBuilder, SystemDnsResolver,
-};
+use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SystemDnsResolver};
 use foundation_core::wire::simple_http::{IncomingResponseParts, SendSafeBody};
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use tracing_test::traced_test;

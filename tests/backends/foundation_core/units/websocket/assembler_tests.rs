@@ -2,7 +2,9 @@
 
 //! WebSocket MessageAssembler tests (RFC 6455 Section 4.5 - Fragmentation).
 
-use foundation_core::wire::websocket::{MessageAssembler, WebSocketFrame, Opcode, WebSocketMessage, WebSocketError};
+use foundation_core::wire::websocket::{
+    MessageAssembler, Opcode, WebSocketError, WebSocketFrame, WebSocketMessage,
+};
 
 /// Helper to create a text frame with given payload and FIN bit.
 fn text_frame(payload: &[u8], fin: bool) -> WebSocketFrame {
@@ -130,7 +132,10 @@ fn test_unexpected_continuation_frame() {
     let result = assembler.process_frame(frame);
 
     assert!(result.is_err());
-    assert!(matches!(result.unwrap_err(), WebSocketError::ProtocolError(_)));
+    assert!(matches!(
+        result.unwrap_err(),
+        WebSocketError::ProtocolError(_)
+    ));
 }
 
 #[test]
@@ -146,7 +151,10 @@ fn test_new_message_before_completion() {
     let result = assembler.process_frame(frame2);
 
     assert!(result.is_err());
-    assert!(matches!(result.unwrap_err(), WebSocketError::ProtocolError(_)));
+    assert!(matches!(
+        result.unwrap_err(),
+        WebSocketError::ProtocolError(_)
+    ));
 }
 
 #[test]
@@ -164,7 +172,10 @@ fn test_fragmented_control_frame_error() {
 
     let result = assembler.process_frame(frame);
     assert!(result.is_err());
-    assert!(matches!(result.unwrap_err(), WebSocketError::ProtocolError(_)));
+    assert!(matches!(
+        result.unwrap_err(),
+        WebSocketError::ProtocolError(_)
+    ));
 }
 
 #[test]
@@ -190,7 +201,10 @@ fn test_message_size_limit() {
     let result = assembler.process_frame(frame);
 
     assert!(result.is_err());
-    assert!(matches!(result.unwrap_err(), WebSocketError::ProtocolError(_)));
+    assert!(matches!(
+        result.unwrap_err(),
+        WebSocketError::ProtocolError(_)
+    ));
 }
 
 #[test]
@@ -206,7 +220,10 @@ fn test_fragmented_size_limit() {
     let result = assembler.process_frame(frame2);
 
     assert!(result.is_err());
-    assert!(matches!(result.unwrap_err(), WebSocketError::ProtocolError(_)));
+    assert!(matches!(
+        result.unwrap_err(),
+        WebSocketError::ProtocolError(_)
+    ));
 }
 
 #[test]
@@ -219,7 +236,10 @@ fn test_invalid_utf8_in_fragment() {
     let result = assembler.process_frame(frame);
 
     assert!(result.is_err());
-    assert!(matches!(result.unwrap_err(), WebSocketError::InvalidUtf8(_)));
+    assert!(matches!(
+        result.unwrap_err(),
+        WebSocketError::InvalidUtf8(_)
+    ));
 }
 
 #[test]
@@ -253,7 +273,10 @@ fn test_invalid_utf8_split_across_fragments() {
     let result = assembler.process_frame(frame2);
 
     assert!(result.is_err());
-    assert!(matches!(result.unwrap_err(), WebSocketError::InvalidUtf8(_)));
+    assert!(matches!(
+        result.unwrap_err(),
+        WebSocketError::InvalidUtf8(_)
+    ));
 }
 
 #[test]

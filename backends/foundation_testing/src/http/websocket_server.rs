@@ -68,14 +68,24 @@ fn decode_frame(stream: &mut TcpStream) -> Option<(bool, Opcode, Option<[u8; 4]>
         tracing::info!("WebSocketEchoServer: decode_frame - failed to read header");
         return None;
     }
-    tracing::info!("WebSocketEchoServer: decode_frame - read header: [{:#04x}, {:#04x}]", header[0], header[1]);
+    tracing::info!(
+        "WebSocketEchoServer: decode_frame - read header: [{:#04x}, {:#04x}]",
+        header[0],
+        header[1]
+    );
 
     let fin = (header[0] & 0x80) != 0;
     let opcode = Opcode::from_byte(header[0] & 0x0F)?;
     let masked = (header[1] & 0x80) != 0;
     let length_byte = header[1] & 0x7F;
 
-    tracing::info!("WebSocketEchoServer: decode_frame - fin={}, opcode={:?}, masked={}, len={}", fin, opcode, masked, length_byte);
+    tracing::info!(
+        "WebSocketEchoServer: decode_frame - fin={}, opcode={:?}, masked={}, len={}",
+        fin,
+        opcode,
+        masked,
+        length_byte
+    );
 
     // Determine payload length
     let payload_len: usize = match length_byte {
@@ -272,9 +282,11 @@ impl WebSocketEchoServer {
                         let handler_clone = Arc::clone(&running_clone);
                         let supported_clone = supported.clone();
                         thread::spawn(move || {
-                            if let Err(e) =
-                                Self::handle_connection_with_protocols(stream, &supported_clone, &handler_clone)
-                            {
+                            if let Err(e) = Self::handle_connection_with_protocols(
+                                stream,
+                                &supported_clone,
+                                &handler_clone,
+                            ) {
                                 tracing::info!("WebSocketEchoServer connection error: {e}");
                             }
                         });
@@ -483,7 +495,11 @@ impl WebSocketEchoServer {
         while running.load(Ordering::Relaxed) {
             match decode_frame(stream) {
                 Some((fin, opcode, _mask, payload)) => {
-                    tracing::info!("WebSocketEchoServer: received opcode={:?}, payload_len={}", opcode, payload.len());
+                    tracing::info!(
+                        "WebSocketEchoServer: received opcode={:?}, payload_len={}",
+                        opcode,
+                        payload.len()
+                    );
                     match opcode {
                         Opcode::Text | Opcode::Binary => {
                             // Echo back the message

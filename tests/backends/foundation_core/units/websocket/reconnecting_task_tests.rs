@@ -2,9 +2,9 @@
 
 //! WebSocket ReconnectingWebSocketTask state machine tests.
 
-use foundation_core::wire::websocket::{ReconnectingWebSocketTask, ReconnectingWebSocketProgress};
-use foundation_core::wire::simple_http::client::SystemDnsResolver;
 use foundation_core::valtron::{TaskIterator, TaskStatus};
+use foundation_core::wire::simple_http::client::SystemDnsResolver;
+use foundation_core::wire::websocket::{ReconnectingWebSocketProgress, ReconnectingWebSocketTask};
 use tracing_test::traced_test;
 
 // Test 1: connect creates task with valid URL
@@ -64,15 +64,39 @@ fn test_reconnecting_websocket_progress_variants() {
 #[test]
 #[traced_test]
 fn test_reconnecting_websocket_progress_eq() {
-    assert_eq!(ReconnectingWebSocketProgress::Connecting, ReconnectingWebSocketProgress::Connecting);
-    assert_eq!(ReconnectingWebSocketProgress::Handshaking, ReconnectingWebSocketProgress::Handshaking);
-    assert_eq!(ReconnectingWebSocketProgress::Reading, ReconnectingWebSocketProgress::Reading);
-    assert_eq!(ReconnectingWebSocketProgress::Reconnecting, ReconnectingWebSocketProgress::Reconnecting);
+    assert_eq!(
+        ReconnectingWebSocketProgress::Connecting,
+        ReconnectingWebSocketProgress::Connecting
+    );
+    assert_eq!(
+        ReconnectingWebSocketProgress::Handshaking,
+        ReconnectingWebSocketProgress::Handshaking
+    );
+    assert_eq!(
+        ReconnectingWebSocketProgress::Reading,
+        ReconnectingWebSocketProgress::Reading
+    );
+    assert_eq!(
+        ReconnectingWebSocketProgress::Reconnecting,
+        ReconnectingWebSocketProgress::Reconnecting
+    );
 
-    assert_ne!(ReconnectingWebSocketProgress::Connecting, ReconnectingWebSocketProgress::Handshaking);
-    assert_ne!(ReconnectingWebSocketProgress::Connecting, ReconnectingWebSocketProgress::Reading);
-    assert_ne!(ReconnectingWebSocketProgress::Connecting, ReconnectingWebSocketProgress::Reconnecting);
-    assert_ne!(ReconnectingWebSocketProgress::Handshaking, ReconnectingWebSocketProgress::Reading);
+    assert_ne!(
+        ReconnectingWebSocketProgress::Connecting,
+        ReconnectingWebSocketProgress::Handshaking
+    );
+    assert_ne!(
+        ReconnectingWebSocketProgress::Connecting,
+        ReconnectingWebSocketProgress::Reading
+    );
+    assert_ne!(
+        ReconnectingWebSocketProgress::Connecting,
+        ReconnectingWebSocketProgress::Reconnecting
+    );
+    assert_ne!(
+        ReconnectingWebSocketProgress::Handshaking,
+        ReconnectingWebSocketProgress::Reading
+    );
 }
 
 // Test 6: with_max_retries configures retries
@@ -216,15 +240,18 @@ fn test_failing_connection_eventual_exhaust() {
     }
 
     // Task should eventually exhaust after retries are used up
-    assert!(got_exhaust, "task should eventually exhaust after connection failures");
+    assert!(
+        got_exhaust,
+        "task should eventually exhaust after connection failures"
+    );
 }
 
 // Test 15: Builder pattern preserves configuration across calls
 #[test]
 #[traced_test]
 fn test_builder_chain() {
-    use std::time::Duration;
     use foundation_core::wire::simple_http::SimpleHeader;
+    use std::time::Duration;
 
     let resolver = SystemDnsResolver::default();
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
