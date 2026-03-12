@@ -59,12 +59,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: true
+          submodules: false
           fetch-depth: 1
-          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Checkout llama.cpp
         run: |
-          git submodule update --init --depth=1 --recursive infrastructure/llama-bindings/llama.cpp
+          git submodule update --init --depth=1 infrastructure/llama-bindings/llama.cpp
+      - name: Remove .git to avoid submodule issues in Docker
+        run: rm -rf .git
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v3
         with:
