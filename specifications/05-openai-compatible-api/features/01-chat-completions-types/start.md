@@ -39,6 +39,8 @@ Define all types required for the OpenAI Chat Completions API.
 
 8. **TDD approach**: Write serialization tests first
 
+9. **Place tests in correct location** - follow language testing skill or project test structure
+
 ### Phase 3: Verification & Reporting
 
 9. **Report to Main Agent** after each task

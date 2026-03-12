@@ -22,7 +22,8 @@ created: 2026-03-03
 10. Clear context, reload from `compacted.md` only, start work
 11. **Work on ONE item at a time** - one test, one function, one file - finish it completely before next
 12. Implement following TDD (test first, then code) - **one test at a time**
-13. Report to Main Agent when done (DO NOT commit)
+13. **Place tests in correct location** - follow language testing skill or project test structure
+14. Report to Main Agent when done (DO NOT commit)
 14. Wait for verification to pass
 15. After commit: delete `compacted.md`, update `./PROGRESS.md`, move to next task
 16. **ALWAYS UPDATE ../../LEARNINGS.md** after each completed task/milestone

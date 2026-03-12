@@ -41,6 +41,8 @@ This feature creates the foundational layer for the OpenAI-compatible API: error
 
 8. **TDD approach**: Write tests before implementation when possible
 
+9. **Place tests in correct location** - follow language testing skill or project test structure
+
 ### Phase 3: Verification & Reporting
 
 9. **Report to Main Agent** after completing each task:
