@@ -4,6 +4,9 @@ Dockerfile
 .gitignore
 .agents
 .git
+.gitmodules
 tools/dawn
 tools/emsdk
 **/.git/**
+**/tools/dawn/**
+**/tools/emsdk/**
