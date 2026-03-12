@@ -1,7 +1,7 @@
 //! Taken from the tiny-http project <https://github.com/tiny-http/tiny-http>/
 //! Abstractions of Tcp and Unix socket types
 
-use crate::io::ioutils::{PeekError, PeekableReadStream, ReadTimeoutOperations};
+use crate::io::ioutils::{PeekError, PeekableReadStream, ReadTimeoutOperations, SplitReadStream};
 #[cfg(unix)]
 use std::os::unix::net as unix_net;
 use std::{
@@ -319,15 +319,34 @@ impl ReadTimeoutOperations for Connection {
         timeout: std::time::Duration,
     ) -> std::result::Result<(), std::io::Error> {
         match self {
-            Self::Tcp(t) => t.set_read_timeout(Some(timeout)),
+            Self::Tcp(t) => {
+                tracing::debug!(
+                    "Tcp::set_read_timeout_as: Received instruction to set read timeout to: {:?}",
+                    &timeout,
+                );
+                t.set_read_timeout(Some(timeout))
+            }
             #[cfg(unix)]
-            Self::Unix(u) => u.set_read_timeout(Some(timeout)),
+            Self::Unix(u) => {
+                tracing::debug!(
+                    "Unix::set_read_timeout_as: Received instruction to set read timeout to: {:?}",
+                    &timeout,
+                );
+
+                u.set_read_timeout(Some(timeout))
+            }
             #[cfg(any(
                 feature = "ssl-rustls",
                 feature = "ssl-openssl",
                 feature = "ssl-native-tls"
             ))]
-            Self::Tls(tls) => tls.set_read_timeout(Some(timeout)),
+            Self::Tls(tls) => {
+                tracing::debug!(
+                    "Tls::set_read_timeout_as: Received instruction to set read timeout to: {:?}",
+                    &timeout,
+                );
+                tls.set_read_timeout(Some(timeout))
+            }
         }
     }
 
@@ -436,6 +455,30 @@ impl Connection {
                 feature = "ssl-native-tls"
             ))]
             Self::Tls(tls) => tls.set_read_timeout(dur),
+        }
+    }
+}
+
+impl SplitReadStream for Connection {
+    fn split_connection(&self) -> std::io::Result<Self> {
+        match self {
+            Self::Tcp(inner) => inner.try_clone().map(Connection::Tcp),
+
+            #[cfg(all(unix, not(feature = "nightly")))]
+            Self::Unix(_) => Err(std::io::Error::new(
+                std::io::ErrorKind::Unsupported,
+                "Not supported",
+            )),
+
+            #[cfg(all(feature = "nightly", unix))]
+            Self::Unix(inner) => inner.try_clone().map(Connection::Unix),
+
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(inner) => inner.try_clone_connection(),
         }
     }
 }

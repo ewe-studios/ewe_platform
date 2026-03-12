@@ -159,3 +159,5 @@ bacon-ls.log
 
 
 artefacts/temples/output_directory
+!.claude
+!.claude/settings.local.json

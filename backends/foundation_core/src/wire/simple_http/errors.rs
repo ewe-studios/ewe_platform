@@ -416,6 +416,16 @@ pub enum HttpReaderError {
     UnknownTransferEncodingHeaderValue,
     ChunkedEncodingMustBeLast,
     UnsupportedTransferEncodingType,
+
+    // Hardening error types
+    #[from(ignore)]
+    UriTooLong(usize),
+    #[from(ignore)]
+    TotalHeaderSizeTooLarge(usize),
+    #[from(ignore)]
+    ChunkSizeTooLarge(usize),
+    #[from(ignore)]
+    ReadTimeout(Duration),
 }
 
 impl std::error::Error for HttpReaderError {}
@@ -423,6 +433,23 @@ impl std::error::Error for HttpReaderError {}
 impl core::fmt::Display for HttpReaderError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{self:?}")
+    }
+}
+
+impl From<ChunkStateError> for HttpReaderError {
+    fn from(err: ChunkStateError) -> Self {
+        match err {
+            ChunkStateError::ChunkSizeTooLarge(size) => HttpReaderError::ChunkSizeTooLarge(size),
+            ChunkStateError::ParseFailed => HttpReaderError::InvalidChunkSize,
+            ChunkStateError::ReadErrors => HttpReaderError::ReadFailed,
+            ChunkStateError::InvalidByte(_) => HttpReaderError::InvalidChunkSize,
+            ChunkStateError::InvalidOctetSizeByte(_) => HttpReaderError::InvalidChunkSize,
+            ChunkStateError::ChunkSizeNotFound => HttpReaderError::InvalidChunkSize,
+            ChunkStateError::InvalidChunkEnding => HttpReaderError::InvalidChunkSize,
+            ChunkStateError::InvalidChunkEndingExpectedCRLF => HttpReaderError::InvalidChunkSize,
+            ChunkStateError::ExtensionWithNoValue => HttpReaderError::InvalidChunkSize,
+            ChunkStateError::InvalidOctetBytes(_) => HttpReaderError::InvalidChunkSize,
+        }
     }
 }
 
@@ -547,6 +574,9 @@ pub enum ChunkStateError {
     InvalidChunkEndingExpectedCRLF,
     ExtensionWithNoValue,
     InvalidOctetBytes(FromUtf8Error),
+
+    #[from(ignore)]
+    ChunkSizeTooLarge(usize),
 }
 
 impl<T> From<PoisonError<T>> for ChunkStateError {

@@ -9,5 +9,7 @@
 //! Simple implementation suitable for basic HTTP client testing.
 
 mod server;
+mod websocket_server;
 
 pub use server::{HttpRequest, HttpResponse, TestHttpServer};
+pub use websocket_server::WebSocketEchoServer;

@@ -1819,6 +1819,30 @@ impl SimpleIncomingRequestBuilder {
         self
     }
 
+    /// Adds a header with a raw string value without splitting on commas.
+    ///
+    /// Use this for headers that contain comma-separated values as a single string
+    /// (e.g., Sec-WebSocket-Protocol).
+    pub fn add_header_raw<H: Into<SimpleHeader>, S: Into<String>>(
+        mut self,
+        key: H,
+        value: S,
+    ) -> Self {
+        let mut headers = self.headers.unwrap_or_default();
+
+        let actual_key = key.into();
+        let actual_value: String = value.into();
+
+        if let Some(values) = headers.get_mut(&actual_key) {
+            values.push(actual_value);
+        } else {
+            headers.insert(actual_key, vec![actual_value]);
+        }
+
+        self.headers = Some(headers);
+        self
+    }
+
     #[must_use]
     pub fn with_method(mut self, method: SimpleMethod) -> Self {
         self.method = Some(method);
@@ -2709,6 +2733,8 @@ pub trait BodyExtractor {
 
 const CHUNKED_VALUE: &str = "chunked";
 const MAX_HEADER_NAME_LEN: usize = (1 << 16) - 1;
+const MAX_URI_LEN: usize = 8192; // 8KB - RFC 7231 Section 6.5.10 (414 URI Too Long)
+const MAX_CHUNK_SIZE: usize = 16 * 1024 * 1024; // 16MB - DoS protection
 const TEXT_STREAM_MIME_TYPE: &str = "text/event-stream";
 
 static SPACE_CHARS: &[char] = &[' ', '\n', '\t', '\r'];
@@ -2731,6 +2757,7 @@ pub struct HeaderReader<T: std::io::Read> {
     max_header_key_length: Option<usize>,
     max_header_value_length: Option<usize>,
     max_header_values_count: Option<usize>,
+    max_total_header_size: Option<usize>,
 }
 
 impl<T> HeaderReader<T>
@@ -2749,7 +2776,14 @@ where
             max_header_key_length,
             max_header_value_length,
             max_header_values_count,
+            max_total_header_size: Some(65536), // 64KB default
         }
+    }
+
+    #[must_use]
+    pub fn with_total_header_size_limit(mut self, limit: Option<usize>) -> Self {
+        self.max_total_header_size = limit;
+        self
     }
 }
 
@@ -2759,6 +2793,7 @@ where
 {
     fn parse_headers(&mut self) -> Result<SimpleHeaders, HttpReaderError> {
         let mut headers: SimpleHeaders = BTreeMap::new();
+        let mut total_header_size: usize = 0;
 
         let mut line = String::new();
 
@@ -2786,6 +2821,14 @@ where
             {
                 line.clear();
                 break;
+            }
+
+            // Check total header size limit (DoS protection)
+            total_header_size += line.len();
+            if let Some(max_total) = self.max_total_header_size {
+                if total_header_size > max_total {
+                    return Err(HttpReaderError::TotalHeaderSizeTooLarge(total_header_size));
+                }
             }
 
             if !line.contains(':') && last_header.is_none() {
@@ -3137,6 +3180,11 @@ where
             state: HttpReadState::Intro,
         }
     }
+
+    /// Returns a mutable reference to the underlying stream.
+    pub fn stream_mut(&mut self) -> &mut SharedByteBufferStream<T> {
+        &mut self.reader
+    }
 }
 
 static NO_BODY_METHODS: &[SimpleMethod] = &[SimpleMethod::HEAD, SimpleMethod::CONNECT];
@@ -3157,10 +3205,6 @@ where
         match &self.state {
             HttpReadState::Intro => {
                 let mut line = String::new();
-                // let mut borrowed_reader = match self.reader.write() {
-                //     Ok(borrowed_reader) => borrowed_reader,
-                //     Err(_) => return Some(Err(HttpReaderError::GuardedResourceAccess)),
-                // };
 
                 let line_read_result = self
                     .reader
@@ -3198,6 +3242,12 @@ where
                 }
 
                 let method = SimpleMethod::from(intro_parts[0].to_string());
+
+                // Validate URI length (RFC 7231 Section 6.5.10 - 414 URI Too Long)
+                if intro_parts[1].len() > MAX_URI_LEN {
+                    self.state = HttpReadState::Finished;
+                    return Some(Err(HttpReaderError::UriTooLong(intro_parts[1].len())));
+                }
 
                 // ensure to capture and skip methods that should not have a body attached.
                 self.state = if NO_BODY_METHODS.iter().any(|n| n == &method) {
@@ -3566,24 +3616,6 @@ where
     }
 
     /// Returns a mutable reference to the underlying stream.
-    ///
-    /// WHY: Allows access to the stream for operations like writing additional
-    /// data or inspecting stream state while maintaining ownership in the reader.
-    ///
-    /// WHAT: Provides mutable access to the `SharedByteBufferStream` wrapped
-    /// by this reader.
-    ///
-    /// # Returns
-    ///
-    /// A mutable reference to the underlying `SharedByteBufferStream<T>`.
-    ///
-    /// # Examples
-    ///
-    /// ```ignore
-    /// let mut reader = HttpResponseReader::new(stream, body_extractor);
-    /// let stream = reader.stream_mut();
-    /// // Can now write to or manipulate the stream
-    /// ```
     pub fn stream_mut(&mut self) -> &mut SharedByteBufferStream<T> {
         &mut self.reader
     }
@@ -3597,10 +3629,12 @@ where
     type Item = Result<IncomingResponseParts, HttpReaderError>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let no_body = match &self.state {
-            HttpReadState::OnlyHeaders => true,
-            _ => false,
-        };
+        let no_body = matches!(&self.state, HttpReadState::OnlyHeaders);
+        tracing::debug!(
+            "Current state of HttpResponseReader: {:?} -> should handle as no_body={}",
+            &self.state,
+            no_body
+        );
 
         match &self.state {
             HttpReadState::Intro => {
@@ -3656,7 +3690,14 @@ where
                 );
 
                 // ensure to capture and skip methods that should not have a body attached.
-                self.state = HttpReadState::Headers;
+                self.state = if status == Status::SwitchingProtocols {
+                    tracing::debug!(
+                        "Identified a SwitchingProtocols status code, setting as no header"
+                    );
+                    HttpReadState::OnlyHeaders
+                } else {
+                    HttpReadState::Headers
+                };
 
                 // this means no protocol is provided, by default use HTTP11
                 let third_line: Option<String> = if intro_parts.len() == 3 {
@@ -3836,6 +3877,7 @@ where
                 }
             }
             HttpReadState::NoBody => {
+                tracing::debug!("No body for response, finishing response reader");
                 self.state = HttpReadState::Finished;
                 Some(Ok(IncomingResponseParts::NoBody))
             }
@@ -4424,6 +4466,11 @@ impl ChunkState {
             },
             None => return Err(ChunkStateError::ChunkSizeNotFound),
         };
+
+        // Validate chunk size limit (DoS protection)
+        if chunk_size as usize > MAX_CHUNK_SIZE {
+            return Err(ChunkStateError::ChunkSizeTooLarge(chunk_size as usize));
+        }
 
         tracing::debug!(
             "Reading chunk size: {:?} to {:?}",
