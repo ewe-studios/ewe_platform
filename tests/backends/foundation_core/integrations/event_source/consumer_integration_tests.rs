@@ -121,11 +121,7 @@ fn test_sse_stream_multiple_events() {
         }
     }
 
-    tracing::info!(
-        "Received {} events: {:?}",
-        event_count,
-        received_events
-    );
+    tracing::info!("Received {} events: {:?}", event_count, received_events);
     assert_eq!(event_count, 3, "Should receive exactly 3 events");
 }
 

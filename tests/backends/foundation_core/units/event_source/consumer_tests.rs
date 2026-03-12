@@ -77,11 +77,17 @@ fn test_sse_stream_event_debug() {
         retry: None,
     });
     let debug_str = format!("{:?}", event);
-    assert!(debug_str.contains("Event"), "Debug output should contain 'Event'");
+    assert!(
+        debug_str.contains("Event"),
+        "Debug output should contain 'Event'"
+    );
 
     let skip = SseStreamEvent::Skip;
     let skip_debug = format!("{:?}", skip);
-    assert!(skip_debug.contains("Skip"), "Debug output should contain 'Skip'");
+    assert!(
+        skip_debug.contains("Skip"),
+        "Debug output should contain 'Skip'"
+    );
 }
 
 /// WHY: SseStreamEvent should derive Clone.
@@ -97,7 +103,10 @@ fn test_sse_stream_event_clone() {
     let cloned = event.clone();
 
     match (event, cloned) {
-        (SseStreamEvent::Event(Event::Message { data: d1, .. }), SseStreamEvent::Event(Event::Message { data: d2, .. })) => {
+        (
+            SseStreamEvent::Event(Event::Message { data: d1, .. }),
+            SseStreamEvent::Event(Event::Message { data: d2, .. }),
+        ) => {
             assert_eq!(d1, d2);
         }
         _ => panic!("Clone should preserve variant type"),

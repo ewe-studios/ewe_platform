@@ -2,9 +2,9 @@
 
 //! WebSocket TaskIterator state machine tests.
 
-use foundation_core::wire::websocket::{WebSocketTask, WebSocketProgress};
-use foundation_core::wire::simple_http::client::SystemDnsResolver;
 use foundation_core::valtron::{TaskIterator, TaskStatus};
+use foundation_core::wire::simple_http::client::SystemDnsResolver;
+use foundation_core::wire::websocket::{WebSocketProgress, WebSocketTask};
 use tracing_test::traced_test;
 
 // Test 1: connect creates task with valid URL
@@ -49,7 +49,7 @@ fn test_connect_wrong_scheme() {
 #[test]
 #[traced_test]
 fn test_connect_with_pool() {
-    use foundation_core::wire::simple_http::client::{HttpConnectionPool, ConnectionPool};
+    use foundation_core::wire::simple_http::client::{ConnectionPool, HttpConnectionPool};
     use std::sync::Arc;
 
     let resolver = SystemDnsResolver::default();
@@ -143,7 +143,10 @@ fn test_failing_connection_eventual_closed() {
     }
 
     // Task should eventually close after connection fails
-    assert!(got_closed, "task should eventually close after connection failure");
+    assert!(
+        got_closed,
+        "task should eventually close after connection failure"
+    );
 }
 
 // Test 9: Task is Send where required
@@ -163,10 +166,16 @@ fn test_task_is_send() {
 #[traced_test]
 fn test_websocket_progress_eq() {
     assert_eq!(WebSocketProgress::Connecting, WebSocketProgress::Connecting);
-    assert_eq!(WebSocketProgress::Handshaking, WebSocketProgress::Handshaking);
+    assert_eq!(
+        WebSocketProgress::Handshaking,
+        WebSocketProgress::Handshaking
+    );
     assert_eq!(WebSocketProgress::Reading, WebSocketProgress::Reading);
 
-    assert_ne!(WebSocketProgress::Connecting, WebSocketProgress::Handshaking);
+    assert_ne!(
+        WebSocketProgress::Connecting,
+        WebSocketProgress::Handshaking
+    );
     assert_ne!(WebSocketProgress::Connecting, WebSocketProgress::Reading);
     assert_ne!(WebSocketProgress::Handshaking, WebSocketProgress::Reading);
 }

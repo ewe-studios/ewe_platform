@@ -2,7 +2,7 @@
 
 //! Batch frame writer tests.
 
-use foundation_core::wire::websocket::{BatchFrameWriter, WebSocketFrame, Opcode};
+use foundation_core::wire::websocket::{BatchFrameWriter, Opcode, WebSocketFrame};
 use std::time::Duration;
 
 fn text_frame(payload: &[u8], fin: bool) -> WebSocketFrame {
@@ -56,7 +56,7 @@ fn test_batch_writer_auto_flush_on_size() {
     let mut buffer: Vec<u8> = Vec::new();
     let mut writer = BatchFrameWriter::new(
         &mut buffer,
-        50, // Small limit for testing
+        50,                      // Small limit for testing
         Duration::from_secs(10), // Long timeout
     );
 

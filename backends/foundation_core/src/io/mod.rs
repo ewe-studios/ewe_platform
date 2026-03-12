@@ -4,4 +4,4 @@ pub mod mem;
 pub mod stream_ext;
 pub mod ubytes;
 
-pub use buffer_pool::{BytesPool, PooledBuffer, PoolStatsSnapshot};
+pub use buffer_pool::{BytesPool, PoolStatsSnapshot, PooledBuffer};

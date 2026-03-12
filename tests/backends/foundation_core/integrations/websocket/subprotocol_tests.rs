@@ -95,7 +95,10 @@ fn test_server_selects_first_matching_protocol() {
         Duration::from_secs(5),
     );
 
-    assert!(result.is_ok(), "Should connect when client requests supported protocol");
+    assert!(
+        result.is_ok(),
+        "Should connect when client requests supported protocol"
+    );
 }
 
 // Test 4: Client requests multiple subprotocols
@@ -118,7 +121,10 @@ fn test_client_requests_multiple_subprotocols() {
         Duration::from_secs(5),
     );
 
-    assert!(result.is_ok(), "Should connect with multiple requested protocols");
+    assert!(
+        result.is_ok(),
+        "Should connect with multiple requested protocols"
+    );
 
     let (mut client, delivery) = result.unwrap();
 
@@ -150,13 +156,13 @@ fn test_connection_without_subprotocol() {
     let base_url = server.base_url().split('|').next().unwrap();
     let url = format!("{}/echo", base_url);
 
-    let result = WebSocketClient::connect(
-        SystemDnsResolver::default(),
-        &url,
-        Duration::from_secs(5),
-    );
+    let result =
+        WebSocketClient::connect(SystemDnsResolver::default(), &url, Duration::from_secs(5));
 
-    assert!(result.is_ok(), "Should connect without requesting subprotocol");
+    assert!(
+        result.is_ok(),
+        "Should connect without requesting subprotocol"
+    );
 }
 
 // Test 6: Server without subprotocol support
@@ -170,13 +176,13 @@ fn test_server_without_subprotocol_support() {
     let url = server.ws_url("/echo");
 
     // Client connects without requesting subprotocol
-    let result = WebSocketClient::connect(
-        SystemDnsResolver::default(),
-        &url,
-        Duration::from_secs(5),
-    );
+    let result =
+        WebSocketClient::connect(SystemDnsResolver::default(), &url, Duration::from_secs(5));
 
-    assert!(result.is_ok(), "Should connect to server without subprotocol");
+    assert!(
+        result.is_ok(),
+        "Should connect to server without subprotocol"
+    );
 }
 
 // Test 7: Subprotocol header extraction (unit test for server-side)
@@ -193,12 +199,16 @@ fn test_subprotocol_header_extraction() {
         .add_header_raw(SimpleHeader::CONNECTION, "Upgrade")
         .add_header_raw(SimpleHeader::SEC_WEBSOCKET_KEY, "dGhlIHNhbXBsZSBub25jZQ==")
         .add_header_raw(SimpleHeader::SEC_WEBSOCKET_VERSION, "13")
-        .add_header_raw(SimpleHeader::SEC_WEBSOCKET_PROTOCOL, "chat, superchat, other");
+        .add_header_raw(
+            SimpleHeader::SEC_WEBSOCKET_PROTOCOL,
+            "chat, superchat, other",
+        );
 
     let request = builder.build().unwrap();
 
     // Extract subprotocols
-    let protocols = foundation_core::wire::websocket::WebSocketUpgrade::extract_subprotocols(&request);
+    let protocols =
+        foundation_core::wire::websocket::WebSocketUpgrade::extract_subprotocols(&request);
 
     assert_eq!(protocols, Some("chat, superchat, other".to_string()));
 }
@@ -219,9 +229,13 @@ fn test_missing_subprotocol_returns_none() {
 
     let request = builder.build().unwrap();
 
-    let protocols = foundation_core::wire::websocket::WebSocketUpgrade::extract_subprotocols(&request);
+    let protocols =
+        foundation_core::wire::websocket::WebSocketUpgrade::extract_subprotocols(&request);
 
-    assert!(protocols.is_none(), "Should return None when header is missing");
+    assert!(
+        protocols.is_none(),
+        "Should return None when header is missing"
+    );
 }
 
 // Test 9: Empty subprotocol string handling
@@ -241,9 +255,14 @@ fn test_empty_subprotocol_string() {
 
     let request = builder.build().unwrap();
 
-    let protocols = foundation_core::wire::websocket::WebSocketUpgrade::extract_subprotocols(&request);
+    let protocols =
+        foundation_core::wire::websocket::WebSocketUpgrade::extract_subprotocols(&request);
 
-    assert_eq!(protocols, Some("".to_string()), "Empty header value should return Some empty string");
+    assert_eq!(
+        protocols,
+        Some("".to_string()),
+        "Empty header value should return Some empty string"
+    );
 }
 
 // Test 10: Server includes selected protocol in response
@@ -269,11 +288,18 @@ fn test_server_includes_selected_protocol() {
     let (response_bytes, _) = WebSocketUpgrade::accept(&request, Some("chat")).unwrap();
 
     // Verify response includes protocol header
-    let response_str: String = response_bytes.iter()
+    let response_str: String = response_bytes
+        .iter()
         .flat_map(|chunk| chunk.iter().map(|&b| b as char))
         .collect();
 
     let response_upper = response_str.to_uppercase();
-    assert!(response_upper.contains("SEC-WEBSOCKET-PROTOCOL"), "Response should include protocol header");
-    assert!(response_upper.contains("CHAT"), "Response should include selected protocol value");
+    assert!(
+        response_upper.contains("SEC-WEBSOCKET-PROTOCOL"),
+        "Response should include protocol header"
+    );
+    assert!(
+        response_upper.contains("CHAT"),
+        "Response should include selected protocol value"
+    );
 }

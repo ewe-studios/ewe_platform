@@ -62,10 +62,9 @@ fn test_reconnecting_task_exhausts_after_max_retries() {
         DnsError::NoAddressesFound("test.invalid".to_string()),
     );
 
-    let mut task =
-        ReconnectingEventSourceTask::connect(resolver, "http://test.invalid/events")
-            .unwrap()
-            .with_max_retries(2);
+    let mut task = ReconnectingEventSourceTask::connect(resolver, "http://test.invalid/events")
+        .unwrap()
+        .with_max_retries(2);
 
     // Drive the task until it exhausts
     let mut steps = 0;
@@ -85,10 +84,9 @@ fn test_reconnecting_task_exhausts_after_max_retries() {
 fn test_reconnecting_task_attempts_reconnection_on_failure() {
     let resolver = MockDnsResolver::new();
 
-    let mut task =
-        ReconnectingEventSourceTask::connect(resolver, "http://test.invalid/events")
-            .unwrap()
-            .with_max_retries(1);
+    let mut task = ReconnectingEventSourceTask::connect(resolver, "http://test.invalid/events")
+        .unwrap()
+        .with_max_retries(1);
 
     // First call: inner task tries Init, DNS fails → inner returns None
     // Reconnecting task should transition to Waiting (not immediately exhaust)

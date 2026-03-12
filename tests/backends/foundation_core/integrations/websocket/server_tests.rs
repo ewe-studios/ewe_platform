@@ -12,8 +12,8 @@ use std::time::Duration;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::netcap::RawStream;
 use foundation_core::wire::simple_http::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
+use foundation_core::wire::websocket::{Opcode, WebSocketMessage};
 use foundation_core::wire::websocket::{WebSocketServerConnection, WebSocketUpgrade};
-use foundation_core::wire::websocket::{WebSocketMessage, Opcode};
 use tracing_test::traced_test;
 
 /// Send raw HTTP response to stream
@@ -59,7 +59,9 @@ fn read_http_response(stream: &mut TcpStream) -> std::io::Result<String> {
     let mut total_bytes = 0;
 
     loop {
-        stream.set_read_timeout(Some(Duration::from_millis(100))).ok();
+        stream
+            .set_read_timeout(Some(Duration::from_millis(100)))
+            .ok();
         match stream.read(&mut response[total_bytes..]) {
             Ok(0) => break, // Connection closed
             Ok(n) => {
@@ -116,7 +118,10 @@ fn parse_simple_request(data: &[u8]) -> Option<SimpleIncomingRequest> {
                 _ => SimpleHeader::Custom(key_str),
             };
 
-            headers.entry(header).or_insert_with(Vec::new).push(value_str);
+            headers
+                .entry(header)
+                .or_insert_with(Vec::new)
+                .push(value_str);
         }
     }
 
@@ -219,7 +224,9 @@ fn test_server_builds_101_response() {
 
     // Read until server closes connection or timeout
     loop {
-        client.set_read_timeout(Some(Duration::from_millis(100))).ok();
+        client
+            .set_read_timeout(Some(Duration::from_millis(100)))
+            .ok();
         match client.read(&mut response[total_bytes..]) {
             Ok(0) => break, // Connection closed
             Ok(n) => {
@@ -283,11 +290,23 @@ fn test_server_accepts_with_subprotocol() {
     client.flush().unwrap();
 
     let response_str = read_http_response(&mut client).unwrap();
-    eprintln!("Client received {} bytes: [{}]", response_str.len(), response_str);
+    eprintln!(
+        "Client received {} bytes: [{}]",
+        response_str.len(),
+        response_str
+    );
 
     let response_upper = response_str.to_uppercase();
-    assert!(response_upper.contains("SEC-WEBSOCKET-PROTOCOL"), "Response should contain Sec-WebSocket-Protocol header. Got: {}", response_str);
-    assert!(response_upper.contains("CHAT"), "Response should contain chat protocol. Got: {}", response_str);
+    assert!(
+        response_upper.contains("SEC-WEBSOCKET-PROTOCOL"),
+        "Response should contain Sec-WebSocket-Protocol header. Got: {}",
+        response_str
+    );
+    assert!(
+        response_upper.contains("CHAT"),
+        "Response should contain chat protocol. Got: {}",
+        response_str
+    );
 
     server_handle.join().unwrap();
 }
@@ -426,7 +445,8 @@ fn test_server_sends_text_message() {
         let mut conn = WebSocketServerConnection::new(shared_stream);
 
         // Send text message (server doesn't mask)
-        conn.send(WebSocketMessage::Text("Hello from server!".to_string())).unwrap();
+        conn.send(WebSocketMessage::Text("Hello from server!".to_string()))
+            .unwrap();
 
         // Keep stream alive long enough for client to read
         std::thread::sleep(Duration::from_millis(100));

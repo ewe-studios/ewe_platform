@@ -124,7 +124,7 @@ pub fn validate_upgrade_response(
     if *status != Status::SwitchingProtocols {
         #[allow(clippy::cast_possible_truncation)] // HTTP status codes fit in u16
         return Err(WebSocketError::UpgradeFailed(
-            status.clone().into_usize() as u16,
+            status.clone().into_usize() as u16
         ));
     }
 

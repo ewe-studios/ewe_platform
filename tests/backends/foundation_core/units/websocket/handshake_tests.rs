@@ -3,13 +3,10 @@
 //! WebSocket handshake tests (RFC 6455 Section 4).
 
 use base64::Engine;
-use foundation_core::wire::websocket::{
-    compute_accept_key,
-    generate_websocket_key,
-    build_upgrade_request,
-    validate_upgrade_response,
-};
 use foundation_core::wire::simple_http::{SimpleHeader, Status};
+use foundation_core::wire::websocket::{
+    build_upgrade_request, compute_accept_key, generate_websocket_key, validate_upgrade_response,
+};
 
 // Test 1: compute_accept_key with RFC 6455 test vector
 #[test]
@@ -40,7 +37,10 @@ fn test_generate_websocket_key_valid_base64() {
 }
 
 /// Helper to get first header value from a `SimpleHeaders` map.
-fn first_header_value(headers: &foundation_core::wire::simple_http::SimpleHeaders, key: &SimpleHeader) -> Option<String> {
+fn first_header_value(
+    headers: &foundation_core::wire::simple_http::SimpleHeaders,
+    key: &SimpleHeader,
+) -> Option<String> {
     headers.get(key).and_then(|v| v.first()).cloned()
 }
 
@@ -48,8 +48,8 @@ fn first_header_value(headers: &foundation_core::wire::simple_http::SimpleHeader
 #[test]
 fn test_build_upgrade_request_headers() {
     let key = "dGhlIHNhbXBsZSBub25jZQ==";
-    let request = build_upgrade_request("example.com", "/chat", key, None)
-        .expect("should build request");
+    let request =
+        build_upgrade_request("example.com", "/chat", key, None).expect("should build request");
 
     let headers = &request.headers;
 
@@ -105,7 +105,10 @@ fn test_validate_upgrade_response_valid() {
     let expected_accept = compute_accept_key(client_key);
 
     let mut headers = foundation_core::wire::simple_http::SimpleHeaders::new();
-    headers.insert(SimpleHeader::SEC_WEBSOCKET_ACCEPT, vec![expected_accept.clone()]);
+    headers.insert(
+        SimpleHeader::SEC_WEBSOCKET_ACCEPT,
+        vec![expected_accept.clone()],
+    );
 
     let result = validate_upgrade_response(&Status::SwitchingProtocols, &headers, &expected_accept);
     assert!(result.is_ok());
@@ -120,7 +123,10 @@ fn test_validate_upgrade_response_wrong_status() {
     let headers = foundation_core::wire::simple_http::SimpleHeaders::new();
 
     let result = validate_upgrade_response(&Status::OK, &headers, &expected_accept);
-    assert!(matches!(result, Err(foundation_core::wire::websocket::WebSocketError::UpgradeFailed(200))));
+    assert!(matches!(
+        result,
+        Err(foundation_core::wire::websocket::WebSocketError::UpgradeFailed(200))
+    ));
 }
 
 // Test 7: validate_upgrade_response with missing accept key
@@ -132,7 +138,10 @@ fn test_validate_upgrade_response_missing_accept() {
     let headers = foundation_core::wire::simple_http::SimpleHeaders::new();
 
     let result = validate_upgrade_response(&Status::SwitchingProtocols, &headers, &expected_accept);
-    assert!(matches!(result, Err(foundation_core::wire::websocket::WebSocketError::MissingAcceptKey)));
+    assert!(matches!(
+        result,
+        Err(foundation_core::wire::websocket::WebSocketError::MissingAcceptKey)
+    ));
 }
 
 // Test 8: validate_upgrade_response with invalid accept key
@@ -142,8 +151,14 @@ fn test_validate_upgrade_response_invalid_accept() {
     let expected_accept = compute_accept_key(client_key);
 
     let mut headers = foundation_core::wire::simple_http::SimpleHeaders::new();
-    headers.insert(SimpleHeader::SEC_WEBSOCKET_ACCEPT, vec!["wrong_accept_key".to_string()]);
+    headers.insert(
+        SimpleHeader::SEC_WEBSOCKET_ACCEPT,
+        vec!["wrong_accept_key".to_string()],
+    );
 
     let result = validate_upgrade_response(&Status::SwitchingProtocols, &headers, &expected_accept);
-    assert!(matches!(result, Err(foundation_core::wire::websocket::WebSocketError::InvalidAcceptKey)));
+    assert!(matches!(
+        result,
+        Err(foundation_core::wire::websocket::WebSocketError::InvalidAcceptKey)
+    ));
 }

@@ -101,28 +101,21 @@ where
     ///
     /// Returns [`WebSocketError`] if the URL is invalid.
     #[instrument(skip(resolver, url), err)]
-    pub fn connect(
-        resolver: R,
-        url: impl Into<String>,
-    ) -> Result<Self, WebSocketError> {
+    pub fn connect(resolver: R, url: impl Into<String>) -> Result<Self, WebSocketError> {
         let url_str = url.into();
         info!(url = %url_str, "Creating reconnecting WebSocket client");
 
         // Validate URL upfront (same as WebSocketTask)
         let uri = crate::wire::simple_http::url::Uri::parse(&url_str).map_err(|e| {
             error!(url = %url_str, error = ?e, "Failed to parse URL");
-            WebSocketError::InvalidUrl(format!(
-                "Failed to parse URL: {url_str} - {e:?}"
-            ))
+            WebSocketError::InvalidUrl(format!("Failed to parse URL: {url_str} - {e:?}"))
         })?;
 
         if !uri.scheme().is_ws() && !uri.scheme().is_wss() {
-            return Err(WebSocketError::InvalidUrl(
-                format!(
-                    "Unsupported scheme: {}. Only ws:// and wss:// are supported.",
-                    uri.scheme()
-                ),
-            ));
+            return Err(WebSocketError::InvalidUrl(format!(
+                "Unsupported scheme: {}. Only ws:// and wss:// are supported.",
+                uri.scheme()
+            )));
         }
 
         debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
@@ -276,8 +269,12 @@ where
                     Some(TaskStatus::Pending(progress)) => {
                         self.state = Some(ReconnectingWebSocketState::Connected(inner));
                         let mapped = match progress {
-                            WebSocketProgress::Connecting => ReconnectingWebSocketProgress::Connecting,
-                            WebSocketProgress::Handshaking => ReconnectingWebSocketProgress::Handshaking,
+                            WebSocketProgress::Connecting => {
+                                ReconnectingWebSocketProgress::Connecting
+                            }
+                            WebSocketProgress::Handshaking => {
+                                ReconnectingWebSocketProgress::Handshaking
+                            }
                             WebSocketProgress::Reading => ReconnectingWebSocketProgress::Reading,
                         };
                         Some(TaskStatus::Pending(mapped))
@@ -320,7 +317,9 @@ where
                             let wait = next_retry.wait.unwrap_or(Duration::from_secs(1));
                             self.retry_state = next_retry;
                             self.state = Some(ReconnectingWebSocketState::Waiting(wait));
-                            Some(TaskStatus::Pending(ReconnectingWebSocketProgress::Reconnecting))
+                            Some(TaskStatus::Pending(
+                                ReconnectingWebSocketProgress::Reconnecting,
+                            ))
                         } else {
                             error!(
                                 attempt = self.retry_state.attempt,
@@ -342,14 +341,13 @@ where
             }
 
             ReconnectingWebSocketState::Reconnecting => {
-                info!(
-                    attempt = self.retry_state.attempt,
-                    "Reconnecting WebSocket"
-                );
+                info!(attempt = self.retry_state.attempt, "Reconnecting WebSocket");
                 // Create new inner task
                 if let Some(inner) = self.create_inner_task() {
                     self.state = Some(ReconnectingWebSocketState::Connected(inner));
-                    Some(TaskStatus::Pending(ReconnectingWebSocketProgress::Connecting))
+                    Some(TaskStatus::Pending(
+                        ReconnectingWebSocketProgress::Connecting,
+                    ))
                 } else {
                     error!("Failed to create inner task");
                     self.state = Some(ReconnectingWebSocketState::Exhausted);
