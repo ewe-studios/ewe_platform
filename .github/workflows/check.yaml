@@ -66,12 +66,8 @@ jobs:
           git submodule update --init --depth=1 infrastructure/llama-bindings/llama.cpp
       - name: Prepare clean build context
         run: |
-          mkdir -p /tmp/docker-build-context
-          cp -r . /tmp/docker-build-context/
-          rm -rf /tmp/docker-build-context/.git
-          rm -rf /tmp/docker-build-context/tools/dawn
-          rm -rf /tmp/docker-build-context/tools/emsdk
-          rm -rf /tmp/docker-build-context/.agents
+          mkdir -p /tmp/ewe-docker-build
+          rsync -av --exclude='.git' --exclude='tools/dawn' --exclude='tools/emsdk' --exclude='.agents' --exclude='bin' . /tmp/ewe-docker-build/
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v3
         with:
@@ -81,10 +77,12 @@ jobs:
       - name: Build
         uses: docker/build-push-action@v6
         with:
-          context: /tmp/docker-build-context
-          file: /tmp/docker-build-context/test-build.Dockerfile
+          context: /tmp/ewe-docker-build
+          file: /tmp/ewe-docker-build/test-build.Dockerfile
           platforms: ${{ matrix.target }}
           push: false
+          cache-from: type=gha
+          cache-to: type=gha
           build-args: |
             CUDA_VERSION=12.3.1
             UBUNTU_VERSION=22.04
