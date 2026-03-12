@@ -3,4 +3,7 @@ Dockerfile
 .dockerignore
 .gitignore
 .agents
+.git
+tools/dawn
+tools/emsdk
 **/.git/**
