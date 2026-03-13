@@ -7,13 +7,9 @@ RUN DEBIAN_FRONTEND=noninteractive apt update -y && apt install -y curl llvm-dev
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
 ENV PATH=/root/.cargo/bin:$PATH
 
-# Build and install mold linker
-RUN git clone --branch stable --depth=1 https://github.com/rui314/mold.git /tmp/mold && \
-    cd /tmp/mold && \
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=c++ -B build && \
-    cmake --build build -j$(nproc) && \
-    cmake --build build --target install && \
-    rm -rf /tmp/mold
+# Copy and run mold installation script (tries prebuilt binary first, falls back to source build)
+COPY scripts/install-mold.sh /tmp/install-mold.sh
+RUN chmod +x /tmp/install-mold.sh && /tmp/install-mold.sh && rm /tmp/install-mold.sh
 
 # Create tools directory and setup emsdk
 RUN mkdir -p /tools && \
