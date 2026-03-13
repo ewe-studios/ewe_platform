@@ -138,16 +138,16 @@ pub struct ModelUsageCosting {
 }
 
 pub struct ModelProviderDescriptor {
-    pub id: String,
-    pub name: String,
-    pub api: String,
-    pub provider: String,
-    pub base_url: Uri,
+    pub id: &'static str,
+    pub name: &'static str,
+    pub api: &'static str,
+    pub provider: &'static str,
+    pub base_url: &'static str,
     pub reasoning: bool,
     pub inputs: [MessageType; 2],
     pub cost: ModelUsageCosting,
-    pub context_window: u16,
-    pub max_tokens: u16,
+    pub context_window: u32,
+    pub max_tokens: u32,
 }
 
 pub trait ModelProvider {
@@ -194,12 +194,20 @@ pub trait Model {
 
     /// [`text`] calls the [`Model::generate`] method internally which
     /// should specifically take in a prompt and generate a text output.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`GenerationError`] if the underlying model fails to generate output.
     fn text(&self, prompt: String, specs: Option<ModelParams>) -> GenerationResult<String> {
         self.generate::<String>(prompt, specs)
     }
 
     /// [`stream_text]` provides a streaming version of the [`Model::text`] method which
     /// supports streaming text output.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`GenerationError`] if the underlying model fails to stream output.
     fn stream_text<T>(&self, prompt: String, specs: Option<ModelParams>) -> GenerationResult<T>
     where
         T: StreamIterator<String, ()>,
@@ -213,6 +221,10 @@ pub trait Model {
     /// It should be expected whatever internal value is returned should
     /// support [`Into<T>`] or whatever conversation mechanism to transform
     /// into the desired output.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`GenerationError`] if inference fails.
     fn generate<T>(&self, prompt: String, specs: Option<ModelParams>) -> GenerationResult<T>;
 
     /// [`stream`] will returns a stream iterator which will represent the
@@ -221,6 +233,10 @@ pub trait Model {
     /// It purposely uses the [`crate::valtron::StreamIterator`] type
     /// which supports a more ergonomic usecase in async (computation is async)
     /// but provides a sync iterarator based API to receive result.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`GenerationError`] if streaming fails.
     fn stream<T, D, P>(&self, prompt: String, specs: Option<ModelParams>) -> GenerationResult<T>
     where
         T: StreamIterator<D, P>;
@@ -229,5 +245,9 @@ pub trait Model {
 pub trait ModelBackend {
     /// [`get_model`] returns a Model interaction type that allows you to
     /// perform completions/generations with a given underlying model.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`ModelError`] if the model cannot be loaded or initialized.
     fn get_model<T: Model>(&self, model_spec: ModelSpec) -> ModelResult<T>;
 }
