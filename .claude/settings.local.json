@@ -24,7 +24,8 @@
       "Bash(mkdir -p /home/darkvoid/Boxxed/@dev/ewe_platform/specifications/06-foundation-codegen/features/00-foundation && mkdir -p /home/darkvoid/Boxxed/@dev/ewe_platform/specifications/06-foundation-codegen/features/01-source-scanner && mkdir -p /home/darkvoid/Boxxed/@dev/ewe_platform/specifications/06-foundation-codegen/features/02-module-path-resolver && mkdir -p /home/darkvoid/Boxxed/@dev/ewe_platform/specifications/06-foundation-codegen/features/03-registry-api && mkdir -p /home/darkvoid/Boxxed/@dev/ewe_platform/specifications/06-foundation-codegen/fundamentals)",
       "Bash(cargo metadata:*)",
       "Bash(gh pr:*)",
-      "Bash(gh run:*)"
+      "Bash(gh run:*)",
+      "Bash(gh workflow:*)"
     ]
   }
 }
