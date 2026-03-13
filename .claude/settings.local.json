@@ -25,7 +25,8 @@
       "Bash(cargo metadata:*)",
       "Bash(gh pr:*)",
       "Bash(gh run:*)",
-      "Bash(gh workflow:*)"
+      "Bash(gh workflow:*)",
+      "Bash(gh api:*)"
     ]
   }
 }

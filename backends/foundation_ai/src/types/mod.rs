@@ -3,23 +3,81 @@
 use std::path::PathBuf;
 
 use foundation_core::valtron::StreamIterator;
+use foundation_core::wire::simple_http::url::Uri;
 
 use crate::errors::GenerationResult;
-use crate::errors::ModelRegistryResult;
+use crate::errors::ModelProviderResult;
 use crate::errors::ModelResult;
 
 pub struct DeviceId(u16);
 
 impl DeviceId {
-    /// Create a new DeviceId from a raw u16 value.
+    /// Create a new `DeviceId` from a raw u16 value.
+    #[must_use]
     pub fn new(id: u16) -> Self {
         DeviceId(id)
     }
 
     /// Retrieve the underlying device id value.
+    #[must_use]
     pub fn get_id(&self) -> u16 {
         self.0
     }
+}
+
+#[allow(non_camel_case_types)]
+pub enum Quantization {
+    None,
+    Default,
+    F16,
+    Q2K,
+    Q2_KS,
+    Q2_KM,
+    Q2_KL,
+    Q3_KS,
+    Q3_KM,
+    Q4_0,
+    Q4_1,
+    IQ_4Nl,
+    IQ_4Xs,
+    Q4_KM,
+    Q4_KS,
+    Q5_KS,
+    Q5_KM,
+    Q5_KL,
+    Q6_K,
+    Q6_KM,
+    Q6_KS,
+    Q6_KL,
+    Q8_0,
+    Q8_1,
+    Ud_IQ_1M,
+    UD_IQ_1S,
+    UD_IQ_2M,
+    UD_IQ_2Xxs,
+    UD_IQ_3Xxs,
+    UD_Q_2KXl,
+    UD_Q_3KXl,
+    UD_Q_4KXl,
+    UD_Q_5KXl,
+    UD_Q_6KXl,
+    UD_Q_8KXl,
+    Custom(String),
+}
+
+pub enum ModelId {
+    /// Specifically named model.
+    Name(String, Option<Quantization>),
+
+    /// A model wih a specific alias generally not the full name
+    /// and optional quantization.
+    Alias(String, Option<Quantization>),
+
+    /// A model based on its group and targeting a specific quantization.
+    Group(String, Option<Quantization>),
+
+    /// A model based on its architecture and targeting a specific quantization.
+    Architecture(String, Option<Quantization>),
 }
 
 /// [`CallSpec`] defines the calling configuration for the model
@@ -53,15 +111,46 @@ pub struct ModelConfig {
     pub response_config: ResponseConfig,
 }
 
-pub enum ModelRegistrySource {
+pub enum ModelSource {
     /// Http endpoint which contains the target model file.
-    HTTP(String),
+    HTTP(Uri),
 
     /// Model repository name  where the model is located in hugging face.
     HuggingFace(String),
+
+    /// [`LocalFile`] points to a local source file where the model is located.
+    LocalFile(PathBuf),
+
+    /// [`LocalDirectory`] points to a local source directory where the model is located.
+    LocalDirectory(PathBuf),
 }
 
-pub trait ModelRegistry {
+pub enum MessageType {
+    Text,
+    Images,
+}
+
+pub struct ModelUsageCosting {
+    pub input: f64,
+    pub output: f64,
+    pub cach_read: f64,
+    pub cach_write: f64,
+}
+
+pub struct ModelProviderDescriptor {
+    pub id: String,
+    pub name: String,
+    pub api: String,
+    pub provider: String,
+    pub base_url: Uri,
+    pub reasoning: bool,
+    pub inputs: [MessageType; 2],
+    pub cost: ModelUsageCosting,
+    pub context_window: u16,
+    pub max_tokens: u16,
+}
+
+pub trait ModelProvider {
     /// [`get_model`] returns a Model interaction type that allows you to
     /// perform completions/generations with a given underlying model.
     ///
@@ -69,22 +158,26 @@ pub trait ModelRegistry {
     ///
     /// Returns a [`ModelRegistryResult`] or the [`ModelSpec`] for the model.
     ///
-    fn get_model(
-        &self,
-        alias_name: String,
-        source: ModelRegistrySource,
-    ) -> ModelRegistryResult<ModelSpec>;
+    fn get_one(&self, model_id: ModelId) -> ModelProviderResult<ModelSpec>;
+
+    /// [`get_all`] returns all Model type match the provided modeil id and.
+    /// from the target source.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`ModelRegistryResult`] or the [`ModelSpec`] for the model.
+    ///
+    fn get_all(&self, model_id: ModelId) -> ModelProviderResult<ModelSpec>;
 }
 
 pub struct ModelSpec {
     pub name: String,
 
+    /// The id representing the giving model.
+    pub id: ModelId,
+
     /// The target device to use for this model execution.
     pub devices: Option<Vec<DeviceId>>,
-
-    /// Optional model registry name to be loaded from a target
-    /// registry.
-    pub registry: Option<ModelRegistrySource>,
 
     /// The optional path to the model file/directory according to the
     /// for which the backend will use.
@@ -96,6 +189,9 @@ pub struct ModelSpec {
 }
 
 pub trait Model {
+    /// [`spec`] returns model specification information for this target model.
+    fn spec(&self) -> ModelSpec;
+
     /// [`text`] calls the [`Model::generate`] method internally which
     /// should specifically take in a prompt and generate a text output.
     fn text(&self, prompt: String, specs: Option<ModelParams>) -> GenerationResult<String> {

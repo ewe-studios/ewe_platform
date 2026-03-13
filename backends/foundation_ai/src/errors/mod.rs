@@ -11,12 +11,12 @@ pub enum GenerationError {
 pub type GenerationResult<T> = std::result::Result<T, GenerationError>;
 
 #[derive(From, Debug)]
-pub enum ModelRegistryErrors {
+pub enum ModelProviderErrors {
     NotFound(String),
     FailedFetching(BoxedError),
 }
 
-pub type ModelRegistryResult<T> = std::result::Result<T, ModelRegistryErrors>;
+pub type ModelProviderResult<T> = std::result::Result<T, ModelProviderErrors>;
 
 #[derive(From, Debug)]
 pub enum ModelErrors {
@@ -31,7 +31,7 @@ pub type ModelResult<T> = std::result::Result<T, ModelErrors>;
 pub enum FoundationAIErrors {
     ModelErrors(ModelErrors),
     GenerationErrors(GenerationError),
-    RegistryErrors(ModelRegistryErrors),
+    RegistryErrors(ModelProviderErrors),
 }
 
 pub type FoundationAIResult<T> = std::result::Result<T, FoundationAIErrors>;
