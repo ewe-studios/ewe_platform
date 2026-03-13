@@ -1,4 +1,5 @@
 #![allow(unused_imports)]
+#![cfg_attr(test, no_main)]
 
 use foundation_wasm::{
     self, exposed_runtime, host_runtime, internal_api, ExternalPointer, Params, ReturnTypeHints,
