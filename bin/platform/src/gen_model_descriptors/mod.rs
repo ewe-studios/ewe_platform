@@ -360,12 +360,12 @@ fn from_dev(
     model_id: &str, m: &ModelsDevModel, api: &str, provider: &str, base_url: &str,
     default_ctx: u32, default_max: u32,
 ) -> ModelEntry {
-    let (ci, co, cr, cw) = dev_cost(&m.cost);
+    let (ci, co, cr, cw) = dev_cost(m.cost.as_ref());
     entry(
         model_id, m.name.as_deref().unwrap_or(model_id),
         api, provider, base_url,
-        m.reasoning == Some(true), has_image(&m.modalities),
-        (ci, co, cr, cw), ctx(&m.limit, default_ctx), max_tok(&m.limit, default_max),
+        m.reasoning == Some(true), has_image(m.modalities.as_ref()),
+        (ci, co, cr, cw), ctx(m.limit.as_ref(), default_ctx), max_tok(m.limit.as_ref(), default_max),
     )
 }
 
@@ -562,10 +562,10 @@ fn fetch_ai_gateway(client: &SimpleHttpClient) -> Vec<ModelEntry> {
         if !tags.iter().any(|t| t == "tool-use") { continue; }
 
         let cost = (
-            pricing_val(&m.pricing.as_ref().and_then(|p| p.input.clone())) * 1_000_000.0,
-            pricing_val(&m.pricing.as_ref().and_then(|p| p.output.clone())) * 1_000_000.0,
-            pricing_val(&m.pricing.as_ref().and_then(|p| p.input_cache_read.clone())) * 1_000_000.0,
-            pricing_val(&m.pricing.as_ref().and_then(|p| p.input_cache_write.clone())) * 1_000_000.0,
+            pricing_val(m.pricing.as_ref().and_then(|p| p.input.as_ref())) * 1_000_000.0,
+            pricing_val(m.pricing.as_ref().and_then(|p| p.output.as_ref())) * 1_000_000.0,
+            pricing_val(m.pricing.as_ref().and_then(|p| p.input_cache_read.as_ref())) * 1_000_000.0,
+            pricing_val(m.pricing.as_ref().and_then(|p| p.input_cache_write.as_ref())) * 1_000_000.0,
         );
 
         models.push(entry(
