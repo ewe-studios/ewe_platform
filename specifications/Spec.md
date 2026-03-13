@@ -92,13 +92,28 @@ This directory contains all project specifications and requirements. Each specif
 
 ---
 
+### [07: TCP-Resilient Batch Readers](./07-tcp-resilient-batch-readers/)
+**Status:** ⏳ Pending
+**Description:** TCP-resilient batch readers that use `read()` instead of `read_exact()` to correctly handle WouldBlock/TimedOut on TCP streams.
+**Has Features:** No
+**Related:** [02-build-http-client](./02-build-http-client/)
+
+**Key Components:**
+- `BatchReader<R: Read>` - Iterator yielding byte batches or retry signals
+- `FullBodyReader<R: Read>` - Known-size body reader with retry resilience
+- Updated `SimpleHttpBody` - Threshold-based reader strategy selection
+
+**Total Tasks:** 17
+
+---
+
 ## Status Dashboard
 
 ### Summary
-- **Total Specifications:** 4
-- **Completed:** 3 (75%)
-- **In Progress:** 1 (25%)
-- **Pending:** 0 (0%)
+- **Total Specifications:** 5
+- **Completed:** 3 (60%)
+- **In Progress:** 1 (20%)
+- **Pending:** 1 (20%)
 
 ### Completed ✅
 - 01: Fix Rust Lints, Checks, and Styling
@@ -109,7 +124,7 @@ This directory contains all project specifications and requirements. Each specif
 - 02: Build HTTP Client
 
 ### Pending ⏳
-- None currently
+- 07: TCP-Resilient Batch Readers
 
 ## Specification Guidelines
 
@@ -136,4 +151,4 @@ This dashboard provides:
 - **Feature breakdown**: Understanding of complex specification structure
 
 ---
-*Last updated: 2026-01-25*
+*Last updated: 2026-03-14*
