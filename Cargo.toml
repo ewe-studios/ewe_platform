@@ -18,8 +18,6 @@ members = [
   "examples/llama-cpp/reranker",
   "examples/llama-cpp/mtmd",
 
-  # tests members
-  "integrations/nodejs/integrations/*",
 ]
 
 exclude = [
@@ -30,6 +28,8 @@ exclude = [
   "crates/temple/output_directory",
   "backends/docs",
   "backends/docs/*",
+  # tests members
+  "integrations/nodejs/integrations/*",
 ]
 
 [workspace.package]

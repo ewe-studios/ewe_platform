@@ -52,7 +52,7 @@ proc-macro2 = "1"
 walkdir = "2"
 toml = "0.8"
 serde = { version = "1", features = ["derive"] }
-thiserror = "2"
+derive_more = { version = "1", features = ["from", "error", "display"] }
 
 [dev-dependencies]
 tempfile = "3"
@@ -62,47 +62,93 @@ tempfile = "3"
 
 ### Error Types (MANDATORY Pattern)
 
-All errors use `thiserror` for ergonomic error handling:
+Errors use `derive_more` for `From` and `Error` derives per project convention. `Display` is manual because `PathBuf` requires `.display()` which derive_more cannot call.
 
 ```rust
+use core::fmt;
+use derive_more::{Error, From};
 use std::path::PathBuf;
-use thiserror::Error;
 
-#[derive(Error, Debug)]
+/// WHY: Groups all codegen failures into a single type so callers can match
+/// on specific failure modes (missing files vs parse errors vs bad config).
+///
+/// WHAT: Enum of all error conditions the source scanner can produce.
+///
+/// HOW: Uses derive_more for `Error` (auto source() from fields named `source`)
+/// and `From` (auto conversion where unambiguous). Manual `Display` for PathBuf.
+#[derive(Debug, From, Error)]
 pub enum CodegenError {
-    #[error("IO error reading {path}: {source}")]
+    /// IO error with the path that was being accessed
+    #[from(ignore)]
     Io {
         path: PathBuf,
         source: std::io::Error,
     },
 
-    #[error("Failed to parse Rust source file {path}: {message}")]
+    /// Rust source file failed to parse
+    #[from(ignore)]
     ParseError {
         path: PathBuf,
         message: String,
     },
 
-    #[error("Failed to parse Cargo.toml at {path}: {source}")]
+    /// Cargo.toml deserialization failed
+    #[from(ignore)]
     CargoTomlError {
         path: PathBuf,
         source: toml::de::Error,
     },
 
-    #[error("Missing Cargo.toml at {0}")]
+    /// Expected Cargo.toml not found at path
     MissingCargoToml(PathBuf),
 
-    #[error("Missing [package] section in Cargo.toml at {0}")]
+    /// Cargo.toml exists but has no [package] section
     MissingPackageSection(PathBuf),
 
-    #[error("Missing package.name in Cargo.toml at {0}")]
+    /// [package] section exists but `name` field is missing
     MissingPackageName(PathBuf),
 
-    #[error("Could not determine source directory for crate at {0}")]
+    /// Could not locate a src/ directory for the crate
     MissingSrcDir(PathBuf),
+}
+
+impl fmt::Display for CodegenError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Io { path, source } => {
+                write!(f, "IO error reading {}: {}", path.display(), source)
+            }
+            Self::ParseError { path, message } => {
+                write!(f, "failed to parse Rust source file {}: {}", path.display(), message)
+            }
+            Self::CargoTomlError { path, source } => {
+                write!(f, "failed to parse Cargo.toml at {}: {}", path.display(), source)
+            }
+            Self::MissingCargoToml(path) => {
+                write!(f, "missing Cargo.toml at {}", path.display())
+            }
+            Self::MissingPackageSection(path) => {
+                write!(f, "missing [package] section in Cargo.toml at {}", path.display())
+            }
+            Self::MissingPackageName(path) => {
+                write!(f, "missing package.name in Cargo.toml at {}", path.display())
+            }
+            Self::MissingSrcDir(path) => {
+                write!(f, "could not determine source directory for crate at {}", path.display())
+            }
+        }
+    }
 }
 
 pub type Result<T> = std::result::Result<T, CodegenError>;
 ```
+
+**Key design decisions:**
+- `derive_more::Error` auto-implements `source()` for fields named `source` (`Io`, `CargoTomlError`)
+- `derive_more::From` enables `?` conversion for simple tuple variants (`MissingCargoToml(PathBuf)`, etc.)
+- `#[from(ignore)]` on struct variants with context (`Io`, `ParseError`, `CargoTomlError`) — these require explicit construction with both path and source/message, preventing bare `?` from losing the path context
+- Manual `Display` because `PathBuf` needs `.display()` which derive_more's `#[display]` cannot call
+- `Display` messages are lowercase (Rust convention for error messages in a chain)
 
 ### Core Types
 
@@ -320,7 +366,7 @@ backends/foundation_codegen/
 - [ ] Add `foundation_codegen` to workspace `Cargo.toml` members
 
 ### Error Types
-- [ ] Create `src/error.rs` with `CodegenError` enum using `thiserror`
+- [ ] Create `src/error.rs` with `CodegenError` enum using `derive_more::{From, Error}` and manual `Display`
 - [ ] Define `Result<T>` type alias
 - [ ] Test error display messages
 
