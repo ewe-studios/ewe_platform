@@ -4,11 +4,13 @@ use std::path::PathBuf;
 
 use foundation_core::valtron::StreamIterator;
 use foundation_core::wire::simple_http::url::Uri;
+use serde::{Deserialize, Serialize};
 
 use crate::errors::GenerationResult;
 use crate::errors::ModelProviderResult;
 use crate::errors::ModelResult;
 
+#[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct DeviceId(u16);
 
 impl DeviceId {
@@ -26,6 +28,7 @@ impl DeviceId {
 }
 
 #[allow(non_camel_case_types)]
+#[derive(Serialize, Deserialize, Debug,  Clone, PartialEq, PartialOrd)]
 pub enum Quantization {
     None,
     Default,
@@ -65,6 +68,7 @@ pub enum Quantization {
     Custom(String),
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
 pub enum ModelId {
     /// Specifically named model.
     Name(String, Option<Quantization>),
@@ -82,6 +86,7 @@ pub enum ModelId {
 
 /// [`CallSpec`] defines the calling configuration for the model
 /// which can be customized as needed for different use-case.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
 pub struct ModelParams {
     pub max_tokens: usize,
     pub temperature: f32,
@@ -94,11 +99,13 @@ pub struct ModelParams {
 
 /// [`ResponseSpec`] defines expectation for how a response specification
 /// should be returned.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
 pub struct ResponseConfig {
     pub call_spec: ModelParams,
     pub streaming: bool,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
 pub struct ModelConfig {
     // standard model properties
     pub context_length: usize,
@@ -125,11 +132,13 @@ pub enum ModelSource {
     LocalDirectory(PathBuf),
 }
 
+#[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub enum MessageType {
     Text,
     Images,
 }
 
+#[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct ModelUsageCosting {
     pub input: f64,
     pub output: f64,
@@ -137,6 +146,7 @@ pub struct ModelUsageCosting {
     pub cach_write: f64,
 }
 
+#[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct ModelProviderDescriptor {
     pub id: &'static str,
     pub name: &'static str,
