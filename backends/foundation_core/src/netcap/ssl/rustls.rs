@@ -7,8 +7,9 @@ use crate::netcap::connection::Connection;
 use crate::netcap::{
     DataStreamAddr, DataStreamError, DataStreamResult, Endpoint, EndpointConfig, SocketAddr,
 };
+use rustls::crypto::CryptoProvider;
 use rustls::pki_types::ServerName;
-use rustls::RootCertStore;
+use rustls::{RootCertStore, ALL_VERSIONS};
 use std::error::Error;
 use std::io::{Read, Write};
 use std::net::{Shutdown, TcpStream};
@@ -18,11 +19,37 @@ use zeroize::Zeroizing;
 
 pub use rustls::{ClientConfig, ServerConfig};
 
+#[must_use]
+pub fn initialize_tls_provider() -> Option<CryptoProvider> {
+    #[cfg(all(feature = "ssl-provider-awsrc", not(feature = "ssl-provider-ring")))]
+    {
+        Some(rustls::crypto::aws_lc_rs::default_provider())
+    }
+
+    #[cfg(all(feature = "ssl-provider-ring", not(feature = "ssl-provider-awsrc")))]
+    {
+        Some(rustls::crypto::ring::default_provider())
+    }
+
+    #[cfg(all(
+        not(feature = "ssl-provider-ring"),
+        not(feature = "ssl-provider-awsrc")
+    ))]
+    {
+        None
+    }
+}
+
 /// Creates a default `ClientConfig` with Mozilla's root certificates.
 ///
 /// This function builds a TLS client configuration using the `webpki-roots` crate,
 /// which provides a bundle of root certificates from Mozilla's CA Certificate Program.
 /// The configuration supports TLS 1.2 and 1.3 protocols with safe default cipher suites.
+///
+/// # Panics
+///
+/// 1. Panics if tls provider could not be deteremined.
+/// 2. Panics if versions could not be set
 ///
 /// # Returns
 ///
@@ -41,7 +68,10 @@ pub fn default_client_config() -> Arc<ClientConfig> {
     let mut root_store = RootCertStore::empty();
     root_store.extend(TLS_SERVER_ROOTS.iter().cloned());
 
-    let config = rustls::ClientConfig::builder()
+    let provider = Arc::new(initialize_tls_provider().expect("should generate provider"));
+    let config = rustls::ClientConfig::builder_with_provider(provider)
+        .with_protocol_versions(ALL_VERSIONS)
+        .expect("correct versions")
         .with_root_certificates(root_store)
         .with_no_client_auth();
 

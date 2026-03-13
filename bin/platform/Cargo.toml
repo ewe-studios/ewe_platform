@@ -16,7 +16,7 @@ ewe_watch_utils = { workspace = true }
 ewe_watchers = { workspace = true }
 ewe_devserver = { workspace = true }
 ewe_trace = { workspace = true, features = ["standard"] }
-foundation_core = { workspace = true }
+foundation_core = { workspace = true, features = ["ssl", "multi"] }
 foundation_ai = { workspace = true }
 foundation_runtimes = { workspace = true }
 foundation_nostd = { workspace = true }

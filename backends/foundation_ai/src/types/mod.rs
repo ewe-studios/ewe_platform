@@ -27,8 +27,36 @@ impl DeviceId {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
+pub enum ModelAPI {
+    OpenAICompletions,
+    OpenAIResponses,
+    AzureOpenaiResponses,
+    OpenaiCodexResponses,
+    AnthropicMessages,
+    BedrockConverseStream,
+    GoogleGenerativeAi,
+    GoogleGeminiCli,
+    GoogleVertex,
+    Custom(String),
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
+pub struct ModelProviderDescriptor {
+    pub id: String,
+    pub name: String,
+    pub api: ModelAPI,
+    pub provider: String,
+    pub base_url: String,
+    pub reasoning: bool,
+    pub inputs: [MessageType; 2],
+    pub cost: ModelUsageCosting,
+    pub context_window: u32,
+    pub max_tokens: u32,
+}
+
 #[allow(non_camel_case_types)]
-#[derive(Serialize, Deserialize, Debug,  Clone, PartialEq, PartialOrd)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
 pub enum Quantization {
     None,
     Default,
@@ -144,20 +172,6 @@ pub struct ModelUsageCosting {
     pub output: f64,
     pub cach_read: f64,
     pub cach_write: f64,
-}
-
-#[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, PartialOrd)]
-pub struct ModelProviderDescriptor {
-    pub id: &'static str,
-    pub name: &'static str,
-    pub api: &'static str,
-    pub provider: &'static str,
-    pub base_url: &'static str,
-    pub reasoning: bool,
-    pub inputs: [MessageType; 2],
-    pub cost: ModelUsageCosting,
-    pub context_window: u32,
-    pub max_tokens: u32,
 }
 
 pub trait ModelProvider {
