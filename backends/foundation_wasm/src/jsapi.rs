@@ -878,7 +878,8 @@ pub mod host_runtime {
                 _operation_length: u64,
                 _text_pointer: u64,
                 _text_length: u64,
-            ) {}
+            ) {
+            }
             pub fn host_batch_returning_apply(
                 _operation_pointer: u64,
                 _operation_length: u64,
