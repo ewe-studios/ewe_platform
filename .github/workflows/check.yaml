@@ -115,6 +115,8 @@ jobs:
         with:
           submodules: false
           fetch-depth: 1
+      - name: Enable long paths in Git
+        run: git config --system core.longpaths true
       - name: Pull the accompany tools
         run: |
           git submodule update --init --recursive tools/emsdk
