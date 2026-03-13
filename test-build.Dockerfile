@@ -15,7 +15,8 @@ RUN git clone --branch stable --depth=1 https://github.com/rui314/mold.git /tmp/
     cmake --build build --target install && \
     rm -rf /tmp/mold
 
-ENV CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=mold
+# Configure cargo to use clang with mold linker
+RUN mkdir -p /root/.cargo && echo '[target.x86_64-unknown-linux-gnu]\nlinker = "clang"\nrustflags = ["-C", "link-arg=-fuse-ld=mold"]' > /root/.cargo/config.toml
 
 COPY . .
 RUN cargo build --bin simple --features cuda
