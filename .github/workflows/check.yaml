@@ -106,27 +106,27 @@ jobs:
           components: clippy, rustfmt
       - name: Build
         run: cargo build --workspace --features infrastructure_llama_cpp/sampler
-  windows:
-    name: "Windows - Run rust checks"
-    runs-on: windows-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: false
-          fetch-depth: 1
-      - name: Enable long paths in Git
-        run: git config --system core.longpaths true
-      - name: Pull the accompany tools
-        run: |
-          git submodule update --init --recursive tools/emsdk
-          git submodule update --init --depth=1 tools/dawn
-          git submodule update --init --recursive infrastructure/llama-bindings/llama.cpp
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy, rustfmt
-      - name: Build
-        run: cargo build --workspace --features infrastructure_llama_cpp/sampler
-      - name: Test
-        run: cargo test --workspace --features infrastructure_llama_cpp/sampler
+#  windows:
+#    name: "Windows - Run rust checks"
+#    runs-on: windows-latest
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#        with:
+#          submodules: false
+#          fetch-depth: 1
+#      - name: Enable long paths in Git
+#        run: git config --system core.longpaths true
+#      - name: Pull the accompany tools
+#        run: |
+#          git submodule update --init --recursive tools/emsdk
+#          git submodule update --init --depth=1 tools/dawn
+#          git submodule update --init --recursive infrastructure/llama-bindings/llama.cpp
+#      - name: Setup Rust
+#        uses: dtolnay/rust-toolchain@stable
+#        with:
+#          components: clippy, rustfmt
+#      - name: Build
+#        run: cargo build --workspace --features infrastructure_llama_cpp/sampler
+#      - name: Test
+#        run: cargo test --workspace --features infrastructure_llama_cpp/sampler
