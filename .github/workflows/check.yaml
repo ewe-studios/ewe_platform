@@ -20,13 +20,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: true
+          submodules: false
           fetch-depth: 1
       - name: Pull the accompany tools
         run: |
-          git submodule update --init --depth=1 --recursive tools/emsdk
+          git submodule update --init --recursive tools/emsdk
           git submodule update --init --depth=1 tools/dawn
-          git submodule update --init --depth=1 --recursive infrastructure/llama-bindings/llama.cpp
+          git submodule update --init --recursive infrastructure/llama-bindings/llama.cpp
       - name: Install native dependencies
         env:
           DEBIAN_FRONTEND: noninteractive
@@ -63,7 +63,7 @@ jobs:
           fetch-depth: 1
       - name: Checkout llama.cpp
         run: |
-          git submodule update --init --depth=1 infrastructure/llama-bindings/llama.cpp
+          git submodule update --init --recursive infrastructure/llama-bindings/llama.cpp
       - name: Prepare clean build context
         run: |
           mkdir -p /tmp/ewe-docker-build
@@ -93,13 +93,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: true
+          submodules: false
           fetch-depth: 1
       - name: Pull the accompany tools
         run: |
-          git submodule update --init --depth=1 --recursive tools/emsdk
+          git submodule update --init --recursive tools/emsdk
           git submodule update --init --depth=1 tools/dawn
-          git submodule update --init --depth=1 --recursive infrastructure/llama-bindings/llama.cpp
+          git submodule update --init --recursive infrastructure/llama-bindings/llama.cpp
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -113,13 +113,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: true
+          submodules: false
           fetch-depth: 1
       - name: Pull the accompany tools
         run: |
-          git submodule update --init --depth=1 --recursive tools/emsdk
+          git submodule update --init --recursive tools/emsdk
           git submodule update --init --depth=1 tools/dawn
-          git submodule update --init --depth=1 --recursive infrastructure/llama-bindings/llama.cpp
+          git submodule update --init --recursive infrastructure/llama-bindings/llama.cpp
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
