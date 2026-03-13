@@ -3114,7 +3114,7 @@ mod html_parser_test {
                 MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
                 MarkupTags::HTML(HTMLTags::Div),
                 MarkupTags::HTML(HTMLTags::Script),
-                MarkupTags::Text(String::from("\n                \tlet some_var = window.get('alex');\n                    let elem = (<section>alex</section>)\n                ")),
+                MarkupTags::Text(String::from("\n                  let some_var = window.get('alex');\n                    let elem = (<section>alex</section>)\n                ")),
             ],
             parsed
         );
@@ -3365,7 +3365,7 @@ mod html_parser_test {
             vec![
                 MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
                 MarkupTags::HTML(HTMLTags::Style),
-                MarkupTags::Text(String::from("\n                \tbody {\n                    \tbackground: black;\n                    }\n\n                    h1 {\n                    \tcolor: white;\n                        background-color: #43433;\n                    }\n                ")),
+                MarkupTags::Text(String::from("\n                  body {\n                      background: black;\n                    }\n\n                    h1 {\n                      color: white;\n                        background-color: #43433;\n                    }\n                ")),
             ],
             parsed
         );
@@ -3776,7 +3776,7 @@ mod html_parser_test {
                 MarkupTags::HTML(HTMLTags::DocumentFragmentContainer),
                 MarkupTags::HTML(HTMLTags::Div),
                 MarkupTags::Text(String::from(
-                    "\n            \t<section></section>\n             "
+                    "\n              <section></section>\n             "
                 )),
             ],
             tags
