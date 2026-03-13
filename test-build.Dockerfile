@@ -31,6 +31,10 @@ rustflags = ["-C", "link-arg=-fuse-ld=mold"]
 EOF
 
 COPY . .
+
+# Override EMSDK_DIR from .cargo/config.toml to point to the Docker-installed emsdk
+ENV EMSDK_DIR=/opt/emsdk
+
 RUN cargo build --bin simple --features cuda
 
 FROM nvcr.io/nvidia/cuda:${CUDA_VERSION}-runtime-ubuntu${UBUNTU_VERSION} AS base-cuda-runtime
