@@ -3,26 +3,32 @@ set -e
 
 # Script to install mold linker - tries prebuilt binary first, falls back to building from source
 
-MOLD_VERSION="2.4.2"
-TARGET="x86_64-unknown-linux-gnu"
+MOLD_VERSION="2.40.4"
+TARGET="x86_64"
 
 echo "=== Installing mold linker ==="
 
 # Detect architecture
 ARCH=$(uname -m)
-if [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
-    TARGET="aarch64-unknown-linux-gnu"
+if [ "$ARCH" = "aarch64" ]; then
+    TARGET="aarch64"
+elif [ "$ARCH" = "arm64" ]; then
+    # macOS Apple Silicon reports arm64, but mold uses aarch64 for 64-bit ARM
+    TARGET="aarch64"
+elif [ "$ARCH" = "armv7l" ] || [ "$ARCH" = "armhf" ] || [ "$ARCH" = "arm" ]; then
+    # 32-bit ARM
+    TARGET="arm"
 elif [ "$ARCH" = "x86_64" ]; then
-    TARGET="x86_64-unknown-linux-gnu"
+    TARGET="x86_64"
 else
     echo "Unsupported architecture: $ARCH"
     exit 1
 fi
 
-echo "Detected architecture: $ARCH -> target: $TARGET"
+echo "Detected architecture: $ARCH -> target: ${TARGET}-linux-gnu"
 
 # Try to download prebuilt binary from GitHub releases
-MOLD_TARBALL="mold-${MOLD_VERSION}-${TARGET}.tar.gz"
+MOLD_TARBALL="mold-${MOLD_VERSION}-${TARGET}-linux.tar.gz"
 MOLD_URL="https://github.com/rui314/mold/releases/download/v${MOLD_VERSION}/${MOLD_TARBALL}"
 
 echo "Attempting to download prebuilt mold from: $MOLD_URL"
@@ -31,7 +37,7 @@ if curl -fsSL -o "/tmp/${MOLD_TARBALL}" "$MOLD_URL" 2>/dev/null; then
     echo "Download successful, extracting..."
     cd /tmp
     tar -xzf "${MOLD_TARBALL}"
-    cd /tmp/mold-${MOLD_VERSION}-${TARGET}
+    cd /tmp/mold-${MOLD_VERSION}-${TARGET}-linux
     cmake --install build --prefix /usr/local
     rm -rf /tmp/mold-* "${MOLD_TARBALL}"
     echo "Mold installed successfully from prebuilt binary"

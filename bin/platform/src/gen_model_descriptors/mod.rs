@@ -12,8 +12,10 @@
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;
+use std::process::Command;
 
 use derive_more::{Display, From};
+use foundation_core::valtron;
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
 use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, Status};
 use serde::Deserialize;
@@ -22,7 +24,7 @@ use tracing_subscriber::FmtSubscriber;
 
 // Import the real types from foundation_ai so the compiler enforces that our
 // codegen stays in sync with the actual struct definitions.
-use foundation_ai::types::{MessageType, ModelProviderDescriptor, ModelUsageCosting};
+use foundation_ai::types::{MessageType, ModelAPI, ModelProviderDescriptor, ModelUsageCosting};
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
@@ -98,11 +100,11 @@ impl std::error::Error for GenModelError {}
 #[allow(dead_code)]
 fn verify_struct_shape() -> ModelProviderDescriptor {
     ModelProviderDescriptor {
-        id: "",
-        name: "",
-        api: "",
-        provider: "",
-        base_url: "",
+        id: String::new(),
+        name: String::new(),
+        api: ModelAPI::OpenAICompletions,
+        provider: String::new(),
+        base_url: String::new(),
         reasoning: false,
         inputs: [MessageType::Text, MessageType::Text],
         cost: ModelUsageCosting {
@@ -266,13 +268,25 @@ fn http_get_json<T: serde::de::DeserializeOwned>(
 ) -> Result<T, GenModelError> {
     let response = client
         .get(url)
-        .map_err(|e| GenModelError::Http { url: url.to_string(), source: e })?
+        .map_err(|e| GenModelError::Http {
+            url: url.to_string(),
+            source: e,
+        })?
         .header(SimpleHeader::ACCEPT, "application/json")
-        .header(SimpleHeader::USER_AGENT, "gen_model_descriptors/0.1 (ewe-platform)")
+        .header(
+            SimpleHeader::USER_AGENT,
+            "gen_model_descriptors/0.1 (ewe-platform)",
+        )
         .build_client()
-        .map_err(|e| GenModelError::Http { url: url.to_string(), source: e })?
+        .map_err(|e| GenModelError::Http {
+            url: url.to_string(),
+            source: e,
+        })?
         .send()
-        .map_err(|e| GenModelError::Http { url: url.to_string(), source: e })?;
+        .map_err(|e| GenModelError::Http {
+            url: url.to_string(),
+            source: e,
+        })?;
 
     let status = response.get_status();
     if status != Status::OK {
@@ -284,13 +298,23 @@ fn http_get_json<T: serde::de::DeserializeOwned>(
 
     let body_text = match response.get_body_ref() {
         SendSafeBody::Text(t) => t.clone(),
-        SendSafeBody::Bytes(b) => String::from_utf8(b.clone())
-            .map_err(|e| GenModelError::InvalidUtf8 { url: url.to_string(), source: e })?,
-        _ => return Err(GenModelError::UnexpectedBody { url: url.to_string() }),
+        SendSafeBody::Bytes(b) => {
+            String::from_utf8(b.clone()).map_err(|e| GenModelError::InvalidUtf8 {
+                url: url.to_string(),
+                source: e,
+            })?
+        }
+        _ => {
+            return Err(GenModelError::UnexpectedBody {
+                url: url.to_string(),
+            })
+        }
     };
 
-    serde_json::from_str(&body_text)
-        .map_err(|e| GenModelError::Json { url: url.to_string(), source: e })
+    serde_json::from_str(&body_text).map_err(|e| GenModelError::Json {
+        url: url.to_string(),
+        source: e,
+    })
 }
 
 // ---------------------------------------------------------------------------
@@ -333,11 +357,27 @@ fn pricing_val(v: Option<&serde_json::Value>) -> f64 {
     }
 }
 
+struct Cfg {
+    key: &'static str,
+    api: &'static str,
+    provider: &'static str,
+    base_url: &'static str,
+    default_ctx: u32,
+    default_max: u32,
+}
+
 #[allow(clippy::too_many_arguments)]
 fn entry(
-    id: &str, name: &str, api: &str, provider: &str, base_url: &str,
-    reasoning: bool, has_image_input: bool, cost: (f64, f64, f64, f64),
-    context_window: u32, max_tokens: u32,
+    id: &str,
+    name: &str,
+    api: &str,
+    provider: &str,
+    base_url: &str,
+    reasoning: bool,
+    has_image_input: bool,
+    cost: (f64, f64, f64, f64),
+    context_window: u32,
+    max_tokens: u32,
 ) -> ModelEntry {
     ModelEntry {
         id: id.to_string(),
@@ -357,15 +397,26 @@ fn entry(
 }
 
 fn from_dev(
-    model_id: &str, m: &ModelsDevModel, api: &str, provider: &str, base_url: &str,
-    default_ctx: u32, default_max: u32,
+    model_id: &str,
+    m: &ModelsDevModel,
+    api: &str,
+    provider: &str,
+    base_url: &str,
+    default_ctx: u32,
+    default_max: u32,
 ) -> ModelEntry {
     let (ci, co, cr, cw) = dev_cost(m.cost.as_ref());
     entry(
-        model_id, m.name.as_deref().unwrap_or(model_id),
-        api, provider, base_url,
-        m.reasoning == Some(true), has_image(m.modalities.as_ref()),
-        (ci, co, cr, cw), ctx(m.limit.as_ref(), default_ctx), max_tok(m.limit.as_ref(), default_max),
+        model_id,
+        m.name.as_deref().unwrap_or(model_id),
+        api,
+        provider,
+        base_url,
+        m.reasoning == Some(true),
+        has_image(m.modalities.as_ref()),
+        (ci, co, cr, cw),
+        ctx(m.limit.as_ref(), default_ctx),
+        max_tok(m.limit.as_ref(), default_max),
     )
 }
 
@@ -373,6 +424,7 @@ fn from_dev(
 // Source fetchers
 // ---------------------------------------------------------------------------
 
+#[allow(clippy::too_many_lines)]
 fn fetch_models_dev(client: &SimpleHttpClient) -> Vec<ModelEntry> {
     tracing::info!("Fetching models from models.dev API...");
     let data: serde_json::Value = match http_get_json(client, "https://models.dev/api.json") {
@@ -385,41 +437,113 @@ fn fetch_models_dev(client: &SimpleHttpClient) -> Vec<ModelEntry> {
 
     let mut models = Vec::new();
 
-    struct Cfg { key: &'static str, api: &'static str, provider: &'static str, base_url: &'static str, default_ctx: u32, default_max: u32 }
-
     let providers = [
-        Cfg { key: "amazon-bedrock", api: "bedrock-converse-stream", provider: "amazon-bedrock",
-              base_url: "https://bedrock-runtime.us-east-1.amazonaws.com", default_ctx: 4096, default_max: 4096 },
-        Cfg { key: "anthropic", api: "anthropic-messages", provider: "anthropic",
-              base_url: "https://api.anthropic.com", default_ctx: 4096, default_max: 4096 },
-        Cfg { key: "google", api: "google-generative-ai", provider: "google",
-              base_url: "https://generativelanguage.googleapis.com/v1beta", default_ctx: 4096, default_max: 4096 },
-        Cfg { key: "openai", api: "openai-responses", provider: "openai",
-              base_url: "https://api.openai.com/v1", default_ctx: 4096, default_max: 4096 },
-        Cfg { key: "groq", api: "openai-completions", provider: "groq",
-              base_url: "https://api.groq.com/openai/v1", default_ctx: 4096, default_max: 4096 },
-        Cfg { key: "cerebras", api: "openai-completions", provider: "cerebras",
-              base_url: "https://api.cerebras.ai/v1", default_ctx: 4096, default_max: 4096 },
-        Cfg { key: "xai", api: "openai-completions", provider: "xai",
-              base_url: "https://api.x.ai/v1", default_ctx: 4096, default_max: 4096 },
-        Cfg { key: "mistral", api: "openai-completions", provider: "mistral",
-              base_url: "https://api.mistral.ai/v1", default_ctx: 4096, default_max: 4096 },
-        Cfg { key: "huggingface", api: "openai-completions", provider: "huggingface",
-              base_url: "https://router.huggingface.co/v1", default_ctx: 4096, default_max: 4096 },
+        Cfg {
+            key: "amazon-bedrock",
+            api: "bedrock-converse-stream",
+            provider: "amazon-bedrock",
+            base_url: "https://bedrock-runtime.us-east-1.amazonaws.com",
+            default_ctx: 4096,
+            default_max: 4096,
+        },
+        Cfg {
+            key: "anthropic",
+            api: "anthropic-messages",
+            provider: "anthropic",
+            base_url: "https://api.anthropic.com",
+            default_ctx: 4096,
+            default_max: 4096,
+        },
+        Cfg {
+            key: "google",
+            api: "google-generative-ai",
+            provider: "google",
+            base_url: "https://generativelanguage.googleapis.com/v1beta",
+            default_ctx: 4096,
+            default_max: 4096,
+        },
+        Cfg {
+            key: "openai",
+            api: "openai-responses",
+            provider: "openai",
+            base_url: "https://api.openai.com/v1",
+            default_ctx: 4096,
+            default_max: 4096,
+        },
+        Cfg {
+            key: "groq",
+            api: "openai-completions",
+            provider: "groq",
+            base_url: "https://api.groq.com/openai/v1",
+            default_ctx: 4096,
+            default_max: 4096,
+        },
+        Cfg {
+            key: "cerebras",
+            api: "openai-completions",
+            provider: "cerebras",
+            base_url: "https://api.cerebras.ai/v1",
+            default_ctx: 4096,
+            default_max: 4096,
+        },
+        Cfg {
+            key: "xai",
+            api: "openai-completions",
+            provider: "xai",
+            base_url: "https://api.x.ai/v1",
+            default_ctx: 4096,
+            default_max: 4096,
+        },
+        Cfg {
+            key: "mistral",
+            api: "openai-completions",
+            provider: "mistral",
+            base_url: "https://api.mistral.ai/v1",
+            default_ctx: 4096,
+            default_max: 4096,
+        },
+        Cfg {
+            key: "huggingface",
+            api: "openai-completions",
+            provider: "huggingface",
+            base_url: "https://router.huggingface.co/v1",
+            default_ctx: 4096,
+            default_max: 4096,
+        },
     ];
 
     for cfg in &providers {
-        let Some(provider_val) = data.get(cfg.key) else { continue };
-        let Ok(p) = serde_json::from_value::<ModelsDevProvider>(provider_val.clone()) else { continue };
-        let Some(provider_models) = p.models else { continue };
+        let Some(provider_val) = data.get(cfg.key) else {
+            continue;
+        };
+        let Ok(p) = serde_json::from_value::<ModelsDevProvider>(provider_val.clone()) else {
+            continue;
+        };
+        let Some(provider_models) = p.models else {
+            continue;
+        };
 
         for (model_id, m) in &provider_models {
-            if m.tool_call != Some(true) { continue; }
-            if cfg.key == "amazon-bedrock" {
-                if model_id.starts_with("ai21.jamba") { continue; }
-                if model_id.starts_with("mistral.mistral-7b-instruct-v0") { continue; }
+            if m.tool_call != Some(true) {
+                continue;
             }
-            models.push(from_dev(model_id, m, cfg.api, cfg.provider, cfg.base_url, cfg.default_ctx, cfg.default_max));
+            if cfg.key == "amazon-bedrock" {
+                if model_id.starts_with("ai21.jamba") {
+                    continue;
+                }
+                if model_id.starts_with("mistral.mistral-7b-instruct-v0") {
+                    continue;
+                }
+            }
+            models.push(from_dev(
+                model_id,
+                m,
+                cfg.api,
+                cfg.provider,
+                cfg.base_url,
+                cfg.default_ctx,
+                cfg.default_max,
+            ));
         }
     }
 
@@ -427,8 +551,18 @@ fn fetch_models_dev(client: &SimpleHttpClient) -> Vec<ModelEntry> {
     if let Some(val) = data.get("zai") {
         if let Ok(p) = serde_json::from_value::<ModelsDevProvider>(val.clone()) {
             for (id, m) in p.models.iter().flat_map(|ms| ms.iter()) {
-                if m.tool_call != Some(true) { continue; }
-                models.push(from_dev(id, m, "openai-completions", "zai", "https://api.z.ai/api/coding/paas/v4", 4096, 4096));
+                if m.tool_call != Some(true) {
+                    continue;
+                }
+                models.push(from_dev(
+                    id,
+                    m,
+                    "openai-completions",
+                    "zai",
+                    "https://api.z.ai/api/coding/paas/v4",
+                    4096,
+                    4096,
+                ));
             }
         }
     }
@@ -437,13 +571,19 @@ fn fetch_models_dev(client: &SimpleHttpClient) -> Vec<ModelEntry> {
     if let Some(val) = data.get("opencode") {
         if let Ok(p) = serde_json::from_value::<ModelsDevProvider>(val.clone()) {
             for (id, m) in p.models.iter().flat_map(|ms| ms.iter()) {
-                if m.tool_call != Some(true) { continue; }
-                if m.status.as_deref() == Some("deprecated") { continue; }
+                if m.tool_call != Some(true) {
+                    continue;
+                }
+                if m.status.as_deref() == Some("deprecated") {
+                    continue;
+                }
                 let npm = m.provider.as_ref().and_then(|p| p.npm.as_deref());
                 let (api, base_url) = match npm {
                     Some("@ai-sdk/openai") => ("openai-responses", "https://opencode.ai/zen/v1"),
                     Some("@ai-sdk/anthropic") => ("anthropic-messages", "https://opencode.ai/zen"),
-                    Some("@ai-sdk/google") => ("google-generative-ai", "https://opencode.ai/zen/v1"),
+                    Some("@ai-sdk/google") => {
+                        ("google-generative-ai", "https://opencode.ai/zen/v1")
+                    }
                     _ => ("openai-completions", "https://opencode.ai/zen/v1"),
                 };
                 models.push(from_dev(id, m, api, "opencode", base_url, 4096, 4096));
@@ -455,16 +595,32 @@ fn fetch_models_dev(client: &SimpleHttpClient) -> Vec<ModelEntry> {
     if let Some(val) = data.get("github-copilot") {
         if let Ok(p) = serde_json::from_value::<ModelsDevProvider>(val.clone()) {
             for (id, m) in p.models.iter().flat_map(|ms| ms.iter()) {
-                if m.tool_call != Some(true) { continue; }
-                if m.status.as_deref() == Some("deprecated") { continue; }
+                if m.tool_call != Some(true) {
+                    continue;
+                }
+                if m.status.as_deref() == Some("deprecated") {
+                    continue;
+                }
                 let is_claude4 = id.starts_with("claude-haiku-4")
                     || id.starts_with("claude-sonnet-4")
                     || id.starts_with("claude-opus-4");
                 let needs_responses = id.starts_with("gpt-5") || id.starts_with("oswe");
-                let api = if is_claude4 { "anthropic-messages" }
-                    else if needs_responses { "openai-responses" }
-                    else { "openai-completions" };
-                models.push(from_dev(id, m, api, "github-copilot", "https://api.individual.githubcopilot.com", 128_000, 8192));
+                let api = if is_claude4 {
+                    "anthropic-messages"
+                } else if needs_responses {
+                    "openai-responses"
+                } else {
+                    "openai-completions"
+                };
+                models.push(from_dev(
+                    id,
+                    m,
+                    api,
+                    "github-copilot",
+                    "https://api.individual.githubcopilot.com",
+                    128_000,
+                    8192,
+                ));
             }
         }
     }
@@ -472,13 +628,27 @@ fn fetch_models_dev(client: &SimpleHttpClient) -> Vec<ModelEntry> {
     // MiniMax variants
     for (key, provider, base_url) in [
         ("minimax", "minimax", "https://api.minimax.io/anthropic"),
-        ("minimax-cn", "minimax-cn", "https://api.minimaxi.com/anthropic"),
+        (
+            "minimax-cn",
+            "minimax-cn",
+            "https://api.minimaxi.com/anthropic",
+        ),
     ] {
         if let Some(val) = data.get(key) {
             if let Ok(p) = serde_json::from_value::<ModelsDevProvider>(val.clone()) {
                 for (id, m) in p.models.iter().flat_map(|ms| ms.iter()) {
-                    if m.tool_call != Some(true) { continue; }
-                    models.push(from_dev(id, m, "anthropic-messages", provider, base_url, 4096, 4096));
+                    if m.tool_call != Some(true) {
+                        continue;
+                    }
+                    models.push(from_dev(
+                        id,
+                        m,
+                        "anthropic-messages",
+                        provider,
+                        base_url,
+                        4096,
+                        4096,
+                    ));
                 }
             }
         }
@@ -488,13 +658,26 @@ fn fetch_models_dev(client: &SimpleHttpClient) -> Vec<ModelEntry> {
     if let Some(val) = data.get("kimi-for-coding") {
         if let Ok(p) = serde_json::from_value::<ModelsDevProvider>(val.clone()) {
             for (id, m) in p.models.iter().flat_map(|ms| ms.iter()) {
-                if m.tool_call != Some(true) { continue; }
-                models.push(from_dev(id, m, "anthropic-messages", "kimi-coding", "https://api.kimi.com/coding", 4096, 4096));
+                if m.tool_call != Some(true) {
+                    continue;
+                }
+                models.push(from_dev(
+                    id,
+                    m,
+                    "anthropic-messages",
+                    "kimi-coding",
+                    "https://api.kimi.com/coding",
+                    4096,
+                    4096,
+                ));
             }
         }
     }
 
-    tracing::info!("Loaded {} tool-capable models from models.dev", models.len());
+    tracing::info!(
+        "Loaded {} tool-capable models from models.dev",
+        models.len()
+    );
     models
 }
 
@@ -511,16 +694,25 @@ fn fetch_openrouter(client: &SimpleHttpClient) -> Vec<ModelEntry> {
 
     let mut models = Vec::new();
     for m in &data.data {
-        let has_tools = m.supported_parameters.as_ref()
-            .map_or(false, |p| p.iter().any(|s| s == "tools"));
-        if !has_tools { continue; }
+        let has_tools = m
+            .supported_parameters
+            .as_ref()
+            .is_some_and(|p| p.iter().any(|s| s == "tools"));
+        if !has_tools {
+            continue;
+        }
 
-        let img = m.architecture.as_ref()
+        let img = m
+            .architecture
+            .as_ref()
             .and_then(|a| a.modality.as_deref())
-            .map_or(false, |s| s.contains("image"));
+            .is_some_and(|s| s.contains("image"));
 
         let parse = |s: &Option<String>| -> f64 {
-            s.as_deref().and_then(|v| v.parse::<f64>().ok()).unwrap_or(0.0) * 1_000_000.0
+            s.as_deref()
+                .and_then(|v| v.parse::<f64>().ok())
+                .unwrap_or(0.0)
+                * 1_000_000.0
         };
         let cost = (
             parse(&m.pricing.as_ref().and_then(|p| p.prompt.clone())),
@@ -529,19 +721,38 @@ fn fetch_openrouter(client: &SimpleHttpClient) -> Vec<ModelEntry> {
             parse(&m.pricing.as_ref().and_then(|p| p.input_cache_write.clone())),
         );
 
-        let reasoning = m.supported_parameters.as_ref()
-            .map_or(false, |p| p.iter().any(|s| s == "reasoning"));
+        let reasoning = m
+            .supported_parameters
+            .as_ref()
+            .is_some_and(|p| p.iter().any(|s| s == "reasoning"));
 
         models.push(entry(
-            &m.id, m.name.as_deref().unwrap_or(&m.id),
-            "openai-completions", "openrouter", "https://openrouter.ai/api/v1",
-            reasoning, img, cost,
-            m.context_length.unwrap_or(4096) as u32,
-            m.top_provider.as_ref().and_then(|t| t.max_completion_tokens).unwrap_or(4096) as u32,
+            &m.id,
+            m.name.as_deref().unwrap_or(&m.id),
+            "openai-completions",
+            "openrouter",
+            "https://openrouter.ai/api/v1",
+            reasoning,
+            img,
+            cost,
+            #[allow(clippy::cast_possible_truncation)]
+            {
+                m.context_length.unwrap_or(4096) as u32
+            },
+            #[allow(clippy::cast_possible_truncation)]
+            {
+                m.top_provider
+                    .as_ref()
+                    .and_then(|t| t.max_completion_tokens)
+                    .unwrap_or(4096) as u32
+            },
         ));
     }
 
-    tracing::info!("Fetched {} tool-capable models from OpenRouter", models.len());
+    tracing::info!(
+        "Fetched {} tool-capable models from OpenRouter",
+        models.len()
+    );
     models
 }
 
@@ -559,27 +770,45 @@ fn fetch_ai_gateway(client: &SimpleHttpClient) -> Vec<ModelEntry> {
     let mut models = Vec::new();
     for m in data.data.iter().flat_map(|d| d.iter()) {
         let tags = m.tags.as_deref().unwrap_or(&[]);
-        if !tags.iter().any(|t| t == "tool-use") { continue; }
+        if !tags.iter().any(|t| t == "tool-use") {
+            continue;
+        }
 
         let cost = (
             pricing_val(m.pricing.as_ref().and_then(|p| p.input.as_ref())) * 1_000_000.0,
             pricing_val(m.pricing.as_ref().and_then(|p| p.output.as_ref())) * 1_000_000.0,
             pricing_val(m.pricing.as_ref().and_then(|p| p.input_cache_read.as_ref())) * 1_000_000.0,
-            pricing_val(m.pricing.as_ref().and_then(|p| p.input_cache_write.as_ref())) * 1_000_000.0,
+            pricing_val(
+                m.pricing
+                    .as_ref()
+                    .and_then(|p| p.input_cache_write.as_ref()),
+            ) * 1_000_000.0,
         );
 
         models.push(entry(
-            &m.id, m.name.as_deref().unwrap_or(&m.id),
-            "anthropic-messages", "vercel-ai-gateway", "https://ai-gateway.vercel.sh",
+            &m.id,
+            m.name.as_deref().unwrap_or(&m.id),
+            "anthropic-messages",
+            "vercel-ai-gateway",
+            "https://ai-gateway.vercel.sh",
             tags.iter().any(|t| t == "reasoning"),
             tags.iter().any(|t| t == "vision"),
             cost,
-            m.context_window.unwrap_or(4096) as u32,
-            m.max_tokens.unwrap_or(4096) as u32,
+            #[allow(clippy::cast_possible_truncation)]
+            {
+                m.context_window.unwrap_or(4096) as u32
+            },
+            #[allow(clippy::cast_possible_truncation)]
+            {
+                m.max_tokens.unwrap_or(4096) as u32
+            },
         ));
     }
 
-    tracing::info!("Fetched {} tool-capable models from AI Gateway", models.len());
+    tracing::info!(
+        "Fetched {} tool-capable models from AI Gateway",
+        models.len()
+    );
     models
 }
 
@@ -591,13 +820,90 @@ fn static_codex_models() -> Vec<ModelEntry> {
     let b = "https://chatgpt.com/backend-api";
     let (cw, mt) = (272_000, 128_000);
     vec![
-        entry("gpt-5.1", "GPT-5.1", "openai-codex-responses", "openai-codex", b, true, true, (1.25,10.0,0.125,0.0), cw, mt),
-        entry("gpt-5.1-codex-max", "GPT-5.1 Codex Max", "openai-codex-responses", "openai-codex", b, true, true, (1.25,10.0,0.125,0.0), cw, mt),
-        entry("gpt-5.1-codex-mini", "GPT-5.1 Codex Mini", "openai-codex-responses", "openai-codex", b, true, true, (0.25,2.0,0.025,0.0), cw, mt),
-        entry("gpt-5.2", "GPT-5.2", "openai-codex-responses", "openai-codex", b, true, true, (1.75,14.0,0.175,0.0), cw, mt),
-        entry("gpt-5.2-codex", "GPT-5.2 Codex", "openai-codex-responses", "openai-codex", b, true, true, (1.75,14.0,0.175,0.0), cw, mt),
-        entry("gpt-5.3-codex", "GPT-5.3 Codex", "openai-codex-responses", "openai-codex", b, true, true, (1.75,14.0,0.175,0.0), cw, mt),
-        entry("gpt-5.3-codex-spark", "GPT-5.3 Codex Spark", "openai-codex-responses", "openai-codex", b, true, false, (0.0,0.0,0.0,0.0), 128_000, mt),
+        entry(
+            "gpt-5.1",
+            "GPT-5.1",
+            "openai-codex-responses",
+            "openai-codex",
+            b,
+            true,
+            true,
+            (1.25, 10.0, 0.125, 0.0),
+            cw,
+            mt,
+        ),
+        entry(
+            "gpt-5.1-codex-max",
+            "GPT-5.1 Codex Max",
+            "openai-codex-responses",
+            "openai-codex",
+            b,
+            true,
+            true,
+            (1.25, 10.0, 0.125, 0.0),
+            cw,
+            mt,
+        ),
+        entry(
+            "gpt-5.1-codex-mini",
+            "GPT-5.1 Codex Mini",
+            "openai-codex-responses",
+            "openai-codex",
+            b,
+            true,
+            true,
+            (0.25, 2.0, 0.025, 0.0),
+            cw,
+            mt,
+        ),
+        entry(
+            "gpt-5.2",
+            "GPT-5.2",
+            "openai-codex-responses",
+            "openai-codex",
+            b,
+            true,
+            true,
+            (1.75, 14.0, 0.175, 0.0),
+            cw,
+            mt,
+        ),
+        entry(
+            "gpt-5.2-codex",
+            "GPT-5.2 Codex",
+            "openai-codex-responses",
+            "openai-codex",
+            b,
+            true,
+            true,
+            (1.75, 14.0, 0.175, 0.0),
+            cw,
+            mt,
+        ),
+        entry(
+            "gpt-5.3-codex",
+            "GPT-5.3 Codex",
+            "openai-codex-responses",
+            "openai-codex",
+            b,
+            true,
+            true,
+            (1.75, 14.0, 0.175, 0.0),
+            cw,
+            mt,
+        ),
+        entry(
+            "gpt-5.3-codex-spark",
+            "GPT-5.3 Codex Spark",
+            "openai-codex-responses",
+            "openai-codex",
+            b,
+            true,
+            false,
+            (0.0, 0.0, 0.0, 0.0),
+            128_000,
+            mt,
+        ),
     ]
 }
 
@@ -605,11 +911,66 @@ fn static_cloud_code_assist() -> Vec<ModelEntry> {
     let ep = "https://cloudcode-pa.googleapis.com";
     let (a, p) = ("google-gemini-cli", "google-gemini-cli");
     vec![
-        entry("gemini-2.5-pro", "Gemini 2.5 Pro (Cloud Code Assist)", a, p, ep, true, true, (0.0,0.0,0.0,0.0), 1_048_576, 65535),
-        entry("gemini-2.5-flash", "Gemini 2.5 Flash (Cloud Code Assist)", a, p, ep, true, true, (0.0,0.0,0.0,0.0), 1_048_576, 65535),
-        entry("gemini-2.0-flash", "Gemini 2.0 Flash (Cloud Code Assist)", a, p, ep, false, true, (0.0,0.0,0.0,0.0), 1_048_576, 8192),
-        entry("gemini-3-pro-preview", "Gemini 3 Pro Preview (Cloud Code Assist)", a, p, ep, true, true, (0.0,0.0,0.0,0.0), 1_048_576, 65535),
-        entry("gemini-3-flash-preview", "Gemini 3 Flash Preview (Cloud Code Assist)", a, p, ep, true, true, (0.0,0.0,0.0,0.0), 1_048_576, 65535),
+        entry(
+            "gemini-2.5-pro",
+            "Gemini 2.5 Pro (Cloud Code Assist)",
+            a,
+            p,
+            ep,
+            true,
+            true,
+            (0.0, 0.0, 0.0, 0.0),
+            1_048_576,
+            65535,
+        ),
+        entry(
+            "gemini-2.5-flash",
+            "Gemini 2.5 Flash (Cloud Code Assist)",
+            a,
+            p,
+            ep,
+            true,
+            true,
+            (0.0, 0.0, 0.0, 0.0),
+            1_048_576,
+            65535,
+        ),
+        entry(
+            "gemini-2.0-flash",
+            "Gemini 2.0 Flash (Cloud Code Assist)",
+            a,
+            p,
+            ep,
+            false,
+            true,
+            (0.0, 0.0, 0.0, 0.0),
+            1_048_576,
+            8192,
+        ),
+        entry(
+            "gemini-3-pro-preview",
+            "Gemini 3 Pro Preview (Cloud Code Assist)",
+            a,
+            p,
+            ep,
+            true,
+            true,
+            (0.0, 0.0, 0.0, 0.0),
+            1_048_576,
+            65535,
+        ),
+        entry(
+            "gemini-3-flash-preview",
+            "Gemini 3 Flash Preview (Cloud Code Assist)",
+            a,
+            p,
+            ep,
+            true,
+            true,
+            (0.0, 0.0, 0.0, 0.0),
+            1_048_576,
+            65535,
+        ),
     ]
 }
 
@@ -617,40 +978,287 @@ fn static_antigravity() -> Vec<ModelEntry> {
     let ep = "https://daily-cloudcode-pa.sandbox.googleapis.com";
     let (a, p) = ("google-gemini-cli", "google-antigravity");
     vec![
-        entry("gemini-3-pro-high", "Gemini 3 Pro High (Antigravity)", a, p, ep, true, true, (2.0,12.0,0.2,2.375), 1_048_576, 65535),
-        entry("gemini-3-pro-low", "Gemini 3 Pro Low (Antigravity)", a, p, ep, true, true, (2.0,12.0,0.2,2.375), 1_048_576, 65535),
-        entry("gemini-3-flash", "Gemini 3 Flash (Antigravity)", a, p, ep, true, true, (0.5,3.0,0.5,0.0), 1_048_576, 65535),
-        entry("claude-sonnet-4-5", "Claude Sonnet 4.5 (Antigravity)", a, p, ep, false, true, (3.0,15.0,0.3,3.75), 200_000, 64000),
-        entry("claude-sonnet-4-5-thinking", "Claude Sonnet 4.5 Thinking (Antigravity)", a, p, ep, true, true, (3.0,15.0,0.3,3.75), 200_000, 64000),
-        entry("claude-opus-4-5-thinking", "Claude Opus 4.5 Thinking (Antigravity)", a, p, ep, true, true, (5.0,25.0,0.5,6.25), 200_000, 64000),
-        entry("claude-opus-4-6-thinking", "Claude Opus 4.6 Thinking (Antigravity)", a, p, ep, true, true, (5.0,25.0,0.5,6.25), 200_000, 128_000),
-        entry("gpt-oss-120b-medium", "GPT-OSS 120B Medium (Antigravity)", a, p, ep, false, false, (0.09,0.36,0.0,0.0), 131_072, 32768),
+        entry(
+            "gemini-3-pro-high",
+            "Gemini 3 Pro High (Antigravity)",
+            a,
+            p,
+            ep,
+            true,
+            true,
+            (2.0, 12.0, 0.2, 2.375),
+            1_048_576,
+            65535,
+        ),
+        entry(
+            "gemini-3-pro-low",
+            "Gemini 3 Pro Low (Antigravity)",
+            a,
+            p,
+            ep,
+            true,
+            true,
+            (2.0, 12.0, 0.2, 2.375),
+            1_048_576,
+            65535,
+        ),
+        entry(
+            "gemini-3-flash",
+            "Gemini 3 Flash (Antigravity)",
+            a,
+            p,
+            ep,
+            true,
+            true,
+            (0.5, 3.0, 0.5, 0.0),
+            1_048_576,
+            65535,
+        ),
+        entry(
+            "claude-sonnet-4-5",
+            "Claude Sonnet 4.5 (Antigravity)",
+            a,
+            p,
+            ep,
+            false,
+            true,
+            (3.0, 15.0, 0.3, 3.75),
+            200_000,
+            64000,
+        ),
+        entry(
+            "claude-sonnet-4-5-thinking",
+            "Claude Sonnet 4.5 Thinking (Antigravity)",
+            a,
+            p,
+            ep,
+            true,
+            true,
+            (3.0, 15.0, 0.3, 3.75),
+            200_000,
+            64000,
+        ),
+        entry(
+            "claude-opus-4-5-thinking",
+            "Claude Opus 4.5 Thinking (Antigravity)",
+            a,
+            p,
+            ep,
+            true,
+            true,
+            (5.0, 25.0, 0.5, 6.25),
+            200_000,
+            64000,
+        ),
+        entry(
+            "claude-opus-4-6-thinking",
+            "Claude Opus 4.6 Thinking (Antigravity)",
+            a,
+            p,
+            ep,
+            true,
+            true,
+            (5.0, 25.0, 0.5, 6.25),
+            200_000,
+            128_000,
+        ),
+        entry(
+            "gpt-oss-120b-medium",
+            "GPT-OSS 120B Medium (Antigravity)",
+            a,
+            p,
+            ep,
+            false,
+            false,
+            (0.09, 0.36, 0.0, 0.0),
+            131_072,
+            32768,
+        ),
     ]
 }
 
+#[allow(clippy::too_many_lines)]
 fn static_vertex() -> Vec<ModelEntry> {
-    let (b, a, p) = ("https://{location}-aiplatform.googleapis.com", "google-vertex", "google-vertex");
+    let (b, a, p) = (
+        "https://{location}-aiplatform.googleapis.com",
+        "google-vertex",
+        "google-vertex",
+    );
     vec![
-        entry("gemini-3-pro-preview", "Gemini 3 Pro Preview (Vertex)", a, p, b, true, true, (2.0,12.0,0.2,0.0), 1_000_000, 64000),
-        entry("gemini-3.1-pro-preview", "Gemini 3.1 Pro Preview (Vertex)", a, p, b, true, true, (2.0,12.0,0.2,0.0), 1_048_576, 65536),
-        entry("gemini-3-flash-preview", "Gemini 3 Flash Preview (Vertex)", a, p, b, true, true, (0.5,3.0,0.05,0.0), 1_048_576, 65536),
-        entry("gemini-2.0-flash", "Gemini 2.0 Flash (Vertex)", a, p, b, false, true, (0.15,0.6,0.0375,0.0), 1_048_576, 8192),
-        entry("gemini-2.0-flash-lite", "Gemini 2.0 Flash Lite (Vertex)", a, p, b, true, true, (0.075,0.3,0.01875,0.0), 1_048_576, 65536),
-        entry("gemini-2.5-pro", "Gemini 2.5 Pro (Vertex)", a, p, b, true, true, (1.25,10.0,0.125,0.0), 1_048_576, 65536),
-        entry("gemini-2.5-flash", "Gemini 2.5 Flash (Vertex)", a, p, b, true, true, (0.3,2.5,0.03,0.0), 1_048_576, 65536),
-        entry("gemini-2.5-flash-lite-preview-09-2025", "Gemini 2.5 Flash Lite Preview 09-25 (Vertex)", a, p, b, true, true, (0.1,0.4,0.01,0.0), 1_048_576, 65536),
-        entry("gemini-2.5-flash-lite", "Gemini 2.5 Flash Lite (Vertex)", a, p, b, true, true, (0.1,0.4,0.01,0.0), 1_048_576, 65536),
-        entry("gemini-1.5-pro", "Gemini 1.5 Pro (Vertex)", a, p, b, false, true, (1.25,5.0,0.3125,0.0), 1_000_000, 8192),
-        entry("gemini-1.5-flash", "Gemini 1.5 Flash (Vertex)", a, p, b, false, true, (0.075,0.3,0.01875,0.0), 1_000_000, 8192),
-        entry("gemini-1.5-flash-8b", "Gemini 1.5 Flash-8B (Vertex)", a, p, b, false, true, (0.0375,0.15,0.01,0.0), 1_000_000, 8192),
+        entry(
+            "gemini-3-pro-preview",
+            "Gemini 3 Pro Preview (Vertex)",
+            a,
+            p,
+            b,
+            true,
+            true,
+            (2.0, 12.0, 0.2, 0.0),
+            1_000_000,
+            64000,
+        ),
+        entry(
+            "gemini-3.1-pro-preview",
+            "Gemini 3.1 Pro Preview (Vertex)",
+            a,
+            p,
+            b,
+            true,
+            true,
+            (2.0, 12.0, 0.2, 0.0),
+            1_048_576,
+            65536,
+        ),
+        entry(
+            "gemini-3-flash-preview",
+            "Gemini 3 Flash Preview (Vertex)",
+            a,
+            p,
+            b,
+            true,
+            true,
+            (0.5, 3.0, 0.05, 0.0),
+            1_048_576,
+            65536,
+        ),
+        entry(
+            "gemini-2.0-flash",
+            "Gemini 2.0 Flash (Vertex)",
+            a,
+            p,
+            b,
+            false,
+            true,
+            (0.15, 0.6, 0.0375, 0.0),
+            1_048_576,
+            8192,
+        ),
+        entry(
+            "gemini-2.0-flash-lite",
+            "Gemini 2.0 Flash Lite (Vertex)",
+            a,
+            p,
+            b,
+            true,
+            true,
+            (0.075, 0.3, 0.01875, 0.0),
+            1_048_576,
+            65536,
+        ),
+        entry(
+            "gemini-2.5-pro",
+            "Gemini 2.5 Pro (Vertex)",
+            a,
+            p,
+            b,
+            true,
+            true,
+            (1.25, 10.0, 0.125, 0.0),
+            1_048_576,
+            65536,
+        ),
+        entry(
+            "gemini-2.5-flash",
+            "Gemini 2.5 Flash (Vertex)",
+            a,
+            p,
+            b,
+            true,
+            true,
+            (0.3, 2.5, 0.03, 0.0),
+            1_048_576,
+            65536,
+        ),
+        entry(
+            "gemini-2.5-flash-lite-preview-09-2025",
+            "Gemini 2.5 Flash Lite Preview 09-25 (Vertex)",
+            a,
+            p,
+            b,
+            true,
+            true,
+            (0.1, 0.4, 0.01, 0.0),
+            1_048_576,
+            65536,
+        ),
+        entry(
+            "gemini-2.5-flash-lite",
+            "Gemini 2.5 Flash Lite (Vertex)",
+            a,
+            p,
+            b,
+            true,
+            true,
+            (0.1, 0.4, 0.01, 0.0),
+            1_048_576,
+            65536,
+        ),
+        entry(
+            "gemini-1.5-pro",
+            "Gemini 1.5 Pro (Vertex)",
+            a,
+            p,
+            b,
+            false,
+            true,
+            (1.25, 5.0, 0.3125, 0.0),
+            1_000_000,
+            8192,
+        ),
+        entry(
+            "gemini-1.5-flash",
+            "Gemini 1.5 Flash (Vertex)",
+            a,
+            p,
+            b,
+            false,
+            true,
+            (0.075, 0.3, 0.01875, 0.0),
+            1_000_000,
+            8192,
+        ),
+        entry(
+            "gemini-1.5-flash-8b",
+            "Gemini 1.5 Flash-8B (Vertex)",
+            a,
+            p,
+            b,
+            false,
+            true,
+            (0.0375, 0.15, 0.01, 0.0),
+            1_000_000,
+            8192,
+        ),
     ]
 }
 
 fn static_kimi_fallbacks() -> Vec<ModelEntry> {
     let b = "https://api.kimi.com/coding";
     vec![
-        entry("kimi-k2-thinking", "Kimi K2 Thinking", "anthropic-messages", "kimi-coding", b, true, false, (0.0,0.0,0.0,0.0), 262_144, 32768),
-        entry("k2p5", "Kimi K2.5", "anthropic-messages", "kimi-coding", b, true, false, (0.0,0.0,0.0,0.0), 262_144, 32768),
+        entry(
+            "kimi-k2-thinking",
+            "Kimi K2 Thinking",
+            "anthropic-messages",
+            "kimi-coding",
+            b,
+            true,
+            false,
+            (0.0, 0.0, 0.0, 0.0),
+            262_144,
+            32768,
+        ),
+        entry(
+            "k2p5",
+            "Kimi K2.5",
+            "anthropic-messages",
+            "kimi-coding",
+            b,
+            true,
+            false,
+            (0.0, 0.0, 0.0, 0.0),
+            262_144,
+            32768,
+        ),
     ]
 }
 
@@ -662,6 +1270,7 @@ fn has(models: &[ModelEntry], provider: &str, id: &str) -> bool {
     models.iter().any(|m| m.provider == provider && m.id == id)
 }
 
+#[allow(clippy::too_many_lines)]
 fn apply_overrides(models: &mut Vec<ModelEntry>) {
     for m in models.iter_mut() {
         if m.provider == "anthropic" && m.id == "claude-opus-4-5" {
@@ -685,40 +1294,130 @@ fn apply_overrides(models: &mut Vec<ModelEntry>) {
     }
 
     if !has(models, "amazon-bedrock", "eu.anthropic.claude-opus-4-6-v1") {
-        models.push(entry("eu.anthropic.claude-opus-4-6-v1", "Claude Opus 4.6 (EU)", "bedrock-converse-stream", "amazon-bedrock",
-            "https://bedrock-runtime.us-east-1.amazonaws.com", true, true, (5.0,25.0,0.5,6.25), 200_000, 128_000));
+        models.push(entry(
+            "eu.anthropic.claude-opus-4-6-v1",
+            "Claude Opus 4.6 (EU)",
+            "bedrock-converse-stream",
+            "amazon-bedrock",
+            "https://bedrock-runtime.us-east-1.amazonaws.com",
+            true,
+            true,
+            (5.0, 25.0, 0.5, 6.25),
+            200_000,
+            128_000,
+        ));
     }
     if !has(models, "anthropic", "claude-opus-4-6") {
-        models.push(entry("claude-opus-4-6", "Claude Opus 4.6", "anthropic-messages", "anthropic",
-            "https://api.anthropic.com", true, true, (5.0,25.0,0.5,6.25), 200_000, 128_000));
+        models.push(entry(
+            "claude-opus-4-6",
+            "Claude Opus 4.6",
+            "anthropic-messages",
+            "anthropic",
+            "https://api.anthropic.com",
+            true,
+            true,
+            (5.0, 25.0, 0.5, 6.25),
+            200_000,
+            128_000,
+        ));
     }
     if !has(models, "anthropic", "claude-sonnet-4-6") {
-        models.push(entry("claude-sonnet-4-6", "Claude Sonnet 4.6", "anthropic-messages", "anthropic",
-            "https://api.anthropic.com", true, true, (3.0,15.0,0.3,3.75), 200_000, 64_000));
+        models.push(entry(
+            "claude-sonnet-4-6",
+            "Claude Sonnet 4.6",
+            "anthropic-messages",
+            "anthropic",
+            "https://api.anthropic.com",
+            true,
+            true,
+            (3.0, 15.0, 0.3, 3.75),
+            200_000,
+            64_000,
+        ));
     }
     if !has(models, "openai", "gpt-5-chat-latest") {
-        models.push(entry("gpt-5-chat-latest", "GPT-5 Chat Latest", "openai-responses", "openai",
-            "https://api.openai.com/v1", false, true, (1.25,10.0,0.125,0.0), 128_000, 16384));
+        models.push(entry(
+            "gpt-5-chat-latest",
+            "GPT-5 Chat Latest",
+            "openai-responses",
+            "openai",
+            "https://api.openai.com/v1",
+            false,
+            true,
+            (1.25, 10.0, 0.125, 0.0),
+            128_000,
+            16384,
+        ));
     }
     if !has(models, "openai", "gpt-5.1-codex") {
-        models.push(entry("gpt-5.1-codex", "GPT-5.1 Codex", "openai-responses", "openai",
-            "https://api.openai.com/v1", true, true, (1.25,5.0,0.125,1.25), 400_000, 128_000));
+        models.push(entry(
+            "gpt-5.1-codex",
+            "GPT-5.1 Codex",
+            "openai-responses",
+            "openai",
+            "https://api.openai.com/v1",
+            true,
+            true,
+            (1.25, 5.0, 0.125, 1.25),
+            400_000,
+            128_000,
+        ));
     }
     if !has(models, "openai", "gpt-5.1-codex-max") {
-        models.push(entry("gpt-5.1-codex-max", "GPT-5.1 Codex Max", "openai-responses", "openai",
-            "https://api.openai.com/v1", true, true, (1.25,10.0,0.125,0.0), 400_000, 128_000));
+        models.push(entry(
+            "gpt-5.1-codex-max",
+            "GPT-5.1 Codex Max",
+            "openai-responses",
+            "openai",
+            "https://api.openai.com/v1",
+            true,
+            true,
+            (1.25, 10.0, 0.125, 0.0),
+            400_000,
+            128_000,
+        ));
     }
     if !has(models, "openai", "gpt-5.3-codex-spark") {
-        models.push(entry("gpt-5.3-codex-spark", "GPT-5.3 Codex Spark", "openai-responses", "openai",
-            "https://api.openai.com/v1", true, false, (0.0,0.0,0.0,0.0), 128_000, 16384));
+        models.push(entry(
+            "gpt-5.3-codex-spark",
+            "GPT-5.3 Codex Spark",
+            "openai-responses",
+            "openai",
+            "https://api.openai.com/v1",
+            true,
+            false,
+            (0.0, 0.0, 0.0, 0.0),
+            128_000,
+            16384,
+        ));
     }
     if !has(models, "xai", "grok-code-fast-1") {
-        models.push(entry("grok-code-fast-1", "Grok Code Fast 1", "openai-completions", "xai",
-            "https://api.x.ai/v1", false, false, (0.2,1.5,0.02,0.0), 32768, 8192));
+        models.push(entry(
+            "grok-code-fast-1",
+            "Grok Code Fast 1",
+            "openai-completions",
+            "xai",
+            "https://api.x.ai/v1",
+            false,
+            false,
+            (0.2, 1.5, 0.02, 0.0),
+            32768,
+            8192,
+        ));
     }
     if !has(models, "openrouter", "auto") {
-        models.push(entry("auto", "Auto", "openai-completions", "openrouter",
-            "https://openrouter.ai/api/v1", true, true, (0.0,0.0,0.0,0.0), 2_000_000, 30_000));
+        models.push(entry(
+            "auto",
+            "Auto",
+            "openai-completions",
+            "openrouter",
+            "https://openrouter.ai/api/v1",
+            true,
+            true,
+            (0.0, 0.0, 0.0, 0.0),
+            2_000_000,
+            30_000,
+        ));
     }
 
     models.extend(static_codex_models());
@@ -732,7 +1431,8 @@ fn apply_overrides(models: &mut Vec<ModelEntry>) {
         }
     }
 
-    let azure: Vec<ModelEntry> = models.iter()
+    let azure: Vec<ModelEntry> = models
+        .iter()
         .filter(|m| m.provider == "openai" && m.api == "openai-responses")
         .map(|m| ModelEntry {
             api: "azure-openai-responses".to_string(),
@@ -751,8 +1451,11 @@ fn apply_overrides(models: &mut Vec<ModelEntry>) {
 fn deduplicate(models: Vec<ModelEntry>) -> BTreeMap<String, BTreeMap<String, ModelEntry>> {
     let mut providers: BTreeMap<String, BTreeMap<String, ModelEntry>> = BTreeMap::new();
     for m in models {
-        providers.entry(m.provider.clone()).or_default()
-            .entry(m.id.clone()).or_insert(m);
+        providers
+            .entry(m.provider.clone())
+            .or_default()
+            .entry(m.id.clone())
+            .or_insert(m);
     }
     providers
 }
@@ -761,51 +1464,137 @@ fn deduplicate(models: Vec<ModelEntry>) -> BTreeMap<String, BTreeMap<String, Mod
 // Code generation — emits the exact format of model_descriptors.rs
 // ---------------------------------------------------------------------------
 
+/// Formats an integer with underscore separators for values >= `10_000`.
+/// E.g. `128000` → `"128_000"`, `4096` → `"4096"`.
+fn format_u32(v: u32) -> String {
+    let raw = v.to_string();
+    if v < 10_000 {
+        return raw;
+    }
+    let bytes: Vec<u8> = raw.bytes().collect();
+    let mut result = String::with_capacity(raw.len() + bytes.len() / 3);
+    for (i, ch) in bytes.iter().enumerate() {
+        if i > 0 && (bytes.len() - i).is_multiple_of(3) {
+            result.push('_');
+        }
+        result.push(*ch as char);
+    }
+    result
+}
+
+/// Formats an f64 literal for Rust source output.
+/// Ensures a decimal point is present and adds underscore separators
+/// to the integer part for values >= `10_000`.
 fn format_f64(v: f64) -> String {
-    if v == 0.0 { return "0.0".to_string(); }
+    if v == 0.0 {
+        return "0.0".to_string();
+    }
     let s = format!("{v}");
-    if s.contains('.') { s } else { format!("{s}.0") }
+    let s = if s.contains('.') { s } else { format!("{s}.0") };
+
+    // Add underscore separators to the integer part if >= 10_000
+    if let Some(dot_pos) = s.find('.') {
+        let int_part = &s[..dot_pos];
+        if let Ok(int_val) = int_part.parse::<i64>() {
+            if int_val.unsigned_abs() >= 10_000 {
+                let frac_part = &s[dot_pos..];
+                let formatted_int = format_int_with_separators(int_part);
+                return format!("{formatted_int}{frac_part}");
+            }
+        }
+    }
+    s
+}
+
+/// Inserts underscore separators every 3 digits from the right in an
+/// integer string (handles optional leading minus sign).
+fn format_int_with_separators(s: &str) -> String {
+    let (sign, digits) = if let Some(rest) = s.strip_prefix('-') {
+        ("-", rest)
+    } else {
+        ("", s)
+    };
+    let bytes: Vec<u8> = digits.bytes().collect();
+    let mut result = String::with_capacity(digits.len() + bytes.len() / 3 + sign.len());
+    result.push_str(sign);
+    for (i, ch) in bytes.iter().enumerate() {
+        if i > 0 && (bytes.len() - i).is_multiple_of(3) {
+            result.push('_');
+        }
+        result.push(*ch as char);
+    }
+    result
+}
+
+/// Maps an API string identifier to the corresponding `ModelAPI` variant source text.
+fn api_to_variant(api: &str) -> String {
+    match api {
+        "openai-completions" => "ModelAPI::OpenAICompletions".to_string(),
+        "openai-responses" => "ModelAPI::OpenAIResponses".to_string(),
+        "azure-openai-responses" => "ModelAPI::AzureOpenaiResponses".to_string(),
+        "openai-codex-responses" => "ModelAPI::OpenaiCodexResponses".to_string(),
+        "anthropic-messages" => "ModelAPI::AnthropicMessages".to_string(),
+        "bedrock-converse-stream" => "ModelAPI::BedrockConverseStream".to_string(),
+        "google-generative-ai" => "ModelAPI::GoogleGenerativeAi".to_string(),
+        "google-gemini-cli" => "ModelAPI::GoogleGeminiCli".to_string(),
+        "google-vertex" => "ModelAPI::GoogleVertex".to_string(),
+        other => format!("ModelAPI::Custom({other:?}.to_string())"),
+    }
 }
 
 fn generate_rust(providers: &BTreeMap<String, BTreeMap<String, ModelEntry>>) -> String {
+    use std::fmt::Write;
+
     let mut out = String::with_capacity(512 * 1024);
 
-    out.push_str("\
+    out.push_str(
+        "\
 // This file is auto-generated by `cargo run --bin ewe_platform gen_model_descriptors`.
 // Do not edit manually.
 
-use crate::types::{MessageType, ModelProviderDescriptor, ModelUsageCosting};
+#![allow(clippy::too_many_lines)]
 
-#[rustfmt::skip]
-pub const MODEL_DESCRIPTORS: &[ModelProviderDescriptor] = &[
-");
+use crate::types::{MessageType, ModelAPI, ModelProviderDescriptor, ModelUsageCosting};
+
+#[must_use]
+#[inline]
+pub fn model_descriptors() -> Vec<ModelProviderDescriptor> {
+    vec![
+",
+    );
 
     for models in providers.values() {
         for m in models.values() {
-            let input1 = if m.has_image_input { "MessageType::Images" } else { "MessageType::Text" };
+            let input1 = if m.has_image_input {
+                "MessageType::Images"
+            } else {
+                "MessageType::Text"
+            };
 
-            out.push_str(&format!("\
-    ModelProviderDescriptor {{
-        id: {id:?},
-        name: {name:?},
-        api: {api:?},
-        provider: {provider:?},
-        base_url: {base_url:?},
-        reasoning: {reasoning},
-        inputs: [MessageType::Text, {input1}],
-        cost: ModelUsageCosting {{
-            input: {ci},
-            output: {co},
-            cach_read: {cr},
-            cach_write: {cw},
+            let _ = write!(
+                out,
+                "\
+        ModelProviderDescriptor {{
+            id: {id:?}.to_string(),
+            name: {name:?}.to_string(),
+            api: {api},
+            provider: {provider:?}.to_string(),
+            base_url: {base_url:?}.to_string(),
+            reasoning: {reasoning},
+            inputs: [MessageType::Text, {input1}],
+            cost: ModelUsageCosting {{
+                input: {ci},
+                output: {co},
+                cach_read: {cr},
+                cach_write: {cw},
+            }},
+            context_window: {context_window},
+            max_tokens: {max_tokens},
         }},
-        context_window: {context_window},
-        max_tokens: {max_tokens},
-    }},
 ",
                 id = m.id,
                 name = m.name,
-                api = m.api,
+                api = api_to_variant(&m.api),
                 provider = m.provider,
                 base_url = m.base_url,
                 reasoning = m.reasoning,
@@ -813,13 +1602,13 @@ pub const MODEL_DESCRIPTORS: &[ModelProviderDescriptor] = &[
                 co = format_f64(m.cost_output),
                 cr = format_f64(m.cost_cach_read),
                 cw = format_f64(m.cost_cach_write),
-                context_window = m.context_window,
-                max_tokens = m.max_tokens,
-            ));
+                context_window = format_u32(m.context_window),
+                max_tokens = format_u32(m.max_tokens),
+            );
         }
     }
 
-    out.push_str("];\n");
+    out.push_str("    ]\n}\n");
     out
 }
 
@@ -854,8 +1643,9 @@ pub fn run(_args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
     let subscriber = FmtSubscriber::builder()
         .with_max_level(Level::INFO)
         .finish();
-    tracing::subscriber::set_global_default(subscriber)
-        .expect("setting default subscriber failed");
+    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+
+    valtron::initialize_pool(100, None);
 
     let client = SimpleHttpClient::from_system();
 
@@ -881,6 +1671,19 @@ pub fn run(_args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
         path: output_path.display().to_string(),
         source: e,
     })?;
+
+    // Run rustfmt on the generated file to ensure consistent formatting.
+    match Command::new("rustfmt").arg(&output_path).status() {
+        Ok(status) if status.success() => {
+            tracing::info!("Formatted {} with rustfmt", output_path.display());
+        }
+        Ok(status) => {
+            tracing::error!("rustfmt exited with {status} for {}", output_path.display());
+        }
+        Err(e) => {
+            tracing::error!("Failed to run rustfmt on {}: {e}", output_path.display());
+        }
+    }
 
     tracing::info!("Generated {}", output_path.display());
     tracing::info!("Total tool-capable models: {total}");

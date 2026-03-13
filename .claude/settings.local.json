@@ -26,7 +26,16 @@
       "Bash(gh pr:*)",
       "Bash(gh run:*)",
       "Bash(gh workflow:*)",
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "Bash(for f:*)",
+      "Bash(curl -s https://api.github.com/repos/rui314/mold/releases/tags/v2.4.2 | jq -r '.assets[].name' | grep -E \"linux\")",
+      "Bash(curl -s https://api.github.com/repos/rui314/mold/releases/tags/v2.4.2 | grep '\"name\":' | grep -i linux)",
+      "Bash(curl -s https://api.github.com/repos/rui314/mold/releases/latest | grep '\"tag_name\"')",
+      "Bash(curl -s https://api.github.com/repos/rui314/mold/releases/tags/v2.40.4 | grep '\"name\":' | grep -i linux)",
+      "Bash(curl -s https://api.github.com/repos/rui314/mold/releases/tags/v2.40.4 | jq -r '.assets[] | select\\(.name | contains\\(\"arm\"\\)\\) | .name')",
+      "Bash(curl -sL https://api.github.com/repos/rui314/mold/releases/tags/v2.40.4 | jq -r '.assets[] | select\\(.name | contains\\(\"arm\"\\) or contains\\(\"aarch\"\\)\\) | \"\\\\\\(.name\\) - \\\\\\(.size\\)\"' 2>/dev/null || curl -sL https://api.github.com/repos/rui314/mold/releases/tags/v2.40.4 | grep -E '\"name\"|\"size\"' | head -20)",
+      "Bash(curl -sL \"https://github.com/rui314/mold/releases/download/v2.40.4/mold-2.40.4-aarch64-linux.tar.gz\" | tar -tzf - | head -5)",
+      "Bash(curl -sL \"https://github.com/rui314/mold/releases/download/v2.40.4/mold-2.40.4-arm-linux.tar.gz\" | tar -tzf - | head -5)"
     ]
   }
 }

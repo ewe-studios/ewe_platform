@@ -1,10 +1,10 @@
-#![allow(too_many_lines)]
+#![allow(clippy::too_many_lines)]
 
 use crate::types::{MessageType, ModelAPI, ModelProviderDescriptor, ModelUsageCosting};
 
 #[must_use]
 #[inline]
-pub fn model_descriptors() -> Vec<ModelProviderDescriptor> {
+pub fn model_descriptors_defaults() -> Vec<ModelProviderDescriptor> {
     vec![
         ModelProviderDescriptor {
             id: "amazon.nova-2-lite-v1:0".to_string(),
