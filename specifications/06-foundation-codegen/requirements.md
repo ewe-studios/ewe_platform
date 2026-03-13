@@ -172,6 +172,7 @@ Create a source-scanning codegen library that can find all instances of a specif
 - `walkdir` — Recursive directory walking
 - `toml` — Cargo.toml parsing
 - `serde` / `serde_derive` — Serialization for configuration and output types
+- `derive_more` (with `from`, `error`, `display` features) — Error type derives per project convention
 
 ### Fundamentals Documentation
 - `specifications/06-foundation-codegen/fundamentals/00-rust-macros-from-first-principles.md` — Complete educational guide from first principles

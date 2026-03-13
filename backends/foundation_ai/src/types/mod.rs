@@ -8,9 +8,23 @@ use crate::errors::GenerationResult;
 use crate::errors::ModelRegistryResult;
 use crate::errors::ModelResult;
 
+pub struct DeviceId(u16);
+
+impl DeviceId {
+    /// Create a new DeviceId from a raw u16 value.
+    pub fn new(id: u16) -> Self {
+        DeviceId(id)
+    }
+
+    /// Retrieve the underlying device id value.
+    pub fn get_id(&self) -> u16 {
+        self.0
+    }
+}
+
 /// [`CallSpec`] defines the calling configuration for the model
 /// which can be customized as needed for different use-case.
-pub struct CallSpec {
+pub struct ModelParams {
     pub max_tokens: usize,
     pub temperature: f32,
     pub top_p: f32,
@@ -22,21 +36,21 @@ pub struct CallSpec {
 
 /// [`ResponseSpec`] defines expectation for how a response specification
 /// should be returned.
-pub struct ResponseSpec {
-    pub call_spec: CallSpec,
+pub struct ResponseConfig {
+    pub call_spec: ModelParams,
     pub streaming: bool,
 }
 
-pub struct ModelExecutionSpec {
+pub struct ModelConfig {
     // standard model properties
     pub context_length: usize,
     pub max_threads: usize,
     pub template: Option<String>,
 
-    /// The [`ResponseSpec`] defines the properties controlling
+    /// The [`ResponseConfig`] defines the properties controlling
     /// how we want this to overall output
     /// temperature, `top_k``top_p`, etc
-    pub call_response_spec: ResponseSpec,
+    pub response_config: ResponseConfig,
 }
 
 pub enum ModelRegistrySource {
@@ -66,11 +80,11 @@ pub struct ModelSpec {
     pub name: String,
 
     /// The target device to use for this model execution.
-    pub devices: Option<Vec<u8>>,
+    pub devices: Option<Vec<DeviceId>>,
 
     /// Optional model registry name to be loaded from a target
     /// registry.
-    pub registry_name: Option<ModelRegistrySource>,
+    pub registry: Option<ModelRegistrySource>,
 
     /// The optional path to the model file/directory according to the
     /// for which the backend will use.
@@ -84,13 +98,13 @@ pub struct ModelSpec {
 pub trait Model {
     /// [`text`] calls the [`Model::generate`] method internally which
     /// should specifically take in a prompt and generate a text output.
-    fn text(&self, prompt: String, specs: Option<CallSpec>) -> GenerationResult<String> {
+    fn text(&self, prompt: String, specs: Option<ModelParams>) -> GenerationResult<String> {
         self.generate::<String>(prompt, specs)
     }
 
     /// [`stream_text]` provides a streaming version of the [`Model::text`] method which
     /// supports streaming text output.
-    fn stream_text<T>(&self, prompt: String, specs: Option<CallSpec>) -> GenerationResult<T>
+    fn stream_text<T>(&self, prompt: String, specs: Option<ModelParams>) -> GenerationResult<T>
     where
         T: StreamIterator<String, ()>,
     {
@@ -103,7 +117,7 @@ pub trait Model {
     /// It should be expected whatever internal value is returned should
     /// support [`Into<T>`] or whatever conversation mechanism to transform
     /// into the desired output.
-    fn generate<T>(&self, prompt: String, specs: Option<CallSpec>) -> GenerationResult<T>;
+    fn generate<T>(&self, prompt: String, specs: Option<ModelParams>) -> GenerationResult<T>;
 
     /// [`stream`] will returns a stream iterator which will represent the
     /// results of the prompt from the underlying model.
@@ -111,7 +125,7 @@ pub trait Model {
     /// It purposely uses the [`crate::valtron::StreamIterator`] type
     /// which supports a more ergonomic usecase in async (computation is async)
     /// but provides a sync iterarator based API to receive result.
-    fn stream<T, D, P>(&self, prompt: String, specs: Option<CallSpec>) -> GenerationResult<T>
+    fn stream<T, D, P>(&self, prompt: String, specs: Option<ModelParams>) -> GenerationResult<T>
     where
         T: StreamIterator<D, P>;
 }
