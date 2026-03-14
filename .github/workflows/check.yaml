@@ -44,9 +44,9 @@ jobs:
       - name: Test (No Std)
         run: cargo test --workspace
       - name: Test (Std)
-        run: cargo test --workspace --features std
+        run: cargo test --workspace --features multi
       - name: Test (LLamaCPP)
-        run: cargo test --workspace --features infrastructure_llama_cpp/sampler
+        run: cargo test --workspace --features infrastructure_llama_cpp/sampler --features multi
       - name: Dry-Run Publishing
         run: RUST_BACKTRACE=1 cargo publish --workspace --verbose --dry-run
   docker:

@@ -68,6 +68,7 @@ impl BytesPool {
     ///
     /// let pool = Arc::new(BytesPool::new(8192, 4));
     /// ```
+    #[must_use]
     pub fn new(capacity: usize, prealloc: usize) -> Self {
         let queue = ConcurrentQueue::unbounded();
         for _ in 0..prealloc {
@@ -101,16 +102,13 @@ impl BytesPool {
     /// ```
     #[must_use]
     pub fn acquire(self: &Arc<Self>) -> PooledBuffer {
-        match self.queue.pop() {
-            Ok(mut buf) => {
-                self.stats.pool_hits.fetch_add(1, Ordering::Relaxed);
-                buf.clear();
-                PooledBuffer::new(buf, self.clone())
-            }
-            Err(_) => {
-                self.stats.allocations.fetch_add(1, Ordering::Relaxed);
-                PooledBuffer::new(Vec::with_capacity(self.capacity), self.clone())
-            }
+        if let Ok(mut buf) = self.queue.pop() {
+            self.stats.pool_hits.fetch_add(1, Ordering::Relaxed);
+            buf.clear();
+            PooledBuffer::new(buf, self.clone())
+        } else {
+            self.stats.allocations.fetch_add(1, Ordering::Relaxed);
+            PooledBuffer::new(Vec::with_capacity(self.capacity), self.clone())
         }
     }
 
@@ -132,24 +130,21 @@ impl BytesPool {
     /// ```
     #[must_use]
     pub fn acquire_with_capacity(self: &Arc<Self>, capacity: usize) -> PooledBuffer {
-        match self.queue.pop() {
-            Ok(mut buf) => {
-                self.stats.pool_hits.fetch_add(1, Ordering::Relaxed);
-                buf.clear();
-                // Ensure capacity is at least the requested amount
-                if buf.capacity() < capacity {
-                    // Pooled buffer too small - return it to pool and allocate new one
-                    self.queue.push(buf).ok();
-                    self.stats.allocations.fetch_add(1, Ordering::Relaxed);
-                    PooledBuffer::new(Vec::with_capacity(capacity), self.clone())
-                } else {
-                    PooledBuffer::new(buf, self.clone())
-                }
-            }
-            Err(_) => {
+        if let Ok(mut buf) = self.queue.pop() {
+            self.stats.pool_hits.fetch_add(1, Ordering::Relaxed);
+            buf.clear();
+            // Ensure capacity is at least the requested amount
+            if buf.capacity() < capacity {
+                // Pooled buffer too small - return it to pool and allocate new one
+                self.queue.push(buf).ok();
                 self.stats.allocations.fetch_add(1, Ordering::Relaxed);
                 PooledBuffer::new(Vec::with_capacity(capacity), self.clone())
+            } else {
+                PooledBuffer::new(buf, self.clone())
             }
+        } else {
+            self.stats.allocations.fetch_add(1, Ordering::Relaxed);
+            PooledBuffer::new(Vec::with_capacity(capacity), self.clone())
         }
     }
 
@@ -190,10 +185,11 @@ pub struct PoolStatsSnapshot {
 }
 
 impl PoolStatsSnapshot {
-    /// Hit ratio: pool_hits / (allocations + pool_hits)
+    /// Hit ratio: `pool_hits` / (`allocations` + `pool_hits`)
     ///
     /// Returns 1.0 if no operations have occurred.
     #[must_use]
+    #[allow(clippy::cast_precision_loss)]
     pub fn hit_ratio(&self) -> f64 {
         let total = self.allocations + self.pool_hits;
         if total == 0 {

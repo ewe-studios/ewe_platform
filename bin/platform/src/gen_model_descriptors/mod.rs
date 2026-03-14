@@ -17,7 +17,9 @@ use std::process::Command;
 use derive_more::{Display, From};
 use foundation_core::valtron;
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
-use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, Status};
+use foundation_core::wire::simple_http::{
+    ChunkedData, LineFeed, SendSafeBody, SimpleHeader, Status,
+};
 use serde::Deserialize;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
@@ -266,7 +268,7 @@ fn http_get_json<T: serde::de::DeserializeOwned>(
     client: &SimpleHttpClient,
     url: &str,
 ) -> Result<T, GenModelError> {
-    let response = client
+    let mut response = client
         .get(url)
         .map_err(|e| GenModelError::Http {
             url: url.to_string(),
@@ -296,7 +298,7 @@ fn http_get_json<T: serde::de::DeserializeOwned>(
         });
     }
 
-    let body_text = match response.get_body_ref() {
+    let body_text = match response.get_body_mut() {
         SendSafeBody::Text(t) => t.clone(),
         SendSafeBody::Bytes(b) => {
             String::from_utf8(b.clone()).map_err(|e| GenModelError::InvalidUtf8 {
@@ -304,10 +306,97 @@ fn http_get_json<T: serde::de::DeserializeOwned>(
                 source: e,
             })?
         }
-        _ => {
+        SendSafeBody::None => {
             return Err(GenModelError::UnexpectedBody {
                 url: url.to_string(),
             })
+        }
+        SendSafeBody::Stream(opt) => {
+            let Some(stream) = opt.take() else {
+                return Err(GenModelError::UnexpectedBody {
+                    url: url.to_string(),
+                });
+            };
+            let mut bytes = Vec::new();
+            for chunk_result in stream {
+                match chunk_result {
+                    Ok(chunk) => bytes.extend(chunk),
+                    Err(e) => {
+                        return Err(GenModelError::Http {
+                            url: url.to_string(),
+                            source: foundation_core::wire::simple_http::HttpClientError::from(
+                                std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string()),
+                            ),
+                        })
+                    }
+                }
+            }
+            String::from_utf8(bytes).map_err(|e| GenModelError::InvalidUtf8 {
+                url: url.to_string(),
+                source: e,
+            })?
+        }
+        SendSafeBody::ChunkedStream(opt) => {
+            let Some(stream) = opt.take() else {
+                return Err(GenModelError::UnexpectedBody {
+                    url: url.to_string(),
+                });
+            };
+            let mut bytes = Vec::new();
+            for chunk_result in stream {
+                match chunk_result {
+                    Ok(chunked_data) => match chunked_data {
+                        ChunkedData::Data(data, _) => {
+                            bytes.extend(data);
+                        }
+                        ChunkedData::Trailers(_) => {}
+                        ChunkedData::DataEnded => {}
+                    },
+                    Err(e) => {
+                        return Err(GenModelError::Http {
+                            url: url.to_string(),
+                            source: foundation_core::wire::simple_http::HttpClientError::from(
+                                std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string()),
+                            ),
+                        })
+                    }
+                }
+            }
+            String::from_utf8(bytes).map_err(|e| GenModelError::InvalidUtf8 {
+                url: url.to_string(),
+                source: e,
+            })?
+        }
+        SendSafeBody::LineFeedStream(opt) => {
+            let Some(stream) = opt.take() else {
+                return Err(GenModelError::UnexpectedBody {
+                    url: url.to_string(),
+                });
+            };
+            let mut bytes = Vec::new();
+            for line_result in stream {
+                match line_result {
+                    Ok(line_feed) => match line_feed {
+                        LineFeed::Line(line) => {
+                            bytes.extend(line.into_bytes());
+                            bytes.extend(b"\n");
+                        }
+                        LineFeed::SKIP | LineFeed::END => {}
+                    },
+                    Err(e) => {
+                        return Err(GenModelError::Http {
+                            url: url.to_string(),
+                            source: foundation_core::wire::simple_http::HttpClientError::from(
+                                std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string()),
+                            ),
+                        })
+                    }
+                }
+            }
+            String::from_utf8(bytes).map_err(|e| GenModelError::InvalidUtf8 {
+                url: url.to_string(),
+                source: e,
+            })?
         }
     };
 
@@ -1619,7 +1708,14 @@ pub fn model_descriptors() -> Vec<ModelProviderDescriptor> {
 pub fn register(command: clap::Command) -> clap::Command {
     command.subcommand(
         clap::Command::new("gen_model_descriptors")
-            .about("Fetch upstream model catalogs and regenerate backends/foundation_ai/src/models/model_descriptors.rs"),
+            .about("Fetch upstream model catalogs and regenerate backends/foundation_ai/src/models/model_descriptors.rs")
+            .arg(
+                clap::Arg::new("debug")
+                    .long("debug")
+                    .default_value("false")
+                    .action(clap::ArgAction::SetTrue)
+                    .help("Enables debug logs (default: false)")
+            ),
     )
 }
 
@@ -1639,9 +1735,15 @@ pub fn register(command: clap::Command) -> clap::Command {
 /// # Panics
 ///
 /// Panics if the tracing subscriber cannot be set (programmer error).
-pub fn run(_args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
+pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
+    let logging_level = if args.get_flag("debug") {
+        Level::DEBUG
+    } else {
+        Level::INFO
+    };
+
     let subscriber = FmtSubscriber::builder()
-        .with_max_level(Level::INFO)
+        .with_max_level(logging_level)
         .finish();
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 

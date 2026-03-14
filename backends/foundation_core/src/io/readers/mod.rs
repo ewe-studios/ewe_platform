@@ -109,7 +109,9 @@ impl<R: Read> Iterator for BatchReader<R> {
         let mut buf = vec![0u8; self.batch_size];
         match self.reader.read(&mut buf) {
             Ok(0) => {
+                tracing::debug!("Zero bytes read occured");
                 if self.eof_on_zero_read {
+                    tracing::debug!("Stream is now considered finished");
                     self.done = true;
                     None
                 } else {
@@ -126,6 +128,7 @@ impl<R: Read> Iterator for BatchReader<R> {
                 }
             }
             Ok(n) => {
+                tracing::debug!("Received data Bytes(len={})", n);
                 self.consecutive_retries = 0;
                 buf.truncate(n);
                 Some(Ok(Data::Bytes(buf)))
@@ -145,6 +148,7 @@ impl<R: Read> Iterator for BatchReader<R> {
                 }
             }
             Err(e) => {
+                tracing::error!("Read error occured: {:?}", &e);
                 self.done = true;
                 Some(Err(e))
             }
@@ -193,6 +197,7 @@ impl FullBodyReader {
                     ));
                 }
                 Ok(n) => {
+                    tracing::debug!("Received data Bytes(len={})", n);
                     pos += n;
                     consecutive_retries = 0;
                 }
@@ -210,7 +215,10 @@ impl FullBodyReader {
                         ));
                     }
                 }
-                Err(e) => return Err(e),
+                Err(e) => {
+                    tracing::error!("Read error occured: {:?}", &e);
+                    return Err(e);
+                }
             }
         }
 
@@ -300,6 +308,7 @@ impl EofReader {
         for batch_result in batch_reader {
             match batch_result {
                 Ok(Data::Bytes(bytes)) => {
+                    tracing::debug!("Received Data::Bytes(len={})", bytes.len());
                     if let Some(max) = max_size {
                         if result.len() + bytes.len() > max {
                             return Err(io::Error::new(
@@ -314,8 +323,13 @@ impl EofReader {
                     }
                     result.extend(bytes);
                 }
-                Ok(Data::Retry) => continue,
-                Err(e) => return Err(e),
+                Ok(Data::Retry) => {
+                    tracing::debug!("Received Data::Retry - will retry read");
+                }
+                Err(e) => {
+                    tracing::error!("Read error occured: {:?}", &e);
+                    return Err(e);
+                }
             }
         }
 
@@ -647,7 +661,15 @@ mod tests {
         }
 
         let data = b"hello";
-        let result = EofReader::read_to_end(&mut OneByteReader { data: data.to_vec(), pos: 0 }, 512, 100, None);
+        let result = EofReader::read_to_end(
+            &mut OneByteReader {
+                data: data.to_vec(),
+                pos: 0,
+            },
+            512,
+            100,
+            None,
+        );
         assert_eq!(result.unwrap(), data);
     }
 
@@ -675,7 +697,16 @@ mod tests {
         }
 
         let data = b"hello world test";
-        let result = EofReader::read_to_end(&mut RetryReader { data: data.to_vec(), pos: 0, calls: 0 }, 512, 100, None);
+        let result = EofReader::read_to_end(
+            &mut RetryReader {
+                data: data.to_vec(),
+                pos: 0,
+                calls: 0,
+            },
+            512,
+            100,
+            None,
+        );
         assert_eq!(result.unwrap(), data);
     }
 

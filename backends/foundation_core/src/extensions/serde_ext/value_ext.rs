@@ -8,6 +8,8 @@ use super::ValueError;
 ///
 /// It's implemented for bool, u32/64, f64, i32/64 and str
 pub trait AsType<'a, T>: Sized {
+    /// # Errors
+    /// Returns an error if the value cannot be converted to the target type.
     fn from_value(value: &'a T) -> ValueResult<Self, ValueError>;
 }
 
