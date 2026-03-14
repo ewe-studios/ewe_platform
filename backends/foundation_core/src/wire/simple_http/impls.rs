@@ -5,8 +5,8 @@ use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
 use crate::io::ioutils::{self, ByteBufferPointer, SharedByteBufferStream};
 use crate::io::ubytes::{self};
 use crate::valtron::{
-    BoxedResultIterator, BoxedSendableIterator, CloneableFn, SendVecIterator, StringBoxedIterator,
-    TransformIterator,
+    BoxedResultIterator, BoxedSendableIterator, BoxedSendableVecIterator, CloneableFn,
+    SendVecIterator, StringBoxedIterator, TransformIterator, VecBoxedIterator,
 };
 use crate::wire::simple_http::client::Extensions as ClientExtensions;
 use crate::wire::simple_http::errors::{
@@ -167,7 +167,7 @@ pub enum SimpleBody {
     None,
     Text(String),
     Bytes(Vec<u8>),
-    Stream(Option<SendVecIterator<BoxedError>>),
+    Stream(Option<VecBoxedIterator<BoxedError>>),
     ChunkedStream(Option<ChunkedVecIterator<BoxedError>>),
     LineFeedStream(Option<LineFeedVecIterator<BoxedError>>),
 }
@@ -293,7 +293,7 @@ pub enum SendSafeBody {
     Text(String),
     Bytes(Vec<u8>),
     // Send-safe iterator variants using BoxedSendableIterator which requires Send
-    Stream(Option<SendVecIterator<BoxedError>>),
+    Stream(Option<BoxedSendableIterator<Vec<u8>, BoxedError>>),
     ChunkedStream(Option<BoxedSendableIterator<ChunkedData, BoxedError>>),
     LineFeedStream(Option<BoxedSendableIterator<LineFeed, BoxedError>>),
 }
@@ -367,7 +367,9 @@ impl From<SendSafeBody> for SimpleBody {
             SendSafeBody::None => SimpleBody::None,
             SendSafeBody::Text(s) => SimpleBody::Text(s),
             SendSafeBody::Bytes(b) => SimpleBody::Bytes(b),
-            SendSafeBody::Stream(iter) => SimpleBody::Stream(iter),
+            SendSafeBody::Stream(iter) => {
+                SimpleBody::Stream(iter.map(|i| i as VecBoxedIterator<BoxedError>))
+            }
             // Cast Box<dyn Iterator + Send> to Box<dyn Iterator> by forgetting Send bound
             SendSafeBody::ChunkedStream(iter) => {
                 SimpleBody::ChunkedStream(iter.map(|i| i as ChunkedVecIterator<BoxedError>))
@@ -2026,7 +2028,7 @@ pub enum Http11RequestBodyState {
     ///
     /// Once done it moves state to the `Http11ReqState::BodyStream`
     ///  or `Http11ReqState::End` variant.
-    BodyStreaming(Option<SendVecIterator<BoxedError>>),
+    BodyStreaming(Option<VecBoxedIterator<BoxedError>>),
 
     /// `ChunkedBodyStreaming` like `BodyStreaming` is meant to support
     /// handling of a chunked body parts where
@@ -2317,7 +2319,7 @@ pub enum Http11ResState {
     Intro(SimpleOutgoingResponse),
     Headers(SimpleOutgoingResponse),
     Body(SimpleOutgoingResponse),
-    BodyStreaming(Option<SendVecIterator<BoxedError>>),
+    BodyStreaming(Option<BoxedSendableVecIterator<BoxedError>>),
     LineFeedStreaming(Option<LineFeedVecIterator<BoxedError>>),
     ChunkedBodyStreaming(Option<ChunkedVecIterator<BoxedError>>),
     End,
@@ -4961,13 +4963,19 @@ impl<T: std::io::Read + Send> Iterator for SimpleHttpChunkIterator<T> {
     }
 }
 
-/// HTTP body extractor with configurable size thresholds.
+/// WHY: The old unit struct used `read_exact()` for `LimitedBody`, which converts
+/// `WouldBlock`/`TimedOut` into `UnexpectedEof` — hiding transient TCP failures.
+/// Configurable thresholds let callers control memory vs streaming trade-offs.
+///
+/// WHAT: HTTP body extractor with configurable size thresholds.
+///
+/// HOW: For `LimitedBody`, bodies at or below `full_body_threshold` are read
+/// entirely via [`FullBodyReader`] (returned as `SendSafeBody::Bytes`); larger
+/// bodies are streamed via [`BatchStreamReader`] (returned as `SendSafeBody::Stream`).
+/// Bodies exceeding `max_body_size` are rejected.
 ///
 /// - First field (`max_body_size`): maximum allowed body size (applies to all body types).
-/// - Second field (`full_body_threshold`): for `LimitedBody`, if `content_length <= threshold`
-///   the body is read entirely into memory via `FullBodyReader` and returned as
-///   `SendSafeBody::Bytes`; if `content_length > threshold` the body is streamed via
-///   `BatchStreamReader` as `SendSafeBody::Stream`.
+/// - Second field (`full_body_threshold`): size threshold for buffered vs streamed reads.
 pub struct SimpleHttpBody(pub usize, pub usize);
 
 impl Default for SimpleHttpBody {
@@ -5009,10 +5017,7 @@ impl BodyExtractor for SimpleHttpBody {
                 if size > self.0 {
                     return Err(Box::new(std::io::Error::new(
                         std::io::ErrorKind::InvalidInput,
-                        format!(
-                            "content length {} exceeds max body size {}",
-                            size, self.0
-                        ),
+                        format!("content length {} exceeds max body size {}", size, self.0),
                     )));
                 }
 

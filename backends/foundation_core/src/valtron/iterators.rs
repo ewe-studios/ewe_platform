@@ -140,11 +140,17 @@ pub type BoxedSendIterator<T> = Box<dyn Iterator<Item = T> + Send>;
 /// [`BoxedSendableIterator`] defines a type which is an iterator that can also be Send.
 pub type BoxedSendableIterator<T, E> = BoxedSendIterator<AnyResult<T, E>>;
 
+/// [`BoxedSendableVecIterator`] defines a sendable boxed iterator that can be Send.
+pub type BoxedSendableVecIterator<E> = BoxedSendableIterator<Vec<u8>, E>;
+
 /// [`BoxedResultIterator`] defines a type alias for a boxed iterator that always returns a Result object.
 pub type BoxedResultIterator<T, E> = BoxedIterator<AnyResult<T, E>>;
 
 /// Boxed iterator of Strings.
 pub type StringBoxedIterator<E> = BoxedResultIterator<String, E>;
+
+/// Boxed iterator of Vecs.
+pub type VecBoxedIterator<E> = BoxedResultIterator<Vec<u8>, E>;
 
 /// `SendableIterator` that can be Send and implements iterator.
 pub trait SendableIterator<T>: Iterator<Item = T> + Send {}

@@ -39,7 +39,8 @@
       "Bash(find /home/darkvoid/Boxxed/@dev/ewe_platform/backends/foundation_core/src/io -name \"*.rs\" -exec head -50 {} \\\\; 2>/dev/null | head -100)",
       "Bash(curl -sL \"https://github.com/rui314/mold/releases/download/v2.40.4/mold-2.40.4-arm-linux.tar.gz\")",
       "Bash(tar -xzf - -C /tmp mold-2.40.4-arm-linux/bin/mold)",
-      "Read(//tmp/mold-2.40.4-arm-linux/bin/**)"
+      "Read(//tmp/mold-2.40.4-arm-linux/bin/**)",
+      "Bash(curl -sL \"https://github.com/rui314/mold/releases/download/v2.40.4/mold-2.40.4-x86_64-linux.tar.gz\" | tar -tzf - | head -20)"
     ]
   }
 }
