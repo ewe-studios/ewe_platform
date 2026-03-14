@@ -4961,8 +4961,21 @@ impl<T: std::io::Read + Send> Iterator for SimpleHttpChunkIterator<T> {
     }
 }
 
-#[derive(Default)]
-pub struct SimpleHttpBody;
+/// HTTP body extractor with configurable size thresholds.
+///
+/// - First field (`max_body_size`): maximum allowed body size (applies to all body types).
+/// - Second field (`full_body_threshold`): for `LimitedBody`, if `content_length <= threshold`
+///   the body is read entirely into memory via `FullBodyReader` and returned as
+///   `SendSafeBody::Bytes`; if `content_length > threshold` the body is streamed via
+///   `BatchStreamReader` as `SendSafeBody::Stream`.
+pub struct SimpleHttpBody(pub usize, pub usize);
+
+impl Default for SimpleHttpBody {
+    fn default() -> Self {
+        // max_body_size: 1 GB, full_body_threshold: 1 MB
+        SimpleHttpBody(1024 * 1024 * 1024, 1024 * 1024)
+    }
+}
 
 impl BodyExtractor for SimpleHttpBody {
     fn extract<T: std::io::Read + Send + 'static>(
@@ -4991,14 +5004,35 @@ impl BodyExtractor for SimpleHttpBody {
                     return Err(Box::new(HttpReaderError::ZeroBodySizeNotAllowed));
                 }
 
-                match stream.do_once_mut(|borrowed_stream| {
-                    let mut body_content = vec![0; content_length as usize];
-                    borrowed_stream
-                        .read_exact(&mut body_content)
-                        .map(|()| SendSafeBody::Bytes(body_content))
-                }) {
-                    Ok(inner) => Ok(inner),
-                    Err(err) => Err(Box::new(err)),
+                let size = content_length as usize;
+
+                if size > self.0 {
+                    return Err(Box::new(std::io::Error::new(
+                        std::io::ErrorKind::InvalidInput,
+                        format!(
+                            "content length {} exceeds max body size {}",
+                            size, self.0
+                        ),
+                    )));
+                }
+
+                if size <= self.1 {
+                    // Small body: read entirely into memory with retry resilience
+                    use crate::io::readers::FullBodyReader;
+                    match stream.do_once_mut(|borrowed_stream| {
+                        FullBodyReader::read_full(borrowed_stream, size, 100)
+                            .map(SendSafeBody::Bytes)
+                    }) {
+                        Ok(inner) => Ok(inner),
+                        Err(err) => Err(Box::new(err)),
+                    }
+                } else {
+                    // Large body: stream via BatchStreamReader
+                    use crate::io::readers::{BatchReader, BatchStreamReader};
+                    let batch = BatchReader::new(stream).batch_size(8192);
+                    let stream_reader: Box<BatchStreamReader<SharedByteBufferStream<T>>> =
+                        Box::new(BatchStreamReader::new(batch));
+                    Ok(SendSafeBody::Stream(Some(stream_reader)))
                 }
             }
             Body::ChunkedBody(transfer_encoding, headers) => {
@@ -5018,7 +5052,7 @@ impl<T: std::io::Read + Send + 'static> HttpRequestReader<SimpleHttpBody, T> {
     pub fn simple_tcp_stream(
         reader: SharedByteBufferStream<T>,
     ) -> HttpRequestReader<SimpleHttpBody, T> {
-        HttpRequestReader::<SimpleHttpBody, T>::new(reader, SimpleHttpBody)
+        HttpRequestReader::<SimpleHttpBody, T>::new(reader, SimpleHttpBody::default())
     }
 }
 
@@ -5027,7 +5061,7 @@ impl<T: std::io::Read + Send + 'static> HttpResponseReader<SimpleHttpBody, T> {
     pub fn simple_tcp_stream(
         reader: SharedByteBufferStream<T>,
     ) -> HttpResponseReader<SimpleHttpBody, T> {
-        HttpResponseReader::<SimpleHttpBody, T>::new(reader, SimpleHttpBody)
+        HttpResponseReader::<SimpleHttpBody, T>::new(reader, SimpleHttpBody::default())
     }
 }
 
@@ -5061,7 +5095,7 @@ impl<T: std::io::Read + Send + 'static> HTTPStreams<T> {
     /// its data parts.
     #[must_use]
     pub fn next_request(&self) -> HttpRequestReader<SimpleHttpBody, T> {
-        HttpRequestReader::<SimpleHttpBody, T>::new(self.source.clone(), SimpleHttpBody)
+        HttpRequestReader::<SimpleHttpBody, T>::new(self.source.clone(), SimpleHttpBody::default())
     }
 
     /// [`next_response`] returns a new [`HttpResponse`] to read the next read http response from the
@@ -5069,7 +5103,7 @@ impl<T: std::io::Read + Send + 'static> HTTPStreams<T> {
     /// its data parts.
     #[must_use]
     pub fn next_response(&self) -> HttpResponseReader<SimpleHttpBody, T> {
-        HttpResponseReader::<SimpleHttpBody, T>::new(self.source.clone(), SimpleHttpBody)
+        HttpResponseReader::<SimpleHttpBody, T>::new(self.source.clone(), SimpleHttpBody::default())
     }
 }
 
@@ -5088,14 +5122,14 @@ pub mod http_streams {
             reader: T,
         ) -> HttpRequestReader<SimpleHttpBody, T> {
             let byte_reader = ioutils::SharedByteBufferStream::ref_cell(reader);
-            HttpRequestReader::<SimpleHttpBody, T>::new(byte_reader, SimpleHttpBody)
+            HttpRequestReader::<SimpleHttpBody, T>::new(byte_reader, SimpleHttpBody::default())
         }
 
         pub fn response_reader<T: Read + 'static>(
             reader: T,
         ) -> HttpResponseReader<SimpleHttpBody, T> {
             let byte_reader = ioutils::SharedByteBufferStream::ref_cell(reader);
-            HttpResponseReader::<SimpleHttpBody, T>::new(byte_reader, SimpleHttpBody)
+            HttpResponseReader::<SimpleHttpBody, T>::new(byte_reader, SimpleHttpBody::default())
         }
 
         pub fn http_streams<T: Read + 'static>(reader: T) -> HTTPStreams<T> {
@@ -5115,14 +5149,16 @@ pub mod http_streams {
             reader: T,
         ) -> HttpSendRequestReader<SimpleHttpBody, T> {
             let byte_reader = ioutils::SharedByteBufferStream::rwrite(reader);
-            HttpRequestReader::<SimpleHttpBody, T>::new(byte_reader, SimpleHttpBody).into()
+            HttpRequestReader::<SimpleHttpBody, T>::new(byte_reader, SimpleHttpBody::default())
+                .into()
         }
 
         pub fn response_reader<T: Read + Send + 'static>(
             reader: T,
         ) -> HttpSendResponseReader<SimpleHttpBody, T> {
             let byte_reader = ioutils::SharedByteBufferStream::rwrite(reader);
-            HttpResponseReader::<SimpleHttpBody, T>::new(byte_reader, SimpleHttpBody).into()
+            HttpResponseReader::<SimpleHttpBody, T>::new(byte_reader, SimpleHttpBody::default())
+                .into()
         }
 
         pub fn http_streams<T: Read + Send + 'static>(reader: T) -> HTTPStreams<T> {

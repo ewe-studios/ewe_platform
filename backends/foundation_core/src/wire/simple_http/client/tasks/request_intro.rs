@@ -81,7 +81,7 @@ impl TaskIterator for GetRequestIntroTask {
                     tracing::info!("Creating http response reader from stream");
                     let mut reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
                         stream.clone_stream(),
-                        SimpleHttpBody,
+                        SimpleHttpBody::default(),
                     );
 
                     tracing::info!("Get intro from stream");

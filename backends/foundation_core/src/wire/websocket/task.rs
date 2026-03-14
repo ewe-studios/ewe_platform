@@ -499,7 +499,7 @@ where
 
                 // Create HttpResponseReader
                 let stream = state.connection.clone_stream();
-                let reader = HttpResponseReader::new(stream, SimpleHttpBody);
+                let reader = HttpResponseReader::new(stream, SimpleHttpBody::default());
 
                 self.state = Some(WebSocketState::HandshakeReading(Some(Box::new(
                     WebSocketHandshakeReadingState {

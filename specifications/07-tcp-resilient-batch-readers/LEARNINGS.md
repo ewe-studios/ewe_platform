@@ -35,6 +35,27 @@ tags:
 
 **Finding**: The WebSocket decoder resets state on successful reads. Similarly, the retry counter must reset each time data is successfully read — only consecutive retries without progress should count toward the limit.
 
+### 4. Test Location — ALL Tests in ./tests Crate
+
+**Finding**: ALL tests (unit AND integration) live in `./tests` directory, crate name `ewe_platform_tests`. There are NO in-crate tests in `backends/foundation_core/src/`. The structure is:
+- `tests/backends/foundation_core/units/` — fast unit tests (no I/O)
+- `tests/backends/foundation_core/integrations/` — integration tests (real servers/streams)
+- New unit tests for `io::readers` should go in `tests/backends/foundation_core/units/io/` (does not exist yet, create it)
+- Update `tests/backends/foundation_core/units/mod.rs` to include the new module
+
+**Implication**: Run `cargo test -p ewe_platform_tests` to run both unit and integration tests. Do NOT use `cargo test -p foundation_core` — tests are not there.
+
+### 5. Test Patterns
+
+**Finding**: Tests follow specific patterns:
+- Use `foundation_core::*` public API imports (not internal paths)
+- WHY/WHAT comments before each test
+- Arrange/Act/Assert structure
+- `#[traced_test]` for tests needing log output
+- ONE test at a time (TDD cycle)
+- No `assert!(true)` placeholders
+
 ---
 
 _Created: 2026-03-14_
+_Updated: 2026-03-14 — Added integration test location_

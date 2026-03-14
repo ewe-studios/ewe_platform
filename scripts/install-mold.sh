@@ -8,24 +8,30 @@ TARGET="x86_64"
 
 echo "=== Installing mold linker ==="
 
-# Detect architecture
-ARCH=$(uname -m)
-if [ "$ARCH" = "aarch64" ]; then
-    TARGET="aarch64"
-elif [ "$ARCH" = "arm64" ]; then
-    # macOS Apple Silicon reports arm64, but mold uses aarch64 for 64-bit ARM
-    TARGET="aarch64"
-elif [ "$ARCH" = "armv7l" ] || [ "$ARCH" = "armhf" ] || [ "$ARCH" = "arm" ]; then
-    # 32-bit ARM
-    TARGET="arm"
-elif [ "$ARCH" = "x86_64" ]; then
-    TARGET="x86_64"
+# Check for target architecture override (useful for Docker cross-compilation)
+if [ -n "$MOLD_TARGET" ]; then
+    TARGET="$MOLD_TARGET"
+    echo "Using MOLD_TARGET override: $TARGET"
 else
-    echo "Unsupported architecture: $ARCH"
-    exit 1
+    # Detect architecture
+    ARCH=$(uname -m)
+    if [ "$ARCH" = "aarch64" ]; then
+        TARGET="aarch64"
+    elif [ "$ARCH" = "arm64" ]; then
+        # macOS Apple Silicon reports arm64, but mold uses aarch64 for 64-bit ARM
+        TARGET="aarch64"
+    elif [ "$ARCH" = "armv7l" ] || [ "$ARCH" = "armhf" ] || [ "$ARCH" = "arm" ]; then
+        # 32-bit ARM
+        TARGET="arm"
+    elif [ "$ARCH" = "x86_64" ]; then
+        TARGET="x86_64"
+    else
+        echo "Unsupported architecture: $ARCH"
+        exit 1
+    fi
 fi
 
-echo "Detected architecture: $ARCH -> target: ${TARGET}-linux-gnu"
+echo "Target architecture: ${TARGET}-linux-gnu"
 
 # Try to download prebuilt binary from GitHub releases
 MOLD_TARBALL="mold-${MOLD_VERSION}-${TARGET}-linux.tar.gz"

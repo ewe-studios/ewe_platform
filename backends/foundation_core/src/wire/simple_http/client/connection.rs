@@ -615,7 +615,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
 
         // Step 5: Parse proxy response
         let stream_clone = proxy_stream.clone();
-        let mut reader = HttpResponseReader::new(stream_clone, SimpleHttpBody);
+        let mut reader = HttpResponseReader::new(stream_clone, SimpleHttpBody::default());
 
         // Read intro line (status)
         let intro_response = reader
@@ -756,7 +756,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
 
         // Step 3: Parse proxy response
         let stream = proxy_conn.clone_stream();
-        let mut reader = HttpResponseReader::new(stream, SimpleHttpBody);
+        let mut reader = HttpResponseReader::new(stream, SimpleHttpBody::default());
 
         // Read intro line (status)
         let intro_response = reader
