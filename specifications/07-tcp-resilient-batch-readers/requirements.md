@@ -8,8 +8,8 @@ context_optimization: true
 compact_context_file: ./COMPACT_CONTEXT.md
 context_reload_required: true
 metadata:
-  version: '1.0'
-  last_updated: 2026-03-14
+  version: '1.1'
+  last_updated: 2026-03-14 — Updated SimpleHttpBody with Option<u64> max_body_size and builder methods
   estimated_effort: medium
   tags:
   - tcp
@@ -154,13 +154,13 @@ pub struct BatchStreamReader<R: Read> {
 
 ### 4. Updated `SimpleHttpBody`
 
-Change from unit struct to tuple struct with required fields:
+Change from unit struct to tuple struct with configurable fields:
 
 ```rust
-pub struct SimpleHttpBody(pub u64, pub u64, pub usize, pub usize);
+pub struct SimpleHttpBody(pub Option<u64>, pub u64, pub usize, pub usize);
 ```
 
-- First field: `max_body_size` — maximum allowed body size (applies to all body types)
+- First field: `max_body_size` — optional maximum allowed body size (`None` disables checking, useful for clients downloading large payloads)
 - Second field: `full_body_threshold` — for `LimitedBody`: if `content_length <= threshold` → use `FullBodyReader` → return `SendSafeBody::Bytes`; if `content_length > threshold` → use `BatchStreamReader` → return `SendSafeBody::Stream`
 - Third field: `batch_size` — read buffer size for `BatchReader` (default: 8192)
 - Fourth field: `max_retries` — max consecutive retries for WouldBlock/TimedOut (default: 100)
@@ -170,16 +170,58 @@ Implements `Default` with sensible defaults:
 ```rust
 impl Default for SimpleHttpBody {
     fn default() -> Self {
-        // max_body_size: 1 GB, full_body_threshold: 512 KB, batch_size: 8192, max_retries: 100
-        SimpleHttpBody(1024 * 1024 * 1024, 512 * 1024, 8192, 100)
+        // max_body_size: 1 GB (Some), full_body_threshold: 512 KB, batch_size: 8192, max_retries: 100
+        SimpleHttpBody(Some(1024 * 1024 * 1024), 512 * 1024, 8192, 100)
     }
 }
 ```
 
-- Default `max_body_size` of 1 GB — permissive default matching Apache/RHEL, can be tightened per use case.
+- Default `max_body_size` of 1 GB — permissive default matching Apache/RHEL, can be tightened per use case or disabled via `None`.
 - Default `full_body_threshold` of 512 KB — bodies at or below this are read entirely into memory via `FullBodyReader` and returned as `SendSafeBody::Bytes`. Bodies above are streamed via `BatchStreamReader` as `SendSafeBody::Stream`.
 - Default `batch_size` of 8192 bytes — read buffer size for batched streaming reads.
 - Default `max_retries` of 100 — maximum consecutive WouldBlock/TimedOut retries before erroring.
+
+#### Builder Methods
+
+Both `HttpRequestReader<SimpleHttpBody, T>` and `HttpResponseReader<SimpleHttpBody, T>` provide builder-style setters:
+
+```rust
+impl<T: std::io::Read + Send + 'static> HttpRequestReader<SimpleHttpBody, T> {
+    #[must_use]
+    pub fn with_max_body_size(mut self, max_body_size: Option<u64>) -> Self
+
+    #[must_use]
+    pub fn with_full_body_threshold(mut self, threshold: u64) -> Self
+
+    #[must_use]
+    pub fn with_batch_size(mut self, batch_size: usize) -> Self
+
+    #[must_use]
+    pub fn with_max_retries(mut self, max_retries: usize) -> Self
+}
+```
+
+Same methods are available on `HttpResponseReader<SimpleHttpBody, T>`.
+
+#### Usage Examples
+
+**Server-side (strict limits):**
+```rust
+let reader = HttpRequestReader::new(stream)
+    .with_max_body_size(Some(10 * 1024 * 1024)) // 10 MB max
+    .with_full_body_threshold(256 * 1024)        // 256 KB threshold
+    .with_batch_size(8192)
+    .with_max_retries(100);
+```
+
+**Client-side (unlimited downloads):**
+```rust
+let reader = HttpResponseReader::new(stream)
+    .with_max_body_size(None)  // No body size limit for downloads
+    .with_full_body_threshold(512 * 1024)
+    .with_batch_size(16384)    // Larger batches for throughput
+    .with_max_retries(200);    // More retries for slow connections
+```
 
 Wherever `SimpleHttpBody` is used, callers should be able to configure it (pass their own instance). If not configured, fall back to `SimpleHttpBody::default()`.
 
@@ -215,11 +257,11 @@ Wherever `SimpleHttpBody` is used, callers should be able to configure it (pass 
 - [ ] 12. Write tests for `BatchStreamReader` — verify retry absorption, bytes pass-through, error propagation
 
 ### SimpleHttpBody Update
-- [ ] 13. Change `SimpleHttpBody` from unit struct to `SimpleHttpBody(usize, usize)` with `Default` impl
-- [ ] 14. Update `BodyExtractor` impl to use `FullBodyReader` for small bodies and `BatchStreamReader` for large bodies
-- [ ] 15. Update `HttpRequestReader::simple_tcp_stream()` and `HttpResponseReader::simple_tcp_stream()` to use `SimpleHttpBody::default()`
-- [ ] 16. Update `HTTPStreams::next_request()` / `next_response()` and the `http_helpers` module to use `SimpleHttpBody::default()`
-- [ ] 17. Update call sites in `client/connection.rs`, `client/tasks/`, and `websocket/task.rs` to accept an optional `SimpleHttpBody` or fall back to `SimpleHttpBody::default()`
+- [x] 13. Change `SimpleHttpBody` from unit struct to `SimpleHttpBody(Option<u64>, u64, usize, usize)` with `Default` impl and builder methods on reader types
+- [x] 14. Update `BodyExtractor` impl to use `FullBodyReader` for small bodies and `BatchStreamReader` for large bodies
+- [x] 15. Update `HttpRequestReader::simple_tcp_stream()` and `HttpResponseReader::simple_tcp_stream()` to use `SimpleHttpBody::default()`
+- [x] 16. Update `HTTPStreams::next_request()` / `next_response()` and the `http_helpers` module to use `SimpleHttpBody::default()`
+- [x] 17. Update call sites in `client/connection.rs`, `client/tasks/`, and `websocket/task.rs` to accept an optional `SimpleHttpBody` or fall back to `SimpleHttpBody::default()`
 
 ### Validation (Mandatory)
 - [ ] 18. Run `cargo check` on `foundation_core` — must compile with zero errors

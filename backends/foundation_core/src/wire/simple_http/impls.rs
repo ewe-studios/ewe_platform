@@ -5112,6 +5112,35 @@ impl<T: std::io::Read + Send + 'static> HttpRequestReader<SimpleHttpBody, T> {
     ) -> HttpRequestReader<SimpleHttpBody, T> {
         HttpRequestReader::<SimpleHttpBody, T>::new(reader, SimpleHttpBody::default())
     }
+
+    /// Set the maximum body size limit. If `None`, no limit is enforced.
+    #[must_use]
+    pub fn with_max_body_size(mut self, max_body_size: Option<u64>) -> Self {
+        self.bodies.0 = max_body_size;
+        self
+    }
+
+    /// Set the threshold for reading bodies fully into memory vs streaming.
+    /// Bodies at or below this size are read entirely into memory.
+    #[must_use]
+    pub fn with_full_body_threshold(mut self, threshold: u64) -> Self {
+        self.bodies.1 = threshold;
+        self
+    }
+
+    /// Set the batch size for streaming reads.
+    #[must_use]
+    pub fn with_batch_size(mut self, batch_size: usize) -> Self {
+        self.bodies.2 = batch_size;
+        self
+    }
+
+    /// Set the maximum consecutive retries for WouldBlock/TimedOut errors.
+    #[must_use]
+    pub fn with_max_retries(mut self, max_retries: usize) -> Self {
+        self.bodies.3 = max_retries;
+        self
+    }
 }
 
 impl<T: std::io::Read + Send + 'static> HttpResponseReader<SimpleHttpBody, T> {
@@ -5120,6 +5149,35 @@ impl<T: std::io::Read + Send + 'static> HttpResponseReader<SimpleHttpBody, T> {
         reader: SharedByteBufferStream<T>,
     ) -> HttpResponseReader<SimpleHttpBody, T> {
         HttpResponseReader::<SimpleHttpBody, T>::new(reader, SimpleHttpBody::default())
+    }
+
+    /// Set the maximum body size limit. If `None`, no limit is enforced.
+    #[must_use]
+    pub fn with_max_body_size(mut self, max_body_size: Option<u64>) -> Self {
+        self.bodies.0 = max_body_size;
+        self
+    }
+
+    /// Set the threshold for reading bodies fully into memory vs streaming.
+    /// Bodies at or below this size are read entirely into memory.
+    #[must_use]
+    pub fn with_full_body_threshold(mut self, threshold: u64) -> Self {
+        self.bodies.1 = threshold;
+        self
+    }
+
+    /// Set the batch size for streaming reads.
+    #[must_use]
+    pub fn with_batch_size(mut self, batch_size: usize) -> Self {
+        self.bodies.2 = batch_size;
+        self
+    }
+
+    /// Set the maximum consecutive retries for WouldBlock/TimedOut errors.
+    #[must_use]
+    pub fn with_max_retries(mut self, max_retries: usize) -> Self {
+        self.bodies.3 = max_retries;
+        self
     }
 }
 
